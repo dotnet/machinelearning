@@ -327,7 +327,7 @@ namespace Microsoft.ML
         /// </summary>
         /// <param name="catalog">The conversion transform's catalog</param>
         /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.</param>
-        /// <param name="lookupMap">An instance of <see cref="IDataView"/> that contains the key and value columns.</param>
+        /// <param name="lookupMap">An instance of <see cref="IDataView"/> that contains the <paramref name="keyColumn"/> and <paramref name="valueColumn"/> columns.</param>
         /// <param name="keyColumn">The key column in <paramref name="lookupMap"/>.</param>
         /// <param name="valueColumn">The value column in <paramref name="lookupMap"/>.</param>
         /// <param name="inputColumnName">Name of the column to transform. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.</param>
@@ -343,9 +343,9 @@ namespace Microsoft.ML
         /// </example>
         public static ValueMappingEstimator MapValue(
             this TransformsCatalog.ConversionTransforms catalog,
-            string outputColumnName, IDataView lookupMap, string keyColumn, string valueColumn, string inputColumnName = null)
+            string outputColumnName, IDataView lookupMap, DataViewSchema.Column keyColumn, DataViewSchema.Column valueColumn, string inputColumnName = null)
         {
-            return new ValueMappingEstimator(CatalogUtils.GetEnvironment(catalog), lookupMap, keyColumn, valueColumn,
+            return new ValueMappingEstimator(CatalogUtils.GetEnvironment(catalog), lookupMap, keyColumn.Name, valueColumn.Name,
               new[] { (outputColumnName, inputColumnName ?? outputColumnName) });
         }
 
@@ -353,9 +353,9 @@ namespace Microsoft.ML
         /// <see cref="ValueMappingEstimator"/>
         /// </summary>
         /// <param name="catalog">The conversion transform's catalog</param>
-        /// <param name="lookupMap">An instance of <see cref="IDataView"/> that contains the key and value columns.</param>
-        /// <param name="keyColumnName">Name of the key column in <paramref name="lookupMap"/>.</param>
-        /// <param name="valueColumnName">Name of the value column in <paramref name="lookupMap"/>.</param>
+        /// <param name="lookupMap">An instance of <see cref="IDataView"/> that contains the <paramref name="keyColumn"/> and <paramref name="valueColumn"/> columns.</param>
+        /// <param name="keyColumn">Name of the key column in <paramref name="lookupMap"/>.</param>
+        /// <param name="valueColumn">Name of the value column in <paramref name="lookupMap"/>.</param>
         /// <param name="columns">The columns to apply this transform on.</param>
         /// <returns>A instance of the ValueMappingEstimator</returns>
         /// <example>
@@ -370,8 +370,8 @@ namespace Microsoft.ML
         [BestFriend]
         internal static ValueMappingEstimator MapValue(
             this TransformsCatalog.ConversionTransforms catalog,
-            IDataView lookupMap, string keyColumnName, string valueColumnName, params ColumnOptions[] columns)
-            => new ValueMappingEstimator(CatalogUtils.GetEnvironment(catalog), lookupMap, keyColumnName, valueColumnName,
+            IDataView lookupMap, DataViewSchema.Column keyColumn, DataViewSchema.Column valueColumn, params ColumnOptions[] columns)
+            => new ValueMappingEstimator(CatalogUtils.GetEnvironment(catalog), lookupMap, keyColumn.Name, valueColumn.Name,
                 ColumnOptions.ConvertToValueTuples(columns));
     }
 }

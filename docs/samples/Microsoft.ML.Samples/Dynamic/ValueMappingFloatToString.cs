@@ -29,15 +29,13 @@ namespace Microsoft.ML.Samples.Dynamic
 
             // If the list of keys and values are known, they can be passed to the API. The ValueMappingEstimator can also get the mapping through an IDataView
             // Creating a list of key-value pairs based on the induced value from the dataset
-            var temperatureKeyValuePairs = new List<KeyValuePair<float, string>>()
-            {
-                new KeyValuePair<float, string>(36.0f, "T1"),
-                new KeyValuePair<float, string>(35.0f, "T2"),
-                new KeyValuePair<float, string>(34.0f, "T3")
-            };
-            
+            var temperatureMap = new Dictionary<float, string>();
+            temperatureMap[36.0f] = "T1";
+            temperatureMap[35.0f] = "T2";
+            temperatureMap[34.0f] = "T3";
+
             // Constructs the ValueMappingEstimator making the ML.net pipeline
-            var pipeline = mlContext.Transforms.Conversion.MapValue("TemperatureCategory", temperatureKeyValuePairs, "Temperature");
+            var pipeline = mlContext.Transforms.Conversion.MapValue("TemperatureCategory", temperatureMap, "Temperature");
 
             // Fits the ValueMappingEstimator and transforms the data adding the TemperatureCategory column.
             IDataView transformedData = pipeline.Fit(trainData).Transform(trainData);

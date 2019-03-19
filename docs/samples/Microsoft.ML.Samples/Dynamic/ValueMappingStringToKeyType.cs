@@ -36,17 +36,15 @@ namespace Microsoft.ML.Samples.Dynamic
 
             // Creating a list of key-value pairs based on the Education values from the dataset
             // These lists are created by hand for the demonstration, but the ValueMappingEstimator does take an IEnumerable.
-            var educationKeyValuePairs = new List<KeyValuePair<string,string>>()
-            {
-                new KeyValuePair<string,string>("0-5yrs", "Undergraduate"),
-                new KeyValuePair<string,string>("6-11yrs", "Postgraduate"),
-                new KeyValuePair<string,string>("12+yrs", "Postgraduate")
-            };
+            var educationMap = new Dictionary<string, string>();
+            educationMap["0-5yrs"] = "Undergraduate";
+            educationMap["6-11yrs"] = "Postgraduate";
+            educationMap["12+yrs"] = "Postgraduate";
 
             // Generate the ValueMappingEstimator that will output KeyTypes even though our values are strings.
             // The KeyToValueMappingEstimator is added to provide a reverse lookup of the KeyType, converting the KeyType value back
             // to the original value.
-            var pipeline = mlContext.Transforms.Conversion.MapValue("EducationKeyType", educationKeyValuePairs, "Education", true)
+            var pipeline = mlContext.Transforms.Conversion.MapValue("EducationKeyType", educationMap, "Education", true)
                               .Append(mlContext.Transforms.Conversion.MapKeyToValue("EducationCategory", "EducationKeyType"));
 
             // Fits the ValueMappingEstimator and transforms the data adding the EducationKeyType column.

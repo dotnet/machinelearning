@@ -32,15 +32,13 @@ namespace Microsoft.ML.Samples.Dynamic
 
             // If the list of keys and values are known, they can be passed to the API. The ValueMappingEstimator can also get the mapping through an IDataView
             // Creating a list of key-value pairs based on the Education values from the dataset
-            var educationKeyValuePairs = new List<KeyValuePair<string, int[]>>()
-            {
-                new KeyValuePair<string, int[]>("0-5yrs",  new int[] { 1,2,3 }),
-                new KeyValuePair<string, int[]>("6-11yrs",  new int[] { 1,2,3 }),
-                new KeyValuePair<string, int[]>("12+yrs",  new int[] { 1,2,3 })
-            };
+            var educationMap = new Dictionary<string, int[]>();
+            educationMap["0-5yrs"] = new int[] { 1, 2, 3 };
+            educationMap["6-11yrs"] = new int[] { 5, 6, 7 };
+            educationMap["12+yrs"] = new int[] { 42, 32, 64 };
 
             // Constructs the ValueMappingEstimator making the ML.net pipeline
-            var pipeline = mlContext.Transforms.Conversion.MapValue<string, int>("EducationFeature", educationKeyValuePairs, "Education");
+            var pipeline = mlContext.Transforms.Conversion.MapValue<string, int>("EducationFeature", educationMap, "Education");
 
             // Fits the ValueMappingEstimator and transforms the data adding the EducationFeature column.
             IDataView transformedData = pipeline.Fit(trainData).Transform(trainData);
