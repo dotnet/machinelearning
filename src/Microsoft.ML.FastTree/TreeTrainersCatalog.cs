@@ -58,7 +58,7 @@ namespace Microsoft.ML
         /// </format>
         /// </example>
         public static FastTreeRegressionTrainer FastTree(this RegressionCatalog.RegressionTrainers catalog,
-        FastTreeRegressionTrainer.Options options)
+            FastTreeRegressionTrainer.Options options)
         {
             Contracts.CheckValue(catalog, nameof(catalog));
             Contracts.CheckValue(options, nameof(options));
