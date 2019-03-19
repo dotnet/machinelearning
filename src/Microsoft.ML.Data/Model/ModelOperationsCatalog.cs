@@ -200,7 +200,7 @@ namespace Microsoft.ML
         /// <param name="stream">A readable, seekable stream to load from.</param>
         /// <returns>A model of type <see cref="CompositeDataLoader{IMultiStreamSource, ITransformer}"/> containing the loader
         /// and the transformer chain.</returns>
-        public IDataLoader<IMultiStreamSource> Load(Stream stream)
+        public IDataLoader<IMultiStreamSource> LoadDataLoader(Stream stream)
         {
             _env.CheckValue(stream, nameof(stream));
 
@@ -224,10 +224,10 @@ namespace Microsoft.ML
         /// <param name="modelPath">Path to model.</param>
         /// <returns>A model of type <see cref="CompositeDataLoader{IMultiStreamSource, ITransformer}"/> containing the loader
         /// and the transformer chain.</returns>
-        public IDataLoader<IMultiStreamSource> Load(string modelPath)
+        public IDataLoader<IMultiStreamSource> LoadDataLoader(string modelPath)
         {
             using (var stream = File.OpenRead(modelPath))
-                return Load(stream);
+                return LoadDataLoader(stream);
         }
 
         /// <summary>
@@ -240,7 +240,7 @@ namespace Microsoft.ML
         {
             _env.CheckValue(stream, nameof(stream));
 
-            loader = Load(stream);
+            loader = LoadDataLoader(stream);
             if (loader is CompositeDataLoader<IMultiStreamSource, ITransformer> composite)
             {
                 loader = composite.Loader;

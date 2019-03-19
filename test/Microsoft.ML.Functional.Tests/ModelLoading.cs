@@ -74,12 +74,12 @@ namespace Microsoft.ML.Functional.Tests
             // a transformer model + an input schema, or a transformer model + a data loader.
             var t = _ml.Model.LoadWithDataLoader(compositeLoaderModelPath, out IDataLoader<IMultiStreamSource> l);
             var t1 = _ml.Model.Load(compositeLoaderModelPath, out var s);
-            loadedCompositeLoader = _ml.Model.Load(compositeLoaderModelPath);
+            loadedCompositeLoader = _ml.Model.LoadDataLoader(compositeLoaderModelPath);
 
             // This model can be loaded either as a composite data loader,
             // a transformer model + an input schema, or a transformer model + a data loader.
             var tt = _ml.Model.Load(loaderAndTransformerModelPath, out var ss);
-            var c = _ml.Model.Load(loaderAndTransformerModelPath);
+            var c = _ml.Model.LoadDataLoader(loaderAndTransformerModelPath);
             loadedTransformerModel1 = _ml.Model.LoadWithDataLoader(loaderAndTransformerModelPath, out IDataLoader<IMultiStreamSource> ll);
 
             var gam = ((loadedTransformerModel as ISingleFeaturePredictionTransformer<object>).Model
@@ -120,7 +120,7 @@ namespace Microsoft.ML.Functional.Tests
             IDataLoader<IMultiStreamSource> loadedModel;
             ITransformer loadedModelWithoutLoader;
             DataViewSchema loadedSchema;
-            loadedModel = _ml.Model.Load(modelPath);
+            loadedModel = _ml.Model.LoadDataLoader(modelPath);
             loadedModelWithoutLoader = _ml.Model.Load(modelPath, out loadedSchema);
 
             // Without deserializing the loader from the model we lose the slot names.
@@ -292,7 +292,7 @@ namespace Microsoft.ML.Functional.Tests
 
             try
             {
-                loadedLoader = _ml.Model.Load(filename);
+                loadedLoader = _ml.Model.LoadDataLoader(filename);
             }
             catch (Exception)
             {
