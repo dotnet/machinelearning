@@ -13,18 +13,24 @@ namespace Microsoft.ML.Functional.Tests.Datasets
     }
 
     /// <summary>
-    /// A class to hold the output of FeatureContributionCalculator
+    /// A class to hold the output of FeatureContributionCalculator.
     /// </summary>
     internal sealed class FeatureContributionOutput
     {
         public float[] FeatureContributions { get; set; }
     }
 
+    /// <summary>
+    /// A class to hold the Score column.
+    /// </summary>
     internal sealed class ScoreColumn
     {
         public float Score { get; set; }
     }
 
+    /// <summary>
+    /// A class to hold a vector Score column.
+    /// </summary>
     internal sealed class VectorScoreColumn
     {
         public float[] Score { get; set; }
