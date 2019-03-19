@@ -1,8 +1,9 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <!-- We are turning off strong naming to ensure we never add `InternalsVisibleTo` for these tests -->
-    <SignAssembly>true</SignAssembly>
+    <!-- DON'T CHANGE THIS!!! We are turning off strong naming to ensure we never add `InternalsVisibleTo` for these tests -->
+    <SignAssembly>false</SignAssembly>
+    <!-- DON'T CHANGE THIS!!! We are turning off strong naming to ensure we never add `InternalsVisibleTo` for these tests -->
     <PublicSign>false</PublicSign>
   </PropertyGroup>
 

@@ -50,6 +50,13 @@ namespace Microsoft.ML
         /// </summary>
         /// <param name="catalog">The <see cref="RegressionCatalog"/>.</param>
         /// <param name="options">Trainer options.</param>
+        /// <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        /// [!code-csharp[FastTreeRegression](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Trainers/Regression/FastTreeWithOptions.cs)]
+        /// ]]>
+        /// </format>
+        /// </example>
         public static FastTreeRegressionTrainer FastTree(this RegressionCatalog.RegressionTrainers catalog,
             FastTreeRegressionTrainer.Options options)
         {
@@ -188,8 +195,15 @@ namespace Microsoft.ML
         /// <param name="numberOfIterations">The number of iterations to use in learning the features.</param>
         /// <param name="maximumBinCountPerFeature">The maximum number of bins to use to approximate features.</param>
         /// <param name="learningRate">The learning rate. GAMs work best with a small learning rate.</param>
+        /// <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        /// [!code-csharp[GamRegression](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Trainers/Regression/Gam.cs)]
+        /// ]]>
+        /// </format>
+        /// </example>
         public static GamRegressionTrainer Gam(this RegressionCatalog.RegressionTrainers catalog,
-            string labelColumnName = DefaultColumnNames.Label,
+        string labelColumnName = DefaultColumnNames.Label,
             string featureColumnName = DefaultColumnNames.Features,
             string exampleWeightColumnName = null,
             int numberOfIterations = GamDefaults.NumberOfIterations,
@@ -206,6 +220,13 @@ namespace Microsoft.ML
         /// </summary>
         /// <param name="catalog">The <see cref="RegressionCatalog"/>.</param>
         /// <param name="options">Trainer options.</param>
+        /// <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        /// [!code-csharp[GamRegression](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Trainers/Regression/GamWithOptions.cs)]
+        /// ]]>
+        /// </format>
+        /// </example>
         public static GamRegressionTrainer Gam(this RegressionCatalog.RegressionTrainers catalog,
             GamRegressionTrainer.Options options)
         {
@@ -225,6 +246,13 @@ namespace Microsoft.ML
         /// <param name="numberOfLeaves">The maximum number of leaves per decision tree.</param>
         /// <param name="minDatapointsInLeaves">The minimal number of data points required to form a new tree leaf.</param>
         /// <param name="learningRate">The learning rate.</param>
+        /// <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        /// [!code-csharp[FastTreeTweedie](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Trainers/Regression/FastTreeTweedie.cs)]
+        /// ]]>
+        /// </format>
+        /// </example>
         public static FastTreeTweedieTrainer FastTreeTweedie(this RegressionCatalog.RegressionTrainers catalog,
             string labelColumnName = DefaultColumnNames.Label,
             string featureColumnName = DefaultColumnNames.Features,
@@ -244,6 +272,13 @@ namespace Microsoft.ML
         /// </summary>
         /// <param name="catalog">The <see cref="RegressionCatalog"/>.</param>
         /// <param name="options">Trainer options.</param>
+        /// <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        /// [!code-csharp[FastTreeTweedie](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Trainers/Regression/FastTreeTweedieWithOptions.cs)]
+        /// ]]>
+        /// </format>
+        /// </example>
         public static FastTreeTweedieTrainer FastTreeTweedie(this RegressionCatalog.RegressionTrainers catalog,
             FastTreeTweedieTrainer.Options options)
         {
@@ -264,6 +299,13 @@ namespace Microsoft.ML
         /// <param name="numberOfLeaves">The maximum number of leaves per decision tree.</param>
         /// <param name="numberOfTrees">Total number of decision trees to create in the ensemble.</param>
         /// <param name="minDatapointsInLeaves">The minimal number of data points required to form a new tree leaf.</param>
+        /// <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        /// [!code-csharp[FastForestRegression](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Trainers/Regression/FastForest.cs)]
+        /// ]]>
+        /// </format>
+        /// </example>
         public static FastForestRegressionTrainer FastForest(this RegressionCatalog.RegressionTrainers catalog,
             string labelColumnName = DefaultColumnNames.Label,
             string featureColumnName = DefaultColumnNames.Features,
@@ -282,6 +324,13 @@ namespace Microsoft.ML
         /// </summary>
         /// <param name="catalog">The <see cref="RegressionCatalog"/>.</param>
         /// <param name="options">Trainer options.</param>
+        /// <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        /// [!code-csharp[FastForestRegression](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Trainers/Regression/FastForestWithOptions.cs)]
+        /// ]]>
+        /// </format>
+        /// </example>
         public static FastForestRegressionTrainer FastForest(this RegressionCatalog.RegressionTrainers catalog,
             FastForestRegressionTrainer.Options options)
         {

@@ -1,5 +1,4 @@
-﻿using Microsoft.ML.Trainers.LightGbm;
-using static Microsoft.ML.Trainers.LightGbm.Options;
+﻿﻿using Microsoft.ML.Trainers.LightGbm;
 
 namespace Microsoft.ML.Samples.Dynamic.Trainers.BinaryClassification
 {
@@ -19,7 +18,7 @@ namespace Microsoft.ML.Samples.Dynamic.Trainers.BinaryClassification
 
             // Create the pipeline with LightGbm Estimator using advanced options.
             var pipeline = mlContext.BinaryClassification.Trainers.LightGbm(
-                                new Options
+                                new LightGbmBinaryTrainer.Options
                                 {
                                     Booster = new GossBooster.Options
                                     {

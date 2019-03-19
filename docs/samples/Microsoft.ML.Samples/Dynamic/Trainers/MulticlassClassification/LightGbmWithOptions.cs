@@ -3,7 +3,6 @@ using System.Linq;
 using Microsoft.ML.Data;
 using Microsoft.ML.SamplesUtils;
 using Microsoft.ML.Trainers.LightGbm;
-using static Microsoft.ML.Trainers.LightGbm.Options;
 
 namespace Microsoft.ML.Samples.Dynamic.Trainers.MulticlassClassification
 {
@@ -33,11 +32,11 @@ namespace Microsoft.ML.Samples.Dynamic.Trainers.MulticlassClassification
             //  - Convert the string labels into key types.
             //  - Apply LightGbm multiclass trainer with advanced options.
             var pipeline = mlContext.Transforms.Conversion.MapValueToKey("LabelIndex", "Label")
-                        .Append(mlContext.MulticlassClassification.Trainers.LightGbm(new Options
+                        .Append(mlContext.MulticlassClassification.Trainers.LightGbm(new LightGbmMulticlassTrainer.Options
                         {
                             LabelColumnName = "LabelIndex",
                             FeatureColumnName = "Features",
-                            Booster = new DartBooster.Options
+                            Booster = new DartBooster.Options()
                             {
                                 TreeDropFraction = 0.15,
                                 XgboostDartMode = false

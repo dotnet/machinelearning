@@ -2,14 +2,16 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Generic;
 using Microsoft.ML;
+using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
 using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Trainers.FastTree;
 using Microsoft.ML.Trainers.LightGbm;
 
-[assembly: LoadableClass(LightGbmRegressionTrainer.Summary, typeof(LightGbmRegressionTrainer), typeof(Options),
+[assembly: LoadableClass(LightGbmRegressionTrainer.Summary, typeof(LightGbmRegressionTrainer), typeof(LightGbmRegressionTrainer.Options),
     new[] { typeof(SignatureRegressorTrainer), typeof(SignatureTrainer), typeof(SignatureTreeEnsembleTrainer) },
     LightGbmRegressionTrainer.UserNameValue, LightGbmRegressionTrainer.LoadNameValue, LightGbmRegressionTrainer.ShortName, DocName = "trainer/LightGBM.md")]
 
@@ -74,7 +76,10 @@ namespace Microsoft.ML.Trainers.LightGbm
     /// The <see cref="IEstimator{TTransformer}"/> for training a boosted decision tree regression model using LightGBM.
     /// </summary>
     /// <include file='doc.xml' path='doc/members/member[@name="LightGBM_remarks"]/*' />
-    public sealed class LightGbmRegressionTrainer : LightGbmTrainerBase<float, RegressionPredictionTransformer<LightGbmRegressionModelParameters>, LightGbmRegressionModelParameters>
+    public sealed class LightGbmRegressionTrainer : LightGbmTrainerBase<LightGbmRegressionTrainer.Options,
+                                                                            float,
+                                                                            RegressionPredictionTransformer<LightGbmRegressionModelParameters>,
+                                                                            LightGbmRegressionModelParameters>
     {
         internal const string Summary = "LightGBM Regression";
         internal const string LoadNameValue = "LightGBMRegression";
@@ -82,6 +87,44 @@ namespace Microsoft.ML.Trainers.LightGbm
         internal const string UserNameValue = "LightGBM Regressor";
 
         private protected override PredictionKind PredictionKind => PredictionKind.Regression;
+
+        public sealed class Options : OptionsBase
+        {
+            public enum EvaluateMetricType
+            {
+                None,
+                Default,
+                MeanAbsoluteError,
+                RootMeanSquaredError,
+                MeanSquaredError
+            };
+
+            /// <summary>
+            /// Determines what evaluation metric to use.
+            /// </summary>
+            [Argument(ArgumentType.AtMostOnce,
+                HelpText = "Evaluation metrics.",
+                ShortName = "em")]
+            public EvaluateMetricType EvaluationMetric = EvaluateMetricType.RootMeanSquaredError;
+
+            static Options()
+            {
+                NameMapping.Add(nameof(EvaluateMetricType), "metric");
+                NameMapping.Add(nameof(EvaluateMetricType.None), "");
+                NameMapping.Add(nameof(EvaluateMetricType.MeanAbsoluteError), "mae");
+                NameMapping.Add(nameof(EvaluateMetricType.RootMeanSquaredError), "rmse");
+                NameMapping.Add(nameof(EvaluateMetricType.MeanSquaredError), "mse");
+            }
+
+            internal override Dictionary<string, object> ToDictionary(IHost host)
+            {
+                var res = base.ToDictionary(host);
+                if (EvaluationMetric != EvaluateMetricType.Default)
+                    res[GetOptionName(nameof(EvaluateMetricType))] = GetOptionName(EvaluationMetric.ToString());
+
+                return res;
+            }
+        }
 
         /// <summary>
         /// Initializes a new instance of <see cref="LightGbmRegressionTrainer"/>
@@ -101,8 +144,17 @@ namespace Microsoft.ML.Trainers.LightGbm
             int? numberOfLeaves = null,
             int? minimumExampleCountPerLeaf = null,
             double? learningRate = null,
-            int numberOfIterations = Trainers.LightGbm.Options.Defaults.NumberOfIterations)
-            : base(env, LoadNameValue, TrainerUtils.MakeR4ScalarColumn(labelColumnName), featureColumnName, exampleWeightColumnName, null, numberOfLeaves, minimumExampleCountPerLeaf, learningRate, numberOfIterations)
+            int numberOfIterations = Defaults.NumberOfIterations)
+            : this(env, new Options()
+                  {
+                    LabelColumnName = labelColumnName,
+                    FeatureColumnName = featureColumnName,
+                    ExampleWeightColumnName = exampleWeightColumnName,
+                    NumberOfLeaves = numberOfLeaves,
+                    MinimumExampleCountPerLeaf = minimumExampleCountPerLeaf,
+                    LearningRate = learningRate,
+                    NumberOfIterations = numberOfIterations
+                   })
         {
         }
 
@@ -115,7 +167,7 @@ namespace Microsoft.ML.Trainers.LightGbm
         {
             Host.Check(TrainedEnsemble != null,
                 "The predictor cannot be created before training is complete");
-            var innerArgs = LightGbmInterfaceUtils.JoinParameters(Options);
+            var innerArgs = LightGbmInterfaceUtils.JoinParameters(GbmOptions);
             return new LightGbmRegressionModelParameters(Host, TrainedEnsemble, FeatureCount, innerArgs);
         }
 
@@ -133,10 +185,7 @@ namespace Microsoft.ML.Trainers.LightGbm
 
         private protected override void CheckAndUpdateParametersBeforeTraining(IChannel ch, RoleMappedData data, float[] labels, int[] groups)
         {
-            Options["objective"] = "regression";
-            // Add default metric.
-            if (!Options.ContainsKey("metric"))
-                Options["metric"] = "l2";
+            GbmOptions["objective"] = "regression";
         }
 
         private protected override SchemaShape.Column[] GetOutputColumnsCore(SchemaShape inputSchema)
@@ -167,14 +216,14 @@ namespace Microsoft.ML.Trainers.LightGbm
             Desc = LightGbmRegressionTrainer.Summary,
             UserName = LightGbmRegressionTrainer.UserNameValue,
             ShortName = LightGbmRegressionTrainer.ShortName)]
-        public static CommonOutputs.RegressionOutput TrainRegression(IHostEnvironment env, Options input)
+        public static CommonOutputs.RegressionOutput TrainRegression(IHostEnvironment env, LightGbmRegressionTrainer.Options input)
         {
             Contracts.CheckValue(env, nameof(env));
             var host = env.Register("TrainLightGBM");
             host.CheckValue(input, nameof(input));
             EntryPointUtils.CheckInputArgs(host, input);
 
-            return TrainerEntryPointsUtils.Train<Options, CommonOutputs.RegressionOutput>(host, input,
+            return TrainerEntryPointsUtils.Train<LightGbmRegressionTrainer.Options, CommonOutputs.RegressionOutput>(host, input,
                 () => new LightGbmRegressionTrainer(host, input),
                 getLabel: () => TrainerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.LabelColumnName),
                 getWeight: () => TrainerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.ExampleWeightColumnName));

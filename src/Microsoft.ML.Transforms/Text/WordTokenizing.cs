@@ -438,7 +438,8 @@ namespace Microsoft.ML.Transforms.Text
           : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(WordTokenizingEstimator)), new WordTokenizingTransformer(env, columns))
         {
         }
-        public sealed class ColumnOptions
+        [BestFriend]
+        internal sealed class ColumnOptions
         {
             /// <summary>
             /// Output column name that will be used to store the tokenization result of <see cref="InputColumnName"/> column.

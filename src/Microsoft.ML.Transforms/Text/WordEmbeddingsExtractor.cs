@@ -828,7 +828,8 @@ namespace Microsoft.ML.Transforms.Text
         /// <summary>
         /// Information for each column pair.
         /// </summary>
-        public sealed class ColumnOptions
+        [BestFriend]
+        internal sealed class ColumnOptions
         {
             /// <summary>
             /// Name of the column resulting from the transformation of <cref see="InputColumnName"/>.

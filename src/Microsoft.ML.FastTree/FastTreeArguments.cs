@@ -524,6 +524,7 @@ namespace Microsoft.ML.Trainers.FastTree
 
         /// <summary>
         /// The fraction of features (chosen randomly) to use on each iteration. Use 0.9 if only 90% of features is needed.
+        /// Lower numbers help reduce over-fitting.
         /// </summary>
         [Argument(ArgumentType.AtMostOnce, HelpText = "The fraction of features (chosen randomly) to use on each iteration", ShortName = "ff")]
         public Double FeatureFraction = 1;

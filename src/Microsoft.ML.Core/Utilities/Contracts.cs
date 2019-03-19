@@ -737,6 +737,7 @@ namespace Microsoft.ML.Runtime
             if (!f)
                 throw ExceptIO(ctx, msg);
         }
+
         public static void CheckIO(this IExceptionContext ctx, bool f, string msg, params object[] args)
         {
             if (!f)
@@ -748,11 +749,10 @@ namespace Microsoft.ML.Runtime
         /// </summary>
         public static void CheckAlive(this IHostEnvironment env)
         {
-            if (env.IsCancelled)
+            if (env is ICancelable cancelableEnv && cancelableEnv.IsCanceled)
                 throw Process(new OperationCanceledException("Operation was cancelled."), env);
         }
 #endif
-
         /// <summary>
         /// This documents that the parameter can legally be null.
         /// </summary>

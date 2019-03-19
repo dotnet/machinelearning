@@ -61,7 +61,7 @@ namespace Microsoft.ML.Trainers
         }
 
         private double _posWeight;
-        private LinearModelStatistics _stats;
+        private ModelStatisticsBase _stats;
 
         /// <summary>
         /// Initializes a new instance of <see cref="LogisticRegressionBinaryTrainer"/>
@@ -250,12 +250,12 @@ namespace Microsoft.ML.Trainers
 
             // Compute the standard error of coefficients.
             long hessianDimension = (long)numParams * (numParams + 1) / 2;
-            if (hessianDimension > int.MaxValue)
+            if (hessianDimension > int.MaxValue || LbfgsTrainerOptions.ComputeStandardDeviation == null)
             {
-                ch.Warning("The number of parameter is too large. Cannot hold the variance-covariance matrix in memory. " +
+                ch.Warning("The number of parameters is too large. Cannot hold the variance-covariance matrix in memory. " +
                     "Skipping computation of standard errors and z-statistics of coefficients. Consider choosing a larger L1 regularizer" +
                     "to reduce the number of parameters.");
-                _stats = new LinearModelStatistics(Host, NumGoodRows, numParams, deviance, nullDeviance);
+                _stats = new ModelStatisticsBase(Host, NumGoodRows, numParams, deviance, nullDeviance);
                 return;
             }
 
@@ -354,13 +354,10 @@ namespace Microsoft.ML.Trainers
                 }
             }
 
-            if (LbfgsTrainerOptions.ComputeStandardDeviation == null)
-                _stats = new LinearModelStatistics(Host, NumGoodRows, numParams, deviance, nullDeviance);
-            else
-            {
-                var std = LbfgsTrainerOptions.ComputeStandardDeviation.ComputeStandardDeviation(hessian, weightIndices, numParams, CurrentWeights.Length, ch, L2Weight);
-                _stats = new LinearModelStatistics(Host, NumGoodRows, numParams, deviance, nullDeviance, std);
-            }
+            VBuffer<float> weightsOnly = default(VBuffer<float>);
+            CurrentWeights.CopyTo(ref weightsOnly, 1, CurrentWeights.Length - 1);
+            var std = LbfgsTrainerOptions.ComputeStandardDeviation.ComputeStandardDeviation(hessian, weightIndices, numParams, CurrentWeights.Length, ch, L2Weight);
+            _stats = new LinearModelParameterStatistics(Host, NumGoodRows, numParams, deviance, nullDeviance, std, weightsOnly, bias);
         }
 
         private protected override void ProcessPriorDistribution(float label, float weight)
