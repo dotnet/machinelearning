@@ -35,4 +35,23 @@
     
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="Dynamic\Trainers\Regression\FastTreeTemplate.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>FastTreeTemplate.cs</LastGenOutput>
+    </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Service Include="{508349b6-6b84-4df5-91f0-309beebad82d}" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="Dynamic\Trainers\Regression\FastTreeTemplate.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>FastTreeTemplate.tt</DependentUpon>
+    </Compile>
+  </ItemGroup>
+
 </Project>
