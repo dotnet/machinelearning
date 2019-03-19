@@ -70,7 +70,7 @@ namespace Microsoft.ML
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
-        /// [!code-csharp[BootstrapSample](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/DataOperations/DataViewEnumerable.cs)]
+        /// [!code-csharp[LoadFromEnumerable](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/DataOperations/DataViewEnumerable.cs)]
         /// ]]>
         /// </format>
         /// </example>
@@ -82,6 +82,25 @@ namespace Microsoft.ML
             return DataViewConstructionUtils.CreateFromEnumerable(_env, data, schemaDefinition);
         }
 
+        /// <summary>
+        /// Create a new <see cref="IDataView"/> over an enumerable of the items of user-defined type, and the provided <see cref="DataViewSchema"/>
+        /// which might contain more information about the schema than the type can capture.
+        /// </summary>
+        /// <remarks>
+        /// The user maintains ownership of the <paramref name="data"/> and the resulting data view will
+        /// never alter the contents of the <paramref name="data"/>.
+        /// Since <see cref="IDataView"/> is assumed to be immutable, the user is expected to support
+        /// multiple enumeration of the <paramref name="data"/> that would return the same results, unless
+        /// the user knows that the data will only be cursored once.
+        /// One typical usage for streaming data view could be: create the data view that lazily loads data
+        /// as needed, then apply pre-trained transformations to it and cursor through it for transformation
+        /// results.
+        /// One practical usage of this would be to supply the feature column names through the <see cref="DataViewSchema.Annotations"/>.
+        /// </remarks>
+        /// <typeparam name="TRow"></typeparam>
+        /// <param name="data">The <typeparamref name="TRow"/> to convert to an <see cref="IDataView"/>.</param>
+        /// <param name="schema">The schema of the returned <see cref="IDataView"/>.</param>
+        /// <returns>An <see cref="IDataView"/> with the given <paramref name="schema"/>.</returns>
         public IDataView LoadFromEnumerable<TRow>(IEnumerable<TRow> data, DataViewSchema schema)
             where TRow : class
         {
