@@ -113,6 +113,6 @@ namespace Microsoft.ML
         IProgressChannel IProgressChannelProvider.StartProgressChannel(string name) => _env.StartProgressChannel(name);
 
         [BestFriend]
-        internal void CancelExecution() => (_env as ICancelable).CancelExecution();
+        internal void CancelExecution() => ((ICancelable)_env).CancelExecution();
     }
 }

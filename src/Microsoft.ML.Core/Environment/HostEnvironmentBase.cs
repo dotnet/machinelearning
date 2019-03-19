@@ -96,7 +96,6 @@ namespace Microsoft.ML.Runtime
     internal abstract class HostEnvironmentBase<TEnv> : ChannelProviderBase, IHostEnvironment, IChannelProvider, ICancelable
         where TEnv : HostEnvironmentBase<TEnv>
     {
-        [BestFriend]
         void ICancelable.CancelExecution()
         {
             lock (_cancelLock)
@@ -136,7 +135,7 @@ namespace Microsoft.ML.Runtime
                 {
                     Random rand = (seed.HasValue) ? RandomUtils.Create(seed.Value) : RandomUtils.Create(_rand);
                     host = RegisterCore(this, name, Master?.FullName, rand, verbose ?? Verbose);
-                    if (host is ICancelable cancelableHost && !cancelableHost.IsCanceled)
+                    if (!IsCanceled)
                         _children.Add(new WeakReference<IHost>(host));
                 }
                 return host;
