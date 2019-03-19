@@ -27,19 +27,39 @@ using Microsoft.ML.Trainers;
 namespace Microsoft.ML.Trainers
 {
     /// <summary>
-    /// Represents a coefficient statistics object.
+    /// Represents a coefficient statistics object containing statistics about the calculated model parameters.
     /// </summary>
     public sealed class CoefficientStatistics
     {
+        /// <summary>
+        /// The model parameter (bias of weight) for which the statistics are generated.
+        /// </summary>
         public readonly float Estimate;
+
+        /// <summary>
+        /// The <a href="https://en.wikipedia.org/wiki/Standard_error">standard deviation</a> of the estimate of this model parameter (bias of weight).
+        /// </summary>
         public readonly float StandardError;
+
+        /// <summary>
+        /// The <a href="https://en.wikipedia.org/wiki/Standard_score">standard score</a> of the estimate of this model parameter (bias of weight).
+        /// Quantifies by how much the estimate is above or below the mean.
+        /// </summary>
         public readonly float ZScore;
+
+        /// <summary>
+        /// The <a href="https://en.wikipedia.org/wiki/P-value">probability value</a> of the estimate of this model parameter (bias of weight).
+        /// </summary>
         public readonly float PValue;
-        public readonly int FeatureIndex;
+
+        /// <summary>
+        /// The index of the feature, in the Features vector, to which this model parameter (bias of weight) corresponds to.
+        /// </summary>
+        public readonly int Index;
 
         internal CoefficientStatistics(int featureIndex, float estimate, float stdError, float zScore, float pValue)
         {
-            FeatureIndex = featureIndex;
+            Index = featureIndex;
             Estimate = estimate;
             StandardError = stdError;
             ZScore = zScore;
@@ -329,7 +349,9 @@ namespace Microsoft.ML.Trainers
             return new CoefficientStatistics(0, bias, stdError, zScore, pValue);
         }
 
-        // sefilipi: do we want to offer this? Do we want to offer setting the weights?
+        /// <summary>
+        /// Computes the standart deviation, Z-Score and p-Value for the calculated bias.
+        /// </summary>
         public CoefficientStatistics GetBiasStatistics() => GetBiasStatisticsForValue(_bias);
 
         private void GetUnorderedCoefficientStatistics(in VBuffer<ReadOnlyMemory<char>> names,
@@ -489,10 +511,10 @@ namespace Microsoft.ML.Trainers
 
             foreach (var coeffStat in coeffStats)
             {
-                Env.Assert(coeffStat.FeatureIndex < featureNames.Length);
+                Env.Assert(coeffStat.Index < featureNames.Length);
 
                 writer.WriteLine("{0,-15}\t{1,-10:G7}\t{2,-10:G7}\t{3,-10:G7}\t{4}",
-                            featureNames[coeffStat.FeatureIndex],
+                            featureNames[coeffStat.Index],
                             coeffStat.Estimate,
                             coeffStat.StandardError,
                             coeffStat.ZScore,
@@ -524,10 +546,10 @@ namespace Microsoft.ML.Trainers
 
             foreach (var coeffStat in coeffStats)
             {
-                Env.Assert(coeffStat.FeatureIndex < featureNames.Length);
+                Env.Assert(coeffStat.Index < featureNames.Length);
 
                 resultCollection.Add(new KeyValuePair<string, object>(
-                    featureNames[coeffStat.FeatureIndex],
+                    featureNames[coeffStat.Index],
                     new float[] { coeffStat.Estimate, coeffStat.StandardError, coeffStat.ZScore, coeffStat.PValue }));
             }
         }

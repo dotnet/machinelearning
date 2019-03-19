@@ -2,13 +2,14 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
+using System.IO;
 using Microsoft.ML.Calibrators;
 using Microsoft.ML.Data;
+using Microsoft.ML.Model;
+using Microsoft.ML.TestFramework.Attributes;
 using Microsoft.ML.Trainers;
 using Xunit;
-using System.IO;
-using Microsoft.ML.Model;
-using System;
 
 namespace Microsoft.ML.Tests.TrainerEstimators
 {
@@ -100,8 +101,8 @@ namespace Microsoft.ML.Tests.TrainerEstimators
 
                 Assert.NotNull(biasStats);
 
-                CompareNumbersWithTolerance(biasStats.StandardError, 0.250672936);
-                CompareNumbersWithTolerance(biasStats.ZScore, 7.97852373);
+                CompareNumbersWithTolerance(biasStats.StandardError, 0.25, digitsOfPrecision: 2);
+                CompareNumbersWithTolerance(biasStats.ZScore, 7.97, digitsOfPrecision: 2);
 
                 var scoredData = transformer.Transform(dataView);
 
@@ -176,7 +177,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             Done();
         }
 
-        [Fact]
+        [LessThanNetCore30OrNotNetCore]
         public void TestMLRWithStats()
         {
             (IEstimator<ITransformer> pipe, IDataView dataView) = GetMulticlassPipeline();
@@ -197,8 +198,8 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                 var stats = modelParams.Statistics;
                 Assert.NotNull(stats);
 
-                CompareNumbersWithTolerance(stats.Deviance, 45.3556442);
-                CompareNumbersWithTolerance(stats.NullDeviance, 329.583679199219);
+                CompareNumbersWithTolerance(stats.Deviance, 45.35, digitsOfPrecision: 2);
+                CompareNumbersWithTolerance(stats.NullDeviance, 329.58, digitsOfPrecision: 2);
                 //Assert.Equal(14, stats.ParametersCount);
                 Assert.Equal(150, stats.TrainingExampleCount);
             };
