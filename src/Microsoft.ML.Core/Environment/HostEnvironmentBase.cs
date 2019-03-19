@@ -129,17 +129,8 @@ namespace Microsoft.ML.Runtime
 
             public void CancelExecution()
             {
-                lock (_cancelLock)
-                {
-                    IsCanceled = true;
-                    foreach (var child in _children)
-                    {
-                        if (child.TryGetTarget(out IHost host))
-                            if (host is ICancelableHost cancelableHost)
-                                cancelableHost.CancelExecution();
-                    }
-                    _children.Clear();
-                }
+                CancelExecutionHosts();
+                IsCanceled = true;
             }
 
             public new IHost Register(string name, int? seed = null, bool? verbose = null)
