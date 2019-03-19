@@ -354,8 +354,8 @@ namespace Microsoft.ML
         /// </summary>
         /// <param name="catalog">The conversion transform's catalog</param>
         /// <param name="lookupMap">An instance of <see cref="IDataView"/> that contains the <paramref name="keyColumn"/> and <paramref name="valueColumn"/> columns.</param>
-        /// <param name="keyColumn">Name of the key column in <paramref name="lookupMap"/>.</param>
-        /// <param name="valueColumn">Name of the value column in <paramref name="lookupMap"/>.</param>
+        /// <param name="keyColumn">The key column in <paramref name="lookupMap"/>.</param>
+        /// <param name="valueColumn">The value column in <paramref name="lookupMap"/>.</param>
         /// <param name="columns">The columns to apply this transform on.</param>
         /// <returns>A instance of the ValueMappingEstimator</returns>
         /// <example>

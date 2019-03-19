@@ -13,7 +13,7 @@ namespace Microsoft.ML
     public static class CategoricalCatalog
     {
         /// <summary>
-        /// Convert several text column into one-hot encoded vectors.
+        /// Convert text columns into one-hot encoded vectors.
         /// </summary>
         /// <param name="catalog">The transform catalog</param>
         /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.</param>
@@ -69,6 +69,7 @@ namespace Microsoft.ML
         /// <param name="catalog">The transform catalog</param>
         /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.</param>
         /// <param name="inputColumnName">Name of column to transform. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.</param>
+        /// <param name="outputKind">The conversion mode.</param>
         /// <param name="numberOfBits">Number of bits to hash into. Must be between 1 and 30, inclusive.</param>
         /// <param name="seed">Hashing seed.</param>
         /// <param name="useOrderedHashing">Whether the position of each term should be included in the hash.</param>
@@ -76,7 +77,6 @@ namespace Microsoft.ML
         /// Text representation of original values are stored in the slot names of the  metadata for the new column.Hashing, as such, can map many initial values to one.
         /// <paramref name="maximumNumberOfInverts"/> specifies the upper bound of the number of distinct input values mapping to a hash that should be retained.
         /// <value>0</value> does not retain any input values. <value>-1</value> retains all input values mapping to each hash.</param>
-        /// <param name="outputKind">The conversion mode.</param>
         public static OneHotHashEncodingEstimator OneHotHashEncoding(this TransformsCatalog.CategoricalTransforms catalog,
                 string outputColumnName,
                 string inputColumnName = null,
