@@ -74,7 +74,7 @@ namespace Microsoft.ML.Data
                     foreach (var annotation in annotations.Schema)
                     {
                         var info = Utils.MarshalInvoke(GetAnnotationInfo<int>, annotation.Type.RawType, annotation.Name, annotations);
-                        schemaDefinitionCol.Annotations.Add(annotation.Name, info);
+                        schemaDefinitionCol.AddAnnotation(annotation.Name , info);
                     }
                 }
             }

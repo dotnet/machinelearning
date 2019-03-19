@@ -258,6 +258,11 @@ namespace Microsoft.ML.Data
                 AnnotationInfos[kind] = new AnnotationInfo<T>(kind, value, annotationType);
             }
 
+            internal void AddAnnotation(string kind, AnnotationInfo info)
+            {
+                AnnotationInfos[kind] = info;
+            }
+
             /// <summary>
             /// Returns annotations kind and type associated with this column.
             /// </summary>

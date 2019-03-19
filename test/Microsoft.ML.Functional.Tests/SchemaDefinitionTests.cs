@@ -48,11 +48,11 @@ namespace Microsoft.ML.Functional.Tests
 
             var outputSchemaDefinition = SchemaDefinition.Create(typeof(OutputData));
             outputSchemaDefinition["Features"].ColumnType = model1.GetOutputSchema(data.Schema)["Features"].Type;
-            var engine1 = model1.CreatePredictionEngine<InputData, OutputData>(_ml, outputSchemaDefinition: outputSchemaDefinition);
+            var engine1 = _ml.Model.CreatePredictionEngine<InputData, OutputData>(model1, outputSchemaDefinition: outputSchemaDefinition);
 
             outputSchemaDefinition = SchemaDefinition.Create(typeof(OutputData));
             outputSchemaDefinition["Features"].ColumnType = model2.GetOutputSchema(data.Schema)["Features"].Type;
-            var engine2 = model2.CreatePredictionEngine<InputData, OutputData>(_ml, outputSchemaDefinition: outputSchemaDefinition);
+            var engine2 = _ml.Model.CreatePredictionEngine<InputData, OutputData>(model2, outputSchemaDefinition: outputSchemaDefinition);
 
             var prediction = engine1.Predict(new InputData() { Workclass = "Self-emp-not-inc", NumericFeatures = new float[6] });
             Assert.Equal((engine1.OutputSchema["Features"].Type as VectorType).Size, prediction.Features.Length);
