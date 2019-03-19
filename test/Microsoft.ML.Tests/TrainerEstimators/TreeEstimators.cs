@@ -49,7 +49,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         {
             var (pipe, dataView) = GetBinaryClassificationPipeline();
 
-            var trainer = ML.BinaryClassification.Trainers.LightGbm(new Options
+            var trainer = ML.BinaryClassification.Trainers.LightGbm(new LightGbmBinaryTrainer.Options
             {
                 NumberOfLeaves = 10,
                 NumberOfThreads = 1,
@@ -136,7 +136,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         {
             var (pipe, dataView) = GetRankingPipeline();
 
-            var trainer = ML.Ranking.Trainers.LightGbm(new Options() { LabelColumnName = "Label0", FeatureColumnName = "NumericFeatures", RowGroupColumnName = "Group", LearningRate = 0.4 });
+            var trainer = ML.Ranking.Trainers.LightGbm(new LightGbmRankingTrainer.Options() { LabelColumnName = "Label0", FeatureColumnName = "NumericFeatures", RowGroupColumnName = "Group", LearningRate = 0.4 });
 
             var pipeWithTrainer = pipe.Append(trainer);
             TestEstimatorCore(pipeWithTrainer, dataView);
@@ -162,13 +162,13 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         }
 
         /// <summary>
-        /// LightGbmRegressorTrainer TrainerEstimator test 
+        /// LightGbmRegressionTrainer TrainerEstimator test 
         /// </summary>
         [LightGBMFact]
         public void LightGBMRegressorEstimator()
         {
             var dataView = GetRegressionPipeline();
-            var trainer = ML.Regression.Trainers.LightGbm(new Options
+            var trainer = ML.Regression.Trainers.LightGbm(new LightGbmRegressionTrainer.Options
             {
                 NumberOfThreads = 1,
                 NormalizeFeatures = NormalizeOption.Warn,
@@ -294,13 +294,14 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             var mlContext = new MLContext(seed: 0);
             var dataView = mlContext.Data.LoadFromEnumerable(dataList);
             int numberOfTrainingIterations = 3;
-            var gbmTrainer = new LightGbmMulticlassTrainer(mlContext, new Options
-            {
-                NumberOfIterations = numberOfTrainingIterations,
-                MinimumExampleCountPerGroup = 1,
-                MinimumExampleCountPerLeaf = 1,
-                UseSoftmax = useSoftmax
-            });
+            var gbmTrainer = new LightGbmMulticlassTrainer(mlContext, 
+                new LightGbmMulticlassTrainer.Options
+                {
+                    NumberOfIterations = numberOfTrainingIterations,
+                    MinimumExampleCountPerGroup = 1,
+                    MinimumExampleCountPerLeaf = 1,
+                    UseSoftmax = useSoftmax
+                });
 
             var gbm = gbmTrainer.Fit(dataView);
             var predicted = gbm.Transform(dataView);
