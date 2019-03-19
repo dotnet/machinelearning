@@ -187,7 +187,7 @@ namespace Microsoft.ML.Functional.Tests
 
             // Evaluate the model.
             var scoredData = model.Transform(data);
-            var metrics = mlContext.Ranking.Evaluate(scoredData, label: "Label", groupId: "GroupId");
+            var metrics = mlContext.Ranking.Evaluate(scoredData, labelColumnName: "Label", rowGroupColumnName: "GroupId");
 
             // Check that the metrics returned are valid.
             Common.AssertMetrics(metrics);
