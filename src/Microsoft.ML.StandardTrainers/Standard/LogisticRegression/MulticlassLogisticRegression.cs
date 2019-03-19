@@ -6,7 +6,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
@@ -67,7 +66,7 @@ namespace Microsoft.ML.Trainers
         // After training, it stores the total weights of training examples in each class.
         private Double[] _prior;
 
-        private LinearModelStatistics _stats;
+        private ModelStatisticsBase _stats;
 
         private protected override int ClassCount => _numClasses;
 
@@ -81,7 +80,7 @@ namespace Microsoft.ML.Trainers
         /// <param name="enforceNoNegativity">Enforce non-negative weights.</param>
         /// <param name="l1Weight">Weight of L1 regularizer term.</param>
         /// <param name="l2Weight">Weight of L2 regularizer term.</param>
-        /// <param name="memorySize">Memory size for <see cref="LogisticRegressionBinaryClassificationTrainer"/>. Low=faster, less accurate.</param>
+        /// <param name="memorySize">Memory size for <see cref="LogisticRegressionBinaryTrainer"/>. Low=faster, less accurate.</param>
         /// <param name="optimizationTolerance">Threshold for optimizer convergence.</param>
         internal LogisticRegressionMulticlassClassificationTrainer(IHostEnvironment env,
             string labelColumn = DefaultColumnNames.Label,
@@ -301,7 +300,7 @@ namespace Microsoft.ML.Trainers
             ch.Info("AIC:              \t{0}", 2 * numParams + deviance);
 
             // REVIEW: Figure out how to compute the statistics for the coefficients.
-            _stats = new LinearModelStatistics(Host, NumGoodRows, numParams, deviance, nullDeviance);
+            _stats = new ModelStatisticsBase(Host, NumGoodRows, numParams, deviance, nullDeviance);
         }
 
         private protected override void ProcessPriorDistribution(float label, float weight)
@@ -377,7 +376,7 @@ namespace Microsoft.ML.Trainers
 
         private readonly float[] _biases;
         private readonly VBuffer<float>[] _weights;
-        private readonly LinearModelStatistics _stats;
+        public readonly ModelStatisticsBase Statistics;
 
         // This stores the _weights matrix in dense format for performance.
         // It is used to make efficient predictions when the instance is sparse, so we get
@@ -396,7 +395,7 @@ namespace Microsoft.ML.Trainers
         bool ICanSavePfa.CanSavePfa => true;
         bool ICanSaveOnnx.CanSaveOnnx(OnnxContext ctx) => true;
 
-        internal MulticlassLogisticRegressionModelParameters(IHostEnvironment env, in VBuffer<float> weights, int numClasses, int numFeatures, string[] labelNames, LinearModelStatistics stats = null)
+        internal MulticlassLogisticRegressionModelParameters(IHostEnvironment env, in VBuffer<float> weights, int numClasses, int numFeatures, string[] labelNames, ModelStatisticsBase stats = null)
             : base(env, RegistrationName)
         {
             Contracts.Assert(weights.Length == numClasses + numClasses * numFeatures);
@@ -425,12 +424,12 @@ namespace Microsoft.ML.Trainers
             _labelNames = labelNames;
 
             Contracts.AssertValueOrNull(stats);
-            _stats = stats;
+            Statistics = stats;
         }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="MulticlassLogisticRegressionModelParameters"/> class.
-        /// This constructor is called by <see cref="SdcaMulticlassClassificationTrainer"/> to create the predictor.
+        /// This constructor is called by <see cref="SdcaMulticlassTrainer"/> to create the predictor.
         /// </summary>
         /// <param name="env">The host environment.</param>
         /// <param name="weights">The array of weights vectors. It should contain <paramref name="numClasses"/> weights.</param>
@@ -439,7 +438,7 @@ namespace Microsoft.ML.Trainers
         /// <param name="numFeatures">The length of the feature vector.</param>
         /// <param name="labelNames">The optional label names. If specified not null, it should have the same length as <paramref name="numClasses"/>.</param>
         /// <param name="stats">The model statistics.</param>
-        internal MulticlassLogisticRegressionModelParameters(IHostEnvironment env, VBuffer<float>[] weights, float[] bias, int numClasses, int numFeatures, string[] labelNames, LinearModelStatistics stats = null)
+        internal MulticlassLogisticRegressionModelParameters(IHostEnvironment env, VBuffer<float>[] weights, float[] bias, int numClasses, int numFeatures, string[] labelNames, ModelStatisticsBase stats = null)
             : base(env, RegistrationName)
         {
             Contracts.CheckValue(weights, nameof(weights));
@@ -469,7 +468,7 @@ namespace Microsoft.ML.Trainers
             _labelNames = labelNames;
 
             Contracts.AssertValueOrNull(stats);
-            _stats = stats;
+            Statistics = stats;
         }
 
         private MulticlassLogisticRegressionModelParameters(IHostEnvironment env, ModelLoadContext ctx)
@@ -488,7 +487,7 @@ namespace Microsoft.ML.Trainers
             // int: total number of non-zero weights  (same as number of column indices if sparse, num of classes * num of features if dense)
             // float[]: non-zero weights
             // int[]: Id of label names (optional, in a separate stream)
-            // LinearModelStatistics: model statistics (optional, in a separate stream)
+            // ModelStatisticsBase: model statistics (optional, in a separate stream)
 
             _numFeatures = ctx.Reader.ReadInt32();
             Host.CheckDecode(_numFeatures >= 1);
@@ -553,7 +552,12 @@ namespace Microsoft.ML.Trainers
             if (ctx.TryLoadBinaryStream(LabelNamesSubModelFilename, r => labelNames = LoadLabelNames(ctx, r)))
                 _labelNames = labelNames;
 
-            ctx.LoadModelOrNull<LinearModelStatistics, SignatureLoadModel>(Host, out _stats, ModelStatsSubModelFilename);
+            // backwards compatibility:MLR used to serialize a LinearModelSStatistics object, before there existed two separate classes
+            // for ModelStatisticsBase and LinearModelParameterStatistics.
+            // It always only populated only the fields now found on ModelStatisticsBase.
+            ModelStatisticsBase stats;
+            ctx.LoadModelOrNull<ModelStatisticsBase, SignatureLoadModel>(Host, out stats, ModelStatsSubModelFilename);
+            Statistics = stats;
         }
 
         private static MulticlassLogisticRegressionModelParameters Create(IHostEnvironment env, ModelLoadContext ctx)
@@ -589,7 +593,7 @@ namespace Microsoft.ML.Trainers
             // float[]: non-zero weights
             // bool: whether label names are present
             // int[]: Id of label names (optional, in a separate stream)
-            // LinearModelStatistics: model statistics (optional, in a separate stream)
+            // LinearModelParameterStatistics: model statistics (optional, in a separate stream)
 
             ctx.Writer.Write(_numFeatures);
             ctx.Writer.Write(_numClasses);
@@ -689,9 +693,9 @@ namespace Microsoft.ML.Trainers
             if (_labelNames != null)
                 ctx.SaveBinaryStream(LabelNamesSubModelFilename, w => SaveLabelNames(ctx, w));
 
-            Contracts.AssertValueOrNull(_stats);
-            if (_stats != null)
-                ctx.SaveModel(_stats, ModelStatsSubModelFilename);
+            Contracts.AssertValueOrNull(Statistics);
+            if (Statistics != null)
+                ctx.SaveModel(Statistics, ModelStatsSubModelFilename);
         }
 
         // REVIEW: Destroy.
@@ -788,8 +792,8 @@ namespace Microsoft.ML.Trainers
                 writer.WriteLine("\t{0}\t{1}", namedValues.Key, (float)namedValues.Value);
             }
 
-            if (_stats != null)
-                _stats.SaveText(writer, null, schema.Feature.Value, 20);
+            if (Statistics != null)
+                Statistics.SaveText(writer, schema.Feature.Value, 20);
         }
 
         ///<inheritdoc/>
@@ -993,11 +997,12 @@ namespace Microsoft.ML.Trainers
 
         DataViewRow ICanGetSummaryAsIRow.GetStatsIRowOrNull(RoleMappedSchema schema)
         {
-            if (_stats == null)
+            if (Statistics == null)
                 return null;
 
-            VBuffer<ReadOnlyMemory<char>> names = default;
-            var meta = _stats.MakeStatisticsMetadata(null, schema, in names);
+            var names = default(VBuffer<ReadOnlyMemory<char>>);
+            AnnotationUtils.GetSlotNames(schema, RoleMappedSchema.ColumnRole.Feature, _weights.Length, ref names);
+            var meta = Statistics.MakeStatisticsMetadata(schema, in names);
             return AnnotationUtils.AnnotationsAsRow(meta);
         }
     }
@@ -1005,7 +1010,7 @@ namespace Microsoft.ML.Trainers
     /// <summary>
     /// A component to train a logistic regression model.
     /// </summary>
-    public partial class LogisticRegressionBinaryClassificationTrainer
+    public partial class LogisticRegressionBinaryTrainer
     {
         [TlcModule.EntryPoint(Name = "Trainers.LogisticRegressionClassifier",
             Desc = Summary,

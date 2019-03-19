@@ -6,7 +6,6 @@ using System.Collections.Generic;
 using System.Globalization;
 using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Engines;
-using Microsoft.Data.DataView;
 using Microsoft.ML.Benchmarks.Harness;
 using Microsoft.ML.Data;
 using Microsoft.ML.TestFramework;
@@ -101,9 +100,9 @@ namespace Microsoft.ML.Benchmarks
             var loader = mlContext.Data.LoadFromTextFile(_sentimentDataPath, arguments);
             var text = mlContext.Transforms.Text.FeaturizeText("WordEmbeddings", new TextFeaturizingEstimator.Options
             {
-                OutputTokens = true,
+                OutputTokensColumnName = "WordEmbeddings_TransformedText",
                 KeepPunctuations = false,
-                UsePredefinedStopWordRemover = true,
+                StopWordsRemoverOptions = new StopWordsRemovingEstimator.Options(),
                 Norm = TextFeaturizingEstimator.NormFunction.None,
                 CharFeatureExtractor = null,
                 WordFeatureExtractor = null,
@@ -124,7 +123,7 @@ namespace Microsoft.ML.Benchmarks
         public void SetupPredictBenchmarks()
         {
             _trainedModel = Train(_dataPath);
-            _predictionEngine = _trainedModel.CreatePredictionEngine<IrisData, IrisPrediction>(mlContext);
+            _predictionEngine = mlContext.Model.CreatePredictionEngine<IrisData, IrisPrediction>(_trainedModel);
             _consumer.Consume(_predictionEngine.Predict(_example));
 
             // Create text loader.

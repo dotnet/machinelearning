@@ -7,7 +7,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using Microsoft.Data.DataView;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
 using Microsoft.ML.Data.IO;
@@ -80,12 +79,12 @@ namespace Microsoft.ML.RunTests
             var transformer = estimator.Fit(validFitInput);
             // Save and reload.
             string modelPath = GetOutputPath(FullTestName + "-model.zip");
-            using (var fs = File.Create(modelPath))
-                ML.Model.Save(transformer, fs);
+            ML.Model.Save(transformer, validFitInput.Schema, modelPath);
 
             ITransformer loadedTransformer;
+            DataViewSchema loadedInputSchema;
             using (var fs = File.OpenRead(modelPath))
-                loadedTransformer = ML.Model.Load(fs);
+                loadedTransformer = ML.Model.Load(fs, out loadedInputSchema);
             DeleteOutputPath(modelPath);
 
             // Run on train data.
@@ -107,6 +106,8 @@ namespace Microsoft.ML.RunTests
 
                 // Loaded transformer needs to have the same schema propagation.
                 CheckSameSchemas(schema, loadedTransformer.GetOutputSchema(data.Schema));
+                // Loaded schema needs to have the same schema as data.
+                CheckSameSchemas(data.Schema, loadedInputSchema);
 
                 var scoredTrain = transformer.Transform(data);
                 var scoredTrain2 = loadedTransformer.Transform(data);

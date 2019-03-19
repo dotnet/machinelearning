@@ -4,7 +4,6 @@
 
 using System.IO;
 using System.Linq;
-using Microsoft.ML.Data;
 using Microsoft.ML.RunTests;
 using Microsoft.ML.Trainers;
 using Xunit;
@@ -29,23 +28,23 @@ namespace Microsoft.ML.Tests.Scenarios.Api
             var pipeline = ml.Transforms.Text.FeaturizeText("Features", "SentimentText")
                 .AppendCacheCheckpoint(ml)
                 .Append(ml.BinaryClassification.Trainers.SdcaNonCalibrated(
-                    new SdcaNonCalibratedBinaryClassificationTrainer.Options { NumberOfThreads = 1 }));
+                    new SdcaNonCalibratedBinaryTrainer.Options { NumberOfThreads = 1 }));
 
             // Train.
             var model = pipeline.Fit(data);
 
             var modelPath = GetOutputPath("temp.zip");
             // Save model. 
-            using (var file = File.Create(modelPath))
-                model.SaveTo(ml, file);
+            ml.Model.Save(model, data.Schema, modelPath);
 
             // Load model.
             ITransformer loadedModel;
+            DataViewSchema inputSchema;
             using (var file = File.OpenRead(modelPath))
-                loadedModel = TransformerChain.LoadFrom(ml, file);
+                loadedModel = ml.Model.Load(file, out inputSchema);
 
             // Create prediction engine and test predictions.
-            var engine = loadedModel.CreatePredictionEngine<SentimentData, SentimentPrediction>(ml);
+            var engine = ml.Model.CreatePredictionEngine<SentimentData, SentimentPrediction>(loadedModel, inputSchema);
 
             // Take a couple examples out of the test data and run predictions on top.
             var testData = ml.Data.CreateEnumerable<SentimentData>(

@@ -7,7 +7,6 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Threading;
-using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
@@ -106,7 +105,8 @@ namespace Microsoft.ML.Transforms
             }
         }
 
-        public sealed class ColumnOptions
+        [BestFriend]
+        internal sealed class ColumnOptions
         {
             // Either VBuffer<Key<U4>> or a single Key<U4>.
             // Note that if CustomSlotMap contains only one array, the output type of the transform will a single Key<U4>.

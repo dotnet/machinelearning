@@ -3,19 +3,21 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
-using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.Calibrators;
+using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
 using Microsoft.ML.EntryPoints;
+using Microsoft.ML.Internal.Internallearn;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Trainers.FastTree;
 using Microsoft.ML.Trainers.LightGbm;
 
-[assembly: LoadableClass(LightGbmMulticlassClassificationTrainer.Summary, typeof(LightGbmMulticlassClassificationTrainer), typeof(Options),
+[assembly: LoadableClass(LightGbmMulticlassTrainer.Summary, typeof(LightGbmMulticlassTrainer), typeof(LightGbmMulticlassTrainer.Options),
     new[] { typeof(SignatureMulticlassClassifierTrainer), typeof(SignatureTrainer) },
-    "LightGBM Multi-class Classifier", LightGbmMulticlassClassificationTrainer.LoadNameValue, LightGbmMulticlassClassificationTrainer.ShortName, DocName = "trainer/LightGBM.md")]
+    "LightGBM Multi-class Classifier", LightGbmMulticlassTrainer.LoadNameValue, LightGbmMulticlassTrainer.ShortName, DocName = "trainer/LightGBM.md")]
 
 namespace Microsoft.ML.Trainers.LightGbm
 {
@@ -23,7 +25,10 @@ namespace Microsoft.ML.Trainers.LightGbm
     /// The <see cref="IEstimator{TTransformer}"/> for training a boosted decision tree multi-class classification model using LightGBM.
     /// </summary>
     /// <include file='doc.xml' path='doc/members/member[@name="LightGBM_remarks"]/*' />
-    public sealed class LightGbmMulticlassClassificationTrainer : LightGbmTrainerBase<VBuffer<float>, MulticlassPredictionTransformer<OneVersusAllModelParameters>, OneVersusAllModelParameters>
+    public sealed class LightGbmMulticlassTrainer : LightGbmTrainerBase<LightGbmMulticlassTrainer.Options,
+                                                                        VBuffer<float>,
+                                                                        MulticlassPredictionTransformer<OneVersusAllModelParameters>,
+                                                                        OneVersusAllModelParameters>
     {
         internal const string Summary = "LightGBM Multi Class Classifier";
         internal const string LoadNameValue = "LightGBMMulticlass";
@@ -35,14 +40,66 @@ namespace Microsoft.ML.Trainers.LightGbm
         private int _tlcNumClass;
         private protected override PredictionKind PredictionKind => PredictionKind.MulticlassClassification;
 
-        internal LightGbmMulticlassClassificationTrainer(IHostEnvironment env, Options options)
+        public sealed class Options : OptionsBase
+        {
+            public enum EvaluateMetricType
+            {
+                None,
+                Default,
+                Error,
+                LogLoss,
+            }
+
+            /// <summary>
+            /// Whether to use softmax loss.
+            /// </summary>
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Use softmax loss for the multi classification.")]
+            [TlcModule.SweepableDiscreteParam("UseSoftmax", new object[] { true, false })]
+            public bool? UseSoftmax;
+
+            /// <summary>
+            /// Parameter for the sigmoid function.
+            /// </summary>
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Parameter for the sigmoid function.", ShortName = "sigmoid")]
+            [TGUI(Label = "Sigmoid", SuggestedSweeps = "0.5,1")]
+            public double Sigmoid = 0.5;
+
+            /// <summary>
+            /// Determines what evaluation metric to use.
+            /// </summary>
+            [Argument(ArgumentType.AtMostOnce,
+                HelpText = "Evaluation metrics.",
+                ShortName = "em")]
+            public EvaluateMetricType EvaluationMetric = EvaluateMetricType.Error;
+
+            static Options()
+            {
+                NameMapping.Add(nameof(EvaluateMetricType), "metric");
+                NameMapping.Add(nameof(EvaluateMetricType.Error), "multi_error");
+                NameMapping.Add(nameof(EvaluateMetricType.LogLoss), "multi_logloss");
+            }
+
+            internal override Dictionary<string, object> ToDictionary(IHost host)
+            {
+                var res = base.ToDictionary(host);
+
+                res[GetOptionName(nameof(Sigmoid))] = Sigmoid;
+                if(EvaluationMetric != EvaluateMetricType.Default)
+                    res[GetOptionName(nameof(EvaluateMetricType))] = GetOptionName(EvaluationMetric.ToString());
+
+                return res;
+            }
+        }
+
+        internal LightGbmMulticlassTrainer(IHostEnvironment env, Options options)
              : base(env, LoadNameValue, options, TrainerUtils.MakeU4ScalarColumn(options.LabelColumnName))
         {
+            Contracts.CheckUserArg(options.Sigmoid > 0, nameof(Options.Sigmoid), "must be > 0.");
             _numClass = -1;
         }
 
         /// <summary>
-        /// Initializes a new instance of <see cref="LightGbmMulticlassClassificationTrainer"/>
+        /// Initializes a new instance of <see cref="LightGbmMulticlassTrainer"/>
         /// </summary>
         /// <param name="env">The private instance of <see cref="IHostEnvironment"/>.</param>
         /// <param name="labelColumnName">The name of The label column.</param>
@@ -52,17 +109,26 @@ namespace Microsoft.ML.Trainers.LightGbm
         /// <param name="minimumExampleCountPerLeaf">The minimal number of data points allowed in a leaf of the tree, out of the subsampled data.</param>
         /// <param name="learningRate">The learning rate.</param>
         /// <param name="numberOfIterations">The number of iterations to use.</param>
-        internal LightGbmMulticlassClassificationTrainer(IHostEnvironment env,
+        internal LightGbmMulticlassTrainer(IHostEnvironment env,
             string labelColumnName = DefaultColumnNames.Label,
             string featureColumnName = DefaultColumnNames.Features,
             string exampleWeightColumnName = null,
             int? numberOfLeaves = null,
             int? minimumExampleCountPerLeaf = null,
             double? learningRate = null,
-            int numberOfIterations = Trainers.LightGbm.Options.Defaults.NumberOfIterations)
-            : base(env, LoadNameValue, TrainerUtils.MakeU4ScalarColumn(labelColumnName), featureColumnName, exampleWeightColumnName, null, numberOfLeaves, minimumExampleCountPerLeaf, learningRate, numberOfIterations)
+            int numberOfIterations = Defaults.NumberOfIterations)
+            : this(env,
+                  new Options()
+                  {
+                    LabelColumnName = labelColumnName,
+                    FeatureColumnName = featureColumnName,
+                    ExampleWeightColumnName = exampleWeightColumnName,
+                    NumberOfLeaves = numberOfLeaves,
+                    MinimumExampleCountPerLeaf = minimumExampleCountPerLeaf,
+                    LearningRate = learningRate,
+                    NumberOfIterations = numberOfIterations
+                  })
         {
-            _numClass = -1;
         }
 
         private InternalTreeEnsemble GetBinaryEnsemble(int classID)
@@ -89,7 +155,7 @@ namespace Microsoft.ML.Trainers.LightGbm
             Host.Assert(_numClass > 1, "Must know the number of classes before creating a predictor.");
             Host.Assert(TrainedEnsemble.NumTrees % _numClass == 0, "Number of trees should be a multiple of number of classes.");
 
-            var innerArgs = LightGbmInterfaceUtils.JoinParameters(Options);
+            var innerArgs = LightGbmInterfaceUtils.JoinParameters(GbmOptions);
             IPredictorProducing<float>[] predictors = new IPredictorProducing<float>[_tlcNumClass];
             for (int i = 0; i < _tlcNumClass; ++i)
             {
@@ -164,13 +230,13 @@ namespace Microsoft.ML.Trainers.LightGbm
         private protected override void GetDefaultParameters(IChannel ch, int numRow, bool hasCategorical, int totalCats, bool hiddenMsg = false)
         {
             base.GetDefaultParameters(ch, numRow, hasCategorical, totalCats, true);
-            int numberOfLeaves = (int)Options["num_leaves"];
+            int numberOfLeaves = (int)GbmOptions["num_leaves"];
             int minimumExampleCountPerLeaf = LightGbmTrainerOptions.MinimumExampleCountPerLeaf ?? DefaultMinDataPerLeaf(numRow, numberOfLeaves, _numClass);
-            Options["min_data_per_leaf"] = minimumExampleCountPerLeaf;
+            GbmOptions["min_data_per_leaf"] = minimumExampleCountPerLeaf;
             if (!hiddenMsg)
             {
                 if (!LightGbmTrainerOptions.LearningRate.HasValue)
-                    ch.Info("Auto-tuning parameters: " + nameof(LightGbmTrainerOptions.LearningRate) + " = " + Options["learning_rate"]);
+                    ch.Info("Auto-tuning parameters: " + nameof(LightGbmTrainerOptions.LearningRate) + " = " + GbmOptions["learning_rate"]);
                 if (!LightGbmTrainerOptions.NumberOfLeaves.HasValue)
                     ch.Info("Auto-tuning parameters: " + nameof(LightGbmTrainerOptions.NumberOfLeaves) + " = " + numberOfLeaves);
                 if (!LightGbmTrainerOptions.MinimumExampleCountPerLeaf.HasValue)
@@ -183,7 +249,7 @@ namespace Microsoft.ML.Trainers.LightGbm
             Host.AssertValue(ch);
             ch.Assert(PredictionKind == PredictionKind.MulticlassClassification);
             ch.Assert(_numClass > 1);
-            Options["num_class"] = _numClass;
+            GbmOptions["num_class"] = _numClass;
             bool useSoftmax = false;
 
             if (LightGbmTrainerOptions.UseSoftmax.HasValue)
@@ -197,13 +263,9 @@ namespace Microsoft.ML.Trainers.LightGbm
             }
 
             if (useSoftmax)
-                Options["objective"] = "multiclass";
+                GbmOptions["objective"] = "multiclass";
             else
-                Options["objective"] = "multiclassova";
-
-            // Add default metric.
-            if (!Options.ContainsKey("metric"))
-                Options["metric"] = "multi_error";
+                GbmOptions["objective"] = "multiclassova";
         }
 
         private protected override SchemaShape.Column[] GetOutputColumnsCore(SchemaShape inputSchema)
@@ -224,7 +286,7 @@ namespace Microsoft.ML.Trainers.LightGbm
             => new MulticlassPredictionTransformer<OneVersusAllModelParameters>(Host, model, trainSchema, FeatureColumn.Name, LabelColumn.Name);
 
         /// <summary>
-        /// Trains a <see cref="LightGbmMulticlassClassificationTrainer"/> using both training and validation data, returns
+        /// Trains a <see cref="LightGbmMulticlassTrainer"/> using both training and validation data, returns
         /// a <see cref="MulticlassPredictionTransformer{OneVsAllModelParameters}"/>.
         /// </summary>
         public MulticlassPredictionTransformer<OneVersusAllModelParameters> Fit(IDataView trainData, IDataView validationData)
@@ -239,17 +301,17 @@ namespace Microsoft.ML.Trainers.LightGbm
         [TlcModule.EntryPoint(
             Name = "Trainers.LightGbmClassifier",
             Desc = "Train a LightGBM multi class model.",
-            UserName = LightGbmMulticlassClassificationTrainer.Summary,
-            ShortName = LightGbmMulticlassClassificationTrainer.ShortName)]
-        public static CommonOutputs.MulticlassClassificationOutput TrainMulticlass(IHostEnvironment env, Options input)
+            UserName = LightGbmMulticlassTrainer.Summary,
+            ShortName = LightGbmMulticlassTrainer.ShortName)]
+        public static CommonOutputs.MulticlassClassificationOutput TrainMulticlass(IHostEnvironment env, LightGbmMulticlassTrainer.Options input)
         {
             Contracts.CheckValue(env, nameof(env));
             var host = env.Register("TrainLightGBM");
             host.CheckValue(input, nameof(input));
             EntryPointUtils.CheckInputArgs(host, input);
 
-            return TrainerEntryPointsUtils.Train<Options, CommonOutputs.MulticlassClassificationOutput>(host, input,
-                () => new LightGbmMulticlassClassificationTrainer(host, input),
+            return TrainerEntryPointsUtils.Train<LightGbmMulticlassTrainer.Options, CommonOutputs.MulticlassClassificationOutput>(host, input,
+                () => new LightGbmMulticlassTrainer(host, input),
                 getLabel: () => TrainerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.LabelColumnName),
                 getWeight: () => TrainerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.ExampleWeightColumnName));
         }

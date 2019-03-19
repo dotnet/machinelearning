@@ -48,7 +48,7 @@ namespace Microsoft.ML.Scenarios
             var metrics = mlContext.MulticlassClassification.Evaluate(predictions);
             Assert.Equal(1, metrics.MicroAccuracy, 2);
 
-            var predictFunction = transformer.CreatePredictionEngine<CifarData, CifarPrediction>(mlContext);
+            var predictFunction = mlContext.Model.CreatePredictionEngine<CifarData, CifarPrediction>(transformer);
             var prediction = predictFunction.Predict(new CifarData()
             {
                 ImagePath = GetDataPath("images/banana.jpg")

@@ -49,7 +49,7 @@ namespace Microsoft.ML.Benchmarks
             .Append(new ValueToKeyMappingEstimator(mlContext, "Label"))
             .Append(mlContext.MulticlassClassification.Trainers.OneVersusAll(mlContext.BinaryClassification.Trainers.AveragedPerceptron(numberOfIterations: 10)));
 
-            var cvResults = mlContext.MulticlassClassification.CrossValidate(data, pipeline, numFolds: 5);
+            var cvResults = mlContext.MulticlassClassification.CrossValidate(data, pipeline, numberOfFolds: 5);
         }
     }
 }

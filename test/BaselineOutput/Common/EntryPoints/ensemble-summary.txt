@@ -20,7 +20,7 @@ AIC:                       	118.2943
 
 Coefficients statistics:
 Coefficient    	Estimate	Std. Error	z value  	Pr(>|z|)
-(Bias)         	-5.120674 	0.6998186 	-7.317145 	0 ***
+(Bias)	-5.120674 	0.6998186 	-7.317145 	0 ***
 Features.thickness	2.353567  	0.4267568 	5.515007  	5.960464E-08 ***
 Features.bare_nuclei	2.435889  	0.451504  	5.395056  	5.960464E-08 ***
 Features.uniform_shape	1.944249  	0.4137097 	4.699549  	2.622604E-06 ***
@@ -68,7 +68,7 @@ AIC:                       	114.1969
 
 Coefficients statistics:
 Coefficient    	Estimate	Std. Error	z value  	Pr(>|z|)
-(Bias)         	-4.860323 	0.7128119 	-6.818521 	0 ***
+(Bias)	-4.860323 	0.7128119 	-6.818521 	0 ***
 Features.bare_nuclei	3.16846   	0.4579377 	6.918975  	0 ***
 Features.thickness	2.143086  	0.4306555 	4.976335  	6.556511E-07 ***
 Features.uniform_shape	1.711214  	0.4222687 	4.05243   	5.072355E-05 ***

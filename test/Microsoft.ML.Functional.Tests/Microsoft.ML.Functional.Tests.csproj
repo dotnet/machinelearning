@@ -1,8 +1,9 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <!-- We are turning off strong naming to ensure we never add `InternalsVisibleTo` for these tests -->
+    <!-- DON'T CHANGE THIS!!! We are turning off strong naming to ensure we never add `InternalsVisibleTo` for these tests -->
     <SignAssembly>false</SignAssembly>
+    <!-- DON'T CHANGE THIS!!! We are turning off strong naming to ensure we never add `InternalsVisibleTo` for these tests -->
     <PublicSign>false</PublicSign>
   </PropertyGroup>
 
@@ -38,6 +39,7 @@
     <NativeAssemblyReference Include="SymSgdNative" />
     <NativeAssemblyReference Include="MklProxyNative" />
     <NativeAssemblyReference Include="MklImports" />
+    <NativeAssemblyReference Condition="'$(OS)' == 'Windows_NT'" Include="libiomp5md"/>
   </ItemGroup>
 
   <!-- TensorFlow is 64-bit only -->

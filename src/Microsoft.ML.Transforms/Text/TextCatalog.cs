@@ -72,7 +72,8 @@ namespace Microsoft.ML
         /// and append another marker character, <see langword="0x03"/>, to the end of the output vector of characters.</param>
         /// <param name="columns">Pairs of columns to run the tokenization on.</param>
 
-        public static TokenizingByCharactersEstimator TokenizeIntoCharactersAsKeys(this TransformsCatalog.TextTransforms catalog,
+        [BestFriend]
+        internal static TokenizingByCharactersEstimator TokenizeIntoCharactersAsKeys(this TransformsCatalog.TextTransforms catalog,
             bool useMarkerCharacters = CharTokenizingDefaults.UseMarkerCharacters,
             params ColumnOptions[] columns)
             => new TokenizingByCharactersEstimator(Contracts.CheckRef(catalog, nameof(catalog)).GetEnvironment(), useMarkerCharacters, ColumnOptions.ConvertToValueTuples(columns));
@@ -118,8 +119,8 @@ namespace Microsoft.ML
 
         /// <include file='doc.xml' path='doc/members/member[@name="WordEmbeddings"]/*' />
         /// <param name="catalog">The text-related transform's catalog.</param>
-        /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.</param>
         /// <param name="customModelFile">The path of the pre-trained embeedings model to use. </param>
+        /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.</param>
         /// <param name="inputColumnName">Name of the column to transform.</param>
         /// <example>
         /// <format type="text/markdown">
@@ -146,7 +147,8 @@ namespace Microsoft.ML
         /// ]]>
         /// </format>
         /// </example>
-        public static WordEmbeddingEstimator ApplyWordEmbedding(this TransformsCatalog.TextTransforms catalog,
+        [BestFriend]
+        internal static WordEmbeddingEstimator ApplyWordEmbedding(this TransformsCatalog.TextTransforms catalog,
            WordEmbeddingEstimator.PretrainedModelKind modelKind = WordEmbeddingEstimator.PretrainedModelKind.SentimentSpecificWordEmbedding,
            params WordEmbeddingEstimator.ColumnOptions[] columns)
             => new WordEmbeddingEstimator(Contracts.CheckRef(catalog, nameof(catalog)).GetEnvironment(), modelKind, columns);
@@ -170,7 +172,8 @@ namespace Microsoft.ML
         /// </summary>
         /// <param name="catalog">The text-related transform's catalog.</param>
         /// <param name="columns">Pairs of columns to run the tokenization on.</param>
-        public static WordTokenizingEstimator TokenizeIntoWords(this TransformsCatalog.TextTransforms catalog,
+        [BestFriend]
+        internal static WordTokenizingEstimator TokenizeIntoWords(this TransformsCatalog.TextTransforms catalog,
             params WordTokenizingEstimator.ColumnOptions[] columns)
           => new WordTokenizingEstimator(Contracts.CheckRef(catalog, nameof(catalog)).GetEnvironment(), columns);
 
@@ -210,7 +213,8 @@ namespace Microsoft.ML
         /// </summary>
         /// <param name="catalog">The text-related transform's catalog.</param>
         /// <param name="columns">Pairs of columns to run the ngram process on.</param>
-        public static NgramExtractingEstimator ProduceNgrams(this TransformsCatalog.TextTransforms catalog,
+        [BestFriend]
+        internal static NgramExtractingEstimator ProduceNgrams(this TransformsCatalog.TextTransforms catalog,
              params NgramExtractingEstimator.ColumnOptions[] columns)
           => new NgramExtractingEstimator(Contracts.CheckRef(catalog, nameof(catalog)).GetEnvironment(), columns);
 
@@ -384,6 +388,7 @@ namespace Microsoft.ML
         /// Text representation of original values are stored in the slot names of the  metadata for the new column.Hashing, as such, can map many initial values to one.
         /// <paramref name="maximumNumberOfInverts"/> specifies the upper bound of the number of distinct input values mapping to a hash that should be retained.
         /// <value>0</value> does not retain any input values. <value>-1</value> retains all input values mapping to each hash.</param>
+        /// <param name="rehashUnigrams">Whether to rehash unigrams.</param>
         public static NgramHashingEstimator ProduceHashedNgrams(this TransformsCatalog.TextTransforms catalog,
             string outputColumnName,
             string inputColumnName = null,
@@ -393,10 +398,47 @@ namespace Microsoft.ML
             bool useAllLengths = NgramHashingEstimator.Defaults.UseAllLengths,
             uint seed = NgramHashingEstimator.Defaults.Seed,
             bool useOrderedHashing = NgramHashingEstimator.Defaults.UseOrderedHashing,
-            int maximumNumberOfInverts = NgramHashingEstimator.Defaults.MaximumNumberOfInverts)
+            int maximumNumberOfInverts = NgramHashingEstimator.Defaults.MaximumNumberOfInverts,
+            bool rehashUnigrams = NgramHashingEstimator.Defaults.RehashUnigrams)
             => new NgramHashingEstimator(Contracts.CheckRef(catalog, nameof(catalog)).GetEnvironment(),
-                outputColumnName, inputColumnName, numberOfBits: numberOfBits, ngramLength: ngramLength, skipLength: skipLength,
-                useAllLengths: useAllLengths, seed: seed, useOrderedHashing: useOrderedHashing, maximumNumberOfInverts: maximumNumberOfInverts);
+                new[] {new NgramHashingEstimator.ColumnOptions(outputColumnName, new[] { inputColumnName }, ngramLength: ngramLength, skipLength: skipLength,
+                useAllLengths: useAllLengths, numberOfBits: numberOfBits, seed: seed, useOrderedHashing: useOrderedHashing, maximumNumberOfInverts: maximumNumberOfInverts, rehashUnigrams) });
+
+        /// <summary>
+        /// Produces a bag of counts of hashed ngrams in <paramref name="inputColumnNames"/>
+        /// and outputs ngram vector as <paramref name="outputColumnName"/>
+        ///
+        /// <see cref="NgramHashingEstimator"/> is different from <see cref="WordHashBagEstimator"/> in a way that <see cref="NgramHashingEstimator"/>
+        /// takes tokenized text as input while <see cref="WordHashBagEstimator"/> tokenizes text internally.
+        /// </summary>
+        /// <param name="catalog">The text-related transform's catalog.</param>
+        /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnNames"/>.</param>
+        /// <param name="inputColumnNames">Names of the columns to transform. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.</param>
+        /// <param name="numberOfBits">Number of bits to hash into. Must be between 1 and 30, inclusive.</param>
+        /// <param name="ngramLength">Ngram length.</param>
+        /// <param name="skipLength">Maximum number of tokens to skip when constructing an ngram.</param>
+        /// <param name="useAllLengths">Whether to include all ngram lengths up to <paramref name="ngramLength"/> or only <paramref name="ngramLength"/>.</param>
+        /// <param name="seed">Hashing seed.</param>
+        /// <param name="useOrderedHashing">Whether the position of each source column should be included in the hash (when there are multiple source columns).</param>
+        /// <param name="maximumNumberOfInverts">During hashing we constuct mappings between original values and the produced hash values.
+        /// Text representation of original values are stored in the slot names of the  metadata for the new column.Hashing, as such, can map many initial values to one.
+        /// <paramref name="maximumNumberOfInverts"/> specifies the upper bound of the number of distinct input values mapping to a hash that should be retained.
+        /// <value>0</value> does not retain any input values. <value>-1</value> retains all input values mapping to each hash.</param>
+        /// <param name="rehashUnigrams">Whether to rehash unigrams.</param>
+        public static NgramHashingEstimator ProduceHashedNgrams(this TransformsCatalog.TextTransforms catalog,
+            string outputColumnName,
+            string[] inputColumnNames = null,
+            int numberOfBits = NgramHashingEstimator.Defaults.NumberOfBits,
+            int ngramLength = NgramHashingEstimator.Defaults.NgramLength,
+            int skipLength = NgramHashingEstimator.Defaults.SkipLength,
+            bool useAllLengths = NgramHashingEstimator.Defaults.UseAllLengths,
+            uint seed = NgramHashingEstimator.Defaults.Seed,
+            bool useOrderedHashing = NgramHashingEstimator.Defaults.UseOrderedHashing,
+            int maximumNumberOfInverts = NgramHashingEstimator.Defaults.MaximumNumberOfInverts,
+            bool rehashUnigrams = NgramHashingEstimator.Defaults.RehashUnigrams)
+            => new NgramHashingEstimator(Contracts.CheckRef(catalog, nameof(catalog)).GetEnvironment(),
+                new[] {new NgramHashingEstimator.ColumnOptions(outputColumnName, inputColumnNames, ngramLength: ngramLength, skipLength: skipLength,
+                useAllLengths: useAllLengths, numberOfBits: numberOfBits, seed: seed, useOrderedHashing: useOrderedHashing, maximumNumberOfInverts: maximumNumberOfInverts, rehashUnigrams) });
 
         /// <summary>
         /// Produces a bag of counts of hashed ngrams for each <paramref name="columns"/>. For each column,
@@ -407,7 +449,8 @@ namespace Microsoft.ML
         /// </summary>
         /// <param name="catalog">The text-related transform's catalog.</param>
         /// <param name="columns">Pairs of columns to compute n-grams. Note that gram indices are generated by hashing.</param>
-        public static NgramHashingEstimator ProduceHashedNgrams(this TransformsCatalog.TextTransforms catalog,
+        [BestFriend]
+        internal static NgramHashingEstimator ProduceHashedNgrams(this TransformsCatalog.TextTransforms catalog,
             NgramHashingEstimator.ColumnOptions[] columns)
              => new NgramHashingEstimator(Contracts.CheckRef(catalog, nameof(catalog)).GetEnvironment(), columns);
 
@@ -419,9 +462,16 @@ namespace Microsoft.ML
         /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.</param>
         /// <param name="inputColumnName">Name of the column to transform. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.</param>
         /// <param name="numberOfTopics">The number of topics.</param>
+        /// <param name="alphaSum">Dirichlet prior on document-topic vectors.</param>
+        /// <param name="beta">Dirichlet prior on vocab-topic vectors.</param>
+        /// <param name="samplingStepCount">Number of Metropolis Hasting step.</param>
         /// <param name="maximumNumberOfIterations">Number of iterations.</param>
+        /// <param name="likelihoodInterval">Compute log likelihood over local dataset on this iteration interval.</param>
+        /// <param name="numberOfThreads">The number of training threads. Default value depends on number of logical processors.</param>
         /// <param name="maximumTokenCountPerDocument">The threshold of maximum count of tokens per doc.</param>
         /// <param name="numberOfSummaryTermsPerTopic">The number of words to summarize the topic.</param>
+        /// <param name="numberOfBurninIterations">The number of burn-in iterations.</param>
+        /// <param name="resetRandomGenerator">Reset the random number generator for each document.</param>
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
@@ -433,21 +483,20 @@ namespace Microsoft.ML
             string outputColumnName,
             string inputColumnName = null,
             int numberOfTopics = LatentDirichletAllocationEstimator.Defaults.NumberOfTopics,
+            float alphaSum = LatentDirichletAllocationEstimator.Defaults.AlphaSum,
+            float beta = LatentDirichletAllocationEstimator.Defaults.Beta,
+            int samplingStepCount = LatentDirichletAllocationEstimator.Defaults.SamplingStepCount,
             int maximumNumberOfIterations = LatentDirichletAllocationEstimator.Defaults.MaximumNumberOfIterations,
+            int likelihoodInterval = LatentDirichletAllocationEstimator.Defaults.LikelihoodInterval,
+            int numberOfThreads = LatentDirichletAllocationEstimator.Defaults.NumberOfThreads,
             int maximumTokenCountPerDocument = LatentDirichletAllocationEstimator.Defaults.MaximumTokenCountPerDocument,
-            int numberOfSummaryTermsPerTopic = LatentDirichletAllocationEstimator.Defaults.NumberOfSummaryTermsPerTopic)
+            int numberOfSummaryTermsPerTopic = LatentDirichletAllocationEstimator.Defaults.NumberOfSummaryTermsPerTopic,
+            int numberOfBurninIterations = LatentDirichletAllocationEstimator.Defaults.NumberOfBurninIterations,
+            bool resetRandomGenerator = LatentDirichletAllocationEstimator.Defaults.ResetRandomGenerator)
             => new LatentDirichletAllocationEstimator(CatalogUtils.GetEnvironment(catalog),
-                outputColumnName, inputColumnName, numberOfTopics,
-                LatentDirichletAllocationEstimator.Defaults.AlphaSum,
-                LatentDirichletAllocationEstimator.Defaults.Beta,
-                LatentDirichletAllocationEstimator.Defaults.SamplingStepCount,
-                maximumNumberOfIterations,
-                LatentDirichletAllocationEstimator.Defaults.NumberOfThreads,
-                maximumTokenCountPerDocument,
-                numberOfSummaryTermsPerTopic,
-                LatentDirichletAllocationEstimator.Defaults.LikelihoodInterval,
-                LatentDirichletAllocationEstimator.Defaults.NumberOfBurninIterations,
-                LatentDirichletAllocationEstimator.Defaults.ResetRandomGenerator);
+                outputColumnName, inputColumnName, numberOfTopics, alphaSum, beta, samplingStepCount,
+                maximumNumberOfIterations, numberOfThreads, maximumTokenCountPerDocument, numberOfSummaryTermsPerTopic,
+                likelihoodInterval, numberOfBurninIterations, resetRandomGenerator);
 
         /// <summary>
         /// Uses <a href="https://arxiv.org/abs/1412.1576">LightLDA</a> to transform a document (represented as a vector of floats)
@@ -455,7 +504,8 @@ namespace Microsoft.ML
         /// </summary>
         /// <param name="catalog">The transform's catalog.</param>
         /// <param name="columns">Describes the parameters of LDA for each column pair.</param>
-        public static LatentDirichletAllocationEstimator LatentDirichletAllocation(
+        [BestFriend]
+        internal static LatentDirichletAllocationEstimator LatentDirichletAllocation(
             this TransformsCatalog.TextTransforms catalog,
             params LatentDirichletAllocationEstimator.ColumnOptions[] columns)
             => new LatentDirichletAllocationEstimator(CatalogUtils.GetEnvironment(catalog), columns);

@@ -4,7 +4,6 @@
 
 using System;
 using System.Collections.Generic;
-using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.Calibrators;
 using Microsoft.ML.CommandLine;
@@ -16,21 +15,21 @@ using Microsoft.ML.Numeric;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Trainers;
 
-[assembly: LoadableClass(LogisticRegressionBinaryClassificationTrainer.Summary, typeof(LogisticRegressionBinaryClassificationTrainer), typeof(LogisticRegressionBinaryClassificationTrainer.Options),
+[assembly: LoadableClass(LogisticRegressionBinaryTrainer.Summary, typeof(LogisticRegressionBinaryTrainer), typeof(LogisticRegressionBinaryTrainer.Options),
     new[] { typeof(SignatureBinaryClassifierTrainer), typeof(SignatureTrainer), typeof(SignatureFeatureScorerTrainer) },
-    LogisticRegressionBinaryClassificationTrainer.UserNameValue,
-    LogisticRegressionBinaryClassificationTrainer.LoadNameValue,
-    LogisticRegressionBinaryClassificationTrainer.ShortName,
+    LogisticRegressionBinaryTrainer.UserNameValue,
+    LogisticRegressionBinaryTrainer.LoadNameValue,
+    LogisticRegressionBinaryTrainer.ShortName,
     "logisticregressionwrapper")]
 
-[assembly: LoadableClass(typeof(void), typeof(LogisticRegressionBinaryClassificationTrainer), null, typeof(SignatureEntryPointModule), LogisticRegressionBinaryClassificationTrainer.LoadNameValue)]
+[assembly: LoadableClass(typeof(void), typeof(LogisticRegressionBinaryTrainer), null, typeof(SignatureEntryPointModule), LogisticRegressionBinaryTrainer.LoadNameValue)]
 
 namespace Microsoft.ML.Trainers
 {
 
     /// <include file='doc.xml' path='doc/members/member[@name="LBFGS"]/*' />
     /// <include file='doc.xml' path='docs/members/example[@name="LogisticRegressionBinaryClassifier"]/*' />
-    public sealed partial class LogisticRegressionBinaryClassificationTrainer : LbfgsTrainerBase<LogisticRegressionBinaryClassificationTrainer.Options,
+    public sealed partial class LogisticRegressionBinaryTrainer : LbfgsTrainerBase<LogisticRegressionBinaryTrainer.Options,
         BinaryPredictionTransformer<CalibratedModelParametersBase<LinearBinaryModelParameters, PlattCalibrator>>,
         CalibratedModelParametersBase<LinearBinaryModelParameters, PlattCalibrator>>
     {
@@ -55,17 +54,17 @@ namespace Microsoft.ML.Trainers
             /// <summary>
             /// The instance of <see cref="ComputeLogisticRegressionStandardDeviation"/> that computes the std of the training statistics, at the end of training.
             /// The calculations are not part of Microsoft.ML package, due to the size of MKL.
-            /// If you need these calculations, add the Microsoft.ML.Mkl.Components package, and initialize <see cref="LogisticRegressionBinaryClassificationTrainer.Options.ComputeStandardDeviation"/>.
+            /// If you need these calculations, add the Microsoft.ML.Mkl.Components package, and initialize <see cref="LogisticRegressionBinaryTrainer.Options.ComputeStandardDeviation"/>.
             /// to the <see cref="ComputeLogisticRegressionStandardDeviation"/> implementation in the Microsoft.ML.Mkl.Components package.
             /// </summary>
             public ComputeLogisticRegressionStandardDeviation ComputeStandardDeviation;
         }
 
         private double _posWeight;
-        private LinearModelStatistics _stats;
+        private ModelStatisticsBase _stats;
 
         /// <summary>
-        /// Initializes a new instance of <see cref="LogisticRegressionBinaryClassificationTrainer"/>
+        /// Initializes a new instance of <see cref="LogisticRegressionBinaryTrainer"/>
         /// </summary>
         /// <param name="env">The environment to use.</param>
         /// <param name="labelColumn">The name of the label column.</param>
@@ -74,9 +73,9 @@ namespace Microsoft.ML.Trainers
         /// <param name="enforceNoNegativity">Enforce non-negative weights.</param>
         /// <param name="l1Weight">Weight of L1 regularizer term.</param>
         /// <param name="l2Weight">Weight of L2 regularizer term.</param>
-        /// <param name="memorySize">Memory size for <see cref="LogisticRegressionBinaryClassificationTrainer"/>. Low=faster, less accurate.</param>
+        /// <param name="memorySize">Memory size for <see cref="LogisticRegressionBinaryTrainer"/>. Low=faster, less accurate.</param>
         /// <param name="optimizationTolerance">Threshold for optimizer convergence.</param>
-        internal LogisticRegressionBinaryClassificationTrainer(IHostEnvironment env,
+        internal LogisticRegressionBinaryTrainer(IHostEnvironment env,
             string labelColumn = DefaultColumnNames.Label,
             string featureColumn = DefaultColumnNames.Features,
             string weights = null,
@@ -96,9 +95,9 @@ namespace Microsoft.ML.Trainers
         }
 
         /// <summary>
-        /// Initializes a new instance of <see cref="LogisticRegressionBinaryClassificationTrainer"/>
+        /// Initializes a new instance of <see cref="LogisticRegressionBinaryTrainer"/>
         /// </summary>
-        internal LogisticRegressionBinaryClassificationTrainer(IHostEnvironment env, Options options)
+        internal LogisticRegressionBinaryTrainer(IHostEnvironment env, Options options)
             : base(env, options, TrainerUtils.MakeBoolScalarLabel(options.LabelColumnName))
         {
             _posWeight = 0;
@@ -128,7 +127,7 @@ namespace Microsoft.ML.Trainers
             => new BinaryPredictionTransformer<CalibratedModelParametersBase<LinearBinaryModelParameters, PlattCalibrator>>(Host, model, trainSchema, FeatureColumn.Name);
 
         /// <summary>
-        /// Continues the training of a <see cref="LogisticRegressionBinaryClassificationTrainer"/> using an already trained <paramref name="modelParameters"/> and returns
+        /// Continues the training of a <see cref="LogisticRegressionBinaryTrainer"/> using an already trained <paramref name="modelParameters"/> and returns
         /// a <see cref="BinaryPredictionTransformer{CalibratedModelParametersBase}"/>.
         /// </summary>
         public BinaryPredictionTransformer<CalibratedModelParametersBase<LinearBinaryModelParameters, PlattCalibrator>> Fit(IDataView trainData, LinearModelParameters modelParameters)
@@ -251,12 +250,12 @@ namespace Microsoft.ML.Trainers
 
             // Compute the standard error of coefficients.
             long hessianDimension = (long)numParams * (numParams + 1) / 2;
-            if (hessianDimension > int.MaxValue)
+            if (hessianDimension > int.MaxValue || LbfgsTrainerOptions.ComputeStandardDeviation == null)
             {
-                ch.Warning("The number of parameter is too large. Cannot hold the variance-covariance matrix in memory. " +
+                ch.Warning("The number of parameters is too large. Cannot hold the variance-covariance matrix in memory. " +
                     "Skipping computation of standard errors and z-statistics of coefficients. Consider choosing a larger L1 regularizer" +
                     "to reduce the number of parameters.");
-                _stats = new LinearModelStatistics(Host, NumGoodRows, numParams, deviance, nullDeviance);
+                _stats = new ModelStatisticsBase(Host, NumGoodRows, numParams, deviance, nullDeviance);
                 return;
             }
 
@@ -355,13 +354,10 @@ namespace Microsoft.ML.Trainers
                 }
             }
 
-            if (LbfgsTrainerOptions.ComputeStandardDeviation == null)
-                _stats = new LinearModelStatistics(Host, NumGoodRows, numParams, deviance, nullDeviance);
-            else
-            {
-                var std = LbfgsTrainerOptions.ComputeStandardDeviation.ComputeStandardDeviation(hessian, weightIndices, numParams, CurrentWeights.Length, ch, L2Weight);
-                _stats = new LinearModelStatistics(Host, NumGoodRows, numParams, deviance, nullDeviance, std);
-            }
+            VBuffer<float> weightsOnly = default(VBuffer<float>);
+            CurrentWeights.CopyTo(ref weightsOnly, 1, CurrentWeights.Length - 1);
+            var std = LbfgsTrainerOptions.ComputeStandardDeviation.ComputeStandardDeviation(hessian, weightIndices, numParams, CurrentWeights.Length, ch, L2Weight);
+            _stats = new LinearModelParameterStatistics(Host, NumGoodRows, numParams, deviance, nullDeviance, std, weightsOnly, bias);
         }
 
         private protected override void ProcessPriorDistribution(float label, float weight)
@@ -421,7 +417,7 @@ namespace Microsoft.ML.Trainers
             EntryPointUtils.CheckInputArgs(host, input);
 
             return TrainerEntryPointsUtils.Train<Options, CommonOutputs.BinaryClassificationOutput>(host, input,
-                () => new LogisticRegressionBinaryClassificationTrainer(host, input),
+                () => new LogisticRegressionBinaryTrainer(host, input),
                 () => TrainerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.LabelColumnName),
                 () => TrainerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.ExampleWeightColumnName));
         }
@@ -440,7 +436,7 @@ namespace Microsoft.ML.Trainers
         /// Computes the standard deviation matrix of each of the non-zero training weights, needed to calculate further the standard deviation,
         /// p-value and z-Score.
         /// The calculations are not part of Microsoft.ML package, due to the size of MKL.
-        /// If you need these calculations, add the Microsoft.ML.Mkl.Components package, and initialize <see cref="LogisticRegressionBinaryClassificationTrainer.Options.ComputeStandardDeviation"/>
+        /// If you need these calculations, add the Microsoft.ML.Mkl.Components package, and initialize <see cref="LogisticRegressionBinaryTrainer.Options.ComputeStandardDeviation"/>
         /// to the <see cref="ComputeLogisticRegressionStandardDeviation"/> implementation in the Microsoft.ML.Mkl.Components package.
         /// Due to the existence of regularization, an approximation is used to compute the variances of the trained linear coefficients.
         /// </summary>
