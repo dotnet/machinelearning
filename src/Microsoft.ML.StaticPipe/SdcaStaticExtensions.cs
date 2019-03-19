@@ -365,7 +365,7 @@ namespace Microsoft.ML.StaticPipe
             var rec = new TrainerEstimatorReconciler.MulticlassClassificationReconciler<TVal>(
                 (env, labelName, featuresName, weightsName) =>
                 {
-                    var trainer = new SdcaMulticlassClassificationTrainer(env, labelName, featuresName, weightsName, loss: new LogLoss(), l2Regularization, l1Threshold, numberOfIterations);
+                    var trainer = new SdcaMulticlassClassificationTrainer(env, labelName, featuresName, weightsName, l2Regularization, l1Threshold, numberOfIterations);
                     if (onFit != null)
                         return trainer.WithOnFitDelegate(trans => onFit(trans.Model));
                     return trainer;

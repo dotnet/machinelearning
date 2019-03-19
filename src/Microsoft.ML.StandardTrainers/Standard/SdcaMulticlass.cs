@@ -28,7 +28,7 @@ namespace Microsoft.ML.Trainers
     /// The <see cref="IEstimator{TTransformer}"/> for training a multiclass linear classification model using the stochastic dual coordinate ascent method.
     /// </summary>
     /// <include file='doc.xml' path='doc/members/member[@name="SDCA_remarks"]/*' />
-    public abstract class SdcaMulticlassClassificationTrainerBase<TModel> : SdcaTrainerBase<SdcaMulticlassClassificationTrainerBase<TModel>.Options, MulticlassPredictionTransformer<TModel>, TModel>
+    public abstract class SdcaMulticlassClassificationTrainerBase<TModel> : SdcaTrainerBase<SdcaMulticlassClassificationTrainerBase<TModel>.CommonOptions, MulticlassPredictionTransformer<TModel>, TModel>
         where TModel : class
     {
         internal const string LoadNameValue = "SDCAMC";
@@ -39,7 +39,7 @@ namespace Microsoft.ML.Trainers
         /// <summary>
         /// Options for the <see cref="SdcaMulticlassClassificationTrainerBase{TModel}"/>.
         /// </summary>
-        public sealed class Options : OptionsBase
+        public class CommonOptions : OptionsBase
         {
             /// <summary>
             /// The custom <a href="tmpurl_loss">loss</a>.
@@ -51,12 +51,12 @@ namespace Microsoft.ML.Trainers
             internal ISupportSdcaClassificationLossFactory LossFunctionFactory = new LogLossFactory();
 
             /// <summary>
-            /// The custom <a href="tmpurl_loss">loss</a>.
+            /// Internal state of <see cref="SdcaNonCalibratedMulticlassClassificationTrainer.Options.Loss"/> or storage of
+            /// a customized loss passed in. <see cref="SdcaMulticlassClassificationTrainer.Options"/> cannot set this field because its
+            /// loss function is always <see cref="LogLoss"/>. In addition, <see cref="InternalLoss"/> and <see cref="LogLossFactory"/> are
+            /// the two fields used to determined the actual loss function inside the training framework of <see cref="SdcaMulticlassClassificationTrainerBase{TModel}"/>.
             /// </summary>
-            /// <value>
-            /// If unspecified, <see cref="LogLoss"/> will be used.
-            /// </value>
-            public ISupportSdcaClassificationLoss LossFunction { get; set; }
+            internal ISupportSdcaClassificationLoss InternalLoss;
         }
 
         private readonly ISupportSdcaClassificationLoss _loss;
@@ -87,22 +87,22 @@ namespace Microsoft.ML.Trainers
         {
             Host.CheckNonEmpty(featureColumn, nameof(featureColumn));
             Host.CheckNonEmpty(labelColumn, nameof(labelColumn));
-            _loss = loss ?? SdcaTrainerOptions.LossFunction ?? SdcaTrainerOptions.LossFunctionFactory.CreateComponent(env);
+            _loss = loss ?? SdcaTrainerOptions.InternalLoss ?? SdcaTrainerOptions.LossFunctionFactory.CreateComponent(env);
             Loss = _loss;
         }
 
-        internal SdcaMulticlassClassificationTrainerBase(IHostEnvironment env, Options options,
+        internal SdcaMulticlassClassificationTrainerBase(IHostEnvironment env, CommonOptions options,
             string featureColumn, string labelColumn, string weightColumn = null)
             : base(env, options, TrainerUtils.MakeU4ScalarColumn(labelColumn), TrainerUtils.MakeR4ScalarWeightColumn(weightColumn))
         {
             Host.CheckValue(labelColumn, nameof(labelColumn));
             Host.CheckValue(featureColumn, nameof(featureColumn));
 
-            _loss = options.LossFunction ?? options.LossFunctionFactory.CreateComponent(env);
+            _loss = options.InternalLoss ?? options.LossFunctionFactory.CreateComponent(env);
             Loss = _loss;
         }
 
-        internal SdcaMulticlassClassificationTrainerBase(IHostEnvironment env, Options options)
+        internal SdcaMulticlassClassificationTrainerBase(IHostEnvironment env, CommonOptions options)
             : this(env, options, options.FeatureColumnName, options.LabelColumnName)
         {
         }
@@ -437,15 +437,18 @@ namespace Microsoft.ML.Trainers
     /// <include file='doc.xml' path='doc/members/member[@name="SDCA_remarks"]/*' />
     public sealed class SdcaMulticlassClassificationTrainer : SdcaMulticlassClassificationTrainerBase<MaximumEntropyModelParameters>
     {
+        public class Options : CommonOptions
+        {
+        }
+
         internal SdcaMulticlassClassificationTrainer(IHostEnvironment env,
             string labelColumn = DefaultColumnNames.Label,
             string featureColumn = DefaultColumnNames.Features,
             string weights = null,
-            ISupportSdcaClassificationLoss loss = null,
             float? l2Const = null,
             float? l1Threshold = null,
             int? maxIterations = null)
-             : base(env, labelColumn: labelColumn, featureColumn: featureColumn, weights: weights, loss: loss,
+             : base(env, labelColumn: labelColumn, featureColumn: featureColumn, weights: weights, loss: new LogLoss(),
                    l2Const: l2Const, l1Threshold: l1Threshold, maxIterations: maxIterations)
         {
         }
@@ -484,6 +487,20 @@ namespace Microsoft.ML.Trainers
     /// <include file='doc.xml' path='doc/members/member[@name="SDCA_remarks"]/*' />
     public sealed class SdcaNonCalibratedMulticlassClassificationTrainer : SdcaMulticlassClassificationTrainerBase<LinearMulticlassModelParameters>
     {
+        public class Options : CommonOptions
+        {
+            /// <summary>
+            /// Loss function minimized by this trainer.
+            /// </summary>
+            /// <value>
+            /// If unspecified, <see cref="LogLoss"/> will be used.
+            /// </value>
+            public ISupportSdcaClassificationLoss Loss
+            {
+                get { return InternalLoss; }
+                set { InternalLoss = value; }
+            }
+        }
         internal SdcaNonCalibratedMulticlassClassificationTrainer(IHostEnvironment env,
             string labelColumn = DefaultColumnNames.Label,
             string featureColumn = DefaultColumnNames.Features,

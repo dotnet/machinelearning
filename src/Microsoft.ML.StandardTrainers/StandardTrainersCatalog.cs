@@ -306,7 +306,7 @@ namespace Microsoft.ML
         {
             Contracts.CheckValue(catalog, nameof(catalog));
             var env = CatalogUtils.GetEnvironment(catalog);
-            return new SdcaMulticlassClassificationTrainer(env, labelColumnName, featureColumnName, exampleWeightColumnName, null, l2Regularization, l1Threshold, maximumNumberOfIterations);
+            return new SdcaMulticlassClassificationTrainer(env, labelColumnName, featureColumnName, exampleWeightColumnName, l2Regularization, l1Threshold, maximumNumberOfIterations);
         }
 
         /// <summary>
