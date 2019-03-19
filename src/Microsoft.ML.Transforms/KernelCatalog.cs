@@ -21,6 +21,8 @@ namespace Microsoft.ML
         /// <param name="rank">The number of random Fourier features to create.</param>
         /// <param name="useCosAndSinBases">If <see langword="true"/>, use both of cos and sin basis functions to create two features for every random Fourier frequency.
         /// Otherwise, only cos bases would be used.</param>
+        /// <param name="generator">Which fourier generator to use.</param>
+        /// <param name="seed">The seed of the random number generator for generating the new features (if unspecified, the global random is used).</param>
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
@@ -32,15 +34,19 @@ namespace Microsoft.ML
             string outputColumnName,
             string inputColumnName = null,
             int rank = ApproximatedKernelMappingEstimator.Defaults.Rank,
-            bool useCosAndSinBases = ApproximatedKernelMappingEstimator.Defaults.UseCosAndSinBases)
-            => new ApproximatedKernelMappingEstimator(CatalogUtils.GetEnvironment(catalog), outputColumnName, inputColumnName, rank, useCosAndSinBases);
+            bool useCosAndSinBases = ApproximatedKernelMappingEstimator.Defaults.UseCosAndSinBases,
+            KernelBase generator = null,
+            int? seed = null)
+            => new ApproximatedKernelMappingEstimator(CatalogUtils.GetEnvironment(catalog),
+                new[] { new ApproximatedKernelMappingEstimator.ColumnOptions(outputColumnName, rank, useCosAndSinBases, inputColumnName, generator, seed) });
 
         /// <summary>
         /// Takes columns filled with a vector of floats and maps its to a random low-dimensional feature space.
         /// </summary>
         /// <param name="catalog">The transform's catalog.</param>
         /// <param name="columns">The input columns to use for the transformation.</param>
-        public static ApproximatedKernelMappingEstimator ApproximatedKernelMap(this TransformsCatalog catalog, params ApproximatedKernelMappingEstimator.ColumnOptions[] columns)
+        [BestFriend]
+        internal static ApproximatedKernelMappingEstimator ApproximatedKernelMap(this TransformsCatalog catalog, params ApproximatedKernelMappingEstimator.ColumnOptions[] columns)
             => new ApproximatedKernelMappingEstimator(CatalogUtils.GetEnvironment(catalog), columns);
     }
 }

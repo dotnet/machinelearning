@@ -42,7 +42,7 @@ namespace Microsoft.ML.Trainers.LightGbm.StaticPipe
             int? numberOfLeaves = null,
             int? minimumExampleCountPerLeaf = null,
             double? learningRate = null,
-            int numberOfIterations = Options.Defaults.NumberOfIterations,
+            int numberOfIterations = Defaults.NumberOfIterations,
             Action<LightGbmRegressionModelParameters> onFit = null)
         {
             CheckUserValues(label, features, weights, numberOfLeaves, minimumExampleCountPerLeaf, learningRate, numberOfIterations, onFit);
@@ -76,10 +76,11 @@ namespace Microsoft.ML.Trainers.LightGbm.StaticPipe
         /// <returns>The Score output column indicating the predicted value.</returns>
         public static Scalar<float> LightGbm(this RegressionCatalog.RegressionTrainers catalog,
             Scalar<float> label, Vector<float> features, Scalar<float> weights,
-            Options options,
+            LightGbmRegressionTrainer.Options options,
             Action<LightGbmRegressionModelParameters> onFit = null)
         {
-            CheckUserValues(label, features, weights, options, onFit);
+            Contracts.CheckValue(options, nameof(options));
+            CheckUserValues(label, features, weights, onFit);
 
             var rec = new TrainerEstimatorReconciler.Regression(
                (env, labelName, featuresName, weightsName) =>
@@ -128,7 +129,7 @@ namespace Microsoft.ML.Trainers.LightGbm.StaticPipe
             int? numberOfLeaves = null,
             int? minimumExampleCountPerLeaf = null,
             double? learningRate = null,
-            int numberOfIterations = Options.Defaults.NumberOfIterations,
+            int numberOfIterations = Defaults.NumberOfIterations,
             Action<CalibratedModelParametersBase<LightGbmBinaryModelParameters, PlattCalibrator>> onFit = null)
         {
             CheckUserValues(label, features, weights, numberOfLeaves, minimumExampleCountPerLeaf, learningRate, numberOfIterations, onFit);
@@ -165,10 +166,11 @@ namespace Microsoft.ML.Trainers.LightGbm.StaticPipe
         /// from negative to positive infinity), the calibrated prediction (from 0 to 1), and the predicted label.</returns>
         public static (Scalar<float> score, Scalar<float> probability, Scalar<bool> predictedLabel) LightGbm(this BinaryClassificationCatalog.BinaryClassificationTrainers catalog,
             Scalar<bool> label, Vector<float> features, Scalar<float> weights,
-            Options options,
+            LightGbmBinaryTrainer.Options options,
             Action<CalibratedModelParametersBase<LightGbmBinaryModelParameters, PlattCalibrator>> onFit = null)
         {
-            CheckUserValues(label, features, weights, options, onFit);
+            Contracts.CheckValue(options, nameof(options));
+            CheckUserValues(label, features, weights, onFit);
 
             var rec = new TrainerEstimatorReconciler.BinaryClassifier(
                (env, labelName, featuresName, weightsName) =>
@@ -215,7 +217,7 @@ namespace Microsoft.ML.Trainers.LightGbm.StaticPipe
             int? numberOfLeaves = null,
             int? minimumExampleCountPerLeaf = null,
             double? learningRate = null,
-            int numberOfIterations = Options.Defaults.NumberOfIterations,
+            int numberOfIterations = Defaults.NumberOfIterations,
             Action<LightGbmRankingModelParameters> onFit = null)
         {
             CheckUserValues(label, features, weights, numberOfLeaves, minimumExampleCountPerLeaf, learningRate, numberOfIterations, onFit);
@@ -253,10 +255,11 @@ namespace Microsoft.ML.Trainers.LightGbm.StaticPipe
         /// from negative to positive infinity), the calibrated prediction (from 0 to 1), and the predicted label.</returns>
         public static Scalar<float> LightGbm<TVal>(this RankingCatalog.RankingTrainers catalog,
            Scalar<float> label, Vector<float> features, Key<uint, TVal> groupId, Scalar<float> weights,
-            Options options,
+            LightGbmRankingTrainer.Options options,
             Action<LightGbmRankingModelParameters> onFit = null)
         {
-            CheckUserValues(label, features, weights, options, onFit);
+            Contracts.CheckValue(options, nameof(options));
+            CheckUserValues(label, features, weights, onFit);
             Contracts.CheckValue(groupId, nameof(groupId));
 
             var rec = new TrainerEstimatorReconciler.Ranker<TVal>(
@@ -309,7 +312,7 @@ namespace Microsoft.ML.Trainers.LightGbm.StaticPipe
             int? numberOfLeaves = null,
             int? minimumExampleCountPerLeaf = null,
             double? learningRate = null,
-            int numberOfIterations = Options.Defaults.NumberOfIterations,
+            int numberOfIterations = Defaults.NumberOfIterations,
             Action<OneVersusAllModelParameters> onFit = null)
         {
             CheckUserValues(label, features, weights, numberOfLeaves, minimumExampleCountPerLeaf, learningRate, numberOfIterations, onFit);
@@ -347,10 +350,11 @@ namespace Microsoft.ML.Trainers.LightGbm.StaticPipe
             Key<uint, TVal> label,
             Vector<float> features,
             Scalar<float> weights,
-            Options options,
+            LightGbmMulticlassTrainer.Options options,
             Action<OneVersusAllModelParameters> onFit = null)
         {
-            CheckUserValues(label, features, weights, options, onFit);
+            Contracts.CheckValue(options, nameof(options));
+            CheckUserValues(label, features, weights, onFit);
 
             var rec = new TrainerEstimatorReconciler.MulticlassClassificationReconciler<TVal>(
                 (env, labelName, featuresName, weightsName) =>
@@ -386,14 +390,11 @@ namespace Microsoft.ML.Trainers.LightGbm.StaticPipe
             Contracts.CheckValueOrNull(onFit);
         }
 
-        private static void CheckUserValues(PipelineColumn label, Vector<float> features, Scalar<float> weights,
-            Options options,
-            Delegate onFit)
+        private static void CheckUserValues(PipelineColumn label, Vector<float> features, Scalar<float> weights, Delegate onFit)
         {
             Contracts.CheckValue(label, nameof(label));
             Contracts.CheckValue(features, nameof(features));
             Contracts.CheckValueOrNull(weights);
-            Contracts.CheckValue(options, nameof(options));
             Contracts.CheckValueOrNull(onFit);
         }
     }

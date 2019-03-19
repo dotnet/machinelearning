@@ -3,14 +3,17 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using Microsoft.ML;
+using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
 using Microsoft.ML.EntryPoints;
+using Microsoft.ML.Internal.Internallearn;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Trainers.FastTree;
 using Microsoft.ML.Trainers.LightGbm;
 
-[assembly: LoadableClass(LightGbmRankingTrainer.UserName, typeof(LightGbmRankingTrainer), typeof(Options),
+[assembly: LoadableClass(LightGbmRankingTrainer.UserName, typeof(LightGbmRankingTrainer), typeof(LightGbmRankingTrainer.Options),
     new[] { typeof(SignatureRankerTrainer), typeof(SignatureTrainer), typeof(SignatureTreeEnsembleTrainer) },
     "LightGBM Ranking", LightGbmRankingTrainer.LoadNameValue, LightGbmRankingTrainer.ShortName, DocName = "trainer/LightGBM.md")]
 
@@ -45,7 +48,6 @@ namespace Microsoft.ML.Trainers.LightGbm
         private protected override uint VerDefaultValueSerialized => 0x00010004;
         private protected override uint VerCategoricalSplitSerialized => 0x00010005;
         private protected override PredictionKind PredictionKind => PredictionKind.Ranking;
-
         internal LightGbmRankingModelParameters(IHostEnvironment env, InternalTreeEnsemble trainedEnsemble, int featureCount, string innerArgs)
             : base(env, RegistrationName, trainedEnsemble, featureCount, innerArgs)
         {
@@ -72,7 +74,10 @@ namespace Microsoft.ML.Trainers.LightGbm
     /// The <see cref="IEstimator{TTransformer}"/> for training a boosted decision tree ranking model using LightGBM.
     /// </summary>
     /// <include file='doc.xml' path='doc/members/member[@name="LightGBM_remarks"]/*' />
-    public sealed class LightGbmRankingTrainer : LightGbmTrainerBase<float, RankingPredictionTransformer<LightGbmRankingModelParameters>, LightGbmRankingModelParameters>
+    public sealed class LightGbmRankingTrainer : LightGbmTrainerBase<LightGbmRankingTrainer.Options,
+                                                                        float,
+                                                                        RankingPredictionTransformer<LightGbmRankingModelParameters>,
+                                                                        LightGbmRankingModelParameters>
     {
         internal const string UserName = "LightGBM Ranking";
         internal const string LoadNameValue = "LightGBMRanking";
@@ -80,9 +85,63 @@ namespace Microsoft.ML.Trainers.LightGbm
 
         private protected override PredictionKind PredictionKind => PredictionKind.Ranking;
 
+        public sealed class Options : OptionsBase
+        {
+            public enum EvaluateMetricType
+            {
+                None,
+                Default,
+                MeanAveragedPrecision,
+                NormalizedDiscountedCumulativeGain
+            };
+
+            /// <summary>
+            /// Comma-separated list of gains associated with each relevance label.
+            /// </summary>
+            [Argument(ArgumentType.AtMostOnce, HelpText = "An array of gains associated to each relevance label.", ShortName = "gains")]
+            [TGUI(Label = "Ranking Label Gain")]
+            public int[] CustomGains = { 0,3,7,15,31,63,127,255,511,1023,2047,4095 };
+
+            /// <summary>
+            /// Parameter for the sigmoid function.
+            /// </summary>
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Parameter for the sigmoid function.", ShortName = "sigmoid")]
+            [TGUI(Label = "Sigmoid", SuggestedSweeps = "0.5,1")]
+            public double Sigmoid = 0.5;
+
+            /// <summary>
+            /// Determines what evaluation metric to use.
+            /// </summary>
+            [Argument(ArgumentType.AtMostOnce,
+                HelpText = "Evaluation metrics.",
+                ShortName = "em")]
+            public EvaluateMetricType EvaluationMetric = EvaluateMetricType.NormalizedDiscountedCumulativeGain;
+
+            static Options()
+            {
+                NameMapping.Add(nameof(CustomGains), "label_gain");
+                NameMapping.Add(nameof(EvaluateMetricType), "metric");
+                NameMapping.Add(nameof(EvaluateMetricType.None), "");
+                NameMapping.Add(nameof(EvaluateMetricType.MeanAveragedPrecision), "map");
+                NameMapping.Add(nameof(EvaluateMetricType.NormalizedDiscountedCumulativeGain), "ndcg");
+            }
+
+            internal override Dictionary<string, object> ToDictionary(IHost host)
+            {
+                var res = base.ToDictionary(host);
+                res[GetOptionName(nameof(Sigmoid))] = Sigmoid;
+                res[GetOptionName(nameof(CustomGains))] = string.Join(",",CustomGains);
+                if(EvaluationMetric != EvaluateMetricType.Default)
+                    res[GetOptionName(nameof(EvaluateMetricType))] = GetOptionName(EvaluationMetric.ToString());
+
+                return res;
+            }
+        }
+
         internal LightGbmRankingTrainer(IHostEnvironment env, Options options)
              : base(env, LoadNameValue, options, TrainerUtils.MakeR4ScalarColumn(options.LabelColumnName))
         {
+            Contracts.CheckUserArg(options.Sigmoid > 0, nameof(Options.Sigmoid), "must be > 0.");
         }
 
         /// <summary>
@@ -105,10 +164,19 @@ namespace Microsoft.ML.Trainers.LightGbm
             int? numberOfLeaves = null,
             int? minimumExampleCountPerLeaf = null,
             double? learningRate = null,
-            int numberOfIterations = Trainers.LightGbm.Options.Defaults.NumberOfIterations)
-            : base(env, LoadNameValue, TrainerUtils.MakeR4ScalarColumn(labelColumnName),
-                    featureColumnName, weightsColumnName, rowGroupdColumnName, numberOfLeaves,
-                    minimumExampleCountPerLeaf, learningRate, numberOfIterations)
+            int numberOfIterations = Defaults.NumberOfIterations)
+            : this(env,
+                  new Options()
+                  {
+                    LabelColumnName = labelColumnName,
+                    FeatureColumnName = featureColumnName,
+                    ExampleWeightColumnName = weightsColumnName,
+                    RowGroupColumnName = rowGroupdColumnName,
+                    NumberOfLeaves = numberOfLeaves,
+                    MinimumExampleCountPerLeaf = minimumExampleCountPerLeaf,
+                    LearningRate = learningRate,
+                    NumberOfIterations = numberOfIterations
+                  })
         {
             Host.CheckNonEmpty(rowGroupdColumnName, nameof(rowGroupdColumnName));
         }
@@ -152,20 +220,18 @@ namespace Microsoft.ML.Trainers.LightGbm
         private protected override LightGbmRankingModelParameters CreatePredictor()
         {
             Host.Check(TrainedEnsemble != null, "The predictor cannot be created before training is complete");
-            var innerArgs = LightGbmInterfaceUtils.JoinParameters(Options);
+            var innerArgs = LightGbmInterfaceUtils.JoinParameters(GbmOptions);
             return new LightGbmRankingModelParameters(Host, TrainedEnsemble, FeatureCount, innerArgs);
         }
 
         private protected override void CheckAndUpdateParametersBeforeTraining(IChannel ch, RoleMappedData data, float[] labels, int[] groups)
         {
             Host.AssertValue(ch);
-            Options["objective"] = "lambdarank";
+            GbmOptions["objective"] = "lambdarank";
             ch.CheckValue(groups, nameof(groups));
-            // Add default metric.
-            if (!Options.ContainsKey("metric"))
-                Options["metric"] = "ndcg";
+
             // Only output one ndcg score.
-            Options["eval_at"] = "5";
+            GbmOptions["eval_at"] = "5";
         }
 
         private protected override SchemaShape.Column[] GetOutputColumnsCore(SchemaShape inputSchema)
@@ -196,14 +262,14 @@ namespace Microsoft.ML.Trainers.LightGbm
             Desc = "Train a LightGBM ranking model.",
             UserName = LightGbmRankingTrainer.UserName,
             ShortName = LightGbmRankingTrainer.ShortName)]
-        public static CommonOutputs.RankingOutput TrainRanking(IHostEnvironment env, Options input)
+        public static CommonOutputs.RankingOutput TrainRanking(IHostEnvironment env, LightGbmRankingTrainer.Options input)
         {
             Contracts.CheckValue(env, nameof(env));
             var host = env.Register("TrainLightGBM");
             host.CheckValue(input, nameof(input));
             EntryPointUtils.CheckInputArgs(host, input);
 
-            return TrainerEntryPointsUtils.Train<Options, CommonOutputs.RankingOutput>(host, input,
+            return TrainerEntryPointsUtils.Train<LightGbmRankingTrainer.Options, CommonOutputs.RankingOutput>(host, input,
                 () => new LightGbmRankingTrainer(host, input),
                 getLabel: () => TrainerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.LabelColumnName),
                 getWeight: () => TrainerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.ExampleWeightColumnName),

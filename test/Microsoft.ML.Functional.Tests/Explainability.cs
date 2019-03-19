@@ -152,7 +152,7 @@ namespace Microsoft.ML.Functional.Tests
 
             // Create a Feature Contribution Calculator.
             var predictor = model.LastTransformer;
-            var featureContributions = mlContext.Model.Explainability.FeatureContributionCalculation(predictor.Model, predictor.FeatureColumnName, normalize: false);
+            var featureContributions = mlContext.Transforms.CalculateFeatureContribution(predictor, normalize: false);
 
             // Compute the contributions
             var outputData = featureContributions.Fit(scoredData).Transform(scoredData);
@@ -189,7 +189,7 @@ namespace Microsoft.ML.Functional.Tests
 
             // Create a Feature Contribution Calculator.
             var predictor = model.LastTransformer;
-            var featureContributions = mlContext.Model.Explainability.FeatureContributionCalculation(predictor.Model, predictor.FeatureColumnName, normalize: false);
+            var featureContributions = mlContext.Transforms.CalculateFeatureContribution(predictor, normalize: false);
 
             // Compute the contributions
             var outputData = featureContributions.Fit(scoredData).Transform(scoredData);
@@ -226,7 +226,7 @@ namespace Microsoft.ML.Functional.Tests
 
             // Create a Feature Contribution Calculator.
             var predictor = model.LastTransformer;
-            var featureContributions = mlContext.Model.Explainability.FeatureContributionCalculation(predictor.Model, predictor.FeatureColumnName, normalize: false);
+            var featureContributions = mlContext.Transforms.CalculateFeatureContribution(predictor, normalize: false);
 
             // Compute the contributions
             var outputData = featureContributions.Fit(scoredData).Transform(scoredData);
@@ -264,7 +264,7 @@ namespace Microsoft.ML.Functional.Tests
 
             // Create a Feature Contribution Calculator.
             var predictor = model.LastTransformer;
-            var featureContributions = mlContext.Model.Explainability.FeatureContributionCalculation(predictor.Model, predictor.FeatureColumnName, normalize: false);
+            var featureContributions = mlContext.Transforms.CalculateFeatureContribution(predictor, normalize: false);
 
             // Compute the contributions
             var outputData = featureContributions.Fit(scoredData).Transform(scoredData);

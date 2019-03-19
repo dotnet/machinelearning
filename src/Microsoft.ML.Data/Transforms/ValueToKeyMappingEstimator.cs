@@ -17,6 +17,7 @@ namespace Microsoft.ML.Transforms
         {
             public const int MaximumNumberOfKeys = 1000000;
             public const KeyOrdinality Ordinality = KeyOrdinality.ByOccurrence;
+            public const bool AddKeyValueAnnotationsAsText = false;
         }
 
         /// <summary>
@@ -40,7 +41,8 @@ namespace Microsoft.ML.Transforms
         /// <summary>
         /// Describes how the transformer handles one column pair.
         /// </summary>
-        public abstract class ColumnOptionsBase
+        [BestFriend]
+        internal abstract class ColumnOptionsBase
         {
             public readonly string OutputColumnName;
             public readonly string InputColumnName;
@@ -70,7 +72,8 @@ namespace Microsoft.ML.Transforms
         /// <summary>
         /// Describes how the transformer handles one column pair.
         /// </summary>
-        public sealed class ColumnOptions : ColumnOptionsBase
+        [BestFriend]
+        internal sealed class ColumnOptions : ColumnOptionsBase
         {
             /// <summary>
             /// Describes how the transformer handles one column pair.

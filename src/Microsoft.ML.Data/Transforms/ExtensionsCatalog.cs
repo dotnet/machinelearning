@@ -11,7 +11,8 @@ namespace Microsoft.ML
     /// <summary>
     /// Specifies input and output column names for a transformation.
     /// </summary>
-    public sealed class ColumnOptions
+    [BestFriend]
+    internal sealed class ColumnOptions
     {
         private readonly string _outputColumnName;
         private readonly string _inputColumnName;
@@ -19,12 +20,12 @@ namespace Microsoft.ML
         /// <summary>
         /// Specifies input and output column names for a transformation.
         /// </summary>
-        /// <param name="outputColumnName">Name of output column resulting from the transformation of <paramref name="inputColumnName"/>.</param>
-        /// <param name="inputColumnName">Name of input column.</param>
-        public ColumnOptions(string outputColumnName, string inputColumnName)
+        /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.</param>
+        /// <param name="inputColumnName">Name of the column to transform. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.</param>
+        public ColumnOptions(string outputColumnName, string inputColumnName = null)
         {
             _outputColumnName = outputColumnName;
-            _inputColumnName = inputColumnName;
+            _inputColumnName = inputColumnName ?? outputColumnName;
         }
 
         /// <summary>
@@ -76,7 +77,8 @@ namespace Microsoft.ML
         /// ]]>
         /// </format>
         /// </example>
-        public static ColumnCopyingEstimator CopyColumns(this TransformsCatalog catalog, params ColumnOptions[] columns)
+        [BestFriend]
+        internal static ColumnCopyingEstimator CopyColumns(this TransformsCatalog catalog, params ColumnOptions[] columns)
             => new ColumnCopyingEstimator(CatalogUtils.GetEnvironment(catalog), ColumnOptions.ConvertToValueTuples(columns));
 
         /// <summary>

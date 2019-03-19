@@ -216,7 +216,8 @@ namespace Microsoft.ML.Transforms
         /// <summary>
         /// Describes how the transformer handles one column pair.
         /// </summary>
-        public sealed class ColumnOptions
+        [BestFriend]
+        internal sealed class ColumnOptions
         {
             public readonly HashingEstimator.ColumnOptions HashingOptions;
             public readonly OneHotEncodingEstimator.OutputKind OutputKind;

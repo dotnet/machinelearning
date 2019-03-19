@@ -25,7 +25,8 @@ namespace Microsoft.ML
         /// ]]>
         /// </format>
         /// </example>
-        public static MutualInformationFeatureSelectingEstimator SelectFeaturesBasedOnMutualInformation(this TransformsCatalog.FeatureSelectionTransforms catalog,
+        [BestFriend]
+        internal static MutualInformationFeatureSelectingEstimator SelectFeaturesBasedOnMutualInformation(this TransformsCatalog.FeatureSelectionTransforms catalog,
             string labelColumnName = MutualInfoSelectDefaults.LabelColumn,
             int slotsInOutput = MutualInfoSelectDefaults.SlotsInOutput,
             int numberOfBins = MutualInfoSelectDefaults.NumBins,
@@ -64,7 +65,8 @@ namespace Microsoft.ML
         /// ]]>
         /// </format>
         /// </example>
-        public static CountFeatureSelectingEstimator SelectFeaturesBasedOnCount(this TransformsCatalog.FeatureSelectionTransforms catalog,
+        [BestFriend]
+        internal static CountFeatureSelectingEstimator SelectFeaturesBasedOnCount(this TransformsCatalog.FeatureSelectionTransforms catalog,
             params CountFeatureSelectingEstimator.ColumnOptions[] columns)
             => new CountFeatureSelectingEstimator(CatalogUtils.GetEnvironment(catalog), columns);
 

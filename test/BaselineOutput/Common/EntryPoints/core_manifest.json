@@ -11243,6 +11243,63 @@
           "Default": "Auto"
         },
         {
+          "Name": "UnbalancedSets",
+          "Type": "Bool",
+          "Desc": "Use for binary classification when training data is not balanced.",
+          "Aliases": [
+            "us"
+          ],
+          "Required": false,
+          "SortOrder": 150.0,
+          "IsNullable": false,
+          "Default": false
+        },
+        {
+          "Name": "WeightOfPositiveExamples",
+          "Type": "Float",
+          "Desc": "Control the balance of positive and negative weights, useful for unbalanced classes. A typical value to consider: sum(negative cases) / sum(positive cases).",
+          "Aliases": [
+            "ScalePosWeight"
+          ],
+          "Required": false,
+          "SortOrder": 150.0,
+          "IsNullable": false,
+          "Default": 1.0
+        },
+        {
+          "Name": "Sigmoid",
+          "Type": "Float",
+          "Desc": "Parameter for the sigmoid function.",
+          "Aliases": [
+            "sigmoid"
+          ],
+          "Required": false,
+          "SortOrder": 150.0,
+          "IsNullable": false,
+          "Default": 0.5
+        },
+        {
+          "Name": "EvaluationMetric",
+          "Type": {
+            "Kind": "Enum",
+            "Values": [
+              "None",
+              "Default",
+              "Logloss",
+              "Error",
+              "AreaUnderCurve"
+            ]
+          },
+          "Desc": "Evaluation metrics.",
+          "Aliases": [
+            "em"
+          ],
+          "Required": false,
+          "SortOrder": 150.0,
+          "IsNullable": false,
+          "Default": "Logloss"
+        },
+        {
           "Name": "MaximumBinCountPerFeature",
           "Type": "Int",
           "Desc": "Maximum number of bucket bin for features.",
@@ -11288,48 +11345,6 @@
           "Default": null
         },
         {
-          "Name": "EvaluationMetric",
-          "Type": {
-            "Kind": "Enum",
-            "Values": [
-              "DefaultMetric",
-              "Rmse",
-              "Mae",
-              "Logloss",
-              "Error",
-              "Merror",
-              "Mlogloss",
-              "Auc",
-              "Ndcg",
-              "Map"
-            ]
-          },
-          "Desc": "Evaluation metrics.",
-          "Aliases": [
-            "em"
-          ],
-          "Required": false,
-          "SortOrder": 150.0,
-          "IsNullable": false,
-          "Default": "DefaultMetric"
-        },
-        {
-          "Name": "UseSoftmax",
-          "Type": "Bool",
-          "Desc": "Use softmax loss for the multi classification.",
-          "Required": false,
-          "SortOrder": 150.0,
-          "IsNullable": true,
-          "Default": null,
-          "SweepRange": {
-            "RangeType": "Discrete",
-            "Values": [
-              true,
-              false
-            ]
-          }
-        },
-        {
           "Name": "EarlyStoppingRound",
           "Type": "Int",
           "Desc": "Rounds of early stopping, 0 will disable it.",
@@ -11340,30 +11355,6 @@
           "SortOrder": 150.0,
           "IsNullable": false,
           "Default": 0
-        },
-        {
-          "Name": "CustomGains",
-          "Type": "String",
-          "Desc": "Comma separated list of gains associated to each relevance label.",
-          "Aliases": [
-            "gains"
-          ],
-          "Required": false,
-          "SortOrder": 150.0,
-          "IsNullable": false,
-          "Default": "0,3,7,15,31,63,127,255,511,1023,2047,4095"
-        },
-        {
-          "Name": "Sigmoid",
-          "Type": "Float",
-          "Desc": "Parameter for the sigmoid function. Used only in LightGbmBinaryTrainer, LightGbmMulticlassTrainer and in LightGbmRankingTrainer.",
-          "Aliases": [
-            "sigmoid"
-          ],
-          "Required": false,
-          "SortOrder": 150.0,
-          "IsNullable": false,
-          "Default": 0.5
         },
         {
           "Name": "BatchSize",
@@ -11400,7 +11391,7 @@
           "Required": false,
           "SortOrder": 150.0,
           "IsNullable": false,
-          "Default": false,
+          "Default": true,
           "SweepRange": {
             "RangeType": "Discrete",
             "Values": [
@@ -11462,7 +11453,7 @@
         {
           "Name": "CategoricalSmoothing",
           "Type": "Float",
-          "Desc": "Laplace smooth term in categorical feature split. Avoid the bias of small categories.",
+          "Desc": "Lapalace smooth term in categorical feature spilt. Avoid the bias of small categories.",
           "Required": false,
           "SortOrder": 150.0,
           "IsNullable": false,
@@ -11746,6 +11737,54 @@
           "Default": "Auto"
         },
         {
+          "Name": "UseSoftmax",
+          "Type": "Bool",
+          "Desc": "Use softmax loss for the multi classification.",
+          "Required": false,
+          "SortOrder": 150.0,
+          "IsNullable": true,
+          "Default": null,
+          "SweepRange": {
+            "RangeType": "Discrete",
+            "Values": [
+              true,
+              false
+            ]
+          }
+        },
+        {
+          "Name": "Sigmoid",
+          "Type": "Float",
+          "Desc": "Parameter for the sigmoid function.",
+          "Aliases": [
+            "sigmoid"
+          ],
+          "Required": false,
+          "SortOrder": 150.0,
+          "IsNullable": false,
+          "Default": 0.5
+        },
+        {
+          "Name": "EvaluationMetric",
+          "Type": {
+            "Kind": "Enum",
+            "Values": [
+              "None",
+              "Default",
+              "Error",
+              "LogLoss"
+            ]
+          },
+          "Desc": "Evaluation metrics.",
+          "Aliases": [
+            "em"
+          ],
+          "Required": false,
+          "SortOrder": 150.0,
+          "IsNullable": false,
+          "Default": "Error"
+        },
+        {
           "Name": "MaximumBinCountPerFeature",
           "Type": "Int",
           "Desc": "Maximum number of bucket bin for features.",
@@ -11791,48 +11830,6 @@
           "Default": null
         },
         {
-          "Name": "EvaluationMetric",
-          "Type": {
-            "Kind": "Enum",
-            "Values": [
-              "DefaultMetric",
-              "Rmse",
-              "Mae",
-              "Logloss",
-              "Error",
-              "Merror",
-              "Mlogloss",
-              "Auc",
-              "Ndcg",
-              "Map"
-            ]
-          },
-          "Desc": "Evaluation metrics.",
-          "Aliases": [
-            "em"
-          ],
-          "Required": false,
-          "SortOrder": 150.0,
-          "IsNullable": false,
-          "Default": "DefaultMetric"
-        },
-        {
-          "Name": "UseSoftmax",
-          "Type": "Bool",
-          "Desc": "Use softmax loss for the multi classification.",
-          "Required": false,
-          "SortOrder": 150.0,
-          "IsNullable": true,
-          "Default": null,
-          "SweepRange": {
-            "RangeType": "Discrete",
-            "Values": [
-              true,
-              false
-            ]
-          }
-        },
-        {
           "Name": "EarlyStoppingRound",
           "Type": "Int",
           "Desc": "Rounds of early stopping, 0 will disable it.",
@@ -11843,30 +11840,6 @@
           "SortOrder": 150.0,
           "IsNullable": false,
           "Default": 0
-        },
-        {
-          "Name": "CustomGains",
-          "Type": "String",
-          "Desc": "Comma separated list of gains associated to each relevance label.",
-          "Aliases": [
-            "gains"
-          ],
-          "Required": false,
-          "SortOrder": 150.0,
-          "IsNullable": false,
-          "Default": "0,3,7,15,31,63,127,255,511,1023,2047,4095"
-        },
-        {
-          "Name": "Sigmoid",
-          "Type": "Float",
-          "Desc": "Parameter for the sigmoid function. Used only in LightGbmBinaryTrainer, LightGbmMulticlassTrainer and in LightGbmRankingTrainer.",
-          "Aliases": [
-            "sigmoid"
-          ],
-          "Required": false,
-          "SortOrder": 150.0,
-          "IsNullable": false,
-          "Default": 0.5
         },
         {
           "Name": "BatchSize",
@@ -11903,7 +11876,7 @@
           "Required": false,
           "SortOrder": 150.0,
           "IsNullable": false,
-          "Default": false,
+          "Default": true,
           "SweepRange": {
             "RangeType": "Discrete",
             "Values": [
@@ -11965,7 +11938,7 @@
         {
           "Name": "CategoricalSmoothing",
           "Type": "Float",
-          "Desc": "Laplace smooth term in categorical feature split. Avoid the bias of small categories.",
+          "Desc": "Lapalace smooth term in categorical feature spilt. Avoid the bias of small categories.",
           "Required": false,
           "SortOrder": 150.0,
           "IsNullable": false,
@@ -12249,6 +12222,66 @@
           "Default": "Auto"
         },
         {
+          "Name": "CustomGains",
+          "Type": {
+            "Kind": "Array",
+            "ItemType": "Int"
+          },
+          "Desc": "An array of gains associated to each relevance label.",
+          "Aliases": [
+            "gains"
+          ],
+          "Required": false,
+          "SortOrder": 150.0,
+          "IsNullable": false,
+          "Default": [
+            0,
+            3,
+            7,
+            15,
+            31,
+            63,
+            127,
+            255,
+            511,
+            1023,
+            2047,
+            4095
+          ]
+        },
+        {
+          "Name": "Sigmoid",
+          "Type": "Float",
+          "Desc": "Parameter for the sigmoid function.",
+          "Aliases": [
+            "sigmoid"
+          ],
+          "Required": false,
+          "SortOrder": 150.0,
+          "IsNullable": false,
+          "Default": 0.5
+        },
+        {
+          "Name": "EvaluationMetric",
+          "Type": {
+            "Kind": "Enum",
+            "Values": [
+              "None",
+              "Default",
+              "MeanAveragedPrecision",
+              "NormalizedDiscountedCumulativeGain"
+            ]
+          },
+          "Desc": "Evaluation metrics.",
+          "Aliases": [
+            "em"
+          ],
+          "Required": false,
+          "SortOrder": 150.0,
+          "IsNullable": false,
+          "Default": "NormalizedDiscountedCumulativeGain"
+        },
+        {
           "Name": "MaximumBinCountPerFeature",
           "Type": "Int",
           "Desc": "Maximum number of bucket bin for features.",
@@ -12294,48 +12327,6 @@
           "Default": null
         },
         {
-          "Name": "EvaluationMetric",
-          "Type": {
-            "Kind": "Enum",
-            "Values": [
-              "DefaultMetric",
-              "Rmse",
-              "Mae",
-              "Logloss",
-              "Error",
-              "Merror",
-              "Mlogloss",
-              "Auc",
-              "Ndcg",
-              "Map"
-            ]
-          },
-          "Desc": "Evaluation metrics.",
-          "Aliases": [
-            "em"
-          ],
-          "Required": false,
-          "SortOrder": 150.0,
-          "IsNullable": false,
-          "Default": "DefaultMetric"
-        },
-        {
-          "Name": "UseSoftmax",
-          "Type": "Bool",
-          "Desc": "Use softmax loss for the multi classification.",
-          "Required": false,
-          "SortOrder": 150.0,
-          "IsNullable": true,
-          "Default": null,
-          "SweepRange": {
-            "RangeType": "Discrete",
-            "Values": [
-              true,
-              false
-            ]
-          }
-        },
-        {
           "Name": "EarlyStoppingRound",
           "Type": "Int",
           "Desc": "Rounds of early stopping, 0 will disable it.",
@@ -12346,30 +12337,6 @@
           "SortOrder": 150.0,
           "IsNullable": false,
           "Default": 0
-        },
-        {
-          "Name": "CustomGains",
-          "Type": "String",
-          "Desc": "Comma separated list of gains associated to each relevance label.",
-          "Aliases": [
-            "gains"
-          ],
-          "Required": false,
-          "SortOrder": 150.0,
-          "IsNullable": false,
-          "Default": "0,3,7,15,31,63,127,255,511,1023,2047,4095"
-        },
-        {
-          "Name": "Sigmoid",
-          "Type": "Float",
-          "Desc": "Parameter for the sigmoid function. Used only in LightGbmBinaryTrainer, LightGbmMulticlassTrainer and in LightGbmRankingTrainer.",
-          "Aliases": [
-            "sigmoid"
-          ],
-          "Required": false,
-          "SortOrder": 150.0,
-          "IsNullable": false,
-          "Default": 0.5
         },
         {
           "Name": "BatchSize",
@@ -12406,7 +12373,7 @@
           "Required": false,
           "SortOrder": 150.0,
           "IsNullable": false,
-          "Default": false,
+          "Default": true,
           "SweepRange": {
             "RangeType": "Discrete",
             "Values": [
@@ -12468,7 +12435,7 @@
         {
           "Name": "CategoricalSmoothing",
           "Type": "Float",
-          "Desc": "Laplace smooth term in categorical feature split. Avoid the bias of small categories.",
+          "Desc": "Lapalace smooth term in categorical feature spilt. Avoid the bias of small categories.",
           "Required": false,
           "SortOrder": 150.0,
           "IsNullable": false,
@@ -12752,6 +12719,27 @@
           "Default": "Auto"
         },
         {
+          "Name": "EvaluationMetric",
+          "Type": {
+            "Kind": "Enum",
+            "Values": [
+              "None",
+              "Default",
+              "MeanAbsoluteError",
+              "RootMeanSquaredError",
+              "MeanSquaredError"
+            ]
+          },
+          "Desc": "Evaluation metrics.",
+          "Aliases": [
+            "em"
+          ],
+          "Required": false,
+          "SortOrder": 150.0,
+          "IsNullable": false,
+          "Default": "RootMeanSquaredError"
+        },
+        {
           "Name": "MaximumBinCountPerFeature",
           "Type": "Int",
           "Desc": "Maximum number of bucket bin for features.",
@@ -12797,48 +12785,6 @@
           "Default": null
         },
         {
-          "Name": "EvaluationMetric",
-          "Type": {
-            "Kind": "Enum",
-            "Values": [
-              "DefaultMetric",
-              "Rmse",
-              "Mae",
-              "Logloss",
-              "Error",
-              "Merror",
-              "Mlogloss",
-              "Auc",
-              "Ndcg",
-              "Map"
-            ]
-          },
-          "Desc": "Evaluation metrics.",
-          "Aliases": [
-            "em"
-          ],
-          "Required": false,
-          "SortOrder": 150.0,
-          "IsNullable": false,
-          "Default": "DefaultMetric"
-        },
-        {
-          "Name": "UseSoftmax",
-          "Type": "Bool",
-          "Desc": "Use softmax loss for the multi classification.",
-          "Required": false,
-          "SortOrder": 150.0,
-          "IsNullable": true,
-          "Default": null,
-          "SweepRange": {
-            "RangeType": "Discrete",
-            "Values": [
-              true,
-              false
-            ]
-          }
-        },
-        {
           "Name": "EarlyStoppingRound",
           "Type": "Int",
           "Desc": "Rounds of early stopping, 0 will disable it.",
@@ -12849,30 +12795,6 @@
           "SortOrder": 150.0,
           "IsNullable": false,
           "Default": 0
-        },
-        {
-          "Name": "CustomGains",
-          "Type": "String",
-          "Desc": "Comma separated list of gains associated to each relevance label.",
-          "Aliases": [
-            "gains"
-          ],
-          "Required": false,
-          "SortOrder": 150.0,
-          "IsNullable": false,
-          "Default": "0,3,7,15,31,63,127,255,511,1023,2047,4095"
-        },
-        {
-          "Name": "Sigmoid",
-          "Type": "Float",
-          "Desc": "Parameter for the sigmoid function. Used only in LightGbmBinaryTrainer, LightGbmMulticlassTrainer and in LightGbmRankingTrainer.",
-          "Aliases": [
-            "sigmoid"
-          ],
-          "Required": false,
-          "SortOrder": 150.0,
-          "IsNullable": false,
-          "Default": 0.5
         },
         {
           "Name": "BatchSize",
@@ -12909,7 +12831,7 @@
           "Required": false,
           "SortOrder": 150.0,
           "IsNullable": false,
-          "Default": false,
+          "Default": true,
           "SweepRange": {
             "RangeType": "Discrete",
             "Values": [
@@ -12971,7 +12893,7 @@
         {
           "Name": "CategoricalSmoothing",
           "Type": "Float",
-          "Desc": "Laplace smooth term in categorical feature split. Avoid the bias of small categories.",
+          "Desc": "Lapalace smooth term in categorical feature spilt. Avoid the bias of small categories.",
           "Required": false,
           "SortOrder": 150.0,
           "IsNullable": false,
@@ -23517,13 +23439,13 @@
       "Components": [
         {
           "Name": "dart",
-          "Desc": "Dropouts meet Multiple Additive Regression Trees. See https://arxiv.org/abs/1505.01866",
+          "Desc": "Dropouts meet Multiple Additive Regresion Trees. See https://arxiv.org/abs/1505.01866",
           "FriendlyName": "Tree Dropout Tree Booster",
           "Settings": [
             {
               "Name": "TreeDropFraction",
               "Type": "Float",
-              "Desc": "The drop ratio for trees. Range:[0,1].",
+              "Desc": "The drop ratio for trees. Range:(0,1).",
               "Required": false,
               "SortOrder": 150.0,
               "IsNullable": false,
@@ -23578,18 +23500,6 @@
               "Default": false
             },
             {
-              "Name": "UnbalancedSets",
-              "Type": "Bool",
-              "Desc": "Use for binary classification when training data is not balanced.",
-              "Aliases": [
-                "us"
-              ],
-              "Required": false,
-              "SortOrder": 150.0,
-              "IsNullable": false,
-              "Default": false
-            },
-            {
               "Name": "MinimumSplitGain",
               "Type": "Float",
               "Desc": "Minimum loss reduction required to make a further partition on a leaf node of the tree. the larger, the more conservative the algorithm will be.",
@@ -23713,18 +23623,6 @@
                   1.0
                 ]
               }
-            },
-            {
-              "Name": "WeightOfPositiveExamples",
-              "Type": "Float",
-              "Desc": "Control the balance of positive and negative weights, useful for unbalanced classes. A typical value to consider: sum(negative cases) / sum(positive cases).",
-              "Aliases": [
-                "ScalePosWeight"
-              ],
-              "Required": false,
-              "SortOrder": 150.0,
-              "IsNullable": false,
-              "Default": 1.0
             }
           ]
         },
@@ -23734,18 +23632,6 @@
           "FriendlyName": "Tree Booster",
           "Settings": [
             {
-              "Name": "UnbalancedSets",
-              "Type": "Bool",
-              "Desc": "Use for binary classification when training data is not balanced.",
-              "Aliases": [
-                "us"
-              ],
-              "Required": false,
-              "SortOrder": 150.0,
-              "IsNullable": false,
-              "Default": false
-            },
-            {
               "Name": "MinimumSplitGain",
               "Type": "Float",
               "Desc": "Minimum loss reduction required to make a further partition on a leaf node of the tree. the larger, the more conservative the algorithm will be.",
@@ -23869,18 +23755,6 @@
                   1.0
                 ]
               }
-            },
-            {
-              "Name": "WeightOfPositiveExamples",
-              "Type": "Float",
-              "Desc": "Control the balance of positive and negative weights, useful for unbalanced classes. A typical value to consider: sum(negative cases) / sum(positive cases).",
-              "Aliases": [
-                "ScalePosWeight"
-              ],
-              "Required": false,
-              "SortOrder": 150.0,
-              "IsNullable": false,
-              "Default": 1.0
             }
           ]
         },
@@ -23916,18 +23790,6 @@
               }
             },
             {
-              "Name": "UnbalancedSets",
-              "Type": "Bool",
-              "Desc": "Use for binary classification when training data is not balanced.",
-              "Aliases": [
-                "us"
-              ],
-              "Required": false,
-              "SortOrder": 150.0,
-              "IsNullable": false,
-              "Default": false
-            },
-            {
               "Name": "MinimumSplitGain",
               "Type": "Float",
               "Desc": "Minimum loss reduction required to make a further partition on a leaf node of the tree. the larger, the more conservative the algorithm will be.",
@@ -24051,18 +23913,6 @@
                   1.0
                 ]
               }
-            },
-            {
-              "Name": "WeightOfPositiveExamples",
-              "Type": "Float",
-              "Desc": "Control the balance of positive and negative weights, useful for unbalanced classes. A typical value to consider: sum(negative cases) / sum(positive cases).",
-              "Aliases": [
-                "ScalePosWeight"
-              ],
-              "Required": false,
-              "SortOrder": 150.0,
-              "IsNullable": false,
-              "Default": 1.0
             }
           ]
         }

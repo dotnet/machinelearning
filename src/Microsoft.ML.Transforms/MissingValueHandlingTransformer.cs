@@ -153,7 +153,7 @@ namespace Microsoft.ML.Transforms
                 if (!addInd)
                 {
                     replaceCols.Add(new MissingValueReplacingEstimator.ColumnOptions(column.Name, column.Source,
-                        (MissingValueReplacingEstimator.ColumnOptions.ReplacementMode)(column.Kind ?? options.ReplaceWith), column.ImputeBySlot ?? options.ImputeBySlot));
+                        (MissingValueReplacingEstimator.ReplacementMode)(column.Kind ?? options.ReplaceWith), column.ImputeBySlot ?? options.ImputeBySlot));
                     continue;
                 }
 
@@ -188,7 +188,7 @@ namespace Microsoft.ML.Transforms
 
                 // Add the NAReplaceTransform column.
                 replaceCols.Add(new MissingValueReplacingEstimator.ColumnOptions(tmpReplacementColName, column.Source,
-                    (MissingValueReplacingEstimator.ColumnOptions.ReplacementMode)(column.Kind ?? options.ReplaceWith), column.ImputeBySlot ?? options.ImputeBySlot));
+                    (MissingValueReplacingEstimator.ReplacementMode)(column.Kind ?? options.ReplaceWith), column.ImputeBySlot ?? options.ImputeBySlot));
 
                 // Add the ConcatTransform column.
                 if (replaceType is VectorType)

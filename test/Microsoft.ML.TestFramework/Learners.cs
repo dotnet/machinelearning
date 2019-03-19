@@ -333,14 +333,14 @@ namespace Microsoft.ML.RunTests
 
         public static PredictorAndArgs LightGBMRegMae = new PredictorAndArgs
         {
-            Trainer = new SubComponent("LightGBMR", "nt=1 iter=50 em=mae v=+ lr=0.2 mil=10 nl=20"),
+            Trainer = new SubComponent("LightGBMR", "nt=1 iter=50 em=MeanAbsoluteError v=+ lr=0.2 mil=10 nl=20"),
             Tag = "LightGBMRegMae",
             BaselineProgress = true,
         };
 
         public static PredictorAndArgs LightGBMRegRmse = new PredictorAndArgs
         {
-            Trainer = new SubComponent("LightGBMR", "nt=1 iter=50 em=rmse v=+ lr=0.2 mil=10 nl=20"),
+            Trainer = new SubComponent("LightGBMR", "nt=1 iter=50 em=RootMeanSquaredError v=+ lr=0.2 mil=10 nl=20"),
             Tag = "LightGBMRegRmse",
             BaselineProgress = true,
         };

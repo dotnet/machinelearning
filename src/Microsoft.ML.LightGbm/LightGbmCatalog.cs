@@ -38,7 +38,7 @@ namespace Microsoft.ML
             int? numberOfLeaves = null,
             int? minimumExampleCountPerLeaf = null,
             double? learningRate = null,
-            int numberOfIterations = Options.Defaults.NumberOfIterations)
+            int numberOfIterations = Defaults.NumberOfIterations)
         {
             Contracts.CheckValue(catalog, nameof(catalog));
             var env = CatalogUtils.GetEnvironment(catalog);
@@ -58,7 +58,7 @@ namespace Microsoft.ML
         /// </format>
         /// </example>
         public static LightGbmRegressionTrainer LightGbm(this RegressionCatalog.RegressionTrainers catalog,
-            Options options)
+            LightGbmRegressionTrainer.Options options)
         {
             Contracts.CheckValue(catalog, nameof(catalog));
             var env = CatalogUtils.GetEnvironment(catalog);
@@ -90,7 +90,7 @@ namespace Microsoft.ML
             int? numberOfLeaves = null,
             int? minimumExampleCountPerLeaf = null,
             double? learningRate = null,
-            int numberOfIterations = Options.Defaults.NumberOfIterations)
+            int numberOfIterations = Defaults.NumberOfIterations)
         {
             Contracts.CheckValue(catalog, nameof(catalog));
             var env = CatalogUtils.GetEnvironment(catalog);
@@ -110,7 +110,7 @@ namespace Microsoft.ML
         /// </format>
         /// </example>
         public static LightGbmBinaryTrainer LightGbm(this BinaryClassificationCatalog.BinaryClassificationTrainers catalog,
-            Options options)
+            LightGbmBinaryTrainer.Options options)
         {
             Contracts.CheckValue(catalog, nameof(catalog));
             var env = CatalogUtils.GetEnvironment(catalog);
@@ -144,11 +144,12 @@ namespace Microsoft.ML
             int? numberOfLeaves = null,
             int? minimumExampleCountPerLeaf = null,
             double? learningRate = null,
-            int numberOfIterations = Options.Defaults.NumberOfIterations)
+            int numberOfIterations = Defaults.NumberOfIterations)
         {
             Contracts.CheckValue(catalog, nameof(catalog));
             var env = CatalogUtils.GetEnvironment(catalog);
-            return new LightGbmRankingTrainer(env, labelColumnName, featureColumnName, rowGroupColumnName, exampleWeightColumnName, numberOfLeaves, minimumExampleCountPerLeaf, learningRate, numberOfIterations);
+            return new LightGbmRankingTrainer(env, labelColumnName, featureColumnName, rowGroupColumnName, exampleWeightColumnName,
+                                                numberOfLeaves, minimumExampleCountPerLeaf, learningRate, numberOfIterations);
         }
 
         /// <summary>
@@ -164,7 +165,7 @@ namespace Microsoft.ML
         /// </format>
         /// </example>
         public static LightGbmRankingTrainer LightGbm(this RankingCatalog.RankingTrainers catalog,
-            Options options)
+            LightGbmRankingTrainer.Options options)
         {
             Contracts.CheckValue(catalog, nameof(catalog));
             var env = CatalogUtils.GetEnvironment(catalog);
@@ -196,7 +197,7 @@ namespace Microsoft.ML
             int? numberOfLeaves = null,
             int? minimumExampleCountPerLeaf = null,
             double? learningRate = null,
-            int numberOfIterations = Options.Defaults.NumberOfIterations)
+            int numberOfIterations = Defaults.NumberOfIterations)
         {
             Contracts.CheckValue(catalog, nameof(catalog));
             var env = CatalogUtils.GetEnvironment(catalog);
@@ -216,7 +217,7 @@ namespace Microsoft.ML
         /// </format>
         /// </example>
         public static LightGbmMulticlassTrainer LightGbm(this MulticlassClassificationCatalog.MulticlassClassificationTrainers catalog,
-            Options options)
+            LightGbmMulticlassTrainer.Options options)
         {
             Contracts.CheckValue(catalog, nameof(catalog));
             var env = CatalogUtils.GetEnvironment(catalog);

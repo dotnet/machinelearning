@@ -69,7 +69,7 @@ namespace Microsoft.ML.Trainers
         // After training, it stores the total weights of training examples in each class.
         private Double[] _prior;
 
-        private LinearModelStatistics _stats;
+        private ModelStatisticsBase _stats;
 
         private protected override int ClassCount => _numClasses;
 
@@ -303,7 +303,7 @@ namespace Microsoft.ML.Trainers
             ch.Info("AIC:              \t{0}", 2 * numParams + deviance);
 
             // REVIEW: Figure out how to compute the statistics for the coefficients.
-            _stats = new LinearModelStatistics(Host, NumGoodRows, numParams, deviance, nullDeviance);
+            _stats = new ModelStatisticsBase(Host, NumGoodRows, numParams, deviance, nullDeviance);
         }
 
         private protected override void ProcessPriorDistribution(float label, float weight)
@@ -381,7 +381,7 @@ namespace Microsoft.ML.Trainers
 
         private protected readonly float[] Biases;
         private protected readonly VBuffer<float>[] Weights;
-        private protected readonly LinearModelStatistics Statistics;
+        public readonly ModelStatisticsBase Statistics;
 
         // This stores the _weights matrix in dense format for performance.
         // It is used to make efficient predictions when the instance is sparse, so we get
@@ -400,7 +400,7 @@ namespace Microsoft.ML.Trainers
         bool ICanSavePfa.CanSavePfa => true;
         bool ICanSaveOnnx.CanSaveOnnx(OnnxContext ctx) => true;
 
-        internal LinearMulticlassModelParametersBase(IHostEnvironment env, string name, in VBuffer<float> weights, int numClasses, int numFeatures, string[] labelNames, LinearModelStatistics stats = null)
+        internal LinearMulticlassModelParametersBase(IHostEnvironment env, string name, in VBuffer<float> weights, int numClasses, int numFeatures, string[] labelNames, ModelStatisticsBase stats = null)
             : base(env, name)
         {
             Contracts.Assert(weights.Length == numClasses + numClasses * numFeatures);
@@ -444,7 +444,7 @@ namespace Microsoft.ML.Trainers
         /// <param name="numFeatures">The length of the feature vector.</param>
         /// <param name="labelNames">The optional label names. If specified not null, it should have the same length as <paramref name="numClasses"/>.</param>
         /// <param name="stats">The model statistics.</param>
-        internal LinearMulticlassModelParametersBase(IHostEnvironment env, string name, VBuffer<float>[] weights, float[] bias, int numClasses, int numFeatures, string[] labelNames, LinearModelStatistics stats = null)
+        internal LinearMulticlassModelParametersBase(IHostEnvironment env, string name, VBuffer<float>[] weights, float[] bias, int numClasses, int numFeatures, string[] labelNames, ModelStatisticsBase stats = null)
             : base(env, name)
         {
             Contracts.CheckValue(weights, nameof(weights));
@@ -493,7 +493,7 @@ namespace Microsoft.ML.Trainers
             // int: total number of non-zero weights  (same as number of column indices if sparse, num of classes * num of features if dense)
             // float[]: non-zero weights
             // int[]: Id of label names (optional, in a separate stream)
-            // LinearModelStatistics: model statistics (optional, in a separate stream)
+            // ModelStatisticsBase: model statistics (optional, in a separate stream)
 
             NumberOfFeatures = ctx.Reader.ReadInt32();
             Host.CheckDecode(NumberOfFeatures >= 1);
@@ -558,7 +558,12 @@ namespace Microsoft.ML.Trainers
             if (ctx.TryLoadBinaryStream(LabelNamesSubModelFilename, r => labelNames = LoadLabelNames(ctx, r)))
                 _labelNames = labelNames;
 
-            ctx.LoadModelOrNull<LinearModelStatistics, SignatureLoadModel>(Host, out Statistics, ModelStatsSubModelFilename);
+            // backwards compatibility:MLR used to serialize a LinearModelSStatistics object, before there existed two separate classes
+            // for ModelStatisticsBase and LinearModelParameterStatistics.
+            // It always only populated only the fields now found on ModelStatisticsBase.
+            ModelStatisticsBase stats;
+            ctx.LoadModelOrNull<ModelStatisticsBase, SignatureLoadModel>(Host, out stats, ModelStatsSubModelFilename);
+            Statistics = stats;
         }
 
         private protected abstract VersionInfo GetVersionInfo();
@@ -588,7 +593,7 @@ namespace Microsoft.ML.Trainers
             // float[]: non-zero weights
             // bool: whether label names are present
             // int[]: Id of label names (optional, in a separate stream)
-            // LinearModelStatistics: model statistics (optional, in a separate stream)
+            // LinearModelParameterStatistics: model statistics (optional, in a separate stream)
 
             ctx.Writer.Write(NumberOfFeatures);
             ctx.Writer.Write(NumberOfClasses);
@@ -822,7 +827,7 @@ namespace Microsoft.ML.Trainers
             }
 
             if (Statistics != null)
-                Statistics.SaveText(writer, null, schema.Feature.Value, 20);
+                Statistics.SaveText(writer, schema.Feature.Value, 20);
         }
 
         private protected abstract string GetTrainerName();
@@ -1039,8 +1044,9 @@ namespace Microsoft.ML.Trainers
             if (Statistics == null)
                 return null;
 
-            VBuffer<ReadOnlyMemory<char>> names = default;
-            var meta = Statistics.MakeStatisticsMetadata(null, schema, in names);
+            var names = default(VBuffer<ReadOnlyMemory<char>>);
+            AnnotationUtils.GetSlotNames(schema, RoleMappedSchema.ColumnRole.Feature, Weights.Length, ref names);
+            var meta = Statistics.MakeStatisticsMetadata(schema, in names);
             return AnnotationUtils.AnnotationsAsRow(meta);
         }
     }
@@ -1067,12 +1073,12 @@ namespace Microsoft.ML.Trainers
         /// </summary>
         private protected override VersionInfo GetVersionInfo() => VersionInfo;
 
-        internal LinearMulticlassModelParameters(IHostEnvironment env, in VBuffer<float> weights, int numClasses, int numFeatures, string[] labelNames, LinearModelStatistics stats = null)
+        internal LinearMulticlassModelParameters(IHostEnvironment env, in VBuffer<float> weights, int numClasses, int numFeatures, string[] labelNames, ModelStatisticsBase stats = null)
             : base(env, RegistrationName, weights, numClasses, numFeatures, labelNames, stats)
         {
         }
 
-        internal LinearMulticlassModelParameters(IHostEnvironment env, VBuffer<float>[] weights, float[] bias, int numClasses, int numFeatures, string[] labelNames, LinearModelStatistics stats = null)
+        internal LinearMulticlassModelParameters(IHostEnvironment env, VBuffer<float>[] weights, float[] bias, int numClasses, int numFeatures, string[] labelNames, ModelStatisticsBase stats = null)
             : base(env, RegistrationName, weights, bias, numClasses, numFeatures, labelNames, stats)
         {
         }
@@ -1139,12 +1145,12 @@ namespace Microsoft.ML.Trainers
         /// </summary>
         private protected override VersionInfo GetVersionInfo() => VersionInfo;
 
-        internal MaximumEntropyModelParameters(IHostEnvironment env, in VBuffer<float> weights, int numClasses, int numFeatures, string[] labelNames, LinearModelStatistics stats = null)
+        internal MaximumEntropyModelParameters(IHostEnvironment env, in VBuffer<float> weights, int numClasses, int numFeatures, string[] labelNames, ModelStatisticsBase stats = null)
             : base(env, RegistrationName, weights, numClasses, numFeatures, labelNames, stats)
         {
         }
 
-        internal MaximumEntropyModelParameters(IHostEnvironment env, VBuffer<float>[] weights, float[] bias, int numClasses, int numFeatures, string[] labelNames, LinearModelStatistics stats = null)
+        internal MaximumEntropyModelParameters(IHostEnvironment env, VBuffer<float>[] weights, float[] bias, int numClasses, int numFeatures, string[] labelNames, ModelStatisticsBase stats = null)
             : base(env, RegistrationName, weights, bias, numClasses, numFeatures, labelNames, stats)
         {
         }
