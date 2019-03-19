@@ -373,32 +373,32 @@ namespace Microsoft.ML
 
         /// <summary>
         /// Split the dataset into the train set and test set according to the given fraction.
-        /// Respects the <paramref name="samplingKeyColumn"/> if provided.
+        /// Respects the <paramref name="samplingKeyColumnName"/> if provided.
         /// </summary>
         /// <param name="data">The dataset to split.</param>
         /// <param name="testFraction">The fraction of data to go into the test set.</param>
-        /// <param name="samplingKeyColumn">Name of a column to use for grouping rows. If two examples share the same value of the <paramref name="samplingKeyColumn"/>,
+        /// <param name="samplingKeyColumnName">Name of a column to use for grouping rows. If two examples share the same value of the <paramref name="samplingKeyColumnName"/>,
         /// they are guaranteed to appear in the same subset (train or test). This can be used to ensure no label leakage from the train to the test set.
         /// If <see langword="null"/> no row grouping will be performed.</param>
         /// <param name="seed">Seed for the random number generator used to select rows for the train-test split.</param>
-        public TrainTestData TrainTestSplit(IDataView data, double testFraction = 0.1, string samplingKeyColumn = null, int? seed = null)
+        public TrainTestData TrainTestSplit(IDataView data, double testFraction = 0.1, string samplingKeyColumnName = null, int? seed = null)
         {
             _env.CheckValue(data, nameof(data));
             _env.CheckParam(0 < testFraction && testFraction < 1, nameof(testFraction), "Must be between 0 and 1 exclusive");
-            _env.CheckValueOrNull(samplingKeyColumn);
+            _env.CheckValueOrNull(samplingKeyColumnName);
 
-            EnsureGroupPreservationColumn(_env, ref data, ref samplingKeyColumn, seed);
+            EnsureGroupPreservationColumn(_env, ref data, ref samplingKeyColumnName, seed);
 
             var trainFilter = new RangeFilter(_env, new RangeFilter.Options()
             {
-                Column = samplingKeyColumn,
+                Column = samplingKeyColumnName,
                 Min = 0,
                 Max = testFraction,
                 Complement = true
             }, data);
             var testFilter = new RangeFilter(_env, new RangeFilter.Options()
             {
-                Column = samplingKeyColumn,
+                Column = samplingKeyColumnName,
                 Min = 0,
                 Max = testFraction,
                 Complement = false

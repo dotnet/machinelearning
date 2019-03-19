@@ -100,7 +100,7 @@ namespace Microsoft.ML.Benchmarks
             var loader = mlContext.Data.LoadFromTextFile(_sentimentDataPath, arguments);
             var text = mlContext.Transforms.Text.FeaturizeText("WordEmbeddings", new TextFeaturizingEstimator.Options
             {
-                OutputTokens = true,
+                OutputTokensColumnName = "WordEmbeddings_TransformedText",
                 KeepPunctuations = false,
                 StopWordsRemoverOptions = new StopWordsRemovingEstimator.Options(),
                 Norm = TextFeaturizingEstimator.NormFunction.None,

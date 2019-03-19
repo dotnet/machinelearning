@@ -118,13 +118,10 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
                 hasHeader: true);
 
             // Calculate metrics of the model on the test data.
-            var metrics = mlContext.Regression.Evaluate(model.Transform(testData), label: "Target");
+            var metrics = mlContext.Regression.Evaluate(model.Transform(testData), labelColumnName: "Target");
 
-            using (var stream = File.Create(modelPath))
-            {
-                // Saving and loading happens to 'dynamic' models.
-                mlContext.Model.Save(model, trainData.Schema, stream);
-            }
+            // Saving and loading happens to 'dynamic' models.
+            mlContext.Model.Save(model, trainData.Schema, modelPath);
 
             // Potentially, the lines below can be in a different process altogether.
 
@@ -434,7 +431,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
             Console.WriteLine(metrics.MicroAccuracy);
 
             // Now run the 5-fold cross-validation experiment, using the same pipeline.
-            var cvResults = mlContext.MulticlassClassification.CrossValidate(data, pipeline, numFolds: 5);
+            var cvResults = mlContext.MulticlassClassification.CrossValidate(data, pipeline, numberOfFolds: 5);
 
             // The results object is an array of 5 elements. For each of the 5 folds, we have metrics, model and scored test data.
             // Let's compute the average micro-accuracy.
@@ -522,8 +519,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
             var model = estimator.Fit(cachedTrainData);
 
             // Save the model.
-            using (var fs = File.Create(modelPath))
-                mlContext.Model.Save(model, cachedTrainData.Schema, fs);
+            mlContext.Model.Save(model, cachedTrainData.Schema, modelPath);
 
             // Now pretend we are in a different process.
             var newContext = new MLContext();

@@ -28,15 +28,14 @@ namespace Microsoft.ML.Tests.Scenarios.Api
             var pipeline = ml.Transforms.Text.FeaturizeText("Features", "SentimentText")
                 .AppendCacheCheckpoint(ml)
                 .Append(ml.BinaryClassification.Trainers.SdcaNonCalibrated(
-                    new SdcaNonCalibratedBinaryClassificationTrainer.Options { NumberOfThreads = 1 }));
+                    new SdcaNonCalibratedBinaryTrainer.Options { NumberOfThreads = 1 }));
 
             // Train.
             var model = pipeline.Fit(data);
 
             var modelPath = GetOutputPath("temp.zip");
             // Save model. 
-            using (var file = File.Create(modelPath))
-                ml.Model.Save(model, data.Schema, file);
+            ml.Model.Save(model, data.Schema, modelPath);
 
             // Load model.
             ITransformer loadedModel;
