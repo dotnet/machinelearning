@@ -310,6 +310,27 @@ namespace Microsoft.ML
         }
 
         /// <summary>
+        /// Predict a target using a maximum entropy classification model trained with <see cref="SdcaCalibratedMulticlassTrainer"/> and advanced options.
+        /// </summary>
+        /// <param name="catalog">The multiclass classification catalog trainer object.</param>
+        /// <param name="options">Trainer options.</param>
+        /// <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        ///  [!code-csharp[SDCA](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Trainers/MulticlassClassification/StochasticDualCoordinateAscentWithOptions.cs)]
+        /// ]]></format>
+        /// </example>
+        public static SdcaCalibratedMulticlassTrainer SdcaCalibrated(this MulticlassClassificationCatalog.MulticlassClassificationTrainers catalog,
+        SdcaCalibratedMulticlassTrainer.Options options)
+        {
+            Contracts.CheckValue(catalog, nameof(catalog));
+            Contracts.CheckValue(options, nameof(options));
+
+            var env = CatalogUtils.GetEnvironment(catalog);
+            return new SdcaCalibratedMulticlassTrainer(env, options);
+        }
+
+        /// <summary>
         /// Predict a target using a linear multiclass classification model trained with <see cref="SdcaNonCalibratedMulticlassTrainer"/>.
         /// </summary>
         /// <param name="catalog">The multiclass classification catalog trainer object.</param>
@@ -338,27 +359,6 @@ namespace Microsoft.ML
             Contracts.CheckValue(catalog, nameof(catalog));
             var env = CatalogUtils.GetEnvironment(catalog);
             return new SdcaNonCalibratedMulticlassTrainer(env, labelColumnName, featureColumnName, exampleWeightColumnName, loss, l2Regularization, l1Threshold, maximumNumberOfIterations);
-        }
-
-        /// <summary>
-        /// Predict a target using a maximum entropy classification model trained with <see cref="SdcaCalibratedMulticlassTrainer"/> and advanced options.
-        /// </summary>
-        /// <param name="catalog">The multiclass classification catalog trainer object.</param>
-        /// <param name="options">Trainer options.</param>
-        /// <example>
-        /// <format type="text/markdown">
-        /// <![CDATA[
-        ///  [!code-csharp[SDCA](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Trainers/MulticlassClassification/StochasticDualCoordinateAscentWithOptions.cs)]
-        /// ]]></format>
-        /// </example>
-        public static SdcaCalibratedMulticlassTrainer SdcaCalibrated(this MulticlassClassificationCatalog.MulticlassClassificationTrainers catalog,
-        SdcaCalibratedMulticlassTrainer.Options options)
-        {
-            Contracts.CheckValue(catalog, nameof(catalog));
-            Contracts.CheckValue(options, nameof(options));
-
-            var env = CatalogUtils.GetEnvironment(catalog);
-            return new SdcaCalibratedMulticlassTrainer(env, options);
         }
 
         /// <summary>
@@ -587,7 +587,7 @@ namespace Microsoft.ML
         }
 
         /// <summary>
-        /// Predict a target using a linear multiclass classification model trained with the <see cref="LbfgsMaximumEntropyTrainer"/> trainer.
+        /// Predict a target using a maximum entropy classification model trained with the L-BFGS method implemented in <see cref="LbfgsMaximumEntropyTrainer"/>.
         /// </summary>
         /// <param name="catalog">The <see cref="MulticlassClassificationCatalog.MulticlassClassificationTrainers"/>.</param>
         /// <param name="labelColumnName">The name of the label column.</param>
@@ -614,7 +614,7 @@ namespace Microsoft.ML
         }
 
         /// <summary>
-        /// Predict a target using a linear multiclass classification model trained with the <see cref="LbfgsMaximumEntropyTrainer"/> trainer.
+        /// Predict a target using a maximum entropy classification model trained with the L-BFGS method implemented in <see cref="LbfgsMaximumEntropyTrainer"/>.
         /// </summary>
         /// <param name="catalog">The <see cref="MulticlassClassificationCatalog.MulticlassClassificationTrainers"/>.</param>
         /// <param name="options">Advanced arguments to the algorithm.</param>

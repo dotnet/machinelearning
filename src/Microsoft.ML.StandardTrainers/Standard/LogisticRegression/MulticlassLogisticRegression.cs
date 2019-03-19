@@ -811,7 +811,21 @@ namespace Microsoft.ML.Trainers
         /// <summary>
         /// Actual implementation of <see cref="ICanSaveInTextFormat.SaveAsText(TextWriter, RoleMappedSchema)"/> should happen in derived classes.
         /// </summary>
-        private protected abstract void SaveAsTextCore(TextWriter writer, RoleMappedSchema schema);
+        private void SaveAsTextCore(TextWriter writer, RoleMappedSchema schema)
+        {
+            writer.WriteLine(GetTrainerName() + " bias and non-zero weights");
+
+            foreach (var namedValues in ((ICanGetSummaryInKeyValuePairs)this).GetSummaryInKeyValuePairs(schema))
+            {
+                Host.Assert(namedValues.Value is float);
+                writer.WriteLine("\t{0}\t{1}", namedValues.Key, (float)namedValues.Value);
+            }
+
+            if (Statistics != null)
+                Statistics.SaveText(writer, null, schema.Feature.Value, 20);
+        }
+
+        private protected abstract string GetTrainerName();
 
         /// <summary>
         /// Redirect <see cref="ICanSaveInTextFormat.SaveAsText(TextWriter, RoleMappedSchema)"/> call to the right function.
@@ -829,7 +843,28 @@ namespace Microsoft.ML.Trainers
         /// <summary>
         /// Actual implementation of <see cref="ICanSaveInSourceCode.SaveAsCode(TextWriter, RoleMappedSchema)"/> should happen in derived classes.
         /// </summary>
-        private protected abstract void SaveAsCodeCore(TextWriter writer, RoleMappedSchema schema);
+        private void SaveAsCodeCore(TextWriter writer, RoleMappedSchema schema)
+        {
+            Host.CheckValue(writer, nameof(writer));
+            Host.CheckValueOrNull(schema);
+
+            writer.WriteLine(string.Format("var scores = new float[{0}];", NumberOfClasses));
+
+            for (int i = 0; i < Biases.Length; i++)
+            {
+                LinearPredictorUtils.SaveAsCode(writer,
+                    in Weights[i],
+                    Biases[i],
+                    schema,
+                    "scores[" + i.ToString() + "]");
+            }
+        }
+
+        /// <summary>
+        /// The raw scores of all linear classifiers are stored in <see langword="float"/>[] <paramref name="scoresName"/>.
+        /// Derived classes can use this functin to add C# code for post-transformation.
+        /// </summary>
+        private protected abstract void SavePostTransformAsCode(TextWriter writer, string scoresName);
 
         /// <summary>
         /// Redirect <see cref="ICanSaveInSourceCode.SaveAsCode(TextWriter, RoleMappedSchema)"/> call to the right function.
@@ -839,7 +874,38 @@ namespace Microsoft.ML.Trainers
         /// <summary>
         /// Actual implementation of <see cref="ISingleCanSavePfa.SaveAsPfa(BoundPfaContext, JToken)"/> should happen in derived classes.
         /// </summary>
-        private protected abstract JToken SaveAsPfaCore(BoundPfaContext ctx, JToken input);
+        private JToken SaveAsPfaCore(BoundPfaContext ctx, JToken input)
+        {
+            Host.CheckValue(ctx, nameof(ctx));
+            Host.CheckValue(input, nameof(input));
+
+            const string typeName = "MCLinearPredictor";
+            JToken typeDecl = typeName;
+            if (ctx.Pfa.RegisterType(typeName))
+            {
+                JObject type = new JObject();
+                type["type"] = "record";
+                type["name"] = typeName;
+                JArray fields = new JArray();
+                JObject jobj = null;
+                fields.Add(jobj.AddReturn("name", "coeff").AddReturn("type", PfaUtils.Type.Array(PfaUtils.Type.Array(PfaUtils.Type.Double))));
+                fields.Add(jobj.AddReturn("name", "const").AddReturn("type", PfaUtils.Type.Array(PfaUtils.Type.Double)));
+                type["fields"] = fields;
+                typeDecl = type;
+            }
+
+            JObject predictor = new JObject();
+            predictor["coeff"] = new JArray(Weights.Select(w => new JArray(w.DenseValues())));
+            predictor["const"] = new JArray(Biases);
+            var cell = ctx.DeclareCell("MCLinearPredictor", typeDecl, predictor);
+            var cellRef = PfaUtils.Cell(cell);
+            return ApplyPfaPostTransform(PfaUtils.Call("model.reg.linear", input, cellRef));
+        }
+
+        /// <summary>
+        /// This is called at the end of <see cref="SaveAsPfaCore(BoundPfaContext, JToken)"/> to adjust the final outputs of all linear models.
+        /// </summary>
+        private protected abstract JToken ApplyPfaPostTransform(JToken input);
 
         /// <summary>
         /// Redirect <see cref="ISingleCanSavePfa.SaveAsPfa(BoundPfaContext, JToken)"/> call to the right function.
@@ -848,8 +914,28 @@ namespace Microsoft.ML.Trainers
 
         /// <summary>
         /// Actual implementation of <see cref="ISingleCanSaveOnnx.SaveAsOnnx(OnnxContext, string[], string)"/> should happen in derived classes.
+        /// It's ok to make <see cref="SaveAsOnnxCore(OnnxContext, string[], string)"/> a <see langword="private protected"/> method in the future
+        /// if any derived class wants to override.
         /// </summary>
-        private protected abstract bool SaveAsOnnxCore(OnnxContext ctx, string[] outputs, string featureColumn);
+        private bool SaveAsOnnxCore(OnnxContext ctx, string[] outputs, string featureColumn)
+        {
+            Host.CheckValue(ctx, nameof(ctx));
+
+            string opType = "LinearClassifier";
+            var node = ctx.CreateNode(opType, new[] { featureColumn }, outputs, ctx.GetNodeName(opType));
+            node.AddAttribute("post_transform", GetOnnxPostTransform());
+            node.AddAttribute("multi_class", true);
+            node.AddAttribute("coefficients", Weights.SelectMany(w => w.DenseValues()));
+            node.AddAttribute("intercepts", Biases);
+            node.AddAttribute("classlabels_ints", Enumerable.Range(0, NumberOfClasses).Select(x => (long)x));
+            return true;
+        }
+
+        /// <summary>
+        /// Post-transform applied to the raw scores produced by those linear models of all classes. For maximum entropy classification, it should be
+        /// a softmax function. This function is used only in <see cref="SaveAsOnnxCore(OnnxContext, string[], string)"/>.
+        /// </summary>
+        private protected abstract string GetOnnxPostTransform();
 
         /// <summary>
         /// Redirect <see cref="ISingleCanSaveOnnx.SaveAsOnnx(OnnxContext, string[], string)"/> call to the right function.
@@ -1002,7 +1088,6 @@ namespace Microsoft.ML.Trainers
         /// <param name="dst">Score vector should be calibrated.</param>
         private protected override void Calibrate(Span<float> dst)
         {
-            return;
         }
 
         private static LinearMulticlassModelParameters Create(IHostEnvironment env, ModelLoadContext ctx)
@@ -1013,83 +1098,19 @@ namespace Microsoft.ML.Trainers
             return new LinearMulticlassModelParameters(env, ctx);
         }
 
+        private protected override void SavePostTransformAsCode(TextWriter writer, string scoresName) { }
+
         /// <summary>
-        /// Output the text model to a given writer.
+        /// No post-transform is needed for non-clibrated classifier.
         /// </summary>
-        private protected override void SaveAsCodeCore(TextWriter writer, RoleMappedSchema schema)
-        {
-            Host.CheckValue(writer, nameof(writer));
-            Host.CheckValueOrNull(schema);
+        private protected override string GetOnnxPostTransform() => "NONE";
 
-            for (int i = 0; i < Biases.Length; i++)
-            {
-                LinearPredictorUtils.SaveAsCode(writer,
-                    in Weights[i],
-                    Biases[i],
-                    schema,
-                    "score[" + i.ToString() + "]");
-            }
+        /// <summary>
+        /// No post-transform is needed for non-clibrated classifier.
+        /// </summary>
+        private protected override JToken ApplyPfaPostTransform(JToken input) => input;
 
-            writer.WriteLine(string.Format("var softmax = MathUtils.SoftMax(scores.AsSpan(0, {0}));", NumberOfClasses));
-            for (int c = 0; c < Biases.Length; c++)
-                writer.WriteLine("output[{0}] = Math.Exp(scores[{0}] - softmax);", c);
-        }
-
-        private protected override bool SaveAsOnnxCore(OnnxContext ctx, string[] outputs, string featureColumn)
-        {
-            Host.CheckValue(ctx, nameof(ctx));
-
-            string opType = "LinearClassifier";
-            var node = ctx.CreateNode(opType, new[] { featureColumn }, outputs, ctx.GetNodeName(opType));
-            node.AddAttribute("post_transform", "NONE");
-            node.AddAttribute("multi_class", true);
-            node.AddAttribute("coefficients", Weights.SelectMany(w => w.DenseValues()));
-            node.AddAttribute("intercepts", Biases);
-            node.AddAttribute("classlabels_ints", Enumerable.Range(0, NumberOfClasses).Select(x => (long)x));
-            return true;
-        }
-
-        private protected override JToken SaveAsPfaCore(BoundPfaContext ctx, JToken input)
-        {
-            Host.CheckValue(ctx, nameof(ctx));
-            Host.CheckValue(input, nameof(input));
-
-            const string typeName = "MCLinearPredictor";
-            JToken typeDecl = typeName;
-            if (ctx.Pfa.RegisterType(typeName))
-            {
-                JObject type = new JObject();
-                type["type"] = "record";
-                type["name"] = typeName;
-                JArray fields = new JArray();
-                JObject jobj = null;
-                fields.Add(jobj.AddReturn("name", "coeff").AddReturn("type", PfaUtils.Type.Array(PfaUtils.Type.Array(PfaUtils.Type.Double))));
-                fields.Add(jobj.AddReturn("name", "const").AddReturn("type", PfaUtils.Type.Array(PfaUtils.Type.Double)));
-                type["fields"] = fields;
-                typeDecl = type;
-            }
-
-            JObject predictor = new JObject();
-            predictor["coeff"] = new JArray(Weights.Select(w => new JArray(w.DenseValues())));
-            predictor["const"] = new JArray(Biases);
-            var cell = ctx.DeclareCell("MCLinearPredictor", typeDecl, predictor);
-            var cellRef = PfaUtils.Cell(cell);
-            return PfaUtils.Call("model.reg.linear", input, cellRef);
-        }
-
-        private protected override void SaveAsTextCore(TextWriter writer, RoleMappedSchema schema)
-        {
-            writer.WriteLine(nameof(LinearMulticlassModelParameters) + " bias and non-zero weights");
-
-            foreach (var namedValues in ((ICanGetSummaryInKeyValuePairs)this).GetSummaryInKeyValuePairs(schema))
-            {
-                Host.Assert(namedValues.Value is float);
-                writer.WriteLine("\t{0}\t{1}", namedValues.Key, (float)namedValues.Value);
-            }
-
-            if (Statistics != null)
-                Statistics.SaveText(writer, null, schema.Feature.Value, 20);
-        }
+        private protected override string GetTrainerName() => nameof(LinearMulticlassModelParameters);
     }
 
     /// <summary>
@@ -1149,81 +1170,26 @@ namespace Microsoft.ML.Trainers
         }
 
         /// <summary>
-        /// Output the text model to a given writer
+        /// Apply softmax function to <paramref name="scoresName"/>, which contains raw scores from all linear models.
         /// </summary>
-        private protected override void SaveAsCodeCore(TextWriter writer, RoleMappedSchema schema)
+        private protected override void SavePostTransformAsCode(TextWriter writer, string scoresName)
         {
-            Host.CheckValue(writer, nameof(writer));
-            Host.CheckValueOrNull(schema);
+            writer.WriteLine(string.Format("var softmax = MathUtils.SoftMax({0}.AsSpan(0, {1}));", scoresName, NumberOfClasses));
 
-            for (int i = 0; i < Biases.Length; i++)
-            {
-                LinearPredictorUtils.SaveAsCode(writer,
-                    in Weights[i],
-                    Biases[i],
-                    schema,
-                    "score[" + i.ToString() + "]");
-            }
-
-            writer.WriteLine(string.Format("var softmax = MathUtils.SoftMax(scores.AsSpan(0, {0}));", NumberOfClasses));
             for (int c = 0; c < Biases.Length; c++)
-                writer.WriteLine("output[{0}] = Math.Exp(scores[{0}] - softmax);", c);
+                writer.WriteLine("{1}[{0}] = Math.Exp({1}[{0}] - softmax);", c, scoresName);
         }
 
-        private protected override bool SaveAsOnnxCore(OnnxContext ctx, string[] outputs, string featureColumn)
-        {
-            Host.CheckValue(ctx, nameof(ctx));
+        /// <summary>
+        /// Apply softmax to the raw scores produced by the lienar models of all classes.
+        /// </summary>
+        private protected override string GetOnnxPostTransform() => "SOFTMAX";
 
-            string opType = "LinearClassifier";
-            var node = ctx.CreateNode(opType, new[] { featureColumn }, outputs, ctx.GetNodeName(opType));
-            node.AddAttribute("post_transform", "NONE");
-            node.AddAttribute("multi_class", true);
-            node.AddAttribute("coefficients", Weights.SelectMany(w => w.DenseValues()));
-            node.AddAttribute("intercepts", Biases);
-            node.AddAttribute("classlabels_ints", Enumerable.Range(0, NumberOfClasses).Select(x => (long)x));
-            return true;
-        }
+        /// <summary>
+        /// Apply softmax to the raw scores produced by the lienar models of all classes.
+        /// </summary>
+        private protected override JToken ApplyPfaPostTransform(JToken input) => PfaUtils.Call("m.link.softmax", input);
 
-        private protected override JToken SaveAsPfaCore(BoundPfaContext ctx, JToken input)
-        {
-            Host.CheckValue(ctx, nameof(ctx));
-            Host.CheckValue(input, nameof(input));
-
-            const string typeName = "MCLinearPredictor";
-            JToken typeDecl = typeName;
-            if (ctx.Pfa.RegisterType(typeName))
-            {
-                JObject type = new JObject();
-                type["type"] = "record";
-                type["name"] = typeName;
-                JArray fields = new JArray();
-                JObject jobj = null;
-                fields.Add(jobj.AddReturn("name", "coeff").AddReturn("type", PfaUtils.Type.Array(PfaUtils.Type.Array(PfaUtils.Type.Double))));
-                fields.Add(jobj.AddReturn("name", "const").AddReturn("type", PfaUtils.Type.Array(PfaUtils.Type.Double)));
-                type["fields"] = fields;
-                typeDecl = type;
-            }
-
-            JObject predictor = new JObject();
-            predictor["coeff"] = new JArray(Weights.Select(w => new JArray(w.DenseValues())));
-            predictor["const"] = new JArray(Biases);
-            var cell = ctx.DeclareCell("MCLinearPredictor", typeDecl, predictor);
-            var cellRef = PfaUtils.Cell(cell);
-            return PfaUtils.Call("m.link.softmax", PfaUtils.Call("model.reg.linear", input, cellRef));
-        }
-
-        private protected override void SaveAsTextCore(TextWriter writer, RoleMappedSchema schema)
-        {
-            writer.WriteLine(nameof(LbfgsMaximumEntropyTrainer) + " bias and non-zero weights");
-
-            foreach (var namedValues in ((ICanGetSummaryInKeyValuePairs)this).GetSummaryInKeyValuePairs(schema))
-            {
-                Host.Assert(namedValues.Value is float);
-                writer.WriteLine("\t{0}\t{1}", namedValues.Key, (float)namedValues.Value);
-            }
-
-            if (Statistics != null)
-                Statistics.SaveText(writer, null, schema.Feature.Value, 20);
-        }
+        private protected override string GetTrainerName() => nameof(LbfgsMaximumEntropyTrainer);
     }
 }
