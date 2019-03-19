@@ -21,7 +21,7 @@ namespace Microsoft.ML.Functional.Tests
         }
 
         /// <summary>
-        /// ONNX: I can save a model to ONNX and reload it and use it in a pipeline.
+        /// ONNX: Models can be serialized to ONNX, deserialized back to ML.NET, and used a pipeline.
         /// </summary>
         [OnnxFactAttribute]
         public void SaveOnnxModelLoadAndScoreFastTree()
@@ -73,7 +73,7 @@ namespace Microsoft.ML.Functional.Tests
         }
 
         /// <summary>
-        /// ONNX: I can save a model to ONNX and reload it and use it in a pipeline.
+        /// ONNX: Models can be serialized to ONNX, deserialized back to ML.NET, and used a pipeline.
         /// </summary>
         [OnnxFactAttribute]
         public void SaveOnnxModelLoadAndScoreKMeans()
@@ -125,7 +125,7 @@ namespace Microsoft.ML.Functional.Tests
         }
 
         /// <summary>
-        /// ONNX: I can save a model to ONNX and reload it and use it in a pipeline.
+        /// ONNX: Models can be serialized to ONNX, deserialized back to ML.NET, and used a pipeline.
         /// </summary>
         [OnnxFactAttribute]
         public void SaveOnnxModelLoadAndScoreSDCA()
