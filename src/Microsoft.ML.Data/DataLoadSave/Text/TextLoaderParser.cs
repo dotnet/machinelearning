@@ -69,7 +69,7 @@ namespace Microsoft.ML.Data
 
             private Func<RowSet, ColumnPipe> GetCreatorOneCore<T>(PrimitiveDataViewType type)
             {
-                Contracts.Assert(type.IsStandardScalar() || type is KeyType);
+                Contracts.Assert(type.IsStandardScalar() || type is KeyDataViewType);
                 Contracts.Assert(typeof(T) == type.RawType);
                 var fn = _conv.GetTryParseConversion<T>(type);
                 return rows => new PrimitivePipe<T>(rows, type, fn);
@@ -83,20 +83,20 @@ namespace Microsoft.ML.Data
 
             private Func<RowSet, ColumnPipe> GetCreatorVecCore<T>(PrimitiveDataViewType type)
             {
-                Contracts.Assert(type.IsStandardScalar() || type is KeyType);
+                Contracts.Assert(type.IsStandardScalar() || type is KeyDataViewType);
                 Contracts.Assert(typeof(T) == type.RawType);
                 var fn = _conv.GetTryParseConversion<T>(type);
                 return rows => new VectorPipe<T>(rows, type, fn);
             }
 
-            public Func<RowSet, ColumnPipe> GetCreatorOne(KeyType key)
+            public Func<RowSet, ColumnPipe> GetCreatorOne(KeyDataViewType key)
             {
                 // Have to produce a specific one - can't use a cached one.
                 MethodInfo meth = _methOne.MakeGenericMethod(key.RawType);
                 return (Func<RowSet, ColumnPipe>)meth.Invoke(this, new object[] { key });
             }
 
-            public Func<RowSet, ColumnPipe> GetCreatorVec(KeyType key)
+            public Func<RowSet, ColumnPipe> GetCreatorVec(KeyDataViewType key)
             {
                 // Have to produce a specific one - can't use a cached one.
                 MethodInfo meth = _methVec.MakeGenericMethod(key.RawType);
@@ -660,21 +660,21 @@ namespace Microsoft.ML.Data
                 {
                     var info = _infos[i];
 
-                    if (info.ColType is KeyType keyType)
+                    if (info.ColType is KeyDataViewType keyType)
                     {
                         _creator[i] = cache.GetCreatorOne(keyType);
                         continue;
                     }
 
                     VectorType vectorType = info.ColType as VectorType;
-                    if (vectorType?.ItemType is KeyType vectorKeyType)
+                    if (vectorType?.ItemType is KeyDataViewType vectorKeyType)
                     {
                         _creator[i] = cache.GetCreatorVec(vectorKeyType);
                         continue;
                     }
 
                     DataViewType itemType = vectorType?.ItemType ?? info.ColType;
-                    Contracts.Assert(itemType is KeyType || itemType.IsStandardScalar());
+                    Contracts.Assert(itemType is KeyDataViewType || itemType.IsStandardScalar());
                     var map = vectorType != null ? mapVec : mapOne;
                     if (!map.TryGetValue(info.Kind, out _creator[i]))
                     {

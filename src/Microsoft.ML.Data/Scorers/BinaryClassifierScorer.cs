@@ -236,7 +236,7 @@ namespace Microsoft.ML.Data
                 };
             scoreGetter = scoreFn;
 
-            if (Bindings.PredColType is KeyType)
+            if (Bindings.PredColType is KeyDataViewType)
             {
                 ValueGetter<uint> predFnAsKey =
                     (ref uint dst) =>
@@ -276,7 +276,7 @@ namespace Microsoft.ML.Data
             JToken falseVal = 0;
             JToken nullVal = -1;
 
-            if (!(Bindings.PredColType is KeyType))
+            if (!(Bindings.PredColType is KeyDataViewType))
             {
                 trueVal = true;
                 falseVal = nullVal = false; // Let's pretend those pesky nulls are not there.
@@ -290,7 +290,7 @@ namespace Microsoft.ML.Data
             var labelNameBindableMapper = mapper.Bindable as MulticlassClassificationScorer.LabelNameBindableMapper;
             if (labelNameBindableMapper == null)
                 return BooleanDataViewType.Instance;
-            return new KeyType(typeof(uint), labelNameBindableMapper.Type.Size);
+            return new KeyDataViewType(typeof(uint), labelNameBindableMapper.Type.Size);
         }
 
         private static bool OutputTypeMatches(DataViewType scoreType)

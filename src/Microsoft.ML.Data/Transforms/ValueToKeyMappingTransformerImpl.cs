@@ -488,7 +488,7 @@ namespace Microsoft.ML.Transforms
             /// key types so they are capable of distinguishing between the set they index being
             /// empty vs. of unknown or unbound cardinality, this should change.
             /// </summary>
-            public readonly KeyType OutputType;
+            public readonly KeyDataViewType OutputType;
 
             /// <summary>
             /// The number of items in the map.
@@ -501,7 +501,7 @@ namespace Microsoft.ML.Transforms
                 Contracts.Assert(count >= 0);
                 ItemType = type;
                 Count = count;
-                OutputType = new KeyType(typeof(uint), Count == 0 ? 1 : Count);
+                OutputType = new KeyDataViewType(typeof(uint), Count == 0 ? 1 : Count);
             }
 
             internal abstract void Save(ModelSaveContext ctx, IHostEnvironment host, CodecFactory codecFactory);
@@ -843,7 +843,7 @@ namespace Microsoft.ML.Transforms
             public static BoundTermMap CreateCore<T>(IHostEnvironment env, DataViewSchema schema, TermMap map, ColInfo[] infos, bool[] textMetadata, int iinfo)
             {
                 TermMap<T> mapT = (TermMap<T>)map;
-                if (mapT.ItemType is KeyType)
+                if (mapT.ItemType is KeyDataViewType)
                     return new KeyImpl<T>(env, schema, mapT, infos, textMetadata, iinfo);
                 return new Impl<T>(env, schema, mapT, infos, textMetadata, iinfo);
             }
@@ -1077,7 +1077,7 @@ namespace Microsoft.ML.Transforms
                 public KeyImpl(IHostEnvironment env, DataViewSchema schema, TermMap<T> map, ColInfo[] infos, bool[] textMetadata, int iinfo)
                     : base(env, schema, map, infos, textMetadata, iinfo)
                 {
-                    _host.Assert(TypedMap.ItemType is KeyType);
+                    _host.Assert(TypedMap.ItemType is KeyDataViewType);
                 }
 
                 public override void AddMetadata(DataViewSchema.Annotations.Builder builder)
@@ -1100,9 +1100,9 @@ namespace Microsoft.ML.Transforms
                     _host.AssertValue(srcMetaType);
                     _host.Assert(srcMetaType.RawType == typeof(TMeta));
                     _host.AssertValue(builder);
-                    var srcType = TypedMap.ItemType as KeyType;
+                    var srcType = TypedMap.ItemType as KeyDataViewType;
                     _host.AssertValue(srcType);
-                    var dstType = new KeyType(typeof(uint), srcType.Count);
+                    var dstType = new KeyDataViewType(typeof(uint), srcType.Count);
                     var convInst = Data.Conversion.Conversions.Instance;
                     ValueMapper<T, uint> conv;
                     bool identity;
@@ -1180,9 +1180,9 @@ namespace Microsoft.ML.Transforms
                 {
                     _host.AssertValue(srcMetaType);
                     _host.Assert(srcMetaType.RawType == typeof(TMeta));
-                    var srcType = TypedMap.ItemType as KeyType;
+                    var srcType = TypedMap.ItemType as KeyDataViewType;
                     _host.AssertValue(srcType);
-                    var dstType = new KeyType(typeof(uint), srcType.Count);
+                    var dstType = new KeyDataViewType(typeof(uint), srcType.Count);
                     var convInst = Data.Conversion.Conversions.Instance;
                     ValueMapper<T, uint> conv;
                     bool identity;

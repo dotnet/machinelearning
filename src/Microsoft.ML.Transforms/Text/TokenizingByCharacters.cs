@@ -197,7 +197,7 @@ namespace Microsoft.ML.Transforms.Text
              : base(parent.Host.Register(nameof(Mapper)), parent, inputSchema)
             {
                 _parent = parent;
-                var keyType = new KeyType(typeof(ushort), CharsCount);
+                var keyType = new KeyDataViewType(typeof(ushort), CharsCount);
                 _type = new VectorType(keyType);
                 _isSourceVector = new bool[_parent.ColumnPairs.Length];
                 for (int i = 0; i < _isSourceVector.Length; i++)

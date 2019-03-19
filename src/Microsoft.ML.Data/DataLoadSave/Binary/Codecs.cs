@@ -1175,7 +1175,7 @@ namespace Microsoft.ML.Data.IO
             // Identical to UnsafeTypeCodec, packed bytes of little-endian values.
 
             private readonly CodecFactory _factory;
-            private readonly KeyType _type;
+            private readonly KeyDataViewType _type;
             // We rely on a more basic value codec to do the actual saving and loading.
             private readonly IValueCodec<T> _innerCodec;
 
@@ -1183,7 +1183,7 @@ namespace Microsoft.ML.Data.IO
 
             public DataViewType Type { get { return _type; } }
 
-            public KeyCodecOld(CodecFactory factory, KeyType type, IValueCodec<T> innerCodec)
+            public KeyCodecOld(CodecFactory factory, KeyDataViewType type, IValueCodec<T> innerCodec)
             {
                 Contracts.AssertValue(factory);
                 Contracts.AssertValue(type);
@@ -1240,8 +1240,8 @@ namespace Microsoft.ML.Data.IO
             // Construct the key type.
             var itemType = innerCodec.Type as PrimitiveDataViewType;
             Contracts.CheckDecode(itemType != null);
-            Contracts.CheckDecode(KeyType.IsValidDataType(itemType.RawType));
-            KeyType type;
+            Contracts.CheckDecode(KeyDataViewType.IsValidDataType(itemType.RawType));
+            KeyDataViewType type;
             using (BinaryReader reader = OpenBinaryReader(definitionStream))
             {
                 bool contiguous = reader.ReadBoolByte();
@@ -1256,9 +1256,9 @@ namespace Microsoft.ML.Data.IO
 
                 // Since we removed the notion of unknown cardinality (count == 0), we map to the maximum value.
                 if (count == 0)
-                    type = new KeyType(itemType.RawType, itemType.RawType.ToMaxInt());
+                    type = new KeyDataViewType(itemType.RawType, itemType.RawType.ToMaxInt());
                 else
-                    type = new KeyType(itemType.RawType, count);
+                    type = new KeyDataViewType(itemType.RawType, count);
             }
             // Next create the key codec.
             Type codecType = typeof(KeyCodecOld<>).MakeGenericType(itemType.RawType);
@@ -1272,7 +1272,7 @@ namespace Microsoft.ML.Data.IO
             // Identical to UnsafeTypeCodec, packed bytes of little-endian values.
 
             private readonly CodecFactory _factory;
-            private readonly KeyType _type;
+            private readonly KeyDataViewType _type;
             // We rely on a more basic value codec to do the actual saving and loading.
             private readonly IValueCodec<T> _innerCodec;
 
@@ -1280,7 +1280,7 @@ namespace Microsoft.ML.Data.IO
 
             public DataViewType Type { get { return _type; } }
 
-            public KeyCodec(CodecFactory factory, KeyType type, IValueCodec<T> innerCodec)
+            public KeyCodec(CodecFactory factory, KeyDataViewType type, IValueCodec<T> innerCodec)
             {
                 Contracts.AssertValue(factory);
                 Contracts.AssertValue(type);
@@ -1337,8 +1337,8 @@ namespace Microsoft.ML.Data.IO
             // Construct the key type.
             var itemType = innerCodec.Type as PrimitiveDataViewType;
             Contracts.CheckDecode(itemType != null);
-            Contracts.CheckDecode(KeyType.IsValidDataType(itemType.RawType));
-            KeyType type;
+            Contracts.CheckDecode(KeyDataViewType.IsValidDataType(itemType.RawType));
+            KeyDataViewType type;
             using (BinaryReader reader = OpenBinaryReader(definitionStream))
             {
                 ulong count = reader.ReadUInt64();
@@ -1346,7 +1346,7 @@ namespace Microsoft.ML.Data.IO
                 Contracts.CheckDecode(0 < count);
                 Contracts.CheckDecode(count <= itemType.RawType.ToMaxInt());
 
-                type = new KeyType(itemType.RawType, count);
+                type = new KeyDataViewType(itemType.RawType, count);
             }
             // Next create the key codec.
             Type codecType = typeof(KeyCodec<>).MakeGenericType(itemType.RawType);
@@ -1356,7 +1356,7 @@ namespace Microsoft.ML.Data.IO
 
         private bool GetKeyCodec(DataViewType type, out IValueCodec codec)
         {
-            if (!(type is KeyType))
+            if (!(type is KeyDataViewType))
                 throw Contracts.ExceptParam(nameof(type), "type must be a key type");
             // Create the internal codec the key codec will use to do the actual reading/writing.
             IValueCodec innerCodec;

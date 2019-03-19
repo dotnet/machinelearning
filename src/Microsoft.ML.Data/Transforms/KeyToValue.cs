@@ -262,7 +262,7 @@ namespace Microsoft.ML.Transforms
                 Host.Check(keyMetadata.Length == keyItemType.GetKeyCountAsInt32(Host));
 
                 VBufferUtils.Densify(ref keyMetadata);
-                return new KeyToValueMap<TKey, TValue>(this, (KeyType)keyItemType, (PrimitiveDataViewType)valItemType, keyMetadata, iinfo);
+                return new KeyToValueMap<TKey, TValue>(this, (KeyDataViewType)keyItemType, (PrimitiveDataViewType)valItemType, keyMetadata, iinfo);
             }
             /// <summary>
             /// A map is an object capable of creating the association from an input type, to an output
@@ -313,7 +313,7 @@ namespace Microsoft.ML.Transforms
 
                 private readonly ValueMapper<TKey, UInt32> _convertToUInt;
 
-                public KeyToValueMap(Mapper parent, KeyType typeKey, PrimitiveDataViewType typeVal, VBuffer<TValue> values, int iinfo)
+                public KeyToValueMap(Mapper parent, KeyDataViewType typeKey, PrimitiveDataViewType typeVal, VBuffer<TValue> values, int iinfo)
                     : base(parent, typeVal, iinfo)
                 {
                     Parent.Host.Assert(values.IsDense);

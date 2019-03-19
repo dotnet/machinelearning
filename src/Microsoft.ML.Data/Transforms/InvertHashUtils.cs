@@ -41,7 +41,7 @@ namespace Microsoft.ML.Data
             var conv = Conversion.Conversions.Instance;
 
             // First: if not key, then get the standard string converison.
-            if (!(type is KeyType keyType))
+            if (!(type is KeyDataViewType keyType))
                 return conv.GetStringConversion<T>(type);
 
             bool identity;

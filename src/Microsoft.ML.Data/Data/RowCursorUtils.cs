@@ -301,7 +301,7 @@ namespace Microsoft.ML.Data
             Contracts.CheckValue(cursor, nameof(cursor));
             Contracts.Check(0 <= col && col < cursor.Schema.Count);
             DataViewType type = cursor.Schema[col].Type;
-            Contracts.Check(type is KeyType);
+            Contracts.Check(type is KeyDataViewType);
             return Utils.MarshalInvoke(GetIsNewGroupDelegateCore<int>, type.RawType, cursor, col);
         }
 
@@ -338,7 +338,7 @@ namespace Microsoft.ML.Data
             if (type == NumberDataViewType.Single || type == NumberDataViewType.Double || type is BooleanDataViewType)
                 return null;
 
-            if (allowKeys && type is KeyType)
+            if (allowKeys && type is KeyDataViewType)
                 return null;
 
             return allowKeys ? "Expected R4, R8, Bool or Key type" : "Expected R4, R8 or Bool type";
@@ -385,7 +385,7 @@ namespace Microsoft.ML.Data
                     };
             }
 
-            if (!(type is KeyType keyType))
+            if (!(type is KeyDataViewType keyType))
                 throw Contracts.Except("Only floating point number, boolean, and key type values can be used as label.");
 
             Contracts.Assert(TestGetLabelGetter(type) == null);
@@ -413,7 +413,7 @@ namespace Microsoft.ML.Data
                 return cursor.GetGetter<Single>();
             if (type == NumberDataViewType.Double || type is BooleanDataViewType)
                 return GetVecGetterAs<Single>(NumberDataViewType.Single, cursor);
-            if (!(type is KeyType keyType))
+            if (!(type is KeyDataViewType keyType))
             {
                 throw Contracts.Except("Only floating point number, boolean, and key type values can be used as label.");
             }

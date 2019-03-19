@@ -43,13 +43,13 @@ namespace Microsoft.ML.RunTests
 
                 // KeyType & Vector
                 var rawType = tmp.RawType;
-                if (!KeyType.IsValidDataType(rawType))
+                if (!KeyDataViewType.IsValidDataType(rawType))
                     continue;
                 for (ulong min = 0; min < 5; min++)
                 {
                     for (var count = 1; count < 5; count++)
                     {
-                        tmp = new KeyType(rawType, count);
+                        tmp = new KeyDataViewType(rawType, count);
                         if (dict.ContainsKey(tmp) && dict[tmp] != tmp.ToString())
                             Assert.True(false, dict[tmp] + " and " + tmp.ToString() + " are duplicates.");
                         dict[tmp] = tmp.ToString();
@@ -69,7 +69,7 @@ namespace Microsoft.ML.RunTests
                         }
                     }
                     Assert.True(rawType.TryGetDataKind(out var kind));
-                    tmp = new KeyType(rawType, kind.ToMaxInt());
+                    tmp = new KeyDataViewType(rawType, kind.ToMaxInt());
                     if (dict.ContainsKey(tmp) && dict[tmp] != tmp.ToString())
                         Assert.True(false, dict[tmp] + " and " + tmp.ToString() + " are duplicates.");
                     dict[tmp] = tmp.ToString();

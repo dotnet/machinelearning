@@ -144,10 +144,10 @@ namespace Microsoft.ML.Transforms
             /// Constructs the correct KeyType for the given hash bits.
             /// Because of array size limitation, if numberOfBits = 31, the key type is not contiguous (not transformable into indicator array)
             /// </summary>
-            private static KeyType GetItemType(int numberOfBits)
+            private static KeyDataViewType GetItemType(int numberOfBits)
             {
                 var keyCount = (ulong)1 << numberOfBits;
-                return new KeyType(typeof(uint), keyCount);
+                return new KeyDataViewType(typeof(uint), keyCount);
             }
         }
 

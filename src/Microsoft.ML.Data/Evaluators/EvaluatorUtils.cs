@@ -184,7 +184,7 @@ namespace Microsoft.ML.Data
 
             // Get the score column set id from colScore.
             var type = schema[colScore].Annotations.Schema.GetColumnOrNull(AnnotationUtils.Kinds.ScoreColumnSetId)?.Type;
-            if (!(type is KeyType) || type.RawType != typeof(uint))
+            if (!(type is KeyDataViewType) || type.RawType != typeof(uint))
             {
                 // scoreCol is not part of a score column set, so can't determine an aux column.
                 return null;
@@ -411,7 +411,7 @@ namespace Microsoft.ML.Data
         {
             Contracts.Check(typeSrc.RawType == typeof(TSrc));
             return LambdaColumnMapper.Create(env, registrationName, input, inputColName, outputColName, typeSrc,
-                new KeyType(typeof(uint), keyCount), (in TSrc src, ref uint dst) =>
+                new KeyDataViewType(typeof(uint), keyCount), (in TSrc src, ref uint dst) =>
                 {
                     if (value < 0 || value > keyCount)
                         dst = 0;
@@ -575,7 +575,7 @@ namespace Microsoft.ML.Data
                 if (keyValueItemType == null || keyValueItemType.RawType != typeof(T))
                     throw Contracts.Except($"Column '{columnName}' in schema number {i} does not have the correct type of key values");
                 DataViewType typeItemType = vectorType?.ItemType ?? type;
-                if (!(typeItemType is KeyType itemKeyType) || typeItemType.RawType != typeof(uint))
+                if (!(typeItemType is KeyDataViewType itemKeyType) || typeItemType.RawType != typeof(uint))
                     throw Contracts.Except($"Column '{columnName}' must be a U4 key type, but is '{typeItemType}'");
 
                 schema[indices[i]].GetKeyValues(ref keyNamesCur);
@@ -611,7 +611,7 @@ namespace Microsoft.ML.Data
             var keyNames = new Dictionary<ReadOnlyMemory<char>, int>();
             // We use MarshalInvoke so that we can call MapKeys with the correct generic: keyValueType.RawType.
             var keyValueMappers = Utils.MarshalInvoke(MapKeys<int>, keyValueType.RawType, views.Select(view => view.Schema).ToArray(), columnName, false, indices, keyNames);
-            var keyType = new KeyType(typeof(uint), keyNames.Count);
+            var keyType = new KeyDataViewType(typeof(uint), keyNames.Count);
             var keyNamesVBuffer = new VBuffer<ReadOnlyMemory<char>>(keyNames.Count, keyNames.Keys.ToArray());
             ValueGetter<VBuffer<ReadOnlyMemory<char>>> keyValueGetter =
                     (ref VBuffer<ReadOnlyMemory<char>> dst) =>
@@ -645,7 +645,7 @@ namespace Microsoft.ML.Data
             Contracts.CheckNonEmpty(views, nameof(views));
             Contracts.CheckNonEmpty(columnName, nameof(columnName));
 
-            var keyType = new KeyType(typeof(uint), keyCount);
+            var keyType = new KeyDataViewType(typeof(uint), keyCount);
 
             // For each input data view, create the reconciled key column by wrapping it in a LambdaColumnMapper.
             for (int i = 0; i < views.Length; i++)
@@ -679,7 +679,7 @@ namespace Microsoft.ML.Data
             var keyNames = new Dictionary<ReadOnlyMemory<char>, int>();
             var columnIndices = new int[dvCount];
             var keyValueMappers = Utils.MarshalInvoke(MapKeys<int>, keyValueType.RawType, views.Select(view => view.Schema).ToArray(), columnName, true, columnIndices, keyNames);
-            var keyType = new KeyType(typeof(uint), keyNames.Count);
+            var keyType = new KeyDataViewType(typeof(uint), keyNames.Count);
             var keyNamesVBuffer = new VBuffer<ReadOnlyMemory<char>>(keyNames.Count, keyNames.Keys.ToArray());
             ValueGetter<VBuffer<ReadOnlyMemory<char>>> keyValueGetter =
                     (ref VBuffer<ReadOnlyMemory<char>> dst) =>

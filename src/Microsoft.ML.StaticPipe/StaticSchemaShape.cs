@@ -264,7 +264,7 @@ namespace Microsoft.ML.StaticPipe
             }
             Contracts.Assert(!(t is VectorType));
 
-            if (t is KeyType kt)
+            if (t is KeyDataViewType kt)
             {
                 Type physType = GetPhysicalType(kt);
                 Contracts.Assert(physType == typeof(byte) || physType == typeof(ushort)
@@ -333,7 +333,7 @@ namespace Microsoft.ML.StaticPipe
             switch (columnType)
             {
                 case NumberDataViewType numberType:
-                case KeyType keyType:
+                case KeyDataViewType keyType:
                 case TimeSpanDataViewType timeSpanType:
                 case DateTimeDataViewType dateTimeType:
                 case DateTimeOffsetDataViewType dateTimeOffsetType:

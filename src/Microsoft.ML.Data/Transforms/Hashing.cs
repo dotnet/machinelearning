@@ -152,7 +152,7 @@ namespace Microsoft.ML.Transforms
         {
             var keyCount = (ulong)1 << column.NumberOfBits;
             inputSchema.TryGetColumnIndex(column.InputColumnName, out int srcCol);
-            var itemType = new KeyType(typeof(uint), keyCount);
+            var itemType = new KeyDataViewType(typeof(uint), keyCount);
             var srcType = inputSchema[srcCol].Type;
             if (srcType is VectorType vectorType)
                 return new VectorType(itemType, vectorType.Size);
@@ -338,7 +338,7 @@ namespace Microsoft.ML.Transforms
             if (_columns[iinfo].UseOrderedHashing)
                 seed = Hashing.MurmurRound(seed, 0);
 
-            if (srcType is KeyType)
+            if (srcType is KeyDataViewType)
             {
                 if (srcType.RawType == typeof(uint))
                     return MakeScalarHashGetter<uint, HashKey4>(input, srcCol, seed, mask);
@@ -385,7 +385,7 @@ namespace Microsoft.ML.Transforms
             Host.Assert(HashingEstimator.IsColumnTypeValid(srcType.ItemType));
 
             Type rawType = srcType.ItemType.RawType;
-            if (srcType.ItemType is KeyType)
+            if (srcType.ItemType is KeyDataViewType)
             {
                 if (rawType == typeof(byte))
                     return ComposeGetterVecCore<byte, HashKey1>(input, iinfo, srcCol, srcType);
@@ -1213,7 +1213,7 @@ namespace Microsoft.ML.Transforms
         internal static bool IsColumnTypeValid(DataViewType type)
         {
             var itemType = type.GetItemType();
-            return itemType is TextDataViewType || itemType is KeyType || itemType is NumberDataViewType ||
+            return itemType is TextDataViewType || itemType is KeyDataViewType || itemType is NumberDataViewType ||
                 itemType is BooleanDataViewType || itemType is RowIdDataViewType;
         }
 

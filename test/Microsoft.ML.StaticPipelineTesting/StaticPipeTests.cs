@@ -209,7 +209,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             var schemaBuilder = new DataViewSchema.Builder();
             schemaBuilder.AddColumn("hello", TextDataViewType.Instance);
             schemaBuilder.AddColumn("my", new VectorType(NumberDataViewType.Int64, 5));
-            schemaBuilder.AddColumn("friend", new KeyType(typeof(uint), 3));
+            schemaBuilder.AddColumn("friend", new KeyDataViewType(typeof(uint), 3));
             var view = new EmptyDataView(env, schemaBuilder.ToSchema());
 
             view.AssertStatic(env, c => new
@@ -233,7 +233,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             var schemaBuilder = new DataViewSchema.Builder();
             schemaBuilder.AddColumn("hello", TextDataViewType.Instance);
             schemaBuilder.AddColumn("my", new VectorType(NumberDataViewType.Int64, 5));
-            schemaBuilder.AddColumn("friend", new KeyType(typeof(uint), 3));
+            schemaBuilder.AddColumn("friend", new KeyDataViewType(typeof(uint), 3));
 
             var view = new EmptyDataView(env, schemaBuilder.ToSchema());
 
@@ -263,23 +263,23 @@ namespace Microsoft.ML.StaticPipelineTesting
             metaBuilder.AddKeyValues<ReadOnlyMemory<char>>(3, TextDataViewType.Instance, metaValues1.CopyTo);
 
             var builder = new DataViewSchema.Annotations.Builder();
-            builder.AddPrimitiveValue("stay", new KeyType(typeof(uint), 3), 2u, metaBuilder.ToAnnotations());
+            builder.AddPrimitiveValue("stay", new KeyDataViewType(typeof(uint), 3), 2u, metaBuilder.ToAnnotations());
 
             // Next the case where those values are ints.
             var metaValues2 = new VBuffer<int>(3, new int[] { 1, 2, 3, 4 });
             metaBuilder = new DataViewSchema.Annotations.Builder();
             metaBuilder.AddKeyValues<int>(3, NumberDataViewType.Int32, metaValues2.CopyTo);
             var value2 = new VBuffer<byte>(2, 0, null, null);
-            builder.Add<VBuffer<byte>>("awhile", new VectorType(new KeyType(typeof(byte), 3), 2), value2.CopyTo, metaBuilder.ToAnnotations());
+            builder.Add<VBuffer<byte>>("awhile", new VectorType(new KeyDataViewType(typeof(byte), 3), 2), value2.CopyTo, metaBuilder.ToAnnotations());
 
             // Then the case where a value of that kind exists, but is of not of the right kind, in which case it should not be identified as containing that metadata.
             metaBuilder = new DataViewSchema.Annotations.Builder();
             metaBuilder.AddPrimitiveValue(AnnotationUtils.Kinds.KeyValues, NumberDataViewType.Single, 2f);
-            builder.AddPrimitiveValue("and", new KeyType(typeof(ushort), 2), (ushort)1, metaBuilder.ToAnnotations());
+            builder.AddPrimitiveValue("and", new KeyDataViewType(typeof(ushort), 2), (ushort)1, metaBuilder.ToAnnotations());
 
             // Then a final case where metadata of that kind is actaully simply altogether absent.
             var value4 = new VBuffer<uint>(5, 0, null, null);
-            builder.Add<VBuffer<uint>>("listen", new VectorType(new KeyType(typeof(uint), 2)), value4.CopyTo);
+            builder.Add<VBuffer<uint>>("listen", new VectorType(new KeyDataViewType(typeof(uint), 2)), value4.CopyTo);
 
             // Finally compose a trivial data view out of all this.
             var view = RowCursorUtils.RowAsDataView(env, AnnotationUtils.AnnotationsAsRow(builder.ToAnnotations()));
@@ -449,9 +449,9 @@ namespace Microsoft.ML.StaticPipelineTesting
             Assert.True(schema.TryGetColumnIndex("valuesKey", out int valuesCol));
             Assert.True(schema.TryGetColumnIndex("valuesKeyKey", out int valuesKeyCol));
 
-            Assert.Equal((ulong)3, (schema[labelCol].Type as KeyType)?.Count);
-            Assert.True(schema[valuesCol].Type is VectorType valuesVecType && valuesVecType.ItemType is KeyType);
-            Assert.True(schema[valuesKeyCol].Type is VectorType valuesKeyVecType && valuesKeyVecType.ItemType is KeyType);
+            Assert.Equal((ulong)3, (schema[labelCol].Type as KeyDataViewType)?.Count);
+            Assert.True(schema[valuesCol].Type is VectorType valuesVecType && valuesVecType.ItemType is KeyDataViewType);
+            Assert.True(schema[valuesKeyCol].Type is VectorType valuesKeyVecType && valuesKeyVecType.ItemType is KeyDataViewType);
 
             var labelKeyType = schema[labelCol].Annotations.Schema.GetColumnOrNull(AnnotationUtils.Kinds.KeyValues)?.Type;
             var valuesKeyType = schema[valuesCol].Annotations.Schema.GetColumnOrNull(AnnotationUtils.Kinds.KeyValues)?.Type;
@@ -527,7 +527,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             var type = schema["tokens"].Type;
             Assert.True(type is VectorType vecType && vecType.Size == 0 && vecType.ItemType == TextDataViewType.Instance);
             type = schema["chars"].Type;
-            Assert.True(type is VectorType vecType2 && vecType2.Size == 0 && vecType2.ItemType is KeyType
+            Assert.True(type is VectorType vecType2 && vecType2.Size == 0 && vecType2.ItemType is KeyDataViewType
                     && vecType2.ItemType.RawType == typeof(ushort));
         }
 

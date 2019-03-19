@@ -58,7 +58,7 @@ namespace Microsoft.ML.Data
                 // REVIEW: This logic is very specific to multiclass, which is deeply
                 // regrettable, but the class structure as designed and the status of this schema
                 // bearing object makes pushing the logic into the multiclass scorer almost impossible.
-                if (predColType is KeyType predColKeyType && predColKeyType.Count > 0)
+                if (predColType is KeyDataViewType predColKeyType && predColKeyType.Count > 0)
                 {
                     var scoreColMetadata = mapper.OutputSchema[scoreColIndex].Annotations;
 

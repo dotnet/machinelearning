@@ -213,7 +213,7 @@ namespace Microsoft.ML.Data
             Contracts.AssertValue(type);
             Contracts.Assert(!(type is VectorType));
 
-            if (!type.IsStandardScalar() && !(type is KeyType))
+            if (!type.IsStandardScalar() && !(type is KeyDataViewType))
             {
                 itw.Write(": Can't display value of this type");
                 return;
@@ -252,7 +252,7 @@ namespace Microsoft.ML.Data
             Contracts.AssertNonEmpty(kind);
             Contracts.AssertValue(type);
 
-            if (!type.ItemType.IsStandardScalar() && !(type.ItemType is KeyType))
+            if (!type.ItemType.IsStandardScalar() && !(type.ItemType is KeyDataViewType))
             {
                 itw.Write(": Can't display value of this type");
                 return;

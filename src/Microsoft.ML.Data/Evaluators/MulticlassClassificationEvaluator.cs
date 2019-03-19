@@ -584,7 +584,7 @@ namespace Microsoft.ML.Data
             else
                 _classNames = Utils.BuildArray(_numClasses, i => i.ToString().AsMemory());
 
-            var key = new KeyType(typeof(uint), _numClasses);
+            var key = new KeyDataViewType(typeof(uint), _numClasses);
             _types[AssignedCol] = key;
             _types[LogLossCol] = NumberDataViewType.Double;
             _types[SortedScoresCol] = new VectorType(NumberDataViewType.Single, _numClasses);
@@ -613,7 +613,7 @@ namespace Microsoft.ML.Data
                 _classNames = Utils.BuildArray(_numClasses, i => i.ToString().AsMemory());
 
             _types = new DataViewType[4];
-            var key = new KeyType(typeof(uint), _numClasses);
+            var key = new KeyDataViewType(typeof(uint), _numClasses);
             _types[AssignedCol] = key;
             _types[LogLossCol] = NumberDataViewType.Double;
             _types[SortedScoresCol] = new VectorType(NumberDataViewType.Single, _numClasses);
@@ -1003,7 +1003,7 @@ namespace Microsoft.ML.Data
                 throw Host.ExceptSchemaMismatch(nameof(schema), "label", labelName);
             var labelCol = perInst.Schema[labelColIndex];
             var labelType = labelCol.Type;
-            if (labelType is KeyType && (!labelCol.HasKeyValues() || labelType.RawType != typeof(uint)))
+            if (labelType is KeyDataViewType && (!labelCol.HasKeyValues() || labelType.RawType != typeof(uint)))
             {
                 perInst = LambdaColumnMapper.Create(Host, "ConvertToDouble", perInst, labelName,
                     labelName, labelCol.Type, NumberDataViewType.Double,

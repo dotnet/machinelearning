@@ -453,7 +453,7 @@ namespace Microsoft.ML.Transforms
             private ValueGetter<VBuffer<float>> MakeGetterOne(DataViewRow input, int iinfo)
             {
                 Host.AssertValue(input);
-                KeyType keyTypeSrc = _infos[iinfo].TypeSrc as KeyType;
+                KeyDataViewType keyTypeSrc = _infos[iinfo].TypeSrc as KeyDataViewType;
                 Host.Assert(keyTypeSrc != null);
                 int size = keyTypeSrc.GetCountAsInt32(Host);
                 Host.Assert(size == _types[iinfo].Size);
@@ -490,7 +490,7 @@ namespace Microsoft.ML.Transforms
                 VectorType srcVectorType = info.TypeSrc as VectorType;
                 Host.Assert(srcVectorType != null);
 
-                KeyType keyTypeSrc = srcVectorType.ItemType as KeyType;
+                KeyDataViewType keyTypeSrc = srcVectorType.ItemType as KeyDataViewType;
                 Host.Assert(keyTypeSrc != null);
                 Host.Assert(_parent._columns[iinfo].OutputCountVector);
                 int size = keyTypeSrc.GetCountAsInt32(Host);
@@ -536,7 +536,7 @@ namespace Microsoft.ML.Transforms
                 VectorType srcVectorType = info.TypeSrc as VectorType;
                 Host.Assert(srcVectorType != null);
 
-                KeyType keyTypeSrc = srcVectorType.ItemType as KeyType;
+                KeyDataViewType keyTypeSrc = srcVectorType.ItemType as KeyDataViewType;
                 Host.Assert(keyTypeSrc != null);
                 Host.Assert(!_parent._columns[iinfo].OutputCountVector);
 

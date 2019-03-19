@@ -12,7 +12,7 @@ using Microsoft.ML.Runtime;
 namespace Microsoft.ML.Data
 {
     /// <summary>
-    /// Allow member to be marked as a <see cref="KeyType"/>.
+    /// Allow member to be marked as a <see cref="KeyDataViewType"/>.
     /// </summary>
     /// <remarks>
     /// Can be applied only for member of following types: <see cref="byte"/>, <see cref="ushort"/>, <see cref="uint"/>, <see cref="ulong"/>
@@ -21,10 +21,10 @@ namespace Microsoft.ML.Data
     public sealed class KeyTypeAttribute : Attribute
     {
         /// <summary>
-        /// Marks member as <see cref="KeyType"/>.
+        /// Marks member as <see cref="KeyDataViewType"/>.
         /// </summary>
         /// <remarks>
-        /// Cardinality of <see cref="KeyType"/> would be maximum legal value of member type.
+        /// Cardinality of <see cref="KeyDataViewType"/> would be maximum legal value of member type.
         /// </remarks>
         public KeyTypeAttribute()
         {
@@ -32,9 +32,9 @@ namespace Microsoft.ML.Data
         }
 
         /// <summary>
-        /// Marks member as <see cref="KeyType"/> and specifies <see cref="KeyType"/> cardinality.
+        /// Marks member as <see cref="KeyDataViewType"/> and specifies <see cref="KeyDataViewType"/> cardinality.
         /// </summary>
-        /// <param name="count">Cardinality of <see cref="KeyType"/>.</param>
+        /// <param name="count">Cardinality of <see cref="KeyDataViewType"/>.</param>
         public KeyTypeAttribute(ulong count)
         {
             KeyCount = new KeyCount(count);
@@ -392,12 +392,12 @@ namespace Microsoft.ML.Data
                 var keyAttr = memberInfo.GetCustomAttribute<KeyTypeAttribute>();
                 if (keyAttr != null)
                 {
-                    if (!KeyType.IsValidDataType(dataType))
+                    if (!KeyDataViewType.IsValidDataType(dataType))
                         throw Contracts.ExceptParam(nameof(userType), "Member {0} marked with KeyType attribute, but does not appear to be a valid kind of data for a key type", memberInfo.Name);
                     if (keyAttr.KeyCount == null)
-                        itemType = new KeyType(dataType, dataType.ToMaxInt());
+                        itemType = new KeyDataViewType(dataType, dataType.ToMaxInt());
                     else
-                        itemType = new KeyType(dataType, keyAttr.KeyCount.Count.GetValueOrDefault());
+                        itemType = new KeyDataViewType(dataType, keyAttr.KeyCount.Count.GetValueOrDefault());
                 }
                 else
                     itemType = ColumnTypeExtensions.PrimitiveTypeFromType(dataType);

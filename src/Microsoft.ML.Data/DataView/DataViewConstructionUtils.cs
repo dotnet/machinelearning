@@ -260,7 +260,7 @@ namespace Microsoft.ML.Data
                     else
                         Host.Assert(colType.RawType == outputType);
 
-                    if (!(colType is KeyType keyType))
+                    if (!(colType is KeyDataViewType keyType))
                         del = CreateDirectGetterDelegate<int>;
                     else
                     {
@@ -350,7 +350,7 @@ namespace Microsoft.ML.Data
             private Delegate CreateKeyGetterDelegate<TDst>(Delegate peekDel, DataViewType colType)
             {
                 // Make sure the function is dealing with key.
-                KeyType keyType = colType as KeyType;
+                KeyDataViewType keyType = colType as KeyDataViewType;
                 Host.Check(keyType != null);
                 // Following equations work only with unsigned integers.
                 Host.Check(typeof(TDst) == typeof(ulong) || typeof(TDst) == typeof(uint) ||

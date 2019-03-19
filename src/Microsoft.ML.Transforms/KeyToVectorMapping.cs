@@ -351,7 +351,7 @@ namespace Microsoft.ML.Transforms
             private ValueGetter<VBuffer<float>> MakeGetterOne(DataViewRow input, int iinfo)
             {
                 Host.AssertValue(input);
-                Host.Assert(_infos[iinfo].TypeSrc is KeyType);
+                Host.Assert(_infos[iinfo].TypeSrc is KeyDataViewType);
 
                 int bitsPerKey = _bitsPerKey[iinfo];
                 Host.Assert(bitsPerKey == _types[iinfo].Size);
@@ -382,7 +382,7 @@ namespace Microsoft.ML.Transforms
             {
                 Host.AssertValue(input);
                 Host.AssertValue(typeSrc);
-                Host.Assert(typeSrc.ItemType is KeyType);
+                Host.Assert(typeSrc.ItemType is KeyDataViewType);
 
                 int cv = typeSrc.Size;
                 Host.Assert(cv >= 0);

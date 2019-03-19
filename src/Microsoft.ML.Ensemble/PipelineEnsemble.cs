@@ -599,7 +599,7 @@ namespace Microsoft.ML.Trainers.Ensemble
             var labelCol = rmd.Schema.Label.Value;
 
             var labelType = labelCol.Type;
-            if (!(labelType is KeyType labelKeyType))
+            if (!(labelType is KeyDataViewType labelKeyType))
                 return CheckNonKeyLabelColumnCore(env, pred, models, isBinary, labelType);
 
             if (isBinary && labelKeyType.Count != 2)
@@ -609,7 +609,7 @@ namespace Microsoft.ML.Trainers.Ensemble
             if (mdType == null || !mdType.IsKnownSize)
                 throw env.Except("Label column of type key must have a vector of key values metadata");
 
-            return Utils.MarshalInvoke(CheckKeyLabelColumnCore<int>, mdType.ItemType.RawType, env, models, (KeyType)labelType, schema, labelCol.Index, mdType);
+            return Utils.MarshalInvoke(CheckKeyLabelColumnCore<int>, mdType.ItemType.RawType, env, models, (KeyDataViewType)labelType, schema, labelCol.Index, mdType);
         }
 
         // When the label column is not a key, we check that the number of classes is the same for all the predictors, by checking the
@@ -617,7 +617,7 @@ namespace Microsoft.ML.Trainers.Ensemble
         // If any of the predictors do not implement IValueMapper we throw an exception. Returns the class count.
         private static int CheckNonKeyLabelColumnCore(IHostEnvironment env, IPredictor pred, PredictorModel[] models, bool isBinary, DataViewType labelType)
         {
-            env.Assert(!(labelType is KeyType));
+            env.Assert(!(labelType is KeyDataViewType));
             env.AssertNonEmpty(models);
 
             if (isBinary)
@@ -642,7 +642,7 @@ namespace Microsoft.ML.Trainers.Ensemble
 
         // Checks that all the label columns of the model have the same key type as their label column - including the same
         // cardinality and the same key values, and returns the cardinality of the label column key.
-        private static int CheckKeyLabelColumnCore<T>(IHostEnvironment env, PredictorModel[] models, KeyType labelType, DataViewSchema schema, int labelIndex, VectorType keyValuesType)
+        private static int CheckKeyLabelColumnCore<T>(IHostEnvironment env, PredictorModel[] models, KeyDataViewType labelType, DataViewSchema schema, int labelIndex, VectorType keyValuesType)
             where T : IEquatable<T>
         {
             env.Assert(keyValuesType.ItemType.RawType == typeof(T));
@@ -662,7 +662,7 @@ namespace Microsoft.ML.Trainers.Ensemble
                     throw env.Except("Training schema for model {0} does not have a label column", i);
                 var labelCol = rmd.Schema.Label.Value;
 
-                var curLabelType = labelCol.Type as KeyType;
+                var curLabelType = labelCol.Type as KeyDataViewType;
                 if (!labelType.Equals(curLabelType))
                     throw env.Except("Label column of model {0} has different type than model 0", i);
 

@@ -557,7 +557,7 @@ namespace Microsoft.ML.RunTests
                 if (!keyNames)
                     continue;
 
-                ulong ksize = type1.GetItemType() is KeyType keyType ? keyType.Count : 0;
+                ulong ksize = type1.GetItemType() is KeyDataViewType keyType ? keyType.Count : 0;
                 if (!CheckMetadataNames(AnnotationUtils.Kinds.KeyValues, ksize, sch1, sch2, col, exactTypes, false))
                     return Failed();
             }
@@ -586,7 +586,7 @@ namespace Microsoft.ML.RunTests
                 return true;
             }
             if (size > int.MaxValue)
-                Fail(nameof(KeyType) + "." + nameof(KeyType.Count) + "is larger than int.MaxValue");
+                Fail(nameof(KeyDataViewType) + "." + nameof(KeyDataViewType.Count) + "is larger than int.MaxValue");
             if (!EqualTypes(t1, t2, exactTypes))
             {
                 Fail("Different {0} metadata types: {0} vs {1}", kind, t1, t2);

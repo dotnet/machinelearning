@@ -87,7 +87,7 @@ namespace Microsoft.ML.StaticPipe
     }
 
     /// <summary>
-    /// For representing a <see cref="KeyType"/> of known cardinality, where the type of key is not specified.
+    /// For representing a <see cref="KeyDataViewType"/> of known cardinality, where the type of key is not specified.
     /// </summary>
     /// <typeparam name="T">The physical type representing the key, which should always be one of <see cref="byte"/>,
     /// <see cref="ushort"/>, <see cref="uint"/>, or <see cref="ulong"/></typeparam>
@@ -106,7 +106,7 @@ namespace Microsoft.ML.StaticPipe
 
     /// <summary>
     /// For representing a key-type of known cardinality that has key values over a particular type. This is used to
-    /// represent a <see cref="KeyType"/> where it is known that it will have <see
+    /// represent a <see cref="KeyDataViewType"/> where it is known that it will have <see
     /// cref="AnnotationUtils.Kinds.KeyValues"/> of a particular type <typeparamref name="TVal"/>.
     /// </summary>
     /// <typeparam name="T">The physical type representing the key, which should always be one of <see cref="byte"/>,
@@ -124,7 +124,7 @@ namespace Microsoft.ML.StaticPipe
     }
 
     /// <summary>
-    /// For representing a <see cref="KeyType"/> of unknown cardinality.
+    /// For representing a <see cref="KeyDataViewType"/> of unknown cardinality.
     /// </summary>
     /// <typeparam name="T">The physical type representing the key, which should always be one of <see cref="byte"/>,
     /// <see cref="ushort"/>, <see cref="uint"/>, or <see cref="ulong"/></typeparam>

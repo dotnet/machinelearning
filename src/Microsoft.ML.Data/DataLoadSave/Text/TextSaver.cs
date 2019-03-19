@@ -97,7 +97,7 @@ namespace Microsoft.ML.Data.IO
             protected ValueWriterBase(PrimitiveDataViewType type, int source, char sep)
                 : base(source)
             {
-                Contracts.Assert(type.IsStandardScalar() || type is KeyType);
+                Contracts.Assert(type.IsStandardScalar() || type is KeyDataViewType);
                 Contracts.Assert(type.RawType == typeof(T));
 
                 Sep = sep;
@@ -326,7 +326,7 @@ namespace Microsoft.ML.Data.IO
         public bool IsColumnSavable(DataViewType type)
         {
             var item = type.GetItemType();
-            return item.IsStandardScalar() || item is KeyType;
+            return item.IsStandardScalar() || item is KeyDataViewType;
         }
 
         public void SaveData(Stream stream, IDataView data, params int[] cols)
@@ -400,7 +400,7 @@ namespace Microsoft.ML.Data.IO
             {
                 ch.Check(0 <= cols[i] && cols[i] < data.Schema.Count);
                 DataViewType itemType = data.Schema[cols[i]].Type.GetItemType();
-                ch.Check(itemType is KeyType || itemType.IsStandardScalar());
+                ch.Check(itemType is KeyDataViewType || itemType.IsStandardScalar());
                 activeCols.Add(data.Schema[cols[i]]);
             }
 
@@ -501,7 +501,7 @@ namespace Microsoft.ML.Data.IO
             KeyCount keyCount = null;
             VectorType vectorType = type as VectorType;
             DataViewType itemType = vectorType?.ItemType ?? type;
-            if (itemType is KeyType key)
+            if (itemType is KeyDataViewType key)
                 keyCount = new KeyCount(key.Count);
 
             InternalDataKind kind = itemType.GetRawKind();

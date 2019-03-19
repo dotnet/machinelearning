@@ -7,22 +7,22 @@ using System;
 namespace Microsoft.ML.Data
 {
     /// <summary>
-    /// KeyTypes are for "id"-like data. The information happens to be stored in an unsigned integer
+    /// KeyDataViewTypes are for "id"-like data. The information happens to be stored in an unsigned integer
     /// type, but the information is not inherently numeric, so, typically, arithmetic is not
     /// meaningful. Examples are SSNs, phone numbers, auto-generated/incremented key values,
     /// class numbers, etc. For example, in multi-class classification, the label is typically
-    /// a class number which is naturally a KeyType.
+    /// a class number which is naturally a KeyDataViewType.
     ///
-    /// KeyTypes have a cardinality (i.e., <see cref="Count"/>) that is strictly positive.
+    /// KeyDataViewTypes have a cardinality (i.e., <see cref="Count"/>) that is strictly positive.
     ///
     /// Note that the underlying representation value does not necessarily match the logical value.
-    /// For example, if a KeyType has range 0-5000, then it has a <see cref="Count"/> of 5001, but
+    /// For example, if a KeyDataViewType has range 0-5000, then it has a <see cref="Count"/> of 5001, but
     /// the representational values are 1-5001. The representation value zero is reserved
     /// to mean a missing value (similar to NaN).
     /// </summary>
-    public sealed class KeyType : PrimitiveDataViewType
+    public sealed class KeyDataViewType : PrimitiveDataViewType
     {
-        public KeyType(Type type, ulong count)
+        public KeyDataViewType(Type type, ulong count)
             : base(type)
         {
             if (!IsValidDataType(type))
@@ -32,21 +32,21 @@ namespace Microsoft.ML.Data
             if (count == 0 || GetMaxInt(type) < count)
                 throw new ArgumentOutOfRangeException(
                     nameof(count),
-                    $"The cardinality of a {nameof(KeyType)} must not exceed {type.Name}.MaxValue and must be strictly positive but got {count}.");
+                    $"The cardinality of a {nameof(KeyDataViewType)} must not exceed {type.Name}.MaxValue and must be strictly positive but got {count}.");
             Count = count;
         }
 
-        public KeyType(Type type, int count)
+        public KeyDataViewType(Type type, int count)
             : this(type, (ulong)count)
         {
             if (count <= 0)
                 throw new ArgumentOutOfRangeException(
                     nameof(count),
-                    $"The cardinality of a {nameof(KeyType)} must be strictly positive.");
+                    $"The cardinality of a {nameof(KeyDataViewType)} must be strictly positive.");
         }
 
         /// <summary>
-        /// Returns true iff the given type is valid for a <see cref="KeyType"/>. The valid ones are
+        /// Returns true iff the given type is valid for a <see cref="KeyDataViewType"/>. The valid ones are
         /// <see cref="byte"/>, <see cref="ushort"/>, <see cref="uint"/>, and <see cref="ulong"/>, that is, the unsigned integer types.
         /// </summary>
         public static bool IsValidDataType(Type type)
@@ -69,7 +69,7 @@ namespace Microsoft.ML.Data
         }
 
         /// <summary>
-        /// <see cref="Count"/> is the cardinality of the <see cref="KeyType"/>. Note that such a key type can be converted to a
+        /// <see cref="Count"/> is the cardinality of the <see cref="KeyDataViewType"/>. Note that such a key type can be converted to a
         /// bit vector representation by mapping to a vector of length <see cref="Count"/>, with "id" mapped to a
         /// vector with 1 in slot (id - 1) and 0 in all other slots. This is the standard "indicator"
         /// representation. Note that an id of 0 is used to represent the notion "none", which is
@@ -78,8 +78,8 @@ namespace Microsoft.ML.Data
         public ulong Count { get; }
 
         /// <summary>
-        /// Determine if this <see cref="KeyType"/> object is equal to another <see cref="DataViewType"/> instance.
-        /// Checks if the other item is the type of <see cref="KeyType"/>, if the <see cref="DataViewType.RawType"/>
+        /// Determine if this <see cref="KeyDataViewType"/> object is equal to another <see cref="DataViewType"/> instance.
+        /// Checks if the other item is the type of <see cref="KeyDataViewType"/>, if the <see cref="DataViewType.RawType"/>
         /// is the same, and if the <see cref="Count"/> is the same.
         /// </summary>
         /// <param name="other">The other object to compare against.</param>
@@ -89,7 +89,7 @@ namespace Microsoft.ML.Data
             if (other == this)
                 return true;
 
-            if (!(other is KeyType tmp))
+            if (!(other is KeyDataViewType tmp))
                 return false;
             if (RawType != tmp.RawType)
                 return false;
@@ -99,8 +99,8 @@ namespace Microsoft.ML.Data
         }
 
         /// <summary>
-        /// Determine if a <see cref="KeyType"/> instance is equal to another <see cref="KeyType"/> instance.
-        /// Checks if any object is the type of <see cref="KeyType"/>, if the <see cref="DataViewType.RawType"/>
+        /// Determine if a <see cref="KeyDataViewType"/> instance is equal to another <see cref="KeyDataViewType"/> instance.
+        /// Checks if any object is the type of <see cref="KeyDataViewType"/>, if the <see cref="DataViewType.RawType"/>
         /// is the same, and if the <see cref="Count"/> is the same.
         /// </summary>
         /// <param name="other">The other object to compare against.</param>
@@ -134,7 +134,7 @@ namespace Microsoft.ML.Data
         }
 
         /// <summary>
-        /// The string representation of the <see cref="KeyType"/>.
+        /// The string representation of the <see cref="KeyDataViewType"/>.
         /// </summary>
         /// <returns>A formatted string.</returns>
         public override string ToString()

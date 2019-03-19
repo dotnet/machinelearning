@@ -48,7 +48,7 @@ namespace Microsoft.ML.Data
         public static bool HasKeyValues(this DataViewSchema.Column column, PrimitiveDataViewType keyValueItemType = null)
         {
             // False if type is neither a key type, or a vector of key types.
-            if (!(column.Type.GetItemType() is KeyType keyType))
+            if (!(column.Type.GetItemType() is KeyDataViewType keyType))
                 return false;
 
             if (keyValueItemType == null)

@@ -234,7 +234,7 @@ namespace Microsoft.ML
         }
 
         /// <summary>
-        /// Filter the dataset by the values of a <see cref="KeyType"/> column.
+        /// Filter the dataset by the values of a <see cref="KeyDataViewType"/> column.
         /// </summary>
         /// <remarks>
         /// Keep only those rows that satisfy the range condition: the value of a key column <paramref name="columnName"/>

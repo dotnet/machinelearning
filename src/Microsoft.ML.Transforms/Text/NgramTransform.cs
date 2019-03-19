@@ -240,7 +240,7 @@ namespace Microsoft.ML.Transforms.Text
             {
                 for (int iinfo = 0; iinfo < columns.Length; iinfo++)
                 {
-                    env.Assert(srcTypes[iinfo] is VectorType vectorType && vectorType.ItemType is KeyType);
+                    env.Assert(srcTypes[iinfo] is VectorType vectorType && vectorType.ItemType is KeyDataViewType);
                     var ngramLength = columns[iinfo].NgramLength;
                     var skipLength = columns[iinfo].SkipLength;
 
@@ -768,7 +768,7 @@ namespace Microsoft.ML.Transforms.Text
         {
             if (!(type is VectorType vectorType))
                 return false;
-            if (!(vectorType.ItemType is KeyType itemKeyType))
+            if (!(vectorType.ItemType is KeyDataViewType itemKeyType))
                 return false;
             // Can only accept key types that can be converted to U4.
             if (itemKeyType.Count == 0 && !NgramUtils.IsValidNgramRawType(itemKeyType.RawType))

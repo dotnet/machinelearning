@@ -97,7 +97,7 @@ namespace Microsoft.ML.Data
         private protected override void CheckScoreAndLabelTypes(RoleMappedSchema schema)
         {
             DataViewType type = schema.Label?.Type;
-            if (type != null && type != NumberDataViewType.Single && !(type is KeyType keyType && keyType.Count > 0))
+            if (type != null && type != NumberDataViewType.Single && !(type is KeyDataViewType keyType && keyType.Count > 0))
             {
                 throw Host.ExceptSchemaMismatch(nameof(schema), "label", schema.Label.Value.Name,
                     "float or KeyType", type.ToString());
@@ -593,7 +593,7 @@ namespace Microsoft.ML.Data
             _numClusters = numClusters;
 
             _types = new DataViewType[3];
-            var key = new KeyType(typeof(uint), _numClusters);
+            var key = new KeyDataViewType(typeof(uint), _numClusters);
             _types[ClusterIdCol] = key;
             _types[SortedClusterCol] = new VectorType(key, _numClusters);
             _types[SortedClusterScoreCol] = new VectorType(NumberDataViewType.Single, _numClusters);
@@ -612,7 +612,7 @@ namespace Microsoft.ML.Data
             Host.CheckDecode(_numClusters > 0);
 
             _types = new DataViewType[3];
-            var key = new KeyType(typeof(uint), _numClusters);
+            var key = new KeyDataViewType(typeof(uint), _numClusters);
             _types[ClusterIdCol] = key;
             _types[SortedClusterCol] = new VectorType(key, _numClusters);
             _types[SortedClusterScoreCol] = new VectorType(NumberDataViewType.Single, _numClusters);

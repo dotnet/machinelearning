@@ -15,7 +15,7 @@ namespace Microsoft.ML.Data
     {
         /// <summary>
         /// Whether this type is a standard scalar type completely determined by its <see cref="DataViewType.RawType"/>
-        /// (not a <see cref="KeyType"/> or <see cref="StructuredDataViewType"/>, etc).
+        /// (not a <see cref="KeyDataViewType"/> or <see cref="StructuredDataViewType"/>, etc).
         /// </summary>
         public static bool IsStandardScalar(this DataViewType columnType) =>
             (columnType is NumberDataViewType) || (columnType is TextDataViewType) || (columnType is BooleanDataViewType) ||
@@ -25,7 +25,7 @@ namespace Microsoft.ML.Data
         /// <summary>
         /// Zero return means it's not a key type.
         /// </summary>
-        public static ulong GetKeyCount(this DataViewType columnType) => (columnType as KeyType)?.Count ?? 0;
+        public static ulong GetKeyCount(this DataViewType columnType) => (columnType as KeyDataViewType)?.Count ?? 0;
 
         /// <summary>
         /// Sometimes it is necessary to cast the Count to an int. This performs overflow check.
@@ -34,7 +34,7 @@ namespace Microsoft.ML.Data
         public static int GetKeyCountAsInt32(this DataViewType columnType, IExceptionContext ectx = null)
         {
             ulong count = columnType.GetKeyCount();
-            ectx.Check(count <= int.MaxValue, nameof(KeyType) + "." + nameof(KeyType.Count) + " exceeds int.MaxValue.");
+            ectx.Check(count <= int.MaxValue, nameof(KeyDataViewType) + "." + nameof(KeyDataViewType.Count) + " exceeds int.MaxValue.");
             return (int)count;
         }
 

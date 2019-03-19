@@ -192,7 +192,7 @@ namespace Microsoft.ML.Transforms
                 return true;
             if (itemType == NumberDataViewType.Double)
                 return true;
-            if (itemType is KeyType)
+            if (itemType is KeyDataViewType)
                 return true;
             return false;
         }

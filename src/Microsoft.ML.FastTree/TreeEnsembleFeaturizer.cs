@@ -674,11 +674,11 @@ namespace Microsoft.ML.Data
         }
 
         private static IDataView AppendFloatMapper<TInput>(IHostEnvironment env, IChannel ch, IDataView input,
-            string col, KeyType type, int seed)
+            string col, KeyDataViewType type, int seed)
         {
             // Any key is convertible to ulong, so rather than add special case handling for all possible
             // key-types we just upfront convert it to the most general type (ulong) and work from there.
-            KeyType dstType = new KeyType(typeof(ulong), type.Count);
+            KeyDataViewType dstType = new KeyDataViewType(typeof(ulong), type.Count);
             bool identity;
             var converter = Conversions.Instance.GetStandardConversion<TInput, ulong>(type, dstType, out identity);
             var isNa = Conversions.Instance.GetIsNAPredicate<TInput>(type);
@@ -731,14 +731,14 @@ namespace Microsoft.ML.Data
                 throw ch.ExceptSchemaMismatch(nameof(input), "label", labelName);
 
             DataViewType labelType = col.Value.Type;
-            if (!(labelType is KeyType))
+            if (!(labelType is KeyDataViewType))
             {
                 if (labelPermutationSeed != 0)
                     ch.Warning(
                         "labelPermutationSeed != 0 only applies on a multi-class learning problem when the label type is a key.");
                 return input;
             }
-            return Utils.MarshalInvoke(AppendFloatMapper<int>, labelType.RawType, env, ch, input, labelName, (KeyType)labelType,
+            return Utils.MarshalInvoke(AppendFloatMapper<int>, labelType.RawType, env, ch, input, labelName, (KeyDataViewType)labelType,
                 labelPermutationSeed);
         }
     }

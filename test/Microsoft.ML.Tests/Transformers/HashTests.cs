@@ -215,20 +215,20 @@ namespace Microsoft.ML.Tests.Transformers
             if (value <= byte.MaxValue)
             {
                 HashTestCore((byte)value, NumberDataViewType.Byte, expected, expectedOrdered, expectedOrdered3);
-                HashTestCore((byte)value, new KeyType(typeof(byte), byte.MaxValue - 1), eKey, eoKey, e3Key);
+                HashTestCore((byte)value, new KeyDataViewType(typeof(byte), byte.MaxValue - 1), eKey, eoKey, e3Key);
             }
             if (value <= ushort.MaxValue)
             {
                 HashTestCore((ushort)value, NumberDataViewType.UInt16, expected, expectedOrdered, expectedOrdered3);
-                HashTestCore((ushort)value, new KeyType(typeof(ushort),ushort.MaxValue - 1), eKey, eoKey, e3Key);
+                HashTestCore((ushort)value, new KeyDataViewType(typeof(ushort),ushort.MaxValue - 1), eKey, eoKey, e3Key);
             }
             if (value <= uint.MaxValue)
             {
                 HashTestCore((uint)value, NumberDataViewType.UInt32, expected, expectedOrdered, expectedOrdered3);
-                HashTestCore((uint)value, new KeyType(typeof(uint), int.MaxValue - 1), eKey, eoKey, e3Key);
+                HashTestCore((uint)value, new KeyDataViewType(typeof(uint), int.MaxValue - 1), eKey, eoKey, e3Key);
             }
             HashTestCore(value, NumberDataViewType.UInt64, expected, expectedOrdered, expectedOrdered3);
-            HashTestCore((ulong)value, new KeyType(typeof(ulong), int.MaxValue - 1), eKey, eoKey, e3Key);
+            HashTestCore((ulong)value, new KeyDataViewType(typeof(ulong), int.MaxValue - 1), eKey, eoKey, e3Key);
 
             HashTestCore(new DataViewRowId(value, 0), RowIdDataViewType.Instance, expected, expectedOrdered, expectedOrdered3);
 

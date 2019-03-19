@@ -29,7 +29,7 @@ namespace Microsoft.ML.Data
             env.CheckValue(typeSrc, nameof(typeSrc));
             env.CheckValue(typeDst, nameof(typeDst));
             env.CheckValue(mapper, nameof(mapper));
-            env.Check(keyValueGetter == null || typeDst.GetItemType() is KeyType);
+            env.Check(keyValueGetter == null || typeDst.GetItemType() is KeyDataViewType);
             env.Check(slotNamesGetter == null || typeDst.IsKnownSizeVector());
 
             if (typeSrc.RawType != typeof(TSrc))

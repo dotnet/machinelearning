@@ -74,7 +74,7 @@ namespace Microsoft.ML.Transforms
             // Set the data type of the output column
             // if the output VectorKind is a vector or variable vector then
             // this is the data type of items stored in the vector.
-            var isKey = Transformer.ValueColumnType is KeyType;
+            var isKey = Transformer.ValueColumnType is KeyDataViewType;
             var columnType = (isKey) ? NumberDataViewType.UInt32 :
                                     Transformer.ValueColumnType.GetItemType();
             var metadataShape = SchemaShape.Create(Transformer.ValueColumnMetadata.Schema);
@@ -127,7 +127,7 @@ namespace Microsoft.ML.Transforms
         /// <param name="env">The environment to use.</param>
         /// <param name="keys">The list of keys of TKey.</param>
         /// <param name="values">The list of values of TValue.</param>
-        /// <param name="treatValuesAsKeyType">Specifies to treat the values as a <see cref="KeyType"/>.</param>
+        /// <param name="treatValuesAsKeyType">Specifies to treat the values as a <see cref="KeyDataViewType"/>.</param>
         /// <param name="columns">The list of columns to apply.</param>
         internal ValueMappingEstimator(IHostEnvironment env, IEnumerable<TKey> keys, IEnumerable<TValue> values, bool treatValuesAsKeyType, params (string outputColumnName, string inputColumnName)[] columns)
             : base(env, DataViewHelper.CreateDataView(env, keys, values, ValueMappingTransformer.KeyColumnName, ValueMappingTransformer.ValueColumnName, treatValuesAsKeyType), ValueMappingTransformer.KeyColumnName, ValueMappingTransformer.ValueColumnName, columns)
@@ -904,7 +904,7 @@ namespace Microsoft.ML.Transforms
                                                  _mapping.Values,
                                                  ValueMappingTransformer.KeyColumnName,
                                                  ValueMappingTransformer.ValueColumnName,
-                                                 ValueType is KeyType);
+                                                 ValueType is KeyDataViewType);
 
             private static TValue GetVector<T>(TValue value)
             {

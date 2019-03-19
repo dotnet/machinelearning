@@ -545,7 +545,7 @@ namespace Microsoft.ML.Data
             return PfaUtils.Call("a.argmax", mapperOutputs[0]);
         }
 
-        private static DataViewType GetPredColType(DataViewType scoreType, ISchemaBoundRowMapper mapper) => new KeyType(typeof(uint), scoreType.GetVectorSize());
+        private static DataViewType GetPredColType(DataViewType scoreType, ISchemaBoundRowMapper mapper) => new KeyDataViewType(typeof(uint), scoreType.GetVectorSize());
 
         private static bool OutputTypeMatches(DataViewType scoreType) =>
             scoreType is VectorType vectorType && vectorType.IsKnownSize && vectorType.ItemType == NumberDataViewType.Single;

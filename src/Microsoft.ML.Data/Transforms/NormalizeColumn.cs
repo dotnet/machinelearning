@@ -766,9 +766,9 @@ namespace Microsoft.ML.Transforms
             {
                 // The label column type is checked as part of args validation.
                 var type = row.Schema[col].Type;
-                Host.Assert(type is KeyType || type is NumberDataViewType);
+                Host.Assert(type is KeyDataViewType || type is NumberDataViewType);
 
-                if (type is KeyType keyType)
+                if (type is KeyDataViewType keyType)
                 {
                     Host.Assert(type.GetKeyCountAsInt32(Host) > 0);
                     labelCardinality = type.GetKeyCountAsInt32(Host);
@@ -1086,7 +1086,7 @@ namespace Microsoft.ML.Transforms
                 host.CheckUserArg(!string.IsNullOrWhiteSpace(args.LabelColumn), nameof(args.LabelColumn), "Must specify the label column name");
                 int labelColumnId = GetLabelColumnId(host, cursor.Schema, args.LabelColumn);
                 var labelColumnType = cursor.Schema[labelColumnId].Type;
-                if (labelColumnType is KeyType labelKeyType)
+                if (labelColumnType is KeyDataViewType labelKeyType)
                     host.CheckUserArg(labelKeyType.Count > 0, nameof(args.LabelColumn), "Label column must have a known cardinality");
                 else
                     host.CheckUserArg(labelColumnType is NumberDataViewType, nameof(args.LabelColumn), "Label column must be a number or a key type");

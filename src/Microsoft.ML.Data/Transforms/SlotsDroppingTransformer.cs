@@ -486,7 +486,7 @@ namespace Microsoft.ML.Transforms
             /// a string, a key, a float or a double.
             /// </summary>
             private static bool IsValidColumnType(DataViewType type)
-                => (type is KeyType keytype && 0 < keytype.Count && keytype.Count < Utils.ArrayMaxSize)
+                => (type is KeyDataViewType keytype && 0 < keytype.Count && keytype.Count < Utils.ArrayMaxSize)
                 || type == NumberDataViewType.Single || type == NumberDataViewType.Double || type is TextDataViewType;
 
             /// <summary>
