@@ -501,6 +501,7 @@ namespace Microsoft.ML.Trainers
                 set { InternalLoss = value; }
             }
         }
+
         internal SdcaNonCalibratedMulticlassTrainer(IHostEnvironment env,
             string labelColumn = DefaultColumnNames.Label,
             string featureColumn = DefaultColumnNames.Features,
