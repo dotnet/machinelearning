@@ -326,6 +326,7 @@ namespace Microsoft.ML.Trainers
                 // Iterates through data to compute loss function.
                 while (cursor.MoveNext())
                 {
+                    Host.CheckAlive();
                     var instanceWeight = GetInstanceWeight(cursor);
                     var features = cursor.Features;
                     var label = (int)cursor.Label;

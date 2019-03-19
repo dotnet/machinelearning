@@ -803,6 +803,7 @@ namespace Microsoft.ML.Trainers
                 Func<DataViewRowId, long> getIndexFromId = GetIndexFromIdGetter(idToIdx, biasReg.Length);
                 while (cursor.MoveNext())
                 {
+                    Host.CheckAlive();
                     long idx = getIndexFromId(cursor.Id);
                     VBuffer<float> features = cursor.Features;
                     var label = cursor.Label;
@@ -966,6 +967,7 @@ namespace Microsoft.ML.Trainers
                 // Iterates through data to compute loss function.
                 while (cursor.MoveNext())
                 {
+                    Host.CheckAlive();
                     var instanceWeight = GetInstanceWeight(cursor);
                     var features = cursor.Features;
                     var output = WDot(in features, in weights[0], biasTotal);
