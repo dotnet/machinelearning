@@ -59,14 +59,11 @@ namespace Microsoft.ML.Functional.Tests
 
             // Save and reload.
             string modelAndSchemaPath = GetOutputPath(FullTestName + "-model-schema.zip");
-            using (var fs = File.Create(modelAndSchemaPath))
-                _ml.Model.Save(transformerModel, data.Schema, fs);
+            _ml.Model.Save(transformerModel, data.Schema, modelAndSchemaPath);
             string compositeLoaderModelPath = GetOutputPath(FullTestName + "-composite-model.zip");
-            using (var fs = File.Create(compositeLoaderModelPath))
-                _ml.Model.Save(compositeLoaderModel, fs);
+            _ml.Model.Save(compositeLoaderModel, compositeLoaderModelPath);
             string loaderAndTransformerModelPath = GetOutputPath(FullTestName + "-loader-transformer.zip");
-            using (var fs = File.Create(loaderAndTransformerModelPath))
-                _ml.Model.Save(loader, transformerModel, fs);
+            _ml.Model.Save(loader, transformerModel, loaderAndTransformerModelPath);
 
             ITransformer loadedTransformerModel;
             IDataLoader<IMultiStreamSource> loadedCompositeLoader;
@@ -123,8 +120,7 @@ namespace Microsoft.ML.Functional.Tests
 
             // Save and reload.
             string modelPath = GetOutputPath(FullTestName + "-model.zip");
-            using (var fs = File.Create(modelPath))
-                _ml.Model.Save(loader, model, fs);
+            _ml.Model.Save(loader, model, modelPath);
 
             IDataLoader<IMultiStreamSource> loadedModel;
             ITransformer loadedModelWithoutLoader;
@@ -171,8 +167,7 @@ namespace Microsoft.ML.Functional.Tests
 
             // Save and reload.
             string modelPath = GetOutputPath(FullTestName + "-model.zip");
-            using (var fs = File.Create(modelPath))
-                _ml.Model.Save(loader, model, fs);
+            _ml.Model.Save(loader, model, modelPath);
 
             ITransformer loadedModel;
             DataViewSchema loadedSchema;
@@ -195,8 +190,7 @@ namespace Microsoft.ML.Functional.Tests
             var loader = _ml.Data.CreateTextLoader<InputData>(hasHeader: true, dataSample: file);
 
             string modelPath = GetOutputPath(FullTestName + "-model.zip");
-            using (var fs = File.Create(modelPath))
-                _ml.Model.Save(loader, fs);
+            _ml.Model.Save(loader, modelPath);
 
             Load(modelPath, out var loadedWithSchema, out var loadedSchema, out var loadedLoader,
                 out var loadedWithLoader, out var loadedLoaderWithTransformer);
@@ -226,8 +220,7 @@ namespace Microsoft.ML.Functional.Tests
             var model = composite.Fit(file);
 
             string modelPath = GetOutputPath(FullTestName + "-model.zip");
-            using (var fs = File.Create(modelPath))
-                _ml.Model.Save(model, fs);
+            _ml.Model.Save(model, modelPath);
 
             Load(modelPath, out var loadedWithSchema, out var loadedSchema, out var loadedLoader,
                 out var loadedWithLoader, out var loadedLoaderWithTransformer);
@@ -257,8 +250,7 @@ namespace Microsoft.ML.Functional.Tests
             var model = estimator.Fit(loader.Load(file));
 
             string modelPath = GetOutputPath(FullTestName + "-model.zip");
-            using (var fs = File.Create(modelPath))
-                _ml.Model.Save(loader, model, fs);
+            _ml.Model.Save(loader, model, modelPath);
 
             Load(modelPath, out var loadedWithSchema, out var loadedSchema, out var loadedLoader,
                 out var loadedWithLoader, out var loadedLoaderWithTransformer);
@@ -288,8 +280,7 @@ namespace Microsoft.ML.Functional.Tests
             var model = estimator.Fit(loader.Load(file));
 
             string modelPath = GetOutputPath(FullTestName + "-model.zip");
-            using (var fs = File.Create(modelPath))
-                _ml.Model.Save(model, loader.GetOutputSchema(), fs);
+            _ml.Model.Save(model, loader.GetOutputSchema(), modelPath);
 
             Load(modelPath, out var loadedWithSchema, out var loadedSchema, out var loadedLoader,
                 out var loadedWithLoader, out var loadedLoaderWithTransformer);
