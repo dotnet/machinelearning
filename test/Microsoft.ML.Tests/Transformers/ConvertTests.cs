@@ -260,8 +260,7 @@ namespace Microsoft.ML.Tests.Transformers
             ITransformer modelOld;
             using (var ch = Env.Start("load"))
             {
-                using (var fs = File.OpenRead(modelPath))
-                    modelOld = ML.Model.Load(fs, out var schema);
+                modelOld = ML.Model.Load(modelPath, out var schema);
             }
             var outDataOld = modelOld.Transform(dataView);
 

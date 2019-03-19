@@ -5643,10 +5643,7 @@ namespace Microsoft.ML.RunTests
             {
                 var modelPath = GetDataPath($"backcompat/ep_model{i}.zip");
                 ITransformer loadedModel;
-                using (var stream = File.OpenRead(modelPath))
-                {
-                    loadedModel = ml.Model.Load(stream, out var inputSchema);
-                }
+                loadedModel = ml.Model.Load(modelPath, out var inputSchema);
             }
         }
     }

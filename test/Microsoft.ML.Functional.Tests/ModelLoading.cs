@@ -68,24 +68,19 @@ namespace Microsoft.ML.Functional.Tests
             ITransformer loadedTransformerModel;
             IDataLoader<IMultiStreamSource> loadedCompositeLoader;
             ITransformer loadedTransformerModel1;
-            using (var fs = File.OpenRead(modelAndSchemaPath))
-                loadedTransformerModel = _ml.Model.Load(fs, out var loadedSchema);
-            using (var fs = File.OpenRead(compositeLoaderModelPath))
-            {
-                // This model can be loaded either as a composite data loader,
-                // a transformer model + an input schema, or a transformer model + a data loader.
-                var t = _ml.Model.LoadWithDataLoader(fs, out IDataLoader<IMultiStreamSource> l);
-                var t1 = _ml.Model.Load(fs, out var s);
-                loadedCompositeLoader = _ml.Model.Load(fs);
-            }
-            using (var fs = File.OpenRead(loaderAndTransformerModelPath))
-            {
-                // This model can be loaded either as a composite data loader,
-                // a transformer model + an input schema, or a transformer model + a data loader.
-                var t = _ml.Model.Load(fs, out var s);
-                var c = _ml.Model.Load(fs);
-                loadedTransformerModel1 = _ml.Model.LoadWithDataLoader(fs, out IDataLoader<IMultiStreamSource> l);
-            }
+            loadedTransformerModel = _ml.Model.Load(modelAndSchemaPath, out var loadedSchema);
+
+            // This model can be loaded either as a composite data loader,
+            // a transformer model + an input schema, or a transformer model + a data loader.
+            var t = _ml.Model.LoadWithDataLoader(compositeLoaderModelPath, out IDataLoader<IMultiStreamSource> l);
+            var t1 = _ml.Model.Load(compositeLoaderModelPath, out var s);
+            loadedCompositeLoader = _ml.Model.Load(compositeLoaderModelPath);
+
+            // This model can be loaded either as a composite data loader,
+            // a transformer model + an input schema, or a transformer model + a data loader.
+            var tt = _ml.Model.Load(loaderAndTransformerModelPath, out var ss);
+            var c = _ml.Model.Load(loaderAndTransformerModelPath);
+            loadedTransformerModel1 = _ml.Model.LoadWithDataLoader(loaderAndTransformerModelPath, out IDataLoader<IMultiStreamSource> ll);
 
             var gam = ((loadedTransformerModel as ISingleFeaturePredictionTransformer<object>).Model
                 as CalibratedModelParametersBase).SubModel
@@ -125,11 +120,8 @@ namespace Microsoft.ML.Functional.Tests
             IDataLoader<IMultiStreamSource> loadedModel;
             ITransformer loadedModelWithoutLoader;
             DataViewSchema loadedSchema;
-            using (var fs = File.OpenRead(modelPath))
-            {
-                loadedModel = _ml.Model.Load(fs);
-                loadedModelWithoutLoader = _ml.Model.Load(fs, out loadedSchema);
-            }
+            loadedModel = _ml.Model.Load(modelPath);
+            loadedModelWithoutLoader = _ml.Model.Load(modelPath, out loadedSchema);
 
             // Without deserializing the loader from the model we lose the slot names.
             data = _ml.Data.LoadFromEnumerable(new[] { new InputData() });
@@ -171,8 +163,7 @@ namespace Microsoft.ML.Functional.Tests
 
             ITransformer loadedModel;
             DataViewSchema loadedSchema;
-            using (var fs = File.OpenRead(modelPath))
-                loadedModel = _ml.Model.Load(fs, out loadedSchema);
+            loadedModel = _ml.Model.Load(modelPath, out loadedSchema);
 
             // Without using the schema from the model we lose the slot names.
             data = _ml.Data.LoadFromEnumerable(new[] { new InputData() });
@@ -298,26 +289,24 @@ namespace Microsoft.ML.Functional.Tests
             out IDataLoader<IMultiStreamSource> loadedLoader, out ITransformer loadedWithLoader,
             out IDataLoader<IMultiStreamSource> loadedLoaderWithTransformer)
         {
-            using (var fs = File.OpenRead(filename))
+
+            try
             {
-                try
-                {
-                    loadedLoader = _ml.Model.Load(fs);
-                }
-                catch (Exception)
-                {
-                    loadedLoader = null;
-                }
-                loadedWithSchema = _ml.Model.Load(fs, out loadedSchema);
-                try
-                {
-                    loadedWithLoader = _ml.Model.LoadWithDataLoader(fs, out loadedLoaderWithTransformer);
-                }
-                catch (Exception)
-                {
-                    loadedWithLoader = null;
-                    loadedLoaderWithTransformer = null;
-                }
+                loadedLoader = _ml.Model.Load(filename);
+            }
+            catch (Exception)
+            {
+                loadedLoader = null;
+            }
+            loadedWithSchema = _ml.Model.Load(filename, out loadedSchema);
+            try
+            {
+                loadedWithLoader = _ml.Model.LoadWithDataLoader(filename, out loadedLoaderWithTransformer);
+            }
+            catch (Exception)
+            {
+                loadedWithLoader = null;
+                loadedLoaderWithTransformer = null;
             }
         }
 

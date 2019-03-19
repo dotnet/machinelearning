@@ -40,8 +40,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
             // Load model.
             ITransformer loadedModel;
             DataViewSchema inputSchema;
-            using (var file = File.OpenRead(modelPath))
-                loadedModel = ml.Model.Load(file, out inputSchema);
+            loadedModel = ml.Model.Load(modelPath, out inputSchema);
 
             // Create prediction engine and test predictions.
             var engine = ml.Model.CreatePredictionEngine<SentimentData, SentimentPrediction>(loadedModel, inputSchema);

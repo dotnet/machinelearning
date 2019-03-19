@@ -178,8 +178,7 @@ namespace Microsoft.ML.Tests
             //Load time series model and we will use this to pass two inputs and compare the raw score 
             //with "engine".
             ITransformer model2 = null;
-            using (var file = File.OpenRead(modelPath))
-                model2 = ml.Model.Load(file, out var schema);
+            model2 = ml.Model.Load(modelPath, out var schema);
 
             //Raw score after state gets updated with two inputs.
             var engine2 = model2.CreateTimeSeriesPredictionFunction<Data, Prediction>(ml);
@@ -198,8 +197,7 @@ namespace Microsoft.ML.Tests
             //Save the model with state updated with just one input.
             engine.CheckPoint(ml, modelPath + 1);
             ITransformer model3 = null;
-            using (var file = File.OpenRead(modelPath + 1))
-                model3 = ml.Model.Load(file, out var schema);
+            model3 = ml.Model.Load(modelPath + 1, out var schema1);
 
             //Load the model with state updated with just one input, then pass in the second input
             //and raw score should match the raw score obtained by passing the two input in the first model.
@@ -265,8 +263,7 @@ namespace Microsoft.ML.Tests
 
             // Load Model 1.
             ITransformer model2 = null;
-            using (var file = File.OpenRead(modelPath))
-                model2 = ml.Model.Load(file, out var schema);
+            model2 = ml.Model.Load(modelPath, out var schema);
 
             //Predict and expect the same result after checkpointing(Prediction #2).
             engine = model2.CreateTimeSeriesPredictionFunction<Data, Prediction>(ml);

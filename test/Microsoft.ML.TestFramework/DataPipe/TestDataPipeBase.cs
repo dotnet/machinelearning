@@ -83,8 +83,7 @@ namespace Microsoft.ML.RunTests
 
             ITransformer loadedTransformer;
             DataViewSchema loadedInputSchema;
-            using (var fs = File.OpenRead(modelPath))
-                loadedTransformer = ML.Model.Load(fs, out loadedInputSchema);
+            loadedTransformer = ML.Model.Load(modelPath, out loadedInputSchema);
             DeleteOutputPath(modelPath);
 
             // Run on train data.
