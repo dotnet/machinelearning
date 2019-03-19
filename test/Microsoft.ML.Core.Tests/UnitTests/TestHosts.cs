@@ -55,8 +55,8 @@ namespace Microsoft.ML.RunTests
                     do
                     {
                         index = rand.Next(hosts.Count);
-                    } while ((hosts.ElementAt(index).Item1 as ICancelableHost).IsCanceled || hosts.ElementAt(index).Item2 < 3);
-                    (hosts.ElementAt(index).Item1 as ICancelableHost).CancelExecution();
+                    } while ((hosts.ElementAt(index).Item1 as ICancelable).IsCanceled || hosts.ElementAt(index).Item2 < 3);
+                    (hosts.ElementAt(index).Item1 as ICancelable).CancelExecution();
                     rootHost = hosts.ElementAt(index).Item1;
                     queue.Enqueue(rootHost);
                 }
@@ -64,7 +64,7 @@ namespace Microsoft.ML.RunTests
                 while (queue.Count > 0)
                 {
                     var currentHost = queue.Dequeue();
-                    Assert.True((currentHost as ICancelableHost).IsCanceled);
+                    Assert.True((currentHost as ICancelable).IsCanceled);
 
                     if (children.ContainsKey(currentHost))
                         children[currentHost].ForEach(x => queue.Enqueue(x));
@@ -99,7 +99,7 @@ namespace Microsoft.ML.RunTests
             Assert.Equal(10, hosts.Count);
 
             foreach (var host in hosts)
-                Assert.True((host.Item1 as ICancelableHost).IsCanceled);
+                Assert.True((host.Item1 as ICancelable).IsCanceled);
         }
 
         /// <summary>

@@ -93,20 +93,21 @@ namespace Microsoft.ML.Runtime
     /// query progress.
     /// </summary>
     [BestFriend]
-    internal abstract class HostEnvironmentBase<TEnv> : ChannelProviderBase, IHostEnvironment, IChannelProvider
+    internal abstract class HostEnvironmentBase<TEnv> : ChannelProviderBase, IHostEnvironment, IChannelProvider, ICancelable
         where TEnv : HostEnvironmentBase<TEnv>
     {
         [BestFriend]
-        internal void CancelExecutionHosts()
+        void ICancelable.CancelExecution()
         {
             lock (_cancelLock)
             {
                 foreach (var child in _children)
                     if (child.TryGetTarget(out IHost host))
-                        if (host is ICancelableHost cancelableHost)
+                        if (host is ICancelable cancelableHost)
                             cancelableHost.CancelExecution();
 
                 _children.Clear();
+                IsCanceled = true;
             }
         }
 
@@ -115,7 +116,7 @@ namespace Microsoft.ML.Runtime
         /// to provide their own host class that derives from this class.
         /// This encapsulates the random number generator and name information.
         /// </summary>
-        public abstract class HostBase : HostEnvironmentBase<TEnv>, ICancelableHost
+        public abstract class HostBase : HostEnvironmentBase<TEnv>, IHost
         {
             public override int Depth { get; }
 
@@ -127,12 +128,6 @@ namespace Microsoft.ML.Runtime
                 Depth = source.Depth + 1;
             }
 
-            public void CancelExecution()
-            {
-                CancelExecutionHosts();
-                IsCanceled = true;
-            }
-
             public new IHost Register(string name, int? seed = null, bool? verbose = null)
             {
                 Contracts.CheckNonEmpty(name, nameof(name));
@@ -141,7 +136,7 @@ namespace Microsoft.ML.Runtime
                 {
                     Random rand = (seed.HasValue) ? RandomUtils.Create(seed.Value) : RandomUtils.Create(_rand);
                     host = RegisterCore(this, name, Master?.FullName, rand, verbose ?? Verbose);
-                    if (host is ICancelableHost cancelableHost && !cancelableHost.IsCanceled)
+                    if (host is ICancelable cancelableHost && !cancelableHost.IsCanceled)
                         _children.Add(new WeakReference<IHost>(host));
                 }
                 return host;

@@ -69,15 +69,15 @@ namespace Microsoft.ML.Runtime
     }
 
     [BestFriend]
-    internal interface ICancelableHost : IHost
+    internal interface ICancelable
     {
         /// <summary>
-        /// Signal to stop exection in this host.
+        /// Signal to stop exection in all the hosts.
         /// </summary>
         void CancelExecution();
 
         /// <summary>
-        /// Flag which indicate should we stop any code execution in this host.
+        /// Flag which indicates host execution has been stopped.
         /// </summary>
         bool IsCanceled { get; }
     }
