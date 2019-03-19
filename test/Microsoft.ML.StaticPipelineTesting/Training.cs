@@ -117,7 +117,7 @@ namespace Microsoft.ML.StaticPipelineTesting
 
             var est = reader.MakeNewEstimator()
                 .Append(r => (r.label, preds: catalog.Trainers.Sdca(r.label, r.features, null,
-                    new SdcaCalibratedBinaryClassificationTrainer.Options { MaximumNumberOfIterations = 2, NumberOfThreads = 1 },
+                    new SdcaCalibratedBinaryTrainer.Options { MaximumNumberOfIterations = 2, NumberOfThreads = 1 },
                     onFit: (p) => { pred = p; })));
 
             var pipe = reader.Append(est);
@@ -197,7 +197,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             // With a custom loss function we no longer get calibrated predictions.
             var est = reader.MakeNewEstimator()
                 .Append(r => (r.label, preds: catalog.Trainers.SdcaNonCalibrated(r.label, r.features, null, loss,
-                new SdcaNonCalibratedBinaryClassificationTrainer.Options { MaximumNumberOfIterations = 2, NumberOfThreads = 1 },
+                new SdcaNonCalibratedBinaryTrainer.Options { MaximumNumberOfIterations = 2, NumberOfThreads = 1 },
                 onFit: p => pred = p)));
 
             var pipe = reader.Append(est);
@@ -654,7 +654,7 @@ namespace Microsoft.ML.StaticPipelineTesting
 
             var est = reader.MakeNewEstimator()
                 .Append(r => (r.label, preds: catalog.Trainers.LogisticRegressionBinaryClassifier(r.label, r.features, null,
-                                    new LogisticRegressionBinaryClassificationTrainer.Options { L1Regularization = 10, NumberOfThreads = 1 }, onFit: (p) => { pred = p; })));
+                                    new LogisticRegressionBinaryTrainer.Options { L1Regularization = 10, NumberOfThreads = 1 }, onFit: (p) => { pred = p; })));
 
             var pipe = reader.Append(est);
 
@@ -960,7 +960,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             var reader = TextLoaderStatic.CreateLoader(env,
                 c => (label: c.LoadText(0), features: c.LoadFloat(1, 4)));
 
-            MulticlassNaiveBayesModelParameters pred = null;
+            NaiveBayesMulticlassModelParameters pred = null;
 
             // With a custom loss function we no longer get calibrated predictions.
             var est = reader.MakeNewEstimator()

@@ -26,7 +26,7 @@ namespace Microsoft.ML.Samples.Dynamic.Trainers.MulticlassClassification
             // CC       1.216908,1.248052,1.391902,0.4326252,1.099942,0.9262842,1.334019,1.08762,0.9468155,0.4811099
             // DD       0.7871246,1.053327,0.8971719,1.588544,1.242697,1.362964,0.6303943,0.9810045,0.9431419,1.557455
 
-            var options = new SdcaMulticlassClassificationTrainer.Options
+            var options = new SdcaMulticlassTrainer.Options
             {
                 // Add custom loss
                 LossFunction = new HingeLoss(),

@@ -80,7 +80,7 @@ namespace Microsoft.ML.Trainers
         /// <param name="enforceNoNegativity">Enforce non-negative weights.</param>
         /// <param name="l1Weight">Weight of L1 regularizer term.</param>
         /// <param name="l2Weight">Weight of L2 regularizer term.</param>
-        /// <param name="memorySize">Memory size for <see cref="LogisticRegressionBinaryClassificationTrainer"/>. Low=faster, less accurate.</param>
+        /// <param name="memorySize">Memory size for <see cref="LogisticRegressionBinaryTrainer"/>. Low=faster, less accurate.</param>
         /// <param name="optimizationTolerance">Threshold for optimizer convergence.</param>
         internal LogisticRegressionMulticlassClassificationTrainer(IHostEnvironment env,
             string labelColumn = DefaultColumnNames.Label,
@@ -429,7 +429,7 @@ namespace Microsoft.ML.Trainers
 
         /// <summary>
         /// Initializes a new instance of the <see cref="MulticlassLogisticRegressionModelParameters"/> class.
-        /// This constructor is called by <see cref="SdcaMulticlassClassificationTrainer"/> to create the predictor.
+        /// This constructor is called by <see cref="SdcaMulticlassTrainer"/> to create the predictor.
         /// </summary>
         /// <param name="env">The host environment.</param>
         /// <param name="weights">The array of weights vectors. It should contain <paramref name="numClasses"/> weights.</param>
@@ -1004,7 +1004,7 @@ namespace Microsoft.ML.Trainers
     /// <summary>
     /// A component to train a logistic regression model.
     /// </summary>
-    public partial class LogisticRegressionBinaryClassificationTrainer
+    public partial class LogisticRegressionBinaryTrainer
     {
         [TlcModule.EntryPoint(Name = "Trainers.LogisticRegressionClassifier",
             Desc = Summary,

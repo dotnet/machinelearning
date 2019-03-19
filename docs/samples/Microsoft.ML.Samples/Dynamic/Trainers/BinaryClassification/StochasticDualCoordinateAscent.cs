@@ -61,7 +61,7 @@ namespace Microsoft.ML.Samples.Dynamic.Trainers.BinaryClassification
             // we could do so by tweaking the 'advancedSetting'.
             var advancedPipeline = mlContext.Transforms.Text.FeaturizeText("SentimentText", "Features")
                                   .Append(mlContext.BinaryClassification.Trainers.SdcaCalibrated(
-                                      new SdcaCalibratedBinaryClassificationTrainer.Options { 
+                                      new SdcaCalibratedBinaryTrainer.Options { 
                                         LabelColumnName = "Sentiment",
                                         FeatureColumnName = "Features",
                                         ConvergenceTolerance = 0.01f,  // The learning rate for adjusting bias from being regularized

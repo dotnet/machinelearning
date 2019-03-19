@@ -132,7 +132,7 @@ namespace Microsoft.ML.RunTests
             var dataView = GetBreastCancerDataviewWithTextColumns();
             dataView = Env.CreateTransform("Term{col=F1}", dataView);
             var trainData = FeatureCombiner.PrepareFeatures(Env, new FeatureCombiner.FeatureCombinerInput() { Data = dataView, Features = new[] { "F1", "F2", "Rest" } });
-            var lrModel = LogisticRegressionBinaryClassificationTrainer.TrainBinary(Env, new LogisticRegressionBinaryClassificationTrainer.Options { TrainingData = trainData.OutputData }).PredictorModel;
+            var lrModel = LogisticRegressionBinaryTrainer.TrainBinary(Env, new LogisticRegressionBinaryTrainer.Options { TrainingData = trainData.OutputData }).PredictorModel;
             var model = ModelOperations.CombineTwoModels(Env, new ModelOperations.SimplePredictorModelInput() { TransformModel = trainData.Model, PredictorModel = lrModel }).PredictorModel;
 
             var scored1 = ScoreModel.Score(Env, new ScoreModel.Input() { Data = dataView, PredictorModel = model }).ScoredData;
@@ -362,12 +362,12 @@ namespace Microsoft.ML.RunTests
         {
             var catalog = Env.ComponentCatalog;
 
-            InputBuilder ib1 = new InputBuilder(Env, typeof(LogisticRegressionBinaryClassificationTrainer.Options), catalog);
+            InputBuilder ib1 = new InputBuilder(Env, typeof(LogisticRegressionBinaryTrainer.Options), catalog);
             // Ensure that InputBuilder unwraps the Optional<string> correctly.
             var weightType = ib1.GetFieldTypeOrNull("ExampleWeightColumnName");
             Assert.True(weightType.Equals(typeof(string)));
 
-            var instance = ib1.GetInstance() as LogisticRegressionBinaryClassificationTrainer.Options;
+            var instance = ib1.GetInstance() as LogisticRegressionBinaryTrainer.Options;
             Assert.True(instance.ExampleWeightColumnName == null);
 
             ib1.TrySetValue("ExampleWeightColumnName", "OtherWeight");
@@ -420,14 +420,14 @@ namespace Microsoft.ML.RunTests
             for (int i = 0; i < nModels; i++)
             {
                 var data = splitOutput.TrainData[i];
-                var lrInput = new LogisticRegressionBinaryClassificationTrainer.Options
+                var lrInput = new LogisticRegressionBinaryTrainer.Options
                 {
                     TrainingData = data,
                     L1Regularization = (Single)0.1 * i,
                     L2Regularization = (Single)0.01 * (1 + i),
                     NormalizeFeatures = NormalizeOption.No
                 };
-                predictorModels[i] = LogisticRegressionBinaryClassificationTrainer.TrainBinary(Env, lrInput).PredictorModel;
+                predictorModels[i] = LogisticRegressionBinaryTrainer.TrainBinary(Env, lrInput).PredictorModel;
                 individualScores[i] =
                     ScoreModel.Score(Env,
                         new ScoreModel.Input { Data = splitOutput.TestData[nModels], PredictorModel = predictorModels[i] })
@@ -676,7 +676,7 @@ namespace Microsoft.ML.RunTests
 
             var splitOutput = CVSplit.Split(Env, new CVSplit.Input { Data = dataView, NumFolds = 3 });
 
-            var lrModel = LogisticRegressionBinaryClassificationTrainer.TrainBinary(Env, new LogisticRegressionBinaryClassificationTrainer.Options { TrainingData = splitOutput.TestData[0] }).PredictorModel;
+            var lrModel = LogisticRegressionBinaryTrainer.TrainBinary(Env, new LogisticRegressionBinaryTrainer.Options { TrainingData = splitOutput.TestData[0] }).PredictorModel;
             var calibratedLrModel = Calibrate.FixedPlatt(Env,
                 new Calibrate.FixedPlattInput { Data = splitOutput.TestData[1], UncalibratedPredictorModel = lrModel }).PredictorModel;
 
@@ -695,7 +695,7 @@ namespace Microsoft.ML.RunTests
             calibratedLrModel = Calibrate.Pav(Env, input).PredictorModel;
 
             // This tests that the SchemaBindableCalibratedPredictor doesn't get confused if its sub-predictor is already calibrated.
-            var fastForest = new FastForestBinaryClassificationTrainer(Env, "Label", "Features");
+            var fastForest = new FastForestBinaryTrainer(Env, "Label", "Features");
             var rmd = new RoleMappedData(splitOutput.TrainData[0], "Label", "Features");
             var ffModel = new PredictorModelImpl(Env, rmd, splitOutput.TrainData[0], fastForest.Train(rmd));
             var calibratedFfModel = Calibrate.Platt(Env,
@@ -724,14 +724,14 @@ namespace Microsoft.ML.RunTests
                 data = new ColumnConcatenatingTransformer(Env, "Features", new[] { "Features1", "Features2" }).Transform(data);
                 data = new ValueToKeyMappingEstimator(Env, "Label", "Label", keyOrdinality: ValueToKeyMappingEstimator.KeyOrdinality.ByValue).Fit(data).Transform(data);
 
-                var lrInput = new LogisticRegressionBinaryClassificationTrainer.Options
+                var lrInput = new LogisticRegressionBinaryTrainer.Options
                 {
                     TrainingData = data,
                     L1Regularization = (Single)0.1 * i,
                     L2Regularization = (Single)0.01 * (1 + i),
                     NormalizeFeatures = NormalizeOption.Yes
                 };
-                predictorModels[i] = LogisticRegressionBinaryClassificationTrainer.TrainBinary(Env, lrInput).PredictorModel;
+                predictorModels[i] = LogisticRegressionBinaryTrainer.TrainBinary(Env, lrInput).PredictorModel;
                 var transformModel = new TransformModelImpl(Env, data, splitOutput.TrainData[i]);
 
                 predictorModels[i] = ModelOperations.CombineTwoModels(Env,
@@ -985,14 +985,14 @@ namespace Microsoft.ML.RunTests
                         },
                         data);
                 }
-                var lrInput = new LogisticRegressionBinaryClassificationTrainer.Options
+                var lrInput = new LogisticRegressionBinaryTrainer.Options
                 {
                     TrainingData = data,
                     L1Regularization = (Single)0.1 * i,
                     L2Regularization = (Single)0.01 * (1 + i),
                     NormalizeFeatures = NormalizeOption.Yes
                 };
-                predictorModels[i] = LogisticRegressionBinaryClassificationTrainer.TrainBinary(Env, lrInput).PredictorModel;
+                predictorModels[i] = LogisticRegressionBinaryTrainer.TrainBinary(Env, lrInput).PredictorModel;
                 var transformModel = new TransformModelImpl(Env, data, splitOutput.TrainData[i]);
 
                 predictorModels[i] = ModelOperations.CombineTwoModels(Env,
@@ -1318,7 +1318,7 @@ namespace Microsoft.ML.RunTests
                 data = new ColumnConcatenatingTransformer(Env, new ColumnConcatenatingTransformer.ColumnOptions("Features", i % 2 == 0 ? new[] { "Features", "Cat" } : new[] { "Cat", "Features" })).Transform(data);
                 if (i % 2 == 0)
                 {
-                    var lrInput = new LogisticRegressionBinaryClassificationTrainer.Options
+                    var lrInput = new LogisticRegressionBinaryTrainer.Options
                     {
                         TrainingData = data,
                         NormalizeFeatures = NormalizeOption.Yes,
@@ -1326,7 +1326,7 @@ namespace Microsoft.ML.RunTests
                         ShowTrainingStatistics = true,
                         ComputeStandardDeviation = new ComputeLRTrainingStdThroughMkl()
                     };
-                    predictorModels[i] = LogisticRegressionBinaryClassificationTrainer.TrainBinary(Env, lrInput).PredictorModel;
+                    predictorModels[i] = LogisticRegressionBinaryTrainer.TrainBinary(Env, lrInput).PredictorModel;
                     var transformModel = new TransformModelImpl(Env, data, splitOutput.TrainData[i]);
 
                     predictorModels[i] = ModelOperations.CombineTwoModels(Env,
@@ -1335,7 +1335,7 @@ namespace Microsoft.ML.RunTests
                 }
                 else if (i % 2 == 1)
                 {
-                    var trainer = new FastTreeBinaryClassificationTrainer(Env, "Label", "Features");
+                    var trainer = new FastTreeBinaryTrainer(Env, "Label", "Features");
                     var rmd = new RoleMappedData(data, false,
                         RoleMappedSchema.CreatePair(RoleMappedSchema.ColumnRole.Feature, "Features"),
                         RoleMappedSchema.CreatePair(RoleMappedSchema.ColumnRole.Label, "Label"));
@@ -3347,7 +3347,7 @@ namespace Microsoft.ML.RunTests
                 InputFile = inputFile,
             }).Data;
 
-            var lrInput = new LogisticRegressionBinaryClassificationTrainer.Options
+            var lrInput = new LogisticRegressionBinaryTrainer.Options
             {
                 TrainingData = dataView,
                 NormalizeFeatures = NormalizeOption.Yes,
@@ -3355,7 +3355,7 @@ namespace Microsoft.ML.RunTests
                 ShowTrainingStatistics = true,
                 ComputeStandardDeviation = new ComputeLRTrainingStdThroughMkl()
             };
-            var model = LogisticRegressionBinaryClassificationTrainer.TrainBinary(Env, lrInput).PredictorModel;
+            var model = LogisticRegressionBinaryTrainer.TrainBinary(Env, lrInput).PredictorModel;
 
             var mcLrInput = new LogisticRegressionMulticlassClassificationTrainer.Options
             {
@@ -3364,7 +3364,7 @@ namespace Microsoft.ML.RunTests
                 NumberOfThreads = 1,
                 ShowTrainingStatistics = true
             };
-            var mcModel = LogisticRegressionBinaryClassificationTrainer.TrainMulticlass(Env, mcLrInput).PredictorModel;
+            var mcModel = LogisticRegressionBinaryTrainer.TrainMulticlass(Env, mcLrInput).PredictorModel;
 
             var output = SummarizePredictor.Summarize(Env,
                 new SummarizePredictor.Input() { PredictorModel = model });
@@ -3556,7 +3556,7 @@ namespace Microsoft.ML.RunTests
                 Columns = new[] { new ColumnConcatenatingTransformer.Column { Name = "Features", Source = new[] { "Categories", "NumericFeatures" } } }
             });
 
-            var fastTree = Trainers.FastTree.FastTree.TrainBinary(Env, new FastTreeBinaryClassificationTrainer.Options
+            var fastTree = Trainers.FastTree.FastTree.TrainBinary(Env, new FastTreeBinaryTrainer.Options
             {
                 FeatureColumnName = "Features",
                 NumberOfTrees = 5,

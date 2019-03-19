@@ -152,7 +152,7 @@ namespace Microsoft.ML.Tests
         {
             var data = GetDenseDataset(TaskType.BinaryClassification);
             var model = ML.BinaryClassification.Trainers.LogisticRegression(
-                new LogisticRegressionBinaryClassificationTrainer.Options { NumberOfThreads = 1 }).Fit(data);
+                new LogisticRegressionBinaryTrainer.Options { NumberOfThreads = 1 }).Fit(data);
             var pfi = ML.BinaryClassification.PermutationFeatureImportance(model, data);
 
             // Pfi Indices:
@@ -190,7 +190,7 @@ namespace Microsoft.ML.Tests
         {
             var data = GetSparseDataset(TaskType.BinaryClassification);
             var model = ML.BinaryClassification.Trainers.LogisticRegression(
-                new LogisticRegressionBinaryClassificationTrainer.Options { NumberOfThreads = 1 }).Fit(data);
+                new LogisticRegressionBinaryTrainer.Options { NumberOfThreads = 1 }).Fit(data);
             var pfi = ML.BinaryClassification.PermutationFeatureImportance(model, data);
 
             // Pfi Indices:

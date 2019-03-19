@@ -879,12 +879,12 @@ namespace Microsoft.ML.Trainers.FastTree
                 //  2. RegressionGamModelParameters
                 // For (1), the trained model, GamModelParametersBase, is a field we need to extract. For (2),
                 // we don't need to do anything because RegressionGamModelParameters is derived from GamModelParametersBase.
-                var calibrated = rawPred as CalibratedModelParametersBase<BinaryClassificationGamModelParameters, PlattCalibrator>;
+                var calibrated = rawPred as CalibratedModelParametersBase<GamBinaryModelParameters, PlattCalibrator>;
                 while (calibrated != null)
                 {
                     hadCalibrator = true;
                     rawPred = calibrated.SubModel;
-                    calibrated = rawPred as CalibratedModelParametersBase<BinaryClassificationGamModelParameters, PlattCalibrator>;
+                    calibrated = rawPred as CalibratedModelParametersBase<GamBinaryModelParameters, PlattCalibrator>;
                 }
                 var pred = rawPred as GamModelParametersBase;
                 ch.CheckUserArg(pred != null, nameof(ImplOptions.InputModelFile), "Predictor was not a " + nameof(GamModelParametersBase));

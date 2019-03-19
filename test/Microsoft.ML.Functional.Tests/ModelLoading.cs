@@ -89,19 +89,19 @@ namespace Microsoft.ML.Functional.Tests
 
             var gam = ((loadedTransformerModel as ISingleFeaturePredictionTransformer<object>).Model
                 as CalibratedModelParametersBase).SubModel
-                as BinaryClassificationGamModelParameters;
+                as GamBinaryModelParameters;
             Assert.NotNull(gam);
 
             gam = (((loadedCompositeLoader as CompositeDataLoader<IMultiStreamSource, ITransformer>).Transformer.LastTransformer
                 as ISingleFeaturePredictionTransformer<object>).Model
                 as CalibratedModelParametersBase).SubModel
-                as BinaryClassificationGamModelParameters;
+                as GamBinaryModelParameters;
             Assert.NotNull(gam);
 
             gam = (((loadedTransformerModel1 as TransformerChain<ITransformer>).LastTransformer
                 as ISingleFeaturePredictionTransformer<object>).Model
                 as CalibratedModelParametersBase).SubModel
-                as BinaryClassificationGamModelParameters;
+                as GamBinaryModelParameters;
             Assert.NotNull(gam);
         }
 
@@ -146,7 +146,7 @@ namespace Microsoft.ML.Functional.Tests
             Assert.NotNull(singleFeaturePredictionTransformer);
             var calibratedModelParameters = singleFeaturePredictionTransformer.Model as CalibratedModelParametersBase;
             Assert.NotNull(calibratedModelParameters);
-            var gamModel = calibratedModelParameters.SubModel as BinaryClassificationGamModelParameters;
+            var gamModel = calibratedModelParameters.SubModel as GamBinaryModelParameters;
             Assert.NotNull(gamModel);
             var ageBinUpperBounds = gamModel.GetBinUpperBounds(ageIndex);
             var ageBinEffects = gamModel.GetBinEffects(ageIndex);
