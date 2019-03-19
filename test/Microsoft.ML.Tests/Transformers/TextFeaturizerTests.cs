@@ -31,6 +31,7 @@ namespace Microsoft.ML.Tests.Transformers
         {
             public string A;
             public string[] OutputTokens;
+            public float[] Features = null;
         }
 
         [Fact]
@@ -41,7 +42,7 @@ namespace Microsoft.ML.Tests.Transformers
             var dataView = ML.Data.LoadFromEnumerable(data);
 
             var options = new TextFeaturizingEstimator.Options() { StopWordsRemoverOptions = new StopWordsRemovingEstimator.Options(), OutputTokensColumnName = "OutputTokens" };
-            var pipeline = ML.Transforms.Text.FeaturizeText("OutputText", options, "A");
+            var pipeline = ML.Transforms.Text.FeaturizeText("Features", options, "A");
             var model = pipeline.Fit(dataView);
             var engine = model.CreatePredictionEngine<TestClass, TestClass>(ML);
             var prediction = engine.Predict(data[0]);
@@ -49,6 +50,139 @@ namespace Microsoft.ML.Tests.Transformers
 
             prediction = engine.Predict(data[1]);
             Assert.Equal("stop words", string.Join(" ", prediction.OutputTokens));
+        }
+
+        [Fact]
+        public void TextFeaturizerWithWordFeatureExtractorTest()
+        {
+            var data = new[] { new TestClass() { A = "This is some text in english", OutputTokens=null},
+                               new TestClass() { A = "This is another example", OutputTokens=null } };
+            var dataView = ML.Data.LoadFromEnumerable(data);
+
+            var options = new TextFeaturizingEstimator.Options()
+            {
+                WordFeatureExtractor = new WordBagEstimator.Options() { NgramLength = 1 },
+                CharFeatureExtractor = null,
+                Norm = TextFeaturizingEstimator.NormFunction.None,
+                OutputTokensColumnName = "OutputTokens"
+            };
+            var pipeline = ML.Transforms.Text.FeaturizeText("Features", options, "A");
+            var model = pipeline.Fit(dataView);
+            var engine = model.CreatePredictionEngine<TestClass, TestClass>(ML);
+
+            var prediction = engine.Predict(data[0]);
+            Assert.Equal("this is some text in english", string.Join(" ", prediction.OutputTokens));
+            Assert.Equal(1.0f, prediction.Features[0]);
+            Assert.Equal(1.0f, prediction.Features[1]);
+            Assert.Equal(1.0f, prediction.Features[3]);
+            Assert.Equal(1.0f, prediction.Features[4]);
+            Assert.Equal(1.0f, prediction.Features[5]);
+            Assert.Equal(0.0f, prediction.Features[6]);
+            Assert.Equal(0.0f, prediction.Features[7]);
+
+            prediction = engine.Predict(data[1]);
+            Assert.Equal("this is another example", string.Join(" ", prediction.OutputTokens));
+            Assert.Equal(1.0f, prediction.Features[0]);
+            Assert.Equal(1.0f, prediction.Features[1]);
+            Assert.Equal(0.0f, prediction.Features[3]);
+            Assert.Equal(0.0f, prediction.Features[4]);
+            Assert.Equal(0.0f, prediction.Features[5]);
+            Assert.Equal(1.0f, prediction.Features[6]);
+            Assert.Equal(1.0f, prediction.Features[7]);
+        }
+
+        [Fact]
+        public void TextFeaturizerWithCharFeatureExtractorTest()
+        {
+            var data = new[] { new TestClass() { A = "abc efg", OutputTokens=null},
+                               new TestClass() { A = "xyz", OutputTokens=null } };
+            var dataView = ML.Data.LoadFromEnumerable(data);
+
+            var options = new TextFeaturizingEstimator.Options()
+            {
+                WordFeatureExtractor = null,
+                CharFeatureExtractor = new WordBagEstimator.Options() { NgramLength = 1 },
+                Norm = TextFeaturizingEstimator.NormFunction.None,
+                OutputTokensColumnName = "OutputTokens"
+            };
+            var pipeline = ML.Transforms.Text.FeaturizeText("Features", options, "A");
+            var model = pipeline.Fit(dataView);
+            var engine = model.CreatePredictionEngine<TestClass, TestClass>(ML);
+
+            var prediction = engine.Predict(data[0]);
+            Assert.Equal("abc efg", string.Join(" ", prediction.OutputTokens));
+            Assert.Equal(1.0f, prediction.Features[0]);
+            Assert.Equal(1.0f, prediction.Features[1]);
+            Assert.Equal(1.0f, prediction.Features[3]);
+            Assert.Equal(1.0f, prediction.Features[4]);
+            Assert.Equal(1.0f, prediction.Features[5]);
+            Assert.Equal(1.0f, prediction.Features[6]);
+            Assert.Equal(1.0f, prediction.Features[7]);
+            Assert.Equal(1.0f, prediction.Features[8]);
+            Assert.Equal(0.0f, prediction.Features[9]);
+            Assert.Equal(0.0f, prediction.Features[10]);
+            Assert.Equal(0.0f, prediction.Features[11]);
+
+            prediction = engine.Predict(data[1]);
+            Assert.Equal("xyz", string.Join(" ", prediction.OutputTokens));
+            Assert.Equal(1.0f, prediction.Features[0]);
+            Assert.Equal(0.0f, prediction.Features[1]);
+            Assert.Equal(0.0f, prediction.Features[3]);
+            Assert.Equal(0.0f, prediction.Features[4]);
+            Assert.Equal(0.0f, prediction.Features[5]);
+            Assert.Equal(0.0f, prediction.Features[6]);
+            Assert.Equal(0.0f, prediction.Features[7]);
+            Assert.Equal(1.0f, prediction.Features[8]);
+            Assert.Equal(1.0f, prediction.Features[9]);
+            Assert.Equal(1.0f, prediction.Features[10]);
+            Assert.Equal(1.0f, prediction.Features[11]);
+        }
+
+        [Fact]
+        public void TextFeaturizerWithL2NormTest()
+        {
+            var data = new[] { new TestClass() { A = "abc xyz", OutputTokens=null},
+                               new TestClass() { A = "xyz", OutputTokens=null } };
+            var dataView = ML.Data.LoadFromEnumerable(data);
+
+            var options = new TextFeaturizingEstimator.Options()
+            {
+                CharFeatureExtractor = new WordBagEstimator.Options() { NgramLength = 1},
+                Norm = TextFeaturizingEstimator.NormFunction.L2,
+                OutputTokensColumnName = "OutputTokens"
+            };
+            var pipeline = ML.Transforms.Text.FeaturizeText("Features", options, "A");
+            var model = pipeline.Fit(dataView);
+            var engine = model.CreatePredictionEngine<TestClass, TestClass>(ML);
+
+            var prediction = engine.Predict(data[0]);
+            Assert.Equal("abc xyz", string.Join(" ", prediction.OutputTokens));
+            var expected1 = 0.333333343f;
+            var expected2 = 0.707106769f;
+            Assert.Equal(expected1, prediction.Features[0], 4);
+            Assert.Equal(expected1, prediction.Features[1], 4);
+            Assert.Equal(expected1, prediction.Features[3], 4);
+            Assert.Equal(expected1, prediction.Features[4], 4);
+            Assert.Equal(expected1, prediction.Features[5], 4);
+            Assert.Equal(expected1, prediction.Features[6], 4);
+            Assert.Equal(expected1, prediction.Features[7], 4);
+            Assert.Equal(expected1, prediction.Features[8], 4);
+            Assert.Equal(expected2, prediction.Features[9], 4);
+            Assert.Equal(expected2, prediction.Features[10], 4);
+
+            prediction = engine.Predict(data[1]);
+            expected1 = 0.4472136f;
+            Assert.Equal("xyz", string.Join(" ", prediction.OutputTokens));
+            Assert.Equal(expected1, prediction.Features[0], 4);
+            Assert.Equal(0.0f, prediction.Features[1], 4);
+            Assert.Equal(0.0f, prediction.Features[3], 4);
+            Assert.Equal(0.0f, prediction.Features[4], 4);
+            Assert.Equal(expected1, prediction.Features[5], 4);
+            Assert.Equal(expected1, prediction.Features[6], 4);
+            Assert.Equal(expected1, prediction.Features[7], 4);
+            Assert.Equal(expected1, prediction.Features[8], 4);
+            Assert.Equal(0.0f, prediction.Features[9], 4);
+            Assert.Equal(1.0f, prediction.Features[10], 4);
         }
 
         [Fact]
@@ -67,7 +201,7 @@ namespace Microsoft.ML.Tests.Transformers
                 OutputTokensColumnName = "OutputTokens",
                 CaseMode = TextNormalizingEstimator.CaseMode.None
             };
-            var pipeline = ML.Transforms.Text.FeaturizeText("OutputText", options, "A");
+            var pipeline = ML.Transforms.Text.FeaturizeText("Features", options, "A");
             var model = pipeline.Fit(dataView);
             var engine = model.CreatePredictionEngine<TestClass, TestClass>(ML);
             var prediction = engine.Predict(data[0]);
@@ -84,7 +218,7 @@ namespace Microsoft.ML.Tests.Transformers
                 CaseMode = caseMode,
                 OutputTokensColumnName = "OutputTokens"
             };
-            var pipeline = ML.Transforms.Text.FeaturizeText("OutputText", options, "A");
+            var pipeline = ML.Transforms.Text.FeaturizeText("Features", options, "A");
             var model = pipeline.Fit(dataView);
             var engine = model.CreatePredictionEngine<TestClass, TestClass>(ML);
             var prediction1 = engine.Predict(data[0]);
@@ -133,7 +267,7 @@ namespace Microsoft.ML.Tests.Transformers
                 CaseMode = TextNormalizingEstimator.CaseMode.None,
                 OutputTokensColumnName = "OutputTokens"
             };
-            var pipeline = ML.Transforms.Text.FeaturizeText("OutputText", options, "A");
+            var pipeline = ML.Transforms.Text.FeaturizeText("Features", options, "A");
             var model = pipeline.Fit(dataView);
             var engine = model.CreatePredictionEngine<TestClass, TestClass>(ML);
             var prediction1 = engine.Predict(data[0]);
@@ -170,7 +304,7 @@ namespace Microsoft.ML.Tests.Transformers
                 CaseMode = TextNormalizingEstimator.CaseMode.None,
                 OutputTokensColumnName = "OutputTokens"
             };
-            var pipeline = ML.Transforms.Text.FeaturizeText("OutputText", options, "A");
+            var pipeline = ML.Transforms.Text.FeaturizeText("Features", options, "A");
             var model = pipeline.Fit(dataView);
             var engine = model.CreatePredictionEngine<TestClass, TestClass>(ML);
             var prediction1 = engine.Predict(data[0]);
@@ -208,7 +342,7 @@ namespace Microsoft.ML.Tests.Transformers
                 CaseMode = TextNormalizingEstimator.CaseMode.None,
                 OutputTokensColumnName = "OutputTokens"
             };
-            var pipeline = ML.Transforms.Text.FeaturizeText("OutputText", options, "A");
+            var pipeline = ML.Transforms.Text.FeaturizeText("Features", options, "A");
             var model = pipeline.Fit(dataView);
             var engine = model.CreatePredictionEngine<TestClass, TestClass>(ML);
             var prediction1 = engine.Predict(data[0]);
