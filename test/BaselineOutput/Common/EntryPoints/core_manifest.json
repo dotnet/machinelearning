@@ -22428,9 +22428,9 @@
           "Default": true
         },
         {
-          "Name": "OutputTokens",
-          "Type": "Bool",
-          "Desc": "Whether to output the transformed text tokens as an additional column.",
+          "Name": "OutputTokensColumnName",
+          "Type": "String",
+          "Desc": "Column containing the transformed text tokens.",
           "Aliases": [
             "tokens",
             "showtext",
@@ -22439,7 +22439,7 @@
           "Required": false,
           "SortOrder": 9.0,
           "IsNullable": false,
-          "Default": false
+          "Default": null
         },
         {
           "Name": "Dictionary",
