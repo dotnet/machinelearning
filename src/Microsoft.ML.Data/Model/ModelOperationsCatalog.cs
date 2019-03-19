@@ -22,14 +22,10 @@ namespace Microsoft.ML
         IHostEnvironment IInternalCatalog.Environment => _env;
         private readonly IHostEnvironment _env;
 
-        public ExplainabilityTransforms Explainability { get; }
-
         internal ModelOperationsCatalog(IHostEnvironment env)
         {
             Contracts.AssertValue(env);
             _env = env;
-
-            Explainability = new ExplainabilityTransforms(this);
         }
 
         /// <summary>
@@ -226,20 +222,6 @@ namespace Microsoft.ML
                 return composite.Transformer;
             }
             return new TransformerChain<ITransformer>();
-        }
-
-        /// <summary>
-        /// The catalog of model explainability operations.
-        /// </summary>
-        public sealed class ExplainabilityTransforms : IInternalCatalog
-        {
-            IHostEnvironment IInternalCatalog.Environment => _env;
-            private readonly IHostEnvironment _env;
-
-            internal ExplainabilityTransforms(ModelOperationsCatalog owner)
-            {
-                _env = owner._env;
-            }
         }
 
         /// <summary>

@@ -46,36 +46,34 @@ namespace Microsoft.ML
         /// </format>
         /// </example>
         /// <param name="catalog">The regression catalog.</param>
-        /// <param name="model">The model to evaluate.</param>
+        /// <param name="predictionTransformer">The model on which to evaluate feature importance.</param>
         /// <param name="data">The evaluation data set.</param>
-        /// <param name="label">Label column name.</param>
-        /// <param name="features">Feature column name.</param>
+        /// <param name="labelColumnName">Label column name.</param>
         /// <param name="useFeatureWeightFilter">Use features weight to pre-filter features.</param>
-        /// <param name="topExamples">Limit the number of examples to evaluate on. null means examples (up to ~ 2 bln) from input will be used.</param>
+        /// <param name="numberOfExamplesToUse">Limit the number of examples to evaluate on. <cref langword="null"/> means up to ~2 bln examples from <paramref param="data"/> will be used.</param>
         /// <param name="permutationCount">The number of permutations to perform.</param>
         /// <returns>Array of per-feature 'contributions' to the score.</returns>
         public static ImmutableArray<RegressionMetricsStatistics>
             PermutationFeatureImportance<TModel>(
                 this RegressionCatalog catalog,
-                IPredictionTransformer<TModel> model,
+                ISingleFeaturePredictionTransformer<TModel> predictionTransformer,
                 IDataView data,
-                string label = DefaultColumnNames.Label,
-                string features = DefaultColumnNames.Features,
+                string labelColumnName = DefaultColumnNames.Label,
                 bool useFeatureWeightFilter = false,
-                int? topExamples = null,
+                int? numberOfExamplesToUse = null,
                 int permutationCount = 1) where TModel : class
         {
             return PermutationFeatureImportance<TModel, RegressionMetrics, RegressionMetricsStatistics>.GetImportanceMetricsMatrix(
                             catalog.GetEnvironment(),
-                            model,
+                            predictionTransformer,
                             data,
                             () => new RegressionMetricsStatistics(),
-                            idv => catalog.Evaluate(idv, label),
+                            idv => catalog.Evaluate(idv, labelColumnName),
                             RegressionDelta,
-                            features,
+                            predictionTransformer.FeatureColumnName,
                             permutationCount,
                             useFeatureWeightFilter,
-                            topExamples);
+                            numberOfExamplesToUse);
         }
 
         private static RegressionMetrics RegressionDelta(
@@ -124,36 +122,34 @@ namespace Microsoft.ML
         /// </format>
         /// </example>
         /// <param name="catalog">The binary classification catalog.</param>
-        /// <param name="model">The model to evaluate.</param>
+        /// <param name="predictionTransformer">The model on which to evaluate feature importance.</param>
         /// <param name="data">The evaluation data set.</param>
-        /// <param name="label">Label column name.</param>
-        /// <param name="features">Feature column name.</param>
+        /// <param name="labelColumnName">Label column name.</param>
         /// <param name="useFeatureWeightFilter">Use features weight to pre-filter features.</param>
-        /// <param name="topExamples">Limit the number of examples to evaluate on. null means examples (up to ~ 2 bln) from input will be used.</param>
+        /// <param name="numberOfExamplesToUse">Limit the number of examples to evaluate on. <cref langword="null"/> means up to ~2 bln examples from <paramref param="data"/> will be used.</param>
         /// <param name="permutationCount">The number of permutations to perform.</param>
         /// <returns>Array of per-feature 'contributions' to the score.</returns>
         public static ImmutableArray<BinaryClassificationMetricsStatistics>
             PermutationFeatureImportance<TModel>(
                 this BinaryClassificationCatalog catalog,
-                IPredictionTransformer<TModel> model,
+                ISingleFeaturePredictionTransformer<TModel> predictionTransformer,
                 IDataView data,
-                string label = DefaultColumnNames.Label,
-                string features = DefaultColumnNames.Features,
+                string labelColumnName = DefaultColumnNames.Label,
                 bool useFeatureWeightFilter = false,
-                int? topExamples = null,
+                int? numberOfExamplesToUse = null,
                 int permutationCount = 1) where TModel : class
         {
             return PermutationFeatureImportance<TModel, BinaryClassificationMetrics, BinaryClassificationMetricsStatistics>.GetImportanceMetricsMatrix(
                             catalog.GetEnvironment(),
-                            model,
+                            predictionTransformer,
                             data,
                             () => new BinaryClassificationMetricsStatistics(),
-                            idv => catalog.Evaluate(idv, label),
+                            idv => catalog.Evaluate(idv, labelColumnName),
                             BinaryClassifierDelta,
-                            features,
+                            predictionTransformer.FeatureColumnName,
                             permutationCount,
                             useFeatureWeightFilter,
-                            topExamples);
+                            numberOfExamplesToUse);
         }
 
         private static BinaryClassificationMetrics BinaryClassifierDelta(
@@ -199,36 +195,34 @@ namespace Microsoft.ML
         /// </para>
         /// </remarks>
         /// <param name="catalog">The clustering catalog.</param>
-        /// <param name="model">The model to evaluate.</param>
+        /// <param name="predictionTransformer">The model on which to evaluate feature importance.</param>
         /// <param name="data">The evaluation data set.</param>
-        /// <param name="label">Label column name.</param>
-        /// <param name="features">Feature column name.</param>
+        /// <param name="labelColumnName">Label column name.</param>
         /// <param name="useFeatureWeightFilter">Use features weight to pre-filter features.</param>
-        /// <param name="topExamples">Limit the number of examples to evaluate on. null means examples (up to ~ 2 bln) from input will be used.</param>
+        /// <param name="numberOfExamplesToUse">Limit the number of examples to evaluate on. <cref langword="null"/> means up to ~2 bln examples from <paramref param="data"/> will be used.</param>
         /// <param name="permutationCount">The number of permutations to perform.</param>
         /// <returns>Array of per-feature 'contributions' to the score.</returns>
         public static ImmutableArray<MulticlassClassificationMetricsStatistics>
             PermutationFeatureImportance<TModel>(
                 this MulticlassClassificationCatalog catalog,
-                IPredictionTransformer<TModel> model,
+                ISingleFeaturePredictionTransformer<TModel> predictionTransformer,
                 IDataView data,
-                string label = DefaultColumnNames.Label,
-                string features = DefaultColumnNames.Features,
+                string labelColumnName = DefaultColumnNames.Label,
                 bool useFeatureWeightFilter = false,
-                int? topExamples = null,
+                int? numberOfExamplesToUse = null,
                 int permutationCount = 1) where TModel : class
         {
             return PermutationFeatureImportance<TModel, MulticlassClassificationMetrics, MulticlassClassificationMetricsStatistics>.GetImportanceMetricsMatrix(
                             catalog.GetEnvironment(),
-                            model,
+                            predictionTransformer,
                             data,
                             () => new MulticlassClassificationMetricsStatistics(),
-                            idv => catalog.Evaluate(idv, label),
+                            idv => catalog.Evaluate(idv, labelColumnName),
                             MulticlassClassificationDelta,
-                            features,
+                            predictionTransformer.FeatureColumnName,
                             permutationCount,
                             useFeatureWeightFilter,
-                            topExamples);
+                            numberOfExamplesToUse);
         }
 
         private static MulticlassClassificationMetrics MulticlassClassificationDelta(
@@ -279,38 +273,36 @@ namespace Microsoft.ML
         /// </para>
         /// </remarks>
         /// <param name="catalog">The clustering catalog.</param>
-        /// <param name="model">The model to evaluate.</param>
+        /// <param name="predictionTransformer">The model on which to evaluate feature importance.</param>
         /// <param name="data">The evaluation data set.</param>
-        /// <param name="label">Label column name.</param>
-        /// <param name="groupId">GroupId column name</param>
-        /// <param name="features">Feature column name.</param>
+        /// <param name="labelColumnName">Label column name.</param>
+        /// <param name="rowGroupColumnName">GroupId column name</param>
         /// <param name="useFeatureWeightFilter">Use features weight to pre-filter features.</param>
-        /// <param name="topExamples">Limit the number of examples to evaluate on. null means examples (up to ~ 2 bln) from input will be used.</param>
+        /// <param name="numberOfExamplesToUse">Limit the number of examples to evaluate on. <cref langword="null"/> means up to ~2 bln examples from <paramref param="data"/> will be used.</param>
         /// <param name="permutationCount">The number of permutations to perform.</param>
         /// <returns>Array of per-feature 'contributions' to the score.</returns>
         public static ImmutableArray<RankingMetricsStatistics>
             PermutationFeatureImportance<TModel>(
                 this RankingCatalog catalog,
-                IPredictionTransformer<TModel> model,
+                ISingleFeaturePredictionTransformer<TModel> predictionTransformer,
                 IDataView data,
-                string label = DefaultColumnNames.Label,
-                string groupId = DefaultColumnNames.GroupId,
-                string features = DefaultColumnNames.Features,
+                string labelColumnName = DefaultColumnNames.Label,
+                string rowGroupColumnName = DefaultColumnNames.GroupId,
                 bool useFeatureWeightFilter = false,
-                int? topExamples = null,
+                int? numberOfExamplesToUse = null,
                 int permutationCount = 1) where TModel : class
         {
             return PermutationFeatureImportance<TModel, RankingMetrics, RankingMetricsStatistics>.GetImportanceMetricsMatrix(
                             catalog.GetEnvironment(),
-                            model,
+                            predictionTransformer,
                             data,
                             () => new RankingMetricsStatistics(),
-                            idv => catalog.Evaluate(idv, label, groupId),
+                            idv => catalog.Evaluate(idv, labelColumnName, rowGroupColumnName),
                             RankingDelta,
-                            features,
+                            predictionTransformer.FeatureColumnName,
                             permutationCount,
                             useFeatureWeightFilter,
-                            topExamples);
+                            numberOfExamplesToUse);
         }
 
         private static RankingMetrics RankingDelta(
