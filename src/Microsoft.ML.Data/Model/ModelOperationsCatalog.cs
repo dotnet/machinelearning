@@ -33,7 +33,7 @@ namespace Microsoft.ML
         /// </summary>
         /// <param name="model">The trained model to be saved.</param>
         /// <param name="stream">A writeable, seekable stream to save to.</param>
-        public void Save<TSource>(IDataLoader<TSource> model, Stream stream)
+        public void SaveDataLoader<TSource>(IDataLoader<TSource> model, Stream stream)
         {
             _env.CheckValue(model, nameof(model));
             _env.CheckValue(stream, nameof(stream));
@@ -50,10 +50,10 @@ namespace Microsoft.ML
         /// </summary>
         /// <param name="model">The trained model to be saved.</param>
         /// <param name="filePath">Path where model should be saved.</param>
-        public void Save<TSource>(IDataLoader<TSource> model, string filePath)
+        public void SaveDataLoader<TSource>(IDataLoader<TSource> model, string filePath)
         {
             using (var stream = File.Create(filePath))
-                Save(model, stream);
+                SaveDataLoader(model, stream);
         }
 
         /// <summary>
@@ -63,7 +63,7 @@ namespace Microsoft.ML
         /// <param name="model">The trained model to be saved</param>
         /// <param name="stream">A writeable, seekable stream to save to.</param>
         public void Save<TSource>(IDataLoader<TSource> loader, ITransformer model, Stream stream) =>
-            Save(new CompositeDataLoader<TSource, ITransformer>(loader, new TransformerChain<ITransformer>(model)), stream);
+            SaveDataLoader(new CompositeDataLoader<TSource, ITransformer>(loader, new TransformerChain<ITransformer>(model)), stream);
 
         /// <summary>
         /// Save a transformer model and the loader used to create its input data to the file.

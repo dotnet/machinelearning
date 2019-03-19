@@ -61,7 +61,7 @@ namespace Microsoft.ML.Functional.Tests
             string modelAndSchemaPath = GetOutputPath(FullTestName + "-model-schema.zip");
             _ml.Model.Save(transformerModel, data.Schema, modelAndSchemaPath);
             string compositeLoaderModelPath = GetOutputPath(FullTestName + "-composite-model.zip");
-            _ml.Model.Save(compositeLoaderModel, compositeLoaderModelPath);
+            _ml.Model.SaveDataLoader(compositeLoaderModel, compositeLoaderModelPath);
             string loaderAndTransformerModelPath = GetOutputPath(FullTestName + "-loader-transformer.zip");
             _ml.Model.Save(loader, transformerModel, loaderAndTransformerModelPath);
 
@@ -190,7 +190,7 @@ namespace Microsoft.ML.Functional.Tests
             var loader = _ml.Data.CreateTextLoader<InputData>(hasHeader: true, dataSample: file);
 
             string modelPath = GetOutputPath(FullTestName + "-model.zip");
-            _ml.Model.Save(loader, modelPath);
+            _ml.Model.SaveDataLoader(loader, modelPath);
 
             Load(modelPath, out var loadedWithSchema, out var loadedSchema, out var loadedLoader,
                 out var loadedWithLoader, out var loadedLoaderWithTransformer);
@@ -220,7 +220,7 @@ namespace Microsoft.ML.Functional.Tests
             var model = composite.Fit(file);
 
             string modelPath = GetOutputPath(FullTestName + "-model.zip");
-            _ml.Model.Save(model, modelPath);
+            _ml.Model.SaveDataLoader(model, modelPath);
 
             Load(modelPath, out var loadedWithSchema, out var loadedSchema, out var loadedLoader,
                 out var loadedWithLoader, out var loadedLoaderWithTransformer);
