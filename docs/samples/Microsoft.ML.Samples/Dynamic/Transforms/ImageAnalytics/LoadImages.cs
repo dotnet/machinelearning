@@ -36,7 +36,7 @@ namespace Microsoft.ML.Samples.Dynamic
 
             var imagesFolder = Path.GetDirectoryName(imagesDataFile);
             // Image loading pipeline. 
-            var pipeline = mlContext.Transforms.LoadImages(imagesFolder, ("ImageReal", "ImagePath"));
+            var pipeline = mlContext.Transforms.LoadImages(imagesFolder, "ImageReal", "ImagePath");
             var transformedData = pipeline.Fit(data).Transform(data);
 
             // The transformedData IDataView contains the loaded images now

@@ -105,7 +105,6 @@ namespace Microsoft.ML.Functional.Tests
 
             // Define a pipeline
             var pipeline = mlContext.Transforms.Concatenate("Features", HousingRegression.Features)
-                .Append(mlContext.Transforms.Normalize())
                 .AppendCacheCheckpoint(mlContext)
                 .Append(mlContext.Regression.Trainers.Sdca(
                     new SdcaRegressionTrainer.Options { NumberOfThreads = 1, MaximumNumberOfIterations = 20 }));
@@ -173,7 +172,6 @@ namespace Microsoft.ML.Functional.Tests
 
             // Define a pipeline
             var pipeline = mlContext.Transforms.Concatenate("Features", HousingRegression.Features)
-                .Append(mlContext.Transforms.Normalize())
                 .AppendCacheCheckpoint(mlContext)
                 .Append(mlContext.Regression.Trainers.Sdca(
                     new SdcaRegressionTrainer.Options { NumberOfThreads = 1, MaximumNumberOfIterations = 20 }));

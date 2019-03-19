@@ -35,7 +35,8 @@ namespace Microsoft.ML
         /// <summary>Initializes a new instance of <see cref="PrincipalComponentAnalyzer"/>.</summary>
         /// <param name="catalog">The transform's catalog.</param>
         /// <param name="columns">Input columns to apply PrincipalComponentAnalysis on.</param>
-        public static PrincipalComponentAnalyzer ProjectToPrincipalComponents(this TransformsCatalog catalog, params PrincipalComponentAnalyzer.ColumnOptions[] columns)
+        [BestFriend]
+        internal static PrincipalComponentAnalyzer ProjectToPrincipalComponents(this TransformsCatalog catalog, params PrincipalComponentAnalyzer.ColumnOptions[] columns)
             => new PrincipalComponentAnalyzer(CatalogUtils.GetEnvironment(catalog), columns);
 
         /// <summary>

@@ -1004,7 +1004,8 @@ namespace Microsoft.ML.Transforms.Text
         /// <summary>
         /// Describes how the transformer handles one column pair.
         /// </summary>
-        public sealed class ColumnOptions
+        [BestFriend]
+        internal sealed class ColumnOptions
         {
             /// <summary>
             /// Name of the column resulting from the transformation of <cref see="InputColumnName"/>.

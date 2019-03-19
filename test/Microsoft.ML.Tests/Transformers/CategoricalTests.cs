@@ -75,10 +75,10 @@ namespace Microsoft.ML.Tests.Transformers
             var mlContext = new MLContext();
             var dataView = mlContext.Data.LoadFromEnumerable(data);
 
-            var pipe = mlContext.Transforms.Categorical.OneHotHashEncoding("CatA", "A", 3, 0, OneHotEncodingEstimator.OutputKind.Bag)
-                .Append(mlContext.Transforms.Categorical.OneHotHashEncoding("CatB", "A", 2, 0, OneHotEncodingEstimator.OutputKind.Key))
-                .Append(mlContext.Transforms.Categorical.OneHotHashEncoding("CatC", "A", 3, 0, OneHotEncodingEstimator.OutputKind.Indicator))
-                .Append(mlContext.Transforms.Categorical.OneHotHashEncoding("CatD", "A", 2, 0, OneHotEncodingEstimator.OutputKind.Binary));
+            var pipe = mlContext.Transforms.Categorical.OneHotHashEncoding("CatA", "A", OneHotEncodingEstimator.OutputKind.Bag, 3, 0)
+                .Append(mlContext.Transforms.Categorical.OneHotHashEncoding("CatB", "A", OneHotEncodingEstimator.OutputKind.Key, 2, 0))
+                .Append(mlContext.Transforms.Categorical.OneHotHashEncoding("CatC", "A", OneHotEncodingEstimator.OutputKind.Indicator, 3, 0))
+                .Append(mlContext.Transforms.Categorical.OneHotHashEncoding("CatD", "A", OneHotEncodingEstimator.OutputKind.Binary, 2, 0));
 
             TestEstimatorCore(pipe, dataView);
             Done();

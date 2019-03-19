@@ -58,7 +58,8 @@ namespace Microsoft.ML.Samples.Dynamic
 
             // Composing a different pipeline if we wanted to normalize more than one column at a time. 
             // Using log scale as the normalization mode. 
-            var multiColPipeline = ml.Transforms.Normalize(NormalizingEstimator.NormalizationMode.LogMeanVariance, new ColumnOptions[] { ("LogInduced", "Induced"), ("LogSpontaneous", "Spontaneous") });
+            var multiColPipeline = ml.Transforms.Normalize("LogInduced", "Induced", NormalizingEstimator.NormalizationMode.LogMeanVariance)
+                .Append(ml.Transforms.Normalize("LogSpontaneous", "Spontaneous", NormalizingEstimator.NormalizationMode.LogMeanVariance));
             // The transformed data.
             var multiColtransformer = multiColPipeline.Fit(trainData);
             var multiColtransformedData = multiColtransformer.Transform(trainData);

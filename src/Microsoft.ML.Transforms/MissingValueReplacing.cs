@@ -117,7 +117,7 @@ namespace Microsoft.ML.Transforms
             public Column[] Columns;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "The replacement method to utilize", ShortName = "kind")]
-            public ReplacementKind ReplacementKind = (ReplacementKind)MissingValueReplacingEstimator.Defaults.ReplacementMode;
+            public ReplacementKind ReplacementKind = (ReplacementKind)MissingValueReplacingEstimator.Defaults.Mode;
 
             // Specifying by-slot imputation for vectors of unknown size will cause a warning, and the imputation will be global.
             [Argument(ArgumentType.AtMostOnce, HelpText = "Whether to impute values by slot", ShortName = "slot")]
@@ -441,7 +441,7 @@ namespace Microsoft.ML.Transforms
                 cols[i] = new MissingValueReplacingEstimator.ColumnOptions(
                     item.Name,
                     item.Source,
-                    (MissingValueReplacingEstimator.ColumnOptions.ReplacementMode)(item.Kind ?? options.ReplacementKind),
+                    (MissingValueReplacingEstimator.ReplacementMode)(item.Kind ?? options.ReplacementKind),
                     item.Slot ?? options.ImputeBySlot,
                     item.ReplacementString);
             };
@@ -890,41 +890,42 @@ namespace Microsoft.ML.Transforms
 
     public sealed class MissingValueReplacingEstimator : IEstimator<MissingValueReplacingTransformer>
     {
+        /// <summary>
+        /// The possible ways to replace missing values.
+        /// </summary>
+        public enum ReplacementMode : byte
+        {
+            /// <summary>
+            /// Replace with the default value of the column based on its type. For example, 'zero' for numeric and 'empty' for string/text columns.
+            /// </summary>
+            DefaultValue = 0,
+            /// <summary>
+            /// Replace with the mean value of the column. Supports only numeric/time span/ DateTime columns.
+            /// </summary>
+            Mean = 1,
+            /// <summary>
+            /// Replace with the minimum value of the column. Supports only numeric/time span/ DateTime columns.
+            /// </summary>
+            Minimum = 2,
+            /// <summary>
+            /// Replace with the maximum value of the column. Supports only numeric/time span/ DateTime columns.
+            /// </summary>
+            Maximum = 3,
+        }
+
         [BestFriend]
         internal static class Defaults
         {
-            public const ColumnOptions.ReplacementMode ReplacementMode = ColumnOptions.ReplacementMode.DefaultValue;
+            public const ReplacementMode Mode = ReplacementMode.DefaultValue;
             public const bool ImputeBySlot = true;
         }
 
         /// <summary>
         /// Describes how the transformer handles one column pair.
         /// </summary>
-        public sealed class ColumnOptions
+        [BestFriend]
+        internal sealed class ColumnOptions
         {
-            /// <summary>
-            /// The possible ways to replace missing values.
-            /// </summary>
-            public enum ReplacementMode : byte
-            {
-                /// <summary>
-                /// Replace with the default value of the column based on its type. For example, 'zero' for numeric and 'empty' for string/text columns.
-                /// </summary>
-                DefaultValue = 0,
-                /// <summary>
-                /// Replace with the mean value of the column. Supports only numeric/time span/ DateTime columns.
-                /// </summary>
-                Mean = 1,
-                /// <summary>
-                /// Replace with the minimum value of the column. Supports only numeric/time span/ DateTime columns.
-                /// </summary>
-                Minimum = 2,
-                /// <summary>
-                /// Replace with the maximum value of the column. Supports only numeric/time span/ DateTime columns.
-                /// </summary>
-                Maximum = 3,
-            }
-
             /// <summary> Name of the column resulting from the transformation of <see cref="InputColumnName"/>.</summary>
             public readonly string Name;
             /// <summary> Name of column to transform. </summary>
@@ -949,7 +950,7 @@ namespace Microsoft.ML.Transforms
             /// <param name="imputeBySlot">If true, per-slot imputation of replacement is performed.
             /// Otherwise, replacement value is imputed for the entire vector column. This setting is ignored for scalars and variable vectors,
             /// where imputation is always for the entire column.</param>
-            public ColumnOptions(string name, string inputColumnName = null, ReplacementMode replacementMode = Defaults.ReplacementMode,
+            public ColumnOptions(string name, string inputColumnName = null, ReplacementMode replacementMode = Defaults.Mode,
                 bool imputeBySlot = Defaults.ImputeBySlot)
             {
                 Contracts.CheckNonWhiteSpace(name, nameof(name));
@@ -973,7 +974,7 @@ namespace Microsoft.ML.Transforms
         private readonly IHost _host;
         private readonly ColumnOptions[] _columns;
 
-        internal MissingValueReplacingEstimator(IHostEnvironment env, string outputColumnName, string inputColumnName = null, ColumnOptions.ReplacementMode replacementKind = Defaults.ReplacementMode)
+        internal MissingValueReplacingEstimator(IHostEnvironment env, string outputColumnName, string inputColumnName = null, ReplacementMode replacementKind = Defaults.Mode)
             : this(env, new ColumnOptions(outputColumnName, inputColumnName ?? outputColumnName, replacementKind))
         {
 

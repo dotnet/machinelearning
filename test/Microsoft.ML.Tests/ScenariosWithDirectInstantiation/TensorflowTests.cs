@@ -999,7 +999,8 @@ namespace Microsoft.ML.Scenarios
             // Then this integer vector is retrieved from the pipeline and resized to fixed length.
             // The second pipeline 'tfEnginePipe' takes the resized integer vector and passes it to TensoFlow and gets the classification scores.
             var estimator = mlContext.Transforms.Text.TokenizeIntoWords("TokenizedWords", "Sentiment_Text")
-                .Append(mlContext.Transforms.Conversion.MapValue(lookupMap, "Words", "Ids", new ColumnOptions[] { ("Features", "TokenizedWords") }));
+                .Append(mlContext.Transforms.Conversion.MapValue(lookupMap, lookupMap.Schema["Words"], lookupMap.Schema["Ids"], 
+                    new ColumnOptions[] { ("Features", "TokenizedWords") }));
             var model = estimator.Fit(dataView);
             var dataPipe = mlContext.Model.CreatePredictionEngine<TensorFlowSentiment, TensorFlowSentiment>(model);
 

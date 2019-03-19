@@ -507,11 +507,15 @@ namespace Microsoft.ML.Tests.Transformers
             var badData = new[] { new TestWrong() { A = "bar", B = 1.2f } };
             var badDataView = ML.Data.LoadFromEnumerable(badData);
 
-            var keys = new List<string>() { "foo", "bar", "test", "wahoo" };
-            var values = new List<int>() { 1, 2, 3, 4 };
+            var keyValuePairs = new List<KeyValuePair<string,int>>() {
+                new KeyValuePair<string,int>("foo", 1),
+                new KeyValuePair<string,int>("bar", 2),
+                new KeyValuePair<string,int>("test", 3),
+                new KeyValuePair<string,int>("wahoo", 4)
+                };
 
             // Workout on value mapping
-            var est = ML.Transforms.Conversion.MapValue(keys, values, new ColumnOptions[] { ("D", "A"), ("E", "B"), ("F", "C") });
+            var est = ML.Transforms.Conversion.MapValue(keyValuePairs, new ColumnOptions[] { ("D", "A"), ("E", "B"), ("F", "C") });
             TestEstimatorCore(est, validFitInput: dataView, invalidInput: badDataView);
         }
 
@@ -523,14 +527,14 @@ namespace Microsoft.ML.Tests.Transformers
             var badData = new[] { new TestWrong() { A = "bar", B = 1.2f } };
             var badDataView = ML.Data.LoadFromEnumerable(badData);
 
-            var keys = new List<string>() { "foo", "bar", "test" };
-            var values = new List<int[]>() {
-                new int[] {2, 3, 4 },
-                new int[] {100, 200 },
-                new int[] {400, 500, 600, 700 }};
+            var keyValuePairs = new List<KeyValuePair<string,int[]>>() {
+                new KeyValuePair<string,int[]>("foo", new int[] {2, 3, 4 }),
+                new KeyValuePair<string,int[]>("bar", new int[] {100, 200 }),
+                new KeyValuePair<string,int[]>("test", new int[] {400, 500, 600, 700 }),
+                };
 
             // Workout on value mapping
-            var est = ML.Transforms.Conversion.MapValue(keys, values, new ColumnOptions[] { ("D", "A"), ("E", "B"), ("F", "C") });
+            var est = ML.Transforms.Conversion.MapValue(keyValuePairs, new ColumnOptions[] { ("D", "A"), ("E", "B"), ("F", "C") });
             TestEstimatorCore(est, validFitInput: dataView, invalidInput: badDataView);
         }
 
@@ -543,11 +547,15 @@ namespace Microsoft.ML.Tests.Transformers
             var badData = new[] { new TestWrong() { B = 1.2f } };
             var badDataView = ML.Data.LoadFromEnumerable(badData);
 
-            var keys = new List<ReadOnlyMemory<char>>() { "foo".AsMemory(), "bar".AsMemory(), "test".AsMemory(), "wahoo".AsMemory() };
-            var values = new List<int>() { 1, 2, 3, 4 };
+            var keyValuePairs = new List<KeyValuePair<ReadOnlyMemory<char>,int>>() {
+                new KeyValuePair<ReadOnlyMemory<char>,int>("foo".AsMemory(), 1),
+                new KeyValuePair<ReadOnlyMemory<char>,int>("bar".AsMemory(), 2),
+                new KeyValuePair<ReadOnlyMemory<char>,int>("test".AsMemory(), 3),
+                new KeyValuePair<ReadOnlyMemory<char>,int>("wahoo".AsMemory(), 4) 
+                };
 
             var est = ML.Transforms.Text.TokenizeIntoWords("TokenizeB", "B")
-                .Append(ML.Transforms.Conversion.MapValue(keys, values, new ColumnOptions[] { ("VecB", "TokenizeB") }));
+                .Append(ML.Transforms.Conversion.MapValue(keyValuePairs, new ColumnOptions[] { ("VecB", "TokenizeB") }));
             TestEstimatorCore(est, validFitInput: dataView, invalidInput: badDataView);
         }
 
