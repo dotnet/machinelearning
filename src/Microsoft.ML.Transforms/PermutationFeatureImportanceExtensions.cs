@@ -61,7 +61,7 @@ namespace Microsoft.ML
                 string labelColumnName = DefaultColumnNames.Label,
                 bool useFeatureWeightFilter = false,
                 int? numberOfExamplesToUse = null,
-                int permutationCount = 1)
+                int permutationCount = 1) where TModel : class
         {
             return PermutationFeatureImportance<TModel, RegressionMetrics, RegressionMetricsStatistics>.GetImportanceMetricsMatrix(
                             catalog.GetEnvironment(),
@@ -70,7 +70,7 @@ namespace Microsoft.ML
                             () => new RegressionMetricsStatistics(),
                             idv => catalog.Evaluate(idv, labelColumnName),
                             RegressionDelta,
-                            predictionTransformer.FeatureColumn,
+                            predictionTransformer.FeatureColumnName,
                             permutationCount,
                             useFeatureWeightFilter,
                             numberOfExamplesToUse);
@@ -137,7 +137,7 @@ namespace Microsoft.ML
                 string labelColumnName = DefaultColumnNames.Label,
                 bool useFeatureWeightFilter = false,
                 int? numberOfExamplesToUse = null,
-                int permutationCount = 1)
+                int permutationCount = 1) where TModel : class
         {
             return PermutationFeatureImportance<TModel, BinaryClassificationMetrics, BinaryClassificationMetricsStatistics>.GetImportanceMetricsMatrix(
                             catalog.GetEnvironment(),
@@ -146,7 +146,7 @@ namespace Microsoft.ML
                             () => new BinaryClassificationMetricsStatistics(),
                             idv => catalog.Evaluate(idv, labelColumnName),
                             BinaryClassifierDelta,
-                            predictionTransformer.FeatureColumn,
+                            predictionTransformer.FeatureColumnName,
                             permutationCount,
                             useFeatureWeightFilter,
                             numberOfExamplesToUse);
@@ -210,7 +210,7 @@ namespace Microsoft.ML
                 string labelColumnName = DefaultColumnNames.Label,
                 bool useFeatureWeightFilter = false,
                 int? numberOfExamplesToUse = null,
-                int permutationCount = 1)
+                int permutationCount = 1) where TModel : class
         {
             return PermutationFeatureImportance<TModel, MulticlassClassificationMetrics, MulticlassClassificationMetricsStatistics>.GetImportanceMetricsMatrix(
                             catalog.GetEnvironment(),
@@ -219,7 +219,7 @@ namespace Microsoft.ML
                             () => new MulticlassClassificationMetricsStatistics(),
                             idv => catalog.Evaluate(idv, labelColumnName),
                             MulticlassClassificationDelta,
-                            predictionTransformer.FeatureColumn,
+                            predictionTransformer.FeatureColumnName,
                             permutationCount,
                             useFeatureWeightFilter,
                             numberOfExamplesToUse);
@@ -290,7 +290,7 @@ namespace Microsoft.ML
                 string rowGroupColumnName = DefaultColumnNames.GroupId,
                 bool useFeatureWeightFilter = false,
                 int? numberOfExamplesToUse = null,
-                int permutationCount = 1)
+                int permutationCount = 1) where TModel : class
         {
             return PermutationFeatureImportance<TModel, RankingMetrics, RankingMetricsStatistics>.GetImportanceMetricsMatrix(
                             catalog.GetEnvironment(),
@@ -299,7 +299,7 @@ namespace Microsoft.ML
                             () => new RankingMetricsStatistics(),
                             idv => catalog.Evaluate(idv, labelColumnName, rowGroupColumnName),
                             RankingDelta,
-                            predictionTransformer.FeatureColumn,
+                            predictionTransformer.FeatureColumnName,
                             permutationCount,
                             useFeatureWeightFilter,
                             numberOfExamplesToUse);

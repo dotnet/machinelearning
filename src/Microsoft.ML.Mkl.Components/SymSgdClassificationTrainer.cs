@@ -43,7 +43,7 @@ namespace Microsoft.ML.Trainers
         {
             /// <summary>
             /// Degree of lock-free parallelism. Determinism not guaranteed if this is set to higher than 1.
-            /// Multi-threading is not supported currently.
+            /// The default value is the number of logical cores that are available on the system.
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Degree of lock-free parallelism. Determinism not guaranteed. " +
                 "Multi-threading is not supported currently.", ShortName = "nt")]
@@ -662,7 +662,8 @@ namespace Microsoft.ML.Trainers
         {
             int numFeatures = data.Schema.Feature.Value.Type.GetVectorSize();
             var cursorFactory = new FloatLabelCursor.Factory(data, CursOpt.Label | CursOpt.Features);
-            int numThreads = 1;
+            int numThreads = _options.NumberOfThreads ?? Environment.ProcessorCount;
+
             ch.CheckUserArg(numThreads > 0, nameof(_options.NumberOfThreads),
                 "The number of threads must be either null or a positive integer.");
 

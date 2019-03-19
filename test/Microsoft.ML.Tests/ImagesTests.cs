@@ -80,10 +80,15 @@ namespace Microsoft.ML.Tests
             using (var file = new SimpleFileHandle(env, tempPath, true, true))
             {
                 using (var fs = file.CreateWriteStream())
-                    model.SaveTo(env, fs);
-                var model2 = TransformerChain.LoadFrom(env, file.OpenReadStream());
+                    ML.Model.Save(model, null, fs);
+                ITransformer model2;
+                using (var fs = file.OpenReadStream())
+                    model2 = ML.Model.Load(fs, out var schema);
 
-                var newCols = ((ImageLoadingTransformer)model2.First()).Columns;
+                var transformerChain = model2 as TransformerChain<ITransformer>;
+                Assert.NotNull(transformerChain);
+
+                var newCols = ((ImageLoadingTransformer)transformerChain.First()).Columns;
                 var oldCols = ((ImageLoadingTransformer)model.First()).Columns;
                 Assert.True(newCols
                     .Zip(oldCols, (x, y) => x == y)

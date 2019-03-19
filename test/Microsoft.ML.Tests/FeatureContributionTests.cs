@@ -151,21 +151,29 @@ namespace Microsoft.ML.Tests
         public void TestSDCABinary()
         {
             TestFeatureContribution(ML.BinaryClassification.Trainers.SdcaNonCalibrated(
-                new SdcaNonCalibratedBinaryClassificationTrainer.Options { NumberOfThreads = 1, }), GetSparseDataset(TaskType.BinaryClassification, 100), "SDCABinary", precision: 5);
+                new SdcaNonCalibratedBinaryTrainer.Options { NumberOfThreads = 1, }), GetSparseDataset(TaskType.BinaryClassification, 100), "SDCABinary", precision: 5);
         }
 
         [Fact]
         public void TestSGDBinary()
         {
             TestFeatureContribution(ML.BinaryClassification.Trainers.SgdCalibrated(
-                new SgdCalibratedTrainer.Options { NumberOfThreads = 1 }),
+                new SgdCalibratedTrainer.Options()
+                {
+                    NumberOfThreads = 1
+                }),
                 GetSparseDataset(TaskType.BinaryClassification, 100), "SGDBinary");
         }
 
         [Fact]
         public void TestSSGDBinary()
         {
-            TestFeatureContribution(ML.BinaryClassification.Trainers.SymbolicSgd(), GetSparseDataset(TaskType.BinaryClassification, 100), "SSGDBinary", 4);
+            TestFeatureContribution(ML.BinaryClassification.Trainers.SymbolicSgd(
+                new SymbolicSgdTrainer.Options()
+                {
+                    NumberOfThreads = 1
+                }),
+                GetSparseDataset(TaskType.BinaryClassification, 100), "SSGDBinary", 4);
         }
 
         [Fact]

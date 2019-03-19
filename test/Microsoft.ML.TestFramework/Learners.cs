@@ -39,7 +39,7 @@ namespace Microsoft.ML.RunTests
         static TestLearnersBase()
         {
             bool ok = true;
-            ok &= typeof(FastTreeBinaryClassificationTrainer) != null;
+            ok &= typeof(FastTreeBinaryTrainer) != null;
             Contracts.Check(ok, "Missing assemblies!");
         }
 

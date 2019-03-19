@@ -2,8 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.IO;
+using Microsoft.ML;
+using Microsoft.ML.Data;
 using Microsoft.ML.Runtime;
+
+[assembly: LoadableClass(CompositeDataLoader<IMultiStreamSource, ITransformer>.Summary, typeof(CompositeDataLoader<IMultiStreamSource, ITransformer>), null, typeof(SignatureLoadModel),
+    "Composite Loader", CompositeDataLoader<IMultiStreamSource, ITransformer>.LoaderSignature)]
 
 namespace Microsoft.ML.Data
 {
@@ -14,6 +18,10 @@ namespace Microsoft.ML.Data
     public sealed class CompositeDataLoader<TSource, TLastTransformer> : IDataLoader<TSource>
         where TLastTransformer : class, ITransformer
     {
+        internal const string TransformerDirectory = TransformerChain.LoaderSignature;
+        private const string LoaderDirectory = "Loader";
+        private const string LegacyLoaderDirectory = "Reader";
+
         /// <summary>
         /// The underlying data loader.
         /// </summary>
@@ -30,6 +38,24 @@ namespace Microsoft.ML.Data
 
             Loader = loader;
             Transformer = transformerChain ?? new TransformerChain<TLastTransformer>();
+        }
+
+        private CompositeDataLoader(IHost host, ModelLoadContext ctx)
+        {
+            if (!ctx.LoadModelOrNull<IDataLoader<TSource>, SignatureLoadModel>(host, out Loader, LegacyLoaderDirectory))
+                ctx.LoadModel<IDataLoader<TSource>, SignatureLoadModel>(host, out Loader, LoaderDirectory);
+            ctx.LoadModel<TransformerChain<TLastTransformer>, SignatureLoadModel>(host, out Transformer, TransformerDirectory);
+        }
+
+        private static CompositeDataLoader<TSource, TLastTransformer> Create(IHostEnvironment env, ModelLoadContext ctx)
+        {
+            Contracts.CheckValue(env, nameof(env));
+            IHost h = env.Register(LoaderSignature);
+
+            h.CheckValue(ctx, nameof(ctx));
+            ctx.CheckAtModel(GetVersionInfo());
+
+            return h.Apply("Loading Model", ch => new CompositeDataLoader<TSource, TLastTransformer>(h, ctx));
         }
 
         /// <summary>
@@ -61,61 +87,28 @@ namespace Microsoft.ML.Data
             return new CompositeDataLoader<TSource, TNewLast>(Loader, Transformer.Append(transformer));
         }
 
-        /// <summary>
-        /// Save the contents to a stream, as a "model file".
-        /// </summary>
-        public void SaveTo(IHostEnvironment env, Stream outputStream)
+        void ICanSaveModel.Save(ModelSaveContext ctx)
         {
-            Contracts.CheckValue(env, nameof(env));
-            env.CheckValue(outputStream, nameof(outputStream));
+            Contracts.CheckValue(ctx, nameof(ctx));
+            ctx.CheckAtModel();
+            ctx.SetVersionInfo(GetVersionInfo());
 
-            env.Check(outputStream.CanWrite && outputStream.CanSeek, "Need a writable and seekable stream to save");
-            using (var ch = env.Start("Saving pipeline"))
-            {
-                using (var rep = RepositoryWriter.CreateNew(outputStream, ch))
-                {
-                    ch.Trace("Saving data loader");
-                    ModelSaveContext.SaveModel(rep, Loader, "Reader");
-
-                    ch.Trace("Saving transformer chain");
-                    ModelSaveContext.SaveModel(rep, Transformer, TransformerChain.LoaderSignature);
-                    rep.Commit();
-                }
-            }
+            ctx.SaveModel(Loader, LoaderDirectory);
+            ctx.SaveModel(Transformer, TransformerDirectory);
         }
-    }
 
-    /// <summary>
-    /// Utility class to facilitate loading from a stream.
-    /// </summary>
-    [BestFriend]
-    internal static class CompositeDataLoader
-    {
-        /// <summary>
-        /// Save the contents to a stream, as a "model file".
-        /// </summary>
-        public static void SaveTo<TSource>(this IDataLoader<TSource> loader, IHostEnvironment env, Stream outputStream)
-            => new CompositeDataLoader<TSource, ITransformer>(loader).SaveTo(env, outputStream);
+        internal const string Summary = "A model loader that encapsulates a data loader and a transformer chain.";
 
-        /// <summary>
-        /// Load the pipeline from stream.
-        /// </summary>
-        public static CompositeDataLoader<IMultiStreamSource, ITransformer> LoadFrom(IHostEnvironment env, Stream stream)
+        internal const string LoaderSignature = "CompositeLoader";
+        private static VersionInfo GetVersionInfo()
         {
-            Contracts.CheckValue(env, nameof(env));
-            env.CheckValue(stream, nameof(stream));
-
-            env.Check(stream.CanRead && stream.CanSeek, "Need a readable and seekable stream to load");
-            using (var rep = RepositoryReader.Open(stream, env))
-            using (var ch = env.Start("Loading pipeline"))
-            {
-                ch.Trace("Loading data loader");
-                ModelLoadContext.LoadModel<IDataLoader<IMultiStreamSource>, SignatureLoadModel>(env, out var loader, rep, "Reader");
-
-                ch.Trace("Loader transformer chain");
-                ModelLoadContext.LoadModel<TransformerChain<ITransformer>, SignatureLoadModel>(env, out var transformerChain, rep, TransformerChain.LoaderSignature);
-                return new CompositeDataLoader<IMultiStreamSource, ITransformer>(loader, transformerChain);
-            }
+            return new VersionInfo(
+                modelSignature: "CMPSTLDR",
+                verWrittenCur: 0x00010001, // Initial
+                verReadableCur: 0x00010001,
+                verWeCanReadBack: 0x00010001,
+                loaderSignature: LoaderSignature,
+                loaderAssemblyName: typeof(CompositeDataLoader<,>).Assembly.FullName);
         }
     }
 }

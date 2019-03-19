@@ -37,7 +37,7 @@ namespace Microsoft.ML
             int numberOfPositiveContributions = FeatureContributionDefaults.NumberOfPositiveContributions,
             int numberOfNegativeContributions = FeatureContributionDefaults.NumberOfNegativeContributions,
             bool normalize = FeatureContributionDefaults.Normalize)
-            => new FeatureContributionCalculatingEstimator(CatalogUtils.GetEnvironment(catalog), predictionTransformer.Model, numberOfPositiveContributions, numberOfNegativeContributions, predictionTransformer.FeatureColumn, normalize);
+            => new FeatureContributionCalculatingEstimator(CatalogUtils.GetEnvironment(catalog), predictionTransformer.Model, numberOfPositiveContributions, numberOfNegativeContributions, predictionTransformer.FeatureColumnName, normalize);
 
         /// <summary>
         /// Feature Contribution Calculation computes model-specific contribution scores for each feature.
@@ -65,6 +65,6 @@ namespace Microsoft.ML
             bool normalize = FeatureContributionDefaults.Normalize)
             where TModelParameters : class, ICalculateFeatureContribution
             where TCalibrator : class, ICalibrator
-            => new FeatureContributionCalculatingEstimator(CatalogUtils.GetEnvironment(catalog), predictionTransformer.Model.SubModel, numberOfPositiveContributions, numberOfNegativeContributions, predictionTransformer.FeatureColumn, normalize);
+            => new FeatureContributionCalculatingEstimator(CatalogUtils.GetEnvironment(catalog), predictionTransformer.Model.SubModel, numberOfPositiveContributions, numberOfNegativeContributions, predictionTransformer.FeatureColumnName, normalize);
     }
 }

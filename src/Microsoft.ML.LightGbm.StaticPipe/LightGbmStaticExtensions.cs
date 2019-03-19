@@ -98,7 +98,7 @@ namespace Microsoft.ML.Trainers.LightGbm.StaticPipe
         }
 
         /// <summary>
-        /// Predict a target using a tree binary classification model trained with the <see cref="LightGbmBinaryClassificationTrainer"/>.
+        /// Predict a target using a tree binary classification model trained with the <see cref="LightGbmBinaryTrainer"/>.
         /// </summary>
         /// <param name="catalog">The <see cref="BinaryClassificationCatalog"/>.</param>
         /// <param name="label">The label column.</param>
@@ -136,7 +136,7 @@ namespace Microsoft.ML.Trainers.LightGbm.StaticPipe
             var rec = new TrainerEstimatorReconciler.BinaryClassifier(
                (env, labelName, featuresName, weightsName) =>
                {
-                   var trainer = new LightGbmBinaryClassificationTrainer(env, labelName, featuresName, weightsName, numberOfLeaves,
+                   var trainer = new LightGbmBinaryTrainer(env, labelName, featuresName, weightsName, numberOfLeaves,
                        minimumExampleCountPerLeaf, learningRate, numberOfIterations);
 
                    if (onFit != null)
@@ -149,7 +149,7 @@ namespace Microsoft.ML.Trainers.LightGbm.StaticPipe
         }
 
         /// <summary>
-        /// Predict a target using a tree binary classification model trained with the <see cref="LightGbmBinaryClassificationTrainer"/>.
+        /// Predict a target using a tree binary classification model trained with the <see cref="LightGbmBinaryTrainer"/>.
         /// </summary>
         /// <param name="catalog">The <see cref="BinaryClassificationCatalog"/>.</param>
         /// <param name="label">The label column.</param>
@@ -177,7 +177,7 @@ namespace Microsoft.ML.Trainers.LightGbm.StaticPipe
                    options.FeatureColumnName = featuresName;
                    options.ExampleWeightColumnName = weightsName;
 
-                   var trainer = new LightGbmBinaryClassificationTrainer(env, options);
+                   var trainer = new LightGbmBinaryTrainer(env, options);
 
                    if (onFit != null)
                        return trainer.WithOnFitDelegate(trans => onFit(trans.Model));
@@ -278,7 +278,7 @@ namespace Microsoft.ML.Trainers.LightGbm.StaticPipe
         }
 
         /// <summary>
-        /// Predict a target using a tree multiclass classification model trained with the <see cref="LightGbmMulticlassClassificationTrainer"/>.
+        /// Predict a target using a tree multiclass classification model trained with the <see cref="LightGbmMulticlassTrainer"/>.
         /// </summary>
         /// <param name="catalog">The multiclass classification catalog trainer object.</param>
         /// <param name="label">The label, or dependent variable.</param>
@@ -317,7 +317,7 @@ namespace Microsoft.ML.Trainers.LightGbm.StaticPipe
             var rec = new TrainerEstimatorReconciler.MulticlassClassificationReconciler<TVal>(
                 (env, labelName, featuresName, weightsName) =>
                 {
-                    var trainer = new LightGbmMulticlassClassificationTrainer(env, labelName, featuresName, weightsName, numberOfLeaves,
+                    var trainer = new LightGbmMulticlassTrainer(env, labelName, featuresName, weightsName, numberOfLeaves,
                        minimumExampleCountPerLeaf, learningRate, numberOfIterations);
 
                     if (onFit != null)
@@ -329,7 +329,7 @@ namespace Microsoft.ML.Trainers.LightGbm.StaticPipe
         }
 
         /// <summary>
-        /// Predict a target using a tree multiclass classification model trained with the <see cref="LightGbmMulticlassClassificationTrainer"/>.
+        /// Predict a target using a tree multiclass classification model trained with the <see cref="LightGbmMulticlassTrainer"/>.
         /// </summary>
         /// <param name="catalog">The multiclass classification catalog trainer object.</param>
         /// <param name="label">The label, or dependent variable.</param>
@@ -359,7 +359,7 @@ namespace Microsoft.ML.Trainers.LightGbm.StaticPipe
                     options.FeatureColumnName = featuresName;
                     options.ExampleWeightColumnName = weightsName;
 
-                    var trainer = new LightGbmMulticlassClassificationTrainer(env, options);
+                    var trainer = new LightGbmMulticlassTrainer(env, options);
 
                     if (onFit != null)
                         return trainer.WithOnFitDelegate(trans => onFit(trans.Model));
