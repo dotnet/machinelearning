@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
+using System.Linq;
 using Microsoft.Data.DataView;
 using Microsoft.ML.Data;
 using Microsoft.ML.Transforms;
@@ -48,7 +49,6 @@ namespace Microsoft.ML
         /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.</param>
         /// <param name="inputColumnName">Name of the column to transform. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.</param>
         /// <param name="outputKind">The expected kind of the output column.</param>
-        /// <param name="outputKeyCount">New key count, if we work with key type.</param>
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
@@ -56,8 +56,8 @@ namespace Microsoft.ML
         /// ]]></format>
         /// </example>
         public static TypeConvertingEstimator ConvertType(this TransformsCatalog.ConversionTransforms catalog, string outputColumnName, string inputColumnName = null,
-            DataKind outputKind = ConvertDefaults.DefaultOutputKind, KeyCount outputKeyCount = null)
-            => new TypeConvertingEstimator(CatalogUtils.GetEnvironment(catalog), new[] { new TypeConvertingEstimator.ColumnOptions(outputColumnName, outputKind, inputColumnName, outputKeyCount) });
+            DataKind outputKind = ConvertDefaults.DefaultOutputKind)
+            => new TypeConvertingEstimator(CatalogUtils.GetEnvironment(catalog), new[] { new TypeConvertingEstimator.ColumnOptions(outputColumnName, outputKind, inputColumnName) });
 
         /// <summary>
         /// Changes column type of the input column.
@@ -149,7 +149,7 @@ namespace Microsoft.ML
             bool addKeyValueAnnotationsAsText = ValueToKeyMappingEstimator.Defaults.AddKeyValueAnnotationsAsText,
             IDataView keyData = null)
            => new ValueToKeyMappingEstimator(CatalogUtils.GetEnvironment(catalog),
-               new[] { new ValueToKeyMappingEstimator.ColumnOptions(outputColumnName, inputColumnName, maximumNumberOfKeys, keyOrdinality) }, keyData);
+               new[] { new ValueToKeyMappingEstimator.ColumnOptions(outputColumnName, inputColumnName, maximumNumberOfKeys, keyOrdinality, addKeyValueAnnotationsAsText) }, keyData);
 
         /// <summary>
         /// Converts value types into <see cref="KeyType"/>, optionally loading the keys to use from <paramref name="keyData"/>.
@@ -177,10 +177,8 @@ namespace Microsoft.ML
         /// <typeparam name="TInputType">The key type.</typeparam>
         /// <typeparam name="TOutputType">The value type.</typeparam>
         /// <param name="catalog">The conversion transform's catalog</param>
-        /// <param name="keys">The list of keys to use for the mapping. The mapping is 1-1 with <paramref name="values"/>. The length of this list must be the same length as <paramref name="values"/> and
-        /// cannot contain duplicate keys.</param>
-        /// <param name="values">The list of values to pair with the keys for the mapping. The length of this list must be equal to the same length as <paramref name="keys"/>.</param>
         /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.</param>
+        /// <param name="keyValuePairs">Specifies the mapping that will be perfomed. The keys will be mapped to the values as specified in the <paramref name="keyValuePairs"/>.</param>
         /// <param name="inputColumnName">Name of the column to transform. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.</param>
         /// <param name="treatValuesAsKeyType">Whether to treat the values as a <see cref="KeyType"/>.</param>
         /// <returns>An instance of the <see cref="ValueMappingEstimator"/></returns>
@@ -195,12 +193,16 @@ namespace Microsoft.ML
         /// </example>
         public static ValueMappingEstimator<TInputType, TOutputType> MapValue<TInputType, TOutputType>(
             this TransformsCatalog.ConversionTransforms catalog,
-            IEnumerable<TInputType> keys,
-            IEnumerable<TOutputType> values,
             string outputColumnName,
+            IEnumerable<KeyValuePair<TInputType, TOutputType>> keyValuePairs,
             string inputColumnName = null,
             bool treatValuesAsKeyType = false)
-            => new ValueMappingEstimator<TInputType, TOutputType>(CatalogUtils.GetEnvironment(catalog), keys, values, treatValuesAsKeyType, new[] { (outputColumnName, inputColumnName ?? outputColumnName) });
+        {
+            var keys = keyValuePairs.Select(pair => pair.Key);
+            var values = keyValuePairs.Select(pair => pair.Value);
+            return new ValueMappingEstimator<TInputType, TOutputType>(CatalogUtils.GetEnvironment(catalog), keys, values, treatValuesAsKeyType,
+                new[] { (outputColumnName, inputColumnName ?? outputColumnName) });
+        }
 
         /// <summary>
         /// <see cref="ValueMappingEstimator"/>
@@ -208,9 +210,7 @@ namespace Microsoft.ML
         /// <typeparam name="TInputType">The key type.</typeparam>
         /// <typeparam name="TOutputType">The value type.</typeparam>
         /// <param name="catalog">The conversion transform's catalog</param>
-        /// <param name="keys">The list of keys to use for the mapping. The mapping is 1-1 with <paramref name="values"/>. The length of this list must be the same length as <paramref name="values"/> and
-        /// cannot contain duplicate keys.</param>
-        /// <param name="values">The list of values to pair with the keys for the mapping. The length of this list must be equal to the same length as <paramref name="keys"/>.</param>
+        /// <param name="keyValuePairs">Specifies the mapping that will be perfomed. The keys will be mapped to the values as specified in the <paramref name="keyValuePairs"/>.</param>
         /// <param name="columns">The columns to apply this transform on.</param>
         /// <returns>An instance of the <see cref="ValueMappingEstimator"/></returns>
         /// <example>
@@ -225,10 +225,13 @@ namespace Microsoft.ML
         [BestFriend]
         internal static ValueMappingEstimator<TInputType, TOutputType> MapValue<TInputType, TOutputType>(
             this TransformsCatalog.ConversionTransforms catalog,
-            IEnumerable<TInputType> keys,
-            IEnumerable<TOutputType> values,
+            IEnumerable<KeyValuePair<TInputType, TOutputType>> keyValuePairs,
             params ColumnOptions[] columns)
-            => new ValueMappingEstimator<TInputType, TOutputType>(CatalogUtils.GetEnvironment(catalog), keys, values, ColumnOptions.ConvertToValueTuples(columns));
+        {
+            var keys = keyValuePairs.Select(pair => pair.Key);
+            var values = keyValuePairs.Select(pair => pair.Value);
+            return new ValueMappingEstimator<TInputType, TOutputType>(CatalogUtils.GetEnvironment(catalog), keys, values, ColumnOptions.ConvertToValueTuples(columns));
+        }
 
         /// <summary>
         /// <see cref="ValueMappingEstimator"/>
@@ -236,9 +239,7 @@ namespace Microsoft.ML
         /// <typeparam name="TInputType">The key type.</typeparam>
         /// <typeparam name="TOutputType">The value type.</typeparam>
         /// <param name="catalog">The conversion transform's catalog</param>
-        /// <param name="keys">The list of keys to use for the mapping. The mapping is 1-1 with <paramref name="values"/>. The length of this list must be the same length as <paramref name="values"/> and
-        /// cannot contain duplicate keys.</param>
-        /// <param name="values">The list of values to pair with the keys for the mapping. The length of this list must be equal to the same length as <paramref name="keys"/>.</param>
+        /// <param name="keyValuePairs">Specifies the mapping that will be perfomed. The keys will be mapped to the values as specified in the <paramref name="keyValuePairs"/>.</param>
         /// <param name="treatValuesAsKeyType">Whether to treat the values as a <see cref="KeyType"/>.</param>
         /// <param name="columns">The columns to apply this transform on.</param>
         /// <returns>An instance of the <see cref="ValueMappingEstimator"/></returns>
@@ -251,12 +252,15 @@ namespace Microsoft.ML
         [BestFriend]
         internal static ValueMappingEstimator<TInputType, TOutputType> MapValue<TInputType, TOutputType>(
             this TransformsCatalog.ConversionTransforms catalog,
-            IEnumerable<TInputType> keys,
-            IEnumerable<TOutputType> values,
+            IEnumerable<KeyValuePair<TInputType, TOutputType>> keyValuePairs,
             bool treatValuesAsKeyType,
             params ColumnOptions[] columns)
-            => new ValueMappingEstimator<TInputType, TOutputType>(CatalogUtils.GetEnvironment(catalog), keys, values, treatValuesAsKeyType,
-                ColumnOptions.ConvertToValueTuples(columns));
+        {
+            var keys = keyValuePairs.Select(pair => pair.Key);
+            var values = keyValuePairs.Select(pair => pair.Value);
+            return new ValueMappingEstimator<TInputType, TOutputType>(CatalogUtils.GetEnvironment(catalog), keys, values, treatValuesAsKeyType,
+                  ColumnOptions.ConvertToValueTuples(columns));
+        }
 
         /// <summary>
         /// <see cref="ValueMappingEstimator"/>
@@ -264,10 +268,8 @@ namespace Microsoft.ML
         /// <typeparam name="TInputType">The key type.</typeparam>
         /// <typeparam name="TOutputType">The value type.</typeparam>
         /// <param name="catalog">The conversion transform's catalog</param>
-        /// <param name="keys">The list of keys to use for the mapping. The mapping is 1-1 with <paramref name="values"/>. The length of this list  must be the same length as <paramref name="values"/> and
-        /// cannot contain duplicate keys.</param>
-        /// <param name="values">The list of values to pair with the keys for the mapping of TOutputType[]. The length of this list  must be equal to the same length as <paramref name="keys"/>.</param>
         /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.</param>
+        /// <param name="keyValuePairs">Specifies the mapping that will be perfomed. The keys will be mapped to the values as specified in the <paramref name="keyValuePairs"/>.</param>
         /// <param name="inputColumnName">Name of the column to transform. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.</param>
         /// <returns>An instance of the <see cref="ValueMappingEstimator"/></returns>
         /// <example>
@@ -281,12 +283,15 @@ namespace Microsoft.ML
         /// </example>
         public static ValueMappingEstimator<TInputType, TOutputType> MapValue<TInputType, TOutputType>(
             this TransformsCatalog.ConversionTransforms catalog,
-            IEnumerable<TInputType> keys,
-            IEnumerable<TOutputType[]> values,
             string outputColumnName,
+            IEnumerable<KeyValuePair<TInputType, TOutputType[]>> keyValuePairs,
             string inputColumnName = null)
-            => new ValueMappingEstimator<TInputType, TOutputType>(CatalogUtils.GetEnvironment(catalog), keys, values,
+        {
+            var keys = keyValuePairs.Select(pair => pair.Key);
+            var values = keyValuePairs.Select(pair => pair.Value);
+            return new ValueMappingEstimator<TInputType, TOutputType>(CatalogUtils.GetEnvironment(catalog), keys, values,
                 new[] { (outputColumnName, inputColumnName ?? outputColumnName) });
+        }
 
         /// <summary>
         /// <see cref="ValueMappingEstimator"/>
@@ -294,9 +299,7 @@ namespace Microsoft.ML
         /// <typeparam name="TInputType">The key type.</typeparam>
         /// <typeparam name="TOutputType">The value type.</typeparam>
         /// <param name="catalog">The conversion transform's catalog</param>
-        /// <param name="keys">The list of keys to use for the mapping. The mapping is 1-1 with <paramref name="values"/>. The length of this list  must be the same length as <paramref name="values"/> and
-        /// cannot contain duplicate keys.</param>
-        /// <param name="values">The list of values to pair with the keys for the mapping of TOutputType[]. The length of this list  must be equal to the same length as <paramref name="keys"/>.</param>
+        /// <param name="keyValuePairs">Specifies the mapping that will be perfomed. The keys will be mapped to the values as specified in the <paramref name="keyValuePairs"/>.</param>
         /// <param name="columns">The columns to apply this transform on.</param>
         /// <returns>An instance of the <see cref="ValueMappingEstimator"/></returns>
         /// <example>
@@ -311,20 +314,23 @@ namespace Microsoft.ML
         [BestFriend]
         internal static ValueMappingEstimator<TInputType, TOutputType> MapValue<TInputType, TOutputType>(
             this TransformsCatalog.ConversionTransforms catalog,
-            IEnumerable<TInputType> keys,
-            IEnumerable<TOutputType[]> values,
+            IEnumerable<KeyValuePair<TInputType, TOutputType[]>> keyValuePairs,
             params ColumnOptions[] columns)
-            => new ValueMappingEstimator<TInputType, TOutputType>(CatalogUtils.GetEnvironment(catalog), keys, values,
-                ColumnOptions.ConvertToValueTuples(columns));
+        {
+            var keys = keyValuePairs.Select(pair => pair.Key);
+            var values = keyValuePairs.Select(pair => pair.Value);
+            return new ValueMappingEstimator<TInputType, TOutputType>(CatalogUtils.GetEnvironment(catalog), keys, values,
+                    ColumnOptions.ConvertToValueTuples(columns));
+        }
 
         /// <summary>
         /// <see cref="ValueMappingEstimator"/>
         /// </summary>
         /// <param name="catalog">The conversion transform's catalog</param>
-        /// <param name="lookupMap">An instance of <see cref="IDataView"/> that contains the key and value columns.</param>
-        /// <param name="keyColumnName">Name of the key column in <paramref name="lookupMap"/>.</param>
-        /// <param name="valueColumnName">Name of the value column in <paramref name="lookupMap"/>.</param>
         /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.</param>
+        /// <param name="lookupMap">An instance of <see cref="IDataView"/> that contains the key and value columns.</param>
+        /// <param name="keyColumn">The key column in <paramref name="lookupMap"/>.</param>
+        /// <param name="valueColumn">The value column in <paramref name="lookupMap"/>.</param>
         /// <param name="inputColumnName">Name of the column to transform. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.</param>
         /// <returns>A instance of the ValueMappingEstimator</returns>
         /// <example>
@@ -338,9 +344,11 @@ namespace Microsoft.ML
         /// </example>
         public static ValueMappingEstimator MapValue(
             this TransformsCatalog.ConversionTransforms catalog,
-            IDataView lookupMap, string keyColumnName, string valueColumnName, string outputColumnName, string inputColumnName = null)
-            => new ValueMappingEstimator(CatalogUtils.GetEnvironment(catalog), lookupMap, keyColumnName, valueColumnName,
-                new[] { (outputColumnName, inputColumnName ?? outputColumnName) });
+            string outputColumnName, IDataView lookupMap, string keyColumn, string valueColumn, string inputColumnName = null)
+        {
+            return new ValueMappingEstimator(CatalogUtils.GetEnvironment(catalog), lookupMap, keyColumn, valueColumn,
+              new[] { (outputColumnName, inputColumnName ?? outputColumnName) });
+        }
 
         /// <summary>
         /// <see cref="ValueMappingEstimator"/>

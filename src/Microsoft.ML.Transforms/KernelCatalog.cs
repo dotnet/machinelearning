@@ -37,7 +37,8 @@ namespace Microsoft.ML
             bool useCosAndSinBases = ApproximatedKernelMappingEstimator.Defaults.UseCosAndSinBases,
             KernelBase generator = null,
             int? seed = null)
-            => new ApproximatedKernelMappingEstimator(CatalogUtils.GetEnvironment(catalog), outputColumnName, inputColumnName, rank, useCosAndSinBases);
+            => new ApproximatedKernelMappingEstimator(CatalogUtils.GetEnvironment(catalog),
+                new[] { new ApproximatedKernelMappingEstimator.ColumnOptions(outputColumnName, rank, useCosAndSinBases, inputColumnName, generator, seed) });
 
         /// <summary>
         /// Takes columns filled with a vector of floats and maps its to a random low-dimensional feature space.

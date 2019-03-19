@@ -47,8 +47,8 @@ namespace Microsoft.ML
         /// <seealso cref = "ImageEstimatorsCatalog" />
         /// </remarks>
         /// <param name="catalog">The transform's catalog.</param>
-        /// <param name="imageFolder">The images folder.</param>
         /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.</param>
+        /// <param name="imageFolder">The images folder.</param>
         /// <param name="inputColumnName">Name of the column to transform. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.</param>
         /// <example>
         /// <format type="text/markdown">
@@ -56,7 +56,7 @@ namespace Microsoft.ML
         ///  [!code-csharp[LoadImages](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/ImageAnalytics/LoadImages.cs)]
         /// ]]></format>
         /// </example>
-        public static ImageLoadingEstimator LoadImages(this TransformsCatalog catalog, string imageFolder, string outputColumnName, string inputColumnName = null)
+        public static ImageLoadingEstimator LoadImages(this TransformsCatalog catalog, string outputColumnName, string imageFolder, string inputColumnName = null)
            => new ImageLoadingEstimator(CatalogUtils.GetEnvironment(catalog), imageFolder, new[] { (outputColumnName, inputColumnName ?? outputColumnName) });
 
         /// <summary>

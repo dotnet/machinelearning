@@ -35,27 +35,19 @@ namespace Microsoft.ML.Samples.Dynamic
             IEnumerable<SamplesUtils.DatasetUtils.SampleInfertData> data = SamplesUtils.DatasetUtils.GetInfertData();
             IDataView trainData = mlContext.Data.LoadFromEnumerable(data);
 
-            // Creating a list of keys based on the Education values from the dataset
+            // Creating a list of key-value pairs based on the Education values from the dataset
             // These lists are created by hand for the demonstration, but the ValueMappingEstimator does take an IEnumerable.
-            var educationKeys = new List<string>()
+            var educationKeyValuePairs = new List<KeyValuePair<string,string>>()
             {
-                "0-5yrs",
-                "6-11yrs",
-                "12+yrs"
-            };
-
-            // Creating a list of values that are sample strings. These will be converted to KeyTypes
-            var educationValues = new List<string>()
-            {
-                "Undergraduate",
-                "Postgraduate",
-                "Postgraduate"
+                new KeyValuePair<string,string>("0-5yrs", "Undergraduate"),
+                new KeyValuePair<string,string>("6-11yrs", "Postgraduate"),
+                new KeyValuePair<string,string>("12+yrs", "Postgraduate")
             };
 
             // Generate the ValueMappingEstimator that will output KeyTypes even though our values are strings.
             // The KeyToValueMappingEstimator is added to provide a reverse lookup of the KeyType, converting the KeyType value back
             // to the original value.
-            var pipeline = mlContext.Transforms.Conversion.MapValue(educationKeys, educationValues, "EducationKeyType", "Education", true)
+            var pipeline = mlContext.Transforms.Conversion.MapValue("EducationKeyType", educationKeyValuePairs, "Education", true)
                               .Append(mlContext.Transforms.Conversion.MapKeyToValue("EducationCategory", "EducationKeyType"));
 
             // Fits the ValueMappingEstimator and transforms the data adding the EducationKeyType column.
