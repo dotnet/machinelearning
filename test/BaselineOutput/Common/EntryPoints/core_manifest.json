@@ -11356,7 +11356,7 @@
         {
           "Name": "Sigmoid",
           "Type": "Float",
-          "Desc": "Parameter for the sigmoid function. Used only in LightGbmBinaryClassificationTrainer, LightGbmMulticlassClassificationTrainer and in LightGbmRankingTrainer.",
+          "Desc": "Parameter for the sigmoid function. Used only in LightGbmBinaryTrainer, LightGbmMulticlassTrainer and in LightGbmRankingTrainer.",
           "Aliases": [
             "sigmoid"
           ],
@@ -11859,7 +11859,7 @@
         {
           "Name": "Sigmoid",
           "Type": "Float",
-          "Desc": "Parameter for the sigmoid function. Used only in LightGbmBinaryClassificationTrainer, LightGbmMulticlassClassificationTrainer and in LightGbmRankingTrainer.",
+          "Desc": "Parameter for the sigmoid function. Used only in LightGbmBinaryTrainer, LightGbmMulticlassTrainer and in LightGbmRankingTrainer.",
           "Aliases": [
             "sigmoid"
           ],
@@ -12362,7 +12362,7 @@
         {
           "Name": "Sigmoid",
           "Type": "Float",
-          "Desc": "Parameter for the sigmoid function. Used only in LightGbmBinaryClassificationTrainer, LightGbmMulticlassClassificationTrainer and in LightGbmRankingTrainer.",
+          "Desc": "Parameter for the sigmoid function. Used only in LightGbmBinaryTrainer, LightGbmMulticlassTrainer and in LightGbmRankingTrainer.",
           "Aliases": [
             "sigmoid"
           ],
@@ -12865,7 +12865,7 @@
         {
           "Name": "Sigmoid",
           "Type": "Float",
-          "Desc": "Parameter for the sigmoid function. Used only in LightGbmBinaryClassificationTrainer, LightGbmMulticlassClassificationTrainer and in LightGbmRankingTrainer.",
+          "Desc": "Parameter for the sigmoid function. Used only in LightGbmBinaryTrainer, LightGbmMulticlassTrainer and in LightGbmRankingTrainer.",
           "Aliases": [
             "sigmoid"
           ],
@@ -22428,9 +22428,9 @@
           "Default": true
         },
         {
-          "Name": "OutputTokens",
-          "Type": "Bool",
-          "Desc": "Whether to output the transformed text tokens as an additional column.",
+          "Name": "OutputTokensColumnName",
+          "Type": "String",
+          "Desc": "Column containing the transformed text tokens.",
           "Aliases": [
             "tokens",
             "showtext",
@@ -22439,7 +22439,7 @@
           "Required": false,
           "SortOrder": 9.0,
           "IsNullable": false,
-          "Default": false
+          "Default": null
         },
         {
           "Name": "Dictionary",

@@ -146,11 +146,8 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
             // Calculate metrics of the model on the test data.
             var metrics = mlContext.Regression.Evaluate(model.Transform(testData), label: r => r.Target, score: r => r.Prediction);
 
-            using (var stream = File.Create(modelPath))
-            {
-                // Saving and loading happens to 'dynamic' models, so the static typing is lost in the process.
-                mlContext.Model.Save(model.AsDynamic, trainData.AsDynamic.Schema, stream);
-            }
+            // Saving and loading happens to 'dynamic' models, so the static typing is lost in the process.
+            mlContext.Model.Save(model.AsDynamic, trainData.AsDynamic.Schema, modelPath);
 
             // Potentially, the lines below can be in a different process altogether.
 

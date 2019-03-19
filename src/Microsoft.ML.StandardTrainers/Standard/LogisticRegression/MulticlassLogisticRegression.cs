@@ -83,7 +83,7 @@ namespace Microsoft.ML.Trainers
         /// <param name="enforceNoNegativity">Enforce non-negative weights.</param>
         /// <param name="l1Weight">Weight of L1 regularizer term.</param>
         /// <param name="l2Weight">Weight of L2 regularizer term.</param>
-        /// <param name="memorySize">Memory size for <see cref="LogisticRegressionBinaryClassificationTrainer"/>. Low=faster, less accurate.</param>
+        /// <param name="memorySize">Memory size for <see cref="LogisticRegressionBinaryTrainer"/>. Low=faster, less accurate.</param>
         /// <param name="optimizationTolerance">Threshold for optimizer convergence.</param>
         internal LbfgsMaximumEntropyTrainer(IHostEnvironment env,
             string labelColumn = DefaultColumnNames.Label,
@@ -434,7 +434,7 @@ namespace Microsoft.ML.Trainers
 
         /// <summary>
         /// Initializes a new instance of the <see cref="MaximumEntropyModelParameters"/> class.
-        /// This constructor is called by <see cref="SdcaMulticlassClassificationTrainer"/> to create the predictor.
+        /// This constructor is called by <see cref="SdcaCalibratedMulticlassTrainer"/> to create the predictor.
         /// </summary>
         /// <param name="env">The host environment.</param>
         /// <param name="name">Registration name of this model's actual type.</param>

@@ -108,7 +108,7 @@ namespace Microsoft.ML.StaticPipe
 
         /// <summary>
         /// FastTree <see cref="BinaryClassificationCatalog"/> extension method.
-        /// Predict a target using a decision tree binary classification model trained with the <see cref="FastTreeBinaryClassificationTrainer"/>.
+        /// Predict a target using a decision tree binary classification model trained with the <see cref="FastTreeBinaryTrainer"/>.
         /// </summary>
         /// <param name="catalog">The <see cref="BinaryClassificationCatalog"/>.</param>
         /// <param name="label">The label column.</param>
@@ -144,7 +144,7 @@ namespace Microsoft.ML.StaticPipe
             var rec = new TrainerEstimatorReconciler.BinaryClassifier(
                (env, labelName, featuresName, weightsName) =>
                {
-                   var trainer = new FastTreeBinaryClassificationTrainer(env, labelName, featuresName, weightsName, numberOfLeaves,
+                   var trainer = new FastTreeBinaryTrainer(env, labelName, featuresName, weightsName, numberOfLeaves,
                        numberOfTrees, minimumExampleCountPerLeaf, learningRate);
 
                    if (onFit != null)
@@ -158,7 +158,7 @@ namespace Microsoft.ML.StaticPipe
 
         /// <summary>
         /// FastTree <see cref="BinaryClassificationCatalog"/> extension method.
-        /// Predict a target using a decision tree binary classification model trained with the <see cref="FastTreeBinaryClassificationTrainer"/>.
+        /// Predict a target using a decision tree binary classification model trained with the <see cref="FastTreeBinaryTrainer"/>.
         /// </summary>
         /// <param name="catalog">The <see cref="BinaryClassificationCatalog"/>.</param>
         /// <param name="label">The label column.</param>
@@ -180,7 +180,7 @@ namespace Microsoft.ML.StaticPipe
         /// </example>
         public static (Scalar<float> score, Scalar<float> probability, Scalar<bool> predictedLabel) FastTree(this BinaryClassificationCatalog.BinaryClassificationTrainers catalog,
             Scalar<bool> label, Vector<float> features, Scalar<float> weights,
-            FastTreeBinaryClassificationTrainer.Options options,
+            FastTreeBinaryTrainer.Options options,
             Action<CalibratedModelParametersBase<FastTreeBinaryModelParameters, PlattCalibrator>> onFit = null)
         {
             Contracts.CheckValueOrNull(options);
@@ -193,7 +193,7 @@ namespace Microsoft.ML.StaticPipe
                    options.FeatureColumnName = featuresName;
                    options.ExampleWeightColumnName = weightsName;
 
-                   var trainer = new FastTreeBinaryClassificationTrainer(env, options);
+                   var trainer = new FastTreeBinaryTrainer(env, options);
 
                    if (onFit != null)
                        return trainer.WithOnFitDelegate(trans => onFit(trans.Model));

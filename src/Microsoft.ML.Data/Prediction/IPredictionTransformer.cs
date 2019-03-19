@@ -20,7 +20,7 @@ namespace Microsoft.ML
     }
 
     /// <summary>
-    /// An ISingleFeaturePredictionTransformer contains the name of the <see cref="FeatureColumn"/>
+    /// An ISingleFeaturePredictionTransformer contains the name of the <see cref="FeatureColumnName"/>
     /// and its type, <see cref="FeatureColumnType"/>. Implementations of this interface, have the ability
     /// to score the data of an input <see cref="IDataView"/> through the <see cref="ITransformer.Transform(IDataView)"/>
     /// </summary>
@@ -29,7 +29,7 @@ namespace Microsoft.ML
         where TModel : class
     {
         /// <summary>The name of the feature column.</summary>
-        string FeatureColumn { get; }
+        string FeatureColumnName { get; }
 
         /// <summary>Holds information about the type of the feature column.</summary>
         DataViewType FeatureColumnType { get; }

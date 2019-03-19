@@ -116,7 +116,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             prediction.Schema.TryGetColumnIndex(scoreColumnName, out int scoreColumnId);
 
             // Compute prediction errors
-            var metrices = mlContext.Recommendation().Evaluate(prediction, label: labelColumnName, score: scoreColumnName);
+            var metrices = mlContext.Recommendation().Evaluate(prediction, labelColumnName: labelColumnName, scoreColumnName: scoreColumnName);
 
             // Determine if the selected metric is reasonable for different platforms
             double tolerance = Math.Pow(10, -7);
@@ -234,8 +234,8 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             var prediction = model.Transform(dataView);
 
             // Calculate regression matrices for the prediction result
-            var metrics = mlContext.Recommendation().Evaluate(prediction, label: nameof(MatrixElement.Value),
-                score: nameof(MatrixElementForScore.Score));
+            var metrics = mlContext.Recommendation().Evaluate(prediction, labelColumnName: nameof(MatrixElement.Value),
+                scoreColumnName: nameof(MatrixElementForScore.Score));
 
             // Native test. Just check the pipeline runs.
             Assert.True(metrics.MeanSquaredError < 0.1);
@@ -325,7 +325,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             var prediction = model.Transform(dataView);
 
             // Calculate regression matrices for the prediction result. It's a global
-            var metrics = mlContext.Recommendation().Evaluate(prediction, label: "Value", score: "Score");
+            var metrics = mlContext.Recommendation().Evaluate(prediction, labelColumnName: "Value", scoreColumnName: "Score");
 
             // Make sure the prediction error is not too large.
             Assert.InRange(metrics.MeanSquaredError, 0, 0.1);
@@ -438,7 +438,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             var prediction = model.Transform(dataView);
 
             // Calculate regression matrices for the prediction result.
-            var metrics = mlContext.Recommendation().Evaluate(prediction, label: "Value", score: "Score");
+            var metrics = mlContext.Recommendation().Evaluate(prediction, labelColumnName: "Value", scoreColumnName: "Score");
 
             // Make sure the prediction error is not too large.
             Assert.InRange(metrics.MeanSquaredError, 0, 0.0016);
@@ -578,7 +578,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             var prediction = model.Transform(dataView);
 
             // Calculate regression matrices for the prediction result.
-            var metrics = mlContext.Recommendation().Evaluate(prediction, label: "Value", score: "Score");
+            var metrics = mlContext.Recommendation().Evaluate(prediction, labelColumnName: "Value", scoreColumnName: "Score");
 
             // Make sure the prediction error is not too large.
             Assert.InRange(metrics.MeanSquaredError, 0, 0.0016);

@@ -172,7 +172,7 @@ namespace Microsoft.ML.Data
         /// <summary>
         /// The name of the feature column used by the prediction transformer.
         /// </summary>
-        public string FeatureColumn { get; }
+        public string FeatureColumnName { get; }
 
         /// <summary>
         /// The type of the prediction transformer
@@ -189,7 +189,7 @@ namespace Microsoft.ML.Data
         private protected SingleFeaturePredictionTransformerBase(IHost host, TModel model, DataViewSchema trainSchema, string featureColumn)
             : base(host, model, trainSchema)
         {
-            FeatureColumn = featureColumn;
+            FeatureColumnName = featureColumn;
             if (featureColumn == null)
                 FeatureColumnType = null;
             else if (!trainSchema.TryGetColumnIndex(featureColumn, out int col))
@@ -203,12 +203,12 @@ namespace Microsoft.ML.Data
         private protected SingleFeaturePredictionTransformerBase(IHost host, ModelLoadContext ctx)
             : base(host, ctx)
         {
-            FeatureColumn = ctx.LoadStringOrNull();
+            FeatureColumnName = ctx.LoadStringOrNull();
 
-            if (FeatureColumn == null)
+            if (FeatureColumnName == null)
                 FeatureColumnType = null;
-            else if (!TrainSchema.TryGetColumnIndex(FeatureColumn, out int col))
-                throw Host.ExceptSchemaMismatch(nameof(FeatureColumn), "feature", FeatureColumn);
+            else if (!TrainSchema.TryGetColumnIndex(FeatureColumnName, out int col))
+                throw Host.ExceptSchemaMismatch(nameof(FeatureColumnName), "feature", FeatureColumnName);
             else
                 FeatureColumnType = TrainSchema[col].Type;
 
@@ -224,12 +224,12 @@ namespace Microsoft.ML.Data
         {
             Host.CheckValue(inputSchema, nameof(inputSchema));
 
-            if (FeatureColumn != null)
+            if (FeatureColumnName != null)
             {
-                if (!inputSchema.TryGetColumnIndex(FeatureColumn, out int col))
-                    throw Host.ExceptSchemaMismatch(nameof(inputSchema), "feature", FeatureColumn);
+                if (!inputSchema.TryGetColumnIndex(FeatureColumnName, out int col))
+                    throw Host.ExceptSchemaMismatch(nameof(inputSchema), "feature", FeatureColumnName);
                 if (!inputSchema[col].Type.Equals(FeatureColumnType))
-                    throw Host.ExceptSchemaMismatch(nameof(inputSchema), "feature", FeatureColumn, FeatureColumnType.ToString(), inputSchema[col].Type.ToString());
+                    throw Host.ExceptSchemaMismatch(nameof(inputSchema), "feature", FeatureColumnName, FeatureColumnType.ToString(), inputSchema[col].Type.ToString());
             }
 
             return Transform(new EmptyDataView(Host, inputSchema)).Schema;
@@ -245,12 +245,12 @@ namespace Microsoft.ML.Data
         private protected virtual void SaveCore(ModelSaveContext ctx)
         {
             SaveModelCore(ctx);
-            ctx.SaveStringOrNull(FeatureColumn);
+            ctx.SaveStringOrNull(FeatureColumnName);
         }
 
         private protected GenericScorer GetGenericScorer()
         {
-            var schema = new RoleMappedSchema(TrainSchema, null, FeatureColumn);
+            var schema = new RoleMappedSchema(TrainSchema, null, FeatureColumnName);
             return new GenericScorer(Host, new GenericScorer.Arguments(), new EmptyDataView(Host, TrainSchema), BindableMapper.Bind(Host, schema), schema);
         }
     }
@@ -292,7 +292,7 @@ namespace Microsoft.ML.Data
 
         private void SetScorer()
         {
-            var schema = new RoleMappedSchema(TrainSchema, null, FeatureColumn);
+            var schema = new RoleMappedSchema(TrainSchema, null, FeatureColumnName);
             var args = new BinaryClassifierScorer.Arguments { Threshold = Threshold, ThresholdColumn = ThresholdColumn };
             Scorer = new BinaryClassifierScorer(Host, args, new EmptyDataView(Host, TrainSchema), BindableMapper.Bind(Host, schema), schema);
         }
@@ -361,7 +361,7 @@ namespace Microsoft.ML.Data
 
         private void SetScorer()
         {
-            var schema = new RoleMappedSchema(TrainSchema, null, FeatureColumn);
+            var schema = new RoleMappedSchema(TrainSchema, null, FeatureColumnName);
             var args = new BinaryClassifierScorer.Arguments { Threshold = Threshold, ThresholdColumn = ThresholdColumn };
             Scorer = new BinaryClassifierScorer(Host, args, new EmptyDataView(Host, TrainSchema), BindableMapper.Bind(Host, schema), schema);
         }
@@ -425,7 +425,7 @@ namespace Microsoft.ML.Data
 
         private void SetScorer()
         {
-            var schema = new RoleMappedSchema(TrainSchema, _trainLabelColumn, FeatureColumn);
+            var schema = new RoleMappedSchema(TrainSchema, _trainLabelColumn, FeatureColumnName);
             var args = new MulticlassClassificationScorer.Arguments();
             Scorer = new MulticlassClassificationScorer(Host, args, new EmptyDataView(Host, TrainSchema), BindableMapper.Bind(Host, schema), schema);
         }
@@ -564,7 +564,7 @@ namespace Microsoft.ML.Data
             // *** Binary format ***
             // <base info>
 
-            var schema = new RoleMappedSchema(TrainSchema, null, FeatureColumn);
+            var schema = new RoleMappedSchema(TrainSchema, null, FeatureColumnName);
             var args = new ClusteringScorer.Arguments();
             Scorer = new ClusteringScorer(Host, args, new EmptyDataView(Host, TrainSchema), BindableMapper.Bind(Host, schema), schema);
         }

@@ -76,7 +76,7 @@ namespace Microsoft.ML.Benchmarks
 
             var pipeline = new ColumnConcatenatingEstimator(mlContext, "Features", new[] { "SepalLength", "SepalWidth", "PetalLength", "PetalWidth" })
                 .Append(mlContext.Transforms.Conversion.MapValueToKey("Label"))
-                .Append(mlContext.MulticlassClassification.Trainers.Sdca());
+                .Append(mlContext.MulticlassClassification.Trainers.SdcaCalibrated());
 
             return pipeline.Fit(data);
         }
@@ -100,7 +100,7 @@ namespace Microsoft.ML.Benchmarks
             var loader = mlContext.Data.LoadFromTextFile(_sentimentDataPath, arguments);
             var text = mlContext.Transforms.Text.FeaturizeText("WordEmbeddings", new TextFeaturizingEstimator.Options
             {
-                OutputTokens = true,
+                OutputTokensColumnName = "WordEmbeddings_TransformedText",
                 KeepPunctuations = false,
                 StopWordsRemoverOptions = new StopWordsRemovingEstimator.Options(),
                 Norm = TextFeaturizingEstimator.NormFunction.None,
@@ -114,7 +114,7 @@ namespace Microsoft.ML.Benchmarks
                 .Fit(text).Transform(text);
 
             // Train
-            var trainer = mlContext.MulticlassClassification.Trainers.Sdca();
+            var trainer = mlContext.MulticlassClassification.Trainers.SdcaCalibrated();
             var predicted = trainer.Fit(trans);
             _consumer.Consume(predicted);
         }

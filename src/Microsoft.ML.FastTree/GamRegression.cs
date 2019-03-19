@@ -17,9 +17,9 @@ using Microsoft.ML.Trainers.FastTree;
     GamRegressionTrainer.LoadNameValue,
     GamRegressionTrainer.ShortName, DocName = "trainer/GAM.md")]
 
-[assembly: LoadableClass(typeof(RegressionGamModelParameters), null, typeof(SignatureLoadModel),
+[assembly: LoadableClass(typeof(GamRegressionModelParameters), null, typeof(SignatureLoadModel),
     "GAM Regression Predictor",
-    RegressionGamModelParameters.LoaderSignature)]
+    GamRegressionModelParameters.LoaderSignature)]
 
 namespace Microsoft.ML.Trainers.FastTree
 {
@@ -27,7 +27,7 @@ namespace Microsoft.ML.Trainers.FastTree
     /// The <see cref="IEstimator{TTransformer}"/> for training a regression model with generalized additive models (GAM).
     /// </summary>
     /// <include file='doc.xml' path='doc/members/member[@name="GAM_remarks"]/*' />
-    public sealed class GamRegressionTrainer : GamTrainerBase<GamRegressionTrainer.Options, RegressionPredictionTransformer<RegressionGamModelParameters>, RegressionGamModelParameters>
+    public sealed class GamRegressionTrainer : GamTrainerBase<GamRegressionTrainer.Options, RegressionPredictionTransformer<GamRegressionModelParameters>, GamRegressionModelParameters>
     {
         /// <summary>
         /// Options for the <see cref="GamRegressionTrainer"/>.
@@ -55,7 +55,7 @@ namespace Microsoft.ML.Trainers.FastTree
              : base(env, options, LoadNameValue, TrainerUtils.MakeR4ScalarColumn(options.LabelColumnName)) { }
 
         /// <summary>
-        /// Initializes a new instance of <see cref="FastTreeBinaryClassificationTrainer"/>
+        /// Initializes a new instance of <see cref="FastTreeBinaryTrainer"/>
         /// </summary>
         /// <param name="env">The private instance of <see cref="IHostEnvironment"/>.</param>
         /// <param name="labelColumnName">The name of the label column.</param>
@@ -80,10 +80,10 @@ namespace Microsoft.ML.Trainers.FastTree
             data.CheckRegressionLabel();
         }
 
-        private protected override RegressionGamModelParameters TrainModelCore(TrainContext context)
+        private protected override GamRegressionModelParameters TrainModelCore(TrainContext context)
         {
             TrainBase(context);
-            return new RegressionGamModelParameters(Host, BinUpperBounds, BinEffects, MeanEffect, InputLength, FeatureMap);
+            return new GamRegressionModelParameters(Host, BinUpperBounds, BinEffects, MeanEffect, InputLength, FeatureMap);
         }
 
         private protected override ObjectiveFunctionBase CreateObjectiveFunction()
@@ -99,14 +99,14 @@ namespace Microsoft.ML.Trainers.FastTree
             PruningTest = new TestHistory(validTest, PruningLossIndex);
         }
 
-        private protected override RegressionPredictionTransformer<RegressionGamModelParameters> MakeTransformer(RegressionGamModelParameters model, DataViewSchema trainSchema)
-            => new RegressionPredictionTransformer<RegressionGamModelParameters>(Host, model, trainSchema, FeatureColumn.Name);
+        private protected override RegressionPredictionTransformer<GamRegressionModelParameters> MakeTransformer(GamRegressionModelParameters model, DataViewSchema trainSchema)
+            => new RegressionPredictionTransformer<GamRegressionModelParameters>(Host, model, trainSchema, FeatureColumn.Name);
 
         /// <summary>
         /// Trains a <see cref="GamRegressionTrainer"/> using both training and validation data, returns
         /// a <see cref="RegressionPredictionTransformer{RegressionGamModelParameters}"/>.
         /// </summary>
-        public RegressionPredictionTransformer<RegressionGamModelParameters> Fit(IDataView trainData, IDataView validationData)
+        public RegressionPredictionTransformer<GamRegressionModelParameters> Fit(IDataView trainData, IDataView validationData)
             => TrainTransformer(trainData, validationData);
 
         private protected override SchemaShape.Column[] GetOutputColumnsCore(SchemaShape inputSchema)
@@ -121,7 +121,7 @@ namespace Microsoft.ML.Trainers.FastTree
     /// <summary>
     /// The model parameters class for Binary Classification GAMs
     /// </summary>
-    public sealed class RegressionGamModelParameters : GamModelParametersBase
+    public sealed class GamRegressionModelParameters : GamModelParametersBase
     {
         internal const string LoaderSignature = "RegressionGamPredictor";
         private protected override PredictionKind PredictionKind => PredictionKind.Regression;
@@ -138,11 +138,11 @@ namespace Microsoft.ML.Trainers.FastTree
         /// <param name="featureToInputMap">A map from the feature shape functions (as described by the binUpperBounds and BinEffects)
         /// to the input feature. Used when the number of input features is different than the number of shape functions. Use default if all features have
         /// a shape function.</param>
-        internal RegressionGamModelParameters(IHostEnvironment env,
+        internal GamRegressionModelParameters(IHostEnvironment env,
             double[][] binUpperBounds, double[][] binEffects, double intercept, int inputLength = -1, int[] featureToInputMap = null)
             : base(env, LoaderSignature, binUpperBounds, binEffects, intercept, inputLength, featureToInputMap) { }
 
-        private RegressionGamModelParameters(IHostEnvironment env, ModelLoadContext ctx)
+        private GamRegressionModelParameters(IHostEnvironment env, ModelLoadContext ctx)
             : base(env, LoaderSignature, ctx) { }
 
         private static VersionInfo GetVersionInfo()
@@ -155,16 +155,16 @@ namespace Microsoft.ML.Trainers.FastTree
                 verReadableCur: 0x00010002,
                 verWeCanReadBack: 0x00010001,
                 loaderSignature: LoaderSignature,
-                loaderAssemblyName: typeof(RegressionGamModelParameters).Assembly.FullName);
+                loaderAssemblyName: typeof(GamRegressionModelParameters).Assembly.FullName);
         }
 
-        private static RegressionGamModelParameters Create(IHostEnvironment env, ModelLoadContext ctx)
+        private static GamRegressionModelParameters Create(IHostEnvironment env, ModelLoadContext ctx)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(ctx, nameof(ctx));
             ctx.CheckAtModel(GetVersionInfo());
 
-            return new RegressionGamModelParameters(env, ctx);
+            return new GamRegressionModelParameters(env, ctx);
         }
 
         private protected override void SaveCore(ModelSaveContext ctx)

@@ -47,16 +47,16 @@ namespace Microsoft.ML.Functional.Tests
 
             // create a training pipeline.
             var pipeline = mlContext.Transforms.Text.FeaturizeText(
-                "Features",
-                new TextFeaturizingEstimator.Options
-                {
-                    KeepPunctuations = false,
-                    OutputTokens = true,
-                    CharFeatureExtractor = null, // new WordBagEstimator.Options { NgramLength = 0, SkipLength = -1 },
-                    WordFeatureExtractor = new WordBagEstimator.Options { NgramLength = 1},
-                    Norm = TextFeaturizingEstimator.NormFunction.None
-                },
-                "SentimentText");
+                    "Features",
+                    new TextFeaturizingEstimator.Options
+                    {
+                        KeepPunctuations = false,
+                        OutputTokensColumnName = "FeaturizeTextTokens",
+                        CharFeatureExtractor = null, // new WordBagEstimator.Options { NgramLength = 0, SkipLength = -1 },
+                        WordFeatureExtractor = new WordBagEstimator.Options { NgramLength = 1},
+                        Norm = TextFeaturizingEstimator.NormFunction.None
+                    },
+                    "SentimentText");
 
             // Fit the pipeline to the data.
             var model = pipeline.Fit(data);
@@ -68,7 +68,7 @@ namespace Microsoft.ML.Functional.Tests
 
             // Verify that columns can be inspected.
             // Validate the tokens column.
-            var tokensColumn = transformedData.GetColumn<string[]>(transformedData.Schema["Features_TransformedText"]);
+            var tokensColumn = transformedData.GetColumn<string[]>(transformedData.Schema["FeaturizeTextTokens"]);
             var expectedTokens = new string[3][]
             {
                 new string[] {"i", "love", "mlnet"},

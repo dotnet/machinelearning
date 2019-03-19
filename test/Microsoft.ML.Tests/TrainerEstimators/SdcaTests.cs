@@ -24,11 +24,11 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                 .Fit(data.AsDynamic).Transform(data.AsDynamic);
 
             var binaryTrainer = ML.BinaryClassification.Trainers.SdcaCalibrated(
-                new SdcaCalibratedBinaryClassificationTrainer.Options { ConvergenceTolerance = 1e-2f, MaximumNumberOfIterations = 10 });
+                new SdcaCalibratedBinaryTrainer.Options { ConvergenceTolerance = 1e-2f, MaximumNumberOfIterations = 10 });
             TestEstimatorCore(binaryTrainer, binaryData);
 
             var nonCalibratedBinaryTrainer = ML.BinaryClassification.Trainers.SdcaNonCalibrated(
-                new SdcaNonCalibratedBinaryClassificationTrainer.Options { ConvergenceTolerance = 1e-2f, MaximumNumberOfIterations = 10 });
+                new SdcaNonCalibratedBinaryTrainer.Options { ConvergenceTolerance = 1e-2f, MaximumNumberOfIterations = 10 });
             TestEstimatorCore(nonCalibratedBinaryTrainer, binaryData);
 
             var regressionTrainer = ML.Regression.Trainers.Sdca(
@@ -37,8 +37,8 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             TestEstimatorCore(regressionTrainer, data.AsDynamic);
             var mcData = ML.Transforms.Conversion.MapValueToKey("Label").Fit(data.AsDynamic).Transform(data.AsDynamic);
 
-            var mcTrainer = ML.MulticlassClassification.Trainers.Sdca(
-                new SdcaMulticlassClassificationTrainer.Options { ConvergenceTolerance = 1e-2f, MaximumNumberOfIterations = 10 });
+            var mcTrainer = ML.MulticlassClassification.Trainers.SdcaCalibrated(
+                new SdcaCalibratedMulticlassTrainer.Options { ConvergenceTolerance = 1e-2f, MaximumNumberOfIterations = 10 });
             TestEstimatorCore(mcTrainer, mcData);
 
             Done();
@@ -151,14 +151,14 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             // We set the "Label" column as the label of the dataset, and the "Features" column as the features column.
 
             var pipeline = mlContext.Transforms.Conversion.MapValueToKey("LabelIndex", "Label").
-                           Append(mlContext.MulticlassClassification.Trainers.Sdca(labelColumnName: "LabelIndex", featureColumnName: "Features", l2Regularization: 0.001f));
+                           Append(mlContext.MulticlassClassification.Trainers.SdcaCalibrated(labelColumnName: "LabelIndex", featureColumnName: "Features", l2Regularization: 0.001f));
 
             // Step 3: Train the pipeline created.
             var model = pipeline.Fit(data);
 
             // Step 4: Make prediction and evaluate its quality (on training set).
             var prediction = model.Transform(data);
-            var metrics = mlContext.MulticlassClassification.Evaluate(prediction, label: "LabelIndex", topK: 1);
+            var metrics = mlContext.MulticlassClassification.Evaluate(prediction, labelColumnName: "LabelIndex", topK: 1);
 
             // Check a few metrics to make sure the trained model is ok.
             Assert.InRange(metrics.TopKAccuracy, 0.8, 1);
@@ -192,7 +192,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
 
             // Step 4: Make prediction and evaluate its quality (on training set).
             var prediction = model.Transform(data);
-            var metrics = mlContext.MulticlassClassification.Evaluate(prediction, label: "LabelIndex", topK: 1);
+            var metrics = mlContext.MulticlassClassification.Evaluate(prediction, labelColumnName: "LabelIndex", topK: 1);
 
             // Check a few metrics to make sure the trained model is ok.
             Assert.InRange(metrics.TopKAccuracy, 0.8, 1);

@@ -376,7 +376,7 @@ var testData = mlContext.Data.LoadFromTextFile<AdultData>(testDataPath,
     separatorChar: ','
 );
 // Calculate metrics of the model on the test data.
-var metrics = mlContext.Regression.Evaluate(model.Transform(testData), label: "Target");
+var metrics = mlContext.Regression.Evaluate(model.Transform(testData), labelColumnName: "Target");
 ```
 
 ## How do I save and load the model?

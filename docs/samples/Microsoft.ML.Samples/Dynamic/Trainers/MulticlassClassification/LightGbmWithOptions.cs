@@ -57,7 +57,7 @@ namespace Microsoft.ML.Samples.Dynamic.Trainers.MulticlassClassification
             var dataWithPredictions = model.Transform(split.TestSet);
 
             // Evaluate the trained model using the test set.
-            var metrics = mlContext.MulticlassClassification.Evaluate(dataWithPredictions, label: "LabelIndex");
+            var metrics = mlContext.MulticlassClassification.Evaluate(dataWithPredictions, labelColumnName: "LabelIndex");
 
             // Check if metrics are reasonable.
             Console.WriteLine($"Macro accuracy: {metrics.MacroAccuracy:F4}, Micro accuracy: {metrics.MicroAccuracy:F4}.");

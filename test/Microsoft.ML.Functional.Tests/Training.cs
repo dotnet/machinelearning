@@ -44,10 +44,10 @@ namespace Microsoft.ML.Functional.Tests
 
             // Create a selection of learners.
             var sdcaTrainer = mlContext.BinaryClassification.Trainers.SdcaCalibrated(
-                    new SdcaCalibratedBinaryClassificationTrainer.Options { NumberOfThreads = 1 });
+                    new SdcaCalibratedBinaryTrainer.Options { NumberOfThreads = 1 });
 
             var fastTreeTrainer = mlContext.BinaryClassification.Trainers.FastTree(
-                    new FastTreeBinaryClassificationTrainer.Options { NumberOfThreads = 1 });
+                    new FastTreeBinaryTrainer.Options { NumberOfThreads = 1 });
 
             var ffmTrainer = mlContext.BinaryClassification.Trainers.FieldAwareFactorizationMachine();
 
@@ -226,7 +226,7 @@ namespace Microsoft.ML.Functional.Tests
                 .AppendCacheCheckpoint(mlContext);
 
             var trainer = mlContext.BinaryClassification.Trainers.LogisticRegression(
-                new LogisticRegressionBinaryClassificationTrainer.Options { NumberOfThreads = 1, MaximumNumberOfIterations = 10 });
+                new LogisticRegressionBinaryTrainer.Options { NumberOfThreads = 1, MaximumNumberOfIterations = 10 });
 
             // Fit the data transformation pipeline.
             var featurization = featurizationPipeline.Fit(data);
@@ -452,7 +452,7 @@ namespace Microsoft.ML.Functional.Tests
 
             // Create a model training an OVA trainer with a binary classifier.
             var binaryClassificationTrainer = mlContext.BinaryClassification.Trainers.LogisticRegression(
-                new LogisticRegressionBinaryClassificationTrainer.Options { MaximumNumberOfIterations = 10, NumberOfThreads = 1, });
+                new LogisticRegressionBinaryTrainer.Options { MaximumNumberOfIterations = 10, NumberOfThreads = 1, });
             var binaryClassificationPipeline = mlContext.Transforms.Concatenate("Features", Iris.Features)
                 .AppendCacheCheckpoint(mlContext)
                 .Append(mlContext.Transforms.Conversion.MapValueToKey("Label"))
