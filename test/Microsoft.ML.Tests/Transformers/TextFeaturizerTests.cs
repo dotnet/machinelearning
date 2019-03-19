@@ -30,33 +30,32 @@ namespace Microsoft.ML.Tests.Transformers
         private class TestClass
         {
             public string A;
-            [ColumnName("OutputText_TransformedText")]
-            public string[] OutputText;
+            public string[] OutputTokens;
         }
 
-        [Fact] 
+        [Fact]
         public void TextFeaturizerWithPredefinedStopWordRemoverTest()
         {
-            var data = new[] { new TestClass() { A = "This is some text with english stop words", OutputText=null},
-                               new TestClass() { A = "No stop words", OutputText=null } };
+            var data = new[] { new TestClass() { A = "This is some text with english stop words", OutputTokens=null},
+                               new TestClass() { A = "No stop words", OutputTokens=null } };
             var dataView = ML.Data.LoadFromEnumerable(data);
 
-            var options = new TextFeaturizingEstimator.Options() { StopWordsRemoverOptions = new StopWordsRemovingEstimator.Options(), OutputTokens = true };
+            var options = new TextFeaturizingEstimator.Options() { StopWordsRemoverOptions = new StopWordsRemovingEstimator.Options(), OutputTokensColumnName = "OutputTokens" };
             var pipeline = ML.Transforms.Text.FeaturizeText("OutputText", options, "A");
             var model = pipeline.Fit(dataView);
-            var engine = model.CreatePredictionEngine< TestClass, TestClass>(ML);
+            var engine = model.CreatePredictionEngine<TestClass, TestClass>(ML);
             var prediction = engine.Predict(data[0]);
-            Assert.Equal("text english stop words", string.Join(" ", prediction.OutputText));
+            Assert.Equal("text english stop words", string.Join(" ", prediction.OutputTokens));
 
             prediction = engine.Predict(data[1]);
-            Assert.Equal("stop words", string.Join(" ", prediction.OutputText));
+            Assert.Equal("stop words", string.Join(" ", prediction.OutputTokens));
         }
 
         [Fact]
         public void TextFeaturizerWithCustomStopWordRemoverTest()
         {
-            var data = new[] { new TestClass() { A = "This is some text with english stop words", OutputText=null},
-                               new TestClass() { A = "No stop words", OutputText=null } };
+            var data = new[] { new TestClass() { A = "This is some text with english stop words", OutputTokens=null},
+                               new TestClass() { A = "No stop words", OutputTokens=null } };
             var dataView = ML.Data.LoadFromEnumerable(data);
 
             var options = new TextFeaturizingEstimator.Options()
@@ -65,17 +64,17 @@ namespace Microsoft.ML.Tests.Transformers
                 {
                     StopWords = new[] { "stop", "words" }
                 },
-                OutputTokens = true,
+                OutputTokensColumnName = "OutputTokens",
                 CaseMode = TextNormalizingEstimator.CaseMode.None
             };
             var pipeline = ML.Transforms.Text.FeaturizeText("OutputText", options, "A");
             var model = pipeline.Fit(dataView);
             var engine = model.CreatePredictionEngine<TestClass, TestClass>(ML);
             var prediction = engine.Predict(data[0]);
-            Assert.Equal("This is some text with english", string.Join(" ", prediction.OutputText));
+            Assert.Equal("This is some text with english", string.Join(" ", prediction.OutputTokens));
 
             prediction = engine.Predict(data[1]);
-            Assert.Equal("No", string.Join(" ", prediction.OutputText));
+            Assert.Equal("No", string.Join(" ", prediction.OutputTokens));
         }
 
         private void TestCaseMode(IDataView dataView, TestClass[] data, TextNormalizingEstimator.CaseMode caseMode)
@@ -83,7 +82,7 @@ namespace Microsoft.ML.Tests.Transformers
             var options = new TextFeaturizingEstimator.Options()
             {
                 CaseMode = caseMode,
-                OutputTokens = true
+                OutputTokensColumnName = "OutputTokens"
             };
             var pipeline = ML.Transforms.Text.FeaturizeText("OutputText", options, "A");
             var model = pipeline.Fit(dataView);
@@ -109,15 +108,15 @@ namespace Microsoft.ML.Tests.Transformers
                 expected2 = data[1].A;
             }
 
-            Assert.Equal(expected1, string.Join(" ", prediction1.OutputText));
-            Assert.Equal(expected2, string.Join(" ", prediction2.OutputText));
+            Assert.Equal(expected1, string.Join(" ", prediction1.OutputTokens));
+            Assert.Equal(expected2, string.Join(" ", prediction2.OutputTokens));
         }
 
         [Fact]
         public void TextFeaturizerWithUpperCaseTest()
         {
-            var data = new[] { new TestClass() { A = "This is some text with english stop words", OutputText=null},
-                               new TestClass() { A = "No stop words", OutputText=null } };
+            var data = new[] { new TestClass() { A = "This is some text with english stop words", OutputTokens=null},
+                               new TestClass() { A = "No stop words", OutputTokens=null } };
             var dataView = ML.Data.LoadFromEnumerable(data);
 
             TestCaseMode(dataView, data, TextNormalizingEstimator.CaseMode.Lower);
@@ -132,7 +131,7 @@ namespace Microsoft.ML.Tests.Transformers
             {
                 KeepNumbers = keepNumbers,
                 CaseMode = TextNormalizingEstimator.CaseMode.None,
-                OutputTokens = true
+                OutputTokensColumnName = "OutputTokens"
             };
             var pipeline = ML.Transforms.Text.FeaturizeText("OutputText", options, "A");
             var model = pipeline.Fit(dataView);
@@ -142,21 +141,21 @@ namespace Microsoft.ML.Tests.Transformers
 
             if (keepNumbers)
             {
-                Assert.Equal(data[0].A, string.Join(" ", prediction1.OutputText));
-                Assert.Equal(data[1].A, string.Join(" ", prediction2.OutputText));
+                Assert.Equal(data[0].A, string.Join(" ", prediction1.OutputTokens));
+                Assert.Equal(data[1].A, string.Join(" ", prediction2.OutputTokens));
             }
             else
             {
-                Assert.Equal(data[0].A.Replace("123 ", "").Replace("425", "").Replace("25", "").Replace("23", ""), string.Join(" ", prediction1.OutputText));
-                Assert.Equal(data[1].A, string.Join(" ", prediction2.OutputText));
+                Assert.Equal(data[0].A.Replace("123 ", "").Replace("425", "").Replace("25", "").Replace("23", ""), string.Join(" ", prediction1.OutputTokens));
+                Assert.Equal(data[1].A, string.Join(" ", prediction2.OutputTokens));
             }
         }
 
         [Fact]
         public void TextFeaturizerWithKeepNumbersTest()
         {
-            var data = new[] { new TestClass() { A = "This is some text with numbers 123 $425 25.23", OutputText=null},
-                               new TestClass() { A = "No numbers", OutputText=null } };
+            var data = new[] { new TestClass() { A = "This is some text with numbers 123 $425 25.23", OutputTokens=null},
+                               new TestClass() { A = "No numbers", OutputTokens=null } };
             var dataView = ML.Data.LoadFromEnumerable(data);
 
             TestKeepNumbers(dataView, data, true);
@@ -169,7 +168,7 @@ namespace Microsoft.ML.Tests.Transformers
             {
                 KeepPunctuations = keepPunctuations,
                 CaseMode = TextNormalizingEstimator.CaseMode.None,
-                OutputTokens = true
+                OutputTokensColumnName = "OutputTokens"
             };
             var pipeline = ML.Transforms.Text.FeaturizeText("OutputText", options, "A");
             var model = pipeline.Fit(dataView);
@@ -179,22 +178,22 @@ namespace Microsoft.ML.Tests.Transformers
 
             if (keepPunctuations)
             {
-                Assert.Equal(data[0].A, string.Join(" ", prediction1.OutputText));
-                Assert.Equal(data[1].A, string.Join(" ", prediction2.OutputText));
+                Assert.Equal(data[0].A, string.Join(" ", prediction1.OutputTokens));
+                Assert.Equal(data[1].A, string.Join(" ", prediction2.OutputTokens));
             }
             else
             {
                 var expected = Regex.Replace(data[0].A, "[,|_|'|\"|;|\\.]", "");
-                Assert.Equal(expected, string.Join(" ", prediction1.OutputText));
-                Assert.Equal(data[1].A, string.Join(" ", prediction2.OutputText));
+                Assert.Equal(expected, string.Join(" ", prediction1.OutputTokens));
+                Assert.Equal(data[1].A, string.Join(" ", prediction2.OutputTokens));
             }
         }
 
         [Fact]
         public void TextFeaturizerWithKeepPunctuationsTest()
         {
-            var data = new[] { new TestClass() { A = "This, is; some_ ,text 'with\" punctuations.", OutputText=null},
-                               new TestClass() { A = "No punctuations", OutputText=null } };
+            var data = new[] { new TestClass() { A = "This, is; some_ ,text 'with\" punctuations.", OutputTokens=null},
+                               new TestClass() { A = "No punctuations", OutputTokens=null } };
             var dataView = ML.Data.LoadFromEnumerable(data);
 
             TestKeepPunctuations(dataView, data, true);
@@ -207,7 +206,7 @@ namespace Microsoft.ML.Tests.Transformers
             {
                 KeepDiacritics = keepDiacritics,
                 CaseMode = TextNormalizingEstimator.CaseMode.None,
-                OutputTokens = true
+                OutputTokensColumnName = "OutputTokens"
             };
             var pipeline = ML.Transforms.Text.FeaturizeText("OutputText", options, "A");
             var model = pipeline.Fit(dataView);
@@ -217,21 +216,21 @@ namespace Microsoft.ML.Tests.Transformers
 
             if (keepDiacritics)
             {
-                Assert.Equal(data[0].A, string.Join(" ", prediction1.OutputText));
-                Assert.Equal(data[1].A, string.Join(" ", prediction2.OutputText));
+                Assert.Equal(data[0].A, string.Join(" ", prediction1.OutputTokens));
+                Assert.Equal(data[1].A, string.Join(" ", prediction2.OutputTokens));
             }
             else
             {
-                Assert.Equal("This is some text with diacritics", string.Join(" ", prediction1.OutputText));
-                Assert.Equal(data[1].A, string.Join(" ", prediction2.OutputText));
+                Assert.Equal("This is some text with diacritics", string.Join(" ", prediction1.OutputTokens));
+                Assert.Equal(data[1].A, string.Join(" ", prediction2.OutputTokens));
             }
         }
 
         [Fact]
         public void TextFeaturizerWithKeepDiacriticsTest()
         {
-            var data = new[] { new TestClass() { A = "Thîs îs sóme text with diácrîtîcs", OutputText=null},
-                               new TestClass() { A = "No diacritics", OutputText=null } };
+            var data = new[] { new TestClass() { A = "Thîs îs sóme text with diácrîtîcs", OutputTokens=null},
+                               new TestClass() { A = "No diacritics", OutputTokens=null } };
             var dataView = ML.Data.LoadFromEnumerable(data);
 
             TestKeepDiacritics(dataView, data, true);
