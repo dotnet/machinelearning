@@ -50,6 +50,17 @@ namespace Microsoft.ML
         }
 
         /// <summary>
+        /// Save the model to the file.
+        /// </summary>
+        /// <param name="model">The trained model to be saved.</param>
+        /// <param name="filePath">Path where model should be saved.</param>
+        public void Save<TSource>(IDataLoader<TSource> model, string filePath)
+        {
+            using (var stream = File.Create(filePath))
+                Save(model, stream);
+        }
+
+        /// <summary>
         /// Save a transformer model and the loader used to create its input data to the stream.
         /// </summary>
         /// <param name="loader">The loader that was used to create data to train the model</param>
@@ -57,6 +68,18 @@ namespace Microsoft.ML
         /// <param name="stream">A writeable, seekable stream to save to.</param>
         public void Save<TSource>(IDataLoader<TSource> loader, ITransformer model, Stream stream) =>
             Save(new CompositeDataLoader<TSource, ITransformer>(loader, new TransformerChain<ITransformer>(model)), stream);
+
+        /// <summary>
+        /// Save a transformer model and the loader used to create its input data to the file.
+        /// </summary>
+        /// <param name="loader">The loader that was used to create data to train the model</param>
+        /// <param name="model">The trained model to be saved</param>
+        /// <param name="filePath">Path where model should be saved.</param>
+        public void Save<TSource>(IDataLoader<TSource> loader, ITransformer model, string filePath)
+        {
+            using (var stream = File.Create(filePath))
+                Save(loader, model, stream);
+        }
 
         /// <summary>
         /// Save a transformer model and the schema of the data that was used to train it to the stream.
@@ -76,6 +99,18 @@ namespace Microsoft.ML
                 SaveInputSchema(inputSchema, rep);
                 rep.Commit();
             }
+        }
+
+        /// <summary>
+        /// Save a transformer model and the schema of the data that was used to train it to the file.
+        /// </summary>
+        /// <param name="model">The trained model to be saved.</param>
+        /// <param name="inputSchema">The schema of the input to the transformer. This can be null.</param>
+        /// <param name="filePath">Path where model should be saved.</param>
+        public void Save(ITransformer model, DataViewSchema inputSchema, string filePath)
+        {
+            using (var stream = File.Create(filePath))
+                Save(model, inputSchema, stream);
         }
 
         private void SaveInputSchema(DataViewSchema inputSchema, RepositoryWriter rep)

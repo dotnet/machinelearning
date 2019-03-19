@@ -79,8 +79,7 @@ namespace Microsoft.ML.RunTests
             var transformer = estimator.Fit(validFitInput);
             // Save and reload.
             string modelPath = GetOutputPath(FullTestName + "-model.zip");
-            using (var fs = File.Create(modelPath))
-                ML.Model.Save(transformer, validFitInput.Schema, fs);
+            ML.Model.Save(transformer, validFitInput.Schema, modelPath);
 
             ITransformer loadedTransformer;
             DataViewSchema loadedInputSchema;

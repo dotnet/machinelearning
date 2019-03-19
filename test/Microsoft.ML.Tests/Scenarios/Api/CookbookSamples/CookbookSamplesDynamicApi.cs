@@ -120,11 +120,8 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
             // Calculate metrics of the model on the test data.
             var metrics = mlContext.Regression.Evaluate(model.Transform(testData), label: "Target");
 
-            using (var stream = File.Create(modelPath))
-            {
-                // Saving and loading happens to 'dynamic' models.
-                mlContext.Model.Save(model, trainData.Schema, stream);
-            }
+            // Saving and loading happens to 'dynamic' models.
+            mlContext.Model.Save(model, trainData.Schema, modelPath);
 
             // Potentially, the lines below can be in a different process altogether.
 
@@ -522,8 +519,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
             var model = estimator.Fit(cachedTrainData);
 
             // Save the model.
-            using (var fs = File.Create(modelPath))
-                mlContext.Model.Save(model, cachedTrainData.Schema, fs);
+            mlContext.Model.Save(model, cachedTrainData.Schema, modelPath);
 
             // Now pretend we are in a different process.
             var newContext = new MLContext();
