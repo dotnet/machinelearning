@@ -598,6 +598,19 @@ namespace Microsoft.ML.EntryPoints.Tests
             catch (NullReferenceException) { };
         }
 
+        [Fact]
+        public void ParseSchemaFromTextFile()
+        {
+            var mlContext = new MLContext(seed: 1);
+            var fileName = GetDataPath(TestDatasets.adult.trainFilename);
+            var loader = mlContext.Data.CreateTextLoader(new TextLoader.Options(), new MultiFileSource(fileName));
+            var data = loader.Load(new MultiFileSource(fileName));
+            Assert.NotNull(data.Schema.GetColumnOrNull("Label"));
+            Assert.NotNull(data.Schema.GetColumnOrNull("Workclass"));
+            Assert.NotNull(data.Schema.GetColumnOrNull("Categories"));
+            Assert.NotNull(data.Schema.GetColumnOrNull("NumericFeatures"));
+        }
+
         public class QuoteInput
         {
             [LoadColumn(0)]
