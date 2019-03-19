@@ -40,7 +40,6 @@ namespace Microsoft.ML.Samples.Dynamic.Trainers.Regression
             var gamModel = trainedPipeline.LastTransformer.Model;
 
             // Now investigate the bias and shape functions of the GAM model.
-
             // The bias represents the average prediction for the training data.
             Console.WriteLine($"Average predicted cost: {gamModel.Bias:0.00}");
 
