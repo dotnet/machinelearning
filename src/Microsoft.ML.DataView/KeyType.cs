@@ -3,8 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using Microsoft.ML.Internal.Utilities;
-using Microsoft.ML.Runtime;
 
 namespace Microsoft.ML.Data
 {
@@ -27,17 +25,24 @@ namespace Microsoft.ML.Data
         public KeyType(Type type, ulong count)
             : base(type)
         {
-            Contracts.AssertValue(type);
-            if (count == 0 || type.ToMaxInt() < count)
-                throw Contracts.ExceptParam(nameof(count), "The cardinality of a {0} must not exceed {1}.MaxValue" +
-                    " and must be strictly positive but got {2}.", nameof(KeyType), type.Name, count);
+            if (!IsValidDataType(type))
+                throw new ArgumentException(
+                    $"Type is not valid, it must be {typeof(byte).FullName}, {typeof(ushort).FullName}, {typeof(uint).FullName}, or {typeof(ulong).FullName}.",
+                    nameof(type));
+            if (count == 0 || GetMaxInt(type) < count)
+                throw new ArgumentOutOfRangeException(
+                    nameof(count),
+                    $"The cardinality of a {nameof(KeyType)} must not exceed {type.Name}.MaxValue and must be strictly positive but got {count}.");
             Count = count;
         }
 
         public KeyType(Type type, int count)
             : this(type, (ulong)count)
         {
-            Contracts.CheckParam(0 < count, nameof(count), "The cardinality of a " + nameof(KeyType) + " must be strictly positive.");
+            if (count <= 0)
+                throw new ArgumentOutOfRangeException(
+                    nameof(count),
+                    $"The cardinality of a {nameof(KeyType)} must be strictly positive.");
         }
 
         /// <summary>
@@ -46,8 +51,21 @@ namespace Microsoft.ML.Data
         /// </summary>
         public static bool IsValidDataType(Type type)
         {
-            Contracts.CheckValue(type, nameof(type));
             return type == typeof(byte) || type == typeof(ushort) || type == typeof(uint) || type == typeof(ulong);
+        }
+
+        private static ulong GetMaxInt(Type type)
+        {
+            if (type == typeof(byte))
+                return byte.MaxValue;
+            else if (type == typeof(ushort))
+                return ushort.MaxValue;
+            else if (type == typeof(uint))
+                return uint.MaxValue;
+            else if (type == typeof(ulong))
+                return ulong.MaxValue;
+
+            return 0;
         }
 
         /// <summary>
@@ -98,7 +116,21 @@ namespace Microsoft.ML.Data
         /// <returns>An integer representing the hash code.</returns>
         public override int GetHashCode()
         {
-            return Hashing.CombinedHash(RawType.GetHashCode(), Count);
+            return Hashing.CombineHash(RawType.GetHashCode(), Count.GetHashCode());
+        }
+
+        // taken from https://github.com/dotnet/machinelearning/blob/08318656ed0f0649aa75370b019cf4bcbda5a6a5/src/Microsoft.ML.Core/Utilities/Hashing.cs#L17-L25
+        private static class Hashing
+        {
+            public static uint CombineHash(uint u1, uint u2)
+            {
+                return ((u1 << 7) | (u1 >> 25)) ^ u2;
+            }
+
+            public static int CombineHash(int n1, int n2)
+            {
+                return (int)CombineHash((uint)n1, (uint)n2);
+            }
         }
 
         /// <summary>
@@ -107,8 +139,8 @@ namespace Microsoft.ML.Data
         /// <returns>A formatted string.</returns>
         public override string ToString()
         {
-            InternalDataKind rawKind = this.GetRawKind();
-            return string.Format("Key<{0}, {1}-{2}>", rawKind.GetString(), 0, Count - 1);
+            string rawTypeName = RawType.Name;
+            return string.Format("Key<{0}, {1}-{2}>", rawTypeName, 0, Count - 1);
         }
     }
 }
