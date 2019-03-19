@@ -96,22 +96,17 @@ namespace Microsoft.ML.Runtime
     internal abstract class HostEnvironmentBase<TEnv> : ChannelProviderBase, IHostEnvironment, IChannelProvider
         where TEnv : HostEnvironmentBase<TEnv>
     {
-        public bool IsCanceled { get; protected set; }
-
-        private readonly List<IHost> _hosts;
-
-        private readonly object _cancelEnvLock;
-
         [BestFriend]
         internal void CancelExecutionHosts()
         {
-            lock (_cancelEnvLock)
+            lock (_cancelLock)
             {
-                foreach (var host in _hosts)
-                    if (host is ICancelableHost)
-                        ((ICancelableHost)host).CancelExecution();
+                foreach (var child in _children)
+                    if (child.TryGetTarget(out IHost host))
+                        if (host is ICancelableHost cancelableHost)
+                            cancelableHost.CancelExecution();
 
-                _hosts.Clear();
+                _children.Clear();
             }
         }
 
@@ -126,14 +121,10 @@ namespace Microsoft.ML.Runtime
 
             public Random Rand => _rand;
 
-            // We don't have dispose mechanism for hosts, so to let GC collect children hosts we make them WeakReference.
-            private readonly List<WeakReference<IHost>> _children;
-
             public HostBase(HostEnvironmentBase<TEnv> source, string shortName, string parentFullName, Random rand, bool verbose)
                 : base(source, rand, verbose, shortName, parentFullName)
             {
                 Depth = source.Depth + 1;
-                _children = new List<WeakReference<IHost>>();
             }
 
             public void CancelExecution()
@@ -195,7 +186,7 @@ namespace Microsoft.ML.Runtime
 
             public void Dispose()
             {
-                if(!_disposed)
+                if (!_disposed)
                 {
                     Dispose(true);
                     _disposed = true;
@@ -363,6 +354,11 @@ namespace Microsoft.ML.Runtime
 
         public override int Depth => 0;
 
+        public bool IsCanceled { get; protected set; }
+
+        // We don't have dispose mechanism for hosts, so to let GC collect children hosts we make them WeakReference.
+        private readonly List<WeakReference<IHost>> _children;
+
         /// <summary>
         ///  The main constructor.
         /// </summary>
@@ -375,10 +371,9 @@ namespace Microsoft.ML.Runtime
             ListenerDict = new ConcurrentDictionary<Type, Dispatcher>();
             ProgressTracker = new ProgressReporting.ProgressTracker(this);
             _cancelLock = new object();
-            _cancelEnvLock = new object();
             Root = this as TEnv;
             ComponentCatalog = new ComponentCatalog();
-            _hosts = new List<IHost>();
+            _children = new List<WeakReference<IHost>>();
         }
 
         /// <summary>
@@ -392,8 +387,6 @@ namespace Microsoft.ML.Runtime
             Contracts.CheckValueOrNull(rand);
             _rand = rand ?? RandomUtils.Create();
             _cancelLock = new object();
-            _cancelEnvLock = new object();
-            _hosts = new List<IHost>();
 
             // This fork shares some stuff with the master.
             Master = source;
@@ -401,17 +394,18 @@ namespace Microsoft.ML.Runtime
             ListenerDict = source.ListenerDict;
             ProgressTracker = source.ProgressTracker;
             ComponentCatalog = source.ComponentCatalog;
+            _children = new List<WeakReference<IHost>>();
         }
 
         public IHost Register(string name, int? seed = null, bool? verbose = null)
         {
             Contracts.CheckNonEmpty(name, nameof(name));
             IHost host;
-            lock (_cancelEnvLock)
+            lock (_cancelLock)
             {
                 Random rand = (seed.HasValue) ? RandomUtils.Create(seed.Value) : RandomUtils.Create(_rand);
                 host = RegisterCore(this, name, Master?.FullName, rand, verbose ?? Verbose);
-                _hosts.Add(host);
+                _children.Add(new WeakReference<IHost>(host));
             }
             return host;
         }

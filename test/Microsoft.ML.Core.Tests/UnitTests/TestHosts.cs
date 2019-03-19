@@ -84,18 +84,14 @@ namespace Microsoft.ML.RunTests
             hosts.Add(new Tuple<IHost, int>(mainHost.Register("3"), 1));
             hosts.Add(new Tuple<IHost, int>(mainHost.Register("4"), 1));
             hosts.Add(new Tuple<IHost, int>(mainHost.Register("5"), 1));
-            var addThread = new Thread(
-            () =>
+
+            for (int i = 0; i < 5; i++)
             {
-                for (int i = 0; i < 5; i++)
-                {
-                    var tupple = hosts.ElementAt(i);
-                    var newHost = tupple.Item1.Register((tupple.Item2 + 1).ToString());
-                    hosts.Add(new Tuple<IHost, int>(newHost, tupple.Item2 + 1));
-                }
-            });
-            addThread.Start();
-            addThread.Join();
+                var tupple = hosts.ElementAt(i);
+                var newHost = tupple.Item1.Register((tupple.Item2 + 1).ToString());
+                hosts.Add(new Tuple<IHost, int>(newHost, tupple.Item2 + 1));
+            }
+
             ((MLContext)env).CancelExecution();
 
             //Ensure all created hosts are cancelled.

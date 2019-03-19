@@ -73,8 +73,6 @@ namespace Microsoft.ML
         /// </summary>
         public ComponentCatalog ComponentCatalog => _env.ComponentCatalog;
 
-        private List<IHost> _hosts;
-
         /// <summary>
         /// Create the ML context.
         /// </summary>
@@ -93,7 +91,6 @@ namespace Microsoft.ML
             Transforms = new TransformsCatalog(_env);
             Model = new ModelOperationsCatalog(_env);
             Data = new DataOperationsCatalog(_env);
-            _hosts = new List<IHost>();
         }
 
         private void ProcessMessage(IMessageSource source, ChannelMessage message)
