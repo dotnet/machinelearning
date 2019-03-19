@@ -33,7 +33,7 @@ namespace Microsoft.ML
         /// </summary>
         /// <param name="model">The trained model to be saved.</param>
         /// <param name="stream">A writeable, seekable stream to save to.</param>
-        public void Save<TSource>(IDataLoader<TSource> model, Stream stream)
+        public void SaveDataLoader<TSource>(IDataLoader<TSource> model, Stream stream)
         {
             _env.CheckValue(model, nameof(model));
             _env.CheckValue(stream, nameof(stream));
@@ -50,10 +50,10 @@ namespace Microsoft.ML
         /// </summary>
         /// <param name="model">The trained model to be saved.</param>
         /// <param name="filePath">Path where model should be saved.</param>
-        public void Save<TSource>(IDataLoader<TSource> model, string filePath)
+        public void SaveDataLoader<TSource>(IDataLoader<TSource> model, string filePath)
         {
             using (var stream = File.Create(filePath))
-                Save(model, stream);
+                SaveDataLoader(model, stream);
         }
 
         /// <summary>
@@ -63,7 +63,7 @@ namespace Microsoft.ML
         /// <param name="model">The trained model to be saved</param>
         /// <param name="stream">A writeable, seekable stream to save to.</param>
         public void Save<TSource>(IDataLoader<TSource> loader, ITransformer model, Stream stream) =>
-            Save(new CompositeDataLoader<TSource, ITransformer>(loader, new TransformerChain<ITransformer>(model)), stream);
+            SaveDataLoader(new CompositeDataLoader<TSource, ITransformer>(loader, new TransformerChain<ITransformer>(model)), stream);
 
         /// <summary>
         /// Save a transformer model and the loader used to create its input data to the file.
@@ -182,12 +182,25 @@ namespace Microsoft.ML
         }
 
         /// <summary>
-        /// Load the model and its input schema from the stream.
+        /// Load the model and its input schema from the file.
+        /// </summary>
+        /// <param name="modelPath">Path to model.</param>
+        /// <param name="inputSchema">Will contain the input schema for the model. If the model was saved using older APIs
+        /// it may not contain an input schema, in this case <paramref name="inputSchema"/> will be null.</param>
+        /// <returns>The loaded model.</returns>
+        public ITransformer Load(string modelPath, out DataViewSchema inputSchema)
+        {
+            using (var stream = File.OpenRead(modelPath))
+                return Load(stream, out inputSchema);
+        }
+
+        /// <summary>
+        /// Load the model from the stream.
         /// </summary>
         /// <param name="stream">A readable, seekable stream to load from.</param>
         /// <returns>A model of type <see cref="CompositeDataLoader{IMultiStreamSource, ITransformer}"/> containing the loader
         /// and the transformer chain.</returns>
-        public IDataLoader<IMultiStreamSource> Load(Stream stream)
+        public IDataLoader<IMultiStreamSource> LoadDataLoader(Stream stream)
         {
             _env.CheckValue(stream, nameof(stream));
 
@@ -206,6 +219,18 @@ namespace Microsoft.ML
         }
 
         /// <summary>
+        /// Load the model from the file.
+        /// </summary>
+        /// <param name="modelPath">Path to model.</param>
+        /// <returns>A model of type <see cref="CompositeDataLoader{IMultiStreamSource, ITransformer}"/> containing the loader
+        /// and the transformer chain.</returns>
+        public IDataLoader<IMultiStreamSource> LoadDataLoader(string modelPath)
+        {
+            using (var stream = File.OpenRead(modelPath))
+                return LoadDataLoader(stream);
+        }
+
+        /// <summary>
         /// Load a transformer model and a data loader model from the stream.
         /// </summary>
         /// <param name="stream">A readable, seekable stream to load from.</param>
@@ -215,13 +240,25 @@ namespace Microsoft.ML
         {
             _env.CheckValue(stream, nameof(stream));
 
-            loader = Load(stream);
+            loader = LoadDataLoader(stream);
             if (loader is CompositeDataLoader<IMultiStreamSource, ITransformer> composite)
             {
                 loader = composite.Loader;
                 return composite.Transformer;
             }
             return new TransformerChain<ITransformer>();
+        }
+
+        /// <summary>
+        /// Load a transformer model and a data loader model from the file.
+        /// </summary>
+        /// <param name="modelPath">Path to model.</param>
+        /// <param name="loader">The data loader from the model stream.</param>
+        /// <returns>The transformer model from the model stream.</returns>
+        public ITransformer LoadWithDataLoader(string modelPath, out IDataLoader<IMultiStreamSource> loader)
+        {
+            using (var stream = File.OpenRead(modelPath))
+                return LoadWithDataLoader(stream, out loader);
         }
 
         /// <summary>
