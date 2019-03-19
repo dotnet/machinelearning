@@ -47,7 +47,7 @@ namespace Microsoft.ML.Samples.Dynamic
 
             // Step 4: Evaluate on the test set
             var transformedData = trainedPipeline.Transform(loader.Load(testFile));
-            var evalMetrics = mlContext.BinaryClassification.Evaluate(transformedData, label: "Sentiment");
+            var evalMetrics = mlContext.BinaryClassification.Evaluate(transformedData, labelColumnName: "Sentiment");
             SamplesUtils.ConsoleUtils.PrintMetrics(evalMetrics);
 
             // The Prior trainer outputs the proportion of a label in the dataset as the probability of that label.

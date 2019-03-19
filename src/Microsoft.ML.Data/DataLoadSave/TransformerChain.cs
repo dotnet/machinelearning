@@ -250,54 +250,41 @@ namespace Microsoft.ML.Data
         public static void SaveTo(this ITransformer transformer, IHostEnvironment env, Stream outputStream)
             => new TransformerChain<ITransformer>(transformer).SaveTo(env, outputStream);
 
-        public static TransformerChain<ITransformer> LoadFrom(IHostEnvironment env, Stream stream)
+        public static ITransformer LoadFromLegacy(IHostEnvironment env, Stream stream)
         {
-            using (var rep = RepositoryReader.Open(stream, env))
-            {
-                try
-                {
-                    ModelLoadContext.LoadModel<TransformerChain<ITransformer>, SignatureLoadModel>(env, out var transformerChain, rep, LoaderSignature);
-                    return transformerChain;
-                }
-                catch (FormatException ex)
-                {
-                    if (!ex.IsMarked())
-                        throw;
-                    var chain = ModelFileUtils.LoadPipeline(env, stream, new MultiFileSource(null), extractInnerPipe: false);
-                    TransformerChain<ITransformer> transformChain = (chain as LegacyCompositeDataLoader).GetTransformer();
-                    var predictor = ModelFileUtils.LoadPredictorOrNull(env, stream);
-                    if (predictor == null)
-                        return transformChain;
-                    var roles = ModelFileUtils.LoadRoleMappingsOrNull(env, stream);
-                    env.CheckDecode(roles != null, "Predictor model must contain role mappings");
-                    var roleMappings = roles.ToArray();
+            var chain = ModelFileUtils.LoadPipeline(env, stream, new MultiFileSource(null), extractInnerPipe: false);
+            TransformerChain<ITransformer> transformChain = (chain as LegacyCompositeDataLoader).GetTransformer();
+            var predictor = ModelFileUtils.LoadPredictorOrNull(env, stream);
+            if (predictor == null)
+                return transformChain;
+            var roles = ModelFileUtils.LoadRoleMappingsOrNull(env, stream);
+            env.CheckDecode(roles != null, "Predictor model must contain role mappings");
+            var roleMappings = roles.ToArray();
 
-                    ITransformer pred = null;
-                    if (predictor.PredictionKind == PredictionKind.BinaryClassification)
-                        pred = new BinaryPredictionTransformer<IPredictorProducing<float>>(env, predictor as IPredictorProducing<float>, chain.Schema,
-                            roles.Where(x => x.Key.Value == RoleMappedSchema.ColumnRole.Feature.Value).First().Value);
-                    else if (predictor.PredictionKind == PredictionKind.MulticlassClassification)
-                        pred = new MulticlassPredictionTransformer<IPredictorProducing<VBuffer<float>>>(env,
-                            predictor as IPredictorProducing<VBuffer<float>>, chain.Schema,
-                            roles.Where(x => x.Key.Value == RoleMappedSchema.ColumnRole.Feature.Value).First().Value,
-                            roles.Where(x => x.Key.Value == RoleMappedSchema.ColumnRole.Label.Value).First().Value);
-                    else if (predictor.PredictionKind == PredictionKind.Clustering)
-                        pred = new ClusteringPredictionTransformer<IPredictorProducing<VBuffer<float>>>(env, predictor as IPredictorProducing<VBuffer<float>>, chain.Schema,
-                            roles.Where(x => x.Key.Value == RoleMappedSchema.ColumnRole.Feature.Value).First().Value);
-                    else if (predictor.PredictionKind == PredictionKind.Regression)
-                        pred = new RegressionPredictionTransformer<IPredictorProducing<float>>(env, predictor as IPredictorProducing<float>, chain.Schema,
-                            roles.Where(x => x.Key.Value == RoleMappedSchema.ColumnRole.Feature.Value).First().Value);
-                    else if (predictor.PredictionKind == PredictionKind.AnomalyDetection)
-                        pred = new AnomalyPredictionTransformer<IPredictorProducing<float>>(env, predictor as IPredictorProducing<float>, chain.Schema,
-                            roles.Where(x => x.Key.Value == RoleMappedSchema.ColumnRole.Feature.Value).First().Value);
-                    else if (predictor.PredictionKind == PredictionKind.Ranking)
-                        pred = new RankingPredictionTransformer<IPredictorProducing<float>>(env, predictor as IPredictorProducing<float>, chain.Schema,
-                            roles.Where(x => x.Key.Value == RoleMappedSchema.ColumnRole.Feature.Value).First().Value);
-                    else
-                        throw env.Except("Don't know how to map prediction kind {0}", predictor.PredictionKind);
-                    return transformChain.Append(pred);
-                }
-            }
+            ITransformer pred = null;
+            if (predictor.PredictionKind == PredictionKind.BinaryClassification)
+                pred = new BinaryPredictionTransformer<IPredictorProducing<float>>(env, predictor as IPredictorProducing<float>, chain.Schema,
+                    roles.Where(x => x.Key.Value == RoleMappedSchema.ColumnRole.Feature.Value).First().Value);
+            else if (predictor.PredictionKind == PredictionKind.MulticlassClassification)
+                pred = new MulticlassPredictionTransformer<IPredictorProducing<VBuffer<float>>>(env,
+                    predictor as IPredictorProducing<VBuffer<float>>, chain.Schema,
+                    roles.Where(x => x.Key.Value == RoleMappedSchema.ColumnRole.Feature.Value).First().Value,
+                    roles.Where(x => x.Key.Value == RoleMappedSchema.ColumnRole.Label.Value).First().Value);
+            else if (predictor.PredictionKind == PredictionKind.Clustering)
+                pred = new ClusteringPredictionTransformer<IPredictorProducing<VBuffer<float>>>(env, predictor as IPredictorProducing<VBuffer<float>>, chain.Schema,
+                    roles.Where(x => x.Key.Value == RoleMappedSchema.ColumnRole.Feature.Value).First().Value);
+            else if (predictor.PredictionKind == PredictionKind.Regression)
+                pred = new RegressionPredictionTransformer<IPredictorProducing<float>>(env, predictor as IPredictorProducing<float>, chain.Schema,
+                    roles.Where(x => x.Key.Value == RoleMappedSchema.ColumnRole.Feature.Value).First().Value);
+            else if (predictor.PredictionKind == PredictionKind.AnomalyDetection)
+                pred = new AnomalyPredictionTransformer<IPredictorProducing<float>>(env, predictor as IPredictorProducing<float>, chain.Schema,
+                    roles.Where(x => x.Key.Value == RoleMappedSchema.ColumnRole.Feature.Value).First().Value);
+            else if (predictor.PredictionKind == PredictionKind.Ranking)
+                pred = new RankingPredictionTransformer<IPredictorProducing<float>>(env, predictor as IPredictorProducing<float>, chain.Schema,
+                    roles.Where(x => x.Key.Value == RoleMappedSchema.ColumnRole.Feature.Value).First().Value);
+            else
+                throw env.Except("Don't know how to map prediction kind {0}", predictor.PredictionKind);
+            return transformChain.Append(pred);
         }
     }
 }

@@ -12227,7 +12227,7 @@
             "Kind": "Array",
             "ItemType": "Int"
           },
-          "Desc": "Comma seperated list of gains associated to each relevance label.",
+          "Desc": "An array of gains associated to each relevance label.",
           "Aliases": [
             "gains"
           ],
@@ -22280,16 +22280,19 @@
           "Default": "English"
         },
         {
-          "Name": "UsePredefinedStopWordRemover",
-          "Type": "Bool",
-          "Desc": "Use stop remover or not.",
+          "Name": "StopWordsRemover",
+          "Type": {
+            "Kind": "Component",
+            "ComponentKind": "StopWordsRemover"
+          },
+          "Desc": "Stopwords remover.",
           "Aliases": [
             "remover"
           ],
           "Required": false,
           "SortOrder": 4.0,
           "IsNullable": false,
-          "Default": false
+          "Default": null
         },
         {
           "Name": "TextCase",
@@ -22347,9 +22350,9 @@
           "Default": true
         },
         {
-          "Name": "OutputTokens",
-          "Type": "Bool",
-          "Desc": "Whether to output the transformed text tokens as an additional column.",
+          "Name": "OutputTokensColumnName",
+          "Type": "String",
+          "Desc": "Column containing the transformed text tokens.",
           "Aliases": [
             "tokens",
             "showtext",
@@ -22358,7 +22361,7 @@
           "Required": false,
           "SortOrder": 9.0,
           "IsNullable": false,
-          "Default": false
+          "Default": null
         },
         {
           "Name": "Dictionary",

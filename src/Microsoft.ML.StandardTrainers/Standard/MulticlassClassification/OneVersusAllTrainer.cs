@@ -130,16 +130,16 @@ namespace Microsoft.ML.Trainers
 
                 // REVIEW: restoring the RoleMappedData, as much as we can.
                 // not having the weight column on the data passed to the TrainCalibrator should be addressed.
-                var trainedData = new RoleMappedData(view, label: trainerLabel, feature: transformer.FeatureColumn);
+                var trainedData = new RoleMappedData(view, label: trainerLabel, feature: transformer.FeatureColumnName);
 
                 if (calibratedModel == null)
                     calibratedModel = CalibratorUtils.GetCalibratedPredictor(Host, ch, Calibrator, transformer.Model, trainedData, Args.MaxCalibrationExamples) as TDistPredictor;
 
                 Host.Check(calibratedModel != null, "Calibrated predictor does not implement the expected interface");
-                return new BinaryPredictionTransformer<TScalarPredictor>(Host, calibratedModel, trainedData.Data.Schema, transformer.FeatureColumn);
+                return new BinaryPredictionTransformer<TScalarPredictor>(Host, calibratedModel, trainedData.Data.Schema, transformer.FeatureColumnName);
             }
 
-            return new BinaryPredictionTransformer<TScalarPredictor>(Host, transformer.Model, view.Schema, transformer.FeatureColumn);
+            return new BinaryPredictionTransformer<TScalarPredictor>(Host, transformer.Model, view.Schema, transformer.FeatureColumnName);
         }
 
         private IDataView MapLabels(RoleMappedData data, int cls)
@@ -181,7 +181,7 @@ namespace Microsoft.ML.Trainers
                     if (i == 0)
                     {
                         var transformer = TrainOne(ch, Trainer, td, i);
-                        featureColumn = transformer.FeatureColumn;
+                        featureColumn = transformer.FeatureColumnName;
                     }
 
                     predictors[i] = TrainOne(ch, Trainer, td, i).Model;

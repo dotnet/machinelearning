@@ -13,20 +13,20 @@ using Microsoft.ML.Model;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Trainers;
 
-[assembly: LoadableClass(NaiveBayesTrainer.Summary, typeof(NaiveBayesTrainer), typeof(NaiveBayesTrainer.Options),
+[assembly: LoadableClass(NaiveBayesMulticlassTrainer.Summary, typeof(NaiveBayesMulticlassTrainer), typeof(NaiveBayesMulticlassTrainer.Options),
     new[] { typeof(SignatureMulticlassClassifierTrainer), typeof(SignatureTrainer) },
-    NaiveBayesTrainer.UserName,
-    NaiveBayesTrainer.LoadName,
-    NaiveBayesTrainer.ShortName, DocName = "trainer/NaiveBayes.md")]
+    NaiveBayesMulticlassTrainer.UserName,
+    NaiveBayesMulticlassTrainer.LoadName,
+    NaiveBayesMulticlassTrainer.ShortName, DocName = "trainer/NaiveBayes.md")]
 
-[assembly: LoadableClass(typeof(MulticlassNaiveBayesModelParameters), null, typeof(SignatureLoadModel),
-    "Multi Class Naive Bayes predictor", MulticlassNaiveBayesModelParameters.LoaderSignature)]
+[assembly: LoadableClass(typeof(NaiveBayesMulticlassModelParameters), null, typeof(SignatureLoadModel),
+    "Multi Class Naive Bayes predictor", NaiveBayesMulticlassModelParameters.LoaderSignature)]
 
-[assembly: LoadableClass(typeof(void), typeof(NaiveBayesTrainer), null, typeof(SignatureEntryPointModule), NaiveBayesTrainer.LoadName)]
+[assembly: LoadableClass(typeof(void), typeof(NaiveBayesMulticlassTrainer), null, typeof(SignatureEntryPointModule), NaiveBayesMulticlassTrainer.LoadName)]
 
 namespace Microsoft.ML.Trainers
 {
-    public sealed class NaiveBayesTrainer : TrainerEstimatorBase<MulticlassPredictionTransformer<MulticlassNaiveBayesModelParameters>, MulticlassNaiveBayesModelParameters>
+    public sealed class NaiveBayesMulticlassTrainer : TrainerEstimatorBase<MulticlassPredictionTransformer<NaiveBayesMulticlassModelParameters>, NaiveBayesMulticlassModelParameters>
     {
         internal const string LoadName = "MultiClassNaiveBayes";
         internal const string UserName = "Multiclass Naive Bayes";
@@ -49,12 +49,12 @@ namespace Microsoft.ML.Trainers
         public override TrainerInfo Info => _info;
 
         /// <summary>
-        /// Initializes a new instance of <see cref="NaiveBayesTrainer"/>
+        /// Initializes a new instance of <see cref="NaiveBayesMulticlassTrainer"/>
         /// </summary>
         /// <param name="env">The environment to use.</param>
         /// <param name="labelColumn">The name of the label column.</param>
         /// <param name="featureColumn">The name of the feature column.</param>
-        internal NaiveBayesTrainer(IHostEnvironment env,
+        internal NaiveBayesMulticlassTrainer(IHostEnvironment env,
             string labelColumn = DefaultColumnNames.Label,
             string featureColumn = DefaultColumnNames.Features)
             : base(Contracts.CheckRef(env, nameof(env)).Register(LoadName), TrainerUtils.MakeR4VecFeature(featureColumn),
@@ -65,9 +65,9 @@ namespace Microsoft.ML.Trainers
         }
 
         /// <summary>
-        /// Initializes a new instance of <see cref="NaiveBayesTrainer"/>
+        /// Initializes a new instance of <see cref="NaiveBayesMulticlassTrainer"/>
         /// </summary>
-        internal NaiveBayesTrainer(IHostEnvironment env, Options options)
+        internal NaiveBayesMulticlassTrainer(IHostEnvironment env, Options options)
             : base(Contracts.CheckRef(env, nameof(env)).Register(LoadName), TrainerUtils.MakeR4VecFeature(options.FeatureColumnName),
                   TrainerUtils.MakeU4ScalarColumn(options.LabelColumnName))
         {
@@ -89,10 +89,10 @@ namespace Microsoft.ML.Trainers
             };
         }
 
-        private protected override MulticlassPredictionTransformer<MulticlassNaiveBayesModelParameters> MakeTransformer(MulticlassNaiveBayesModelParameters model, DataViewSchema trainSchema)
-            => new MulticlassPredictionTransformer<MulticlassNaiveBayesModelParameters>(Host, model, trainSchema, FeatureColumn.Name, LabelColumn.Name);
+        private protected override MulticlassPredictionTransformer<NaiveBayesMulticlassModelParameters> MakeTransformer(NaiveBayesMulticlassModelParameters model, DataViewSchema trainSchema)
+            => new MulticlassPredictionTransformer<NaiveBayesMulticlassModelParameters>(Host, model, trainSchema, FeatureColumn.Name, LabelColumn.Name);
 
-        private protected override MulticlassNaiveBayesModelParameters TrainModelCore(TrainContext context)
+        private protected override NaiveBayesMulticlassModelParameters TrainModelCore(TrainContext context)
         {
             Host.CheckValue(context, nameof(context));
             var data = context.TrainingSet;
@@ -160,7 +160,7 @@ namespace Microsoft.ML.Trainers
 
             Array.Resize(ref labelHistogram, labelCount);
             Array.Resize(ref featureHistogram, labelCount);
-            return new MulticlassNaiveBayesModelParameters(Host, labelHistogram, featureHistogram, featureCount);
+            return new NaiveBayesMulticlassModelParameters(Host, labelHistogram, featureHistogram, featureCount);
         }
 
         [TlcModule.EntryPoint(Name = "Trainers.NaiveBayesClassifier",
@@ -175,12 +175,12 @@ namespace Microsoft.ML.Trainers
             EntryPointUtils.CheckInputArgs(host, input);
 
             return TrainerEntryPointsUtils.Train<Options, CommonOutputs.MulticlassClassificationOutput>(host, input,
-                () => new NaiveBayesTrainer(host, input),
+                () => new NaiveBayesMulticlassTrainer(host, input),
                 () => TrainerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.LabelColumnName));
         }
     }
 
-    public sealed class MulticlassNaiveBayesModelParameters :
+    public sealed class NaiveBayesMulticlassModelParameters :
         ModelParametersBase<VBuffer<float>>,
         IValueMapper
     {
@@ -193,7 +193,7 @@ namespace Microsoft.ML.Trainers
                 verReadableCur: 0x00010001,
                 verWeCanReadBack: 0x00010001,
                 loaderSignature: LoaderSignature,
-                loaderAssemblyName: typeof(MulticlassNaiveBayesModelParameters).Assembly.FullName);
+                loaderAssemblyName: typeof(NaiveBayesMulticlassModelParameters).Assembly.FullName);
         }
 
         private readonly int[] _labelHistogram;
@@ -229,7 +229,7 @@ namespace Microsoft.ML.Trainers
         /// <param name="labelHistogram">The histogram of labels.</param>
         /// <param name="featureHistogram">The feature histogram.</param>
         /// <param name="featureCount">The number of features.</param>
-        internal MulticlassNaiveBayesModelParameters(IHostEnvironment env, int[] labelHistogram, int[][] featureHistogram, int featureCount)
+        internal NaiveBayesMulticlassModelParameters(IHostEnvironment env, int[] labelHistogram, int[][] featureHistogram, int featureCount)
             : base(env, LoaderSignature)
         {
             Host.AssertValue(labelHistogram);
@@ -246,7 +246,7 @@ namespace Microsoft.ML.Trainers
             _outputType = new VectorType(NumberDataViewType.Single, _labelCount);
         }
 
-        private MulticlassNaiveBayesModelParameters(IHostEnvironment env, ModelLoadContext ctx)
+        private NaiveBayesMulticlassModelParameters(IHostEnvironment env, ModelLoadContext ctx)
             : base(env, LoaderSignature, ctx)
         {
             // *** Binary format ***
@@ -280,12 +280,12 @@ namespace Microsoft.ML.Trainers
             _outputType = new VectorType(NumberDataViewType.Single, _labelCount);
         }
 
-        private static MulticlassNaiveBayesModelParameters Create(IHostEnvironment env, ModelLoadContext ctx)
+        private static NaiveBayesMulticlassModelParameters Create(IHostEnvironment env, ModelLoadContext ctx)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(ctx, nameof(ctx));
             ctx.CheckAtModel(GetVersionInfo());
-            return new MulticlassNaiveBayesModelParameters(env, ctx);
+            return new NaiveBayesMulticlassModelParameters(env, ctx);
         }
 
         private protected override void SaveCore(ModelSaveContext ctx)

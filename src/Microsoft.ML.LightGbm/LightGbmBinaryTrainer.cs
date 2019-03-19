@@ -13,9 +13,9 @@ using Microsoft.ML.Runtime;
 using Microsoft.ML.Trainers.FastTree;
 using Microsoft.ML.Trainers.LightGbm;
 
-[assembly: LoadableClass(LightGbmBinaryClassificationTrainer.Summary, typeof(LightGbmBinaryClassificationTrainer), typeof(LightGbmBinaryClassificationTrainer.Options),
+[assembly: LoadableClass(LightGbmBinaryTrainer.Summary, typeof(LightGbmBinaryTrainer), typeof(LightGbmBinaryTrainer.Options),
     new[] { typeof(SignatureBinaryClassifierTrainer), typeof(SignatureTrainer), typeof(SignatureTreeEnsembleTrainer) },
-    LightGbmBinaryClassificationTrainer.UserName, LightGbmBinaryClassificationTrainer.LoadNameValue, LightGbmBinaryClassificationTrainer.ShortName, DocName = "trainer/LightGBM.md")]
+    LightGbmBinaryTrainer.UserName, LightGbmBinaryTrainer.LoadNameValue, LightGbmBinaryTrainer.ShortName, DocName = "trainer/LightGBM.md")]
 
 [assembly: LoadableClass(typeof(IPredictorProducing<float>), typeof(LightGbmBinaryModelParameters), null, typeof(SignatureLoadModel),
     "LightGBM Binary Executor",
@@ -85,7 +85,7 @@ namespace Microsoft.ML.Trainers.LightGbm
     /// The <see cref="IEstimator{TTransformer}"/> for training a boosted decision tree binary classification model using LightGBM.
     /// </summary>
     /// <include file='doc.xml' path='doc/members/member[@name="LightGBM_remarks"]/*' />
-    public sealed class LightGbmBinaryClassificationTrainer : LightGbmTrainerBase<LightGbmBinaryClassificationTrainer.Options, float,
+    public sealed class LightGbmBinaryTrainer : LightGbmTrainerBase<LightGbmBinaryTrainer.Options, float,
         BinaryPredictionTransformer<CalibratedModelParametersBase<LightGbmBinaryModelParameters, PlattCalibrator>>,
         CalibratedModelParametersBase<LightGbmBinaryModelParameters, PlattCalibrator>>
     {
@@ -115,7 +115,7 @@ namespace Microsoft.ML.Trainers.LightGbm
             public bool UnbalancedSets = false;
 
             /// <summary>
-            /// Controls the balance of positive and negative weights in <see cref="LightGbmBinaryClassificationTrainer"/>.
+            /// Controls the balance of positive and negative weights in <see cref="LightGbmBinaryTrainer"/>.
             /// </summary>
             /// <value>
             /// This is useful for training on unbalanced data. A typical value to consider is sum(negative cases) / sum(positive cases).
@@ -164,7 +164,7 @@ namespace Microsoft.ML.Trainers.LightGbm
             }
         }
 
-        internal LightGbmBinaryClassificationTrainer(IHostEnvironment env, Options options)
+        internal LightGbmBinaryTrainer(IHostEnvironment env, Options options)
              : base(env, LoadNameValue, options, TrainerUtils.MakeBoolScalarLabel(options.LabelColumnName))
         {
             Contracts.CheckUserArg(options.Sigmoid > 0, nameof(Options.Sigmoid), "must be > 0.");
@@ -172,7 +172,7 @@ namespace Microsoft.ML.Trainers.LightGbm
         }
 
         /// <summary>
-        /// Initializes a new instance of <see cref="LightGbmBinaryClassificationTrainer"/>
+        /// Initializes a new instance of <see cref="LightGbmBinaryTrainer"/>
         /// </summary>
         /// <param name="env">The private instance of <see cref="IHostEnvironment"/>.</param>
         /// <param name="labelColumnName">The name of The label column.</param>
@@ -182,7 +182,7 @@ namespace Microsoft.ML.Trainers.LightGbm
         /// <param name="minimumExampleCountPerLeaf">The minimal number of data points allowed in a leaf of the tree, out of the subsampled data.</param>
         /// <param name="learningRate">The learning rate.</param>
         /// <param name="numberOfIterations">Number of iterations.</param>
-        internal LightGbmBinaryClassificationTrainer(IHostEnvironment env,
+        internal LightGbmBinaryTrainer(IHostEnvironment env,
             string labelColumnName = DefaultColumnNames.Label,
             string featureColumnName = DefaultColumnNames.Features,
             string exampleWeightColumnName = null,
@@ -243,7 +243,7 @@ namespace Microsoft.ML.Trainers.LightGbm
          => new BinaryPredictionTransformer<CalibratedModelParametersBase<LightGbmBinaryModelParameters, PlattCalibrator>>(Host, model, trainSchema, FeatureColumn.Name);
 
         /// <summary>
-        /// Trains a <see cref="LightGbmBinaryClassificationTrainer"/> using both training and validation data, returns
+        /// Trains a <see cref="LightGbmBinaryTrainer"/> using both training and validation data, returns
         /// a <see cref="BinaryPredictionTransformer{CalibratedModelParametersBase}"/>.
         /// </summary>
         public BinaryPredictionTransformer<CalibratedModelParametersBase<LightGbmBinaryModelParameters, PlattCalibrator>> Fit(IDataView trainData, IDataView validationData)
@@ -257,18 +257,18 @@ namespace Microsoft.ML.Trainers.LightGbm
     {
         [TlcModule.EntryPoint(
             Name = "Trainers.LightGbmBinaryClassifier",
-            Desc = LightGbmBinaryClassificationTrainer.Summary,
-            UserName = LightGbmBinaryClassificationTrainer.UserName,
-            ShortName = LightGbmBinaryClassificationTrainer.ShortName)]
-        public static CommonOutputs.BinaryClassificationOutput TrainBinary(IHostEnvironment env, LightGbmBinaryClassificationTrainer.Options input)
+            Desc = LightGbmBinaryTrainer.Summary,
+            UserName = LightGbmBinaryTrainer.UserName,
+            ShortName = LightGbmBinaryTrainer.ShortName)]
+        public static CommonOutputs.BinaryClassificationOutput TrainBinary(IHostEnvironment env, LightGbmBinaryTrainer.Options input)
         {
             Contracts.CheckValue(env, nameof(env));
             var host = env.Register("TrainLightGBM");
             host.CheckValue(input, nameof(input));
             EntryPointUtils.CheckInputArgs(host, input);
 
-            return TrainerEntryPointsUtils.Train<LightGbmBinaryClassificationTrainer.Options, CommonOutputs.BinaryClassificationOutput>(host, input,
-                () => new LightGbmBinaryClassificationTrainer(host, input),
+            return TrainerEntryPointsUtils.Train<LightGbmBinaryTrainer.Options, CommonOutputs.BinaryClassificationOutput>(host, input,
+                () => new LightGbmBinaryTrainer(host, input),
                 getLabel: () => TrainerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.LabelColumnName),
                 getWeight: () => TrainerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.ExampleWeightColumnName));
         }

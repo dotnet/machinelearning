@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <!-- We are turning off strong naming to ensure we never add `InternalsVisibleTo` for these tests -->
-    <SignAssembly>false</SignAssembly>
+    <SignAssembly>true</SignAssembly>
     <PublicSign>false</PublicSign>
   </PropertyGroup>
 

@@ -51,7 +51,7 @@ namespace Microsoft.ML.Samples.Dynamic.Trainers.Regression
 
             // Evaluate how the model is doing on the test data.
             var dataWithPredictions = model.Transform(split.TestSet);
-            var metrics = mlContext.Regression.Evaluate(dataWithPredictions, label: labelName);
+            var metrics = mlContext.Regression.Evaluate(dataWithPredictions, labelColumnName: labelName);
             SamplesUtils.ConsoleUtils.PrintMetrics(metrics);
 
             // Expected output

@@ -9,7 +9,7 @@ using Microsoft.ML.Internal.Internallearn;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Trainers.FastTree;
 
-[assembly: EntryPointModule(typeof(FastTreeBinaryClassificationTrainer.Options))]
+[assembly: EntryPointModule(typeof(FastTreeBinaryTrainer.Options))]
 [assembly: EntryPointModule(typeof(FastTreeRegressionTrainer.Options))]
 [assembly: EntryPointModule(typeof(FastTreeTweedieTrainer.Options))]
 [assembly: EntryPointModule(typeof(FastTreeRankingTrainer.Options))]
@@ -52,10 +52,10 @@ namespace Microsoft.ML.Trainers.FastTree
     }
 
     // XML docs are provided in the other part of this partial class. No need to duplicate the content here.
-    public sealed partial class FastTreeBinaryClassificationTrainer
+    public sealed partial class FastTreeBinaryTrainer
     {
         /// <summary>
-        /// Options for the <see cref="FastTreeBinaryClassificationTrainer"/>.
+        /// Options for the <see cref="FastTreeBinaryTrainer"/>.
         /// </summary>
         [TlcModule.Component(Name = LoadNameValue, FriendlyName = UserNameValue, Desc = Summary)]
         public sealed class Options : BoostedTreeOptions, IFastTreeTrainerFactory
@@ -102,7 +102,7 @@ namespace Microsoft.ML.Trainers.FastTree
                 EarlyStoppingMetric = EarlyStoppingMetric.L1Norm;
             }
 
-            ITrainer IComponentFactory<ITrainer>.CreateComponent(IHostEnvironment env) => new FastTreeBinaryClassificationTrainer(env, this);
+            ITrainer IComponentFactory<ITrainer>.CreateComponent(IHostEnvironment env) => new FastTreeBinaryTrainer(env, this);
         }
     }
 

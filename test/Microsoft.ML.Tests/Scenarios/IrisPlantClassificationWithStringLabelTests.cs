@@ -38,14 +38,14 @@ namespace Microsoft.ML.Scenarios
                 .Append(mlContext.Transforms.Conversion.MapValueToKey("Label", "IrisPlantType"), TransformerScope.TrainTest)
                 .AppendCacheCheckpoint(mlContext)
                 .Append(mlContext.MulticlassClassification.Trainers.Sdca(
-                    new SdcaMulticlassClassificationTrainer.Options { NumberOfThreads = 1 }))
+                    new SdcaMulticlassTrainer.Options { NumberOfThreads = 1 }))
                 .Append(mlContext.Transforms.Conversion.MapKeyToValue(("Plant", "PredictedLabel")));
 
             // Train the pipeline
             var trainedModel = pipe.Fit(trainData);
 
             // Make predictions
-            var predictFunction = trainedModel.CreatePredictionEngine<IrisDataWithStringLabel, IrisPredictionWithStringLabel>(mlContext);
+            var predictFunction = mlContext.Model.CreatePredictionEngine<IrisDataWithStringLabel, IrisPredictionWithStringLabel>(trainedModel);
             IrisPredictionWithStringLabel prediction = predictFunction.Predict(new IrisDataWithStringLabel()
             {
                 SepalLength = 5.1f,

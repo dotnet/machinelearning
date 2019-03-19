@@ -23,8 +23,8 @@ using Microsoft.ML.Trainers;
     RandomizedPcaTrainer.LoadNameValue,
     RandomizedPcaTrainer.ShortName)]
 
-[assembly: LoadableClass(typeof(PrincipleComponentModelParameters), null, typeof(SignatureLoadModel),
-    "PCA Anomaly Executor", PrincipleComponentModelParameters.LoaderSignature)]
+[assembly: LoadableClass(typeof(PcaModelParameters), null, typeof(SignatureLoadModel),
+    "PCA Anomaly Executor", PcaModelParameters.LoaderSignature)]
 
 [assembly: LoadableClass(typeof(void), typeof(RandomizedPcaTrainer), null, typeof(SignatureEntryPointModule), RandomizedPcaTrainer.LoadNameValue)]
 
@@ -39,7 +39,7 @@ namespace Microsoft.ML.Trainers
     /// <remarks>
     /// This PCA can be made into Kernel PCA by using Random Fourier Features transform
     /// </remarks>
-    public sealed class RandomizedPcaTrainer : TrainerEstimatorBase<AnomalyPredictionTransformer<PrincipleComponentModelParameters>, PrincipleComponentModelParameters>
+    public sealed class RandomizedPcaTrainer : TrainerEstimatorBase<AnomalyPredictionTransformer<PcaModelParameters>, PcaModelParameters>
     {
         internal const string LoadNameValue = "pcaAnomaly";
         internal const string UserNameValue = "PCA Anomaly Detector";
@@ -139,7 +139,7 @@ namespace Microsoft.ML.Trainers
 
         }
 
-        private protected override PrincipleComponentModelParameters TrainModelCore(TrainContext context)
+        private protected override PcaModelParameters TrainModelCore(TrainContext context)
         {
             Host.CheckValue(context, nameof(context));
 
@@ -164,7 +164,7 @@ namespace Microsoft.ML.Trainers
         }
 
         //Note: the notations used here are the same as in https://web.stanford.edu/group/mmds/slides2010/Martinsson.pdf (pg. 9)
-        private PrincipleComponentModelParameters TrainCore(IChannel ch, RoleMappedData data, int dimension)
+        private PcaModelParameters TrainCore(IChannel ch, RoleMappedData data, int dimension)
         {
             Host.AssertValue(ch);
             ch.AssertValue(data);
@@ -222,7 +222,7 @@ namespace Microsoft.ML.Trainers
             EigenUtils.EigenDecomposition(b2, out smallEigenvalues, out smallEigenvectors);
             PostProcess(b, smallEigenvalues, smallEigenvectors, dimension, oversampledRank);
 
-            return new PrincipleComponentModelParameters(Host, _rank, b, in mean);
+            return new PcaModelParameters(Host, _rank, b, in mean);
         }
 
         private static float[][] Zeros(int k, int d)
@@ -343,8 +343,8 @@ namespace Microsoft.ML.Trainers
             };
         }
 
-        private protected override AnomalyPredictionTransformer<PrincipleComponentModelParameters> MakeTransformer(PrincipleComponentModelParameters model, DataViewSchema trainSchema)
-            => new AnomalyPredictionTransformer<PrincipleComponentModelParameters>(Host, model, trainSchema, _featureColumn);
+        private protected override AnomalyPredictionTransformer<PcaModelParameters> MakeTransformer(PcaModelParameters model, DataViewSchema trainSchema)
+            => new AnomalyPredictionTransformer<PcaModelParameters>(Host, model, trainSchema, _featureColumn);
 
         [TlcModule.EntryPoint(Name = "Trainers.PcaAnomalyDetector",
             Desc = "Train an PCA Anomaly model.",
@@ -370,7 +370,7 @@ namespace Microsoft.ML.Trainers
     // REVIEW: move the predictor to a different file and fold EigenUtils.cs to this file.
     // REVIEW: Include the above detail in the XML documentation file.
     /// <include file='doc.xml' path='doc/members/member[@name="PCA"]/*' />
-    public sealed class PrincipleComponentModelParameters : ModelParametersBase<float>,
+    public sealed class PcaModelParameters : ModelParametersBase<float>,
         IValueMapper,
         ICanGetSummaryAsIDataView,
         ICanSaveInTextFormat,
@@ -387,7 +387,7 @@ namespace Microsoft.ML.Trainers
                 verReadableCur: 0x00010001,
                 verWeCanReadBack: 0x00010001,
                 loaderSignature: LoaderSignature,
-                loaderAssemblyName: typeof(PrincipleComponentModelParameters).Assembly.FullName);
+                loaderAssemblyName: typeof(PcaModelParameters).Assembly.FullName);
         }
 
         private readonly int _dimension;
@@ -408,7 +408,7 @@ namespace Microsoft.ML.Trainers
         /// <param name="rank">The rank of the PCA approximation of the covariance matrix. This is the number of eigenvectors in the model.</param>
         /// <param name="eigenVectors">Array of eigenvectors.</param>
         /// <param name="mean">The mean vector of the training data.</param>
-        internal PrincipleComponentModelParameters(IHostEnvironment env, int rank, float[][] eigenVectors, in VBuffer<float> mean)
+        internal PcaModelParameters(IHostEnvironment env, int rank, float[][] eigenVectors, in VBuffer<float> mean)
             : base(env, RegistrationName)
         {
             _dimension = eigenVectors[0].Length;
@@ -428,7 +428,7 @@ namespace Microsoft.ML.Trainers
             _inputType = new VectorType(NumberDataViewType.Single, _dimension);
         }
 
-        private PrincipleComponentModelParameters(IHostEnvironment env, ModelLoadContext ctx)
+        private PcaModelParameters(IHostEnvironment env, ModelLoadContext ctx)
             : base(env, RegistrationName, ctx)
         {
             // *** Binary format ***
@@ -500,12 +500,12 @@ namespace Microsoft.ML.Trainers
                 writer.WriteSinglesNoCount(_eigenVectors[i].GetValues().Slice(0, _dimension));
         }
 
-        private static PrincipleComponentModelParameters Create(IHostEnvironment env, ModelLoadContext ctx)
+        private static PcaModelParameters Create(IHostEnvironment env, ModelLoadContext ctx)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(ctx, nameof(ctx));
             ctx.CheckAtModel(GetVersionInfo());
-            return new PrincipleComponentModelParameters(env, ctx);
+            return new PcaModelParameters(env, ctx);
         }
 
         void ICanSaveSummary.SaveSummary(TextWriter writer, RoleMappedSchema schema)
