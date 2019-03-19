@@ -666,7 +666,7 @@ namespace Microsoft.ML.Data
                         continue;
                     }
 
-                    VectorType vectorType = info.ColType as VectorType;
+                    VectorDataViewType vectorType = info.ColType as VectorDataViewType;
                     if (vectorType?.ItemType is KeyDataViewType vectorKeyType)
                     {
                         _creator[i] = cache.GetCreatorVec(vectorKeyType);
@@ -1273,7 +1273,7 @@ namespace Microsoft.ML.Data
                     var v = rows.Pipes[iinfo];
                     Contracts.Assert(v != null);
 
-                    if (!(info.ColType is VectorType))
+                    if (!(info.ColType is VectorDataViewType))
                         ProcessOne(fields, info, v, irow, line);
                     else
                         ProcessVec(srcLim, fields, info, v, irow, line);
@@ -1283,7 +1283,7 @@ namespace Microsoft.ML.Data
             private void ProcessVec(int srcLim, FieldSet fields, ColInfo info, ColumnPipe v, int irow, long line)
             {
                 Contracts.Assert(srcLim >= 0);
-                Contracts.Assert(info.ColType is VectorType);
+                Contracts.Assert(info.ColType is VectorDataViewType);
                 Contracts.Assert(info.SizeBase > 0 || info.IsegVariable >= 0);
 
                 int sizeVar = 0;
@@ -1339,7 +1339,7 @@ namespace Microsoft.ML.Data
 
             private void ProcessOne(FieldSet vs, ColInfo info, ColumnPipe v, int irow, long line)
             {
-                Contracts.Assert(!(info.ColType is VectorType));
+                Contracts.Assert(!(info.ColType is VectorDataViewType));
                 Contracts.Assert(Utils.Size(info.Segments) == 1);
                 Contracts.Assert(info.Segments[0].Lim == info.Segments[0].Min + 1);
 

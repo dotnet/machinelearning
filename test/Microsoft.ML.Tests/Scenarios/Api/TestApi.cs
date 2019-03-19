@@ -235,7 +235,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
 
             Assert.True(idv.Schema[1].Annotations.Schema.Count == 3);
             Assert.True(idv.Schema[1].Annotations.Schema[0].Name == kindStringArray);
-            Assert.True(idv.Schema[1].Annotations.Schema[0].Type is VectorType vectorType && vectorType.ItemType is TextDataViewType);
+            Assert.True(idv.Schema[1].Annotations.Schema[0].Type is VectorDataViewType vectorType && vectorType.ItemType is TextDataViewType);
             Assert.Throws<ArgumentOutOfRangeException>(() => idv.Schema[1].Annotations.Schema[kindFloat]);
 
             float retrievedFloat = 0;

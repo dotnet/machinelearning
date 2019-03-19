@@ -2854,7 +2854,7 @@ namespace Microsoft.ML.Trainers.FastTree
             MaxSplitFeatIdx = trainedEnsemble.GetMaxFeatureIndex();
             Contracts.Assert(NumFeatures > MaxSplitFeatIdx);
 
-            InputType = new VectorType(NumberDataViewType.Single, NumFeatures);
+            InputType = new VectorDataViewType(NumberDataViewType.Single, NumFeatures);
             OutputType = NumberDataViewType.Single;
         }
 
@@ -2892,7 +2892,7 @@ namespace Microsoft.ML.Trainers.FastTree
             // TLC >= 3.0 supposed to be independent of any predictor specific
             // tricks.
 
-            InputType = new VectorType(NumberDataViewType.Single, NumFeatures);
+            InputType = new VectorDataViewType(NumberDataViewType.Single, NumFeatures);
             OutputType = NumberDataViewType.Single;
         }
 
@@ -3279,7 +3279,7 @@ namespace Microsoft.ML.Trainers.FastTree
             var weights = default(VBuffer<Single>);
             ((IHaveFeatureWeights)this).GetFeatureWeights(ref weights);
             var builder = new DataViewSchema.Annotations.Builder();
-            builder.Add<VBuffer<float>>("Gains", new VectorType(NumberDataViewType.Single, NumFeatures), weights.CopyTo, metaBuilder.ToAnnotations());
+            builder.Add<VBuffer<float>>("Gains", new VectorDataViewType(NumberDataViewType.Single, NumFeatures), weights.CopyTo, metaBuilder.ToAnnotations());
 
             return AnnotationUtils.AnnotationsAsRow(builder.ToAnnotations());
         }

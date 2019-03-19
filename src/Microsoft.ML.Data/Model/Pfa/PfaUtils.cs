@@ -158,7 +158,7 @@ namespace Microsoft.ML.Model.Pfa
             public static JToken PfaTypeOrNullForColumnType(DataViewType type)
             {
                 Contracts.CheckValue(type, nameof(type));
-                if (type is VectorType vectorType)
+                if (type is VectorDataViewType vectorType)
                 {
                     // We represent vectors as the union of array (for dense) and map (for sparse),
                     // of the appropriate item type.

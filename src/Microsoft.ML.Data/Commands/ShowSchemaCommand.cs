@@ -194,7 +194,7 @@ namespace Microsoft.ML.Data
                     itw.Write("Metadata '{0}': {1}", metaColumn.Name, type);
                     if (showVals)
                     {
-                        if (!(type is VectorType vectorType))
+                        if (!(type is VectorDataViewType vectorType))
                             ShowMetadataValue(itw, schema, col, metaColumn.Name, type);
                         else
                             ShowMetadataValueVec(itw, schema, col, metaColumn.Name, vectorType);
@@ -211,7 +211,7 @@ namespace Microsoft.ML.Data
             Contracts.Assert(0 <= col && col < schema.Count);
             Contracts.AssertNonEmpty(kind);
             Contracts.AssertValue(type);
-            Contracts.Assert(!(type is VectorType));
+            Contracts.Assert(!(type is VectorDataViewType));
 
             if (!type.IsStandardScalar() && !(type is KeyDataViewType))
             {
@@ -231,7 +231,7 @@ namespace Microsoft.ML.Data
             Contracts.Assert(0 <= col && col < schema.Count);
             Contracts.AssertNonEmpty(kind);
             Contracts.AssertValue(type);
-            Contracts.Assert(!(type is VectorType));
+            Contracts.Assert(!(type is VectorDataViewType));
             Contracts.Assert(type.RawType == typeof(T));
 
             var conv = Conversions.Instance.GetStringConversion<T>(type);
@@ -244,7 +244,7 @@ namespace Microsoft.ML.Data
             itw.Write(": '{0}'", sb);
         }
 
-        private static void ShowMetadataValueVec(IndentedTextWriter itw, DataViewSchema schema, int col, string kind, VectorType type)
+        private static void ShowMetadataValueVec(IndentedTextWriter itw, DataViewSchema schema, int col, string kind, VectorDataViewType type)
         {
             Contracts.AssertValue(itw);
             Contracts.AssertValue(schema);
@@ -258,12 +258,12 @@ namespace Microsoft.ML.Data
                 return;
             }
 
-            Action<IndentedTextWriter, DataViewSchema, int, string, VectorType> del = ShowMetadataValueVec<int>;
+            Action<IndentedTextWriter, DataViewSchema, int, string, VectorDataViewType> del = ShowMetadataValueVec<int>;
             var meth = del.GetMethodInfo().GetGenericMethodDefinition().MakeGenericMethod(type.ItemType.RawType);
             meth.Invoke(null, new object[] { itw, schema, col, kind, type });
         }
 
-        private static void ShowMetadataValueVec<T>(IndentedTextWriter itw, DataViewSchema schema, int col, string kind, VectorType type)
+        private static void ShowMetadataValueVec<T>(IndentedTextWriter itw, DataViewSchema schema, int col, string kind, VectorDataViewType type)
         {
             Contracts.AssertValue(itw);
             Contracts.AssertValue(schema);

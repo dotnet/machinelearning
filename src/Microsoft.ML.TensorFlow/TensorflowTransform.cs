@@ -286,7 +286,7 @@ namespace Microsoft.ML.Transforms
                 throw Host.Except($"Column {columnName} doesn't exist");
 
             var type = inputSchema[inputColIndex].Type;
-            var isInputVector = type is VectorType;
+            var isInputVector = type is VectorDataViewType;
 
             var tfInput = new TFOutput(Graph[tfNodeName]);
             var tfInputType = tfInput.OutputType;
@@ -608,7 +608,7 @@ namespace Microsoft.ML.Transforms
                 for (int j = 0; j < dims.Length; j++)
                     dims[j] = dims[j] == -1 ? 0 : dims[j];
                 var type = TensorFlowUtils.Tf2MlNetType(tfOutput.OutputType);
-                outputTypes[i] = new VectorType(type, dims);
+                outputTypes[i] = new VectorDataViewType(type, dims);
                 tfOutputTypes[i] = tfOutput.OutputType;
             }
 
@@ -734,13 +734,13 @@ namespace Microsoft.ML.Transforms
                         throw Host.ExceptSchemaMismatch(nameof(InputSchema), "source", _parent.Inputs[i]);
 
                     var type = inputSchema[_inputColIndices[i]].Type;
-                    if (type is VectorType vecType && vecType.Size == 0)
+                    if (type is VectorDataViewType vecType && vecType.Size == 0)
                         throw Host.Except("Variable length input columns not supported");
 
-                    _isInputVector[i] = type is VectorType;
+                    _isInputVector[i] = type is VectorDataViewType;
                     if (!_isInputVector[i]) // Temporary pending fix of issue #1542. In its current state, the below code would fail anyway with a naked exception if this check was not here.
                         throw Host.Except("Non-vector columns not supported");
-                    vecType = (VectorType)type;
+                    vecType = (VectorDataViewType)type;
                     var expectedType = TensorFlowUtils.Tf2MlNetType(_parent.TFInputTypes[i]);
                     if (type.GetItemType() != expectedType)
                         throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", _parent.Inputs[i], expectedType.ToString(), type.ToString());

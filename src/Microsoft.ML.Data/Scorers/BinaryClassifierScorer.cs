@@ -63,7 +63,7 @@ namespace Microsoft.ML.Data
 
             if (trainSchema?.Label == null)
                 return mapper; // We don't even have a label identified in a training schema.
-            var keyType = trainSchema.Label.Value.Annotations.Schema.GetColumnOrNull(AnnotationUtils.Kinds.KeyValues)?.Type as VectorType;
+            var keyType = trainSchema.Label.Value.Annotations.Schema.GetColumnOrNull(AnnotationUtils.Kinds.KeyValues)?.Type as VectorDataViewType;
             if (keyType == null || !CanWrap(mapper, keyType))
                 return mapper;
 
@@ -98,7 +98,7 @@ namespace Microsoft.ML.Data
             if (mapper.OutputSchema[scoreIdx].Annotations.Schema.GetColumnOrNull(AnnotationUtils.Kinds.TrainingLabelValues)?.Type != null)
                 return false; // The mapper publishes a score column, and already produces its own slot names.
 
-            return labelNameType is VectorType vectorType && vectorType.Size == 2;
+            return labelNameType is VectorDataViewType vectorType && vectorType.Size == 2;
         }
 
         private static ISchemaBoundMapper WrapCore<T>(IHostEnvironment env, ISchemaBoundMapper mapper, RoleMappedSchema trainSchema)
@@ -111,7 +111,7 @@ namespace Microsoft.ML.Data
             var labelColumn = trainSchema.Label.Value;
 
             // Key values from the training schema label, will map to slot names of the score output.
-            var type = labelColumn.Annotations.Schema.GetColumnOrNull(AnnotationUtils.Kinds.KeyValues)?.Type as VectorType;
+            var type = labelColumn.Annotations.Schema.GetColumnOrNull(AnnotationUtils.Kinds.KeyValues)?.Type as VectorDataViewType;
             env.AssertValue(type);
 
             // Wrap the fetching of the metadata as a simple getter.

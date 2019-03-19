@@ -139,10 +139,10 @@ namespace Microsoft.ML.Data
         /// Returns a vector type with item type text and the given size. The size must be positive.
         /// This is a standard type for annotation consisting of multiple text values, eg SlotNames.
         /// </summary>
-        public static VectorType GetNamesType(int size)
+        public static VectorDataViewType GetNamesType(int size)
         {
             Contracts.CheckParam(size > 0, nameof(size), "must be known size");
-            return new VectorType(TextDataViewType.Instance, size);
+            return new VectorDataViewType(TextDataViewType.Instance, size);
         }
 
         /// <summary>
@@ -151,10 +151,10 @@ namespace Microsoft.ML.Data
         /// This is a standard type for annotation consisting of multiple int values that represent
         /// categorical slot ranges with in a column.
         /// </summary>
-        public static VectorType GetCategoricalType(int rangeCount)
+        public static VectorDataViewType GetCategoricalType(int rangeCount)
         {
             Contracts.CheckParam(rangeCount > 0, nameof(rangeCount), "must be known size");
-            return new VectorType(NumberDataViewType.Int32, rangeCount, 2);
+            return new VectorDataViewType(NumberDataViewType.Int32, rangeCount, 2);
         }
 
         private static volatile KeyDataViewType _scoreColumnSetIdType;
@@ -290,7 +290,7 @@ namespace Microsoft.ML.Data
             var metaColumn = column.Annotations.Schema.GetColumnOrNull(Kinds.SlotNames);
             return
                 metaColumn != null
-                && metaColumn.Value.Type is VectorType vectorType
+                && metaColumn.Value.Type is VectorDataViewType vectorType
                 && vectorType.Size == vectorSize
                 && vectorType.ItemType is TextDataViewType;
         }
@@ -382,7 +382,7 @@ namespace Microsoft.ML.Data
 
             bool isValid = false;
             categoricalFeatures = null;
-            if (!(schema[colIndex].Type is VectorType vecType && vecType.Size > 0))
+            if (!(schema[colIndex].Type is VectorDataViewType vecType && vecType.Size > 0))
                 return isValid;
 
             var type = schema[colIndex].Annotations.Schema.GetColumnOrNull(Kinds.CategoricalSlotRanges)?.Type;

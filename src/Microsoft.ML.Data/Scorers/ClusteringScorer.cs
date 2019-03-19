@@ -139,7 +139,7 @@ namespace Microsoft.ML.Data
 
         private static bool OutputTypeMatches(DataViewType scoreType)
         {
-            return scoreType is VectorType vectorType
+            return scoreType is VectorDataViewType vectorType
                 && vectorType.IsKnownSize
                 && vectorType.ItemType == NumberDataViewType.Single;
         }

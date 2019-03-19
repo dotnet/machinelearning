@@ -628,8 +628,8 @@ namespace Microsoft.ML.Data
                     : base(ectx, input, labelCol, scoreCol, groupCol, user, Ndcg, Dcg, MaxDcg)
                 {
                     _truncationLevel = truncationLevel;
-                    _outputType = new VectorType(NumberDataViewType.Double, _truncationLevel);
-                    _slotNamesType = new VectorType(TextDataViewType.Instance, _truncationLevel);
+                    _outputType = new VectorDataViewType(NumberDataViewType.Double, _truncationLevel);
+                    _slotNamesType = new VectorDataViewType(TextDataViewType.Instance, _truncationLevel);
                     _slotNamesGetter = SlotNamesGetter;
                 }
 

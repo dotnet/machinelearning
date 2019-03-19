@@ -54,7 +54,7 @@ namespace Microsoft.ML.Trainers
                 throw Contracts.ExceptParam(nameof(data), "Training data must specify a feature column.");
             var col = data.Schema.Feature.Value;
             Contracts.Assert(!col.IsHidden);
-            if (!(col.Type is VectorType vecType && vecType.Size > 0 && vecType.ItemType == NumberDataViewType.Single))
+            if (!(col.Type is VectorDataViewType vecType && vecType.Size > 0 && vecType.ItemType == NumberDataViewType.Single))
                 throw Contracts.ExceptParam(nameof(data), "Training feature column '{0}' must be a known-size vector of R4, but has type: {1}.", col.Name, col.Type);
         }
 
@@ -70,7 +70,7 @@ namespace Microsoft.ML.Trainers
             Contracts.Assert(data.Schema.Feature.HasValue);
             var col = data.Schema.Feature.Value;
             Contracts.Assert(!col.IsHidden);
-            var colType = col.Type as VectorType;
+            var colType = col.Type as VectorDataViewType;
             Contracts.Assert(colType != null && colType.IsKnownSize);
             Contracts.Assert(colType.ItemType == NumberDataViewType.Single);
             length = colType.Size;
@@ -190,7 +190,7 @@ namespace Microsoft.ML.Trainers
                 throw Contracts.ExceptParam(nameof(data), "Training data must specify a label column.");
             var col = data.Schema.Label.Value;
             Contracts.Assert(!col.IsHidden);
-            if (!(col.Type is VectorType vectorType
+            if (!(col.Type is VectorDataViewType vectorType
                 && vectorType.IsKnownSize
                 && vectorType.ItemType == NumberDataViewType.Single))
                 throw Contracts.ExceptParam(nameof(data), "Training label column '{0}' must be a known-size vector of R4, but has type: {1}.", col.Name, col.Type);

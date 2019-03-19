@@ -175,7 +175,7 @@ namespace Microsoft.ML.Data
             var labelNames = default(VBuffer<ReadOnlyMemory<char>>);
             var labelCol = schema.Label.Value;
             if (labelCol.Type is KeyDataViewType &&
-                labelCol.Annotations.Schema.GetColumnOrNull(AnnotationUtils.Kinds.KeyValues)?.Type is VectorType vecType &&
+                labelCol.Annotations.Schema.GetColumnOrNull(AnnotationUtils.Kinds.KeyValues)?.Type is VectorDataViewType vecType &&
                 vecType.Size > 0 && vecType.ItemType == TextDataViewType.Instance)
             {
                 labelCol.GetKeyValues(ref labelNames);

@@ -234,10 +234,10 @@ namespace Microsoft.ML.Transforms
                     DataViewType valsItemType = typeVals.GetItemType();
                     DataViewType srcItemType = typeSrc.GetItemType();
                     Host.Check(typeVals.GetVectorSize() == srcItemType.GetKeyCountAsInt32(Host), "KeyValues metadata size does not match column type key count");
-                    if (!(typeSrc is VectorType vectorType))
+                    if (!(typeSrc is VectorDataViewType vectorType))
                         types[iinfo] = valsItemType;
                     else
-                        types[iinfo] = new VectorType((PrimitiveDataViewType)valsItemType, vectorType.Dimensions);
+                        types[iinfo] = new VectorDataViewType((PrimitiveDataViewType)valsItemType, vectorType.Dimensions);
 
                     // MarshalInvoke with two generic params.
                     Func<int, DataViewType, DataViewType, KeyToValueMap> func = GetKeyMetadata<int, int>;
@@ -364,7 +364,7 @@ namespace Microsoft.ML.Transforms
 
                     Parent.Host.AssertValue(input);
                     var column = input.Schema[Parent.ColMapNewToOld[InfoIndex]];
-                    if (!(Parent._types[InfoIndex] is VectorType))
+                    if (!(Parent._types[InfoIndex] is VectorDataViewType))
                     {
                         var src = default(TKey);
                         ValueGetter<TKey> getSrc = input.GetGetter<TKey>(column);
@@ -486,7 +486,7 @@ namespace Microsoft.ML.Transforms
                     JObject cellRef = PfaUtils.Cell(cellName);
 
                     var srcType = Parent.InputSchema[Parent.ColMapNewToOld[InfoIndex]].Type;
-                    if (srcType is VectorType)
+                    if (srcType is VectorDataViewType)
                     {
                         var funcName = ctx.GetFreeFunctionName("mapKeyToValue");
                         ctx.Pfa.AddFunc(funcName, new JArray(PfaUtils.Param("key", PfaUtils.Type.Int)),

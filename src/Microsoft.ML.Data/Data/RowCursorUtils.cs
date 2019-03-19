@@ -152,10 +152,10 @@ namespace Microsoft.ML.Data
             Contracts.CheckParam(0 <= col && col < row.Schema.Count, nameof(col));
             Contracts.CheckParam(row.IsColumnActive(row.Schema[col]), nameof(col), "column was not active");
 
-            var typeSrc = row.Schema[col].Type as VectorType;
+            var typeSrc = row.Schema[col].Type as VectorDataViewType;
             Contracts.Check(typeSrc != null, "Source column type must be vector");
 
-            Func<VectorType, PrimitiveDataViewType, GetterFactory, ValueGetter<VBuffer<int>>> del = GetVecGetterAsCore<int, int>;
+            Func<VectorDataViewType, PrimitiveDataViewType, GetterFactory, ValueGetter<VBuffer<int>>> del = GetVecGetterAsCore<int, int>;
             var methodInfo = del.GetMethodInfo().GetGenericMethodDefinition().MakeGenericMethod(typeSrc.ItemType.RawType, typeDst.RawType);
             return (Delegate)methodInfo.Invoke(null, new object[] { typeSrc, typeDst, GetterFactory.Create(row, col) });
         }
@@ -172,10 +172,10 @@ namespace Microsoft.ML.Data
             Contracts.CheckParam(0 <= col && col < row.Schema.Count, nameof(col));
             Contracts.CheckParam(row.IsColumnActive(row.Schema[col]), nameof(col), "column was not active");
 
-            var typeSrc = row.Schema[col].Type as VectorType;
+            var typeSrc = row.Schema[col].Type as VectorDataViewType;
             Contracts.Check(typeSrc != null, "Source column type must be vector");
 
-            Func<VectorType, PrimitiveDataViewType, GetterFactory, ValueGetter<VBuffer<TDst>>> del = GetVecGetterAsCore<int, TDst>;
+            Func<VectorDataViewType, PrimitiveDataViewType, GetterFactory, ValueGetter<VBuffer<TDst>>> del = GetVecGetterAsCore<int, TDst>;
             var methodInfo = del.GetMethodInfo().GetGenericMethodDefinition().MakeGenericMethod(typeSrc.ItemType.RawType, typeof(TDst));
             return (ValueGetter<VBuffer<TDst>>)methodInfo.Invoke(null, new object[] { typeSrc, typeDst, GetterFactory.Create(row, col) });
         }
@@ -192,7 +192,7 @@ namespace Microsoft.ML.Data
 
             var typeSrc = cursor.GetSlotType();
 
-            Func<VectorType, PrimitiveDataViewType, GetterFactory, ValueGetter<VBuffer<TDst>>> del = GetVecGetterAsCore<int, TDst>;
+            Func<VectorDataViewType, PrimitiveDataViewType, GetterFactory, ValueGetter<VBuffer<TDst>>> del = GetVecGetterAsCore<int, TDst>;
             var methodInfo = del.GetMethodInfo().GetGenericMethodDefinition().MakeGenericMethod(typeSrc.ItemType.RawType, typeof(TDst));
             return (ValueGetter<VBuffer<TDst>>)methodInfo.Invoke(null, new object[] { typeSrc, typeDst, GetterFactory.Create(cursor) });
         }
@@ -247,7 +247,7 @@ namespace Microsoft.ML.Data
             }
         }
 
-        private static ValueGetter<VBuffer<TDst>> GetVecGetterAsCore<TSrc, TDst>(VectorType typeSrc, PrimitiveDataViewType typeDst, GetterFactory getterFact)
+        private static ValueGetter<VBuffer<TDst>> GetVecGetterAsCore<TSrc, TDst>(VectorDataViewType typeSrc, PrimitiveDataViewType typeDst, GetterFactory getterFact)
         {
             Contracts.Assert(typeof(TSrc) == typeSrc.ItemType.RawType);
             Contracts.Assert(typeof(TDst) == typeDst.RawType);

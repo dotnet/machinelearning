@@ -14,7 +14,7 @@ namespace Microsoft.ML.Data
     /// <summary>
     /// The standard vector type.
     /// </summary>
-    public sealed class VectorType : StructuredDataViewType
+    public sealed class VectorDataViewType : StructuredDataViewType
     {
         /// <summary>
         /// The dimensions. This will always have at least one item. All values will be non-negative.
@@ -28,7 +28,7 @@ namespace Microsoft.ML.Data
         /// </summary>
         /// <param name="itemType">The type of the items contained in the vector.</param>
         /// <param name="size">The size of the single dimension.</param>
-        public VectorType(PrimitiveDataViewType itemType, int size = 0)
+        public VectorDataViewType(PrimitiveDataViewType itemType, int size = 0)
             : base(GetRawType(itemType))
         {
             Contracts.CheckParam(size >= 0, nameof(size));
@@ -45,7 +45,7 @@ namespace Microsoft.ML.Data
         /// <param name="dimensions">The dimensions. Note that, like <see cref="Dimensions"/>, must be non-empty, with all
         /// non-negative values. Also, because <see cref="Size"/> is the product of <see cref="Dimensions"/>, the result of
         /// multiplying all these values together must not overflow <see cref="int"/>.</param>
-        public VectorType(PrimitiveDataViewType itemType, params int[] dimensions)
+        public VectorDataViewType(PrimitiveDataViewType itemType, params int[] dimensions)
             : base(GetRawType(itemType))
         {
             Contracts.CheckParam(ArrayUtils.Size(dimensions) > 0, nameof(dimensions));
@@ -63,7 +63,7 @@ namespace Microsoft.ML.Data
         /// <param name="dimensions">The dimensions. Note that, like <see cref="Dimensions"/>, must be non-empty, with all
         /// non-negative values. Also, because <see cref="Size"/> is the product of <see cref="Dimensions"/>, the result of
         /// multiplying all these values together must not overflow <see cref="int"/>.</param>
-        public VectorType(PrimitiveDataViewType itemType, ImmutableArray<int> dimensions)
+        public VectorDataViewType(PrimitiveDataViewType itemType, ImmutableArray<int> dimensions)
             : base(GetRawType(itemType))
         {
             Contracts.CheckParam(dimensions.Length > 0, nameof(dimensions));
@@ -111,7 +111,7 @@ namespace Microsoft.ML.Data
         {
             if (other == this)
                 return true;
-            if (!(other is VectorType tmp))
+            if (!(other is VectorDataViewType tmp))
                 return false;
             if (!ItemType.Equals(tmp.ItemType))
                 return false;

@@ -271,20 +271,20 @@ namespace Microsoft.ML.Trainers.Ensemble
                 }
             }
 
-            private readonly VectorType _scoreType;
+            private readonly VectorDataViewType _scoreType;
 
             public ImplVec(IHostEnvironment env, PredictorModel[] predictors, IMulticlassOutputCombiner combiner)
                 : base(env, predictors, combiner, LoaderSignature, AnnotationUtils.Const.ScoreColumnKind.MulticlassClassification)
             {
                 int classCount = CheckLabelColumn(Host, predictors, false);
-                _scoreType = new VectorType(NumberDataViewType.Single, classCount);
+                _scoreType = new VectorDataViewType(NumberDataViewType.Single, classCount);
             }
 
             public ImplVec(IHostEnvironment env, ModelLoadContext ctx, string scoreColumnKind)
                 : base(env, ctx, scoreColumnKind)
             {
                 int classCount = CheckLabelColumn(Host, PredictorModels, false);
-                _scoreType = new VectorType(NumberDataViewType.Single, classCount);
+                _scoreType = new VectorDataViewType(NumberDataViewType.Single, classCount);
             }
         }
 
@@ -605,7 +605,7 @@ namespace Microsoft.ML.Trainers.Ensemble
             if (isBinary && labelKeyType.Count != 2)
                 throw env.Except("Label is not binary");
             var schema = rmd.Schema.Schema;
-            var mdType = labelCol.Annotations.Schema.GetColumnOrNull(AnnotationUtils.Kinds.KeyValues)?.Type as VectorType;
+            var mdType = labelCol.Annotations.Schema.GetColumnOrNull(AnnotationUtils.Kinds.KeyValues)?.Type as VectorDataViewType;
             if (mdType == null || !mdType.IsKnownSize)
                 throw env.Except("Label column of type key must have a vector of key values metadata");
 
@@ -642,7 +642,7 @@ namespace Microsoft.ML.Trainers.Ensemble
 
         // Checks that all the label columns of the model have the same key type as their label column - including the same
         // cardinality and the same key values, and returns the cardinality of the label column key.
-        private static int CheckKeyLabelColumnCore<T>(IHostEnvironment env, PredictorModel[] models, KeyDataViewType labelType, DataViewSchema schema, int labelIndex, VectorType keyValuesType)
+        private static int CheckKeyLabelColumnCore<T>(IHostEnvironment env, PredictorModel[] models, KeyDataViewType labelType, DataViewSchema schema, int labelIndex, VectorDataViewType keyValuesType)
             where T : IEquatable<T>
         {
             env.Assert(keyValuesType.ItemType.RawType == typeof(T));

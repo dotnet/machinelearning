@@ -160,7 +160,7 @@ namespace Microsoft.ML.Tests.Transformers
             const int vecLen = 5;
             var denseVec = new VBuffer<T>(vecLen, Utils.CreateArray(vecLen, val));
             builder = new DataViewSchema.Annotations.Builder();
-            builder.Add("Foo", new VectorType(type, vecLen), (ref VBuffer<T> dst) => denseVec.CopyTo(ref dst));
+            builder.Add("Foo", new VectorDataViewType(type, vecLen), (ref VBuffer<T> dst) => denseVec.CopyTo(ref dst));
             inRow = AnnotationUtils.AnnotationsAsRow(builder.ToAnnotations());
 
             info = new HashingEstimator.ColumnOptions("Bar", "Foo", numberOfBits: bits, useOrderedHashing: false);
@@ -185,7 +185,7 @@ namespace Microsoft.ML.Tests.Transformers
             // Let's now do a sparse vector.
             var sparseVec = new VBuffer<T>(10, 3, Utils.CreateArray(3, val), new[] { 0, 3, 7 });
             builder = new DataViewSchema.Annotations.Builder();
-            builder.Add("Foo", new VectorType(type, vecLen), (ref VBuffer<T> dst) => sparseVec.CopyTo(ref dst));
+            builder.Add("Foo", new VectorDataViewType(type, vecLen), (ref VBuffer<T> dst) => sparseVec.CopyTo(ref dst));
             inRow = AnnotationUtils.AnnotationsAsRow(builder.ToAnnotations());
 
             info = new HashingEstimator.ColumnOptions("Bar", "Foo", numberOfBits: bits, useOrderedHashing: false);

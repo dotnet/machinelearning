@@ -97,14 +97,14 @@ namespace Microsoft.ML.StaticPipe
             public Scalar<T> Scalar => null;
 
             /// <summary>
-            /// Asserts a type corresponding to a <see cref="VectorType"/> of this <see cref="PrimitiveDataViewType"/>,
-            /// where <see cref="VectorType.IsKnownSize"/> is true.
+            /// Asserts a type corresponding to a <see cref="VectorDataViewType"/> of this <see cref="PrimitiveDataViewType"/>,
+            /// where <see cref="VectorDataViewType.IsKnownSize"/> is true.
             /// </summary>
             public Vector<T> Vector => null;
 
             /// <summary>
-            /// Asserts a type corresponding to a <see cref="VectorType"/> of this <see cref="PrimitiveDataViewType"/>,
-            /// where <see cref="VectorType.IsKnownSize"/> is false.
+            /// Asserts a type corresponding to a <see cref="VectorDataViewType"/> of this <see cref="PrimitiveDataViewType"/>,
+            /// where <see cref="VectorDataViewType.IsKnownSize"/> is false.
             /// </summary>
             public VarVector<T> VarVector => null;
         }
@@ -119,19 +119,19 @@ namespace Microsoft.ML.StaticPipe
             public Scalar<T> Scalar => null;
 
             /// <summary>
-            /// Asserts a type corresponding to a <see cref="VectorType"/> of this <see cref="PrimitiveDataViewType"/>,
-            /// where <see cref="VectorType.IsKnownSize"/> is true.
+            /// Asserts a type corresponding to a <see cref="VectorDataViewType"/> of this <see cref="PrimitiveDataViewType"/>,
+            /// where <see cref="VectorDataViewType.IsKnownSize"/> is true.
             /// </summary>
             public Vector<T> Vector => null;
 
             /// <summary>
-            /// Asserts a type corresponding to a <see cref="VectorType"/> of this <see cref="PrimitiveDataViewType"/>,
-            /// where <see cref="VectorType.IsKnownSize"/> is false.
+            /// Asserts a type corresponding to a <see cref="VectorDataViewType"/> of this <see cref="PrimitiveDataViewType"/>,
+            /// where <see cref="VectorDataViewType.IsKnownSize"/> is false.
             /// </summary>
             public VarVector<T> VarVector => null;
             /// <summary>
-            /// Asserts a type corresponding to a <see cref="VectorType"/> of this <see cref="PrimitiveDataViewType"/>,
-            /// where <see cref="VectorType.IsKnownSize"/> is true, and the <see cref="AnnotationUtils.Kinds.IsNormalized"/>
+            /// Asserts a type corresponding to a <see cref="VectorDataViewType"/> of this <see cref="PrimitiveDataViewType"/>,
+            /// where <see cref="VectorDataViewType.IsKnownSize"/> is true, and the <see cref="AnnotationUtils.Kinds.IsNormalized"/>
             /// metadata is defined with a Boolean <c>true</c> value.
             /// </summary>
             public NormVector<T> NormVector => null;
@@ -152,14 +152,14 @@ namespace Microsoft.ML.StaticPipe
             public T Scalar => null;
 
             /// <summary>
-            /// Asserts a type corresponding to a <see cref="VectorType"/> of this <see cref="KeyDataViewType"/>,
-            /// where <see cref="VectorType.IsKnownSize"/> is true.
+            /// Asserts a type corresponding to a <see cref="VectorDataViewType"/> of this <see cref="KeyDataViewType"/>,
+            /// where <see cref="VectorDataViewType.IsKnownSize"/> is true.
             /// </summary>
             public Vector<T> Vector => null;
 
             /// <summary>
-            /// Asserts a type corresponding to a <see cref="VectorType"/> of this <see cref="KeyDataViewType"/>,
-            /// where <see cref="VectorType.IsKnownSize"/> is false.
+            /// Asserts a type corresponding to a <see cref="VectorDataViewType"/> of this <see cref="KeyDataViewType"/>,
+            /// where <see cref="VectorDataViewType.IsKnownSize"/> is false.
             /// </summary>
             public VarVector<T> VarVector => null;
         }

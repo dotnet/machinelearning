@@ -23,7 +23,7 @@ namespace Microsoft.ML.Tests
             var metadataBuilder = new DataViewSchema.Annotations.Builder();
             metadataBuilder.Add("M", NumberDataViewType.Single, (ref float v) => v = 484f);
             var schemaBuilder = new DataViewSchema.Builder();
-            schemaBuilder.AddColumn("A", new VectorType(NumberDataViewType.Single, 94));
+            schemaBuilder.AddColumn("A", new VectorDataViewType(NumberDataViewType.Single, 94));
             schemaBuilder.AddColumn("B", new KeyDataViewType(typeof(uint), 17));
             schemaBuilder.AddColumn("C", NumberDataViewType.Int32, metadataBuilder.ToAnnotations());
 

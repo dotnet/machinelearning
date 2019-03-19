@@ -426,8 +426,8 @@ namespace Microsoft.ML.Transforms
                     return false;
 
                 typeDst = itemType;
-                if (srcType is VectorType vectorType)
-                    typeDst = new VectorType(itemType, vectorType.Dimensions);
+                if (srcType is VectorDataViewType vectorType)
+                    typeDst = new VectorDataViewType(itemType, vectorType.Dimensions);
 
                 return true;
             }
@@ -470,7 +470,7 @@ namespace Microsoft.ML.Transforms
                 Contracts.AssertValue(input);
                 Contracts.Assert(0 <= iinfo && iinfo < _parent.ColumnPairs.Length);
                 disposer = null;
-                if (!(_types[iinfo] is VectorType vectorType))
+                if (!(_types[iinfo] is VectorDataViewType vectorType))
                     return RowCursorUtils.GetGetterAs(_types[iinfo], input, _srcCols[iinfo]);
                 return RowCursorUtils.GetVecGetterAs(vectorType.ItemType, input, _srcCols[iinfo]);
             }

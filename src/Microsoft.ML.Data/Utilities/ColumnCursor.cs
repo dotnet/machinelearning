@@ -70,7 +70,7 @@ namespace Microsoft.ML.Data
             else if (typeof(T).IsArray)
             {
                 // Output is an array type.
-                if (!(colType is VectorType colVectorType))
+                if (!(colType is VectorDataViewType colVectorType))
                     throw Contracts.ExceptParam(nameof(column), string.Format("Cannot load vector type, {0}, specified in {1} to the user-defined type, {2}.", column.Type, nameof(column), typeof(T)));
                 var elementType = typeof(T).GetElementType();
                 if (elementType == colVectorType.ItemType.RawType)

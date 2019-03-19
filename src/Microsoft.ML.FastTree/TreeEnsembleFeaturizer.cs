@@ -95,10 +95,10 @@ namespace Microsoft.ML.Data
                 InputRoleMappedSchema = schema;
 
                 // A vector containing the output of each tree on a given example.
-                var treeValueType = new VectorType(NumberDataViewType.Single, owner._ensemble.TrainedEnsemble.NumTrees);
+                var treeValueType = new VectorDataViewType(NumberDataViewType.Single, owner._ensemble.TrainedEnsemble.NumTrees);
                 // An indicator vector with length = the total number of leaves in the ensemble, indicating which leaf the example
                 // ends up in all the trees in the ensemble.
-                var leafIdType = new VectorType(NumberDataViewType.Single, owner._totalLeafCount);
+                var leafIdType = new VectorDataViewType(NumberDataViewType.Single, owner._totalLeafCount);
                 // An indicator vector with length = the total number of nodes in the ensemble, indicating the nodes on
                 // the paths of the example in all the trees in the ensemble.
                 // The total number of nodes in a binary tree is equal to the number of internal nodes + the number of leaf nodes,
@@ -106,7 +106,7 @@ namespace Microsoft.ML.Data
                 // plus one (since the root node is not a child of any node). So we have #internal + #leaf = 2*(#internal) + 1,
                 // which means that #internal = #leaf - 1.
                 // Therefore, the number of internal nodes in the ensemble is #leaf - #trees.
-                var pathIdType = new VectorType(NumberDataViewType.Single, owner._totalLeafCount - owner._ensemble.TrainedEnsemble.NumTrees);
+                var pathIdType = new VectorDataViewType(NumberDataViewType.Single, owner._totalLeafCount - owner._ensemble.TrainedEnsemble.NumTrees);
 
                 // Start creating output schema with types derived above.
                 var schemaBuilder = new DataViewSchema.Builder();

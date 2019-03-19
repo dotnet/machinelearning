@@ -191,7 +191,7 @@ namespace Microsoft.ML.Transforms
                     (MissingValueReplacingEstimator.ReplacementMode)(column.Kind ?? options.ReplaceWith), column.ImputeBySlot ?? options.ImputeBySlot));
 
                 // Add the ConcatTransform column.
-                if (replaceType is VectorType)
+                if (replaceType is VectorDataViewType)
                 {
                     concatCols.Add(new ColumnConcatenatingTransformer.TaggedColumn()
                     {

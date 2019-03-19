@@ -198,10 +198,10 @@ namespace Microsoft.ML.Transforms.Text
             {
                 _parent = parent;
                 var keyType = new KeyDataViewType(typeof(ushort), CharsCount);
-                _type = new VectorType(keyType);
+                _type = new VectorDataViewType(keyType);
                 _isSourceVector = new bool[_parent.ColumnPairs.Length];
                 for (int i = 0; i < _isSourceVector.Length; i++)
-                    _isSourceVector[i] = inputSchema[_parent.ColumnPairs[i].inputColumnName].Type is VectorType;
+                    _isSourceVector[i] = inputSchema[_parent.ColumnPairs[i].inputColumnName].Type is VectorDataViewType;
             }
 
             protected override DataViewSchema.DetachedColumn[] GetOutputColumnsCore()
@@ -403,7 +403,7 @@ namespace Microsoft.ML.Transforms.Text
                 Host.Assert(0 <= iinfo && iinfo < _parent.ColumnPairs.Length);
                 disposer = null;
 
-                if (!(input.Schema[_parent.ColumnPairs[iinfo].inputColumnName].Type is VectorType))
+                if (!(input.Schema[_parent.ColumnPairs[iinfo].inputColumnName].Type is VectorDataViewType))
                     return MakeGetterOne(input, iinfo);
                 return MakeGetterVec(input, iinfo);
             }

@@ -287,7 +287,7 @@ namespace Microsoft.ML.Transforms.Image
         private sealed class Mapper : OneToOneMapperBase
         {
             private readonly ImagePixelExtractingTransformer _parent;
-            private readonly VectorType[] _types;
+            private readonly VectorDataViewType[] _types;
 
             public Mapper(ImagePixelExtractingTransformer parent, DataViewSchema inputSchema)
                 : base(parent.Host.Register(nameof(Mapper)), parent, inputSchema)
@@ -450,9 +450,9 @@ namespace Microsoft.ML.Transforms.Image
                     };
             }
 
-            private VectorType[] ConstructTypes()
+            private VectorDataViewType[] ConstructTypes()
             {
-                var types = new VectorType[_parent._columns.Length];
+                var types = new VectorDataViewType[_parent._columns.Length];
                 for (int i = 0; i < _parent._columns.Length; i++)
                 {
                     var column = _parent._columns[i];
@@ -468,9 +468,9 @@ namespace Microsoft.ML.Transforms.Image
                     Contracts.Assert((long)height * width <= int.MaxValue / 4);
 
                     if (column.InterleavePixelColors)
-                        types[i] = new VectorType(column.OutputAsFloatArray ? NumberDataViewType.Single : NumberDataViewType.Byte, height, width, column.Planes);
+                        types[i] = new VectorDataViewType(column.OutputAsFloatArray ? NumberDataViewType.Single : NumberDataViewType.Byte, height, width, column.Planes);
                     else
-                        types[i] = new VectorType(column.OutputAsFloatArray ? NumberDataViewType.Single : NumberDataViewType.Byte, column.Planes, height, width);
+                        types[i] = new VectorDataViewType(column.OutputAsFloatArray ? NumberDataViewType.Single : NumberDataViewType.Byte, column.Planes, height, width);
                 }
                 return types;
             }

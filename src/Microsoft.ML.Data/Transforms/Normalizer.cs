@@ -348,7 +348,7 @@ namespace Microsoft.ML.Transforms
                 Contracts.CheckDecode(itemKind == InternalDataKind.R4 || itemKind == InternalDataKind.R8);
 
                 var itemType = ColumnTypeExtensions.PrimitiveTypeFromKind(itemKind);
-                return isVector ? (DataViewType)(new VectorType(itemType, vectorSize)) : itemType;
+                return isVector ? (DataViewType)(new VectorDataViewType(itemType, vectorSize)) : itemType;
             }
 
             internal static void SaveType(ModelSaveContext ctx, DataViewType type)
@@ -358,7 +358,7 @@ namespace Microsoft.ML.Transforms
                 //   - bool: is vector
                 //   - int: vector size
                 //   - byte: ItemKind of input column (only R4 and R8 are valid)
-                VectorType vectorType = type as VectorType;
+                VectorDataViewType vectorType = type as VectorDataViewType;
                 ctx.Writer.Write(vectorType != null);
 
                 Contracts.Assert(vectorType == null || vectorType.IsKnownSize);
@@ -472,7 +472,7 @@ namespace Microsoft.ML.Transforms
                             if (!needMoreData[i])
                                 continue;
                             var info = columns[i];
-                            env.Assert(!(srcTypes[i] is VectorType vectorType) || vectorType.IsKnownSize);
+                            env.Assert(!(srcTypes[i] is VectorDataViewType vectorType) || vectorType.IsKnownSize);
                             env.Assert(functionBuilders[i] != null);
                             any |= needMoreData[i] = functionBuilders[i].ProcessValue();
                         }
@@ -590,7 +590,7 @@ namespace Microsoft.ML.Transforms
             const string expectedType = "scalar or known-size vector of R4";
 
             var colType = inputSchema[srcCol].Type;
-            VectorType vectorType = colType as VectorType;
+            VectorDataViewType vectorType = colType as VectorDataViewType;
             if (vectorType != null && !vectorType.IsKnownSize)
                 throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", ColumnPairs[col].inputColumnName, expectedType, "variable-size vector");
             DataViewType itemType = vectorType?.ItemType ?? colType;

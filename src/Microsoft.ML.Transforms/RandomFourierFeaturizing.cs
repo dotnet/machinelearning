@@ -232,7 +232,7 @@ namespace Microsoft.ML.Transforms
 
         private static string TestColumnType(DataViewType type)
         {
-            if (type is VectorType vectorType && vectorType.IsKnownSize && vectorType.ItemType == NumberDataViewType.Single)
+            if (type is VectorDataViewType vectorType && vectorType.IsKnownSize && vectorType.ItemType == NumberDataViewType.Single)
                 return null;
             return "Expected vector of floats with known size";
         }
@@ -251,7 +251,7 @@ namespace Microsoft.ML.Transforms
                 throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", ColumnPairs[col].inputColumnName, reason, type.ToString());
             if (_transformInfos[col].SrcDim != type.GetVectorSize())
                 throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", ColumnPairs[col].inputColumnName,
-                    new VectorType(NumberDataViewType.Single, _transformInfos[col].SrcDim).ToString(), type.ToString());
+                    new VectorDataViewType(NumberDataViewType.Single, _transformInfos[col].SrcDim).ToString(), type.ToString());
         }
 
         internal ApproximatedKernelTransformer(IHostEnvironment env, IDataView input, ApproximatedKernelMappingEstimator.ColumnOptions[] columns)
@@ -304,7 +304,7 @@ namespace Microsoft.ML.Transforms
                 {
                     var rng = columns[i].Seed.HasValue ? RandomUtils.Create(columns[i].Seed.Value) : Host.Rand;
                     var srcType = input.Schema[srcCols[i]].Type;
-                    if (srcType is VectorType)
+                    if (srcType is VectorDataViewType)
                     {
                         var get = cursor.GetGetter<VBuffer<float>>(cursor.Schema[srcCols[i]]);
                         reservoirSamplers[i] = new ReservoirSamplerWithReplacement<VBuffer<float>>(rng, reservoirSize, get);
@@ -490,7 +490,7 @@ namespace Microsoft.ML.Transforms
                     var srcCol = inputSchema[_srcCols[i]];
                     _srcTypes[i] = srcCol.Type;
                     //validate typeSrc.ValueCount and transformInfo.SrcDim
-                    _types[i] = new VectorType(NumberDataViewType.Single, _parent._transformInfos[i].RotationTerms == null ?
+                    _types[i] = new VectorDataViewType(NumberDataViewType.Single, _parent._transformInfos[i].RotationTerms == null ?
                     _parent._transformInfos[i].NewDim * 2 : _parent._transformInfos[i].NewDim);
                 }
             }
@@ -508,7 +508,7 @@ namespace Microsoft.ML.Transforms
                 Contracts.AssertValue(input);
                 Contracts.Assert(0 <= iinfo && iinfo < _parent.ColumnPairs.Length);
                 disposer = null;
-                if (_srcTypes[iinfo] is VectorType)
+                if (_srcTypes[iinfo] is VectorDataViewType)
                     return GetterFromVectorType(input, iinfo);
                 return GetterFromFloatType(input, iinfo);
             }

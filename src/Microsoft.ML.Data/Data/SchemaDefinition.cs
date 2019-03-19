@@ -47,7 +47,7 @@ namespace Microsoft.ML.Data
     }
 
     /// <summary>
-    /// Allows a member to be marked as a <see cref="VectorType"/>, primarily allowing one to set
+    /// Allows a member to be marked as a <see cref="VectorDataViewType"/>, primarily allowing one to set
     /// the dimensionality of the resulting array.
     /// </summary>
     [AttributeUsage(AttributeTargets.Field | AttributeTargets.Property, AllowMultiple = false, Inherited = true)]
@@ -413,9 +413,9 @@ namespace Microsoft.ML.Data
                     if (dims != null && dims.Any(d => d < 0))
                         throw Contracts.ExceptParam(nameof(userType), "Some of member {0}'s dimension lengths are negative");
                     if (Utils.Size(dims) == 0)
-                        columnType = new VectorType(itemType, 0);
+                        columnType = new VectorDataViewType(itemType, 0);
                     else
-                        columnType = new VectorType(itemType, dims);
+                        columnType = new VectorDataViewType(itemType, dims);
                 }
                 else
                     columnType = itemType;

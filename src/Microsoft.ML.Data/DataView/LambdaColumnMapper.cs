@@ -124,7 +124,7 @@ namespace Microsoft.ML.Data
                         {
                             AnnotationUtils.AnnotationGetter<VBuffer<ReadOnlyMemory<char>>> mdGetter =
                                 (int c, ref VBuffer<ReadOnlyMemory<char>> dst) => keyValueGetter(ref dst);
-                            bldr.AddGetter(AnnotationUtils.Kinds.KeyValues, new VectorType(TextDataViewType.Instance, _typeDst.GetItemType().GetKeyCountAsInt32(Host)), mdGetter);
+                            bldr.AddGetter(AnnotationUtils.Kinds.KeyValues, new VectorDataViewType(TextDataViewType.Instance, _typeDst.GetItemType().GetKeyCountAsInt32(Host)), mdGetter);
                         }
                         if (slotNamesGetter != null)
                         {
@@ -132,7 +132,7 @@ namespace Microsoft.ML.Data
                             Host.Assert(vectorSize > 0);
                             AnnotationUtils.AnnotationGetter<VBuffer<ReadOnlyMemory<char>>> mdGetter =
                                 (int c, ref VBuffer<ReadOnlyMemory<char>> dst) => slotNamesGetter(ref dst);
-                            bldr.AddGetter(AnnotationUtils.Kinds.SlotNames, new VectorType(TextDataViewType.Instance, vectorSize), mdGetter);
+                            bldr.AddGetter(AnnotationUtils.Kinds.SlotNames, new VectorDataViewType(TextDataViewType.Instance, vectorSize), mdGetter);
                         }
                     }
                 }

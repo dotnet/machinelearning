@@ -189,7 +189,7 @@ namespace Microsoft.ML.Transforms.Onnx
                 var outputNodeInfo = Model.ModelInfo.OutputsInfo[idx];
                 var shape = outputNodeInfo.Shape;
                 var dims = AdjustDimensions(shape);
-                OutputTypes[i] = new VectorType(OnnxUtils.OnnxToMlNetType(outputNodeInfo.Type), dims.ToArray());
+                OutputTypes[i] = new VectorDataViewType(OnnxUtils.OnnxToMlNetType(outputNodeInfo.Type), dims.ToArray());
             }
             _options = options;
         }
@@ -332,7 +332,7 @@ namespace Microsoft.ML.Transforms.Onnx
                     _inputColIndices[i] = col.Value.Index;
 
                     var type = inputSchema[_inputColIndices[i]].Type;
-                    var vectorType = type as VectorType;
+                    var vectorType = type as VectorDataViewType;
                     _isInputVector[i] = vectorType != null;
 
                     if (vectorType != null && vectorType.Size == 0)

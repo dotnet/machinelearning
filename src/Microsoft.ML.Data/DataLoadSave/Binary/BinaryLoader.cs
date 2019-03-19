@@ -507,7 +507,7 @@ namespace Microsoft.ML.Data.IO
 
                 var type = codec.Type;
                 Type entryType;
-                if (type is VectorType)
+                if (type is VectorDataViewType)
                 {
                     Type valueType = type.RawType;
                     ectx.Assert(valueType.IsGenericEx(typeof(VBuffer<>)));

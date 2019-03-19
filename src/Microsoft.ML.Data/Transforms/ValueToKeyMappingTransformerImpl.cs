@@ -39,7 +39,7 @@ namespace Microsoft.ML.Transforms
             public static Builder Create(DataViewType type, ValueToKeyMappingEstimator.KeyOrdinality sortOrder)
             {
                 Contracts.AssertValue(type);
-                Contracts.Assert(type is VectorType || type is PrimitiveDataViewType);
+                Contracts.Assert(type is VectorDataViewType || type is PrimitiveDataViewType);
                 // Right now we have only two. This "public" interface externally looks like it might
                 // accept any value, but currently the internal implementations of Builder are split
                 // along this being a purely binary option, for now (though this can easily change
@@ -290,7 +290,7 @@ namespace Microsoft.ML.Transforms
                 Contracts.Assert(autoConvert || bldr.ItemType == type.GetItemType());
                 // Auto conversion should only be possible when the type is text.
                 Contracts.Assert(type is TextDataViewType || !autoConvert);
-                if (type is VectorType)
+                if (type is VectorDataViewType)
                     return Utils.MarshalInvoke(CreateVec<int>, bldr.ItemType.RawType, row, col, count, bldr);
                 return Utils.MarshalInvoke(CreateOne<int>, bldr.ItemType.RawType, row, col, autoConvert, count, bldr);
             }
@@ -827,7 +827,7 @@ namespace Microsoft.ML.Transforms
 
                 Map = map;
                 _iinfo = iinfo;
-                _inputIsVector = info.TypeSrc is VectorType;
+                _inputIsVector = info.TypeSrc is VectorDataViewType;
             }
 
             public static BoundTermMap Create(IHostEnvironment host, DataViewSchema schema, TermMap map, ColInfo[] infos, bool[] textMetadata, int iinfo)
@@ -904,7 +904,7 @@ namespace Microsoft.ML.Transforms
                         ValueMapper<T, uint> map = TypedMap.GetKeyMapper();
                         var info = _infos[_iinfo];
                         T src = default(T);
-                        Contracts.Assert(!(info.TypeSrc is VectorType));
+                        Contracts.Assert(!(info.TypeSrc is VectorDataViewType));
                         var inputColumn = input.Schema[info.InputColumnName];
                         _host.Assert(input.IsColumnActive(inputColumn));
                         var getSrc = input.GetGetter<T>(inputColumn);
@@ -1086,7 +1086,7 @@ namespace Microsoft.ML.Transforms
                         return;
 
                     _schema.TryGetColumnIndex(_infos[_iinfo].InputColumnName, out int srcCol);
-                    VectorType srcMetaType = _schema[srcCol].Annotations.Schema.GetColumnOrNull(AnnotationUtils.Kinds.KeyValues)?.Type as VectorType;
+                    VectorDataViewType srcMetaType = _schema[srcCol].Annotations.Schema.GetColumnOrNull(AnnotationUtils.Kinds.KeyValues)?.Type as VectorDataViewType;
                     if (srcMetaType == null || srcMetaType.Size != TypedMap.ItemType.GetKeyCountAsInt32(_host) ||
                         TypedMap.ItemType.GetKeyCountAsInt32(_host) == 0 || !Utils.MarshalInvoke(AddMetadataCore<int>, srcMetaType.ItemType.RawType, srcMetaType.ItemType, builder))
                     {
@@ -1167,7 +1167,7 @@ namespace Microsoft.ML.Transforms
                         return;
 
                     _schema.TryGetColumnIndex(_infos[_iinfo].InputColumnName, out int srcCol);
-                    VectorType srcMetaType = _schema[srcCol].Annotations.Schema.GetColumnOrNull(AnnotationUtils.Kinds.KeyValues)?.Type as VectorType;
+                    VectorDataViewType srcMetaType = _schema[srcCol].Annotations.Schema.GetColumnOrNull(AnnotationUtils.Kinds.KeyValues)?.Type as VectorDataViewType;
                     if (srcMetaType == null || srcMetaType.Size != TypedMap.ItemType.GetKeyCountAsInt32(_host) ||
                         TypedMap.ItemType.GetKeyCountAsInt32(_host) == 0 || !Utils.MarshalInvoke(WriteTextTermsCore<int>, srcMetaType.ItemType.RawType, srcMetaType.ItemType, writer))
                     {

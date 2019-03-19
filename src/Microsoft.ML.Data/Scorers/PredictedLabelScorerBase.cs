@@ -63,7 +63,7 @@ namespace Microsoft.ML.Data
                     var scoreColMetadata = mapper.OutputSchema[scoreColIndex].Annotations;
 
                     var slotColumn = scoreColMetadata.Schema.GetColumnOrNull(AnnotationUtils.Kinds.SlotNames);
-                    if (slotColumn?.Type is VectorType slotColVecType && (ulong)slotColVecType.Size == predColKeyType.Count)
+                    if (slotColumn?.Type is VectorDataViewType slotColVecType && (ulong)slotColVecType.Size == predColKeyType.Count)
                     {
                         Contracts.Assert(slotColVecType.Size > 0);
                         _predColMetadata = Utils.MarshalInvoke(KeyValueMetadataFromMetadata<int>, slotColVecType.RawType,
@@ -72,7 +72,7 @@ namespace Microsoft.ML.Data
                     else
                     {
                         var trainLabelColumn = scoreColMetadata.Schema.GetColumnOrNull(AnnotationUtils.Kinds.TrainingLabelValues);
-                        if (trainLabelColumn?.Type is VectorType trainLabelColVecType && (ulong)trainLabelColVecType.Size == predColKeyType.Count)
+                        if (trainLabelColumn?.Type is VectorDataViewType trainLabelColVecType && (ulong)trainLabelColVecType.Size == predColKeyType.Count)
                         {
                             Contracts.Assert(trainLabelColVecType.Size > 0);
                             _predColMetadata = Utils.MarshalInvoke(KeyValueMetadataFromMetadata<int>, trainLabelColVecType.RawType,

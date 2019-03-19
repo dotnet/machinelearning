@@ -44,7 +44,7 @@ namespace Microsoft.ML.StaticPipe
     }
 
     /// <summary>
-    /// For representing a <see cref="VectorType"/> of known length.
+    /// For representing a <see cref="VectorDataViewType"/> of known length.
     /// </summary>
     /// <typeparam name="T">The vector item type.</typeparam>
     public abstract class Vector<T> : PipelineColumn
@@ -58,7 +58,7 @@ namespace Microsoft.ML.StaticPipe
     }
 
     /// <summary>
-    /// For representing a <see cref="VectorType"/> that is normalized, that is, its <see cref="AnnotationUtils.Kinds.IsNormalized"/>
+    /// For representing a <see cref="VectorDataViewType"/> that is normalized, that is, its <see cref="AnnotationUtils.Kinds.IsNormalized"/>
     /// value is set with the value <c>true</c>.
     /// </summary>
     /// <typeparam name="T">The vector item type.</typeparam>
@@ -73,7 +73,7 @@ namespace Microsoft.ML.StaticPipe
     }
 
     /// <summary>
-    /// For representing a <see cref="VectorType"/> of unknown length.
+    /// For representing a <see cref="VectorDataViewType"/> of unknown length.
     /// </summary>
     /// <typeparam name="T">The vector item type.</typeparam>
     public abstract class VarVector<T> : PipelineColumn

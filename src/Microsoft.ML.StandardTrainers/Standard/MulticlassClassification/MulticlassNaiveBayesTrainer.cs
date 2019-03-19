@@ -202,8 +202,8 @@ namespace Microsoft.ML.Trainers
         private readonly int _totalTrainingCount;
         private readonly int _labelCount;
         private readonly int _featureCount;
-        private readonly VectorType _inputType;
-        private readonly VectorType _outputType;
+        private readonly VectorDataViewType _inputType;
+        private readonly VectorDataViewType _outputType;
 
         /// <summary> Return the type of prediction task.</summary>
         private protected override PredictionKind PredictionKind => PredictionKind.MulticlassClassification;
@@ -242,8 +242,8 @@ namespace Microsoft.ML.Trainers
             _labelCount = _labelHistogram.Length;
             _featureCount = featureCount;
             _absentFeaturesLogProb = CalculateAbsentFeatureLogProbabilities(_labelHistogram, _featureHistogram, _featureCount);
-            _inputType = new VectorType(NumberDataViewType.Single, _featureCount);
-            _outputType = new VectorType(NumberDataViewType.Single, _labelCount);
+            _inputType = new VectorDataViewType(NumberDataViewType.Single, _featureCount);
+            _outputType = new VectorDataViewType(NumberDataViewType.Single, _labelCount);
         }
 
         private NaiveBayesMulticlassModelParameters(IHostEnvironment env, ModelLoadContext ctx)
@@ -276,8 +276,8 @@ namespace Microsoft.ML.Trainers
 
             _absentFeaturesLogProb = ctx.Reader.ReadDoubleArray(_labelCount);
             _totalTrainingCount = _labelHistogram.Sum();
-            _inputType = new VectorType(NumberDataViewType.Single, _featureCount);
-            _outputType = new VectorType(NumberDataViewType.Single, _labelCount);
+            _inputType = new VectorDataViewType(NumberDataViewType.Single, _featureCount);
+            _outputType = new VectorDataViewType(NumberDataViewType.Single, _labelCount);
         }
 
         private static NaiveBayesMulticlassModelParameters Create(IHostEnvironment env, ModelLoadContext ctx)

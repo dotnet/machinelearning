@@ -475,7 +475,7 @@ namespace Microsoft.ML.Data
                         }
                     }
                 }
-                return new VectorType(itemType, degree);
+                return new VectorDataViewType(itemType, degree);
             }
         }
 

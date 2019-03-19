@@ -59,9 +59,9 @@ namespace Microsoft.ML.RunTests
             Assert.Equal(AnnotationUtils.Kinds.ScoreValueKind, scoreMetadata.Schema[2].Name);
 
             // Check metadata columns' types.
-            Assert.True(scoreMetadata.Schema[0].Type is VectorType);
-            Assert.Equal(keyNames.Length, (scoreMetadata.Schema[0].Type as VectorType).Size);
-            Assert.Equal(TextDataViewType.Instance, (scoreMetadata.Schema[0].Type as VectorType).ItemType);
+            Assert.True(scoreMetadata.Schema[0].Type is VectorDataViewType);
+            Assert.Equal(keyNames.Length, (scoreMetadata.Schema[0].Type as VectorDataViewType).Size);
+            Assert.Equal(TextDataViewType.Instance, (scoreMetadata.Schema[0].Type as VectorDataViewType).ItemType);
             Assert.Equal(TextDataViewType.Instance, scoreColumn.Annotations.Schema[1].Type);
             Assert.Equal(TextDataViewType.Instance, scoreColumn.Annotations.Schema[2].Type);
 

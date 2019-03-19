@@ -120,7 +120,7 @@ namespace Microsoft.ML.EntryPoints
             var col = schema.GetColumnOrNull(colName);
             if (!col.HasValue)
                 return null;
-            var type = col.Value.Annotations.Schema.GetColumnOrNull(AnnotationUtils.Kinds.KeyValues)?.Type as VectorType;
+            var type = col.Value.Annotations.Schema.GetColumnOrNull(AnnotationUtils.Kinds.KeyValues)?.Type as VectorDataViewType;
             if (type == null || !type.IsKnownSize || !(type.ItemType is TextDataViewType))
                 return null;
             var metadata = default(VBuffer<ReadOnlyMemory<char>>);
@@ -165,7 +165,7 @@ namespace Microsoft.ML.EntryPoints
                 if (!featNames.Add(col.Name))
                     continue;
 
-                if (!(col.Type is VectorType vectorType) || vectorType.Size > 0)
+                if (!(col.Type is VectorDataViewType vectorType) || vectorType.Size > 0)
                 {
                     var type = col.Type.GetItemType();
                     if (type is KeyDataViewType keyType)

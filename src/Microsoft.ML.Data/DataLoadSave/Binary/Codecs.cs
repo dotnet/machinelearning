@@ -773,7 +773,7 @@ namespace Microsoft.ML.Data.IO
             // <Values>: The packed sequence of values for all the vbuffers, written using the inner value codec's scheme.
 
             private readonly CodecFactory _factory;
-            private readonly VectorType _type;
+            private readonly VectorDataViewType _type;
             // The codec for the internal elements.
             private readonly IValueCodec<T> _innerCodec;
             private readonly MadeObjectPool<T[]> _bufferPool;
@@ -783,7 +783,7 @@ namespace Microsoft.ML.Data.IO
 
             public DataViewType Type { get { return _type; } }
 
-            public VBufferCodec(CodecFactory factory, VectorType type, IValueCodec<T> innerCodec)
+            public VBufferCodec(CodecFactory factory, VectorDataViewType type, IValueCodec<T> innerCodec)
             {
                 Contracts.AssertValue(factory);
                 Contracts.AssertValue(type);
@@ -1128,7 +1128,7 @@ namespace Microsoft.ML.Data.IO
             var itemType = innerCodec.Type as PrimitiveDataViewType;
             Contracts.CheckDecode(itemType != null);
             // Following the internal type definition is the dimensions.
-            VectorType type;
+            VectorDataViewType type;
             using (BinaryReader reader = OpenBinaryReader(definitionStream))
             {
                 var dims = reader.ReadIntArray();
@@ -1136,7 +1136,7 @@ namespace Microsoft.ML.Data.IO
                 {
                     foreach (int d in dims)
                         Contracts.CheckDecode(d >= 0);
-                    type = new VectorType(itemType, dims);
+                    type = new VectorDataViewType(itemType, dims);
                 }
                 else
                 {
@@ -1144,7 +1144,7 @@ namespace Microsoft.ML.Data.IO
                     // then the vector type would be considered to have a dimension count of 0, for some reason.
                     // This can no longer occur, but in the case where we read an older file we have to account for
                     // the fact that nothing may have been written.
-                    type = new VectorType(itemType);
+                    type = new VectorDataViewType(itemType);
                 }
             }
             // Next create the vbuffer codec.
@@ -1153,7 +1153,7 @@ namespace Microsoft.ML.Data.IO
             return true;
         }
 
-        private bool GetVBufferCodec(VectorType type, out IValueCodec codec)
+        private bool GetVBufferCodec(VectorDataViewType type, out IValueCodec codec)
         {
             DataViewType itemType = type.ItemType;
             // First create the element codec.

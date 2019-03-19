@@ -191,7 +191,7 @@ namespace Microsoft.ML.Transforms
             public string TestType(DataViewType type)
             {
                 DataViewType itemType = type;
-                if (type is VectorType vectorType)
+                if (type is VectorDataViewType vectorType)
                 {
                     // We require vectors to be of known size.
                     if (!vectorType.IsKnownSize)
@@ -393,7 +393,7 @@ namespace Microsoft.ML.Transforms
                     if (typeSrc == NumberDataViewType.Double)
                         return Dbl.ImplOne.Create(ctx, host, typeSrc);
                 }
-                else if (typeSrc is VectorType vectorType && vectorType.ItemType is NumberDataViewType)
+                else if (typeSrc is VectorDataViewType vectorType && vectorType.ItemType is NumberDataViewType)
                 {
                     if (vectorType.ItemType == NumberDataViewType.Single)
                         return Sng.ImplVec.Create(ctx, host, vectorType);
@@ -512,7 +512,7 @@ namespace Microsoft.ML.Transforms
                     if (typeSrc == NumberDataViewType.Double)
                         return Dbl.ImplOne.Create(ctx, host, typeSrc);
                 }
-                else if (typeSrc is VectorType vectorType && vectorType.ItemType is NumberDataViewType)
+                else if (typeSrc is VectorDataViewType vectorType && vectorType.ItemType is NumberDataViewType)
                 {
                     if (vectorType.ItemType == NumberDataViewType.Single)
                         return Sng.ImplVec.Create(ctx, host, vectorType);
@@ -648,7 +648,7 @@ namespace Microsoft.ML.Transforms
                     if (typeSrc == NumberDataViewType.Double)
                         return Dbl.ImplOne.Create(ctx, host, typeSrc);
                 }
-                if (typeSrc is VectorType vectorType && vectorType.ItemType is NumberDataViewType)
+                if (typeSrc is VectorDataViewType vectorType && vectorType.ItemType is NumberDataViewType)
                 {
                     if (vectorType.ItemType == NumberDataViewType.Single)
                         return Sng.ImplVec.Create(ctx, host, vectorType);
@@ -943,7 +943,7 @@ namespace Microsoft.ML.Transforms
                     if (srcType == NumberDataViewType.Double)
                         return Dbl.MinMaxOneColumnFunctionBuilder.Create(column, host, srcType, cursor.GetGetter<Double>(srcColumn));
                 }
-                if (srcType is VectorType vectorType && vectorType.IsKnownSize && vectorType.ItemType is NumberDataViewType)
+                if (srcType is VectorDataViewType vectorType && vectorType.IsKnownSize && vectorType.ItemType is NumberDataViewType)
                 {
                     if (vectorType.ItemType == NumberDataViewType.Single)
                         return Sng.MinMaxVecColumnFunctionBuilder.Create(column, host, vectorType, cursor.GetGetter<VBuffer<Single>>(srcColumn));
@@ -982,7 +982,7 @@ namespace Microsoft.ML.Transforms
                     if (srcType == NumberDataViewType.Double)
                         return Dbl.MeanVarOneColumnFunctionBuilder.Create(column, host, srcType, cursor.GetGetter<Double>(srcColumn));
                 }
-                if (srcType is VectorType vectorType && vectorType.IsKnownSize && vectorType.ItemType is NumberDataViewType)
+                if (srcType is VectorDataViewType vectorType && vectorType.IsKnownSize && vectorType.ItemType is NumberDataViewType)
                 {
                     if (vectorType.ItemType == NumberDataViewType.Single)
                         return Sng.MeanVarVecColumnFunctionBuilder.Create(column, host, vectorType, cursor.GetGetter<VBuffer<Single>>(srcColumn));
@@ -1023,7 +1023,7 @@ namespace Microsoft.ML.Transforms
                     if (srcType == NumberDataViewType.Double)
                         return Dbl.MeanVarOneColumnFunctionBuilder.Create(column, host, srcType, cursor.GetGetter<Double>(srcColumn));
                 }
-                if (srcType is VectorType vectorType && vectorType.IsKnownSize && vectorType.ItemType is NumberDataViewType)
+                if (srcType is VectorDataViewType vectorType && vectorType.IsKnownSize && vectorType.ItemType is NumberDataViewType)
                 {
                     if (vectorType.ItemType == NumberDataViewType.Single)
                         return Sng.MeanVarVecColumnFunctionBuilder.Create(column, host, vectorType, cursor.GetGetter<VBuffer<Single>>(srcColumn));
@@ -1063,7 +1063,7 @@ namespace Microsoft.ML.Transforms
                     if (srcType == NumberDataViewType.Double)
                         return Dbl.BinOneColumnFunctionBuilder.Create(column, host, srcType, cursor.GetGetter<Double>(srcColumn));
                 }
-                if (srcType is VectorType vectorType && vectorType.IsKnownSize && vectorType.ItemType is NumberDataViewType)
+                if (srcType is VectorDataViewType vectorType && vectorType.IsKnownSize && vectorType.ItemType is NumberDataViewType)
                 {
                     if (vectorType.ItemType == NumberDataViewType.Single)
                         return Sng.BinVecColumnFunctionBuilder.Create(column, host, vectorType, cursor.GetGetter<VBuffer<Single>>(srcColumn));
@@ -1122,7 +1122,7 @@ namespace Microsoft.ML.Transforms
                     if (srcType == NumberDataViewType.Double)
                         return Dbl.SupervisedBinOneColumnFunctionBuilder.Create(column, host, srcIndex, labelColumnId, cursor);
                 }
-                if (srcType is VectorType vectorType && vectorType.ItemType is NumberDataViewType)
+                if (srcType is VectorDataViewType vectorType && vectorType.ItemType is NumberDataViewType)
                 {
                     if (vectorType.ItemType == NumberDataViewType.Single)
                         return Sng.SupervisedBinVecColumnFunctionBuilder.Create(column, host, srcIndex, labelColumnId, cursor);

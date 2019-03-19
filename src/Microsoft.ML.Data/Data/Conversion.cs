@@ -594,7 +594,7 @@ namespace Microsoft.ML.Data.Conversion
         public InPredicate<T> GetIsDefaultPredicate<T>(DataViewType type)
         {
             Contracts.CheckValue(type, nameof(type));
-            Contracts.CheckParam(!(type is VectorType), nameof(type));
+            Contracts.CheckParam(!(type is VectorDataViewType), nameof(type));
             Contracts.CheckParam(type.RawType == typeof(T), nameof(type));
 
             var t = type;
@@ -633,7 +633,7 @@ namespace Microsoft.ML.Data.Conversion
         public bool TryGetIsNAPredicate(DataViewType type, out Delegate del)
         {
             Contracts.CheckValue(type, nameof(type));
-            Contracts.CheckParam(!(type is VectorType), nameof(type));
+            Contracts.CheckParam(!(type is VectorDataViewType), nameof(type));
 
             var t = type;
             if (t is KeyDataViewType)
@@ -652,7 +652,7 @@ namespace Microsoft.ML.Data.Conversion
             return true;
         }
 
-        public InPredicate<VBuffer<T>> GetHasMissingPredicate<T>(VectorType type)
+        public InPredicate<VBuffer<T>> GetHasMissingPredicate<T>(VectorDataViewType type)
         {
             Contracts.CheckValue(type, nameof(type));
             Contracts.CheckParam(type.ItemType.RawType == typeof(T), nameof(type));

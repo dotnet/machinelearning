@@ -632,9 +632,9 @@ namespace Microsoft.ML.Data
 
                 DataViewType type = itemType;
                 if (isegVar >= 0)
-                    type = new VectorType(itemType);
+                    type = new VectorDataViewType(itemType);
                 else if (size > 1 || segs[0].ForceVector)
-                    type = new VectorType(itemType, size);
+                    type = new VectorDataViewType(itemType, size);
 
                 return new ColInfo(name, type, segs, isegVar, size);
             }

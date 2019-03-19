@@ -102,7 +102,7 @@ namespace Microsoft.ML.Data.IO
             // Handle the primier types specially.
             if (type is KeyDataViewType)
                 return GetKeyCodec(type, out codec);
-            if (type is VectorType vectorType)
+            if (type is VectorDataViewType vectorType)
                 return GetVBufferCodec(vectorType, out codec);
             return _simpleCodecTypeMap.TryGetValue(type.RawType, out codec);
         }

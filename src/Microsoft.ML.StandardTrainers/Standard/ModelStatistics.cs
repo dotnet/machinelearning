@@ -578,7 +578,7 @@ namespace Microsoft.ML.Trainers
             var subMetaBuilder = new DataViewSchema.Annotations.Builder();
             subMetaBuilder.AddSlotNames(stdErr.Length, getSlotNames);
             var subMeta = subMetaBuilder.ToAnnotations();
-            var colType = new VectorType(NumberDataViewType.Single, stdErr.Length);
+            var colType = new VectorDataViewType(NumberDataViewType.Single, stdErr.Length);
 
             builder.Add("Estimate", colType, (ref VBuffer<float> dst) => estimate.CopyTo(ref dst), subMeta);
             builder.Add("StandardError", colType, (ref VBuffer<float> dst) => stdErr.CopyTo(ref dst), subMeta);
