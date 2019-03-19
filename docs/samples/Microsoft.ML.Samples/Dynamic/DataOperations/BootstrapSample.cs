@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace Microsoft.ML.Samples.Dynamic
 {
-    public static class Bootstrap
+    public static class BootstrapSample
     {
         public static void Example()
         {
