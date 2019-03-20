@@ -373,32 +373,32 @@ namespace Microsoft.ML
 
         /// <summary>
         /// Split the dataset into the train set and test set according to the given fraction.
-        /// Respects the <paramref name="samplingKeyColumnName"/> if provided.
+        /// Respects the <paramref name="partitionKeyColumnName"/> if provided.
         /// </summary>
         /// <param name="data">The dataset to split.</param>
         /// <param name="testFraction">The fraction of data to go into the test set.</param>
-        /// <param name="samplingKeyColumnName">Name of a column to use for grouping rows. If two examples share the same value of the <paramref name="samplingKeyColumnName"/>,
+        /// <param name="partitionKeyColumnName">Name of a column to use for grouping rows. If two examples share the same value of the <paramref name="partitionKeyColumnName"/>,
         /// they are guaranteed to appear in the same subset (train or test). This can be used to ensure no label leakage from the train to the test set.
         /// If <see langword="null"/> no row grouping will be performed.</param>
         /// <param name="seed">Seed for the random number generator used to select rows for the train-test split.</param>
-        public TrainTestData TrainTestSplit(IDataView data, double testFraction = 0.1, string samplingKeyColumnName = null, int? seed = null)
+        public TrainTestData TrainTestSplit(IDataView data, double testFraction = 0.1, string partitionKeyColumnName = null, int? seed = null)
         {
             _env.CheckValue(data, nameof(data));
             _env.CheckParam(0 < testFraction && testFraction < 1, nameof(testFraction), "Must be between 0 and 1 exclusive");
-            _env.CheckValueOrNull(samplingKeyColumnName);
+            _env.CheckValueOrNull(partitionKeyColumnName);
 
-            EnsureGroupPreservationColumn(_env, ref data, ref samplingKeyColumnName, seed);
+            EnsureGroupPreservationColumn(_env, ref data, ref partitionKeyColumnName, seed);
 
             var trainFilter = new RangeFilter(_env, new RangeFilter.Options()
             {
-                Column = samplingKeyColumnName,
+                Column = partitionKeyColumnName,
                 Min = 0,
                 Max = testFraction,
                 Complement = true
             }, data);
             var testFilter = new RangeFilter(_env, new RangeFilter.Options()
             {
-                Column = samplingKeyColumnName,
+                Column = partitionKeyColumnName,
                 Min = 0,
                 Max = testFraction,
                 Complement = false
