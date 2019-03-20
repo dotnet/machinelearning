@@ -33,7 +33,7 @@ namespace Microsoft.ML.CLI.Data
 
         public string Cache { get; set; }
 
-        public List<string> IgnoreColumns { get; set; }
+        public List<string> IgnoreColumns { get; set; } = new List<string>();
 
     }
 }

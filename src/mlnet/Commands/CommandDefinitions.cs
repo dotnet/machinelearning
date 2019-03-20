@@ -51,7 +51,7 @@ namespace Microsoft.ML.CLI.Commands
                 {
                     return "The following options are mutually exclusive please provide only one : --label-column-name, --label-column-index";
                 }
-                if (sym.Children.Contains("--label-column-index") && sym.Children["--ignore-columns"].Arguments.Count > 0)
+                if (sym.Children.Contains("--label-column-index") && sym.Children["--ignore-columns"]?.Arguments.Count > 0)
                 {
                     return "Currently we don't support specifying --ignore-columns in conjunction with --label-column-index";
                 }
