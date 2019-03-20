@@ -17,7 +17,7 @@ namespace Microsoft.ML.Samples.Dynamic.Trainers.Regression
             var mlContext = new MLContext(seed: 0);
 
             // Create a list of training examples.
-            var examples = GenerateRandomDataPoints(100000);
+            var examples = GenerateRandomDataPoints(1000);
 
             // Convert the examples list to an IDataView object, which is consumable by ML.NET API.
             var trainingData = mlContext.Data.LoadFromEnumerable(examples);

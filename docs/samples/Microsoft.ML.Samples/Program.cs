@@ -1,5 +1,4 @@
 ﻿using Microsoft.ML.Samples.Dynamic;
-using Microsoft.ML.Samples.Dynamic.Trainers.Regression;
 
 namespace Microsoft.ML.Samples
 {
@@ -7,7 +6,7 @@ namespace Microsoft.ML.Samples
     {
         static void Main(string[] args)
         {
-            FastTree.Example();
+            ReplaceMissingValues.Example();
         }
     }
 }
