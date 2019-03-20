@@ -22,7 +22,7 @@ namespace Microsoft.ML.Samples.Dynamic.PermutationFeatureImportance
             // Then append a logistic regression trainer.
             var pipeline = mlContext.Transforms.Concatenate("Features", featureNames)
                     .Append(mlContext.Transforms.Normalize("Features"))
-                    .Append(mlContext.BinaryClassification.Trainers.LogisticRegression(
+                    .Append(mlContext.BinaryClassification.Trainers.LbfgsLogisticRegressio(
                         labelColumnName: labelName, featureColumnName: "Features"));
             var model = pipeline.Fit(data);
 

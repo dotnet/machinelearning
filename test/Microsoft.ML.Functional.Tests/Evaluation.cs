@@ -93,7 +93,7 @@ namespace Microsoft.ML.Functional.Tests
             // Create a training pipeline.
             var pipeline = mlContext.Transforms.Text.FeaturizeText("Features", "SentimentText")
                 .AppendCacheCheckpoint(mlContext)
-                .Append(mlContext.BinaryClassification.Trainers.LogisticRegression(
+                .Append(mlContext.BinaryClassification.Trainers.LbfgsLogisticRegressio(
                     new LbfgsLogisticRegressionTrainer.Options { NumberOfThreads = 1 }));
 
             // Train the model.
@@ -273,7 +273,7 @@ namespace Microsoft.ML.Functional.Tests
             // Create a training pipeline.
             var pipeline = mlContext.Transforms.Text.FeaturizeText("Features", "SentimentText")
                 .AppendCacheCheckpoint(mlContext)
-                .Append(mlContext.BinaryClassification.Trainers.LogisticRegression(
+                .Append(mlContext.BinaryClassification.Trainers.LbfgsLogisticRegressio(
                     new LbfgsLogisticRegressionTrainer.Options { NumberOfThreads = 1 }));
 
             // Train the model.

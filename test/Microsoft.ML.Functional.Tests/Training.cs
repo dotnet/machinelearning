@@ -225,7 +225,7 @@ namespace Microsoft.ML.Functional.Tests
             var featurizationPipeline = mlContext.Transforms.Text.FeaturizeText("Features", "SentimentText")
                 .AppendCacheCheckpoint(mlContext);
 
-            var trainer = mlContext.BinaryClassification.Trainers.LogisticRegression(
+            var trainer = mlContext.BinaryClassification.Trainers.LbfgsLogisticRegressio(
                 new LbfgsLogisticRegressionTrainer.Options { NumberOfThreads = 1, MaximumNumberOfIterations = 10 });
 
             // Fit the data transformation pipeline.
@@ -363,8 +363,8 @@ namespace Microsoft.ML.Functional.Tests
                 .Append(mlContext.Transforms.Normalize("Features"))
                 .AppendCacheCheckpoint(mlContext);
 
-            var trainer = mlContext.Regression.Trainers.PoissonRegression(
-                new PoissonRegressionTrainer.Options { NumberOfThreads = 1, MaximumNumberOfIterations = 100 });
+            var trainer = mlContext.Regression.Trainers.LbfgsPoissonRegression(
+                new LbfgsPoissonRegressionTrainer.Options { NumberOfThreads = 1, MaximumNumberOfIterations = 100 });
 
             // Fit the data transformation pipeline.
             var featurization = featurizationPipeline.Fit(data);
@@ -451,7 +451,7 @@ namespace Microsoft.ML.Functional.Tests
                 separatorChar: TestDatasets.iris.fileSeparator);
 
             // Create a model training an OVA trainer with a binary classifier.
-            var binaryClassificationTrainer = mlContext.BinaryClassification.Trainers.LogisticRegression(
+            var binaryClassificationTrainer = mlContext.BinaryClassification.Trainers.LbfgsLogisticRegressio(
                 new LbfgsLogisticRegressionTrainer.Options { MaximumNumberOfIterations = 10, NumberOfThreads = 1, });
             var binaryClassificationPipeline = mlContext.Transforms.Concatenate("Features", Iris.Features)
                 .AppendCacheCheckpoint(mlContext)
