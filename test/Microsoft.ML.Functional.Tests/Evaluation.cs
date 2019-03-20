@@ -94,7 +94,7 @@ namespace Microsoft.ML.Functional.Tests
             var pipeline = mlContext.Transforms.Text.FeaturizeText("Features", "SentimentText")
                 .AppendCacheCheckpoint(mlContext)
                 .Append(mlContext.BinaryClassification.Trainers.LbfgsLogisticRegression(
-                    new LbfgsLogisticRegressionTrainer.Options { NumberOfThreads = 1 }));
+                    new LbfgsCalibratedBinaryTrainer.Options { NumberOfThreads = 1 }));
 
             // Train the model.
             var model = pipeline.Fit(data);
@@ -274,7 +274,7 @@ namespace Microsoft.ML.Functional.Tests
             var pipeline = mlContext.Transforms.Text.FeaturizeText("Features", "SentimentText")
                 .AppendCacheCheckpoint(mlContext)
                 .Append(mlContext.BinaryClassification.Trainers.LbfgsLogisticRegression(
-                    new LbfgsLogisticRegressionTrainer.Options { NumberOfThreads = 1 }));
+                    new LbfgsCalibratedBinaryTrainer.Options { NumberOfThreads = 1 }));
 
             // Train the model.
             var model = pipeline.Fit(data);

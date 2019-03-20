@@ -126,7 +126,7 @@ namespace Microsoft.ML.Tests
         [Fact]
         public void TestLogisticRegressionBinary()
         {
-            TestFeatureContribution(ML.BinaryClassification.Trainers.LbfgsLogisticRegression(), GetSparseDataset(TaskType.BinaryClassification, 100), "LogisticRegressionBinary");
+            TestFeatureContribution(ML.BinaryClassification.Trainers.LbfgsCalibrated(), GetSparseDataset(TaskType.BinaryClassification, 100), "LogisticRegressionBinary");
         }
 
         [Fact]

@@ -9,7 +9,7 @@ using Microsoft.ML.Trainers;
 
 namespace Microsoft.ML
 {
-    using LROptions = LbfgsLogisticRegressionTrainer.Options;
+    using LROptions = LbfgsCalibratedBinaryTrainer.Options;
 
     /// <summary>
     /// TrainerEstimator extension methods.
@@ -498,7 +498,7 @@ namespace Microsoft.ML
         }
 
         /// <summary>
-        ///  Predict a target using a linear binary classification model trained with the <see cref="Trainers.LbfgsLogisticRegressionTrainer"/> trainer.
+        ///  Predict a target using a linear binary classification model trained with the <see cref="Trainers.LbfgsCalibratedBinaryTrainer"/> trainer.
         /// </summary>
         /// <param name="catalog">The binary classification catalog trainer object.</param>
         /// <param name="labelColumnName">The name of the label column.</param>
@@ -507,7 +507,7 @@ namespace Microsoft.ML
         /// <param name="enforceNonNegativity">Enforce non-negative weights.</param>
         /// <param name="l1Regularization">Weight of L1 regularization term.</param>
         /// <param name="l2Regularization">Weight of L2 regularization term.</param>
-        /// <param name="historySize">Memory size for <see cref="Trainers.LbfgsLogisticRegressionTrainer"/>. Low=faster, less accurate.</param>
+        /// <param name="historySize">Memory size for <see cref="Trainers.LbfgsCalibratedBinaryTrainer"/>. Low=faster, less accurate.</param>
         /// <param name="optimizationTolerance">Threshold for optimizer convergence.</param>
         /// <example>
         /// <format type="text/markdown">
@@ -516,7 +516,7 @@ namespace Microsoft.ML
         /// ]]>
         /// </format>
         /// </example>
-        public static LbfgsLogisticRegressionTrainer LbfgsLogisticRegression(this BinaryClassificationCatalog.BinaryClassificationTrainers catalog,
+        public static LbfgsCalibratedBinaryTrainer LbfgsCalibrated(this BinaryClassificationCatalog.BinaryClassificationTrainers catalog,
             string labelColumnName = DefaultColumnNames.Label,
             string featureColumnName = DefaultColumnNames.Features,
             string exampleWeightColumnName = null,
@@ -528,21 +528,21 @@ namespace Microsoft.ML
         {
             Contracts.CheckValue(catalog, nameof(catalog));
             var env = CatalogUtils.GetEnvironment(catalog);
-            return new LbfgsLogisticRegressionTrainer(env, labelColumnName, featureColumnName, exampleWeightColumnName, l1Regularization, l2Regularization, optimizationTolerance, historySize, enforceNonNegativity);
+            return new LbfgsCalibratedBinaryTrainer(env, labelColumnName, featureColumnName, exampleWeightColumnName, l1Regularization, l2Regularization, optimizationTolerance, historySize, enforceNonNegativity);
         }
 
         /// <summary>
-        ///  Predict a target using a linear binary classification model trained with the <see cref="Trainers.LbfgsLogisticRegressionTrainer"/> trainer.
+        ///  Predict a target using a linear binary classification model trained with the <see cref="Trainers.LbfgsCalibratedBinaryTrainer"/> trainer.
         /// </summary>
         /// <param name="catalog">The binary classification catalog trainer object.</param>
         /// <param name="options">Advanced arguments to the algorithm.</param>
-        public static LbfgsLogisticRegressionTrainer LbfgsLogisticRegression(this BinaryClassificationCatalog.BinaryClassificationTrainers catalog, LROptions options)
+        public static LbfgsCalibratedBinaryTrainer LbfgsLogisticRegression(this BinaryClassificationCatalog.BinaryClassificationTrainers catalog, LROptions options)
         {
             Contracts.CheckValue(catalog, nameof(catalog));
             Contracts.CheckValue(options, nameof(options));
 
             var env = CatalogUtils.GetEnvironment(catalog);
-            return new LbfgsLogisticRegressionTrainer(env, options);
+            return new LbfgsCalibratedBinaryTrainer(env, options);
         }
 
         /// <summary>
