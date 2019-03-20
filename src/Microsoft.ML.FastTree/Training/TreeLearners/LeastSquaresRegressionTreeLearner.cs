@@ -655,6 +655,8 @@ namespace Microsoft.ML.Trainers.FastTree
         protected virtual void FindBestThresholdFromHistogram(SufficientStatsBase histogram,
             LeafSplitCandidates leafSplitCandidates, int flock)
         {
+            Host.CheckAlive();
+
             // Cache histograms for the parallel interface.
             int featureMin = TrainData.FlockToFirstFeature(flock);
             int featureLim = featureMin + TrainData.Flocks[flock].Count;
