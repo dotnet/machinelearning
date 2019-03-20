@@ -38,10 +38,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
             ml.Model.Save(model, data.Schema, modelPath);
 
             // Load model.
-            ITransformer loadedModel;
-            DataViewSchema inputSchema;
-            using (var file = File.OpenRead(modelPath))
-                loadedModel = ml.Model.Load(file, out inputSchema);
+            var loadedModel = ml.Model.Load(modelPath, out var inputSchema);
 
             // Create prediction engine and test predictions.
             var engine = ml.Model.CreatePredictionEngine<SentimentData, SentimentPrediction>(loadedModel, inputSchema);
