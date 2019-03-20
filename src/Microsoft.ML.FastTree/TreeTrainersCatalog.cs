@@ -78,6 +78,13 @@ namespace Microsoft.ML
         /// <param name="numberOfLeaves">The maximum number of leaves per decision tree.</param>
         /// <param name="minimumExampleCountPerLeaf">The minimal number of data points required to form a new tree leaf.</param>
         /// <param name="learningRate">The learning rate.</param>
+        /// <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        /// [!code-csharp[FastTreeBinaryClassification](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Trainers/BinaryClassification/FastTree.cs)]
+        /// ]]>
+        /// </format>
+        /// </example>
         public static FastTreeBinaryTrainer FastTree(this BinaryClassificationCatalog.BinaryClassificationTrainers catalog,
             string labelColumnName = DefaultColumnNames.Label,
             string featureColumnName = DefaultColumnNames.Features,
@@ -97,6 +104,13 @@ namespace Microsoft.ML
         /// </summary>
         /// <param name="catalog">The <see cref="BinaryClassificationCatalog"/>.</param>
         /// <param name="options">Trainer options.</param>
+        /// <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        /// [!code-csharp[FastTreeBinaryClassification](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Trainers/BinaryClassification/FastTreeWithOptions.cs)]
+        /// ]]>
+        /// </format>
+        /// </example>
         public static FastTreeBinaryTrainer FastTree(this BinaryClassificationCatalog.BinaryClassificationTrainers catalog,
             FastTreeBinaryTrainer.Options options)
         {
@@ -351,6 +365,13 @@ namespace Microsoft.ML
         /// <param name="numberOfTrees">Total number of decision trees to create in the ensemble.</param>
         /// <param name="numberOfLeaves">The maximum number of leaves per decision tree.</param>
         /// <param name="minDatapointsInLeaves">The minimal number of data points required to form a new tree leaf.</param>
+        /// <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        /// [!code-csharp[FastForestBinaryClassification](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Trainers/BinaryClassification/FastForest.cs)]
+        /// ]]>
+        /// </format>
+        /// </example>
         public static FastForestBinaryTrainer FastForest(this BinaryClassificationCatalog.BinaryClassificationTrainers catalog,
             string labelColumnName = DefaultColumnNames.Label,
             string featureColumnName = DefaultColumnNames.Features,
@@ -369,6 +390,14 @@ namespace Microsoft.ML
         /// </summary>
         /// <param name="catalog">The <see cref="BinaryClassificationCatalog"/>.</param>
         /// <param name="options">Trainer options.</param>
+        /// <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        /// [!code-csharp[FastForestBinaryClassification](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Trainers/BinaryClassification/FastForestWithOptions.cs)]
+        /// ]]>
+        /// </format>
+        /// </example>
+
         public static FastForestBinaryTrainer FastForest(this BinaryClassificationCatalog.BinaryClassificationTrainers catalog,
             FastForestBinaryTrainer.Options options)
         {
