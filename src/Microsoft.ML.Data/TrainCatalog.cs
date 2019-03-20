@@ -495,6 +495,7 @@ namespace Microsoft.ML
             Environment.CheckNonEmpty(labelColumnName, nameof(labelColumnName));
             Environment.CheckNonEmpty(scoreColumnName, nameof(scoreColumnName));
             Environment.CheckNonEmpty(predictedLabelColumnName, nameof(predictedLabelColumnName));
+            Environment.CheckUserArg(topPredictionCount >= 0, nameof(topPredictionCount), "Must be non-negative");
 
             var args = new MulticlassClassificationEvaluator.Arguments() { };
             if (topPredictionCount > 0)
