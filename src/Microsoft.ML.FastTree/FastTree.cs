@@ -1919,6 +1919,7 @@ namespace Microsoft.ML.Trainers.FastTree
                     List<int> trivialFeatures = new List<int>();
                     for (iFeature = 0; iFeature < NumFeatures; iFeature++)
                     {
+                        Host.CheckAlive();
                         if (!localConstructBinFeatures[iFeature])
                             continue;
                         // The following strange call will actually sparsify.
@@ -2230,6 +2231,7 @@ namespace Microsoft.ML.Trainers.FastTree
 
                 for (; iFeature < featureLim; ++iFeature)
                 {
+                    Host.CheckAlive();
                     double[] bup = BinUpperBounds[iFeature];
                     Contracts.Assert(Utils.Size(bup) > 0);
                     if (bup.Length == 1)
