@@ -56,7 +56,7 @@ namespace Microsoft.ML.Transforms.Text
     {
         public IDataTransform CreateComponent(IHostEnvironment env, IDataView input, OneToOneColumn[] columns)
         {
-            return new StopWordsRemovingEstimator(env, columns.Select(x => new StopWordsRemovingEstimator.ColumnOptions(x.OutputColumnName, x.InputColumnName)).ToArray()).Fit(input).Transform(input) as IDataTransform;
+            return new StopWordsRemovingEstimator(env, columns.Select(x => new StopWordsRemovingEstimator.ColumnOptions(x.OutputName, x.InputName)).ToArray()).Fit(input).Transform(input) as IDataTransform;
         }
     }
 
@@ -265,8 +265,8 @@ namespace Microsoft.ML.Transforms.Text
             {
                 var item = options.Columns[i];
                 cols[i] = new StopWordsRemovingEstimator.ColumnOptions(
-                   item.OutputColumnName,
-                   item.InputColumnName ?? item.OutputColumnName,
+                   item.OutputName,
+                   item.InputName ?? item.OutputName,
                    item.Language ?? options.Language,
                    item.LanguagesColumn ?? options.LanguagesColumn);
             }
@@ -681,9 +681,9 @@ namespace Microsoft.ML.Transforms.Text
             public IDataTransform CreateComponent(IHostEnvironment env, IDataView input, OneToOneColumn[] column)
             {
                 if (Utils.Size(Stopword) > 0)
-                    return new CustomStopWordsRemovingTransformer(env, Stopwords, column.Select(x => (x.OutputColumnName, x.InputColumnName)).ToArray()).Transform(input) as IDataTransform;
+                    return new CustomStopWordsRemovingTransformer(env, Stopwords, column.Select(x => (x.OutputName, x.InputName)).ToArray()).Transform(input) as IDataTransform;
                 else
-                    return new CustomStopWordsRemovingTransformer(env, Stopword, DataFile, StopwordsColumn, Loader, column.Select(x => (x.OutputColumnName, x.InputColumnName)).ToArray()).Transform(input) as IDataTransform;
+                    return new CustomStopWordsRemovingTransformer(env, Stopword, DataFile, StopwordsColumn, Loader, column.Select(x => (x.OutputName, x.InputName)).ToArray()).Transform(input) as IDataTransform;
             }
         }
 
@@ -984,7 +984,7 @@ namespace Microsoft.ML.Transforms.Text
             for (int i = 0; i < cols.Length; i++)
             {
                 var item = options.Columns[i];
-                cols[i] = (item.OutputColumnName, item.InputColumnName ?? item.OutputColumnName);
+                cols[i] = (item.OutputName, item.InputName ?? item.OutputName);
             }
             CustomStopWordsRemovingTransformer transfrom = null;
             if (Utils.Size(options.Stopwords) > 0)

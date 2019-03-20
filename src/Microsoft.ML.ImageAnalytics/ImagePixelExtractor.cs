@@ -66,8 +66,8 @@ namespace Microsoft.ML.Transforms.Image
                 Contracts.CheckValue(item, nameof(item));
                 Contracts.CheckValue(options, nameof(options));
 
-                Name = item.OutputColumnName;
-                InputColumnName = item.InputColumnName ?? item.OutputColumnName;
+                Name = item.OutputName;
+                InputColumnName = item.InputName ?? item.OutputName;
                 if ((item.UseAlpha ?? options.UseAlpha) || (item.UseRed ?? options.UseRed) || (item.UseGreen ?? options.UseGreen) || (item.UseBlue ?? options.UseBlue))
                 {
                     if (item.UseAlpha ?? options.UseAlpha) { ColorsToExtract |= ImagePixelExtractingEstimator.ColorBits.Alpha; Planes++; }
@@ -227,7 +227,7 @@ namespace Microsoft.ML.Transforms.Image
         private static (string outputColumnName, string inputColumnName)[] GetColumnPairs(ImagePixelExtractingEstimator.Options options)
         {
             Contracts.CheckValue(options, nameof(options));
-            return options.ColumnOptions.Select(x => (x.OutputColumnName, x.InputColumnName)).ToArray();
+            return options.ColumnOptions.Select(x => (x.OutputName, x.InputName)).ToArray();
         }
 
         // Factory method for SignatureDataTransform.
@@ -517,7 +517,7 @@ namespace Microsoft.ML.Transforms.Image
         /// Describes how the transformer handles one input-output column pair.
         /// Any setting with non <see langword="null"/> value will override the global setting specified in <see cref="Options"/> for this input-outout column pair.
         /// </summary>
-        public class ColumnOptions : OneToOneColumn
+        public sealed class ColumnOptions : OneToOneColumn
         {
             /// <summary>The colors to extract.</summary>
             [Argument(ArgumentType.AtMostOnce, Hide = true, HelpText = "Colors to extract")]
@@ -588,7 +588,7 @@ namespace Microsoft.ML.Transforms.Image
         /// <summary>
         /// Describes the options for the transformer.
         /// </summary>
-        public class Options : TransformInputBase
+        public sealed class Options : TransformInputBase
         {
             /// <summary>Specifies the input-output column pairs for this transformation and any column specific options.</summary>
             [Argument(ArgumentType.Multiple | ArgumentType.Required, HelpText = "New column definition(s) (optional form: name:src)", Name = "Column", ShortName = "col", SortOrder = 1)]
@@ -639,9 +639,9 @@ namespace Microsoft.ML.Transforms.Image
             /// <summary>
             /// Initializes <see cref="ColumnOptions"/> with the specified input-output columns with default options.
             /// </summary>
-            public Options(params OneToOneColumn[] column)
+            public Options(params ML.ColumnOptions[] columns)
             {
-                ColumnOptions = column.Select(x => new ColumnOptions { OutputColumnName = x.OutputColumnName, InputColumnName = x.InputColumnName }).ToArray();
+                ColumnOptions = columns.Select(x => new ColumnOptions { OutputName = x.OutputName, InputName = x.InputName }).ToArray();
             }
         }
 

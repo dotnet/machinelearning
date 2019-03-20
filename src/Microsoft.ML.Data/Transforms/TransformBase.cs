@@ -333,19 +333,19 @@ namespace Microsoft.ML.Data
                 for (int i = 0; i < names.Length; i++)
                 {
                     var item = column[i];
-                    host.CheckUserArg(item.TrySanitize(), nameof(OneToOneColumn.OutputColumnName), "Invalid new column name");
-                    names[i] = item.OutputColumnName;
+                    host.CheckUserArg(item.TrySanitize(), nameof(OneToOneColumn.OutputName), "Invalid new column name");
+                    names[i] = item.OutputName;
 
                     int colSrc;
-                    if (!inputSchema.TryGetColumnIndex(item.InputColumnName, out colSrc))
-                        throw host.ExceptUserArg(nameof(OneToOneColumn.InputColumnName), "Source column '{0}' not found", item.InputColumnName);
+                    if (!inputSchema.TryGetColumnIndex(item.InputName, out colSrc))
+                        throw host.ExceptUserArg(nameof(OneToOneColumn.InputName), "Source column '{0}' not found", item.InputName);
 
                     var type = inputSchema[colSrc].Type;
                     if (testType != null)
                     {
                         string reason = testType(type);
                         if (reason != null)
-                            throw host.ExceptUserArg(nameof(OneToOneColumn.InputColumnName), InvalidTypeErrorFormat, item.InputColumnName, type, reason);
+                            throw host.ExceptUserArg(nameof(OneToOneColumn.InputName), InvalidTypeErrorFormat, item.InputName, type, reason);
                     }
 
                     var slotType = transposedInput?.GetSlotType(i);
@@ -541,8 +541,8 @@ namespace Microsoft.ML.Data
             OneToOneColumn[] map = transform.Infos
                 .Select(x => new ColumnTmp
                 {
-                    OutputColumnName = x.Name,
-                    InputColumnName = transform.Source.Schema[x.Source].Name,
+                    OutputName = x.Name,
+                    InputName = transform.Source.Schema[x.Source].Name,
                 })
                 .ToArray();
 

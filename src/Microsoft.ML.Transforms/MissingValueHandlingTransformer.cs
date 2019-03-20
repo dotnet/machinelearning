@@ -122,7 +122,7 @@ namespace Microsoft.ML.Transforms
             {
                 Columns = new[]
                 {
-                    new Column() { OutputColumnName = outputColumnName, InputColumnName = inputColumnName ?? outputColumnName }
+                    new Column() { OutputName = outputColumnName, InputName = inputColumnName ?? outputColumnName }
                 },
                 ReplaceWith = replaceWith
             };
@@ -152,15 +152,15 @@ namespace Microsoft.ML.Transforms
                 var addInd = column.ConcatIndicator ?? options.Concat;
                 if (!addInd)
                 {
-                    replaceCols.Add(new MissingValueReplacingEstimator.ColumnOptions(column.OutputColumnName, column.InputColumnName,
+                    replaceCols.Add(new MissingValueReplacingEstimator.ColumnOptions(column.OutputName, column.InputName,
                         (MissingValueReplacingEstimator.ReplacementMode)(column.Kind ?? options.ReplaceWith), column.ImputeBySlot ?? options.ImputeBySlot));
                     continue;
                 }
 
                 // Check that the indicator column has a type that can be converted to the NAReplaceTransform output type,
                 // so that they can be concatenated.
-                if (!input.Schema.TryGetColumnIndex(column.InputColumnName, out int inputCol))
-                    throw h.Except("Column '{0}' does not exist", column.InputColumnName);
+                if (!input.Schema.TryGetColumnIndex(column.InputName, out int inputCol))
+                    throw h.Except("Column '{0}' does not exist", column.InputName);
                 var replaceType = input.Schema[inputCol].Type;
                 var replaceItemType = replaceType.GetItemType();
                 if (!Data.Conversion.Conversions.Instance.TryGetStandardConversion(BooleanDataViewType.Instance, replaceItemType, out Delegate conv, out bool identity))
@@ -174,7 +174,7 @@ namespace Microsoft.ML.Transforms
                 var tmpReplacementColName = tmpReplaceColNames[i];
 
                 // Add an NAHandleTransform column.
-                naIndicatorCols.Add(new MissingValueIndicatorTransformer.Column() { OutputColumnName = tmpIsMissingColName, InputColumnName = column.InputColumnName });
+                naIndicatorCols.Add(new MissingValueIndicatorTransformer.Column() { OutputName = tmpIsMissingColName, InputName = column.InputName });
 
                 // Add a ConvertTransform column if necessary.
                 if (!identity)
@@ -187,7 +187,7 @@ namespace Microsoft.ML.Transforms
                 }
 
                 // Add the NAReplaceTransform column.
-                replaceCols.Add(new MissingValueReplacingEstimator.ColumnOptions(tmpReplacementColName, column.InputColumnName,
+                replaceCols.Add(new MissingValueReplacingEstimator.ColumnOptions(tmpReplacementColName, column.InputName,
                     (MissingValueReplacingEstimator.ReplacementMode)(column.Kind ?? options.ReplaceWith), column.ImputeBySlot ?? options.ImputeBySlot));
 
                 // Add the ConcatTransform column.
@@ -195,7 +195,7 @@ namespace Microsoft.ML.Transforms
                 {
                     concatCols.Add(new ColumnConcatenatingTransformer.TaggedColumn()
                     {
-                        Name = column.OutputColumnName,
+                        Name = column.OutputName,
                         Source = new[] {
                             new KeyValuePair<string, string>(tmpReplacementColName, tmpReplacementColName),
                             new KeyValuePair<string, string>("IsMissing", tmpIsMissingColName)
@@ -206,11 +206,11 @@ namespace Microsoft.ML.Transforms
                 {
                     concatCols.Add(new ColumnConcatenatingTransformer.TaggedColumn()
                     {
-                        Name = column.OutputColumnName,
+                        Name = column.OutputName,
                         Source = new[]
                         {
-                            new KeyValuePair<string, string>(column.InputColumnName, tmpReplacementColName),
-                            new KeyValuePair<string, string>(string.Format("IsMissing.{0}", column.InputColumnName), tmpIsMissingColName),
+                            new KeyValuePair<string, string>(column.InputName, tmpReplacementColName),
+                            new KeyValuePair<string, string>(string.Format("IsMissing.{0}", column.InputName), tmpIsMissingColName),
                         }
                     });
                 }

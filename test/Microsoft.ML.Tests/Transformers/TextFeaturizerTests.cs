@@ -178,7 +178,7 @@ namespace Microsoft.ML.Tests.Transformers
 
             var xf = factory.CreateComponent(ML, tokenized,
                 new[] {
-                    new StopWordsRemovingTransformer.Column() { OutputColumnName = "Text", InputColumnName = "Text" }
+                    new StopWordsRemovingTransformer.Column() { OutputName = "Text", InputName = "Text" }
                 });
 
             using (var cursor = xf.GetRowCursorForAllColumns())

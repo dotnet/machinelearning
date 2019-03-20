@@ -134,8 +134,8 @@ namespace Microsoft.ML.Data
             var columnsToNormalize = new List<NormalizeTransform.AffineColumn>();
             foreach (var column in input.Columns)
             {
-                if (!schema.TryGetColumnIndex(column.InputColumnName, out int col))
-                    throw env.ExceptUserArg(nameof(input.Columns), $"Column '{column.InputColumnName}' does not exist.");
+                if (!schema.TryGetColumnIndex(column.InputName, out int col))
+                    throw env.ExceptUserArg(nameof(input.Columns), $"Column '{column.InputName}' does not exist.");
                 if (!schema[col].IsNormalized())
                     columnsToNormalize.Add(column);
             }

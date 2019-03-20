@@ -185,7 +185,7 @@ namespace Microsoft.ML.Transforms.Text
             {
                 var item = options.Columns[i];
                 var separators = options.CharArrayTermSeparators ?? PredictionUtil.SeparatorFromString(item.TermSeparators ?? options.TermSeparators);
-                cols[i] = new WordTokenizingEstimator.ColumnOptions(item.OutputColumnName, item.InputColumnName ?? item.OutputColumnName, separators);
+                cols[i] = new WordTokenizingEstimator.ColumnOptions(item.OutputName, item.InputName ?? item.OutputName, separators);
 
             }
             return new WordTokenizingTransformer(env, cols).MakeDataTransform(input);

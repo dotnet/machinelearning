@@ -99,7 +99,7 @@ namespace Microsoft.ML.Transforms
         }
 
         private static (string outputColumnName, string inputColumnName)[] GetColumnPairs(Column[] columns)
-            => columns.Select(c => (c.OutputColumnName, c.InputColumnName ?? c.OutputColumnName)).ToArray();
+            => columns.Select(c => (c.OutputName, c.InputName ?? c.OutputName)).ToArray();
 
         private protected override void CheckInputColumn(DataViewSchema inputSchema, int col, int srcCol)
         {

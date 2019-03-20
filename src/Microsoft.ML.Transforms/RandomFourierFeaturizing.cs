@@ -427,10 +427,10 @@ namespace Microsoft.ML.Transforms
                 {
                     var item = options.Columns[i];
                     cols[i] = new ApproximatedKernelMappingEstimator.ColumnOptions(
-                        item.OutputColumnName,
+                        item.OutputName,
                         item.NewDim ?? options.NewDim,
                         item.UseSin ?? options.UseSin,
-                        item.InputColumnName ?? item.OutputColumnName,
+                        item.InputName ?? item.OutputName,
                         (item.MatrixGenerator ?? options.MatrixGenerator).CreateComponent(env),
                         item.Seed ?? options.Seed);
                 };

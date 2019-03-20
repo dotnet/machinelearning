@@ -643,7 +643,7 @@ namespace Microsoft.ML.Transforms
             env.Assert(loader.Schema.TryGetColumnIndex(valueColumnName, out int valueColumnIndex));
 
             ValueMappingTransformer transformer = null;
-            (string outputColumnName, string inputColumnName)[] columns = options.Columns.Select(x => (x.OutputColumnName, x.InputColumnName)).ToArray();
+            (string outputColumnName, string inputColumnName)[] columns = options.Columns.Select(x => (x.OutputName, x.InputName)).ToArray();
             transformer = new ValueMappingTransformer(env, loader, keyColumnName, valueColumnName, columns);
             return transformer.MakeDataTransform(input);
         }

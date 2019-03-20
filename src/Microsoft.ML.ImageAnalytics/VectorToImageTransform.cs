@@ -483,8 +483,8 @@ namespace Microsoft.ML.Transforms.Image
                 Contracts.CheckValue(item, nameof(item));
                 Contracts.CheckValue(args, nameof(args));
 
-                Name = item.OutputColumnName;
-                InputColumnName = item.InputColumnName ?? item.OutputColumnName;
+                Name = item.OutputName;
+                InputColumnName = item.InputName ?? item.OutputName;
 
                 if (item.ContainsAlpha ?? args.ContainsAlpha)
                 { Colors |= ImagePixelExtractingEstimator.ColorBits.Alpha; Planes++; }

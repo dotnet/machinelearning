@@ -111,7 +111,7 @@ namespace Microsoft.ML.Transforms.Image
             env.CheckValue(input, nameof(input));
             env.CheckValue(options.Columns, nameof(options.Columns));
 
-            return new ImageGrayscalingTransformer(env, options.Columns.Select(x => (x.OutputColumnName, x.InputColumnName ?? x.OutputColumnName)).ToArray())
+            return new ImageGrayscalingTransformer(env, options.Columns.Select(x => (x.OutputName, x.InputName ?? x.OutputName)).ToArray())
                 .MakeDataTransform(input);
         }
 

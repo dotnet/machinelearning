@@ -63,22 +63,18 @@ namespace Microsoft.ML.Tests
             {
                 ColumnOptions = new[]
                 {
-                    new ImagePixelExtractingEstimator.ColumnOptions { OutputColumnName = "outputColumn1", InputColumnName = "inputColumn1" },
-                    new ImagePixelExtractingEstimator.ColumnOptions { OutputColumnName = "outputColumn2", InputColumnName = "inputColumn2" },
-                    new ImagePixelExtractingEstimator.ColumnOptions { OutputColumnName = "outputColumn3", InputColumnName = "inputColumn3" }
+                    new ImagePixelExtractingEstimator.ColumnOptions { OutputName = "outputColumn1", InputName = "inputColumn1" },
+                    new ImagePixelExtractingEstimator.ColumnOptions { OutputName = "outputColumn2", InputName = "inputColumn2" },
+                    new ImagePixelExtractingEstimator.ColumnOptions { OutputName = "outputColumn3", InputName = "inputColumn3" }
                 }
             };
             var options3 = new ImagePixelExtractingEstimator.Options(("outputColumn1", "inputColumn1"), ("outputColumn2", "inputColumn2"), ("outputColumn3", "inputColumn3"));
-            var options4 = new ImagePixelExtractingEstimator.Options("outputColumn1", "outputColumn2", "outputColumn3");
 
             for (int i = 0; i < 3; i++)
             {
                 // options2 and 3 should be exactly the same.
-                Assert.True(options2.ColumnOptions[i].OutputColumnName == options3.ColumnOptions[i].OutputColumnName);
-                Assert.True(options2.ColumnOptions[i].InputColumnName == options3.ColumnOptions[i].InputColumnName);
-
-                // options4 should have the same OutputColumnName.
-                Assert.True(options2.ColumnOptions[i].OutputColumnName == options4.ColumnOptions[i].OutputColumnName);
+                Assert.True(options2.ColumnOptions[i].OutputName == options3.ColumnOptions[i].OutputName);
+                Assert.True(options2.ColumnOptions[i].InputName == options3.ColumnOptions[i].InputName);
             }
         }
 

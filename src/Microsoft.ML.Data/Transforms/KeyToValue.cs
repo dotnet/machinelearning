@@ -108,7 +108,7 @@ namespace Microsoft.ML.Transforms
             env.CheckValue(input, nameof(input));
             env.CheckNonEmpty(options.Columns, nameof(options.Columns));
 
-            var transformer = new KeyToValueMappingTransformer(env, options.Columns.Select(c => (c.OutputColumnName, c.InputColumnName ?? c.OutputColumnName)).ToArray());
+            var transformer = new KeyToValueMappingTransformer(env, options.Columns.Select(c => (c.OutputName, c.InputName ?? c.OutputName)).ToArray());
             return transformer.MakeDataTransform(input);
         }
 

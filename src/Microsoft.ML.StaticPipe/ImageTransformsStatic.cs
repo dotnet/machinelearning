@@ -202,12 +202,12 @@ namespace Microsoft.ML.StaticPipe
             public ImagePixelExtractingEstimator.ColumnOptions MakeColumnOptions(string outputColumnName, string inputColumnName)
             {
                 // In principle, the analyzer should only call the the reconciler once for these columns.
-                Contracts.Assert(_colParam.InputColumnName == null);
-                Contracts.Assert(_colParam.OutputColumnName == null);
+                Contracts.Assert(_colParam.InputName == null);
+                Contracts.Assert(_colParam.OutputName == null);
 
-                _colParam.OutputColumnName = outputColumnName;
-                _colParam.InputColumnName = inputColumnName;
-                return new ImagePixelExtractingEstimator.ColumnOptions { OutputColumnName = outputColumnName, InputColumnName = inputColumnName };
+                _colParam.OutputName = outputColumnName;
+                _colParam.InputName = inputColumnName;
+                return new ImagePixelExtractingEstimator.ColumnOptions { OutputName = outputColumnName, InputName = inputColumnName };
             }
         }
 

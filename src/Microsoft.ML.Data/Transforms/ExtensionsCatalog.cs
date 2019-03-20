@@ -11,12 +11,8 @@ namespace Microsoft.ML
     /// <summary>
     /// Specifies input and output column names for a transformation.
     /// </summary>
-    [BestFriend]
-    internal sealed class ColumnOptions
+    public sealed class ColumnOptions : OneToOneColumn
     {
-        private readonly string _outputColumnName;
-        private readonly string _inputColumnName;
-
         /// <summary>
         /// Specifies input and output column names for a transformation.
         /// </summary>
@@ -24,8 +20,8 @@ namespace Microsoft.ML
         /// <param name="inputColumnName">Name of the column to transform. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.</param>
         public ColumnOptions(string outputColumnName, string inputColumnName = null)
         {
-            _outputColumnName = outputColumnName;
-            _inputColumnName = inputColumnName ?? outputColumnName;
+            OutputName = outputColumnName;
+            InputName = inputColumnName ?? outputColumnName;
         }
 
         /// <summary>
@@ -39,7 +35,7 @@ namespace Microsoft.ML
         [BestFriend]
         internal static (string outputColumnName, string inputColumnName)[] ConvertToValueTuples(ColumnOptions[] infos)
         {
-            return infos.Select(info => (info._outputColumnName, info._inputColumnName)).ToArray();
+            return infos.Select(info => (info.OutputName, info.InputName)).ToArray();
         }
     }
 

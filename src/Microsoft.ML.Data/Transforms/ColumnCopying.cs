@@ -128,7 +128,7 @@ namespace Microsoft.ML.Transforms
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(options, nameof(options));
 
-            var transformer = new ColumnCopyingTransformer(env, options.Columns.Select(x => (x.OutputColumnName, x.InputColumnName)).ToArray());
+            var transformer = new ColumnCopyingTransformer(env, options.Columns.Select(x => (x.OutputName, x.InputName)).ToArray());
             return transformer.MakeDataTransform(input);
         }
 

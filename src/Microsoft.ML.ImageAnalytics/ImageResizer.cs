@@ -169,10 +169,10 @@ namespace Microsoft.ML.Transforms.Image
             {
                 var item = args.Columns[i];
                 cols[i] = new ImageResizingEstimator.ColumnOptions(
-                    item.OutputColumnName,
+                    item.OutputName,
                     item.ImageWidth ?? args.ImageWidth,
                     item.ImageHeight ?? args.ImageHeight,
-                    item.InputColumnName ?? item.OutputColumnName,
+                    item.InputName ?? item.OutputName,
                     item.Resizing ?? args.Resizing,
                     item.CropAnchor ?? args.CropAnchor);
             }

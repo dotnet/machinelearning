@@ -101,11 +101,11 @@ namespace Microsoft.ML.Transforms
 
                 if (!TrySanitize())
                     return false;
-                if (CmdQuoter.NeedsQuoting(OutputColumnName) || CmdQuoter.NeedsQuoting(InputColumnName))
+                if (CmdQuoter.NeedsQuoting(OutputName) || CmdQuoter.NeedsQuoting(InputName))
                     return false;
 
                 int ich = sb.Length;
-                sb.Append(OutputColumnName);
+                sb.Append(OutputName);
                 sb.Append(':');
                 if (ResultType != null)
                     sb.Append(ResultType.Value.GetString());
@@ -122,7 +122,7 @@ namespace Microsoft.ML.Transforms
                 else if (!string.IsNullOrEmpty(Range))
                     sb.Append(Range);
                 sb.Append(':');
-                sb.Append(InputColumnName);
+                sb.Append(InputName);
                 return true;
             }
         }
@@ -328,7 +328,7 @@ namespace Microsoft.ML.Transforms
                         kind = InternalDataKind.Num;
                     else
                     {
-                        var srcType = input.Schema[item.InputColumnName ?? item.OutputColumnName].Type;
+                        var srcType = input.Schema[item.InputName ?? item.OutputName].Type;
                         kind = srcType is KeyType ? srcType.GetRawKind() : InternalDataKind.U8;
                     }
                 }
@@ -336,7 +336,7 @@ namespace Microsoft.ML.Transforms
                 {
                     kind = tempResultType.Value;
                 }
-                cols[i] = new TypeConvertingEstimator.ColumnOptions(item.OutputColumnName, kind.ToDataKind(), item.InputColumnName ?? item.OutputColumnName, keyCount);
+                cols[i] = new TypeConvertingEstimator.ColumnOptions(item.OutputName, kind.ToDataKind(), item.InputName ?? item.OutputName, keyCount);
             };
             return new TypeConvertingTransformer(env, cols).MakeDataTransform(input);
         }

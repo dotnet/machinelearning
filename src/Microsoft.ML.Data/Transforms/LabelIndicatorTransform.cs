@@ -126,7 +126,7 @@ namespace Microsoft.ML.Transforms
             int classIndex,
             string name,
             string source = null)
-            : this(env, new Options() { Columns = new[] { new Column() { InputColumnName = source ?? name, OutputColumnName = name } }, ClassIndex = classIndex }, input)
+            : this(env, new Options() { Columns = new[] { new Column() { InputName = source ?? name, OutputName = name } }, ClassIndex = classIndex }, input)
         {
         }
 

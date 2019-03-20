@@ -436,11 +436,11 @@ namespace Microsoft.ML.Transforms
                 var item = options.Columns[i];
                 var kind = item.Kind ?? options.ReplacementKind;
                 if (!Enum.IsDefined(typeof(ReplacementKind), kind))
-                    throw env.ExceptUserArg(nameof(options.ReplacementKind), "Undefined sorting criteria '{0}' detected for column '{1}'", kind, item.OutputColumnName);
+                    throw env.ExceptUserArg(nameof(options.ReplacementKind), "Undefined sorting criteria '{0}' detected for column '{1}'", kind, item.OutputName);
 
                 cols[i] = new MissingValueReplacingEstimator.ColumnOptions(
-                    item.OutputColumnName,
-                    item.InputColumnName,
+                    item.OutputName,
+                    item.InputName,
                     (MissingValueReplacingEstimator.ReplacementMode)(item.Kind ?? options.ReplacementKind),
                     item.Slot ?? options.ImputeBySlot,
                     item.ReplacementString);

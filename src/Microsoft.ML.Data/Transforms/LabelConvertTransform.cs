@@ -74,7 +74,7 @@ namespace Microsoft.ML.Transforms
         /// <param name="outputColumnName">Name of the output column.</param>
         /// <param name="inputColumnName">Name of the input column.  If this is null '<paramref name="outputColumnName"/>' will be used.</param>
         public LabelConvertTransform(IHostEnvironment env, IDataView input, string outputColumnName, string inputColumnName = null)
-            : this(env, new Arguments() { Columns = new[] { new Column() { InputColumnName = inputColumnName ?? outputColumnName, OutputColumnName = outputColumnName } } }, input)
+            : this(env, new Arguments() { Columns = new[] { new Column() { InputName = inputColumnName ?? outputColumnName, OutputName = outputColumnName } } }, input)
         {
         }
 

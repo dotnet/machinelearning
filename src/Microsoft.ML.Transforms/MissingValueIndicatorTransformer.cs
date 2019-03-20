@@ -102,7 +102,7 @@ namespace Microsoft.ML.Transforms
         }
 
         private static (string outputColumnName, string inputColumnName)[] GetColumnPairs(Column[] columns)
-            => columns.Select(c => (c.OutputColumnName, c.InputColumnName ?? c.OutputColumnName)).ToArray();
+            => columns.Select(c => (c.OutputName, c.InputName ?? c.OutputName)).ToArray();
 
         // Factory method for SignatureLoadModel
         internal static MissingValueIndicatorTransformer Create(IHostEnvironment env, ModelLoadContext ctx)

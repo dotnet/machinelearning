@@ -16479,7 +16479,7 @@
                   "Default": null
                 },
                 {
-                  "Name": "OutputColumnName",
+                  "Name": "Name",
                   "Type": "String",
                   "Desc": "Name of the new column",
                   "Aliases": [
@@ -16491,11 +16491,10 @@
                   "Default": null
                 },
                 {
-                  "Name": "InputColumnName",
+                  "Name": "Source",
                   "Type": "String",
                   "Desc": "Name of the source column",
                   "Aliases": [
-                    "source",
                     "src"
                   ],
                   "Required": false,
@@ -16658,7 +16657,7 @@
                   "Default": null
                 },
                 {
-                  "Name": "OutputColumnName",
+                  "Name": "Name",
                   "Type": "String",
                   "Desc": "Name of the new column",
                   "Aliases": [
@@ -16670,11 +16669,10 @@
                   "Default": null
                 },
                 {
-                  "Name": "InputColumnName",
+                  "Name": "Source",
                   "Type": "String",
                   "Desc": "Name of the source column",
                   "Aliases": [
-                    "source",
                     "src"
                   ],
                   "Required": false,
@@ -16871,7 +16869,7 @@
                   "Default": null
                 },
                 {
-                  "Name": "OutputColumnName",
+                  "Name": "Name",
                   "Type": "String",
                   "Desc": "Name of the new column",
                   "Aliases": [
@@ -16883,11 +16881,10 @@
                   "Default": null
                 },
                 {
-                  "Name": "InputColumnName",
+                  "Name": "Source",
                   "Type": "String",
                   "Desc": "Name of the source column",
                   "Aliases": [
-                    "source",
                     "src"
                   ],
                   "Required": false,
@@ -17019,7 +17016,7 @@
               "Kind": "Struct",
               "Fields": [
                 {
-                  "Name": "OutputColumnName",
+                  "Name": "Name",
                   "Type": "String",
                   "Desc": "Name of the new column",
                   "Aliases": [
@@ -17031,11 +17028,10 @@
                   "Default": null
                 },
                 {
-                  "Name": "InputColumnName",
+                  "Name": "Source",
                   "Type": "String",
                   "Desc": "Name of the source column",
                   "Aliases": [
-                    "source",
                     "src"
                   ],
                   "Required": false,
@@ -17187,7 +17183,7 @@
               "Kind": "Struct",
               "Fields": [
                 {
-                  "Name": "OutputColumnName",
+                  "Name": "Name",
                   "Type": "String",
                   "Desc": "Name of the new column",
                   "Aliases": [
@@ -17199,11 +17195,10 @@
                   "Default": null
                 },
                 {
-                  "Name": "InputColumnName",
+                  "Name": "Source",
                   "Type": "String",
                   "Desc": "Name of the source column",
                   "Aliases": [
-                    "source",
                     "src"
                   ],
                   "Required": false,
@@ -17404,7 +17399,7 @@
                   "Default": null
                 },
                 {
-                  "Name": "OutputColumnName",
+                  "Name": "Name",
                   "Type": "String",
                   "Desc": "Name of the new column",
                   "Aliases": [
@@ -17416,11 +17411,10 @@
                   "Default": null
                 },
                 {
-                  "Name": "InputColumnName",
+                  "Name": "Source",
                   "Type": "String",
                   "Desc": "Name of the source column",
                   "Aliases": [
-                    "source",
                     "src"
                   ],
                   "Required": false,
@@ -17620,7 +17614,7 @@
                   "Default": null
                 },
                 {
-                  "Name": "OutputColumnName",
+                  "Name": "Name",
                   "Type": "String",
                   "Desc": "Name of the new column",
                   "Aliases": [
@@ -17632,11 +17626,10 @@
                   "Default": null
                 },
                 {
-                  "Name": "InputColumnName",
+                  "Name": "Source",
                   "Type": "String",
                   "Desc": "Name of the source column",
                   "Aliases": [
-                    "source",
                     "src"
                   ],
                   "Required": false,
@@ -17850,7 +17843,7 @@
                   "Default": null
                 },
                 {
-                  "Name": "OutputColumnName",
+                  "Name": "Name",
                   "Type": "String",
                   "Desc": "Name of the new column",
                   "Aliases": [
@@ -17862,11 +17855,10 @@
                   "Default": null
                 },
                 {
-                  "Name": "InputColumnName",
+                  "Name": "Source",
                   "Type": "String",
                   "Desc": "Name of the source column",
                   "Aliases": [
-                    "source",
                     "src"
                   ],
                   "Required": false,
@@ -18278,7 +18270,7 @@
                   "Default": null
                 },
                 {
-                  "Name": "OutputColumnName",
+                  "Name": "Name",
                   "Type": "String",
                   "Desc": "Name of the new column",
                   "Aliases": [
@@ -18290,11 +18282,10 @@
                   "Default": null
                 },
                 {
-                  "Name": "InputColumnName",
+                  "Name": "Source",
                   "Type": "String",
                   "Desc": "Name of the source column",
                   "Aliases": [
-                    "source",
                     "src"
                   ],
                   "Required": false,
@@ -18437,7 +18428,7 @@
                   "Default": null
                 },
                 {
-                  "Name": "OutputColumnName",
+                  "Name": "Name",
                   "Type": "String",
                   "Desc": "Name of the new column",
                   "Aliases": [
@@ -18449,11 +18440,10 @@
                   "Default": null
                 },
                 {
-                  "Name": "InputColumnName",
+                  "Name": "Source",
                   "Type": "String",
                   "Desc": "Name of the source column",
                   "Aliases": [
-                    "source",
                     "src"
                   ],
                   "Required": false,
@@ -18556,7 +18546,7 @@
               "Kind": "Struct",
               "Fields": [
                 {
-                  "Name": "OutputColumnName",
+                  "Name": "Name",
                   "Type": "String",
                   "Desc": "Name of the new column",
                   "Aliases": [
@@ -18568,11 +18558,10 @@
                   "Default": null
                 },
                 {
-                  "Name": "InputColumnName",
+                  "Name": "Source",
                   "Type": "String",
                   "Desc": "Name of the source column",
                   "Aliases": [
-                    "source",
                     "src"
                   ],
                   "Required": false,
@@ -18633,7 +18622,7 @@
               "Kind": "Struct",
               "Fields": [
                 {
-                  "Name": "OutputColumnName",
+                  "Name": "Name",
                   "Type": "String",
                   "Desc": "Name of the new column",
                   "Aliases": [
@@ -18645,11 +18634,10 @@
                   "Default": null
                 },
                 {
-                  "Name": "InputColumnName",
+                  "Name": "Source",
                   "Type": "String",
                   "Desc": "Name of the source column",
                   "Aliases": [
-                    "source",
                     "src"
                   ],
                   "Required": false,
@@ -18847,7 +18835,7 @@
                   "Default": null
                 },
                 {
-                  "Name": "OutputColumnName",
+                  "Name": "Name",
                   "Type": "String",
                   "Desc": "Name of the new column",
                   "Aliases": [
@@ -18859,11 +18847,10 @@
                   "Default": null
                 },
                 {
-                  "Name": "InputColumnName",
+                  "Name": "Source",
                   "Type": "String",
                   "Desc": "Name of the source column",
                   "Aliases": [
-                    "source",
                     "src"
                   ],
                   "Required": false,
@@ -19113,7 +19100,7 @@
                   "Default": null
                 },
                 {
-                  "Name": "OutputColumnName",
+                  "Name": "Name",
                   "Type": "String",
                   "Desc": "Name of the new column",
                   "Aliases": [
@@ -19125,11 +19112,10 @@
                   "Default": null
                 },
                 {
-                  "Name": "InputColumnName",
+                  "Name": "Source",
                   "Type": "String",
                   "Desc": "Name of the source column",
                   "Aliases": [
-                    "source",
                     "src"
                   ],
                   "Required": false,
@@ -19254,7 +19240,7 @@
               "Kind": "Struct",
               "Fields": [
                 {
-                  "Name": "OutputColumnName",
+                  "Name": "Name",
                   "Type": "String",
                   "Desc": "Name of the new column",
                   "Aliases": [
@@ -19266,11 +19252,10 @@
                   "Default": null
                 },
                 {
-                  "Name": "InputColumnName",
+                  "Name": "Source",
                   "Type": "String",
                   "Desc": "Name of the source column",
                   "Aliases": [
-                    "source",
                     "src"
                   ],
                   "Required": false,
@@ -19394,7 +19379,7 @@
                   "Default": null
                 },
                 {
-                  "Name": "OutputColumnName",
+                  "Name": "Name",
                   "Type": "String",
                   "Desc": "Name of the new column",
                   "Aliases": [
@@ -19406,11 +19391,10 @@
                   "Default": null
                 },
                 {
-                  "Name": "InputColumnName",
+                  "Name": "Source",
                   "Type": "String",
                   "Desc": "Name of the source column",
                   "Aliases": [
-                    "source",
                     "src"
                   ],
                   "Required": false,
@@ -19654,7 +19638,7 @@
                   "Default": null
                 },
                 {
-                  "Name": "OutputColumnName",
+                  "Name": "Name",
                   "Type": "String",
                   "Desc": "Name of the new column",
                   "Aliases": [
@@ -19666,11 +19650,10 @@
                   "Default": null
                 },
                 {
-                  "Name": "InputColumnName",
+                  "Name": "Source",
                   "Type": "String",
                   "Desc": "Name of the source column",
                   "Aliases": [
-                    "source",
                     "src"
                   ],
                   "Required": false,
@@ -19921,7 +19904,7 @@
                   "Default": null
                 },
                 {
-                  "Name": "OutputColumnName",
+                  "Name": "Name",
                   "Type": "String",
                   "Desc": "Name of the new column",
                   "Aliases": [
@@ -19933,11 +19916,10 @@
                   "Default": null
                 },
                 {
-                  "Name": "InputColumnName",
+                  "Name": "Source",
                   "Type": "String",
                   "Desc": "Name of the source column",
                   "Aliases": [
-                    "source",
                     "src"
                   ],
                   "Required": false,
@@ -20052,7 +20034,7 @@
                   "Default": null
                 },
                 {
-                  "Name": "OutputColumnName",
+                  "Name": "Name",
                   "Type": "String",
                   "Desc": "Name of the new column",
                   "Aliases": [
@@ -20064,11 +20046,10 @@
                   "Default": null
                 },
                 {
-                  "Name": "InputColumnName",
+                  "Name": "Source",
                   "Type": "String",
                   "Desc": "Name of the source column",
                   "Aliases": [
-                    "source",
                     "src"
                   ],
                   "Required": false,
@@ -20216,7 +20197,7 @@
                   "Default": null
                 },
                 {
-                  "Name": "OutputColumnName",
+                  "Name": "Name",
                   "Type": "String",
                   "Desc": "Name of the new column",
                   "Aliases": [
@@ -20228,11 +20209,10 @@
                   "Default": null
                 },
                 {
-                  "Name": "InputColumnName",
+                  "Name": "Source",
                   "Type": "String",
                   "Desc": "Name of the source column",
                   "Aliases": [
-                    "source",
                     "src"
                   ],
                   "Required": false,
@@ -20353,7 +20333,7 @@
                   "Default": null
                 },
                 {
-                  "Name": "OutputColumnName",
+                  "Name": "Name",
                   "Type": "String",
                   "Desc": "Name of the new column",
                   "Aliases": [
@@ -20365,11 +20345,10 @@
                   "Default": null
                 },
                 {
-                  "Name": "InputColumnName",
+                  "Name": "Source",
                   "Type": "String",
                   "Desc": "Name of the source column",
                   "Aliases": [
-                    "source",
                     "src"
                   ],
                   "Required": false,
@@ -20495,7 +20474,7 @@
                   "Default": null
                 },
                 {
-                  "Name": "OutputColumnName",
+                  "Name": "Name",
                   "Type": "String",
                   "Desc": "Name of the new column",
                   "Aliases": [
@@ -20507,11 +20486,10 @@
                   "Default": null
                 },
                 {
-                  "Name": "InputColumnName",
+                  "Name": "Source",
                   "Type": "String",
                   "Desc": "Name of the source column",
                   "Aliases": [
-                    "source",
                     "src"
                   ],
                   "Required": false,
@@ -20616,7 +20594,7 @@
               "Kind": "Struct",
               "Fields": [
                 {
-                  "Name": "OutputColumnName",
+                  "Name": "Name",
                   "Type": "String",
                   "Desc": "Name of the new column",
                   "Aliases": [
@@ -20628,11 +20606,10 @@
                   "Default": null
                 },
                 {
-                  "Name": "InputColumnName",
+                  "Name": "Source",
                   "Type": "String",
                   "Desc": "Name of the source column",
                   "Aliases": [
-                    "source",
                     "src"
                   ],
                   "Required": false,
@@ -20693,7 +20670,7 @@
               "Kind": "Struct",
               "Fields": [
                 {
-                  "Name": "OutputColumnName",
+                  "Name": "Name",
                   "Type": "String",
                   "Desc": "Name of the new column",
                   "Aliases": [
@@ -20705,11 +20682,10 @@
                   "Default": null
                 },
                 {
-                  "Name": "InputColumnName",
+                  "Name": "Source",
                   "Type": "String",
                   "Desc": "Name of the source column",
                   "Aliases": [
-                    "source",
                     "src"
                   ],
                   "Required": false,
@@ -20866,7 +20842,7 @@
                   "Default": null
                 },
                 {
-                  "Name": "OutputColumnName",
+                  "Name": "Name",
                   "Type": "String",
                   "Desc": "Name of the new column",
                   "Aliases": [
@@ -20878,11 +20854,10 @@
                   "Default": null
                 },
                 {
-                  "Name": "InputColumnName",
+                  "Name": "Source",
                   "Type": "String",
                   "Desc": "Name of the source column",
                   "Aliases": [
-                    "source",
                     "src"
                   ],
                   "Required": false,
@@ -21070,7 +21045,7 @@
                   "Default": null
                 },
                 {
-                  "Name": "OutputColumnName",
+                  "Name": "Name",
                   "Type": "String",
                   "Desc": "Name of the new column",
                   "Aliases": [
@@ -21082,11 +21057,10 @@
                   "Default": null
                 },
                 {
-                  "Name": "InputColumnName",
+                  "Name": "Source",
                   "Type": "String",
                   "Desc": "Name of the source column",
                   "Aliases": [
-                    "source",
                     "src"
                   ],
                   "Required": false,
@@ -21359,7 +21333,7 @@
                   "Default": null
                 },
                 {
-                  "Name": "OutputColumnName",
+                  "Name": "Name",
                   "Type": "String",
                   "Desc": "Name of the new column",
                   "Aliases": [
@@ -21371,11 +21345,10 @@
                   "Default": null
                 },
                 {
-                  "Name": "InputColumnName",
+                  "Name": "Source",
                   "Type": "String",
                   "Desc": "Name of the source column",
                   "Aliases": [
-                    "source",
                     "src"
                   ],
                   "Required": false,
@@ -22634,7 +22607,7 @@
                   "Default": null
                 },
                 {
-                  "Name": "OutputColumnName",
+                  "Name": "Name",
                   "Type": "String",
                   "Desc": "Name of the new column",
                   "Aliases": [
@@ -22646,11 +22619,10 @@
                   "Default": null
                 },
                 {
-                  "Name": "InputColumnName",
+                  "Name": "Source",
                   "Type": "String",
                   "Desc": "Name of the source column",
                   "Aliases": [
-                    "source",
                     "src"
                   ],
                   "Required": false,
@@ -23064,7 +23036,7 @@
                   "Default": null
                 },
                 {
-                  "Name": "OutputColumnName",
+                  "Name": "Name",
                   "Type": "String",
                   "Desc": "Name of the new column",
                   "Aliases": [
@@ -23076,11 +23048,10 @@
                   "Default": null
                 },
                 {
-                  "Name": "InputColumnName",
+                  "Name": "Source",
                   "Type": "String",
                   "Desc": "Name of the source column",
                   "Aliases": [
-                    "source",
                     "src"
                   ],
                   "Required": false,
@@ -23295,7 +23266,7 @@
               "Kind": "Struct",
               "Fields": [
                 {
-                  "Name": "OutputColumnName",
+                  "Name": "Name",
                   "Type": "String",
                   "Desc": "Name of the new column",
                   "Aliases": [
@@ -23307,11 +23278,10 @@
                   "Default": null
                 },
                 {
-                  "Name": "InputColumnName",
+                  "Name": "Source",
                   "Type": "String",
                   "Desc": "Name of the source column",
                   "Aliases": [
-                    "source",
                     "src"
                   ],
                   "Required": false,
@@ -23422,7 +23392,7 @@
                   "Default": null
                 },
                 {
-                  "Name": "OutputColumnName",
+                  "Name": "Name",
                   "Type": "String",
                   "Desc": "Name of the new column",
                   "Aliases": [
@@ -23434,11 +23404,10 @@
                   "Default": null
                 },
                 {
-                  "Name": "InputColumnName",
+                  "Name": "Source",
                   "Type": "String",
                   "Desc": "Name of the source column",
                   "Aliases": [
-                    "source",
                     "src"
                   ],
                   "Required": false,

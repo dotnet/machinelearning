@@ -98,7 +98,7 @@ namespace Microsoft.ML.Data
         // Factory method for SignatureDataTransform.
         internal static IDataTransform Create(IHostEnvironment env, Options options, IDataView data)
         {
-            return new ImageLoadingTransformer(env, options.ImageFolder, options.Columns.Select(x => (x.OutputColumnName, x.InputColumnName ?? x.OutputColumnName)).ToArray())
+            return new ImageLoadingTransformer(env, options.ImageFolder, options.Columns.Select(x => (x.OutputName, x.InputName ?? x.OutputName)).ToArray())
                 .MakeDataTransform(data);
         }
 

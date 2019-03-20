@@ -17,38 +17,15 @@ namespace Microsoft.ML.Data
     /// <summary>
     /// Specifies input and output column names for a transformation
     /// </summary>
-    public class OneToOneColumn
+    public abstract class OneToOneColumn
     {
-        /// <summary>Name of the column resulting from the transformation of <see cref="InputColumnName"/>.</summary>
-        [Argument(ArgumentType.AtMostOnce, HelpText = "Name of the new column", ShortName = "name")]
-        public string OutputColumnName;
+        /// <summary>Name of the column resulting from the transformation of <see cref="InputName"/>.</summary>
+        [Argument(ArgumentType.AtMostOnce, HelpText = "Name of the new column", Name = "Name", ShortName = "name")]
+        public string OutputName;
 
-        /// <summary>Name of the column to transform. If set to <see langword="null"/>, the value of the <see cref= "OutputColumnName"/> will be used as source.</summary>
-        [Argument(ArgumentType.AtMostOnce, HelpText = "Name of the source column", ShortName = "source, src")]
-        public string InputColumnName = null;
-
-        /// <summary>
-        /// Instantiates a <see cref="ColumnOptions"/> from a tuple of input and output column names.
-        /// </summary>
-        public static implicit operator OneToOneColumn((string outputColumnName, string inputColumnName) value)
-            => new OneToOneColumn(value.outputColumnName, value.inputColumnName);
-
-        /// <summary>
-        /// Instantiates a <see cref="ColumnOptions"/> from a column name.
-        /// </summary>
-        public static implicit operator OneToOneColumn(string outputColumnName)
-            => new OneToOneColumn(outputColumnName);
-
-        /// <summary>
-        /// Specifies input and output column names for a transformation.
-        /// </summary>
-        /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.</param>
-        /// <param name="inputColumnName">Name of the column to transform. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.</param>
-        public OneToOneColumn(string outputColumnName, string inputColumnName = null)
-        {
-            OutputColumnName = outputColumnName;
-            InputColumnName = inputColumnName ?? outputColumnName;
-        }
+        /// <summary>Name of the column to transform. If set to <see langword="null"/>, the value of the <see cref= "OutputName"/> will be used as source.</summary>
+        [Argument(ArgumentType.AtMostOnce, HelpText = "Name of the source column", Name = "Source", ShortName = "src")]
+        public string InputName;
 
         [BestFriend]
         private protected OneToOneColumn() { }
@@ -63,7 +40,7 @@ namespace Microsoft.ML.Data
         private protected virtual bool TryParse(string str)
         {
             Contracts.AssertNonEmpty(str);
-            return ColumnParsingUtils.TryParse(str, out OutputColumnName, out InputColumnName);
+            return ColumnParsingUtils.TryParse(str, out OutputName, out InputName);
         }
 
         /// <summary>
@@ -77,7 +54,7 @@ namespace Microsoft.ML.Data
         private protected bool TryParse(string str, out string extra)
         {
             Contracts.AssertNonEmpty(str);
-            return ColumnParsingUtils.TryParse(str, out OutputColumnName, out InputColumnName, out extra);
+            return ColumnParsingUtils.TryParse(str, out OutputName, out InputName, out extra);
         }
 
         /// <summary>
@@ -90,12 +67,12 @@ namespace Microsoft.ML.Data
 
             if (!TrySanitize())
                 return false;
-            if (CmdQuoter.NeedsQuoting(OutputColumnName) || CmdQuoter.NeedsQuoting(InputColumnName))
+            if (CmdQuoter.NeedsQuoting(OutputName) || CmdQuoter.NeedsQuoting(InputName))
                 return false;
 
-            sb.Append(OutputColumnName);
-            if (InputColumnName != OutputColumnName)
-                sb.Append(':').Append(InputColumnName);
+            sb.Append(OutputName);
+            if (InputName != OutputName)
+                sb.Append(':').Append(InputName);
             return true;
         }
 
@@ -110,10 +87,10 @@ namespace Microsoft.ML.Data
 
             if (!TrySanitize())
                 return false;
-            if (CmdQuoter.NeedsQuoting(OutputColumnName) || CmdQuoter.NeedsQuoting(InputColumnName))
+            if (CmdQuoter.NeedsQuoting(OutputName) || CmdQuoter.NeedsQuoting(InputName))
                 return false;
 
-            sb.Append(OutputColumnName).Append(':').Append(extra).Append(':').Append(InputColumnName);
+            sb.Append(OutputName).Append(':').Append(extra).Append(':').Append(InputName);
             return true;
         }
 
@@ -123,11 +100,11 @@ namespace Microsoft.ML.Data
         /// </summary>
         public bool TrySanitize()
         {
-            if (string.IsNullOrWhiteSpace(OutputColumnName))
-                OutputColumnName = InputColumnName;
-            else if (string.IsNullOrWhiteSpace(InputColumnName))
-                InputColumnName = OutputColumnName;
-            return !string.IsNullOrWhiteSpace(OutputColumnName);
+            if (string.IsNullOrWhiteSpace(OutputName))
+                OutputName = InputName;
+            else if (string.IsNullOrWhiteSpace(InputName))
+                InputName = OutputName;
+            return !string.IsNullOrWhiteSpace(OutputName);
         }
     }
 

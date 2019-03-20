@@ -139,8 +139,8 @@ namespace Microsoft.ML.Transforms.Text
                 extractorArgs.Columns[iinfo] =
                     new NgramExtractorTransform.Column()
                     {
-                        OutputColumnName = column.Name,
-                        InputColumnName = column.Name,
+                        OutputName = column.Name,
+                        InputName = column.Name,
                         MaxNumTerms = column.MaxNumTerms,
                         NgramLength = column.NgramLength,
                         SkipLength = column.SkipLength,
@@ -273,10 +273,10 @@ namespace Microsoft.ML.Transforms.Text
             {
                 var col = options.Columns[i];
 
-                h.CheckNonWhiteSpace(col.OutputColumnName, nameof(col.OutputColumnName));
-                h.CheckNonWhiteSpace(col.InputColumnName, nameof(col.InputColumnName));
+                h.CheckNonWhiteSpace(col.OutputName, nameof(col.OutputName));
+                h.CheckNonWhiteSpace(col.InputName, nameof(col.InputName));
                 int colId;
-                if (input.Schema.TryGetColumnIndex(col.InputColumnName, out colId) &&
+                if (input.Schema.TryGetColumnIndex(col.InputName, out colId) &&
                     input.Schema[colId].Type.GetItemType() is TextDataViewType)
                 {
                     termCols.Add(col);
@@ -326,13 +326,13 @@ namespace Microsoft.ML.Transforms.Text
                     termArgs.Columns[iinfo] =
                         new ValueToKeyMappingTransformer.Column()
                         {
-                            OutputColumnName = column.OutputColumnName,
-                            InputColumnName = column.InputColumnName,
+                            OutputName = column.OutputName,
+                            InputName = column.InputName,
                             MaxNumTerms = Utils.Size(column.MaxNumTerms) > 0 ? column.MaxNumTerms[0] : default(int?)
                         };
 
                     if (missingDropColumns != null)
-                        missingDropColumns[iinfo] = column.OutputColumnName;
+                        missingDropColumns[iinfo] = column.OutputName;
                 }
 
                 view = ValueToKeyMappingTransformer.Create(h, termArgs, view);
@@ -344,13 +344,13 @@ namespace Microsoft.ML.Transforms.Text
             for (int iinfo = 0; iinfo < options.Columns.Length; iinfo++)
             {
                 var column = options.Columns[iinfo];
-                ngramColumns[iinfo] = new NgramExtractingEstimator.ColumnOptions(column.OutputColumnName,
+                ngramColumns[iinfo] = new NgramExtractingEstimator.ColumnOptions(column.OutputName,
                     column.NgramLength ?? options.NgramLength,
                     column.SkipLength ?? options.SkipLength,
                     column.UseAllLengths ?? options.UseAllLengths,
                     column.Weighting ?? options.Weighting,
                     column.MaxNumTerms ?? options.MaxNumTerms,
-                    isTermCol[iinfo] ? column.OutputColumnName : column.InputColumnName
+                    isTermCol[iinfo] ? column.OutputName : column.InputName
                     );
             }
 
@@ -372,7 +372,7 @@ namespace Microsoft.ML.Transforms.Text
             for (int i = 0; i < cols.Length; i++)
             {
                 Contracts.Check(Utils.Size(cols[i].Source) == 1, "too many source columns");
-                extractorCols[i] = new Column { OutputColumnName = cols[i].Name, InputColumnName = cols[i].Source[0] };
+                extractorCols[i] = new Column { OutputName = cols[i].Name, InputName = cols[i].Source[0] };
             }
 
             var options = new Options

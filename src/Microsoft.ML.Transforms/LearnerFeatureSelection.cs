@@ -120,7 +120,7 @@ namespace Microsoft.ML.Transforms
             // 3. If it's greater, the drop slots ignores the ranges that are outside the valid range of indices for the column.
             Contracts.Assert(options.Threshold.HasValue != options.NumSlotsToKeep.HasValue);
             var col = new SlotsDroppingTransformer.Column();
-            col.InputColumnName = options.FeatureColumn;
+            col.InputName = options.FeatureColumn;
             selectedCount = 0;
             var scoresValues = scores.GetValues();
 

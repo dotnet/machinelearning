@@ -1355,7 +1355,7 @@ namespace Microsoft.ML.Trainers.FastTree
                     if (labelName != null)
                     {
                         var convArgs = new LabelConvertTransform.Arguments();
-                        var convCol = new LabelConvertTransform.Column() { OutputColumnName = labelName, InputColumnName = labelName };
+                        var convCol = new LabelConvertTransform.Column() { OutputName = labelName, InputName = labelName };
                         convArgs.Columns = new LabelConvertTransform.Column[] { convCol };
                         data = new LabelConvertTransform(Host, convArgs, data);
                     }

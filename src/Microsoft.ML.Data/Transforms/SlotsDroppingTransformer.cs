@@ -221,9 +221,9 @@ namespace Microsoft.ML.Transforms
 
             internal ColumnOptions(Column column)
             {
-                Name = column.OutputColumnName;
+                Name = column.OutputName;
                 Contracts.CheckValue(Name, nameof(Name));
-                InputColumnName = column.InputColumnName ?? column.OutputColumnName;
+                InputColumnName = column.InputName ?? column.OutputName;
                 Contracts.CheckValue(InputColumnName, nameof(InputColumnName));
                 Slots = column.Slots.Select(range => (range.Min, range.Max)).ToArray();
                 foreach (var (min, max) in Slots)

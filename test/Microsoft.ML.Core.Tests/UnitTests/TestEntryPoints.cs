@@ -2442,7 +2442,7 @@ namespace Microsoft.ML.RunTests
                 Columns = new[]
                 {
                     NormalizeTransform.AffineColumn.Parse("A"),
-                    new NormalizeTransform.AffineColumn() { OutputColumnName = "B", InputColumnName = "B", EnsureZeroUntouched = false },
+                    new NormalizeTransform.AffineColumn() { OutputName = "B", InputName = "B", EnsureZeroUntouched = false },
                 },
                 EnsureZeroUntouched = true, // Same as default, should not appear in the generated JSON.
                 MaximumExampleCount = 1000
@@ -2462,13 +2462,13 @@ namespace Microsoft.ML.RunTests
                 @"{
   ""Column"": [
     {
-      ""OutputColumnName"": ""A"",
-      ""InputColumnName"": ""A""
+      ""Name"": ""A"",
+      ""Source"": ""A""
     },
     {
       ""FixZero"": false,
-      ""OutputColumnName"": ""B"",
-      ""InputColumnName"": ""B""
+      ""Name"": ""B"",
+      ""Source"": ""B""
     }
   ],
   ""MaxTrainingExamples"": 1000,
@@ -3548,7 +3548,7 @@ namespace Microsoft.ML.RunTests
             var cat = Categorical.CatTransformDict(Env, new OneHotEncodingTransformer.Options()
             {
                 Data = dataView,
-                Columns = new[] { new OneHotEncodingTransformer.Column { OutputColumnName = "Categories", InputColumnName = "Categories" } }
+                Columns = new[] { new OneHotEncodingTransformer.Column { OutputName = "Categories", InputName = "Categories" } }
             });
             var concat = SchemaManipulation.ConcatColumns(Env, new ColumnConcatenatingTransformer.Options()
             {
@@ -3636,7 +3636,7 @@ namespace Microsoft.ML.RunTests
             var embedding = Transforms.Text.TextAnalytics.WordEmbeddings(Env, new WordEmbeddingTransformer.Options()
             {
                 Data = dataView,
-                Columns = new[] { new WordEmbeddingTransformer.Column { OutputColumnName = "Features", InputColumnName = "Text" } },
+                Columns = new[] { new WordEmbeddingTransformer.Column { OutputName = "Features", InputName = "Text" } },
                 ModelKind = WordEmbeddingEstimator.PretrainedModelKind.SentimentSpecificWordEmbedding
             });
             var result = embedding.OutputData;
