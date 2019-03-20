@@ -72,23 +72,13 @@ namespace Microsoft.ML.Tests.Transformers
 
             var prediction = engine.Predict(data[0]);
             Assert.Equal("this is some text in english", string.Join(" ", prediction.OutputTokens));
-            Assert.Equal(1.0f, prediction.Features[0]);
-            Assert.Equal(1.0f, prediction.Features[1]);
-            Assert.Equal(1.0f, prediction.Features[3]);
-            Assert.Equal(1.0f, prediction.Features[4]);
-            Assert.Equal(1.0f, prediction.Features[5]);
-            Assert.Equal(0.0f, prediction.Features[6]);
-            Assert.Equal(0.0f, prediction.Features[7]);
+            var expected = new float[] { 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 0.0f, 0.0f };
+            Assert.Equal(expected, prediction.Features);
 
             prediction = engine.Predict(data[1]);
             Assert.Equal("this is another example", string.Join(" ", prediction.OutputTokens));
-            Assert.Equal(1.0f, prediction.Features[0]);
-            Assert.Equal(1.0f, prediction.Features[1]);
-            Assert.Equal(0.0f, prediction.Features[3]);
-            Assert.Equal(0.0f, prediction.Features[4]);
-            Assert.Equal(0.0f, prediction.Features[5]);
-            Assert.Equal(1.0f, prediction.Features[6]);
-            Assert.Equal(1.0f, prediction.Features[7]);
+            expected = new float[] { 1.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f };
+            Assert.Equal(expected, prediction.Features);
         }
 
         [Fact]
@@ -111,31 +101,13 @@ namespace Microsoft.ML.Tests.Transformers
 
             var prediction = engine.Predict(data[0]);
             Assert.Equal("abc efg", string.Join(" ", prediction.OutputTokens));
-            Assert.Equal(1.0f, prediction.Features[0]);
-            Assert.Equal(1.0f, prediction.Features[1]);
-            Assert.Equal(1.0f, prediction.Features[3]);
-            Assert.Equal(1.0f, prediction.Features[4]);
-            Assert.Equal(1.0f, prediction.Features[5]);
-            Assert.Equal(1.0f, prediction.Features[6]);
-            Assert.Equal(1.0f, prediction.Features[7]);
-            Assert.Equal(1.0f, prediction.Features[8]);
-            Assert.Equal(0.0f, prediction.Features[9]);
-            Assert.Equal(0.0f, prediction.Features[10]);
-            Assert.Equal(0.0f, prediction.Features[11]);
+            var expected = new float[] { 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 0.0f, 0.0f, 0.0f };
+            Assert.Equal(expected, prediction.Features);
 
             prediction = engine.Predict(data[1]);
             Assert.Equal("xyz", string.Join(" ", prediction.OutputTokens));
-            Assert.Equal(1.0f, prediction.Features[0]);
-            Assert.Equal(0.0f, prediction.Features[1]);
-            Assert.Equal(0.0f, prediction.Features[3]);
-            Assert.Equal(0.0f, prediction.Features[4]);
-            Assert.Equal(0.0f, prediction.Features[5]);
-            Assert.Equal(0.0f, prediction.Features[6]);
-            Assert.Equal(0.0f, prediction.Features[7]);
-            Assert.Equal(1.0f, prediction.Features[8]);
-            Assert.Equal(1.0f, prediction.Features[9]);
-            Assert.Equal(1.0f, prediction.Features[10]);
-            Assert.Equal(1.0f, prediction.Features[11]);
+            expected = new float[] { 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f, 1.0f };
+            Assert.Equal(expected, prediction.Features);
         }
 
         [Fact]
@@ -157,32 +129,16 @@ namespace Microsoft.ML.Tests.Transformers
 
             var prediction = engine.Predict(data[0]);
             Assert.Equal("abc xyz", string.Join(" ", prediction.OutputTokens));
-            var expected1 = 0.333333343f;
-            var expected2 = 0.707106769f;
-            Assert.Equal(expected1, prediction.Features[0], 4);
-            Assert.Equal(expected1, prediction.Features[1], 4);
-            Assert.Equal(expected1, prediction.Features[3], 4);
-            Assert.Equal(expected1, prediction.Features[4], 4);
-            Assert.Equal(expected1, prediction.Features[5], 4);
-            Assert.Equal(expected1, prediction.Features[6], 4);
-            Assert.Equal(expected1, prediction.Features[7], 4);
-            Assert.Equal(expected1, prediction.Features[8], 4);
-            Assert.Equal(expected2, prediction.Features[9], 4);
-            Assert.Equal(expected2, prediction.Features[10], 4);
+            var exp1 = 0.333333343f;
+            var exp2 = 0.707106769f;
+            var expected = new float[] { exp1, exp1, exp1, exp1, exp1, exp1, exp1, exp1, exp1, exp2, exp2 };
+            Assert.Equal(expected, prediction.Features);
 
             prediction = engine.Predict(data[1]);
-            expected1 = 0.4472136f;
+            exp1 = 0.4472136f;
             Assert.Equal("xyz", string.Join(" ", prediction.OutputTokens));
-            Assert.Equal(expected1, prediction.Features[0], 4);
-            Assert.Equal(0.0f, prediction.Features[1], 4);
-            Assert.Equal(0.0f, prediction.Features[3], 4);
-            Assert.Equal(0.0f, prediction.Features[4], 4);
-            Assert.Equal(expected1, prediction.Features[5], 4);
-            Assert.Equal(expected1, prediction.Features[6], 4);
-            Assert.Equal(expected1, prediction.Features[7], 4);
-            Assert.Equal(expected1, prediction.Features[8], 4);
-            Assert.Equal(0.0f, prediction.Features[9], 4);
-            Assert.Equal(1.0f, prediction.Features[10], 4);
+            expected = new float[] { exp1, 0.0f, 0.0f, 0.0f, 0.0f, exp1, exp1, exp1, exp1, 0.0f, 1.0f };
+            Assert.Equal(expected, prediction.Features);
         }
 
         [Fact]
