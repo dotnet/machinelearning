@@ -34,16 +34,12 @@ namespace Microsoft.ML.Functional.Tests
             var fileName = GetDataPath(TestDatasets.adult.trainFilename);
             var loader = _ml.Data.CreateTextLoader(new TextLoader.Options(), new MultiFileSource(fileName));
             var data = loader.Load(new MultiFileSource(fileName));
-            var pipeline1 = _ml.Transforms.Categorical.OneHotEncoding(new[]
-            {
-                new Transforms.OneHotEncodingEstimator.ColumnOptions("Cat", "Workclass", maximumNumberOfKeys: 3)
-            }).Append(_ml.Transforms.Concatenate("Features", "Cat", "NumericFeatures"));
+            var pipeline1 = _ml.Transforms.Categorical.OneHotEncoding("Cat", "Workclass", maximumNumberOfKeys: 3)
+                .Append(_ml.Transforms.Concatenate("Features", "Cat", "NumericFeatures"));
             var model1 = pipeline1.Fit(data);
 
-            var pipeline2 = _ml.Transforms.Categorical.OneHotEncoding(new[]
-            {
-                new Transforms.OneHotEncodingEstimator.ColumnOptions("Cat", "Workclass", maximumNumberOfKeys: 4)
-            }).Append(_ml.Transforms.Concatenate("Features", "Cat", "NumericFeatures"));
+            var pipeline2 = _ml.Transforms.Categorical.OneHotEncoding("Cat", "Workclass", maximumNumberOfKeys: 4)
+            .Append(_ml.Transforms.Concatenate("Features", "Cat", "NumericFeatures"));
             var model2 = pipeline2.Fit(data);
 
             var outputSchemaDefinition = SchemaDefinition.Create(typeof(OutputData));
@@ -68,9 +64,8 @@ namespace Microsoft.ML.Functional.Tests
             var fileName = GetDataPath(TestDatasets.adult.trainFilename);
             var data = new MultiFileSource(fileName);
             var loader = _ml.Data.CreateTextLoader(new TextLoader.Options(), new MultiFileSource(fileName));
-            var pipeline = _ml.Transforms.Categorical.OneHotEncoding(new[] {
-                new Transforms.OneHotEncodingEstimator.ColumnOptions("Categories"),
-                new Transforms.OneHotEncodingEstimator.ColumnOptions("Workclass") })
+            var pipeline = _ml.Transforms.Categorical.OneHotEncoding("Categories")
+                .Append(_ml.Transforms.Categorical.OneHotEncoding("Workclass"))
                 .Append(_ml.Transforms.Concatenate("Features", "NumericFeatures", "Categories", "Workclass"))
                 .Append(_ml.Transforms.FeatureSelection.SelectFeaturesBasedOnMutualInformation("Features"));
             var model = pipeline.Fit(loader.Load(data));
