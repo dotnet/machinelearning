@@ -244,7 +244,7 @@ We tried to make `Preview` debugger-friendly: our expectation is that, if you en
 Here is the code sample:
 ```csharp
 var estimator = mlContext.Transforms.Categorical.MapValueToKey("Label")
-    .Append(mlContext.MulticlassClassification.Trainers.Sdca())
+    .Append(mlContext.MulticlassClassification.Trainers.SdcaCalibrated())
     .Append(mlContext.Transforms.Conversion.MapKeyToValue("PredictedLabel"));
 
 var data = mlContext.Data.LoadFromTextFile(new TextLoader.Column[] {
@@ -423,7 +423,7 @@ var pipeline =
     // Cache data in memory for steps after the cache check point stage.
     .AppendCacheCheckpoint(mlContext)
     // Use the multi-class SDCA model to predict the label using features.
-    .Append(mlContext.MulticlassClassification.Trainers.Sdca())
+    .Append(mlContext.MulticlassClassification.Trainers.SdcaCalibrated())
     // Apply the inverse conversion from 'PredictedLabel' column back to string value.
     .Append(mlContext.Transforms.Conversion.MapKeyToValue(("PredictedLabel", "Data")));
 
@@ -547,13 +547,13 @@ var pipeline =
     // Cache data in memory for steps after the cache check point stage.
     .AppendCacheCheckpoint(mlContext)
     // Use the multi-class SDCA model to predict the label using features.
-    .Append(mlContext.MulticlassClassification.Trainers.Sdca());
+    .Append(mlContext.MulticlassClassification.Trainers.SdcaCalibrated());
 
 // Train the model.
 var trainedModel = pipeline.Fit(trainData);
 
 // Inspect the model parameters. 
-var modelParameters = trainedModel.LastTransformer.Model as MulticlassLogisticRegressionModelParameters;
+var modelParameters = trainedModel.LastTransformer.Model as MaximumEntropyModelParameters;
 
 // Now we can use 'modelParameters' to look at the weights.
 // 'weights' will be an array of weight vectors, one vector per class.
@@ -822,7 +822,7 @@ var pipeline =
     // Notice that unused part in the data may not be cached.
     .AppendCacheCheckpoint(mlContext)
     // Use the multi-class SDCA model to predict the label using features.
-    .Append(mlContext.MulticlassClassification.Trainers.Sdca());
+    .Append(mlContext.MulticlassClassification.Trainers.SdcaCalibrated());
 
 // Split the data 90:10 into train and test sets, train and evaluate.
 var split = mlContext.Data.TrainTestSplit(data, testFraction: 0.1);

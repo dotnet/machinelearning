@@ -1174,7 +1174,7 @@ namespace Microsoft.ML.RunTests
                 }).Fit(data).Transform(data);
                 data = new ColumnConcatenatingTransformer(Env, "Features", new[] { "Features1", "Features2" }).Transform(data);
 
-                var mlr = ML.MulticlassClassification.Trainers.LogisticRegression();
+                var mlr = ML.MulticlassClassification.Trainers.LbfgsMaximumEntropy();
                 var rmd = new RoleMappedData(data, "Label", "Features");
 
                 predictorModels[i] = new PredictorModelImpl(Env, rmd, data, mlr.Train(rmd));
@@ -3357,14 +3357,14 @@ namespace Microsoft.ML.RunTests
             };
             var model = LogisticRegressionBinaryTrainer.TrainBinary(Env, lrInput).PredictorModel;
 
-            var mcLrInput = new LogisticRegressionMulticlassClassificationTrainer.Options
+            var mcLrInput = new LbfgsMaximumEntropyTrainer.Options
             {
                 TrainingData = dataView,
                 NormalizeFeatures = NormalizeOption.Yes,
                 NumberOfThreads = 1,
                 ShowTrainingStatistics = true
             };
-            var mcModel = LogisticRegressionBinaryTrainer.TrainMulticlass(Env, mcLrInput).PredictorModel;
+            var mcModel = LbfgsMaximumEntropyTrainer.TrainMulticlass(Env, mcLrInput).PredictorModel;
 
             var output = SummarizePredictor.Summarize(Env,
                 new SummarizePredictor.Input() { PredictorModel = model });

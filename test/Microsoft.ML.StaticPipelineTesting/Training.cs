@@ -374,7 +374,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             var reader = TextLoaderStatic.CreateLoader(env,
                 c => (label: c.LoadText(0), features: c.LoadFloat(1, 4)));
 
-            MulticlassLogisticRegressionModelParameters pred = null;
+            MaximumEntropyModelParameters pred = null;
 
             var loss = new HingeLoss(1);
 
@@ -385,7 +385,7 @@ namespace Microsoft.ML.StaticPipelineTesting
                     r.label,
                     r.features,
                     numberOfIterations: 2,
-                    loss: loss, onFit: p => pred = p)));
+                    onFit: p => pred = p)));
 
             var pipe = reader.Append(est);
 
@@ -411,6 +411,57 @@ namespace Microsoft.ML.StaticPipelineTesting
             var metrics = catalog.Evaluate(data, r => r.label, r => r.preds, 2);
             Assert.True(metrics.LogLoss > 0);
             Assert.True(metrics.TopKAccuracy > 0);
+        }
+
+        [Fact]
+        public void SdcaMulticlassSvm()
+        {
+            var env = new MLContext(seed: 0);
+            var dataPath = GetDataPath(TestDatasets.iris.trainFilename);
+            var dataSource = new MultiFileSource(dataPath);
+
+            var catalog = new MulticlassClassificationCatalog(env);
+            var reader = TextLoaderStatic.CreateLoader(env,
+                c => (label: c.LoadText(0), features: c.LoadFloat(1, 4)));
+
+            LinearMulticlassModelParameters pred = null;
+
+            var loss = new HingeLoss(1);
+
+            // With a custom loss function we no longer get calibrated predictions.
+            var est = reader.MakeNewEstimator()
+                .Append(r => (label: r.label.ToKey(), r.features))
+                .Append(r => (r.label, preds: catalog.Trainers.SdcaNonCalibrated(
+                    r.label,
+                    r.features,
+                    loss: new HingeLoss(),
+                    numberOfIterations: 2,
+                    onFit: p => pred = p)));
+
+            var pipe = reader.Append(est);
+
+            Assert.Null(pred);
+            var model = pipe.Fit(dataSource);
+            Assert.NotNull(pred);
+            VBuffer<float>[] weights = default;
+            pred.GetWeights(ref weights, out int n);
+            Assert.True(n == 3 && n == weights.Length);
+            foreach (var w in weights)
+                Assert.True(w.Length == 4);
+
+            var biases = pred.GetBiases();
+            Assert.True(biases.Count() == 3);
+
+            var data = model.Load(dataSource);
+
+            // Just output some data on the schema for fun.
+            var schema = data.AsDynamic.Schema;
+            for (int c = 0; c < schema.Count; ++c)
+                Console.WriteLine($"{schema[c].Name}, {schema[c].Type}");
+
+            var metrics = catalog.Evaluate(data, r => r.label, r => r.preds, 2);
+            Assert.InRange(metrics.MacroAccuracy, 0.6, 1);
+            Assert.InRange(metrics.TopKAccuracy, 0.8, 1);
         }
 
         [Fact]
@@ -685,16 +736,16 @@ namespace Microsoft.ML.StaticPipelineTesting
             var reader = TextLoaderStatic.CreateLoader(env,
                 c => (label: c.LoadText(0), features: c.LoadFloat(1, 4)));
 
-            MulticlassLogisticRegressionModelParameters pred = null;
+            MaximumEntropyModelParameters pred = null;
 
             // With a custom loss function we no longer get calibrated predictions.
             var est = reader.MakeNewEstimator()
                 .Append(r => (label: r.label.ToKey(), r.features))
-                .Append(r => (r.label, preds: catalog.Trainers.MulticlassLogisticRegression(
+                .Append(r => (r.label, preds: catalog.Trainers.LbfgsMaximumEntropy(
                     r.label,
                     r.features,
                     null,
-                    new LogisticRegressionMulticlassClassificationTrainer.Options { NumberOfThreads = 1 },
+                    new LbfgsMaximumEntropyTrainer.Options { NumberOfThreads = 1 },
                     onFit: p => pred = p)));
 
             var pipe = reader.Append(est);

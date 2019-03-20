@@ -209,7 +209,7 @@ namespace Microsoft.ML.StaticPipe
     public static class LbfgsMulticlassExtensions
     {
         /// <summary>
-        /// Predict a target using a linear multiclass classification model trained with the <see cref="Microsoft.ML.Trainers.LogisticRegressionMulticlassClassificationTrainer"/> trainer.
+        /// Predict a target using a maximum entropy classification model trained with the L-BFGS method implemented in <see cref="LbfgsMaximumEntropyTrainer"/>.
         /// </summary>
         /// <param name="catalog">The multiclass classification catalog trainer object.</param>
         /// <param name="label">The label, or dependent variable.</param>
@@ -227,7 +227,7 @@ namespace Microsoft.ML.StaticPipe
         /// result in any way; it is only a way for the caller to be informed about what was learnt.</param>
         /// <returns>The set of output columns including in order the predicted per-class likelihoods (between 0 and 1, and summing up to 1), and the predicted label.</returns>
         public static (Vector<float> score, Key<uint, TVal> predictedLabel)
-            MulticlassLogisticRegression<TVal>(this MulticlassClassificationCatalog.MulticlassClassificationTrainers catalog,
+            LbfgsMaximumEntropy<TVal>(this MulticlassClassificationCatalog.MulticlassClassificationTrainers catalog,
             Key<uint, TVal> label,
             Vector<float> features,
             Scalar<float> weights = null,
@@ -236,14 +236,14 @@ namespace Microsoft.ML.StaticPipe
             float optimizationTolerance = Options.Defaults.OptimizationTolerance,
             int historySize = Options.Defaults.HistorySize,
             bool enforceNonNegativity = Options.Defaults.EnforceNonNegativity,
-            Action<MulticlassLogisticRegressionModelParameters> onFit = null)
+            Action<MaximumEntropyModelParameters> onFit = null)
         {
             LbfgsStaticUtils.ValidateParams(label, features, weights, l1Regularization, l2Regularization, optimizationTolerance, historySize, enforceNonNegativity, onFit);
 
             var rec = new TrainerEstimatorReconciler.MulticlassClassificationReconciler<TVal>(
                 (env, labelName, featuresName, weightsName) =>
                 {
-                    var trainer = new LogisticRegressionMulticlassClassificationTrainer(env, labelName, featuresName, weightsName,
+                    var trainer = new LbfgsMaximumEntropyTrainer(env, labelName, featuresName, weightsName,
                          l1Regularization, l2Regularization, optimizationTolerance, historySize, enforceNonNegativity);
 
                     if (onFit != null)
@@ -255,7 +255,7 @@ namespace Microsoft.ML.StaticPipe
         }
 
         /// <summary>
-        /// Predict a target using a linear multiclass classification model trained with the <see cref="Microsoft.ML.Trainers.LogisticRegressionMulticlassClassificationTrainer"/> trainer.
+        /// Predict a target using a maximum entropy classification model trained with the L-BFGS method implemented in <see cref="LbfgsMaximumEntropyTrainer"/>.
         /// </summary>
         /// <param name="catalog">The multiclass classification catalog trainer object.</param>
         /// <param name="label">The label, or dependent variable.</param>
@@ -269,12 +269,12 @@ namespace Microsoft.ML.StaticPipe
         /// result in any way; it is only a way for the caller to be informed about what was learnt.</param>
         /// <returns>The set of output columns including in order the predicted per-class likelihoods (between 0 and 1, and summing up to 1), and the predicted label.</returns>
         public static (Vector<float> score, Key<uint, TVal> predictedLabel)
-            MulticlassLogisticRegression<TVal>(this MulticlassClassificationCatalog.MulticlassClassificationTrainers catalog,
+            LbfgsMaximumEntropy<TVal>(this MulticlassClassificationCatalog.MulticlassClassificationTrainers catalog,
             Key<uint, TVal> label,
             Vector<float> features,
             Scalar<float> weights,
-            LogisticRegressionMulticlassClassificationTrainer.Options options,
-            Action<MulticlassLogisticRegressionModelParameters> onFit = null)
+            LbfgsMaximumEntropyTrainer.Options options,
+            Action<MaximumEntropyModelParameters> onFit = null)
         {
             Contracts.CheckValue(label, nameof(label));
             Contracts.CheckValue(features, nameof(features));
@@ -288,7 +288,7 @@ namespace Microsoft.ML.StaticPipe
                     options.FeatureColumnName = featuresName;
                     options.ExampleWeightColumnName = weightsName;
 
-                    var trainer = new LogisticRegressionMulticlassClassificationTrainer(env, options);
+                    var trainer = new LbfgsMaximumEntropyTrainer(env, options);
 
                     if (onFit != null)
                         return trainer.WithOnFitDelegate(trans => onFit(trans.Model));

@@ -33,7 +33,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         public void TestEstimatorMulticlassLogisticRegression()
         {
             (IEstimator<ITransformer> pipe, IDataView dataView) = GetMulticlassPipeline();
-            var trainer = ML.MulticlassClassification.Trainers.LogisticRegression();
+            var trainer = ML.MulticlassClassification.Trainers.LbfgsMaximumEntropy();
             var pipeWithTrainer = pipe.Append(trainer);
             TestEstimatorCore(pipeWithTrainer, dataView);
 
@@ -163,13 +163,13 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         public void TestMLRNoStats()
         {
             (IEstimator<ITransformer> pipe, IDataView dataView) = GetMulticlassPipeline();
-            var trainer = ML.MulticlassClassification.Trainers.LogisticRegression();
+            var trainer = ML.MulticlassClassification.Trainers.LbfgsMaximumEntropy();
             var pipeWithTrainer = pipe.Append(trainer);
 
             TestEstimatorCore(pipeWithTrainer, dataView);
 
             var transformer = pipeWithTrainer.Fit(dataView);
-            var model = transformer.LastTransformer.Model as MulticlassLogisticRegressionModelParameters;
+            var model = transformer.LastTransformer.Model as MaximumEntropyModelParameters;
             var stats = model.Statistics;
 
             Assert.Null(stats);
@@ -182,7 +182,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         {
             (IEstimator<ITransformer> pipe, IDataView dataView) = GetMulticlassPipeline();
 
-            var trainer = ML.MulticlassClassification.Trainers.LogisticRegression(new LogisticRegressionMulticlassClassificationTrainer.Options
+            var trainer = ML.MulticlassClassification.Trainers.LbfgsMaximumEntropy(new LbfgsMaximumEntropyTrainer.Options
             {
                 ShowTrainingStatistics = true
             });
@@ -191,9 +191,9 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             TestEstimatorCore(pipeWithTrainer, dataView);
 
             var transformer = pipeWithTrainer.Fit(dataView);
-            var model = transformer.LastTransformer.Model as MulticlassLogisticRegressionModelParameters;
+            var model = transformer.LastTransformer.Model as MaximumEntropyModelParameters;
 
-            Action<MulticlassLogisticRegressionModelParameters> validateStats = (modelParams) =>
+            Action<MaximumEntropyModelParameters> validateStats = (modelParams) =>
             {
                 var stats = modelParams.Statistics;
                 Assert.NotNull(stats);
@@ -216,7 +216,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                 transformerChain = ML.Model.Load(fs, out var schema);
 
             var lastTransformer = ((TransformerChain<ITransformer>)transformerChain).LastTransformer as MulticlassPredictionTransformer<IPredictorProducing<VBuffer<float>>>;
-            model = lastTransformer.Model as MulticlassLogisticRegressionModelParameters;
+            model = lastTransformer.Model as MaximumEntropyModelParameters;
 
             validateStats(model);
 
@@ -231,7 +231,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
 
             using (FileStream fs = File.OpenRead(dropModelPath))
             {
-                var result = ModelFileUtils.LoadPredictorOrNull(Env, fs) as MulticlassLogisticRegressionModelParameters;
+                var result = ModelFileUtils.LoadPredictorOrNull(Env, fs) as MaximumEntropyModelParameters;
                 var stats = result?.Statistics;
 
                 Assert.Equal(132.012238f, stats.Deviance);

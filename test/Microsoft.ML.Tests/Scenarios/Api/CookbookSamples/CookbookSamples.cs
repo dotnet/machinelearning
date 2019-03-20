@@ -264,7 +264,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
             var trainData = loader.Load(dataPath);
 
             // This is the predictor ('weights collection') that we will train.
-            MulticlassLogisticRegressionModelParameters predictor = null;
+            MaximumEntropyModelParameters predictor = null;
             // And these are the normalizer scales that we will learn.
             ImmutableArray<float> normScales;
             // Build the training pipeline.

@@ -151,8 +151,8 @@ namespace Microsoft.ML.Functional.Tests
             var pipeline = mlContext.Transforms.Concatenate("Features", Iris.Features)
                 .Append(mlContext.Transforms.Conversion.MapValueToKey("Label"))
                 .AppendCacheCheckpoint(mlContext)
-                .Append(mlContext.MulticlassClassification.Trainers.Sdca(
-                    new SdcaMulticlassTrainer.Options { NumberOfThreads = 1}));
+                .Append(mlContext.MulticlassClassification.Trainers.SdcaCalibrated(
+                    new SdcaCalibratedMulticlassTrainer.Options { NumberOfThreads = 1}));
 
             // Train the model.
             var model = pipeline.Fit(data);

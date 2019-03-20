@@ -13569,7 +13569,7 @@
     },
     {
       "Name": "Trainers.LogisticRegressionClassifier",
-      "Desc": "Logistic Regression is a method in statistics used to predict the probability of occurrence of an event and can be used as a classification algorithm. The algorithm predicts the probability of occurrence of an event by fitting data to a logistical function.",
+      "Desc": "Maximum entrypy classification is a method in statistics used to predict the probabilities of parallel events. The model predicts the probabilities of parallel events by fitting data to a softmax function.",
       "FriendlyName": "Multi-class Logistic Regression",
       "ShortName": "mlr",
       "Inputs": [
