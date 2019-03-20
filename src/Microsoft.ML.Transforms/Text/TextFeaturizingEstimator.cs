@@ -464,10 +464,10 @@ namespace Microsoft.ML.Transforms.Text
                 for (int i = 0; i < wordTokCols.Length; i++)
                 {
                     var col = new StopWordsCol();
-                    col.Source = wordTokCols[i];
-                    col.Name = GenerateColumnName(view.Schema, wordTokCols[i], "StopWordsRemoverTransform");
-                    dstCols[i] = col.Name;
-                    tempCols.Add(col.Name);
+                    col.InputColumnName = wordTokCols[i];
+                    col.OutputColumnName = GenerateColumnName(view.Schema, wordTokCols[i], "StopWordsRemoverTransform");
+                    dstCols[i] = col.OutputColumnName;
+                    tempCols.Add(col.OutputColumnName);
                     col.Language = tparams.StopwordsLanguage;
 
                     xfCols[i] = col;

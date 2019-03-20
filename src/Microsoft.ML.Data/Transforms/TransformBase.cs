@@ -333,19 +333,19 @@ namespace Microsoft.ML.Data
                 for (int i = 0; i < names.Length; i++)
                 {
                     var item = column[i];
-                    host.CheckUserArg(item.TrySanitize(), nameof(OneToOneColumn.Name), "Invalid new column name");
-                    names[i] = item.Name;
+                    host.CheckUserArg(item.TrySanitize(), nameof(OneToOneColumn.OutputColumnName), "Invalid new column name");
+                    names[i] = item.OutputColumnName;
 
                     int colSrc;
-                    if (!inputSchema.TryGetColumnIndex(item.Source, out colSrc))
-                        throw host.ExceptUserArg(nameof(OneToOneColumn.Source), "Source column '{0}' not found", item.Source);
+                    if (!inputSchema.TryGetColumnIndex(item.InputColumnName, out colSrc))
+                        throw host.ExceptUserArg(nameof(OneToOneColumn.InputColumnName), "Source column '{0}' not found", item.InputColumnName);
 
                     var type = inputSchema[colSrc].Type;
                     if (testType != null)
                     {
                         string reason = testType(type);
                         if (reason != null)
-                            throw host.ExceptUserArg(nameof(OneToOneColumn.Source), InvalidTypeErrorFormat, item.Source, type, reason);
+                            throw host.ExceptUserArg(nameof(OneToOneColumn.InputColumnName), InvalidTypeErrorFormat, item.InputColumnName, type, reason);
                     }
 
                     var slotType = transposedInput?.GetSlotType(i);
@@ -541,8 +541,8 @@ namespace Microsoft.ML.Data
             OneToOneColumn[] map = transform.Infos
                 .Select(x => new ColumnTmp
                 {
-                    Name = x.Name,
-                    Source = transform.Source.Schema[x.Source].Name,
+                    OutputColumnName = x.Name,
+                    InputColumnName = transform.Source.Schema[x.Source].Name,
                 })
                 .ToArray();
 

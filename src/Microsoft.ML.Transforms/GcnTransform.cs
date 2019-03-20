@@ -231,8 +231,8 @@ namespace Microsoft.ML.Transforms
                 {
                     var item = options.Columns[i];
                     cols[i] = new GlobalContrastNormalizingEstimator.ColumnOptions(
-                        item.Name,
-                        item.Source ?? item.Name,
+                        item.OutputColumnName,
+                        item.InputColumnName ?? item.OutputColumnName,
                         item.SubMean ?? options.SubMean,
                         item.UseStdDev ?? options.UseStdDev,
                         item.Scale ?? options.Scale);
@@ -258,8 +258,8 @@ namespace Microsoft.ML.Transforms
                 {
                     var item = options.Columns[i];
                     cols[i] = new LpNormNormalizingEstimator.ColumnOptions(
-                        item.Name,
-                        item.Source ?? item.Name,
+                        item.OutputColumnName,
+                        item.InputColumnName ?? item.OutputColumnName,
                         item.Norm ?? options.Norm,
                         item.SubMean ?? options.SubMean);
                 }

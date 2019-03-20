@@ -190,7 +190,7 @@ namespace Microsoft.ML.Transforms
             string source = null,
              bool join = Defaults.Join,
             int numberOfBits = Defaults.NumberOfBits)
-            : this(env, new Arguments() { Columns = new[] { new Column() { Source = source ?? name, Name = name } }, Join = join, NumberOfBits = numberOfBits }, input)
+            : this(env, new Arguments() { Columns = new[] { new Column() { InputColumnName = source ?? name, OutputColumnName = name } }, Join = join, NumberOfBits = numberOfBits }, input)
         {
         }
 

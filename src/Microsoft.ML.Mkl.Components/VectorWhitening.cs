@@ -740,9 +740,9 @@ namespace Microsoft.ML.Transforms
 
             internal ColumnOptions(VectorWhiteningTransformer.Column item, VectorWhiteningTransformer.Options options)
             {
-                Name = item.Name;
+                Name = item.OutputColumnName;
                 Contracts.CheckValue(Name, nameof(Name));
-                InputColumnName = item.Source ?? item.Name;
+                InputColumnName = item.InputColumnName ?? item.OutputColumnName;
                 Contracts.CheckValue(InputColumnName, nameof(InputColumnName));
                 Kind = item.Kind ?? options.Kind;
                 Contracts.CheckUserArg(Kind == WhiteningKind.PrincipalComponentAnalysis || Kind == WhiteningKind.ZeroPhaseComponentAnalysis, nameof(item.Kind));

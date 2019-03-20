@@ -203,8 +203,8 @@ namespace Microsoft.ML.Transforms
                 var item = options.Columns[i];
 
                 cols[i] = new KeyToVectorMappingEstimator.ColumnOptions(
-                    item.Name,
-                    item.Source ?? item.Name,
+                    item.OutputColumnName,
+                    item.InputColumnName ?? item.OutputColumnName,
                     item.Bag ?? options.Bag);
             };
             return new KeyToVectorMappingTransformer(env, cols).MakeDataTransform(input);

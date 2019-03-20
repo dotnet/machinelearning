@@ -251,8 +251,8 @@ namespace Microsoft.ML.Transforms
             env.CheckValue(input, nameof(input));
             env.CheckValue(options.Columns, nameof(options.Columns));
             var cols = options.Columns.Select(item => new PrincipalComponentAnalyzer.ColumnOptions(
-                        item.Name,
-                        item.Source,
+                        item.OutputColumnName,
+                        item.InputColumnName,
                         item.WeightColumn,
                         item.Rank ?? options.Rank,
                         item.Oversampling ?? options.Oversampling,

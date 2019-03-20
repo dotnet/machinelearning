@@ -317,8 +317,8 @@ namespace Microsoft.ML.Transforms
                 var item = options.Columns[i];
                 var kind = item.MaximumNumberOfInverts ?? options.MaximumNumberOfInverts;
                 cols[i] = new HashingEstimator.ColumnOptions(
-                    item.Name,
-                    item.Source ?? item.Name,
+                    item.OutputColumnName,
+                    item.InputColumnName ?? item.OutputColumnName,
                     item.NumberOfBits ?? options.NumberOfBits,
                     item.Seed ?? options.Seed,
                     item.Ordered ?? options.Ordered,

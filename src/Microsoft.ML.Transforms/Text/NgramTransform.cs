@@ -420,13 +420,13 @@ namespace Microsoft.ML.Transforms.Text
                     var item = options.Columns[i];
                     var maxNumTerms = Utils.Size(item.MaxNumTerms) > 0 ? item.MaxNumTerms : options.MaxNumTerms;
                     cols[i] = new NgramExtractingEstimator.ColumnOptions(
-                        item.Name,
+                        item.OutputColumnName,
                         item.NgramLength ?? options.NgramLength,
                         item.SkipLength ?? options.SkipLength,
                         item.UseAllLengths ?? options.UseAllLengths,
                         item.Weighting ?? options.Weighting,
                         maxNumTerms,
-                        item.Source ?? item.Name);
+                        item.InputColumnName ?? item.OutputColumnName);
                 };
             }
             return new NgramExtractingTransformer(env, input, cols).MakeDataTransform(input);

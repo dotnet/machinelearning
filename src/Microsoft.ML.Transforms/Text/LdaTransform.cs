@@ -1117,8 +1117,8 @@ namespace Microsoft.ML.Transforms.Text
             }
 
             internal ColumnOptions(LatentDirichletAllocationTransformer.Column item, LatentDirichletAllocationTransformer.Options options) :
-                this(item.Name,
-                    item.Source ?? item.Name,
+                this(item.OutputColumnName,
+                    item.InputColumnName ?? item.OutputColumnName,
                     item.NumTopic ?? options.NumTopic,
                     item.AlphaSum ?? options.AlphaSum,
                     item.Beta ?? options.Beta,

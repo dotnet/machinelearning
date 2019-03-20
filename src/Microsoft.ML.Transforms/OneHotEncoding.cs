@@ -101,8 +101,8 @@ namespace Microsoft.ML.Transforms
             foreach (var column in options.Columns)
             {
                 var col = new OneHotEncodingEstimator.ColumnOptions(
-                    column.Name,
-                    column.Source ?? column.Name,
+                    column.OutputColumnName,
+                    column.InputColumnName ?? column.OutputColumnName,
                     column.OutputKind ?? options.OutputKind,
                     column.MaxNumTerms ?? options.MaxNumTerms,
                     column.Sort ?? options.Sort);

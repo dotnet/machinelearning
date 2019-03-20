@@ -127,7 +127,7 @@ namespace Microsoft.ML.Transforms
                 for (int i = 0; i < cols.Length; i++)
                 {
                     var item = options.Columns[i];
-                    cols[i] = (item.Name, item.Source ?? item.Name);
+                    cols[i] = (item.OutputColumnName, item.InputColumnName ?? item.OutputColumnName);
                 };
             }
             return new KeyToBinaryVectorMappingTransformer(env, cols).MakeDataTransform(input);

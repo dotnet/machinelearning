@@ -92,8 +92,8 @@ namespace Microsoft.ML.Data
         {
             public Column(string src, string dst)
             {
-                Name = dst;
-                Source = src;
+                OutputColumnName = dst;
+                InputColumnName = src;
             }
         }
 

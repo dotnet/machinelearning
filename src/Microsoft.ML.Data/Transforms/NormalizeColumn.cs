@@ -290,8 +290,8 @@ namespace Microsoft.ML.Transforms
 
             var columns = args.Columns
                 .Select(col => new NormalizingEstimator.MinMaxColumnOptions(
-                    col.Name,
-                    col.Source ?? col.Name,
+                    col.OutputColumnName,
+                    col.InputColumnName ?? col.OutputColumnName,
                     col.MaximumExampleCount ?? args.MaximumExampleCount,
                     col.EnsureZeroUntouched ?? args.EnsureZeroUntouched))
                 .ToArray();
@@ -308,8 +308,8 @@ namespace Microsoft.ML.Transforms
 
             var columns = args.Columns
                 .Select(col => new NormalizingEstimator.MeanVarianceColumnOptions(
-                    col.Name,
-                    col.Source ?? col.Name,
+                    col.OutputColumnName,
+                    col.InputColumnName ?? col.OutputColumnName,
                     col.MaximumExampleCount ?? args.MaximumExampleCount,
                     col.EnsureZeroUntouched ?? args.EnsureZeroUntouched))
                 .ToArray();
@@ -328,8 +328,8 @@ namespace Microsoft.ML.Transforms
 
             var columns = args.Columns
                 .Select(col => new NormalizingEstimator.LogMeanVarianceColumnOptions(
-                    col.Name,
-                    col.Source ?? col.Name,
+                    col.OutputColumnName,
+                    col.InputColumnName ?? col.OutputColumnName,
                     col.MaximumExampleCount ?? args.MaximumExampleCount,
                     args.UseCdf))
                 .ToArray();
@@ -348,8 +348,8 @@ namespace Microsoft.ML.Transforms
 
             var columns = args.Columns
                 .Select(col => new NormalizingEstimator.BinningColumnOptions(
-                    col.Name,
-                    col.Source ?? col.Name,
+                    col.OutputColumnName,
+                    col.InputColumnName ?? col.OutputColumnName,
                     col.MaximumExampleCount ?? args.MaximumExampleCount,
                     col.EnsureZeroUntouched ?? args.EnsureZeroUntouched,
                     col.NumBins ?? args.NumBins))
@@ -926,8 +926,8 @@ namespace Microsoft.ML.Transforms
                 host.AssertValue(args);
 
                 return CreateBuilder(new NormalizingEstimator.MinMaxColumnOptions(
-                    args.Columns[icol].Name,
-                    args.Columns[icol].Source ?? args.Columns[icol].Name,
+                    args.Columns[icol].OutputColumnName,
+                    args.Columns[icol].InputColumnName ?? args.Columns[icol].OutputColumnName,
                     args.Columns[icol].MaximumExampleCount ?? args.MaximumExampleCount,
                     args.Columns[icol].EnsureZeroUntouched ?? args.EnsureZeroUntouched), host, srcIndex, srcType, cursor);
             }
@@ -963,8 +963,8 @@ namespace Microsoft.ML.Transforms
                 host.AssertValue(args);
 
                 return CreateBuilder(new NormalizingEstimator.MeanVarianceColumnOptions(
-                    args.Columns[icol].Name,
-                    args.Columns[icol].Source ?? args.Columns[icol].Name,
+                    args.Columns[icol].OutputColumnName,
+                    args.Columns[icol].InputColumnName ?? args.Columns[icol].OutputColumnName,
                     args.Columns[icol].MaximumExampleCount ?? args.MaximumExampleCount,
                     args.Columns[icol].EnsureZeroUntouched ?? args.EnsureZeroUntouched,
                     args.UseCdf), host, srcIndex, srcType, cursor);
@@ -1003,8 +1003,8 @@ namespace Microsoft.ML.Transforms
                 host.AssertValue(args);
 
                 return CreateBuilder(new NormalizingEstimator.LogMeanVarianceColumnOptions(
-                    args.Columns[icol].Name,
-                    args.Columns[icol].Source ?? args.Columns[icol].Name,
+                    args.Columns[icol].OutputColumnName,
+                    args.Columns[icol].InputColumnName ?? args.Columns[icol].OutputColumnName,
                     args.Columns[icol].MaximumExampleCount ?? args.MaximumExampleCount,
                     args.UseCdf), host, srcIndex, srcType, cursor);
             }
@@ -1043,8 +1043,8 @@ namespace Microsoft.ML.Transforms
                 host.AssertValue(args);
 
                 return CreateBuilder(new NormalizingEstimator.BinningColumnOptions(
-                    args.Columns[icol].Name,
-                    args.Columns[icol].Source ?? args.Columns[icol].Name,
+                    args.Columns[icol].OutputColumnName,
+                    args.Columns[icol].InputColumnName ?? args.Columns[icol].OutputColumnName,
                     args.Columns[icol].MaximumExampleCount ?? args.MaximumExampleCount,
                     args.Columns[icol].EnsureZeroUntouched ?? args.EnsureZeroUntouched,
                     args.Columns[icol].NumBins ?? args.NumBins), host, srcIndex, srcType, cursor);
@@ -1093,8 +1093,8 @@ namespace Microsoft.ML.Transforms
 
                 return CreateBuilder(
                     new NormalizingEstimator.SupervisedBinningColumOptions(
-                        args.Columns[icol].Name,
-                        args.Columns[icol].Source ?? args.Columns[icol].Name,
+                        args.Columns[icol].OutputColumnName,
+                        args.Columns[icol].InputColumnName ?? args.Columns[icol].OutputColumnName,
                         args.LabelColumn ?? DefaultColumnNames.Label,
                         args.Columns[icol].MaximumExampleCount ?? args.MaximumExampleCount,
                         args.Columns[icol].EnsureZeroUntouched ?? args.EnsureZeroUntouched,

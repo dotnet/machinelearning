@@ -180,7 +180,7 @@ namespace Microsoft.ML.Transforms.Text
             for (int i = 0; i < cols.Length; i++)
             {
                 var item = options.Columns[i];
-                cols[i] = (item.Name, item.Source ?? item.Name);
+                cols[i] = (item.OutputColumnName, item.InputColumnName ?? item.OutputColumnName);
             }
             return new TextNormalizingTransformer(env, options.TextCase, options.KeepDiacritics, options.KeepPunctuations, options.KeepNumbers, cols).MakeDataTransform(input);
         }

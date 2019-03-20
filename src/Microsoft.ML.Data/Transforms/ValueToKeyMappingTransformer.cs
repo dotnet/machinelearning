@@ -292,11 +292,11 @@ namespace Microsoft.ML.Transforms
                     var item = options.Columns[i];
                     var sortOrder = item.Sort ?? options.Sort;
                     if (!Enum.IsDefined(typeof(ValueToKeyMappingEstimator.KeyOrdinality), sortOrder))
-                        throw env.ExceptUserArg(nameof(options.Sort), "Undefined sorting criteria '{0}' detected for column '{1}'", sortOrder, item.Name);
+                        throw env.ExceptUserArg(nameof(options.Sort), "Undefined sorting criteria '{0}' detected for column '{1}'", sortOrder, item.OutputColumnName);
 
                     cols[i] = new ValueToKeyMappingEstimator.ColumnOptions(
-                        item.Name,
-                        item.Source ?? item.Name,
+                        item.OutputColumnName,
+                        item.InputColumnName ?? item.OutputColumnName,
                         item.MaxNumTerms ?? options.MaxNumTerms,
                         sortOrder,
                         item.TextKeyValues ?? options.TextKeyValues);

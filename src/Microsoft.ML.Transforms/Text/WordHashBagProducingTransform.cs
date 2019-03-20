@@ -355,8 +355,8 @@ namespace Microsoft.ML.Transforms.Text
                         termCols.Add(
                             new ValueToKeyMappingTransformer.Column
                             {
-                                Name = tmpName,
-                                Source = column.Source[isrc]
+                                OutputColumnName = tmpName,
+                                InputColumnName = column.Source[isrc]
                             });
                     }
 
@@ -397,7 +397,7 @@ namespace Microsoft.ML.Transforms.Text
                 {
                     var missingDropColumns = new (string outputColumnName, string inputColumnName)[termCols.Count];
                     for (int iinfo = 0; iinfo < termCols.Count; iinfo++)
-                        missingDropColumns[iinfo] = (termCols[iinfo].Name, termCols[iinfo].Name);
+                        missingDropColumns[iinfo] = (termCols[iinfo].OutputColumnName, termCols[iinfo].OutputColumnName);
                     view = new MissingValueDroppingTransformer(h, missingDropColumns).Transform(view);
                 }
             }

@@ -94,7 +94,7 @@ namespace Microsoft.ML.EntryPoints
                 data = new HashJoiningTransform(host,
                     new HashJoiningTransform.Arguments
                     {
-                        Columns = new[] { new HashJoiningTransform.Column { Name = stratCol, Source = stratificationColumn } },
+                        Columns = new[] { new HashJoiningTransform.Column { OutputColumnName = stratCol, InputColumnName = stratificationColumn } },
                         Join = true,
                         NumberOfBits = 30
                     }, data);

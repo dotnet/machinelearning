@@ -231,8 +231,8 @@ namespace Microsoft.ML.Transforms.Text
             {
                 var item = options.Columns[i];
                 cols[i] = new WordEmbeddingEstimator.ColumnOptions(
-                    item.Name,
-                    item.Source ?? item.Name);
+                    item.OutputColumnName,
+                    item.InputColumnName ?? item.OutputColumnName);
             }
 
             bool customLookup = !string.IsNullOrWhiteSpace(options.CustomLookupTable);
