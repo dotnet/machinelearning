@@ -203,15 +203,14 @@ namespace Microsoft.ML.Data
         /// </summary>
         public sealed class Column
         {
-            private readonly Dictionary<string, AnnotationInfo> _annotations;
-            internal Dictionary<string, AnnotationInfo> Annotations { get { return _annotations; } }
+            internal Dictionary<string, AnnotationInfo> AnnotationInfos { get; }
 
             /// <summary>
             /// The name of the member the column is taken from. The API
             /// requires this to not be null, and a valid name of a member of
             /// the type for which we are creating a schema.
             /// </summary>
-            public string MemberName { get; set; }
+            public string MemberName { get; }
             /// <summary>
             /// The name of the column that's created in the data view. If this
             /// is null, the API uses the <see cref="MemberName"/>.
@@ -224,33 +223,20 @@ namespace Microsoft.ML.Data
             public DataViewType ColumnType { get; set; }
 
             /// <summary>
-            /// Whether the column is a computed type.
-            /// </summary>
-            public bool IsComputed { get { return Generator != null; } }
-
-            /// <summary>
             /// The generator function. if the column is computed.
             /// </summary>
-            public Delegate Generator { get; set; }
+            internal Delegate Generator { get; set; }
 
-            public Type ReturnType => Generator?.GetMethodInfo().GetParameters().LastOrDefault().ParameterType.GetElementType();
+            internal Type ReturnType => Generator?.GetMethodInfo().GetParameters().LastOrDefault().ParameterType.GetElementType();
 
-            public Column(IExceptionContext ectx, string memberName, DataViewType columnType,
-                string columnName = null, IEnumerable<AnnotationInfo> annotationInfos = null, Delegate generator = null)
+            internal Column(string memberName, DataViewType columnType,
+                string columnName = null)
             {
-                ectx.CheckNonEmpty(memberName, nameof(memberName));
+                Contracts.CheckNonEmpty(memberName, nameof(memberName));
                 MemberName = memberName;
                 ColumnName = columnName ?? memberName;
                 ColumnType = columnType;
-                Generator = generator;
-                _annotations = annotationInfos != null ?
-                    annotationInfos.ToDictionary(m => m.Kind, m => m)
-                    : new Dictionary<string, AnnotationInfo>();
-            }
-
-            public Column()
-            {
-                _annotations = _annotations ?? new Dictionary<string, AnnotationInfo>();
+                AnnotationInfos = new Dictionary<string, AnnotationInfo>();
             }
 
             /// <summary>
@@ -262,22 +248,19 @@ namespace Microsoft.ML.Data
             /// <param name="kind">The string identifier of the annotation.</param>
             /// <param name="value">Value of annotation.</param>
             /// <param name="annotationType">Type of value.</param>
-            public void AddAnnotation<T>(string kind, T value, DataViewType annotationType = null)
+            public void AddAnnotation<T>(string kind, T value, DataViewType annotationType)
             {
-                if (_annotations.ContainsKey(kind))
+                Contracts.CheckValue(kind, nameof(kind));
+                Contracts.CheckValue(annotationType, nameof(annotationType));
+
+                if (AnnotationInfos.ContainsKey(kind))
                     throw Contracts.Except("Column already contains an annotation of this kind.");
-                _annotations[kind] = new AnnotationInfo<T>(kind, value, annotationType);
+                AnnotationInfos[kind] = new AnnotationInfo<T>(kind, value, annotationType);
             }
 
-            /// <summary>
-            /// Remove annotation from the column if it exists.
-            /// </summary>
-            /// <param name="kind">The string identifier of the annotation.</param>
-            public void RemoveAnnotation(string kind)
+            internal void AddAnnotation(string kind, AnnotationInfo info)
             {
-                if (_annotations.ContainsKey(kind))
-                    _annotations.Remove(kind);
-                throw Contracts.Except("Column does not contain an annotation of kind: " + kind);
+                AnnotationInfos[kind] = info;
             }
 
             /// <summary>
@@ -285,13 +268,20 @@ namespace Microsoft.ML.Data
             /// </summary>
             /// <returns>A dictionary with the kind of the annotation as the key, and the
             /// annotation type as the associated value.</returns>
-            public IEnumerable<KeyValuePair<string, DataViewType>> GetAnnotationTypes
+            public DataViewSchema.Annotations Annotations
             {
                 get
                 {
-                    return Annotations.Select(x => new KeyValuePair<string, DataViewType>(x.Key, x.Value.AnnotationType));
+                    var builder = new DataViewSchema.Annotations.Builder();
+                    foreach (var kvp in AnnotationInfos)
+                        builder.Add(kvp.Key, kvp.Value.AnnotationType, kvp.Value.GetGetterDelegate());
+                    return builder.ToAnnotations();
                 }
             }
+        }
+
+        private SchemaDefinition()
+        {
         }
 
         /// <summary>
@@ -430,7 +420,7 @@ namespace Microsoft.ML.Data
                 else
                     columnType = itemType;
 
-                cols.Add(new Column() { MemberName = memberInfo.Name, ColumnName = name, ColumnType = columnType });
+                cols.Add(new Column(memberInfo.Name, columnType, name));
             }
             return cols;
         }
