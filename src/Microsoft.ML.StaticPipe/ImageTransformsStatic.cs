@@ -188,10 +188,9 @@ namespace Microsoft.ML.StaticPipe
         internal sealed class OutPipelineColumn<T> : Vector<T>, IColInput
         {
             public Custom<Bitmap> Input { get; }
-            private static readonly ImagePixelExtractingTransformer.Options _defaultArgs = new ImagePixelExtractingTransformer.Options();
-            private readonly ImagePixelExtractingTransformer.Column _colParam;
+            private readonly ImagePixelExtractingEstimator.ColumnOptions _colParam;
 
-            public OutPipelineColumn(Custom<Bitmap> input, ImagePixelExtractingTransformer.Column col)
+            public OutPipelineColumn(Custom<Bitmap> input, ImagePixelExtractingEstimator.ColumnOptions col)
                 : base(Reconciler.Inst, input)
             {
                 Contracts.AssertValue(input);
@@ -203,12 +202,12 @@ namespace Microsoft.ML.StaticPipe
             public ImagePixelExtractingEstimator.ColumnOptions MakeColumnOptions(string outputColumnName, string inputColumnName)
             {
                 // In principle, the analyzer should only call the the reconciler once for these columns.
-                Contracts.Assert(_colParam.Source == null);
-                Contracts.Assert(_colParam.Name == null);
+                Contracts.Assert(_colParam.InputColumnName == null);
+                Contracts.Assert(_colParam.OutputColumnName == null);
 
-                _colParam.Name = outputColumnName;
-                _colParam.Source = inputColumnName;
-                return new ImagePixelExtractingEstimator.ColumnOptions(_colParam, _defaultArgs);
+                _colParam.OutputColumnName = outputColumnName;
+                _colParam.InputColumnName = inputColumnName;
+                return new ImagePixelExtractingEstimator.ColumnOptions { OutputColumnName = outputColumnName, InputColumnName = inputColumnName };
             }
         }
 
@@ -239,7 +238,7 @@ namespace Microsoft.ML.StaticPipe
                     var outCol = (IColInput)toOutput[i];
                     cols[i] = outCol.MakeColumnOptions(outputNames[toOutput[i]], inputNames[outCol.Input]);
                 }
-                return new ImagePixelExtractingEstimator(env, cols);
+                return new ImagePixelExtractingEstimator(env, new ImagePixelExtractingEstimator.Options { ColumnOptions = cols });
             }
         }
     }

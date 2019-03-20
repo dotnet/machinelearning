@@ -109,14 +109,25 @@ namespace Microsoft.ML
             float offsetImage = ImagePixelExtractingEstimator.Defaults.Offset,
             float scaleImage = ImagePixelExtractingEstimator.Defaults.Scale,
             bool outputAsFloatArray = ImagePixelExtractingEstimator.Defaults.Convert)
-            => new ImagePixelExtractingEstimator(CatalogUtils.GetEnvironment(catalog), outputColumnName, inputColumnName, colorsToExtract, orderOfExtraction, interleavePixelColors, offsetImage, scaleImage, outputAsFloatArray);
+        {
+            var options = new ImagePixelExtractingEstimator.Options
+            {
+                ColumnOptions = new[] { new ImagePixelExtractingEstimator.ColumnOptions { OutputColumnName = outputColumnName, InputColumnName = inputColumnName } },
+                ColorsToExtract = colorsToExtract,
+                OrderOfExtraction = orderOfExtraction,
+                InterleavePixelColors = interleavePixelColors,
+                OffsetImage = offsetImage,
+                ScaleImage = scaleImage,
+                OutputAsFloatArray = outputAsFloatArray
+            };
+            return new ImagePixelExtractingEstimator(CatalogUtils.GetEnvironment(catalog), options);
+        }
 
         /// <include file='doc.xml' path='doc/members/member[@name="ImagePixelExtractingEstimator"]/*' />
         /// <param name="catalog">The transform's catalog.</param>
-        /// <param name="columnOptions">The <see cref="ImagePixelExtractingEstimator.ColumnOptions"/> describing how the transform handles each image pixel extraction output input column pair.</param>
-        [BestFriend]
-        internal static ImagePixelExtractingEstimator ExtractPixels(this TransformsCatalog catalog, params ImagePixelExtractingEstimator.ColumnOptions[] columnOptions)
-            => new ImagePixelExtractingEstimator(CatalogUtils.GetEnvironment(catalog), columnOptions);
+        /// <param name="options">The <see cref="ImagePixelExtractingEstimator.Options"/> describing how the transform handles each image pixel extraction output input column pair.</param>
+        internal static ImagePixelExtractingEstimator ExtractPixels(this TransformsCatalog catalog, ImagePixelExtractingEstimator.Options options)
+            => new ImagePixelExtractingEstimator(CatalogUtils.GetEnvironment(catalog), options);
 
         /// <summary>
         /// Resizes the images to a new width and height.

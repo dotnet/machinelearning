@@ -127,16 +127,16 @@ namespace Microsoft.ML.StaticPipe
         public static Vector<float> ExtractPixels(this Custom<Bitmap> input, bool useAlpha = false, bool useRed = true,
             bool useGreen = true, bool useBlue = true, ImagePixelExtractingEstimator.ColorsOrder order = ImagePixelExtractingEstimator.Defaults.Order, bool interleave = false, float scale = 1.0f, float offset = 0.0f)
         {
-            var colParams = new ImagePixelExtractingTransformer.Column
+            var colParams = new ImagePixelExtractingEstimator.ColumnOptions
             {
                 UseAlpha = useAlpha,
                 UseRed = useRed,
                 UseGreen = useGreen,
                 UseBlue = useBlue,
-                Interleave = interleave,
-                Scale = scale,
-                Offset = offset,
-                Convert = true
+                InterleavePixelColors = interleave,
+                ScaleImage = scale,
+                OffsetImage = offset,
+                OutputAsFloatArray = true
             };
             return new ImagePixelExtractingStaticExtensions.OutPipelineColumn<float>(input, colParams);
         }
@@ -158,14 +158,14 @@ namespace Microsoft.ML.StaticPipe
         public static Vector<byte> ExtractPixelsAsBytes(this Custom<Bitmap> input, bool useAlpha = false, bool useRed = true,
             bool useGreen = true, bool useBlue = true, ImagePixelExtractingEstimator.ColorsOrder order = ImagePixelExtractingEstimator.Defaults.Order, bool interleave = false)
         {
-            var colParams = new ImagePixelExtractingTransformer.Column
+            var colParams = new ImagePixelExtractingEstimator.ColumnOptions
             {
                 UseAlpha = useAlpha,
                 UseRed = useRed,
                 UseGreen = useGreen,
                 UseBlue = useBlue,
-                Interleave = interleave,
-                Convert = false
+                InterleavePixelColors = interleave,
+                OutputAsFloatArray = false
             };
             return new ImagePixelExtractingStaticExtensions.OutPipelineColumn<byte>(input, colParams);
         }

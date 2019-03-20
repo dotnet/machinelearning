@@ -41,7 +41,7 @@ namespace Microsoft.ML.Transforms.Image
 
         [TlcModule.EntryPoint(Name = "Transforms.ImagePixelExtractor", Desc = ImagePixelExtractingTransformer.Summary,
             UserName = ImagePixelExtractingTransformer.UserName, ShortName = ImagePixelExtractingTransformer.LoaderSignature)]
-        public static CommonOutputs.TransformOutput ImagePixelExtractor(IHostEnvironment env, ImagePixelExtractingTransformer.Options input)
+        public static CommonOutputs.TransformOutput ImagePixelExtractor(IHostEnvironment env, ImagePixelExtractingEstimator.Options input)
         {
             var h = EntryPointUtils.CheckArgsAndCreateHost(env, "ImagePixelExtractorTransform", input);
             var xf = ImagePixelExtractingTransformer.Create(h, input, input.Data);
