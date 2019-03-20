@@ -151,7 +151,7 @@ namespace Microsoft.ML.Tests
         public void TestPfiBinaryClassificationOnDenseFeatures()
         {
             var data = GetDenseDataset(TaskType.BinaryClassification);
-            var model = ML.BinaryClassification.Trainers.LbfgsLogisticRegressio(
+            var model = ML.BinaryClassification.Trainers.LbfgsLogisticRegression(
                 new LbfgsLogisticRegressionTrainer.Options { NumberOfThreads = 1 }).Fit(data);
             var pfi = ML.BinaryClassification.PermutationFeatureImportance(model, data);
 
@@ -189,7 +189,7 @@ namespace Microsoft.ML.Tests
         public void TestPfiBinaryClassificationOnSparseFeatures()
         {
             var data = GetSparseDataset(TaskType.BinaryClassification);
-            var model = ML.BinaryClassification.Trainers.LbfgsLogisticRegressio(
+            var model = ML.BinaryClassification.Trainers.LbfgsLogisticRegression(
                 new LbfgsLogisticRegressionTrainer.Options { NumberOfThreads = 1 }).Fit(data);
             var pfi = ML.BinaryClassification.PermutationFeatureImportance(model, data);
 

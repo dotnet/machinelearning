@@ -19,7 +19,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         public void TestEstimatorLogisticRegression()
         {
             (IEstimator<ITransformer> pipe, IDataView dataView) = GetBinaryClassificationPipeline();
-            var trainer = ML.BinaryClassification.Trainers.LbfgsLogisticRegressio();
+            var trainer = ML.BinaryClassification.Trainers.LbfgsLogisticRegression();
             var pipeWithTrainer = pipe.Append(trainer);
             TestEstimatorCore(pipeWithTrainer, dataView);
 
@@ -60,7 +60,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         {
             (IEstimator<ITransformer> pipe, IDataView dataView) = GetBinaryClassificationPipeline();
 
-            pipe = pipe.Append(ML.BinaryClassification.Trainers.LbfgsLogisticRegressio(new LbfgsLogisticRegressionTrainer.Options { ShowTrainingStatistics = true }));
+            pipe = pipe.Append(ML.BinaryClassification.Trainers.LbfgsLogisticRegression(new LbfgsLogisticRegressionTrainer.Options { ShowTrainingStatistics = true }));
             var transformerChain = pipe.Fit(dataView) as TransformerChain<BinaryPredictionTransformer<CalibratedModelParametersBase<LinearBinaryModelParameters, PlattCalibrator>>>;
             var linearModel = transformerChain.LastTransformer.Model.SubModel as LinearBinaryModelParameters;
             var stats = linearModel.Statistics as ModelStatisticsBase;
@@ -80,7 +80,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         {
             (IEstimator<ITransformer> pipe, IDataView dataView) = GetBinaryClassificationPipeline();
 
-            pipe = pipe.Append(ML.BinaryClassification.Trainers.LbfgsLogisticRegressio(
+            pipe = pipe.Append(ML.BinaryClassification.Trainers.LbfgsLogisticRegression(
                 new LbfgsLogisticRegressionTrainer.Options
                 {
                     ShowTrainingStatistics = true,

@@ -516,7 +516,7 @@ namespace Microsoft.ML
         /// ]]>
         /// </format>
         /// </example>
-        public static LbfgsLogisticRegressionTrainer LbfgsLogisticRegressio(this BinaryClassificationCatalog.BinaryClassificationTrainers catalog,
+        public static LbfgsLogisticRegressionTrainer LbfgsLogisticRegression(this BinaryClassificationCatalog.BinaryClassificationTrainers catalog,
             string labelColumnName = DefaultColumnNames.Label,
             string featureColumnName = DefaultColumnNames.Features,
             string exampleWeightColumnName = null,
@@ -536,7 +536,7 @@ namespace Microsoft.ML
         /// </summary>
         /// <param name="catalog">The binary classification catalog trainer object.</param>
         /// <param name="options">Advanced arguments to the algorithm.</param>
-        public static LbfgsLogisticRegressionTrainer LbfgsLogisticRegressio(this BinaryClassificationCatalog.BinaryClassificationTrainers catalog, LROptions options)
+        public static LbfgsLogisticRegressionTrainer LbfgsLogisticRegression(this BinaryClassificationCatalog.BinaryClassificationTrainers catalog, LROptions options)
         {
             Contracts.CheckValue(catalog, nameof(catalog));
             Contracts.CheckValue(options, nameof(options));
