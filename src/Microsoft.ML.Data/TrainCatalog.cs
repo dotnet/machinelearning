@@ -227,48 +227,48 @@ namespace Microsoft.ML
 
         /// <summary>
         /// Run cross-validation over <paramref name="numberOfFolds"/> folds of <paramref name="data"/>, by fitting <paramref name="estimator"/>,
-        /// and respecting <paramref name="partitionKeyColumnName"/> if provided.
+        /// and respecting <paramref name="samplingKeyColumnName"/> if provided.
         /// Then evaluate each sub-model against <paramref name="labelColumnName"/> and return metrics.
         /// </summary>
         /// <param name="data">The data to run cross-validation on.</param>
         /// <param name="estimator">The estimator to fit.</param>
         /// <param name="numberOfFolds">Number of cross-validation folds.</param>
         /// <param name="labelColumnName">The label column (for evaluation).</param>
-        /// <param name="partitionKeyColumnName">Name of a column to use for grouping rows. If two examples share the same value of the <paramref name="partitionKeyColumnName"/>,
+        /// <param name="samplingKeyColumnName">Name of a column to use for grouping rows. If two examples share the same value of the <paramref name="samplingKeyColumnName"/>,
         /// they are guaranteed to appear in the same subset (train or test). This can be used to ensure no label leakage from the train to the test set.
         /// If <see langword="null"/> no row grouping will be performed.</param>
         /// <param name="seed">Seed for the random number generator used to select rows for cross-validation folds.</param>
         /// <returns>Per-fold results: metrics, models, scored datasets.</returns>
         public CrossValidationResult<BinaryClassificationMetrics>[] CrossValidateNonCalibrated(
             IDataView data, IEstimator<ITransformer> estimator, int numberOfFolds = 5, string labelColumnName = DefaultColumnNames.Label,
-            string partitionKeyColumnName = null, int? seed = null)
+            string samplingKeyColumnName = null, int? seed = null)
         {
             Environment.CheckNonEmpty(labelColumnName, nameof(labelColumnName));
-            var result = CrossValidateTrain(data, estimator, numberOfFolds, partitionKeyColumnName, seed);
+            var result = CrossValidateTrain(data, estimator, numberOfFolds, samplingKeyColumnName, seed);
             return result.Select(x => new CrossValidationResult<BinaryClassificationMetrics>(x.Model,
                 EvaluateNonCalibrated(x.Scores, labelColumnName), x.Scores, x.Fold)).ToArray();
         }
 
         /// <summary>
         /// Run cross-validation over <paramref name="numberOfFolds"/> folds of <paramref name="data"/>, by fitting <paramref name="estimator"/>,
-        /// and respecting <paramref name="partitionKeyColumnName"/> if provided.
+        /// and respecting <paramref name="samplingKeyColumnName"/> if provided.
         /// Then evaluate each sub-model against <paramref name="labelColumnName"/> and return metrics.
         /// </summary>
         /// <param name="data">The data to run cross-validation on.</param>
         /// <param name="estimator">The estimator to fit.</param>
         /// <param name="numberOfFolds">Number of cross-validation folds.</param>
         /// <param name="labelColumnName">The label column (for evaluation).</param>
-        /// <param name="partitionKeyColumnName">Name of a column to use for grouping rows. If two examples share the same value of the <paramref name="partitionKeyColumnName"/>,
+        /// <param name="samplingKeyColumnName">Name of a column to use for grouping rows. If two examples share the same value of the <paramref name="samplingKeyColumnName"/>,
         /// they are guaranteed to appear in the same subset (train or test). This can be used to ensure no label leakage from the train to the test set.
         /// If <see langword="null"/> no row grouping will be performed.</param>
         /// <param name="seed">Seed for the random number generator used to select rows for cross-validation folds.</param>
         /// <returns>Per-fold results: metrics, models, scored datasets.</returns>
         public CrossValidationResult<CalibratedBinaryClassificationMetrics>[] CrossValidate(
             IDataView data, IEstimator<ITransformer> estimator, int numberOfFolds = 5, string labelColumnName = DefaultColumnNames.Label,
-            string partitionKeyColumnName = null, int? seed = null)
+            string samplingKeyColumnName = null, int? seed = null)
         {
             Environment.CheckNonEmpty(labelColumnName, nameof(labelColumnName));
-            var result = CrossValidateTrain(data, estimator, numberOfFolds, partitionKeyColumnName, seed);
+            var result = CrossValidateTrain(data, estimator, numberOfFolds, samplingKeyColumnName, seed);
             return result.Select(x => new CrossValidationResult<CalibratedBinaryClassificationMetrics>(x.Model,
                 Evaluate(x.Scores, labelColumnName), x.Scores, x.Fold)).ToArray();
         }
@@ -431,7 +431,7 @@ namespace Microsoft.ML
 
         /// <summary>
         /// Run cross-validation over <paramref name="numberOfFolds"/> folds of <paramref name="data"/>, by fitting <paramref name="estimator"/>,
-        /// and respecting <paramref name="partitionKeyColumnName"/> if provided.
+        /// and respecting <paramref name="samplingKeyColumnName"/> if provided.
         /// Then evaluate each sub-model against <paramref name="labelColumnName"/> and return metrics.
         /// </summary>
         /// <param name="data">The data to run cross-validation on.</param>
@@ -439,15 +439,15 @@ namespace Microsoft.ML
         /// <param name="numberOfFolds">Number of cross-validation folds.</param>
         /// <param name="labelColumnName">Optional label column for evaluation (clustering tasks may not always have a label).</param>
         /// <param name="featuresColumnName">Optional features column for evaluation (needed for calculating Dbi metric)</param>
-        /// <param name="partitionKeyColumnName">Name of a column to use for grouping rows. If two examples share the same value of the <paramref name="partitionKeyColumnName"/>,
+        /// <param name="samplingKeyColumnName">Name of a column to use for grouping rows. If two examples share the same value of the <paramref name="samplingKeyColumnName"/>,
         /// they are guaranteed to appear in the same subset (train or test). This can be used to ensure no label leakage from the train to the test set.
         /// If <see langword="null"/> no row grouping will be performed.</param>
         /// <param name="seed">Seed for the random number generator used to select rows for cross-validation folds.</param>
         public CrossValidationResult<ClusteringMetrics>[] CrossValidate(
             IDataView data, IEstimator<ITransformer> estimator, int numberOfFolds = 5, string labelColumnName = null, string featuresColumnName = null,
-            string partitionKeyColumnName = null, int? seed = null)
+            string samplingKeyColumnName = null, int? seed = null)
         {
-            var result = CrossValidateTrain(data, estimator, numberOfFolds, partitionKeyColumnName, seed);
+            var result = CrossValidateTrain(data, estimator, numberOfFolds, samplingKeyColumnName, seed);
             return result.Select(x => new CrossValidationResult<ClusteringMetrics>(x.Model,
                 Evaluate(x.Scores, labelColumnName: labelColumnName, featureColumnName: featuresColumnName), x.Scores, x.Fold)).ToArray();
         }
@@ -505,14 +505,14 @@ namespace Microsoft.ML
 
         /// <summary>
         /// Run cross-validation over <paramref name="numberOfFolds"/> folds of <paramref name="data"/>, by fitting <paramref name="estimator"/>,
-        /// and respecting <paramref name="partitionKeyColumnName"/> if provided.
+        /// and respecting <paramref name="samplingKeyColumnName"/> if provided.
         /// Then evaluate each sub-model against <paramref name="labelColumnName"/> and return metrics.
         /// </summary>
         /// <param name="data">The data to run cross-validation on.</param>
         /// <param name="estimator">The estimator to fit.</param>
         /// <param name="numberOfFolds">Number of cross-validation folds.</param>
         /// <param name="labelColumnName">The label column (for evaluation).</param>
-        /// <param name="partitionKeyColumnName">Name of a column to use for grouping rows. If two examples share the same value of the <paramref name="partitionKeyColumnName"/>,
+        /// <param name="samplingKeyColumnName">Name of a column to use for grouping rows. If two examples share the same value of the <paramref name="samplingKeyColumnName"/>,
         /// they are guaranteed to appear in the same subset (train or test). This can be used to ensure no label leakage from the train to the test set.
         /// If <see langword="null"/> no row grouping will be performed.</param>
         /// <param name="seed">Seed for the random number generator used to select rows for cross-validation folds.</param>
@@ -520,10 +520,10 @@ namespace Microsoft.ML
         /// <returns>Per-fold results: metrics, models, scored datasets.</returns>
         public CrossValidationResult<MulticlassClassificationMetrics>[] CrossValidate(
             IDataView data, IEstimator<ITransformer> estimator, int numberOfFolds = 5, string labelColumnName = DefaultColumnNames.Label,
-            string partitionKeyColumnName = null, int? seed = null)
+            string samplingKeyColumnName = null, int? seed = null)
         {
             Environment.CheckNonEmpty(labelColumnName, nameof(labelColumnName));
-            var result = CrossValidateTrain(data, estimator, numberOfFolds, partitionKeyColumnName, seed);
+            var result = CrossValidateTrain(data, estimator, numberOfFolds, samplingKeyColumnName, seed);
             return result.Select(x => new CrossValidationResult<MulticlassClassificationMetrics>(x.Model,
                 Evaluate(x.Scores, labelColumnName), x.Scores, x.Fold)).ToArray();
         }
@@ -572,24 +572,24 @@ namespace Microsoft.ML
 
         /// <summary>
         /// Run cross-validation over <paramref name="numberOfFolds"/> folds of <paramref name="data"/>, by fitting <paramref name="estimator"/>,
-        /// and respecting <paramref name="partitionKeyColumnName"/> if provided.
+        /// and respecting <paramref name="samplingKeyColumnName"/> if provided.
         /// Then evaluate each sub-model against <paramref name="labelColumnName"/> and return metrics.
         /// </summary>
         /// <param name="data">The data to run cross-validation on.</param>
         /// <param name="estimator">The estimator to fit.</param>
         /// <param name="numberOfFolds">Number of cross-validation folds.</param>
         /// <param name="labelColumnName">The label column (for evaluation).</param>
-        /// <param name="partitionKeyColumnName">Name of a column to use for grouping rows. If two examples share the same value of the <paramref name="partitionKeyColumnName"/>,
+        /// <param name="samplingKeyColumnName">Name of a column to use for grouping rows. If two examples share the same value of the <paramref name="samplingKeyColumnName"/>,
         /// they are guaranteed to appear in the same subset (train or test). This can be used to ensure no label leakage from the train to the test set.
         /// If <see langword="null"/> no row grouping will be performed.</param>
         /// <param name="seed">Seed for the random number generator used to select rows for cross-validation folds.</param>
         /// <returns>Per-fold results: metrics, models, scored datasets.</returns>
         public CrossValidationResult<RegressionMetrics>[] CrossValidate(
             IDataView data, IEstimator<ITransformer> estimator, int numberOfFolds = 5, string labelColumnName = DefaultColumnNames.Label,
-            string partitionKeyColumnName = null, int? seed = null)
+            string samplingKeyColumnName = null, int? seed = null)
         {
             Environment.CheckNonEmpty(labelColumnName, nameof(labelColumnName));
-            var result = CrossValidateTrain(data, estimator, numberOfFolds, partitionKeyColumnName, seed);
+            var result = CrossValidateTrain(data, estimator, numberOfFolds, samplingKeyColumnName, seed);
             return result.Select(x => new CrossValidationResult<RegressionMetrics>(x.Model,
                 Evaluate(x.Scores, labelColumnName), x.Scores, x.Fold)).ToArray();
         }

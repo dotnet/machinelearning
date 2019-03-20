@@ -112,26 +112,26 @@ namespace Microsoft.ML
 
         /// <summary>
         /// Run cross-validation over <paramref name="numberOfFolds"/> folds of <paramref name="data"/>, by fitting <paramref name="estimator"/>,
-        /// and respecting <paramref name="partitionKeyColumnName"/> if provided.
+        /// and respecting <paramref name="samplingKeyColumnName"/> if provided.
         /// Then evaluate each sub-model against <paramref name="labelColumnName"/> and return metrics.
         /// </summary>
         /// <param name="data">The data to run cross-validation on.</param>
         /// <param name="estimator">The estimator to fit.</param>
         /// <param name="numberOfFolds">Number of cross-validation folds.</param>
         /// <param name="labelColumnName">The label column (for evaluation).</param>
-        /// <param name="partitionKeyColumnName">Optional name of the column to use as a stratification column. If two examples share the same value of the <paramref name="partitionKeyColumnName"/>
+        /// <param name="samplingKeyColumnName">Optional name of the column to use as a stratification column. If two examples share the same value of the <paramref name="samplingKeyColumnName"/>
         /// (if provided), they are guaranteed to appear in the same subset (train or test). Use this to make sure there is no label leakage from train to the test set.
         /// If this optional parameter is not provided, a stratification columns will be generated, and its values will be random numbers .</param>
-        /// <param name="seed">Optional parameter used in combination with the <paramref name="partitionKeyColumnName"/>.
-        /// If the <paramref name="partitionKeyColumnName"/> is not provided, the random numbers generated to create it, will use this seed as value.
+        /// <param name="seed">Optional parameter used in combination with the <paramref name="samplingKeyColumnName"/>.
+        /// If the <paramref name="samplingKeyColumnName"/> is not provided, the random numbers generated to create it, will use this seed as value.
         /// And if it is not provided, the default value will be used.</param>
         /// <returns>Per-fold results: metrics, models, scored datasets.</returns>
         public CrossValidationResult<RegressionMetrics>[] CrossValidate(
             IDataView data, IEstimator<ITransformer> estimator, int numberOfFolds = 5, string labelColumnName = DefaultColumnNames.Label,
-            string partitionKeyColumnName = null, int? seed = null)
+            string samplingKeyColumnName = null, int? seed = null)
         {
             Environment.CheckNonEmpty(labelColumnName, nameof(labelColumnName));
-            var result = CrossValidateTrain(data, estimator, numberOfFolds, partitionKeyColumnName, seed);
+            var result = CrossValidateTrain(data, estimator, numberOfFolds, samplingKeyColumnName, seed);
             return result.Select(x => new CrossValidationResult<RegressionMetrics>(x.Model, Evaluate(x.Scores, labelColumnName), x.Scores, x.Fold)).ToArray();
         }
     }
