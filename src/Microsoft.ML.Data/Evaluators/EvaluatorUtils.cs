@@ -1777,6 +1777,11 @@ namespace Microsoft.ML.Data
         public const string OverallMetrics = "OverallMetrics";
 
         /// <summary>
+        /// This is a data view with precision recall data in its columns. It has four columns: Threshold, Precision, Recall and Fpr.
+        /// </summary>
+        public const string PrCurve = "PrCurve";
+
+        /// <summary>
         /// This data view contains a single text column, with warnings about bad input values encountered by the evaluator during
         /// the aggregation of metrics. Each warning is in a separate row.
         /// </summary>

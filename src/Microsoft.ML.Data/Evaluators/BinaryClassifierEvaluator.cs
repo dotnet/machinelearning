@@ -790,6 +790,34 @@ namespace Microsoft.ML.Data
         }
 
         /// <summary>
+        /// Generates precision recall curve data points.
+        /// </summary>
+        /// <param name="data">The scored data.</param>
+        /// <param name="label">The name of the label column in <paramref name="data"/>.</param>
+        /// <param name="score">The name of the score column in <paramref name="data"/>.</param>
+        /// <param name="probability">The name of the probability column in <paramref name="data"/>, the calibrated version of <paramref name="score"/>.</param>
+        /// <param name="predictedLabel">The name of the predicted label column in <paramref name="data"/>.</param>
+        /// <returns>The precision recall curve data points.</returns>
+        public IDataView GetPrecisionRecallCurve(IDataView data, string label, string score, string probability, string predictedLabel)
+        {
+            Host.CheckValue(data, nameof(data));
+            Host.CheckNonEmpty(label, nameof(label));
+            Host.CheckNonEmpty(score, nameof(score));
+            Host.CheckNonEmpty(probability, nameof(probability));
+            Host.CheckNonEmpty(predictedLabel, nameof(predictedLabel));
+
+            var roles = new RoleMappedData(data, opt: false,
+               RoleMappedSchema.ColumnRole.Label.Bind(label),
+               RoleMappedSchema.CreatePair(AnnotationUtils.Const.ScoreValueKind.Score, score),
+               RoleMappedSchema.CreatePair(AnnotationUtils.Const.ScoreValueKind.Probability, probability),
+               RoleMappedSchema.CreatePair(AnnotationUtils.Const.ScoreValueKind.PredictedLabel, predictedLabel));
+
+            var resultDict = ((IEvaluator)this).Evaluate(roles);
+            Host.Assert(resultDict.ContainsKey(MetricKinds.PrCurve));
+            return resultDict[MetricKinds.PrCurve];
+        }
+
+        /// <summary>
         /// Evaluates scored binary classification data.
         /// </summary>
         /// <param name="data">The scored data.</param>
