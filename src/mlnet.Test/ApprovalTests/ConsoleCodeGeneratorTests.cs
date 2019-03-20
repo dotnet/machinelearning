@@ -22,7 +22,7 @@ namespace mlnet.Test
 
         [TestMethod]
         [UseReporter(typeof(DiffReporter))]
-        public void GeneratedTrainCodeTest()
+        public void GeneratedTrainCodeBinaryClassificationTest()
         {
             (Pipeline pipeline,
             ColumnInferenceResults columnInference) = GetMockedPipelineAndInference();
@@ -30,6 +30,54 @@ namespace mlnet.Test
             var consoleCodeGen = new CodeGenerator(pipeline, columnInference, new CodeGeneratorSettings()
             {
                 MlTask = TaskKind.BinaryClassification,
+                OutputBaseDir = null,
+                OutputName = "MyNamespace",
+                TrainDataset = "x:\\dummypath\\dummy_train.csv",
+                TestDataset = "x:\\dummypath\\dummy_test.csv",
+                LabelName = "Label",
+                ModelPath = "x:\\models\\model.zip"
+            });
+
+            (string trainCode, string projectCode, string helperCode) = consoleCodeGen.GenerateCode();
+
+            Approvals.Verify(trainCode);
+
+        }
+
+        [TestMethod]
+        [UseReporter(typeof(DiffReporter))]
+        public void GeneratedTrainCodeRegressionTest()
+        {
+            (Pipeline pipeline,
+            ColumnInferenceResults columnInference) = GetMockedPipelineAndInference();
+
+            var consoleCodeGen = new CodeGenerator(pipeline, columnInference, new CodeGeneratorSettings()
+            {
+                MlTask = TaskKind.Regression,
+                OutputBaseDir = null,
+                OutputName = "MyNamespace",
+                TrainDataset = "x:\\dummypath\\dummy_train.csv",
+                TestDataset = "x:\\dummypath\\dummy_test.csv",
+                LabelName = "Label",
+                ModelPath = "x:\\models\\model.zip"
+            });
+
+            (string trainCode, string projectCode, string helperCode) = consoleCodeGen.GenerateCode();
+
+            Approvals.Verify(trainCode);
+
+        }
+
+        [TestMethod]
+        [UseReporter(typeof(DiffReporter))]
+        public void GeneratedTrainCodeMulticlassTest()
+        {
+            (Pipeline pipeline,
+            ColumnInferenceResults columnInference) = GetMockedPipelineAndInference();
+
+            var consoleCodeGen = new CodeGenerator(pipeline, columnInference, new CodeGeneratorSettings()
+            {
+                MlTask = TaskKind.MulticlassClassification,
                 OutputBaseDir = null,
                 OutputName = "MyNamespace",
                 TrainDataset = "x:\\dummypath\\dummy_train.csv",

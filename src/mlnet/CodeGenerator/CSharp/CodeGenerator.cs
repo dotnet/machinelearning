@@ -41,8 +41,8 @@ namespace Microsoft.ML.CLI.CodeGenerator.CSharp
 
         internal (string, string, string) GenerateCode()
         {
-            // Generate usings
-            (string usings, string trainer, List<string> transforms) = GenerateUsings();
+            // Generate transforms and trainer strings along with using statements
+            var result = GenerateTransformsAndTrainers();
 
             // Generate code for columns
             var columns = this.GenerateColumns();
@@ -50,11 +50,16 @@ namespace Microsoft.ML.CLI.CodeGenerator.CSharp
             // Generate code for prediction Class labels
             var classLabels = this.GenerateClassLabels();
 
+            // Get the type of the label
+            var labelType = columnInferenceResult.TextLoaderOptions.Columns.Where(t => t.Name == columnInferenceResult.ColumnInformation.LabelColumn).First().DataKind;
+            Type labelTypeCsharp = Utils.GetCSharpType(labelType);
+
+
             // Get Namespace
             var namespaceValue = Utils.Normalize(settings.OutputName);
 
             // Generate code for training and scoring
-            var trainFileContent = GenerateTrainCode(usings, trainer, transforms, columns, classLabels, namespaceValue, pipeline.CacheBeforeTrainer);
+            var trainFileContent = GenerateTrainCode(result.Usings, result.Trainer, result.PreTrainerTransforms, result.PostTrainerTransforms, columns, classLabels, namespaceValue, pipeline.CacheBeforeTrainer, labelTypeCsharp.Name);
             var tree = CSharpSyntaxTree.ParseText(trainFileContent);
             var syntaxNode = tree.GetRoot();
             trainFileContent = Formatter.Format(syntaxNode, new AdhocWorkspace()).ToFullString();
@@ -91,12 +96,20 @@ namespace Microsoft.ML.CLI.CodeGenerator.CSharp
             return projectCodeGen.TransformText();
         }
 
-        internal string GenerateTrainCode(string usings, string trainer, List<string> transforms, IList<string> columns, IList<string> classLabels, string namespaceValue, bool cacheBeforeTrainer)
+        internal string GenerateTrainCode(string usings, string trainer,
+            List<string> preTrainerTransforms,
+            List<string> postTrainerTransforms,
+            IList<string> columns,
+            IList<string> classLabels,
+            string namespaceValue,
+            bool cacheBeforeTrainer,
+            string predictionLabelType)
         {
             var trainingAndScoringCodeGen = new MLCodeGen()
             {
                 Columns = columns,
-                Transforms = transforms,
+                PreTrainerTransforms = preTrainerTransforms,
+                PostTrainerTransforms = postTrainerTransforms,
                 HasHeader = columnInferenceResult.TextLoaderOptions.HasHeader,
                 Separator = columnInferenceResult.TextLoaderOptions.Separators.FirstOrDefault(),
                 AllowQuoting = columnInferenceResult.TextLoaderOptions.AllowQuoting,
@@ -111,26 +124,38 @@ namespace Microsoft.ML.CLI.CodeGenerator.CSharp
                 Namespace = namespaceValue,
                 LabelName = settings.LabelName,
                 ModelPath = settings.ModelPath,
-                CacheBeforeTrainer = cacheBeforeTrainer
+                CacheBeforeTrainer = cacheBeforeTrainer,
+                PredictionLabelType = predictionLabelType
             };
 
             return trainingAndScoringCodeGen.TransformText();
         }
 
-        internal (string, string, List<string>) GenerateUsings()
+        internal (string Usings, string Trainer, List<string> PreTrainerTransforms, List<string> PostTrainerTransforms) GenerateTransformsAndTrainers()
         {
             StringBuilder usingsBuilder = new StringBuilder();
             var usings = new List<string>();
             var trainerAndUsings = this.GenerateTrainerAndUsings();
-            var transformsAndUsings = this.GenerateTransformsAndUsings();
+
+            // Get pre-trainer transforms
+            var nodes = pipeline.Nodes.TakeWhile(t => t.NodeType == PipelineNodeType.Transform);
+            var preTrainerTransformsAndUsings = this.GenerateTransformsAndUsings(nodes);
+
+            // Get post trainer transforms
+            nodes = pipeline.Nodes.SkipWhile(t => t.NodeType == PipelineNodeType.Transform)
+                .SkipWhile(t => t.NodeType == PipelineNodeType.Trainer) //skip the trainer
+                .TakeWhile(t => t.NodeType == PipelineNodeType.Transform); //post trainer transforms
+            var postTrainerTransformsAndUsings = this.GenerateTransformsAndUsings(nodes);
 
             //Get trainer code and its associated usings.
             var trainer = trainerAndUsings.Item1;
             usings.Add(trainerAndUsings.Item2);
 
             //Get transforms code and its associated (unique) usings.
-            var transforms = transformsAndUsings.Select(t => t.Item1).ToList();
-            usings.AddRange(transformsAndUsings.Select(t => t.Item2));
+            var preTrainerTransforms = preTrainerTransformsAndUsings.Select(t => t.Item1).ToList();
+            var postTrainerTransforms = postTrainerTransformsAndUsings.Select(t => t.Item1).ToList();
+            usings.AddRange(preTrainerTransformsAndUsings.Select(t => t.Item2));
+            usings.AddRange(postTrainerTransformsAndUsings.Select(t => t.Item2));
             usings = usings.Distinct().ToList();
 
             //Combine all using statements to actual text.
@@ -141,12 +166,30 @@ namespace Microsoft.ML.CLI.CodeGenerator.CSharp
                     usingsBuilder.Append(t);
             });
 
-            return (usingsBuilder.ToString(), trainer, transforms);
+            return (usingsBuilder.ToString(), trainer, preTrainerTransforms, postTrainerTransforms);
         }
 
-        internal IList<(string, string)> GenerateTransformsAndUsings()
+        internal IList<(string, string)> GenerateTransformsAndUsings(IEnumerable<PipelineNode> nodes)
         {
-            var nodes = pipeline.Nodes.Where(t => t.NodeType == PipelineNodeType.Transform);
+            //var nodes = pipeline.Nodes.TakeWhile(t => t.NodeType == PipelineNodeType.Transform);
+            //var nodes = pipeline.Nodes.Where(t => t.NodeType == PipelineNodeType.Transform);
+            var results = new List<(string, string)>();
+            foreach (var node in nodes)
+            {
+                ITransformGenerator generator = TransformGeneratorFactory.GetInstance(node);
+                results.Add((generator.GenerateTransformer(), generator.GenerateUsings()));
+            }
+
+            return results;
+        }
+
+        internal IList<(string, string)> GeneratePostTrainerTransformsAndUsings()
+        {
+            var nodes = pipeline.Nodes.SkipWhile(t => t.NodeType == PipelineNodeType.Transform)
+                .SkipWhile(t => t.NodeType == PipelineNodeType.Trainer) //skip the trainer
+                .TakeWhile(t => t.NodeType == PipelineNodeType.Transform); //post trainer transforms
+
+            //var nodes = pipeline.Nodes.Where(t => t.NodeType == PipelineNodeType.Transform);
             var results = new List<(string, string)>();
             foreach (var node in nodes)
             {
@@ -168,7 +211,6 @@ namespace Microsoft.ML.CLI.CodeGenerator.CSharp
         internal IList<string> GenerateClassLabels()
         {
             IList<string> result = new List<string>();
-            var label_column = Utils.Sanitize(columnInferenceResult.ColumnInformation.LabelColumn);
             foreach (var column in columnInferenceResult.TextLoaderOptions.Columns)
             {
                 StringBuilder sb = new StringBuilder();

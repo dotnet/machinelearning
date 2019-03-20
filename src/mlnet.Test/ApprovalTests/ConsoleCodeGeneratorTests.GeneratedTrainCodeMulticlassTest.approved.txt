@@ -72,7 +72,7 @@ namespace MyNamespace
                                       .AppendCacheCheckpoint(mlContext);
 
             // Set the training algorithm, then create and config the modelBuilder  
-            var trainer = mlContext.BinaryClassification.Trainers.LightGbm(new Options() { NumLeaves = 2, Booster = new Options.TreeBooster.Options() { }, LabelColumn = "Label", FeatureColumn = "Features" });
+            var trainer = mlContext.MulticlassClassification.Trainers.LightGbm(new Options() { NumLeaves = 2, Booster = new Options.TreeBooster.Options() { }, LabelColumn = "Label", FeatureColumn = "Features" });
             var trainingPipeline = dataProcessPipeline.Append(trainer);
 
             // Train the model fitting to the DataSet
@@ -82,8 +82,6 @@ namespace MyNamespace
             // Evaluate the model and show accuracy stats
             Console.WriteLine("===== Evaluating Model's accuracy with Test data =====");
             var predictions = trainedModel.Transform(testDataView);
-            var metrics = mlContext.BinaryClassification.EvaluateNonCalibrated(predictions, "Label", "Score");
-            ConsoleHelper.PrintBinaryClassificationMetrics(trainer.ToString(), metrics);
 
             // Save/persist the trained model to a .ZIP file
             Console.WriteLine($"=============== Saving the model  ===============");
@@ -122,7 +120,7 @@ namespace MyNamespace
             var resultprediction = predEngine.Predict(sample);
 
             Console.WriteLine($"=============== Single Prediction  ===============");
-            Console.WriteLine($"Actual value: {sample.Label} | Predicted value: {resultprediction.Prediction}");
+            Console.WriteLine($"Actual value: {sample.Label} | Predicted value: {resultprediction.Prediction} | Predicted scores: [{String.Join(", ", resultprediction.Score)}]");
             Console.WriteLine($"==================================================");
         }
 
@@ -135,23 +133,23 @@ namespace MyNamespace
 
 
         [ColumnName("col1"), LoadColumn(1)]
-        public float col1 { get; set; }
+        public float Col1 { get; set; }
 
 
         [ColumnName("col2"), LoadColumn(0)]
-        public float col2 { get; set; }
+        public float Col2 { get; set; }
 
 
         [ColumnName("col3"), LoadColumn(0)]
-        public string col3 { get; set; }
+        public string Col3 { get; set; }
 
 
         [ColumnName("col4"), LoadColumn(0)]
-        public int col4 { get; set; }
+        public int Col4 { get; set; }
 
 
         [ColumnName("col5"), LoadColumn(0)]
-        public uint col5 { get; set; }
+        public uint Col5 { get; set; }
 
 
     }
@@ -161,9 +159,8 @@ namespace MyNamespace
         // ColumnName attribute is used to change the column name from
         // its default value, which is the name of the field.
         [ColumnName("PredictedLabel")]
-        public bool Prediction { get; set; }
-
-        public float Score { get; set; }
+        public Boolean Prediction { get; set; }
+        public float[] Score { get; set; }
     }
 
 }

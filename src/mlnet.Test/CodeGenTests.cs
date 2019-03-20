@@ -62,7 +62,7 @@ namespace mlnet.Test
             PipelineNode node = new PipelineNode("Normalizing", PipelineNodeType.Transform, new string[] { "Label" }, new string[] { "Label" }, elementProperties);
             Pipeline pipeline = new Pipeline(new PipelineNode[] { node });
             CodeGenerator codeGenerator = new CodeGenerator(pipeline, null, null);
-            var actual = codeGenerator.GenerateTransformsAndUsings();
+            var actual = codeGenerator.GenerateTransformsAndUsings(new List<PipelineNode>() { node });
             string expected = "Normalize(\"Label\",\"Label\")";
             Assert.AreEqual(expected, actual[0].Item1);
             Assert.IsNull(actual[0].Item2);
@@ -76,7 +76,7 @@ namespace mlnet.Test
             PipelineNode node = new PipelineNode("OneHotEncoding", PipelineNodeType.Transform, new string[] { "Label" }, new string[] { "Label" }, elementProperties);
             Pipeline pipeline = new Pipeline(new PipelineNode[] { node });
             CodeGenerator codeGenerator = new CodeGenerator(pipeline, null, null);
-            var actual = codeGenerator.GenerateTransformsAndUsings();
+            var actual = codeGenerator.GenerateTransformsAndUsings(new List<PipelineNode>() { node });
             string expectedTransform = "Categorical.OneHotEncoding(new []{new OneHotEncodingEstimator.ColumnOptions(\"Label\",\"Label\")})";
             var expectedUsings = "using Microsoft.ML.Transforms;\r\n";
             Assert.AreEqual(expectedTransform, actual[0].Item1);
@@ -162,7 +162,6 @@ namespace mlnet.Test
             var expectedUsings = "using Microsoft.ML.LightGBM;\r\n";
             Assert.AreEqual(expectedTrainer, actual.Item1);
             Assert.AreEqual(expectedUsings, actual.Item2);
-
         }
     }
 }

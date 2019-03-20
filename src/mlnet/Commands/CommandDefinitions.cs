@@ -138,7 +138,7 @@ namespace Microsoft.ML.CLI.Commands
                     return ArgumentResult.Failure($"Unknown error while parsing argument for --ignore-columns");
                 })
                 {
-                    Arity = ArgumentArity.OneOrMore
+                    Arity = ArgumentArity.OneOrMore,
                 });
         }
 

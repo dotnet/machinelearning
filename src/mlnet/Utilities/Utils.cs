@@ -75,7 +75,32 @@ namespace Microsoft.ML.CLI.Utilities
                 case "": throw new ArgumentException($"{nameof(input)} cannot be empty", nameof(input));
                 default:
                     var sanitizedInput = Sanitize(input);
-                    return sanitizedInput;
+                    return sanitizedInput.First().ToString().ToUpper() + input.Substring(1);
+            }
+        }
+
+        internal static Type GetCSharpType(DataKind labelType)
+        {
+            switch (labelType)
+            {
+                case Microsoft.ML.Data.DataKind.String:
+                    return typeof(string);
+                case Microsoft.ML.Data.DataKind.Boolean:
+                    return typeof(bool);
+                case Microsoft.ML.Data.DataKind.Single:
+                    return typeof(float);
+                case Microsoft.ML.Data.DataKind.Double:
+                    return typeof(double);
+                case Microsoft.ML.Data.DataKind.Int32:
+                    return typeof(int);
+                case Microsoft.ML.Data.DataKind.UInt32:
+                    return typeof(uint);
+                case Microsoft.ML.Data.DataKind.Int64:
+                    return typeof(long);
+                case Microsoft.ML.Data.DataKind.UInt64:
+                    return typeof(ulong);
+                default:
+                    throw new ArgumentException($"The data type '{labelType}' is not handled currently.");
             }
         }
 

@@ -113,15 +113,15 @@ if(!string.IsNullOrEmpty(TestPath)){
             this.Write(");\r\n");
  } 
             this.Write("\r\n");
- if(Transforms.Count >0 ) {
+ if(PreTrainerTransforms.Count >0 ) {
             this.Write("            // Common data process configuration with pipeline data transformatio" +
                     "ns\r\n            var dataProcessPipeline = ");
- for(int i=0;i<Transforms.Count;i++) 
+ for(int i=0;i<PreTrainerTransforms.Count;i++) 
                                          { 
                                              if(i>0)
                                              { Write("\r\n                                      .Append(");
                                              }
-                                             Write("mlContext.Transforms."+Transforms[i]);
+                                             Write("mlContext.Transforms."+PreTrainerTransforms[i]);
                                              if(i>0)
                                              { Write(")");
                                              }
@@ -134,8 +134,14 @@ if(CacheBeforeTrainer){ Write("\r\n                                      .Append
             this.Write(this.ToStringHelper.ToStringWithCulture(TaskType));
             this.Write(".Trainers.");
             this.Write(this.ToStringHelper.ToStringWithCulture(Trainer));
+ for(int i=0;i<PostTrainerTransforms.Count;i++) 
+                                         { 
+                                             Write("\r\n                                      .Append(");
+                                             Write("mlContext.Transforms."+PostTrainerTransforms[i]);
+                                             Write(")");
+                                         }
             this.Write(";\r\n");
- if(Transforms.Count >0 ) {
+ if(PreTrainerTransforms.Count >0 ) {
             this.Write("            var trainingPipeline = dataProcessPipeline.Append(trainer);\r\n");
  }
 else{
@@ -242,13 +248,11 @@ if(!string.IsNullOrEmpty(TestPath)){
             Console.WriteLine($""Actual value: {sample.");
             this.Write(this.ToStringHelper.ToStringWithCulture(Utils.Normalize(LabelName)));
             this.Write("} | Predicted value: {resultprediction.");
-if("BinaryClassification".Equals(TaskType)){ 
-            this.Write("Prediction");
-}else{
-            this.Write("Score");
-}
-            this.Write("}\");\r\n            Console.WriteLine($\"===========================================" +
-                    "=======\");\r\n        }\r\n\r\n    }\r\n\r\n    public class SampleObservation\r\n    {\r\n");
+if("BinaryClassification".Equals(TaskType)||"MulticlassClassification".Equals(TaskType)){ Write("Prediction");}else if("Regression".Equals(TaskType)){Write("Score");}
+            this.Write("} ");
+if("MulticlassClassification".Equals(TaskType)){ Write("| Predicted scores: [{String.Join(\", \", resultprediction.Score)}]");}
+            this.Write("\");\r\n            Console.WriteLine($\"============================================" +
+                    "======\");\r\n        }\r\n\r\n    }\r\n\r\n    public class SampleObservation\r\n    {\r\n");
 
 foreach(var label in ClassLabels)
 {
@@ -263,7 +267,13 @@ if("BinaryClassification".Equals(TaskType)){
             this.Write("        // ColumnName attribute is used to change the column name from\r\n        /" +
                     "/ its default value, which is the name of the field.\r\n        [ColumnName(\"Predi" +
                     "ctedLabel\")]\r\n        public bool Prediction { get; set; }\r\n\r\n");
- } 
+ } if("MulticlassClassification".Equals(TaskType)){ 
+            this.Write("        // ColumnName attribute is used to change the column name from\r\n        /" +
+                    "/ its default value, which is the name of the field.\r\n        [ColumnName(\"Predi" +
+                    "ctedLabel\")]\r\n        public ");
+            this.Write(this.ToStringHelper.ToStringWithCulture(PredictionLabelType));
+            this.Write(" Prediction { get; set; }\r\n");
+ }
 if("MulticlassClassification".Equals(TaskType)){ 
             this.Write("        public float[] Score { get; set; }\r\n");
 }else{ 
@@ -278,7 +288,7 @@ public string TestPath {get;set;}
 public IList<string> Columns {get;set;}
 public bool HasHeader {get;set;}
 public char Separator {get;set;}
-public IList<string> Transforms {get;set;}
+public IList<string> PreTrainerTransforms {get;set;}
 public string Trainer {get;set;}
 public string TaskType {get;set;}
 public IList<string> ClassLabels {get;set;}
@@ -291,6 +301,8 @@ public string Namespace {get;set;}
 public string LabelName {get;set;}
 public string ModelPath {get;set;}
 public bool CacheBeforeTrainer {get;set;}
+public string PredictionLabelType {get;set;}
+public IList<string> PostTrainerTransforms {get;set;}
 
     }
     #region Base class
