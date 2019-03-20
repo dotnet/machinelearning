@@ -92,7 +92,7 @@ namespace Microsoft.ML.Scenarios
             Assert.Equal(.98, metrics.MacroAccuracy);
             Assert.Equal(.98, metrics.MicroAccuracy, 2);
             Assert.Equal(.06, metrics.LogLoss, 2);
-            Assert.InRange(metrics.LogLossReduction, 94, 96);
+            Assert.InRange(metrics.LogLossReduction, 0.94, 0.96);
             Assert.Equal(1, metrics.TopKAccuracy);
 
             Assert.Equal(3, metrics.PerClassLogLoss.Count);
