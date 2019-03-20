@@ -14,6 +14,9 @@ using Microsoft.ML.Transforms;
 
 namespace Microsoft.ML.Data
 {
+    /// <summary>
+    /// Specifies input and output column names for a transformation
+    /// </summary>
     public class OneToOneColumn
     {
         /// <summary>Name of the column resulting from the transformation of <see cref="InputColumnName"/>.</summary>
@@ -28,18 +31,19 @@ namespace Microsoft.ML.Data
         /// Instantiates a <see cref="ColumnOptions"/> from a tuple of input and output column names.
         /// </summary>
         public static implicit operator OneToOneColumn((string outputColumnName, string inputColumnName) value)
-        {
-            return new OneToOneColumn(value.outputColumnName, value.inputColumnName);
-        }
+            => new OneToOneColumn(value.outputColumnName, value.inputColumnName);
 
         /// <summary>
-        /// Instantiates a <see cref="ColumnOptions"/> from the column name.
+        /// Instantiates a <see cref="ColumnOptions"/> from a column name.
         /// </summary>
         public static implicit operator OneToOneColumn(string outputColumnName)
-        {
-            return new OneToOneColumn(outputColumnName);
-        }
+            => new OneToOneColumn(outputColumnName);
 
+        /// <summary>
+        /// Specifies input and output column names for a transformation.
+        /// </summary>
+        /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.</param>
+        /// <param name="inputColumnName">Name of the column to transform. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.</param>
         public OneToOneColumn(string outputColumnName, string inputColumnName = null)
         {
             OutputColumnName = outputColumnName;

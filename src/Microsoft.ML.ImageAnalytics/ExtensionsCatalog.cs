@@ -110,9 +110,8 @@ namespace Microsoft.ML
             float scaleImage = ImagePixelExtractingEstimator.Defaults.Scale,
             bool outputAsFloatArray = ImagePixelExtractingEstimator.Defaults.Convert)
         {
-            var options = new ImagePixelExtractingEstimator.Options
+            var options = new ImagePixelExtractingEstimator.Options((outputColumnName, inputColumnName))
             {
-                ColumnOptions = new[] { new ImagePixelExtractingEstimator.ColumnOptions { OutputColumnName = outputColumnName, InputColumnName = inputColumnName } },
                 ColorsToExtract = colorsToExtract,
                 OrderOfExtraction = orderOfExtraction,
                 InterleavePixelColors = interleavePixelColors,
