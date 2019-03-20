@@ -8,7 +8,7 @@ using static Microsoft.ML.DataOperationsCatalog;
 namespace Microsoft.ML.Samples.Dynamic
 {
     /// <summary>
-    /// Sample class showing how to use ShuffleRows.
+    /// Sample class showing how to use TrainTestSplit.
     /// </summary>
     public static class TrainTestSplit
     {
@@ -17,7 +17,7 @@ namespace Microsoft.ML.Samples.Dynamic
             // Creating the ML.Net IHostEnvironment object, needed for the pipeline.
             var mlContext = new MLContext();
 
-            // Download and featurize the dataset.
+            // Generate some data points.
             var examples = GenerateRandomDataPoints(10);
 
             // Convert the examples list to an IDataView object, which is consumable by ML.NET API.
@@ -28,9 +28,6 @@ namespace Microsoft.ML.Samples.Dynamic
             // So below, we specify Group column as the column containing the sampling keys.
             // Notice how keeping the rows with the same value in the Group column overrides the testFraction definition. 
             TrainTestData split = mlContext.Data.TrainTestSplit(dataview, testFraction: 0.1, samplingKeyColumnName: "Group");
-
-            var trainDataPreview = split.TrainSet.Preview();
-            var testDataPreview = split.TestSet.Preview();
 
             PrintPreviewRows(split);
 
@@ -66,12 +63,11 @@ namespace Microsoft.ML.Samples.Dynamic
             // [Group, 1], [Features, 0.5588848]
             // [Group, 0], [Features, 0.9060271]
 
-    }
+        }
 
         private static IEnumerable<DataPoint> GenerateRandomDataPoints(int count, int seed = 0)
         {
             var random = new Random(seed);
-            float randomFloat() => (float)random.NextDouble();
             for (int i = 0; i < count; i++)
             {
                 yield return new DataPoint
@@ -79,12 +75,12 @@ namespace Microsoft.ML.Samples.Dynamic
                     Group = i % 2,
 
                     // Create random features that are correlated with label.
-                    Features = randomFloat()
+                    Features = (float)random.NextDouble()
                 };
             }
         }
 
-        // Example with label and 50 feature values. A data set is a collection of such examples.
+        // Example with label and group column. A data set is a collection of such examples.
         private class DataPoint
         {
             public float Group { get; set; }
@@ -92,6 +88,7 @@ namespace Microsoft.ML.Samples.Dynamic
             public float Features { get; set; }
         }
 
+        // print helper
         private static void PrintPreviewRows(TrainTestData split)
         {
 
