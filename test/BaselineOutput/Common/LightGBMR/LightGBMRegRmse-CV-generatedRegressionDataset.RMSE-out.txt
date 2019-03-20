@@ -1,10 +1,10 @@
-maml.exe CV tr=LightGBMR{nt=1 iter=50 em=rmse v=+ lr=0.2 mil=10 nl=20} threads=- dout=%Output% loader=Text{col=Label:R4:11 col=Features:R4:0-10 sep=; header+} data=%Data% seed=1
+maml.exe CV tr=LightGBMR{nt=1 iter=50 em=RootMeanSquaredError v=+ lr=0.2 mil=10 nl=20} threads=- dout=%Output% loader=Text{col=Label:R4:11 col=Features:R4:0-10 sep=; header+} data=%Data% seed=1
 Not adding a normalizer.
-Auto-tuning parameters: UseCat = False
+Auto-tuning parameters: UseCategoricalSplit = False
 LightGBM objective=regression
 Not training a calibrator because it is not needed.
 Not adding a normalizer.
-Auto-tuning parameters: UseCat = False
+Auto-tuning parameters: UseCategoricalSplit = False
 LightGBM objective=regression
 Not training a calibrator because it is not needed.
 L1(avg):            27.482854

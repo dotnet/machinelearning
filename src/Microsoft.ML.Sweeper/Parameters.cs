@@ -10,8 +10,8 @@ using System.Text.RegularExpressions;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Runtime;
 using Microsoft.ML.Sweeper;
-using Float = System.Single;
 
 [assembly: LoadableClass(typeof(LongValueGenerator), typeof(LongParamOptions), typeof(SignatureSweeperParameter),
     "Long parameter", "lp")]
@@ -45,10 +45,10 @@ namespace Microsoft.ML.Sweeper
     public class FloatParamOptions : NumericParamOptions
     {
         [Argument(ArgumentType.Required, HelpText = "Minimum value")]
-        public Float Min;
+        public float Min;
 
         [Argument(ArgumentType.Required, HelpText = "Maximum value")]
-        public Float Max;
+        public float Max;
     }
 
     public class LongParamOptions : NumericParamOptions
@@ -111,11 +111,11 @@ namespace Microsoft.ML.Sweeper
         }
     }
 
-    public sealed class FloatParameterValue : IParameterValue<Float>
+    public sealed class FloatParameterValue : IParameterValue<float>
     {
         private readonly string _name;
         private readonly string _valueText;
-        private readonly Float _value;
+        private readonly float _value;
 
         public string Name
         {
@@ -127,14 +127,14 @@ namespace Microsoft.ML.Sweeper
             get { return _valueText; }
         }
 
-        public Float Value
+        public float Value
         {
             get { return _value; }
         }
 
-        public FloatParameterValue(string name, Float value)
+        public FloatParameterValue(string name, float value)
         {
-            Contracts.Check(!Float.IsNaN(value));
+            Contracts.Check(!float.IsNaN(value));
             _name = name;
             _value = value;
             _valueText = _value.ToString("R");
@@ -202,7 +202,7 @@ namespace Microsoft.ML.Sweeper
 
     public interface INumericValueGenerator : IValueGenerator
     {
-        Float NormalizeValue(IParameterValue value);
+        float NormalizeValue(IParameterValue value);
         bool InRange(IParameterValue value);
     }
 
@@ -226,7 +226,7 @@ namespace Microsoft.ML.Sweeper
             _options = options;
         }
 
-        // REVIEW: Is Float accurate enough?
+        // REVIEW: Is float accurate enough?
         public IParameterValue CreateFromNormalized(Double normalizedValue)
         {
             long val;
@@ -310,7 +310,7 @@ namespace Microsoft.ML.Sweeper
             }
         }
 
-        public Float NormalizeValue(IParameterValue value)
+        public float NormalizeValue(IParameterValue value)
         {
             var valueTyped = value as LongParameterValue;
             Contracts.Check(valueTyped != null, "LongValueGenerator could not normalized parameter because it is not of the correct type");
@@ -318,11 +318,11 @@ namespace Microsoft.ML.Sweeper
 
             if (_options.LogBase)
             {
-                Float logBase = (Float)(_options.StepSize ?? Math.Pow(1.0 * _options.Max / _options.Min, 1.0 / (_options.NumSteps - 1)));
-                return (Float)((Math.Log(valueTyped.Value, logBase) - Math.Log(_options.Min, logBase)) / (Math.Log(_options.Max, logBase) - Math.Log(_options.Min, logBase)));
+                float logBase = (float)(_options.StepSize ?? Math.Pow(1.0 * _options.Max / _options.Min, 1.0 / (_options.NumSteps - 1)));
+                return (float)((Math.Log(valueTyped.Value, logBase) - Math.Log(_options.Min, logBase)) / (Math.Log(_options.Max, logBase) - Math.Log(_options.Min, logBase)));
             }
             else
-                return (Float)(valueTyped.Value - _options.Min) / (_options.Max - _options.Min);
+                return (float)(valueTyped.Value - _options.Min) / (_options.Max - _options.Min);
         }
 
         public bool InRange(IParameterValue value)
@@ -358,10 +358,10 @@ namespace Microsoft.ML.Sweeper
             _options = options;
         }
 
-        // REVIEW: Is Float accurate enough?
+        // REVIEW: Is float accurate enough?
         public IParameterValue CreateFromNormalized(Double normalizedValue)
         {
-            Float val;
+            float val;
             if (_options.LogBase)
             {
                 // REVIEW: review the math below, it only works for positive Min and Max
@@ -370,10 +370,10 @@ namespace Microsoft.ML.Sweeper
                     : _options.StepSize.Value;
                 var logMax = Math.Log(_options.Max, logBase);
                 var logMin = Math.Log(_options.Min, logBase);
-                val = (Float)(_options.Min * Math.Pow(logBase, normalizedValue * (logMax - logMin)));
+                val = (float)(_options.Min * Math.Pow(logBase, normalizedValue * (logMax - logMin)));
             }
             else
-                val = (Float)(_options.Min + normalizedValue * (_options.Max - _options.Min));
+                val = (float)(_options.Min + normalizedValue * (_options.Max - _options.Min));
 
             return new FloatParameterValue(_options.Name, val);
         }
@@ -389,11 +389,11 @@ namespace Microsoft.ML.Sweeper
                 // REVIEW: review the math below, it only works for positive Min and Max
                 var logBase = _options.StepSize ?? Math.Pow(1.0 * _options.Max / _options.Min, 1.0 / (_options.NumSteps - 1));
 
-                Float prevValue = Float.NegativeInfinity;
+                float prevValue = float.NegativeInfinity;
                 var maxPlusEpsilon = _options.Max * Math.Sqrt(logBase);
                 for (Double value = _options.Min; value <= maxPlusEpsilon; value *= logBase)
                 {
-                    var floatValue = (Float)value;
+                    var floatValue = (float)value;
                     if (floatValue > prevValue)
                         result.Add(new FloatParameterValue(_options.Name, floatValue));
                     prevValue = floatValue;
@@ -402,11 +402,11 @@ namespace Microsoft.ML.Sweeper
             else
             {
                 var stepSize = _options.StepSize ?? (Double)(_options.Max - _options.Min) / (_options.NumSteps - 1);
-                Float prevValue = Float.NegativeInfinity;
+                float prevValue = float.NegativeInfinity;
                 var maxPlusEpsilon = _options.Max + stepSize / 2;
                 for (Double value = _options.Min; value <= maxPlusEpsilon; value += stepSize)
                 {
-                    var floatValue = (Float)value;
+                    var floatValue = (float)value;
                     if (floatValue > prevValue)
                         result.Add(new FloatParameterValue(_options.Name, floatValue));
                     prevValue = floatValue;
@@ -434,7 +434,7 @@ namespace Microsoft.ML.Sweeper
             }
         }
 
-        public Float NormalizeValue(IParameterValue value)
+        public float NormalizeValue(IParameterValue value)
         {
             var valueTyped = value as FloatParameterValue;
             Contracts.Check(valueTyped != null, "FloatValueGenerator could not normalized parameter because it is not of the correct type");
@@ -442,8 +442,8 @@ namespace Microsoft.ML.Sweeper
 
             if (_options.LogBase)
             {
-                Float logBase = (Float)(_options.StepSize ?? Math.Pow(1.0 * _options.Max / _options.Min, 1.0 / (_options.NumSteps - 1)));
-                return (Float)((Math.Log(valueTyped.Value, logBase) - Math.Log(_options.Min, logBase)) / (Math.Log(_options.Max, logBase) - Math.Log(_options.Min, logBase)));
+                float logBase = (float)(_options.StepSize ?? Math.Pow(1.0 * _options.Max / _options.Min, 1.0 / (_options.NumSteps - 1)));
+                return (float)((Math.Log(valueTyped.Value, logBase) - Math.Log(_options.Min, logBase)) / (Math.Log(_options.Max, logBase) - Math.Log(_options.Min, logBase)));
             }
             else
                 return (valueTyped.Value - _options.Min) / (_options.Max - _options.Min);
@@ -477,7 +477,7 @@ namespace Microsoft.ML.Sweeper
             _options = options;
         }
 
-        // REVIEW: Is Float accurate enough?
+        // REVIEW: Is float accurate enough?
         public IParameterValue CreateFromNormalized(Double normalizedValue)
         {
             return new StringParameterValue(_options.Name, _options.Values[(int)(_options.Values.Length * normalizedValue)]);
@@ -639,9 +639,9 @@ namespace Microsoft.ML.Sweeper
             }
             else
             {
-                Float minF;
-                Float maxF;
-                if (!Float.TryParse(minStr, out minF) || !Float.TryParse(maxStr, out maxF))
+                float minF;
+                float maxF;
+                if (!float.TryParse(minStr, out minF) || !float.TryParse(maxStr, out maxF))
                     return false;
                 var floatOptions = new FloatParamOptions();
                 floatOptions.Name = paramName;

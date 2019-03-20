@@ -2,7 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.Data;
+using Microsoft.ML.Runtime;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -40,8 +40,8 @@ namespace Microsoft.ML.RunTests
             string consName = basePrefix + "-out.raw";
             string consOutPath = DeleteOutputPath(Category, consName);
             using (var writer = OpenWriter(consOutPath))
-            using (var env = new ConsoleEnvironment(42, outWriter: writer, errWriter: writer))
             {
+                var env = new ConsoleEnvironment(42, outWriter: writer, errWriter: writer);
                 int res = MainForTest(env, writer, cmd);
                 if (res != 0)
                     Log("*** Predictor returned {0}", res);

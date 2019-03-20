@@ -3,11 +3,10 @@
 // See the LICENSE file in the project root for more information.
 
 using System.IO;
-using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.Data;
 using Microsoft.ML.Data.IO;
-using Microsoft.ML.Model;
+using Microsoft.ML.Runtime;
 
 [assembly: LoadableClass(typeof(BinaryPredictionTransformer<IPredictorProducing<float>>), typeof(BinaryPredictionTransformer), null, typeof(SignatureLoadModel),
     "", BinaryPredictionTransformer.LoaderSignature)]
@@ -52,13 +51,14 @@ namespace Microsoft.ML.Data
         private protected readonly IHost Host;
         [BestFriend]
         private protected ISchemaBindableMapper BindableMapper;
-        protected DataViewSchema TrainSchema;
+        [BestFriend]
+        private protected DataViewSchema TrainSchema;
 
         /// <summary>
-        /// Whether a call to <see cref="GetRowToRowMapper(DataViewSchema)"/> should succeed, on an
+        /// Whether a call to <see cref="ITransformer.GetRowToRowMapper(DataViewSchema)"/> should succeed, on an
         /// appropriate schema.
         /// </summary>
-        public bool IsRowToRowMapper => true;
+        bool ITransformer.IsRowToRowMapper => true;
 
         /// <summary>
         /// This class is more or less a thin wrapper over the <see cref="IDataScorerTransform"/> implementing
@@ -132,7 +132,7 @@ namespace Microsoft.ML.Data
         /// </summary>
         /// <param name="inputSchema"></param>
         /// <returns></returns>
-        public IRowToRowMapper GetRowToRowMapper(DataViewSchema inputSchema)
+        IRowToRowMapper ITransformer.GetRowToRowMapper(DataViewSchema inputSchema)
         {
             Host.CheckValue(inputSchema, nameof(inputSchema));
             return (IRowToRowMapper)Scorer.ApplyToData(Host, new EmptyDataView(Host, inputSchema));
@@ -142,7 +142,8 @@ namespace Microsoft.ML.Data
 
         private protected abstract void SaveModel(ModelSaveContext ctx);
 
-        protected void SaveModelCore(ModelSaveContext ctx)
+        [BestFriend]
+        private protected void SaveModelCore(ModelSaveContext ctx)
         {
             // *** Binary format ***
             // <base info>
@@ -171,7 +172,7 @@ namespace Microsoft.ML.Data
         /// <summary>
         /// The name of the feature column used by the prediction transformer.
         /// </summary>
-        public string FeatureColumn { get; }
+        public string FeatureColumnName { get; }
 
         /// <summary>
         /// The type of the prediction transformer
@@ -188,7 +189,7 @@ namespace Microsoft.ML.Data
         private protected SingleFeaturePredictionTransformerBase(IHost host, TModel model, DataViewSchema trainSchema, string featureColumn)
             : base(host, model, trainSchema)
         {
-            FeatureColumn = featureColumn;
+            FeatureColumnName = featureColumn;
             if (featureColumn == null)
                 FeatureColumnType = null;
             else if (!trainSchema.TryGetColumnIndex(featureColumn, out int col))
@@ -202,12 +203,12 @@ namespace Microsoft.ML.Data
         private protected SingleFeaturePredictionTransformerBase(IHost host, ModelLoadContext ctx)
             : base(host, ctx)
         {
-            FeatureColumn = ctx.LoadStringOrNull();
+            FeatureColumnName = ctx.LoadStringOrNull();
 
-            if (FeatureColumn == null)
+            if (FeatureColumnName == null)
                 FeatureColumnType = null;
-            else if (!TrainSchema.TryGetColumnIndex(FeatureColumn, out int col))
-                throw Host.ExceptSchemaMismatch(nameof(FeatureColumn), "feature", FeatureColumn);
+            else if (!TrainSchema.TryGetColumnIndex(FeatureColumnName, out int col))
+                throw Host.ExceptSchemaMismatch(nameof(FeatureColumnName), "feature", FeatureColumnName);
             else
                 FeatureColumnType = TrainSchema[col].Type;
 
@@ -223,33 +224,33 @@ namespace Microsoft.ML.Data
         {
             Host.CheckValue(inputSchema, nameof(inputSchema));
 
-            if (FeatureColumn != null)
+            if (FeatureColumnName != null)
             {
-                if (!inputSchema.TryGetColumnIndex(FeatureColumn, out int col))
-                    throw Host.ExceptSchemaMismatch(nameof(inputSchema), "feature", FeatureColumn);
+                if (!inputSchema.TryGetColumnIndex(FeatureColumnName, out int col))
+                    throw Host.ExceptSchemaMismatch(nameof(inputSchema), "feature", FeatureColumnName);
                 if (!inputSchema[col].Type.Equals(FeatureColumnType))
-                    throw Host.ExceptSchemaMismatch(nameof(inputSchema), "feature", FeatureColumn, FeatureColumnType.ToString(), inputSchema[col].Type.ToString());
+                    throw Host.ExceptSchemaMismatch(nameof(inputSchema), "feature", FeatureColumnName, FeatureColumnType.ToString(), inputSchema[col].Type.ToString());
             }
 
             return Transform(new EmptyDataView(Host, inputSchema)).Schema;
         }
 
-        private protected override void SaveModel(ModelSaveContext ctx)
+        private protected sealed override void SaveModel(ModelSaveContext ctx)
         {
             Host.CheckValue(ctx, nameof(ctx));
             ctx.CheckAtModel();
             SaveCore(ctx);
         }
 
-        protected virtual void SaveCore(ModelSaveContext ctx)
+        private protected virtual void SaveCore(ModelSaveContext ctx)
         {
             SaveModelCore(ctx);
-            ctx.SaveStringOrNull(FeatureColumn);
+            ctx.SaveStringOrNull(FeatureColumnName);
         }
 
         private protected GenericScorer GetGenericScorer()
         {
-            var schema = new RoleMappedSchema(TrainSchema, null, FeatureColumn);
+            var schema = new RoleMappedSchema(TrainSchema, null, FeatureColumnName);
             return new GenericScorer(Host, new GenericScorer.Arguments(), new EmptyDataView(Host, TrainSchema), BindableMapper.Bind(Host, schema), schema);
         }
     }
@@ -267,7 +268,7 @@ namespace Microsoft.ML.Data
         [BestFriend]
         internal AnomalyPredictionTransformer(IHostEnvironment env, TModel model, DataViewSchema inputSchema, string featureColumn,
             float threshold = 0f, string thresholdColumn = DefaultColumnNames.Score)
-            : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(AnomalyPredictionTransformer<TModel>)),model, inputSchema, featureColumn)
+            : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(AnomalyPredictionTransformer<TModel>)), model, inputSchema, featureColumn)
         {
             Host.CheckNonEmpty(thresholdColumn, nameof(thresholdColumn));
             Threshold = threshold;
@@ -291,12 +292,12 @@ namespace Microsoft.ML.Data
 
         private void SetScorer()
         {
-            var schema = new RoleMappedSchema(TrainSchema, null, FeatureColumn);
+            var schema = new RoleMappedSchema(TrainSchema, null, FeatureColumnName);
             var args = new BinaryClassifierScorer.Arguments { Threshold = Threshold, ThresholdColumn = ThresholdColumn };
             Scorer = new BinaryClassifierScorer(Host, args, new EmptyDataView(Host, TrainSchema), BindableMapper.Bind(Host, schema), schema);
         }
 
-        protected override void SaveCore(ModelSaveContext ctx)
+        private protected override void SaveCore(ModelSaveContext ctx)
         {
             Contracts.AssertValue(ctx);
             ctx.SetVersionInfo(GetVersionInfo());
@@ -360,12 +361,12 @@ namespace Microsoft.ML.Data
 
         private void SetScorer()
         {
-            var schema = new RoleMappedSchema(TrainSchema, null, FeatureColumn);
+            var schema = new RoleMappedSchema(TrainSchema, null, FeatureColumnName);
             var args = new BinaryClassifierScorer.Arguments { Threshold = Threshold, ThresholdColumn = ThresholdColumn };
             Scorer = new BinaryClassifierScorer(Host, args, new EmptyDataView(Host, TrainSchema), BindableMapper.Bind(Host, schema), schema);
         }
 
-        protected override void SaveCore(ModelSaveContext ctx)
+        private protected override void SaveCore(ModelSaveContext ctx)
         {
             Contracts.AssertValue(ctx);
             ctx.SetVersionInfo(GetVersionInfo());
@@ -424,12 +425,12 @@ namespace Microsoft.ML.Data
 
         private void SetScorer()
         {
-            var schema = new RoleMappedSchema(TrainSchema, _trainLabelColumn, FeatureColumn);
-            var args = new MultiClassClassifierScorer.Arguments();
-            Scorer = new MultiClassClassifierScorer(Host, args, new EmptyDataView(Host, TrainSchema), BindableMapper.Bind(Host, schema), schema);
+            var schema = new RoleMappedSchema(TrainSchema, _trainLabelColumn, FeatureColumnName);
+            var args = new MulticlassClassificationScorer.Arguments();
+            Scorer = new MulticlassClassificationScorer(Host, args, new EmptyDataView(Host, TrainSchema), BindableMapper.Bind(Host, schema), schema);
         }
 
-        protected override void SaveCore(ModelSaveContext ctx)
+        private protected override void SaveCore(ModelSaveContext ctx)
         {
             Contracts.AssertValue(ctx);
             ctx.SetVersionInfo(GetVersionInfo());
@@ -474,7 +475,7 @@ namespace Microsoft.ML.Data
             Scorer = GetGenericScorer();
         }
 
-        protected override void SaveCore(ModelSaveContext ctx)
+        private protected override void SaveCore(ModelSaveContext ctx)
         {
             Contracts.AssertValue(ctx);
             ctx.SetVersionInfo(GetVersionInfo());
@@ -516,7 +517,7 @@ namespace Microsoft.ML.Data
             Scorer = GetGenericScorer();
         }
 
-        protected override void SaveCore(ModelSaveContext ctx)
+        private protected override void SaveCore(ModelSaveContext ctx)
         {
             Contracts.AssertValue(ctx);
             ctx.SetVersionInfo(GetVersionInfo());
@@ -563,12 +564,12 @@ namespace Microsoft.ML.Data
             // *** Binary format ***
             // <base info>
 
-            var schema = new RoleMappedSchema(TrainSchema, null, FeatureColumn);
+            var schema = new RoleMappedSchema(TrainSchema, null, FeatureColumnName);
             var args = new ClusteringScorer.Arguments();
             Scorer = new ClusteringScorer(Host, args, new EmptyDataView(Host, TrainSchema), BindableMapper.Bind(Host, schema), schema);
         }
 
-        protected override void SaveCore(ModelSaveContext ctx)
+        private protected override void SaveCore(ModelSaveContext ctx)
         {
             Contracts.AssertValue(ctx);
             ctx.SetVersionInfo(GetVersionInfo());

@@ -4,14 +4,13 @@
 
 using System;
 using System.Drawing;
-using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
-using Microsoft.Data.DataView;
 using Microsoft.ML.Data;
-using Microsoft.ML.ImageAnalytics;
 using Microsoft.ML.Model;
 using Microsoft.ML.RunTests;
+using Microsoft.ML.Runtime;
+using Microsoft.ML.Transforms.Image;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -33,15 +32,15 @@ namespace Microsoft.ML.Tests
             {
                 Columns = new[]
                 {
-                        new TextLoader.Column("ImagePath", DataKind.TX, 0),
-                        new TextLoader.Column("Name", DataKind.TX, 1),
+                        new TextLoader.Column("ImagePath", DataKind.String, 0),
+                        new TextLoader.Column("Name", DataKind.String, 1),
                     }
             }, new MultiFileSource(dataFile));
             var invalidData = TextLoader.Create(env, new TextLoader.Options()
             {
                 Columns = new[]
                 {
-                        new TextLoader.Column("ImagePath", DataKind.R4, 0),
+                        new TextLoader.Column("ImagePath", DataKind.Single, 0),
                     }
             }, new MultiFileSource(dataFile));
 
@@ -64,8 +63,8 @@ namespace Microsoft.ML.Tests
             {
                 Columns = new[]
                 {
-                        new TextLoader.Column("ImagePath", DataKind.TX, 0),
-                        new TextLoader.Column("Name", DataKind.TX, 1),
+                        new TextLoader.Column("ImagePath", DataKind.String, 0),
+                        new TextLoader.Column("Name", DataKind.String, 1),
                     }
             }, new MultiFileSource(dataFile));
 
@@ -81,10 +80,15 @@ namespace Microsoft.ML.Tests
             using (var file = new SimpleFileHandle(env, tempPath, true, true))
             {
                 using (var fs = file.CreateWriteStream())
-                    model.SaveTo(env, fs);
-                var model2 = TransformerChain.LoadFrom(env, file.OpenReadStream());
+                    ML.Model.Save(model, null, fs);
+                ITransformer model2;
+                using (var fs = file.OpenReadStream())
+                    model2 = ML.Model.Load(fs, out var schema);
 
-                var newCols = ((ImageLoadingTransformer)model2.First()).Columns;
+                var transformerChain = model2 as TransformerChain<ITransformer>;
+                Assert.NotNull(transformerChain);
+
+                var newCols = ((ImageLoadingTransformer)transformerChain.First()).Columns;
                 var oldCols = ((ImageLoadingTransformer)model.First()).Columns;
                 Assert.True(newCols
                     .Zip(oldCols, (x, y) => x == y)
@@ -103,20 +107,18 @@ namespace Microsoft.ML.Tests
             {
                 Columns = new[]
                 {
-                        new TextLoader.Column("ImagePath", DataKind.TX, 0),
-                        new TextLoader.Column("Name", DataKind.TX, 1),
+                        new TextLoader.Column("ImagePath", DataKind.String, 0),
+                        new TextLoader.Column("Name", DataKind.String, 1),
                     }
             }, new MultiFileSource(dataFile));
             var images = new ImageLoadingTransformer(env, imageFolder, ("ImageReal", "ImagePath")).Transform(data);
             var cropped = new ImageResizingTransformer(env, "ImageCropped", 100, 100, "ImageReal", ImageResizingEstimator.ResizingKind.IsoPad).Transform(images);
 
-            cropped.Schema.TryGetColumnIndex("ImagePath", out int pathColumn);
-            cropped.Schema.TryGetColumnIndex("ImageCropped", out int cropBitmapColumn);
             using (var cursor = cropped.GetRowCursorForAllColumns())
             {
-                var pathGetter = cursor.GetGetter<ReadOnlyMemory<char>>(pathColumn);
+                var pathGetter = cursor.GetGetter<ReadOnlyMemory<char>>(cropped.Schema["ImagePath"]);
                 ReadOnlyMemory<char> path = default;
-                var bitmapCropGetter = cursor.GetGetter<Bitmap>(cropBitmapColumn);
+                var bitmapCropGetter = cursor.GetGetter<Bitmap>(cropped.Schema["ImageCropped"]);
                 Bitmap bitmap = default;
                 while (cursor.MoveNext())
                 {
@@ -142,8 +144,8 @@ namespace Microsoft.ML.Tests
             {
                 Columns = new[]
                 {
-                        new TextLoader.Column("ImagePath", DataKind.TX, 0),
-                        new TextLoader.Column("Name", DataKind.TX, 1),
+                        new TextLoader.Column("ImagePath", DataKind.String, 0),
+                        new TextLoader.Column("Name", DataKind.String, 1),
                     }
             }, new MultiFileSource(dataFile));
             var images = new ImageLoadingTransformer(env, imageFolder, ("ImageReal", "ImagePath")).Transform(data);
@@ -163,7 +165,7 @@ namespace Microsoft.ML.Tests
             grey.Schema.TryGetColumnIndex("ImageGrey", out int greyColumn);
             using (var cursor = grey.GetRowCursorForAllColumns())
             {
-                var bitmapGetter = cursor.GetGetter<Bitmap>(greyColumn);
+                var bitmapGetter = cursor.GetGetter<Bitmap>(grey.Schema["ImageGrey"]);
                 Bitmap bitmap = default;
                 while (cursor.MoveNext())
                 {
@@ -193,16 +195,16 @@ namespace Microsoft.ML.Tests
             {
                 Columns = new[]
                 {
-                        new TextLoader.Column("ImagePath", DataKind.TX, 0),
-                        new TextLoader.Column("Name", DataKind.TX, 1),
+                        new TextLoader.Column("ImagePath", DataKind.String, 0),
+                        new TextLoader.Column("Name", DataKind.String, 1),
                     }
             }, new MultiFileSource(dataFile));
             var images = new ImageLoadingTransformer(env, imageFolder, ("ImageReal", "ImagePath")).Transform(data);
             var cropped = new ImageResizingTransformer(env, "ImageCropped", imageWidth, imageHeight, "ImageReal").Transform(images);
 
-            var pixels = new ImagePixelExtractingTransformer(env, "ImagePixels", "ImageCropped", ImagePixelExtractingEstimator.ColorBits.All, true, 2f / 255, 127.5f).Transform(cropped);
-            IDataView backToBitmaps = new VectorToImageConvertingTransformer(env, "ImageRestored", "ImagePixels",
-                imageHeight, imageWidth, ImagePixelExtractingEstimator.ColorBits.All, true, 255f / 2, -1f).Transform(pixels);
+            var pixels = new ImagePixelExtractingTransformer(env, "ImagePixels", "ImageCropped", ImagePixelExtractingEstimator.ColorBits.All, interleavePixelColors: true, scaleImage: 2f/19, offsetImage: 30).Transform(cropped);
+            IDataView backToBitmaps = new VectorToImageConvertingTransformer(env, "ImageRestored", imageHeight, imageWidth, "ImagePixels",
+               ImagePixelExtractingEstimator.ColorBits.All, interleavedColors: true, scaleImage: 19/2f, offsetImage: -30).Transform(pixels);
 
             var fname = nameof(TestBackAndForthConversionWithAlphaInterleave) + "_model.zip";
 
@@ -213,15 +215,12 @@ namespace Microsoft.ML.Tests
             backToBitmaps = ModelFileUtils.LoadPipeline(env, fh.OpenReadStream(), new MultiFileSource(dataFile));
             DeleteOutputPath(fname);
 
-
-            backToBitmaps.Schema.TryGetColumnIndex("ImageRestored", out int bitmapColumn);
-            backToBitmaps.Schema.TryGetColumnIndex("ImageCropped", out int cropBitmapColumn);
             using (var cursor = backToBitmaps.GetRowCursorForAllColumns())
             {
-                var bitmapGetter = cursor.GetGetter<Bitmap>(bitmapColumn);
+                var bitmapGetter = cursor.GetGetter<Bitmap>(backToBitmaps.Schema["ImageRestored"]);
                 Bitmap restoredBitmap = default;
 
-                var bitmapCropGetter = cursor.GetGetter<Bitmap>(cropBitmapColumn);
+                var bitmapCropGetter = cursor.GetGetter<Bitmap>(backToBitmaps.Schema["ImageCropped"]);
                 Bitmap croppedBitmap = default;
                 while (cursor.MoveNext())
                 {
@@ -253,16 +252,16 @@ namespace Microsoft.ML.Tests
             {
                 Columns = new[]
                 {
-                        new TextLoader.Column("ImagePath", DataKind.TX, 0),
-                        new TextLoader.Column("Name", DataKind.TX, 1),
+                        new TextLoader.Column("ImagePath", DataKind.String, 0),
+                        new TextLoader.Column("Name", DataKind.String, 1),
                     }
             }, new MultiFileSource(dataFile));
             var images = new ImageLoadingTransformer(env, imageFolder, ("ImageReal", "ImagePath")).Transform(data);
             var cropped = new ImageResizingTransformer(env, "ImageCropped", imageWidth, imageHeight, "ImageReal").Transform(images);
-            var pixels = new ImagePixelExtractingTransformer(env, "ImagePixels", "ImageCropped", ImagePixelExtractingEstimator.ColorBits.Rgb, true, 2f / 255, 127.5f).Transform(cropped);
+            var pixels = new ImagePixelExtractingTransformer(env, "ImagePixels", "ImageCropped", interleavePixelColors: true, scaleImage: 2f / 19, offsetImage: 30).Transform(cropped);
 
-            IDataView backToBitmaps = new VectorToImageConvertingTransformer(env, "ImageRestored", "ImagePixels",
-                imageHeight, imageWidth, ImagePixelExtractingEstimator.ColorBits.Rgb, true, 255f / 2, -1f).Transform(pixels);
+            IDataView backToBitmaps = new VectorToImageConvertingTransformer(env, "ImageRestored", imageHeight, imageWidth, "ImagePixels",
+               interleavedColors: true, scaleImage: 19 / 2f, offsetImage: -30).Transform(pixels);
 
             var fname = nameof(TestBackAndForthConversionWithoutAlphaInterleave) + "_model.zip";
 
@@ -273,15 +272,12 @@ namespace Microsoft.ML.Tests
             backToBitmaps = ModelFileUtils.LoadPipeline(env, fh.OpenReadStream(), new MultiFileSource(dataFile));
             DeleteOutputPath(fname);
 
-
-            backToBitmaps.Schema.TryGetColumnIndex("ImageRestored", out int bitmapColumn);
-            backToBitmaps.Schema.TryGetColumnIndex("ImageCropped", out int cropBitmapColumn);
             using (var cursor = backToBitmaps.GetRowCursorForAllColumns())
             {
-                var bitmapGetter = cursor.GetGetter<Bitmap>(bitmapColumn);
+                var bitmapGetter = cursor.GetGetter<Bitmap>(backToBitmaps.Schema["ImageRestored"]);
                 Bitmap restoredBitmap = default;
 
-                var bitmapCropGetter = cursor.GetGetter<Bitmap>(cropBitmapColumn);
+                var bitmapCropGetter = cursor.GetGetter<Bitmap>(backToBitmaps.Schema["ImageCropped"]);
                 Bitmap croppedBitmap = default;
                 while (cursor.MoveNext())
                 {
@@ -302,6 +298,65 @@ namespace Microsoft.ML.Tests
         }
 
         [Fact]
+        public void TestBackAndForthConversionWithDifferentOrder()
+        {
+            IHostEnvironment env = new MLContext();
+            const int imageHeight = 100;
+            const int imageWidth = 130;
+            var dataFile = GetDataPath("images/images.tsv");
+            var imageFolder = Path.GetDirectoryName(dataFile);
+            var data = TextLoader.Create(env, new TextLoader.Options()
+            {
+                Columns = new[]
+                {
+                        new TextLoader.Column("ImagePath", DataKind.String, 0),
+                        new TextLoader.Column("Name", DataKind.String, 1),
+                    }
+            }, new MultiFileSource(dataFile));
+            var images = new ImageLoadingTransformer(env, imageFolder, ("ImageReal", "ImagePath")).Transform(data);
+            var cropped = new ImageResizingTransformer(env, "ImageCropped", imageWidth, imageHeight, "ImageReal").Transform(images);
+
+            var pixels = new ImagePixelExtractingTransformer(env, "ImagePixels", "ImageCropped", ImagePixelExtractingEstimator.ColorBits.All, orderOfExtraction:ImagePixelExtractingEstimator.ColorsOrder.ABRG).Transform(cropped);
+            IDataView backToBitmaps = new VectorToImageConvertingTransformer(env, "ImageRestored", imageHeight, imageWidth, "ImagePixels",
+               ImagePixelExtractingEstimator.ColorBits.All,orderOfColors: ImagePixelExtractingEstimator.ColorsOrder.ABRG).Transform(pixels);
+
+            var fname = nameof(TestBackAndForthConversionWithDifferentOrder) + "_model.zip";
+
+            var fh = env.CreateOutputFile(fname);
+            using (var ch = env.Start("save"))
+                TrainUtils.SaveModel(env, ch, fh, null, new RoleMappedData(backToBitmaps));
+
+            backToBitmaps = ModelFileUtils.LoadPipeline(env, fh.OpenReadStream(), new MultiFileSource(dataFile));
+            DeleteOutputPath(fname);
+
+            using (var cursor = backToBitmaps.GetRowCursorForAllColumns())
+            {
+                var bitmapGetter = cursor.GetGetter<Bitmap>(backToBitmaps.Schema["ImageRestored"]);
+                Bitmap restoredBitmap = default;
+
+                var bitmapCropGetter = cursor.GetGetter<Bitmap>(backToBitmaps.Schema["ImageCropped"]);
+                Bitmap croppedBitmap = default;
+                while (cursor.MoveNext())
+                {
+                    bitmapGetter(ref restoredBitmap);
+                    Assert.NotNull(restoredBitmap);
+                    bitmapCropGetter(ref croppedBitmap);
+                    Assert.NotNull(croppedBitmap);
+                    for (int x = 0; x < imageWidth; x++)
+                        for (int y = 0; y < imageHeight; y++)
+                        {
+                            var c = croppedBitmap.GetPixel(x, y);
+                            var r = restoredBitmap.GetPixel(x, y);
+                            if (c != r)
+                                Assert.False(true);
+                            Assert.True(c == r);
+                        }
+                }
+            }
+            Done();
+        }
+
+        [Fact]
         public void TestBackAndForthConversionWithAlphaNoInterleave()
         {
             IHostEnvironment env = new MLContext();
@@ -313,16 +368,16 @@ namespace Microsoft.ML.Tests
             {
                 Columns = new[]
                 {
-                        new TextLoader.Column("ImagePath", DataKind.TX, 0),
-                        new TextLoader.Column("Name", DataKind.TX, 1),
+                        new TextLoader.Column("ImagePath", DataKind.String, 0),
+                        new TextLoader.Column("Name", DataKind.String, 1),
                     }
             }, new MultiFileSource(dataFile));
             var images = new ImageLoadingTransformer(env, imageFolder, ("ImageReal", "ImagePath")).Transform(data);
             var cropped = new ImageResizingTransformer(env, "ImageCropped", imageWidth, imageHeight, "ImageReal").Transform(images);
-            var pixels = new ImagePixelExtractingTransformer(env, "ImagePixels", "ImageCropped", ImagePixelExtractingEstimator.ColorBits.All, false, 2f / 255, 127.5f).Transform(cropped);
+            var pixels = new ImagePixelExtractingTransformer(env, "ImagePixels", "ImageCropped", ImagePixelExtractingEstimator.ColorBits.All, scaleImage: 2f / 19, offsetImage: 30).Transform(cropped);
 
-            IDataView backToBitmaps = new VectorToImageConvertingTransformer(env, "ImageRestored", "ImagePixels",
-                imageHeight, imageWidth, ImagePixelExtractingEstimator.ColorBits.All, false, 255f / 2, -1f).Transform(pixels);
+            IDataView backToBitmaps = new VectorToImageConvertingTransformer(env, "ImageRestored", imageHeight, imageWidth, "ImagePixels",
+                ImagePixelExtractingEstimator.ColorBits.All, scaleImage: 19 / 2f, offsetImage: -30).Transform(pixels);
 
             var fname = nameof(TestBackAndForthConversionWithAlphaNoInterleave) + "_model.zip";
 
@@ -333,15 +388,12 @@ namespace Microsoft.ML.Tests
             backToBitmaps = ModelFileUtils.LoadPipeline(env, fh.OpenReadStream(), new MultiFileSource(dataFile));
             DeleteOutputPath(fname);
 
-
-            backToBitmaps.Schema.TryGetColumnIndex("ImageRestored", out int bitmapColumn);
-            backToBitmaps.Schema.TryGetColumnIndex("ImageCropped", out int cropBitmapColumn);
             using (var cursor = backToBitmaps.GetRowCursorForAllColumns())
             {
-                var bitmapGetter = cursor.GetGetter<Bitmap>(bitmapColumn);
+                var bitmapGetter = cursor.GetGetter<Bitmap>(backToBitmaps.Schema["ImageRestored"]);
                 Bitmap restoredBitmap = default;
 
-                var bitmapCropGetter = cursor.GetGetter<Bitmap>(cropBitmapColumn);
+                var bitmapCropGetter = cursor.GetGetter<Bitmap>(backToBitmaps.Schema["ImageCropped"]);
                 Bitmap croppedBitmap = default;
                 while (cursor.MoveNext())
                 {
@@ -373,16 +425,16 @@ namespace Microsoft.ML.Tests
             {
                 Columns = new[]
                 {
-                        new TextLoader.Column("ImagePath", DataKind.TX, 0),
-                        new TextLoader.Column("Name", DataKind.TX, 1),
+                        new TextLoader.Column("ImagePath", DataKind.String, 0),
+                        new TextLoader.Column("Name", DataKind.String, 1),
                     }
             }, new MultiFileSource(dataFile));
             var images = new ImageLoadingTransformer(env, imageFolder, ("ImageReal", "ImagePath")).Transform(data);
             var cropped = new ImageResizingTransformer(env, "ImageCropped", imageWidth, imageHeight, "ImageReal").Transform(images);
-            var pixels = new ImagePixelExtractingTransformer(env, "ImagePixels", "ImageCropped", ImagePixelExtractingEstimator.ColorBits.Rgb, false, 2f / 255, 127.5f).Transform(cropped);
+            var pixels = new ImagePixelExtractingTransformer(env, "ImagePixels", "ImageCropped", scaleImage: 2f / 19, offsetImage: 30).Transform(cropped);
 
-            IDataView backToBitmaps = new VectorToImageConvertingTransformer(env, "ImageRestored", "ImagePixels",
-                imageHeight, imageWidth, ImagePixelExtractingEstimator.ColorBits.Rgb, false, 255f / 2, -1f).Transform(pixels);
+            IDataView backToBitmaps = new VectorToImageConvertingTransformer(env, "ImageRestored", imageHeight, imageWidth, "ImagePixels",
+                scaleImage: 19 / 2f, offsetImage: -30).Transform(pixels);
 
             var fname = nameof(TestBackAndForthConversionWithoutAlphaNoInterleave) + "_model.zip";
 
@@ -393,15 +445,12 @@ namespace Microsoft.ML.Tests
             backToBitmaps = ModelFileUtils.LoadPipeline(env, fh.OpenReadStream(), new MultiFileSource(dataFile));
             DeleteOutputPath(fname);
 
-
-            backToBitmaps.Schema.TryGetColumnIndex("ImageRestored", out int bitmapColumn);
-            backToBitmaps.Schema.TryGetColumnIndex("ImageCropped", out int cropBitmapColumn);
             using (var cursor = backToBitmaps.GetRowCursorForAllColumns())
             {
-                var bitmapGetter = cursor.GetGetter<Bitmap>(bitmapColumn);
+                var bitmapGetter = cursor.GetGetter<Bitmap>(backToBitmaps.Schema["ImageRestored"]);
                 Bitmap restoredBitmap = default;
 
-                var bitmapCropGetter = cursor.GetGetter<Bitmap>(cropBitmapColumn);
+                var bitmapCropGetter = cursor.GetGetter<Bitmap>(backToBitmaps.Schema["ImageCropped"]);
                 Bitmap croppedBitmap = default;
                 while (cursor.MoveNext())
                 {
@@ -433,17 +482,17 @@ namespace Microsoft.ML.Tests
             {
                 Columns = new[]
                 {
-                        new TextLoader.Column("ImagePath", DataKind.TX, 0),
-                        new TextLoader.Column("Name", DataKind.TX, 1),
+                        new TextLoader.Column("ImagePath", DataKind.String, 0),
+                        new TextLoader.Column("Name", DataKind.String, 1),
                     }
             }, new MultiFileSource(dataFile));
             var images = new ImageLoadingTransformer(env, imageFolder, ("ImageReal", "ImagePath")).Transform(data);
             var cropped = new ImageResizingTransformer(env, "ImageCropped", imageWidth, imageHeight, "ImageReal").Transform(images);
 
-            var pixels = new ImagePixelExtractingTransformer(env, "ImagePixels", "ImageCropped", ImagePixelExtractingEstimator.ColorBits.All, true).Transform(cropped);
+            var pixels = new ImagePixelExtractingTransformer(env, "ImagePixels", "ImageCropped", ImagePixelExtractingEstimator.ColorBits.All, interleavePixelColors: true).Transform(cropped);
 
-            IDataView backToBitmaps = new VectorToImageConvertingTransformer(env, "ImageRestored", "ImagePixels",
-                imageHeight, imageWidth, ImagePixelExtractingEstimator.ColorBits.All, true, 1, 0).Transform(pixels);
+            IDataView backToBitmaps = new VectorToImageConvertingTransformer(env, "ImageRestored", imageHeight, imageWidth, "ImagePixels",
+                ImagePixelExtractingEstimator.ColorBits.All, interleavedColors: true).Transform(pixels);
 
             var fname = nameof(TestBackAndForthConversionWithAlphaInterleaveNoOffset) + "_model.zip";
 
@@ -454,15 +503,12 @@ namespace Microsoft.ML.Tests
             backToBitmaps = ModelFileUtils.LoadPipeline(env, fh.OpenReadStream(), new MultiFileSource(dataFile));
             DeleteOutputPath(fname);
 
-
-            backToBitmaps.Schema.TryGetColumnIndex("ImageRestored", out int bitmapColumn);
-            backToBitmaps.Schema.TryGetColumnIndex("ImageCropped", out int cropBitmapColumn);
             using (var cursor = backToBitmaps.GetRowCursorForAllColumns())
             {
-                var bitmapGetter = cursor.GetGetter<Bitmap>(bitmapColumn);
+                var bitmapGetter = cursor.GetGetter<Bitmap>(backToBitmaps.Schema["ImageRestored"]);
                 Bitmap restoredBitmap = default;
 
-                var bitmapCropGetter = cursor.GetGetter<Bitmap>(cropBitmapColumn);
+                var bitmapCropGetter = cursor.GetGetter<Bitmap>(backToBitmaps.Schema["ImageCropped"]);
                 Bitmap croppedBitmap = default;
                 while (cursor.MoveNext())
                 {
@@ -494,17 +540,16 @@ namespace Microsoft.ML.Tests
             {
                 Columns = new[]
                 {
-                        new TextLoader.Column("ImagePath", DataKind.TX, 0),
-                        new TextLoader.Column("Name", DataKind.TX, 1),
+                        new TextLoader.Column("ImagePath", DataKind.String, 0),
+                        new TextLoader.Column("Name", DataKind.String, 1),
                     }
             }, new MultiFileSource(dataFile));
             var images = new ImageLoadingTransformer(env, imageFolder, ("ImageReal", "ImagePath")).Transform(data);
             var cropped = new ImageResizingTransformer(env, "ImageCropped", imageWidth, imageHeight, "ImageReal").Transform(images);
 
-            var pixels = new ImagePixelExtractingTransformer(env, "ImagePixels", "ImageCropped", ImagePixelExtractingEstimator.ColorBits.Rgb, true).Transform(cropped);
+            var pixels = new ImagePixelExtractingTransformer(env, "ImagePixels", "ImageCropped", interleavePixelColors: true).Transform(cropped);
 
-            IDataView backToBitmaps = new VectorToImageConvertingTransformer(env, "ImageRestored", "ImagePixels",
-                imageHeight, imageWidth, ImagePixelExtractingEstimator.ColorBits.Rgb, true, 1, 0).Transform(pixels);
+            IDataView backToBitmaps = new VectorToImageConvertingTransformer(env, "ImageRestored", imageHeight, imageWidth, "ImagePixels", interleavedColors: true).Transform(pixels);
 
             var fname = nameof(TestBackAndForthConversionWithoutAlphaInterleaveNoOffset) + "_model.zip";
 
@@ -515,15 +560,12 @@ namespace Microsoft.ML.Tests
             backToBitmaps = ModelFileUtils.LoadPipeline(env, fh.OpenReadStream(), new MultiFileSource(dataFile));
             DeleteOutputPath(fname);
 
-
-            backToBitmaps.Schema.TryGetColumnIndex("ImageRestored", out int bitmapColumn);
-            backToBitmaps.Schema.TryGetColumnIndex("ImageCropped", out int cropBitmapColumn);
             using (var cursor = backToBitmaps.GetRowCursorForAllColumns())
             {
-                var bitmapGetter = cursor.GetGetter<Bitmap>(bitmapColumn);
+                var bitmapGetter = cursor.GetGetter<Bitmap>(backToBitmaps.Schema["ImageRestored"]);
                 Bitmap restoredBitmap = default;
 
-                var bitmapCropGetter = cursor.GetGetter<Bitmap>(cropBitmapColumn);
+                var bitmapCropGetter = cursor.GetGetter<Bitmap>(backToBitmaps.Schema["ImageCropped"]);
                 Bitmap croppedBitmap = default;
                 while (cursor.MoveNext())
                 {
@@ -555,8 +597,8 @@ namespace Microsoft.ML.Tests
             {
                 Columns = new[]
                 {
-                        new TextLoader.Column("ImagePath", DataKind.TX, 0),
-                        new TextLoader.Column("Name", DataKind.TX, 1),
+                        new TextLoader.Column("ImagePath", DataKind.String, 0),
+                        new TextLoader.Column("Name", DataKind.String, 1),
                     }
             }, new MultiFileSource(dataFile));
             var images = new ImageLoadingTransformer(env, imageFolder, ("ImageReal", "ImagePath")).Transform(data);
@@ -564,8 +606,8 @@ namespace Microsoft.ML.Tests
 
             var pixels = new ImagePixelExtractingTransformer(env, "ImagePixels", "ImageCropped", ImagePixelExtractingEstimator.ColorBits.All).Transform(cropped);
 
-            IDataView backToBitmaps = new VectorToImageConvertingTransformer(env, "ImageRestored", "ImagePixels",
-                imageHeight, imageWidth, ImagePixelExtractingEstimator.ColorBits.All, false, 1, 0).Transform(pixels);
+            IDataView backToBitmaps = new VectorToImageConvertingTransformer(env, "ImageRestored", imageHeight, imageWidth, "ImagePixels",
+                 ImagePixelExtractingEstimator.ColorBits.All).Transform(pixels);
 
             var fname = nameof(TestBackAndForthConversionWithAlphaNoInterleaveNoOffset) + "_model.zip";
 
@@ -576,15 +618,12 @@ namespace Microsoft.ML.Tests
             backToBitmaps = ModelFileUtils.LoadPipeline(env, fh.OpenReadStream(), new MultiFileSource(dataFile));
             DeleteOutputPath(fname);
 
-
-            backToBitmaps.Schema.TryGetColumnIndex("ImageRestored", out int bitmapColumn);
-            backToBitmaps.Schema.TryGetColumnIndex("ImageCropped", out int cropBitmapColumn);
             using (var cursor = backToBitmaps.GetRowCursorForAllColumns())
             {
-                var bitmapGetter = cursor.GetGetter<Bitmap>(bitmapColumn);
+                var bitmapGetter = cursor.GetGetter<Bitmap>(backToBitmaps.Schema["ImageRestored"]);
                 Bitmap restoredBitmap = default;
 
-                var bitmapCropGetter = cursor.GetGetter<Bitmap>(cropBitmapColumn);
+                var bitmapCropGetter = cursor.GetGetter<Bitmap>(backToBitmaps.Schema["ImageCropped"]);
                 Bitmap croppedBitmap = default;
                 while (cursor.MoveNext())
                 {
@@ -616,16 +655,15 @@ namespace Microsoft.ML.Tests
             {
                 Columns = new[]
                 {
-                        new TextLoader.Column("ImagePath", DataKind.TX, 0),
-                        new TextLoader.Column("Name", DataKind.TX, 1),
-                    }
+                        new TextLoader.Column("ImagePath", DataKind.String, 0),
+                        new TextLoader.Column("Name", DataKind.String, 1),
+                }
             }, new MultiFileSource(dataFile));
             var images = new ImageLoadingTransformer(env, imageFolder, ("ImageReal", "ImagePath")).Transform(data);
             var cropped = new ImageResizingTransformer(env, "ImageCropped", imageWidth, imageHeight, "ImageReal").Transform(images);
             var pixels = new ImagePixelExtractingTransformer(env, "ImagePixels", "ImageCropped").Transform(cropped);
 
-            IDataView backToBitmaps = new VectorToImageConvertingTransformer(env, "ImageRestored", "ImagePixels",
-                imageHeight, imageWidth, ImagePixelExtractingEstimator.ColorBits.Rgb, false, 1, 0).Transform(pixels);
+            IDataView backToBitmaps = new VectorToImageConvertingTransformer(env, "ImageRestored", imageHeight, imageWidth, "ImagePixels").Transform(pixels);
 
             var fname = nameof(TestBackAndForthConversionWithoutAlphaNoInterleaveNoOffset) + "_model.zip";
 
@@ -636,15 +674,12 @@ namespace Microsoft.ML.Tests
             backToBitmaps = ModelFileUtils.LoadPipeline(env, fh.OpenReadStream(), new MultiFileSource(dataFile));
             DeleteOutputPath(fname);
 
-
-            backToBitmaps.Schema.TryGetColumnIndex("ImageRestored", out int bitmapColumn);
-            backToBitmaps.Schema.TryGetColumnIndex("ImageCropped", out int cropBitmapColumn);
             using (var cursor = backToBitmaps.GetRowCursorForAllColumns())
             {
-                var bitmapGetter = cursor.GetGetter<Bitmap>(bitmapColumn);
+                var bitmapGetter = cursor.GetGetter<Bitmap>(backToBitmaps.Schema["ImageRestored"]);
                 Bitmap restoredBitmap = default;
 
-                var bitmapCropGetter = cursor.GetGetter<Bitmap>(cropBitmapColumn);
+                var bitmapCropGetter = cursor.GetGetter<Bitmap>(backToBitmaps.Schema["ImageCropped"]);
                 Bitmap croppedBitmap = default;
                 while (cursor.MoveNext())
                 {
@@ -674,7 +709,7 @@ namespace Microsoft.ML.Tests
             {
                 Columns = new[]
                 {
-                    new TextLoader.Column("ImagePath", DataKind.TX, 0)
+                    new TextLoader.Column("ImagePath", DataKind.String, 0)
                 }
             }, new MultiFileSource(dataFile));
 
@@ -686,7 +721,7 @@ namespace Microsoft.ML.Tests
             var rowView = pipe.Preview(data).RowView;
             Assert.Single(rowView);
 
-            using (var bitmap = (Bitmap) rowView.First().Values.Last().Value)
+            using (var bitmap = (Bitmap)rowView.First().Values.Last().Value)
             {
                 // these points must be white
                 var topLeft = bitmap.GetPixel(0, 0);

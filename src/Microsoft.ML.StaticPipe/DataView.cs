@@ -5,9 +5,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Microsoft.Data.DataView;
 using Microsoft.ML.Data;
-using Microsoft.ML.StaticPipe.Runtime;
+using Microsoft.ML.Runtime;
 
 namespace Microsoft.ML.StaticPipe
 {
@@ -50,7 +49,8 @@ namespace Microsoft.ML.StaticPipe
             var indexer = StaticPipeUtils.GetIndexer(data);
             string columnName = indexer.Get(column(indexer.Indices));
 
-            return data.AsDynamic.GetColumn<TOut>(env, columnName);
+            var dynamicData = data.AsDynamic;
+            return dynamicData.GetColumn<TOut>(dynamicData.Schema[columnName]);
         }
 
         public static IEnumerable<TItem> GetColumn<TItem, TShape>(this DataView<TShape> data, Func<TShape, Scalar<TItem>> column)

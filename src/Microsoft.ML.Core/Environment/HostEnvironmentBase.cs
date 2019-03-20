@@ -7,7 +7,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 
-namespace Microsoft.ML.Data
+namespace Microsoft.ML.Runtime
 {
     /// <summary>
     /// Base class for channel providers. This is a common base class for<see cref="HostEnvironmentBase{THostEnvironmentBase}"/>.
@@ -93,9 +93,23 @@ namespace Microsoft.ML.Data
     /// query progress.
     /// </summary>
     [BestFriend]
-    internal abstract class HostEnvironmentBase<TEnv> : ChannelProviderBase, IHostEnvironment, IDisposable, IChannelProvider
+    internal abstract class HostEnvironmentBase<TEnv> : ChannelProviderBase, IHostEnvironment, IChannelProvider, ICancelable
         where TEnv : HostEnvironmentBase<TEnv>
     {
+        void ICancelable.CancelExecution()
+        {
+            lock (_cancelLock)
+            {
+                foreach (var child in _children)
+                    if (child.TryGetTarget(out IHost host))
+                        if (host is ICancelable cancelableHost)
+                            cancelableHost.CancelExecution();
+
+                _children.Clear();
+                IsCanceled = true;
+            }
+        }
+
         /// <summary>
         /// Base class for hosts. Classes derived from  <see cref="HostEnvironmentBase{THostEnvironmentBase}"/> may choose
         /// to provide their own host class that derives from this class.
@@ -107,39 +121,21 @@ namespace Microsoft.ML.Data
 
             public Random Rand => _rand;
 
-            // We don't have dispose mechanism for hosts, so to let GC collect children hosts we make them WeakReference.
-            private readonly List<WeakReference<IHost>> _children;
-
-            public HostBase(HostEnvironmentBase<TEnv> source, string shortName, string parentFullName, Random rand, bool verbose, int? conc)
-                : base(source, rand, verbose, conc, shortName, parentFullName)
+            public HostBase(HostEnvironmentBase<TEnv> source, string shortName, string parentFullName, Random rand, bool verbose)
+                : base(source, rand, verbose, shortName, parentFullName)
             {
                 Depth = source.Depth + 1;
-                _children = new List<WeakReference<IHost>>();
             }
 
-            public void StopExecution()
-            {
-                lock (_cancelLock)
-                {
-                    IsCancelled = true;
-                    foreach (var child in _children)
-                    {
-                        if (child.TryGetTarget(out IHost host))
-                            host.StopExecution();
-                    }
-                    _children.Clear();
-                }
-            }
-
-            public new IHost Register(string name, int? seed = null, bool? verbose = null, int? conc = null)
+            public new IHost Register(string name, int? seed = null, bool? verbose = null)
             {
                 Contracts.CheckNonEmpty(name, nameof(name));
                 IHost host;
                 lock (_cancelLock)
                 {
                     Random rand = (seed.HasValue) ? RandomUtils.Create(seed.Value) : RandomUtils.Create(_rand);
-                    host = RegisterCore(this, name, Master?.FullName, rand, verbose ?? Verbose, conc ?? _conc);
-                    if (!IsCancelled)
+                    host = RegisterCore(this, name, Master?.FullName, rand, verbose ?? Verbose);
+                    if (!IsCanceled)
                         _children.Add(new WeakReference<IHost>(host));
                 }
                 return host;
@@ -175,7 +171,7 @@ namespace Microsoft.ML.Data
 
             public void Dispose()
             {
-                if(!_disposed)
+                if (!_disposed)
                 {
                     Dispose(true);
                     _disposed = true;
@@ -329,13 +325,6 @@ namespace Microsoft.ML.Data
         // doesn't free temp files. That is handled when the master is disposed.
         protected readonly HostEnvironmentBase<TEnv> Master;
 
-        // Protects _tempFiles.
-        private readonly object _tempLock;
-
-        // Temp files that have been handed out.
-        // When this is null, the host environment has been disposed.
-        private volatile List<IFileHandle> _tempFiles;
-
         // Protect _cancellation logic.
         private readonly object _cancelLock;
 
@@ -346,52 +335,42 @@ namespace Microsoft.ML.Data
 
         protected readonly ProgressReporting.ProgressTracker ProgressTracker;
 
-        // Can be set dynamically.
-        private int? _conc;
-
-        /// <summary>
-        /// This host environment supports changing this value dynamically.
-        /// </summary>
-        public int ConcurrencyFactor { get { return _conc ?? Master.ConcurrencyFactor; } set { _conc = value; } }
-
-        public bool IsCancelled { get; protected set; }
-
         public ComponentCatalog ComponentCatalog { get; }
 
         public override int Depth => 0;
 
-        protected bool IsDisposed => _tempFiles == null;
+        public bool IsCanceled { get; protected set; }
+
+        // We don't have dispose mechanism for hosts, so to let GC collect children hosts we make them WeakReference.
+        private readonly List<WeakReference<IHost>> _children;
 
         /// <summary>
         ///  The main constructor.
         /// </summary>
-        protected HostEnvironmentBase(Random rand, bool verbose, int conc,
+        protected HostEnvironmentBase(Random rand, bool verbose,
             string shortName = null, string parentFullName = null)
             : base(shortName, parentFullName, verbose)
         {
             Contracts.CheckValueOrNull(rand);
             _rand = rand ?? RandomUtils.Create();
-            _conc = conc;
             ListenerDict = new ConcurrentDictionary<Type, Dispatcher>();
             ProgressTracker = new ProgressReporting.ProgressTracker(this);
             _cancelLock = new object();
-            _tempLock = new object();
-            _tempFiles = new List<IFileHandle>();
             Root = this as TEnv;
             ComponentCatalog = new ComponentCatalog();
+            _children = new List<WeakReference<IHost>>();
         }
 
         /// <summary>
         /// This constructor is for forking.
         /// </summary>
         protected HostEnvironmentBase(HostEnvironmentBase<TEnv> source, Random rand, bool verbose,
-            int? conc, string shortName = null, string parentFullName = null)
+            string shortName = null, string parentFullName = null)
             : base(shortName, parentFullName, verbose)
         {
             Contracts.CheckValue(source, nameof(source));
             Contracts.CheckValueOrNull(rand);
             _rand = rand ?? RandomUtils.Create();
-            _conc = conc;
             _cancelLock = new object();
 
             // This fork shares some stuff with the master.
@@ -400,43 +379,24 @@ namespace Microsoft.ML.Data
             ListenerDict = source.ListenerDict;
             ProgressTracker = source.ProgressTracker;
             ComponentCatalog = source.ComponentCatalog;
+            _children = new List<WeakReference<IHost>>();
         }
 
-        /// <summary>
-        /// Dispose the environment. This ensures that all temp file handles are properly disposed,
-        /// including deleting the physical files.
-        /// </summary>
-        public virtual void Dispose()
-        {
-            if (Master != null)
-            {
-                // Disposing a fork has no affect.
-                return;
-            }
-
-            List<IFileHandle> temps;
-            lock (_tempLock)
-            {
-                temps = _tempFiles;
-                _tempFiles = null;
-            }
-
-            if (temps == null)
-                return;
-
-            foreach (var temp in temps)
-                temp.Dispose();
-        }
-
-        public IHost Register(string name, int? seed = null, bool? verbose = null, int? conc = null)
+        public IHost Register(string name, int? seed = null, bool? verbose = null)
         {
             Contracts.CheckNonEmpty(name, nameof(name));
-            Random rand = (seed.HasValue) ? RandomUtils.Create(seed.Value) : RandomUtils.Create(_rand);
-            return RegisterCore(this, name, Master?.FullName, rand, verbose ?? Verbose, conc);
+            IHost host;
+            lock (_cancelLock)
+            {
+                Random rand = (seed.HasValue) ? RandomUtils.Create(seed.Value) : RandomUtils.Create(_rand);
+                host = RegisterCore(this, name, Master?.FullName, rand, verbose ?? Verbose);
+                _children.Add(new WeakReference<IHost>(host));
+            }
+            return host;
         }
 
         protected abstract IHost RegisterCore(HostEnvironmentBase<TEnv> source, string shortName,
-            string parentFullName, Random rand, bool verbose, int? conc);
+            string parentFullName, Random rand, bool verbose);
 
         public IProgressChannel StartProgressChannel(string name)
         {
@@ -449,63 +409,6 @@ namespace Microsoft.ML.Data
             Contracts.AssertNonEmpty(name);
             Contracts.AssertValueOrNull(host);
             return new ProgressReporting.ProgressChannel(this, ProgressTracker, name);
-        }
-
-        public IFileHandle CreateTempFile(string suffix = null, string prefix = null)
-        {
-            if (Master != null)
-                return Master.CreateAndRegisterTempFile(this);
-            return CreateAndRegisterTempFile(this);
-        }
-
-        /// <summary>
-        /// This calls CreateTempFileCore and handles registering the temp file for cleanup when the environment is disposed.
-        /// </summary>
-        protected IFileHandle CreateAndRegisterTempFile(IHostEnvironment env, string suffix = null, string prefix = null)
-        {
-            this.AssertValue(env);
-
-            if (Master != null)
-                return Master.CreateAndRegisterTempFile(env, suffix, prefix);
-
-            var file = CreateTempFileCore(env, suffix, prefix);
-
-            lock (_tempLock)
-            {
-                if (_tempFiles == null)
-                {
-                    file.Dispose();
-                    throw env.Except("This environment has been disposed, so can't allocate new temp files");
-                }
-                _tempFiles.Add(file);
-            }
-
-            return file;
-        }
-
-        protected virtual IFileHandle CreateTempFileCore(IHostEnvironment env, string suffix = null, string prefix = null)
-        {
-            this.CheckParam(!HasBadFileCharacters(suffix), nameof(suffix));
-            this.CheckParam(!HasBadFileCharacters(prefix), nameof(prefix));
-
-            Guid guid = Guid.NewGuid();
-            string path = Path.GetFullPath(Path.Combine(Path.GetTempPath(), prefix + guid.ToString() + suffix));
-            return new SimpleFileHandle(env, path, needsWrite: true, autoDelete: true);
-        }
-
-        /// <summary>
-        /// Returns true if the given string is non-null and contains invalid file name characters.
-        /// </summary>
-        protected virtual bool HasBadFileCharacters(string str = null)
-        {
-            if (string.IsNullOrEmpty(str))
-                return false;
-
-            var chars = Path.GetInvalidFileNameChars();
-            if (str.IndexOfAny(chars) >= 0)
-                return true;
-
-            return false;
         }
 
         private void DispatchMessageCore<TMessage>(

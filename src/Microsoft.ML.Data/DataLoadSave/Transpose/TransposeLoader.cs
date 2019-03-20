@@ -9,13 +9,12 @@ using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Threading;
-using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
 using Microsoft.ML.Data.IO;
 using Microsoft.ML.Internal.Utilities;
-using Microsoft.ML.Model;
+using Microsoft.ML.Runtime;
 
 [assembly: LoadableClass(TransposeLoader.Summary, typeof(TransposeLoader), typeof(TransposeLoader.Arguments), typeof(SignatureDataLoader),
     "Transpose Loader", TransposeLoader.LoadName, "Transpose", "trans")]
@@ -32,7 +31,7 @@ namespace Microsoft.ML.Data.IO
     /// </summary>
     /// <seealso cref="TransposeSaver"/>
     [BestFriend]
-    internal sealed class TransposeLoader : IDataLoader, ITransposeDataView
+    internal sealed class TransposeLoader : ILegacyDataLoader, ITransposeDataView
     {
         public sealed class Arguments
         {
@@ -619,12 +618,10 @@ namespace Microsoft.ML.Data.IO
 
         public DataViewRowCursor GetRowCursor(IEnumerable<DataViewSchema.Column> columnsNeeded, Random rand = null)
         {
-            var predicate = RowCursorUtils.FromColumnsToPredicate(columnsNeeded, _schemaEntry.GetView().Schema);
-
             _host.CheckValueOrNull(rand);
             if (HasRowData)
                 return _schemaEntry.GetView().GetRowCursor(columnsNeeded, rand);
-            return new Cursor(this, predicate);
+            return new Cursor(this, columnsNeeded);
         }
 
         public DataViewRowCursor[] GetRowCursorSet(IEnumerable<DataViewSchema.Column> columnsNeeded, int n, Random rand = null)
@@ -683,7 +680,7 @@ namespace Microsoft.ML.Data.IO
                 Ch.Assert(cursor.Schema[0].Type is VectorType);
                 _rowCursor = cursor;
 
-                _getter = _rowCursor.GetGetter<VBuffer<T>>(0);
+                _getter = _rowCursor.GetGetter<VBuffer<T>>(cursor.Schema[0]);
             }
 
             public override VectorType GetSlotType()
@@ -755,18 +752,18 @@ namespace Microsoft.ML.Data.IO
 
             public override long Batch { get { return 0; } }
 
-            public Cursor(TransposeLoader parent, Func<int, bool> pred)
+            public Cursor(TransposeLoader parent, IEnumerable<DataViewSchema.Column> columnsNeeded)
                 : base(parent._host)
             {
                 _parent = parent;
-                Ch.AssertValue(pred);
+                Ch.AssertValue(columnsNeeded);
                 // We should only have instantiated this cursor if we have that
                 // col transposers array, and we don't have row data in the file.
                 Ch.AssertValue(_parent._colTransposers);
                 Ch.AssertValue(_parent._colTransposersLock);
                 Ch.Assert(!_parent.HasRowData);
 
-                Utils.BuildSubsetMaps(_parent._header.ColumnCount, pred, out _actives, out _colToActivesIndex);
+                Utils.BuildSubsetMaps(_parent._header.ColumnCount, columnsNeeded, out _actives, out _colToActivesIndex);
                 _transCursors = new SlotCursor[_actives.Length];
                 _getters = new Delegate[_actives.Length];
                 // The following will fill in both the _transCursors and _getters arrays.
@@ -862,19 +859,28 @@ namespace Microsoft.ML.Data.IO
                 return more;
             }
 
-            public override bool IsColumnActive(int col)
+            /// <summary>
+            /// Returns whether the given column is active in this row.
+            /// </summary>
+            public override bool IsColumnActive(DataViewSchema.Column column)
             {
-                Ch.CheckParam(0 <= col && col <= _colToActivesIndex.Length, nameof(col));
-                return _colToActivesIndex[col] >= 0;
+                Ch.CheckParam(column.Index <= _colToActivesIndex.Length, nameof(column));
+                return _colToActivesIndex[column.Index] >= 0;
             }
 
-            public override ValueGetter<TValue> GetGetter<TValue>(int col)
+            /// <summary>
+            /// Returns a value getter delegate to fetch the value of column with the given columnIndex, from the row.
+            /// This throws if the column is not active in this row, or if the type
+            /// <typeparamref name="TValue"/> differs from this column's type.
+            /// </summary>
+            /// <typeparam name="TValue"> is the column's content type.</typeparam>
+            /// <param name="column"> is the output column whose getter should be returned.</param>
+            public override ValueGetter<TValue> GetGetter<TValue>(DataViewSchema.Column column)
             {
-                Ch.CheckParam(0 <= col && col <= _colToActivesIndex.Length, nameof(col));
-                Ch.CheckParam(IsColumnActive(col), nameof(col), "requested column not active");
+                Ch.CheckParam(column.Index <= _colToActivesIndex.Length && IsColumnActive(column), nameof(column), "requested column not active");
+                Ch.AssertValue(_getters[_colToActivesIndex[column.Index]]);
 
-                Ch.AssertValue(_getters[_colToActivesIndex[col]]);
-                var getter = _getters[_colToActivesIndex[col]] as ValueGetter<TValue>;
+                var getter = _getters[_colToActivesIndex[column.Index]] as ValueGetter<TValue>;
                 if (getter == null)
                     throw Ch.Except("Invalid TValue: '{0}'", typeof(TValue));
                 return getter;

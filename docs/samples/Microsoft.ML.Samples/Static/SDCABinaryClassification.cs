@@ -31,8 +31,8 @@ namespace Microsoft.ML.Samples.Static
             // Creating the ML.Net IHostEnvironment object, needed for the pipeline
             var mlContext = new MLContext();
 
-            // Creating Data Reader with the initial schema based on the format of the data
-            var reader = TextLoaderStatic.CreateReader(
+            // Creating Data Loader with the initial schema based on the format of the data
+            var loader = TextLoaderStatic.CreateLoader(
                 mlContext,
                 c => (
                     Age: c.LoadFloat(0),
@@ -53,12 +53,12 @@ namespace Microsoft.ML.Samples.Static
                 separator: ',',
                 hasHeader: true);
 
-            // Read the data, and leave 10% out, so we can use them for testing
-            var data = reader.Read(dataFilePath);
-            var (trainData, testData) = mlContext.BinaryClassification.TrainTestSplit(data, testFraction: 0.1);
+            // Load the data, and leave 10% out, so we can use them for testing
+            var data = loader.Load(dataFilePath);
+            var (trainData, testData) = mlContext.Data.TrainTestSplit(data, testFraction: 0.1);
 
             // Create the Estimator
-            var learningPipeline = reader.MakeNewEstimator()
+            var learningPipeline = loader.MakeNewEstimator()
                 .Append(row => (
                         Features: row.Age.ConcatWith(
                             row.EducationNum,
@@ -77,7 +77,7 @@ namespace Microsoft.ML.Samples.Static
                             row.Label,
                             row.Features,
                             l1Threshold: 0.25f,
-                            maxIterations: 100)))
+                            numberOfIterations: 100)))
                 .Append(row => (
                     Label: row.Label,
                     Score: row.Score,
@@ -92,7 +92,7 @@ namespace Microsoft.ML.Samples.Static
             var metrics = mlContext.BinaryClassification.Evaluate(dataWithPredictions, row => row.Label, row => row.Score);
 
             Console.WriteLine($"Accuracy: {metrics.Accuracy}"); // 0.83
-            Console.WriteLine($"AUC: {metrics.Auc}"); // 0.88
+            Console.WriteLine($"AUC: {metrics.AreaUnderRocCurve}"); // 0.88
             Console.WriteLine($"F1 Score: {metrics.F1Score}"); // 0.59
 
             Console.WriteLine($"Negative Precision: {metrics.NegativePrecision}"); // 0.87

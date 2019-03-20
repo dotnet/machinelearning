@@ -8,8 +8,8 @@ using System.Linq;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Numeric;
+using Microsoft.ML.Runtime;
 using Microsoft.ML.Sweeper;
-using Float = System.Single;
 
 [assembly: LoadableClass(typeof(NelderMeadSweeper), typeof(NelderMeadSweeper.Options), typeof(SignatureSweeper),
     "Nelder Mead Sweeper", "NelderMeadSweeper", "NelderMead", "NM")]
@@ -30,7 +30,7 @@ namespace Microsoft.ML.Sweeper
             public int RandomSeed;
 
             [Argument(ArgumentType.LastOccurenceWins, HelpText = "Simplex diameter for stopping", ShortName = "dstop")]
-            public Float StoppingSimplexDiameter = (Float)0.001;
+            public float StoppingSimplexDiameter = (float)0.001;
 
             [Argument(ArgumentType.LastOccurenceWins,
                 HelpText = "If iteration point is outside parameter definitions, should it be projected?", ShortName = "project")]
@@ -38,19 +38,19 @@ namespace Microsoft.ML.Sweeper
 
             #region Core algorithm constants
             [Argument(ArgumentType.LastOccurenceWins, HelpText = "Reflection parameter", ShortName = "dr")]
-            public Float DeltaReflection = (Float)1.0;
+            public float DeltaReflection = (float)1.0;
 
             [Argument(ArgumentType.LastOccurenceWins, HelpText = "Expansion parameter", ShortName = "de")]
-            public Float DeltaExpansion = (Float)1.5;
+            public float DeltaExpansion = (float)1.5;
 
             [Argument(ArgumentType.LastOccurenceWins, HelpText = "Inside contraction parameter", ShortName = "dic")]
-            public Float DeltaInsideContraction = -(Float)0.5;
+            public float DeltaInsideContraction = -(float)0.5;
 
             [Argument(ArgumentType.LastOccurenceWins, HelpText = "Outside contraction parameter", ShortName = "doc")]
-            public Float DeltaOutsideContraction = (Float)0.5;
+            public float DeltaOutsideContraction = (float)0.5;
 
             [Argument(ArgumentType.LastOccurenceWins, HelpText = "Shrinkage parameter", ShortName = "ds")]
-            public Float GammaShrink = (Float)0.5;
+            public float GammaShrink = (float)0.5;
             #endregion
         }
 
@@ -68,19 +68,19 @@ namespace Microsoft.ML.Sweeper
         private readonly ISweeper _initSweeper;
         private readonly Options _args;
 
-        private SortedList<IRunResult, Float[]> _simplexVertices;
+        private SortedList<IRunResult, float[]> _simplexVertices;
         private readonly int _dim;
 
         private OptimizationStage _stage;
-        private readonly List<KeyValuePair<ParameterSet, Float[]>> _pendingSweeps;
-        private Queue<KeyValuePair<ParameterSet, Float[]>> _pendingSweepsNotSubmitted;
-        private KeyValuePair<IRunResult, Float[]> _lastReflectionResult;
+        private readonly List<KeyValuePair<ParameterSet, float[]>> _pendingSweeps;
+        private Queue<KeyValuePair<ParameterSet, float[]>> _pendingSweepsNotSubmitted;
+        private KeyValuePair<IRunResult, float[]> _lastReflectionResult;
 
-        private KeyValuePair<IRunResult, Float[]> _worst;
-        private KeyValuePair<IRunResult, Float[]> _secondWorst;
-        private KeyValuePair<IRunResult, Float[]> _best;
+        private KeyValuePair<IRunResult, float[]> _worst;
+        private KeyValuePair<IRunResult, float[]> _secondWorst;
+        private KeyValuePair<IRunResult, float[]> _best;
 
-        private Float[] _centroid;
+        private float[] _centroid;
 
         private readonly List<IValueGenerator> _sweepParameters;
 
@@ -93,7 +93,7 @@ namespace Microsoft.ML.Sweeper
             env.CheckUserArg(options.DeltaReflection > options.DeltaOutsideContraction, nameof(options.DeltaReflection), "Must be greater than " + nameof(options.DeltaOutsideContraction));
             env.CheckUserArg(options.DeltaExpansion > options.DeltaReflection, nameof(options.DeltaExpansion), "Must be greater than " + nameof(options.DeltaReflection));
             env.CheckUserArg(0 < options.GammaShrink && options.GammaShrink < 1, nameof(options.GammaShrink), "Must be between 0 and 1");
-            env.CheckValue(options.FirstBatchSweeper, nameof(options.FirstBatchSweeper) , "First Batch Sweeper Contains Null Value");
+            env.CheckValue(options.FirstBatchSweeper, nameof(options.FirstBatchSweeper), "First Batch Sweeper Contains Null Value");
 
             _args = options;
 
@@ -116,10 +116,10 @@ namespace Microsoft.ML.Sweeper
             _dim = _sweepParameters.Count;
             env.CheckUserArg(_dim > 1, nameof(options.SweptParameters), "Nelder-Mead sweeper needs at least two parameters to sweep over.");
 
-            _simplexVertices = new SortedList<IRunResult, Float[]>(new SimplexVertexComparer());
+            _simplexVertices = new SortedList<IRunResult, float[]>(new SimplexVertexComparer());
             _stage = OptimizationStage.NeedReflectionPoint;
-            _pendingSweeps = new List<KeyValuePair<ParameterSet, Float[]>>();
-            _pendingSweepsNotSubmitted = new Queue<KeyValuePair<ParameterSet, Float[]>>();
+            _pendingSweeps = new List<KeyValuePair<ParameterSet, float[]>>();
+            _pendingSweepsNotSubmitted = new Queue<KeyValuePair<ParameterSet, float[]>>();
         }
 
         public ParameterSet[] ProposeSweeps(int maxSweeps, IEnumerable<IRunResult> previousRuns = null)
@@ -152,70 +152,104 @@ namespace Microsoft.ML.Sweeper
 
             switch (_stage)
             {
-            case OptimizationStage.NeedReflectionPoint:
-                _pendingSweeps.Clear();
-                var nextPoint = GetNewPoint(_centroid, _worst.Value, _args.DeltaReflection);
-                if (OutOfBounds(nextPoint) && _args.ProjectInbounds)
-                {
-                    // if the reflection point is out of bounds, get the inner contraction point.
-                    nextPoint = GetNewPoint(_centroid, _worst.Value, _args.DeltaInsideContraction);
-                    _stage = OptimizationStage.WaitingForInnerContractionResult;
-                }
-                else
-                    _stage = OptimizationStage.WaitingForReflectionResult;
-                _pendingSweeps.Add(new KeyValuePair<ParameterSet, Float[]>(FloatArrayAsParameterSet(nextPoint), nextPoint));
-                if (previousRuns.Any(runResult => runResult.ParameterSet.Equals(_pendingSweeps[0].Key)))
-                {
-                    _stage = OptimizationStage.WaitingForReductionResult;
+                case OptimizationStage.NeedReflectionPoint:
                     _pendingSweeps.Clear();
-                    if (!TryGetReductionPoints(maxSweeps, previousRuns))
-                    {
-                        _stage = OptimizationStage.Done;
-                        return null;
-                    }
-                    return _pendingSweeps.Select(kvp => kvp.Key).ToArray();
-                }
-                return new ParameterSet[] { _pendingSweeps[0].Key };
-
-            case OptimizationStage.WaitingForReflectionResult:
-                Contracts.Assert(_pendingSweeps.Count == 1);
-                _lastReflectionResult = FindRunResult(previousRuns)[0];
-                if (_secondWorst.Key.CompareTo(_lastReflectionResult.Key) < 0 && _lastReflectionResult.Key.CompareTo(_best.Key) <= 0)
-                {
-                    // the reflection result is better than the second worse, but not better than the best
-                    UpdateSimplex(_lastReflectionResult.Key, _lastReflectionResult.Value);
-                    goto case OptimizationStage.NeedReflectionPoint;
-                }
-
-                if (_lastReflectionResult.Key.CompareTo(_best.Key) > 0)
-                {
-                    // the reflection result is the best so far
-                    nextPoint = GetNewPoint(_centroid, _worst.Value, _args.DeltaExpansion);
+                    var nextPoint = GetNewPoint(_centroid, _worst.Value, _args.DeltaReflection);
                     if (OutOfBounds(nextPoint) && _args.ProjectInbounds)
                     {
-                        // if the expansion point is out of bounds, get the inner contraction point.
+                        // if the reflection point is out of bounds, get the inner contraction point.
                         nextPoint = GetNewPoint(_centroid, _worst.Value, _args.DeltaInsideContraction);
                         _stage = OptimizationStage.WaitingForInnerContractionResult;
                     }
                     else
-                        _stage = OptimizationStage.WaitingForExpansionResult;
-                }
-                else if (_lastReflectionResult.Key.CompareTo(_worst.Key) > 0)
-                {
-                    // other wise, get results for the outer contraction point.
-                    nextPoint = GetNewPoint(_centroid, _worst.Value, _args.DeltaOutsideContraction);
-                    _stage = OptimizationStage.WaitingForOuterContractionResult;
-                }
-                else
-                {
-                    // other wise, reflection result is not better than worst, get results for the inner contraction point
-                    nextPoint = GetNewPoint(_centroid, _worst.Value, _args.DeltaInsideContraction);
-                    _stage = OptimizationStage.WaitingForInnerContractionResult;
-                }
-                _pendingSweeps.Clear();
-                _pendingSweeps.Add(new KeyValuePair<ParameterSet, Float[]>(FloatArrayAsParameterSet(nextPoint), nextPoint));
-                if (previousRuns.Any(runResult => runResult.ParameterSet.Equals(_pendingSweeps[0].Key)))
-                {
+                        _stage = OptimizationStage.WaitingForReflectionResult;
+                    _pendingSweeps.Add(new KeyValuePair<ParameterSet, float[]>(FloatArrayAsParameterSet(nextPoint), nextPoint));
+                    if (previousRuns.Any(runResult => runResult.ParameterSet.Equals(_pendingSweeps[0].Key)))
+                    {
+                        _stage = OptimizationStage.WaitingForReductionResult;
+                        _pendingSweeps.Clear();
+                        if (!TryGetReductionPoints(maxSweeps, previousRuns))
+                        {
+                            _stage = OptimizationStage.Done;
+                            return null;
+                        }
+                        return _pendingSweeps.Select(kvp => kvp.Key).ToArray();
+                    }
+                    return new ParameterSet[] { _pendingSweeps[0].Key };
+
+                case OptimizationStage.WaitingForReflectionResult:
+                    Contracts.Assert(_pendingSweeps.Count == 1);
+                    _lastReflectionResult = FindRunResult(previousRuns)[0];
+                    if (_secondWorst.Key.CompareTo(_lastReflectionResult.Key) < 0 && _lastReflectionResult.Key.CompareTo(_best.Key) <= 0)
+                    {
+                        // the reflection result is better than the second worse, but not better than the best
+                        UpdateSimplex(_lastReflectionResult.Key, _lastReflectionResult.Value);
+                        goto case OptimizationStage.NeedReflectionPoint;
+                    }
+
+                    if (_lastReflectionResult.Key.CompareTo(_best.Key) > 0)
+                    {
+                        // the reflection result is the best so far
+                        nextPoint = GetNewPoint(_centroid, _worst.Value, _args.DeltaExpansion);
+                        if (OutOfBounds(nextPoint) && _args.ProjectInbounds)
+                        {
+                            // if the expansion point is out of bounds, get the inner contraction point.
+                            nextPoint = GetNewPoint(_centroid, _worst.Value, _args.DeltaInsideContraction);
+                            _stage = OptimizationStage.WaitingForInnerContractionResult;
+                        }
+                        else
+                            _stage = OptimizationStage.WaitingForExpansionResult;
+                    }
+                    else if (_lastReflectionResult.Key.CompareTo(_worst.Key) > 0)
+                    {
+                        // other wise, get results for the outer contraction point.
+                        nextPoint = GetNewPoint(_centroid, _worst.Value, _args.DeltaOutsideContraction);
+                        _stage = OptimizationStage.WaitingForOuterContractionResult;
+                    }
+                    else
+                    {
+                        // other wise, reflection result is not better than worst, get results for the inner contraction point
+                        nextPoint = GetNewPoint(_centroid, _worst.Value, _args.DeltaInsideContraction);
+                        _stage = OptimizationStage.WaitingForInnerContractionResult;
+                    }
+                    _pendingSweeps.Clear();
+                    _pendingSweeps.Add(new KeyValuePair<ParameterSet, float[]>(FloatArrayAsParameterSet(nextPoint), nextPoint));
+                    if (previousRuns.Any(runResult => runResult.ParameterSet.Equals(_pendingSweeps[0].Key)))
+                    {
+                        _stage = OptimizationStage.WaitingForReductionResult;
+                        _pendingSweeps.Clear();
+                        if (!TryGetReductionPoints(maxSweeps, previousRuns))
+                        {
+                            _stage = OptimizationStage.Done;
+                            return null;
+                        }
+                        return _pendingSweeps.Select(kvp => kvp.Key).ToArray();
+                    }
+                    return new ParameterSet[] { _pendingSweeps[0].Key };
+
+                case OptimizationStage.WaitingForExpansionResult:
+                    Contracts.Assert(_pendingSweeps.Count == 1);
+                    var expansionResult = FindRunResult(previousRuns)[0].Key;
+                    if (expansionResult.CompareTo(_lastReflectionResult.Key) > 0)
+                    {
+                        // expansion point is better than reflection point
+                        UpdateSimplex(expansionResult, _pendingSweeps[0].Value);
+                        goto case OptimizationStage.NeedReflectionPoint;
+                    }
+                    // reflection point is better than expansion point
+                    UpdateSimplex(_lastReflectionResult.Key, _lastReflectionResult.Value);
+                    goto case OptimizationStage.NeedReflectionPoint;
+
+                case OptimizationStage.WaitingForOuterContractionResult:
+                    Contracts.Assert(_pendingSweeps.Count == 1);
+                    var outerContractionResult = FindRunResult(previousRuns)[0].Key;
+                    if (outerContractionResult.CompareTo(_lastReflectionResult.Key) > 0)
+                    {
+                        // outer contraction point is better than reflection point
+                        UpdateSimplex(outerContractionResult, _pendingSweeps[0].Value);
+                        goto case OptimizationStage.NeedReflectionPoint;
+                    }
+                    // get the reduction points
                     _stage = OptimizationStage.WaitingForReductionResult;
                     _pendingSweeps.Clear();
                     if (!TryGetReductionPoints(maxSweeps, previousRuns))
@@ -224,78 +258,44 @@ namespace Microsoft.ML.Sweeper
                         return null;
                     }
                     return _pendingSweeps.Select(kvp => kvp.Key).ToArray();
-                }
-                return new ParameterSet[] { _pendingSweeps[0].Key };
 
-            case OptimizationStage.WaitingForExpansionResult:
-                Contracts.Assert(_pendingSweeps.Count == 1);
-                var expansionResult = FindRunResult(previousRuns)[0].Key;
-                if (expansionResult.CompareTo(_lastReflectionResult.Key) > 0)
-                {
-                    // expansion point is better than reflection point
-                    UpdateSimplex(expansionResult, _pendingSweeps[0].Value);
+                case OptimizationStage.WaitingForInnerContractionResult:
+                    Contracts.Assert(_pendingSweeps.Count == 1);
+                    var innerContractionResult = FindRunResult(previousRuns)[0].Key;
+                    if (innerContractionResult.CompareTo(_worst.Key) > 0)
+                    {
+                        // inner contraction point is better than worst point
+                        UpdateSimplex(innerContractionResult, _pendingSweeps[0].Value);
+                        goto case OptimizationStage.NeedReflectionPoint;
+                    }
+                    // get the reduction points
+                    _stage = OptimizationStage.WaitingForReductionResult;
+                    _pendingSweeps.Clear();
+                    if (!TryGetReductionPoints(maxSweeps, previousRuns))
+                    {
+                        _stage = OptimizationStage.Done;
+                        return null;
+                    }
+                    return _pendingSweeps.Select(kvp => kvp.Key).ToArray();
+
+                case OptimizationStage.WaitingForReductionResult:
+                    Contracts.Assert(_pendingSweeps.Count + _pendingSweepsNotSubmitted.Count == _dim);
+                    if (_pendingSweeps.Count < _dim)
+                        return SubmitMoreReductionPoints(maxSweeps);
+                    ReplaceSimplexVertices(previousRuns);
+
+                    // if the diameter of the new simplex has become too small, stop sweeping.
+                    if (SimplexDiameter() < _args.StoppingSimplexDiameter)
+                        return null;
+
                     goto case OptimizationStage.NeedReflectionPoint;
-                }
-                // reflection point is better than expansion point
-                UpdateSimplex(_lastReflectionResult.Key, _lastReflectionResult.Value);
-                goto case OptimizationStage.NeedReflectionPoint;
-
-            case OptimizationStage.WaitingForOuterContractionResult:
-                Contracts.Assert(_pendingSweeps.Count == 1);
-                var outerContractionResult = FindRunResult(previousRuns)[0].Key;
-                if (outerContractionResult.CompareTo(_lastReflectionResult.Key) > 0)
-                {
-                    // outer contraction point is better than reflection point
-                    UpdateSimplex(outerContractionResult, _pendingSweeps[0].Value);
-                    goto case OptimizationStage.NeedReflectionPoint;
-                }
-                // get the reduction points
-                _stage = OptimizationStage.WaitingForReductionResult;
-                _pendingSweeps.Clear();
-                if (!TryGetReductionPoints(maxSweeps, previousRuns))
-                {
-                    _stage = OptimizationStage.Done;
+                case OptimizationStage.Done:
+                default:
                     return null;
-                }
-                return _pendingSweeps.Select(kvp => kvp.Key).ToArray();
-
-            case OptimizationStage.WaitingForInnerContractionResult:
-                Contracts.Assert(_pendingSweeps.Count == 1);
-                var innerContractionResult = FindRunResult(previousRuns)[0].Key;
-                if (innerContractionResult.CompareTo(_worst.Key) > 0)
-                {
-                    // inner contraction point is better than worst point
-                    UpdateSimplex(innerContractionResult, _pendingSweeps[0].Value);
-                    goto case OptimizationStage.NeedReflectionPoint;
-                }
-                // get the reduction points
-                _stage = OptimizationStage.WaitingForReductionResult;
-                _pendingSweeps.Clear();
-                if (!TryGetReductionPoints(maxSweeps, previousRuns))
-                {
-                    _stage = OptimizationStage.Done;
-                    return null;
-                }
-                return _pendingSweeps.Select(kvp => kvp.Key).ToArray();
-
-            case OptimizationStage.WaitingForReductionResult:
-                Contracts.Assert(_pendingSweeps.Count + _pendingSweepsNotSubmitted.Count == _dim);
-                if (_pendingSweeps.Count < _dim)
-                    return SubmitMoreReductionPoints(maxSweeps);
-                ReplaceSimplexVertices(previousRuns);
-
-                // if the diameter of the new simplex has become too small, stop sweeping.
-                if (SimplexDiameter() < _args.StoppingSimplexDiameter)
-                    return null;
-
-                goto case OptimizationStage.NeedReflectionPoint;
-            case OptimizationStage.Done:
-            default:
-                return null;
             }
         }
 
-        private void UpdateSimplex(IRunResult newVertexResult, Float[] newVertex)
+        private void UpdateSimplex(IRunResult newVertexResult, float[] newVertex)
         {
             Contracts.Assert(_centroid != null);
             Contracts.Assert(_simplexVertices.Count == _dim + 1);
@@ -314,9 +314,9 @@ namespace Microsoft.ML.Sweeper
             _centroid = GetCentroid();
         }
 
-        private Float SimplexDiameter()
+        private float SimplexDiameter()
         {
-            Float maxDistance = Float.MinValue;
+            float maxDistance = float.MinValue;
 
             var simplexVertices = _simplexVertices.ToArray();
             for (int i = 0; i < simplexVertices.Length; i++)
@@ -333,7 +333,7 @@ namespace Microsoft.ML.Sweeper
             return maxDistance;
         }
 
-        private bool OutOfBounds(Float[] point)
+        private bool OutOfBounds(float[] point)
         {
             Contracts.Assert(point.Length == _sweepParameters.Count);
             for (int i = 0; i < _sweepParameters.Count; i++)
@@ -348,7 +348,7 @@ namespace Microsoft.ML.Sweeper
         private void ReplaceSimplexVertices(IEnumerable<IRunResult> previousRuns)
         {
             var results = FindRunResult(previousRuns);
-            var newSimplexVertices = new SortedList<IRunResult, Float[]>(new SimplexVertexComparer());
+            var newSimplexVertices = new SortedList<IRunResult, float[]>(new SimplexVertexComparer());
             foreach (var result in results)
                 newSimplexVertices.Add(result.Key, result.Value);
             newSimplexVertices.Add(_best.Key, _best.Value);
@@ -358,16 +358,16 @@ namespace Microsoft.ML.Sweeper
         }
 
         // given some ParameterSets, find their results.
-        private List<KeyValuePair<IRunResult, Float[]>> FindRunResult(IEnumerable<IRunResult> previousRuns)
+        private List<KeyValuePair<IRunResult, float[]>> FindRunResult(IEnumerable<IRunResult> previousRuns)
         {
-            var result = new List<KeyValuePair<IRunResult, Float[]>>();
+            var result = new List<KeyValuePair<IRunResult, float[]>>();
             foreach (var sweep in _pendingSweeps)
             {
                 foreach (var run in previousRuns)
                 {
                     if (run.ParameterSet.Equals(sweep.Key))
                     {
-                        result.Add(new KeyValuePair<IRunResult, Float[]>(run, sweep.Value));
+                        result.Add(new KeyValuePair<IRunResult, float[]>(run, sweep.Value));
                         break;
                     }
                 }
@@ -378,18 +378,18 @@ namespace Microsoft.ML.Sweeper
             return result;
         }
 
-        private Float[] GetCentroid()
+        private float[] GetCentroid()
         {
-            var centroid = new Float[_dim];
-            Float scale = (Float)1 / _dim;
+            var centroid = new float[_dim];
+            float scale = (float)1 / _dim;
             for (int i = 1; i < _simplexVertices.Count; i++)
                 VectorUtils.AddMult(_simplexVertices.ElementAt(i).Value, centroid, scale);
             return centroid;
         }
 
-        private Float[] GetNewPoint(Float[] centroid, Float[] worst, Float delta)
+        private float[] GetNewPoint(float[] centroid, float[] worst, float delta)
         {
-            var newPoint = new Float[centroid.Length];
+            var newPoint = new float[centroid.Length];
             VectorUtils.AddMult(centroid, newPoint, 1 + delta);
             VectorUtils.AddMult(worst, newPoint, -delta);
 
@@ -407,9 +407,9 @@ namespace Microsoft.ML.Sweeper
                 if (previousRuns.Any(runResult => runResult.ParameterSet.Equals(newParameterSet)))
                     return false;
                 if (i < numPoints)
-                    _pendingSweeps.Add(new KeyValuePair<ParameterSet, Float[]>(newParameterSet, newPoint));
+                    _pendingSweeps.Add(new KeyValuePair<ParameterSet, float[]>(newParameterSet, newPoint));
                 else
-                    _pendingSweepsNotSubmitted.Enqueue(new KeyValuePair<ParameterSet, Float[]>(FloatArrayAsParameterSet(newPoint), newPoint));
+                    _pendingSweepsNotSubmitted.Enqueue(new KeyValuePair<ParameterSet, float[]>(FloatArrayAsParameterSet(newPoint), newPoint));
             }
             return true;
         }
@@ -428,11 +428,11 @@ namespace Microsoft.ML.Sweeper
             return result;
         }
 
-        private Float[] ParameterSetAsFloatArray(ParameterSet parameterSet)
+        private float[] ParameterSetAsFloatArray(ParameterSet parameterSet)
         {
             Contracts.Assert(parameterSet.Count == _sweepParameters.Count);
 
-            var result = new List<Float>();
+            var result = new List<float>();
             for (int i = 0; i < _sweepParameters.Count; i++)
             {
                 Contracts.AssertValue(parameterSet[_sweepParameters[i].Name]);
@@ -442,7 +442,7 @@ namespace Microsoft.ML.Sweeper
             return result.ToArray();
         }
 
-        private ParameterSet FloatArrayAsParameterSet(Float[] array)
+        private ParameterSet FloatArrayAsParameterSet(float[] array)
         {
             Contracts.Assert(array.Length == _sweepParameters.Count);
 

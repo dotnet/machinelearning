@@ -4,12 +4,10 @@
 
 using System.Collections.Generic;
 using System.Linq;
-using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
-using Microsoft.ML.EntryPoints;
-using Microsoft.ML.Model;
+using Microsoft.ML.Runtime;
 using Microsoft.ML.Transforms.TimeSeries;
 
 [assembly: LoadableClass(SsaSpikeDetector.Summary, typeof(IDataTransform), typeof(SsaSpikeDetector), typeof(SsaSpikeDetector.Options), typeof(SignatureDataTransform),
@@ -27,8 +25,7 @@ using Microsoft.ML.Transforms.TimeSeries;
 namespace Microsoft.ML.Transforms.TimeSeries
 {
     /// <summary>
-    /// This class implements the spike detector transform based on Singular Spectrum modeling of the time-series.
-    /// For the details of the Singular Spectrum Analysis (SSA), refer to http://arxiv.org/pdf/1206.6910.pdf.
+    /// <see cref="ITransformer"/> produced by fitting the <see cref="IDataView"/> to an <see cref="SsaSpikeEstimator" />.
     /// </summary>
     public sealed class SsaSpikeDetector : SsaAnomalyDetectionBaseWrapper, IStatefulTransformer
     {
@@ -162,7 +159,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
             InternalTransform.Host.CheckDecode(InternalTransform.IsAdaptive == false);
         }
 
-        public override void Save(ModelSaveContext ctx)
+        private protected override void SaveModel(ModelSaveContext ctx)
         {
             InternalTransform.Host.CheckValue(ctx, nameof(ctx));
             ctx.CheckAtModel();
@@ -175,7 +172,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
             // *** Binary format ***
             // <base>
 
-            base.Save(ctx);
+            base.SaveModel(ctx);
         }
 
         // Factory method for SignatureLoadRowMapper.
@@ -184,16 +181,8 @@ namespace Microsoft.ML.Transforms.TimeSeries
     }
 
     /// <summary>
-    /// Estimator for <see cref="SsaSpikeDetector"/>
+    /// The <see cref="IEstimator{ITransformer}"/> for detecting a signal spike through <a href="http://arxiv.org/pdf/1206.6910.pdf">Singular Spectrum Analysis (SSA)</a> of time series.
     /// </summary>
-    /// <p>Example code can be found by searching for <i>SsaSpikeDetector</i> in <a href='https://github.com/dotnet/machinelearning'>ML.NET.</a></p>
-    /// <example>
-    /// <format type="text/markdown">
-    /// <![CDATA[
-    /// [!code-csharp[MF](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/SsaSpikeDetectorTransform.cs)]
-    /// ]]>
-    /// </format>
-    /// </example>
     public sealed class SsaSpikeEstimator : IEstimator<SsaSpikeDetector>
     {
         private readonly IHost _host;
@@ -269,7 +258,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
                 throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", _options.Source, "float", col.GetTypeString());
 
             var metadata = new List<SchemaShape.Column>() {
-                new SchemaShape.Column(MetadataUtils.Kinds.SlotNames, SchemaShape.Column.VectorKind.Vector, TextDataViewType.Instance, false)
+                new SchemaShape.Column(AnnotationUtils.Kinds.SlotNames, SchemaShape.Column.VectorKind.Vector, TextDataViewType.Instance, false)
             };
             var resultDic = inputSchema.ToDictionary(x => x.Name);
             resultDic[_options.Name] = new SchemaShape.Column(

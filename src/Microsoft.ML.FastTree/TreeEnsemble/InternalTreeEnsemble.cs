@@ -10,8 +10,8 @@ using System.Text;
 using System.Threading.Tasks;
 using Microsoft.ML.Data;
 using Microsoft.ML.Internal.Utilities;
-using Microsoft.ML.Model;
 using Microsoft.ML.Model.Pfa;
+using Microsoft.ML.Runtime;
 using Newtonsoft.Json.Linq;
 
 namespace Microsoft.ML.Trainers.FastTree
@@ -383,12 +383,15 @@ namespace Microsoft.ML.Trainers.FastTree
     {
         public FeatureToGainMap() { }
         // Override default Dictionary to return 0.0 for non-eisting keys
-        public new double this[int key] {
-            get {
+        public new double this[int key]
+        {
+            get
+            {
                 TryGetValue(key, out double retval);
                 return retval;
             }
-            set {
+            set
+            {
                 base[key] = value;
             }
         }
@@ -430,7 +433,7 @@ namespace Microsoft.ML.Trainers.FastTree
         /// features column. If the <c>IniContent</c> slotwise string metadata is present, that
         /// is used, or else default content is derived from the slot names.
         /// </summary>
-        /// <seealso cref="MetadataUtils.Kinds.SlotNames"/>
+        /// <seealso cref="AnnotationUtils.Kinds.SlotNames"/>
         public FeaturesToContentMap(RoleMappedSchema schema)
         {
             Contracts.AssertValue(schema);
@@ -441,7 +444,7 @@ namespace Microsoft.ML.Trainers.FastTree
 
             var sch = schema.Schema;
             if (sch[feat.Index].HasSlotNames(featValueCount))
-                sch[feat.Index].Metadata.GetValue(MetadataUtils.Kinds.SlotNames, ref _names);
+                sch[feat.Index].Annotations.GetValue(AnnotationUtils.Kinds.SlotNames, ref _names);
             else
                 _names = VBufferUtils.CreateEmpty<ReadOnlyMemory<char>>(featValueCount);
 #if !CORECLR

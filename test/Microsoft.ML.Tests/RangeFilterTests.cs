@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Linq;
-using Microsoft.Data.DataView;
 using Microsoft.ML.Data;
 using Microsoft.ML.RunTests;
 using Xunit;
@@ -26,12 +25,12 @@ namespace Microsoft.ML.Tests
             var data = builder.GetDataView();
 
             var data1 = ML.Data.FilterRowsByColumn(data, "Floats", upperBound: 2.8);
-            var cnt = data1.GetColumn<float>(ML, "Floats").Count();
+            var cnt = data1.GetColumn<float>(data1.Schema["Floats"]).Count();
             Assert.Equal(2L, cnt);
 
-            data = ML.Transforms.Conversion.Hash("Key", "Strings", hashBits: 20).Fit(data).Transform(data);
+            data = ML.Transforms.Conversion.Hash("Key", "Strings", numberOfBits: 20).Fit(data).Transform(data);
             var data2 = ML.Data.FilterRowsByKeyColumnFraction(data, "Key", upperBound: 0.5);
-            cnt = data2.GetColumn<float>(ML, "Floats").Count();
+            cnt = data2.GetColumn<float>(data.Schema["Floats"]).Count();
             Assert.Equal(1L, cnt);
         }
     }

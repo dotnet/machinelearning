@@ -5,15 +5,16 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using Microsoft.Data.DataView;
+using System.Linq;
 using Microsoft.ML;
+using Microsoft.ML.Calibrators;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
 using Microsoft.ML.Data.Conversion;
 using Microsoft.ML.EntryPoints;
-using Microsoft.ML.Internal.Calibration;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Model;
+using Microsoft.ML.Runtime;
 using Microsoft.ML.Trainers.FastTree;
 using Microsoft.ML.Transforms;
 using Microsoft.ML.TreePredictor;
@@ -108,32 +109,32 @@ namespace Microsoft.ML.Data
                 var pathIdType = new VectorType(NumberDataViewType.Single, owner._totalLeafCount - owner._ensemble.TrainedEnsemble.NumTrees);
 
                 // Start creating output schema with types derived above.
-                var schemaBuilder = new SchemaBuilder();
+                var schemaBuilder = new DataViewSchema.Builder();
 
                 // Metadata of tree values.
-                var treeIdMetadataBuilder = new MetadataBuilder();
-                treeIdMetadataBuilder.Add(MetadataUtils.Kinds.SlotNames, MetadataUtils.GetNamesType(treeValueType.Size),
+                var treeIdMetadataBuilder = new DataViewSchema.Annotations.Builder();
+                treeIdMetadataBuilder.Add(AnnotationUtils.Kinds.SlotNames, AnnotationUtils.GetNamesType(treeValueType.Size),
                     (ValueGetter<VBuffer<ReadOnlyMemory<char>>>)owner.GetTreeSlotNames);
                 // Add the column of trees' output values
-                schemaBuilder.AddColumn(OutputColumnNames.Trees, treeValueType, treeIdMetadataBuilder.GetMetadata());
+                schemaBuilder.AddColumn(OutputColumnNames.Trees, treeValueType, treeIdMetadataBuilder.ToAnnotations());
 
                 // Metadata of leaf IDs.
-                var leafIdMetadataBuilder = new MetadataBuilder();
-                leafIdMetadataBuilder.Add(MetadataUtils.Kinds.SlotNames, MetadataUtils.GetNamesType(leafIdType.Size),
+                var leafIdMetadataBuilder = new DataViewSchema.Annotations.Builder();
+                leafIdMetadataBuilder.Add(AnnotationUtils.Kinds.SlotNames, AnnotationUtils.GetNamesType(leafIdType.Size),
                     (ValueGetter<VBuffer<ReadOnlyMemory<char>>>)owner.GetLeafSlotNames);
-                leafIdMetadataBuilder.Add(MetadataUtils.Kinds.IsNormalized, BooleanDataViewType.Instance, (ref bool value) => value = true);
+                leafIdMetadataBuilder.Add(AnnotationUtils.Kinds.IsNormalized, BooleanDataViewType.Instance, (ref bool value) => value = true);
                 // Add the column of leaves' IDs where the input example reaches.
-                schemaBuilder.AddColumn(OutputColumnNames.Leaves, leafIdType, leafIdMetadataBuilder.GetMetadata());
+                schemaBuilder.AddColumn(OutputColumnNames.Leaves, leafIdType, leafIdMetadataBuilder.ToAnnotations());
 
                 // Metadata of path IDs.
-                var pathIdMetadataBuilder = new MetadataBuilder();
-                pathIdMetadataBuilder.Add(MetadataUtils.Kinds.SlotNames, MetadataUtils.GetNamesType(pathIdType.Size),
+                var pathIdMetadataBuilder = new DataViewSchema.Annotations.Builder();
+                pathIdMetadataBuilder.Add(AnnotationUtils.Kinds.SlotNames, AnnotationUtils.GetNamesType(pathIdType.Size),
                     (ValueGetter<VBuffer<ReadOnlyMemory<char>>>)owner.GetPathSlotNames);
-                pathIdMetadataBuilder.Add(MetadataUtils.Kinds.IsNormalized, BooleanDataViewType.Instance, (ref bool value) => value = true);
+                pathIdMetadataBuilder.Add(AnnotationUtils.Kinds.IsNormalized, BooleanDataViewType.Instance, (ref bool value) => value = true);
                 // Add the column of encoded paths which the input example passes.
-                schemaBuilder.AddColumn(OutputColumnNames.Paths, pathIdType, pathIdMetadataBuilder.GetMetadata());
+                schemaBuilder.AddColumn(OutputColumnNames.Paths, pathIdType, pathIdMetadataBuilder.ToAnnotations());
 
-                OutputSchema = schemaBuilder.GetSchema();
+                OutputSchema = schemaBuilder.ToSchema();
 
                 // Tree values must be the first output column.
                 Contracts.Assert(OutputSchema[OutputColumnNames.Trees].Index == TreeValuesColumnId);
@@ -143,23 +144,24 @@ namespace Microsoft.ML.Data
                 Contracts.Assert(OutputSchema[OutputColumnNames.Paths].Index == PathIdsColumnId);
             }
 
-            public DataViewRow GetRow(DataViewRow input, Func<int, bool> predicate)
+            DataViewRow ISchemaBoundRowMapper.GetRow(DataViewRow input, IEnumerable<DataViewSchema.Column> activeColumns)
             {
                 _ectx.CheckValue(input, nameof(input));
-                _ectx.CheckValue(predicate, nameof(predicate));
-                return new SimpleRow(OutputSchema, input, CreateGetters(input, predicate));
+                _ectx.CheckValue(activeColumns, nameof(activeColumns));
+                return new SimpleRow(OutputSchema, input, CreateGetters(input, activeColumns));
             }
 
-            private Delegate[] CreateGetters(DataViewRow input, Func<int, bool> predicate)
+            private Delegate[] CreateGetters(DataViewRow input, IEnumerable<DataViewSchema.Column> activeColumns)
             {
                 _ectx.AssertValue(input);
-                _ectx.AssertValue(predicate);
+                _ectx.AssertValue(activeColumns);
 
                 var delegates = new Delegate[3];
 
-                var treeValueActive = predicate(TreeValuesColumnId);
-                var leafIdActive = predicate(LeafIdsColumnId);
-                var pathIdActive = predicate(PathIdsColumnId);
+                var activeIndices = activeColumns.Select(c => c.Index);
+                var treeValueActive = activeIndices.Contains(TreeValuesColumnId);
+                var leafIdActive = activeIndices.Contains(LeafIdsColumnId);
+                var pathIdActive = activeIndices.Contains(PathIdsColumnId);
 
                 if (!treeValueActive && !leafIdActive && !pathIdActive)
                     return delegates;
@@ -200,7 +202,6 @@ namespace Microsoft.ML.Data
 
                 private VBuffer<float> _src;
                 private ValueGetter<VBuffer<float>> _featureGetter;
-
                 private long _cachedPosition;
                 private readonly int[] _leafIds;
                 private readonly List<int>[] _pathIds;
@@ -223,7 +224,7 @@ namespace Microsoft.ML.Data
                     _numLeaves = numLeaves;
 
                     _src = default(VBuffer<float>);
-                    _featureGetter = input.GetGetter<VBuffer<float>>(featureIndex);
+                    _featureGetter = input.GetGetter<VBuffer<float>>(input.Schema[featureIndex]);
 
                     _cachedPosition = -1;
                     _leafIds = new int[_numTrees];
@@ -329,14 +330,15 @@ namespace Microsoft.ML.Data
                 yield return RoleMappedSchema.ColumnRole.Feature.Bind(FeatureColumn.Name);
             }
 
-            public Func<int, bool> GetDependencies(Func<int, bool> predicate)
+            /// <summary>
+            /// Given a set of columns, return the input columns that are needed to generate those output columns.
+            /// </summary>
+            public IEnumerable<DataViewSchema.Column> GetDependenciesForNewColumns(IEnumerable<DataViewSchema.Column> dependingColumns)
             {
-                for (int i = 0; i < OutputSchema.Count; i++)
-                {
-                    if (predicate(i))
-                        return col => col == FeatureColumn.Index;
-                }
-                return col => false;
+                if (dependingColumns.Count() == 0)
+                    return Enumerable.Empty<DataViewSchema.Column>();
+
+                return Enumerable.Repeat(FeatureColumn, 1);
             }
         }
 
@@ -588,7 +590,7 @@ namespace Microsoft.ML.Data
 
                     // Make sure that the given predictor has the correct number of input features.
                     if (predictor is IWeaklyTypedCalibratedModelParameters calibrated)
-                        predictor = calibrated.WeeklyTypedSubModel;
+                        predictor = calibrated.WeaklyTypedSubModel;
                     // Predictor should be a TreeEnsembleModelParameters, which implements IValueMapper, so this should
                     // be non-null.
                     var vm = predictor as IValueMapper;
@@ -652,8 +654,8 @@ namespace Microsoft.ML.Data
                 ch.Assert(predictor == predictor2);
 
                 // Make sure that the given predictor has the correct number of input features.
-                if (predictor is CalibratedModelParametersBase<IPredictorProducing<float>, Calibrator.ICalibrator>)
-                    predictor = ((CalibratedModelParametersBase<IPredictorProducing<float>, Calibrator.ICalibrator>)predictor).SubModel;
+                if (predictor is CalibratedModelParametersBase<IPredictorProducing<float>, Calibrators.ICalibrator>)
+                    predictor = ((CalibratedModelParametersBase<IPredictorProducing<float>, Calibrators.ICalibrator>)predictor).SubModel;
                 // Predictor should be a TreeEnsembleModelParameters, which implements IValueMapper, so this should
                 // be non-null.
                 var vm = predictor as IValueMapper;
@@ -694,7 +696,7 @@ namespace Microsoft.ML.Data
                             return;
                         }
                         converter(in src, ref temp);
-                        dst = (Single)(temp - 1);
+                        dst = (Single)temp - 1;
                     };
             }
             else

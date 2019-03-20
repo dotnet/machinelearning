@@ -11,7 +11,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.ML.Command;
 using Microsoft.ML.CommandLine;
-using Microsoft.ML.Data;
+using Microsoft.ML.Runtime;
 
 #if CORECLR
 #endif
@@ -56,7 +56,7 @@ namespace Microsoft.ML.Tools
         {
             string currentDirectory = Path.GetDirectoryName(typeof(Maml).Module.FullyQualifiedName);
 
-            using (var env = CreateEnvironment())
+            ConsoleEnvironment env = CreateEnvironment();
 #pragma warning disable CS0618 // This is the command line project, so the usage here is OK.
             using (AssemblyLoadingUtils.CreateAssemblyRegistrar(env, currentDirectory))
 #pragma warning restore CS0618

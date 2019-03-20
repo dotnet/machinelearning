@@ -6,13 +6,12 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
 using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Internal.Utilities;
-using Microsoft.ML.Model;
+using Microsoft.ML.Runtime;
 using Microsoft.ML.Transforms;
 
 [assembly: LoadableClass(UngroupTransform.Summary, typeof(UngroupTransform), typeof(UngroupTransform.Options), typeof(SignatureDataTransform),
@@ -206,26 +205,26 @@ namespace Microsoft.ML.Transforms
             {
                 switch (kind)
                 {
-                    case MetadataUtils.Kinds.IsNormalized:
-                    case MetadataUtils.Kinds.KeyValues:
-                    case MetadataUtils.Kinds.ScoreColumnSetId:
-                    case MetadataUtils.Kinds.ScoreColumnKind:
-                    case MetadataUtils.Kinds.ScoreValueKind:
-                    case MetadataUtils.Kinds.IsUserVisible:
+                    case AnnotationUtils.Kinds.IsNormalized:
+                    case AnnotationUtils.Kinds.KeyValues:
+                    case AnnotationUtils.Kinds.ScoreColumnSetId:
+                    case AnnotationUtils.Kinds.ScoreColumnKind:
+                    case AnnotationUtils.Kinds.ScoreValueKind:
+                    case AnnotationUtils.Kinds.IsUserVisible:
                         return true;
                     default:
                         return false;
                 }
             }
 
-            public readonly struct PivotColumnInfo
+            public readonly struct PivotColumnOptions
             {
                 public readonly string Name;
                 public readonly int Index;
                 public readonly int Size;
                 public readonly PrimitiveDataViewType ItemType;
 
-                public PivotColumnInfo(string name, int index, int size, PrimitiveDataViewType itemType)
+                public PivotColumnOptions(string name, int index, int size, PrimitiveDataViewType itemType)
                 {
                     Contracts.AssertNonEmpty(name);
                     Contracts.Assert(index >= 0);
@@ -244,7 +243,7 @@ namespace Microsoft.ML.Transforms
             /// <summary>
             /// Information of columns to be ungrouped in <see cref="_inputSchema"/>.
             /// </summary>
-            private readonly PivotColumnInfo[] _infos;
+            private readonly PivotColumnOptions[] _infos;
 
             /// <summary>
             /// <see cref="_pivotIndex"/>[i] is -1 means that the i-th column in both of <see cref="_inputSchema"/> and <see cref="OutputSchema"/>
@@ -288,7 +287,7 @@ namespace Microsoft.ML.Transforms
                     _pivotIndex[info.Index] = i;
                 }
 
-                var schemaBuilder = new SchemaBuilder();
+                var schemaBuilder = new DataViewSchema.Builder();
                 // Iterate through input columns. Input columns which are not pivot columns will be copied to output schema with the same column index unchanged.
                 // Input columns which are pivot columns would also be copied but with different data types and different metadata.
                 for (int i = 0; i < InputColumnCount; ++i)
@@ -296,13 +295,13 @@ namespace Microsoft.ML.Transforms
                     if (_pivotIndex[i] < 0)
                     {
                         // i-th input column is not a pivot column. Let's do a naive copy.
-                        schemaBuilder.AddColumn(inputSchema[i].Name, inputSchema[i].Type, inputSchema[i].Metadata);
+                        schemaBuilder.AddColumn(inputSchema[i].Name, inputSchema[i].Type, inputSchema[i].Annotations);
                     }
                     else
                     {
                         // i-th input column is a pivot column. Let's calculate proper type and metadata for it.
-                        var metadataBuilder = new MetadataBuilder();
-                        metadataBuilder.Add(inputSchema[i].Metadata, metadataName => ShouldPreserveMetadata(metadataName));
+                        var metadataBuilder = new DataViewSchema.Annotations.Builder();
+                        metadataBuilder.Add(inputSchema[i].Annotations, metadataName => ShouldPreserveMetadata(metadataName));
                         // To explain the output type of pivot columns, let's consider a row
                         //   Age UserID
                         //   18  {"Amy", "Willy"}
@@ -312,20 +311,20 @@ namespace Microsoft.ML.Transforms
                         //   18  "Amy"
                         //   18  "Willy"
                         // One can see that "UserID" column (in output data) has a type identical to the element's type of the "UserID" column in input data.
-                        schemaBuilder.AddColumn(inputSchema[i].Name, inputSchema[i].Type.GetItemType(), metadataBuilder.GetMetadata());
+                        schemaBuilder.AddColumn(inputSchema[i].Name, inputSchema[i].Type.GetItemType(), metadataBuilder.ToAnnotations());
                     }
                 }
-                OutputSchema = schemaBuilder.GetSchema();
+                OutputSchema = schemaBuilder.ToSchema();
             }
 
             private static void Bind(IExceptionContext ectx, DataViewSchema inputSchema,
-                string[] pivotColumns, out PivotColumnInfo[] infos)
+                string[] pivotColumns, out PivotColumnOptions[] infos)
             {
                 Contracts.AssertValueOrNull(ectx);
                 ectx.AssertValue(inputSchema);
                 ectx.AssertNonEmpty(pivotColumns);
 
-                infos = new PivotColumnInfo[pivotColumns.Length];
+                infos = new PivotColumnOptions[pivotColumns.Length];
                 for (int i = 0; i < pivotColumns.Length; i++)
                 {
                     var name = pivotColumns[i];
@@ -337,7 +336,7 @@ namespace Microsoft.ML.Transforms
                     if (!(inputSchema[col].Type is VectorType colType))
                         throw ectx.ExceptUserArg(nameof(Options.Columns),
                             "Pivot column '{0}' has type '{1}', but must be a vector of primitive types", name, inputSchema[col].Type);
-                    infos[i] = new PivotColumnInfo(name, col, colType.Size, colType.ItemType);
+                    infos[i] = new PivotColumnOptions(name, col, colType.Size, colType.ItemType);
                 }
             }
 
@@ -399,13 +398,13 @@ namespace Microsoft.ML.Transforms
                 get { return _infos.Length; }
             }
 
-            public PivotColumnInfo GetPivotColumnInfo(int iinfo)
+            public PivotColumnOptions GetPivotColumnOptions(int iinfo)
             {
                 _ectx.Assert(0 <= iinfo && iinfo < _infos.Length);
                 return _infos[iinfo];
             }
 
-            public PivotColumnInfo GetPivotColumnInfoByCol(int col)
+            public PivotColumnOptions GetPivotColumnOptionsByCol(int col)
             {
                 _ectx.Assert(0 <= col && col < _inputSchema.Count);
                 _ectx.Assert(_pivotIndex[col] >= 0);
@@ -487,7 +486,7 @@ namespace Microsoft.ML.Transforms
                 var needed = new List<Func<int>>();
                 for (int i = 0; i < sizeColumnsLim; i++)
                 {
-                    var info = _ungroupBinding.GetPivotColumnInfo(i);
+                    var info = _ungroupBinding.GetPivotColumnOptions(i);
                     if (info.Size > 0)
                     {
                         if (_fixedSize == 0)
@@ -579,7 +578,7 @@ namespace Microsoft.ML.Transforms
             {
                 Contracts.Assert(0 <= col && col < _ungroupBinding.InputColumnCount);
 
-                var srcGetter = GetGetter<T>(col);
+                var srcGetter = GetGetter<T>(Schema[col]);
                 var cur = default(T);
 
                 return
@@ -593,38 +592,40 @@ namespace Microsoft.ML.Transforms
 
             public override DataViewSchema Schema => _ungroupBinding.OutputSchema;
 
-            public override bool IsColumnActive(int col)
+            /// <summary>
+            /// Returns whether the given column is active in this row.
+            /// </summary>
+            public override bool IsColumnActive(DataViewSchema.Column column)
             {
-                Ch.Check(0 <= col && col < _ungroupBinding.InputColumnCount);
-                return _active[col];
+                Ch.Check(column.Index < _ungroupBinding.InputColumnCount);
+                return _active[column.Index];
             }
 
             /// <summary>
-            /// Returns getter to an output column.
+            /// Returns the getter of an output column.
             /// </summary>
-            /// <typeparam name="TValue">Output column's content type, for example, <see cref="VBuffer{T}"/>.</typeparam>
-            /// <param name="col">Index of a output column whose getter will be returned.</param>
-            /// <returns></returns>
-            public override ValueGetter<TValue> GetGetter<TValue>(int col)
+            /// <typeparam name="TValue"> is the output column's content type, for example, <see cref="VBuffer{T}"/>.</typeparam>
+            /// <param name="column"> is the output column whose getter should be returned.</param>
+            public override ValueGetter<TValue> GetGetter<TValue>(DataViewSchema.Column column)
             {
                 // Although the input argument, col, is a output index, we check its range as if it's an input column index.
                 // It makes sense because the i-th output column is produced by either expanding or copying the i-th input column.
-                Ch.CheckParam(0 <= col && col < _ungroupBinding.InputColumnCount, nameof(col));
+                Ch.CheckParam(column.Index < _ungroupBinding.InputColumnCount, nameof(column));
 
-                if (!_ungroupBinding.IsPivot(col))
-                    return Input.GetGetter<TValue>(col);
+                if (!_ungroupBinding.IsPivot(column.Index))
+                    return Input.GetGetter<TValue>(column);
 
-                if (_cachedGetters[col] == null)
-                    _cachedGetters[col] = MakeGetter<TValue>(col, _ungroupBinding.GetPivotColumnInfoByCol(col).ItemType);
+                if (_cachedGetters[column.Index] == null)
+                    _cachedGetters[column.Index] = MakeGetter<TValue>(column.Index, _ungroupBinding.GetPivotColumnOptionsByCol(column.Index).ItemType);
 
-                var result = _cachedGetters[col] as ValueGetter<TValue>;
+                var result = _cachedGetters[column.Index] as ValueGetter<TValue>;
                 Ch.Check(result != null, "Unexpected getter type requested");
                 return result;
             }
 
             private ValueGetter<T> MakeGetter<T>(int col, PrimitiveDataViewType itemType)
             {
-                var srcGetter = Input.GetGetter<VBuffer<T>>(col);
+                var srcGetter = Input.GetGetter<VBuffer<T>>(Input.Schema[col]);
                 // The position of the source cursor. Used to extract the source row once.
                 long cachedPosition = -1;
                 // The position inside the sparse row. If the row is sparse, the invariant is

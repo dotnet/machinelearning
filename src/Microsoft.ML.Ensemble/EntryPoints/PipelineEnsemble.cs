@@ -2,10 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.Data.DataView;
+using Microsoft.ML.Calibrators;
 using Microsoft.ML.Data;
 using Microsoft.ML.EntryPoints;
-using Microsoft.ML.Internal.Calibration;
+using Microsoft.ML.Runtime;
 using Microsoft.ML.Trainers.Ensemble;
 
 [assembly: EntryPointModule(typeof(PipelineEnsemble))]
@@ -38,7 +38,7 @@ namespace Microsoft.ML.Trainers.Ensemble
             var calibrated = predictor as IWeaklyTypedCalibratedModelParameters;
             while (calibrated != null)
             {
-                predictor = calibrated.WeeklyTypedSubModel;
+                predictor = calibrated.WeaklyTypedSubModel;
                 calibrated = predictor as IWeaklyTypedCalibratedModelParameters;
             }
             var ensemble = predictor as SchemaBindablePipelineEnsembleBase;

@@ -2,7 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.Data.DataView;
+using Microsoft.ML.Runtime;
 
 namespace Microsoft.ML.Data
 {
@@ -12,12 +12,12 @@ namespace Microsoft.ML.Data
     public sealed class ClusteringMetrics
     {
         /// <summary>
-        /// Normalized Mutual Information
-        /// NMI is a measure of the mutual dependence of the variables.
-        /// <a href="http://en.wikipedia.org/wiki/Mutual_information#Normalized_variants">Normalized variants</a> work on data that already has cluster labels.
-        /// Its value ranged from 0 to 1, where higher numbers are better.
+        /// Normalized Mutual Information is a measure of the mutual dependence of the variables.
+        /// This metric is only calculated if the Label column is provided.
         /// </summary>
-        public double Nmi { get; }
+        /// <value> Its value ranged from 0 to 1, where higher numbers are better.</value>
+        /// <remarks><a href="http://en.wikipedia.org/wiki/Mutual_information#Normalized_variants">Normalized variants.</a></remarks>
+        public double NormalizedMutualInformation { get; }
 
         /// <summary>
         /// Average Score. For the K-Means algorithm, the &apos;score&apos; is the distance from the centroid to the example.
@@ -26,30 +26,31 @@ namespace Microsoft.ML.Data
         /// Note however, that this metric will only decrease if the number of clusters is increased,
         /// and in the extreme case (where each distinct example is its own cluster) it will be equal to zero.
         /// </summary>
-        public double AvgMinScore { get; }
+        /// <value>Distance is to the nearest centroid.</value>
+        public double AverageDistance { get; }
 
         /// <summary>
-        /// <a href="https://en.wikipedia.org/wiki/Davies%E2%80%93Bouldin_index">Davies-Bouldin Index</a>
-        /// DBI is a measure of the how much scatter is in the cluster and the cluster separation.
+        /// Davies-Bouldin Index is measure of the how much scatter is in the cluster and the cluster separation.
         /// </summary>
-        public double Dbi { get; }
+        /// <remarks><a href="https://en.wikipedia.org/wiki/Davies%E2%80%93Bouldin_index">Davies-Bouldin Index.</a></remarks>
+        public double DaviesBouldinIndex { get; }
 
         internal ClusteringMetrics(IExceptionContext ectx, DataViewRow overallResult, bool calculateDbi)
         {
             double Fetch(string name) => RowCursorUtils.Fetch<double>(ectx, overallResult, name);
 
-            Nmi = Fetch(ClusteringEvaluator.Nmi);
-            AvgMinScore = Fetch(ClusteringEvaluator.AvgMinScore);
+            NormalizedMutualInformation = Fetch(ClusteringEvaluator.Nmi);
+            AverageDistance = Fetch(ClusteringEvaluator.AvgMinScore);
 
             if (calculateDbi)
-                Dbi = Fetch(ClusteringEvaluator.Dbi);
+                DaviesBouldinIndex = Fetch(ClusteringEvaluator.Dbi);
         }
 
         internal ClusteringMetrics(double nmi, double avgMinScore, double dbi)
         {
-            Nmi = nmi;
-            AvgMinScore = avgMinScore;
-            Dbi = dbi;
+            NormalizedMutualInformation = nmi;
+            AverageDistance = avgMinScore;
+            DaviesBouldinIndex = dbi;
         }
     }
 }

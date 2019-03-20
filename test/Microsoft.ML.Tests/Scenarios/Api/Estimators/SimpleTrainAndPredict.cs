@@ -3,10 +3,8 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Linq;
-using Microsoft.ML.Data;
 using Microsoft.ML.RunTests;
 using Microsoft.ML.Trainers;
-using Microsoft.ML.Trainers.HalLearners;
 using Xunit;
 
 namespace Microsoft.ML.Tests.Scenarios.Api
@@ -22,24 +20,24 @@ namespace Microsoft.ML.Tests.Scenarios.Api
         [Fact]
         public void SimpleTrainAndPredict()
         {
-            var ml = new MLContext(seed: 1, conc: 1);
-            var data = ml.Data.ReadFromTextFile<SentimentData>(GetDataPath(TestDatasets.Sentiment.trainFilename), hasHeader: true);
+            var ml = new MLContext(seed: 1);
+            var data = ml.Data.LoadFromTextFile<SentimentData>(GetDataPath(TestDatasets.Sentiment.trainFilename), hasHeader: true);
 
             // Pipeline.
             var pipeline = ml.Transforms.Text.FeaturizeText("Features", "SentimentText")
                 .AppendCacheCheckpoint(ml)
-                .Append(ml.BinaryClassification.Trainers.StochasticDualCoordinateAscentNonCalibrated(
-                    new SdcaNonCalibratedBinaryTrainer.Options { NumThreads = 1 }));
+                .Append(ml.BinaryClassification.Trainers.SdcaNonCalibrated(
+                    new SdcaNonCalibratedBinaryTrainer.Options { NumberOfThreads = 1 }));
 
             // Train.
             var model = pipeline.Fit(data);
 
             // Create prediction engine and test predictions.
-            var engine = model.CreatePredictionEngine<SentimentData, SentimentPrediction>(ml);
+            var engine = ml.Model.CreatePredictionEngine<SentimentData, SentimentPrediction>(model);
 
             // Take a couple examples out of the test data and run predictions on top.
-            var testData = ml.CreateEnumerable<SentimentData>(
-                ml.Data.ReadFromTextFile<SentimentData>(GetDataPath(TestDatasets.Sentiment.testFilename), hasHeader: true), false);
+            var testData = ml.Data.CreateEnumerable<SentimentData>(
+                ml.Data.LoadFromTextFile<SentimentData>(GetDataPath(TestDatasets.Sentiment.testFilename), hasHeader: true), false);
             foreach (var input in testData.Take(5))
             {
                 var prediction = engine.Predict(input);
@@ -54,18 +52,18 @@ namespace Microsoft.ML.Tests.Scenarios.Api
         /// Train a linear model over that. (I am thinking sentiment classification.) 
         /// Out of the result, produce some structure over which you can get predictions programmatically 
         /// (for example, the prediction does not happen over a file as it did during training).
-        /// Uses Symbolic SDCA Trainer.
+        /// Uses Symbolic SGD Trainer.
         /// </summary>
         [Fact]
         public void SimpleTrainAndPredictSymSGD()
         {
-            var ml = new MLContext(seed: 1, conc: 1);
-            var data = ml.Data.ReadFromTextFile<SentimentData>(GetDataPath(TestDatasets.Sentiment.trainFilename), hasHeader: true);
+            var ml = new MLContext(seed: 1);
+            var data = ml.Data.LoadFromTextFile<SentimentData>(GetDataPath(TestDatasets.Sentiment.trainFilename), hasHeader: true);
 
             // Pipeline.
             var pipeline = ml.Transforms.Text.FeaturizeText("Features", "SentimentText")
                 .AppendCacheCheckpoint(ml)
-                .Append(ml.BinaryClassification.Trainers.SymbolicStochasticGradientDescent(new SymSgdClassificationTrainer.Options
+                .Append(ml.BinaryClassification.Trainers.SymbolicSgd(new SymbolicSgdTrainer.Options
                 {
                     NumberOfThreads = 1
                 }));
@@ -74,11 +72,11 @@ namespace Microsoft.ML.Tests.Scenarios.Api
             var model = pipeline.Fit(data);
 
             // Create prediction engine and test predictions.
-            var engine = model.CreatePredictionEngine<SentimentData, SentimentPrediction>(ml);
+            var engine = ml.Model.CreatePredictionEngine<SentimentData, SentimentPrediction>(model);
 
             // Take a couple examples out of the test data and run predictions on top.
-            var testData = ml.CreateEnumerable<SentimentData>(
-                ml.Data.ReadFromTextFile<SentimentData>(GetDataPath(TestDatasets.Sentiment.testFilename), hasHeader: true), false);
+            var testData = ml.Data.CreateEnumerable<SentimentData>(
+                ml.Data.LoadFromTextFile<SentimentData>(GetDataPath(TestDatasets.Sentiment.testFilename), hasHeader: true), false);
             foreach (var input in testData.Take(5))
             {
                 var prediction = engine.Predict(input);

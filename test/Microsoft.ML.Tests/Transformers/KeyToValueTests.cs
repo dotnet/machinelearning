@@ -3,13 +3,11 @@
 // See the LICENSE file in the project root for more information.
 
 using System.IO;
-using Microsoft.Data.DataView;
 using Microsoft.ML.Data;
 using Microsoft.ML.Data.IO;
 using Microsoft.ML.RunTests;
 using Microsoft.ML.StaticPipe;
 using Microsoft.ML.Transforms;
-using Microsoft.ML.Transforms.Conversions;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -30,23 +28,17 @@ namespace Microsoft.ML.Tests.Transformers
             {
                 Columns = new[]
                 {
-                    new TextLoader.Column("ScalarString", DataKind.TX, 1),
-                    new TextLoader.Column("VectorString", DataKind.TX, new[] {new TextLoader.Range(1, 4) }),
-                    new TextLoader.Column
-                    {
-                        Name="BareKey",
-                        Source = new[] { new TextLoader.Range(0) },
-                        Type = DataKind.U4,
-                        KeyCount = new KeyCount(6),
-                    }
+                    new TextLoader.Column("ScalarString", DataKind.String, 1),
+                    new TextLoader.Column("VectorString", DataKind.String, new[] {new TextLoader.Range(1, 4) }),
+                    new TextLoader.Column("BareKey", DataKind.UInt32, new[] { new TextLoader.Range(0) }, new KeyCount(6))
                 }
             });
 
-            var data = reader.Read(dataPath);
+            var data = reader.Load(dataPath);
 
             data = new ValueToKeyMappingEstimator(Env, new[] {
-                new ValueToKeyMappingEstimator.ColumnInfo("A", "ScalarString"),
-                new ValueToKeyMappingEstimator.ColumnInfo("B", "VectorString") }).Fit(data).Transform(data);
+                new ValueToKeyMappingEstimator.ColumnOptions("A", "ScalarString"),
+                new ValueToKeyMappingEstimator.ColumnOptions("B", "VectorString") }).Fit(data).Transform(data);
 
             var badData1 = new ColumnCopyingTransformer(Env, ("A", "BareKey")).Transform(data);
             var badData2 = new ColumnCopyingTransformer(Env, ("B", "VectorString")).Transform(data);
@@ -73,17 +65,17 @@ namespace Microsoft.ML.Tests.Transformers
         public void KeyToValuePigsty()
         {
             string dataPath = GetDataPath("breast-cancer.txt");
-            var reader = TextLoaderStatic.CreateReader(Env, ctx => (
+            var reader = TextLoaderStatic.CreateLoader(Env, ctx => (
                 ScalarString: ctx.LoadText(1),
                 VectorString: ctx.LoadText(1, 4)
             ));
 
-            var data = reader.Read(dataPath);
+            var data = reader.Load(dataPath);
 
             // Non-pigsty Term.
             var dynamicData = new ValueToKeyMappingEstimator(Env, new[] {
-                new ValueToKeyMappingEstimator.ColumnInfo("A", "ScalarString"),
-                new ValueToKeyMappingEstimator.ColumnInfo("B", "VectorString") })
+                new ValueToKeyMappingEstimator.ColumnOptions("A", "ScalarString"),
+                new ValueToKeyMappingEstimator.ColumnOptions("B", "VectorString") })
                 .Fit(data.AsDynamic).Transform(data.AsDynamic);
 
             var data2 = dynamicData.AssertStatic(Env, ctx => (

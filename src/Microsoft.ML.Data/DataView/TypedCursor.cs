@@ -6,8 +6,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using Microsoft.Data.DataView;
 using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Runtime;
 
 namespace Microsoft.ML.Data
 {
@@ -333,7 +333,7 @@ namespace Microsoft.ML.Data
             // of affected types is pretty arbitrary (signed integers and bools, but not uints and floats).
             private Action<TRow> CreateConvertingVBufferSetter<TSrc, TDst>(DataViewRow input, int col, Delegate poke, Delegate peek, Func<TSrc, TDst> convert)
             {
-                var getter = input.GetGetter<VBuffer<TSrc>>(col);
+                var getter = input.GetGetter<VBuffer<TSrc>>(input.Schema[col]);
                 var typedPoke = poke as Poke<TRow, TDst[]>;
                 var typedPeek = peek as Peek<TRow, TDst[]>;
                 Contracts.AssertValue(typedPoke);
@@ -355,7 +355,7 @@ namespace Microsoft.ML.Data
 
             private Action<TRow> CreateDirectVBufferSetter<TDst>(DataViewRow input, int col, Delegate poke, Delegate peek)
             {
-                var getter = input.GetGetter<VBuffer<TDst>>(col);
+                var getter = input.GetGetter<VBuffer<TDst>>(input.Schema[col]);
                 var typedPoke = poke as Poke<TRow, TDst[]>;
                 var typedPeek = peek as Peek<TRow, TDst[]>;
                 Contracts.AssertValue(typedPoke);
@@ -393,7 +393,7 @@ namespace Microsoft.ML.Data
 
             private static Action<TRow> CreateConvertingActionSetter<TSrc, TDst>(DataViewRow input, int col, Delegate poke, Func<TSrc, TDst> convert)
             {
-                var getter = input.GetGetter<TSrc>(col);
+                var getter = input.GetGetter<TSrc>(input.Schema[col]);
                 var typedPoke = poke as Poke<TRow, TDst>;
                 Contracts.AssertValue(typedPoke);
                 TSrc value = default;
@@ -409,7 +409,7 @@ namespace Microsoft.ML.Data
             {
                 // Awkward to have a parameter that's always null, but slightly more convenient for generalizing the setter.
                 Contracts.Assert(peek == null);
-                var getter = input.GetGetter<TDst>(col);
+                var getter = input.GetGetter<TDst>(input.Schema[col]);
                 var typedPoke = poke as Poke<TRow, TDst>;
                 Contracts.AssertValue(typedPoke);
                 TDst value = default(TDst);
@@ -422,7 +422,7 @@ namespace Microsoft.ML.Data
 
             private Action<TRow> CreateVBufferToVBufferSetter<TDst>(DataViewRow input, int col, Delegate poke, Delegate peek)
             {
-                var getter = input.GetGetter<VBuffer<TDst>>(col);
+                var getter = input.GetGetter<VBuffer<TDst>>(input.Schema[col]);
                 var typedPoke = poke as Poke<TRow, VBuffer<TDst>>;
                 var typedPeek = peek as Peek<TRow, VBuffer<TDst>>;
                 Contracts.AssertValue(typedPoke);
@@ -442,15 +442,21 @@ namespace Microsoft.ML.Data
                     setter(row);
             }
 
-            public override bool IsColumnActive(int col)
-            {
-                return Input.IsColumnActive(col);
-            }
+            /// <summary>
+            /// Returns whether the given column is active in this row.
+            /// </summary>
+            public override bool IsColumnActive(DataViewSchema.Column column)
+                => Input.IsColumnActive(column);
 
-            public override ValueGetter<TValue> GetGetter<TValue>(int col)
-            {
-                return Input.GetGetter<TValue>(col);
-            }
+            /// <summary>
+            /// Returns a value getter delegate to fetch the value of column with the given columnIndex, from the row.
+            /// This throws if the column is not active in this row, or if the type
+            /// <typeparamref name="TValue"/> differs from this column's type.
+            /// </summary>
+            /// <typeparam name="TValue"> is the column's content type.</typeparam>
+            /// <param name="column"> is the output column whose getter should be returned.</param>
+            public override ValueGetter<TValue> GetGetter<TValue>(DataViewSchema.Column column)
+                => Input.GetGetter<TValue>(column);
         }
 
         private sealed class TypedRow : TypedRowBase
@@ -480,9 +486,11 @@ namespace Microsoft.ML.Data
             public long Batch => _row.Batch;
             public DataViewSchema Schema => _row.Schema;
             public void FillValues(TRow row) => _row.FillValues(row);
-            public ValueGetter<TValue> GetGetter<TValue>(int col) => _row.GetGetter<TValue>(col);
+            public ValueGetter<TValue> GetGetter<TValue>(DataViewSchema.Column column)
+                => _row.GetGetter<TValue>(column);
+
             public ValueGetter<DataViewRowId> GetIdGetter() => _row.GetIdGetter();
-            public bool IsColumnActive(int col) => _row.IsColumnActive(col);
+            public bool IsColumnActive(int col) => _row.IsColumnActive(_row.Schema[col]);
         }
 
         private sealed class RowCursorImplementation : RowCursor<TRow>
@@ -507,9 +515,23 @@ namespace Microsoft.ML.Data
             }
 
             public override void FillValues(TRow row) => _cursor.FillValues(row);
-            public override ValueGetter<TValue> GetGetter<TValue>(int col) => _cursor.GetGetter<TValue>(col);
+
+            /// <summary>
+            /// Returns a value getter delegate to fetch the value of column with the given columnIndex, from the row.
+            /// This throws if the column is not active in this row, or if the type
+            /// <typeparamref name="TValue"/> differs from this column's type.
+            /// </summary>
+            /// <typeparam name="TValue"> is the column's content type.</typeparam>
+            /// <param name="column"> is the output column whose getter should be returned.</param>
+            public override ValueGetter<TValue> GetGetter<TValue>(DataViewSchema.Column column)
+                => _cursor.GetGetter<TValue>(column);
+
             public override ValueGetter<DataViewRowId> GetIdGetter() => _cursor.GetIdGetter();
-            public override bool IsColumnActive(int col) => _cursor.IsColumnActive(col);
+
+            /// <summary>
+            /// Returns whether the given column is active in this row.
+            /// </summary>
+            public override bool IsColumnActive(DataViewSchema.Column column) => _cursor.IsColumnActive(column);
             public override bool MoveNext() => _cursor.MoveNext();
         }
 
@@ -536,7 +558,8 @@ namespace Microsoft.ML.Data
     /// <summary>
     /// Utility methods that facilitate strongly-typed cursoring.
     /// </summary>
-    public static class CursoringUtils
+    [BestFriend]
+    internal static class CursoringUtils
     {
         /// <summary>
         /// Generate a strongly-typed cursorable wrapper of the <see cref="IDataView"/>.
@@ -547,8 +570,7 @@ namespace Microsoft.ML.Data
         /// <param name="ignoreMissingColumns">Whether to ignore the case when a requested column is not present in the data view.</param>
         /// <param name="schemaDefinition">Optional user-provided schema definition. If it is not present, the schema is inferred from the definition of T.</param>
         /// <returns>The cursorable wrapper of <paramref name="data"/>.</returns>
-        [BestFriend]
-        internal static ICursorable<TRow> AsCursorable<TRow>(this IHostEnvironment env, IDataView data, bool ignoreMissingColumns = false,
+        public static ICursorable<TRow> AsCursorable<TRow>(this IHostEnvironment env, IDataView data, bool ignoreMissingColumns = false,
             SchemaDefinition schemaDefinition = null)
             where TRow : class, new()
         {
@@ -556,28 +578,6 @@ namespace Microsoft.ML.Data
             env.CheckValueOrNull(schemaDefinition);
 
             return TypedCursorable<TRow>.Create(env, data, ignoreMissingColumns, schemaDefinition);
-        }
-
-        /// <summary>
-        /// Convert an <see cref="IDataView"/> into a strongly-typed <see cref="IEnumerable{TRow}"/>.
-        /// </summary>
-        /// <typeparam name="TRow">The user-defined row type.</typeparam>
-        /// <param name="mlContext">ML context.</param>
-        /// <param name="data">The underlying data view.</param>
-        /// <param name="reuseRowObject">Whether to return the same object on every row, or allocate a new one per row.</param>
-        /// <param name="ignoreMissingColumns">Whether to ignore the case when a requested column is not present in the data view.</param>
-        /// <param name="schemaDefinition">Optional user-provided schema definition. If it is not present, the schema is inferred from the definition of T.</param>
-        /// <returns>The <see cref="IEnumerable{TRow}"/> that holds the data in <paramref name="data"/>. It can be enumerated multiple times.</returns>
-        public static IEnumerable<TRow> CreateEnumerable<TRow>(this MLContext mlContext, IDataView data, bool reuseRowObject,
-            bool ignoreMissingColumns = false, SchemaDefinition schemaDefinition = null)
-            where TRow : class, new()
-        {
-            Contracts.AssertValue(mlContext);
-            mlContext.CheckValue(data, nameof(data));
-            mlContext.CheckValueOrNull(schemaDefinition);
-
-            var engine = new PipeEngine<TRow>(mlContext, data, ignoreMissingColumns, schemaDefinition);
-            return engine.RunPipe(reuseRowObject);
         }
     }
 }

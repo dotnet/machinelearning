@@ -8,9 +8,9 @@ using System.Linq;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Runtime;
 using Microsoft.ML.Sweeper.Algorithms;
 using Microsoft.ML.Trainers.FastTree;
-using Float = System.Single;
 
 [assembly: LoadableClass(typeof(KdoSweeper), typeof(KdoSweeper.Options), typeof(SignatureSweeper),
     "KDO Sweeper", "KDOSweeper", "KDO")]
@@ -82,7 +82,7 @@ namespace Microsoft.ML.Sweeper.Algorithms
 
         private readonly IValueGenerator[] _sweepParameters;
         private readonly SweeperProbabilityUtils _spu;
-        private readonly SortedSet<Float[]> _alreadySeenConfigs;
+        private readonly SortedSet<float[]> _alreadySeenConfigs;
         private readonly List<ParameterSet> _randomParamSets;
 
         public KdoSweeper(IHostEnvironment env, Options options)
@@ -102,7 +102,7 @@ namespace Microsoft.ML.Sweeper.Algorithms
             _randomSweeper = new UniformRandomSweeper(env, new SweeperBase.OptionsBase(), _sweepParameters);
             _redundantSweeper = new UniformRandomSweeper(env, new SweeperBase.OptionsBase { Retries = 0 }, _sweepParameters);
             _spu = new SweeperProbabilityUtils(_host);
-            _alreadySeenConfigs = new SortedSet<Float[]>(new FloatArrayComparer());
+            _alreadySeenConfigs = new SortedSet<float[]>(new FloatArrayComparer());
             _randomParamSets = new List<ParameterSet>();
         }
 
@@ -201,7 +201,7 @@ namespace Microsoft.ML.Sweeper.Algorithms
         /// <returns>A mutated version of parent (i.e., point sampled near parent).</returns>
         private ParameterSet SampleChild(ParameterSet parent, double fitness, int n, IRunResult[] previousRuns, double rMean, double rVar, bool isMetricMaximizing)
         {
-            Float[] child = SweeperProbabilityUtils.ParameterSetAsFloatArray(_host, _sweepParameters, parent, false);
+            float[] child = SweeperProbabilityUtils.ParameterSetAsFloatArray(_host, _sweepParameters, parent, false);
             List<int> numericParamIndices = new List<int>();
             List<double> numericParamValues = new List<double>();
             int loopCount = 0;
@@ -252,7 +252,7 @@ namespace Microsoft.ML.Sweeper.Algorithms
                         double[][] bandwidthMatrix = BuildBandwidthMatrix(n, stddevs);
                         double[] sampledPoint = SampleDiagonalCovMultivariateGaussian(1, mu, bandwidthMatrix)[0];
                         for (int j = 0; j < sampledPoint.Length; j++)
-                            child[numericParamIndices[j]] = (Float)Corral(sampledPoint[j]);
+                            child[numericParamIndices[j]] = (float)Corral(sampledPoint[j]);
                     }
                     else
                     {
@@ -264,7 +264,7 @@ namespace Microsoft.ML.Sweeper.Algorithms
                             const double epsCutoff = 1e-10;
                             double eps = Math.Min(Math.Max(child[index], epsCutoff), 1 - epsCutoff);
                             double beta = alpha / eps - alpha;
-                            child[index] = (Float)Stats.SampleFromBeta(rng, alpha, beta);
+                            child[index] = (float)Stats.SampleFromBeta(rng, alpha, beta);
                         }
                     }
                 }
@@ -495,9 +495,9 @@ namespace Microsoft.ML.Sweeper.Algorithms
             return result;
         }
 
-        private sealed class FloatArrayComparer : IComparer<Float[]>
+        private sealed class FloatArrayComparer : IComparer<float[]>
         {
-            public int Compare(Float[] x, Float[] y)
+            public int Compare(float[] x, float[] y)
             {
                 if (x.Length != y.Length)
                     return x.Length > y.Length ? 1 : -1;

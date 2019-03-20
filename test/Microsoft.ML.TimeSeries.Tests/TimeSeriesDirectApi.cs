@@ -44,10 +44,10 @@ namespace Microsoft.ML.Tests
         [Fact]
         public void ChangeDetection()
         {
-            var env = new MLContext(conc: 1);
+            var env = new MLContext();
             const int size = 10;
             List<Data> data = new List<Data>(size);
-            var dataView = env.Data.ReadFromEnumerable(data);
+            var dataView = env.Data.LoadFromEnumerable(data);
             for (int i = 0; i < size / 2; i++)
                 data.Add(new Data(5));
 
@@ -66,7 +66,7 @@ namespace Microsoft.ML.Tests
             // Transform
             var output = detector.Transform(dataView);
             // Get predictions
-            var enumerator = env.CreateEnumerable<Prediction>(output, true).GetEnumerator();
+            var enumerator = env.Data.CreateEnumerable<Prediction>(output, true).GetEnumerator();
             Prediction row = null;
             List<double> expectedValues = new List<double>() { 0, 5, 0.5, 5.1200000000000114E-08, 0, 5, 0.4999999995, 5.1200000046080209E-08, 0, 5, 0.4999999995, 5.1200000092160303E-08,
                 0, 5, 0.4999999995, 5.12000001382404E-08};
@@ -85,14 +85,14 @@ namespace Microsoft.ML.Tests
         [LessThanNetCore30OrNotNetCoreFact("netcoreapp3.0 output differs from Baseline")]
         public void ChangePointDetectionWithSeasonality()
         {
-            var env = new MLContext(conc: 1);
+            var env = new MLContext();
             const int ChangeHistorySize = 10;
             const int SeasonalitySize = 10;
             const int NumberOfSeasonsInTraining = 5;
             const int MaxTrainingSize = NumberOfSeasonsInTraining * SeasonalitySize;
 
             List<Data> data = new List<Data>();
-            var dataView = env.Data.ReadFromEnumerable(data);
+            var dataView = env.Data.LoadFromEnumerable(data);
 
             var args = new SsaChangePointDetector.Options()
             {
@@ -116,7 +116,7 @@ namespace Microsoft.ML.Tests
             // Transform
             var output = detector.Transform(dataView);
             // Get predictions
-            var enumerator = env.CreateEnumerable<Prediction>(output, true).GetEnumerator();
+            var enumerator = env.Data.CreateEnumerable<Prediction>(output, true).GetEnumerator();
             Prediction row = null;
             List<double> expectedValues = new List<double>() { 0, -3.31410598754883, 0.5, 5.12000000000001E-08, 0, 1.5700820684432983, 5.2001145245395008E-07,
                     0.012414560443710681, 0, 1.2854313254356384, 0.28810801662678009, 0.02038940454467935, 0, -1.0950627326965332, 0.36663890634019225, 0.026956459625565483};
@@ -142,8 +142,8 @@ namespace Microsoft.ML.Tests
 
             List<Data> data = new List<Data>();
 
-            var ml = new MLContext(seed: 1, conc: 1);
-            var dataView = ml.Data.ReadFromEnumerable(data);
+            var ml = new MLContext(seed: 1);
+            var dataView = ml.Data.LoadFromEnumerable(data);
 
             for (int j = 0; j < NumberOfSeasonsInTraining; j++)
                 for (int i = 0; i < SeasonalitySize; i++)
@@ -179,7 +179,7 @@ namespace Microsoft.ML.Tests
             //with "engine".
             ITransformer model2 = null;
             using (var file = File.OpenRead(modelPath))
-                model2 = TransformerChain.LoadFrom(ml, file);
+                model2 = ml.Model.Load(file, out var schema);
 
             //Raw score after state gets updated with two inputs.
             var engine2 = model2.CreateTimeSeriesPredictionFunction<Data, Prediction>(ml);
@@ -199,7 +199,7 @@ namespace Microsoft.ML.Tests
             engine.CheckPoint(ml, modelPath + 1);
             ITransformer model3 = null;
             using (var file = File.OpenRead(modelPath + 1))
-                model3 = TransformerChain.LoadFrom(ml, file);
+                model3 = ml.Model.Load(file, out var schema);
 
             //Load the model with state updated with just one input, then pass in the second input
             //and raw score should match the raw score obtained by passing the two input in the first model.
@@ -218,8 +218,8 @@ namespace Microsoft.ML.Tests
 
             List<Data> data = new List<Data>();
 
-            var ml = new MLContext(seed: 1, conc: 1);
-            var dataView = ml.Data.ReadFromEnumerable(data);
+            var ml = new MLContext(seed: 1);
+            var dataView = ml.Data.LoadFromEnumerable(data);
 
             for (int j = 0; j < NumberOfSeasonsInTraining; j++)
                 for (int i = 0; i < SeasonalitySize; i++)
@@ -266,7 +266,7 @@ namespace Microsoft.ML.Tests
             // Load Model 1.
             ITransformer model2 = null;
             using (var file = File.OpenRead(modelPath))
-                model2 = TransformerChain.LoadFrom(ml, file);
+                model2 = ml.Model.Load(file, out var schema);
 
             //Predict and expect the same result after checkpointing(Prediction #2).
             engine = model2.CreateTimeSeriesPredictionFunction<Data, Prediction>(ml);

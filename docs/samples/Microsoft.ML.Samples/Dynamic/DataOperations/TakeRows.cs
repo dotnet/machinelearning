@@ -1,7 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using Microsoft.ML.Data;
-
 namespace Microsoft.ML.Samples.Dynamic
 {
     /// <summary>
@@ -17,7 +14,7 @@ namespace Microsoft.ML.Samples.Dynamic
 
             // Get a small dataset as an IEnumerable.
             var enumerableOfData = SamplesUtils.DatasetUtils.GetSampleTemperatureData(10);
-            var data = mlContext.Data.ReadFromEnumerable(enumerableOfData);
+            var data = mlContext.Data.LoadFromEnumerable(enumerableOfData);
 
             // Before we apply a filter, examine all the records in the dataset.
             Console.WriteLine($"Date\tTemperature");
@@ -43,7 +40,7 @@ namespace Microsoft.ML.Samples.Dynamic
             var filteredData = mlContext.Data.TakeRows(data, 5);
 
             // Look at the filtered data and observe that only the first 5 rows are in the resulting dataset.
-            var enumerable = mlContext.CreateEnumerable<SamplesUtils.DatasetUtils.SampleTemperatureData>(filteredData, reuseRowObject: true);
+            var enumerable = mlContext.Data.CreateEnumerable<SamplesUtils.DatasetUtils.SampleTemperatureData>(filteredData, reuseRowObject: true);
             Console.WriteLine($"Date\tTemperature");
             foreach (var row in enumerable)
             {

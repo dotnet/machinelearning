@@ -3,12 +3,9 @@
 // See the LICENSE file in the project root for more information.
 
 using System.IO;
-using Microsoft.Data.DataView;
 using Microsoft.ML.Data;
 using Microsoft.ML.Data.IO;
-using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.RunTests;
-using Microsoft.ML.Transforms;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -29,15 +26,15 @@ namespace Microsoft.ML.Tests.Transformers
             var loader = new TextLoader(ML, new TextLoader.Options
             {
                 Columns = new[]{
-                    new TextLoader.Column("float1", DataKind.R4, 9),
-                    new TextLoader.Column("float4", DataKind.R4, new[]{new TextLoader.Range(9), new TextLoader.Range(10), new TextLoader.Range(11), new TextLoader.Range(12) }),
-                    new TextLoader.Column("float6", DataKind.R4, new[]{new TextLoader.Range(9), new TextLoader.Range(10), new TextLoader.Range(11), new TextLoader.Range(12, 14) }),
-                    new TextLoader.Column("vfloat", DataKind.R4, new[]{new TextLoader.Range(14, null) { AutoEnd = false, VariableEnd = true } })
+                    new TextLoader.Column("float1", DataKind.Single, 9),
+                    new TextLoader.Column("float4", DataKind.Single, new[]{new TextLoader.Range(9), new TextLoader.Range(10), new TextLoader.Range(11), new TextLoader.Range(12) }),
+                    new TextLoader.Column("float6", DataKind.Single, new[]{new TextLoader.Range(9), new TextLoader.Range(10), new TextLoader.Range(11), new TextLoader.Range(12, 14) }),
+                    new TextLoader.Column("vfloat", DataKind.Single, new[]{new TextLoader.Range(14, null) { AutoEnd = false, VariableEnd = true } })
                 },
                 Separator = "\t",
                 HasHeader = true
             }, new MultiFileSource(dataPath));
-            var data = loader.Read(source);
+            var data = loader.Load(source);
 
             DataViewType GetType(DataViewSchema schema, string name)
             {
@@ -87,14 +84,14 @@ namespace Microsoft.ML.Tests.Transformers
             var loader = new TextLoader(ML, new TextLoader.Options
             {
                 Columns = new[]{
-                    new TextLoader.Column("float1", DataKind.R4, 9),
-                    new TextLoader.Column("float4", DataKind.R4, new[]{new TextLoader.Range(9), new TextLoader.Range(10), new TextLoader.Range(11), new TextLoader.Range(12) }),
-                    new TextLoader.Column("vfloat", DataKind.R4, new[]{new TextLoader.Range(9), new TextLoader.Range(10), new TextLoader.Range(11), new TextLoader.Range(12, null) { AutoEnd = false, VariableEnd = true } })
+                    new TextLoader.Column("float1", DataKind.Single, 9),
+                    new TextLoader.Column("float4", DataKind.Single, new[]{new TextLoader.Range(9), new TextLoader.Range(10), new TextLoader.Range(11), new TextLoader.Range(12) }),
+                    new TextLoader.Column("vfloat", DataKind.Single, new[]{new TextLoader.Range(9), new TextLoader.Range(10), new TextLoader.Range(11), new TextLoader.Range(12, null) { AutoEnd = false, VariableEnd = true } })
                 },
                 Separator = "\t",
                 HasHeader = true
             }, new MultiFileSource(dataPath));
-            var data = loader.Read(source);
+            var data = loader.Load(source);
 
             DataViewType GetType(DataViewSchema schema, string name)
             {
@@ -105,8 +102,8 @@ namespace Microsoft.ML.Tests.Transformers
             data = ML.Data.TakeRows(data, 10);
 
             var concater = new ColumnConcatenatingTransformer(ML,
-                new ColumnConcatenatingTransformer.ColumnInfo("f2", new[] { ("float1", "FLOAT1"), ("float1", "FLOAT2") }),
-                new ColumnConcatenatingTransformer.ColumnInfo("f3", new[] { ("float4", "FLOAT4"), ("float1", "FLOAT1") }));
+                new ColumnConcatenatingTransformer.ColumnOptions("f2", new[] { ("float1", "FLOAT1"), ("float1", "FLOAT2") }),
+                new ColumnConcatenatingTransformer.ColumnOptions("f3", new[] { ("float4", "FLOAT4"), ("float1", "FLOAT1") }));
             data = concater.Transform(data);
 
             // Test Columns property.

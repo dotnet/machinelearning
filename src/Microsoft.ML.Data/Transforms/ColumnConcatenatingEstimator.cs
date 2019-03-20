@@ -5,8 +5,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Microsoft.Data.DataView;
 using Microsoft.ML.Data;
+using Microsoft.ML.Runtime;
 
 namespace Microsoft.ML.Transforms
 {
@@ -28,7 +28,7 @@ namespace Microsoft.ML.Transforms
         internal ColumnConcatenatingEstimator(IHostEnvironment env, string outputColumnName, params string[] inputColumnNames)
         {
             Contracts.CheckValue(env, nameof(env));
-            _host = env.Register("ColumnConcatenatingEstimator ");
+            _host = env.Register(nameof(ColumnConcatenatingEstimator));
 
             _host.CheckNonEmpty(outputColumnName, nameof(outputColumnName));
             _host.CheckValue(inputColumnNames, nameof(inputColumnNames));
@@ -51,7 +51,7 @@ namespace Microsoft.ML.Transforms
         private bool HasCategoricals(SchemaShape.Column col)
         {
             _host.Assert(col.IsValid);
-            if (!col.Metadata.TryFindColumn(MetadataUtils.Kinds.CategoricalSlotRanges, out var mcol))
+            if (!col.Annotations.TryFindColumn(AnnotationUtils.Kinds.CategoricalSlotRanges, out var mcol))
                 return false;
             // The indices must be ints and of a definite size vector type. (Definite becuase
             // metadata has only one value anyway.)
@@ -105,11 +105,11 @@ namespace Microsoft.ML.Transforms
 
             List<SchemaShape.Column> meta = new List<SchemaShape.Column>();
             if (isNormalized)
-                meta.Add(new SchemaShape.Column(MetadataUtils.Kinds.IsNormalized, SchemaShape.Column.VectorKind.Scalar, BooleanDataViewType.Instance, false));
+                meta.Add(new SchemaShape.Column(AnnotationUtils.Kinds.IsNormalized, SchemaShape.Column.VectorKind.Scalar, BooleanDataViewType.Instance, false));
             if (hasCategoricals)
-                meta.Add(new SchemaShape.Column(MetadataUtils.Kinds.CategoricalSlotRanges, SchemaShape.Column.VectorKind.Vector, NumberDataViewType.Int32, false));
+                meta.Add(new SchemaShape.Column(AnnotationUtils.Kinds.CategoricalSlotRanges, SchemaShape.Column.VectorKind.Vector, NumberDataViewType.Int32, false));
             if (hasSlotNames)
-                meta.Add(new SchemaShape.Column(MetadataUtils.Kinds.SlotNames, SchemaShape.Column.VectorKind.Vector, TextDataViewType.Instance, false));
+                meta.Add(new SchemaShape.Column(AnnotationUtils.Kinds.SlotNames, SchemaShape.Column.VectorKind.Vector, TextDataViewType.Instance, false));
 
             return new SchemaShape.Column(name, vecKind, itemType, false, new SchemaShape(meta));
         }

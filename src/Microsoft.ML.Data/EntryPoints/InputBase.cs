@@ -4,121 +4,29 @@
 
 using System;
 using System.Collections.Generic;
-using Microsoft.Data.DataView;
+using Microsoft.ML.Calibrators;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
 using Microsoft.ML.Data.IO;
-using Microsoft.ML.Internal.Calibration;
+using Microsoft.ML.Runtime;
+using Microsoft.ML.Trainers;
 
 namespace Microsoft.ML.EntryPoints
 {
-    /// <summary>
-    /// The base class for all transform inputs.
-    /// </summary>
-    [TlcModule.EntryPointKind(typeof(CommonInputs.ITransformInput))]
-    public abstract class TransformInputBase
-    {
-        /// <summary>
-        /// The input dataset. Used only in entry-point methods, since the normal API mechanism for feeding in a dataset to
-        /// create an <see cref="ITransformer"/> is to use the <see cref="IEstimator{TTransformer}.Fit(IDataView)"/> method.
-        /// </summary>
-        [BestFriend]
-        [Argument(ArgumentType.Required, HelpText = "Input dataset", Visibility = ArgumentAttribute.VisibilityType.EntryPointsOnly, SortOrder = 1)]
-        internal IDataView Data;
-    }
-
     [BestFriend]
     internal enum CachingOptions
     {
         Auto,
         Memory,
-        Disk,
         None
-    }
-
-    /// <summary>
-    /// The base class for all learner inputs.
-    /// </summary>
-    [TlcModule.EntryPointKind(typeof(CommonInputs.ITrainerInput))]
-    public abstract class LearnerInputBase
-    {
-        /// <summary>
-        /// The data to be used for training. Used only in entry-points, since in the API the expected mechanism is
-        /// that the user will use the <see cref="IEstimator{TTransformer}.Fit(IDataView)"/> or some other train
-        /// method.
-        /// </summary>
-        [BestFriend]
-        [Argument(ArgumentType.Required, ShortName = "data", HelpText = "The data to be used for training", SortOrder = 1, Visibility = ArgumentAttribute.VisibilityType.EntryPointsOnly)]
-        internal IDataView TrainingData;
-
-        /// <summary>
-        /// Column to use for features.
-        /// </summary>
-        [Argument(ArgumentType.AtMostOnce, HelpText = "Column to use for features", ShortName = "feat", SortOrder = 2, Visibility = ArgumentAttribute.VisibilityType.EntryPointsOnly)]
-        public string FeatureColumn = DefaultColumnNames.Features;
-
-        /// <summary>
-        /// Normalize option for the feature column. Used only in entry-points, since in the API the user is expected to do this themselves.
-        /// </summary>
-        [BestFriend]
-        [Argument(ArgumentType.AtMostOnce, HelpText = "Normalize option for the feature column", ShortName = "norm", SortOrder = 5, Visibility = ArgumentAttribute.VisibilityType.EntryPointsOnly)]
-        internal NormalizeOption NormalizeFeatures = NormalizeOption.Auto;
-
-        /// <summary>
-        /// Whether learner should cache input training data. Used only in entry-points, since the intended API mechanism
-        /// is that the user will use the <see cref="DataOperationsCatalog.Cache(IDataView, string[])"/> or other method
-        /// like <see cref="EstimatorChain{TLastTransformer}.AppendCacheCheckpoint(IHostEnvironment)"/>.
-        /// </summary>
-        [BestFriend]
-        [Argument(ArgumentType.LastOccurenceWins, HelpText = "Whether learner should cache input training data", ShortName = "cache", SortOrder = 6, Visibility = ArgumentAttribute.VisibilityType.EntryPointsOnly)]
-        internal CachingOptions Caching = CachingOptions.Auto;
-    }
-
-    /// <summary>
-    /// The base class for all learner inputs that support a Label column.
-    /// </summary>
-    [TlcModule.EntryPointKind(typeof(CommonInputs.ITrainerInputWithLabel))]
-    public abstract class LearnerInputBaseWithLabel : LearnerInputBase
-    {
-        /// <summary>
-        /// Column to use for labels.
-        /// </summary>
-        [Argument(ArgumentType.AtMostOnce, HelpText = "Column to use for labels", ShortName = "lab", SortOrder = 3, Visibility = ArgumentAttribute.VisibilityType.EntryPointsOnly)]
-        public string LabelColumn = DefaultColumnNames.Label;
-    }
-
-    // REVIEW: This is a known antipattern, but the solution involves the decorator pattern which can't be used in this case.
-    /// <summary>
-    /// The base class for all learner inputs that support a weight column.
-    /// </summary>
-    [TlcModule.EntryPointKind(typeof(CommonInputs.ITrainerInputWithWeight))]
-    public abstract class LearnerInputBaseWithWeight : LearnerInputBaseWithLabel
-    {
-        /// <summary>
-        /// Column to use for example weight.
-        /// </summary>
-        [Argument(ArgumentType.AtMostOnce, HelpText = "Column to use for example weight", ShortName = "weight", SortOrder = 4, Visibility = ArgumentAttribute.VisibilityType.EntryPointsOnly)]
-        public Optional<string> WeightColumn = Optional<string>.Implicit(DefaultColumnNames.Weight);
-    }
-
-    /// <summary>
-    /// The base class for all unsupervised learner inputs that support a weight column.
-    /// </summary>
-    [TlcModule.EntryPointKind(typeof(CommonInputs.IUnsupervisedTrainerWithWeight))]
-    public abstract class UnsupervisedLearnerInputBaseWithWeight : LearnerInputBase
-    {
-        /// <summary>
-        /// Column to use for example weight.
-        /// </summary>
-        [Argument(ArgumentType.AtMostOnce, HelpText = "Column to use for example weight", ShortName = "weight", SortOrder = 4, Visibility = ArgumentAttribute.VisibilityType.EntryPointsOnly)]
-        public Optional<string> WeightColumn = Optional<string>.Implicit(DefaultColumnNames.Weight);
     }
 
     /// <summary>
     /// The base class for all evaluators inputs.
     /// </summary>
     [TlcModule.EntryPointKind(typeof(CommonInputs.IEvaluatorInput))]
-    public abstract class EvaluateInputBase
+    [BestFriend]
+    internal abstract class EvaluateInputBase
     {
         [Argument(ArgumentType.Required, ShortName = "data", HelpText = "The data to be used for evaluation.", SortOrder = 1, Visibility = ArgumentAttribute.VisibilityType.EntryPointsOnly)]
         public IDataView Data;
@@ -127,18 +35,8 @@ namespace Microsoft.ML.EntryPoints
         public string NameColumn = DefaultColumnNames.Name;
     }
 
-    [TlcModule.EntryPointKind(typeof(CommonInputs.ITrainerInputWithGroupId))]
-    public abstract class LearnerInputBaseWithGroupId : LearnerInputBaseWithWeight
-    {
-        /// <summary>
-        /// Column to use for example groupId.
-        /// </summary>
-        [Argument(ArgumentType.AtMostOnce, HelpText = "Column to use for example groupId", ShortName = "groupId", SortOrder = 5, Visibility = ArgumentAttribute.VisibilityType.EntryPointsOnly)]
-        public Optional<string> GroupIdColumn = Optional<string>.Implicit(DefaultColumnNames.GroupId);
-    }
-
     [BestFriend]
-    internal static class LearnerEntryPointsUtils
+    internal static class TrainerEntryPointsUtils
     {
         public static string FindColumn(IExceptionContext ectx, DataViewSchema schema, Optional<string> value)
         {
@@ -166,13 +64,13 @@ namespace Microsoft.ML.EntryPoints
             Func<IEnumerable<KeyValuePair<RoleMappedSchema.ColumnRole, string>>> getCustom = null,
             ICalibratorTrainerFactory calibrator = null,
             int maxCalibrationExamples = 0)
-            where TArg : LearnerInputBase
+            where TArg : TrainerInputBase
             where TOut : CommonOutputs.TrainerOutput, new()
         {
             using (var ch = host.Start("Training"))
             {
                 var schema = input.TrainingData.Schema;
-                var feature = FindColumn(ch, schema, input.FeatureColumn);
+                var feature = FindColumn(ch, schema, input.FeatureColumnName);
                 var label = getLabel?.Invoke();
                 var weight = getWeight?.Invoke();
                 var group = getGroup?.Invoke();
@@ -188,17 +86,15 @@ namespace Microsoft.ML.EntryPoints
                 var roleMappedData = new RoleMappedData(view, label, feature, group, weight, name, custom);
 
                 RoleMappedData cachedRoleMappedData = roleMappedData;
-                Cache.CachingType? cachingType = null;
+                const string registrationName = "CreateCache";
+                var createCacheHost = host.Register(registrationName);
+                IDataView outputData = null;
+
                 switch (input.Caching)
                 {
                     case CachingOptions.Memory:
                         {
-                            cachingType = Cache.CachingType.Memory;
-                            break;
-                        }
-                    case CachingOptions.Disk:
-                        {
-                            cachingType = Cache.CachingType.Disk;
+                            outputData = new CacheDataView(host, roleMappedData.Data, null);
                             break;
                         }
                     case CachingOptions.Auto:
@@ -206,7 +102,7 @@ namespace Microsoft.ML.EntryPoints
                             // REVIEW: we should switch to hybrid caching in future.
                             if (!(input.TrainingData is BinaryLoader) && trainer.Info.WantCaching)
                                 // default to Memory so mml is on par with maml
-                                cachingType = Cache.CachingType.Memory;
+                                outputData = new CacheDataView(host, roleMappedData.Data, null);
                             break;
                         }
                     case CachingOptions.None:
@@ -215,14 +111,9 @@ namespace Microsoft.ML.EntryPoints
                         throw ch.ExceptParam(nameof(input.Caching), "Unknown option for caching: '{0}'", input.Caching);
                 }
 
-                if (cachingType.HasValue)
+                if (outputData != null)
                 {
-                    var cacheView = Cache.CacheData(host, new Cache.CacheInput()
-                    {
-                        Data = roleMappedData.Data,
-                        Caching = cachingType.Value
-                    }).OutputData;
-                    cachedRoleMappedData = new RoleMappedData(cacheView, roleMappedData.Schema.GetColumnRoleNames());
+                    cachedRoleMappedData = new RoleMappedData(outputData, roleMappedData.Schema.GetColumnRoleNames());
                 }
 
                 var predictor = TrainUtils.Train(host, ch, cachedRoleMappedData, trainer, calibrator, maxCalibrationExamples);
@@ -275,7 +166,7 @@ namespace Microsoft.ML.EntryPoints
         /// </summary>
         public interface IUnsupervisedTrainerWithWeight : ITrainerInput
         {
-            Optional<string> WeightColumn { get; }
+            string WeightColumn { get; }
         }
 
         /// <summary>
@@ -283,7 +174,7 @@ namespace Microsoft.ML.EntryPoints
         /// </summary>
         public interface ITrainerInputWithWeight : ITrainerInputWithLabel
         {
-            Optional<string> WeightColumn { get; }
+            string WeightColumn { get; }
         }
 
         /// <summary>
@@ -291,7 +182,7 @@ namespace Microsoft.ML.EntryPoints
         /// </summary>
         public interface ITrainerInputWithGroupId : ITrainerInputWithWeight
         {
-            Optional<string> GroupIdColumn { get; }
+            string GroupIdColumn { get; }
         }
 
         /// <summary>

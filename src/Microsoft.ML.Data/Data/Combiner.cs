@@ -4,7 +4,7 @@
 
 using System;
 using System.Threading;
-using Float = System.Single;
+using Microsoft.ML.Runtime;
 
 namespace Microsoft.ML.Data
 {
@@ -43,7 +43,7 @@ namespace Microsoft.ML.Data
     }
 
     [BestFriend]
-    internal sealed class FloatAdder : Combiner<Float>
+    internal sealed class FloatAdder : Combiner<float>
     {
         private static volatile FloatAdder _instance;
         public static FloatAdder Instance
@@ -60,8 +60,8 @@ namespace Microsoft.ML.Data
         {
         }
 
-        public override bool IsDefault(Float value) { return value == 0; }
-        public override void Combine(ref Float dst, Float src) { dst += src; }
+        public override bool IsDefault(float value) { return value == 0; }
+        public override void Combine(ref float dst, float src) { dst += src; }
     }
 
     [BestFriend]

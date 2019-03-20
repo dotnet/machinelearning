@@ -5,15 +5,14 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
 using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Runtime;
 using Microsoft.ML.Sweeper;
 using Microsoft.ML.Sweeper.Algorithms;
 using Microsoft.ML.Trainers.FastTree;
-using Float = System.Single;
 
 [assembly: LoadableClass(typeof(SmacSweeper), typeof(SmacSweeper.Options), typeof(SignatureSweeper),
     "SMAC Sweeper", "SMACSweeper", "SMAC")]
@@ -51,10 +50,10 @@ namespace Microsoft.ML.Sweeper
             public int NumRandomEISearchConfigurations = 10000;
 
             [Argument(ArgumentType.LastOccurenceWins, HelpText = "Fraction of eligible dimensions to split on (i.e., split ratio)", ShortName = "sr")]
-            public Float SplitRatio = (Float)0.8;
+            public float SplitRatio = (float)0.8;
 
             [Argument(ArgumentType.LastOccurenceWins, HelpText = "Epsilon threshold for ending local searches", ShortName = "eps")]
-            public Float Epsilon = (Float)0.00001;
+            public float Epsilon = (float)0.00001;
 
             [Argument(ArgumentType.LastOccurenceWins, HelpText = "Number of neighbors to sample for locally searching each numerical parameter", ShortName = "nnnp")]
             public int NumNeighborsForNumericalParams = 4;
@@ -119,7 +118,7 @@ namespace Microsoft.ML.Sweeper
             foreach (RunResult r in previousRuns)
             {
                 features[i] = SweeperProbabilityUtils.ParameterSetAsFloatArray(_host, _sweepParameters, r.ParameterSet, true);
-                targets[i] = (Float)r.MetricValue;
+                targets[i] = (float)r.MetricValue;
                 i++;
             }
 
@@ -134,14 +133,14 @@ namespace Microsoft.ML.Sweeper
             {
                 // Set relevant random forest arguments.
                 // Train random forest.
-                var trainer = new FastForestRegression(_host,
-                    new FastForestRegression.Options
+                var trainer = new FastForestRegressionTrainer(_host,
+                    new FastForestRegressionTrainer.Options
                     {
                         FeatureFraction = _args.SplitRatio,
-                        NumTrees = _args.NumOfTrees,
-                        MinDocumentsInLeafs = _args.NMinForSplit,
-                        LabelColumn = DefaultColumnNames.Label,
-                        FeatureColumn = DefaultColumnNames.Features,
+                        NumberOfTrees = _args.NumOfTrees,
+                        MinimumExampleCountPerLeaf = _args.NMinForSplit,
+                        LabelColumnName = DefaultColumnNames.Label,
+                        FeatureColumnName = DefaultColumnNames.Features,
                     });
                 var predictor = trainer.Fit(view);
 
@@ -285,7 +284,7 @@ namespace Microsoft.ML.Sweeper
                 if (parameterDiscrete != null)
                 {
                     // Create one neighbor for every discrete parameter.
-                    Float[] neighbor = SweeperProbabilityUtils.ParameterSetAsFloatArray(_host, _sweepParameters, parent, false);
+                    float[] neighbor = SweeperProbabilityUtils.ParameterSetAsFloatArray(_host, _sweepParameters, parent, false);
 
                     int hotIndex = -1;
                     for (int j = 0; j < parameterDiscrete.Count; j++)
@@ -313,11 +312,11 @@ namespace Microsoft.ML.Sweeper
                     // Create k neighbors (typically 4) for every numerical parameter.
                     for (int j = 0; j < _args.NumNeighborsForNumericalParams; j++)
                     {
-                        Float[] neigh = SweeperProbabilityUtils.ParameterSetAsFloatArray(_host, _sweepParameters, parent, false);
+                        float[] neigh = SweeperProbabilityUtils.ParameterSetAsFloatArray(_host, _sweepParameters, parent, false);
                         double newVal = spu.NormalRVs(1, neigh[i], 0.2)[0];
                         while (newVal <= 0.0 || newVal >= 1.0)
                             newVal = spu.NormalRVs(1, neigh[i], 0.2)[0];
-                        neigh[i] = (Float)newVal;
+                        neigh[i] = (float)newVal;
                         ParameterSet neighbor = SweeperProbabilityUtils.FloatArrayAsParameterSet(_host, _sweepParameters, neigh, false);
                         neighbors.Add(neighbor);
                     }
@@ -341,9 +340,9 @@ namespace Microsoft.ML.Sweeper
                 List<double> leafValues = new List<double>();
                 foreach (InternalRegressionTree t in e.Trees)
                 {
-                    Float[] transformedParams = SweeperProbabilityUtils.ParameterSetAsFloatArray(_host, _sweepParameters, config, true);
-                    VBuffer<Float> features = new VBuffer<Float>(transformedParams.Length, transformedParams);
-                    leafValues.Add((Float)t.LeafValues[t.GetLeaf(in features)]);
+                    float[] transformedParams = SweeperProbabilityUtils.ParameterSetAsFloatArray(_host, _sweepParameters, config, true);
+                    VBuffer<float> features = new VBuffer<float>(transformedParams.Length, transformedParams);
+                    leafValues.Add((float)t.LeafValues[t.GetLeaf(in features)]);
                 }
                 datasetLeafValues.Add(leafValues.ToArray());
             }
@@ -435,7 +434,7 @@ namespace Microsoft.ML.Sweeper
             return new ParameterSet(parameters);
         }
 
-        private Float ParameterAsFloat(ParameterSet parameterSet, int index)
+        private float ParameterAsFloat(ParameterSet parameterSet, int index)
         {
             _host.Assert(parameterSet.Count == _sweepParameters.Length);
             _host.Assert(index >= 0 && index <= _sweepParameters.Length);

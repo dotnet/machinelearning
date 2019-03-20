@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
+using Microsoft.ML.Runtime;
 
 namespace Microsoft.ML.RunTests
 {
@@ -233,6 +234,7 @@ namespace Microsoft.ML.RunTests
                 removeArgs.Add("xf=");
                 removeArgs.Add("cache-");
                 removeArgs.Add("sf=");
+                removeArgs.Add("loader=");
 
                 for (int i = 0; i < args.Count; ++i)
                 {

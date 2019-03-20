@@ -3,7 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
-using Microsoft.ML.StaticPipe.Runtime;
+using Microsoft.ML.Runtime;
 using Microsoft.ML.Transforms.TimeSeries;
 
 namespace Microsoft.ML.StaticPipe
@@ -57,7 +57,7 @@ namespace Microsoft.ML.StaticPipe
             {
                 Contracts.Assert(toOutput.Length == 1);
                 var outCol = (OutColumn)toOutput[0];
-                return new MLContext().Transforms.IidChangePointEstimator(
+                return new MLContext().Transforms.DetectIidChangePoint(
                     outputNames[outCol],
                     inputNames[outCol.Input],
                     _confidence,
@@ -70,7 +70,7 @@ namespace Microsoft.ML.StaticPipe
         /// <summary>
         /// Perform IID change point detection over a column of time series data. See <see cref="IidChangePointEstimator"/>.
         /// </summary>
-        public static Vector<double> IidChangePointDetect(
+        public static Vector<double> DetectIidChangePoint(
             this Scalar<float> input,
             int confidence,
             int changeHistoryLength,
@@ -121,7 +121,7 @@ namespace Microsoft.ML.StaticPipe
             {
                 Contracts.Assert(toOutput.Length == 1);
                 var outCol = (OutColumn)toOutput[0];
-                return new MLContext().Transforms.IidSpikeEstimator(
+                return new MLContext().Transforms.DetectIidSpike(
                     outputNames[outCol],
                     inputNames[outCol.Input],
                     _confidence,
@@ -133,7 +133,7 @@ namespace Microsoft.ML.StaticPipe
         /// <summary>
         /// Perform IID spike detection over a column of time series data. See <see cref="IidSpikeEstimator"/>.
         /// </summary>
-        public static Vector<double> IidSpikeDetect(
+        public static Vector<double> DetectIidSpike(
             this Scalar<float> input,
             int confidence,
             int pvalueHistoryLength,
@@ -200,7 +200,7 @@ namespace Microsoft.ML.StaticPipe
             {
                 Contracts.Assert(toOutput.Length == 1);
                 var outCol = (OutColumn)toOutput[0];
-                return new MLContext().Transforms.SsaChangePointEstimator(
+                return new MLContext().Transforms.DetectChangePointBySsa(
                     outputNames[outCol],
                     inputNames[outCol.Input],
                     _confidence,
@@ -216,7 +216,7 @@ namespace Microsoft.ML.StaticPipe
         /// <summary>
         /// Perform SSA change point detection over a column of time series data. See <see cref="SsaChangePointEstimator"/>.
         /// </summary>
-        public static Vector<double> SsaChangePointDetect(
+        public static Vector<double> DetectChangePointBySsa(
             this Scalar<float> input,
             int confidence,
             int changeHistoryLength,
@@ -282,7 +282,7 @@ namespace Microsoft.ML.StaticPipe
             {
                 Contracts.Assert(toOutput.Length == 1);
                 var outCol = (OutColumn)toOutput[0];
-                return new MLContext().Transforms.SsaSpikeEstimator(
+                return new MLContext().Transforms.DetectSpikeBySsa(
                     outputNames[outCol],
                     inputNames[outCol.Input],
                     _confidence,
@@ -297,7 +297,7 @@ namespace Microsoft.ML.StaticPipe
         /// <summary>
         /// Perform SSA spike detection over a column of time series data. See <see cref="SsaSpikeEstimator"/>.
         /// </summary>
-        public static Vector<double> SsaSpikeDetect(
+        public static Vector<double> DetectSpikeBySsa(
             this Scalar<float> input,
             int confidence,
             int changeHistoryLength,

@@ -4,7 +4,7 @@
 
 using System;
 using System.Collections.Generic;
-using Microsoft.ML.StaticPipe.Runtime;
+using Microsoft.ML.Runtime;
 
 namespace Microsoft.ML.StaticPipe
 {

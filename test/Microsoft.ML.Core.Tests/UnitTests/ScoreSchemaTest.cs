@@ -1,5 +1,4 @@
 ﻿using System;
-using Microsoft.Data.DataView;
 using Microsoft.ML.Data;
 using Xunit;
 using Xunit.Abstractions;
@@ -35,14 +34,14 @@ namespace Microsoft.ML.RunTests
             VBuffer<ReadOnlyMemory<char>> keyNames = GenerateKeyNames(keyCount);
 
             var sequenceSchema = ScoreSchemaFactory.CreateSequencePredictionSchema(expectedScoreColumnType,
-                MetadataUtils.Const.ScoreColumnKind.SequenceClassification, keyNames);
+                AnnotationUtils.Const.ScoreColumnKind.SequenceClassification, keyNames);
 
             // Output schema should only contain one column, which is the predicted label.
             Assert.Single(sequenceSchema);
             var scoreColumn = sequenceSchema[0];
 
             // Check score column name.
-            Assert.Equal(MetadataUtils.Const.ScoreValueKind.PredictedLabel, scoreColumn.Name);
+            Assert.Equal(AnnotationUtils.Const.ScoreValueKind.PredictedLabel, scoreColumn.Name);
 
             // Check score column type.
             var actualScoreColumnType = scoreColumn.Type as KeyType;
@@ -51,37 +50,37 @@ namespace Microsoft.ML.RunTests
             Assert.Equal(expectedScoreColumnType.RawType, actualScoreColumnType.RawType);
 
             // Check metadata. Because keyNames is not empty, there should be three metadata fields.
-            var scoreMetadata = scoreColumn.Metadata;
+            var scoreMetadata = scoreColumn.Annotations;
             Assert.Equal(3, scoreMetadata.Schema.Count);
 
             // Check metadata columns' names.
-            Assert.Equal(MetadataUtils.Kinds.KeyValues, scoreMetadata.Schema[0].Name);
-            Assert.Equal(MetadataUtils.Kinds.ScoreColumnKind, scoreMetadata.Schema[1].Name);
-            Assert.Equal(MetadataUtils.Kinds.ScoreValueKind, scoreMetadata.Schema[2].Name);
+            Assert.Equal(AnnotationUtils.Kinds.KeyValues, scoreMetadata.Schema[0].Name);
+            Assert.Equal(AnnotationUtils.Kinds.ScoreColumnKind, scoreMetadata.Schema[1].Name);
+            Assert.Equal(AnnotationUtils.Kinds.ScoreValueKind, scoreMetadata.Schema[2].Name);
 
             // Check metadata columns' types.
             Assert.True(scoreMetadata.Schema[0].Type is VectorType);
             Assert.Equal(keyNames.Length, (scoreMetadata.Schema[0].Type as VectorType).Size);
             Assert.Equal(TextDataViewType.Instance, (scoreMetadata.Schema[0].Type as VectorType).ItemType);
-            Assert.Equal(TextDataViewType.Instance, scoreColumn.Metadata.Schema[1].Type);
-            Assert.Equal(TextDataViewType.Instance, scoreColumn.Metadata.Schema[2].Type);
+            Assert.Equal(TextDataViewType.Instance, scoreColumn.Annotations.Schema[1].Type);
+            Assert.Equal(TextDataViewType.Instance, scoreColumn.Annotations.Schema[2].Type);
 
             // Check metadata columns' values.
-            var keyNamesGetter = scoreMetadata.GetGetter<VBuffer<ReadOnlyMemory<char>>>(0);
+            var keyNamesGetter = scoreMetadata.GetGetter<VBuffer<ReadOnlyMemory<char>>>(scoreMetadata.Schema[0]);
             var actualKeyNames = new VBuffer<ReadOnlyMemory<char>>();
             keyNamesGetter(ref actualKeyNames);
             Assert.Equal(keyNames.Length, actualKeyNames.Length);
             Assert.Equal(keyNames.DenseValues(), actualKeyNames.DenseValues());
 
-            var scoreColumnKindGetter = scoreMetadata.GetGetter<ReadOnlyMemory<char>>(1);
+            var scoreColumnKindGetter = scoreMetadata.GetGetter<ReadOnlyMemory<char>>(scoreMetadata.Schema[1]);
             ReadOnlyMemory<char> scoreColumnKindValue = null;
             scoreColumnKindGetter(ref scoreColumnKindValue);
-            Assert.Equal(MetadataUtils.Const.ScoreColumnKind.SequenceClassification, scoreColumnKindValue.ToString());
+            Assert.Equal(AnnotationUtils.Const.ScoreColumnKind.SequenceClassification, scoreColumnKindValue.ToString());
 
-            var scoreValueKindGetter = scoreMetadata.GetGetter<ReadOnlyMemory<char>>(2);
+            var scoreValueKindGetter = scoreMetadata.GetGetter<ReadOnlyMemory<char>>(scoreMetadata.Schema[2]);
             ReadOnlyMemory<char> scoreValueKindValue = null;
             scoreValueKindGetter(ref scoreValueKindValue);
-            Assert.Equal(MetadataUtils.Const.ScoreValueKind.PredictedLabel, scoreValueKindValue.ToString());
+            Assert.Equal(AnnotationUtils.Const.ScoreValueKind.PredictedLabel, scoreValueKindValue.ToString());
         }
 
         [Fact]
@@ -92,14 +91,14 @@ namespace Microsoft.ML.RunTests
             VBuffer<ReadOnlyMemory<char>> keyNames = GenerateKeyNames(0);
 
             var sequenceSchema = ScoreSchemaFactory.CreateSequencePredictionSchema(expectedScoreColumnType,
-                MetadataUtils.Const.ScoreColumnKind.SequenceClassification, keyNames);
+                AnnotationUtils.Const.ScoreColumnKind.SequenceClassification, keyNames);
 
             // Output schema should only contain one column, which is the predicted label.
             Assert.Single(sequenceSchema);
             var scoreColumn = sequenceSchema[0];
 
             // Check score column name.
-            Assert.Equal(MetadataUtils.Const.ScoreValueKind.PredictedLabel, scoreColumn.Name);
+            Assert.Equal(AnnotationUtils.Const.ScoreValueKind.PredictedLabel, scoreColumn.Name);
 
             // Check score column type.
             var actualScoreColumnType = scoreColumn.Type as KeyType;
@@ -108,27 +107,27 @@ namespace Microsoft.ML.RunTests
             Assert.Equal(expectedScoreColumnType.RawType, actualScoreColumnType.RawType);
 
             // Check metadata. Because keyNames is not empty, there should be three metadata fields.
-            var scoreMetadata = scoreColumn.Metadata;
+            var scoreMetadata = scoreColumn.Annotations;
             Assert.Equal(2, scoreMetadata.Schema.Count);
 
             // Check metadata columns' names.
-            Assert.Equal(MetadataUtils.Kinds.ScoreColumnKind, scoreMetadata.Schema[0].Name);
-            Assert.Equal(MetadataUtils.Kinds.ScoreValueKind, scoreMetadata.Schema[1].Name);
+            Assert.Equal(AnnotationUtils.Kinds.ScoreColumnKind, scoreMetadata.Schema[0].Name);
+            Assert.Equal(AnnotationUtils.Kinds.ScoreValueKind, scoreMetadata.Schema[1].Name);
 
             // Check metadata columns' types.
-            Assert.Equal(TextDataViewType.Instance, scoreColumn.Metadata.Schema[0].Type);
-            Assert.Equal(TextDataViewType.Instance, scoreColumn.Metadata.Schema[1].Type);
+            Assert.Equal(TextDataViewType.Instance, scoreColumn.Annotations.Schema[0].Type);
+            Assert.Equal(TextDataViewType.Instance, scoreColumn.Annotations.Schema[1].Type);
 
             // Check metadata columns' values.
-            var scoreColumnKindGetter = scoreMetadata.GetGetter<ReadOnlyMemory<char>>(0);
+            var scoreColumnKindGetter = scoreMetadata.GetGetter<ReadOnlyMemory<char>>(scoreMetadata.Schema[0]);
             ReadOnlyMemory<char> scoreColumnKindValue = null;
             scoreColumnKindGetter(ref scoreColumnKindValue);
-            Assert.Equal(MetadataUtils.Const.ScoreColumnKind.SequenceClassification, scoreColumnKindValue.ToString());
+            Assert.Equal(AnnotationUtils.Const.ScoreColumnKind.SequenceClassification, scoreColumnKindValue.ToString());
 
-            var scoreValueKindGetter = scoreMetadata.GetGetter<ReadOnlyMemory<char>>(1);
+            var scoreValueKindGetter = scoreMetadata.GetGetter<ReadOnlyMemory<char>>(scoreMetadata.Schema[1]);
             ReadOnlyMemory<char> scoreValueKindValue = null;
             scoreValueKindGetter(ref scoreValueKindValue);
-            Assert.Equal(MetadataUtils.Const.ScoreValueKind.PredictedLabel, scoreValueKindValue.ToString());
+            Assert.Equal(AnnotationUtils.Const.ScoreValueKind.PredictedLabel, scoreValueKindValue.ToString());
         }
     }
 }

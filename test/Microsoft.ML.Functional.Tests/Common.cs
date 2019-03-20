@@ -5,10 +5,10 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Microsoft.Data.DataView;
 using Microsoft.ML.Data;
 using Microsoft.ML.Functional.Tests.Datasets;
 using Xunit;
+using Xunit.Sdk;
 
 namespace Microsoft.ML.Functional.Tests
 {
@@ -72,8 +72,8 @@ namespace Microsoft.ML.Functional.Tests
             Common.AssertEqual(data1.Schema, data2.Schema);
 
             // Define how to serialize the IDataView to objects.
-            var enumerable1 = mlContext.CreateEnumerable<TypeTestData>(data1, true);
-            var enumerable2 = mlContext.CreateEnumerable<TypeTestData>(data2, true);
+            var enumerable1 = mlContext.Data.CreateEnumerable<TypeTestData>(data1, true);
+            var enumerable2 = mlContext.Data.CreateEnumerable<TypeTestData>(data2, true);
 
             AssertEqual(enumerable1, enumerable2);
         }
@@ -83,14 +83,14 @@ namespace Microsoft.ML.Functional.Tests
         /// </summary>
         /// <param name="array1">An array of floats.</param>
         /// <param name="array2">An array of floats.</param>
-        public static void AssertEqual(float[] array1, float[] array2)
+        public static void AssertEqual(float[] array1, float[] array2, int precision = 6)
         {
             Assert.NotNull(array1);
             Assert.NotNull(array2);
             Assert.Equal(array1.Length, array2.Length);
 
             for (int i = 0; i < array1.Length; i++)
-                Assert.Equal(array1[i], array2[i]);
+                Assert.Equal(array1[i], array2[i], precision: precision);
         }
 
         /// <summary>
@@ -111,7 +111,7 @@ namespace Microsoft.ML.Functional.Tests
                 Assert.Equal(schemaPair.Item1.Index, schemaPair.Item2.Index);
                 Assert.Equal(schemaPair.Item1.IsHidden, schemaPair.Item2.IsHidden);
                 // Can probably do a better comparison of Metadata.
-                AssertEqual(schemaPair.Item1.Metadata.Schema, schemaPair.Item1.Metadata.Schema);
+                AssertEqual(schemaPair.Item1.Annotations.Schema, schemaPair.Item1.Annotations.Schema);
                 Assert.True((schemaPair.Item1.Type == schemaPair.Item2.Type) ||
                     (schemaPair.Item1.Type.RawType == schemaPair.Item2.Type.RawType));
             }
@@ -157,7 +157,80 @@ namespace Microsoft.ML.Functional.Tests
             Assert.True(testType1.Ts.Equals(testType2.Ts));
             Assert.True(testType1.Dt.Equals(testType2.Dt));
             Assert.True(testType1.Dz.Equals(testType2.Dz));
-            Assert.True(testType1.Ug.Equals(testType2.Ug));
+        }
+
+        /// <summary>
+        /// Check that a <see cref="AnomalyDetectionMetrics"/> object is valid.
+        /// </summary>
+        /// <param name="metrics">The metrics object.</param>
+        public static void AssertMetrics(AnomalyDetectionMetrics metrics)
+        {
+            Assert.InRange(metrics.AreaUnderRocCurve, 0, 1);
+            Assert.InRange(metrics.DetectionRateAtKFalsePositives, 0, 1);
+        }
+
+        /// <summary>
+        /// Check that a <see cref="BinaryClassificationMetrics"/> object is valid.
+        /// </summary>
+        /// <param name="metrics">The metrics object.</param>
+        public static void AssertMetrics(BinaryClassificationMetrics metrics)
+        {
+            Assert.InRange(metrics.Accuracy, 0, 1);
+            Assert.InRange(metrics.AreaUnderRocCurve, 0, 1);
+            Assert.InRange(metrics.AreaUnderPrecisionRecallCurve, 0, 1);
+            Assert.InRange(metrics.F1Score, 0, 1);
+            Assert.InRange(metrics.NegativePrecision, 0, 1);
+            Assert.InRange(metrics.NegativeRecall, 0, 1);
+            Assert.InRange(metrics.PositivePrecision, 0, 1);
+            Assert.InRange(metrics.PositiveRecall, 0, 1);
+        }
+
+        /// <summary>
+        /// Check that a <see cref="CalibratedBinaryClassificationMetrics"/> object is valid.
+        /// </summary>
+        /// <param name="metrics">The metrics object.</param>
+        public static void AssertMetrics(CalibratedBinaryClassificationMetrics metrics)
+        {
+            Assert.InRange(metrics.Entropy, double.NegativeInfinity, 1);
+            Assert.InRange(metrics.LogLoss, double.NegativeInfinity, 1);
+            Assert.InRange(metrics.LogLossReduction, double.NegativeInfinity, 100);
+            AssertMetrics(metrics as BinaryClassificationMetrics);
+        }
+
+        /// <summary>
+        /// Check that a <see cref="ClusteringMetrics"/> object is valid.
+        /// </summary>
+        /// <param name="metrics">The metrics object.</param>
+        public static void AssertMetrics(ClusteringMetrics metrics)
+        {
+            Assert.True(metrics.AverageDistance >= 0);
+            Assert.True(metrics.DaviesBouldinIndex >= 0);
+            if (!double.IsNaN(metrics.NormalizedMutualInformation))
+                Assert.True(metrics.NormalizedMutualInformation >= 0 && metrics.NormalizedMutualInformation <= 1);
+        }
+
+        /// <summary>
+        /// Check that a <see cref="MulticlassClassificationMetrics"/> object is valid.
+        /// </summary>
+        /// <param name="metrics">The metrics object.</param>
+        public static void AssertMetrics(MulticlassClassificationMetrics metrics)
+        {
+            Assert.InRange(metrics.MacroAccuracy, 0, 1);
+            Assert.InRange(metrics.MicroAccuracy, 0, 1);
+            Assert.True(metrics.LogLoss >= 0);
+            Assert.InRange(metrics.TopKAccuracy, 0, 1);
+        }
+
+        /// <summary>
+        /// Check that a <see cref="RankingMetrics"/> object is valid.
+        /// </summary>
+        /// <param name="metrics">The metrics object.</param>
+        public static void AssertMetrics(RankingMetrics metrics)
+        {
+            foreach (var dcg in metrics.DiscountedCumulativeGains)
+                Assert.True(dcg >= 0);
+            foreach (var ndcg in metrics.NormalizedDiscountedCumulativeGains)
+                Assert.InRange(ndcg, 0, 100);
         }
 
         /// <summary>
@@ -166,10 +239,9 @@ namespace Microsoft.ML.Functional.Tests
         /// <param name="metrics">The metrics object.</param>
         public static void AssertMetrics(RegressionMetrics metrics)
         {
-            // Perform sanity checks on the metrics.
-            Assert.True(metrics.Rms >= 0);
-            Assert.True(metrics.L1 >= 0);
-            Assert.True(metrics.L2 >= 0);
+            Assert.True(metrics.RootMeanSquaredError >= 0);
+            Assert.True(metrics.MeanAbsoluteError >= 0);
+            Assert.True(metrics.MeanSquaredError >= 0);
             Assert.True(metrics.RSquared <= 1);
         }
 
@@ -179,7 +251,6 @@ namespace Microsoft.ML.Functional.Tests
         /// <param name="metric">The <see cref="MetricStatistics"/> object.</param>
         public static void AssertMetricStatistics(MetricStatistics metric)
         {
-            // Perform sanity checks on the metrics.
             Assert.True(metric.StandardDeviation >= 0);
             Assert.True(metric.StandardError >= 0);
         }
@@ -190,12 +261,68 @@ namespace Microsoft.ML.Functional.Tests
         /// <param name="metrics">The metrics object.</param>
         public static void AssertMetricsStatistics(RegressionMetricsStatistics metrics)
         {
-            // The mean can be any float; the standard deviation and error must be >=0.
-            AssertMetricStatistics(metrics.Rms);
-            AssertMetricStatistics(metrics.L1);
-            AssertMetricStatistics(metrics.L2);
+            AssertMetricStatistics(metrics.RootMeanSquaredError);
+            AssertMetricStatistics(metrics.MeanAbsoluteError);
+            AssertMetricStatistics(metrics.MeanSquaredError);
             AssertMetricStatistics(metrics.RSquared);
-            AssertMetricStatistics(metrics.LossFn);
+            AssertMetricStatistics(metrics.LossFunction);
+        }
+
+        /// <summary>
+        /// Assert that two float arrays are not equal.
+        /// </summary>
+        /// <param name="array1">An array of floats.</param>
+        /// <param name="array2">An array of floats.</param>
+        public static void AssertNotEqual(float[] array1, float[] array2)
+        {
+            Assert.NotNull(array1);
+            Assert.NotNull(array2);
+            Assert.Equal(array1.Length, array2.Length);
+
+            bool mismatch = false;
+            for (int i = 0; i < array1.Length; i++)
+                try
+                {
+                    // Use Assert to test for equality rather than
+                    // to roll our own float equality checker.
+                    Assert.Equal(array1[i], array2[i]);
+                }
+                catch(EqualException)
+                {
+                    mismatch = true;
+                    break;
+                }
+            Assert.True(mismatch);
+        }
+
+        /// <summary>
+        /// Verify that a float array has no NaNs or infinities.
+        /// </summary>
+        /// <param name="array">An array of doubles.</param>
+        public static void AssertFiniteNumbers(IList<float> array, int ignoreElementAt = -1)
+        {
+            for (int i = 0; i < array.Count; i++)
+            {
+                if (i == ignoreElementAt)
+                    continue;
+                Assert.False(float.IsNaN(array[i]));
+                Assert.False(float.IsInfinity(array[i]));
+            }
+        }
+
+        /// <summary>
+        /// Verify that a double array has no NaNs or infinities.
+        /// </summary>
+        /// <param name="array">An array of doubles.</param>
+        public static void AssertFiniteNumbers(IList<double> array, int ignoreElementAt = -1)
+        {
+            for (int i = 0; i < array.Count; i++)
+            {
+                if (i == ignoreElementAt)
+                    continue;
+                Assert.False(double.IsNaN(array[i]));
+                Assert.False(double.IsInfinity(array[i]));
+            }
         }
     }
 }

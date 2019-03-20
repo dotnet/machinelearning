@@ -4,9 +4,9 @@
 
 using System;
 using System.Collections.Generic;
-using Microsoft.ML.StaticPipe.Runtime;
-using Microsoft.ML.Transforms.Categorical;
-using Microsoft.ML.Transforms.Conversions;
+using Microsoft.ML.Runtime;
+using Microsoft.ML.Transforms;
+using static Microsoft.ML.StaticPipe.TermStaticExtensions;
 
 namespace Microsoft.ML.StaticPipe
 {
@@ -43,18 +43,18 @@ namespace Microsoft.ML.StaticPipe
             Bin = 4,
         }
 
-        private const KeyValueOrder DefSort = (KeyValueOrder)ValueToKeyMappingEstimator.Defaults.Sort;
-        private const int DefMax = ValueToKeyMappingEstimator.Defaults.MaxNumKeys;
+        private const KeyOrdinality DefSort = (KeyOrdinality)ValueToKeyMappingEstimator.Defaults.Ordinality;
+        private const int DefMax = ValueToKeyMappingEstimator.Defaults.MaximumNumberOfKeys;
         private const OneHotVectorOutputKind DefOut = (OneHotVectorOutputKind)OneHotEncodingEstimator.Defaults.OutKind;
 
         private readonly struct Config
         {
-            public readonly KeyValueOrder Order;
+            public readonly KeyOrdinality Order;
             public readonly int Max;
             public readonly OneHotVectorOutputKind OutputKind;
             public readonly Action<ValueToKeyMappingTransformer.TermMap> OnFit;
 
-            public Config(OneHotVectorOutputKind outputKind, KeyValueOrder order, int max, Action<ValueToKeyMappingTransformer.TermMap> onFit)
+            public Config(OneHotVectorOutputKind outputKind, KeyOrdinality order, int max, Action<ValueToKeyMappingTransformer.TermMap> onFit)
             {
                 OutputKind = outputKind;
                 Order = order;
@@ -108,13 +108,13 @@ namespace Microsoft.ML.StaticPipe
             public override IEstimator<ITransformer> Reconcile(IHostEnvironment env, PipelineColumn[] toOutput,
                 IReadOnlyDictionary<PipelineColumn, string> inputNames, IReadOnlyDictionary<PipelineColumn, string> outputNames, IReadOnlyCollection<string> usedNames)
             {
-                var infos = new OneHotEncodingEstimator.ColumnInfo[toOutput.Length];
+                var infos = new OneHotEncodingEstimator.ColumnOptions[toOutput.Length];
                 Action<ValueToKeyMappingTransformer> onFit = null;
                 for (int i = 0; i < toOutput.Length; ++i)
                 {
                     var tcol = (ICategoricalCol)toOutput[i];
-                    infos[i] = new OneHotEncodingEstimator.ColumnInfo(outputNames[toOutput[i]], inputNames[tcol.Input], (OneHotEncodingTransformer.OutputKind)tcol.Config.OutputKind,
-                        tcol.Config.Max, (ValueToKeyMappingEstimator.SortOrder)tcol.Config.Order);
+                    infos[i] = new OneHotEncodingEstimator.ColumnOptions(outputNames[toOutput[i]], inputNames[tcol.Input], (OneHotEncodingEstimator.OutputKind)tcol.Config.OutputKind,
+                        tcol.Config.Max, (ValueToKeyMappingEstimator.KeyOrdinality)tcol.Config.Order);
                     if (tcol.Config.OnFit != null)
                     {
                         int ii = i; // Necessary because if we capture i that will change to toOutput.Length on call.
@@ -133,14 +133,14 @@ namespace Microsoft.ML.StaticPipe
         /// </summary>
         /// <param name="input">Incoming data.</param>
         /// <param name="outputKind">Specify the output type of indicator array: array or binary encoded data.</param>
-        /// <param name="order">How the Id for each value would be assigined: by occurrence or by value.</param>
-        /// <param name="maxItems">Maximum number of ids to keep during data scanning.</param>
+        /// <param name="keyOrdinality">How the Id for each value would be assigined: by occurrence or by value.</param>
+        /// <param name="maximumNumberOfItems">Maximum number of ids to keep during data scanning.</param>
         /// <param name="onFit">Called upon fitting with the learnt enumeration on the dataset.</param>
-        public static Vector<float> OneHotEncoding(this Scalar<string> input, OneHotScalarOutputKind outputKind = (OneHotScalarOutputKind)DefOut, KeyValueOrder order = DefSort,
-            int maxItems = DefMax, ToKeyFitResult<ReadOnlyMemory<char>>.OnFit onFit = null)
+        public static Vector<float> OneHotEncoding(this Scalar<string> input, OneHotScalarOutputKind outputKind = (OneHotScalarOutputKind)DefOut, KeyOrdinality keyOrdinality = DefSort,
+            int maximumNumberOfItems = DefMax, ToKeyFitResult<ReadOnlyMemory<char>>.OnFit onFit = null)
         {
             Contracts.CheckValue(input, nameof(input));
-            return new ImplScalar<string>(input, new Config((OneHotVectorOutputKind)outputKind, order, maxItems, Wrap(onFit)));
+            return new ImplScalar<string>(input, new Config((OneHotVectorOutputKind)outputKind, keyOrdinality, maximumNumberOfItems, Wrap(onFit)));
         }
 
         /// <summary>
@@ -148,14 +148,14 @@ namespace Microsoft.ML.StaticPipe
         /// </summary>
         /// <param name="input">Incoming data.</param>
         /// <param name="outputKind">Specify the output type of indicator array: Multiarray, array or binary encoded data.</param>
-        /// <param name="order">How the Id for each value would be assigined: by occurrence or by value.</param>
-        /// <param name="maxItems">Maximum number of ids to keep during data scanning.</param>
+        /// <param name="keyOrdinality">How the Id for each value would be assigined: by occurrence or by value.</param>
+        /// <param name="maximumNumberOfItems">Maximum number of ids to keep during data scanning.</param>
         /// <param name="onFit">Called upon fitting with the learnt enumeration on the dataset.</param>
-        public static Vector<float> OneHotEncoding(this Vector<string> input, OneHotVectorOutputKind outputKind = DefOut, KeyValueOrder order = DefSort, int maxItems = DefMax,
+        public static Vector<float> OneHotEncoding(this Vector<string> input, OneHotVectorOutputKind outputKind = DefOut, KeyOrdinality keyOrdinality = DefSort, int maximumNumberOfItems = DefMax,
             ToKeyFitResult<ReadOnlyMemory<char>>.OnFit onFit = null)
         {
             Contracts.CheckValue(input, nameof(input));
-            return new ImplVector<string>(input, new Config(outputKind, order, maxItems, Wrap(onFit)));
+            return new ImplVector<string>(input, new Config(outputKind, keyOrdinality, maximumNumberOfItems, Wrap(onFit)));
         }
     }
 }

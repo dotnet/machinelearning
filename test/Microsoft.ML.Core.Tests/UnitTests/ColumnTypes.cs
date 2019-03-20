@@ -3,9 +3,8 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
-using Microsoft.Data.DataView;
 using Microsoft.ML.Data;
-using Microsoft.ML.ImageAnalytics;
+using Microsoft.ML.Transforms.Image;
 using Xunit;
 namespace Microsoft.ML.RunTests
 {
@@ -18,7 +17,7 @@ namespace Microsoft.ML.RunTests
             // add PrimitiveTypes, KeyType & corresponding VectorTypes
             VectorType tmp1, tmp2;
             var types = new PrimitiveDataViewType[] { NumberDataViewType.SByte, NumberDataViewType.Int16, NumberDataViewType.Int32, NumberDataViewType.Int64,
-                NumberDataViewType.Byte, NumberDataViewType.UInt16, NumberDataViewType.UInt32, NumberDataViewType.UInt64, NumberDataViewType.DataViewRowId,
+                NumberDataViewType.Byte, NumberDataViewType.UInt16, NumberDataViewType.UInt32, NumberDataViewType.UInt64, RowIdDataViewType.Instance,
                 TextDataViewType.Instance, BooleanDataViewType.Instance, DateTimeDataViewType.Instance, DateTimeOffsetDataViewType.Instance, TimeSpanDataViewType.Instance };
 
             foreach (var type in types)

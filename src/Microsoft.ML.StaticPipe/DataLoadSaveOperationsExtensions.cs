@@ -11,7 +11,7 @@ namespace Microsoft.ML.StaticPipe
     public static class DataLoadSaveOperationsExtensions
     {
         /// <summary>
-        /// Configures a reader for text files.
+        /// Configures a loader for text files.
         /// </summary>
         /// <typeparam name="TShape">The type shape parameter, which must be a valid-schema shape. As a practical
         /// matter this is generally not explicitly defined from the user, but is instead inferred from the return
@@ -31,11 +31,11 @@ namespace Microsoft.ML.StaticPipe
         /// denote an empty value.</param>
         /// <param name="allowSparse">Whether the input may include sparse representations.</param>
         /// <param name="trimWhitspace">Remove trailing whitespace from lines.</param>
-        /// <returns>A configured statically-typed reader for text files.</returns>
-        public static DataReader<IMultiStreamSource, TShape> CreateTextReader<[IsShape] TShape>(
+        /// <returns>A configured statically-typed loader for text files.</returns>
+        public static DataLoader<IMultiStreamSource, TShape> CreateTextLoader<[IsShape] TShape>(
             this DataOperationsCatalog catalog, Func<Context, TShape> func, IMultiStreamSource files = null,
             bool hasHeader = false, char separator = '\t', bool allowQuoting = true, bool allowSparse = true,
             bool trimWhitspace = false)
-         => CreateReader(catalog.Environment, func, files, hasHeader, separator, allowQuoting, allowSparse, trimWhitspace);
+         => CreateLoader(catalog.GetEnvironment(), func, files, separator, hasHeader, allowQuoting, allowSparse, trimWhitspace);
     }
 }

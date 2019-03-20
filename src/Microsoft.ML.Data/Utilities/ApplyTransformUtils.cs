@@ -4,8 +4,7 @@
 
 using System.Collections.Generic;
 using System.IO;
-using Microsoft.Data.DataView;
-using Microsoft.ML.Model;
+using Microsoft.ML.Runtime;
 
 namespace Microsoft.ML.Data
 {
@@ -55,7 +54,7 @@ namespace Microsoft.ML.Data
 
         /// <summary>
         /// Walks back the Source chain of the <see cref="IDataTransform"/> up to the <paramref name="oldSource"/>
-        /// (or <see cref="IDataLoader"/> if <paramref name="oldSource"/> is <c>null</c>),
+        /// (or <see cref="ILegacyDataLoader"/> if <paramref name="oldSource"/> is <c>null</c>),
         /// and reapplies all transforms in the chain, to produce the same chain but bound to the different data.
         /// It is valid to have no transforms: in this case the result will be equal to <paramref name="newSource"/>
         /// If <paramref name="oldSource"/> is specified and not found in the pipe, an exception is thrown.
@@ -77,7 +76,7 @@ namespace Microsoft.ML.Data
             // REVIEW: we 'unwrap' the composite data loader here and step through its pipeline.
             // It's probably more robust to make CompositeDataLoader not even be an IDataView, this
             // would force the user to do the right thing and unwrap on his end.
-            var cdl = chain as CompositeDataLoader;
+            var cdl = chain as LegacyCompositeDataLoader;
             if (cdl != null)
                 chain = cdl.View;
 
@@ -90,7 +89,7 @@ namespace Microsoft.ML.Data
                 transforms.Add(xf);
                 chain = xf.Source;
 
-                cdl = chain as CompositeDataLoader;
+                cdl = chain as LegacyCompositeDataLoader;
                 if (cdl != null)
                     chain = cdl.View;
             }

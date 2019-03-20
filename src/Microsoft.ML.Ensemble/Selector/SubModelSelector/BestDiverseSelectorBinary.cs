@@ -9,14 +9,13 @@ using Microsoft.ML;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Internal.Internallearn;
+using Microsoft.ML.Runtime;
 using Microsoft.ML.Trainers.Ensemble;
-using Microsoft.ML.Trainers.Ensemble.DiversityMeasure;
-using Microsoft.ML.Trainers.Ensemble.SubModelSelector;
 
 [assembly: LoadableClass(typeof(BestDiverseSelectorBinary), typeof(BestDiverseSelectorBinary.Arguments),
     typeof(SignatureEnsembleSubModelSelector), BestDiverseSelectorBinary.UserName, BestDiverseSelectorBinary.LoadName)]
 
-namespace Microsoft.ML.Trainers.Ensemble.SubModelSelector
+namespace Microsoft.ML.Trainers.Ensemble
 {
     internal sealed class BestDiverseSelectorBinary : BaseDiverseSelector<Single, DisagreementDiversityMeasure>, IBinarySubModelSelector
     {

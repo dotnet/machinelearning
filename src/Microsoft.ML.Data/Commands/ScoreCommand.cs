@@ -5,13 +5,13 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.Command;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
 using Microsoft.ML.Data.IO;
 using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Runtime;
 
 [assembly: LoadableClass(ScoreCommand.Summary, typeof(ScoreCommand), typeof(ScoreCommand.Arguments), typeof(SignatureCommand),
     "Score Predictor", "Score")]
@@ -124,10 +124,10 @@ namespace Microsoft.ML.Data
             if (scorer == null)
                 scorer = ScoreUtils.GetScorerComponent(Host, mapper);
 
-            loader = CompositeDataLoader.ApplyTransform(Host, loader, "Scorer", scorer.ToString(),
+            loader = LegacyCompositeDataLoader.ApplyTransform(Host, loader, "Scorer", scorer.ToString(),
                 (env, view) => scorer.CreateComponent(env, view, mapper, trainSchema));
 
-            loader = CompositeDataLoader.Create(Host, loader, ImplOptions.PostTransform);
+            loader = LegacyCompositeDataLoader.Create(Host, loader, ImplOptions.PostTransform);
 
             if (!string.IsNullOrWhiteSpace(ImplOptions.OutputModelFile))
             {
@@ -178,7 +178,7 @@ namespace Microsoft.ML.Data
 
             uint maxScoreId = 0;
             if (!outputAllColumns)
-                maxScoreId = loader.Schema.GetMaxMetadataKind(out int colMax, MetadataUtils.Kinds.ScoreColumnSetId);
+                maxScoreId = loader.Schema.GetMaxAnnotationKind(out int colMax, AnnotationUtils.Kinds.ScoreColumnSetId);
             ch.Assert(outputAllColumns || maxScoreId > 0); // score set IDs are one-based
             var cols = new List<int>();
             for (int i = 0; i < loader.Schema.Count; i++)
@@ -212,7 +212,7 @@ namespace Microsoft.ML.Data
         private bool ShouldAddColumn(DataViewSchema schema, int i, uint scoreSet, bool outputNamesAndLabels)
         {
             uint scoreSetId = 0;
-            if (schema.TryGetMetadata(MetadataUtils.ScoreColumnSetIdType, MetadataUtils.Kinds.ScoreColumnSetId, i, ref scoreSetId)
+            if (schema.TryGetAnnotation(AnnotationUtils.ScoreColumnSetIdType, AnnotationUtils.Kinds.ScoreColumnSetId, i, ref scoreSetId)
                 && scoreSetId == scoreSet)
             {
                 return true;
@@ -309,7 +309,7 @@ namespace Microsoft.ML.Data
             ComponentCatalog.LoadableClassInfo info = null;
             ReadOnlyMemory<char> scoreKind = default;
             if (mapper.OutputSchema.Count > 0 &&
-                mapper.OutputSchema.TryGetMetadata(TextDataViewType.Instance, MetadataUtils.Kinds.ScoreColumnKind, 0, ref scoreKind) &&
+                mapper.OutputSchema.TryGetAnnotation(TextDataViewType.Instance, AnnotationUtils.Kinds.ScoreColumnKind, 0, ref scoreKind) &&
                 !scoreKind.IsEmpty)
             {
                 var loadName = scoreKind.ToString();

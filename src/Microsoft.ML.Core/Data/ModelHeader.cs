@@ -7,8 +7,9 @@ using System.IO;
 using System.Runtime.InteropServices;
 using System.Text;
 using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Runtime;
 
-namespace Microsoft.ML.Model
+namespace Microsoft.ML
 {
     [BestFriend]
     [StructLayout(LayoutKind.Explicit, Size = Size)]

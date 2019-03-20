@@ -3,34 +3,33 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Security.AccessControl;
 using System.Security.Principal;
 using System.Text;
-using Microsoft.Data.DataView;
 using Microsoft.ML.Data;
 using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Runtime;
 
 namespace Microsoft.ML.Transforms.TensorFlow
 {
     public static class TensorFlowUtils
     {
         /// <summary>
-        /// Key to access operator's type (a string) in <see cref="DataViewSchema.Column.Metadata"/>.
+        /// Key to access operator's type (a string) in <see cref="DataViewSchema.Column.Annotations"/>.
         /// Its value describes the Tensorflow operator that produces this <see cref="DataViewSchema.Column"/>.
         /// </summary>
-        public const string TensorflowOperatorTypeKind = "TensorflowOperatorType";
+        internal const string TensorflowOperatorTypeKind = "TensorflowOperatorType";
         /// <summary>
-        /// Key to access upstream operators' names (a string array) in <see cref="DataViewSchema.Column.Metadata"/>.
+        /// Key to access upstream operators' names (a string array) in <see cref="DataViewSchema.Column.Annotations"/>.
         /// Its value states operators that the associated <see cref="DataViewSchema.Column"/>'s generator depends on.
         /// </summary>
-        public const string TensorflowUpstreamOperatorsKind = "TensorflowUpstreamOperators";
+        internal const string TensorflowUpstreamOperatorsKind = "TensorflowUpstreamOperators";
 
         internal static DataViewSchema GetModelSchema(IExceptionContext ectx, TFGraph graph, string opType = null)
         {
-            var schemaBuilder = new SchemaBuilder();
+            var schemaBuilder = new DataViewSchema.Builder();
             foreach (var op in graph)
             {
                 if (opType != null && opType != op.OpType)
@@ -62,7 +61,7 @@ namespace Microsoft.ML.Transforms.TensorFlow
                 //     these values are names of some upstream operators which should be evaluated before executing
                 //     the current operator. It's possible that one operator doesn't need any input, so this field
                 //     can be missing.
-                var metadataBuilder = new MetadataBuilder();
+                var metadataBuilder = new DataViewSchema.Annotations.Builder();
                 // Create the first metadata field.
                 metadataBuilder.Add(TensorflowOperatorTypeKind, TextDataViewType.Instance, (ref ReadOnlyMemory<char> value) => value = op.OpType.AsMemory());
                 if (op.NumInputs > 0)
@@ -79,9 +78,9 @@ namespace Microsoft.ML.Transforms.TensorFlow
                         (ref VBuffer<ReadOnlyMemory<char>> value) => { upstreamOperatorNames.CopyTo(ref value); });
                 }
 
-                schemaBuilder.AddColumn(op.Name, columnType, metadataBuilder.GetMetadata());
+                schemaBuilder.AddColumn(op.Name, columnType, metadataBuilder.ToAnnotations());
             }
-            return schemaBuilder.GetSchema();
+            return schemaBuilder.ToSchema();
         }
 
         /// <summary>
@@ -94,48 +93,10 @@ namespace Microsoft.ML.Transforms.TensorFlow
         /// </summary>
         /// <param name="env">The environment to use.</param>
         /// <param name="modelPath">Model to load.</param>
-        public static DataViewSchema GetModelSchema(IHostEnvironment env, string modelPath)
+        internal static DataViewSchema GetModelSchema(IHostEnvironment env, string modelPath)
         {
             var model = LoadTensorFlowModel(env, modelPath);
             return GetModelSchema(env, model.Session.Graph);
-        }
-
-        /// <summary>
-        /// This is a convenience method for iterating over the nodes of a TensorFlow model graph. It
-        /// iterates over the columns of the <see cref="DataViewSchema"/> returned by <see cref="GetModelSchema(IHostEnvironment, string)"/>,
-        /// and for each one it returns a tuple containing the name, operation type, column type and an array of input node names.
-        /// This method is convenient for filtering nodes based on certain criteria, for example, by the operation type.
-        /// </summary>
-        /// <param name="env">The environment to use.</param>
-        /// <param name="modelPath">Model to load.</param>
-        /// <returns></returns>
-        public static IEnumerable<(string, string, DataViewType, string[])> GetModelNodes(IHostEnvironment env, string modelPath)
-        {
-            var schema = GetModelSchema(env, modelPath);
-
-            for (int i = 0; i < schema.Count; i++)
-            {
-                var name = schema[i].Name;
-                var type = schema[i].Type;
-
-                var metadataType = schema[i].Metadata.Schema.GetColumnOrNull(TensorflowOperatorTypeKind)?.Type;
-                Contracts.Assert(metadataType != null && metadataType is TextDataViewType);
-                ReadOnlyMemory<char> opType = default;
-                schema[i].Metadata.GetValue(TensorflowOperatorTypeKind, ref opType);
-                metadataType = schema[i].Metadata.Schema.GetColumnOrNull(TensorflowUpstreamOperatorsKind)?.Type;
-                VBuffer<ReadOnlyMemory<char>> inputOps = default;
-                if (metadataType != null)
-                {
-                    Contracts.Assert(metadataType.IsKnownSizeVector() && metadataType.GetItemType() is TextDataViewType);
-                    schema[i].Metadata.GetValue(TensorflowUpstreamOperatorsKind, ref inputOps);
-                }
-
-                string[] inputOpsResult = inputOps.DenseValues()
-                    .Select(input => input.ToString())
-                    .ToArray();
-
-                yield return (name, opType.ToString(), type, inputOpsResult);
-            }
         }
 
         internal static PrimitiveDataViewType Tf2MlNetType(TFDataType type)
@@ -338,10 +299,10 @@ namespace Microsoft.ML.Transforms.TensorFlow
         /// <param name="env">The environment to use.</param>
         /// <param name="modelPath">The model to load.</param>
         /// <returns></returns>
-        public static TensorFlowModelInfo LoadTensorFlowModel(IHostEnvironment env, string modelPath)
+        internal static TensorFlowModel LoadTensorFlowModel(IHostEnvironment env, string modelPath)
         {
             var session = GetSession(env, modelPath);
-            return new TensorFlowModelInfo(env, session, modelPath);
+            return new TensorFlowModel(env, session, modelPath);
         }
 
         internal static TFSession GetSession(IHostEnvironment env, string modelPath)

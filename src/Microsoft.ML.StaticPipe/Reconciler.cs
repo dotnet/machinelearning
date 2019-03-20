@@ -4,15 +4,16 @@
 
 using System;
 using System.Collections.Generic;
+using Microsoft.ML.Runtime;
 using Microsoft.ML.Transforms;
 
-namespace Microsoft.ML.StaticPipe.Runtime
+namespace Microsoft.ML.StaticPipe
 {
     /// <summary>
     /// An object for <see cref="PipelineColumn"/> instances to indicate to the analysis code for static pipelines that
     /// they should be considered a single group of columns (through equality on the reconcilers), as well as how to
-    /// actually create the underlying dynamic structures, whether an <see cref="IDataReaderEstimator{TSource, TReader}"/>
-    /// (for the <see cref="ReaderReconciler{TREaderIn}"/>) or a <see cref="IEstimator{TTransformer}"/>
+    /// actually create the underlying dynamic structures, whether an <see cref="IDataLoaderEstimator{TSource, TLoader}"/>
+    /// (for the <see cref="LoaderReconciler{TLoaderIn}"/>) or a <see cref="IEstimator{TTransformer}"/>
     /// (for the <see cref="EstimatorReconciler"/>).
     /// </summary>
     public abstract class Reconciler
@@ -21,24 +22,24 @@ namespace Microsoft.ML.StaticPipe.Runtime
     }
 
     /// <summary>
-    /// Reconciler for column groups intended to resolve to a new <see cref="IDataReaderEstimator{TSource, TReader}"/>
-    /// or <see cref="IDataReader{TSource}"/>.
+    /// Reconciler for column groups intended to resolve to a new <see cref="IDataLoaderEstimator{TSource, TLoader}"/>
+    /// or <see cref="IDataLoader{TSource}"/>.
     /// </summary>
-    /// <typeparam name="TIn">The input type of the <see cref="IDataReaderEstimator{TSource, TReader}"/>
+    /// <typeparam name="TIn">The input type of the <see cref="IDataLoaderEstimator{TSource, TLoader}"/>
     /// object.</typeparam>
-    public abstract class ReaderReconciler<TIn> : Reconciler
+    public abstract class LoaderReconciler<TIn> : Reconciler
     {
-        public ReaderReconciler() : base() { }
+        public LoaderReconciler() : base() { }
 
         /// <summary>
-        /// Returns a data-reader estimator. Note that there are no input names because the columns from a data-reader
+        /// Returns a data-loader estimator. Note that there are no input names because the columns from a data-loader
         /// estimator should have no dependencies.
         /// </summary>
-        /// <param name="env">The host environment to use to create the data-reader estimator</param>
+        /// <param name="env">The host environment to use to create the data-loader estimator</param>
         /// <param name="toOutput">The columns that the object created by the reconciler should output</param>
         /// <param name="outputNames">A map containing</param>
         /// <returns></returns>
-        public abstract IDataReaderEstimator<TIn, IDataReader<TIn>> Reconcile(
+        public abstract IDataLoaderEstimator<TIn, IDataLoader<TIn>> Reconcile(
             IHostEnvironment env, PipelineColumn[] toOutput, IReadOnlyDictionary<PipelineColumn, string> outputNames);
     }
 

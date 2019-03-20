@@ -4,13 +4,12 @@
 
 using System;
 using System.Collections.Generic;
-using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
 using Microsoft.ML.EntryPoints;
-using Microsoft.ML.Model;
-using Float = System.Single;
+using Microsoft.ML.Runtime;
+using Microsoft.ML.Trainers;
 
 [assembly: LoadableClass(typeof(RegressionEvaluator), typeof(RegressionEvaluator), typeof(RegressionEvaluator.Arguments), typeof(SignatureEvaluator),
     "Regression Evaluator", RegressionEvaluator.LoadName, "Regression")]
@@ -26,7 +25,7 @@ namespace Microsoft.ML.Data
 {
     [BestFriend]
     internal sealed class RegressionEvaluator :
-        RegressionEvaluatorBase<RegressionEvaluator.Aggregator, Float, Double>
+        RegressionEvaluatorBase<RegressionEvaluator.Aggregator, float, Double>
     {
         public sealed class Arguments : ArgumentsBase
         {
@@ -55,7 +54,7 @@ namespace Microsoft.ML.Data
 
         private protected override void CheckScoreAndLabelTypes(RoleMappedSchema schema)
         {
-            var score = schema.GetUniqueColumn(MetadataUtils.Const.ScoreValueKind.Score);
+            var score = schema.GetUniqueColumn(AnnotationUtils.Const.ScoreValueKind.Score);
             var t = score.Type;
             if (t != NumberDataViewType.Single)
                 throw Host.ExceptSchemaMismatch(nameof(schema), "score", score.Name, "float", t.ToString());
@@ -73,7 +72,7 @@ namespace Microsoft.ML.Data
         private protected override IRowMapper CreatePerInstanceRowMapper(RoleMappedSchema schema)
         {
             Contracts.CheckParam(schema.Label.HasValue, nameof(schema), "Could not find the label column");
-            var scoreInfo = schema.GetUniqueColumn(MetadataUtils.Const.ScoreValueKind.Score);
+            var scoreInfo = schema.GetUniqueColumn(AnnotationUtils.Const.ScoreValueKind.Score);
 
             return new RegressionPerInstanceEvaluator(Host, schema.Schema, scoreInfo.Name, schema.Label.Value.Name);
         }
@@ -107,7 +106,7 @@ namespace Microsoft.ML.Data
                     }
                 }
 
-                protected override void UpdateCore(Float label, in float score, in double loss, Float weight)
+                protected override void UpdateCore(float label, in float score, in double loss, float weight)
                 {
                     Double currL1Loss = Math.Abs((Double)label - score);
                     TotalL1Loss += currL1Loss * weight;
@@ -145,9 +144,9 @@ namespace Microsoft.ML.Data
                 loss = LossFunction.Loss(score, label);
             }
 
-            protected override bool IsNaN(in Float score)
+            protected override bool IsNaN(in float score)
             {
-                return Float.IsNaN(score);
+                return float.IsNaN(score);
             }
 
             public override void AddColumn(ArrayDataViewBuilder dvBldr, string metricName, params double[] metric)
@@ -171,7 +170,7 @@ namespace Microsoft.ML.Data
             Host.CheckNonEmpty(score, nameof(score));
             var roles = new RoleMappedData(data, opt: false,
                 RoleMappedSchema.ColumnRole.Label.Bind(label),
-                RoleMappedSchema.CreatePair(MetadataUtils.Const.ScoreValueKind.Score, score));
+                RoleMappedSchema.CreatePair(AnnotationUtils.Const.ScoreValueKind.Score, score));
 
             var resultDict = ((IEvaluator)this).Evaluate(roles);
             Host.Assert(resultDict.ContainsKey(MetricKinds.OverallMetrics));
@@ -267,14 +266,14 @@ namespace Microsoft.ML.Data
             disposer = null;
 
             long cachedPosition = -1;
-            Float label = 0;
-            Float score = 0;
+            float label = 0;
+            float score = 0;
 
-            ValueGetter<Float> nan = (ref Float value) => value = Single.NaN;
+            ValueGetter<float> nan = (ref float value) => value = Single.NaN;
             var labelGetter = activeCols(L1Col) || activeCols(L2Col) ? RowCursorUtils.GetLabelGetter(input, LabelIndex) : nan;
-            ValueGetter<Float> scoreGetter;
+            ValueGetter<float> scoreGetter;
             if (activeCols(L1Col) || activeCols(L2Col))
-                scoreGetter = input.GetGetter<Float>(ScoreIndex);
+                scoreGetter = input.GetGetter<float>(input.Schema[ScoreIndex]);
             else
                 scoreGetter = nan;
             Action updateCacheIfNeeded =
@@ -318,7 +317,7 @@ namespace Microsoft.ML.Data
             Host.AssertNonEmpty(ScoreCol);
             Host.AssertNonEmpty(LabelCol);
 
-            var t = schema[(int) LabelIndex].Type;
+            var t = schema[(int)LabelIndex].Type;
             if (t != NumberDataViewType.Single)
                 throw Host.ExceptSchemaMismatch(nameof(schema), "label", LabelCol, "float", t.ToString());
 
@@ -342,7 +341,7 @@ namespace Microsoft.ML.Data
         private protected override IEvaluator Evaluator => _evaluator;
 
         public RegressionMamlEvaluator(IHostEnvironment env, Arguments args)
-            : base(args, env, MetadataUtils.Const.ScoreColumnKind.Regression, "RegressionMamlEvaluator")
+            : base(args, env, AnnotationUtils.Const.ScoreColumnKind.Regression, "RegressionMamlEvaluator")
         {
             Host.CheckUserArg(args.LossFunction != null, nameof(args.LossFunction), "Loss function must be specified.");
 
@@ -359,7 +358,7 @@ namespace Microsoft.ML.Data
             // The regression evaluator outputs the label and score columns.
             yield return schema.Label.Value.Name;
             var scoreCol = EvaluateUtils.GetScoreColumn(Host, schema.Schema, ScoreCol, nameof(Arguments.ScoreColumn),
-                MetadataUtils.Const.ScoreColumnKind.Regression);
+                AnnotationUtils.Const.ScoreColumnKind.Regression);
             yield return scoreCol.Name;
 
             // Return the output columns.

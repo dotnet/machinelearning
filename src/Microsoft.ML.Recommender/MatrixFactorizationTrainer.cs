@@ -5,7 +5,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
@@ -13,9 +12,9 @@ using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Internal.Internallearn;
 using Microsoft.ML.Recommender;
 using Microsoft.ML.Recommender.Internal;
+using Microsoft.ML.Runtime;
 using Microsoft.ML.Trainers;
 using Microsoft.ML.Trainers.Recommender;
-using Microsoft.ML.Training;
 
 [assembly: LoadableClass(MatrixFactorizationTrainer.Summary, typeof(MatrixFactorizationTrainer), typeof(MatrixFactorizationTrainer.Options),
     new Type[] { typeof(SignatureTrainer), typeof(SignatureMatrixRecommendingTrainer) },
@@ -101,6 +100,7 @@ namespace Microsoft.ML.Trainers
             /// See <a href="https://www.csie.ntu.edu.tw/~cjlin/papers/libmf/mf_adaptive_pakdd.pdf">Equation</a> (1).
             /// </remarks>
             SquareLossRegression = 0,
+
             /// <summary>
             /// Used in implicit-feedback recommendation problem.
             /// </summary>
@@ -116,7 +116,7 @@ namespace Microsoft.ML.Trainers
         public sealed class Options
         {
             /// <summary>
-            /// The name of variable (i.e., Column in a <see cref="IDataView"/> type system) used be as matrix's column index.
+            /// The name of variable (i.e., Column in a <see cref="IDataView"/> type system) used as matrix's column index.
             /// </summary>
             public string MatrixColumnIndexColumnName;
 
@@ -564,7 +564,7 @@ namespace Microsoft.ML.Trainers
 
             return new[]
             {
-                new SchemaShape.Column(DefaultColumnNames.Score, SchemaShape.Column.VectorKind.Scalar, NumberDataViewType.Single, false, new SchemaShape(MetadataUtils.GetTrainerOutputMetadata())),
+                new SchemaShape.Column(DefaultColumnNames.Score, SchemaShape.Column.VectorKind.Scalar, NumberDataViewType.Single, false, new SchemaShape(AnnotationUtils.GetTrainerOutputAnnotation())),
             };
         }
     }

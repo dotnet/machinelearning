@@ -4,9 +4,9 @@
 
 using System;
 using System.Linq;
-using Microsoft.Data.DataView;
 using Microsoft.ML.Data;
 using Microsoft.ML.RunTests;
+using Microsoft.ML.Runtime;
 using Microsoft.ML.Transforms;
 using Xunit;
 using Xunit.Abstractions;
@@ -50,11 +50,11 @@ namespace Microsoft.ML.Tests.Transformers
             string dataPath = GetDataPath("adult.tiny.with-schema.txt");
             var source = new MultiFileSource(dataPath);
             var loader = ML.Data.CreateTextLoader(new[] {
-                    new TextLoader.Column("Float1", DataKind.R4, 9),
-                    new TextLoader.Column("Float4", DataKind.R4, new[]{new TextLoader.Range(9), new TextLoader.Range(10), new TextLoader.Range(11), new TextLoader.Range(12) })
+                    new TextLoader.Column("Float1", DataKind.Single, 9),
+                    new TextLoader.Column("Float4", DataKind.Single, new[]{new TextLoader.Range(9), new TextLoader.Range(10), new TextLoader.Range(11), new TextLoader.Range(12) })
             }, hasHeader: true);
 
-            var data = loader.Read(source);
+            var data = loader.Load(source);
 
             IDataView transformedData;
             // We create a temporary environment to instantiate the custom transformer. This is to ensure that we don't need the same
@@ -76,8 +76,8 @@ namespace Microsoft.ML.Tests.Transformers
             TestEstimatorCore(customEst, data);
             transformedData = customEst.Fit(data).Transform(data);
 
-            var inputs = ML.CreateEnumerable<MyInput>(transformedData, true);
-            var outputs = ML.CreateEnumerable<MyOutput>(transformedData, true);
+            var inputs = ML.Data.CreateEnumerable<MyInput>(transformedData, true);
+            var outputs = ML.Data.CreateEnumerable<MyOutput>(transformedData, true);
 
             Assert.True(inputs.Zip(outputs, (x, y) => y.Together == $"{x.Float1} + {string.Join(", ", x.Float4)}").All(x => x));
 
@@ -90,12 +90,12 @@ namespace Microsoft.ML.Tests.Transformers
             string dataPath = GetDataPath("adult.test");
             var source = new MultiFileSource(dataPath);
             var loader = ML.Data.CreateTextLoader(new[] {
-                    new TextLoader.Column("Float1", DataKind.R4, 0),
-                    new TextLoader.Column("Float4", DataKind.R4, new[]{new TextLoader.Range(0), new TextLoader.Range(2), new TextLoader.Range(4), new TextLoader.Range(10) }),
-                    new TextLoader.Column("Text1", DataKind.Text, 0)
-            }, hasHeader: true, separatorChar: ',' );
+                    new TextLoader.Column("Float1", DataKind.Single, 0),
+                    new TextLoader.Column("Float4", DataKind.Single, new[]{new TextLoader.Range(0), new TextLoader.Range(2), new TextLoader.Range(4), new TextLoader.Range(10) }),
+                    new TextLoader.Column("Text1", DataKind.String, 0)
+            }, separatorChar: ',', hasHeader: true);
 
-            var data = loader.Read(source);
+            var data = loader.Load(source);
 
             Action<MyInput, MyOutput> mapping = (input, output) => output.Together = input.Float1.ToString();
             var est = ML.Transforms.CustomMapping(mapping, null);

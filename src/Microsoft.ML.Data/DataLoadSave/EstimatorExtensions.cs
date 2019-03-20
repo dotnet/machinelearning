@@ -3,9 +3,9 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using Microsoft.Data.DataView;
 using Microsoft.ML.Data;
 using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Runtime;
 
 namespace Microsoft.ML
 {
@@ -15,29 +15,29 @@ namespace Microsoft.ML
     public static class LearningPipelineExtensions
     {
         /// <summary>
-        /// Create a new composite reader estimator, by appending another estimator to the end of this data reader estimator.
+        /// Create a new composite loader estimator, by appending another estimator to the end of this data loader estimator.
         /// </summary>
-        public static CompositeReaderEstimator<TSource, TTrans> Append<TSource, TTrans>(
-            this IDataReaderEstimator<TSource, IDataReader<TSource>> start, IEstimator<TTrans> estimator)
+        public static CompositeLoaderEstimator<TSource, TTrans> Append<TSource, TTrans>(
+            this IDataLoaderEstimator<TSource, IDataLoader<TSource>> start, IEstimator<TTrans> estimator)
             where TTrans : class, ITransformer
         {
             Contracts.CheckValue(start, nameof(start));
             Contracts.CheckValue(estimator, nameof(estimator));
 
-            return new CompositeReaderEstimator<TSource, ITransformer>(start).Append(estimator);
+            return new CompositeLoaderEstimator<TSource, ITransformer>(start).Append(estimator);
         }
 
         /// <summary>
-        /// Create a new composite reader estimator, by appending an estimator to this data reader.
+        /// Create a new composite loader estimator, by appending an estimator to this data loader.
         /// </summary>
-        public static CompositeReaderEstimator<TSource, TTrans> Append<TSource, TTrans>(
-            this IDataReader<TSource> start, IEstimator<TTrans> estimator)
+        public static CompositeLoaderEstimator<TSource, TTrans> Append<TSource, TTrans>(
+            this IDataLoader<TSource> start, IEstimator<TTrans> estimator)
             where TTrans : class, ITransformer
         {
             Contracts.CheckValue(start, nameof(start));
             Contracts.CheckValue(estimator, nameof(estimator));
 
-            return new TrivialReaderEstimator<TSource, IDataReader<TSource>>(start).Append(estimator);
+            return new TrivialLoaderEstimator<TSource, IDataLoader<TSource>>(start).Append(estimator);
         }
 
         /// <summary>
@@ -72,15 +72,15 @@ namespace Microsoft.ML
         }
 
         /// <summary>
-        /// Create a new composite reader, by appending a transformer to this data reader.
+        /// Create a new composite loader, by appending a transformer to this data loader.
         /// </summary>
-        public static CompositeDataReader<TSource, TTrans> Append<TSource, TTrans>(this IDataReader<TSource> reader, TTrans transformer)
+        public static CompositeDataLoader<TSource, TTrans> Append<TSource, TTrans>(this IDataLoader<TSource> loader, TTrans transformer)
             where TTrans : class, ITransformer
         {
-            Contracts.CheckValue(reader, nameof(reader));
+            Contracts.CheckValue(loader, nameof(loader));
             Contracts.CheckValue(transformer, nameof(transformer));
 
-            return new CompositeDataReader<TSource, ITransformer>(reader).AppendTransformer(transformer);
+            return new CompositeDataLoader<TSource, ITransformer>(loader).AppendTransformer(transformer);
         }
 
         /// <summary>

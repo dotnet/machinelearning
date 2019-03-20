@@ -48,12 +48,12 @@ namespace Microsoft.ML.RunTests
                 new SparseExample<T>() { X = new VBuffer<T> (5, 3, v2, new int[] { 0, 1, 3 }) }
             };
             var env = new MLContext();
-            var data = env.Data.ReadFromEnumerable(inputs);
+            var data = env.Data.LoadFromEnumerable(inputs);
             var value = new VBuffer<T>();
             int n = 0;
             using (var cur = data.GetRowCursorForAllColumns())
             {
-                var getter = cur.GetGetter<VBuffer<T>>(0);
+                var getter = cur.GetGetter<VBuffer<T>>(cur.Schema[0]);
                 while (cur.MoveNext())
                 {
                     getter(ref value);
@@ -62,7 +62,7 @@ namespace Microsoft.ML.RunTests
                 }
             }
             Assert.True(n == 2);
-            var iter = env.CreateEnumerable<SparseExample<T>>(data, false).GetEnumerator();
+            var iter = env.Data.CreateEnumerable<SparseExample<T>>(data, false).GetEnumerator();
             n = 0;
             while (iter.MoveNext())
                 ++n;
@@ -88,12 +88,12 @@ namespace Microsoft.ML.RunTests
                 new DenseExample<T>() { X = v2 }
             };
             var env = new MLContext();
-            var data = env.Data.ReadFromEnumerable(inputs);
+            var data = env.Data.LoadFromEnumerable(inputs);
             var value = new VBuffer<T>();
             int n = 0;
             using (var cur = data.GetRowCursorForAllColumns())
             {
-                var getter = cur.GetGetter<VBuffer<T>>(0);
+                var getter = cur.GetGetter<VBuffer<T>>(cur.Schema[0]);
                 while (cur.MoveNext())
                 {
                     getter(ref value);
@@ -102,7 +102,7 @@ namespace Microsoft.ML.RunTests
                 }
             }
             Assert.True(n == 2);
-            var iter = env.CreateEnumerable<DenseExample<T>>(data, false).GetEnumerator();
+            var iter = env.Data.CreateEnumerable<DenseExample<T>>(data, false).GetEnumerator();
             n = 0;
             while (iter.MoveNext())
                 ++n;

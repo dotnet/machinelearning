@@ -2,8 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using Microsoft.ML.Data;
+using Microsoft.ML.Runtime;
 using Microsoft.ML.Trainers.FastTree;
 
 namespace Microsoft.ML
@@ -17,32 +17,46 @@ namespace Microsoft.ML
         /// Predict a target using a decision tree regression model trained with the <see cref="FastTreeRegressionTrainer"/>.
         /// </summary>
         /// <param name="catalog">The <see cref="RegressionCatalog"/>.</param>
-        /// <param name="labelColumn">The label column.</param>
-        /// <param name="featureColumn">The feature column.</param>
-        /// <param name="weights">The optional weights column.</param>
-        /// <param name="numTrees">Total number of decision trees to create in the ensemble.</param>
-        /// <param name="numLeaves">The maximum number of leaves per decision tree.</param>
-        /// <param name="minDatapointsInLeaves">The minimal number of datapoints allowed in a leaf of a regression tree, out of the subsampled data.</param>
+        /// <param name="labelColumnName">The name of the label column.</param>
+        /// <param name="featureColumnName">The name of the feature column.</param>
+        /// <param name="exampleWeightColumnName">The name of the example weight column (optional).</param>
+        /// <param name="numberOfTrees">Total number of decision trees to create in the ensemble.</param>
+        /// <param name="numberOfLeaves">The maximum number of leaves per decision tree.</param>
+        /// <param name="minimumExampleCountPerLeaf">The minimal number of data points required to form a new tree leaf.</param>
         /// <param name="learningRate">The learning rate.</param>
+        /// <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        /// [!code-csharp[FastTreeRegression](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Trainers/Regression/FastTree.cs)]
+        /// ]]>
+        /// </format>
+        /// </example>
         public static FastTreeRegressionTrainer FastTree(this RegressionCatalog.RegressionTrainers catalog,
-            string labelColumn = DefaultColumnNames.Label,
-            string featureColumn = DefaultColumnNames.Features,
-            string weights = null,
-            int numLeaves = Defaults.NumLeaves,
-            int numTrees = Defaults.NumTrees,
-            int minDatapointsInLeaves = Defaults.MinDocumentsInLeaves,
-            double learningRate = Defaults.LearningRates)
+        string labelColumnName = DefaultColumnNames.Label,
+            string featureColumnName = DefaultColumnNames.Features,
+            string exampleWeightColumnName = null,
+            int numberOfLeaves = Defaults.NumberOfLeaves,
+            int numberOfTrees = Defaults.NumberOfTrees,
+            int minimumExampleCountPerLeaf = Defaults.MinimumExampleCountPerLeaf,
+            double learningRate = Defaults.LearningRate)
         {
             Contracts.CheckValue(catalog, nameof(catalog));
             var env = CatalogUtils.GetEnvironment(catalog);
-            return new FastTreeRegressionTrainer(env, labelColumn, featureColumn, weights, numLeaves, numTrees, minDatapointsInLeaves, learningRate);
+            return new FastTreeRegressionTrainer(env, labelColumnName, featureColumnName, exampleWeightColumnName, numberOfLeaves, numberOfTrees, minimumExampleCountPerLeaf, learningRate);
         }
 
         /// <summary>
         /// Predict a target using a decision tree regression model trained with the <see cref="FastTreeRegressionTrainer"/>.
         /// </summary>
         /// <param name="catalog">The <see cref="RegressionCatalog"/>.</param>
-        /// <param name="options">Algorithm advanced settings.</param>
+        /// <param name="options">Trainer options.</param>
+        /// <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        /// [!code-csharp[FastTreeRegression](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Trainers/Regression/FastTreeWithOptions.cs)]
+        /// ]]>
+        /// </format>
+        /// </example>
         public static FastTreeRegressionTrainer FastTree(this RegressionCatalog.RegressionTrainers catalog,
             FastTreeRegressionTrainer.Options options)
         {
@@ -54,77 +68,77 @@ namespace Microsoft.ML
         }
 
         /// <summary>
-        /// Predict a target using a decision tree binary classification model trained with the <see cref="FastTreeBinaryClassificationTrainer"/>.
+        /// Predict a target using a decision tree binary classification model trained with the <see cref="FastTreeBinaryTrainer"/>.
         /// </summary>
         /// <param name="catalog">The <see cref="BinaryClassificationCatalog"/>.</param>
-        /// <param name="labelColumn">The labelColumn column.</param>
-        /// <param name="featureColumn">The featureColumn column.</param>
-        /// <param name="weights">The optional weights column.</param>
-        /// <param name="numTrees">Total number of decision trees to create in the ensemble.</param>
-        /// <param name="numLeaves">The maximum number of leaves per decision tree.</param>
-        /// <param name="minDatapointsInLeaves">The minimal number of datapoints allowed in a leaf of the tree, out of the subsampled data.</param>
+        /// <param name="labelColumnName">The name of the label column.</param>
+        /// <param name="featureColumnName">The name of the feature column.</param>
+        /// <param name="exampleWeightColumnName">The name of the example weight column (optional).</param>
+        /// <param name="numberOfTrees">Total number of decision trees to create in the ensemble.</param>
+        /// <param name="numberOfLeaves">The maximum number of leaves per decision tree.</param>
+        /// <param name="minimumExampleCountPerLeaf">The minimal number of data points required to form a new tree leaf.</param>
         /// <param name="learningRate">The learning rate.</param>
-        public static FastTreeBinaryClassificationTrainer FastTree(this BinaryClassificationCatalog.BinaryClassificationTrainers catalog,
-            string labelColumn = DefaultColumnNames.Label,
-            string featureColumn = DefaultColumnNames.Features,
-            string weights = null,
-            int numLeaves = Defaults.NumLeaves,
-            int numTrees = Defaults.NumTrees,
-            int minDatapointsInLeaves = Defaults.MinDocumentsInLeaves,
-            double learningRate = Defaults.LearningRates)
+        public static FastTreeBinaryTrainer FastTree(this BinaryClassificationCatalog.BinaryClassificationTrainers catalog,
+            string labelColumnName = DefaultColumnNames.Label,
+            string featureColumnName = DefaultColumnNames.Features,
+            string exampleWeightColumnName = null,
+            int numberOfLeaves = Defaults.NumberOfLeaves,
+            int numberOfTrees = Defaults.NumberOfTrees,
+            int minimumExampleCountPerLeaf = Defaults.MinimumExampleCountPerLeaf,
+            double learningRate = Defaults.LearningRate)
         {
             Contracts.CheckValue(catalog, nameof(catalog));
             var env = CatalogUtils.GetEnvironment(catalog);
-            return new FastTreeBinaryClassificationTrainer(env, labelColumn, featureColumn, weights, numLeaves, numTrees, minDatapointsInLeaves, learningRate);
+            return new FastTreeBinaryTrainer(env, labelColumnName, featureColumnName, exampleWeightColumnName, numberOfLeaves, numberOfTrees, minimumExampleCountPerLeaf, learningRate);
         }
 
         /// <summary>
-        /// Predict a target using a decision tree binary classification model trained with the <see cref="FastTreeBinaryClassificationTrainer"/>.
+        /// Predict a target using a decision tree binary classification model trained with the <see cref="FastTreeBinaryTrainer"/> and advanced options.
         /// </summary>
         /// <param name="catalog">The <see cref="BinaryClassificationCatalog"/>.</param>
-        /// <param name="options">Algorithm advanced settings.</param>
-        public static FastTreeBinaryClassificationTrainer FastTree(this BinaryClassificationCatalog.BinaryClassificationTrainers catalog,
-            FastTreeBinaryClassificationTrainer.Options options)
+        /// <param name="options">Trainer options.</param>
+        public static FastTreeBinaryTrainer FastTree(this BinaryClassificationCatalog.BinaryClassificationTrainers catalog,
+            FastTreeBinaryTrainer.Options options)
         {
             Contracts.CheckValue(catalog, nameof(catalog));
             Contracts.CheckValue(options, nameof(options));
 
             var env = CatalogUtils.GetEnvironment(catalog);
-            return new FastTreeBinaryClassificationTrainer(env, options);
+            return new FastTreeBinaryTrainer(env, options);
         }
 
         /// <summary>
-        /// Ranks a series of inputs based on their relevance, training a decision tree ranking model through the <see cref="FastTreeRankingTrainer"/>.
+        /// Ranks a series of inputs based on their relevance, training a decision tree ranking model with the <see cref="FastTreeRankingTrainer"/>.
         /// </summary>
         /// <param name="catalog">The <see cref="RankingCatalog"/>.</param>
-        /// <param name="labelColumn">The labelColumn column.</param>
-        /// <param name="featureColumn">The featureColumn column.</param>
-        /// <param name="groupId">The groupId column.</param>
-        /// <param name="weights">The optional weights column.</param>
-        /// <param name="numTrees">Total number of decision trees to create in the ensemble.</param>
-        /// <param name="numLeaves">The maximum number of leaves per decision tree.</param>
-        /// <param name="minDatapointsInLeaves">The minimal number of datapoints allowed in a leaf of the tree, out of the subsampled data.</param>
+        /// <param name="labelColumnName">The name of the label column.</param>
+        /// <param name="featureColumnName">The name of the feature column.</param>
+        /// <param name="rowGroupColumnName">The name of the group column.</param>
+        /// <param name="exampleWeightColumnName">The name of the example weight column (optional).</param>
+        /// <param name="numberOfTrees">Total number of decision trees to create in the ensemble.</param>
+        /// <param name="numberOfLeaves">The maximum number of leaves per decision tree.</param>
+        /// <param name="minimumExampleCountPerLeaf">The minimal number of data points required to form a new tree leaf.</param>
         /// <param name="learningRate">The learning rate.</param>
         public static FastTreeRankingTrainer FastTree(this RankingCatalog.RankingTrainers catalog,
-            string labelColumn = DefaultColumnNames.Label,
-            string featureColumn = DefaultColumnNames.Features,
-            string groupId = DefaultColumnNames.GroupId,
-            string weights = null,
-            int numLeaves = Defaults.NumLeaves,
-            int numTrees = Defaults.NumTrees,
-            int minDatapointsInLeaves = Defaults.MinDocumentsInLeaves,
-            double learningRate = Defaults.LearningRates)
+            string labelColumnName = DefaultColumnNames.Label,
+            string featureColumnName = DefaultColumnNames.Features,
+            string rowGroupColumnName = DefaultColumnNames.GroupId,
+            string exampleWeightColumnName = null,
+            int numberOfLeaves = Defaults.NumberOfLeaves,
+            int numberOfTrees = Defaults.NumberOfTrees,
+            int minimumExampleCountPerLeaf = Defaults.MinimumExampleCountPerLeaf,
+            double learningRate = Defaults.LearningRate)
         {
             Contracts.CheckValue(catalog, nameof(catalog));
             var env = CatalogUtils.GetEnvironment(catalog);
-            return new FastTreeRankingTrainer(env, labelColumn, featureColumn, groupId, weights, numLeaves, numTrees, minDatapointsInLeaves, learningRate);
+            return new FastTreeRankingTrainer(env, labelColumnName, featureColumnName, rowGroupColumnName, exampleWeightColumnName, numberOfLeaves, numberOfTrees, minimumExampleCountPerLeaf, learningRate);
         }
 
         /// <summary>
-        /// Ranks a series of inputs based on their relevance, training a decision tree ranking model through the <see cref="FastTreeRankingTrainer"/>.
+        /// Ranks a series of inputs based on their relevance, training a decision tree ranking model with the <see cref="FastTreeRankingTrainer"/> and advanced options.
         /// </summary>
         /// <param name="catalog">The <see cref="RankingCatalog"/>.</param>
-        /// <param name="options">Algorithm advanced settings.</param>
+        /// <param name="options">Trainer options.</param>
         public static FastTreeRankingTrainer FastTree(this RankingCatalog.RankingTrainers catalog,
             FastTreeRankingTrainer.Options options)
         {
@@ -136,107 +150,135 @@ namespace Microsoft.ML
         }
 
         /// <summary>
-        /// Predict a target using generalized additive models trained with the <see cref="BinaryClassificationGamTrainer"/>.
+        /// Predict a target using generalized additive models (GAM) trained with the <see cref="GamBinaryTrainer"/>.
         /// </summary>
         /// <param name="catalog">The <see cref="BinaryClassificationCatalog"/>.</param>
-        /// <param name="labelColumn">The labelColumn column.</param>
-        /// <param name="featureColumn">The featureColumn column.</param>
-        /// <param name="weights">The optional weights column.</param>
-        /// <param name="numIterations">The number of iterations to use in learning the features.</param>
+        /// <param name="labelColumnName">The name of the label column.</param>
+        /// <param name="featureColumnName">The name of the feature column.</param>
+        /// <param name="exampleWeightColumnName">The name of the example weight column (optional).</param>
+        /// <param name="numberOfIterations">The number of iterations to use in learning the features.</param>
+        /// <param name="maximumBinCountPerFeature">The maximum number of bins to use to approximate features.</param>
         /// <param name="learningRate">The learning rate. GAMs work best with a small learning rate.</param>
-        /// <param name="maxBins">The maximum number of bins to use to approximate features.</param>
-        public static BinaryClassificationGamTrainer GeneralizedAdditiveModels(this BinaryClassificationCatalog.BinaryClassificationTrainers catalog,
-            string labelColumn = DefaultColumnNames.Label,
-            string featureColumn = DefaultColumnNames.Features,
-            string weights = null,
-            int numIterations = GamDefaults.NumIterations,
-            double learningRate = GamDefaults.LearningRates,
-            int maxBins = GamDefaults.MaxBins)
+        public static GamBinaryTrainer Gam(this BinaryClassificationCatalog.BinaryClassificationTrainers catalog,
+            string labelColumnName = DefaultColumnNames.Label,
+            string featureColumnName = DefaultColumnNames.Features,
+            string exampleWeightColumnName = null,
+            int numberOfIterations = GamDefaults.NumberOfIterations,
+            int maximumBinCountPerFeature = GamDefaults.MaximumBinCountPerFeature,
+            double learningRate = GamDefaults.LearningRate)
         {
             Contracts.CheckValue(catalog, nameof(catalog));
             var env = CatalogUtils.GetEnvironment(catalog);
-            return new BinaryClassificationGamTrainer(env, labelColumn, featureColumn, weights, numIterations, learningRate, maxBins);
+            return new GamBinaryTrainer(env, labelColumnName, featureColumnName, exampleWeightColumnName, numberOfIterations, learningRate, maximumBinCountPerFeature);
         }
 
         /// <summary>
-        /// Predict a target using generalized additive models trained with the <see cref="BinaryClassificationGamTrainer"/>.
+        /// Predict a target using generalized additive models (GAM) trained with the <see cref="GamBinaryTrainer"/>.
         /// </summary>
         /// <param name="catalog">The <see cref="BinaryClassificationCatalog"/>.</param>
-        /// <param name="options">Algorithm advanced settings.</param>
-        public static BinaryClassificationGamTrainer GeneralizedAdditiveModels(this BinaryClassificationCatalog.BinaryClassificationTrainers catalog,
-            BinaryClassificationGamTrainer.Options options)
+        /// <param name="options">Trainer options.</param>
+        public static GamBinaryTrainer Gam(this BinaryClassificationCatalog.BinaryClassificationTrainers catalog,
+            GamBinaryTrainer.Options options)
         {
             Contracts.CheckValue(catalog, nameof(catalog));
             var env = CatalogUtils.GetEnvironment(catalog);
-            return new BinaryClassificationGamTrainer(env, options);
+            return new GamBinaryTrainer(env, options);
         }
 
         /// <summary>
-        /// Predict a target using generalized additive models trained with the <see cref="RegressionGamTrainer"/>.
+        /// Predict a target using generalized additive models (GAM) trained with the <see cref="GamRegressionTrainer"/>.
         /// </summary>
         /// <param name="catalog">The <see cref="RegressionCatalog"/>.</param>
-        /// <param name="labelColumn">The labelColumn column.</param>
-        /// <param name="featureColumn">The featureColumn column.</param>
-        /// <param name="weights">The optional weights column.</param>
-        /// <param name="numIterations">The number of iterations to use in learning the features.</param>
+        /// <param name="labelColumnName">The name of the label column.</param>
+        /// <param name="featureColumnName">The name of the feature column.</param>
+        /// <param name="exampleWeightColumnName">The name of the example weight column (optional).</param>
+        /// <param name="numberOfIterations">The number of iterations to use in learning the features.</param>
+        /// <param name="maximumBinCountPerFeature">The maximum number of bins to use to approximate features.</param>
         /// <param name="learningRate">The learning rate. GAMs work best with a small learning rate.</param>
-        /// <param name="maxBins">The maximum number of bins to use to approximate features.</param>
-        public static RegressionGamTrainer GeneralizedAdditiveModels(this RegressionCatalog.RegressionTrainers catalog,
-            string labelColumn = DefaultColumnNames.Label,
-            string featureColumn = DefaultColumnNames.Features,
-            string weights = null,
-            int numIterations = GamDefaults.NumIterations,
-            double learningRate = GamDefaults.LearningRates,
-            int maxBins = GamDefaults.MaxBins)
+        /// <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        /// [!code-csharp[GamRegression](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Trainers/Regression/Gam.cs)]
+        /// ]]>
+        /// </format>
+        /// </example>
+        public static GamRegressionTrainer Gam(this RegressionCatalog.RegressionTrainers catalog,
+        string labelColumnName = DefaultColumnNames.Label,
+            string featureColumnName = DefaultColumnNames.Features,
+            string exampleWeightColumnName = null,
+            int numberOfIterations = GamDefaults.NumberOfIterations,
+            int maximumBinCountPerFeature = GamDefaults.MaximumBinCountPerFeature,
+            double learningRate = GamDefaults.LearningRate)
         {
             Contracts.CheckValue(catalog, nameof(catalog));
             var env = CatalogUtils.GetEnvironment(catalog);
-            return new RegressionGamTrainer(env, labelColumn, featureColumn, weights, numIterations, learningRate, maxBins);
+            return new GamRegressionTrainer(env, labelColumnName, featureColumnName, exampleWeightColumnName, numberOfIterations, learningRate, maximumBinCountPerFeature);
         }
 
         /// <summary>
-        /// Predict a target using generalized additive models trained with the <see cref="RegressionGamTrainer"/>.
+        /// Predict a target using generalized additive models (GAM) trained with the <see cref="GamRegressionTrainer"/>.
         /// </summary>
         /// <param name="catalog">The <see cref="RegressionCatalog"/>.</param>
-        /// <param name="options">Algorithm advanced settings.</param>
-        public static RegressionGamTrainer GeneralizedAdditiveModels(this RegressionCatalog.RegressionTrainers catalog,
-            RegressionGamTrainer.Options options)
+        /// <param name="options">Trainer options.</param>
+        /// <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        /// [!code-csharp[GamRegression](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Trainers/Regression/GamWithOptions.cs)]
+        /// ]]>
+        /// </format>
+        /// </example>
+        public static GamRegressionTrainer Gam(this RegressionCatalog.RegressionTrainers catalog,
+            GamRegressionTrainer.Options options)
         {
             Contracts.CheckValue(catalog, nameof(catalog));
             var env = CatalogUtils.GetEnvironment(catalog);
-            return new RegressionGamTrainer(env, options);
+            return new GamRegressionTrainer(env, options);
         }
 
         /// <summary>
         /// Predict a target using a decision tree regression model trained with the <see cref="FastTreeTweedieTrainer"/>.
         /// </summary>
         /// <param name="catalog">The <see cref="RegressionCatalog"/>.</param>
-        /// <param name="labelColumn">The labelColumn column.</param>
-        /// <param name="featureColumn">The featureColumn column.</param>
-        /// <param name="weights">The optional weights column.</param>
-        /// <param name="numTrees">Total number of decision trees to create in the ensemble.</param>
-        /// <param name="numLeaves">The maximum number of leaves per decision tree.</param>
-        /// <param name="minDatapointsInLeaves">The minimal number of datapoints allowed in a leaf of the tree, out of the subsampled data.</param>
+        /// <param name="labelColumnName">The name of the label column.</param>
+        /// <param name="featureColumnName">The name of the feature column.</param>
+        /// <param name="exampleWeightColumnName">The name of the example weight column (optional).</param>
+        /// <param name="numberOfTrees">Total number of decision trees to create in the ensemble.</param>
+        /// <param name="numberOfLeaves">The maximum number of leaves per decision tree.</param>
+        /// <param name="minDatapointsInLeaves">The minimal number of data points required to form a new tree leaf.</param>
         /// <param name="learningRate">The learning rate.</param>
+        /// <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        /// [!code-csharp[FastTreeTweedie](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Trainers/Regression/FastTreeTweedie.cs)]
+        /// ]]>
+        /// </format>
+        /// </example>
         public static FastTreeTweedieTrainer FastTreeTweedie(this RegressionCatalog.RegressionTrainers catalog,
-            string labelColumn = DefaultColumnNames.Label,
-            string featureColumn = DefaultColumnNames.Features,
-            string weights = null,
-            int numLeaves = Defaults.NumLeaves,
-            int numTrees = Defaults.NumTrees,
-            int minDatapointsInLeaves = Defaults.MinDocumentsInLeaves,
-            double learningRate = Defaults.LearningRates)
+            string labelColumnName = DefaultColumnNames.Label,
+            string featureColumnName = DefaultColumnNames.Features,
+            string exampleWeightColumnName = null,
+            int numberOfLeaves = Defaults.NumberOfLeaves,
+            int numberOfTrees = Defaults.NumberOfTrees,
+            int minDatapointsInLeaves = Defaults.MinimumExampleCountPerLeaf,
+            double learningRate = Defaults.LearningRate)
         {
             Contracts.CheckValue(catalog, nameof(catalog));
             var env = CatalogUtils.GetEnvironment(catalog);
-            return new FastTreeTweedieTrainer(env, labelColumn, featureColumn, weights, numLeaves, numTrees, minDatapointsInLeaves, learningRate);
+            return new FastTreeTweedieTrainer(env, labelColumnName, featureColumnName, exampleWeightColumnName, numberOfLeaves, numberOfTrees, minDatapointsInLeaves, learningRate);
         }
 
         /// <summary>
-        /// Predict a target using a decision tree regression model trained with the <see cref="FastTreeTweedieTrainer"/>.
+        /// Predict a target using a decision tree regression model trained with the <see cref="FastTreeTweedieTrainer"/> and advanced options.
         /// </summary>
         /// <param name="catalog">The <see cref="RegressionCatalog"/>.</param>
-        /// <param name="options">Algorithm advanced settings.</param>
+        /// <param name="options">Trainer options.</param>
+        /// <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        /// [!code-csharp[FastTreeTweedie](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Trainers/Regression/FastTreeTweedieWithOptions.cs)]
+        /// ]]>
+        /// </format>
+        /// </example>
         public static FastTreeTweedieTrainer FastTreeTweedie(this RegressionCatalog.RegressionTrainers catalog,
             FastTreeTweedieTrainer.Options options)
         {
@@ -248,83 +290,93 @@ namespace Microsoft.ML
         }
 
         /// <summary>
-        /// Predict a target using a decision tree regression model trained with the <see cref="FastForestRegression"/>.
+        /// Predict a target using a decision tree regression model trained with the <see cref="FastForestRegressionTrainer"/>.
         /// </summary>
         /// <param name="catalog">The <see cref="RegressionCatalog"/>.</param>
-        /// <param name="labelColumn">The labelColumn column.</param>
-        /// <param name="featureColumn">The featureColumn column.</param>
-        /// <param name="weights">The optional weights column.</param>
-        /// <param name="numTrees">Total number of decision trees to create in the ensemble.</param>
-        /// <param name="numLeaves">The maximum number of leaves per decision tree.</param>
-        /// <param name="minDatapointsInLeaves">The minimal number of datapoints allowed in a leaf of the tree, out of the subsampled data.</param>
-        /// <param name="learningRate">The learning rate.</param>
-        public static FastForestRegression FastForest(this RegressionCatalog.RegressionTrainers catalog,
-            string labelColumn = DefaultColumnNames.Label,
-            string featureColumn = DefaultColumnNames.Features,
-            string weights = null,
-            int numLeaves = Defaults.NumLeaves,
-            int numTrees = Defaults.NumTrees,
-            int minDatapointsInLeaves = Defaults.MinDocumentsInLeaves,
-            double learningRate = Defaults.LearningRates)
+        /// <param name="labelColumnName">The name of the label column.</param>
+        /// <param name="featureColumnName">The name of the feature column.</param>
+        /// <param name="exampleWeightColumnName">The name of the example weight column (optional).</param>
+        /// <param name="numberOfLeaves">The maximum number of leaves per decision tree.</param>
+        /// <param name="numberOfTrees">Total number of decision trees to create in the ensemble.</param>
+        /// <param name="minDatapointsInLeaves">The minimal number of data points required to form a new tree leaf.</param>
+        /// <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        /// [!code-csharp[FastForestRegression](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Trainers/Regression/FastForest.cs)]
+        /// ]]>
+        /// </format>
+        /// </example>
+        public static FastForestRegressionTrainer FastForest(this RegressionCatalog.RegressionTrainers catalog,
+            string labelColumnName = DefaultColumnNames.Label,
+            string featureColumnName = DefaultColumnNames.Features,
+            string exampleWeightColumnName = null,
+            int numberOfLeaves = Defaults.NumberOfLeaves,
+            int numberOfTrees = Defaults.NumberOfTrees,
+            int minDatapointsInLeaves = Defaults.MinimumExampleCountPerLeaf)
         {
             Contracts.CheckValue(catalog, nameof(catalog));
             var env = CatalogUtils.GetEnvironment(catalog);
-            return new FastForestRegression(env, labelColumn, featureColumn, weights, numLeaves, numTrees, minDatapointsInLeaves, learningRate);
+            return new FastForestRegressionTrainer(env, labelColumnName, featureColumnName, exampleWeightColumnName, numberOfLeaves, numberOfTrees, minDatapointsInLeaves);
         }
 
         /// <summary>
-        /// Predict a target using a decision tree regression model trained with the <see cref="FastForestRegression"/>.
+        /// Predict a target using a decision tree regression model trained with the <see cref="FastForestRegressionTrainer"/> and advanced options.
         /// </summary>
         /// <param name="catalog">The <see cref="RegressionCatalog"/>.</param>
-        /// <param name="options">Algorithm advanced settings.</param>
-        public static FastForestRegression FastForest(this RegressionCatalog.RegressionTrainers catalog,
-            FastForestRegression.Options options)
+        /// <param name="options">Trainer options.</param>
+        /// <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        /// [!code-csharp[FastForestRegression](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Trainers/Regression/FastForestWithOptions.cs)]
+        /// ]]>
+        /// </format>
+        /// </example>
+        public static FastForestRegressionTrainer FastForest(this RegressionCatalog.RegressionTrainers catalog,
+            FastForestRegressionTrainer.Options options)
         {
             Contracts.CheckValue(catalog, nameof(catalog));
             Contracts.CheckValue(options, nameof(options));
 
             var env = CatalogUtils.GetEnvironment(catalog);
-            return new FastForestRegression(env, options);
+            return new FastForestRegressionTrainer(env, options);
         }
 
         /// <summary>
-        /// Predict a target using a decision tree regression model trained with the <see cref="FastForestClassification"/>.
+        /// Predict a target using a decision tree regression model trained with the <see cref="FastForestBinaryTrainer"/>.
         /// </summary>
         /// <param name="catalog">The <see cref="BinaryClassificationCatalog"/>.</param>
-        /// <param name="labelColumn">The labelColumn column.</param>
-        /// <param name="featureColumn">The featureColumn column.</param>
-        /// <param name="weights">The optional weights column.</param>
-        /// <param name="numTrees">Total number of decision trees to create in the ensemble.</param>
-        /// <param name="numLeaves">The maximum number of leaves per decision tree.</param>
-        /// <param name="minDatapointsInLeaves">The minimal number of datapoints allowed in a leaf of the tree, out of the subsampled data.</param>
-        /// <param name="learningRate">The learning rate.</param>
-        public static FastForestClassification FastForest(this BinaryClassificationCatalog.BinaryClassificationTrainers catalog,
-            string labelColumn = DefaultColumnNames.Label,
-            string featureColumn = DefaultColumnNames.Features,
-            string weights = null,
-            int numLeaves = Defaults.NumLeaves,
-            int numTrees = Defaults.NumTrees,
-            int minDatapointsInLeaves = Defaults.MinDocumentsInLeaves,
-            double learningRate = Defaults.LearningRates)
+        /// <param name="labelColumnName">The name of the label column.</param>
+        /// <param name="featureColumnName">The name of the feature column.</param>
+        /// <param name="exampleWeightColumnName">The name of the example weight column (optional).</param>
+        /// <param name="numberOfTrees">Total number of decision trees to create in the ensemble.</param>
+        /// <param name="numberOfLeaves">The maximum number of leaves per decision tree.</param>
+        /// <param name="minDatapointsInLeaves">The minimal number of data points required to form a new tree leaf.</param>
+        public static FastForestBinaryTrainer FastForest(this BinaryClassificationCatalog.BinaryClassificationTrainers catalog,
+            string labelColumnName = DefaultColumnNames.Label,
+            string featureColumnName = DefaultColumnNames.Features,
+            string exampleWeightColumnName = null,
+            int numberOfLeaves = Defaults.NumberOfLeaves,
+            int numberOfTrees = Defaults.NumberOfTrees,
+            int minDatapointsInLeaves = Defaults.MinimumExampleCountPerLeaf)
         {
             Contracts.CheckValue(catalog, nameof(catalog));
             var env = CatalogUtils.GetEnvironment(catalog);
-            return new FastForestClassification(env, labelColumn, featureColumn, weights,numLeaves, numTrees, minDatapointsInLeaves, learningRate);
+            return new FastForestBinaryTrainer(env, labelColumnName, featureColumnName, exampleWeightColumnName, numberOfLeaves, numberOfTrees, minDatapointsInLeaves);
         }
 
         /// <summary>
-        /// Predict a target using a decision tree regression model trained with the <see cref="FastForestClassification"/>.
+        /// Predict a target using a decision tree regression model trained with the <see cref="FastForestBinaryTrainer"/> and advanced options.
         /// </summary>
         /// <param name="catalog">The <see cref="BinaryClassificationCatalog"/>.</param>
-        /// <param name="options">Algorithm advanced settings.</param>
-        public static FastForestClassification FastForest(this BinaryClassificationCatalog.BinaryClassificationTrainers catalog,
-            FastForestClassification.Options options)
+        /// <param name="options">Trainer options.</param>
+        public static FastForestBinaryTrainer FastForest(this BinaryClassificationCatalog.BinaryClassificationTrainers catalog,
+            FastForestBinaryTrainer.Options options)
         {
             Contracts.CheckValue(catalog, nameof(catalog));
             Contracts.CheckValue(options, nameof(options));
 
             var env = CatalogUtils.GetEnvironment(catalog);
-            return new FastForestClassification(env, options);
+            return new FastForestBinaryTrainer(env, options);
         }
     }
 }

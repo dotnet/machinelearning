@@ -1,9 +1,5 @@
 using System;
 using System.Collections.Generic;
-using Microsoft.Data.DataView;
-using Microsoft.ML.Data;
-using Microsoft.ML.Transforms.Conversions;
-
 namespace Microsoft.ML.Samples.Dynamic
 {
     public static class ValueMappingStringToKeyType
@@ -36,36 +32,26 @@ namespace Microsoft.ML.Samples.Dynamic
 
             // Get a small dataset as an IEnumerable.
             IEnumerable<SamplesUtils.DatasetUtils.SampleInfertData> data = SamplesUtils.DatasetUtils.GetInfertData();
-            IDataView trainData = mlContext.Data.ReadFromEnumerable(data);
+            IDataView trainData = mlContext.Data.LoadFromEnumerable(data);
 
-            // Creating a list of keys based on the Education values from the dataset
+            // Creating a list of key-value pairs based on the Education values from the dataset
             // These lists are created by hand for the demonstration, but the ValueMappingEstimator does take an IEnumerable.
-            var educationKeys = new List<string>()
-            {
-                "0-5yrs",
-                "6-11yrs",
-                "12+yrs"
-            };
-
-            // Creating a list of values that are sample strings. These will be converted to KeyTypes
-            var educationValues = new List<string>()
-            {
-                "Undergraduate",
-                "Postgraduate",
-                "Postgraduate"
-            };
+            var educationMap = new Dictionary<string, string>();
+            educationMap["0-5yrs"] = "Undergraduate";
+            educationMap["6-11yrs"] = "Postgraduate";
+            educationMap["12+yrs"] = "Postgraduate";
 
             // Generate the ValueMappingEstimator that will output KeyTypes even though our values are strings.
             // The KeyToValueMappingEstimator is added to provide a reverse lookup of the KeyType, converting the KeyType value back
             // to the original value.
-            var pipeline = mlContext.Transforms.Conversion.ValueMap<string, string>(educationKeys, educationValues, true, ("EducationKeyType", "Education"))
-                              .Append(mlContext.Transforms.Conversion.MapKeyToValue(("EducationCategory", "EducationKeyType")));
+            var pipeline = mlContext.Transforms.Conversion.MapValue("EducationKeyType", educationMap, "Education", true)
+                              .Append(mlContext.Transforms.Conversion.MapKeyToValue("EducationCategory", "EducationKeyType"));
 
             // Fits the ValueMappingEstimator and transforms the data adding the EducationKeyType column.
             IDataView transformedData = pipeline.Fit(trainData).Transform(trainData);
 
             // Getting the resulting data as an IEnumerable of SampleInfertDataWithFeatures.
-            IEnumerable<SampleInfertDataWithFeatures> featureRows = mlContext.CreateEnumerable<SampleInfertDataWithFeatures>(transformedData, reuseRowObject: false);
+            IEnumerable<SampleInfertDataWithFeatures> featureRows = mlContext.Data.CreateEnumerable<SampleInfertDataWithFeatures>(transformedData, reuseRowObject: false);
 
             Console.WriteLine($"Example of mapping string->keytype");
             Console.WriteLine($"Age\tEducation\tEducationCategory");

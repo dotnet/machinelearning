@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
+using Microsoft.ML.Runtime;
 
 namespace Microsoft.ML.Trainers.FastTree
 {
@@ -49,11 +50,13 @@ namespace Microsoft.ML.Trainers.FastTree
         protected int _labelsOffset;
 #pragma warning restore MSML_GeneralName
 
-        public override short[] Labels {
+        public override short[] Labels
+        {
             set { _labels = value; }
         }
 
-        public override int LabelsOffset {
+        public override int LabelsOffset
+        {
             set { _labelsOffset = value; }
         }
 

@@ -7,14 +7,13 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
 using Microsoft.ML.Data.IO;
 using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Internal.Utilities;
-using Microsoft.ML.Model;
+using Microsoft.ML.Runtime;
 using Microsoft.ML.Transforms;
 
 [assembly: LoadableClass(OptionalColumnTransform.Summary, typeof(OptionalColumnTransform),
@@ -183,17 +182,17 @@ namespace Microsoft.ML.Transforms
                 return ColumnTypes[iinfo];
             }
 
-            protected override IEnumerable<KeyValuePair<string, DataViewType>> GetMetadataTypesCore(int iinfo)
+            protected override IEnumerable<KeyValuePair<string, DataViewType>> GetAnnotationTypesCore(int iinfo)
             {
                 return _metadata.GetMetadataTypes(iinfo);
             }
 
-            protected override DataViewType GetMetadataTypeCore(string kind, int iinfo)
+            protected override DataViewType GetAnnotationTypeCore(string kind, int iinfo)
             {
                 return _metadata.GetMetadataTypeOrNull(kind, iinfo);
             }
 
-            protected override void GetMetadataCore<TValue>(string kind, int iinfo, ref TValue value)
+            protected override void GetAnnotationCore<TValue>(string kind, int iinfo, ref TValue value)
             {
                 _metadata.GetMetadata(_parent.Host, kind, iinfo, ref value);
             }
@@ -212,6 +211,18 @@ namespace Microsoft.ML.Transforms
                 }
 
                 return col => 0 <= col && col < active.Length && active[col];
+            }
+
+            /// <summary>
+            /// Given a set of columns, return the input columns that are needed to generate those output columns.
+            /// </summary>
+            public IEnumerable<DataViewSchema.Column> GetDependencies(IEnumerable<DataViewSchema.Column> dependingColumns)
+            {
+                Contracts.AssertValue(dependingColumns);
+                var predicate = RowCursorUtils.FromColumnsToPredicate(dependingColumns, AsSchema);
+                Func<int, bool> dependencies = GetDependencies(predicate);
+
+                return Input.Where(c => dependencies(c.Index));
             }
         }
 
@@ -343,23 +354,22 @@ namespace Microsoft.ML.Transforms
             return new DataViewRowCursor[] { new Cursor(Host, _bindings, input, active) };
         }
 
-        protected override Func<int, bool> GetDependenciesCore(Func<int, bool> predicate)
-        {
-            return _bindings.GetDependencies(predicate);
-        }
+        protected override IEnumerable<DataViewSchema.Column> GetDependenciesCore(IEnumerable<DataViewSchema.Column> dependingColumns)
+            => _bindings.GetDependencies(dependingColumns);
 
         protected override int MapColumnIndex(out bool isSrc, int col)
         {
             return _bindings.MapColumnIndex(out isSrc, col);
         }
 
-        protected override Delegate[] CreateGetters(DataViewRow input, Func<int, bool> active, out Action disposer)
+        protected override Delegate[] CreateGetters(DataViewRow input, IEnumerable<DataViewSchema.Column> activeColumns, out Action disposer)
         {
+            var activeIndices = new HashSet<int>(activeColumns.Select(c => c.Index));
             Func<int, bool> activeInfos =
                 iinfo =>
                 {
                     int col = _bindings.MapIinfoToCol(iinfo);
-                    return active(col);
+                    return activeIndices.Contains(col);
                 };
 
             var getters = new Delegate[_bindings.InfoCount];
@@ -385,7 +395,7 @@ namespace Microsoft.ML.Transforms
 
         private ValueGetter<T> GetSrcGetter<T>(DataViewRow input, int iinfo)
         {
-            return input.GetGetter<T>(_bindings.SrcCols[iinfo]);
+            return input.GetGetter<T>(input.Schema[_bindings.SrcCols[iinfo]]);
         }
 
         private Delegate MakeGetter(int iinfo)
@@ -433,23 +443,33 @@ namespace Microsoft.ML.Transforms
 
             public override DataViewSchema Schema => _bindings.AsSchema;
 
-            public override bool IsColumnActive(int col)
+            /// <summary>
+            /// Returns whether the given column is active in this row.
+            /// </summary>
+            public override bool IsColumnActive(DataViewSchema.Column column)
             {
-                Ch.Check(0 <= col && col < _bindings.ColumnCount);
-                return _active == null || _active[col];
+                Ch.Check(column.Index < _bindings.ColumnCount);
+                return _active == null || _active[column.Index];
             }
 
-            public override ValueGetter<TValue> GetGetter<TValue>(int col)
+            /// <summary>
+            /// Returns a value getter delegate to fetch the value of column with the given columnIndex, from the row.
+            /// This throws if the column is not active in this row, or if the type
+            /// <typeparamref name="TValue"/> differs from this column's type.
+            /// </summary>
+            /// <typeparam name="TValue"> is the column's content type.</typeparam>
+            /// <param name="column"> is the output column whose getter should be returned.</param>
+            public override ValueGetter<TValue> GetGetter<TValue>(DataViewSchema.Column column)
             {
-                Ch.Check(IsColumnActive(col));
+                Ch.Check(IsColumnActive(column));
 
                 bool isSrc;
-                int index = _bindings.MapColumnIndex(out isSrc, col);
+                int index = _bindings.MapColumnIndex(out isSrc, column.Index);
                 if (isSrc)
-                    return Input.GetGetter<TValue>(index);
+                    return Input.GetGetter<TValue>(Input.Schema[index]);
 
                 if (_getters[index] == null)
-                    return Input.GetGetter<TValue>(_bindings.SrcCols[index]);
+                    return Input.GetGetter<TValue>(_bindings.AsSchema[_bindings.SrcCols[index]]);
 
                 Ch.Assert(_getters[index] != null);
                 var fn = _getters[index] as ValueGetter<TValue>;

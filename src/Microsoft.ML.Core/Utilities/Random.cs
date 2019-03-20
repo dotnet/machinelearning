@@ -5,6 +5,7 @@
 using System;
 using System.IO;
 using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Runtime;
 
 namespace Microsoft.ML
 {

@@ -9,8 +9,8 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.Data.DataView;
 using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Runtime;
 
 namespace Microsoft.ML.Data
 {
@@ -254,7 +254,7 @@ namespace Microsoft.ML.Data
 
             var predicate = RowCursorUtils.FromColumnsToPredicate(columnsNeeded, Schema);
 
-            n = DataViewUtils.GetThreadCount(_host, n);
+            n = DataViewUtils.GetThreadCount(n);
 
             if (n <= 1)
                 return new DataViewRowCursor[] { GetRowCursor(columnsNeeded, rand) };
@@ -509,9 +509,20 @@ namespace Microsoft.ML.Data
             public override long Batch => _internal.Batch;
             public override DataViewSchema Schema => _internal.Schema;
 
-            public override ValueGetter<TValue> GetGetter<TValue>(int col) => _internal.GetGetter<TValue>(col);
+            /// <summary>
+            /// Returns a value getter delegate to fetch the value of column with the given columnIndex, from the row.
+            /// This throws if the column is not active in this row, or if the type
+            /// <typeparamref name="TValue"/> differs from this column's type.
+            /// </summary>
+            /// <typeparam name="TValue"> is the column's content type.</typeparam>
+            /// <param name="column"> is the output column whose getter should be returned.</param>
+            public override ValueGetter<TValue> GetGetter<TValue>(DataViewSchema.Column column) => _internal.GetGetter<TValue>(column);
             public override ValueGetter<DataViewRowId> GetIdGetter() => _internal.GetIdGetter();
-            public override bool IsColumnActive(int col) => _internal.IsColumnActive(col);
+
+            /// <summary>
+            /// Returns whether the given column is active in this row.
+            /// </summary>
+            public override bool IsColumnActive(DataViewSchema.Column column) => _internal.IsColumnActive(column);
             public override bool MoveTo(long rowIndex) => _internal.MoveTo(rowIndex);
         }
 
@@ -1157,10 +1168,13 @@ namespace Microsoft.ML.Data
                 }
             }
 
-            public sealed override bool IsColumnActive(int col)
+            /// <summary>
+            /// Returns whether the given column is active in this row.
+            /// </summary>
+            public sealed override bool IsColumnActive(DataViewSchema.Column column)
             {
-                Ch.CheckParam(0 <= col && col < _colToActivesIndex.Length, nameof(col));
-                return _colToActivesIndex[col] >= 0;
+                Ch.CheckParam(column.Index < _colToActivesIndex.Length, nameof(column));
+                return _colToActivesIndex[column.Index] >= 0;
             }
 
             protected sealed override void Dispose(bool disposing)
@@ -1177,11 +1191,12 @@ namespace Microsoft.ML.Data
                 _disposed = true;
             }
 
-            public sealed override ValueGetter<TValue> GetGetter<TValue>(int col)
+            public sealed override ValueGetter<TValue> GetGetter<TValue>(DataViewSchema.Column column)
             {
-                if (!IsColumnActive(col))
-                    throw Ch.Except("Column #{0} is requested but not active in the cursor", col);
-                var getter = _getters[_colToActivesIndex[col]] as ValueGetter<TValue>;
+                Ch.CheckParam(column.Index <= _colToActivesIndex.Length && IsColumnActive(column), nameof(column), "requested column not active");
+                Ch.Check(_colToActivesIndex[column.Index] < _getters.Length);
+
+                var getter = _getters[_colToActivesIndex[column.Index]] as ValueGetter<TValue>;
                 if (getter == null)
                     throw Ch.Except("Invalid TValue: '{0}'", typeof(TValue));
                 return getter;
@@ -1255,7 +1270,7 @@ namespace Microsoft.ML.Data
                 var host = parent._host;
                 host.AssertValue(input);
                 host.Assert(0 <= srcCol & srcCol < input.Schema.Count);
-                host.Assert(input.IsColumnActive(srcCol));
+                host.Assert(input.IsColumnActive(input.Schema[srcCol]));
 
                 var type = input.Schema[srcCol].Type;
                 Type pipeType;
@@ -1325,7 +1340,7 @@ namespace Microsoft.ML.Data
                     _uniformLength = type.GetVectorSize();
                     _indices = new BigArray<int>();
                     _values = new BigArray<T>();
-                    _getter = input.GetGetter<VBuffer<T>>(srcCol);
+                    _getter = input.GetGetter<VBuffer<T>>(input.Schema[srcCol]);
                 }
 
                 public override void CacheCurrent()
@@ -1403,7 +1418,7 @@ namespace Microsoft.ML.Data
                 public ImplOne(CacheDataView parent, DataViewRowCursor input, int srcCol, OrderedWaiter waiter)
                     : base(parent, input, srcCol, waiter)
                 {
-                    _getter = input.GetGetter<T>(srcCol);
+                    _getter = input.GetGetter<T>(input.Schema[srcCol]);
                     if (parent._rowCount >= 0)
                         _values = new T[(int)parent._rowCount];
                 }

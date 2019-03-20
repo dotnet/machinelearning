@@ -1,5 +1,4 @@
 ﻿using System;
-using Microsoft.Data.DataView;
 using Microsoft.ML.Data;
 
 namespace Microsoft.ML.Samples.Dynamic
@@ -31,33 +30,33 @@ namespace Microsoft.ML.Samples.Dynamic
             // 14. Column: native-country (text/categorical)
             // 15. Column: Column [Label]: IsOver50K (boolean)
 
-            var reader = ml.Data.CreateTextLoader(new TextLoader.Options
+            var loader = ml.Data.CreateTextLoader(new TextLoader.Options
             {
                 Separators = new[] { ',' },
                 HasHeader = true,
                 Columns = new[]
                 {
-                    new TextLoader.Column("age", DataKind.R4, 0),
-                    new TextLoader.Column("workclass", DataKind.Text, 1),
-                    new TextLoader.Column("fnlwgt", DataKind.R4, 2),
-                    new TextLoader.Column("education", DataKind.Text, 3),
-                    new TextLoader.Column("education-num", DataKind.R4, 4),
-                    new TextLoader.Column("marital-status", DataKind.Text, 5),
-                    new TextLoader.Column("occupation", DataKind.Text, 6),
-                    new TextLoader.Column("relationship", DataKind.Text, 7),
-                    new TextLoader.Column("ethnicity", DataKind.Text, 8),
-                    new TextLoader.Column("sex", DataKind.Text, 9),
-                    new TextLoader.Column("capital-gain", DataKind.R4, 10),
-                    new TextLoader.Column("capital-loss", DataKind.R4, 11),
-                    new TextLoader.Column("hours-per-week", DataKind.R4, 12),
-                    new TextLoader.Column("native-country", DataKind.Text, 13),
-                    new TextLoader.Column("Label", DataKind.Bool, 14)
+                    new TextLoader.Column("age", DataKind.Single, 0),
+                    new TextLoader.Column("workclass", DataKind.String, 1),
+                    new TextLoader.Column("fnlwgt", DataKind.Single, 2),
+                    new TextLoader.Column("education", DataKind.String, 3),
+                    new TextLoader.Column("education-num", DataKind.Single, 4),
+                    new TextLoader.Column("marital-status", DataKind.String, 5),
+                    new TextLoader.Column("occupation", DataKind.String, 6),
+                    new TextLoader.Column("relationship", DataKind.String, 7),
+                    new TextLoader.Column("ethnicity", DataKind.String, 8),
+                    new TextLoader.Column("sex", DataKind.String, 9),
+                    new TextLoader.Column("capital-gain", DataKind.Single, 10),
+                    new TextLoader.Column("capital-loss", DataKind.Single, 11),
+                    new TextLoader.Column("hours-per-week", DataKind.Single, 12),
+                    new TextLoader.Column("native-country", DataKind.String, 13),
+                    new TextLoader.Column("Label", DataKind.Boolean, 14)
                 }
             });
 
-            IDataView data = reader.Read(dataFilePath);
+            IDataView data = loader.Load(dataFilePath);
 
-            var split = ml.BinaryClassification.TrainTestSplit(data, testFraction: 0.2);
+            var split = ml.Data.TrainTestSplit(data, testFraction: 0.2);
 
             var pipeline = ml.Transforms.Concatenate("Text", "workclass", "education", "marital-status",
                     "relationship", "ethnicity", "sex", "native-country")
@@ -73,7 +72,7 @@ namespace Microsoft.ML.Samples.Dynamic
             var metrics = ml.BinaryClassification.Evaluate(dataWithPredictions);
 
             Console.WriteLine($"Accuracy: {metrics.Accuracy}"); // 0.80
-            Console.WriteLine($"AUC: {metrics.Auc}"); // 0.64
+            Console.WriteLine($"AUC: {metrics.AreaUnderRocCurve}"); // 0.64
             Console.WriteLine($"F1 Score: {metrics.F1Score}"); // 0.39
 
             Console.WriteLine($"Negative Precision: {metrics.NegativePrecision}"); // 0.81

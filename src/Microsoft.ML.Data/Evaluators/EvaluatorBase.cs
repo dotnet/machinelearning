@@ -5,9 +5,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Microsoft.Data.DataView;
 using Microsoft.ML.Internal.Utilities;
-using Microsoft.ML.Model;
+using Microsoft.ML.Runtime;
 
 namespace Microsoft.ML.Data
 {
@@ -91,7 +90,7 @@ namespace Microsoft.ML.Data
         [BestFriend]
         private protected virtual Func<int, bool> GetActiveColsCore(RoleMappedSchema schema)
         {
-            var score = schema.GetUniqueColumn(MetadataUtils.Const.ScoreValueKind.Score);
+            var score = schema.GetUniqueColumn(AnnotationUtils.Const.ScoreValueKind.Score);
             int label = schema.Label?.Index ?? -1;
             int weight = schema.Weight?.Index ?? -1;
             return i => i == score.Index || i == label || i == weight;
@@ -402,7 +401,7 @@ namespace Microsoft.ML.Data
                 // This is used to get the current stratification value in the Get() method.
                 private TStrat _value;
 
-                public override int Count { get { return _dict.Count; } }
+                public override int Count => _dict.Count;
 
                 public GenericAggregatorDictionary(RoleMappedSchema schema, string stratCol, DataViewType stratType, Func<string, TAgg> createAgg)
                     : base(schema, stratCol, createAgg)
@@ -414,10 +413,9 @@ namespace Microsoft.ML.Data
                 public override void Reset(DataViewRow row)
                 {
                     Row = row;
-                    int col;
-                    var found = row.Schema.TryGetColumnIndex(ColName, out col);
-                    Contracts.Assert(found);
-                    _stratGetter = row.GetGetter<TStrat>(col);
+                    var col = row.Schema.GetColumnOrNull(ColName);
+                    Contracts.Assert(col.HasValue);
+                    _stratGetter = row.GetGetter<TStrat>(col.Value);
                     Contracts.AssertValue(_stratGetter);
                 }
 
@@ -493,7 +491,7 @@ namespace Microsoft.ML.Data
                 throw Host.ExceptSchemaMismatch(nameof(schema), "score", ScoreCol);
         }
 
-        protected PerInstanceEvaluatorBase(IHostEnvironment env, ModelLoadContext ctx,  DataViewSchema schema)
+        protected PerInstanceEvaluatorBase(IHostEnvironment env, ModelLoadContext ctx, DataViewSchema schema)
         {
             Host = env.Register("PerInstanceRowMapper");
 

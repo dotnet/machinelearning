@@ -3,7 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using Microsoft.Data.DataView;
+using System.Collections.Generic;
 
 namespace Microsoft.ML.Data
 {
@@ -28,16 +28,13 @@ namespace Microsoft.ML.Data
         DataViewSchema OutputSchema { get; }
 
         /// <summary>
-        /// Given a predicate specifying which columns are needed, return a predicate indicating which input columns are
-        /// needed. The domain of the function is defined over the indices of the columns of <see cref="DataViewSchema.Count"/>
-        /// for <see cref="InputSchema"/>.
+        /// Given a set of columns, return the input columns that are needed to generate those output columns.
         /// </summary>
-        Func<int, bool> GetDependencies(Func<int, bool> predicate);
+        IEnumerable<DataViewSchema.Column> GetDependencies(IEnumerable<DataViewSchema.Column> dependingColumns);
 
         /// <summary>
         /// Get an <see cref="DataViewRow"/> with the indicated active columns, based on the input <paramref name="input"/>.
-        /// The active columns are those for which <paramref name="active"/> returns true. Getting values on inactive
-        /// columns of the returned row will throw. Null predicates are disallowed.
+        /// Getting values on inactive columns of the returned row will throw.
         ///
         /// The <see cref="DataViewRow.Schema"/> of <paramref name="input"/> should be the same object as
         /// <see cref="InputSchema"/>. Implementors of this method should throw if that is not the case. Conversely,
@@ -49,6 +46,6 @@ namespace Microsoft.ML.Data
         /// The output <see cref="DataViewRow"/> values are re-computed when requested through the getters. Also, the returned
         /// <see cref="DataViewRow"/> will dispose <paramref name="input"/> when it is disposed.
         /// </summary>
-        DataViewRow GetRow(DataViewRow input, Func<int, bool> active);
+        DataViewRow GetRow(DataViewRow input, IEnumerable<DataViewSchema.Column> activeColumns);
     }
 }

@@ -5,15 +5,15 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using Microsoft.Data.DataView;
+using System.Linq;
 using Microsoft.ML;
 using Microsoft.ML.Data;
 using Microsoft.ML.Data.IO;
-using Microsoft.ML.Internal.Internallearn;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Model;
 using Microsoft.ML.Recommender;
 using Microsoft.ML.Recommender.Internal;
+using Microsoft.ML.Runtime;
 using Microsoft.ML.Trainers.Recommender;
 
 [assembly: LoadableClass(typeof(MatrixFactorizationModelParameters), null, typeof(SignatureLoadModel), "Matrix Factorization Predictor Executor", MatrixFactorizationModelParameters.LoaderSignature)]
@@ -51,12 +51,16 @@ namespace Microsoft.ML.Trainers.Recommender
         private const uint VersionNoMinCount = 0x00010002;
 
         private readonly IHost _host;
+
         ///<summary> The number of rows.</summary>
         public readonly int NumberOfRows;
+
         ///<summary> The number of columns.</summary>
         public readonly int NumberOfColumns;
+
         ///<summary> The rank of the factor matrices.</summary>
         public readonly int ApproximationRank;
+
         /// <summary>
         /// Left approximation matrix
         /// </summary>
@@ -288,7 +292,7 @@ namespace Microsoft.ML.Trainers.Recommender
         {
             Contracts.AssertValue(env);
             env.AssertValue(schema);
-            return new RowMapper(env, this, schema, ScoreSchemaFactory.Create(OutputType, MetadataUtils.Const.ScoreColumnKind.Regression));
+            return new RowMapper(env, this, schema, ScoreSchemaFactory.Create(OutputType, AnnotationUtils.Const.ScoreColumnKind.Regression));
         }
 
         private sealed class RowMapper : ISchemaBoundRowMapper
@@ -333,14 +337,15 @@ namespace Microsoft.ML.Trainers.Recommender
                 OutputSchema = outputSchema;
             }
 
-            public Func<int, bool> GetDependencies(Func<int, bool> predicate)
+            /// <summary>
+            /// Given a set of columns, return the input columns that are needed to generate those output columns.
+            /// </summary>
+            public IEnumerable<DataViewSchema.Column> GetDependenciesForNewColumns(IEnumerable<DataViewSchema.Column> dependingColumns)
             {
-                for (int i = 0; i < OutputSchema.Count; i++)
-                {
-                    if (predicate(i))
-                        return col => (col == _matrixColumnIndexColumnIndex || col == _matrixRowIndexCololumnIndex);
-                }
-                return col => false;
+                if (dependingColumns.Count() == 0)
+                    return Enumerable.Empty<DataViewSchema.Column>();
+
+                return InputSchema.Where(col => col.Index == _matrixColumnIndexColumnIndex || col.Index == _matrixRowIndexCololumnIndex);
             }
 
             public IEnumerable<KeyValuePair<RoleMappedSchema.ColumnRole, string>> GetInputColumnRoles()
@@ -381,9 +386,9 @@ namespace Microsoft.ML.Trainers.Recommender
                 return getters;
             }
 
-            public DataViewRow GetRow(DataViewRow input, Func<int, bool> active)
+            DataViewRow ISchemaBoundRowMapper.GetRow(DataViewRow input, IEnumerable<DataViewSchema.Column> activeColumns)
             {
-                var activeArray = Utils.BuildArray(OutputSchema.Count, active);
+                var activeArray = Utils.BuildArray(OutputSchema.Count, activeColumns);
                 var getters = CreateGetter(input, activeArray);
                 return new SimpleRow(OutputSchema, input, getters);
             }

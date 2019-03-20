@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using Microsoft.ML.Data;
 
 namespace Microsoft.ML.Samples.Dynamic
 {
@@ -17,7 +16,7 @@ namespace Microsoft.ML.Samples.Dynamic
 
             // Get a small dataset as an IEnumerable.
             IEnumerable<SamplesUtils.DatasetUtils.SampleTemperatureData> enumerableOfData = SamplesUtils.DatasetUtils.GetSampleTemperatureData(10);
-            var data = mlContext.Data.ReadFromEnumerable(enumerableOfData);
+            var data = mlContext.Data.LoadFromEnumerable(enumerableOfData);
 
             // Before we apply a filter, examine all the records in the dataset.
             Console.WriteLine($"Date\tTemperature");
@@ -43,7 +42,7 @@ namespace Microsoft.ML.Samples.Dynamic
             var filteredData = mlContext.Data.FilterRowsByColumn(data, columnName: "Temperature", lowerBound: 34, upperBound: 37);
 
             // Look at the filtered data and observe that values outside [34,37) have been dropped.
-            var enumerable = mlContext.CreateEnumerable<SamplesUtils.DatasetUtils.SampleTemperatureData>(filteredData, reuseRowObject: true);
+            var enumerable = mlContext.Data.CreateEnumerable<SamplesUtils.DatasetUtils.SampleTemperatureData>(filteredData, reuseRowObject: true);
             Console.WriteLine($"Date\tTemperature");
             foreach (var row in enumerable)
             {

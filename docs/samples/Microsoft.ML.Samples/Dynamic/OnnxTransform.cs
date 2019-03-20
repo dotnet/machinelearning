@@ -2,7 +2,6 @@ using System;
 using System.Linq;
 using Microsoft.ML.Data;
 using Microsoft.ML.OnnxRuntime;
-using Microsoft.ML.Transforms;
 
 namespace Microsoft.ML.Samples.Dynamic
 {
@@ -34,14 +33,14 @@ namespace Microsoft.ML.Samples.Dynamic
             // Create ML pipeline to score the data using OnnxScoringEstimator
             var mlContext = new MLContext();
             var data = GetTensorData();
-            var idv = mlContext.Data.ReadFromEnumerable(data);
+            var idv = mlContext.Data.LoadFromEnumerable(data);
             var pipeline = mlContext.Transforms.ApplyOnnxModel(modelPath, new[] { outputInfo.Key }, new[] { inputInfo.Key });
 
             // Run the pipeline and get the transformed values
             var transformedValues = pipeline.Fit(idv).Transform(idv);
 
             // Retrieve model scores into Prediction class
-            var predictions = mlContext.CreateEnumerable<Prediction>(transformedValues, reuseRowObject: false);
+            var predictions = mlContext.Data.CreateEnumerable<Prediction>(transformedValues, reuseRowObject: false);
 
             // Iterate rows
             foreach (var prediction in predictions)

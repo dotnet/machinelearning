@@ -7,11 +7,8 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.ML.Data;
 using Microsoft.ML.Internal.Utilities;
-using Microsoft.ML.StaticPipe.Runtime;
+using Microsoft.ML.Runtime;
 using Microsoft.ML.Transforms;
-using Microsoft.ML.Transforms.Conversions;
-using Microsoft.ML.Transforms.FeatureSelection;
-using Microsoft.ML.Transforms.Projections;
 using Microsoft.ML.Transforms.Text;
 using static Microsoft.ML.Transforms.Text.TextFeaturizingEstimator;
 
@@ -26,8 +23,8 @@ namespace Microsoft.ML.StaticPipe
         {
             public readonly Vector<float> Input;
 
-            public OutPipelineColumn(Vector<float> input, bool subMean, bool useStdDev, float scale)
-                : base(new Reconciler(subMean, useStdDev, scale), input)
+            public OutPipelineColumn(Vector<float> input, bool ensureZeroMean, bool ensureUnitStandardDeviation, float scale)
+                : base(new Reconciler(ensureZeroMean, ensureUnitStandardDeviation, scale), input)
             {
                 Input = input;
             }
@@ -35,14 +32,14 @@ namespace Microsoft.ML.StaticPipe
 
         private sealed class Reconciler : EstimatorReconciler
         {
-            private readonly bool _subMean;
-            private readonly bool _useStdDev;
+            private readonly bool _ensureZeroMean;
+            private readonly bool _ensureUnitStandardDeviation;
             private readonly float _scale;
 
-            public Reconciler(bool subMean, bool useStdDev, float scale)
+            public Reconciler(bool ensureZeroMean, bool ensureUnitStandardDeviation, float scale)
             {
-                _subMean = subMean;
-                _useStdDev = useStdDev;
+                _ensureZeroMean = ensureZeroMean;
+                _ensureUnitStandardDeviation = ensureUnitStandardDeviation;
                 _scale = scale;
             }
 
@@ -58,19 +55,19 @@ namespace Microsoft.ML.StaticPipe
                 foreach (var outCol in toOutput)
                     pairs.Add((outputNames[outCol], inputNames[((OutPipelineColumn)outCol).Input]));
 
-                return new GlobalContrastNormalizingEstimator(env, pairs.ToArray(), _subMean, _useStdDev, _scale);
+                return new GlobalContrastNormalizingEstimator(env, pairs.ToArray(), _ensureZeroMean, _ensureUnitStandardDeviation, _scale);
             }
         }
 
         /// <include file='../Microsoft.ML.Transforms/doc.xml' path='doc/members/member[@name="GcNormalize"]/*'/>
-        /// <param name="input">The column to apply to.</param>
-        /// <param name="subMean">Subtract mean from each value before normalizing.</param>
-        /// <param name="useStdDev">Normalize by standard deviation rather than L2 norm.</param>
+        /// <param name="input">The column containing the vectors to apply the normalization to.</param>
+        /// <param name="ensureZeroMean">If <see langword="true"/>, subtract mean from each value before normalizing and use the raw input otherwise.</param>
+        /// <param name="ensureUnitStandardDeviation">If <see langword="true"/>, resulted vector's standard deviation would be one. Otherwise, resulted vector's L2-norm would be one.</param>
         /// <param name="scale">Scale features by this value.</param>
-        public static Vector<float> GlobalContrastNormalize(this Vector<float> input,
-            bool subMean = LpNormalizingEstimatorBase.Defaults.GcnSubstractMean,
-            bool useStdDev = LpNormalizingEstimatorBase.Defaults.UseStdDev,
-            float scale = LpNormalizingEstimatorBase.Defaults.Scale) => new OutPipelineColumn(input, subMean, useStdDev, scale);
+        public static Vector<float> NormalizeGlobalContrast(this Vector<float> input,
+            bool ensureZeroMean = LpNormNormalizingEstimatorBase.Defaults.GcnEnsureZeroMean,
+            bool ensureUnitStandardDeviation = LpNormNormalizingEstimatorBase.Defaults.EnsureUnitStdDev,
+            float scale = LpNormNormalizingEstimatorBase.Defaults.Scale) => new OutPipelineColumn(input, ensureZeroMean, ensureUnitStandardDeviation, scale);
     }
 
     /// <summary>
@@ -267,9 +264,9 @@ namespace Microsoft.ML.StaticPipe
             {
                 Contracts.Assert(toOutput.Length == 1);
 
-                var infos = new CountFeatureSelectingEstimator.ColumnInfo[toOutput.Length];
+                var infos = new CountFeatureSelectingEstimator.ColumnOptions[toOutput.Length];
                 for (int i = 0; i < toOutput.Length; i++)
-                    infos[i] = new CountFeatureSelectingEstimator.ColumnInfo(outputNames[toOutput[i]], inputNames[((OutPipelineColumn<T>)toOutput[i]).Input], _count);
+                    infos[i] = new CountFeatureSelectingEstimator.ColumnOptions(outputNames[toOutput[i]], inputNames[((OutPipelineColumn<T>)toOutput[i]).Input], _count);
 
                 return new CountFeatureSelectingEstimator(env, infos);
             }
@@ -577,11 +574,11 @@ namespace Microsoft.ML.StaticPipe
                 IReadOnlyDictionary<PipelineColumn, string> outputNames,
                 IReadOnlyCollection<string> usedNames)
             {
-                var infos = new KeyToVectorMappingEstimator.ColumnInfo[toOutput.Length];
+                var infos = new KeyToVectorMappingEstimator.ColumnOptions[toOutput.Length];
                 for (int i = 0; i < toOutput.Length; ++i)
                 {
                     var col = (IColInput)toOutput[i];
-                    infos[i] = new KeyToVectorMappingEstimator.ColumnInfo(outputNames[toOutput[i]], inputNames[col.Input], col.Bag);
+                    infos[i] = new KeyToVectorMappingEstimator.ColumnOptions(outputNames[toOutput[i]], inputNames[col.Input], col.Bag);
                 }
                 return new KeyToVectorMappingEstimator(env, infos);
             }
@@ -734,9 +731,9 @@ namespace Microsoft.ML.StaticPipe
         private readonly struct Config
         {
             public readonly bool ImputeBySlot;
-            public readonly MissingValueReplacingEstimator.ColumnInfo.ReplacementMode ReplacementMode;
+            public readonly MissingValueReplacingEstimator.ReplacementMode ReplacementMode;
 
-            public Config(MissingValueReplacingEstimator.ColumnInfo.ReplacementMode replacementMode = MissingValueReplacingEstimator.Defaults.ReplacementMode,
+            public Config(MissingValueReplacingEstimator.ReplacementMode replacementMode = MissingValueReplacingEstimator.Defaults.Mode,
                 bool imputeBySlot = MissingValueReplacingEstimator.Defaults.ImputeBySlot)
             {
                 ImputeBySlot = imputeBySlot;
@@ -802,11 +799,11 @@ namespace Microsoft.ML.StaticPipe
                 IReadOnlyDictionary<PipelineColumn, string> outputNames,
                 IReadOnlyCollection<string> usedNames)
             {
-                var infos = new MissingValueReplacingEstimator.ColumnInfo[toOutput.Length];
+                var infos = new MissingValueReplacingEstimator.ColumnOptions[toOutput.Length];
                 for (int i = 0; i < toOutput.Length; ++i)
                 {
                     var col = (IColInput)toOutput[i];
-                    infos[i] = new MissingValueReplacingEstimator.ColumnInfo(outputNames[toOutput[i]], inputNames[col.Input], col.Config.ReplacementMode, col.Config.ImputeBySlot);
+                    infos[i] = new MissingValueReplacingEstimator.ColumnOptions(outputNames[toOutput[i]], inputNames[col.Input], col.Config.ReplacementMode, col.Config.ImputeBySlot);
                 }
                 return new MissingValueReplacingEstimator(env, infos);
             }
@@ -817,7 +814,7 @@ namespace Microsoft.ML.StaticPipe
         /// </summary>
         /// <param name="input">Incoming data.</param>
         /// <param name="replacementMode">How NaN should be replaced</param>
-        public static Scalar<float> ReplaceNaNValues(this Scalar<float> input, MissingValueReplacingEstimator.ColumnInfo.ReplacementMode replacementMode = MissingValueReplacingEstimator.Defaults.ReplacementMode)
+        public static Scalar<float> ReplaceNaNValues(this Scalar<float> input, MissingValueReplacingEstimator.ReplacementMode replacementMode = MissingValueReplacingEstimator.Defaults.Mode)
         {
             Contracts.CheckValue(input, nameof(input));
             return new OutScalar<float>(input, new Config(replacementMode, false));
@@ -828,7 +825,7 @@ namespace Microsoft.ML.StaticPipe
         /// </summary>
         /// <param name="input">Incoming data.</param>
         /// <param name="replacementMode">How NaN should be replaced</param>
-        public static Scalar<double> ReplaceNaNValues(this Scalar<double> input, MissingValueReplacingEstimator.ColumnInfo.ReplacementMode replacementMode = MissingValueReplacingEstimator.Defaults.ReplacementMode)
+        public static Scalar<double> ReplaceNaNValues(this Scalar<double> input, MissingValueReplacingEstimator.ReplacementMode replacementMode = MissingValueReplacingEstimator.Defaults.Mode)
         {
             Contracts.CheckValue(input, nameof(input));
             return new OutScalar<double>(input, new Config(replacementMode, false));
@@ -841,7 +838,7 @@ namespace Microsoft.ML.StaticPipe
         /// <param name="imputeBySlot">If true, per-slot imputation of replacement is performed.
         /// Otherwise, replacement value is imputed for the entire vector column. This setting is ignored for scalars and variable vectors,
         /// where imputation is always for the entire column.</param>
-        public static Vector<float> ReplaceNaNValues(this Vector<float> input, MissingValueReplacingEstimator.ColumnInfo.ReplacementMode replacementMode = MissingValueReplacingEstimator.Defaults.ReplacementMode, bool imputeBySlot = MissingValueReplacingEstimator.Defaults.ImputeBySlot)
+        public static Vector<float> ReplaceNaNValues(this Vector<float> input, MissingValueReplacingEstimator.ReplacementMode replacementMode = MissingValueReplacingEstimator.Defaults.Mode, bool imputeBySlot = MissingValueReplacingEstimator.Defaults.ImputeBySlot)
         {
             Contracts.CheckValue(input, nameof(input));
             return new OutVectorColumn<float>(input, new Config(replacementMode, imputeBySlot));
@@ -855,7 +852,7 @@ namespace Microsoft.ML.StaticPipe
         /// <param name="imputeBySlot">If true, per-slot imputation of replacement is performed.
         /// Otherwise, replacement value is imputed for the entire vector column. This setting is ignored for scalars and variable vectors,
         /// where imputation is always for the entire column.</param>
-        public static Vector<double> ReplaceNaNValues(this Vector<double> input, MissingValueReplacingEstimator.ColumnInfo.ReplacementMode replacementMode = MissingValueReplacingEstimator.Defaults.ReplacementMode, bool imputeBySlot = MissingValueReplacingEstimator.Defaults.ImputeBySlot)
+        public static Vector<double> ReplaceNaNValues(this Vector<double> input, MissingValueReplacingEstimator.ReplacementMode replacementMode = MissingValueReplacingEstimator.Defaults.Mode, bool imputeBySlot = MissingValueReplacingEstimator.Defaults.ImputeBySlot)
         {
             Contracts.CheckValue(input, nameof(input));
             return new OutVectorColumn<double>(input, new Config(replacementMode, imputeBySlot));
@@ -866,7 +863,7 @@ namespace Microsoft.ML.StaticPipe
         /// </summary>
         /// <param name="input">Incoming data.</param>
         /// <param name="replacementMode">How NaN should be replaced</param>
-        public static VarVector<float> ReplaceNaNValues(this VarVector<float> input, MissingValueReplacingEstimator.ColumnInfo.ReplacementMode replacementMode = MissingValueReplacingEstimator.Defaults.ReplacementMode)
+        public static VarVector<float> ReplaceNaNValues(this VarVector<float> input, MissingValueReplacingEstimator.ReplacementMode replacementMode = MissingValueReplacingEstimator.Defaults.Mode)
         {
             Contracts.CheckValue(input, nameof(input));
             return new OutVarVectorColumn<float>(input, new Config(replacementMode, false));
@@ -876,7 +873,7 @@ namespace Microsoft.ML.StaticPipe
         /// </summary>
         /// <param name="input">Incoming data.</param>
         /// <param name="replacementMode">How NaN should be replaced</param>
-        public static VarVector<double> ReplaceNaNValues(this VarVector<double> input, MissingValueReplacingEstimator.ColumnInfo.ReplacementMode replacementMode = MissingValueReplacingEstimator.Defaults.ReplacementMode)
+        public static VarVector<double> ReplaceNaNValues(this VarVector<double> input, MissingValueReplacingEstimator.ReplacementMode replacementMode = MissingValueReplacingEstimator.Defaults.Mode)
         {
             Contracts.CheckValue(input, nameof(input));
             return new OutVarVectorColumn<double>(input, new Config(replacementMode, false));
@@ -889,14 +886,14 @@ namespace Microsoft.ML.StaticPipe
         private interface IConvertCol
         {
             PipelineColumn Input { get; }
-            DataKind Kind { get; }
+            InternalDataKind Kind { get; }
         }
 
         private sealed class ImplScalar<T> : Scalar<float>, IConvertCol
         {
             public PipelineColumn Input { get; }
-            public DataKind Kind { get; }
-            public ImplScalar(PipelineColumn input, DataKind kind) : base(Rec.Inst, input)
+            public InternalDataKind Kind { get; }
+            public ImplScalar(PipelineColumn input, InternalDataKind kind) : base(Rec.Inst, input)
             {
                 Input = input;
                 Kind = kind;
@@ -906,8 +903,8 @@ namespace Microsoft.ML.StaticPipe
         private sealed class ImplVector<T> : Vector<float>, IConvertCol
         {
             public PipelineColumn Input { get; }
-            public DataKind Kind { get; }
-            public ImplVector(PipelineColumn input, DataKind kind) : base(Rec.Inst, input)
+            public InternalDataKind Kind { get; }
+            public ImplVector(PipelineColumn input, InternalDataKind kind) : base(Rec.Inst, input)
             {
                 Input = input;
                 Kind = kind;
@@ -917,8 +914,8 @@ namespace Microsoft.ML.StaticPipe
         private sealed class ImplVarVector<T> : VarVector<float>, IConvertCol
         {
             public PipelineColumn Input { get; }
-            public DataKind Kind { get; }
-            public ImplVarVector(PipelineColumn input, DataKind kind) : base(Rec.Inst, input)
+            public InternalDataKind Kind { get; }
+            public ImplVarVector(PipelineColumn input, InternalDataKind kind) : base(Rec.Inst, input)
             {
                 Input = input;
                 Kind = kind;
@@ -932,11 +929,11 @@ namespace Microsoft.ML.StaticPipe
             public override IEstimator<ITransformer> Reconcile(IHostEnvironment env, PipelineColumn[] toOutput,
                 IReadOnlyDictionary<PipelineColumn, string> inputNames, IReadOnlyDictionary<PipelineColumn, string> outputNames, IReadOnlyCollection<string> usedNames)
             {
-                var infos = new TypeConvertingEstimator.ColumnInfo[toOutput.Length];
+                var infos = new TypeConvertingEstimator.ColumnOptions[toOutput.Length];
                 for (int i = 0; i < toOutput.Length; ++i)
                 {
                     var tcol = (IConvertCol)toOutput[i];
-                    infos[i] = new TypeConvertingEstimator.ColumnInfo(outputNames[toOutput[i]], tcol.Kind, inputNames[tcol.Input]);
+                    infos[i] = new TypeConvertingEstimator.ColumnOptions(outputNames[toOutput[i]], tcol.Kind.ToDataKind(), inputNames[tcol.Input]);
                 }
                 return new TypeConvertingEstimator(env, infos);
             }
@@ -949,16 +946,16 @@ namespace Microsoft.ML.StaticPipe
         // Raw generics would allow illegal possible inputs, for example, Scalar<Bitmap>. So, this is a partial
         // class, and all the public facing extension methods for each possible type are in a T4 generated result.
 
-        private const KeyValueOrder DefSort = (KeyValueOrder)ValueToKeyMappingEstimator.Defaults.Sort;
-        private const int DefMax = ValueToKeyMappingEstimator.Defaults.MaxNumKeys;
+        private const KeyOrdinality DefSort = (KeyOrdinality)ValueToKeyMappingEstimator.Defaults.Ordinality;
+        private const int DefMax = ValueToKeyMappingEstimator.Defaults.MaximumNumberOfKeys;
 
         private readonly struct Config
         {
-            public readonly KeyValueOrder Order;
+            public readonly KeyOrdinality Order;
             public readonly int Max;
             public readonly Action<ValueToKeyMappingTransformer.TermMap> OnFit;
 
-            public Config(KeyValueOrder order, int max, Action<ValueToKeyMappingTransformer.TermMap> onFit)
+            public Config(KeyOrdinality order, int max, Action<ValueToKeyMappingTransformer.TermMap> onFit)
             {
                 Order = order;
                 Max = max;
@@ -1024,13 +1021,13 @@ namespace Microsoft.ML.StaticPipe
                 IReadOnlyDictionary<PipelineColumn, string> outputNames,
                 IReadOnlyCollection<string> usedNames)
             {
-                var infos = new ValueToKeyMappingEstimator.ColumnInfo[toOutput.Length];
+                var infos = new ValueToKeyMappingEstimator.ColumnOptions[toOutput.Length];
                 Action<ValueToKeyMappingTransformer> onFit = null;
                 for (int i = 0; i < toOutput.Length; ++i)
                 {
                     var tcol = (ITermCol)toOutput[i];
-                    infos[i] = new ValueToKeyMappingEstimator.ColumnInfo(outputNames[toOutput[i]], inputNames[tcol.Input],
-                        tcol.Config.Max, (ValueToKeyMappingEstimator.SortOrder)tcol.Config.Order);
+                    infos[i] = new ValueToKeyMappingEstimator.ColumnOptions(outputNames[toOutput[i]], inputNames[tcol.Input],
+                        tcol.Config.Max, (ValueToKeyMappingEstimator.KeyOrdinality)tcol.Config.Order);
                     if (tcol.Config.OnFit != null)
                     {
                         int ii = i; // Necessary because if we capture i that will change to toOutput.Length on call.
@@ -1553,19 +1550,19 @@ namespace Microsoft.ML.StaticPipe
         }
     }
 
-    public static class RffStaticExtenensions
+    public static class ApproximatedKernelMappingStaticExtenensions
     {
         private readonly struct Config
         {
-            public readonly int NewDim;
-            public readonly bool UseSin;
+            public readonly int Rank;
+            public readonly bool UseCosAndSinBases;
             public readonly int? Seed;
-            public readonly IComponentFactory<float, IFourierDistributionSampler> Generator;
+            public readonly KernelBase Generator;
 
-            public Config(int newDim, bool useSin, IComponentFactory<float, IFourierDistributionSampler> generator, int? seed = null)
+            public Config(int rank, bool useCosAndSinBases, KernelBase generator, int? seed = null)
             {
-                NewDim = newDim;
-                UseSin = useSin;
+                Rank = rank;
+                UseCosAndSinBases = useCosAndSinBases;
                 Generator = generator;
                 Seed = seed;
             }
@@ -1594,13 +1591,13 @@ namespace Microsoft.ML.StaticPipe
             public override IEstimator<ITransformer> Reconcile(IHostEnvironment env, PipelineColumn[] toOutput,
                 IReadOnlyDictionary<PipelineColumn, string> inputNames, IReadOnlyDictionary<PipelineColumn, string> outputNames, IReadOnlyCollection<string> usedNames)
             {
-                var infos = new RandomFourierFeaturizingEstimator.ColumnInfo[toOutput.Length];
+                var infos = new ApproximatedKernelMappingEstimator.ColumnOptions[toOutput.Length];
                 for (int i = 0; i < toOutput.Length; ++i)
                 {
                     var tcol = (IColInput)toOutput[i];
-                    infos[i] = new RandomFourierFeaturizingEstimator.ColumnInfo(outputNames[toOutput[i]], tcol.Config.NewDim, tcol.Config.UseSin, inputNames[tcol.Input], tcol.Config.Generator, tcol.Config.Seed);
+                    infos[i] = new ApproximatedKernelMappingEstimator.ColumnOptions(outputNames[toOutput[i]], tcol.Config.Rank, tcol.Config.UseCosAndSinBases, inputNames[tcol.Input], tcol.Config.Generator, tcol.Config.Seed);
                 }
-                return new RandomFourierFeaturizingEstimator(env, infos);
+                return new ApproximatedKernelMappingEstimator(env, infos);
             }
         }
 
@@ -1610,28 +1607,29 @@ namespace Microsoft.ML.StaticPipe
         /// speciﬁed shift-invariant kernel. With this transform, we are able to use linear methods (which are scalable) to approximate more complex kernel SVM models.
         /// </summary>
         /// <param name="input">The column to apply Random Fourier transfomration.</param>
-        /// <param name="newDim">Expected size of new vector.</param>
-        /// <param name="useSin">Create two features for every random Fourier frequency? (one for cos and one for sin) </param>
-        /// <param name="generator">Which kernel to use. (<see cref="GaussianFourierSampler"/> by default)</param>
+        /// <param name="rank">The number of random Fourier features to create.</param>
+        /// <param name="useCosAndSinBases">If <see langword="true"/>, use both of cos and sin basis functions to create two features for every random Fourier frequency.
+        /// Otherwise, only cos bases would be used.</param>
+        /// <param name="generator">Which kernel to use. (if it is null, <see cref="GaussianKernel"/> is used.)</param>
         /// <param name="seed">The seed of the random number generator for generating the new features. If not specified global random would be used.</param>
-        public static Vector<float> LowerVectorSizeWithRandomFourierTransformation(this Vector<float> input,
-            int newDim = RandomFourierFeaturizingEstimator.Defaults.NewDim, bool useSin = RandomFourierFeaturizingEstimator.Defaults.UseSin,
-            IComponentFactory<float, IFourierDistributionSampler> generator = null, int? seed = null)
+        public static Vector<float> ApproximatedKernelMap(this Vector<float> input,
+            int rank = ApproximatedKernelMappingEstimator.Defaults.Rank, bool useCosAndSinBases = ApproximatedKernelMappingEstimator.Defaults.UseCosAndSinBases,
+            KernelBase generator = null, int? seed = null)
         {
             Contracts.CheckValue(input, nameof(input));
-            return new ImplVector<string>(input, new Config(newDim, useSin, generator, seed));
+            return new ImplVector<string>(input, new Config(rank, useCosAndSinBases, generator, seed));
         }
     }
 
-    public static class PcaEstimatorExtensions
+    public static class PcaStaticExtensions
     {
         private sealed class OutPipelineColumn : Vector<float>
         {
             public readonly Vector<float> Input;
 
             public OutPipelineColumn(Vector<float> input, string weightColumn, int rank,
-                                     int overSampling, bool center, int? seed = null)
-                : base(new Reconciler(weightColumn, rank, overSampling, center, seed), input)
+                                     int overSampling, bool ensureZeroMean, int? seed = null)
+                : base(new Reconciler(weightColumn, rank, overSampling, ensureZeroMean, seed), input)
             {
                 Input = input;
             }
@@ -1639,12 +1637,12 @@ namespace Microsoft.ML.StaticPipe
 
         private sealed class Reconciler : EstimatorReconciler
         {
-            private readonly PrincipalComponentAnalysisEstimator.ColumnInfo _colInfo;
+            private readonly PrincipalComponentAnalyzer.ColumnOptions _colInfo;
 
-            public Reconciler(string weightColumn, int rank, int overSampling, bool center, int? seed = null)
+            public Reconciler(string weightColumn, int rank, int overSampling, bool ensureZeroMean, int? seed = null)
             {
-                _colInfo = new PrincipalComponentAnalysisEstimator.ColumnInfo(
-                    null, null, weightColumn, rank, overSampling, center, seed);
+                _colInfo = new PrincipalComponentAnalyzer.ColumnOptions(
+                    null, null, weightColumn, rank, overSampling, ensureZeroMean, seed);
             }
 
             public override IEstimator<ITransformer> Reconcile(IHostEnvironment env,
@@ -1657,9 +1655,9 @@ namespace Microsoft.ML.StaticPipe
                 var outCol = (OutPipelineColumn)toOutput[0];
                 var inputColName = inputNames[outCol.Input];
                 var outputColName = outputNames[outCol];
-                return new PrincipalComponentAnalysisEstimator(env, outputColName, inputColName,
+                return new PrincipalComponentAnalyzer(env, outputColName, inputColName,
                                          _colInfo.WeightColumn, _colInfo.Rank, _colInfo.Oversampling,
-                                         _colInfo.Center, _colInfo.Seed);
+                                         _colInfo.EnsureZeroMean, _colInfo.Seed);
             }
         }
 
@@ -1672,14 +1670,14 @@ namespace Microsoft.ML.StaticPipe
         /// <param name="weightColumn">The name of the weight column.</param>
         /// <param name="rank">The number of components in the PCA.</param>
         /// <param name="overSampling">Oversampling parameter for randomized PCA training.</param>
-        /// <param name="center">If enabled, data is centered to be zero mean.</param>
+        /// <param name="ensureZeroMean">If enabled, data is centered to be zero mean.</param>
         /// <param name="seed">The seed for random number generation</param>
         /// <returns>Vector containing the principal components.</returns>
-        public static Vector<float> ToPrincipalComponents(this Vector<float> input,
-            string weightColumn = PrincipalComponentAnalysisEstimator.Defaults.WeightColumn,
-            int rank = PrincipalComponentAnalysisEstimator.Defaults.Rank,
-            int overSampling = PrincipalComponentAnalysisEstimator.Defaults.Oversampling,
-            bool center = PrincipalComponentAnalysisEstimator.Defaults.Center,
-            int? seed = null) => new OutPipelineColumn(input, weightColumn, rank, overSampling, center, seed);
+        public static Vector<float> ProjectToPrincipalComponents(this Vector<float> input,
+            string weightColumn = PrincipalComponentAnalyzer.Defaults.WeightColumn,
+            int rank = PrincipalComponentAnalyzer.Defaults.Rank,
+            int overSampling = PrincipalComponentAnalyzer.Defaults.Oversampling,
+            bool ensureZeroMean = PrincipalComponentAnalyzer.Defaults.EnsureZeroMean,
+            int? seed = null) => new OutPipelineColumn(input, weightColumn, rank, overSampling, ensureZeroMean, seed);
     }
 }

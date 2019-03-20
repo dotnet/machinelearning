@@ -7,7 +7,7 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 
-namespace Microsoft.ML.Data
+namespace Microsoft.ML.Runtime
 {
     using Stopwatch = System.Diagnostics.Stopwatch;
 
@@ -259,7 +259,7 @@ namespace Microsoft.ML.Data
 
                 // Progress units.
                 bool first = true;
-                for (int i = 0; i < ev.ProgressEntry.Header.UnitNames.Length; i++)
+                for (int i = 0; i < ev.ProgressEntry.Header.UnitNames.Count; i++)
                 {
                     if (ev.ProgressEntry.Progress[i] == null)
                         continue;
@@ -272,7 +272,7 @@ namespace Microsoft.ML.Data
                 }
 
                 // Metrics.
-                for (int i = 0; i < ev.ProgressEntry.Header.MetricNames.Length; i++)
+                for (int i = 0; i < ev.ProgressEntry.Header.MetricNames.Count; i++)
                 {
                     if (ev.ProgressEntry.Metrics[i] == null)
                         continue;
@@ -346,13 +346,12 @@ namespace Microsoft.ML.Data
         /// <param name="seed">Random seed. Set to <c>null</c> for a non-deterministic environment.</param>
         /// <param name="verbose">Set to <c>true</c> for fully verbose logging.</param>
         /// <param name="sensitivity">Allowed message sensitivity.</param>
-        /// <param name="conc">Concurrency level. Set to 1 to run single-threaded. Set to 0 to pick automatically.</param>
         /// <param name="outWriter">Text writer to print normal messages to.</param>
         /// <param name="errWriter">Text writer to print error messages to.</param>
         public ConsoleEnvironment(int? seed = null, bool verbose = false,
-            MessageSensitivity sensitivity = MessageSensitivity.All, int conc = 0,
+            MessageSensitivity sensitivity = MessageSensitivity.All,
             TextWriter outWriter = null, TextWriter errWriter = null)
-            : this(RandomUtils.Create(seed), verbose, sensitivity, conc, outWriter, errWriter)
+            : this(RandomUtils.Create(seed), verbose, sensitivity, outWriter, errWriter)
         {
         }
 
@@ -363,13 +362,12 @@ namespace Microsoft.ML.Data
         /// <param name="rand">An custom source of randomness to use in the environment.</param>
         /// <param name="verbose">Set to <c>true</c> for fully verbose logging.</param>
         /// <param name="sensitivity">Allowed message sensitivity.</param>
-        /// <param name="conc">Concurrency level. Set to 1 to run single-threaded. Set to 0 to pick automatically.</param>
         /// <param name="outWriter">Text writer to print normal messages to.</param>
         /// <param name="errWriter">Text writer to print error messages to.</param>
         private ConsoleEnvironment(Random rand, bool verbose = false,
-            MessageSensitivity sensitivity = MessageSensitivity.All, int conc = 0,
+            MessageSensitivity sensitivity = MessageSensitivity.All,
             TextWriter outWriter = null, TextWriter errWriter = null)
-            : base(rand, verbose, conc, nameof(ConsoleEnvironment))
+            : base(rand, verbose, nameof(ConsoleEnvironment))
         {
             Contracts.CheckValueOrNull(outWriter);
             Contracts.CheckValueOrNull(errWriter);
@@ -393,19 +391,13 @@ namespace Microsoft.ML.Data
             Root._consoleWriter.PrintMessage(src, msg);
         }
 
-        protected override IFileHandle CreateTempFileCore(IHostEnvironment env, string suffix = null, string prefix = null)
-        {
-            // Prefix with "TLC_".
-            return base.CreateTempFileCore(env, suffix, "TLC_" + prefix);
-        }
-
-        protected override IHost RegisterCore(HostEnvironmentBase<ConsoleEnvironment> source, string shortName, string parentFullName, Random rand, bool verbose, int? conc)
+        protected override IHost RegisterCore(HostEnvironmentBase<ConsoleEnvironment> source, string shortName, string parentFullName, Random rand, bool verbose)
         {
             Contracts.AssertValue(rand);
             Contracts.AssertValueOrNull(parentFullName);
             Contracts.AssertNonEmpty(shortName);
             Contracts.Assert(source == this || source is Host);
-            return new Host(source, shortName, parentFullName, rand, verbose, conc);
+            return new Host(source, shortName, parentFullName, rand, verbose);
         }
 
         protected override IChannel CreateCommChannel(ChannelProviderBase parent, string name)
@@ -470,10 +462,10 @@ namespace Microsoft.ML.Data
 
         private sealed class Host : HostBase
         {
-            public Host(HostEnvironmentBase<ConsoleEnvironment> source, string shortName, string parentFullName, Random rand, bool verbose, int? conc)
-                : base(source, shortName, parentFullName, rand, verbose, conc)
+            public Host(HostEnvironmentBase<ConsoleEnvironment> source, string shortName, string parentFullName, Random rand, bool verbose)
+                : base(source, shortName, parentFullName, rand, verbose)
             {
-                IsCancelled = source.IsCancelled;
+                IsCanceled = source.IsCanceled;
             }
 
             protected override IChannel CreateCommChannel(ChannelProviderBase parent, string name)
@@ -492,9 +484,9 @@ namespace Microsoft.ML.Data
                 return new Pipe<TMessage>(parent, name, GetDispatchDelegate<TMessage>());
             }
 
-            protected override IHost RegisterCore(HostEnvironmentBase<ConsoleEnvironment> source, string shortName, string parentFullName, Random rand, bool verbose, int? conc)
+            protected override IHost RegisterCore(HostEnvironmentBase<ConsoleEnvironment> source, string shortName, string parentFullName, Random rand, bool verbose)
             {
-                return new Host(source, shortName, parentFullName, rand, verbose, conc);
+                return new Host(source, shortName, parentFullName, rand, verbose);
             }
         }
     }

@@ -5,8 +5,9 @@
 using System;
 using System.Collections.Generic;
 using System.Drawing;
-using Microsoft.ML.ImageAnalytics;
-using Microsoft.ML.StaticPipe.Runtime;
+using Microsoft.ML.Data;
+using Microsoft.ML.Runtime;
+using Microsoft.ML.Transforms.Image;
 
 namespace Microsoft.ML.StaticPipe
 {
@@ -141,8 +142,8 @@ namespace Microsoft.ML.StaticPipe
                 _cropAnchor = cropAnchor;
             }
 
-            private ImageResizingEstimator.ColumnInfo MakeColumnInfo(string outputColumnName, string inputColumnName)
-                => new ImageResizingEstimator.ColumnInfo(outputColumnName, _width, _height, inputColumnName, _resizing, _cropAnchor);
+            private ImageResizingEstimator.ColumnOptions MakeColumnOptions(string outputColumnName, string inputColumnName)
+                => new ImageResizingEstimator.ColumnOptions(outputColumnName, _width, _height, inputColumnName, _resizing, _cropAnchor);
 
             /// <summary>
             /// Reconciler to an <see cref="ImageResizingTransformer"/> for the <see cref="PipelineColumn"/>.
@@ -163,11 +164,11 @@ namespace Microsoft.ML.StaticPipe
                     IReadOnlyDictionary<PipelineColumn, string> outputNames,
                     IReadOnlyCollection<string> usedNames)
                 {
-                    var cols = new ImageResizingEstimator.ColumnInfo[toOutput.Length];
+                    var cols = new ImageResizingEstimator.ColumnOptions[toOutput.Length];
                     for (int i = 0; i < toOutput.Length; ++i)
                     {
                         var outCol = (OutPipelineColumn)toOutput[i];
-                        cols[i] = outCol.MakeColumnInfo(outputNames[outCol], inputNames[outCol._input]);
+                        cols[i] = outCol.MakeColumnOptions(outputNames[outCol], inputNames[outCol._input]);
                     }
                     return new ImageResizingEstimator(env, cols);
                 }
@@ -181,7 +182,7 @@ namespace Microsoft.ML.StaticPipe
         {
             Custom<Bitmap> Input { get; }
 
-            ImagePixelExtractingEstimator.ColumnInfo MakeColumnInfo(string outputColumnName, string inputColumnName);
+            ImagePixelExtractingEstimator.ColumnOptions MakeColumnOptions(string outputColumnName, string inputColumnName);
         }
 
         internal sealed class OutPipelineColumn<T> : Vector<T>, IColInput
@@ -199,7 +200,7 @@ namespace Microsoft.ML.StaticPipe
                 _colParam = col;
             }
 
-            public ImagePixelExtractingEstimator.ColumnInfo MakeColumnInfo(string outputColumnName, string inputColumnName)
+            public ImagePixelExtractingEstimator.ColumnOptions MakeColumnOptions(string outputColumnName, string inputColumnName)
             {
                 // In principle, the analyzer should only call the the reconciler once for these columns.
                 Contracts.Assert(_colParam.Source == null);
@@ -207,7 +208,7 @@ namespace Microsoft.ML.StaticPipe
 
                 _colParam.Name = outputColumnName;
                 _colParam.Source = inputColumnName;
-                return new ImagePixelExtractingEstimator.ColumnInfo(_colParam, _defaultArgs);
+                return new ImagePixelExtractingEstimator.ColumnOptions(_colParam, _defaultArgs);
             }
         }
 
@@ -215,8 +216,8 @@ namespace Microsoft.ML.StaticPipe
         /// Reconciler to an <see cref="ImagePixelExtractingEstimator"/> for the <see cref="PipelineColumn"/>.
         /// </summary>
         /// <remarks>Because we want to use the same reconciler for </remarks>
-        /// <see cref="ImageStaticPipe.ExtractPixels(Custom{Bitmap}, bool, bool, bool, bool, bool, float, float)"/>
-        /// <see cref="ImageStaticPipe.ExtractPixelsAsBytes(Custom{Bitmap}, bool, bool, bool, bool, bool)"/>
+        /// <see cref="ImageStaticPipe.ExtractPixels(Custom{Bitmap}, bool, bool, bool, bool, ImagePixelExtractingEstimator.ColorsOrder, bool, float, float)"/>
+        /// <see cref="ImageStaticPipe.ExtractPixelsAsBytes(Custom{Bitmap}, bool, bool, bool, bool,ImagePixelExtractingEstimator.ColorsOrder, bool)"/>
         private sealed class Reconciler : EstimatorReconciler
         {
             /// <summary>
@@ -232,11 +233,11 @@ namespace Microsoft.ML.StaticPipe
                 IReadOnlyDictionary<PipelineColumn, string> outputNames,
                 IReadOnlyCollection<string> usedNames)
             {
-                var cols = new ImagePixelExtractingEstimator.ColumnInfo[toOutput.Length];
+                var cols = new ImagePixelExtractingEstimator.ColumnOptions[toOutput.Length];
                 for (int i = 0; i < toOutput.Length; ++i)
                 {
                     var outCol = (IColInput)toOutput[i];
-                    cols[i] = outCol.MakeColumnInfo(outputNames[toOutput[i]], inputNames[outCol.Input]);
+                    cols[i] = outCol.MakeColumnOptions(outputNames[toOutput[i]], inputNames[outCol.Input]);
                 }
                 return new ImagePixelExtractingEstimator(env, cols);
             }

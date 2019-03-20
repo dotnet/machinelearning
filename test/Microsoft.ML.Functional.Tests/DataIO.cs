@@ -3,8 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System.IO;
-using Microsoft.Data.DataView;
-using Microsoft.ML.Data;
 using Microsoft.ML.Functional.Tests.Datasets;
 using Microsoft.ML.TestFramework;
 using Xunit;
@@ -32,10 +30,10 @@ namespace Microsoft.ML.Functional.Tests
         [Fact]
         public void ReadFromIEnumerable()
         {
-            var mlContext = new MLContext(seed: 1, conc: 1);
+            var mlContext = new MLContext(seed: 1);
 
             // Read the dataset from an enumerable.
-            var data = mlContext.Data.ReadFromEnumerable(TypeTestData.GenerateDataset());
+            var data = mlContext.Data.LoadFromEnumerable(TypeTestData.GenerateDataset());
 
             Common.AssertTypeTestDataset(data);
         }
@@ -46,14 +44,14 @@ namespace Microsoft.ML.Functional.Tests
         [Fact]
         public void ExportToIEnumerable()
         {
-            var mlContext = new MLContext(seed: 1, conc: 1);
+            var mlContext = new MLContext(seed: 1);
 
             // Read the dataset from an enumerable.
             var enumerableBefore = TypeTestData.GenerateDataset();
-            var data = mlContext.Data.ReadFromEnumerable(enumerableBefore);
+            var data = mlContext.Data.LoadFromEnumerable(enumerableBefore);
 
             // Export back to an enumerable.
-            var enumerableAfter = mlContext.CreateEnumerable<TypeTestData>(data, true);
+            var enumerableAfter = mlContext.Data.CreateEnumerable<TypeTestData>(data, true);
 
             Common.AssertEqual(enumerableBefore, enumerableAfter);
         }
@@ -67,15 +65,15 @@ namespace Microsoft.ML.Functional.Tests
         [Fact]
         public void WriteToAndReadFromADelimetedFile()
         {
-            var mlContext = new MLContext(seed: 1, conc: 1);
+            var mlContext = new MLContext(seed: 1);
             
-            var dataBefore = mlContext.Data.ReadFromEnumerable(TypeTestData.GenerateDataset());
+            var dataBefore = mlContext.Data.LoadFromEnumerable(TypeTestData.GenerateDataset());
 
             foreach (var separator in _separators)
             {
                 // Serialize a dataset with a known schema to a file.
                 var filePath = SerializeDatasetToFile(mlContext, dataBefore, separator);
-                var dataAfter = TypeTestData.GetTextLoader(mlContext, separator).Read(filePath);
+                var dataAfter = TypeTestData.GetTextLoader(mlContext, separator).Load(filePath);
                 Common.AssertTestTypeDatasetsAreEqual(mlContext, dataBefore, dataAfter);
             }
         }
@@ -89,15 +87,15 @@ namespace Microsoft.ML.Functional.Tests
         [Fact]
         public void WriteToAndReadASchemaFromADelimitedFile()
         {
-            var mlContext = new MLContext(seed: 1, conc: 1);
+            var mlContext = new MLContext(seed: 1);
 
-            var dataBefore = mlContext.Data.ReadFromEnumerable(TypeTestData.GenerateDataset());
+            var dataBefore = mlContext.Data.LoadFromEnumerable(TypeTestData.GenerateDataset());
 
             foreach (var separator in _separators)
             {
                 // Serialize a dataset with a known schema to a file.
                 var filePath = SerializeDatasetToFile(mlContext, dataBefore, separator);
-                var dataAfter = mlContext.Data.ReadFromTextFile<TypeTestData>(filePath, hasHeader: true, separatorChar: separator);
+                var dataAfter = mlContext.Data.LoadFromTextFile<TypeTestData>(filePath, separatorChar: separator, hasHeader: true, allowQuoting: true);
                 Common.AssertTestTypeDatasetsAreEqual(mlContext, dataBefore, dataAfter);
             }
         }
@@ -108,13 +106,13 @@ namespace Microsoft.ML.Functional.Tests
         [Fact]
         public void WriteAndReadAFromABinaryFile()
         {
-            var mlContext = new MLContext(seed: 1, conc: 1);
+            var mlContext = new MLContext(seed: 1);
 
-            var dataBefore = mlContext.Data.ReadFromEnumerable(TypeTestData.GenerateDataset());
+            var dataBefore = mlContext.Data.LoadFromEnumerable(TypeTestData.GenerateDataset());
 
             // Serialize a dataset with a known schema to a file.
             var filePath = SerializeDatasetToBinaryFile(mlContext, dataBefore);
-            var dataAfter = mlContext.Data.ReadFromBinary(filePath);
+            var dataAfter = mlContext.Data.LoadFromBinary(filePath);
             Common.AssertTestTypeDatasetsAreEqual(mlContext, dataBefore, dataAfter);
         }
 

@@ -5,14 +5,12 @@
 using System;
 using System.Text;
 using System.Threading;
-using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
 using Microsoft.ML.Internal.Utilities;
-using Microsoft.ML.Model;
+using Microsoft.ML.Runtime;
 using Microsoft.ML.Transforms;
-using Float = System.Single;
 
 [assembly: LoadableClass(LabelConvertTransform.Summary, typeof(LabelConvertTransform), typeof(LabelConvertTransform.Arguments), typeof(SignatureDataTransform),
     "", "LabelConvert", "LabelConvertTransform")]
@@ -116,7 +114,7 @@ namespace Microsoft.ML.Transforms
                     // int: sizeof(Float)
                     // <remainder handled in ctors>
                     int cbFloat = ctx.Reader.ReadInt32();
-                    h.CheckDecode(cbFloat == sizeof(Float));
+                    h.CheckDecode(cbFloat == sizeof(float));
                     return new LabelConvertTransform(h, ctx, input);
                 });
         }
@@ -131,7 +129,7 @@ namespace Microsoft.ML.Transforms
             // int: sizeof(Float)
             // <base>
             Host.AssertNonEmpty(Infos);
-            ctx.Writer.Write(sizeof(Float));
+            ctx.Writer.Write(sizeof(float));
             SaveBase(ctx);
         }
 
@@ -165,7 +163,7 @@ namespace Microsoft.ML.Transforms
             // output column with KeyValues metadata, but maybe this output is actually useful?
             // Certainly there's nothing contractual requiring I suppress this. Should I suppress
             // anything else?
-            return kind != MetadataUtils.Kinds.KeyValues;
+            return kind != AnnotationUtils.Kinds.KeyValues;
         }
 
         protected override Delegate GetGetterCore(IChannel ch, DataViewRow input, int iinfo, out Action disposer)

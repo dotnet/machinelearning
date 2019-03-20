@@ -11,7 +11,7 @@ using Microsoft.ML.Model;
 using Microsoft.ML.RunTests;
 using Microsoft.ML.StaticPipe;
 using Microsoft.ML.TestFramework.Attributes;
-using Microsoft.ML.Transforms;
+using Microsoft.ML.Transforms.Onnx;
 using Microsoft.ML.Transforms.StaticPipe;
 using Xunit;
 using Xunit.Abstractions;
@@ -73,9 +73,9 @@ namespace Microsoft.ML.Tests
             var sizeData = new List<TestDataSize> { new TestDataSize() { data_0 = new float[2] } };
             var pipe = ML.Transforms.DnnFeaturizeImage("output_1", m => m.ModelSelector.ResNet18(m.Environment, m.OutputColumn, m.InputColumn), "data_0");
 
-            var invalidDataWrongNames = ML.Data.ReadFromEnumerable(xyData);
-            var invalidDataWrongTypes = ML.Data.ReadFromEnumerable(stringData);
-            var invalidDataWrongVectorSize = ML.Data.ReadFromEnumerable(sizeData);
+            var invalidDataWrongNames = ML.Data.LoadFromEnumerable(xyData);
+            var invalidDataWrongTypes = ML.Data.LoadFromEnumerable(stringData);
+            var invalidDataWrongVectorSize = ML.Data.LoadFromEnumerable(sizeData);
             TestEstimatorCore(pipe, dataView, invalidInput: invalidDataWrongNames);
             TestEstimatorCore(pipe, dataView, invalidInput: invalidDataWrongTypes);
             pipe.GetOutputSchema(SchemaShape.Create(invalidDataWrongVectorSize.Schema));
@@ -91,31 +91,30 @@ namespace Microsoft.ML.Tests
         [OnnxFact]
         public void OnnxStatic()
         {
-            var env = new MLContext(null, 1);
+            var env = new MLContext(null);
             var imageHeight = 224;
             var imageWidth = 224;
             var dataFile = GetDataPath("images/images.tsv");
             var imageFolder = Path.GetDirectoryName(dataFile);
 
-            var data = TextLoaderStatic.CreateReader(env, ctx => (
+            var data = TextLoaderStatic.CreateLoader(env, ctx => (
                 imagePath: ctx.LoadText(0),
                 name: ctx.LoadText(1)))
-                .Read(dataFile);
+                .Load(dataFile);
 
             var pipe = data.MakeNewEstimator()
                 .Append(row => (
                     row.name,
-                    data_0: row.imagePath.LoadAsImage(imageFolder).Resize(imageHeight, imageWidth).ExtractPixels(interleaveArgb: true)))
+                    data_0: row.imagePath.LoadAsImage(imageFolder).Resize(imageHeight, imageWidth).ExtractPixels(interleave: true)))
                 .Append(row => (row.name, output_1: row.data_0.DnnImageFeaturizer(m => m.ModelSelector.ResNet18(m.Environment, m.OutputColumn, m.InputColumn))));
 
             TestEstimatorCore(pipe.AsDynamic, data.AsDynamic);
 
             var result = pipe.Fit(data).Transform(data).AsDynamic;
-            result.Schema.TryGetColumnIndex("output_1", out int output);
             using (var cursor = result.GetRowCursor(result.Schema["output_1"]))
             {
                 var buffer = default(VBuffer<float>);
-                var getter = cursor.GetGetter<VBuffer<float>>(output);
+                var getter = cursor.GetGetter<VBuffer<float>>(result.Schema["output_1"]);
                 var numRows = 0;
                 while (cursor.MoveNext())
                 {
@@ -133,7 +132,7 @@ namespace Microsoft.ML.Tests
         {
             var samplevector = GetSampleArrayData();
 
-            var dataView = ML.Data.ReadFromEnumerable(
+            var dataView = ML.Data.LoadFromEnumerable(
                 new TestData[] {
                     new TestData()
                     {
@@ -153,11 +152,10 @@ namespace Microsoft.ML.Tests
                 ms.Position = 0;
                 var loadedView = ModelFileUtils.LoadTransforms(Env, dataView, ms);
 
-                loadedView.Schema.TryGetColumnIndex(outputNames, out int softMaxOut1);
                 using (var cursor = loadedView.GetRowCursor(loadedView.Schema[outputNames]))
                 {
                     VBuffer<float> softMaxValue = default;
-                    var softMaxGetter = cursor.GetGetter<VBuffer<float>>(softMaxOut1);
+                    var softMaxGetter = cursor.GetGetter<VBuffer<float>>(loadedView.Schema[outputNames]);
                     float sum = 0f;
                     int i = 0;
                     while (cursor.MoveNext())

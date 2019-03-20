@@ -5,13 +5,12 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Microsoft.Data.DataView;
 using Microsoft.ML.Data;
-using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Runtime;
 using Microsoft.ML.Transforms;
 
-namespace Microsoft.ML.Training
+namespace Microsoft.ML.Trainers
 {
     /// <summary>
     /// Options for creating a <see cref="TrainingCursorBase"/> from a <see cref="RoleMappedData"/> with specified standard columns active.
@@ -135,7 +134,7 @@ namespace Microsoft.ML.Training
         /// key type, it must have known cardinality. For other numeric types, this scans the data
         /// to determine the cardinality.
         /// </summary>
-        public static void CheckMultiClassLabel(this RoleMappedData data, out int count)
+        public static void CheckMulticlassLabel(this RoleMappedData data, out int count)
         {
             Contracts.CheckValue(data, nameof(data));
 
@@ -267,7 +266,7 @@ namespace Microsoft.ML.Training
             Contracts.CheckParam(schema.Schema == row.Schema, nameof(schema), "schemas don't match!");
             Contracts.CheckParam(schema.Feature.HasValue, nameof(schema), "Missing feature column");
 
-            return row.GetGetter<VBuffer<float>>(schema.Feature.Value.Index);
+            return row.GetGetter<VBuffer<float>>(schema.Feature.Value);
         }
 
         /// <summary>
@@ -385,17 +384,6 @@ namespace Microsoft.ML.Training
         public static SchemaShape.Column MakeR4ScalarWeightColumn(string weightColumn)
         {
             if (weightColumn == null)
-                return default;
-            return new SchemaShape.Column(weightColumn, SchemaShape.Column.VectorKind.Scalar, NumberDataViewType.Single, false);
-        }
-
-        /// <summary>
-        /// The <see cref="SchemaShape.Column"/> for the weight column.
-        /// </summary>
-        /// <param name="weightColumn">name of the weight column</param>
-        public static SchemaShape.Column MakeR4ScalarWeightColumn(Optional<string> weightColumn)
-        {
-            if (weightColumn == null || weightColumn.Value == null || !weightColumn.IsExplicit)
                 return default;
             return new SchemaShape.Column(weightColumn, SchemaShape.Column.VectorKind.Scalar, NumberDataViewType.Single, false);
         }
@@ -959,7 +947,7 @@ namespace Microsoft.ML.Training
     /// enforcing multi-class semantics.
     /// </summary>
     [BestFriend]
-    internal class MultiClassLabelCursor : FeatureFloatVectorCursor
+    internal class MulticlassLabelCursor : FeatureFloatVectorCursor
     {
         private readonly int _classCount;
         private readonly ValueGetter<float> _get;
@@ -970,13 +958,13 @@ namespace Microsoft.ML.Training
         private float _raw;
         public int Label;
 
-        public MultiClassLabelCursor(int classCount, RoleMappedData data, CursOpt opt = CursOpt.Label,
+        public MulticlassLabelCursor(int classCount, RoleMappedData data, CursOpt opt = CursOpt.Label,
             Random rand = null, params int[] extraCols)
             : this(classCount, CreateCursor(data, opt, rand, extraCols), data, opt)
         {
         }
 
-        protected MultiClassLabelCursor(int classCount, DataViewRowCursor input, RoleMappedData data, CursOpt opt, Action<CursOpt> signal = null)
+        protected MulticlassLabelCursor(int classCount, DataViewRowCursor input, RoleMappedData data, CursOpt opt, Action<CursOpt> signal = null)
             : base(input, data, opt, signal)
         {
             Contracts.Assert(classCount >= 0);
@@ -1013,7 +1001,7 @@ namespace Microsoft.ML.Training
             return base.Accept();
         }
 
-        public new sealed class Factory : FactoryBase<MultiClassLabelCursor>
+        public new sealed class Factory : FactoryBase<MulticlassLabelCursor>
         {
             private readonly int _classCount;
 
@@ -1025,9 +1013,9 @@ namespace Microsoft.ML.Training
                 _classCount = classCount;
             }
 
-            protected override MultiClassLabelCursor CreateCursorCore(DataViewRowCursor input, RoleMappedData data, CursOpt opt, Action<CursOpt> signal)
+            protected override MulticlassLabelCursor CreateCursorCore(DataViewRowCursor input, RoleMappedData data, CursOpt opt, Action<CursOpt> signal)
             {
-                return new MultiClassLabelCursor(_classCount, input, data, opt, signal);
+                return new MulticlassLabelCursor(_classCount, input, data, opt, signal);
             }
         }
     }

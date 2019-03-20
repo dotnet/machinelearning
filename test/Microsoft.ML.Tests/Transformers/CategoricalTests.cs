@@ -5,15 +5,12 @@
 using System;
 using System.IO;
 using System.Linq;
-using Microsoft.Data.DataView;
 using Microsoft.ML.Data;
-using Microsoft.ML.Data.IO;
 using Microsoft.ML.Model;
 using Microsoft.ML.RunTests;
 using Microsoft.ML.StaticPipe;
 using Microsoft.ML.Tools;
 using Microsoft.ML.Transforms;
-using Microsoft.ML.Transforms.Categorical;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -58,12 +55,12 @@ namespace Microsoft.ML.Tests.Transformers
         {
             var data = new[] { new TestClass() { A = 1, B = 2, C = 3, }, new TestClass() { A = 4, B = 5, C = 6 } };
 
-            var dataView = ML.Data.ReadFromEnumerable(data);
+            var dataView = ML.Data.LoadFromEnumerable(data);
             var pipe = ML.Transforms.Categorical.OneHotEncoding(new[]{
-                    new OneHotEncodingEstimator.ColumnInfo("CatA", "A", OneHotEncodingTransformer.OutputKind.Bag),
-                    new OneHotEncodingEstimator.ColumnInfo("CatB", "A", OneHotEncodingTransformer.OutputKind.Bin),
-                    new OneHotEncodingEstimator.ColumnInfo("CatC", "A", OneHotEncodingTransformer.OutputKind.Ind),
-                    new OneHotEncodingEstimator.ColumnInfo("CatD", "A", OneHotEncodingTransformer.OutputKind.Key),
+                    new OneHotEncodingEstimator.ColumnOptions("CatA", "A", OneHotEncodingEstimator.OutputKind.Bag),
+                    new OneHotEncodingEstimator.ColumnOptions("CatB", "A", OneHotEncodingEstimator.OutputKind.Binary),
+                    new OneHotEncodingEstimator.ColumnOptions("CatC", "A", OneHotEncodingEstimator.OutputKind.Indicator),
+                    new OneHotEncodingEstimator.ColumnOptions("CatD", "A", OneHotEncodingEstimator.OutputKind.Key),
                 });
 
             TestEstimatorCore(pipe, dataView);
@@ -76,12 +73,12 @@ namespace Microsoft.ML.Tests.Transformers
             var data = new[] { new TestClass() { A = 1, B = 2, C = 3, }, new TestClass() { A = 4, B = 5, C = 6 } };
 
             var mlContext = new MLContext();
-            var dataView = mlContext.Data.ReadFromEnumerable(data);
+            var dataView = mlContext.Data.LoadFromEnumerable(data);
 
-            var pipe = mlContext.Transforms.Categorical.OneHotHashEncoding("CatA", "A", 3, 0, OneHotEncodingTransformer.OutputKind.Bag)
-                .Append(mlContext.Transforms.Categorical.OneHotHashEncoding("CatB", "A", 2, 0, OneHotEncodingTransformer.OutputKind.Key))
-                .Append(mlContext.Transforms.Categorical.OneHotHashEncoding("CatC", "A", 3, 0, OneHotEncodingTransformer.OutputKind.Ind))
-                .Append(mlContext.Transforms.Categorical.OneHotHashEncoding("CatD", "A", 2, 0, OneHotEncodingTransformer.OutputKind.Bin));
+            var pipe = mlContext.Transforms.Categorical.OneHotHashEncoding("CatA", "A", OneHotEncodingEstimator.OutputKind.Bag, 3, 0)
+                .Append(mlContext.Transforms.Categorical.OneHotHashEncoding("CatB", "A", OneHotEncodingEstimator.OutputKind.Key, 2, 0))
+                .Append(mlContext.Transforms.Categorical.OneHotHashEncoding("CatC", "A", OneHotEncodingEstimator.OutputKind.Indicator, 3, 0))
+                .Append(mlContext.Transforms.Categorical.OneHotHashEncoding("CatD", "A", OneHotEncodingEstimator.OutputKind.Binary, 2, 0));
 
             TestEstimatorCore(pipe, dataView);
             Done();
@@ -93,12 +90,12 @@ namespace Microsoft.ML.Tests.Transformers
             var data = new[] { new TestClass() { A = 1, B = 2, C = 3, }, new TestClass() { A = 4, B = 5, C = 6 } };
 
             var mlContext = new MLContext();
-            var dataView = mlContext.Data.ReadFromEnumerable(data);
+            var dataView = mlContext.Data.LoadFromEnumerable(data);
 
-            var pipe = mlContext.Transforms.Categorical.OneHotEncoding("CatA", "A", OneHotEncodingTransformer.OutputKind.Bag)
-                .Append(mlContext.Transforms.Categorical.OneHotEncoding("CatB", "A", OneHotEncodingTransformer.OutputKind.Key))
-                .Append(mlContext.Transforms.Categorical.OneHotEncoding("CatC", "A", OneHotEncodingTransformer.OutputKind.Ind))
-                .Append(mlContext.Transforms.Categorical.OneHotEncoding("CatD", "A", OneHotEncodingTransformer.OutputKind.Bin));
+            var pipe = mlContext.Transforms.Categorical.OneHotEncoding("CatA", "A", OneHotEncodingEstimator.OutputKind.Bag)
+                .Append(mlContext.Transforms.Categorical.OneHotEncoding("CatB", "A", OneHotEncodingEstimator.OutputKind.Key))
+                .Append(mlContext.Transforms.Categorical.OneHotEncoding("CatC", "A", OneHotEncodingEstimator.OutputKind.Indicator))
+                .Append(mlContext.Transforms.Categorical.OneHotEncoding("CatD", "A", OneHotEncodingEstimator.OutputKind.Binary));
 
             TestEstimatorCore(pipe, dataView);
             Done();
@@ -115,13 +112,13 @@ namespace Microsoft.ML.Tests.Transformers
             var data = new[] { new TestStringClass() { A = "Stay" }, new TestStringClass() { A = "awhile and listen" } };
 
             var mlContext = new MLContext();
-            var dataView = mlContext.Data.ReadFromEnumerable(data);
+            var dataView = mlContext.Data.LoadFromEnumerable(data);
 
             var sideDataBuilder = new ArrayDataViewBuilder(mlContext);
             sideDataBuilder.AddColumn("Hello", "hello", "my", "friend");
             var sideData = sideDataBuilder.GetDataView();
 
-            var ci = new OneHotEncodingEstimator.ColumnInfo("CatA", "A", OneHotEncodingTransformer.OutputKind.Bag);
+            var ci = new OneHotEncodingEstimator.ColumnOptions("CatA", "A", OneHotEncodingEstimator.OutputKind.Bag);
             var pipe = mlContext.Transforms.Categorical.OneHotEncoding(new[] { ci }, sideData);
 
             var output = pipe.Fit(dataView).Transform(dataView);
@@ -141,13 +138,13 @@ namespace Microsoft.ML.Tests.Transformers
         public void CategoricalStatic()
         {
             string dataPath = GetDataPath("breast-cancer.txt");
-            var reader = TextLoaderStatic.CreateReader(ML, ctx => (
+            var reader = TextLoaderStatic.CreateLoader(ML, ctx => (
                 ScalarString: ctx.LoadText(1),
                 VectorString: ctx.LoadText(1, 4)));
-            var data = reader.Read(dataPath);
+            var data = reader.Load(dataPath);
             var wrongCollection = new[] { new TestClass() { A = 1, B = 2, C = 3, }, new TestClass() { A = 4, B = 5, C = 6 } };
 
-            var invalidData = ML.Data.ReadFromEnumerable(wrongCollection);
+            var invalidData = ML.Data.LoadFromEnumerable(wrongCollection);
             var est = data.MakeNewEstimator().
                   Append(row => (
                   A: row.ScalarString.OneHotEncoding(outputKind: CategoricalStaticExtensions.OneHotScalarOutputKind.Ind),
@@ -178,20 +175,20 @@ namespace Microsoft.ML.Tests.Transformers
                 new TestMeta() { A=new string[2] { "A", "B"}, B="C", C=new int[2] { 3,5}, D= 6, E=new float[2] { 5.0f,6.0f}, F = 1.0f ,G= new string[2]{ "D", "E"}, H="D"} };
 
 
-            var dataView = ML.Data.ReadFromEnumerable(data);
+            var dataView = ML.Data.LoadFromEnumerable(data);
             var pipe = ML.Transforms.Categorical.OneHotEncoding(new[] {
-                new OneHotEncodingEstimator.ColumnInfo("CatA", "A", OneHotEncodingTransformer.OutputKind.Bag),
-                new OneHotEncodingEstimator.ColumnInfo("CatB", "B", OneHotEncodingTransformer.OutputKind.Bag),
-                new OneHotEncodingEstimator.ColumnInfo("CatC", "C", OneHotEncodingTransformer.OutputKind.Bag),
-                new OneHotEncodingEstimator.ColumnInfo("CatD", "D", OneHotEncodingTransformer.OutputKind.Bag),
-                new OneHotEncodingEstimator.ColumnInfo("CatE", "E",OneHotEncodingTransformer.OutputKind.Ind),
-                new OneHotEncodingEstimator.ColumnInfo("CatF", "F", OneHotEncodingTransformer.OutputKind.Ind),
-                new OneHotEncodingEstimator.ColumnInfo("CatG", "G", OneHotEncodingTransformer.OutputKind.Key),
-                new OneHotEncodingEstimator.ColumnInfo("CatH", "H", OneHotEncodingTransformer.OutputKind.Key),
-                new OneHotEncodingEstimator.ColumnInfo("CatI", "A", OneHotEncodingTransformer.OutputKind.Bin),
-                new OneHotEncodingEstimator.ColumnInfo("CatJ", "B", OneHotEncodingTransformer.OutputKind.Bin),
-                new OneHotEncodingEstimator.ColumnInfo("CatK", "C", OneHotEncodingTransformer.OutputKind.Bin),
-                new OneHotEncodingEstimator.ColumnInfo("CatL", "D", OneHotEncodingTransformer.OutputKind.Bin) });
+                new OneHotEncodingEstimator.ColumnOptions("CatA", "A", OneHotEncodingEstimator.OutputKind.Bag),
+                new OneHotEncodingEstimator.ColumnOptions("CatB", "B", OneHotEncodingEstimator.OutputKind.Bag),
+                new OneHotEncodingEstimator.ColumnOptions("CatC", "C", OneHotEncodingEstimator.OutputKind.Bag),
+                new OneHotEncodingEstimator.ColumnOptions("CatD", "D", OneHotEncodingEstimator.OutputKind.Bag),
+                new OneHotEncodingEstimator.ColumnOptions("CatE", "E",OneHotEncodingEstimator.OutputKind.Indicator),
+                new OneHotEncodingEstimator.ColumnOptions("CatF", "F", OneHotEncodingEstimator.OutputKind.Indicator),
+                new OneHotEncodingEstimator.ColumnOptions("CatG", "G", OneHotEncodingEstimator.OutputKind.Key),
+                new OneHotEncodingEstimator.ColumnOptions("CatH", "H", OneHotEncodingEstimator.OutputKind.Key),
+                new OneHotEncodingEstimator.ColumnOptions("CatI", "A", OneHotEncodingEstimator.OutputKind.Binary),
+                new OneHotEncodingEstimator.ColumnOptions("CatJ", "B", OneHotEncodingEstimator.OutputKind.Binary),
+                new OneHotEncodingEstimator.ColumnOptions("CatK", "C", OneHotEncodingEstimator.OutputKind.Binary),
+                new OneHotEncodingEstimator.ColumnOptions("CatL", "D", OneHotEncodingEstimator.OutputKind.Binary) });
 
 
             var result = pipe.Fit(dataView).Transform(dataView);
@@ -207,84 +204,84 @@ namespace Microsoft.ML.Tests.Transformers
             VBuffer<int> slotRanges = default;
 
             var column = result.Schema["CatA"];
-            Assert.Equal(column.Metadata.Schema.Select(x => x.Name), new string[1] { MetadataUtils.Kinds.SlotNames });
+            Assert.Equal(column.Annotations.Schema.Select(x => x.Name), new string[1] { AnnotationUtils.Kinds.SlotNames });
             column.GetSlotNames(ref slots);
             Assert.True(slots.Length == 2);
             Assert.Equal(slots.Items().Select(x => x.Value.ToString()), new string[2] { "A", "B" });
 
             column = result.Schema["CatB"];
-            Assert.Equal(column.Metadata.Schema.Select(x => x.Name), new string[2] { MetadataUtils.Kinds.SlotNames, MetadataUtils.Kinds.IsNormalized });
+            Assert.Equal(column.Annotations.Schema.Select(x => x.Name), new string[2] { AnnotationUtils.Kinds.SlotNames, AnnotationUtils.Kinds.IsNormalized });
             column.GetSlotNames(ref slots);
             Assert.True(slots.Length == 1);
             Assert.Equal(slots.Items().Select(x => x.Value.ToString()), new string[1] { "C" });
             Assert.True(column.IsNormalized());
 
             column = result.Schema["CatC"];
-            Assert.Equal(column.Metadata.Schema.Select(x => x.Name), new string[1] { MetadataUtils.Kinds.SlotNames });
+            Assert.Equal(column.Annotations.Schema.Select(x => x.Name), new string[1] { AnnotationUtils.Kinds.SlotNames });
             column.GetSlotNames(ref slots);
             Assert.True(slots.Length == 2);
             Assert.Equal(slots.Items().Select(x => x.Value.ToString()), new string[2] { "3", "5" });
 
             column = result.Schema["CatD"];
-            Assert.Equal(column.Metadata.Schema.Select(x => x.Name), new string[2] { MetadataUtils.Kinds.SlotNames, MetadataUtils.Kinds.IsNormalized });
+            Assert.Equal(column.Annotations.Schema.Select(x => x.Name), new string[2] { AnnotationUtils.Kinds.SlotNames, AnnotationUtils.Kinds.IsNormalized });
             column.GetSlotNames(ref slots);
             Assert.True(slots.Length == 2);
             Assert.Equal(slots.Items().Select(x => x.Value.ToString()), new string[2] { "6", "1" });
             Assert.True(column.IsNormalized());
 
             column = result.Schema["CatE"];
-            Assert.Equal(column.Metadata.Schema.Select(x => x.Name), new string[3] { MetadataUtils.Kinds.SlotNames, MetadataUtils.Kinds.CategoricalSlotRanges, MetadataUtils.Kinds.IsNormalized });
+            Assert.Equal(column.Annotations.Schema.Select(x => x.Name), new string[3] { AnnotationUtils.Kinds.SlotNames, AnnotationUtils.Kinds.CategoricalSlotRanges, AnnotationUtils.Kinds.IsNormalized });
             column.GetSlotNames(ref slots);
             Assert.True(slots.Length == 12);
             Assert.Equal(slots.Items().Select(x => x.Value.ToString()), new string[12] { "[0].1", "[0].2", "[0].3", "[0].4", "[0].5", "[0].6", "[1].1", "[1].2", "[1].3", "[1].4", "[1].5", "[1].6" });
-            column.Metadata.GetValue(MetadataUtils.Kinds.CategoricalSlotRanges, ref slotRanges);
+            column.Annotations.GetValue(AnnotationUtils.Kinds.CategoricalSlotRanges, ref slotRanges);
             Assert.True(slotRanges.Length == 4);
             Assert.Equal(slotRanges.Items().Select(x => x.Value.ToString()), new string[4] { "0", "5", "6", "11" });
             Assert.True(column.IsNormalized());
 
             column = result.Schema["CatF"];
-            Assert.Equal(column.Metadata.Schema.Select(x => x.Name), new string[3] { MetadataUtils.Kinds.SlotNames, MetadataUtils.Kinds.CategoricalSlotRanges, MetadataUtils.Kinds.IsNormalized });
+            Assert.Equal(column.Annotations.Schema.Select(x => x.Name), new string[3] { AnnotationUtils.Kinds.SlotNames, AnnotationUtils.Kinds.CategoricalSlotRanges, AnnotationUtils.Kinds.IsNormalized });
             column.GetSlotNames(ref slots);
             Assert.True(slots.Length == 2);
             Assert.Equal(slots.Items().Select(x => x.Value.ToString()), new string[2] { "1", "-1" });
-            column.Metadata.GetValue(MetadataUtils.Kinds.CategoricalSlotRanges, ref slotRanges);
+            column.Annotations.GetValue(AnnotationUtils.Kinds.CategoricalSlotRanges, ref slotRanges);
             Assert.True(slotRanges.Length == 2);
             Assert.Equal(slotRanges.Items().Select(x => x.Value.ToString()), new string[2] { "0", "1" });
             Assert.True(column.IsNormalized());
 
             column = result.Schema["CatG"];
-            Assert.Equal(column.Metadata.Schema.Select(x => x.Name), new string[1] { MetadataUtils.Kinds.KeyValues });
+            Assert.Equal(column.Annotations.Schema.Select(x => x.Name), new string[1] { AnnotationUtils.Kinds.KeyValues });
             column.GetKeyValues(ref slots);
             Assert.True(slots.Length == 3);
             Assert.Equal(slots.Items().Select(x => x.Value.ToString()), new string[3] { "A", "D", "E" });
 
             column = result.Schema["CatH"];
-            Assert.Equal(column.Metadata.Schema.Select(x => x.Name), new string[1] { MetadataUtils.Kinds.KeyValues });
+            Assert.Equal(column.Annotations.Schema.Select(x => x.Name), new string[1] { AnnotationUtils.Kinds.KeyValues });
             column.GetKeyValues(ref slots);
             Assert.True(slots.Length == 2);
             Assert.Equal(slots.Items().Select(x => x.Value.ToString()), new string[2] { "D", "E" });
 
             column = result.Schema["CatI"];
-            Assert.Equal(column.Metadata.Schema.Select(x => x.Name), new string[1] { MetadataUtils.Kinds.SlotNames });
+            Assert.Equal(column.Annotations.Schema.Select(x => x.Name), new string[1] { AnnotationUtils.Kinds.SlotNames });
             column.GetSlotNames(ref slots);
             Assert.True(slots.Length == 6);
             Assert.Equal(slots.Items().Select(x => x.Value.ToString()), new string[6] { "[0].Bit2", "[0].Bit1", "[0].Bit0", "[1].Bit2", "[1].Bit1", "[1].Bit0" });
 
             column = result.Schema["CatJ"];
-            Assert.Equal(column.Metadata.Schema.Select(x => x.Name), new string[2] { MetadataUtils.Kinds.SlotNames, MetadataUtils.Kinds.IsNormalized });
+            Assert.Equal(column.Annotations.Schema.Select(x => x.Name), new string[2] { AnnotationUtils.Kinds.SlotNames, AnnotationUtils.Kinds.IsNormalized });
             column.GetSlotNames(ref slots);
             Assert.True(slots.Length == 2);
             Assert.Equal(slots.Items().Select(x => x.Value.ToString()), new string[2] { "Bit1", "Bit0" });
             Assert.True(column.IsNormalized());
 
             column = result.Schema["CatK"];
-            Assert.Equal(column.Metadata.Schema.Select(x => x.Name), new string[1] { MetadataUtils.Kinds.SlotNames });
+            Assert.Equal(column.Annotations.Schema.Select(x => x.Name), new string[1] { AnnotationUtils.Kinds.SlotNames });
             column.GetSlotNames(ref slots);
             Assert.True(slots.Length == 6);
             Assert.Equal(slots.Items().Select(x => x.Value.ToString()), new string[6] { "[0].Bit2", "[0].Bit1", "[0].Bit0", "[1].Bit2", "[1].Bit1", "[1].Bit0" });
 
             column = result.Schema["CatL"];
-            Assert.Equal(column.Metadata.Schema.Select(x => x.Name), new string[2] { MetadataUtils.Kinds.SlotNames, MetadataUtils.Kinds.IsNormalized });
+            Assert.Equal(column.Annotations.Schema.Select(x => x.Name), new string[2] { AnnotationUtils.Kinds.SlotNames, AnnotationUtils.Kinds.IsNormalized });
             column.GetSlotNames(ref slots);
             Assert.True(slots.Length == 3);
             Assert.Equal(slots.Items().Select(x => x.Value.ToString()), new string[3] { "Bit2", "Bit1", "Bit0" });
@@ -301,11 +298,11 @@ namespace Microsoft.ML.Tests.Transformers
         public void TestOldSavingAndLoading()
         {
             var data = new[] { new TestClass() { A = 1, B = 2, C = 3, }, new TestClass() { A = 4, B = 5, C = 6 } };
-            var dataView = ML.Data.ReadFromEnumerable(data);
+            var dataView = ML.Data.LoadFromEnumerable(data);
             var pipe = ML.Transforms.Categorical.OneHotEncoding(new[]{
-                    new OneHotEncodingEstimator.ColumnInfo("TermA", "A"),
-                    new OneHotEncodingEstimator.ColumnInfo("TermB", "B"),
-                    new OneHotEncodingEstimator.ColumnInfo("TermC", "C")
+                    new OneHotEncodingEstimator.ColumnOptions("TermA", "A"),
+                    new OneHotEncodingEstimator.ColumnOptions("TermB", "B"),
+                    new OneHotEncodingEstimator.ColumnOptions("TermC", "C")
             });
             var result = pipe.Fit(dataView).Transform(dataView);
             var resultRoles = new RoleMappedData(result);

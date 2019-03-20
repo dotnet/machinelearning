@@ -5,12 +5,12 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.Command;
 using Microsoft.ML.Data.Commands;
 using Microsoft.ML.Data.Conversion;
 using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Runtime;
 
 [assembly: LoadableClass(typeof(TypeInfoCommand), typeof(TypeInfoCommand.Arguments), typeof(SignatureCommand),
     "", TypeInfoCommand.LoadName)]
@@ -48,9 +48,9 @@ namespace Microsoft.ML.Data.Commands
             }
         }
 
-        private sealed class SetOfKindsComparer : IEqualityComparer<ISet<DataKind>>
+        private sealed class SetOfKindsComparer : IEqualityComparer<ISet<InternalDataKind>>
         {
-            public bool Equals(ISet<DataKind> x, ISet<DataKind> y)
+            public bool Equals(ISet<InternalDataKind> x, ISet<InternalDataKind> y)
             {
                 Contracts.AssertValueOrNull(x);
                 Contracts.AssertValueOrNull(y);
@@ -59,7 +59,7 @@ namespace Microsoft.ML.Data.Commands
                 return x.SetEquals(y);
             }
 
-            public int GetHashCode(ISet<DataKind> obj)
+            public int GetHashCode(ISet<InternalDataKind> obj)
             {
                 Contracts.AssertValueOrNull(obj);
                 int hash = 0;
@@ -78,20 +78,20 @@ namespace Microsoft.ML.Data.Commands
             {
                 var conv = Conversions.Instance;
                 var comp = new SetOfKindsComparer();
-                var dstToSrcMap = new Dictionary<HashSet<DataKind>, HashSet<DataKind>>(comp);
-                var srcToDstMap = new Dictionary<DataKind, HashSet<DataKind>>();
+                var dstToSrcMap = new Dictionary<HashSet<InternalDataKind>, HashSet<InternalDataKind>>(comp);
+                var srcToDstMap = new Dictionary<InternalDataKind, HashSet<InternalDataKind>>();
 
-                var kinds = Enum.GetValues(typeof(DataKind)).Cast<DataKind>().Distinct().OrderBy(k => k).ToArray();
+                var kinds = Enum.GetValues(typeof(InternalDataKind)).Cast<InternalDataKind>().Distinct().OrderBy(k => k).ToArray();
                 var types = kinds.Select(kind => ColumnTypeExtensions.PrimitiveTypeFromKind(kind)).ToArray();
 
-                HashSet<DataKind> nonIdentity = null;
+                HashSet<InternalDataKind> nonIdentity = null;
                 // For each kind and its associated type.
                 for (int i = 0; i < types.Length; ++i)
                 {
                     ch.AssertValue(types[i]);
                     var info = Utils.MarshalInvoke(KindReport<int>, types[i].RawType, ch, types[i]);
 
-                    var dstKinds = new HashSet<DataKind>();
+                    var dstKinds = new HashSet<InternalDataKind>();
                     Delegate del;
                     bool isIdentity;
                     for (int j = 0; j < types.Length; ++j)
@@ -105,9 +105,9 @@ namespace Microsoft.ML.Data.Commands
                         ch.Assert(isIdentity);
 
                     srcToDstMap[types[i].GetRawKind()] = dstKinds;
-                    HashSet<DataKind> srcKinds;
+                    HashSet<InternalDataKind> srcKinds;
                     if (!dstToSrcMap.TryGetValue(dstKinds, out srcKinds))
-                        dstToSrcMap[dstKinds] = srcKinds = new HashSet<DataKind>();
+                        dstToSrcMap[dstKinds] = srcKinds = new HashSet<InternalDataKind>();
                     srcKinds.Add(types[i].GetRawKind());
                 }
 
@@ -115,7 +115,7 @@ namespace Microsoft.ML.Data.Commands
                 for (int i = 0; i < kinds.Length; ++i)
                 {
                     var dsts = srcToDstMap[kinds[i]];
-                    HashSet<DataKind> srcs;
+                    HashSet<InternalDataKind> srcs;
                     if (!dstToSrcMap.TryGetValue(dsts, out srcs))
                         continue;
                     ch.Assert(Utils.Size(dsts) >= 1);
@@ -129,7 +129,7 @@ namespace Microsoft.ML.Data.Commands
                 if (Utils.Size(nonIdentity) > 0)
                 {
                     ch.Warning("The following kinds did not have an identity conversion: {0}",
-                        string.Join(", ", nonIdentity.OrderBy(k => k).Select(DataKindExtensions.GetString)));
+                        string.Join(", ", nonIdentity.OrderBy(k => k).Select(InternalDataKindExtensions.GetString)));
                 }
             }
         }

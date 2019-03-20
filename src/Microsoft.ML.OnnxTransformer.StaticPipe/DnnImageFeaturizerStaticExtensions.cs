@@ -5,8 +5,9 @@
 using System;
 using System.Collections.Generic;
 using Microsoft.ML.Data;
+using Microsoft.ML.Runtime;
 using Microsoft.ML.StaticPipe;
-using Microsoft.ML.StaticPipe.Runtime;
+using Microsoft.ML.Transforms.Onnx;
 
 namespace Microsoft.ML.Transforms.StaticPipe
 {

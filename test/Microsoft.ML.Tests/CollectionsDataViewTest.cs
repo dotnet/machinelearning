@@ -4,7 +4,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
 using Microsoft.ML.Data;
 using Microsoft.ML.TestFramework;
@@ -158,8 +157,8 @@ namespace Microsoft.ML.EntryPoints.Tests
             };
 
             var env = new MLContext();
-            var dataView = env.Data.ReadFromEnumerable(data);
-            var enumeratorSimple = env.CreateEnumerable<ConversionSimpleClass>(dataView, false).GetEnumerator();
+            var dataView = env.Data.LoadFromEnumerable(data);
+            var enumeratorSimple = env.Data.CreateEnumerable<ConversionSimpleClass>(dataView, false).GetEnumerator();
             var originalEnumerator = data.GetEnumerator();
             while (enumeratorSimple.MoveNext() && originalEnumerator.MoveNext())
             {
@@ -189,8 +188,8 @@ namespace Microsoft.ML.EntryPoints.Tests
                 {
                     field.SetValue(data[0], fi.GetValue(null));
                 }
-                var dataView = env.Data.ReadFromEnumerable(data);
-                var enumerator = env.CreateEnumerable<ConversionNotSupportedMinValueClass>(dataView, false).GetEnumerator();
+                var dataView = env.Data.LoadFromEnumerable(data);
+                var enumerator = env.Data.CreateEnumerable<ConversionNotSupportedMinValueClass>(dataView, false).GetEnumerator();
                 try
                 {
                     enumerator.MoveNext();
@@ -232,8 +231,8 @@ namespace Microsoft.ML.EntryPoints.Tests
             };
 
             var env = new MLContext();
-            var dataView = env.Data.ReadFromEnumerable(data);
-            var enumeratorSimple = env.CreateEnumerable<ClassWithConstField>(dataView, false).GetEnumerator();
+            var dataView = env.Data.LoadFromEnumerable(data);
+            var enumeratorSimple = env.Data.CreateEnumerable<ClassWithConstField>(dataView, false).GetEnumerator();
             var originalEnumerator = data.GetEnumerator();
             while (enumeratorSimple.MoveNext() && originalEnumerator.MoveNext())
                 Assert.True(CompareThroughReflection(enumeratorSimple.Current, originalEnumerator.Current));
@@ -258,8 +257,8 @@ namespace Microsoft.ML.EntryPoints.Tests
             };
 
             var env = new MLContext();
-            var dataView = env.Data.ReadFromEnumerable(data);
-            var enumeratorSimple = env.CreateEnumerable<ClassWithMixOfFieldsAndProperties>(dataView, false).GetEnumerator();
+            var dataView = env.Data.LoadFromEnumerable(data);
+            var enumeratorSimple = env.Data.CreateEnumerable<ClassWithMixOfFieldsAndProperties>(dataView, false).GetEnumerator();
             var originalEnumerator = data.GetEnumerator();
             while (enumeratorSimple.MoveNext() && originalEnumerator.MoveNext())
                 Assert.True(CompareThroughReflection(enumeratorSimple.Current, originalEnumerator.Current));
@@ -312,8 +311,8 @@ namespace Microsoft.ML.EntryPoints.Tests
             };
 
             var env = new MLContext();
-            var dataView = env.Data.ReadFromEnumerable(data);
-            var enumeratorSimple = env.CreateEnumerable<ClassWithPrivateFieldsAndProperties>(dataView, false).GetEnumerator();
+            var dataView = env.Data.LoadFromEnumerable(data);
+            var enumeratorSimple = env.Data.CreateEnumerable<ClassWithPrivateFieldsAndProperties>(dataView, false).GetEnumerator();
             var originalEnumerator = data.GetEnumerator();
             while (enumeratorSimple.MoveNext() && originalEnumerator.MoveNext())
             {
@@ -342,8 +341,8 @@ namespace Microsoft.ML.EntryPoints.Tests
             };
 
             var env = new MLContext();
-            var dataView = env.Data.ReadFromEnumerable(data);
-            var enumeratorSimple = env.CreateEnumerable<ClassWithInheritedProperties>(dataView, false).GetEnumerator();
+            var dataView = env.Data.LoadFromEnumerable(data);
+            var enumeratorSimple = env.Data.CreateEnumerable<ClassWithInheritedProperties>(dataView, false).GetEnumerator();
             var originalEnumerator = data.GetEnumerator();
             while (enumeratorSimple.MoveNext() && originalEnumerator.MoveNext())
                 Assert.True(CompareThroughReflection(enumeratorSimple.Current, originalEnumerator.Current));
@@ -393,8 +392,8 @@ namespace Microsoft.ML.EntryPoints.Tests
 
 
             var env = new MLContext();
-            var dataView = env.Data.ReadFromEnumerable(data);
-            var enumeratorSimple = env.CreateEnumerable<ClassWithArrays>(dataView, false).GetEnumerator();
+            var dataView = env.Data.LoadFromEnumerable(data);
+            var enumeratorSimple = env.Data.CreateEnumerable<ClassWithArrays>(dataView, false).GetEnumerator();
             var originalEnumerator = data.GetEnumerator();
             while (enumeratorSimple.MoveNext() && originalEnumerator.MoveNext())
             {
@@ -444,8 +443,8 @@ namespace Microsoft.ML.EntryPoints.Tests
             };
 
             var env = new MLContext();
-            var dataView = env.Data.ReadFromEnumerable(data);
-            var enumeratorSimple = env.CreateEnumerable<ClassWithArrayProperties>(dataView, false).GetEnumerator();
+            var dataView = env.Data.LoadFromEnumerable(data);
+            var enumeratorSimple = env.Data.CreateEnumerable<ClassWithArrayProperties>(dataView, false).GetEnumerator();
             var originalEnumerator = data.GetEnumerator();
             while (enumeratorSimple.MoveNext() && originalEnumerator.MoveNext())
                 Assert.True(CompareThroughReflection(enumeratorSimple.Current, originalEnumerator.Current));
@@ -481,8 +480,8 @@ namespace Microsoft.ML.EntryPoints.Tests
             };
 
             var env = new MLContext();
-            var dataView = env.Data.ReadFromEnumerable(data);
-            var enumeratorSimple = env.CreateEnumerable<ClassWithSetter>(dataView, false).GetEnumerator();
+            var dataView = env.Data.LoadFromEnumerable(data);
+            var enumeratorSimple = env.Data.CreateEnumerable<ClassWithSetter>(dataView, false).GetEnumerator();
             var originalEnumerator = data.GetEnumerator();
             while (enumeratorSimple.MoveNext() && originalEnumerator.MoveNext())
             {

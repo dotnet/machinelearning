@@ -2,7 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.Data.DataView;
+using Microsoft.ML.Runtime;
 
 namespace Microsoft.ML.Data
 {
@@ -19,7 +19,7 @@ namespace Microsoft.ML.Data
         /// a randomly chosen positive instance higher than a randomly chosen negative one
         /// (assuming 'positive' ranks higher than 'negative').
         /// </remarks>
-        public double Auc { get; }
+        public double AreaUnderRocCurve { get; }
 
         /// <summary>
         /// Gets the accuracy of a classifier which is the proportion of correct predictions in the test set.
@@ -69,44 +69,46 @@ namespace Microsoft.ML.Data
         /// The area under the precision/recall curve is a single number summary of the information in the
         /// precision/recall curve. It is increasingly used in the machine learning community, particularly
         /// for imbalanced datasets where one class is observed more frequently than the other. On these
-        /// datasets, AUPRC can highlight performance differences that are lost with AUC.
+        /// datasets, <see cref="AreaUnderPrecisionRecallCurve"/> can highlight performance differences that
+        /// are lost with <see cref="AreaUnderRocCurve"/>.
         /// </remarks>
-        public double Auprc { get; }
+        public double AreaUnderPrecisionRecallCurve { get; }
 
-        protected private static T Fetch<T>(IExceptionContext ectx, DataViewRow row, string name)
+        private protected static T Fetch<T>(IExceptionContext ectx, DataViewRow row, string name)
         {
-            if (!row.Schema.TryGetColumnIndex(name, out int col))
+            var column = row.Schema.GetColumnOrNull(name);
+            if (!column.HasValue)
                 throw ectx.Except($"Could not find column '{name}'");
             T val = default;
-            row.GetGetter<T>(col)(ref val);
+            row.GetGetter<T>(column.Value)(ref val);
             return val;
         }
 
         internal BinaryClassificationMetrics(IExceptionContext ectx, DataViewRow overallResult)
         {
             double Fetch(string name) => Fetch<double>(ectx, overallResult, name);
-            Auc = Fetch(BinaryClassifierEvaluator.Auc);
+            AreaUnderRocCurve = Fetch(BinaryClassifierEvaluator.Auc);
             Accuracy = Fetch(BinaryClassifierEvaluator.Accuracy);
             PositivePrecision = Fetch(BinaryClassifierEvaluator.PosPrecName);
             PositiveRecall = Fetch(BinaryClassifierEvaluator.PosRecallName);
             NegativePrecision = Fetch(BinaryClassifierEvaluator.NegPrecName);
             NegativeRecall = Fetch(BinaryClassifierEvaluator.NegRecallName);
             F1Score = Fetch(BinaryClassifierEvaluator.F1);
-            Auprc = Fetch(BinaryClassifierEvaluator.AuPrc);
+            AreaUnderPrecisionRecallCurve = Fetch(BinaryClassifierEvaluator.AuPrc);
         }
 
         [BestFriend]
         internal BinaryClassificationMetrics(double auc, double accuracy, double positivePrecision, double positiveRecall,
             double negativePrecision, double negativeRecall, double f1Score, double auprc)
         {
-            Auc = auc;
+            AreaUnderRocCurve = auc;
             Accuracy = accuracy;
             PositivePrecision = positivePrecision;
             PositiveRecall = positiveRecall;
             NegativePrecision = negativePrecision;
             NegativeRecall = negativeRecall;
             F1Score = f1Score;
-            Auprc = auprc;
+            AreaUnderPrecisionRecallCurve = auprc;
         }
     }
 }

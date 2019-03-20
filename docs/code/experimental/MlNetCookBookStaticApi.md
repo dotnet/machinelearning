@@ -76,29 +76,29 @@ You will need one MlContext object for your pipelines or inference code.
 var mlContext = new MLContext();
 ```
 
-- *Why do we call `reader.MakeNewEstimator` to create a pipeline?*
+- *Why do we call `loader.MakeNewEstimator` to create a pipeline?*
 In the static pipeline, we need to know the two 'schema' types: the input and the output to the pipeline.
-One of them is already known: typically, the output schema of `reader` (which is the same as the schema of `reader.Read()`) is also the input schema of the learning pipeline. 
+One of them is already known: typically, the output schema of `loader` (which is the same as the schema of `loader.Load()`) is also the input schema of the learning pipeline. 
 
 The call to `x.MakeNewEstimator` is only using the `x`'s *schema* to create an empty pipeline, it doesn't use anything else from `x`. So, the following three lines would create the exactly same (empty) pipeline:
 ```csharp
-var p1 = reader.MakeNewEstimator();
-var p2 = reader.Read(dataLocation).MakeNewEstimator();
+var p1 = loader.MakeNewEstimator();
+var p2 = loader.Load(dataLocation).MakeNewEstimator();
 var p3 = p1.MakeNewEstimator();
 ```
 
-- *Can we use `reader` to read more than one file?*
-Absolutely! This is why we separated `reader` from the data. This is completely legitimate (and recommended):
+- *Can we use `loader` to load more than one file?*
+Absolutely! This is why we separated `loader` from the data. This is completely legitimate (and recommended):
 ```csharp
-var trainData = reader.Read(trainDataLocation);
-var testData = reader.Read(testDataLocation);
+var trainData = loader.Load(trainDataLocation);
+var testData = loader.Load(testDataLocation);
 ```
 
 ## How do I load data from a text file?
 
 `TextLoader` is used to load data from text files. You will need to specify what are the data columns, what are their types, and where to find them in the text file. 
 
-Note that it's perfectly acceptable to read only some columns of a file, or read the same column multiple times.
+Note that it's perfectly acceptable to load only some columns of a file, or load the same column multiple times.
 
 [Example file](../../test/data/adult.tiny.with-schema.txt):
 ```
@@ -109,11 +109,11 @@ Label	Workclass	education	marital-status
 1	Private	Some-college	Married-civ-spouse
 ```
 
-This is how you can read this data:
+This is how you can load this data:
 
 ```csharp
-// Create the reader: define the data columns and where to find them in the text file.
-var reader = mlContext.Data.CreateTextReader(ctx => (
+// Create the loader: define the data columns and where to find them in the text file.
+var loader = mlContext.Data.CreateTextLoader(ctx => (
         // A boolean column depicting the 'target label'.
         IsOver50K: ctx.LoadBool(0),
         // Three text columns.
@@ -122,13 +122,13 @@ var reader = mlContext.Data.CreateTextReader(ctx => (
         MaritalStatus: ctx.LoadText(3)),
     hasHeader: true);
 
-// Now read the file (remember though, readers are lazy, so the actual reading will happen when the data is accessed).
-var data = reader.Read(dataPath);
+// Now load the file (remember though, loaders are lazy, so the actual loading will happen when the data is accessed).
+var data = loader.Load(dataPath);
 ```
 
 ## How do I load data from multiple files?
 
-You can again use the `TextLoader`, and specify an array of files to its Read method.
+You can again use the `TextLoader`, and specify an array of files to its Load method.
 The files need to have the same schema (same number and type of columns) 
 
 [Example file1](../../test/data/adult.train):
@@ -141,11 +141,11 @@ Label	Workclass	education	marital-status
 1	Private	Some-college	Married-civ-spouse
 ```
 
-This is how you can read this data:
+This is how you can load this data:
 ```csharp
 
-// Create the reader: define the data columns and where to find them in the text file.
-var reader = mlContext.Data.CreateTextReader(ctx => (
+// Create the loader: define the data columns and where to find them in the text file.
+var loader = mlContext.Data.CreateTextLoader(ctx => (
         // A boolean column depicting the 'target label'.
         IsOver50K: ctx.LoadBool(14),
         // Three text columns.
@@ -154,14 +154,14 @@ var reader = mlContext.Data.CreateTextReader(ctx => (
         MaritalStatus: ctx.LoadText(5)),
     hasHeader: true);
 
-// Now read the files (remember though, readers are lazy, so the actual reading will happen when the data is accessed).
-var data = reader.Read(exampleFile1, exampleFile2);
+// Now load the files (remember though, loaders are lazy, so the actual loading will happen when the data is accessed).
+var data = loader.Load(exampleFile1, exampleFile2);
 ```
 
 ## How do I load data with many columns from a CSV?
 `TextLoader` is used to load data from text files. You will need to specify what are the data columns, what are their types, and where to find them in the text file. 
 
-When the input file contains many columns of the same type, always intended to be used together, we recommend reading them as a *vector column* from the very start: this way the schema of the data is cleaner, and we don't incur unnecessary performance costs.
+When the input file contains many columns of the same type, always intended to be used together, we recommend loading them as a *vector column* from the very start: this way the schema of the data is cleaner, and we don't incur unnecessary performance costs.
 
 [Example file](../../test/data/generated_regression_dataset.csv):
 ```
@@ -171,21 +171,21 @@ When the input file contains many columns of the same type, always intended to b
 0.28,1.05,-0.24,0.30,-0.99,0.19,0.32,-0.95,-1.19,-0.63,0.75,443.51
 ```
 
-Reading this file using `TextLoader`:
+Loading this file using `TextLoader`:
 ```csharp
-// Create the reader: define the data columns and where to find them in the text file.
-var reader = mlContext.Data.CreateTextReader(ctx => (
-        // We read the first 11 values as a single float vector.
+// Create the loader: define the data columns and where to find them in the text file.
+var loader = mlContext.Data.CreateTextLoader(ctx => (
+        // We load the first 11 values as a single float vector.
         FeatureVector: ctx.LoadFloat(0, 10),
-        // Separately, read the target variable.
+        // Separately, load the target variable.
         Target: ctx.LoadFloat(11)
     ),
     // Default separator is tab, but we need a comma.
     separatorChar: ',');
 
 
-// Now read the file (remember though, readers are lazy, so the actual reading will happen when the data is accessed).
-var data = reader.Read(dataPath);
+// Now load the file (remember though, loaders are lazy, so the actual loading will happen when the data is accessed).
+var data = loader.Load(dataPath);
 ```
 
 ## How do I debug my experiment or preview my pipeline?
@@ -193,7 +193,7 @@ var data = reader.Read(dataPath);
 Most ML.NET operations are 'lazy': they are not actually processing data, they just validate that the operation is possible, and then defer execution until the output data is actually requested.
 This provides good efficiency, but makes it hard to step through and debug the experiment.
 
-The `Preview()` extension method is added to data views, transformers, estimators and readers:
+The `Preview()` extension method is added to data views, transformers, estimators and loaders:
 
 - `Preview` of a data view contains first 100 rows (configurable) of the data view, encoded as objects, in a single in-memory structure.
 - `Preview` of a transformer takes data as input, and outputs the preview of the transformed data.
@@ -203,18 +203,18 @@ We tried to make `Preview` debugger-friendly: our expectation is that, if you en
 
 Here is the code sample:
 ```csharp
-var reader = mlContext.Data.CreateTextReader(ctx => (
-        // We read the first 11 values as a single float vector.
+var loader = mlContext.Data.CreateTextLoader(ctx => (
+        // We load the first 11 values as a single float vector.
         FeatureVector: ctx.LoadFloat(0, 10),
-        // Separately, read the target variable.
+        // Separately, load the target variable.
         Target: ctx.LoadFloat(11)
     ),
     // Default separator is tab, but we need a comma.
     separatorChar: ',');
 
 
-// Now read the file (remember though, readers are lazy, so the actual reading will happen when the data is accessed).
-var data = reader.Read(dataPath);
+// Now load the file (remember though, loaders are lazy, so the actual loading will happen when the data is accessed).
+var data = loader.Load(dataPath);
 
 // Preview the data. 
 var dataPreview = data.Preview();
@@ -223,7 +223,7 @@ var dataPreview = data.Preview();
 Similarly, if we wanted to preview the data resulting from the transformation, we would compose a pipeline, than call Preview():
 
 ```csharp
-  var learningPipeline = reader.MakeNewEstimator()
+  var learningPipeline = loader.MakeNewEstimator()
     // We add a step for caching data in memory so that the downstream iterative training
     // algorithm can efficiently scan through the data multiple times.
     .AppendCacheCheckpoint()
@@ -267,8 +267,8 @@ Label	Workclass	education	marital-status
 ```
 
 ```csharp
-// Create the reader: define the data columns and where to find them in the text file.
-var reader = mlContext.Data.CreateTextReader(ctx => (
+// Create the loader: define the data columns and where to find them in the text file.
+var loader = mlContext.Data.CreateTextLoader(ctx => (
         // A boolean column depicting the 'target label'.
         IsOver50K: ctx.LoadBool(0),
         // Three text columns.
@@ -279,20 +279,20 @@ var reader = mlContext.Data.CreateTextReader(ctx => (
 
 // Start creating our processing pipeline. For now, let's just concatenate all the text columns
 // together into one.
-var dataPipeline = reader.MakeNewEstimator()
+var dataPipeline = loader.MakeNewEstimator()
     .Append(row => (
             row.IsOver50K,
             AllFeatures: row.Workclass.ConcatWith(row.Education, row.MaritalStatus)
         ));
 
-// Let's verify that the data has been read correctly. 
-// First, we read the data file.
-var data = reader.Read(dataPath);
+// Let's verify that the data has been load correctly. 
+// First, we load the data file.
+var data = loader.Load(dataPath);
 
 // Fit our data pipeline and transform data with it.
 var transformedData = dataPipeline.Fit(data).Transform(data);
 
-// 'transformedData' is a 'promise' of data. Let's actually read it.
+// 'transformedData' is a 'promise' of data. Let's actually load it.
 var someRows = mlContext
     // Convert to an enumerable of user-defined type. 
     .CreateEnumerable<InspectedRow>(transformedData.AsDynamic, reuseRowObject: false)
@@ -325,12 +325,12 @@ feature_0;feature_1;feature_2;feature_3;feature_4;feature_5;feature_6;feature_7;
 In the file above, the last column (12th) is label that we predict, and all the preceding ones are features.
 
 ```csharp
-// Step one: read the data as an IDataView.
-// First, we define the reader: specify the data columns and where to find them in the text file.
-var reader = mlContext.Data.CreateTextReader(ctx => (
-        // We read the first 11 values as a single float vector.
+// Step one: load the data as an IDataView.
+// First, we define the loader: specify the data columns and where to find them in the text file.
+var loader = mlContext.Data.CreateTextLoader(ctx => (
+        // We load the first 11 values as a single float vector.
         FeatureVector: ctx.LoadFloat(0, 10),
-        // Separately, read the target variable.
+        // Separately, load the target variable.
         Target: ctx.LoadFloat(11)
     ),
     // The data file has header.
@@ -339,8 +339,8 @@ var reader = mlContext.Data.CreateTextReader(ctx => (
     separatorChar: ';');
 
 
-// Now read the file (remember though, readers are lazy, so the actual reading will happen when the data is accessed).
-var trainData = reader.Read(trainDataPath);
+// Now load the file (remember though, loaders are lazy, so the actual loading will happen when the data is accessed).
+var trainData = loader.Load(trainDataPath);
 
 // Sometime, caching data in-memory after its first access can save some loading time when the data is going to be used
 // several times somewhere. The caching mechanism is also lazy; it only caches things after being used.
@@ -350,11 +350,11 @@ var cachedTrainData = trainData.Cache();
 
 // Step two: define the learning pipeline. 
 
-// We 'start' the pipeline with the output of the reader.
-var learningPipeline = reader.MakeNewEstimator()
+// We 'start' the pipeline with the output of the loader.
+var learningPipeline = loader.MakeNewEstimator()
     // We add a step for caching data in memory so that the downstream iterative training
     // algorithm can efficiently scan through the data multiple times. Otherwise, the following
-    // trainer will read data from disk multiple times. The caching mechanism uses an on-demand strategy.
+    // trainer will load data from disk multiple times. The caching mechanism uses an on-demand strategy.
     // The data accessed in any downstream step will be cached since its first use. In general, you only
     // need to add a caching step before trainable step, because caching is not helpful if the data is
     // only scanned once. This step can be removed if user doesn't have enough memory to store the whole
@@ -382,8 +382,8 @@ You can use the corresponding 'context' of the task to evaluate the model.
 
 Assuming the example above was used to train the model, here's how you calculate the metrics.
 ```csharp
-// Read the test dataset.
-var testData = reader.Read(testDataPath);
+// Load the test dataset.
+var testData = loader.Load(testDataPath);
 // Calculate metrics of the model on the test data.
 var metrics = mlContext.Regression.Evaluate(model.Transform(testData), label: r => r.Target, score: r => r.Prediction);
 ```
@@ -422,9 +422,9 @@ For this case, ML.NET offers a convenient `PredictionEngine` component, that ess
 Here is the full example. Let's imagine that we have built a model for the famous Iris prediction dataset:
 
 ```csharp
-// Step one: read the data as an IDataView.
-// First, we define the reader: specify the data columns and where to find them in the text file.
-var reader = mlContext.Data.CreateTextReader(ctx => (
+// Step one: load the data as an IDataView.
+// First, we define the loader: specify the data columns and where to find them in the text file.
+var loader = mlContext.Data.CreateTextLoader(ctx => (
         // The four features of the Iris dataset.
         SepalLength: ctx.LoadFloat(0),
         SepalWidth: ctx.LoadFloat(1),
@@ -437,17 +437,17 @@ var reader = mlContext.Data.CreateTextReader(ctx => (
     separatorChar: ',');
 
 // Retrieve the training data.
-var trainData = reader.Read(irisDataPath);
+var trainData = loader.Load(irisDataPath);
 
 // Build the training pipeline.
-var learningPipeline = reader.MakeNewEstimator()
+var learningPipeline = loader.MakeNewEstimator()
     .Append(r => (
         r.Label,
         // Concatenate all the features together into one column 'Features'.
         Features: r.SepalLength.ConcatWith(r.SepalWidth, r.PetalLength, r.PetalWidth)))
     // We add a step for caching data in memory so that the downstream iterative training
     // algorithm can efficiently scan through the data multiple times. Otherwise, the following
-    // trainer will read data from disk multiple times. The caching mechanism uses an on-demand strategy.
+    // trainer will load data from disk multiple times. The caching mechanism uses an on-demand strategy.
     // The data accessed in any downstream step will be cached since its first use. In general, you only
     // need to add a caching step before trainable step, because caching is not helpful if the data is
     // only scanned once.
@@ -510,7 +510,7 @@ var prediction = predictionFunc.Predict(new IrisInput
 
 ## What if my training data is not in a text file?
 
-The commonly demonstrated use case for ML.NET is when the training data resides somewhere on disk, and we use the `TextLoader` to read it.
+The commonly demonstrated use case for ML.NET is when the training data resides somewhere on disk, and we use the `TextLoader` to load it.
 However, in real-time training scenarios the training data can be elsewhere: in a bunch of SQL tables, extracted from log files, or even generated on the fly.
 
 Here is how we can use [schema comprehension](SchemaComprehension.md) to bring an existing C# `IEnumerable` into ML.NET as a data view.
@@ -534,7 +534,7 @@ private class CustomerChurnInfo
 
 Given this information, here's how we turn this data into the ML.NET data view and train on it:
 ```csharp
-// Step one: read the data as an IDataView.
+// Step one: load the data as an IDataView.
 // Let's assume that 'GetChurnData()' fetches and returns the training data from somewhere.
 IEnumerable<CustomerChurnInfo> churnData = GetChurnInfo();
 
@@ -579,9 +579,9 @@ In the static pipeline API, we provide a set of `onFit` delegates that allow int
 This is how we can extract the learned parameters out of the model that we trained:
 ```csharp
 
-// Step one: read the data as an IDataView.
-// First, we define the reader: specify the data columns and where to find them in the text file.
-var reader = mlContext.Data.CreateTextReader(ctx => (
+// Step one: load the data as an IDataView.
+// First, we define the loader: specify the data columns and where to find them in the text file.
+var loader = mlContext.Data.CreateTextLoader(ctx => (
         // The four features of the Iris dataset.
         SepalLength: ctx.LoadFloat(0),
         SepalWidth: ctx.LoadFloat(1),
@@ -594,14 +594,14 @@ var reader = mlContext.Data.CreateTextReader(ctx => (
     separatorChar: ',');
 
 // Retrieve the training data.
-var trainData = reader.Read(dataPath);
+var trainData = loader.Load(dataPath);
 
 // This is the predictor ('weights collection') that we will train.
 MulticlassLogisticRegressionPredictor predictor = null;
 // And these are the normalizer scales that we will learn.
 ImmutableArray<float> normScales;
 // Build the training pipeline.
-var learningPipeline = reader.MakeNewEstimator()
+var learningPipeline = loader.MakeNewEstimator()
     .Append(r => (
         r.Label,
         // Concatenate all the features together into one column 'Features'.
@@ -673,8 +673,8 @@ It is a good practice to include the normalizer directly in the ML.NET learning 
 
 Here's a snippet of code that demonstrates normalization in learning pipelines. It assumes the Iris dataset:
 ```csharp
-// Define the reader: specify the data columns and where to find them in the text file.
-var reader = mlContext.Data.CreateTextReader(ctx => (
+// Define the loader: specify the data columns and where to find them in the text file.
+var loader = mlContext.Data.CreateTextLoader(ctx => (
         // The four features of the Iris dataset will be grouped together as one Features column.
         Features: ctx.LoadFloat(0, 3),
         // Label: kind of iris.
@@ -683,11 +683,11 @@ var reader = mlContext.Data.CreateTextReader(ctx => (
     // Default separator is tab, but the dataset has comma.
     separatorChar: ',');
 
-// Read the training data.
-var trainData = reader.Read(dataPath);
+// Load the training data.
+var trainData = loader.Load(dataPath);
 
 // Apply all kinds of standard ML.NET normalization to the raw features.
-var pipeline = reader.MakeNewEstimator()
+var pipeline = loader.MakeNewEstimator()
     .Append(r => (
         MinMaxNormalized: r.Features.Normalize(fixZero: true),
         MeanVarNormalized: r.Features.NormalizeByMeanVar(fixZero: false),
@@ -729,8 +729,8 @@ Label	Workclass	education	marital-status	occupation	relationship	ethnicity	sex	n
 
 ```csharp
 
-// Define the reader: specify the data columns and where to find them in the text file.
-var reader = mlContext.Data.CreateTextReader(ctx => (
+// Define the loader: specify the data columns and where to find them in the text file.
+var loader = mlContext.Data.CreateTextLoader(ctx => (
         Label: ctx.LoadBool(0),
         // We will load all the categorical features into one vector column of size 8.
         CategoricalFeatures: ctx.LoadText(1, 8),
@@ -740,14 +740,14 @@ var reader = mlContext.Data.CreateTextReader(ctx => (
         Workclass: ctx.LoadText(1)
     ), hasHeader: true);
 
-// Read the data.
-var data = reader.Read(dataPath);
+// Load the data.
+var data = loader.Load(dataPath);
 
-// Inspect the categorical columns to check that they are correctly read.
+// Inspect the categorical columns to check that they are correctly load.
 var catColumns = data.GetColumn(r => r.CategoricalFeatures).Take(10).ToArray();
 
 // Build several alternative featurization pipelines.
-var learningPipeline = reader.MakeNewEstimator()
+var learningPipeline = loader.MakeNewEstimator()
     // Cache data in memory in an on-demand manner. Columns used in any downstream step will be
     // cached in memory at their first uses. This step can be removed if user's machine doesn't
     // have enough memory.
@@ -811,20 +811,20 @@ Sentiment   SentimentText
 ```
 
 ```csharp
-// Define the reader: specify the data columns and where to find them in the text file.
-var reader = mlContext.Data.CreateTextReader(ctx => (
+// Define the loader: specify the data columns and where to find them in the text file.
+var loader = mlContext.Data.CreateTextLoader(ctx => (
         IsToxic: ctx.LoadBool(0),
         Message: ctx.LoadText(1)
     ), hasHeader: true);
 
-// Read the data.
-var data = reader.Read(dataPath);
+// Load the data.
+var data = loader.Load(dataPath);
 
-// Inspect the message texts that are read from the file.
+// Inspect the message texts that are load from the file.
 var messageTexts = data.GetColumn(x => x.Message).Take(20).ToArray();
 
 // Apply various kinds of text operations supported by ML.NET.
-var learningPipeline = reader.MakeNewEstimator()
+var learningPipeline = loader.MakeNewEstimator()
     // Cache data in memory in an on-demand manner. Columns used in any downstream step will be
     // cached in memory at their first uses. This step can be removed if user's machine doesn't
     // have enough memory.
@@ -874,9 +874,9 @@ ML.NET guards us against both these pitfalls: it will automatically apply the fe
 
 Here's an example of training on Iris dataset using randomized 90/10 train-test split, as well as a 5-fold cross-validation:
 ```csharp
-// Step one: read the data as an IDataView.
-// First, we define the reader: specify the data columns and where to find them in the text file.
-var reader = mlContext.Data.CreateTextReader(ctx => (
+// Step one: load the data as an IDataView.
+// First, we define the loader: specify the data columns and where to find them in the text file.
+var loader = mlContext.Data.CreateTextLoader(ctx => (
         // The four features of the Iris dataset.
         SepalLength: ctx.LoadFloat(0),
         SepalWidth: ctx.LoadFloat(1),
@@ -888,11 +888,11 @@ var reader = mlContext.Data.CreateTextReader(ctx => (
     // Default separator is tab, but the dataset has comma.
     separatorChar: ',');
 
-// Read the data.
-var data = reader.Read(dataPath);
+// Load the data.
+var data = loader.Load(dataPath);
 
 // Build the training pipeline.
-var learningPipeline = reader.MakeNewEstimator()
+var learningPipeline = loader.MakeNewEstimator()
     .Append(r => (
         // Convert string label to a key.
         Label: r.Label.ToKey(),
@@ -907,7 +907,7 @@ var learningPipeline = reader.MakeNewEstimator()
         Predictions: mlContext.MulticlassClassification.Trainers.Sdca(r.Label, r.Features)));
 
 // Split the data 90:10 into train and test sets, train and evaluate.
-var (trainData, testData) = mlContext.MulticlassClassification.TrainTestSplit(data, testFraction: 0.1);
+var (trainData, testData) = mlContext.Data.TrainTestSplit(data, testFraction: 0.1);
 
 // Train the model.
 var model = learningPipeline.Fit(trainData);
@@ -934,9 +934,9 @@ Transitioning from dynamic to static types is more costly: we have to formally d
 
 We can do this via `AssertStatic<T>` extensions, as demonstrated in the following example, where we mix and match static and dynamic pipelines.
 ```c#
-// Read the data as an IDataView.
-// First, we define the reader: specify the data columns and where to find them in the text file.
-var reader = mlContext.Data.CreateTextReader(ctx => (
+// Load the data as an IDataView.
+// First, we define the loader: specify the data columns and where to find them in the text file.
+var loader = mlContext.Data.CreateTextLoader(ctx => (
         // The four features of the Iris dataset.
         SepalLength: ctx.LoadFloat(0),
         SepalWidth: ctx.LoadFloat(1),
@@ -948,11 +948,11 @@ var reader = mlContext.Data.CreateTextReader(ctx => (
     // Default separator is tab, but the dataset has comma.
     separatorChar: ',');
 
-// Read the data.
-var data = reader.Read(dataPath);
+// Load the data.
+var data = loader.Load(dataPath);
 
 // Build the pre-processing pipeline.
-var learningPipeline = reader.MakeNewEstimator()
+var learningPipeline = loader.MakeNewEstimator()
     .Append(r => (
         // Convert string label to a key.
         Label: r.Label.ToKey(),
@@ -972,7 +972,7 @@ dynamicPipe = dynamicPipe.Append(new Ova(mlContext, binaryTrainer));
 // ultimately call dynamicPipe.Fit(data.AsDynamic) to get the model, or we could go back into the static world.
 // Here's how we go back to the static pipeline:
 var staticFinalPipe = dynamicPipe.AssertStatic(mlContext,
-        // Declare the shape of the input. As you can see, it's identical to the shape of the reader:
+        // Declare the shape of the input. As you can see, it's identical to the shape of the loader:
         // four float features and a string label.
         c => (
             SepalLength: c.R4.Scalar,

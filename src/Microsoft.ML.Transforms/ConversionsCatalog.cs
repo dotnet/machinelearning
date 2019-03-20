@@ -3,7 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.ML.Data;
-using Microsoft.ML.Transforms.Conversions;
+using Microsoft.ML.Transforms;
 
 namespace Microsoft.ML
 {
@@ -17,10 +17,11 @@ namespace Microsoft.ML
         ///  Convert the key types back to binary vector.
         /// </summary>
         /// <param name="catalog">The categorical transform's catalog.</param>
-        /// <param name="columns">The input column.</param>
-        public static KeyToBinaryVectorMappingEstimator MapKeyToBinaryVector(this TransformsCatalog.ConversionTransforms catalog,
-            params SimpleColumnInfo[] columns)
-            => new KeyToBinaryVectorMappingEstimator(CatalogUtils.GetEnvironment(catalog), SimpleColumnInfo.ConvertToValueTuples(columns));
+        /// <param name="columns">Specifies the output and input columns on which the transformation should be applied.</param>
+        [BestFriend]
+        internal static KeyToBinaryVectorMappingEstimator MapKeyToBinaryVector(this TransformsCatalog.ConversionTransforms catalog,
+            params ColumnOptions[] columns)
+            => new KeyToBinaryVectorMappingEstimator(CatalogUtils.GetEnvironment(catalog), ColumnOptions.ConvertToValueTuples(columns));
 
         /// <summary>
         ///  Convert the key types back to binary vector.

@@ -1,8 +1,5 @@
 using System;
 using System.Collections.Generic;
-using Microsoft.Data.DataView;
-using Microsoft.ML.Data;
-
 namespace Microsoft.ML.Samples.Dynamic
 {
     public static class ValueMappingFloatToString
@@ -28,33 +25,23 @@ namespace Microsoft.ML.Samples.Dynamic
 
             // Get a small dataset as an IEnumerable.
             IEnumerable<SamplesUtils.DatasetUtils.SampleTemperatureData> data = SamplesUtils.DatasetUtils.GetSampleTemperatureData(5);
-            IDataView trainData = mlContext.Data.ReadFromEnumerable(data);
+            IDataView trainData = mlContext.Data.LoadFromEnumerable(data);
 
             // If the list of keys and values are known, they can be passed to the API. The ValueMappingEstimator can also get the mapping through an IDataView
-            // Creating a list of keys based on the induced value from the dataset
-            var temperatureKeys = new List<float>()
-            {
-                36.0f,
-                35.0f,
-                34.0f
-            };
-
-            // Creating a list of values, these strings will map accordingly to each key.
-            var classificationValues = new List<string>()
-            {
-                "T1",
-                "T2",
-                "T3"
-            };
+            // Creating a list of key-value pairs based on the induced value from the dataset
+            var temperatureMap = new Dictionary<float, string>();
+            temperatureMap[36.0f] = "T1";
+            temperatureMap[35.0f] = "T2";
+            temperatureMap[34.0f] = "T3";
 
             // Constructs the ValueMappingEstimator making the ML.net pipeline
-            var pipeline = mlContext.Transforms.Conversion.ValueMap(temperatureKeys, classificationValues, ("TemperatureCategory", "Temperature"));
+            var pipeline = mlContext.Transforms.Conversion.MapValue("TemperatureCategory", temperatureMap, "Temperature");
 
             // Fits the ValueMappingEstimator and transforms the data adding the TemperatureCategory column.
             IDataView transformedData = pipeline.Fit(trainData).Transform(trainData);
 
             // Getting the resulting data as an IEnumerable of SampleTemperatureDataWithCategory. This will contain the newly created column TemperatureCategory
-            IEnumerable<SampleTemperatureDataWithCategory> featureRows = mlContext.CreateEnumerable<SampleTemperatureDataWithCategory>(transformedData, reuseRowObject: false);
+            IEnumerable<SampleTemperatureDataWithCategory> featureRows = mlContext.Data.CreateEnumerable<SampleTemperatureDataWithCategory>(transformedData, reuseRowObject: false);
 
             Console.WriteLine($"Example of mapping float->string");
             Console.WriteLine($"Date\t\tTemperature\tTemperatureCategory");

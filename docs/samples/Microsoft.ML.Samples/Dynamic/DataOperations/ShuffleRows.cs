@@ -1,5 +1,4 @@
 ﻿using System;
-using Microsoft.ML.Data;
 using Microsoft.ML.SamplesUtils;
 
 namespace Microsoft.ML.Samples.Dynamic
@@ -17,7 +16,7 @@ namespace Microsoft.ML.Samples.Dynamic
 
             // Get a small dataset as an IEnumerable.
             var enumerableOfData = DatasetUtils.GetSampleTemperatureData(5);
-            var data = mlContext.Data.ReadFromEnumerable(enumerableOfData);
+            var data = mlContext.Data.LoadFromEnumerable(enumerableOfData);
 
             // Before we apply a filter, examine all the records in the dataset.
             Console.WriteLine($"Date\tTemperature");
@@ -38,7 +37,7 @@ namespace Microsoft.ML.Samples.Dynamic
             var shuffledData = mlContext.Data.ShuffleRows(data, seed: 123);
 
             // Look at the shuffled data and observe that the rows are in a randomized order.
-            var enumerable = mlContext.CreateEnumerable<DatasetUtils.SampleTemperatureData>(shuffledData, reuseRowObject: true);
+            var enumerable = mlContext.Data.CreateEnumerable<DatasetUtils.SampleTemperatureData>(shuffledData, reuseRowObject: true);
             Console.WriteLine($"Date\tTemperature");
             foreach (var row in enumerable)
             {

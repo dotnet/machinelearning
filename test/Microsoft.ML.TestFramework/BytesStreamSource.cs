@@ -5,6 +5,7 @@
 using System.IO;
 using System.Text;
 using Microsoft.ML.Data;
+using Microsoft.ML.Runtime;
 
 namespace Microsoft.ML.TestFramework
 {

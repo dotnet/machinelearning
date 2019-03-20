@@ -4,9 +4,9 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using Microsoft.ML.Trainers.FastTree;
+using Microsoft.ML.Runtime;
 
-namespace Microsoft.ML.FastTree
+namespace Microsoft.ML.Trainers.FastTree
 {
     /// <summary>
     /// A container base class for exposing <see cref="InternalRegressionTree"/>'s and
@@ -22,11 +22,11 @@ namespace Microsoft.ML.FastTree
         private readonly InternalRegressionTree _tree;
 
         /// <summary>
-        /// See <see cref="LteChild"/>.
+        /// See <see cref="LeftChild"/>.
         /// </summary>
         private readonly ImmutableArray<int> _lteChild;
         /// <summary>
-        /// See <see cref="GtChild"/>.
+        /// See <see cref="RightChild"/>.
         /// </summary>
         private readonly ImmutableArray<int> _gtChild;
         /// <summary>
@@ -45,11 +45,15 @@ namespace Microsoft.ML.FastTree
         /// See <see cref="LeafValues"/>.
         /// </summary>
         private readonly ImmutableArray<double> _leafValues;
+        /// <summary>
+        /// See <see cref="SplitGains"/>.
+        /// </summary>
+        private readonly ImmutableArray<double> _splitGains;
 
         /// <summary>
-        /// <see cref="LteChild"/>[i] is the i-th node's child index used when
-        /// (1) the numerical feature indexed by <see cref="NumericalSplitFeatureIndexes"/>[i] is less than the
-        /// threshold <see cref="NumericalSplitThresholds"/>[i], or
+        /// <see cref="LeftChild"/>[i] is the i-th node's child index used when
+        /// (1) the numerical feature indexed by <see cref="NumericalSplitFeatureIndexes"/>[i] is less than or equal
+        /// to the threshold <see cref="NumericalSplitThresholds"/>[i], or
         /// (2) the categorical features indexed by <see cref="GetCategoricalCategoricalSplitFeatureRangeAt(int)"/>'s
         /// returned value with nodeIndex=i is NOT a sub-set of <see cref="GetCategoricalSplitFeaturesAt(int)"/> with
         /// nodeIndex=i.
@@ -60,14 +64,14 @@ namespace Microsoft.ML.FastTree
         /// bitwise complement operator in C#; for details, see
         /// https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/operators/bitwise-complement-operator.
         /// </summary>
-        public IReadOnlyList<int> LteChild => _lteChild;
+        public IReadOnlyList<int> LeftChild => _lteChild;
 
         /// <summary>
-        /// <see cref="GtChild"/>[i] is the i-th node's child index used when the two conditions, (1) and (2),
-        /// described in <see cref="LteChild"/>'s document are not true. Its return value follows the format
-        /// used in <see cref="LteChild"/>.
+        /// <see cref="RightChild"/>[i] is the i-th node's child index used when the two conditions, (1) and (2),
+        /// described in <see cref="LeftChild"/>'s document are not true. Its return value follows the format
+        /// used in <see cref="LeftChild"/>.
         /// </summary>
-        public IReadOnlyList<int> GtChild => _gtChild;
+        public IReadOnlyList<int> RightChild => _gtChild;
 
         /// <summary>
         /// <see cref="NumericalSplitFeatureIndexes"/>[i] is the feature index used the splitting function of the
@@ -96,13 +100,13 @@ namespace Microsoft.ML.FastTree
         /// <summary>
         /// Return categorical thresholds used at node indexed by nodeIndex. If the considered input feature does NOT
         /// matche any of values returned by <see cref="GetCategoricalSplitFeaturesAt(int)"/>, we call it a
-        /// less-than-threshold event and therefore <see cref="LteChild"/>[nodeIndex] is the child node that input
+        /// less-than-threshold event and therefore <see cref="LeftChild"/>[nodeIndex] is the child node that input
         /// should go next. The returned value is valid only if <see cref="CategoricalSplitFlags"/>[nodeIndex] is true.
         /// </summary>
         public IReadOnlyList<int> GetCategoricalSplitFeaturesAt(int nodeIndex)
         {
-            if (nodeIndex < 0 || nodeIndex >= NumNodes)
-                throw Contracts.Except($"The input index, {nodeIndex}, is invalid. Its valid range is from 0 (inclusive) to {NumNodes} (exclusive).");
+            if (nodeIndex < 0 || nodeIndex >= NumberOfNodes)
+                throw Contracts.Except($"The input index, {nodeIndex}, is invalid. Its valid range is from 0 (inclusive) to {NumberOfNodes} (exclusive).");
 
             if (_tree.CategoricalSplitFeatures == null || _tree.CategoricalSplitFeatures[nodeIndex] == null)
                 return new List<int>(); // Zero-length vector.
@@ -118,8 +122,8 @@ namespace Microsoft.ML.FastTree
         /// </summary>
         public IReadOnlyList<int> GetCategoricalCategoricalSplitFeatureRangeAt(int nodeIndex)
         {
-            if (nodeIndex < 0 || nodeIndex >= NumNodes)
-                throw Contracts.Except($"The input node index, {nodeIndex}, is invalid. Its valid range is from 0 (inclusive) to {NumNodes} (exclusive).");
+            if (nodeIndex < 0 || nodeIndex >= NumberOfNodes)
+                throw Contracts.Except($"The input node index, {nodeIndex}, is invalid. Its valid range is from 0 (inclusive) to {NumberOfNodes} (exclusive).");
 
             if (_tree.CategoricalSplitFeatureRanges == null || _tree.CategoricalSplitFeatureRanges[nodeIndex] == null)
                 return new List<int>(); // Zero-length vector.
@@ -128,13 +132,18 @@ namespace Microsoft.ML.FastTree
         }
 
         /// <summary>
-        /// Number of leaves in the tree. Note that <see cref="NumLeaves"/> does not take non-leaf nodes into account.
+        /// The gains obtained by splitting data at nodes. Its i-th value is computed from to the split at the i-th node.
         /// </summary>
-        public int NumLeaves => _tree.NumLeaves;
+        public IReadOnlyList<double> SplitGains => _splitGains;
+
+        /// <summary>
+        /// Number of leaves in the tree. Note that <see cref="NumberOfLeaves"/> does not take non-leaf nodes into account.
+        /// </summary>
+        public int NumberOfLeaves => _tree.NumLeaves;
 
         /// <summary>
         /// Number of nodes in the tree. This doesn't include any leaves. For example, a tree with node0->node1,
-        /// node0->leaf3, node1->leaf1, node1->leaf2, <see cref="NumNodes"/> and <see cref="NumLeaves"/> should
+        /// node0->leaf3, node1->leaf1, node1->leaf2, <see cref="NumberOfNodes"/> and <see cref="NumberOfLeaves"/> should
         /// be 2 and 3, respectively.
         /// </summary>
         // A visualization of the example mentioned in this doc string.
@@ -144,7 +153,7 @@ namespace Microsoft.ML.FastTree
         //     /  \
         // leaf1 leaf2
         // The index of leaf starts with 1 because interally we use "-1" as the 1st leaf's index, "-2" for the 2nd leaf's index, and so on.
-        public int NumNodes => _tree.NumNodes;
+        public int NumberOfNodes => _tree.NumNodes;
 
         internal RegressionTreeBase(InternalRegressionTree tree)
         {
@@ -157,6 +166,7 @@ namespace Microsoft.ML.FastTree
             _numericalSplitThresholds = ImmutableArray.Create(_tree.RawThresholds, 0, _tree.NumNodes);
             _categoricalSplitFlags = ImmutableArray.Create(_tree.CategoricalSplit, 0, _tree.NumNodes);
             _leafValues = ImmutableArray.Create(_tree.LeafValues, 0, _tree.NumLeaves);
+            _splitGains = ImmutableArray.Create(_tree.SplitGains, 0, _tree.NumNodes);
         }
     }
 
@@ -200,8 +210,8 @@ namespace Microsoft.ML.FastTree
         /// <returns>Training labels</returns>
         public IReadOnlyList<double> GetLeafSamplesAt(int leafIndex)
         {
-            if (leafIndex < 0 || leafIndex >= NumLeaves)
-                throw Contracts.Except($"The input leaf index, {leafIndex}, is invalid. Its valid range is from 0 (inclusive) to {NumLeaves} (exclusive).");
+            if (leafIndex < 0 || leafIndex >= NumberOfLeaves)
+                throw Contracts.Except($"The input leaf index, {leafIndex}, is invalid. Its valid range is from 0 (inclusive) to {NumberOfLeaves} (exclusive).");
 
             // _leafSample always contains valid values assigned in constructor.
             return _leafSamples[leafIndex];
@@ -216,8 +226,8 @@ namespace Microsoft.ML.FastTree
         /// <returns>Training labels' weights</returns>
         public IReadOnlyList<double> GetLeafSampleWeightsAt(int leafIndex)
         {
-            if (leafIndex < 0 || leafIndex >= NumLeaves)
-                throw Contracts.Except($"The input leaf index, {leafIndex}, is invalid. Its valid range is from 0 (inclusive) to {NumLeaves} (exclusive).");
+            if (leafIndex < 0 || leafIndex >= NumberOfLeaves)
+                throw Contracts.Except($"The input leaf index, {leafIndex}, is invalid. Its valid range is from 0 (inclusive) to {NumberOfLeaves} (exclusive).");
 
             // _leafSampleWeights always contains valid values assigned in constructor.
             return _leafSampleWeights[leafIndex];

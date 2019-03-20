@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using Microsoft.ML.Data;
-using Microsoft.ML.Transforms.Text;
 
 namespace Microsoft.ML.Samples.Dynamic
 {
@@ -15,7 +14,7 @@ namespace Microsoft.ML.Samples.Dynamic
 
             // Get a small dataset as an IEnumerable and convert to IDataView.
             var data = SamplesUtils.DatasetUtils.GetSentimentData();
-            var trainData = ml.Data.ReadFromEnumerable(data);
+            var trainData = ml.Data.LoadFromEnumerable(data);
 
             // Preview of the data.
             //
@@ -26,7 +25,7 @@ namespace Microsoft.ML.Samples.Dynamic
 
             // Let's take SentimentText column and break it into vector of words.
             string originalTextColumnName = "Words";
-            var words = ml.Transforms.Text.TokenizeWords("SentimentText", originalTextColumnName);
+            var words = ml.Transforms.Text.TokenizeIntoWords("SentimentText", originalTextColumnName);
 
             // Default pipeline will apply default stop word remover which is based on predifined set of words for certain languages.
             var defaultPipeline = words.Append(ml.Transforms.Text.RemoveDefaultStopWords(originalTextColumnName, "DefaultRemover"));
@@ -54,14 +53,14 @@ namespace Microsoft.ML.Samples.Dynamic
             };
 
             // Preview the result of breaking string into array of words.
-            var originalText = transformedDataDefault.GetColumn<VBuffer<ReadOnlyMemory<char>>>(ml, originalTextColumnName);
+            var originalText = transformedDataDefault.GetColumn<VBuffer<ReadOnlyMemory<char>>>(transformedDataDefault.Schema[originalTextColumnName]);
             printHelper(originalTextColumnName, originalText);
             // Best|game|I've|ever|played.|
             // == RUDE ==| Dude,| 2 |
             // Until | the | next | game,| this |is| the | best | Xbox | game!|
 
             // Preview the result of cleaning with default stop word remover.
-            var defaultRemoverData = transformedDataDefault.GetColumn<VBuffer<ReadOnlyMemory<char>>>(ml, "DefaultRemover");
+            var defaultRemoverData = transformedDataDefault.GetColumn<VBuffer<ReadOnlyMemory<char>>>(transformedDataDefault.Schema["DefaultRemover"]);
             printHelper("DefaultRemover", defaultRemoverData);
             // Best|game|I've|played.|
             // == RUDE ==| Dude,| 2 |
@@ -70,7 +69,7 @@ namespace Microsoft.ML.Samples.Dynamic
 
 
             // Preview the result of cleaning with default customized stop word remover.
-            var customizeRemoverData = transformedDataCustomized.GetColumn<VBuffer<ReadOnlyMemory<char>>>(ml, "RemovedWords");
+            var customizeRemoverData = transformedDataCustomized.GetColumn<VBuffer<ReadOnlyMemory<char>>>(transformedDataCustomized.Schema["RemovedWords"]);
             printHelper("RemovedWords", customizeRemoverData);
 
             // Best|game|I've|ever|played.|

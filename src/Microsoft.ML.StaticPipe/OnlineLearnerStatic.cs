@@ -3,9 +3,8 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using Microsoft.ML.StaticPipe.Runtime;
+using Microsoft.ML.Runtime;
 using Microsoft.ML.Trainers;
-using Microsoft.ML.Trainers.Online;
 
 namespace Microsoft.ML.StaticPipe
 {
@@ -24,7 +23,7 @@ namespace Microsoft.ML.StaticPipe
         /// <param name="weights">The optional example weights.</param>
         /// <param name="learningRate">The learning Rate.</param>
         /// <param name="decreaseLearningRate">Decrease learning rate as iterations progress.</param>
-        /// <param name="l2RegularizerWeight">L2 regularization weight.</param>
+        /// <param name="l2Regularization">L2 regularization weight.</param>
         /// <param name="numIterations">Number of training iterations through the data.</param>
         /// <param name="onFit">A delegate that is called every time the
         /// <see cref="Estimator{TInShape, TOutShape, TTransformer}.Fit(DataView{TInShape})"/> method is called on the
@@ -48,12 +47,12 @@ namespace Microsoft.ML.StaticPipe
                 IClassificationLoss lossFunction = null,
                 float learningRate = AveragedLinearOptions.AveragedDefault.LearningRate,
                 bool decreaseLearningRate = AveragedLinearOptions.AveragedDefault.DecreaseLearningRate,
-                float l2RegularizerWeight = AveragedLinearOptions.AveragedDefault.L2RegularizerWeight,
-                int numIterations = AveragedLinearOptions.AveragedDefault.NumIterations,
+                float l2Regularization = AveragedLinearOptions.AveragedDefault.L2Regularization,
+                int numIterations = AveragedLinearOptions.AveragedDefault.NumberOfIterations,
                 Action<LinearBinaryModelParameters> onFit = null
             )
         {
-            OnlineLinearStaticUtils.CheckUserParams(label, features, weights, learningRate, l2RegularizerWeight, numIterations, onFit);
+            OnlineLinearStaticUtils.CheckUserParams(label, features, weights, learningRate, l2Regularization, numIterations, onFit);
 
             bool hasProbs = lossFunction is LogLoss;
 
@@ -62,7 +61,7 @@ namespace Microsoft.ML.StaticPipe
                 {
 
                     var trainer = new AveragedPerceptronTrainer(env, labelName, featuresName, lossFunction,
-                        learningRate, decreaseLearningRate, l2RegularizerWeight, numIterations);
+                        learningRate, decreaseLearningRate, l2Regularization, numIterations);
 
                     if (onFit != null)
                         return trainer.WithOnFitDelegate(trans => onFit(trans.Model));
@@ -118,8 +117,8 @@ namespace Microsoft.ML.StaticPipe
             var rec = new TrainerEstimatorReconciler.BinaryClassifierNoCalibration(
                 (env, labelName, featuresName, weightsName) =>
                 {
-                    options.LabelColumn = labelName;
-                    options.FeatureColumn = featuresName;
+                    options.LabelColumnName = labelName;
+                    options.FeatureColumnName = featuresName;
 
                     var trainer = new AveragedPerceptronTrainer(env, options);
 
@@ -149,7 +148,7 @@ namespace Microsoft.ML.StaticPipe
         /// <param name="lossFunction">The custom loss. Defaults to <see cref="SquaredLoss"/> if not provided.</param>
         /// <param name="learningRate">The learning Rate.</param>
         /// <param name="decreaseLearningRate">Decrease learning rate as iterations progress.</param>
-        /// <param name="l2RegularizerWeight">L2 regularization weight.</param>
+        /// <param name="l2Regularization">L2 regularization weight.</param>
         /// <param name="numIterations">Number of training iterations through the data.</param>
         /// <param name="onFit">A delegate that is called every time the
         /// <see cref="Estimator{TInShape, TOutShape, TTransformer}.Fit(DataView{TInShape})"/> method is called on the
@@ -167,18 +166,18 @@ namespace Microsoft.ML.StaticPipe
             IRegressionLoss lossFunction = null,
             float learningRate = OnlineGradientDescentTrainer.Options.OgdDefaultArgs.LearningRate,
             bool decreaseLearningRate = OnlineGradientDescentTrainer.Options.OgdDefaultArgs.DecreaseLearningRate,
-            float l2RegularizerWeight = OnlineGradientDescentTrainer.Options.OgdDefaultArgs.L2RegularizerWeight,
-            int numIterations = OnlineLinearOptions.OnlineDefault.NumIterations,
+            float l2Regularization = OnlineGradientDescentTrainer.Options.OgdDefaultArgs.L2Regularization,
+            int numIterations = OnlineLinearOptions.OnlineDefault.NumberOfIterations,
             Action<LinearRegressionModelParameters> onFit = null)
         {
-            OnlineLinearStaticUtils.CheckUserParams(label, features, weights, learningRate, l2RegularizerWeight, numIterations, onFit);
+            OnlineLinearStaticUtils.CheckUserParams(label, features, weights, learningRate, l2Regularization, numIterations, onFit);
             Contracts.CheckValueOrNull(lossFunction);
 
             var rec = new TrainerEstimatorReconciler.Regression(
                 (env, labelName, featuresName, weightsName) =>
                 {
                     var trainer = new OnlineGradientDescentTrainer(env, labelName, featuresName, learningRate,
-                        decreaseLearningRate, l2RegularizerWeight, numIterations, lossFunction);
+                        decreaseLearningRate, l2Regularization, numIterations, lossFunction);
 
                     if (onFit != null)
                         return trainer.WithOnFitDelegate(trans => onFit(trans.Model));
@@ -222,8 +221,8 @@ namespace Microsoft.ML.StaticPipe
             var rec = new TrainerEstimatorReconciler.Regression(
                 (env, labelName, featuresName, weightsName) =>
                 {
-                    options.LabelColumn = labelName;
-                    options.FeatureColumn = featuresName;
+                    options.LabelColumnName = labelName;
+                    options.FeatureColumnName = featuresName;
 
                     var trainer = new OnlineGradientDescentTrainer(env, options);
 

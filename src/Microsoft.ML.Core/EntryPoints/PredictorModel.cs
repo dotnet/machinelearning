@@ -3,15 +3,16 @@
 // See the LICENSE file in the project root for more information.
 
 using System.IO;
-using Microsoft.Data.DataView;
 using Microsoft.ML.Data;
+using Microsoft.ML.Runtime;
 
 namespace Microsoft.ML.EntryPoints
 {
     /// <summary>
     /// Base type for standard predictor model port type.
     /// </summary>
-    public abstract class PredictorModel
+    [BestFriend]
+    internal abstract class PredictorModel
     {
         [BestFriend]
         private protected PredictorModel()
@@ -51,7 +52,7 @@ namespace Microsoft.ML.EntryPoints
 
         /// <summary>
         /// Returns a string array containing the label names of the label column type predictor was trained on.
-        /// If the training label is a key with text key value metadata, it should return this metadata. The order of the labels should be consistent
+        /// If the training label is a key with text key value annotation, it should return this annotation. The order of the labels should be consistent
         /// with the key values. Otherwise, it returns null.
         /// </summary>
         /// <param name="env"/>

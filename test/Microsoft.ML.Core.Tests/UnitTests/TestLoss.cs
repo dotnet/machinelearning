@@ -3,8 +3,9 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using Microsoft.ML.Trainers;
 using Xunit;
-using Float = System.Single;
+
 namespace Microsoft.ML.RunTests
 {
     /// <summary>
@@ -14,7 +15,7 @@ namespace Microsoft.ML.RunTests
     {
         private const string _category = "Loss";
 
-        private const Float _epsilon = 1e-4f;
+        private const float _epsilon = 1e-4f;
 
         /// <summary>
         /// A small helper for comparing a loss's computations to expected values.
@@ -28,10 +29,10 @@ namespace Microsoft.ML.RunTests
         /// step, given <c>label</c> and <c>output</c></param>
         /// <param name="differentiable">Whether the loss function is differentiable
         /// w.r.t. the output in the vicinity of the output value</param>
-        private void TestHelper(IScalarOutputLoss lossFunc, double label, double output, double expectedLoss, double expectedUpdate, bool differentiable = true)
+        private void TestHelper(IScalarLoss lossFunc, double label, double output, double expectedLoss, double expectedUpdate, bool differentiable = true)
         {
-            Double loss = lossFunc.Loss((Float)output, (Float)label);
-            Float derivative = lossFunc.Derivative((Float)output, (Float)label);
+            Double loss = lossFunc.Loss((float)output, (float)label);
+            float derivative = lossFunc.Derivative((float)output, (float)label);
             Assert.Equal(expectedLoss, loss, 5);
             Assert.Equal(expectedUpdate, -derivative, 5);
 
@@ -39,8 +40,8 @@ namespace Microsoft.ML.RunTests
             {
                 // In principle, the update should be the negative of the first derivative of the loss.
                 // Use a simple finite difference method to see if it's in the right ballpark.
-                Float almostOutput = Math.Max((Float)output * (1 + _epsilon), (Float)output + _epsilon);
-                Double almostLoss = lossFunc.Loss(almostOutput, (Float)label);
+                float almostOutput = Math.Max((float)output * (1 + _epsilon), (float)output + _epsilon);
+                Double almostLoss = lossFunc.Loss(almostOutput, (float)label);
                 Assert.Equal((almostLoss - loss) / (almostOutput - output), derivative, 1);
             }
         }

@@ -5,12 +5,10 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
-using Microsoft.ML.EntryPoints;
-using Microsoft.ML.Model;
+using Microsoft.ML.Runtime;
 using Microsoft.ML.Transforms.TimeSeries;
 
 [assembly: LoadableClass(IidChangePointDetector.Summary, typeof(IDataTransform), typeof(IidChangePointDetector), typeof(IidChangePointDetector.Options), typeof(SignatureDataTransform),
@@ -28,7 +26,7 @@ using Microsoft.ML.Transforms.TimeSeries;
 namespace Microsoft.ML.Transforms.TimeSeries
 {
     /// <summary>
-    /// This class implements the change point detector transform for an i.i.d. sequence based on adaptive kernel density estimation and martingales.
+    /// <see cref="ITransformer"/> produced by fitting the <see cref="IDataView"/> to an <see cref="IidChangePointEstimator" />.
     /// </summary>
     public sealed class IidChangePointDetector : IidAnomalyDetectionBaseWrapper, IStatefulTransformer
     {
@@ -172,7 +170,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
         {
         }
 
-        public override void Save(ModelSaveContext ctx)
+        private protected override void SaveModel(ModelSaveContext ctx)
         {
             InternalTransform.Host.CheckValue(ctx, nameof(ctx));
             ctx.CheckAtModel();
@@ -184,7 +182,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
             // *** Binary format ***
             // <base>
 
-            base.Save(ctx);
+            base.SaveModel(ctx);
         }
 
         // Factory method for SignatureLoadRowMapper.
@@ -193,16 +191,10 @@ namespace Microsoft.ML.Transforms.TimeSeries
     }
 
     /// <summary>
-    /// Estimator for <see cref="IidChangePointDetector"/>
+    /// The <see cref="IEstimator{ITransformer}"/> for detecting a signal change on an
+    /// <a href="https://en.wikipedia.org/wiki/Independent_and_identically_distributed_random_variables"> independent identically distributed (i.i.d.)</a> time series.
+    /// Detection is based on adaptive kernel density estimation and martingales.
     /// </summary>
-    /// <p>Example code can be found by searching for <i>IidChangePointDetector</i> in <a href='https://github.com/dotnet/machinelearning'>ML.NET.</a></p>
-    /// <example>
-    /// <format type="text/markdown">
-    /// <![CDATA[
-    /// [!code-csharp[MF](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/IidChangePointDetectorTransform.cs)]
-    /// ]]>
-    /// </format>
-    /// </example>
     public sealed class IidChangePointEstimator : TrivialEstimator<IidChangePointDetector>
     {
         /// <summary>
@@ -251,7 +243,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
                 throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", Transformer.InternalTransform.InputColumnName, "float", col.GetTypeString());
 
             var metadata = new List<SchemaShape.Column>() {
-                new SchemaShape.Column(MetadataUtils.Kinds.SlotNames, SchemaShape.Column.VectorKind.Vector, TextDataViewType.Instance, false)
+                new SchemaShape.Column(AnnotationUtils.Kinds.SlotNames, SchemaShape.Column.VectorKind.Vector, TextDataViewType.Instance, false)
             };
             var resultDic = inputSchema.ToDictionary(x => x.Name);
 

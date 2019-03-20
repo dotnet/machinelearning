@@ -1,15 +1,13 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
 using BenchmarkDotNet.Attributes;
-using Microsoft.Data.DataView;
 using Microsoft.ML.Benchmarks.Harness;
 using Microsoft.ML.Data;
 using Microsoft.ML.TestFramework;
 using Microsoft.ML.Trainers;
 using Microsoft.ML.Transforms;
-using Microsoft.ML.Transforms.Text;
 
 namespace Microsoft.ML.Benchmarks
 {
@@ -38,28 +36,33 @@ namespace Microsoft.ML.Benchmarks
 
             string _irisDataPath = BaseTestClass.GetDataPath("iris.txt");
 
-            var env = new MLContext(seed: 1, conc: 1);
-            var reader = new TextLoader(env,
-                    columns: new[]
-                    {
-                            new TextLoader.Column("Label", DataKind.R4, 0),
-                            new TextLoader.Column("SepalLength", DataKind.R4, 1),
-                            new TextLoader.Column("SepalWidth", DataKind.R4, 2),
-                            new TextLoader.Column("PetalLength", DataKind.R4, 3),
-                            new TextLoader.Column("PetalWidth", DataKind.R4, 4),
-                    },
-                    hasHeader: true
-                );
+            var env = new MLContext(seed: 1);
 
-            IDataView data = reader.Read(_irisDataPath);
+            // Create text loader.
+            var options = new TextLoader.Options()
+            {
+                Columns = new[]
+                {
+                    new TextLoader.Column("Label", DataKind.Single, 0),
+                    new TextLoader.Column("SepalLength", DataKind.Single, 1),
+                    new TextLoader.Column("SepalWidth", DataKind.Single, 2),
+                    new TextLoader.Column("PetalLength", DataKind.Single, 3),
+                    new TextLoader.Column("PetalWidth", DataKind.Single, 4),
+                },
+                HasHeader = true,
+            };
+            var loader = new TextLoader(env, options: options);
+
+            IDataView data = loader.Load(_irisDataPath);
 
             var pipeline = new ColumnConcatenatingEstimator(env, "Features", new[] { "SepalLength", "SepalWidth", "PetalLength", "PetalWidth" })
-                .Append(env.MulticlassClassification.Trainers.StochasticDualCoordinateAscent(
-                    new SdcaMultiClassTrainer.Options {NumThreads = 1, ConvergenceTolerance = 1e-2f, }));
+                .Append(env.Transforms.Conversion.MapValueToKey("Label"))
+                .Append(env.MulticlassClassification.Trainers.SdcaCalibrated(
+                    new SdcaCalibratedMulticlassTrainer.Options { NumberOfThreads = 1, ConvergenceTolerance = 1e-2f, }));
 
             var model = pipeline.Fit(data);
 
-            _irisModel = model.CreatePredictionEngine<IrisData, IrisPrediction>(env);
+            _irisModel = env.Model.CreatePredictionEngine<IrisData, IrisPrediction>(model);
         }
 
         [GlobalSetup(Target = nameof(MakeSentimentPredictions))]
@@ -72,24 +75,29 @@ namespace Microsoft.ML.Benchmarks
 
             string _sentimentDataPath = BaseTestClass.GetDataPath("wikipedia-detox-250-line-data.tsv");
 
-            var mlContext = new MLContext(seed: 1, conc: 1);
-            var reader = new TextLoader(mlContext, columns: new[]
-                        {
-                            new TextLoader.Column("Label", DataKind.BL, 0),
-                            new TextLoader.Column("SentimentText", DataKind.Text, 1)
-                        },
-                        hasHeader: true                        
-                    );
+            var mlContext = new MLContext(seed: 1);
 
-            IDataView data = reader.Read(_sentimentDataPath);
+            // Create text loader.
+            var options = new TextLoader.Options()
+            {
+                Columns = new[]
+                {
+                    new TextLoader.Column("Label", DataKind.Boolean, 0),
+                    new TextLoader.Column("SentimentText", DataKind.String, 1)
+                },
+                HasHeader = true,
+            };
+            var loader = new TextLoader(mlContext, options: options);
+
+            IDataView data = loader.Load(_sentimentDataPath);
 
             var pipeline = mlContext.Transforms.Text.FeaturizeText("Features", "SentimentText")
-                .Append(mlContext.BinaryClassification.Trainers.StochasticDualCoordinateAscentNonCalibrated(
-                    new SdcaNonCalibratedBinaryTrainer.Options {NumThreads = 1, ConvergenceTolerance = 1e-2f, }));
+                .Append(mlContext.BinaryClassification.Trainers.SdcaNonCalibrated(
+                    new SdcaNonCalibratedBinaryTrainer.Options { NumberOfThreads = 1, ConvergenceTolerance = 1e-2f, }));
 
             var model = pipeline.Fit(data);
 
-            _sentimentModel = model.CreatePredictionEngine<SentimentData, SentimentPrediction>(mlContext);
+            _sentimentModel = mlContext.Model.CreatePredictionEngine<SentimentData, SentimentPrediction>(model);
         }
 
         [GlobalSetup(Target = nameof(MakeBreastCancerPredictions))]
@@ -102,23 +110,28 @@ namespace Microsoft.ML.Benchmarks
 
             string _breastCancerDataPath = BaseTestClass.GetDataPath("breast-cancer.txt");
 
-            var env = new MLContext(seed: 1, conc: 1);
-            var reader = new TextLoader(env, columns: new[]
-                        {
-                            new TextLoader.Column("Label", DataKind.BL, 0),
-                            new TextLoader.Column("Features", DataKind.R4, new[] { new TextLoader.Range(1, 9) })
-                        }, 
-                        hasHeader: false
-                    );
+            var env = new MLContext(seed: 1);
 
-            IDataView data = reader.Read(_breastCancerDataPath);
+            // Create text loader.
+            var options = new TextLoader.Options()
+            {
+                Columns = new[]
+                {
+                    new TextLoader.Column("Label", DataKind.Boolean, 0),
+                    new TextLoader.Column("Features", DataKind.Single, new[] { new TextLoader.Range(1, 9) })
+                },
+                HasHeader = false,
+            };
+            var loader = new TextLoader(env, options: options);
 
-            var pipeline = env.BinaryClassification.Trainers.StochasticDualCoordinateAscentNonCalibrated(
-                new SdcaNonCalibratedBinaryTrainer.Options { NumThreads = 1, ConvergenceTolerance = 1e-2f, });
+            IDataView data = loader.Load(_breastCancerDataPath);
+
+            var pipeline = env.BinaryClassification.Trainers.SdcaNonCalibrated(
+                new SdcaNonCalibratedBinaryTrainer.Options { NumberOfThreads = 1, ConvergenceTolerance = 1e-2f, });
 
             var model = pipeline.Fit(data);
 
-            _breastCancerModel = model.CreatePredictionEngine<BreastCancerData, BreastCancerPrediction>(env);
+            _breastCancerModel = env.Model.CreatePredictionEngine<BreastCancerData, BreastCancerPrediction>(model);
         }
 
         [Benchmark]
@@ -168,10 +181,10 @@ namespace Microsoft.ML.Benchmarks
 
     public class BreastCancerData
     {
-        [ColumnName("Label"), Column("0")]
+        [ColumnName("Label")]
         public bool Label;
 
-        [ColumnName("Features"), Column("1-9"), VectorType(9)]
+        [ColumnName("Features"), VectorType(9)]
         public float[] Features;
     }
 

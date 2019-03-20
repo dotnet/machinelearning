@@ -1,16 +1,15 @@
-﻿using Microsoft.ML.Data;
-using Microsoft.ML.LightGBM.StaticPipe;
+﻿using System;
+using System.Linq;
+using Microsoft.ML.Data;
+using Microsoft.ML.Trainers.LightGbm.StaticPipe;
 using Microsoft.ML.SamplesUtils;
 using Microsoft.ML.StaticPipe;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 
 namespace Microsoft.ML.Samples.Static
 {
     class LightGBMMulticlassWithInMemoryData
     {
-        public void MultiClassLightGbmStaticPipelineWithInMemoryData()
+        public void MulticlassLightGbmStaticPipelineWithInMemoryData()
         {
             // Create a general context for ML.NET operations. It can be used for exception tracking and logging,
             // as a catalog of available operations and as the source of randomness.
@@ -20,7 +19,7 @@ namespace Microsoft.ML.Samples.Static
             var examples = DatasetUtils.GenerateRandomMulticlassClassificationExamples(1000);
 
             // Convert native C# class to IDataView, a consumble format to ML.NET functions.
-            var dataView = mlContext.Data.ReadFromEnumerable(examples);
+            var dataView = mlContext.Data.LoadFromEnumerable(examples);
 
             // IDataView is the data format used in dynamic-typed pipeline. To use static-typed pipeline, we need to convert
             // IDataView to DataView by calling AssertStatic(...). The basic idea is to specify the static type for each column
@@ -53,7 +52,7 @@ namespace Microsoft.ML.Samples.Static
 
             // Split the static-typed data into training and test sets. Only training set is used in fitting
             // the created pipeline. Metrics are computed on the test.
-            var (trainingData, testingData) = mlContext.MulticlassClassification.TrainTestSplit(staticDataView, testFraction: 0.5);
+            var (trainingData, testingData) = mlContext.Data.TrainTestSplit(staticDataView, testFraction: 0.5);
 
             // Train the model.
             var model = pipe.Fit(trainingData);
@@ -68,17 +67,17 @@ namespace Microsoft.ML.Samples.Static
             Console.WriteLine ("Macro accuracy: {0}, Micro accuracy: {1}.", 0.863482146891263, 0.86309523809523814);
 
             // Convert prediction in ML.NET format to native C# class.
-            var nativePredictions = mlContext.CreateEnumerable<DatasetUtils.MulticlassClassificationExample>(prediction.AsDynamic, false).ToList();
+            var nativePredictions = mlContext.Data.CreateEnumerable<DatasetUtils.MulticlassClassificationExample>(prediction.AsDynamic, false).ToList();
 
-            // Get schema object out of the prediction. It contains metadata such as the mapping from predicted label index
+            // Get schema object out of the prediction. It contains annotations such as the mapping from predicted label index
             // (e.g., 1) to its actual label (e.g., "AA"). The call to "AsDynamic" converts our statically-typed pipeline into
-            // a dynamically-typed one only for extracting metadata. In the future, metadata in statically-typed pipeline should
+            // a dynamically-typed one only for extracting annotations. In the future, annotations in statically-typed pipeline should
             // be accessible without dynamically-typed things.
             var schema = prediction.AsDynamic.Schema;
 
             // Retrieve the mapping from labels to label indexes.
             var labelBuffer = new VBuffer<ReadOnlyMemory<char>>(); 
-            schema[nameof(DatasetUtils.MulticlassClassificationExample.PredictedLabelIndex)].Metadata.GetValue("KeyValues", ref labelBuffer);
+            schema[nameof(DatasetUtils.MulticlassClassificationExample.PredictedLabelIndex)].Annotations.GetValue("KeyValues", ref labelBuffer);
             // nativeLabels is { "AA" , "BB", "CC", "DD" }
             var nativeLabels = labelBuffer.DenseValues().ToArray(); // nativeLabels[nativePrediction.PredictedLabelIndex - 1] is the original label indexed by nativePrediction.PredictedLabelIndex.
 

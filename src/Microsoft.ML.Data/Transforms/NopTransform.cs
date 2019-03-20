@@ -4,11 +4,11 @@
 
 using System;
 using System.Collections.Generic;
-using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.Data;
 using Microsoft.ML.EntryPoints;
-using Microsoft.ML.Model;
+using Microsoft.ML.Runtime;
+using Microsoft.ML.Transforms;
 
 [assembly: LoadableClass(NopTransform.Summary, typeof(NopTransform), null, typeof(SignatureLoadDataTransform),
     "", NopTransform.LoaderSignature)]
@@ -123,15 +123,16 @@ namespace Microsoft.ML.Data
         public DataViewRowCursor[] GetRowCursorSet(IEnumerable<DataViewSchema.Column> columnsNeeded, int n, Random rand = null)
             => Source.GetRowCursorSet(columnsNeeded, n, rand);
 
-        public Func<int, bool> GetDependencies(Func<int, bool> predicate)
-        {
-            return predicate;
-        }
+        /// <summary>
+        /// Given a set of columns, return the input columns that are needed to generate those output columns.
+        /// </summary>
+        IEnumerable<DataViewSchema.Column> IRowToRowMapper.GetDependencies(IEnumerable<DataViewSchema.Column> dependingColumns)
+            => dependingColumns;
 
-        public DataViewRow GetRow(DataViewRow input, Func<int, bool> active)
+        DataViewRow IRowToRowMapper.GetRow(DataViewRow input, IEnumerable<DataViewSchema.Column> activeColumns)
         {
             Contracts.CheckValue(input, nameof(input));
-            Contracts.CheckValue(active, nameof(active));
+            Contracts.CheckValue(activeColumns, nameof(activeColumns));
             Contracts.CheckParam(input.Schema == Source.Schema, nameof(input), "Schema of input row must be the same as the schema the mapper is bound to");
             return input;
         }

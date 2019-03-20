@@ -2,6 +2,8 @@
   <PropertyGroup>
     <!-- versioning.targets will import this file, so don't import it again -->
     <DisableImportVersioningProps>true</DisableImportVersioningProps>
+    <!-- Use this flag to ensure native assets take stable version -->
+    <UseStableVersionForNativeAssets>true</UseStableVersionForNativeAssets>
 
     <StripNativeSymbols Condition="'$(StripNativeSymbols)' == '' and '$(Configuration)' == 'Release'">True</StripNativeSymbols>
   </PropertyGroup>
@@ -72,7 +74,10 @@
     
     <Copy SourceFiles="$(PackagesDir)mlnetmkldeps\$(MlNetMklDepsPackageVersion)\runtimes\$(PackageRid)\native\$(NativeLibPrefix)MklImports$(NativeLibExtension)"
           DestinationFolder="$(NativeAssetsBuiltPath)" />   
-    
+
+    <Copy Condition="'$(OS)' == 'Windows_NT'" SourceFiles="$(PackagesDir)mlnetmkldeps\$(MlNetMklDepsPackageVersion)\runtimes\$(PackageRid)\native\libiomp5md$(NativeLibExtension)"
+          DestinationFolder="$(NativeAssetsBuiltPath)" />   
+
     <ItemGroup Condition="'$(UseIntrinsics)' != 'true'">
       <NativePackageAsset Include="$(NativeAssetsBuiltPath)\$(NativeLibPrefix)CpuMathNative$(NativeLibExtension)"
                           RelativePath="Microsoft.ML.CpuMath\runtimes\$(PackageRid)\native" />
@@ -85,18 +90,18 @@
     </ItemGroup>
 
     <ItemGroup>
-      <NativePackageAsset Include="$(NativeAssetsBuiltPath)\$(NativeLibPrefix)FastTreeNative$(NativeLibExtension)"
-                          RelativePath="Microsoft.ML\runtimes\$(PackageRid)\native" />
       <NativePackageAsset Include="$(NativeAssetsBuiltPath)\$(NativeLibPrefix)LdaNative$(NativeLibExtension)"
                           RelativePath="Microsoft.ML\runtimes\$(PackageRid)\native" />
       <NativePackageAsset Include="$(NativeAssetsBuiltPath)\$(NativeLibPrefix)FactorizationMachineNative$(NativeLibExtension)"
                           RelativePath="Microsoft.ML\runtimes\$(PackageRid)\native" />
       <NativePackageAsset Include="$(NativeAssetsBuiltPath)\$(NativeLibPrefix)SymSgdNative$(NativeLibExtension)"
-                          RelativePath="Microsoft.ML.HalLearners\runtimes\$(PackageRid)\native" />
+                          RelativePath="Microsoft.ML.Mkl.Components\runtimes\$(PackageRid)\native" />
       <NativePackageAsset Include="$(NativeAssetsBuiltPath)\$(NativeLibPrefix)MklProxyNative$(NativeLibExtension)"
                           RelativePath="Microsoft.ML.Mkl.Redist\runtimes\$(PackageRid)\native" />                         
       <NativePackageAsset Include="$(NativeAssetsBuiltPath)\$(NativeLibPrefix)MatrixFactorizationNative$(NativeLibExtension)"
                           RelativePath="Microsoft.ML.Recommender\runtimes\$(PackageRid)\native" />
+      <NativePackageAsset Include="$(NativeAssetsBuiltPath)\$(NativeLibPrefix)FastTreeNative$(NativeLibExtension)"
+                          RelativePath="Microsoft.ML.FastTree\runtimes\$(PackageRid)\native" />
     </ItemGroup>
 
     <ItemGroup>

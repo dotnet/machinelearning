@@ -5,7 +5,7 @@
 using System;
 using System.Linq;
 using Microsoft.ML.Data;
-using Microsoft.ML.StaticPipe.Runtime;
+using Microsoft.ML.Runtime;
 
 namespace Microsoft.ML.StaticPipe
 {
@@ -30,8 +30,8 @@ namespace Microsoft.ML.StaticPipe
         /// If the <paramref name="stratificationColumn"/> is not provided, the random numbers generated to create it, will use this seed as value.
         /// And if it is not provided, the default value will be used.</param>
         /// <returns>A pair of datasets, for the train and test set.</returns>
-        public static (DataView<T> trainSet, DataView<T> testSet) TrainTestSplit<T>(this TrainCatalogBase catalog,
-            DataView<T> data, double testFraction = 0.1, Func<T, PipelineColumn> stratificationColumn = null, uint? seed = null)
+        public static (DataView<T> trainSet, DataView<T> testSet) TrainTestSplit<T>(this DataOperationsCatalog catalog,
+            DataView<T> data, double testFraction = 0.1, Func<T, PipelineColumn> stratificationColumn = null, int? seed = null)
         {
             var env = StaticPipeUtils.GetEnvironment(data);
             Contracts.AssertValue(env);
@@ -78,7 +78,7 @@ namespace Microsoft.ML.StaticPipe
             Estimator<TInShape, TOutShape, TTransformer> estimator,
             Func<TOutShape, Scalar<float>> label,
             int numFolds = 5,
-            Func<TInShape, PipelineColumn> stratificationColumn = null, uint? seed = null)
+            Func<TInShape, PipelineColumn> stratificationColumn = null, int? seed = null)
             where TTransformer : class, ITransformer
         {
             var env = StaticPipeUtils.GetEnvironment(data);
@@ -130,13 +130,13 @@ namespace Microsoft.ML.StaticPipe
         /// If the <paramref name="stratificationColumn"/> is not provided, the random numbers generated to create it, will use this seed as value.
         /// And if it is not provided, the default value will be used.</param>
         /// <returns>Per-fold results: metrics, models, scored datasets.</returns>
-        public static (MultiClassClassifierMetrics metrics, Transformer<TInShape, TOutShape, TTransformer> model, DataView<TOutShape> scoredTestData)[] CrossValidate<TInShape, TOutShape, TTransformer>(
+        public static (MulticlassClassificationMetrics metrics, Transformer<TInShape, TOutShape, TTransformer> model, DataView<TOutShape> scoredTestData)[] CrossValidate<TInShape, TOutShape, TTransformer>(
             this MulticlassClassificationCatalog catalog,
             DataView<TInShape> data,
             Estimator<TInShape, TOutShape, TTransformer> estimator,
             Func<TOutShape, Key<uint>> label,
             int numFolds = 5,
-            Func<TInShape, PipelineColumn> stratificationColumn = null, uint? seed = null)
+            Func<TInShape, PipelineColumn> stratificationColumn = null, int? seed = null)
             where TTransformer : class, ITransformer
         {
             var env = StaticPipeUtils.GetEnvironment(data);
@@ -194,7 +194,7 @@ namespace Microsoft.ML.StaticPipe
             Estimator<TInShape, TOutShape, TTransformer> estimator,
             Func<TOutShape, Scalar<bool>> label,
             int numFolds = 5,
-            Func<TInShape, PipelineColumn> stratificationColumn = null, uint? seed = null)
+            Func<TInShape, PipelineColumn> stratificationColumn = null, int? seed = null)
             where TTransformer : class, ITransformer
         {
             var env = StaticPipeUtils.GetEnvironment(data);
@@ -252,7 +252,7 @@ namespace Microsoft.ML.StaticPipe
             Estimator<TInShape, TOutShape, TTransformer> estimator,
             Func<TOutShape, Scalar<bool>> label,
             int numFolds = 5,
-            Func<TInShape, PipelineColumn> stratificationColumn = null, uint? seed = null)
+            Func<TInShape, PipelineColumn> stratificationColumn = null, int? seed = null)
             where TTransformer : class, ITransformer
         {
             var env = StaticPipeUtils.GetEnvironment(data);

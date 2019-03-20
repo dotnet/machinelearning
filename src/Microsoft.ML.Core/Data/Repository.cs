@@ -7,8 +7,9 @@ using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
 using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Runtime;
 
-namespace Microsoft.ML.Model
+namespace Microsoft.ML
 {
     /// <summary>
     /// For saving a model into a repository.

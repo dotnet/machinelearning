@@ -28,19 +28,19 @@ namespace Microsoft.ML.Samples.Dynamic
             // as well as the source of randomness.
             var ml = new MLContext();
 
-            // First, we define the reader: specify the data columns and where to find them in the text file. Notice that we combine entries from
+            // First, we define the loader: specify the data columns and where to find them in the text file. Notice that we combine entries from
             // all the feature columns into entries of a vector of a single column named "Features".
-            var reader = ml.Data.CreateTextLoader(
+            var loader = ml.Data.CreateTextLoader(
                 columns: new[]
                     {
-                        new TextLoader.Column("Label", DataKind.BL, 0),
-                        new TextLoader.Column("Features", DataKind.Num, new [] { new TextLoader.Range(1, 9) })
+                        new TextLoader.Column("Label", DataKind.Boolean, 0),
+                        new TextLoader.Column("Features", DataKind.Single, new [] { new TextLoader.Range(1, 9) })
                     },
                 hasHeader: true
             );
 
-            // Then, we use the reader to read the data as an IDataView.
-            var data = reader.Read(dataFilePath);
+            // Then, we use the loader to load the data as an IDataView.
+            var data = loader.Load(dataFilePath);
 
             // Second, we define the transformations that we apply on the data. Remember that an Estimator does not transform data
             // directly, but it needs to be trained on data using .Fit(), and it will output a Transformer, which can transform data.
@@ -55,7 +55,7 @@ namespace Microsoft.ML.Samples.Dynamic
             // specify the parameter `numBins', which controls the number of bins used in the approximation of the mutual information
             // between features and label.
             var mutualInfoEst = ml.Transforms.FeatureSelection.SelectFeaturesBasedOnMutualInformation(
-                outputColumnName: "FeaturesMISelect", inputColumnName: "FeaturesCountSelect", labelColumn: "Label", slotsInOutput: 5);
+                outputColumnName: "FeaturesMISelect", inputColumnName: "FeaturesCountSelect", labelColumnName: "Label", slotsInOutput: 5);
 
             // Now, we can put the previous two transformations together in a pipeline.
             var pipeline = countSelectEst.Append(mutualInfoEst);
@@ -82,8 +82,8 @@ namespace Microsoft.ML.Samples.Dynamic
             };
 
             // Print the data that results from the transformations.
-            var countSelectColumn = transformedData.GetColumn<VBuffer<float>>(ml, "FeaturesCountSelect");
-            var MISelectColumn = transformedData.GetColumn<VBuffer<float>>(ml, "FeaturesMISelect");
+            var countSelectColumn = transformedData.GetColumn<VBuffer<float>>(transformedData.Schema["FeaturesCountSelect"]);
+            var MISelectColumn = transformedData.GetColumn<VBuffer<float>>(transformedData.Schema["FeaturesMISelect"]);
             printHelper("FeaturesCountSelect", countSelectColumn);
             printHelper("FeaturesMISelect", MISelectColumn);
 

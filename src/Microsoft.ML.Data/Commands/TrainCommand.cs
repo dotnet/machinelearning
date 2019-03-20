@@ -6,16 +6,16 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using Microsoft.Data.DataView;
 using Microsoft.ML;
+using Microsoft.ML.Calibrators;
 using Microsoft.ML.Command;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
 using Microsoft.ML.Data.IO;
-using Microsoft.ML.Internal.Calibration;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Model;
-using Microsoft.ML.Transforms.Normalizers;
+using Microsoft.ML.Runtime;
+using Microsoft.ML.Transforms;
 
 [assembly: LoadableClass(TrainCommand.Summary, typeof(TrainCommand), typeof(TrainCommand.Arguments), typeof(SignatureCommand),
     "Train Predictor", "Train")]
@@ -24,7 +24,8 @@ namespace Microsoft.ML.Data
 {
     using ColumnRole = RoleMappedSchema.ColumnRole;
 
-    public enum NormalizeOption
+    [BestFriend]
+    internal enum NormalizeOption
     {
         No,
         Warn,
@@ -360,7 +361,7 @@ namespace Microsoft.ML.Data
 
                     ch2.Trace("Saving loader and transformations");
                     var dataPipe = data.Data;
-                    if (dataPipe is IDataLoader)
+                    if (dataPipe is ILegacyDataLoader)
                         ModelSaveContext.SaveModel(rep, dataPipe, ModelFileUtils.DirDataLoaderModel);
                     else
                         SaveDataPipe(env, rep, dataPipe);
@@ -394,7 +395,7 @@ namespace Microsoft.ML.Data
             var xfs = BacktrackPipe(dataPipe, out pipeStart);
 
             Action<ModelSaveContext> saveAction;
-            if (!blankLoader && pipeStart is IDataLoader loader)
+            if (!blankLoader && pipeStart is ILegacyDataLoader loader)
                 saveAction = loader.Save;
             else
             {
@@ -405,7 +406,7 @@ namespace Microsoft.ML.Data
 
             using (var ctx = ModelFileUtils.GetDataModelSavingContext(repositoryWriter))
             {
-                CompositeDataLoader.SavePipe(env, ctx, saveAction, xfs);
+                LegacyCompositeDataLoader.SavePipe(env, ctx, saveAction, xfs);
                 ctx.Done();
             }
         }
@@ -478,8 +479,8 @@ namespace Microsoft.ML.Data
                 IDataView ApplyNormalizer(IHostEnvironment innerEnv, IDataView input)
                     => NormalizeTransform.CreateMinMaxNormalizer(innerEnv, input, featureColumn);
 
-                if (view is IDataLoader loader)
-                    view = CompositeDataLoader.ApplyTransform(env, loader, tag: null, creationArgs: null, ApplyNormalizer);
+                if (view is ILegacyDataLoader loader)
+                    view = LegacyCompositeDataLoader.ApplyTransform(env, loader, tag: null, creationArgs: null, ApplyNormalizer);
                 else
                     view = ApplyNormalizer(env, view);
                 return true;

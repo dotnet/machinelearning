@@ -9,11 +9,11 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.Data.DataView;
 using Microsoft.ML.Command;
 using Microsoft.ML.Data;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Model;
+using Microsoft.ML.Runtime;
 using Microsoft.ML.TestFramework;
 using Microsoft.ML.TestFramework.Attributes;
 using Microsoft.ML.Tools;
@@ -441,6 +441,11 @@ namespace Microsoft.ML.RunTests
             return TestCoreCore(ctx, cmdName, dataPath, PathArgument.Usage.Loader, modelPath, null, null, extraArgs, toCompare);
         }
 
+        protected bool TestInCore(RunContextBase ctx, string cmdName, string dataPath, OutputPath modelPath, string extraArgs, int digitsOfPrecision = DigitsOfPrecision, params PathArgument[] toCompare)
+        {
+            return TestCoreCore(ctx, cmdName, dataPath, PathArgument.Usage.Loader, modelPath, null, null, extraArgs, digitsOfPrecision, toCompare);
+        }
+
         /// <summary>
         /// Run one command loading the datafile loaded as defined by a model file, and comparing
         /// against standard output. This utility method will both load and save a model.
@@ -651,6 +656,11 @@ namespace Microsoft.ML.RunTests
             return TestInCore(Params, cmdName, dataPath, modelPath, extraArgs, toCompare);
         }
 
+        protected bool TestInCore(string cmdName, string dataPath, OutputPath modelPath, string extraArgs, int digitsOfPrecision = DigitsOfPrecision, params PathArgument[] toCompare)
+        {
+            return TestInCore(Params, cmdName, dataPath, modelPath, extraArgs, digitsOfPrecision, toCompare);
+        }
+
         protected bool TestInOutCore(string cmdName, string dataPath, OutputPath modelPath, string extraArgs, params PathArgument[] toCompare)
         {
             return TestInOutCore(Params, cmdName, dataPath, modelPath, extraArgs, toCompare);
@@ -689,7 +699,7 @@ namespace Microsoft.ML.RunTests
                         col=Label:Num:0}}
                     xf=Categorical{{col=CatFeatures:CatFeaturesText}}
                     xf=Concat{{col=Features:NumFeatures,CatFeatures}}
-                    trainer=ft{{iter=1 numLeaves=2}}
+                    trainer=ft{{numberOfTrees=1 numberOfLeaves=2}}
                     out={{{1}}}", trainDataPath, modelPath);
             RunMTAThread(new ThreadStart(() => MainForTest(args)));
             TestCore("showschema", string.Format("steps+ in={{{0}}} meta+", modelPath));
@@ -807,7 +817,7 @@ namespace Microsoft.ML.RunTests
 
         [TestCategory(Cat)]
         [Fact(Skip = "Need CoreTLC specific baseline update")]
-        public void SaveMultiClassLrPredictorAsSummary()
+        public void SaveMulticlassLrPredictorAsSummary()
         {
             // First run a training.
             string pathData = GetDataPath("iris.txt");
@@ -907,7 +917,7 @@ namespace Microsoft.ML.RunTests
 
             string extraArgs = string.Format("{0} {1} {2} {3} k={4}", "prexf=Term{col=Label:Cat} prexf=CategoricalTransform{col=Cat01}",
                                                 "xf=TextTransform{col=Text} xf=Concat{col=Features:Cat01,Text}",
-                                                "threads- tr=MultiClassLogisticRegression{numThreads=1}", "norm=No", numFolds);
+                                                "threads- tr=MulticlassLogisticRegression{numThreads=1}", "norm=No", numFolds);
             const string loaderArgs = "loader=TextLoader{col=Label:R4:0 col=Cat:TX:1 col=Cat01:TX:2 col=Text:TX:3 header=+}";
             TestCore("cv", pathData, loaderArgs, extraArgs);
 
@@ -1082,12 +1092,12 @@ namespace Microsoft.ML.RunTests
 
             string trainData = GetDataPath("adult.tiny.with-schema.txt");
             OutputPath trainModel = ModelPath();
-            TestCore("train", trainData, loaderArgs, extraArgs);
+            TestCore("train", trainData, loaderArgs, extraArgs, digitsOfPrecision: 5);
 
             _step++;
             // Save model summary.
             OutputPath modelSummary = CreateOutputPath("summary.txt");
-            TestInCore("savemodel", null, trainModel, "", modelSummary.Arg("sum"));
+            TestInCore("savemodel", null, trainModel, "", digitsOfPrecision: 4, modelSummary.Arg("sum"));
 
             Done();
         }
@@ -1155,7 +1165,7 @@ namespace Microsoft.ML.RunTests
             const string loaderCmdline = @"loader=TextLoader{col=Label:TX:0 col=Features:R4:1-4 header=+}";
             string pathTrain = GetDataPath("iris-label-name.txt");
             OutputPath trainModel = ModelPath();
-            const string trainArgs = "tr=MultiClassLogisticRegression{maxiter=100 t=-} xf=Term{col=Label} seed=1";
+            const string trainArgs = "tr=MulticlassLogisticRegression{maxiter=100 t=-} xf=Term{col=Label} seed=1";
             TestCore("train", pathTrain, loaderCmdline, trainArgs);
 
             _step++;
@@ -1437,13 +1447,13 @@ namespace Microsoft.ML.RunTests
 
         [TestCategory(Cat), TestCategory("Multiclass")]
         [Fact(Skip = "Need CoreTLC specific baseline update")]
-        public void CommandTrainScoreEvaluateMultiClass()
+        public void CommandTrainScoreEvaluateMulticlass()
         {
             // First run a training.
             string pathData = GetDataPath("iris-label-name.txt");
             OutputPath trainModel = ModelPath();
             TestCore("train", pathData, "loader=TextLoader{header+ col=Label:TX:0 col=Features:1-4} xf=Term{col=Label}",
-                "lab=Label feat=Features seed=42 tr=MultiClassNeuralNetwork{output=3 accel=sse lr=0.1 iter=70} norm=Warn");
+                "lab=Label feat=Features seed=42 tr=MulticlassNeuralNetwork{output=3 accel=sse lr=0.1 iter=70} norm=Warn");
 
             // Then, run the score.
             _step++;
@@ -1467,7 +1477,7 @@ namespace Microsoft.ML.RunTests
             _step++;
             var outputFile2 = StdoutPath();
             var metricsPath = MetricsPath();
-            const string evalLoaderArgs = "loader=Text{header+ col=Label:TX:0 col=PredictedLabel:5 col=Score:6-8} xf=Term{col=Label} evaluator=MultiClass{score=Score}";
+            const string evalLoaderArgs = "loader=Text{header+ col=Label:TX:0 col=PredictedLabel:5 col=Score:6-8} xf=Term{col=Label} evaluator=Multiclass{score=Score}";
             TestCore("evaluate", scorePathTxt.Path, evalLoaderArgs, null, metricsPath.Arg("dout"));
 
             // Check that the evaluations produced the same result.
@@ -1477,7 +1487,7 @@ namespace Microsoft.ML.RunTests
             //CheckEqualityFromPathsCore(TestContext.TestName, outputFile1.Path, outputFile2.Path);
 
             _step++;
-            const string evalLoaderArgs2 = "loader=Text{header+ col=Label:0 col=PredictedLabel:5 col=Score:6-8} evaluator=MultiClass{score=Score opcs+}";
+            const string evalLoaderArgs2 = "loader=Text{header+ col=Label:0 col=PredictedLabel:5 col=Score:6-8} evaluator=Multiclass{score=Score opcs+}";
             TestCore("evaluate", scorePathTxt.Path, evalLoaderArgs2, null, metricsPath.Arg("dout"));
 
             Done();

@@ -4,16 +4,15 @@
 
 using System;
 using System.IO;
-using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.Data;
 using Microsoft.ML.Data.IO;
 using Microsoft.ML.Model;
 using Microsoft.ML.RunTests;
+using Microsoft.ML.Runtime;
 using Microsoft.ML.StaticPipe;
 using Microsoft.ML.Tools;
 using Microsoft.ML.Transforms;
-using Microsoft.ML.Transforms.Conversions;
 using Microsoft.ML.Transforms.Text;
 using Xunit;
 using Xunit.Abstractions;
@@ -31,19 +30,19 @@ namespace Microsoft.ML.Tests.Transformers
         public void TextFeaturizerWorkout()
         {
             string sentimentDataPath = GetDataPath("wikipedia-detox-250-line-data.tsv");
-            var data = TextLoaderStatic.CreateReader(ML, ctx => (
+            var data = TextLoaderStatic.CreateLoader(ML, ctx => (
                     label: ctx.LoadBool(0),
                     text: ctx.LoadText(1)), hasHeader: true)
-                .Read(sentimentDataPath);
+                .Load(sentimentDataPath);
 
-            var invalidData = TextLoaderStatic.CreateReader(ML, ctx => (
+            var invalidData = TextLoaderStatic.CreateLoader(ML, ctx => (
                     label: ctx.LoadBool(0),
                     text: ctx.LoadFloat(1)), hasHeader: true)
-                .Read(sentimentDataPath)
+                .Load(sentimentDataPath)
                 .AsDynamic;
 
             var feat = data.MakeNewEstimator()
-                 .Append(row => row.text.FeaturizeText(options: new TextFeaturizingEstimator.Options { OutputTokens = true, }));
+                 .Append(row => row.text.FeaturizeText(options: new TextFeaturizingEstimator.Options { OutputTokensColumnName = "OutputTokens", }));
 
             TestEstimatorCore(feat.AsDynamic, data.AsDynamic, invalidInput: invalidData);
 
@@ -52,7 +51,7 @@ namespace Microsoft.ML.Tests.Transformers
             {
                 var saver = new TextSaver(ML, new TextSaver.Arguments { Silent = true });
                 var savedData = ML.Data.TakeRows(feat.Fit(data).Transform(data).AsDynamic, 4);
-                savedData = ML.Transforms.SelectColumns("Data", "Data_TransformedText").Fit(savedData).Transform(savedData);
+                savedData = ML.Transforms.SelectColumns("Data", "OutputTokens").Fit(savedData).Transform(savedData);
 
                 using (var fs = File.Create(outputPath))
                     DataSaverUtils.SaveDataView(ch, saver, savedData, fs, keepHidden: true);
@@ -66,15 +65,15 @@ namespace Microsoft.ML.Tests.Transformers
         public void TextTokenizationWorkout()
         {
             string sentimentDataPath = GetDataPath("wikipedia-detox-250-line-data.tsv");
-            var data = TextLoaderStatic.CreateReader(ML, ctx => (
+            var data = TextLoaderStatic.CreateLoader(ML, ctx => (
                     label: ctx.LoadBool(0),
                     text: ctx.LoadText(1)), hasHeader: true)
-                .Read(sentimentDataPath);
+                .Load(sentimentDataPath);
 
-            var invalidData = TextLoaderStatic.CreateReader(ML, ctx => (
+            var invalidData = TextLoaderStatic.CreateLoader(ML, ctx => (
                     label: ctx.LoadBool(0),
                     text: ctx.LoadFloat(1)), hasHeader: true)
-                .Read(sentimentDataPath);
+                .Load(sentimentDataPath);
 
             var est = new WordTokenizingEstimator(ML, "words", "text")
                 .Append(new TokenizingByCharactersEstimator(ML, "chars", "text"))
@@ -96,10 +95,10 @@ namespace Microsoft.ML.Tests.Transformers
         public void TokenizeWithSeparators()
         {
             string dataPath = GetDataPath("wikipedia-detox-250-line-data.tsv");
-            var data = TextLoaderStatic.CreateReader(Env, ctx => (
+            var data = TextLoaderStatic.CreateLoader(Env, ctx => (
                     label: ctx.LoadBool(0),
                     text: ctx.LoadText(1)), hasHeader: true)
-                .Read(dataPath).AsDynamic;
+                .Load(dataPath).AsDynamic;
 
             var est = new WordTokenizingEstimator(Env, "words", "text", separators: new[] { ' ', '?', '!', '.', ',' });
             var outdata = ML.Data.TakeRows(est.Fit(data).Transform(data), 4);
@@ -133,17 +132,17 @@ namespace Microsoft.ML.Tests.Transformers
         public void TextNormalizationAndStopwordRemoverWorkout()
         {
             string sentimentDataPath = GetDataPath("wikipedia-detox-250-line-data.tsv");
-            var data = TextLoaderStatic.CreateReader(ML, ctx => (
+            var data = TextLoaderStatic.CreateLoader(ML, ctx => (
                     label: ctx.LoadBool(0),
                     text: ctx.LoadText(1)), hasHeader: true)
-                .Read(sentimentDataPath);
+                .Load(sentimentDataPath);
 
-            var invalidData = TextLoaderStatic.CreateReader(ML, ctx => (
+            var invalidData = TextLoaderStatic.CreateLoader(ML, ctx => (
                     label: ctx.LoadBool(0),
                     text: ctx.LoadFloat(1)), hasHeader: true)
-                .Read(sentimentDataPath);
+                .Load(sentimentDataPath);
             var est = ML.Transforms.Text.NormalizeText("text")
-                .Append(ML.Transforms.Text.TokenizeWords("words", "text"))
+                .Append(ML.Transforms.Text.TokenizeIntoWords("words", "text"))
                 .Append(ML.Transforms.Text.RemoveDefaultStopWords("NoDefaultStopwords", "words"))
                 .Append(ML.Transforms.Text.RemoveStopWords("NoStopWords", "words", "xbox", "this", "is", "a", "the", "THAT", "bY"));
 
@@ -168,13 +167,13 @@ namespace Microsoft.ML.Tests.Transformers
             {
                 Columns = new[]
                 {
-                    new TextLoader.Column("Text", DataKind.TX, 1)
+                    new TextLoader.Column("Text", DataKind.String, 1)
                 }
             }, new MultiFileSource(sentimentDataPath));
 
             var tokenized = new WordTokenizingTransformer(ML, new[]
             {
-                new WordTokenizingEstimator.ColumnInfo("Text", "Text")
+                new WordTokenizingEstimator.ColumnOptions("Text", "Text")
             }).Transform(data);
 
             var xf = factory.CreateComponent(ML, tokenized,
@@ -185,7 +184,7 @@ namespace Microsoft.ML.Tests.Transformers
             using (var cursor = xf.GetRowCursorForAllColumns())
             {
                 VBuffer<ReadOnlyMemory<char>> text = default;
-                var getter = cursor.GetGetter<VBuffer<ReadOnlyMemory<char>>>(cursor.Schema["Text"].Index);
+                var getter = cursor.GetGetter<VBuffer<ReadOnlyMemory<char>>>(cursor.Schema["Text"]);
                 while (cursor.MoveNext())
                     getter(ref text);
             }
@@ -195,18 +194,18 @@ namespace Microsoft.ML.Tests.Transformers
         public void WordBagWorkout()
         {
             string sentimentDataPath = GetDataPath("wikipedia-detox-250-line-data.tsv");
-            var data = TextLoaderStatic.CreateReader(ML, ctx => (
+            var data = TextLoaderStatic.CreateLoader(ML, ctx => (
                     label: ctx.LoadBool(0),
                     text: ctx.LoadText(1)), hasHeader: true)
-                .Read(sentimentDataPath);
+                .Load(sentimentDataPath);
 
-            var invalidData = TextLoaderStatic.CreateReader(ML, ctx => (
+            var invalidData = TextLoaderStatic.CreateLoader(ML, ctx => (
                     label: ctx.LoadBool(0),
                     text: ctx.LoadFloat(1)), hasHeader: true)
-                .Read(sentimentDataPath);
+                .Load(sentimentDataPath);
 
             var est = new WordBagEstimator(ML, "bag_of_words", "text").
-                Append(new WordHashBagEstimator(ML, "bag_of_wordshash", "text", invertHash: -1));
+                Append(new WordHashBagEstimator(ML, "bag_of_wordshash", "text", maximumNumberOfInverts: -1));
 
             // The following call fails because of the following issue
             // https://github.com/dotnet/machinelearning/issues/969
@@ -227,15 +226,15 @@ namespace Microsoft.ML.Tests.Transformers
         public void NgramWorkout()
         {
             string sentimentDataPath = GetDataPath("wikipedia-detox-250-line-data.tsv");
-            var data = TextLoaderStatic.CreateReader(ML, ctx => (
+            var data = TextLoaderStatic.CreateLoader(ML, ctx => (
                     label: ctx.LoadBool(0),
                     text: ctx.LoadText(1)), hasHeader: true)
-                .Read(sentimentDataPath);
+                .Load(sentimentDataPath);
 
-            var invalidData = TextLoaderStatic.CreateReader(ML, ctx => (
+            var invalidData = TextLoaderStatic.CreateLoader(ML, ctx => (
                     label: ctx.LoadBool(0),
                     text: ctx.LoadFloat(1)), hasHeader: true)
-                .Read(sentimentDataPath);
+                .Load(sentimentDataPath);
 
             var est = new WordTokenizingEstimator(ML, "text", "text")
                 .Append(new ValueToKeyMappingEstimator(ML, "terms", "text"))
@@ -260,10 +259,10 @@ namespace Microsoft.ML.Tests.Transformers
         {
             string dropModelPath = GetDataPath("backcompat/ngram.zip");
             string sentimentDataPath = GetDataPath("wikipedia-detox-250-line-data.tsv");
-            var data = TextLoaderStatic.CreateReader(ML, ctx => (
+            var data = TextLoaderStatic.CreateLoader(ML, ctx => (
                     Sentiment: ctx.LoadBool(0),
                     SentimentText: ctx.LoadText(1)), hasHeader: true)
-                .Read(sentimentDataPath);
+                .Load(sentimentDataPath);
             using (FileStream fs = File.OpenRead(dropModelPath))
             {
                 var result = ModelFileUtils.LoadTransforms(Env, data.AsDynamic, fs);
@@ -275,20 +274,20 @@ namespace Microsoft.ML.Tests.Transformers
         [Fact]
         public void LdaWorkout()
         {
-            IHostEnvironment env = new MLContext(seed: 42, conc: 1);
+            IHostEnvironment env = new MLContext(seed: 42);
             string sentimentDataPath = GetDataPath("wikipedia-detox-250-line-data.tsv");
-            var data = TextLoaderStatic.CreateReader(env, ctx => (
+            var data = TextLoaderStatic.CreateLoader(env, ctx => (
                     label: ctx.LoadBool(0),
                     text: ctx.LoadText(1)), hasHeader: true)
-                .Read(sentimentDataPath);
+                .Load(sentimentDataPath);
 
-            var invalidData = TextLoaderStatic.CreateReader(env, ctx => (
+            var invalidData = TextLoaderStatic.CreateLoader(env, ctx => (
                     label: ctx.LoadBool(0),
                     text: ctx.LoadFloat(1)), hasHeader: true)
-                .Read(sentimentDataPath);
+                .Load(sentimentDataPath);
 
             var est = new WordBagEstimator(env, "bag_of_words", "text").
-                Append(new LatentDirichletAllocationEstimator(env, "topics", "bag_of_words", 10, numIterations: 10,
+                Append(new LatentDirichletAllocationEstimator(env, "topics", "bag_of_words", 10, maximumNumberOfIterations: 10,
                     resetRandomGenerator: true));
 
             // The following call fails because of the following issue

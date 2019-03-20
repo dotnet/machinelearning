@@ -5,9 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Microsoft.Data.DataView;
-using Microsoft.ML.Model;
-
+using Microsoft.ML.Runtime;
 namespace Microsoft.ML.Data
 {
     /// <summary>
@@ -274,26 +272,36 @@ namespace Microsoft.ML.Data
                 _scoreGetter = _parent.GetScoreGetter(_groupCursor);
             }
 
-            public override bool IsColumnActive(int col)
+            /// <summary>
+            /// Returns whether the given column is active in this row.
+            /// </summary>
+            public override bool IsColumnActive(DataViewSchema.Column column)
             {
-                Ch.Check(0 <= col && col < _parent.GetBindings().ColumnCount);
-                return _active[col];
+                Ch.Check(column.Index < _parent.GetBindings().ColumnCount);
+                return _active[column.Index];
             }
 
-            public override ValueGetter<TValue> GetGetter<TValue>(int col)
+            /// <summary>
+            /// Returns a value getter delegate to fetch the value of column with the given columnIndex, from the row.
+            /// This throws if the column is not active in this row, or if the type
+            /// <typeparamref name="TValue"/> differs from this column's type.
+            /// </summary>
+            /// <typeparam name="TValue"> is the column's content type.</typeparam>
+            /// <param name="column"> is the output column whose getter should be returned.</param>
+            public override ValueGetter<TValue> GetGetter<TValue>(DataViewSchema.Column column)
             {
-                Contracts.CheckParam(IsColumnActive(col), nameof(col), "requested column is not active");
+                Contracts.CheckParam(IsColumnActive(column), nameof(column), "requested column is not active");
 
                 bool isSrc;
-                col = _parent.GetBindings().MapColumnIndex(out isSrc, col);
+                var index = _parent.GetBindings().MapColumnIndex(out isSrc, column.Index);
                 if (isSrc)
                 {
                     Contracts.AssertValue(_input);
-                    return _input.GetGetter<TValue>(col);
+                    return _input.GetGetter<TValue>(_input.Schema[index]);
                 }
 
                 Ch.AssertValue(_getters);
-                var getter = _getters[col];
+                var getter = _getters[index];
                 Ch.Assert(getter != null);
                 var fn = getter as ValueGetter<TValue>;
                 if (fn == null)

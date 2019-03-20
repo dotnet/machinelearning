@@ -2,10 +2,14 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.IO;
 using Microsoft.ML.Data;
+using Microsoft.ML.Runtime;
+using Microsoft.ML.Transforms;
+using Microsoft.ML.Transforms.Onnx;
 
-namespace Microsoft.ML.Transforms
+namespace Microsoft.ML
 {
     /// <summary>
     /// This is an extension method to be used with the <see cref="DnnImageFeaturizerEstimator"/> in order to use a pretrained AlexNet model.
@@ -21,7 +25,7 @@ namespace Microsoft.ML.Transforms
         /// </summary>
         public static EstimatorChain<ColumnCopyingTransformer> AlexNet(this DnnImageModelSelector dnnModelContext, IHostEnvironment env, string outputColumnName, string inputColumnName)
         {
-            return AlexNet(dnnModelContext, env, outputColumnName, inputColumnName, Path.Combine(AssemblyPathHelpers.GetExecutingAssemblyLocation(), "DnnImageModels"));
+            return AlexNet(dnnModelContext, env, outputColumnName, inputColumnName, Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "DnnImageModels"));
         }
 
         /// <summary>

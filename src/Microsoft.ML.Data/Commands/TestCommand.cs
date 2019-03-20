@@ -3,12 +3,12 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
-using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.Command;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
 using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Runtime;
 
 [assembly: LoadableClass(TestCommand.Summary, typeof(TestCommand), typeof(TestCommand.Arguments), typeof(SignatureCommand),
     "Test Predictor", "Test")]
@@ -88,7 +88,7 @@ namespace Microsoft.ML.Data
         private void RunCore(IChannel ch)
         {
             ch.Trace("Constructing data pipeline");
-            IDataLoader loader;
+            ILegacyDataLoader loader;
             IPredictor predictor;
             RoleMappedSchema trainSchema;
             LoadModelObjects(ch, true, out predictor, true, out trainSchema, out loader);

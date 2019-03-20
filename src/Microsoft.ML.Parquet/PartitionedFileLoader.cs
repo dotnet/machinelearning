@@ -7,7 +7,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
-using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
@@ -16,6 +15,7 @@ using Microsoft.ML.Data.IO;
 using Microsoft.ML.Data.Utilities;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Model;
+using Microsoft.ML.Runtime;
 
 [assembly: LoadableClass(PartitionedFileLoader.Summary, typeof(PartitionedFileLoader), typeof(PartitionedFileLoader.Arguments), typeof(SignatureDataLoader),
     PartitionedFileLoader.UserName, PartitionedFileLoader.LoadName, PartitionedFileLoader.ShortName)]
@@ -48,7 +48,7 @@ namespace Microsoft.ML.Data
     ///             data1.parquet
     /// </example>
     [BestFriend]
-    internal sealed class PartitionedFileLoader : IDataLoader
+    internal sealed class PartitionedFileLoader : ILegacyDataLoader
     {
         internal const string Summary = "Loads a horizontally partitioned file set.";
         internal const string UserName = "Partitioned Loader";
@@ -78,7 +78,7 @@ namespace Microsoft.ML.Data
             public IPartitionedPathParserFactory PathParserFactory = new ParquetPartitionedPathParserFactory();
 
             [Argument(ArgumentType.Multiple, HelpText = "The data loader.", SignatureType = typeof(SignatureDataLoader))]
-            public IComponentFactory<IMultiStreamSource, IDataLoader> Loader;
+            public IComponentFactory<IMultiStreamSource, ILegacyDataLoader> Loader;
         }
 
         public sealed class Column
@@ -87,7 +87,7 @@ namespace Microsoft.ML.Data
             public string Name;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Data type of the column.")]
-            public DataKind? Type;
+            public InternalDataKind? Type;
 
             [Argument(ArgumentType.Required, HelpText = "Index of the directory representing this column.")]
             public int Source;
@@ -118,8 +118,8 @@ namespace Microsoft.ML.Data
                     return false;
                 }
 
-                DataKind? kind = null;
-                if (kindStr != null && TypeParsingUtils.TryParseDataKind(kindStr, out DataKind parsedKind, out var keyCount))
+                InternalDataKind? kind = null;
+                if (kindStr != null && TypeParsingUtils.TryParseDataKind(kindStr, out InternalDataKind parsedKind, out var keyCount))
                 {
                     kind = parsedKind;
                 }
@@ -197,7 +197,7 @@ namespace Microsoft.ML.Data
                 {
                     Name = "Path",
                     Source = FilePathColIndex,
-                    Type = DataKind.Text
+                    Type = InternalDataKind.Text
                 };
 
                 columns = columns.Concat(new[] { pathCol }).ToArray();
@@ -312,14 +312,14 @@ namespace Microsoft.ML.Data
         /// <param name="cols">The partitioned columns.</param>
         /// <param name="subLoader">The sub loader.</param>
         /// <returns>The resulting schema.</returns>
-        private DataViewSchema CreateSchema(IExceptionContext ectx, Column[] cols, IDataLoader subLoader)
+        private DataViewSchema CreateSchema(IExceptionContext ectx, Column[] cols, ILegacyDataLoader subLoader)
         {
             Contracts.AssertValue(cols);
             Contracts.AssertValue(subLoader);
 
-            var builder = new SchemaBuilder();
+            var builder = new DataViewSchema.Builder();
             builder.AddColumns(cols.Select(c => new DataViewSchema.DetachedColumn(c.Name, ColumnTypeExtensions.PrimitiveTypeFromKind(c.Type.Value), null)));
-            var colSchema = builder.GetSchema();
+            var colSchema = builder.ToSchema();
 
             var subSchema = subLoader.Schema;
 
@@ -339,7 +339,7 @@ namespace Microsoft.ML.Data
             }
         }
 
-        private byte[] SaveLoaderToBytes(IDataLoader loader)
+        private byte[] SaveLoaderToBytes(ILegacyDataLoader loader)
         {
             Contracts.CheckValue(loader, nameof(loader));
 
@@ -350,7 +350,7 @@ namespace Microsoft.ML.Data
             }
         }
 
-        private IDataLoader CreateLoaderFromBytes(byte[] loaderBytes, IMultiStreamSource files)
+        private ILegacyDataLoader CreateLoaderFromBytes(byte[] loaderBytes, IMultiStreamSource files)
         {
             Contracts.CheckValue(loaderBytes, nameof(loaderBytes));
             Contracts.CheckValue(files, nameof(files));
@@ -404,11 +404,18 @@ namespace Microsoft.ML.Data
 
             public override DataViewSchema Schema => _parent.Schema;
 
-            public override ValueGetter<TValue> GetGetter<TValue>(int col)
+            /// <summary>
+            /// Returns a value getter delegate to fetch the value of column with the given columnIndex, from the row.
+            /// This throws if the column is not active in this row, or if the type
+            /// <typeparamref name="TValue"/> differs from this column's type.
+            /// </summary>
+            /// <typeparam name="TValue"> is the column's content type.</typeparam>
+            /// <param name="column"> is the output column whose getter should be returned.</param>
+            public override ValueGetter<TValue> GetGetter<TValue>(DataViewSchema.Column column)
             {
-                Ch.Check(IsColumnActive(col));
+                Ch.Check(IsColumnActive(column));
 
-                var getter = _getters[col] as ValueGetter<TValue>;
+                var getter = _getters[column.Index] as ValueGetter<TValue>;
                 if (getter == null)
                 {
                     throw Ch.Except("Invalid TValue: '{0}'", typeof(TValue));
@@ -428,10 +435,13 @@ namespace Microsoft.ML.Data
                     };
             }
 
-            public override bool IsColumnActive(int col)
+            /// <summary>
+            /// Returns whether the given column is active in this row.
+            /// </summary>
+            public override bool IsColumnActive(DataViewSchema.Column column)
             {
-                Ch.Check(0 <= col && col < Schema.Count);
-                return _active[col];
+                Ch.Check(column.Index < Schema.Count);
+                return _active[column.Index];
             }
 
             protected override bool MoveNextCore()
@@ -451,7 +461,7 @@ namespace Microsoft.ML.Data
                         return false;
                     }
 
-                    IDataLoader loader = null;
+                    ILegacyDataLoader loader = null;
                     try
                     {
                         // Load the sub cursor and reset the data.
@@ -532,7 +542,7 @@ namespace Microsoft.ML.Data
                     if (_subActive[i])
                     {
                         var type = _subCursor.Schema[i].Type;
-                        _subGetters[i] = MarshalGetter(_subCursor.GetGetter<int>, type.RawType, i);
+                        _subGetters[i] = MarshalGetter(_subCursor.GetGetter<DataViewSchema.Column>, type.RawType, _subCursor.Schema[i]);
                     }
                 }
             }
@@ -662,13 +672,13 @@ namespace Microsoft.ML.Data
                 return true;
             }
 
-            private Delegate MarshalGetter(Func<int, ValueGetter<int>> func, Type type, int col)
+            private Delegate MarshalGetter(Func<DataViewSchema.Column, ValueGetter<DataViewSchema.Column>> func, Type type, DataViewSchema.Column column)
             {
                 var returnType = typeof(ValueGetter<>).MakeGenericType(type);
                 var meth = func.Method;
 
                 var typedMeth = meth.GetGenericMethodDefinition().MakeGenericMethod(type);
-                return (Delegate)typedMeth.Invoke(func.Target, new object[] { col });
+                return (Delegate)typedMeth.Invoke(func.Target, new object[] { column });
             }
 
             /// <summary>

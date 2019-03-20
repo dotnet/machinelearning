@@ -17,7 +17,7 @@ using System.Threading;
 #if CPUMATH_INFRASTRUCTURE
 namespace Microsoft.ML.Internal.CpuMath.Core
 #else
-namespace Microsoft.ML
+namespace Microsoft.ML.Runtime
 #endif
 {
     using Conditional = System.Diagnostics.ConditionalAttribute;
@@ -738,17 +738,21 @@ namespace Microsoft.ML
                 throw ExceptIO(ctx, msg);
         }
 
+        public static void CheckIO(this IExceptionContext ctx, bool f, string msg, params object[] args)
+        {
+            if (!f)
+                throw ExceptIO(ctx, msg, args);
+        }
 #if !CPUMATH_INFRASTRUCTURE
         /// <summary>
         /// Check state of the host and throw exception if host marked to stop all exection.
         /// </summary>
         public static void CheckAlive(this IHostEnvironment env)
         {
-            if (env.IsCancelled)
+            if (env is ICancelable cancelableEnv && cancelableEnv.IsCanceled)
                 throw Process(new OperationCanceledException("Operation was cancelled."), env);
         }
 #endif
-
         /// <summary>
         /// This documents that the parameter can legally be null.
         /// </summary>

@@ -8,14 +8,13 @@ using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Text;
-using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
-using Microsoft.ML.EntryPoints;
-using Microsoft.ML.ImageAnalytics;
 using Microsoft.ML.Internal.Utilities;
-using Microsoft.ML.Model;
+using Microsoft.ML.Runtime;
+using Microsoft.ML.Transforms;
+using Microsoft.ML.Transforms.Image;
 
 [assembly: LoadableClass(ImageLoadingTransformer.Summary, typeof(IDataTransform), typeof(ImageLoadingTransformer), typeof(ImageLoadingTransformer.Options), typeof(SignatureDataTransform),
     ImageLoadingTransformer.UserName, "ImageLoaderTransform", "ImageLoader")]
@@ -27,7 +26,7 @@ using Microsoft.ML.Model;
 
 [assembly: LoadableClass(typeof(IRowMapper), typeof(ImageLoadingTransformer), null, typeof(SignatureLoadRowMapper), "", ImageLoadingTransformer.LoaderSignature)]
 
-namespace Microsoft.ML.ImageAnalytics
+namespace Microsoft.ML.Data
 {
     /// <summary>
     /// The <see cref="ITransformer"/> produced by fitting an <see cref="IDataView"/> to an <see cref="ImageLoadingEstimator"/>.
@@ -82,7 +81,7 @@ namespace Microsoft.ML.ImageAnalytics
         /// <summary>
         /// The columns passed to this <see cref="ITransformer"/>.
         /// </summary>
-        public IReadOnlyCollection<(string outputColumnName, string inputColumnName)> Columns => ColumnPairs.AsReadOnly();
+        internal IReadOnlyCollection<(string outputColumnName, string inputColumnName)> Columns => ColumnPairs.AsReadOnly();
 
         /// <summary>
         /// Initializes a new instance of <see cref="ImageLoadingTransformer"/>.
@@ -184,7 +183,7 @@ namespace Microsoft.ML.ImageAnalytics
                 Contracts.Assert(0 <= iinfo && iinfo < _parent.ColumnPairs.Length);
 
                 disposer = null;
-                var getSrc = input.GetGetter<ReadOnlyMemory<char>>(ColMapNewToOld[iinfo]);
+                var getSrc = input.GetGetter<ReadOnlyMemory<char>>(input.Schema[ColMapNewToOld[iinfo]]);
                 ReadOnlyMemory<char> src = default;
                 ValueGetter<Bitmap> del =
                     (ref Bitmap dst) =>

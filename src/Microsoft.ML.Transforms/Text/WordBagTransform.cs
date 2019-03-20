@@ -5,13 +5,12 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
 using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Internal.Utilities;
-using Microsoft.ML.Transforms.Conversions;
+using Microsoft.ML.Runtime;
 using Microsoft.ML.Transforms.Text;
 
 [assembly: LoadableClass(WordBagBuildingTransformer.Summary, typeof(IDataTransform), typeof(WordBagBuildingTransformer), typeof(WordBagBuildingTransformer.Options), typeof(SignatureDataTransform),
@@ -54,8 +53,8 @@ namespace Microsoft.ML.Transforms.Text
 
             [Argument(ArgumentType.AtMostOnce,
                 HelpText = "Whether to include all ngram lengths up to " + nameof(NgramLength) + " or only " + nameof(NgramLength),
-                ShortName = "all")]
-            public bool? AllLengths;
+                Name = "AllLengths", ShortName = "all")]
+            public bool? UseAllLengths;
 
             [Argument(ArgumentType.Multiple, HelpText = "Maximum number of ngrams to store in the dictionary", ShortName = "max")]
             public int[] MaxNumTerms = null;
@@ -76,7 +75,7 @@ namespace Microsoft.ML.Transforms.Text
             internal bool TryUnparse(StringBuilder sb)
             {
                 Contracts.AssertValue(sb);
-                if (NgramLength != null || SkipLength != null || AllLengths != null || Utils.Size(MaxNumTerms) > 0 ||
+                if (NgramLength != null || SkipLength != null || UseAllLengths != null || Utils.Size(MaxNumTerms) > 0 ||
                     Weighting != null)
                 {
                     return false;
@@ -115,7 +114,7 @@ namespace Microsoft.ML.Transforms.Text
             // REVIEW: In order to make it possible to output separate bags for different columns
             // using the same dictionary, we need to find a way to make ConcatTransform remember the boundaries.
 
-            var tokenizeColumns = new WordTokenizingEstimator.ColumnInfo[options.Columns.Length];
+            var tokenizeColumns = new WordTokenizingEstimator.ColumnOptions[options.Columns.Length];
 
             var extractorArgs =
                 new NgramExtractorTransform.Options()
@@ -123,7 +122,7 @@ namespace Microsoft.ML.Transforms.Text
                     MaxNumTerms = options.MaxNumTerms,
                     NgramLength = options.NgramLength,
                     SkipLength = options.SkipLength,
-                    AllLengths = options.AllLengths,
+                    UseAllLengths = options.UseAllLengths,
                     Weighting = options.Weighting,
                     Columns = new NgramExtractorTransform.Column[options.Columns.Length]
                 };
@@ -135,7 +134,7 @@ namespace Microsoft.ML.Transforms.Text
                 h.CheckUserArg(Utils.Size(column.Source) > 0, nameof(column.Source));
                 h.CheckUserArg(column.Source.All(src => !string.IsNullOrWhiteSpace(src)), nameof(column.Source));
 
-                tokenizeColumns[iinfo] = new WordTokenizingEstimator.ColumnInfo(column.Name, column.Source.Length > 1 ? column.Name : column.Source[0]);
+                tokenizeColumns[iinfo] = new WordTokenizingEstimator.ColumnOptions(column.Name, column.Source.Length > 1 ? column.Name : column.Source[0]);
 
                 extractorArgs.Columns[iinfo] =
                     new NgramExtractorTransform.Column()
@@ -146,7 +145,7 @@ namespace Microsoft.ML.Transforms.Text
                         NgramLength = column.NgramLength,
                         SkipLength = column.SkipLength,
                         Weighting = column.Weighting,
-                        AllLengths = column.AllLengths
+                        UseAllLengths = column.UseAllLengths
                     };
             }
 
@@ -175,8 +174,9 @@ namespace Microsoft.ML.Transforms.Text
             public int? SkipLength;
 
             [Argument(ArgumentType.AtMostOnce, HelpText =
-                "Whether to include all ngram lengths up to " + nameof(NgramLength) + " or only " + nameof(NgramLength), ShortName = "all")]
-            public bool? AllLengths;
+                "Whether to include all ngram lengths up to " + nameof(NgramLength) + " or only " + nameof(NgramLength),
+                Name = "AllLengths", ShortName = "all")]
+            public bool? UseAllLengths;
 
             // REVIEW: This argument is actually confusing. If you set only one value we will use this value for all ngrams respectfully for example,
             // if we specify 3 ngrams we will have maxNumTerms * 3. And it also pick first value from this array to run term transform, so if you specify
@@ -200,7 +200,7 @@ namespace Microsoft.ML.Transforms.Text
             internal bool TryUnparse(StringBuilder sb)
             {
                 Contracts.AssertValue(sb);
-                if (NgramLength != null || SkipLength != null || AllLengths != null || Utils.Size(MaxNumTerms) > 0 ||
+                if (NgramLength != null || SkipLength != null || UseAllLengths != null || Utils.Size(MaxNumTerms) > 0 ||
                     Weighting != null)
                 {
                     return false;
@@ -225,11 +225,11 @@ namespace Microsoft.ML.Transforms.Text
 
             [Argument(ArgumentType.AtMostOnce,
                 HelpText = "Whether to include all ngram lengths up to " + nameof(NgramLength) + " or only " + nameof(NgramLength),
-                ShortName = "all")]
-            public bool AllLengths = NgramExtractingEstimator.Defaults.AllLengths;
+                Name = "AllLengths", ShortName = "all")]
+            public bool UseAllLengths = NgramExtractingEstimator.Defaults.UseAllLengths;
 
             [Argument(ArgumentType.Multiple, HelpText = "Maximum number of ngrams to store in the dictionary", ShortName = "max")]
-            public int[] MaxNumTerms = new int[] { NgramExtractingEstimator.Defaults.MaxNumTerms };
+            public int[] MaxNumTerms = new int[] { NgramExtractingEstimator.Defaults.MaximumNgramsCount };
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "The weighting criteria")]
             public NgramExtractingEstimator.WeightingCriteria Weighting = NgramExtractingEstimator.Defaults.Weighting;
@@ -315,7 +315,7 @@ namespace Microsoft.ML.Transforms.Text
                     termArgs =
                         new ValueToKeyMappingTransformer.Options()
                         {
-                            MaxNumTerms = Utils.Size(options.MaxNumTerms) > 0 ? options.MaxNumTerms[0] : NgramExtractingEstimator.Defaults.MaxNumTerms,
+                            MaxNumTerms = Utils.Size(options.MaxNumTerms) > 0 ? options.MaxNumTerms[0] : NgramExtractingEstimator.Defaults.MaximumNgramsCount,
                             Columns = new ValueToKeyMappingTransformer.Column[termCols.Count]
                         };
                 }
@@ -340,14 +340,14 @@ namespace Microsoft.ML.Transforms.Text
                     view = new MissingValueDroppingTransformer(h, missingDropColumns.Select(x => (x, x)).ToArray()).Transform(view);
             }
 
-            var ngramColumns = new NgramExtractingEstimator.ColumnInfo[options.Columns.Length];
+            var ngramColumns = new NgramExtractingEstimator.ColumnOptions[options.Columns.Length];
             for (int iinfo = 0; iinfo < options.Columns.Length; iinfo++)
             {
                 var column = options.Columns[iinfo];
-                ngramColumns[iinfo] = new NgramExtractingEstimator.ColumnInfo(column.Name,
+                ngramColumns[iinfo] = new NgramExtractingEstimator.ColumnOptions(column.Name,
                     column.NgramLength ?? options.NgramLength,
                     column.SkipLength ?? options.SkipLength,
-                    column.AllLengths ?? options.AllLengths,
+                    column.UseAllLengths ?? options.UseAllLengths,
                     column.Weighting ?? options.Weighting,
                     column.MaxNumTerms ?? options.MaxNumTerms,
                     isTermCol[iinfo] ? column.Name : column.Source
@@ -380,7 +380,7 @@ namespace Microsoft.ML.Transforms.Text
                 Columns = extractorCols,
                 NgramLength = extractorArgs.NgramLength,
                 SkipLength = extractorArgs.SkipLength,
-                AllLengths = extractorArgs.AllLengths,
+                UseAllLengths = extractorArgs.UseAllLengths,
                 MaxNumTerms = extractorArgs.MaxNumTerms,
                 Weighting = extractorArgs.Weighting
             };
@@ -416,14 +416,14 @@ namespace Microsoft.ML.Transforms.Text
         public string DataFile;
 
         [Argument(ArgumentType.Multiple, HelpText = "Data loader", NullName = "<Auto>", SortOrder = 3, Visibility = ArgumentAttribute.VisibilityType.CmdLineOnly, SignatureType = typeof(SignatureDataLoader))]
-        internal IComponentFactory<IMultiStreamSource, IDataLoader> Loader;
+        internal IComponentFactory<IMultiStreamSource, ILegacyDataLoader> Loader;
 
         [Argument(ArgumentType.AtMostOnce, HelpText = "Name of the text column containing the terms", ShortName = "termCol", SortOrder = 4, Visibility = ArgumentAttribute.VisibilityType.CmdLineOnly)]
         public string TermsColumn;
 
         [Argument(ArgumentType.AtMostOnce, HelpText = "How items should be ordered when vectorized. By default, they will be in the order encountered. " +
             "If by value, items are sorted according to their default comparison, for example, text sorting will be case sensitive (for example, 'A' then 'Z' then 'a').", SortOrder = 5)]
-        public ValueToKeyMappingEstimator.SortOrder Sort = ValueToKeyMappingEstimator.SortOrder.Occurrence;
+        public ValueToKeyMappingEstimator.KeyOrdinality Sort = ValueToKeyMappingEstimator.KeyOrdinality.ByOccurrence;
 
         [Argument(ArgumentType.AtMostOnce, HelpText = "Drop unknown terms instead of mapping them to NA term.", ShortName = "dropna", SortOrder = 6)]
         public bool DropUnknowns = false;
@@ -505,7 +505,7 @@ namespace Microsoft.ML.Transforms.Text
             env.CheckValue(input, nameof(input));
 
             IDataView view = input;
-            var concatColumns = new List<ColumnConcatenatingTransformer.ColumnInfo>();
+            var concatColumns = new List<ColumnConcatenatingTransformer.ColumnOptions>();
             foreach (var col in columns)
             {
                 env.CheckUserArg(col != null, nameof(WordBagBuildingTransformer.Options.Columns));
@@ -513,7 +513,7 @@ namespace Microsoft.ML.Transforms.Text
                 env.CheckUserArg(Utils.Size(col.Source) > 0, nameof(col.Source));
                 env.CheckUserArg(col.Source.All(src => !string.IsNullOrWhiteSpace(src)), nameof(col.Source));
                 if (col.Source.Length > 1)
-                    concatColumns.Add(new ColumnConcatenatingTransformer.ColumnInfo(col.Name, col.Source));
+                    concatColumns.Add(new ColumnConcatenatingTransformer.ColumnOptions(col.Name, col.Source));
             }
             if (concatColumns.Count > 0)
                 return new ColumnConcatenatingTransformer(env, concatColumns.ToArray()).Transform(view);

@@ -5,12 +5,12 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
 using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Runtime;
 using Newtonsoft.Json.Linq;
 
 [assembly: LoadableClass(typeof(void), typeof(CrossValidationMacro), null, typeof(SignatureEntryPointModule), "CrossValidationMacro")]
@@ -301,7 +301,7 @@ namespace Microsoft.ML.EntryPoints
             MacroUtils.ConvertIdataViewsToArray(env, node.Context, subGraphNodes, overallMetricsVars, overallArrayVar.VarName);
             MacroUtils.ConvertIdataViewsToArray(env, node.Context, subGraphNodes, instanceMetricsVars, instanceArrayVar.VarName);
             if (input.Kind == MacroUtils.TrainerKinds.SignatureBinaryClassifierTrainer ||
-                input.Kind == MacroUtils.TrainerKinds.SignatureMultiClassClassifierTrainer)
+                input.Kind == MacroUtils.TrainerKinds.SignatureMulticlassClassificationTrainer)
             {
                 confusionMatrixArrayVar = new ArrayVar<IDataView>();
                 MacroUtils.ConvertIdataViewsToArray(env, node.Context, subGraphNodes, confusionMatrixVars, confusionMatrixArrayVar.VarName);
@@ -425,12 +425,12 @@ namespace Microsoft.ML.EntryPoints
             {
             case MacroUtils.TrainerKinds.SignatureBinaryClassifierTrainer:
                 return new BinaryClassifierMamlEvaluator(env, new BinaryClassifierMamlEvaluator.Arguments());
-            case MacroUtils.TrainerKinds.SignatureMultiClassClassifierTrainer:
-                return new MultiClassMamlEvaluator(env, new MultiClassMamlEvaluator.Arguments());
+            case MacroUtils.TrainerKinds.SignatureMulticlassClassificationTrainer:
+                return new MulticlassClassificationMamlEvaluator(env, new MulticlassClassificationMamlEvaluator.Arguments());
             case MacroUtils.TrainerKinds.SignatureRegressorTrainer:
                 return new RegressionMamlEvaluator(env, new RegressionMamlEvaluator.Arguments());
             case MacroUtils.TrainerKinds.SignatureRankerTrainer:
-                return new RankerMamlEvaluator(env, new RankerMamlEvaluator.Arguments());
+                return new RankingMamlEvaluator(env, new RankingMamlEvaluator.Arguments());
             case MacroUtils.TrainerKinds.SignatureAnomalyDetectorTrainer:
                 return new AnomalyDetectionMamlEvaluator(env, new AnomalyDetectionMamlEvaluator.Arguments());
             case MacroUtils.TrainerKinds.SignatureClusteringTrainer:

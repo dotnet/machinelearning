@@ -6,15 +6,14 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
 using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Internal.Utilities;
-using Microsoft.ML.Model;
 using Microsoft.ML.OnnxRuntime;
-using Microsoft.ML.Transforms;
+using Microsoft.ML.Runtime;
+using Microsoft.ML.Transforms.Onnx;
 using OnnxShape = System.Collections.Generic.List<int>;
 
 [assembly: LoadableClass(OnnxTransformer.Summary, typeof(IDataTransform), typeof(OnnxTransformer),
@@ -31,7 +30,7 @@ using OnnxShape = System.Collections.Generic.List<int>;
 
 [assembly: EntryPointModule(typeof(OnnxTransformer))]
 
-namespace Microsoft.ML.Transforms
+namespace Microsoft.ML.Transforms.Onnx
 {
     /// <summary>
     /// <p>A transform for scoring ONNX models in the ML.NET framework.</p>
@@ -165,7 +164,7 @@ namespace Microsoft.ML.Transforms
                 if (modelBytes == null)
                 {
                     Host.CheckNonWhiteSpace(options.ModelFile, nameof(options.ModelFile));
-                    Host.CheckUserArg(File.Exists(options.ModelFile), nameof(options.ModelFile));
+                    Host.CheckIO(File.Exists(options.ModelFile), "Model file {0} does not exists.", options.ModelFile);
                     Model = new OnnxModel(options.ModelFile, options.GpuDeviceId, options.FallbackToCpu);
                 }
                 else
@@ -475,7 +474,7 @@ namespace Microsoft.ML.Transforms
                 public NameOnnxValueGetter(DataViewRow input, string colName, int colIndex)
                 {
                     _colName = colName;
-                    _srcgetter = input.GetGetter<T>(colIndex);
+                    _srcgetter = input.GetGetter<T>(input.Schema[colIndex]);
                 }
                 public NamedOnnxValue GetNamedOnnxValue()
                 {
@@ -494,7 +493,7 @@ namespace Microsoft.ML.Transforms
                 private VBuffer<T> _vBufferDense;
                 public NamedOnnxValueGetterVec(DataViewRow input, string colName, int colIndex, OnnxShape tensorShape)
                 {
-                    _srcgetter = input.GetGetter<VBuffer<T>>(colIndex);
+                    _srcgetter = input.GetGetter<VBuffer<T>>(input.Schema[colIndex]);
                     _tensorShape = tensorShape;
                     _colName = colName;
                     _vBuffer = default;

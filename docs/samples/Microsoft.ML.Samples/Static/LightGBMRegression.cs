@@ -1,7 +1,7 @@
 using System;
 using Microsoft.ML.Data;
-using Microsoft.ML.LightGBM;
-using Microsoft.ML.LightGBM.StaticPipe;
+using Microsoft.ML.Trainers.LightGbm;
+using Microsoft.ML.Trainers.LightGbm.StaticPipe;
 using Microsoft.ML.StaticPipe;
 
 namespace Microsoft.ML.Samples.Static
@@ -19,27 +19,27 @@ namespace Microsoft.ML.Samples.Static
             // as well as the source of randomness.
             var mlContext = new MLContext();
 
-            // Creating a data reader, based on the format of the data
-            var reader = TextLoaderStatic.CreateReader(mlContext, c => (
+            // Creating a data loader, based on the format of the data
+            var loader = TextLoaderStatic.CreateLoader(mlContext, c => (
                         label: c.LoadFloat(0),
                         features: c.LoadFloat(1, 6)
                     ),
                 separator: '\t', hasHeader: true);
 
-            // Read the data, and leave 10% out, so we can use them for testing
-            var data = reader.Read(new MultiFileSource(dataFile));
-            var (trainData, testData) = mlContext.Regression.TrainTestSplit(data, testFraction: 0.1);
+            // Load the data, and leave 10% out, so we can use them for testing
+            var data = loader.Load(new MultiFileSource(dataFile));
+            var (trainData, testData) = mlContext.Data.TrainTestSplit(data, testFraction: 0.1);
 
             // The predictor that gets produced out of training
             LightGbmRegressionModelParameters pred = null;
 
             // Create the estimator
-            var learningPipeline = reader.MakeNewEstimator()
+            var learningPipeline = loader.MakeNewEstimator()
                 .Append(r => (r.label, score: mlContext.Regression.Trainers.LightGbm(
                                             r.label,
                                             r.features,
-                                            numLeaves: 4,
-                                            minDataPerLeaf: 6,
+                                            numberOfLeaves: 4,
+                                            minimumExampleCountPerLeaf: 6,
                                             learningRate: 0.001,
                                         onFit: p => pred = p)
                                 )
@@ -60,10 +60,10 @@ namespace Microsoft.ML.Samples.Static
             var dataWithPredictions = model.Transform(testData);
             var metrics = mlContext.Regression.Evaluate(dataWithPredictions, r => r.label, r => r.score);
 
-            Console.WriteLine($"L1 - {metrics.L1}");    // 4.9669731
-            Console.WriteLine($"L2 - {metrics.L2}");    // 51.37296
-            Console.WriteLine($"LossFunction - {metrics.LossFn}");  // 51.37296
-            Console.WriteLine($"RMS - {metrics.Rms}");              // 7.167493
+            Console.WriteLine($"L1 - {metrics.MeanAbsoluteError}");    // 4.9669731
+            Console.WriteLine($"L2 - {metrics.MeanSquaredError}");    // 51.37296
+            Console.WriteLine($"LossFunction - {metrics.LossFunction}");  // 51.37296
+            Console.WriteLine($"RMS - {metrics.RootMeanSquaredError}");              // 7.167493
             Console.WriteLine($"RSquared - {metrics.RSquared}");    // 0.079478
         }
     }

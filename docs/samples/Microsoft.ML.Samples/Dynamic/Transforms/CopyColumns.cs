@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using Microsoft.ML.Data;
 
 namespace Microsoft.ML.Samples.Dynamic
 {
@@ -14,7 +13,7 @@ namespace Microsoft.ML.Samples.Dynamic
 
             // Get a small dataset as an IEnumerable and them read it as ML.NET's data type.
             IEnumerable<SamplesUtils.DatasetUtils.SampleInfertData> data = SamplesUtils.DatasetUtils.GetInfertData();
-            var trainData = mlContext.Data.ReadFromEnumerable(data);
+            var trainData = mlContext.Data.LoadFromEnumerable(data);
 
             // Preview of the data.
             //
@@ -45,7 +44,7 @@ namespace Microsoft.ML.Samples.Dynamic
             var transformedData = pipeline.Fit(trainData).Transform(trainData);
 
             // We can extract the newly created column as an IEnumerable of SampleInfertDataTransformed, the class we define below.
-            var rowEnumerable = mlContext.CreateEnumerable<SampleInfertDataTransformed>(transformedData, reuseRowObject: false);
+            var rowEnumerable = mlContext.Data.CreateEnumerable<SampleInfertDataTransformed>(transformedData, reuseRowObject: false);
 
             // And finally, we can write out the rows of the dataset, looking at the columns of interest.
             Console.WriteLine($"Label, Parity, and CustomValue columns obtained post-transformation.");

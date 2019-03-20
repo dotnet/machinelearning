@@ -5,13 +5,13 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.Command;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Model.Pfa;
+using Microsoft.ML.Runtime;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
@@ -101,7 +101,7 @@ namespace Microsoft.ML.Model.Pfa
         private void GetPipe(IChannel ch, IDataView end, out IDataView source, out IDataView trueEnd, out LinkedList<ITransformCanSavePfa> transforms)
         {
             Host.AssertValue(end);
-            source = trueEnd = (end as CompositeDataLoader)?.View ?? end;
+            source = trueEnd = (end as LegacyCompositeDataLoader)?.View ?? end;
             IDataTransform transform = source as IDataTransform;
             transforms = new LinkedList<ITransformCanSavePfa>();
             while (transform != null)
@@ -120,7 +120,7 @@ namespace Microsoft.ML.Model.Pfa
 
         private void Run(IChannel ch)
         {
-            IDataLoader loader;
+            ILegacyDataLoader loader;
             IPredictor rawPred;
             RoleMappedSchema trainSchema;
 

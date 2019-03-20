@@ -2,11 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using Microsoft.Data.DataView;
 using Microsoft.ML.Data;
 using Microsoft.ML.Internal.CpuMath;
 using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Runtime;
 
 namespace Microsoft.ML.Transforms
 {
@@ -80,6 +79,47 @@ namespace Microsoft.ML.Transforms
                 "assigned in NAReplaceTransform.", kind, type);
         }
 
+        private static DataViewRowId Add(DataViewRowId left, ulong right)
+        {
+            ulong resHi = left.High;
+            ulong resLo = left.Low + right;
+            if (resLo < right)
+                resHi++;
+            return new DataViewRowId(resLo, resHi);
+        }
+
+        private static DataViewRowId Subtract(DataViewRowId left, ulong right)
+        {
+            ulong resHi = left.High;
+            ulong resLo = left.Low - right;
+            if (resLo > left.Low)
+                resHi--;
+            return new DataViewRowId(resLo, resHi);
+        }
+
+        private static bool Equals(DataViewRowId left, ulong right)
+        {
+            return left.High == 0 && left.Low == right;
+        }
+
+        private static bool GreaterThanOrEqual(DataViewRowId left, ulong right)
+        {
+            return left.High > 0 || left.Low >= right;
+        }
+
+        private static bool GreaterThan(DataViewRowId left, ulong right)
+        {
+            return left.High > 0 || left.Low > right;
+        }
+
+        private static double ToDouble(DataViewRowId value)
+        {
+            // REVIEW: The 64-bit JIT has a bug where rounding might be not quite
+            // correct when converting a ulong to double with the high bit set. Should we
+            // care and compensate? See the DoubleParser code for a work-around.
+            return value.High * ((double)(1UL << 32) * (1UL << 32)) + value.Low;
+        }
+
         /// <summary>
         /// The base class for stat aggregators for imputing mean, min, and max for the NAReplaceTransform.
         /// </summary>
@@ -125,7 +165,7 @@ namespace Microsoft.ML.Transforms
             {
                 Ch.AssertValue(cursor);
                 Ch.Assert(0 <= col);
-                _getter = cursor.GetGetter<TValue>(col);
+                _getter = cursor.GetGetter<TValue>(cursor.Schema[col]);
             }
 
             public sealed override void ProcessRow()
@@ -161,7 +201,7 @@ namespace Microsoft.ML.Transforms
                 for (int slot = 0; slot < srcCount; slot++)
                     ProcessValue(in srcValues[slot]);
 
-                _valueCount = _valueCount + (ulong)src.Length;
+                _valueCount = Add(_valueCount, (ulong)src.Length);
             }
 
             protected abstract void ProcessValue(in TItem val);
@@ -312,11 +352,11 @@ namespace Microsoft.ML.Transforms
             // The number of non-zero (finite) values processed.
             private long _cnz;
             // The current mean estimate for the _cnz values we've processed.
-            private Double _cur;
+            private double _cur;
 
-            public void Update(Double val)
+            public void Update(double val)
             {
-                Contracts.Assert(Double.MinValue <= _cur && _cur <= Double.MaxValue);
+                Contracts.Assert(double.MinValue <= _cur && _cur <= double.MaxValue);
 
                 if (val == 0)
                     return;
@@ -335,12 +375,12 @@ namespace Microsoft.ML.Transforms
                 else
                     _cur += (val - _cur) / _cnz;
 
-                Contracts.Assert(Double.MinValue <= _cur && _cur <= Double.MaxValue);
+                Contracts.Assert(double.MinValue <= _cur && _cur <= double.MaxValue);
             }
 
-            public Double GetCurrentValue(IChannel ch, long count)
+            public double GetCurrentValue(IChannel ch, long count)
             {
-                Contracts.Assert(Double.MinValue <= _cur && _cur <= Double.MaxValue);
+                Contracts.Assert(double.MinValue <= _cur && _cur <= double.MaxValue);
                 Contracts.Assert(_cnz >= 0 && _cna >= 0);
                 Contracts.Assert(count >= _cna);
                 Contracts.Assert(count - _cna >= _cnz);
@@ -353,28 +393,28 @@ namespace Microsoft.ML.Transforms
                 }
 
                 // Fold in the zeros.
-                Double stat = _cur * ((Double)_cnz / (count - _cna));
-                Contracts.Assert(Double.MinValue <= stat && stat <= Double.MaxValue);
+                double stat = _cur * ((double)_cnz / (count - _cna));
+                Contracts.Assert(double.MinValue <= stat && stat <= double.MaxValue);
                 return stat;
             }
 
-            public Double GetCurrentValue(IChannel ch, DataViewRowId count)
+            public double GetCurrentValue(IChannel ch, DataViewRowId count)
             {
-                Contracts.Assert(Double.MinValue <= _cur && _cur <= Double.MaxValue);
+                Contracts.Assert(double.MinValue <= _cur && _cur <= double.MaxValue);
                 Contracts.Assert(_cnz >= 0 && _cna >= 0);
                 Contracts.Assert(count.High != 0 || count.Low >= (ulong)_cna);
 
                 // If all values in the column are NAs, emit a warning and return 0.
                 // Is this what we want to do or should an error be thrown?
-                if (count == (ulong)_cna)
+                if (Equals(count, (ulong)_cna))
                 {
                     ch.Warning("All values in this column are NAs, using default value for imputation");
                     return 0;
                 }
 
                 // Fold in the zeros.
-                Double stat = _cur * ((Double)_cnz / (Double)(count - (ulong)_cna));
-                Contracts.Assert(Double.MinValue <= stat && stat <= Double.MaxValue);
+                double stat = _cur * ((double)_cnz / ToDouble(Subtract(count, (ulong)_cna)));
+                Contracts.Assert(double.MinValue <= stat && stat <= double.MaxValue);
                 return stat;
             }
         }
@@ -462,20 +502,20 @@ namespace Microsoft.ML.Transforms
             public long GetCurrentValue(IChannel ch, DataViewRowId count, long valMax)
             {
                 AssertValid(valMax);
-                Contracts.Assert(count >= (ulong)_cna);
+                Contracts.Assert(GreaterThanOrEqual(count, (ulong)_cna));
 
                 // If the sum is zero, return zero.
                 if ((_sumHi | _sumLo) == 0)
                 {
                     // If all values in a given column are NAs issue a warning.
-                    if (count == (ulong)_cna)
+                    if (Equals(count, (ulong)_cna))
                         ch.Warning("All values in this column are NAs, using default value for imputation");
                     return 0;
                 }
 
-                Contracts.Assert(count > (ulong)_cna);
-                count -= (ulong)_cna;
-                Contracts.Assert(count > 0);
+                Contracts.Assert(GreaterThan(count, (ulong)_cna));
+                count = Subtract(count, (ulong)_cna);
+                Contracts.Assert(GreaterThan(count, 0));
 
                 ulong sumHi = _sumHi;
                 ulong sumLo = _sumLo;
@@ -495,7 +535,7 @@ namespace Microsoft.ML.Transforms
                 // a ulong, so the absolute value of the sum can't possibly be so large that sumHi
                 // reaches or exceeds count. This assert implies that the Div part of the DivRound
                 // call won't throw.
-                Contracts.Assert(count > sumHi);
+                Contracts.Assert(GreaterThan(count, sumHi));
 
                 ulong res = IntUtils.DivRound(sumLo, sumHi, count.Low, count.High);
                 Contracts.Assert(0 <= res && res <= (ulong)valMax);
@@ -508,54 +548,54 @@ namespace Microsoft.ML.Transforms
             // Utilizes MeanStatDouble for the mean aggregators, a struct that holds _stat as a double, despite the fact that its
             // value should always be within the range of a valid Single after processing each value as it is representative of the
             // mean of a set of Single values. Conversion to Single happens in GetStat.
-            public sealed class MeanAggregatorOne : StatAggregator<Single, MeanStatDouble>
+            public sealed class MeanAggregatorOne : StatAggregator<float, MeanStatDouble>
             {
                 public MeanAggregatorOne(IChannel ch, DataViewRowCursor cursor, int col)
                     : base(ch, cursor, col)
                 {
                 }
 
-                protected override void ProcessRow(in Single val)
+                protected override void ProcessRow(in float val)
                 {
                     Stat.Update(val);
                 }
 
                 public override object GetStat()
                 {
-                    Double val = Stat.GetCurrentValue(Ch, RowCount);
-                    Ch.Assert(Single.MinValue <= val && val <= Single.MaxValue);
-                    return (Single)val;
+                    double val = Stat.GetCurrentValue(Ch, RowCount);
+                    Ch.Assert(float.MinValue <= val && val <= float.MaxValue);
+                    return (float)val;
                 }
             }
 
-            public sealed class MeanAggregatorAcrossSlots : StatAggregatorAcrossSlots<Single, MeanStatDouble>
+            public sealed class MeanAggregatorAcrossSlots : StatAggregatorAcrossSlots<float, MeanStatDouble>
             {
                 public MeanAggregatorAcrossSlots(IChannel ch, DataViewRowCursor cursor, int col)
                     : base(ch, cursor, col)
                 {
                 }
 
-                protected override void ProcessValue(in Single val)
+                protected override void ProcessValue(in float val)
                 {
                     Stat.Update(val);
                 }
 
                 public override object GetStat()
                 {
-                    Double val = Stat.GetCurrentValue(Ch, ValueCount);
-                    Ch.Assert(Single.MinValue <= val && val <= Single.MaxValue);
-                    return (Single)val;
+                    double val = Stat.GetCurrentValue(Ch, ValueCount);
+                    Ch.Assert(float.MinValue <= val && val <= float.MaxValue);
+                    return (float)val;
                 }
             }
 
-            public sealed class MeanAggregatorBySlot : StatAggregatorBySlot<Single, MeanStatDouble>
+            public sealed class MeanAggregatorBySlot : StatAggregatorBySlot<float, MeanStatDouble>
             {
                 public MeanAggregatorBySlot(IChannel ch, VectorType type, DataViewRowCursor cursor, int col)
                     : base(ch, type, cursor, col)
                 {
                 }
 
-                protected override void ProcessValue(in Single val, int slot)
+                protected override void ProcessValue(in float val, int slot)
                 {
                     Ch.Assert(0 <= slot && slot < Stat.Length);
                     Stat[slot].Update(val);
@@ -563,53 +603,53 @@ namespace Microsoft.ML.Transforms
 
                 public override object GetStat()
                 {
-                    Single[] stat = new Single[Stat.Length];
+                    float[] stat = new float[Stat.Length];
                     for (int slot = 0; slot < stat.Length; slot++)
                     {
-                        Double val = Stat[slot].GetCurrentValue(Ch, RowCount);
-                        Ch.Assert(Single.MinValue <= val && val <= Single.MaxValue);
-                        stat[slot] = (Single)val;
+                        double val = Stat[slot].GetCurrentValue(Ch, RowCount);
+                        Ch.Assert(float.MinValue <= val && val <= float.MaxValue);
+                        stat[slot] = (float)val;
                     }
                     return stat;
                 }
             }
 
-            public sealed class MinMaxAggregatorOne : MinMaxAggregatorOne<Single, Single>
+            public sealed class MinMaxAggregatorOne : MinMaxAggregatorOne<float, float>
             {
                 public MinMaxAggregatorOne(IChannel ch, DataViewRowCursor cursor, int col, bool returnMax)
                     : base(ch, cursor, col, returnMax)
                 {
-                    Stat = ReturnMax ? Single.NegativeInfinity : Single.PositiveInfinity;
+                    Stat = ReturnMax ? float.NegativeInfinity : float.PositiveInfinity;
                 }
 
-                protected override void ProcessValueMin(in Single val)
+                protected override void ProcessValueMin(in float val)
                 {
                     if (val < Stat)
                         Stat = val;
                 }
 
-                protected override void ProcessValueMax(in Single val)
+                protected override void ProcessValueMax(in float val)
                 {
                     if (val > Stat)
                         Stat = val;
                 }
             }
 
-            public sealed class MinMaxAggregatorAcrossSlots : MinMaxAggregatorAcrossSlots<Single, Single>
+            public sealed class MinMaxAggregatorAcrossSlots : MinMaxAggregatorAcrossSlots<float, float>
             {
                 public MinMaxAggregatorAcrossSlots(IChannel ch, DataViewRowCursor cursor, int col, bool returnMax)
                     : base(ch, cursor, col, returnMax)
                 {
-                    Stat = ReturnMax ? Single.NegativeInfinity : Single.PositiveInfinity;
+                    Stat = ReturnMax ? float.NegativeInfinity : float.PositiveInfinity;
                 }
 
-                protected override void ProcessValueMin(in Single val)
+                protected override void ProcessValueMin(in float val)
                 {
                     if (val < Stat)
                         Stat = val;
                 }
 
-                protected override void ProcessValueMax(in Single val)
+                protected override void ProcessValueMax(in float val)
                 {
                     if (val > Stat)
                         Stat = val;
@@ -618,33 +658,33 @@ namespace Microsoft.ML.Transforms
                 public override object GetStat()
                 {
                     // If sparsity occurred, fold in a zero.
-                    if (ValueCount > (ulong)ValuesProcessed)
+                    if (GreaterThan(ValueCount, (ulong)ValuesProcessed))
                     {
-                        Single def = 0;
+                        float def = 0;
                         ProcValueDelegate(in def);
                     }
-                    return (Single)Stat;
+                    return (float)Stat;
                 }
             }
 
-            public sealed class MinMaxAggregatorBySlot : MinMaxAggregatorBySlot<Single, Single>
+            public sealed class MinMaxAggregatorBySlot : MinMaxAggregatorBySlot<float, float>
             {
                 public MinMaxAggregatorBySlot(IChannel ch, VectorType type, DataViewRowCursor cursor, int col, bool returnMax)
                     : base(ch, type, cursor, col, returnMax)
                 {
-                    Single bound = ReturnMax ? Single.NegativeInfinity : Single.PositiveInfinity;
+                    float bound = ReturnMax ? float.NegativeInfinity : float.PositiveInfinity;
                     for (int i = 0; i < Stat.Length; i++)
                         Stat[i] = bound;
                 }
 
-                protected override void ProcessValueMin(in Single val, int slot)
+                protected override void ProcessValueMin(in float val, int slot)
                 {
                     Ch.Assert(0 <= slot && slot < Stat.Length);
                     if (val < Stat[slot])
                         Stat[slot] = val;
                 }
 
-                protected override void ProcessValueMax(in Single val, int slot)
+                protected override void ProcessValueMax(in float val, int slot)
                 {
                     Ch.Assert(0 <= slot && slot < Stat.Length);
                     if (val > Stat[slot])
@@ -658,7 +698,7 @@ namespace Microsoft.ML.Transforms
                     {
                         if (GetValuesProcessed(slot) < RowCount)
                         {
-                            Single def = 0;
+                            float def = 0;
                             ProcValueDelegate(in def, slot);
                         }
                     }
@@ -669,14 +709,14 @@ namespace Microsoft.ML.Transforms
 
         private static class R8
         {
-            public sealed class MeanAggregatorOne : StatAggregator<Double, MeanStatDouble>
+            public sealed class MeanAggregatorOne : StatAggregator<double, MeanStatDouble>
             {
                 public MeanAggregatorOne(IChannel ch, DataViewRowCursor cursor, int col)
                     : base(ch, cursor, col)
                 {
                 }
 
-                protected override void ProcessRow(in Double val)
+                protected override void ProcessRow(in double val)
                 {
                     Stat.Update(val);
                 }
@@ -687,14 +727,14 @@ namespace Microsoft.ML.Transforms
                 }
             }
 
-            public sealed class MeanAggregatorAcrossSlots : StatAggregatorAcrossSlots<Double, MeanStatDouble>
+            public sealed class MeanAggregatorAcrossSlots : StatAggregatorAcrossSlots<double, MeanStatDouble>
             {
                 public MeanAggregatorAcrossSlots(IChannel ch, DataViewRowCursor cursor, int col)
                     : base(ch, cursor, col)
                 {
                 }
 
-                protected override void ProcessValue(in Double val)
+                protected override void ProcessValue(in double val)
                 {
                     Stat.Update(val);
                 }
@@ -705,14 +745,14 @@ namespace Microsoft.ML.Transforms
                 }
             }
 
-            public sealed class MeanAggregatorBySlot : StatAggregatorBySlot<Double, MeanStatDouble>
+            public sealed class MeanAggregatorBySlot : StatAggregatorBySlot<double, MeanStatDouble>
             {
                 public MeanAggregatorBySlot(IChannel ch, VectorType type, DataViewRowCursor cursor, int col)
                     : base(ch, type, cursor, col)
                 {
                 }
 
-                protected override void ProcessValue(in Double val, int slot)
+                protected override void ProcessValue(in double val, int slot)
                 {
                     Ch.Assert(0 <= slot && slot < Stat.Length);
                     Stat[slot].Update(val);
@@ -720,49 +760,49 @@ namespace Microsoft.ML.Transforms
 
                 public override object GetStat()
                 {
-                    Double[] stat = new Double[Stat.Length];
+                    double[] stat = new double[Stat.Length];
                     for (int slot = 0; slot < stat.Length; slot++)
                         stat[slot] = Stat[slot].GetCurrentValue(Ch, RowCount);
                     return stat;
                 }
             }
 
-            public sealed class MinMaxAggregatorOne : MinMaxAggregatorOne<Double, Double>
+            public sealed class MinMaxAggregatorOne : MinMaxAggregatorOne<double, double>
             {
                 public MinMaxAggregatorOne(IChannel ch, DataViewRowCursor cursor, int col, bool returnMax)
                     : base(ch, cursor, col, returnMax)
                 {
-                    Stat = ReturnMax ? Double.NegativeInfinity : Double.PositiveInfinity;
+                    Stat = ReturnMax ? double.NegativeInfinity : double.PositiveInfinity;
                 }
 
-                protected override void ProcessValueMin(in Double val)
+                protected override void ProcessValueMin(in double val)
                 {
                     if (val < Stat)
                         Stat = val;
                 }
 
-                protected override void ProcessValueMax(in Double val)
+                protected override void ProcessValueMax(in double val)
                 {
                     if (val > Stat)
                         Stat = val;
                 }
             }
 
-            public sealed class MinMaxAggregatorAcrossSlots : MinMaxAggregatorAcrossSlots<Double, Double>
+            public sealed class MinMaxAggregatorAcrossSlots : MinMaxAggregatorAcrossSlots<double, double>
             {
                 public MinMaxAggregatorAcrossSlots(IChannel ch, DataViewRowCursor cursor, int col, bool returnMax)
                     : base(ch, cursor, col, returnMax)
                 {
-                    Stat = ReturnMax ? Double.NegativeInfinity : Double.PositiveInfinity;
+                    Stat = ReturnMax ? double.NegativeInfinity : double.PositiveInfinity;
                 }
 
-                protected override void ProcessValueMin(in Double val)
+                protected override void ProcessValueMin(in double val)
                 {
                     if (val < Stat)
                         Stat = val;
                 }
 
-                protected override void ProcessValueMax(in Double val)
+                protected override void ProcessValueMax(in double val)
                 {
                     if (val > Stat)
                         Stat = val;
@@ -771,26 +811,26 @@ namespace Microsoft.ML.Transforms
                 public override object GetStat()
                 {
                     // If sparsity occurred, fold in a zero.
-                    if (ValueCount > (ulong)ValuesProcessed)
+                    if (GreaterThan(ValueCount, (ulong)ValuesProcessed))
                     {
-                        Double def = 0;
+                        double def = 0;
                         ProcValueDelegate(in def);
                     }
                     return Stat;
                 }
             }
 
-            public sealed class MinMaxAggregatorBySlot : MinMaxAggregatorBySlot<Double, Double>
+            public sealed class MinMaxAggregatorBySlot : MinMaxAggregatorBySlot<double, double>
             {
                 public MinMaxAggregatorBySlot(IChannel ch, VectorType type, DataViewRowCursor cursor, int col, bool returnMax)
                     : base(ch, type, cursor, col, returnMax)
                 {
-                    Double bound = ReturnMax ? Double.MinValue : Double.MaxValue;
+                    double bound = ReturnMax ? double.MinValue : double.MaxValue;
                     for (int i = 0; i < Stat.Length; i++)
                         Stat[i] = bound;
                 }
 
-                protected override void ProcessValueMin(in Double val, int slot)
+                protected override void ProcessValueMin(in double val, int slot)
                 {
                     Ch.Assert(0 <= slot && slot < Stat.Length);
                     if (FloatUtils.IsFinite(val))
@@ -800,7 +840,7 @@ namespace Microsoft.ML.Transforms
                     }
                 }
 
-                protected override void ProcessValueMax(in Double val, int slot)
+                protected override void ProcessValueMax(in double val, int slot)
                 {
                     Ch.Assert(0 <= slot && slot < Stat.Length);
                     if (FloatUtils.IsFinite(val))
@@ -817,7 +857,7 @@ namespace Microsoft.ML.Transforms
                     {
                         if (GetValuesProcessed(slot) < RowCount)
                         {
-                            Double def = 0;
+                            double def = 0;
                             ProcValueDelegate(in def, slot);
                         }
                     }

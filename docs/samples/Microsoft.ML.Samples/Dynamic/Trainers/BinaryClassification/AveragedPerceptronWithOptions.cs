@@ -1,12 +1,11 @@
-﻿using Microsoft.ML;
-using Microsoft.ML.Trainers.Online;
+﻿using Microsoft.ML.Trainers;
 
 namespace Microsoft.ML.Samples.Dynamic.Trainers.BinaryClassification
 {
     public static class AveragedPerceptronWithOptions
     {
         // In this examples we will use the adult income dataset. The goal is to predict
-        // if a person's income is above $50K or not, based on different pieces of information about that person.
+        // if a person's income is above $50K or not, based on demographic information about that person.
         // For more details about this dataset, please see https://archive.ics.uci.edu/ml/datasets/adult.
         public static void Example()
         {
@@ -19,14 +18,14 @@ namespace Microsoft.ML.Samples.Dynamic.Trainers.BinaryClassification
             var data = SamplesUtils.DatasetUtils.LoadFeaturizedAdultDataset(mlContext);
 
             // Leave out 10% of data for testing.
-            var trainTestData = mlContext.BinaryClassification.TrainTestSplit(data, testFraction: 0.1);
+            var trainTestData = mlContext.Data.TrainTestSplit(data, testFraction: 0.1);
 
             // Define the trainer options.
             var options = new AveragedPerceptronTrainer.Options()
             {
-                LossFunction = new SmoothedHingeLoss.Options(),
+                LossFunction = new SmoothedHingeLoss(),
                 LearningRate = 0.1f,
-                DoLazyUpdates = false,
+                LazyUpdate = false,
                 RecencyGain = 0.1f,
                 NumberOfIterations = 10
             };

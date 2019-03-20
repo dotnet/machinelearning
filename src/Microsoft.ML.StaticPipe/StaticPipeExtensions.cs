@@ -3,9 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using Microsoft.Data.DataView;
-using Microsoft.ML.StaticPipe.Runtime;
-
+using Microsoft.ML.Runtime;
 namespace Microsoft.ML.StaticPipe
 {
     public static class StaticPipeExtensions
@@ -37,28 +35,28 @@ namespace Microsoft.ML.StaticPipe
             return new DataView<T>(env, view, schema);
         }
 
-        public static DataReader<TIn, T> AssertStatic<TIn, [IsShape] T>(this IDataReader<TIn> reader, IHostEnvironment env,
+        public static DataLoader<TIn, T> AssertStatic<TIn, [IsShape] T>(this IDataLoader<TIn> loader, IHostEnvironment env,
             Func<SchemaAssertionContext, T> outputDecl)
         {
             Contracts.CheckValue(env, nameof(env));
-            env.CheckValue(reader, nameof(reader));
+            env.CheckValue(loader, nameof(loader));
             env.CheckValue(outputDecl, nameof(outputDecl));
 
             var schema = StaticSchemaShape.Make<T>(outputDecl.Method.ReturnParameter);
-            return new DataReader<TIn, T>(env, reader, schema);
+            return new DataLoader<TIn, T>(env, loader, schema);
         }
 
-        public static DataReaderEstimator<TIn, T, TReader> AssertStatic<TIn, [IsShape] T, TReader>(
-            this IDataReaderEstimator<TIn, TReader> readerEstimator, IHostEnvironment env,
+        public static DataLoaderEstimator<TIn, T, TLoader> AssertStatic<TIn, [IsShape] T, TLoader>(
+            this IDataLoaderEstimator<TIn, TLoader> loaderEstimator, IHostEnvironment env,
             Func<SchemaAssertionContext, T> outputDecl)
-            where TReader : class, IDataReader<TIn>
+            where TLoader : class, IDataLoader<TIn>
         {
             Contracts.CheckValue(env, nameof(env));
-            env.CheckValue(readerEstimator, nameof(readerEstimator));
+            env.CheckValue(loaderEstimator, nameof(loaderEstimator));
             env.CheckValue(outputDecl, nameof(outputDecl));
 
             var schema = StaticSchemaShape.Make<T>(outputDecl.Method.ReturnParameter);
-            return new DataReaderEstimator<TIn, T, TReader>(env, readerEstimator, schema);
+            return new DataLoaderEstimator<TIn, T, TLoader>(env, loaderEstimator, schema);
         }
 
         public static Transformer<TIn, TOut, TTrans> AssertStatic<[IsShape] TIn, [IsShape] TOut, TTrans>(

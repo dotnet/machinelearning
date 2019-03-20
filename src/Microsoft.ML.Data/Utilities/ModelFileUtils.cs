@@ -6,11 +6,11 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using Microsoft.Data.DataView;
 using Microsoft.ML.Data;
 using Microsoft.ML.Data.IO;
 using Microsoft.ML.Internal.Internallearn;
 using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Runtime;
 
 namespace Microsoft.ML.Model
 {
@@ -66,13 +66,13 @@ namespace Microsoft.ML.Model
             env.CheckValue(files, nameof(files));
             using (var ent = rep.OpenEntry(DirDataLoaderModel, ModelLoadContext.ModelStreamName))
             {
-                IDataLoader loader;
+                ILegacyDataLoader loader;
                 env.Assert(ent.Stream.Position == 0);
-                ModelLoadContext.LoadModel<IDataLoader, SignatureLoadDataLoader>(env, out loader, rep, ent, DirDataLoaderModel, files);
+                ModelLoadContext.LoadModel<ILegacyDataLoader, SignatureLoadDataLoader>(env, out loader, rep, ent, DirDataLoaderModel, files);
                 IDataView result = loader;
                 if (extractInnerPipe)
                 {
-                    var cdl = loader as CompositeDataLoader;
+                    var cdl = loader as LegacyCompositeDataLoader;
                     result = cdl == null ? loader : cdl.View;
                 }
 
@@ -122,7 +122,7 @@ namespace Microsoft.ML.Model
                 if (ent == null)
                     return data;
                 var ctx = new ModelLoadContext(rep, ent, DirDataLoaderModel);
-                return CompositeDataLoader.LoadSelectedTransforms(ctx, data, env, x => true);
+                return LegacyCompositeDataLoader.LoadSelectedTransforms(ctx, data, env, x => true);
             }
         }
 
@@ -162,13 +162,13 @@ namespace Microsoft.ML.Model
         /// Loads data view (loader and transforms) from <paramref name="rep"/> if <paramref name="loadTransforms"/> is set to true,
         /// otherwise loads loader only.
         /// </summary>
-        public static IDataLoader LoadLoader(IHostEnvironment env, RepositoryReader rep, IMultiStreamSource files, bool loadTransforms)
+        public static ILegacyDataLoader LoadLoader(IHostEnvironment env, RepositoryReader rep, IMultiStreamSource files, bool loadTransforms)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(rep, nameof(rep));
             env.CheckValue(files, nameof(files));
 
-            IDataLoader loader;
+            ILegacyDataLoader loader;
 
             // If loadTransforms is false, load the loader only, not the transforms.
             Repository.Entry ent = null;
@@ -184,7 +184,7 @@ namespace Microsoft.ML.Model
             using (ent)
             {
                 env.Assert(ent.Stream.Position == 0);
-                ModelLoadContext.LoadModel<IDataLoader, SignatureLoadDataLoader>(env, out loader, rep, ent, dir, files);
+                ModelLoadContext.LoadModel<ILegacyDataLoader, SignatureLoadDataLoader>(env, out loader, rep, ent, dir, files);
             }
             return loader;
         }
@@ -285,12 +285,12 @@ namespace Microsoft.ML.Model
                 // REVIEW: Should really validate the schema here, and consider
                 // ignoring this stream if it isn't as expected.
                 var repoStreamWrapper = new RepositoryStreamWrapper(rep, DirTrainingInfo, RoleMappingFile);
-                var loader = new TextLoader(env, dataSample: repoStreamWrapper).Read(repoStreamWrapper);
+                var loader = new TextLoader(env, dataSample: repoStreamWrapper).Load(repoStreamWrapper);
 
                 using (var cursor = loader.GetRowCursorForAllColumns())
                 {
-                    var roleGetter = cursor.GetGetter<ReadOnlyMemory<char>>(0);
-                    var colGetter = cursor.GetGetter<ReadOnlyMemory<char>>(1);
+                    var roleGetter = cursor.GetGetter<ReadOnlyMemory<char>>(cursor.Schema[0]);
+                    var colGetter = cursor.GetGetter<ReadOnlyMemory<char>>(cursor.Schema[1]);
                     var role = default(ReadOnlyMemory<char>);
                     var col = default(ReadOnlyMemory<char>);
                     while (cursor.MoveNext())

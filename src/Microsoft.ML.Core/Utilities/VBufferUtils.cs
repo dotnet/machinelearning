@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using Microsoft.ML.Data;
+using Microsoft.ML.Runtime;
 
 namespace Microsoft.ML.Internal.Utilities
 {
@@ -437,7 +438,7 @@ namespace Microsoft.ML.Internal.Utilities
             if (!editor.CreatedNewValues)
             {
                 // Densify in place.
-                for (int i = values.Length; --i >= 0; )
+                for (int i = values.Length; --i >= 0;)
                 {
                     Contracts.Assert(i <= indices[i]);
                     editor.Values[indices[i]] = values[i];
@@ -505,7 +506,7 @@ namespace Microsoft.ML.Internal.Utilities
             editor.Values.Slice(lim, sliceLength).CopyTo(editor.Values.Slice(denseCount));
             editor.Indices.Slice(lim, sliceLength).CopyTo(editor.Indices.Slice(denseCount));
             int i = lim - 1;
-            for (int ii = denseCount; --ii >= 0; )
+            for (int ii = denseCount; --ii >= 0;)
             {
                 editor.Values[ii] = i >= 0 && dstIndices[i] == ii ? dstValues[i--] : default(T);
                 editor.Indices[ii] = ii;
@@ -828,7 +829,7 @@ namespace Microsoft.ML.Internal.Utilities
 
                 // Go from the end, so that even if we're writing over dst's vectors in
                 // place, we do not corrupt the data as we are reorganizing it.
-                for (int i = newCount; --i >= 0; )
+                for (int i = newCount; --i >= 0;)
                 {
                     if (sIndex < dIndex)
                     {

@@ -3,7 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using Float = System.Single;
+using Microsoft.ML.Runtime;
 
 namespace Microsoft.ML.Internal.Utilities
 {
@@ -200,11 +200,11 @@ namespace Microsoft.ML.Internal.Utilities
 
         // Mean refers to the mu parameter. Scale refers to the b parameter.
         // https://en.wikipedia.org/wiki/Laplace_distribution
-        public static Float SampleFromLaplacian(Random rand, Float mean, Float scale)
+        public static float SampleFromLaplacian(Random rand, float mean, float scale)
         {
-            Float u = rand.NextSingle();
+            float u = rand.NextSingle();
             u = u - 0.5f;
-            Float ret = mean;
+            float ret = mean;
             if (u >= 0)
                 ret -= scale * MathUtils.Log(1 - 2 * u);
             else
@@ -219,9 +219,9 @@ namespace Microsoft.ML.Internal.Utilities
         /// </summary>
         /// <param name="rand"></param>
         /// <returns></returns>
-        public static Float SampleFromCauchy(Random rand)
+        public static float SampleFromCauchy(Random rand)
         {
-            return (Float)Math.Tan(Math.PI * (rand.NextSingle() - 0.5));
+            return (float)Math.Tan(Math.PI * (rand.NextSingle() - 0.5));
         }
 
         /// <summary>
@@ -292,7 +292,7 @@ namespace Microsoft.ML.Internal.Utilities
                 double r = p / q;
                 double a = (n + 1) * r;
 
-                for (;;)
+                for (; ; )
                 {
                     if (u <= s)
                         break;
@@ -330,7 +330,7 @@ namespace Microsoft.ML.Internal.Utilities
                 double h = double.NaN;
 
                 // Step 1
-                for (;;)
+                for (; ; )
                 {
                     double v = rn.NextDouble();
                     double u;

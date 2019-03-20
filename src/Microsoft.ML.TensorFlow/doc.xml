@@ -59,8 +59,7 @@
           </item>
         </list>
         <para>
-            The inputs and outputs of a TensorFlow model can be obtained using the <see cref="TensorFlowModelInfo.GetModelSchema()"/> or <a href="https://github.com/tensorflow/tensorflow/tree/master/tensorflow/tools/graph_transforms/README.md#inspecting-graphs">
-            <code>summarize_graph</code> tools</a>.
+            The inputs and outputs of a TensorFlow model can be obtained using the <see cref="TensorFlowModel.GetModelSchema()"/> or <a href="https://github.com/tensorflow/tensorflow/tree/master/tensorflow/tools/graph_transforms/README.md#inspecting-graphs">summarize_graph</a> tools.
         </para>
       </remarks>
     </member>

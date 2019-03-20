@@ -7,20 +7,22 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Text;
-using Microsoft.Data.DataView;
 using Microsoft.ML.Data;
-using Microsoft.ML.Internal.Internallearn;
 using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Model;
+using Microsoft.ML.Runtime;
 
 namespace Microsoft.ML.Transforms
 {
-    internal static class PermutationFeatureImportance<TModel, TMetric, TResult> where TResult : MetricsStatisticsBase<TMetric>, new()
+    internal static class PermutationFeatureImportance<TModel, TMetric, TResult> where TResult : IMetricsStatistics<TMetric>
+        where TModel : class
     {
         public static ImmutableArray<TResult>
             GetImportanceMetricsMatrix(
                 IHostEnvironment env,
                 IPredictionTransformer<TModel> model,
                 IDataView data,
+                Func<TResult> resultInitializer,
                 Func<IDataView, TMetric> evaluationFunc,
                 Func<TMetric, TMetric, TMetric> deltaFunc,
                 string features,
@@ -52,7 +54,7 @@ namespace Microsoft.ML.Transforms
 
                 ch.Info("Number of slots: " + numSlots);
                 if (data.Schema[featuresColumnIndex].HasSlotNames(numSlots))
-                    data.Schema[featuresColumnIndex].Metadata.GetValue(MetadataUtils.Kinds.SlotNames, ref slotNames);
+                    data.Schema[featuresColumnIndex].Annotations.GetValue(AnnotationUtils.Kinds.SlotNames, ref slotNames);
 
                 if (slotNames.Length != numSlots)
                     slotNames = VBufferUtils.CreateEmpty<ReadOnlyMemory<char>>(numSlots);
@@ -140,7 +142,7 @@ namespace Microsoft.ML.Transforms
                 // In which case probably erroring out is probably the most useful thing.
                 using (var cursor = data.GetRowCursor(featuresColumn))
                 {
-                    var featuresGetter = cursor.GetGetter<VBuffer<float>>(featuresColumnIndex);
+                    var featuresGetter = cursor.GetGetter<VBuffer<float>>(featuresColumn);
                     var featuresBuffer = default(VBuffer<float>);
 
                     while (initialfeatureValuesList.Count < maxSize && cursor.MoveNext())
@@ -191,7 +193,7 @@ namespace Microsoft.ML.Transforms
                         output[0].ColumnType = featuresColumn.Type;
 
                         // Perform multiple permutations for one feature to build a confidence interval
-                        var metricsDeltaForFeature = new TResult();
+                        var metricsDeltaForFeature = resultInitializer();
                         for (int permutationIteration = 0; permutationIteration < permutationCount; permutationIteration++)
                         {
                             Utils.Shuffle<float>(shuffleRand, featureValuesBuffer);
@@ -275,9 +277,9 @@ namespace Microsoft.ML.Transforms
         /// </summary>
         private sealed class FeatureIndex
         {
-            #pragma warning disable 0649
+#pragma warning disable 0649
             public int Index;
-            #pragma warning restore 0649
+#pragma warning restore 0649
         }
 
         /// <summary>
@@ -285,9 +287,9 @@ namespace Microsoft.ML.Transforms
         /// </summary>
         private sealed class FeatureName
         {
-            #pragma warning disable 0649
+#pragma warning disable 0649
             public ReadOnlyMemory<char> Name;
-            #pragma warning restore 0649
+#pragma warning restore 0649
         }
     }
 }

@@ -8,8 +8,8 @@ using System.IO;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
-using Microsoft.ML.Data;
 using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Runtime;
 using Microsoft.ML.TestFramework;
 using Microsoft.ML.Tools;
 using Xunit;
@@ -108,7 +108,6 @@ namespace Microsoft.ML.RunTests
         // It is called as a first step in test clean up.
         protected override void Cleanup()
         {
-            _env?.Dispose();
             _env = null;
 
             Contracts.Assert(IsActive);

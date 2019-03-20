@@ -1,7 +1,7 @@
 ﻿using System;
-using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.Data;
+using Microsoft.ML.Runtime;
 using Microsoft.ML.StaticPipe;
 
 namespace Bubba
@@ -11,7 +11,7 @@ namespace Bubba
         public static void Bar()
         {
             IHostEnvironment env = null;
-            var text = TextLoaderStatic.CreateReader(env, ctx => new
+            var text = TextLoaderStatic.CreateLoader(env, ctx => new
             {
                 Label = ctx.LoadBool(0),
                 Text = ctx.LoadText(1),
@@ -41,7 +41,7 @@ namespace Bubba
 
             // This is wrong but should not fail with our diagnostic since there is a deeper problem that the class
             // simply is not there.
-            var text2 = TextLoaderStatic.CreateReader(env, ctx => new MissingClass(ctx.LoadText(0)));
+            var text2 = TextLoaderStatic.CreateLoader(env, ctx => new MissingClass(ctx.LoadText(0)));
         }
     }
 

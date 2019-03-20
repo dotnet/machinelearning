@@ -7,16 +7,14 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Text;
-using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
-using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Internal.Internallearn;
-using Microsoft.ML.Model;
 using Microsoft.ML.Model.OnnxConverter;
 using Microsoft.ML.Model.Pfa;
-using Microsoft.ML.Transforms.Normalizers;
+using Microsoft.ML.Runtime;
+using Microsoft.ML.Transforms;
 using Newtonsoft.Json.Linq;
 
 [assembly: LoadableClass(NormalizeTransform.MinMaxNormalizerSummary, typeof(IDataTransform), typeof(NormalizeTransform), typeof(NormalizeTransform.MinMaxArguments), typeof(SignatureDataTransform),
@@ -40,7 +38,7 @@ using Newtonsoft.Json.Linq;
 [assembly: LoadableClass(NormalizeTransform.BinNormalizerSummary, typeof(NormalizeTransform.BinColumnFunction), null, typeof(SignatureLoadColumnFunction),
     "Bin Normalizer", NormalizeTransform.BinColumnFunction.LoaderSignature)]
 
-namespace Microsoft.ML.Transforms.Normalizers
+namespace Microsoft.ML.Transforms
 {
     /// <summary>
     /// The normalize transform for support of normalization via the <see cref="IDataTransform"/> mechanism.
@@ -51,8 +49,9 @@ namespace Microsoft.ML.Transforms.Normalizers
     {
         public abstract class ColumnBase : OneToOneColumn
         {
-            [Argument(ArgumentType.AtMostOnce, HelpText = "Max number of examples used to train the normalizer", ShortName = "maxtrain")]
-            public long? MaxTrainingExamples;
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Max number of examples used to train the normalizer",
+                Name = "MaxTrainingExamples", ShortName = "maxtrain")]
+            public long? MaximumExampleCount;
 
             private protected ColumnBase()
             {
@@ -61,29 +60,29 @@ namespace Microsoft.ML.Transforms.Normalizers
             private protected override bool TryUnparseCore(StringBuilder sb)
             {
                 Contracts.AssertValue(sb);
-                if (MaxTrainingExamples != null)
+                if (MaximumExampleCount != null)
                     return false;
                 return base.TryUnparseCore(sb);
             }
         }
 
         // REVIEW: Support different aggregators on different columns, eg, MinMax vs Variance/ZScore.
-        public abstract class FixZeroColumnBase : ColumnBase
+        public abstract class ControlZeroColumnBase : ColumnBase
         {
             // REVIEW: This only allows mapping either zero or min to zero. It might make sense to allow also max, midpoint and mean to be mapped to zero.
-            [Argument(ArgumentType.AtMostOnce, HelpText = "Whether to map zero to zero, preserving sparsity", ShortName = "zero")]
-            public bool? FixZero;
+            [Argument(ArgumentType.AtMostOnce, Name="FixZero", HelpText = "Whether to map zero to zero, preserving sparsity", ShortName = "zero")]
+            public bool? EnsureZeroUntouched;
 
             private protected override bool TryUnparseCore(StringBuilder sb)
             {
                 Contracts.AssertValue(sb);
-                if (FixZero != null)
+                if (EnsureZeroUntouched != null)
                     return false;
                 return base.TryUnparseCore(sb);
             }
         }
 
-        public sealed class AffineColumn : FixZeroColumnBase
+        public sealed class AffineColumn : ControlZeroColumnBase
         {
             internal static AffineColumn Parse(string str)
             {
@@ -102,7 +101,7 @@ namespace Microsoft.ML.Transforms.Normalizers
             }
         }
 
-        public sealed class BinColumn : FixZeroColumnBase
+        public sealed class BinColumn : ControlZeroColumnBase
         {
             [Argument(ArgumentType.AtMostOnce, HelpText = "Max number of bins, power of 2 recommended", ShortName = "bins")]
             [TGUI(Label = "Max number of bins")]
@@ -148,22 +147,22 @@ namespace Microsoft.ML.Transforms.Normalizers
 
         private static class Defaults
         {
-            public const bool FixZero = true;
+            public const bool EnsureZeroUntouched = true;
             public const bool MeanVarCdf = false;
             public const bool LogMeanVarCdf = true;
             public const int NumBins = 1024;
             public const int MinBinSize = 10;
         }
 
-        public abstract class FixZeroArgumentsBase : ArgumentsBase
+        public abstract class ControlZeroArgumentsBase : ArgumentsBase
         {
             // REVIEW: This only allows mapping either zero or min to zero. It might make sense to allow also max, midpoint and mean to be mapped to zero.
             // REVIEW: Convert this to bool? or even an enum{Auto, No, Yes}, and automatically map zero to zero when it is null/Auto.
-            [Argument(ArgumentType.AtMostOnce, HelpText = "Whether to map zero to zero, preserving sparsity", ShortName = "zero")]
-            public bool FixZero = Defaults.FixZero;
+            [Argument(ArgumentType.AtMostOnce, Name = "FixZero", HelpText = "Whether to map zero to zero, preserving sparsity", ShortName = "zero")]
+            public bool EnsureZeroUntouched = Defaults.EnsureZeroUntouched;
         }
 
-        public abstract class AffineArgumentsBase : FixZeroArgumentsBase
+        public abstract class AffineArgumentsBase : ControlZeroArgumentsBase
         {
             [Argument(ArgumentType.Multiple | ArgumentType.Required, HelpText = "New column definition(s) (optional form: name:src)", Name = "Column", ShortName = "col", SortOrder = 1)]
             public AffineColumn[] Columns;
@@ -183,8 +182,9 @@ namespace Microsoft.ML.Transforms.Normalizers
 
         public abstract class ArgumentsBase : TransformInputBase
         {
-            [Argument(ArgumentType.AtMostOnce, HelpText = "Max number of examples used to train the normalizer", ShortName = "maxtrain")]
-            public long MaxTrainingExamples = 1000000000;
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Max number of examples used to train the normalizer",
+                Name = "MaxTrainingExamples", ShortName = "maxtrain")]
+            public long MaximumExampleCount = 1000000000;
 
             public abstract OneToOneColumn[] GetColumns();
 
@@ -218,7 +218,7 @@ namespace Microsoft.ML.Transforms.Normalizers
             public override OneToOneColumn[] GetColumns() => Columns;
         }
 
-        public abstract class BinArgumentsBase : FixZeroArgumentsBase
+        public abstract class BinArgumentsBase : ControlZeroArgumentsBase
         {
             [Argument(ArgumentType.Multiple, HelpText = "New column definition(s) (optional form: name:src)", Name = "Column", ShortName = "col", SortOrder = 1)]
             public BinColumn[] Columns;
@@ -275,7 +275,7 @@ namespace Microsoft.ML.Transforms.Normalizers
         {
             Contracts.CheckValue(env, nameof(env));
 
-            var normalizer = new NormalizingEstimator(env, new NormalizingEstimator.MinMaxColumn(outputColumnName, inputColumnName ?? outputColumnName));
+            var normalizer = new NormalizingEstimator(env, new NormalizingEstimator.MinMaxColumnOptions(outputColumnName, inputColumnName ?? outputColumnName));
             return normalizer.Fit(input).MakeDataTransform(input);
         }
 
@@ -289,11 +289,11 @@ namespace Microsoft.ML.Transforms.Normalizers
             env.CheckValue(args.Columns, nameof(args.Columns));
 
             var columns = args.Columns
-                .Select(col => new NormalizingEstimator.MinMaxColumn(
+                .Select(col => new NormalizingEstimator.MinMaxColumnOptions(
                     col.Name,
                     col.Source ?? col.Name,
-                    col.MaxTrainingExamples ?? args.MaxTrainingExamples,
-                    col.FixZero ?? args.FixZero))
+                    col.MaximumExampleCount ?? args.MaximumExampleCount,
+                    col.EnsureZeroUntouched ?? args.EnsureZeroUntouched))
                 .ToArray();
             var normalizer = new NormalizingEstimator(env, columns);
             return normalizer.Fit(input).MakeDataTransform(input);
@@ -307,11 +307,11 @@ namespace Microsoft.ML.Transforms.Normalizers
             env.CheckValue(args.Columns, nameof(args.Columns));
 
             var columns = args.Columns
-                .Select(col => new NormalizingEstimator.MeanVarColumn(
+                .Select(col => new NormalizingEstimator.MeanVarianceColumnOptions(
                     col.Name,
                     col.Source ?? col.Name,
-                    col.MaxTrainingExamples ?? args.MaxTrainingExamples,
-                    col.FixZero ?? args.FixZero))
+                    col.MaximumExampleCount ?? args.MaximumExampleCount,
+                    col.EnsureZeroUntouched ?? args.EnsureZeroUntouched))
                 .ToArray();
             var normalizer = new NormalizingEstimator(env, columns);
             return normalizer.Fit(input).MakeDataTransform(input);
@@ -327,10 +327,10 @@ namespace Microsoft.ML.Transforms.Normalizers
             env.CheckValue(args.Columns, nameof(args.Columns));
 
             var columns = args.Columns
-                .Select(col => new NormalizingEstimator.LogMeanVarColumn(
+                .Select(col => new NormalizingEstimator.LogMeanVarianceColumnOptions(
                     col.Name,
                     col.Source ?? col.Name,
-                    col.MaxTrainingExamples ?? args.MaxTrainingExamples,
+                    col.MaximumExampleCount ?? args.MaximumExampleCount,
                     args.UseCdf))
                 .ToArray();
             var normalizer = new NormalizingEstimator(env, columns);
@@ -347,11 +347,11 @@ namespace Microsoft.ML.Transforms.Normalizers
             env.CheckValue(args.Columns, nameof(args.Columns));
 
             var columns = args.Columns
-                .Select(col => new NormalizingEstimator.BinningColumn(
+                .Select(col => new NormalizingEstimator.BinningColumnOptions(
                     col.Name,
                     col.Source ?? col.Name,
-                    col.MaxTrainingExamples ?? args.MaxTrainingExamples,
-                    col.FixZero ?? args.FixZero,
+                    col.MaximumExampleCount ?? args.MaximumExampleCount,
+                    col.EnsureZeroUntouched ?? args.EnsureZeroUntouched,
                     col.NumBins ?? args.NumBins))
                 .ToArray();
             var normalizer = new NormalizingEstimator(env, columns);
@@ -472,7 +472,7 @@ namespace Microsoft.ML.Transforms.Normalizers
                 }
 
                 public override NormalizingTransformer.NormalizerModelParametersBase GetNormalizerModelParams()
-                    => new NormalizingTransformer.AffineNormalizerModelParameters<ImmutableArray<TFloat>> (ImmutableArray.Create(Scale), ImmutableArray.Create(Offset));
+                    => new NormalizingTransformer.AffineNormalizerModelParameters<ImmutableArray<TFloat>>(ImmutableArray.Create(Scale), ImmutableArray.Create(Offset));
             }
         }
 
@@ -839,7 +839,7 @@ namespace Microsoft.ML.Transforms.Normalizers
                 DataViewRow dataRow)
                 : base(host, lim, labelColId, dataRow)
             {
-                _colGetterSrc = dataRow.GetGetter<TFloat>(valueColId);
+                _colGetterSrc = dataRow.GetGetter<TFloat>(dataRow.Schema[valueColId]);
                 ColValues = new List<TFloat>();
             }
 
@@ -867,10 +867,11 @@ namespace Microsoft.ML.Transforms.Normalizers
             protected VecColumnSupervisedBinFunctionBuilderBase(IHost host, long lim, int valueColId, int labelColId, DataViewRow dataRow)
                 : base(host, lim, labelColId, dataRow)
             {
-                _colValueGetter = dataRow.GetGetter<VBuffer<TFloat>>(valueColId);
-                var valueColType = dataRow.Schema[valueColId].Type;
-                Host.Assert(valueColType.IsKnownSizeVector());
-                ColumnSlotCount = valueColType.GetValueCount();
+                var valueCol = dataRow.Schema[valueColId];
+                _colValueGetter = dataRow.GetGetter<VBuffer<TFloat>>(valueCol);
+
+                Host.Assert(valueCol.Type.IsKnownSizeVector());
+                ColumnSlotCount = valueCol.Type.GetValueCount();
 
                 ColValues = new List<TFloat>[ColumnSlotCount];
                 for (int i = 0; i < ColumnSlotCount; i++)
@@ -924,31 +925,32 @@ namespace Microsoft.ML.Transforms.Normalizers
                 Contracts.AssertValue(host);
                 host.AssertValue(args);
 
-                return CreateBuilder(new NormalizingEstimator.MinMaxColumn(
+                return CreateBuilder(new NormalizingEstimator.MinMaxColumnOptions(
                     args.Columns[icol].Name,
                     args.Columns[icol].Source ?? args.Columns[icol].Name,
-                    args.Columns[icol].MaxTrainingExamples ?? args.MaxTrainingExamples,
-                    args.Columns[icol].FixZero ?? args.FixZero), host, srcIndex, srcType, cursor);
+                    args.Columns[icol].MaximumExampleCount ?? args.MaximumExampleCount,
+                    args.Columns[icol].EnsureZeroUntouched ?? args.EnsureZeroUntouched), host, srcIndex, srcType, cursor);
             }
 
-            public static IColumnFunctionBuilder CreateBuilder(NormalizingEstimator.MinMaxColumn column, IHost host,
+            public static IColumnFunctionBuilder CreateBuilder(NormalizingEstimator.MinMaxColumnOptions column, IHost host,
                 int srcIndex, DataViewType srcType, DataViewRowCursor cursor)
             {
+                var srcColumn = cursor.Schema[srcIndex];
                 if (srcType is NumberDataViewType)
                 {
                     if (srcType == NumberDataViewType.Single)
-                        return Sng.MinMaxOneColumnFunctionBuilder.Create(column, host, srcType, cursor.GetGetter<Single>(srcIndex));
+                        return Sng.MinMaxOneColumnFunctionBuilder.Create(column, host, srcType, cursor.GetGetter<Single>(srcColumn));
                     if (srcType == NumberDataViewType.Double)
-                        return Dbl.MinMaxOneColumnFunctionBuilder.Create(column, host, srcType, cursor.GetGetter<Double>(srcIndex));
+                        return Dbl.MinMaxOneColumnFunctionBuilder.Create(column, host, srcType, cursor.GetGetter<Double>(srcColumn));
                 }
                 if (srcType is VectorType vectorType && vectorType.IsKnownSize && vectorType.ItemType is NumberDataViewType)
                 {
                     if (vectorType.ItemType == NumberDataViewType.Single)
-                        return Sng.MinMaxVecColumnFunctionBuilder.Create(column, host, vectorType, cursor.GetGetter<VBuffer<Single>>(srcIndex));
+                        return Sng.MinMaxVecColumnFunctionBuilder.Create(column, host, vectorType, cursor.GetGetter<VBuffer<Single>>(srcColumn));
                     if (vectorType.ItemType == NumberDataViewType.Double)
-                        return Dbl.MinMaxVecColumnFunctionBuilder.Create(column, host, vectorType, cursor.GetGetter<VBuffer<Double>>(srcIndex));
+                        return Dbl.MinMaxVecColumnFunctionBuilder.Create(column, host, vectorType, cursor.GetGetter<VBuffer<Double>>(srcColumn));
                 }
-                throw host.ExceptParam(nameof(srcType), "Wrong column type for input column. Expected: R4, R8, Vec<R4, n> or Vec<R8, n>. Got: {0}.", srcType.ToString());
+                throw host.ExceptParam(nameof(srcType), "Wrong column type for input column. Expected: float, double, Vec<float, n> or Vec<double, n>. Got: {0}.", srcType.ToString());
             }
         }
 
@@ -960,34 +962,34 @@ namespace Microsoft.ML.Transforms.Normalizers
                 Contracts.AssertValue(host);
                 host.AssertValue(args);
 
-                return CreateBuilder(new NormalizingEstimator.MeanVarColumn(
+                return CreateBuilder(new NormalizingEstimator.MeanVarianceColumnOptions(
                     args.Columns[icol].Name,
                     args.Columns[icol].Source ?? args.Columns[icol].Name,
-                    args.Columns[icol].MaxTrainingExamples ?? args.MaxTrainingExamples,
-                    args.Columns[icol].FixZero ?? args.FixZero,
+                    args.Columns[icol].MaximumExampleCount ?? args.MaximumExampleCount,
+                    args.Columns[icol].EnsureZeroUntouched ?? args.EnsureZeroUntouched,
                     args.UseCdf), host, srcIndex, srcType, cursor);
             }
 
-            public static IColumnFunctionBuilder CreateBuilder(NormalizingEstimator.MeanVarColumn column, IHost host,
+            public static IColumnFunctionBuilder CreateBuilder(NormalizingEstimator.MeanVarianceColumnOptions column, IHost host,
                 int srcIndex, DataViewType srcType, DataViewRowCursor cursor)
             {
                 Contracts.AssertValue(host);
-
+                var srcColumn = cursor.Schema[srcIndex];
                 if (srcType is NumberDataViewType)
                 {
                     if (srcType == NumberDataViewType.Single)
-                        return Sng.MeanVarOneColumnFunctionBuilder.Create(column, host, srcType, cursor.GetGetter<Single>(srcIndex));
+                        return Sng.MeanVarOneColumnFunctionBuilder.Create(column, host, srcType, cursor.GetGetter<Single>(srcColumn));
                     if (srcType == NumberDataViewType.Double)
-                        return Dbl.MeanVarOneColumnFunctionBuilder.Create(column, host, srcType, cursor.GetGetter<Double>(srcIndex));
+                        return Dbl.MeanVarOneColumnFunctionBuilder.Create(column, host, srcType, cursor.GetGetter<Double>(srcColumn));
                 }
                 if (srcType is VectorType vectorType && vectorType.IsKnownSize && vectorType.ItemType is NumberDataViewType)
                 {
                     if (vectorType.ItemType == NumberDataViewType.Single)
-                        return Sng.MeanVarVecColumnFunctionBuilder.Create(column, host, vectorType, cursor.GetGetter<VBuffer<Single>>(srcIndex));
+                        return Sng.MeanVarVecColumnFunctionBuilder.Create(column, host, vectorType, cursor.GetGetter<VBuffer<Single>>(srcColumn));
                     if (vectorType.ItemType == NumberDataViewType.Double)
-                        return Dbl.MeanVarVecColumnFunctionBuilder.Create(column, host, vectorType, cursor.GetGetter<VBuffer<Double>>(srcIndex));
+                        return Dbl.MeanVarVecColumnFunctionBuilder.Create(column, host, vectorType, cursor.GetGetter<VBuffer<Double>>(srcColumn));
                 }
-                throw host.ExceptParam(nameof(srcType), "Wrong column type for input column. Expected: R4, R8, Vec<R4, n> or Vec<R8, n>. Got: {0}.", srcType.ToString());
+                throw host.ExceptParam(nameof(srcType), "Wrong column type for input column. Expected: float, double, Vec<float, n> or Vec<double, n>. Got: {0}.", srcType.ToString());
             }
 
         }
@@ -1000,34 +1002,35 @@ namespace Microsoft.ML.Transforms.Normalizers
                 Contracts.AssertValue(host);
                 host.AssertValue(args);
 
-                return CreateBuilder(new NormalizingEstimator.LogMeanVarColumn(
+                return CreateBuilder(new NormalizingEstimator.LogMeanVarianceColumnOptions(
                     args.Columns[icol].Name,
                     args.Columns[icol].Source ?? args.Columns[icol].Name,
-                    args.Columns[icol].MaxTrainingExamples ?? args.MaxTrainingExamples,
+                    args.Columns[icol].MaximumExampleCount ?? args.MaximumExampleCount,
                     args.UseCdf), host, srcIndex, srcType, cursor);
             }
 
-            public static IColumnFunctionBuilder CreateBuilder(NormalizingEstimator.LogMeanVarColumn column, IHost host,
+            public static IColumnFunctionBuilder CreateBuilder(NormalizingEstimator.LogMeanVarianceColumnOptions column, IHost host,
                 int srcIndex, DataViewType srcType, DataViewRowCursor cursor)
             {
                 Contracts.AssertValue(host);
                 host.AssertValue(column);
 
+                var srcColumn = cursor.Schema[srcIndex];
                 if (srcType is NumberDataViewType)
                 {
                     if (srcType == NumberDataViewType.Single)
-                        return Sng.MeanVarOneColumnFunctionBuilder.Create(column, host, srcType, cursor.GetGetter<Single>(srcIndex));
+                        return Sng.MeanVarOneColumnFunctionBuilder.Create(column, host, srcType, cursor.GetGetter<Single>(srcColumn));
                     if (srcType == NumberDataViewType.Double)
-                        return Dbl.MeanVarOneColumnFunctionBuilder.Create(column, host, srcType, cursor.GetGetter<Double>(srcIndex));
+                        return Dbl.MeanVarOneColumnFunctionBuilder.Create(column, host, srcType, cursor.GetGetter<Double>(srcColumn));
                 }
                 if (srcType is VectorType vectorType && vectorType.IsKnownSize && vectorType.ItemType is NumberDataViewType)
                 {
                     if (vectorType.ItemType == NumberDataViewType.Single)
-                        return Sng.MeanVarVecColumnFunctionBuilder.Create(column, host, vectorType, cursor.GetGetter<VBuffer<Single>>(srcIndex));
+                        return Sng.MeanVarVecColumnFunctionBuilder.Create(column, host, vectorType, cursor.GetGetter<VBuffer<Single>>(srcColumn));
                     if (vectorType.ItemType == NumberDataViewType.Double)
-                        return Dbl.MeanVarVecColumnFunctionBuilder.Create(column, host, vectorType, cursor.GetGetter<VBuffer<Double>>(srcIndex));
+                        return Dbl.MeanVarVecColumnFunctionBuilder.Create(column, host, vectorType, cursor.GetGetter<VBuffer<Double>>(srcColumn));
                 }
-                throw host.ExceptUserArg(nameof(column), "Wrong column type for column {0}. Expected: R4, R8, Vec<R4, n> or Vec<R8, n>. Got: {1}.", column.InputColumnName, srcType.ToString());
+                throw host.ExceptUserArg(nameof(column), "Wrong column type for column {0}. Expected: float, double, Vec<float, n> or Vec<double, n>. Got: {1}.", column.InputColumnName, srcType.ToString());
             }
         }
 
@@ -1039,34 +1042,35 @@ namespace Microsoft.ML.Transforms.Normalizers
                 Contracts.AssertValue(host);
                 host.AssertValue(args);
 
-                return CreateBuilder(new NormalizingEstimator.BinningColumn(
+                return CreateBuilder(new NormalizingEstimator.BinningColumnOptions(
                     args.Columns[icol].Name,
                     args.Columns[icol].Source ?? args.Columns[icol].Name,
-                    args.Columns[icol].MaxTrainingExamples ?? args.MaxTrainingExamples,
-                    args.Columns[icol].FixZero ?? args.FixZero,
+                    args.Columns[icol].MaximumExampleCount ?? args.MaximumExampleCount,
+                    args.Columns[icol].EnsureZeroUntouched ?? args.EnsureZeroUntouched,
                     args.Columns[icol].NumBins ?? args.NumBins), host, srcIndex, srcType, cursor);
             }
 
-            public static IColumnFunctionBuilder CreateBuilder(NormalizingEstimator.BinningColumn column, IHost host,
+            public static IColumnFunctionBuilder CreateBuilder(NormalizingEstimator.BinningColumnOptions column, IHost host,
                 int srcIndex, DataViewType srcType, DataViewRowCursor cursor)
             {
                 Contracts.AssertValue(host);
 
+                var srcColumn = cursor.Schema[srcIndex];
                 if (srcType is NumberDataViewType)
                 {
                     if (srcType == NumberDataViewType.Single)
-                        return Sng.BinOneColumnFunctionBuilder.Create(column, host, srcType, cursor.GetGetter<Single>(srcIndex));
+                        return Sng.BinOneColumnFunctionBuilder.Create(column, host, srcType, cursor.GetGetter<Single>(srcColumn));
                     if (srcType == NumberDataViewType.Double)
-                        return Dbl.BinOneColumnFunctionBuilder.Create(column, host, srcType, cursor.GetGetter<Double>(srcIndex));
+                        return Dbl.BinOneColumnFunctionBuilder.Create(column, host, srcType, cursor.GetGetter<Double>(srcColumn));
                 }
                 if (srcType is VectorType vectorType && vectorType.IsKnownSize && vectorType.ItemType is NumberDataViewType)
                 {
                     if (vectorType.ItemType == NumberDataViewType.Single)
-                        return Sng.BinVecColumnFunctionBuilder.Create(column, host, vectorType, cursor.GetGetter<VBuffer<Single>>(srcIndex));
+                        return Sng.BinVecColumnFunctionBuilder.Create(column, host, vectorType, cursor.GetGetter<VBuffer<Single>>(srcColumn));
                     if (vectorType.ItemType == NumberDataViewType.Double)
-                        return Dbl.BinVecColumnFunctionBuilder.Create(column, host, vectorType, cursor.GetGetter<VBuffer<Double>>(srcIndex));
+                        return Dbl.BinVecColumnFunctionBuilder.Create(column, host, vectorType, cursor.GetGetter<VBuffer<Double>>(srcColumn));
                 }
-                throw host.ExceptParam(nameof(column), "Wrong column type for column {0}. Expected: R4, R8, Vec<R4, n> or Vec<R8, n>. Got: {1}.", column.InputColumnName, srcType.ToString());
+                throw host.ExceptParam(nameof(column), "Wrong column type for column {0}. Expected: float, double, Vec<float, n> or Vec<double, n>. Got: {1}.", column.InputColumnName, srcType.ToString());
             }
         }
 
@@ -1088,25 +1092,25 @@ namespace Microsoft.ML.Transforms.Normalizers
                     host.CheckUserArg(labelColumnType is NumberDataViewType, nameof(args.LabelColumn), "Label column must be a number or a key type");
 
                 return CreateBuilder(
-                    new NormalizingEstimator.SupervisedBinningColumn(
+                    new NormalizingEstimator.SupervisedBinningColumOptions(
                         args.Columns[icol].Name,
                         args.Columns[icol].Source ?? args.Columns[icol].Name,
                         args.LabelColumn ?? DefaultColumnNames.Label,
-                        args.Columns[icol].MaxTrainingExamples ?? args.MaxTrainingExamples,
-                        args.Columns[icol].FixZero ?? args.FixZero,
+                        args.Columns[icol].MaximumExampleCount ?? args.MaximumExampleCount,
+                        args.Columns[icol].EnsureZeroUntouched ?? args.EnsureZeroUntouched,
                         args.Columns[icol].NumBins ?? args.NumBins,
                         args.MinBinSize),
                     host, labelColumnId, srcIndex, srcType, cursor);
             }
 
-            public static IColumnFunctionBuilder CreateBuilder(NormalizingEstimator.SupervisedBinningColumn column, IHost host,
+            public static IColumnFunctionBuilder CreateBuilder(NormalizingEstimator.SupervisedBinningColumOptions column, IHost host,
                  string labelColumn, int srcIndex, DataViewType srcType, DataViewRowCursor cursor)
             {
                 int labelColumnId = GetLabelColumnId(host, cursor.Schema, labelColumn);
                 return CreateBuilder(column, host, labelColumnId, srcIndex, srcType, cursor);
             }
 
-            private static IColumnFunctionBuilder CreateBuilder(NormalizingEstimator.SupervisedBinningColumn column, IHost host,
+            private static IColumnFunctionBuilder CreateBuilder(NormalizingEstimator.SupervisedBinningColumOptions column, IHost host,
                 int labelColumnId, int srcIndex, DataViewType srcType, DataViewRowCursor cursor)
             {
                 Contracts.AssertValue(host);

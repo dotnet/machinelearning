@@ -3,8 +3,8 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using Microsoft.Data.DataView;
 using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Runtime;
 
 namespace Microsoft.ML.Data
 {
@@ -15,10 +15,10 @@ namespace Microsoft.ML.Data
     /// class numbers, etc. For example, in multi-class classification, the label is typically
     /// a class number which is naturally a KeyType.
     ///
-    /// KeyTypes have a cardinality (i.e., Count) that is strictly positive.
+    /// KeyTypes have a cardinality (i.e., <see cref="Count"/>) that is strictly positive.
     ///
     /// Note that the underlying representation value does not necessarily match the logical value.
-    /// For example, if a KeyType has range 0-5000, then it has a Count of 5001, but
+    /// For example, if a KeyType has range 0-5000, then it has a <see cref="Count"/> of 5001, but
     /// the representational values are 1-5001. The representation value zero is reserved
     /// to mean a missing value (similar to NaN).
     /// </summary>
@@ -52,13 +52,20 @@ namespace Microsoft.ML.Data
 
         /// <summary>
         /// <see cref="Count"/> is the cardinality of the <see cref="KeyType"/>. Note that such a key type can be converted to a
-        /// bit vector representation by mapping to a vector of length Count, with "id" mapped to a
+        /// bit vector representation by mapping to a vector of length <see cref="Count"/>, with "id" mapped to a
         /// vector with 1 in slot (id - 1) and 0 in all other slots. This is the standard "indicator"
         /// representation. Note that an id of 0 is used to represent the notion "none", which is
-        /// typically mapped, by for example, one-hot encoding, to a vector of all zeros (of length Count).
+        /// typically mapped, by for example, one-hot encoding, to a vector of all zeros (of length <see cref="Count"/>).
         /// </summary>
         public ulong Count { get; }
 
+        /// <summary>
+        /// Determine if this <see cref="KeyType"/> object is equal to another <see cref="DataViewType"/> instance.
+        /// Checks if the other item is the type of <see cref="KeyType"/>, if the <see cref="DataViewType.RawType"/>
+        /// is the same, and if the <see cref="Count"/> is the same.
+        /// </summary>
+        /// <param name="other">The other object to compare against.</param>
+        /// <returns><see langword="true" /> if both objects are equal, otherwise <see langword="false"/>.</returns>
         public override bool Equals(DataViewType other)
         {
             if (other == this)
@@ -73,19 +80,34 @@ namespace Microsoft.ML.Data
             return true;
         }
 
+        /// <summary>
+        /// Determine if a <see cref="KeyType"/> instance is equal to another <see cref="KeyType"/> instance.
+        /// Checks if any object is the type of <see cref="KeyType"/>, if the <see cref="DataViewType.RawType"/>
+        /// is the same, and if the <see cref="Count"/> is the same.
+        /// </summary>
+        /// <param name="other">The other object to compare against.</param>
+        /// <returns><see langword="true" /> if both objects are equal, otherwise <see langword="false"/>.</returns>
         public override bool Equals(object other)
         {
             return other is DataViewType tmp && Equals(tmp);
         }
 
+        /// <summary>
+        /// Retrieves the hash code.
+        /// </summary>
+        /// <returns>An integer representing the hash code.</returns>
         public override int GetHashCode()
         {
             return Hashing.CombinedHash(RawType.GetHashCode(), Count);
         }
 
+        /// <summary>
+        /// The string representation of the <see cref="KeyType"/>.
+        /// </summary>
+        /// <returns>A formatted string.</returns>
         public override string ToString()
         {
-            DataKind rawKind = this.GetRawKind();
+            InternalDataKind rawKind = this.GetRawKind();
             return string.Format("Key<{0}, {1}-{2}>", rawKind.GetString(), 0, Count - 1);
         }
     }

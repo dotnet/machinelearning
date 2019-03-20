@@ -4,13 +4,11 @@
 
 using System;
 using System.Linq;
-using Microsoft.Data.DataView;
 using Microsoft.ML;
-using Microsoft.ML.Calibrator;
+using Microsoft.ML.Calibrators;
 using Microsoft.ML.Data;
-using Microsoft.ML.Internal.Calibration;
-using Microsoft.ML.Model;
-using Microsoft.ML.Training;
+using Microsoft.ML.Runtime;
+using Microsoft.ML.Trainers;
 
 [assembly: LoadableClass(typeof(CalibratorTransformer<PlattCalibrator>), typeof(PlattCalibratorTransformer), null,
     typeof(SignatureLoadModel), "", PlattCalibratorTransformer.LoadName)]
@@ -18,10 +16,10 @@ using Microsoft.ML.Training;
 [assembly: LoadableClass(typeof(CalibratorTransformer<NaiveCalibrator>), typeof(NaiveCalibratorTransformer), null,
     typeof(SignatureLoadModel), "", NaiveCalibratorTransformer.LoadName)]
 
-[assembly: LoadableClass(typeof(CalibratorTransformer<PavCalibrator>), typeof(PavCalibratorTransformer), null,
-    typeof(SignatureLoadModel), "", PavCalibratorTransformer.LoadName)]
+[assembly: LoadableClass(typeof(CalibratorTransformer<IsotonicCalibrator>), typeof(IsotonicCalibratorTransformer), null,
+    typeof(SignatureLoadModel), "", IsotonicCalibratorTransformer.LoadName)]
 
-namespace Microsoft.ML.Calibrator
+namespace Microsoft.ML.Calibrators
 {
 
     /// <summary>
@@ -41,12 +39,6 @@ namespace Microsoft.ML.Calibrator
     /// that contains a &quot;Score&quot; column, and converts the scores to probabilities(through binning, interpolation etc.), based on the <typeparamref name="TICalibrator"/> type.
     /// They are used in pipelines where the binary classifier produces non-calibrated scores.
     /// </remarks>
-    /// <example>
-    /// <format type="text/markdown">
-    /// <![CDATA[
-    ///  [!code-csharp[Calibrators](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Calibrator.cs)]
-    /// ]]></format>
-    /// </example>
     public abstract class CalibratorEstimatorBase<TICalibrator> : IEstimator<CalibratorTransformer<TICalibrator>>, IHaveCalibratorTrainer
         where TICalibrator : class, ICalibrator
     {
@@ -110,7 +102,7 @@ namespace Microsoft.ML.Calibrator
                 SchemaShape.Column.VectorKind.Scalar,
                 NumberDataViewType.Single,
                 false,
-                new SchemaShape(MetadataUtils.GetTrainerOutputMetadata(true)));
+                new SchemaShape(AnnotationUtils.GetTrainerOutputAnnotation(true)));
 
             return new SchemaShape(outColumns.Values);
         }
@@ -150,7 +142,7 @@ namespace Microsoft.ML.Calibrator
     public abstract class CalibratorTransformer<TICalibrator> : RowToRowTransformerBase, ISingleFeaturePredictionTransformer<TICalibrator>
         where TICalibrator : class, ICalibrator
     {
-        private TICalibrator _calibrator;
+        private readonly TICalibrator _calibrator;
         private readonly string _loaderSignature;
 
         private protected CalibratorTransformer(IHostEnvironment env, TICalibrator calibrator, string loaderSignature)
@@ -174,7 +166,7 @@ namespace Microsoft.ML.Calibrator
             ctx.LoadModel<TICalibrator, SignatureLoadModel>(env, out _calibrator, "Calibrator");
         }
 
-        string ISingleFeaturePredictionTransformer<TICalibrator>.FeatureColumn => DefaultColumnNames.Score;
+        string ISingleFeaturePredictionTransformer<TICalibrator>.FeatureColumnName => DefaultColumnNames.Score;
 
         DataViewType ISingleFeaturePredictionTransformer<TICalibrator>.FeatureColumnType => NumberDataViewType.Single;
 
@@ -210,7 +202,7 @@ namespace Microsoft.ML.Calibrator
             where TCalibrator : class, ICalibrator
         {
             private TCalibrator _calibrator;
-            private int _scoreColIndex;
+            private readonly int _scoreColIndex;
             private CalibratorTransformer<TCalibrator> _parent;
 
             internal Mapper(CalibratorTransformer<TCalibrator> parent, TCalibrator calibrator, DataViewSchema inputSchema) :
@@ -242,8 +234,8 @@ namespace Microsoft.ML.Calibrator
                 Host.AssertValue(input);
                 disposer = null;
 
-                Host.Assert(input.IsColumnActive(_scoreColIndex));
-                var getScore = input.GetGetter<float>(_scoreColIndex);
+                Host.Assert(input.IsColumnActive(input.Schema[_scoreColIndex]));
+                var getScore = input.GetGetter<float>(input.Schema[_scoreColIndex]);
 
                 float score = default;
 
@@ -261,25 +253,22 @@ namespace Microsoft.ML.Calibrator
     /// <summary>
     /// The Platt calibrator estimator.
     /// </summary>
-    /// <remarks>
-    /// For the usage pattern see the example in <see cref="CalibratorEstimatorBase{TICalibrator}"/>.
-    /// </remarks>
     public sealed class PlattCalibratorEstimator : CalibratorEstimatorBase<PlattCalibrator>
     {
         /// <summary>
         /// Initializes a new instance of <see cref="PlattCalibratorEstimator"/>
         /// </summary>
         /// <param name="env">The environment to use.</param>
-        /// <param name="labelColumn">The label column name. This is consumed when this estimator is fit,
-        /// but not consumed by the resulting transformer.</param>
-        /// <param name="scoreColumn">The score column name. This is consumed both when this estimator
+        ///  /// <param name="labelColumnName">The name of the label column.This is consumed both when this estimator
         /// is fit and when the estimator is consumed.</param>
-        /// <param name="weightColumn">The optional weight column name. Note that if specified this is
+        /// <param name="scoreColumnName">The name of the score column.This is consumed when this estimator is fit,
+        /// but not consumed by the resulting transformer.</param>
+        /// <param name="exampleWeightColumnName">The name of the example weight column (optional). Note that if specified this is
         /// consumed when this estimator is fit, but not consumed by the resulting transformer.</param>
-        public PlattCalibratorEstimator(IHostEnvironment env,
-            string labelColumn = DefaultColumnNames.Label,
-            string scoreColumn = DefaultColumnNames.Score,
-            string weightColumn = null) : base(env, new PlattCalibratorTrainer(env), labelColumn, scoreColumn, weightColumn)
+        internal PlattCalibratorEstimator(IHostEnvironment env,
+            string labelColumnName = DefaultColumnNames.Label,
+            string scoreColumnName = DefaultColumnNames.Score,
+            string exampleWeightColumnName = null) : base(env, new PlattCalibratorTrainer(env), labelColumnName, scoreColumnName, exampleWeightColumnName)
         {
         }
 
@@ -293,9 +282,6 @@ namespace Microsoft.ML.Calibrator
     /// Note that unlike, say, <see cref="PlattCalibratorEstimator"/>, the fit function here is trivial
     /// and just "fits" a calibrator with the provided parameters.
     /// </summary>
-    /// <remarks>
-    /// For the usage pattern see the example in <see cref="CalibratorEstimatorBase{TICalibrator}"/>.
-    /// </remarks>
     public sealed class FixedPlattCalibratorEstimator : CalibratorEstimatorBase<PlattCalibrator>
     {
         /// <summary>
@@ -310,8 +296,8 @@ namespace Microsoft.ML.Calibrator
         /// <param name="offset">The offset in the function of the exponent of the sigmoid.</param>
         /// <param name="scoreColumn">The score column name. This is consumed both when this estimator
         /// is fit and when the estimator is consumed.</param>
-        public FixedPlattCalibratorEstimator(IHostEnvironment env,
-double slope = 1,
+        internal FixedPlattCalibratorEstimator(IHostEnvironment env,
+            double slope = 1,
             double offset = 0,
             string scoreColumn = DefaultColumnNames.Score)
             : base(env, new FixedPlattCalibratorTrainer(env, new FixedPlattCalibratorTrainer.Arguments()
@@ -354,7 +340,6 @@ double slope = 1,
     /// It divides the range of the outputs into equally sized bins. In each bin,
     /// the probability of belonging to class 1, is the number of class 1 instances in the bin, divided by the total number
     /// of instances in the bin.
-    /// For the usage pattern see the example in <see cref="CalibratorEstimatorBase{TICalibrator}"/>.
     /// </remarks>
     public sealed class NaiveCalibratorEstimator : CalibratorEstimatorBase<NaiveCalibrator>
     {
@@ -368,7 +353,7 @@ double slope = 1,
         /// is fit and when the estimator is consumed.</param>
         /// <param name="weightColumn">The optional weight column name. Note that if specified this is
         /// consumed when this estimator is fit, but not consumed by the resulting transformer.</param>
-        public NaiveCalibratorEstimator(IHostEnvironment env,
+        internal NaiveCalibratorEstimator(IHostEnvironment env,
             string labelColumn = DefaultColumnNames.Label,
             string scoreColumn = DefaultColumnNames.Score,
             string weightColumn = null) : base(env, new NaiveCalibratorTrainer(env), labelColumn, scoreColumn, weightColumn)
@@ -400,15 +385,15 @@ double slope = 1,
     }
 
     /// <summary>
-    /// The pair-adjacent violators calibrator estimator.
+    /// The isotonic calbrated estimator.
     /// </summary>
     /// <remarks>
-    /// For the usage pattern see the example in <see cref="CalibratorEstimatorBase{TICalibrator}"/>.
+    /// Calibrator finds a stepwise constant function (using the Pool Adjacent Violators Algorithm aka PAV) that minimizes the squared error.
     /// </remarks>
-    public sealed class PavCalibratorEstimator : CalibratorEstimatorBase<PavCalibrator>
+    public sealed class IsotonicCalibratorEstimator : CalibratorEstimatorBase<IsotonicCalibrator>
     {
         /// <summary>
-        /// Initializes a new instance of <see cref="PavCalibratorEstimator"/>
+        /// Initializes a new instance of <see cref="IsotonicCalibratorEstimator"/>
         /// </summary>
         /// <param name="env">The environment to use.</param>
         /// <param name="labelColumn">The label column name. This is consumed when this estimator is fit,
@@ -417,7 +402,7 @@ double slope = 1,
         /// is fit and when the estimator is consumed.</param>
         /// <param name="weightColumn">The optional weight column name. Note that if specified this is
         /// consumed when this estimator is fit, but not consumed by the resulting transformer.</param>
-        public PavCalibratorEstimator(IHostEnvironment env,
+        internal IsotonicCalibratorEstimator(IHostEnvironment env,
             string labelColumn = DefaultColumnNames.Label,
             string scoreColumn = DefaultColumnNames.Score,
             string weightColumn = null) : base(env, new PavCalibratorTrainer(env), labelColumn, scoreColumn, weightColumn)
@@ -425,25 +410,25 @@ double slope = 1,
         }
 
         [BestFriend]
-        private protected override CalibratorTransformer<PavCalibrator> Create(IHostEnvironment env, PavCalibrator calibrator)
-            => new PavCalibratorTransformer(env, calibrator);
+        private protected override CalibratorTransformer<IsotonicCalibrator> Create(IHostEnvironment env, IsotonicCalibrator calibrator)
+            => new IsotonicCalibratorTransformer(env, calibrator);
 
     }
 
     /// <summary>
-    /// The <see cref="ITransformer"/> implementation obtained by training a <see cref="PavCalibratorEstimator"/>
+    /// The <see cref="ITransformer"/> implementation obtained by training a <see cref="IsotonicCalibratorEstimator"/>
     /// </summary>
-    public sealed class PavCalibratorTransformer : CalibratorTransformer<PavCalibrator>
+    public sealed class IsotonicCalibratorTransformer : CalibratorTransformer<IsotonicCalibrator>
     {
         internal const string LoadName = "PavCalibratTransf";
 
-        internal PavCalibratorTransformer(IHostEnvironment env, PavCalibrator calibrator)
+        internal IsotonicCalibratorTransformer(IHostEnvironment env, IsotonicCalibrator calibrator)
           : base(env, calibrator, LoadName)
         {
         }
 
         // Factory method for SignatureLoadModel.
-        private PavCalibratorTransformer(IHostEnvironment env, ModelLoadContext ctx)
+        private IsotonicCalibratorTransformer(IHostEnvironment env, ModelLoadContext ctx)
             : base(env, ctx, LoadName)
         {
         }

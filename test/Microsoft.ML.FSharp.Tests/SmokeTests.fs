@@ -33,7 +33,7 @@
 #r @"../../bin/AnyCPU.Debug/Microsoft.ML.FSharp.Tests/net461/Microsoft.ML.Api.dll" 
 #r @"../../bin/AnyCPU.Debug/Microsoft.ML.FSharp.Tests/net461/Microsoft.ML.Sweeper.dll" 
 #r @"../../bin/AnyCPU.Debug/Microsoft.ML.FSharp.Tests/net461/Microsoft.ML.dll" 
-#r @"../../bin/AnyCPU.Debug/Microsoft.ML.FSharp.Tests/net461/Microsoft.ML.StandardLearners.dll" 
+#r @"../../bin/AnyCPU.Debug/Microsoft.ML.FSharp.Tests/net461/Microsoft.ML.StandardTrainers.dll" 
 #r @"../../bin/AnyCPU.Debug/Microsoft.ML.FSharp.Tests/net461/Microsoft.ML.PipelineInference.dll" 
 #r @"../../bin/AnyCPU.Debug/Microsoft.ML.FSharp.Tests/net461/xunit.core.dll" 
 #r @"../../bin/AnyCPU.Debug/Microsoft.ML.FSharp.Tests/net461/xunit.assert.dll" 
@@ -61,9 +61,9 @@ open Xunit
 module SmokeTest1 = 
 
     type SentimentData() =
-        [<LoadColumn(columnIndex = 0); ColumnName("Label"); DefaultValue>]
+        [<LoadColumn(fieldIndex = 0); ColumnName("Label"); DefaultValue>]
         val mutable Sentiment : bool
-        [<LoadColumn(columnIndex = 1); DefaultValue>]
+        [<LoadColumn(fieldIndex =1); DefaultValue>]
         val mutable SentimentText : string
 
     type SentimentPrediction() =
@@ -75,15 +75,15 @@ module SmokeTest1 =
 
         let testDataPath = __SOURCE_DIRECTORY__ + @"/../data/wikipedia-detox-250-line-data.tsv"
 
-        let ml = MLContext(seed = new System.Nullable<int>(1), conc = 1)
-        let data = ml.Data.ReadFromTextFile<SentimentData>(testDataPath, hasHeader = true)
+        let ml = MLContext(seed = new System.Nullable<int>(1))
+        let data = ml.Data.LoadFromTextFile<SentimentData>(testDataPath, hasHeader = true, allowQuoting = true)
 
         let pipeline = ml.Transforms.Text.FeaturizeText("Features", "SentimentText") 
-                        .Append(ml.BinaryClassification.Trainers.FastTree(numLeaves = 5, numTrees = 5))      
+                        .Append(ml.BinaryClassification.Trainers.FastTree(numberOfLeaves = 5, numberOfTrees = 5))
 
         let model = pipeline.Fit(data)
 
-        let engine = model.CreatePredictionEngine<SentimentData, SentimentPrediction>(ml)
+        let engine = ml.Model.CreatePredictionEngine<SentimentData, SentimentPrediction>(model)
         
         let predictions =
             [ SentimentData(SentimentText = "This is a gross exaggeration. Nobody is setting a kangaroo court. There was a simple addition.")
@@ -99,10 +99,10 @@ module SmokeTest2 =
 
     [<CLIMutable>]
     type SentimentData =
-        { [<LoadColumn(columnIndex = 0); ColumnName("Label")>] 
+        { [<LoadColumn(fieldIndex = 0); ColumnName("Label")>] 
           Sentiment : bool
           
-          [<LoadColumn(columnIndex = 1)>] 
+          [<LoadColumn(fieldIndex = 1)>] 
           SentimentText : string }
 
     [<CLIMutable>]
@@ -115,15 +115,15 @@ module SmokeTest2 =
 
         let testDataPath = __SOURCE_DIRECTORY__ + @"/../data/wikipedia-detox-250-line-data.tsv"
         
-        let ml = MLContext(seed = new System.Nullable<int>(1), conc = 1)
-        let data = ml.Data.ReadFromTextFile<SentimentData>(testDataPath, hasHeader = true)
+        let ml = MLContext(seed = new System.Nullable<int>(1))
+        let data = ml.Data.LoadFromTextFile<SentimentData>(testDataPath, hasHeader = true, allowQuoting = true)
 
         let pipeline = ml.Transforms.Text.FeaturizeText("Features", "SentimentText") 
-                        .Append(ml.BinaryClassification.Trainers.FastTree(numLeaves = 5, numTrees = 5))
+                        .Append(ml.BinaryClassification.Trainers.FastTree(numberOfLeaves = 5, numberOfTrees = 5))
         
         let model = pipeline.Fit(data)
 
-        let engine = model.CreatePredictionEngine<SentimentData, SentimentPrediction>(ml)
+        let engine = ml.Model.CreatePredictionEngine<SentimentData, SentimentPrediction>(model)
 
         let predictions =
             [ { SentimentText = "This is a gross exaggeration. Nobody is setting a kangaroo court. There was a simple addition."; Sentiment = false }
@@ -137,10 +137,10 @@ module SmokeTest2 =
 module SmokeTest3 = 
 
     type SentimentData() =
-        [<LoadColumn(columnIndex = 0); ColumnName("Label")>] 
+        [<LoadColumn(fieldIndex = 0); ColumnName("Label")>] 
         member val Sentiment = false with get, set
 
-        [<LoadColumn(columnIndex = 1)>] 
+        [<LoadColumn(fieldIndex = 1)>] 
         member val SentimentText = "".AsMemory() with get, set
 
     type SentimentPrediction() =
@@ -152,15 +152,15 @@ module SmokeTest3 =
 
         let testDataPath = __SOURCE_DIRECTORY__ + @"/../data/wikipedia-detox-250-line-data.tsv"
 
-        let ml = MLContext(seed = new System.Nullable<int>(1), conc = 1)
-        let data = ml.Data.ReadFromTextFile<SentimentData>(testDataPath, hasHeader = true)
+        let ml = MLContext(seed = new System.Nullable<int>(1))
+        let data = ml.Data.LoadFromTextFile<SentimentData>(testDataPath, hasHeader = true, allowQuoting = true)
 
         let pipeline = ml.Transforms.Text.FeaturizeText("Features", "SentimentText") 
-                        .Append(ml.BinaryClassification.Trainers.FastTree(numLeaves = 5, numTrees = 5))
+                        .Append(ml.BinaryClassification.Trainers.FastTree(numberOfLeaves = 5, numberOfTrees = 5))
         
         let model = pipeline.Fit(data)
 
-        let engine = model.CreatePredictionEngine<SentimentData, SentimentPrediction>(ml)
+        let engine = ml.Model.CreatePredictionEngine<SentimentData, SentimentPrediction>(model)
 
         let predictions =
             [ SentimentData(SentimentText = "This is a gross exaggeration. Nobody is setting a kangaroo court. There was a simple addition.".AsMemory())

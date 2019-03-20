@@ -6,13 +6,12 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
-using Microsoft.ML.Data.Evaluators.Metrics;
 using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Runtime;
 using Microsoft.ML.Transforms;
 
 [assembly: LoadableClass(typeof(AnomalyDetectionEvaluator), typeof(AnomalyDetectionEvaluator), typeof(AnomalyDetectionEvaluator.Arguments), typeof(SignatureEvaluator),
@@ -95,7 +94,7 @@ namespace Microsoft.ML.Data
 
         private protected override void CheckScoreAndLabelTypes(RoleMappedSchema schema)
         {
-            var score = schema.GetUniqueColumn(MetadataUtils.Const.ScoreValueKind.Score);
+            var score = schema.GetUniqueColumn(AnnotationUtils.Const.ScoreValueKind.Score);
             var t = score.Type;
             if (t != NumberDataViewType.Single)
                 throw Host.ExceptSchemaMismatch(nameof(schema), "score", score.Name, "float", t.ToString());
@@ -505,10 +504,10 @@ namespace Microsoft.ML.Data
                 Host.Assert(!_streaming && PassNum < 2 || PassNum < 1);
                 Host.Assert(schema.Label.HasValue);
 
-                var score = schema.GetUniqueColumn(MetadataUtils.Const.ScoreValueKind.Score);
+                var score = schema.GetUniqueColumn(AnnotationUtils.Const.ScoreValueKind.Score);
 
                 _labelGetter = RowCursorUtils.GetLabelGetter(row, schema.Label.Value.Index);
-                _scoreGetter = row.GetGetter<float>(score.Index);
+                _scoreGetter = row.GetGetter<float>(score);
                 Host.AssertValue(_labelGetter);
                 Host.AssertValue(_scoreGetter);
 
@@ -521,7 +520,7 @@ namespace Microsoft.ML.Data
                         _nameGetter = (ref ReadOnlyMemory<char> dst) => dst = (rowCounter++).ToString().AsMemory();
                     }
                     else
-                        _nameGetter = row.GetGetter<ReadOnlyMemory<char>>(_nameIndex);
+                        _nameGetter = row.GetGetter<ReadOnlyMemory<char>>(row.Schema[_nameIndex]);
                 }
             }
 
@@ -596,8 +595,8 @@ namespace Microsoft.ML.Data
 
             var roles = new RoleMappedData(data, opt: false,
                 RoleMappedSchema.ColumnRole.Label.Bind(label),
-                RoleMappedSchema.CreatePair(MetadataUtils.Const.ScoreValueKind.Score, score),
-                RoleMappedSchema.CreatePair(MetadataUtils.Const.ScoreValueKind.PredictedLabel, predictedLabel));
+                RoleMappedSchema.CreatePair(AnnotationUtils.Const.ScoreValueKind.Score, score),
+                RoleMappedSchema.CreatePair(AnnotationUtils.Const.ScoreValueKind.PredictedLabel, predictedLabel));
 
             var resultDict = ((IEvaluator)this).Evaluate(roles);
             Host.Assert(resultDict.ContainsKey(MetricKinds.OverallMetrics));
@@ -650,7 +649,7 @@ namespace Microsoft.ML.Data
         private protected override IEvaluator Evaluator => _evaluator;
 
         public AnomalyDetectionMamlEvaluator(IHostEnvironment env, Arguments args)
-            : base(args, env, MetadataUtils.Const.ScoreColumnKind.AnomalyDetection, "AnomalyDetectionMamlEvaluator")
+            : base(args, env, AnnotationUtils.Const.ScoreColumnKind.AnomalyDetection, "AnomalyDetectionMamlEvaluator")
         {
             var evalArgs = new AnomalyDetectionEvaluator.Arguments();
             evalArgs.K = _k = args.K;
@@ -670,16 +669,20 @@ namespace Microsoft.ML.Data
             var sb = new StringBuilder();
             using (var cursor = top.GetRowCursorForAllColumns())
             {
-                int index;
-                if (!top.Schema.TryGetColumnIndex(AnomalyDetectionEvaluator.TopKResultsColumns.Instance, out index))
+                DataViewSchema.Column? column = top.Schema.GetColumnOrNull(AnomalyDetectionEvaluator.TopKResultsColumns.Instance);
+                if (!column.HasValue)
                     throw Host.ExceptSchemaMismatch(nameof(top.Schema), "instance", AnomalyDetectionEvaluator.TopKResultsColumns.Instance);
-                var instanceGetter = cursor.GetGetter<ReadOnlyMemory<char>>(index);
-                if (!top.Schema.TryGetColumnIndex(AnomalyDetectionEvaluator.TopKResultsColumns.AnomalyScore, out index))
+                var instanceGetter = cursor.GetGetter<ReadOnlyMemory<char>>(column.Value);
+
+                column = top.Schema.GetColumnOrNull(AnomalyDetectionEvaluator.TopKResultsColumns.AnomalyScore);
+                if (!column.HasValue)
                     throw Host.ExceptSchemaMismatch(nameof(top.Schema), "anomaly score", AnomalyDetectionEvaluator.TopKResultsColumns.AnomalyScore);
-                var scoreGetter = cursor.GetGetter<Single>(index);
-                if (!top.Schema.TryGetColumnIndex(AnomalyDetectionEvaluator.TopKResultsColumns.Label, out index))
+                var scoreGetter = cursor.GetGetter<Single>(column.Value);
+
+                column = top.Schema.GetColumnOrNull(AnomalyDetectionEvaluator.TopKResultsColumns.Label);
+                if (!column.HasValue)
                     throw Host.ExceptSchemaMismatch(nameof(top.Schema), "label", AnomalyDetectionEvaluator.TopKResultsColumns.Label);
-                var labelGetter = cursor.GetGetter<Single>(index);
+                var labelGetter = cursor.GetGetter<Single>(column.Value);
 
                 bool hasRows = false;
                 while (cursor.MoveNext())
@@ -710,8 +713,8 @@ namespace Microsoft.ML.Data
                 throw Host.Except("No overall metrics found");
 
             // Find the number of anomalies, and the thresholds.
-            int numAnomIndex;
-            if (!overall.Schema.TryGetColumnIndex(AnomalyDetectionEvaluator.OverallMetrics.NumAnomalies, out numAnomIndex))
+            DataViewSchema.Column? numAnom = overall.Schema.GetColumnOrNull(AnomalyDetectionEvaluator.OverallMetrics.NumAnomalies);
+            if (numAnom == null || !numAnom.HasValue)
                 throw Host.ExceptSchemaMismatch(nameof(overall.Schema), "number of anomalies", AnomalyDetectionEvaluator.OverallMetrics.NumAnomalies);
 
             int stratCol;
@@ -723,7 +726,7 @@ namespace Microsoft.ML.Data
             using (var cursor = overall.GetRowCursor(overall.Schema.Where(col => col.Name.Equals(AnomalyDetectionEvaluator.OverallMetrics.NumAnomalies)||
                 (hasStrat && col.Name.Equals(MetricKinds.ColumnNames.StratCol)))))
             {
-                var numAnomGetter = cursor.GetGetter<long>(numAnomIndex);
+                var numAnomGetter = cursor.GetGetter<long>(numAnom.Value);
                 ValueGetter<uint> stratGetter = null;
                 if (hasStrat)
                 {
@@ -791,7 +794,7 @@ namespace Microsoft.ML.Data
             // The anomaly detection evaluator outputs the label and the score.
             yield return schema.Label.Value.Name;
             var scoreCol = EvaluateUtils.GetScoreColumn(Host, schema.Schema, ScoreCol, nameof(Arguments.ScoreColumn),
-                MetadataUtils.Const.ScoreColumnKind.AnomalyDetection);
+                AnnotationUtils.Const.ScoreColumnKind.AnomalyDetection);
             yield return scoreCol.Name;
 
             // No additional output columns.

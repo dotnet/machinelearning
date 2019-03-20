@@ -12,8 +12,8 @@ using Microsoft.ML.Data;
 using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Internal.CpuMath;
 using Microsoft.ML.Internal.Internallearn;
+using Microsoft.ML.Runtime;
 using Microsoft.ML.Trainers.FastTree;
-using Microsoft.ML.Training;
 
 [assembly: LoadableClass(typeof(void), typeof(Gam), null, typeof(SignatureEntryPointModule), "GAM")]
 
@@ -22,84 +22,103 @@ namespace Microsoft.ML.Trainers.FastTree
     using SplitInfo = LeastSquaresRegressionTreeLearner.SplitInfo;
 
     /// <summary>
-    /// Generalized Additive Model Trainer.
+    /// Base class for GAM trainers.
     /// </summary>
-    /// <remarks>
-    /// <para>
-    /// Generalized Additive Models, or GAMs, model the data as a set of linearly independent features
-    /// similar to a linear model. For each feature, the GAM trainer learns a non-linear function,
-    /// called a "shape function", that computes the response as a function of the feature's value.
-    /// (In contrast, a linear model fits a linear response (e.g. a line) to each feature.)
-    /// To score an example, the outputs of all the shape functions are summed and the score is the total value.
-    /// </para>
-    /// <para>
-    /// This GAM trainer is implemented using shallow gradient boosted trees (e.g. tree stumps) to learn nonparametric
-    /// shape functions, and is based on the method described in Lou, Caruana, and Gehrke.
-    /// <a href='http://www.cs.cornell.edu/~yinlou/papers/lou-kdd12.pdf'>&quot;Intelligible Models for Classification and Regression.&quot;</a> KDD&apos;12, Beijing, China. 2012.
-    /// After training, an intercept is added to represent the average prediction over the training set,
-    /// and the shape functions are normalized to represent the deviation from the average prediction. This results
-    /// in models that are easily interpreted simply by inspecting the intercept and the shape functions.
-    /// See the sample below for an example of how to train a GAM model and inspect and interpret the results.
-    /// </para>
-    /// </remarks>
-    /// <example>
-    /// <format type="text/markdown">
-    /// <![CDATA[
-    /// [!code-csharp[GAM](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/GeneralizedAdditiveModels.cs)]
-    /// ]]>
-    /// </format>
-    /// </example>
     public abstract partial class GamTrainerBase<TOptions, TTransformer, TPredictor> : TrainerEstimatorBase<TTransformer, TPredictor>
-        where TTransformer: ISingleFeaturePredictionTransformer<TPredictor>
+        where TTransformer : ISingleFeaturePredictionTransformer<TPredictor>
         where TOptions : GamTrainerBase<TOptions, TTransformer, TPredictor>.OptionsBase, new()
         where TPredictor : class
     {
-        public abstract class OptionsBase : LearnerInputBaseWithWeight
+        /// <summary>
+        /// Base class for GAM-based trainer options.
+        /// </summary>
+        public abstract class OptionsBase : TrainerInputBaseWithWeight
         {
+            /// <summary>
+            /// The entropy (regularization) coefficient between 0 and 1.
+            /// </summary>
             [Argument(ArgumentType.LastOccurenceWins, HelpText = "The entropy (regularization) coefficient between 0 and 1", ShortName = "e")]
             public double EntropyCoefficient;
 
-            /// Only consider a gain if its likelihood versus a random choice gain is above a certain value.
-            /// So 0.95 would mean restricting to gains that have less than a 0.05 change of being generated randomly through choice of a random split.
+            /// <summary>
+            /// Tree fitting gain confidence requirement. Only consider a gain if its likelihood versus a random choice gain is above this value.
+            /// </summary>
+            /// <value>
+            /// Value of 0.95 would mean restricting to gains that have less than a 0.05 chance of being generated randomly through choice of a random split.
+            /// Valid range is [0,1).
+            /// </value>
             [Argument(ArgumentType.LastOccurenceWins, HelpText = "Tree fitting gain confidence requirement (should be in the range [0,1) ).", ShortName = "gainconf")]
             public int GainConfidenceLevel;
 
+            /// <summary>
+            /// Total number of passes over the training data.
+            /// </summary>
             [Argument(ArgumentType.LastOccurenceWins, HelpText = "Total number of iterations over all features", ShortName = "iter", SortOrder = 1)]
             [TGUI(SuggestedSweeps = "200,1500,9500")]
             [TlcModule.SweepableDiscreteParamAttribute("NumIterations", new object[] { 200, 1500, 9500 })]
-            public int NumIterations = GamDefaults.NumIterations;
+            public int NumberOfIterations = GamDefaults.NumberOfIterations;
 
+            /// <summary>
+            /// The number of threads to use.
+            /// </summary>
             [Argument(ArgumentType.LastOccurenceWins, HelpText = "The number of threads to use", ShortName = "t", NullName = "<Auto>")]
-            public int? NumThreads = null;
+            public int? NumberOfThreads = null;
 
+            /// <summary>
+            /// The learning rate.
+            /// </summary>
             [Argument(ArgumentType.LastOccurenceWins, HelpText = "The learning rate", ShortName = "lr", SortOrder = 4)]
             [TGUI(SuggestedSweeps = "0.001,0.1;log")]
             [TlcModule.SweepableFloatParamAttribute("LearningRates", 0.001f, 0.1f, isLogScale: true)]
-            public double LearningRates = GamDefaults.LearningRates;
+            public double LearningRate = GamDefaults.LearningRate;
 
+            /// <summary>
+            /// Whether to utilize the disk or the data's native transposition facilities (where applicable) when performing the transpose.
+            /// </summary>
             [Argument(ArgumentType.LastOccurenceWins, HelpText = "Whether to utilize the disk or the data's native transposition facilities (where applicable) when performing the transpose", ShortName = "dt")]
             public bool? DiskTranspose;
 
+            /// <summary>
+            /// The maximum number of distinct values (bins) per feature.
+            /// </summary>
             [Argument(ArgumentType.LastOccurenceWins, HelpText = "Maximum number of distinct values (bins) per feature", ShortName = "mb")]
-            public int MaxBins = GamDefaults.MaxBins;
+            public int MaximumBinCountPerFeature = GamDefaults.MaximumBinCountPerFeature;
 
+            /// <summary>
+            /// The upper bound on the absolute value of a single tree output.
+            /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Upper bound on absolute value of single output", ShortName = "mo")]
-            public double MaxOutput = Double.PositiveInfinity;
+            public double MaximumTreeOutput = double.PositiveInfinity;
 
+            /// <summary>
+            /// Sample each query 1 in k times in the GetDerivatives function.
+            /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Sample each query 1 in k times in the GetDerivatives function", ShortName = "sr")]
             public int GetDerivativesSampleRate = 1;
 
+            /// <summary>
+            /// The seed of the random number generator.
+            /// </summary>
             [Argument(ArgumentType.LastOccurenceWins, HelpText = "The seed of the random number generator", ShortName = "r1")]
-            public int RngSeed = 123;
+            public int Seed = 123;
 
+            /// <summary>
+            /// The minimal number of data points required to form a new tree leaf.
+            /// </summary>
             [Argument(ArgumentType.LastOccurenceWins, HelpText = "Minimum number of training instances required to form a partition", ShortName = "mi", SortOrder = 3)]
             [TGUI(SuggestedSweeps = "1,10,50")]
             [TlcModule.SweepableDiscreteParamAttribute("MinDocuments", new object[] { 1, 10, 50 })]
-            public int MinDocuments = 10;
+            public int MinimumExampleCountPerLeaf = 10;
 
+            /// <summary>
+            /// Whether to collectivize features during dataset preparation to speed up training.
+            /// </summary>
             [Argument(ArgumentType.LastOccurenceWins, HelpText = "Whether to collectivize features during dataset preparation to speed up training", ShortName = "flocks", Hide = true)]
             public bool FeatureFlocks = true;
 
+            /// <summary>
+            /// Enable post-training tree pruning to avoid overfitting. It requires a validation set.
+            /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Enable post-training pruning to avoid overfitting. (a validation set is required)", ShortName = "pruning")]
             public bool EnablePruning = true;
         }
@@ -132,7 +151,7 @@ namespace Microsoft.ML.Trainers.FastTree
         private ObjectiveFunctionBase _objectiveFunction;
         private bool HasWeights => TrainSet?.SampleWeights != null;
 
-        // Training datastructures
+        // Training data structures
         private SubGraph _subGraph;
 
         //Results of training
@@ -149,23 +168,23 @@ namespace Microsoft.ML.Trainers.FastTree
         private protected GamTrainerBase(IHostEnvironment env,
             string name,
             SchemaShape.Column label,
-            string featureColumn,
-            string weightColumn,
-            int numIterations,
+            string featureColumnName,
+            string weightCrowGroupColumnName,
+            int numberOfIterations,
             double learningRate,
-            int maxBins)
-            : base(Contracts.CheckRef(env, nameof(env)).Register(name), TrainerUtils.MakeR4VecFeature(featureColumn), label, TrainerUtils.MakeR4ScalarWeightColumn(weightColumn))
+            int maximumBinCountPerFeature)
+            : base(Contracts.CheckRef(env, nameof(env)).Register(name), TrainerUtils.MakeR4VecFeature(featureColumnName), label, TrainerUtils.MakeR4ScalarWeightColumn(weightCrowGroupColumnName))
         {
             GamTrainerOptions = new TOptions();
-            GamTrainerOptions.NumIterations = numIterations;
-            GamTrainerOptions.LearningRates = learningRate;
-            GamTrainerOptions.MaxBins = maxBins;
+            GamTrainerOptions.NumberOfIterations = numberOfIterations;
+            GamTrainerOptions.LearningRate = learningRate;
+            GamTrainerOptions.MaximumBinCountPerFeature = maximumBinCountPerFeature;
 
-            GamTrainerOptions.LabelColumn = label.Name;
-            GamTrainerOptions.FeatureColumn = featureColumn;
+            GamTrainerOptions.LabelColumnName = label.Name;
+            GamTrainerOptions.FeatureColumnName = featureColumnName;
 
-            if (weightColumn != null)
-                GamTrainerOptions.WeightColumn = weightColumn;
+            if (weightCrowGroupColumnName != null)
+                GamTrainerOptions.ExampleWeightColumnName = weightCrowGroupColumnName;
 
             Info = new TrainerInfo(normalization: false, calibration: NeedCalibration, caching: false, supportValid: true);
             _gainConfidenceInSquaredStandardDeviations = Math.Pow(ProbabilityFunctions.Probit(1 - (1 - GamTrainerOptions.GainConfidenceLevel) * 0.5), 2);
@@ -175,19 +194,19 @@ namespace Microsoft.ML.Trainers.FastTree
         }
 
         private protected GamTrainerBase(IHostEnvironment env, TOptions options, string name, SchemaShape.Column label)
-            : base(Contracts.CheckRef(env, nameof(env)).Register(name), TrainerUtils.MakeR4VecFeature(options.FeatureColumn),
-                  label, TrainerUtils.MakeR4ScalarWeightColumn(options.WeightColumn))
+            : base(Contracts.CheckRef(env, nameof(env)).Register(name), TrainerUtils.MakeR4VecFeature(options.FeatureColumnName),
+                  label, TrainerUtils.MakeR4ScalarWeightColumn(options.ExampleWeightColumnName))
         {
             Contracts.CheckValue(env, nameof(env));
             Host.CheckValue(options, nameof(options));
 
-            Host.CheckParam(options.LearningRates > 0, nameof(options.LearningRates), "Must be positive.");
-            Host.CheckParam(options.NumThreads == null || options.NumThreads > 0, nameof(options.NumThreads), "Must be positive.");
+            Host.CheckParam(options.LearningRate > 0, nameof(options.LearningRate), "Must be positive.");
+            Host.CheckParam(options.NumberOfThreads == null || options.NumberOfThreads > 0, nameof(options.NumberOfThreads), "Must be positive.");
             Host.CheckParam(0 <= options.EntropyCoefficient && options.EntropyCoefficient <= 1, nameof(options.EntropyCoefficient), "Must be in [0, 1].");
             Host.CheckParam(0 <= options.GainConfidenceLevel && options.GainConfidenceLevel < 1, nameof(options.GainConfidenceLevel), "Must be in [0, 1).");
-            Host.CheckParam(0 < options.MaxBins, nameof(options.MaxBins), "Must be posittive.");
-            Host.CheckParam(0 < options.NumIterations, nameof(options.NumIterations), "Must be positive.");
-            Host.CheckParam(0 < options.MinDocuments, nameof(options.MinDocuments), "Must be positive.");
+            Host.CheckParam(0 < options.MaximumBinCountPerFeature, nameof(options.MaximumBinCountPerFeature), "Must be posittive.");
+            Host.CheckParam(0 < options.NumberOfIterations, nameof(options.NumberOfIterations), "Must be positive.");
+            Host.CheckParam(0 < options.MinimumExampleCountPerLeaf, nameof(options.MinimumExampleCountPerLeaf), "Must be positive.");
 
             GamTrainerOptions = options;
 
@@ -235,7 +254,7 @@ namespace Microsoft.ML.Trainers.FastTree
             CheckLabel(trainData);
 
             var useTranspose = UseTranspose(GamTrainerOptions.DiskTranspose, trainData);
-            var instanceConverter = new ExamplesToFastTreeBins(Host, GamTrainerOptions.MaxBins, useTranspose, !GamTrainerOptions.FeatureFlocks, GamTrainerOptions.MinDocuments, float.PositiveInfinity);
+            var instanceConverter = new ExamplesToFastTreeBins(Host, GamTrainerOptions.MaximumBinCountPerFeature, useTranspose, !GamTrainerOptions.FeatureFlocks, GamTrainerOptions.MinimumExampleCountPerLeaf, float.PositiveInfinity);
 
             ParallelTraining.InitEnvironment();
             TrainSet = instanceConverter.FindBinsAndReturnDataset(trainData, PredictionKind, ParallelTraining, null, false);
@@ -275,7 +294,7 @@ namespace Microsoft.ML.Trainers.FastTree
         private void TrainMainEffectsModel(IChannel ch)
         {
             Contracts.AssertValue(ch);
-            int iterations = GamTrainerOptions.NumIterations;
+            int iterations = GamTrainerOptions.NumberOfIterations;
 
             ch.Info("Starting to train ...");
 
@@ -341,7 +360,7 @@ namespace Microsoft.ML.Trainers.FastTree
             // Compute the split for the feature
             _histogram[flockIndex].FindBestSplitForFeature(_leafSplitHelper, _leafSplitCandidates,
                 _leafSplitCandidates.Targets.Length, sumTargets, sumWeights,
-                globalFeatureIndex, flockIndex, subFeatureIndex, GamTrainerOptions.MinDocuments, HasWeights,
+                globalFeatureIndex, flockIndex, subFeatureIndex, GamTrainerOptions.MinimumExampleCountPerLeaf, HasWeights,
                 _gainConfidenceInSquaredStandardDeviations, _entropyCoefficient,
                 TrainSet.Flocks[flockIndex].Trust(subFeatureIndex), 0);
 
@@ -404,7 +423,7 @@ namespace Microsoft.ML.Trainers.FastTree
         private void CombineGraphs(IChannel ch)
         {
             // Prune backwards to the best iteration
-            int bestIteration = GamTrainerOptions.NumIterations;
+            int bestIteration = GamTrainerOptions.NumberOfIterations;
             if (GamTrainerOptions.EnablePruning && PruningTest != null)
             {
                 ch.Info("Pruning");
@@ -416,8 +435,8 @@ namespace Microsoft.ML.Trainers.FastTree
                     bestIteration = PruningTest.BestIteration;
                     bestLoss = PruningTest.BestResult.FinalValue;
                 }
-                if (bestIteration != GamTrainerOptions.NumIterations)
-                    ch.Info($"Best Iteration ({lossFunctionName}): {bestIteration} @ {bestLoss:G6} (vs {GamTrainerOptions.NumIterations} @ {finalResult.FinalValue:G6}).");
+                if (bestIteration != GamTrainerOptions.NumberOfIterations)
+                    ch.Info($"Best Iteration ({lossFunctionName}): {bestIteration} @ {bestLoss:G6} (vs {GamTrainerOptions.NumberOfIterations} @ {finalResult.FinalValue:G6}).");
                 else
                     ch.Info("No pruning necessary. More iterations may be necessary.");
             }
@@ -511,7 +530,7 @@ namespace Microsoft.ML.Trainers.FastTree
 
                 // Shift the mean from the bins into the intercept
                 MeanEffect += meanEffects[featureIndex];
-                for (int bin=0; bin < BinEffects[featureIndex].Length; ++bin)
+                for (int bin = 0; bin < BinEffects[featureIndex].Length; ++bin)
                     BinEffects[featureIndex][bin] -= meanEffects[featureIndex];
             }
         }
@@ -557,8 +576,8 @@ namespace Microsoft.ML.Trainers.FastTree
         {
             SplitInfo splitinfo = _leafSplitCandidates.FeatureSplitInfo[globalFeatureIndex];
             _subGraph.Splits[globalFeatureIndex][iteration].SplitPoint = splitinfo.Threshold;
-            _subGraph.Splits[globalFeatureIndex][iteration].LteValue = GamTrainerOptions.LearningRates * splitinfo.LteOutput;
-            _subGraph.Splits[globalFeatureIndex][iteration].GtValue = GamTrainerOptions.LearningRates * splitinfo.GTOutput;
+            _subGraph.Splits[globalFeatureIndex][iteration].LteValue = GamTrainerOptions.LearningRate * splitinfo.LteOutput;
+            _subGraph.Splits[globalFeatureIndex][iteration].GtValue = GamTrainerOptions.LearningRate * splitinfo.GTOutput;
         }
 
         private void InitializeGamHistograms()
@@ -573,7 +592,7 @@ namespace Microsoft.ML.Trainers.FastTree
             using (Timer.Time(TimerEvent.InitializeTraining))
             {
                 InitializeGamHistograms();
-                _subGraph = new SubGraph(TrainSet.NumFeatures, GamTrainerOptions.NumIterations);
+                _subGraph = new SubGraph(TrainSet.NumFeatures, GamTrainerOptions.NumberOfIterations);
                 _leafSplitCandidates = new LeastSquaresRegressionTreeLearner.LeafSplitCandidates(TrainSet);
                 _leafSplitHelper = new LeafSplitHelper(HasWeights);
             }
@@ -582,17 +601,7 @@ namespace Microsoft.ML.Trainers.FastTree
         private void InitializeThreads()
         {
             ParallelTraining = new SingleTrainer();
-
-            int numThreads = GamTrainerOptions.NumThreads ?? Environment.ProcessorCount;
-            if (Host.ConcurrencyFactor > 0 && numThreads > Host.ConcurrencyFactor)
-                using (var ch = Host.Start("GamTrainer"))
-                {
-                    numThreads = Host.ConcurrencyFactor;
-                    ch.Warning("The number of threads specified in trainer arguments is larger than the concurrency factor "
-                        + "setting of the environment. Using {0} training threads instead.", numThreads);
-                }
-
-            ThreadTaskManager.Initialize(numThreads);
+            ThreadTaskManager.Initialize(GamTrainerOptions.NumberOfThreads ?? Environment.ProcessorCount);
         }
 
         private protected abstract ObjectiveFunctionBase CreateObjectiveFunction();
@@ -647,7 +656,7 @@ namespace Microsoft.ML.Trainers.FastTree
             public SubGraph(int numFeatures, int numIterations)
             {
                 Splits = new Stump[numFeatures][];
-                for (int i =0; i < numFeatures; ++i)
+                for (int i = 0; i < numFeatures; ++i)
                 {
                     Splits[i] = new Stump[numIterations];
                     for (int j = 0; j < numIterations; j++)
@@ -673,39 +682,39 @@ namespace Microsoft.ML.Trainers.FastTree
 
     internal static class Gam
     {
-        [TlcModule.EntryPoint(Name = "Trainers.GeneralizedAdditiveModelRegressor", Desc = RegressionGamTrainer.Summary, UserName = RegressionGamTrainer.UserNameValue, ShortName = RegressionGamTrainer.ShortName)]
-        public static CommonOutputs.RegressionOutput TrainRegression(IHostEnvironment env, RegressionGamTrainer.Options input)
+        [TlcModule.EntryPoint(Name = "Trainers.GeneralizedAdditiveModelRegressor", Desc = GamRegressionTrainer.Summary, UserName = GamRegressionTrainer.UserNameValue, ShortName = GamRegressionTrainer.ShortName)]
+        public static CommonOutputs.RegressionOutput TrainRegression(IHostEnvironment env, GamRegressionTrainer.Options input)
         {
             Contracts.CheckValue(env, nameof(env));
             var host = env.Register("TrainGAM");
             host.CheckValue(input, nameof(input));
             EntryPointUtils.CheckInputArgs(host, input);
 
-            return LearnerEntryPointsUtils.Train<RegressionGamTrainer.Options, CommonOutputs.RegressionOutput>(host, input,
-                () => new RegressionGamTrainer(host, input),
-                () => LearnerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.LabelColumn),
-                () => LearnerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.WeightColumn));
+            return TrainerEntryPointsUtils.Train<GamRegressionTrainer.Options, CommonOutputs.RegressionOutput>(host, input,
+                () => new GamRegressionTrainer(host, input),
+                () => TrainerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.LabelColumnName),
+                () => TrainerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.ExampleWeightColumnName));
         }
 
-        [TlcModule.EntryPoint(Name = "Trainers.GeneralizedAdditiveModelBinaryClassifier", Desc = BinaryClassificationGamTrainer.Summary, UserName = BinaryClassificationGamTrainer.UserNameValue, ShortName = BinaryClassificationGamTrainer.ShortName)]
-        public static CommonOutputs.BinaryClassificationOutput TrainBinary(IHostEnvironment env, BinaryClassificationGamTrainer.Options input)
+        [TlcModule.EntryPoint(Name = "Trainers.GeneralizedAdditiveModelBinaryClassifier", Desc = GamBinaryTrainer.Summary, UserName = GamBinaryTrainer.UserNameValue, ShortName = GamBinaryTrainer.ShortName)]
+        public static CommonOutputs.BinaryClassificationOutput TrainBinary(IHostEnvironment env, GamBinaryTrainer.Options input)
         {
             Contracts.CheckValue(env, nameof(env));
             var host = env.Register("TrainGAM");
             host.CheckValue(input, nameof(input));
             EntryPointUtils.CheckInputArgs(host, input);
 
-            return LearnerEntryPointsUtils.Train<BinaryClassificationGamTrainer.Options, CommonOutputs.BinaryClassificationOutput>(host, input,
-                () => new BinaryClassificationGamTrainer(host, input),
-                () => LearnerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.LabelColumn),
-                () => LearnerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.WeightColumn));
+            return TrainerEntryPointsUtils.Train<GamBinaryTrainer.Options, CommonOutputs.BinaryClassificationOutput>(host, input,
+                () => new GamBinaryTrainer(host, input),
+                () => TrainerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.LabelColumnName),
+                () => TrainerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.ExampleWeightColumnName));
         }
     }
 
     internal static class GamDefaults
     {
-        internal const int NumIterations = 9500;
-        internal const int MaxBins = 255;
-        internal const double LearningRates = 0.002; // A small value
+        internal const int NumberOfIterations = 9500;
+        internal const int MaximumBinCountPerFeature = 255;
+        internal const double LearningRate = 0.002; // A small value
     }
 }

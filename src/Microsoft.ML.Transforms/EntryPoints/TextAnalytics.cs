@@ -5,7 +5,7 @@
 using System.Linq;
 using Microsoft.ML;
 using Microsoft.ML.EntryPoints;
-using Microsoft.ML.Transforms.Conversions;
+using Microsoft.ML.Runtime;
 using Microsoft.ML.Transforms.Text;
 
 [assembly: LoadableClass(typeof(void), typeof(TextAnalytics), null, typeof(SignatureEntryPointModule), "TextAnalytics")]
@@ -21,7 +21,7 @@ namespace Microsoft.ML.Transforms.Text
             Desc = TextFeaturizingEstimator.Summary,
             UserName = TextFeaturizingEstimator.UserName,
             ShortName = TextFeaturizingEstimator.LoaderSignature)]
-        public static CommonOutputs.TransformOutput TextTransform(IHostEnvironment env, TextFeaturizingEstimator.Arguments input)
+        public static CommonOutputs.TransformOutput TextTransform(IHostEnvironment env, TextFeaturizingEstimator.Options input)
         {
             var h = EntryPointUtils.CheckArgsAndCreateHost(env, "FeaturizeTextEstimator", input);
             var xf = TextFeaturizingEstimator.Create(h, input, input.Data);
@@ -120,7 +120,7 @@ namespace Microsoft.ML.Transforms.Text
             env.CheckValue(input, nameof(input));
 
             var h = EntryPointUtils.CheckArgsAndCreateHost(env, "LightLda", input);
-            var cols = input.Columns.Select(colPair => new LatentDirichletAllocationEstimator.ColumnInfo(colPair, input)).ToArray();
+            var cols = input.Columns.Select(colPair => new LatentDirichletAllocationEstimator.ColumnOptions(colPair, input)).ToArray();
             var est = new LatentDirichletAllocationEstimator(h, cols);
             var view = est.Fit(input.Data).Transform(input.Data);
 
@@ -132,16 +132,16 @@ namespace Microsoft.ML.Transforms.Text
         }
 
         [TlcModule.EntryPoint(Name = "Transforms.WordEmbeddings",
-            Desc = WordEmbeddingsExtractingTransformer.Summary,
-            UserName = WordEmbeddingsExtractingTransformer.UserName,
-            ShortName = WordEmbeddingsExtractingTransformer.ShortName)]
-        public static CommonOutputs.TransformOutput WordEmbeddings(IHostEnvironment env, WordEmbeddingsExtractingTransformer.Options input)
+            Desc = WordEmbeddingTransformer.Summary,
+            UserName = WordEmbeddingTransformer.UserName,
+            ShortName = WordEmbeddingTransformer.ShortName)]
+        public static CommonOutputs.TransformOutput WordEmbeddings(IHostEnvironment env, WordEmbeddingTransformer.Options input)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(input, nameof(input));
 
             var h = EntryPointUtils.CheckArgsAndCreateHost(env, "WordEmbeddings", input);
-            var view = WordEmbeddingsExtractingTransformer.Create(h, input, input.Data);
+            var view = WordEmbeddingTransformer.Create(h, input, input.Data);
             return new CommonOutputs.TransformOutput()
             {
                 Model = new TransformModelImpl(h, view, input.Data),

@@ -3,8 +3,8 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.ML.EntryPoints;
+using Microsoft.ML.Runtime;
 using Microsoft.ML.Trainers.Ensemble;
-using Microsoft.ML.Trainers.Ensemble.DiversityMeasure;
 
 [assembly: EntryPointModule(typeof(DisagreementDiversityFactory))]
 [assembly: EntryPointModule(typeof(RegressionDisagreementDiversityFactory))]

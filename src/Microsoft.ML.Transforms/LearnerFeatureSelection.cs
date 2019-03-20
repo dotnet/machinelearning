@@ -4,14 +4,13 @@
 
 using System;
 using System.Collections.Generic;
-using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
-using Microsoft.ML.Internal.Internallearn;
 using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Model;
+using Microsoft.ML.Runtime;
 using Microsoft.ML.Transforms;
-using Microsoft.ML.Transforms.FeatureSelection;
 
 [assembly: LoadableClass(LearnerFeatureSelectionTransform.Summary, typeof(IDataTransform), typeof(LearnerFeatureSelectionTransform), typeof(LearnerFeatureSelectionTransform.Options), typeof(SignatureDataTransform),
     "Learner Feature Selection Transform", "LearnerFeatureSelectionTransform", "LearnerFeatureSelection")]
@@ -41,7 +40,7 @@ namespace Microsoft.ML.Transforms
             [Argument(ArgumentType.Multiple, HelpText = "Filter", ShortName = "f", SortOrder = 1, SignatureType = typeof(SignatureFeatureScorerTrainer))]
             public IComponentFactory<ITrainer<IPredictorWithFeatureWeights<Single>>> Filter =
                 ComponentFactoryUtils.CreateFromFunction(env =>
-                    // ML.Transforms doesn't have a direct reference to ML.StandardLearners, so use ComponentCatalog to create the Filter
+                    // ML.Transforms doesn't have a direct reference to ML.StandardTrainers, so use ComponentCatalog to create the Filter
                     ComponentCatalog.CreateInstance<ITrainer<IPredictorWithFeatureWeights<Single>>>(env, typeof(SignatureFeatureScorerTrainer), "SDCA", options: null));
 
             [Argument(ArgumentType.LastOccurenceWins, HelpText = "Column to use for features", ShortName = "feat,col", SortOrder = 3, Purpose = SpecialPurpose.ColumnName)]
@@ -113,7 +112,7 @@ namespace Microsoft.ML.Transforms
             }
         }
 
-        private static SlotsDroppingTransformer.ColumnInfo CreateDropSlotsColumn(Options options, in VBuffer<Single> scores, out int selectedCount)
+        private static SlotsDroppingTransformer.ColumnOptions CreateDropSlotsColumn(Options options, in VBuffer<Single> scores, out int selectedCount)
         {
             // Not checking the scores.Length, because:
             // 1. If it's the same as the features column length, we should be constructing the right DropSlots arguments.
@@ -127,7 +126,7 @@ namespace Microsoft.ML.Transforms
 
             // Degenerate case, dropping all slots.
             if (scoresValues.Length == 0)
-                return new SlotsDroppingTransformer.ColumnInfo(options.FeatureColumn);
+                return new SlotsDroppingTransformer.ColumnOptions(options.FeatureColumn);
 
             int tiedScoresToKeep;
             float threshold;
@@ -224,7 +223,7 @@ namespace Microsoft.ML.Transforms
             }
 
             if (slots.Count > 0)
-                return new SlotsDroppingTransformer.ColumnInfo(options.FeatureColumn, slots: slots.ToArray());
+                return new SlotsDroppingTransformer.ColumnOptions(options.FeatureColumn, slots: slots.ToArray());
 
             return null;
         }

@@ -1,9 +1,8 @@
 ﻿using System;
 using System.IO;
 using Microsoft.ML.Data;
-using Microsoft.ML.Transforms.TensorFlow;
 
-namespace Microsoft.ML.Samples.Dynamic.TensorFlow
+namespace Microsoft.ML.Samples.Dynamic
 {
     public static class TextClassification
     {
@@ -30,23 +29,23 @@ namespace Microsoft.ML.Samples.Dynamic.TensorFlow
                 "such a big profile for the whole film but these children are amazing and should be praised " +
                 "for what they have done don't you think the whole story was so lovely because it was true " +
                 "and was someone's life after all that was shared with us all" } };
-            var dataView = mlContext.Data.ReadFromEnumerable(data);
+            var dataView = mlContext.Data.LoadFromEnumerable(data);
 
             // This is the dictionary to convert words into the integer indexes.
-            var lookupMap = mlContext.Data.ReadFromTextFile(Path.Combine(modelLocation, "imdb_word_index.csv"),
-                   columns: new[]
+            var lookupMap = mlContext.Data.LoadFromTextFile(Path.Combine(modelLocation, "imdb_word_index.csv"),
+                columns: new[]
                    {
-                        new TextLoader.Column("Words", DataKind.TX, 0),
-                        new TextLoader.Column("Ids", DataKind.I4, 1),
+                        new TextLoader.Column("Words", DataKind.String, 0),
+                        new TextLoader.Column("Ids", DataKind.Int32, 1),
                    },
-                   separatorChar: ','
+                separatorChar: ','
                );
 
             // Load the TensorFlow model once.
             //      - Use it for quering the schema for input and output in the model
             //      - Use it for prediction in the pipeline.
-            var modelInfo = TensorFlowUtils.LoadTensorFlowModel(mlContext, modelLocation);
-            var schema = modelInfo.GetModelSchema();
+            var tensorFlowModel = mlContext.Model.LoadTensorFlowModel(modelLocation);
+            var schema = tensorFlowModel.GetModelSchema();
             var featuresType = (VectorType)schema["Features"].Type;
             Console.WriteLine("Name: {0}, Type: {1}, Shape: (-1, {2})", "Features", featuresType.ItemType.RawType, featuresType.Dimensions[0]);
             var predictionType = (VectorType)schema["Prediction/Softmax"].Type;
@@ -69,13 +68,14 @@ namespace Microsoft.ML.Samples.Dynamic.TensorFlow
                 j.Features = features;
             };
 
-            var engine = mlContext.Transforms.Text.TokenizeWords("TokenizedWords", "Sentiment_Text")
-                .Append(mlContext.Transforms.Conversion.ValueMap(lookupMap, "Words", "Ids", new SimpleColumnInfo[] { ("VariableLenghtFeatures", "TokenizedWords") }))
+            var model = mlContext.Transforms.Text.TokenizeIntoWords("TokenizedWords", "Sentiment_Text")
+                .Append(mlContext.Transforms.Conversion.MapValue("VariableLenghtFeatures", lookupMap,
+                    lookupMap.Schema["Words"], lookupMap.Schema["Ids"], "TokenizedWords"))
                 .Append(mlContext.Transforms.CustomMapping(ResizeFeaturesAction, "Resize"))
-                .Append(mlContext.Transforms.ScoreTensorFlowModel(modelInfo, new[] { "Prediction/Softmax" }, new[] { "Features" }))
-                .Append(mlContext.Transforms.CopyColumns(("Prediction", "Prediction/Softmax")))
-                .Fit(dataView)
-                .CreatePredictionEngine<IMDBSentiment, OutputScores>(mlContext);
+                .Append(tensorFlowModel.ScoreTensorFlowModel(new[] { "Prediction/Softmax" }, new[] { "Features" }))
+                .Append(mlContext.Transforms.CopyColumns("Prediction", "Prediction/Softmax"))
+                .Fit(dataView);
+            var engine = mlContext.Model.CreatePredictionEngine<IMDBSentiment, OutputScores>(model);
 
             // Predict with TensorFlow pipeline.
             var prediction = engine.Predict(data[0]);
@@ -103,11 +103,11 @@ namespace Microsoft.ML.Samples.Dynamic.TensorFlow
             public string Sentiment_Text { get; set; }
 
             /// <summary>
-            /// This is a variable length vector designated by VectorType(0) attribute.
+            /// This is a variable length vector designated by VectorType attribute.
             /// Variable length vectors are produced by applying operations such as 'TokenizeWords' on strings
             /// resulting in vectors of tokens of variable lengths.
             /// </summary>
-            [VectorType(0)]
+            [VectorType]
             public int[] VariableLenghtFeatures { get; set; }
         }
 

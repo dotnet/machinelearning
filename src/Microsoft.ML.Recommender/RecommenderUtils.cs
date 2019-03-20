@@ -2,9 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.Data.DataView;
 using Microsoft.ML.Data;
 using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Runtime;
 
 namespace Microsoft.ML.Recommender
 {
@@ -38,7 +38,7 @@ namespace Microsoft.ML.Recommender
 
         /// <summary>
         /// Checks whether a column kind in a <see cref="RoleMappedData"/> is unique, and its type
-        /// is a <see cref="DataKind.U4"/> key of known cardinality.
+        /// is a <see cref="InternalDataKind.U4"/> key of known cardinality.
         /// </summary>
         /// <param name="data">The training examples</param>
         /// <param name="role">The column role to try to extract</param>

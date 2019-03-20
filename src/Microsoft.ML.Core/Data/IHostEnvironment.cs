@@ -3,8 +3,9 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using Microsoft.ML.Data;
 
-namespace Microsoft.ML
+namespace Microsoft.ML.Runtime
 {
     /// <summary>
     /// A channel provider can create new channels and generic information pipes.
@@ -59,38 +60,26 @@ namespace Microsoft.ML
         /// <summary>
         /// Create a host with the given registration name.
         /// </summary>
-        IHost Register(string name, int? seed = null, bool? verbose = null, int? conc = null);
-
-        /// <summary>
-        /// How much concurrency the component should use. A value of 1 means
-        /// single-threaded. Higher values generally mean number of threads. Less
-        /// than 1 means whatever the component views as ideal.
-        /// </summary>
-        int ConcurrencyFactor { get; }
-
-        /// <summary>
-        /// Flag which indicate should we stop any code execution in this host.
-        /// </summary>
-        bool IsCancelled { get; }
+        IHost Register(string name, int? seed = null, bool? verbose = null);
 
         /// <summary>
         /// The catalog of loadable components (<see cref="LoadableClassAttribute"/>) that are available in this host.
         /// </summary>
         ComponentCatalog ComponentCatalog { get; }
+    }
+
+    [BestFriend]
+    internal interface ICancelable
+    {
+        /// <summary>
+        /// Signal to stop exection in all the hosts.
+        /// </summary>
+        void CancelExecution();
 
         /// <summary>
-        /// Create a temporary "file" and return a handle to it. Generally temp files are expected to be
-        /// written to exactly once, and then can be read multiple times.
-        /// Note that IFileHandle derives from IDisposable. Clients may dispose the IFileHandle when it is
-        /// no longer needed, but they are not required to. The host environment should track all temp file
-        /// handles and ensure that they are disposed properly when the environment is "shut down".
-        ///
-        /// The suffix and prefix are optional. A common use for suffix is to specify an extension, eg, ".txt".
-        /// The use of suffix and prefix, including whether they have any affect, is up to the host environment.
+        /// Flag which indicates host execution has been stopped.
         /// </summary>
-        [Obsolete("The host environment is not disposable, so it is inappropriate to use this method. " +
-            "Please handle your own temporary files within the component yourself, including their proper disposal and deletion.")]
-        IFileHandle CreateTempFile(string suffix = null, string prefix = null);
+        bool IsCanceled { get; }
     }
 
     /// <summary>
@@ -105,11 +94,6 @@ namespace Microsoft.ML
         /// generators are NOT thread safe.
         /// </summary>
         Random Rand { get; }
-
-        /// <summary>
-        /// Signal to stop exection in this host and all its children.
-        /// </summary>
-        void StopExecution();
     }
 
     /// <summary>
@@ -163,7 +147,7 @@ namespace Microsoft.ML
 
         /// <summary>
         /// For messages that contain information like column names from datasets.
-        /// Note that, despite being part of the schema, metadata should be treated
+        /// Note that, despite being part of the schema, annotations should be treated
         /// as user data, since it is often derived from user data. Note also that
         /// types, despite being part of the schema, are not considered "sensitive"
         /// as such, in the same way that column names might be.

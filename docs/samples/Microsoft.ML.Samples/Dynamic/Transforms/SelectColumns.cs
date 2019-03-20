@@ -1,6 +1,4 @@
 ﻿using System;
-using Microsoft.ML.Data;
-
 namespace Microsoft.ML.Samples.Dynamic
 {
     public static class SelectColumns
@@ -13,7 +11,7 @@ namespace Microsoft.ML.Samples.Dynamic
 
             // Get a small dataset as an IEnumerable and them read it as ML.NET's data type.
             var enumerableData = SamplesUtils.DatasetUtils.GetInfertData();
-            var data = mlContext.Data.ReadFromEnumerable(enumerableData);
+            var data = mlContext.Data.LoadFromEnumerable(enumerableData);
 
             // Before transformation, take a look at the dataset
             Console.WriteLine($"Age\tCase\tEducation\tInduced\tParity\tPooledStratum");
@@ -45,7 +43,7 @@ namespace Microsoft.ML.Samples.Dynamic
             //  There are 2 columns in the dataset.
 
             // We can extract the newly created column as an IEnumerable of SampleInfertDataTransformed, the class we define below.
-            var rowEnumerable = mlContext.CreateEnumerable<SampleInfertDataTransformed>(transformedData, reuseRowObject: false);
+            var rowEnumerable = mlContext.Data.CreateEnumerable<SampleInfertDataTransformed>(transformedData, reuseRowObject: false);
 
             // And finally, we can write out the rows of the dataset, looking at the columns of interest.
             Console.WriteLine($"Age and Educations columns obtained post-transformation.");

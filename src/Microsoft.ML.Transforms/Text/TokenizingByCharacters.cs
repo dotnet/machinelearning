@@ -7,13 +7,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading;
-using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
-using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Internal.Utilities;
-using Microsoft.ML.Model;
+using Microsoft.ML.Runtime;
 using Microsoft.ML.Transforms.Text;
 
 [assembly: LoadableClass(TokenizingByCharactersTransformer.Summary, typeof(IDataTransform), typeof(TokenizingByCharactersTransformer), typeof(TokenizingByCharactersTransformer.Options), typeof(SignatureDataTransform),
@@ -103,7 +101,8 @@ namespace Microsoft.ML.Transforms.Text
         /// Tokenize incoming text in input columns and output the tokens as output columns.
         /// </summary>
         /// <param name="env">The environment.</param>
-        /// <param name="useMarkerCharacters">Whether to use marker characters to separate words.</param>
+        /// <param name="useMarkerCharacters">Whether to prepend a marker character, <see langword="0x02"/>, to the beginning,
+        /// and append another marker character, <see langword="0x03"/>, to the end of the output vector of characters.</param>
         /// <param name="columns">Pairs of columns to run the tokenization on.</param>
         internal TokenizingByCharactersTransformer(IHostEnvironment env, bool useMarkerCharacters = TokenizingByCharactersEstimator.Defaults.UseMarkerCharacters,
             params (string outputColumnName, string inputColumnName)[] columns) :
@@ -115,7 +114,7 @@ namespace Microsoft.ML.Transforms.Text
         /// <summary>
         /// The names of the output and input column pairs on which the transformation is applied.
         /// </summary>
-        public IReadOnlyCollection<(string outputColumnName, string inputColumnName)> Columns => ColumnPairs.AsReadOnly();
+        internal IReadOnlyCollection<(string outputColumnName, string inputColumnName)> Columns => ColumnPairs.AsReadOnly();
 
         private protected override void CheckInputColumn(DataViewSchema inputSchema, int col, int srcCol)
         {
@@ -210,16 +209,16 @@ namespace Microsoft.ML.Transforms.Text
                 var result = new DataViewSchema.DetachedColumn[_parent.ColumnPairs.Length];
                 for (int i = 0; i < _parent.ColumnPairs.Length; i++)
                 {
-                    var builder = new MetadataBuilder();
+                    var builder = new DataViewSchema.Annotations.Builder();
                     AddMetadata(i, builder);
-                    result[i] = new DataViewSchema.DetachedColumn(_parent.ColumnPairs[i].outputColumnName, _type, builder.GetMetadata());
+                    result[i] = new DataViewSchema.DetachedColumn(_parent.ColumnPairs[i].outputColumnName, _type, builder.ToAnnotations());
                 }
                 return result;
             }
 
-            private void AddMetadata(int iinfo, MetadataBuilder builder)
+            private void AddMetadata(int iinfo, DataViewSchema.Annotations.Builder builder)
             {
-                builder.Add(InputSchema[_parent.ColumnPairs[iinfo].inputColumnName].Metadata, name => name == MetadataUtils.Kinds.SlotNames);
+                builder.Add(InputSchema[_parent.ColumnPairs[iinfo].inputColumnName].Annotations, name => name == AnnotationUtils.Kinds.SlotNames);
                 ValueGetter<VBuffer<ReadOnlyMemory<char>>> getter =
                        (ref VBuffer<ReadOnlyMemory<char>> dst) =>
                        {
@@ -412,7 +411,7 @@ namespace Microsoft.ML.Transforms.Text
             private ValueGetter<VBuffer<ushort>> MakeGetterOne(DataViewRow input, int iinfo)
             {
                 Host.AssertValue(input);
-                var getSrc = input.GetGetter<ReadOnlyMemory<char>>(ColMapNewToOld[iinfo]);
+                var getSrc = input.GetGetter<ReadOnlyMemory<char>>(input.Schema[ColMapNewToOld[iinfo]]);
                 var src = default(ReadOnlyMemory<char>);
                 return
                     (ref VBuffer<ushort> dst) =>
@@ -445,7 +444,7 @@ namespace Microsoft.ML.Transforms.Text
                 int cv = input.Schema[ColMapNewToOld[iinfo]].Type.GetVectorSize();
                 Contracts.Assert(cv >= 0);
 
-                var getSrc = input.GetGetter<VBuffer<ReadOnlyMemory<char>>>(ColMapNewToOld[iinfo]);
+                var getSrc = input.GetGetter<VBuffer<ReadOnlyMemory<char>>>(input.Schema[ColMapNewToOld[iinfo]]);
                 var src = default(VBuffer<ReadOnlyMemory<char>>);
 
                 ValueGetter<VBuffer<ushort>> getterWithStartEndSep = (ref VBuffer<ushort> dst) =>
@@ -556,6 +555,7 @@ namespace Microsoft.ML.Transforms.Text
         {
             public const bool UseMarkerCharacters = true;
         }
+
         internal static bool IsColumnTypeValid(DataViewType type) => type.GetItemType() is TextDataViewType;
 
         internal const string ExpectedColumnType = "Text";
@@ -566,7 +566,8 @@ namespace Microsoft.ML.Transforms.Text
         /// <param name="env">The environment.</param>
         /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.</param>
         /// <param name="inputColumnName">Name of the column to transform. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.</param>
-        /// <param name="useMarkerCharacters">Whether to use marker characters to separate words.</param>
+        /// <param name="useMarkerCharacters">Whether to prepend a marker character, <see langword="0x02"/>, to the beginning,
+        /// and append another marker character, <see langword="0x03"/>, to the end of the output vector of characters.</param>
         internal TokenizingByCharactersEstimator(IHostEnvironment env, string outputColumnName, string inputColumnName = null,
             bool useMarkerCharacters = Defaults.UseMarkerCharacters)
             : this(env, useMarkerCharacters, new[] { (outputColumnName, inputColumnName ?? outputColumnName) })
@@ -577,7 +578,8 @@ namespace Microsoft.ML.Transforms.Text
         /// Tokenize incoming text in input columns and output the tokens as output columns.
         /// </summary>
         /// <param name="env">The environment.</param>
-        /// <param name="useMarkerCharacters">Whether to use marker characters to separate words.</param>
+        /// <param name="useMarkerCharacters">Whether to prepend a marker character, <see langword="0x02"/>, to the beginning,
+        /// and append another marker character, <see langword="0x03"/>, to the end of the output vector of characters.</param>
         /// <param name="columns">Pairs of columns to run the tokenization on.</param>
 
         internal TokenizingByCharactersEstimator(IHostEnvironment env, bool useMarkerCharacters = Defaults.UseMarkerCharacters,
@@ -601,9 +603,9 @@ namespace Microsoft.ML.Transforms.Text
                 if (!IsColumnTypeValid(col.ItemType))
                     throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.inputColumnName, ExpectedColumnType, col.ItemType.ToString());
                 var metadata = new List<SchemaShape.Column>();
-                if (col.Metadata.TryFindColumn(MetadataUtils.Kinds.SlotNames, out var slotMeta))
-                    metadata.Add(new SchemaShape.Column(MetadataUtils.Kinds.SlotNames, SchemaShape.Column.VectorKind.Vector, slotMeta.ItemType, false));
-                metadata.Add(new SchemaShape.Column(MetadataUtils.Kinds.KeyValues, SchemaShape.Column.VectorKind.Vector, TextDataViewType.Instance, false));
+                if (col.Annotations.TryFindColumn(AnnotationUtils.Kinds.SlotNames, out var slotMeta))
+                    metadata.Add(new SchemaShape.Column(AnnotationUtils.Kinds.SlotNames, SchemaShape.Column.VectorKind.Vector, slotMeta.ItemType, false));
+                metadata.Add(new SchemaShape.Column(AnnotationUtils.Kinds.KeyValues, SchemaShape.Column.VectorKind.Vector, TextDataViewType.Instance, false));
                 result[colInfo.outputColumnName] = new SchemaShape.Column(colInfo.outputColumnName, SchemaShape.Column.VectorKind.VariableVector, NumberDataViewType.UInt16, true, new SchemaShape(metadata.ToArray()));
             }
 

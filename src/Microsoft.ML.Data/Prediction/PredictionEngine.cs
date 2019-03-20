@@ -5,8 +5,8 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using Microsoft.Data.DataView;
 using Microsoft.ML.Data;
+using Microsoft.ML.Runtime;
 
 namespace Microsoft.ML
 {
@@ -103,7 +103,7 @@ namespace Microsoft.ML
         /// <summary>
         /// Provides output schema.
         /// </summary>
-        public DataViewSchema OutputSchema;
+        public DataViewSchema OutputSchema { get; }
 
         [BestFriend]
         private protected ITransformer Transformer { get; }
@@ -116,8 +116,8 @@ namespace Microsoft.ML
             {
                 var pipe = DataViewConstructionUtils.LoadPipeWithPredictor(env, modelStream, new EmptyDataView(env, schema));
                 var transformer = new TransformWrapper(env, pipe);
-                env.CheckParam(transformer.IsRowToRowMapper, nameof(transformer), "Must be a row to row mapper");
-                return transformer.GetRowToRowMapper(schema);
+                env.CheckParam(((ITransformer)transformer).IsRowToRowMapper, nameof(transformer), "Must be a row to row mapper");
+                return ((ITransformer)transformer).GetRowToRowMapper(schema);
             };
         }
 
@@ -131,16 +131,16 @@ namespace Microsoft.ML
             var makeMapper = TransformerChecker(env, transformer);
             env.AssertValue(makeMapper);
             _inputRow = DataViewConstructionUtils.CreateInputRow<TSrc>(env, inputSchemaDefinition);
-            PredictionEngineCore(env, _inputRow, makeMapper(_inputRow.Schema), ignoreMissingColumns, inputSchemaDefinition, outputSchemaDefinition, out _disposer, out _outputRow);
+            PredictionEngineCore(env, _inputRow, makeMapper(_inputRow.Schema), ignoreMissingColumns, outputSchemaDefinition, out _disposer, out _outputRow);
             OutputSchema = Transformer.GetOutputSchema(_inputRow.Schema);
         }
 
         [BestFriend]
-        private protected virtual void PredictionEngineCore(IHostEnvironment env, DataViewConstructionUtils.InputRow<TSrc> inputRow, IRowToRowMapper mapper, bool ignoreMissingColumns,
-                 SchemaDefinition inputSchemaDefinition, SchemaDefinition outputSchemaDefinition, out Action disposer, out IRowReadableAs<TDst> outputRow)
+        private protected virtual void PredictionEngineCore(IHostEnvironment env, DataViewConstructionUtils.InputRow<TSrc> inputRow,
+            IRowToRowMapper mapper, bool ignoreMissingColumns, SchemaDefinition outputSchemaDefinition, out Action disposer, out IRowReadableAs<TDst> outputRow)
         {
             var cursorable = TypedCursorable<TDst>.Create(env, new EmptyDataView(env, mapper.OutputSchema), ignoreMissingColumns, outputSchemaDefinition);
-            var outputRowLocal = mapper.GetRow(inputRow, col => true);
+            var outputRowLocal = mapper.GetRow(inputRow, mapper.OutputSchema);
             outputRow = cursorable.GetRow(outputRowLocal);
             disposer = inputRow.Dispose;
         }
@@ -180,9 +180,11 @@ namespace Microsoft.ML
             return result;
         }
 
-        protected void ExtractValues(TSrc example) => _inputRow.ExtractValues(example);
+        [BestFriend]
+        private protected void ExtractValues(TSrc example) => _inputRow.ExtractValues(example);
 
-        protected void FillValues(TDst prediction) => _outputRow.FillValues(prediction);
+        [BestFriend]
+        private protected void FillValues(TDst prediction) => _outputRow.FillValues(prediction);
 
         /// <summary>
         /// Run prediction pipeline on one example.

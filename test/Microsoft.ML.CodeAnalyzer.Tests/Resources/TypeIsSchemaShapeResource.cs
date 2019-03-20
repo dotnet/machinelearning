@@ -2,6 +2,7 @@
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
+using Microsoft.ML.Runtime;
 using Microsoft.ML.StaticPipe;
 
 namespace Bubba
@@ -11,7 +12,7 @@ namespace Bubba
         public static void Bar()
         {
             IHostEnvironment env = null;
-            var text = TextLoaderStatic.CreateReader(env, ctx => (
+            var text = TextLoaderStatic.CreateLoader(env, ctx => (
                 label: ctx.LoadBool(0),
                 text: ctx.LoadText(1),
                 numericFeatures: ctx.LoadFloat(2, 5)));
@@ -30,7 +31,7 @@ namespace Bubba
             est.Append(r => (a: r.text, b: r.label, c: (d: r.text, 5.2f)));
 
             // Check a different entrance into static land now, with one of the asserts.
-            var view = text.Read(null).AsDynamic;
+            var view = text.Load(null).AsDynamic;
             // Despite the fact that the names are all wrong, this should still work
             // from the point of view of this analyzer.
             view.AssertStatic(env, c => (

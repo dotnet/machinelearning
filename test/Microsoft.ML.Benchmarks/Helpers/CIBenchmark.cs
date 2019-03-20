@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-
 namespace Microsoft.ML.Benchmarks.Harness
 {
     /// <summary>
@@ -11,7 +10,7 @@ namespace Microsoft.ML.Benchmarks.Harness
     /// which we want to run on the CI.
     /// </summary>
     [AttributeUsage(AttributeTargets.Class, AllowMultiple = false)]
-    public class CIBenchmark : Attribute
+    public sealed class CIBenchmark : Attribute
     {
     }
 }

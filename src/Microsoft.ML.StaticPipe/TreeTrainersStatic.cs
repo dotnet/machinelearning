@@ -3,10 +3,8 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using Microsoft.ML.Data;
-using Microsoft.ML.EntryPoints;
-using Microsoft.ML.Internal.Calibration;
-using Microsoft.ML.StaticPipe.Runtime;
+using Microsoft.ML.Calibrators;
+using Microsoft.ML.Runtime;
 using Microsoft.ML.Trainers.FastTree;
 
 namespace Microsoft.ML.StaticPipe
@@ -24,9 +22,9 @@ namespace Microsoft.ML.StaticPipe
         /// <param name="label">The label column.</param>
         /// <param name="features">The features column.</param>
         /// <param name="weights">The optional weights column.</param>
-        /// <param name="numTrees">Total number of decision trees to create in the ensemble.</param>
-        /// <param name="numLeaves">The maximum number of leaves per decision tree.</param>
-        /// <param name="minDatapointsInLeaves">The minimal number of datapoints allowed in a leaf of a regression tree, out of the subsampled data.</param>
+        /// <param name="numberOfTrees">Total number of decision trees to create in the ensemble.</param>
+        /// <param name="numberOfLeaves">The maximum number of leaves per decision tree.</param>
+        /// <param name="minimumExampleCountPerLeaf">The minimal number of data points allowed in a leaf of a regression tree, out of the subsampled data.</param>
         /// <param name="learningRate">The learning rate.</param>
         /// <param name="onFit">A delegate that is called every time the
         /// <see cref="Estimator{TInShape, TOutShape, TTransformer}.Fit(DataView{TInShape})"/> method is called on the
@@ -42,19 +40,19 @@ namespace Microsoft.ML.StaticPipe
         /// </example>
         public static Scalar<float> FastTree(this RegressionCatalog.RegressionTrainers catalog,
             Scalar<float> label, Vector<float> features, Scalar<float> weights = null,
-            int numLeaves = Defaults.NumLeaves,
-            int numTrees = Defaults.NumTrees,
-            int minDatapointsInLeaves = Defaults.MinDocumentsInLeaves,
-            double learningRate = Defaults.LearningRates,
+            int numberOfLeaves = Defaults.NumberOfLeaves,
+            int numberOfTrees = Defaults.NumberOfTrees,
+            int minimumExampleCountPerLeaf = Defaults.MinimumExampleCountPerLeaf,
+            double learningRate = Defaults.LearningRate,
             Action<FastTreeRegressionModelParameters> onFit = null)
         {
-            CheckUserValues(label, features, weights, numLeaves, numTrees, minDatapointsInLeaves, learningRate, onFit);
+            CheckUserValues(label, features, weights, numberOfLeaves, numberOfTrees, minimumExampleCountPerLeaf, learningRate, onFit);
 
             var rec = new TrainerEstimatorReconciler.Regression(
                (env, labelName, featuresName, weightsName) =>
                {
-                   var trainer = new FastTreeRegressionTrainer(env, labelName, featuresName, weightsName, numLeaves,
-                       numTrees, minDatapointsInLeaves, learningRate);
+                   var trainer = new FastTreeRegressionTrainer(env, labelName, featuresName, weightsName, numberOfLeaves,
+                       numberOfTrees, minimumExampleCountPerLeaf, learningRate);
                    if (onFit != null)
                        return trainer.WithOnFitDelegate(trans => onFit(trans.Model));
                    return trainer;
@@ -95,9 +93,9 @@ namespace Microsoft.ML.StaticPipe
             var rec = new TrainerEstimatorReconciler.Regression(
                (env, labelName, featuresName, weightsName) =>
                {
-                   options.LabelColumn = labelName;
-                   options.FeatureColumn = featuresName;
-                   options.WeightColumn = weightsName != null ? Optional<string>.Explicit(weightsName) : Optional<string>.Implicit(DefaultColumnNames.Weight);
+                   options.LabelColumnName = labelName;
+                   options.FeatureColumnName = featuresName;
+                   options.ExampleWeightColumnName = weightsName;
 
                    var trainer = new FastTreeRegressionTrainer(env, options);
                    if (onFit != null)
@@ -110,15 +108,15 @@ namespace Microsoft.ML.StaticPipe
 
         /// <summary>
         /// FastTree <see cref="BinaryClassificationCatalog"/> extension method.
-        /// Predict a target using a decision tree binary classificaiton model trained with the <see cref="FastTreeBinaryClassificationTrainer"/>.
+        /// Predict a target using a decision tree binary classification model trained with the <see cref="FastTreeBinaryTrainer"/>.
         /// </summary>
         /// <param name="catalog">The <see cref="BinaryClassificationCatalog"/>.</param>
         /// <param name="label">The label column.</param>
         /// <param name="features">The features column.</param>
         /// <param name="weights">The optional weights column.</param>
-        /// <param name="numTrees">Total number of decision trees to create in the ensemble.</param>
-        /// <param name="numLeaves">The maximum number of leaves per decision tree.</param>
-        /// <param name="minDatapointsInLeaves">The minimal number of datapoints allowed in a leaf of the tree, out of the subsampled data.</param>
+        /// <param name="numberOfTrees">Total number of decision trees to create in the ensemble.</param>
+        /// <param name="numberOfLeaves">The maximum number of leaves per decision tree.</param>
+        /// <param name="minimumExampleCountPerLeaf">The minimal number of data points allowed in a leaf of the tree, out of the subsampled data.</param>
         /// <param name="learningRate">The learning rate.</param>
         /// <param name="onFit">A delegate that is called every time the
         /// <see cref="Estimator{TInShape, TOutShape, TTransformer}.Fit(DataView{TInShape})"/> method is called on the
@@ -135,19 +133,19 @@ namespace Microsoft.ML.StaticPipe
         /// </example>
         public static (Scalar<float> score, Scalar<float> probability, Scalar<bool> predictedLabel) FastTree(this BinaryClassificationCatalog.BinaryClassificationTrainers catalog,
             Scalar<bool> label, Vector<float> features, Scalar<float> weights = null,
-            int numLeaves = Defaults.NumLeaves,
-            int numTrees = Defaults.NumTrees,
-            int minDatapointsInLeaves = Defaults.MinDocumentsInLeaves,
-            double learningRate = Defaults.LearningRates,
+            int numberOfLeaves = Defaults.NumberOfLeaves,
+            int numberOfTrees = Defaults.NumberOfTrees,
+            int minimumExampleCountPerLeaf = Defaults.MinimumExampleCountPerLeaf,
+            double learningRate = Defaults.LearningRate,
             Action<CalibratedModelParametersBase<FastTreeBinaryModelParameters, PlattCalibrator>> onFit = null)
         {
-            CheckUserValues(label, features, weights, numLeaves, numTrees, minDatapointsInLeaves, learningRate, onFit);
+            CheckUserValues(label, features, weights, numberOfLeaves, numberOfTrees, minimumExampleCountPerLeaf, learningRate, onFit);
 
             var rec = new TrainerEstimatorReconciler.BinaryClassifier(
                (env, labelName, featuresName, weightsName) =>
                {
-                   var trainer = new FastTreeBinaryClassificationTrainer(env, labelName, featuresName, weightsName, numLeaves,
-                       numTrees, minDatapointsInLeaves, learningRate);
+                   var trainer = new FastTreeBinaryTrainer(env, labelName, featuresName, weightsName, numberOfLeaves,
+                       numberOfTrees, minimumExampleCountPerLeaf, learningRate);
 
                    if (onFit != null)
                        return trainer.WithOnFitDelegate(trans => onFit(trans.Model));
@@ -160,7 +158,7 @@ namespace Microsoft.ML.StaticPipe
 
         /// <summary>
         /// FastTree <see cref="BinaryClassificationCatalog"/> extension method.
-        /// Predict a target using a decision tree binary classificaiton model trained with the <see cref="FastTreeBinaryClassificationTrainer"/>.
+        /// Predict a target using a decision tree binary classification model trained with the <see cref="FastTreeBinaryTrainer"/>.
         /// </summary>
         /// <param name="catalog">The <see cref="BinaryClassificationCatalog"/>.</param>
         /// <param name="label">The label column.</param>
@@ -182,7 +180,7 @@ namespace Microsoft.ML.StaticPipe
         /// </example>
         public static (Scalar<float> score, Scalar<float> probability, Scalar<bool> predictedLabel) FastTree(this BinaryClassificationCatalog.BinaryClassificationTrainers catalog,
             Scalar<bool> label, Vector<float> features, Scalar<float> weights,
-            FastTreeBinaryClassificationTrainer.Options options,
+            FastTreeBinaryTrainer.Options options,
             Action<CalibratedModelParametersBase<FastTreeBinaryModelParameters, PlattCalibrator>> onFit = null)
         {
             Contracts.CheckValueOrNull(options);
@@ -191,11 +189,11 @@ namespace Microsoft.ML.StaticPipe
             var rec = new TrainerEstimatorReconciler.BinaryClassifier(
                (env, labelName, featuresName, weightsName) =>
                {
-                   options.LabelColumn = labelName;
-                   options.FeatureColumn = featuresName;
-                   options.WeightColumn = weightsName != null ? Optional<string>.Explicit(weightsName) : Optional<string>.Implicit(DefaultColumnNames.Weight);
+                   options.LabelColumnName = labelName;
+                   options.FeatureColumnName = featuresName;
+                   options.ExampleWeightColumnName = weightsName;
 
-                   var trainer = new FastTreeBinaryClassificationTrainer(env, options);
+                   var trainer = new FastTreeBinaryTrainer(env, options);
 
                    if (onFit != null)
                        return trainer.WithOnFitDelegate(trans => onFit(trans.Model));
@@ -215,9 +213,9 @@ namespace Microsoft.ML.StaticPipe
         /// <param name="features">The features column.</param>
         /// <param name="groupId">The groupId column.</param>
         /// <param name="weights">The optional weights column.</param>
-        /// <param name="numTrees">Total number of decision trees to create in the ensemble.</param>
-        /// <param name="numLeaves">The maximum number of leaves per decision tree.</param>
-        /// <param name="minDatapointsInLeaves">The minimal number of datapoints allowed in a leaf of a regression tree, out of the subsampled data.</param>
+        /// <param name="numberOfTrees">Total number of decision trees to create in the ensemble.</param>
+        /// <param name="numberOfLeaves">The maximum number of leaves per decision tree.</param>
+        /// <param name="minimumExampleCountPerLeaf">The minimal number of data points allowed in a leaf of a regression tree, out of the subsampled data.</param>
         /// <param name="learningRate">The learning rate.</param>
         /// <param name="onFit">A delegate that is called every time the
         /// <see cref="Estimator{TInShape, TOutShape, TTransformer}.Fit(DataView{TInShape})"/> method is called on the
@@ -227,19 +225,19 @@ namespace Microsoft.ML.StaticPipe
         /// <returns>The Score output column indicating the predicted value.</returns>
         public static Scalar<float> FastTree<TVal>(this RankingCatalog.RankingTrainers catalog,
             Scalar<float> label, Vector<float> features, Key<uint, TVal> groupId, Scalar<float> weights = null,
-            int numLeaves = Defaults.NumLeaves,
-            int numTrees = Defaults.NumTrees,
-            int minDatapointsInLeaves = Defaults.MinDocumentsInLeaves,
-            double learningRate = Defaults.LearningRates,
+            int numberOfLeaves = Defaults.NumberOfLeaves,
+            int numberOfTrees = Defaults.NumberOfTrees,
+            int minimumExampleCountPerLeaf = Defaults.MinimumExampleCountPerLeaf,
+            double learningRate = Defaults.LearningRate,
             Action<FastTreeRankingModelParameters> onFit = null)
         {
-            CheckUserValues(label, features, weights, numLeaves, numTrees, minDatapointsInLeaves, learningRate, onFit);
+            CheckUserValues(label, features, weights, numberOfLeaves, numberOfTrees, minimumExampleCountPerLeaf, learningRate, onFit);
 
             var rec = new TrainerEstimatorReconciler.Ranker<TVal>(
                (env, labelName, featuresName, groupIdName, weightsName) =>
                {
-                   var trainer = new FastTreeRankingTrainer(env, labelName, featuresName, groupIdName, weightsName, numLeaves,
-                       numTrees, minDatapointsInLeaves, learningRate);
+                   var trainer = new FastTreeRankingTrainer(env, labelName, featuresName, groupIdName, weightsName, numberOfLeaves,
+                       numberOfTrees, minimumExampleCountPerLeaf, learningRate);
                    if (onFit != null)
                        return trainer.WithOnFitDelegate(trans => onFit(trans.Model));
                    return trainer;
@@ -275,10 +273,10 @@ namespace Microsoft.ML.StaticPipe
             var rec = new TrainerEstimatorReconciler.Ranker<TVal>(
                (env, labelName, featuresName, groupIdName, weightsName) =>
                {
-                   options.LabelColumn = labelName;
-                   options.FeatureColumn = featuresName;
-                   options.GroupIdColumn = groupIdName;
-                   options.WeightColumn = weightsName != null ? Optional<string>.Explicit(weightsName) : Optional<string>.Implicit(DefaultColumnNames.Weight);
+                   options.LabelColumnName = labelName;
+                   options.FeatureColumnName = featuresName;
+                   options.RowGroupColumnName = groupIdName;
+                   options.ExampleWeightColumnName = weightsName;
 
                    var trainer = new FastTreeRankingTrainer(env, options);
                    if (onFit != null)
@@ -290,18 +288,18 @@ namespace Microsoft.ML.StaticPipe
         }
 
         internal static void CheckUserValues(PipelineColumn label, Vector<float> features, Scalar<float> weights,
-            int numLeaves,
-            int numTrees,
-            int minDatapointsInLeaves,
+            int numberOfLeaves,
+            int numberOfTrees,
+            int minimumExampleCountPerLeaf,
             double learningRate,
             Delegate onFit)
         {
             Contracts.CheckValue(label, nameof(label));
             Contracts.CheckValue(features, nameof(features));
             Contracts.CheckValueOrNull(weights);
-            Contracts.CheckParam(numLeaves >= 2, nameof(numLeaves), "Must be at least 2.");
-            Contracts.CheckParam(numTrees > 0, nameof(numTrees), "Must be positive");
-            Contracts.CheckParam(minDatapointsInLeaves > 0, nameof(minDatapointsInLeaves), "Must be positive");
+            Contracts.CheckParam(numberOfLeaves >= 2, nameof(numberOfLeaves), "Must be at least 2.");
+            Contracts.CheckParam(numberOfTrees > 0, nameof(numberOfTrees), "Must be positive");
+            Contracts.CheckParam(minimumExampleCountPerLeaf > 0, nameof(minimumExampleCountPerLeaf), "Must be positive");
             Contracts.CheckParam(learningRate > 0, nameof(learningRate), "Must be positive");
             Contracts.CheckValueOrNull(onFit);
         }

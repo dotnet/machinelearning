@@ -15,7 +15,7 @@ namespace Microsoft.ML.Samples.Dynamic
 
             // Get a small dataset as an IEnumerable and convert to IDataView.
             var data = SamplesUtils.DatasetUtils.GetSentimentData();
-            var trainData = ml.Data.ReadFromEnumerable(data);
+            var trainData = ml.Data.LoadFromEnumerable(data);
 
             // Preview of the data.
             //
@@ -31,13 +31,13 @@ namespace Microsoft.ML.Samples.Dynamic
 
             // Another pipeline, that customizes the advanced settings of the FeaturizeText transformer.
             string customizedColumnName = "CustomizedTextFeatures";
-            var customized_pipeline = ml.Transforms.Text.FeaturizeText(customizedColumnName, new List<string> { "SentimentText" }, 
-                new TextFeaturizingEstimator.Options { 
-                    KeepPunctuations = false,
-                    KeepNumbers = false,
-                    OutputTokens = true,
-                    TextLanguage = TextFeaturizingEstimator.Language.English, // supports  English, French, German, Dutch, Italian, Spanish, Japanese
-            });
+            var customized_pipeline = ml.Transforms.Text.FeaturizeText(customizedColumnName, new TextFeaturizingEstimator.Options
+            {
+                KeepPunctuations = false,
+                KeepNumbers = false,
+                OutputTokensColumnName = "OutputTokens",
+                StopWordsRemoverOptions = new StopWordsRemovingEstimator.Options() { Language = TextFeaturizingEstimator.Language.English }, // supports  English, French, German, Dutch, Italian, Spanish, Japanese
+            }, "SentimentText");
 
             // The transformed data for both pipelines.
             var transformedData_default = default_pipeline.Fit(trainData).Transform(trainData);
@@ -58,7 +58,7 @@ namespace Microsoft.ML.Samples.Dynamic
             };
 
             // Preview of the DefaultTextFeatures column obtained after processing the input.
-            var defaultColumn = transformedData_default.GetColumn<VBuffer<float>>(ml, defaultColumnName);
+            var defaultColumn = transformedData_default.GetColumn<VBuffer<float>>(transformedData_default.Schema[defaultColumnName]);
             printHelper(defaultColumnName, defaultColumn);
 
             // DefaultTextFeatures column obtained post-transformation.
@@ -68,7 +68,7 @@ namespace Microsoft.ML.Samples.Dynamic
             // 0 0.1230915 0.1230915 0.1230915 0.1230915 0.246183 0.246183 0.246183 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.1230915 0 0 0.1230915 0.1230915 0.1230915 0.1230915 0.1230915 0.1230915 0.3692745 0.246183 0.246183 0.1230915 0.1230915 0.1230915 0.1230915 0.1230915 0.1230915 0.1230915 0.1230915 0.1230915 0.246183 0.1230915 0.1230915 0.1230915 0.1230915 0.1230915 0.1230915 0.1230915 0.1230915 0.1230915 0.1230915 0.1230915 0.1230915 0.1230915 0.2886751 0 0 0 0 0 0 0 0.2886751 0.5773503 0.2886751 0.2886751 0.2886751 0.2886751 0.2886751 0.2886751
 
             // Preview of the CustomizedTextFeatures column obtained after processing the input.
-            var customizedColumn = transformedData_customized.GetColumn<VBuffer<float>>(ml, customizedColumnName);
+            var customizedColumn = transformedData_customized.GetColumn<VBuffer<float>>(transformedData_customized.Schema[customizedColumnName]);
             printHelper(customizedColumnName, customizedColumn);
 
             // CustomizedTextFeatures column obtained post-transformation.

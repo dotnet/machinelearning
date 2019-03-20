@@ -6,10 +6,10 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
-using Microsoft.ML;
+using Microsoft.ML.Runtime;
 using Microsoft.ML.Transforms;
 
-namespace Microsoft.ML.StaticPipe.Runtime
+namespace Microsoft.ML.StaticPipe
 {
     /// <summary>
     /// Utility methods for components that want to expose themselves in the idioms of the statically-typed pipelines.
@@ -20,9 +20,9 @@ namespace Microsoft.ML.StaticPipe.Runtime
     public static class StaticPipeUtils
     {
         /// <summary>
-        /// This is a utility method intended to be used by authors of <see cref="IDataReaderEstimator{TSource,
-        /// TReader}"/> components to provide a strongly typed <see cref="DataReaderEstimator{TIn, TShape, TDataReader}"/>.
-        /// This analysis tool provides a standard way for readers to exploit statically typed pipelines with the
+        /// This is a utility method intended to be used by authors of <see cref="IDataLoaderEstimator{TSource,
+        /// TLoader}"/> components to provide a strongly typed <see cref="DataLoaderEstimator{TIn, TShape, TDataLoader}"/>.
+        /// This analysis tool provides a standard way for loaders to exploit statically typed pipelines with the
         /// standard tuple-shape objects without having to write such code themselves.
         /// </summary>
         /// <param name="env">Estimators will be instantiated with this environment</param>
@@ -33,30 +33,30 @@ namespace Microsoft.ML.StaticPipe.Runtime
         /// single reconciler. The analysis code in this method will ensure that this is the first object to be
         /// reconciled, before all others.</param>
         /// <param name="mapper">The user provided delegate.</param>
-        /// <typeparam name="TIn">The type parameter for the input type to the data reader estimator.</typeparam>
+        /// <typeparam name="TIn">The type parameter for the input type to the data loader estimator.</typeparam>
         /// <typeparam name="TDelegateInput">The input type of the input delegate. This might be some object out of
         /// which one can fetch or else retrieve </typeparam>
         /// <typeparam name="TOutShape">The schema shape type describing the output.</typeparam>
-        /// <returns>The constructed wrapping data reader estimator.</returns>
-        public static DataReaderEstimator<TIn, TOutShape, IDataReader<TIn>>
-            ReaderEstimatorAnalyzerHelper<TIn, TDelegateInput, TOutShape>(
+        /// <returns>The constructed wrapping data loader estimator.</returns>
+        public static DataLoaderEstimator<TIn, TOutShape, IDataLoader<TIn>>
+            LoaderEstimatorAnalyzerHelper<TIn, TDelegateInput, TOutShape>(
             IHostEnvironment env,
             IChannel ch,
             TDelegateInput input,
-            ReaderReconciler<TIn> baseReconciler,
+            LoaderReconciler<TIn> baseReconciler,
             Func<TDelegateInput, TOutShape> mapper)
         {
-            var readerEstimator = GeneralFunctionAnalyzer(env, ch, input, baseReconciler, mapper, out var est, col => null);
+            var loaderEstimator = GeneralFunctionAnalyzer(env, ch, input, baseReconciler, mapper, out var est, col => null);
             var schema = StaticSchemaShape.Make<TOutShape>(mapper.Method.ReturnParameter);
-            return new DataReaderEstimator<TIn, TOutShape, IDataReader<TIn>>(env, readerEstimator, schema);
+            return new DataLoaderEstimator<TIn, TOutShape, IDataLoader<TIn>>(env, loaderEstimator, schema);
         }
 
-        internal static IDataReaderEstimator<TIn, IDataReader<TIn>>
+        internal static IDataLoaderEstimator<TIn, IDataLoader<TIn>>
             GeneralFunctionAnalyzer<TIn, TDelegateInput, TOutShape>(
             IHostEnvironment env,
             IChannel ch,
             TDelegateInput input,
-            ReaderReconciler<TIn> baseReconciler,
+            LoaderReconciler<TIn> baseReconciler,
             Func<TDelegateInput, TOutShape> mapper,
             out IEstimator<ITransformer> estimator,
             Func<PipelineColumn, string> inputNameFunction)
@@ -105,7 +105,7 @@ namespace Microsoft.ML.StaticPipe.Runtime
 
             // The columns that utilize the base reconciler should have no dependencies. This could only happen if
             // the caller of this function has introduced a situation whereby they are claiming they can reconcile
-            // to a data-reader object but still have input data dependencies, which does not make sense and
+            // to a data-loader object but still have input data dependencies, which does not make sense and
             // indicates that there is a bug in that component code. Unfortunately we can only detect that condition,
             // not determine exactly how it arose, but we can still do so to indicate to the user that there is a
             // problem somewhere in the stack.
@@ -187,9 +187,9 @@ namespace Microsoft.ML.StaticPipe.Runtime
                 dependsOnKey.Remove(col);
             }
 
-            // Call the reconciler to get the base reader estimator.
-            var readerEstimator = baseReconciler.Reconcile(env, baseInputs, nameMap.AsOther(baseInputs));
-            ch.AssertValueOrNull(readerEstimator);
+            // Call the reconciler to get the base loader estimator.
+            var loaderEstimator = baseReconciler.Reconcile(env, baseInputs, nameMap.AsOther(baseInputs));
+            ch.AssertValueOrNull(loaderEstimator);
 
             // Next we iteratively find those columns with zero dependencies, "create" them, and if anything depends on
             // these add them to the collection of zero dependencies, etc. etc.
@@ -202,7 +202,7 @@ namespace Microsoft.ML.StaticPipe.Runtime
                 // reconcile a.X() and b.X() together, then reconcile c.Y(), then reconcile c.Y().X() alone. Whereas, we
                 // could have reconciled c.Y() first, then reconciled a.X(), b.X(), and c.Y().X() together.
                 var group = zeroDependencies.GroupBy(p => p.ReconcilerObj).First();
-                // Beyond that first group that *might* be a data reader reconciler, all subsequent operations will
+                // Beyond that first group that *might* be a data loader reconciler, all subsequent operations will
                 // be on where the data is already loaded and so accept data as an input, that is, they should produce
                 // an estimator. If this is not the case something seriously wonky is going on, most probably that the
                 // user tried to use a column from another source. If this is detected we can produce a sensible error
@@ -227,7 +227,7 @@ namespace Microsoft.ML.StaticPipe.Runtime
                 var usedNames = new HashSet<string>(nameMap.Keys1.Except(localOutputNames.Values));
 
                 var localEstimator = rec.Reconcile(env, cols, localInputNames, localOutputNames, usedNames);
-                readerEstimator = readerEstimator?.Append(localEstimator);
+                loaderEstimator = loaderEstimator?.Append(localEstimator);
                 estimator = estimator?.Append(localEstimator) ?? localEstimator;
 
                 foreach (var newCol in cols)
@@ -286,9 +286,9 @@ namespace Microsoft.ML.StaticPipe.Runtime
                     estimator = estimator.Append(copyEstimator);
             }
 
-            ch.Trace($"Exiting {nameof(ReaderEstimatorAnalyzerHelper)}");
+            ch.Trace($"Exiting {nameof(LoaderEstimatorAnalyzerHelper)}");
 
-            return readerEstimator;
+            return loaderEstimator;
         }
 
         private sealed class BidirectionalDictionary<T1, T2>

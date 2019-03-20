@@ -5,9 +5,9 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Microsoft.Data.DataView;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
+using Microsoft.ML.Runtime;
 using Microsoft.ML.Transforms;
 
 namespace Microsoft.ML.EntryPoints
@@ -27,7 +27,7 @@ namespace Microsoft.ML.EntryPoints
             env.CheckValue(input, nameof(input));
             EntryPointUtils.CheckInputArgs(env, input);
             var view = input.Data;
-            var maxScoreId = view.Schema.GetMaxMetadataKind(out int colMax, MetadataUtils.Kinds.ScoreColumnSetId);
+            var maxScoreId = view.Schema.GetMaxAnnotationKind(out int colMax, AnnotationUtils.Kinds.ScoreColumnSetId);
             List<int> indices = new List<int>();
             for (int i = 0; i < view.Schema.Count; i++)
             {
@@ -44,7 +44,7 @@ namespace Microsoft.ML.EntryPoints
         private static bool ShouldAddColumn(DataViewSchema schema, int i, string[] extraColumns, uint scoreSet)
         {
             uint scoreSetId = 0;
-            if (schema.TryGetMetadata(MetadataUtils.ScoreColumnSetIdType, MetadataUtils.Kinds.ScoreColumnSetId, i, ref scoreSetId)
+            if (schema.TryGetAnnotation(AnnotationUtils.ScoreColumnSetIdType, AnnotationUtils.Kinds.ScoreColumnSetId, i, ref scoreSetId)
                 && scoreSetId == scoreSet)
             {
                 return true;
@@ -80,7 +80,7 @@ namespace Microsoft.ML.EntryPoints
 
                     // Rename all the score columns.
                     int colMax;
-                    var maxScoreId = input.Data.Schema.GetMaxMetadataKind(out colMax, MetadataUtils.Kinds.ScoreColumnSetId);
+                    var maxScoreId = input.Data.Schema.GetMaxAnnotationKind(out colMax, AnnotationUtils.Kinds.ScoreColumnSetId);
                     var copyCols = new List<(string name, string source)>();
                     for (int i = 0; i < input.Data.Schema.Count; i++)
                     {
@@ -90,9 +90,9 @@ namespace Microsoft.ML.EntryPoints
                             continue;
                         // Do not rename the PredictedLabel column.
                         ReadOnlyMemory<char> tmp = default;
-                        if (input.Data.Schema.TryGetMetadata(TextDataViewType.Instance, MetadataUtils.Kinds.ScoreValueKind, i,
+                        if (input.Data.Schema.TryGetAnnotation(TextDataViewType.Instance, AnnotationUtils.Kinds.ScoreValueKind, i,
                             ref tmp)
-                            && ReadOnlyMemoryUtils.EqualsStr(MetadataUtils.Const.ScoreValueKind.PredictedLabel, tmp))
+                            && ReadOnlyMemoryUtils.EqualsStr(AnnotationUtils.Const.ScoreValueKind.PredictedLabel, tmp))
                         {
                             continue;
                         }

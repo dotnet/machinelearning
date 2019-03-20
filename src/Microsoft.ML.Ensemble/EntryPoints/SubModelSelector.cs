@@ -3,17 +3,17 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.ML.EntryPoints;
+using Microsoft.ML.Runtime;
 using Microsoft.ML.Trainers.Ensemble;
-using Microsoft.ML.Trainers.Ensemble.SubModelSelector;
 
 [assembly: EntryPointModule(typeof(AllSelectorFactory))]
-[assembly: EntryPointModule(typeof(AllSelectorMultiClassFactory))]
+[assembly: EntryPointModule(typeof(AllSelectorMulticlassFactory))]
 [assembly: EntryPointModule(typeof(BestDiverseSelectorBinary))]
-[assembly: EntryPointModule(typeof(BestDiverseSelectorMultiClass))]
+[assembly: EntryPointModule(typeof(BestDiverseSelectorMulticlass))]
 [assembly: EntryPointModule(typeof(BestDiverseSelectorRegression))]
 [assembly: EntryPointModule(typeof(BestPerformanceRegressionSelector))]
 [assembly: EntryPointModule(typeof(BestPerformanceSelector))]
-[assembly: EntryPointModule(typeof(BestPerformanceSelectorMultiClass))]
+[assembly: EntryPointModule(typeof(BestPerformanceSelectorMulticlass))]
 
 namespace Microsoft.ML.Trainers.Ensemble
 {
@@ -25,9 +25,9 @@ namespace Microsoft.ML.Trainers.Ensemble
         IRegressionSubModelSelector IComponentFactory<IRegressionSubModelSelector>.CreateComponent(IHostEnvironment env) => new AllSelector(env);
     }
 
-    [TlcModule.Component(Name = AllSelectorMultiClass.LoadName, FriendlyName = AllSelectorMultiClass.UserName)]
-    internal sealed class AllSelectorMultiClassFactory : ISupportMulticlassSubModelSelectorFactory
+    [TlcModule.Component(Name = AllSelectorMulticlass.LoadName, FriendlyName = AllSelectorMulticlass.UserName)]
+    internal sealed class AllSelectorMulticlassFactory : ISupportMulticlassSubModelSelectorFactory
     {
-        IMulticlassSubModelSelector IComponentFactory<IMulticlassSubModelSelector>.CreateComponent(IHostEnvironment env) => new AllSelectorMultiClass(env);
+        IMulticlassSubModelSelector IComponentFactory<IMulticlassSubModelSelector>.CreateComponent(IHostEnvironment env) => new AllSelectorMulticlass(env);
     }
 }

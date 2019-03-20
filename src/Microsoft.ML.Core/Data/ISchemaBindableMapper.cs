@@ -2,8 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
-using Microsoft.Data.DataView;
+using Microsoft.ML.Runtime;
 
 namespace Microsoft.ML.Data
 {
@@ -55,15 +56,35 @@ namespace Microsoft.ML.Data
     }
 
     /// <summary>
-    /// This interface combines <see cref="ISchemaBoundMapper"/> with <see cref="IRowToRowMapper"/>.
+    /// This interface extends <see cref="ISchemaBoundMapper"/>.
     /// </summary>
     [BestFriend]
-    internal interface ISchemaBoundRowMapper : ISchemaBoundMapper, IRowToRowMapper
+    internal interface ISchemaBoundRowMapper : ISchemaBoundMapper
     {
         /// <summary>
-        /// There are two schemas from <see cref="ISchemaBoundMapper"/> and <see cref="IRowToRowMapper"/>.
-        /// Since the two parent schema's are identical in all derived classes, we merge them into <see cref="OutputSchema"/>.
+        /// Input schema accepted.
         /// </summary>
-        new DataViewSchema OutputSchema { get; }
+        DataViewSchema InputSchema { get; }
+
+        /// <summary>
+        /// Given a set of columns, from the newly generated ones, return the input columns that are needed to generate those output columns.
+        /// </summary>
+        IEnumerable<DataViewSchema.Column> GetDependenciesForNewColumns(IEnumerable<DataViewSchema.Column> dependingColumns);
+
+        /// <summary>
+        /// Get an <see cref="DataViewRow"/> with the indicated active columns, based on the input <paramref name="input"/>.
+        /// Getting values on inactive columns of the returned row will throw.
+        ///
+        /// The <see cref="DataViewRow.Schema"/> of <paramref name="input"/> should be the same object as
+        /// <see cref="InputSchema"/>. Implementors of this method should throw if that is not the case. Conversely,
+        /// the returned value must have the same schema as <see cref="ISchemaBoundMapper.OutputSchema"/>.
+        ///
+        /// This method creates a live connection between the input <see cref="DataViewRow"/> and the output <see
+        /// cref="DataViewRow"/>. In particular, when the getters of the output <see cref="DataViewRow"/> are invoked, they invoke the
+        /// getters of the input row and base the output values on the current values of the input <see cref="DataViewRow"/>.
+        /// The output <see cref="DataViewRow"/> values are re-computed when requested through the getters. Also, the returned
+        /// <see cref="DataViewRow"/> will dispose <paramref name="input"/> when it is disposed.
+        /// </summary>
+        DataViewRow GetRow(DataViewRow input, IEnumerable<DataViewSchema.Column> activeColumns);
     }
 }

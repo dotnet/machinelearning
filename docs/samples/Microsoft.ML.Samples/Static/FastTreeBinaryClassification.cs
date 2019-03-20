@@ -1,11 +1,11 @@
 ﻿using System;
-using Microsoft.ML.Data;
 using Microsoft.ML.StaticPipe;
 
 namespace Microsoft.ML.Samples.Static
 {
     public class FastTreeBinaryClassificationExample
     {
+        // This example requires installation of additional nuget package <a href="https://www.nuget.org/packages/Microsoft.ML.FastTree/">Microsoft.ML.FastTree</a>.
         public static void FastTreeBinaryClassification()
         {
             // Downloading a classification dataset from github.com/dotnet/machinelearning.
@@ -32,8 +32,8 @@ namespace Microsoft.ML.Samples.Static
             // Creating the ML.Net IHostEnvironment object, needed for the pipeline
             var mlContext = new MLContext();
 
-            // Creating Data Reader with the initial schema based on the format of the data
-            var reader = TextLoaderStatic.CreateReader(
+            // Creating Data Loader with the initial schema based on the format of the data
+            var loader = TextLoaderStatic.CreateLoader(
                 mlContext,
                 c => (
                     Age: c.LoadFloat(0),
@@ -54,12 +54,12 @@ namespace Microsoft.ML.Samples.Static
                 separator: ',',
                 hasHeader: true);
 
-            // Read the data, and leave 10% out, so we can use them for testing
-            var data = reader.Read(dataFilePath);
-            var (trainData, testData) = mlContext.BinaryClassification.TrainTestSplit(data, testFraction: 0.1);
+            // Loader the data, and leave 10% out, so we can use them for testing
+            var data = loader.Load(dataFilePath);
+            var (trainData, testData) = mlContext.Data.TrainTestSplit(data, testFraction: 0.1);
 
             // Create the Estimator
-            var learningPipeline = reader.MakeNewEstimator()
+            var learningPipeline = loader.MakeNewEstimator()
                 .Append(row => (
                         Features: row.Age.ConcatWith(
                             row.EducationNum,
@@ -77,9 +77,9 @@ namespace Microsoft.ML.Samples.Static
                         Score: mlContext.BinaryClassification.Trainers.FastTree(
                             row.Label,
                             row.Features,
-                            numTrees: 100, // try: (int) 20-2000
-                            numLeaves: 20, // try: (int) 2-128
-                            minDatapointsInLeaves: 10, // try: (int) 1-100
+                            numberOfTrees: 100, // try: (int) 20-2000
+                            numberOfLeaves: 20, // try: (int) 2-128
+                            minimumExampleCountPerLeaf: 10, // try: (int) 1-100
                             learningRate: 0.2))) // try: (float) 0.025-0.4
                 .Append(row => (
                     Label: row.Label,
@@ -95,7 +95,7 @@ namespace Microsoft.ML.Samples.Static
             var metrics = mlContext.BinaryClassification.Evaluate(dataWithPredictions, row => row.Label, row => row.Score);
 
             Console.WriteLine($"Accuracy: {metrics.Accuracy}"); // 0.84
-            Console.WriteLine($"AUC: {metrics.Auc}"); // 0.89
+            Console.WriteLine($"AUC: {metrics.AreaUnderRocCurve}"); // 0.89
             Console.WriteLine($"F1 Score: {metrics.F1Score}"); // 0.64
 
             Console.WriteLine($"Negative Precision: {metrics.NegativePrecision}"); // 0.88

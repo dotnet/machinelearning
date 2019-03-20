@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Security;
+using Microsoft.ML.Runtime;
 
 namespace Microsoft.ML.Trainers.FastTree
 {
@@ -32,11 +33,6 @@ namespace Microsoft.ML.Trainers.FastTree
         public override IntArrayBits BitsPerItem
         {
             get { return _bpi; }
-        }
-
-        public override MD5Hash MD5Hash
-        {
-            get { return MD5Hasher.Hash(_data) ^ MD5Hasher.Hash(_segLength) ^ MD5Hasher.Hash(_segType); }
         }
 
         public override IntArrayType Type

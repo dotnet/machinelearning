@@ -4,8 +4,7 @@
 
 using Microsoft.ML.Data;
 using Microsoft.ML.Internal.Utilities;
-using Microsoft.ML.Model;
-using Float = System.Single;
+using Microsoft.ML.Runtime;
 
 namespace Microsoft.ML.Trainers.FastTree
 {
@@ -63,13 +62,13 @@ namespace Microsoft.ML.Trainers.FastTree
         /// Loads the sampled labels of this tree to the distribution array for the sparse instance type.
         /// By calling for all the trees, the distribution array will have all the samples from all the trees
         /// </summary>
-        public void LoadSampledLabels(in VBuffer<Float> feat, Float[] distribution, Float[] weights, int sampleCount, int destinationIndex)
+        public void LoadSampledLabels(in VBuffer<float> feat, float[] distribution, float[] weights, int sampleCount, int destinationIndex)
         {
             int leaf = GetLeaf(in feat);
             LoadSampledLabels(distribution, weights, sampleCount, destinationIndex, leaf);
         }
 
-        private void LoadSampledLabels(Float[] distribution, Float[] weights, int sampleCount, int destinationIndex, int leaf)
+        private void LoadSampledLabels(float[] distribution, float[] weights, int sampleCount, int destinationIndex, int leaf)
         {
             Contracts.Check(sampleCount == _labelsDistribution.Length / NumLeaves, "Bad quantile sample count");
             Contracts.Check(_instanceWeights == null || sampleCount == _instanceWeights.Length / NumLeaves, "Bad quantile weight count");
@@ -78,14 +77,14 @@ namespace Microsoft.ML.Trainers.FastTree
             {
                 for (int i = 0, j = sampleCount * leaf, k = destinationIndex; i < sampleCount; i++, j++, k++)
                 {
-                    distribution[k] = (Float)_labelsDistribution[j];
-                    weights[k] = (Float)_instanceWeights[j];
+                    distribution[k] = (float)_labelsDistribution[j];
+                    weights[k] = (float)_instanceWeights[j];
                 }
             }
             else
             {
                 for (int i = 0, j = sampleCount * leaf, k = destinationIndex; i < sampleCount; i++, j++, k++)
-                    distribution[k] = (Float)_labelsDistribution[j];
+                    distribution[k] = (float)_labelsDistribution[j];
             }
         }
 

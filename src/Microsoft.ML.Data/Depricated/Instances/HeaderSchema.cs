@@ -7,10 +7,9 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
-using Microsoft.Data.DataView;
 using Microsoft.ML.Data;
 using Microsoft.ML.Internal.Utilities;
-using Microsoft.ML.Model;
+using Microsoft.ML.Runtime;
 
 namespace Microsoft.ML.Internal.Internallearn
 {
@@ -34,12 +33,12 @@ namespace Microsoft.ML.Internal.Internallearn
                 _colType = new VectorType(NumberDataViewType.Single, collection.Count);
                 _slotNamesType = new VectorType(TextDataViewType.Instance, collection.Count);
 
-                var metadataBuilder = new MetadataBuilder();
-                metadataBuilder.Add(MetadataUtils.Kinds.SlotNames, _slotNamesType,
+                var metadataBuilder = new DataViewSchema.Annotations.Builder();
+                metadataBuilder.Add(AnnotationUtils.Kinds.SlotNames, _slotNamesType,
                     (ref VBuffer<ReadOnlyMemory<char>> slotNames) => { GetSlotNames(0, ref slotNames); } );
-                var schemaBuilder = new SchemaBuilder();
-                schemaBuilder.AddColumn(RoleMappedSchema.ColumnRole.Feature.Value, _colType, metadataBuilder.GetMetadata());
-                FeatureNameCollectionSchema = schemaBuilder.GetSchema();
+                var schemaBuilder = new DataViewSchema.Builder();
+                schemaBuilder.AddColumn(RoleMappedSchema.ColumnRole.Feature.Value, _colType, metadataBuilder.ToAnnotations());
+                FeatureNameCollectionSchema = schemaBuilder.ToSchema();
             }
 
             private void GetSlotNames(int col, ref VBuffer<ReadOnlyMemory<char>> dst)

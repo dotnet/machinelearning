@@ -6,13 +6,13 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
-using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
 using Microsoft.ML.Data.Conversion;
 using Microsoft.ML.Data.IO;
 using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Runtime;
 
 [assembly: LoadableClass(TextSaver.Summary, typeof(TextSaver), typeof(TextSaver.Arguments), typeof(SignatureDataSaver),
     "Text Saver", "TextSaver", "Text", DocName = "saver/TextSaver.md")]
@@ -22,14 +22,22 @@ namespace Microsoft.ML.Data.IO
     [BestFriend]
     internal sealed class TextSaver : IDataSaver
     {
+        internal static class Defaults
+        {
+            internal const char Separator = '\t';
+            internal const bool ForceDense = false;
+            internal const bool OutputSchema = true;
+            internal const bool OutputHeader = true;
+        }
+
         // REVIEW: consider saving a command line in a separate file.
         public sealed class Arguments
         {
             [Argument(ArgumentType.AtMostOnce, HelpText = "Separator", ShortName = "sep")]
-            public string Separator = "tab";
+            public string Separator = Defaults.Separator.ToString();
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Force dense format", ShortName = "dense")]
-            public bool Dense;
+            public bool Dense = Defaults.ForceDense;
 
             // REVIEW: This and the corresponding BinarySaver option should be removed,
             // with the silence being handled, somehow, at the environment level. (Task 6158846.)
@@ -37,10 +45,10 @@ namespace Microsoft.ML.Data.IO
             public bool Silent;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Output the comment containing the loader settings", ShortName = "schema")]
-            public bool OutputSchema = true;
+            public bool OutputSchema = Defaults.OutputSchema;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Output the header", ShortName = "header")]
-            public bool OutputHeader = true;
+            public bool OutputHeader = Defaults.OutputHeader;
         }
 
         internal const string Summary = "Writes data into a text file.";
@@ -153,13 +161,13 @@ namespace Microsoft.ML.Data.IO
             public VecValueWriter(DataViewRowCursor cursor, VectorType type, int source, char sep)
                 : base(type.ItemType, source, sep)
             {
-                _getSrc = cursor.GetGetter<VBuffer<T>>(source);
+                _getSrc = cursor.GetGetter<VBuffer<T>>(cursor.Schema[source]);
                 VectorType typeNames;
                 if (type.IsKnownSize
-                    && (typeNames = cursor.Schema[source].Metadata.Schema.GetColumnOrNull(MetadataUtils.Kinds.SlotNames)?.Type as VectorType) != null
+                    && (typeNames = cursor.Schema[source].Annotations.Schema.GetColumnOrNull(AnnotationUtils.Kinds.SlotNames)?.Type as VectorType) != null
                     && typeNames.Size == type.Size && typeNames.ItemType is TextDataViewType)
                 {
-                    cursor.Schema[source].Metadata.GetValue(MetadataUtils.Kinds.SlotNames, ref _slotNames);
+                    cursor.Schema[source].Annotations.GetValue(AnnotationUtils.Kinds.SlotNames, ref _slotNames);
                     Contracts.Check(_slotNames.Length == typeNames.Size, "Unexpected slot names length");
                 }
                 _slotCount = type.Size;
@@ -218,8 +226,9 @@ namespace Microsoft.ML.Data.IO
             public ValueWriter(DataViewRowCursor cursor, PrimitiveDataViewType type, int source, char sep)
                 : base(type, source, sep)
             {
-                _getSrc = cursor.GetGetter<T>(source);
-                _columnName = cursor.Schema[source].Name;
+                var column = cursor.Schema[source];
+                _getSrc = cursor.GetGetter<T>(column);
+                _columnName = column.Name;
             }
 
             public override void WriteData(Action<StringBuilder, int> appendItem, out int length)
@@ -410,7 +419,7 @@ namespace Microsoft.ML.Data.IO
                     }
                     if (!vectorType.IsKnownSize)
                         continue;
-                    var typeNames = data.Schema[cols[i]].Metadata.Schema.GetColumnOrNull(MetadataUtils.Kinds.SlotNames)?.Type as VectorType;
+                    var typeNames = data.Schema[cols[i]].Annotations.Schema.GetColumnOrNull(AnnotationUtils.Kinds.SlotNames)?.Type as VectorType;
                     if (typeNames != null && typeNames.Size == vectorType.Size && typeNames.ItemType is TextDataViewType)
                         hasHeader = true;
                 }
@@ -495,7 +504,7 @@ namespace Microsoft.ML.Data.IO
             if (itemType is KeyType key)
                 keyCount = new KeyCount(key.Count);
 
-            DataKind kind = itemType.GetRawKind();
+            InternalDataKind kind = itemType.GetRawKind();
 
             TextLoader.Range[] source = null;
             TextLoader.Range range = null;

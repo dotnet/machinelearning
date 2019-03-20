@@ -5,11 +5,12 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using Microsoft.Data.DataView;
+using System.Linq;
 using Microsoft.ML.Data;
 using Microsoft.ML.Data.IO;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Model;
+using Microsoft.ML.Runtime;
 
 namespace Microsoft.ML.EntryPoints
 {
@@ -222,36 +223,39 @@ namespace Microsoft.ML.EntryPoints
                 return true;
             }
 
-            public Func<int, bool> GetDependencies(Func<int, bool> predicate)
+            /// <summary>
+            /// Given a set of columns, return the input columns that are needed to generate those output columns.
+            /// </summary>
+            IEnumerable<DataViewSchema.Column> IRowToRowMapper.GetDependencies(IEnumerable<DataViewSchema.Column> dependingColumns)
             {
                 _ectx.Assert(IsCompositeRowToRowMapper(_chain));
 
                 var transform = _chain as IDataTransform;
-                var pred = predicate;
+                var cols = dependingColumns;
                 while (transform != null)
                 {
                     var mapper = transform as IRowToRowMapper;
                     _ectx.AssertValue(mapper);
-                    pred = mapper.GetDependencies(pred);
+                    cols = mapper.GetDependencies(cols);
                     transform = transform.Source as IDataTransform;
                 }
-                return pred;
+                return cols;
             }
 
             public DataViewSchema InputSchema => _rootSchema;
 
-            public DataViewRow GetRow(DataViewRow input, Func<int, bool> active)
+            DataViewRow IRowToRowMapper.GetRow(DataViewRow input, IEnumerable<DataViewSchema.Column> activeColumns)
             {
                 _ectx.Assert(IsCompositeRowToRowMapper(_chain));
                 _ectx.AssertValue(input);
-                _ectx.AssertValue(active);
+                _ectx.AssertValue(activeColumns);
 
                 _ectx.Check(input.Schema == InputSchema, "Schema of input row must be the same as the schema the mapper is bound to");
 
                 var mappers = new List<IRowToRowMapper>();
-                var actives = new List<Func<int, bool>>();
+                var actives = new List<IEnumerable<DataViewSchema.Column>>();
                 var transform = _chain as IDataTransform;
-                var activeCur = active;
+                var activeCur = activeColumns;
                 while (transform != null)
                 {
                     var mapper = transform as IRowToRowMapper;
@@ -261,6 +265,7 @@ namespace Microsoft.ML.EntryPoints
                     activeCur = mapper.GetDependencies(activeCur);
                     transform = transform.Source as IDataTransform;
                 }
+
                 mappers.Reverse();
                 actives.Reverse();
                 var row = input;

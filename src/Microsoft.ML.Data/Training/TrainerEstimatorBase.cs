@@ -3,10 +3,10 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Linq;
-using Microsoft.Data.DataView;
 using Microsoft.ML.Data;
+using Microsoft.ML.Runtime;
 
-namespace Microsoft.ML.Training
+namespace Microsoft.ML.Trainers
 {
     /// <summary>
     /// This represents a basic class for 'simple trainer'.
@@ -21,7 +21,8 @@ namespace Microsoft.ML.Training
         /// A standard string to use in errors or warnings by subclasses, to communicate the idea that no valid
         /// instances were able to be found.
         /// </summary>
-        protected const string NoTrainingInstancesMessage = "No valid training instances found, all instances have missing features.";
+        [BestFriend]
+        private protected const string NoTrainingInstancesMessage = "No valid training instances found, all instances have missing features.";
 
         /// <summary>
         /// The feature column that the trainer expects.
@@ -40,7 +41,8 @@ namespace Microsoft.ML.Training
         /// </summary>
         public readonly SchemaShape.Column WeightColumn;
 
-        protected readonly IHost Host;
+        [BestFriend]
+        private protected readonly IHost Host;
 
         /// <summary>
         /// The information about the trainer: whether it benefits from normalization, caching etc.
@@ -142,8 +144,15 @@ namespace Microsoft.ML.Training
         private protected TTransformer TrainTransformer(IDataView trainSet,
             IDataView validationSet = null, IPredictor initPredictor = null)
         {
+            CheckInputSchema(SchemaShape.Create(trainSet.Schema));
             var trainRoleMapped = MakeRoles(trainSet);
-            var validRoleMapped = validationSet == null ? null : MakeRoles(validationSet);
+            RoleMappedData validRoleMapped = null;
+
+            if (validationSet != null)
+            {
+                CheckInputSchema(SchemaShape.Create(validationSet.Schema));
+                validRoleMapped = MakeRoles(validationSet);
+            }
 
             var pred = TrainModelCore(new TrainContext(trainRoleMapped, validRoleMapped, null, initPredictor));
             return MakeTransformer(pred, trainSet.Schema);
@@ -174,12 +183,13 @@ namespace Microsoft.ML.Training
         /// </summary>
         public readonly SchemaShape.Column GroupIdColumn;
 
-        public TrainerEstimatorBaseWithGroupId(IHost host,
+        [BestFriend]
+        private protected TrainerEstimatorBaseWithGroupId(IHost host,
                 SchemaShape.Column feature,
                 SchemaShape.Column label,
                 SchemaShape.Column weight = default,
                 SchemaShape.Column groupId = default)
-            :base(host, feature, label, weight)
+            : base(host, feature, label, weight)
         {
             GroupIdColumn = groupId;
         }

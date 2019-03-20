@@ -7,8 +7,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using Microsoft.ML.CommandLine;
+using Microsoft.ML.Runtime;
 
-namespace Microsoft.ML.Trainers.Ensemble.SubModelSelector
+namespace Microsoft.ML.Trainers.Ensemble
 {
     internal abstract class BaseBestPerformanceSelector<TOutput> : SubModelDataSelector<TOutput>
     {

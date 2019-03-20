@@ -5,7 +5,7 @@
 using System;
 using System.Collections.Generic;
 using Microsoft.ML.Data;
-using Microsoft.ML.StaticPipe.Runtime;
+using Microsoft.ML.Runtime;
 using Microsoft.ML.Trainers;
 using Microsoft.ML.Trainers.Recommender;
 

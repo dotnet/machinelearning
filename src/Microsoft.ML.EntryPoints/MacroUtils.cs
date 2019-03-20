@@ -3,10 +3,10 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
-using Microsoft.Data.DataView;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
 using Microsoft.ML.EntryPoints;
+using Microsoft.ML.Runtime;
 
 [assembly: EntryPointModule(typeof(MacroUtils))]
 
@@ -21,7 +21,7 @@ namespace Microsoft.ML.EntryPoints
         public enum TrainerKinds
         {
             SignatureBinaryClassifierTrainer,
-            SignatureMultiClassClassifierTrainer,
+            SignatureMulticlassClassificationTrainer,
             SignatureRankerTrainer,
             SignatureRegressorTrainer,
             SignatureMultiOutputRegressorTrainer,
@@ -50,12 +50,12 @@ namespace Microsoft.ML.EntryPoints
             case TrainerKinds.SignatureBinaryClassifierTrainer:
                 entryPointName = "Models.BinaryClassificationEvaluator";
                 return new BinaryClassifierMamlEvaluator.Arguments() { LabelColumn = settings.LabelColumn, WeightColumn = settings.WeightColumn, NameColumn = settings.NameColumn };
-            case TrainerKinds.SignatureMultiClassClassifierTrainer:
+            case TrainerKinds.SignatureMulticlassClassificationTrainer:
                 entryPointName = "Models.ClassificationEvaluator";
-                return new MultiClassMamlEvaluator.Arguments() { LabelColumn = settings.LabelColumn, WeightColumn = settings.WeightColumn, NameColumn = settings.NameColumn };
+                return new MulticlassClassificationMamlEvaluator.Arguments() { LabelColumn = settings.LabelColumn, WeightColumn = settings.WeightColumn, NameColumn = settings.NameColumn };
             case TrainerKinds.SignatureRankerTrainer:
-                entryPointName = "Models.RankerEvaluator";
-                return new RankerMamlEvaluator.Arguments() { LabelColumn = settings.LabelColumn, WeightColumn = settings.WeightColumn, NameColumn = settings.NameColumn, GroupIdColumn = settings.GroupColumn };
+                entryPointName = "Models.RankingEvaluator";
+                return new RankingMamlEvaluator.Arguments() { LabelColumn = settings.LabelColumn, WeightColumn = settings.WeightColumn, NameColumn = settings.NameColumn, GroupIdColumn = settings.GroupColumn };
             case TrainerKinds.SignatureRegressorTrainer:
                 entryPointName = "Models.RegressionEvaluator";
                 return new RegressionMamlEvaluator.Arguments() { LabelColumn = settings.LabelColumn, WeightColumn = settings.WeightColumn, NameColumn = settings.NameColumn };

@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.ML.Runtime;
 
 namespace Microsoft.ML.Trainers.FastTree
 {
@@ -103,11 +104,6 @@ namespace Microsoft.ML.Trainers.FastTree
         public override int SizeInBytes()
         {
             return _values.SizeInBytes() + _deltas.SizeInBytes() + sizeof(int) + base.SizeInBytes();
-        }
-
-        public override MD5Hash MD5Hash
-        {
-            get { return MD5Hasher.Hash(_deltas) ^ _values.MD5Hash; }
         }
 
         public override int Length { get { return _length; } }

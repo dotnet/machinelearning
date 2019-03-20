@@ -44,10 +44,10 @@ namespace Microsoft.ML.Tests
         [Fact]
         public void ChangeDetection()
         {
-            var env = new MLContext(conc: 1);
+            var env = new MLContext();
             const int Size = 10;
             var data = new List<Data>(Size);
-            var dataView = env.Data.ReadFromEnumerable(data);
+            var dataView = env.Data.LoadFromEnumerable(data);
             for (int i = 0; i < Size / 2; i++)
                 data.Add(new Data(5));
 
@@ -58,14 +58,14 @@ namespace Microsoft.ML.Tests
             var staticData = dataView.AssertStatic(env, c => new { Value = c.R4.Scalar });
             // Build the pipeline
             var staticLearningPipeline = staticData.MakeNewEstimator()
-                .Append(r => r.Value.IidChangePointDetect(80, Size));
+                .Append(r => r.Value.DetectIidChangePoint(80, Size));
             // Train
             var detector = staticLearningPipeline.Fit(staticData);
             // Transform
             var output = detector.Transform(staticData);
 
             // Get predictions
-            var enumerator = env.CreateEnumerable<ChangePointPrediction>(output.AsDynamic, true).GetEnumerator();
+            var enumerator = env.Data.CreateEnumerable<ChangePointPrediction>(output.AsDynamic, true).GetEnumerator();
             ChangePointPrediction row = null;
             List<double> expectedValues = new List<double>() { 0, 5, 0.5, 5.1200000000000114E-08, 0, 5, 0.4999999995, 5.1200000046080209E-08, 0, 5, 0.4999999995, 5.1200000092160303E-08,
                 0, 5, 0.4999999995, 5.12000001382404E-08};
@@ -84,14 +84,14 @@ namespace Microsoft.ML.Tests
         [Fact]
         public void ChangePointDetectionWithSeasonality()
         {
-            var env = new MLContext(conc: 1);
+            var env = new MLContext();
             const int ChangeHistorySize = 10;
             const int SeasonalitySize = 10;
             const int NumberOfSeasonsInTraining = 5;
             const int MaxTrainingSize = NumberOfSeasonsInTraining * SeasonalitySize;
 
             var data = new List<Data>();
-            var dataView = env.Data.ReadFromEnumerable(data);
+            var dataView = env.Data.LoadFromEnumerable(data);
 
             for (int j = 0; j < NumberOfSeasonsInTraining; j++)
                 for (int i = 0; i < SeasonalitySize; i++)
@@ -104,14 +104,14 @@ namespace Microsoft.ML.Tests
             var staticData = dataView.AssertStatic(env, c => new { Value = c.R4.Scalar });
             // Build the pipeline
             var staticLearningPipeline = staticData.MakeNewEstimator()
-                .Append(r => r.Value.SsaChangePointDetect(95, ChangeHistorySize, MaxTrainingSize, SeasonalitySize));
+                .Append(r => r.Value.DetectChangePointBySsa(95, ChangeHistorySize, MaxTrainingSize, SeasonalitySize));
             // Train
             var detector = staticLearningPipeline.Fit(staticData);
             // Transform
             var output = detector.Transform(staticData);
 
             // Get predictions
-            var enumerator = env.CreateEnumerable<ChangePointPrediction>(output.AsDynamic, true).GetEnumerator();
+            var enumerator = env.Data.CreateEnumerable<ChangePointPrediction>(output.AsDynamic, true).GetEnumerator();
             ChangePointPrediction row = null;
             List<double> expectedValues = new List<double>() { 0, -3.31410598754883, 0.5, 5.12000000000001E-08, 0, 1.5700820684432983, 5.2001145245395008E-07,
                     0.012414560443710681, 0, 1.2854313254356384, 0.28810801662678009, 0.02038940454467935, 0, -1.0950627326965332, 0.36663890634019225, 0.026956459625565483};
@@ -131,13 +131,13 @@ namespace Microsoft.ML.Tests
         [Fact]
         public void SpikeDetection()
         {
-            var env = new MLContext(conc: 1);
+            var env = new MLContext();
             const int Size = 10;
             const int PvalHistoryLength = Size / 4;
 
             // Generate sample series data with a spike
             List<Data> data = new List<Data>(Size);
-            var dataView = env.Data.ReadFromEnumerable(data);
+            var dataView = env.Data.LoadFromEnumerable(data);
             for (int i = 0; i < Size / 2; i++)
                 data.Add(new Data(5));
             data.Add(new Data(10)); // This is the spike
@@ -148,14 +148,14 @@ namespace Microsoft.ML.Tests
             var staticData = dataView.AssertStatic(env, c => new { Value = c.R4.Scalar });
             // Build the pipeline
             var staticLearningPipeline = staticData.MakeNewEstimator()
-                .Append(r => r.Value.IidSpikeDetect(80, PvalHistoryLength));
+                .Append(r => r.Value.DetectIidSpike(80, PvalHistoryLength));
             // Train
             var detector = staticLearningPipeline.Fit(staticData);
             // Transform
             var output = detector.Transform(staticData);
 
             // Get predictions
-            var enumerator = env.CreateEnumerable<SpikePrediction>(output.AsDynamic, true).GetEnumerator();
+            var enumerator = env.Data.CreateEnumerable<SpikePrediction>(output.AsDynamic, true).GetEnumerator();
             var expectedValues = new List<double[]>() {
                 //            Alert   Score   P-Value
                 new double[] {0,      5,      0.5},
@@ -184,7 +184,7 @@ namespace Microsoft.ML.Tests
         [Fact]
         public void SsaSpikeDetection()
         {
-            var env = new MLContext(conc: 1);
+            var env = new MLContext();
             const int Size = 16;
             const int ChangeHistoryLength = Size / 4;
             const int TrainingWindowSize = Size / 2;
@@ -192,7 +192,7 @@ namespace Microsoft.ML.Tests
 
             // Generate sample series data with a spike
             List<Data> data = new List<Data>(Size);
-            var dataView = env.Data.ReadFromEnumerable(data);
+            var dataView = env.Data.LoadFromEnumerable(data);
             for (int i = 0; i < Size / 2; i++)
                 data.Add(new Data(5));
             data.Add(new Data(10)); // This is the spike
@@ -203,14 +203,14 @@ namespace Microsoft.ML.Tests
             var staticData = dataView.AssertStatic(env, c => new { Value = c.R4.Scalar });
             // Build the pipeline
             var staticLearningPipeline = staticData.MakeNewEstimator()
-                .Append(r => r.Value.SsaSpikeDetect(80, ChangeHistoryLength, TrainingWindowSize, SeasonalityWindowSize));
+                .Append(r => r.Value.DetectSpikeBySsa(80, ChangeHistoryLength, TrainingWindowSize, SeasonalityWindowSize));
             // Train
             var detector = staticLearningPipeline.Fit(staticData);
             // Transform
             var output = detector.Transform(staticData);
 
             // Get predictions
-            var enumerator = env.CreateEnumerable<SpikePrediction>(output.AsDynamic, true).GetEnumerator();
+            var enumerator = env.Data.CreateEnumerable<SpikePrediction>(output.AsDynamic, true).GetEnumerator();
             var expectedValues = new List<double[]>() {
                 //            Alert   Score   P-Value
                 new double[] {0,      0.0,    0.5},

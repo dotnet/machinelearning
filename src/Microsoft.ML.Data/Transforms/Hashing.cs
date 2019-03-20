@@ -7,13 +7,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
-using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
 using Microsoft.ML.Internal.Utilities;
-using Microsoft.ML.Model;
-using Microsoft.ML.Transforms.Conversions;
+using Microsoft.ML.Runtime;
+using Microsoft.ML.Transforms;
 
 [assembly: LoadableClass(HashingTransformer.Summary, typeof(IDataTransform), typeof(HashingTransformer), typeof(HashingTransformer.Options), typeof(SignatureDataTransform),
     "Hash Transform", "HashTransform", "Hash", DocName = "transform/HashTransform.md")]
@@ -27,7 +26,7 @@ using Microsoft.ML.Transforms.Conversions;
 [assembly: LoadableClass(typeof(IRowMapper), typeof(HashingTransformer), null, typeof(SignatureLoadRowMapper),
    "Hash Transform", HashingTransformer.LoaderSignature)]
 
-namespace Microsoft.ML.Transforms.Conversions
+namespace Microsoft.ML.Transforms
 {
     /// <summary>
     /// This transformer can hash either single valued columns or vector columns. For vector columns,
@@ -44,24 +43,24 @@ namespace Microsoft.ML.Transforms.Conversions
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Number of bits to hash into. Must be between 1 and 31, inclusive",
                 ShortName = "bits", SortOrder = 2)]
-            public int HashBits = HashingEstimator.Defaults.HashBits;
+            public int NumberOfBits = HashingEstimator.Defaults.NumberOfBits;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Hashing seed")]
             public uint Seed = HashingEstimator.Defaults.Seed;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Whether the position of each term should be included in the hash",
                 ShortName = "ord")]
-            public bool Ordered = HashingEstimator.Defaults.Ordered;
+            public bool Ordered = HashingEstimator.Defaults.UseOrderedHashing;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Limit the number of keys used to generate the slot name to this many. 0 means no invert hashing, -1 means no limit.",
                 ShortName = "ih")]
-            public int InvertHash = HashingEstimator.Defaults.InvertHash;
+            public int MaximumNumberOfInverts = HashingEstimator.Defaults.MaximumNumberOfInverts;
         }
 
         internal sealed class Column : OneToOneColumn
         {
             [Argument(ArgumentType.AtMostOnce, HelpText = "Number of bits to hash into. Must be between 1 and 31, inclusive", ShortName = "bits")]
-            public int? HashBits;
+            public int? NumberOfBits;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Hashing seed")]
             public uint? Seed;
@@ -72,7 +71,7 @@ namespace Microsoft.ML.Transforms.Conversions
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Limit the number of keys used to generate the slot name to this many. 0 means no invert hashing, -1 means no limit.",
                 ShortName = "ih")]
-            public int? InvertHash;
+            public int? MaximumNumberOfInverts;
 
             internal static Column Parse(string str)
             {
@@ -98,18 +97,18 @@ namespace Microsoft.ML.Transforms.Conversions
                 int bits;
                 if (!int.TryParse(extra, out bits))
                     return false;
-                HashBits = bits;
+                NumberOfBits = bits;
                 return true;
             }
 
             internal bool TryUnparse(StringBuilder sb)
             {
                 Contracts.AssertValue(sb);
-                if (Seed != null || Ordered != null || InvertHash != null)
+                if (Seed != null || Ordered != null || MaximumNumberOfInverts != null)
                     return false;
-                if (HashBits == null)
+                if (NumberOfBits == null)
                     return TryUnparseCore(sb);
-                string extra = HashBits.Value.ToString();
+                string extra = NumberOfBits.Value.ToString();
                 return TryUnparseCore(sb, extra);
             }
         }
@@ -132,7 +131,7 @@ namespace Microsoft.ML.Transforms.Conversions
                 loaderAssemblyName: typeof(HashingTransformer).Assembly.FullName);
         }
 
-        private readonly HashingEstimator.ColumnInfo[] _columns;
+        private readonly HashingEstimator.ColumnOptions[] _columns;
         private readonly VBuffer<ReadOnlyMemory<char>>[] _keyValues;
         private readonly VectorType[] _kvTypes;
 
@@ -143,15 +142,15 @@ namespace Microsoft.ML.Transforms.Conversions
                 throw Host.ExceptParam(nameof(inputSchema), HashingEstimator.ExpectedColumnType);
         }
 
-        private static (string outputColumnName, string inputColumnName)[] GetColumnPairs(HashingEstimator.ColumnInfo[] columns)
+        private static (string outputColumnName, string inputColumnName)[] GetColumnPairs(HashingEstimator.ColumnOptions[] columns)
         {
             Contracts.CheckNonEmpty(columns, nameof(columns));
             return columns.Select(x => (x.Name, x.InputColumnName)).ToArray();
         }
 
-        private DataViewType GetOutputType(DataViewSchema inputSchema, HashingEstimator.ColumnInfo column)
+        private DataViewType GetOutputType(DataViewSchema inputSchema, HashingEstimator.ColumnOptions column)
         {
-            var keyCount = (ulong)1 << column.HashBits;
+            var keyCount = (ulong)1 << column.NumberOfBits;
             inputSchema.TryGetColumnIndex(column.InputColumnName, out int srcCol);
             var itemType = new KeyType(typeof(uint), keyCount);
             var srcType = inputSchema[srcCol].Type;
@@ -166,18 +165,18 @@ namespace Microsoft.ML.Transforms.Conversions
         /// </summary>
         /// <param name="env">Host Environment.</param>
         /// <param name="columns">Description of dataset columns and how to process them.</param>
-        internal HashingTransformer(IHostEnvironment env, params HashingEstimator.ColumnInfo[] columns) :
+        internal HashingTransformer(IHostEnvironment env, params HashingEstimator.ColumnOptions[] columns) :
               base(Contracts.CheckRef(env, nameof(env)).Register(RegistrationName), GetColumnPairs(columns))
         {
             _columns = columns.ToArray();
             foreach (var column in _columns)
             {
-                if (column.InvertHash != 0)
-                    throw Host.ExceptParam(nameof(columns), $"Found colunm with {nameof(column.InvertHash)} set to non zero value, please use { nameof(HashingEstimator)} instead");
+                if (column.MaximumNumberOfInverts != 0)
+                    throw Host.ExceptParam(nameof(columns), $"Found colunm with {nameof(column.MaximumNumberOfInverts)} set to non zero value, please use { nameof(HashingEstimator)} instead");
             }
         }
 
-        internal HashingTransformer(IHostEnvironment env, IDataView input, params HashingEstimator.ColumnInfo[] columns) :
+        internal HashingTransformer(IHostEnvironment env, IDataView input, params HashingEstimator.ColumnOptions[] columns) :
             base(Contracts.CheckRef(env, nameof(env)).Register(RegistrationName), GetColumnPairs(columns))
         {
             _columns = columns.ToArray();
@@ -194,10 +193,10 @@ namespace Microsoft.ML.Transforms.Conversions
 
                 types[i] = GetOutputType(input.Schema, _columns[i]);
                 int invertHashMaxCount;
-                if (_columns[i].InvertHash == -1)
+                if (_columns[i].MaximumNumberOfInverts == -1)
                     invertHashMaxCount = int.MaxValue;
                 else
-                    invertHashMaxCount = _columns[i].InvertHash;
+                    invertHashMaxCount = _columns[i].MaximumNumberOfInverts;
                 if (invertHashMaxCount > 0)
                 {
                     Utils.Add(ref invertIinfos, i);
@@ -271,9 +270,9 @@ namespace Microsoft.ML.Transforms.Conversions
           : base(host, ctx)
         {
             var columnsLength = ColumnPairs.Length;
-            _columns = new HashingEstimator.ColumnInfo[columnsLength];
+            _columns = new HashingEstimator.ColumnOptions[columnsLength];
             for (int i = 0; i < columnsLength; i++)
-                _columns[i] = new HashingEstimator.ColumnInfo(ColumnPairs[i].outputColumnName, ColumnPairs[i].inputColumnName, ctx);
+                _columns[i] = new HashingEstimator.ColumnOptions(ColumnPairs[i].outputColumnName, ColumnPairs[i].inputColumnName, ctx);
             TextModelHelper.LoadAll(Host, ctx, columnsLength, out _keyValues, out _kvTypes);
         }
 
@@ -312,18 +311,18 @@ namespace Microsoft.ML.Transforms.Conversions
             env.CheckValue(input, nameof(input));
 
             env.CheckValue(options.Columns, nameof(options.Columns));
-            var cols = new HashingEstimator.ColumnInfo[options.Columns.Length];
+            var cols = new HashingEstimator.ColumnOptions[options.Columns.Length];
             for (int i = 0; i < cols.Length; i++)
             {
                 var item = options.Columns[i];
-                var kind = item.InvertHash ?? options.InvertHash;
-                cols[i] = new HashingEstimator.ColumnInfo(
+                var kind = item.MaximumNumberOfInverts ?? options.MaximumNumberOfInverts;
+                cols[i] = new HashingEstimator.ColumnOptions(
                     item.Name,
                     item.Source ?? item.Name,
-                    item.HashBits ?? options.HashBits,
+                    item.NumberOfBits ?? options.NumberOfBits,
                     item.Seed ?? options.Seed,
                     item.Ordered ?? options.Ordered,
-                    item.InvertHash ?? options.InvertHash);
+                    item.MaximumNumberOfInverts ?? options.MaximumNumberOfInverts);
             };
             return new HashingTransformer(env, input, cols).MakeDataTransform(input);
         }
@@ -333,10 +332,10 @@ namespace Microsoft.ML.Transforms.Conversions
         {
             Host.Assert(HashingEstimator.IsColumnTypeValid(srcType));
 
-            var mask = (1U << _columns[iinfo].HashBits) - 1;
+            var mask = (1U << _columns[iinfo].NumberOfBits) - 1;
             uint seed = _columns[iinfo].Seed;
             // In case of single valued input column, hash in 0 for the slot index.
-            if (_columns[iinfo].Ordered)
+            if (_columns[iinfo].UseOrderedHashing)
                 seed = Hashing.MurmurRound(seed, 0);
 
             if (srcType is KeyType)
@@ -433,12 +432,12 @@ namespace Microsoft.ML.Transforms.Conversions
         {
             Host.Assert(srcType.ItemType.RawType == typeof(T));
 
-            var getSrc = input.GetGetter<VBuffer<T>>(srcCol);
+            var getSrc = input.GetGetter<VBuffer<T>>(input.Schema[srcCol]);
             var ex = _columns[iinfo];
-            var mask = (1U << ex.HashBits) - 1;
+            var mask = (1U << ex.NumberOfBits) - 1;
             var seed = ex.Seed;
 
-            if (!ex.Ordered)
+            if (!ex.UseOrderedHashing)
                 return MakeVectorHashGetter<T, THash>(seed, mask, getSrc);
             return MakeVectorOrderedHashGetter<T, THash>(seed, mask, getSrc);
         }
@@ -639,7 +638,7 @@ namespace Microsoft.ML.Transforms.Conversions
             Contracts.Assert(0 <= srcCol && srcCol < input.Schema.Count);
             Contracts.Assert(input.Schema[srcCol].Type.RawType == typeof(T));
 
-            var srcGetter = input.GetGetter<T>(srcCol);
+            var srcGetter = input.GetGetter<T>(input.Schema[srcCol]);
             T src = default;
             THash hasher = default;
             return (ref uint dst) =>
@@ -817,17 +816,17 @@ namespace Microsoft.ML.Transforms.Conversions
                 for (int i = 0; i < _parent.ColumnPairs.Length; i++)
                 {
                     InputSchema.TryGetColumnIndex(_parent.ColumnPairs[i].inputColumnName, out int colIndex);
-                    var meta = new MetadataBuilder();
+                    var meta = new DataViewSchema.Annotations.Builder();
 
-                    meta.Add(InputSchema[colIndex].Metadata, name => name == MetadataUtils.Kinds.SlotNames);
+                    meta.Add(InputSchema[colIndex].Annotations, name => name == AnnotationUtils.Kinds.SlotNames);
 
                     if (_parent._kvTypes != null && _parent._kvTypes[i] != null)
                         AddMetaKeyValues(i, meta);
-                    result[i] = new DataViewSchema.DetachedColumn(_parent.ColumnPairs[i].outputColumnName, _types[i], meta.GetMetadata());
+                    result[i] = new DataViewSchema.DetachedColumn(_parent.ColumnPairs[i].outputColumnName, _types[i], meta.ToAnnotations());
                 }
                 return result;
             }
-            private void AddMetaKeyValues(int i, MetadataBuilder builder)
+            private void AddMetaKeyValues(int i, DataViewSchema.Annotations.Builder builder)
             {
                 ValueGetter<VBuffer<ReadOnlyMemory<char>>> getter = (ref VBuffer<ReadOnlyMemory<char>> dst) =>
                 {
@@ -843,11 +842,11 @@ namespace Microsoft.ML.Transforms.Conversions
         {
             protected readonly DataViewRow Row;
             private readonly bool _includeSlot;
-            private readonly HashingEstimator.ColumnInfo _ex;
+            private readonly HashingEstimator.ColumnOptions _ex;
             private readonly DataViewType _srcType;
             private readonly int _srcCol;
 
-            private InvertHashHelper(DataViewRow row, HashingEstimator.ColumnInfo ex)
+            private InvertHashHelper(DataViewRow row, HashingEstimator.ColumnOptions ex)
             {
                 Contracts.AssertValue(row);
                 Row = row;
@@ -856,7 +855,7 @@ namespace Microsoft.ML.Transforms.Conversions
                 _srcType = row.Schema[srcCol].Type;
                 _ex = ex;
                 // If this is a vector and ordered, then we must include the slot as part of the representation.
-                _includeSlot = _srcType is VectorType && _ex.Ordered;
+                _includeSlot = _srcType is VectorType && _ex.UseOrderedHashing;
             }
 
             /// <summary>
@@ -868,18 +867,18 @@ namespace Microsoft.ML.Transforms.Conversions
             /// <param name="ex">The extra column info</param>
             /// <param name="invertHashMaxCount">The number of input hashed valuPres to accumulate per output hash value</param>
             /// <param name="dstGetter">A hash getter, built on top of <paramref name="row"/>.</param>
-            public static InvertHashHelper Create(DataViewRow row, HashingEstimator.ColumnInfo ex, int invertHashMaxCount, Delegate dstGetter)
+            public static InvertHashHelper Create(DataViewRow row, HashingEstimator.ColumnOptions ex, int invertHashMaxCount, Delegate dstGetter)
             {
                 row.Schema.TryGetColumnIndex(ex.InputColumnName, out int srcCol);
                 DataViewType typeSrc = row.Schema[srcCol].Type;
                 VectorType vectorTypeSrc = typeSrc as VectorType;
 
-                Type t = vectorTypeSrc != null ? (ex.Ordered ? typeof(ImplVecOrdered<>) : typeof(ImplVec<>)) : typeof(ImplOne<>);
+                Type t = vectorTypeSrc != null ? (ex.UseOrderedHashing ? typeof(ImplVecOrdered<>) : typeof(ImplVec<>)) : typeof(ImplOne<>);
                 DataViewType itemType = vectorTypeSrc?.ItemType ?? typeSrc;
 
                 t = t.MakeGenericType(itemType.RawType);
 
-                var consTypes = new Type[] { typeof(DataViewRow), typeof(HashingEstimator.ColumnInfo), typeof(int), typeof(Delegate) };
+                var consTypes = new Type[] { typeof(DataViewRow), typeof(HashingEstimator.ColumnOptions), typeof(int), typeof(Delegate) };
                 var constructorInfo = t.GetConstructor(consTypes);
                 return (InvertHashHelper)constructorInfo.Invoke(new object[] { row, ex, invertHashMaxCount, dstGetter });
             }
@@ -956,13 +955,13 @@ namespace Microsoft.ML.Transforms.Conversions
             {
                 protected readonly InvertHashCollector<T> Collector;
 
-                protected Impl(DataViewRow row, HashingEstimator.ColumnInfo ex, int invertHashMaxCount)
+                protected Impl(DataViewRow row, HashingEstimator.ColumnOptions ex, int invertHashMaxCount)
                     : base(row, ex)
                 {
                     Contracts.AssertValue(row);
                     Contracts.AssertValue(ex);
 
-                    Collector = new InvertHashCollector<T>(1 << ex.HashBits, invertHashMaxCount, GetTextMap(), GetComparer());
+                    Collector = new InvertHashCollector<T>(1 << ex.NumberOfBits, invertHashMaxCount, GetTextMap(), GetComparer());
                 }
 
                 protected virtual ValueMapper<T, StringBuilder> GetTextMap()
@@ -989,10 +988,10 @@ namespace Microsoft.ML.Transforms.Conversions
                 private T _value;
                 private uint _hash;
 
-                public ImplOne(DataViewRow row, HashingEstimator.ColumnInfo ex, int invertHashMaxCount, Delegate dstGetter)
+                public ImplOne(DataViewRow row, HashingEstimator.ColumnOptions ex, int invertHashMaxCount, Delegate dstGetter)
                     : base(row, ex, invertHashMaxCount)
                 {
-                    _srcGetter = Row.GetGetter<T>(_srcCol);
+                    _srcGetter = Row.GetGetter<T>(Row.Schema[_srcCol]);
                     _dstGetter = dstGetter as ValueGetter<uint>;
                     Contracts.AssertValue(_dstGetter);
                 }
@@ -1023,10 +1022,10 @@ namespace Microsoft.ML.Transforms.Conversions
                 private VBuffer<T> _value;
                 private VBuffer<uint> _hash;
 
-                public ImplVec(DataViewRow row, HashingEstimator.ColumnInfo ex, int invertHashMaxCount, Delegate dstGetter)
+                public ImplVec(DataViewRow row, HashingEstimator.ColumnOptions ex, int invertHashMaxCount, Delegate dstGetter)
                     : base(row, ex, invertHashMaxCount)
                 {
-                    _srcGetter = Row.GetGetter<VBuffer<T>>(_srcCol);
+                    _srcGetter = Row.GetGetter<VBuffer<T>>(Row.Schema[_srcCol]);
                     _dstGetter = dstGetter as ValueGetter<VBuffer<uint>>;
                     Contracts.AssertValue(_dstGetter);
                 }
@@ -1057,10 +1056,10 @@ namespace Microsoft.ML.Transforms.Conversions
                 private VBuffer<T> _value;
                 private VBuffer<uint> _hash;
 
-                public ImplVecOrdered(DataViewRow row, HashingEstimator.ColumnInfo ex, int invertHashMaxCount, Delegate dstGetter)
+                public ImplVecOrdered(DataViewRow row, HashingEstimator.ColumnOptions ex, int invertHashMaxCount, Delegate dstGetter)
                     : base(row, ex, invertHashMaxCount)
                 {
-                    _srcGetter = Row.GetGetter<VBuffer<T>>(_srcCol);
+                    _srcGetter = Row.GetGetter<VBuffer<T>>(Row.Schema[_srcCol]);
                     _dstGetter = dstGetter as ValueGetter<VBuffer<uint>>;
                     Contracts.AssertValue(_dstGetter);
                 }
@@ -1115,16 +1114,17 @@ namespace Microsoft.ML.Transforms.Conversions
 
         internal static class Defaults
         {
-            public const int HashBits = NumBitsLim - 1;
+            public const int NumberOfBits = NumBitsLim - 1;
             public const uint Seed = 314489979;
-            public const bool Ordered = false;
-            public const int InvertHash = 0;
+            public const bool UseOrderedHashing = false;
+            public const int MaximumNumberOfInverts = 0;
         }
 
         /// <summary>
         /// Describes how the transformer handles one column pair.
         /// </summary>
-        public sealed class ColumnInfo
+        [BestFriend]
+        internal sealed class ColumnOptions
         {
             /// <summary>
             /// Name of the column resulting from the transformation of <see cref="InputColumnName"/>.
@@ -1133,90 +1133,91 @@ namespace Microsoft.ML.Transforms.Conversions
             /// <summary> Name of column to transform.</summary>
             public readonly string InputColumnName;
             /// <summary> Number of bits to hash into. Must be between 1 and 31, inclusive.</summary>
-            public readonly int HashBits;
+            public readonly int NumberOfBits;
             /// <summary> Hashing seed.</summary>
             public readonly uint Seed;
-            /// <summary> Whether the position of each term should be included in the hash.</summary>
-            public readonly bool Ordered;
+            /// <summary> Whether the position of each term should be included in the hash, only applies to inputs of vector type.</summary>
+            public readonly bool UseOrderedHashing;
             /// <summary>
             /// During hashing we constuct mappings between original values and the produced hash values.
             /// Text representation of original values are stored in the slot names of the  metadata for the new column.Hashing, as such, can map many initial values to one.
-            /// <see cref="InvertHash"/> specifies the upper bound of the number of distinct input values mapping to a hash that should be retained.
+            /// <see cref="MaximumNumberOfInverts"/> specifies the upper bound of the number of distinct input values mapping to a hash that should be retained.
             /// <value>0</value> does not retain any input values. <value>-1</value> retains all input values mapping to each hash.
             /// </summary>
-            public readonly int InvertHash;
+            public readonly int MaximumNumberOfInverts;
 
             /// <summary>
             /// Describes how the transformer handles one column pair.
             /// </summary>
             /// <param name="name">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.</param>
             /// <param name="inputColumnName">Name of column to transform. If set to <see langword="null"/>, the value of the <paramref name="name"/> will be used as source.</param>
-            /// <param name="hashBits">Number of bits to hash into. Must be between 1 and 31, inclusive.</param>
+            /// <param name="numberOfBits">Number of bits to hash into. Must be between 1 and 31, inclusive.</param>
             /// <param name="seed">Hashing seed.</param>
-            /// <param name="ordered">Whether the position of each term should be included in the hash.</param>
-            /// <param name="invertHash">During hashing we constuct mappings between original values and the produced hash values.
+            /// <param name="useOrderedHashing">Whether the position of each term should be included in the hash, only applies to inputs of vector type..</param>
+            /// <param name="maximumNumberOfInverts">During hashing we constuct mappings between original values and the produced hash values.
             /// Text representation of original values are stored in the slot names of the  metadata for the new column.Hashing, as such, can map many initial values to one.
-            /// <paramref name="invertHash"/> specifies the upper bound of the number of distinct input values mapping to a hash that should be retained.
+            /// <paramref name="maximumNumberOfInverts"/> specifies the upper bound of the number of distinct input values mapping to a hash that should be retained.
             /// <value>0</value> does not retain any input values. <value>-1</value> retains all input values mapping to each hash.</param>
-            public ColumnInfo(string name,
+            public ColumnOptions(string name,
                 string inputColumnName = null,
-                int hashBits = Defaults.HashBits,
+                int numberOfBits = Defaults.NumberOfBits,
                 uint seed = Defaults.Seed,
-                bool ordered = Defaults.Ordered,
-                int invertHash = Defaults.InvertHash)
+                bool useOrderedHashing = Defaults.UseOrderedHashing,
+                int maximumNumberOfInverts = Defaults.MaximumNumberOfInverts)
             {
-                if (invertHash < -1)
-                    throw Contracts.ExceptParam(nameof(invertHash), "Value too small, must be -1 or larger");
-                if (invertHash != 0 && hashBits >= 31)
-                    throw Contracts.ExceptParam(nameof(hashBits), $"Cannot support invertHash for a {0} bit hash. 30 is the maximum possible.", hashBits);
+                if (maximumNumberOfInverts < -1)
+                    throw Contracts.ExceptParam(nameof(maximumNumberOfInverts), "Value too small, must be -1 or larger");
+                if (maximumNumberOfInverts != 0 && numberOfBits >= 31)
+                    throw Contracts.ExceptParam(nameof(numberOfBits), $"Cannot support maximumNumberOfInverts for a {0} bit hash. 30 is the maximum possible.", numberOfBits);
                 Contracts.CheckNonWhiteSpace(name, nameof(name));
                 Name = name;
                 InputColumnName = inputColumnName ?? name;
-                HashBits = hashBits;
+                NumberOfBits = numberOfBits;
                 Seed = seed;
-                Ordered = ordered;
-                InvertHash = invertHash;
+                UseOrderedHashing = useOrderedHashing;
+                MaximumNumberOfInverts = maximumNumberOfInverts;
             }
 
-            internal ColumnInfo(string name, string inputColumnName, ModelLoadContext ctx)
+            internal ColumnOptions(string name, string inputColumnName, ModelLoadContext ctx)
             {
                 Name = name;
                 InputColumnName = inputColumnName;
                 // *** Binary format ***
-                // int: HashBits
+                // int: NumberOfBits
                 // uint: HashSeed
                 // byte: Ordered
-                HashBits = ctx.Reader.ReadInt32();
-                Contracts.CheckDecode(HashingEstimator.NumBitsMin <= HashBits && HashBits < HashingEstimator.NumBitsLim);
+                NumberOfBits = ctx.Reader.ReadInt32();
+                Contracts.CheckDecode(NumBitsMin <= NumberOfBits && NumberOfBits < NumBitsLim);
                 Seed = ctx.Reader.ReadUInt32();
-                Ordered = ctx.Reader.ReadBoolByte();
+                UseOrderedHashing = ctx.Reader.ReadBoolByte();
             }
 
             internal void Save(ModelSaveContext ctx)
             {
                 // *** Binary format ***
-                // int: HashBits
+                // int: NumberOfBits
                 // uint: HashSeed
                 // byte: Ordered
 
-                Contracts.Assert(HashingEstimator.NumBitsMin <= HashBits && HashBits < HashingEstimator.NumBitsLim);
-                ctx.Writer.Write(HashBits);
+                Contracts.Assert(NumBitsMin <= NumberOfBits && NumberOfBits < NumBitsLim);
+                ctx.Writer.Write(NumberOfBits);
 
                 ctx.Writer.Write(Seed);
-                ctx.Writer.WriteBoolByte(Ordered);
+                ctx.Writer.WriteBoolByte(UseOrderedHashing);
             }
         }
 
         private readonly IHost _host;
-        private readonly ColumnInfo[] _columns;
+        private readonly ColumnOptions[] _columns;
 
         internal static bool IsColumnTypeValid(DataViewType type)
         {
             var itemType = type.GetItemType();
-            return itemType is TextDataViewType || itemType is KeyType || itemType is NumberDataViewType || itemType is BooleanDataViewType;
+            return itemType is TextDataViewType || itemType is KeyType || itemType is NumberDataViewType ||
+                itemType is BooleanDataViewType || itemType is RowIdDataViewType;
         }
 
-        internal const string ExpectedColumnType = "Expected Text, Key, numeric or Boolean item type";
+        internal const string ExpectedColumnType = "Expected Text, Key, numeric, Boolean or DataViewRowId item type";
 
         /// <summary>
         /// Initializes a new instance of <see cref="HashingEstimator"/>.
@@ -1225,14 +1226,14 @@ namespace Microsoft.ML.Transforms.Conversions
         /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.</param>
         /// <param name="inputColumnName">Name of the column to transform.
         /// If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.</param>
-        /// <param name="hashBits">Number of bits to hash into. Must be between 1 and 31, inclusive.</param>
-        /// <param name="invertHash">During hashing we constuct mappings between original values and the produced hash values.
+        /// <param name="numberOfBits">Number of bits to hash into. Must be between 1 and 31, inclusive.</param>
+        /// <param name="maximumNumberOfInverts">During hashing we constuct mappings between original values and the produced hash values.
         /// Text representation of original values are stored in the slot names of the  metadata for the new column.Hashing, as such, can map many initial values to one.
-        /// <paramref name="invertHash"/> specifies the upper bound of the number of distinct input values mapping to a hash that should be retained.
+        /// <paramref name="maximumNumberOfInverts"/> specifies the upper bound of the number of distinct input values mapping to a hash that should be retained.
         /// <value>0</value> does not retain any input values. <value>-1</value> retains all input values mapping to each hash.</param>
         internal HashingEstimator(IHostEnvironment env, string outputColumnName, string inputColumnName = null,
-            int hashBits = Defaults.HashBits, int invertHash = Defaults.InvertHash)
-            : this(env, new ColumnInfo(outputColumnName, inputColumnName ?? outputColumnName, hashBits: hashBits, invertHash: invertHash))
+            int numberOfBits = Defaults.NumberOfBits, int maximumNumberOfInverts = Defaults.MaximumNumberOfInverts)
+            : this(env, new ColumnOptions(outputColumnName, inputColumnName ?? outputColumnName, numberOfBits: numberOfBits, maximumNumberOfInverts: maximumNumberOfInverts))
         {
         }
 
@@ -1242,7 +1243,7 @@ namespace Microsoft.ML.Transforms.Conversions
         /// <param name="env">Host Environment.</param>
         /// <param name="columns">Description of dataset columns and how to process them.</param>
         [BestFriend]
-        internal HashingEstimator(IHostEnvironment env, params ColumnInfo[] columns)
+        internal HashingEstimator(IHostEnvironment env, params ColumnOptions[] columns)
         {
             Contracts.CheckValue(env, nameof(env));
             _host = env.Register(nameof(HashingEstimator));
@@ -1269,10 +1270,10 @@ namespace Microsoft.ML.Transforms.Conversions
                 if (!IsColumnTypeValid(col.ItemType))
                     throw _host.ExceptParam(nameof(inputSchema), ExpectedColumnType);
                 var metadata = new List<SchemaShape.Column>();
-                if (col.Metadata.TryFindColumn(MetadataUtils.Kinds.SlotNames, out var slotMeta))
+                if (col.Annotations.TryFindColumn(AnnotationUtils.Kinds.SlotNames, out var slotMeta))
                     metadata.Add(slotMeta);
-                if (colInfo.InvertHash != 0)
-                    metadata.Add(new SchemaShape.Column(MetadataUtils.Kinds.KeyValues, SchemaShape.Column.VectorKind.Vector, TextDataViewType.Instance, false));
+                if (colInfo.MaximumNumberOfInverts != 0)
+                    metadata.Add(new SchemaShape.Column(AnnotationUtils.Kinds.KeyValues, SchemaShape.Column.VectorKind.Vector, TextDataViewType.Instance, false));
                 result[colInfo.Name] = new SchemaShape.Column(colInfo.Name, col.ItemType is VectorType ? SchemaShape.Column.VectorKind.Vector : SchemaShape.Column.VectorKind.Scalar, NumberDataViewType.UInt32, true, new SchemaShape(metadata));
             }
             return new SchemaShape(result.Values);

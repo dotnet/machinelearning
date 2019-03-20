@@ -1,9 +1,7 @@
 ﻿using System;
 using System.Linq;
-using Microsoft.Data.DataView;
 using Microsoft.ML.Trainers;
 using Microsoft.ML.SamplesUtils;
-using Microsoft.ML.Trainers.HalLearners;
 
 namespace Microsoft.ML.Samples.Dynamic.PermutationFeatureImportance
 {
@@ -20,7 +18,7 @@ namespace Microsoft.ML.Samples.Dynamic.PermutationFeatureImportance
             if (binaryPrediction)
             {
                 labelColumn = nameof(BinaryOutputRow.AboveAverage);
-                data = mlContext.Transforms.CustomMappingTransformer(GreaterThanAverage, null).Transform(data);
+                data = mlContext.Transforms.CustomMapping(GreaterThanAverage, null).Fit(data).Transform(data);
                 data = mlContext.Transforms.DropColumns("MedianHomeValue").Fit(data).Transform(data);
             }
 
@@ -49,7 +47,7 @@ namespace Microsoft.ML.Samples.Dynamic.PermutationFeatureImportance
         private readonly static Action<ContinuousInputRow, BinaryOutputRow> GreaterThanAverage = (input, output) 
             => output.AboveAverage = input.MedianHomeValue > 22.6;
 
-        public static float[] GetLinearModelWeights(OlsLinearRegressionModelParameters linearModel)
+        public static float[] GetLinearModelWeights(OlsModelParameters linearModel)
         {
             return linearModel.Weights.ToArray();
         }

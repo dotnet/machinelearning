@@ -5,10 +5,10 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Microsoft.Data.DataView;
 using Microsoft.ML.Data;
+using Microsoft.ML.Runtime;
 
-namespace Microsoft.ML.Trainers.Ensemble.SubModelSelector
+namespace Microsoft.ML.Trainers.Ensemble
 {
     internal abstract class BaseSubModelSelector<TOutput> : ISubModelSelector<TOutput>
     {
@@ -62,8 +62,8 @@ namespace Microsoft.ML.Trainers.Ensemble.SubModelSelector
                     return new BinaryClassifierEvaluator(env, new BinaryClassifierEvaluator.Arguments());
                 case PredictionKind.Regression:
                     return new RegressionEvaluator(env, new RegressionEvaluator.Arguments());
-                case PredictionKind.MultiClassClassification:
-                    return new MultiClassClassifierEvaluator(env, new MultiClassClassifierEvaluator.Arguments());
+                case PredictionKind.MulticlassClassification:
+                    return new MulticlassClassificationEvaluator(env, new MulticlassClassificationEvaluator.Arguments());
                 default:
                     throw Host.Except("Unrecognized prediction kind '{0}'", PredictionKind);
             }
@@ -107,25 +107,25 @@ namespace Microsoft.ML.Trainers.Ensemble.SubModelSelector
                 case PredictionKind.BinaryClassification:
                     yield return RoleMappedSchema.CreatePair(RoleMappedSchema.ColumnRole.Label, testSchema.Label.Value.Name);
                     var scoreCol = EvaluateUtils.GetScoreColumn(Host, scoredSchema, null, nameof(BinaryClassifierMamlEvaluator.ArgumentsBase.ScoreColumn),
-                        MetadataUtils.Const.ScoreColumnKind.BinaryClassification);
-                    yield return RoleMappedSchema.CreatePair(MetadataUtils.Const.ScoreValueKind.Score, scoreCol.Name);
+                        AnnotationUtils.Const.ScoreColumnKind.BinaryClassification);
+                    yield return RoleMappedSchema.CreatePair(AnnotationUtils.Const.ScoreValueKind.Score, scoreCol.Name);
                     // Get the optional probability column.
                     var probCol = EvaluateUtils.GetOptAuxScoreColumn(Host, scoredSchema, null, nameof(BinaryClassifierMamlEvaluator.Arguments.ProbabilityColumn),
-                        scoreCol.Index, MetadataUtils.Const.ScoreValueKind.Probability, NumberDataViewType.Single.Equals);
+                        scoreCol.Index, AnnotationUtils.Const.ScoreValueKind.Probability, NumberDataViewType.Single.Equals);
                     if (probCol.HasValue)
-                        yield return RoleMappedSchema.CreatePair(MetadataUtils.Const.ScoreValueKind.Probability, probCol.Value.Name);
+                        yield return RoleMappedSchema.CreatePair(AnnotationUtils.Const.ScoreValueKind.Probability, probCol.Value.Name);
                     yield break;
                 case PredictionKind.Regression:
                     yield return RoleMappedSchema.CreatePair(RoleMappedSchema.ColumnRole.Label, testSchema.Label.Value.Name);
                     scoreCol = EvaluateUtils.GetScoreColumn(Host, scoredSchema, null, nameof(RegressionMamlEvaluator.Arguments.ScoreColumn),
-                        MetadataUtils.Const.ScoreColumnKind.Regression);
-                    yield return RoleMappedSchema.CreatePair(MetadataUtils.Const.ScoreValueKind.Score, scoreCol.Name);
+                        AnnotationUtils.Const.ScoreColumnKind.Regression);
+                    yield return RoleMappedSchema.CreatePair(AnnotationUtils.Const.ScoreValueKind.Score, scoreCol.Name);
                     yield break;
-                case PredictionKind.MultiClassClassification:
+                case PredictionKind.MulticlassClassification:
                     yield return RoleMappedSchema.CreatePair(RoleMappedSchema.ColumnRole.Label, testSchema.Label.Value.Name);
-                    scoreCol = EvaluateUtils.GetScoreColumn(Host, scoredSchema, null, nameof(MultiClassMamlEvaluator.Arguments.ScoreColumn),
-                        MetadataUtils.Const.ScoreColumnKind.MultiClassClassification);
-                    yield return RoleMappedSchema.CreatePair(MetadataUtils.Const.ScoreValueKind.Score, scoreCol.Name);
+                    scoreCol = EvaluateUtils.GetScoreColumn(Host, scoredSchema, null, nameof(MulticlassClassificationMamlEvaluator.Arguments.ScoreColumn),
+                        AnnotationUtils.Const.ScoreColumnKind.MulticlassClassification);
+                    yield return RoleMappedSchema.CreatePair(AnnotationUtils.Const.ScoreValueKind.Score, scoreCol.Name);
                     yield break;
                 default:
                     throw Host.Except("Unrecognized prediction kind '{0}'", PredictionKind);

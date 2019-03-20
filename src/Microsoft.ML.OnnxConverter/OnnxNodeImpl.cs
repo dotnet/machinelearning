@@ -4,7 +4,8 @@
 
 using System;
 using System.Collections.Generic;
-using static Microsoft.ML.UniversalModelFormat.Onnx.OnnxCSharpToProtoWrapper;
+using Microsoft.ML.Runtime;
+using static Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper;
 
 namespace Microsoft.ML.Model.OnnxConverter
 {

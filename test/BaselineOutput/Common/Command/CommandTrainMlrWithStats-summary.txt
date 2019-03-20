@@ -1,4 +1,4 @@
-MulticlassLogisticRegression bias and non-zero weights
+LbfgsMaximumEntropyTrainer bias and non-zero weights
 	Iris-setosa+(Bias)	2.265129
 	Iris-versicolor+(Bias)	0.7695086
 	Iris-virginica+(Bias)	-3.034663

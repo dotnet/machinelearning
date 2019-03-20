@@ -23,7 +23,7 @@ namespace Microsoft.ML.Samples.Dynamic.PermutationFeatureImportance
             var pipeline = mlContext.Transforms.Concatenate("Features", featureNames)
                     .Append(mlContext.Transforms.Normalize("Features"))
                     .Append(mlContext.BinaryClassification.Trainers.LogisticRegression(
-                        labelColumn: labelName, featureColumn: "Features"));
+                        labelColumnName: labelName, featureColumnName: "Features"));
             var model = pipeline.Fit(data);
 
             // Extract the model from the pipeline
@@ -35,12 +35,12 @@ namespace Microsoft.ML.Samples.Dynamic.PermutationFeatureImportance
             // Compute the permutation metrics using the properly normalized data.
             var transformedData = model.Transform(data);
             var permutationMetrics = mlContext.BinaryClassification.PermutationFeatureImportance(
-                linearPredictor, transformedData, label: labelName, features: "Features", permutationCount: 3);
+                linearPredictor, transformedData, labelColumnName: labelName, permutationCount: 3);
 
-            // Now let's look at which features are most important to the model overall
-            // Get the feature indices sorted by their impact on AUC
-            var sortedIndices = permutationMetrics.Select((metrics, index) => new { index, metrics.Auc })
-                .OrderByDescending(feature => Math.Abs(feature.Auc.Mean))
+            // Now let's look at which features are most important to the model overall.
+            // Get the feature indices sorted by their impact on AreaUnderRocCurve.
+            var sortedIndices = permutationMetrics.Select((metrics, index) => new { index, metrics.AreaUnderRocCurve })
+                .OrderByDescending(feature => Math.Abs(feature.AreaUnderRocCurve.Mean))
                 .Select(feature => feature.index);
 
             // Print out the permutation results, with the model weights, in order of their impact:
@@ -66,7 +66,7 @@ namespace Microsoft.ML.Samples.Dynamic.PermutationFeatureImportance
             // Third, some features show an *increase* in AUC. This means that the model actually improved 
             // when these features were shuffled. This is a sign to investigate these features further.
             Console.WriteLine("Feature\tModel Weight\tChange in AUC\t95% Confidence in the Mean Change in AUC");
-            var auc = permutationMetrics.Select(x => x.Auc).ToArray(); // Fetch AUC as an array
+            var auc = permutationMetrics.Select(x => x.AreaUnderRocCurve).ToArray(); // Fetch AUC as an array
             foreach (int i in sortedIndices)
             {
                 Console.WriteLine($"{featureNames[i]}\t{weights[i]:0.00}\t{auc[i].Mean:G4}\t{1.96 * auc[i].StandardError:G4}");

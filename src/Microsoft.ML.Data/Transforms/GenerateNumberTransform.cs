@@ -5,15 +5,13 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
 using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Internal.Utilities;
-using Microsoft.ML.Model;
+using Microsoft.ML.Runtime;
 using Microsoft.ML.Transforms;
-using Float = System.Single;
 
 [assembly: LoadableClass(GenerateNumberTransform.Summary, typeof(GenerateNumberTransform), typeof(GenerateNumberTransform.Options), typeof(SignatureDataTransform),
     GenerateNumberTransform.UserName, GenerateNumberTransform.LoadName, "GenerateNumber", GenerateNumberTransform.ShortName)]
@@ -195,33 +193,33 @@ namespace Microsoft.ML.Transforms
                 return UseCounter[iinfo] ? NumberDataViewType.Int64 : NumberDataViewType.Single;
             }
 
-            protected override IEnumerable<KeyValuePair<string, DataViewType>> GetMetadataTypesCore(int iinfo)
+            protected override IEnumerable<KeyValuePair<string, DataViewType>> GetAnnotationTypesCore(int iinfo)
             {
                 Contracts.Assert(0 <= iinfo & iinfo < InfoCount);
-                var items = base.GetMetadataTypesCore(iinfo);
+                var items = base.GetAnnotationTypesCore(iinfo);
                 if (!UseCounter[iinfo])
-                    items.Prepend(BooleanDataViewType.Instance.GetPair(MetadataUtils.Kinds.IsNormalized));
+                    items.Prepend(BooleanDataViewType.Instance.GetPair(AnnotationUtils.Kinds.IsNormalized));
                 return items;
             }
 
-            protected override DataViewType GetMetadataTypeCore(string kind, int iinfo)
+            protected override DataViewType GetAnnotationTypeCore(string kind, int iinfo)
             {
                 Contracts.Assert(0 <= iinfo & iinfo < InfoCount);
-                if (kind == MetadataUtils.Kinds.IsNormalized && !UseCounter[iinfo])
+                if (kind == AnnotationUtils.Kinds.IsNormalized && !UseCounter[iinfo])
                     return BooleanDataViewType.Instance;
-                return base.GetMetadataTypeCore(kind, iinfo);
+                return base.GetAnnotationTypeCore(kind, iinfo);
             }
 
-            protected override void GetMetadataCore<TValue>(string kind, int iinfo, ref TValue value)
+            protected override void GetAnnotationCore<TValue>(string kind, int iinfo, ref TValue value)
             {
                 Contracts.Assert(0 <= iinfo & iinfo < InfoCount);
-                if (kind == MetadataUtils.Kinds.IsNormalized && !UseCounter[iinfo])
+                if (kind == AnnotationUtils.Kinds.IsNormalized && !UseCounter[iinfo])
                 {
-                    MetadataUtils.Marshal<bool, TValue>(IsNormalized, iinfo, ref value);
+                    AnnotationUtils.Marshal<bool, TValue>(IsNormalized, iinfo, ref value);
                     return;
                 }
 
-                base.GetMetadataCore(kind, iinfo, ref value);
+                base.GetAnnotationCore(kind, iinfo, ref value);
             }
 
             private void IsNormalized(int iinfo, ref bool dst)
@@ -292,10 +290,10 @@ namespace Microsoft.ML.Transforms
             Host.AssertValue(ctx);
 
             // *** Binary format ***
-            // int: sizeof(Float)
+            // int: sizeof(float)
             // bindings
             int cbFloat = ctx.Reader.ReadInt32();
-            Host.CheckDecode(cbFloat == sizeof(Float));
+            Host.CheckDecode(cbFloat == sizeof(float));
             _bindings = Bindings.Create(ctx, Source.Schema);
         }
 
@@ -316,9 +314,9 @@ namespace Microsoft.ML.Transforms
             ctx.SetVersionInfo(GetVersionInfo());
 
             // *** Binary format ***
-            // int: sizeof(Float)
+            // int: sizeof(float)
             // bindings
-            ctx.Writer.Write(sizeof(Float));
+            ctx.Writer.Write(sizeof(float));
             _bindings.Save(ctx);
         }
 
@@ -385,7 +383,7 @@ namespace Microsoft.ML.Transforms
             private readonly Bindings _bindings;
             private readonly bool[] _active;
             private readonly Delegate[] _getters;
-            private readonly Float[] _values;
+            private readonly float[] _values;
             private readonly TauswortheHybrid[] _rngs;
             private readonly long[] _lastCounters;
 
@@ -400,13 +398,13 @@ namespace Microsoft.ML.Transforms
                 _active = active;
                 var length = _bindings.InfoCount;
                 _getters = new Delegate[length];
-                _values = new Float[length];
+                _values = new float[length];
                 _rngs = new TauswortheHybrid[length];
                 _lastCounters = new long[length];
                 for (int iinfo = 0; iinfo < length; iinfo++)
                 {
                     _getters[iinfo] = _bindings.UseCounter[iinfo] ? MakeGetter() : (Delegate)MakeGetter(iinfo);
-                    if (!_bindings.UseCounter[iinfo] && IsColumnActive(_bindings.MapIinfoToCol(iinfo)))
+                    if (!_bindings.UseCounter[iinfo] && IsColumnActive(Schema[_bindings.MapIinfoToCol(iinfo)]))
                     {
                         _rngs[iinfo] = new TauswortheHybrid(_bindings.States[iinfo]);
                         _lastCounters[iinfo] = -1;
@@ -416,20 +414,30 @@ namespace Microsoft.ML.Transforms
 
             public override DataViewSchema Schema => _bindings.AsSchema;
 
-            public override bool IsColumnActive(int col)
+            /// <summary>
+            /// Returns whether the given column is active in this row.
+            /// </summary>
+            public override bool IsColumnActive(DataViewSchema.Column column)
             {
-                Ch.Check(0 <= col && col < _bindings.ColumnCount);
-                return _active == null || _active[col];
+                Ch.Check(column.Index < _bindings.ColumnCount);
+                return _active == null || _active[column.Index];
             }
 
-            public override ValueGetter<TValue> GetGetter<TValue>(int col)
+            /// <summary>
+            /// Returns a value getter delegate to fetch the value of column with the given columnIndex, from the row.
+            /// This throws if the column is not active in this row, or if the type
+            /// <typeparamref name="TValue"/> differs from this column's type.
+            /// </summary>
+            /// <typeparam name="TValue"> is the column's content type.</typeparam>
+            /// <param name="column"> is the output column whose getter should be returned.</param>
+            public override ValueGetter<TValue> GetGetter<TValue>(DataViewSchema.Column column)
             {
-                Ch.Check(IsColumnActive(col));
+                Ch.Check(IsColumnActive(column));
 
                 bool isSrc;
-                int index = _bindings.MapColumnIndex(out isSrc, col);
+                int index = _bindings.MapColumnIndex(out isSrc, column.Index);
                 if (isSrc)
-                    return Input.GetGetter<TValue>(index);
+                    return Input.GetGetter<TValue>(Input.Schema[index]);
 
                 Ch.Assert(_getters[index] != null);
                 var fn = _getters[index] as ValueGetter<TValue>;
@@ -447,7 +455,7 @@ namespace Microsoft.ML.Transforms
                 };
             }
 
-            private void EnsureValue(ref long lastCounter, ref Float value, TauswortheHybrid rng)
+            private void EnsureValue(ref long lastCounter, ref float value, TauswortheHybrid rng)
             {
                 Ch.Assert(lastCounter <= Input.Position);
                 while (lastCounter < Input.Position)
@@ -457,9 +465,9 @@ namespace Microsoft.ML.Transforms
                 }
             }
 
-            private ValueGetter<Float> MakeGetter(int iinfo)
+            private ValueGetter<float> MakeGetter(int iinfo)
             {
-                return (ref Float value) =>
+                return (ref float value) =>
                 {
                     Ch.Check(IsGood, RowCursorUtils.FetchValueStateError);
                     Ch.Assert(!_bindings.UseCounter[iinfo]);

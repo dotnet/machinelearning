@@ -6,13 +6,13 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.Data;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Model;
 using Microsoft.ML.Model.OnnxConverter;
 using Microsoft.ML.Model.Pfa;
+using Microsoft.ML.Runtime;
 
 [assembly: LoadableClass(typeof(RowToRowMapperTransform), null, typeof(SignatureLoadDataTransform),
     "", RowToRowMapperTransform.LoaderSignature)]
@@ -101,7 +101,6 @@ namespace Microsoft.ML.Data
             _mapperFactory = mapperFactory;
             _bindings = new ColumnBindings(input.Schema, mapper.GetOutputColumns());
         }
-
         public static DataViewSchema GetOutputSchema(DataViewSchema inputSchema, IRowMapper mapper)
         {
             Contracts.CheckValue(inputSchema, nameof(inputSchema));
@@ -143,10 +142,9 @@ namespace Microsoft.ML.Data
 
         /// <summary>
         /// Produces the set of active columns for the data view (as a bool[] of length bindings.ColumnCount),
-        /// a predicate for the needed active input columns, and a predicate for the needed active
-        /// output columns.
+        /// and the needed active input columns, given a predicate for the needed active output columns.
         /// </summary>
-        private bool[] GetActive(Func<int, bool> predicate, out Func<int, bool> predicateInput)
+        private bool[] GetActive(Func<int, bool> predicate, out IEnumerable<DataViewSchema.Column> inputColumns)
         {
             int n = _bindings.Schema.Count;
             var active = Utils.BuildArray(n, predicate);
@@ -162,8 +160,7 @@ namespace Microsoft.ML.Data
             var predicateIn = _mapper.GetDependencies(predicateOut);
 
             // Combine the two sets of input columns.
-            predicateInput =
-                col => 0 <= col && col < activeInput.Length && (activeInput[col] || predicateIn(col));
+            inputColumns = _bindings.InputSchema.Where(col => activeInput[col.Index] || predicateIn(col.Index));
 
             return active;
         }
@@ -192,10 +189,7 @@ namespace Microsoft.ML.Data
         protected override DataViewRowCursor GetRowCursorCore(IEnumerable<DataViewSchema.Column> columnsNeeded, Random rand = null)
         {
             var predicate = RowCursorUtils.FromColumnsToPredicate(columnsNeeded, OutputSchema);
-
-            Func<int, bool> predicateInput;
-            var active = GetActive(predicate, out predicateInput);
-            var inputCols = Source.Schema.Where(x => predicateInput(x.Index));
+            var active = GetActive(predicate, out IEnumerable<DataViewSchema.Column> inputCols);
 
             return new Cursor(Host, Source.GetRowCursor(inputCols, rand), this, active);
         }
@@ -205,11 +199,8 @@ namespace Microsoft.ML.Data
             Host.CheckValueOrNull(rand);
 
             var predicate = RowCursorUtils.FromColumnsToPredicate(columnsNeeded, OutputSchema);
+            var active = GetActive(predicate, out IEnumerable<DataViewSchema.Column> inputCols);
 
-            Func<int, bool> predicateInput;
-            var active = GetActive(predicate, out predicateInput);
-
-            var inputCols = Source.Schema.Where(x => predicateInput(x.Index));
             var inputs = Source.GetRowCursorSet(inputCols, n, rand);
             Host.AssertNonEmpty(inputs);
 
@@ -243,26 +234,32 @@ namespace Microsoft.ML.Data
             }
         }
 
-        public Func<int, bool> GetDependencies(Func<int, bool> predicate)
+        /// <summary>
+        /// Given a set of output columns, return the input columns that are needed to generate those output columns.
+        /// </summary>
+        IEnumerable<DataViewSchema.Column> IRowToRowMapper.GetDependencies(IEnumerable<DataViewSchema.Column> dependingColumns)
         {
-            Func<int, bool> predicateInput;
-            GetActive(predicate, out predicateInput);
-            return predicateInput;
+            var predicate = RowCursorUtils.FromColumnsToPredicate(dependingColumns, OutputSchema);
+            GetActive(predicate, out var inputColumns);
+            return inputColumns;
         }
 
         public DataViewSchema InputSchema => Source.Schema;
 
-        public DataViewRow GetRow(DataViewRow input, Func<int, bool> active)
+        DataViewRow IRowToRowMapper.GetRow(DataViewRow input, IEnumerable<DataViewSchema.Column> activeColumns)
         {
             Host.CheckValue(input, nameof(input));
-            Host.CheckValue(active, nameof(active));
+            Host.CheckValue(activeColumns, nameof(activeColumns));
             Host.Check(input.Schema == Source.Schema, "Schema of input row must be the same as the schema the mapper is bound to");
 
             using (var ch = Host.Start("GetEntireRow"))
             {
                 var activeArr = new bool[OutputSchema.Count];
-                for (int i = 0; i < OutputSchema.Count; i++)
-                    activeArr[i] = active(i);
+                foreach (var column in activeColumns)
+                {
+                    Host.Assert(column.Index < activeArr.Length, $"The columns {activeColumns.Select(c => c.Name)} are not suitable for the OutputSchema.");
+                    activeArr[column.Index] = true;
+                }
                 var pred = GetActiveOutputColumns(activeArr);
                 var getters = _mapper.CreateGetters(input, pred, out Action disp);
                 return new RowImpl(input, this, OutputSchema, getters, disp);
@@ -322,12 +319,19 @@ namespace Microsoft.ML.Data
                     _disposer?.Invoke();
             }
 
-            public override ValueGetter<TValue> GetGetter<TValue>(int col)
+            /// <summary>
+            /// Returns a value getter delegate to fetch the value of column with the given columnIndex, from the row.
+            /// This throws if the column is not active in this row, or if the type
+            /// <typeparamref name="TValue"/> differs from this column's type.
+            /// </summary>
+            /// <typeparam name="TValue"> is the column's content type.</typeparam>
+            /// <param name="column"> is the output column whose getter should be returned.</param>
+            public override ValueGetter<TValue> GetGetter<TValue>(DataViewSchema.Column column)
             {
                 bool isSrc;
-                int index = _parent._bindings.MapColumnIndex(out isSrc, col);
+                int index = _parent._bindings.MapColumnIndex(out isSrc, column.Index);
                 if (isSrc)
-                    return Input.GetGetter<TValue>(index);
+                    return Input.GetGetter<TValue>(Input.Schema[index]);
 
                 Contracts.Assert(_getters[index] != null);
                 var fn = _getters[index] as ValueGetter<TValue>;
@@ -336,12 +340,15 @@ namespace Microsoft.ML.Data
                 return fn;
             }
 
-            public override bool IsColumnActive(int col)
+            /// <summary>
+            /// Returns whether the given column is active in this row.
+            /// </summary>
+            public override bool IsColumnActive(DataViewSchema.Column column)
             {
                 bool isSrc;
-                int index = _parent._bindings.MapColumnIndex(out isSrc, col);
+                int index = _parent._bindings.MapColumnIndex(out isSrc, column.Index);
                 if (isSrc)
-                    return Input.IsColumnActive((index));
+                    return Input.IsColumnActive(Schema[index]);
                 return _getters[index] != null;
             }
         }
@@ -365,20 +372,30 @@ namespace Microsoft.ML.Data
                 _bindings = parent._bindings;
             }
 
-            public override bool IsColumnActive(int col)
+            /// <summary>
+            /// Returns whether the given column is active in this row.
+            /// </summary>
+            public override bool IsColumnActive(DataViewSchema.Column column)
             {
-                Ch.Check(0 <= col && col < _bindings.Schema.Count);
-                return _active[col];
+                Ch.Check(column.Index < _bindings.Schema.Count);
+                return _active[column.Index];
             }
 
-            public override ValueGetter<TValue> GetGetter<TValue>(int col)
+            /// <summary>
+            /// Returns a value getter delegate to fetch the value of column with the given columnIndex, from the row.
+            /// This throws if the column is not active in this row, or if the type
+            /// <typeparamref name="TValue"/> differs from this column's type.
+            /// </summary>
+            /// <typeparam name="TValue"> is the column's content type.</typeparam>
+            /// <param name="column"> is the output column whose getter should be returned.</param>
+            public override ValueGetter<TValue> GetGetter<TValue>(DataViewSchema.Column column)
             {
-                Ch.Check(IsColumnActive(col));
+                Ch.Check(IsColumnActive(column));
 
                 bool isSrc;
-                int index = _bindings.MapColumnIndex(out isSrc, col);
+                int index = _bindings.MapColumnIndex(out isSrc, column.Index);
                 if (isSrc)
-                    return Input.GetGetter<TValue>(index);
+                    return Input.GetGetter<TValue>(Input.Schema[index]);
 
                 Ch.AssertValue(_getters);
                 var getter = _getters[index];

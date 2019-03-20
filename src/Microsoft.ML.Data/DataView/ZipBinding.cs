@@ -3,8 +3,8 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using Microsoft.Data.DataView;
 using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Runtime;
 
 namespace Microsoft.ML.Data
 {
@@ -35,10 +35,10 @@ namespace Microsoft.ML.Data
                 _cumulativeColCounts[i + 1] = _cumulativeColCounts[i] + schema.Count;
             }
 
-            var schemaBuilder = new SchemaBuilder();
+            var schemaBuilder = new DataViewSchema.Builder();
             foreach (var sourceSchema in sources)
                 schemaBuilder.AddColumns(sourceSchema);
-            OutputSchema = schemaBuilder.GetSchema();
+            OutputSchema = schemaBuilder.ToSchema();
         }
 
         public int ColumnCount => _cumulativeColCounts[_cumulativeColCounts.Length - 1];

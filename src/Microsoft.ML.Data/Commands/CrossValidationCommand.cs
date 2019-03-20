@@ -7,15 +7,14 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.Data.DataView;
 using Microsoft.ML;
+using Microsoft.ML.Calibrators;
 using Microsoft.ML.Command;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
-using Microsoft.ML.Internal.Calibration;
 using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Runtime;
 using Microsoft.ML.Transforms;
-using Microsoft.ML.Transforms.Conversions;
 
 [assembly: LoadableClass(typeof(CrossValidationCommand), typeof(CrossValidationCommand.Arguments), typeof(SignatureCommand),
     "Cross Validation", CrossValidationCommand.LoadName)]
@@ -152,7 +151,7 @@ namespace Microsoft.ML.Data
                 ch.Warning("No input model file specified or model file did not contain a predictor. The model state cannot be initialized.");
 
             ch.Trace("Constructing data pipeline");
-            IDataLoader loader = CreateRawLoader();
+            ILegacyDataLoader loader = CreateRawLoader();
 
             // If the per-instance results are requested and there is no name column, add a GenerateNumberTransform.
             var preXf = ImplOptions.PreTransforms;
@@ -176,7 +175,7 @@ namespace Microsoft.ML.Data
                         }).ToArray();
                 }
             }
-            loader = CompositeDataLoader.Create(Host, loader, preXf);
+            loader = LegacyCompositeDataLoader.Create(Host, loader, preXf);
 
             ch.Trace("Binding label and features columns");
 
@@ -389,7 +388,7 @@ namespace Microsoft.ML.Data
             private readonly IPredictor _inputPredictor;
             private readonly string _cmd;
             private readonly string _outputModelFile;
-            private readonly IDataLoader _loader;
+            private readonly ILegacyDataLoader _loader;
             private readonly bool _savePerInstance;
             private readonly Func<IHostEnvironment, IChannel, IDataView, ITrainer, RoleMappedData> _createExamples;
             private readonly Func<IHostEnvironment, IChannel, IDataView, RoleMappedData, IDataView, RoleMappedData> _applyTransformsToTestData;
@@ -426,7 +425,7 @@ namespace Microsoft.ML.Data
             Func<IHostEnvironment, IChannel, IDataView, RoleMappedData, IDataView, RoleMappedData> applyTransformsToValidationData = null,
             IPredictor inputPredictor = null,
             string cmd = null,
-            IDataLoader loader = null,
+            ILegacyDataLoader loader = null,
             bool savePerInstance = false)
             {
                 Contracts.CheckValue(env, nameof(env));
@@ -570,7 +569,7 @@ namespace Microsoft.ML.Data
                         using (var file = host.CreateOutputFile(modelFileName))
                         {
                             var rmd = new RoleMappedData(
-                                CompositeDataLoader.ApplyTransform(host, _loader, null, null,
+                                LegacyCompositeDataLoader.ApplyTransform(host, _loader, null, null,
                                 (e, newSource) => ApplyTransformUtils.ApplyAllTransformsToData(e, trainData.Data, newSource)),
                                 trainData.Schema.GetColumnRoleNames());
                             TrainUtils.SaveModel(host, ch, file, predictor, rmd, _cmd);

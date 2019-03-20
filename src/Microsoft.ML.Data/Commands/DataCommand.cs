@@ -6,12 +6,12 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using Microsoft.Data.DataView;
 using Microsoft.ML.Command;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data.IO;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Model;
+using Microsoft.ML.Runtime;
 
 namespace Microsoft.ML.Data
 {
@@ -24,7 +24,7 @@ namespace Microsoft.ML.Data
         public abstract class ArgumentsBase
         {
             [Argument(ArgumentType.Multiple, Visibility = ArgumentAttribute.VisibilityType.CmdLineOnly, HelpText = "The data loader", ShortName = "loader", SortOrder = 1, NullName = "<Auto>", SignatureType = typeof(SignatureDataLoader))]
-            public IComponentFactory<IMultiStreamSource, IDataLoader> Loader;
+            public IComponentFactory<IMultiStreamSource, ILegacyDataLoader> Loader;
 
             [Argument(ArgumentType.AtMostOnce, IsInputFileName = true, HelpText = "The data file", ShortName = "data", SortOrder = 0)]
             public string DataFile;
@@ -74,24 +74,18 @@ namespace Microsoft.ML.Data
                 return _serverFactory?.CreateComponent(Host, ch);
             }
 
-            /// <summary>
-            /// The degree of concurrency is passed in the conc parameter. If it is null, the value
-            /// of args.parralel is used. If that is null, zero is used (which means "automatic").
-            /// </summary>
-            protected ImplBase(IHostEnvironment env, TOptions options, string name, int? conc = null)
+            protected ImplBase(IHostEnvironment env, TOptions options, string name)
             {
                 Contracts.CheckValue(env, nameof(env));
 
                 // Note that env may be null here, which is OK since the CheckXxx methods are extension
                 // methods designed to allow null.
                 env.CheckValue(options, nameof(options));
-                env.CheckParam(conc == null || conc >= 0, nameof(conc), "Degree of concurrency must be non-negative (or null)");
 
-                conc = conc ?? options.Parallel;
-                env.CheckUserArg(!(conc < 0), nameof(options.Parallel), "Degree of parallelism must be non-negative (or null)");
+                env.CheckUserArg(!(options.Parallel < 0), nameof(options.Parallel), "Degree of parallelism must be non-negative (or null)");
 
                 // Capture the environment options from args.
-                env = env.Register(name, options.RandomSeed, options.Verbose, conc);
+                env = env.Register(name, options.RandomSeed, options.Verbose);
 
                 env.CheckNonWhiteSpace(name, nameof(name));
                 Host = env.Register(name);
@@ -207,18 +201,18 @@ namespace Microsoft.ML.Data
                 SendTelemetryMetricCore(Host, newAverageMetric);
             }
 
-            protected IDataLoader LoadLoader(RepositoryReader rep, string path, bool loadTransforms)
+            protected ILegacyDataLoader LoadLoader(RepositoryReader rep, string path, bool loadTransforms)
             {
                 return ModelFileUtils.LoadLoader(Host, rep, new MultiFileSource(path), loadTransforms);
             }
 
-            protected void SaveLoader(IDataLoader loader, string path)
+            protected void SaveLoader(ILegacyDataLoader loader, string path)
             {
                 using (var file = Host.CreateOutputFile(path))
                     LoaderUtils.SaveLoader(loader, file);
             }
 
-            protected IDataLoader CreateAndSaveLoader(Func<IHostEnvironment, IMultiStreamSource, IDataLoader> defaultLoaderFactory = null)
+            protected ILegacyDataLoader CreateAndSaveLoader(Func<IHostEnvironment, IMultiStreamSource, ILegacyDataLoader> defaultLoaderFactory = null)
             {
                 var loader = CreateLoader(defaultLoaderFactory);
                 if (!string.IsNullOrWhiteSpace(ImplOptions.OutputModelFile))
@@ -253,7 +247,7 @@ namespace Microsoft.ML.Data
                 IChannel ch,
                 bool? wantPredictor, out IPredictor predictor,
                 bool wantTrainSchema, out RoleMappedSchema trainSchema,
-                out IDataLoader pipe)
+                out ILegacyDataLoader pipe)
             {
                 // First handle the case where there is no input model file.
                 // Everything must come from the command line.
@@ -275,7 +269,7 @@ namespace Microsoft.ML.Data
 
                     // Next create the loader.
                     var loaderFactory = ImplOptions.Loader;
-                    IDataLoader trainPipe = null;
+                    ILegacyDataLoader trainPipe = null;
                     if (loaderFactory != null)
                     {
                         // The loader is overridden from the command line.
@@ -295,7 +289,7 @@ namespace Microsoft.ML.Data
                     }
 
                     if (Utils.Size(ImplOptions.Transforms) > 0)
-                        pipe = CompositeDataLoader.Create(Host, pipe, ImplOptions.Transforms);
+                        pipe = LegacyCompositeDataLoader.Create(Host, pipe, ImplOptions.Transforms);
 
                     // Next consider loading the training data's role mapped schema.
                     trainSchema = null;
@@ -322,26 +316,26 @@ namespace Microsoft.ML.Data
                 }
             }
 
-            protected IDataLoader CreateLoader(Func<IHostEnvironment, IMultiStreamSource, IDataLoader> defaultLoaderFactory = null)
+            protected ILegacyDataLoader CreateLoader(Func<IHostEnvironment, IMultiStreamSource, ILegacyDataLoader> defaultLoaderFactory = null)
             {
                 var loader = CreateRawLoader(defaultLoaderFactory);
                 loader = CreateTransformChain(loader);
                 return loader;
             }
 
-            private IDataLoader CreateTransformChain(IDataLoader loader)
+            private ILegacyDataLoader CreateTransformChain(ILegacyDataLoader loader)
             {
-                return CompositeDataLoader.Create(Host, loader, ImplOptions.Transforms);
+                return LegacyCompositeDataLoader.Create(Host, loader, ImplOptions.Transforms);
             }
 
-            protected IDataLoader CreateRawLoader(
-                Func<IHostEnvironment, IMultiStreamSource, IDataLoader> defaultLoaderFactory = null,
+            protected ILegacyDataLoader CreateRawLoader(
+                Func<IHostEnvironment, IMultiStreamSource, ILegacyDataLoader> defaultLoaderFactory = null,
                 string dataFile = null)
             {
                 if (string.IsNullOrWhiteSpace(dataFile))
                     dataFile = ImplOptions.DataFile;
 
-                IDataLoader loader;
+                ILegacyDataLoader loader;
                 if (!string.IsNullOrWhiteSpace(ImplOptions.InputModelFile) && ImplOptions.Loader == null)
                 {
                     // Load the loader from the data model.
@@ -384,7 +378,7 @@ namespace Microsoft.ML.Data
                 return loader;
             }
 
-            private IDataLoader LoadTransformChain(IDataLoader srcData)
+            private ILegacyDataLoader LoadTransformChain(ILegacyDataLoader srcData)
             {
                 Host.Assert(!string.IsNullOrWhiteSpace(ImplOptions.InputModelFile));
 
@@ -393,7 +387,7 @@ namespace Microsoft.ML.Data
                 using (var rep = RepositoryReader.Open(strm, Host))
                 using (var pipeLoaderEntry = rep.OpenEntry(ModelFileUtils.DirDataLoaderModel, ModelLoadContext.ModelStreamName))
                 using (var ctx = new ModelLoadContext(rep, pipeLoaderEntry, ModelFileUtils.DirDataLoaderModel))
-                    return CompositeDataLoader.Create(Host, ctx, srcData, x => true);
+                    return LegacyCompositeDataLoader.Create(Host, ctx, srcData, x => true);
             }
         }
     }
@@ -404,7 +398,7 @@ namespace Microsoft.ML.Data
         /// <summary>
         /// Saves <paramref name="loader"/> to the specified <paramref name="file"/>.
         /// </summary>
-        public static void SaveLoader(IDataLoader loader, IFileHandle file)
+        public static void SaveLoader(ILegacyDataLoader loader, IFileHandle file)
         {
             Contracts.CheckValue(loader, nameof(loader));
             Contracts.CheckValue(file, nameof(file));
@@ -419,7 +413,7 @@ namespace Microsoft.ML.Data
         /// <summary>
         /// Saves <paramref name="loader"/> to the specified <paramref name="stream"/>.
         /// </summary>
-        public static void SaveLoader(IDataLoader loader, Stream stream)
+        public static void SaveLoader(ILegacyDataLoader loader, Stream stream)
         {
             Contracts.CheckValue(loader, nameof(loader));
             Contracts.CheckValue(stream, nameof(stream));

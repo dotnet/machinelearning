@@ -4,12 +4,12 @@
 
 using System;
 using System.Collections.Generic;
-using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
 using Microsoft.ML.EntryPoints;
-using Microsoft.ML.Training;
+using Microsoft.ML.Runtime;
+using Microsoft.ML.Trainers;
 using Microsoft.ML.Transforms;
 using Newtonsoft.Json.Linq;
 
@@ -28,7 +28,7 @@ namespace Microsoft.ML.EntryPoints
             public Var<PredictorModel> Model;
         }
 
-        public sealed class Arguments : LearnerInputBaseWithWeight
+        public sealed class Arguments : TrainerInputBaseWithWeight
         {
             // This is the subgraph that describes how to train a model for submodel. It should
             // accept one IDataView input and output one IPredictorModel output.
@@ -119,17 +119,17 @@ namespace Microsoft.ML.EntryPoints
             {
                 // RoleMappedData creation
                 var schema = input.TrainingData.Schema;
-                label = TrainUtils.MatchNameOrDefaultOrNull(ch, schema, nameof(Arguments.LabelColumn),
-                    input.LabelColumn,
+                label = TrainUtils.MatchNameOrDefaultOrNull(ch, schema, nameof(Arguments.LabelColumnName),
+                    input.LabelColumnName,
                     DefaultColumnNames.Label);
-                var feature = TrainUtils.MatchNameOrDefaultOrNull(ch, schema, nameof(Arguments.FeatureColumn),
-                    input.FeatureColumn, DefaultColumnNames.Features);
-                var weight = TrainUtils.MatchNameOrDefaultOrNull(ch, schema, nameof(Arguments.WeightColumn),
-                    input.WeightColumn, DefaultColumnNames.Weight);
+                var feature = TrainUtils.MatchNameOrDefaultOrNull(ch, schema, nameof(Arguments.FeatureColumnName),
+                    input.FeatureColumnName, DefaultColumnNames.Features);
+                var weight = TrainUtils.MatchNameOrDefaultOrNull(ch, schema, nameof(Arguments.ExampleWeightColumnName),
+                    input.ExampleWeightColumnName, DefaultColumnNames.Weight);
 
                 // Get number of classes
                 var data = new RoleMappedData(input.TrainingData, label, feature, null, weight);
-                data.CheckMultiClassLabel(out var numClasses);
+                data.CheckMulticlassLabel(out var numClasses);
                 return numClasses;
             }
         }
@@ -164,8 +164,8 @@ namespace Microsoft.ML.EntryPoints
             // produces single multiclass predictor model.
             var combineArgs = new ModelOperations.CombineOvaPredictorModelsInput();
             combineArgs.Caching = input.Caching;
-            combineArgs.FeatureColumn = input.FeatureColumn;
-            combineArgs.LabelColumn = input.LabelColumn;
+            combineArgs.FeatureColumnName = input.FeatureColumnName;
+            combineArgs.LabelColumnName = input.LabelColumnName;
             combineArgs.NormalizeFeatures = input.NormalizeFeatures;
             combineArgs.UseProbabilities = input.UseProbabilities;
 

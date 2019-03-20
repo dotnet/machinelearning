@@ -3,30 +3,41 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Linq;
-using Microsoft.Data.DataView;
 using Microsoft.ML.Data;
 using Microsoft.ML.Transforms;
 
 namespace Microsoft.ML
 {
-    public sealed class SimpleColumnInfo
+    /// <summary>
+    /// Specifies input and output column names for a transformation.
+    /// </summary>
+    [BestFriend]
+    internal sealed class ColumnOptions
     {
         private readonly string _outputColumnName;
         private readonly string _inputColumnName;
 
-        public SimpleColumnInfo(string outputColumnName, string inputColumnName)
+        /// <summary>
+        /// Specifies input and output column names for a transformation.
+        /// </summary>
+        /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.</param>
+        /// <param name="inputColumnName">Name of the column to transform. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.</param>
+        public ColumnOptions(string outputColumnName, string inputColumnName = null)
         {
             _outputColumnName = outputColumnName;
-            _inputColumnName = inputColumnName;
+            _inputColumnName = inputColumnName ?? outputColumnName;
         }
 
-        public static implicit operator SimpleColumnInfo((string outputColumnName, string inputColumnName) value)
+        /// <summary>
+        /// Instantiates a <see cref="ColumnOptions"/> from a tuple of input and output column names.
+        /// </summary>
+        public static implicit operator ColumnOptions((string outputColumnName, string inputColumnName) value)
         {
-            return new SimpleColumnInfo(value.outputColumnName, value.inputColumnName);
+            return new ColumnOptions(value.outputColumnName, value.inputColumnName);
         }
 
         [BestFriend]
-        internal static (string outputColumnName, string inputColumnName)[] ConvertToValueTuples(SimpleColumnInfo[] infos)
+        internal static (string outputColumnName, string inputColumnName)[] ConvertToValueTuples(ColumnOptions[] infos)
         {
             return infos.Select(info => (info._outputColumnName, info._inputColumnName)).ToArray();
         }
@@ -66,8 +77,9 @@ namespace Microsoft.ML
         /// ]]>
         /// </format>
         /// </example>
-        public static ColumnCopyingEstimator CopyColumns(this TransformsCatalog catalog, params SimpleColumnInfo[] columns)
-            => new ColumnCopyingEstimator(CatalogUtils.GetEnvironment(catalog), SimpleColumnInfo.ConvertToValueTuples(columns));
+        [BestFriend]
+        internal static ColumnCopyingEstimator CopyColumns(this TransformsCatalog catalog, params ColumnOptions[] columns)
+            => new ColumnCopyingEstimator(CatalogUtils.GetEnvironment(catalog), ColumnOptions.ConvertToValueTuples(columns));
 
         /// <summary>
         /// Concatenates columns together.
@@ -97,7 +109,7 @@ namespace Microsoft.ML
         /// that you don't want to save, you can use <see cref="DropColumns"/> to remove them from the schema.
         /// </remarks>
         /// <param name="catalog">The transform's catalog.</param>
-        /// <param name="columnsToDrop">The array of column names to drop.</param>
+        /// <param name="columnNames">The array of column names to drop.</param>
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
@@ -105,8 +117,8 @@ namespace Microsoft.ML
         /// ]]>
         /// </format>
         /// </example>
-        public static ColumnSelectingEstimator DropColumns(this TransformsCatalog catalog, params string[] columnsToDrop)
-            => ColumnSelectingEstimator.DropColumns(CatalogUtils.GetEnvironment(catalog), columnsToDrop);
+        public static ColumnSelectingEstimator DropColumns(this TransformsCatalog catalog, params string[] columnNames)
+            => ColumnSelectingEstimator.DropColumns(CatalogUtils.GetEnvironment(catalog), columnNames);
 
         /// <summary>
         /// Select a list of columns to keep in a given <see cref="IDataView"/>.
@@ -121,7 +133,7 @@ namespace Microsoft.ML
         /// </format>
         /// </remarks>
         /// <param name="catalog">The transform's catalog.</param>
-        /// <param name="keepColumns">The array of column names to keep.</param>
+        /// <param name="columnNames">The array of column names to keep.</param>
         /// <param name="keepHidden">If <see langword="true"/> will keep hidden columns and <see langword="false"/> will remove hidden columns.</param>
         /// <example>
         /// <format type="text/markdown">
@@ -131,22 +143,22 @@ namespace Microsoft.ML
         /// </format>
         /// </example>
         public static ColumnSelectingEstimator SelectColumns(this TransformsCatalog catalog,
-            string[] keepColumns,
+            string[] columnNames,
             bool keepHidden)
             => new ColumnSelectingEstimator(CatalogUtils.GetEnvironment(catalog),
-                keepColumns, null, keepHidden, ColumnSelectingEstimator.Defaults.IgnoreMissing);
+                columnNames, null, keepHidden, ColumnSelectingEstimator.Defaults.IgnoreMissing);
 
         /// <summary>
         /// Select a list of columns to keep in a given <see cref="IDataView"/>.
         /// </summary>
         /// <remarks>
         /// <format type="text/markdown"><![CDATA[
-        /// <xref:Microsoft.ML.SelectColumns(Microsoft.ML.TransformsCatalog, string[])> operates on the schema of an input <xref:Microsoft.Data.DataView.IDataView>,
+        /// <xref:Microsoft.ML.SelectColumns(Microsoft.ML.TransformsCatalog, string[])> operates on the schema of an input <xref:Microsoft.ML.IDataView>,
         /// dropping unselected columns from the schema.
         /// ]]></format>
         /// </remarks>
         /// <param name="catalog">The transform's catalog.</param>
-        /// <param name="keepColumns">The array of column names to keep.</param>
+        /// <param name="columnNames">The array of column names to keep.</param>
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
@@ -155,6 +167,6 @@ namespace Microsoft.ML
         /// </format>
         /// </example>
         public static ColumnSelectingEstimator SelectColumns(this TransformsCatalog catalog,
-            params string[] keepColumns) => catalog.SelectColumns(keepColumns, false);
+            params string[] columnNames) => catalog.SelectColumns(columnNames, false);
     }
 }

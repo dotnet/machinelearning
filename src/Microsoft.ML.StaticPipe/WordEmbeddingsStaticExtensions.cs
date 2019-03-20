@@ -3,7 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
-using Microsoft.ML.StaticPipe.Runtime;
+using Microsoft.ML.Runtime;
 using Microsoft.ML.Transforms.Text;
 
 namespace Microsoft.ML.StaticPipe
@@ -14,7 +14,7 @@ namespace Microsoft.ML.StaticPipe
         /// <param name="input">Vector of tokenized text.</param>
         /// <param name="modelKind">The pretrained word embedding model.</param>
         /// <returns></returns>
-        public static Vector<float> WordEmbeddings(this VarVector<string> input, WordEmbeddingsExtractingEstimator.PretrainedModelKind modelKind = WordEmbeddingsExtractingEstimator.PretrainedModelKind.Sswe)
+        public static Vector<float> WordEmbeddings(this VarVector<string> input, WordEmbeddingEstimator.PretrainedModelKind modelKind = WordEmbeddingEstimator.PretrainedModelKind.SentimentSpecificWordEmbedding)
         {
             Contracts.CheckValue(input, nameof(input));
             return new OutColumn(input, modelKind);
@@ -33,7 +33,7 @@ namespace Microsoft.ML.StaticPipe
         {
             public PipelineColumn Input { get; }
 
-            public OutColumn(VarVector<string> input, WordEmbeddingsExtractingEstimator.PretrainedModelKind modelKind = WordEmbeddingsExtractingEstimator.PretrainedModelKind.Sswe)
+            public OutColumn(VarVector<string> input, WordEmbeddingEstimator.PretrainedModelKind modelKind = WordEmbeddingEstimator.PretrainedModelKind.SentimentSpecificWordEmbedding)
                 : base(new Reconciler(modelKind), input)
             {
                 Input = input;
@@ -48,10 +48,10 @@ namespace Microsoft.ML.StaticPipe
 
         private sealed class Reconciler : EstimatorReconciler
         {
-            private readonly WordEmbeddingsExtractingEstimator.PretrainedModelKind? _modelKind;
+            private readonly WordEmbeddingEstimator.PretrainedModelKind? _modelKind;
             private readonly string _customLookupTable;
 
-            public Reconciler(WordEmbeddingsExtractingEstimator.PretrainedModelKind modelKind = WordEmbeddingsExtractingEstimator.PretrainedModelKind.Sswe)
+            public Reconciler(WordEmbeddingEstimator.PretrainedModelKind modelKind = WordEmbeddingEstimator.PretrainedModelKind.SentimentSpecificWordEmbedding)
             {
                 _modelKind = modelKind;
                 _customLookupTable = null;
@@ -71,18 +71,18 @@ namespace Microsoft.ML.StaticPipe
             {
                 Contracts.Assert(toOutput.Length == 1);
 
-                var cols = new WordEmbeddingsExtractingEstimator.ColumnInfo[toOutput.Length];
+                var cols = new WordEmbeddingEstimator.ColumnOptions[toOutput.Length];
                 for (int i = 0; i < toOutput.Length; ++i)
                 {
                     var outCol = (OutColumn)toOutput[i];
-                    cols[i] = new WordEmbeddingsExtractingEstimator.ColumnInfo(outputNames[outCol], inputNames[outCol.Input]);
+                    cols[i] = new WordEmbeddingEstimator.ColumnOptions(outputNames[outCol], inputNames[outCol.Input]);
                 }
 
                 bool customLookup = !string.IsNullOrWhiteSpace(_customLookupTable);
                 if (customLookup)
-                    return new WordEmbeddingsExtractingEstimator(env, _customLookupTable, cols);
+                    return new WordEmbeddingEstimator(env, _customLookupTable, cols);
                 else
-                    return new WordEmbeddingsExtractingEstimator(env, _modelKind.Value, cols);
+                    return new WordEmbeddingEstimator(env, _modelKind.Value, cols);
             }
         }
     }

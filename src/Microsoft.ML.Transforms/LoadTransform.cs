@@ -5,12 +5,12 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Model;
+using Microsoft.ML.Runtime;
 using Microsoft.ML.Transforms;
 
 [assembly: LoadableClass(LoadTransform.Summary, typeof(IDataTransform), typeof(LoadTransform), typeof(LoadTransform.Arguments), typeof(SignatureDataTransform),
@@ -101,7 +101,7 @@ namespace Microsoft.ML.Transforms
             using (var pipeLoaderEntry = rep.OpenEntry(ModelFileUtils.DirDataLoaderModel, ModelLoadContext.ModelStreamName))
             using (var ctx = new ModelLoadContext(rep, pipeLoaderEntry, ModelFileUtils.DirDataLoaderModel))
             {
-                currentView = CompositeDataLoader.LoadSelectedTransforms(ctx, input, h, predicate);
+                currentView = LegacyCompositeDataLoader.LoadSelectedTransforms(ctx, input, h, predicate);
 
                 if (currentView == input)
                 {

@@ -5,8 +5,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Microsoft.Data.DataView;
 using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Runtime;
 
 namespace Microsoft.ML.Data
 {
@@ -112,6 +112,8 @@ namespace Microsoft.ML.Data
                 }
 
                 Contracts.Check(PosSample != null && NegSample != null, "Must call Finish() before computing AUC");
+                Contracts.CheckParam(PosSample.Any(), nameof(PosSample), "AUC is not definied when there is no positive class in the data");
+                Contracts.CheckParam(NegSample.Any(), nameof(NegSample), "AUC is not definied when there is no negative class in the data");
                 return ComputeWeightedAucCore(out unweighted);
             }
 

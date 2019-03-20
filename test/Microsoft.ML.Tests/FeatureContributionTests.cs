@@ -4,15 +4,14 @@
 
 using System;
 using System.IO;
-using Microsoft.Data.DataView;
+using Microsoft.ML.Calibrators;
 using Microsoft.ML.Data;
 using Microsoft.ML.Data.IO;
-using Microsoft.ML.Internal.Internallearn;
 using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Model;
 using Microsoft.ML.RunTests;
 using Microsoft.ML.TestFramework.Attributes;
 using Microsoft.ML.Trainers;
-using Microsoft.ML.Training;
 using Microsoft.ML.Transforms;
 using Xunit;
 using Xunit.Abstractions;
@@ -29,13 +28,13 @@ namespace Microsoft.ML.Tests
         public void FeatureContributionEstimatorWorkout()
         {
             var data = GetSparseDataset();
-            var model = ML.Regression.Trainers.OrdinaryLeastSquares().Fit(data);
+            var model = ML.Regression.Trainers.Ols().Fit(data);
 
-            var estPipe = new FeatureContributionCalculatingEstimator(ML, model.Model, model.FeatureColumn)
-                .Append(new FeatureContributionCalculatingEstimator(ML, model.Model, model.FeatureColumn, normalize: false))
-                .Append(new FeatureContributionCalculatingEstimator(ML, model.Model, model.FeatureColumn, numPositiveContributions: 0))
-                .Append(new FeatureContributionCalculatingEstimator(ML, model.Model, model.FeatureColumn, numNegativeContributions: 0))
-                .Append(new FeatureContributionCalculatingEstimator(ML, model.Model, model.FeatureColumn, numPositiveContributions: 0, numNegativeContributions: 0));
+            var estPipe = ML.Transforms.CalculateFeatureContribution(model)
+                .Append(ML.Transforms.CalculateFeatureContribution(model, normalize: false))
+                .Append(ML.Transforms.CalculateFeatureContribution(model, numberOfPositiveContributions: 0))
+                .Append(ML.Transforms.CalculateFeatureContribution(model, numberOfNegativeContributions: 0))
+                .Append(ML.Transforms.CalculateFeatureContribution(model, numberOfPositiveContributions: 0, numberOfNegativeContributions: 0));
 
             TestEstimatorCore(estPipe, data);
             Done();
@@ -45,7 +44,7 @@ namespace Microsoft.ML.Tests
         [Fact]
         public void TestOrdinaryLeastSquaresRegression()
         {
-            TestFeatureContribution(ML.Regression.Trainers.OrdinaryLeastSquares(), GetSparseDataset(numberOfInstances: 100), "LeastSquaresRegression");
+            TestFeatureContribution(ML.Regression.Trainers.Ols(), GetSparseDataset(numberOfInstances: 100), "LeastSquaresRegression");
         }
 
         [LightGBMFact]
@@ -75,8 +74,8 @@ namespace Microsoft.ML.Tests
         [Fact]
         public void TestSDCARegression()
         {
-            TestFeatureContribution(ML.Regression.Trainers.StochasticDualCoordinateAscent(
-                new SdcaRegressionTrainer.Options { NumThreads = 1, }), GetSparseDataset(numberOfInstances: 100), "SDCARegression");
+            TestFeatureContribution(ML.Regression.Trainers.Sdca(
+                new SdcaRegressionTrainer.Options { NumberOfThreads = 1, }), GetSparseDataset(numberOfInstances: 100), "SDCARegression");
         }
 
         [Fact]
@@ -89,13 +88,13 @@ namespace Microsoft.ML.Tests
         public void TestPoissonRegression()
         {
             TestFeatureContribution(ML.Regression.Trainers.PoissonRegression(
-                new PoissonRegression.Options { NumThreads = 1 }), GetSparseDataset(numberOfInstances: 100), "PoissonRegression");
+                new PoissonRegressionTrainer.Options { NumberOfThreads = 1 }), GetSparseDataset(numberOfInstances: 100), "PoissonRegression");
         }
 
         [Fact]
         public void TestGAMRegression()
         {
-            TestFeatureContribution(ML.Regression.Trainers.GeneralizedAdditiveModels(), GetSparseDataset(numberOfInstances: 100), "GAMRegression");
+            TestFeatureContribution(ML.Regression.Trainers.Gam(), GetSparseDataset(numberOfInstances: 100), "GAMRegression");
         }
 
         // Tests for ranking trainers that implement IFeatureContributionMapper interface.
@@ -110,7 +109,7 @@ namespace Microsoft.ML.Tests
         {
             TestFeatureContribution(ML.Ranking.Trainers.LightGbm(), GetSparseDataset(TaskType.Ranking, 100), "LightGbmRanking");
         }
-        
+
         // Tests for binary classification trainers that implement IFeatureContributionMapper interface.
         [Fact]
         public void TestAveragePerceptronBinary()
@@ -121,7 +120,7 @@ namespace Microsoft.ML.Tests
         [Fact]
         public void TestSVMBinary()
         {
-            TestFeatureContribution(ML.BinaryClassification.Trainers.LinearSupportVectorMachines(), GetSparseDataset(TaskType.BinaryClassification, 100), "SVMBinary");
+            TestFeatureContribution(ML.BinaryClassification.Trainers.LinearSvm(), GetSparseDataset(TaskType.BinaryClassification, 100), "SVMBinary");
         }
 
         [Fact]
@@ -151,61 +150,95 @@ namespace Microsoft.ML.Tests
         [Fact]
         public void TestSDCABinary()
         {
-            TestFeatureContribution(ML.BinaryClassification.Trainers.StochasticDualCoordinateAscentNonCalibrated(
-                new SdcaNonCalibratedBinaryTrainer.Options { NumThreads = 1, }), GetSparseDataset(TaskType.BinaryClassification, 100), "SDCABinary");
+            TestFeatureContribution(ML.BinaryClassification.Trainers.SdcaNonCalibrated(
+                new SdcaNonCalibratedBinaryTrainer.Options { NumberOfThreads = 1, }), GetSparseDataset(TaskType.BinaryClassification, 100), "SDCABinary", precision: 5);
         }
 
         [Fact]
         public void TestSGDBinary()
         {
-            TestFeatureContribution(ML.BinaryClassification.Trainers.StochasticGradientDescent(
-                new SgdBinaryTrainer.Options { NumThreads = 1}),
+            TestFeatureContribution(ML.BinaryClassification.Trainers.SgdCalibrated(
+                new SgdCalibratedTrainer.Options()
+                {
+                    NumberOfThreads = 1
+                }),
                 GetSparseDataset(TaskType.BinaryClassification, 100), "SGDBinary");
         }
 
         [Fact]
         public void TestSSGDBinary()
         {
-            TestFeatureContribution(ML.BinaryClassification.Trainers.SymbolicStochasticGradientDescent(), GetSparseDataset(TaskType.BinaryClassification, 100), "SSGDBinary", 4);
+            TestFeatureContribution(ML.BinaryClassification.Trainers.SymbolicSgd(
+                new SymbolicSgdTrainer.Options()
+                {
+                    NumberOfThreads = 1
+                }),
+                GetSparseDataset(TaskType.BinaryClassification, 100), "SSGDBinary", 4);
         }
 
         [Fact]
         public void TestGAMBinary()
         {
-            TestFeatureContribution(ML.BinaryClassification.Trainers.GeneralizedAdditiveModels(), GetSparseDataset(TaskType.BinaryClassification, 100), "GAMBinary");
+            TestFeatureContribution(ML.BinaryClassification.Trainers.Gam(), GetSparseDataset(TaskType.BinaryClassification, 100), "GAMBinary");
         }
 
         private void TestFeatureContribution(
-            ITrainerEstimator<ISingleFeaturePredictionTransformer<IPredictor>, IPredictor> trainer,
+            ITrainerEstimator<ISingleFeaturePredictionTransformer<ICalculateFeatureContribution>, ICalculateFeatureContribution> trainer,
             IDataView data,
             string testFile,
             int precision = 6)
         {
             // Train the model.
-                var model = trainer.Fit(data);
-
-            // Extract the predictor, check that it supports feature contribution.
-            var predictor = model.Model as ICalculateFeatureContribution;
-            Assert.NotNull(predictor);
+            var model = trainer.Fit(data);
 
             // Calculate feature contributions.
-            var est = new FeatureContributionCalculatingEstimator(ML, predictor, "Features", numPositiveContributions: 3, numNegativeContributions: 0)
-                .Append(new FeatureContributionCalculatingEstimator(ML, predictor, "Features", numPositiveContributions: 0, numNegativeContributions: 3))
-                .Append(new FeatureContributionCalculatingEstimator(ML, predictor, "Features", numPositiveContributions: 1, numNegativeContributions: 1))
-                .Append(new FeatureContributionCalculatingEstimator(ML, predictor, "Features", numPositiveContributions: 1, numNegativeContributions: 1, normalize: false));
+            var est = ML.Transforms.CalculateFeatureContribution(model, numberOfPositiveContributions: 3, numberOfNegativeContributions: 0)
+                .Append(ML.Transforms.CalculateFeatureContribution(model, numberOfPositiveContributions: 0, numberOfNegativeContributions: 3))
+                .Append(ML.Transforms.CalculateFeatureContribution(model, numberOfPositiveContributions: 1, numberOfNegativeContributions: 1))
+                .Append(ML.Transforms.CalculateFeatureContribution(model, numberOfPositiveContributions: 1, numberOfNegativeContributions: 1, normalize: false));
 
             TestEstimatorCore(est, data);
+
             // Verify output.
+            CheckOutput(est, data, testFile, precision);
+            Done();
+        }
+
+        private void TestFeatureContribution<TModelParameters, TCalibrator>(
+            ITrainerEstimator<ISingleFeaturePredictionTransformer<CalibratedModelParametersBase<TModelParameters, TCalibrator>>, CalibratedModelParametersBase<TModelParameters, TCalibrator>> trainer,
+            IDataView data,
+            string testFile,
+            int precision = 6)
+            where TModelParameters : class, ICalculateFeatureContribution
+            where TCalibrator : class, ICalibrator
+        {
+            // Train the model.
+            var model = trainer.Fit(data);
+
+            // Calculate feature contributions.
+            var est = ML.Transforms.CalculateFeatureContribution(model, numberOfPositiveContributions: 3, numberOfNegativeContributions: 0)
+                .Append(ML.Transforms.CalculateFeatureContribution(model, numberOfPositiveContributions: 0, numberOfNegativeContributions: 3))
+                .Append(ML.Transforms.CalculateFeatureContribution(model, numberOfPositiveContributions: 1, numberOfNegativeContributions: 1))
+                .Append(ML.Transforms.CalculateFeatureContribution(model, numberOfPositiveContributions: 1, numberOfNegativeContributions: 1, normalize: false));
+
+            TestEstimatorCore(est, data);
+
+            // Verify output.
+            CheckOutput(est, data, testFile, precision);
+            Done();
+        }
+
+        private void CheckOutput(IEstimator<ITransformer> estimator, IDataView data, string testFile, int precision = 6)
+        {
             var outputPath = GetOutputPath("FeatureContribution", testFile + ".tsv");
             using (var ch = Env.Start("save"))
             {
                 var saver = new TextSaver(ML, new TextSaver.Arguments { Silent = true, OutputHeader = false });
-                var savedData = ML.Data.TakeRows(est.Fit(data).Transform(data), 4);
+                var savedData = ML.Data.TakeRows(estimator.Fit(data).Transform(data), 4);
                 using (var fs = File.Create(outputPath))
                     DataSaverUtils.SaveDataView(ch, saver, savedData, fs, keepHidden: true);
             }
             CheckEquality("FeatureContribution", testFile + ".tsv", digitsOfPrecision: precision);
-            Done();
         }
 
         /// <summary>
@@ -275,8 +308,13 @@ namespace Microsoft.ML.Tests
             var pipeline = ML.Transforms.Concatenate("Features", "X1", "X2VBuffer", "X3Important")
                 .Append(ML.Transforms.Normalize("Features"));
 
-            // Create a keytype for Ranking
-            if (task == TaskType.Ranking)
+            if (task == TaskType.BinaryClassification)
+                return pipeline.Append(ML.Transforms.Conversion.ConvertType("Label", outputKind: DataKind.Boolean))
+                    .Fit(srcDV).Transform(srcDV);
+            else if (task == TaskType.MulticlassClassification)
+                return pipeline.Append(ML.Transforms.Conversion.MapValueToKey("Label"))
+                    .Fit(srcDV).Transform(srcDV);
+            else if (task == TaskType.Ranking)
                 return pipeline.Append(ML.Transforms.Conversion.MapValueToKey("GroupId"))
                     .Fit(srcDV).Transform(srcDV);
 

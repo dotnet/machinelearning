@@ -6,7 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using Microsoft.Data.DataView;
+using Microsoft.ML.Runtime;
 
 namespace Microsoft.ML.Data
 {
@@ -27,8 +27,8 @@ namespace Microsoft.ML.Data
             public readonly DataViewType ColumnType;
             public readonly bool IsComputed;
             public readonly Delegate Generator;
-            private readonly Dictionary<string, MetadataInfo> _metadata;
-            public Dictionary<string, MetadataInfo> Metadata { get { return _metadata; } }
+            private readonly Dictionary<string, AnnotationInfo> _annotations;
+            public Dictionary<string, AnnotationInfo> Annotations { get { return _annotations; } }
             public Type ComputedReturnType { get { return ReturnParameterInfo.ParameterType.GetElementType(); } }
             public Type FieldOrPropertyType => (MemberInfo is FieldInfo) ? (MemberInfo as FieldInfo).FieldType : (MemberInfo as PropertyInfo).PropertyType;
             public Type OutputType => IsComputed ? ComputedReturnType : FieldOrPropertyType;
@@ -38,7 +38,7 @@ namespace Microsoft.ML.Data
             { }
 
             public Column(string columnName, DataViewType columnType, MemberInfo memberInfo,
-                Dictionary<string, MetadataInfo> metadataInfos) :
+                Dictionary<string, AnnotationInfo> metadataInfos) :
                 this(columnName, columnType, memberInfo, null, metadataInfos)
             { }
 
@@ -47,12 +47,12 @@ namespace Microsoft.ML.Data
             { }
 
             public Column(string columnName, DataViewType columnType, Delegate generator,
-                Dictionary<string, MetadataInfo> metadataInfos) :
+                Dictionary<string, AnnotationInfo> metadataInfos) :
                 this(columnName, columnType, null, generator, metadataInfos)
             { }
 
             private Column(string columnName, DataViewType columnType, MemberInfo memberInfo = null,
-                Delegate generator = null, Dictionary<string, MetadataInfo> metadataInfos = null)
+                Delegate generator = null, Dictionary<string, AnnotationInfo> metadataInfos = null)
             {
                 Contracts.AssertNonEmpty(columnName);
                 Contracts.AssertValue(columnType);
@@ -74,7 +74,7 @@ namespace Microsoft.ML.Data
                 ColumnType = columnType;
                 IsComputed = generator != null;
                 Generator = generator;
-                _metadata = metadataInfos == null ? new Dictionary<string, MetadataInfo>()
+                _annotations = metadataInfos == null ? new Dictionary<string, AnnotationInfo>()
                     : metadataInfos.ToDictionary(entry => entry.Key, entry => entry.Value);
 
                 AssertRep();
@@ -278,8 +278,8 @@ namespace Microsoft.ML.Data
                 }
 
                 dstCols[i] = col.IsComputed ?
-                    new Column(colName, colType, col.Generator, col.Metadata)
-                    : new Column(colName, colType, memberInfo, col.Metadata);
+                    new Column(colName, colType, col.Generator, col.Annotations)
+                    : new Column(colName, colType, memberInfo, col.Annotations);
 
             }
             return new InternalSchemaDefinition(dstCols);

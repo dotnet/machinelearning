@@ -4,9 +4,8 @@
 
 using System;
 using System.Reflection;
-using Microsoft.Data.DataView;
 using Microsoft.ML.Data.Conversion;
-using Microsoft.ML.Model;
+using Microsoft.ML.Runtime;
 
 namespace Microsoft.ML.Data
 {
@@ -123,17 +122,17 @@ namespace Microsoft.ML.Data
                     {
                         if (keyValueGetter != null)
                         {
-                            MetadataUtils.MetadataGetter<VBuffer<ReadOnlyMemory<char>>> mdGetter =
+                            AnnotationUtils.AnnotationGetter<VBuffer<ReadOnlyMemory<char>>> mdGetter =
                                 (int c, ref VBuffer<ReadOnlyMemory<char>> dst) => keyValueGetter(ref dst);
-                            bldr.AddGetter(MetadataUtils.Kinds.KeyValues, new VectorType(TextDataViewType.Instance, _typeDst.GetItemType().GetKeyCountAsInt32(Host)), mdGetter);
+                            bldr.AddGetter(AnnotationUtils.Kinds.KeyValues, new VectorType(TextDataViewType.Instance, _typeDst.GetItemType().GetKeyCountAsInt32(Host)), mdGetter);
                         }
                         if (slotNamesGetter != null)
                         {
                             int vectorSize = _typeDst.GetVectorSize();
                             Host.Assert(vectorSize > 0);
-                            MetadataUtils.MetadataGetter<VBuffer<ReadOnlyMemory<char>>> mdGetter =
+                            AnnotationUtils.AnnotationGetter<VBuffer<ReadOnlyMemory<char>>> mdGetter =
                                 (int c, ref VBuffer<ReadOnlyMemory<char>> dst) => slotNamesGetter(ref dst);
-                            bldr.AddGetter(MetadataUtils.Kinds.SlotNames, new VectorType(TextDataViewType.Instance, vectorSize), mdGetter);
+                            bldr.AddGetter(AnnotationUtils.Kinds.SlotNames, new VectorType(TextDataViewType.Instance, vectorSize), mdGetter);
                         }
                     }
                 }

@@ -7,9 +7,9 @@ using System.Collections.Generic;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Text;
-using Microsoft.Data.DataView;
 using Microsoft.ML.Internal.Internallearn;
 using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Runtime;
 
 namespace Microsoft.ML.Data.IO
 {
@@ -159,7 +159,9 @@ namespace Microsoft.ML.Data.IO
             // Throws an exception if T is neither a TimeSpan nor a NumberType.
             private static DataViewType UnsafeColumnType(Type type)
             {
-                return type == typeof(TimeSpan) ? (DataViewType)TimeSpanDataViewType.Instance : ColumnTypeExtensions.NumberTypeFromType(type);
+                return type == typeof(TimeSpan) ?  TimeSpanDataViewType.Instance :
+                    type == typeof(DataViewRowId) ? (DataViewType)RowIdDataViewType.Instance :
+                    ColumnTypeExtensions.NumberTypeFromType(type);
             }
 
             public UnsafeTypeCodec(CodecFactory factory)

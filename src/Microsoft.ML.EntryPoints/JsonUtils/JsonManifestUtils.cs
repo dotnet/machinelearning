@@ -8,9 +8,10 @@ using System.Linq;
 using System.Reflection;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Runtime;
 using Newtonsoft.Json.Linq;
 
-namespace Microsoft.ML.EntryPoints.JsonUtils
+namespace Microsoft.ML.EntryPoints
 {
     /// <summary>
     /// Utilities to generate JSON manifests for entry points and other components.
@@ -152,15 +153,24 @@ namespace Microsoft.ML.EntryPoints.JsonUtils
 
             // Instantiate a value of the input, to pull defaults out of.
             var defaults = Activator.CreateInstance(inputType);
-
+            var collectedFields = new HashSet<string>();
             var inputs = new List<KeyValuePair<Double, JObject>>();
             foreach (var fieldInfo in inputType.GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance))
             {
                 var inputAttr = fieldInfo.GetCustomAttributes(typeof(ArgumentAttribute), false).FirstOrDefault() as ArgumentAttribute;
                 if (inputAttr == null || inputAttr.Visibility == ArgumentAttribute.VisibilityType.CmdLineOnly)
                     continue;
+                var name = inputAttr.Name ?? fieldInfo.Name;
+                // The order of GetFields is stable, meaning that
+                // fields are always returned in the same order and for this reason
+                // unit tests to compare manifest are passing. For the same reason
+                // duplicate name skipped are always in the same correct order.
+                // Same name field can bubble up from base class even though
+                // its overidden / hidden, skip it.
+                if (collectedFields.Contains(name))
+                    continue;
                 var jo = new JObject();
-                jo[FieldNames.Name] = inputAttr.Name ?? fieldInfo.Name;
+                jo[FieldNames.Name] = name;
                 jo[FieldNames.Type] = BuildTypeToken(ectx, fieldInfo, fieldInfo.FieldType, catalog);
                 jo[FieldNames.Desc] = inputAttr.HelpText;
                 if (inputAttr.Aliases != null)
@@ -261,6 +271,7 @@ namespace Microsoft.ML.EntryPoints.JsonUtils
                 }
 
                 inputs.Add(new KeyValuePair<Double, JObject>(inputAttr.SortOrder, jo));
+                collectedFields.Add(name);
             }
             return new JArray(inputs.OrderBy(x => x.Key).Select(x => x.Value).ToArray());
         }

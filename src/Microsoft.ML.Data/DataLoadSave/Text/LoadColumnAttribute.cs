@@ -8,27 +8,27 @@ using System.Collections.Generic;
 namespace Microsoft.ML.Data
 {
     /// <summary>
-    /// Describes column information such as name and the source columns indices that this
-    /// column encapsulates.
+    /// Allow member to specify mapping to field(s) in text file.
+    /// To override name of <see cref="IDataView"/> column use <see cref="ColumnNameAttribute"/>.
     /// </summary>
     [AttributeUsage(AttributeTargets.Field | AttributeTargets.Property, AllowMultiple = false, Inherited = true)]
     public sealed class LoadColumnAttribute : Attribute
     {
         /// <summary>
-        /// Initializes new instance of <see cref="LoadColumnAttribute"/>.
+        /// Maps member to specific field in text file.
         /// </summary>
-        /// <param name="columnIndex">The index of the column in the text file.</param>
-        public LoadColumnAttribute(int columnIndex)
+        /// <param name="fieldIndex">The index of the field in the text file.</param>
+        public LoadColumnAttribute(int fieldIndex)
         {
             Sources = new List<TextLoader.Range>();
-            Sources.Add(new TextLoader.Range(columnIndex));
+            Sources.Add(new TextLoader.Range(fieldIndex));
         }
 
         /// <summary>
-        /// Initializes new instance of <see cref="LoadColumnAttribute"/>.
+        /// Maps member to range of fields in text file.
         /// </summary>
-        /// <param name="start">The starting column index, for the range.</param>
-        /// <param name="end">The ending column index, for the range.</param>
+        /// <param name="start">The starting field index, for the range.</param>
+        /// <param name="end">The ending field index, for the range.</param>
         public LoadColumnAttribute(int start, int end)
         {
             Sources = new List<TextLoader.Range>();
@@ -36,9 +36,9 @@ namespace Microsoft.ML.Data
         }
 
         /// <summary>
-        /// Initializes new instance of <see cref="LoadColumnAttribute"/>.
+        /// Maps member to set of fields in text file.
         /// </summary>
-        /// <param name="columnIndexes">Distinct text file column indices to load as part of this column.</param>
+        /// <param name="columnIndexes">Distinct text file field indices to load as part of this column.</param>
         public LoadColumnAttribute(int[] columnIndexes)
         {
             Sources = new List<TextLoader.Range>();

@@ -3,8 +3,8 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
+using Microsoft.ML.Runtime;
 using Microsoft.ML.StaticPipe;
-using Microsoft.ML.StaticPipe.Runtime;
 
 namespace Microsoft.ML.Transforms.StaticPipe
 {
@@ -14,14 +14,14 @@ namespace Microsoft.ML.Transforms.StaticPipe
         {
             public PipelineColumn Input { get; }
 
-            public OutColumn(Vector<float> input, string modelFile)
-                : base(new Reconciler(modelFile), input)
+            public OutColumn(Vector<float> input, string modelFile, bool addBatchDimensionInput)
+                : base(new Reconciler(modelFile, addBatchDimensionInput), input)
             {
                 Input = input;
             }
 
-            public OutColumn(Vector<float> input, TensorFlowModelInfo tensorFlowModel)
-                : base(new Reconciler(tensorFlowModel), input)
+            public OutColumn(Vector<float> input, TensorFlowModel tensorFlowModel, bool addBatchDimensionInput)
+                : base(new Reconciler(tensorFlowModel, addBatchDimensionInput), input)
             {
                 Input = input;
             }
@@ -30,21 +30,24 @@ namespace Microsoft.ML.Transforms.StaticPipe
         private sealed class Reconciler : EstimatorReconciler
         {
             private readonly string _modelFile;
-            private readonly TensorFlowModelInfo _tensorFlowModel;
+            private readonly TensorFlowModel _tensorFlowModel;
+            private readonly bool _addBatchDimensionInput;
 
-            public Reconciler(string modelFile)
+            public Reconciler(string modelFile, bool addBatchDimensionInput)
             {
                 Contracts.AssertNonEmpty(modelFile);
                 _modelFile = modelFile;
                 _tensorFlowModel = null;
+                _addBatchDimensionInput = addBatchDimensionInput;
             }
 
-            public Reconciler(TensorFlowModelInfo tensorFlowModel)
+            public Reconciler(TensorFlowModel tensorFlowModel, bool addBatchDimensionInput)
             {
                 Contracts.CheckValue(tensorFlowModel, nameof(tensorFlowModel));
 
                 _modelFile = null;
                 _tensorFlowModel = tensorFlowModel;
+                _addBatchDimensionInput = addBatchDimensionInput;
             }
 
             public override IEstimator<ITransformer> Reconcile(IHostEnvironment env,
@@ -57,9 +60,9 @@ namespace Microsoft.ML.Transforms.StaticPipe
 
                 var outCol = (OutColumn)toOutput[0];
                 if (_modelFile == null)
-                    return new TensorFlowEstimator(env, new[] { outputNames[outCol] }, new[] { inputNames[outCol.Input] }, _tensorFlowModel);
+                    return new TensorFlowEstimator(env, new[] { outputNames[outCol] }, new[] { inputNames[outCol.Input] }, _tensorFlowModel, _addBatchDimensionInput);
                 else
-                    return new TensorFlowEstimator(env, new[] { outputNames[outCol] }, new[] { inputNames[outCol.Input] }, _modelFile);
+                    return new TensorFlowEstimator(env, new[] { outputNames[outCol] }, new[] { inputNames[outCol.Input] }, _modelFile, _addBatchDimensionInput);
             }
         }
 
@@ -70,22 +73,22 @@ namespace Microsoft.ML.Transforms.StaticPipe
         /// Load the TensorFlow model from <paramref name="modelFile"/> and run it on the input column and extract one output column.
         /// The inputs and outputs are matched to TensorFlow graph nodes by name.
         /// </summary>
-        public static Vector<float> ApplyTensorFlowGraph(this Vector<float> input, string modelFile)
+        public static Vector<float> ApplyTensorFlowGraph(this Vector<float> input, string modelFile, bool addBatchDimensionInput = false)
         {
             Contracts.CheckValue(input, nameof(input));
             Contracts.CheckNonEmpty(modelFile, nameof(modelFile));
-            return new OutColumn(input, modelFile);
+            return new OutColumn(input, modelFile, addBatchDimensionInput);
         }
 
         /// <summary>
         /// Run a TensorFlow model provided through <paramref name="tensorFlowModel"/> on the input column and extract one output column.
         /// The inputs and outputs are matched to TensorFlow graph nodes by name.
         /// </summary>
-        public static Vector<float> ApplyTensorFlowGraph(this Vector<float> input, TensorFlowModelInfo tensorFlowModel)
+        public static Vector<float> ApplyTensorFlowGraph(this Vector<float> input, TensorFlowModel tensorFlowModel, bool addBatchDimensionInput = false)
         {
             Contracts.CheckValue(input, nameof(input));
             Contracts.CheckValue(tensorFlowModel, nameof(tensorFlowModel));
-            return new OutColumn(input, tensorFlowModel);
+            return new OutColumn(input, tensorFlowModel, addBatchDimensionInput);
         }
     }
 }

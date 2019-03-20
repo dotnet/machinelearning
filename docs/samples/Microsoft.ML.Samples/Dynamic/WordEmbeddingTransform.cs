@@ -15,7 +15,7 @@ namespace Microsoft.ML.Samples.Dynamic
 
             // Get a small dataset as an IEnumerable and convert to IDataView.
             var data = SamplesUtils.DatasetUtils.GetSentimentData();
-            var trainData = ml.Data.ReadFromEnumerable(data);
+            var trainData = ml.Data.LoadFromEnumerable(data);
 
             // Preview of the data.
             //
@@ -26,12 +26,12 @@ namespace Microsoft.ML.Samples.Dynamic
 
             // Pipeline which goes through SentimentText and normalizes it, tokenize it by words, and removes default stopwords.
             var wordsPipeline = ml.Transforms.Text.NormalizeText("NormalizedText", "SentimentText", keepDiacritics: false, keepPunctuations: false)
-                .Append(ml.Transforms.Text.TokenizeWords("Words", "NormalizedText"))
+                .Append(ml.Transforms.Text.TokenizeIntoWords("Words", "NormalizedText"))
                 .Append(ml.Transforms.Text.RemoveDefaultStopWords("CleanWords", "Words"));
 
             var wordsDataview = wordsPipeline.Fit(trainData).Transform(trainData);
             // Preview of the CleanWords column obtained after processing SentimentText.
-            var cleanWords = wordsDataview.GetColumn<ReadOnlyMemory<char>[]>(ml, "CleanWords");
+            var cleanWords = wordsDataview.GetColumn<ReadOnlyMemory<char>[]>(wordsDataview.Schema["CleanWords"]);
             Console.WriteLine($" CleanWords column obtained post-transformation.");
             foreach (var featureRow in cleanWords)
             {
@@ -61,8 +61,8 @@ namespace Microsoft.ML.Samples.Dynamic
 
             // Let's apply pretrained word embedding model GloVeTwitter25D.
             // 25D means each word mapped into 25 dimensional space, basically each word represented by 25 float values.
-            var gloveWordEmbedding = ml.Transforms.Text.ExtractWordEmbeddings("GloveEmbeddings", "CleanWords",
-                WordEmbeddingsExtractingEstimator.PretrainedModelKind.GloVeTwitter25D);
+            var gloveWordEmbedding = ml.Transforms.Text.ApplyWordEmbedding("GloveEmbeddings", "CleanWords",
+                WordEmbeddingEstimator.PretrainedModelKind.GloVeTwitter25D);
 
             // We also have option to apply custom word embedding models.
             // Let's first create one.
@@ -81,12 +81,12 @@ namespace Microsoft.ML.Samples.Dynamic
                 file.WriteLine("best" + " " + string.Join(" ", 0f, 0f, 20f));
             }
             // Now let's add custom embedding on top of same words.
-            var pipeline = gloveWordEmbedding.Append(ml.Transforms.Text.ExtractWordEmbeddings("CustomEmbeddings", @".\custommodel.txt", "CleanWords"));
+            var pipeline = gloveWordEmbedding.Append(ml.Transforms.Text.ApplyWordEmbedding("CustomEmbeddings", @".\custommodel.txt", "CleanWords"));
 
             // And do all required transformations.
             var embeddingDataview = pipeline.Fit(wordsDataview).Transform(wordsDataview);
 
-            var customEmbeddings = embeddingDataview.GetColumn<float[]>(ml, "CustomEmbeddings");
+            var customEmbeddings = embeddingDataview.GetColumn<float[]>(embeddingDataview.Schema["CustomEmbeddings"]);
             printEmbeddings("GloveEmbeddings", customEmbeddings);
 
             // -1  -2   -3  -0.5   -1  8.5  0   0   20
@@ -98,7 +98,7 @@ namespace Microsoft.ML.Samples.Dynamic
             // Second set of 3 floats in output represent average (for each dimension) for extracted values.
             // Third set of 3 floats in output represent maximum values (for each dimension) for extracted values.
             // Preview of GloveEmbeddings.
-            var gloveEmbeddings = embeddingDataview.GetColumn<float[]>(ml, "GloveEmbeddings");
+            var gloveEmbeddings = embeddingDataview.GetColumn<float[]>(embeddingDataview.Schema["GloveEmbeddings"]);
             printEmbeddings("GloveEmbeddings", gloveEmbeddings);
             // 0.23166 0.048825 0.26878 -1.3945 -0.86072 -0.026778 0.84075 -0.81987 -1.6681 -1.0658 -0.30596 0.50974 ...
             //-0.094905 0.61109 0.52546 - 0.2516 0.054786 0.022661 1.1801 0.33329 - 0.85388 0.15471 - 0.5984 0.4364  ...

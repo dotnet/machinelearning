@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.ML.Runtime;
 
 namespace Microsoft.ML.Trainers.FastTree
 {
@@ -54,8 +55,6 @@ namespace Microsoft.ML.Trainers.FastTree
         public abstract IntArrayBits BitsPerItem { get; }
 
         public abstract IntArrayType Type { get; }
-
-        public abstract MD5Hash MD5Hash { get; }
 
         /// <summary>
         /// Number of bytes needed to store this number of values

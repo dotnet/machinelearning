@@ -5,13 +5,12 @@
 using System;
 using System.IO;
 using System.Text;
-using Microsoft.Data.DataView;
 using Microsoft.ML.Data;
 using Microsoft.ML.Data.IO;
 using Microsoft.ML.Internal.Utilities;
-using Microsoft.ML.Model;
+using Microsoft.ML.Runtime;
 
-namespace Microsoft.ML.Transforms.Conversions
+namespace Microsoft.ML.Transforms
 {
     public sealed partial class ValueToKeyMappingTransformer
     {
@@ -37,7 +36,7 @@ namespace Microsoft.ML.Transforms.Conversions
                 ItemType = type;
             }
 
-            public static Builder Create(DataViewType type, ValueToKeyMappingEstimator.SortOrder sortOrder)
+            public static Builder Create(DataViewType type, ValueToKeyMappingEstimator.KeyOrdinality sortOrder)
             {
                 Contracts.AssertValue(type);
                 Contracts.Assert(type is VectorType || type is PrimitiveDataViewType);
@@ -45,8 +44,8 @@ namespace Microsoft.ML.Transforms.Conversions
                 // accept any value, but currently the internal implementations of Builder are split
                 // along this being a purely binary option, for now (though this can easily change
                 // with mot implementations of Builder).
-                Contracts.Assert(sortOrder == ValueToKeyMappingEstimator.SortOrder.Occurrence || sortOrder == ValueToKeyMappingEstimator.SortOrder.Value);
-                bool sorted = sortOrder == ValueToKeyMappingEstimator.SortOrder.Value;
+                Contracts.Assert(sortOrder == ValueToKeyMappingEstimator.KeyOrdinality.ByOccurrence || sortOrder == ValueToKeyMappingEstimator.KeyOrdinality.ByValue);
+                bool sorted = sortOrder == ValueToKeyMappingEstimator.KeyOrdinality.ByValue;
 
                 PrimitiveDataViewType itemType = type.GetItemType() as PrimitiveDataViewType;
                 Contracts.AssertValue(itemType);
@@ -307,7 +306,7 @@ namespace Microsoft.ML.Transforms.Conversions
                 if (autoConvert)
                     inputGetter = RowCursorUtils.GetGetterAs<T>(bldr.ItemType, row, col);
                 else
-                    inputGetter = row.GetGetter<T>(col);
+                    inputGetter = row.GetGetter<T>(row.Schema[col]);
 
                 return new ImplOne<T>(inputGetter, count, bldrT);
             }
@@ -319,7 +318,7 @@ namespace Microsoft.ML.Transforms.Conversions
                 Contracts.Assert(bldr is Builder<T>);
                 var bldrT = (Builder<T>)bldr;
 
-                var inputGetter = row.GetGetter<VBuffer<T>>(col);
+                var inputGetter = row.GetGetter<VBuffer<T>>(row.Schema[col]);
                 return new ImplVec<T>(inputGetter, count, bldrT);
             }
 
@@ -855,7 +854,7 @@ namespace Microsoft.ML.Transforms.Conversions
             /// Allows us to optionally register metadata. It is also perfectly legal for
             /// this to do nothing, which corresponds to there being no metadata.
             /// </summary>
-            public abstract void AddMetadata(MetadataBuilder builder);
+            public abstract void AddMetadata(DataViewSchema.Annotations.Builder builder);
 
             /// <summary>
             /// Writes out all terms we map to a text writer, with one line per mapped term.
@@ -906,9 +905,9 @@ namespace Microsoft.ML.Transforms.Conversions
                         var info = _infos[_iinfo];
                         T src = default(T);
                         Contracts.Assert(!(info.TypeSrc is VectorType));
-                        input.Schema.TryGetColumnIndex(info.InputColumnName, out int colIndex);
-                        _host.Assert(input.IsColumnActive(colIndex));
-                        var getSrc = input.GetGetter<T>(colIndex);
+                        var inputColumn = input.Schema[info.InputColumnName];
+                        _host.Assert(input.IsColumnActive(inputColumn));
+                        var getSrc = input.GetGetter<T>(inputColumn);
                         ValueGetter<uint> retVal =
                             (ref uint dst) =>
                             {
@@ -927,9 +926,9 @@ namespace Microsoft.ML.Transforms.Conversions
                         ValueMapper<T, uint> map = TypedMap.GetKeyMapper();
                         var info = _infos[_iinfo];
                         // First test whether default maps to default. If so this is sparsity preserving.
-                        input.Schema.TryGetColumnIndex(info.InputColumnName, out int colIndex);
-                        _host.Assert(input.IsColumnActive(colIndex));
-                        var getSrc = input.GetGetter<VBuffer<T>>(colIndex);
+                        var inputColumn = input.Schema[info.InputColumnName];
+                        _host.Assert(input.IsColumnActive(inputColumn));
+                        var getSrc = input.GetGetter<VBuffer<T>>(inputColumn);
                         VBuffer<T> src = default(VBuffer<T>);
                         ValueGetter<VBuffer<uint>> retVal;
                         // REVIEW: Consider whether possible or reasonable to not use a builder here.
@@ -1038,7 +1037,7 @@ namespace Microsoft.ML.Transforms.Conversions
                     }
                 }
 
-                public override void AddMetadata(MetadataBuilder builder)
+                public override void AddMetadata(DataViewSchema.Annotations.Builder builder)
                 {
                     if (TypedMap.Count == 0)
                         return;
@@ -1081,13 +1080,13 @@ namespace Microsoft.ML.Transforms.Conversions
                     _host.Assert(TypedMap.ItemType is KeyType);
                 }
 
-                public override void AddMetadata(MetadataBuilder builder)
+                public override void AddMetadata(DataViewSchema.Annotations.Builder builder)
                 {
                     if (TypedMap.Count == 0)
                         return;
 
                     _schema.TryGetColumnIndex(_infos[_iinfo].InputColumnName, out int srcCol);
-                    VectorType srcMetaType = _schema[srcCol].Metadata.Schema.GetColumnOrNull(MetadataUtils.Kinds.KeyValues)?.Type as VectorType;
+                    VectorType srcMetaType = _schema[srcCol].Annotations.Schema.GetColumnOrNull(AnnotationUtils.Kinds.KeyValues)?.Type as VectorType;
                     if (srcMetaType == null || srcMetaType.Size != TypedMap.ItemType.GetKeyCountAsInt32(_host) ||
                         TypedMap.ItemType.GetKeyCountAsInt32(_host) == 0 || !Utils.MarshalInvoke(AddMetadataCore<int>, srcMetaType.ItemType.RawType, srcMetaType.ItemType, builder))
                     {
@@ -1096,7 +1095,7 @@ namespace Microsoft.ML.Transforms.Conversions
                     }
                 }
 
-                private bool AddMetadataCore<TMeta>(DataViewType srcMetaType, MetadataBuilder builder)
+                private bool AddMetadataCore<TMeta>(DataViewType srcMetaType, DataViewSchema.Annotations.Builder builder)
                 {
                     _host.AssertValue(srcMetaType);
                     _host.Assert(srcMetaType.RawType == typeof(TMeta));
@@ -1168,7 +1167,7 @@ namespace Microsoft.ML.Transforms.Conversions
                         return;
 
                     _schema.TryGetColumnIndex(_infos[_iinfo].InputColumnName, out int srcCol);
-                    VectorType srcMetaType = _schema[srcCol].Metadata.Schema.GetColumnOrNull(MetadataUtils.Kinds.KeyValues)?.Type as VectorType;
+                    VectorType srcMetaType = _schema[srcCol].Annotations.Schema.GetColumnOrNull(AnnotationUtils.Kinds.KeyValues)?.Type as VectorType;
                     if (srcMetaType == null || srcMetaType.Size != TypedMap.ItemType.GetKeyCountAsInt32(_host) ||
                         TypedMap.ItemType.GetKeyCountAsInt32(_host) == 0 || !Utils.MarshalInvoke(WriteTextTermsCore<int>, srcMetaType.ItemType.RawType, srcMetaType.ItemType, writer))
                     {

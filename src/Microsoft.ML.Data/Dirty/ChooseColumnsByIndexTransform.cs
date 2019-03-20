@@ -5,12 +5,11 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
 using Microsoft.ML.Internal.Utilities;
-using Microsoft.ML.Model;
+using Microsoft.ML.Runtime;
 
 [assembly: LoadableClass(typeof(ChooseColumnsByIndexTransform), typeof(ChooseColumnsByIndexTransform.Options), typeof(SignatureDataTransform),
     "", "ChooseColumnsByIndexTransform", "ChooseColumnsByIndex")]
@@ -102,7 +101,7 @@ namespace Microsoft.ML.Data
             /// </summary>
             private DataViewSchema ComputeOutputSchema()
             {
-                var schemaBuilder = new SchemaBuilder();
+                var schemaBuilder = new DataViewSchema.Builder();
                 for (int i = 0; i < _sources.Length; ++i)
                 {
                     // selectedIndex is an column index of input schema. Note that the input column indexed by _sources[i] in _sourceSchema is sent
@@ -115,9 +114,9 @@ namespace Microsoft.ML.Data
 
                     // Copy the selected column into output schema.
                     var selectedColumn = _sourceSchema[selectedIndex];
-                    schemaBuilder.AddColumn(selectedColumn.Name, selectedColumn.Type, selectedColumn.Metadata);
+                    schemaBuilder.AddColumn(selectedColumn.Name, selectedColumn.Type, selectedColumn.Annotations);
                 }
-                return schemaBuilder.GetSchema();
+                return schemaBuilder.ToSchema();
             }
 
             internal Bindings(ModelLoadContext ctx, DataViewSchema sourceSchema)
@@ -293,18 +292,28 @@ namespace Microsoft.ML.Data
 
             public override DataViewSchema Schema => _bindings.OutputSchema;
 
-            public override bool IsColumnActive(int col)
+            /// <summary>
+            /// Returns whether the given column is active in this row.
+            /// </summary>
+            public override bool IsColumnActive(DataViewSchema.Column column)
             {
-                Ch.Check(0 <= col && col < _bindings.OutputSchema.Count);
-                return _active == null || _active[col];
+                Ch.Check(column.Index < _bindings.OutputSchema.Count);
+                return _active == null || _active[column.Index];
             }
 
-            public override ValueGetter<TValue> GetGetter<TValue>(int col)
+            /// <summary>
+            /// Returns a value getter delegate to fetch the value of column with the given columnIndex, from the row.
+            /// This throws if the column is not active in this row, or if the type
+            /// <typeparamref name="TValue"/> differs from this column's type.
+            /// </summary>
+            /// <typeparam name="TValue"> is the column's content type.</typeparam>
+            /// <param name="column"> is the output column whose getter should be returned.</param>
+            public override ValueGetter<TValue> GetGetter<TValue>(DataViewSchema.Column column)
             {
-                Ch.Check(IsColumnActive(col));
+                Ch.Check(IsColumnActive(column));
 
-                var src = _bindings.GetSourceColumnIndex(col);
-                return Input.GetGetter<TValue>(src);
+                var src = _bindings.GetSourceColumnIndex(column.Index);
+                return Input.GetGetter<TValue>(Input.Schema[src]);
             }
         }
     }

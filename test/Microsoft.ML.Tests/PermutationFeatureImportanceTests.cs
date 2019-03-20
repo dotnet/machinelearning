@@ -5,7 +5,6 @@
 using System;
 using System.Collections.Immutable;
 using System.Linq;
-using Microsoft.Data.DataView;
 using Microsoft.ML.Data;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.RunTests;
@@ -40,14 +39,14 @@ namespace Microsoft.ML.Tests
             // X4Rand: 3
 
             // For the following metrics lower is better, so maximum delta means more important feature, and vice versa
-            Assert.Equal(3, MinDeltaIndex(pfi, m => m.L1.Mean));
-            Assert.Equal(1, MaxDeltaIndex(pfi, m => m.L1.Mean));
+            Assert.Equal(3, MinDeltaIndex(pfi, m => m.MeanAbsoluteError.Mean));
+            Assert.Equal(1, MaxDeltaIndex(pfi, m => m.MeanAbsoluteError.Mean));
 
-            Assert.Equal(3, MinDeltaIndex(pfi, m => m.L2.Mean));
-            Assert.Equal(1, MaxDeltaIndex(pfi, m => m.L2.Mean));
+            Assert.Equal(3, MinDeltaIndex(pfi, m => m.MeanSquaredError.Mean));
+            Assert.Equal(1, MaxDeltaIndex(pfi, m => m.MeanSquaredError.Mean));
 
-            Assert.Equal(3, MinDeltaIndex(pfi, m => m.Rms.Mean));
-            Assert.Equal(1, MaxDeltaIndex(pfi, m => m.Rms.Mean));
+            Assert.Equal(3, MinDeltaIndex(pfi, m => m.RootMeanSquaredError.Mean));
+            Assert.Equal(1, MaxDeltaIndex(pfi, m => m.RootMeanSquaredError.Mean));
 
             // For the following metrics higher is better, so minimum delta means more important feature, and vice versa
             Assert.Equal(1, MinDeltaIndex(pfi, m => m.RSquared.Mean));
@@ -77,33 +76,33 @@ namespace Microsoft.ML.Tests
 
             // For these metrics, the magnitude of the difference will be greatest for 1, least for 3
             // Stardard Deviation will scale with the magnitude of the measure
-            Assert.Equal(3, MinDeltaIndex(pfi, m => m.L1.StandardDeviation));
-            Assert.Equal(1, MaxDeltaIndex(pfi, m => m.L1.StandardDeviation));
+            Assert.Equal(3, MinDeltaIndex(pfi, m => m.MeanAbsoluteError.StandardDeviation));
+            Assert.Equal(1, MaxDeltaIndex(pfi, m => m.MeanAbsoluteError.StandardDeviation));
 
-            Assert.Equal(3, MinDeltaIndex(pfi, m => m.L2.StandardDeviation));
-            Assert.Equal(1, MaxDeltaIndex(pfi, m => m.L2.StandardDeviation));
+            Assert.Equal(3, MinDeltaIndex(pfi, m => m.MeanSquaredError.StandardDeviation));
+            Assert.Equal(1, MaxDeltaIndex(pfi, m => m.MeanSquaredError.StandardDeviation));
 
-            Assert.Equal(3, MinDeltaIndex(pfi, m => m.Rms.StandardDeviation));
-            Assert.Equal(1, MaxDeltaIndex(pfi, m => m.Rms.StandardDeviation));
+            Assert.Equal(3, MinDeltaIndex(pfi, m => m.RootMeanSquaredError.StandardDeviation));
+            Assert.Equal(1, MaxDeltaIndex(pfi, m => m.RootMeanSquaredError.StandardDeviation));
 
             Assert.Equal(3, MinDeltaIndex(pfi, m => m.RSquared.StandardDeviation));
             Assert.Equal(1, MaxDeltaIndex(pfi, m => m.RSquared.StandardDeviation));
-            
+
             // Stardard Error will scale with the magnitude of the measure (as it's SD/sqrt(N))
-            Assert.Equal(3, MinDeltaIndex(pfi, m => m.L1.StandardError));
-            Assert.Equal(1, MaxDeltaIndex(pfi, m => m.L1.StandardError));
+            Assert.Equal(3, MinDeltaIndex(pfi, m => m.MeanAbsoluteError.StandardError));
+            Assert.Equal(1, MaxDeltaIndex(pfi, m => m.MeanAbsoluteError.StandardError));
 
-            Assert.Equal(3, MinDeltaIndex(pfi, m => m.L2.StandardError));
-            Assert.Equal(1, MaxDeltaIndex(pfi, m => m.L2.StandardError));
+            Assert.Equal(3, MinDeltaIndex(pfi, m => m.MeanSquaredError.StandardError));
+            Assert.Equal(1, MaxDeltaIndex(pfi, m => m.MeanSquaredError.StandardError));
 
-            Assert.Equal(3, MinDeltaIndex(pfi, m => m.Rms.StandardError));
-            Assert.Equal(1, MaxDeltaIndex(pfi, m => m.Rms.StandardError));
+            Assert.Equal(3, MinDeltaIndex(pfi, m => m.RootMeanSquaredError.StandardError));
+            Assert.Equal(1, MaxDeltaIndex(pfi, m => m.RootMeanSquaredError.StandardError));
 
             Assert.Equal(3, MinDeltaIndex(pfi, m => m.RSquared.StandardError));
             Assert.Equal(1, MaxDeltaIndex(pfi, m => m.RSquared.StandardError));
 
             // And test that the Standard Deviation and Standard Error are related as we expect
-            Assert.Equal(pfi[0].Rms.StandardError, pfi[0].Rms.StandardDeviation / Math.Sqrt(pfi[0].Rms.Count));
+            Assert.Equal(pfi[0].RootMeanSquaredError.StandardError, pfi[0].RootMeanSquaredError.StandardDeviation / Math.Sqrt(pfi[0].RootMeanSquaredError.Count));
 
             Done();
         }
@@ -128,14 +127,14 @@ namespace Microsoft.ML.Tests
 
             // Permuted X2VBuffer-Slot-1 lot (f2) should have min impact on SGD metrics, X3Important -- max impact.
             // For the following metrics lower is better, so maximum delta means more important feature, and vice versa
-            Assert.Equal(2, MinDeltaIndex(results, m => m.L1.Mean));
-            Assert.Equal(5, MaxDeltaIndex(results, m => m.L1.Mean));
+            Assert.Equal(2, MinDeltaIndex(results, m => m.MeanAbsoluteError.Mean));
+            Assert.Equal(5, MaxDeltaIndex(results, m => m.MeanAbsoluteError.Mean));
 
-            Assert.Equal(2, MinDeltaIndex(results, m => m.L2.Mean));
-            Assert.Equal(5, MaxDeltaIndex(results, m => m.L2.Mean));
+            Assert.Equal(2, MinDeltaIndex(results, m => m.MeanSquaredError.Mean));
+            Assert.Equal(5, MaxDeltaIndex(results, m => m.MeanSquaredError.Mean));
 
-            Assert.Equal(2, MinDeltaIndex(results, m => m.Rms.Mean));
-            Assert.Equal(5, MaxDeltaIndex(results, m => m.Rms.Mean));
+            Assert.Equal(2, MinDeltaIndex(results, m => m.RootMeanSquaredError.Mean));
+            Assert.Equal(5, MaxDeltaIndex(results, m => m.RootMeanSquaredError.Mean));
 
             // For the following metrics higher is better, so minimum delta means more important feature, and vice versa
             Assert.Equal(2, MaxDeltaIndex(results, m => m.RSquared.Mean));
@@ -153,7 +152,7 @@ namespace Microsoft.ML.Tests
         {
             var data = GetDenseDataset(TaskType.BinaryClassification);
             var model = ML.BinaryClassification.Trainers.LogisticRegression(
-                new LogisticRegression.Options { NumThreads = 1 }).Fit(data);
+                new LogisticRegressionBinaryTrainer.Options { NumberOfThreads = 1 }).Fit(data);
             var pfi = ML.BinaryClassification.PermutationFeatureImportance(model, data);
 
             // Pfi Indices:
@@ -163,8 +162,8 @@ namespace Microsoft.ML.Tests
             // X4Rand: 3
 
             // For the following metrics higher is better, so minimum delta means more important feature, and vice versa
-            Assert.Equal(3, MaxDeltaIndex(pfi, m => m.Auc.Mean));
-            Assert.Equal(1, MinDeltaIndex(pfi, m => m.Auc.Mean));
+            Assert.Equal(3, MaxDeltaIndex(pfi, m => m.AreaUnderRocCurve.Mean));
+            Assert.Equal(1, MinDeltaIndex(pfi, m => m.AreaUnderRocCurve.Mean));
             Assert.Equal(3, MaxDeltaIndex(pfi, m => m.Accuracy.Mean));
             Assert.Equal(1, MinDeltaIndex(pfi, m => m.Accuracy.Mean));
             Assert.Equal(3, MaxDeltaIndex(pfi, m => m.PositivePrecision.Mean));
@@ -173,12 +172,12 @@ namespace Microsoft.ML.Tests
             Assert.Equal(1, MinDeltaIndex(pfi, m => m.PositiveRecall.Mean));
             Assert.Equal(3, MaxDeltaIndex(pfi, m => m.NegativePrecision.Mean));
             Assert.Equal(1, MinDeltaIndex(pfi, m => m.NegativePrecision.Mean));
-            Assert.Equal(0, MaxDeltaIndex(pfi, m => m.NegativeRecall.Mean));
+            Assert.Equal(3, MaxDeltaIndex(pfi, m => m.NegativeRecall.Mean));
             Assert.Equal(1, MinDeltaIndex(pfi, m => m.NegativeRecall.Mean));
             Assert.Equal(3, MaxDeltaIndex(pfi, m => m.F1Score.Mean));
             Assert.Equal(1, MinDeltaIndex(pfi, m => m.F1Score.Mean));
-            Assert.Equal(3, MaxDeltaIndex(pfi, m => m.Auprc.Mean));
-            Assert.Equal(1, MinDeltaIndex(pfi, m => m.Auprc.Mean));
+            Assert.Equal(3, MaxDeltaIndex(pfi, m => m.AreaUnderPrecisionRecallCurve.Mean));
+            Assert.Equal(1, MinDeltaIndex(pfi, m => m.AreaUnderPrecisionRecallCurve.Mean));
 
             Done();
         }
@@ -191,7 +190,7 @@ namespace Microsoft.ML.Tests
         {
             var data = GetSparseDataset(TaskType.BinaryClassification);
             var model = ML.BinaryClassification.Trainers.LogisticRegression(
-                new LogisticRegression.Options { NumThreads = 1 }).Fit(data);
+                new LogisticRegressionBinaryTrainer.Options { NumberOfThreads = 1 }).Fit(data);
             var pfi = ML.BinaryClassification.PermutationFeatureImportance(model, data);
 
             // Pfi Indices:
@@ -203,8 +202,8 @@ namespace Microsoft.ML.Tests
             // X3Important: 5
 
             // For the following metrics higher is better, so minimum delta means more important feature, and vice versa
-            Assert.Equal(2, MaxDeltaIndex(pfi, m => m.Auc.Mean));
-            Assert.Equal(5, MinDeltaIndex(pfi, m => m.Auc.Mean));
+            Assert.Equal(2, MaxDeltaIndex(pfi, m => m.AreaUnderRocCurve.Mean));
+            Assert.Equal(5, MinDeltaIndex(pfi, m => m.AreaUnderRocCurve.Mean));
             Assert.Equal(2, MaxDeltaIndex(pfi, m => m.Accuracy.Mean));
             Assert.Equal(5, MinDeltaIndex(pfi, m => m.Accuracy.Mean));
             Assert.Equal(2, MaxDeltaIndex(pfi, m => m.PositivePrecision.Mean));
@@ -217,8 +216,8 @@ namespace Microsoft.ML.Tests
             Assert.Equal(5, MinDeltaIndex(pfi, m => m.NegativeRecall.Mean));
             Assert.Equal(2, MaxDeltaIndex(pfi, m => m.F1Score.Mean));
             Assert.Equal(5, MinDeltaIndex(pfi, m => m.F1Score.Mean));
-            Assert.Equal(2, MaxDeltaIndex(pfi, m => m.Auprc.Mean));
-            Assert.Equal(5, MinDeltaIndex(pfi, m => m.Auprc.Mean));
+            Assert.Equal(2, MaxDeltaIndex(pfi, m => m.AreaUnderPrecisionRecallCurve.Mean));
+            Assert.Equal(5, MinDeltaIndex(pfi, m => m.AreaUnderPrecisionRecallCurve.Mean));
 
             Done();
         }
@@ -232,7 +231,7 @@ namespace Microsoft.ML.Tests
         public void TestPfiMulticlassClassificationOnDenseFeatures()
         {
             var data = GetDenseDataset(TaskType.MulticlassClassification);
-            var model = ML.MulticlassClassification.Trainers.LogisticRegression().Fit(data);
+            var model = ML.MulticlassClassification.Trainers.LbfgsMaximumEntropy().Fit(data);
             var pfi = ML.MulticlassClassification.PermutationFeatureImportance(model, data);
 
             // Pfi Indices:
@@ -242,10 +241,10 @@ namespace Microsoft.ML.Tests
             // X4Rand: 3
 
             // For the following metrics higher is better, so minimum delta means more important feature, and vice versa
-            Assert.Equal(3, MaxDeltaIndex(pfi, m => m.AccuracyMicro.Mean));
-            Assert.Equal(1, MinDeltaIndex(pfi, m => m.AccuracyMicro.Mean));
-            Assert.Equal(3, MaxDeltaIndex(pfi, m => m.AccuracyMacro.Mean));
-            Assert.Equal(1, MinDeltaIndex(pfi, m => m.AccuracyMacro.Mean));
+            Assert.Equal(3, MaxDeltaIndex(pfi, m => m.MicroAccuracy.Mean));
+            Assert.Equal(1, MinDeltaIndex(pfi, m => m.MicroAccuracy.Mean));
+            Assert.Equal(3, MaxDeltaIndex(pfi, m => m.MacroAccuracy.Mean));
+            Assert.Equal(1, MinDeltaIndex(pfi, m => m.MacroAccuracy.Mean));
             Assert.Equal(3, MaxDeltaIndex(pfi, m => m.LogLossReduction.Mean));
             Assert.Equal(1, MinDeltaIndex(pfi, m => m.LogLossReduction.Mean));
 
@@ -253,7 +252,7 @@ namespace Microsoft.ML.Tests
             //  Because they are _negative_, the difference will be positive for worse classifiers.
             Assert.Equal(1, MaxDeltaIndex(pfi, m => m.LogLoss.Mean));
             Assert.Equal(3, MinDeltaIndex(pfi, m => m.LogLoss.Mean));
-            for (int i = 0; i < pfi[0].PerClassLogLoss.Length; i++)
+            for (int i = 0; i < pfi[0].PerClassLogLoss.Count; i++)
             {
                 Assert.True(MaxDeltaIndex(pfi, m => m.PerClassLogLoss[i].Mean) == 1);
                 Assert.True(MinDeltaIndex(pfi, m => m.PerClassLogLoss[i].Mean) == 3);
@@ -269,8 +268,9 @@ namespace Microsoft.ML.Tests
         public void TestPfiMulticlassClassificationOnSparseFeatures()
         {
             var data = GetSparseDataset(TaskType.MulticlassClassification);
-            var model = ML.MulticlassClassification.Trainers.LogisticRegression(
-                new MulticlassLogisticRegression.Options { MaxIterations = 1000 }).Fit(data);
+            var model = ML.MulticlassClassification.Trainers.LbfgsMaximumEntropy(
+                new LbfgsMaximumEntropyTrainer.Options { MaximumNumberOfIterations = 1000 }).Fit(data);
+
             var pfi = ML.MulticlassClassification.PermutationFeatureImportance(model, data);
 
             // Pfi Indices:
@@ -282,10 +282,10 @@ namespace Microsoft.ML.Tests
             // X3Important: 5 // Most important
 
             // For the following metrics higher is better, so minimum delta means more important feature, and vice versa
-            Assert.Equal(2, MaxDeltaIndex(pfi, m => m.AccuracyMicro.Mean));
-            Assert.Equal(5, MinDeltaIndex(pfi, m => m.AccuracyMicro.Mean));
-            Assert.Equal(2, MaxDeltaIndex(pfi, m => m.AccuracyMacro.Mean));
-            Assert.Equal(5, MinDeltaIndex(pfi, m => m.AccuracyMacro.Mean));
+            Assert.Equal(2, MaxDeltaIndex(pfi, m => m.MicroAccuracy.Mean));
+            Assert.Equal(5, MinDeltaIndex(pfi, m => m.MicroAccuracy.Mean));
+            Assert.Equal(2, MaxDeltaIndex(pfi, m => m.MacroAccuracy.Mean));
+            Assert.Equal(5, MinDeltaIndex(pfi, m => m.MacroAccuracy.Mean));
             Assert.Equal(2, MaxDeltaIndex(pfi, m => m.LogLossReduction.Mean));
             Assert.Equal(5, MinDeltaIndex(pfi, m => m.LogLossReduction.Mean));
 
@@ -293,7 +293,7 @@ namespace Microsoft.ML.Tests
             //  Because they are negative metrics, the _difference_ will be positive for worse classifiers.
             Assert.Equal(5, MaxDeltaIndex(pfi, m => m.LogLoss.Mean));
             Assert.Equal(2, MinDeltaIndex(pfi, m => m.LogLoss.Mean));
-            for (int i = 0; i < pfi[0].PerClassLogLoss.Length; i++)
+            for (int i = 0; i < pfi[0].PerClassLogLoss.Count; i++)
             {
                 Assert.Equal(5, MaxDeltaIndex(pfi, m => m.PerClassLogLoss[i].Mean));
                 Assert.Equal(2, MinDeltaIndex(pfi, m => m.PerClassLogLoss[i].Mean));
@@ -321,15 +321,15 @@ namespace Microsoft.ML.Tests
             // X4Rand: 3
 
             // For the following metrics higher is better, so minimum delta means more important feature, and vice versa
-            for (int i = 0; i < pfi[0].Dcg.Length; i++)
+            for (int i = 0; i < pfi[0].DiscountedCumulativeGains.Count; i++)
             {
-                Assert.Equal(0, MaxDeltaIndex(pfi, m => m.Dcg[i].Mean));
-                Assert.Equal(1, MinDeltaIndex(pfi, m => m.Dcg[i].Mean));
+                Assert.Equal(0, MaxDeltaIndex(pfi, m => m.DiscountedCumulativeGains[i].Mean));
+                Assert.Equal(1, MinDeltaIndex(pfi, m => m.DiscountedCumulativeGains[i].Mean));
             }
-            for (int i = 0; i < pfi[0].Ndcg.Length; i++)
+            for (int i = 0; i < pfi[0].NormalizedDiscountedCumulativeGains.Count; i++)
             {
-                Assert.Equal(0, MaxDeltaIndex(pfi, m => m.Ndcg[i].Mean));
-                Assert.Equal(1, MinDeltaIndex(pfi, m => m.Ndcg[i].Mean));
+                Assert.Equal(0, MaxDeltaIndex(pfi, m => m.NormalizedDiscountedCumulativeGains[i].Mean));
+                Assert.Equal(1, MinDeltaIndex(pfi, m => m.NormalizedDiscountedCumulativeGains[i].Mean));
             }
 
             Done();
@@ -354,15 +354,15 @@ namespace Microsoft.ML.Tests
             // X3Important: 5 // Most important
 
             // For the following metrics higher is better, so minimum delta means more important feature, and vice versa
-            for (int i = 0; i < pfi[0].Dcg.Length; i++)
+            for (int i = 0; i < pfi[0].DiscountedCumulativeGains.Count; i++)
             {
-                Assert.Equal(2, MaxDeltaIndex(pfi, m => m.Dcg[i].Mean));
-                Assert.Equal(5, MinDeltaIndex(pfi, m => m.Dcg[i].Mean));
+                Assert.Equal(2, MaxDeltaIndex(pfi, m => m.DiscountedCumulativeGains[i].Mean));
+                Assert.Equal(5, MinDeltaIndex(pfi, m => m.DiscountedCumulativeGains[i].Mean));
             }
-            for (int i = 0; i < pfi[0].Ndcg.Length; i++)
+            for (int i = 0; i < pfi[0].NormalizedDiscountedCumulativeGains.Count; i++)
             {
-                Assert.Equal(2, MaxDeltaIndex(pfi, m => m.Ndcg[i].Mean));
-                Assert.Equal(5, MinDeltaIndex(pfi, m => m.Ndcg[i].Mean));
+                Assert.Equal(2, MaxDeltaIndex(pfi, m => m.NormalizedDiscountedCumulativeGains[i].Mean));
+                Assert.Equal(5, MinDeltaIndex(pfi, m => m.NormalizedDiscountedCumulativeGains[i].Mean));
             }
 
             Done();
@@ -403,7 +403,7 @@ namespace Microsoft.ML.Tests
             }
 
             // If binary classification, modify the labels
-            if (task == TaskType.BinaryClassification || 
+            if (task == TaskType.BinaryClassification ||
                 task == TaskType.MulticlassClassification)
                 GetBinaryClassificationLabels(yArray);
             else if (task == TaskType.Ranking)
@@ -422,9 +422,13 @@ namespace Microsoft.ML.Tests
 
             var pipeline = ML.Transforms.Concatenate("Features", "X1", "X2Important", "X3", "X4Rand")
                 .Append(ML.Transforms.Normalize("Features"));
-
-            // Create a keytype for Ranking
-            if (task == TaskType.Ranking)
+            if (task == TaskType.BinaryClassification)
+                return pipeline.Append(ML.Transforms.Conversion.ConvertType("Label", outputKind: DataKind.Boolean))
+                    .Fit(srcDV).Transform(srcDV);
+            else if (task == TaskType.MulticlassClassification)
+                return pipeline.Append(ML.Transforms.Conversion.MapValueToKey("Label"))
+                    .Fit(srcDV).Transform(srcDV);
+            else if (task == TaskType.Ranking)
                 return pipeline.Append(ML.Transforms.Conversion.MapValueToKey("GroupId"))
                     .Fit(srcDV).Transform(srcDV);
 
@@ -498,9 +502,17 @@ namespace Microsoft.ML.Tests
 
             var pipeline = ML.Transforms.Concatenate("Features", "X1", "X2VBuffer", "X3Important")
                 .Append(ML.Transforms.Normalize("Features"));
-
-            // Create a keytype for Ranking
-            if (task == TaskType.Ranking)
+            if (task == TaskType.BinaryClassification)
+            {
+                return pipeline.Append(ML.Transforms.Conversion.ConvertType("Label", outputKind: DataKind.Boolean))
+                    .Fit(srcDV).Transform(srcDV);
+            }
+            else if (task == TaskType.MulticlassClassification)
+            {
+                return pipeline.Append(ML.Transforms.Conversion.MapValueToKey("Label"))
+                    .Fit(srcDV).Transform(srcDV);
+            }
+            else if (task == TaskType.Ranking)
                 return pipeline.Append(ML.Transforms.Conversion.MapValueToKey("GroupId"))
                     .Fit(srcDV).Transform(srcDV);
 

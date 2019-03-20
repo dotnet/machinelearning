@@ -4,10 +4,9 @@
 
 using System.IO;
 using Microsoft.ML.Data;
-using Microsoft.ML.ImageAnalytics;
+using Microsoft.ML.Transforms.Image;
 using Microsoft.ML.TestFramework.Attributes;
 using Microsoft.ML.Transforms;
-using Microsoft.ML.Transforms.Conversions;
 using Xunit;
 
 namespace Microsoft.ML.Scenarios
@@ -23,33 +22,33 @@ namespace Microsoft.ML.Scenarios
             var dataFile = GetDataPath("images/images.tsv");
             var imageFolder = Path.GetDirectoryName(dataFile);
 
-            var mlContext = new MLContext(seed: 1, conc: 1);
+            var mlContext = new MLContext(seed: 1);
             var data = TextLoader.Create(mlContext, new TextLoader.Options()
             {
                 Columns = new[]
                     {
-                        new TextLoader.Column("ImagePath", DataKind.TX, 0),
-                        new TextLoader.Column("Label", DataKind.TX, 1),
+                        new TextLoader.Column("ImagePath", DataKind.String, 0),
+                        new TextLoader.Column("Label", DataKind.String, 1),
                     }
             }, new MultiFileSource(dataFile));
 
             var pipeEstimator = new ImageLoadingEstimator(mlContext, imageFolder, ("ImageReal", "ImagePath"))
                     .Append(new ImageResizingEstimator(mlContext, "ImageCropped", imageHeight, imageWidth, "ImageReal"))
-                    .Append(new ImagePixelExtractingEstimator(mlContext, "Input", "ImageCropped", interleave: true))
-                    .Append(mlContext.Transforms.ScoreTensorFlowModel(model_location, "Output", "Input"))
+                    .Append(new ImagePixelExtractingEstimator(mlContext, "Input", "ImageCropped", interleavePixelColors: true))
+                    .Append(mlContext.Model.LoadTensorFlowModel(model_location).ScoreTensorFlowModel("Output", "Input"))
                     .Append(new ColumnConcatenatingEstimator(mlContext, "Features", "Output"))
                     .Append(new ValueToKeyMappingEstimator(mlContext, "Label"))
                     .AppendCacheCheckpoint(mlContext)
-                    .Append(mlContext.MulticlassClassification.Trainers.StochasticDualCoordinateAscent());
+                    .Append(mlContext.MulticlassClassification.Trainers.SdcaCalibrated());
 
 
             var transformer = pipeEstimator.Fit(data);
             var predictions = transformer.Transform(data);
 
             var metrics = mlContext.MulticlassClassification.Evaluate(predictions);
-            Assert.Equal(1, metrics.AccuracyMicro, 2);
+            Assert.Equal(1, metrics.MicroAccuracy, 2);
 
-            var predictFunction = transformer.CreatePredictionEngine<CifarData, CifarPrediction>(mlContext);
+            var predictFunction = mlContext.Model.CreatePredictionEngine<CifarData, CifarPrediction>(transformer);
             var prediction = predictFunction.Predict(new CifarData()
             {
                 ImagePath = GetDataPath("images/banana.jpg")

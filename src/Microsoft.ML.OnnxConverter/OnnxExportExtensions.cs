@@ -5,9 +5,9 @@
 using System.Collections.Generic;
 using System.IO;
 using Google.Protobuf;
-using Microsoft.Data.DataView;
+using Microsoft.ML.Data;
 using Microsoft.ML.Model.OnnxConverter;
-using static Microsoft.ML.UniversalModelFormat.Onnx.OnnxCSharpToProtoWrapper;
+using static Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper;
 
 namespace Microsoft.ML
 {
@@ -24,7 +24,7 @@ namespace Microsoft.ML
         [BestFriend]
         internal static ModelProto ConvertToOnnxProtobuf(this ModelOperationsCatalog catalog, ITransformer transform, IDataView inputData)
         {
-            var env = catalog.Environment;
+            var env = catalog.GetEnvironment();
             var ctx = new OnnxContextImpl(env, "model", "ML.NET", "0", 0, "machinelearning.dotnet", OnnxVersion.Stable);
             var outputData = transform.Transform(inputData);
             LinkedList<ITransformCanSaveOnnx> transforms = null;

@@ -6,8 +6,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using Microsoft.Data.DataView;
 using Microsoft.ML.Data;
+using Microsoft.ML.Runtime;
 
 namespace Microsoft.ML.EntryPoints
 {
@@ -650,7 +650,8 @@ namespace Microsoft.ML.EntryPoints
     /// <summary>
     /// The untyped base class for 'maybe'.
     /// </summary>
-    public abstract class Optional
+    [BestFriend]
+    internal abstract class Optional
     {
         /// <summary>
         /// Whether the value was set 'explicitly', or 'implicitly'.
@@ -674,7 +675,8 @@ namespace Microsoft.ML.EntryPoints
     /// the weight column to be 'Weight', we need to actually enforce the presence of the column.
     /// </summary>
     /// <typeparam name="T">The type of the value</typeparam>
-    public sealed class Optional<T> : Optional
+    [BestFriend]
+    internal sealed class Optional<T> : Optional
     {
         public readonly T Value;
 

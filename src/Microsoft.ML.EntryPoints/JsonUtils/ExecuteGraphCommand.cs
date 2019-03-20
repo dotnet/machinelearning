@@ -4,21 +4,21 @@
 
 using System.IO;
 using System.Linq;
-using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.Command;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
 using Microsoft.ML.Data.IO;
-using Microsoft.ML.EntryPoints.JsonUtils;
+using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Runtime;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
 [assembly: LoadableClass(typeof(ExecuteGraphCommand), typeof(ExecuteGraphCommand.Arguments), typeof(SignatureCommand),
     "", "ExecGraph")]
 
-namespace Microsoft.ML.EntryPoints.JsonUtils
+namespace Microsoft.ML.EntryPoints
 {
     internal sealed class ExecuteGraphCommand : ICommand
     {

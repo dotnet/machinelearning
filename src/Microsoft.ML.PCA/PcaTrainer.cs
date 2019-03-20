@@ -5,7 +5,6 @@
 using System;
 using System.IO;
 using System.Linq;
-using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
@@ -15,8 +14,8 @@ using Microsoft.ML.Internal.Internallearn;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Model;
 using Microsoft.ML.Numeric;
-using Microsoft.ML.Trainers.PCA;
-using Microsoft.ML.Training;
+using Microsoft.ML.Runtime;
+using Microsoft.ML.Trainers;
 
 [assembly: LoadableClass(RandomizedPcaTrainer.Summary, typeof(RandomizedPcaTrainer), typeof(RandomizedPcaTrainer.Options),
     new[] { typeof(SignatureAnomalyDetectorTrainer), typeof(SignatureTrainer) },
@@ -29,8 +28,8 @@ using Microsoft.ML.Training;
 
 [assembly: LoadableClass(typeof(void), typeof(RandomizedPcaTrainer), null, typeof(SignatureEntryPointModule), RandomizedPcaTrainer.LoadNameValue)]
 
-namespace Microsoft.ML.Trainers.PCA
-    {
+namespace Microsoft.ML.Trainers
+{
     // REVIEW: make RFF transformer an option here.
 
     /// <summary>
@@ -48,7 +47,7 @@ namespace Microsoft.ML.Trainers.PCA
         internal const string Summary = "This algorithm trains an approximate PCA using Randomized SVD algorithm. "
             + "This PCA can be made into Kernel PCA by using Random Fourier Features transform.";
 
-        public sealed class Options : UnsupervisedLearnerInputBaseWithWeight
+        public sealed class Options : UnsupervisedTrainerInputBaseWithWeight
         {
             [Argument(ArgumentType.AtMostOnce, HelpText = "The number of components in the PCA", ShortName = "k", SortOrder = 50)]
             [TGUI(SuggestedSweeps = "10,20,40,80")]
@@ -60,9 +59,9 @@ namespace Microsoft.ML.Trainers.PCA
             [TlcModule.SweepableDiscreteParam("Oversampling", new object[] { 10, 20, 40 })]
             public int Oversampling = Defaults.OversamplingParameters;
 
-            [Argument(ArgumentType.AtMostOnce, HelpText = "If enabled, data is centered to be zero mean", ShortName = "center")]
+            [Argument(ArgumentType.AtMostOnce, HelpText = "If enabled, data is centered to be zero mean", Name ="Center", ShortName = "center")]
             [TlcModule.SweepableDiscreteParam("Center", null, isBool: true)]
-            public bool Center = Defaults.IsCenteredZeroMean;
+            public bool EnsureZeroMean = Defaults.EnsureZeroMean;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "The seed for random number generation", ShortName = "seed")]
             public int? Seed;
@@ -71,13 +70,13 @@ namespace Microsoft.ML.Trainers.PCA
             {
                 public const int NumComponents = 20;
                 public const int OversamplingParameters = 20;
-                public const bool IsCenteredZeroMean = true;
+                public const bool EnsureZeroMean = true;
             }
         }
 
         private readonly int _rank;
         private readonly int _oversampling;
-        private readonly bool _center;
+        private readonly bool _ensureZeroMean;
         private readonly int _seed;
         private readonly string _featureColumn;
 
@@ -91,51 +90,49 @@ namespace Microsoft.ML.Trainers.PCA
         /// Initializes a new instance of <see cref="RandomizedPcaTrainer"/>.
         /// </summary>
         /// <param name="env">The local instance of the <see cref="IHostEnvironment"/>.</param>
-        /// <param name="features">The name of the feature column.</param>
-        /// <param name="weights">The name of the weight column.</param>
+        /// <param name="featureColumnName">The name of the feature column.</param>
+        /// <param name="exampleWeightColumnName">The name of the weight column.</param>
         /// <param name="rank">The number of components in the PCA.</param>
         /// <param name="oversampling">Oversampling parameter for randomized PCA training.</param>
-        /// <param name="center">If enabled, data is centered to be zero mean.</param>
+        /// <param name="ensureZeroMean">If enabled, data is centered to be zero mean.</param>
         /// <param name="seed">The seed for random number generation.</param>
         internal RandomizedPcaTrainer(IHostEnvironment env,
-            string features,
-            string weights = null,
+            string featureColumnName,
+            string exampleWeightColumnName = null,
             int rank = Options.Defaults.NumComponents,
             int oversampling = Options.Defaults.OversamplingParameters,
-            bool center = Options.Defaults.IsCenteredZeroMean,
+            bool ensureZeroMean = Options.Defaults.EnsureZeroMean,
             int? seed = null)
-            : this(env, null, features, weights, rank, oversampling, center, seed)
+            : this(env, null, featureColumnName, exampleWeightColumnName, rank, oversampling, ensureZeroMean, seed)
         {
-
         }
 
         internal RandomizedPcaTrainer(IHostEnvironment env, Options options)
-            :this(env, options, options.FeatureColumn, options.WeightColumn)
+            : this(env, options, options.FeatureColumnName, options.ExampleWeightColumnName)
         {
-
         }
 
-        private RandomizedPcaTrainer(IHostEnvironment env, Options options, string featureColumn, string weightColumn,
+        private RandomizedPcaTrainer(IHostEnvironment env, Options options, string featureColumnName, string exampleWeightColumnName,
             int rank = 20, int oversampling = 20, bool center = true, int? seed = null)
-            : base(Contracts.CheckRef(env, nameof(env)).Register(LoadNameValue), TrainerUtils.MakeR4VecFeature(featureColumn), default, TrainerUtils.MakeR4ScalarWeightColumn(weightColumn))
+            : base(Contracts.CheckRef(env, nameof(env)).Register(LoadNameValue), TrainerUtils.MakeR4VecFeature(featureColumnName), default, TrainerUtils.MakeR4ScalarWeightColumn(exampleWeightColumnName))
         {
             // if the args are not null, we got here from maml, and the internal ctor.
             if (options != null)
             {
                 _rank = options.Rank;
-                _center = options.Center;
+                _ensureZeroMean = options.EnsureZeroMean;
                 _oversampling = options.Oversampling;
                 _seed = options.Seed ?? Host.Rand.Next();
             }
             else
             {
                 _rank = rank;
-                _center = center;
+                _ensureZeroMean = center;
                 _oversampling = oversampling;
                 _seed = seed ?? Host.Rand.Next();
             }
 
-            _featureColumn = featureColumn;
+            _featureColumn = featureColumnName;
 
             Host.CheckUserArg(_rank > 0, nameof(_rank), "Rank must be positive");
             Host.CheckUserArg(_oversampling >= 0, nameof(_oversampling), "Oversampling must be non-negative");
@@ -182,7 +179,7 @@ namespace Microsoft.ML.Trainers.PCA
                 ch.Info("Estimate memory usage: {0:G2} GB. If running out of memory, reduce rank and oversampling factor.", memoryUsageEstimate);
 
             var y = Zeros(oversampledRank, dimension);
-            var mean = _center ? VBufferUtils.CreateDense<float>(dimension) : VBufferUtils.CreateEmpty<float>(dimension);
+            var mean = _ensureZeroMean ? VBufferUtils.CreateDense<float>(dimension) : VBufferUtils.CreateEmpty<float>(dimension);
 
             var omega = GaussianMatrix(oversampledRank, dimension, _seed);
 
@@ -330,19 +327,19 @@ namespace Microsoft.ML.Trainers.PCA
 
         private protected override SchemaShape.Column[] GetOutputColumnsCore(SchemaShape inputSchema)
         {
-             return new[]
-            {
+            return new[]
+           {
                 new SchemaShape.Column(DefaultColumnNames.Score,
                         SchemaShape.Column.VectorKind.Scalar,
                         NumberDataViewType.Single,
                         false,
-                        new SchemaShape(MetadataUtils.GetTrainerOutputMetadata())),
+                        new SchemaShape(AnnotationUtils.GetTrainerOutputAnnotation())),
 
                 new SchemaShape.Column(DefaultColumnNames.PredictedLabel,
                         SchemaShape.Column.VectorKind.Scalar,
                         BooleanDataViewType.Instance,
                         false,
-                        new SchemaShape(MetadataUtils.GetTrainerOutputMetadata()))
+                        new SchemaShape(AnnotationUtils.GetTrainerOutputAnnotation()))
             };
         }
 
@@ -360,9 +357,9 @@ namespace Microsoft.ML.Trainers.PCA
             host.CheckValue(input, nameof(input));
             EntryPointUtils.CheckInputArgs(host, input);
 
-            return LearnerEntryPointsUtils.Train<Options, CommonOutputs.AnomalyDetectionOutput>(host, input,
+            return TrainerEntryPointsUtils.Train<Options, CommonOutputs.AnomalyDetectionOutput>(host, input,
                 () => new RandomizedPcaTrainer(host, input),
-                getWeight: () => LearnerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.WeightColumn));
+                getWeight: () => TrainerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.ExampleWeightColumnName));
         }
     }
 
@@ -411,7 +408,7 @@ namespace Microsoft.ML.Trainers.PCA
         /// <param name="rank">The rank of the PCA approximation of the covariance matrix. This is the number of eigenvectors in the model.</param>
         /// <param name="eigenVectors">Array of eigenvectors.</param>
         /// <param name="mean">The mean vector of the training data.</param>
-        public PcaModelParameters(IHostEnvironment env, int rank, float[][] eigenVectors, in VBuffer<float> mean)
+        internal PcaModelParameters(IHostEnvironment env, int rank, float[][] eigenVectors, in VBuffer<float> mean)
             : base(env, RegistrationName)
         {
             _dimension = eigenVectors[0].Length;

@@ -2,13 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using Microsoft.Data.DataView;
+using Microsoft.ML.Runtime;
 
-namespace Microsoft.ML.Data.Evaluators.Metrics
+namespace Microsoft.ML.Data
 {
     /// <summary>
-    /// Evaluation results for anomaly detection.
+    /// Evaluation results for anomaly detection(unsupervised learning algorithm).
     /// </summary>
     public sealed class AnomalyDetectionMetrics
     {
@@ -20,7 +19,7 @@ namespace Microsoft.ML.Data.Evaluators.Metrics
         /// a randomly chosen positive instance higher than a randomly chosen negative one
         /// (assuming 'positive' ranks higher than 'negative').
         /// </remarks>
-        public double Auc { get; }
+        public double AreaUnderRocCurve { get; }
 
         /// <summary>
         /// Detection rate at K false positives.
@@ -34,13 +33,13 @@ namespace Microsoft.ML.Data.Evaluators.Metrics
         ///  Predicted Anomalies     :         TP                |           FP
         ///  Predicted Non-Anomalies :         FN                |           TN
         ///  </remarks>
-        public double DrAtK { get; }
+        public double DetectionRateAtKFalsePositives { get; }
 
         internal AnomalyDetectionMetrics(IExceptionContext ectx, DataViewRow overallResult)
         {
             double FetchDouble(string name) => RowCursorUtils.Fetch<double>(ectx, overallResult, name);
-            Auc = FetchDouble(BinaryClassifierEvaluator.Auc);
-            DrAtK = FetchDouble(AnomalyDetectionEvaluator.OverallMetrics.DrAtK);
+            AreaUnderRocCurve = FetchDouble(BinaryClassifierEvaluator.Auc);
+            DetectionRateAtKFalsePositives = FetchDouble(AnomalyDetectionEvaluator.OverallMetrics.DrAtK);
         }
     }
 }

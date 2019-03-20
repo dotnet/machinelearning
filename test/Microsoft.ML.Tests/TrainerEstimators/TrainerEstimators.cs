@@ -2,12 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.Data.DataView;
 using Microsoft.ML.Data;
 using Microsoft.ML.RunTests;
-using Microsoft.ML.Trainers.KMeans;
-using Microsoft.ML.Trainers.PCA;
-using Microsoft.ML.Transforms.Conversions;
+using Microsoft.ML.Trainers;
+using Microsoft.ML.Transforms;
 using Microsoft.ML.Transforms.Text;
 using Xunit;
 using Xunit.Abstractions;
@@ -34,10 +32,11 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                 Separator = "\t",
                 Columns = new[]
                 {
-                    new TextLoader.Column(featureColumn, DataKind.R4, new [] { new TextLoader.Range(1, 784) })
-                }
+                    new TextLoader.Column(featureColumn, DataKind.Single, new [] { new TextLoader.Range(1, 784) })
+                },
+                AllowSparse = true
             });
-            var data = reader.Read(GetDataPath(TestDatasets.mnistOneClass.trainFilename));
+            var data = reader.Load(GetDataPath(TestDatasets.mnistOneClass.trainFilename));
 
 
             // Pipeline.
@@ -62,19 +61,20 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                 Separator = "\t",
                 Columns = new[]
                 {
-                    new TextLoader.Column(featureColumn, DataKind.R4, new [] { new TextLoader.Range(1, 784) }),
-                    new TextLoader.Column(weights, DataKind.R4, 0)
-                }
+                    new TextLoader.Column(featureColumn, DataKind.Single, new [] { new TextLoader.Range(1, 784) }),
+                    new TextLoader.Column(weights, DataKind.Single, 0),
+                },
+                AllowSparse = true
             });
-            var data = reader.Read(GetDataPath(TestDatasets.mnistTiny28.trainFilename));
+            var data = reader.Load(GetDataPath(TestDatasets.mnistTiny28.trainFilename));
 
 
             // Pipeline.
-            var pipeline = new KMeansPlusPlusTrainer(Env, new KMeansPlusPlusTrainer.Options
+            var pipeline = new KMeansTrainer(Env, new KMeansTrainer.Options
             {
-                FeatureColumn = featureColumn,
-                WeightColumn = weights,
-                InitAlgorithm = KMeansPlusPlusTrainer.InitAlgorithm.KMeansParallel,
+                FeatureColumnName = featureColumn,
+                ExampleWeightColumnName = weights,
+                InitializationAlgorithm = KMeansTrainer.InitializationAlgorithm.KMeansYinyang,
             });
 
             TestEstimatorCore(pipeline, data);
@@ -88,8 +88,8 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         [Fact]
         public void TestEstimatorHogwildSGD()
         {
-            var trainers = new[] { ML.BinaryClassification.Trainers.StochasticGradientDescent(l2Weight: 0, maxIterations: 80),
-                ML.BinaryClassification.Trainers.StochasticGradientDescent(new Trainers.SgdBinaryTrainer.Options(){ L2Weight = 0, MaxIterations = 80})};
+            var trainers = new[] { ML.BinaryClassification.Trainers.SgdCalibrated(l2Regularization: 0, numberOfIterations: 80),
+                ML.BinaryClassification.Trainers.SgdCalibrated(new Trainers.SgdCalibratedTrainer.Options(){ L2Regularization = 0, NumberOfIterations = 80})};
 
             foreach (var trainer in trainers)
             {
@@ -107,7 +107,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                 var metrics = ML.BinaryClassification.Evaluate(result);
 
                 Assert.InRange(metrics.Accuracy, 0.8, 1);
-                Assert.InRange(metrics.Auc, 0.9, 1);
+                Assert.InRange(metrics.AreaUnderRocCurve, 0.9, 1);
                 Assert.InRange(metrics.LogLoss, 0, 0.6);
             }
 
@@ -120,8 +120,8 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         [Fact]
         public void TestEstimatorHogwildSGDNonCalibrated()
         {
-            var trainers = new[] { ML.BinaryClassification.Trainers.StochasticGradientDescentNonCalibrated(loss : new SmoothedHingeLoss()),
-                ML.BinaryClassification.Trainers.StochasticGradientDescentNonCalibrated(new Trainers.SgdNonCalibratedBinaryTrainer.Options() { Loss = new HingeLoss() }) };
+            var trainers = new[] { ML.BinaryClassification.Trainers.SgdNonCalibrated(loss : new SmoothedHingeLoss()),
+                ML.BinaryClassification.Trainers.SgdNonCalibrated(new Trainers.SgdNonCalibratedTrainer.Options() { Loss = new HingeLoss() }) };
 
             foreach (var trainer in trainers)
             {
@@ -138,19 +138,19 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                 var metrics = ML.BinaryClassification.EvaluateNonCalibrated(result);
 
                 Assert.InRange(metrics.Accuracy, 0.7, 1);
-                Assert.InRange(metrics.Auc, 0.9, 1);
+                Assert.InRange(metrics.AreaUnderRocCurve, 0.9, 1);
             }
 
             Done();
         }
 
         /// <summary>
-        /// MultiClassNaiveBayes TrainerEstimator test 
+        /// MulticlassNaiveBayes TrainerEstimator test 
         /// </summary>
         [Fact]
-        public void TestEstimatorMultiClassNaiveBayesTrainer()
+        public void TestEstimatorMulticlassNaiveBayesTrainer()
         {
-            (IEstimator<ITransformer> pipe, IDataView dataView) = GetMultiClassPipeline();
+            (IEstimator<ITransformer> pipe, IDataView dataView) = GetMulticlassPipeline();
             pipe = pipe.Append(ML.MulticlassClassification.Trainers.NaiveBayes("Label", "Features"));
             TestEstimatorCore(pipe, dataView);
             Done();
@@ -161,14 +161,15 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             var data = new TextLoader(Env,
                     new TextLoader.Options()
                     {
+                        AllowQuoting = true,
                         Separator = "\t",
                         HasHeader = true,
                         Columns = new[]
                         {
-                            new TextLoader.Column("Label", DataKind.BL, 0),
-                            new TextLoader.Column("SentimentText", DataKind.Text, 1)
+                            new TextLoader.Column("Label", DataKind.Boolean, 0),
+                            new TextLoader.Column("SentimentText", DataKind.String, 1)
                         }
-                    }).Read(GetDataPath(TestDatasets.Sentiment.trainFilename));
+                    }).Load(GetDataPath(TestDatasets.Sentiment.trainFilename));
 
             // Pipeline.
             var pipeline = new TextFeaturizingEstimator(Env, "Features", "SentimentText");
@@ -185,16 +186,16 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                 Separator = "\t",
                 Columns = new[]
                      {
-                        new TextLoader.Column("Label", DataKind.R4, 0),
-                        new TextLoader.Column("Workclass", DataKind.Text, 1),
-                        new TextLoader.Column("NumericFeatures", DataKind.R4, new [] { new TextLoader.Range(9, 14) })
+                        new TextLoader.Column("Label", DataKind.Single, 0),
+                        new TextLoader.Column("Workclass", DataKind.String, 1),
+                        new TextLoader.Column("NumericFeatures", DataKind.Single, new [] { new TextLoader.Range(9, 14) })
                     }
-            }).Read(GetDataPath(TestDatasets.adultRanking.trainFilename));
+            }).Load(GetDataPath(TestDatasets.adultRanking.trainFilename));
 
             // Pipeline.
             var pipeline = new ValueToKeyMappingEstimator(Env, new[]{
-                                    new ValueToKeyMappingEstimator.ColumnInfo("Group", "Workclass"),
-                                    new ValueToKeyMappingEstimator.ColumnInfo("Label0", "Label") });
+                                    new ValueToKeyMappingEstimator.ColumnOptions("Group", "Workclass"),
+                                    new ValueToKeyMappingEstimator.ColumnOptions("Label0", "Label") });
 
             return (pipeline, data);
         }
@@ -208,10 +209,10 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                         HasHeader = true,
                         Columns = new[]
                         {
-                            new TextLoader.Column("Label", DataKind.R4, 11),
-                            new TextLoader.Column("Features", DataKind.R4, new [] { new TextLoader.Range(0, 10) } )
+                            new TextLoader.Column("Label", DataKind.Single, 11),
+                            new TextLoader.Column("Features", DataKind.Single, new [] { new TextLoader.Range(0, 10) } )
                         }
-                    }).Read(GetDataPath(TestDatasets.generatedRegressionDatasetmacro.trainFilename));
+                    }).Load(GetDataPath(TestDatasets.generatedRegressionDatasetmacro.trainFilename));
         }
 
         private TextLoader.Options GetIrisLoaderArgs()
@@ -222,23 +223,23 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                 HasHeader = true,
                 Columns = new[]
                         {
-                            new TextLoader.Column("Features", DataKind.R4, new [] { new TextLoader.Range(0, 3) }),
-                            new TextLoader.Column("Label", DataKind.Text, 4)
+                            new TextLoader.Column("Features", DataKind.Single, new [] { new TextLoader.Range(0, 3) }),
+                            new TextLoader.Column("Label", DataKind.String, 4)
                         }
             };
         }
 
-        private (IEstimator<ITransformer>, IDataView) GetMultiClassPipeline()
+        private (IEstimator<ITransformer>, IDataView) GetMulticlassPipeline()
         {
             var data = new TextLoader(Env, new TextLoader.Options()
             {
                 Separator = "comma",
                 Columns = new[]
                         {
-                            new TextLoader.Column("Features", DataKind.R4, new [] { new TextLoader.Range(0, 3) }),
-                            new TextLoader.Column("Label", DataKind.Text, 4)
+                            new TextLoader.Column("Features", DataKind.Single, new [] { new TextLoader.Range(0, 3) }),
+                            new TextLoader.Column("Label", DataKind.String, 4)
                         }
-            }).Read(GetDataPath(IrisDataPath));
+            }).Load(GetDataPath(IrisDataPath));
 
             var pipeline = new ValueToKeyMappingEstimator(Env, "Label");
 

@@ -5,10 +5,9 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Microsoft.Data.DataView;
 using Microsoft.ML;
+using Microsoft.ML.Runtime;
 using Microsoft.ML.StaticPipe;
-using Microsoft.ML.StaticPipe.Runtime;
 
 // Holds some classes that superficially represent classes, at least sufficiently to give the idea of the
 // statically typed columnar estimator helper API. As more "real" examples of the static functions get
@@ -197,15 +196,15 @@ namespace FakeStaticPipes
 
         public static Key<uint> Hash<T>(this Scalar<T> me)
             => _rec.Key<uint>(me);
-        public static Key<uint, string> Hash<T>(this Scalar<T> me, int invertHashTokens)
+        public static Key<uint, string> Hash<T>(this Scalar<T> me, int maximumNumberOfInvertsTokens)
             => _rec.Key<uint, string>(me);
         public static Vector<Key<uint>> Hash<T>(this Vector<T> me)
             => _rec.Vector<Key<uint>>(me);
-        public static Vector<Key<uint, string>> Hash<T>(this Vector<T> me, int invertHashTokens)
+        public static Vector<Key<uint, string>> Hash<T>(this Vector<T> me, int maximumNumberOfInvertsTokens)
             => _rec.Vector<Key<uint, string>>(me);
         public static VarVector<Key<uint>> Hash<T>(this VarVector<T> me)
             => _rec.VarVector<Key<uint>>(me);
-        public static VarVector<Key<uint, string>> Hash<T>(this VarVector<T> me, int invertHashTokens)
+        public static VarVector<Key<uint, string>> Hash<T>(this VarVector<T> me, int maximumNumberOfInvertsTokens)
             => _rec.VarVector<Key<uint, string>>(me);
     }
 }

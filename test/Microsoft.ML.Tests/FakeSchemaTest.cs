@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.Data.DataView;
 using Microsoft.ML.Data;
 using Microsoft.ML.Data.DataLoadSave;
 using Microsoft.ML.TestFramework;
@@ -21,14 +20,14 @@ namespace Microsoft.ML.Tests
         [Fact]
         void SimpleTest()
         {
-            var metadataBuilder = new MetadataBuilder();
+            var metadataBuilder = new DataViewSchema.Annotations.Builder();
             metadataBuilder.Add("M", NumberDataViewType.Single, (ref float v) => v = 484f);
-            var schemaBuilder = new SchemaBuilder();
+            var schemaBuilder = new DataViewSchema.Builder();
             schemaBuilder.AddColumn("A", new VectorType(NumberDataViewType.Single, 94));
             schemaBuilder.AddColumn("B", new KeyType(typeof(uint), 17));
-            schemaBuilder.AddColumn("C", NumberDataViewType.Int32, metadataBuilder.GetMetadata());
+            schemaBuilder.AddColumn("C", NumberDataViewType.Int32, metadataBuilder.ToAnnotations());
 
-            var shape = SchemaShape.Create(schemaBuilder.GetSchema());
+            var shape = SchemaShape.Create(schemaBuilder.ToSchema());
 
             var fakeSchema = FakeSchemaFactory.Create(shape);
 
@@ -41,13 +40,13 @@ namespace Microsoft.ML.Tests
             Assert.Equal(10, columnA.Type.GetValueCount());
 
             Assert.Equal("B", columnB.Name);
-            Assert.Equal(DataKind.U4, columnB.Type.GetRawKind());
+            Assert.Equal(InternalDataKind.U4, columnB.Type.GetRawKind());
             Assert.Equal(10u, columnB.Type.GetKeyCount());
 
             Assert.Equal("C", columnC.Name);
             Assert.Equal(NumberDataViewType.Int32, columnC.Type);
 
-            var metaC = columnC.Metadata;
+            var metaC = columnC.Annotations;
             Assert.Single(metaC.Schema);
 
             float mValue = -1;

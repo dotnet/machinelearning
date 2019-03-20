@@ -6,13 +6,13 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
 using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Internal.Utilities;
-using Microsoft.ML.Transforms.Conversions;
+using Microsoft.ML.Runtime;
+using Microsoft.ML.Transforms;
 
 [assembly: LoadableClass(typeof(void), typeof(FeatureCombiner), null, typeof(SignatureEntryPointModule), "FeatureCombiner")]
 
@@ -58,7 +58,7 @@ namespace Microsoft.ML.EntryPoints
                     throw ch.Except("No feature columns specified");
                 var featNames = new HashSet<string>();
                 var concatNames = new List<KeyValuePair<string, string>>();
-                List<TypeConvertingEstimator.ColumnInfo> cvt;
+                List<TypeConvertingEstimator.ColumnOptions> cvt;
                 int errCount;
                 var ktv = ConvertFeatures(feats.ToArray(), featNames, concatNames, ch, out cvt, out errCount);
                 Contracts.Assert(featNames.Count > 0);
@@ -84,7 +84,7 @@ namespace Microsoft.ML.EntryPoints
             }
         }
 
-        private static IDataView ApplyKeyToVec(List<KeyToVectorMappingEstimator.ColumnInfo> ktv, IDataView viewTrain, IHost host)
+        private static IDataView ApplyKeyToVec(List<KeyToVectorMappingEstimator.ColumnOptions> ktv, IDataView viewTrain, IHost host)
         {
             Contracts.AssertValueOrNull(ktv);
             Contracts.AssertValue(viewTrain);
@@ -107,7 +107,7 @@ namespace Microsoft.ML.EntryPoints
                         TextKeyValues = true
                     },
                      viewTrain);
-                viewTrain = new KeyToVectorMappingTransformer(host, ktv.Select(c => new KeyToVectorMappingEstimator.ColumnInfo(c.Name, c.Name)).ToArray()).Transform(viewTrain);
+                viewTrain = new KeyToVectorMappingTransformer(host, ktv.Select(c => new KeyToVectorMappingEstimator.ColumnOptions(c.Name, c.Name)).ToArray()).Transform(viewTrain);
             }
             return viewTrain;
         }
@@ -120,7 +120,7 @@ namespace Microsoft.ML.EntryPoints
             var col = schema.GetColumnOrNull(colName);
             if (!col.HasValue)
                 return null;
-            var type = col.Value.Metadata.Schema.GetColumnOrNull(MetadataUtils.Kinds.KeyValues)?.Type as VectorType;
+            var type = col.Value.Annotations.Schema.GetColumnOrNull(AnnotationUtils.Kinds.KeyValues)?.Type as VectorType;
             if (type == null || !type.IsKnownSize || !(type.ItemType is TextDataViewType))
                 return null;
             var metadata = default(VBuffer<ReadOnlyMemory<char>>);
@@ -139,7 +139,7 @@ namespace Microsoft.ML.EntryPoints
             return sb.ToString();
         }
 
-        private static IDataView ApplyConvert(List<TypeConvertingEstimator.ColumnInfo> cvt, IDataView viewTrain, IHostEnvironment env)
+        private static IDataView ApplyConvert(List<TypeConvertingEstimator.ColumnOptions> cvt, IDataView viewTrain, IHostEnvironment env)
         {
             Contracts.AssertValueOrNull(cvt);
             Contracts.AssertValue(viewTrain);
@@ -149,14 +149,14 @@ namespace Microsoft.ML.EntryPoints
             return viewTrain;
         }
 
-        private static List<KeyToVectorMappingEstimator.ColumnInfo> ConvertFeatures(IEnumerable<DataViewSchema.Column> feats, HashSet<string> featNames, List<KeyValuePair<string, string>> concatNames, IChannel ch,
-            out List<TypeConvertingEstimator.ColumnInfo> cvt, out int errCount)
+        private static List<KeyToVectorMappingEstimator.ColumnOptions> ConvertFeatures(IEnumerable<DataViewSchema.Column> feats, HashSet<string> featNames, List<KeyValuePair<string, string>> concatNames, IChannel ch,
+            out List<TypeConvertingEstimator.ColumnOptions> cvt, out int errCount)
         {
             Contracts.AssertValue(feats);
             Contracts.AssertValue(featNames);
             Contracts.AssertValue(concatNames);
             Contracts.AssertValue(ch);
-            List<KeyToVectorMappingEstimator.ColumnInfo> ktv = null;
+            List<KeyToVectorMappingEstimator.ColumnOptions> ktv = null;
             cvt = null;
             errCount = 0;
             foreach (var col in feats)
@@ -174,7 +174,7 @@ namespace Microsoft.ML.EntryPoints
                         {
                             var colName = GetUniqueName();
                             concatNames.Add(new KeyValuePair<string, string>(col.Name, colName));
-                            Utils.Add(ref ktv, new KeyToVectorMappingEstimator.ColumnInfo(colName, col.Name));
+                            Utils.Add(ref ktv, new KeyToVectorMappingEstimator.ColumnOptions(colName, col.Name));
                             continue;
                         }
                     }
@@ -185,7 +185,7 @@ namespace Microsoft.ML.EntryPoints
                         // This happens when the training is done on an XDF and the scoring is done on a data frame.
                         var colName = GetUniqueName();
                         concatNames.Add(new KeyValuePair<string, string>(col.Name, colName));
-                        Utils.Add(ref cvt, new TypeConvertingEstimator.ColumnInfo(colName, DataKind.R4, col.Name));
+                        Utils.Add(ref cvt, new TypeConvertingEstimator.ColumnOptions(colName, DataKind.Single, col.Name));
                         continue;
                     }
                 }
@@ -252,7 +252,7 @@ namespace Microsoft.ML.EntryPoints
                         Name = input.LabelColumn,
                         Source = input.LabelColumn,
                         TextKeyValues = input.TextKeyValues,
-                        Sort = ValueToKeyMappingEstimator.SortOrder.Value
+                        Sort = ValueToKeyMappingEstimator.KeyOrdinality.ByValue
                     }
                 }
             };
@@ -300,7 +300,7 @@ namespace Microsoft.ML.EntryPoints
                 return new CommonOutputs.TransformOutput { Model = new TransformModelImpl(env, nop, input.Data), OutputData = nop };
             }
 
-            var xf = new TypeConvertingTransformer(host, new TypeConvertingEstimator.ColumnInfo(input.LabelColumn, DataKind.R4, input.LabelColumn)).Transform(input.Data);
+            var xf = new TypeConvertingTransformer(host, new TypeConvertingEstimator.ColumnOptions(input.LabelColumn, DataKind.Single, input.LabelColumn)).Transform(input.Data);
             return new CommonOutputs.TransformOutput { Model = new TransformModelImpl(env, xf, input.Data), OutputData = xf };
         }
     }

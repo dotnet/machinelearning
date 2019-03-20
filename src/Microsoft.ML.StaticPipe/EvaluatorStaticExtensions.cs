@@ -4,7 +4,8 @@
 
 using System;
 using Microsoft.ML.Data;
-using Microsoft.ML.StaticPipe.Runtime;
+using Microsoft.ML.Runtime;
+using Microsoft.ML.Trainers;
 
 namespace Microsoft.ML.StaticPipe
 {
@@ -126,11 +127,11 @@ namespace Microsoft.ML.StaticPipe
         /// <param name="label">The index delegate for the label column.</param>
         /// <param name="pred">The index delegate for columns from the prediction of a multiclass classifier.
         /// Under typical scenarios, this will just be the same tuple of results returned from the trainer.</param>
-        /// <param name="topK">If given a positive value, the <see cref="MultiClassClassifierMetrics.TopKAccuracy"/> will be filled with
+        /// <param name="topK">If given a positive value, the <see cref="MulticlassClassificationMetrics.TopKAccuracy"/> will be filled with
         /// the top-K accuracy, that is, the accuracy assuming we consider an example with the correct class within
         /// the top-K values as being stored "correctly."</param>
         /// <returns>The evaluation metrics.</returns>
-        public static MultiClassClassifierMetrics Evaluate<T, TKey>(
+        public static MulticlassClassificationMetrics Evaluate<T, TKey>(
             this MulticlassClassificationCatalog catalog,
             DataView<T> data,
             Func<T, Key<uint, TKey>> label,
@@ -152,11 +153,11 @@ namespace Microsoft.ML.StaticPipe
             string scoreName = indexer.Get(scoreCol);
             string predName = indexer.Get(predCol);
 
-            var args = new MultiClassClassifierEvaluator.Arguments() { };
+            var args = new MulticlassClassificationEvaluator.Arguments() { };
             if (topK > 0)
                 args.OutputTopKAcc = topK;
 
-            var eval = new MultiClassClassifierEvaluator(env, args);
+            var eval = new MulticlassClassificationEvaluator(env, args);
             return eval.Evaluate(data.AsDynamic, labelName, scoreName, predName);
         }
 
@@ -211,7 +212,7 @@ namespace Microsoft.ML.StaticPipe
         /// <param name="groupId">The index delegate for the groupId column. </param>
         /// <param name="score">The index delegate for predicted score column.</param>
         /// <returns>The evaluation metrics.</returns>
-        public static RankerMetrics Evaluate<T, TVal>(
+        public static RankingMetrics Evaluate<T, TVal>(
             this RankingCatalog catalog,
             DataView<T> data,
             Func<T, Scalar<float>> label,
@@ -230,9 +231,9 @@ namespace Microsoft.ML.StaticPipe
             string scoreName = indexer.Get(score(indexer.Indices));
             string groupIdName = indexer.Get(groupId(indexer.Indices));
 
-            var args = new RankerEvaluator.Arguments() { };
+            var args = new RankingEvaluator.Arguments() { };
 
-            return new RankerEvaluator(env, args).Evaluate(data.AsDynamic, labelName, groupIdName, scoreName);
+            return new RankingEvaluator(env, args).Evaluate(data.AsDynamic, labelName, groupIdName, scoreName);
         }
     }
 }

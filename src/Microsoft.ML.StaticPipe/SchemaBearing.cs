@@ -4,7 +4,7 @@
 
 using System.Threading;
 using Microsoft.ML.Data;
-using Microsoft.ML.StaticPipe.Runtime;
+using Microsoft.ML.Runtime;
 
 namespace Microsoft.ML.StaticPipe
 {
@@ -15,7 +15,7 @@ namespace Microsoft.ML.StaticPipe
     /// <typeparam name="TShape">The shape type parameter.</typeparam>
     public abstract class SchemaBearing<TShape>
     {
-        protected internal readonly IHostEnvironment Env;
+        internal readonly IHostEnvironment Env;
         internal readonly StaticSchemaShape Shape;
 
         private StaticPipeUtils.IndexHelper<TShape> _indexer;

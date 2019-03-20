@@ -54,23 +54,23 @@ namespace Microsoft.ML.Scenarios
                 };
             }
 
-            var mlContext = new MLContext(seed: 1, conc: 1);
+            var mlContext = new MLContext(seed: 1);
 
             // Turn the data into the ML.NET data view.
-            // We can use CreateDataView or CreateStreamingDataView, depending on whether 'churnData' is an IList, 
+            // We can use CreateDataView or ReadFromEnumerable, depending on whether 'churnData' is an IList, 
             // or merely an IEnumerable.
-            var trainData = mlContext.Data.ReadFromEnumerable(data);
-            var testData = mlContext.Data.ReadFromEnumerable(clusters);
+            var trainData = mlContext.Data.LoadFromEnumerable(data);
+            var testData = mlContext.Data.LoadFromEnumerable(clusters);
 
             // Create Estimator
-            var pipe = mlContext.Clustering.Trainers.KMeans("Features", clustersCount: k);
+            var pipe = mlContext.Clustering.Trainers.KMeans("Features", numberOfClusters: k);
 
             // Train the pipeline
             var trainedModel = pipe.Fit(trainData);
 
             // Validate that initial points we pick up as centers of cluster during data generation belong to different clusters.
             var labels = new HashSet<uint>();
-            var predictFunction = trainedModel.CreatePredictionEngine<ClusteringData, ClusteringPrediction>(mlContext);
+            var predictFunction = mlContext.Model.CreatePredictionEngine<ClusteringData, ClusteringPrediction>(trainedModel);
 
             for (int i = 0; i < k; i++)
             {
@@ -84,10 +84,10 @@ namespace Microsoft.ML.Scenarios
             var metrics = mlContext.Clustering.Evaluate(predicted);
 
             //Label is not specified, so NMI would be equal to NaN
-            Assert.Equal(metrics.Nmi, double.NaN);
+            Assert.Equal(metrics.NormalizedMutualInformation, double.NaN);
             //Calculate dbi is false by default so Dbi would be 0
-            Assert.Equal(metrics.Dbi, (double)0.0);
-            Assert.Equal(metrics.AvgMinScore, (double)0.0, 5);
+            Assert.Equal(metrics.DaviesBouldinIndex, (double)0.0);
+            Assert.Equal(metrics.AverageDistance, (double)0.0, 5);
         }
     }
 }

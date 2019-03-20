@@ -5,7 +5,6 @@
 using System.Collections.Generic;
 using System.IO;
 using Google.Protobuf;
-using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.Command;
 using Microsoft.ML.CommandLine;
@@ -13,8 +12,9 @@ using Microsoft.ML.Data;
 using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Model.OnnxConverter;
+using Microsoft.ML.Runtime;
 using Newtonsoft.Json;
-using static Microsoft.ML.UniversalModelFormat.Onnx.OnnxCSharpToProtoWrapper;
+using static Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper;
 
 [assembly: LoadableClass(SaveOnnxCommand.Summary, typeof(SaveOnnxCommand), typeof(SaveOnnxCommand.Arguments), typeof(SignatureCommand),
     "Save ONNX", "SaveOnnx", DocName = "command/SaveOnnx.md")]
@@ -119,7 +119,7 @@ namespace Microsoft.ML.Model.OnnxConverter
         {
             ch.AssertValue(end);
 
-            source = trueEnd = (end as CompositeDataLoader)?.View ?? end;
+            source = trueEnd = (end as LegacyCompositeDataLoader)?.View ?? end;
             IDataTransform transform = source as IDataTransform;
             transforms = new LinkedList<ITransformCanSaveOnnx>();
             while (transform != null)
@@ -141,7 +141,7 @@ namespace Microsoft.ML.Model.OnnxConverter
         }
 
         internal static ModelProto ConvertTransformListToOnnxModel(OnnxContextImpl ctx, IChannel ch, IDataView inputData, IDataView outputData,
-            LinkedList<ITransformCanSaveOnnx> transforms, HashSet<string> inputColumnNamesToDrop=null, HashSet<string> outputColumnNamesToDrop=null)
+            LinkedList<ITransformCanSaveOnnx> transforms, HashSet<string> inputColumnNamesToDrop = null, HashSet<string> outputColumnNamesToDrop = null)
         {
             inputColumnNamesToDrop = inputColumnNamesToDrop ?? new HashSet<string>();
             outputColumnNamesToDrop = outputColumnNamesToDrop ?? new HashSet<string>();
@@ -150,7 +150,7 @@ namespace Microsoft.ML.Model.OnnxConverter
             for (int i = 0; i < inputData.Schema.Count; i++)
             {
                 string colName = inputData.Schema[i].Name;
-                if(inputColumnNamesToDrop.Contains(colName))
+                if (inputColumnNamesToDrop.Contains(colName))
                     continue;
 
                 ctx.AddInputVariable(inputData.Schema[i].Type, colName);
@@ -193,7 +193,7 @@ namespace Microsoft.ML.Model.OnnxConverter
 
         private void Run(IChannel ch)
         {
-            IDataLoader loader = null;
+            ILegacyDataLoader loader = null;
             IPredictor rawPred = null;
             IDataView view;
             RoleMappedSchema trainSchema = null;

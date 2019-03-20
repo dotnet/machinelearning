@@ -5,13 +5,12 @@
 using System;
 using System.IO;
 using System.Linq;
-using Microsoft.Data.DataView;
 using Microsoft.ML.Data;
 using Microsoft.ML.Model;
 using Microsoft.ML.RunTests;
 using Microsoft.ML.StaticPipe;
 using Microsoft.ML.Tools;
-using Microsoft.ML.Transforms.Conversions;
+using Microsoft.ML.Transforms;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -51,17 +50,17 @@ namespace Microsoft.ML.Tests.Transformers
         {
             var data = new[] { new TestClass() { A = 1, B = 2, C = 3, }, new TestClass() { A = 4, B = 5, C = 6 } };
 
-            var dataView = ML.Data.ReadFromEnumerable(data);
+            var dataView = ML.Data.LoadFromEnumerable(data);
             dataView = new ValueToKeyMappingEstimator(Env, new[]{
-                    new ValueToKeyMappingEstimator.ColumnInfo("TermA", "A"),
-                    new ValueToKeyMappingEstimator.ColumnInfo("TermB", "B"),
-                    new ValueToKeyMappingEstimator.ColumnInfo("TermC", "C", textKeyValues:true)
+                    new ValueToKeyMappingEstimator.ColumnOptions("TermA", "A"),
+                    new ValueToKeyMappingEstimator.ColumnOptions("TermB", "B"),
+                    new ValueToKeyMappingEstimator.ColumnOptions("TermC", "C", addKeyValueAnnotationsAsText:true)
                 }).Fit(dataView).Transform(dataView);
 
-            var pipe = ML.Transforms.Conversion.MapKeyToVector(new KeyToVectorMappingEstimator.ColumnInfo("CatA", "TermA", false),
-                new KeyToVectorMappingEstimator.ColumnInfo("CatB", "TermB", true),
-                new KeyToVectorMappingEstimator.ColumnInfo("CatC", "TermC", true),
-                new KeyToVectorMappingEstimator.ColumnInfo("CatCNonBag", "TermC", false));
+            var pipe = ML.Transforms.Conversion.MapKeyToVector(new KeyToVectorMappingEstimator.ColumnOptions("CatA", "TermA", false),
+                new KeyToVectorMappingEstimator.ColumnOptions("CatB", "TermB", true),
+                new KeyToVectorMappingEstimator.ColumnOptions("CatC", "TermC", true),
+                new KeyToVectorMappingEstimator.ColumnOptions("CatCNonBag", "TermC", false));
             TestEstimatorCore(pipe, dataView);
             Done();
         }
@@ -70,17 +69,17 @@ namespace Microsoft.ML.Tests.Transformers
         public void KeyToVectorStatic()
         {
             string dataPath = GetDataPath("breast-cancer.txt");
-            var reader = TextLoaderStatic.CreateReader(Env, ctx => (
+            var reader = TextLoaderStatic.CreateLoader(Env, ctx => (
                 ScalarString: ctx.LoadText(1),
                 VectorString: ctx.LoadText(1, 4)
             ));
 
-            var data = reader.Read(dataPath);
+            var data = reader.Load(dataPath);
 
             // Non-pigsty Term.
             var dynamicData = new ValueToKeyMappingEstimator(Env, new[] {
-                new ValueToKeyMappingEstimator.ColumnInfo("A", "ScalarString"),
-                new ValueToKeyMappingEstimator.ColumnInfo("B", "VectorString") })
+                new ValueToKeyMappingEstimator.ColumnOptions("A", "ScalarString"),
+                new ValueToKeyMappingEstimator.ColumnOptions("B", "VectorString") })
                 .Fit(data.AsDynamic).Transform(data.AsDynamic);
 
             var data2 = dynamicData.AssertStatic(Env, ctx => (
@@ -108,28 +107,28 @@ namespace Microsoft.ML.Tests.Transformers
                 new TestMeta() { A=new string[2] { "A", "B"}, B="C", C=new int[2] { 3,5}, D= 6, E=new float[2] { 5.0f,6.0f}, F = 1.0f ,G= new string[2]{ "D", "E"}, H="D"} };
 
 
-            var dataView = ML.Data.ReadFromEnumerable(data);
+            var dataView = ML.Data.LoadFromEnumerable(data);
             var termEst = new ValueToKeyMappingEstimator(Env, new[] {
-                new ValueToKeyMappingEstimator.ColumnInfo("TA", "A", textKeyValues: true),
-                new ValueToKeyMappingEstimator.ColumnInfo("TB", "B"),
-                new ValueToKeyMappingEstimator.ColumnInfo("TC", "C", textKeyValues: true),
-                new ValueToKeyMappingEstimator.ColumnInfo("TD", "D", textKeyValues: true),
-                new ValueToKeyMappingEstimator.ColumnInfo("TE", "E"),
-                new ValueToKeyMappingEstimator.ColumnInfo("TF", "F"),
-                new ValueToKeyMappingEstimator.ColumnInfo("TG", "G"),
-                new ValueToKeyMappingEstimator.ColumnInfo("TH", "H", textKeyValues: true) });
+                new ValueToKeyMappingEstimator.ColumnOptions("TA", "A", addKeyValueAnnotationsAsText: true),
+                new ValueToKeyMappingEstimator.ColumnOptions("TB", "B"),
+                new ValueToKeyMappingEstimator.ColumnOptions("TC", "C", addKeyValueAnnotationsAsText: true),
+                new ValueToKeyMappingEstimator.ColumnOptions("TD", "D", addKeyValueAnnotationsAsText: true),
+                new ValueToKeyMappingEstimator.ColumnOptions("TE", "E"),
+                new ValueToKeyMappingEstimator.ColumnOptions("TF", "F"),
+                new ValueToKeyMappingEstimator.ColumnOptions("TG", "G"),
+                new ValueToKeyMappingEstimator.ColumnOptions("TH", "H", addKeyValueAnnotationsAsText: true) });
             var termTransformer = termEst.Fit(dataView);
             dataView = termTransformer.Transform(dataView);
 
             var pipe = ML.Transforms.Conversion.MapKeyToVector(
-                 new KeyToVectorMappingEstimator.ColumnInfo("CatA", "TA", true),
-                 new KeyToVectorMappingEstimator.ColumnInfo("CatB", "TB", false),
-                 new KeyToVectorMappingEstimator.ColumnInfo("CatC", "TC", false),
-                 new KeyToVectorMappingEstimator.ColumnInfo("CatD", "TD", true),
-                 new KeyToVectorMappingEstimator.ColumnInfo("CatE", "TE", false),
-                 new KeyToVectorMappingEstimator.ColumnInfo("CatF", "TF", true),
-                 new KeyToVectorMappingEstimator.ColumnInfo("CatG", "TG", true),
-                 new KeyToVectorMappingEstimator.ColumnInfo("CatH", "TH", false)
+                 new KeyToVectorMappingEstimator.ColumnOptions("CatA", "TA", true),
+                 new KeyToVectorMappingEstimator.ColumnOptions("CatB", "TB", false),
+                 new KeyToVectorMappingEstimator.ColumnOptions("CatC", "TC", false),
+                 new KeyToVectorMappingEstimator.ColumnOptions("CatD", "TD", true),
+                 new KeyToVectorMappingEstimator.ColumnOptions("CatE", "TE", false),
+                 new KeyToVectorMappingEstimator.ColumnOptions("CatF", "TF", true),
+                 new KeyToVectorMappingEstimator.ColumnOptions("CatG", "TG", true),
+                 new KeyToVectorMappingEstimator.ColumnOptions("CatH", "TH", false)
                  );
 
             var result = pipe.Fit(dataView).Transform(dataView);
@@ -143,61 +142,61 @@ namespace Microsoft.ML.Tests.Transformers
             VBuffer<int> slotRanges = default;
 
             var column = result.Schema["CatA"];
-            Assert.Equal(column.Metadata.Schema.Select(x => x.Name), new string[1] { MetadataUtils.Kinds.SlotNames });
+            Assert.Equal(column.Annotations.Schema.Select(x => x.Name), new string[1] { AnnotationUtils.Kinds.SlotNames });
             column.GetSlotNames(ref slots);
             Assert.True(slots.Length == 2);
             Assert.Equal(slots.Items().Select(x => x.Value.ToString()), new string[2] { "A", "B" });
 
             column = result.Schema["CatB"];
-            Assert.Equal(column.Metadata.Schema.Select(x => x.Name), new string[3] { MetadataUtils.Kinds.SlotNames, MetadataUtils.Kinds.CategoricalSlotRanges, MetadataUtils.Kinds.IsNormalized });
+            Assert.Equal(column.Annotations.Schema.Select(x => x.Name), new string[3] { AnnotationUtils.Kinds.SlotNames, AnnotationUtils.Kinds.CategoricalSlotRanges, AnnotationUtils.Kinds.IsNormalized });
             column.GetSlotNames(ref slots);
             Assert.True(slots.Length == 1);
             Assert.Equal(slots.Items().Select(x => x.Value.ToString()), new string[1] { "C" });
-            column.Metadata.GetValue(MetadataUtils.Kinds.CategoricalSlotRanges, ref slotRanges);
+            column.Annotations.GetValue(AnnotationUtils.Kinds.CategoricalSlotRanges, ref slotRanges);
             Assert.True(slotRanges.Length == 2);
             Assert.Equal(slotRanges.Items().Select(x => x.Value), new int[2] { 0, 0 });
             Assert.True(column.IsNormalized());
 
             column = result.Schema["CatC"];
-            Assert.Equal(column.Metadata.Schema.Select(x => x.Name), new string[3] { MetadataUtils.Kinds.SlotNames, MetadataUtils.Kinds.CategoricalSlotRanges, MetadataUtils.Kinds.IsNormalized });
+            Assert.Equal(column.Annotations.Schema.Select(x => x.Name), new string[3] { AnnotationUtils.Kinds.SlotNames, AnnotationUtils.Kinds.CategoricalSlotRanges, AnnotationUtils.Kinds.IsNormalized });
             column.GetSlotNames(ref slots);
             Assert.True(slots.Length == 4);
             Assert.Equal(slots.Items().Select(x => x.Value.ToString()), new string[4] { "[0].3", "[0].5", "[1].3", "[1].5" });
-            column.Metadata.GetValue(MetadataUtils.Kinds.CategoricalSlotRanges, ref slotRanges);
+            column.Annotations.GetValue(AnnotationUtils.Kinds.CategoricalSlotRanges, ref slotRanges);
             Assert.True(slotRanges.Length == 4);
             Assert.Equal(slotRanges.Items().Select(x => x.Value), new int[4] { 0, 1, 2, 3 });
             Assert.True(column.IsNormalized());
 
             column = result.Schema["CatD"];
-            Assert.Equal(column.Metadata.Schema.Select(x => x.Name), new string[2] { MetadataUtils.Kinds.SlotNames, MetadataUtils.Kinds.IsNormalized });
+            Assert.Equal(column.Annotations.Schema.Select(x => x.Name), new string[2] { AnnotationUtils.Kinds.SlotNames, AnnotationUtils.Kinds.IsNormalized });
             column.GetSlotNames(ref slots);
             Assert.True(slots.Length == 2);
             Assert.Equal(slots.Items().Select(x => x.Value.ToString()), new string[2] { "6", "1" });
             Assert.True(column.IsNormalized());
 
             column = result.Schema["CatE"];
-            Assert.Equal(column.Metadata.Schema.Select(x => x.Name), new string[2] { MetadataUtils.Kinds.CategoricalSlotRanges, MetadataUtils.Kinds.IsNormalized });
-            column.Metadata.GetValue(MetadataUtils.Kinds.CategoricalSlotRanges, ref slotRanges);
+            Assert.Equal(column.Annotations.Schema.Select(x => x.Name), new string[2] { AnnotationUtils.Kinds.CategoricalSlotRanges, AnnotationUtils.Kinds.IsNormalized });
+            column.Annotations.GetValue(AnnotationUtils.Kinds.CategoricalSlotRanges, ref slotRanges);
             Assert.True(slotRanges.Length == 4);
             Assert.Equal(slotRanges.Items().Select(x => x.Value), new int[4] { 0, 5, 6, 11 });
             Assert.True(column.IsNormalized());
 
             column = result.Schema["CatF"];
-            Assert.Equal(column.Metadata.Schema.Select(x => x.Name), new string[1] { MetadataUtils.Kinds.IsNormalized });
+            Assert.Equal(column.Annotations.Schema.Select(x => x.Name), new string[1] { AnnotationUtils.Kinds.IsNormalized });
             Assert.True(column.IsNormalized());
 
             column = result.Schema["CatG"];
-            Assert.Equal(column.Metadata.Schema.Select(x => x.Name), new string[1] { MetadataUtils.Kinds.SlotNames });
+            Assert.Equal(column.Annotations.Schema.Select(x => x.Name), new string[1] { AnnotationUtils.Kinds.SlotNames });
             column.GetSlotNames(ref slots);
             Assert.True(slots.Length == 3);
             Assert.Equal(slots.Items().Select(x => x.Value.ToString()), new string[3] { "A", "D", "E" });
 
             column = result.Schema["CatH"];
-            Assert.Equal(column.Metadata.Schema.Select(x => x.Name), new string[3] { MetadataUtils.Kinds.SlotNames, MetadataUtils.Kinds.CategoricalSlotRanges, MetadataUtils.Kinds.IsNormalized });
+            Assert.Equal(column.Annotations.Schema.Select(x => x.Name), new string[3] { AnnotationUtils.Kinds.SlotNames, AnnotationUtils.Kinds.CategoricalSlotRanges, AnnotationUtils.Kinds.IsNormalized });
             column.GetSlotNames(ref slots);
             Assert.True(slots.Length == 2);
             Assert.Equal(slots.Items().Select(x => x.Value.ToString()), new string[2] { "D", "E" });
-            column.Metadata.GetValue(MetadataUtils.Kinds.CategoricalSlotRanges, ref slotRanges);
+            column.Annotations.GetValue(AnnotationUtils.Kinds.CategoricalSlotRanges, ref slotRanges);
             Assert.True(slotRanges.Length == 2);
             Assert.Equal(slotRanges.Items().Select(x => x.Value), new int[2] { 0, 1 });
             Assert.True(column.IsNormalized());
@@ -213,17 +212,17 @@ namespace Microsoft.ML.Tests.Transformers
         public void TestOldSavingAndLoading()
         {
             var data = new[] { new TestClass() { A = 1, B = 2, C = 3, }, new TestClass() { A = 4, B = 5, C = 6 } };
-            var dataView = ML.Data.ReadFromEnumerable(data);
+            var dataView = ML.Data.LoadFromEnumerable(data);
             var est = new ValueToKeyMappingEstimator(Env, new[]{
-                    new ValueToKeyMappingEstimator.ColumnInfo("TermA", "A"),
-                    new ValueToKeyMappingEstimator.ColumnInfo("TermB", "B"),
-                    new ValueToKeyMappingEstimator.ColumnInfo("TermC", "C")
+                    new ValueToKeyMappingEstimator.ColumnOptions("TermA", "A"),
+                    new ValueToKeyMappingEstimator.ColumnOptions("TermB", "B"),
+                    new ValueToKeyMappingEstimator.ColumnOptions("TermC", "C")
             });
             var transformer = est.Fit(dataView);
             dataView = transformer.Transform(dataView);
             var pipe = ML.Transforms.Conversion.MapKeyToVector(
-                new KeyToVectorMappingEstimator.ColumnInfo("CatA", "TermA",false),
-                new KeyToVectorMappingEstimator.ColumnInfo("CatB", "TermB", true)
+                new KeyToVectorMappingEstimator.ColumnOptions("CatA", "TermA",false),
+                new KeyToVectorMappingEstimator.ColumnOptions("CatB", "TermB", true)
             );
             var result = pipe.Fit(dataView).Transform(dataView);
             var resultRoles = new RoleMappedData(result);

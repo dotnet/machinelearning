@@ -4,9 +4,7 @@
 
 using System;
 using System.Linq;
-using Microsoft.Data.DataView;
-using Microsoft.ML.Model;
-
+using Microsoft.ML.Runtime;
 namespace Microsoft.ML.Data
 {
     /// <summary>
@@ -14,9 +12,11 @@ namespace Microsoft.ML.Data
     /// </summary>
     public abstract class RowToRowTransformerBase : ITransformer
     {
-        protected readonly IHost Host;
+        [BestFriend]
+        private protected readonly IHost Host;
 
-        protected RowToRowTransformerBase(IHost host)
+        [BestFriend]
+        private protected RowToRowTransformerBase(IHost host)
         {
             Contracts.AssertValue(host);
             Host = host;
@@ -26,9 +26,9 @@ namespace Microsoft.ML.Data
 
         private protected abstract void SaveModel(ModelSaveContext ctx);
 
-        public bool IsRowToRowMapper => true;
+        bool ITransformer.IsRowToRowMapper => true;
 
-        public IRowToRowMapper GetRowToRowMapper(DataViewSchema inputSchema)
+        IRowToRowMapper ITransformer.GetRowToRowMapper(DataViewSchema inputSchema)
         {
             Host.CheckValue(inputSchema, nameof(inputSchema));
             return new RowToRowMapperTransform(Host, new EmptyDataView(Host, inputSchema), MakeRowMapper(inputSchema), MakeRowMapper);
@@ -53,7 +53,8 @@ namespace Microsoft.ML.Data
             return new RowToRowMapperTransform(Host, input, MakeRowMapper(input.Schema), MakeRowMapper);
         }
 
-        protected abstract class MapperBase : IRowMapper
+        [BestFriend]
+        private protected abstract class MapperBase : IRowMapper
         {
             protected readonly IHost Host;
             protected readonly DataViewSchema InputSchema;

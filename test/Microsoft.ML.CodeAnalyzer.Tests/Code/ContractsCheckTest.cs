@@ -24,9 +24,9 @@ namespace Microsoft.ML.InternalCodeAnalyzer.Tests
         [Fact]
         public async Task ContractsCheck()
         {
-            const int basis = 10;
+            const int basis = 11;
             var expected = new DiagnosticResult[] {
-                new DiagnosticResult("CS0051", DiagnosticSeverity.Error).WithLocation(14, 16).WithMessage("Inconsistent accessibility: parameter type 'IHostEnvironment' is less accessible than method 'TypeName.TypeName(IHostEnvironment, float, int)'"),
+                new DiagnosticResult("CS0051", DiagnosticSeverity.Error).WithLocation(15, 16).WithMessage("Inconsistent accessibility: parameter type 'IHostEnvironment' is less accessible than method 'TypeName.TypeName(IHostEnvironment, float, int)'"),
                 VerifyCS.Diagnostic(ContractsCheckAnalyzer.NameofDiagnostic.Rule).WithLocation(basis + 8, 46).WithArguments("CheckParam", "paramName", "\"p\""),
                 VerifyCS.Diagnostic(ContractsCheckAnalyzer.NameofDiagnostic.Rule).WithLocation(basis + 9, 46).WithArguments("CheckParam", "paramName", "nameof(p) + nameof(p)"),
                 VerifyCS.Diagnostic(ContractsCheckAnalyzer.NameofDiagnostic.Rule).WithLocation(basis + 11, 28).WithArguments("CheckValue", "paramName", "\"p\""),
@@ -39,6 +39,8 @@ namespace Microsoft.ML.InternalCodeAnalyzer.Tests
                 VerifyCS.Diagnostic(ContractsCheckAnalyzer.SimpleMessageDiagnostic.Rule).WithLocation(basis + 32, 35).WithArguments("Check", "\"Less fine: \" + env.GetType().Name"),
                 VerifyCS.Diagnostic(ContractsCheckAnalyzer.NameofDiagnostic.Rule).WithLocation(basis + 34, 17).WithArguments("CheckUserArg", "name", "\"p\""),
                 VerifyCS.Diagnostic(ContractsCheckAnalyzer.DecodeMessageWithLoadContextDiagnostic.Rule).WithLocation(basis + 39, 41).WithArguments("CheckDecode", "\"This message is suspicious\""),
+                new DiagnosticResult("CS0122", DiagnosticSeverity.Error).WithLocation("Test1.cs", 752, 24).WithMessage("'ICancelable' is inaccessible due to its protection level"),
+                new DiagnosticResult("CS0122", DiagnosticSeverity.Error).WithLocation("Test1.cs", 752, 67).WithMessage("'ICancelable.IsCanceled' is inaccessible due to its protection level"),
             };
 
             var test = new VerifyCS.Test
@@ -112,20 +114,22 @@ namespace TestNamespace
                     },
                     ExpectedDiagnostics =
                     {
-                        VerifyCS.Diagnostic(ContractsCheckAnalyzer.ExceptionDiagnostic.Rule).WithLocation(8, 43).WithArguments("ExceptParam"),
-                        VerifyCS.Diagnostic(ContractsCheckAnalyzer.NameofDiagnostic.Rule).WithLocation(8, 65).WithArguments("ExceptParam", "paramName", "\"yuck\""),
-                        VerifyCS.Diagnostic(ContractsCheckAnalyzer.NameofDiagnostic.Rule).WithLocation(12, 39).WithArguments("CheckValue", "paramName", "\"str\""),
-                        VerifyCS.Diagnostic(ContractsCheckAnalyzer.NameofDiagnostic.Rule).WithLocation(13, 66).WithArguments("CheckUserArg", "name", "\"Foo\""),
-                        VerifyCS.Diagnostic(ContractsCheckAnalyzer.NameofDiagnostic.Rule).WithLocation(14, 57).WithArguments("CheckUserArg", "name", "\"Bar\""),
-                        VerifyCS.Diagnostic(ContractsCheckAnalyzer.NameofDiagnostic.Rule).WithLocation(15, 57).WithArguments("CheckUserArg", "name", "\"A\""),
-                        VerifyCS.Diagnostic(ContractsCheckAnalyzer.NameofDiagnostic.Rule).WithLocation(16, 52).WithArguments("ExceptParam", "paramName", "\"Bar\""),
-                        VerifyCS.Diagnostic(ContractsCheckAnalyzer.NameofDiagnostic.Rule).WithLocation(19, 17).WithArguments("CheckParam", "paramName", "\"isFive\""),
-                        VerifyCS.Diagnostic(ContractsCheckAnalyzer.NameofDiagnostic.Rule).WithLocation(20, 49).WithArguments("CheckValue", "paramName", "\"Y\""),
-                        VerifyCS.Diagnostic(ContractsCheckAnalyzer.NameofDiagnostic.Rule).WithLocation(21, 52).WithArguments("ExceptParam", "paramName", "\"tom\""),
-                        VerifyCS.Diagnostic(ContractsCheckAnalyzer.NameofDiagnostic.Rule).WithLocation(22, 39).WithArguments("CheckValue", "paramName", "\"noMatch\""),
-                        VerifyCS.Diagnostic(ContractsCheckAnalyzer.NameofDiagnostic.Rule).WithLocation(23, 53).WithArguments("CheckUserArg", "name", "\"chumble\""),
-                        VerifyCS.Diagnostic(ContractsCheckAnalyzer.NameofDiagnostic.Rule).WithLocation(24, 53).WithArguments("CheckUserArg", "name", "\"sp\""),
-                        new DiagnosticResult("CS1503", DiagnosticSeverity.Error).WithLocation("Test1.cs", 748, 91).WithMessage("Argument 2: cannot convert from 'Microsoft.ML.IHostEnvironment' to 'Microsoft.ML.IExceptionContext'"),
+                        VerifyCS.Diagnostic(ContractsCheckAnalyzer.ExceptionDiagnostic.Rule).WithLocation(9, 43).WithArguments("ExceptParam"),
+                        VerifyCS.Diagnostic(ContractsCheckAnalyzer.NameofDiagnostic.Rule).WithLocation(9, 65).WithArguments("ExceptParam", "paramName", "\"yuck\""),
+                        VerifyCS.Diagnostic(ContractsCheckAnalyzer.NameofDiagnostic.Rule).WithLocation(13, 39).WithArguments("CheckValue", "paramName", "\"str\""),
+                        VerifyCS.Diagnostic(ContractsCheckAnalyzer.NameofDiagnostic.Rule).WithLocation(14, 66).WithArguments("CheckUserArg", "name", "\"Foo\""),
+                        VerifyCS.Diagnostic(ContractsCheckAnalyzer.NameofDiagnostic.Rule).WithLocation(15, 57).WithArguments("CheckUserArg", "name", "\"Bar\""),
+                        VerifyCS.Diagnostic(ContractsCheckAnalyzer.NameofDiagnostic.Rule).WithLocation(16, 57).WithArguments("CheckUserArg", "name", "\"A\""),
+                        VerifyCS.Diagnostic(ContractsCheckAnalyzer.NameofDiagnostic.Rule).WithLocation(17, 52).WithArguments("ExceptParam", "paramName", "\"Bar\""),
+                        VerifyCS.Diagnostic(ContractsCheckAnalyzer.NameofDiagnostic.Rule).WithLocation(20, 17).WithArguments("CheckParam", "paramName", "\"isFive\""),
+                        VerifyCS.Diagnostic(ContractsCheckAnalyzer.NameofDiagnostic.Rule).WithLocation(21, 49).WithArguments("CheckValue", "paramName", "\"Y\""),
+                        VerifyCS.Diagnostic(ContractsCheckAnalyzer.NameofDiagnostic.Rule).WithLocation(22, 52).WithArguments("ExceptParam", "paramName", "\"tom\""),
+                        VerifyCS.Diagnostic(ContractsCheckAnalyzer.NameofDiagnostic.Rule).WithLocation(23, 39).WithArguments("CheckValue", "paramName", "\"noMatch\""),
+                        VerifyCS.Diagnostic(ContractsCheckAnalyzer.NameofDiagnostic.Rule).WithLocation(24, 53).WithArguments("CheckUserArg", "name", "\"chumble\""),
+                        VerifyCS.Diagnostic(ContractsCheckAnalyzer.NameofDiagnostic.Rule).WithLocation(25, 53).WithArguments("CheckUserArg", "name", "\"sp\""),
+                        new DiagnosticResult("CS0122", DiagnosticSeverity.Error).WithLocation("Test1.cs", 752, 24).WithMessage("'ICancelable' is inaccessible due to its protection level"),
+                        new DiagnosticResult("CS0122", DiagnosticSeverity.Error).WithLocation("Test1.cs", 752, 67).WithMessage("'ICancelable.IsCanceled' is inaccessible due to its protection level"),
+                        new DiagnosticResult("CS1503", DiagnosticSeverity.Error).WithLocation("Test1.cs", 753, 91).WithMessage("Argument 2: cannot convert from 'Microsoft.ML.Runtime.IHostEnvironment' to 'Microsoft.ML.Runtime.IExceptionContext'"),
                     },
                     AdditionalReferences = { AdditionalMetadataReferences.RefFromType<Memory<int>>() },
                 },
@@ -142,9 +146,11 @@ namespace TestNamespace
                     },
                     ExpectedDiagnostics =
                     {
-                        VerifyCS.Diagnostic(ContractsCheckAnalyzer.ExceptionDiagnostic.Rule).WithLocation(8, 43).WithArguments("ExceptParam"),
-                        VerifyCS.Diagnostic(ContractsCheckAnalyzer.NameofDiagnostic.Rule).WithLocation(22, 39).WithArguments("CheckValue", "paramName", "\"noMatch\""),
-                        new DiagnosticResult("CS1503", DiagnosticSeverity.Error).WithLocation("Test1.cs", 748, 91).WithMessage("Argument 2: cannot convert from 'Microsoft.ML.IHostEnvironment' to 'Microsoft.ML.IExceptionContext'"),
+                        VerifyCS.Diagnostic(ContractsCheckAnalyzer.ExceptionDiagnostic.Rule).WithLocation(9, 43).WithArguments("ExceptParam"),
+                        VerifyCS.Diagnostic(ContractsCheckAnalyzer.NameofDiagnostic.Rule).WithLocation(23, 39).WithArguments("CheckValue", "paramName", "\"noMatch\""),
+                        new DiagnosticResult("CS0122", DiagnosticSeverity.Error).WithLocation("Test1.cs", 752, 24).WithMessage("'ICancelable' is inaccessible due to its protection level"),
+                        new DiagnosticResult("CS0122", DiagnosticSeverity.Error).WithLocation("Test1.cs", 752, 67).WithMessage("'ICancelable.IsCanceled' is inaccessible due to its protection level"),
+                        new DiagnosticResult("CS1503", DiagnosticSeverity.Error).WithLocation("Test1.cs", 753, 91).WithMessage("Argument 2: cannot convert from 'Microsoft.ML.Runtime.IHostEnvironment' to 'Microsoft.ML.Runtime.IExceptionContext'"),
                     },
                 },
             };

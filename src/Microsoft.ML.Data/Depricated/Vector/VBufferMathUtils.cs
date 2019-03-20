@@ -6,19 +6,17 @@ using System;
 using Microsoft.ML.Data;
 using Microsoft.ML.Internal.CpuMath;
 using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Runtime;
 
 namespace Microsoft.ML.Numeric
 {
-    // REVIEW: Once we do the conversions from Vector/WritableVector, review names of methods,
-    //   parameters, parameter order, etc.
-    using Float = System.Single;
 
     internal static partial class VectorUtils
     {
         /// <summary>
         /// Returns the L2 norm squared of the vector (sum of squares of the components).
         /// </summary>
-        public static Float NormSquared(in VBuffer<Float> a)
+        public static float NormSquared(in VBuffer<float> a)
         {
             var aValues = a.GetValues();
             if (aValues.Length == 0)
@@ -29,7 +27,7 @@ namespace Microsoft.ML.Numeric
         /// <summary>
         /// Returns the L2 norm squared of the vector (sum of squares of the components).
         /// </summary>
-        public static Float NormSquared(ReadOnlySpan<Float> a)
+        public static float NormSquared(ReadOnlySpan<float> a)
         {
             return CpuMathUtils.SumSq(a);
         }
@@ -38,7 +36,7 @@ namespace Microsoft.ML.Numeric
         /// Returns the L2 norm of the vector.
         /// </summary>
         /// <returns>L2 norm of the vector</returns>
-        public static Float Norm(in VBuffer<Float> a)
+        public static float Norm(in VBuffer<float> a)
         {
             return MathUtils.Sqrt(NormSquared(in a));
         }
@@ -47,7 +45,7 @@ namespace Microsoft.ML.Numeric
         /// Returns the L1 norm of the vector.
         /// </summary>
         /// <returns>L1 norm of the vector</returns>
-        public static Float L1Norm(in VBuffer<Float> a)
+        public static float L1Norm(in VBuffer<float> a)
         {
             var aValues = a.GetValues();
             if (aValues.Length == 0)
@@ -59,7 +57,7 @@ namespace Microsoft.ML.Numeric
         /// Returns the L-infinity norm of the vector (i.e., the maximum absolute value).
         /// </summary>
         /// <returns>L-infinity norm of the vector</returns>
-        public static Float MaxNorm(in VBuffer<Float> a)
+        public static float MaxNorm(in VBuffer<float> a)
         {
             var aValues = a.GetValues();
             if (aValues.Length == 0)
@@ -70,7 +68,7 @@ namespace Microsoft.ML.Numeric
         /// <summary>
         /// Returns the sum of elements in the vector.
         /// </summary>
-        public static Float Sum(in VBuffer<Float> a)
+        public static float Sum(in VBuffer<float> a)
         {
             var aValues = a.GetValues();
             if (aValues.Length == 0)
@@ -83,7 +81,7 @@ namespace Microsoft.ML.Numeric
         /// </summary>
         /// <param name="dst">Incoming vector</param>
         /// <param name="c">Value to multiply vector with</param>
-        public static void ScaleBy(ref VBuffer<Float> dst, Float c)
+        public static void ScaleBy(ref VBuffer<float> dst, float c)
         {
             if (c == 1 || dst.GetValues().Length == 0)
                 return;
@@ -99,7 +97,7 @@ namespace Microsoft.ML.Numeric
         /// Scales the vector by a real value.
         /// <c><paramref name="dst"/> = <paramref name="c"/> * <paramref name="src"/></c>
         /// </summary>
-        public static void ScaleBy(in VBuffer<Float> src, ref VBuffer<Float> dst, Float c)
+        public static void ScaleBy(in VBuffer<float> src, ref VBuffer<float> dst, float c)
         {
             int length = src.Length;
             var srcValues = src.GetValues();
@@ -138,7 +136,7 @@ namespace Microsoft.ML.Numeric
         /// <summary>
         /// Perform in-place vector addition <c><paramref name="dst"/> += <paramref name="src"/></c>.
         /// </summary>
-        public static void Add(in VBuffer<Float> src, ref VBuffer<Float> dst)
+        public static void Add(in VBuffer<float> src, ref VBuffer<float> dst)
         {
             Contracts.Check(src.Length == dst.Length, "Vectors must have the same dimensionality.");
 
@@ -156,7 +154,7 @@ namespace Microsoft.ML.Numeric
                 return;
             }
             // REVIEW: Should we use SSE for any of these possibilities?
-            VBufferUtils.ApplyWith(in src, ref dst, (int i, Float v1, ref Float v2) => v2 += v1);
+            VBufferUtils.ApplyWith(in src, ref dst, (int i, float v1, ref float v2) => v2 += v1);
         }
 
         // REVIEW: Rename all instances of AddMult to AddScale, as soon as convesion concerns are no more.
@@ -166,7 +164,7 @@ namespace Microsoft.ML.Numeric
         /// If either vector is dense, <paramref name="dst"/> will be dense, unless
         /// <paramref name="c"/> is 0 in which case this method does nothing.
         /// </summary>
-        public static void AddMult(in VBuffer<Float> src, Float c, ref VBuffer<Float> dst)
+        public static void AddMult(in VBuffer<float> src, float c, ref VBuffer<float> dst)
         {
             Contracts.Check(src.Length == dst.Length, "Vectors must have the same dimensionality.");
 
@@ -184,14 +182,14 @@ namespace Microsoft.ML.Numeric
                 return;
             }
             // REVIEW: Should we use SSE for any of these possibilities?
-            VBufferUtils.ApplyWith(in src, ref dst, (int i, Float v1, ref Float v2) => v2 += c * v1);
+            VBufferUtils.ApplyWith(in src, ref dst, (int i, float v1, ref float v2) => v2 += c * v1);
         }
 
         /// <summary>
         /// Perform scalar vector addition
         /// <c><paramref name="res"/> = <paramref name="c"/> * <paramref name="src"/> + <paramref name="dst"/></c>
         /// </summary>
-        public static void AddMult(in VBuffer<Float> src, Float c, ref VBuffer<Float> dst, ref VBuffer<Float> res)
+        public static void AddMult(in VBuffer<float> src, float c, ref VBuffer<float> dst, ref VBuffer<float> res)
         {
             Contracts.Check(src.Length == dst.Length, "Vectors must have the same dimensionality.");
             int length = src.Length;
@@ -213,7 +211,7 @@ namespace Microsoft.ML.Numeric
                 return;
             }
 
-            VBufferUtils.ApplyWithCopy(in src, ref dst, ref res, (int i, Float v1, Float v2, ref Float v3) => v3 = v2 + c * v1);
+            VBufferUtils.ApplyWithCopy(in src, ref dst, ref res, (int i, float v1, float v2, ref float v3) => v3 = v2 + c * v1);
         }
 
         /// <summary>
@@ -221,7 +219,7 @@ namespace Microsoft.ML.Numeric
         /// <c><paramref name="a"/> + <paramref name="c"/> * <paramref name="b"/></c>
         /// and store the result in <paramref name="dst"/>.
         /// </summary>
-        public static void AddMultInto(in VBuffer<Float> a, Float c, in VBuffer<Float> b, ref VBuffer<Float> dst)
+        public static void AddMultInto(in VBuffer<float> a, float c, in VBuffer<float> b, ref VBuffer<float> dst)
         {
             Contracts.Check(a.Length == b.Length, "Vectors must have the same dimensionality.");
 
@@ -239,7 +237,7 @@ namespace Microsoft.ML.Numeric
         /// except that this takes place in the section of <paramref name="dst"/> starting
         /// at slot <paramref name="offset"/>.
         /// </summary>
-        public static void AddMultWithOffset(in VBuffer<Float> src, Float c, ref VBuffer<Float> dst, int offset)
+        public static void AddMultWithOffset(in VBuffer<float> src, float c, ref VBuffer<float> dst, int offset)
         {
             Contracts.CheckParam(0 <= offset && offset <= dst.Length, nameof(offset));
             Contracts.CheckParam(src.Length <= dst.Length - offset, nameof(offset));
@@ -380,7 +378,7 @@ namespace Microsoft.ML.Numeric
         /// is sparse, <paramref name="dst"/> will have a count of zero, instead of the
         /// same count as <paramref name="src"/>.
         /// </summary>
-        public static void ScaleInto(in VBuffer<Float> src, Float c, ref VBuffer<Float> dst)
+        public static void ScaleInto(in VBuffer<float> src, float c, ref VBuffer<float> dst)
         {
             // REVIEW: The analogous WritableVector method insisted on
             // equal lengths, but I assume I don't care here.
@@ -407,7 +405,7 @@ namespace Microsoft.ML.Numeric
                 VBufferUtils.ApplyIntoEitherDefined(in src, ref dst, (i, v) => c * v);
         }
 
-        public static int ArgMax(in VBuffer<Float> src)
+        public static int ArgMax(in VBuffer<float> src)
         {
             if (src.Length == 0)
                 return -1;
@@ -443,7 +441,7 @@ namespace Microsoft.ML.Numeric
             return ind;
         }
 
-        public static int ArgMin(in VBuffer<Float> src)
+        public static int ArgMin(in VBuffer<float> src)
         {
             if (src.Length == 0)
                 return -1;

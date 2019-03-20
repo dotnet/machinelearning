@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Microsoft.ML.Data;
@@ -53,12 +52,12 @@ namespace Microsoft.ML.Tests.Transformers
         public void WordTokenizeWorkout()
         {
             var data = new[] { new TestClass() { A = "This is a good sentence.", B = new string[2] { "Much words", "Wow So Cool" } } };
-            var dataView = ML.Data.ReadFromEnumerable(data);
+            var dataView = ML.Data.LoadFromEnumerable(data);
             var invalidData = new[] { new TestWrong() { A =1, B = new float[2] { 2,3 } } };
-            var invalidDataView = ML.Data.ReadFromEnumerable(invalidData);
+            var invalidDataView = ML.Data.LoadFromEnumerable(invalidData);
             var pipe = new WordTokenizingEstimator(Env, new[]{
-                    new WordTokenizingEstimator.ColumnInfo("TokenizeA", "A"),
-                    new WordTokenizingEstimator.ColumnInfo("TokenizeB", "B"),
+                    new WordTokenizingEstimator.ColumnOptions("TokenizeA", "A"),
+                    new WordTokenizingEstimator.ColumnOptions("TokenizeB", "B"),
                 });
 
             TestEstimatorCore(pipe, dataView, invalidInput: invalidDataView);
@@ -67,7 +66,7 @@ namespace Microsoft.ML.Tests.Transformers
             var result = pipe.Fit(dataView).Transform(dataView);
 
             // Extract the transformed result of the first row (the only row we have because data contains only one TestClass) as a native class.
-            var nativeResult = ML.CreateEnumerable<NativeResult>(result, false).First();
+            var nativeResult = ML.Data.CreateEnumerable<NativeResult>(result, false).First();
 
             // Check the tokenization of A. Expected result is { "This", "is", "a", "good", "sentence." }.
             var tokenizeA = new[] { "This", "is", "a", "good", "sentence." };
@@ -97,10 +96,10 @@ namespace Microsoft.ML.Tests.Transformers
         {
             var data = new[] { new TestClass() { A = "This is a good sentence.", B = new string[2] { "Much words", "Wow So Cool" } } };
 
-            var dataView = ML.Data.ReadFromEnumerable(data);
+            var dataView = ML.Data.LoadFromEnumerable(data);
             var pipe = new WordTokenizingEstimator(Env, new[]{
-                    new WordTokenizingEstimator.ColumnInfo("TokenizeA", "A"),
-                    new WordTokenizingEstimator.ColumnInfo("TokenizeB", "B"),
+                    new WordTokenizingEstimator.ColumnOptions("TokenizeA", "A"),
+                    new WordTokenizingEstimator.ColumnOptions("TokenizeB", "B"),
                 });
             var result = pipe.Fit(dataView).Transform(dataView);
             var resultRoles = new RoleMappedData(result);

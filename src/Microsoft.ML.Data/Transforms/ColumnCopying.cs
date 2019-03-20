@@ -6,14 +6,12 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
-using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Internal.Utilities;
-using Microsoft.ML.Model;
 using Microsoft.ML.Model.OnnxConverter;
+using Microsoft.ML.Runtime;
 using Microsoft.ML.Transforms;
 
 [assembly: LoadableClass(ColumnCopyingTransformer.Summary, typeof(IDataTransform), typeof(ColumnCopyingTransformer),
@@ -62,7 +60,7 @@ namespace Microsoft.ML.Transforms
             {
                 if (!inputSchema.TryFindColumn(inputColumnName, out var originalColumn))
                     throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", inputColumnName);
-                var col = new SchemaShape.Column(outputColumnName, originalColumn.Kind, originalColumn.ItemType, originalColumn.IsKey, originalColumn.Metadata);
+                var col = new SchemaShape.Column(outputColumnName, originalColumn.Kind, originalColumn.ItemType, originalColumn.IsKey, originalColumn.Annotations);
                 resultDic[outputColumnName] = col;
             }
             return new SchemaShape(resultDic.Values);
@@ -80,7 +78,7 @@ namespace Microsoft.ML.Transforms
         /// <summary>
         /// Names of output and input column pairs on which the transformation is applied.
         /// </summary>
-        public IReadOnlyCollection<(string outputColumnName, string inputColumnName)> Columns => ColumnPairs.AsReadOnly();
+        internal IReadOnlyCollection<(string outputColumnName, string inputColumnName)> Columns => ColumnPairs.AsReadOnly();
 
         private static VersionInfo GetVersionInfo()
         {
@@ -195,7 +193,7 @@ namespace Microsoft.ML.Transforms
                 disposer = null;
 
                 Delegate MakeGetter<T>(DataViewRow row, int index)
-                    => input.GetGetter<T>(index);
+                    => input.GetGetter<T>(input.Schema[index]);
 
                 input.Schema.TryGetColumnIndex(_columns[iinfo].inputColumnName, out int colIndex);
                 var type = input.Schema[colIndex].Type;
@@ -208,7 +206,7 @@ namespace Microsoft.ML.Transforms
                 for (int i = 0; i < _columns.Length; i++)
                 {
                     var srcCol = _schema[_columns[i].inputColumnName];
-                    result[i] = new DataViewSchema.DetachedColumn(_columns[i].outputColumnName, srcCol.Type, srcCol.Metadata);
+                    result[i] = new DataViewSchema.DetachedColumn(_columns[i].outputColumnName, srcCol.Type, srcCol.Annotations);
                 }
                 return result;
             }

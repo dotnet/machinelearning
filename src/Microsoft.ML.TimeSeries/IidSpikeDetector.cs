@@ -4,12 +4,10 @@
 
 using System.Collections.Generic;
 using System.Linq;
-using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
-using Microsoft.ML.EntryPoints;
-using Microsoft.ML.Model;
+using Microsoft.ML.Runtime;
 using Microsoft.ML.Transforms.TimeSeries;
 
 [assembly: LoadableClass(IidSpikeDetector.Summary, typeof(IDataTransform), typeof(IidSpikeDetector), typeof(IidSpikeDetector.Options), typeof(SignatureDataTransform),
@@ -27,7 +25,7 @@ using Microsoft.ML.Transforms.TimeSeries;
 namespace Microsoft.ML.Transforms.TimeSeries
 {
     /// <summary>
-    /// This class implements the spike detector transform for an i.i.d. sequence based on adaptive kernel density estimation.
+    /// <see cref="ITransformer"/> produced by fitting the <see cref="IDataView"/> to an <see cref="IidSpikeEstimator" />.
     /// </summary>
     public sealed class IidSpikeDetector : IidAnomalyDetectionBaseWrapper, IStatefulTransformer
     {
@@ -153,7 +151,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
         {
         }
 
-        public override void Save(ModelSaveContext ctx)
+        private protected override void SaveModel(ModelSaveContext ctx)
         {
             InternalTransform.Host.CheckValue(ctx, nameof(ctx));
             ctx.CheckAtModel();
@@ -164,7 +162,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
             // *** Binary format ***
             // <base>
 
-            base.Save(ctx);
+            base.SaveModel(ctx);
         }
 
         // Factory method for SignatureLoadRowMapper.
@@ -173,16 +171,10 @@ namespace Microsoft.ML.Transforms.TimeSeries
     }
 
     /// <summary>
-    /// Estimator for <see cref="IidSpikeDetector"/>
+    /// The <see cref="IEstimator{ITransformer}"/> for detecting a signal spike on an
+    /// <a href="https://en.wikipedia.org/wiki/Independent_and_identically_distributed_random_variables"> independent identically distributed (i.i.d.)</a> time series.
+    /// Detection is based on adaptive kernel density estimation.
     /// </summary>
-    /// <p>Example code can be found by searching for <i>IidSpikeDetector</i> in <a href='https://github.com/dotnet/machinelearning'>ML.NET.</a></p>
-    /// <example>
-    /// <format type="text/markdown">
-    /// <![CDATA[
-    /// [!code-csharp[MF](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/IidSpikeDetectorTransform.cs)]
-    /// ]]>
-    /// </format>
-    /// </example>
     public sealed class IidSpikeEstimator : TrivialEstimator<IidSpikeDetector>
     {
         /// <summary>
@@ -227,7 +219,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
                 throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", Transformer.InternalTransform.InputColumnName, "float", col.GetTypeString());
 
             var metadata = new List<SchemaShape.Column>() {
-                new SchemaShape.Column(MetadataUtils.Kinds.SlotNames, SchemaShape.Column.VectorKind.Vector, TextDataViewType.Instance, false)
+                new SchemaShape.Column(AnnotationUtils.Kinds.SlotNames, SchemaShape.Column.VectorKind.Vector, TextDataViewType.Instance, false)
             };
             var resultDic = inputSchema.ToDictionary(x => x.Name);
             resultDic[Transformer.InternalTransform.OutputColumnName] = new SchemaShape.Column(

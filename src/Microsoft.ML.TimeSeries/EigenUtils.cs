@@ -6,7 +6,7 @@ using System;
 using System.Runtime.InteropServices;
 using System.Security;
 using Microsoft.ML.Internal.Utilities;
-using Float = System.Single;
+using Microsoft.ML.Runtime;
 
 namespace Microsoft.ML.Transforms.TimeSeries
 {
@@ -15,21 +15,21 @@ namespace Microsoft.ML.Transforms.TimeSeries
     {
         //Compute the Eigen-decomposition of a symmetric matrix
         //REVIEW: use matrix/vector operations, not Array Math
-        public static void EigenDecomposition(Float[] a, out Float[] eigenvalues, out Float[] eigenvectors)
+        public static void EigenDecomposition(float[] a, out float[] eigenvalues, out float[] eigenvectors)
         {
             var count = a.Length;
             var n = (int)Math.Sqrt(count);
             Contracts.Assert(n * n == count);
 
-            eigenvectors = new Float[count];
-            eigenvalues = new Float[n];
+            eigenvectors = new float[count];
+            eigenvalues = new float[n];
 
             //Reduce A to tridiagonal form
             //REVIEW: it's not ideal to keep using the same variable name for different purposes
             // - After the operation, "eigenvalues" means the diagonal elements of the reduced matrix
             //and "eigenvectors" means the orthogonal similarity transformation matrix
             // - Consider aliasing variables
-            var w = new Float[n];
+            var w = new float[n];
             Tred(a, eigenvalues, w, eigenvectors, n);
 
             //Eigen-decomposition of the tridiagonal matrix
@@ -37,10 +37,10 @@ namespace Microsoft.ML.Transforms.TimeSeries
             Imtql(eigenvalues, w, eigenvectors, n);
 
             for (int i = 0; i < n; i++)
-                eigenvalues[i] = eigenvalues[i] <= 0 ? (Float)(0.0) : (Float)Math.Sqrt(eigenvalues[i]);
+                eigenvalues[i] = eigenvalues[i] <= 0 ? (float)(0.0) : (float)Math.Sqrt(eigenvalues[i]);
         }
 
-        private static Float Hypot(Float x, Float y)
+        private static float Hypot(float x, float y)
         {
             x = Math.Abs(x);
             y = Math.Abs(y);
@@ -51,22 +51,22 @@ namespace Microsoft.ML.Transforms.TimeSeries
             if (x < y)
             {
                 double t = x / y;
-                return y * (Float)Math.Sqrt(1 + t * t);
+                return y * (float)Math.Sqrt(1 + t * t);
             }
             else
             {
                 double t = y / x;
-                return x * (Float)Math.Sqrt(1 + t * t);
+                return x * (float)Math.Sqrt(1 + t * t);
             }
         }
 
-        private static Float CopySign(Float x, Float y)
+        private static float CopySign(float x, float y)
         {
-            Float xx = Math.Abs(x);
+            float xx = Math.Abs(x);
             return y < 0 ? -xx : xx;
         }
 
-        private static void Tred(Float[] a, Float[] d, Float[] e, Float[] z, int n)
+        private static void Tred(float[] a, float[] d, float[] e, float[] z, int n)
         {
             float g;
             float h;
@@ -75,7 +75,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
             int k;
             int l;
 
-            /*     this subroutine reduces a Float symmetric matrix to a */
+            /*     this subroutine reduces a float symmetric matrix to a */
             /*     symmetric tridiagonal matrix using and accumulating */
             /*     orthogonal similarity transformations. */
 
@@ -83,7 +83,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
 
             /*	  n is the order of the matrix. */
 
-            /*	  a contains the Float symmetric input matrix. only the */
+            /*	  a contains the float symmetric input matrix. only the */
             /*	    lower triangle of the matrix need be supplied. */
 
             /*     on output */
@@ -120,7 +120,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
             {
                 l = i - 1;
                 h = 0;
-                Float scale = 0;
+                float scale = 0;
                 if (l == 0)
                 {
                     e[1] = d[0];
@@ -156,8 +156,8 @@ namespace Microsoft.ML.Transforms.TimeSeries
                     h += d[k] * d[k];
                 }
 
-                Float f = d[l];
-                g = CopySign((Float)Math.Sqrt(h), f);
+                float f = d[l];
+                g = CopySign((float)Math.Sqrt(h), f);
                 e[i] = scale * g;
                 h -= f * g;
                 d[l] = f - g;
@@ -195,7 +195,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
                     f += e[j] * d[j];
                 }
 
-                Float hh = f / (h + h);
+                float hh = f / (h + h);
                 //     .......... form q ..........
                 for (j = 0; j < i; ++j)
                 {
@@ -266,7 +266,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
         } /* Tred */
 
         /* Subroutine */
-        private static int Imtql(Float[] d, Float[] e, Float[] z, int n)
+        private static int Imtql(float[] d, float[] e, float[] z, int n)
         {
             /* Local variables */
             double b;
@@ -347,7 +347,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
             {
                 e[i - 1] = e[i];
             }
-            e[n - 1] = (Float)(0.0);
+            e[n - 1] = (float)(0.0);
 
             for (l = 0; l < n; ++l)
             {
@@ -370,12 +370,12 @@ namespace Microsoft.ML.Transforms.TimeSeries
                             return l;
                         }
                         /*     .......... form shift .......... */
-                        g = (d[l + 1] - p) / (e[l] * (Float)(2.0));
-                        r = Hypot((float)g, (Float)(1.0));
+                        g = (d[l + 1] - p) / (e[l] * (float)(2.0));
+                        r = Hypot((float)g, (float)(1.0));
                         g = d[m] - p + e[l] / (g + CopySign((float)r, (float)g));
-                        s = (Float)(1.0);
-                        c = (Float)(1.0);
-                        p = (Float)(0.0);
+                        s = (float)(1.0);
+                        c = (float)(1.0);
+                        p = (float)(0.0);
                         /*     .......... for i=m-1 step -1 until l do -- .......... */
                         for (i = m - 1; i >= l; i--)
                         {
@@ -383,7 +383,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
                             b = c * e[i];
                             r = Hypot((float)f, (float)g);
                             e[i + 1] = (float)r;
-                            if (r == (Float)(0.0))
+                            if (r == (float)(0.0))
                             {
                                 /*     .......... recover from underflow .......... */
                                 d[i + 1] -= (float)p;
@@ -393,7 +393,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
                             s = f / r;
                             c = g / r;
                             g = d[i + 1] - p;
-                            r = (d[i] - g) * s + c * (Float)(2.0) * b;
+                            r = (d[i] - g) * s + c * (float)(2.0) * b;
                             p = s * r;
                             d[i + 1] = (float)(g + p);
                             g = c * r - b;
@@ -405,11 +405,11 @@ namespace Microsoft.ML.Transforms.TimeSeries
                                 z[k + i * n] = (float)(c * z[k + i * n] - s * f);
                             }
                         }
-                        if (r == (Float)(0.0) && i >= l)
+                        if (r == (float)(0.0) && i >= l)
                             continue;
                         d[l] -= (float)p;
                         e[l] = (float)g;
-                        e[m] = (Float)(0.0);
+                        e[m] = (float)(0.0);
                     }
                 } while (m != l);
             }

@@ -9,16 +9,17 @@ using System.Reflection;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
 using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Runtime;
 using Newtonsoft.Json.Linq;
 
-namespace Microsoft.ML.EntryPoints.JsonUtils
+namespace Microsoft.ML.EntryPoints
 {
     /// <summary>
     /// The class that creates and wraps around an instance of an input object and gradually populates all fields, keeping track of missing
     /// required values. The values can be set from their JSON representation (during the graph parsing stage), as well as directly
     /// (in the process of graph execution).
     /// </summary>
-    public sealed class InputBuilder
+    internal sealed class InputBuilder
     {
         private readonly struct Attributes
         {
@@ -646,7 +647,7 @@ namespace Microsoft.ML.EntryPoints.JsonUtils
     /// This class wraps around the output object type, does not create an instance, and provides utility methods for field type checking
     /// and extracting values.
     /// </summary>
-    public sealed class OutputHelper
+    internal sealed class OutputHelper
     {
         private readonly IExceptionContext _ectx;
         private readonly Type _type;
@@ -736,7 +737,8 @@ namespace Microsoft.ML.EntryPoints.JsonUtils
     /// <summary>
     /// These are the common field names used in the JSON objects for defining the manifest.
     /// </summary>
-    public static class FieldNames
+    [BestFriend]
+    internal static class FieldNames
     {
         public const string Nodes = "Nodes";
         public const string Kind = "Kind";
@@ -837,11 +839,11 @@ namespace Microsoft.ML.EntryPoints.JsonUtils
         {
             public static new string ToString() => "SupportedMetric";
             public const string Auc = BinaryClassifierEvaluator.Auc;
-            public const string AccuracyMicro = Data.MultiClassClassifierEvaluator.AccuracyMicro;
-            public const string AccuracyMacro = MultiClassClassifierEvaluator.AccuracyMacro;
+            public const string AccuracyMicro = Data.MulticlassClassificationEvaluator.AccuracyMicro;
+            public const string AccuracyMacro = MulticlassClassificationEvaluator.AccuracyMacro;
             public const string F1 = BinaryClassifierEvaluator.F1;
             public const string AuPrc = BinaryClassifierEvaluator.AuPrc;
-            public const string TopKAccuracy = MultiClassClassifierEvaluator.TopKAccuracy;
+            public const string TopKAccuracy = MulticlassClassificationEvaluator.TopKAccuracy;
             public const string L1 = RegressionLossEvaluatorBase<MultiOutputRegressionEvaluator.Aggregator>.L1;
             public const string L2 = RegressionLossEvaluatorBase<MultiOutputRegressionEvaluator.Aggregator>.L2;
             public const string Rms = RegressionLossEvaluatorBase<MultiOutputRegressionEvaluator.Aggregator>.Rms;
@@ -849,8 +851,8 @@ namespace Microsoft.ML.EntryPoints.JsonUtils
             public const string RSquared = RegressionLossEvaluatorBase<MultiOutputRegressionEvaluator.Aggregator>.RSquared;
             public const string LogLoss = BinaryClassifierEvaluator.LogLoss;
             public const string LogLossReduction = BinaryClassifierEvaluator.LogLossReduction;
-            public const string Ndcg = RankerEvaluator.Ndcg;
-            public const string Dcg = RankerEvaluator.Dcg;
+            public const string Ndcg = RankingEvaluator.Ndcg;
+            public const string Dcg = RankingEvaluator.Dcg;
             public const string PositivePrecision = BinaryClassifierEvaluator.PosPrecName;
             public const string PositiveRecall = BinaryClassifierEvaluator.PosRecallName;
             public const string NegativePrecision = BinaryClassifierEvaluator.NegPrecName;

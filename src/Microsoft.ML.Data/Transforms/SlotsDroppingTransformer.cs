@@ -7,14 +7,13 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Text;
-using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
 using Microsoft.ML.Internal.Internallearn;
 using Microsoft.ML.Internal.Utilities;
-using Microsoft.ML.Model;
-using Microsoft.ML.Transforms.FeatureSelection;
+using Microsoft.ML.Runtime;
+using Microsoft.ML.Transforms;
 
 [assembly: LoadableClass(SlotsDroppingTransformer.Summary, typeof(IDataTransform), typeof(SlotsDroppingTransformer), typeof(SlotsDroppingTransformer.Options), typeof(SignatureDataTransform),
     SlotsDroppingTransformer.FriendlyName, SlotsDroppingTransformer.LoaderSignature, "DropSlots")]
@@ -28,14 +27,15 @@ using Microsoft.ML.Transforms.FeatureSelection;
 [assembly: LoadableClass(typeof(IRowMapper), typeof(SlotsDroppingTransformer), null, typeof(SignatureLoadRowMapper),
    SlotsDroppingTransformer.FriendlyName, SlotsDroppingTransformer.LoaderSignature)]
 
-namespace Microsoft.ML.Transforms.FeatureSelection
+namespace Microsoft.ML.Transforms
 {
     /// <summary>
     /// Transform to drop slots from columns. If the column is scalar, the only slot that can be dropped is slot 0.
     /// If all the slots are to be dropped, a vector valued column will be changed to a vector of length 1 (a scalar column will retain its type) and
     /// the value will be the default value.
     /// </summary>
-    public sealed class SlotsDroppingTransformer : OneToOneTransformerBase
+    [BestFriend]
+    internal sealed class SlotsDroppingTransformer : OneToOneTransformerBase
     {
         internal sealed class Options
         {
@@ -193,7 +193,7 @@ namespace Microsoft.ML.Transforms.FeatureSelection
         /// Describes how the transformer handles one input-output column pair.
         /// </summary>
         [BestFriend]
-        internal sealed class ColumnInfo
+        internal sealed class ColumnOptions
         {
             public readonly string Name;
             public readonly string InputColumnName;
@@ -206,7 +206,7 @@ namespace Microsoft.ML.Transforms.FeatureSelection
             /// <param name="inputColumnName">Name of the column to transform.
             /// If set to <see langword="null"/>, the value of the <paramref name="name"/> will be used as source.</param>
             /// <param name="slots">Ranges of indices in the input column to be dropped. Setting max in <paramref name="slots"/> to null sets max to int.MaxValue.</param>
-            public ColumnInfo(string name, string inputColumnName = null, params (int min, int? max)[] slots)
+            public ColumnOptions(string name, string inputColumnName = null, params (int min, int? max)[] slots)
             {
                 Name = name;
                 Contracts.CheckValue(Name, nameof(Name));
@@ -219,7 +219,7 @@ namespace Microsoft.ML.Transforms.FeatureSelection
                     Contracts.Assert(min >= 0 && (max == null || min <= max));
             }
 
-            internal ColumnInfo(Column column)
+            internal ColumnOptions(Column column)
             {
                 Name = column.Name;
                 Contracts.CheckValue(Name, nameof(Name));
@@ -261,7 +261,7 @@ namespace Microsoft.ML.Transforms.FeatureSelection
         /// <param name="min">Specifies the lower bound of the range of slots to be dropped. The lower bound is inclusive. </param>
         /// <param name="max">Specifies the upper bound of the range of slots to be dropped. The upper bound is exclusive.</param>
         internal SlotsDroppingTransformer(IHostEnvironment env, string outputColumnName, string inputColumnName = null, int min = default, int? max = null)
-            : this(env, new ColumnInfo(outputColumnName, inputColumnName, (min, max)))
+            : this(env, new ColumnOptions(outputColumnName, inputColumnName, (min, max)))
         {
         }
 
@@ -270,7 +270,7 @@ namespace Microsoft.ML.Transforms.FeatureSelection
         /// </summary>
         /// <param name="env">The environment to use.</param>
         /// <param name="columns">Specifies the ranges of slots to drop for each column pair.</param>
-        internal SlotsDroppingTransformer(IHostEnvironment env, params ColumnInfo[] columns)
+        internal SlotsDroppingTransformer(IHostEnvironment env, params ColumnOptions[] columns)
             : base(Contracts.CheckRef(env, nameof(env)).Register(RegistrationName), GetColumnPairs(columns))
         {
             Host.AssertNonEmpty(ColumnPairs);
@@ -312,7 +312,7 @@ namespace Microsoft.ML.Transforms.FeatureSelection
         // Factory method for SignatureDataTransform.
         private static IDataTransform Create(IHostEnvironment env, Options options, IDataView input)
         {
-            var columns = options.Columns.Select(column => new ColumnInfo(column)).ToArray();
+            var columns = options.Columns.Select(column => new ColumnOptions(column)).ToArray();
             return new SlotsDroppingTransformer(env, columns).MakeDataTransform(input);
         }
 
@@ -376,7 +376,7 @@ namespace Microsoft.ML.Transforms.FeatureSelection
             }
         }
 
-        private static void GetSlotsMinMax(ColumnInfo[] columns, out int[][] slotsMin, out int[][] slotsMax)
+        private static void GetSlotsMinMax(ColumnOptions[] columns, out int[][] slotsMin, out int[][] slotsMax)
         {
             slotsMin = new int[columns.Length][];
             slotsMax = new int[columns.Length][];
@@ -413,7 +413,7 @@ namespace Microsoft.ML.Transforms.FeatureSelection
             }
         }
 
-        private static (string outputColumnName, string inputColumnName)[] GetColumnPairs(ColumnInfo[] columns)
+        private static (string outputColumnName, string inputColumnName)[] GetColumnPairs(ColumnOptions[] columns)
             => columns.Select(c => (c.Name, c.InputColumnName ?? c.Name)).ToArray();
 
         private static bool AreRangesValid(int[][] slotsMin, int[][] slotsMax)
@@ -801,7 +801,7 @@ namespace Microsoft.ML.Transforms.FeatureSelection
             {
                 Host.AssertValue(input);
                 Host.Assert(0 <= iinfo && iinfo < _parent.ColumnPairs.Length);
-                int src = _cols[iinfo];
+                var src = input.Schema[_cols[iinfo]];
                 Host.Assert(input.IsColumnActive(src));
                 return input.GetGetter<T>(src);
             }
@@ -826,7 +826,7 @@ namespace Microsoft.ML.Transforms.FeatureSelection
 
                     InputSchema.TryGetColumnIndex(_parent.ColumnPairs[iinfo].inputColumnName, out int colIndex);
                     Host.Assert(colIndex >= 0);
-                    var builder = new MetadataBuilder();
+                    var builder = new DataViewSchema.Annotations.Builder();
 
                     // Add SlotNames metadata.
                     if (_srcTypes[iinfo] is VectorType vectorType && vectorType.IsKnownSize)
@@ -839,14 +839,14 @@ namespace Microsoft.ML.Transforms.FeatureSelection
                         {
                             // Add slot name metadata.
                             ValueGetter<VBuffer<ReadOnlyMemory<char>>> slotNamesGetter = (ref VBuffer<ReadOnlyMemory<char>> dst) => GetSlotNames(iinfo, ref dst);
-                            builder.Add(MetadataUtils.Kinds.SlotNames, new VectorType(TextDataViewType.Instance, dstLength), slotNamesGetter);
+                            builder.Add(AnnotationUtils.Kinds.SlotNames, new VectorType(TextDataViewType.Instance, dstLength), slotNamesGetter);
                         }
                     }
 
                     // Add CategoricalSlotRanges metadata.
                     if (!_suppressed[iinfo])
                     {
-                        if (MetadataUtils.TryGetCategoricalFeatureIndices(InputSchema, _cols[iinfo], out _categoricalRanges[iinfo]))
+                        if (AnnotationUtils.TryGetCategoricalFeatureIndices(InputSchema, _cols[iinfo], out _categoricalRanges[iinfo]))
                         {
                             VBuffer<int> dst = default(VBuffer<int>);
                             GetCategoricalSlotRangesCore(iinfo, _slotDropper[iinfo].SlotsMin, _slotDropper[iinfo].SlotsMax, _categoricalRanges[iinfo], ref dst);
@@ -856,15 +856,15 @@ namespace Microsoft.ML.Transforms.FeatureSelection
                                 Contracts.Assert(dst.Length % 2 == 0);
                                 // Add slot name metadata.
                                 ValueGetter<VBuffer<int>> categoricalSlotRangesGetter = (ref VBuffer<int> dest) => GetCategoricalSlotRanges(iinfo, ref dest);
-                                builder.Add(MetadataUtils.Kinds.CategoricalSlotRanges, MetadataUtils.GetCategoricalType(dst.Length / 2), categoricalSlotRangesGetter);
+                                builder.Add(AnnotationUtils.Kinds.CategoricalSlotRanges, AnnotationUtils.GetCategoricalType(dst.Length / 2), categoricalSlotRangesGetter);
                             }
                         }
                     }
 
                     // Add isNormalize and KeyValues metadata.
-                    builder.Add(InputSchema[_cols[iinfo]].Metadata, x => x == MetadataUtils.Kinds.KeyValues || x == MetadataUtils.Kinds.IsNormalized);
+                    builder.Add(InputSchema[_cols[iinfo]].Annotations, x => x == AnnotationUtils.Kinds.KeyValues || x == AnnotationUtils.Kinds.IsNormalized);
 
-                    result[iinfo] = new DataViewSchema.DetachedColumn(_parent.ColumnPairs[iinfo].outputColumnName, _dstTypes[iinfo], builder.GetMetadata());
+                    result[iinfo] = new DataViewSchema.DetachedColumn(_parent.ColumnPairs[iinfo].outputColumnName, _dstTypes[iinfo], builder.ToAnnotations());
                 }
                 return result;
             }

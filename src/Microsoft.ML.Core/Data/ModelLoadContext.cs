@@ -6,8 +6,9 @@ using System;
 using System.IO;
 using System.Text;
 using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Runtime;
 
-namespace Microsoft.ML.Model
+namespace Microsoft.ML
 {
     /// <summary>
     /// This is a convenience context object for loading models from a repository, for

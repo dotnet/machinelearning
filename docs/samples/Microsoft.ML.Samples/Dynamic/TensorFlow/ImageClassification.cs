@@ -2,7 +2,7 @@ using System;
 using System.Linq;
 using Microsoft.ML.Data;
 
-namespace Microsoft.ML.Samples.Dynamic.TensorFlow
+namespace Microsoft.ML.Samples.Dynamic
 {
     public static class ImageClassification
     {
@@ -17,11 +17,10 @@ namespace Microsoft.ML.Samples.Dynamic.TensorFlow
 
             var mlContext = new MLContext();
             var data = GetTensorData();
-            var idv = mlContext.Data.ReadFromEnumerable(data);
+            var idv = mlContext.Data.LoadFromEnumerable(data);
 
             // Create a ML pipeline.
-            var pipeline = mlContext.Transforms.ScoreTensorFlowModel(
-                modelLocation, 
+            var pipeline = mlContext.Model.LoadTensorFlowModel(modelLocation).ScoreTensorFlowModel(
                 new[] { nameof(OutputScores.output) },
                 new[] { nameof(TensorData.input) });
 
@@ -30,7 +29,7 @@ namespace Microsoft.ML.Samples.Dynamic.TensorFlow
             var transformedValues = estimator.Transform(idv);
 
             // Retrieve model scores.
-            var outScores = mlContext.CreateEnumerable<OutputScores>(transformedValues, reuseRowObject: false);
+            var outScores = mlContext.Data.CreateEnumerable<OutputScores>(transformedValues, reuseRowObject: false);
 
             // Display scores. (for the sake of brevity we display scores of the first 3 classes)
             foreach (var prediction in outScores)

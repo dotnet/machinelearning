@@ -3,15 +3,13 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using Microsoft.ML.Data;
-using Microsoft.ML.EntryPoints;
-using Microsoft.ML.StaticPipe.Runtime;
-using Microsoft.ML.Trainers.KMeans;
+using Microsoft.ML.Runtime;
+using Microsoft.ML.Trainers;
 
 namespace Microsoft.ML.StaticPipe
 {
     /// <summary>
-    /// The trainer context extensions for the <see cref="KMeansPlusPlusTrainer"/>.
+    /// The trainer context extensions for the <see cref="KMeansTrainer"/>.
     /// </summary>
     public static class KMeansClusteringExtensions
     {
@@ -30,7 +28,7 @@ namespace Microsoft.ML.StaticPipe
         /// <returns>The predicted output.</returns>
         public static (Vector<float> score, Key<uint> predictedLabel) KMeans(this ClusteringCatalog.ClusteringTrainers catalog,
            Vector<float> features, Scalar<float> weights = null,
-           int clustersCount = KMeansPlusPlusTrainer.Defaults.ClustersCount,
+           int clustersCount = KMeansTrainer.Defaults.NumberOfClusters,
            Action<KMeansModelParameters> onFit = null)
         {
             Contracts.CheckValue(features, nameof(features));
@@ -41,14 +39,14 @@ namespace Microsoft.ML.StaticPipe
             var rec = new TrainerEstimatorReconciler.Clustering(
             (env, featuresName, weightsName) =>
             {
-                var options = new KMeansPlusPlusTrainer.Options
+                var options = new KMeansTrainer.Options
                 {
-                    FeatureColumn = featuresName,
-                    ClustersCount = clustersCount,
-                    WeightColumn = weightsName != null ? Optional<string>.Explicit(weightsName) : Optional<string>.Implicit(DefaultColumnNames.Weight)
+                    FeatureColumnName = featuresName,
+                    NumberOfClusters = clustersCount,
+                    ExampleWeightColumnName = weightsName
                 };
 
-                var trainer = new KMeansPlusPlusTrainer(env, options);
+                var trainer = new KMeansTrainer(env, options);
 
                 if (onFit != null)
                     return trainer.WithOnFitDelegate(trans => onFit(trans.Model));
@@ -74,7 +72,7 @@ namespace Microsoft.ML.StaticPipe
         /// <returns>The predicted output.</returns>
         public static (Vector<float> score, Key<uint> predictedLabel) KMeans(this ClusteringCatalog.ClusteringTrainers catalog,
            Vector<float> features, Scalar<float> weights,
-           KMeansPlusPlusTrainer.Options options,
+           KMeansTrainer.Options options,
            Action<KMeansModelParameters> onFit = null)
         {
             Contracts.CheckValueOrNull(onFit);
@@ -83,10 +81,10 @@ namespace Microsoft.ML.StaticPipe
             var rec = new TrainerEstimatorReconciler.Clustering(
             (env, featuresName, weightsName) =>
             {
-                options.FeatureColumn = featuresName;
-                options.WeightColumn = weightsName != null ? Optional<string>.Explicit(DefaultColumnNames.Weight): Optional<string>.Implicit(DefaultColumnNames.Weight);
+                options.FeatureColumnName = featuresName;
+                options.ExampleWeightColumnName = weightsName;
 
-                var trainer = new KMeansPlusPlusTrainer(env, options);
+                var trainer = new KMeansTrainer(env, options);
 
                 if (onFit != null)
                     return trainer.WithOnFitDelegate(trans => onFit(trans.Model));

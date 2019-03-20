@@ -3,18 +3,18 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using Microsoft.Data.DataView;
 using Microsoft.ML.Data;
+using Microsoft.ML.Runtime;
 
-namespace Microsoft.ML.Transforms
+namespace Microsoft.ML.Transforms.Onnx
 {
     /// <summary>
     /// This is a helper class that is required to use the <see cref="DnnImageFeaturizerEstimator"/>.
     /// Note that by default, it is not usable as it does not have any valid methods that return an <see cref="EstimatorChain{TLastTransformer}"/>
     /// that is used by the DnnImageFeaturizeEstimator.
     /// In order to use this, at least one model project with the corresponding extension methods must by included.
-    /// See Microsoft.ML.DNNImageFeaturizer.ResNet18 for an example.
     /// </summary>
+    /// <seealso cref="OnnxCatalog.DnnFeaturizeImage(TransformsCatalog, string, Func{DnnImageFeaturizerInput, EstimatorChain{ColumnCopyingTransformer}}, string)"/>
     public sealed class DnnImageModelSelector
     {
     }

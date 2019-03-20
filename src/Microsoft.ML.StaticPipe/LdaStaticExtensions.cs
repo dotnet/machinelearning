@@ -4,7 +4,7 @@
 
 using System;
 using System.Collections.Generic;
-using Microsoft.ML.StaticPipe.Runtime;
+using Microsoft.ML.Runtime;
 using Microsoft.ML.Transforms.Text;
 
 namespace Microsoft.ML.StaticPipe
@@ -12,65 +12,65 @@ namespace Microsoft.ML.StaticPipe
     /// <summary>
     /// Information on the result of fitting a LDA transform.
     /// </summary>
-    public sealed class LdaFitResult
+    public sealed class LatentDirichletAllocationFitResult
     {
         /// <summary>
         /// For user defined delegates that accept instances of the containing type.
         /// </summary>
         /// <param name="result"></param>
-        public delegate void OnFit(LdaFitResult result);
+        public delegate void OnFit(LatentDirichletAllocationFitResult result);
 
-        public LatentDirichletAllocationTransformer.LdaSummary LdaTopicSummary;
-        public LdaFitResult(LatentDirichletAllocationTransformer.LdaSummary ldaTopicSummary)
+        public LatentDirichletAllocationTransformer.ModelParameters LdaTopicSummary;
+        public LatentDirichletAllocationFitResult(LatentDirichletAllocationTransformer.ModelParameters ldaTopicSummary)
         {
             LdaTopicSummary = ldaTopicSummary;
         }
     }
 
-    public static class LdaStaticExtensions
+    public static class LatentDirichletAllocationStaticExtensions
     {
         private struct Config
         {
-            public readonly int NumTopic;
+            public readonly int NumberOfTopics;
             public readonly Single AlphaSum;
             public readonly Single Beta;
-            public readonly int MHStep;
-            public readonly int NumIter;
+            public readonly int SamplingStepCount;
+            public readonly int MaximumNumberOfIterations;
             public readonly int LikelihoodInterval;
-            public readonly int NumThread;
-            public readonly int NumMaxDocToken;
-            public readonly int NumSummaryTermPerTopic;
-            public readonly int NumBurninIter;
+            public readonly int NumberOfThreads;
+            public readonly int MaximumTokenCountPerDocument;
+            public readonly int NumberOfSummaryTermsPerTopic;
+            public readonly int NumberOfBurninIterations;
             public readonly bool ResetRandomGenerator;
 
-            public readonly Action<LatentDirichletAllocationTransformer.LdaSummary> OnFit;
+            public readonly Action<LatentDirichletAllocationTransformer.ModelParameters> OnFit;
 
-            public Config(int numTopic, Single alphaSum, Single beta, int mhStep, int numIter, int likelihoodInterval,
-                int numThread, int numMaxDocToken, int numSummaryTermPerTopic, int numBurninIter, bool resetRandomGenerator,
-                Action<LatentDirichletAllocationTransformer.LdaSummary> onFit)
+            public Config(int numberOfTopics, Single alphaSum, Single beta, int samplingStepCount, int maximumNumberOfIterations, int likelihoodInterval,
+                int numberOfThreads, int maximumTokenCountPerDocument, int numberOfSummaryTermsPerTopic, int numberOfBurninIterations, bool resetRandomGenerator,
+                Action<LatentDirichletAllocationTransformer.ModelParameters> onFit)
             {
-                NumTopic = numTopic;
+                NumberOfTopics = numberOfTopics;
                 AlphaSum = alphaSum;
                 Beta = beta;
-                MHStep = mhStep;
-                NumIter = numIter;
+                SamplingStepCount = samplingStepCount;
+                MaximumNumberOfIterations = maximumNumberOfIterations;
                 LikelihoodInterval = likelihoodInterval;
-                NumThread = numThread;
-                NumMaxDocToken = numMaxDocToken;
-                NumSummaryTermPerTopic = numSummaryTermPerTopic;
-                NumBurninIter = numBurninIter;
+                NumberOfThreads = numberOfThreads;
+                MaximumTokenCountPerDocument = maximumTokenCountPerDocument;
+                NumberOfSummaryTermsPerTopic = numberOfSummaryTermsPerTopic;
+                NumberOfBurninIterations = numberOfBurninIterations;
                 ResetRandomGenerator = resetRandomGenerator;
 
                 OnFit = onFit;
             }
         }
 
-        private static Action<LatentDirichletAllocationTransformer.LdaSummary> Wrap(LdaFitResult.OnFit onFit)
+        private static Action<LatentDirichletAllocationTransformer.ModelParameters> Wrap(LatentDirichletAllocationFitResult.OnFit onFit)
         {
             if (onFit == null)
                 return null;
 
-            return ldaTopicSummary => onFit(new LdaFitResult(ldaTopicSummary));
+            return ldaTopicSummary => onFit(new LatentDirichletAllocationFitResult(ldaTopicSummary));
         }
 
         private interface ILdaCol
@@ -100,24 +100,24 @@ namespace Microsoft.ML.StaticPipe
                 IReadOnlyDictionary<PipelineColumn, string> outputNames,
                 IReadOnlyCollection<string> usedNames)
             {
-                var infos = new LatentDirichletAllocationEstimator.ColumnInfo[toOutput.Length];
+                var infos = new LatentDirichletAllocationEstimator.ColumnOptions[toOutput.Length];
                 Action<LatentDirichletAllocationTransformer> onFit = null;
                 for (int i = 0; i < toOutput.Length; ++i)
                 {
                     var tcol = (ILdaCol)toOutput[i];
 
-                    infos[i] = new LatentDirichletAllocationEstimator.ColumnInfo(outputNames[toOutput[i]],
+                    infos[i] = new LatentDirichletAllocationEstimator.ColumnOptions(outputNames[toOutput[i]],
                         inputNames[tcol.Input],
-                        tcol.Config.NumTopic,
+                        tcol.Config.NumberOfTopics,
                         tcol.Config.AlphaSum,
                         tcol.Config.Beta,
-                        tcol.Config.MHStep,
-                        tcol.Config.NumIter,
+                        tcol.Config.SamplingStepCount,
+                        tcol.Config.MaximumNumberOfIterations,
                         tcol.Config.LikelihoodInterval,
-                        tcol.Config.NumThread,
-                        tcol.Config.NumMaxDocToken,
-                        tcol.Config.NumSummaryTermPerTopic,
-                        tcol.Config.NumBurninIter,
+                        tcol.Config.NumberOfThreads,
+                        tcol.Config.MaximumTokenCountPerDocument,
+                        tcol.Config.NumberOfSummaryTermsPerTopic,
+                        tcol.Config.NumberOfBurninIterations,
                         tcol.Config.ResetRandomGenerator);
 
                     if (tcol.Config.OnFit != null)
@@ -137,36 +137,36 @@ namespace Microsoft.ML.StaticPipe
 
         /// <include file='../Microsoft.ML.Transforms/Text/doc.xml' path='doc/members/member[@name="LightLDA"]/*' />
         /// <param name="input">A vector of floats representing the document.</param>
-        /// <param name="numTopic">The number of topics.</param>
+        /// <param name="numberOfTopics">The number of topics.</param>
         /// <param name="alphaSum">Dirichlet prior on document-topic vectors.</param>
         /// <param name="beta">Dirichlet prior on vocab-topic vectors.</param>
-        /// <param name="mhstep">Number of Metropolis Hasting step.</param>
-        /// <param name="numIterations">Number of iterations.</param>
+        /// <param name="samplingStepCount">Number of Metropolis Hasting step.</param>
+        /// <param name="maximumNumberOfIterations">Number of iterations.</param>
         /// <param name="likelihoodInterval">Compute log likelihood over local dataset on this iteration interval.</param>
-        /// <param name="numThreads">The number of training threads. Default value depends on number of logical processors.</param>
-        /// <param name="numMaxDocToken">The threshold of maximum count of tokens per doc.</param>
-        /// <param name="numSummaryTermPerTopic">The number of words to summarize the topic.</param>
-        /// <param name="numBurninIterations">The number of burn-in iterations.</param>
+        /// <param name="numberOfThreads">The number of training threads. Default value depends on number of logical processors.</param>
+        /// <param name="maximumTokenCountPerDocument">The threshold of maximum count of tokens per doc.</param>
+        /// <param name="numberOfSummaryTermsPerTopic">The number of words to summarize the topic.</param>
+        /// <param name="numberOfBurninIterations">The number of burn-in iterations.</param>
         /// <param name="resetRandomGenerator">Reset the random number generator for each document.</param>
         /// <param name="onFit">Called upon fitting with the learnt enumeration on the dataset.</param>
-        public static Vector<float> ToLdaTopicVector(this Vector<float> input,
-            int numTopic = LatentDirichletAllocationEstimator.Defaults.NumTopic,
+        public static Vector<float> LatentDirichletAllocation(this Vector<float> input,
+            int numberOfTopics = LatentDirichletAllocationEstimator.Defaults.NumberOfTopics,
             Single alphaSum = LatentDirichletAllocationEstimator.Defaults.AlphaSum,
             Single beta = LatentDirichletAllocationEstimator.Defaults.Beta,
-            int mhstep = LatentDirichletAllocationEstimator.Defaults.Mhstep,
-            int numIterations = LatentDirichletAllocationEstimator.Defaults.NumIterations,
+            int samplingStepCount = LatentDirichletAllocationEstimator.Defaults.SamplingStepCount,
+            int maximumNumberOfIterations = LatentDirichletAllocationEstimator.Defaults.MaximumNumberOfIterations,
             int likelihoodInterval = LatentDirichletAllocationEstimator.Defaults.LikelihoodInterval,
-            int numThreads = LatentDirichletAllocationEstimator.Defaults.NumThreads,
-            int numMaxDocToken = LatentDirichletAllocationEstimator.Defaults.NumMaxDocToken,
-            int numSummaryTermPerTopic = LatentDirichletAllocationEstimator.Defaults.NumSummaryTermPerTopic,
-            int numBurninIterations = LatentDirichletAllocationEstimator.Defaults.NumBurninIterations,
+            int numberOfThreads = LatentDirichletAllocationEstimator.Defaults.NumberOfThreads,
+            int maximumTokenCountPerDocument = LatentDirichletAllocationEstimator.Defaults.MaximumTokenCountPerDocument,
+            int numberOfSummaryTermsPerTopic = LatentDirichletAllocationEstimator.Defaults.NumberOfSummaryTermsPerTopic,
+            int numberOfBurninIterations = LatentDirichletAllocationEstimator.Defaults.NumberOfBurninIterations,
             bool resetRandomGenerator = LatentDirichletAllocationEstimator.Defaults.ResetRandomGenerator,
-            LdaFitResult.OnFit onFit = null)
+            LatentDirichletAllocationFitResult.OnFit onFit = null)
         {
             Contracts.CheckValue(input, nameof(input));
             return new ImplVector(input,
-                new Config(numTopic, alphaSum, beta, mhstep, numIterations, likelihoodInterval, numThreads, numMaxDocToken, numSummaryTermPerTopic,
-                numBurninIterations, resetRandomGenerator, Wrap(onFit)));
+                new Config(numberOfTopics, alphaSum, beta, samplingStepCount, maximumNumberOfIterations, likelihoodInterval, numberOfThreads, maximumTokenCountPerDocument, numberOfSummaryTermsPerTopic,
+                numberOfBurninIterations, resetRandomGenerator, Wrap(onFit)));
         }
     }
 }

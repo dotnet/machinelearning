@@ -1,0 +1,22 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <IncludeInPackage>Microsoft.ML.Mkl.Components</IncludeInPackage>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+  
+  <ItemGroup>
+    <ProjectReference Include="..\Microsoft.ML.Core\Microsoft.ML.Core.csproj" />
+    <ProjectReference Include="..\Microsoft.ML.Data\Microsoft.ML.Data.csproj" />
+    <ProjectReference Include="..\Microsoft.ML.StandardTrainers\Microsoft.ML.StandardTrainers.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- The package reference is in there, so that the build can download the MlNetMklDeps package at build time.
+    The binaries of this package, are extraceted, and repackaged in the Microsoft.ML.Mkl.Redist; that is the one that has a true
+    dependancy on MlNetMklDeps. From the users prospective, the Microsoft.ML.Mkl.Components package depends on Microsoft.ML.Mkl.Redist. -->
+    <PackageReference Include="MlNetMklDeps" Version="$(MlNetMklDepsPackageVersion)" />
+  </ItemGroup>
+
+</Project>

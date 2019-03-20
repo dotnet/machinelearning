@@ -4,7 +4,7 @@
 
 using System;
 using System.Collections.Generic;
-using Float = System.Single;
+using Microsoft.ML.Runtime;
 
 namespace Microsoft.ML.Internal.Utilities
 {
@@ -318,7 +318,7 @@ namespace Microsoft.ML.Internal.Utilities
         private HeapNode.Heap<Peg> _pegHeap; // heap used for selecting the largest energy decrease
         private int[] _accum; // integral of counts
         private int[] _path; // current set of pegs
-        private Float _meanBinSize;
+        private float _meanBinSize;
 
         public GreedyBinFinder()
         {
@@ -338,7 +338,7 @@ namespace Microsoft.ML.Internal.Utilities
                 _accum = new int[CountValues + 1];
             for (int i = 0; i < CountValues; i++)
                 _accum[i + 1] = _accum[i] + counts[i];
-            _meanBinSize = (Float)_accum[CountValues] / CountBins;
+            _meanBinSize = (float)_accum[CountValues] / CountBins;
 
             PlacePegs();
 
@@ -599,7 +599,7 @@ namespace Microsoft.ML.Internal.Utilities
 
             // Row zero is special.
             EnergyType bestWorst = EnergyType.MaxValue;
-            for (int col = width; --col >= 0; )
+            for (int col = width; --col >= 0;)
             {
                 _energies[col] = Square(_accum[1 + col]);
                 EnergyType worst;
@@ -626,7 +626,7 @@ namespace Microsoft.ML.Internal.Utilities
             for (int row = 1; row < height; row++)
             {
                 Contracts.Assert(ivBase == (row - 1) * width);
-                for (int col = width; --col >= colMin; )
+                for (int col = width; --col >= colMin;)
                 {
                     int accum = _accum[row + 1 + col];
                     eBest = EnergyType.MaxValue;
@@ -697,7 +697,7 @@ namespace Microsoft.ML.Internal.Utilities
 
             // Fill in the rest of the path.
             ivBase = (height - 1) * width;
-            for (int row = height; --row > 0; )
+            for (int row = height; --row > 0;)
             {
                 // Recall that the _pathInfo table doesn't have row zero.
                 ivBase -= width;
