@@ -484,22 +484,22 @@ namespace Microsoft.ML
         /// <param name="labelColumnName">The name of the label column in <paramref name="data"/>.</param>
         /// <param name="scoreColumnName">The name of the score column in <paramref name="data"/>.</param>
         /// <param name="predictedLabelColumnName">The name of the predicted label column in <paramref name="data"/>.</param>
-        /// <param name="topPredictionCount">If given a positive value, the <see cref="MulticlassClassificationMetrics.TopKAccuracy"/> will be filled with
+        /// <param name="topKPredictionCount">If given a positive value, the <see cref="MulticlassClassificationMetrics.TopKAccuracy"/> will be filled with
         /// the top-K accuracy, that is, the accuracy assuming we consider an example with the correct class within
         /// the top-K values as being stored "correctly."</param>
         /// <returns>The evaluation results for these calibrated outputs.</returns>
         public MulticlassClassificationMetrics Evaluate(IDataView data, string labelColumnName = DefaultColumnNames.Label, string scoreColumnName = DefaultColumnNames.Score,
-            string predictedLabelColumnName = DefaultColumnNames.PredictedLabel, int topPredictionCount = 0)
+            string predictedLabelColumnName = DefaultColumnNames.PredictedLabel, int topKPredictionCount = 0)
         {
             Environment.CheckValue(data, nameof(data));
             Environment.CheckNonEmpty(labelColumnName, nameof(labelColumnName));
             Environment.CheckNonEmpty(scoreColumnName, nameof(scoreColumnName));
             Environment.CheckNonEmpty(predictedLabelColumnName, nameof(predictedLabelColumnName));
-            Environment.CheckUserArg(topPredictionCount >= 0, nameof(topPredictionCount), "Must be non-negative");
+            Environment.CheckUserArg(topKPredictionCount >= 0, nameof(topKPredictionCount), "Must be non-negative");
 
             var args = new MulticlassClassificationEvaluator.Arguments() { };
-            if (topPredictionCount > 0)
-                args.OutputTopKAcc = topPredictionCount;
+            if (topKPredictionCount > 0)
+                args.OutputTopKAcc = topKPredictionCount;
             var eval = new MulticlassClassificationEvaluator(Environment, args);
             return eval.Evaluate(data, labelColumnName, scoreColumnName, predictedLabelColumnName);
         }
