@@ -1132,7 +1132,7 @@ namespace Microsoft.ML.StaticPipelineTesting
 
             var est = reader.MakeNewEstimator()
                 .Append(r => (r.label, preds: catalog.Trainers.StochasticGradientDescentNonCalibratedClassificationTrainer(r.label, r.features, null,
-                    new SgdNonCalibratedTrainer.Options { L2Regularization = 0, NumberOfThreads = 1, Loss = new HingeLoss()},
+                    new SgdNonCalibratedTrainer.Options { L2Regularization = 0, NumberOfThreads = 1, LossFunction = new HingeLoss()},
                     onFit: (p) => { pred = p; })));
 
             var pipe = reader.Append(est);

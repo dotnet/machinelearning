@@ -120,8 +120,8 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         [Fact]
         public void TestEstimatorHogwildSGDNonCalibrated()
         {
-            var trainers = new[] { ML.BinaryClassification.Trainers.SgdNonCalibrated(loss : new SmoothedHingeLoss()),
-                ML.BinaryClassification.Trainers.SgdNonCalibrated(new Trainers.SgdNonCalibratedTrainer.Options() { Loss = new HingeLoss() }) };
+            var trainers = new[] { ML.BinaryClassification.Trainers.SgdNonCalibrated(lossFunction : new SmoothedHingeLoss()),
+                ML.BinaryClassification.Trainers.SgdNonCalibrated(new Trainers.SgdNonCalibratedTrainer.Options() { LossFunction = new HingeLoss() }) };
 
             foreach (var trainer in trainers)
             {

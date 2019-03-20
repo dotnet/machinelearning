@@ -35,7 +35,7 @@ namespace Microsoft.ML.StaticPipe
             Vector<float> features,
             Scalar<float> weights = null,
             int numberOfIterations = SgdCalibratedTrainer.Options.Defaults.NumberOfIterations,
-            double initialLearningRate = SgdCalibratedTrainer.Options.Defaults.InitialLearningRate,
+            double initialLearningRate = SgdCalibratedTrainer.Options.Defaults.LearningRate,
             float l2Regularization = SgdCalibratedTrainer.Options.Defaults.L2Regularization,
             Action<CalibratedModelParametersBase<LinearBinaryModelParameters, PlattCalibrator>> onFit = null)
         {
@@ -116,7 +116,7 @@ namespace Microsoft.ML.StaticPipe
             Vector<float> features,
             Scalar<float> weights = null,
             int numberOfIterations = SgdNonCalibratedTrainer.Options.Defaults.NumberOfIterations,
-            double initialLearningRate = SgdNonCalibratedTrainer.Options.Defaults.InitialLearningRate,
+            double initialLearningRate = SgdNonCalibratedTrainer.Options.Defaults.LearningRate,
             float l2Regularization = SgdNonCalibratedTrainer.Options.Defaults.L2Regularization,
             IClassificationLoss loss = null,
             Action<LinearBinaryModelParameters> onFit = null)
