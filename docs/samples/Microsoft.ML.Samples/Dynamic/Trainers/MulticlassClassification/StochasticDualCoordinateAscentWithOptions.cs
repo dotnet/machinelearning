@@ -1,5 +1,4 @@
-﻿using Microsoft.ML.Data;
-using Microsoft.ML.SamplesUtils;
+﻿using Microsoft.ML.SamplesUtils;
 using Microsoft.ML.Trainers;
 
 namespace Microsoft.ML.Samples.Dynamic.Trainers.MulticlassClassification
@@ -26,10 +25,10 @@ namespace Microsoft.ML.Samples.Dynamic.Trainers.MulticlassClassification
             // CC       1.216908,1.248052,1.391902,0.4326252,1.099942,0.9262842,1.334019,1.08762,0.9468155,0.4811099
             // DD       0.7871246,1.053327,0.8971719,1.588544,1.242697,1.362964,0.6303943,0.9810045,0.9431419,1.557455
 
-            var options = new SdcaMulticlassTrainer.Options
+            var options = new SdcaNonCalibratedMulticlassTrainer.Options
             {
                 // Add custom loss
-                LossFunction = new HingeLoss(),
+                Loss = new HingeLoss(),
                 // Make the convergence tolerance tighter.
                 ConvergenceTolerance = 0.05f,
                 // Increase the maximum number of passes over training data.
@@ -41,7 +40,7 @@ namespace Microsoft.ML.Samples.Dynamic.Trainers.MulticlassClassification
                     // Convert the string labels into key types.
                     mlContext.Transforms.Conversion.MapValueToKey("Label")
                     // Apply StochasticDualCoordinateAscent multiclass trainer.
-                    .Append(mlContext.MulticlassClassification.Trainers.Sdca(options));
+                    .Append(mlContext.MulticlassClassification.Trainers.SdcaNonCalibrated(options));
 
             // Split the data into training and test sets. Only training set is used in fitting
             // the created pipeline. Metrics are computed on the test.

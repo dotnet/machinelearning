@@ -776,7 +776,7 @@ namespace Microsoft.ML.RunTests
                     LabelColumnName = DefaultColumnNames.Label,
                     TrainingData = dataView
                 }).PredictorModel,
-                LogisticRegressionBinaryTrainer.TrainMulticlass(Env, new LogisticRegressionMulticlassClassificationTrainer.Options()
+                LbfgsMaximumEntropyTrainer.TrainMulticlass(Env, new LbfgsMaximumEntropyTrainer.Options()
                 {
                     FeatureColumnName = "Features",
                     LabelColumnName = DefaultColumnNames.Label,
@@ -784,7 +784,7 @@ namespace Microsoft.ML.RunTests
                     TrainingData = dataView,
                     NormalizeFeatures = NormalizeOption.No
                 }).PredictorModel,
-                LogisticRegressionBinaryTrainer.TrainMulticlass(Env, new LogisticRegressionMulticlassClassificationTrainer.Options()
+                LbfgsMaximumEntropyTrainer.TrainMulticlass(Env, new LbfgsMaximumEntropyTrainer.Options()
                 {
                     FeatureColumnName = "Features",
                     LabelColumnName = DefaultColumnNames.Label,

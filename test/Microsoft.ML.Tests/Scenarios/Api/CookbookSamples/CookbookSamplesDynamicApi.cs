@@ -161,13 +161,13 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
                 // Cache data in memory for steps after the cache check point stage.
                 .AppendCacheCheckpoint(mlContext)
                 // Use the multi-class SDCA model to predict the label using features.
-                .Append(mlContext.MulticlassClassification.Trainers.Sdca());
+                .Append(mlContext.MulticlassClassification.Trainers.SdcaCalibrated());
 
             // Train the model.
             var trainedModel = pipeline.Fit(trainData);
 
             // Inspect the model parameters. 
-            var modelParameters = trainedModel.LastTransformer.Model as MulticlassLogisticRegressionModelParameters;
+            var modelParameters = trainedModel.LastTransformer.Model as MaximumEntropyModelParameters;
 
             // Get the weights and the numbers of classes
             VBuffer<float>[] weights = default;
@@ -419,7 +419,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
                 // Notice that unused part in the data may not be cached.
                 .AppendCacheCheckpoint(mlContext)
                 // Use the multi-class SDCA model to predict the label using features.
-                .Append(mlContext.MulticlassClassification.Trainers.Sdca());
+                .Append(mlContext.MulticlassClassification.Trainers.SdcaCalibrated());
 
             // Split the data 90:10 into train and test sets, train and evaluate.
             var split = mlContext.Data.TrainTestSplit(data, testFraction: 0.1);
