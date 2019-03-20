@@ -63,6 +63,40 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             var model = trainer.Fit(transformedDataView, transformedDataView);
             Done();
         }
+        public class Data
+        {
+            public float FloatOne;
+            public string HotOne;
+            public string HotTwo;
+            public bool Label;
+        }
+
+        [LightGBMFact]
+        public void LightGBMBinaryCategoricalEstimator()
+        {
+            int n = 10000;
+            var rnd = new Random(1);
+            var data = new List<Data>();
+            for (int i = 0; i < n; i++)
+            {
+                var point = new Data()
+                {
+                    FloatOne = rnd.NextSingle(),
+                    HotOne = rnd.Next(6, 10).ToString(),
+                    HotTwo = rnd.Next(15, 16).ToString(),
+                    Label = rnd.Next(1, 100) > 50
+                };
+                if (point.HotOne == "8") point.HotOne = "";
+                data.Add(point);
+            }
+            var dataview = ML.Data.LoadFromEnumerable(data);
+            var pipeNoTrainer = ML.Transforms.Categorical.OneHotEncoding(nameof(Data.HotOne))
+                .Append(ML.Transforms.Categorical.OneHotEncoding(nameof(Data.HotTwo)))
+                .Append(ML.Transforms.Concatenate("Features", nameof(Data.FloatOne), nameof(Data.HotOne), nameof(Data.HotTwo)));
+
+            var pipe = pipeNoTrainer.Append(ML.BinaryClassification.Trainers.LightGbm(new LightGbmBinaryTrainer.Options() { UseCategoricalSplit = true, HandleMissingValue = true, NumberOfIterations = 10, MinimumExampleCountPerGroup = 5 }));
+            var model = pipe.Fit(dataview);
+        }
 
 
         [Fact]
@@ -294,7 +328,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             var mlContext = new MLContext(seed: 0);
             var dataView = mlContext.Data.LoadFromEnumerable(dataList);
             int numberOfTrainingIterations = 3;
-            var gbmTrainer = new LightGbmMulticlassTrainer(mlContext, 
+            var gbmTrainer = new LightGbmMulticlassTrainer(mlContext,
                 new LightGbmMulticlassTrainer.Options
                 {
                     NumberOfIterations = numberOfTrainingIterations,
