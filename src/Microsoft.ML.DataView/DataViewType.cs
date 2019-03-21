@@ -117,7 +117,7 @@ namespace Microsoft.ML.Data
             get
             {
                 return _instSByte ??
-                    Interlocked.CompareExchange(ref _instSByte, new NumberDataViewType(typeof(sbyte), "short"), null) ??
+                    Interlocked.CompareExchange(ref _instSByte, new NumberDataViewType(typeof(sbyte), "sbyte"), null) ??
                     _instSByte;
             }
         }
@@ -128,7 +128,7 @@ namespace Microsoft.ML.Data
             get
             {
                 return _instByte ??
-                    Interlocked.CompareExchange(ref _instByte, new NumberDataViewType(typeof(byte), "ushort"), null) ??
+                    Interlocked.CompareExchange(ref _instByte, new NumberDataViewType(typeof(byte), "byte"), null) ??
                     _instByte;
             }
         }
