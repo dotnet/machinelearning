@@ -25,8 +25,8 @@ namespace Microsoft.ML
         /// <param name="featureColumnName">The features, or independent variables.</param>
         /// <param name="exampleWeightColumnName">The name of the example weight column (optional).</param>
         /// <param name="numberOfIterations">The maximum number of passes through the training dataset; set to 1 to simulate online learning.</param>
-        /// <param name="learningRate">The learning rate. Large value may boost the training process but also leads to numerical instability.</param>
-        /// <param name="l2Regularization">The weight of L2-norm regularization. Large value pushes the learned model coefficients toward zero.</param>
+        /// <param name="learningRate">The initial <a href="tmpurl_lr">learning rate</a> used by SGD.</param>
+        /// <param name="l2Regularization">The L2 weight for <a href='tmpurl_regularization'>regularization</a>.</param>
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
@@ -79,10 +79,10 @@ namespace Microsoft.ML
         /// <param name="labelColumnName">The name of the label column, or dependent variable.</param>
         /// <param name="featureColumnName">The features, or independent variables.</param>
         /// <param name="exampleWeightColumnName">The name of the example weight column (optional).</param>
-        /// <param name="lossFunction">The loss function minimized in the training process. Using, for example, <see cref="HingeLoss"/> leads to a support vector machine trainer.</param>
+        /// <param name="lossFunction">The <a href="tmpurl_loss">loss</a> function minimized in the training process. Using, for example, <see cref="HingeLoss"/> leads to a support vector machine trainer.</param>
         /// <param name="numberOfIterations">The maximum number of passes through the training dataset; set to 1 to simulate online learning.</param>
-        /// <param name="learningRate">The learning rate. Large value may boost the training process but also leads to numerical instability.</param>
-        /// <param name="l2Regularization">The weight of L2-norm regularization. Large value pushes the learned model coefficients toward zero.</param>
+        /// <param name="learningRate">The initial <a href="tmpurl_lr">learning rate</a> used by SGD.</param>
+        /// <param name="l2Regularization">The L2 weight for <a href='tmpurl_regularization'>regularization</a>.</param>
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
@@ -135,9 +135,9 @@ namespace Microsoft.ML
         /// <param name="labelColumnName">The name of the label column.</param>
         /// <param name="featureColumnName">The name of the feature column.</param>
         /// <param name="exampleWeightColumnName">The name of the example weight column (optional).</param>
-        /// <param name="lossFunction">The loss function minimized in the training process. Using, for example, <see cref="SquaredLoss"/> leads to a least square trainer.</param>
-        /// <param name="l2Regularization">The weight of L2-norm regularization. Large value pushes the learned model coefficients toward zero.</param>
-        /// <param name="l1Regularization">The weight of L1-norm regularization. Higher values will tend to lead to more sparse model.</param>
+        /// <param name="lossFunction">The <a href="tmpurl_loss">loss</a> function minimized in the training process. Using, for example, its default <see cref="SquaredLoss"/> leads to a least square trainer.</param>
+        /// <param name="l2Regularization">The L2 weight for <a href='tmpurl_regularization'>regularization</a>.</param>
+        /// <param name="l1Regularization">The L1 <a href='tmpurl_regularization'>regularization</a> hyperparameter. Higher values will tend to lead to more sparse model.</param>
         /// <param name="maximumNumberOfIterations">The maximum number of passes to perform over the data.</param>
         /// <example>
         /// <format type="text/markdown">
@@ -187,8 +187,8 @@ namespace Microsoft.ML
         /// <param name="labelColumnName">The name of the label column.</param>
         /// <param name="featureColumnName">The name of the feature column.</param>
         /// <param name="exampleWeightColumnName">The name of the example weight column (optional).</param>
-        /// <param name="l2Regularization">The weight of L2-norm regularization. Large value pushes the learned model coefficients toward zero.</param>
-        /// <param name="l1Regularization">The weight of L1-norm regularization. Higher values will tend to lead to more sparse model.</param>
+        /// <param name="l2Regularization">The L2 weight for <a href='tmpurl_regularization'>regularization</a>.</param>
+        /// <param name="l1Regularization">The L1 <a href='tmpurl_regularization'>regularization</a> hyperparameter. Higher values will tend to lead to more sparse model.</param>
         /// <param name="maximumNumberOfIterations">The maximum number of passes to perform over the data.</param>
         /// <example>
         /// <format type="text/markdown">
@@ -239,9 +239,9 @@ namespace Microsoft.ML
         /// <param name="labelColumnName">The name of the label column.</param>
         /// <param name="featureColumnName">The name of the feature column.</param>
         /// <param name="exampleWeightColumnName">The name of the example weight column (optional).</param>
-        /// <param name="lossFunction">The loss function minimized in the training process. Defaults to <see cref="LogLoss"/> if not specified.</param>
-        /// <param name="l2Regularization">The weight of L2-norm regularization. Large value pushes the learned model coefficients toward zero.</param>
-        /// <param name="l1Regularization">The weight of L1-norm regularization. Higher values will tend to lead to more sparse model.</param>
+        /// <param name="lossFunction">The <a href="tmpurl_loss">loss</a> function minimized in the training process. Defaults to <see cref="LogLoss"/> if not specified.</param>
+        /// <param name="l2Regularization">The L2 weight for <a href='tmpurl_regularization'>regularization</a>.</param>
+        /// <param name="l1Regularization">The L1 <a href='tmpurl_regularization'>regularization</a> hyperparameter. Higher values will tend to lead to more sparse model.</param>
         /// <param name="maximumNumberOfIterations">The maximum number of passes to perform over the data.</param>
         /// <example>
         /// <format type="text/markdown">
@@ -287,8 +287,8 @@ namespace Microsoft.ML
         /// <param name="labelColumnName">The name of the label column.</param>
         /// <param name="featureColumnName">The name of the feature column.</param>
         /// <param name="exampleWeightColumnName">The name of the example weight column (optional).</param>
-        /// <param name="l2Regularization">The weight of L2-norm regularization. Large value pushes the learned model coefficients toward zero.</param>
-        /// <param name="l1Regularization">The weight of L1-norm regularization. Higher values will tend to lead to more sparse model.</param>
+        /// <param name="l2Regularization">The L2 weight for <a href='tmpurl_regularization'>regularization</a>.</param>
+        /// <param name="l1Regularization">The L1 <a href='tmpurl_regularization'>regularization</a> hyperparameter. Higher values will tend to lead to more sparse model.</param>
         /// <param name="maximumNumberOfIterations">The maximum number of passes to perform over the data.</param>
         /// <example>
         /// <format type="text/markdown">
@@ -337,9 +337,9 @@ namespace Microsoft.ML
         /// <param name="labelColumnName">The name of the label column.</param>
         /// <param name="featureColumnName">The name of the feature column.</param>
         /// <param name="exampleWeightColumnName">The name of the example weight column (optional).</param>
-        /// <param name="lossFunction">Loss function to be minimized. Defaults to <see cref="LogLoss"/> if not specified.</param>
-        /// <param name="l2Regularization">The weight of L2-norm regularization. Large value pushes the learned model coefficients toward zero.</param>
-        /// <param name="l1Regularization">The weight of L1-norm regularization. Higher values will tend to lead to more sparse model.</param>
+        /// <param name="lossFunction">The <a href="tmpurl_loss">loss</a> function to be minimized. Defaults to <see cref="LogLoss"/> if not specified.</param>
+        /// <param name="l2Regularization">The L2 weight for <a href='tmpurl_regularization'>regularization</a>.</param>
+        /// <param name="l1Regularization">The L1 <a href='tmpurl_regularization'>regularization</a> hyperparameter. Higher values will tend to lead to more sparse model.</param>
         /// <param name="maximumNumberOfIterations">The maximum number of passes to perform over the data.</param>
         /// <example>
         /// <format type="text/markdown">
@@ -388,13 +388,13 @@ namespace Microsoft.ML
         /// <param name="catalog">The binary classification catalog trainer object.</param>
         /// <param name="labelColumnName">The name of the label column.</param>
         /// <param name="featureColumnName">The name of the feature column.</param>
-        /// <param name="lossFunction">The loss function minimized in the training process. If <see langword="null"/>, <see cref="HingeLoss"/> would be used and lead to a max-margin averaged perceptron trainer.</param>
-        /// <param name="learningRate">The learning rate. Large value may boost the training process but also leads to numerical instability.</param>
+        /// <param name="lossFunction">The <a href="tmpurl_loss">loss</a> function minimized in the training process. If <see langword="null"/>, <see cref="HingeLoss"/> would be used and lead to a max-margin averaged perceptron trainer.</param>
+        /// <param name="learningRate">The initial <a href="tmpurl_lr">learning rate</a> used by SGD.</param>
         /// <param name="decreaseLearningRate">
         /// <see langword="true" /> to decrease the <paramref name="learningRate"/> as iterations progress; otherwise, <see langword="false" />.
         /// Default is <see langword="false" />.
         /// </param>
-        /// <param name="l2Regularization">The weight of L2-norm regularization. Large value pushes the learned model coefficients toward zero.</param>
+        /// <param name="l2Regularization">The L2 weight for <a href='tmpurl_regularization'>regularization</a>.</param>
         /// <param name="numberOfIterations">Number of passes through the training dataset.</param>
         /// <example>
         /// <format type="text/markdown">
@@ -462,8 +462,8 @@ namespace Microsoft.ML
         /// <param name="catalog">The regression catalog trainer object.</param>
         /// <param name="labelColumnName">The name of the label column.</param>
         /// <param name="featureColumnName">The name of the feature column.</param>
-        /// <param name="lossFunction">The loss function minimized in the training process. Using, for example, <see cref="SquaredLoss"/> leads to a least square trainer.</param>
-        /// <param name="learningRate">The learning rate. Large value may boost the training process but also leads to numerical instability.</param>
+        /// <param name="lossFunction">The <a href="tmpurl_loss">loss</a> function minimized in the training process. Using, for example, <see cref="SquaredLoss"/> leads to a least square trainer.</param>
+        /// <param name="learningRate">The initial <a href="tmpurl_lr">learning rate</a> used by SGD.</param>
         /// <param name="decreaseLearningRate">Decrease learning rate as iterations progress.</param>
         /// <param name="l2Regularization">The L2 weight for <a href='tmpurl_regularization'>regularization</a>.</param>
         /// <param name="numberOfIterations">Number of training iterations through the data.</param>
@@ -505,9 +505,9 @@ namespace Microsoft.ML
         /// <param name="featureColumnName">The name of the feature column.</param>
         /// <param name="exampleWeightColumnName">The name of the example weight column (optional).</param>
         /// <param name="enforceNonNegativity">Enforce non-negative weights.</param>
-        /// <param name="l1Regularization">Weight of L1 regularization term.</param>
-        /// <param name="l2Regularization">Weight of L2 regularization term.</param>
-        /// <param name="historyLength">Memory size for <see cref="Trainers.LogisticRegressionBinaryTrainer"/>. Low=faster, less accurate.</param>
+        /// <param name="l1Regularization">The L1 <a href='tmpurl_regularization'>regularization</a> hyperparameter. Higher values will tend to lead to more sparse model.</param>
+        /// <param name="l2Regularization">The L2 weight for <a href='tmpurl_regularization'>regularization</a>.</param>
+        /// <param name="historySize">Memory size for <see cref="Trainers.LogisticRegressionBinaryTrainer"/>. Low=faster, less accurate.</param>
         /// <param name="optimizationTolerance">Threshold for optimizer convergence.</param>
         /// <example>
         /// <format type="text/markdown">
@@ -523,12 +523,12 @@ namespace Microsoft.ML
             float l1Regularization = LROptions.Defaults.L1Regularization,
             float l2Regularization = LROptions.Defaults.L2Regularization,
             float optimizationTolerance = LROptions.Defaults.OptimizationTolerance,
-            int historyLength = LROptions.Defaults.HistoryLength,
+            int historySize = LROptions.Defaults.HistoryLength,
             bool enforceNonNegativity = LROptions.Defaults.EnforceNonNegativity)
         {
             Contracts.CheckValue(catalog, nameof(catalog));
             var env = CatalogUtils.GetEnvironment(catalog);
-            return new LogisticRegressionBinaryTrainer(env, labelColumnName, featureColumnName, exampleWeightColumnName, l1Regularization, l2Regularization, optimizationTolerance, historyLength, enforceNonNegativity);
+            return new LogisticRegressionBinaryTrainer(env, labelColumnName, featureColumnName, exampleWeightColumnName, l1Regularization, l2Regularization, optimizationTolerance, historySize, enforceNonNegativity);
         }
 
         /// <summary>
@@ -552,10 +552,10 @@ namespace Microsoft.ML
         /// <param name="labelColumnName">The name of the label column.</param>
         /// <param name="featureColumnName">The name of the feature column.</param>
         /// <param name="exampleWeightColumnName">The name of the example weight column (optional).</param>
-        /// <param name="l1Regularization">Weight of L1 regularization term.</param>
-        /// <param name="l2Regularization">Weight of L2 regularization term.</param>
+        /// <param name="l1Regularization">The L1 <a href='tmpurl_regularization'>regularization</a> hyperparameter. Higher values will tend to lead to more sparse model.</param>
+        /// <param name="l2Regularization">The L2 weight for <a href='tmpurl_regularization'>regularization</a>.</param>
         /// <param name="optimizationTolerance">Threshold for optimizer convergence.</param>
-        /// <param name="historyLength">Memory size for <see cref="Microsoft.ML.Trainers.PoissonRegressionTrainer"/>. Low=faster, less accurate.</param>
+        /// <param name="historySize">Memory size for <see cref="Microsoft.ML.Trainers.PoissonRegressionTrainer"/>. Low=faster, less accurate.</param>
         /// <param name="enforceNonNegativity">Enforce non-negative weights.</param>
         public static PoissonRegressionTrainer PoissonRegression(this RegressionCatalog.RegressionTrainers catalog,
             string labelColumnName = DefaultColumnNames.Label,
@@ -564,12 +564,12 @@ namespace Microsoft.ML
             float l1Regularization = LROptions.Defaults.L1Regularization,
             float l2Regularization = LROptions.Defaults.L2Regularization,
             float optimizationTolerance = LROptions.Defaults.OptimizationTolerance,
-            int historyLength = LROptions.Defaults.HistoryLength,
+            int historySize = LROptions.Defaults.HistoryLength,
             bool enforceNonNegativity = LROptions.Defaults.EnforceNonNegativity)
         {
             Contracts.CheckValue(catalog, nameof(catalog));
             var env = CatalogUtils.GetEnvironment(catalog);
-            return new PoissonRegressionTrainer(env, labelColumnName, featureColumnName, exampleWeightColumnName, l1Regularization, l2Regularization, optimizationTolerance, historyLength, enforceNonNegativity);
+            return new PoissonRegressionTrainer(env, labelColumnName, featureColumnName, exampleWeightColumnName, l1Regularization, l2Regularization, optimizationTolerance, historySize, enforceNonNegativity);
         }
 
         /// <summary>
@@ -594,9 +594,9 @@ namespace Microsoft.ML
         /// <param name="featureColumnName">The name of the feature column.</param>
         /// <param name="exampleWeightColumnName">The name of the example weight column (optional).</param>
         /// <param name="enforceNonNegativity">Enforce non-negative weights.</param>
-        /// <param name="l1Regularization">Weight of L1 regularization term.</param>
-        /// <param name="l2Regularization">Weight of L2 regularization term.</param>
-        /// <param name="historyLength">Memory size for <see cref="Microsoft.ML.Trainers.LbfgsMaximumEntropyTrainer"/>. Low=faster, less accurate.</param>
+        /// <param name="l1Regularization">The L1 <a href='tmpurl_regularization'>regularization</a> hyperparameter. Higher values will tend to lead to more sparse model.</param>
+        /// <param name="l2Regularization">The L2 weight for <a href='tmpurl_regularization'>regularization</a>.</param>
+        /// <param name="historySize">Memory size for <see cref="Microsoft.ML.Trainers.LbfgsMaximumEntropyTrainer"/>. Low=faster, less accurate.</param>
         /// <param name="optimizationTolerance">Threshold for optimizer convergence.</param>
         public static LbfgsMaximumEntropyTrainer LbfgsMaximumEntropy(this MulticlassClassificationCatalog.MulticlassClassificationTrainers catalog,
             string labelColumnName = DefaultColumnNames.Label,
@@ -605,12 +605,12 @@ namespace Microsoft.ML
             float l1Regularization = LROptions.Defaults.L1Regularization,
             float l2Regularization = LROptions.Defaults.L2Regularization,
             float optimizationTolerance = LROptions.Defaults.OptimizationTolerance,
-            int historyLength = LROptions.Defaults.HistoryLength,
+            int historySize = LROptions.Defaults.HistoryLength,
             bool enforceNonNegativity = LROptions.Defaults.EnforceNonNegativity)
         {
             Contracts.CheckValue(catalog, nameof(catalog));
             var env = CatalogUtils.GetEnvironment(catalog);
-            return new LbfgsMaximumEntropyTrainer(env, labelColumnName, featureColumnName, exampleWeightColumnName, l1Regularization, l2Regularization, optimizationTolerance, historyLength, enforceNonNegativity);
+            return new LbfgsMaximumEntropyTrainer(env, labelColumnName, featureColumnName, exampleWeightColumnName, l1Regularization, l2Regularization, optimizationTolerance, historySize, enforceNonNegativity);
         }
 
         /// <summary>
