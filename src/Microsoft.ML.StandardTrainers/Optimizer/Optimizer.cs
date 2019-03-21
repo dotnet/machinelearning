@@ -624,6 +624,7 @@ namespace Microsoft.ML.Numeric
                 state.UpdateDir();
                 while (!finished)
                 {
+                    Env.CheckAlive();
                     bool success = state.LineSearch(ch, false);
                     if (!success)
                     {
