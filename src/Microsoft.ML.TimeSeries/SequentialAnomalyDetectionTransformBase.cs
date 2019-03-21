@@ -318,7 +318,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
 
                 var colType = inputSchema[_inputColumnIndex].Type;
                 if (colType != NumberDataViewType.Single)
-                    throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", parent.InputColumnName, "float", colType.ToString());
+                    throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", parent.InputColumnName, "Single", colType.ToString());
 
                 _parent = parent;
                 _parentSchema = inputSchema;

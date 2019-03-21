@@ -191,7 +191,7 @@ namespace Microsoft.ML.Trainers.LightGbm
             if (!(labelType is KeyType || labelType == NumberDataViewType.Single))
             {
                 throw ch.ExceptParam(nameof(data),
-                    $"Label column '{labelCol.Name}' is of type '{labelType.RawType}', but must be unsigned int or float.");
+                    $"Label column '{labelCol.Name}' is of type '{labelType.RawType}', but must be KeyType or Single.");
             }
             // Check group types.
             ch.CheckParam(data.Schema.Group.HasValue, nameof(data), "Need a group column.");
@@ -200,7 +200,7 @@ namespace Microsoft.ML.Trainers.LightGbm
             if (!(groupType == NumberDataViewType.UInt32 || groupType is KeyType))
             {
                 throw ch.ExceptParam(nameof(data),
-                   $"Group column '{groupCol.Name}' is of type '{groupType.RawType}', but must be unsigned int.");
+                   $"Group column '{groupCol.Name}' is of type '{groupType.RawType}', but must be UInt32 or KeyType.");
             }
         }
 
@@ -209,7 +209,7 @@ namespace Microsoft.ML.Trainers.LightGbm
             Contracts.Assert(labelCol.IsValid);
 
             Action error =
-                () => throw Host.ExceptSchemaMismatch(nameof(labelCol), "label", labelCol.Name, "float or unsigned int", labelCol.GetTypeString());
+                () => throw Host.ExceptSchemaMismatch(nameof(labelCol), "label", labelCol.Name, "Single or KeyType", labelCol.GetTypeString());
 
             if (labelCol.Kind != SchemaShape.Column.VectorKind.Scalar)
                 error();

@@ -788,7 +788,7 @@ namespace Microsoft.ML.Transforms.Text
             return true;
         }
 
-        internal const string ExpectedColumnType = "Expected vector of Key type, and Key is convertible to U4";
+        internal const string ExpectedColumnType = "Expected vector of Key type, and Key is convertible to UInt32";
 
         /// <summary>
         /// Describes how the transformer handles one column pair.

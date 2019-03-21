@@ -462,7 +462,7 @@ namespace Microsoft.ML.Transforms.Text
 
         internal static bool IsColumnTypeValid(DataViewType type) => (type.GetItemType() is TextDataViewType);
 
-        internal const string ExpectedColumnType = "Text or vector of text.";
+        internal const string ExpectedColumnType = "String or vector of String";
 
         /// <summary>
         /// Normalizes incoming text in <paramref name="inputColumnName"/> by changing case, removing diacritical marks, punctuation marks and/or numbers
