@@ -1288,7 +1288,9 @@ namespace Microsoft.ML.Data
                 ch.Assert(h.Loader == null || h.Loader is ICommandLineComponentFactory);
                 var loader = h.Loader as ICommandLineComponentFactory;
 
-                if (loader == null || string.IsNullOrWhiteSpace(loader.Name))
+                // Make sure that the schema is described using either the syntax TextLoader{<settings>} or the syntax Text{<settings>},
+                // where "settings" is a string that can be parsed by CmdParser into an object of type TextLoader.Options.
+                if (loader == null || string.IsNullOrWhiteSpace(loader.Name) || (loader.Name != LoaderSignature && loader.Name != "Text"))
                     goto LDone;
 
                 var optionsNew = new Options();
