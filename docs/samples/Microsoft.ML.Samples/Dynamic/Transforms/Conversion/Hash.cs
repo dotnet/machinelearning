@@ -3,6 +3,7 @@ using Microsoft.ML.Data;
 
 namespace Microsoft.ML.Samples.Dynamic
 {
+    // This example demonstrates hashing of categorical string and integer data types.
     public static class Hash
     {
         public static void Example()
@@ -13,40 +14,55 @@ namespace Microsoft.ML.Samples.Dynamic
 
             // Get a small dataset as an IEnumerable.
             var rawData = new[] {
-                new InputData() { Category = "MLB" , Age = 18 },
-                new InputData() { Category = "NFL" , Age = 14 },
-                new InputData() { Category = "NFL" , Age = 15 },
-                new InputData() { Category = "MLB" , Age = 18 },
-                new InputData() { Category = "MLS" , Age = 14 },
+                new DataPoint() { Category = "MLB" , Age = 18 },
+                new DataPoint() { Category = "NFL" , Age = 14 },
+                new DataPoint() { Category = "NFL" , Age = 15 },
+                new DataPoint() { Category = "MLB" , Age = 18 },
+                new DataPoint() { Category = "MLS" , Age = 14 },
             };
 
             var data = mlContext.Data.LoadFromEnumerable(rawData);
 
             // Construct the pipeline that would hash the two columns and store the results in new columns.
-            var pipeline = mlContext.Transforms.Conversion.Hash("CategoryHashed", "Category", numberOfBits: 16, maximumNumberOfInverts: 2)
+            // The first transform hashes the string column and the second column hashes the integer column.
+            //
+            // Hashing is not a reversible operation, so there is not way to retrive the original value from the hashed value. 
+            // Sometimes, for debugging, or model explainability, users will need to know what values in the original columns generated
+            // the values in the hashed columns, since the algorithms will mostly use the hashed values for further computations.
+            // The Hash method will preserve the mapping from the original values to the hashed values in the Annotations of the 
+            // newly created column (column populated with the hashed values). 
+            // 
+            // Setting the maximumNumberOfInverts parameters to -1 will preserve the full map. 
+            // If that parameter is left to the default 0 value, the mapping is not preserved.
+            var pipeline = mlContext.Transforms.Conversion.Hash("CategoryHashed", "Category", numberOfBits: 16, maximumNumberOfInverts: -1)
                           .Append(mlContext.Transforms.Conversion.Hash("AgeHashed", "Age", numberOfBits: 8));
 
             // Let's fit our pipeline, and then apply it to the same data.
             var transformer = pipeline.Fit(data);
             var transformedData = transformer.Transform(data);
 
-            // Store the post transformation from the IDataView format, to an IEnumerable<TransformedData> for easy consumption
-            var convertedData = mlContext.Data.CreateEnumerable<TransformedData>(transformedData, true);
+            // Convert the post transformation from the IDataView format to an IEnumerable<TransformedData> for easy consumption.
+            var convertedData = mlContext.Data.CreateEnumerable<TransformedDataPoint>(transformedData, true);
+
+            Console.WriteLine("Category CategoryHashed\t Age\t AgeHashed");
             foreach (var item in convertedData)
-            {
-                Console.WriteLine($"Category: {item.Category} - CategoryHashed: {item.CategoryHashed}. Age: {item.Age} - AgeHashed {item.AgeHashed}");
-            }
+                Console.WriteLine($"{item.Category}\t {item.CategoryHashed}\t\t  {item.Age}\t {item.AgeHashed}");
 
-            // Output
+            // Expected data after the transformation.
             //
-            // Category: MLB - CategoryHashed: 36206.Age: 18 - AgeHashed 127
-            // Category: NFL - CategoryHashed: 19015.Age: 14 - AgeHashed 62
-            // Category: NFL - CategoryHashed: 19015.Age: 15 - AgeHashed 43
-            // Category: MLB - CategoryHashed: 36206.Age: 18 - AgeHashed 127
-            // Category: MLS - CategoryHashed: 6013.Age: 14 - AgeHashed 62
+            // Category CategoryHashed   Age     AgeHashed
+            // MLB      36206            18      127
+            // NFL      19015            14      62
+            // NFL      19015            15      43
+            // MLB      36206            18      127
+            // MLS      6013             14      62
 
-            // for the Category column, where we set the maximumNumberOfInvertsparameter, the names of the original categories, 
-            // and their correspondance with the generated hash values is preserved. 
+            // For the Category column, where we set the maximumNumberOfInverts parameter, the names of the original categories, 
+            // and their correspondance with the generated hash values is preserved in the Annotations in the format of indices and values. 
+            // the indices array will have the hashed values, and the corresponding element, position-wise, in the values array will 
+            // contain the original value. 
+            //
+            // See below for an example on how to retrieve the mapping. 
             var slotNames = new VBuffer<ReadOnlyMemory<char>>();
             transformedData.Schema["CategoryHashed"].Annotations.GetValue("KeyValues", ref slotNames);
 
@@ -61,16 +77,15 @@ namespace Microsoft.ML.Samples.Dynamic
             // The original value of the 6012 category is MLS
             // The original value of the 19014 category is NFL
             // The original value of the 36205 category is MLB
-
         }
 
-        private class InputData
+        private class DataPoint
         {
             public string Category;
             public uint Age;
         }
 
-        private class TransformedData : InputData
+        private class TransformedDataPoint : DataPoint
         {
             public uint CategoryHashed;
             public uint AgeHashed;
