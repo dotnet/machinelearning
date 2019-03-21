@@ -95,36 +95,18 @@ namespace Microsoft.ML
             Environment.CheckValueOrNull(samplingKeyColumn);
 
             DataOperationsCatalog.EnsureGroupPreservationColumn(Environment, ref data, ref samplingKeyColumn, seed);
-
-            Func<int, CrossValidationResult> foldFunction =
-                fold =>
-                {
-                    var trainFilter = new RangeFilter(Environment, new RangeFilter.Options
-                    {
-                        Column = samplingKeyColumn,
-                        Min = (double)fold / numFolds,
-                        Max = (double)(fold + 1) / numFolds,
-                        Complement = true
-                    }, data);
-                    var testFilter = new RangeFilter(Environment, new RangeFilter.Options
-                    {
-                        Column = samplingKeyColumn,
-                        Min = (double)fold / numFolds,
-                        Max = (double)(fold + 1) / numFolds,
-                        Complement = false
-                    }, data);
-
-                    var model = estimator.Fit(trainFilter);
-                    var scoredTest = model.Transform(testFilter);
-                    return new CrossValidationResult(model, scoredTest, fold);
-                };
-
+            var result = new CrossValidationResult[numFolds];
+            int fold = 0;
             // Sequential per-fold training.
             // REVIEW: we could have a parallel implementation here. We would need to
             // spawn off a separate host per fold in that case.
-            var result = new CrossValidationResult[numFolds];
-            for (int fold = 0; fold < numFolds; fold++)
-                result[fold] = foldFunction(fold);
+            foreach (var split in DataOperationsCatalog.CrossValidationSplit(Environment, data, numFolds, samplingKeyColumn))
+            {
+                var model = estimator.Fit(split.TrainSet);
+                var scoredTest = model.Transform(split.TestSet);
+                result[fold] = new CrossValidationResult(model, scoredTest, fold);
+                fold++;
+            }
 
             return result;
         }
