@@ -87,7 +87,7 @@ namespace Microsoft.ML.Scenarios
 
             // Evaluate the trained pipeline
             var predicted = trainedModel.Transform(testData);
-            var metrics = mlContext.MulticlassClassification.Evaluate(predicted, topK: 3);
+            var metrics = mlContext.MulticlassClassification.Evaluate(predicted, topKPredictionCount: 3);
 
             Assert.Equal(.98, metrics.MacroAccuracy);
             Assert.Equal(.98, metrics.MicroAccuracy, 2);

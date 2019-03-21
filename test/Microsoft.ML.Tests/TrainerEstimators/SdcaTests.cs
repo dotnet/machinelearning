@@ -158,7 +158,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
 
             // Step 4: Make prediction and evaluate its quality (on training set).
             var prediction = model.Transform(data);
-            var metrics = mlContext.MulticlassClassification.Evaluate(prediction, labelColumnName: "LabelIndex", topK: 1);
+            var metrics = mlContext.MulticlassClassification.Evaluate(prediction, labelColumnName: "LabelIndex", topKPredictionCount: 1);
 
             // Check a few metrics to make sure the trained model is ok.
             Assert.InRange(metrics.TopKAccuracy, 0.8, 1);
@@ -192,7 +192,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
 
             // Step 4: Make prediction and evaluate its quality (on training set).
             var prediction = model.Transform(data);
-            var metrics = mlContext.MulticlassClassification.Evaluate(prediction, labelColumnName: "LabelIndex", topK: 1);
+            var metrics = mlContext.MulticlassClassification.Evaluate(prediction, labelColumnName: "LabelIndex", topKPredictionCount: 1);
 
             // Check a few metrics to make sure the trained model is ok.
             Assert.InRange(metrics.TopKAccuracy, 0.8, 1);

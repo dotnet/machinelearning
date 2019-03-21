@@ -484,21 +484,22 @@ namespace Microsoft.ML
         /// <param name="labelColumnName">The name of the label column in <paramref name="data"/>.</param>
         /// <param name="scoreColumnName">The name of the score column in <paramref name="data"/>.</param>
         /// <param name="predictedLabelColumnName">The name of the predicted label column in <paramref name="data"/>.</param>
-        /// <param name="topK">If given a positive value, the <see cref="MulticlassClassificationMetrics.TopKAccuracy"/> will be filled with
+        /// <param name="topKPredictionCount">If given a positive value, the <see cref="MulticlassClassificationMetrics.TopKAccuracy"/> will be filled with
         /// the top-K accuracy, that is, the accuracy assuming we consider an example with the correct class within
         /// the top-K values as being stored "correctly."</param>
         /// <returns>The evaluation results for these calibrated outputs.</returns>
         public MulticlassClassificationMetrics Evaluate(IDataView data, string labelColumnName = DefaultColumnNames.Label, string scoreColumnName = DefaultColumnNames.Score,
-            string predictedLabelColumnName = DefaultColumnNames.PredictedLabel, int topK = 0)
+            string predictedLabelColumnName = DefaultColumnNames.PredictedLabel, int topKPredictionCount = 0)
         {
             Environment.CheckValue(data, nameof(data));
             Environment.CheckNonEmpty(labelColumnName, nameof(labelColumnName));
             Environment.CheckNonEmpty(scoreColumnName, nameof(scoreColumnName));
             Environment.CheckNonEmpty(predictedLabelColumnName, nameof(predictedLabelColumnName));
+            Environment.CheckUserArg(topKPredictionCount >= 0, nameof(topKPredictionCount), "Must be non-negative");
 
             var args = new MulticlassClassificationEvaluator.Arguments() { };
-            if (topK > 0)
-                args.OutputTopKAcc = topK;
+            if (topKPredictionCount > 0)
+                args.OutputTopKAcc = topKPredictionCount;
             var eval = new MulticlassClassificationEvaluator(Environment, args);
             return eval.Evaluate(data, labelColumnName, scoreColumnName, predictedLabelColumnName);
         }
@@ -673,10 +674,10 @@ namespace Microsoft.ML
         /// <param name="labelColumnName">The name of the label column in <paramref name="data"/>.</param>
         /// <param name="scoreColumnName">The name of the score column in <paramref name="data"/>.</param>
         /// <param name="predictedLabelColumnName">The name of the predicted label column in <paramref name="data"/>.</param>
-        /// <param name="k">The number of false positives to compute the <see cref="AnomalyDetectionMetrics.DetectionRateAtFalsePositiveCount"/> metric. </param>
+        /// <param name="falsePositiveCount">The number of false positives to compute the <see cref="AnomalyDetectionMetrics.DetectionRateAtFalsePositiveCount"/> metric. </param>
         /// <returns>Evaluation results.</returns>
         public AnomalyDetectionMetrics Evaluate(IDataView data, string labelColumnName = DefaultColumnNames.Label, string scoreColumnName = DefaultColumnNames.Score,
-            string predictedLabelColumnName = DefaultColumnNames.PredictedLabel, int k = 10)
+            string predictedLabelColumnName = DefaultColumnNames.PredictedLabel, int falsePositiveCount = 10)
         {
             Environment.CheckValue(data, nameof(data));
             Environment.CheckNonEmpty(labelColumnName, nameof(labelColumnName));
@@ -684,7 +685,7 @@ namespace Microsoft.ML
             Environment.CheckNonEmpty(predictedLabelColumnName, nameof(predictedLabelColumnName));
 
             var args = new AnomalyDetectionEvaluator.Arguments();
-            args.K = k;
+            args.K = falsePositiveCount;
 
             var eval = new AnomalyDetectionEvaluator(Environment, args);
             return eval.Evaluate(data, labelColumnName, scoreColumnName, predictedLabelColumnName);

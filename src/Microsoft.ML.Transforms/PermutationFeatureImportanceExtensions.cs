@@ -228,8 +228,8 @@ namespace Microsoft.ML
         private static MulticlassClassificationMetrics MulticlassClassificationDelta(
             MulticlassClassificationMetrics a, MulticlassClassificationMetrics b)
         {
-            if (a.TopK != b.TopK)
-                Contracts.Assert(a.TopK == b.TopK, "TopK to compare must be the same length.");
+            if (a.TopKPredictionCount != b.TopKPredictionCount)
+                Contracts.Assert(a.TopKPredictionCount == b.TopKPredictionCount, "TopK to compare must be the same length.");
 
             var perClassLogLoss = ComputeSequenceDeltas(a.PerClassLogLoss, b.PerClassLogLoss);
 
@@ -238,7 +238,7 @@ namespace Microsoft.ML
                 accuracyMacro: a.MacroAccuracy - b.MacroAccuracy,
                 logLoss: a.LogLoss - b.LogLoss,
                 logLossReduction: a.LogLossReduction - b.LogLossReduction,
-                topK: a.TopK,
+                topKPredictionCount: a.TopKPredictionCount,
                 topKAccuracy: a.TopKAccuracy - b.TopKAccuracy,
                 perClassLogLoss: perClassLogLoss
                 );

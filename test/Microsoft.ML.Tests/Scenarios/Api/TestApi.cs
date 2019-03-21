@@ -336,7 +336,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
 
             // Let's do same thing, but this time we will choose different seed.
             // Stratification column should still break dataset properly without same values in both subsets.
-            var stratSeed = mlContext.Data.TrainTestSplit(input, samplingKeyColumnName:"Workclass", seed: 1000000);
+            var stratSeed = mlContext.Data.TrainTestSplit(input, samplingKeyColumnName: "Workclass", seed: 1000000);
             var stratTrainWithSeedWorkclass = getWorkclass(stratSeed.TrainSet);
             var stratTestWithSeedWorkClass = getWorkclass(stratSeed.TestSet);
             // Let's get unique values for "Workclass" column from train subset.
