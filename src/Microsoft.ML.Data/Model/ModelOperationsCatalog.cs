@@ -28,20 +28,12 @@ namespace Microsoft.ML
             _env = env;
         }
 
-        private static TransformerChain<ITransformer> CreateChain(ITransformer transformer)
-        {
-            Contracts.AssertValueOrNull(transformer);
-            if (transformer == null)
-                return new TransformerChain<ITransformer>();
-            return new TransformerChain<ITransformer>(transformer);
-        }
-
         /// <summary>
         /// Save a transformer model and the loader used to create its input data to the stream.
         /// </summary>
         /// <param name="model">The trained model to be saved. Note that this can be <see langword="null"/>, as a shorthand
-        /// for an empty data set. Upon loading with <see cref="LoadWithDataLoader(Stream, out IDataLoader{IMultiStreamSource})"/>
-        /// the returned valued will be an empty <see cref="TransformerChain{TLastTransformer}"/>.</param>
+        /// for an empty transformer chain. Upon loading with <see cref="LoadWithDataLoader(Stream, out IDataLoader{IMultiStreamSource})"/>
+        /// the returned value will be an empty <see cref="TransformerChain{TLastTransformer}"/>.</param>
         /// <param name="loader">The loader that was used to create data to train the model.</param>
         /// <param name="stream">A writeable, seekable stream to save to.</param>
         public void Save<TSource>(ITransformer model, IDataLoader<TSource> loader, Stream stream)
@@ -67,7 +59,7 @@ namespace Microsoft.ML
         /// </summary>
         /// <param name="model">The trained model to be saved. Note that this can be <see langword="null"/>, as a shorthand
         /// for an empty data set. Upon loading with <see cref="LoadWithDataLoader(Stream, out IDataLoader{IMultiStreamSource})"/>
-        /// the returned valued will be an empty <see cref="TransformerChain{TLastTransformer}"/>.</param>
+        /// the returned value will be an empty <see cref="TransformerChain{TLastTransformer}"/>.</param>
         /// <param name="loader">The loader that was used to create data to train the model.</param>
         /// <param name="filePath">Path where model should be saved.</param>
         public void Save<TSource>(ITransformer model, IDataLoader<TSource> loader, string filePath)
@@ -84,7 +76,7 @@ namespace Microsoft.ML
         /// Save a transformer model and the schema of the data that was used to train it to the stream.
         /// </summary>
         /// <param name="model">The trained model to be saved. Note that this can be <see langword="null"/>, as a shorthand
-        /// for an empty data set. Upon loading with <see cref="Load(Stream, out DataViewSchema)"/> the returned valued will
+        /// for an empty data set. Upon loading with <see cref="Load(Stream, out DataViewSchema)"/> the returned value will
         /// be an empty <see cref="TransformerChain{TLastTransformer}"/>.</param>
         /// <param name="inputSchema">The schema of the input to the transformer. This can be <see langword="null"/>.</param>
         /// <param name="stream">A writeable, seekable stream to save to.</param>
@@ -106,7 +98,7 @@ namespace Microsoft.ML
         /// Save a transformer model and the schema of the data that was used to train it to the file.
         /// </summary>
         /// <param name="model">The trained model to be saved. Note that this can be <see langword="null"/>, as a shorthand
-        /// for an empty data set. Upon loading with <see cref="Load(Stream, out DataViewSchema)"/> the returned valued will
+        /// for an empty data set. Upon loading with <see cref="Load(Stream, out DataViewSchema)"/> the returned value will
         /// be an empty <see cref="TransformerChain{TLastTransformer}"/>.</param>
         /// <param name="inputSchema">The schema of the input to the transformer. This can be <see langword="null"/>.</param>
         /// <param name="filePath">Path where model should be saved.</param>
@@ -227,7 +219,7 @@ namespace Microsoft.ML
                 // one, but older APIs behaved differently so we should retain flexibility with those schemes.
                 // (Those schemes are BTW by no means incorrect, they just aren't what the API in this particular
                 // class will specifically do.)
-                return composite.Transformer;
+                return chain;
             }
             // Maybe we have no transformer stored. Rather than return null, we prefer to return the
             // empty "trivial" transformer chain.
