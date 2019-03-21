@@ -1,6 +1,6 @@
 ---- ParquetLoader ----
 8 columns:
-  sbyte: short
+  sbyte: sbyte
   short: Int16
   int: Int32
   long: Int64

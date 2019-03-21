@@ -67,7 +67,7 @@
   MarKeyU8: Key<UInt64, 0-6>
     Metadata 'KeyValues': Vector<String, 7>: Length=7, Count=7
       [0] 'Never-married', [1] 'Married-civ-spouse', [2] 'Widowed', [3] 'Divorced', [4] 'Separated', [5] 'Married-spouse-absent', [6] 'Married-AF-spouse'
-  CombKeyU1: Vector<Key<ushort, 0-3>, 4>
+  CombKeyU1: Vector<Key<byte, 0-3>, 4>
     Metadata 'KeyValues': Vector<String, 4>: Length=4, Count=4
       [0] 'Black', [1] 'White', [2] 'Male', [3] 'Female'
     Metadata 'SlotNames': Vector<String, 4>: Length=4, Count=4
@@ -93,7 +93,7 @@
   MarKeyU8: Key<UInt64, 0-6>
     Metadata 'KeyValues': Vector<String, 7>: Length=7, Count=7
       [0] 'Never-married', [1] 'Married-civ-spouse', [2] 'Widowed', [3] 'Divorced', [4] 'Separated', [5] 'Married-spouse-absent', [6] 'Married-AF-spouse'
-  CombKeyU1: Vector<Key<ushort, 0-3>, 4>
+  CombKeyU1: Vector<Key<byte, 0-3>, 4>
     Metadata 'KeyValues': Vector<String, 4>: Length=4, Count=4
       [0] 'Black', [1] 'White', [2] 'Male', [3] 'Female'
     Metadata 'SlotNames': Vector<String, 4>: Length=4, Count=4
@@ -135,7 +135,7 @@
   MarKeyU8: Key<UInt64, 0-6>
     Metadata 'KeyValues': Vector<String, 7>: Length=7, Count=7
       [0] 'Never-married', [1] 'Married-civ-spouse', [2] 'Widowed', [3] 'Divorced', [4] 'Separated', [5] 'Married-spouse-absent', [6] 'Married-AF-spouse'
-  CombKeyU1: Vector<Key<ushort, 0-3>, 4>
+  CombKeyU1: Vector<Key<byte, 0-3>, 4>
     Metadata 'KeyValues': Vector<String, 4>: Length=4, Count=4
       [0] 'Black', [1] 'White', [2] 'Male', [3] 'Female'
     Metadata 'SlotNames': Vector<String, 4>: Length=4, Count=4

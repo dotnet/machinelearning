@@ -2,18 +2,18 @@
 3 columns:
   One: String
   Num: Vector<Single, 8>
-  Key: Key<ushort, 0-10>
+  Key: Key<byte, 0-10>
 ---- RowToRowMapperTransform ----
 4 columns:
   One: String
   Num: Vector<Single, 8>
-  Key: Key<ushort, 0-10>
+  Key: Key<byte, 0-10>
   OneInd: Key<UInt32, 0-1023>
 ---- RowToRowMapperTransform ----
 5 columns:
   One: String
   Num: Vector<Single, 8>
-  Key: Key<ushort, 0-10>
+  Key: Key<byte, 0-10>
   OneInd: Key<UInt32, 0-1023>
   OneInd: Vector<Single, 1024>
     Metadata 'IsNormalized': Boolean: '1'
@@ -23,7 +23,7 @@
   One: String
   Num: Vector<Single, 8>
   Num: Vector<Single, 8>
-  Key: Key<ushort, 0-10>
+  Key: Key<byte, 0-10>
   OneInd: Key<UInt32, 0-1023>
   OneInd: Vector<Single, 1024>
     Metadata 'IsNormalized': Boolean: '1'
@@ -33,7 +33,7 @@
   One: String
   Num: Vector<Single, 8>
   Num: Vector<Single, 8>
-  Key: Key<ushort, 0-10>
+  Key: Key<byte, 0-10>
   OneInd: Key<UInt32, 0-1023>
   OneInd: Vector<Single, 1024>
     Metadata 'IsNormalized': Boolean: '1'
@@ -47,7 +47,7 @@
   Num: Vector<Single, 8>
   Num: Vector<Single, 8>
   Num: Vector<Single, 8>
-  Key: Key<ushort, 0-10>
+  Key: Key<byte, 0-10>
   OneInd: Key<UInt32, 0-1023>
   OneInd: Vector<Single, 1024>
     Metadata 'IsNormalized': Boolean: '1'
@@ -63,7 +63,7 @@
   Num: Vector<Single, 8>
   Num: Vector<Single, 8>
   Num: Vector<Single, 8>
-  Key: Key<ushort, 0-10>
+  Key: Key<byte, 0-10>
   Key: Vector<Single, 11>
     Metadata 'CategoricalSlotRanges': Vector<Int32, 1, 2>: Length=2, Count=2
       [0] '0', [1] '10'
@@ -83,7 +83,7 @@
   Num: Vector<Single, 8>
   Num: Vector<Single, 8>
   Num: Vector<Single, 8>
-  Key: Key<ushort, 0-10>
+  Key: Key<byte, 0-10>
   Key: Vector<Single, 11>
     Metadata 'CategoricalSlotRanges': Vector<Int32, 1, 2>: Length=2, Count=2
       [0] '0', [1] '10'
