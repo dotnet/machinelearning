@@ -7,4 +7,4 @@
 ---- RowToRowMapperTransform ----
 2 columns:
   T: String
-  T: Vec<String>
+  T: Vector<String>
