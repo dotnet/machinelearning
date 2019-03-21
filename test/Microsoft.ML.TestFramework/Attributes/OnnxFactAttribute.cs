@@ -19,7 +19,7 @@ namespace Microsoft.ML.TestFramework.Attributes
         /// <inheritdoc />
         protected override bool IsEnvironmentSupported()
         {
-            return Environment.Is64BitProcess && (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) || AttributeHelpers.CheckLibcVersionGreaterThanMinimum(new Version(2, 23)));
+            return Environment.Is64BitProcess && (!RuntimeInformation.IsOSPlatform(OSPlatform.Linux) || AttributeHelpers.CheckLibcVersionGreaterThanMinimum(new Version(2, 23)));
         }
     }
 }

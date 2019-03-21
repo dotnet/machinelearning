@@ -69,23 +69,23 @@ namespace Microsoft.ML.Trainers
         /// <param name="env">The environment to use.</param>
         /// <param name="labelColumn">The name of the label column.</param>
         /// <param name="featureColumn">The name of the feature column.</param>
-        /// <param name="weights">The name for the example weight column.</param>
+        /// <param name="exampleWeightColumnName">The name for the example weight column.</param>
         /// <param name="enforceNoNegativity">Enforce non-negative weights.</param>
-        /// <param name="l1Weight">Weight of L1 regularizer term.</param>
-        /// <param name="l2Weight">Weight of L2 regularizer term.</param>
+        /// <param name="l1Regularization">Weight of L1 regularizer term.</param>
+        /// <param name="l2Regularization">Weight of L2 regularizer term.</param>
         /// <param name="memorySize">Memory size for <see cref="LogisticRegressionBinaryTrainer"/>. Low=faster, less accurate.</param>
         /// <param name="optimizationTolerance">Threshold for optimizer convergence.</param>
         internal LogisticRegressionBinaryTrainer(IHostEnvironment env,
             string labelColumn = DefaultColumnNames.Label,
             string featureColumn = DefaultColumnNames.Features,
-            string weights = null,
-            float l1Weight = Options.Defaults.L1Regularization,
-            float l2Weight = Options.Defaults.L2Regularization,
+            string exampleWeightColumnName = null,
+            float l1Regularization = Options.Defaults.L1Regularization,
+            float l2Regularization = Options.Defaults.L2Regularization,
             float optimizationTolerance = Options.Defaults.OptimizationTolerance,
             int memorySize = Options.Defaults.HistorySize,
             bool enforceNoNegativity = Options.Defaults.EnforceNonNegativity)
-            : base(env, featureColumn, TrainerUtils.MakeBoolScalarLabel(labelColumn), weights,
-                  l1Weight, l2Weight, optimizationTolerance, memorySize, enforceNoNegativity)
+            : base(env, featureColumn, TrainerUtils.MakeBoolScalarLabel(labelColumn), exampleWeightColumnName,
+                  l1Regularization, l2Regularization, optimizationTolerance, memorySize, enforceNoNegativity)
         {
             Host.CheckNonEmpty(featureColumn, nameof(featureColumn));
             Host.CheckNonEmpty(labelColumn, nameof(labelColumn));

@@ -393,7 +393,7 @@ namespace Microsoft.ML.Transforms.Text
             if (options != null)
                 OptionalSettings = options;
 
-            _stopWordsRemover = null;
+            _stopWordsRemover = OptionalSettings.StopWordsRemover;
             _dictionary = null;
             _wordFeatureExtractor = OptionalSettings.WordFeatureExtractorFactory;
             _charFeatureExtractor = OptionalSettings.CharFeatureExtractorFactory;

@@ -108,7 +108,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             // Step 2: Create a binary classifier.
             // We set the "Label" column as the label of the dataset, and the "Features" column as the features column.
             var pipeline = mlContext.BinaryClassification.Trainers.SdcaNonCalibrated(
-                labelColumnName: "Label", featureColumnName: "Features", loss: new HingeLoss(), l2Regularization: 0.001f);
+                labelColumnName: "Label", featureColumnName: "Features", lossFunction: new HingeLoss(), l2Regularization: 0.001f);
 
             // Step 3: Train the pipeline created.
             var model = pipeline.Fit(data);
@@ -185,7 +185,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             // Step 2: Create a binary classifier.
             // We set the "Label" column as the label of the dataset, and the "Features" column as the features column.
             var pipeline = mlContext.Transforms.Conversion.MapValueToKey("LabelIndex", "Label").
-                Append(mlContext.MulticlassClassification.Trainers.SdcaNonCalibrated(labelColumnName: "LabelIndex", featureColumnName: "Features", loss: new HingeLoss(), l2Regularization: 0.001f));
+                Append(mlContext.MulticlassClassification.Trainers.SdcaNonCalibrated(labelColumnName: "LabelIndex", featureColumnName: "Features", lossFunction: new HingeLoss(), l2Regularization: 0.001f));
 
             // Step 3: Train the pipeline created.
             var model = pipeline.Fit(data);

@@ -176,14 +176,14 @@ namespace Microsoft.ML.StaticPipe
         /// <param name="data">The data to evaluate.</param>
         /// <param name="label">The index delegate for the label column.</param>
         /// <param name="score">The index delegate for predicted score column.</param>
-        /// <param name="loss">Potentially custom loss function. If left unspecified defaults to <see cref="SquaredLoss"/>.</param>
+        /// <param name="lossFunction">Potentially custom loss function. If left unspecified defaults to <see cref="SquaredLoss"/>.</param>
         /// <returns>The evaluation metrics.</returns>
         public static RegressionMetrics Evaluate<T>(
             this RegressionCatalog catalog,
             DataView<T> data,
             Func<T, Scalar<float>> label,
             Func<T, Scalar<float>> score,
-            IRegressionLoss loss = null)
+            IRegressionLoss lossFunction = null)
         {
             Contracts.CheckValue(data, nameof(data));
             var env = StaticPipeUtils.GetEnvironment(data);
@@ -196,8 +196,8 @@ namespace Microsoft.ML.StaticPipe
             string scoreName = indexer.Get(score(indexer.Indices));
 
             var args = new RegressionEvaluator.Arguments() { };
-            if (loss != null)
-                args.LossFunction = new TrivialRegressionLossFactory(loss);
+            if (lossFunction != null)
+                args.LossFunction = new TrivialRegressionLossFactory(lossFunction);
             return new RegressionEvaluator(env, args).Evaluate(data.AsDynamic, labelName, scoreName);
         }
 

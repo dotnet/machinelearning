@@ -200,32 +200,32 @@ namespace Microsoft.ML.Tests.Scenarios.Api
 
             // Create Metadata.
             var kindFloat = "Testing float as metadata.";
-            var valueFloat = 10;
+            float valueFloat = 10;
             var coltypeFloat = NumberDataViewType.Single;
             var kindString = "Testing string as metadata.";
             var valueString = "Strings have value.";
+            var coltypeString = TextDataViewType.Instance;
             var kindStringArray = "Testing string array as metadata.";
             var valueStringArray = "I really have no idea what these features entail.".Split(' ');
+            var coltypeStringArray = new VectorType(coltypeString, valueStringArray.Length);
             var kindFloatArray = "Testing float array as metadata.";
             var valueFloatArray = new float[] { 1, 17, 7, 19, 25, 0 };
+            var coltypeFloatArray = new VectorType(coltypeFloat, valueFloatArray.Length);
             var kindVBuffer = "Testing VBuffer as metadata.";
             var valueVBuffer = new VBuffer<float>(4, new float[] { 4, 6, 89, 5 });
-
-            var metaFloat = new AnnotationInfo<float>(kindFloat, valueFloat, coltypeFloat);
-            var metaString = new AnnotationInfo<string>(kindString, valueString);
+            var coltypeVBuffer = new VectorType(coltypeFloat, valueVBuffer.Length);
 
             // Add Metadata.
             var labelColumn = autoSchema[0];
-            var labelColumnWithMetadata = new SchemaDefinition.Column(mlContext, labelColumn.MemberName, labelColumn.ColumnType,
-                annotationInfos: new AnnotationInfo[] { metaFloat, metaString });
+            labelColumn.AddAnnotation(kindFloat, valueFloat, coltypeFloat);
+            labelColumn.AddAnnotation(kindString, valueString, coltypeString);
 
-            var featureColumnWithMetadata = autoSchema[1];
-            featureColumnWithMetadata.AddAnnotation(kindStringArray, valueStringArray);
-            featureColumnWithMetadata.AddAnnotation(kindFloatArray, valueFloatArray);
-            featureColumnWithMetadata.AddAnnotation(kindVBuffer, valueVBuffer);
+            var featureColumn = autoSchema[1];
+            featureColumn.AddAnnotation(kindStringArray, valueStringArray, coltypeStringArray);
+            featureColumn.AddAnnotation(kindFloatArray, valueFloatArray, coltypeFloatArray);
+            featureColumn.AddAnnotation(kindVBuffer, valueVBuffer, coltypeVBuffer);
 
-            var mySchema = new SchemaDefinition { labelColumnWithMetadata, featureColumnWithMetadata };
-            var idv = mlContext.Data.LoadFromEnumerable(data, mySchema);
+            var idv = mlContext.Data.LoadFromEnumerable(data, autoSchema);
 
             Assert.True(idv.Schema[0].Annotations.Schema.Count == 2);
             Assert.True(idv.Schema[0].Annotations.Schema[0].Name == kindFloat);

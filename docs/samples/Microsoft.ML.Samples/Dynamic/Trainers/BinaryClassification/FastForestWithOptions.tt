@@ -1,0 +1,33 @@
+﻿<#@ include file="TreeSamplesTemplate.ttinclude"#>
+
+<#+
+string ClassName="FastForestWithOptions";
+string Trainer = "FastForest";
+bool IsCalibrated = false;
+
+string TrainerOptions = @"FastForestBinaryTrainer.Options
+            {
+                // Only use 80% of features to reduce over-fitting.
+                FeatureFraction = 0.8,
+                // Create a simpler model by penalizing usage of new features.
+                FeatureFirstUsePenalty = 0.1,
+                // Reduce the number of trees to 50.
+                NumberOfTrees = 50
+            }";
+
+string ExpectedOutputPerInstance= @"// Expected output:
+            //   Label: True, Prediction: True
+            //   Label: False, Prediction: False
+            //   Label: True, Prediction: True
+            //   Label: True, Prediction: True
+            //   Label: False, Prediction: True";
+
+string ExpectedOutput = @"// Expected output:
+            //   Accuracy: 0.73
+            //   AUC: 0.81
+            //   F1 Score: 0.73
+            //   Negative Precision: 0.77
+            //   Negative Recall: 0.68
+            //   Positive Precision: 0.69
+            //   Positive Recall: 0.78";
+#>
