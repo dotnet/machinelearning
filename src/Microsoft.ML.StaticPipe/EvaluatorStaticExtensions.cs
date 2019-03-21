@@ -51,15 +51,15 @@ namespace Microsoft.ML.StaticPipe
         }
 
         /// <summary>
-                 /// Evaluates scored binary classification data.
-                 /// </summary>
-                 /// <typeparam name="T">The shape type for the input data.</typeparam>
-                 /// <param name="catalog">The binary classification catalog.</param>
-                 /// <param name="data">The data to evaluate.</param>
-                 /// <param name="label">The index delegate for the label column.</param>
-                 /// <param name="pred">The index delegate for columns from calibrated prediction of a binary classifier.
-                 /// Under typical scenarios, this will just be the same tuple of results returned from the trainer.</param>
-                 /// <returns>The evaluation results for these calibrated outputs.</returns>
+        /// Evaluates scored binary classification data.
+        /// </summary>
+        /// <typeparam name="T">The shape type for the input data.</typeparam>
+        /// <param name="catalog">The binary classification catalog.</param>
+        /// <param name="data">The data to evaluate.</param>
+        /// <param name="label">The index delegate for the label column.</param>
+        /// <param name="pred">The index delegate for columns from calibrated prediction of a binary classifier.
+        /// Under typical scenarios, this will just be the same tuple of results returned from the trainer.</param>
+        /// <returns>The evaluation results for these calibrated outputs.</returns>
         public static CalibratedBinaryClassificationMetrics Evaluate<T>(
             this BinaryClassificationCatalog catalog,
             DataView<T> data,
