@@ -3,6 +3,7 @@
   <PropertyGroup>
     <TargetFramework>netcoreapp2.1</TargetFramework>
     <OutputType>Exe</OutputType>
+    <WarningsNotAsErrors>649</WarningsNotAsErrors>
   </PropertyGroup>
 
   <ItemGroup>
