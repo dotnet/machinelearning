@@ -39,12 +39,12 @@ namespace Microsoft.ML
         /// <summary>
         /// Save a transformer model and the loader used to create its input data to the stream.
         /// </summary>
-        /// <param name="loader">The loader that was used to create data to train the model.</param>
         /// <param name="model">The trained model to be saved. Note that this can be <see langword="null"/>, as a shorthand
         /// for an empty data set. Upon loading with <see cref="LoadWithDataLoader(Stream, out IDataLoader{IMultiStreamSource})"/>
         /// the returned valued will be an empty <see cref="TransformerChain{TLastTransformer}"/>.</param>
+        /// <param name="loader">The loader that was used to create data to train the model.</param>
         /// <param name="stream">A writeable, seekable stream to save to.</param>
-        public void Save<TSource>(IDataLoader<TSource> loader, ITransformer model, Stream stream)
+        public void Save<TSource>(ITransformer model, IDataLoader<TSource> loader, Stream stream)
         {
             _env.CheckValue(loader, nameof(loader));
             _env.CheckValueOrNull(model);
@@ -65,19 +65,19 @@ namespace Microsoft.ML
         /// <summary>
         /// Save a transformer model and the loader used to create its input data to the file.
         /// </summary>
-        /// <param name="loader">The loader that was used to create data to train the model.</param>
         /// <param name="model">The trained model to be saved. Note that this can be <see langword="null"/>, as a shorthand
         /// for an empty data set. Upon loading with <see cref="LoadWithDataLoader(Stream, out IDataLoader{IMultiStreamSource})"/>
         /// the returned valued will be an empty <see cref="TransformerChain{TLastTransformer}"/>.</param>
+        /// <param name="loader">The loader that was used to create data to train the model.</param>
         /// <param name="filePath">Path where model should be saved.</param>
-        public void Save<TSource>(IDataLoader<TSource> loader, ITransformer model, string filePath)
+        public void Save<TSource>(ITransformer model, IDataLoader<TSource> loader, string filePath)
         {
-            _env.CheckValue(loader, nameof(loader));
             _env.CheckValueOrNull(model);
+            _env.CheckValue(loader, nameof(loader));
             _env.CheckNonEmpty(filePath, nameof(filePath));
 
             using (var stream = File.Create(filePath))
-                Save(loader, model, stream);
+                Save(model, loader, stream);
         }
 
         /// <summary>

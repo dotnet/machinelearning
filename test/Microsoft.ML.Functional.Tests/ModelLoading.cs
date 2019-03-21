@@ -66,11 +66,11 @@ namespace Microsoft.ML.Functional.Tests
             // In this case we have combined the loader with the transformer model to form a "composite" loader, and are just
             // saving that one loader to this file.
             string compositeLoaderModelPath = GetOutputPath(FullTestName + "-composite-model.zip");
-            _ml.Model.Save(compositeLoaderModel, null, compositeLoaderModelPath);
+            _ml.Model.Save(null, compositeLoaderModel, compositeLoaderModelPath);
 
             // In this case we are saving the transformer model, as well as the associated data loader.
             string loaderAndTransformerModelPath = GetOutputPath(FullTestName + "-loader-transformer.zip");
-            _ml.Model.Save(loader, transformerModel, loaderAndTransformerModelPath);
+            _ml.Model.Save(transformerModel, loader, loaderAndTransformerModelPath);
 
             ITransformer loadedTransformerModel;
             IDataLoader<IMultiStreamSource> loadedCompositeLoader;
@@ -141,7 +141,7 @@ namespace Microsoft.ML.Functional.Tests
 
             // Save and reload.
             string modelPath = GetOutputPath(FullTestName + "-model.zip");
-            _ml.Model.Save(loader, model, modelPath);
+            _ml.Model.Save(model, loader, modelPath);
 
             IDataLoader<IMultiStreamSource> loadedLoader;
             ITransformer loadedModelWithoutLoader;
@@ -196,7 +196,7 @@ namespace Microsoft.ML.Functional.Tests
 
             // Save and reload.
             string modelPath = GetOutputPath(FullTestName + "-model.zip");
-            _ml.Model.Save(loader, model, modelPath);
+            _ml.Model.Save(model, loader, modelPath);
 
             ITransformer loadedModel;
             DataViewSchema loadedSchema;
@@ -219,7 +219,7 @@ namespace Microsoft.ML.Functional.Tests
             var loader = _ml.Data.CreateTextLoader<InputData>(hasHeader: true, dataSample: file);
 
             string modelPath = GetOutputPath(FullTestName + "-model.zip");
-            _ml.Model.Save(loader, null, modelPath);
+            _ml.Model.Save(null, loader, modelPath);
 
             Load(modelPath, out var loadedWithSchema, out var loadedSchema,
                 out var loadedWithLoader, out var loadedLoaderWithTransformer);
@@ -248,7 +248,7 @@ namespace Microsoft.ML.Functional.Tests
             var model = composite.Fit(file);
 
             string modelPath = GetOutputPath(FullTestName + "-model.zip");
-            _ml.Model.Save(model, null, modelPath);
+            _ml.Model.Save(null, model, modelPath);
 
             Load(modelPath, out var loadedWithSchema, out var loadedSchema,
                 out var loadedWithLoader, out var loadedLoaderWithTransformer);
@@ -294,7 +294,7 @@ namespace Microsoft.ML.Functional.Tests
             Assert.True(expectedInputSchema["Features"].HasSlotNames());
 
             string modelPath = GetOutputPath(FullTestName + "-model.zip");
-            _ml.Model.Save(loader, model, modelPath);
+            _ml.Model.Save(model, loader, modelPath);
 
             // Reload the loader and schema.
             Load(modelPath, out var loadedWithSchema, out var loadedInputSchema,
