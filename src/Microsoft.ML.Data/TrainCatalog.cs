@@ -673,7 +673,7 @@ namespace Microsoft.ML
         /// <param name="labelColumnName">The name of the label column in <paramref name="data"/>.</param>
         /// <param name="scoreColumnName">The name of the score column in <paramref name="data"/>.</param>
         /// <param name="predictedLabelColumnName">The name of the predicted label column in <paramref name="data"/>.</param>
-        /// <param name="k">The number of false positives to compute the <see cref="AnomalyDetectionMetrics.DetectionRateAtKFalsePositives"/> metric. </param>
+        /// <param name="k">The number of false positives to compute the <see cref="AnomalyDetectionMetrics.DetectionRateAtFalsePositiveCount"/> metric. </param>
         /// <returns>Evaluation results.</returns>
         public AnomalyDetectionMetrics Evaluate(IDataView data, string labelColumnName = DefaultColumnNames.Label, string scoreColumnName = DefaultColumnNames.Score,
             string predictedLabelColumnName = DefaultColumnNames.PredictedLabel, int k = 10)

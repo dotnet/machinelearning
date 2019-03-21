@@ -258,7 +258,7 @@ namespace Microsoft.ML
         /// <param name="exampleWeightColumnName">The name of the example weight column (optional).</param>
         /// <param name="numberOfTrees">Total number of decision trees to create in the ensemble.</param>
         /// <param name="numberOfLeaves">The maximum number of leaves per decision tree.</param>
-        /// <param name="minDatapointsInLeaves">The minimal number of data points required to form a new tree leaf.</param>
+        /// <param name="minimumExampleCountPerLeaf">The minimal number of data points required to form a new tree leaf.</param>
         /// <param name="learningRate">The learning rate.</param>
         /// <example>
         /// <format type="text/markdown">
@@ -273,12 +273,12 @@ namespace Microsoft.ML
             string exampleWeightColumnName = null,
             int numberOfLeaves = Defaults.NumberOfLeaves,
             int numberOfTrees = Defaults.NumberOfTrees,
-            int minDatapointsInLeaves = Defaults.MinimumExampleCountPerLeaf,
+            int minimumExampleCountPerLeaf = Defaults.MinimumExampleCountPerLeaf,
             double learningRate = Defaults.LearningRate)
         {
             Contracts.CheckValue(catalog, nameof(catalog));
             var env = CatalogUtils.GetEnvironment(catalog);
-            return new FastTreeTweedieTrainer(env, labelColumnName, featureColumnName, exampleWeightColumnName, numberOfLeaves, numberOfTrees, minDatapointsInLeaves, learningRate);
+            return new FastTreeTweedieTrainer(env, labelColumnName, featureColumnName, exampleWeightColumnName, numberOfLeaves, numberOfTrees, minimumExampleCountPerLeaf, learningRate);
         }
 
         /// <summary>
@@ -312,7 +312,7 @@ namespace Microsoft.ML
         /// <param name="exampleWeightColumnName">The name of the example weight column (optional).</param>
         /// <param name="numberOfLeaves">The maximum number of leaves per decision tree.</param>
         /// <param name="numberOfTrees">Total number of decision trees to create in the ensemble.</param>
-        /// <param name="minDatapointsInLeaves">The minimal number of data points required to form a new tree leaf.</param>
+        /// <param name="minimumExampleCountPerLeaf">The minimal number of data points required to form a new tree leaf.</param>
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
@@ -326,11 +326,11 @@ namespace Microsoft.ML
             string exampleWeightColumnName = null,
             int numberOfLeaves = Defaults.NumberOfLeaves,
             int numberOfTrees = Defaults.NumberOfTrees,
-            int minDatapointsInLeaves = Defaults.MinimumExampleCountPerLeaf)
+            int minimumExampleCountPerLeaf = Defaults.MinimumExampleCountPerLeaf)
         {
             Contracts.CheckValue(catalog, nameof(catalog));
             var env = CatalogUtils.GetEnvironment(catalog);
-            return new FastForestRegressionTrainer(env, labelColumnName, featureColumnName, exampleWeightColumnName, numberOfLeaves, numberOfTrees, minDatapointsInLeaves);
+            return new FastForestRegressionTrainer(env, labelColumnName, featureColumnName, exampleWeightColumnName, numberOfLeaves, numberOfTrees, minimumExampleCountPerLeaf);
         }
 
         /// <summary>
@@ -364,7 +364,7 @@ namespace Microsoft.ML
         /// <param name="exampleWeightColumnName">The name of the example weight column (optional).</param>
         /// <param name="numberOfTrees">Total number of decision trees to create in the ensemble.</param>
         /// <param name="numberOfLeaves">The maximum number of leaves per decision tree.</param>
-        /// <param name="minDatapointsInLeaves">The minimal number of data points required to form a new tree leaf.</param>
+        /// <param name="minimumExampleCountPerLeaf">The minimal number of data points required to form a new tree leaf.</param>
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
@@ -378,11 +378,11 @@ namespace Microsoft.ML
             string exampleWeightColumnName = null,
             int numberOfLeaves = Defaults.NumberOfLeaves,
             int numberOfTrees = Defaults.NumberOfTrees,
-            int minDatapointsInLeaves = Defaults.MinimumExampleCountPerLeaf)
+            int minimumExampleCountPerLeaf = Defaults.MinimumExampleCountPerLeaf)
         {
             Contracts.CheckValue(catalog, nameof(catalog));
             var env = CatalogUtils.GetEnvironment(catalog);
-            return new FastForestBinaryTrainer(env, labelColumnName, featureColumnName, exampleWeightColumnName, numberOfLeaves, numberOfTrees, minDatapointsInLeaves);
+            return new FastForestBinaryTrainer(env, labelColumnName, featureColumnName, exampleWeightColumnName, numberOfLeaves, numberOfTrees, minimumExampleCountPerLeaf);
         }
 
         /// <summary>

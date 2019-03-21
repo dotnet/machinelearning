@@ -33,13 +33,13 @@ namespace Microsoft.ML.Data
         ///  Predicted Anomalies     :         TP                |           FP
         ///  Predicted Non-Anomalies :         FN                |           TN
         ///  </remarks>
-        public double DetectionRateAtKFalsePositives { get; }
+        public double DetectionRateAtFalsePositiveCount { get; }
 
         internal AnomalyDetectionMetrics(IExceptionContext ectx, DataViewRow overallResult)
         {
             double FetchDouble(string name) => RowCursorUtils.Fetch<double>(ectx, overallResult, name);
             AreaUnderRocCurve = FetchDouble(BinaryClassifierEvaluator.Auc);
-            DetectionRateAtKFalsePositives = FetchDouble(AnomalyDetectionEvaluator.OverallMetrics.DrAtK);
+            DetectionRateAtFalsePositiveCount = FetchDouble(AnomalyDetectionEvaluator.OverallMetrics.DrAtK);
         }
     }
 }

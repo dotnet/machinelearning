@@ -434,7 +434,7 @@ namespace Microsoft.ML.StaticPipelineTesting
                 .Append(r => (r.label, preds: catalog.Trainers.SdcaNonCalibrated(
                     r.label,
                     r.features,
-                    loss: new HingeLoss(),
+                    lossFunction: new HingeLoss(),
                     numberOfIterations: 2,
                     onFit: p => pred = p)));
 
@@ -1132,7 +1132,7 @@ namespace Microsoft.ML.StaticPipelineTesting
 
             var est = reader.MakeNewEstimator()
                 .Append(r => (r.label, preds: catalog.Trainers.StochasticGradientDescentNonCalibratedClassificationTrainer(r.label, r.features, null,
-                    new SgdNonCalibratedTrainer.Options { L2Regularization = 0, NumberOfThreads = 1, Loss = new HingeLoss()},
+                    new SgdNonCalibratedTrainer.Options { L2Regularization = 0, NumberOfThreads = 1, LossFunction = new HingeLoss()},
                     onFit: (p) => { pred = p; })));
 
             var pipe = reader.Append(est);
@@ -1167,7 +1167,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             LinearBinaryModelParameters pred = null;
 
             var est = reader.MakeNewEstimator()
-                .Append(r => (r.label, preds: catalog.Trainers.StochasticGradientDescentNonCalibratedClassificationTrainer(r.label, r.features, loss: new HingeLoss(), onFit: (p) => { pred = p; })));
+                .Append(r => (r.label, preds: catalog.Trainers.StochasticGradientDescentNonCalibratedClassificationTrainer(r.label, r.features, lossFunction: new HingeLoss(), onFit: (p) => { pred = p; })));
 
             var pipe = reader.Append(est);
 

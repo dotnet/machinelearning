@@ -16,11 +16,11 @@ namespace Microsoft.ML.Samples.Dynamic.Trainers.BinaryClassification
             // Setting the seed to a fixed number in this example to make outputs deterministic.
             var mlContext = new MLContext(seed: 0);
 
-            // Create a list of training examples.
-            var examples = GenerateRandomDataPoints(1000);
+            // Create a list of training data points.
+            var dataPoints = GenerateRandomDataPoints(1000);
 
-            // Convert the examples list to an IDataView object, which is consumable by ML.NET API.
-            var trainingData = mlContext.Data.LoadFromEnumerable(examples);
+            // Convert the list of data points to an IDataView object, which is consumable by ML.NET API.
+            var trainingData = mlContext.Data.LoadFromEnumerable(dataPoints);
 
             // Define the trainer.
             var pipeline = mlContext.BinaryClassification.Trainers.FastForest();
@@ -28,7 +28,7 @@ namespace Microsoft.ML.Samples.Dynamic.Trainers.BinaryClassification
             // Train the model.
             var model = pipeline.Fit(trainingData);
 
-            // Create testing examples. Use different random seed to make it different from training data.
+            // Create testing data. Use different random seed to make it different from training data.
             var testData = mlContext.Data.LoadFromEnumerable(GenerateRandomDataPoints(500, seed:123));
 
             // Run the model on test data set.
@@ -72,7 +72,8 @@ namespace Microsoft.ML.Samples.Dynamic.Trainers.BinaryClassification
                 yield return new DataPoint
                 {
                     Label = label,
-                    // Create random features that are correlated with label.
+                    // Create random features that are correlated with the label.
+                    // For data points with false label, the feature values are slightly increased by adding a constant.
                     Features = Enumerable.Repeat(label, 50).Select(x => x ? randomFloat() : randomFloat() + 0.03f).ToArray()
                 };
             }
