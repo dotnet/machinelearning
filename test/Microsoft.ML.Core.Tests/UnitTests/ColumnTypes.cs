@@ -94,7 +94,7 @@ namespace Microsoft.ML.RunTests
             for (int height = 1; height < 5; height++)
                 for (int width = 1; width < 5; width++)
                 {
-                    var tmp4 = new ImageType(height, width);
+                    var tmp4 = new ImageDataViewType(height, width);
                     if (dict.ContainsKey(tmp4))
                         Assert.True(false, dict[tmp4] + " and " + tmp4.ToString() + " are duplicates.");
                     dict[tmp4] = tmp4.ToString();

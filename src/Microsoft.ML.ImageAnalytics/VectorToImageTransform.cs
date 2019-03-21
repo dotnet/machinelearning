@@ -315,7 +315,7 @@ namespace Microsoft.ML.Transforms.Image
         private sealed class Mapper : OneToOneMapperBase
         {
             private readonly VectorToImageConvertingTransformer _parent;
-            private readonly ImageType[] _types;
+            private readonly ImageDataViewType[] _types;
 
             public Mapper(VectorToImageConvertingTransformer parent, DataViewSchema inputSchema)
                 : base(parent.Host.Register(nameof(Mapper)), parent, inputSchema)
@@ -419,15 +419,15 @@ namespace Microsoft.ML.Transforms.Image
                     };
             }
 
-            private static ImageType[] ConstructTypes(VectorToImageConvertingEstimator.ColumnOptions[] columns)
+            private static ImageDataViewType[] ConstructTypes(VectorToImageConvertingEstimator.ColumnOptions[] columns)
             {
-                return columns.Select(c => new ImageType(c.ImageHeight, c.ImageWidth)).ToArray();
+                return columns.Select(c => new ImageDataViewType(c.ImageHeight, c.ImageWidth)).ToArray();
             }
         }
     }
 
     /// <summary>
-    /// <see cref="IEstimator{TTransformer}"/> that converts vectors containing pixel representations of images in to<see cref="ImageType"/> representation.
+    /// <see cref="IEstimator{TTransformer}"/> that converts vectors containing pixel representations of images in to<see cref="ImageDataViewType"/> representation.
     /// </summary>
     /// <remarks>
     /// Calling <see cref="IEstimator{TTransformer}.Fit(IDataView)"/> in this estimator, produces an <see cref="VectorToImageConvertingTransformer"/>.
@@ -736,7 +736,7 @@ namespace Microsoft.ML.Transforms.Image
                 if (col.Kind != SchemaShape.Column.VectorKind.Vector || (col.ItemType != NumberDataViewType.Single && col.ItemType != NumberDataViewType.Double && col.ItemType != NumberDataViewType.Byte))
                     throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.InputColumnName, "known-size vector of type float, double or byte", col.GetTypeString());
 
-                var itemType = new ImageType(colInfo.ImageHeight, colInfo.ImageWidth);
+                var itemType = new ImageDataViewType(colInfo.ImageHeight, colInfo.ImageWidth);
                 result[colInfo.Name] = new SchemaShape.Column(colInfo.Name, SchemaShape.Column.VectorKind.Scalar, itemType, false);
             }
 
