@@ -82,7 +82,7 @@ namespace Microsoft.ML.Trainers
             float l1Regularization = Options.Defaults.L1Regularization,
             float l2Regularization = Options.Defaults.L2Regularization,
             float optimizationTolerance = Options.Defaults.OptimizationTolerance,
-            int memorySize = Options.Defaults.HistoryLength,
+            int memorySize = Options.Defaults.HistorySize,
             bool enforceNoNegativity = Options.Defaults.EnforceNonNegativity)
             : base(env, featureColumn, TrainerUtils.MakeBoolScalarLabel(labelColumn), exampleWeightColumnName,
                   l1Regularization, l2Regularization, optimizationTolerance, memorySize, enforceNoNegativity)

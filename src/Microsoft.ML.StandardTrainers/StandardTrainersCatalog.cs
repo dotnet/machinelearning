@@ -523,7 +523,7 @@ namespace Microsoft.ML
             float l1Regularization = LROptions.Defaults.L1Regularization,
             float l2Regularization = LROptions.Defaults.L2Regularization,
             float optimizationTolerance = LROptions.Defaults.OptimizationTolerance,
-            int historySize = LROptions.Defaults.HistoryLength,
+            int historySize = LROptions.Defaults.HistorySize,
             bool enforceNonNegativity = LROptions.Defaults.EnforceNonNegativity)
         {
             Contracts.CheckValue(catalog, nameof(catalog));
@@ -564,7 +564,7 @@ namespace Microsoft.ML
             float l1Regularization = LROptions.Defaults.L1Regularization,
             float l2Regularization = LROptions.Defaults.L2Regularization,
             float optimizationTolerance = LROptions.Defaults.OptimizationTolerance,
-            int historySize = LROptions.Defaults.HistoryLength,
+            int historySize = LROptions.Defaults.HistorySize,
             bool enforceNonNegativity = LROptions.Defaults.EnforceNonNegativity)
         {
             Contracts.CheckValue(catalog, nameof(catalog));
@@ -605,7 +605,7 @@ namespace Microsoft.ML
             float l1Regularization = LROptions.Defaults.L1Regularization,
             float l2Regularization = LROptions.Defaults.L2Regularization,
             float optimizationTolerance = LROptions.Defaults.OptimizationTolerance,
-            int historySize = LROptions.Defaults.HistoryLength,
+            int historySize = LROptions.Defaults.HistorySize,
             bool enforceNonNegativity = LROptions.Defaults.EnforceNonNegativity)
         {
             Contracts.CheckValue(catalog, nameof(catalog));

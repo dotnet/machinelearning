@@ -41,7 +41,7 @@ namespace Microsoft.ML.StaticPipe
             float l1Regularization = Options.Defaults.L1Regularization,
             float l2Regularization = Options.Defaults.L2Regularization,
             float optimizationTolerance = Options.Defaults.OptimizationTolerance,
-            int historySize = Options.Defaults.HistoryLength,
+            int historySize = Options.Defaults.HistorySize,
             bool enforceNonNegativity = Options.Defaults.EnforceNonNegativity,
             Action<CalibratedModelParametersBase<LinearBinaryModelParameters,PlattCalibrator>> onFit = null)
         {
@@ -137,7 +137,7 @@ namespace Microsoft.ML.StaticPipe
             float l1Regularization = Options.Defaults.L1Regularization,
             float l2Regularization = Options.Defaults.L2Regularization,
             float optimizationTolerance = Options.Defaults.OptimizationTolerance,
-            int historySize = Options.Defaults.HistoryLength,
+            int historySize = Options.Defaults.HistorySize,
             bool enforceNonNegativity = Options.Defaults.EnforceNonNegativity,
             Action<PoissonRegressionModelParameters> onFit = null)
         {
@@ -234,7 +234,7 @@ namespace Microsoft.ML.StaticPipe
             float l1Regularization = Options.Defaults.L1Regularization,
             float l2Regularization = Options.Defaults.L2Regularization,
             float optimizationTolerance = Options.Defaults.OptimizationTolerance,
-            int historySize = Options.Defaults.HistoryLength,
+            int historySize = Options.Defaults.HistorySize,
             bool enforceNonNegativity = Options.Defaults.EnforceNonNegativity,
             Action<MaximumEntropyModelParameters> onFit = null)
         {
@@ -307,7 +307,7 @@ namespace Microsoft.ML.StaticPipe
             float l1Regularization = Options.Defaults.L1Regularization,
             float l2Regularization = Options.Defaults.L2Regularization,
             float optimizationTolerance = Options.Defaults.OptimizationTolerance,
-            int historySize = Options.Defaults.HistoryLength,
+            int historySize = Options.Defaults.HistorySize,
             bool enforceNonNegativity = Options.Defaults.EnforceNonNegativity,
             Delegate onFit = null)
         {
