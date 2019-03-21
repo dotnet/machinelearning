@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Diagnostics;
 using Microsoft.ML.Internal.DataView;
 
 namespace Microsoft.ML.Data
@@ -62,6 +63,21 @@ namespace Microsoft.ML.Data
             return 0;
         }
 
+        private string GetRawTypeName()
+        {
+            if (RawType == typeof(byte))
+                return NumberDataViewType.Byte.ToString();
+            else if (RawType == typeof(ushort))
+                return NumberDataViewType.UInt16.ToString();
+            else if (RawType == typeof(uint))
+                return NumberDataViewType.UInt32.ToString();
+            else if (RawType == typeof(ulong))
+                return NumberDataViewType.UInt64.ToString();
+
+            Debug.Fail("Invalid type");
+            return null;
+        }
+
         /// <summary>
         /// <see cref="Count"/> is the cardinality of the <see cref="KeyDataViewType"/>. Note that such a key type can be converted to a
         /// bit vector representation by mapping to a vector of length <see cref="Count"/>, with "id" mapped to a
@@ -119,7 +135,7 @@ namespace Microsoft.ML.Data
         /// <returns>A formatted string.</returns>
         public override string ToString()
         {
-            string rawTypeName = RawType.Name;
+            string rawTypeName = GetRawTypeName();
             return string.Format("Key<{0}, {1}-{2}>", rawTypeName, 0, Count - 1);
         }
     }
