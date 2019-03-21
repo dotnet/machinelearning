@@ -476,7 +476,7 @@ namespace Microsoft.ML.Data
                         var logLoss = _logLoss / (_numLogLossPositives + _numLogLossNegatives);
                         var priorPos = _numLogLossPositives / (_numLogLossPositives + _numLogLossNegatives);
                         var priorLogLoss = MathUtils.Entropy(priorPos);
-                        return 100 * (priorLogLoss - logLoss) / priorLogLoss;
+                        return (priorLogLoss - logLoss) / priorLogLoss;
                     }
                 }
 
