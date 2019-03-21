@@ -8,6 +8,60 @@ namespace Microsoft.ML
     /// </summary>
     public static class NormalizationCatalog
     {
+        public static NormalizingEstimator NormalizeMinMax(this TransformsCatalog catalog,
+           string outputColumnName, string inputColumnName = null,
+           long maximumExampleCount = NormalizingEstimator.Defaults.MaximumExampleCount,
+           bool ensureZeroUntouched = NormalizingEstimator.Defaults.EnsureZeroUntouched) {
+
+            var columnOptions = new NormalizingEstimator.MinMaxColumnOptions(outputColumnName, inputColumnName, maximumExampleCount, ensureZeroUntouched);
+            return new NormalizingEstimator(CatalogUtils.GetEnvironment(catalog), columnOptions);
+        }
+
+        public static NormalizingEstimator NormalizeMeanVariance(this TransformsCatalog catalog,
+            string outputColumnName, string inputColumnName = null,
+            long maximumExampleCount = NormalizingEstimator.Defaults.MaximumExampleCount,
+            bool fixZero = NormalizingEstimator.Defaults.EnsureZeroUntouched,
+            bool useCdf = NormalizingEstimator.Defaults.MeanVarCdf)
+        {
+
+            var columnOptions = new NormalizingEstimator.MeanVarianceColumnOptions(outputColumnName, inputColumnName, maximumExampleCount, fixZero, useCdf);
+            return new NormalizingEstimator(CatalogUtils.GetEnvironment(catalog), columnOptions);
+        }
+
+        public static NormalizingEstimator NormalizeLogMeanVariance(this TransformsCatalog catalog,
+            string outputColumnName, string inputColumnName = null,
+            long maximumExampleCount = NormalizingEstimator.Defaults.MaximumExampleCount,
+            bool useCdf = NormalizingEstimator.Defaults.MeanVarCdf)
+        {
+
+            var columnOptions = new NormalizingEstimator.LogMeanVarianceColumnOptions(outputColumnName, inputColumnName, maximumExampleCount, useCdf);
+            return new NormalizingEstimator(CatalogUtils.GetEnvironment(catalog), columnOptions);
+        }
+
+        public static NormalizingEstimator NormalizeBinning(this TransformsCatalog catalog,
+            string outputColumnName, string inputColumnName = null,
+            long maximumExampleCount = NormalizingEstimator.Defaults.MaximumExampleCount,
+            bool fixZero = NormalizingEstimator.Defaults.EnsureZeroUntouched,
+            int maximumBinCount = NormalizingEstimator.Defaults.MaximumBinCount)
+        {
+
+            var columnOptions = new NormalizingEstimator.BinningColumnOptions(outputColumnName, inputColumnName, maximumExampleCount, fixZero, maximumBinCount);
+            return new NormalizingEstimator(CatalogUtils.GetEnvironment(catalog), columnOptions);
+        }
+
+        public static NormalizingEstimator NormalizeSupervisedBinning(this TransformsCatalog catalog,
+            string outputColumnName, string inputColumnName = null,
+            string labelColumnName = DefaultColumnNames.Label,
+            long maximumExampleCount = NormalizingEstimator.Defaults.MaximumExampleCount,
+            bool fixZero = NormalizingEstimator.Defaults.EnsureZeroUntouched,
+            int maximumBinCount = NormalizingEstimator.Defaults.MaximumBinCount,
+            int mininimumBinSize = NormalizingEstimator.Defaults.MininimumBinSize)
+        {
+
+            var columnOptions = new NormalizingEstimator.SupervisedBinningColumOptions(outputColumnName, inputColumnName, labelColumnName, maximumExampleCount, fixZero, maximumBinCount, mininimumBinSize);
+            return new NormalizingEstimator(CatalogUtils.GetEnvironment(catalog), columnOptions);
+        }
+
         /// <summary>
         /// Normalize (rescale) the column according to the specified <paramref name="mode"/>.
         /// </summary>
