@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using Microsoft.ML.Internal.DataView;
 
 namespace Microsoft.ML.Data
 {
@@ -25,24 +26,17 @@ namespace Microsoft.ML.Data
         public KeyDataViewType(Type type, ulong count)
             : base(type)
         {
-            if (!IsValidDataType(type))
-                throw new ArgumentException(
-                    $"Type is not valid, it must be {typeof(byte).FullName}, {typeof(ushort).FullName}, {typeof(uint).FullName}, or {typeof(ulong).FullName}.",
-                    nameof(type));
+            Contracts.CheckParam(IsValidDataType(type), nameof(type), "Type is not valid, it must be {0}, {1}, {2}, or {3}.", typeof(byte), typeof(ushort), typeof(uint), typeof(ulong));
             if (count == 0 || GetMaxInt(type) < count)
-                throw new ArgumentOutOfRangeException(
-                    nameof(count),
-                    $"The cardinality of a {nameof(KeyDataViewType)} must not exceed {type.Name}.MaxValue and must be strictly positive but got {count}.");
+                throw Contracts.ExceptParam(nameof(count), "The cardinality of a {0} must not exceed {1}.MaxValue" +
+                    " and must be strictly positive but got {2}.", nameof(KeyDataViewType), type.Name, count);
             Count = count;
         }
 
         public KeyDataViewType(Type type, int count)
             : this(type, (ulong)count)
         {
-            if (count <= 0)
-                throw new ArgumentOutOfRangeException(
-                    nameof(count),
-                    $"The cardinality of a {nameof(KeyDataViewType)} must be strictly positive.");
+            Contracts.CheckParam(0 < count, nameof(count), "The cardinality of a " + nameof(KeyDataViewType) + " must be strictly positive.");
         }
 
         /// <summary>

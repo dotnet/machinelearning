@@ -8,11 +8,27 @@
 // we want Contracts.Assert to be fully functional for that client.
 
 using System;
+using System.Diagnostics;
+using System.Globalization;
 
 namespace Microsoft.ML.Internal.DataView
 {
     internal static class Contracts
     {
+        private static string GetMsg(string msg, params object[] args)
+        {
+            try
+            {
+                msg = string.Format(CultureInfo.InvariantCulture, msg, args);
+            }
+            catch (FormatException ex)
+            {
+                Debug.Fail("Format string arg mismatch: " + ex.Message);
+                throw;
+            }
+            return msg;
+        }
+
         public static Exception Except(string msg)
             => new InvalidOperationException(msg);
 
@@ -20,6 +36,8 @@ namespace Microsoft.ML.Internal.DataView
             => new ArgumentOutOfRangeException(paramName);
         public static Exception ExceptParam(string paramName, string msg)
             => new ArgumentOutOfRangeException(paramName, msg);
+        public static Exception ExceptParam(string paramName, string msg, params object[] args)
+            => new ArgumentOutOfRangeException(paramName, GetMsg(msg, args));
 
         public static Exception ExceptValue(string paramName)
             => new ArgumentNullException(paramName);
@@ -39,6 +57,11 @@ namespace Microsoft.ML.Internal.DataView
         {
             if (!f)
                 throw ExceptParam(paramName, msg);
+        }
+        public static void CheckParam(bool f, string paramName, string msg, params object[] args)
+        {
+            if (!f)
+                throw ExceptParam(paramName, msg, args);
         }
 
         public static void CheckValue<T>(T val, string paramName) where T : class
