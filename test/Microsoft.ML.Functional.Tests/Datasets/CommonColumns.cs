@@ -27,4 +27,12 @@ namespace Microsoft.ML.Functional.Tests.Datasets
     {
         public float Score { get; set; }
     }
+
+    /// <summary>
+    /// A class to hold a feature column.
+    /// </summary>
+    internal sealed class VectorScoreColumn
+    {
+        public float[] Score { get; set; }
+    }
 }

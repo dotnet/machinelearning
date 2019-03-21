@@ -82,7 +82,7 @@ namespace Microsoft.ML.Functional.Tests
             var pipeline = mlContext.Transforms.Text.FeaturizeText("Features", "SentimentText")
                 .AppendCacheCheckpoint(mlContext)
                 .Append(mlContext.BinaryClassification.Trainers.FastTree(
-                    new FastTreeBinaryClassificationTrainer.Options{ NumberOfLeaves = 5, NumberOfTrees= 3, NumberOfThreads = 1 }));
+                    new FastTreeBinaryTrainer.Options{ NumberOfLeaves = 5, NumberOfTrees= 3, NumberOfThreads = 1 }));
 
             // Fit the pipeline.
             var model = pipeline.Fit(data);
@@ -217,7 +217,7 @@ namespace Microsoft.ML.Functional.Tests
             var pipeline = mlContext.Transforms.Text.FeaturizeText("Features", "SentimentText")
                 .AppendCacheCheckpoint(mlContext)
                 .Append(mlContext.BinaryClassification.Trainers.SdcaNonCalibrated(
-                    new SdcaNonCalibratedBinaryClassificationTrainer.Options { NumberOfThreads = 1 }));
+                    new SdcaNonCalibratedBinaryTrainer.Options { NumberOfThreads = 1 }));
 
             // Fit the pipeline.
             var model = pipeline.Fit(data);
@@ -393,7 +393,7 @@ namespace Microsoft.ML.Functional.Tests
             // Extract the trained models.
             var modelComponents = model.ToList();
             var kMeansModel = (modelComponents[1] as TransformerChain<ClusteringPredictionTransformer<KMeansModelParameters>>).LastTransformer;
-            var mcLrModel = (modelComponents[2] as TransformerChain<MulticlassPredictionTransformer<MulticlassLogisticRegressionModelParameters>>).LastTransformer;
+            var mcLrModel = (modelComponents[2] as TransformerChain<MulticlassPredictionTransformer<MaximumEntropyModelParameters>>).LastTransformer;
 
             // Validate the k-means model.
             VBuffer<float>[] centroids = default;
@@ -419,11 +419,11 @@ namespace Microsoft.ML.Functional.Tests
                     }));
         }
 
-        private IEstimator<TransformerChain<MulticlassPredictionTransformer<MulticlassLogisticRegressionModelParameters>>> StepTwo(MLContext mlContext)
+        private IEstimator<TransformerChain<MulticlassPredictionTransformer<MaximumEntropyModelParameters>>> StepTwo(MLContext mlContext)
         {
             return mlContext.Transforms.Conversion.MapValueToKey("Label")
-                .Append(mlContext.MulticlassClassification.Trainers.Sdca(
-                new SdcaMulticlassClassificationTrainer.Options {
+                .Append(mlContext.MulticlassClassification.Trainers.SdcaCalibrated(
+                new SdcaCalibratedMulticlassTrainer.Options {
                     MaximumNumberOfIterations = 10,
                     NumberOfThreads = 1 }));
         }

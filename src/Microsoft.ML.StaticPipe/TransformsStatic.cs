@@ -731,9 +731,9 @@ namespace Microsoft.ML.StaticPipe
         private readonly struct Config
         {
             public readonly bool ImputeBySlot;
-            public readonly MissingValueReplacingEstimator.ColumnOptions.ReplacementMode ReplacementMode;
+            public readonly MissingValueReplacingEstimator.ReplacementMode ReplacementMode;
 
-            public Config(MissingValueReplacingEstimator.ColumnOptions.ReplacementMode replacementMode = MissingValueReplacingEstimator.Defaults.ReplacementMode,
+            public Config(MissingValueReplacingEstimator.ReplacementMode replacementMode = MissingValueReplacingEstimator.Defaults.Mode,
                 bool imputeBySlot = MissingValueReplacingEstimator.Defaults.ImputeBySlot)
             {
                 ImputeBySlot = imputeBySlot;
@@ -814,7 +814,7 @@ namespace Microsoft.ML.StaticPipe
         /// </summary>
         /// <param name="input">Incoming data.</param>
         /// <param name="replacementMode">How NaN should be replaced</param>
-        public static Scalar<float> ReplaceNaNValues(this Scalar<float> input, MissingValueReplacingEstimator.ColumnOptions.ReplacementMode replacementMode = MissingValueReplacingEstimator.Defaults.ReplacementMode)
+        public static Scalar<float> ReplaceNaNValues(this Scalar<float> input, MissingValueReplacingEstimator.ReplacementMode replacementMode = MissingValueReplacingEstimator.Defaults.Mode)
         {
             Contracts.CheckValue(input, nameof(input));
             return new OutScalar<float>(input, new Config(replacementMode, false));
@@ -825,7 +825,7 @@ namespace Microsoft.ML.StaticPipe
         /// </summary>
         /// <param name="input">Incoming data.</param>
         /// <param name="replacementMode">How NaN should be replaced</param>
-        public static Scalar<double> ReplaceNaNValues(this Scalar<double> input, MissingValueReplacingEstimator.ColumnOptions.ReplacementMode replacementMode = MissingValueReplacingEstimator.Defaults.ReplacementMode)
+        public static Scalar<double> ReplaceNaNValues(this Scalar<double> input, MissingValueReplacingEstimator.ReplacementMode replacementMode = MissingValueReplacingEstimator.Defaults.Mode)
         {
             Contracts.CheckValue(input, nameof(input));
             return new OutScalar<double>(input, new Config(replacementMode, false));
@@ -838,7 +838,7 @@ namespace Microsoft.ML.StaticPipe
         /// <param name="imputeBySlot">If true, per-slot imputation of replacement is performed.
         /// Otherwise, replacement value is imputed for the entire vector column. This setting is ignored for scalars and variable vectors,
         /// where imputation is always for the entire column.</param>
-        public static Vector<float> ReplaceNaNValues(this Vector<float> input, MissingValueReplacingEstimator.ColumnOptions.ReplacementMode replacementMode = MissingValueReplacingEstimator.Defaults.ReplacementMode, bool imputeBySlot = MissingValueReplacingEstimator.Defaults.ImputeBySlot)
+        public static Vector<float> ReplaceNaNValues(this Vector<float> input, MissingValueReplacingEstimator.ReplacementMode replacementMode = MissingValueReplacingEstimator.Defaults.Mode, bool imputeBySlot = MissingValueReplacingEstimator.Defaults.ImputeBySlot)
         {
             Contracts.CheckValue(input, nameof(input));
             return new OutVectorColumn<float>(input, new Config(replacementMode, imputeBySlot));
@@ -852,7 +852,7 @@ namespace Microsoft.ML.StaticPipe
         /// <param name="imputeBySlot">If true, per-slot imputation of replacement is performed.
         /// Otherwise, replacement value is imputed for the entire vector column. This setting is ignored for scalars and variable vectors,
         /// where imputation is always for the entire column.</param>
-        public static Vector<double> ReplaceNaNValues(this Vector<double> input, MissingValueReplacingEstimator.ColumnOptions.ReplacementMode replacementMode = MissingValueReplacingEstimator.Defaults.ReplacementMode, bool imputeBySlot = MissingValueReplacingEstimator.Defaults.ImputeBySlot)
+        public static Vector<double> ReplaceNaNValues(this Vector<double> input, MissingValueReplacingEstimator.ReplacementMode replacementMode = MissingValueReplacingEstimator.Defaults.Mode, bool imputeBySlot = MissingValueReplacingEstimator.Defaults.ImputeBySlot)
         {
             Contracts.CheckValue(input, nameof(input));
             return new OutVectorColumn<double>(input, new Config(replacementMode, imputeBySlot));
@@ -863,7 +863,7 @@ namespace Microsoft.ML.StaticPipe
         /// </summary>
         /// <param name="input">Incoming data.</param>
         /// <param name="replacementMode">How NaN should be replaced</param>
-        public static VarVector<float> ReplaceNaNValues(this VarVector<float> input, MissingValueReplacingEstimator.ColumnOptions.ReplacementMode replacementMode = MissingValueReplacingEstimator.Defaults.ReplacementMode)
+        public static VarVector<float> ReplaceNaNValues(this VarVector<float> input, MissingValueReplacingEstimator.ReplacementMode replacementMode = MissingValueReplacingEstimator.Defaults.Mode)
         {
             Contracts.CheckValue(input, nameof(input));
             return new OutVarVectorColumn<float>(input, new Config(replacementMode, false));
@@ -873,7 +873,7 @@ namespace Microsoft.ML.StaticPipe
         /// </summary>
         /// <param name="input">Incoming data.</param>
         /// <param name="replacementMode">How NaN should be replaced</param>
-        public static VarVector<double> ReplaceNaNValues(this VarVector<double> input, MissingValueReplacingEstimator.ColumnOptions.ReplacementMode replacementMode = MissingValueReplacingEstimator.Defaults.ReplacementMode)
+        public static VarVector<double> ReplaceNaNValues(this VarVector<double> input, MissingValueReplacingEstimator.ReplacementMode replacementMode = MissingValueReplacingEstimator.Defaults.Mode)
         {
             Contracts.CheckValue(input, nameof(input));
             return new OutVarVectorColumn<double>(input, new Config(replacementMode, false));

@@ -5,7 +5,6 @@
 using System;
 using System.Reflection;
 using System.Reflection.Emit;
-using Microsoft.Data.DataView;
 using Microsoft.ML.Data;
 using Microsoft.ML.Runtime;
 

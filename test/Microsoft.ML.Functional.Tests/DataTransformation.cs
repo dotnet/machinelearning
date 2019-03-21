@@ -144,7 +144,7 @@ namespace Microsoft.ML.Functional.Tests
                     }, "SentimentText")
                 .AppendCacheCheckpoint(mlContext)
                 .Append(mlContext.BinaryClassification.Trainers.SdcaCalibrated(
-                    new SdcaCalibratedBinaryClassificationTrainer.Options { NumberOfThreads = 1 }));
+                    new SdcaCalibratedBinaryTrainer.Options { NumberOfThreads = 1 }));
 
             // Train the model.
             var model = pipeline.Fit(data);

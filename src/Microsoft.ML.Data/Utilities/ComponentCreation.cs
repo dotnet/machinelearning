@@ -5,7 +5,6 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using Microsoft.Data.DataView;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Model;
 using Microsoft.ML.Runtime;
@@ -56,26 +55,6 @@ namespace Microsoft.ML.Data
             env.CheckValueOrNull(custom);
 
             return new RoleMappedData(data, label, features, group, weight, name: null, custom: custom);
-        }
-
-        /// <summary>
-        /// Create an on-demand prediction engine.
-        /// </summary>
-        /// <param name="env">The host environment to use.</param>
-        /// <param name="transformer">The transformer.</param>
-        /// <param name="ignoreMissingColumns">Whether to ignore missing columns in the data view.</param>
-        /// <param name="inputSchemaDefinition">The optional input schema. If <c>null</c>, the schema is inferred from the <typeparamref name="TSrc"/> type.</param>
-        /// <param name="outputSchemaDefinition">The optional output schema. If <c>null</c>, the schema is inferred from the <typeparamref name="TDst"/> type.</param>
-        public static PredictionEngine<TSrc, TDst> CreatePredictionEngine<TSrc, TDst>(this IHostEnvironment env, ITransformer transformer,
-            bool ignoreMissingColumns = false, SchemaDefinition inputSchemaDefinition = null, SchemaDefinition outputSchemaDefinition = null)
-            where TSrc : class
-            where TDst : class, new()
-        {
-            Contracts.CheckValue(env, nameof(env));
-            env.CheckValue(transformer, nameof(transformer));
-            env.CheckValueOrNull(inputSchemaDefinition);
-            env.CheckValueOrNull(outputSchemaDefinition);
-            return new PredictionEngine<TSrc, TDst>(env, transformer, ignoreMissingColumns, inputSchemaDefinition, outputSchemaDefinition);
         }
 
         /// <summary>

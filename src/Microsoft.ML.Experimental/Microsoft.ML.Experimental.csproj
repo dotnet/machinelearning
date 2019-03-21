@@ -2,11 +2,11 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
-    <IncludeInPackage>Microsoft.Data.DataView</IncludeInPackage>
+    <IncludeInPackage>Microsoft.ML.Experimental</IncludeInPackage>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="System.Memory" Version="$(SystemMemoryVersion)" />
+    <ProjectReference Include="..\Microsoft.ML.Data\Microsoft.ML.Data.csproj" />
   </ItemGroup>
-  
+
 </Project>

@@ -5,7 +5,6 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using Microsoft.Data.DataView;
 using Microsoft.ML.Data;
 using Microsoft.ML.Runtime;
 
@@ -225,7 +224,7 @@ namespace Microsoft.ML
     /// The 'data loader' takes a certain kind of input and turns it into an <see cref="IDataView"/>.
     /// </summary>
     /// <typeparam name="TSource">The type of input the loader takes.</typeparam>
-    public interface IDataLoader<in TSource>
+    public interface IDataLoader<in TSource> : ICanSaveModel
     {
         /// <summary>
         /// Produce the data view from the specified input.

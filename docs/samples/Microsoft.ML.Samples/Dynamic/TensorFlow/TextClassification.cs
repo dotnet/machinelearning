@@ -68,13 +68,14 @@ namespace Microsoft.ML.Samples.Dynamic
                 j.Features = features;
             };
 
-            var engine = mlContext.Transforms.Text.TokenizeIntoWords("TokenizedWords", "Sentiment_Text")
-                .Append(mlContext.Transforms.Conversion.MapValue(lookupMap, "Words", "Ids", new ColumnOptions[] { ("VariableLenghtFeatures", "TokenizedWords") }))
+            var model = mlContext.Transforms.Text.TokenizeIntoWords("TokenizedWords", "Sentiment_Text")
+                .Append(mlContext.Transforms.Conversion.MapValue("VariableLenghtFeatures", lookupMap,
+                    lookupMap.Schema["Words"], lookupMap.Schema["Ids"], "TokenizedWords"))
                 .Append(mlContext.Transforms.CustomMapping(ResizeFeaturesAction, "Resize"))
                 .Append(tensorFlowModel.ScoreTensorFlowModel(new[] { "Prediction/Softmax" }, new[] { "Features" }))
-                .Append(mlContext.Transforms.CopyColumns(("Prediction", "Prediction/Softmax")))
-                .Fit(dataView)
-                .CreatePredictionEngine<IMDBSentiment, OutputScores>(mlContext);
+                .Append(mlContext.Transforms.CopyColumns("Prediction", "Prediction/Softmax"))
+                .Fit(dataView);
+            var engine = mlContext.Model.CreatePredictionEngine<IMDBSentiment, OutputScores>(model);
 
             // Predict with TensorFlow pipeline.
             var prediction = engine.Predict(data[0]);

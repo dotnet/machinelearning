@@ -9,7 +9,6 @@ using System.IO;
 using System.Linq;
 using System.Numerics;
 using System.Text;
-using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
@@ -19,7 +18,6 @@ using Microsoft.ML.Runtime;
 using Parquet;
 using Parquet.Data;
 using Parquet.File.Values.Primitives;
-using DataViewSchema = Microsoft.Data.DataView.DataViewSchema;
 
 [assembly: LoadableClass(ParquetLoader.Summary, typeof(ParquetLoader), typeof(ParquetLoader.Arguments), typeof(SignatureDataLoader),
     ParquetLoader.LoaderName, ParquetLoader.LoaderSignature, ParquetLoader.ShortName)]
@@ -313,12 +311,12 @@ namespace Microsoft.ML.Data
         /// <param name="ectx">The exception context.</param>
         /// <param name="cols">The columns.</param>
         /// <returns>The resulting schema.</returns>
-        private Microsoft.Data.DataView.DataViewSchema CreateSchema(IExceptionContext ectx, Column[] cols)
+        private DataViewSchema CreateSchema(IExceptionContext ectx, Column[] cols)
         {
             Contracts.AssertValue(ectx);
             Contracts.AssertValue(cols);
             var builder = new DataViewSchema.Builder();
-            builder.AddColumns(cols.Select(c => new Microsoft.Data.DataView.DataViewSchema.DetachedColumn(c.Name, c.ColType, null)));
+            builder.AddColumns(cols.Select(c => new DataViewSchema.DetachedColumn(c.Name, c.ColType, null)));
             return builder.ToSchema();
         }
 
@@ -586,7 +584,7 @@ namespace Microsoft.ML.Data
                 return false;
             }
 
-            public override Microsoft.Data.DataView.DataViewSchema Schema => _loader.Schema;
+            public override DataViewSchema Schema => _loader.Schema;
 
             public override long Batch => 0;
 

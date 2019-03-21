@@ -2,6 +2,8 @@
   <PropertyGroup>
     <!-- versioning.targets will import this file, so don't import it again -->
     <DisableImportVersioningProps>true</DisableImportVersioningProps>
+    <!-- Use this flag to ensure native assets take stable version -->
+    <UseStableVersionForNativeAssets>true</UseStableVersionForNativeAssets>
 
     <StripNativeSymbols Condition="'$(StripNativeSymbols)' == '' and '$(Configuration)' == 'Release'">True</StripNativeSymbols>
   </PropertyGroup>
@@ -72,7 +74,10 @@
     
     <Copy SourceFiles="$(PackagesDir)mlnetmkldeps\$(MlNetMklDepsPackageVersion)\runtimes\$(PackageRid)\native\$(NativeLibPrefix)MklImports$(NativeLibExtension)"
           DestinationFolder="$(NativeAssetsBuiltPath)" />   
-    
+
+    <Copy Condition="'$(OS)' == 'Windows_NT'" SourceFiles="$(PackagesDir)mlnetmkldeps\$(MlNetMklDepsPackageVersion)\runtimes\$(PackageRid)\native\libiomp5md$(NativeLibExtension)"
+          DestinationFolder="$(NativeAssetsBuiltPath)" />   
+
     <ItemGroup Condition="'$(UseIntrinsics)' != 'true'">
       <NativePackageAsset Include="$(NativeAssetsBuiltPath)\$(NativeLibPrefix)CpuMathNative$(NativeLibExtension)"
                           RelativePath="Microsoft.ML.CpuMath\runtimes\$(PackageRid)\native" />

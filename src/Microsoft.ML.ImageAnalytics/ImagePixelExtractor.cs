@@ -8,7 +8,6 @@ using System.Drawing;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
-using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
@@ -563,7 +562,8 @@ namespace Microsoft.ML.Transforms.Image
         /// <summary>
         /// Describes how the transformer handles one image pixel extraction column pair.
         /// </summary>
-        public sealed class ColumnOptions
+        [BestFriend]
+        internal sealed class ColumnOptions
         {
             /// <summary>Name of the column resulting from the transformation of <see cref="InputColumnName"/>.</summary>
             public readonly string Name;

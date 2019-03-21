@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.Data.DataView;
 using Microsoft.ML.Data;
 using Microsoft.ML.Functional.Tests.Datasets;
 using Microsoft.ML.RunTests;
@@ -40,11 +39,11 @@ namespace Microsoft.ML.Functional.Tests
                 .Append(mlContext.Regression.Trainers.Ols());
 
             // Compute the CV result.
-            var cvResult = mlContext.Regression.CrossValidate(data, pipeline, numFolds: 5);
+            var cvResult = mlContext.Regression.CrossValidate(data, pipeline, numberOfFolds: 5);
 
             // Check that the results are valid
             Assert.IsType<RegressionMetrics>(cvResult[0].Metrics);
-            Assert.IsType<TransformerChain<RegressionPredictionTransformer<OrdinaryLeastSquaresRegressionModelParameters>>>(cvResult[0].Model);
+            Assert.IsType<TransformerChain<RegressionPredictionTransformer<OlsModelParameters>>>(cvResult[0].Model);
             Assert.True(cvResult[0].ScoredHoldOutSet is IDataView);
             Assert.Equal(5, cvResult.Length);
 

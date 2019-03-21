@@ -98,16 +98,16 @@ namespace Microsoft.ML.Functional.Tests
             var modelPath = DeleteOutputPath("fitPipelineSaveModelAndPredict.zip");
             // Save model to a file.
             using (var file = File.Create(modelPath))
-                mlContext.Model.Save(model, file);
+                mlContext.Model.Save(model, data.Schema, file);
 
             // Load model from a file.
             ITransformer serializedModel;
             using (var file = File.OpenRead(modelPath))
-                serializedModel = mlContext.Model.Load(file);
+                serializedModel = mlContext.Model.Load(file, out var serializedSchema);
 
             // Create prediction engine and test predictions.
-            var originalPredictionEngine = model.CreatePredictionEngine<HousingRegression, ScoreColumn>(mlContext);
-            var serializedPredictionEngine = serializedModel.CreatePredictionEngine<HousingRegression, ScoreColumn>(mlContext);
+            var originalPredictionEngine = mlContext.Model.CreatePredictionEngine<HousingRegression, ScoreColumn>(model);
+            var serializedPredictionEngine = mlContext.Model.CreatePredictionEngine<HousingRegression, ScoreColumn>(serializedModel);
             
             // Take a handful of examples out of the dataset and compute predictions.
             var dataEnumerator = mlContext.Data.CreateEnumerable<HousingRegression>(mlContext.Data.TakeRows(data, 5), false);

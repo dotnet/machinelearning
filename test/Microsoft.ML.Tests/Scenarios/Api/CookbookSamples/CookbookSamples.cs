@@ -146,18 +146,15 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
             // Calculate metrics of the model on the test data.
             var metrics = mlContext.Regression.Evaluate(model.Transform(testData), label: r => r.Target, score: r => r.Prediction);
 
-            using (var stream = File.Create(modelPath))
-            {
-                // Saving and loading happens to 'dynamic' models, so the static typing is lost in the process.
-                mlContext.Model.Save(model.AsDynamic, stream);
-            }
+            // Saving and loading happens to 'dynamic' models, so the static typing is lost in the process.
+            mlContext.Model.Save(model.AsDynamic, trainData.AsDynamic.Schema, modelPath);
 
             // Potentially, the lines below can be in a different process altogether.
 
             // When you load the model, it's a 'dynamic' transformer. 
             ITransformer loadedModel;
             using (var stream = File.OpenRead(modelPath))
-                loadedModel = mlContext.Model.Load(stream);
+                loadedModel = mlContext.Model.Load(stream, out var schema);
         }
 
         [Fact]
@@ -226,7 +223,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
             // Make the prediction function object. Note that, on average, this call takes around 200x longer
             // than one prediction, so you might want to cache and reuse the prediction function, instead of
             // creating one per prediction.
-            var predictionFunc = model.CreatePredictionEngine<IrisInput, IrisPrediction>(mlContext);
+            var predictionFunc = mlContext.Model.CreatePredictionEngine<IrisInput, IrisPrediction>(model);
 
             // Obtain the prediction. Remember that 'Predict' is not reentrant. If you want to use multiple threads
             // for simultaneous prediction, make sure each thread is using its own PredictionFunction.
@@ -267,7 +264,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
             var trainData = loader.Load(dataPath);
 
             // This is the predictor ('weights collection') that we will train.
-            MulticlassLogisticRegressionModelParameters predictor = null;
+            MaximumEntropyModelParameters predictor = null;
             // And these are the normalizer scales that we will learn.
             ImmutableArray<float> normScales;
             // Build the training pipeline.

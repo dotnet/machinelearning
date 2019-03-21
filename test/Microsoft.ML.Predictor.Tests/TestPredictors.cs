@@ -11,8 +11,7 @@ namespace Microsoft.ML.RunTests
 {
     using System.Linq;
     using System.Runtime.InteropServices;
-    using Microsoft.Data.DataView;
-    using Microsoft.ML;
+        using Microsoft.ML;
     using Microsoft.ML.Data;
     using Microsoft.ML.EntryPoints;
     using Microsoft.ML.Internal.Utilities;
@@ -595,7 +594,7 @@ namespace Microsoft.ML.RunTests
             var fastTrees = new PredictorModel[3];
             for (int i = 0; i < 3; i++)
             {
-                fastTrees[i] = FastTree.TrainBinary(ML, new FastTreeBinaryClassificationTrainer.Options
+                fastTrees[i] = FastTree.TrainBinary(ML, new FastTreeBinaryTrainer.Options
                 {
                     FeatureColumnName = "Features",
                     NumberOfTrees = 5,
@@ -617,7 +616,7 @@ namespace Microsoft.ML.RunTests
             var fastTrees = new PredictorModel[3];
             for (int i = 0; i < 3; i++)
             {
-                fastTrees[i] = FastTree.TrainBinary(ML, new FastTreeBinaryClassificationTrainer.Options
+                fastTrees[i] = FastTree.TrainBinary(ML, new FastTreeBinaryTrainer.Options
                 {
                     FeatureColumnName = "Features",
                     NumberOfTrees = 5,
@@ -724,7 +723,7 @@ namespace Microsoft.ML.RunTests
 
             var predictors = new PredictorModel[]
             {
-                FastTree.TrainBinary(ML, new FastTreeBinaryClassificationTrainer.Options
+                FastTree.TrainBinary(ML, new FastTreeBinaryTrainer.Options
                 {
                     FeatureColumnName = "Features",
                     NumberOfTrees = 5,
@@ -740,7 +739,7 @@ namespace Microsoft.ML.RunTests
                     TrainingData = dataView,
                     NormalizeFeatures = NormalizeOption.No
                 }).PredictorModel,
-                LogisticRegressionBinaryClassificationTrainer.TrainBinary(ML, new LogisticRegressionBinaryClassificationTrainer.Options()
+                LogisticRegressionBinaryTrainer.TrainBinary(ML, new LogisticRegressionBinaryTrainer.Options()
                 {
                     FeatureColumnName = "Features",
                     LabelColumnName = DefaultColumnNames.Label,
@@ -748,7 +747,7 @@ namespace Microsoft.ML.RunTests
                     TrainingData = dataView,
                     NormalizeFeatures = NormalizeOption.No
                 }).PredictorModel,
-                LogisticRegressionBinaryClassificationTrainer.TrainBinary(ML, new LogisticRegressionBinaryClassificationTrainer.Options()
+                LogisticRegressionBinaryTrainer.TrainBinary(ML, new LogisticRegressionBinaryTrainer.Options()
                 {
                     FeatureColumnName = "Features",
                     LabelColumnName = DefaultColumnNames.Label,
@@ -769,7 +768,7 @@ namespace Microsoft.ML.RunTests
 
             var predictors = new PredictorModel[]
             {
-                LightGbm.TrainMulticlass(Env, new Options
+                LightGbm.TrainMulticlass(Env, new LightGbmMulticlassTrainer.Options
                 {
                     FeatureColumnName = "Features",
                     NumberOfIterations = 5,
@@ -777,7 +776,7 @@ namespace Microsoft.ML.RunTests
                     LabelColumnName = DefaultColumnNames.Label,
                     TrainingData = dataView
                 }).PredictorModel,
-                LogisticRegressionBinaryClassificationTrainer.TrainMulticlass(Env, new LogisticRegressionMulticlassClassificationTrainer.Options()
+                LbfgsMaximumEntropyTrainer.TrainMulticlass(Env, new LbfgsMaximumEntropyTrainer.Options()
                 {
                     FeatureColumnName = "Features",
                     LabelColumnName = DefaultColumnNames.Label,
@@ -785,7 +784,7 @@ namespace Microsoft.ML.RunTests
                     TrainingData = dataView,
                     NormalizeFeatures = NormalizeOption.No
                 }).PredictorModel,
-                LogisticRegressionBinaryClassificationTrainer.TrainMulticlass(Env, new LogisticRegressionMulticlassClassificationTrainer.Options()
+                LbfgsMaximumEntropyTrainer.TrainMulticlass(Env, new LbfgsMaximumEntropyTrainer.Options()
                 {
                     FeatureColumnName = "Features",
                     LabelColumnName = DefaultColumnNames.Label,

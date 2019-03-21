@@ -6,7 +6,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
@@ -439,7 +438,8 @@ namespace Microsoft.ML.Transforms.Text
           : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(WordTokenizingEstimator)), new WordTokenizingTransformer(env, columns))
         {
         }
-        public sealed class ColumnOptions
+        [BestFriend]
+        internal sealed class ColumnOptions
         {
             /// <summary>
             /// Output column name that will be used to store the tokenization result of <see cref="InputColumnName"/> column.

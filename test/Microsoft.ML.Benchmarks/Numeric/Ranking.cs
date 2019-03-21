@@ -58,7 +58,7 @@ namespace Microsoft.ML.Benchmarks
                 " xf=NAHandleTransform{col=Features}" +
                 " tr=LightGBMRanking{}";
 
-            var environment = EnvironmentFactory.CreateRankingEnvironment<RankingEvaluator, TextLoader, HashingTransformer, LightGbmMulticlassClassificationTrainer, OneVersusAllModelParameters>();
+            var environment = EnvironmentFactory.CreateRankingEnvironment<RankingEvaluator, TextLoader, HashingTransformer, LightGbmMulticlassTrainer, OneVersusAllModelParameters>();
             cmd.ExecuteMamlCommand(environment);
         }
     }

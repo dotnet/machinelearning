@@ -6,7 +6,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.Calibrators;
 using Microsoft.ML.CommandLine;
@@ -591,7 +590,7 @@ namespace Microsoft.ML.Data
 
                     // Make sure that the given predictor has the correct number of input features.
                     if (predictor is IWeaklyTypedCalibratedModelParameters calibrated)
-                        predictor = calibrated.WeeklyTypedSubModel;
+                        predictor = calibrated.WeaklyTypedSubModel;
                     // Predictor should be a TreeEnsembleModelParameters, which implements IValueMapper, so this should
                     // be non-null.
                     var vm = predictor as IValueMapper;

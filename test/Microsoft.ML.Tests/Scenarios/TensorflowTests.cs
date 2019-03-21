@@ -39,7 +39,7 @@ namespace Microsoft.ML.Scenarios
                     .Append(new ColumnConcatenatingEstimator(mlContext, "Features", "Output"))
                     .Append(new ValueToKeyMappingEstimator(mlContext, "Label"))
                     .AppendCacheCheckpoint(mlContext)
-                    .Append(mlContext.MulticlassClassification.Trainers.Sdca());
+                    .Append(mlContext.MulticlassClassification.Trainers.SdcaCalibrated());
 
 
             var transformer = pipeEstimator.Fit(data);
@@ -48,7 +48,7 @@ namespace Microsoft.ML.Scenarios
             var metrics = mlContext.MulticlassClassification.Evaluate(predictions);
             Assert.Equal(1, metrics.MicroAccuracy, 2);
 
-            var predictFunction = transformer.CreatePredictionEngine<CifarData, CifarPrediction>(mlContext);
+            var predictFunction = mlContext.Model.CreatePredictionEngine<CifarData, CifarPrediction>(transformer);
             var prediction = predictFunction.Predict(new CifarData()
             {
                 ImagePath = GetDataPath("images/banana.jpg")

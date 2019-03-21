@@ -1,0 +1,24 @@
+﻿<#@ include file="TreeSamplesTemplate.ttinclude"#>
+
+<#+
+string ClassName="FastForest";
+string Trainer = "FastForest";
+string TrainerOptions = null;
+bool IsCalibrated = false;
+
+string ExpectedOutputPerInstance= @"// Expected output:
+            //   Label: True, Prediction: True
+            //   Label: False, Prediction: False
+            //   Label: True, Prediction: True
+            //   Label: True, Prediction: True
+            //   Label: False, Prediction: False";
+
+string ExpectedOutput = @"// Expected output:
+            //   Accuracy: 0.74
+            //   AUC: 0.83
+            //   F1 Score: 0.74
+            //   Negative Precision: 0.78
+            //   Negative Recall: 0.71
+            //   Positive Precision: 0.71
+            //   Positive Recall: 0.78";
+#>

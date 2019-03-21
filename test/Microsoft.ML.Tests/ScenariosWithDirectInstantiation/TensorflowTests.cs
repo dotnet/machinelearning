@@ -6,7 +6,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using Microsoft.Data.DataView;
 using Microsoft.ML.Data;
 using Microsoft.ML.RunTests;
 using Microsoft.ML.TestFramework.Attributes;
@@ -394,8 +393,8 @@ namespace Microsoft.ML.Scenarios
             var data = reader.Load(new MultiFileSource(dataFile));
             var images = mlContext.Transforms.LoadImages(imageFolder, ("ImageReal", "ImagePath")).Fit(data).Transform(data);
             var cropped = mlContext.Transforms.ResizeImages("ImageCropped", 224, 224, "ImageReal").Fit(images).Transform(images);
-            var pixels = mlContext.Transforms.ExtractPixels(inputName, "ImageCropped").Fit(cropped).Transform(cropped);
-            var tf = mlContext.Model.LoadTensorFlowModel(modelLocation).ScoreTensorFlowModel(outputName, inputName).Fit(pixels).Transform(pixels);
+            var pixels = mlContext.Transforms.ExtractPixels(inputName, "ImageCropped", interleavePixelColors: true).Fit(cropped).Transform(cropped);
+            var tf = mlContext.Model.LoadTensorFlowModel(modelLocation).ScoreTensorFlowModel(outputName, inputName, true).Fit(pixels).Transform(pixels);
 
             tf.Schema.TryGetColumnIndex(inputName, out int input);
             tf.Schema.TryGetColumnIndex(outputName, out int b);
@@ -522,7 +521,7 @@ namespace Microsoft.ML.Scenarios
 
             var oneSample = GetOneMNISTExample();
 
-            var predictFunction = trainedModel.CreatePredictionEngine<MNISTData, MNISTPrediction>(mlContext);
+            var predictFunction = mlContext.Model.CreatePredictionEngine<MNISTData, MNISTPrediction>(trainedModel);
 
             var onePrediction = predictFunction.Predict(oneSample);
 
@@ -568,10 +567,10 @@ namespace Microsoft.ML.Scenarios
 
                 var trainedModel = pipe.Fit(trainData);
                 var predicted = trainedModel.Transform(testData);
-                var metrics = mlContext.MulticlassClassification.Evaluate(predicted, label: "KeyLabel");
+                var metrics = mlContext.MulticlassClassification.Evaluate(predicted, labelColumnName: "KeyLabel");
                 Assert.InRange(metrics.MicroAccuracy, expectedMicroAccuracy, 1);
                 Assert.InRange(metrics.MacroAccuracy, expectedMacroAccruacy, 1);
-                var predictionFunction = trainedModel.CreatePredictionEngine<MNISTData, MNISTPrediction>(mlContext);
+                var predictionFunction = mlContext.Model.CreatePredictionEngine<MNISTData, MNISTPrediction>(trainedModel);
 
                 var oneSample = GetOneMNISTExample();
                 var onePrediction = predictionFunction.Predict(oneSample);
@@ -678,7 +677,7 @@ namespace Microsoft.ML.Scenarios
                         batchSize: 20))
                     .Append(mlContext.Transforms.Concatenate("Features", "Prediction"))
                     .AppendCacheCheckpoint(mlContext)
-                    .Append(mlContext.MulticlassClassification.Trainers.LightGbm(new Trainers.LightGbm.Options()
+                    .Append(mlContext.MulticlassClassification.Trainers.LightGbm(new Trainers.LightGbm.LightGbmMulticlassTrainer.Options()
                     {
                         LabelColumnName = "Label",
                         FeatureColumnName = "Features",
@@ -694,7 +693,7 @@ namespace Microsoft.ML.Scenarios
                 Assert.InRange(metrics.MacroAccuracy, expectedMacroAccuracy - 0.1, expectedMacroAccuracy + 0.1);
 
                 // Create prediction function and test prediction
-                var predictFunction = trainedModel.CreatePredictionEngine<MNISTData, MNISTPrediction>(mlContext);
+                var predictFunction = mlContext.Model.CreatePredictionEngine<MNISTData, MNISTPrediction>(trainedModel);
 
                 var oneSample = GetOneMNISTExample();
 
@@ -746,7 +745,7 @@ namespace Microsoft.ML.Scenarios
             // An in-memory example. Its label is predicted below.
             var oneSample = GetOneMNISTExample();
 
-            var predictFunction = trainedModel.CreatePredictionEngine<MNISTData, MNISTPrediction>(mlContext);
+            var predictFunction = mlContext.Model.CreatePredictionEngine<MNISTData, MNISTPrediction>(trainedModel);
 
             var onePrediction = predictFunction.Predict(oneSample);
 
@@ -1000,17 +999,18 @@ namespace Microsoft.ML.Scenarios
             // Then this integer vector is retrieved from the pipeline and resized to fixed length.
             // The second pipeline 'tfEnginePipe' takes the resized integer vector and passes it to TensoFlow and gets the classification scores.
             var estimator = mlContext.Transforms.Text.TokenizeIntoWords("TokenizedWords", "Sentiment_Text")
-                .Append(mlContext.Transforms.Conversion.MapValue(lookupMap, "Words", "Ids", new ColumnOptions[] { ("Features", "TokenizedWords") }));
-            var dataPipe = estimator.Fit(dataView)
-                .CreatePredictionEngine<TensorFlowSentiment, TensorFlowSentiment>(mlContext);
+                .Append(mlContext.Transforms.Conversion.MapValue(lookupMap, lookupMap.Schema["Words"], lookupMap.Schema["Ids"], 
+                    new ColumnOptions[] { ("Features", "TokenizedWords") }));
+            var model = estimator.Fit(dataView);
+            var dataPipe = mlContext.Model.CreatePredictionEngine<TensorFlowSentiment, TensorFlowSentiment>(model);
 
             // For explanation on how was the `sentiment_model` created 
             // c.f. https://github.com/dotnet/machinelearning-testdata/blob/master/Microsoft.ML.TensorFlow.TestModels/sentiment_model/README.md
             string modelLocation = @"sentiment_model";
-            var tfEnginePipe = mlContext.Model.LoadTensorFlowModel(modelLocation).ScoreTensorFlowModel(new[] { "Prediction/Softmax" }, new[] { "Features" })
+            var pipelineModel = mlContext.Model.LoadTensorFlowModel(modelLocation).ScoreTensorFlowModel(new[] { "Prediction/Softmax" }, new[] { "Features" })
                 .Append(mlContext.Transforms.CopyColumns(("Prediction", "Prediction/Softmax")))
-                .Fit(dataView)
-                .CreatePredictionEngine<TensorFlowSentiment, TensorFlowSentiment>(mlContext);
+                .Fit(dataView);
+            var tfEnginePipe = mlContext.Model.CreatePredictionEngine<TensorFlowSentiment, TensorFlowSentiment>(pipelineModel);
 
             var processedData = dataPipe.Predict(data[0]);
             Array.Resize(ref processedData.Features, 600);
@@ -1053,7 +1053,7 @@ namespace Microsoft.ML.Scenarios
 
             var pipeline = tensorFlowModel.ScoreTensorFlowModel(new[] { "Original_A", "Joined_Splited_Text" }, new[] { "A", "B" })
                 .Append(mlContext.Transforms.CopyColumns(("AOut", "Original_A"), ("BOut", "Joined_Splited_Text")));
-            var transformer = pipeline.Fit(dataview).CreatePredictionEngine<TextInput, TextOutput>(mlContext);
+            var transformer = mlContext.Model.CreatePredictionEngine<TextInput, TextOutput>(pipeline.Fit(dataview));
 
             var input = new TextInput
             {

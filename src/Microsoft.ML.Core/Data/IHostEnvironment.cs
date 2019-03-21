@@ -63,14 +63,23 @@ namespace Microsoft.ML.Runtime
         IHost Register(string name, int? seed = null, bool? verbose = null);
 
         /// <summary>
-        /// Flag which indicate should we stop any code execution in this host.
-        /// </summary>
-        bool IsCancelled { get; }
-
-        /// <summary>
         /// The catalog of loadable components (<see cref="LoadableClassAttribute"/>) that are available in this host.
         /// </summary>
         ComponentCatalog ComponentCatalog { get; }
+    }
+
+    [BestFriend]
+    internal interface ICancelable
+    {
+        /// <summary>
+        /// Signal to stop exection in all the hosts.
+        /// </summary>
+        void CancelExecution();
+
+        /// <summary>
+        /// Flag which indicates host execution has been stopped.
+        /// </summary>
+        bool IsCanceled { get; }
     }
 
     /// <summary>
@@ -85,11 +94,6 @@ namespace Microsoft.ML.Runtime
         /// generators are NOT thread safe.
         /// </summary>
         Random Rand { get; }
-
-        /// <summary>
-        /// Signal to stop exection in this host and all its children.
-        /// </summary>
-        void StopExecution();
     }
 
     /// <summary>

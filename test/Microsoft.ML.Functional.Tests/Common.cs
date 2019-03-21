@@ -5,7 +5,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Microsoft.Data.DataView;
 using Microsoft.ML.Data;
 using Microsoft.ML.Functional.Tests.Datasets;
 using Xunit;
@@ -84,14 +83,14 @@ namespace Microsoft.ML.Functional.Tests
         /// </summary>
         /// <param name="array1">An array of floats.</param>
         /// <param name="array2">An array of floats.</param>
-        public static void AssertEqual(float[] array1, float[] array2)
+        public static void AssertEqual(float[] array1, float[] array2, int precision = 6)
         {
             Assert.NotNull(array1);
             Assert.NotNull(array2);
             Assert.Equal(array1.Length, array2.Length);
 
             for (int i = 0; i < array1.Length; i++)
-                Assert.Equal(array1[i], array2[i]);
+                Assert.Equal(array1[i], array2[i], precision: precision);
         }
 
         /// <summary>
@@ -167,7 +166,7 @@ namespace Microsoft.ML.Functional.Tests
         public static void AssertMetrics(AnomalyDetectionMetrics metrics)
         {
             Assert.InRange(metrics.AreaUnderRocCurve, 0, 1);
-            Assert.InRange(metrics.DetectionRateAtKFalsePositives, 0, 1);
+            Assert.InRange(metrics.DetectionRateAtFalsePositiveCount, 0, 1);
         }
 
         /// <summary>

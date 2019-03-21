@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
@@ -242,12 +241,21 @@ namespace Microsoft.ML.Trainers.FastTree
         }
     }
 
-    /// <include file='doc.xml' path='doc/members/member[@name="FastForest"]/*' />
+    /// <summary>
+    /// The <see cref="IEstimator{TTransformer}"/> for training a decision tree regression model using Fast Forest.
+    /// </summary>
+    /// <include file='doc.xml' path='doc/members/member[@name="FastForest_remarks"]/*' />
     public sealed partial class FastForestRegressionTrainer
         : RandomForestTrainerBase<FastForestRegressionTrainer.Options, RegressionPredictionTransformer<FastForestRegressionModelParameters>, FastForestRegressionModelParameters>
     {
+        /// <summary>
+        /// Options for the <see cref="FastForestRegressionTrainer"/>.
+        /// </summary>
         public sealed class Options : FastForestOptionsBase
         {
+            /// <summary>
+            /// Whether to shuffle the labels on every iteration.
+            /// </summary>
             [Argument(ArgumentType.LastOccurenceWins, HelpText = "Shuffle the labels on every iteration. " +
                 "Useful probably only if using this tree as a tree leaf featurizer for multiclass.")]
             public bool ShuffleLabels;

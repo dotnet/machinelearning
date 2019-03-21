@@ -4,7 +4,6 @@
 
 using System;
 using System.Linq;
-using Microsoft.Data.DataView;
 using Microsoft.ML.Data;
 using Microsoft.ML.Trainers.FastTree;
 using Xunit;
@@ -22,7 +21,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
 
             // Define a tree model whose trees will be extracted to construct a tree featurizer.
             var trainer = ML.BinaryClassification.Trainers.FastTree(
-                new FastTreeBinaryClassificationTrainer.Options
+                new FastTreeBinaryTrainer.Options
                 {
                     NumberOfThreads = 1,
                     NumberOfTrees = 10,

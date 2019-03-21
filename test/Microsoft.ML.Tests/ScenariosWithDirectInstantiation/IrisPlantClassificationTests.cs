@@ -30,8 +30,8 @@ namespace Microsoft.ML.Scenarios
                 .Append(mlContext.Transforms.Normalize("Features"))
                 .Append(mlContext.Transforms.Conversion.MapValueToKey("Label"))
                 .AppendCacheCheckpoint(mlContext)
-                .Append(mlContext.MulticlassClassification.Trainers.Sdca(
-                    new SdcaMulticlassClassificationTrainer.Options { NumberOfThreads = 1 }));
+                .Append(mlContext.MulticlassClassification.Trainers.SdcaCalibrated(
+                    new SdcaCalibratedMulticlassTrainer.Options { NumberOfThreads = 1 }));
 
             // Read training and test data sets
             string dataPath = GetDataPath(TestDatasets.iris.trainFilename);
@@ -46,7 +46,7 @@ namespace Microsoft.ML.Scenarios
             var predicted = trainedModel.Transform(testData);
             var metrics = mlContext.MulticlassClassification.Evaluate(predicted);
             CompareMetrics(metrics);
-            var predictFunction = trainedModel.CreatePredictionEngine<IrisData, IrisPrediction>(mlContext);
+            var predictFunction = mlContext.Model.CreatePredictionEngine<IrisData, IrisPrediction>(trainedModel);
             ComparePredictions(predictFunction);
         }
 

@@ -29,11 +29,11 @@ namespace Microsoft.ML.Tests.Scenarios.Api
 
             var pipeline = ml.Transforms.Concatenate("Features", "SepalLength", "SepalWidth", "PetalLength", "PetalWidth")
                 .Append(ml.Transforms.Conversion.MapValueToKey("Label"), TransformerScope.TrainTest)
-                .Append(ml.MulticlassClassification.Trainers.Sdca(
-                    new SdcaMulticlassClassificationTrainer.Options { MaximumNumberOfIterations = 100, Shuffle = true, NumberOfThreads = 1, }));
+                .Append(ml.MulticlassClassification.Trainers.SdcaCalibrated(
+                    new SdcaCalibratedMulticlassTrainer.Options { MaximumNumberOfIterations = 100, Shuffle = true, NumberOfThreads = 1, }));
 
             var model = pipeline.Fit(data).GetModelFor(TransformerScope.Scoring);
-            var engine = model.CreatePredictionEngine<IrisDataNoLabel, IrisPredictionNotCasted>(ml);
+            var engine = ml.Model.CreatePredictionEngine<IrisDataNoLabel, IrisPredictionNotCasted>(model);
 
             var testLoader = ml.Data.LoadFromTextFile(dataPath, TestDatasets.irisData.GetLoaderColumns(), separatorChar: ',', hasHeader: true);
             var testData = ml.Data.CreateEnumerable<IrisData>(testLoader, false);

@@ -50,8 +50,7 @@ namespace Microsoft.ML.Trainers
             /// <summary>
             /// Number of previous iterations to remember for estimate of Hessian.
             /// </summary>
-            [Argument(ArgumentType.AtMostOnce, HelpText = "Memory size for L-BFGS. Low=faster, less accurate",
-                ShortName = "m, MemorySize", SortOrder = 50)]
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Memory size for L-BFGS. Low=faster, less accurate", ShortName = "m, MemorySize", SortOrder = 50)]
             [TGUI(Description = "Memory size for L-BFGS", SuggestedSweeps = "5,20,50")]
             [TlcModule.SweepableDiscreteParamAttribute("MemorySize", new object[] { 5, 20, 50 })]
             public int HistorySize = Defaults.HistorySize;

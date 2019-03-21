@@ -6,7 +6,6 @@ using System.Collections.Generic;
 using System.Globalization;
 using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Engines;
-using Microsoft.Data.DataView;
 using Microsoft.ML.Benchmarks.Harness;
 using Microsoft.ML.Data;
 using Microsoft.ML.TestFramework;
@@ -35,7 +34,7 @@ namespace Microsoft.ML.Benchmarks
             PetalWidth = 5.1f,
         };
 
-        private TransformerChain<MulticlassPredictionTransformer<MulticlassLogisticRegressionModelParameters>> _trainedModel;
+        private TransformerChain<MulticlassPredictionTransformer<MaximumEntropyModelParameters>> _trainedModel;
         private PredictionEngine<IrisData, IrisPrediction> _predictionEngine;
         private IrisData[][] _batches;
         private MulticlassClassificationMetrics _metrics;
@@ -54,9 +53,9 @@ namespace Microsoft.ML.Benchmarks
         }
 
         [Benchmark]
-        public TransformerChain<MulticlassPredictionTransformer<MulticlassLogisticRegressionModelParameters>> TrainIris() => Train(_dataPath);
+        public TransformerChain<MulticlassPredictionTransformer<MaximumEntropyModelParameters>> TrainIris() => Train(_dataPath);
 
-        private TransformerChain<MulticlassPredictionTransformer<MulticlassLogisticRegressionModelParameters>> Train(string dataPath)
+        private TransformerChain<MulticlassPredictionTransformer<MaximumEntropyModelParameters>> Train(string dataPath)
         {
             // Create text loader.
             var options = new TextLoader.Options()
@@ -77,7 +76,7 @@ namespace Microsoft.ML.Benchmarks
 
             var pipeline = new ColumnConcatenatingEstimator(mlContext, "Features", new[] { "SepalLength", "SepalWidth", "PetalLength", "PetalWidth" })
                 .Append(mlContext.Transforms.Conversion.MapValueToKey("Label"))
-                .Append(mlContext.MulticlassClassification.Trainers.Sdca());
+                .Append(mlContext.MulticlassClassification.Trainers.SdcaCalibrated());
 
             return pipeline.Fit(data);
         }
@@ -101,9 +100,9 @@ namespace Microsoft.ML.Benchmarks
             var loader = mlContext.Data.LoadFromTextFile(_sentimentDataPath, arguments);
             var text = mlContext.Transforms.Text.FeaturizeText("WordEmbeddings", new TextFeaturizingEstimator.Options
             {
-                OutputTokens = true,
+                OutputTokensColumnName = "WordEmbeddings_TransformedText",
                 KeepPunctuations = false,
-                UsePredefinedStopWordRemover = true,
+                StopWordsRemoverOptions = new StopWordsRemovingEstimator.Options(),
                 Norm = TextFeaturizingEstimator.NormFunction.None,
                 CharFeatureExtractor = null,
                 WordFeatureExtractor = null,
@@ -115,7 +114,7 @@ namespace Microsoft.ML.Benchmarks
                 .Fit(text).Transform(text);
 
             // Train
-            var trainer = mlContext.MulticlassClassification.Trainers.Sdca();
+            var trainer = mlContext.MulticlassClassification.Trainers.SdcaCalibrated();
             var predicted = trainer.Fit(trans);
             _consumer.Consume(predicted);
         }
@@ -124,7 +123,7 @@ namespace Microsoft.ML.Benchmarks
         public void SetupPredictBenchmarks()
         {
             _trainedModel = Train(_dataPath);
-            _predictionEngine = _trainedModel.CreatePredictionEngine<IrisData, IrisPrediction>(mlContext);
+            _predictionEngine = mlContext.Model.CreatePredictionEngine<IrisData, IrisPrediction>(_trainedModel);
             _consumer.Consume(_predictionEngine.Predict(_example));
 
             // Create text loader.

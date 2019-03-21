@@ -127,7 +127,7 @@ namespace Microsoft.ML.StaticPipe
         /// <param name="label">The index delegate for the label column.</param>
         /// <param name="pred">The index delegate for columns from the prediction of a multiclass classifier.
         /// Under typical scenarios, this will just be the same tuple of results returned from the trainer.</param>
-        /// <param name="topK">If given a positive value, the <see cref="MulticlassClassificationMetrics.TopKAccuracy"/> will be filled with
+        /// <param name="topKPredictionCount">If given a positive value, the <see cref="MulticlassClassificationMetrics.TopKAccuracy"/> will be filled with
         /// the top-K accuracy, that is, the accuracy assuming we consider an example with the correct class within
         /// the top-K values as being stored "correctly."</param>
         /// <returns>The evaluation metrics.</returns>
@@ -136,14 +136,14 @@ namespace Microsoft.ML.StaticPipe
             DataView<T> data,
             Func<T, Key<uint, TKey>> label,
             Func<T, (Vector<float> score, Key<uint, TKey> predictedLabel)> pred,
-            int topK = 0)
+            int topKPredictionCount = 0)
         {
             Contracts.CheckValue(data, nameof(data));
             var env = StaticPipeUtils.GetEnvironment(data);
             Contracts.AssertValue(env);
             env.CheckValue(label, nameof(label));
             env.CheckValue(pred, nameof(pred));
-            env.CheckParam(topK >= 0, nameof(topK), "Must not be negative.");
+            env.CheckParam(topKPredictionCount >= 0, nameof(topKPredictionCount), "Must not be negative.");
 
             var indexer = StaticPipeUtils.GetIndexer(data);
             string labelName = indexer.Get(label(indexer.Indices));
@@ -154,8 +154,8 @@ namespace Microsoft.ML.StaticPipe
             string predName = indexer.Get(predCol);
 
             var args = new MulticlassClassificationEvaluator.Arguments() { };
-            if (topK > 0)
-                args.OutputTopKAcc = topK;
+            if (topKPredictionCount > 0)
+                args.OutputTopKAcc = topKPredictionCount;
 
             var eval = new MulticlassClassificationEvaluator(env, args);
             return eval.Evaluate(data.AsDynamic, labelName, scoreName, predName);
@@ -176,14 +176,14 @@ namespace Microsoft.ML.StaticPipe
         /// <param name="data">The data to evaluate.</param>
         /// <param name="label">The index delegate for the label column.</param>
         /// <param name="score">The index delegate for predicted score column.</param>
-        /// <param name="loss">Potentially custom loss function. If left unspecified defaults to <see cref="SquaredLoss"/>.</param>
+        /// <param name="lossFunction">Potentially custom loss function. If left unspecified defaults to <see cref="SquaredLoss"/>.</param>
         /// <returns>The evaluation metrics.</returns>
         public static RegressionMetrics Evaluate<T>(
             this RegressionCatalog catalog,
             DataView<T> data,
             Func<T, Scalar<float>> label,
             Func<T, Scalar<float>> score,
-            IRegressionLoss loss = null)
+            IRegressionLoss lossFunction = null)
         {
             Contracts.CheckValue(data, nameof(data));
             var env = StaticPipeUtils.GetEnvironment(data);
@@ -196,8 +196,8 @@ namespace Microsoft.ML.StaticPipe
             string scoreName = indexer.Get(score(indexer.Indices));
 
             var args = new RegressionEvaluator.Arguments() { };
-            if (loss != null)
-                args.LossFunction = new TrivialRegressionLossFactory(loss);
+            if (lossFunction != null)
+                args.LossFunction = new TrivialRegressionLossFactory(lossFunction);
             return new RegressionEvaluator(env, args).Evaluate(data.AsDynamic, labelName, scoreName);
         }
 

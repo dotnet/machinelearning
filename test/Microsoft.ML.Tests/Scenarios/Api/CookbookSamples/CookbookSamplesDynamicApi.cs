@@ -6,7 +6,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using Microsoft.Data.DataView;
 using Microsoft.ML.Data;
 using Microsoft.ML.RunTests;
 using Microsoft.ML.TestFramework;
@@ -119,20 +118,17 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
                 hasHeader: true);
 
             // Calculate metrics of the model on the test data.
-            var metrics = mlContext.Regression.Evaluate(model.Transform(testData), label: "Target");
+            var metrics = mlContext.Regression.Evaluate(model.Transform(testData), labelColumnName: "Target");
 
-            using (var stream = File.Create(modelPath))
-            {
-                // Saving and loading happens to 'dynamic' models.
-                mlContext.Model.Save(model, stream);
-            }
+            // Saving and loading happens to 'dynamic' models.
+            mlContext.Model.Save(model, trainData.Schema, modelPath);
 
             // Potentially, the lines below can be in a different process altogether.
 
             // When you load the model, it's a 'dynamic' transformer. 
             ITransformer loadedModel;
             using (var stream = File.OpenRead(modelPath))
-                loadedModel = mlContext.Model.Load(stream);
+                loadedModel = mlContext.Model.Load(stream, out var schema);
         }
 
         [Fact]
@@ -165,13 +161,13 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
                 // Cache data in memory for steps after the cache check point stage.
                 .AppendCacheCheckpoint(mlContext)
                 // Use the multi-class SDCA model to predict the label using features.
-                .Append(mlContext.MulticlassClassification.Trainers.Sdca());
+                .Append(mlContext.MulticlassClassification.Trainers.SdcaCalibrated());
 
             // Train the model.
             var trainedModel = pipeline.Fit(trainData);
 
             // Inspect the model parameters. 
-            var modelParameters = trainedModel.LastTransformer.Model as MulticlassLogisticRegressionModelParameters;
+            var modelParameters = trainedModel.LastTransformer.Model as MaximumEntropyModelParameters;
 
             // Get the weights and the numbers of classes
             VBuffer<float>[] weights = default;
@@ -209,7 +205,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
             // Make the prediction function object. Note that, on average, this call takes around 200x longer
             // than one prediction, so you might want to cache and reuse the prediction function, instead of
             // creating one per prediction.
-            var predictionFunc = model.CreatePredictionEngine<IrisInput, IrisPrediction>(mlContext);
+            var predictionFunc = mlContext.Model.CreatePredictionEngine<IrisInput, IrisPrediction>(model);
 
             // Obtain the prediction. Remember that 'Predict' is not reentrant. If you want to use multiple threads
             // for simultaneous prediction, make sure each thread is using its own PredictionFunction.
@@ -423,7 +419,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
                 // Notice that unused part in the data may not be cached.
                 .AppendCacheCheckpoint(mlContext)
                 // Use the multi-class SDCA model to predict the label using features.
-                .Append(mlContext.MulticlassClassification.Trainers.Sdca());
+                .Append(mlContext.MulticlassClassification.Trainers.SdcaCalibrated());
 
             // Split the data 90:10 into train and test sets, train and evaluate.
             var split = mlContext.Data.TrainTestSplit(data, testFraction: 0.1);
@@ -435,7 +431,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
             Console.WriteLine(metrics.MicroAccuracy);
 
             // Now run the 5-fold cross-validation experiment, using the same pipeline.
-            var cvResults = mlContext.MulticlassClassification.CrossValidate(data, pipeline, numFolds: 5);
+            var cvResults = mlContext.MulticlassClassification.CrossValidate(data, pipeline, numberOfFolds: 5);
 
             // The results object is an array of 5 elements. For each of the 5 folds, we have metrics, model and scored test data.
             // Let's compute the average micro-accuracy.
@@ -523,8 +519,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
             var model = estimator.Fit(cachedTrainData);
 
             // Save the model.
-            using (var fs = File.Create(modelPath))
-                mlContext.Model.Save(model, fs);
+            mlContext.Model.Save(model, cachedTrainData.Schema, modelPath);
 
             // Now pretend we are in a different process.
             var newContext = new MLContext();
@@ -536,7 +531,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
             // Now we can load the model.
             ITransformer loadedModel;
             using (var fs = File.OpenRead(modelPath))
-                loadedModel = newContext.Model.Load(fs);
+                loadedModel = newContext.Model.Load(fs, out var schema);
         }
 
         public static IDataView PrepareData(MLContext mlContext, IDataView data)

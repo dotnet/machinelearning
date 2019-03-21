@@ -29,7 +29,7 @@ namespace Microsoft.ML.StaticPipe
             MulticlassNaiveBayesTrainer<TVal>(this MulticlassClassificationCatalog.MulticlassClassificationTrainers catalog,
             Key<uint, TVal> label,
             Vector<float> features,
-            Action<MulticlassNaiveBayesModelParameters> onFit = null)
+            Action<NaiveBayesMulticlassModelParameters> onFit = null)
         {
             Contracts.CheckValue(features, nameof(features));
             Contracts.CheckValue(label, nameof(label));
@@ -38,7 +38,7 @@ namespace Microsoft.ML.StaticPipe
             var rec = new TrainerEstimatorReconciler.MulticlassClassificationReconciler<TVal>(
                 (env, labelName, featuresName, weightsName) =>
                 {
-                    var trainer = new NaiveBayesTrainer(env, labelName, featuresName);
+                    var trainer = new NaiveBayesMulticlassTrainer(env, labelName, featuresName);
 
                     if (onFit != null)
                         return trainer.WithOnFitDelegate(trans => onFit(trans.Model));
