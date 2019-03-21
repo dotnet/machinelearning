@@ -166,7 +166,7 @@ namespace Microsoft.ML.Functional.Tests
         public static void AssertMetrics(AnomalyDetectionMetrics metrics)
         {
             Assert.InRange(metrics.AreaUnderRocCurve, 0, 1);
-            Assert.InRange(metrics.DetectionRateAtKFalsePositives, 0, 1);
+            Assert.InRange(metrics.DetectionRateAtFalsePositiveCount, 0, 1);
         }
 
         /// <summary>
