@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Generic;
 using System.Linq;
 using Microsoft.ML.Data;
 using Microsoft.ML.Runtime;
@@ -126,7 +127,7 @@ namespace Microsoft.ML
         /// If the <paramref name="samplingKeyColumnName"/> is not provided, the random numbers generated to create it, will use this seed as value.
         /// And if it is not provided, the default value will be used.</param>
         /// <returns>Per-fold results: metrics, models, scored datasets.</returns>
-        public CrossValidationResult<RegressionMetrics>[] CrossValidate(
+        public IReadOnlyList<CrossValidationResult<RegressionMetrics>> CrossValidate(
             IDataView data, IEstimator<ITransformer> estimator, int numberOfFolds = 5, string labelColumnName = DefaultColumnNames.Label,
             string samplingKeyColumnName = null, int? seed = null)
         {

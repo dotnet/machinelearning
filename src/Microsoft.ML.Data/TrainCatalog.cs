@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using Microsoft.ML.Calibrators;
 using Microsoft.ML.Data;
@@ -221,7 +222,7 @@ namespace Microsoft.ML
         /// If <see langword="null"/> no row grouping will be performed.</param>
         /// <param name="seed">Seed for the random number generator used to select rows for cross-validation folds.</param>
         /// <returns>Per-fold results: metrics, models, scored datasets.</returns>
-        public CrossValidationResult<BinaryClassificationMetrics>[] CrossValidateNonCalibrated(
+        public IReadOnlyList<CrossValidationResult<BinaryClassificationMetrics>> CrossValidateNonCalibrated(
             IDataView data, IEstimator<ITransformer> estimator, int numberOfFolds = 5, string labelColumnName = DefaultColumnNames.Label,
             string samplingKeyColumnName = null, int? seed = null)
         {
@@ -245,7 +246,7 @@ namespace Microsoft.ML
         /// If <see langword="null"/> no row grouping will be performed.</param>
         /// <param name="seed">Seed for the random number generator used to select rows for cross-validation folds.</param>
         /// <returns>Per-fold results: metrics, models, scored datasets.</returns>
-        public CrossValidationResult<CalibratedBinaryClassificationMetrics>[] CrossValidate(
+        public IReadOnlyList<CrossValidationResult<CalibratedBinaryClassificationMetrics>> CrossValidate(
             IDataView data, IEstimator<ITransformer> estimator, int numberOfFolds = 5, string labelColumnName = DefaultColumnNames.Label,
             string samplingKeyColumnName = null, int? seed = null)
         {
@@ -425,7 +426,7 @@ namespace Microsoft.ML
         /// they are guaranteed to appear in the same subset (train or test). This can be used to ensure no label leakage from the train to the test set.
         /// If <see langword="null"/> no row grouping will be performed.</param>
         /// <param name="seed">Seed for the random number generator used to select rows for cross-validation folds.</param>
-        public CrossValidationResult<ClusteringMetrics>[] CrossValidate(
+        public IReadOnlyList<CrossValidationResult<ClusteringMetrics>> CrossValidate(
             IDataView data, IEstimator<ITransformer> estimator, int numberOfFolds = 5, string labelColumnName = null, string featuresColumnName = null,
             string samplingKeyColumnName = null, int? seed = null)
         {
@@ -501,7 +502,7 @@ namespace Microsoft.ML
         /// <param name="seed">Seed for the random number generator used to select rows for cross-validation folds.</param>
         /// <returns>Per-fold results: metrics, models, scored datasets.</returns>
         /// <returns>Per-fold results: metrics, models, scored datasets.</returns>
-        public CrossValidationResult<MulticlassClassificationMetrics>[] CrossValidate(
+        public IReadOnlyList<CrossValidationResult<MulticlassClassificationMetrics>> CrossValidate(
             IDataView data, IEstimator<ITransformer> estimator, int numberOfFolds = 5, string labelColumnName = DefaultColumnNames.Label,
             string samplingKeyColumnName = null, int? seed = null)
         {
@@ -567,7 +568,7 @@ namespace Microsoft.ML
         /// If <see langword="null"/> no row grouping will be performed.</param>
         /// <param name="seed">Seed for the random number generator used to select rows for cross-validation folds.</param>
         /// <returns>Per-fold results: metrics, models, scored datasets.</returns>
-        public CrossValidationResult<RegressionMetrics>[] CrossValidate(
+        public IReadOnlyList<CrossValidationResult<RegressionMetrics>> CrossValidate(
             IDataView data, IEstimator<ITransformer> estimator, int numberOfFolds = 5, string labelColumnName = DefaultColumnNames.Label,
             string samplingKeyColumnName = null, int? seed = null)
         {

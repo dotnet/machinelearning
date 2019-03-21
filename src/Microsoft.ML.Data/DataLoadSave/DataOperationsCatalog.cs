@@ -450,7 +450,7 @@ namespace Microsoft.ML
         /// ]]>
         /// </format>
         /// </example>
-        public List<TrainTestData> CrossValidationSplit(IDataView data, int numberOfFolds = 5, string samplingKeyColumnName = null, int? seed = null)
+        public IReadOnlyList<TrainTestData> CrossValidationSplit(IDataView data, int numberOfFolds = 5, string samplingKeyColumnName = null, int? seed = null)
         {
             _env.CheckValue(data, nameof(data));
             _env.CheckParam(numberOfFolds > 1, nameof(numberOfFolds), "Must be more than 1");
@@ -513,11 +513,7 @@ namespace Microsoft.ML
                     // of column types. It used to be HashJoin, but we should probably extend Hash
                     // instead of having two hash transformations.
                     var origStratCol = samplingKeyColumn;
-                    int inc = 0;
-
-                    // Generate a new column with the hashed samplingKeyColumn.
-                    while (data.Schema.TryGetColumnIndex(samplingKeyColumn, out int tmp))
-                        samplingKeyColumn = string.Format("{0}_{1:000}", origStratCol, ++inc);
+                    samplingKeyColumn = data.Schema.GetTempColumnName(samplingKeyColumn);
                     HashingEstimator.ColumnOptions columnOptions;
                     if (seed.HasValue)
                         columnOptions = new HashingEstimator.ColumnOptions(samplingKeyColumn, origStratCol, 30, (uint)seed.Value);
@@ -527,12 +523,10 @@ namespace Microsoft.ML
                 }
                 else
                 {
-                    if (!data.Schema[samplingKeyColumn].IsNormalized() && type == NumberDataViewType.Single || type == NumberDataViewType.Double)
+                    if (!data.Schema[samplingKeyColumn].IsNormalized() && (type == NumberDataViewType.Single || type == NumberDataViewType.Double))
                     {
                         var origStratCol = samplingKeyColumn;
-                        int inc = 0;
-                        while (data.Schema.TryGetColumnIndex(samplingKeyColumn, out int tmp))
-                            samplingKeyColumn = string.Format("{0}_{1:000}", origStratCol, ++inc);
+                        samplingKeyColumn = data.Schema.GetTempColumnName(samplingKeyColumn);
                         data = new NormalizingEstimator(env, new NormalizingEstimator.MinMaxColumnOptions(samplingKeyColumn, origStratCol, ensureZeroUntouched: true)).Fit(data).Transform(data);
                     }
                 }
