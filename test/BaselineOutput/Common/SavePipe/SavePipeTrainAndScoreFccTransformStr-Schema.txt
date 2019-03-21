@@ -1,11 +1,11 @@
 ---- BoundLoader ----
 2 columns:
   Label: Single
-  Features: Vec<Single, 9>
+  Features: Vector<Single, 9>
 ---- BinaryClassifierScorer ----
 6 columns:
   Label: Single
-  Features: Vec<Single, 9>
+  Features: Vector<Single, 9>
   PredictedLabel: Boolean
     Metadata 'ScoreColumnKind': String: 'BinaryClassification'
     Metadata 'ScoreColumnSetId': Key<UInt32, 0-2147483646>: '0'

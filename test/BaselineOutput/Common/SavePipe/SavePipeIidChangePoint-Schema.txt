@@ -4,51 +4,51 @@
 ---- SequentialDataTransform ----
 2 columns:
   Features: Single
-  Anomaly: Vec<Double, 4>
-    Metadata 'SlotNames': Vec<String, 4>: Length=4, Count=4
+  Anomaly: Vector<Double, 4>
+    Metadata 'SlotNames': Vector<String, 4>: Length=4, Count=4
       [0] 'Alert', [1] 'Raw Score', [2] 'P-Value Score', [3] 'Martingale Score'
 ---- RowToRowMapperTransform ----
 3 columns:
   Features: Single
-  Anomaly: Vec<Double, 4>
-    Metadata 'SlotNames': Vec<String, 4>: Length=4, Count=4
+  Anomaly: Vector<Double, 4>
+    Metadata 'SlotNames': Vector<String, 4>: Length=4, Count=4
       [0] 'Alert', [1] 'Raw Score', [2] 'P-Value Score', [3] 'Martingale Score'
-  fAnomaly: Vec<Single, 4>
-    Metadata 'SlotNames': Vec<String, 4>: Length=4, Count=4
+  fAnomaly: Vector<Single, 4>
+    Metadata 'SlotNames': Vector<String, 4>: Length=4, Count=4
       [0] 'Alert', [1] 'Raw Score', [2] 'P-Value Score', [3] 'Martingale Score'
 ---- SequentialDataTransform ----
 4 columns:
   Features: Single
-  Anomaly: Vec<Double, 4>
-    Metadata 'SlotNames': Vec<String, 4>: Length=4, Count=4
+  Anomaly: Vector<Double, 4>
+    Metadata 'SlotNames': Vector<String, 4>: Length=4, Count=4
       [0] 'Alert', [1] 'Raw Score', [2] 'P-Value Score', [3] 'Martingale Score'
-  fAnomaly: Vec<Single, 4>
-    Metadata 'SlotNames': Vec<String, 4>: Length=4, Count=4
+  fAnomaly: Vector<Single, 4>
+    Metadata 'SlotNames': Vector<String, 4>: Length=4, Count=4
       [0] 'Alert', [1] 'Raw Score', [2] 'P-Value Score', [3] 'Martingale Score'
-  Anomaly2: Vec<Double, 4>
-    Metadata 'SlotNames': Vec<String, 4>: Length=4, Count=4
+  Anomaly2: Vector<Double, 4>
+    Metadata 'SlotNames': Vector<String, 4>: Length=4, Count=4
       [0] 'Alert', [1] 'Raw Score', [2] 'P-Value Score', [3] 'Martingale Score'
 ---- RowToRowMapperTransform ----
 5 columns:
   Features: Single
-  Anomaly: Vec<Double, 4>
-    Metadata 'SlotNames': Vec<String, 4>: Length=4, Count=4
+  Anomaly: Vector<Double, 4>
+    Metadata 'SlotNames': Vector<String, 4>: Length=4, Count=4
       [0] 'Alert', [1] 'Raw Score', [2] 'P-Value Score', [3] 'Martingale Score'
-  fAnomaly: Vec<Single, 4>
-    Metadata 'SlotNames': Vec<String, 4>: Length=4, Count=4
+  fAnomaly: Vector<Single, 4>
+    Metadata 'SlotNames': Vector<String, 4>: Length=4, Count=4
       [0] 'Alert', [1] 'Raw Score', [2] 'P-Value Score', [3] 'Martingale Score'
-  Anomaly2: Vec<Double, 4>
-    Metadata 'SlotNames': Vec<String, 4>: Length=4, Count=4
+  Anomaly2: Vector<Double, 4>
+    Metadata 'SlotNames': Vector<String, 4>: Length=4, Count=4
       [0] 'Alert', [1] 'Raw Score', [2] 'P-Value Score', [3] 'Martingale Score'
-  fAnomaly2: Vec<Single, 4>
-    Metadata 'SlotNames': Vec<String, 4>: Length=4, Count=4
+  fAnomaly2: Vector<Single, 4>
+    Metadata 'SlotNames': Vector<String, 4>: Length=4, Count=4
       [0] 'Alert', [1] 'Raw Score', [2] 'P-Value Score', [3] 'Martingale Score'
 ---- SelectColumnsDataTransform ----
 3 columns:
   Features: Single
-  fAnomaly: Vec<Single, 4>
-    Metadata 'SlotNames': Vec<String, 4>: Length=4, Count=4
+  fAnomaly: Vector<Single, 4>
+    Metadata 'SlotNames': Vector<String, 4>: Length=4, Count=4
       [0] 'Alert', [1] 'Raw Score', [2] 'P-Value Score', [3] 'Martingale Score'
-  fAnomaly2: Vec<Single, 4>
-    Metadata 'SlotNames': Vec<String, 4>: Length=4, Count=4
+  fAnomaly2: Vector<Single, 4>
+    Metadata 'SlotNames': Vector<String, 4>: Length=4, Count=4
       [0] 'Alert', [1] 'Raw Score', [2] 'P-Value Score', [3] 'Martingale Score'

@@ -6,17 +6,17 @@
 4 columns:
   A: String
   B: String
-  C: Vec<String>
-  D: Vec<String>
+  C: Vector<String>
+  D: Vector<String>
 ---- RowToRowMapperTransform ----
 5 columns:
   A: String
   B: String
-  C: Vec<String>
-  D: Vec<String>
-  Concat: Vec<String>
+  C: Vector<String>
+  D: Vector<String>
+  Concat: Vector<String>
 ---- SelectColumnsDataTransform ----
 3 columns:
   A: String
   B: String
-  Concat: Vec<String>
+  Concat: Vector<String>

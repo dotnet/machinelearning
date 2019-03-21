@@ -4,6 +4,6 @@
 ---- SequentialDataTransform ----
 2 columns:
   Features: Single
-  Anomaly: Vec<Double, 3>
-    Metadata 'SlotNames': Vec<String, 3>: Length=3, Count=3
+  Anomaly: Vector<Double, 3>
+    Metadata 'SlotNames': Vector<String, 3>: Length=3, Count=3
       [0] 'Alert', [1] 'Raw Score', [2] 'P-Value Score'

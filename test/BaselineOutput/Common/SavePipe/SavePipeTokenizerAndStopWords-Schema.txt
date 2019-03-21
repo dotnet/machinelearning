@@ -6,10 +6,10 @@
 3 columns:
   Source: String
   Lang: String
-  SourceTokens: Vec<String>
+  SourceTokens: Vector<String>
 ---- RowToRowMapperTransform ----
 4 columns:
   Source: String
   Lang: String
-  SourceTokens: Vec<String>
-  Output: Vec<String>
+  SourceTokens: Vector<String>
+  Output: Vector<String>

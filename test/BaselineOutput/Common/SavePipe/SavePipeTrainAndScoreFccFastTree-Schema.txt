@@ -1,11 +1,11 @@
 ---- BoundLoader ----
 2 columns:
   Label: Single
-  Features: Vec<Single, 9>
+  Features: Vector<Single, 9>
 ---- BinaryClassifierScorer ----
 6 columns:
   Label: Single
-  Features: Vec<Single, 9>
+  Features: Vector<Single, 9>
   PredictedLabel: Boolean
     Metadata 'ScoreColumnKind': String: 'BinaryClassification'
     Metadata 'ScoreColumnSetId': Key<UInt32, 0-2147483646>: '0'
@@ -25,7 +25,7 @@
 ---- RowToRowMapperTransform ----
 7 columns:
   Label: Single
-  Features: Vec<Single, 9>
+  Features: Vector<Single, 9>
   PredictedLabel: Boolean
     Metadata 'ScoreColumnKind': String: 'BinaryClassification'
     Metadata 'ScoreColumnSetId': Key<UInt32, 0-2147483646>: '0'
@@ -48,7 +48,7 @@
 ---- BinaryClassifierScorer ----
 11 columns:
   Label: Single
-  Features: Vec<Single, 9>
+  Features: Vector<Single, 9>
   PredictedLabel: Boolean
     Metadata 'ScoreColumnKind': String: 'BinaryClassification'
     Metadata 'ScoreColumnSetId': Key<UInt32, 0-2147483646>: '0'
@@ -78,7 +78,7 @@
   FeatureContributions: String
     Metadata 'ScoreColumnKind': String: 'BinaryClassification'
     Metadata 'ScoreColumnSetId': Key<UInt32, 0-2147483646>: '0'
-  FeatureContributions: Vec<Single, 9>
+  FeatureContributions: Vector<Single, 9>
     Metadata 'ScoreColumnKind': String: 'BinaryClassification'
     Metadata 'ScoreColumnSetId': Key<UInt32, 0-2147483646>: '1'
   ContributionsStr: String

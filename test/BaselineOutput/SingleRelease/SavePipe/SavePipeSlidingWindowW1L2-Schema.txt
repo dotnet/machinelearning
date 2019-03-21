@@ -4,4 +4,4 @@
 ---- SlidingWindowTransform ----
 2 columns:
   Input: Single
-  Output: Vec<Single>
+  Output: Vector<Single>
