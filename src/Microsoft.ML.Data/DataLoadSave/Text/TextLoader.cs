@@ -1291,11 +1291,6 @@ namespace Microsoft.ML.Data
                 if (loader == null || string.IsNullOrWhiteSpace(loader.Name))
                     goto LDone;
 
-                // Make sure the loader binds to us.
-                var info = host.ComponentCatalog.GetLoadableClassInfo<SignatureDataLoader>(loader.Name);
-                if (info.Type != typeof(ILegacyDataLoader) || info.ArgType != typeof(Options))
-                    goto LDone;
-
                 var optionsNew = new Options();
                 // Set the fields of optionsNew to the arguments parsed from the file.
                 if (!CmdParser.ParseArguments(host, loader.GetSettingsString(), optionsNew, typeof(Options), msg => ch.Error(msg)))
