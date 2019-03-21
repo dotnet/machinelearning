@@ -587,7 +587,7 @@ namespace Microsoft.ML.Transforms
 
         private protected override void CheckInputColumn(DataViewSchema inputSchema, int col, int srcCol)
         {
-            const string expectedType = "scalar or known-size vector of R4";
+            const string expectedType = "scalar or known-size vector of Single";
 
             var colType = inputSchema[srcCol].Type;
             VectorType vectorType = colType as VectorType;
