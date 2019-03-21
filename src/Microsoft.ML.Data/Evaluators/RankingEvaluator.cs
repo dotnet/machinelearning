@@ -89,7 +89,7 @@ namespace Microsoft.ML.Data
             if (t != NumberDataViewType.Single && !(t is KeyType))
             {
                 throw Host.ExceptSchemaMismatch(nameof(RankingMamlEvaluator.Arguments.LabelColumn),
-                    "label", schema.Label.Value.Name, "Single or a key", t.ToString());
+                    "label", schema.Label.Value.Name, "Single or a Key", t.ToString());
             }
             var scoreCol = schema.GetUniqueColumn(AnnotationUtils.Const.ScoreValueKind.Score);
             if (scoreCol.Type != NumberDataViewType.Single)
@@ -105,7 +105,7 @@ namespace Microsoft.ML.Data
             if (!(t is KeyType))
             {
                 throw Host.ExceptSchemaMismatch(nameof(RankingMamlEvaluator.Arguments.GroupIdColumn),
-                    "group", schema.Group.Value.Name, "key", t.ToString());
+                    "group", schema.Group.Value.Name, "Key", t.ToString());
             }
         }
 

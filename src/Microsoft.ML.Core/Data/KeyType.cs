@@ -108,7 +108,8 @@ namespace Microsoft.ML.Data
         public override string ToString()
         {
             InternalDataKind rawKind = this.GetRawKind();
-            return string.Format("Key<{0}, {1}-{2}>", rawKind.GetString(), 0, Count - 1);
+            var itemType = ColumnTypeExtensions.PrimitiveTypeFromKind(rawKind);
+            return string.Format("Key<{0}, {1}-{2}>", itemType.ToString(), 0, Count - 1);
         }
     }
 }
