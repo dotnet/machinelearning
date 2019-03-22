@@ -226,7 +226,7 @@ namespace Microsoft.ML.Functional.Tests
                 .AppendCacheCheckpoint(mlContext);
 
             var trainer = mlContext.BinaryClassification.Trainers.LbfgsLogisticRegression(
-                new LbfgsCalibratedBinaryTrainer.Options { NumberOfThreads = 1, MaximumNumberOfIterations = 10 });
+                new LbfgsLogisticRegressionTrainer.Options { NumberOfThreads = 1, MaximumNumberOfIterations = 10 });
 
             // Fit the data transformation pipeline.
             var featurization = featurizationPipeline.Fit(data);
@@ -452,7 +452,7 @@ namespace Microsoft.ML.Functional.Tests
 
             // Create a model training an OVA trainer with a binary classifier.
             var binaryClassificationTrainer = mlContext.BinaryClassification.Trainers.LbfgsLogisticRegression(
-                new LbfgsCalibratedBinaryTrainer.Options { MaximumNumberOfIterations = 10, NumberOfThreads = 1, });
+                new LbfgsLogisticRegressionTrainer.Options { MaximumNumberOfIterations = 10, NumberOfThreads = 1, });
             var binaryClassificationPipeline = mlContext.Transforms.Concatenate("Features", Iris.Features)
                 .AppendCacheCheckpoint(mlContext)
                 .Append(mlContext.Transforms.Conversion.MapValueToKey("Label"))

@@ -704,8 +704,8 @@ namespace Microsoft.ML.StaticPipelineTesting
             CalibratedModelParametersBase<LinearBinaryModelParameters, PlattCalibrator> pred = null;
 
             var est = reader.MakeNewEstimator()
-                .Append(r => (r.label, preds: catalog.Trainers.LbfgsCalibrated(r.label, r.features, null,
-                                    new LbfgsCalibratedBinaryTrainer.Options { L1Regularization = 10, NumberOfThreads = 1 }, onFit: (p) => { pred = p; })));
+                .Append(r => (r.label, preds: catalog.Trainers.LbfgsLogisticRegression(r.label, r.features, null,
+                                    new LbfgsLogisticRegressionTrainer.Options { L1Regularization = 10, NumberOfThreads = 1 }, onFit: (p) => { pred = p; })));
 
             var pipe = reader.Append(est);
 
