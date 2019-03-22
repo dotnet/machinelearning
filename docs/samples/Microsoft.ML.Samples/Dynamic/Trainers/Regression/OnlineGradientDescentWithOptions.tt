@@ -15,8 +15,6 @@ string TrainerOptions = @" OnlineGradientDescentTrainer.Options
                 InitialWeightsDiameter = 0.2f
             }";
 
-string ExpectedOutputPerInstance= @"// Expected output:
-            //   OGD doesn't work: https://github.com/dotnet/machinelearning/issues/2425";
-
-string ExpectedOutput = @"";
+string ExpectedOutputPerInstance= @"// TODO #2425: OGD is missing baseline tests and seems numerically unstable";
+string ExpectedOutput = @"// TODO #2425: OGD is missing baseline tests and seems numerically unstable";
 #>

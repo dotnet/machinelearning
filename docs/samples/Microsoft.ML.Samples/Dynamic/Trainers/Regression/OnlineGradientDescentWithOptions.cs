@@ -53,14 +53,13 @@ namespace Microsoft.ML.Samples.Dynamic.Trainers.Regression
             foreach (var p in predictions.Take(5))
                 Console.WriteLine($"Label: {p.Label:F3}, Prediction: {p.Score:F3}");
 
-            // Expected output:
-            //   OGD doesn't work: https://github.com/dotnet/machinelearning/issues/2425
+            // TODO #2425: OGD is missing baseline tests and seems numerically unstable
 
             // Evaluate the overall metrics
             var metrics = mlContext.Regression.Evaluate(transformedTestData);
             SamplesUtils.ConsoleUtils.PrintMetrics(metrics);
-            
-            
+
+            // TODO #2425: OGD is missing baseline tests and seems numerically unstable
         }
 
         private static IEnumerable<DataPoint> GenerateRandomDataPoints(int count, int seed=0)
