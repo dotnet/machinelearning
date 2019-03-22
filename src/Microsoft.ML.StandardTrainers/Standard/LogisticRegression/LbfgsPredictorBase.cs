@@ -482,6 +482,7 @@ namespace Microsoft.ML.Trainers
                     e => e.SetProgress(0, exCount, totalCount));
                 while (cursor.MoveNext())
                 {
+                    Host.CheckAlive();
                     WeightSum += cursor.Weight;
                     if (ShowTrainingStats)
                         ProcessPriorDistribution(cursor.Label, cursor.Weight);
