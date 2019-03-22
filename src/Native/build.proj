@@ -113,6 +113,8 @@
     <ItemGroup>
       <NativePackageAsset Include="$(NativeAssetsBuiltPath)\$(NativeLibPrefix)MklImports$(NativeLibExtension)"
                           RelativePath="Microsoft.ML.Mkl.Redist\runtimes\$(PackageRid)\native" /> 
+      <NativePackageAsset Condition="'$(OS)' == 'Windows_NT'" Include="$(NativeAssetsBuiltPath)\libiomp5md$(NativeLibExtension)"
+                          RelativePath="Microsoft.ML.Mkl.Redist\runtimes\$(PackageRid)\native" /> 
                           
     </ItemGroup>
     
