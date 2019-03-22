@@ -462,6 +462,7 @@ namespace Microsoft.ML.Transforms
 
                     while (cursor.MoveNext())
                     {
+                        env.CheckAlive();
                         // If the row has bad values, the good values are still being used for training.
                         // The comparisons in the code below are arranged so that NaNs in the input are not recorded.
                         // REVIEW: Should infinities and/or NaNs be filtered before the normalization? Should we not record infinities for min/max?
