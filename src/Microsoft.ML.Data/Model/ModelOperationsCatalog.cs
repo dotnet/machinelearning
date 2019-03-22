@@ -58,7 +58,7 @@ namespace Microsoft.ML
         /// Save a transformer model and the loader used to create its input data to the file.
         /// </summary>
         /// <param name="model">The trained model to be saved. Note that this can be <see langword="null"/>, as a shorthand
-        /// for an empty data set. Upon loading with <see cref="LoadWithDataLoader(Stream, out IDataLoader{IMultiStreamSource})"/>
+        /// for an empty transformer chain. Upon loading with <see cref="LoadWithDataLoader(Stream, out IDataLoader{IMultiStreamSource})"/>
         /// the returned value will be an empty <see cref="TransformerChain{TLastTransformer}"/>.</param>
         /// <param name="loader">The loader that was used to create data to train the model.</param>
         /// <param name="filePath">Path where model should be saved.</param>
@@ -76,7 +76,7 @@ namespace Microsoft.ML
         /// Save a transformer model and the schema of the data that was used to train it to the stream.
         /// </summary>
         /// <param name="model">The trained model to be saved. Note that this can be <see langword="null"/>, as a shorthand
-        /// for an empty data set. Upon loading with <see cref="Load(Stream, out DataViewSchema)"/> the returned value will
+        /// for an empty transformer chain. Upon loading with <see cref="Load(Stream, out DataViewSchema)"/> the returned value will
         /// be an empty <see cref="TransformerChain{TLastTransformer}"/>.</param>
         /// <param name="inputSchema">The schema of the input to the transformer. This can be <see langword="null"/>.</param>
         /// <param name="stream">A writeable, seekable stream to save to.</param>
@@ -98,7 +98,7 @@ namespace Microsoft.ML
         /// Save a transformer model and the schema of the data that was used to train it to the file.
         /// </summary>
         /// <param name="model">The trained model to be saved. Note that this can be <see langword="null"/>, as a shorthand
-        /// for an empty data set. Upon loading with <see cref="Load(Stream, out DataViewSchema)"/> the returned value will
+        /// for an empty transformer chain. Upon loading with <see cref="Load(Stream, out DataViewSchema)"/> the returned value will
         /// be an empty <see cref="TransformerChain{TLastTransformer}"/>.</param>
         /// <param name="inputSchema">The schema of the input to the transformer. This can be <see langword="null"/>.</param>
         /// <param name="filePath">Path where model should be saved.</param>

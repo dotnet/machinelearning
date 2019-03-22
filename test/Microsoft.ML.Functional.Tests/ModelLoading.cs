@@ -234,10 +234,10 @@ namespace Microsoft.ML.Functional.Tests
             var file = new MultiFileSource(GetDataPath(TestDatasets.adult.trainFilename));
             var loader = ML.Data.CreateTextLoader<InputData>(hasHeader: true, dataSample: file);
             var composite = loader.Append(ML.Transforms.Normalize("Features"));
-            var model = composite.Fit(file);
+            var loaderWithEmbeddedModel = composite.Fit(file);
 
             string modelPath = GetOutputPath(FullTestName + "-model.zip");
-            ML.Model.Save(null, model, modelPath);
+            ML.Model.Save(null, loaderWithEmbeddedModel, modelPath);
 
             Load(modelPath, out var loadedWithSchema, out var loadedSchema,
                 out var loadedWithLoader, out var loadedLoaderWithTransformer);
@@ -247,15 +247,15 @@ namespace Microsoft.ML.Functional.Tests
             Assert.Empty(Assert.IsType<TransformerChain<ITransformer>>(loadedWithSchema));
             Assert.Empty(Assert.IsType<TransformerChain<ITransformer>>(loadedWithLoader));
 
-            var expectedSchema = model.GetOutputSchema();
+            var expectedSchema = loaderWithEmbeddedModel.GetOutputSchema();
             Assert.True(expectedSchema.Count == 3);
             Assert.NotNull(expectedSchema.GetColumnOrNull("Label"));
             Assert.NotNull(expectedSchema.GetColumnOrNull("Features"));
             Assert.True(expectedSchema["Features"].HasSlotNames());
 
-            CheckSameSchemas(model.GetOutputSchema(), loadedSchema);
+            CheckSameSchemas(loaderWithEmbeddedModel.GetOutputSchema(), loadedSchema);
             var schemaFromLoadedLoader = loadedLoaderWithTransformer.GetOutputSchema();
-            CheckSameSchemas(model.GetOutputSchema(), schemaFromLoadedLoader);
+            CheckSameSchemas(loaderWithEmbeddedModel.GetOutputSchema(), schemaFromLoadedLoader);
 
             // The type of the loader itself should be a composite data loader, and its single transformer
             // should be the normalizing transformer.
