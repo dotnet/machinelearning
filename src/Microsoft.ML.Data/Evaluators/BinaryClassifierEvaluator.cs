@@ -867,7 +867,7 @@ namespace Microsoft.ML.Data
             var prCurveResult = new List<BinaryPrecisionRecallDataPoint>();
             using (var cursor = prCurveView.GetRowCursorForAllColumns())
             {
-                PrecisionRecallDataPointGetters(prCurveView, cursor,
+                GetPrecisionRecallDataPointGetters(prCurveView, cursor,
                     out ValueGetter<float> thresholdGetter,
                     out ValueGetter<double> precisionGetter,
                     out ValueGetter<double> recallGetter,
@@ -893,7 +893,7 @@ namespace Microsoft.ML.Data
             return result;
         }
 
-        private void PrecisionRecallDataPointGetters(IDataView prCurveView,
+        private void GetPrecisionRecallDataPointGetters(IDataView prCurveView,
             DataViewRowCursor cursor,
             out ValueGetter<float> thresholdGetter,
             out ValueGetter<double> precisionGetter,
@@ -989,7 +989,7 @@ namespace Microsoft.ML.Data
             var prCurveResult = new List<BinaryPrecisionRecallDataPoint>();
             using (var cursor = prCurveView.GetRowCursorForAllColumns())
             {
-                PrecisionRecallDataPointGetters(prCurveView, cursor,
+                GetPrecisionRecallDataPointGetters(prCurveView, cursor,
                     out ValueGetter<float> thresholdGetter,
                     out ValueGetter<double> precisionGetter,
                     out ValueGetter<double> recallGetter,
