@@ -434,7 +434,7 @@ namespace Microsoft.ML.StaticPipelineTesting
                 .Append(r => (r.label, preds: catalog.Trainers.SdcaNonCalibrated(
                     r.label,
                     r.features,
-                    loss: new HingeLoss(),
+                    lossFunction: new HingeLoss(),
                     numberOfIterations: 2,
                     onFit: p => pred = p)));
 
@@ -916,9 +916,9 @@ namespace Microsoft.ML.StaticPipelineTesting
             Assert.InRange(metrics.DiscountedCumulativeGains[1], 1.4, 1.8);
             Assert.InRange(metrics.DiscountedCumulativeGains[2], 1.4, 1.8);
 
-            Assert.InRange(metrics.NormalizedDiscountedCumulativeGains[0], 36.5, 37);
-            Assert.InRange(metrics.NormalizedDiscountedCumulativeGains[1], 36.5, 37);
-            Assert.InRange(metrics.NormalizedDiscountedCumulativeGains[2], 36.5, 37);
+            Assert.InRange(metrics.NormalizedDiscountedCumulativeGains[0], 0.365, 0.37);
+            Assert.InRange(metrics.NormalizedDiscountedCumulativeGains[1], 0.365, 0.37);
+            Assert.InRange(metrics.NormalizedDiscountedCumulativeGains[2], 0.365, 0.37);
         }
 
         [LightGBMFact]
@@ -957,9 +957,9 @@ namespace Microsoft.ML.StaticPipelineTesting
             Assert.InRange(metrics.DiscountedCumulativeGains[1], 1.4, 1.8);
             Assert.InRange(metrics.DiscountedCumulativeGains[2], 1.4, 1.8);
 
-            Assert.InRange(metrics.NormalizedDiscountedCumulativeGains[0], 36.5, 37);
-            Assert.InRange(metrics.NormalizedDiscountedCumulativeGains[1], 36.5, 37);
-            Assert.InRange(metrics.NormalizedDiscountedCumulativeGains[2], 36.5, 37);
+            Assert.InRange(metrics.NormalizedDiscountedCumulativeGains[0], 0.365, 0.37);
+            Assert.InRange(metrics.NormalizedDiscountedCumulativeGains[1], 0.365, 0.37);
+            Assert.InRange(metrics.NormalizedDiscountedCumulativeGains[2], 0.365, 0.37);
         }
 
         [LightGBMFact]
@@ -1132,7 +1132,7 @@ namespace Microsoft.ML.StaticPipelineTesting
 
             var est = reader.MakeNewEstimator()
                 .Append(r => (r.label, preds: catalog.Trainers.StochasticGradientDescentNonCalibratedClassificationTrainer(r.label, r.features, null,
-                    new SgdNonCalibratedTrainer.Options { L2Regularization = 0, NumberOfThreads = 1, Loss = new HingeLoss()},
+                    new SgdNonCalibratedTrainer.Options { L2Regularization = 0, NumberOfThreads = 1, LossFunction = new HingeLoss()},
                     onFit: (p) => { pred = p; })));
 
             var pipe = reader.Append(est);
@@ -1167,7 +1167,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             LinearBinaryModelParameters pred = null;
 
             var est = reader.MakeNewEstimator()
-                .Append(r => (r.label, preds: catalog.Trainers.StochasticGradientDescentNonCalibratedClassificationTrainer(r.label, r.features, loss: new HingeLoss(), onFit: (p) => { pred = p; })));
+                .Append(r => (r.label, preds: catalog.Trainers.StochasticGradientDescentNonCalibratedClassificationTrainer(r.label, r.features, lossFunction: new HingeLoss(), onFit: (p) => { pred = p; })));
 
             var pipe = reader.Append(est);
 

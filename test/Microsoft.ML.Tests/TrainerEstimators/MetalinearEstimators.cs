@@ -25,7 +25,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                 new AveragedPerceptronTrainer.Options { Shuffle = true });
 
             var ova = ML.MulticlassClassification.Trainers.OneVersusAll(averagePerceptron, imputeMissingLabelsAsNegative: true,
-                calibrator: calibrator, maxCalibrationExamples: 10000, useProbabilities: true);
+                calibrator: calibrator, maximumCalibrationExampleCount: 10000, useProbabilities: true);
 
             pipeline = pipeline.Append(ova)
                     .Append(new KeyToValueMappingEstimator(Env, "PredictedLabel"));

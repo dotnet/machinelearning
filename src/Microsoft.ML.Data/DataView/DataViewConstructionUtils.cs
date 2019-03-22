@@ -74,7 +74,7 @@ namespace Microsoft.ML.Data
                     foreach (var annotation in annotations.Schema)
                     {
                         var info = Utils.MarshalInvoke(GetAnnotationInfo<int>, annotation.Type.RawType, annotation.Name, annotations);
-                        schemaDefinitionCol.Annotations.Add(annotation.Name, info);
+                        schemaDefinitionCol.AddAnnotation(annotation.Name , info);
                     }
                 }
             }
@@ -797,7 +797,7 @@ namespace Microsoft.ML.Data
     /// <summary>
     /// A single instance of annotation information, associated with a column.
     /// </summary>
-    public abstract partial class AnnotationInfo
+    internal abstract partial class AnnotationInfo
     {
         /// <summary>
         /// The type of the annotation.
@@ -826,7 +826,7 @@ namespace Microsoft.ML.Data
     /// Strongly-typed version of <see cref="AnnotationInfo"/>, that contains the actual value of the annotation.
     /// </summary>
     /// <typeparam name="T">Type of the annotation value.</typeparam>
-    public sealed class AnnotationInfo<T> : AnnotationInfo
+    internal sealed class AnnotationInfo<T> : AnnotationInfo
     {
         public readonly T Value;
 

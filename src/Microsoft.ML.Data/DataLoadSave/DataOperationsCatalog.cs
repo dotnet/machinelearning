@@ -70,7 +70,7 @@ namespace Microsoft.ML
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
-        /// [!code-csharp[BootstrapSample](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/DataOperations/DataViewEnumerable.cs)]
+        /// [!code-csharp[LoadFromEnumerable](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/DataOperations/DataViewEnumerable.cs)]
         /// ]]>
         /// </format>
         /// </example>
@@ -82,6 +82,25 @@ namespace Microsoft.ML
             return DataViewConstructionUtils.CreateFromEnumerable(_env, data, schemaDefinition);
         }
 
+        /// <summary>
+        /// Create a new <see cref="IDataView"/> over an enumerable of the items of user-defined type, and the provided <see cref="DataViewSchema"/>
+        /// which might contain more information about the schema than the type can capture.
+        /// </summary>
+        /// <remarks>
+        /// The user maintains ownership of the <paramref name="data"/> and the resulting data view will
+        /// never alter the contents of the <paramref name="data"/>.
+        /// Since <see cref="IDataView"/> is assumed to be immutable, the user is expected to support
+        /// multiple enumeration of the <paramref name="data"/> that would return the same results, unless
+        /// the user knows that the data will only be cursored once.
+        /// One typical usage for streaming data view could be: create the data view that lazily loads data
+        /// as needed, then apply pre-trained transformations to it and cursor through it for transformation
+        /// results.
+        /// One practical usage of this would be to supply the feature column names through the <see cref="DataViewSchema.Annotations"/>.
+        /// </remarks>
+        /// <typeparam name="TRow">The <typeparamref name="TRow"/> to convert to an <see cref="IDataView"/>.</typeparam>
+        /// <param name="data">The data with <typeparamref name="TRow"/> to convert to an <see cref="IDataView"/>.</param>
+        /// <param name="schema">The schema of the returned <see cref="IDataView"/>.</param>
+        /// <returns>An <see cref="IDataView"/> with the given <paramref name="schema"/>.</returns>
         public IDataView LoadFromEnumerable<TRow>(IEnumerable<TRow> data, DataViewSchema schema)
             where TRow : class
         {
@@ -102,7 +121,7 @@ namespace Microsoft.ML
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
-        /// [!code-csharp[BootstrapSample](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/DataOperations/DataViewEnumerable.cs)]
+        /// [!code-csharp[CreateEnumerable](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/DataOperations/DataViewEnumerable.cs)]
         /// ]]>
         /// </format>
         /// </example>
@@ -381,6 +400,13 @@ namespace Microsoft.ML
         /// they are guaranteed to appear in the same subset (train or test). This can be used to ensure no label leakage from the train to the test set.
         /// If <see langword="null"/> no row grouping will be performed.</param>
         /// <param name="seed">Seed for the random number generator used to select rows for the train-test split.</param>
+        /// <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        /// [!code-csharp[TrainTestSplit](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/DataOperations/TrainTestSplit.cs)]
+        /// ]]>
+        /// </format>
+        /// </example>
         public TrainTestData TrainTestSplit(IDataView data, double testFraction = 0.1, string samplingKeyColumnName = null, int? seed = null)
         {
             _env.CheckValue(data, nameof(data));

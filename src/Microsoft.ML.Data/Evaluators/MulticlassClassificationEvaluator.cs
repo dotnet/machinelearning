@@ -287,7 +287,7 @@ namespace Microsoft.ML.Data
                                 entropy += _sumWeightsOfClass[i] * Math.Log(_sumWeightsOfClass[i] / _numInstances);
                         }
                         entropy /= -_numInstances;
-                        return 100 * (entropy - LogLoss) / entropy;
+                        return (entropy - LogLoss) / entropy;
                     }
                 }
 
