@@ -73,6 +73,22 @@
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>FastTreeWithOptions.cs</LastGenOutput>
     </None>
+    <None Update="Dynamic\Trainers\Regression\OnlineGradientDescent.tt">
+      <LastGenOutput>OnlineGradientDescent.cs</LastGenOutput>
+      <Generator>TextTemplatingFileGenerator</Generator>
+    </None>
+    <None Update="Dynamic\Trainers\Regression\OnlineGradientDescentWithOptions.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>OnlineGradientDescentWithOptions.cs</LastGenOutput>
+    </None>
+    <None Update="Dynamic\Trainers\Regression\PoissonRegression.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>PoissonRegression.cs</LastGenOutput>
+    </None>
+    <None Update="Dynamic\Trainers\Regression\PoissonRegressionWithOptions.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>PoissonRegressionWithOptions.cs</LastGenOutput>
+    </None>
   </ItemGroup>
 
   <ItemGroup>
@@ -99,6 +115,26 @@
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
       <DependentUpon>FastTreeWithOptions.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Dynamic\Trainers\Regression\OnlineGradientDescent.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>OnlineGradientDescent.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Dynamic\Trainers\Regression\OnlineGradientDescentWithOptions.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>OnlineGradientDescentWithOptions.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Dynamic\Trainers\Regression\PoissonRegression.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>PoissonRegression.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Dynamic\Trainers\Regression\PoissonRegressionWithOptions.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>PoissonRegressionWithOptions.tt</DependentUpon>
     </Compile>
   </ItemGroup>
 

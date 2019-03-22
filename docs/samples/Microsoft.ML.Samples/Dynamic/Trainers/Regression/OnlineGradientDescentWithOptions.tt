@@ -1,0 +1,20 @@
+﻿<#@ include file="RegressionSamplesTemplate.ttinclude"#>
+
+<#+
+string ClassName="OnlineGradientDescentWithOptions";
+string Trainer = "OnlineGradientDescent";
+string TrainerOptions = @" OnlineGradientDescentTrainer.Options
+            {
+                // Change the loss function.
+                LossFunction = new TweedieLoss(),
+                // Give an extra gain to more recent updates.
+                RecencyGain = 0.1f,
+                // Turn off lazy updates.
+                LazyUpdate = false,
+                // Specify scale for initial weights.
+                InitialWeightsDiameter = 0.2f
+            }";
+
+string ExpectedOutputPerInstance= @"// TODO #2425: OGD is missing baseline tests and seems numerically unstable";
+string ExpectedOutput = @"// TODO #2425: OGD is missing baseline tests and seems numerically unstable";
+#>
