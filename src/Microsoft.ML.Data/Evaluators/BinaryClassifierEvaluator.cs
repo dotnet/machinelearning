@@ -829,7 +829,7 @@ namespace Microsoft.ML.Data
         }
 
         /// <summary>
-        /// Evaluates scored binary classification data.
+        /// Evaluates scored binary classification data and generates precision recall curve data.
         /// </summary>
         /// <param name="data">The scored data.</param>
         /// <param name="label">The name of the label column in <paramref name="data"/>.</param>
@@ -915,6 +915,58 @@ namespace Microsoft.ML.Data
                 moved = cursor.MoveNext();
                 Host.Assert(!moved);
             }
+            return result;
+        }
+
+        /// <summary>
+        /// Evaluates scored binary classification data, without probability-based metrics
+        /// and generates precision recall curve data.
+        /// </summary>
+        /// <param name="data">The scored data.</param>
+        /// <param name="label">The name of the label column in <paramref name="data"/>.</param>
+        /// <param name="score">The name of the score column in <paramref name="data"/>.</param>
+        /// <param name="predictedLabel">The name of the predicted label column in <paramref name="data"/>.</param>
+        /// <param name="prCurve">The generated precision recall curve data. Up to 100000 of samples are used for p/r curve generation.</param>
+        /// <returns>The evaluation results for these uncalibrated outputs.</returns>
+        /// <seealso cref="Evaluate(IDataView, string, string, string)"/>
+        public BinaryClassificationMetrics EvaluateWithPRCurve(IDataView data, string label, string score, string predictedLabel, out IEnumerable<PrecisionRecallMetrics> prCurve)
+        {
+            Host.CheckValue(data, nameof(data));
+            Host.CheckNonEmpty(label, nameof(label));
+            Host.CheckNonEmpty(score, nameof(score));
+            Host.CheckNonEmpty(predictedLabel, nameof(predictedLabel));
+
+            var roles = new RoleMappedData(data, opt: false,
+                RoleMappedSchema.ColumnRole.Label.Bind(label),
+                RoleMappedSchema.CreatePair(AnnotationUtils.Const.ScoreValueKind.Score, score),
+                RoleMappedSchema.CreatePair(AnnotationUtils.Const.ScoreValueKind.PredictedLabel, predictedLabel));
+
+            var resultDict = ((IEvaluator)this).Evaluate(roles);
+            Host.Assert(resultDict.ContainsKey(MetricKinds.PrCurve));
+            var prCurveView = resultDict[MetricKinds.PrCurve];
+            Host.Assert(resultDict.ContainsKey(MetricKinds.OverallMetrics));
+            var overall = resultDict[MetricKinds.OverallMetrics];
+
+            List<PrecisionRecallMetrics> prCurveResult = new List<PrecisionRecallMetrics>();
+            using (var cursor = prCurveView.GetRowCursorForAllColumns())
+            {
+                while (cursor.MoveNext())
+                {
+                    prCurveResult.Add(new PrecisionRecallMetrics(Host, cursor));
+                }
+            }
+            prCurve = prCurveResult;
+
+            BinaryClassificationMetrics result;
+            using (var cursor = overall.GetRowCursorForAllColumns())
+            {
+                var moved = cursor.MoveNext();
+                Host.Assert(moved);
+                result = new BinaryClassificationMetrics(Host, cursor);
+                moved = cursor.MoveNext();
+                Host.Assert(!moved);
+            }
+
             return result;
         }
     }

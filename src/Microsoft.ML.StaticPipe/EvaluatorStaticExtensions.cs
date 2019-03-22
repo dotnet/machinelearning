@@ -52,7 +52,7 @@ namespace Microsoft.ML.StaticPipe
         }
 
         /// <summary>
-        /// Evaluates scored binary classification data.
+        /// Evaluates scored binary classification data and generates precision recall curve data.
         /// </summary>
         /// <typeparam name="T">The shape type for the input data.</typeparam>
         /// <param name="catalog">The binary classification catalog.</param>
@@ -121,6 +121,43 @@ namespace Microsoft.ML.StaticPipe
 
             var eval = new BinaryClassifierEvaluator(env, new BinaryClassifierEvaluator.Arguments() { });
             return eval.Evaluate(data.AsDynamic, labelName, scoreName, predName);
+        }
+
+        /// <summary>
+        /// Evaluates scored binary classification data, if the predictions are not calibrated
+        /// and generates precision recall curve data.
+        /// </summary>
+        /// <typeparam name="T">The shape type for the input data.</typeparam>
+        /// <param name="catalog">The binary classification catalog.</param>
+        /// <param name="data">The data to evaluate.</param>
+        /// <param name="label">The index delegate for the label column.</param>
+        /// <param name="pred">The index delegate for columns from uncalibrated prediction of a binary classifier.
+        /// Under typical scenarios, this will just be the same tuple of results returned from the trainer.</param>
+        /// <param name="prCurve">The generated precision recall curve data. Up to 100000 of samples are used for p/r curve generation.</param>
+        /// <returns>The evaluation results for these uncalibrated outputs.</returns>
+        public static BinaryClassificationMetrics EvaluateWithPRCurve<T>(
+            this BinaryClassificationCatalog catalog,
+            DataView<T> data,
+            Func<T, Scalar<bool>> label,
+            Func<T, (Scalar<float> score, Scalar<bool> predictedLabel)> pred,
+            out IEnumerable<PrecisionRecallMetrics> prCurve)
+        {
+            Contracts.CheckValue(data, nameof(data));
+            var env = StaticPipeUtils.GetEnvironment(data);
+            Contracts.AssertValue(env);
+            env.CheckValue(label, nameof(label));
+            env.CheckValue(pred, nameof(pred));
+
+            var indexer = StaticPipeUtils.GetIndexer(data);
+            string labelName = indexer.Get(label(indexer.Indices));
+            (var scoreCol, var predCol) = pred(indexer.Indices);
+            Contracts.CheckParam(scoreCol != null, nameof(pred), "Indexing delegate resulted in null score column.");
+            Contracts.CheckParam(predCol != null, nameof(pred), "Indexing delegate resulted in null predicted label column.");
+            string scoreName = indexer.Get(scoreCol);
+            string predName = indexer.Get(predCol);
+
+            var eval = new BinaryClassifierEvaluator(env, new BinaryClassifierEvaluator.Arguments() { NumRocExamples = 100000 });
+            return eval.EvaluateWithPRCurve(data.AsDynamic, labelName, scoreName, predName, out prCurve);
         }
 
         /// <summary>

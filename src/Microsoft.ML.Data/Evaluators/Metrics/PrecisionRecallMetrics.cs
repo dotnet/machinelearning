@@ -8,7 +8,7 @@ using Microsoft.ML.Runtime;
 namespace Microsoft.ML.Data
 {
     /// <summary>
-    /// This class represents one data point in Precision-Recall curve.
+    /// This class represents one data point on Precision-Recall curve.
     /// </summary>
     public sealed class PrecisionRecallMetrics
     {
