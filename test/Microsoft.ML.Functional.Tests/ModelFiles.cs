@@ -5,6 +5,8 @@
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
+using Microsoft.ML.Calibrators;
+using Microsoft.ML.Data;
 using Microsoft.ML.Functional.Tests.Datasets;
 using Microsoft.ML.RunTests;
 using Microsoft.ML.TestFramework;
@@ -42,31 +44,6 @@ namespace Microsoft.ML.Functional.Tests
                     Assert.Equal(@"1.0.0.0", line);
                 }
             }
-        }
-
-        /// <summary>
-        /// Model Files: Supported model classes can be saved as ONNX files.
-        /// </summary>
-        [Fact]
-        public void SaveModelAsOnnx()
-        {
-            var mlContext = new MLContext(seed: 1);
-
-            // Get the dataset.
-            var data = mlContext.Data.LoadFromTextFile<HousingRegression>(GetDataPath(TestDatasets.housing.trainFilename), hasHeader: true);
-
-            // Create a pipeline to train on the housing data.
-            var pipeline = mlContext.Transforms.Concatenate("Features", HousingRegression.Features)
-                .Append(mlContext.Regression.Trainers.Sdca(
-                    new SdcaRegressionTrainer.Options { NumberOfThreads = 1 }));
-
-            // Fit the pipeline.
-            var model = pipeline.Fit(data);
-
-            // Save as Onnx
-            var modelPath = DeleteOutputPath("SaveModelAsOnnx.onnx");
-            using (var file = File.Create(modelPath))
-                mlContext.Model.ConvertToOnnx(model, data, file);
         }
 
         /// <summary>
@@ -118,6 +95,89 @@ namespace Microsoft.ML.Functional.Tests
                 // Check that the predictions are identical.
                 Assert.Equal(originalPrediction.Score, serializedPrediction.Score);
             }
+        }
+
+        [Fact]
+        public void LoadModelAndExtractPredictor()
+        {
+            var mlContext = new MLContext(seed: 1);
+
+            // Load the dataset.
+            var file = new MultiFileSource(GetDataPath(TestDatasets.adult.trainFilename));
+            var loader = mlContext.Data.CreateTextLoader<Adult>(hasHeader: true, dataSample: file);
+            var data = mlContext.Data.LoadFromTextFile<Adult>(GetDataPath(TestDatasets.adult.trainFilename),
+                hasHeader: TestDatasets.adult.fileHasHeader,
+                separatorChar: TestDatasets.adult.fileSeparator);
+
+            // Pipeline.
+            var trainerPipeline = mlContext.Transforms.Concatenate("Features", Adult.NumericalFeatures)
+                .Append(mlContext.BinaryClassification.Trainers.LogisticRegression());
+            // Define the same pipeline starting with the loader.
+            var loaderAndTrainerPipeline = loader.Append(mlContext.Transforms.Concatenate("Features", Adult.NumericalFeatures))
+                .Append(mlContext.BinaryClassification.Trainers.LogisticRegression());
+
+            // Fit the pipelines to the dataset.
+            var transformerModel = trainerPipeline.Fit(data);
+            var compositeLoaderModel = loaderAndTrainerPipeline.Fit(file);
+
+            // Serialize the models to a stream.
+            // Save a transformer model with an input schema.
+            string modelAndSchemaPath = DeleteOutputPath(FullTestName + "-model-schema.zip");
+            mlContext.Model.Save(transformerModel, data.Schema, modelAndSchemaPath);
+            // Save a loader model without an input schema.
+            string compositeLoaderModelPath = DeleteOutputPath(FullTestName + "-composite-model.zip");
+            mlContext.Model.Save(compositeLoaderModel, compositeLoaderModelPath);
+            // Save a transformer model, specifying the loader.
+            string loaderAndTransformerModelPath = DeleteOutputPath(FullTestName + "-loader-transformer.zip");
+            mlContext.Model.Save(loader, transformerModel, loaderAndTransformerModelPath);
+
+            // Load the serialized models back in.
+            ITransformer serializedTransformerModel;
+            IDataLoader<IMultiStreamSource> serializedCompositeLoader;
+            ITransformer serializedCompositeLoaderWithSchema;
+            ITransformer serializedCompositeLoaderWithLoader;
+            IDataLoader<IMultiStreamSource> serializedLoaderAndTransformerModel;
+            ITransformer serializedLoaderAndTransformerModelWithSchema;
+            ITransformer serializedLoaderAndTransformerModelWithLoader;
+            // Load the transformer model.
+            using (var fs = File.OpenRead(modelAndSchemaPath))
+                serializedTransformerModel = mlContext.Model.Load(fs, out var loadedSchema);
+            using (var fs = File.OpenRead(compositeLoaderModelPath))
+            {
+                // This model can be loaded either as a composite data loader,
+                // a transformer model + an input schema, or a transformer model + a data loader.
+                serializedCompositeLoader = mlContext.Model.Load(fs);
+                serializedCompositeLoaderWithLoader = mlContext.Model.LoadWithDataLoader(fs, out IDataLoader<IMultiStreamSource> serializedLoader);
+                serializedCompositeLoaderWithSchema = mlContext.Model.Load(fs, out var schema);
+                Common.AssertEqual(compositeLoaderModel.GetOutputSchema(), schema);
+            }
+            using (var fs = File.OpenRead(loaderAndTransformerModelPath))
+            {
+                // This model can be loaded either as a composite data loader,
+                // a transformer model + an input schema, or a transformer model + a data loader.
+                serializedLoaderAndTransformerModel = mlContext.Model.Load(fs);
+                serializedLoaderAndTransformerModelWithSchema = mlContext.Model.Load(fs, out var schema);
+                Common.AssertEqual(transformerModel.GetOutputSchema(data.Schema), schema);
+                serializedLoaderAndTransformerModelWithLoader = mlContext.Model.LoadWithDataLoader(fs, out IDataLoader<IMultiStreamSource> serializedLoader);
+            }
+
+            // Validate that the models contain the expected estimator.
+            var gam = ((serializedTransformerModel as ISingleFeaturePredictionTransformer<object>).Model
+                as CalibratedModelParametersBase).SubModel
+                as GamBinaryModelParameters;
+            Assert.NotNull(gam);
+
+            gam = (((serializedCompositeLoader as CompositeDataLoader<IMultiStreamSource, ITransformer>).Transformer.LastTransformer
+                as ISingleFeaturePredictionTransformer<object>).Model
+                as CalibratedModelParametersBase).SubModel
+                as GamBinaryModelParameters;
+            Assert.NotNull(gam);
+
+            gam = (((serializedLoaderAndTransformerModelWithLoader as TransformerChain<ITransformer>).LastTransformer
+                as ISingleFeaturePredictionTransformer<object>).Model
+                as CalibratedModelParametersBase).SubModel
+                as GamBinaryModelParameters;
+            Assert.NotNull(gam);
         }
     }
 }

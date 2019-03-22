@@ -41,69 +41,7 @@ namespace Microsoft.ML.Functional.Tests
             public float[] Features { get; set; }
         }
 
-        [Fact]
-        public void LoadModelAndExtractPredictor()
-        {
-            var file = new MultiFileSource(GetDataPath(TestDatasets.adult.trainFilename));
-            var loader = _ml.Data.CreateTextLoader<InputData>(hasHeader: true, dataSample: file);
-            var data = loader.Load(file);
-
-            // Pipeline.
-            var pipeline = _ml.BinaryClassification.Trainers.Gam();
-            // Define the same pipeline starting with the loader.
-            var pipeline1 = loader.Append(_ml.BinaryClassification.Trainers.Gam());
-            
-            // Train.
-            var transformerModel = pipeline.Fit(data);
-            var compositeLoaderModel = pipeline1.Fit(file);
-
-            // Save and reload.
-            string modelAndSchemaPath = GetOutputPath(FullTestName + "-model-schema.zip");
-            _ml.Model.Save(transformerModel, data.Schema, modelAndSchemaPath);
-            string compositeLoaderModelPath = GetOutputPath(FullTestName + "-composite-model.zip");
-            _ml.Model.Save(compositeLoaderModel, compositeLoaderModelPath);
-            string loaderAndTransformerModelPath = GetOutputPath(FullTestName + "-loader-transformer.zip");
-            _ml.Model.Save(loader, transformerModel, loaderAndTransformerModelPath);
-
-            ITransformer loadedTransformerModel;
-            IDataLoader<IMultiStreamSource> loadedCompositeLoader;
-            ITransformer loadedTransformerModel1;
-            using (var fs = File.OpenRead(modelAndSchemaPath))
-                loadedTransformerModel = _ml.Model.Load(fs, out var loadedSchema);
-            using (var fs = File.OpenRead(compositeLoaderModelPath))
-            {
-                // This model can be loaded either as a composite data loader,
-                // a transformer model + an input schema, or a transformer model + a data loader.
-                var t = _ml.Model.LoadWithDataLoader(fs, out IDataLoader<IMultiStreamSource> l);
-                var t1 = _ml.Model.Load(fs, out var s);
-                loadedCompositeLoader = _ml.Model.Load(fs);
-            }
-            using (var fs = File.OpenRead(loaderAndTransformerModelPath))
-            {
-                // This model can be loaded either as a composite data loader,
-                // a transformer model + an input schema, or a transformer model + a data loader.
-                var t = _ml.Model.Load(fs, out var s);
-                var c = _ml.Model.Load(fs);
-                loadedTransformerModel1 = _ml.Model.LoadWithDataLoader(fs, out IDataLoader<IMultiStreamSource> l);
-            }
-
-            var gam = ((loadedTransformerModel as ISingleFeaturePredictionTransformer<object>).Model
-                as CalibratedModelParametersBase).SubModel
-                as GamBinaryModelParameters;
-            Assert.NotNull(gam);
-
-            gam = (((loadedCompositeLoader as CompositeDataLoader<IMultiStreamSource, ITransformer>).Transformer.LastTransformer
-                as ISingleFeaturePredictionTransformer<object>).Model
-                as CalibratedModelParametersBase).SubModel
-                as GamBinaryModelParameters;
-            Assert.NotNull(gam);
-
-            gam = (((loadedTransformerModel1 as TransformerChain<ITransformer>).LastTransformer
-                as ISingleFeaturePredictionTransformer<object>).Model
-                as CalibratedModelParametersBase).SubModel
-                as GamBinaryModelParameters;
-            Assert.NotNull(gam);
-        }
+        
 
         [Fact]
         public void SaveAndLoadModelWithLoader()
