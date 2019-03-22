@@ -21,7 +21,7 @@ namespace Microsoft.ML.Functional.Tests.Datasets
     }
 
     /// <summary>
-    /// A class to hold a feature column.
+    /// A class to hold a score column.
     /// </summary>
     internal sealed class ScoreColumn
     {
@@ -29,7 +29,7 @@ namespace Microsoft.ML.Functional.Tests.Datasets
     }
 
     /// <summary>
-    /// A class to hold a feature column.
+    /// A class to hold a vector score column.
     /// </summary>
     internal sealed class VectorScoreColumn
     {

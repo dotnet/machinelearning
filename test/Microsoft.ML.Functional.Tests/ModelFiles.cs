@@ -83,14 +83,16 @@ namespace Microsoft.ML.Functional.Tests
 
             var modelPath = DeleteOutputPath("fitPipelineSaveModelAndPredict.zip");
             // Save model to a file.
-            using (var file = File.Create(modelPath))
-                mlContext.Model.Save(model, data.Schema, file);
+            mlContext.Model.Save(model, data.Schema, modelPath);
 
             // Load model from a file.
             ITransformer serializedModel;
             using (var file = File.OpenRead(modelPath))
+            {
                 serializedModel = mlContext.Model.Load(file, out var serializedSchema);
-
+                CheckSameSchemas(data.Schema, serializedSchema);
+            }
+            
             // Create prediction engine and test predictions.
             var originalPredictionEngine = mlContext.Model.CreatePredictionEngine<HousingRegression, ScoreColumn>(model);
             var serializedPredictionEngine = mlContext.Model.CreatePredictionEngine<HousingRegression, ScoreColumn>(serializedModel);
@@ -104,6 +106,8 @@ namespace Microsoft.ML.Functional.Tests
                 // Check that the predictions are identical.
                 Assert.Equal(originalPrediction.Score, serializedPrediction.Score);
             }
+
+            Done();
         }
 
         [Fact]
