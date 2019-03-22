@@ -295,31 +295,63 @@ namespace Microsoft.ML.Tests.Transformers
             CheckSameValues(data15, data16);
             CheckSameValues(data15, data17);
 
-            // Tests for Normalizer Extensions (in Experimental nuget)
-            var est18 = ML.Transforms.NormalizeMinMax("float4", "float4");
-            var data18 = est18.Fit(data).Transform(data);
-            CheckSameSchemas(data2.Schema, data18.Schema);
-            CheckSameValues(data2, data18);
+            Done();
+        }
 
-            var est19 = ML.Transforms.NormalizeMeanVariance("float4", "float4");
-            var data19 = est19.Fit(data).Transform(data);
-            CheckSameSchemas(data6.Schema, data19.Schema);
-            CheckSameValues(data6, data19);
+        [Fact]
+        public void NormalizerExperimentalExtensions()
+        {
+            string dataPath = GetDataPath(TestDatasets.iris.trainFilename);
 
-            var est20 = ML.Transforms.NormalizeLogMeanVariance("float4", "float4");
-            var data20 = est20.Fit(data).Transform(data);
-            CheckSameSchemas(data9.Schema, data20.Schema);
-            CheckSameValues(data9, data20);
+            var loader = new TextLoader(Env, new TextLoader.Options
+            {
+                Columns = new[] {
+                    new TextLoader.Column("Label", DataKind.Single, 0),
+                    new TextLoader.Column("float4", DataKind.Single, new[]{new TextLoader.Range(1, 4) }),
+                }
+            });
 
-            var est21 = ML.Transforms.NormalizeBinning("float4", "float4");
-            var data21 = est21.Fit(data).Transform(data);
-            CheckSameSchemas(data12.Schema, data21.Schema);
-            CheckSameValues(data12, data21);
+            var data = loader.Load(dataPath);
 
-            var est22 = ML.Transforms.NormalizeSupervisedBinning("float4", "float4");
-            var data22 = est22.Fit(data).Transform(data);
-            CheckSameSchemas(data15.Schema, data22.Schema);
-            CheckSameValues(data15, data22);
+            // Normalizer Extensions
+            var est1 = ML.Transforms.Normalize(NormalizingEstimator.NormalizationMode.MinMax, ("float4", "float4"));
+            var est2 = ML.Transforms.Normalize(NormalizingEstimator.NormalizationMode.MeanVariance, ("float4", "float4"));
+            var est3 = ML.Transforms.Normalize(NormalizingEstimator.NormalizationMode.LogMeanVariance, ("float4", "float4")); 
+            var est4 = ML.Transforms.Normalize(NormalizingEstimator.NormalizationMode.Binning, ("float4", "float4")); 
+            var est5 = ML.Transforms.Normalize(NormalizingEstimator.NormalizationMode.SupervisedBinning, ("float4", "float4"));
+
+            // Normalizer Extensions (Experimental)
+            var est6 = ML.Transforms.NormalizeMinMax("float4", "float4");
+            var est7 = ML.Transforms.NormalizeMeanVariance("float4", "float4");
+            var est8 = ML.Transforms.NormalizeLogMeanVariance("float4", "float4");
+            var est9 = ML.Transforms.NormalizeBinning("float4", "float4");
+            var est10 = ML.Transforms.NormalizeSupervisedBinning("float4", "float4");
+
+            // Fit and Transpose 
+            var data1 = est1.Fit(data).Transform(data);
+            var data2 = est2.Fit(data).Transform(data);
+            var data3 = est3.Fit(data).Transform(data);
+            var data4 = est4.Fit(data).Transform(data);
+            var data5 = est5.Fit(data).Transform(data);
+            var data6 = est6.Fit(data).Transform(data);
+            var data7 = est7.Fit(data).Transform(data);
+            var data8 = est8.Fit(data).Transform(data);
+            var data9 = est9.Fit(data).Transform(data);
+            var data10 = est10.Fit(data).Transform(data);
+
+            // Schema Checks
+            CheckSameSchemas(data1.Schema, data6.Schema);
+            CheckSameSchemas(data2.Schema, data7.Schema);
+            CheckSameSchemas(data3.Schema, data8.Schema);
+            CheckSameSchemas(data4.Schema, data9.Schema);
+            CheckSameSchemas(data5.Schema, data10.Schema);
+
+            // Value Checks
+            CheckSameValues(data1, data6);
+            CheckSameValues(data2, data7);
+            CheckSameValues(data3, data8);
+            CheckSameValues(data4, data9);
+            CheckSameValues(data5, data10);
 
             Done();
         }

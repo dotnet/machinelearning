@@ -22,14 +22,14 @@ namespace Microsoft.ML.Experimental
         /// <param name="catalog">The transform catalog</param>
         /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.</param>
         /// <param name="inputColumnName">Name of the column to transform. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.</param>
-        /// <param name="ensureZeroUntouched">Whether to map zero to zero, preserving sparsity.</param>
+        /// <param name="fixZero">Whether to map zero to zero, preserving sparsity.</param>
         /// <param name="maximumExampleCount">Maximum number of examples used to train the normalizer.</param>
         public static NormalizingEstimator NormalizeMinMax(this TransformsCatalog catalog,
            string outputColumnName, string inputColumnName = null,
-           bool ensureZeroUntouched = NormalizingEstimator.Defaults.EnsureZeroUntouched,
+           bool fixZero = NormalizingEstimator.Defaults.EnsureZeroUntouched,
            long maximumExampleCount = NormalizingEstimator.Defaults.MaximumExampleCount)
         {
-            var columnOptions = new NormalizingEstimator.MinMaxColumnOptions(outputColumnName, inputColumnName, maximumExampleCount, ensureZeroUntouched);
+            var columnOptions = new NormalizingEstimator.MinMaxColumnOptions(outputColumnName, inputColumnName, maximumExampleCount, fixZero);
             return new NormalizingEstimator(CatalogUtils.GetEnvironment(catalog), columnOptions);
         }
 
@@ -40,16 +40,16 @@ namespace Microsoft.ML.Experimental
         /// <param name="catalog">The transform catalog</param>
         /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.</param>
         /// <param name="inputColumnName">Name of the column to transform. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.</param>
-        /// <param name="ensureZeroUntouched">Whether to map zero to zero, preserving sparsity.</param>
+        /// <param name="fixZero">Whether to map zero to zero, preserving sparsity.</param>
         /// <param name="maximumExampleCount">Maximum number of examples used to train the normalizer.</param>
         /// <param name="useCdf">Whether to use CDF as the output.</param>
         public static NormalizingEstimator NormalizeMeanVariance(this TransformsCatalog catalog,
             string outputColumnName, string inputColumnName = null,
-            bool ensureZeroUntouched = NormalizingEstimator.Defaults.EnsureZeroUntouched,
+            bool fixZero = NormalizingEstimator.Defaults.EnsureZeroUntouched,
             long maximumExampleCount = NormalizingEstimator.Defaults.MaximumExampleCount,
             bool useCdf = NormalizingEstimator.Defaults.MeanVarCdf)
         {
-            var columnOptions = new NormalizingEstimator.MeanVarianceColumnOptions(outputColumnName, inputColumnName, maximumExampleCount, ensureZeroUntouched, useCdf);
+            var columnOptions = new NormalizingEstimator.MeanVarianceColumnOptions(outputColumnName, inputColumnName, maximumExampleCount, fixZero, useCdf);
             return new NormalizingEstimator(CatalogUtils.GetEnvironment(catalog), columnOptions);
         }
 
@@ -78,16 +78,16 @@ namespace Microsoft.ML.Experimental
         /// <param name="catalog">The transform catalog</param>
         /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.</param>
         /// <param name="inputColumnName">Name of the column to transform. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.</param>
-        /// <param name="ensureZeroUntouched">Whether to map zero to zero, preserving sparsity.</param>
+        /// <param name="fixZero">Whether to map zero to zero, preserving sparsity.</param>
         /// <param name="maximumExampleCount">Maximum number of examples used to train the normalizer.</param>
         /// <param name="maximumBinCount">Maximum number of bins (power of 2 recommended).</param>
         public static NormalizingEstimator NormalizeBinning(this TransformsCatalog catalog,
             string outputColumnName, string inputColumnName = null,
-            bool ensureZeroUntouched = NormalizingEstimator.Defaults.EnsureZeroUntouched,
+            bool fixZero = NormalizingEstimator.Defaults.EnsureZeroUntouched,
             long maximumExampleCount = NormalizingEstimator.Defaults.MaximumExampleCount,
             int maximumBinCount = NormalizingEstimator.Defaults.MaximumBinCount)
         {
-            var columnOptions = new NormalizingEstimator.BinningColumnOptions(outputColumnName, inputColumnName, maximumExampleCount, ensureZeroUntouched, maximumBinCount);
+            var columnOptions = new NormalizingEstimator.BinningColumnOptions(outputColumnName, inputColumnName, maximumExampleCount, fixZero, maximumBinCount);
             return new NormalizingEstimator(CatalogUtils.GetEnvironment(catalog), columnOptions);
         }
 
@@ -99,19 +99,19 @@ namespace Microsoft.ML.Experimental
         /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.</param>
         /// <param name="inputColumnName">Name of the column to transform. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.</param>
         /// <param name="labelColumnName">Name of the label column for supervised binning.</param>
-        /// <param name="ensureZeroUntouched">Whether to map zero to zero, preserving sparsity.</param>
+        /// <param name="fixZero">Whether to map zero to zero, preserving sparsity.</param>
         /// <param name="maximumExampleCount">Maximum number of examples used to train the normalizer.</param>
         /// <param name="maximumBinCount">Maximum number of bins (power of 2 recommended).</param>
         /// <param name="mininimumExamplesPerBin">Minimum number of examples per bin.</param>
         public static NormalizingEstimator NormalizeSupervisedBinning(this TransformsCatalog catalog,
             string outputColumnName, string inputColumnName = null,
             string labelColumnName = DefaultColumnNames.Label,
-            bool ensureZeroUntouched = NormalizingEstimator.Defaults.EnsureZeroUntouched,
+            bool fixZero = NormalizingEstimator.Defaults.EnsureZeroUntouched,
             long maximumExampleCount = NormalizingEstimator.Defaults.MaximumExampleCount,
             int maximumBinCount = NormalizingEstimator.Defaults.MaximumBinCount,
             int mininimumExamplesPerBin = NormalizingEstimator.Defaults.MininimumBinSize)
         {
-            var columnOptions = new NormalizingEstimator.SupervisedBinningColumOptions(outputColumnName, inputColumnName, labelColumnName, maximumExampleCount, ensureZeroUntouched, maximumBinCount, mininimumExamplesPerBin);
+            var columnOptions = new NormalizingEstimator.SupervisedBinningColumOptions(outputColumnName, inputColumnName, labelColumnName, maximumExampleCount, fixZero, maximumBinCount, mininimumExamplesPerBin);
             return new NormalizingEstimator(CatalogUtils.GetEnvironment(catalog), columnOptions);
         }
     }
