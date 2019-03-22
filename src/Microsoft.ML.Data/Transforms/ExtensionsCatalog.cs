@@ -29,7 +29,7 @@ namespace Microsoft.ML
         /// <param name="inputColumnName">Name of the column to transform. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.</param>
         public InputOutputColumnPair(string outputColumnName, string inputColumnName = null)
         {
-            InputColumnName = inputColumnName;
+            InputColumnName = inputColumnName ?? outputColumnName;
             OutputColumnName = outputColumnName;
         }
     }
