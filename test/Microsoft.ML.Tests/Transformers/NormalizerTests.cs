@@ -7,6 +7,7 @@ using System.Collections.Immutable;
 using System.IO;
 using Microsoft.ML.Data;
 using Microsoft.ML.Data.IO;
+using Microsoft.ML.Experimental;
 using Microsoft.ML.Model;
 using Microsoft.ML.RunTests;
 using Microsoft.ML.StaticPipe;
@@ -242,10 +243,10 @@ namespace Microsoft.ML.Tests.Transformers
             CheckSameValues(data1, data4);
             CheckSameValues(data1, data5);
 
-            // Tests for SupervisedBinning
-            var est6 = new NormalizingEstimator(Env, NormalizingEstimator.NormalizationMode.SupervisedBinning, ("float4", "float4"));
-            var est7 = new NormalizingEstimator(Env, new NormalizingEstimator.SupervisedBinningColumOptions("float4"));
-            var est8 = ML.Transforms.Normalize(NormalizingEstimator.NormalizationMode.SupervisedBinning, ("float4", "float4"));
+            // Tests for MeanVariance
+            var est6 = new NormalizingEstimator(Env, NormalizingEstimator.NormalizationMode.MeanVariance, ("float4", "float4"));
+            var est7 = new NormalizingEstimator(Env, new NormalizingEstimator.MeanVarianceColumnOptions("float4"));
+            var est8 = ML.Transforms.Normalize(NormalizingEstimator.NormalizationMode.MeanVariance, ("float4", "float4"));
 
             var data6 = est6.Fit(data).Transform(data);
             var data7 = est7.Fit(data).Transform(data);
@@ -254,6 +255,71 @@ namespace Microsoft.ML.Tests.Transformers
             CheckSameSchemas(data6.Schema, data8.Schema);
             CheckSameValues(data6, data7);
             CheckSameValues(data6, data8);
+
+            // Tests for LogMeanVariance
+            var est9 = new NormalizingEstimator(Env, NormalizingEstimator.NormalizationMode.LogMeanVariance, ("float4", "float4"));
+            var est10 = new NormalizingEstimator(Env, new NormalizingEstimator.LogMeanVarianceColumnOptions("float4"));
+            var est11 = ML.Transforms.Normalize(NormalizingEstimator.NormalizationMode.LogMeanVariance, ("float4", "float4"));
+
+            var data9 = est9.Fit(data).Transform(data);
+            var data10 = est10.Fit(data).Transform(data);
+            var data11 = est11.Fit(data).Transform(data);
+            CheckSameSchemas(data9.Schema, data10.Schema);
+            CheckSameSchemas(data9.Schema, data11.Schema);
+            CheckSameValues(data9, data10);
+            CheckSameValues(data9, data11);
+
+            // Tests for Binning
+            var est12 = new NormalizingEstimator(Env, NormalizingEstimator.NormalizationMode.Binning, ("float4", "float4"));
+            var est13 = new NormalizingEstimator(Env, new NormalizingEstimator.BinningColumnOptions("float4"));
+            var est14 = ML.Transforms.Normalize(NormalizingEstimator.NormalizationMode.Binning, ("float4", "float4"));
+
+            var data12 = est12.Fit(data).Transform(data);
+            var data13 = est13.Fit(data).Transform(data);
+            var data14 = est14.Fit(data).Transform(data);
+            CheckSameSchemas(data12.Schema, data13.Schema);
+            CheckSameSchemas(data12.Schema, data14.Schema);
+            CheckSameValues(data12, data13);
+            CheckSameValues(data12, data14);
+
+            // Tests for SupervisedBinning
+            var est15 = new NormalizingEstimator(Env, NormalizingEstimator.NormalizationMode.SupervisedBinning, ("float4", "float4"));
+            var est16 = new NormalizingEstimator(Env, new NormalizingEstimator.SupervisedBinningColumOptions("float4"));
+            var est17 = ML.Transforms.Normalize(NormalizingEstimator.NormalizationMode.SupervisedBinning, ("float4", "float4"));
+
+            var data15 = est15.Fit(data).Transform(data);
+            var data16 = est16.Fit(data).Transform(data);
+            var data17 = est17.Fit(data).Transform(data);
+            CheckSameSchemas(data15.Schema, data16.Schema);
+            CheckSameSchemas(data15.Schema, data17.Schema);
+            CheckSameValues(data15, data16);
+            CheckSameValues(data15, data17);
+
+            // Tests for Normalizer Extensions (in Experimental nuget)
+            var est18 = ML.Transforms.NormalizeMinMax("float4", "float4");
+            var data18 = est18.Fit(data).Transform(data);
+            CheckSameSchemas(data2.Schema, data18.Schema);
+            CheckSameValues(data2, data18);
+
+            var est19 = ML.Transforms.NormalizeMeanVariance("float4", "float4");
+            var data19 = est19.Fit(data).Transform(data);
+            CheckSameSchemas(data6.Schema, data19.Schema);
+            CheckSameValues(data6, data19);
+
+            var est20 = ML.Transforms.NormalizeLogMeanVariance("float4", "float4");
+            var data20 = est20.Fit(data).Transform(data);
+            CheckSameSchemas(data9.Schema, data20.Schema);
+            CheckSameValues(data9, data20);
+
+            var est21 = ML.Transforms.NormalizeBinning("float4", "float4");
+            var data21 = est21.Fit(data).Transform(data);
+            CheckSameSchemas(data12.Schema, data21.Schema);
+            CheckSameValues(data12, data21);
+
+            var est22 = ML.Transforms.NormalizeSupervisedBinning("float4", "float4");
+            var data22 = est22.Fit(data).Transform(data);
+            CheckSameSchemas(data15.Schema, data22.Schema);
+            CheckSameValues(data15, data22);
 
             Done();
         }
