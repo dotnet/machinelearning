@@ -617,8 +617,6 @@ namespace Microsoft.ML.EntryPoints.Tests
             {
                 Assert.Contains($"Property 'Feature' is missing the {nameof(LoadColumnAttribute)} attribute", e.Message);
             }
-
-
         }
 
         [Fact]
