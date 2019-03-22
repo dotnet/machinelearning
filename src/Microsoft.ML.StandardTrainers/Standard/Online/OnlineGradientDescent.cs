@@ -25,11 +25,11 @@ namespace Microsoft.ML.Trainers
 {
     /// <summary>
     /// The <see cref="IEstimator{TTransformer}"/> for training a linear regression model using
-    /// online gradient descent (OGD) for estimating the parameters of the linear regression model.
+    /// Online Gradient Descent (OGD) for estimating the parameters of the linear regression model.
     /// </summary>
     /// <remarks>
     /// Stochastic gradient descent uses a simple yet efficient iterative technique to fit model coefficients using error gradients for convex loss functions.
-    /// Online gradient descent (OGD) implements the standard (non-batch) SGD, with a choice of loss functions,
+    /// Online Gradient Descent (OGD) implements the standard (non-batch) SGD, with a choice of loss functions,
     /// and an option to update the weight vector using the average of the vectors seen over time (averaged argument is set to True by default).
     /// </remarks>
     /// <seealso cref="StandardTrainersCatalog.OnlineGradientDescent(RegressionCatalog.RegressionTrainers, string, string, IRegressionLoss, float, bool, float, int)"/>

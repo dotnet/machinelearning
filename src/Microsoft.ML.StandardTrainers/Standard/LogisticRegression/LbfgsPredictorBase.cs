@@ -54,7 +54,7 @@ namespace Microsoft.ML.Trainers
             public float OptmizationTolerance = Defaults.OptimizationTolerance;
 
             /// <summary>
-            /// Number of previous iterations to remember for estimate of Hessian. Lower values mean faster but less accurate estimates.
+            /// Number of previous iterations to remember for estimating the Hessian. Lower values mean faster but less accurate estimates.
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Memory size for L-BFGS. Low=faster, less accurate", ShortName = "m, MemorySize", SortOrder = 50)]
             [TGUI(Description = "Memory size for L-BFGS", SuggestedSweeps = "5,20,50")]
@@ -79,6 +79,9 @@ namespace Microsoft.ML.Trainers
             /// <summary>
             /// Determines whether to produce output during training or not.
             /// </summary>
+            /// <value>
+            /// If set to <see langword="true"/> no output is produced.
+            /// </value>
             [Argument(ArgumentType.AtMostOnce, HelpText = "If set to true, produce no output during training.",
                 ShortName = "q")]
             public bool Quiet = false;

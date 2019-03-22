@@ -555,7 +555,7 @@ namespace Microsoft.ML
         /// <param name="l1Regularization">The L1 <a href='tmpurl_regularization'>regularization</a> hyperparameter. Higher values will tend to lead to more sparse model.</param>
         /// <param name="l2Regularization">The L2 weight for <a href='tmpurl_regularization'>regularization</a>.</param>
         /// <param name="optimizationTolerance">Threshold for optimizer convergence.</param>
-        /// <param name="historySize">Number of previous iterations to remember for estimate of Hessian. Lower values mean faster but less accurate estimates.</param>
+        /// <param name="historySize">Number of previous iterations to remember for estimating the Hessian. Lower values mean faster but less accurate estimates.</param>
         /// <param name="enforceNonNegativity">Enforce non-negative weights.</param>
         public static PoissonRegressionTrainer PoissonRegression(this RegressionCatalog.RegressionTrainers catalog,
             string labelColumnName = DefaultColumnNames.Label,
