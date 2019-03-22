@@ -149,7 +149,7 @@ namespace Microsoft.ML.Functional.Tests
                 serializedCompositeLoader = mlContext.Model.Load(fs);
                 serializedCompositeLoaderWithLoader = mlContext.Model.LoadWithDataLoader(fs, out IDataLoader<IMultiStreamSource> serializedLoader);
                 serializedCompositeLoaderWithSchema = mlContext.Model.Load(fs, out var schema);
-                Common.AssertEqual(compositeLoaderModel.GetOutputSchema(), schema);
+                Common.AssertEqual(loader.GetOutputSchema(), schema);
             }
             using (var fs = File.OpenRead(loaderAndTransformerModelPath))
             {
@@ -157,7 +157,7 @@ namespace Microsoft.ML.Functional.Tests
                 // a transformer model + an input schema, or a transformer model + a data loader.
                 serializedLoaderAndTransformerModel = mlContext.Model.Load(fs);
                 serializedLoaderAndTransformerModelWithSchema = mlContext.Model.Load(fs, out var schema);
-                Common.AssertEqual(transformerModel.GetOutputSchema(data.Schema), schema);
+                Common.AssertEqual(data.Schema, schema);
                 serializedLoaderAndTransformerModelWithLoader = mlContext.Model.LoadWithDataLoader(fs, out IDataLoader<IMultiStreamSource> serializedLoader);
             }
 
