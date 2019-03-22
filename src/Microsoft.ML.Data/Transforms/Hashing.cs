@@ -133,7 +133,7 @@ namespace Microsoft.ML.Transforms
 
         private readonly HashingEstimator.ColumnOptions[] _columns;
         private readonly VBuffer<ReadOnlyMemory<char>>[] _keyValues;
-        private readonly VectorType[] _kvTypes;
+        private readonly VectorDataViewType[] _kvTypes;
 
         private protected override void CheckInputColumn(DataViewSchema inputSchema, int col, int srcCol)
         {
@@ -152,10 +152,10 @@ namespace Microsoft.ML.Transforms
         {
             var keyCount = (ulong)1 << column.NumberOfBits;
             inputSchema.TryGetColumnIndex(column.InputColumnName, out int srcCol);
-            var itemType = new KeyType(typeof(uint), keyCount);
+            var itemType = new KeyDataViewType(typeof(uint), keyCount);
             var srcType = inputSchema[srcCol].Type;
-            if (srcType is VectorType vectorType)
-                return new VectorType(itemType, vectorType.Size);
+            if (srcType is VectorDataViewType vectorType)
+                return new VectorDataViewType(itemType, vectorType.Size);
             else
                 return itemType;
         }
@@ -228,12 +228,12 @@ namespace Microsoft.ML.Transforms
                                 helpers[i].Process();
                         }
                         _keyValues = new VBuffer<ReadOnlyMemory<char>>[_columns.Length];
-                        _kvTypes = new VectorType[_columns.Length];
+                        _kvTypes = new VectorDataViewType[_columns.Length];
                         for (int i = 0; i < helpers.Length; ++i)
                         {
                             _keyValues[invertIinfos[i]] = helpers[i].GetKeyValuesMetadata();
                             Host.Assert(_keyValues[invertIinfos[i]].Length == types[invertIinfos[i]].GetItemType().GetKeyCountAsInt32(Host));
-                            _kvTypes[invertIinfos[i]] = new VectorType(TextDataViewType.Instance, _keyValues[invertIinfos[i]].Length);
+                            _kvTypes[invertIinfos[i]] = new VectorDataViewType(TextDataViewType.Instance, _keyValues[invertIinfos[i]].Length);
                         }
                     }
                 }
@@ -247,7 +247,7 @@ namespace Microsoft.ML.Transforms
             disposer = null;
             input.Schema.TryGetColumnIndex(_columns[iinfo].InputColumnName, out int srcCol);
             var srcType = input.Schema[srcCol].Type;
-            if (!(srcType is VectorType vectorType))
+            if (!(srcType is VectorDataViewType vectorType))
                 return ComposeGetterOne(input, iinfo, srcCol, srcType);
             return ComposeGetterVec(input, iinfo, srcCol, vectorType);
         }
@@ -338,7 +338,7 @@ namespace Microsoft.ML.Transforms
             if (_columns[iinfo].UseOrderedHashing)
                 seed = Hashing.MurmurRound(seed, 0);
 
-            if (srcType is KeyType)
+            if (srcType is KeyDataViewType)
             {
                 if (srcType.RawType == typeof(uint))
                     return MakeScalarHashGetter<uint, HashKey4>(input, srcCol, seed, mask);
@@ -380,12 +380,12 @@ namespace Microsoft.ML.Transforms
             return MakeScalarHashGetter<bool, HashBool>(input, srcCol, seed, mask);
         }
 
-        private ValueGetter<VBuffer<uint>> ComposeGetterVec(DataViewRow input, int iinfo, int srcCol, VectorType srcType)
+        private ValueGetter<VBuffer<uint>> ComposeGetterVec(DataViewRow input, int iinfo, int srcCol, VectorDataViewType srcType)
         {
             Host.Assert(HashingEstimator.IsColumnTypeValid(srcType.ItemType));
 
             Type rawType = srcType.ItemType.RawType;
-            if (srcType.ItemType is KeyType)
+            if (srcType.ItemType is KeyDataViewType)
             {
                 if (rawType == typeof(byte))
                     return ComposeGetterVecCore<byte, HashKey1>(input, iinfo, srcCol, srcType);
@@ -427,7 +427,7 @@ namespace Microsoft.ML.Transforms
             return ComposeGetterVecCore<ReadOnlyMemory<char>, HashText>(input, iinfo, srcCol, srcType);
         }
 
-        private ValueGetter<VBuffer<uint>> ComposeGetterVecCore<T, THash>(DataViewRow input, int iinfo, int srcCol, VectorType srcType)
+        private ValueGetter<VBuffer<uint>> ComposeGetterVecCore<T, THash>(DataViewRow input, int iinfo, int srcCol, VectorDataViewType srcType)
             where THash : struct, IHasher<T>
         {
             Host.Assert(srcType.ItemType.RawType == typeof(T));
@@ -855,7 +855,7 @@ namespace Microsoft.ML.Transforms
                 _srcType = row.Schema[srcCol].Type;
                 _ex = ex;
                 // If this is a vector and ordered, then we must include the slot as part of the representation.
-                _includeSlot = _srcType is VectorType && _ex.UseOrderedHashing;
+                _includeSlot = _srcType is VectorDataViewType && _ex.UseOrderedHashing;
             }
 
             /// <summary>
@@ -871,7 +871,7 @@ namespace Microsoft.ML.Transforms
             {
                 row.Schema.TryGetColumnIndex(ex.InputColumnName, out int srcCol);
                 DataViewType typeSrc = row.Schema[srcCol].Type;
-                VectorType vectorTypeSrc = typeSrc as VectorType;
+                VectorDataViewType vectorTypeSrc = typeSrc as VectorDataViewType;
 
                 Type t = vectorTypeSrc != null ? (ex.UseOrderedHashing ? typeof(ImplVecOrdered<>) : typeof(ImplVec<>)) : typeof(ImplOne<>);
                 DataViewType itemType = vectorTypeSrc?.ItemType ?? typeSrc;
@@ -1213,7 +1213,7 @@ namespace Microsoft.ML.Transforms
         internal static bool IsColumnTypeValid(DataViewType type)
         {
             var itemType = type.GetItemType();
-            return itemType is TextDataViewType || itemType is KeyType || itemType is NumberDataViewType ||
+            return itemType is TextDataViewType || itemType is KeyDataViewType || itemType is NumberDataViewType ||
                 itemType is BooleanDataViewType || itemType is RowIdDataViewType;
         }
 
@@ -1274,7 +1274,7 @@ namespace Microsoft.ML.Transforms
                     metadata.Add(slotMeta);
                 if (colInfo.MaximumNumberOfInverts != 0)
                     metadata.Add(new SchemaShape.Column(AnnotationUtils.Kinds.KeyValues, SchemaShape.Column.VectorKind.Vector, TextDataViewType.Instance, false));
-                result[colInfo.Name] = new SchemaShape.Column(colInfo.Name, col.ItemType is VectorType ? SchemaShape.Column.VectorKind.Vector : SchemaShape.Column.VectorKind.Scalar, NumberDataViewType.UInt32, true, new SchemaShape(metadata));
+                result[colInfo.Name] = new SchemaShape.Column(colInfo.Name, col.ItemType is VectorDataViewType ? SchemaShape.Column.VectorKind.Vector : SchemaShape.Column.VectorKind.Scalar, NumberDataViewType.UInt32, true, new SchemaShape(metadata));
             }
             return new SchemaShape(result.Values);
         }

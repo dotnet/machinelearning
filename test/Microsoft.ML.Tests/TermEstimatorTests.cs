@@ -144,7 +144,7 @@ namespace Microsoft.ML.Tests
             result.Schema.TryGetColumnIndex("T", out int termIndex);
             var names1 = default(VBuffer<ReadOnlyMemory<char>>);
             var type1 = result.Schema[termIndex].Type;
-            var itemType1 = (type1 as VectorType)?.ItemType ?? type1;
+            var itemType1 = (type1 as VectorDataViewType)?.ItemType ?? type1;
             result.Schema[termIndex].GetKeyValues(ref names1);
             Assert.True(names1.GetValues().Length > 0);
         }

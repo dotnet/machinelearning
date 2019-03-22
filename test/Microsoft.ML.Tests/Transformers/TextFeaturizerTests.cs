@@ -609,7 +609,7 @@ namespace Microsoft.ML.Tests.Transformers
                 using (var fs = File.Create(outputPath))
                     DataSaverUtils.SaveDataView(ch, saver, savedData, fs, keepHidden: true);
 
-                Assert.Equal(10, (savedData.Schema[0].Type as VectorType)?.Size);
+                Assert.Equal(10, (savedData.Schema[0].Type as VectorDataViewType)?.Size);
             }
 
             // Diabling this check due to the following issue with consitency of output.

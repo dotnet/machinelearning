@@ -51,10 +51,10 @@ namespace Microsoft.ML.Functional.Tests
             var engine2 = _ml.Model.CreatePredictionEngine<InputData, OutputData>(model2, outputSchemaDefinition: outputSchemaDefinition);
 
             var prediction = engine1.Predict(new InputData() { Workclass = "Self-emp-not-inc", NumericFeatures = new float[6] });
-            Assert.Equal((engine1.OutputSchema["Features"].Type as VectorType).Size, prediction.Features.Length);
+            Assert.Equal((engine1.OutputSchema["Features"].Type as VectorDataViewType).Size, prediction.Features.Length);
             Assert.True(prediction.Features.All(x => x == 0));
             prediction = engine2.Predict(new InputData() { Workclass = "Self-emp-not-inc", NumericFeatures = new float[6] });
-            Assert.Equal((engine2.OutputSchema["Features"].Type as VectorType).Size, prediction.Features.Length);
+            Assert.Equal((engine2.OutputSchema["Features"].Type as VectorDataViewType).Size, prediction.Features.Length);
             Assert.True(prediction.Features.Select((x, i) => i == 3 && x == 1 || x == 0).All(b => b));
         }
 
@@ -74,7 +74,7 @@ namespace Microsoft.ML.Functional.Tests
             var inputSchemaDefinition = SchemaDefinition.Create(typeof(OutputData));
             inputSchemaDefinition["Features"].ColumnType = schema["Features"].Type;
             var outputSchemaDefinition = SchemaDefinition.Create(typeof(OutputData));
-            outputSchemaDefinition["Features"].ColumnType = new VectorType(NumberDataViewType.Single, (schema["Features"].Type as VectorType).Size * 2);
+            outputSchemaDefinition["Features"].ColumnType = new VectorDataViewType(NumberDataViewType.Single, (schema["Features"].Type as VectorDataViewType).Size * 2);
 
             var custom = _ml.Transforms.CustomMapping(
                 (OutputData src, OutputData dst) =>
@@ -89,7 +89,7 @@ namespace Microsoft.ML.Functional.Tests
 
             model = model.Append(custom.Fit(model.Transform(loader.Load(data))) as ITransformer);
             schema = model.GetOutputSchema(loader.GetOutputSchema());
-            Assert.Equal(168, (schema["Features"].Type as VectorType).Size);
+            Assert.Equal(168, (schema["Features"].Type as VectorDataViewType).Size);
         }
 
         private sealed class InputData

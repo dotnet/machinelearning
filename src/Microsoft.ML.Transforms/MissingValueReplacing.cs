@@ -226,13 +226,13 @@ namespace Microsoft.ML.Transforms
                 if (!saver.TryLoadTypeAndValue(ctx.Reader.BaseStream, out DataViewType savedType, out object repValue))
                     throw Host.ExceptDecode();
                 _replaceTypes[i] = savedType;
-                if (savedType is VectorType savedVectorType)
+                if (savedType is VectorDataViewType savedVectorType)
                 {
                     // REVIEW: The current implementation takes the serialized VBuffer, densifies it, and stores the values array.
                     // It might be of value to consider storing the VBuffer in order to possibly benefit from sparsity. However, this would
                     // necessitate a reimplementation of the FillValues code to accomodate sparse VBuffers.
                     object[] args = new object[] { repValue, savedVectorType, i };
-                    Func<VBuffer<int>, VectorType, int, int[]> func = GetValuesArray<int>;
+                    Func<VBuffer<int>, VectorDataViewType, int, int[]> func = GetValuesArray<int>;
                     var meth = func.GetMethodInfo().GetGenericMethodDefinition().MakeGenericMethod(savedVectorType.ItemType.RawType);
                     _repValues[i] = meth.Invoke(this, args);
                 }
@@ -243,7 +243,7 @@ namespace Microsoft.ML.Transforms
             }
         }
 
-        private T[] GetValuesArray<T>(VBuffer<T> src, VectorType srcType, int iinfo)
+        private T[] GetValuesArray<T>(VBuffer<T> src, VectorDataViewType srcType, int iinfo)
         {
             Host.Assert(srcType != null);
             Host.Assert(srcType.Size == src.Length);
@@ -284,8 +284,8 @@ namespace Microsoft.ML.Transforms
                 input.Schema.TryGetColumnIndex(columns[iinfo].InputColumnName, out int colSrc);
                 sources[iinfo] = colSrc;
                 var type = input.Schema[colSrc].Type;
-                if (type is VectorType vectorType)
-                    type = new VectorType(vectorType.ItemType, vectorType);
+                if (type is VectorDataViewType vectorType)
+                    type = new VectorDataViewType(vectorType.ItemType, vectorType.Dimensions);
                 Delegate isNa = GetIsNADelegate(type);
                 types[iinfo] = type;
                 var kind = (ReplacementKind)columns[iinfo].Replacement;
@@ -325,7 +325,7 @@ namespace Microsoft.ML.Transforms
                 {
                     int iinfo = columnsToImpute[ii];
                     bool bySlot = columns[ii].ImputeBySlot;
-                    if (types[iinfo] is VectorType vectorType && !vectorType.IsKnownSize && bySlot)
+                    if (types[iinfo] is VectorDataViewType vectorType && !vectorType.IsKnownSize && bySlot)
                     {
                         ch.Warning("By-slot imputation can not be done on variable-length column");
                         bySlot = false;
@@ -554,10 +554,10 @@ namespace Microsoft.ML.Transforms
                 for (int i = 0; i < _parent.ColumnPairs.Length; i++)
                 {
                     var type = _infos[i].TypeSrc;
-                    VectorType vectorType = type as VectorType;
+                    VectorDataViewType vectorType = type as VectorDataViewType;
                     if (vectorType != null)
                     {
-                        vectorType = new VectorType(vectorType.ItemType, vectorType);
+                        vectorType = new VectorDataViewType(vectorType.ItemType, vectorType.Dimensions);
                         type = vectorType;
                     }
                     var repType = _parent._repIsDefault[i] != null ? _parent._replaceTypes[i] : _parent._replaceTypes[i].GetItemType();
@@ -565,7 +565,7 @@ namespace Microsoft.ML.Transforms
                         throw Host.ExceptParam(nameof(InputSchema), "Column '{0}' item type '{1}' does not match expected ColumnType of '{2}'",
                             _infos[i].InputColumnName, _parent._replaceTypes[i].GetItemType().ToString(), _infos[i].TypeSrc);
                     // If type is a vector and the value is not either a scalar or a vector of the same size, throw an error.
-                    if (repType is VectorType repVectorType)
+                    if (repType is VectorDataViewType repVectorType)
                     {
                         if (vectorType == null)
                             throw Host.ExceptParam(nameof(inputSchema), "Column '{0}' item type '{1}' cannot be a vector when Columntype is a scalar of type '{2}'",
@@ -616,7 +616,7 @@ namespace Microsoft.ML.Transforms
                 Host.Assert(0 <= iinfo && iinfo < _infos.Length);
                 disposer = null;
 
-                if (!(_infos[iinfo].TypeSrc is VectorType))
+                if (!(_infos[iinfo].TypeSrc is VectorDataViewType))
                     return ComposeGetterOne(input, iinfo);
                 return ComposeGetterVec(input, iinfo);
             }
@@ -862,7 +862,7 @@ namespace Microsoft.ML.Transforms
             {
                 Type rawType;
                 var type = _infos[iinfo].TypeSrc;
-                if (type is VectorType vectorType)
+                if (type is VectorDataViewType vectorType)
                     rawType = vectorType.ItemType.RawType;
                 else
                     rawType = type.RawType;
@@ -874,7 +874,7 @@ namespace Microsoft.ML.Transforms
                 var node = ctx.CreateNode(opType, srcVariableName, dstVariableName, ctx.GetNodeName(opType));
                 node.AddAttribute("replaced_value_float", Single.NaN);
 
-                if (!(_infos[iinfo].TypeSrc is VectorType))
+                if (!(_infos[iinfo].TypeSrc is VectorDataViewType))
                     node.AddAttribute("imputed_value_floats", Enumerable.Repeat((float)_parent._repValues[iinfo], 1));
                 else
                 {
@@ -1008,9 +1008,9 @@ namespace Microsoft.ML.Transforms
                     metadata.Add(slotMeta);
                 if (col.Annotations.TryFindColumn(AnnotationUtils.Kinds.IsNormalized, out var normalized))
                     metadata.Add(normalized);
-                var type = !(col.ItemType is VectorType vectorType) ?
+                var type = !(col.ItemType is VectorDataViewType vectorType) ?
                     col.ItemType :
-                    new VectorType(vectorType.ItemType, vectorType);
+                    new VectorDataViewType(vectorType.ItemType, vectorType.Dimensions);
                 result[colInfo.Name] = new SchemaShape.Column(colInfo.Name, col.Kind, type, false, new SchemaShape(metadata.ToArray()));
             }
             return new SchemaShape(result.Values);

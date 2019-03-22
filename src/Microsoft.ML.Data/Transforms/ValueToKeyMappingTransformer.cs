@@ -221,10 +221,10 @@ namespace Microsoft.ML.Transforms
 
         private string TestIsKnownDataKind(DataViewType type)
         {
-            VectorType vectorType = type as VectorType;
+            VectorDataViewType vectorType = type as VectorDataViewType;
             DataViewType itemType = vectorType?.ItemType ?? type;
 
-            if (itemType is KeyType || itemType.IsStandardScalar())
+            if (itemType is KeyDataViewType || itemType.IsStandardScalar())
                 return null;
             return "standard type or a vector of standard type";
         }
@@ -718,10 +718,10 @@ namespace Microsoft.ML.Transforms
                 for (int i = 0; i < _parent.ColumnPairs.Length; i++)
                 {
                     var type = _infos[i].TypeSrc;
-                    KeyType keyType = _parent._unboundMaps[i].OutputType;
+                    KeyDataViewType keyType = _parent._unboundMaps[i].OutputType;
                     DataViewType colType;
-                    if (type is VectorType vectorType)
-                        colType = new VectorType(keyType, vectorType);
+                    if (type is VectorDataViewType vectorType)
+                        colType = new VectorDataViewType(keyType, vectorType.Dimensions);
                     else
                         colType = keyType;
                     _types[i] = colType;
@@ -838,7 +838,7 @@ namespace Microsoft.ML.Transforms
                 Contracts.AssertValue(srcToken);
                 //Contracts.Assert(CanSavePfa);
 
-                VectorType vectorType = info.TypeSrc as VectorType;
+                VectorDataViewType vectorType = info.TypeSrc as VectorDataViewType;
                 DataViewType itemType = vectorType?.ItemType ?? info.TypeSrc;
                 if (!(itemType is TextDataViewType))
                     return null;

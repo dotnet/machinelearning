@@ -232,7 +232,7 @@ namespace Microsoft.ML.Trainers
 
         /// <summary> Return the type of prediction task.</summary>
         private protected override PredictionKind PredictionKind => PredictionKind.MulticlassClassification;
-        private readonly VectorType _inputType;
+        private readonly VectorDataViewType _inputType;
         private readonly DataViewType _outputType;
         DataViewType IValueMapper.InputType => _inputType;
         DataViewType IValueMapper.OutputType => _outputType;
@@ -258,7 +258,7 @@ namespace Microsoft.ML.Trainers
             Host.Assert(index == _predictors.Length);
 
             _inputType = InitializeMappers(out _mappers);
-            _outputType = new VectorType(NumberDataViewType.Single, _numClasses);
+            _outputType = new VectorDataViewType(NumberDataViewType.Single, _numClasses);
         }
 
         private PairwiseCouplingModelParameters(IHostEnvironment env, ModelLoadContext ctx)
@@ -286,13 +286,13 @@ namespace Microsoft.ML.Trainers
                 ctx.LoadModel<TDistPredictor, SignatureLoadModel>(Host, out _predictors[index++], string.Format(SubPredictorFmt, i));
             }
             _inputType = InitializeMappers(out _mappers);
-            _outputType = new VectorType(NumberDataViewType.Single, _numClasses);
+            _outputType = new VectorDataViewType(NumberDataViewType.Single, _numClasses);
         }
 
-        private VectorType InitializeMappers(out IValueMapperDist[] mappers)
+        private VectorDataViewType InitializeMappers(out IValueMapperDist[] mappers)
         {
             mappers = new IValueMapperDist[_predictors.Length];
-            VectorType inputType = null;
+            VectorDataViewType inputType = null;
             for (int i = 0; i < _predictors.Length; i++)
             {
                 var vmd = _predictors[i] as IValueMapperDist;
@@ -302,11 +302,11 @@ namespace Microsoft.ML.Trainers
             return inputType;
         }
 
-        private bool IsValid(IValueMapperDist mapper, ref VectorType inputType)
+        private bool IsValid(IValueMapperDist mapper, ref VectorDataViewType inputType)
         {
             if (mapper == null)
                 return false;
-            VectorType vectorType = mapper.InputType as VectorType;
+            VectorDataViewType vectorType = mapper.InputType as VectorDataViewType;
             if (vectorType == null || !vectorType.IsKnownSize || vectorType.ItemType != NumberDataViewType.Single)
                 return false;
             if (inputType == null)

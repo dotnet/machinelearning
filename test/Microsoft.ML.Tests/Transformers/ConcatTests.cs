@@ -52,13 +52,13 @@ namespace Microsoft.ML.Tests.Transformers
 
             DataViewType t;
             t = GetType(data.Schema, "f1");
-            Assert.True(t is VectorType vt1 && vt1.ItemType == NumberDataViewType.Single && vt1.Size == 1);
+            Assert.True(t is VectorDataViewType vt1 && vt1.ItemType == NumberDataViewType.Single && vt1.Size == 1);
             t = GetType(data.Schema, "f2");
-            Assert.True(t is VectorType vt2 && vt2.ItemType == NumberDataViewType.Single && vt2.Size == 2);
+            Assert.True(t is VectorDataViewType vt2 && vt2.ItemType == NumberDataViewType.Single && vt2.Size == 2);
             t = GetType(data.Schema, "f3");
-            Assert.True(t is VectorType vt3 && vt3.ItemType == NumberDataViewType.Single && vt3.Size == 5);
+            Assert.True(t is VectorDataViewType vt3 && vt3.ItemType == NumberDataViewType.Single && vt3.Size == 5);
             t = GetType(data.Schema, "f4");
-            Assert.True(t is VectorType vt4 && vt4.ItemType == NumberDataViewType.Single && vt4.Size == 0);
+            Assert.True(t is VectorDataViewType vt4 && vt4.ItemType == NumberDataViewType.Single && vt4.Size == 0);
 
             data = ML.Transforms.SelectColumns("f1", "f2", "f3", "f4").Fit(data).Transform(data);
 
@@ -120,9 +120,9 @@ namespace Microsoft.ML.Tests.Transformers
 
             DataViewType t;
             t = GetType(data.Schema, "f2");
-            Assert.True(t is VectorType vt2 && vt2.ItemType == NumberDataViewType.Single && vt2.Size == 2);
+            Assert.True(t is VectorDataViewType vt2 && vt2.ItemType == NumberDataViewType.Single && vt2.Size == 2);
             t = GetType(data.Schema, "f3");
-            Assert.True(t is VectorType vt3 && vt3.ItemType == NumberDataViewType.Single && vt3.Size == 5);
+            Assert.True(t is VectorDataViewType vt3 && vt3.ItemType == NumberDataViewType.Single && vt3.Size == 5);
 
             data = ML.Transforms.SelectColumns("f2", "f3" ).Fit(data).Transform(data);
 

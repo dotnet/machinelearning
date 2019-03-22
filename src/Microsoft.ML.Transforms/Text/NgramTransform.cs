@@ -240,7 +240,7 @@ namespace Microsoft.ML.Transforms.Text
             {
                 for (int iinfo = 0; iinfo < columns.Length; iinfo++)
                 {
-                    env.Assert(srcTypes[iinfo] is VectorType vectorType && vectorType.ItemType is KeyType);
+                    env.Assert(srcTypes[iinfo] is VectorDataViewType vectorType && vectorType.ItemType is KeyDataViewType);
                     var ngramLength = columns[iinfo].NgramLength;
                     var skipLength = columns[iinfo].SkipLength;
 
@@ -486,7 +486,7 @@ namespace Microsoft.ML.Transforms.Text
                 _srcCols = new int[_parent.ColumnPairs.Length];
                 for (int i = 0; i < _parent.ColumnPairs.Length; i++)
                 {
-                    _types[i] = new VectorType(NumberDataViewType.Single, _parent._ngramMaps[i].Count);
+                    _types[i] = new VectorDataViewType(NumberDataViewType.Single, _parent._ngramMaps[i].Count);
                     inputSchema.TryGetColumnIndex(_parent.ColumnPairs[i].inputColumnName, out _srcCols[i]);
                     _srcTypes[i] = inputSchema[_srcCols[i]].Type;
                 }
@@ -514,7 +514,7 @@ namespace Microsoft.ML.Transforms.Text
                         GetSlotNames(iinfo, _parent._ngramMaps[iinfo].Count, ref dst);
                     };
 
-                    var slotNamesType = new VectorType(TextDataViewType.Instance, _parent._ngramMaps[iinfo].Count);
+                    var slotNamesType = new VectorDataViewType(TextDataViewType.Instance, _parent._ngramMaps[iinfo].Count);
                     builder.AddSlotNames(_parent._ngramMaps[iinfo].Count, getter);
                 }
             }
@@ -766,9 +766,9 @@ namespace Microsoft.ML.Transforms.Text
 
         internal static bool IsColumnTypeValid(DataViewType type)
         {
-            if (!(type is VectorType vectorType))
+            if (!(type is VectorDataViewType vectorType))
                 return false;
-            if (!(vectorType.ItemType is KeyType itemKeyType))
+            if (!(vectorType.ItemType is KeyDataViewType itemKeyType))
                 return false;
             // Can only accept key types that can be converted to U4.
             if (itemKeyType.Count == 0 && !NgramUtils.IsValidNgramRawType(itemKeyType.RawType))

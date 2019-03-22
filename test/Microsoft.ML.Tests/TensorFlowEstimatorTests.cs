@@ -189,7 +189,7 @@ namespace Microsoft.ML.Tests
             var tensorFlowModel = TensorFlowUtils.LoadTensorFlowModel(mlContext, modelLocation);
             var schema = tensorFlowModel.GetInputSchema();
             Assert.True(schema.TryGetColumnIndex("Input", out int column));
-            var type = (VectorType)schema[column].Type;
+            var type = (VectorDataViewType)schema[column].Type;
             var imageHeight = type.Dimensions[0];
             var imageWidth = type.Dimensions[1];
 

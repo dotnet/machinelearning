@@ -86,7 +86,7 @@ namespace Microsoft.ML.Data
         private protected override void CheckScoreAndLabelTypes(RoleMappedSchema schema)
         {
             var t = schema.Label.Value.Type;
-            if (t != NumberDataViewType.Single && !(t is KeyType))
+            if (t != NumberDataViewType.Single && !(t is KeyDataViewType))
             {
                 throw Host.ExceptSchemaMismatch(nameof(RankingMamlEvaluator.Arguments.LabelColumn),
                     "label", schema.Label.Value.Name, "R4 or a key", t.ToString());
@@ -102,7 +102,7 @@ namespace Microsoft.ML.Data
         private protected override void CheckCustomColumnTypesCore(RoleMappedSchema schema)
         {
             var t = schema.Group.Value.Type;
-            if (!(t is KeyType))
+            if (!(t is KeyDataViewType))
             {
                 throw Host.ExceptSchemaMismatch(nameof(RankingMamlEvaluator.Arguments.GroupIdColumn),
                     "group", schema.Group.Value.Name, "key", t.ToString());
@@ -628,8 +628,8 @@ namespace Microsoft.ML.Data
                     : base(ectx, input, labelCol, scoreCol, groupCol, user, Ndcg, Dcg, MaxDcg)
                 {
                     _truncationLevel = truncationLevel;
-                    _outputType = new VectorType(NumberDataViewType.Double, _truncationLevel);
-                    _slotNamesType = new VectorType(TextDataViewType.Instance, _truncationLevel);
+                    _outputType = new VectorDataViewType(NumberDataViewType.Double, _truncationLevel);
+                    _slotNamesType = new VectorDataViewType(TextDataViewType.Instance, _truncationLevel);
                     _slotNamesGetter = SlotNamesGetter;
                 }
 

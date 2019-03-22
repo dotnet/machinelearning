@@ -632,9 +632,9 @@ namespace Microsoft.ML.Data
 
                 DataViewType type = itemType;
                 if (isegVar >= 0)
-                    type = new VectorType(itemType);
+                    type = new VectorDataViewType(itemType);
                 else if (size > 1 || segs[0].ForceVector)
-                    type = new VectorType(itemType, size);
+                    type = new VectorDataViewType(itemType, size);
 
                 return new ColInfo(name, type, segs, isegVar, size);
             }
@@ -895,7 +895,7 @@ namespace Microsoft.ML.Data
                     if (isKey)
                     {
                         ulong count;
-                        Contracts.CheckDecode(KeyType.IsValidDataType(kind.ToType()));
+                        Contracts.CheckDecode(KeyDataViewType.IsValidDataType(kind.ToType()));
 
                         // Special treatment for versions that had Min and Contiguous fields in KeyType.
                         if (ctx.Header.ModelVerWritten < VersionNoMinCount)
@@ -917,7 +917,7 @@ namespace Microsoft.ML.Data
                             count = ctx.Reader.ReadUInt64();
                             Contracts.CheckDecode(0 < count);
                         }
-                        itemType = new KeyType(kind.ToType(), count);
+                        itemType = new KeyDataViewType(kind.ToType(), count);
                     }
                     else
                         itemType = ColumnTypeExtensions.PrimitiveTypeFromKind(kind);
@@ -979,8 +979,8 @@ namespace Microsoft.ML.Data
                     InternalDataKind rawKind = type.GetRawKind();
                     Contracts.Assert((InternalDataKind)(byte)rawKind == rawKind);
                     ctx.Writer.Write((byte)rawKind);
-                    ctx.Writer.WriteBoolByte(type is KeyType);
-                    if (type is KeyType key)
+                    ctx.Writer.WriteBoolByte(type is KeyDataViewType);
+                    if (type is KeyDataViewType key)
                         ctx.Writer.Write(key.Count);
                     ctx.Writer.Write(info.Segments.Length);
                     foreach (var seg in info.Segments)

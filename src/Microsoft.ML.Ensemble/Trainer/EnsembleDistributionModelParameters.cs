@@ -44,7 +44,7 @@ namespace Microsoft.ML.Trainers.Ensemble
         private readonly Median _probabilityCombiner;
         private readonly IValueMapperDist[] _mappers;
 
-        private readonly VectorType _inputType;
+        private readonly VectorDataViewType _inputType;
 
         DataViewType IValueMapper.InputType => _inputType;
         DataViewType IValueMapper.OutputType => NumberDataViewType.Single;
@@ -79,16 +79,16 @@ namespace Microsoft.ML.Trainers.Ensemble
             ComputeAveragedWeights(out _averagedWeights);
         }
 
-        private VectorType InitializeMappers(out IValueMapperDist[] mappers)
+        private VectorDataViewType InitializeMappers(out IValueMapperDist[] mappers)
         {
             Host.AssertNonEmpty(Models);
 
             mappers = new IValueMapperDist[Models.Length];
-            VectorType inputType = null;
+            VectorDataViewType inputType = null;
             for (int i = 0; i < Models.Length; i++)
             {
                 var vmd = Models[i].Predictor as IValueMapperDist;
-                if (!IsValid(vmd, out VectorType vmdInputType))
+                if (!IsValid(vmd, out VectorDataViewType vmdInputType))
                     throw Host.Except("Predictor does not implement expected interface");
                 if (vmdInputType.Size > 0)
                 {
@@ -99,13 +99,13 @@ namespace Microsoft.ML.Trainers.Ensemble
                 }
                 mappers[i] = vmd;
             }
-            return inputType ?? new VectorType(NumberDataViewType.Single);
+            return inputType ?? new VectorDataViewType(NumberDataViewType.Single);
         }
 
-        private bool IsValid(IValueMapperDist mapper, out VectorType inputType)
+        private bool IsValid(IValueMapperDist mapper, out VectorDataViewType inputType)
         {
             if (mapper != null
-                && mapper.InputType is VectorType inVectorType && inVectorType.ItemType == NumberDataViewType.Single
+                && mapper.InputType is VectorDataViewType inVectorType && inVectorType.ItemType == NumberDataViewType.Single
                 && mapper.OutputType == NumberDataViewType.Single
                 && mapper.DistType == NumberDataViewType.Single)
             {

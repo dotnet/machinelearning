@@ -6,15 +6,15 @@ using System;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Text;
+using Microsoft.ML.Internal.DataView;
 using Microsoft.ML.Internal.Utilities;
-using Microsoft.ML.Runtime;
 
 namespace Microsoft.ML.Data
 {
     /// <summary>
     /// The standard vector type.
     /// </summary>
-    public sealed class VectorType : StructuredDataViewType
+    public sealed class VectorDataViewType : StructuredDataViewType
     {
         /// <summary>
         /// The dimensions. This will always have at least one item. All values will be non-negative.
@@ -28,7 +28,7 @@ namespace Microsoft.ML.Data
         /// </summary>
         /// <param name="itemType">The type of the items contained in the vector.</param>
         /// <param name="size">The size of the single dimension.</param>
-        public VectorType(PrimitiveDataViewType itemType, int size = 0)
+        public VectorDataViewType(PrimitiveDataViewType itemType, int size = 0)
             : base(GetRawType(itemType))
         {
             Contracts.CheckParam(size >= 0, nameof(size));
@@ -45,10 +45,10 @@ namespace Microsoft.ML.Data
         /// <param name="dimensions">The dimensions. Note that, like <see cref="Dimensions"/>, must be non-empty, with all
         /// non-negative values. Also, because <see cref="Size"/> is the product of <see cref="Dimensions"/>, the result of
         /// multiplying all these values together must not overflow <see cref="int"/>.</param>
-        public VectorType(PrimitiveDataViewType itemType, params int[] dimensions)
+        public VectorDataViewType(PrimitiveDataViewType itemType, params int[] dimensions)
             : base(GetRawType(itemType))
         {
-            Contracts.CheckParam(Utils.Size(dimensions) > 0, nameof(dimensions));
+            Contracts.CheckParam(ArrayUtils.Size(dimensions) > 0, nameof(dimensions));
             Contracts.CheckParam(dimensions.All(d => d >= 0), nameof(dimensions));
 
             ItemType = itemType;
@@ -57,33 +57,20 @@ namespace Microsoft.ML.Data
         }
 
         /// <summary>
-        /// Creates a <see cref="VectorType"/> whose dimensionality information is the given <paramref name="template"/>'s information.
+        /// Constructs a potentially multi-dimensional vector type.
         /// </summary>
-        [BestFriend]
-        internal VectorType(PrimitiveDataViewType itemType, VectorType template)
+        /// <param name="itemType">The type of the items contained in the vector.</param>
+        /// <param name="dimensions">The dimensions. Note that, like <see cref="Dimensions"/>, must be non-empty, with all
+        /// non-negative values. Also, because <see cref="Size"/> is the product of <see cref="Dimensions"/>, the result of
+        /// multiplying all these values together must not overflow <see cref="int"/>.</param>
+        public VectorDataViewType(PrimitiveDataViewType itemType, ImmutableArray<int> dimensions)
             : base(GetRawType(itemType))
         {
-            Contracts.CheckValue(template, nameof(template));
+            Contracts.CheckParam(dimensions.Length > 0, nameof(dimensions));
+            Contracts.CheckParam(dimensions.All(d => d >= 0), nameof(dimensions));
 
             ItemType = itemType;
-            Dimensions = template.Dimensions;
-            Size = template.Size;
-        }
-
-        /// <summary>
-        /// Creates a <see cref="VectorType"/> whose dimensionality information is the given <paramref name="template"/>'s information,
-        /// concatenated with the specified <paramref name="dims"/>.
-        /// </summary>
-        [BestFriend]
-        internal VectorType(PrimitiveDataViewType itemType, VectorType template, params int[] dims)
-            : base(GetRawType(itemType))
-        {
-            Contracts.CheckValue(template, nameof(template));
-            Contracts.CheckParam(Utils.Size(dims) > 0, nameof(dims));
-            Contracts.CheckParam(dims.All(d => d >= 0), nameof(dims));
-
-            ItemType = itemType;
-            Dimensions = template.Dimensions.AddRange(dims);
+            Dimensions = dimensions;
             Size = ComputeSize(Dimensions);
         }
 
@@ -124,7 +111,7 @@ namespace Microsoft.ML.Data
         {
             if (other == this)
                 return true;
-            if (!(other is VectorType tmp))
+            if (!(other is VectorDataViewType tmp))
                 return false;
             if (!ItemType.Equals(tmp.ItemType))
                 return false;
@@ -147,7 +134,7 @@ namespace Microsoft.ML.Data
 
         public override int GetHashCode()
         {
-            int hash = Hashing.CombinedHash(ItemType.GetHashCode(), Size);
+            int hash = Hashing.CombineHash(ItemType.GetHashCode(), Size);
             hash = Hashing.CombineHash(hash, Dimensions.Length);
             for (int i = 0; i < Dimensions.Length; i++)
                 hash = Hashing.CombineHash(hash, Dimensions[i].GetHashCode());

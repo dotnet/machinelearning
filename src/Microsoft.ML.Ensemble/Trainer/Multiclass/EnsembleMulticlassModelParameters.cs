@@ -33,8 +33,8 @@ namespace Microsoft.ML.Trainers.Ensemble
                 loaderAssemblyName: typeof(EnsembleMulticlassModelParameters).Assembly.FullName);
         }
 
-        private readonly VectorType _inputType;
-        private readonly VectorType _outputType;
+        private readonly VectorDataViewType _inputType;
+        private readonly VectorDataViewType _outputType;
         private readonly IValueMapper[] _mappers;
 
         DataViewType IValueMapper.InputType => _inputType;
@@ -60,7 +60,7 @@ namespace Microsoft.ML.Trainers.Ensemble
             InitializeMappers(out _mappers, out _inputType, out _outputType);
         }
 
-        private void InitializeMappers(out IValueMapper[] mappers, out VectorType inputType, out VectorType outputType)
+        private void InitializeMappers(out IValueMapper[] mappers, out VectorDataViewType inputType, out VectorDataViewType outputType)
         {
             Host.AssertNonEmpty(Models);
 
@@ -70,7 +70,7 @@ namespace Microsoft.ML.Trainers.Ensemble
             for (int i = 0; i < Models.Length; i++)
             {
                 var vm = Models[i].Predictor as IValueMapper;
-                if (!IsValid(vm, out VectorType vmInputType, out VectorType vmOutputType))
+                if (!IsValid(vm, out VectorDataViewType vmInputType, out VectorDataViewType vmOutputType))
                     throw Host.Except("Predictor does not implement expected interface");
                 if (vmInputType.Size > 0)
                 {
@@ -88,7 +88,7 @@ namespace Microsoft.ML.Trainers.Ensemble
             Host.AssertValue(outputType);
 
             if (inputType == null)
-                inputType = new VectorType(NumberDataViewType.Single);
+                inputType = new VectorDataViewType(NumberDataViewType.Single);
         }
 
         private static EnsembleMulticlassModelParameters Create(IHostEnvironment env, ModelLoadContext ctx)
@@ -152,11 +152,11 @@ namespace Microsoft.ML.Trainers.Ensemble
             return (ValueMapper<TIn, TOut>)(Delegate)del;
         }
 
-        private bool IsValid(IValueMapper mapper, out VectorType inputType, out VectorType outputType)
+        private bool IsValid(IValueMapper mapper, out VectorDataViewType inputType, out VectorDataViewType outputType)
         {
             if (mapper != null
-                && mapper.InputType is VectorType inVectorType && inVectorType.ItemType == NumberDataViewType.Single
-                && mapper.OutputType is VectorType outVectorType
+                && mapper.InputType is VectorDataViewType inVectorType && inVectorType.ItemType == NumberDataViewType.Single
+                && mapper.OutputType is VectorDataViewType outVectorType
                 && outVectorType.Size > 0 && outVectorType.ItemType == NumberDataViewType.Single)
             {
                 inputType = inVectorType;

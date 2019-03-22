@@ -797,7 +797,7 @@ namespace Microsoft.ML.EntryPoints.Tests
             {
                 var result = ModelFileUtils.LoadLoader(mlContext, rep, new MultiFileSource(breastCancerPath), false);
                 Assert.True(result.Schema.TryGetColumnIndex("key", out int featureIdx));
-                Assert.True(result.Schema[featureIdx].Type is KeyType keyType && keyType.Count == typeof(uint).ToMaxInt());
+                Assert.True(result.Schema[featureIdx].Type is KeyDataViewType keyType && keyType.Count == typeof(uint).ToMaxInt());
             }
         }
     }

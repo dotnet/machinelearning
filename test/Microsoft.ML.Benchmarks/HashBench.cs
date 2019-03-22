@@ -88,7 +88,7 @@ namespace Microsoft.ML.Benchmarks
             var mapper = ((ITransformer)xf).GetRowToRowMapper(_inRow.Schema);
             var column = mapper.OutputSchema["Bar"];
             var outRow = mapper.GetRow(_inRow, column);
-            if (type is VectorType)
+            if (type is VectorDataViewType)
                 _vecGetter = outRow.GetGetter<VBuffer<uint>>(column);
             else
                 _getter = outRow.GetGetter<uint>(column);
@@ -110,7 +110,7 @@ namespace Microsoft.ML.Benchmarks
         private void InitDenseVecMap<T>(T[] vals, PrimitiveDataViewType itemType, int numberOfBits = 20)
         {
             var vbuf = new VBuffer<T>(vals.Length, vals);
-            InitMap(vbuf, new VectorType(itemType, vals.Length), numberOfBits, vbuf.CopyTo);
+            InitMap(vbuf, new VectorDataViewType(itemType, vals.Length), numberOfBits, vbuf.CopyTo);
         }
 
         /// <summary>
@@ -165,7 +165,7 @@ namespace Microsoft.ML.Benchmarks
         [GlobalSetup(Target = nameof(HashScalarKey))]
         public void SetupHashScalarKey()
         {
-            InitMap(6u, new KeyType(typeof(uint), 100));
+            InitMap(6u, new KeyDataViewType(typeof(uint), 100));
         }
 
         [Benchmark]
@@ -216,7 +216,7 @@ namespace Microsoft.ML.Benchmarks
         [GlobalSetup(Target = nameof(HashVectorKey))]
         public void SetupHashVectorKey()
         {
-            InitDenseVecMap(new[] { 1u, 2u, 0u, 4u, 5u }, new KeyType(typeof(uint), 100));
+            InitDenseVecMap(new[] { 1u, 2u, 0u, 4u, 5u }, new KeyDataViewType(typeof(uint), 100));
         }
 
         [Benchmark]

@@ -207,13 +207,13 @@ namespace Microsoft.ML.Tests.Scenarios.Api
             var coltypeString = TextDataViewType.Instance;
             var kindStringArray = "Testing string array as metadata.";
             var valueStringArray = "I really have no idea what these features entail.".Split(' ');
-            var coltypeStringArray = new VectorType(coltypeString, valueStringArray.Length);
+            var coltypeStringArray = new VectorDataViewType(coltypeString, valueStringArray.Length);
             var kindFloatArray = "Testing float array as metadata.";
             var valueFloatArray = new float[] { 1, 17, 7, 19, 25, 0 };
-            var coltypeFloatArray = new VectorType(coltypeFloat, valueFloatArray.Length);
+            var coltypeFloatArray = new VectorDataViewType(coltypeFloat, valueFloatArray.Length);
             var kindVBuffer = "Testing VBuffer as metadata.";
             var valueVBuffer = new VBuffer<float>(4, new float[] { 4, 6, 89, 5 });
-            var coltypeVBuffer = new VectorType(coltypeFloat, valueVBuffer.Length);
+            var coltypeVBuffer = new VectorDataViewType(coltypeFloat, valueVBuffer.Length);
 
             // Add Metadata.
             var labelColumn = autoSchema[0];
@@ -235,7 +235,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
 
             Assert.True(idv.Schema[1].Annotations.Schema.Count == 3);
             Assert.True(idv.Schema[1].Annotations.Schema[0].Name == kindStringArray);
-            Assert.True(idv.Schema[1].Annotations.Schema[0].Type is VectorType vectorType && vectorType.ItemType is TextDataViewType);
+            Assert.True(idv.Schema[1].Annotations.Schema[0].Type is VectorDataViewType vectorType && vectorType.ItemType is TextDataViewType);
             Assert.Throws<ArgumentOutOfRangeException>(() => idv.Schema[1].Annotations.Schema[kindFloat]);
 
             float retrievedFloat = 0;

@@ -398,7 +398,7 @@ namespace Microsoft.ML.Transforms
                     }
 
                     var colType = schema[colSrc].Type;
-                    if (colType is VectorType vectorType && !vectorType.IsKnownSize)
+                    if (colType is VectorDataViewType vectorType && !vectorType.IsKnownSize)
                     {
                         throw _host.ExceptUserArg(nameof(MutualInformationFeatureSelectingEstimator.Options.Columns),
                             "Variable length column '{0}' is not allowed", colName);

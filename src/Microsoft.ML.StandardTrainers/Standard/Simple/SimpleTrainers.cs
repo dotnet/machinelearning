@@ -77,7 +77,7 @@ namespace Microsoft.ML.Trainers
             _instanceLock = new object();
             _random = RandomUtils.Create(_seed);
 
-            _inputType = new VectorType(NumberDataViewType.Single);
+            _inputType = new VectorDataViewType(NumberDataViewType.Single);
         }
 
         /// <summary>
@@ -94,7 +94,7 @@ namespace Microsoft.ML.Trainers
             _instanceLock = new object();
             _random = RandomUtils.Create(_seed);
 
-            _inputType = new VectorType(NumberDataViewType.Single);
+            _inputType = new VectorDataViewType(NumberDataViewType.Single);
         }
 
         private static RandomModelParameters Create(IHostEnvironment env, ModelLoadContext ctx)
@@ -335,7 +335,7 @@ namespace Microsoft.ML.Trainers
             _prob = prob;
             _raw = 2 * _prob - 1;       // This could be other functions -- logodds for instance
 
-            _inputType = new VectorType(NumberDataViewType.Single);
+            _inputType = new VectorDataViewType(NumberDataViewType.Single);
         }
 
         private PriorModelParameters(IHostEnvironment env, ModelLoadContext ctx)
@@ -349,7 +349,7 @@ namespace Microsoft.ML.Trainers
 
             _raw = 2 * _prob - 1;
 
-            _inputType = new VectorType(NumberDataViewType.Single);
+            _inputType = new VectorDataViewType(NumberDataViewType.Single);
         }
 
         private static PriorModelParameters Create(IHostEnvironment env, ModelLoadContext ctx)

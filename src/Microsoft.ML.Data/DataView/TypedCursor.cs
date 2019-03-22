@@ -128,7 +128,7 @@ namespace Microsoft.ML.Data
             var schema = _data.Schema;
             for (int i = 0; i < n; i++)
             {
-                if (_columns[i].ColumnType is VectorType)
+                if (_columns[i].ColumnType is VectorDataViewType)
                     _peeks[i] = ApiUtils.GeneratePeek<TypedCursorable<TRow>, TRow>(_columns[i]);
                 _pokes[i] = ApiUtils.GeneratePoke<TypedCursorable<TRow>, TRow>(_columns[i]);
             }
@@ -142,9 +142,9 @@ namespace Microsoft.ML.Data
         {
             InternalSchemaDefinition.GetVectorAndItemType(memberInfo, out bool isVector, out Type itemType);
             if (isVector)
-                return colType is VectorType vectorType && vectorType.ItemType.RawType == itemType;
+                return colType is VectorDataViewType vectorType && vectorType.ItemType.RawType == itemType;
             else
-                return !(colType is VectorType) && colType.RawType == itemType;
+                return !(colType is VectorDataViewType) && colType.RawType == itemType;
         }
 
         /// <summary>
@@ -275,7 +275,7 @@ namespace Microsoft.ML.Data
                 Func<DataViewRow, int, Delegate, Delegate, Action<TRow>> del;
                 if (fieldType.IsArray)
                 {
-                    Ch.Assert(colType is VectorType);
+                    Ch.Assert(colType is VectorDataViewType);
                     // VBuffer<ReadOnlyMemory<char>> -> String[]
                     if (fieldType.GetElementType() == typeof(string))
                     {
@@ -291,7 +291,7 @@ namespace Microsoft.ML.Data
                     del = CreateDirectVBufferSetter<int>;
                     genericType = fieldType.GetElementType();
                 }
-                else if (colType is VectorType vectorType)
+                else if (colType is VectorDataViewType vectorType)
                 {
                     // VBuffer<T> -> VBuffer<T>
                     // REVIEW: Do we care about accomodating VBuffer<string> -> VBuffer<ReadOnlyMemory<char>>?

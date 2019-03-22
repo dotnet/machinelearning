@@ -598,7 +598,7 @@ namespace Microsoft.ML.Data
             return View.GetRowCursorSet(columnsNeeded, n, rand);
         }
 
-        VectorType ITransposeDataView.GetSlotType(int col) => _tview?.GetSlotType(col);
+        VectorDataViewType ITransposeDataView.GetSlotType(int col) => _tview?.GetSlotType(col);
 
         SlotCursor ITransposeDataView.GetSlotCursor(int col)
         {

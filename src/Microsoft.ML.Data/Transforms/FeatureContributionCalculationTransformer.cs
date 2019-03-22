@@ -206,7 +206,7 @@ namespace Microsoft.ML.Transforms
             private readonly FeatureContributionCalculatingTransformer _parent;
             private readonly VBuffer<ReadOnlyMemory<char>> _slotNames;
             private readonly int _featureColumnIndex;
-            private readonly VectorType _featureColumnType;
+            private readonly VectorDataViewType _featureColumnType;
 
             public Mapper(FeatureContributionCalculatingTransformer parent, DataViewSchema schema)
                 : base(parent.Host, parent, schema)
@@ -216,7 +216,7 @@ namespace Microsoft.ML.Transforms
                 // Check that the featureColumn is present and has the expected type.
                 if (!schema.TryGetColumnIndex(_parent.ColumnPairs[0].inputColumnName, out _featureColumnIndex))
                     throw Host.ExceptSchemaMismatch(nameof(schema), "input", _parent.ColumnPairs[0].inputColumnName);
-                _featureColumnType = schema[_featureColumnIndex].Type as VectorType;
+                _featureColumnType = schema[_featureColumnIndex].Type as VectorDataViewType;
                 if (_featureColumnType == null || _featureColumnType.ItemType != NumberDataViewType.Single)
                     throw Host.ExceptSchemaMismatch(nameof(schema), "feature", _parent.ColumnPairs[0].inputColumnName, "vector of float.", _featureColumnType.ItemType.ToString());
 
@@ -233,7 +233,7 @@ namespace Microsoft.ML.Transforms
                 // Add FeatureContributions column.
                 var builder = new DataViewSchema.Annotations.Builder();
                 builder.Add(InputSchema[_featureColumnIndex].Annotations, x => x == AnnotationUtils.Kinds.SlotNames);
-                return new[] { new DataViewSchema.DetachedColumn(DefaultColumnNames.FeatureContributions, new VectorType(NumberDataViewType.Single, _featureColumnType.Size), builder.ToAnnotations()) };
+                return new[] { new DataViewSchema.DetachedColumn(DefaultColumnNames.FeatureContributions, new VectorDataViewType(NumberDataViewType.Single, _featureColumnType.Size), builder.ToAnnotations()) };
             }
 
             protected override Delegate MakeGetter(DataViewRow input, int iinfo, Func<int, bool> active, out Action disposer)

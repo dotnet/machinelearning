@@ -63,7 +63,7 @@ namespace Microsoft.ML.Data
 
             if (trainSchema?.Label == null)
                 return mapper; // We don't even have a label identified in a training schema.
-            var keyType = trainSchema.Label.Value.Annotations.Schema.GetColumnOrNull(AnnotationUtils.Kinds.KeyValues)?.Type as VectorType;
+            var keyType = trainSchema.Label.Value.Annotations.Schema.GetColumnOrNull(AnnotationUtils.Kinds.KeyValues)?.Type as VectorDataViewType;
             if (keyType == null || !CanWrap(mapper, keyType))
                 return mapper;
 
@@ -98,7 +98,7 @@ namespace Microsoft.ML.Data
             if (mapper.OutputSchema[scoreIdx].Annotations.Schema.GetColumnOrNull(AnnotationUtils.Kinds.TrainingLabelValues)?.Type != null)
                 return false; // The mapper publishes a score column, and already produces its own slot names.
 
-            return labelNameType is VectorType vectorType && vectorType.Size == 2;
+            return labelNameType is VectorDataViewType vectorType && vectorType.Size == 2;
         }
 
         private static ISchemaBoundMapper WrapCore<T>(IHostEnvironment env, ISchemaBoundMapper mapper, RoleMappedSchema trainSchema)
@@ -111,7 +111,7 @@ namespace Microsoft.ML.Data
             var labelColumn = trainSchema.Label.Value;
 
             // Key values from the training schema label, will map to slot names of the score output.
-            var type = labelColumn.Annotations.Schema.GetColumnOrNull(AnnotationUtils.Kinds.KeyValues)?.Type as VectorType;
+            var type = labelColumn.Annotations.Schema.GetColumnOrNull(AnnotationUtils.Kinds.KeyValues)?.Type as VectorDataViewType;
             env.AssertValue(type);
 
             // Wrap the fetching of the metadata as a simple getter.
@@ -236,7 +236,7 @@ namespace Microsoft.ML.Data
                 };
             scoreGetter = scoreFn;
 
-            if (Bindings.PredColType is KeyType)
+            if (Bindings.PredColType is KeyDataViewType)
             {
                 ValueGetter<uint> predFnAsKey =
                     (ref uint dst) =>
@@ -276,7 +276,7 @@ namespace Microsoft.ML.Data
             JToken falseVal = 0;
             JToken nullVal = -1;
 
-            if (!(Bindings.PredColType is KeyType))
+            if (!(Bindings.PredColType is KeyDataViewType))
             {
                 trueVal = true;
                 falseVal = nullVal = false; // Let's pretend those pesky nulls are not there.
@@ -290,7 +290,7 @@ namespace Microsoft.ML.Data
             var labelNameBindableMapper = mapper.Bindable as MulticlassClassificationScorer.LabelNameBindableMapper;
             if (labelNameBindableMapper == null)
                 return BooleanDataViewType.Instance;
-            return new KeyType(typeof(uint), labelNameBindableMapper.Type.Size);
+            return new KeyDataViewType(typeof(uint), labelNameBindableMapper.Type.Size);
         }
 
         private static bool OutputTypeMatches(DataViewType scoreType)

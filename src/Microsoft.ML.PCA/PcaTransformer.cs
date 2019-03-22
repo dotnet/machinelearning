@@ -102,7 +102,7 @@ namespace Microsoft.ML.Transforms
             public float[][] Eigenvectors;
             public float[] MeanProjected;
 
-            public DataViewType OutputType => new VectorType(NumberDataViewType.Single, Rank);
+            public DataViewType OutputType => new VectorDataViewType(NumberDataViewType.Single, Rank);
 
             public TransformInfo(int rank, int dim)
             {
@@ -507,7 +507,7 @@ namespace Microsoft.ML.Transforms
         {
             string inputSchema; // just used for the excpections
 
-            if (!(type is VectorType vectorType && vectorType.Size > 1 && vectorType.ItemType.Equals(NumberDataViewType.Single)))
+            if (!(type is VectorDataViewType vectorType && vectorType.Size > 1 && vectorType.ItemType.Equals(NumberDataViewType.Single)))
                 throw ectx.ExceptSchemaMismatch(nameof(inputSchema), "input", name, "known-size vector of float of two or more items", type.ToString());
         }
 
@@ -552,7 +552,7 @@ namespace Microsoft.ML.Transforms
                     if (colSchemaInfo.InputType.GetVectorSize() != _parent._transformInfos[i].Dimension)
                     {
                         throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", colPair.inputColumnName,
-                            new VectorType(NumberDataViewType.Single, _parent._transformInfos[i].Dimension).ToString(), colSchemaInfo.InputType.ToString());
+                            new VectorDataViewType(NumberDataViewType.Single, _parent._transformInfos[i].Dimension).ToString(), colSchemaInfo.InputType.ToString());
                     }
                 }
             }

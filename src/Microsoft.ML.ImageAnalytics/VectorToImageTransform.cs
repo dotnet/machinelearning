@@ -304,12 +304,12 @@ namespace Microsoft.ML.Transforms.Image
         private protected override void CheckInputColumn(DataViewSchema inputSchema, int col, int srcCol)
         {
             var inputColName = _columns[col].InputColumnName;
-            var vectorType = inputSchema[srcCol].Type as VectorType;
+            var vectorType = inputSchema[srcCol].Type as VectorDataViewType;
             if (vectorType == null)
                 throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", inputColName, "image", inputSchema[srcCol].Type.ToString());
 
             if (vectorType.GetValueCount() != _columns[col].ImageHeight * _columns[col].ImageWidth * _columns[col].Planes)
-                throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", inputColName, new VectorType(vectorType.ItemType, _columns[col].ImageHeight, _columns[col].ImageWidth, _columns[col].Planes).ToString(), vectorType.ToString());
+                throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", inputColName, new VectorDataViewType(vectorType.ItemType, _columns[col].ImageHeight, _columns[col].ImageWidth, _columns[col].Planes).ToString(), vectorType.ToString());
         }
 
         private sealed class Mapper : OneToOneMapperBase

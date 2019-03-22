@@ -120,7 +120,7 @@ namespace Microsoft.ML.EntryPoints
             var col = schema.GetColumnOrNull(colName);
             if (!col.HasValue)
                 return null;
-            var type = col.Value.Annotations.Schema.GetColumnOrNull(AnnotationUtils.Kinds.KeyValues)?.Type as VectorType;
+            var type = col.Value.Annotations.Schema.GetColumnOrNull(AnnotationUtils.Kinds.KeyValues)?.Type as VectorDataViewType;
             if (type == null || !type.IsKnownSize || !(type.ItemType is TextDataViewType))
                 return null;
             var metadata = default(VBuffer<ReadOnlyMemory<char>>);
@@ -165,10 +165,10 @@ namespace Microsoft.ML.EntryPoints
                 if (!featNames.Add(col.Name))
                     continue;
 
-                if (!(col.Type is VectorType vectorType) || vectorType.Size > 0)
+                if (!(col.Type is VectorDataViewType vectorType) || vectorType.Size > 0)
                 {
                     var type = col.Type.GetItemType();
-                    if (type is KeyType keyType)
+                    if (type is KeyDataViewType keyType)
                     {
                         if (keyType.Count > 0)
                         {
@@ -237,7 +237,7 @@ namespace Microsoft.ML.EntryPoints
                 throw host.ExceptSchemaMismatch(nameof(input), "predicted label", input.LabelColumn);
 
             var labelType = labelCol.Value.Type;
-            if (labelType is KeyType || labelType is BooleanDataViewType)
+            if (labelType is KeyDataViewType || labelType is BooleanDataViewType)
             {
                 var nop = NopTransform.CreateIfNeeded(env, input.Data);
                 return new CommonOutputs.TransformOutput { Model = new TransformModelImpl(env, nop, input.Data), OutputData = nop };

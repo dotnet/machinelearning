@@ -132,7 +132,7 @@ namespace Microsoft.ML.Trainers
                     throw ch.Except("Incompatible labelColumn column type {0}, must be {1}", typeLab, NumberDataViewType.Single);
 
                 // The feature type must be a vector of Float.
-                var typeFeat = examples.Schema.Feature.Value.Type as VectorType;
+                var typeFeat = examples.Schema.Feature.Value.Type as VectorDataViewType;
                 if (typeFeat == null || !typeFeat.IsKnownSize)
                     throw ch.Except("Incompatible feature column type {0}, must be known sized vector of {1}", typeFeat, NumberDataViewType.Single);
                 if (typeFeat.ItemType != NumberDataViewType.Single)

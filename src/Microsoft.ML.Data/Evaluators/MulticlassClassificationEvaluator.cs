@@ -74,7 +74,7 @@ namespace Microsoft.ML.Data
         private protected override void CheckScoreAndLabelTypes(RoleMappedSchema schema)
         {
             var score = schema.GetUniqueColumn(AnnotationUtils.Const.ScoreValueKind.Score);
-            var scoreType = score.Type as VectorType;
+            var scoreType = score.Type as VectorDataViewType;
             if (scoreType == null || scoreType.Size < 2 || scoreType.ItemType != NumberDataViewType.Single)
                 throw Host.ExceptSchemaMismatch(nameof(schema), "score", score.Name, "vector of two or more items of type float", scoreType.ToString());
             Host.CheckParam(schema.Label.HasValue, nameof(schema), "Could not find the label column");
@@ -97,7 +97,7 @@ namespace Microsoft.ML.Data
             ReadOnlyMemory<char>[] names;
             // Get the label names from the score column if they exist, or use the default names.
             var scoreInfo = schema.GetUniqueColumn(AnnotationUtils.Const.ScoreValueKind.Score);
-            var mdType = schema.Schema[scoreInfo.Index].Annotations.Schema.GetColumnOrNull(AnnotationUtils.Kinds.SlotNames)?.Type as VectorType;
+            var mdType = schema.Schema[scoreInfo.Index].Annotations.Schema.GetColumnOrNull(AnnotationUtils.Kinds.SlotNames)?.Type as VectorDataViewType;
             var labelNames = default(VBuffer<ReadOnlyMemory<char>>);
             if (mdType != null && mdType.IsKnownSize && mdType.ItemType is TextDataViewType)
             {
@@ -584,11 +584,11 @@ namespace Microsoft.ML.Data
             else
                 _classNames = Utils.BuildArray(_numClasses, i => i.ToString().AsMemory());
 
-            var key = new KeyType(typeof(uint), _numClasses);
+            var key = new KeyDataViewType(typeof(uint), _numClasses);
             _types[AssignedCol] = key;
             _types[LogLossCol] = NumberDataViewType.Double;
-            _types[SortedScoresCol] = new VectorType(NumberDataViewType.Single, _numClasses);
-            _types[SortedClassesCol] = new VectorType(key, _numClasses);
+            _types[SortedScoresCol] = new VectorDataViewType(NumberDataViewType.Single, _numClasses);
+            _types[SortedClassesCol] = new VectorDataViewType(key, _numClasses);
         }
 
         private MulticlassPerInstanceEvaluator(IHostEnvironment env, ModelLoadContext ctx, DataViewSchema schema)
@@ -613,11 +613,11 @@ namespace Microsoft.ML.Data
                 _classNames = Utils.BuildArray(_numClasses, i => i.ToString().AsMemory());
 
             _types = new DataViewType[4];
-            var key = new KeyType(typeof(uint), _numClasses);
+            var key = new KeyDataViewType(typeof(uint), _numClasses);
             _types[AssignedCol] = key;
             _types[LogLossCol] = NumberDataViewType.Double;
-            _types[SortedScoresCol] = new VectorType(NumberDataViewType.Single, _numClasses);
-            _types[SortedClassesCol] = new VectorType(key, _numClasses);
+            _types[SortedScoresCol] = new VectorDataViewType(NumberDataViewType.Single, _numClasses);
+            _types[SortedClassesCol] = new VectorDataViewType(key, _numClasses);
         }
 
         public static MulticlassPerInstanceEvaluator Create(IHostEnvironment env, ModelLoadContext ctx, DataViewSchema schema)
@@ -812,7 +812,7 @@ namespace Microsoft.ML.Data
             Host.AssertNonEmpty(ScoreCol);
             Host.AssertNonEmpty(LabelCol);
 
-            var scoreType = schema[ScoreIndex].Type as VectorType;
+            var scoreType = schema[ScoreIndex].Type as VectorDataViewType;
             if (scoreType == null || scoreType.Size < 2 || scoreType.ItemType != NumberDataViewType.Single)
                 throw Host.ExceptSchemaMismatch(nameof(schema), "score", ScoreCol, "vector of two or more items of type float", scoreType.ToString());
             var labelType = schema[LabelIndex].Type;
@@ -1003,7 +1003,7 @@ namespace Microsoft.ML.Data
                 throw Host.ExceptSchemaMismatch(nameof(schema), "label", labelName);
             var labelCol = perInst.Schema[labelColIndex];
             var labelType = labelCol.Type;
-            if (labelType is KeyType && (!labelCol.HasKeyValues() || labelType.RawType != typeof(uint)))
+            if (labelType is KeyDataViewType && (!labelCol.HasKeyValues() || labelType.RawType != typeof(uint)))
             {
                 perInst = LambdaColumnMapper.Create(Host, "ConvertToDouble", perInst, labelName,
                     labelName, labelCol.Type, NumberDataViewType.Double,

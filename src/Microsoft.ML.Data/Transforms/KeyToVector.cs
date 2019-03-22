@@ -238,22 +238,22 @@ namespace Microsoft.ML.Transforms
 
             private readonly KeyToVectorMappingTransformer _parent;
             private readonly ColInfo[] _infos;
-            private readonly VectorType[] _types;
+            private readonly VectorDataViewType[] _types;
 
             public Mapper(KeyToVectorMappingTransformer parent, DataViewSchema inputSchema)
                 : base(parent.Host.Register(nameof(Mapper)), parent, inputSchema)
             {
                 _parent = parent;
                 _infos = CreateInfos(inputSchema);
-                _types = new VectorType[_parent.ColumnPairs.Length];
+                _types = new VectorDataViewType[_parent.ColumnPairs.Length];
                 for (int i = 0; i < _parent.ColumnPairs.Length; i++)
                 {
                     int valueCount = _infos[i].TypeSrc.GetValueCount();
                     int keyCount = _infos[i].TypeSrc.GetItemType().GetKeyCountAsInt32(Host);
                     if (_parent._columns[i].OutputCountVector || valueCount == 1)
-                        _types[i] = new VectorType(NumberDataViewType.Single, keyCount);
+                        _types[i] = new VectorDataViewType(NumberDataViewType.Single, keyCount);
                     else
-                        _types[i] = new VectorType(NumberDataViewType.Single, valueCount, keyCount);
+                        _types[i] = new VectorDataViewType(NumberDataViewType.Single, valueCount, keyCount);
                 }
             }
 
@@ -294,11 +294,11 @@ namespace Microsoft.ML.Transforms
                 var srcType = _infos[iinfo].TypeSrc;
                 int srcValueCount = srcType.GetValueCount();
 
-                VectorType typeNames = null;
+                VectorDataViewType typeNames = null;
 
                 var keyValuesColumn = inputMetadata.Schema.GetColumnOrNull(AnnotationUtils.Kinds.KeyValues);
                 if (keyValuesColumn.HasValue)
-                    typeNames = keyValuesColumn.Value.Type as VectorType;
+                    typeNames = keyValuesColumn.Value.Type as VectorDataViewType;
                 if (typeNames == null || !typeNames.IsKnownSize || !(typeNames.ItemType is TextDataViewType) ||
                     typeNames.Size != srcType.GetItemType().GetKeyCountAsInt32(Host))
                 {
@@ -310,7 +310,7 @@ namespace Microsoft.ML.Transforms
                     if (typeNames != null)
                     {
                         var getter = inputMetadata.GetGetter<VBuffer<ReadOnlyMemory<char>>>(keyValuesColumn.Value);
-                        var slotNamesType = new VectorType(TextDataViewType.Instance, _types[iinfo]);
+                        var slotNamesType = new VectorDataViewType(TextDataViewType.Instance, _types[iinfo].Dimensions);
                         builder.AddSlotNames(slotNamesType.Size, getter);
                     }
                 }
@@ -322,7 +322,7 @@ namespace Microsoft.ML.Transforms
                         {
                             GetSlotNames(iinfo, ref dst);
                         };
-                        var slotNamesType = new VectorType(TextDataViewType.Instance, _types[iinfo]);
+                        var slotNamesType = new VectorDataViewType(TextDataViewType.Instance, _types[iinfo].Dimensions);
                         builder.Add(AnnotationUtils.Kinds.SlotNames, slotNamesType, getter);
                     }
                 }
@@ -350,7 +350,7 @@ namespace Microsoft.ML.Transforms
             private void GetSlotNames(int iinfo, ref VBuffer<ReadOnlyMemory<char>> dst)
             {
                 Host.Assert(0 <= iinfo && iinfo < _infos.Length);
-                var typeSrc = _infos[iinfo].TypeSrc as VectorType;
+                var typeSrc = _infos[iinfo].TypeSrc as VectorDataViewType;
                 Host.Assert(typeSrc != null && typeSrc.IsKnownSize);
 
                 // Size one should have been treated the same as Bag (by the caller).
@@ -362,7 +362,7 @@ namespace Microsoft.ML.Transforms
 
                 var inputMetadata = InputSchema[_infos[iinfo].InputColumnName].Annotations;
                 Contracts.AssertValue(inputMetadata);
-                var typeSlotSrc = inputMetadata.Schema.GetColumnOrNull(AnnotationUtils.Kinds.SlotNames)?.Type as VectorType;
+                var typeSlotSrc = inputMetadata.Schema.GetColumnOrNull(AnnotationUtils.Kinds.SlotNames)?.Type as VectorDataViewType;
                 if (typeSlotSrc != null && typeSlotSrc.Size == typeSrc.Size && typeSlotSrc.ItemType is TextDataViewType)
                 {
                     inputMetadata.GetValue(AnnotationUtils.Kinds.SlotNames, ref namesSlotSrc);
@@ -439,7 +439,7 @@ namespace Microsoft.ML.Transforms
                 disposer = null;
 
                 var info = _infos[iinfo];
-                if (!(info.TypeSrc is VectorType))
+                if (!(info.TypeSrc is VectorDataViewType))
                     return MakeGetterOne(input, iinfo);
                 if (_parent._columns[iinfo].OutputCountVector)
                     return MakeGetterBag(input, iinfo);
@@ -453,7 +453,7 @@ namespace Microsoft.ML.Transforms
             private ValueGetter<VBuffer<float>> MakeGetterOne(DataViewRow input, int iinfo)
             {
                 Host.AssertValue(input);
-                KeyType keyTypeSrc = _infos[iinfo].TypeSrc as KeyType;
+                KeyDataViewType keyTypeSrc = _infos[iinfo].TypeSrc as KeyDataViewType;
                 Host.Assert(keyTypeSrc != null);
                 int size = keyTypeSrc.GetCountAsInt32(Host);
                 Host.Assert(size == _types[iinfo].Size);
@@ -487,10 +487,10 @@ namespace Microsoft.ML.Transforms
             {
                 Host.AssertValue(input);
                 var info = _infos[iinfo];
-                VectorType srcVectorType = info.TypeSrc as VectorType;
+                VectorDataViewType srcVectorType = info.TypeSrc as VectorDataViewType;
                 Host.Assert(srcVectorType != null);
 
-                KeyType keyTypeSrc = srcVectorType.ItemType as KeyType;
+                KeyDataViewType keyTypeSrc = srcVectorType.ItemType as KeyDataViewType;
                 Host.Assert(keyTypeSrc != null);
                 Host.Assert(_parent._columns[iinfo].OutputCountVector);
                 int size = keyTypeSrc.GetCountAsInt32(Host);
@@ -533,10 +533,10 @@ namespace Microsoft.ML.Transforms
             {
                 Host.AssertValue(input);
                 var info = _infos[iinfo];
-                VectorType srcVectorType = info.TypeSrc as VectorType;
+                VectorDataViewType srcVectorType = info.TypeSrc as VectorDataViewType;
                 Host.Assert(srcVectorType != null);
 
-                KeyType keyTypeSrc = srcVectorType.ItemType as KeyType;
+                KeyDataViewType keyTypeSrc = srcVectorType.ItemType as KeyDataViewType;
                 Host.Assert(keyTypeSrc != null);
                 Host.Assert(!_parent._columns[iinfo].OutputCountVector);
 
@@ -661,7 +661,7 @@ namespace Microsoft.ML.Transforms
                 int keyCount = srcItemType.GetKeyCountAsInt32(Host);
                 Host.Assert(keyCount > 0);
                 // If the input type is scalar, we can just use the fanout function.
-                if (!(srcType is VectorType srcVectorType))
+                if (!(srcType is VectorDataViewType srcVectorType))
                     return PfaUtils.Call("cast.fanoutDouble", srcToken, 0, keyCount, false);
 
                 JToken arrType = PfaUtils.Type.Array(PfaUtils.Type.Double);

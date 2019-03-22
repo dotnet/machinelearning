@@ -104,7 +104,7 @@ namespace Microsoft.ML.Transforms
         private protected override void CheckInputColumn(DataViewSchema inputSchema, int col, int srcCol)
         {
             var inType = inputSchema[srcCol].Type;
-            if (!(inType is VectorType))
+            if (!(inType is VectorDataViewType))
                 throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", inputSchema[srcCol].Name, "vector", inType.ToString());
         }
 
@@ -164,7 +164,7 @@ namespace Microsoft.ML.Transforms
                     inputSchema.TryGetColumnIndex(_parent.ColumnPairs[i].inputColumnName, out _srcCols[i]);
                     var srcCol = inputSchema[_srcCols[i]];
                     _srcTypes[i] = srcCol.Type;
-                    _types[i] = new VectorType((PrimitiveDataViewType)srcCol.Type.GetItemType());
+                    _types[i] = new VectorDataViewType((PrimitiveDataViewType)srcCol.Type.GetItemType());
                     _isNAs[i] = GetIsNADelegate(srcCol.Type);
                 }
             }

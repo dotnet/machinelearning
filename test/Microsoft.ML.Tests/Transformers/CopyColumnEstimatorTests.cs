@@ -138,8 +138,8 @@ namespace Microsoft.ML.Tests
             var names1 = default(VBuffer<ReadOnlyMemory<char>>);
             var names2 = default(VBuffer<ReadOnlyMemory<char>>);
             var type1 = result.Schema[termIndex].Type;
-            var itemType1 = (type1 as VectorType)?.ItemType ?? type1;
-            var key = itemType1 as KeyType;
+            var itemType1 = (type1 as VectorDataViewType)?.ItemType ?? type1;
+            var key = itemType1 as KeyDataViewType;
             Assert.NotNull(key);
             Assert.InRange<ulong>(key.Count, 0, int.MaxValue);
             int size = (int)key.Count;

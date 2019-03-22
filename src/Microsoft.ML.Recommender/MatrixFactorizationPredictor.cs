@@ -89,7 +89,7 @@ namespace Microsoft.ML.Trainers.Recommender
         internal DataViewType MatrixColumnIndexType { get; }
         internal DataViewType MatrixRowIndexType { get; }
 
-        internal MatrixFactorizationModelParameters(IHostEnvironment env, SafeTrainingAndModelBuffer buffer, KeyType matrixColumnIndexType, KeyType matrixRowIndexType)
+        internal MatrixFactorizationModelParameters(IHostEnvironment env, SafeTrainingAndModelBuffer buffer, KeyDataViewType matrixColumnIndexType, KeyDataViewType matrixRowIndexType)
         {
             Contracts.CheckValue(env, nameof(env));
             _host = env.Register(RegistrationName);
@@ -145,8 +145,8 @@ namespace Microsoft.ML.Trainers.Recommender
             _leftFactorMatrix = Utils.ReadSingleArray(ctx.Reader, checked(NumberOfRows * ApproximationRank));
             _rightFactorMatrix = Utils.ReadSingleArray(ctx.Reader, checked(NumberOfColumns * ApproximationRank));
 
-            MatrixColumnIndexType = new KeyType(typeof(uint), NumberOfColumns);
-            MatrixRowIndexType = new KeyType(typeof(uint), NumberOfRows);
+            MatrixColumnIndexType = new KeyDataViewType(typeof(uint), NumberOfColumns);
+            MatrixRowIndexType = new KeyDataViewType(typeof(uint), NumberOfRows);
         }
 
         /// <summary>

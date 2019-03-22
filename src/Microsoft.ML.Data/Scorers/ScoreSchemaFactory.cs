@@ -84,7 +84,7 @@ namespace Microsoft.ML.Data
             Contracts.AssertValue(quantiles);
 
             // Create a schema using standard function. The produced schema will be modified by adding one metadata column.
-            var partialSchema = Create(new VectorType(scoreType as PrimitiveDataViewType, quantiles.Length), AnnotationUtils.Const.ScoreColumnKind.QuantileRegression);
+            var partialSchema = Create(new VectorDataViewType(scoreType as PrimitiveDataViewType, quantiles.Length), AnnotationUtils.Const.ScoreColumnKind.QuantileRegression);
 
             var metadataBuilder = new DataViewSchema.Annotations.Builder();
             // Add the extra metadata.

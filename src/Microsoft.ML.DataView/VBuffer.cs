@@ -4,8 +4,9 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using Microsoft.ML.Internal.DataView;
 using Microsoft.ML.Internal.Utilities;
-using Microsoft.ML.Runtime;
 
 namespace Microsoft.ML.Data
 {
@@ -56,7 +57,7 @@ namespace Microsoft.ML.Data
         {
             get
             {
-                Contracts.Assert(_count <= Length);
+                Debug.Assert(_count <= Length);
                 return _count == Length;
             }
         }
@@ -67,8 +68,7 @@ namespace Microsoft.ML.Data
         public VBuffer(int length, T[] values, int[] indices = null)
         {
             Contracts.CheckParam(length >= 0, nameof(length));
-            Contracts.CheckParam(Utils.Size(values) >= length, nameof(values));
-            Contracts.CheckValueOrNull(indices);
+            Contracts.CheckParam(ArrayUtils.Size(values) >= length, nameof(values));
 
             Length = length;
             _count = length;
@@ -83,8 +83,8 @@ namespace Microsoft.ML.Data
         {
             Contracts.CheckParam(length >= 0, nameof(length));
             Contracts.CheckParam(0 <= count && count <= length, nameof(count));
-            Contracts.CheckParam(Utils.Size(values) >= count, nameof(values));
-            Contracts.CheckParam(count == length || Utils.Size(indices) >= count, nameof(indices));
+            Contracts.CheckParam(ArrayUtils.Size(values) >= count, nameof(values));
+            Contracts.CheckParam(count == length || ArrayUtils.Size(indices) >= count, nameof(indices));
 
 #if DEBUG // REVIEW: This validation should really use "Checks" and be in release code, but it is not cheap.
             if (0 < count && count < length)
@@ -98,7 +98,7 @@ namespace Microsoft.ML.Data
                     res |= cur - tmp - 1; // Make sure the gap is not negative.
                     res |= cur;
                 }
-                Contracts.Assert(res >= 0 && cur < length);
+                Debug.Assert(res >= 0 && cur < length);
             }
 #endif
 
@@ -136,7 +136,7 @@ namespace Microsoft.ML.Data
                     _values.AsSpan(0, Length).CopyTo(editor.Values);
                 }
                 dst = editor.Commit();
-                Contracts.Assert(dst.IsDense);
+                Debug.Assert(dst.IsDense);
             }
             else
             {
@@ -165,16 +165,16 @@ namespace Microsoft.ML.Data
                     _values.AsSpan(srcMin, length).CopyTo(editor.Values);
                 }
                 dst = editor.Commit();
-                Contracts.Assert(dst.IsDense);
+                Debug.Assert(dst.IsDense);
             }
             else
             {
                 int copyCount = 0;
                 if (_count > 0)
                 {
-                    int copyMin = _indices.FindIndexSorted(0, _count, srcMin);
-                    int copyLim = _indices.FindIndexSorted(copyMin, _count, srcMin + length);
-                    Contracts.Assert(copyMin <= copyLim);
+                    int copyMin = ArrayUtils.FindIndexSorted(_indices, 0, _count, srcMin);
+                    int copyLim = ArrayUtils.FindIndexSorted(_indices, copyMin, _count, srcMin + length);
+                    Debug.Assert(copyMin <= copyLim);
                     copyCount = copyLim - copyMin;
                     var editor = VBufferEditor.Create(ref dst, length, copyCount);
                     if (copyCount > 0)
@@ -226,10 +226,10 @@ namespace Microsoft.ML.Data
             for (int islot = 0; islot < _count; islot++)
             {
                 int slot = _indices[islot];
-                Contracts.Assert(slot >= iv);
+                Debug.Assert(slot >= iv);
                 while (iv < slot)
                     dst[ivDst + iv++] = defaultValue;
-                Contracts.Assert(iv == slot);
+                Debug.Assert(iv == slot);
                 dst[ivDst + iv++] = _values[islot];
             }
             while (iv < Length)
@@ -241,8 +241,8 @@ namespace Microsoft.ML.Data
         /// </summary>
         public static void Copy(T[] src, int srcIndex, ref VBuffer<T> dst, int length)
         {
-            Contracts.CheckParam(0 <= length && length <= Utils.Size(src), nameof(length));
-            Contracts.CheckParam(0 <= srcIndex && srcIndex <= Utils.Size(src) - length, nameof(srcIndex));
+            Contracts.CheckParam(0 <= length && length <= ArrayUtils.Size(src), nameof(length));
+            Contracts.CheckParam(0 <= srcIndex && srcIndex <= ArrayUtils.Size(src) - length, nameof(srcIndex));
             var editor = VBufferEditor.Create(ref dst, length, length);
             if (length > 0)
             {
@@ -253,12 +253,12 @@ namespace Microsoft.ML.Data
 
         public IEnumerable<KeyValuePair<int, T>> Items(bool all = false)
         {
-            return VBufferUtils.Items(_values, _indices, Length, _count, all);
+            return Items(_values, _indices, Length, _count, all);
         }
 
         public IEnumerable<T> DenseValues()
         {
-            return VBufferUtils.DenseValues(_values, _indices, Length, _count);
+            return DenseValues(_values, _indices, Length, _count);
         }
 
         public void GetItemOrDefault(int slot, ref T dst)
@@ -268,7 +268,7 @@ namespace Microsoft.ML.Data
             int index;
             if (IsDense)
                 dst = _values[slot];
-            else if (_count > 0 && _indices.TryFindIndexSorted(0, _count, slot, out index))
+            else if (_count > 0 && ArrayUtils.TryFindIndexSorted(_indices, 0, _count, slot, out index))
                 dst = _values[index];
             else
                 dst = default(T);
@@ -281,7 +281,7 @@ namespace Microsoft.ML.Data
             int index;
             if (IsDense)
                 return _values[slot];
-            if (_count > 0 && _indices.TryFindIndexSorted(0, _count, slot, out index))
+            if (_count > 0 && ArrayUtils.TryFindIndexSorted(_indices, 0, _count, slot, out index))
                 return _values[index];
             return default(T);
         }
@@ -297,7 +297,7 @@ namespace Microsoft.ML.Data
         internal VBufferEditor<T> GetEditor(
             int newLogicalLength,
             int? valuesCount,
-            int maxCapacity = Utils.ArrayMaxSize,
+            int? maxValuesCapacity = null,
             bool keepOldOnResize = false,
             bool requireIndicesOnDense = false)
         {
@@ -306,9 +306,11 @@ namespace Microsoft.ML.Data
 
             valuesCount = valuesCount ?? newLogicalLength;
 
+            int maxCapacity = maxValuesCapacity ?? ArrayUtils.ArrayMaxSize;
+
             T[] values = _values;
             bool createdNewValues;
-            Utils.EnsureSize(ref values, valuesCount.Value, maxCapacity, keepOldOnResize, out createdNewValues);
+            ArrayUtils.EnsureSize(ref values, valuesCount.Value, maxCapacity, keepOldOnResize, out createdNewValues);
 
             int[] indices = _indices;
             bool isDense = newLogicalLength == valuesCount.Value;
@@ -319,7 +321,7 @@ namespace Microsoft.ML.Data
             }
             else
             {
-                Utils.EnsureSize(ref indices, valuesCount.Value, maxCapacity, keepOldOnResize, out createdNewIndices);
+                ArrayUtils.EnsureSize(ref indices, valuesCount.Value, maxCapacity, keepOldOnResize, out createdNewIndices);
             }
 
             return new VBufferEditor<T>(
@@ -330,6 +332,77 @@ namespace Microsoft.ML.Data
                 requireIndicesOnDense,
                 createdNewValues,
                 createdNewIndices);
+        }
+
+        /// <summary>
+        /// A helper method that gives us an iterable over the items given the fields from a <see cref="VBuffer{T}"/>.
+        /// Note that we have this in a separate utility class, rather than in its more natural location of
+        /// <see cref="VBuffer{T}"/> itself, due to a bug in the C++/CLI compiler. (DevDiv 1097919:
+        /// [C++/CLI] Nested generic types are not correctly imported from metadata). So, if we want to use
+        /// <see cref="VBuffer{T}"/> in C++/CLI projects, we cannot have a generic struct with a nested class
+        /// that has the outer struct type as a field.
+        /// </summary>
+        private static IEnumerable<KeyValuePair<int, T>> Items(T[] values, int[] indices, int length, int count, bool all)
+        {
+            Debug.Assert(0 <= count && count <= ArrayUtils.Size(values));
+            Debug.Assert(count <= length);
+            Debug.Assert(count == length || count <= ArrayUtils.Size(indices));
+
+            if (count == length)
+            {
+                for (int i = 0; i < count; i++)
+                    yield return new KeyValuePair<int, T>(i, values[i]);
+            }
+            else if (!all)
+            {
+                for (int i = 0; i < count; i++)
+                    yield return new KeyValuePair<int, T>(indices[i], values[i]);
+            }
+            else
+            {
+                int slotCur = -1;
+                for (int i = 0; i < count; i++)
+                {
+                    int slot = indices[i];
+                    Debug.Assert(slotCur < slot && slot < length);
+                    while (++slotCur < slot)
+                        yield return new KeyValuePair<int, T>(slotCur, default(T));
+                    Debug.Assert(slotCur == slot);
+                    yield return new KeyValuePair<int, T>(slotCur, values[i]);
+                }
+                Debug.Assert(slotCur < length);
+                while (++slotCur < length)
+                    yield return new KeyValuePair<int, T>(slotCur, default(T));
+            }
+        }
+
+        private static IEnumerable<T> DenseValues(T[] values, int[] indices, int length, int count)
+        {
+            Debug.Assert(0 <= count && count <= ArrayUtils.Size(values));
+            Debug.Assert(count <= length);
+            Debug.Assert(count == length || count <= ArrayUtils.Size(indices));
+
+            if (count == length)
+            {
+                for (int i = 0; i < length; i++)
+                    yield return values[i];
+            }
+            else
+            {
+                int slotCur = -1;
+                for (int i = 0; i < count; i++)
+                {
+                    int slot = indices[i];
+                    Debug.Assert(slotCur < slot && slot < length);
+                    while (++slotCur < slot)
+                        yield return default(T);
+                    Debug.Assert(slotCur == slot);
+                    yield return values[i];
+                }
+                Debug.Assert(slotCur < length);
+                while (++slotCur < length)
+                    yield return default(T);
+            }
         }
     }
 }

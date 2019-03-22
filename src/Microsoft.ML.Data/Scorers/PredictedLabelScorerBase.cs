@@ -58,12 +58,12 @@ namespace Microsoft.ML.Data
                 // REVIEW: This logic is very specific to multiclass, which is deeply
                 // regrettable, but the class structure as designed and the status of this schema
                 // bearing object makes pushing the logic into the multiclass scorer almost impossible.
-                if (predColType is KeyType predColKeyType && predColKeyType.Count > 0)
+                if (predColType is KeyDataViewType predColKeyType && predColKeyType.Count > 0)
                 {
                     var scoreColMetadata = mapper.OutputSchema[scoreColIndex].Annotations;
 
                     var slotColumn = scoreColMetadata.Schema.GetColumnOrNull(AnnotationUtils.Kinds.SlotNames);
-                    if (slotColumn?.Type is VectorType slotColVecType && (ulong)slotColVecType.Size == predColKeyType.Count)
+                    if (slotColumn?.Type is VectorDataViewType slotColVecType && (ulong)slotColVecType.Size == predColKeyType.Count)
                     {
                         Contracts.Assert(slotColVecType.Size > 0);
                         _predColMetadata = Utils.MarshalInvoke(KeyValueMetadataFromMetadata<int>, slotColVecType.RawType,
@@ -72,7 +72,7 @@ namespace Microsoft.ML.Data
                     else
                     {
                         var trainLabelColumn = scoreColMetadata.Schema.GetColumnOrNull(AnnotationUtils.Kinds.TrainingLabelValues);
-                        if (trainLabelColumn?.Type is VectorType trainLabelColVecType && (ulong)trainLabelColVecType.Size == predColKeyType.Count)
+                        if (trainLabelColumn?.Type is VectorDataViewType trainLabelColVecType && (ulong)trainLabelColVecType.Size == predColKeyType.Count)
                         {
                             Contracts.Assert(trainLabelColVecType.Size > 0);
                             _predColMetadata = Utils.MarshalInvoke(KeyValueMetadataFromMetadata<int>, trainLabelColVecType.RawType,

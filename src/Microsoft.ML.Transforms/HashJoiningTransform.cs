@@ -137,17 +137,17 @@ namespace Microsoft.ML.Transforms
                 if (Utils.Size(SlotMap) <= 1)
                     OutputColumnType = itemType;
                 else
-                    OutputColumnType = new VectorType(itemType, SlotMap.Length);
+                    OutputColumnType = new VectorDataViewType(itemType, SlotMap.Length);
             }
 
             /// <summary>
             /// Constructs the correct KeyType for the given hash bits.
             /// Because of array size limitation, if numberOfBits = 31, the key type is not contiguous (not transformable into indicator array)
             /// </summary>
-            private static KeyType GetItemType(int numberOfBits)
+            private static KeyDataViewType GetItemType(int numberOfBits)
             {
                 var keyCount = (ulong)1 << numberOfBits;
-                return new KeyType(typeof(uint), keyCount);
+                return new KeyDataViewType(typeof(uint), keyCount);
             }
         }
 
@@ -253,7 +253,7 @@ namespace Microsoft.ML.Transforms
                 int[][] slotMap = null;
                 if (slotMapCount > 0)
                 {
-                    Host.CheckDecode(Infos[i].TypeSrc is VectorType);
+                    Host.CheckDecode(Infos[i].TypeSrc is VectorDataViewType);
 
                     slotMap = new int[slotMapCount][];
                     for (int j = 0; j < slotMapCount; j++)
@@ -330,7 +330,7 @@ namespace Microsoft.ML.Transforms
         private ColumnOptions CreateColumnOptionsEx(bool join, string customSlotMap, int numberOfBits, uint hashSeed, bool ordered, ColInfo colInfo)
         {
             int[][] slotMap = null;
-            if (colInfo.TypeSrc is VectorType vectorType)
+            if (colInfo.TypeSrc is VectorDataViewType vectorType)
             {
                 // fill in the slot map
                 if (!string.IsNullOrWhiteSpace(customSlotMap))
@@ -400,7 +400,7 @@ namespace Microsoft.ML.Transforms
                 using (var bldr = md.BuildMetadata(i))
                 {
                     bldr.AddGetter<VBuffer<ReadOnlyMemory<char>>>(AnnotationUtils.Kinds.SlotNames,
-                        new VectorType(TextDataViewType.Instance, ex.SlotMap.Length), GetSlotNames);
+                        new VectorDataViewType(TextDataViewType.Instance, ex.SlotMap.Length), GetSlotNames);
                 }
             }
             md.Seal();
@@ -488,7 +488,7 @@ namespace Microsoft.ML.Transforms
             // And then we generate a delegate using the generic delegate generator
             DataViewType itemType;
             MethodInfo mi;
-            if (!(Infos[iinfo].TypeSrc is VectorType vectorType))
+            if (!(Infos[iinfo].TypeSrc is VectorDataViewType vectorType))
             {
                 itemType = Infos[iinfo].TypeSrc;
                 mi = _methGetterOneToOne;
@@ -515,7 +515,7 @@ namespace Microsoft.ML.Transforms
         private ValueGetter<uint> ComposeGetterOneToOne<TSrc>(DataViewRow input, int iinfo)
         {
             Host.AssertValue(input);
-            Host.Assert(!(Infos[iinfo].TypeSrc is VectorType));
+            Host.Assert(!(Infos[iinfo].TypeSrc is VectorDataViewType));
 
             var getSrc = GetSrcGetter<TSrc>(input, iinfo);
             var hashFunction = ComposeHashDelegate<TSrc>();
@@ -539,7 +539,7 @@ namespace Microsoft.ML.Transforms
         private ValueGetter<VBuffer<uint>> ComposeGetterVecToVec<TSrc>(DataViewRow input, int iinfo)
         {
             Host.AssertValue(input);
-            VectorType srcType = Infos[iinfo].TypeSrc as VectorType;
+            VectorDataViewType srcType = Infos[iinfo].TypeSrc as VectorDataViewType;
             Host.Assert(srcType != null);
 
             var getSrc = GetSrcGetter<VBuffer<TSrc>>(input, iinfo);
@@ -587,7 +587,7 @@ namespace Microsoft.ML.Transforms
         private ValueGetter<uint> ComposeGetterVecToOne<TSrc>(DataViewRow input, int iinfo)
         {
             Host.AssertValue(input);
-            VectorType srcType = Infos[iinfo].TypeSrc as VectorType;
+            VectorDataViewType srcType = Infos[iinfo].TypeSrc as VectorDataViewType;
             Host.Assert(srcType != null);
             Host.Assert(Utils.Size(_exes[iinfo].SlotMap) == 1);
 

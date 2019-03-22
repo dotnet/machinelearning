@@ -30,7 +30,7 @@ namespace Microsoft.ML.Data.DataLoadSave
                 {
                     var metaColumnType = MakeColumnType(partialAnnotations[j]);
                     Delegate del;
-                    if (metaColumnType is VectorType vectorType)
+                    if (metaColumnType is VectorDataViewType vectorType)
                         del = Utils.MarshalInvoke(GetDefaultVectorGetter<int>, vectorType.ItemType.RawType);
                     else
                         del = Utils.MarshalInvoke(GetDefaultGetter<int>, metaColumnType.RawType);
@@ -45,11 +45,11 @@ namespace Microsoft.ML.Data.DataLoadSave
         {
             DataViewType curType = column.ItemType;
             if (column.IsKey)
-                curType = new KeyType(((PrimitiveDataViewType)curType).RawType, AllKeySizes);
+                curType = new KeyDataViewType(((PrimitiveDataViewType)curType).RawType, AllKeySizes);
             if (column.Kind == SchemaShape.Column.VectorKind.VariableVector)
-                curType = new VectorType((PrimitiveDataViewType)curType, 0);
+                curType = new VectorDataViewType((PrimitiveDataViewType)curType, 0);
             else if (column.Kind == SchemaShape.Column.VectorKind.Vector)
-                curType = new VectorType((PrimitiveDataViewType)curType, AllVectorSizes);
+                curType = new VectorDataViewType((PrimitiveDataViewType)curType, AllVectorSizes);
             return curType;
         }
 
