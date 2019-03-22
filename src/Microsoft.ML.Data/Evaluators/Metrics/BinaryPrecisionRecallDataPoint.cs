@@ -10,19 +10,25 @@ namespace Microsoft.ML.Data
     public sealed class BinaryPrecisionRecallDataPoint
     {
         /// <summary>
-        /// Gets the threshold for this data point
+        /// Gets the threshold for this data point.
         /// </summary>
         public double Threshold { get; }
         /// <summary>
-        /// Gets the precision for the current threshold
+        /// Gets the precision for the current threshold.
         /// </summary>
         public double Precision { get; }
         /// <summary>
-        /// Gets the recall for the current threshold
+        /// Gets the recall for the current threshold.
         /// </summary>
         public double Recall { get; }
+
         /// <summary>
-        /// Gets the fpr rate for the given threshold
+        /// Gets the true positive rate for the current threshold.
+        /// </summary>
+        public double TruePositiveRate => Recall;
+
+        /// <summary>
+        /// Gets the false positive rate for the given threshold.
         /// </summary>
         public double FalsePositiveRate { get; }
 
