@@ -838,7 +838,13 @@ namespace Microsoft.ML.Data
         /// <param name="predictedLabel">The name of the predicted label column in <paramref name="data"/>.</param>
         /// <param name="prCurve">The generated precision recall curve data. Up to 100000 of samples are used for p/r curve generation.</param>
         /// <returns>The evaluation results for these calibrated outputs.</returns>
-        public CalibratedBinaryClassificationMetrics EvaluateWithPRCurve(IDataView data, string label, string score, string probability, string predictedLabel, out IEnumerable<PrecisionRecallMetrics> prCurve)
+        public CalibratedBinaryClassificationMetrics EvaluateWithPRCurve(
+            IDataView data,
+            string label,
+            string score,
+            string probability,
+            string predictedLabel,
+            out List<BinaryPrecisionRecallDataPoint> prCurve)
         {
             Host.CheckValue(data, nameof(data));
             Host.CheckNonEmpty(label, nameof(label));
@@ -858,12 +864,18 @@ namespace Microsoft.ML.Data
             Host.Assert(resultDict.ContainsKey(MetricKinds.OverallMetrics));
             var overall = resultDict[MetricKinds.OverallMetrics];
 
-            List<PrecisionRecallMetrics> prCurveResult = new List<PrecisionRecallMetrics>();
+            var prCurveResult = new List<BinaryPrecisionRecallDataPoint>();
             using (var cursor = prCurveView.GetRowCursorForAllColumns())
             {
+                PrecisionRecallDataPointGetters(prCurveView, cursor,
+                    out ValueGetter<float> thresholdGetter,
+                    out ValueGetter<double> precisionGetter,
+                    out ValueGetter<double> recallGetter,
+                    out ValueGetter<double> fprGetter);
+
                 while (cursor.MoveNext())
                 {
-                    prCurveResult.Add(new PrecisionRecallMetrics(Host, cursor));
+                    prCurveResult.Add(new BinaryPrecisionRecallDataPoint(thresholdGetter, precisionGetter, recallGetter, fprGetter));
                 }
             }
             prCurve = prCurveResult;
@@ -879,6 +891,28 @@ namespace Microsoft.ML.Data
             }
 
             return result;
+        }
+
+        private void PrecisionRecallDataPointGetters(IDataView prCurveView,
+            DataViewRowCursor cursor,
+            out ValueGetter<float> thresholdGetter,
+            out ValueGetter<double> precisionGetter,
+            out ValueGetter<double> recallGetter,
+            out ValueGetter<double> fprGetter)
+        {
+            var thresholdColumn = prCurveView.Schema.GetColumnOrNull(BinaryClassifierEvaluator.Threshold);
+            var precisionColumn = prCurveView.Schema.GetColumnOrNull(BinaryClassifierEvaluator.Precision);
+            var recallColumn = prCurveView.Schema.GetColumnOrNull(BinaryClassifierEvaluator.Recall);
+            var fprColumn = prCurveView.Schema.GetColumnOrNull(BinaryClassifierEvaluator.FalsePositiveRate);
+            Host.Assert(thresholdColumn != null);
+            Host.Assert(precisionColumn != null);
+            Host.Assert(recallColumn != null);
+            Host.Assert(fprColumn != null);
+
+            thresholdGetter = cursor.GetGetter<float>((DataViewSchema.Column)thresholdColumn);
+            precisionGetter = cursor.GetGetter<double>((DataViewSchema.Column)precisionColumn);
+            recallGetter = cursor.GetGetter<double>((DataViewSchema.Column)recallColumn);
+            fprGetter = cursor.GetGetter<double>((DataViewSchema.Column)fprColumn);
         }
 
         /// <summary>
@@ -929,7 +963,12 @@ namespace Microsoft.ML.Data
         /// <param name="prCurve">The generated precision recall curve data. Up to 100000 of samples are used for p/r curve generation.</param>
         /// <returns>The evaluation results for these uncalibrated outputs.</returns>
         /// <seealso cref="Evaluate(IDataView, string, string, string)"/>
-        public BinaryClassificationMetrics EvaluateWithPRCurve(IDataView data, string label, string score, string predictedLabel, out IEnumerable<PrecisionRecallMetrics> prCurve)
+        public BinaryClassificationMetrics EvaluateWithPRCurve(
+            IDataView data,
+            string label,
+            string score,
+            string predictedLabel,
+            out List<BinaryPrecisionRecallDataPoint> prCurve)
         {
             Host.CheckValue(data, nameof(data));
             Host.CheckNonEmpty(label, nameof(label));
@@ -947,12 +986,18 @@ namespace Microsoft.ML.Data
             Host.Assert(resultDict.ContainsKey(MetricKinds.OverallMetrics));
             var overall = resultDict[MetricKinds.OverallMetrics];
 
-            List<PrecisionRecallMetrics> prCurveResult = new List<PrecisionRecallMetrics>();
+            var prCurveResult = new List<BinaryPrecisionRecallDataPoint>();
             using (var cursor = prCurveView.GetRowCursorForAllColumns())
             {
+                PrecisionRecallDataPointGetters(prCurveView, cursor,
+                    out ValueGetter<float> thresholdGetter,
+                    out ValueGetter<double> precisionGetter,
+                    out ValueGetter<double> recallGetter,
+                    out ValueGetter<double> fprGetter);
+
                 while (cursor.MoveNext())
                 {
-                    prCurveResult.Add(new PrecisionRecallMetrics(Host, cursor));
+                    prCurveResult.Add(new BinaryPrecisionRecallDataPoint(thresholdGetter, precisionGetter, recallGetter, fprGetter));
                 }
             }
             prCurve = prCurveResult;

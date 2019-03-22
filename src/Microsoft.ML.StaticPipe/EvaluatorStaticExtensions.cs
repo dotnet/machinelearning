@@ -67,7 +67,7 @@ namespace Microsoft.ML.StaticPipe
             DataView<T> data,
             Func<T, Scalar<bool>> label,
             Func<T, (Scalar<float> score, Scalar<float> probability, Scalar<bool> predictedLabel)> pred,
-            out IEnumerable<PrecisionRecallMetrics> prCurve)
+            out List<BinaryPrecisionRecallDataPoint> prCurve)
         {
             Contracts.CheckValue(data, nameof(data));
             var env = StaticPipeUtils.GetEnvironment(data);
@@ -140,7 +140,7 @@ namespace Microsoft.ML.StaticPipe
             DataView<T> data,
             Func<T, Scalar<bool>> label,
             Func<T, (Scalar<float> score, Scalar<bool> predictedLabel)> pred,
-            out IEnumerable<PrecisionRecallMetrics> prCurve)
+            out List<BinaryPrecisionRecallDataPoint> prCurve)
         {
             Contracts.CheckValue(data, nameof(data));
             var env = StaticPipeUtils.GetEnvironment(data);

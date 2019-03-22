@@ -2,15 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Generic;
-using Microsoft.ML.Runtime;
-
 namespace Microsoft.ML.Data
 {
     /// <summary>
-    /// This class represents one data point on Precision-Recall curve.
+    /// This class represents one data point on Precision-Recall curve for binary classification.
     /// </summary>
-    public sealed class PrecisionRecallMetrics
+    public sealed class BinaryPrecisionRecallDataPoint
     {
         /// <summary>
         /// Gets the threshold for this data point
@@ -29,14 +26,23 @@ namespace Microsoft.ML.Data
         /// </summary>
         public double FalsePositiveRate { get; }
 
-        internal PrecisionRecallMetrics(IExceptionContext ectx, DataViewRow overallResult)
+        internal BinaryPrecisionRecallDataPoint(ValueGetter<float> thresholdGetter, ValueGetter<double> precisionGetter, ValueGetter<double> recallGetter, ValueGetter<double> fprGetter)
         {
-            double FetchDouble(string name) => RowCursorUtils.Fetch<double>(ectx, overallResult, name);
-            double FetchFloat(string name) => RowCursorUtils.Fetch<float>(ectx, overallResult, name);
-            Threshold = FetchFloat(BinaryClassifierEvaluator.Threshold);
-            Precision = FetchDouble(BinaryClassifierEvaluator.Precision);
-            Recall = FetchDouble(BinaryClassifierEvaluator.Recall);
-            FalsePositiveRate = FetchDouble(BinaryClassifierEvaluator.FalsePositiveRate);
+            float threshold = default;
+            double precision = default;
+            double recall = default;
+            double fpr = default;
+
+            thresholdGetter(ref threshold);
+            precisionGetter(ref precision);
+            recallGetter(ref recall);
+            fprGetter(ref fpr);
+
+            Threshold = threshold;
+            Precision = precision;
+            Recall = recall;
+            FalsePositiveRate = fpr;
         }
     }
+
 }
