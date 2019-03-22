@@ -19,8 +19,8 @@ namespace Microsoft.ML.Samples.Dynamic
 
             // Convert the examples list to an IDataView object, which is consumable by ML.NET API.
             var dataview = mlContext.Data.LoadFromEnumerable(examples);
-            // Cross validation splits your data randomly into set of chunks, and set test set in each fold to be certain chunk of data
-            // and training data set to be rest of the data.
+            // Cross validation splits your data randomly into set of "folds", and creates groups of Train and Test sets,
+            // where for each group, one fold is the Test and the rest of the folds the Train.
             // So below, we specify Group column as the column containing the sampling keys.
             // If we pass that column to cross validation it would be used to break data into certain chunks.
             var folds = mlContext.Data.CrossValidationSplit(dataview, numberOfFolds: 3, samplingKeyColumnName: "Group");

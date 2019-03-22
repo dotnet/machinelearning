@@ -446,7 +446,7 @@ namespace Microsoft.ML
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
-        /// [!code-csharp[TrainTestSplit](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/DataOperations/CrossValidationSplit.cs)]
+        /// [!code-csharp[CrossValidationSplit](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/DataOperations/CrossValidationSplit.cs)]
         /// ]]>
         /// </format>
         /// </example>
