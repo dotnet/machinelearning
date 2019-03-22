@@ -164,7 +164,7 @@ namespace Microsoft.ML.Transforms.Image
 
         private protected override void CheckInputColumn(DataViewSchema inputSchema, int col, int srcCol)
         {
-            if (!(inputSchema[srcCol].Type is ImageType))
+            if (!(inputSchema[srcCol].Type is ImageDataViewType))
                 throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", ColumnPairs[col].inputColumnName, "image", inputSchema[srcCol].Type.ToString());
         }
 
@@ -264,8 +264,8 @@ namespace Microsoft.ML.Transforms.Image
             {
                 if (!inputSchema.TryFindColumn(colInfo.inputColumnName, out var col))
                     throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.inputColumnName);
-                if (!(col.ItemType is ImageType) || col.Kind != SchemaShape.Column.VectorKind.Scalar)
-                    throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.inputColumnName, new ImageType().ToString(), col.GetTypeString());
+                if (!(col.ItemType is ImageDataViewType) || col.Kind != SchemaShape.Column.VectorKind.Scalar)
+                    throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.inputColumnName, new ImageDataViewType().ToString(), col.GetTypeString());
 
                 result[colInfo.outputColumnName] = new SchemaShape.Column(colInfo.outputColumnName, col.Kind, col.ItemType, col.IsKey, col.Annotations);
             }
