@@ -18,6 +18,7 @@ using Microsoft.ML.Trainers.FastTree;
 using Microsoft.ML.Trainers.Recommender;
 using Xunit;
 using Xunit.Abstractions;
+using System.Collections.Generic;
 
 namespace Microsoft.ML.StaticPipelineTesting
 {
@@ -258,6 +259,44 @@ namespace Microsoft.ML.StaticPipelineTesting
             Assert.InRange(metrics.AreaUnderPrecisionRecallCurve, 0.95, 1);
         }
 
+        [Fact]
+        public void SdcaBinaryClassificationNoCalibrationSimpleWithPRCurve()
+        {
+            var env = new MLContext(seed: 0);
+            var dataPath = GetDataPath(TestDatasets.breastCancer.trainFilename);
+            var dataSource = new MultiFileSource(dataPath);
+            var catalog = new BinaryClassificationCatalog(env);
+
+            var reader = TextLoaderStatic.CreateLoader(env,
+                c => (label: c.LoadBool(0), features: c.LoadFloat(1, 9)));
+
+            LinearBinaryModelParameters pred = null;
+
+            var loss = new HingeLoss(1);
+
+            // With a custom loss function we no longer get calibrated predictions.
+            var est = reader.MakeNewEstimator()
+                .Append(r => (r.label, preds: catalog.Trainers.SdcaNonCalibrated(r.label, r.features, loss, onFit: p => pred = p)));
+
+            var pipe = reader.Append(est);
+
+            Assert.Null(pred);
+            var model = pipe.Fit(dataSource);
+            Assert.NotNull(pred);
+            // 9 input features, so we ought to have 9 weights.
+            Assert.Equal(9, pred.Weights.Count);
+
+            var data = model.Load(dataSource);
+
+            var metrics = catalog.EvaluateWithPRCurve(data, r => r.label, r => r.preds, out List<BinaryPrecisionRecallDataPoint> prCurve);
+            // Run a sanity check against a few of the metrics.
+            Assert.InRange(metrics.Accuracy, 0.95, 1);
+            Assert.InRange(metrics.AreaUnderRocCurve, 0.95, 1);
+            Assert.InRange(metrics.AreaUnderPrecisionRecallCurve, 0.95, 1);
+
+            Assert.NotNull(prCurve);
+            Assert.InRange(prCurve.Count, 400, 500);
+        }
 
         [Fact]
         public void AveragePerceptronNoCalibration()
