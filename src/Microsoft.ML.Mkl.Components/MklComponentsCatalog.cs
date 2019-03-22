@@ -16,7 +16,6 @@ namespace Microsoft.ML
     {
         /// <summary>
         /// Predict a target using a linear regression model trained with the <see cref="OlsTrainer"/>.
-        /// It uses ordinary least squares (OLS) for estimating the parameters of the linear regression model.
         /// </summary>
         /// <param name="catalog">The <see cref="RegressionCatalog"/>.</param>
         /// <param name="labelColumnName">The name of the label column.</param>
@@ -48,7 +47,6 @@ namespace Microsoft.ML
 
         /// <summary>
         /// Predict a target using a linear regression model trained with the <see cref="OlsTrainer"/>.
-        /// It uses ordinary least squares (OLS) for estimating the parameters of the linear regression model.
         /// </summary>
         /// <param name="catalog">The <see cref="RegressionCatalog"/>.</param>
         /// <param name="options">Algorithm advanced options. See <see cref="OlsTrainer.Options"/>.</param>

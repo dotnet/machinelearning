@@ -23,8 +23,17 @@ using Microsoft.ML.Trainers;
 
 namespace Microsoft.ML.Trainers
 {
-
-    /// <include file='doc.xml' path='doc/members/member[@name="OGD"]/*' />
+    /// <summary>
+    /// The <see cref="IEstimator{TTransformer}"/> for training a linear regression model using
+    /// Online Gradient Descent (OGD) for estimating the parameters of the linear regression model.
+    /// </summary>
+    /// <remarks>
+    /// Stochastic gradient descent uses a simple yet efficient iterative technique to fit model coefficients using error gradients for convex loss functions.
+    /// Online Gradient Descent (OGD) implements the standard (non-batch) SGD, with a choice of loss functions,
+    /// and an option to update the weight vector using the average of the vectors seen over time (averaged argument is set to True by default).
+    /// </remarks>
+    /// <seealso cref="StandardTrainersCatalog.OnlineGradientDescent(RegressionCatalog.RegressionTrainers, string, string, IRegressionLoss, float, bool, float, int)"/>
+    /// <seealso cref="StandardTrainersCatalog.OnlineGradientDescent(RegressionCatalog.RegressionTrainers, OnlineGradientDescentTrainer.Options)"/>
     public sealed class OnlineGradientDescentTrainer : AveragedLinearTrainer<RegressionPredictionTransformer<LinearRegressionModelParameters>, LinearRegressionModelParameters>
     {
         internal const string LoadNameValue = "OnlineGradientDescent";
@@ -33,18 +42,24 @@ namespace Microsoft.ML.Trainers
             + "In the TLC implementation of OGD, it is for linear regression.";
         internal const string ShortName = "ogd";
 
+        /// <summary>
+        /// Options for the <see cref="OnlineGradientDescentTrainer"/>.
+        /// </summary>
         public sealed class Options : AveragedLinearOptions
         {
             [Argument(ArgumentType.Multiple, Name = "LossFunction", HelpText = "Loss Function", ShortName = "loss", SortOrder = 50)]
             [TGUI(Label = "Loss Function")]
             internal ISupportRegressionLossFactory RegressionLossFunctionFactory = new SquaredLossFactory();
 
+            /// <summary>
+            /// A custom <a href="tmpurl_loss">loss</a>.
+            /// </summary>
             public IRegressionLoss LossFunction { get; set; }
 
             internal override IComponentFactory<IScalarLoss> LossFunctionFactory => RegressionLossFunctionFactory;
 
             /// <summary>
-            /// Set defaults that vary from the base type.
+            /// Create a new <see cref="Options"/> object with default values.
             /// </summary>
             public Options()
             {
