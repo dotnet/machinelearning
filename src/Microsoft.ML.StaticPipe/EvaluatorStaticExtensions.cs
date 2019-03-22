@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using Microsoft.ML.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Trainers;
@@ -14,42 +15,6 @@ namespace Microsoft.ML.StaticPipe
     /// </summary>
     public static class EvaluatorStaticExtensions
     {
-        /// <summary>
-        /// Generates precision recall curve data. Up to 100000 of samples are used for p/r curve generation.
-        /// </summary>
-        /// <typeparam name="T">The shape type for the input data.</typeparam>
-        /// <param name="catalog">The binary classification catalog.</param>
-        /// <param name="data">The data to evaluate.</param>
-        /// <param name="label">The index delegate for the label column.</param>
-        /// <param name="pred">The index delegate for columns from calibrated prediction of a binary classifier.
-        /// Under typical scenarios, this will just be the same tuple of results returned from the trainer.</param>
-        /// <returns>The evaluation results for these calibrated outputs.</returns>
-        public static IDataView GetPrecisionRecallCurve<T>(
-            this BinaryClassificationCatalog catalog,
-            DataView<T> data,
-            Func<T, Scalar<bool>> label,
-            Func<T, (Scalar<float> score, Scalar<float> probability, Scalar<bool> predictedLabel)> pred)
-        {
-            Contracts.CheckValue(data, nameof(data));
-            var env = StaticPipeUtils.GetEnvironment(data);
-            Contracts.AssertValue(env);
-            env.CheckValue(label, nameof(label));
-            env.CheckValue(pred, nameof(pred));
-
-            var indexer = StaticPipeUtils.GetIndexer(data);
-            string labelName = indexer.Get(label(indexer.Indices));
-            (var scoreCol, var probCol, var predCol) = pred(indexer.Indices);
-            env.CheckParam(scoreCol != null, nameof(pred), "Indexing delegate resulted in null score column.");
-            env.CheckParam(probCol != null, nameof(pred), "Indexing delegate resulted in null probability column.");
-            env.CheckParam(predCol != null, nameof(pred), "Indexing delegate resulted in null predicted label column.");
-            string scoreName = indexer.Get(scoreCol);
-            string probName = indexer.Get(probCol);
-            string predName = indexer.Get(predCol);
-
-            var eval = new BinaryClassifierEvaluator(env, new BinaryClassifierEvaluator.Arguments() { NumRocExamples = 100000 });
-            return eval.GetPrecisionRecallCurve(data.AsDynamic, labelName, scoreName, probName, predName);
-        }
-
         /// <summary>
         /// Evaluates scored binary classification data.
         /// </summary>
@@ -84,6 +49,44 @@ namespace Microsoft.ML.StaticPipe
 
             var eval = new BinaryClassifierEvaluator(env, new BinaryClassifierEvaluator.Arguments() { });
             return eval.Evaluate(data.AsDynamic, labelName, scoreName, probName, predName);
+        }
+
+        /// <summary>
+        /// Evaluates scored binary classification data.
+        /// </summary>
+        /// <typeparam name="T">The shape type for the input data.</typeparam>
+        /// <param name="catalog">The binary classification catalog.</param>
+        /// <param name="data">The data to evaluate.</param>
+        /// <param name="label">The index delegate for the label column.</param>
+        /// <param name="pred">The index delegate for columns from calibrated prediction of a binary classifier.
+        /// Under typical scenarios, this will just be the same tuple of results returned from the trainer.</param>
+        /// <param name="prCurve">The generated precision recall curve data. Up to 100000 of samples are used for p/r curve generation.</param>
+        /// <returns>The evaluation results for these calibrated outputs.</returns>
+        public static CalibratedBinaryClassificationMetrics EvaluateWithPRCurve<T>(
+            this BinaryClassificationCatalog catalog,
+            DataView<T> data,
+            Func<T, Scalar<bool>> label,
+            Func<T, (Scalar<float> score, Scalar<float> probability, Scalar<bool> predictedLabel)> pred,
+            out IEnumerable<PrecisionRecallMetrics> prCurve)
+        {
+            Contracts.CheckValue(data, nameof(data));
+            var env = StaticPipeUtils.GetEnvironment(data);
+            Contracts.AssertValue(env);
+            env.CheckValue(label, nameof(label));
+            env.CheckValue(pred, nameof(pred));
+
+            var indexer = StaticPipeUtils.GetIndexer(data);
+            string labelName = indexer.Get(label(indexer.Indices));
+            (var scoreCol, var probCol, var predCol) = pred(indexer.Indices);
+            env.CheckParam(scoreCol != null, nameof(pred), "Indexing delegate resulted in null score column.");
+            env.CheckParam(probCol != null, nameof(pred), "Indexing delegate resulted in null probability column.");
+            env.CheckParam(predCol != null, nameof(pred), "Indexing delegate resulted in null predicted label column.");
+            string scoreName = indexer.Get(scoreCol);
+            string probName = indexer.Get(probCol);
+            string predName = indexer.Get(predCol);
+
+            var eval = new BinaryClassifierEvaluator(env, new BinaryClassifierEvaluator.Arguments() { NumRocExamples = 100000 });
+            return eval.EvaluateWithPRCurve(data.AsDynamic, labelName, scoreName, probName, predName, out prCurve);
         }
 
         /// <summary>
