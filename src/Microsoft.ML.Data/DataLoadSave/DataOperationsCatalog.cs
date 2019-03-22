@@ -471,7 +471,9 @@ namespace Microsoft.ML
                     Column = samplingKeyColumnName,
                     Min = (double)fold / numberOfFolds,
                     Max = (double)(fold + 1) / numberOfFolds,
-                    Complement = true
+                    Complement=true,
+                    IncludeMin = true,
+                    IncludeMax = true,
                 }, data);
 
                 var testFilter = new RangeFilter(env, new RangeFilter.Options
@@ -480,6 +482,7 @@ namespace Microsoft.ML
                     Min = (double)fold / numberOfFolds,
                     Max = (double)(fold + 1) / numberOfFolds,
                     Complement = false,
+                    IncludeMin = true,
                     IncludeMax = true
                 }, data);
 

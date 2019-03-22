@@ -19,6 +19,7 @@ namespace Microsoft.ML.Samples.Dynamic
 
             // Convert the examples list to an IDataView object, which is consumable by ML.NET API.
             var dataview = mlContext.Data.LoadFromEnumerable(examples);
+
             // Cross validation splits your data randomly into set of "folds", and creates groups of Train and Test sets,
             // where for each group, one fold is the Test and the rest of the folds the Train.
             // So below, we specify Group column as the column containing the sampling keys.
@@ -39,6 +40,7 @@ namespace Microsoft.ML.Samples.Dynamic
             // [Group, 0], [Features, 0.5581612]
             // [Group, 0], [Features, 0.9060271]
             // [Group, 0], [Features, 0.2737045]
+
             PrintPreviewRows(folds[1]);
             // The data in the Train split.
             // [Group, 0], [Features, 0.7262433]
@@ -53,17 +55,15 @@ namespace Microsoft.ML.Samples.Dynamic
             // [Group, 1], [Features, 0.8173254]
             // [Group, 1], [Features, 0.2060332]
             // [Group, 1], [Features, 0.4421779]
+
             PrintPreviewRows(folds[2]);
             // The data in the Train split.
             // [Group, 0], [Features, 0.7262433]
             // [Group, 1], [Features, 0.8173254]
-            // [Group, 2], [Features, 0.7680227]
             // [Group, 0], [Features, 0.5581612]
             // [Group, 1], [Features, 0.2060332]
-            // [Group, 2], [Features, 0.5588848]
             // [Group, 0], [Features, 0.9060271]
             // [Group, 1], [Features, 0.4421779]
-            // [Group, 2], [Features, 0.9775497]
             // [Group, 0], [Features, 0.2737045]
             // 
             // The data in the Test split.
@@ -74,7 +74,6 @@ namespace Microsoft.ML.Samples.Dynamic
             // Example of a split without specifying a sampling key column.
             folds = mlContext.Data.CrossValidationSplit(dataview, numberOfFolds: 3);
             PrintPreviewRows(folds[0]);
-
             // The data in the Train split.
             // [Group, 0], [Features, 0.7262433]
             // [Group, 1], [Features, 0.8173254]
@@ -103,6 +102,7 @@ namespace Microsoft.ML.Samples.Dynamic
             // [Group, 1], [Features, 0.8173254]
             // [Group, 2], [Features, 0.9775497]
             // [Group, 0], [Features, 0.2737045]
+
             PrintPreviewRows(folds[2]);
             // The data in the Train split.
             // [Group, 0], [Features, 0.7262433]
@@ -134,7 +134,7 @@ namespace Microsoft.ML.Samples.Dynamic
             }
         }
 
-        // Example with label and group column. A data set is a collection of such examples.
+        // Example with features and group column. A data set is a collection of such examples.
         private class DataPoint
         {
             public float Group { get; set; }
