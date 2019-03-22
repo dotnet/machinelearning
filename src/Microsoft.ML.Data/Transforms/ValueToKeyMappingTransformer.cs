@@ -500,7 +500,11 @@ namespace Microsoft.ML.Transforms
                         e.SetMetric(0, trainer.Count);
                     });
                 while (cursor.MoveNext() && trainer.ProcessRow())
+                {
                     rowCur++;
+                    env.CheckAlive();
+                }
+
                 if (trainer.Count == 0)
                     ch.Warning("Map from the term data resulted in an empty map.");
                 pch.Checkpoint(trainer.Count, rowCur);
@@ -616,6 +620,7 @@ namespace Microsoft.ML.Transforms
                     // We might exit early if all trainers reach their maximum.
                     while (tmin < trainer.Length && cursor.MoveNext())
                     {
+                        env.CheckAlive();
                         rowCur++;
                         for (int t = tmin; t < trainer.Length; ++t)
                         {
