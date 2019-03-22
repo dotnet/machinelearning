@@ -199,7 +199,8 @@ namespace Microsoft.ML.InternalCodeAnalyzer
             // Contract functions defined Microsoft.ML.Internal.CpuMath.Core are introduced for breaking the dependencies
             // from CpuMath project to Microsoft.ML.Core.
             if (containingSymbolName != "Microsoft.ML.Runtime.Contracts" &&
-                containingSymbolName != "Microsoft.ML.Internal.CpuMath.Core.Contracts")
+                containingSymbolName != "Microsoft.ML.Internal.CpuMath.Core.Contracts" &&
+                containingSymbolName != "Microsoft.ML.Internal.DataView.Contracts")
             {
                 return;
             }

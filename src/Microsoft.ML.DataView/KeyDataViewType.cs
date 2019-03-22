@@ -46,33 +46,33 @@ namespace Microsoft.ML.Data
         /// </summary>
         public static bool IsValidDataType(Type type)
         {
-            return type == typeof(byte) || type == typeof(ushort) || type == typeof(uint) || type == typeof(ulong);
+            return type == typeof(uint) || type == typeof(ulong) || type == typeof(ushort) || type == typeof(byte);
         }
 
         private static ulong GetMaxInt(Type type)
         {
-            if (type == typeof(byte))
-                return byte.MaxValue;
-            else if (type == typeof(ushort))
-                return ushort.MaxValue;
-            else if (type == typeof(uint))
+            if (type == typeof(uint))
                 return uint.MaxValue;
             else if (type == typeof(ulong))
                 return ulong.MaxValue;
+            else if (type == typeof(ushort))
+                return ushort.MaxValue;
+            else if (type == typeof(byte))
+                return byte.MaxValue;
 
             return 0;
         }
 
         private string GetRawTypeName()
         {
-            if (RawType == typeof(byte))
-                return NumberDataViewType.Byte.ToString();
-            else if (RawType == typeof(ushort))
-                return NumberDataViewType.UInt16.ToString();
-            else if (RawType == typeof(uint))
+            if (RawType == typeof(uint))
                 return NumberDataViewType.UInt32.ToString();
             else if (RawType == typeof(ulong))
                 return NumberDataViewType.UInt64.ToString();
+            else if (RawType == typeof(ushort))
+                return NumberDataViewType.UInt16.ToString();
+            else if (RawType == typeof(byte))
+                return NumberDataViewType.Byte.ToString();
 
             Debug.Fail("Invalid type");
             return null;
