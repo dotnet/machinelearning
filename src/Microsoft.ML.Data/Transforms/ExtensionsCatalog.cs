@@ -11,6 +11,32 @@ namespace Microsoft.ML
     /// <summary>
     /// Specifies input and output column names for a transformation.
     /// </summary>
+    public sealed class InputOutputColumnPair
+    {
+        /// <summary>
+        /// Name of the column to transform. If set to <see langword="null"/>, the value of the <see cref="OutputColumnName"/> will be used as source.
+        /// </summary>
+        public readonly string InputColumnName;
+        /// <summary>
+        /// Name of the column resulting from the transformation of <see cref="InputColumnName"/>.
+        /// </summary>
+        public readonly string OutputColumnName;
+
+        /// <summary>
+        /// Specifies input and output column names for a transformation.
+        /// </summary>
+        /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.</param>
+        /// <param name="inputColumnName">Name of the column to transform. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.</param>
+        public InputOutputColumnPair(string outputColumnName, string inputColumnName = null)
+        {
+            InputColumnName = inputColumnName;
+            OutputColumnName = outputColumnName;
+        }
+    }
+
+    /// <summary>
+    /// Specifies input and output column names for a transformation.
+    /// </summary>
     [BestFriend]
     internal sealed class ColumnOptions
     {

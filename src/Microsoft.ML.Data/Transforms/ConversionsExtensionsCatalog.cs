@@ -66,6 +66,20 @@ namespace Microsoft.ML
             => new TypeConvertingEstimator(CatalogUtils.GetEnvironment(catalog), new[] { new TypeConvertingEstimator.ColumnOptions(outputColumnName, outputKind, inputColumnName) });
 
         /// <summary>
+        /// Changes column type of the input columns.
+        /// </summary>
+        /// <param name="catalog">The conversion transform's catalog.</param>
+        /// <param name="columns">Specifies the names of the columns on which to apply the transformation.</param>
+        /// <param name="outputKind">The expected kind of the output column.</param>
+        public static TypeConvertingEstimator ConvertType(this TransformsCatalog.ConversionTransforms catalog,
+            InputOutputColumnPair[] columns,
+            DataKind outputKind = ConvertDefaults.DefaultOutputKind)
+        {
+            var columnOptions = columns.Select(x => new TypeConvertingEstimator.ColumnOptions(x.OutputColumnName, outputKind, x.InputColumnName)).ToArray();
+            return new TypeConvertingEstimator(CatalogUtils.GetEnvironment(catalog), columnOptions);
+        }
+
+        /// <summary>
         /// Changes column type of the input column.
         /// </summary>
         /// <param name="catalog">The conversion transform's catalog.</param>
@@ -88,6 +102,14 @@ namespace Microsoft.ML
         /// </example>
         public static KeyToValueMappingEstimator MapKeyToValue(this TransformsCatalog.ConversionTransforms catalog, string outputColumnName, string inputColumnName = null)
             => new KeyToValueMappingEstimator(CatalogUtils.GetEnvironment(catalog), outputColumnName, inputColumnName);
+
+        /// <summary>
+        /// Convert the key types back to their original values.
+        /// </summary>
+        /// <param name="catalog">The conversion transform's catalog.</param>
+        /// <param name="columns">Specifies the names of the columns on which to apply the transformation.</param>
+        public static KeyToValueMappingEstimator MapKeyToValue(this TransformsCatalog.ConversionTransforms catalog, InputOutputColumnPair[] columns)
+            => new KeyToValueMappingEstimator(CatalogUtils.GetEnvironment(catalog), columns.Select(x => (x.OutputColumnName, x.InputColumnName)).ToArray());
 
         /// <summary>
         ///  Convert the key types (name of the column specified in the first item of the tuple) back to their original values
@@ -128,6 +150,21 @@ namespace Microsoft.ML
             => new KeyToVectorMappingEstimator(CatalogUtils.GetEnvironment(catalog), outputColumnName, inputColumnName, outputCountVector);
 
         /// <summary>
+        /// Maps columns of key types or key values into columns of floating point vectors.
+        /// </summary>
+        /// <param name="catalog">The conversion transform's catalog.</param>
+        /// <param name="columns">Specifies the names of the columns on which to apply the transformation.</param>
+        /// <param name="outputCountVector">Whether to combine multiple indicator vectors into a single vector of counts instead of concatenating them.
+        /// This is only relevant when the input column is a vector of keys.</param>
+        public static KeyToVectorMappingEstimator MapKeyToVector(this TransformsCatalog.ConversionTransforms catalog,
+            InputOutputColumnPair[] columns, bool outputCountVector = KeyToVectorMappingEstimator.Defaults.OutputCountVector)
+        {
+            var columnOptions = columns.Select(x => new KeyToVectorMappingEstimator.ColumnOptions(x.OutputColumnName, x.InputColumnName, outputCountVector)).ToArray();
+            return new KeyToVectorMappingEstimator(CatalogUtils.GetEnvironment(catalog), columnOptions);
+
+        }
+
+        /// <summary>
         /// Converts value types into <see cref="KeyDataViewType"/>.
         /// </summary>
         /// <param name="catalog">The conversion transform's catalog.</param>
@@ -158,7 +195,30 @@ namespace Microsoft.ML
                new[] { new ValueToKeyMappingEstimator.ColumnOptions(outputColumnName, inputColumnName, maximumNumberOfKeys, keyOrdinality, addKeyValueAnnotationsAsText) }, keyData);
 
         /// <summary>
-        /// Converts value types into <see cref="KeyDataViewType"/>, optionally loading the keys to use from <paramref name="keyData"/>.
+        /// Converts value types into <see cref="KeyDataViewType"/>.
+        /// </summary>
+        /// <param name="catalog">The conversion transform's catalog.</param>
+        /// <param name="columns">Specifies the names of the columns on which to apply the transformation.</param>
+        /// <param name="maximumNumberOfKeys">Maximum number of keys to keep per column when auto-training.</param>
+        /// <param name="keyOrdinality">How items should be ordered when vectorized. If <see cref="ValueToKeyMappingEstimator.KeyOrdinality.ByOccurrence"/> choosen they will be in the order encountered.
+        /// If <see cref="ValueToKeyMappingEstimator.KeyOrdinality.ByValue"/>, items are sorted according to their default comparison, for example, text sorting will be case sensitive (for example, 'A' then 'Z' then 'a').</param>
+        /// <param name="addKeyValueAnnotationsAsText">Whether key value annotations should be text, regardless of the actual input type.</param>
+        /// <param name="keyData">The data view containing the terms. If specified, this should be a single column data
+        /// view, and the key-values will be taken from that column. If unspecified, the key-values will be determined
+        /// from the input data upon fitting.</param>
+        public static ValueToKeyMappingEstimator MapValueToKey(this TransformsCatalog.ConversionTransforms catalog,
+            InputOutputColumnPair[] columns,
+            int maximumNumberOfKeys = ValueToKeyMappingEstimator.Defaults.MaximumNumberOfKeys,
+            ValueToKeyMappingEstimator.KeyOrdinality keyOrdinality = ValueToKeyMappingEstimator.Defaults.Ordinality,
+            bool addKeyValueAnnotationsAsText = ValueToKeyMappingEstimator.Defaults.AddKeyValueAnnotationsAsText,
+            IDataView keyData = null)
+        {
+            var columnOptions = columns.Select(x => new ValueToKeyMappingEstimator.ColumnOptions(x.OutputColumnName, x.InputColumnName, maximumNumberOfKeys, keyOrdinality, addKeyValueAnnotationsAsText)).ToArray();
+            return new ValueToKeyMappingEstimator(CatalogUtils.GetEnvironment(catalog), columnOptions, keyData);
+        }
+
+        /// <summary>
+        /// Converts value types into <see cref="KeyType"/>, optionally loading the keys to use from <paramref name="keyData"/>.
         /// </summary>
         /// <param name="catalog">The conversion transform's catalog.</param>
         /// <param name="columns">The data columns to map to keys.</param>
