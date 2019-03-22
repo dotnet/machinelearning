@@ -30,7 +30,7 @@ namespace Microsoft.ML
         ///  <example>
         /// <format type="text/markdown">
         /// <![CDATA[
-        ///  [!code-csharp[ConvertType](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/Conversion/Hash.cs)]
+        ///  [!code-csharp[Hash](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/Conversion/Hash.cs)]
         /// ]]></format>
         /// </example>
 

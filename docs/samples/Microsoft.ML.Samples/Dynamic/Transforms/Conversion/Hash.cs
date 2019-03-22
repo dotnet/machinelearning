@@ -24,9 +24,9 @@ namespace Microsoft.ML.Samples.Dynamic
             var data = mlContext.Data.LoadFromEnumerable(rawData);
 
             // Construct the pipeline that would hash the two columns and store the results in new columns.
-            // The first transform hashes the string column and the second column hashes the integer column.
+            // The first transform hashes the string column and the second transform hashes the integer column.
             //
-            // Hashing is not a reversible operation, so there is not way to retrive the original value from the hashed value. 
+            // Hashing is not a reversible operation, so there is no way to retrive the original value from the hashed value. 
             // Sometimes, for debugging, or model explainability, users will need to know what values in the original columns generated
             // the values in the hashed columns, since the algorithms will mostly use the hashed values for further computations.
             // The Hash method will preserve the mapping from the original values to the hashed values in the Annotations of the 
