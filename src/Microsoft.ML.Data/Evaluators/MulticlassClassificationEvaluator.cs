@@ -80,7 +80,7 @@ namespace Microsoft.ML.Data
             Host.CheckParam(schema.Label.HasValue, nameof(schema), "Could not find the label column");
             var labelType = schema.Label.Value.Type;
             if (labelType != NumberDataViewType.Single && labelType.GetKeyCount() <= 0)
-                throw Host.ExceptSchemaMismatch(nameof(schema), "label", schema.Label.Value.Name, "Single or KeyType", labelType.ToString());
+                throw Host.ExceptSchemaMismatch(nameof(schema), "label", schema.Label.Value.Name, "Single or Key", labelType.ToString());
         }
 
         private protected override Aggregator GetAggregatorCore(RoleMappedSchema schema, string stratName)
@@ -817,7 +817,7 @@ namespace Microsoft.ML.Data
                 throw Host.ExceptSchemaMismatch(nameof(schema), "score", ScoreCol, "Vector of two or more items of type Single", scoreType.ToString());
             var labelType = schema[LabelIndex].Type;
             if (labelType != NumberDataViewType.Single && labelType.GetKeyCount() <= 0)
-                throw Host.ExceptSchemaMismatch(nameof(schema), "label", LabelCol, "Single or KeyType", labelType.ToString());
+                throw Host.ExceptSchemaMismatch(nameof(schema), "label", LabelCol, "Single or Key", labelType.ToString());
         }
     }
 

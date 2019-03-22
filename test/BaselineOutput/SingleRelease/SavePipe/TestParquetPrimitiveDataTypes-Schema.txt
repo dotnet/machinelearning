@@ -1,10 +1,10 @@
 ---- ParquetLoader ----
 8 columns:
-  sbyte: sbyte
+  sbyte: SByte
   short: Int16
   int: Int32
   long: Int64
   bool: Boolean
-  DateTimeOffset: DateTimeZone
+  DateTimeOffset: DateTimeOffset
   Interval: TimeSpan
   string: String

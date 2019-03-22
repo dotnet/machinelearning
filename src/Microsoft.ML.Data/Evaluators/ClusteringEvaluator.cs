@@ -100,7 +100,7 @@ namespace Microsoft.ML.Data
             if (type != null && type != NumberDataViewType.Single && !(type is KeyType keyType && keyType.Count > 0))
             {
                 throw Host.ExceptSchemaMismatch(nameof(schema), "label", schema.Label.Value.Name,
-                    "Single or KeyType", type.ToString());
+                    "Single or Key", type.ToString());
             }
 
             var score = schema.GetUniqueColumn(AnnotationUtils.Const.ScoreValueKind.Score);

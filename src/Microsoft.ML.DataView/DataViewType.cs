@@ -353,7 +353,7 @@ namespace Microsoft.ML.Data
             return false;
         }
 
-        public override string ToString() => "DateTimeZone";
+        public override string ToString() => "DateTimeOffset";
     }
 
     /// <summary>
