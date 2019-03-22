@@ -209,7 +209,7 @@ namespace Microsoft.ML.Transforms.Text
                 {
                     inputSchema.TryGetColumnIndex(_parent.ColumnPairs[i].inputColumnName, out int srcCol);
                     var srcType = inputSchema[srcCol].Type;
-                    _types[i] = srcType is VectorType ? new VectorType(TextDataViewType.Instance) : srcType;
+                    _types[i] = srcType is VectorDataViewType ? new VectorDataViewType(TextDataViewType.Instance) : srcType;
                 }
             }
 
@@ -291,7 +291,7 @@ namespace Microsoft.ML.Transforms.Text
                 var srcType = input.Schema[_parent.ColumnPairs[iinfo].inputColumnName].Type;
                 Host.Assert(srcType.GetItemType() is TextDataViewType);
 
-                if (srcType is VectorType vectorType)
+                if (srcType is VectorDataViewType vectorType)
                 {
                     Host.Assert(vectorType.Size >= 0);
                     return MakeGetterVec(input, iinfo);

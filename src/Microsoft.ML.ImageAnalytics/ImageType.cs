@@ -9,11 +9,11 @@ using Microsoft.ML.Runtime;
 
 namespace Microsoft.ML.Transforms.Image
 {
-    public sealed class ImageType : StructuredDataViewType
+    public sealed class ImageDataViewType : StructuredDataViewType
     {
         public readonly int Height;
         public readonly int Width;
-        public ImageType(int height, int width)
+        public ImageDataViewType(int height, int width)
            : base(typeof(Bitmap))
         {
             Contracts.CheckParam(height > 0, nameof(height), "Must be positive.");
@@ -23,7 +23,7 @@ namespace Microsoft.ML.Transforms.Image
             Width = width;
         }
 
-        public ImageType() : base(typeof(Bitmap))
+        public ImageDataViewType() : base(typeof(Bitmap))
         {
         }
 
@@ -31,7 +31,7 @@ namespace Microsoft.ML.Transforms.Image
         {
             if (other == this)
                 return true;
-            if (!(other is ImageType tmp))
+            if (!(other is ImageDataViewType tmp))
                 return false;
             if (Height != tmp.Height)
                 return false;

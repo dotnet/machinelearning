@@ -63,9 +63,9 @@ namespace Microsoft.ML
             {
                 Contracts.CheckNonEmpty(name, nameof(name));
                 Contracts.CheckValueOrNull(annotations);
-                Contracts.CheckParam(!(itemType is KeyType), nameof(itemType), "Item type cannot be a key");
-                Contracts.CheckParam(!(itemType is VectorType), nameof(itemType), "Item type cannot be a vector");
-                Contracts.CheckParam(!isKey || KeyType.IsValidDataType(itemType.RawType), nameof(itemType), "The item type must be valid for a key");
+                Contracts.CheckParam(!(itemType is KeyDataViewType), nameof(itemType), "Item type cannot be a key");
+                Contracts.CheckParam(!(itemType is VectorDataViewType), nameof(itemType), "Item type cannot be a vector");
+                Contracts.CheckParam(!isKey || KeyDataViewType.IsValidDataType(itemType.RawType), nameof(itemType), "The item type must be valid for a key");
 
                 Name = name;
                 Kind = vecKind;
@@ -147,7 +147,7 @@ namespace Microsoft.ML
             out DataViewType itemType,
             out bool isKey)
         {
-            if (type is VectorType vectorType)
+            if (type is VectorDataViewType vectorType)
             {
                 if (vectorType.IsKnownSize)
                 {
@@ -166,7 +166,7 @@ namespace Microsoft.ML
                 itemType = type;
             }
 
-            isKey = itemType is KeyType;
+            isKey = itemType is KeyDataViewType;
             if (isKey)
                 itemType = ColumnTypeExtensions.PrimitiveTypeFromType(itemType.RawType);
         }

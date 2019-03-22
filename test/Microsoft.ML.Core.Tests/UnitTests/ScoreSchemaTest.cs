@@ -30,7 +30,7 @@ namespace Microsoft.ML.RunTests
         public void SequencePredictorSchemaTest()
         {
             int keyCount = 10;
-            var expectedScoreColumnType = new KeyType(typeof(uint), keyCount);
+            var expectedScoreColumnType = new KeyDataViewType(typeof(uint), keyCount);
             VBuffer<ReadOnlyMemory<char>> keyNames = GenerateKeyNames(keyCount);
 
             var sequenceSchema = ScoreSchemaFactory.CreateSequencePredictionSchema(expectedScoreColumnType,
@@ -44,7 +44,7 @@ namespace Microsoft.ML.RunTests
             Assert.Equal(AnnotationUtils.Const.ScoreValueKind.PredictedLabel, scoreColumn.Name);
 
             // Check score column type.
-            var actualScoreColumnType = scoreColumn.Type as KeyType;
+            var actualScoreColumnType = scoreColumn.Type as KeyDataViewType;
             Assert.NotNull(actualScoreColumnType);
             Assert.Equal(expectedScoreColumnType.Count, actualScoreColumnType.Count);
             Assert.Equal(expectedScoreColumnType.RawType, actualScoreColumnType.RawType);
@@ -59,9 +59,9 @@ namespace Microsoft.ML.RunTests
             Assert.Equal(AnnotationUtils.Kinds.ScoreValueKind, scoreMetadata.Schema[2].Name);
 
             // Check metadata columns' types.
-            Assert.True(scoreMetadata.Schema[0].Type is VectorType);
-            Assert.Equal(keyNames.Length, (scoreMetadata.Schema[0].Type as VectorType).Size);
-            Assert.Equal(TextDataViewType.Instance, (scoreMetadata.Schema[0].Type as VectorType).ItemType);
+            Assert.True(scoreMetadata.Schema[0].Type is VectorDataViewType);
+            Assert.Equal(keyNames.Length, (scoreMetadata.Schema[0].Type as VectorDataViewType).Size);
+            Assert.Equal(TextDataViewType.Instance, (scoreMetadata.Schema[0].Type as VectorDataViewType).ItemType);
             Assert.Equal(TextDataViewType.Instance, scoreColumn.Annotations.Schema[1].Type);
             Assert.Equal(TextDataViewType.Instance, scoreColumn.Annotations.Schema[2].Type);
 
@@ -87,7 +87,7 @@ namespace Microsoft.ML.RunTests
         public void SequencePredictorSchemaWithoutKeyNamesMetadataTest()
         {
             int keyCount = 10;
-            var expectedScoreColumnType = new KeyType(typeof(uint), keyCount);
+            var expectedScoreColumnType = new KeyDataViewType(typeof(uint), keyCount);
             VBuffer<ReadOnlyMemory<char>> keyNames = GenerateKeyNames(0);
 
             var sequenceSchema = ScoreSchemaFactory.CreateSequencePredictionSchema(expectedScoreColumnType,
@@ -101,7 +101,7 @@ namespace Microsoft.ML.RunTests
             Assert.Equal(AnnotationUtils.Const.ScoreValueKind.PredictedLabel, scoreColumn.Name);
 
             // Check score column type.
-            var actualScoreColumnType = scoreColumn.Type as KeyType;
+            var actualScoreColumnType = scoreColumn.Type as KeyDataViewType;
             Assert.NotNull(actualScoreColumnType);
             Assert.Equal(expectedScoreColumnType.Count, actualScoreColumnType.Count);
             Assert.Equal(expectedScoreColumnType.RawType, actualScoreColumnType.RawType);

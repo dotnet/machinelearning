@@ -12,7 +12,7 @@ namespace Microsoft.ML.StaticPipe
 {
     /// <summary>
     /// A type used in the generic argument to <see cref="Scalar{T}"/>. We must simultaneously distinguish
-    /// between a <see cref="ImageType"/> of fixed (with <see cref="Bitmap"/>) and unfixed (with this type),
+    /// between a <see cref="ImageDataViewType"/> of fixed (with <see cref="Bitmap"/>) and unfixed (with this type),
     /// in the static pipelines.
     /// </summary>
     public class UnknownSizeBitmap { private UnknownSizeBitmap() { } }

@@ -217,7 +217,7 @@ namespace Microsoft.ML.Data
 
                 if (outputType.IsArray)
                 {
-                    VectorType vectorType = colType as VectorType;
+                    VectorDataViewType vectorType = colType as VectorDataViewType;
                     Host.Assert(vectorType != null);
 
                     // String[] -> ReadOnlyMemory<char>
@@ -235,7 +235,7 @@ namespace Microsoft.ML.Data
                     del = CreateDirectArrayGetterDelegate<int>;
                     genericType = outputType.GetElementType();
                 }
-                else if (colType is VectorType vectorType)
+                else if (colType is VectorDataViewType vectorType)
                 {
                     // VBuffer<T> -> VBuffer<T>
                     // REVIEW: Do we care about accomodating VBuffer<string> -> ReadOnlyMemory<char>?
@@ -260,7 +260,7 @@ namespace Microsoft.ML.Data
                     else
                         Host.Assert(colType.RawType == outputType);
 
-                    if (!(colType is KeyType keyType))
+                    if (!(colType is KeyDataViewType keyType))
                         del = CreateDirectGetterDelegate<int>;
                     else
                     {
@@ -350,7 +350,7 @@ namespace Microsoft.ML.Data
             private Delegate CreateKeyGetterDelegate<TDst>(Delegate peekDel, DataViewType colType)
             {
                 // Make sure the function is dealing with key.
-                KeyType keyType = colType as KeyType;
+                KeyDataViewType keyType = colType as KeyDataViewType;
                 Host.Check(keyType != null);
                 // Following equations work only with unsigned integers.
                 Host.Check(typeof(TDst) == typeof(ulong) || typeof(TDst) == typeof(uint) ||
@@ -849,12 +849,12 @@ namespace Microsoft.ML.Data
             {
                 // Infer a type as best we can.
                 var primitiveItemType = ColumnTypeExtensions.PrimitiveTypeFromType(itemType);
-                annotationType = isVector ? new VectorType(primitiveItemType) : (DataViewType)primitiveItemType;
+                annotationType = isVector ? new VectorDataViewType(primitiveItemType) : (DataViewType)primitiveItemType;
             }
             else
             {
                 // Make sure that the types are compatible with the declared type, including whether it is a vector type.
-                VectorType annotationVectorType = annotationType as VectorType;
+                VectorDataViewType annotationVectorType = annotationType as VectorDataViewType;
                 bool annotationIsVector = annotationVectorType != null;
                 if (isVector != annotationIsVector)
                 {
@@ -879,7 +879,7 @@ namespace Microsoft.ML.Data
             var typeT = typeof(T);
             if (typeT.IsArray)
             {
-                Contracts.Assert(AnnotationType is VectorType);
+                Contracts.Assert(AnnotationType is VectorDataViewType);
                 Contracts.Check(typeof(TDst).IsGenericType && typeof(TDst).GetGenericTypeDefinition() == typeof(VBuffer<>));
                 var itemType = typeT.GetElementType();
                 var dstItemType = typeof(TDst).GetGenericArguments()[0];
@@ -901,7 +901,7 @@ namespace Microsoft.ML.Data
                 return srcMethod.GetMethodInfo().GetGenericMethodDefinition().MakeGenericMethod(dstItemType)
                     .Invoke(this, new object[] { }) as ValueGetter<TDst>;
             }
-            if (AnnotationType is VectorType annotationVectorType)
+            if (AnnotationType is VectorDataViewType annotationVectorType)
             {
                 // VBuffer<T> -> VBuffer<T>
                 // REVIEW: Do we care about accomodating VBuffer<string> -> VBuffer<ReadOnlyMemory<char>>?

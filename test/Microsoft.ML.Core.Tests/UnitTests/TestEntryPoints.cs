@@ -4468,7 +4468,7 @@ namespace Microsoft.ML.RunTests
             foldCol = schema.GetColumnOrNull("Fold Index");
             Assert.True(foldCol.HasValue);
             var type = schema["Count"].Annotations.Schema[AnnotationUtils.Kinds.SlotNames].Type;
-            Assert.True(type is VectorType vecType && vecType.ItemType is TextDataViewType && vecType.Size == 10);
+            Assert.True(type is VectorDataViewType vecType && vecType.ItemType is TextDataViewType && vecType.Size == 10);
             var slotNames = default(VBuffer<ReadOnlyMemory<char>>);
             schema["Count"].GetSlotNames(ref slotNames);
             var slotNameValues = slotNames.GetValues();
@@ -5153,9 +5153,9 @@ namespace Microsoft.ML.RunTests
                 foldGetter(ref fold);
                 Assert.True(ReadOnlyMemoryUtils.EqualsStr("Standard Deviation", fold));
                 var stdevValues = stdev.GetValues();
-                Assert.Equal(2.462, stdevValues[0], 3);
-                Assert.Equal(2.763, stdevValues[1], 3);
-                Assert.Equal(3.273, stdevValues[2], 3);
+                Assert.Equal(0.02462, stdevValues[0], 5);
+                Assert.Equal(0.02763, stdevValues[1], 5);
+                Assert.Equal(0.03273, stdevValues[2], 5);
 
                 var sumBldr = new BufferBuilder<double>(R8Adder.Instance);
                 sumBldr.Reset(avg.Length, true);
@@ -5632,7 +5632,7 @@ namespace Microsoft.ML.RunTests
             var schema = data.Schema;
             Assert.Equal(3, schema.Count);
             Assert.Equal("Softmax", schema[2].Name);
-            Assert.Equal(10, (schema[2].Type as VectorType)?.Size);
+            Assert.Equal(10, (schema[2].Type as VectorDataViewType)?.Size);
         }
 
         [Fact]

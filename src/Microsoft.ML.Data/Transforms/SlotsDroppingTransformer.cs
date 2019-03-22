@@ -469,7 +469,7 @@ namespace Microsoft.ML.Transforms
                     if (!InputSchema.TryGetColumnIndex(_parent.ColumnPairs[i].inputColumnName, out _cols[i]))
                         throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", _parent.ColumnPairs[i].inputColumnName);
                     _srcTypes[i] = inputSchema[_cols[i]].Type;
-                    VectorType srcVectorType = _srcTypes[i] as VectorType;
+                    VectorDataViewType srcVectorType = _srcTypes[i] as VectorDataViewType;
 
                     DataViewType itemType = srcVectorType?.ItemType ?? _srcTypes[i];
                     if (!IsValidColumnType(itemType))
@@ -486,7 +486,7 @@ namespace Microsoft.ML.Transforms
             /// a string, a key, a float or a double.
             /// </summary>
             private static bool IsValidColumnType(DataViewType type)
-                => (type is KeyType keytype && 0 < keytype.Count && keytype.Count < Utils.ArrayMaxSize)
+                => (type is KeyDataViewType keytype && 0 < keytype.Count && keytype.Count < Utils.ArrayMaxSize)
                 || type == NumberDataViewType.Single || type == NumberDataViewType.Double || type is TextDataViewType;
 
             /// <summary>
@@ -514,7 +514,7 @@ namespace Microsoft.ML.Transforms
 
                 categoricalRanges = null;
                 var typeSrc = _srcTypes[iinfo];
-                if (!(typeSrc is VectorType vectorType))
+                if (!(typeSrc is VectorDataViewType vectorType))
                 {
                     type = typeSrc;
                     suppressed = slotsMin.Length > 0 && slotsMin[0] == 0;
@@ -529,7 +529,7 @@ namespace Microsoft.ML.Transforms
                     Host.Assert(vectorType.IsKnownSize);
                     var dstLength = slotDropper.DstLength;
                     var hasSlotNames = input[_cols[iinfo]].HasSlotNames(vectorType.Size);
-                    type = new VectorType(vectorType.ItemType, Math.Max(dstLength, 1));
+                    type = new VectorDataViewType(vectorType.ItemType, Math.Max(dstLength, 1));
                     suppressed = dstLength == 0;
                 }
             }
@@ -711,7 +711,7 @@ namespace Microsoft.ML.Transforms
 
                 var typeSrc = _srcTypes[iinfo];
 
-                if (!(typeSrc is VectorType))
+                if (!(typeSrc is VectorDataViewType))
                 {
                     if (_suppressed[iinfo])
                         return MakeOneTrivialGetter(input, iinfo);
@@ -726,7 +726,7 @@ namespace Microsoft.ML.Transforms
             {
                 Host.AssertValue(input);
                 Host.Assert(0 <= iinfo && iinfo < _parent.ColumnPairs.Length);
-                Host.Assert(!(_srcTypes[iinfo] is VectorType));
+                Host.Assert(!(_srcTypes[iinfo] is VectorDataViewType));
                 Host.Assert(_suppressed[iinfo]);
 
                 Func<ValueGetter<int>> del = MakeOneTrivialGetter<int>;
@@ -749,7 +749,7 @@ namespace Microsoft.ML.Transforms
             {
                 Host.AssertValue(input);
                 Host.Assert(0 <= iinfo && iinfo < _parent.ColumnPairs.Length);
-                VectorType vectorType = (VectorType)_srcTypes[iinfo];
+                VectorDataViewType vectorType = (VectorDataViewType)_srcTypes[iinfo];
                 Host.Assert(_suppressed[iinfo]);
 
                 Func<ValueGetter<VBuffer<int>>> del = MakeVecTrivialGetter<int>;
@@ -772,7 +772,7 @@ namespace Microsoft.ML.Transforms
             {
                 Host.AssertValue(input);
                 Host.Assert(0 <= iinfo && iinfo < _parent.ColumnPairs.Length);
-                VectorType vectorType = (VectorType)_srcTypes[iinfo];
+                VectorDataViewType vectorType = (VectorDataViewType)_srcTypes[iinfo];
                 Host.Assert(!_suppressed[iinfo]);
 
                 Func<DataViewRow, int, ValueGetter<VBuffer<int>>> del = MakeVecGetter<int>;
@@ -785,7 +785,7 @@ namespace Microsoft.ML.Transforms
                 var srcGetter = GetSrcGetter<VBuffer<TDst>>(input, iinfo);
                 var typeDst = _dstTypes[iinfo];
                 int srcValueCount = _srcTypes[iinfo].GetValueCount();
-                if (typeDst is VectorType dstVector && dstVector.IsKnownSize && dstVector.Size == srcValueCount)
+                if (typeDst is VectorDataViewType dstVector && dstVector.IsKnownSize && dstVector.Size == srcValueCount)
                     return srcGetter;
 
                 var buffer = default(VBuffer<TDst>);
@@ -829,17 +829,17 @@ namespace Microsoft.ML.Transforms
                     var builder = new DataViewSchema.Annotations.Builder();
 
                     // Add SlotNames metadata.
-                    if (_srcTypes[iinfo] is VectorType vectorType && vectorType.IsKnownSize)
+                    if (_srcTypes[iinfo] is VectorDataViewType vectorType && vectorType.IsKnownSize)
                     {
                         var dstLength = _slotDropper[iinfo].DstLength;
                         var hasSlotNames = InputSchema[_cols[iinfo]].HasSlotNames(vectorType.Size);
-                        var type = new VectorType(vectorType.ItemType, Math.Max(dstLength, 1));
+                        var type = new VectorDataViewType(vectorType.ItemType, Math.Max(dstLength, 1));
 
                         if (hasSlotNames && dstLength > 0)
                         {
                             // Add slot name metadata.
                             ValueGetter<VBuffer<ReadOnlyMemory<char>>> slotNamesGetter = (ref VBuffer<ReadOnlyMemory<char>> dst) => GetSlotNames(iinfo, ref dst);
-                            builder.Add(AnnotationUtils.Kinds.SlotNames, new VectorType(TextDataViewType.Instance, dstLength), slotNamesGetter);
+                            builder.Add(AnnotationUtils.Kinds.SlotNames, new VectorDataViewType(TextDataViewType.Instance, dstLength), slotNamesGetter);
                         }
                     }
 

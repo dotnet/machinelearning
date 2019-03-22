@@ -174,8 +174,8 @@ namespace Microsoft.ML.Data
             // Get the label names if they exist, or use the default names.
             var labelNames = default(VBuffer<ReadOnlyMemory<char>>);
             var labelCol = schema.Label.Value;
-            if (labelCol.Type is KeyType &&
-                labelCol.Annotations.Schema.GetColumnOrNull(AnnotationUtils.Kinds.KeyValues)?.Type is VectorType vecType &&
+            if (labelCol.Type is KeyDataViewType &&
+                labelCol.Annotations.Schema.GetColumnOrNull(AnnotationUtils.Kinds.KeyValues)?.Type is VectorDataViewType vecType &&
                 vecType.Size > 0 && vecType.ItemType == TextDataViewType.Instance)
             {
                 labelCol.GetKeyValues(ref labelNames);
@@ -476,7 +476,7 @@ namespace Microsoft.ML.Data
                         var logLoss = _logLoss / (_numLogLossPositives + _numLogLossNegatives);
                         var priorPos = _numLogLossPositives / (_numLogLossPositives + _numLogLossNegatives);
                         var priorLogLoss = MathUtils.Entropy(priorPos);
-                        return 100 * (priorLogLoss - logLoss) / priorLogLoss;
+                        return (priorLogLoss - logLoss) / priorLogLoss;
                     }
                 }
 

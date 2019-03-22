@@ -122,7 +122,7 @@ namespace Microsoft.ML.Trainers
 
             Weight = weights;
             Bias = bias;
-            _inputType = new VectorType(NumberDataViewType.Single, Weight.Length);
+            _inputType = new VectorDataViewType(NumberDataViewType.Single, Weight.Length);
 
             if (Weight.IsDense)
                 _weightsDense = Weight;
@@ -177,7 +177,7 @@ namespace Microsoft.ML.Trainers
             else
                 Weight = new VBuffer<float>(len, Utils.Size(weights), weights, indices);
 
-            _inputType = new VectorType(NumberDataViewType.Single, Weight.Length);
+            _inputType = new VectorDataViewType(NumberDataViewType.Single, Weight.Length);
             WarnOnOldNormalizer(ctx, GetType(), Host);
 
             if (Weight.IsDense)
@@ -366,7 +366,7 @@ namespace Microsoft.ML.Trainers
             AnnotationUtils.GetSlotNames(schema, RoleMappedSchema.ColumnRole.Feature, Weight.Length, ref names);
             var subBuilder = new DataViewSchema.Annotations.Builder();
             subBuilder.AddSlotNames(Weight.Length, (ref VBuffer<ReadOnlyMemory<char>> dst) => names.CopyTo(ref dst));
-            var colType = new VectorType(NumberDataViewType.Single, Weight.Length);
+            var colType = new VectorDataViewType(NumberDataViewType.Single, Weight.Length);
             var builder = new DataViewSchema.Annotations.Builder();
             builder.AddPrimitiveValue("Bias", NumberDataViewType.Single, Bias);
             builder.Add("Weights", colType, (ref VBuffer<float> dst) => Weight.CopyTo(ref dst), subBuilder.ToAnnotations());

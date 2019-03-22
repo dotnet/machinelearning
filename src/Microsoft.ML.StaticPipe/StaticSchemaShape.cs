@@ -238,7 +238,7 @@ namespace Microsoft.ML.StaticPipe
             var t = col.Type;
 
             Type vecType = null;
-            if (t is VectorType vt)
+            if (t is VectorDataViewType vt)
             {
                 vecType = vt.Size > 0 ? typeof(Vector<>) : typeof(VarVector<>);
                 // Check normalized subtype of vectors.
@@ -262,9 +262,9 @@ namespace Microsoft.ML.StaticPipe
                 t = vt.ItemType;
                 // Fall through to the non-vector case to handle subtypes.
             }
-            Contracts.Assert(!(t is VectorType));
+            Contracts.Assert(!(t is VectorDataViewType));
 
-            if (t is KeyType kt)
+            if (t is KeyDataViewType kt)
             {
                 Type physType = GetPhysicalType(kt);
                 Contracts.Assert(physType == typeof(byte) || physType == typeof(ushort)
@@ -281,7 +281,7 @@ namespace Microsoft.ML.StaticPipe
                         var kvcol = meta.Schema[kvcolIndex];
                         var kvType = kvcol.Type;
                         Contracts.Assert(kt.Count <= int.MaxValue);
-                        if (kvType is VectorType kvVecType && kvVecType.Size == (int)kt.Count)
+                        if (kvType is VectorDataViewType kvVecType && kvVecType.Size == (int)kt.Count)
                         {
                             Contracts.Assert(kt.Count > 0);
                             var subtype = GetTypeOrNull(kvcol);
@@ -333,7 +333,7 @@ namespace Microsoft.ML.StaticPipe
             switch (columnType)
             {
                 case NumberDataViewType numberType:
-                case KeyType keyType:
+                case KeyDataViewType keyType:
                 case TimeSpanDataViewType timeSpanType:
                 case DateTimeDataViewType dateTimeType:
                 case DateTimeOffsetDataViewType dateTimeOffsetType:

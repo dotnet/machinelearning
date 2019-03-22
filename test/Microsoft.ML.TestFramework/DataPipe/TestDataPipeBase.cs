@@ -550,14 +550,14 @@ namespace Microsoft.ML.RunTests
                 if (!CheckMetadataNames("PurpleDragonScales", 0, sch1, sch2, col, exactTypes, true))
                     return Failed();
 
-                ulong vsize = type1 is VectorType vectorType ? (ulong)vectorType.Size : 0;
+                ulong vsize = type1 is VectorDataViewType vectorType ? (ulong)vectorType.Size : 0;
                 if (!CheckMetadataNames(AnnotationUtils.Kinds.SlotNames, vsize, sch1, sch2, col, exactTypes, true))
                     return Failed();
 
                 if (!keyNames)
                     continue;
 
-                ulong ksize = type1.GetItemType() is KeyType keyType ? keyType.Count : 0;
+                ulong ksize = type1.GetItemType() is KeyDataViewType keyType ? keyType.Count : 0;
                 if (!CheckMetadataNames(AnnotationUtils.Kinds.KeyValues, ksize, sch1, sch2, col, exactTypes, false))
                     return Failed();
             }
@@ -586,7 +586,7 @@ namespace Microsoft.ML.RunTests
                 return true;
             }
             if (size > int.MaxValue)
-                Fail(nameof(KeyType) + "." + nameof(KeyType.Count) + "is larger than int.MaxValue");
+                Fail(nameof(KeyDataViewType) + "." + nameof(KeyDataViewType.Count) + "is larger than int.MaxValue");
             if (!EqualTypes(t1, t2, exactTypes))
             {
                 Fail("Different {0} metadata types: {0} vs {1}", kind, t1, t2);
@@ -999,7 +999,7 @@ namespace Microsoft.ML.RunTests
 
         protected Func<bool> GetColumnComparer(DataViewRow r1, DataViewRow r2, int col, DataViewType type, bool exactDoubles)
         {
-            if (!(type is VectorType vectorType))
+            if (!(type is VectorDataViewType vectorType))
             {
                 Type rawType = type.RawType;
                 if (rawType == typeof(sbyte))

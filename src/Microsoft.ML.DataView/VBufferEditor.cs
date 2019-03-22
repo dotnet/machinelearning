@@ -3,7 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using Microsoft.ML.Runtime;
+using Microsoft.ML.Internal.DataView;
 
 namespace Microsoft.ML.Data
 {
@@ -36,6 +36,10 @@ namespace Microsoft.ML.Data
         /// The optional number of physical values to be represented in the buffer.
         /// The buffer will be dense if <paramref name="valuesCount"/> is omitted.
         /// </param>
+        /// <param name="maxValuesCapacity">
+        /// The optional number of maximum physical values to represent in the buffer.
+        /// The buffer won't grow beyond this maximum size.
+        /// </param>
         /// <param name="keepOldOnResize">
         /// True means that the old buffer values and indices are preserved, if possible (Array.Resize is called).
         /// False means that a new array will be allocated, if necessary.
@@ -47,26 +51,16 @@ namespace Microsoft.ML.Data
             ref VBuffer<T> destination,
             int newLogicalLength,
             int? valuesCount = null,
+            int? maxValuesCapacity = null,
             bool keepOldOnResize = false,
             bool requireIndicesOnDense = false)
         {
             return destination.GetEditor(
                 newLogicalLength,
                 valuesCount,
-                keepOldOnResize: keepOldOnResize,
-                requireIndicesOnDense: requireIndicesOnDense);
-        }
-
-        internal static VBufferEditor<T> Create<T>(
-            ref VBuffer<T> destination,
-            int newLogicalLength,
-            int valuesCount,
-            int maxValuesCapacity)
-        {
-            return destination.GetEditor(
-                newLogicalLength,
-                valuesCount,
-                maxValuesCapacity);
+                maxValuesCapacity,
+                keepOldOnResize,
+                requireIndicesOnDense);
         }
     }
 

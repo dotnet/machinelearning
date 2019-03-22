@@ -28,6 +28,13 @@ namespace Microsoft.ML
         /// Text representation of original values are stored in the slot names of the  metadata for the new column.Hashing, as such, can map many initial values to one.
         /// <paramref name="maximumNumberOfInverts"/>Specifies the upper bound of the number of distinct input values mapping to a hash that should be retained.
         /// <value>0</value> does not retain any input values. <value>-1</value> retains all input values mapping to each hash.</param>
+        ///  <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        ///  [!code-csharp[Hash](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/Conversion/Hash.cs)]
+        /// ]]></format>
+        /// </example>
+
         public static HashingEstimator Hash(this TransformsCatalog.ConversionTransforms catalog, string outputColumnName, string inputColumnName = null,
             int numberOfBits = HashDefaults.NumberOfBits, int maximumNumberOfInverts = HashDefaults.MaximumNumberOfInverts)
             => new HashingEstimator(CatalogUtils.GetEnvironment(catalog), outputColumnName, inputColumnName, numberOfBits, maximumNumberOfInverts);
@@ -121,7 +128,7 @@ namespace Microsoft.ML
             => new KeyToVectorMappingEstimator(CatalogUtils.GetEnvironment(catalog), outputColumnName, inputColumnName, outputCountVector);
 
         /// <summary>
-        /// Converts value types into <see cref="KeyType"/>.
+        /// Converts value types into <see cref="KeyDataViewType"/>.
         /// </summary>
         /// <param name="catalog">The conversion transform's catalog.</param>
         /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.</param>
@@ -151,7 +158,7 @@ namespace Microsoft.ML
                new[] { new ValueToKeyMappingEstimator.ColumnOptions(outputColumnName, inputColumnName, maximumNumberOfKeys, keyOrdinality, addKeyValueAnnotationsAsText) }, keyData);
 
         /// <summary>
-        /// Converts value types into <see cref="KeyType"/>, optionally loading the keys to use from <paramref name="keyData"/>.
+        /// Converts value types into <see cref="KeyDataViewType"/>, optionally loading the keys to use from <paramref name="keyData"/>.
         /// </summary>
         /// <param name="catalog">The conversion transform's catalog.</param>
         /// <param name="columns">The data columns to map to keys.</param>
@@ -179,7 +186,7 @@ namespace Microsoft.ML
         /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.</param>
         /// <param name="keyValuePairs">Specifies the mapping that will be perfomed. The keys will be mapped to the values as specified in the <paramref name="keyValuePairs"/>.</param>
         /// <param name="inputColumnName">Name of the column to transform. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.</param>
-        /// <param name="treatValuesAsKeyType">Whether to treat the values as a <see cref="KeyType"/>.</param>
+        /// <param name="treatValuesAsKeyType">Whether to treat the values as a <see cref="KeyDataViewType"/>.</param>
         /// <returns>An instance of the <see cref="ValueMappingEstimator"/></returns>
         /// <example>
         /// <format type="text/markdown">
@@ -239,7 +246,7 @@ namespace Microsoft.ML
         /// <typeparam name="TOutputType">The value type.</typeparam>
         /// <param name="catalog">The conversion transform's catalog</param>
         /// <param name="keyValuePairs">Specifies the mapping that will be perfomed. The keys will be mapped to the values as specified in the <paramref name="keyValuePairs"/>.</param>
-        /// <param name="treatValuesAsKeyType">Whether to treat the values as a <see cref="KeyType"/>.</param>
+        /// <param name="treatValuesAsKeyType">Whether to treat the values as a <see cref="KeyDataViewType"/>.</param>
         /// <param name="columns">The columns to apply this transform on.</param>
         /// <returns>An instance of the <see cref="ValueMappingEstimator"/></returns>
         /// <example>

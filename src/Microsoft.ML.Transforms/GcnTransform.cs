@@ -368,7 +368,7 @@ namespace Microsoft.ML.Transforms
 
                 var ex = _parent._columns[iinfo];
                 Host.Assert(0 < ex.Scale && ex.Scale < float.PositiveInfinity);
-                Host.Assert(_srcTypes[iinfo] is VectorType);
+                Host.Assert(_srcTypes[iinfo] is VectorDataViewType);
 
                 var getSrc = input.GetGetter<VBuffer<float>>(input.Schema[_srcCols[iinfo]]);
                 var src = default(VBuffer<float>);
@@ -766,7 +766,7 @@ namespace Microsoft.ML.Transforms
 
         internal static bool IsColumnTypeValid(DataViewType type)
         {
-            if (!(type is VectorType vectorType && vectorType.IsKnownSize))
+            if (!(type is VectorDataViewType vectorType && vectorType.IsKnownSize))
                 return false;
             return vectorType.ItemType == NumberDataViewType.Single;
         }

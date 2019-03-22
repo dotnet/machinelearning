@@ -120,7 +120,7 @@ namespace Microsoft.ML.Data
 
                 // Checks that the return type of the generator is compatible with ColumnType.
                 GetVectorAndItemType(ComputedReturnType, "return type", out bool isVector, out Type itemType);
-                Contracts.Assert(isVector == ColumnType is VectorType);
+                Contracts.Assert(isVector == ColumnType is VectorDataViewType);
                 Contracts.Assert(itemType == ColumnType.GetItemType().RawType);
             }
         }
@@ -255,13 +255,13 @@ namespace Microsoft.ML.Data
                 {
                     // Infer a type as best we can.
                     PrimitiveDataViewType itemType = ColumnTypeExtensions.PrimitiveTypeFromType(dataItemType);
-                    colType = isVector ? new VectorType(itemType) : (DataViewType)itemType;
+                    colType = isVector ? new VectorDataViewType(itemType) : (DataViewType)itemType;
                 }
                 else
                 {
                     // Make sure that the types are compatible with the declared type, including
                     // whether it is a vector type.
-                    VectorType columnVectorType = col.ColumnType as VectorType;
+                    VectorDataViewType columnVectorType = col.ColumnType as VectorDataViewType;
                     if (isVector != (columnVectorType != null))
                     {
                         throw Contracts.ExceptParam(nameof(userSchemaDefinition), "Column '{0}' is supposed to be {1}, but type of associated field '{2}' is {3}",

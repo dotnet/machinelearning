@@ -64,7 +64,7 @@ namespace Microsoft.ML.Transforms
         }
 
         private const string RegistrationName = "LabelConvert";
-        private VectorType _slotType;
+        private VectorDataViewType _slotType;
 
         /// <summary>
         /// Initializes a new instance of <see cref="LabelConvertTransform"/>.
@@ -179,7 +179,7 @@ namespace Microsoft.ML.Transforms
             return RowCursorUtils.GetLabelGetter(input, col);
         }
 
-        protected override VectorType GetSlotTypeCore(int iinfo)
+        protected override VectorDataViewType GetSlotTypeCore(int iinfo)
         {
             Host.Assert(0 <= iinfo && iinfo < Infos.Length);
             var srcSlotType = Infos[iinfo].SlotTypeSrc;
@@ -187,7 +187,7 @@ namespace Microsoft.ML.Transforms
                 return null;
             // THe following slot type will be the same for any columns, so we have only one field,
             // as opposed to one for each column.
-            Interlocked.CompareExchange(ref _slotType, new VectorType(NumberDataViewType.Single, srcSlotType), null);
+            Interlocked.CompareExchange(ref _slotType, new VectorDataViewType(NumberDataViewType.Single, srcSlotType.Dimensions), null);
             return _slotType;
         }
 
@@ -204,9 +204,9 @@ namespace Microsoft.ML.Transforms
         private sealed class SlotCursorImpl : SlotCursor.SynchronizedSlotCursor
         {
             private readonly Delegate _getter;
-            private readonly VectorType _type;
+            private readonly VectorDataViewType _type;
 
-            public SlotCursorImpl(IChannelProvider provider, SlotCursor cursor, VectorType typeDst)
+            public SlotCursorImpl(IChannelProvider provider, SlotCursor cursor, VectorDataViewType typeDst)
                 : base(provider, cursor)
             {
                 Ch.AssertValue(typeDst);
@@ -214,7 +214,7 @@ namespace Microsoft.ML.Transforms
                 _type = typeDst;
             }
 
-            public override VectorType GetSlotType()
+            public override VectorDataViewType GetSlotType()
             {
                 return _type;
             }

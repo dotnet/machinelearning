@@ -340,7 +340,7 @@ namespace Microsoft.ML.Data
                             FeatureColumn.Annotations.GetValue(AnnotationUtils.Kinds.SlotNames, ref value));
 
                     var schemaBuilder = new DataViewSchema.Builder();
-                    var featureContributionType = new VectorType(NumberDataViewType.Single, FeatureColumn.Type as VectorType);
+                    var featureContributionType = new VectorDataViewType(NumberDataViewType.Single, ((VectorDataViewType)FeatureColumn.Type).Dimensions);
                     schemaBuilder.AddColumn(DefaultColumnNames.FeatureContributions, featureContributionType, metadataBuilder.ToAnnotations());
                     _outputSchema = schemaBuilder.ToSchema();
                 }

@@ -187,12 +187,12 @@ namespace Microsoft.ML.Transforms
         {
             Contracts.AssertValue(type);
 
-            var itemType = (type as VectorType)?.ItemType ?? type;
+            var itemType = (type as VectorDataViewType)?.ItemType ?? type;
             if (itemType == NumberDataViewType.Single)
                 return true;
             if (itemType == NumberDataViewType.Double)
                 return true;
-            if (itemType is KeyType)
+            if (itemType is KeyDataViewType)
                 return true;
             return false;
         }
@@ -268,7 +268,7 @@ namespace Microsoft.ML.Transforms
                     Contracts.AssertValue(info);
 
                     MethodInfo meth;
-                    if (info.Type is VectorType vecType)
+                    if (info.Type is VectorDataViewType vecType)
                     {
                         Func<Cursor, ColInfo, ValueVec<int>> d = CreateVec<int>;
                         meth = d.GetMethodInfo().GetGenericMethodDefinition().MakeGenericMethod(vecType.ItemType.RawType);
@@ -285,7 +285,7 @@ namespace Microsoft.ML.Transforms
                 {
                     Contracts.AssertValue(cursor);
                     Contracts.AssertValue(info);
-                    Contracts.Assert(!(info.Type is VectorType));
+                    Contracts.Assert(!(info.Type is VectorDataViewType));
                     Contracts.Assert(info.Type.RawType == typeof(T));
 
                     var getSrc = cursor.Input.GetGetter<T>(cursor.Input.Schema[info.Index]);
@@ -297,11 +297,11 @@ namespace Microsoft.ML.Transforms
                 {
                     Contracts.AssertValue(cursor);
                     Contracts.AssertValue(info);
-                    Contracts.Assert(info.Type is VectorType);
+                    Contracts.Assert(info.Type is VectorDataViewType);
                     Contracts.Assert(info.Type.RawType == typeof(VBuffer<T>));
 
                     var getSrc = cursor.Input.GetGetter<VBuffer<T>>(cursor.Input.Schema[info.Index]);
-                    var hasBad = Data.Conversion.Conversions.Instance.GetHasMissingPredicate<T>((VectorType)info.Type);
+                    var hasBad = Data.Conversion.Conversions.Instance.GetHasMissingPredicate<T>((VectorDataViewType)info.Type);
                     return new ValueVec<T>(cursor, getSrc, hasBad);
                 }
 

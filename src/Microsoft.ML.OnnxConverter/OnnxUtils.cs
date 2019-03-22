@@ -297,7 +297,7 @@ namespace Microsoft.ML.Model.OnnxConverter
 
             TensorProto.Types.DataType dataType = TensorProto.Types.DataType.Undefined;
             Type rawType;
-            if (type is VectorType vectorType)
+            if (type is VectorDataViewType vectorType)
                 rawType = vectorType.ItemType.RawType;
             else
                 rawType = type.RawType;
@@ -353,7 +353,7 @@ namespace Microsoft.ML.Model.OnnxConverter
                     dimsLocal.Add(1);
                 else if (valueCount > 1)
                 {
-                    var vec = (VectorType)type;
+                    var vec = (VectorDataViewType)type;
                     for (int i = 0; i < vec.Dimensions.Length; i++)
                         dimsLocal.Add(vec.Dimensions[i]);
                 }

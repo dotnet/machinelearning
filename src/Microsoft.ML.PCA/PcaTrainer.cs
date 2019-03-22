@@ -425,7 +425,7 @@ namespace Microsoft.ML.Trainers
             _mean = mean;
             _norm2Mean = VectorUtils.NormSquared(mean);
 
-            _inputType = new VectorType(NumberDataViewType.Single, _dimension);
+            _inputType = new VectorDataViewType(NumberDataViewType.Single, _dimension);
         }
 
         private PcaModelParameters(IHostEnvironment env, ModelLoadContext ctx)
@@ -469,7 +469,7 @@ namespace Microsoft.ML.Trainers
             }
             WarnOnOldNormalizer(ctx, GetType(), Host);
 
-            _inputType = new VectorType(NumberDataViewType.Single, _dimension);
+            _inputType = new VectorDataViewType(NumberDataViewType.Single, _dimension);
         }
 
         private protected override void SaveCore(ModelSaveContext ctx)

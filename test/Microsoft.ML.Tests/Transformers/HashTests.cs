@@ -160,7 +160,7 @@ namespace Microsoft.ML.Tests.Transformers
             const int vecLen = 5;
             var denseVec = new VBuffer<T>(vecLen, Utils.CreateArray(vecLen, val));
             builder = new DataViewSchema.Annotations.Builder();
-            builder.Add("Foo", new VectorType(type, vecLen), (ref VBuffer<T> dst) => denseVec.CopyTo(ref dst));
+            builder.Add("Foo", new VectorDataViewType(type, vecLen), (ref VBuffer<T> dst) => denseVec.CopyTo(ref dst));
             inRow = AnnotationUtils.AnnotationsAsRow(builder.ToAnnotations());
 
             info = new HashingEstimator.ColumnOptions("Bar", "Foo", numberOfBits: bits, useOrderedHashing: false);
@@ -185,7 +185,7 @@ namespace Microsoft.ML.Tests.Transformers
             // Let's now do a sparse vector.
             var sparseVec = new VBuffer<T>(10, 3, Utils.CreateArray(3, val), new[] { 0, 3, 7 });
             builder = new DataViewSchema.Annotations.Builder();
-            builder.Add("Foo", new VectorType(type, vecLen), (ref VBuffer<T> dst) => sparseVec.CopyTo(ref dst));
+            builder.Add("Foo", new VectorDataViewType(type, vecLen), (ref VBuffer<T> dst) => sparseVec.CopyTo(ref dst));
             inRow = AnnotationUtils.AnnotationsAsRow(builder.ToAnnotations());
 
             info = new HashingEstimator.ColumnOptions("Bar", "Foo", numberOfBits: bits, useOrderedHashing: false);
@@ -215,20 +215,20 @@ namespace Microsoft.ML.Tests.Transformers
             if (value <= byte.MaxValue)
             {
                 HashTestCore((byte)value, NumberDataViewType.Byte, expected, expectedOrdered, expectedOrdered3);
-                HashTestCore((byte)value, new KeyType(typeof(byte), byte.MaxValue - 1), eKey, eoKey, e3Key);
+                HashTestCore((byte)value, new KeyDataViewType(typeof(byte), byte.MaxValue - 1), eKey, eoKey, e3Key);
             }
             if (value <= ushort.MaxValue)
             {
                 HashTestCore((ushort)value, NumberDataViewType.UInt16, expected, expectedOrdered, expectedOrdered3);
-                HashTestCore((ushort)value, new KeyType(typeof(ushort),ushort.MaxValue - 1), eKey, eoKey, e3Key);
+                HashTestCore((ushort)value, new KeyDataViewType(typeof(ushort),ushort.MaxValue - 1), eKey, eoKey, e3Key);
             }
             if (value <= uint.MaxValue)
             {
                 HashTestCore((uint)value, NumberDataViewType.UInt32, expected, expectedOrdered, expectedOrdered3);
-                HashTestCore((uint)value, new KeyType(typeof(uint), int.MaxValue - 1), eKey, eoKey, e3Key);
+                HashTestCore((uint)value, new KeyDataViewType(typeof(uint), int.MaxValue - 1), eKey, eoKey, e3Key);
             }
             HashTestCore(value, NumberDataViewType.UInt64, expected, expectedOrdered, expectedOrdered3);
-            HashTestCore((ulong)value, new KeyType(typeof(ulong), int.MaxValue - 1), eKey, eoKey, e3Key);
+            HashTestCore((ulong)value, new KeyDataViewType(typeof(ulong), int.MaxValue - 1), eKey, eoKey, e3Key);
 
             HashTestCore(new DataViewRowId(value, 0), RowIdDataViewType.Instance, expected, expectedOrdered, expectedOrdered3);
 

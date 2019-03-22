@@ -420,7 +420,7 @@ namespace Microsoft.ML.Scenarios
             var schema = TensorFlowUtils.GetModelSchema(mlContext, model_location);
             Assert.Equal(86, schema.Count);
             Assert.True(schema.TryGetColumnIndex("Placeholder", out int col));
-            var type = (VectorType)schema[col].Type;
+            var type = (VectorDataViewType)schema[col].Type;
             Assert.Equal(2, type.Dimensions.Length);
             Assert.Equal(28, type.Dimensions[0]);
             Assert.Equal(28, type.Dimensions[1]);
@@ -434,7 +434,7 @@ namespace Microsoft.ML.Scenarios
             Assert.Null(metadataType);
 
             Assert.True(schema.TryGetColumnIndex("conv2d/Conv2D/ReadVariableOp", out col));
-            type = (VectorType)schema[col].Type;
+            type = (VectorDataViewType)schema[col].Type;
             Assert.Equal(new[] { 5, 5, 1, 32 }, type.Dimensions);
             metadataType = schema[col].Annotations.Schema[TensorFlowUtils.TensorflowOperatorTypeKind].Type;
             Assert.NotNull(metadataType);
@@ -449,7 +449,7 @@ namespace Microsoft.ML.Scenarios
             Assert.Equal("conv2d/kernel", inputOps.GetValues()[0].ToString());
 
             Assert.True(schema.TryGetColumnIndex("conv2d/Conv2D", out col));
-            type = (VectorType)schema[col].Type;
+            type = (VectorDataViewType)schema[col].Type;
             Assert.Equal(new[] { 28, 28, 32 }, type.Dimensions);
             metadataType = schema[col].Annotations.Schema[TensorFlowUtils.TensorflowOperatorTypeKind].Type;
             Assert.NotNull(metadataType);
@@ -464,7 +464,7 @@ namespace Microsoft.ML.Scenarios
             Assert.Equal("conv2d/Conv2D/ReadVariableOp", inputOps.GetValues()[1].ToString());
 
             Assert.True(schema.TryGetColumnIndex("Softmax", out col));
-            type = (VectorType)schema[col].Type;
+            type = (VectorDataViewType)schema[col].Type;
             Assert.Equal(new[] { 10 }, type.Dimensions);
             metadataType = schema[col].Annotations.Schema[TensorFlowUtils.TensorflowOperatorTypeKind].Type;
             Assert.NotNull(metadataType);
@@ -483,7 +483,7 @@ namespace Microsoft.ML.Scenarios
             for (int i = 0; i < schema.Count; i++)
             {
                 Assert.Equal(name.ToString(), schema[i].Name);
-                type = (VectorType)schema[i].Type;
+                type = (VectorDataViewType)schema[i].Type;
                 Assert.Equal(new[] { 2, 2 }, type.Dimensions);
                 name++;
             }
@@ -841,7 +841,7 @@ namespace Microsoft.ML.Scenarios
             var tensorFlowModel = mlContext.Model.LoadTensorFlowModel(modelLocation);
             var schema = tensorFlowModel.GetInputSchema();
             Assert.True(schema.TryGetColumnIndex("Input", out int column));
-            var type = (VectorType)schema[column].Type;
+            var type = (VectorDataViewType)schema[column].Type;
             var imageHeight = type.Dimensions[0];
             var imageWidth = type.Dimensions[1];
 
@@ -886,7 +886,7 @@ namespace Microsoft.ML.Scenarios
             var tensorFlowModel = mlContext.Model.LoadTensorFlowModel(modelLocation);
             var schema = tensorFlowModel.GetInputSchema();
             Assert.True(schema.TryGetColumnIndex("Input", out int column));
-            var type = (VectorType)schema[column].Type;
+            var type = (VectorDataViewType)schema[column].Type;
             var imageHeight = type.Dimensions[0];
             var imageWidth = type.Dimensions[1];
 

@@ -15,7 +15,7 @@ namespace Microsoft.ML.Data
     {
         /// <summary>
         /// Whether this type is a standard scalar type completely determined by its <see cref="DataViewType.RawType"/>
-        /// (not a <see cref="KeyType"/> or <see cref="StructuredDataViewType"/>, etc).
+        /// (not a <see cref="KeyDataViewType"/> or <see cref="StructuredDataViewType"/>, etc).
         /// </summary>
         public static bool IsStandardScalar(this DataViewType columnType) =>
             (columnType is NumberDataViewType) || (columnType is TextDataViewType) || (columnType is BooleanDataViewType) ||
@@ -25,7 +25,7 @@ namespace Microsoft.ML.Data
         /// <summary>
         /// Zero return means it's not a key type.
         /// </summary>
-        public static ulong GetKeyCount(this DataViewType columnType) => (columnType as KeyType)?.Count ?? 0;
+        public static ulong GetKeyCount(this DataViewType columnType) => (columnType as KeyDataViewType)?.Count ?? 0;
 
         /// <summary>
         /// Sometimes it is necessary to cast the Count to an int. This performs overflow check.
@@ -34,7 +34,7 @@ namespace Microsoft.ML.Data
         public static int GetKeyCountAsInt32(this DataViewType columnType, IExceptionContext ectx = null)
         {
             ulong count = columnType.GetKeyCount();
-            ectx.Check(count <= int.MaxValue, nameof(KeyType) + "." + nameof(KeyType.Count) + " exceeds int.MaxValue.");
+            ectx.Check(count <= int.MaxValue, nameof(KeyDataViewType) + "." + nameof(KeyDataViewType.Count) + " exceeds int.MaxValue.");
             return (int)count;
         }
 
@@ -42,18 +42,18 @@ namespace Microsoft.ML.Data
         /// For non-vector types, this returns the column type itself (i.e., return <paramref name="columnType"/>).
         /// For vector types, this returns the type of the items stored as values in vector.
         /// </summary>
-        public static DataViewType GetItemType(this DataViewType columnType) => (columnType as VectorType)?.ItemType ?? columnType;
+        public static DataViewType GetItemType(this DataViewType columnType) => (columnType as VectorDataViewType)?.ItemType ?? columnType;
 
         /// <summary>
         /// Zero return means either it's not a vector or the size is unknown.
         /// </summary>
-        public static int GetVectorSize(this DataViewType columnType) => (columnType as VectorType)?.Size ?? 0;
+        public static int GetVectorSize(this DataViewType columnType) => (columnType as VectorDataViewType)?.Size ?? 0;
 
         /// <summary>
         /// For non-vectors, this returns one. For unknown size vectors, it returns zero.
         /// For known sized vectors, it returns size.
         /// </summary>
-        public static int GetValueCount(this DataViewType columnType) => (columnType as VectorType)?.Size ?? 1;
+        public static int GetValueCount(this DataViewType columnType) => (columnType as VectorDataViewType)?.Size ?? 1;
 
         /// <summary>
         /// Whether this is a vector type with known size. Returns false for non-vector types.
@@ -85,7 +85,7 @@ namespace Microsoft.ML.Data
                 return true;
 
             // For vector types, we don't care about the factoring of the dimensions.
-            if (!(columnType is VectorType vectorType) || !(other is VectorType otherVectorType))
+            if (!(columnType is VectorDataViewType vectorType) || !(other is VectorDataViewType otherVectorType))
                 return false;
             if (!vectorType.ItemType.Equals(otherVectorType.ItemType))
                 return false;

@@ -651,7 +651,7 @@ namespace Microsoft.ML.Tests.Transformers
                 Assert.True(result.Schema.TryGetColumnIndex("Label", out int labelIdx));
                 Assert.True(result.Schema.TryGetColumnIndex("GroupId", out int groupIdx));
 
-                Assert.True(result.Schema[labelIdx].Type is KeyType);
+                Assert.True(result.Schema[labelIdx].Type is KeyDataViewType);
                 Assert.Equal((ulong)5, result.Schema[labelIdx].Type.GetItemType().GetKeyCount());
 
                 var t = result.GetColumn<uint>(result.Schema["Label"]);

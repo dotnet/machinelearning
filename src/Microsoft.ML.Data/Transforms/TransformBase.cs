@@ -269,9 +269,9 @@ namespace Microsoft.ML.Data
             public readonly string Name;
             public readonly int Source;
             public readonly DataViewType TypeSrc;
-            public readonly VectorType SlotTypeSrc;
+            public readonly VectorDataViewType SlotTypeSrc;
 
-            public ColInfo(string name, int colSrc, DataViewType typeSrc, VectorType slotTypeSrc)
+            public ColInfo(string name, int colSrc, DataViewType typeSrc, VectorDataViewType slotTypeSrc)
             {
                 Contracts.AssertNonEmpty(name);
                 Contracts.Assert(colSrc >= 0);
@@ -298,7 +298,7 @@ namespace Microsoft.ML.Data
             /// </summary>
             public readonly ColInfo[] Infos;
 
-            public VectorType GetSlotType(int col)
+            public VectorDataViewType GetSlotType(int col)
             {
                 var tidv = _parent.InputTranspose;
                 return tidv?.GetSlotType(col);
@@ -349,7 +349,7 @@ namespace Microsoft.ML.Data
                     }
 
                     var slotType = transposedInput?.GetSlotType(i);
-                    infos[i] = new ColInfo(names[i], colSrc, type, slotType as VectorType);
+                    infos[i] = new ColInfo(names[i], colSrc, type, slotType as VectorDataViewType);
                 }
 
                 return new Bindings(parent, infos, inputSchema, true, names);
@@ -397,7 +397,7 @@ namespace Microsoft.ML.Data
                             throw host.Except(InvalidTypeErrorFormat, src, type, reason);
                     }
                     var slotType = transposeInput?.GetSlotType(i);
-                    infos[i] = new ColInfo(dst, colSrc, type, slotType as VectorType);
+                    infos[i] = new ColInfo(dst, colSrc, type, slotType as VectorDataViewType);
                 }
 
                 return new Bindings(parent, infos, inputSchema, false, names);
@@ -643,7 +643,7 @@ namespace Microsoft.ML.Data
 
         public sealed override DataViewSchema OutputSchema => _bindings.AsSchema;
 
-        VectorType ITransposeDataView.GetSlotType(int col) => _bindings.GetSlotType(col);
+        VectorDataViewType ITransposeDataView.GetSlotType(int col) => _bindings.GetSlotType(col);
 
         /// <summary>
         /// Return the (destination) column index for the indicated added column.
@@ -656,7 +656,7 @@ namespace Microsoft.ML.Data
 
         protected abstract DataViewType GetColumnTypeCore(int iinfo);
 
-        protected virtual VectorType GetSlotTypeCore(int iinfo)
+        protected virtual VectorDataViewType GetSlotTypeCore(int iinfo)
         {
             Host.Assert(0 <= iinfo && iinfo < Infos.Length);
             // By default, none of the added columns are transposable.
@@ -929,7 +929,7 @@ namespace Microsoft.ML.Data
 
         protected static string TestIsTextVector(DataViewType type)
         {
-            if (type is VectorType vectorType && vectorType.ItemType is TextDataViewType)
+            if (type is VectorDataViewType vectorType && vectorType.ItemType is TextDataViewType)
                 return null;
             return "Expected vector of Text type";
         }
@@ -943,7 +943,7 @@ namespace Microsoft.ML.Data
 
         protected static string TestIsFloatVector(DataViewType type)
         {
-            if (type is VectorType vectorType && vectorType.ItemType == NumberDataViewType.Single)
+            if (type is VectorDataViewType vectorType && vectorType.ItemType == NumberDataViewType.Single)
                 return null;
 
             return "Expected Float vector";
@@ -951,7 +951,7 @@ namespace Microsoft.ML.Data
 
         protected static string TestIsKnownSizeFloatVector(DataViewType type)
         {
-            if (type is VectorType vectorType
+            if (type is VectorDataViewType vectorType
                 && vectorType.IsKnownSize
                 && vectorType.ItemType == NumberDataViewType.Single)
                 return null;

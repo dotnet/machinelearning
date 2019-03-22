@@ -49,10 +49,10 @@ namespace Microsoft.ML.Transforms.TensorFlow
 
                 // Construct the final ML.NET type of a Tensorflow variable.
                 var tensorShape = graph.GetTensorShape(op[0]).ToIntArray();
-                var columnType = new VectorType(mlType);
+                var columnType = new VectorDataViewType(mlType);
                 if (!(Utils.Size(tensorShape) == 1 && tensorShape[0] <= 0) &&
                     (Utils.Size(tensorShape) > 0 && tensorShape.Skip(1).All(x => x > 0)))
-                    columnType = new VectorType(mlType, tensorShape[0] > 0 ? tensorShape : tensorShape.Skip(1).ToArray());
+                    columnType = new VectorDataViewType(mlType, tensorShape[0] > 0 ? tensorShape : tensorShape.Skip(1).ToArray());
 
                 // There can be at most two metadata fields.
                 //  1. The first field always presents. Its value is this operator's type. For example,
@@ -74,7 +74,7 @@ namespace Microsoft.ML.Transforms.TensorFlow
                     upstreamOperatorNames = bufferEditor.Commit(); // Used in metadata's getter.
 
                     // Create the second metadata field.
-                    metadataBuilder.Add(TensorflowUpstreamOperatorsKind, new VectorType(TextDataViewType.Instance, op.NumInputs),
+                    metadataBuilder.Add(TensorflowUpstreamOperatorsKind, new VectorDataViewType(TextDataViewType.Instance, op.NumInputs),
                         (ref VBuffer<ReadOnlyMemory<char>> value) => { upstreamOperatorNames.CopyTo(ref value); });
                 }
 

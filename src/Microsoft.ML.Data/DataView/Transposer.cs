@@ -136,7 +136,7 @@ namespace Microsoft.ML.Data
                     var type = schema[_cols[c].Index].Type;
                     if (!saver.IsColumnSavable(type))
                         throw ch.ExceptParam(nameof(view), "Column named '{0}' is not serializable by the transposer", _cols[c].Name);
-                    if (type is VectorType vectorType && !vectorType.IsKnownSize)
+                    if (type is VectorDataViewType vectorType && !vectorType.IsKnownSize)
                         throw ch.ExceptParam(nameof(view), "Column named '{0}' is vector, but not of known size, and so cannot be transposed", _cols[c].Name);
                 }
 
@@ -249,12 +249,12 @@ namespace Microsoft.ML.Data
 
         private SlotCursor GetSlotCursorCore<T>(int col)
         {
-            if (_view.Schema[col].Type is VectorType)
+            if (_view.Schema[col].Type is VectorDataViewType)
                 return new SlotCursorVec<T>(this, col);
             return new SlotCursorOne<T>(this, col);
         }
 
-        VectorType ITransposeDataView.GetSlotType(int col)
+        VectorDataViewType ITransposeDataView.GetSlotType(int col)
         {
             // We don't need the col-th column to be transposed by this transform, so
             // its type is inherited from input data.
@@ -265,11 +265,11 @@ namespace Microsoft.ML.Data
             PrimitiveDataViewType elementType = null;
             if (transposedColumn.Type is PrimitiveDataViewType)
                 elementType = (PrimitiveDataViewType)transposedColumn.Type;
-            else if (transposedColumn.Type is VectorType)
-                elementType = ((VectorType)transposedColumn.Type).ItemType;
+            else if (transposedColumn.Type is VectorDataViewType)
+                elementType = ((VectorDataViewType)transposedColumn.Type).ItemType;
             _host.Assert(elementType != null);
 
-            return new VectorType(elementType, RowCount);
+            return new VectorDataViewType(elementType, RowCount);
         }
 
         #region IDataView implementation stuff, passthrough on to view.
@@ -318,7 +318,7 @@ namespace Microsoft.ML.Data
                 return getter;
             }
 
-            public override VectorType GetSlotType()
+            public override VectorDataViewType GetSlotType()
             {
                 Ch.Assert(0 <= _col && _col < _parent.Schema.Count);
                 return ((ITransposeDataView)_parent).GetSlotType(_col);
@@ -1064,7 +1064,7 @@ namespace Microsoft.ML.Data
                 {
                     private readonly int[] _lims;
                     // Cache of the types of each slice.
-                    private readonly VectorType[] _types;
+                    private readonly VectorDataViewType[] _types;
 
                     public override DataViewSchema OutputSchema { get; }
 
@@ -1084,7 +1084,7 @@ namespace Microsoft.ML.Data
                     public ColumnSplitter(IDataView view, int col, int[] lims)
                         : base(view, col)
                     {
-                        var type = _view.Schema[SrcCol].Type as VectorType;
+                        var type = _view.Schema[SrcCol].Type as VectorDataViewType;
                         // Only valid use is for two or more slices.
                         Contracts.Assert(Utils.Size(lims) >= 2);
                         Contracts.AssertValue(type);
@@ -1094,10 +1094,10 @@ namespace Microsoft.ML.Data
                         Contracts.Assert(lims[lims.Length - 1] == type.Size);
 
                         _lims = lims;
-                        _types = new VectorType[_lims.Length];
-                        _types[0] = new VectorType(type.ItemType, _lims[0]);
+                        _types = new VectorDataViewType[_lims.Length];
+                        _types[0] = new VectorDataViewType(type.ItemType, _lims[0]);
                         for (int c = 1; c < _lims.Length; ++c)
-                            _types[c] = new VectorType(type.ItemType, _lims[c] - _lims[c - 1]);
+                            _types[c] = new VectorDataViewType(type.ItemType, _lims[c] - _lims[c - 1]);
 
                         var selectedColumn = _view.Schema[col];
                         var schemaBuilder = new DataViewSchema.Builder();

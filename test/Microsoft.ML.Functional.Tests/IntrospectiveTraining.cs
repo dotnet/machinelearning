@@ -196,7 +196,7 @@ namespace Microsoft.ML.Functional.Tests
             var transformedData = model.Transform(data);
 
             // Make sure the model weights array is the same length as the features array.
-            var numFeatures = (transformedData.Schema["Features"].Type as VectorType).Size;
+            var numFeatures = (transformedData.Schema["Features"].Type as VectorDataViewType).Size;
             Assert.Equal(numFeatures, numTopics);
         }
 
@@ -233,7 +233,7 @@ namespace Microsoft.ML.Functional.Tests
             var weights = linearModel.Weights;
 
             // Make sure the model weights array is the same length as the features array.
-            var numFeatures = (transformedData.Schema["Features"].Type as VectorType).Size;
+            var numFeatures = (transformedData.Schema["Features"].Type as VectorDataViewType).Size;
             Assert.Equal(numFeatures, weights.Count);
         }
 

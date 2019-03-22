@@ -1334,6 +1334,7 @@ namespace Microsoft.ML.Trainers.FastTree
 
             private Dataset Construct(RoleMappedData examples, ref int numExamples, int maxBins, IParallelTraining parallelTraining)
             {
+                Host.CheckAlive();
                 Host.AssertValue(examples);
                 Host.Assert(examples.Schema.Feature.HasValue);
 
@@ -1414,6 +1415,7 @@ namespace Microsoft.ML.Trainers.FastTree
                                     pch.SetHeader(new ProgressHeader("features"), e => e.SetProgress(0, iFeature, features.Length));
                                     while (cursor.MoveNext())
                                     {
+                                        Host.CheckAlive();
                                         iFeature = cursor.SlotIndex;
                                         if (!localConstructBinFeatures[iFeature])
                                             continue;
@@ -1489,6 +1491,8 @@ namespace Microsoft.ML.Trainers.FastTree
                                     int catRangeIndex = 0;
                                     for (iFeature = 0; iFeature < NumFeatures;)
                                     {
+                                        Host.CheckAlive();
+
                                         if (catRangeIndex < CategoricalFeatureIndices.Length &&
                                             CategoricalFeatureIndices[catRangeIndex] == iFeature)
                                         {
@@ -1565,6 +1569,7 @@ namespace Microsoft.ML.Trainers.FastTree
                                 {
                                     for (int i = 0; i < NumFeatures; i++)
                                     {
+                                        Host.CheckAlive();
                                         GetFeatureValues(cursor, i, getter, ref temp, ref doubleTemp, copier);
                                         double[] upperBounds = BinUpperBounds[i];
                                         Host.AssertValue(upperBounds);
@@ -1919,6 +1924,7 @@ namespace Microsoft.ML.Trainers.FastTree
                     List<int> trivialFeatures = new List<int>();
                     for (iFeature = 0; iFeature < NumFeatures; iFeature++)
                     {
+                        Host.CheckAlive();
                         if (!localConstructBinFeatures[iFeature])
                             continue;
                         // The following strange call will actually sparsify.
@@ -2230,6 +2236,7 @@ namespace Microsoft.ML.Trainers.FastTree
 
                 for (; iFeature < featureLim; ++iFeature)
                 {
+                    Host.CheckAlive();
                     double[] bup = BinUpperBounds[iFeature];
                     Contracts.Assert(Utils.Size(bup) > 0);
                     if (bup.Length == 1)
@@ -2854,7 +2861,7 @@ namespace Microsoft.ML.Trainers.FastTree
             MaxSplitFeatIdx = trainedEnsemble.GetMaxFeatureIndex();
             Contracts.Assert(NumFeatures > MaxSplitFeatIdx);
 
-            InputType = new VectorType(NumberDataViewType.Single, NumFeatures);
+            InputType = new VectorDataViewType(NumberDataViewType.Single, NumFeatures);
             OutputType = NumberDataViewType.Single;
         }
 
@@ -2892,7 +2899,7 @@ namespace Microsoft.ML.Trainers.FastTree
             // TLC >= 3.0 supposed to be independent of any predictor specific
             // tricks.
 
-            InputType = new VectorType(NumberDataViewType.Single, NumFeatures);
+            InputType = new VectorDataViewType(NumberDataViewType.Single, NumFeatures);
             OutputType = NumberDataViewType.Single;
         }
 
@@ -3279,7 +3286,7 @@ namespace Microsoft.ML.Trainers.FastTree
             var weights = default(VBuffer<Single>);
             ((IHaveFeatureWeights)this).GetFeatureWeights(ref weights);
             var builder = new DataViewSchema.Annotations.Builder();
-            builder.Add<VBuffer<float>>("Gains", new VectorType(NumberDataViewType.Single, NumFeatures), weights.CopyTo, metaBuilder.ToAnnotations());
+            builder.Add<VBuffer<float>>("Gains", new VectorDataViewType(NumberDataViewType.Single, NumFeatures), weights.CopyTo, metaBuilder.ToAnnotations());
 
             return AnnotationUtils.AnnotationsAsRow(builder.ToAnnotations());
         }
