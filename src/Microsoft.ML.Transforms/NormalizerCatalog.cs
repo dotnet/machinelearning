@@ -43,8 +43,8 @@ namespace Microsoft.ML
         [BestFriend]
         internal static NormalizingEstimator Normalize(this TransformsCatalog catalog,
             NormalizingEstimator.NormalizationMode mode,
-            params ColumnOptions[] columns)
-            => new NormalizingEstimator(CatalogUtils.GetEnvironment(catalog), mode, ColumnOptions.ConvertToValueTuples(columns));
+            params InputOutputColumnPair[] columns)
+            => new NormalizingEstimator(CatalogUtils.GetEnvironment(catalog), mode, InputOutputColumnPair.ConvertToValueTuples(columns));
 
         /// <summary>
         /// Normalize (rescale) columns according to specified custom parameters.

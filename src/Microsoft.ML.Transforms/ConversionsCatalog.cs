@@ -20,8 +20,8 @@ namespace Microsoft.ML
         /// <param name="columns">Specifies the output and input columns on which the transformation should be applied.</param>
         [BestFriend]
         internal static KeyToBinaryVectorMappingEstimator MapKeyToBinaryVector(this TransformsCatalog.ConversionTransforms catalog,
-            params ColumnOptions[] columns)
-            => new KeyToBinaryVectorMappingEstimator(CatalogUtils.GetEnvironment(catalog), ColumnOptions.ConvertToValueTuples(columns));
+            params InputOutputColumnPair[] columns)
+            => new KeyToBinaryVectorMappingEstimator(CatalogUtils.GetEnvironment(catalog), InputOutputColumnPair.ConvertToValueTuples(columns));
 
         /// <summary>
         ///  Convert the key types back to binary vector.
