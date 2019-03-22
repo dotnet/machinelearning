@@ -1,0 +1,12 @@
+﻿<#@ include file="RegressionSamplesTemplate.ttinclude"#>
+
+<#+
+string ClassName="OnlineGradientDescent";
+string Trainer = "OnlineGradientDescent";
+string TrainerOptions = null;
+
+string ExpectedOutputPerInstance= @"// Expected output:
+            //   OGD doesn't work: https://github.com/dotnet/machinelearning/issues/2425";
+
+string ExpectedOutput = @"";
+#>
