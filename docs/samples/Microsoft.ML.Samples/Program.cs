@@ -6,7 +6,7 @@ namespace Microsoft.ML.Samples
     {
         static void Main(string[] args)
         {
-            NormalizerTransform.Example();
+            ReplaceMissingValues.Example();
         }
     }
 }
