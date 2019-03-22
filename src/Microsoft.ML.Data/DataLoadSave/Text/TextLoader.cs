@@ -1460,7 +1460,8 @@ namespace Microsoft.ML.Data
                 var memberInfo = memberInfos[index];
                 var mappingAttr = memberInfo.GetCustomAttribute<LoadColumnAttribute>();
 
-                host.Assert(mappingAttr != null, $"Field or property {memberInfo.Name} is missing the {nameof(LoadColumnAttribute)} attribute");
+                if (mappingAttr == null)
+                    throw host.Except($"{(memberInfo is FieldInfo ? "Field" : "Property")} '{memberInfo.Name}' is missing the {nameof(LoadColumnAttribute)} attribute");
 
                 var mappingAttrName = memberInfo.GetCustomAttribute<ColumnNameAttribute>();
 

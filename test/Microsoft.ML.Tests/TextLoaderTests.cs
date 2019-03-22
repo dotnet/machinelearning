@@ -598,6 +598,29 @@ namespace Microsoft.ML.EntryPoints.Tests
             catch (NullReferenceException) { };
         }
 
+        public class DataWithNoAttribute
+        {
+            [LoadColumn(0)]
+            public float Label { get; set; }
+            public float Feature { get; set; }
+        }
+
+        [Fact]
+        public void ThrowsExceptionWithNoColumnAttribute()
+        {
+            var mlContext = new MLContext(seed: 1);
+            try
+            {
+                var data = mlContext.Data.LoadFromTextFile<DataWithNoAttribute>("path.txt");
+            }
+            catch (InvalidOperationException e)
+            {
+                Assert.Contains($"Property 'Feature' is missing the {nameof(LoadColumnAttribute)} attribute", e.Message);
+            }
+
+
+        }
+
         [Fact]
         public void ParseSchemaFromTextFile()
         {
