@@ -47,16 +47,6 @@
       <AutoGen>True</AutoGen>
       <DependentUpon>FastTreeWithOptions.tt</DependentUpon>
     </None>
-    <None Include="Dynamic\Trainers\Regression\OnlineGradientDescentWithOptions.cs">
-      <DesignTime>True</DesignTime>
-      <AutoGen>True</AutoGen>
-      <DependentUpon>OnlineGradientDescentWithOptions.tt</DependentUpon>
-    </None>
-    <None Include="Dynamic\Trainers\Regression\PoissonRegressionWithOptions.cs">
-      <DesignTime>True</DesignTime>
-      <AutoGen>True</AutoGen>
-      <DependentUpon>PoissonRegressionWithOptions.tt</DependentUpon>
-    </None>
     <PackageReference Include="Microsoft.ML.TensorFlow.Redist" Version="0.10.0" />
     
     <ProjectReference Include="..\..\..\src\Microsoft.ML.Analyzer\Microsoft.ML.Analyzer.csproj">
