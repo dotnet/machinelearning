@@ -916,9 +916,9 @@ namespace Microsoft.ML.StaticPipelineTesting
             Assert.InRange(metrics.DiscountedCumulativeGains[1], 1.4, 1.8);
             Assert.InRange(metrics.DiscountedCumulativeGains[2], 1.4, 1.8);
 
-            Assert.InRange(metrics.NormalizedDiscountedCumulativeGains[0], 36.5, 37);
-            Assert.InRange(metrics.NormalizedDiscountedCumulativeGains[1], 36.5, 37);
-            Assert.InRange(metrics.NormalizedDiscountedCumulativeGains[2], 36.5, 37);
+            Assert.InRange(metrics.NormalizedDiscountedCumulativeGains[0], 0.365, 0.37);
+            Assert.InRange(metrics.NormalizedDiscountedCumulativeGains[1], 0.365, 0.37);
+            Assert.InRange(metrics.NormalizedDiscountedCumulativeGains[2], 0.365, 0.37);
         }
 
         [LightGBMFact]
@@ -957,9 +957,9 @@ namespace Microsoft.ML.StaticPipelineTesting
             Assert.InRange(metrics.DiscountedCumulativeGains[1], 1.4, 1.8);
             Assert.InRange(metrics.DiscountedCumulativeGains[2], 1.4, 1.8);
 
-            Assert.InRange(metrics.NormalizedDiscountedCumulativeGains[0], 36.5, 37);
-            Assert.InRange(metrics.NormalizedDiscountedCumulativeGains[1], 36.5, 37);
-            Assert.InRange(metrics.NormalizedDiscountedCumulativeGains[2], 36.5, 37);
+            Assert.InRange(metrics.NormalizedDiscountedCumulativeGains[0], 0.365, 0.37);
+            Assert.InRange(metrics.NormalizedDiscountedCumulativeGains[1], 0.365, 0.37);
+            Assert.InRange(metrics.NormalizedDiscountedCumulativeGains[2], 0.365, 0.37);
         }
 
         [LightGBMFact]

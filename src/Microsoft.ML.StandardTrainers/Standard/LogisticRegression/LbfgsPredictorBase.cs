@@ -15,11 +15,17 @@ using Microsoft.ML.Runtime;
 
 namespace Microsoft.ML.Trainers
 {
+    /// <summary>
+    /// Base class for <a href='https://en.wikipedia.org/wiki/Limited-memory_BFGS'>L-BFGS</a>-based trainers.
+    /// </summary>
     public abstract class LbfgsTrainerBase<TOptions, TTransformer, TModel> : TrainerEstimatorBase<TTransformer, TModel>
       where TTransformer : ISingleFeaturePredictionTransformer<TModel>
       where TModel : class
       where TOptions : LbfgsTrainerBase<TOptions, TTransformer, TModel>.OptionsBase, new()
     {
+        /// <summary>
+        /// Base options for <a href='https://en.wikipedia.org/wiki/Limited-memory_BFGS'>L-BFGS</a>-based trainers.
+        /// </summary>
         public abstract class OptionsBase : TrainerInputBaseWithWeight
         {
             /// <summary>
@@ -48,7 +54,7 @@ namespace Microsoft.ML.Trainers
             public float OptmizationTolerance = Defaults.OptimizationTolerance;
 
             /// <summary>
-            /// Number of previous iterations to remember for estimate of Hessian.
+            /// Number of previous iterations to remember for estimating the Hessian. Lower values mean faster but less accurate estimates.
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Memory size for L-BFGS. Low=faster, less accurate", ShortName = "m, MemorySize", SortOrder = 50)]
             [TGUI(Description = "Memory size for L-BFGS", SuggestedSweeps = "5,20,50")]
@@ -71,20 +77,22 @@ namespace Microsoft.ML.Trainers
             public float StochasticGradientDescentInitilaizationTolerance = 0;
 
             /// <summary>
-            /// Features must occur in at least this many instances to be included
+            /// Determines whether to produce output during training or not.
             /// </summary>
-            /// <remarks>If greater than 1, forces an initialization pass over the data</remarks>
-            //AP removed from now. This requires data transformatio. Perhaps we should handle it as seprate (non-learner) dependant
-            //Similarly how normalization is done
-            //public int CountThreshold { get { return _countThreshold; } set { _countThreshold = value; } }
-
+            /// <value>
+            /// If set to <see langword="true"/> no output is produced.
+            /// </value>
             [Argument(ArgumentType.AtMostOnce, HelpText = "If set to true, produce no output during training.",
                 ShortName = "q")]
             public bool Quiet = false;
 
             /// <summary>
-            /// Init Weights Diameter
+            /// Initial weights scale.
             /// </summary>
+            /// <value>
+            /// This property is only used if the provided value is positive.
+            /// The weights will be randomly selected from InitialWeights * [-0.5,0.5] interval with uniform distribution.
+            /// </value>
             [Argument(ArgumentType.LastOccurenceWins, HelpText = "Init weights diameter", ShortName = "initwts, InitWtsDiameter", SortOrder = 140)]
             [TGUI(Label = "Initial Weights Scale", SuggestedSweeps = "0,0.1,0.5,1")]
             [TlcModule.SweepableFloatParamAttribute("InitWtsDiameter", 0.0f, 1.0f, numSteps: 5)]

@@ -29,63 +29,60 @@ namespace Microsoft.ML
         }
 
         /// <summary>
-        /// Save the model to the stream.
+        /// Save a transformer model and the loader used to create its input data to the stream.
         /// </summary>
-        /// <param name="model">The trained model to be saved.</param>
+        /// <param name="model">The trained model to be saved. Note that this can be <see langword="null"/>, as a shorthand
+        /// for an empty transformer chain. Upon loading with <see cref="LoadWithDataLoader(Stream, out IDataLoader{IMultiStreamSource})"/>
+        /// the returned value will be an empty <see cref="TransformerChain{TLastTransformer}"/>.</param>
+        /// <param name="loader">The loader that was used to create data to train the model.</param>
         /// <param name="stream">A writeable, seekable stream to save to.</param>
-        public void Save<TSource>(IDataLoader<TSource> model, Stream stream)
+        public void Save<TSource>(ITransformer model, IDataLoader<TSource> loader, Stream stream)
         {
-            _env.CheckValue(model, nameof(model));
+            _env.CheckValue(loader, nameof(loader));
+            _env.CheckValueOrNull(model);
             _env.CheckValue(stream, nameof(stream));
+
+            // For the sake of consistency of this API specifically, when called upon we save any transformer
+            // in a single element transformer chain.
+            var chainedModel = model == null ? null : new TransformerChain<ITransformer>(model);
+            var compositeLoader = new CompositeDataLoader<TSource, ITransformer>(loader, chainedModel);
 
             using (var rep = RepositoryWriter.CreateNew(stream))
             {
-                ModelSaveContext.SaveModel(rep, model, null);
+                ModelSaveContext.SaveModel(rep, compositeLoader, null);
                 rep.Commit();
             }
         }
 
         /// <summary>
-        /// Save the model to the file.
-        /// </summary>
-        /// <param name="model">The trained model to be saved.</param>
-        /// <param name="filePath">Path where model should be saved.</param>
-        public void Save<TSource>(IDataLoader<TSource> model, string filePath)
-        {
-            using (var stream = File.Create(filePath))
-                Save(model, stream);
-        }
-
-        /// <summary>
-        /// Save a transformer model and the loader used to create its input data to the stream.
-        /// </summary>
-        /// <param name="loader">The loader that was used to create data to train the model</param>
-        /// <param name="model">The trained model to be saved</param>
-        /// <param name="stream">A writeable, seekable stream to save to.</param>
-        public void Save<TSource>(IDataLoader<TSource> loader, ITransformer model, Stream stream) =>
-            Save(new CompositeDataLoader<TSource, ITransformer>(loader, new TransformerChain<ITransformer>(model)), stream);
-
-        /// <summary>
         /// Save a transformer model and the loader used to create its input data to the file.
         /// </summary>
-        /// <param name="loader">The loader that was used to create data to train the model</param>
-        /// <param name="model">The trained model to be saved</param>
+        /// <param name="model">The trained model to be saved. Note that this can be <see langword="null"/>, as a shorthand
+        /// for an empty transformer chain. Upon loading with <see cref="LoadWithDataLoader(Stream, out IDataLoader{IMultiStreamSource})"/>
+        /// the returned value will be an empty <see cref="TransformerChain{TLastTransformer}"/>.</param>
+        /// <param name="loader">The loader that was used to create data to train the model.</param>
         /// <param name="filePath">Path where model should be saved.</param>
-        public void Save<TSource>(IDataLoader<TSource> loader, ITransformer model, string filePath)
+        public void Save<TSource>(ITransformer model, IDataLoader<TSource> loader, string filePath)
         {
+            _env.CheckValueOrNull(model);
+            _env.CheckValue(loader, nameof(loader));
+            _env.CheckNonEmpty(filePath, nameof(filePath));
+
             using (var stream = File.Create(filePath))
-                Save(loader, model, stream);
+                Save(model, loader, stream);
         }
 
         /// <summary>
         /// Save a transformer model and the schema of the data that was used to train it to the stream.
         /// </summary>
-        /// <param name="model">The trained model to be saved.</param>
-        /// <param name="inputSchema">The schema of the input to the transformer. This can be null.</param>
+        /// <param name="model">The trained model to be saved. Note that this can be <see langword="null"/>, as a shorthand
+        /// for an empty transformer chain. Upon loading with <see cref="Load(Stream, out DataViewSchema)"/> the returned value will
+        /// be an empty <see cref="TransformerChain{TLastTransformer}"/>.</param>
+        /// <param name="inputSchema">The schema of the input to the transformer. This can be <see langword="null"/>.</param>
         /// <param name="stream">A writeable, seekable stream to save to.</param>
         public void Save(ITransformer model, DataViewSchema inputSchema, Stream stream)
         {
-            _env.CheckValue(model, nameof(model));
+            _env.CheckValueOrNull(model);
             _env.CheckValueOrNull(inputSchema);
             _env.CheckValue(stream, nameof(stream));
 
@@ -100,11 +97,17 @@ namespace Microsoft.ML
         /// <summary>
         /// Save a transformer model and the schema of the data that was used to train it to the file.
         /// </summary>
-        /// <param name="model">The trained model to be saved.</param>
-        /// <param name="inputSchema">The schema of the input to the transformer. This can be null.</param>
+        /// <param name="model">The trained model to be saved. Note that this can be <see langword="null"/>, as a shorthand
+        /// for an empty transformer chain. Upon loading with <see cref="Load(Stream, out DataViewSchema)"/> the returned value will
+        /// be an empty <see cref="TransformerChain{TLastTransformer}"/>.</param>
+        /// <param name="inputSchema">The schema of the input to the transformer. This can be <see langword="null"/>.</param>
         /// <param name="filePath">Path where model should be saved.</param>
         public void Save(ITransformer model, DataViewSchema inputSchema, string filePath)
         {
+            _env.CheckValueOrNull(model);
+            _env.CheckValueOrNull(inputSchema);
+            _env.CheckNonEmpty(filePath, nameof(filePath));
+
             using (var stream = File.Create(filePath))
                 Save(model, inputSchema, stream);
         }
@@ -126,11 +129,11 @@ namespace Microsoft.ML
         }
 
         /// <summary>
-        /// Load the model and its input schema from the stream.
+        /// Load the model and its input schema from a stream.
         /// </summary>
         /// <param name="stream">A readable, seekable stream to load from.</param>
-        /// <param name="inputSchema">Will contain the input schema for the model. If the model was saved using older APIs
-        /// it may not contain an input schema, in this case <paramref name="inputSchema"/> will be null.</param>
+        /// <param name="inputSchema">Will contain the input schema for the model. If the model was saved without
+        /// any description of the input, there will be no input schema. In this case this can be <see langword="null"/>.</param>
         /// <returns>The loaded model.</returns>
         public ITransformer Load(Stream stream, out DataViewSchema inputSchema)
         {
@@ -171,23 +174,67 @@ namespace Microsoft.ML
                         throw _env.Except(ex, "Could not load legacy format model");
                     }
                 }
-                if (dataLoader is CompositeDataLoader<IMultiStreamSource, ITransformer> composite)
-                {
-                    inputSchema = composite.Loader.GetOutputSchema();
-                    return composite.Transformer;
-                }
+                var transformer = DecomposeLoader(ref dataLoader);
                 inputSchema = dataLoader.GetOutputSchema();
-                return new TransformerChain<ITransformer>();
+                return transformer;
             }
         }
 
         /// <summary>
-        /// Load the model and its input schema from the stream.
+        /// Load the model and its input schema from a file.
+        /// </summary>
+        /// <param name="filePath">Path to a file where the model should be read from.</param>
+        /// <param name="inputSchema">Will contain the input schema for the model. If the model was saved without
+        /// any description of the input, there will be no input schema. In this case this can be <see langword="null"/>.</param>
+        /// <returns>The loaded model.</returns>
+        public ITransformer Load(string filePath, out DataViewSchema inputSchema)
+        {
+            _env.CheckNonEmpty(filePath, nameof(filePath));
+
+            using (var stream = File.OpenRead(filePath))
+                return Load(stream, out inputSchema);
+        }
+
+        /// <summary>
+        /// Given a loader, test try to "decompose" it into a source loader, and its transform if any.
+        /// If necessary an empty chain will be created to stand in for the trivial transformation; it
+        /// should never return <see langword="null"/>.
+        /// </summary>
+        private ITransformer DecomposeLoader(ref IDataLoader<IMultiStreamSource> loader)
+        {
+            _env.AssertValue(loader);
+
+            if (loader is CompositeDataLoader<IMultiStreamSource, ITransformer> composite)
+            {
+                loader = composite.Loader;
+                var chain = composite.Transformer;
+                // The save method corresponding to this load method encapsulates the input ITransformer
+                // into a single-element transformer chain. If it is that sort, we guess that it is in fact
+                // that sort, and so return it.
+                var accessor = (ITransformerChainAccessor)chain;
+                if (accessor.Transformers.Length == 1)
+                    return accessor.Transformers[0];
+                // If it is some other length than 1 due to, say, some legacy model saving, just return that
+                // chain. Using the above API this is not possible, since the chain saved will always be of length
+                // one, but older APIs behaved differently so we should retain flexibility with those schemes.
+                // (Those schemes are BTW by no means incorrect, they just aren't what the API in this particular
+                // class will specifically do.)
+                return chain;
+            }
+            // Maybe we have no transformer stored. Rather than return null, we prefer to return the
+            // empty "trivial" transformer chain.
+            return new TransformerChain<ITransformer>();
+        }
+
+        /// <summary>
+        /// Load a transformer model and a data loader model from a stream.
         /// </summary>
         /// <param name="stream">A readable, seekable stream to load from.</param>
-        /// <returns>A model of type <see cref="CompositeDataLoader{IMultiStreamSource, ITransformer}"/> containing the loader
-        /// and the transformer chain.</returns>
-        public IDataLoader<IMultiStreamSource> Load(Stream stream)
+        /// <param name="loader">The data loader from the model stream. Note that if there is no data loader,
+        /// this method will throw an exception. The scenario where no loader is stored in the stream should
+        /// be handled instead using the <see cref="Load(Stream, out DataViewSchema)"/> method.</param>
+        /// <returns>The transformer model from the model stream.</returns>
+        public ITransformer LoadWithDataLoader(Stream stream, out IDataLoader<IMultiStreamSource> loader)
         {
             _env.CheckValue(stream, nameof(stream));
 
@@ -195,33 +242,32 @@ namespace Microsoft.ML
             {
                 try
                 {
-                    ModelLoadContext.LoadModel<IDataLoader<IMultiStreamSource>, SignatureLoadModel>(_env, out var model, rep, null);
-                    return model;
+                    ModelLoadContext.LoadModel<IDataLoader<IMultiStreamSource>, SignatureLoadModel>(_env, out loader, rep, null);
+                    return DecomposeLoader(ref loader);
                 }
                 catch (Exception ex)
                 {
-                    throw _env.Except(ex, "Model does not contain an IDataLoader");
+                    throw _env.Except(ex, "Model does not contain an " + nameof(IDataLoader<IMultiStreamSource>) +
+                        ". Perhaps this was saved with an " + nameof(DataViewSchema) + ", or even no information on its input at all. " +
+                        "Consider using the " + nameof(Load) + " method instead.");
                 }
             }
         }
 
         /// <summary>
-        /// Load a transformer model and a data loader model from the stream.
+        /// Load a transformer model and a data loader model from a file.
         /// </summary>
-        /// <param name="stream">A readable, seekable stream to load from.</param>
-        /// <param name="loader">The data loader from the model stream.</param>
-        /// <returns>The transformer model from the model stream.</returns>
-        public ITransformer LoadWithDataLoader(Stream stream, out IDataLoader<IMultiStreamSource> loader)
+        /// <param name="filePath">Path to a file where the model should be read from.</param>
+        /// <param name="loader">The data loader from the model stream. Note that if there is no data loader,
+        /// this method will throw an exception. The scenario where no loader is stored in the stream should
+        /// be handled instead using the <see cref="Load(Stream, out DataViewSchema)"/> method.</param>
+        /// <returns>The transformer model from the model file.</returns>
+        public ITransformer LoadWithDataLoader(string filePath, out IDataLoader<IMultiStreamSource> loader)
         {
-            _env.CheckValue(stream, nameof(stream));
+            _env.CheckNonEmpty(filePath, nameof(filePath));
 
-            loader = Load(stream);
-            if (loader is CompositeDataLoader<IMultiStreamSource, ITransformer> composite)
-            {
-                loader = composite.Loader;
-                return composite.Transformer;
-            }
-            return new TransformerChain<ITransformer>();
+            using (var stream = File.OpenRead(filePath))
+                return LoadWithDataLoader(stream, out loader);
         }
 
         /// <summary>

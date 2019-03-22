@@ -152,9 +152,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
             // Potentially, the lines below can be in a different process altogether.
 
             // When you load the model, it's a 'dynamic' transformer. 
-            ITransformer loadedModel;
-            using (var stream = File.OpenRead(modelPath))
-                loadedModel = mlContext.Model.Load(stream, out var schema);
+            ITransformer loadedModel = mlContext.Model.Load(modelPath, out var schema);
         }
 
         [Fact]
@@ -400,7 +398,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
             // We apply our FastTree binary classifier to predict the 'HasChurned' label.
 
             var dynamicpipeline = mlContext.Transforms.Categorical.OneHotEncoding("DemographicCategory")
-                .Append(new ColumnConcatenatingEstimator (mlContext, "Features", "DemographicCategory", "LastVisits"))
+                .Append(new ColumnConcatenatingEstimator(mlContext, "Features", "DemographicCategory", "LastVisits"))
                 .AppendCacheCheckpoint(mlContext) // FastTree will benefit from caching data in memory.
                 .Append(mlContext.BinaryClassification.Trainers.FastTree("HasChurned", "Features", numberOfTrees: 20));
 

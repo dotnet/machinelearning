@@ -31,15 +31,27 @@ using Microsoft.ML.Trainers;
 
 namespace Microsoft.ML.Trainers
 {
-    /// <include file='doc.xml' path='doc/members/member[@name="OLS"]/*' />
+    /// <summary>
+    /// The <see cref="IEstimator{TTransformer}"/> for training a linear regression model using
+    /// ordinary least squares (OLS) for estimating the parameters of the linear regression model.
+    /// </summary>
+    /// <remarks>
+    /// <a href='https://en.wikipedia.org/wiki/Ordinary_least_squares'>Ordinary least squares (OLS)</a> is a parameterized regression method.
+    /// It assumes that the conditional mean of the dependent variable follows a linear function of the dependent variables.
+    /// The regression parameters can be estimated by minimizing the squares of the difference between observed values and the predictions.
+    /// </remarks>
+    /// <seealso cref="MklComponentsCatalog.Ols(RegressionCatalog.RegressionTrainers, string, string, string)"/>
+    /// <seealso cref="MklComponentsCatalog.Ols(RegressionCatalog.RegressionTrainers, OlsTrainer.Options)"/>
     public sealed class OlsTrainer : TrainerEstimatorBase<RegressionPredictionTransformer<OlsModelParameters>, OlsModelParameters>
     {
-        ///<summary> Advanced options for trainer.</summary>
+        /// <summary>
+        /// Options for the <see cref="OlsTrainer"/>.
+        /// </summary>
         public sealed class Options : TrainerInputBaseWithWeight
         {
             // Adding L2 regularization turns this into a form of ridge regression,
             // rather than, strictly speaking, ordinary least squares. But it is an
-            // incredibly uesful thing to have around.
+            // incredibly useful thing to have around.
             /// <summary>
             /// L2 regularization weight. Adding L2 regularization turns this algorithm into a form of ridge regression,
             /// rather than, strictly speaking, ordinary least squares.
