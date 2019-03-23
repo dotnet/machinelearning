@@ -589,34 +589,8 @@ namespace Microsoft.ML.EntryPoints.Tests
         public void ThrowsExceptionWithPropertyName()
         {
             var mlContext = new MLContext(seed: 1);
-            try
-            {
-                mlContext.Data.LoadFromTextFile<ModelWithoutColumnAttribute>("fakefile.txt");
-            }
-            // REVIEW: the issue of different exceptions being thrown is tracked under #2037.
-            catch (Xunit.Sdk.TrueException) { }
-            catch (NullReferenceException) { };
-        }
-
-        public class DataWithNoAttribute
-        {
-            [LoadColumn(0)]
-            public float Label { get; set; }
-            public float Feature { get; set; }
-        }
-
-        [Fact]
-        public void ThrowsExceptionWithNoColumnAttribute()
-        {
-            var mlContext = new MLContext(seed: 1);
-            try
-            {
-                var data = mlContext.Data.LoadFromTextFile<DataWithNoAttribute>("path.txt");
-            }
-            catch (InvalidOperationException e)
-            {
-                Assert.Contains($"Property 'Feature' is missing the {nameof(LoadColumnAttribute)} attribute", e.Message);
-            }
+            var ex = Assert.Throws<InvalidOperationException>(() => mlContext.Data.LoadFromTextFile<ModelWithoutColumnAttribute>("fakefile.txt"));
+            Assert.StartsWith($"Field 'String1' is missing the {nameof(LoadColumnAttribute)} attribute", ex.Message);
         }
 
         [Fact]
