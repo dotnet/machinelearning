@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using Microsoft.ML.Calibrators;
 using Microsoft.ML.Data;
@@ -95,36 +96,18 @@ namespace Microsoft.ML
             Environment.CheckValueOrNull(samplingKeyColumn);
 
             DataOperationsCatalog.EnsureGroupPreservationColumn(Environment, ref data, ref samplingKeyColumn, seed);
-
-            Func<int, CrossValidationResult> foldFunction =
-                fold =>
-                {
-                    var trainFilter = new RangeFilter(Environment, new RangeFilter.Options
-                    {
-                        Column = samplingKeyColumn,
-                        Min = (double)fold / numFolds,
-                        Max = (double)(fold + 1) / numFolds,
-                        Complement = true
-                    }, data);
-                    var testFilter = new RangeFilter(Environment, new RangeFilter.Options
-                    {
-                        Column = samplingKeyColumn,
-                        Min = (double)fold / numFolds,
-                        Max = (double)(fold + 1) / numFolds,
-                        Complement = false
-                    }, data);
-
-                    var model = estimator.Fit(trainFilter);
-                    var scoredTest = model.Transform(testFilter);
-                    return new CrossValidationResult(model, scoredTest, fold);
-                };
-
+            var result = new CrossValidationResult[numFolds];
+            int fold = 0;
             // Sequential per-fold training.
             // REVIEW: we could have a parallel implementation here. We would need to
             // spawn off a separate host per fold in that case.
-            var result = new CrossValidationResult[numFolds];
-            for (int fold = 0; fold < numFolds; fold++)
-                result[fold] = foldFunction(fold);
+            foreach (var split in DataOperationsCatalog.CrossValidationSplit(Environment, data, numFolds, samplingKeyColumn))
+            {
+                var model = estimator.Fit(split.TrainSet);
+                var scoredTest = model.Transform(split.TestSet);
+                result[fold] = new CrossValidationResult(model, scoredTest, fold);
+                fold++;
+            }
 
             return result;
         }
@@ -239,7 +222,7 @@ namespace Microsoft.ML
         /// If <see langword="null"/> no row grouping will be performed.</param>
         /// <param name="seed">Seed for the random number generator used to select rows for cross-validation folds.</param>
         /// <returns>Per-fold results: metrics, models, scored datasets.</returns>
-        public CrossValidationResult<BinaryClassificationMetrics>[] CrossValidateNonCalibrated(
+        public IReadOnlyList<CrossValidationResult<BinaryClassificationMetrics>> CrossValidateNonCalibrated(
             IDataView data, IEstimator<ITransformer> estimator, int numberOfFolds = 5, string labelColumnName = DefaultColumnNames.Label,
             string samplingKeyColumnName = null, int? seed = null)
         {
@@ -263,7 +246,7 @@ namespace Microsoft.ML
         /// If <see langword="null"/> no row grouping will be performed.</param>
         /// <param name="seed">Seed for the random number generator used to select rows for cross-validation folds.</param>
         /// <returns>Per-fold results: metrics, models, scored datasets.</returns>
-        public CrossValidationResult<CalibratedBinaryClassificationMetrics>[] CrossValidate(
+        public IReadOnlyList<CrossValidationResult<CalibratedBinaryClassificationMetrics>> CrossValidate(
             IDataView data, IEstimator<ITransformer> estimator, int numberOfFolds = 5, string labelColumnName = DefaultColumnNames.Label,
             string samplingKeyColumnName = null, int? seed = null)
         {
@@ -443,7 +426,7 @@ namespace Microsoft.ML
         /// they are guaranteed to appear in the same subset (train or test). This can be used to ensure no label leakage from the train to the test set.
         /// If <see langword="null"/> no row grouping will be performed.</param>
         /// <param name="seed">Seed for the random number generator used to select rows for cross-validation folds.</param>
-        public CrossValidationResult<ClusteringMetrics>[] CrossValidate(
+        public IReadOnlyList<CrossValidationResult<ClusteringMetrics>> CrossValidate(
             IDataView data, IEstimator<ITransformer> estimator, int numberOfFolds = 5, string labelColumnName = null, string featuresColumnName = null,
             string samplingKeyColumnName = null, int? seed = null)
         {
@@ -519,7 +502,7 @@ namespace Microsoft.ML
         /// <param name="seed">Seed for the random number generator used to select rows for cross-validation folds.</param>
         /// <returns>Per-fold results: metrics, models, scored datasets.</returns>
         /// <returns>Per-fold results: metrics, models, scored datasets.</returns>
-        public CrossValidationResult<MulticlassClassificationMetrics>[] CrossValidate(
+        public IReadOnlyList<CrossValidationResult<MulticlassClassificationMetrics>> CrossValidate(
             IDataView data, IEstimator<ITransformer> estimator, int numberOfFolds = 5, string labelColumnName = DefaultColumnNames.Label,
             string samplingKeyColumnName = null, int? seed = null)
         {
@@ -585,7 +568,7 @@ namespace Microsoft.ML
         /// If <see langword="null"/> no row grouping will be performed.</param>
         /// <param name="seed">Seed for the random number generator used to select rows for cross-validation folds.</param>
         /// <returns>Per-fold results: metrics, models, scored datasets.</returns>
-        public CrossValidationResult<RegressionMetrics>[] CrossValidate(
+        public IReadOnlyList<CrossValidationResult<RegressionMetrics>> CrossValidate(
             IDataView data, IEstimator<ITransformer> estimator, int numberOfFolds = 5, string labelColumnName = DefaultColumnNames.Label,
             string samplingKeyColumnName = null, int? seed = null)
         {

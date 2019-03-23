@@ -45,7 +45,7 @@ namespace Microsoft.ML.Functional.Tests
             Assert.IsType<RegressionMetrics>(cvResult[0].Metrics);
             Assert.IsType<TransformerChain<RegressionPredictionTransformer<OlsModelParameters>>>(cvResult[0].Model);
             Assert.True(cvResult[0].ScoredHoldOutSet is IDataView);
-            Assert.Equal(5, cvResult.Length);
+            Assert.Equal(5, cvResult.Count);
 
             // And validate the metrics.
             foreach (var result in cvResult)
@@ -78,11 +78,12 @@ namespace Microsoft.ML.Functional.Tests
             var preprocessedValidData = preprocessor.Transform(validData);
 
             // Train the model with a validation set.
-            var trainedModel = mlContext.Regression.Trainers.FastTree(new FastTreeRegressionTrainer.Options {
-                    NumberOfTrees = 2,
-                    EarlyStoppingMetric = EarlyStoppingMetric.L2Norm,
-                    EarlyStoppingRule = new GeneralityLossRule()
-                })
+            var trainedModel = mlContext.Regression.Trainers.FastTree(new FastTreeRegressionTrainer.Options
+            {
+                NumberOfTrees = 2,
+                EarlyStoppingMetric = EarlyStoppingMetric.L2Norm,
+                EarlyStoppingRule = new GeneralityLossRule()
+            })
                 .Fit(trainData: preprocessedTrainData, validationData: preprocessedValidData);
 
             // Combine the model.

@@ -166,7 +166,7 @@ namespace Microsoft.ML
                 _env,
                 input,
                 complement: complement,
-                seed: (uint?) seed,
+                seed: (uint?)seed,
                 shuffleInput: false,
                 poolSize: 0);
         }
@@ -434,6 +434,63 @@ namespace Microsoft.ML
         }
 
         /// <summary>
+        /// Split the dataset into cross-validation folds of train set and test set.
+        /// Respects the <paramref name="samplingKeyColumnName"/> if provided.
+        /// </summary>
+        /// <param name="data">The dataset to split.</param>
+        /// <param name="numberOfFolds">Number of cross-validation folds.</param>
+        /// <param name="samplingKeyColumnName">Name of a column to use for grouping rows. If two examples share the same value of the <paramref name="samplingKeyColumnName"/>,
+        /// they are guaranteed to appear in the same subset (train or test). This can be used to ensure no label leakage from the train to the test set.
+        /// If <see langword="null"/> no row grouping will be performed.</param>
+        /// <param name="seed">Seed for the random number generator used to select rows for cross-validation folds.</param>
+        /// <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        /// [!code-csharp[CrossValidationSplit](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/DataOperations/CrossValidationSplit.cs)]
+        /// ]]>
+        /// </format>
+        /// </example>
+        public IReadOnlyList<TrainTestData> CrossValidationSplit(IDataView data, int numberOfFolds = 5, string samplingKeyColumnName = null, int? seed = null)
+        {
+            _env.CheckValue(data, nameof(data));
+            _env.CheckParam(numberOfFolds > 1, nameof(numberOfFolds), "Must be more than 1");
+            _env.CheckValueOrNull(samplingKeyColumnName);
+            EnsureGroupPreservationColumn(_env, ref data, ref samplingKeyColumnName, seed);
+            var result = new List<TrainTestData>();
+            foreach (var split in CrossValidationSplit(_env, data, numberOfFolds, samplingKeyColumnName))
+                result.Add(split);
+            return result;
+        }
+
+        internal static IEnumerable<TrainTestData> CrossValidationSplit(IHostEnvironment env, IDataView data, int numberOfFolds = 5, string samplingKeyColumnName = null)
+        {
+            for (int fold = 0; fold < numberOfFolds; fold++)
+            {
+                var trainFilter = new RangeFilter(env, new RangeFilter.Options
+                {
+                    Column = samplingKeyColumnName,
+                    Min = (double)fold / numberOfFolds,
+                    Max = (double)(fold + 1) / numberOfFolds,
+                    Complement=true,
+                    IncludeMin = true,
+                    IncludeMax = true,
+                }, data);
+
+                var testFilter = new RangeFilter(env, new RangeFilter.Options
+                {
+                    Column = samplingKeyColumnName,
+                    Min = (double)fold / numberOfFolds,
+                    Max = (double)(fold + 1) / numberOfFolds,
+                    Complement = false,
+                    IncludeMin = true,
+                    IncludeMax = true
+                }, data);
+
+                yield return new TrainTestData(trainFilter, testFilter);
+            }
+        }
+
+        /// <summary>
         /// Ensures the provided <paramref name="samplingKeyColumn"/> is valid for <see cref="RangeFilter"/>, hashing it if necessary, or creates a new column <paramref name="samplingKeyColumn"/> is null.
         /// </summary>
         internal static void EnsureGroupPreservationColumn(IHostEnvironment env, ref IDataView data, ref string samplingKeyColumn, int? seed = null)
@@ -459,12 +516,7 @@ namespace Microsoft.ML
                     // of column types. It used to be HashJoin, but we should probably extend Hash
                     // instead of having two hash transformations.
                     var origStratCol = samplingKeyColumn;
-                    int tmp;
-                    int inc = 0;
-
-                    // Generate a new column with the hashed samplingKeyColumn.
-                    while (data.Schema.TryGetColumnIndex(samplingKeyColumn, out tmp))
-                        samplingKeyColumn = string.Format("{0}_{1:000}", origStratCol, ++inc);
+                    samplingKeyColumn = data.Schema.GetTempColumnName(samplingKeyColumn);
                     HashingEstimator.ColumnOptions columnOptions;
                     if (seed.HasValue)
                         columnOptions = new HashingEstimator.ColumnOptions(samplingKeyColumn, origStratCol, 30, (uint)seed.Value);
@@ -472,6 +524,16 @@ namespace Microsoft.ML
                         columnOptions = new HashingEstimator.ColumnOptions(samplingKeyColumn, origStratCol, 30);
                     data = new HashingEstimator(env, columnOptions).Fit(data).Transform(data);
                 }
+                else
+                {
+                    if (!data.Schema[samplingKeyColumn].IsNormalized() && (type == NumberDataViewType.Single || type == NumberDataViewType.Double))
+                    {
+                        var origStratCol = samplingKeyColumn;
+                        samplingKeyColumn = data.Schema.GetTempColumnName(samplingKeyColumn);
+                        data = new NormalizingEstimator(env, new NormalizingEstimator.MinMaxColumnOptions(samplingKeyColumn, origStratCol, ensureZeroUntouched: true)).Fit(data).Transform(data);
+                    }
+                }
+
             }
         }
     }
