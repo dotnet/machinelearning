@@ -58,6 +58,24 @@ namespace Microsoft.ML
         }
 
         /// <summary>
+        /// Create a new estimator chain, by appending another estimator to the end of this estimator.
+        /// </summary>
+        public static TrivialEstimatorChain<TTrans> Append<TTrans, TTrans2>(
+            this TrivialEstimator<TTrans2> start, TrivialEstimator<TTrans> estimator,
+            TransformerScope scope = TransformerScope.Everything)
+            where TTrans : class, ITransformer
+            where TTrans2 : class, ITransformer
+        {
+            Contracts.CheckValue(start, nameof(start));
+            Contracts.CheckValue(estimator, nameof(estimator));
+
+            if (start is TrivialEstimator<ITransformer> est)
+                return est.Append(estimator, scope);
+
+            return new TrivialEstimatorChain<ITransformer>().Append(start).Append(estimator, scope);
+        }
+
+        /// <summary>
         /// Append a 'caching checkpoint' to the estimator chain. This will ensure that the downstream estimators will be trained against
         /// cached data. It is helpful to have a caching checkpoint before trainers that take multiple data passes.
         /// </summary>

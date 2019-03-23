@@ -8,6 +8,86 @@ using Microsoft.ML.Runtime;
 
 namespace Microsoft.ML.Data
 {
+    public sealed class TrivialEstimatorChain<TLastTransformer> : TrivialEstimator<TransformerChain<TLastTransformer>>
+        where TLastTransformer : class, ITransformer
+    {
+        // Host is not null iff there is any 'true' values in _needCacheAfter (in this case, we need to create an instance of
+        // CacheDataView.
+        private readonly EstimatorChain<TLastTransformer> _estimatorChain;
+        private readonly bool[] _needCacheAfter;
+        public IEstimator<TLastTransformer> LastEstimator => _estimatorChain.LastEstimator;
+
+        private TrivialEstimatorChain(IHostEnvironment env, EstimatorChain<TLastTransformer> estimatorChain, TransformerChain<TLastTransformer> transformerChain, bool[] needCacheAfter)
+            : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(TrivialEstimator<TLastTransformer>)), transformerChain)
+        {
+            _estimatorChain = estimatorChain;
+            _needCacheAfter = needCacheAfter ?? new bool[0];
+        }
+
+        /// <summary>
+        /// Create an empty estimator chain.
+        /// </summary>
+        public TrivialEstimatorChain()
+            : base(((IHostEnvironment)new MLContext()).Register(nameof(TrivialEstimatorChain<TLastTransformer>)), new TransformerChain<TLastTransformer>())
+        {
+            _estimatorChain = new EstimatorChain<TLastTransformer>();
+            _needCacheAfter = new bool[0];
+        }
+
+        public override IDataView Transform(IDataView input)
+        {
+            Contracts.CheckValue(input, nameof(input));
+
+            // Trigger schema propagation prior to transforming.
+            // REVIEW: does this actually constitute 'early warning', given that Transform call is lazy anyway?
+            Transformer.GetOutputSchema(input.Schema);
+
+            var current = input;
+            ITransformer[] xfs = ((ITransformerChainAccessor)Transformer).Transformers;
+            for (int i = 0; i < xfs.Length; i++)
+            {
+                current = xfs[i].Transform(current);
+                if (_needCacheAfter[i] && i < xfs.Length - 1)
+                {
+                    Contracts.AssertValue(Host);
+                    current = new CacheDataView(Host, current, null);
+                }
+            }
+            return current;
+        }
+
+        public override SchemaShape GetOutputSchema(SchemaShape inputSchema)
+            => _estimatorChain.GetOutputSchema(inputSchema);
+
+        public TrivialEstimatorChain<TNewTrans> Append<TNewTrans>(TrivialEstimator<TNewTrans> estimator, TransformerScope scope = TransformerScope.Everything)
+            where TNewTrans : class, ITransformer
+            => new TrivialEstimatorChain<TNewTrans>(Host, _estimatorChain.Append(estimator, scope), Transformer.Append(estimator.Transformer, scope), _needCacheAfter.AppendElement(false));
+
+        public EstimatorChain<TNewTrans> Append<TNewTrans>(IEstimator<TNewTrans> estimator, TransformerScope scope = TransformerScope.Everything)
+            where TNewTrans : class, ITransformer
+            => _estimatorChain.Append(estimator, scope);
+
+        /// <summary>
+        /// Append a 'caching checkpoint' to the estimator chain. This will ensure that the downstream estimators will be trained against
+        /// cached data. It is helpful to have a caching checkpoint before trainers that take multiple data passes.
+        /// </summary>
+        /// <param name="env">The host environment to use for caching.</param>
+        public TrivialEstimatorChain<TLastTransformer> AppendCacheCheckpoint(IHostEnvironment env)
+        {
+            Contracts.CheckValue(env, nameof(env));
+
+            if (((ITransformerChainAccessor)Transformer).Transformers.Length == 0 || _needCacheAfter.Last())
+            {
+                // If there are no estimators, or if we already need to cache after this, we don't need to do anything else.
+                return this;
+            }
+
+            bool[] newNeedCache = _needCacheAfter.ToArray();
+            newNeedCache[newNeedCache.Length - 1] = true;
+            return new TrivialEstimatorChain<TLastTransformer>(env, _estimatorChain.AppendCacheCheckpoint(env), Transformer, newNeedCache);
+        }
+    }
+
     /// <summary>
     /// Represents a chain (potentially empty) of estimators that end with a <typeparamref name="TLastTransformer"/>.
     /// If the chain is empty, <typeparamref name="TLastTransformer"/> is always <see cref="ITransformer"/>.

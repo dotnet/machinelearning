@@ -19,25 +19,27 @@ namespace Microsoft.ML.Data
         [BestFriend]
         private protected readonly IHost Host;
         [BestFriend]
-        private protected readonly TTransformer Transformer;
+        internal readonly TTransformer Transformer;
 
         [BestFriend]
         private protected TrivialEstimator(IHost host, TTransformer transformer)
         {
             Contracts.AssertValue(host);
-
             Host = host;
             Host.CheckValue(transformer, nameof(transformer));
             Transformer = transformer;
         }
 
-        public TTransformer Fit(IDataView input)
+        public virtual TTransformer Fit(IDataView input)
         {
             Host.CheckValue(input, nameof(input));
             // Validate input schema.
             Transformer.GetOutputSchema(input.Schema);
             return Transformer;
         }
+
+        public virtual IDataView Transform(IDataView input)
+            => Transformer.Transform(input);
 
         public abstract SchemaShape GetOutputSchema(SchemaShape inputSchema);
     }
