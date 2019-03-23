@@ -312,4 +312,9 @@ namespace Microsoft.ML
         /// </summary>
         SchemaShape GetOutputSchema(SchemaShape inputSchema);
     }
+
+    public interface ITrivialEstimator<out TTransformer> : IEstimator<TTransformer>, ITransformer
+        where TTransformer : ITransformer
+    {
+    }
 }

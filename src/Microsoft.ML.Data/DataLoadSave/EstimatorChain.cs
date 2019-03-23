@@ -8,19 +8,23 @@ using Microsoft.ML.Runtime;
 
 namespace Microsoft.ML.Data
 {
-    public sealed class TrivialEstimatorChain<TLastTransformer> : TrivialEstimator<TransformerChain<TLastTransformer>>
+    public sealed class TrivialEstimatorChain<TLastTransformer> : ITrivialEstimator<TransformerChain<TLastTransformer>>
         where TLastTransformer : class, ITransformer
     {
         // Host is not null iff there is any 'true' values in _needCacheAfter (in this case, we need to create an instance of
         // CacheDataView.
+        private readonly IHost _host;
         private readonly EstimatorChain<TLastTransformer> _estimatorChain;
+        private readonly TransformerChain<TLastTransformer> _tranformerChain;
         private readonly bool[] _needCacheAfter;
         public IEstimator<TLastTransformer> LastEstimator => _estimatorChain.LastEstimator;
 
+        public bool IsRowToRowMapper => ((ITransformer)_tranformerChain).IsRowToRowMapper;
+
         private TrivialEstimatorChain(IHostEnvironment env, EstimatorChain<TLastTransformer> estimatorChain, TransformerChain<TLastTransformer> transformerChain, bool[] needCacheAfter)
-            : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(TrivialEstimator<TLastTransformer>)), transformerChain)
         {
             _estimatorChain = estimatorChain;
+            _tranformerChain = transformerChain;
             _needCacheAfter = needCacheAfter ?? new bool[0];
         }
 
@@ -28,40 +32,24 @@ namespace Microsoft.ML.Data
         /// Create an empty estimator chain.
         /// </summary>
         public TrivialEstimatorChain()
-            : base(((IHostEnvironment)new MLContext()).Register(nameof(TrivialEstimatorChain<TLastTransformer>)), new TransformerChain<TLastTransformer>())
         {
+            _host = null;
             _estimatorChain = new EstimatorChain<TLastTransformer>();
             _needCacheAfter = new bool[0];
         }
 
-        public override IDataView Transform(IDataView input)
-        {
-            Contracts.CheckValue(input, nameof(input));
+        public TransformerChain<TLastTransformer> Fit(IDataView input)
+            => _estimatorChain.Fit(input);
 
-            // Trigger schema propagation prior to transforming.
-            // REVIEW: does this actually constitute 'early warning', given that Transform call is lazy anyway?
-            Transformer.GetOutputSchema(input.Schema);
+        public IDataView Transform(IDataView input)
+            => Fit(input).Transform(input);
 
-            var current = input;
-            ITransformer[] xfs = ((ITransformerChainAccessor)Transformer).Transformers;
-            for (int i = 0; i < xfs.Length; i++)
-            {
-                current = xfs[i].Transform(current);
-                if (_needCacheAfter[i] && i < xfs.Length - 1)
-                {
-                    Contracts.AssertValue(Host);
-                    current = new CacheDataView(Host, current, null);
-                }
-            }
-            return current;
-        }
-
-        public override SchemaShape GetOutputSchema(SchemaShape inputSchema)
+        public SchemaShape GetOutputSchema(SchemaShape inputSchema)
             => _estimatorChain.GetOutputSchema(inputSchema);
 
-        public TrivialEstimatorChain<TNewTrans> Append<TNewTrans>(TrivialEstimator<TNewTrans> estimator, TransformerScope scope = TransformerScope.Everything)
+        public TrivialEstimatorChain<TNewTrans> Append<TNewTrans>(ITrivialEstimator<TNewTrans> estimator, TransformerScope scope = TransformerScope.Everything)
             where TNewTrans : class, ITransformer
-            => new TrivialEstimatorChain<TNewTrans>(Host, _estimatorChain.Append(estimator, scope), Transformer.Append(estimator.Transformer, scope), _needCacheAfter.AppendElement(false));
+            => new TrivialEstimatorChain<TNewTrans>(_host, _estimatorChain.Append(estimator, scope), _tranformerChain.Append(((TNewTrans)estimator), scope), _needCacheAfter.AppendElement(false));
 
         public EstimatorChain<TNewTrans> Append<TNewTrans>(IEstimator<TNewTrans> estimator, TransformerScope scope = TransformerScope.Everything)
             where TNewTrans : class, ITransformer
@@ -76,7 +64,7 @@ namespace Microsoft.ML.Data
         {
             Contracts.CheckValue(env, nameof(env));
 
-            if (((ITransformerChainAccessor)Transformer).Transformers.Length == 0 || _needCacheAfter.Last())
+            if (((ITransformerChainAccessor)_tranformerChain).Transformers.Length == 0 || _needCacheAfter.Last())
             {
                 // If there are no estimators, or if we already need to cache after this, we don't need to do anything else.
                 return this;
@@ -84,8 +72,17 @@ namespace Microsoft.ML.Data
 
             bool[] newNeedCache = _needCacheAfter.ToArray();
             newNeedCache[newNeedCache.Length - 1] = true;
-            return new TrivialEstimatorChain<TLastTransformer>(env, _estimatorChain.AppendCacheCheckpoint(env), Transformer, newNeedCache);
+            return new TrivialEstimatorChain<TLastTransformer>(env, _estimatorChain.AppendCacheCheckpoint(env), _tranformerChain, newNeedCache);
         }
+
+        public DataViewSchema GetOutputSchema(DataViewSchema inputSchema)
+            => _tranformerChain.GetOutputSchema(inputSchema);
+
+        public IRowToRowMapper GetRowToRowMapper(DataViewSchema inputSchema)
+            => ((ITransformer)_tranformerChain).GetRowToRowMapper(inputSchema);
+
+        public void Save(ModelSaveContext ctx)
+            => ((ICanSaveModel)_tranformerChain).Save(ctx);
     }
 
     /// <summary>

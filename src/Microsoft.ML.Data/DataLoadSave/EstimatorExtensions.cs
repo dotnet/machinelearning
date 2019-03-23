@@ -61,7 +61,7 @@ namespace Microsoft.ML
         /// Create a new estimator chain, by appending another estimator to the end of this estimator.
         /// </summary>
         public static TrivialEstimatorChain<TTrans> Append<TTrans, TTrans2>(
-            this TrivialEstimator<TTrans2> start, TrivialEstimator<TTrans> estimator,
+            this ITrivialEstimator<TTrans2> start, ITrivialEstimator<TTrans> estimator,
             TransformerScope scope = TransformerScope.Everything)
             where TTrans : class, ITransformer
             where TTrans2 : class, ITransformer
@@ -90,6 +90,20 @@ namespace Microsoft.ML
         }
 
         /// <summary>
+        /// Append a 'caching checkpoint' to the estimator chain. This will ensure that the downstream estimators will be trained against
+        /// cached data. It is helpful to have a caching checkpoint before trainers that take multiple data passes.
+        /// </summary>
+        /// <param name="start">The starting estimator</param>
+        /// <param name="env">The host environment to use for caching.</param>
+
+        public static TrivialEstimatorChain<TTrans> AppendCacheCheckpoint<TTrans>(this ITrivialEstimator<TTrans> start, IHostEnvironment env)
+            where TTrans : class, ITransformer
+        {
+            Contracts.CheckValue(start, nameof(start));
+            return new TrivialEstimatorChain<ITransformer>().Append(start).AppendCacheCheckpoint(env);
+        }
+
+        /// <summary>
         /// Create a new composite loader, by appending a transformer to this data loader.
         /// </summary>
         public static CompositeDataLoader<TSource, TTrans> Append<TSource, TTrans>(this IDataLoader<TSource> loader, TTrans transformer)
@@ -111,6 +125,22 @@ namespace Microsoft.ML
             Contracts.CheckValue(transformer, nameof(transformer));
 
             return new TransformerChain<TTrans>(start, transformer);
+        }
+
+        /// <summary>
+        /// Create a new transformer chain, by appending another transformer to the end of this transformer chain.
+        /// </summary>
+        public static TrivialEstimatorChain<TTrans> Append<TFirst, TTrans>(this ITrivialEstimator<TFirst> start, ITrivialEstimator<TTrans> transformer)
+            where TTrans : class, ITransformer
+            where TFirst : class, ITransformer
+        {
+            Contracts.CheckValue(start, nameof(start));
+            Contracts.CheckValue(transformer, nameof(transformer));
+
+            if (start is ITrivialEstimator<ITransformer> est)
+                return est.Append(transformer, TransformerScope.Everything);
+
+            return new TrivialEstimatorChain<ITransformer>().Append(start).Append(transformer, TransformerScope.Everything);
         }
 
         private sealed class DelegateEstimator<TTransformer> : IEstimator<TTransformer>
