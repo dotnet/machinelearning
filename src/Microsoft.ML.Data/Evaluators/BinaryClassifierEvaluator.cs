@@ -829,6 +829,93 @@ namespace Microsoft.ML.Data
         }
 
         /// <summary>
+        /// Evaluates scored binary classification data and generates precision recall curve data.
+        /// </summary>
+        /// <param name="data">The scored data.</param>
+        /// <param name="label">The name of the label column in <paramref name="data"/>.</param>
+        /// <param name="score">The name of the score column in <paramref name="data"/>.</param>
+        /// <param name="probability">The name of the probability column in <paramref name="data"/>, the calibrated version of <paramref name="score"/>.</param>
+        /// <param name="predictedLabel">The name of the predicted label column in <paramref name="data"/>.</param>
+        /// <param name="prCurve">The generated precision recall curve data. Up to 100000 of samples are used for p/r curve generation.</param>
+        /// <returns>The evaluation results for these calibrated outputs.</returns>
+        public CalibratedBinaryClassificationMetrics EvaluateWithPRCurve(
+            IDataView data,
+            string label,
+            string score,
+            string probability,
+            string predictedLabel,
+            out List<BinaryPrecisionRecallDataPoint> prCurve)
+        {
+            Host.CheckValue(data, nameof(data));
+            Host.CheckNonEmpty(label, nameof(label));
+            Host.CheckNonEmpty(score, nameof(score));
+            Host.CheckNonEmpty(probability, nameof(probability));
+            Host.CheckNonEmpty(predictedLabel, nameof(predictedLabel));
+
+            var roles = new RoleMappedData(data, opt: false,
+                RoleMappedSchema.ColumnRole.Label.Bind(label),
+                RoleMappedSchema.CreatePair(AnnotationUtils.Const.ScoreValueKind.Score, score),
+                RoleMappedSchema.CreatePair(AnnotationUtils.Const.ScoreValueKind.Probability, probability),
+                RoleMappedSchema.CreatePair(AnnotationUtils.Const.ScoreValueKind.PredictedLabel, predictedLabel));
+
+            var resultDict = ((IEvaluator)this).Evaluate(roles);
+            Host.Assert(resultDict.ContainsKey(MetricKinds.PrCurve));
+            var prCurveView = resultDict[MetricKinds.PrCurve];
+            Host.Assert(resultDict.ContainsKey(MetricKinds.OverallMetrics));
+            var overall = resultDict[MetricKinds.OverallMetrics];
+
+            var prCurveResult = new List<BinaryPrecisionRecallDataPoint>();
+            using (var cursor = prCurveView.GetRowCursorForAllColumns())
+            {
+                GetPrecisionRecallDataPointGetters(prCurveView, cursor,
+                    out ValueGetter<float> thresholdGetter,
+                    out ValueGetter<double> precisionGetter,
+                    out ValueGetter<double> recallGetter,
+                    out ValueGetter<double> fprGetter);
+
+                while (cursor.MoveNext())
+                {
+                    prCurveResult.Add(new BinaryPrecisionRecallDataPoint(thresholdGetter, precisionGetter, recallGetter, fprGetter));
+                }
+            }
+            prCurve = prCurveResult;
+
+            CalibratedBinaryClassificationMetrics result;
+            using (var cursor = overall.GetRowCursorForAllColumns())
+            {
+                var moved = cursor.MoveNext();
+                Host.Assert(moved);
+                result = new CalibratedBinaryClassificationMetrics(Host, cursor);
+                moved = cursor.MoveNext();
+                Host.Assert(!moved);
+            }
+
+            return result;
+        }
+
+        private void GetPrecisionRecallDataPointGetters(IDataView prCurveView,
+            DataViewRowCursor cursor,
+            out ValueGetter<float> thresholdGetter,
+            out ValueGetter<double> precisionGetter,
+            out ValueGetter<double> recallGetter,
+            out ValueGetter<double> fprGetter)
+        {
+            var thresholdColumn = prCurveView.Schema.GetColumnOrNull(BinaryClassifierEvaluator.Threshold);
+            var precisionColumn = prCurveView.Schema.GetColumnOrNull(BinaryClassifierEvaluator.Precision);
+            var recallColumn = prCurveView.Schema.GetColumnOrNull(BinaryClassifierEvaluator.Recall);
+            var fprColumn = prCurveView.Schema.GetColumnOrNull(BinaryClassifierEvaluator.FalsePositiveRate);
+            Host.Assert(thresholdColumn != null);
+            Host.Assert(precisionColumn != null);
+            Host.Assert(recallColumn != null);
+            Host.Assert(fprColumn != null);
+
+            thresholdGetter = cursor.GetGetter<float>((DataViewSchema.Column)thresholdColumn);
+            precisionGetter = cursor.GetGetter<double>((DataViewSchema.Column)precisionColumn);
+            recallGetter = cursor.GetGetter<double>((DataViewSchema.Column)recallColumn);
+            fprGetter = cursor.GetGetter<double>((DataViewSchema.Column)fprColumn);
+        }
+
+        /// <summary>
         /// Evaluates scored binary classification data, without probability-based metrics.
         /// </summary>
         /// <param name="data">The scored data.</param>
@@ -862,6 +949,69 @@ namespace Microsoft.ML.Data
                 moved = cursor.MoveNext();
                 Host.Assert(!moved);
             }
+            return result;
+        }
+
+        /// <summary>
+        /// Evaluates scored binary classification data, without probability-based metrics
+        /// and generates precision recall curve data.
+        /// </summary>
+        /// <param name="data">The scored data.</param>
+        /// <param name="label">The name of the label column in <paramref name="data"/>.</param>
+        /// <param name="score">The name of the score column in <paramref name="data"/>.</param>
+        /// <param name="predictedLabel">The name of the predicted label column in <paramref name="data"/>.</param>
+        /// <param name="prCurve">The generated precision recall curve data. Up to 100000 of samples are used for p/r curve generation.</param>
+        /// <returns>The evaluation results for these uncalibrated outputs.</returns>
+        /// <seealso cref="Evaluate(IDataView, string, string, string)"/>
+        public BinaryClassificationMetrics EvaluateWithPRCurve(
+            IDataView data,
+            string label,
+            string score,
+            string predictedLabel,
+            out List<BinaryPrecisionRecallDataPoint> prCurve)
+        {
+            Host.CheckValue(data, nameof(data));
+            Host.CheckNonEmpty(label, nameof(label));
+            Host.CheckNonEmpty(score, nameof(score));
+            Host.CheckNonEmpty(predictedLabel, nameof(predictedLabel));
+
+            var roles = new RoleMappedData(data, opt: false,
+                RoleMappedSchema.ColumnRole.Label.Bind(label),
+                RoleMappedSchema.CreatePair(AnnotationUtils.Const.ScoreValueKind.Score, score),
+                RoleMappedSchema.CreatePair(AnnotationUtils.Const.ScoreValueKind.PredictedLabel, predictedLabel));
+
+            var resultDict = ((IEvaluator)this).Evaluate(roles);
+            Host.Assert(resultDict.ContainsKey(MetricKinds.PrCurve));
+            var prCurveView = resultDict[MetricKinds.PrCurve];
+            Host.Assert(resultDict.ContainsKey(MetricKinds.OverallMetrics));
+            var overall = resultDict[MetricKinds.OverallMetrics];
+
+            var prCurveResult = new List<BinaryPrecisionRecallDataPoint>();
+            using (var cursor = prCurveView.GetRowCursorForAllColumns())
+            {
+                GetPrecisionRecallDataPointGetters(prCurveView, cursor,
+                    out ValueGetter<float> thresholdGetter,
+                    out ValueGetter<double> precisionGetter,
+                    out ValueGetter<double> recallGetter,
+                    out ValueGetter<double> fprGetter);
+
+                while (cursor.MoveNext())
+                {
+                    prCurveResult.Add(new BinaryPrecisionRecallDataPoint(thresholdGetter, precisionGetter, recallGetter, fprGetter));
+                }
+            }
+            prCurve = prCurveResult;
+
+            BinaryClassificationMetrics result;
+            using (var cursor = overall.GetRowCursorForAllColumns())
+            {
+                var moved = cursor.MoveNext();
+                Host.Assert(moved);
+                result = new BinaryClassificationMetrics(Host, cursor);
+                moved = cursor.MoveNext();
+                Host.Assert(!moved);
+            }
+
             return result;
         }
     }
