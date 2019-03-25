@@ -36,7 +36,7 @@ namespace Microsoft.ML.Samples.Dynamic
 
             var imagesFolder = Path.GetDirectoryName(imagesDataFile);
             // Image loading pipeline. 
-            var pipeline = mlContext.Transforms.LoadImages(imagesFolder, "ImageObject", "ImagePath")
+            var pipeline = mlContext.Transforms.LoadImages("ImageObject", imagesFolder, "ImagePath")
                            .Append(mlContext.Transforms.ConvertToGrayscale("Grayscale", "ImageObject"));
 
             var transformedData = pipeline.Fit(data).Transform(data);
