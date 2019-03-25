@@ -4,6 +4,7 @@
 
 using System.Linq;
 using Microsoft.ML.Data;
+using Microsoft.ML.Runtime;
 using Microsoft.ML.Transforms;
 
 namespace Microsoft.ML
@@ -11,35 +12,33 @@ namespace Microsoft.ML
     /// <summary>
     /// Specifies input and output column names for a transformation.
     /// </summary>
-    [BestFriend]
-    internal sealed class ColumnOptions
+    public sealed class InputOutputColumnPair
     {
-        private readonly string _outputColumnName;
-        private readonly string _inputColumnName;
+        /// <summary>
+        /// Name of the column to transform. If set to <see langword="null"/>, the value of the <see cref="OutputColumnName"/> will be used as source.
+        /// </summary>
+        public string InputColumnName { get; }
+        /// <summary>
+        /// Name of the column resulting from the transformation of <see cref="InputColumnName"/>.
+        /// </summary>
+        public string OutputColumnName { get; }
 
         /// <summary>
         /// Specifies input and output column names for a transformation.
         /// </summary>
         /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.</param>
         /// <param name="inputColumnName">Name of the column to transform. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.</param>
-        public ColumnOptions(string outputColumnName, string inputColumnName = null)
+        public InputOutputColumnPair(string outputColumnName, string inputColumnName = null)
         {
-            _outputColumnName = outputColumnName;
-            _inputColumnName = inputColumnName ?? outputColumnName;
-        }
-
-        /// <summary>
-        /// Instantiates a <see cref="ColumnOptions"/> from a tuple of input and output column names.
-        /// </summary>
-        public static implicit operator ColumnOptions((string outputColumnName, string inputColumnName) value)
-        {
-            return new ColumnOptions(value.outputColumnName, value.inputColumnName);
+            Contracts.CheckNonEmpty(outputColumnName, nameof(outputColumnName));
+            InputColumnName = inputColumnName ?? outputColumnName;
+            OutputColumnName = outputColumnName;
         }
 
         [BestFriend]
-        internal static (string outputColumnName, string inputColumnName)[] ConvertToValueTuples(ColumnOptions[] infos)
+        internal static (string outputColumnName, string inputColumnName)[] ConvertToValueTuples(InputOutputColumnPair[] infos)
         {
-            return infos.Select(info => (info._outputColumnName, info._inputColumnName)).ToArray();
+            return infos.Select(info => (info.OutputColumnName, info.InputColumnName)).ToArray();
         }
     }
 
@@ -78,8 +77,12 @@ namespace Microsoft.ML
         /// </format>
         /// </example>
         [BestFriend]
-        internal static ColumnCopyingEstimator CopyColumns(this TransformsCatalog catalog, params ColumnOptions[] columns)
-            => new ColumnCopyingEstimator(CatalogUtils.GetEnvironment(catalog), ColumnOptions.ConvertToValueTuples(columns));
+        internal static ColumnCopyingEstimator CopyColumns(this TransformsCatalog catalog, params InputOutputColumnPair[] columns)
+        {
+            var env = CatalogUtils.GetEnvironment(catalog);
+            env.CheckValue(columns, nameof(columns));
+            return new ColumnCopyingEstimator(env, InputOutputColumnPair.ConvertToValueTuples(columns));
+        }
 
         /// <summary>
         /// Concatenates columns together.

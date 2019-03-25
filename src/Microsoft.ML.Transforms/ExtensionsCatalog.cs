@@ -2,24 +2,15 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Linq;
 using Microsoft.ML.Data;
+using Microsoft.ML.Runtime;
 using Microsoft.ML.Transforms;
 
 namespace Microsoft.ML
 {
     public static class ExtensionsCatalog
     {
-        /// <summary>
-        /// Creates a new output column, of boolean type, with the same number of slots as the input column. The value in the output column
-        /// is true if the value in the input column is missing.
-        /// </summary>
-        /// <param name="catalog">The transform extensions' catalog.</param>
-        /// <param name="columns">The names of the input columns of the transformation and the corresponding names for the output columns.</param>
-        [BestFriend]
-        internal static MissingValueIndicatorEstimator IndicateMissingValues(this TransformsCatalog catalog,
-            params ColumnOptions[] columns)
-            => new MissingValueIndicatorEstimator(CatalogUtils.GetEnvironment(catalog), ColumnOptions.ConvertToValueTuples(columns));
-
         /// <summary>
         /// Creates a new output column, or replaces the source with a new column
         /// (depending on whether the <paramref name="inputColumnName"/> is given a value, or left to null)
@@ -40,6 +31,19 @@ namespace Microsoft.ML
             string outputColumnName,
             string inputColumnName = null)
             => new MissingValueIndicatorEstimator(CatalogUtils.GetEnvironment(catalog), outputColumnName, inputColumnName);
+
+        /// <summary>
+        /// Creates a new output column, of boolean type, with the same number of slots as the input column. The value in the output column
+        /// is true if the value in the input column is missing.
+        /// </summary>
+        /// <param name="catalog">The transform extensions' catalog.</param>
+        /// <param name="columns">Specifies the names of the columns on which to apply the transformation.</param>
+        public static MissingValueIndicatorEstimator IndicateMissingValues(this TransformsCatalog catalog, InputOutputColumnPair[] columns)
+        {
+            var env = CatalogUtils.GetEnvironment(catalog);
+            env.CheckValue(columns, nameof(columns));
+            return new MissingValueIndicatorEstimator(env, columns.Select(x => (x.OutputColumnName, x.InputColumnName)).ToArray());
+        }
 
         /// <summary>
         /// Creates a new output column, or replaces the source with a new column
@@ -68,6 +72,27 @@ namespace Microsoft.ML
             MissingValueReplacingEstimator.ReplacementMode replacementMode = MissingValueReplacingEstimator.Defaults.Mode,
             bool imputeBySlot = MissingValueReplacingEstimator.Defaults.ImputeBySlot)
         => new MissingValueReplacingEstimator(CatalogUtils.GetEnvironment(catalog), new[] { new MissingValueReplacingEstimator.ColumnOptions(outputColumnName, inputColumnName, replacementMode, imputeBySlot) });
+
+        /// <summary>
+        /// Creates a new output column, identical to the input column for everything but the missing values.
+        /// The missing values of the input column, in this new column are replaced with <see cref="MissingValueReplacingEstimator.ReplacementMode.DefaultValue"/>.
+        /// </summary>
+        /// <param name="catalog">The transform extensions' catalog.</param>
+        /// <param name="columns">Specifies the names of the columns on which to apply the transformation.</param>
+        /// <param name="replacementMode">The type of replacement to use as specified in <see cref="MissingValueReplacingEstimator.ReplacementMode"/></param>
+        /// <param name="imputeBySlot">If true, per-slot imputation of replacement is performed.
+        /// Otherwise, replacement value is imputed for the entire vector column. This setting is ignored for scalars and variable vectors,
+        /// where imputation is always for the entire column.</param>
+        public static MissingValueReplacingEstimator ReplaceMissingValues(this TransformsCatalog catalog,
+            InputOutputColumnPair[] columns,
+            MissingValueReplacingEstimator.ReplacementMode replacementMode = MissingValueReplacingEstimator.Defaults.Mode,
+            bool imputeBySlot = MissingValueReplacingEstimator.Defaults.ImputeBySlot)
+        {
+            var env = CatalogUtils.GetEnvironment(catalog);
+            env.CheckValue(columns, nameof(columns));
+            var columnOptions = columns.Select(x => new MissingValueReplacingEstimator.ColumnOptions(x.OutputColumnName, x.InputColumnName, replacementMode, imputeBySlot)).ToArray();
+            return new MissingValueReplacingEstimator(env, columnOptions);
+        }
 
         /// <summary>
         /// Creates a new output column, identical to the input column for everything but the missing values.

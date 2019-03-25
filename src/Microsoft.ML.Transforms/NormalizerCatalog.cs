@@ -1,4 +1,5 @@
 ﻿using Microsoft.ML.Data;
+using Microsoft.ML.Runtime;
 using Microsoft.ML.Transforms;
 
 namespace Microsoft.ML
@@ -43,8 +44,12 @@ namespace Microsoft.ML
         [BestFriend]
         internal static NormalizingEstimator Normalize(this TransformsCatalog catalog,
             NormalizingEstimator.NormalizationMode mode,
-            params ColumnOptions[] columns)
-            => new NormalizingEstimator(CatalogUtils.GetEnvironment(catalog), mode, ColumnOptions.ConvertToValueTuples(columns));
+            params InputOutputColumnPair[] columns)
+        {
+            var env = CatalogUtils.GetEnvironment(catalog);
+            env.CheckValue(columns, nameof(columns));
+            return new NormalizingEstimator(env, mode, InputOutputColumnPair.ConvertToValueTuples(columns));
+        }
 
         /// <summary>
         /// Normalize (rescale) columns according to specified custom parameters.

@@ -424,7 +424,7 @@ var pipeline =
     // Use the multi-class SDCA model to predict the label using features.
     .Append(mlContext.MulticlassClassification.Trainers.SdcaCalibrated())
     // Apply the inverse conversion from 'PredictedLabel' column back to string value.
-    .Append(mlContext.Transforms.Conversion.MapKeyToValue(("PredictedLabel", "Data")));
+    .Append(mlContext.Transforms.Conversion.MapKeyToValue("Data", "PredictedLabel"));
 
 // Train the model.
 var model = pipeline.Fit(trainData);

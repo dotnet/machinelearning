@@ -2,7 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Linq;
 using Microsoft.ML.Data;
+using Microsoft.ML.Runtime;
 using Microsoft.ML.Transforms;
 
 namespace Microsoft.ML
@@ -12,28 +14,6 @@ namespace Microsoft.ML
 
     public static class FeatureSelectionCatalog
     {
-        /// <include file='doc.xml' path='doc/members/member[@name="MutualInformationFeatureSelection"]/*' />
-        /// <param name="catalog">The transform's catalog.</param>
-        /// <param name="labelColumnName">The name of the label column.</param>
-        /// <param name="slotsInOutput">The maximum number of slots to preserve in the output. The number of slots to preserve is taken across all input columns.</param>
-        /// <param name="numberOfBins">Max number of bins used to approximate mutual information between each input column and the label column. Power of 2 recommended.</param>
-        /// <param name="columns">Specifies the names of the input columns for the transformation, and their respective output column names.</param>
-        /// <example>
-        /// <format type="text/markdown">
-        /// <![CDATA[
-        /// [!code-csharp[SelectFeaturesBasedOnMutualInformation](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/FeatureSelectionTransform.cs?range=1-4,10-121)]
-        /// ]]>
-        /// </format>
-        /// </example>
-        [BestFriend]
-        internal static MutualInformationFeatureSelectingEstimator SelectFeaturesBasedOnMutualInformation(this TransformsCatalog.FeatureSelectionTransforms catalog,
-            string labelColumnName = MutualInfoSelectDefaults.LabelColumn,
-            int slotsInOutput = MutualInfoSelectDefaults.SlotsInOutput,
-            int numberOfBins = MutualInfoSelectDefaults.NumBins,
-            params ColumnOptions[] columns)
-            => new MutualInformationFeatureSelectingEstimator(CatalogUtils.GetEnvironment(catalog), labelColumnName, slotsInOutput, numberOfBins,
-                ColumnOptions.ConvertToValueTuples(columns));
-
         /// <include file='doc.xml' path='doc/members/member[@name="MutualInformationFeatureSelection"]/*' />
         /// <param name="catalog">The transform's catalog.</param>
         /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.</param>
@@ -54,6 +34,24 @@ namespace Microsoft.ML
             int slotsInOutput = MutualInfoSelectDefaults.SlotsInOutput,
             int numberOfBins = MutualInfoSelectDefaults.NumBins)
             => new MutualInformationFeatureSelectingEstimator(CatalogUtils.GetEnvironment(catalog), outputColumnName, inputColumnName, labelColumnName, slotsInOutput, numberOfBins);
+
+        /// <include file='doc.xml' path='doc/members/member[@name="MutualInformationFeatureSelection"]/*' />
+        /// <param name="catalog">The transform's catalog.</param>
+        /// <param name="columns">Specifies the names of the input columns for the transformation, and their respective output column names.</param>
+        /// <param name="labelColumnName">The name of the label column.</param>
+        /// <param name="slotsInOutput">The maximum number of slots to preserve in the output. The number of slots to preserve is taken across all input columns.</param>
+        /// <param name="numberOfBins">Max number of bins used to approximate mutual information between each input column and the label column. Power of 2 recommended.</param>
+        public static MutualInformationFeatureSelectingEstimator SelectFeaturesBasedOnMutualInformation(this TransformsCatalog.FeatureSelectionTransforms catalog,
+            InputOutputColumnPair[] columns,
+            string labelColumnName = MutualInfoSelectDefaults.LabelColumn,
+            int slotsInOutput = MutualInfoSelectDefaults.SlotsInOutput,
+            int numberOfBins = MutualInfoSelectDefaults.NumBins)
+        {
+            var env = CatalogUtils.GetEnvironment(catalog);
+            env.CheckValue(columns, nameof(columns));
+            return new MutualInformationFeatureSelectingEstimator(env, labelColumnName, slotsInOutput, numberOfBins,
+                columns.Select(x => (x.OutputColumnName, x.InputColumnName)).ToArray());
+        }
 
         /// <include file='doc.xml' path='doc/members/member[@name="CountFeatureSelection"]' />
         /// <param name="catalog">The transform's catalog.</param>
@@ -87,5 +85,19 @@ namespace Microsoft.ML
             string inputColumnName = null,
             long count = CountSelectDefaults.Count)
             => new CountFeatureSelectingEstimator(CatalogUtils.GetEnvironment(catalog), outputColumnName, inputColumnName, count);
+
+        /// <include file='doc.xml' path='doc/members/member[@name="CountFeatureSelection"]' />
+        /// <param name="catalog">The transform's catalog.</param>
+        /// <param name="columns">Specifies the names of the columns on which to apply the transformation.</param>
+        /// <param name="count">If the count of non-default values for a slot is greater than or equal to this threshold in the training data, the slot is preserved.</param>
+        public static CountFeatureSelectingEstimator SelectFeaturesBasedOnCount(this TransformsCatalog.FeatureSelectionTransforms catalog,
+            InputOutputColumnPair[] columns,
+            long count = CountSelectDefaults.Count)
+        {
+            var env = CatalogUtils.GetEnvironment(catalog);
+            env.CheckValue(columns, nameof(columns));
+            var columnOptions = columns.Select(x => new CountFeatureSelectingEstimator.ColumnOptions(x.OutputColumnName, x.InputColumnName, count)).ToArray();
+            return new CountFeatureSelectingEstimator(env, columnOptions);
+        }
     }
 }
