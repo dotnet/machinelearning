@@ -21,7 +21,7 @@ namespace Microsoft.ML.Samples.Dynamic.Trainers.Regression
             var trainingData = mlContext.Data.LoadFromEnumerable(dataPoints);
 
             // Define the trainer.
-            var pipeline = mlContext.Regression.Trainers.PoissonRegression();
+            var pipeline = mlContext.Regression.Trainers.LbfgsPoissonRegression();
 
             // Train the model.
             var model = pipeline.Fit(trainingData);

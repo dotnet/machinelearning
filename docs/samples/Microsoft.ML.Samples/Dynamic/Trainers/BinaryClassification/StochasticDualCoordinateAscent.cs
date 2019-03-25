@@ -60,8 +60,8 @@ namespace Microsoft.ML.Samples.Dynamic.Trainers.BinaryClassification
             // If we wanted to specify more advanced parameters for the algorithm, 
             // we could do so by tweaking the 'advancedSetting'.
             var advancedPipeline = mlContext.Transforms.Text.FeaturizeText("SentimentText", "Features")
-                                  .Append(mlContext.BinaryClassification.Trainers.SdcaCalibrated(
-                                      new SdcaCalibratedBinaryTrainer.Options { 
+                                  .Append(mlContext.BinaryClassification.Trainers.SdcaLogisticRegression(
+                                      new SdcaLogisticRegressionBinaryTrainer.Options { 
                                         LabelColumnName = "Sentiment",
                                         FeatureColumnName = "Features",
                                         ConvergenceTolerance = 0.01f,  // The learning rate for adjusting bias from being regularized

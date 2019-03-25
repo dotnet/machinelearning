@@ -22,7 +22,7 @@ namespace Microsoft.ML.Samples.Dynamic.Trainers.Regression
             var trainingData = mlContext.Data.LoadFromEnumerable(dataPoints);
 
             // Define trainer options.
-            var options = new PoissonRegressionTrainer.Options
+            var options = new LbfgsPoissonRegressionTrainer.Options
             {
                 // Reduce optimization tolerance to speed up training at the cost of accuracy.
                 OptmizationTolerance = 1e-4f,
@@ -33,7 +33,7 @@ namespace Microsoft.ML.Samples.Dynamic.Trainers.Regression
             };
 
             // Define the trainer.
-            var pipeline = mlContext.Regression.Trainers.PoissonRegression(options);
+            var pipeline = mlContext.Regression.Trainers.LbfgsPoissonRegression(options);
 
             // Train the model.
             var model = pipeline.Fit(trainingData);
