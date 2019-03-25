@@ -1,7 +1,0 @@
----- BoundLoader ----
-1 columns:
-  Input: Single
----- MovingAverageTransform ----
-2 columns:
-  Input: Single
-  Output: Single
