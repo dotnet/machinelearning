@@ -3,9 +3,13 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
+using Microsoft.ML.Calibrators;
+using Microsoft.ML.Data;
 using Microsoft.ML.Functional.Tests.Datasets;
 using Microsoft.ML.RunTests;
 using Microsoft.ML.TestFramework;
+using Microsoft.ML.Trainers;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -17,7 +21,7 @@ namespace Microsoft.ML.Functional.Tests
         {
         }
 
-        class Answer
+        class Prediction
         {
             public float Score { get; set; }
             public bool PredictedLabel { get; set; }
@@ -41,17 +45,24 @@ namespace Microsoft.ML.Functional.Tests
             var pipeline = mlContext.Transforms.Text.FeaturizeText("Features", "SentimentText")
                 .AppendCacheCheckpoint(mlContext)
                 .Append(mlContext.BinaryClassification.Trainers.LogisticRegression(
-                    new Trainers.LogisticRegressionBinaryClassificationTrainer.Options { NumberOfThreads = 1 }));
+                    new LogisticRegressionBinaryTrainer.Options { NumberOfThreads = 1 }));
 
             // Train the model.
             var model = pipeline.Fit(data);
-            var engine = model.CreatePredictionEngine<TweetSentiment, Answer>(mlContext);
+            var engine = mlContext.Model.CreatePredictionEngine<TweetSentiment, Prediction>(model);
             var pr = engine.Predict(new TweetSentiment() { SentimentText = "Good Bad job" });
             // Score is 0.64 so predicted label is true.
             Assert.True(pr.PredictedLabel);
             Assert.True(pr.Score > 0);
-            var newModel = mlContext.BinaryClassification.ChangeModelThreshold(model, 0.7f);
-            var newEngine = newModel.CreatePredictionEngine<TweetSentiment, Answer>(mlContext);
+            var transformers = new List<ITransformer>();
+            foreach (var transform in model)
+            {
+                if (transform != model.LastTransformer)
+                    transformers.Add(transform);
+            }
+            transformers.Add(mlContext.BinaryClassification.ChangeModelThreshold(model.LastTransformer, 0.7f));
+            var newModel = new TransformerChain<BinaryPredictionTransformer<CalibratedModelParametersBase<LinearBinaryModelParameters, PlattCalibrator>>>(transformers.ToArray());
+            var newEngine = mlContext.Model.CreatePredictionEngine<TweetSentiment, Prediction>(newModel);
             pr = newEngine.Predict(new TweetSentiment() { SentimentText = "Good Bad job" });
             // Score is still 0.64 but since threshold is no longer 0 but 0.7 predicted label now is false.
 
@@ -66,17 +77,17 @@ namespace Microsoft.ML.Functional.Tests
 
             var data = mlContext.Data.LoadFromEnumerable(TypeTestData.GenerateDataset());
             var pipeline = mlContext.BinaryClassification.Trainers.LogisticRegression(
-                     new Trainers.LogisticRegressionBinaryClassificationTrainer.Options { NumberOfThreads = 1 });
+                     new Trainers.LogisticRegressionBinaryTrainer.Options { NumberOfThreads = 1 });
             var model = pipeline.Fit(data);
             var newModel = mlContext.BinaryClassification.ChangeModelThreshold(model, -2.0f);
             var rnd = new Random(1);
             var randomDataPoint = TypeTestData.GetRandomInstance(rnd);
-            var engine = model.CreatePredictionEngine<TypeTestData, Answer>(mlContext);
+            var engine = mlContext.Model.CreatePredictionEngine<TypeTestData, Prediction>(model);
             var pr = engine.Predict(randomDataPoint);
             // Score is -1.38 so predicted label is false.
             Assert.False(pr.PredictedLabel);
             Assert.True(pr.Score <= 0);
-            var newEngine = newModel.CreatePredictionEngine<TypeTestData, Answer>(mlContext);
+            var newEngine = mlContext.Model.CreatePredictionEngine<TypeTestData, Prediction>(newModel);
             pr = newEngine.Predict(randomDataPoint);
             // Score is still -1.38 but since threshold is no longer 0 but -2 predicted label now is true.
             Assert.True(pr.PredictedLabel);

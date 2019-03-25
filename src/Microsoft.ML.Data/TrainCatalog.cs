@@ -256,38 +256,12 @@ namespace Microsoft.ML
                 Evaluate(x.Scores, labelColumnName), x.Scores, x.Fold)).ToArray();
         }
 
-        /// <summary>
-        /// Change threshold for binary model.
-        /// </summary>
-        /// <typeparam name="TModel">An implementation of the <see cref="IPredictorProducing{TResult}"/></typeparam>
-        /// <param name="chain">Chain of transformers.</param>
-        /// <param name="threshold">New threshold.</param>
-        /// <returns></returns>
-        public TransformerChain<BinaryPredictionTransformer<TModel>> ChangeModelThreshold<TModel>(TransformerChain<BinaryPredictionTransformer<TModel>> chain, float threshold)
-            where TModel : class
-        {
-            if (chain.LastTransformer.Threshold == threshold)
-                return chain;
-            List<ITransformer> transformers = new List<ITransformer>();
-            var predictionTransformer = chain.LastTransformer;
-            foreach (var transform in chain)
-            {
-                if (transform != predictionTransformer)
-                    transformers.Add(transform);
-            }
-
-            transformers.Add(new BinaryPredictionTransformer<TModel>(Environment, predictionTransformer.Model,
-                predictionTransformer.TrainSchema, predictionTransformer.FeatureColumn,
-                threshold, predictionTransformer.ThresholdColumn));
-            return new TransformerChain<BinaryPredictionTransformer<TModel>>(transformers.ToArray());
-        }
-
         public BinaryPredictionTransformer<TModel> ChangeModelThreshold<TModel>(BinaryPredictionTransformer<TModel> model, float threshold)
              where TModel : class
         {
             if (model.Threshold == threshold)
                 return model;
-            return new BinaryPredictionTransformer<TModel>(Environment, model.Model, model.TrainSchema, model.FeatureColumn, threshold, model.ThresholdColumn);
+            return new BinaryPredictionTransformer<TModel>(Environment, model.Model, model.TrainSchema, model.FeatureColumnName, threshold, model.ThresholdColumn);
         }
 
         /// <summary>
