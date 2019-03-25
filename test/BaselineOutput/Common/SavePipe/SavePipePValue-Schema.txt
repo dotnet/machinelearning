@@ -1,7 +1,7 @@
 ---- BoundLoader ----
 1 columns:
-  Input: R4
+  Input: Single
 ---- PValueTransform ----
 2 columns:
-  Input: R4
-  Output: R4
+  Input: Single
+  Output: Single

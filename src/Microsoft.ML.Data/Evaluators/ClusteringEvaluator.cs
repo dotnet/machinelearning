@@ -100,13 +100,13 @@ namespace Microsoft.ML.Data
             if (type != null && type != NumberDataViewType.Single && !(type is KeyDataViewType keyType && keyType.Count > 0))
             {
                 throw Host.ExceptSchemaMismatch(nameof(schema), "label", schema.Label.Value.Name,
-                    "float or KeyType", type.ToString());
+                    "Single or Key", type.ToString());
             }
 
             var score = schema.GetUniqueColumn(AnnotationUtils.Const.ScoreValueKind.Score);
             type = score.Type;
             if (!(type is VectorDataViewType vectorType) || !vectorType.IsKnownSize || vectorType.ItemType != NumberDataViewType.Single)
-                throw Host.ExceptSchemaMismatch(nameof(schema), "score", score.Name, "known-size vector of float", type.ToString());
+                throw Host.ExceptSchemaMismatch(nameof(schema), "score", score.Name, "known-size vector of Single", type.ToString());
         }
 
         private protected override void CheckCustomColumnTypesCore(RoleMappedSchema schema)
@@ -754,7 +754,7 @@ namespace Microsoft.ML.Data
 
             var type = schema[(int) ScoreIndex].Type;
             if (!(type is VectorDataViewType vectorType) || !vectorType.IsKnownSize || vectorType.ItemType != NumberDataViewType.Single)
-                throw Host.ExceptSchemaMismatch(nameof(schema), "score", ScoreCol, "known-size vector of float", type.ToString());
+                throw Host.ExceptSchemaMismatch(nameof(schema), "score", ScoreCol, "known-size vector of Single", type.ToString());
         }
     }
 

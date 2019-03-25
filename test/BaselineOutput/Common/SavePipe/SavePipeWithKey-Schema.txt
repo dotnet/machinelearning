@@ -1,28 +1,28 @@
 ---- BoundLoader ----
 8 columns:
-  Label: Key<U1, 0-1>
-  Features: Vec<U2, 9>
-    Metadata 'SlotNames': Vec<Text, 9>: Length=9, Count=9
+  Label: Key<Byte, 0-1>
+  Features: Vector<UInt16, 9>
+    Metadata 'SlotNames': Vector<String, 9>: Length=9, Count=9
       [0] 'thickness', [1] 'uniform_size', [2] 'uniform_shape', [3] 'adhesion', [4] 'epit_size', [5] 'bare_nuclei', [6] 'bland_chromatin', [7] 'normal_nucleoli', [8] 'mitoses'
-  A: Key<U1, 0-5>
-  B: Key<U1, 0-8>
-  C: Key<U8, 0-5>
-  D: Key<U1, 0-254>
-  E: Key<U8, 0-18446744073709551614>
-  F: Key<U1, 0-254>
+  A: Key<Byte, 0-5>
+  B: Key<Byte, 0-8>
+  C: Key<UInt64, 0-5>
+  D: Key<Byte, 0-254>
+  E: Key<UInt64, 0-18446744073709551614>
+  F: Key<Byte, 0-254>
 ---- RowToRowMapperTransform ----
 10 columns:
-  Label: Key<U1, 0-1>
-  Features: Vec<U2, 9>
-    Metadata 'SlotNames': Vec<Text, 9>: Length=9, Count=9
+  Label: Key<Byte, 0-1>
+  Features: Vector<UInt16, 9>
+    Metadata 'SlotNames': Vector<String, 9>: Length=9, Count=9
       [0] 'thickness', [1] 'uniform_size', [2] 'uniform_shape', [3] 'adhesion', [4] 'epit_size', [5] 'bare_nuclei', [6] 'bland_chromatin', [7] 'normal_nucleoli', [8] 'mitoses'
-  A: Key<U1, 0-5>
-  B: Key<U1, 0-8>
-  C: Key<U8, 0-5>
-  D: Key<U1, 0-254>
-  E: Key<U8, 0-18446744073709551614>
-  F: Key<U1, 0-254>
-  Label2: Key<U2, 0-1>
-  Features2: Vec<R4, 9>
-    Metadata 'SlotNames': Vec<Text, 9>: Length=9, Count=9
+  A: Key<Byte, 0-5>
+  B: Key<Byte, 0-8>
+  C: Key<UInt64, 0-5>
+  D: Key<Byte, 0-254>
+  E: Key<UInt64, 0-18446744073709551614>
+  F: Key<Byte, 0-254>
+  Label2: Key<UInt16, 0-1>
+  Features2: Vector<Single, 9>
+    Metadata 'SlotNames': Vector<String, 9>: Length=9, Count=9
       [0] 'thickness', [1] 'uniform_size', [2] 'uniform_shape', [3] 'adhesion', [4] 'epit_size', [5] 'bare_nuclei', [6] 'bland_chromatin', [7] 'normal_nucleoli', [8] 'mitoses'

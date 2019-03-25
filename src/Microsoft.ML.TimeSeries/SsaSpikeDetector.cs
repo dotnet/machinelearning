@@ -255,7 +255,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
             if (!inputSchema.TryFindColumn(_options.Source, out var col))
                 throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", _options.Source);
             if (col.ItemType != NumberDataViewType.Single)
-                throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", _options.Source, "float", col.GetTypeString());
+                throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", _options.Source, "Single", col.GetTypeString());
 
             var metadata = new List<SchemaShape.Column>() {
                 new SchemaShape.Column(AnnotationUtils.Kinds.SlotNames, SchemaShape.Column.VectorKind.Vector, TextDataViewType.Instance, false)

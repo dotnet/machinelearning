@@ -58,11 +58,11 @@ namespace Microsoft.ML.Data
             var score = schema.GetUniqueColumn(AnnotationUtils.Const.ScoreValueKind.Score);
             var t = score.Type as VectorDataViewType;
             if (t == null || t.Size == 0 || (t.ItemType != NumberDataViewType.Single && t.ItemType != NumberDataViewType.Double))
-                throw Host.ExceptSchemaMismatch(nameof(schema), "score", score.Name, "vector of float or double", t.ToString());
+                throw Host.ExceptSchemaMismatch(nameof(schema), "score", score.Name, "Vector of Single or Double", t.ToString());
             Host.CheckParam(schema.Label.HasValue, nameof(schema), "Must contain a label column");
             var labelType = schema.Label.Value.Type;
             if (labelType != NumberDataViewType.Single)
-                throw Host.ExceptSchemaMismatch(nameof(schema), "label", schema.Label.Value.Name, "float", t.ToString());
+                throw Host.ExceptSchemaMismatch(nameof(schema), "label", schema.Label.Value.Name, "Single", t.ToString());
         }
 
         private protected override Aggregator GetAggregatorCore(RoleMappedSchema schema, string stratName)
@@ -446,12 +446,12 @@ namespace Microsoft.ML.Data
 
             var t = schema[(int)LabelIndex].Type;
             if (t != NumberDataViewType.Single)
-                throw Host.ExceptSchemaMismatch(nameof(schema), "label", LabelCol, "float", t.ToString());
+                throw Host.ExceptSchemaMismatch(nameof(schema), "label", LabelCol, "Single", t.ToString());
 
             VectorDataViewType scoreType = schema[ScoreIndex].Type as VectorDataViewType;
             if (scoreType == null || scoreType.Size == 0 || (scoreType.ItemType != NumberDataViewType.Single && scoreType.ItemType != NumberDataViewType.Double))
             {
-                throw Host.ExceptSchemaMismatch(nameof(schema), "score", ScoreCol, "known-size vector of float or double", t.ToString());
+                throw Host.ExceptSchemaMismatch(nameof(schema), "score", ScoreCol, "known-size vector of Single or Double", t.ToString());
 
             }
         }

@@ -544,7 +544,7 @@ namespace Microsoft.ML.Transforms
 
                     public static new ImplOne Create(ModelLoadContext ctx, IHost host, DataViewType typeSrc)
                     {
-                        host.Check(typeSrc.RawType == typeof(TFloat), "The column type must be R4.");
+                        host.Check(typeSrc.RawType == typeof(TFloat), "The column type must be Single.");
                         List<int> nz = null;
                         int cfeat;
                         TFloat[] scales;
@@ -607,7 +607,7 @@ namespace Microsoft.ML.Transforms
 
                     public static ImplVec Create(ModelLoadContext ctx, IHost host, VectorDataViewType typeSrc)
                     {
-                        host.Check(typeSrc.ItemType.RawType == typeof(TFloat), "The column type must be vector of R4.");
+                        host.Check(typeSrc.ItemType.RawType == typeof(TFloat), "The column type must be vector of Single.");
                         int cv = Math.Max(1, typeSrc.Size);
                         List<int> nz = null;
                         int cfeat;
@@ -871,7 +871,7 @@ namespace Microsoft.ML.Transforms
 
                     public static new ImplOne Create(ModelLoadContext ctx, IHost host, DataViewType typeSrc)
                     {
-                        host.Check(typeSrc.RawType == typeof(TFloat), "The column type must be R4.");
+                        host.Check(typeSrc.RawType == typeof(TFloat), "The column type must be Single.");
                         host.CheckValue(ctx, nameof(ctx));
                         ctx.CheckAtModel(GetVersionInfo());
 
@@ -936,7 +936,7 @@ namespace Microsoft.ML.Transforms
 
                     public static ImplVec Create(ModelLoadContext ctx, IHost host, VectorDataViewType typeSrc)
                     {
-                        host.Check(typeSrc.ItemType.RawType == typeof(TFloat), "The column type must be vector of R4.");
+                        host.Check(typeSrc.ItemType.RawType == typeof(TFloat), "The column type must be vector of Single.");
                         int cv = Math.Max(1, typeSrc.Size);
 
                         host.CheckValue(ctx, nameof(ctx));
@@ -1055,7 +1055,7 @@ namespace Microsoft.ML.Transforms
 
                     public static new ImplOne Create(ModelLoadContext ctx, IHost host, DataViewType typeSrc)
                     {
-                        host.Check(typeSrc.RawType == typeof(TFloat), "The column type must be R4.");
+                        host.Check(typeSrc.RawType == typeof(TFloat), "The column type must be Single.");
                         host.CheckValue(ctx, nameof(ctx));
                         ctx.CheckAtModel(GetVersionInfo());
 
@@ -1140,7 +1140,7 @@ namespace Microsoft.ML.Transforms
 
                     public static ImplVec Create(ModelLoadContext ctx, IHost host, VectorDataViewType typeSrc)
                     {
-                        host.Check(typeSrc.ItemType.RawType == typeof(TFloat), "The column type must be vector of R4.");
+                        host.Check(typeSrc.ItemType.RawType == typeof(TFloat), "The column type must be vector of Single.");
                         int cv = Math.Max(1, typeSrc.Size);
                         host.CheckValue(ctx, nameof(ctx));
                         ctx.CheckAtModel(GetVersionInfo());

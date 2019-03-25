@@ -734,7 +734,7 @@ namespace Microsoft.ML.Transforms.Image
                 if (!inputSchema.TryFindColumn(colInfo.InputColumnName, out var col))
                     throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.InputColumnName);
                 if (col.Kind != SchemaShape.Column.VectorKind.Vector || (col.ItemType != NumberDataViewType.Single && col.ItemType != NumberDataViewType.Double && col.ItemType != NumberDataViewType.Byte))
-                    throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.InputColumnName, "known-size vector of type float, double or byte", col.GetTypeString());
+                    throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.InputColumnName, "known-size vector of type Single, Double or Byte", col.GetTypeString());
 
                 var itemType = new ImageDataViewType(colInfo.ImageHeight, colInfo.ImageWidth);
                 result[colInfo.Name] = new SchemaShape.Column(colInfo.Name, SchemaShape.Column.VectorKind.Scalar, itemType, false);

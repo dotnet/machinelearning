@@ -404,7 +404,7 @@ namespace Microsoft.ML.Transforms.Text
     {
         internal static bool IsColumnTypeValid(DataViewType type) => type.GetItemType() is TextDataViewType;
 
-        internal const string ExpectedColumnType = "Text";
+        internal const string ExpectedColumnType = "String or Vector of String";
 
         /// <summary>
         /// Tokenize incoming text in <paramref name="inputColumnName"/> and output the tokens as <paramref name="outputColumnName"/>.
