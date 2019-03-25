@@ -151,6 +151,7 @@ namespace Microsoft.ML.Trainers
                 Func<DataViewRowId, long> getIndexFromId = GetIndexFromIdGetter(idToIdx, biasReg.Length);
                 while (cursor.MoveNext())
                 {
+                    Host.CheckAlive();
                     long idx = getIndexFromId(cursor.Id);
                     long dualIndexInitPos = idx * numClasses;
                     var features = cursor.Features;
