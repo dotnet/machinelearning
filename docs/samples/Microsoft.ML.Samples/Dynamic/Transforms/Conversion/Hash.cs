@@ -79,16 +79,16 @@ namespace Microsoft.ML.Samples.Dynamic
             // The original value of the 36205 category is MLB
         }
 
-        private class DataPoint
+        public class DataPoint
         {
-            public string Category;
-            public uint Age;
+            public string Category { get; set; }
+            public uint Age { get; set; }
         }
 
-        private class TransformedDataPoint : DataPoint
+        public class TransformedDataPoint : DataPoint
         {
-            public uint CategoryHashed;
-            public uint AgeHashed;
+            public uint CategoryHashed { get; set; }
+            public uint AgeHashed { get; set; }
         }
 
     }
