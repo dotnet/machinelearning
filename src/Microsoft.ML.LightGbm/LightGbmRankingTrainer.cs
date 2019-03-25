@@ -188,7 +188,7 @@ namespace Microsoft.ML.Trainers.LightGbm
             // Check label types.
             var labelCol = data.Schema.Label.Value;
             var labelType = labelCol.Type;
-            if (!(labelType is KeyType || labelType == NumberDataViewType.Single))
+            if (!(labelType is KeyDataViewType || labelType == NumberDataViewType.Single))
             {
                 throw ch.ExceptParam(nameof(data),
                     $"Label column '{labelCol.Name}' is of type '{labelType.RawType}', but must be unsigned int or float.");
@@ -197,7 +197,7 @@ namespace Microsoft.ML.Trainers.LightGbm
             ch.CheckParam(data.Schema.Group.HasValue, nameof(data), "Need a group column.");
             var groupCol = data.Schema.Group.Value;
             var groupType = groupCol.Type;
-            if (!(groupType == NumberDataViewType.UInt32 || groupType is KeyType))
+            if (!(groupType == NumberDataViewType.UInt32 || groupType is KeyDataViewType))
             {
                 throw ch.ExceptParam(nameof(data),
                    $"Group column '{groupCol.Name}' is of type '{groupType.RawType}', but must be unsigned int.");

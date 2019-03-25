@@ -374,7 +374,7 @@ namespace Microsoft.ML.Transforms.Text
                     if (!StopWordsRemovingEstimator.IsColumnTypeValid(srcType))
                         throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", parent._columns[i].InputColumnName, StopWordsRemovingEstimator.ExpectedColumnType, srcType.ToString());
 
-                    _types[i] = new VectorType(TextDataViewType.Instance);
+                    _types[i] = new VectorDataViewType(TextDataViewType.Instance);
                     if (!string.IsNullOrEmpty(_parent._columns[i].LanguageColumn))
                     {
                         if (!inputSchema.TryGetColumnIndex(_parent._columns[i].LanguageColumn, out int langCol))
@@ -572,7 +572,7 @@ namespace Microsoft.ML.Transforms.Text
         }
 
         internal static bool IsColumnTypeValid(DataViewType type) =>
-            type is VectorType vectorType && vectorType.ItemType is TextDataViewType;
+            type is VectorDataViewType vectorType && vectorType.ItemType is TextDataViewType;
 
         internal const string ExpectedColumnType = "vector of Text type";
 
@@ -716,7 +716,7 @@ namespace Microsoft.ML.Transforms.Text
                 loaderAssemblyName: typeof(CustomStopWordsRemovingTransformer).Assembly.FullName);
         }
 
-        private static readonly DataViewType _outputType = new VectorType(TextDataViewType.Instance);
+        private static readonly DataViewType _outputType = new VectorDataViewType(TextDataViewType.Instance);
 
         private readonly NormStr.Pool _stopWordsMap;
         private const string RegistrationName = "CustomStopWordsRemover";
@@ -1021,7 +1021,7 @@ namespace Microsoft.ML.Transforms.Text
                     if (!StopWordsRemovingEstimator.IsColumnTypeValid(srcType))
                         throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", parent.ColumnPairs[i].inputColumnName, StopWordsRemovingEstimator.ExpectedColumnType, srcType.ToString());
 
-                    _types[i] = new VectorType(TextDataViewType.Instance);
+                    _types[i] = new VectorDataViewType(TextDataViewType.Instance);
                 }
             }
 

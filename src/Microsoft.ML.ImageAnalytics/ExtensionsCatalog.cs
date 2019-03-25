@@ -178,7 +178,7 @@ namespace Microsoft.ML
             => new ImageResizingEstimator(CatalogUtils.GetEnvironment(catalog), columnOptions);
 
         /// <summary>
-        /// Converts vectors of pixels into <see cref="ImageType"/> representation.
+        /// Converts vectors of pixels into <see cref="ImageDataViewType"/> representation.
         /// </summary>
         /// <param name="catalog">The transform's catalog.</param>
         /// <param name="columnOptions">The <see cref="VectorToImageConvertingEstimator.ColumnOptions"/> describing how the transform handles each vector to image conversion column pair.</param>
@@ -187,7 +187,7 @@ namespace Microsoft.ML
             => new VectorToImageConvertingEstimator(CatalogUtils.GetEnvironment(catalog), columnOptions);
 
         /// <summary>
-        /// Converts vectors of pixels into <see cref="ImageType"/> representation.
+        /// Converts vectors of pixels into <see cref="ImageDataViewType"/> representation.
         /// </summary>
         /// <param name="catalog">The transforms' catalog.</param>
         /// <param name="imageHeight">The height of the output images.</param>

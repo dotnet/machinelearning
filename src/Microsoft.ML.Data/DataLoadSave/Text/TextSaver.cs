@@ -63,7 +63,7 @@ namespace Microsoft.ML.Data.IO
 
                 DataViewType type = cursor.Schema[col].Type;
                 Type writePipeType;
-                if (type is VectorType vectorType)
+                if (type is VectorDataViewType vectorType)
                     writePipeType = typeof(VecValueWriter<>).MakeGenericType(vectorType.ItemType.RawType);
                 else
                     writePipeType = typeof(ValueWriter<>).MakeGenericType(type.RawType);
@@ -97,7 +97,7 @@ namespace Microsoft.ML.Data.IO
             protected ValueWriterBase(PrimitiveDataViewType type, int source, char sep)
                 : base(source)
             {
-                Contracts.Assert(type.IsStandardScalar() || type is KeyType);
+                Contracts.Assert(type.IsStandardScalar() || type is KeyDataViewType);
                 Contracts.Assert(type.RawType == typeof(T));
 
                 Sep = sep;
@@ -158,13 +158,13 @@ namespace Microsoft.ML.Data.IO
             private readonly VBuffer<ReadOnlyMemory<char>> _slotNames;
             private readonly int _slotCount;
 
-            public VecValueWriter(DataViewRowCursor cursor, VectorType type, int source, char sep)
+            public VecValueWriter(DataViewRowCursor cursor, VectorDataViewType type, int source, char sep)
                 : base(type.ItemType, source, sep)
             {
                 _getSrc = cursor.GetGetter<VBuffer<T>>(cursor.Schema[source]);
-                VectorType typeNames;
+                VectorDataViewType typeNames;
                 if (type.IsKnownSize
-                    && (typeNames = cursor.Schema[source].Annotations.Schema.GetColumnOrNull(AnnotationUtils.Kinds.SlotNames)?.Type as VectorType) != null
+                    && (typeNames = cursor.Schema[source].Annotations.Schema.GetColumnOrNull(AnnotationUtils.Kinds.SlotNames)?.Type as VectorDataViewType) != null
                     && typeNames.Size == type.Size && typeNames.ItemType is TextDataViewType)
                 {
                     cursor.Schema[source].Annotations.GetValue(AnnotationUtils.Kinds.SlotNames, ref _slotNames);
@@ -326,7 +326,7 @@ namespace Microsoft.ML.Data.IO
         public bool IsColumnSavable(DataViewType type)
         {
             var item = type.GetItemType();
-            return item.IsStandardScalar() || item is KeyType;
+            return item.IsStandardScalar() || item is KeyDataViewType;
         }
 
         public void SaveData(Stream stream, IDataView data, params int[] cols)
@@ -400,7 +400,7 @@ namespace Microsoft.ML.Data.IO
             {
                 ch.Check(0 <= cols[i] && cols[i] < data.Schema.Count);
                 DataViewType itemType = data.Schema[cols[i]].Type.GetItemType();
-                ch.Check(itemType is KeyType || itemType.IsStandardScalar());
+                ch.Check(itemType is KeyDataViewType || itemType.IsStandardScalar());
                 activeCols.Add(data.Schema[cols[i]]);
             }
 
@@ -412,14 +412,14 @@ namespace Microsoft.ML.Data.IO
                     if (hasHeader)
                         continue;
                     var type = data.Schema[cols[i]].Type;
-                    if (!(type is VectorType vectorType))
+                    if (!(type is VectorDataViewType vectorType))
                     {
                         hasHeader = true;
                         continue;
                     }
                     if (!vectorType.IsKnownSize)
                         continue;
-                    var typeNames = data.Schema[cols[i]].Annotations.Schema.GetColumnOrNull(AnnotationUtils.Kinds.SlotNames)?.Type as VectorType;
+                    var typeNames = data.Schema[cols[i]].Annotations.Schema.GetColumnOrNull(AnnotationUtils.Kinds.SlotNames)?.Type as VectorDataViewType;
                     if (typeNames != null && typeNames.Size == vectorType.Size && typeNames.ItemType is TextDataViewType)
                         hasHeader = true;
                 }
@@ -484,7 +484,7 @@ namespace Microsoft.ML.Data.IO
                     var settings = CmdParser.GetSettings(_host, column, new TextLoader.Column());
                     CmdQuoter.QuoteValue(settings, sb, true);
                 }
-                if (type is VectorType vectorType && !vectorType.IsKnownSize && i != pipes.Length - 1)
+                if (type is VectorDataViewType vectorType && !vectorType.IsKnownSize && i != pipes.Length - 1)
                 {
                     ch.Warning("Column '{0}' is variable length, so it must be the last, or the file will be unreadable. Consider switching to binary format or use xf=Choose to make '{0}' the last column.", name);
                     index = null;
@@ -499,9 +499,9 @@ namespace Microsoft.ML.Data.IO
         private TextLoader.Column GetColumn(string name, DataViewType type, int? start)
         {
             KeyCount keyCount = null;
-            VectorType vectorType = type as VectorType;
+            VectorDataViewType vectorType = type as VectorDataViewType;
             DataViewType itemType = vectorType?.ItemType ?? type;
-            if (itemType is KeyType key)
+            if (itemType is KeyDataViewType key)
                 keyCount = new KeyCount(key.Count);
 
             InternalDataKind kind = itemType.GetRawKind();

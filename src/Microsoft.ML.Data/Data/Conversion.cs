@@ -393,11 +393,11 @@ namespace Microsoft.ML.Data.Conversion
 
             conv = null;
             identity = false;
-            if (typeSrc is KeyType keySrc)
+            if (typeSrc is KeyDataViewType keySrc)
             {
                 // Key types are only convertable to compatible key types or unsigned integer
                 // types that are large enough.
-                if (typeDst is KeyType keyDst)
+                if (typeDst is KeyDataViewType keyDst)
                 {
                     // REVIEW: Should we allow the counts to vary? Allowing the dst to be bigger is trivial.
                     // Smaller dst means mapping values to NA.
@@ -409,7 +409,7 @@ namespace Microsoft.ML.Data.Conversion
                     // Technically there is no standard conversion from a key type to an unsigned integer type,
                     // but it's very convenient for client code, so we allow it here. Note that ConvertTransform
                     // does not allow this.
-                    if (!KeyType.IsValidDataType(typeDst.RawType))
+                    if (!KeyDataViewType.IsValidDataType(typeDst.RawType))
                         return false;
                     if (Marshal.SizeOf(keySrc.RawType) > Marshal.SizeOf(typeDst.RawType))
                     {
@@ -421,7 +421,7 @@ namespace Microsoft.ML.Data.Conversion
                 // REVIEW: Should we look for illegal values and force them to zero? If so, then
                 // we'll need to set identity to false.
             }
-            else if (typeDst is KeyType keyDst)
+            else if (typeDst is KeyDataViewType keyDst)
             {
                 if (!(typeSrc is TextDataViewType))
                     return false;
@@ -431,8 +431,8 @@ namespace Microsoft.ML.Data.Conversion
             else if (!typeDst.IsStandardScalar())
                 return false;
 
-            Contracts.Assert(typeSrc is KeyType || typeSrc.IsStandardScalar());
-            Contracts.Assert(typeDst is KeyType || typeDst.IsStandardScalar());
+            Contracts.Assert(typeSrc is KeyDataViewType || typeSrc.IsStandardScalar());
+            Contracts.Assert(typeDst is KeyDataViewType || typeDst.IsStandardScalar());
 
             identity = typeSrc.RawType == typeDst.RawType;
             var key = (typeSrc.RawType, typeDst.RawType);
@@ -460,7 +460,7 @@ namespace Microsoft.ML.Data.Conversion
             Contracts.CheckValue(type, nameof(type));
             Contracts.Check(type.RawType == typeof(TSrc), "Wrong TSrc type argument");
 
-            if (type is KeyType keyType)
+            if (type is KeyDataViewType keyType)
             {
                 // Key string conversion always works.
                 conv = GetKeyStringConversion<TSrc>(keyType);
@@ -482,7 +482,7 @@ namespace Microsoft.ML.Data.Conversion
             return false;
         }
 
-        public ValueMapper<TSrc, SB> GetKeyStringConversion<TSrc>(KeyType key)
+        public ValueMapper<TSrc, SB> GetKeyStringConversion<TSrc>(KeyDataViewType key)
         {
             Contracts.Check(key.RawType == typeof(TSrc));
 
@@ -510,18 +510,18 @@ namespace Microsoft.ML.Data.Conversion
         public TryParseMapper<TDst> GetTryParseConversion<TDst>(DataViewType typeDst)
         {
             Contracts.CheckValue(typeDst, nameof(typeDst));
-            Contracts.CheckParam(typeDst.IsStandardScalar() || typeDst is KeyType, nameof(typeDst),
+            Contracts.CheckParam(typeDst.IsStandardScalar() || typeDst is KeyDataViewType, nameof(typeDst),
                 "Parse conversion only supported for standard types");
             Contracts.Check(typeDst.RawType == typeof(TDst), "Wrong TDst type parameter");
 
-            if (typeDst is KeyType keyType)
+            if (typeDst is KeyDataViewType keyType)
                 return GetKeyTryParse<TDst>(keyType);
 
             Contracts.Assert(_tryParseDelegates.ContainsKey(typeDst.RawType));
             return (TryParseMapper<TDst>)_tryParseDelegates[typeDst.RawType];
         }
 
-        private TryParseMapper<TDst> GetKeyTryParse<TDst>(KeyType key)
+        private TryParseMapper<TDst> GetKeyTryParse<TDst>(KeyDataViewType key)
         {
             Contracts.Assert(key.RawType == typeof(TDst));
 
@@ -543,14 +543,14 @@ namespace Microsoft.ML.Data.Conversion
                 };
         }
 
-        private Delegate GetKeyParse(KeyType key)
+        private Delegate GetKeyParse(KeyDataViewType key)
         {
-            Func<KeyType, ValueMapper<TX, int>> del = GetKeyParse<int>;
+            Func<KeyDataViewType, ValueMapper<TX, int>> del = GetKeyParse<int>;
             var meth = del.GetMethodInfo().GetGenericMethodDefinition().MakeGenericMethod(key.RawType);
             return (Delegate)meth.Invoke(this, new object[] { key });
         }
 
-        private ValueMapper<TX, TDst> GetKeyParse<TDst>(KeyType key)
+        private ValueMapper<TX, TDst> GetKeyParse<TDst>(KeyDataViewType key)
         {
             Contracts.Assert(key.RawType == typeof(TDst));
 
@@ -594,12 +594,12 @@ namespace Microsoft.ML.Data.Conversion
         public InPredicate<T> GetIsDefaultPredicate<T>(DataViewType type)
         {
             Contracts.CheckValue(type, nameof(type));
-            Contracts.CheckParam(!(type is VectorType), nameof(type));
+            Contracts.CheckParam(!(type is VectorDataViewType), nameof(type));
             Contracts.CheckParam(type.RawType == typeof(T), nameof(type));
 
             var t = type;
             Delegate del;
-            if (!t.IsStandardScalar() && !(t is KeyType) || !_isDefaultDelegates.TryGetValue(t.RawType, out del))
+            if (!t.IsStandardScalar() && !(t is KeyDataViewType) || !_isDefaultDelegates.TryGetValue(t.RawType, out del))
                 throw Contracts.Except("No IsDefault predicate for '{0}'", type);
 
             return (InPredicate<T>)del;
@@ -633,10 +633,10 @@ namespace Microsoft.ML.Data.Conversion
         public bool TryGetIsNAPredicate(DataViewType type, out Delegate del)
         {
             Contracts.CheckValue(type, nameof(type));
-            Contracts.CheckParam(!(type is VectorType), nameof(type));
+            Contracts.CheckParam(!(type is VectorDataViewType), nameof(type));
 
             var t = type;
-            if (t is KeyType)
+            if (t is KeyDataViewType)
             {
                 // REVIEW: Should we test for out of range when KeyCount > 0?
                 Contracts.Assert(_isDefaultDelegates.ContainsKey(t.RawType));
@@ -652,14 +652,14 @@ namespace Microsoft.ML.Data.Conversion
             return true;
         }
 
-        public InPredicate<VBuffer<T>> GetHasMissingPredicate<T>(VectorType type)
+        public InPredicate<VBuffer<T>> GetHasMissingPredicate<T>(VectorDataViewType type)
         {
             Contracts.CheckValue(type, nameof(type));
             Contracts.CheckParam(type.ItemType.RawType == typeof(T), nameof(type));
 
             var t = type.ItemType;
             Delegate del;
-            if (t is KeyType)
+            if (t is KeyDataViewType)
             {
                 // REVIEW: Should we test for out of range when KeyCount > 0?
                 Contracts.Assert(_hasZeroDelegates.ContainsKey(t.RawType));

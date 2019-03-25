@@ -175,7 +175,7 @@ namespace Microsoft.ML.Trainers.LightGbm
             Host.AssertValue(ch);
             base.CheckDataValid(ch, data);
             var labelType = data.Schema.Label.Value.Type;
-            if (!(labelType is BooleanDataViewType || labelType is KeyType || labelType == NumberDataViewType.Single))
+            if (!(labelType is BooleanDataViewType || labelType is KeyDataViewType || labelType == NumberDataViewType.Single))
             {
                 throw ch.ExceptParam(nameof(data),
                     $"Label column '{data.Schema.Label.Value.Name}' is of type '{labelType.RawType}', but must be of unsigned int, boolean or float.");
@@ -204,7 +204,7 @@ namespace Microsoft.ML.Trainers.LightGbm
                 if (maxLabel >= _maxNumClass)
                     throw ch.ExceptParam(nameof(data), $"Maximum value {maxLabel} in label column exceeds {_maxNumClass}");
 
-                if (data.Schema.Label.Value.Type is KeyType keyType)
+                if (data.Schema.Label.Value.Type is KeyDataViewType keyType)
                 {
                     if (hasNaNLabel)
                         _numClass = keyType.GetCountAsInt32(Host) + 1;

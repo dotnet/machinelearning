@@ -32,7 +32,7 @@ namespace Microsoft.ML.Core.Tests.UnitTests
 
             if (type1.Equals(type2))
                 return true;
-            return !exactTypes && type1 is VectorType vt1 && type2 is VectorType vt2 && vt1.ItemType.Equals(vt2.ItemType) && vt1.Size == vt2.Size;
+            return !exactTypes && type1 is VectorDataViewType vt1 && type2 is VectorDataViewType vt2 && vt1.ItemType.Equals(vt2.ItemType) && vt1.Size == vt2.Size;
         }
 
         protected Func<bool> GetIdComparer(DataViewRow r1, DataViewRow r2, out ValueGetter<DataViewRowId> idGetter)
@@ -156,7 +156,7 @@ namespace Microsoft.ML.Core.Tests.UnitTests
         }
         protected Func<bool> GetColumnComparer(DataViewRow r1, DataViewRow r2, int col, DataViewType type, bool exactDoubles)
         {
-            if (type is VectorType vecType)
+            if (type is VectorDataViewType vecType)
             {
                 int size = vecType.Size;
                 Contracts.Assert(size >= 0);

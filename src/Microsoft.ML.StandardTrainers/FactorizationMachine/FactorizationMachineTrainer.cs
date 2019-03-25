@@ -356,7 +356,7 @@ namespace Microsoft.ML.Trainers
             {
                 var col = featureColumns[f];
                 _host.Assert(!col.IsHidden);
-                if (!(col.Type is VectorType vectorType) ||
+                if (!(col.Type is VectorDataViewType vectorType) ||
                     !vectorType.IsKnownSize ||
                     vectorType.ItemType != NumberDataViewType.Single)
                     throw ch.ExceptParam(nameof(data), "Training feature column '{0}' must be a known-size vector of R4, but has type: {1}.", col.Name, col.Type);

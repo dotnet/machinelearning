@@ -36,7 +36,7 @@ namespace Microsoft.ML.Data
             public const string KeyValues = "KeyValues";
 
             /// <summary>
-            /// Annotation kind for sets of score columns. The value is typically a KeyType with raw type U4.
+            /// Annotation kind for sets of score columns. The value is typically a <see cref="KeyDataViewType"/> with raw type U4.
             /// </summary>
             public const string ScoreColumnSetId = "ScoreColumnSetId";
 
@@ -139,10 +139,10 @@ namespace Microsoft.ML.Data
         /// Returns a vector type with item type text and the given size. The size must be positive.
         /// This is a standard type for annotation consisting of multiple text values, eg SlotNames.
         /// </summary>
-        public static VectorType GetNamesType(int size)
+        public static VectorDataViewType GetNamesType(int size)
         {
             Contracts.CheckParam(size > 0, nameof(size), "must be known size");
-            return new VectorType(TextDataViewType.Instance, size);
+            return new VectorDataViewType(TextDataViewType.Instance, size);
         }
 
         /// <summary>
@@ -151,23 +151,23 @@ namespace Microsoft.ML.Data
         /// This is a standard type for annotation consisting of multiple int values that represent
         /// categorical slot ranges with in a column.
         /// </summary>
-        public static VectorType GetCategoricalType(int rangeCount)
+        public static VectorDataViewType GetCategoricalType(int rangeCount)
         {
             Contracts.CheckParam(rangeCount > 0, nameof(rangeCount), "must be known size");
-            return new VectorType(NumberDataViewType.Int32, rangeCount, 2);
+            return new VectorDataViewType(NumberDataViewType.Int32, rangeCount, 2);
         }
 
-        private static volatile KeyType _scoreColumnSetIdType;
+        private static volatile KeyDataViewType _scoreColumnSetIdType;
 
         /// <summary>
         /// The type of the ScoreColumnSetId annotation.
         /// </summary>
-        public static KeyType ScoreColumnSetIdType
+        public static KeyDataViewType ScoreColumnSetIdType
         {
             get
             {
                 return _scoreColumnSetIdType ??
-                    Interlocked.CompareExchange(ref _scoreColumnSetIdType, new KeyType(typeof(uint), int.MaxValue), null) ??
+                    Interlocked.CompareExchange(ref _scoreColumnSetIdType, new KeyDataViewType(typeof(uint), int.MaxValue), null) ??
                     _scoreColumnSetIdType;
             }
         }
@@ -211,7 +211,7 @@ namespace Microsoft.ML.Data
 
         /// <summary>
         /// Returns the max value for the specified annotation kind.
-        /// The annotation type should be a KeyType with raw type U4.
+        /// The annotation type should be a <see cref="KeyDataViewType"/> with raw type U4.
         /// colMax will be set to the first column that has the max value for the specified annotation.
         /// If no column has the specified annotation, colMax is set to -1 and the method returns zero.
         /// The filter function is called for each column, passing in the schema and the column index, and returns
@@ -224,7 +224,7 @@ namespace Microsoft.ML.Data
             for (int col = 0; col < schema.Count; col++)
             {
                 var columnType = schema[col].Annotations.Schema.GetColumnOrNull(annotationKind)?.Type;
-                if (!(columnType is KeyType) || columnType.RawType != typeof(uint))
+                if (!(columnType is KeyDataViewType) || columnType.RawType != typeof(uint))
                     continue;
                 if (filterFunc != null && !filterFunc(schema, col))
                     continue;
@@ -241,14 +241,14 @@ namespace Microsoft.ML.Data
 
         /// <summary>
         /// Returns the set of column ids which match the value of specified annotation kind.
-        /// The annotation type should be a KeyType with raw type U4.
+        /// The annotation type should be a <see cref="KeyDataViewType"/> with raw type U4.
         /// </summary>
         public static IEnumerable<int> GetColumnSet(this DataViewSchema schema, string annotationKind, uint value)
         {
             for (int col = 0; col < schema.Count; col++)
             {
                 var columnType = schema[col].Annotations.Schema.GetColumnOrNull(annotationKind)?.Type;
-                if (columnType is KeyType && columnType.RawType == typeof(uint))
+                if (columnType is KeyDataViewType && columnType.RawType == typeof(uint))
                 {
                     uint val = 0;
                     schema[col].Annotations.GetValue(annotationKind, ref val);
@@ -290,7 +290,7 @@ namespace Microsoft.ML.Data
             var metaColumn = column.Annotations.Schema.GetColumnOrNull(Kinds.SlotNames);
             return
                 metaColumn != null
-                && metaColumn.Value.Type is VectorType vectorType
+                && metaColumn.Value.Type is VectorDataViewType vectorType
                 && vectorType.Size == vectorSize
                 && vectorType.ItemType is TextDataViewType;
         }
@@ -382,7 +382,7 @@ namespace Microsoft.ML.Data
 
             bool isValid = false;
             categoricalFeatures = null;
-            if (!(schema[colIndex].Type is VectorType vecType && vecType.Size > 0))
+            if (!(schema[colIndex].Type is VectorDataViewType vecType && vecType.Size > 0))
                 return isValid;
 
             var type = schema[colIndex].Annotations.Schema.GetColumnOrNull(Kinds.CategoricalSlotRanges)?.Type;

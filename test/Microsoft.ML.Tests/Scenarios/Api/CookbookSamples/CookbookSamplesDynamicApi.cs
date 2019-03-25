@@ -120,15 +120,13 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
             // Calculate metrics of the model on the test data.
             var metrics = mlContext.Regression.Evaluate(model.Transform(testData), labelColumnName: "Target");
 
-            // Saving and loading happens to 'dynamic' models.
+            // Saving and loading happens to transformers. We save the input schema with this model.
             mlContext.Model.Save(model, trainData.Schema, modelPath);
 
             // Potentially, the lines below can be in a different process altogether.
-
-            // When you load the model, it's a 'dynamic' transformer. 
-            ITransformer loadedModel;
-            using (var stream = File.OpenRead(modelPath))
-                loadedModel = mlContext.Model.Load(stream, out var schema);
+            // When you load the model, it's a non-specific ITransformer. We also recover
+            // the original schema.
+            ITransformer loadedModel = mlContext.Model.Load(modelPath, out var schema);
         }
 
         [Fact]
@@ -529,9 +527,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
             newContext.ComponentCatalog.RegisterAssembly(typeof(CustomMappings).Assembly);
 
             // Now we can load the model.
-            ITransformer loadedModel;
-            using (var fs = File.OpenRead(modelPath))
-                loadedModel = newContext.Model.Load(fs, out var schema);
+            ITransformer loadedModel = newContext.Model.Load(modelPath, out var schema);
         }
 
         public static IDataView PrepareData(MLContext mlContext, IDataView data)

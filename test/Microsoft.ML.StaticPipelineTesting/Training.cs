@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using Microsoft.ML;
 using Microsoft.ML.Calibrators;
@@ -258,6 +259,44 @@ namespace Microsoft.ML.StaticPipelineTesting
             Assert.InRange(metrics.AreaUnderPrecisionRecallCurve, 0.95, 1);
         }
 
+        [Fact]
+        public void SdcaBinaryClassificationNoCalibrationSimpleWithPRCurve()
+        {
+            var env = new MLContext(seed: 0);
+            var dataPath = GetDataPath(TestDatasets.breastCancer.trainFilename);
+            var dataSource = new MultiFileSource(dataPath);
+            var catalog = new BinaryClassificationCatalog(env);
+
+            var reader = TextLoaderStatic.CreateLoader(env,
+                c => (label: c.LoadBool(0), features: c.LoadFloat(1, 9)));
+
+            LinearBinaryModelParameters pred = null;
+
+            var loss = new HingeLoss(1);
+
+            // With a custom loss function we no longer get calibrated predictions.
+            var est = reader.MakeNewEstimator()
+                .Append(r => (r.label, preds: catalog.Trainers.SdcaNonCalibrated(r.label, r.features, loss, onFit: p => pred = p)));
+
+            var pipe = reader.Append(est);
+
+            Assert.Null(pred);
+            var model = pipe.Fit(dataSource);
+            Assert.NotNull(pred);
+            // 9 input features, so we ought to have 9 weights.
+            Assert.Equal(9, pred.Weights.Count);
+
+            var data = model.Load(dataSource);
+
+            var metrics = catalog.EvaluateWithPRCurve(data, r => r.label, r => r.preds, out List<BinaryPrecisionRecallDataPoint> prCurve);
+            // Run a sanity check against a few of the metrics.
+            Assert.InRange(metrics.Accuracy, 0.95, 1);
+            Assert.InRange(metrics.AreaUnderRocCurve, 0.95, 1);
+            Assert.InRange(metrics.AreaUnderPrecisionRecallCurve, 0.95, 1);
+
+            Assert.NotNull(prCurve);
+            Assert.InRange(prCurve.Count, 400, 500);
+        }
 
         [Fact]
         public void AveragePerceptronNoCalibration()
@@ -434,7 +473,7 @@ namespace Microsoft.ML.StaticPipelineTesting
                 .Append(r => (r.label, preds: catalog.Trainers.SdcaNonCalibrated(
                     r.label,
                     r.features,
-                    loss: new HingeLoss(),
+                    lossFunction: new HingeLoss(),
                     numberOfIterations: 2,
                     onFit: p => pred = p)));
 
@@ -705,7 +744,7 @@ namespace Microsoft.ML.StaticPipelineTesting
 
             var est = reader.MakeNewEstimator()
                 .Append(r => (r.label, preds: catalog.Trainers.LbfgsCalibrated(r.label, r.features, null,
-                                    new LbfgsCalibratedBinaryTrainer.Options { L1Regularization = 10, NumberOfThreads = 1 }, onFit: (p) => { pred = p; })));
+                                    new LbfgsLogisticRegressionTrainer.Options { L1Regularization = 10, NumberOfThreads = 1 }, onFit: (p) => { pred = p; })));
 
             var pipe = reader.Append(est);
 
@@ -916,9 +955,9 @@ namespace Microsoft.ML.StaticPipelineTesting
             Assert.InRange(metrics.DiscountedCumulativeGains[1], 1.4, 1.8);
             Assert.InRange(metrics.DiscountedCumulativeGains[2], 1.4, 1.8);
 
-            Assert.InRange(metrics.NormalizedDiscountedCumulativeGains[0], 36.5, 37);
-            Assert.InRange(metrics.NormalizedDiscountedCumulativeGains[1], 36.5, 37);
-            Assert.InRange(metrics.NormalizedDiscountedCumulativeGains[2], 36.5, 37);
+            Assert.InRange(metrics.NormalizedDiscountedCumulativeGains[0], 0.365, 0.37);
+            Assert.InRange(metrics.NormalizedDiscountedCumulativeGains[1], 0.365, 0.37);
+            Assert.InRange(metrics.NormalizedDiscountedCumulativeGains[2], 0.365, 0.37);
         }
 
         [LightGBMFact]
@@ -957,9 +996,9 @@ namespace Microsoft.ML.StaticPipelineTesting
             Assert.InRange(metrics.DiscountedCumulativeGains[1], 1.4, 1.8);
             Assert.InRange(metrics.DiscountedCumulativeGains[2], 1.4, 1.8);
 
-            Assert.InRange(metrics.NormalizedDiscountedCumulativeGains[0], 36.5, 37);
-            Assert.InRange(metrics.NormalizedDiscountedCumulativeGains[1], 36.5, 37);
-            Assert.InRange(metrics.NormalizedDiscountedCumulativeGains[2], 36.5, 37);
+            Assert.InRange(metrics.NormalizedDiscountedCumulativeGains[0], 0.365, 0.37);
+            Assert.InRange(metrics.NormalizedDiscountedCumulativeGains[1], 0.365, 0.37);
+            Assert.InRange(metrics.NormalizedDiscountedCumulativeGains[2], 0.365, 0.37);
         }
 
         [LightGBMFact]
@@ -1132,7 +1171,7 @@ namespace Microsoft.ML.StaticPipelineTesting
 
             var est = reader.MakeNewEstimator()
                 .Append(r => (r.label, preds: catalog.Trainers.StochasticGradientDescentNonCalibratedClassificationTrainer(r.label, r.features, null,
-                    new SgdNonCalibratedTrainer.Options { L2Regularization = 0, NumberOfThreads = 1, Loss = new HingeLoss()},
+                    new SgdNonCalibratedTrainer.Options { L2Regularization = 0, NumberOfThreads = 1, LossFunction = new HingeLoss()},
                     onFit: (p) => { pred = p; })));
 
             var pipe = reader.Append(est);
@@ -1167,7 +1206,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             LinearBinaryModelParameters pred = null;
 
             var est = reader.MakeNewEstimator()
-                .Append(r => (r.label, preds: catalog.Trainers.StochasticGradientDescentNonCalibratedClassificationTrainer(r.label, r.features, loss: new HingeLoss(), onFit: (p) => { pred = p; })));
+                .Append(r => (r.label, preds: catalog.Trainers.StochasticGradientDescentNonCalibratedClassificationTrainer(r.label, r.features, lossFunction: new HingeLoss(), onFit: (p) => { pred = p; })));
 
             var pipe = reader.Append(est);
 

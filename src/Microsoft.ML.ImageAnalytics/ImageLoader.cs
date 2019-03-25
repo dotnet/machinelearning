@@ -168,12 +168,12 @@ namespace Microsoft.ML.Data
         private sealed class Mapper : OneToOneMapperBase
         {
             private readonly ImageLoadingTransformer _parent;
-            private readonly ImageType _imageType;
+            private readonly ImageDataViewType _imageType;
 
             public Mapper(ImageLoadingTransformer parent, DataViewSchema inputSchema)
                 : base(parent.Host.Register(nameof(Mapper)), parent, inputSchema)
             {
-                _imageType = new ImageType();
+                _imageType = new ImageDataViewType();
                 _parent = parent;
             }
 
@@ -241,7 +241,7 @@ namespace Microsoft.ML.Data
     /// </remarks>
     public sealed class ImageLoadingEstimator : TrivialEstimator<ImageLoadingTransformer>
     {
-        private readonly ImageType _imageType;
+        private readonly ImageDataViewType _imageType;
 
         /// <summary>
         /// Load images in memory.
@@ -257,7 +257,7 @@ namespace Microsoft.ML.Data
         internal ImageLoadingEstimator(IHostEnvironment env, ImageLoadingTransformer transformer)
             : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(ImageLoadingEstimator)), transformer)
         {
-            _imageType = new ImageType();
+            _imageType = new ImageDataViewType();
         }
 
         /// <summary>

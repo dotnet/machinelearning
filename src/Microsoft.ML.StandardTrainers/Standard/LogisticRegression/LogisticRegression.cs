@@ -15,21 +15,21 @@ using Microsoft.ML.Numeric;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Trainers;
 
-[assembly: LoadableClass(LbfgsCalibratedBinaryTrainer.Summary, typeof(LbfgsCalibratedBinaryTrainer), typeof(LbfgsCalibratedBinaryTrainer.Options),
+[assembly: LoadableClass(LbfgsLogisticRegressionTrainer.Summary, typeof(LbfgsLogisticRegressionTrainer), typeof(LbfgsLogisticRegressionTrainer.Options),
     new[] { typeof(SignatureBinaryClassifierTrainer), typeof(SignatureTrainer), typeof(SignatureFeatureScorerTrainer) },
-    LbfgsCalibratedBinaryTrainer.UserNameValue,
-    LbfgsCalibratedBinaryTrainer.LoadNameValue,
-    LbfgsCalibratedBinaryTrainer.ShortName,
+    LbfgsLogisticRegressionTrainer.UserNameValue,
+    LbfgsLogisticRegressionTrainer.LoadNameValue,
+    LbfgsLogisticRegressionTrainer.ShortName,
     "logisticregressionwrapper")]
 
-[assembly: LoadableClass(typeof(void), typeof(LbfgsCalibratedBinaryTrainer), null, typeof(SignatureEntryPointModule), LbfgsCalibratedBinaryTrainer.LoadNameValue)]
+[assembly: LoadableClass(typeof(void), typeof(LbfgsLogisticRegressionTrainer), null, typeof(SignatureEntryPointModule), LbfgsLogisticRegressionTrainer.LoadNameValue)]
 
 namespace Microsoft.ML.Trainers
 {
 
     /// <include file='doc.xml' path='doc/members/member[@name="LBFGS"]/*' />
     /// <include file='doc.xml' path='docs/members/example[@name="LogisticRegressionBinaryClassifier"]/*' />
-    public sealed partial class LbfgsCalibratedBinaryTrainer : LbfgsTrainerBase<LbfgsCalibratedBinaryTrainer.Options,
+    public sealed partial class LbfgsLogisticRegressionTrainer : LbfgsTrainerBase<LbfgsLogisticRegressionTrainer.Options,
         BinaryPredictionTransformer<CalibratedModelParametersBase<LinearBinaryModelParameters, PlattCalibrator>>,
         CalibratedModelParametersBase<LinearBinaryModelParameters, PlattCalibrator>>
     {
@@ -54,7 +54,7 @@ namespace Microsoft.ML.Trainers
             /// <summary>
             /// The instance of <see cref="ComputeLogisticRegressionStandardDeviation"/> that computes the std of the training statistics, at the end of training.
             /// The calculations are not part of Microsoft.ML package, due to the size of MKL.
-            /// If you need these calculations, add the Microsoft.ML.Mkl.Components package, and initialize <see cref="LbfgsCalibratedBinaryTrainer.Options.ComputeStandardDeviation"/>.
+            /// If you need these calculations, add the Microsoft.ML.Mkl.Components package, and initialize <see cref="LbfgsLogisticRegressionTrainer.Options.ComputeStandardDeviation"/>.
             /// to the <see cref="ComputeLogisticRegressionStandardDeviation"/> implementation in the Microsoft.ML.Mkl.Components package.
             /// </summary>
             public ComputeLogisticRegressionStandardDeviation ComputeStandardDeviation;
@@ -64,28 +64,28 @@ namespace Microsoft.ML.Trainers
         private ModelStatisticsBase _stats;
 
         /// <summary>
-        /// Initializes a new instance of <see cref="LbfgsCalibratedBinaryTrainer"/>
+        /// Initializes a new instance of <see cref="LbfgsLogisticRegressionTrainer"/>
         /// </summary>
         /// <param name="env">The environment to use.</param>
         /// <param name="labelColumn">The name of the label column.</param>
         /// <param name="featureColumn">The name of the feature column.</param>
-        /// <param name="weights">The name for the example weight column.</param>
+        /// <param name="exampleWeightColumnName">The name for the example weight column.</param>
         /// <param name="enforceNoNegativity">Enforce non-negative weights.</param>
-        /// <param name="l1Weight">Weight of L1 regularizer term.</param>
-        /// <param name="l2Weight">Weight of L2 regularizer term.</param>
-        /// <param name="memorySize">Memory size for <see cref="LbfgsCalibratedBinaryTrainer"/>. Low=faster, less accurate.</param>
+        /// <param name="l1Regularization">Weight of L1 regularizer term.</param>
+        /// <param name="l2Regularization">Weight of L2 regularizer term.</param>
+        /// <param name="memorySize">Memory size for <see cref="LbfgsLogisticRegressionTrainer"/>. Low=faster, less accurate.</param>
         /// <param name="optimizationTolerance">Threshold for optimizer convergence.</param>
-        internal LbfgsCalibratedBinaryTrainer(IHostEnvironment env,
+        internal LbfgsLogisticRegressionTrainer(IHostEnvironment env,
             string labelColumn = DefaultColumnNames.Label,
             string featureColumn = DefaultColumnNames.Features,
-            string weights = null,
-            float l1Weight = Options.Defaults.L1Regularization,
-            float l2Weight = Options.Defaults.L2Regularization,
+            string exampleWeightColumnName = null,
+            float l1Regularization = Options.Defaults.L1Regularization,
+            float l2Regularization = Options.Defaults.L2Regularization,
             float optimizationTolerance = Options.Defaults.OptimizationTolerance,
             int memorySize = Options.Defaults.HistorySize,
             bool enforceNoNegativity = Options.Defaults.EnforceNonNegativity)
-            : base(env, featureColumn, TrainerUtils.MakeBoolScalarLabel(labelColumn), weights,
-                  l1Weight, l2Weight, optimizationTolerance, memorySize, enforceNoNegativity)
+            : base(env, featureColumn, TrainerUtils.MakeBoolScalarLabel(labelColumn), exampleWeightColumnName,
+                  l1Regularization, l2Regularization, optimizationTolerance, memorySize, enforceNoNegativity)
         {
             Host.CheckNonEmpty(featureColumn, nameof(featureColumn));
             Host.CheckNonEmpty(labelColumn, nameof(labelColumn));
@@ -95,9 +95,9 @@ namespace Microsoft.ML.Trainers
         }
 
         /// <summary>
-        /// Initializes a new instance of <see cref="LbfgsCalibratedBinaryTrainer"/>
+        /// Initializes a new instance of <see cref="LbfgsLogisticRegressionTrainer"/>
         /// </summary>
-        internal LbfgsCalibratedBinaryTrainer(IHostEnvironment env, Options options)
+        internal LbfgsLogisticRegressionTrainer(IHostEnvironment env, Options options)
             : base(env, options, TrainerUtils.MakeBoolScalarLabel(options.LabelColumnName))
         {
             _posWeight = 0;
@@ -127,7 +127,7 @@ namespace Microsoft.ML.Trainers
             => new BinaryPredictionTransformer<CalibratedModelParametersBase<LinearBinaryModelParameters, PlattCalibrator>>(Host, model, trainSchema, FeatureColumn.Name);
 
         /// <summary>
-        /// Continues the training of a <see cref="LbfgsCalibratedBinaryTrainer"/> using an already trained <paramref name="modelParameters"/> and returns
+        /// Continues the training of a <see cref="LbfgsLogisticRegressionTrainer"/> using an already trained <paramref name="modelParameters"/> and returns
         /// a <see cref="BinaryPredictionTransformer{CalibratedModelParametersBase}"/>.
         /// </summary>
         public BinaryPredictionTransformer<CalibratedModelParametersBase<LinearBinaryModelParameters, PlattCalibrator>> Fit(IDataView trainData, LinearModelParameters modelParameters)
@@ -417,7 +417,7 @@ namespace Microsoft.ML.Trainers
             EntryPointUtils.CheckInputArgs(host, input);
 
             return TrainerEntryPointsUtils.Train<Options, CommonOutputs.BinaryClassificationOutput>(host, input,
-                () => new LbfgsCalibratedBinaryTrainer(host, input),
+                () => new LbfgsLogisticRegressionTrainer(host, input),
                 () => TrainerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.LabelColumnName),
                 () => TrainerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.ExampleWeightColumnName));
         }
@@ -436,7 +436,7 @@ namespace Microsoft.ML.Trainers
         /// Computes the standard deviation matrix of each of the non-zero training weights, needed to calculate further the standard deviation,
         /// p-value and z-Score.
         /// The calculations are not part of Microsoft.ML package, due to the size of MKL.
-        /// If you need these calculations, add the Microsoft.ML.Mkl.Components package, and initialize <see cref="LbfgsCalibratedBinaryTrainer.Options.ComputeStandardDeviation"/>
+        /// If you need these calculations, add the Microsoft.ML.Mkl.Components package, and initialize <see cref="LbfgsLogisticRegressionTrainer.Options.ComputeStandardDeviation"/>
         /// to the <see cref="ComputeLogisticRegressionStandardDeviation"/> implementation in the Microsoft.ML.Mkl.Components package.
         /// Due to the existence of regularization, an approximation is used to compute the variances of the trained linear coefficients.
         /// </summary>

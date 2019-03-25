@@ -30,9 +30,9 @@ namespace Microsoft.ML.Recommender
         /// Returns whether a type is a U4 key of known cardinality, and if so, sets
         /// <paramref name="keyType"/> to a non-null value.
         /// </summary>
-        private static bool TryMarshalGoodRowColumnType(DataViewType type, out KeyType keyType)
+        private static bool TryMarshalGoodRowColumnType(DataViewType type, out KeyDataViewType keyType)
         {
-            keyType = type as KeyType;
+            keyType = type as KeyDataViewType;
             return keyType?.Count > 0 && type.RawType == typeof(uint);
         }
 
@@ -45,7 +45,7 @@ namespace Microsoft.ML.Recommender
         /// <param name="col">The extracted schema column</param>
         /// <param name="isDecode">Whether a non-user error should be thrown as a decode</param>
         /// <returns>The type cast to a key-type</returns>
-        private static KeyType CheckRowColumnType(RoleMappedData data, RoleMappedSchema.ColumnRole role, out DataViewSchema.Column col, bool isDecode)
+        private static KeyDataViewType CheckRowColumnType(RoleMappedData data, RoleMappedSchema.ColumnRole role, out DataViewSchema.Column col, bool isDecode)
         {
             Contracts.AssertValue(data);
             Contracts.AssertValue(role.Value);
@@ -63,7 +63,7 @@ namespace Microsoft.ML.Recommender
             // REVIEW tfinley: Should we be a bit less restrictive? This doesn't seem like
             // too terrible of a restriction.
             const string format = "Column '{0}' with role {1} should be a known cardinality U4 key, but is instead '{2}'";
-            KeyType keyType;
+            KeyDataViewType keyType;
             if (!TryMarshalGoodRowColumnType(col.Type, out keyType))
             {
                 if (isDecode)

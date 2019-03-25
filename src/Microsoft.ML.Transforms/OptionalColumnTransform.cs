@@ -401,7 +401,7 @@ namespace Microsoft.ML.Transforms
         private Delegate MakeGetter(int iinfo)
         {
             var columnType = _bindings.ColumnTypes[iinfo];
-            if (columnType is VectorType vectorType)
+            if (columnType is VectorDataViewType vectorType)
                 return Utils.MarshalInvoke(MakeGetterVec<int>, vectorType.ItemType.RawType, vectorType.Size);
             return Utils.MarshalInvoke(MakeGetterOne<int>, columnType.RawType);
         }
@@ -481,7 +481,7 @@ namespace Microsoft.ML.Transforms
             private Delegate MakeGetter(int iinfo)
             {
                 var columnType = _bindings.ColumnTypes[iinfo];
-                if (columnType is VectorType vectorType)
+                if (columnType is VectorDataViewType vectorType)
                     return Utils.MarshalInvoke(MakeGetterVec<int>, vectorType.ItemType.RawType, vectorType.Size);
                 return Utils.MarshalInvoke(MakeGetterOne<int>, columnType.RawType);
             }

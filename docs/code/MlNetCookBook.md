@@ -383,19 +383,18 @@ var metrics = mlContext.Regression.Evaluate(model.Transform(testData), labelColu
 
 Assuming that the model metrics look good to you, it's time to 'operationalize' the model. This is where ML.NET really shines: the `model` object you just built is ready for immediate consumption, it will apply all the same steps that it has 'learned' during training, and it can be persisted and reused in different environments.
 
-Here's what you do to save the model to a file, and reload it (potentially in a different context).
+Here's what you do to save the model as well as its input schema to a file, and reload it (potentially in a different context).
 
 ```csharp
-using (var stream = File.Create(modelPath))
-{
-    mlContext.Model.Save(model, stream);
-}
+// Saving and loading happens to transformers. We save the input schema with this model.
+mlContext.Model.Save(model, trainData.Schema, modelPath);
 
 // Potentially, the lines below can be in a different process altogether.
-ITransformer loadedModel;
-using (var stream = File.OpenRead(modelPath))
-    loadedModel = mlContext.Model.Load(stream);
+// When you load the model, it's a non-specific ITransformer. We also recover
+// the original schema.
+ITransformer loadedModel = mlContext.Model.Load(modelPath, out var schema);
 ```
+
 ## How do I use the model to make one prediction?
 
 Since any ML.NET model is a transformer, you can of course use `model.Transform` to apply the model to the 'data view' and obtain predictions this way. 
@@ -1018,7 +1017,5 @@ using (var fs = File.Create(modelPath))
 newContext.ComponentCatalog.RegisterAssembly(typeof(CustomMappings).Assembly);
 
 // Now we can load the model.
-ITransformer loadedModel;
-using (var fs = File.OpenRead(modelPath))
-    loadedModel = newContext.Model.Load(fs);
+ITransformer loadedModel = newContext.Model.Load(modelPath, out var schema);
 ```

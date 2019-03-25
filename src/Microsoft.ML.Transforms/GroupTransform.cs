@@ -295,7 +295,7 @@ namespace Microsoft.ML.Transforms
                     // Prepare column's type.
                     var aggregatedValueType = sourceSchema[groupValueColumnName].Type as PrimitiveDataViewType;
                     _ectx.CheckValue(aggregatedValueType, nameof(aggregatedValueType), "Columns being aggregated must be primitive types such as string, float, or integer");
-                    var aggregatedResultType = new VectorType(aggregatedValueType);
+                    var aggregatedResultType = new VectorDataViewType(aggregatedValueType);
 
                     // Add column into output schema.
                     schemaBuilder.AddColumn(groupValueColumnName, aggregatedResultType, metadataBuilder.ToAnnotations());

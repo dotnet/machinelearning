@@ -50,45 +50,45 @@ namespace Microsoft.ML.Data
         }
 
         /// <summary>
-        /// Construct a <see cref="KeyType"/> out of the data kind and the keyCount.
+        /// Construct a <see cref="KeyDataViewType"/> out of the data kind and the keyCount.
         /// </summary>
-        public static KeyType ConstructKeyType(InternalDataKind? type, KeyCount keyCount)
+        public static KeyDataViewType ConstructKeyType(InternalDataKind? type, KeyCount keyCount)
         {
             Contracts.CheckValue(keyCount, nameof(keyCount));
 
-            KeyType keyType;
+            KeyDataViewType keyType;
             Type rawType = type.HasValue ? type.Value.ToType() : InternalDataKind.U8.ToType();
-            Contracts.CheckUserArg(KeyType.IsValidDataType(rawType), nameof(TextLoader.Column.Type), "Bad item type for Key");
+            Contracts.CheckUserArg(KeyDataViewType.IsValidDataType(rawType), nameof(TextLoader.Column.Type), "Bad item type for Key");
 
             if (keyCount.Count == null)
-                keyType = new KeyType(rawType, rawType.ToMaxInt());
+                keyType = new KeyDataViewType(rawType, rawType.ToMaxInt());
             else
-                keyType = new KeyType(rawType, keyCount.Count.GetValueOrDefault());
+                keyType = new KeyDataViewType(rawType, keyCount.Count.GetValueOrDefault());
 
             return keyType;
         }
     }
 
     /// <summary>
-    /// Defines the cardinality, or count, of valid values of a <see cref="KeyType"/> column. This needs to be strictly positive.
+    /// Defines the cardinality, or count, of valid values of a <see cref="KeyDataViewType"/> column. This needs to be strictly positive.
     /// It is used by <see cref="TextLoader"/> and <see cref="TypeConvertingEstimator"/>.
     /// </summary>
     public sealed class KeyCount
     {
         /// <summary>
-        /// Initializes the cardinality, or count, of valid values of a <see cref="KeyType"/> column to the
-        /// largest integer that can be expresed by the underlying datatype of the <see cref="KeyType"/>.
+        /// Initializes the cardinality, or count, of valid values of a <see cref="KeyDataViewType"/> column to the
+        /// largest integer that can be expresed by the underlying datatype of the <see cref="KeyDataViewType"/>.
         /// </summary>
         public KeyCount() { }
 
         /// <summary>
-        /// Initializes the cardinality, or count, of valid values of a <see cref="KeyType"/> column to <paramref name="count"/>
+        /// Initializes the cardinality, or count, of valid values of a <see cref="KeyDataViewType"/> column to <paramref name="count"/>
         /// </summary>
         public KeyCount(ulong count)
         {
             if (count == 0)
                 throw Contracts.ExceptParam(nameof(count), "The cardinality of valid values of a "
-                    + nameof(KeyType) + " column has to be strictly positive.");
+                    + nameof(KeyDataViewType) + " column has to be strictly positive.");
             Count = count;
         }
 
@@ -125,7 +125,7 @@ namespace Microsoft.ML.Data
                 if (!ulong.TryParse(str.Substring(0, ich), out min))
                     return false;
                 if (min != 0)
-                    throw Contracts.ExceptDecode("The minimum logical value of a " + nameof(KeyType) + " is required to be zero.");
+                    throw Contracts.ExceptDecode("The minimum logical value of a " + nameof(KeyDataViewType) + " is required to be zero.");
 
                 // The Max could be non defined or it could be an `*`.
                 str = str.Substring(ich + 1);

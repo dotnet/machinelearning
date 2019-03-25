@@ -98,8 +98,8 @@ namespace Microsoft.ML.Trainers
 
             InitPredictor();
 
-            _inputType = new VectorType(NumberDataViewType.Single, _dimensionality);
-            _outputType = new VectorType(NumberDataViewType.Single, _k);
+            _inputType = new VectorDataViewType(NumberDataViewType.Single, _dimensionality);
+            _outputType = new VectorDataViewType(NumberDataViewType.Single, _k);
         }
 
         /// <summary>
@@ -140,8 +140,8 @@ namespace Microsoft.ML.Trainers
 
             InitPredictor();
 
-            _inputType = new VectorType(NumberDataViewType.Single, _dimensionality);
-            _outputType = new VectorType(NumberDataViewType.Single, _k);
+            _inputType = new VectorDataViewType(NumberDataViewType.Single, _dimensionality);
+            _outputType = new VectorDataViewType(NumberDataViewType.Single, _k);
         }
 
         ValueMapper<TIn, TOut> IValueMapper.GetMapper<TIn, TOut>()

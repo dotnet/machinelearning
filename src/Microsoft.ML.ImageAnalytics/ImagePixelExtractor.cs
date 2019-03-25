@@ -33,7 +33,7 @@ namespace Microsoft.ML.Transforms.Image
     /// <see cref="ITransformer"/> produced by fitting the <see cref="IDataView"/> to an <see cref="ImagePixelExtractingEstimator" /> .
     /// </summary>
     /// <remarks>
-    ///  During the transformation, the columns of <see cref="ImageType"/> are converted them into a vector representing the image pixels
+    ///  During the transformation, the columns of <see cref="ImageDataViewType"/> are converted them into a vector representing the image pixels
     ///  than can be further used as features by the algorithms added to the pipeline.
     /// <seealso cref="ImageEstimatorsCatalog.ExtractPixels(TransformsCatalog, ImagePixelExtractingEstimator.ColumnOptions[])" />
     /// <seealso cref="ImageEstimatorsCatalog.ExtractPixels(TransformsCatalog, string, string, ImagePixelExtractingEstimator.ColorBits, ImagePixelExtractingEstimator.ColorsOrder, bool, float, float, bool)" />
@@ -275,7 +275,7 @@ namespace Microsoft.ML.Transforms.Image
         private protected override void CheckInputColumn(DataViewSchema inputSchema, int col, int srcCol)
         {
             var inputColName = _columns[col].InputColumnName;
-            var imageType = inputSchema[srcCol].Type as ImageType;
+            var imageType = inputSchema[srcCol].Type as ImageDataViewType;
             if (imageType == null)
                 throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", inputColName, "image", inputSchema[srcCol].Type.ToString());
             if (imageType.Height <= 0 || imageType.Width <= 0)
@@ -287,7 +287,7 @@ namespace Microsoft.ML.Transforms.Image
         private sealed class Mapper : OneToOneMapperBase
         {
             private readonly ImagePixelExtractingTransformer _parent;
-            private readonly VectorType[] _types;
+            private readonly VectorDataViewType[] _types;
 
             public Mapper(ImagePixelExtractingTransformer parent, DataViewSchema inputSchema)
                 : base(parent.Host.Register(nameof(Mapper)), parent, inputSchema)
@@ -450,15 +450,15 @@ namespace Microsoft.ML.Transforms.Image
                     };
             }
 
-            private VectorType[] ConstructTypes()
+            private VectorDataViewType[] ConstructTypes()
             {
-                var types = new VectorType[_parent._columns.Length];
+                var types = new VectorDataViewType[_parent._columns.Length];
                 for (int i = 0; i < _parent._columns.Length; i++)
                 {
                     var column = _parent._columns[i];
                     Contracts.Assert(column.Planes > 0);
 
-                    var type = InputSchema[ColMapNewToOld[i]].Type as ImageType;
+                    var type = InputSchema[ColMapNewToOld[i]].Type as ImageDataViewType;
                     Contracts.Assert(type != null);
 
                     int height = type.Height;
@@ -468,9 +468,9 @@ namespace Microsoft.ML.Transforms.Image
                     Contracts.Assert((long)height * width <= int.MaxValue / 4);
 
                     if (column.InterleavePixelColors)
-                        types[i] = new VectorType(column.OutputAsFloatArray ? NumberDataViewType.Single : NumberDataViewType.Byte, height, width, column.Planes);
+                        types[i] = new VectorDataViewType(column.OutputAsFloatArray ? NumberDataViewType.Single : NumberDataViewType.Byte, height, width, column.Planes);
                     else
-                        types[i] = new VectorType(column.OutputAsFloatArray ? NumberDataViewType.Single : NumberDataViewType.Byte, column.Planes, height, width);
+                        types[i] = new VectorDataViewType(column.OutputAsFloatArray ? NumberDataViewType.Single : NumberDataViewType.Byte, column.Planes, height, width);
                 }
                 return types;
             }
@@ -800,8 +800,8 @@ namespace Microsoft.ML.Transforms.Image
             {
                 if (!inputSchema.TryFindColumn(colInfo.InputColumnName, out var col))
                     throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.InputColumnName);
-                if (!(col.ItemType is ImageType) || col.Kind != SchemaShape.Column.VectorKind.Scalar)
-                    throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.InputColumnName, new ImageType().ToString(), col.GetTypeString());
+                if (!(col.ItemType is ImageDataViewType) || col.Kind != SchemaShape.Column.VectorKind.Scalar)
+                    throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.InputColumnName, new ImageDataViewType().ToString(), col.GetTypeString());
 
                 var itemType = colInfo.OutputAsFloatArray ? NumberDataViewType.Single : NumberDataViewType.Byte;
                 result[colInfo.Name] = new SchemaShape.Column(colInfo.Name, SchemaShape.Column.VectorKind.Vector, itemType, false);

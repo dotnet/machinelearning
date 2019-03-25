@@ -86,7 +86,7 @@ namespace Microsoft.ML.Data
         private protected override void CheckScoreAndLabelTypes(RoleMappedSchema schema)
         {
             var t = schema.Label.Value.Type;
-            if (t != NumberDataViewType.Single && !(t is KeyType))
+            if (t != NumberDataViewType.Single && !(t is KeyDataViewType))
             {
                 throw Host.ExceptSchemaMismatch(nameof(RankingMamlEvaluator.Arguments.LabelColumn),
                     "label", schema.Label.Value.Name, "R4 or a key", t.ToString());
@@ -102,7 +102,7 @@ namespace Microsoft.ML.Data
         private protected override void CheckCustomColumnTypesCore(RoleMappedSchema schema)
         {
             var t = schema.Group.Value.Type;
-            if (!(t is KeyType))
+            if (!(t is KeyDataViewType))
             {
                 throw Host.ExceptSchemaMismatch(nameof(RankingMamlEvaluator.Arguments.GroupIdColumn),
                     "group", schema.Group.Value.Name, "key", t.ToString());
@@ -392,7 +392,7 @@ namespace Microsoft.ML.Data
                     var groupNdcg = new Double[TruncationLevel];
                     for (int t = 0; t < TruncationLevel; t++)
                     {
-                        Double ndcg = _groupMaxDcgCur[t] > 0 ? _groupDcgCur[t] / _groupMaxDcgCur[t] * 100 : 0;
+                        Double ndcg = _groupMaxDcgCur[t] > 0 ? _groupDcgCur[t] / _groupMaxDcgCur[t] : 0;
                         _sumNdcgAtN[t] += ndcg * weight;
                         _sumDcgAtN[t] += _groupDcgCur[t] * weight;
                         groupNdcg[t] = ndcg;
@@ -628,8 +628,8 @@ namespace Microsoft.ML.Data
                     : base(ectx, input, labelCol, scoreCol, groupCol, user, Ndcg, Dcg, MaxDcg)
                 {
                     _truncationLevel = truncationLevel;
-                    _outputType = new VectorType(NumberDataViewType.Double, _truncationLevel);
-                    _slotNamesType = new VectorType(TextDataViewType.Instance, _truncationLevel);
+                    _outputType = new VectorDataViewType(NumberDataViewType.Double, _truncationLevel);
+                    _slotNamesType = new VectorDataViewType(TextDataViewType.Instance, _truncationLevel);
                     _slotNamesGetter = SlotNamesGetter;
                 }
 
@@ -805,7 +805,7 @@ namespace Microsoft.ML.Data
                 RankingUtils.QueryDcg(_labelGains, _truncationLevel, state.QueryLabels, state.QueryOutputs, state.DcgCur);
                 for (int t = 0; t < _truncationLevel; t++)
                 {
-                    Double ndcg = state.MaxDcgCur[t] > 0 ? state.DcgCur[t] / state.MaxDcgCur[t] * 100 : 0;
+                    Double ndcg = state.MaxDcgCur[t] > 0 ? state.DcgCur[t] / state.MaxDcgCur[t] : 0;
                     state.NdcgCur[t] = ndcg;
                 }
                 state.QueryLabels.Clear();
@@ -966,8 +966,8 @@ namespace Microsoft.ML.Data
             }
         }
 
-        /// <summary>te
-        /// Calculates natural-based max DCG at all truncations from 1 to trunc
+        /// <summary>
+        /// Calculates natural-based max DCG at all truncations from 1 to truncationLevel.
         /// </summary>
         public static void QueryMaxDcg(Double[] labelGains, int truncationLevel,
             List<short> queryLabels, List<Single> queryOutputs, Double[] groupMaxDcgCur)

@@ -507,7 +507,7 @@ namespace Microsoft.ML.Data.IO
 
                 var type = codec.Type;
                 Type entryType;
-                if (type is VectorType)
+                if (type is VectorDataViewType)
                 {
                     Type valueType = type.RawType;
                     ectx.Assert(valueType.IsGenericEx(typeof(VBuffer<>)));
@@ -1206,7 +1206,7 @@ namespace Microsoft.ML.Data.IO
             // that the key length is unknown. Unsure of how to reconcile this. Is the least harmful thing
             // to do, if RowCount=0, to set count to some value like 1?
             ulong count = (ulong)_header.RowCount <= ulong.MaxValue ? (ulong)_header.RowCount : 0;
-            KeyType type = new KeyType(typeof(ulong), count);
+            KeyDataViewType type = new KeyDataViewType(typeof(ulong), count);
             // We are mapping the row index as expressed as a long, into a key value, so we must increment by one.
             ValueMapper<long, ulong> mapper = (in long src, ref ulong dst) => dst = (ulong)(src + 1);
             var entry = new TableOfContentsEntry(this, rowIndexName, type, mapper);

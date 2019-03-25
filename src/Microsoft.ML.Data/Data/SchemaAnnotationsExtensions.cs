@@ -12,15 +12,15 @@ namespace Microsoft.ML.Data
     public static class SchemaAnnotationsExtensions
     {
         /// <summary>
-        /// Returns <see langword="true"/> if the input column is of <see cref="VectorType"/>, and that has
-        /// <c>SlotNames</c> annotation of a <see cref="VectorType"/> whose <see cref="VectorType.ItemType"/>
-        /// is of <see cref="TextDataViewType"/>, and further whose <see cref="VectorType.Size"/> matches
+        /// Returns <see langword="true"/> if the input column is of <see cref="VectorDataViewType"/>, and that has
+        /// <c>SlotNames</c> annotation of a <see cref="VectorDataViewType"/> whose <see cref="VectorDataViewType.ItemType"/>
+        /// is of <see cref="TextDataViewType"/>, and further whose <see cref="VectorDataViewType.Size"/> matches
         /// this input vector size.
         /// </summary>
         /// <param name="column">The column whose <see cref="DataViewSchema.Column.Annotations"/> will be queried.</param>
         /// <seealso cref="GetSlotNames(DataViewSchema.Column, ref VBuffer{ReadOnlyMemory{char}})"/>
         public static bool HasSlotNames(this DataViewSchema.Column column)
-            => column.Type is VectorType vectorType
+            => column.Type is VectorDataViewType vectorType
                 && vectorType.Size > 0
                 && column.HasSlotNames(vectorType.Size);
 
@@ -35,9 +35,9 @@ namespace Microsoft.ML.Data
             => column.Annotations.GetValue(AnnotationUtils.Kinds.SlotNames, ref slotNames);
 
         /// <summary>
-        /// Returns <see langword="true"/> if the input column is of <see cref="VectorType"/>, and that has
-        /// <c>SlotNames</c> annotation of a <see cref="VectorType"/> whose <see cref="VectorType.ItemType"/>
-        /// is of <see cref="TextDataViewType"/>, and further whose <see cref="VectorType.Size"/> matches
+        /// Returns <see langword="true"/> if the input column is of <see cref="VectorDataViewType"/>, and that has
+        /// <c>SlotNames</c> annotation of a <see cref="VectorDataViewType"/> whose <see cref="VectorDataViewType.ItemType"/>
+        /// is of <see cref="TextDataViewType"/>, and further whose <see cref="VectorDataViewType.Size"/> matches
         /// this input vector size.
         /// </summary>
         /// <param name="column">The column whose <see cref="DataViewSchema.Column.Annotations"/> will be queried.</param>
@@ -48,7 +48,7 @@ namespace Microsoft.ML.Data
         public static bool HasKeyValues(this DataViewSchema.Column column, PrimitiveDataViewType keyValueItemType = null)
         {
             // False if type is neither a key type, or a vector of key types.
-            if (!(column.Type.GetItemType() is KeyType keyType))
+            if (!(column.Type.GetItemType() is KeyDataViewType keyType))
                 return false;
 
             if (keyValueItemType == null)
@@ -57,14 +57,14 @@ namespace Microsoft.ML.Data
             var metaColumn = column.Annotations.Schema.GetColumnOrNull(AnnotationUtils.Kinds.KeyValues);
             return
                 metaColumn != null
-                && metaColumn.Value.Type is VectorType vectorType
+                && metaColumn.Value.Type is VectorDataViewType vectorType
                 && keyType.Count == (ulong)vectorType.Size
                 && keyValueItemType.Equals(vectorType.ItemType);
         }
 
         /// <summary>
         /// Stores the key values of the input colum into the provided buffer, if this is of key type and whose
-        /// key values are of <see cref="VectorType.ItemType"/> whose <see cref="DataViewType.RawType"/> matches
+        /// key values are of <see cref="VectorDataViewType.ItemType"/> whose <see cref="DataViewType.RawType"/> matches
         /// <typeparamref name="TValue"/>. If there is no matching key valued annotation this will throw an exception.
         /// </summary>
         /// <typeparam name="TValue">The type of the key values.</typeparam>

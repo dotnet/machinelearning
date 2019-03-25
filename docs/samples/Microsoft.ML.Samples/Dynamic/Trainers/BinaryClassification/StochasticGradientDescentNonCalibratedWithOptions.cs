@@ -25,7 +25,7 @@ namespace Microsoft.ML.Samples.Dynamic
                 .Trainers.SgdNonCalibrated(
                         new SgdNonCalibratedTrainer.Options
                         {
-                            InitialLearningRate = 0.01,
+                            LearningRate = 0.01,
                             NumberOfIterations = 10,
                             L2Regularization = 1e-7f
                         }

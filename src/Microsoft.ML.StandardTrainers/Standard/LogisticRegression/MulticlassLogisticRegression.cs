@@ -83,7 +83,7 @@ namespace Microsoft.ML.Trainers
         /// <param name="enforceNoNegativity">Enforce non-negative weights.</param>
         /// <param name="l1Weight">Weight of L1 regularizer term.</param>
         /// <param name="l2Weight">Weight of L2 regularizer term.</param>
-        /// <param name="memorySize">Memory size for <see cref="LbfgsCalibratedBinaryTrainer"/>. Low=faster, less accurate.</param>
+        /// <param name="memorySize">Memory size for <see cref="LbfgsLogisticRegressionTrainer"/>. Low=faster, less accurate.</param>
         /// <param name="optimizationTolerance">Threshold for optimizer convergence.</param>
         internal LbfgsMaximumEntropyTrainer(IHostEnvironment env,
             string labelColumn = DefaultColumnNames.Label,
@@ -127,7 +127,7 @@ namespace Microsoft.ML.Trainers
             // Try to get the label key values metedata.
             var labelCol = data.Schema.Label.Value;
             var labelMetadataType = labelCol.Annotations.Schema.GetColumnOrNull(AnnotationUtils.Kinds.KeyValues)?.Type;
-            if (!(labelMetadataType is VectorType vecType && vecType.ItemType == TextDataViewType.Instance && vecType.Size == _numClasses))
+            if (!(labelMetadataType is VectorDataViewType vecType && vecType.ItemType == TextDataViewType.Instance && vecType.Size == _numClasses))
             {
                 _labelNames = null;
                 return;
@@ -422,8 +422,8 @@ namespace Microsoft.ML.Trainers
             if (Weights.All(v => v.IsDense))
                 _weightsDense = Weights;
 
-            InputType = new VectorType(NumberDataViewType.Single, NumberOfFeatures);
-            OutputType = new VectorType(NumberDataViewType.Single, NumberOfClasses);
+            InputType = new VectorDataViewType(NumberDataViewType.Single, NumberOfFeatures);
+            OutputType = new VectorDataViewType(NumberDataViewType.Single, NumberOfClasses);
 
             Contracts.Assert(labelNames == null || labelNames.Length == numClasses);
             _labelNames = labelNames;
@@ -467,8 +467,8 @@ namespace Microsoft.ML.Trainers
             if (Weights.All(v => v.IsDense))
                 _weightsDense = Weights;
 
-            InputType = new VectorType(NumberDataViewType.Single, NumberOfFeatures);
-            OutputType = new VectorType(NumberDataViewType.Single, NumberOfClasses);
+            InputType = new VectorDataViewType(NumberDataViewType.Single, NumberOfFeatures);
+            OutputType = new VectorDataViewType(NumberDataViewType.Single, NumberOfClasses);
 
             Contracts.Assert(labelNames == null || labelNames.Length == numClasses);
             _labelNames = labelNames;
@@ -549,8 +549,8 @@ namespace Microsoft.ML.Trainers
                 }
             }
             WarnOnOldNormalizer(ctx, GetType(), Host);
-            InputType = new VectorType(NumberDataViewType.Single, NumberOfFeatures);
-            OutputType = new VectorType(NumberDataViewType.Single, NumberOfClasses);
+            InputType = new VectorDataViewType(NumberDataViewType.Single, NumberOfFeatures);
+            OutputType = new VectorDataViewType(NumberDataViewType.Single, NumberOfClasses);
 
             // REVIEW: Should not save the label names duplicately with the predictor again.
             // Get it from the label column schema metadata instead.

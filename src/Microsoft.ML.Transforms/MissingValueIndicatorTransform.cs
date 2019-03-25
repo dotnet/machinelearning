@@ -67,7 +67,7 @@ namespace Microsoft.ML.Transforms
         private const string IndicatorSuffix = "_Indicator";
 
         // The output column types, parallel to Infos.
-        private readonly VectorType[] _types;
+        private readonly VectorDataViewType[] _types;
 
         /// <summary>
         /// Public constructor corresponding to SignatureDataTransform.
@@ -127,10 +127,10 @@ namespace Microsoft.ML.Transforms
             SaveBase(ctx);
         }
 
-        private VectorType[] GetTypesAndMetadata()
+        private VectorDataViewType[] GetTypesAndMetadata()
         {
             var md = Metadata;
-            var types = new VectorType[Infos.Length];
+            var types = new VectorDataViewType[Infos.Length];
             for (int iinfo = 0; iinfo < Infos.Length; iinfo++)
             {
                 var type = Infos[iinfo].TypeSrc;
@@ -138,16 +138,16 @@ namespace Microsoft.ML.Transforms
                 // This ensures that our feature count doesn't overflow.
                 Host.Check(type.GetValueCount() < int.MaxValue / 2);
 
-                if (!(type is VectorType vectorType))
-                    types[iinfo] = new VectorType(NumberDataViewType.Single, 2);
+                if (!(type is VectorDataViewType vectorType))
+                    types[iinfo] = new VectorDataViewType(NumberDataViewType.Single, 2);
                 else
                 {
-                    types[iinfo] = new VectorType(NumberDataViewType.Single, vectorType, 2);
+                    types[iinfo] = new VectorDataViewType(NumberDataViewType.Single, vectorType.Dimensions.Add(2));
 
                     // Produce slot names metadata iff the source has (valid) slot names.
-                    VectorType typeNames;
+                    VectorDataViewType typeNames;
                     if (!vectorType.IsKnownSize ||
-                        (typeNames = Source.Schema[Infos[iinfo].Source].Annotations.Schema.GetColumnOrNull(AnnotationUtils.Kinds.SlotNames)?.Type as VectorType) == null ||
+                        (typeNames = Source.Schema[Infos[iinfo].Source].Annotations.Schema.GetColumnOrNull(AnnotationUtils.Kinds.SlotNames)?.Type as VectorDataViewType) == null ||
                         typeNames.Size != vectorType.Size ||
                         !(typeNames.ItemType is TextDataViewType))
                     {
@@ -183,7 +183,7 @@ namespace Microsoft.ML.Transforms
             var editor = VBufferEditor.Create(ref dst, size);
 
             var type = Infos[iinfo].TypeSrc;
-            if (!(type is VectorType srcVectorType))
+            if (!(type is VectorDataViewType srcVectorType))
             {
                 Host.Assert(_types[iinfo].Size == 2);
                 var columnName = Source.Schema[Infos[iinfo].Source].Name;
@@ -196,7 +196,7 @@ namespace Microsoft.ML.Transforms
                 Host.Assert(size == 2 * srcVectorType.Size);
 
                 // REVIEW: Do we need to verify that there is metadata or should we just call GetMetadata?
-                var typeNames = Source.Schema[Infos[iinfo].Source].Annotations.Schema.GetColumnOrNull(AnnotationUtils.Kinds.SlotNames)?.Type as VectorType;
+                var typeNames = Source.Schema[Infos[iinfo].Source].Annotations.Schema.GetColumnOrNull(AnnotationUtils.Kinds.SlotNames)?.Type as VectorDataViewType;
                 if (typeNames == null || typeNames.Size != srcVectorType.Size || !(typeNames.ItemType is TextDataViewType))
                     throw AnnotationUtils.ExceptGetAnnotation();
 
@@ -242,7 +242,7 @@ namespace Microsoft.ML.Transforms
             disposer = null;
 
             ValueGetter<VBuffer<float>> del;
-            if (Infos[iinfo].TypeSrc is VectorType)
+            if (Infos[iinfo].TypeSrc is VectorDataViewType)
             {
                 var getSrc = GetSrcGetter<VBuffer<float>>(input, iinfo);
                 del =

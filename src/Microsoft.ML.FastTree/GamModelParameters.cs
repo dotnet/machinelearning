@@ -40,7 +40,7 @@ namespace Microsoft.ML.Trainers.FastTree
 
         private readonly double[][] _binUpperBounds;
         private readonly double[][] _binEffects;
-        private readonly VectorType _inputType;
+        private readonly VectorDataViewType _inputType;
         private readonly DataViewType _outputType;
         // These would be the bins for a totally sparse input.
         private readonly int[] _binsAtAllZero;
@@ -109,7 +109,7 @@ namespace Microsoft.ML.Trainers.FastTree
                 _inputFeatureToShapeFunctionMap[_shapeToInputMap[i]] = i;
             }
 
-            _inputType = new VectorType(NumberDataViewType.Single, _numInputFeatures);
+            _inputType = new VectorDataViewType(NumberDataViewType.Single, _numInputFeatures);
             _outputType = NumberDataViewType.Single;
         }
 
@@ -159,7 +159,7 @@ namespace Microsoft.ML.Trainers.FastTree
                 _shapeToInputMap[val] = key;
             }
 
-            _inputType = new VectorType(NumberDataViewType.Single, _numInputFeatures);
+            _inputType = new VectorDataViewType(NumberDataViewType.Single, _numInputFeatures);
             _outputType = NumberDataViewType.Single;
         }
 

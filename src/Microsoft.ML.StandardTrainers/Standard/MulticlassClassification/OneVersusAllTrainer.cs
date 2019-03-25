@@ -313,7 +313,7 @@ namespace Microsoft.ML.Trainers
             Host.Assert(Utils.Size(impl.Predictors) > 0);
 
             _impl = impl;
-            DistType = new VectorType(NumberDataViewType.Single, _impl.Predictors.Length);
+            DistType = new VectorDataViewType(NumberDataViewType.Single, _impl.Predictors.Length);
         }
 
         private OneVersusAllModelParameters(IHostEnvironment env, ModelLoadContext ctx)
@@ -339,7 +339,7 @@ namespace Microsoft.ML.Trainers
                 _impl = new ImplRaw(predictors);
             }
 
-            DistType = new VectorType(NumberDataViewType.Single, _impl.Predictors.Length);
+            DistType = new VectorDataViewType(NumberDataViewType.Single, _impl.Predictors.Length);
         }
 
         private static OneVersusAllModelParameters Create(IHostEnvironment env, ModelLoadContext ctx)
@@ -447,7 +447,7 @@ namespace Microsoft.ML.Trainers
             public abstract ValueMapper<VBuffer<float>, VBuffer<float>> GetMapper();
             public abstract JToken SaveAsPfa(BoundPfaContext ctx, JToken input);
 
-            protected bool IsValid(IValueMapper mapper, ref VectorType inputType)
+            protected bool IsValid(IValueMapper mapper, ref VectorDataViewType inputType)
             {
                 Contracts.AssertValueOrNull(mapper);
                 Contracts.AssertValueOrNull(inputType);
@@ -456,7 +456,7 @@ namespace Microsoft.ML.Trainers
                     return false;
                 if (mapper.OutputType != NumberDataViewType.Single)
                     return false;
-                if (!(mapper.InputType is VectorType mapperVectorType) || mapperVectorType.ItemType != NumberDataViewType.Single)
+                if (!(mapper.InputType is VectorDataViewType mapperVectorType) || mapperVectorType.ItemType != NumberDataViewType.Single)
                     return false;
                 if (inputType == null)
                     inputType = mapperVectorType;
@@ -482,7 +482,7 @@ namespace Microsoft.ML.Trainers
                 Contracts.CheckNonEmpty(predictors, nameof(predictors));
 
                 Predictors = new IValueMapper[predictors.Length];
-                VectorType inputType = null;
+                VectorDataViewType inputType = null;
                 for (int i = 0; i < predictors.Length; i++)
                 {
                     var vm = predictors[i] as IValueMapper;
@@ -547,7 +547,7 @@ namespace Microsoft.ML.Trainers
                 Contracts.Check(Utils.Size(predictors) > 0);
 
                 _mappers = new IValueMapperDist[predictors.Length];
-                VectorType inputType = null;
+                VectorDataViewType inputType = null;
                 for (int i = 0; i < predictors.Length; i++)
                 {
                     var vm = predictors[i];
@@ -559,7 +559,7 @@ namespace Microsoft.ML.Trainers
                 InputType = inputType;
             }
 
-            private bool IsValid(IValueMapperDist mapper, ref VectorType inputType)
+            private bool IsValid(IValueMapperDist mapper, ref VectorDataViewType inputType)
             {
                 return base.IsValid(mapper, ref inputType) && mapper.DistType == NumberDataViewType.Single;
             }
@@ -658,7 +658,7 @@ namespace Microsoft.ML.Trainers
                 Contracts.CheckNonEmpty(predictors, nameof(predictors));
 
                 Predictors = new IValueMapper[predictors.Length];
-                VectorType inputType = null;
+                VectorDataViewType inputType = null;
                 for (int i = 0; i < predictors.Length; i++)
                 {
                     var vm = predictors[i] as IValueMapper;

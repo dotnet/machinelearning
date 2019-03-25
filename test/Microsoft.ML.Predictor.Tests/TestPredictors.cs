@@ -739,7 +739,7 @@ namespace Microsoft.ML.RunTests
                     TrainingData = dataView,
                     NormalizeFeatures = NormalizeOption.No
                 }).PredictorModel,
-                LbfgsCalibratedBinaryTrainer.TrainBinary(ML, new LbfgsCalibratedBinaryTrainer.Options()
+                LbfgsLogisticRegressionTrainer.TrainBinary(ML, new LbfgsLogisticRegressionTrainer.Options()
                 {
                     FeatureColumnName = "Features",
                     LabelColumnName = DefaultColumnNames.Label,
@@ -747,7 +747,7 @@ namespace Microsoft.ML.RunTests
                     TrainingData = dataView,
                     NormalizeFeatures = NormalizeOption.No
                 }).PredictorModel,
-                LbfgsCalibratedBinaryTrainer.TrainBinary(ML, new LbfgsCalibratedBinaryTrainer.Options()
+                LbfgsLogisticRegressionTrainer.TrainBinary(ML, new LbfgsLogisticRegressionTrainer.Options()
                 {
                     FeatureColumnName = "Features",
                     LabelColumnName = DefaultColumnNames.Label,

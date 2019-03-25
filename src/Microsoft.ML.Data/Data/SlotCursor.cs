@@ -50,7 +50,7 @@ namespace Microsoft.ML.Data
         /// <see cref="ITransposeDataView.GetSlotType"/> for the column from which this slot cursor
         /// was created.
         /// </summary>
-        public abstract VectorType GetSlotType();
+        public abstract VectorDataViewType GetSlotType();
 
         /// <summary>
         /// A getter delegate for the slot values. The type <typeparamref name="TValue"/> must correspond

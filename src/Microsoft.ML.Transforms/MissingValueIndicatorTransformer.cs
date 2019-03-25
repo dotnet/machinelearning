@@ -179,10 +179,10 @@ namespace Microsoft.ML.Transforms
                     _parent.CheckInputColumn(inputSchema, i, colSrc);
                     var inType = inputSchema[colSrc].Type;
                     DataViewType outType;
-                    if (!(inType is VectorType vectorType))
+                    if (!(inType is VectorDataViewType vectorType))
                         outType = BooleanDataViewType.Instance;
                     else
-                        outType = new VectorType(BooleanDataViewType.Instance, vectorType);
+                        outType = new VectorDataViewType(BooleanDataViewType.Instance, vectorType.Dimensions);
                     infos[i] = new ColInfo(_parent.ColumnPairs[i].outputColumnName, _parent.ColumnPairs[i].inputColumnName, inType, outType);
                 }
                 return infos;
@@ -227,7 +227,7 @@ namespace Microsoft.ML.Transforms
                 Host.Assert(0 <= iinfo && iinfo < _infos.Length);
                 disposer = null;
 
-                if (!(_infos[iinfo].InputType is VectorType))
+                if (!(_infos[iinfo].InputType is VectorDataViewType))
                     return ComposeGetterOne(input, iinfo);
                 return ComposeGetterVec(input, iinfo);
             }
@@ -467,9 +467,9 @@ namespace Microsoft.ML.Transforms
                 if (col.Annotations.TryFindColumn(AnnotationUtils.Kinds.SlotNames, out var slotMeta))
                     metadata.Add(slotMeta);
                 metadata.Add(new SchemaShape.Column(AnnotationUtils.Kinds.IsNormalized, SchemaShape.Column.VectorKind.Scalar, BooleanDataViewType.Instance, false));
-                DataViewType type = !(col.ItemType is VectorType vectorType) ?
+                DataViewType type = !(col.ItemType is VectorDataViewType vectorType) ?
                     (DataViewType)BooleanDataViewType.Instance :
-                    new VectorType(BooleanDataViewType.Instance, vectorType);
+                    new VectorDataViewType(BooleanDataViewType.Instance, vectorType.Dimensions);
                 result[colPair.outputColumnName] = new SchemaShape.Column(colPair.outputColumnName, col.Kind, type, false, new SchemaShape(metadata.ToArray()));
             }
             return new SchemaShape(result.Values);

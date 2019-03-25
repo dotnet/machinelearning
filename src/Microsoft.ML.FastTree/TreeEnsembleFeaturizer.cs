@@ -95,10 +95,10 @@ namespace Microsoft.ML.Data
                 InputRoleMappedSchema = schema;
 
                 // A vector containing the output of each tree on a given example.
-                var treeValueType = new VectorType(NumberDataViewType.Single, owner._ensemble.TrainedEnsemble.NumTrees);
+                var treeValueType = new VectorDataViewType(NumberDataViewType.Single, owner._ensemble.TrainedEnsemble.NumTrees);
                 // An indicator vector with length = the total number of leaves in the ensemble, indicating which leaf the example
                 // ends up in all the trees in the ensemble.
-                var leafIdType = new VectorType(NumberDataViewType.Single, owner._totalLeafCount);
+                var leafIdType = new VectorDataViewType(NumberDataViewType.Single, owner._totalLeafCount);
                 // An indicator vector with length = the total number of nodes in the ensemble, indicating the nodes on
                 // the paths of the example in all the trees in the ensemble.
                 // The total number of nodes in a binary tree is equal to the number of internal nodes + the number of leaf nodes,
@@ -106,7 +106,7 @@ namespace Microsoft.ML.Data
                 // plus one (since the root node is not a child of any node). So we have #internal + #leaf = 2*(#internal) + 1,
                 // which means that #internal = #leaf - 1.
                 // Therefore, the number of internal nodes in the ensemble is #leaf - #trees.
-                var pathIdType = new VectorType(NumberDataViewType.Single, owner._totalLeafCount - owner._ensemble.TrainedEnsemble.NumTrees);
+                var pathIdType = new VectorDataViewType(NumberDataViewType.Single, owner._totalLeafCount - owner._ensemble.TrainedEnsemble.NumTrees);
 
                 // Start creating output schema with types derived above.
                 var schemaBuilder = new DataViewSchema.Builder();
@@ -674,11 +674,11 @@ namespace Microsoft.ML.Data
         }
 
         private static IDataView AppendFloatMapper<TInput>(IHostEnvironment env, IChannel ch, IDataView input,
-            string col, KeyType type, int seed)
+            string col, KeyDataViewType type, int seed)
         {
             // Any key is convertible to ulong, so rather than add special case handling for all possible
             // key-types we just upfront convert it to the most general type (ulong) and work from there.
-            KeyType dstType = new KeyType(typeof(ulong), type.Count);
+            KeyDataViewType dstType = new KeyDataViewType(typeof(ulong), type.Count);
             bool identity;
             var converter = Conversions.Instance.GetStandardConversion<TInput, ulong>(type, dstType, out identity);
             var isNa = Conversions.Instance.GetIsNAPredicate<TInput>(type);
@@ -731,14 +731,14 @@ namespace Microsoft.ML.Data
                 throw ch.ExceptSchemaMismatch(nameof(input), "label", labelName);
 
             DataViewType labelType = col.Value.Type;
-            if (!(labelType is KeyType))
+            if (!(labelType is KeyDataViewType))
             {
                 if (labelPermutationSeed != 0)
                     ch.Warning(
                         "labelPermutationSeed != 0 only applies on a multi-class learning problem when the label type is a key.");
                 return input;
             }
-            return Utils.MarshalInvoke(AppendFloatMapper<int>, labelType.RawType, env, ch, input, labelName, (KeyType)labelType,
+            return Utils.MarshalInvoke(AppendFloatMapper<int>, labelType.RawType, env, ch, input, labelName, (KeyDataViewType)labelType,
                 labelPermutationSeed);
         }
     }

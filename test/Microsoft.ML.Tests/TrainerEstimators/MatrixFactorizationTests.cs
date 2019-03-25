@@ -223,11 +223,11 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             // Check if the expected types in the trained model are expected.
             Assert.True(model.MatrixColumnIndexColumnName == "MatrixColumnIndex");
             Assert.True(model.MatrixRowIndexColumnName == "MatrixRowIndex");
-            Assert.True(model.MatrixColumnIndexColumnType is KeyType);
-            Assert.True(model.MatrixRowIndexColumnType is KeyType);
-            var matColKeyType = (KeyType)model.MatrixColumnIndexColumnType;
+            Assert.True(model.MatrixColumnIndexColumnType is KeyDataViewType);
+            Assert.True(model.MatrixRowIndexColumnType is KeyDataViewType);
+            var matColKeyType = (KeyDataViewType)model.MatrixColumnIndexColumnType;
             Assert.True(matColKeyType.Count == _synthesizedMatrixColumnCount + _synthesizedMatrixFirstColumnIndex);
-            var matRowKeyType = (KeyType)model.MatrixRowIndexColumnType;
+            var matRowKeyType = (KeyDataViewType)model.MatrixRowIndexColumnType;
             Assert.True(matRowKeyType.Count == _synthesizedMatrixRowCount + _synthesizedMatrixRowCount);
 
             // Apply the trained model to the training set
@@ -314,9 +314,9 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             // Check if the expected types in the trained model are expected.
             Assert.True(model.MatrixColumnIndexColumnName == nameof(MatrixElementZeroBased.MatrixColumnIndex));
             Assert.True(model.MatrixRowIndexColumnName == nameof(MatrixElementZeroBased.MatrixRowIndex));
-            var matColKeyType = model.MatrixColumnIndexColumnType as KeyType;
+            var matColKeyType = model.MatrixColumnIndexColumnType as KeyDataViewType;
             Assert.NotNull(matColKeyType);
-            var matRowKeyType = model.MatrixRowIndexColumnType as KeyType;
+            var matRowKeyType = model.MatrixRowIndexColumnType as KeyDataViewType;
             Assert.NotNull(matRowKeyType);
             Assert.True(matColKeyType.Count == _synthesizedMatrixColumnCount);
             Assert.True(matRowKeyType.Count == _synthesizedMatrixRowCount);

@@ -63,7 +63,7 @@ namespace Microsoft.ML.Data
             public const string LoaderSignature = "LabelSlotNameMapper";
             private const string _innerDir = "InnerMapper";
             private readonly ISchemaBindableMapper _bindable;
-            private readonly VectorType _type;
+            private readonly VectorDataViewType _type;
             private readonly string _metadataKind;
             // In an ideal world this would be a value getter of the appropriate type. However, it is awkward
             // to have this class be generic due to restrictions on loadable classes, so we instead pay the
@@ -76,7 +76,7 @@ namespace Microsoft.ML.Data
 
             internal ISchemaBindableMapper Bindable => _bindable;
 
-            public VectorType Type => _type;
+            public VectorDataViewType Type => _type;
             bool ICanSavePfa.CanSavePfa => (_bindable as ICanSavePfa)?.CanSavePfa == true;
             bool ICanSaveOnnx.CanSaveOnnx(OnnxContext ctx) => (_bindable as ICanSaveOnnx)?.CanSaveOnnx(ctx) == true;
 
@@ -94,13 +94,13 @@ namespace Microsoft.ML.Data
 
             private const int VersionAddedMetadataKind = 0x00010002;
 
-            private LabelNameBindableMapper(IHostEnvironment env, ISchemaBoundMapper mapper, VectorType type, Delegate getter,
+            private LabelNameBindableMapper(IHostEnvironment env, ISchemaBoundMapper mapper, VectorDataViewType type, Delegate getter,
                 string metadataKind, Func<ISchemaBoundMapper, DataViewType, bool> canWrap)
                 : this(env, mapper.Bindable, type, getter, metadataKind, canWrap)
             {
             }
 
-            private LabelNameBindableMapper(IHostEnvironment env, ISchemaBindableMapper bindable, VectorType type, Delegate getter,
+            private LabelNameBindableMapper(IHostEnvironment env, ISchemaBindableMapper bindable, VectorDataViewType type, Delegate getter,
                 string metadataKind, Func<ISchemaBoundMapper, DataViewType, bool> canWrap)
             {
                 Contracts.AssertValue(env);
@@ -129,7 +129,7 @@ namespace Microsoft.ML.Data
                 DataViewType type;
                 object value;
                 _host.CheckDecode(saver.TryLoadTypeAndValue(ctx.Reader.BaseStream, out type, out value));
-                _type = type as VectorType;
+                _type = type as VectorDataViewType;
                 _host.CheckDecode(_type != null);
                 _host.CheckDecode(value != null);
                 _getter = Utils.MarshalInvoke(DecodeInit<int>, _type.ItemType.RawType, value);
@@ -225,7 +225,7 @@ namespace Microsoft.ML.Data
                 return Utils.MarshalInvoke(CreateBound<int>, _type.ItemType.RawType, env, (ISchemaBoundRowMapper)innerBound, _type, _getter, _metadataKind, _canWrap);
             }
 
-            internal static ISchemaBoundMapper CreateBound<T>(IHostEnvironment env, ISchemaBoundRowMapper mapper, VectorType type, Delegate getter,
+            internal static ISchemaBoundMapper CreateBound<T>(IHostEnvironment env, ISchemaBoundRowMapper mapper, VectorDataViewType type, Delegate getter,
                 string metadataKind, Func<ISchemaBoundMapper, DataViewType, bool> canWrap)
             {
                 Contracts.AssertValue(env);
@@ -244,7 +244,7 @@ namespace Microsoft.ML.Data
                 private readonly IHost _host;
                 /// <summary>The mapper we are wrapping.</summary>
                 private readonly ISchemaBoundRowMapper _mapper;
-                private readonly VectorType _labelNameType;
+                private readonly VectorDataViewType _labelNameType;
                 private readonly string _metadataKind;
                 private readonly ValueGetter<VBuffer<T>> _labelNameGetter;
                 // Lazily initialized by the property.
@@ -269,7 +269,7 @@ namespace Microsoft.ML.Data
                 /// <summary>
                 /// This is the constructor called for the initial wrapping.
                 /// </summary>
-                public Bound(IHostEnvironment env, ISchemaBoundRowMapper mapper, VectorType type, ValueGetter<VBuffer<T>> getter,
+                public Bound(IHostEnvironment env, ISchemaBoundRowMapper mapper, VectorDataViewType type, ValueGetter<VBuffer<T>> getter,
                     string metadataKind, Func<ISchemaBoundMapper, DataViewType, bool> canWrap)
                 {
                     Contracts.CheckValue(env, nameof(env));
@@ -298,7 +298,7 @@ namespace Microsoft.ML.Data
                 /// <summary>
                 /// Append label names to score column as its metadata.
                 /// </summary>
-                private DataViewSchema DecorateOutputSchema(DataViewSchema partialSchema, int scoreColumnIndex, VectorType labelNameType,
+                private DataViewSchema DecorateOutputSchema(DataViewSchema partialSchema, int scoreColumnIndex, VectorDataViewType labelNameType,
                     ValueGetter<VBuffer<T>> labelNameGetter, string labelNameKind)
                 {
                     var builder = new DataViewSchema.Builder();
@@ -389,7 +389,7 @@ namespace Microsoft.ML.Data
 
             if (trainSchema?.Label == null)
                 return mapper; // We don't even have a label identified in a training schema.
-            var keyType = trainSchema.Label.Value.Annotations.Schema.GetColumnOrNull(AnnotationUtils.Kinds.KeyValues)?.Type as VectorType;
+            var keyType = trainSchema.Label.Value.Annotations.Schema.GetColumnOrNull(AnnotationUtils.Kinds.KeyValues)?.Type as VectorDataViewType;
             if (keyType == null || !CanWrap(mapper, keyType))
                 return mapper;
 
@@ -428,7 +428,7 @@ namespace Microsoft.ML.Data
             var scoreType = outSchema[scoreIdx].Type;
 
             // Check that the type is vector, and is of compatible size with the score output.
-            return labelNameType is VectorType vectorType && vectorType.Size == scoreType.GetVectorSize() && vectorType.ItemType == TextDataViewType.Instance;
+            return labelNameType is VectorDataViewType vectorType && vectorType.Size == scoreType.GetVectorSize() && vectorType.ItemType == TextDataViewType.Instance;
         }
 
         internal static ISchemaBoundMapper WrapCore<T>(IHostEnvironment env, ISchemaBoundMapper mapper, RoleMappedSchema trainSchema)
@@ -441,7 +441,7 @@ namespace Microsoft.ML.Data
             // Key values from the training schema label, will map to slot names of the score output.
             var type = trainSchema.Label.Value.Annotations.Schema.GetColumnOrNull(AnnotationUtils.Kinds.KeyValues)?.Type;
             env.AssertValue(type);
-            env.Assert(type is VectorType);
+            env.Assert(type is VectorDataViewType);
 
             // Wrap the fetching of the metadata as a simple getter.
             ValueGetter<VBuffer<T>> getter =
@@ -450,7 +450,7 @@ namespace Microsoft.ML.Data
                     trainSchema.Label.Value.GetKeyValues(ref value);
                 };
 
-            return LabelNameBindableMapper.CreateBound<T>(env, (ISchemaBoundRowMapper)mapper, type as VectorType, getter, AnnotationUtils.Kinds.SlotNames, CanWrap);
+            return LabelNameBindableMapper.CreateBound<T>(env, (ISchemaBoundRowMapper)mapper, type as VectorDataViewType, getter, AnnotationUtils.Kinds.SlotNames, CanWrap);
         }
 
         [BestFriend]
@@ -545,9 +545,9 @@ namespace Microsoft.ML.Data
             return PfaUtils.Call("a.argmax", mapperOutputs[0]);
         }
 
-        private static DataViewType GetPredColType(DataViewType scoreType, ISchemaBoundRowMapper mapper) => new KeyType(typeof(uint), scoreType.GetVectorSize());
+        private static DataViewType GetPredColType(DataViewType scoreType, ISchemaBoundRowMapper mapper) => new KeyDataViewType(typeof(uint), scoreType.GetVectorSize());
 
         private static bool OutputTypeMatches(DataViewType scoreType) =>
-            scoreType is VectorType vectorType && vectorType.IsKnownSize && vectorType.ItemType == NumberDataViewType.Single;
+            scoreType is VectorDataViewType vectorType && vectorType.IsKnownSize && vectorType.ItemType == NumberDataViewType.Single;
     }
 }

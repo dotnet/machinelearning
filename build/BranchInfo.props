@@ -1,17 +1,18 @@
 <Project>
   <PropertyGroup>
     <StableProjects>
+      Microsoft.ML.DataView;
+      Microsoft.ML.CpuMath;
       Microsoft.ML;
       Microsoft.ML.Core;
-      Microsoft.ML.CpuMath;
       Microsoft.ML.Data;
-      Microsoft.ML.FastTree;
-      Microsoft.ML.ImageAnalytics;
       Microsoft.ML.KMeansClustering;
-      Microsoft.ML.LightGbm;
       Microsoft.ML.PCA;
       Microsoft.ML.StandardTrainers;
       Microsoft.ML.Transforms;
+      Microsoft.ML.FastTree;
+      Microsoft.ML.ImageAnalytics;
+      Microsoft.ML.LightGbm;
       Microsoft.ML.Mkl.Components;
       Microsoft.ML.Mkl.Redist;
     </StableProjects>

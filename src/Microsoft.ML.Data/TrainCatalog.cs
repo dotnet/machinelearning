@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using Microsoft.ML.Calibrators;
 using Microsoft.ML.Data;
@@ -95,36 +96,18 @@ namespace Microsoft.ML
             Environment.CheckValueOrNull(samplingKeyColumn);
 
             DataOperationsCatalog.EnsureGroupPreservationColumn(Environment, ref data, ref samplingKeyColumn, seed);
-
-            Func<int, CrossValidationResult> foldFunction =
-                fold =>
-                {
-                    var trainFilter = new RangeFilter(Environment, new RangeFilter.Options
-                    {
-                        Column = samplingKeyColumn,
-                        Min = (double)fold / numFolds,
-                        Max = (double)(fold + 1) / numFolds,
-                        Complement = true
-                    }, data);
-                    var testFilter = new RangeFilter(Environment, new RangeFilter.Options
-                    {
-                        Column = samplingKeyColumn,
-                        Min = (double)fold / numFolds,
-                        Max = (double)(fold + 1) / numFolds,
-                        Complement = false
-                    }, data);
-
-                    var model = estimator.Fit(trainFilter);
-                    var scoredTest = model.Transform(testFilter);
-                    return new CrossValidationResult(model, scoredTest, fold);
-                };
-
+            var result = new CrossValidationResult[numFolds];
+            int fold = 0;
             // Sequential per-fold training.
             // REVIEW: we could have a parallel implementation here. We would need to
             // spawn off a separate host per fold in that case.
-            var result = new CrossValidationResult[numFolds];
-            for (int fold = 0; fold < numFolds; fold++)
-                result[fold] = foldFunction(fold);
+            foreach (var split in DataOperationsCatalog.CrossValidationSplit(Environment, data, numFolds, samplingKeyColumn))
+            {
+                var model = estimator.Fit(split.TrainSet);
+                var scoredTest = model.Transform(split.TestSet);
+                result[fold] = new CrossValidationResult(model, scoredTest, fold);
+                fold++;
+            }
 
             return result;
         }
@@ -239,7 +222,7 @@ namespace Microsoft.ML
         /// If <see langword="null"/> no row grouping will be performed.</param>
         /// <param name="seed">Seed for the random number generator used to select rows for cross-validation folds.</param>
         /// <returns>Per-fold results: metrics, models, scored datasets.</returns>
-        public CrossValidationResult<BinaryClassificationMetrics>[] CrossValidateNonCalibrated(
+        public IReadOnlyList<CrossValidationResult<BinaryClassificationMetrics>> CrossValidateNonCalibrated(
             IDataView data, IEstimator<ITransformer> estimator, int numberOfFolds = 5, string labelColumnName = DefaultColumnNames.Label,
             string samplingKeyColumnName = null, int? seed = null)
         {
@@ -263,7 +246,7 @@ namespace Microsoft.ML
         /// If <see langword="null"/> no row grouping will be performed.</param>
         /// <param name="seed">Seed for the random number generator used to select rows for cross-validation folds.</param>
         /// <returns>Per-fold results: metrics, models, scored datasets.</returns>
-        public CrossValidationResult<CalibratedBinaryClassificationMetrics>[] CrossValidate(
+        public IReadOnlyList<CrossValidationResult<CalibratedBinaryClassificationMetrics>> CrossValidate(
             IDataView data, IEstimator<ITransformer> estimator, int numberOfFolds = 5, string labelColumnName = DefaultColumnNames.Label,
             string samplingKeyColumnName = null, int? seed = null)
         {
@@ -443,7 +426,7 @@ namespace Microsoft.ML
         /// they are guaranteed to appear in the same subset (train or test). This can be used to ensure no label leakage from the train to the test set.
         /// If <see langword="null"/> no row grouping will be performed.</param>
         /// <param name="seed">Seed for the random number generator used to select rows for cross-validation folds.</param>
-        public CrossValidationResult<ClusteringMetrics>[] CrossValidate(
+        public IReadOnlyList<CrossValidationResult<ClusteringMetrics>> CrossValidate(
             IDataView data, IEstimator<ITransformer> estimator, int numberOfFolds = 5, string labelColumnName = null, string featuresColumnName = null,
             string samplingKeyColumnName = null, int? seed = null)
         {
@@ -484,21 +467,22 @@ namespace Microsoft.ML
         /// <param name="labelColumnName">The name of the label column in <paramref name="data"/>.</param>
         /// <param name="scoreColumnName">The name of the score column in <paramref name="data"/>.</param>
         /// <param name="predictedLabelColumnName">The name of the predicted label column in <paramref name="data"/>.</param>
-        /// <param name="topK">If given a positive value, the <see cref="MulticlassClassificationMetrics.TopKAccuracy"/> will be filled with
+        /// <param name="topKPredictionCount">If given a positive value, the <see cref="MulticlassClassificationMetrics.TopKAccuracy"/> will be filled with
         /// the top-K accuracy, that is, the accuracy assuming we consider an example with the correct class within
         /// the top-K values as being stored "correctly."</param>
         /// <returns>The evaluation results for these calibrated outputs.</returns>
         public MulticlassClassificationMetrics Evaluate(IDataView data, string labelColumnName = DefaultColumnNames.Label, string scoreColumnName = DefaultColumnNames.Score,
-            string predictedLabelColumnName = DefaultColumnNames.PredictedLabel, int topK = 0)
+            string predictedLabelColumnName = DefaultColumnNames.PredictedLabel, int topKPredictionCount = 0)
         {
             Environment.CheckValue(data, nameof(data));
             Environment.CheckNonEmpty(labelColumnName, nameof(labelColumnName));
             Environment.CheckNonEmpty(scoreColumnName, nameof(scoreColumnName));
             Environment.CheckNonEmpty(predictedLabelColumnName, nameof(predictedLabelColumnName));
+            Environment.CheckUserArg(topKPredictionCount >= 0, nameof(topKPredictionCount), "Must be non-negative");
 
             var args = new MulticlassClassificationEvaluator.Arguments() { };
-            if (topK > 0)
-                args.OutputTopKAcc = topK;
+            if (topKPredictionCount > 0)
+                args.OutputTopKAcc = topKPredictionCount;
             var eval = new MulticlassClassificationEvaluator(Environment, args);
             return eval.Evaluate(data, labelColumnName, scoreColumnName, predictedLabelColumnName);
         }
@@ -518,7 +502,7 @@ namespace Microsoft.ML
         /// <param name="seed">Seed for the random number generator used to select rows for cross-validation folds.</param>
         /// <returns>Per-fold results: metrics, models, scored datasets.</returns>
         /// <returns>Per-fold results: metrics, models, scored datasets.</returns>
-        public CrossValidationResult<MulticlassClassificationMetrics>[] CrossValidate(
+        public IReadOnlyList<CrossValidationResult<MulticlassClassificationMetrics>> CrossValidate(
             IDataView data, IEstimator<ITransformer> estimator, int numberOfFolds = 5, string labelColumnName = DefaultColumnNames.Label,
             string samplingKeyColumnName = null, int? seed = null)
         {
@@ -584,7 +568,7 @@ namespace Microsoft.ML
         /// If <see langword="null"/> no row grouping will be performed.</param>
         /// <param name="seed">Seed for the random number generator used to select rows for cross-validation folds.</param>
         /// <returns>Per-fold results: metrics, models, scored datasets.</returns>
-        public CrossValidationResult<RegressionMetrics>[] CrossValidate(
+        public IReadOnlyList<CrossValidationResult<RegressionMetrics>> CrossValidate(
             IDataView data, IEstimator<ITransformer> estimator, int numberOfFolds = 5, string labelColumnName = DefaultColumnNames.Label,
             string samplingKeyColumnName = null, int? seed = null)
         {
@@ -673,10 +657,10 @@ namespace Microsoft.ML
         /// <param name="labelColumnName">The name of the label column in <paramref name="data"/>.</param>
         /// <param name="scoreColumnName">The name of the score column in <paramref name="data"/>.</param>
         /// <param name="predictedLabelColumnName">The name of the predicted label column in <paramref name="data"/>.</param>
-        /// <param name="k">The number of false positives to compute the <see cref="AnomalyDetectionMetrics.DetectionRateAtKFalsePositives"/> metric. </param>
+        /// <param name="falsePositiveCount">The number of false positives to compute the <see cref="AnomalyDetectionMetrics.DetectionRateAtFalsePositiveCount"/> metric. </param>
         /// <returns>Evaluation results.</returns>
         public AnomalyDetectionMetrics Evaluate(IDataView data, string labelColumnName = DefaultColumnNames.Label, string scoreColumnName = DefaultColumnNames.Score,
-            string predictedLabelColumnName = DefaultColumnNames.PredictedLabel, int k = 10)
+            string predictedLabelColumnName = DefaultColumnNames.PredictedLabel, int falsePositiveCount = 10)
         {
             Environment.CheckValue(data, nameof(data));
             Environment.CheckNonEmpty(labelColumnName, nameof(labelColumnName));
@@ -684,7 +668,7 @@ namespace Microsoft.ML
             Environment.CheckNonEmpty(predictedLabelColumnName, nameof(predictedLabelColumnName));
 
             var args = new AnomalyDetectionEvaluator.Arguments();
-            args.K = k;
+            args.K = falsePositiveCount;
 
             var eval = new AnomalyDetectionEvaluator(Environment, args);
             return eval.Evaluate(data, labelColumnName, scoreColumnName, predictedLabelColumnName);

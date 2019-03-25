@@ -29,7 +29,7 @@ namespace Microsoft.ML.Data
             env.CheckValue(typeSrc, nameof(typeSrc));
             env.CheckValue(typeDst, nameof(typeDst));
             env.CheckValue(mapper, nameof(mapper));
-            env.Check(keyValueGetter == null || typeDst.GetItemType() is KeyType);
+            env.Check(keyValueGetter == null || typeDst.GetItemType() is KeyDataViewType);
             env.Check(slotNamesGetter == null || typeDst.IsKnownSizeVector());
 
             if (typeSrc.RawType != typeof(TSrc))
@@ -124,7 +124,7 @@ namespace Microsoft.ML.Data
                         {
                             AnnotationUtils.AnnotationGetter<VBuffer<ReadOnlyMemory<char>>> mdGetter =
                                 (int c, ref VBuffer<ReadOnlyMemory<char>> dst) => keyValueGetter(ref dst);
-                            bldr.AddGetter(AnnotationUtils.Kinds.KeyValues, new VectorType(TextDataViewType.Instance, _typeDst.GetItemType().GetKeyCountAsInt32(Host)), mdGetter);
+                            bldr.AddGetter(AnnotationUtils.Kinds.KeyValues, new VectorDataViewType(TextDataViewType.Instance, _typeDst.GetItemType().GetKeyCountAsInt32(Host)), mdGetter);
                         }
                         if (slotNamesGetter != null)
                         {
@@ -132,7 +132,7 @@ namespace Microsoft.ML.Data
                             Host.Assert(vectorSize > 0);
                             AnnotationUtils.AnnotationGetter<VBuffer<ReadOnlyMemory<char>>> mdGetter =
                                 (int c, ref VBuffer<ReadOnlyMemory<char>> dst) => slotNamesGetter(ref dst);
-                            bldr.AddGetter(AnnotationUtils.Kinds.SlotNames, new VectorType(TextDataViewType.Instance, vectorSize), mdGetter);
+                            bldr.AddGetter(AnnotationUtils.Kinds.SlotNames, new VectorDataViewType(TextDataViewType.Instance, vectorSize), mdGetter);
                         }
                     }
                 }

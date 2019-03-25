@@ -27,8 +27,7 @@ namespace Microsoft.ML.Data
             public readonly DataViewType ColumnType;
             public readonly bool IsComputed;
             public readonly Delegate Generator;
-            private readonly Dictionary<string, AnnotationInfo> _annotations;
-            public Dictionary<string, AnnotationInfo> Annotations { get { return _annotations; } }
+            public Dictionary<string, AnnotationInfo> Annotations { get; }
             public Type ComputedReturnType { get { return ReturnParameterInfo.ParameterType.GetElementType(); } }
             public Type FieldOrPropertyType => (MemberInfo is FieldInfo) ? (MemberInfo as FieldInfo).FieldType : (MemberInfo as PropertyInfo).PropertyType;
             public Type OutputType => IsComputed ? ComputedReturnType : FieldOrPropertyType;
@@ -74,7 +73,7 @@ namespace Microsoft.ML.Data
                 ColumnType = columnType;
                 IsComputed = generator != null;
                 Generator = generator;
-                _annotations = metadataInfos == null ? new Dictionary<string, AnnotationInfo>()
+                Annotations = metadataInfos == null ? new Dictionary<string, AnnotationInfo>()
                     : metadataInfos.ToDictionary(entry => entry.Key, entry => entry.Value);
 
                 AssertRep();
@@ -121,7 +120,7 @@ namespace Microsoft.ML.Data
 
                 // Checks that the return type of the generator is compatible with ColumnType.
                 GetVectorAndItemType(ComputedReturnType, "return type", out bool isVector, out Type itemType);
-                Contracts.Assert(isVector == ColumnType is VectorType);
+                Contracts.Assert(isVector == ColumnType is VectorDataViewType);
                 Contracts.Assert(itemType == ColumnType.GetItemType().RawType);
             }
         }
@@ -218,7 +217,7 @@ namespace Microsoft.ML.Data
                 Type dataItemType;
                 MemberInfo memberInfo = null;
 
-                if (!col.IsComputed)
+                if (col.Generator == null)
                 {
                     memberInfo = userType.GetField(col.MemberName);
 
@@ -256,13 +255,13 @@ namespace Microsoft.ML.Data
                 {
                     // Infer a type as best we can.
                     PrimitiveDataViewType itemType = ColumnTypeExtensions.PrimitiveTypeFromType(dataItemType);
-                    colType = isVector ? new VectorType(itemType) : (DataViewType)itemType;
+                    colType = isVector ? new VectorDataViewType(itemType) : (DataViewType)itemType;
                 }
                 else
                 {
                     // Make sure that the types are compatible with the declared type, including
                     // whether it is a vector type.
-                    VectorType columnVectorType = col.ColumnType as VectorType;
+                    VectorDataViewType columnVectorType = col.ColumnType as VectorDataViewType;
                     if (isVector != (columnVectorType != null))
                     {
                         throw Contracts.ExceptParam(nameof(userSchemaDefinition), "Column '{0}' is supposed to be {1}, but type of associated field '{2}' is {3}",
@@ -277,9 +276,9 @@ namespace Microsoft.ML.Data
                     colType = col.ColumnType;
                 }
 
-                dstCols[i] = col.IsComputed ?
-                    new Column(colName, colType, col.Generator, col.Annotations)
-                    : new Column(colName, colType, memberInfo, col.Annotations);
+                dstCols[i] = col.Generator != null ?
+                    new Column(colName, colType, col.Generator, col.AnnotationInfos)
+                    : new Column(colName, colType, memberInfo, col.AnnotationInfos);
 
             }
             return new InternalSchemaDefinition(dstCols);

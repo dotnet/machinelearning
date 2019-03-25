@@ -79,14 +79,14 @@ namespace Microsoft.ML.Data
         /// <param name="name">The name of the column.</param>
         /// <param name="getKeyValues">The delegate that does a reverse lookup based upon the given key. This is for annotation creation</param>
         /// <param name="keyCount">The count of unique keys specified in values</param>
-        /// <param name="values">The values to add to the column. Note that since this is creating a <see cref="KeyType"/> column, the values will be offset by 1.</param>
+        /// <param name="values">The values to add to the column. Note that since this is creating a <see cref="KeyDataViewType"/> column, the values will be offset by 1.</param>
         public void AddColumn<T1>(string name, ValueGetter<VBuffer<ReadOnlyMemory<char>>> getKeyValues, ulong keyCount, params T1[] values)
         {
             _host.CheckValue(getKeyValues, nameof(getKeyValues));
             _host.CheckParam(keyCount > 0, nameof(keyCount));
             CheckLength(name, values);
             values.GetType().GetElementType().TryGetDataKind(out InternalDataKind kind);
-            _columns.Add(new AssignmentColumn<T1>(new KeyType(kind.ToType(), keyCount), values));
+            _columns.Add(new AssignmentColumn<T1>(new KeyDataViewType(kind.ToType(), keyCount), values));
             _getKeyValues.Add(name, getKeyValues);
             _names.Add(name);
         }
@@ -475,7 +475,7 @@ namespace Microsoft.ML.Data
                         }
                     }
                 }
-                return new VectorType(itemType, degree);
+                return new VectorDataViewType(itemType, degree);
             }
         }
 

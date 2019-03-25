@@ -54,7 +54,7 @@ namespace Microsoft.ML.Trainers
                 throw Contracts.ExceptParam(nameof(data), "Training data must specify a feature column.");
             var col = data.Schema.Feature.Value;
             Contracts.Assert(!col.IsHidden);
-            if (!(col.Type is VectorType vecType && vecType.Size > 0 && vecType.ItemType == NumberDataViewType.Single))
+            if (!(col.Type is VectorDataViewType vecType && vecType.Size > 0 && vecType.ItemType == NumberDataViewType.Single))
                 throw Contracts.ExceptParam(nameof(data), "Training feature column '{0}' must be a known-size vector of R4, but has type: {1}.", col.Name, col.Type);
         }
 
@@ -70,7 +70,7 @@ namespace Microsoft.ML.Trainers
             Contracts.Assert(data.Schema.Feature.HasValue);
             var col = data.Schema.Feature.Value;
             Contracts.Assert(!col.IsHidden);
-            var colType = col.Type as VectorType;
+            var colType = col.Type as VectorDataViewType;
             Contracts.Assert(colType != null && colType.IsKnownSize);
             Contracts.Assert(colType.ItemType == NumberDataViewType.Single);
             length = colType.Size;
@@ -87,9 +87,9 @@ namespace Microsoft.ML.Trainers
                 throw Contracts.ExceptParam(nameof(data), "Training data must specify a label column.");
             var col = data.Schema.Label.Value;
             Contracts.Assert(!col.IsHidden);
-            if (col.Type != BooleanDataViewType.Instance && col.Type != NumberDataViewType.Single && col.Type != NumberDataViewType.Double && !(col.Type is KeyType keyType && keyType.Count == 2))
+            if (col.Type != BooleanDataViewType.Instance && col.Type != NumberDataViewType.Single && col.Type != NumberDataViewType.Double && !(col.Type is KeyDataViewType keyType && keyType.Count == 2))
             {
-                KeyType colKeyType = col.Type as KeyType;
+                KeyDataViewType colKeyType = col.Type as KeyDataViewType;
                 if (colKeyType != null)
                 {
                     if (colKeyType.Count == 1)
@@ -142,7 +142,7 @@ namespace Microsoft.ML.Trainers
                 throw Contracts.ExceptParam(nameof(data), "Training data must specify a label column.");
             var col = data.Schema.Label.Value;
             Contracts.Assert(!col.IsHidden);
-            if (col.Type is KeyType keyType && keyType.Count > 0)
+            if (col.Type is KeyDataViewType keyType && keyType.Count > 0)
             {
                 if (keyType.Count >= Utils.ArrayMaxSize)
                     throw Contracts.ExceptParam(nameof(data), "Maximum label is too large for multi-class: {0}.", keyType.Count);
@@ -190,7 +190,7 @@ namespace Microsoft.ML.Trainers
                 throw Contracts.ExceptParam(nameof(data), "Training data must specify a label column.");
             var col = data.Schema.Label.Value;
             Contracts.Assert(!col.IsHidden);
-            if (!(col.Type is VectorType vectorType
+            if (!(col.Type is VectorDataViewType vectorType
                 && vectorType.IsKnownSize
                 && vectorType.ItemType == NumberDataViewType.Single))
                 throw Contracts.ExceptParam(nameof(data), "Training label column '{0}' must be a known-size vector of R4, but has type: {1}.", col.Name, col.Type);
@@ -216,7 +216,7 @@ namespace Microsoft.ML.Trainers
                 return;
             var col = data.Schema.Group.Value;
             Contracts.Assert(!col.IsHidden);
-            if (col.Type is KeyType)
+            if (col.Type is KeyDataViewType)
                 return;
             throw Contracts.ExceptParam(nameof(data), "Training group column '{0}' type is invalid: {1}. Must be Key type.", col.Name, col.Type);
         }

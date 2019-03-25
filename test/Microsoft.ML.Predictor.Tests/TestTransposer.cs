@@ -25,7 +25,7 @@ namespace Microsoft.ML.RunTests
         {
             var type = view.Schema[col].Type;
             int rc = checked((int)DataViewUtils.ComputeRowCount(view));
-            var vecType = type as VectorType;
+            var vecType = type as VectorDataViewType;
             var itemType = vecType?.ItemType ?? type;
             Assert.Equal(typeof(T), itemType.RawType);
             Assert.NotEqual(0, vecType?.Size);
@@ -33,7 +33,7 @@ namespace Microsoft.ML.RunTests
 
             using (var cursor = view.GetRowCursor(view.Schema[col]))
             {
-                if (type is VectorType)
+                if (type is VectorDataViewType)
                 {
                     var getter = cursor.GetGetter<VBuffer<T>>(cursor.Schema[col]);
                     VBuffer<T> temp = default;
@@ -68,7 +68,7 @@ namespace Microsoft.ML.RunTests
             Assert.NotNull(trans);
 
             int col = viewCol;
-            VectorType type = trans.GetSlotType(col);
+            VectorDataViewType type = trans.GetSlotType(col);
             DataViewType colType = trans.Schema[col].Type;
             Assert.Equal(view.Schema[viewCol].Name, trans.Schema[col].Name);
             DataViewType expectedType = view.Schema[viewCol].Type;
@@ -77,7 +77,7 @@ namespace Microsoft.ML.RunTests
             Assert.Equal(DataViewUtils.ComputeRowCount(view), type.Size);
             Assert.True(typeof(T) == type.ItemType.RawType, $"{desc} had wrong type for slot cursor");
             Assert.True(type.Size > 0, $"{desc} expected to be known sized vector but is not");
-            int valueCount = (colType as VectorType)?.Size ?? 1;
+            int valueCount = (colType as VectorDataViewType)?.Size ?? 1;
             Assert.True(0 != valueCount, $"{desc} expected to have fixed size, but does not");
             int rc = type.Size;
             T[] expectedVals = NaiveTranspose<T>(view, viewCol);

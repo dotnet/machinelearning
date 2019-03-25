@@ -60,15 +60,15 @@ namespace Microsoft.ML.Data
         public double MicroAccuracy { get; }
 
         /// <summary>
-        /// If <see cref="TopK"/> is positive, this is the relative number of examples where
+        /// If <see cref="TopKPredictionCount"/> is positive, this is the relative number of examples where
         /// the true label is one of the top-k predicted labels by the predictor.
         /// </summary>
         public double TopKAccuracy { get; }
 
         /// <summary>
-        /// If positive, this is the top-K for which the <see cref="TopKAccuracy"/> is calculated.
+        /// If positive, this indicates the K in <see cref="TopKAccuracy"/>.
         /// </summary>
-        public int TopK { get; }
+        public int TopKPredictionCount { get; }
 
         /// <summary>
         /// Gets the log-loss of the classifier for each class.
@@ -82,15 +82,15 @@ namespace Microsoft.ML.Data
         /// </remarks>
         public IReadOnlyList<double> PerClassLogLoss { get; }
 
-        internal MulticlassClassificationMetrics(IExceptionContext ectx, DataViewRow overallResult, int topK)
+        internal MulticlassClassificationMetrics(IExceptionContext ectx, DataViewRow overallResult, int topKPredictionCount)
         {
             double FetchDouble(string name) => RowCursorUtils.Fetch<double>(ectx, overallResult, name);
             MicroAccuracy = FetchDouble(MulticlassClassificationEvaluator.AccuracyMicro);
             MacroAccuracy = FetchDouble(MulticlassClassificationEvaluator.AccuracyMacro);
             LogLoss = FetchDouble(MulticlassClassificationEvaluator.LogLoss);
             LogLossReduction = FetchDouble(MulticlassClassificationEvaluator.LogLossReduction);
-            TopK = topK;
-            if (topK > 0)
+            TopKPredictionCount = topKPredictionCount;
+            if (topKPredictionCount > 0)
                 TopKAccuracy = FetchDouble(MulticlassClassificationEvaluator.TopKAccuracy);
 
             var perClassLogLoss = RowCursorUtils.Fetch<VBuffer<double>>(ectx, overallResult, MulticlassClassificationEvaluator.PerClassLogLoss);
@@ -98,13 +98,13 @@ namespace Microsoft.ML.Data
         }
 
         internal MulticlassClassificationMetrics(double accuracyMicro, double accuracyMacro, double logLoss, double logLossReduction,
-            int topK, double topKAccuracy, double[] perClassLogLoss)
+            int topKPredictionCount, double topKAccuracy, double[] perClassLogLoss)
         {
             MicroAccuracy = accuracyMicro;
             MacroAccuracy = accuracyMacro;
             LogLoss = logLoss;
             LogLossReduction = logLossReduction;
-            TopK = topK;
+            TopKPredictionCount = topKPredictionCount;
             TopKAccuracy = topKAccuracy;
             PerClassLogLoss = perClassLogLoss.ToImmutableArray();
         }

@@ -456,7 +456,7 @@ namespace Microsoft.ML.Trainers
                     using (var buffer = PrepareBuffer())
                     {
                         buffer.Train(ch, rowCount, colCount, cursor, labGetter, matrixRowIndexGetter, matrixColumnIndexGetter);
-                        predictor = new MatrixFactorizationModelParameters(_host, buffer, (KeyType)matrixColumnIndexColInfo.Type, (KeyType)matrixRowIndexColInfo.Type);
+                        predictor = new MatrixFactorizationModelParameters(_host, buffer, (KeyDataViewType)matrixColumnIndexColInfo.Type, (KeyDataViewType)matrixRowIndexColInfo.Type);
                     }
                 }
                 else
@@ -474,7 +474,7 @@ namespace Microsoft.ML.Trainers
                             buffer.TrainWithValidation(ch, rowCount, colCount,
                                 cursor, labGetter, matrixRowIndexGetter, matrixColumnIndexGetter,
                                 validCursor, validLabelGetter, validMatrixRowIndexGetter, validMatrixColumnIndexGetter);
-                            predictor = new MatrixFactorizationModelParameters(_host, buffer, (KeyType)matrixColumnIndexColInfo.Type, (KeyType)matrixRowIndexColInfo.Type);
+                            predictor = new MatrixFactorizationModelParameters(_host, buffer, (KeyDataViewType)matrixColumnIndexColInfo.Type, (KeyDataViewType)matrixRowIndexColInfo.Type);
                         }
                     }
                 }
