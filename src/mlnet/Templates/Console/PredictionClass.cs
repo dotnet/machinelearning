@@ -34,18 +34,19 @@ namespace Microsoft.ML.CLI.Templates.Console
 //*                                                                                       *
 //*****************************************************************************************
 
+using System;
 using Microsoft.ML.Data;
 
 namespace  ");
             
-            #line 14 "E:\src\machinelearning-automl\src\mlnet\Templates\Console\PredictionClass.tt"
+            #line 15 "E:\src\machinelearning-automl\src\mlnet\Templates\Console\PredictionClass.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(Namespace));
             
             #line default
             #line hidden
             this.Write(".Model.DataModels\r\n{\r\n    public class SamplePrediction\r\n    {\r\n");
             
-            #line 18 "E:\src\machinelearning-automl\src\mlnet\Templates\Console\PredictionClass.tt"
+            #line 19 "E:\src\machinelearning-automl\src\mlnet\Templates\Console\PredictionClass.tt"
 if("BinaryClassification".Equals(TaskType)){ 
             
             #line default
@@ -54,7 +55,7 @@ if("BinaryClassification".Equals(TaskType)){
                     "/ its default value, which is the name of the field.\r\n        [ColumnName(\"Predi" +
                     "ctedLabel\")]\r\n        public bool Prediction { get; set; }\r\n\r\n");
             
-            #line 24 "E:\src\machinelearning-automl\src\mlnet\Templates\Console\PredictionClass.tt"
+            #line 25 "E:\src\machinelearning-automl\src\mlnet\Templates\Console\PredictionClass.tt"
  } if("MulticlassClassification".Equals(TaskType)){ 
             
             #line default
@@ -63,34 +64,34 @@ if("BinaryClassification".Equals(TaskType)){
                     "/ its default value, which is the name of the field.\r\n        [ColumnName(\"Predi" +
                     "ctedLabel\")]\r\n        public ");
             
-            #line 28 "E:\src\machinelearning-automl\src\mlnet\Templates\Console\PredictionClass.tt"
+            #line 29 "E:\src\machinelearning-automl\src\mlnet\Templates\Console\PredictionClass.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(PredictionLabelType));
             
             #line default
             #line hidden
             this.Write(" Prediction { get; set; }\r\n");
             
-            #line 29 "E:\src\machinelearning-automl\src\mlnet\Templates\Console\PredictionClass.tt"
+            #line 30 "E:\src\machinelearning-automl\src\mlnet\Templates\Console\PredictionClass.tt"
  }
             
             #line default
             #line hidden
             
-            #line 30 "E:\src\machinelearning-automl\src\mlnet\Templates\Console\PredictionClass.tt"
+            #line 31 "E:\src\machinelearning-automl\src\mlnet\Templates\Console\PredictionClass.tt"
 if("MulticlassClassification".Equals(TaskType)){ 
             
             #line default
             #line hidden
             this.Write("        public float[] Scores { get; set; }\r\n");
             
-            #line 32 "E:\src\machinelearning-automl\src\mlnet\Templates\Console\PredictionClass.tt"
+            #line 33 "E:\src\machinelearning-automl\src\mlnet\Templates\Console\PredictionClass.tt"
 }else{ 
             
             #line default
             #line hidden
             this.Write("        public float Score { get; set; }\r\n");
             
-            #line 34 "E:\src\machinelearning-automl\src\mlnet\Templates\Console\PredictionClass.tt"
+            #line 35 "E:\src\machinelearning-automl\src\mlnet\Templates\Console\PredictionClass.tt"
 }
             
             #line default
@@ -99,7 +100,7 @@ if("MulticlassClassification".Equals(TaskType)){
             return this.GenerationEnvironment.ToString();
         }
         
-        #line 37 "E:\src\machinelearning-automl\src\mlnet\Templates\Console\PredictionClass.tt"
+        #line 38 "E:\src\machinelearning-automl\src\mlnet\Templates\Console\PredictionClass.tt"
 
 public string TaskType {get;set;}
 public string PredictionLabelType {get;set;}

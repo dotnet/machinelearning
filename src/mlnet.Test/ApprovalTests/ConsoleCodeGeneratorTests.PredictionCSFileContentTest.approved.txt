@@ -4,6 +4,7 @@
 //*                                                                                       *
 //*****************************************************************************************
 
+using System;
 using Microsoft.ML.Data;
 
 namespace TestNamespace.Model.DataModels
