@@ -9,7 +9,6 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
@@ -300,14 +299,14 @@ namespace Microsoft.ML.Transforms.Text
         private protected override void CheckInputColumn(DataViewSchema inputSchema, int col, int srcCol)
         {
             var colType = inputSchema[srcCol].Type;
-            if (!(colType is VectorType vectorType && vectorType.ItemType is TextDataViewType))
+            if (!(colType is VectorDataViewType vectorType && vectorType.ItemType is TextDataViewType))
                 throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", ColumnPairs[col].inputColumnName, "Text", inputSchema[srcCol].Type.ToString());
         }
 
         private sealed class Mapper : OneToOneMapperBase, ISaveAsOnnx
         {
             private readonly WordEmbeddingTransformer _parent;
-            private readonly VectorType _outputType;
+            private readonly VectorDataViewType _outputType;
 
             public Mapper(WordEmbeddingTransformer parent, DataViewSchema inputSchema)
                 : base(parent.Host.Register(nameof(Mapper)), parent, inputSchema)
@@ -320,7 +319,7 @@ namespace Microsoft.ML.Transforms.Text
                 {
                     _parent.CheckInputColumn(inputSchema, i, ColMapNewToOld[i]);
                 }
-                _outputType = new VectorType(NumberDataViewType.Single, 3 * _parent._currentVocab.Dimension);
+                _outputType = new VectorDataViewType(NumberDataViewType.Single, 3 * _parent._currentVocab.Dimension);
             }
 
             public bool CanSaveOnnx(OnnxContext ctx) => true;
@@ -550,7 +549,7 @@ namespace Microsoft.ML.Transforms.Text
                 Host.Assert(0 <= iinfo && iinfo < _parent.ColumnPairs.Length);
 
                 var column = input.Schema[ColMapNewToOld[iinfo]];
-                Host.Assert(column.Type is VectorType);
+                Host.Assert(column.Type is VectorDataViewType);
                 Host.Assert(column.Type.GetItemType() is TextDataViewType);
 
                 var srcGetter = input.GetGetter<VBuffer<ReadOnlyMemory<char>>>(column);
@@ -829,7 +828,8 @@ namespace Microsoft.ML.Transforms.Text
         /// <summary>
         /// Information for each column pair.
         /// </summary>
-        public sealed class ColumnOptions
+        [BestFriend]
+        internal sealed class ColumnOptions
         {
             /// <summary>
             /// Name of the column resulting from the transformation of <cref see="InputColumnName"/>.
@@ -868,7 +868,7 @@ namespace Microsoft.ML.Transforms.Text
                 if (!inputSchema.TryFindColumn(colInfo.InputColumnName, out var col))
                     throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.InputColumnName);
                 if (!(col.ItemType is TextDataViewType) || (col.Kind != SchemaShape.Column.VectorKind.VariableVector && col.Kind != SchemaShape.Column.VectorKind.Vector))
-                    throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.InputColumnName, new VectorType(TextDataViewType.Instance).ToString(), col.GetTypeString());
+                    throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.InputColumnName, new VectorDataViewType(TextDataViewType.Instance).ToString(), col.GetTypeString());
 
                 result[colInfo.Name] = new SchemaShape.Column(colInfo.Name, SchemaShape.Column.VectorKind.Vector, NumberDataViewType.Single, false);
             }

@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System.IO;
-using Microsoft.Data.DataView;
 using Microsoft.ML.Functional.Tests.Datasets;
 using Microsoft.ML.TestFramework;
 using Xunit;

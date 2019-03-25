@@ -7,7 +7,6 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Security;
 using System.Text;
-using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
@@ -220,7 +219,7 @@ namespace Microsoft.ML.Transforms
         // Check if the input column's type is supported. Note that only float vector with a known shape is allowed.
         internal static string TestColumn(DataViewType type)
         {
-            VectorType vectorType = type as VectorType;
+            VectorDataViewType vectorType = type as VectorDataViewType;
             DataViewType itemType = vectorType?.ItemType ?? type;
             if ((vectorType != null && !vectorType.IsKnownSize && vectorType.Dimensions.Length > 1)
                 || itemType != NumberDataViewType.Single)
@@ -308,7 +307,7 @@ namespace Microsoft.ML.Transforms
 
             for (int i = 0; i < columns.Length; i++)
             {
-                VectorType vectorType = srcTypes[i] as VectorType;
+                VectorDataViewType vectorType = srcTypes[i] as VectorDataViewType;
                 ch.Assert(vectorType != null && vectorType.IsKnownSize);
                 // Use not more than MaxRow number of rows.
                 var ex = columns[i];
@@ -589,7 +588,7 @@ namespace Microsoft.ML.Transforms
                     InputSchema.TryGetColumnIndex(_parent.ColumnPairs[iinfo].inputColumnName, out int colIndex);
                     Host.Assert(colIndex >= 0);
                     var info = _parent._columns[iinfo];
-                    DataViewType outType = (info.Kind == WhiteningKind.PrincipalComponentAnalysis && info.Rank > 0) ? new VectorType(NumberDataViewType.Single, info.Rank) : _srcTypes[iinfo];
+                    DataViewType outType = (info.Kind == WhiteningKind.PrincipalComponentAnalysis && info.Rank > 0) ? new VectorDataViewType(NumberDataViewType.Single, info.Rank) : _srcTypes[iinfo];
                     result[iinfo] = new DataViewSchema.DetachedColumn(_parent.ColumnPairs[iinfo].outputColumnName, outType, null);
                 }
                 return result;
@@ -683,7 +682,8 @@ namespace Microsoft.ML.Transforms
         /// <summary>
         /// Describes how the transformer handles one column pair.
         /// </summary>
-        public sealed class ColumnOptions
+        [BestFriend]
+        internal sealed class ColumnOptions
         {
             /// <summary>
             /// Name of the column resulting from the transformation of <see cref="InputColumnName"/>.

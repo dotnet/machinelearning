@@ -7,7 +7,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
-using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
@@ -399,7 +398,7 @@ namespace Microsoft.ML.Transforms
                     }
 
                     var colType = schema[colSrc].Type;
-                    if (colType is VectorType vectorType && !vectorType.IsKnownSize)
+                    if (colType is VectorDataViewType vectorType && !vectorType.IsKnownSize)
                     {
                         throw _host.ExceptUserArg(nameof(MutualInformationFeatureSelectingEstimator.Options.Columns),
                             "Variable length column '{0}' is not allowed", colName);

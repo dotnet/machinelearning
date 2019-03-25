@@ -7,7 +7,6 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
-using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.Data;
 using Microsoft.ML.Model.OnnxConverter;
@@ -64,7 +63,8 @@ namespace Microsoft.ML.Transforms
             SupervisedBinning = 4
         }
 
-        public abstract class ColumnOptionsBase
+        [BestFriend]
+        internal abstract class ColumnOptionsBase
         {
             public readonly string Name;
             public readonly string InputColumnName;
@@ -103,7 +103,7 @@ namespace Microsoft.ML.Transforms
             }
         }
 
-        public abstract class ControlZeroColumnOptionsBase : ColumnOptionsBase
+        internal abstract class ControlZeroColumnOptionsBase : ColumnOptionsBase
         {
             public readonly bool EnsureZeroUntouched;
 
@@ -114,7 +114,8 @@ namespace Microsoft.ML.Transforms
             }
         }
 
-        public sealed class MinMaxColumnOptions : ControlZeroColumnOptionsBase
+        [BestFriend]
+        internal sealed class MinMaxColumnOptions : ControlZeroColumnOptionsBase
         {
             public MinMaxColumnOptions(string outputColumnName, string inputColumnName = null, long maximumExampleCount = Defaults.MaximumExampleCount, bool ensureZeroUntouched = Defaults.EnsureZeroUntouched)
                 : base(outputColumnName, inputColumnName ?? outputColumnName, maximumExampleCount, ensureZeroUntouched)
@@ -125,7 +126,8 @@ namespace Microsoft.ML.Transforms
                 => NormalizeTransform.MinMaxUtils.CreateBuilder(this, host, srcIndex, srcType, cursor);
         }
 
-        public sealed class MeanVarianceColumnOptions : ControlZeroColumnOptionsBase
+        [BestFriend]
+        internal sealed class MeanVarianceColumnOptions : ControlZeroColumnOptionsBase
         {
             public readonly bool UseCdf;
 
@@ -140,7 +142,8 @@ namespace Microsoft.ML.Transforms
                 => NormalizeTransform.MeanVarUtils.CreateBuilder(this, host, srcIndex, srcType, cursor);
         }
 
-        public sealed class LogMeanVarianceColumnOptions : ColumnOptionsBase
+        [BestFriend]
+        internal sealed class LogMeanVarianceColumnOptions : ColumnOptionsBase
         {
             public readonly bool UseCdf;
 
@@ -155,7 +158,8 @@ namespace Microsoft.ML.Transforms
                 => NormalizeTransform.LogMeanVarUtils.CreateBuilder(this, host, srcIndex, srcType, cursor);
         }
 
-        public sealed class BinningColumnOptions : ControlZeroColumnOptionsBase
+        [BestFriend]
+        internal sealed class BinningColumnOptions : ControlZeroColumnOptionsBase
         {
             public readonly int MaximumBinCount;
 
@@ -170,7 +174,8 @@ namespace Microsoft.ML.Transforms
                 => NormalizeTransform.BinUtils.CreateBuilder(this, host, srcIndex, srcType, cursor);
         }
 
-        public sealed class SupervisedBinningColumOptions : ControlZeroColumnOptionsBase
+        [BestFriend]
+        internal sealed class SupervisedBinningColumOptions : ControlZeroColumnOptionsBase
         {
             public readonly int MaximumBinCount;
             public readonly string LabelColumnName;
@@ -309,7 +314,8 @@ namespace Microsoft.ML.Transforms
                 loaderAssemblyName: typeof(NormalizingTransformer).Assembly.FullName);
         }
 
-        public sealed class ColumnOptions
+        [BestFriend]
+        internal sealed class ColumnOptions
         {
             public readonly string Name;
             public readonly string InputColumnName;
@@ -342,7 +348,7 @@ namespace Microsoft.ML.Transforms
                 Contracts.CheckDecode(itemKind == InternalDataKind.R4 || itemKind == InternalDataKind.R8);
 
                 var itemType = ColumnTypeExtensions.PrimitiveTypeFromKind(itemKind);
-                return isVector ? (DataViewType)(new VectorType(itemType, vectorSize)) : itemType;
+                return isVector ? (DataViewType)(new VectorDataViewType(itemType, vectorSize)) : itemType;
             }
 
             internal static void SaveType(ModelSaveContext ctx, DataViewType type)
@@ -352,7 +358,7 @@ namespace Microsoft.ML.Transforms
                 //   - bool: is vector
                 //   - int: vector size
                 //   - byte: ItemKind of input column (only R4 and R8 are valid)
-                VectorType vectorType = type as VectorType;
+                VectorDataViewType vectorType = type as VectorDataViewType;
                 ctx.Writer.Write(vectorType != null);
 
                 Contracts.Assert(vectorType == null || vectorType.IsKnownSize);
@@ -456,6 +462,7 @@ namespace Microsoft.ML.Transforms
 
                     while (cursor.MoveNext())
                     {
+                        env.CheckAlive();
                         // If the row has bad values, the good values are still being used for training.
                         // The comparisons in the code below are arranged so that NaNs in the input are not recorded.
                         // REVIEW: Should infinities and/or NaNs be filtered before the normalization? Should we not record infinities for min/max?
@@ -466,7 +473,7 @@ namespace Microsoft.ML.Transforms
                             if (!needMoreData[i])
                                 continue;
                             var info = columns[i];
-                            env.Assert(!(srcTypes[i] is VectorType vectorType) || vectorType.IsKnownSize);
+                            env.Assert(!(srcTypes[i] is VectorDataViewType vectorType) || vectorType.IsKnownSize);
                             env.Assert(functionBuilders[i] != null);
                             any |= needMoreData[i] = functionBuilders[i].ProcessValue();
                         }
@@ -584,7 +591,7 @@ namespace Microsoft.ML.Transforms
             const string expectedType = "scalar or known-size vector of R4";
 
             var colType = inputSchema[srcCol].Type;
-            VectorType vectorType = colType as VectorType;
+            VectorDataViewType vectorType = colType as VectorDataViewType;
             if (vectorType != null && !vectorType.IsKnownSize)
                 throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", ColumnPairs[col].inputColumnName, expectedType, "variable-size vector");
             DataViewType itemType = vectorType?.ItemType ?? colType;

@@ -9,7 +9,6 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Threading;
-using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
@@ -375,7 +374,7 @@ namespace Microsoft.ML.Transforms.Text
                     if (!StopWordsRemovingEstimator.IsColumnTypeValid(srcType))
                         throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", parent._columns[i].InputColumnName, StopWordsRemovingEstimator.ExpectedColumnType, srcType.ToString());
 
-                    _types[i] = new VectorType(TextDataViewType.Instance);
+                    _types[i] = new VectorDataViewType(TextDataViewType.Instance);
                     if (!string.IsNullOrEmpty(_parent._columns[i].LanguageColumn))
                     {
                         if (!inputSchema.TryGetColumnIndex(_parent._columns[i].LanguageColumn, out int langCol))
@@ -491,9 +490,26 @@ namespace Microsoft.ML.Transforms.Text
     public sealed class StopWordsRemovingEstimator : TrivialEstimator<StopWordsRemovingTransformer>
     {
         /// <summary>
+        /// Use stop words remover that can remove language-specific list of stop words (most common words) already defined in the system.
+        /// </summary>
+        public sealed class Options : IStopWordsRemoverOptions
+        {
+            /// <summary>
+            /// Language of the text dataset. 'English' is default.
+            /// </summary>
+            public TextFeaturizingEstimator.Language Language;
+
+            public Options()
+            {
+                Language = TextFeaturizingEstimator.DefaultLanguage;
+            }
+        }
+
+        /// <summary>
         /// Describes how the transformer handles one column pair.
         /// </summary>
-        public sealed class ColumnOptions
+        [BestFriend]
+        internal sealed class ColumnOptions
         {
             /// <summary>Name of the column resulting from the transformation of <see cref="InputColumnName"/>.</summary>
             public readonly string Name;
@@ -556,7 +572,7 @@ namespace Microsoft.ML.Transforms.Text
         }
 
         internal static bool IsColumnTypeValid(DataViewType type) =>
-            type is VectorType vectorType && vectorType.ItemType is TextDataViewType;
+            type is VectorDataViewType vectorType && vectorType.ItemType is TextDataViewType;
 
         internal const string ExpectedColumnType = "vector of Text type";
 
@@ -700,7 +716,7 @@ namespace Microsoft.ML.Transforms.Text
                 loaderAssemblyName: typeof(CustomStopWordsRemovingTransformer).Assembly.FullName);
         }
 
-        private static readonly DataViewType _outputType = new VectorType(TextDataViewType.Instance);
+        private static readonly DataViewType _outputType = new VectorDataViewType(TextDataViewType.Instance);
 
         private readonly NormStr.Pool _stopWordsMap;
         private const string RegistrationName = "CustomStopWordsRemover";
@@ -1005,7 +1021,7 @@ namespace Microsoft.ML.Transforms.Text
                     if (!StopWordsRemovingEstimator.IsColumnTypeValid(srcType))
                         throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", parent.ColumnPairs[i].inputColumnName, StopWordsRemovingEstimator.ExpectedColumnType, srcType.ToString());
 
-                    _types[i] = new VectorType(TextDataViewType.Instance);
+                    _types[i] = new VectorDataViewType(TextDataViewType.Instance);
                 }
             }
 
@@ -1066,6 +1082,17 @@ namespace Microsoft.ML.Transforms.Text
     /// </summary>
     public sealed class CustomStopWordsRemovingEstimator : TrivialEstimator<CustomStopWordsRemovingTransformer>
     {
+        /// <summary>
+        /// Use stop words remover that can removes language-specific list of stop words (most common words) already defined in the system.
+        /// </summary>
+        public sealed class Options : IStopWordsRemoverOptions
+        {
+            /// <summary>
+            /// List of stop words to remove.
+            /// </summary>
+            public string[] StopWords;
+        }
+
         internal const string ExpectedColumnType = "vector of Text type";
 
         /// <summary>

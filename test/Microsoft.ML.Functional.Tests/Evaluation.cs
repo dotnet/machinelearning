@@ -65,7 +65,7 @@ namespace Microsoft.ML.Functional.Tests
             var pipeline = mlContext.Transforms.Text.FeaturizeText("Features", "SentimentText")
                 .AppendCacheCheckpoint(mlContext)
                 .Append(mlContext.BinaryClassification.Trainers.SdcaNonCalibrated(
-                    new SdcaNonCalibratedBinaryClassificationTrainer.Options { NumberOfThreads = 1 }));
+                    new SdcaNonCalibratedBinaryTrainer.Options { NumberOfThreads = 1 }));
 
             // Train the model.
             var model = pipeline.Fit(data);
@@ -94,7 +94,7 @@ namespace Microsoft.ML.Functional.Tests
             var pipeline = mlContext.Transforms.Text.FeaturizeText("Features", "SentimentText")
                 .AppendCacheCheckpoint(mlContext)
                 .Append(mlContext.BinaryClassification.Trainers.LogisticRegression(
-                    new LogisticRegressionBinaryClassificationTrainer.Options { NumberOfThreads = 1 }));
+                    new LogisticRegressionBinaryTrainer.Options { NumberOfThreads = 1 }));
 
             // Train the model.
             var model = pipeline.Fit(data);
@@ -151,8 +151,8 @@ namespace Microsoft.ML.Functional.Tests
             var pipeline = mlContext.Transforms.Concatenate("Features", Iris.Features)
                 .Append(mlContext.Transforms.Conversion.MapValueToKey("Label"))
                 .AppendCacheCheckpoint(mlContext)
-                .Append(mlContext.MulticlassClassification.Trainers.Sdca(
-                    new SdcaMulticlassClassificationTrainer.Options { NumberOfThreads = 1}));
+                .Append(mlContext.MulticlassClassification.Trainers.SdcaCalibrated(
+                    new SdcaCalibratedMulticlassTrainer.Options { NumberOfThreads = 1}));
 
             // Train the model.
             var model = pipeline.Fit(data);
@@ -187,7 +187,7 @@ namespace Microsoft.ML.Functional.Tests
 
             // Evaluate the model.
             var scoredData = model.Transform(data);
-            var metrics = mlContext.Ranking.Evaluate(scoredData, label: "Label", groupId: "GroupId");
+            var metrics = mlContext.Ranking.Evaluate(scoredData, labelColumnName: "Label", rowGroupColumnName: "GroupId");
 
             // Check that the metrics returned are valid.
             Common.AssertMetrics(metrics);
@@ -274,7 +274,7 @@ namespace Microsoft.ML.Functional.Tests
             var pipeline = mlContext.Transforms.Text.FeaturizeText("Features", "SentimentText")
                 .AppendCacheCheckpoint(mlContext)
                 .Append(mlContext.BinaryClassification.Trainers.LogisticRegression(
-                    new LogisticRegressionBinaryClassificationTrainer.Options { NumberOfThreads = 1 }));
+                    new LogisticRegressionBinaryTrainer.Options { NumberOfThreads = 1 }));
 
             // Train the model.
             var model = pipeline.Fit(data);

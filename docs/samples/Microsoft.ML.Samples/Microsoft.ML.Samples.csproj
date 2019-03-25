@@ -3,6 +3,7 @@
   <PropertyGroup>
     <TargetFramework>netcoreapp2.1</TargetFramework>
     <OutputType>Exe</OutputType>
+    <WarningsNotAsErrors>649</WarningsNotAsErrors>
   </PropertyGroup>
 
   <ItemGroup>
@@ -26,6 +27,26 @@
     <NativeAssemblyReference Include="FactorizationMachineNative" />
     <NativeAssemblyReference Include="LdaNative" />
     <NativeAssemblyReference Include="SymSgdNative" />
+    <None Include="Dynamic\Trainers\BinaryClassification\FastForest.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>FastForest.tt</DependentUpon>
+    </None>
+    <None Include="Dynamic\Trainers\BinaryClassification\FastForestWithOptions.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>FastForestWithOptions.tt</DependentUpon>
+    </None>
+    <None Include="Dynamic\Trainers\BinaryClassification\FastTree.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>FastTree.tt</DependentUpon>
+    </None>
+    <None Include="Dynamic\Trainers\BinaryClassification\FastTreeWithOptions.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>FastTreeWithOptions.tt</DependentUpon>
+    </None>
     <PackageReference Include="Microsoft.ML.TensorFlow.Redist" Version="0.10.0" />
     
     <ProjectReference Include="..\..\..\src\Microsoft.ML.Analyzer\Microsoft.ML.Analyzer.csproj">
@@ -33,6 +54,88 @@
       <OutputItemType>Analyzer</OutputItemType>
     </ProjectReference>
     
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="Dynamic\Trainers\BinaryClassification\FastForest.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>FastForest.cs</LastGenOutput>
+    </None>
+    <None Update="Dynamic\Trainers\BinaryClassification\FastForestWithOptions.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>FastForestWithOptions.cs</LastGenOutput>
+    </None>
+    <None Update="Dynamic\Trainers\BinaryClassification\FastTree.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>FastTree.cs</LastGenOutput>
+    </None>
+    <None Update="Dynamic\Trainers\BinaryClassification\FastTreeWithOptions.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>FastTreeWithOptions.cs</LastGenOutput>
+    </None>
+    <None Update="Dynamic\Trainers\Regression\OnlineGradientDescent.tt">
+      <LastGenOutput>OnlineGradientDescent.cs</LastGenOutput>
+      <Generator>TextTemplatingFileGenerator</Generator>
+    </None>
+    <None Update="Dynamic\Trainers\Regression\OnlineGradientDescentWithOptions.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>OnlineGradientDescentWithOptions.cs</LastGenOutput>
+    </None>
+    <None Update="Dynamic\Trainers\Regression\PoissonRegression.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>PoissonRegression.cs</LastGenOutput>
+    </None>
+    <None Update="Dynamic\Trainers\Regression\PoissonRegressionWithOptions.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>PoissonRegressionWithOptions.cs</LastGenOutput>
+    </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Service Include="{508349b6-6b84-4df5-91f0-309beebad82d}" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="Dynamic\Trainers\BinaryClassification\FastForest.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>FastForest.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Dynamic\Trainers\BinaryClassification\FastForestWithOptions.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>FastForestWithOptions.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Dynamic\Trainers\BinaryClassification\FastTree.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>FastTree.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Dynamic\Trainers\BinaryClassification\FastTreeWithOptions.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>FastTreeWithOptions.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Dynamic\Trainers\Regression\OnlineGradientDescent.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>OnlineGradientDescent.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Dynamic\Trainers\Regression\OnlineGradientDescentWithOptions.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>OnlineGradientDescentWithOptions.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Dynamic\Trainers\Regression\PoissonRegression.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>PoissonRegression.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Dynamic\Trainers\Regression\PoissonRegressionWithOptions.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>PoissonRegressionWithOptions.tt</DependentUpon>
+    </Compile>
   </ItemGroup>
 
 </Project>

@@ -115,6 +115,9 @@ namespace Microsoft.ML.Trainers
         internal abstract IComponentFactory<IScalarLoss> LossFunctionFactory { get; }
     }
 
+    /// <summary>
+    /// Base class for averaged linear trainers.
+    /// </summary>
     public abstract class AveragedLinearTrainer<TTransformer, TModel> : OnlineLinearTrainer<TTransformer, TModel>
         where TTransformer : ISingleFeaturePredictionTransformer<TModel>
         where TModel : class

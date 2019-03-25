@@ -8,7 +8,6 @@ using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.Calibrators;
 using Microsoft.ML.CommandLine;
@@ -131,16 +130,16 @@ namespace Microsoft.ML.Trainers
 
                 // REVIEW: restoring the RoleMappedData, as much as we can.
                 // not having the weight column on the data passed to the TrainCalibrator should be addressed.
-                var trainedData = new RoleMappedData(view, label: trainerLabel, feature: transformer.FeatureColumn);
+                var trainedData = new RoleMappedData(view, label: trainerLabel, feature: transformer.FeatureColumnName);
 
                 if (calibratedModel == null)
                     calibratedModel = CalibratorUtils.GetCalibratedPredictor(Host, ch, Calibrator, transformer.Model, trainedData, Args.MaxCalibrationExamples) as TDistPredictor;
 
                 Host.Check(calibratedModel != null, "Calibrated predictor does not implement the expected interface");
-                return new BinaryPredictionTransformer<TScalarPredictor>(Host, calibratedModel, trainedData.Data.Schema, transformer.FeatureColumn);
+                return new BinaryPredictionTransformer<TScalarPredictor>(Host, calibratedModel, trainedData.Data.Schema, transformer.FeatureColumnName);
             }
 
-            return new BinaryPredictionTransformer<TScalarPredictor>(Host, transformer.Model, view.Schema, transformer.FeatureColumn);
+            return new BinaryPredictionTransformer<TScalarPredictor>(Host, transformer.Model, view.Schema, transformer.FeatureColumnName);
         }
 
         private IDataView MapLabels(RoleMappedData data, int cls)
@@ -182,7 +181,7 @@ namespace Microsoft.ML.Trainers
                     if (i == 0)
                     {
                         var transformer = TrainOne(ch, Trainer, td, i);
-                        featureColumn = transformer.FeatureColumn;
+                        featureColumn = transformer.FeatureColumnName;
                     }
 
                     predictors[i] = TrainOne(ch, Trainer, td, i).Model;
@@ -314,7 +313,7 @@ namespace Microsoft.ML.Trainers
             Host.Assert(Utils.Size(impl.Predictors) > 0);
 
             _impl = impl;
-            DistType = new VectorType(NumberDataViewType.Single, _impl.Predictors.Length);
+            DistType = new VectorDataViewType(NumberDataViewType.Single, _impl.Predictors.Length);
         }
 
         private OneVersusAllModelParameters(IHostEnvironment env, ModelLoadContext ctx)
@@ -340,7 +339,7 @@ namespace Microsoft.ML.Trainers
                 _impl = new ImplRaw(predictors);
             }
 
-            DistType = new VectorType(NumberDataViewType.Single, _impl.Predictors.Length);
+            DistType = new VectorDataViewType(NumberDataViewType.Single, _impl.Predictors.Length);
         }
 
         private static OneVersusAllModelParameters Create(IHostEnvironment env, ModelLoadContext ctx)
@@ -448,7 +447,7 @@ namespace Microsoft.ML.Trainers
             public abstract ValueMapper<VBuffer<float>, VBuffer<float>> GetMapper();
             public abstract JToken SaveAsPfa(BoundPfaContext ctx, JToken input);
 
-            protected bool IsValid(IValueMapper mapper, ref VectorType inputType)
+            protected bool IsValid(IValueMapper mapper, ref VectorDataViewType inputType)
             {
                 Contracts.AssertValueOrNull(mapper);
                 Contracts.AssertValueOrNull(inputType);
@@ -457,7 +456,7 @@ namespace Microsoft.ML.Trainers
                     return false;
                 if (mapper.OutputType != NumberDataViewType.Single)
                     return false;
-                if (!(mapper.InputType is VectorType mapperVectorType) || mapperVectorType.ItemType != NumberDataViewType.Single)
+                if (!(mapper.InputType is VectorDataViewType mapperVectorType) || mapperVectorType.ItemType != NumberDataViewType.Single)
                     return false;
                 if (inputType == null)
                     inputType = mapperVectorType;
@@ -483,7 +482,7 @@ namespace Microsoft.ML.Trainers
                 Contracts.CheckNonEmpty(predictors, nameof(predictors));
 
                 Predictors = new IValueMapper[predictors.Length];
-                VectorType inputType = null;
+                VectorDataViewType inputType = null;
                 for (int i = 0; i < predictors.Length; i++)
                 {
                     var vm = predictors[i] as IValueMapper;
@@ -548,7 +547,7 @@ namespace Microsoft.ML.Trainers
                 Contracts.Check(Utils.Size(predictors) > 0);
 
                 _mappers = new IValueMapperDist[predictors.Length];
-                VectorType inputType = null;
+                VectorDataViewType inputType = null;
                 for (int i = 0; i < predictors.Length; i++)
                 {
                     var vm = predictors[i];
@@ -560,7 +559,7 @@ namespace Microsoft.ML.Trainers
                 InputType = inputType;
             }
 
-            private bool IsValid(IValueMapperDist mapper, ref VectorType inputType)
+            private bool IsValid(IValueMapperDist mapper, ref VectorDataViewType inputType)
             {
                 return base.IsValid(mapper, ref inputType) && mapper.DistType == NumberDataViewType.Single;
             }
@@ -659,7 +658,7 @@ namespace Microsoft.ML.Trainers
                 Contracts.CheckNonEmpty(predictors, nameof(predictors));
 
                 Predictors = new IValueMapper[predictors.Length];
-                VectorType inputType = null;
+                VectorDataViewType inputType = null;
                 for (int i = 0; i < predictors.Length; i++)
                 {
                     var vm = predictors[i] as IValueMapper;

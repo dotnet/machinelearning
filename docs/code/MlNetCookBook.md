@@ -244,7 +244,7 @@ We tried to make `Preview` debugger-friendly: our expectation is that, if you en
 Here is the code sample:
 ```csharp
 var estimator = mlContext.Transforms.Categorical.MapValueToKey("Label")
-    .Append(mlContext.MulticlassClassification.Trainers.Sdca())
+    .Append(mlContext.MulticlassClassification.Trainers.SdcaCalibrated())
     .Append(mlContext.Transforms.Conversion.MapKeyToValue("PredictedLabel"));
 
 var data = mlContext.Data.LoadFromTextFile(new TextLoader.Column[] {
@@ -376,26 +376,25 @@ var testData = mlContext.Data.LoadFromTextFile<AdultData>(testDataPath,
     separatorChar: ','
 );
 // Calculate metrics of the model on the test data.
-var metrics = mlContext.Regression.Evaluate(model.Transform(testData), label: "Target");
+var metrics = mlContext.Regression.Evaluate(model.Transform(testData), labelColumnName: "Target");
 ```
 
 ## How do I save and load the model?
 
 Assuming that the model metrics look good to you, it's time to 'operationalize' the model. This is where ML.NET really shines: the `model` object you just built is ready for immediate consumption, it will apply all the same steps that it has 'learned' during training, and it can be persisted and reused in different environments.
 
-Here's what you do to save the model to a file, and reload it (potentially in a different context).
+Here's what you do to save the model as well as its input schema to a file, and reload it (potentially in a different context).
 
 ```csharp
-using (var stream = File.Create(modelPath))
-{
-    mlContext.Model.Save(model, stream);
-}
+// Saving and loading happens to transformers. We save the input schema with this model.
+mlContext.Model.Save(model, trainData.Schema, modelPath);
 
 // Potentially, the lines below can be in a different process altogether.
-ITransformer loadedModel;
-using (var stream = File.OpenRead(modelPath))
-    loadedModel = mlContext.Model.Load(stream);
+// When you load the model, it's a non-specific ITransformer. We also recover
+// the original schema.
+ITransformer loadedModel = mlContext.Model.Load(modelPath, out var schema);
 ```
+
 ## How do I use the model to make one prediction?
 
 Since any ML.NET model is a transformer, you can of course use `model.Transform` to apply the model to the 'data view' and obtain predictions this way. 
@@ -423,7 +422,7 @@ var pipeline =
     // Cache data in memory for steps after the cache check point stage.
     .AppendCacheCheckpoint(mlContext)
     // Use the multi-class SDCA model to predict the label using features.
-    .Append(mlContext.MulticlassClassification.Trainers.Sdca())
+    .Append(mlContext.MulticlassClassification.Trainers.SdcaCalibrated())
     // Apply the inverse conversion from 'PredictedLabel' column back to string value.
     .Append(mlContext.Transforms.Conversion.MapKeyToValue(("PredictedLabel", "Data")));
 
@@ -547,13 +546,13 @@ var pipeline =
     // Cache data in memory for steps after the cache check point stage.
     .AppendCacheCheckpoint(mlContext)
     // Use the multi-class SDCA model to predict the label using features.
-    .Append(mlContext.MulticlassClassification.Trainers.Sdca());
+    .Append(mlContext.MulticlassClassification.Trainers.SdcaCalibrated());
 
 // Train the model.
 var trainedModel = pipeline.Fit(trainData);
 
 // Inspect the model parameters. 
-var modelParameters = trainedModel.LastTransformer.Model as MulticlassLogisticRegressionModelParameters;
+var modelParameters = trainedModel.LastTransformer.Model as MaximumEntropyModelParameters;
 
 // Now we can use 'modelParameters' to look at the weights.
 // 'weights' will be an array of weight vectors, one vector per class.
@@ -822,7 +821,7 @@ var pipeline =
     // Notice that unused part in the data may not be cached.
     .AppendCacheCheckpoint(mlContext)
     // Use the multi-class SDCA model to predict the label using features.
-    .Append(mlContext.MulticlassClassification.Trainers.Sdca());
+    .Append(mlContext.MulticlassClassification.Trainers.SdcaCalibrated());
 
 // Split the data 90:10 into train and test sets, train and evaluate.
 var split = mlContext.Data.TrainTestSplit(data, testFraction: 0.1);
@@ -1018,7 +1017,5 @@ using (var fs = File.Create(modelPath))
 newContext.ComponentCatalog.RegisterAssembly(typeof(CustomMappings).Assembly);
 
 // Now we can load the model.
-ITransformer loadedModel;
-using (var fs = File.OpenRead(modelPath))
-    loadedModel = newContext.Model.Load(fs);
+ITransformer loadedModel = newContext.Model.Load(modelPath, out var schema);
 ```

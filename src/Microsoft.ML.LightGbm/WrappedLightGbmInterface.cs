@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Runtime.InteropServices;
+using System.Text;
 using Microsoft.ML.Runtime;
 
 namespace Microsoft.ML.Trainers.LightGbm
@@ -223,6 +224,32 @@ namespace Microsoft.ML.Trainers.LightGbm
             foreach (var keyVal in parameters)
                 res.Add(keyVal.Key + "=" + string.Format(CultureInfo.InvariantCulture, "{0}", keyVal.Value));
             return string.Join(" ", res);
+        }
+
+        /// <summary>
+        /// Helper function used for generating the LightGbm argument name.
+        /// When given a name, this will convert the name to lower-case with underscores.
+        /// The underscore will be placed when an upper-case letter is encountered.
+        /// </summary>
+        public static string GetOptionName(string name)
+        {
+            // Otherwise convert the name to the light gbm argument
+            StringBuilder strBuf = new StringBuilder();
+            bool first = true;
+            foreach (char c in name)
+            {
+                if (char.IsUpper(c))
+                {
+                    if (first)
+                        first = false;
+                    else
+                        strBuf.Append('_');
+                    strBuf.Append(char.ToLower(c));
+                }
+                else
+                    strBuf.Append(c);
+            }
+            return strBuf.ToString();
         }
 
         /// <summary>

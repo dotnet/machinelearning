@@ -16,7 +16,6 @@ namespace Microsoft.ML
     {
         /// <summary>
         /// Predict a target using a linear regression model trained with the <see cref="OlsTrainer"/>.
-        /// It uses ordinary least squares (OLS) for estimating the parameters of the linear regression model.
         /// </summary>
         /// <param name="catalog">The <see cref="RegressionCatalog"/>.</param>
         /// <param name="labelColumnName">The name of the label column.</param>
@@ -48,7 +47,6 @@ namespace Microsoft.ML
 
         /// <summary>
         /// Predict a target using a linear regression model trained with the <see cref="OlsTrainer"/>.
-        /// It uses ordinary least squares (OLS) for estimating the parameters of the linear regression model.
         /// </summary>
         /// <param name="catalog">The <see cref="RegressionCatalog"/>.</param>
         /// <param name="options">Algorithm advanced options. See <see cref="OlsTrainer.Options"/>.</param>
@@ -142,6 +140,7 @@ namespace Microsoft.ML
         /// <format type="text/markdown">
         /// <![CDATA[
         /// [!code-csharp[VectorWhiten](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/Projection/VectorWhiten.cs)]
+        /// [!code-csharp[VectorWhiten](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/Projection/VectorWhitenWithOptions.cs)]
         /// ]]>
         /// </format>
         /// </example>
@@ -161,12 +160,12 @@ namespace Microsoft.ML
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
-        /// [!code-csharp[VectorWhiten](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/Projection/VectorWhitenWithColumnOptions.cs)]
+        /// [!code-csharp[VectorWhiten](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/Projection/VectorWhitenWithOptions.cs)]
         /// ]]>
         /// </format>
         /// </example>
-        public static VectorWhiteningEstimator VectorWhiten(this TransformsCatalog catalog, params VectorWhiteningEstimator.ColumnOptions[] columns)
+        [BestFriend]
+        internal static VectorWhiteningEstimator VectorWhiten(this TransformsCatalog catalog, params VectorWhiteningEstimator.ColumnOptions[] columns)
             => new VectorWhiteningEstimator(CatalogUtils.GetEnvironment(catalog), columns);
-
     }
 }

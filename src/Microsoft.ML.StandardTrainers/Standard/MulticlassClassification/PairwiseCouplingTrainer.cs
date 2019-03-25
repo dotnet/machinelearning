@@ -5,7 +5,6 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.Calibrators;
 using Microsoft.ML.Data;
@@ -131,13 +130,13 @@ namespace Microsoft.ML.Trainers
             var transformer = trainer.Fit(view);
 
             // the validations in the calibrator check for the feature column, in the RoleMappedData
-            var trainedData = new RoleMappedData(view, label: trainerLabel, feature: transformer.FeatureColumn);
+            var trainedData = new RoleMappedData(view, label: trainerLabel, feature: transformer.FeatureColumnName);
 
             var calibratedModel = transformer.Model as TDistPredictor;
             if (calibratedModel == null)
                 calibratedModel = CalibratorUtils.GetCalibratedPredictor(Host, ch, Calibrator, transformer.Model, trainedData, Args.MaxCalibrationExamples) as TDistPredictor;
 
-            return new BinaryPredictionTransformer<TDistPredictor>(Host, calibratedModel, trainedData.Data.Schema, transformer.FeatureColumn);
+            return new BinaryPredictionTransformer<TDistPredictor>(Host, calibratedModel, trainedData.Data.Schema, transformer.FeatureColumnName);
         }
 
         private IDataView MapLabels(RoleMappedData data, int cls1, int cls2)
@@ -188,7 +187,7 @@ namespace Microsoft.ML.Trainers
                         if (i == 0 && j == 0)
                         {
                             var transformer = TrainOne(ch, Trainer, td, i, j);
-                            featureColumn = transformer.FeatureColumn;
+                            featureColumn = transformer.FeatureColumnName;
                         }
 
                         predictors[i][j] = TrainOne(ch, Trainer, td, i, j).Model;
@@ -233,7 +232,7 @@ namespace Microsoft.ML.Trainers
 
         /// <summary> Return the type of prediction task.</summary>
         private protected override PredictionKind PredictionKind => PredictionKind.MulticlassClassification;
-        private readonly VectorType _inputType;
+        private readonly VectorDataViewType _inputType;
         private readonly DataViewType _outputType;
         DataViewType IValueMapper.InputType => _inputType;
         DataViewType IValueMapper.OutputType => _outputType;
@@ -259,7 +258,7 @@ namespace Microsoft.ML.Trainers
             Host.Assert(index == _predictors.Length);
 
             _inputType = InitializeMappers(out _mappers);
-            _outputType = new VectorType(NumberDataViewType.Single, _numClasses);
+            _outputType = new VectorDataViewType(NumberDataViewType.Single, _numClasses);
         }
 
         private PairwiseCouplingModelParameters(IHostEnvironment env, ModelLoadContext ctx)
@@ -287,13 +286,13 @@ namespace Microsoft.ML.Trainers
                 ctx.LoadModel<TDistPredictor, SignatureLoadModel>(Host, out _predictors[index++], string.Format(SubPredictorFmt, i));
             }
             _inputType = InitializeMappers(out _mappers);
-            _outputType = new VectorType(NumberDataViewType.Single, _numClasses);
+            _outputType = new VectorDataViewType(NumberDataViewType.Single, _numClasses);
         }
 
-        private VectorType InitializeMappers(out IValueMapperDist[] mappers)
+        private VectorDataViewType InitializeMappers(out IValueMapperDist[] mappers)
         {
             mappers = new IValueMapperDist[_predictors.Length];
-            VectorType inputType = null;
+            VectorDataViewType inputType = null;
             for (int i = 0; i < _predictors.Length; i++)
             {
                 var vmd = _predictors[i] as IValueMapperDist;
@@ -303,11 +302,11 @@ namespace Microsoft.ML.Trainers
             return inputType;
         }
 
-        private bool IsValid(IValueMapperDist mapper, ref VectorType inputType)
+        private bool IsValid(IValueMapperDist mapper, ref VectorDataViewType inputType)
         {
             if (mapper == null)
                 return false;
-            VectorType vectorType = mapper.InputType as VectorType;
+            VectorDataViewType vectorType = mapper.InputType as VectorDataViewType;
             if (vectorType == null || !vectorType.IsKnownSize || vectorType.ItemType != NumberDataViewType.Single)
                 return false;
             if (inputType == null)

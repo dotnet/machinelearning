@@ -7,7 +7,6 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Threading.Tasks.Dataflow;
-using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
@@ -376,7 +375,7 @@ namespace Microsoft.ML.Transforms
                     Contracts.AssertValue(getter);
 
                     Type pipeType;
-                    if (type is VectorType vectorType)
+                    if (type is VectorDataViewType vectorType)
                         pipeType = typeof(ImplVec<>).MakeGenericType(vectorType.ItemType.RawType);
                     else
                     {

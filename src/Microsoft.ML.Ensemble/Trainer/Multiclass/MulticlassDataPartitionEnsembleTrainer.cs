@@ -64,9 +64,9 @@ namespace Microsoft.ML.Trainers.Ensemble
                             // non-default column names. Unfortuantely no method of resolving this temporary strikes me as being any
                             // less laborious than the proper fix, which is that this "meta" component should itself be a trainer
                             // estimator, as opposed to a regular trainer.
-                            var trainerEstimator = new LogisticRegressionMulticlassClassificationTrainer(env, LabelColumnName, FeatureColumnName);
-                            return TrainerUtils.MapTrainerEstimatorToTrainer<LogisticRegressionMulticlassClassificationTrainer,
-                                MulticlassLogisticRegressionModelParameters, MulticlassLogisticRegressionModelParameters>(env, trainerEstimator);
+                            var trainerEstimator = new LbfgsMaximumEntropyTrainer(env, LabelColumnName, FeatureColumnName);
+                            return TrainerUtils.MapTrainerEstimatorToTrainer<LbfgsMaximumEntropyTrainer,
+                                MaximumEntropyModelParameters, MaximumEntropyModelParameters>(env, trainerEstimator);
                         })
                 };
             }

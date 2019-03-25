@@ -9,7 +9,7 @@ using Microsoft.ML.Trainers;
 
 namespace Microsoft.ML
 {
-    using LROptions = LogisticRegressionBinaryClassificationTrainer.Options;
+    using LROptions = LogisticRegressionBinaryTrainer.Options;
 
     /// <summary>
     /// TrainerEstimator extension methods.
@@ -25,7 +25,7 @@ namespace Microsoft.ML
         /// <param name="featureColumnName">The features, or independent variables.</param>
         /// <param name="exampleWeightColumnName">The name of the example weight column (optional).</param>
         /// <param name="numberOfIterations">The maximum number of passes through the training dataset; set to 1 to simulate online learning.</param>
-        /// <param name="initialLearningRate">The initial <a href="tmpurl_lr">learning rate</a> used by SGD.</param>
+        /// <param name="learningRate">The initial <a href="tmpurl_lr">learning rate</a> used by SGD.</param>
         /// <param name="l2Regularization">The L2 weight for <a href='tmpurl_regularization'>regularization</a>.</param>
         /// <example>
         /// <format type="text/markdown">
@@ -39,13 +39,13 @@ namespace Microsoft.ML
             string featureColumnName = DefaultColumnNames.Features,
             string exampleWeightColumnName = null,
             int numberOfIterations = SgdCalibratedTrainer.Options.Defaults.NumberOfIterations,
-            double initialLearningRate = SgdCalibratedTrainer.Options.Defaults.InitialLearningRate,
+            double learningRate = SgdCalibratedTrainer.Options.Defaults.LearningRate,
             float l2Regularization = SgdCalibratedTrainer.Options.Defaults.L2Regularization)
         {
             Contracts.CheckValue(catalog, nameof(catalog));
             var env = CatalogUtils.GetEnvironment(catalog);
             return new SgdCalibratedTrainer(env, labelColumnName, featureColumnName, exampleWeightColumnName,
-                numberOfIterations, initialLearningRate, l2Regularization);
+                numberOfIterations, learningRate, l2Regularization);
         }
 
         /// <summary>
@@ -79,9 +79,9 @@ namespace Microsoft.ML
         /// <param name="labelColumnName">The name of the label column, or dependent variable.</param>
         /// <param name="featureColumnName">The features, or independent variables.</param>
         /// <param name="exampleWeightColumnName">The name of the example weight column (optional).</param>
-        /// <param name="loss">The loss function minimized in the training process. Using, for example, <see cref="HingeLoss"/> leads to a support vector machine trainer.</param>
+        /// <param name="lossFunction">The <a href="tmpurl_loss">loss</a> function minimized in the training process. Using, for example, <see cref="HingeLoss"/> leads to a support vector machine trainer.</param>
         /// <param name="numberOfIterations">The maximum number of passes through the training dataset; set to 1 to simulate online learning.</param>
-        /// <param name="initialLearningRate">The initial <a href="tmpurl_lr">learning rate</a> used by SGD.</param>
+        /// <param name="learningRate">The initial <a href="tmpurl_lr">learning rate</a> used by SGD.</param>
         /// <param name="l2Regularization">The L2 weight for <a href='tmpurl_regularization'>regularization</a>.</param>
         /// <example>
         /// <format type="text/markdown">
@@ -94,15 +94,15 @@ namespace Microsoft.ML
             string labelColumnName = DefaultColumnNames.Label,
             string featureColumnName = DefaultColumnNames.Features,
             string exampleWeightColumnName = null,
-            IClassificationLoss loss = null,
+            IClassificationLoss lossFunction = null,
             int numberOfIterations = SgdNonCalibratedTrainer.Options.Defaults.NumberOfIterations,
-            double initialLearningRate = SgdNonCalibratedTrainer.Options.Defaults.InitialLearningRate,
+            double learningRate = SgdNonCalibratedTrainer.Options.Defaults.LearningRate,
             float l2Regularization = SgdNonCalibratedTrainer.Options.Defaults.L2Regularization)
         {
             Contracts.CheckValue(catalog, nameof(catalog));
             var env = CatalogUtils.GetEnvironment(catalog);
             return new SgdNonCalibratedTrainer(env, labelColumnName, featureColumnName, exampleWeightColumnName,
-                numberOfIterations, initialLearningRate, l2Regularization, loss);
+                numberOfIterations, learningRate, l2Regularization, lossFunction);
         }
 
         /// <summary>
@@ -135,10 +135,10 @@ namespace Microsoft.ML
         /// <param name="labelColumnName">The name of the label column.</param>
         /// <param name="featureColumnName">The name of the feature column.</param>
         /// <param name="exampleWeightColumnName">The name of the example weight column (optional).</param>
-        /// <param name="l2Regularization">The L2 <a href='tmpurl_regularization'>regularization</a> hyperparameter.</param>
-        /// <param name="l1Threshold">The L1 <a href='tmpurl_regularization'>regularization</a> hyperparameter. Higher values will tend to lead to more sparse model.</param>
+        /// <param name="lossFunction">The <a href="tmpurl_loss">loss</a> function minimized in the training process. Using, for example, its default <see cref="SquaredLoss"/> leads to a least square trainer.</param>
+        /// <param name="l2Regularization">The L2 weight for <a href='tmpurl_regularization'>regularization</a>.</param>
+        /// <param name="l1Regularization">The L1 <a href='tmpurl_regularization'>regularization</a> hyperparameter. Higher values will tend to lead to more sparse model.</param>
         /// <param name="maximumNumberOfIterations">The maximum number of passes to perform over the data.</param>
-        /// <param name="loss">The custom <a href="tmpurl_loss">loss</a>, if unspecified will be <see cref="SquaredLoss"/>.</param>
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
@@ -149,14 +149,14 @@ namespace Microsoft.ML
             string labelColumnName = DefaultColumnNames.Label,
             string featureColumnName = DefaultColumnNames.Features,
             string exampleWeightColumnName = null,
-            ISupportSdcaRegressionLoss loss = null,
+            ISupportSdcaRegressionLoss lossFunction = null,
             float? l2Regularization = null,
-            float? l1Threshold = null,
+            float? l1Regularization = null,
             int? maximumNumberOfIterations = null)
         {
             Contracts.CheckValue(catalog, nameof(catalog));
             var env = CatalogUtils.GetEnvironment(catalog);
-            return new SdcaRegressionTrainer(env, labelColumnName, featureColumnName, exampleWeightColumnName, loss, l2Regularization, l1Threshold, maximumNumberOfIterations);
+            return new SdcaRegressionTrainer(env, labelColumnName, featureColumnName, exampleWeightColumnName, lossFunction, l2Regularization, l1Regularization, maximumNumberOfIterations);
         }
 
         /// <summary>
@@ -181,14 +181,14 @@ namespace Microsoft.ML
         }
 
         /// <summary>
-        /// Predict a target using a linear classification model trained with <see cref="SdcaCalibratedBinaryClassificationTrainer"/>.
+        /// Predict a target using a linear classification model trained with <see cref="SdcaCalibratedBinaryTrainer"/>.
         /// </summary>
         /// <param name="catalog">The binary classification catalog trainer object.</param>
         /// <param name="labelColumnName">The name of the label column.</param>
         /// <param name="featureColumnName">The name of the feature column.</param>
         /// <param name="exampleWeightColumnName">The name of the example weight column (optional).</param>
-        /// <param name="l2Regularization">The L2 <a href='tmpurl_regularization'>regularization</a> hyperparameter.</param>
-        /// <param name="l1Threshold">The L1 <a href='tmpurl_regularization'>regularization</a> hyperparameter. Higher values will tend to lead to more sparse model.</param>
+        /// <param name="l2Regularization">The L2 weight for <a href='tmpurl_regularization'>regularization</a>.</param>
+        /// <param name="l1Regularization">The L1 <a href='tmpurl_regularization'>regularization</a> hyperparameter. Higher values will tend to lead to more sparse model.</param>
         /// <param name="maximumNumberOfIterations">The maximum number of passes to perform over the data.</param>
         /// <example>
         /// <format type="text/markdown">
@@ -196,22 +196,22 @@ namespace Microsoft.ML
         ///  [!code-csharp[SDCA](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Trainers/BinaryClassification/StochasticDualCoordinateAscent.cs)]
         /// ]]></format>
         /// </example>
-        public static SdcaCalibratedBinaryClassificationTrainer SdcaCalibrated(
+        public static SdcaCalibratedBinaryTrainer SdcaCalibrated(
                 this BinaryClassificationCatalog.BinaryClassificationTrainers catalog,
                 string labelColumnName = DefaultColumnNames.Label,
                 string featureColumnName = DefaultColumnNames.Features,
                 string exampleWeightColumnName = null,
                 float? l2Regularization = null,
-                float? l1Threshold = null,
+                float? l1Regularization = null,
                 int? maximumNumberOfIterations = null)
         {
             Contracts.CheckValue(catalog, nameof(catalog));
             var env = CatalogUtils.GetEnvironment(catalog);
-            return new SdcaCalibratedBinaryClassificationTrainer(env, labelColumnName, featureColumnName, exampleWeightColumnName, l2Regularization, l1Threshold, maximumNumberOfIterations);
+            return new SdcaCalibratedBinaryTrainer(env, labelColumnName, featureColumnName, exampleWeightColumnName, l2Regularization, l1Regularization, maximumNumberOfIterations);
         }
 
         /// <summary>
-        /// Predict a target using a linear classification model trained with <see cref="SdcaCalibratedBinaryClassificationTrainer"/> and advanced options.
+        /// Predict a target using a linear classification model trained with <see cref="SdcaCalibratedBinaryTrainer"/> and advanced options.
         /// </summary>
         /// <param name="catalog">The binary classification catalog trainer object.</param>
         /// <param name="options">Trainer options.</param>
@@ -221,27 +221,27 @@ namespace Microsoft.ML
         ///  [!code-csharp[SDCA](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Trainers/BinaryClassification/StochasticDualCoordinateAscentWithOptions.cs)]
         /// ]]></format>
         /// </example>
-        public static SdcaCalibratedBinaryClassificationTrainer SdcaCalibrated(
+        public static SdcaCalibratedBinaryTrainer SdcaCalibrated(
                 this BinaryClassificationCatalog.BinaryClassificationTrainers catalog,
-                SdcaCalibratedBinaryClassificationTrainer.Options options)
+                SdcaCalibratedBinaryTrainer.Options options)
         {
             Contracts.CheckValue(catalog, nameof(catalog));
             Contracts.CheckValue(options, nameof(options));
 
             var env = CatalogUtils.GetEnvironment(catalog);
-            return new SdcaCalibratedBinaryClassificationTrainer(env, options);
+            return new SdcaCalibratedBinaryTrainer(env, options);
         }
 
         /// <summary>
-        /// Predict a target using a linear classification model trained with <see cref="SdcaNonCalibratedBinaryClassificationTrainer"/>.
+        /// Predict a target using a linear classification model trained with <see cref="SdcaNonCalibratedBinaryTrainer"/>.
         /// </summary>
         /// <param name="catalog">The binary classification catalog trainer object.</param>
         /// <param name="labelColumnName">The name of the label column.</param>
         /// <param name="featureColumnName">The name of the feature column.</param>
         /// <param name="exampleWeightColumnName">The name of the example weight column (optional).</param>
-        /// <param name="loss">The custom <a href="tmpurl_loss">loss</a>. Defaults to <see cref="LogLoss"/> if not specified.</param>
-        /// <param name="l2Regularization">The L2 <a href='tmpurl_regularization'>regularization</a> hyperparameter.</param>
-        /// <param name="l1Threshold">The L1 <a href='tmpurl_regularization'>regularization</a> hyperparameter. Higher values will tend to lead to more sparse model.</param>
+        /// <param name="lossFunction">The <a href="tmpurl_loss">loss</a> function minimized in the training process. Defaults to <see cref="LogLoss"/> if not specified.</param>
+        /// <param name="l2Regularization">The L2 weight for <a href='tmpurl_regularization'>regularization</a>.</param>
+        /// <param name="l1Regularization">The L1 <a href='tmpurl_regularization'>regularization</a> hyperparameter. Higher values will tend to lead to more sparse model.</param>
         /// <param name="maximumNumberOfIterations">The maximum number of passes to perform over the data.</param>
         /// <example>
         /// <format type="text/markdown">
@@ -249,47 +249,46 @@ namespace Microsoft.ML
         ///  [!code-csharp[SDCA](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Trainers/BinaryClassification/StochasticDualCoordinateAscentNonCalibrated.cs)]
         /// ]]></format>
         /// </example>
-        public static SdcaNonCalibratedBinaryClassificationTrainer SdcaNonCalibrated(
+        public static SdcaNonCalibratedBinaryTrainer SdcaNonCalibrated(
                 this BinaryClassificationCatalog.BinaryClassificationTrainers catalog,
                 string labelColumnName = DefaultColumnNames.Label,
                 string featureColumnName = DefaultColumnNames.Features,
                 string exampleWeightColumnName = null,
-                ISupportSdcaClassificationLoss loss = null,
+                ISupportSdcaClassificationLoss lossFunction = null,
                 float? l2Regularization = null,
-                float? l1Threshold = null,
+                float? l1Regularization = null,
                 int? maximumNumberOfIterations = null)
         {
             Contracts.CheckValue(catalog, nameof(catalog));
             var env = CatalogUtils.GetEnvironment(catalog);
-            return new SdcaNonCalibratedBinaryClassificationTrainer(env, labelColumnName, featureColumnName, exampleWeightColumnName, loss, l2Regularization, l1Threshold, maximumNumberOfIterations);
+            return new SdcaNonCalibratedBinaryTrainer(env, labelColumnName, featureColumnName, exampleWeightColumnName, lossFunction, l2Regularization, l1Regularization, maximumNumberOfIterations);
         }
 
         /// <summary>
-        /// Predict a target using a linear classification model trained with <see cref="SdcaNonCalibratedBinaryClassificationTrainer"/> and advanced options.
+        /// Predict a target using a linear classification model trained with <see cref="SdcaNonCalibratedBinaryTrainer"/> and advanced options.
         /// </summary>
         /// <param name="catalog">The binary classification catalog trainer object.</param>
         /// <param name="options">Trainer options.</param>
-        public static SdcaNonCalibratedBinaryClassificationTrainer SdcaNonCalibrated(
+        public static SdcaNonCalibratedBinaryTrainer SdcaNonCalibrated(
                 this BinaryClassificationCatalog.BinaryClassificationTrainers catalog,
-                SdcaNonCalibratedBinaryClassificationTrainer.Options options)
+                SdcaNonCalibratedBinaryTrainer.Options options)
         {
             Contracts.CheckValue(catalog, nameof(catalog));
             Contracts.CheckValue(options, nameof(options));
 
             var env = CatalogUtils.GetEnvironment(catalog);
-            return new SdcaNonCalibratedBinaryClassificationTrainer(env, options);
+            return new SdcaNonCalibratedBinaryTrainer(env, options);
         }
 
         /// <summary>
-        /// Predict a target using a linear multiclass classification model trained with <see cref="SdcaMulticlassClassificationTrainer"/>.
+        /// Predict a target using a maximum entropy classification model trained with <see cref="SdcaCalibratedMulticlassTrainer"/>.
         /// </summary>
         /// <param name="catalog">The multiclass classification catalog trainer object.</param>
         /// <param name="labelColumnName">The name of the label column.</param>
         /// <param name="featureColumnName">The name of the feature column.</param>
         /// <param name="exampleWeightColumnName">The name of the example weight column (optional).</param>
-        /// <param name="loss">The custom <a href="tmpurl_loss">loss</a>. Defaults to <see cref="LogLoss"/> if not specified.</param>
-        /// <param name="l2Regularization">The L2 <a href='tmpurl_regularization'>regularization</a> hyperparameter.</param>
-        /// <param name="l1Threshold">The L1 <a href='tmpurl_regularization'>regularization</a> hyperparameter. Higher values will tend to lead to more sparse model.</param>
+        /// <param name="l2Regularization">The L2 weight for <a href='tmpurl_regularization'>regularization</a>.</param>
+        /// <param name="l1Regularization">The L1 <a href='tmpurl_regularization'>regularization</a> hyperparameter. Higher values will tend to lead to more sparse model.</param>
         /// <param name="maximumNumberOfIterations">The maximum number of passes to perform over the data.</param>
         /// <example>
         /// <format type="text/markdown">
@@ -297,22 +296,21 @@ namespace Microsoft.ML
         ///  [!code-csharp[SDCA](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Trainers/MulticlassClassification/StochasticDualCoordinateAscent.cs)]
         /// ]]></format>
         /// </example>
-        public static SdcaMulticlassClassificationTrainer Sdca(this MulticlassClassificationCatalog.MulticlassClassificationTrainers catalog,
+        public static SdcaCalibratedMulticlassTrainer SdcaCalibrated(this MulticlassClassificationCatalog.MulticlassClassificationTrainers catalog,
         string labelColumnName = DefaultColumnNames.Label,
                     string featureColumnName = DefaultColumnNames.Features,
                     string exampleWeightColumnName = null,
-                    ISupportSdcaClassificationLoss loss = null,
                     float? l2Regularization = null,
-                    float? l1Threshold = null,
+                    float? l1Regularization = null,
                     int? maximumNumberOfIterations = null)
         {
             Contracts.CheckValue(catalog, nameof(catalog));
             var env = CatalogUtils.GetEnvironment(catalog);
-            return new SdcaMulticlassClassificationTrainer(env, labelColumnName, featureColumnName, exampleWeightColumnName, loss, l2Regularization, l1Threshold, maximumNumberOfIterations);
+            return new SdcaCalibratedMulticlassTrainer(env, labelColumnName, featureColumnName, exampleWeightColumnName, l2Regularization, l1Regularization, maximumNumberOfIterations);
         }
 
         /// <summary>
-        /// Predict a target using a linear multiclass classification model trained with <see cref="SdcaMulticlassClassificationTrainer"/> and advanced options.
+        /// Predict a target using a maximum entropy classification model trained with <see cref="SdcaCalibratedMulticlassTrainer"/> and advanced options.
         /// </summary>
         /// <param name="catalog">The multiclass classification catalog trainer object.</param>
         /// <param name="options">Trainer options.</param>
@@ -322,14 +320,66 @@ namespace Microsoft.ML
         ///  [!code-csharp[SDCA](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Trainers/MulticlassClassification/StochasticDualCoordinateAscentWithOptions.cs)]
         /// ]]></format>
         /// </example>
-        public static SdcaMulticlassClassificationTrainer Sdca(this MulticlassClassificationCatalog.MulticlassClassificationTrainers catalog,
-        SdcaMulticlassClassificationTrainer.Options options)
+        public static SdcaCalibratedMulticlassTrainer SdcaCalibrated(this MulticlassClassificationCatalog.MulticlassClassificationTrainers catalog,
+        SdcaCalibratedMulticlassTrainer.Options options)
         {
             Contracts.CheckValue(catalog, nameof(catalog));
             Contracts.CheckValue(options, nameof(options));
 
             var env = CatalogUtils.GetEnvironment(catalog);
-            return new SdcaMulticlassClassificationTrainer(env, options);
+            return new SdcaCalibratedMulticlassTrainer(env, options);
+        }
+
+        /// <summary>
+        /// Predict a target using a linear multiclass classification model trained with <see cref="SdcaNonCalibratedMulticlassTrainer"/>.
+        /// </summary>
+        /// <param name="catalog">The multiclass classification catalog trainer object.</param>
+        /// <param name="labelColumnName">The name of the label column.</param>
+        /// <param name="featureColumnName">The name of the feature column.</param>
+        /// <param name="exampleWeightColumnName">The name of the example weight column (optional).</param>
+        /// <param name="lossFunction">The <a href="tmpurl_loss">loss</a> function to be minimized. Defaults to <see cref="LogLoss"/> if not specified.</param>
+        /// <param name="l2Regularization">The L2 weight for <a href='tmpurl_regularization'>regularization</a>.</param>
+        /// <param name="l1Regularization">The L1 <a href='tmpurl_regularization'>regularization</a> hyperparameter. Higher values will tend to lead to more sparse model.</param>
+        /// <param name="maximumNumberOfIterations">The maximum number of passes to perform over the data.</param>
+        /// <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        ///  [!code-csharp[SDCA](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Trainers/MulticlassClassification/StochasticDualCoordinateAscent.cs)]
+        /// ]]></format>
+        /// </example>
+        public static SdcaNonCalibratedMulticlassTrainer SdcaNonCalibrated(this MulticlassClassificationCatalog.MulticlassClassificationTrainers catalog,
+        string labelColumnName = DefaultColumnNames.Label,
+                    string featureColumnName = DefaultColumnNames.Features,
+                    string exampleWeightColumnName = null,
+                    ISupportSdcaClassificationLoss lossFunction = null,
+                    float? l2Regularization = null,
+                    float? l1Regularization = null,
+                    int? maximumNumberOfIterations = null)
+        {
+            Contracts.CheckValue(catalog, nameof(catalog));
+            var env = CatalogUtils.GetEnvironment(catalog);
+            return new SdcaNonCalibratedMulticlassTrainer(env, labelColumnName, featureColumnName, exampleWeightColumnName, lossFunction, l2Regularization, l1Regularization, maximumNumberOfIterations);
+        }
+
+        /// <summary>
+        /// Predict a target using linear multiclass classification model trained with <see cref="SdcaNonCalibratedMulticlassTrainer"/> and advanced options.
+        /// </summary>
+        /// <param name="catalog">The multiclass classification catalog trainer object.</param>
+        /// <param name="options">Trainer options.</param>
+        /// <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        ///  [!code-csharp[SDCA](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Trainers/MulticlassClassification/StochasticDualCoordinateAscentWithOptions.cs)]
+        /// ]]></format>
+        /// </example>
+        public static SdcaNonCalibratedMulticlassTrainer SdcaNonCalibrated(this MulticlassClassificationCatalog.MulticlassClassificationTrainers catalog,
+        SdcaNonCalibratedMulticlassTrainer.Options options)
+        {
+            Contracts.CheckValue(catalog, nameof(catalog));
+            Contracts.CheckValue(options, nameof(options));
+
+            var env = CatalogUtils.GetEnvironment(catalog);
+            return new SdcaNonCalibratedMulticlassTrainer(env, options);
         }
 
         /// <summary>
@@ -338,8 +388,8 @@ namespace Microsoft.ML
         /// <param name="catalog">The binary classification catalog trainer object.</param>
         /// <param name="labelColumnName">The name of the label column.</param>
         /// <param name="featureColumnName">The name of the feature column.</param>
-        /// <param name="lossFunction">A custom <a href="tmpurl_loss">loss</a>. If <see langword="null"/>, hinge loss will be used resulting in max-margin averaged perceptron.</param>
-        /// <param name="learningRate"><a href="tmpurl_lr">Learning rate</a>.</param>
+        /// <param name="lossFunction">The <a href="tmpurl_loss">loss</a> function minimized in the training process. If <see langword="null"/>, <see cref="HingeLoss"/> would be used and lead to a max-margin averaged perceptron trainer.</param>
+        /// <param name="learningRate">The initial <a href="tmpurl_lr">learning rate</a> used by SGD.</param>
         /// <param name="decreaseLearningRate">
         /// <see langword="true" /> to decrease the <paramref name="learningRate"/> as iterations progress; otherwise, <see langword="false" />.
         /// Default is <see langword="false" />.
@@ -407,16 +457,16 @@ namespace Microsoft.ML
         }
 
         /// <summary>
-        /// Predict a target using a linear regression model trained with the <see cref="OnlineGradientDescentTrainer"/> trainer.
+        /// Predict a target using a linear regression model trained with the <see cref="OnlineGradientDescentTrainer"/>.
         /// </summary>
         /// <param name="catalog">The regression catalog trainer object.</param>
         /// <param name="labelColumnName">The name of the label column.</param>
         /// <param name="featureColumnName">The name of the feature column.</param>
-        /// <param name="lossFunction">The custom loss. Defaults to <see cref="SquaredLoss"/> if not provided.</param>
-        /// <param name="learningRate">The learning Rate.</param>
+        /// <param name="lossFunction">The <a href="tmpurl_loss">loss</a> function minimized in the training process. Using, for example, <see cref="SquaredLoss"/> leads to a least square trainer.</param>
+        /// <param name="learningRate">The initial <a href="tmpurl_lr">learning rate</a> used by SGD.</param>
         /// <param name="decreaseLearningRate">Decrease learning rate as iterations progress.</param>
         /// <param name="l2Regularization">The L2 weight for <a href='tmpurl_regularization'>regularization</a>.</param>
-        /// <param name="numberOfIterations">Number of training iterations through the data.</param>
+        /// <param name="numberOfIterations">The number of passes through the training dataset.</param>
         public static OnlineGradientDescentTrainer OnlineGradientDescent(this RegressionCatalog.RegressionTrainers catalog,
             string labelColumnName = DefaultColumnNames.Label,
             string featureColumnName = DefaultColumnNames.Features,
@@ -433,10 +483,10 @@ namespace Microsoft.ML
         }
 
         /// <summary>
-        /// Predict a target using a linear regression model trained with the <see cref="OnlineGradientDescentTrainer"/> trainer.
+        /// Predict a target using a linear regression model trained with the <see cref="OnlineGradientDescentTrainer"/> and advanced options.
         /// </summary>
         /// <param name="catalog">The regression catalog trainer object.</param>
-        /// <param name="options">Advanced arguments to the algorithm.</param>
+        /// <param name="options">Trainer options.</param>
         public static OnlineGradientDescentTrainer OnlineGradientDescent(this RegressionCatalog.RegressionTrainers catalog,
             OnlineGradientDescentTrainer.Options options)
         {
@@ -448,16 +498,16 @@ namespace Microsoft.ML
         }
 
         /// <summary>
-        ///  Predict a target using a linear binary classification model trained with the <see cref="Trainers.LogisticRegressionBinaryClassificationTrainer"/> trainer.
+        ///  Predict a target using a linear binary classification model trained with the <see cref="Trainers.LogisticRegressionBinaryTrainer"/> trainer.
         /// </summary>
         /// <param name="catalog">The binary classification catalog trainer object.</param>
         /// <param name="labelColumnName">The name of the label column.</param>
         /// <param name="featureColumnName">The name of the feature column.</param>
         /// <param name="exampleWeightColumnName">The name of the example weight column (optional).</param>
         /// <param name="enforceNonNegativity">Enforce non-negative weights.</param>
-        /// <param name="l1Regularization">Weight of L1 regularization term.</param>
-        /// <param name="l2Regularization">Weight of L2 regularization term.</param>
-        /// <param name="historySize">Memory size for <see cref="Trainers.LogisticRegressionBinaryClassificationTrainer"/>. Low=faster, less accurate.</param>
+        /// <param name="l1Regularization">The L1 <a href='tmpurl_regularization'>regularization</a> hyperparameter. Higher values will tend to lead to more sparse model.</param>
+        /// <param name="l2Regularization">The L2 weight for <a href='tmpurl_regularization'>regularization</a>.</param>
+        /// <param name="historySize">Memory size for <see cref="Trainers.LogisticRegressionBinaryTrainer"/>. Low=faster, less accurate.</param>
         /// <param name="optimizationTolerance">Threshold for optimizer convergence.</param>
         /// <example>
         /// <format type="text/markdown">
@@ -466,7 +516,7 @@ namespace Microsoft.ML
         /// ]]>
         /// </format>
         /// </example>
-        public static LogisticRegressionBinaryClassificationTrainer LogisticRegression(this BinaryClassificationCatalog.BinaryClassificationTrainers catalog,
+        public static LogisticRegressionBinaryTrainer LogisticRegression(this BinaryClassificationCatalog.BinaryClassificationTrainers catalog,
             string labelColumnName = DefaultColumnNames.Label,
             string featureColumnName = DefaultColumnNames.Features,
             string exampleWeightColumnName = null,
@@ -478,35 +528,41 @@ namespace Microsoft.ML
         {
             Contracts.CheckValue(catalog, nameof(catalog));
             var env = CatalogUtils.GetEnvironment(catalog);
-            return new LogisticRegressionBinaryClassificationTrainer(env, labelColumnName, featureColumnName, exampleWeightColumnName, l1Regularization, l2Regularization, optimizationTolerance, historySize, enforceNonNegativity);
+            return new LogisticRegressionBinaryTrainer(env, labelColumnName, featureColumnName, exampleWeightColumnName, l1Regularization, l2Regularization, optimizationTolerance, historySize, enforceNonNegativity);
         }
 
         /// <summary>
-        ///  Predict a target using a linear binary classification model trained with the <see cref="Trainers.LogisticRegressionBinaryClassificationTrainer"/> trainer.
+        ///  Predict a target using a linear binary classification model trained with the <see cref="Trainers.LogisticRegressionBinaryTrainer"/> trainer.
         /// </summary>
         /// <param name="catalog">The binary classification catalog trainer object.</param>
         /// <param name="options">Advanced arguments to the algorithm.</param>
-        public static LogisticRegressionBinaryClassificationTrainer LogisticRegression(this BinaryClassificationCatalog.BinaryClassificationTrainers catalog, LROptions options)
+        public static LogisticRegressionBinaryTrainer LogisticRegression(this BinaryClassificationCatalog.BinaryClassificationTrainers catalog, LROptions options)
         {
             Contracts.CheckValue(catalog, nameof(catalog));
             Contracts.CheckValue(options, nameof(options));
 
             var env = CatalogUtils.GetEnvironment(catalog);
-            return new LogisticRegressionBinaryClassificationTrainer(env, options);
+            return new LogisticRegressionBinaryTrainer(env, options);
         }
 
         /// <summary>
-        /// Predict a target using a linear regression model trained with the <see cref="Microsoft.ML.Trainers.PoissonRegressionTrainer"/> trainer.
+        /// Predict a target using a linear regression model trained with the <see cref="Microsoft.ML.Trainers.PoissonRegressionTrainer"/>.
         /// </summary>
         /// <param name="catalog">The regression catalog trainer object.</param>
         /// <param name="labelColumnName">The name of the label column.</param>
         /// <param name="featureColumnName">The name of the feature column.</param>
         /// <param name="exampleWeightColumnName">The name of the example weight column (optional).</param>
-        /// <param name="l1Regularization">Weight of L1 regularization term.</param>
-        /// <param name="l2Regularization">Weight of L2 regularization term.</param>
+        /// <param name="l1Regularization">The L1 <a href='tmpurl_regularization'>regularization</a> hyperparameter. Higher values will tend to lead to more sparse model.</param>
+        /// <param name="l2Regularization">The L2 weight for <a href='tmpurl_regularization'>regularization</a>.</param>
         /// <param name="optimizationTolerance">Threshold for optimizer convergence.</param>
-        /// <param name="historySize">Memory size for <see cref="Microsoft.ML.Trainers.PoissonRegressionTrainer"/>. Low=faster, less accurate.</param>
+        /// <param name="historySize">Number of previous iterations to remember for estimating the Hessian. Lower values mean faster but less accurate estimates.</param>
         /// <param name="enforceNonNegativity">Enforce non-negative weights.</param>
+        /// <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        ///  [!code-csharp[PoissonRegression](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Trainers/Regression/PoissonRegression.cs)]
+        /// ]]></format>
+        /// </example>
         public static PoissonRegressionTrainer PoissonRegression(this RegressionCatalog.RegressionTrainers catalog,
             string labelColumnName = DefaultColumnNames.Label,
             string featureColumnName = DefaultColumnNames.Features,
@@ -523,10 +579,16 @@ namespace Microsoft.ML
         }
 
         /// <summary>
-        /// Predict a target using a linear regression model trained with the <see cref="Microsoft.ML.Trainers.PoissonRegressionTrainer"/> trainer.
+        /// Predict a target using a linear regression model trained with the <see cref="Microsoft.ML.Trainers.PoissonRegressionTrainer"/> and advanced options.
         /// </summary>
         /// <param name="catalog">The regression catalog trainer object.</param>
-        /// <param name="options">Advanced arguments to the algorithm.</param>
+        /// <param name="options">Trainer options.</param>
+        /// <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        ///  [!code-csharp[PoissonRegression](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Trainers/Regression/PoissonRegressionWithOptions.cs)]
+        /// ]]></format>
+        /// </example>
         public static PoissonRegressionTrainer PoissonRegression(this RegressionCatalog.RegressionTrainers catalog, PoissonRegressionTrainer.Options options)
         {
             Contracts.CheckValue(catalog, nameof(catalog));
@@ -537,18 +599,18 @@ namespace Microsoft.ML
         }
 
         /// <summary>
-        /// Predict a target using a linear multiclass classification model trained with the <see cref="LogisticRegressionMulticlassClassificationTrainer"/> trainer.
+        /// Predict a target using a maximum entropy classification model trained with the L-BFGS method implemented in <see cref="LbfgsMaximumEntropyTrainer"/>.
         /// </summary>
         /// <param name="catalog">The <see cref="MulticlassClassificationCatalog.MulticlassClassificationTrainers"/>.</param>
         /// <param name="labelColumnName">The name of the label column.</param>
         /// <param name="featureColumnName">The name of the feature column.</param>
         /// <param name="exampleWeightColumnName">The name of the example weight column (optional).</param>
         /// <param name="enforceNonNegativity">Enforce non-negative weights.</param>
-        /// <param name="l1Regularization">Weight of L1 regularization term.</param>
-        /// <param name="l2Regularization">Weight of L2 regularization term.</param>
-        /// <param name="historySize">Memory size for <see cref="Microsoft.ML.Trainers.LogisticRegressionMulticlassClassificationTrainer"/>. Low=faster, less accurate.</param>
+        /// <param name="l1Regularization">The L1 <a href='tmpurl_regularization'>regularization</a> hyperparameter. Higher values will tend to lead to more sparse model.</param>
+        /// <param name="l2Regularization">The L2 weight for <a href='tmpurl_regularization'>regularization</a>.</param>
+        /// <param name="historySize">Memory size for <see cref="Microsoft.ML.Trainers.LbfgsMaximumEntropyTrainer"/>. Low=faster, less accurate.</param>
         /// <param name="optimizationTolerance">Threshold for optimizer convergence.</param>
-        public static LogisticRegressionMulticlassClassificationTrainer LogisticRegression(this MulticlassClassificationCatalog.MulticlassClassificationTrainers catalog,
+        public static LbfgsMaximumEntropyTrainer LbfgsMaximumEntropy(this MulticlassClassificationCatalog.MulticlassClassificationTrainers catalog,
             string labelColumnName = DefaultColumnNames.Label,
             string featureColumnName = DefaultColumnNames.Features,
             string exampleWeightColumnName = null,
@@ -560,37 +622,37 @@ namespace Microsoft.ML
         {
             Contracts.CheckValue(catalog, nameof(catalog));
             var env = CatalogUtils.GetEnvironment(catalog);
-            return new LogisticRegressionMulticlassClassificationTrainer(env, labelColumnName, featureColumnName, exampleWeightColumnName, l1Regularization, l2Regularization, optimizationTolerance, historySize, enforceNonNegativity);
+            return new LbfgsMaximumEntropyTrainer(env, labelColumnName, featureColumnName, exampleWeightColumnName, l1Regularization, l2Regularization, optimizationTolerance, historySize, enforceNonNegativity);
         }
 
         /// <summary>
-        /// Predict a target using a linear multiclass classification model trained with the <see cref="LogisticRegressionMulticlassClassificationTrainer"/> trainer.
+        /// Predict a target using a maximum entropy classification model trained with the L-BFGS method implemented in <see cref="LbfgsMaximumEntropyTrainer"/>.
         /// </summary>
         /// <param name="catalog">The <see cref="MulticlassClassificationCatalog.MulticlassClassificationTrainers"/>.</param>
         /// <param name="options">Advanced arguments to the algorithm.</param>
-        public static LogisticRegressionMulticlassClassificationTrainer LogisticRegression(this MulticlassClassificationCatalog.MulticlassClassificationTrainers catalog,
-            LogisticRegressionMulticlassClassificationTrainer.Options options)
+        public static LbfgsMaximumEntropyTrainer LbfgsMaximumEntropy(this MulticlassClassificationCatalog.MulticlassClassificationTrainers catalog,
+            LbfgsMaximumEntropyTrainer.Options options)
         {
             Contracts.CheckValue(catalog, nameof(catalog));
             Contracts.CheckValue(options, nameof(options));
 
             var env = CatalogUtils.GetEnvironment(catalog);
-            return new LogisticRegressionMulticlassClassificationTrainer(env, options);
+            return new LbfgsMaximumEntropyTrainer(env, options);
         }
 
         /// <summary>
-        /// Predicts a target using a linear multiclass classification model trained with the <see cref="NaiveBayesTrainer"/>.
-        /// The <see cref="NaiveBayesTrainer"/> trains a multiclass Naive Bayes predictor that supports binary feature values.
+        /// Predicts a target using a linear multiclass classification model trained with the <see cref="NaiveBayesMulticlassTrainer"/>.
+        /// The <see cref="NaiveBayesMulticlassTrainer"/> trains a multiclass Naive Bayes predictor that supports binary feature values.
         /// </summary>
         /// <param name="catalog">The <see cref="MulticlassClassificationCatalog.MulticlassClassificationTrainers"/>.</param>
         /// <param name="labelColumnName">The name of the label column.</param>
         /// <param name="featureColumnName">The name of the feature column.</param>
-        public static NaiveBayesTrainer NaiveBayes(this MulticlassClassificationCatalog.MulticlassClassificationTrainers catalog,
+        public static NaiveBayesMulticlassTrainer NaiveBayes(this MulticlassClassificationCatalog.MulticlassClassificationTrainers catalog,
             string labelColumnName = DefaultColumnNames.Label,
             string featureColumnName = DefaultColumnNames.Features)
         {
             Contracts.CheckValue(catalog, nameof(catalog));
-            return new NaiveBayesTrainer(CatalogUtils.GetEnvironment(catalog), labelColumnName, featureColumnName);
+            return new NaiveBayesMulticlassTrainer(CatalogUtils.GetEnvironment(catalog), labelColumnName, featureColumnName);
         }
 
         /// <summary>
@@ -628,7 +690,7 @@ namespace Microsoft.ML
         /// <param name="calibrator">The calibrator. If a calibrator is not explicitely provided, it will default to <see cref="PlattCalibratorTrainer"/></param>
         /// <param name="labelColumnName">The name of the label colum.</param>
         /// <param name="imputeMissingLabelsAsNegative">Whether to treat missing labels as having negative labels, instead of keeping them missing.</param>
-        /// <param name="maxCalibrationExamples">Number of instances to train the calibrator.</param>
+        /// <param name="maximumCalibrationExampleCount">Number of instances to train the calibrator.</param>
         /// <param name="useProbabilities">Use probabilities (vs. raw outputs) to identify top-score category.</param>
         /// <typeparam name="TModel">The type of the model. This type parameter will usually be inferred automatically from <paramref name="binaryEstimator"/>.</typeparam>
         public static OneVersusAllTrainer OneVersusAll<TModel>(this MulticlassClassificationCatalog.MulticlassClassificationTrainers catalog,
@@ -636,7 +698,7 @@ namespace Microsoft.ML
             string labelColumnName = DefaultColumnNames.Label,
             bool imputeMissingLabelsAsNegative = false,
             IEstimator<ISingleFeaturePredictionTransformer<ICalibrator>> calibrator = null,
-            int maxCalibrationExamples = 1000000000,
+            int maximumCalibrationExampleCount = 1000000000,
             bool useProbabilities = true)
             where TModel : class
         {
@@ -644,7 +706,7 @@ namespace Microsoft.ML
             var env = CatalogUtils.GetEnvironment(catalog);
             if (!(binaryEstimator is ITrainerEstimator<ISingleFeaturePredictionTransformer<IPredictorProducing<float>>, IPredictorProducing<float>> est))
                 throw env.ExceptParam(nameof(binaryEstimator), "Trainer estimator does not appear to produce the right kind of model.");
-            return new OneVersusAllTrainer(env, est, labelColumnName, imputeMissingLabelsAsNegative, GetCalibratorTrainerOrThrow(env, calibrator), maxCalibrationExamples, useProbabilities);
+            return new OneVersusAllTrainer(env, est, labelColumnName, imputeMissingLabelsAsNegative, GetCalibratorTrainerOrThrow(env, calibrator), maximumCalibrationExampleCount, useProbabilities);
         }
 
         /// <summary>

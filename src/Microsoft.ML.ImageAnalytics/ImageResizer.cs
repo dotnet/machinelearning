@@ -7,7 +7,6 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
 using System.Text;
-using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
@@ -261,7 +260,7 @@ namespace Microsoft.ML.Transforms.Image
 
         private protected override void CheckInputColumn(DataViewSchema inputSchema, int col, int srcCol)
         {
-            if (!(inputSchema[srcCol].Type is ImageType))
+            if (!(inputSchema[srcCol].Type is ImageDataViewType))
                 throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", _columns[col].InputColumnName, "image", inputSchema[srcCol].Type.ToString());
         }
 
@@ -461,7 +460,8 @@ namespace Microsoft.ML.Transforms.Image
         /// <summary>
         /// Describes how the transformer handles one image resize column.
         /// </summary>
-        public sealed class ColumnOptions
+        [BestFriend]
+        internal sealed class ColumnOptions
         {
             /// <summary>Name of the column resulting from the transformation of <see cref="InputColumnName"/></summary>
             public readonly string Name;
@@ -512,7 +512,7 @@ namespace Microsoft.ML.Transforms.Image
                 ImageHeight = imageHeight;
                 Resizing = resizing;
                 Anchor = anchor;
-                Type = new ImageType(ImageHeight, ImageWidth);
+                Type = new ImageDataViewType(ImageHeight, ImageWidth);
             }
         }
 
@@ -564,8 +564,8 @@ namespace Microsoft.ML.Transforms.Image
             {
                 if (!inputSchema.TryFindColumn(colInfo.InputColumnName, out var col))
                     throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.InputColumnName);
-                if (!(col.ItemType is ImageType) || col.Kind != SchemaShape.Column.VectorKind.Scalar)
-                    throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.InputColumnName, new ImageType().ToString(), col.GetTypeString());
+                if (!(col.ItemType is ImageDataViewType) || col.Kind != SchemaShape.Column.VectorKind.Scalar)
+                    throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.InputColumnName, new ImageDataViewType().ToString(), col.GetTypeString());
 
                 result[colInfo.Name] = new SchemaShape.Column(colInfo.Name, SchemaShape.Column.VectorKind.Scalar, colInfo.Type, false);
             }

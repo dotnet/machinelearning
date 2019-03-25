@@ -4,7 +4,6 @@
 
 using System;
 using System.Globalization;
-using Microsoft.Data.DataView;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
 using Microsoft.ML.EntryPoints;
@@ -66,6 +65,9 @@ namespace Microsoft.ML.Trainers
         }
     }
 
+    /// <summary>
+    /// Base class for online linear trainers. Online trainers can be updated incrementally with additional data.
+    /// </summary>
     public abstract class OnlineLinearTrainer<TTransformer, TModel> : TrainerEstimatorBase<TTransformer, TModel>
         where TTransformer : ISingleFeaturePredictionTransformer<TModel>
         where TModel : class

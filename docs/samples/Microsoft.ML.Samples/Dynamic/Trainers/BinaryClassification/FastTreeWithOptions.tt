@@ -1,0 +1,36 @@
+﻿<#@ include file="TreeSamplesTemplate.ttinclude"#>
+
+<#+
+string ClassName="FastTreeWithOptions";
+string Trainer = "FastTree";
+bool IsCalibrated = true;
+
+string TrainerOptions = @"FastTreeBinaryTrainer.Options
+            {
+                // Use L2Norm for early stopping.
+                EarlyStoppingMetric = EarlyStoppingMetric.L2Norm,
+                // Create a simpler model by penalizing usage of new features.
+                FeatureFirstUsePenalty = 0.1,
+                // Reduce the number of trees to 50.
+                NumberOfTrees = 50
+            }";
+
+string ExpectedOutputPerInstance= @"// Expected output:
+            //   Label: True, Prediction: True
+            //   Label: False, Prediction: False
+            //   Label: True, Prediction: True
+            //   Label: True, Prediction: True
+            //   Label: False, Prediction: False";
+
+string ExpectedOutput = @"// Expected output:
+            //   Accuracy: 0.78
+            //   AUC: 0.88
+            //   F1 Score: 0.79
+            //   Negative Precision: 0.83
+            //   Negative Recall: 0.74
+            //   Positive Precision: 0.74
+            //   Positive Recall: 0.84
+            //   Log Loss: 0.62
+            //   Log Loss Reduction: 37.77
+            //   Entropy: 1.00";
+#>

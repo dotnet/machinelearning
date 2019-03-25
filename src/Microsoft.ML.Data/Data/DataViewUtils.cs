@@ -10,7 +10,6 @@ using System.Reflection;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.Data.DataView;
 using Microsoft.ML.Data.Conversion;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Runtime;
@@ -213,7 +212,7 @@ namespace Microsoft.ML.Data
         /// Determine whether the given type is cachable - either a primitive type or a vector type.
         /// </summary>
         public static bool IsCacheable(this DataViewType type)
-            => type != null && (type is PrimitiveDataViewType || type is VectorType);
+            => type != null && (type is PrimitiveDataViewType || type is VectorDataViewType);
 
         /// <summary>
         /// Tests whether the cursors are mutually compatible for consolidation,
@@ -865,7 +864,7 @@ namespace Microsoft.ML.Data
                     Contracts.AssertValue(pool);
 
                     Type pipeType;
-                    if (type is VectorType vectorType)
+                    if (type is VectorDataViewType vectorType)
                         pipeType = typeof(ImplVec<>).MakeGenericType(vectorType.ItemType.RawType);
                     else
                     {
@@ -1333,7 +1332,7 @@ namespace Microsoft.ML.Data
                 var srcColIndex = colIndices[i];
 
                 var colType = cursor.Schema[srcColIndex].Type;
-                if (colType is VectorType vectorType)
+                if (colType is VectorDataViewType vectorType)
                 {
                     getter = Utils.MarshalInvoke(GetVectorFlatteningGetter<int>, vectorType.ItemType.RawType,
                         cursor, srcColIndex, vectorType.ItemType);

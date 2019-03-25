@@ -7,7 +7,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Text;
-using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
@@ -568,7 +567,7 @@ namespace Microsoft.ML.Transforms.Text
                         throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", _parent.ColumnPairs[i].inputColumnName);
 
                     var srcCol = inputSchema[_srcCols[i]];
-                    var srcType = srcCol.Type as VectorType;
+                    var srcType = srcCol.Type as VectorDataViewType;
                     if (srcType == null || !srcType.IsKnownSize || !(srcType.ItemType is NumberDataViewType))
                         throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", _parent.ColumnPairs[i].inputColumnName, "known-size vector of float", srcCol.Type.ToString());
                 }
@@ -580,7 +579,7 @@ namespace Microsoft.ML.Transforms.Text
                 for (int i = 0; i < _parent.ColumnPairs.Length; i++)
                 {
                     var info = _parent._columns[i];
-                    result[i] = new DataViewSchema.DetachedColumn(_parent.ColumnPairs[i].outputColumnName, new VectorType(NumberDataViewType.Single, info.NumberOfTopics), null);
+                    result[i] = new DataViewSchema.DetachedColumn(_parent.ColumnPairs[i].outputColumnName, new VectorDataViewType(NumberDataViewType.Single, info.NumberOfTopics), null);
                 }
                 return result;
             }
@@ -801,7 +800,7 @@ namespace Microsoft.ML.Transforms.Text
                 if (!inputData.Schema.TryGetColumnIndex(columns[i].InputColumnName, out int srcCol))
                     throw env.ExceptSchemaMismatch(nameof(inputData), "input", columns[i].InputColumnName);
 
-                var srcColType = inputSchema[srcCol].Type as VectorType;
+                var srcColType = inputSchema[srcCol].Type as VectorDataViewType;
                 if (srcColType == null || !srcColType.IsKnownSize || !(srcColType.ItemType is NumberDataViewType))
                     throw env.ExceptSchemaMismatch(nameof(inputSchema), "input", columns[i].InputColumnName, "known-size vector of float", srcColType.ToString());
 
@@ -1005,7 +1004,8 @@ namespace Microsoft.ML.Transforms.Text
         /// <summary>
         /// Describes how the transformer handles one column pair.
         /// </summary>
-        public sealed class ColumnOptions
+        [BestFriend]
+        internal sealed class ColumnOptions
         {
             /// <summary>
             /// Name of the column resulting from the transformation of <cref see="InputColumnName"/>.

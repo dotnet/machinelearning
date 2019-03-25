@@ -36,7 +36,7 @@ namespace Microsoft.ML.Samples.Dynamic.Trainers.Recommendation
 
             // Calculate regression matrices for the prediction result.
             var metrics = mlContext.Recommendation().Evaluate(prediction,
-                label: nameof(MatrixElement.Value), score: nameof(MatrixElementForScore.Score));
+                labelColumnName: nameof(MatrixElement.Value), scoreColumnName: nameof(MatrixElementForScore.Score));
             // Print out some metrics for checking the model's quality.
             SamplesUtils.ConsoleUtils.PrintMetrics(metrics);
             // L1: 0.17

@@ -7,7 +7,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Runtime.CompilerServices;
-using Microsoft.Data.DataView;
 using Microsoft.ML.Data;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Model.OnnxConverter;
@@ -605,7 +604,7 @@ namespace Microsoft.ML.Transforms
                     {
                     }
 
-                    public static ImplVec Create(ModelLoadContext ctx, IHost host, VectorType typeSrc)
+                    public static ImplVec Create(ModelLoadContext ctx, IHost host, VectorDataViewType typeSrc)
                     {
                         host.Check(typeSrc.ItemType.RawType == typeof(TFloat), "The column type must be vector of R8.");
                         int cv = Math.Max(1, typeSrc.Size);
@@ -931,7 +930,7 @@ namespace Microsoft.ML.Transforms
                     {
                     }
 
-                    public static ImplVec Create(ModelLoadContext ctx, IHost host, VectorType typeSrc)
+                    public static ImplVec Create(ModelLoadContext ctx, IHost host, VectorDataViewType typeSrc)
                     {
                         host.Check(typeSrc.ItemType.RawType == typeof(TFloat), "The column type must be vector of R8.");
                         int cv = Math.Max(1, typeSrc.Size);
@@ -1134,7 +1133,7 @@ namespace Microsoft.ML.Transforms
                         }
                     }
 
-                    public static ImplVec Create(ModelLoadContext ctx, IHost host, VectorType typeSrc)
+                    public static ImplVec Create(ModelLoadContext ctx, IHost host, VectorDataViewType typeSrc)
                     {
                         host.Check(typeSrc.ItemType.RawType == typeof(TFloat), "The column type must be vector of R8.");
                         int cv = Math.Max(1, typeSrc.Size);
@@ -1477,7 +1476,7 @@ namespace Microsoft.ML.Transforms
                 {
                 }
 
-                public static IColumnFunctionBuilder Create(NormalizingEstimator.MinMaxColumnOptions column, IHost host, VectorType srcType,
+                public static IColumnFunctionBuilder Create(NormalizingEstimator.MinMaxColumnOptions column, IHost host, VectorDataViewType srcType,
                     ValueGetter<VBuffer<TFloat>> getter)
                 {
                     host.CheckUserArg(column.MaximumExampleCount > 1, nameof(column.MaximumExampleCount), "Must be greater than 1");
@@ -1613,7 +1612,7 @@ namespace Microsoft.ML.Transforms
                     _useCdf = useCdf;
                 }
 
-                public static IColumnFunctionBuilder Create(NormalizingEstimator.MeanVarianceColumnOptions column, IHost host, VectorType srcType,
+                public static IColumnFunctionBuilder Create(NormalizingEstimator.MeanVarianceColumnOptions column, IHost host, VectorDataViewType srcType,
                     ValueGetter<VBuffer<TFloat>> getter)
                 {
                     host.CheckUserArg(column.MaximumExampleCount > 1, nameof(column.MaximumExampleCount), "Must be greater than 1");
@@ -1621,7 +1620,7 @@ namespace Microsoft.ML.Transforms
                     return new MeanVarVecColumnFunctionBuilder(host, cv, column.MaximumExampleCount, column.EnsureZeroUntouched, getter, false, column.UseCdf);
                 }
 
-                public static IColumnFunctionBuilder Create(NormalizingEstimator.LogMeanVarianceColumnOptions column, IHost host, VectorType srcType,
+                public static IColumnFunctionBuilder Create(NormalizingEstimator.LogMeanVarianceColumnOptions column, IHost host, VectorDataViewType srcType,
                     ValueGetter<VBuffer<TFloat>> getter)
                 {
                     var lim = column.MaximumExampleCount;
@@ -1778,7 +1777,7 @@ namespace Microsoft.ML.Transforms
                     }
                 }
 
-                public static IColumnFunctionBuilder Create(NormalizingEstimator.BinningColumnOptions column, IHost host, VectorType srcType,
+                public static IColumnFunctionBuilder Create(NormalizingEstimator.BinningColumnOptions column, IHost host, VectorDataViewType srcType,
                     ValueGetter<VBuffer<TFloat>> getter)
                 {
                     var lim = column.MaximumExampleCount;

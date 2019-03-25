@@ -4,7 +4,7 @@
 
 using System;
 using System.IO;
-using Microsoft.Data.DataView;
+using Microsoft.ML.Calibrators;
 using Microsoft.ML.Data;
 using Microsoft.ML.Data.IO;
 using Microsoft.ML.Internal.Utilities;
@@ -30,11 +30,11 @@ namespace Microsoft.ML.Tests
             var data = GetSparseDataset();
             var model = ML.Regression.Trainers.Ols().Fit(data);
 
-            var estPipe = new FeatureContributionCalculatingEstimator(ML, model.Model, model.FeatureColumn)
-                .Append(new FeatureContributionCalculatingEstimator(ML, model.Model, model.FeatureColumn, normalize: false))
-                .Append(new FeatureContributionCalculatingEstimator(ML, model.Model, model.FeatureColumn, numPositiveContributions: 0))
-                .Append(new FeatureContributionCalculatingEstimator(ML, model.Model, model.FeatureColumn, numNegativeContributions: 0))
-                .Append(new FeatureContributionCalculatingEstimator(ML, model.Model, model.FeatureColumn, numPositiveContributions: 0, numNegativeContributions: 0));
+            var estPipe = ML.Transforms.CalculateFeatureContribution(model)
+                .Append(ML.Transforms.CalculateFeatureContribution(model, normalize: false))
+                .Append(ML.Transforms.CalculateFeatureContribution(model, numberOfPositiveContributions: 0))
+                .Append(ML.Transforms.CalculateFeatureContribution(model, numberOfNegativeContributions: 0))
+                .Append(ML.Transforms.CalculateFeatureContribution(model, numberOfPositiveContributions: 0, numberOfNegativeContributions: 0));
 
             TestEstimatorCore(estPipe, data);
             Done();
@@ -151,21 +151,29 @@ namespace Microsoft.ML.Tests
         public void TestSDCABinary()
         {
             TestFeatureContribution(ML.BinaryClassification.Trainers.SdcaNonCalibrated(
-                new SdcaNonCalibratedBinaryClassificationTrainer.Options { NumberOfThreads = 1, }), GetSparseDataset(TaskType.BinaryClassification, 100), "SDCABinary", precision: 5);
+                new SdcaNonCalibratedBinaryTrainer.Options { NumberOfThreads = 1, }), GetSparseDataset(TaskType.BinaryClassification, 100), "SDCABinary", precision: 5);
         }
 
         [Fact]
         public void TestSGDBinary()
         {
             TestFeatureContribution(ML.BinaryClassification.Trainers.SgdCalibrated(
-                new SgdCalibratedTrainer.Options { NumberOfThreads = 1 }),
+                new SgdCalibratedTrainer.Options()
+                {
+                    NumberOfThreads = 1
+                }),
                 GetSparseDataset(TaskType.BinaryClassification, 100), "SGDBinary");
         }
 
         [Fact]
         public void TestSSGDBinary()
         {
-            TestFeatureContribution(ML.BinaryClassification.Trainers.SymbolicSgd(), GetSparseDataset(TaskType.BinaryClassification, 100), "SSGDBinary", 4);
+            TestFeatureContribution(ML.BinaryClassification.Trainers.SymbolicSgd(
+                new SymbolicSgdTrainer.Options()
+                {
+                    NumberOfThreads = 1
+                }),
+                GetSparseDataset(TaskType.BinaryClassification, 100), "SSGDBinary", 4);
         }
 
         [Fact]
@@ -175,7 +183,7 @@ namespace Microsoft.ML.Tests
         }
 
         private void TestFeatureContribution(
-            ITrainerEstimator<ISingleFeaturePredictionTransformer<IPredictor>, IPredictor> trainer,
+            ITrainerEstimator<ISingleFeaturePredictionTransformer<ICalculateFeatureContribution>, ICalculateFeatureContribution> trainer,
             IDataView data,
             string testFile,
             int precision = 6)
@@ -183,28 +191,54 @@ namespace Microsoft.ML.Tests
             // Train the model.
             var model = trainer.Fit(data);
 
-            // Extract the predictor, check that it supports feature contribution.
-            var predictor = model.Model as ICalculateFeatureContribution;
-            Assert.NotNull(predictor);
-
             // Calculate feature contributions.
-            var est = new FeatureContributionCalculatingEstimator(ML, predictor, "Features", numPositiveContributions: 3, numNegativeContributions: 0)
-                .Append(new FeatureContributionCalculatingEstimator(ML, predictor, "Features", numPositiveContributions: 0, numNegativeContributions: 3))
-                .Append(new FeatureContributionCalculatingEstimator(ML, predictor, "Features", numPositiveContributions: 1, numNegativeContributions: 1))
-                .Append(new FeatureContributionCalculatingEstimator(ML, predictor, "Features", numPositiveContributions: 1, numNegativeContributions: 1, normalize: false));
+            var est = ML.Transforms.CalculateFeatureContribution(model, numberOfPositiveContributions: 3, numberOfNegativeContributions: 0)
+                .Append(ML.Transforms.CalculateFeatureContribution(model, numberOfPositiveContributions: 0, numberOfNegativeContributions: 3))
+                .Append(ML.Transforms.CalculateFeatureContribution(model, numberOfPositiveContributions: 1, numberOfNegativeContributions: 1))
+                .Append(ML.Transforms.CalculateFeatureContribution(model, numberOfPositiveContributions: 1, numberOfNegativeContributions: 1, normalize: false));
 
             TestEstimatorCore(est, data);
+
             // Verify output.
+            CheckOutput(est, data, testFile, precision);
+            Done();
+        }
+
+        private void TestFeatureContribution<TModelParameters, TCalibrator>(
+            ITrainerEstimator<ISingleFeaturePredictionTransformer<CalibratedModelParametersBase<TModelParameters, TCalibrator>>, CalibratedModelParametersBase<TModelParameters, TCalibrator>> trainer,
+            IDataView data,
+            string testFile,
+            int precision = 6)
+            where TModelParameters : class, ICalculateFeatureContribution
+            where TCalibrator : class, ICalibrator
+        {
+            // Train the model.
+            var model = trainer.Fit(data);
+
+            // Calculate feature contributions.
+            var est = ML.Transforms.CalculateFeatureContribution(model, numberOfPositiveContributions: 3, numberOfNegativeContributions: 0)
+                .Append(ML.Transforms.CalculateFeatureContribution(model, numberOfPositiveContributions: 0, numberOfNegativeContributions: 3))
+                .Append(ML.Transforms.CalculateFeatureContribution(model, numberOfPositiveContributions: 1, numberOfNegativeContributions: 1))
+                .Append(ML.Transforms.CalculateFeatureContribution(model, numberOfPositiveContributions: 1, numberOfNegativeContributions: 1, normalize: false));
+
+            TestEstimatorCore(est, data);
+
+            // Verify output.
+            CheckOutput(est, data, testFile, precision);
+            Done();
+        }
+
+        private void CheckOutput(IEstimator<ITransformer> estimator, IDataView data, string testFile, int precision = 6)
+        {
             var outputPath = GetOutputPath("FeatureContribution", testFile + ".tsv");
             using (var ch = Env.Start("save"))
             {
                 var saver = new TextSaver(ML, new TextSaver.Arguments { Silent = true, OutputHeader = false });
-                var savedData = ML.Data.TakeRows(est.Fit(data).Transform(data), 4);
+                var savedData = ML.Data.TakeRows(estimator.Fit(data).Transform(data), 4);
                 using (var fs = File.Create(outputPath))
                     DataSaverUtils.SaveDataView(ch, saver, savedData, fs, keepHidden: true);
             }
             CheckEquality("FeatureContribution", testFile + ".tsv", digitsOfPrecision: precision);
-            Done();
         }
 
         /// <summary>

@@ -6,7 +6,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
@@ -107,7 +106,7 @@ namespace Microsoft.ML.Transforms
                 _type = schema[_index].Type;
                 if (!IsValidRangeFilterColumnType(ch, _type))
                     throw ch.ExceptUserArg(nameof(options.Column), "Column '{0}' does not have compatible type", options.Column);
-                if (_type is KeyType)
+                if (_type is KeyDataViewType)
                 {
                     if (options.Min < 0)
                     {
@@ -128,7 +127,7 @@ namespace Microsoft.ML.Transforms
                     throw ch.ExceptUserArg(nameof(options.Min), "min must be less than or equal to max");
                 _complement = options.Complement;
                 _includeMin = options.IncludeMin;
-                _includeMax = options.IncludeMax ?? (options.Max == null || (_type is KeyType && _max >= 1));
+                _includeMax = options.IncludeMax ?? (options.Max == null || (_type is KeyDataViewType && _max >= 1));
             }
         }
 
@@ -243,7 +242,7 @@ namespace Microsoft.ML.Transforms
                 return new SingleRowCursor(this, input, active);
             if (_type == NumberDataViewType.Double)
                 return new DoubleRowCursor(this, input, active);
-            Host.Assert(_type is KeyType);
+            Host.Assert(_type is KeyDataViewType);
             return RowCursorBase.CreateKeyRowCursor(this, input, active);
         }
 
@@ -331,7 +330,7 @@ namespace Microsoft.ML.Transforms
 
             public static DataViewRowCursor CreateKeyRowCursor(RangeFilter filter, DataViewRowCursor input, bool[] active)
             {
-                Contracts.Assert(filter._type is KeyType);
+                Contracts.Assert(filter._type is KeyDataViewType);
                 Func<RangeFilter, DataViewRowCursor, bool[], DataViewRowCursor> del = CreateKeyRowCursor<int>;
                 var methodInfo = del.GetMethodInfo().GetGenericMethodDefinition().MakeGenericMethod(filter._type.RawType);
                 return (DataViewRowCursor)methodInfo.Invoke(null, new object[] { filter, input, active });
@@ -339,7 +338,7 @@ namespace Microsoft.ML.Transforms
 
             private static DataViewRowCursor CreateKeyRowCursor<TSrc>(RangeFilter filter, DataViewRowCursor input, bool[] active)
             {
-                Contracts.Assert(filter._type is KeyType);
+                Contracts.Assert(filter._type is KeyDataViewType);
                 return new KeyRowCursor<TSrc>(filter, input, active);
             }
         }
@@ -436,13 +435,13 @@ namespace Microsoft.ML.Transforms
 
             protected override Delegate GetGetter()
             {
-                Ch.Assert(Parent._type is KeyType);
+                Ch.Assert(Parent._type is KeyDataViewType);
                 return _getter;
             }
 
             protected override bool Accept()
             {
-                Ch.Assert(Parent._type is KeyType);
+                Ch.Assert(Parent._type is KeyDataViewType);
                 _srcGetter(ref _value);
                 ulong value = 0;
                 _conv(in _value, ref value);

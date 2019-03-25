@@ -8,7 +8,6 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
-using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
@@ -174,7 +173,7 @@ namespace Microsoft.ML.Transforms.Text
 
         private readonly ImmutableArray<NgramHashingEstimator.ColumnOptions> _columns;
         private readonly VBuffer<ReadOnlyMemory<char>>[] _slotNames;
-        private readonly VectorType[] _slotNamesTypes;
+        private readonly VectorDataViewType[] _slotNamesTypes;
 
         /// <summary>
         /// Constructor for case where you don't need to 'train' transform on data, for example, MaximumNumberOfInverts for all columns set to zero.
@@ -378,7 +377,7 @@ namespace Microsoft.ML.Transforms.Text
         private sealed class Mapper : MapperBase
         {
             private readonly NgramHashingTransformer _parent;
-            private readonly VectorType[] _types;
+            private readonly VectorDataViewType[] _types;
             private readonly int[][] _srcIndices;
             private readonly DataViewType[][] _srcTypes;
             private readonly FinderDecorator _decorator;
@@ -388,7 +387,7 @@ namespace Microsoft.ML.Transforms.Text
             {
                 _parent = parent;
                 _decorator = decorator;
-                _types = new VectorType[_parent._columns.Length];
+                _types = new VectorDataViewType[_parent._columns.Length];
                 _srcIndices = new int[_parent._columns.Length][];
                 _srcTypes = new DataViewType[_parent._columns.Length][];
                 for (int i = 0; i < _parent._columns.Length; i++)
@@ -408,7 +407,7 @@ namespace Microsoft.ML.Transforms.Text
                         _srcTypes[i][j] = srcType;
                     }
 
-                    _types[i] = new VectorType(NumberDataViewType.Single, 1 << _parent._columns[i].NumberOfBits);
+                    _types[i] = new VectorDataViewType(NumberDataViewType.Single, 1 << _parent._columns[i].NumberOfBits);
                 }
             }
 
@@ -573,7 +572,7 @@ namespace Microsoft.ML.Transforms.Text
                 var bldr = new NgramBufferBuilder(_parent._columns[iinfo].NgramLength, _parent._columns[iinfo].SkipLength,
                     _types[iinfo].Size, ngramIdFinder);
                 var keyCounts = _srcTypes[iinfo].Select(
-                    t => (t.GetItemType() is KeyType keyType && keyType.Count > 0) ? (uint)keyType.Count : uint.MaxValue).ToArray();
+                    t => (t.GetItemType() is KeyDataViewType keyType && keyType.Count > 0) ? (uint)keyType.Count : uint.MaxValue).ToArray();
 
                 // REVIEW: Special casing the srcCount==1 case could potentially improve perf.
                 ValueGetter<VBuffer<float>> del =
@@ -843,17 +842,17 @@ namespace Microsoft.ML.Transforms.Text
                     };
             }
 
-            public VBuffer<ReadOnlyMemory<char>>[] SlotNamesMetadata(out VectorType[] types)
+            public VBuffer<ReadOnlyMemory<char>>[] SlotNamesMetadata(out VectorDataViewType[] types)
             {
                 var values = new VBuffer<ReadOnlyMemory<char>>[_iinfoToCollector.Length];
-                types = new VectorType[_iinfoToCollector.Length];
+                types = new VectorDataViewType[_iinfoToCollector.Length];
                 for (int iinfo = 0; iinfo < _iinfoToCollector.Length; ++iinfo)
                 {
                     if (_iinfoToCollector[iinfo] != null)
                     {
                         var vec = values[iinfo] = _iinfoToCollector[iinfo].GetMetadata();
                         Contracts.Assert(vec.Length == 1 << _parent._columns[iinfo].NumberOfBits);
-                        types[iinfo] = new VectorType(TextDataViewType.Instance, vec.Length);
+                        types[iinfo] = new VectorDataViewType(TextDataViewType.Instance, vec.Length);
                     }
                 }
                 return values;
@@ -873,7 +872,8 @@ namespace Microsoft.ML.Transforms.Text
         /// <summary>
         /// Describes how the transformer handles one pair of mulitple inputs - singular output columns.
         /// </summary>
-        public sealed class ColumnOptions
+        [BestFriend]
+        internal sealed class ColumnOptions
         {
             /// <summary>Name of the column resulting from the transformation of <see cref="InputColumnNames"/>.</summary>
             public readonly string Name;
@@ -1166,9 +1166,9 @@ namespace Microsoft.ML.Transforms.Text
 
         internal static bool IsColumnTypeValid(DataViewType type)
         {
-            if (!(type is VectorType vectorType))
+            if (!(type is VectorDataViewType vectorType))
                 return false;
-            if (!(vectorType.ItemType is KeyType itemKeyType))
+            if (!(vectorType.ItemType is KeyDataViewType itemKeyType))
                 return false;
             // Can only accept key types that can be converted to U4.
             if (itemKeyType.Count == 0 && !NgramUtils.IsValidNgramRawType(itemKeyType.RawType))

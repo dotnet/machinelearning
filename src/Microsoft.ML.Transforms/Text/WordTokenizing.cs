@@ -6,7 +6,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
@@ -210,13 +209,13 @@ namespace Microsoft.ML.Transforms.Text
               : base(parent.Host.Register(nameof(Mapper)), parent, inputSchema)
             {
                 _parent = parent;
-                _type = new VectorType(TextDataViewType.Instance);
+                _type = new VectorDataViewType(TextDataViewType.Instance);
                 _isSourceVector = new bool[_parent._columns.Length];
                 for (int i = 0; i < _isSourceVector.Length; i++)
                 {
                     inputSchema.TryGetColumnIndex(_parent._columns[i].InputColumnName, out int srcCol);
                     var srcType = inputSchema[srcCol].Type;
-                    _isSourceVector[i] = srcType is VectorType;
+                    _isSourceVector[i] = srcType is VectorDataViewType;
                 }
             }
 
@@ -242,7 +241,7 @@ namespace Microsoft.ML.Transforms.Text
                 var srcType = input.Schema[srcCol].Type;
                 Host.Assert(srcType.GetItemType() is TextDataViewType);
 
-                if (!(srcType is VectorType))
+                if (!(srcType is VectorDataViewType))
                     return MakeGetterOne(input, iinfo);
                 return MakeGetterVec(input, iinfo);
             }
@@ -439,7 +438,8 @@ namespace Microsoft.ML.Transforms.Text
           : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(WordTokenizingEstimator)), new WordTokenizingTransformer(env, columns))
         {
         }
-        public sealed class ColumnOptions
+        [BestFriend]
+        internal sealed class ColumnOptions
         {
             /// <summary>
             /// Output column name that will be used to store the tokenization result of <see cref="InputColumnName"/> column.

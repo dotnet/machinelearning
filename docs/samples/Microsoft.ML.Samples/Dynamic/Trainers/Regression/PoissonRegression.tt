@@ -1,0 +1,20 @@
+﻿<#@ include file="RegressionSamplesTemplate.ttinclude"#>
+
+<#+
+string ClassName="PoissonRegression";
+string Trainer = "PoissonRegression";
+string TrainerOptions = null;
+
+string ExpectedOutputPerInstance= @"// Expected output:
+            //   Label: 0.985, Prediction: 1.109
+            //   Label: 0.155, Prediction: 0.171
+            //   Label: 0.515, Prediction: 0.400
+            //   Label: 0.566, Prediction: 0.417
+            //   Label: 0.096, Prediction: 0.172";
+
+string ExpectedOutput = @"// Expected output:
+            //   Mean Absolute Error: 0.07
+            //   Mean Squared Error: 0.01
+            //   Root Mean Squared Error: 0.09
+            //   RSquared: 0.90";
+#>

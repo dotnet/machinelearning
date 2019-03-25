@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.Data;
 using Microsoft.ML.EntryPoints;
@@ -25,7 +24,16 @@ using Microsoft.ML.Trainers;
 
 namespace Microsoft.ML.Trainers
 {
-    /// <include file='doc.xml' path='doc/members/member[@name="PoissonRegression"]/*' />
+    /// <summary>
+    /// The <see cref="IEstimator{TTransformer}"/> for training a Poisson regression model.
+    /// </summary>
+    /// <remarks>
+    /// <a href='https://en.wikipedia.org/wiki/Poisson_regression'>Poisson regression</a> is a parameterized regression method.
+    /// It assumes that the log of the conditional mean of the dependent variable follows a linear function of the dependent variables.
+    /// Assuming that the dependent variable follows a Poisson distribution, the regression parameters can be estimated by maximizing the likelihood of the obtained observations.
+    /// </remarks>
+    /// <seealso cref="StandardTrainersCatalog.PoissonRegression(RegressionCatalog.RegressionTrainers, string, string, string, float, float, float, int, bool)"/>
+    /// <seealso cref="StandardTrainersCatalog.PoissonRegression(RegressionCatalog.RegressionTrainers, Options)"/>
     public sealed class PoissonRegressionTrainer : LbfgsTrainerBase<PoissonRegressionTrainer.Options, RegressionPredictionTransformer<PoissonRegressionModelParameters>, PoissonRegressionModelParameters>
     {
         internal const string LoadNameValue = "PoissonRegression";
@@ -33,6 +41,9 @@ namespace Microsoft.ML.Trainers
         internal const string ShortName = "PR";
         internal const string Summary = "Poisson Regression assumes the unknown function, denoted Y has a Poisson distribution.";
 
+        /// <summary>
+        /// Options for the <see cref="PoissonRegressionTrainer"/>.
+        /// </summary>
         public sealed class Options : OptionsBase
         {
         }
@@ -49,7 +60,7 @@ namespace Microsoft.ML.Trainers
         /// <param name="l1Weight">Weight of L1 regularizer term.</param>
         /// <param name="l2Weight">Weight of L2 regularizer term.</param>
         /// <param name="optimizationTolerance">Threshold for optimizer convergence.</param>
-        /// <param name="memorySize">Memory size for <see cref="LogisticRegressionBinaryClassificationTrainer"/>. Low=faster, less accurate.</param>
+        /// <param name="memorySize">Memory size for <see cref="LogisticRegressionBinaryTrainer"/>. Low=faster, less accurate.</param>
         /// <param name="enforceNoNegativity">Enforce non-negative weights.</param>
         internal PoissonRegressionTrainer(IHostEnvironment env,
             string labelColumn = DefaultColumnNames.Label,

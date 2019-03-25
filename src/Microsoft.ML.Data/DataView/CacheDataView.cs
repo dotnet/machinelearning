@@ -9,7 +9,6 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.Data.DataView;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Runtime;
 
@@ -1275,7 +1274,7 @@ namespace Microsoft.ML.Data
 
                 var type = input.Schema[srcCol].Type;
                 Type pipeType;
-                if (type is VectorType vectorType)
+                if (type is VectorDataViewType vectorType)
                     pipeType = typeof(ImplVec<>).MakeGenericType(vectorType.ItemType.RawType);
                 else
                 {
@@ -1337,7 +1336,7 @@ namespace Microsoft.ML.Data
                     : base(parent, input, srcCol, waiter)
                 {
                     var type = input.Schema[srcCol].Type;
-                    Ctx.Assert(type is VectorType);
+                    Ctx.Assert(type is VectorDataViewType);
                     _uniformLength = type.GetVectorSize();
                     _indices = new BigArray<int>();
                     _values = new BigArray<T>();

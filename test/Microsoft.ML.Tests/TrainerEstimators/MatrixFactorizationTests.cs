@@ -116,7 +116,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             prediction.Schema.TryGetColumnIndex(scoreColumnName, out int scoreColumnId);
 
             // Compute prediction errors
-            var metrices = mlContext.Recommendation().Evaluate(prediction, label: labelColumnName, score: scoreColumnName);
+            var metrices = mlContext.Recommendation().Evaluate(prediction, labelColumnName: labelColumnName, scoreColumnName: scoreColumnName);
 
             // Determine if the selected metric is reasonable for different platforms
             double tolerance = Math.Pow(10, -7);
@@ -223,19 +223,19 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             // Check if the expected types in the trained model are expected.
             Assert.True(model.MatrixColumnIndexColumnName == "MatrixColumnIndex");
             Assert.True(model.MatrixRowIndexColumnName == "MatrixRowIndex");
-            Assert.True(model.MatrixColumnIndexColumnType is KeyType);
-            Assert.True(model.MatrixRowIndexColumnType is KeyType);
-            var matColKeyType = (KeyType)model.MatrixColumnIndexColumnType;
+            Assert.True(model.MatrixColumnIndexColumnType is KeyDataViewType);
+            Assert.True(model.MatrixRowIndexColumnType is KeyDataViewType);
+            var matColKeyType = (KeyDataViewType)model.MatrixColumnIndexColumnType;
             Assert.True(matColKeyType.Count == _synthesizedMatrixColumnCount + _synthesizedMatrixFirstColumnIndex);
-            var matRowKeyType = (KeyType)model.MatrixRowIndexColumnType;
+            var matRowKeyType = (KeyDataViewType)model.MatrixRowIndexColumnType;
             Assert.True(matRowKeyType.Count == _synthesizedMatrixRowCount + _synthesizedMatrixRowCount);
 
             // Apply the trained model to the training set
             var prediction = model.Transform(dataView);
 
             // Calculate regression matrices for the prediction result
-            var metrics = mlContext.Recommendation().Evaluate(prediction, label: nameof(MatrixElement.Value),
-                score: nameof(MatrixElementForScore.Score));
+            var metrics = mlContext.Recommendation().Evaluate(prediction, labelColumnName: nameof(MatrixElement.Value),
+                scoreColumnName: nameof(MatrixElementForScore.Score));
 
             // Native test. Just check the pipeline runs.
             Assert.True(metrics.MeanSquaredError < 0.1);
@@ -314,9 +314,9 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             // Check if the expected types in the trained model are expected.
             Assert.True(model.MatrixColumnIndexColumnName == nameof(MatrixElementZeroBased.MatrixColumnIndex));
             Assert.True(model.MatrixRowIndexColumnName == nameof(MatrixElementZeroBased.MatrixRowIndex));
-            var matColKeyType = model.MatrixColumnIndexColumnType as KeyType;
+            var matColKeyType = model.MatrixColumnIndexColumnType as KeyDataViewType;
             Assert.NotNull(matColKeyType);
-            var matRowKeyType = model.MatrixRowIndexColumnType as KeyType;
+            var matRowKeyType = model.MatrixRowIndexColumnType as KeyDataViewType;
             Assert.NotNull(matRowKeyType);
             Assert.True(matColKeyType.Count == _synthesizedMatrixColumnCount);
             Assert.True(matRowKeyType.Count == _synthesizedMatrixRowCount);
@@ -325,7 +325,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             var prediction = model.Transform(dataView);
 
             // Calculate regression matrices for the prediction result. It's a global
-            var metrics = mlContext.Recommendation().Evaluate(prediction, label: "Value", score: "Score");
+            var metrics = mlContext.Recommendation().Evaluate(prediction, labelColumnName: "Value", scoreColumnName: "Score");
 
             // Make sure the prediction error is not too large.
             Assert.InRange(metrics.MeanSquaredError, 0, 0.1);
@@ -438,7 +438,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             var prediction = model.Transform(dataView);
 
             // Calculate regression matrices for the prediction result.
-            var metrics = mlContext.Recommendation().Evaluate(prediction, label: "Value", score: "Score");
+            var metrics = mlContext.Recommendation().Evaluate(prediction, labelColumnName: "Value", scoreColumnName: "Score");
 
             // Make sure the prediction error is not too large.
             Assert.InRange(metrics.MeanSquaredError, 0, 0.0016);
@@ -504,7 +504,11 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             using (var ch = Env.Start("load"))
             {
                 using (var fs = File.OpenRead(modelPath))
-                    model = ML.Model.Load(fs);
+                {
+                    model = ML.Model.Load(fs, out var schema);
+                    // This model was saved without the input schema.
+                    Assert.Null(schema);
+                }
             }
 
             // Create data for testing. Note that the 2nd element is not specified in the training data so it should
@@ -574,7 +578,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             var prediction = model.Transform(dataView);
 
             // Calculate regression matrices for the prediction result.
-            var metrics = mlContext.Recommendation().Evaluate(prediction, label: "Value", score: "Score");
+            var metrics = mlContext.Recommendation().Evaluate(prediction, labelColumnName: "Value", scoreColumnName: "Score");
 
             // Make sure the prediction error is not too large.
             Assert.InRange(metrics.MeanSquaredError, 0, 0.0016);
