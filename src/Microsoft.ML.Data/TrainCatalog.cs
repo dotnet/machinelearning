@@ -256,6 +256,14 @@ namespace Microsoft.ML
                 Evaluate(x.Scores, labelColumnName), x.Scores, x.Fold)).ToArray();
         }
 
+        public BinaryPredictionTransformer<TModel> ChangeModelThreshold<TModel>(BinaryPredictionTransformer<TModel> model, float threshold)
+             where TModel : class
+        {
+            if (model.Threshold == threshold)
+                return model;
+            return new BinaryPredictionTransformer<TModel>(Environment, model.Model, model.TrainSchema, model.FeatureColumnName, threshold, model.ThresholdColumn);
+        }
+
         /// <summary>
         /// The list of trainers for performing binary classification.
         /// </summary>
