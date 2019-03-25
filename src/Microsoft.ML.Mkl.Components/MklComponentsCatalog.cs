@@ -10,7 +10,7 @@ using Microsoft.ML.Transforms;
 namespace Microsoft.ML
 {
     /// <summary>
-    /// The trainer catalog extensions for the <see cref="OlsTrainer"/> and <see cref="SymbolicSgdTrainer"/>.
+    /// The trainer catalog extensions for the <see cref="OlsTrainer"/> and <see cref="SymbolicSgdLogisticRegressionBinaryTrainer"/>.
     /// </summary>
     public static class MklComponentsCatalog
     {
@@ -69,9 +69,9 @@ namespace Microsoft.ML
         }
 
         /// <summary>
-        /// Predict a target using a linear binary classification model trained with the <see cref="SymbolicSgdTrainer"/>.
+        /// Predict a target using a linear binary classification model trained with the <see cref="SymbolicSgdLogisticRegressionBinaryTrainer"/>.
         /// Stochastic gradient descent (SGD) is an iterative algorithm that optimizes a differentiable objective function.
-        /// The <see cref="SymbolicSgdTrainer"/> parallelizes SGD using <a href="https://www.microsoft.com/en-us/research/project/project-parade/#!symbolic-execution">symbolic execution</a>.
+        /// The <see cref="SymbolicSgdLogisticRegressionBinaryTrainer"/> parallelizes SGD using <a href="https://www.microsoft.com/en-us/research/project/project-parade/#!symbolic-execution">symbolic execution</a>.
         /// </summary>
         /// <param name="catalog">The <see cref="BinaryClassificationCatalog"/>.</param>
         /// <param name="labelColumnName">The name of the label column.</param>
@@ -84,30 +84,30 @@ namespace Microsoft.ML
         /// ]]>
         /// </format>
         /// </example>
-        public static SymbolicSgdTrainer SymbolicSgd(this BinaryClassificationCatalog.BinaryClassificationTrainers catalog,
+        public static SymbolicSgdLogisticRegressionBinaryTrainer SymbolicSgdLogisticRegression(this BinaryClassificationCatalog.BinaryClassificationTrainers catalog,
             string labelColumnName = DefaultColumnNames.Label,
             string featureColumnName = DefaultColumnNames.Features,
-            int numberOfIterations = SymbolicSgdTrainer.Defaults.NumberOfIterations)
+            int numberOfIterations = SymbolicSgdLogisticRegressionBinaryTrainer.Defaults.NumberOfIterations)
         {
             Contracts.CheckValue(catalog, nameof(catalog));
             var env = CatalogUtils.GetEnvironment(catalog);
 
-            var options = new SymbolicSgdTrainer.Options
+            var options = new SymbolicSgdLogisticRegressionBinaryTrainer.Options
             {
                 LabelColumnName = labelColumnName,
                 FeatureColumnName = featureColumnName,
             };
 
-            return new SymbolicSgdTrainer(env, options);
+            return new SymbolicSgdLogisticRegressionBinaryTrainer(env, options);
         }
 
         /// <summary>
-        ///  Predict a target using a linear binary classification model trained with the <see cref="SymbolicSgdTrainer"/>.
+        ///  Predict a target using a linear binary classification model trained with the <see cref="SymbolicSgdLogisticRegressionBinaryTrainer"/>.
         /// Stochastic gradient descent (SGD) is an iterative algorithm that optimizes a differentiable objective function.
-        /// The <see cref="SymbolicSgdTrainer"/> parallelizes SGD using <a href="https://www.microsoft.com/en-us/research/project/project-parade/#!symbolic-execution">symbolic execution</a>.
+        /// The <see cref="SymbolicSgdLogisticRegressionBinaryTrainer"/> parallelizes SGD using <a href="https://www.microsoft.com/en-us/research/project/project-parade/#!symbolic-execution">symbolic execution</a>.
         /// </summary>
         /// <param name="catalog">The <see cref="BinaryClassificationCatalog"/>.</param>
-        /// <param name="options">Algorithm advanced options. See <see cref="SymbolicSgdTrainer.Options"/>.</param>
+        /// <param name="options">Algorithm advanced options. See <see cref="SymbolicSgdLogisticRegressionBinaryTrainer.Options"/>.</param>
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
@@ -115,14 +115,14 @@ namespace Microsoft.ML
         /// ]]>
         /// </format>
         /// </example>
-        public static SymbolicSgdTrainer SymbolicSgd(
+        public static SymbolicSgdLogisticRegressionBinaryTrainer SymbolicSgdLogisticRegression(
             this BinaryClassificationCatalog.BinaryClassificationTrainers catalog,
-            SymbolicSgdTrainer.Options options)
+            SymbolicSgdLogisticRegressionBinaryTrainer.Options options)
         {
             Contracts.CheckValue(catalog, nameof(catalog));
             Contracts.CheckValue(options, nameof(options));
             var env = CatalogUtils.GetEnvironment(catalog);
-            return new SymbolicSgdTrainer(env, options);
+            return new SymbolicSgdLogisticRegressionBinaryTrainer(env, options);
         }
 
         /// <summary>

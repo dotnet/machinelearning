@@ -422,8 +422,8 @@ namespace Microsoft.ML.Functional.Tests
         private IEstimator<TransformerChain<MulticlassPredictionTransformer<MaximumEntropyModelParameters>>> StepTwo(MLContext mlContext)
         {
             return mlContext.Transforms.Conversion.MapValueToKey("Label")
-                .Append(mlContext.MulticlassClassification.Trainers.SdcaCalibrated(
-                new SdcaCalibratedMulticlassTrainer.Options {
+                .Append(mlContext.MulticlassClassification.Trainers.SdcaMaximumEntropy(
+                new SdcaMaximumEntropyMulticlassTrainer.Options {
                     MaximumNumberOfIterations = 10,
                     NumberOfThreads = 1 }));
         }

@@ -94,7 +94,7 @@ namespace Microsoft.ML.Functional.Tests
             var pipeline = mlContext.Transforms.Text.FeaturizeText("Features", "SentimentText")
                 .AppendCacheCheckpoint(mlContext)
                 .Append(mlContext.BinaryClassification.Trainers.LbfgsLogisticRegression(
-                    new LbfgsLogisticRegressionTrainer.Options { NumberOfThreads = 1 }));
+                    new LbfgsLogisticRegressionBinaryTrainer.Options { NumberOfThreads = 1 }));
 
             // Train the model.
             var model = pipeline.Fit(data);
@@ -151,8 +151,8 @@ namespace Microsoft.ML.Functional.Tests
             var pipeline = mlContext.Transforms.Concatenate("Features", Iris.Features)
                 .Append(mlContext.Transforms.Conversion.MapValueToKey("Label"))
                 .AppendCacheCheckpoint(mlContext)
-                .Append(mlContext.MulticlassClassification.Trainers.SdcaCalibrated(
-                    new SdcaCalibratedMulticlassTrainer.Options { NumberOfThreads = 1}));
+                .Append(mlContext.MulticlassClassification.Trainers.SdcaMaximumEntropy(
+                    new SdcaMaximumEntropyMulticlassTrainer.Options { NumberOfThreads = 1}));
 
             // Train the model.
             var model = pipeline.Fit(data);
@@ -274,7 +274,7 @@ namespace Microsoft.ML.Functional.Tests
             var pipeline = mlContext.Transforms.Text.FeaturizeText("Features", "SentimentText")
                 .AppendCacheCheckpoint(mlContext)
                 .Append(mlContext.BinaryClassification.Trainers.LbfgsLogisticRegression(
-                    new LbfgsLogisticRegressionTrainer.Options { NumberOfThreads = 1 }));
+                    new LbfgsLogisticRegressionBinaryTrainer.Options { NumberOfThreads = 1 }));
 
             // Train the model.
             var model = pipeline.Fit(data);

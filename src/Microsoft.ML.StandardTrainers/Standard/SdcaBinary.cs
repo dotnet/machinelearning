@@ -1427,7 +1427,7 @@ namespace Microsoft.ML.Trainers
     /// SDCA is a general training algorithm for (generalized) linear models such as support vector machine, linear regression, logistic regression,
     /// and so on. SDCA binary classification trainer family includes several sealed members:
     /// (1) <see cref="SdcaNonCalibratedBinaryTrainer"/> supports general loss functions and returns <see cref="LinearBinaryModelParameters"/>.
-    /// (2) <see cref="SdcaCalibratedBinaryTrainer"/> essentially trains a regularized logistic regression model. Because logistic regression
+    /// (2) <see cref="SdcaLogisticRegressionBinaryTrainer"/> essentially trains a regularized logistic regression model. Because logistic regression
     /// naturally provide probability output, this generated model's type is <see cref="CalibratedModelParametersBase{TSubModel, TCalibrator}"/>.
     /// where <see langword="TSubModel"/> is <see cref="LinearBinaryModelParameters"/> and <see langword="TCalibrator "/> is <see cref="PlattCalibrator"/>.
     /// </summary>
@@ -1547,17 +1547,17 @@ namespace Microsoft.ML.Trainers
     /// linear function to a <see cref="PlattCalibrator"/>.
     /// </summary>
     /// <include file='doc.xml' path='doc/members/member[@name="SDCA_remarks"]/*' />
-    public sealed class SdcaCalibratedBinaryTrainer :
+    public sealed class SdcaLogisticRegressionBinaryTrainer :
         SdcaBinaryTrainerBase<CalibratedModelParametersBase<LinearBinaryModelParameters, PlattCalibrator>>
     {
         /// <summary>
-        /// Options for the <see cref="SdcaCalibratedBinaryTrainer"/>.
+        /// Options for the <see cref="SdcaLogisticRegressionBinaryTrainer"/>.
         /// </summary>
         public sealed class Options : BinaryOptionsBase
         {
         }
 
-        internal SdcaCalibratedBinaryTrainer(IHostEnvironment env,
+        internal SdcaLogisticRegressionBinaryTrainer(IHostEnvironment env,
             string labelColumnName = DefaultColumnNames.Label,
             string featureColumnName = DefaultColumnNames.Features,
             string weightColumnName = null,
@@ -1568,7 +1568,7 @@ namespace Microsoft.ML.Trainers
         {
         }
 
-        internal SdcaCalibratedBinaryTrainer(IHostEnvironment env, Options options)
+        internal SdcaLogisticRegressionBinaryTrainer(IHostEnvironment env, Options options)
             : base(env, options, new LogLoss())
         {
         }
@@ -1674,7 +1674,7 @@ namespace Microsoft.ML.Trainers
         }
 
         /// <summary>
-        /// Comparing with <see cref="SdcaCalibratedBinaryTrainer.CreatePredictor(VBuffer{float}[], float[])"/>,
+        /// Comparing with <see cref="SdcaLogisticRegressionBinaryTrainer.CreatePredictor(VBuffer{float}[], float[])"/>,
         /// <see cref="CreatePredictor"/> directly outputs a <see cref="LinearBinaryModelParameters"/> built from
         /// the learned weights and bias without calibration.
         /// </summary>
@@ -1941,7 +1941,7 @@ namespace Microsoft.ML.Trainers
             => new BinaryPredictionTransformer<TModel>(Host, model, trainSchema, FeatureColumn.Name);
 
         /// <summary>
-        /// Continues the training of a <see cref="SdcaCalibratedBinaryTrainer"/> using an already trained <paramref name="modelParameters"/> and returns a <see cref="BinaryPredictionTransformer"/>.
+        /// Continues the training of a <see cref="SdcaLogisticRegressionBinaryTrainer"/> using an already trained <paramref name="modelParameters"/> and returns a <see cref="BinaryPredictionTransformer"/>.
         /// </summary>
         public BinaryPredictionTransformer<TModel> Fit(IDataView trainData, LinearModelParameters modelParameters)
             => TrainTransformer(trainData, initPredictor: modelParameters);

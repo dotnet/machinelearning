@@ -16,7 +16,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         public void TestEstimatorSymSgdClassificationTrainer()
         {
             (var pipe, var dataView) = GetBinaryClassificationPipeline();
-            var trainer = new SymbolicSgdTrainer(Env, new SymbolicSgdTrainer.Options());
+            var trainer = new SymbolicSgdLogisticRegressionBinaryTrainer(Env, new SymbolicSgdLogisticRegressionBinaryTrainer.Options());
             var pipeWithTrainer = pipe.Append(trainer);
             TestEstimatorCore(pipeWithTrainer, dataView);
 
@@ -32,14 +32,14 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             (var pipe, var dataView) = GetBinaryClassificationPipeline();
             var transformedData = pipe.Fit(dataView).Transform(dataView);
 
-            var initPredictor = ML.BinaryClassification.Trainers.SdcaCalibrated().Fit(transformedData);
+            var initPredictor = ML.BinaryClassification.Trainers.SdcaLogisticRegression().Fit(transformedData);
             var data = initPredictor.Transform(transformedData);
 
-            var withInitPredictor = new SymbolicSgdTrainer(Env, new SymbolicSgdTrainer.Options()).Fit(transformedData,
+            var withInitPredictor = new SymbolicSgdLogisticRegressionBinaryTrainer(Env, new SymbolicSgdLogisticRegressionBinaryTrainer.Options()).Fit(transformedData,
                 modelParameters: initPredictor.Model.SubModel);
             var outInitData = withInitPredictor.Transform(transformedData);
 
-            var notInitPredictor = new SymbolicSgdTrainer(Env, new SymbolicSgdTrainer.Options()).Fit(transformedData);
+            var notInitPredictor = new SymbolicSgdLogisticRegressionBinaryTrainer(Env, new SymbolicSgdLogisticRegressionBinaryTrainer.Options()).Fit(transformedData);
             var outNoInitData = notInitPredictor.Transform(transformedData);
 
             int numExamples = 10;

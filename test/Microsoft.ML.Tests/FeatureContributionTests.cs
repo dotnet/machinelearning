@@ -168,8 +168,8 @@ namespace Microsoft.ML.Tests
         [Fact]
         public void TestSSGDBinary()
         {
-            TestFeatureContribution(ML.BinaryClassification.Trainers.SymbolicSgd(
-                new SymbolicSgdTrainer.Options()
+            TestFeatureContribution(ML.BinaryClassification.Trainers.SymbolicSgdLogisticRegression(
+                new SymbolicSgdLogisticRegressionBinaryTrainer.Options()
                 {
                     NumberOfThreads = 1
                 }),
