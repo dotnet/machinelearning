@@ -4,6 +4,7 @@
 
 using System.Linq;
 using Microsoft.ML.Data;
+using Microsoft.ML.Runtime;
 using Microsoft.ML.Transforms;
 
 namespace Microsoft.ML
@@ -16,11 +17,11 @@ namespace Microsoft.ML
         /// <summary>
         /// Name of the column to transform. If set to <see langword="null"/>, the value of the <see cref="OutputColumnName"/> will be used as source.
         /// </summary>
-        public readonly string InputColumnName;
+        public string InputColumnName { get; }
         /// <summary>
         /// Name of the column resulting from the transformation of <see cref="InputColumnName"/>.
         /// </summary>
-        public readonly string OutputColumnName;
+        public string OutputColumnName { get; }
 
         /// <summary>
         /// Specifies input and output column names for a transformation.
@@ -29,6 +30,7 @@ namespace Microsoft.ML
         /// <param name="inputColumnName">Name of the column to transform. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.</param>
         public InputOutputColumnPair(string outputColumnName, string inputColumnName = null)
         {
+            Contracts.CheckNonEmpty(outputColumnName, nameof(outputColumnName));
             InputColumnName = inputColumnName ?? outputColumnName;
             OutputColumnName = outputColumnName;
         }
@@ -76,7 +78,11 @@ namespace Microsoft.ML
         /// </example>
         [BestFriend]
         internal static ColumnCopyingEstimator CopyColumns(this TransformsCatalog catalog, params InputOutputColumnPair[] columns)
-            => new ColumnCopyingEstimator(CatalogUtils.GetEnvironment(catalog), InputOutputColumnPair.ConvertToValueTuples(columns));
+        {
+            var env = CatalogUtils.GetEnvironment(catalog);
+            env.CheckValue(columns, nameof(columns));
+            return new ColumnCopyingEstimator(env, InputOutputColumnPair.ConvertToValueTuples(columns));
+        }
 
         /// <summary>
         /// Concatenates columns together.

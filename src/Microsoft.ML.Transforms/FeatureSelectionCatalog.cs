@@ -4,6 +4,7 @@
 
 using System.Linq;
 using Microsoft.ML.Data;
+using Microsoft.ML.Runtime;
 using Microsoft.ML.Transforms;
 
 namespace Microsoft.ML
@@ -45,8 +46,12 @@ namespace Microsoft.ML
             string labelColumnName = MutualInfoSelectDefaults.LabelColumn,
             int slotsInOutput = MutualInfoSelectDefaults.SlotsInOutput,
             int numberOfBins = MutualInfoSelectDefaults.NumBins)
-            => new MutualInformationFeatureSelectingEstimator(CatalogUtils.GetEnvironment(catalog), labelColumnName, slotsInOutput, numberOfBins,
+        {
+            var env = CatalogUtils.GetEnvironment(catalog);
+            env.CheckValue(columns, nameof(columns));
+            return new MutualInformationFeatureSelectingEstimator(env, labelColumnName, slotsInOutput, numberOfBins,
                 columns.Select(x => (x.OutputColumnName, x.InputColumnName)).ToArray());
+        }
 
         /// <include file='doc.xml' path='doc/members/member[@name="CountFeatureSelection"]' />
         /// <param name="catalog">The transform's catalog.</param>
@@ -89,8 +94,10 @@ namespace Microsoft.ML
             InputOutputColumnPair[] columns,
             long count = CountSelectDefaults.Count)
         {
+            var env = CatalogUtils.GetEnvironment(catalog);
+            env.CheckValue(columns, nameof(columns));
             var columnOptions = columns.Select(x => new CountFeatureSelectingEstimator.ColumnOptions(x.OutputColumnName, x.InputColumnName, count)).ToArray();
-            return new CountFeatureSelectingEstimator(CatalogUtils.GetEnvironment(catalog), columnOptions);
+            return new CountFeatureSelectingEstimator(env, columnOptions);
         }
     }
 }

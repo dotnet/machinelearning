@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.ML.Data;
+using Microsoft.ML.Runtime;
 using Microsoft.ML.Transforms;
 
 namespace Microsoft.ML
@@ -21,7 +22,11 @@ namespace Microsoft.ML
         [BestFriend]
         internal static KeyToBinaryVectorMappingEstimator MapKeyToBinaryVector(this TransformsCatalog.ConversionTransforms catalog,
             params InputOutputColumnPair[] columns)
-            => new KeyToBinaryVectorMappingEstimator(CatalogUtils.GetEnvironment(catalog), InputOutputColumnPair.ConvertToValueTuples(columns));
+        {
+            var env = CatalogUtils.GetEnvironment(catalog);
+            env.CheckValue(columns, nameof(columns));
+            return new KeyToBinaryVectorMappingEstimator(env, InputOutputColumnPair.ConvertToValueTuples(columns));
+        }
 
         /// <summary>
         ///  Convert the key types back to binary vector.

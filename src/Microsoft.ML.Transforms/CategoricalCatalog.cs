@@ -4,6 +4,7 @@
 
 using System.Linq;
 using Microsoft.ML.Data;
+using Microsoft.ML.Runtime;
 using Microsoft.ML.Transforms;
 
 namespace Microsoft.ML
@@ -59,8 +60,10 @@ namespace Microsoft.ML
                 ValueToKeyMappingEstimator.KeyOrdinality keyOrdinality = ValueToKeyMappingEstimator.Defaults.Ordinality,
                 IDataView keyData = null)
         {
+            var env = CatalogUtils.GetEnvironment(catalog);
+            env.CheckValue(columns, nameof(columns));
             var columnOptions = columns.Select(x => new OneHotEncodingEstimator.ColumnOptions(x.OutputColumnName, x.InputColumnName, outputKind, maximumNumberOfKeys, keyOrdinality)).ToArray();
-            return new OneHotEncodingEstimator(CatalogUtils.GetEnvironment(catalog), columnOptions, keyData);
+            return new OneHotEncodingEstimator(env, columnOptions, keyData);
         }
 
         /// <summary>
@@ -132,8 +135,10 @@ namespace Microsoft.ML
                 bool useOrderedHashing = OneHotHashEncodingEstimator.Defaults.UseOrderedHashing,
                 int maximumNumberOfInverts = OneHotHashEncodingEstimator.Defaults.MaximumNumberOfInverts)
         {
+            var env = CatalogUtils.GetEnvironment(catalog);
+            env.CheckValue(columns, nameof(columns));
             var columnOptions = columns.Select(x => new OneHotHashEncodingEstimator.ColumnOptions(x.OutputColumnName, x.InputColumnName, outputKind, numberOfBits, seed, useOrderedHashing, maximumNumberOfInverts)).ToArray();
-            return new OneHotHashEncodingEstimator(CatalogUtils.GetEnvironment(catalog), columnOptions);
+            return new OneHotHashEncodingEstimator(env, columnOptions);
         }
 
         /// <summary>

@@ -5,6 +5,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.ML.Data;
+using Microsoft.ML.Runtime;
 using Microsoft.ML.Transforms;
 
 namespace Microsoft.ML
@@ -75,8 +76,10 @@ namespace Microsoft.ML
             InputOutputColumnPair[] columns,
             DataKind outputKind = ConvertDefaults.DefaultOutputKind)
         {
+            var env = CatalogUtils.GetEnvironment(catalog);
+            env.CheckValue(columns, nameof(columns));
             var columnOptions = columns.Select(x => new TypeConvertingEstimator.ColumnOptions(x.OutputColumnName, outputKind, x.InputColumnName)).ToArray();
-            return new TypeConvertingEstimator(CatalogUtils.GetEnvironment(catalog), columnOptions);
+            return new TypeConvertingEstimator(env, columnOptions);
         }
 
         /// <summary>
@@ -109,7 +112,11 @@ namespace Microsoft.ML
         /// <param name="catalog">The conversion transform's catalog.</param>
         /// <param name="columns">Specifies the names of the columns on which to apply the transformation.</param>
         public static KeyToValueMappingEstimator MapKeyToValue(this TransformsCatalog.ConversionTransforms catalog, InputOutputColumnPair[] columns)
-            => new KeyToValueMappingEstimator(CatalogUtils.GetEnvironment(catalog), columns.Select(x => (x.OutputColumnName, x.InputColumnName)).ToArray());
+        {
+            var env = CatalogUtils.GetEnvironment(catalog);
+            env.CheckValue(columns, nameof(columns));
+            return new KeyToValueMappingEstimator(env, columns.Select(x => (x.OutputColumnName, x.InputColumnName)).ToArray());
+        }
 
         /// <summary>
         /// Maps key types or key values into a floating point vector.
@@ -143,8 +150,10 @@ namespace Microsoft.ML
         public static KeyToVectorMappingEstimator MapKeyToVector(this TransformsCatalog.ConversionTransforms catalog,
             InputOutputColumnPair[] columns, bool outputCountVector = KeyToVectorMappingEstimator.Defaults.OutputCountVector)
         {
+            var env = CatalogUtils.GetEnvironment(catalog);
+            env.CheckValue(columns, nameof(columns));
             var columnOptions = columns.Select(x => new KeyToVectorMappingEstimator.ColumnOptions(x.OutputColumnName, x.InputColumnName, outputCountVector)).ToArray();
-            return new KeyToVectorMappingEstimator(CatalogUtils.GetEnvironment(catalog), columnOptions);
+            return new KeyToVectorMappingEstimator(env, columnOptions);
 
         }
 
@@ -197,8 +206,10 @@ namespace Microsoft.ML
             bool addKeyValueAnnotationsAsText = ValueToKeyMappingEstimator.Defaults.AddKeyValueAnnotationsAsText,
             IDataView keyData = null)
         {
+            var env = CatalogUtils.GetEnvironment(catalog);
+            env.CheckValue(columns, nameof(columns));
             var columnOptions = columns.Select(x => new ValueToKeyMappingEstimator.ColumnOptions(x.OutputColumnName, x.InputColumnName, maximumNumberOfKeys, keyOrdinality, addKeyValueAnnotationsAsText)).ToArray();
-            return new ValueToKeyMappingEstimator(CatalogUtils.GetEnvironment(catalog), columnOptions, keyData);
+            return new ValueToKeyMappingEstimator(env, columnOptions, keyData);
         }
 
         /// <summary>
@@ -278,9 +289,11 @@ namespace Microsoft.ML
             IEnumerable<KeyValuePair<TInputType, TOutputType>> keyValuePairs,
             params InputOutputColumnPair[] columns)
         {
+            var env = CatalogUtils.GetEnvironment(catalog);
+            env.CheckValue(columns, nameof(columns));
             var keys = keyValuePairs.Select(pair => pair.Key);
             var values = keyValuePairs.Select(pair => pair.Value);
-            return new ValueMappingEstimator<TInputType, TOutputType>(CatalogUtils.GetEnvironment(catalog), keys, values, InputOutputColumnPair.ConvertToValueTuples(columns));
+            return new ValueMappingEstimator<TInputType, TOutputType>(env, keys, values, InputOutputColumnPair.ConvertToValueTuples(columns));
         }
 
         /// <summary>
@@ -306,9 +319,11 @@ namespace Microsoft.ML
             bool treatValuesAsKeyType,
             params InputOutputColumnPair[] columns)
         {
+            var env = CatalogUtils.GetEnvironment(catalog);
+            env.CheckValue(columns, nameof(columns));
             var keys = keyValuePairs.Select(pair => pair.Key);
             var values = keyValuePairs.Select(pair => pair.Value);
-            return new ValueMappingEstimator<TInputType, TOutputType>(CatalogUtils.GetEnvironment(catalog), keys, values, treatValuesAsKeyType,
+            return new ValueMappingEstimator<TInputType, TOutputType>(env, keys, values, treatValuesAsKeyType,
                   InputOutputColumnPair.ConvertToValueTuples(columns));
         }
 
@@ -367,9 +382,11 @@ namespace Microsoft.ML
             IEnumerable<KeyValuePair<TInputType, TOutputType[]>> keyValuePairs,
             params InputOutputColumnPair[] columns)
         {
+            var env = CatalogUtils.GetEnvironment(catalog);
+            env.CheckValue(columns, nameof(columns));
             var keys = keyValuePairs.Select(pair => pair.Key);
             var values = keyValuePairs.Select(pair => pair.Value);
-            return new ValueMappingEstimator<TInputType, TOutputType>(CatalogUtils.GetEnvironment(catalog), keys, values,
+            return new ValueMappingEstimator<TInputType, TOutputType>(env, keys, values,
                     InputOutputColumnPair.ConvertToValueTuples(columns));
         }
 
@@ -422,7 +439,11 @@ namespace Microsoft.ML
         internal static ValueMappingEstimator MapValue(
             this TransformsCatalog.ConversionTransforms catalog,
             IDataView lookupMap, DataViewSchema.Column keyColumn, DataViewSchema.Column valueColumn, params InputOutputColumnPair[] columns)
-            => new ValueMappingEstimator(CatalogUtils.GetEnvironment(catalog), lookupMap, keyColumn.Name, valueColumn.Name,
+        {
+            var env = CatalogUtils.GetEnvironment(catalog);
+            env.CheckValue(columns, nameof(columns));
+            return new ValueMappingEstimator(env, lookupMap, keyColumn.Name, valueColumn.Name,
                 InputOutputColumnPair.ConvertToValueTuples(columns));
+        }
     }
 }

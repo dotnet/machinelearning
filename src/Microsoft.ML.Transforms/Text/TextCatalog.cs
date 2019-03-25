@@ -76,7 +76,11 @@ namespace Microsoft.ML
         internal static TokenizingByCharactersEstimator TokenizeIntoCharactersAsKeys(this TransformsCatalog.TextTransforms catalog,
             bool useMarkerCharacters = CharTokenizingDefaults.UseMarkerCharacters,
             params InputOutputColumnPair[] columns)
-            => new TokenizingByCharactersEstimator(Contracts.CheckRef(catalog, nameof(catalog)).GetEnvironment(), useMarkerCharacters, InputOutputColumnPair.ConvertToValueTuples(columns));
+        {
+            var env = CatalogUtils.GetEnvironment(catalog);
+            env.CheckValue(columns, nameof(columns));
+            return new TokenizingByCharactersEstimator(env, useMarkerCharacters, InputOutputColumnPair.ConvertToValueTuples(columns));
+        }
 
         /// <summary>
         /// Normalizes incoming text in <paramref name="inputColumnName"/> by changing case, removing diacritical marks, punctuation marks and/or numbers

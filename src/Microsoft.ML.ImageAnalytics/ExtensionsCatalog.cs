@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.ML.Data;
+using Microsoft.ML.Runtime;
 using Microsoft.ML.Transforms.Image;
 
 namespace Microsoft.ML
@@ -33,7 +34,11 @@ namespace Microsoft.ML
         /// </example>
         [BestFriend]
         internal static ImageGrayscalingEstimator ConvertToGrayscale(this TransformsCatalog catalog, params InputOutputColumnPair[] columns)
-            => new ImageGrayscalingEstimator(CatalogUtils.GetEnvironment(catalog), InputOutputColumnPair.ConvertToValueTuples(columns));
+        {
+            var env = CatalogUtils.GetEnvironment(catalog);
+            env.CheckValue(columns, nameof(columns));
+            return new ImageGrayscalingEstimator(env, InputOutputColumnPair.ConvertToValueTuples(columns));
+        }
 
         /// <summary>
         /// Loads the images from the <see cref="ImageLoadingTransformer.ImageFolder" /> into memory.
@@ -81,7 +86,11 @@ namespace Microsoft.ML
         /// </example>
         [BestFriend]
         internal static ImageLoadingEstimator LoadImages(this TransformsCatalog catalog, string imageFolder, params InputOutputColumnPair[] columns)
-           => new ImageLoadingEstimator(CatalogUtils.GetEnvironment(catalog), imageFolder, InputOutputColumnPair.ConvertToValueTuples(columns));
+        {
+            var env = CatalogUtils.GetEnvironment(catalog);
+            env.CheckValue(columns, nameof(columns));
+            return new ImageLoadingEstimator(env, imageFolder, InputOutputColumnPair.ConvertToValueTuples(columns));
+        }
 
         /// <include file='doc.xml' path='doc/members/member[@name="ImagePixelExtractingEstimator"]/*' />
         /// <param name="catalog">The transform's catalog.</param>

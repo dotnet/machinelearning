@@ -4,6 +4,7 @@
 
 using System.Linq;
 using Microsoft.ML.Data;
+using Microsoft.ML.Runtime;
 using Microsoft.ML.Transforms;
 
 namespace Microsoft.ML
@@ -38,7 +39,11 @@ namespace Microsoft.ML
         /// <param name="catalog">The transform extensions' catalog.</param>
         /// <param name="columns">Specifies the names of the columns on which to apply the transformation.</param>
         public static MissingValueIndicatorEstimator IndicateMissingValues(this TransformsCatalog catalog, InputOutputColumnPair[] columns)
-            => new MissingValueIndicatorEstimator(CatalogUtils.GetEnvironment(catalog), columns.Select(x => (x.OutputColumnName, x.InputColumnName)).ToArray());
+        {
+            var env = CatalogUtils.GetEnvironment(catalog);
+            env.CheckValue(columns, nameof(columns));
+            return new MissingValueIndicatorEstimator(env, columns.Select(x => (x.OutputColumnName, x.InputColumnName)).ToArray());
+        }
 
         /// <summary>
         /// Creates a new output column, or replaces the source with a new column
@@ -83,8 +88,10 @@ namespace Microsoft.ML
             MissingValueReplacingEstimator.ReplacementMode replacementMode = MissingValueReplacingEstimator.Defaults.Mode,
             bool imputeBySlot = MissingValueReplacingEstimator.Defaults.ImputeBySlot)
         {
+            var env = CatalogUtils.GetEnvironment(catalog);
+            env.CheckValue(columns, nameof(columns));
             var columnOptions = columns.Select(x => new MissingValueReplacingEstimator.ColumnOptions(x.OutputColumnName, x.InputColumnName, replacementMode, imputeBySlot)).ToArray();
-            return new MissingValueReplacingEstimator(CatalogUtils.GetEnvironment(catalog), columnOptions);
+            return new MissingValueReplacingEstimator(env, columnOptions);
         }
 
         /// <summary>
