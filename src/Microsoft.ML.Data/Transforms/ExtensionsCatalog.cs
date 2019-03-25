@@ -36,10 +36,12 @@ namespace Microsoft.ML
         }
 
         [BestFriend]
-        internal static (string outputColumnName, string inputColumnName)[] ConvertToValueTuples(InputOutputColumnPair[] infos)
-        {
-            return infos.Select(info => (info.OutputColumnName, info.InputColumnName)).ToArray();
-        }
+        internal static (string outputColumnName, string inputColumnName)[] ConvertToValueTuples(InputOutputColumnPair[] infos) =>
+            infos.Select(info => (info.OutputColumnName, info.InputColumnName)).ToArray();
+
+        [BestFriend]
+        internal static  InputOutputColumnPair[] ConvertFromValueTuples((string outputColumnName, string inputColumnName)[] infos) =>
+            infos.Select(v => new InputOutputColumnPair(v.outputColumnName, v.inputColumnName)).ToArray();
     }
 
     /// <summary>
