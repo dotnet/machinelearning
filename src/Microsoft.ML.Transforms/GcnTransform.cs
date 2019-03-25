@@ -192,7 +192,7 @@ namespace Microsoft.ML.Transforms
         /// <summary>
         /// The objects describing how the transformation is applied on the input data.
         /// </summary>
-        public IReadOnlyCollection<LpNormNormalizingEstimatorBase.ColumnOptionsBase> Columns => _columns.AsReadOnly();
+        internal IReadOnlyCollection<LpNormNormalizingEstimatorBase.ColumnOptionsBase> Columns => _columns.AsReadOnly();
         private readonly LpNormNormalizingEstimatorBase.ColumnOptionsBase[] _columns;
 
         private static (string outputColumnName, string inputColumnName)[] GetColumnPairs(LpNormNormalizingEstimatorBase.ColumnOptionsBase[] columns)
@@ -671,7 +671,7 @@ namespace Microsoft.ML.Transforms
         /// <summary>
         /// Describes base class for one column pair.
         /// </summary>
-        public abstract class ColumnOptionsBase
+        internal abstract class ColumnOptionsBase
         {
             /// <summary>
             /// Name of the column resulting from the transformation of <see cref="InputColumnName"/>.
@@ -778,7 +778,7 @@ namespace Microsoft.ML.Transforms
             return col.ItemType == NumberDataViewType.Single;
         }
 
-        internal const string ExpectedColumnType = "Expected float or float vector of known size";
+        internal const string ExpectedColumnType = "Expected Single or known-size vector of Single";
 
         /// <summary>
         /// Returns the <see cref="SchemaShape"/> of the schema which will be produced by the transformer.
@@ -812,7 +812,7 @@ namespace Microsoft.ML.Transforms
         /// <summary>
         /// Describes how the transformer handles one column pair.
         /// </summary>
-        public sealed class ColumnOptions : ColumnOptionsBase
+        internal sealed class ColumnOptions : ColumnOptionsBase
         {
             /// <summary>
             /// Describes how the transformer handles one column pair.
@@ -868,7 +868,7 @@ namespace Microsoft.ML.Transforms
         /// <summary>
         /// Describes how the transformer handles one Gcn column pair.
         /// </summary>
-        public sealed class ColumnOptions : ColumnOptionsBase
+        internal sealed class ColumnOptions : ColumnOptionsBase
         {
             /// <summary>
             /// Describes how the transformer handles one Gcn column pair.

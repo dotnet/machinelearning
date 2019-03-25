@@ -153,7 +153,7 @@ namespace Microsoft.ML.Transforms
 
             _type = schema[_index].Type;
             if (_type != NumberDataViewType.Single && _type != NumberDataViewType.Double && _type.GetKeyCount() == 0)
-                throw Host.ExceptSchemaMismatch(nameof(schema), "source", column, "float, double or KeyType", _type.ToString());
+                throw Host.ExceptSchemaMismatch(nameof(schema), "source", column, "Single, Double or Key", _type.ToString());
 
             _min = ctx.Reader.ReadDouble();
             _max = ctx.Reader.ReadDouble();

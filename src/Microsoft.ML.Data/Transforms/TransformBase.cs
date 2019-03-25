@@ -938,7 +938,7 @@ namespace Microsoft.ML.Data
         {
             if (type.GetItemType() == NumberDataViewType.Single)
                 return null;
-            return "Expected R4 or a vector of R4";
+            return "Expected Single or a vector of Single";
         }
 
         protected static string TestIsFloatVector(DataViewType type)

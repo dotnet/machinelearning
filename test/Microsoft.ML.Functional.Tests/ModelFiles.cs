@@ -4,9 +4,11 @@
 
 using System;
 using System.IO;
+using System.IO.Compression;
 using System.Linq;
 using Microsoft.ML.Calibrators;
 using Microsoft.ML.Data;
+using Microsoft.ML.Functional.Tests.Datasets;
 using Microsoft.ML.RunTests;
 using Microsoft.ML.Trainers.FastTree;
 using Microsoft.ML.Transforms;
@@ -15,9 +17,9 @@ using Xunit.Abstractions;
 
 namespace Microsoft.ML.Functional.Tests
 {
-    public partial class ModelLoadingTests : TestDataPipeBase
+    public partial class ModelFiles : TestDataPipeBase
     {
-        public ModelLoadingTests(ITestOutputHelper output) : base(output)
+        public ModelFiles(ITestOutputHelper output) : base(output)
         {
         }
 
@@ -28,6 +30,101 @@ namespace Microsoft.ML.Functional.Tests
             [LoadColumn(9, 14)]
             [VectorType(6)]
             public float[] Features { get; set; }
+        }
+
+        /// <summary>
+        /// Model Files: The (minimum) nuget version can be found in the model file.
+        /// </summary>
+        [Fact]
+        public void DetermineNugetVersionFromModel()
+        {
+            var mlContext = new MLContext(seed: 1);
+
+            // Get the dataset.
+            var data = mlContext.Data.LoadFromTextFile<HousingRegression>(GetDataPath(TestDatasets.housing.trainFilename), hasHeader: true);
+
+            // Create a pipeline to train on the housing data.
+            var pipeline = mlContext.Transforms.Concatenate("Features", HousingRegression.Features)
+                .Append(mlContext.Regression.Trainers.FastTree(
+                    new FastTreeRegressionTrainer.Options { NumberOfThreads = 1, NumberOfTrees = 10 }));
+
+            // Fit the pipeline.
+            var model = pipeline.Fit(data);
+
+            // Save model to a file.
+            var modelPath = DeleteOutputPath("determineNugetVersionFromModel.zip");
+            mlContext.Model.Save(model, data.Schema, modelPath);
+
+            // Check that the version can be extracted from the model.
+            var versionFileName = @"TrainingInfo" + Path.DirectorySeparatorChar + "Version.txt";
+            using (ZipArchive archive = ZipFile.OpenRead(modelPath))
+            {
+                // The version of the entire model is kept in the version file.
+                var versionPath = archive.Entries.First(x => x.FullName == versionFileName);
+                Assert.NotNull(versionPath);
+                using (var stream = versionPath.Open())
+                using (var reader = new StreamReader(stream))
+                {
+                    // The only line in the file is the version of the model.
+                    var line = reader.ReadLine();
+                    Assert.Equal(@"1.0.0.0", line);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Model Files: Save a model, including all transforms, then load and make predictions.
+        /// </summary>
+        /// <remarks>
+        /// Serves two scenarios:
+        ///  1. I can train a model and save it to a file, including transforms.
+        ///  2. Training and prediction happen in different processes (or even different machines). 
+        ///     The actual test will not run in different processes, but will simulate the idea that the 
+        ///     "communication pipe" is just a serialized model of some form.
+        /// </remarks>
+        [Fact]
+        public void FitPipelineSaveModelAndPredict()
+        {
+            var mlContext = new MLContext(seed: 1);
+
+            // Get the dataset.
+            var data = mlContext.Data.LoadFromTextFile<HousingRegression>(GetDataPath(TestDatasets.housing.trainFilename), hasHeader: true);
+
+            // Create a pipeline to train on the housing data.
+            var pipeline = mlContext.Transforms.Concatenate("Features", HousingRegression.Features)
+                .Append(mlContext.Regression.Trainers.FastTree(
+                    new FastTreeRegressionTrainer.Options { NumberOfThreads = 1, NumberOfTrees = 10 }));
+
+            // Fit the pipeline.
+            var model = pipeline.Fit(data);
+
+            var modelPath = DeleteOutputPath("fitPipelineSaveModelAndPredict.zip");
+            // Save model to a file.
+            mlContext.Model.Save(model, data.Schema, modelPath);
+
+            // Load model from a file.
+            ITransformer serializedModel;
+            using (var file = File.OpenRead(modelPath))
+            {
+                serializedModel = mlContext.Model.Load(file, out var serializedSchema);
+                CheckSameSchemas(data.Schema, serializedSchema);
+            }
+            
+            // Create prediction engine and test predictions.
+            var originalPredictionEngine = mlContext.Model.CreatePredictionEngine<HousingRegression, ScoreColumn>(model);
+            var serializedPredictionEngine = mlContext.Model.CreatePredictionEngine<HousingRegression, ScoreColumn>(serializedModel);
+
+            // Take a handful of examples out of the dataset and compute predictions.
+            var dataEnumerator = mlContext.Data.CreateEnumerable<HousingRegression>(mlContext.Data.TakeRows(data, 5), false);
+            foreach (var row in dataEnumerator)
+            {
+                var originalPrediction = originalPredictionEngine.Predict(row);
+                var serializedPrediction = serializedPredictionEngine.Predict(row);
+                // Check that the predictions are identical.
+                Assert.Equal(originalPrediction.Score, serializedPrediction.Score);
+            }
+
+            Done();
         }
 
         [Fact]

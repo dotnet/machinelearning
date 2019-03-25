@@ -218,7 +218,7 @@ namespace Microsoft.ML.Transforms
                     throw Host.ExceptSchemaMismatch(nameof(schema), "input", _parent.ColumnPairs[0].inputColumnName);
                 _featureColumnType = schema[_featureColumnIndex].Type as VectorDataViewType;
                 if (_featureColumnType == null || _featureColumnType.ItemType != NumberDataViewType.Single)
-                    throw Host.ExceptSchemaMismatch(nameof(schema), "feature", _parent.ColumnPairs[0].inputColumnName, "vector of float.", _featureColumnType.ItemType.ToString());
+                    throw Host.ExceptSchemaMismatch(nameof(schema), "feature", _parent.ColumnPairs[0].inputColumnName, "vector of Single", _featureColumnType.ItemType.ToString());
 
                 if (InputSchema[_featureColumnIndex].HasSlotNames(_featureColumnType.Size))
                     InputSchema[_featureColumnIndex].Annotations.GetValue(AnnotationUtils.Kinds.SlotNames, ref _slotNames);
@@ -318,7 +318,7 @@ namespace Microsoft.ML.Transforms
                 throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", _featureColumn);
             // Check that the feature column is of the correct type: a vector of float.
             if (col.ItemType != NumberDataViewType.Single || col.Kind != SchemaShape.Column.VectorKind.Vector)
-                throw Host.ExceptSchemaMismatch(nameof(inputSchema), "column", _featureColumn, "vector of float.", col.GetTypeString());
+                throw Host.ExceptSchemaMismatch(nameof(inputSchema), "column", _featureColumn, "known-size vector of Single", col.GetTypeString());
 
             // Build output schemaShape.
             var result = inputSchema.ToDictionary(x => x.Name);

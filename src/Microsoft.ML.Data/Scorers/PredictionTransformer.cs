@@ -52,7 +52,7 @@ namespace Microsoft.ML.Data
         [BestFriend]
         private protected ISchemaBindableMapper BindableMapper;
         [BestFriend]
-        private protected DataViewSchema TrainSchema;
+        internal DataViewSchema TrainSchema;
 
         /// <summary>
         /// Whether a call to <see cref="ITransformer.GetRowToRowMapper(DataViewSchema)"/> should succeed, on an

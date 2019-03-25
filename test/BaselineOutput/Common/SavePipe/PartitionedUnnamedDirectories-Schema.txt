@@ -1,5 +1,5 @@
 ---- PartitionedFileLoader ----
 3 columns:
-  L0: Text
-  Year: Text
-  Month: Text
+  L0: Int32
+  Month: Int32
+  Path: String

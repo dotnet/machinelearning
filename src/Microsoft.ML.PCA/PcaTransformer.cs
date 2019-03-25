@@ -508,7 +508,7 @@ namespace Microsoft.ML.Transforms
             string inputSchema; // just used for the excpections
 
             if (!(type is VectorDataViewType vectorType && vectorType.Size > 1 && vectorType.ItemType.Equals(NumberDataViewType.Single)))
-                throw ectx.ExceptSchemaMismatch(nameof(inputSchema), "input", name, "known-size vector of float of two or more items", type.ToString());
+                throw ectx.ExceptSchemaMismatch(nameof(inputSchema), "input", name, "known-size vector of Single of two or more items", type.ToString());
         }
 
         private sealed class Mapper : OneToOneMapperBase

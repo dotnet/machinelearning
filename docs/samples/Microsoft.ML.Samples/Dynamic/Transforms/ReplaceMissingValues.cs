@@ -13,7 +13,6 @@ namespace Microsoft.ML.Samples.Dynamic
             // Create a new ML context, for ML.NET operations. It can be used for exception tracking and logging, 
             // as well as the source of randomness.
             var mlContext = new MLContext();
-
             var samples = new List<DataPoint>()
             {
                 new DataPoint(){ Label = 3, Features = new float[3] {1, 1, 0} },

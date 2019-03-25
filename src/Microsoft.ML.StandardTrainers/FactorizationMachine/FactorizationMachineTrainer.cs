@@ -359,7 +359,7 @@ namespace Microsoft.ML.Trainers
                 if (!(col.Type is VectorDataViewType vectorType) ||
                     !vectorType.IsKnownSize ||
                     vectorType.ItemType != NumberDataViewType.Single)
-                    throw ch.ExceptParam(nameof(data), "Training feature column '{0}' must be a known-size vector of R4, but has type: {1}.", col.Name, col.Type);
+                    throw ch.ExceptParam(nameof(data), "Training feature column '{0}' must be a known-size vector of Single, but has type: {1}.", col.Name, col.Type);
                 _host.Assert(vectorType.Size > 0);
                 fieldColumnIndexes[f] = col.Index;
                 totalFeatureCount += vectorType.Size;

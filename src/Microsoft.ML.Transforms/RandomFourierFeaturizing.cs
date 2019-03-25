@@ -234,7 +234,7 @@ namespace Microsoft.ML.Transforms
         {
             if (type is VectorDataViewType vectorType && vectorType.IsKnownSize && vectorType.ItemType == NumberDataViewType.Single)
                 return null;
-            return "Expected vector of floats with known size";
+            return "Expected known-size vector of Single";
         }
 
         private static (string outputColumnName, string inputColumnName)[] GetColumnPairs(ApproximatedKernelMappingEstimator.ColumnOptions[] columns)

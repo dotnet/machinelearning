@@ -60,11 +60,11 @@ namespace Microsoft.ML.Data
             var score = schema.GetUniqueColumn(AnnotationUtils.Const.ScoreValueKind.Score);
             var t = score.Type as VectorDataViewType;
             if (t == null || !t.IsKnownSize || t.ItemType != NumberDataViewType.Single)
-                throw Host.ExceptSchemaMismatch(nameof(schema), "score", score.Name, "known-size vector of float", t.ToString());
+                throw Host.ExceptSchemaMismatch(nameof(schema), "score", score.Name, "known-size vector of Single", t.ToString());
             Host.Check(schema.Label.HasValue, "Could not find the label column");
             t = schema.Label.Value.Type as VectorDataViewType;
             if (t == null || !t.IsKnownSize || (t.ItemType != NumberDataViewType.Single && t.ItemType != NumberDataViewType.Double))
-                throw Host.ExceptSchemaMismatch(nameof(schema), "label", schema.Label.Value.Name, "known-size vector of float or double", t.ToString());
+                throw Host.ExceptSchemaMismatch(nameof(schema), "label", schema.Label.Value.Name, "known-size vector of Single or Double", t.ToString());
         }
 
         private protected override Aggregator GetAggregatorCore(RoleMappedSchema schema, string stratName)
@@ -548,7 +548,7 @@ namespace Microsoft.ML.Data
 
             var t = schema[LabelIndex].Type as VectorDataViewType;
             if (t == null || !t.IsKnownSize || (t.ItemType != NumberDataViewType.Single && t.ItemType != NumberDataViewType.Double))
-                throw Host.ExceptSchemaMismatch(nameof(schema), "label", LabelCol, "known-size vector of float or double", t.ToString());
+                throw Host.ExceptSchemaMismatch(nameof(schema), "label", LabelCol, "known-size vector of Single or Double", t.ToString());
             labelType = new VectorDataViewType((PrimitiveDataViewType)t.ItemType, t.Size);
             var slotNamesType = new VectorDataViewType(TextDataViewType.Instance, t.Size);
             var builder = new DataViewSchema.Annotations.Builder();
@@ -557,7 +557,7 @@ namespace Microsoft.ML.Data
 
             t = schema[ScoreIndex].Type as VectorDataViewType;
             if (t == null || !t.IsKnownSize || t.ItemType != NumberDataViewType.Single)
-                throw Host.ExceptSchemaMismatch(nameof(schema), "score", ScoreCol, "known-size vector of float", t.ToString());
+                throw Host.ExceptSchemaMismatch(nameof(schema), "score", ScoreCol, "known-size vector of Single", t.ToString());
             scoreType = new VectorDataViewType((PrimitiveDataViewType)t.ItemType, t.Size);
             builder = new DataViewSchema.Annotations.Builder();
             builder.AddSlotNames(t.Size, CreateSlotNamesGetter(schema, ScoreIndex, scoreType.Size, "Predicted"));

@@ -94,7 +94,7 @@ namespace Microsoft.ML.Data
             return false;
         }
 
-        public override string ToString() => "Text";
+        public override string ToString() => "String";
     }
 
     /// <summary>
@@ -102,13 +102,9 @@ namespace Microsoft.ML.Data
     /// </summary>
     public sealed class NumberDataViewType : PrimitiveDataViewType
     {
-        private readonly string _name;
-
-        private NumberDataViewType(Type rawType, string name)
+        private NumberDataViewType(Type rawType)
             : base(rawType)
         {
-            Debug.Assert(!string.IsNullOrEmpty(name));
-            _name = name;
         }
 
         private static volatile NumberDataViewType _instSByte;
@@ -117,7 +113,7 @@ namespace Microsoft.ML.Data
             get
             {
                 return _instSByte ??
-                    Interlocked.CompareExchange(ref _instSByte, new NumberDataViewType(typeof(sbyte), "I1"), null) ??
+                    Interlocked.CompareExchange(ref _instSByte, new NumberDataViewType(typeof(sbyte)), null) ??
                     _instSByte;
             }
         }
@@ -128,7 +124,7 @@ namespace Microsoft.ML.Data
             get
             {
                 return _instByte ??
-                    Interlocked.CompareExchange(ref _instByte, new NumberDataViewType(typeof(byte), "U1"), null) ??
+                    Interlocked.CompareExchange(ref _instByte, new NumberDataViewType(typeof(byte)), null) ??
                     _instByte;
             }
         }
@@ -139,7 +135,7 @@ namespace Microsoft.ML.Data
             get
             {
                 return _instInt16 ??
-                    Interlocked.CompareExchange(ref _instInt16, new NumberDataViewType(typeof(short), "I2"), null) ??
+                    Interlocked.CompareExchange(ref _instInt16, new NumberDataViewType(typeof(short)), null) ??
                     _instInt16;
             }
         }
@@ -150,7 +146,7 @@ namespace Microsoft.ML.Data
             get
             {
                 return _instUInt16 ??
-                    Interlocked.CompareExchange(ref _instUInt16, new NumberDataViewType(typeof(ushort), "U2"), null) ??
+                    Interlocked.CompareExchange(ref _instUInt16, new NumberDataViewType(typeof(ushort)), null) ??
                     _instUInt16;
             }
         }
@@ -161,7 +157,7 @@ namespace Microsoft.ML.Data
             get
             {
                 return _instInt32 ??
-                    Interlocked.CompareExchange(ref _instInt32, new NumberDataViewType(typeof(int), "I4"), null) ??
+                    Interlocked.CompareExchange(ref _instInt32, new NumberDataViewType(typeof(int)), null) ??
                     _instInt32;
             }
         }
@@ -172,7 +168,7 @@ namespace Microsoft.ML.Data
             get
             {
                 return _instUInt32 ??
-                    Interlocked.CompareExchange(ref _instUInt32, new NumberDataViewType(typeof(uint), "U4"), null) ??
+                    Interlocked.CompareExchange(ref _instUInt32, new NumberDataViewType(typeof(uint)), null) ??
                     _instUInt32;
             }
         }
@@ -183,7 +179,7 @@ namespace Microsoft.ML.Data
             get
             {
                 return _instInt64 ??
-                    Interlocked.CompareExchange(ref _instInt64, new NumberDataViewType(typeof(long), "I8"), null) ??
+                    Interlocked.CompareExchange(ref _instInt64, new NumberDataViewType(typeof(long)), null) ??
                     _instInt64;
             }
         }
@@ -194,7 +190,7 @@ namespace Microsoft.ML.Data
             get
             {
                 return _instUInt64 ??
-                    Interlocked.CompareExchange(ref _instUInt64, new NumberDataViewType(typeof(ulong), "U8"), null) ??
+                    Interlocked.CompareExchange(ref _instUInt64, new NumberDataViewType(typeof(ulong)), null) ??
                     _instUInt64;
             }
         }
@@ -205,7 +201,7 @@ namespace Microsoft.ML.Data
             get
             {
                 return _instSingle ??
-                    Interlocked.CompareExchange(ref _instSingle, new NumberDataViewType(typeof(float), "R4"), null) ??
+                    Interlocked.CompareExchange(ref _instSingle, new NumberDataViewType(typeof(float)), null) ??
                     _instSingle;
             }
         }
@@ -216,7 +212,7 @@ namespace Microsoft.ML.Data
             get
             {
                 return _instDouble ??
-                    Interlocked.CompareExchange(ref _instDouble, new NumberDataViewType(typeof(double), "R8"), null) ??
+                    Interlocked.CompareExchange(ref _instDouble, new NumberDataViewType(typeof(double)), null) ??
                     _instDouble;
             }
         }
@@ -229,7 +225,7 @@ namespace Microsoft.ML.Data
             return false;
         }
 
-        public override string ToString() => _name;
+        public override string ToString() => RawType.Name;
     }
 
     /// <summary>
@@ -298,7 +294,7 @@ namespace Microsoft.ML.Data
 
         public override string ToString()
         {
-            return "Bool";
+            return "Boolean";
         }
     }
 
@@ -357,7 +353,7 @@ namespace Microsoft.ML.Data
             return false;
         }
 
-        public override string ToString() => "DateTimeZone";
+        public override string ToString() => "DateTimeOffset";
     }
 
     /// <summary>

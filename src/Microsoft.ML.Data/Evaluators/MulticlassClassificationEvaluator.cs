@@ -76,11 +76,11 @@ namespace Microsoft.ML.Data
             var score = schema.GetUniqueColumn(AnnotationUtils.Const.ScoreValueKind.Score);
             var scoreType = score.Type as VectorDataViewType;
             if (scoreType == null || scoreType.Size < 2 || scoreType.ItemType != NumberDataViewType.Single)
-                throw Host.ExceptSchemaMismatch(nameof(schema), "score", score.Name, "vector of two or more items of type float", scoreType.ToString());
+                throw Host.ExceptSchemaMismatch(nameof(schema), "score", score.Name, "vector of two or more items of type Single", scoreType.ToString());
             Host.CheckParam(schema.Label.HasValue, nameof(schema), "Could not find the label column");
             var labelType = schema.Label.Value.Type;
             if (labelType != NumberDataViewType.Single && labelType.GetKeyCount() <= 0)
-                throw Host.ExceptSchemaMismatch(nameof(schema), "label", schema.Label.Value.Name, "float or KeyType", labelType.ToString());
+                throw Host.ExceptSchemaMismatch(nameof(schema), "label", schema.Label.Value.Name, "Single or Key", labelType.ToString());
         }
 
         private protected override Aggregator GetAggregatorCore(RoleMappedSchema schema, string stratName)
@@ -814,10 +814,10 @@ namespace Microsoft.ML.Data
 
             var scoreType = schema[ScoreIndex].Type as VectorDataViewType;
             if (scoreType == null || scoreType.Size < 2 || scoreType.ItemType != NumberDataViewType.Single)
-                throw Host.ExceptSchemaMismatch(nameof(schema), "score", ScoreCol, "vector of two or more items of type float", scoreType.ToString());
+                throw Host.ExceptSchemaMismatch(nameof(schema), "score", ScoreCol, "Vector of two or more items of type Single", scoreType.ToString());
             var labelType = schema[LabelIndex].Type;
             if (labelType != NumberDataViewType.Single && labelType.GetKeyCount() <= 0)
-                throw Host.ExceptSchemaMismatch(nameof(schema), "label", LabelCol, "float or KeyType", labelType.ToString());
+                throw Host.ExceptSchemaMismatch(nameof(schema), "label", LabelCol, "Single or Key", labelType.ToString());
         }
     }
 

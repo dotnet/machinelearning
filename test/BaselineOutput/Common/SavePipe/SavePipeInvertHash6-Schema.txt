@@ -1,41 +1,41 @@
 ---- BoundLoader ----
 5 columns:
-  A: Text
-  K: Vec<Key<U4, 0-10>, 2>
-  KS: Key<U4, 0-10>
-  B: Text
-  E: Text
+  A: String
+  K: Vector<Key<UInt32, 0-10>, 2>
+  KS: Key<UInt32, 0-10>
+  B: String
+  E: String
 ---- RowToRowMapperTransform ----
 6 columns:
-  A: Text
-  K: Vec<Key<U4, 0-10>, 2>
-  KS: Key<U4, 0-10>
-  B: Text
-  E: Text
-  AT: Vec<Text>
+  A: String
+  K: Vector<Key<UInt32, 0-10>, 2>
+  KS: Key<UInt32, 0-10>
+  B: String
+  E: String
+  AT: Vector<String>
 ---- RowToRowMapperTransform ----
 7 columns:
-  A: Text
-  K: Vec<Key<U4, 0-10>, 2>
-  KS: Key<U4, 0-10>
-  B: Text
-  E: Text
-  AT: Vec<Text>
-  AH: Vec<Key<U4, 0-1073741823>>
+  A: String
+  K: Vector<Key<UInt32, 0-10>, 2>
+  KS: Key<UInt32, 0-10>
+  B: String
+  E: String
+  AT: Vector<String>
+  AH: Vector<Key<UInt32, 0-1073741823>>
 ---- RowToRowMapperTransform ----
 8 columns:
-  A: Text
-  K: Vec<Key<U4, 0-10>, 2>
-  KS: Key<U4, 0-10>
-  B: Text
-  E: Text
-  AT: Vec<Text>
-  AH: Vec<Key<U4, 0-1073741823>>
-  AH: Vec<R4, 16>
-    Metadata 'SlotNames': Vec<Text, 16>: Length=16, Count=16
+  A: String
+  K: Vector<Key<UInt32, 0-10>, 2>
+  KS: Key<UInt32, 0-10>
+  B: String
+  E: String
+  AT: Vector<String>
+  AH: Vector<Key<UInt32, 0-1073741823>>
+  AH: Vector<Single, 16>
+    Metadata 'SlotNames': Vector<String, 16>: Length=16, Count=16
       [0] '922722793|800576372|295457023', [2] '800576372|832818636|295457023', [9] '521979783|922722793|800576372'
 ---- SelectColumnsDataTransform ----
 1 columns:
-  AH: Vec<R4, 16>
-    Metadata 'SlotNames': Vec<Text, 16>: Length=16, Count=16
+  AH: Vector<Single, 16>
+    Metadata 'SlotNames': Vector<String, 16>: Length=16, Count=16
       [0] '922722793|800576372|295457023', [2] '800576372|832818636|295457023', [9] '521979783|922722793|800576372'

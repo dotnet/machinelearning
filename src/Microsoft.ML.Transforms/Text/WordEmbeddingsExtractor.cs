@@ -300,7 +300,7 @@ namespace Microsoft.ML.Transforms.Text
         {
             var colType = inputSchema[srcCol].Type;
             if (!(colType is VectorDataViewType vectorType && vectorType.ItemType is TextDataViewType))
-                throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", ColumnPairs[col].inputColumnName, "Text", inputSchema[srcCol].Type.ToString());
+                throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", ColumnPairs[col].inputColumnName, "String", inputSchema[srcCol].Type.ToString());
         }
 
         private sealed class Mapper : OneToOneMapperBase, ISaveAsOnnx

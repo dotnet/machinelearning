@@ -341,7 +341,7 @@ namespace Microsoft.ML.Data
             if (allowKeys && type is KeyDataViewType)
                 return null;
 
-            return allowKeys ? "Expected R4, R8, Bool or Key type" : "Expected R4, R8 or Bool type";
+            return allowKeys ? "Expected Single, Double, Boolean or Key type" : "Expected Single, Double or Boolean type";
         }
 
         public static ValueGetter<Single> GetLabelGetter(DataViewRow cursor, int labelIndex)

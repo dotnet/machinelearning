@@ -100,7 +100,7 @@ namespace Microsoft.ML.Trainers.FastTree
             Contracts.Assert(labelCol.IsValid);
 
             Action error =
-                () => throw Host.ExceptSchemaMismatch(nameof(labelCol), "label", labelCol.Name, "float or KeyType", labelCol.GetTypeString());
+                () => throw Host.ExceptSchemaMismatch(nameof(labelCol), "label", labelCol.Name, "Single or Key", labelCol.GetTypeString());
 
             if (labelCol.Kind != SchemaShape.Column.VectorKind.Scalar)
                 error();

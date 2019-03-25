@@ -97,11 +97,11 @@ namespace Microsoft.ML.Data
             var score = schema.GetUniqueColumn(AnnotationUtils.Const.ScoreValueKind.Score);
             var t = score.Type;
             if (t != NumberDataViewType.Single)
-                throw Host.ExceptSchemaMismatch(nameof(schema), "score", score.Name, "float", t.ToString());
+                throw Host.ExceptSchemaMismatch(nameof(schema), "score", score.Name, "Single", t.ToString());
             Host.Check(schema.Label.HasValue, "Could not find the label column");
             t = schema.Label.Value.Type;
             if (t != NumberDataViewType.Single && t.GetKeyCount() != 2)
-                throw Host.ExceptSchemaMismatch(nameof(schema), "label", schema.Label.Value.Name, "float or a KeyType with cardinality 2", t.ToString());
+                throw Host.ExceptSchemaMismatch(nameof(schema), "label", schema.Label.Value.Name, "Single or a Key with cardinality 2", t.ToString());
         }
 
         private protected override Aggregator GetAggregatorCore(RoleMappedSchema schema, string stratName)

@@ -106,7 +106,7 @@ namespace Microsoft.ML.Trainers
                     }
                 }
                 throw Contracts.ExceptParam(nameof(data),
-                    "The label column '{0}' of the training data has a data type not suitable for binary classification: {1}. Type must be Bool, R4, R8 or Key with two classes.",
+                    "The label column '{0}' of the training data has a data type not suitable for binary classification: {1}. Type must be Boolean, Single, Double or Key with two classes.",
                     col.Name, col.Type);
             }
         }
@@ -125,7 +125,7 @@ namespace Microsoft.ML.Trainers
             if (col.Type != NumberDataViewType.Single && col.Type != NumberDataViewType.Double)
             {
                 throw Contracts.ExceptParam(nameof(data),
-                    "Training label column '{0}' type isn't suitable for regression: {1}. Type must be R4 or R8.", col.Name, col.Type);
+                    "Training label column '{0}' type isn't suitable for regression: {1}. Type must be Single or Double.", col.Name, col.Type);
             }
         }
 
@@ -152,7 +152,7 @@ namespace Microsoft.ML.Trainers
 
             // REVIEW: Support other numeric types.
             if (col.Type != NumberDataViewType.Single && col.Type != NumberDataViewType.Double)
-                throw Contracts.ExceptParam(nameof(data), "Training label column '{0}' type is not valid for multi-class: {1}. Type must be R4 or R8.", col.Name, col.Type);
+                throw Contracts.ExceptParam(nameof(data), "Training label column '{0}' type is not valid for multi-class: {1}. Type must be Single or Double.", col.Name, col.Type);
 
             int max = -1;
             using (var cursor = new FloatLabelCursor(data))
@@ -193,7 +193,7 @@ namespace Microsoft.ML.Trainers
             if (!(col.Type is VectorDataViewType vectorType
                 && vectorType.IsKnownSize
                 && vectorType.ItemType == NumberDataViewType.Single))
-                throw Contracts.ExceptParam(nameof(data), "Training label column '{0}' must be a known-size vector of R4, but has type: {1}.", col.Name, col.Type);
+                throw Contracts.ExceptParam(nameof(data), "Training label column '{0}' must be a known-size vector of Single, but has type: {1}.", col.Name, col.Type);
         }
 
         public static void CheckOptFloatWeight(this RoleMappedData data)

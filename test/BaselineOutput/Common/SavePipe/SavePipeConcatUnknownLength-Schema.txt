@@ -1,87 +1,87 @@
 ---- BoundLoader ----
 4 columns:
-  Known: Vec<I4, 3>
-  Single: I4
-  Text: Text
-  Unknown: Vec<I4>
+  Known: Vector<Int32, 3>
+  Single: Int32
+  Text: String
+  Unknown: Vector<Int32>
 ---- RowToRowMapperTransform ----
 5 columns:
-  Known: Vec<I4, 3>
-  Single: I4
-  Text: Text
-  Unknown: Vec<I4>
-  Tokens: Vec<Text>
+  Known: Vector<Int32, 3>
+  Single: Int32
+  Text: String
+  Unknown: Vector<Int32>
+  Tokens: Vector<String>
 ---- RowToRowMapperTransform ----
 6 columns:
-  Known: Vec<I4, 3>
-  Single: I4
-  Text: Text
-  Unknown: Vec<I4>
-  Tokens: Vec<Text>
-  Keys: Vec<Key<U4, 0-5>>
-    Metadata 'KeyValues': Vec<Text, 6>: Length=6, Count=6
+  Known: Vector<Int32, 3>
+  Single: Int32
+  Text: String
+  Unknown: Vector<Int32>
+  Tokens: Vector<String>
+  Keys: Vector<Key<UInt32, 0-5>>
+    Metadata 'KeyValues': Vector<String, 6>: Length=6, Count=6
       [0] 'a', [1] 'b', [2] 'c', [3] 'd', [4] 'e', [5] 'f'
 ---- RowToRowMapperTransform ----
 7 columns:
-  Known: Vec<I4, 3>
-  Single: I4
-  Text: Text
-  Unknown: Vec<I4>
-  Tokens: Vec<Text>
-  Keys: Vec<Key<U4, 0-5>>
-    Metadata 'KeyValues': Vec<Text, 6>: Length=6, Count=6
+  Known: Vector<Int32, 3>
+  Single: Int32
+  Text: String
+  Unknown: Vector<Int32>
+  Tokens: Vector<String>
+  Keys: Vector<Key<UInt32, 0-5>>
+    Metadata 'KeyValues': Vector<String, 6>: Length=6, Count=6
       [0] 'a', [1] 'b', [2] 'c', [3] 'd', [4] 'e', [5] 'f'
-  Indicators: Vec<R4, *, 6>
-    Metadata 'IsNormalized': Bool: '1'
+  Indicators: Vector<Single, *, 6>
+    Metadata 'IsNormalized': Boolean: '1'
 ---- RowToRowMapperTransform ----
 8 columns:
-  Known: Vec<I4, 3>
-  Single: I4
-  Text: Text
-  Unknown: Vec<I4>
-  Tokens: Vec<Text>
-  Keys: Vec<Key<U4, 0-5>>
-    Metadata 'KeyValues': Vec<Text, 6>: Length=6, Count=6
+  Known: Vector<Int32, 3>
+  Single: Int32
+  Text: String
+  Unknown: Vector<Int32>
+  Tokens: Vector<String>
+  Keys: Vector<Key<UInt32, 0-5>>
+    Metadata 'KeyValues': Vector<String, 6>: Length=6, Count=6
       [0] 'a', [1] 'b', [2] 'c', [3] 'd', [4] 'e', [5] 'f'
-  Indicators: Vec<R4, *, 6>
-    Metadata 'IsNormalized': Bool: '1'
-  Indicators: Vec<R8, *, 6>
-    Metadata 'IsNormalized': Bool: '1'
+  Indicators: Vector<Single, *, 6>
+    Metadata 'IsNormalized': Boolean: '1'
+  Indicators: Vector<Double, *, 6>
+    Metadata 'IsNormalized': Boolean: '1'
 ---- RowToRowMapperTransform ----
 11 columns:
-  Known: Vec<I4, 3>
-  Known: Vec<R8, 3>
-  Single: I4
-  Single: R8
-  Text: Text
-  Unknown: Vec<I4>
-  Unknown: Vec<R8>
-  Tokens: Vec<Text>
-  Keys: Vec<Key<U4, 0-5>>
-    Metadata 'KeyValues': Vec<Text, 6>: Length=6, Count=6
+  Known: Vector<Int32, 3>
+  Known: Vector<Double, 3>
+  Single: Int32
+  Single: Double
+  Text: String
+  Unknown: Vector<Int32>
+  Unknown: Vector<Double>
+  Tokens: Vector<String>
+  Keys: Vector<Key<UInt32, 0-5>>
+    Metadata 'KeyValues': Vector<String, 6>: Length=6, Count=6
       [0] 'a', [1] 'b', [2] 'c', [3] 'd', [4] 'e', [5] 'f'
-  Indicators: Vec<R4, *, 6>
-    Metadata 'IsNormalized': Bool: '1'
-  Indicators: Vec<R8, *, 6>
-    Metadata 'IsNormalized': Bool: '1'
+  Indicators: Vector<Single, *, 6>
+    Metadata 'IsNormalized': Boolean: '1'
+  Indicators: Vector<Double, *, 6>
+    Metadata 'IsNormalized': Boolean: '1'
 ---- RowToRowMapperTransform ----
 12 columns:
-  Known: Vec<I4, 3>
-  Known: Vec<R8, 3>
-  Single: I4
-  Single: R8
-  Text: Text
-  Unknown: Vec<I4>
-  Unknown: Vec<R8>
-  Tokens: Vec<Text>
-  Keys: Vec<Key<U4, 0-5>>
-    Metadata 'KeyValues': Vec<Text, 6>: Length=6, Count=6
+  Known: Vector<Int32, 3>
+  Known: Vector<Double, 3>
+  Single: Int32
+  Single: Double
+  Text: String
+  Unknown: Vector<Int32>
+  Unknown: Vector<Double>
+  Tokens: Vector<String>
+  Keys: Vector<Key<UInt32, 0-5>>
+    Metadata 'KeyValues': Vector<String, 6>: Length=6, Count=6
       [0] 'a', [1] 'b', [2] 'c', [3] 'd', [4] 'e', [5] 'f'
-  Indicators: Vec<R4, *, 6>
-    Metadata 'IsNormalized': Bool: '1'
-  Indicators: Vec<R8, *, 6>
-    Metadata 'IsNormalized': Bool: '1'
-  All: Vec<R8>
+  Indicators: Vector<Single, *, 6>
+    Metadata 'IsNormalized': Boolean: '1'
+  Indicators: Vector<Double, *, 6>
+    Metadata 'IsNormalized': Boolean: '1'
+  All: Vector<Double>
 ---- SelectColumnsDataTransform ----
 1 columns:
-  All: Vec<R8>
+  All: Vector<Double>

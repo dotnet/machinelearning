@@ -129,11 +129,11 @@ namespace Microsoft.ML.Data
             var host = Host.SchemaSensitive();
             var t = score.Type;
             if (t != NumberDataViewType.Single)
-                throw host.ExceptSchemaMismatch(nameof(schema), "score", score.Name, "float", t.ToString());
+                throw host.ExceptSchemaMismatch(nameof(schema), "score", score.Name, "Single", t.ToString());
             host.Check(schema.Label.HasValue, "Could not find the label column");
             t = schema.Label.Value.Type;
             if (t != NumberDataViewType.Single && t != NumberDataViewType.Double && t != BooleanDataViewType.Instance && t.GetKeyCount() != 2)
-                throw host.ExceptSchemaMismatch(nameof(schema), "label", schema.Label.Value.Name, "float, double, bool, or a KeyType with cardinality 2", t.ToString());
+                throw host.ExceptSchemaMismatch(nameof(schema), "label", schema.Label.Value.Name, "Single, Double, Boolean, or a Key with cardinality 2", t.ToString());
         }
 
         private protected override void CheckCustomColumnTypesCore(RoleMappedSchema schema)
@@ -145,7 +145,7 @@ namespace Microsoft.ML.Data
                 host.CheckParam(prob.Count == 1, nameof(schema), "Cannot have multiple probability columns");
                 var probType = prob[0].Type;
                 if (probType != NumberDataViewType.Single)
-                    throw host.ExceptSchemaMismatch(nameof(schema), "probability", prob[0].Name, "float", probType.ToString());
+                    throw host.ExceptSchemaMismatch(nameof(schema), "probability", prob[0].Name, "Single", probType.ToString());
             }
             else if (!_useRaw)
             {
@@ -1248,18 +1248,18 @@ namespace Microsoft.ML.Data
 
             var t = schema[(int)LabelIndex].Type;
             if (t != NumberDataViewType.Single && t != NumberDataViewType.Double && t != BooleanDataViewType.Instance && t.GetKeyCount() != 2)
-                throw Host.ExceptSchemaMismatch(nameof(schema), "label", LabelCol, "float, double, bool or a KeyType with cardinality 2", t.ToString());
+                throw Host.ExceptSchemaMismatch(nameof(schema), "label", LabelCol, "Single, Double, Boolean or a Key with cardinality 2", t.ToString());
 
             t = schema[ScoreIndex].Type;
             if (t != NumberDataViewType.Single)
-                throw Host.ExceptSchemaMismatch(nameof(schema), "score", ScoreCol, "float", t.ToString());
+                throw Host.ExceptSchemaMismatch(nameof(schema), "score", ScoreCol, "Single", t.ToString());
 
             if (_probIndex >= 0)
             {
                 Host.Assert(!string.IsNullOrEmpty(_probCol));
                 t = schema[_probIndex].Type;
                 if (t != NumberDataViewType.Single)
-                    throw Host.ExceptSchemaMismatch(nameof(schema), "probability", _probCol, "float", t.ToString());
+                    throw Host.ExceptSchemaMismatch(nameof(schema), "probability", _probCol, "Single", t.ToString());
             }
             else if (!_useRaw)
                 throw Host.Except("Cannot compute the predicted label from the probability column because it does not exist");

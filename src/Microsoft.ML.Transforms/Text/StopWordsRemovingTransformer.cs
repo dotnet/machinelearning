@@ -574,7 +574,7 @@ namespace Microsoft.ML.Transforms.Text
         internal static bool IsColumnTypeValid(DataViewType type) =>
             type is VectorDataViewType vectorType && vectorType.ItemType is TextDataViewType;
 
-        internal const string ExpectedColumnType = "vector of Text type";
+        internal const string ExpectedColumnType = "Vector of String";
 
         /// <summary>
         /// Removes stop words from incoming token streams in <paramref name="inputColumnName"/>

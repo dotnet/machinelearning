@@ -144,7 +144,7 @@ namespace Microsoft.ML.Data
         public override string ToString()
         {
             var sb = new StringBuilder();
-            sb.Append("Vec<").Append(ItemType);
+            sb.Append("Vector<").Append(ItemType);
 
             if (Dimensions.Length == 1)
             {

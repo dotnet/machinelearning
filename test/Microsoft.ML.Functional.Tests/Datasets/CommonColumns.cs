@@ -13,7 +13,7 @@ namespace Microsoft.ML.Functional.Tests.Datasets
     }
 
     /// <summary>
-    /// A class to hold the output of FeatureContributionCalculator.
+    /// A class to hold the output of FeatureContributionCalculator
     /// </summary>
     internal sealed class FeatureContributionOutput
     {
@@ -21,7 +21,7 @@ namespace Microsoft.ML.Functional.Tests.Datasets
     }
 
     /// <summary>
-    /// A class to hold the Score column.
+    /// A class to hold a score column.
     /// </summary>
     internal sealed class ScoreColumn
     {
@@ -29,7 +29,7 @@ namespace Microsoft.ML.Functional.Tests.Datasets
     }
 
     /// <summary>
-    /// A class to hold a vector Score column.
+    /// A class to hold a vector score column.
     /// </summary>
     internal sealed class VectorScoreColumn
     {
