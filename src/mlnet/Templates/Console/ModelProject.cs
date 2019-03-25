@@ -17,9 +17,12 @@ namespace Microsoft.ML.CLI.Templates.Console
     /// <summary>
     /// Class to produce the template output
     /// </summary>
+    
+    #line 1 "E:\src\machinelearning-automl\src\mlnet\Templates\Console\ModelProject.tt"
     [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.VisualStudio.TextTemplating", "15.0.0.0")]
-    public partial class MLProjectGen : MLProjectGenBase
+    public partial class ModelProject : ModelProjectBase
     {
+#line hidden
         /// <summary>
         /// Create the template output
         /// </summary>
@@ -28,35 +31,37 @@ namespace Microsoft.ML.CLI.Templates.Console
             this.Write(@"<Project Sdk=""Microsoft.NET.Sdk"">
 
   <PropertyGroup>
-    <OutputType>Exe</OutputType>
     <TargetFramework>netcoreapp2.1</TargetFramework>
-    <EnableDefaultCompileItems>False</EnableDefaultCompileItems>
   </PropertyGroup>
-  <PropertyGroup>
+    <PropertyGroup>
     <RestoreSources>
       https://api.nuget.org/v3/index.json;
     </RestoreSources>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include=""Program.cs"" />
-    <Compile Include=""ConsoleHelper.cs"" />
-  </ItemGroup>
-  <ItemGroup>
     <PackageReference Include=""Microsoft.ML"" Version=""0.11.0"" />
-    <PackageReference Include=""Microsoft.ML.HalLearners"" Version=""0.11.0"" />
-    <PackageReference Include=""Microsoft.ML.LightGBM"" Version=""0.11.0"" /> 
   </ItemGroup>
+
+  <ItemGroup>
+    <None Update=""MLModel.zip"">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+  
 </Project>
 ");
             return this.GenerationEnvironment.ToString();
         }
     }
+    
+    #line default
+    #line hidden
     #region Base class
     /// <summary>
     /// Base class for this transformation
     /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.VisualStudio.TextTemplating", "15.0.0.0")]
-    public class MLProjectGenBase
+    public class ModelProjectBase
     {
         #region Fields
         private global::System.Text.StringBuilder generationEnvironmentField;

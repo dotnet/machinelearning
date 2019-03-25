@@ -1,0 +1,104 @@
+﻿<#@ template language="C#" #>
+<#@ assembly name="System.Core" #>
+<#@ import namespace="System.Linq" #>
+<#@ import namespace="System.Text" #>
+<#@ import namespace="System.Collections.Generic" #>
+<#@ import namespace="Microsoft.ML.CLI.Utilities" #>
+//*****************************************************************************************
+//*                                                                                       *
+//* This is an auto-generated file by Microsoft ML.NET CLI (Command-Line Interface) tool. *
+//*                                                                                       *
+//*****************************************************************************************
+
+using System;
+using System.IO;
+using System.Linq;
+using System.Collections.Generic;
+using Microsoft.ML;
+using Microsoft.ML.Data;
+using Microsoft.Data.DataView;
+using <#= Namespace #>.Model.DataModels;
+
+
+namespace <#= Namespace #>.Predict
+{
+    class Program
+    {
+        //Machine Learning model to load and use for predictions
+        private const string MODEL_FILEPATH = @"MLModel.zip";
+
+        //Dataset to use for predictions 
+<#if(string.IsNullOrEmpty(TestDataPath)){ #>
+        private const string DATA_FILEPATH = @"<#= TrainDataPath #>";
+<# } else{ #>
+        private const string DATA_FILEPATH = @"<#= TestDataPath #>";
+<# } #>
+
+        static void Main(string[] args)
+        {
+            MLContext mlContext = new MLContext();
+
+            //Load ML Model from .zip file
+            ITransformer mlModel = LoadModelFromFile(mlContext, MODEL_FILEPATH);
+
+            // Create sample data to do a single prediction with it 
+            SampleObservation sampleData = CreateSingleDataSample(mlContext, DATA_FILEPATH);
+
+            // Test a single prediction
+            Predict(mlContext, mlModel, sampleData);
+
+            Console.WriteLine("=============== End of process, hit any key to finish ===============");
+            Console.ReadKey();
+        }
+
+        private static void Predict(MLContext mlContext, ITransformer mlModel, SampleObservation sampleData)
+        {
+            // Create prediction engine related to the loaded ML model          
+            var predEngine = mlModel.CreatePredictionEngine<SampleObservation, SamplePrediction>(mlContext);
+
+            // Try a single prediction
+            var predictionResult = predEngine.Predict(sampleData);
+<#if("BinaryClassification".Equals(TaskType)){ #>
+            Console.WriteLine($"Single Prediction --> Actual value: {sampleData.<#= Utils.Normalize(LabelName) #>} | Predicted value: {predictionResult.Prediction}");
+<#}else if("Regression".Equals(TaskType)){#>
+            Console.WriteLine($"Single Prediction --> Actual value: {sampleData.<#= Utils.Normalize(LabelName) #>} | Predicted value: {predictionResult.Score}");
+<#} else if("MulticlassClassification".Equals(TaskType)){#>
+            Console.WriteLine($"Single Prediction --> Actual value: {sampleData.<#= Utils.Normalize(LabelName) #>} | Predicted value: {predictionResult.Prediction} | Predicted scores: [{String.Join(\", \", resultprediction.Scores)}]");
+<#}#>
+        }
+
+        private static ITransformer LoadModelFromFile(MLContext mlContext, string modelFilePath)
+        {
+            ITransformer mlModel;
+            using (var stream = new FileStream(modelFilePath, FileMode.Open, FileAccess.Read, FileShare.Read))
+            {
+                mlModel = mlContext.Model.Load(stream);
+            }
+
+            return mlModel;
+        }
+
+        // Method to load single row of data to try a single prediction
+        // You can change this code and create your own sample data here (Hardcoded or from any source)
+        private static SampleObservation CreateSingleDataSample(MLContext mlContext, string dataFilePath)
+        {
+            // Read dataset to get a single row for trying a prediction          
+            IDataView dataView = mlContext.Data.LoadFromTextFile<SampleObservation>(
+                                            path: dataFilePath,
+                                            hasHeader: true,
+                                            separatorChar: ',');
+
+            // Here (SampleObservation object) you could provide new test data, hardcoded or from the end-user application, instead of the row from the file.
+            SampleObservation sampleForPrediction = mlContext.Data.CreateEnumerable<SampleObservation>(dataView, false)
+                                                                        .First();
+            return sampleForPrediction;
+        }
+    }
+}
+<#+
+public string TaskType {get;set;}
+public string Namespace {get;set;}
+public string LabelName {get;set;}
+public string TestDataPath {get;set;}
+public string TrainDataPath {get;set;}
+#>

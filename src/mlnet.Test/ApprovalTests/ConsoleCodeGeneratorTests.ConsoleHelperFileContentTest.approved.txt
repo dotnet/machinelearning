@@ -1,9 +1,4 @@
-<#@ template language="C#" linePragmas="false" #>
-<#@ assembly name="System.Core" #>
-<#@ import namespace="System.Linq" #>
-<#@ import namespace="System.Text" #>
-<#@ import namespace="System.Collections.Generic" #>
-//*****************************************************************************************
+﻿//*****************************************************************************************
 //*                                                                                       *
 //* This is an auto-generated file by Microsoft ML.NET CLI (Command-Line Interface) tool. *
 //*                                                                                       *
@@ -15,7 +10,7 @@ using System.Linq;
 using Microsoft.ML;
 using Microsoft.ML.Data;
 
-namespace <#= Namespace #>.Train
+namespace TestNamespace.Train
 {
     public static class ConsoleHelper
     {
@@ -133,6 +128,3 @@ namespace <#= Namespace #>.Train
         }
     }
 }
-<#+
-public string Namespace {get;set;}
-#>

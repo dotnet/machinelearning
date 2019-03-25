@@ -5,6 +5,9 @@
 using System;
 using System.IO;
 using System.Linq;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.ML.Auto;
 using Microsoft.ML.Data;
 using NLog;
@@ -27,7 +30,6 @@ namespace Microsoft.ML.CLI.Utilities
                     return LogLevel.Info;
             }
         }
-
 
         internal static void SaveModel(ITransformer model, FileInfo modelPath, MLContext mlContext)
         {
@@ -152,5 +154,61 @@ namespace Microsoft.ML.CLI.Utilities
             return result;
         }
 
+        internal static void WriteOutputToFiles(string fileContent, string fileName, string outPutBaseDir)
+        {
+            if (!Directory.Exists(outPutBaseDir))
+            {
+                Directory.CreateDirectory(outPutBaseDir);
+            }
+            File.WriteAllText($"{outPutBaseDir}/{fileName}", fileContent);
+        }
+
+        internal static string FormatCode(string trainProgramCSFileContent)
+        {
+            //Format
+            var tree = CSharpSyntaxTree.ParseText(trainProgramCSFileContent);
+            var syntaxNode = tree.GetRoot();
+            trainProgramCSFileContent = Formatter.Format(syntaxNode, new AdhocWorkspace()).ToFullString();
+            return trainProgramCSFileContent;
+        }
+
+
+        internal static void AddProjectsToSolution(string modelprojectDir,
+            string modelProjectName,
+            string predictProjectDir,
+            string predictProjectName,
+            string trainProjectDir,
+            string trainProjectName,
+            string solutionName)
+        {
+            var proc2 = new System.Diagnostics.Process();
+            proc2.StartInfo.FileName = @"dotnet";
+
+            proc2.StartInfo.Arguments = $"sln {solutionName} add {Path.Combine(trainProjectDir, trainProjectName)} {Path.Combine(predictProjectDir, predictProjectName)} {Path.Combine(modelprojectDir, modelProjectName)}";
+            proc2.StartInfo.UseShellExecute = false;
+            proc2.StartInfo.RedirectStandardOutput = true;
+            proc2.Start();
+            string outPut2 = proc2.StandardOutput.ReadToEnd();
+
+            proc2.WaitForExit();
+            var exitCode2 = proc2.ExitCode;
+            proc2.Close();
+        }
+
+        internal static void CreateSolutionFile(string solutionFile, string outputPath)
+        {
+            var proc = new System.Diagnostics.Process();
+            proc.StartInfo.FileName = @"dotnet";
+
+            proc.StartInfo.Arguments = $"new sln --name {solutionFile} --output {outputPath}";
+            proc.StartInfo.UseShellExecute = false;
+            proc.StartInfo.RedirectStandardOutput = true;
+            proc.Start();
+            string outPut = proc.StandardOutput.ReadToEnd();
+
+            proc.WaitForExit();
+            var exitCode = proc.ExitCode;
+            proc.Close();
+        }
     }
 }

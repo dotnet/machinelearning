@@ -47,15 +47,40 @@
       <AutoGen>True</AutoGen>
       <DependentUpon>ConsoleHelper.tt</DependentUpon>
     </Compile>
-    <Compile Update="Templates\Console\MLCodeGen.cs">
+    <Compile Update="Templates\Console\ModelProject.cs">
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
-      <DependentUpon>MLCodeGen.tt</DependentUpon>
+      <DependentUpon>ModelProject.tt</DependentUpon>
     </Compile>
-    <Compile Update="Templates\Console\MLProjectGen.cs">
+    <Compile Update="Templates\Console\ObservationClass.cs">
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
-      <DependentUpon>MLProjectGen.tt</DependentUpon>
+      <DependentUpon>ObservationClass.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Templates\Console\PredictionClass.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>PredictionClass.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Templates\Console\PredictProgram.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>PredictProgram.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Templates\Console\PredictProject.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>PredictProject.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Templates\Console\TrainProgram.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>TrainProgram.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Templates\Console\TrainProject.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>TrainProject.tt</DependentUpon>
     </Compile>
   </ItemGroup>
 
@@ -74,13 +99,33 @@
       <Generator>TextTemplatingFilePreprocessor</Generator>
       <LastGenOutput>ConsoleHelper.cs</LastGenOutput>
     </None>
-    <None Update="Templates\Console\MLCodeGen.tt">
+    <None Update="Templates\Console\ModelProject.tt">
       <Generator>TextTemplatingFilePreprocessor</Generator>
-      <LastGenOutput>MLCodeGen.cs</LastGenOutput>
+      <LastGenOutput>ModelProject.cs</LastGenOutput>
     </None>
-    <None Update="Templates\Console\MLProjectGen.tt">
+    <None Update="Templates\Console\ObservationClass.tt">
       <Generator>TextTemplatingFilePreprocessor</Generator>
-      <LastGenOutput>MLProjectGen.cs</LastGenOutput>
+      <LastGenOutput>ObservationClass.cs</LastGenOutput>
+    </None>
+    <None Update="Templates\Console\PredictionClass.tt">
+      <Generator>TextTemplatingFilePreprocessor</Generator>
+      <LastGenOutput>PredictionClass.cs</LastGenOutput>
+    </None>
+    <None Update="Templates\Console\PredictProgram.tt">
+      <Generator>TextTemplatingFilePreprocessor</Generator>
+      <LastGenOutput>PredictProgram.cs</LastGenOutput>
+    </None>
+    <None Update="Templates\Console\PredictProject.tt">
+      <Generator>TextTemplatingFilePreprocessor</Generator>
+      <LastGenOutput>PredictProject.cs</LastGenOutput>
+    </None>
+    <None Update="Templates\Console\TrainProgram.tt">
+      <Generator>TextTemplatingFilePreprocessor</Generator>
+      <LastGenOutput>TrainProgram.cs</LastGenOutput>
+    </None>
+    <None Update="Templates\Console\TrainProject.tt">
+      <Generator>TextTemplatingFilePreprocessor</Generator>
+      <LastGenOutput>TrainProject.cs</LastGenOutput>
     </None>
   </ItemGroup>
 

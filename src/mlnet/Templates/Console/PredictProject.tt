@@ -2,26 +2,29 @@
 <#@ assembly name="System.Core" #>
 <#@ import namespace="System.Linq" #>
 <#@ import namespace="System.Text" #>
+<#@ import namespace="System.Text.RegularExpressions" #>
 <#@ import namespace="System.Collections.Generic" #>
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>netcoreapp2.1</TargetFramework>
-    <EnableDefaultCompileItems>False</EnableDefaultCompileItems>
   </PropertyGroup>
-  <PropertyGroup>
-    <RestoreSources>
-      https://api.nuget.org/v3/index.json;
-    </RestoreSources>
-  </PropertyGroup>
-  <ItemGroup>
-    <Compile Include="Program.cs" />
-    <Compile Include="ConsoleHelper.cs" />
-  </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.ML" Version="0.11.0" />
+<# if(IncludeLightGBMPackage){ #>
+    <PackageReference Include="Microsoft.ML.LightGBM" Version="0.11.0" />
+<#}#>
+<# if(IncludeHalLearnersPackage){ #>
     <PackageReference Include="Microsoft.ML.HalLearners" Version="0.11.0" />
-    <PackageReference Include="Microsoft.ML.LightGBM" Version="0.11.0" /> 
+<#}#>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\\<#= Namespace #>.Model\\<#= Namespace #>.Model.csproj" />
   </ItemGroup>
 </Project>
+<#+
+public string Namespace {get;set;}
+public bool IncludeLightGBMPackage {get;set;}
+public bool IncludeHalLearnersPackage {get;set;}
+#>

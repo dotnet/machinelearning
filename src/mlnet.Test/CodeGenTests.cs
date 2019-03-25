@@ -115,37 +115,6 @@ namespace mlnet.Test
         }
 
         [TestMethod]
-        public void ColumnGenerationTest()
-        {
-            var columns = new TextLoader.Column[]
-            {
-                new TextLoader.Column(){ Name = DefaultColumnNames.Label, Source = new TextLoader.Range[]{new TextLoader.Range(0) }, DataKind = DataKind.Boolean },
-                new TextLoader.Column(){ Name = DefaultColumnNames.Features, Source = new TextLoader.Range[]{new TextLoader.Range(1) }, DataKind = DataKind.Single },
-            };
-
-            var result = new ColumnInferenceResults();
-            result.TextLoaderOptions.Columns = columns;
-            result.TextLoaderOptions.AllowQuoting = false;
-            result.TextLoaderOptions.AllowSparse = false;
-            result.TextLoaderOptions.Separators = new[] { ',' };
-            result.TextLoaderOptions.HasHeader = true;
-            result.TextLoaderOptions.TrimWhitespace = true;
-            result.ColumnInformation.NumericColumns.Add(DefaultColumnNames.Features);
-
-            var context = new MLContext();
-            var elementProperties = new Dictionary<string, object>();
-            PipelineNode node = new PipelineNode("Normalizing", PipelineNodeType.Transform, new string[] { "Label" }, new string[] { "Label" }, elementProperties);
-            Pipeline pipeline = new Pipeline(new PipelineNode[] { node });
-            CodeGenerator codeGenerator = new CodeGenerator(pipeline, result, null);
-            var actual = codeGenerator.GenerateColumns();
-            Assert.AreEqual(actual.Count, 2);
-            string expectedColumn1 = "new Column(\"Label\",DataKind.Boolean,0),";
-            string expectedColumn2 = "new Column(\"Features\",DataKind.Single,1),";
-            Assert.AreEqual(expectedColumn1, actual[0]);
-            Assert.AreEqual(expectedColumn2, actual[1]);
-        }
-
-        [TestMethod]
         public void TrainerComplexParameterTest()
         {
             var context = new MLContext();

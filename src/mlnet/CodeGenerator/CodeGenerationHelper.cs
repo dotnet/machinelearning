@@ -86,7 +86,8 @@ namespace Microsoft.ML.CLI.CodeGenerator
 
             // Save the model
             logger.Log(LogLevel.Info, Strings.SavingBestModel);
-            var modelPath = new FileInfo(Path.Combine(settings.OutputPath.FullName, "model.zip"));
+            var modelprojectDir = Path.Combine(settings.OutputPath.FullName, $"{settings.Name}.Model");
+            var modelPath = new FileInfo(Path.Combine(modelprojectDir, "MLModel.zip"));
             Utils.SaveModel(model, modelPath, context);
 
             // Generate the Project
