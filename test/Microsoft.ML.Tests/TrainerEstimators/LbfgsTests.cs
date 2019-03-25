@@ -19,7 +19,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         public void TestEstimatorLogisticRegression()
         {
             (IEstimator<ITransformer> pipe, IDataView dataView) = GetBinaryClassificationPipeline();
-            var trainer = ML.BinaryClassification.Trainers.LogisticRegression();
+            var trainer = ML.BinaryClassification.Trainers.LbfgsLogisticRegression();
             var pipeWithTrainer = pipe.Append(trainer);
             TestEstimatorCore(pipeWithTrainer, dataView);
 
@@ -47,7 +47,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         public void TestEstimatorPoissonRegression()
         {
             var dataView = GetRegressionPipeline();
-            var trainer = ML.Regression.Trainers.PoissonRegression();
+            var trainer = ML.Regression.Trainers.LbfgsPoissonRegression();
             TestEstimatorCore(trainer, dataView);
 
             var model = trainer.Fit(dataView);
@@ -60,7 +60,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         {
             (IEstimator<ITransformer> pipe, IDataView dataView) = GetBinaryClassificationPipeline();
 
-            pipe = pipe.Append(ML.BinaryClassification.Trainers.LogisticRegression(new LogisticRegressionBinaryTrainer.Options { ShowTrainingStatistics = true }));
+            pipe = pipe.Append(ML.BinaryClassification.Trainers.LbfgsLogisticRegression(new LbfgsLogisticRegressionBinaryTrainer.Options { ShowTrainingStatistics = true }));
             var transformerChain = pipe.Fit(dataView) as TransformerChain<BinaryPredictionTransformer<CalibratedModelParametersBase<LinearBinaryModelParameters, PlattCalibrator>>>;
             var linearModel = transformerChain.LastTransformer.Model.SubModel as LinearBinaryModelParameters;
             var stats = linearModel.Statistics as ModelStatisticsBase;
@@ -80,8 +80,8 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         {
             (IEstimator<ITransformer> pipe, IDataView dataView) = GetBinaryClassificationPipeline();
 
-            pipe = pipe.Append(ML.BinaryClassification.Trainers.LogisticRegression(
-                new LogisticRegressionBinaryTrainer.Options
+            pipe = pipe.Append(ML.BinaryClassification.Trainers.LbfgsLogisticRegression(
+                new LbfgsLogisticRegressionBinaryTrainer.Options
                 {
                     ShowTrainingStatistics = true,
                     ComputeStandardDeviation = new ComputeLRTrainingStdThroughMkl(),
@@ -182,7 +182,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         {
             (IEstimator<ITransformer> pipe, IDataView dataView) = GetMulticlassPipeline();
 
-            var trainer = ML.MulticlassClassification.Trainers.LbfgsMaximumEntropy(new LbfgsMaximumEntropyTrainer.Options
+            var trainer = ML.MulticlassClassification.Trainers.LbfgsMaximumEntropy(new LbfgsMaximumEntropyMulticlassTrainer.Options
             {
                 ShowTrainingStatistics = true
             });

@@ -19,25 +19,25 @@ using Microsoft.ML.Runtime;
 using Microsoft.ML.Trainers;
 using Newtonsoft.Json.Linq;
 
-[assembly: LoadableClass(typeof(LbfgsMaximumEntropyTrainer), typeof(LbfgsMaximumEntropyTrainer.Options),
+[assembly: LoadableClass(typeof(LbfgsMaximumEntropyMulticlassTrainer), typeof(LbfgsMaximumEntropyMulticlassTrainer.Options),
     new[] { typeof(SignatureMulticlassClassifierTrainer), typeof(SignatureTrainer) },
-    LbfgsMaximumEntropyTrainer.UserNameValue,
-    LbfgsMaximumEntropyTrainer.LoadNameValue,
+    LbfgsMaximumEntropyMulticlassTrainer.UserNameValue,
+    LbfgsMaximumEntropyMulticlassTrainer.LoadNameValue,
     "MulticlassLogisticRegressionPredictorNew",
-    LbfgsMaximumEntropyTrainer.ShortName,
+    LbfgsMaximumEntropyMulticlassTrainer.ShortName,
     "multilr")]
 
 [assembly: LoadableClass(typeof(MaximumEntropyModelParameters), null, typeof(SignatureLoadModel),
     "Multiclass LR Executor",
     MaximumEntropyModelParameters.LoaderSignature)]
 
-[assembly: LoadableClass(typeof(void), typeof(LbfgsMaximumEntropyTrainer), null, typeof(SignatureEntryPointModule), LbfgsMaximumEntropyTrainer.LoadNameValue)]
+[assembly: LoadableClass(typeof(void), typeof(LbfgsMaximumEntropyMulticlassTrainer), null, typeof(SignatureEntryPointModule), LbfgsMaximumEntropyMulticlassTrainer.LoadNameValue)]
 
 namespace Microsoft.ML.Trainers
 {
     /// <include file = 'doc.xml' path='doc/members/member[@name="LBFGS"]/*' />
     /// <include file = 'doc.xml' path='docs/members/example[@name="LogisticRegressionClassifier"]/*' />
-    public sealed class LbfgsMaximumEntropyTrainer : LbfgsTrainerBase<LbfgsMaximumEntropyTrainer.Options,
+    public sealed class LbfgsMaximumEntropyMulticlassTrainer : LbfgsTrainerBase<LbfgsMaximumEntropyMulticlassTrainer.Options,
         MulticlassPredictionTransformer<MaximumEntropyModelParameters>, MaximumEntropyModelParameters>
     {
         internal const string Summary = "Maximum entrypy classification is a method in statistics used to predict the probabilities of parallel events. The model predicts the probabilities of parallel events by fitting data to a softmax function.";
@@ -74,7 +74,7 @@ namespace Microsoft.ML.Trainers
         private protected override int ClassCount => _numClasses;
 
         /// <summary>
-        /// Initializes a new instance of <see cref="LbfgsMaximumEntropyTrainer"/>.
+        /// Initializes a new instance of <see cref="LbfgsMaximumEntropyMulticlassTrainer"/>.
         /// </summary>
         /// <param name="env">The environment to use.</param>
         /// <param name="labelColumn">The name of the label column.</param>
@@ -83,9 +83,9 @@ namespace Microsoft.ML.Trainers
         /// <param name="enforceNoNegativity">Enforce non-negative weights.</param>
         /// <param name="l1Weight">Weight of L1 regularizer term.</param>
         /// <param name="l2Weight">Weight of L2 regularizer term.</param>
-        /// <param name="memorySize">Memory size for <see cref="LogisticRegressionBinaryTrainer"/>. Low=faster, less accurate.</param>
+        /// <param name="memorySize">Memory size for <see cref="LbfgsLogisticRegressionBinaryTrainer"/>. Low=faster, less accurate.</param>
         /// <param name="optimizationTolerance">Threshold for optimizer convergence.</param>
-        internal LbfgsMaximumEntropyTrainer(IHostEnvironment env,
+        internal LbfgsMaximumEntropyMulticlassTrainer(IHostEnvironment env,
             string labelColumn = DefaultColumnNames.Label,
             string featureColumn = DefaultColumnNames.Features,
             string weights = null,
@@ -103,9 +103,9 @@ namespace Microsoft.ML.Trainers
         }
 
         /// <summary>
-        /// Initializes a new instance of <see cref="LbfgsMaximumEntropyTrainer"/>.
+        /// Initializes a new instance of <see cref="LbfgsMaximumEntropyMulticlassTrainer"/>.
         /// </summary>
-        internal LbfgsMaximumEntropyTrainer(IHostEnvironment env, Options options)
+        internal LbfgsMaximumEntropyMulticlassTrainer(IHostEnvironment env, Options options)
             : base(env, options, TrainerUtils.MakeU4ScalarColumn(options.LabelColumnName))
         {
             ShowTrainingStats = LbfgsTrainerOptions.ShowTrainingStatistics;
@@ -331,25 +331,25 @@ namespace Microsoft.ML.Trainers
             => new MulticlassPredictionTransformer<MaximumEntropyModelParameters>(Host, model, trainSchema, FeatureColumn.Name, LabelColumn.Name);
 
         /// <summary>
-        /// Continues the training of a <see cref="LbfgsMaximumEntropyTrainer"/> using an already trained <paramref name="modelParameters"/> and returns
+        /// Continues the training of a <see cref="LbfgsMaximumEntropyMulticlassTrainer"/> using an already trained <paramref name="modelParameters"/> and returns
         /// a <see cref="MulticlassPredictionTransformer{MulticlassLogisticRegressionModelParameters}"/>.
         /// </summary>
         public MulticlassPredictionTransformer<MaximumEntropyModelParameters> Fit(IDataView trainData, MaximumEntropyModelParameters modelParameters)
             => TrainTransformer(trainData, initPredictor: modelParameters);
 
         [TlcModule.EntryPoint(Name = "Trainers.LogisticRegressionClassifier",
-            Desc = LbfgsMaximumEntropyTrainer.Summary,
-            UserName = LbfgsMaximumEntropyTrainer.UserNameValue,
-            ShortName = LbfgsMaximumEntropyTrainer.ShortName)]
-        internal static CommonOutputs.MulticlassClassificationOutput TrainMulticlass(IHostEnvironment env, LbfgsMaximumEntropyTrainer.Options input)
+            Desc = LbfgsMaximumEntropyMulticlassTrainer.Summary,
+            UserName = LbfgsMaximumEntropyMulticlassTrainer.UserNameValue,
+            ShortName = LbfgsMaximumEntropyMulticlassTrainer.ShortName)]
+        internal static CommonOutputs.MulticlassClassificationOutput TrainMulticlass(IHostEnvironment env, LbfgsMaximumEntropyMulticlassTrainer.Options input)
         {
             Contracts.CheckValue(env, nameof(env));
             var host = env.Register("TrainLRMultiClass");
             host.CheckValue(input, nameof(input));
             EntryPointUtils.CheckInputArgs(host, input);
 
-            return TrainerEntryPointsUtils.Train<LbfgsMaximumEntropyTrainer.Options, CommonOutputs.MulticlassClassificationOutput>(host, input,
-                () => new LbfgsMaximumEntropyTrainer(host, input),
+            return TrainerEntryPointsUtils.Train<LbfgsMaximumEntropyMulticlassTrainer.Options, CommonOutputs.MulticlassClassificationOutput>(host, input,
+                () => new LbfgsMaximumEntropyMulticlassTrainer(host, input),
                 () => TrainerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.LabelColumnName),
                 () => TrainerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.ExampleWeightColumnName));
         }
@@ -434,7 +434,7 @@ namespace Microsoft.ML.Trainers
 
         /// <summary>
         /// Initializes a new instance of the <see cref="MaximumEntropyModelParameters"/> class.
-        /// This constructor is called by <see cref="SdcaCalibratedMulticlassTrainer"/> to create the predictor.
+        /// This constructor is called by <see cref="SdcaMaximumEntropyMulticlassTrainer"/> to create the predictor.
         /// </summary>
         /// <param name="env">The host environment.</param>
         /// <param name="name">Registration name of this model's actual type.</param>
@@ -1196,6 +1196,6 @@ namespace Microsoft.ML.Trainers
         /// </summary>
         private protected override JToken ApplyPfaPostTransform(JToken input) => PfaUtils.Call("m.link.softmax", input);
 
-        private protected override string GetTrainerName() => nameof(LbfgsMaximumEntropyTrainer);
+        private protected override string GetTrainerName() => nameof(LbfgsMaximumEntropyMulticlassTrainer);
     }
 }

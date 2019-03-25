@@ -151,8 +151,8 @@ namespace Microsoft.ML.Tests
         public void TestPfiBinaryClassificationOnDenseFeatures()
         {
             var data = GetDenseDataset(TaskType.BinaryClassification);
-            var model = ML.BinaryClassification.Trainers.LogisticRegression(
-                new LogisticRegressionBinaryTrainer.Options { NumberOfThreads = 1 }).Fit(data);
+            var model = ML.BinaryClassification.Trainers.LbfgsLogisticRegression(
+                new LbfgsLogisticRegressionBinaryTrainer.Options { NumberOfThreads = 1 }).Fit(data);
             var pfi = ML.BinaryClassification.PermutationFeatureImportance(model, data);
 
             // Pfi Indices:
@@ -189,8 +189,8 @@ namespace Microsoft.ML.Tests
         public void TestPfiBinaryClassificationOnSparseFeatures()
         {
             var data = GetSparseDataset(TaskType.BinaryClassification);
-            var model = ML.BinaryClassification.Trainers.LogisticRegression(
-                new LogisticRegressionBinaryTrainer.Options { NumberOfThreads = 1 }).Fit(data);
+            var model = ML.BinaryClassification.Trainers.LbfgsLogisticRegression(
+                new LbfgsLogisticRegressionBinaryTrainer.Options { NumberOfThreads = 1 }).Fit(data);
             var pfi = ML.BinaryClassification.PermutationFeatureImportance(model, data);
 
             // Pfi Indices:
@@ -269,7 +269,7 @@ namespace Microsoft.ML.Tests
         {
             var data = GetSparseDataset(TaskType.MulticlassClassification);
             var model = ML.MulticlassClassification.Trainers.LbfgsMaximumEntropy(
-                new LbfgsMaximumEntropyTrainer.Options { MaximumNumberOfIterations = 1000 }).Fit(data);
+                new LbfgsMaximumEntropyMulticlassTrainer.Options { MaximumNumberOfIterations = 1000 }).Fit(data);
 
             var pfi = ML.MulticlassClassification.PermutationFeatureImportance(model, data);
 

@@ -19,20 +19,20 @@ using Microsoft.ML.Runtime;
 using Microsoft.ML.Trainers;
 using Microsoft.ML.Transforms;
 
-[assembly: LoadableClass(typeof(SymbolicSgdTrainer), typeof(SymbolicSgdTrainer.Options),
+[assembly: LoadableClass(typeof(SymbolicSgdLogisticRegressionBinaryTrainer), typeof(SymbolicSgdLogisticRegressionBinaryTrainer.Options),
     new[] { typeof(SignatureBinaryClassifierTrainer), typeof(SignatureTrainer), typeof(SignatureFeatureScorerTrainer) },
-    SymbolicSgdTrainer.UserNameValue,
-    SymbolicSgdTrainer.LoadNameValue,
-    SymbolicSgdTrainer.ShortName)]
+    SymbolicSgdLogisticRegressionBinaryTrainer.UserNameValue,
+    SymbolicSgdLogisticRegressionBinaryTrainer.LoadNameValue,
+    SymbolicSgdLogisticRegressionBinaryTrainer.ShortName)]
 
-[assembly: LoadableClass(typeof(void), typeof(SymbolicSgdTrainer), null, typeof(SignatureEntryPointModule), SymbolicSgdTrainer.LoadNameValue)]
+[assembly: LoadableClass(typeof(void), typeof(SymbolicSgdLogisticRegressionBinaryTrainer), null, typeof(SignatureEntryPointModule), SymbolicSgdLogisticRegressionBinaryTrainer.LoadNameValue)]
 
 namespace Microsoft.ML.Trainers
 {
     using TPredictor = CalibratedModelParametersBase<LinearBinaryModelParameters, PlattCalibrator>;
 
     /// <include file='doc.xml' path='doc/members/member[@name="SymSGD"]/*' />
-    public sealed class SymbolicSgdTrainer : TrainerEstimatorBase<BinaryPredictionTransformer<TPredictor>, TPredictor>
+    public sealed class SymbolicSgdLogisticRegressionBinaryTrainer : TrainerEstimatorBase<BinaryPredictionTransformer<TPredictor>, TPredictor>
     {
         internal const string LoadNameValue = "SymbolicSGD";
         internal const string UserNameValue = "Symbolic SGD (binary)";
@@ -195,9 +195,9 @@ namespace Microsoft.ML.Trainers
         private protected override PredictionKind PredictionKind => PredictionKind.BinaryClassification;
 
         /// <summary>
-        /// Initializes a new instance of <see cref="SymbolicSgdTrainer"/>
+        /// Initializes a new instance of <see cref="SymbolicSgdLogisticRegressionBinaryTrainer"/>
         /// </summary>
-        internal SymbolicSgdTrainer(IHostEnvironment env, Options options)
+        internal SymbolicSgdLogisticRegressionBinaryTrainer(IHostEnvironment env, Options options)
             : base(Contracts.CheckRef(env, nameof(env)).Register(LoadNameValue), TrainerUtils.MakeR4VecFeature(options.FeatureColumnName),
                   TrainerUtils.MakeBoolScalarLabel(options.LabelColumnName))
         {
@@ -223,7 +223,7 @@ namespace Microsoft.ML.Trainers
              => new BinaryPredictionTransformer<TPredictor>(Host, model, trainSchema, FeatureColumn.Name);
 
         /// <summary>
-        /// Continues the training of <see cref="SymbolicSgdTrainer"/> using an already trained <paramref name="modelParameters"/>
+        /// Continues the training of <see cref="SymbolicSgdLogisticRegressionBinaryTrainer"/> using an already trained <paramref name="modelParameters"/>
         /// a <see cref="BinaryPredictionTransformer"/>.
         /// </summary>
         public BinaryPredictionTransformer<TPredictor> Fit(IDataView trainData, LinearModelParameters modelParameters)
@@ -241,8 +241,8 @@ namespace Microsoft.ML.Trainers
 
         [TlcModule.EntryPoint(Name = "Trainers.SymSgdBinaryClassifier",
             Desc = "Train a symbolic SGD.",
-            UserName = SymbolicSgdTrainer.UserNameValue,
-            ShortName = SymbolicSgdTrainer.ShortName)]
+            UserName = SymbolicSgdLogisticRegressionBinaryTrainer.UserNameValue,
+            ShortName = SymbolicSgdLogisticRegressionBinaryTrainer.ShortName)]
         internal static CommonOutputs.BinaryClassificationOutput TrainSymSgd(IHostEnvironment env, Options options)
         {
             Contracts.CheckValue(env, nameof(env));
@@ -251,7 +251,7 @@ namespace Microsoft.ML.Trainers
             EntryPointUtils.CheckInputArgs(host, options);
 
             return TrainerEntryPointsUtils.Train<Options, CommonOutputs.BinaryClassificationOutput>(host, options,
-                () => new SymbolicSgdTrainer(host, options),
+                () => new SymbolicSgdLogisticRegressionBinaryTrainer(host, options),
                 () => TrainerEntryPointsUtils.FindColumn(host, options.TrainingData.Schema, options.LabelColumnName));
         }
 
@@ -324,7 +324,7 @@ namespace Microsoft.ML.Trainers
             // giving an array, we are at _storage[_storageIndex][_indexInCurArray].
             private int _indexInCurArray;
             // This is used to access AccelMemBudget, AccelChunkSize and UsedMemory
-            private readonly SymbolicSgdTrainer _trainer;
+            private readonly SymbolicSgdLogisticRegressionBinaryTrainer _trainer;
 
             private readonly IChannel _ch;
 
@@ -336,7 +336,7 @@ namespace Microsoft.ML.Trainers
             /// </summary>
             /// <param name="trainer"></param>
             /// <param name="ch"></param>
-            public ArrayManager(SymbolicSgdTrainer trainer, IChannel ch)
+            public ArrayManager(SymbolicSgdLogisticRegressionBinaryTrainer trainer, IChannel ch)
             {
                 _storage = new List<VeryLongArray>();
                 // Setting the default value to 2^17.
@@ -500,7 +500,7 @@ namespace Microsoft.ML.Trainers
             // This is the index to go over the instances in instanceProperties
             private int _instanceIndex;
             // This is used to access AccelMemBudget, AccelChunkSize and UsedMemory
-            private readonly SymbolicSgdTrainer _trainer;
+            private readonly SymbolicSgdLogisticRegressionBinaryTrainer _trainer;
             private readonly IChannel _ch;
 
             // Whether memorySize was big enough to load the entire instances into the buffer
@@ -511,7 +511,7 @@ namespace Microsoft.ML.Trainers
             // Tells if we have gone through the dataset entirely.
             public bool FinishedTheLoad => !_cursorMoveNext;
 
-            public InputDataManager(SymbolicSgdTrainer trainer, FloatLabelCursor.Factory cursorFactory, IChannel ch)
+            public InputDataManager(SymbolicSgdLogisticRegressionBinaryTrainer trainer, FloatLabelCursor.Factory cursorFactory, IChannel ch)
             {
                 _instIndices = new ArrayManager<int>(trainer, ch);
                 _instValues = new ArrayManager<float>(trainer, ch);

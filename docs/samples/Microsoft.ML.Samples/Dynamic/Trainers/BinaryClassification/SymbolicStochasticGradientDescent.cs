@@ -19,7 +19,7 @@
             // Leave out 10% of data for testing.
             var split = mlContext.Data.TrainTestSplit(data, testFraction: 0.1);
             // Create data training pipeline.
-            var pipeline = mlContext.BinaryClassification.Trainers.SymbolicSgd(labelColumnName: "IsOver50K", numberOfIterations: 25);
+            var pipeline = mlContext.BinaryClassification.Trainers.SymbolicSgdLogisticRegression(labelColumnName: "IsOver50K", numberOfIterations: 25);
             var model = pipeline.Fit(split.TrainSet);
 
             // Evaluate how the model is doing on the test data.

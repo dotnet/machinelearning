@@ -63,7 +63,7 @@ namespace Microsoft.ML.Samples.Dynamic
                 .Append(ml.Transforms.Text.FeaturizeText("TextFeatures", "Text"))
                 .Append(ml.Transforms.Concatenate("Features", "TextFeatures", "age", "fnlwgt",
                     "education-num", "capital-gain", "capital-loss", "hours-per-week"))
-                .Append(ml.BinaryClassification.Trainers.LogisticRegression());
+                .Append(ml.BinaryClassification.Trainers.LbfgsLogisticRegression());
 
             var model = pipeline.Fit(split.TrainSet);
 

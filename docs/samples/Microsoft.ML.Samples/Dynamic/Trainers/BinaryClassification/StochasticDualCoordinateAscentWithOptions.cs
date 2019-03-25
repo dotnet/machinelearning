@@ -22,7 +22,7 @@ namespace Microsoft.ML.Samples.Dynamic.Trainers.BinaryClassification
             var trainTestData = mlContext.Data.TrainTestSplit(data, testFraction: 0.1);
 
             // Define the trainer options.
-            var options = new SdcaCalibratedBinaryTrainer.Options()
+            var options = new SdcaLogisticRegressionBinaryTrainer.Options()
             {
                 // Make the convergence tolerance tighter.
                 ConvergenceTolerance = 0.05f,
@@ -33,7 +33,7 @@ namespace Microsoft.ML.Samples.Dynamic.Trainers.BinaryClassification
             };
 
             // Create data training pipeline.
-            var pipeline = mlContext.BinaryClassification.Trainers.SdcaCalibrated(options);
+            var pipeline = mlContext.BinaryClassification.Trainers.SdcaLogisticRegression(options);
 
             // Fit this pipeline to the training data.
             var model = pipeline.Fit(trainTestData.TrainSet);

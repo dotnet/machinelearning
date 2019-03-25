@@ -143,8 +143,8 @@ namespace Microsoft.ML.Functional.Tests
                         Norm = TextFeaturizingEstimator.NormFunction.L1
                     }, "SentimentText")
                 .AppendCacheCheckpoint(mlContext)
-                .Append(mlContext.BinaryClassification.Trainers.SdcaCalibrated(
-                    new SdcaCalibratedBinaryTrainer.Options { NumberOfThreads = 1 }));
+                .Append(mlContext.BinaryClassification.Trainers.SdcaLogisticRegression(
+                    new SdcaLogisticRegressionBinaryTrainer.Options { NumberOfThreads = 1 }));
 
             // Train the model.
             var model = pipeline.Fit(data);

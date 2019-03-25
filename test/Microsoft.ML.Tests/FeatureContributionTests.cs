@@ -87,8 +87,8 @@ namespace Microsoft.ML.Tests
         [Fact]
         public void TestPoissonRegression()
         {
-            TestFeatureContribution(ML.Regression.Trainers.PoissonRegression(
-                new PoissonRegressionTrainer.Options { NumberOfThreads = 1 }), GetSparseDataset(numberOfInstances: 100), "PoissonRegression");
+            TestFeatureContribution(ML.Regression.Trainers.LbfgsPoissonRegression(
+                new LbfgsPoissonRegressionTrainer.Options { NumberOfThreads = 1 }), GetSparseDataset(numberOfInstances: 100), "PoissonRegression");
         }
 
         [Fact]
@@ -126,7 +126,7 @@ namespace Microsoft.ML.Tests
         [Fact]
         public void TestLogisticRegressionBinary()
         {
-            TestFeatureContribution(ML.BinaryClassification.Trainers.LogisticRegression(), GetSparseDataset(TaskType.BinaryClassification, 100), "LogisticRegressionBinary");
+            TestFeatureContribution(ML.BinaryClassification.Trainers.LbfgsLogisticRegression(), GetSparseDataset(TaskType.BinaryClassification, 100), "LogisticRegressionBinary");
         }
 
         [Fact]
@@ -168,8 +168,8 @@ namespace Microsoft.ML.Tests
         [Fact]
         public void TestSSGDBinary()
         {
-            TestFeatureContribution(ML.BinaryClassification.Trainers.SymbolicSgd(
-                new SymbolicSgdTrainer.Options()
+            TestFeatureContribution(ML.BinaryClassification.Trainers.SymbolicSgdLogisticRegression(
+                new SymbolicSgdLogisticRegressionBinaryTrainer.Options()
                 {
                     NumberOfThreads = 1
                 }),

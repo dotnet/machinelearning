@@ -23,8 +23,8 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             var binaryData = ML.Transforms.Conversion.ConvertType("Label", outputKind: DataKind.Boolean)
                 .Fit(data.AsDynamic).Transform(data.AsDynamic);
 
-            var binaryTrainer = ML.BinaryClassification.Trainers.SdcaCalibrated(
-                new SdcaCalibratedBinaryTrainer.Options { ConvergenceTolerance = 1e-2f, MaximumNumberOfIterations = 10 });
+            var binaryTrainer = ML.BinaryClassification.Trainers.SdcaLogisticRegression(
+                new SdcaLogisticRegressionBinaryTrainer.Options { ConvergenceTolerance = 1e-2f, MaximumNumberOfIterations = 10 });
             TestEstimatorCore(binaryTrainer, binaryData);
 
             var nonCalibratedBinaryTrainer = ML.BinaryClassification.Trainers.SdcaNonCalibrated(
@@ -37,8 +37,8 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             TestEstimatorCore(regressionTrainer, data.AsDynamic);
             var mcData = ML.Transforms.Conversion.MapValueToKey("Label").Fit(data.AsDynamic).Transform(data.AsDynamic);
 
-            var mcTrainer = ML.MulticlassClassification.Trainers.SdcaCalibrated(
-                new SdcaCalibratedMulticlassTrainer.Options { ConvergenceTolerance = 1e-2f, MaximumNumberOfIterations = 10 });
+            var mcTrainer = ML.MulticlassClassification.Trainers.SdcaMaximumEntropy(
+                new SdcaMaximumEntropyMulticlassTrainer.Options { ConvergenceTolerance = 1e-2f, MaximumNumberOfIterations = 10 });
             TestEstimatorCore(mcTrainer, mcData);
 
             Done();
@@ -63,7 +63,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
 
             // Step 2: Create a binary classifier.
             // We set the "Label" column as the label of the dataset, and the "Features" column as the features column.
-            var pipeline = mlContext.BinaryClassification.Trainers.SdcaCalibrated(labelColumnName: "Label", featureColumnName: "Features", l2Regularization: 0.001f);
+            var pipeline = mlContext.BinaryClassification.Trainers.SdcaLogisticRegression(labelColumnName: "Label", featureColumnName: "Features", l2Regularization: 0.001f);
 
             // Step 3: Train the pipeline created.
             var model = pipeline.Fit(data);
@@ -151,7 +151,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             // We set the "Label" column as the label of the dataset, and the "Features" column as the features column.
 
             var pipeline = mlContext.Transforms.Conversion.MapValueToKey("LabelIndex", "Label").
-                           Append(mlContext.MulticlassClassification.Trainers.SdcaCalibrated(labelColumnName: "LabelIndex", featureColumnName: "Features", l2Regularization: 0.001f));
+                           Append(mlContext.MulticlassClassification.Trainers.SdcaMaximumEntropy(labelColumnName: "LabelIndex", featureColumnName: "Features", l2Regularization: 0.001f));
 
             // Step 3: Train the pipeline created.
             var model = pipeline.Fit(data);

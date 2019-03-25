@@ -33,7 +33,7 @@ namespace Microsoft.ML.Scenarios
                 .Fit(textData).Transform(textData));
 
             // Pipeline
-            var logReg = mlContext.BinaryClassification.Trainers.LogisticRegression();
+            var logReg = mlContext.BinaryClassification.Trainers.LbfgsLogisticRegression();
             var pipeline = mlContext.MulticlassClassification.Trainers.OneVersusAll(logReg, useProbabilities: false);
 
             var model = pipeline.Fit(data);

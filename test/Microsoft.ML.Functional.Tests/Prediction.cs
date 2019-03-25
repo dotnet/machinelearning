@@ -44,8 +44,8 @@ namespace Microsoft.ML.Functional.Tests
             // Create a training pipeline.
             var pipeline = mlContext.Transforms.Text.FeaturizeText("Features", "SentimentText")
                 .AppendCacheCheckpoint(mlContext)
-                .Append(mlContext.BinaryClassification.Trainers.LogisticRegression(
-                    new LogisticRegressionBinaryTrainer.Options { NumberOfThreads = 1 }));
+                .Append(mlContext.BinaryClassification.Trainers.LbfgsLogisticRegression(
+                    new LbfgsLogisticRegressionBinaryTrainer.Options { NumberOfThreads = 1 }));
 
             // Train the model.
             var model = pipeline.Fit(data);
@@ -74,10 +74,9 @@ namespace Microsoft.ML.Functional.Tests
         public void ReconfigurablePredictionNoPipeline()
         {
             var mlContext = new MLContext(seed: 1);
-
             var data = mlContext.Data.LoadFromEnumerable(TypeTestData.GenerateDataset());
-            var pipeline = mlContext.BinaryClassification.Trainers.LogisticRegression(
-                     new Trainers.LogisticRegressionBinaryTrainer.Options { NumberOfThreads = 1 });
+            var pipeline = mlContext.BinaryClassification.Trainers.LbfgsLogisticRegression(
+                     new Trainers.LbfgsLogisticRegressionBinaryTrainer.Options { NumberOfThreads = 1 });
             var model = pipeline.Fit(data);
             var newModel = mlContext.BinaryClassification.ChangeModelThreshold(model, -2.0f);
             var rnd = new Random(1);

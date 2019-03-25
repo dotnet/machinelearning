@@ -9,15 +9,15 @@ using Microsoft.ML.Trainers;
 
 namespace Microsoft.ML.StaticPipe
 {
-    using Options = LogisticRegressionBinaryTrainer.Options;
+    using Options = LbfgsLogisticRegressionBinaryTrainer.Options;
 
     /// <summary>
     /// Binary Classification trainer estimators.
     /// </summary>
-    public static class LbfgsBinaryClassificationStaticExtensions
+    public static class LbfgsBinaryStaticExtensions
     {
         /// <summary>
-        ///  Predict a target using a linear binary classification model trained with the <see cref="Microsoft.ML.Trainers.LogisticRegressionBinaryTrainer"/> trainer.
+        ///  Predict a target using a linear binary classification model trained with the <see cref="Microsoft.ML.Trainers.LbfgsLogisticRegressionBinaryTrainer"/> trainer.
         /// </summary>
         /// <param name="catalog">The binary classification catalog trainer object.</param>
         /// <param name="label">The label, or dependent variable.</param>
@@ -26,7 +26,7 @@ namespace Microsoft.ML.StaticPipe
         /// <param name="enforceNonNegativity">Enforce non-negative weights.</param>
         /// <param name="l1Regularization">Weight of L1 regularization term.</param>
         /// <param name="l2Regularization">Weight of L2 regularization term.</param>
-        /// <param name="historySize">Memory size for <see cref="Microsoft.ML.Trainers.LogisticRegressionBinaryTrainer"/>. Low=faster, less accurate.</param>
+        /// <param name="historySize">Memory size for <see cref="Microsoft.ML.Trainers.LbfgsLogisticRegressionBinaryTrainer"/>. Low=faster, less accurate.</param>
         /// <param name="optimizationTolerance">Threshold for optimizer convergence.</param>
         /// <param name="onFit">A delegate that is called every time the
         /// <see cref="Estimator{TInShape, TOutShape, TTransformer}.Fit(DataView{TInShape})"/> method is called on the
@@ -34,7 +34,7 @@ namespace Microsoft.ML.StaticPipe
         /// the linear model that was trained.  Note that this action cannot change the result in any way; it is only a way for the caller to
         /// be informed about what was learnt.</param>
         /// <returns>The predicted output.</returns>
-        public static (Scalar<float> score, Scalar<float> probability, Scalar<bool> predictedLabel) LogisticRegressionBinaryClassifier(this BinaryClassificationCatalog.BinaryClassificationTrainers catalog,
+        public static (Scalar<float> score, Scalar<float> probability, Scalar<bool> predictedLabel) LbfgsLogisticRegression(this BinaryClassificationCatalog.BinaryClassificationTrainers catalog,
             Scalar<bool> label,
             Vector<float> features,
             Scalar<float> weights = null,
@@ -50,7 +50,7 @@ namespace Microsoft.ML.StaticPipe
             var rec = new TrainerEstimatorReconciler.BinaryClassifier(
                 (env, labelName, featuresName, weightsName) =>
                 {
-                    var trainer = new LogisticRegressionBinaryTrainer(env, labelName, featuresName, weightsName,
+                    var trainer = new LbfgsLogisticRegressionBinaryTrainer(env, labelName, featuresName, weightsName,
                         l1Regularization, l2Regularization, optimizationTolerance, historySize, enforceNonNegativity);
 
                     if (onFit != null)
@@ -63,7 +63,7 @@ namespace Microsoft.ML.StaticPipe
         }
 
         /// <summary>
-        ///  Predict a target using a linear binary classification model trained with the <see cref="Microsoft.ML.Trainers.LogisticRegressionBinaryTrainer"/> trainer.
+        ///  Predict a target using a linear binary classification model trained with the <see cref="Microsoft.ML.Trainers.LbfgsLogisticRegressionBinaryTrainer"/> trainer.
         /// </summary>
         /// <param name="catalog">The binary classification catalog trainer object.</param>
         /// <param name="label">The label, or dependent variable.</param>
@@ -76,7 +76,7 @@ namespace Microsoft.ML.StaticPipe
         /// be informed about what was learnt.</param>
         /// <param name="options">Advanced arguments to the algorithm.</param>
         /// <returns>The predicted output.</returns>
-        public static (Scalar<float> score, Scalar<float> probability, Scalar<bool> predictedLabel) LogisticRegressionBinaryClassifier(this BinaryClassificationCatalog.BinaryClassificationTrainers catalog,
+        public static (Scalar<float> score, Scalar<float> probability, Scalar<bool> predictedLabel) LbfgsLogisticRegression(this BinaryClassificationCatalog.BinaryClassificationTrainers catalog,
             Scalar<bool> label,
             Vector<float> features,
             Scalar<float> weights,
@@ -95,7 +95,7 @@ namespace Microsoft.ML.StaticPipe
                     options.FeatureColumnName = featuresName;
                     options.ExampleWeightColumnName = weightsName;
 
-                    var trainer = new LogisticRegressionBinaryTrainer(env, options);
+                    var trainer = new LbfgsLogisticRegressionBinaryTrainer(env, options);
 
                     if (onFit != null)
                         return trainer.WithOnFitDelegate(trans => onFit(trans.Model));
@@ -110,10 +110,10 @@ namespace Microsoft.ML.StaticPipe
     /// <summary>
     /// Regression trainer estimators.
     /// </summary>
-    public static class LbfgsRegressionExtensions
+    public static class LbfgsRegressionStaticExtensions
     {
         /// <summary>
-        /// Predict a target using a linear regression model trained with the <see cref="Microsoft.ML.Trainers.LogisticRegressionBinaryTrainer"/> trainer.
+        /// Predict a target using a linear regression model trained with the <see cref="Microsoft.ML.Trainers.LbfgsLogisticRegressionBinaryTrainer"/> trainer.
         /// </summary>
         /// <param name="catalog">The regression catalog trainer object.</param>
         /// <param name="label">The label, or dependent variable.</param>
@@ -122,7 +122,7 @@ namespace Microsoft.ML.StaticPipe
         /// <param name="enforceNonNegativity">Enforce non-negative weights.</param>
         /// <param name="l1Regularization">Weight of L1 regularization term.</param>
         /// <param name="l2Regularization">Weight of L2 regularization term.</param>
-        /// <param name="historySize">Memory size for <see cref="Microsoft.ML.Trainers.LogisticRegressionBinaryTrainer"/>. Low=faster, less accurate.</param>
+        /// <param name="historySize">Memory size for <see cref="Microsoft.ML.Trainers.LbfgsLogisticRegressionBinaryTrainer"/>. Low=faster, less accurate.</param>
         /// <param name="optimizationTolerance">Threshold for optimizer convergence.</param>
         /// <param name="onFit">A delegate that is called every time the
         /// <see cref="Estimator{TInShape, TOutShape, TTransformer}.Fit(DataView{TInShape})"/> method is called on the
@@ -130,7 +130,7 @@ namespace Microsoft.ML.StaticPipe
         /// the linear model that was trained.  Note that this action cannot change the result in any way; it is only a way for the caller to
         /// be informed about what was learnt.</param>
         /// <returns>The predicted output.</returns>
-        public static Scalar<float> PoissonRegression(this RegressionCatalog.RegressionTrainers catalog,
+        public static Scalar<float> LbfgsPoissonRegression(this RegressionCatalog.RegressionTrainers catalog,
             Scalar<float> label,
             Vector<float> features,
             Scalar<float> weights = null,
@@ -146,7 +146,7 @@ namespace Microsoft.ML.StaticPipe
             var rec = new TrainerEstimatorReconciler.Regression(
                 (env, labelName, featuresName, weightsName) =>
                 {
-                    var trainer = new PoissonRegressionTrainer(env, labelName, featuresName, weightsName,
+                    var trainer = new LbfgsPoissonRegressionTrainer(env, labelName, featuresName, weightsName,
                         l1Regularization, l2Regularization, optimizationTolerance, historySize, enforceNonNegativity);
 
                     if (onFit != null)
@@ -159,7 +159,7 @@ namespace Microsoft.ML.StaticPipe
         }
 
         /// <summary>
-        /// Predict a target using a linear regression model trained with the <see cref="Microsoft.ML.Trainers.LogisticRegressionBinaryTrainer"/> trainer.
+        /// Predict a target using a linear regression model trained with the <see cref="Microsoft.ML.Trainers.LbfgsLogisticRegressionBinaryTrainer"/> trainer.
         /// </summary>
         /// <param name="catalog">The regression catalog trainer object.</param>
         /// <param name="label">The label, or dependent variable.</param>
@@ -172,11 +172,11 @@ namespace Microsoft.ML.StaticPipe
         /// the linear model that was trained.  Note that this action cannot change the result in any way; it is only a way for the caller to
         /// be informed about what was learnt.</param>
         /// <returns>The predicted output.</returns>
-        public static Scalar<float> PoissonRegression(this RegressionCatalog.RegressionTrainers catalog,
+        public static Scalar<float> LbfgsPoissonRegression(this RegressionCatalog.RegressionTrainers catalog,
             Scalar<float> label,
             Vector<float> features,
             Scalar<float> weights,
-            PoissonRegressionTrainer.Options options,
+            LbfgsPoissonRegressionTrainer.Options options,
             Action<PoissonRegressionModelParameters> onFit = null)
         {
             Contracts.CheckValue(label, nameof(label));
@@ -191,7 +191,7 @@ namespace Microsoft.ML.StaticPipe
                     options.FeatureColumnName = featuresName;
                     options.ExampleWeightColumnName = weightsName;
 
-                    var trainer = new PoissonRegressionTrainer(env, options);
+                    var trainer = new LbfgsPoissonRegressionTrainer(env, options);
 
                     if (onFit != null)
                         return trainer.WithOnFitDelegate(trans => onFit(trans.Model));
@@ -206,10 +206,10 @@ namespace Microsoft.ML.StaticPipe
     /// <summary>
     /// Multiclass Classification trainer estimators.
     /// </summary>
-    public static class LbfgsMulticlassExtensions
+    public static class LbfgsMulticlassStaticExtensions
     {
         /// <summary>
-        /// Predict a target using a maximum entropy classification model trained with the L-BFGS method implemented in <see cref="LbfgsMaximumEntropyTrainer"/>.
+        /// Predict a target using a maximum entropy classification model trained with the L-BFGS method implemented in <see cref="LbfgsMaximumEntropyMulticlassTrainer"/>.
         /// </summary>
         /// <param name="catalog">The multiclass classification catalog trainer object.</param>
         /// <param name="label">The label, or dependent variable.</param>
@@ -218,7 +218,7 @@ namespace Microsoft.ML.StaticPipe
         /// <param name="enforceNonNegativity">Enforce non-negative weights.</param>
         /// <param name="l1Regularization">Weight of L1 regularization term.</param>
         /// <param name="l2Regularization">Weight of L2 regularization term.</param>
-        /// <param name="historySize">Memory size for <see cref="Microsoft.ML.Trainers.LogisticRegressionBinaryTrainer"/>. Low=faster, less accurate.</param>
+        /// <param name="historySize">Memory size for <see cref="Microsoft.ML.Trainers.LbfgsLogisticRegressionBinaryTrainer"/>. Low=faster, less accurate.</param>
         /// <param name="optimizationTolerance">Threshold for optimizer convergence.</param>
         /// <param name="onFit">A delegate that is called every time the
         /// <see cref="Estimator{TInShape, TOutShape, TTransformer}.Fit(DataView{TInShape})"/> method is called on the
@@ -243,7 +243,7 @@ namespace Microsoft.ML.StaticPipe
             var rec = new TrainerEstimatorReconciler.MulticlassClassificationReconciler<TVal>(
                 (env, labelName, featuresName, weightsName) =>
                 {
-                    var trainer = new LbfgsMaximumEntropyTrainer(env, labelName, featuresName, weightsName,
+                    var trainer = new LbfgsMaximumEntropyMulticlassTrainer(env, labelName, featuresName, weightsName,
                          l1Regularization, l2Regularization, optimizationTolerance, historySize, enforceNonNegativity);
 
                     if (onFit != null)
@@ -255,7 +255,7 @@ namespace Microsoft.ML.StaticPipe
         }
 
         /// <summary>
-        /// Predict a target using a maximum entropy classification model trained with the L-BFGS method implemented in <see cref="LbfgsMaximumEntropyTrainer"/>.
+        /// Predict a target using a maximum entropy classification model trained with the L-BFGS method implemented in <see cref="LbfgsMaximumEntropyMulticlassTrainer"/>.
         /// </summary>
         /// <param name="catalog">The multiclass classification catalog trainer object.</param>
         /// <param name="label">The label, or dependent variable.</param>
@@ -273,7 +273,7 @@ namespace Microsoft.ML.StaticPipe
             Key<uint, TVal> label,
             Vector<float> features,
             Scalar<float> weights,
-            LbfgsMaximumEntropyTrainer.Options options,
+            LbfgsMaximumEntropyMulticlassTrainer.Options options,
             Action<MaximumEntropyModelParameters> onFit = null)
         {
             Contracts.CheckValue(label, nameof(label));
@@ -288,7 +288,7 @@ namespace Microsoft.ML.StaticPipe
                     options.FeatureColumnName = featuresName;
                     options.ExampleWeightColumnName = weightsName;
 
-                    var trainer = new LbfgsMaximumEntropyTrainer(env, options);
+                    var trainer = new LbfgsMaximumEntropyMulticlassTrainer(env, options);
 
                     if (onFit != null)
                         return trainer.WithOnFitDelegate(trans => onFit(trans.Model));

@@ -132,7 +132,7 @@ namespace Microsoft.ML.RunTests
             var dataView = GetBreastCancerDataviewWithTextColumns();
             dataView = Env.CreateTransform("Term{col=F1}", dataView);
             var trainData = FeatureCombiner.PrepareFeatures(Env, new FeatureCombiner.FeatureCombinerInput() { Data = dataView, Features = new[] { "F1", "F2", "Rest" } });
-            var lrModel = LogisticRegressionBinaryTrainer.TrainBinary(Env, new LogisticRegressionBinaryTrainer.Options { TrainingData = trainData.OutputData }).PredictorModel;
+            var lrModel = LbfgsLogisticRegressionBinaryTrainer.TrainBinary(Env, new LbfgsLogisticRegressionBinaryTrainer.Options { TrainingData = trainData.OutputData }).PredictorModel;
             var model = ModelOperations.CombineTwoModels(Env, new ModelOperations.SimplePredictorModelInput() { TransformModel = trainData.Model, PredictorModel = lrModel }).PredictorModel;
 
             var scored1 = ScoreModel.Score(Env, new ScoreModel.Input() { Data = dataView, PredictorModel = model }).ScoredData;
@@ -325,7 +325,7 @@ namespace Microsoft.ML.RunTests
             Env.ComponentCatalog.RegisterAssembly(typeof(LightGbmBinaryModelParameters).Assembly);
             Env.ComponentCatalog.RegisterAssembly(typeof(TensorFlowTransformer).Assembly);
             Env.ComponentCatalog.RegisterAssembly(typeof(ImageLoadingTransformer).Assembly);
-            Env.ComponentCatalog.RegisterAssembly(typeof(SymbolicSgdTrainer).Assembly);
+            Env.ComponentCatalog.RegisterAssembly(typeof(SymbolicSgdLogisticRegressionBinaryTrainer).Assembly);
             Env.ComponentCatalog.RegisterAssembly(typeof(SaveOnnxCommand).Assembly);
             Env.ComponentCatalog.RegisterAssembly(typeof(TimeSeriesProcessingEntryPoints).Assembly);
             Env.ComponentCatalog.RegisterAssembly(typeof(ParquetLoader).Assembly);
@@ -362,12 +362,12 @@ namespace Microsoft.ML.RunTests
         {
             var catalog = Env.ComponentCatalog;
 
-            InputBuilder ib1 = new InputBuilder(Env, typeof(LogisticRegressionBinaryTrainer.Options), catalog);
+            InputBuilder ib1 = new InputBuilder(Env, typeof(LbfgsLogisticRegressionBinaryTrainer.Options), catalog);
             // Ensure that InputBuilder unwraps the Optional<string> correctly.
             var weightType = ib1.GetFieldTypeOrNull("ExampleWeightColumnName");
             Assert.True(weightType.Equals(typeof(string)));
 
-            var instance = ib1.GetInstance() as LogisticRegressionBinaryTrainer.Options;
+            var instance = ib1.GetInstance() as LbfgsLogisticRegressionBinaryTrainer.Options;
             Assert.True(instance.ExampleWeightColumnName == null);
 
             ib1.TrySetValue("ExampleWeightColumnName", "OtherWeight");
@@ -420,14 +420,14 @@ namespace Microsoft.ML.RunTests
             for (int i = 0; i < nModels; i++)
             {
                 var data = splitOutput.TrainData[i];
-                var lrInput = new LogisticRegressionBinaryTrainer.Options
+                var lrInput = new LbfgsLogisticRegressionBinaryTrainer.Options
                 {
                     TrainingData = data,
                     L1Regularization = (Single)0.1 * i,
                     L2Regularization = (Single)0.01 * (1 + i),
                     NormalizeFeatures = NormalizeOption.No
                 };
-                predictorModels[i] = LogisticRegressionBinaryTrainer.TrainBinary(Env, lrInput).PredictorModel;
+                predictorModels[i] = LbfgsLogisticRegressionBinaryTrainer.TrainBinary(Env, lrInput).PredictorModel;
                 individualScores[i] =
                     ScoreModel.Score(Env,
                         new ScoreModel.Input { Data = splitOutput.TestData[nModels], PredictorModel = predictorModels[i] })
@@ -676,7 +676,7 @@ namespace Microsoft.ML.RunTests
 
             var splitOutput = CVSplit.Split(Env, new CVSplit.Input { Data = dataView, NumFolds = 3 });
 
-            var lrModel = LogisticRegressionBinaryTrainer.TrainBinary(Env, new LogisticRegressionBinaryTrainer.Options { TrainingData = splitOutput.TestData[0] }).PredictorModel;
+            var lrModel = LbfgsLogisticRegressionBinaryTrainer.TrainBinary(Env, new LbfgsLogisticRegressionBinaryTrainer.Options { TrainingData = splitOutput.TestData[0] }).PredictorModel;
             var calibratedLrModel = Calibrate.FixedPlatt(Env,
                 new Calibrate.FixedPlattInput { Data = splitOutput.TestData[1], UncalibratedPredictorModel = lrModel }).PredictorModel;
 
@@ -724,14 +724,14 @@ namespace Microsoft.ML.RunTests
                 data = new ColumnConcatenatingTransformer(Env, "Features", new[] { "Features1", "Features2" }).Transform(data);
                 data = new ValueToKeyMappingEstimator(Env, "Label", "Label", keyOrdinality: ValueToKeyMappingEstimator.KeyOrdinality.ByValue).Fit(data).Transform(data);
 
-                var lrInput = new LogisticRegressionBinaryTrainer.Options
+                var lrInput = new LbfgsLogisticRegressionBinaryTrainer.Options
                 {
                     TrainingData = data,
                     L1Regularization = (Single)0.1 * i,
                     L2Regularization = (Single)0.01 * (1 + i),
                     NormalizeFeatures = NormalizeOption.Yes
                 };
-                predictorModels[i] = LogisticRegressionBinaryTrainer.TrainBinary(Env, lrInput).PredictorModel;
+                predictorModels[i] = LbfgsLogisticRegressionBinaryTrainer.TrainBinary(Env, lrInput).PredictorModel;
                 var transformModel = new TransformModelImpl(Env, data, splitOutput.TrainData[i]);
 
                 predictorModels[i] = ModelOperations.CombineTwoModels(Env,
@@ -985,14 +985,14 @@ namespace Microsoft.ML.RunTests
                         },
                         data);
                 }
-                var lrInput = new LogisticRegressionBinaryTrainer.Options
+                var lrInput = new LbfgsLogisticRegressionBinaryTrainer.Options
                 {
                     TrainingData = data,
                     L1Regularization = (Single)0.1 * i,
                     L2Regularization = (Single)0.01 * (1 + i),
                     NormalizeFeatures = NormalizeOption.Yes
                 };
-                predictorModels[i] = LogisticRegressionBinaryTrainer.TrainBinary(Env, lrInput).PredictorModel;
+                predictorModels[i] = LbfgsLogisticRegressionBinaryTrainer.TrainBinary(Env, lrInput).PredictorModel;
                 var transformModel = new TransformModelImpl(Env, data, splitOutput.TrainData[i]);
 
                 predictorModels[i] = ModelOperations.CombineTwoModels(Env,
@@ -1318,7 +1318,7 @@ namespace Microsoft.ML.RunTests
                 data = new ColumnConcatenatingTransformer(Env, new ColumnConcatenatingTransformer.ColumnOptions("Features", i % 2 == 0 ? new[] { "Features", "Cat" } : new[] { "Cat", "Features" })).Transform(data);
                 if (i % 2 == 0)
                 {
-                    var lrInput = new LogisticRegressionBinaryTrainer.Options
+                    var lrInput = new LbfgsLogisticRegressionBinaryTrainer.Options
                     {
                         TrainingData = data,
                         NormalizeFeatures = NormalizeOption.Yes,
@@ -1326,7 +1326,7 @@ namespace Microsoft.ML.RunTests
                         ShowTrainingStatistics = true,
                         ComputeStandardDeviation = new ComputeLRTrainingStdThroughMkl()
                     };
-                    predictorModels[i] = LogisticRegressionBinaryTrainer.TrainBinary(Env, lrInput).PredictorModel;
+                    predictorModels[i] = LbfgsLogisticRegressionBinaryTrainer.TrainBinary(Env, lrInput).PredictorModel;
                     var transformModel = new TransformModelImpl(Env, data, splitOutput.TrainData[i]);
 
                     predictorModels[i] = ModelOperations.CombineTwoModels(Env,
@@ -3347,7 +3347,7 @@ namespace Microsoft.ML.RunTests
                 InputFile = inputFile,
             }).Data;
 
-            var lrInput = new LogisticRegressionBinaryTrainer.Options
+            var lrInput = new LbfgsLogisticRegressionBinaryTrainer.Options
             {
                 TrainingData = dataView,
                 NormalizeFeatures = NormalizeOption.Yes,
@@ -3355,16 +3355,16 @@ namespace Microsoft.ML.RunTests
                 ShowTrainingStatistics = true,
                 ComputeStandardDeviation = new ComputeLRTrainingStdThroughMkl()
             };
-            var model = LogisticRegressionBinaryTrainer.TrainBinary(Env, lrInput).PredictorModel;
+            var model = LbfgsLogisticRegressionBinaryTrainer.TrainBinary(Env, lrInput).PredictorModel;
 
-            var mcLrInput = new LbfgsMaximumEntropyTrainer.Options
+            var mcLrInput = new LbfgsMaximumEntropyMulticlassTrainer.Options
             {
                 TrainingData = dataView,
                 NormalizeFeatures = NormalizeOption.Yes,
                 NumberOfThreads = 1,
                 ShowTrainingStatistics = true
             };
-            var mcModel = LbfgsMaximumEntropyTrainer.TrainMulticlass(Env, mcLrInput).PredictorModel;
+            var mcModel = LbfgsMaximumEntropyMulticlassTrainer.TrainMulticlass(Env, mcLrInput).PredictorModel;
 
             var output = SummarizePredictor.Summarize(Env,
                 new SummarizePredictor.Input() { PredictorModel = model });

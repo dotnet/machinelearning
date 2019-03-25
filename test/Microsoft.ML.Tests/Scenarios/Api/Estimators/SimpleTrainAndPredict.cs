@@ -63,7 +63,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
             // Pipeline.
             var pipeline = ml.Transforms.Text.FeaturizeText("Features", "SentimentText")
                 .AppendCacheCheckpoint(ml)
-                .Append(ml.BinaryClassification.Trainers.SymbolicSgd(new SymbolicSgdTrainer.Options
+                .Append(ml.BinaryClassification.Trainers.SymbolicSgdLogisticRegression(new SymbolicSgdLogisticRegressionBinaryTrainer.Options
                 {
                     NumberOfThreads = 1
                 }));

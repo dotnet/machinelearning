@@ -118,7 +118,7 @@ namespace Microsoft.ML.StaticPipelineTesting
 
             var est = reader.MakeNewEstimator()
                 .Append(r => (r.label, preds: catalog.Trainers.Sdca(r.label, r.features, null,
-                    new SdcaCalibratedBinaryTrainer.Options { MaximumNumberOfIterations = 2, NumberOfThreads = 1 },
+                    new SdcaLogisticRegressionBinaryTrainer.Options { MaximumNumberOfIterations = 2, NumberOfThreads = 1 },
                     onFit: (p) => { pred = p; })));
 
             var pipe = reader.Append(est);
@@ -706,8 +706,8 @@ namespace Microsoft.ML.StaticPipelineTesting
             PoissonRegressionModelParameters pred = null;
 
             var est = reader.MakeNewEstimator()
-                .Append(r => (r.label, score: catalog.Trainers.PoissonRegression(r.label, r.features, null,
-                                new PoissonRegressionTrainer.Options { L2Regularization = 2, EnforceNonNegativity = true, NumberOfThreads = 1 },
+                .Append(r => (r.label, score: catalog.Trainers.LbfgsPoissonRegression(r.label, r.features, null,
+                                new LbfgsPoissonRegressionTrainer.Options { L2Regularization = 2, EnforceNonNegativity = true, NumberOfThreads = 1 },
                                 onFit: (p) => { pred = p; })));
 
             var pipe = reader.Append(est);
@@ -743,8 +743,8 @@ namespace Microsoft.ML.StaticPipelineTesting
             CalibratedModelParametersBase<LinearBinaryModelParameters, PlattCalibrator> pred = null;
 
             var est = reader.MakeNewEstimator()
-                .Append(r => (r.label, preds: catalog.Trainers.LogisticRegressionBinaryClassifier(r.label, r.features, null,
-                                    new LogisticRegressionBinaryTrainer.Options { L1Regularization = 10, NumberOfThreads = 1 }, onFit: (p) => { pred = p; })));
+                .Append(r => (r.label, preds: catalog.Trainers.LbfgsLogisticRegression(r.label, r.features, null,
+                                    new LbfgsLogisticRegressionBinaryTrainer.Options { L1Regularization = 10, NumberOfThreads = 1 }, onFit: (p) => { pred = p; })));
 
             var pipe = reader.Append(est);
 
@@ -784,7 +784,7 @@ namespace Microsoft.ML.StaticPipelineTesting
                     r.label,
                     r.features,
                     null,
-                    new LbfgsMaximumEntropyTrainer.Options { NumberOfThreads = 1 },
+                    new LbfgsMaximumEntropyMulticlassTrainer.Options { NumberOfThreads = 1 },
                     onFit: p => pred = p)));
 
             var pipe = reader.Append(est);

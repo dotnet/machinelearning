@@ -40,7 +40,7 @@ namespace Microsoft.ML.RunTests
             base.InitializeEnvironment(environment);
 
             environment.ComponentCatalog.RegisterAssembly(typeof(LightGbmBinaryModelParameters).Assembly);
-            environment.ComponentCatalog.RegisterAssembly(typeof(SymbolicSgdTrainer).Assembly);
+            environment.ComponentCatalog.RegisterAssembly(typeof(SymbolicSgdLogisticRegressionBinaryTrainer).Assembly);
         }
 
         /// <summary>
@@ -739,7 +739,7 @@ namespace Microsoft.ML.RunTests
                     TrainingData = dataView,
                     NormalizeFeatures = NormalizeOption.No
                 }).PredictorModel,
-                LogisticRegressionBinaryTrainer.TrainBinary(ML, new LogisticRegressionBinaryTrainer.Options()
+                LbfgsLogisticRegressionBinaryTrainer.TrainBinary(ML, new LbfgsLogisticRegressionBinaryTrainer.Options()
                 {
                     FeatureColumnName = "Features",
                     LabelColumnName = DefaultColumnNames.Label,
@@ -747,7 +747,7 @@ namespace Microsoft.ML.RunTests
                     TrainingData = dataView,
                     NormalizeFeatures = NormalizeOption.No
                 }).PredictorModel,
-                LogisticRegressionBinaryTrainer.TrainBinary(ML, new LogisticRegressionBinaryTrainer.Options()
+                LbfgsLogisticRegressionBinaryTrainer.TrainBinary(ML, new LbfgsLogisticRegressionBinaryTrainer.Options()
                 {
                     FeatureColumnName = "Features",
                     LabelColumnName = DefaultColumnNames.Label,
@@ -776,7 +776,7 @@ namespace Microsoft.ML.RunTests
                     LabelColumnName = DefaultColumnNames.Label,
                     TrainingData = dataView
                 }).PredictorModel,
-                LbfgsMaximumEntropyTrainer.TrainMulticlass(Env, new LbfgsMaximumEntropyTrainer.Options()
+                LbfgsMaximumEntropyMulticlassTrainer.TrainMulticlass(Env, new LbfgsMaximumEntropyMulticlassTrainer.Options()
                 {
                     FeatureColumnName = "Features",
                     LabelColumnName = DefaultColumnNames.Label,
@@ -784,7 +784,7 @@ namespace Microsoft.ML.RunTests
                     TrainingData = dataView,
                     NormalizeFeatures = NormalizeOption.No
                 }).PredictorModel,
-                LbfgsMaximumEntropyTrainer.TrainMulticlass(Env, new LbfgsMaximumEntropyTrainer.Options()
+                LbfgsMaximumEntropyMulticlassTrainer.TrainMulticlass(Env, new LbfgsMaximumEntropyMulticlassTrainer.Options()
                 {
                     FeatureColumnName = "Features",
                     LabelColumnName = DefaultColumnNames.Label,

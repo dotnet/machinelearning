@@ -76,7 +76,7 @@ namespace Microsoft.ML.Benchmarks
 
             var pipeline = new ColumnConcatenatingEstimator(mlContext, "Features", new[] { "SepalLength", "SepalWidth", "PetalLength", "PetalWidth" })
                 .Append(mlContext.Transforms.Conversion.MapValueToKey("Label"))
-                .Append(mlContext.MulticlassClassification.Trainers.SdcaCalibrated());
+                .Append(mlContext.MulticlassClassification.Trainers.SdcaMaximumEntropy());
 
             return pipeline.Fit(data);
         }
@@ -114,7 +114,7 @@ namespace Microsoft.ML.Benchmarks
                 .Fit(text).Transform(text);
 
             // Train
-            var trainer = mlContext.MulticlassClassification.Trainers.SdcaCalibrated();
+            var trainer = mlContext.MulticlassClassification.Trainers.SdcaMaximumEntropy();
             var predicted = trainer.Fit(trans);
             _consumer.Consume(predicted);
         }

@@ -43,8 +43,8 @@ namespace Microsoft.ML.Functional.Tests
                 .AppendCacheCheckpoint(mlContext);
 
             // Create a selection of learners.
-            var sdcaTrainer = mlContext.BinaryClassification.Trainers.SdcaCalibrated(
-                    new SdcaCalibratedBinaryTrainer.Options { NumberOfThreads = 1 });
+            var sdcaTrainer = mlContext.BinaryClassification.Trainers.SdcaLogisticRegression(
+                    new SdcaLogisticRegressionBinaryTrainer.Options { NumberOfThreads = 1 });
 
             var fastTreeTrainer = mlContext.BinaryClassification.Trainers.FastTree(
                     new FastTreeBinaryTrainer.Options { NumberOfThreads = 1 });
@@ -225,8 +225,8 @@ namespace Microsoft.ML.Functional.Tests
             var featurizationPipeline = mlContext.Transforms.Text.FeaturizeText("Features", "SentimentText")
                 .AppendCacheCheckpoint(mlContext);
 
-            var trainer = mlContext.BinaryClassification.Trainers.LogisticRegression(
-                new LogisticRegressionBinaryTrainer.Options { NumberOfThreads = 1, MaximumNumberOfIterations = 10 });
+            var trainer = mlContext.BinaryClassification.Trainers.LbfgsLogisticRegression(
+                new LbfgsLogisticRegressionBinaryTrainer.Options { NumberOfThreads = 1, MaximumNumberOfIterations = 10 });
 
             // Fit the data transformation pipeline.
             var featurization = featurizationPipeline.Fit(data);
@@ -269,7 +269,7 @@ namespace Microsoft.ML.Functional.Tests
                 .AppendCacheCheckpoint(mlContext);
 
             var trainer = mlContext.MulticlassClassification.Trainers.LbfgsMaximumEntropy(
-                new LbfgsMaximumEntropyTrainer.Options { NumberOfThreads = 1, MaximumNumberOfIterations = 10 });
+                new LbfgsMaximumEntropyMulticlassTrainer.Options { NumberOfThreads = 1, MaximumNumberOfIterations = 10 });
 
             // Fit the data transformation pipeline.
             var featurization = featurizationPipeline.Fit(data);
@@ -363,8 +363,8 @@ namespace Microsoft.ML.Functional.Tests
                 .Append(mlContext.Transforms.Normalize("Features"))
                 .AppendCacheCheckpoint(mlContext);
 
-            var trainer = mlContext.Regression.Trainers.PoissonRegression(
-                new PoissonRegressionTrainer.Options { NumberOfThreads = 1, MaximumNumberOfIterations = 100 });
+            var trainer = mlContext.Regression.Trainers.LbfgsPoissonRegression(
+                new LbfgsPoissonRegressionTrainer.Options { NumberOfThreads = 1, MaximumNumberOfIterations = 100 });
 
             // Fit the data transformation pipeline.
             var featurization = featurizationPipeline.Fit(data);
@@ -407,8 +407,8 @@ namespace Microsoft.ML.Functional.Tests
             var featurizationPipeline = mlContext.Transforms.Text.FeaturizeText("Features", "SentimentText")
                 .AppendCacheCheckpoint(mlContext);
 
-            var trainer = mlContext.BinaryClassification.Trainers.SymbolicSgd(
-                new SymbolicSgdTrainer.Options
+            var trainer = mlContext.BinaryClassification.Trainers.SymbolicSgdLogisticRegression(
+                new SymbolicSgdLogisticRegressionBinaryTrainer.Options
                 {
                     NumberOfThreads = 1,
                     NumberOfIterations = 10
@@ -451,8 +451,8 @@ namespace Microsoft.ML.Functional.Tests
                 separatorChar: TestDatasets.iris.fileSeparator);
 
             // Create a model training an OVA trainer with a binary classifier.
-            var binaryClassificationTrainer = mlContext.BinaryClassification.Trainers.LogisticRegression(
-                new LogisticRegressionBinaryTrainer.Options { MaximumNumberOfIterations = 10, NumberOfThreads = 1, });
+            var binaryClassificationTrainer = mlContext.BinaryClassification.Trainers.LbfgsLogisticRegression(
+                new LbfgsLogisticRegressionBinaryTrainer.Options { MaximumNumberOfIterations = 10, NumberOfThreads = 1, });
             var binaryClassificationPipeline = mlContext.Transforms.Concatenate("Features", Iris.Features)
                 .AppendCacheCheckpoint(mlContext)
                 .Append(mlContext.Transforms.Conversion.MapValueToKey("Label"))
