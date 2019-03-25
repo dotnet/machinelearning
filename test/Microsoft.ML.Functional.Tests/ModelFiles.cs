@@ -38,9 +38,26 @@ namespace Microsoft.ML.Functional.Tests
         [Fact]
         public void DetermineNugetVersionFromModel()
         {
-            var modelFile = GetDataPath($"backcompat{Path.DirectorySeparatorChar}keep-model.zip");
+            var mlContext = new MLContext(seed: 1);
+
+            // Get the dataset.
+            var data = mlContext.Data.LoadFromTextFile<HousingRegression>(GetDataPath(TestDatasets.housing.trainFilename), hasHeader: true);
+
+            // Create a pipeline to train on the housing data.
+            var pipeline = mlContext.Transforms.Concatenate("Features", HousingRegression.Features)
+                .Append(mlContext.Regression.Trainers.FastTree(
+                    new FastTreeRegressionTrainer.Options { NumberOfThreads = 1, NumberOfTrees = 10 }));
+
+            // Fit the pipeline.
+            var model = pipeline.Fit(data);
+
+            // Save model to a file.
+            var modelPath = DeleteOutputPath("determineNugetVersionFromModel.zip");
+            mlContext.Model.Save(model, data.Schema, modelPath);
+
+            // Check that the version can be extracted from the model.
             var versionFileName = @"TrainingInfo\Version.txt"; // Must use '\' for cross-platform testing.
-            using (ZipArchive archive = ZipFile.OpenRead(modelFile))
+            using (ZipArchive archive = ZipFile.OpenRead(modelPath))
             {
                 // The version of the entire model is kept in the version file.
                 var versionPath = archive.Entries.First(x => x.FullName == versionFileName);
