@@ -56,7 +56,7 @@ namespace Microsoft.ML.Functional.Tests
             mlContext.Model.Save(model, data.Schema, modelPath);
 
             // Check that the version can be extracted from the model.
-            var versionFileName = @"TrainingInfo\Version.txt"; // Must use '\' for cross-platform testing.
+            var versionFileName = @"TrainingInfo" + Path.DirectorySeparatorChar + "Version.txt";
             using (ZipArchive archive = ZipFile.OpenRead(modelPath))
             {
                 // The version of the entire model is kept in the version file.
