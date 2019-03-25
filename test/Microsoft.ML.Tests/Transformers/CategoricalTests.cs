@@ -300,9 +300,9 @@ namespace Microsoft.ML.Tests.Transformers
             var data = new[] { new TestClass() { A = 1, B = 2, C = 3, }, new TestClass() { A = 4, B = 5, C = 6 } };
             var dataView = ML.Data.LoadFromEnumerable(data);
             var pipe = ML.Transforms.Categorical.OneHotEncoding(new[]{
-                    new OneHotEncodingEstimator.ColumnOptions("TermA", "A"),
-                    new OneHotEncodingEstimator.ColumnOptions("TermB", "B"),
-                    new OneHotEncodingEstimator.ColumnOptions("TermC", "C")
+                    new InputOutputColumnPair("TermA", "A"),
+                    new InputOutputColumnPair("TermB", "B"),
+                    new InputOutputColumnPair("TermC", "C")
             });
             var result = pipe.Fit(dataView).Transform(dataView);
             var resultRoles = new RoleMappedData(result);

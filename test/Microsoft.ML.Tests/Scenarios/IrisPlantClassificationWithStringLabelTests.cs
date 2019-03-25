@@ -39,7 +39,7 @@ namespace Microsoft.ML.Scenarios
                 .AppendCacheCheckpoint(mlContext)
                 .Append(mlContext.MulticlassClassification.Trainers.SdcaCalibrated(
                     new SdcaCalibratedMulticlassTrainer.Options { NumberOfThreads = 1 }))
-                .Append(mlContext.Transforms.Conversion.MapKeyToValue(("Plant", "PredictedLabel")));
+                .Append(mlContext.Transforms.Conversion.MapKeyToValue("Plant", "PredictedLabel"));
 
             // Train the pipeline
             var trainedModel = pipe.Fit(trainData);

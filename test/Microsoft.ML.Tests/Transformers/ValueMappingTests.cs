@@ -515,7 +515,7 @@ namespace Microsoft.ML.Tests.Transformers
                 };
 
             // Workout on value mapping
-            var est = ML.Transforms.Conversion.MapValue(keyValuePairs, new ColumnOptions[] { ("D", "A"), ("E", "B"), ("F", "C") });
+            var est = ML.Transforms.Conversion.MapValue(keyValuePairs, new[] { new InputOutputColumnPair("D", "A"), new InputOutputColumnPair("E", "B"), new InputOutputColumnPair("F", "C") });
             TestEstimatorCore(est, validFitInput: dataView, invalidInput: badDataView);
         }
 
@@ -534,7 +534,7 @@ namespace Microsoft.ML.Tests.Transformers
                 };
 
             // Workout on value mapping
-            var est = ML.Transforms.Conversion.MapValue(keyValuePairs, new ColumnOptions[] { ("D", "A"), ("E", "B"), ("F", "C") });
+            var est = ML.Transforms.Conversion.MapValue(keyValuePairs, new[] { new InputOutputColumnPair("D", "A"), new InputOutputColumnPair("E", "B"), new InputOutputColumnPair("F", "C") });
             TestEstimatorCore(est, validFitInput: dataView, invalidInput: badDataView);
         }
 
@@ -555,7 +555,7 @@ namespace Microsoft.ML.Tests.Transformers
                 };
 
             var est = ML.Transforms.Text.TokenizeIntoWords("TokenizeB", "B")
-                .Append(ML.Transforms.Conversion.MapValue(keyValuePairs, new ColumnOptions[] { ("VecB", "TokenizeB") }));
+                .Append(ML.Transforms.Conversion.MapValue("VecB", keyValuePairs, "TokenizeB"));
             TestEstimatorCore(est, validFitInput: dataView, invalidInput: badDataView);
         }
 

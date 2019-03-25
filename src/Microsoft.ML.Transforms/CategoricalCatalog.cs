@@ -2,7 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Linq;
 using Microsoft.ML.Data;
+using Microsoft.ML.Runtime;
 using Microsoft.ML.Transforms;
 
 namespace Microsoft.ML
@@ -39,6 +41,30 @@ namespace Microsoft.ML
                 IDataView keyData = null)
             => new OneHotEncodingEstimator(CatalogUtils.GetEnvironment(catalog),
                 new[] { new OneHotEncodingEstimator.ColumnOptions(outputColumnName, inputColumnName, outputKind, maximumNumberOfKeys, keyOrdinality) }, keyData);
+
+        /// <summary>
+        /// Convert text columns into one-hot encoded vectors.
+        /// </summary>
+        /// <param name="catalog">The transform catalog</param>
+        /// <param name="columns">Specifies the names of the columns on which to apply the transformation.</param>
+        /// <param name="outputKind">Output kind: Bag (multi-set vector), Ind (indicator vector), Key (index), or Binary encoded indicator vector.</param>
+        /// <param name="maximumNumberOfKeys">Maximum number of terms to keep per column when auto-training.</param>
+        /// <param name="keyOrdinality">How items should be ordered when vectorized. If <see cref="ValueToKeyMappingEstimator.KeyOrdinality.ByOccurrence"/> choosen they will be in the order encountered.
+        /// If <see cref="ValueToKeyMappingEstimator.KeyOrdinality.ByValue"/>, items are sorted according to their default comparison, for example, text sorting will be case sensitive (for example, 'A' then 'Z' then 'a').</param>
+        /// <param name="keyData">Specifies an ordering for the encoding. If specified, this should be a single column data view,
+        /// and the key-values will be taken from that column. If unspecified, the ordering will be determined from the input data upon fitting.</param>
+        public static OneHotEncodingEstimator OneHotEncoding(this TransformsCatalog.CategoricalTransforms catalog,
+                InputOutputColumnPair[] columns,
+                OneHotEncodingEstimator.OutputKind outputKind = OneHotEncodingEstimator.Defaults.OutKind,
+                int maximumNumberOfKeys = ValueToKeyMappingEstimator.Defaults.MaximumNumberOfKeys,
+                ValueToKeyMappingEstimator.KeyOrdinality keyOrdinality = ValueToKeyMappingEstimator.Defaults.Ordinality,
+                IDataView keyData = null)
+        {
+            var env = CatalogUtils.GetEnvironment(catalog);
+            env.CheckValue(columns, nameof(columns));
+            var columnOptions = columns.Select(x => new OneHotEncodingEstimator.ColumnOptions(x.OutputColumnName, x.InputColumnName, outputKind, maximumNumberOfKeys, keyOrdinality)).ToArray();
+            return new OneHotEncodingEstimator(env, columnOptions, keyData);
+        }
 
         /// <summary>
         /// Convert several text column into one-hot encoded vectors.
@@ -87,6 +113,33 @@ namespace Microsoft.ML
                 int maximumNumberOfInverts = OneHotHashEncodingEstimator.Defaults.MaximumNumberOfInverts)
             => new OneHotHashEncodingEstimator(CatalogUtils.GetEnvironment(catalog),
                 new[] { new OneHotHashEncodingEstimator.ColumnOptions(outputColumnName, inputColumnName, outputKind, numberOfBits, seed, useOrderedHashing, maximumNumberOfInverts) });
+
+        /// <summary>
+        /// Convert text columns into hash-based one-hot encoded vector columns.
+        /// </summary>
+        /// <param name="catalog">The transform catalog</param>
+        /// <param name="columns">Specifies the names of the columns on which to apply the transformation.</param>
+        /// <param name="outputKind">The conversion mode.</param>
+        /// <param name="numberOfBits">Number of bits to hash into. Must be between 1 and 30, inclusive.</param>
+        /// <param name="seed">Hashing seed.</param>
+        /// <param name="useOrderedHashing">Whether the position of each term should be included in the hash.</param>
+        /// <param name="maximumNumberOfInverts">During hashing we constuct mappings between original values and the produced hash values.
+        /// Text representation of original values are stored in the slot names of the  metadata for the new column.Hashing, as such, can map many initial values to one.
+        /// <paramref name="maximumNumberOfInverts"/> specifies the upper bound of the number of distinct input values mapping to a hash that should be retained.
+        /// <value>0</value> does not retain any input values. <value>-1</value> retains all input values mapping to each hash.</param>
+        public static OneHotHashEncodingEstimator OneHotHashEncoding(this TransformsCatalog.CategoricalTransforms catalog,
+                InputOutputColumnPair[] columns,
+                OneHotEncodingEstimator.OutputKind outputKind = OneHotEncodingEstimator.OutputKind.Indicator,
+                int numberOfBits = OneHotHashEncodingEstimator.Defaults.NumberOfBits,
+                uint seed = OneHotHashEncodingEstimator.Defaults.Seed,
+                bool useOrderedHashing = OneHotHashEncodingEstimator.Defaults.UseOrderedHashing,
+                int maximumNumberOfInverts = OneHotHashEncodingEstimator.Defaults.MaximumNumberOfInverts)
+        {
+            var env = CatalogUtils.GetEnvironment(catalog);
+            env.CheckValue(columns, nameof(columns));
+            var columnOptions = columns.Select(x => new OneHotHashEncodingEstimator.ColumnOptions(x.OutputColumnName, x.InputColumnName, outputKind, numberOfBits, seed, useOrderedHashing, maximumNumberOfInverts)).ToArray();
+            return new OneHotHashEncodingEstimator(env, columnOptions);
+        }
 
         /// <summary>
         /// Convert several text column into hash-based one-hot encoded vectors.
