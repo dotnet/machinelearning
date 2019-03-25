@@ -34,7 +34,7 @@ namespace Microsoft.ML.StaticPipe
         /// the linear model that was trained.  Note that this action cannot change the result in any way; it is only a way for the caller to
         /// be informed about what was learnt.</param>
         /// <returns>The predicted output.</returns>
-        public static (Scalar<float> score, Scalar<float> probability, Scalar<bool> predictedLabel) LbfgsCalibrated(this BinaryClassificationCatalog.BinaryClassificationTrainers catalog,
+        public static (Scalar<float> score, Scalar<float> probability, Scalar<bool> predictedLabel) LbfgsLogisticRegression(this BinaryClassificationCatalog.BinaryClassificationTrainers catalog,
             Scalar<bool> label,
             Vector<float> features,
             Scalar<float> weights = null,
@@ -76,7 +76,7 @@ namespace Microsoft.ML.StaticPipe
         /// be informed about what was learnt.</param>
         /// <param name="options">Advanced arguments to the algorithm.</param>
         /// <returns>The predicted output.</returns>
-        public static (Scalar<float> score, Scalar<float> probability, Scalar<bool> predictedLabel) LbfgsCalibrated(this BinaryClassificationCatalog.BinaryClassificationTrainers catalog,
+        public static (Scalar<float> score, Scalar<float> probability, Scalar<bool> predictedLabel) LbfgsLogisticRegression(this BinaryClassificationCatalog.BinaryClassificationTrainers catalog,
             Scalar<bool> label,
             Vector<float> features,
             Scalar<float> weights,
