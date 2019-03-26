@@ -378,6 +378,7 @@ namespace Microsoft.ML.Trainers
                 pch.SetHeader(new ProgressHeader("examples"), e => e.SetProgress(0, count));
                 while (cursor.MoveNext())
                 {
+                    Host.CheckAlive();
                     DataViewRowId id = cursor.Id;
                     if (id.High > 0 || id.Low >= (ulong)maxTrainingExamples)
                     {
@@ -568,6 +569,7 @@ namespace Microsoft.ML.Trainers
                     pch.SetHeader(new ProgressHeader("examples"), e => e.SetProgress(0, row, count));
                     while (cursor.MoveNext())
                     {
+                        Host.CheckAlive();
                         long longIdx = getIndexFromIdAndRow(cursor.Id, row);
                         Contracts.Assert(0 <= longIdx & longIdx < invariants.Length, $"longIdx={longIdx}, invariants.Length={invariants.Length}");
                         int idx = (int)longIdx;
