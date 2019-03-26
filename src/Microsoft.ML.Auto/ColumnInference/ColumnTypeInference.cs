@@ -177,7 +177,7 @@ namespace Microsoft.ML.Auto
                         if (!col.RawData.Skip(1)
                             .All(x =>
                             {
-                                Single value;
+                                float value;
                                 return Conversions.TryParse(in x, out value);
                             })
                             )

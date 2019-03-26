@@ -6,7 +6,6 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using Float = System.Single;
 
 namespace Microsoft.ML.Auto
 {
@@ -236,10 +235,10 @@ namespace Microsoft.ML.Auto
     /// </summary>
     internal sealed class RunMetric
     {
-        private readonly Float _primaryMetric;
-        private readonly Float[] _metricDistribution;
+        private readonly float _primaryMetric;
+        private readonly float[] _metricDistribution;
 
-        public RunMetric(Float primaryMetric, IEnumerable<Float> metricDistribution = null)
+        public RunMetric(float primaryMetric, IEnumerable<float> metricDistribution = null)
         {
             _primaryMetric = primaryMetric;
             if (metricDistribution != null)
@@ -252,7 +251,7 @@ namespace Microsoft.ML.Auto
         /// By default, smart sweeping algorithms will maximize this metric.
         /// If you want to minimize, either negate this value or change the option in the arguments of the sweeper constructor.
         /// </summary>
-        public Float PrimaryMetric
+        public float PrimaryMetric
         {
             get { return _primaryMetric; }
         }
@@ -261,11 +260,11 @@ namespace Microsoft.ML.Auto
         /// The (optional) distribution of the metric.
         /// This distribution can be a secondary measure of how good a run was, e.g per-fold AUC, per-fold accuracy, (sampled) per-instance log loss etc.
         /// </summary>
-        public Float[] GetMetricDistribution()
+        public float[] GetMetricDistribution()
         {
             if (_metricDistribution == null)
                 return null;
-            var result = new Float[_metricDistribution.Length];
+            var result = new float[_metricDistribution.Length];
             Array.Copy(_metricDistribution, result, _metricDistribution.Length);
             return result;
         }

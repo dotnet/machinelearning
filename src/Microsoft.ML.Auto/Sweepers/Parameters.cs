@@ -4,7 +4,6 @@
 
 using System;
 using System.Collections.Generic;
-using Float = System.Single;
 
 namespace Microsoft.ML.Auto
 {
@@ -29,10 +28,10 @@ namespace Microsoft.ML.Auto
     internal class FloatParamArguments : NumericParamArguments
     {
         //[Argument(ArgumentType.Required, HelpText = "Minimum value")]
-        public Float Min;
+        public float Min;
 
         //[Argument(ArgumentType.Required, HelpText = "Maximum value")]
-        public Float Max;
+        public float Max;
     }
 
     internal class LongParamArguments : NumericParamArguments
@@ -95,11 +94,11 @@ namespace Microsoft.ML.Auto
         }
     }
 
-    internal sealed class FloatParameterValue : IParameterValue<Float>
+    internal sealed class FloatParameterValue : IParameterValue<float>
     {
         private readonly string _name;
         private readonly string _valueText;
-        private readonly Float _value;
+        private readonly float _value;
 
         public string Name
         {
@@ -111,14 +110,14 @@ namespace Microsoft.ML.Auto
             get { return _valueText; }
         }
 
-        public Float Value
+        public float Value
         {
             get { return _value; }
         }
 
-        public FloatParameterValue(string name, Float value)
+        public FloatParameterValue(string name, float value)
         {
-            AutoMlUtils.Assert(!Float.IsNaN(value));
+            AutoMlUtils.Assert(!float.IsNaN(value));
             _name = name;
             _value = value;
             _valueText = _value.ToString("R");
@@ -186,7 +185,7 @@ namespace Microsoft.ML.Auto
 
     internal interface INumericValueGenerator : IValueGenerator
     {
-        Float NormalizeValue(IParameterValue value);
+        float NormalizeValue(IParameterValue value);
         bool InRange(IParameterValue value);
     }
 
@@ -294,7 +293,7 @@ namespace Microsoft.ML.Auto
             }
         }
 
-        public Float NormalizeValue(IParameterValue value)
+        public float NormalizeValue(IParameterValue value)
         {
             var valueTyped = value as LongParameterValue;
             AutoMlUtils.Assert(valueTyped != null, "LongValueGenerator could not normalized parameter because it is not of the correct type");
@@ -302,11 +301,11 @@ namespace Microsoft.ML.Auto
 
             if (_args.LogBase)
             {
-                Float logBase = (Float)(_args.StepSize ?? Math.Pow(1.0 * _args.Max / _args.Min, 1.0 / (_args.NumSteps - 1)));
-                return (Float)((Math.Log(valueTyped.Value, logBase) - Math.Log(_args.Min, logBase)) / (Math.Log(_args.Max, logBase) - Math.Log(_args.Min, logBase)));
+                float logBase = (float)(_args.StepSize ?? Math.Pow(1.0 * _args.Max / _args.Min, 1.0 / (_args.NumSteps - 1)));
+                return (float)((Math.Log(valueTyped.Value, logBase) - Math.Log(_args.Min, logBase)) / (Math.Log(_args.Max, logBase) - Math.Log(_args.Min, logBase)));
             }
             else
-                return (Float)(valueTyped.Value - _args.Min) / (_args.Max - _args.Min);
+                return (float)(valueTyped.Value - _args.Min) / (_args.Max - _args.Min);
         }
 
         public bool InRange(IParameterValue value)
@@ -339,7 +338,7 @@ namespace Microsoft.ML.Auto
         // REVIEW: Is Float accurate enough?
         public IParameterValue CreateFromNormalized(Double normalizedValue)
         {
-            Float val;
+            float val;
             if (_args.LogBase)
             {
                 // REVIEW: review the math below, it only works for positive Min and Max
@@ -348,10 +347,10 @@ namespace Microsoft.ML.Auto
                     : _args.StepSize.Value;
                 var logMax = Math.Log(_args.Max, logBase);
                 var logMin = Math.Log(_args.Min, logBase);
-                val = (Float)(_args.Min * Math.Pow(logBase, normalizedValue * (logMax - logMin)));
+                val = (float)(_args.Min * Math.Pow(logBase, normalizedValue * (logMax - logMin)));
             }
             else
-                val = (Float)(_args.Min + normalizedValue * (_args.Max - _args.Min));
+                val = (float)(_args.Min + normalizedValue * (_args.Max - _args.Min));
 
             return new FloatParameterValue(_args.Name, val);
         }
@@ -367,11 +366,11 @@ namespace Microsoft.ML.Auto
                 // REVIEW: review the math below, it only works for positive Min and Max
                 var logBase = _args.StepSize ?? Math.Pow(1.0 * _args.Max / _args.Min, 1.0 / (_args.NumSteps - 1));
 
-                Float prevValue = Float.NegativeInfinity;
+                float prevValue = float.NegativeInfinity;
                 var maxPlusEpsilon = _args.Max * Math.Sqrt(logBase);
                 for (Double value = _args.Min; value <= maxPlusEpsilon; value *= logBase)
                 {
-                    var floatValue = (Float)value;
+                    var floatValue = (float)value;
                     if (floatValue > prevValue)
                         result.Add(new FloatParameterValue(_args.Name, floatValue));
                     prevValue = floatValue;
@@ -380,11 +379,11 @@ namespace Microsoft.ML.Auto
             else
             {
                 var stepSize = _args.StepSize ?? (Double)(_args.Max - _args.Min) / (_args.NumSteps - 1);
-                Float prevValue = Float.NegativeInfinity;
+                float prevValue = float.NegativeInfinity;
                 var maxPlusEpsilon = _args.Max + stepSize / 2;
                 for (Double value = _args.Min; value <= maxPlusEpsilon; value += stepSize)
                 {
-                    var floatValue = (Float)value;
+                    var floatValue = (float)value;
                     if (floatValue > prevValue)
                         result.Add(new FloatParameterValue(_args.Name, floatValue));
                     prevValue = floatValue;
@@ -412,7 +411,7 @@ namespace Microsoft.ML.Auto
             }
         }
 
-        public Float NormalizeValue(IParameterValue value)
+        public float NormalizeValue(IParameterValue value)
         {
             var valueTyped = value as FloatParameterValue;
             AutoMlUtils.Assert(valueTyped != null, "FloatValueGenerator could not normalized parameter because it is not of the correct type");
@@ -420,8 +419,8 @@ namespace Microsoft.ML.Auto
 
             if (_args.LogBase)
             {
-                Float logBase = (Float)(_args.StepSize ?? Math.Pow(1.0 * _args.Max / _args.Min, 1.0 / (_args.NumSteps - 1)));
-                return (Float)((Math.Log(valueTyped.Value, logBase) - Math.Log(_args.Min, logBase)) / (Math.Log(_args.Max, logBase) - Math.Log(_args.Min, logBase)));
+                float logBase = (float)(_args.StepSize ?? Math.Pow(1.0 * _args.Max / _args.Min, 1.0 / (_args.NumSteps - 1)));
+                return (float)((Math.Log(valueTyped.Value, logBase) - Math.Log(_args.Min, logBase)) / (Math.Log(_args.Max, logBase) - Math.Log(_args.Min, logBase)));
             }
             else
                 return (valueTyped.Value - _args.Min) / (_args.Max - _args.Min);

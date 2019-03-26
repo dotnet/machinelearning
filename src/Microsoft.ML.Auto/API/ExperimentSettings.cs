@@ -20,6 +20,7 @@ namespace Microsoft.ML.Auto
         /// </summary>
         public DirectoryInfo ModelDirectory { get; set; } = null;
 
+        /// <summary>
         /// This setting controls whether or not an AutoML experiment will make use of ML.NET-provided caching.
         /// If set to true, caching will be forced on for all pipelines. If set to false, caching will be forced off.
         /// If set to null (default value), AutoML will decide whether to enable caching for each model.

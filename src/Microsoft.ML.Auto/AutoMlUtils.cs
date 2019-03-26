@@ -3,17 +3,18 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Threading;
 using Microsoft.Data.DataView;
 
 namespace Microsoft.ML.Auto
 {
     internal static class AutoMlUtils
     {
-        public static Random Random = new Random();
+        public static readonly ThreadLocal<Random> random = new ThreadLocal<Random>(() => new Random());
 
         public static void Assert(bool boolVal, string message = null)
         {
-            if(!boolVal)
+            if (!boolVal)
             {
                 message = message ?? "Assertion failed";
                 throw new InvalidOperationException(message);

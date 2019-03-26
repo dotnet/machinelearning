@@ -4,7 +4,6 @@
 
 using System;
 using System.Collections.Generic;
-using Float = System.Single;
 
 namespace Microsoft.ML.Auto
 {
@@ -35,8 +34,8 @@ namespace Microsoft.ML.Auto
 
             for (int i = 0; i < numRVs; i++)
             {
-                u1 = AutoMlUtils.Random.NextDouble();
-                u2 = AutoMlUtils.Random.NextDouble();
+                u1 = AutoMlUtils.random.Value.NextDouble();
+                u2 = AutoMlUtils.random.Value.NextDouble();
                 rvs.Add(mu + sigma * Math.Sqrt(-2.0 * Math.Log(u1)) * Math.Sin(2.0 * Math.PI * u2));
             }
 
@@ -61,11 +60,11 @@ namespace Microsoft.ML.Auto
             return a[mid] >= u ? BinarySearch(a, u, low, mid) : BinarySearch(a, u, mid, high);
         }
 
-        public static Float[] ParameterSetAsFloatArray(IValueGenerator[] sweepParams, ParameterSet ps, bool expandCategoricals = true)
+        public static float[] ParameterSetAsFloatArray(IValueGenerator[] sweepParams, ParameterSet ps, bool expandCategoricals = true)
         {
             AutoMlUtils.Assert(ps.Count == sweepParams.Length);
 
-            var result = new List<Float>();
+            var result = new List<float>();
 
             for (int i = 0; i < sweepParams.Length; i++)
             {
@@ -115,7 +114,7 @@ namespace Microsoft.ML.Auto
             return result.ToArray();
         }
 
-        public static ParameterSet FloatArrayAsParameterSet(IValueGenerator[] sweepParams, Float[] array, bool expandedCategoricals = true)
+        public static ParameterSet FloatArrayAsParameterSet(IValueGenerator[] sweepParams, float[] array, bool expandedCategoricals = true)
         {
             AutoMlUtils.Assert(array.Length == sweepParams.Length);
 

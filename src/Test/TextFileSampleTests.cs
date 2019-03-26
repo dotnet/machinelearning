@@ -22,7 +22,7 @@ namespace Microsoft.ML.Auto.Test
                 for (var i = 0; i < numRows; i++)
                 {
                     var row = new byte[rowSize];
-                    AutoMlUtils.Random.NextBytes(row);
+                    AutoMlUtils.random.Value.NextBytes(row);
 
                     // ensure byte array has no 0s, so text file sampler doesn't
                     // think file is encoded with UTF-16 or UTF-32 without a BOM

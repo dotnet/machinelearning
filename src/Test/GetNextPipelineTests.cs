@@ -57,10 +57,10 @@ namespace Microsoft.ML.Auto.Test
                     break;
                 }
 
-                var result = new PipelineScore(pipeline, AutoMlUtils.Random.NextDouble(), true);
+                var result = new PipelineScore(pipeline, AutoMlUtils.random.Value.NextDouble(), true);
                 history.Add(result);
             }
-            
+
             Assert.AreEqual(maxIterations, history.Count);
 
             // Get all 'Stage 1' and 'Stage 2' runs from Pipeline Suggester

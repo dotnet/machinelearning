@@ -138,9 +138,8 @@ namespace Microsoft.ML.Auto
             // determine the start of each remaining chunk
             long fileSizeRemaining = fileSize - firstChunk.Length - ((long)chunkSize) * chunkCount;
 
-            var rnd = AutoMlUtils.Random;
             var chunkStartIndices = Enumerable.Range(0, chunkCount)
-                .Select(x => rnd.NextDouble() * fileSizeRemaining)
+                .Select(x => AutoMlUtils.random.Value.NextDouble() * fileSizeRemaining)
                 .OrderBy(x => x)
                 .Select((spot, i) => (long)(spot + firstChunk.Length + i * chunkSize))
                 .ToArray();
