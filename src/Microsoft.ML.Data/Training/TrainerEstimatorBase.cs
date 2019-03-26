@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Linq;
-using Microsoft.Data.DataView;
 using Microsoft.ML.Data;
 using Microsoft.ML.Runtime;
 
@@ -145,8 +144,15 @@ namespace Microsoft.ML.Trainers
         private protected TTransformer TrainTransformer(IDataView trainSet,
             IDataView validationSet = null, IPredictor initPredictor = null)
         {
+            CheckInputSchema(SchemaShape.Create(trainSet.Schema));
             var trainRoleMapped = MakeRoles(trainSet);
-            var validRoleMapped = validationSet == null ? null : MakeRoles(validationSet);
+            RoleMappedData validRoleMapped = null;
+
+            if (validationSet != null)
+            {
+                CheckInputSchema(SchemaShape.Create(validationSet.Schema));
+                validRoleMapped = MakeRoles(validationSet);
+            }
 
             var pred = TrainModelCore(new TrainContext(trainRoleMapped, validRoleMapped, null, initPredictor));
             return MakeTransformer(pred, trainSet.Schema);

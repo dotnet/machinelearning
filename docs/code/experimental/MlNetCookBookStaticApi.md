@@ -396,18 +396,13 @@ This is where ML.NET really shines: the `model` object you just built is ready f
 Here's what you do to save the model to a file, and reload it (potentially in a different context).
 
 ```csharp
-using (var stream = File.Create(modelPath))
-{
-    // Saving and loading happens to 'dynamic' models, so the static typing is lost in the process.
-    mlContext.Model.Save(model.AsDynamic, stream);
-}
+// Saving and loading happens to 'dynamic' models, so the static typing is lost in the process.
+mlContext.Model.Save(model.AsDynamic, trainData.AsDynamic.Schema, modelPath);
 
 // Potentially, the lines below can be in a different process altogether.
 
 // When you load the model, it's a 'dynamic' transformer. 
-ITransformer loadedModel;
-using (var stream = File.OpenRead(modelPath))
-    loadedModel = mlContext.Model.Load(stream);
+ITransformer loadedModel = mlContext.Model.Load(modelPath, out var schema);
 ```
 
 ## How do I use the model to make one prediction?
@@ -907,7 +902,7 @@ var learningPipeline = loader.MakeNewEstimator()
         Predictions: mlContext.MulticlassClassification.Trainers.Sdca(r.Label, r.Features)));
 
 // Split the data 90:10 into train and test sets, train and evaluate.
-var (trainData, testData) = mlContext.MulticlassClassification.TrainTestSplit(data, testFraction: 0.1);
+var (trainData, testData) = mlContext.Data.TrainTestSplit(data, testFraction: 0.1);
 
 // Train the model.
 var model = learningPipeline.Fit(trainData);

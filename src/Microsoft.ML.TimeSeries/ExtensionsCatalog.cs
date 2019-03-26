@@ -10,7 +10,9 @@ namespace Microsoft.ML
     public static class TimeSeriesCatalog
     {
         /// <summary>
-        /// Create a new instance of <see cref="IidChangePointEstimator"/>
+        /// Create a new instance of <see cref="IidChangePointEstimator"/> that detects a change of in an
+        /// <a href="https://en.wikipedia.org/wiki/Independent_and_identically_distributed_random_variables"> independent identically distributed (i.i.d.)</a> time series.
+        /// Detection is based on adaptive kernel density estimations and martingale scores.
         /// </summary>
         /// <param name="catalog">The transform's catalog.</param>
         /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.
@@ -20,12 +22,21 @@ namespace Microsoft.ML
         /// <param name="changeHistoryLength">The length of the sliding window on p-values for computing the martingale score.</param>
         /// <param name="martingale">The martingale used for scoring.</param>
         /// <param name="eps">The epsilon parameter for the Power martingale.</param>
-        public static IidChangePointEstimator IidChangePointEstimator(this TransformsCatalog catalog, string outputColumnName, string inputColumnName,
+        /// <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        /// [!code-csharp[DetectIidChangePoint](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/TimeSeries/DetectIidChangePoint.cs)]
+        /// ]]>
+        /// </format>
+        /// </example>
+        public static IidChangePointEstimator DetectIidChangePoint(this TransformsCatalog catalog, string outputColumnName, string inputColumnName,
             int confidence, int changeHistoryLength, MartingaleType martingale = MartingaleType.Power, double eps = 0.1)
             => new IidChangePointEstimator(CatalogUtils.GetEnvironment(catalog), outputColumnName, confidence, changeHistoryLength, inputColumnName, martingale, eps);
 
         /// <summary>
-        /// Create a new instance of <see cref="IidSpikeEstimator"/>
+        /// Create a new instance of <see cref="IidSpikeEstimator"/> that detects a spike in an
+        /// <a href="https://en.wikipedia.org/wiki/Independent_and_identically_distributed_random_variables">independent identically distributed (i.i.d.)</a> time series.
+        /// Detection is based on adaptive kernel density estimations and martingale scores.
         /// </summary>
         /// <param name="catalog">The transform's catalog.</param>
         /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/></param>.
@@ -33,12 +44,20 @@ namespace Microsoft.ML
         /// <param name="confidence">The confidence for spike detection in the range [0, 100].</param>
         /// <param name="pvalueHistoryLength">The size of the sliding window for computing the p-value.</param>
         /// <param name="side">The argument that determines whether to detect positive or negative anomalies, or both.</param>
-        public static IidSpikeEstimator IidSpikeEstimator(this TransformsCatalog catalog, string outputColumnName, string inputColumnName,
+        /// <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        /// [!code-csharp[DetectIidSpike](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/TimeSeries/DetectIidSpike.cs)]
+        /// ]]>
+        /// </format>
+        /// </example>
+        public static IidSpikeEstimator DetectIidSpike(this TransformsCatalog catalog, string outputColumnName, string inputColumnName,
              int confidence, int pvalueHistoryLength, AnomalySide side = AnomalySide.TwoSided)
             => new IidSpikeEstimator(CatalogUtils.GetEnvironment(catalog), outputColumnName, confidence, pvalueHistoryLength, inputColumnName, side);
 
         /// <summary>
-        /// Create a new instance of <see cref="SsaChangePointEstimator"/>
+        /// Create a new instance of <see cref="SsaChangePointEstimator"/> for detecting a change in a time series signal
+        /// using <a href="https://en.wikipedia.org/wiki/Singular_spectrum_analysis">Singular Spectrum Analysis (SSA)</a>.
         /// </summary>
         /// <param name="catalog">The transform's catalog.</param>
         /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.
@@ -51,7 +70,14 @@ namespace Microsoft.ML
         /// <param name="errorFunction">The function used to compute the error between the expected and the observed value.</param>
         /// <param name="martingale">The martingale used for scoring.</param>
         /// <param name="eps">The epsilon parameter for the Power martingale.</param>
-        public static SsaChangePointEstimator SsaChangePointEstimator(this TransformsCatalog catalog, string outputColumnName, string inputColumnName,
+        /// <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        /// [!code-csharp[DetectChangePointBySsa](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/TimeSeries/DetectChangePointBySsa.cs)]
+        /// ]]>
+        /// </format>
+        /// </example>
+        public static SsaChangePointEstimator DetectChangePointBySsa(this TransformsCatalog catalog, string outputColumnName, string inputColumnName,
             int confidence, int changeHistoryLength, int trainingWindowSize, int seasonalityWindowSize, ErrorFunction errorFunction = ErrorFunction.SignedDifference,
             MartingaleType martingale = MartingaleType.Power, double eps = 0.1)
             => new SsaChangePointEstimator(CatalogUtils.GetEnvironment(catalog), new SsaChangePointDetector.Options
@@ -68,7 +94,8 @@ namespace Microsoft.ML
             });
 
         /// <summary>
-        /// Create a new instance of <see cref="SsaSpikeEstimator"/>
+        /// Create a new instance of <see cref="SsaSpikeEstimator"/> for detecting a spike in a time series signal
+        /// using <a href="https://en.wikipedia.org/wiki/Singular_spectrum_analysis">Singular Spectrum Analysis (SSA)</a>.
         /// </summary>
         /// <param name="catalog">The transform's catalog.</param>
         /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.</param>
@@ -80,7 +107,14 @@ namespace Microsoft.ML
         /// The vector contains Alert, Raw Score, P-Value as first three values.</param>
         /// <param name="side">The argument that determines whether to detect positive or negative anomalies, or both.</param>
         /// <param name="errorFunction">The function used to compute the error between the expected and the observed value.</param>
-        public static SsaSpikeEstimator SsaSpikeEstimator(this TransformsCatalog catalog, string outputColumnName, string inputColumnName, int confidence, int pvalueHistoryLength,
+        /// <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        /// [!code-csharp[DetectSpikeBySsa](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/TimeSeries/DetectSpikeBySsa.cs)]
+        /// ]]>
+        /// </format>
+        /// </example>
+        public static SsaSpikeEstimator DetectSpikeBySsa(this TransformsCatalog catalog, string outputColumnName, string inputColumnName, int confidence, int pvalueHistoryLength,
             int trainingWindowSize, int seasonalityWindowSize, AnomalySide side = AnomalySide.TwoSided, ErrorFunction errorFunction = ErrorFunction.SignedDifference)
             => new SsaSpikeEstimator(CatalogUtils.GetEnvironment(catalog), outputColumnName, confidence, pvalueHistoryLength, trainingWindowSize, seasonalityWindowSize, inputColumnName, side, errorFunction);
     }

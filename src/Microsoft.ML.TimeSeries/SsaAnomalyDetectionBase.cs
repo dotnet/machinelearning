@@ -4,7 +4,6 @@
 
 using System;
 using System.IO;
-using Microsoft.Data.DataView;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
 using Microsoft.ML.Internal.Utilities;
@@ -252,7 +251,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
 
                 var colType = inputSchema[col].Type;
                 if (colType != NumberDataViewType.Single)
-                    throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", InputColumnName, "float", colType.ToString());
+                    throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", InputColumnName, "Single", colType.ToString());
 
                 return Transform(new EmptyDataView(Host, inputSchema)).Schema;
             }

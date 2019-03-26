@@ -1,101 +1,101 @@
 ---- BoundLoader ----
 3 columns:
-  One: Text
-  Num: Vec<R4, 8>
-  Key: Key<U1, 0-10>
+  One: String
+  Num: Vector<Single, 8>
+  Key: Key<Byte, 0-10>
 ---- RowToRowMapperTransform ----
 4 columns:
-  One: Text
-  Num: Vec<R4, 8>
-  Key: Key<U1, 0-10>
-  OneInd: Key<U4, 0-1023>
+  One: String
+  Num: Vector<Single, 8>
+  Key: Key<Byte, 0-10>
+  OneInd: Key<UInt32, 0-1023>
 ---- RowToRowMapperTransform ----
 5 columns:
-  One: Text
-  Num: Vec<R4, 8>
-  Key: Key<U1, 0-10>
-  OneInd: Key<U4, 0-1023>
-  OneInd: Vec<R4, 1024>
-    Metadata 'IsNormalized': Bool: '1'
+  One: String
+  Num: Vector<Single, 8>
+  Key: Key<Byte, 0-10>
+  OneInd: Key<UInt32, 0-1023>
+  OneInd: Vector<Single, 1024>
+    Metadata 'IsNormalized': Boolean: '1'
 ---- RowToRowMapperTransform ----
 7 columns:
-  One: Text
-  One: Text
-  Num: Vec<R4, 8>
-  Num: Vec<R4, 8>
-  Key: Key<U1, 0-10>
-  OneInd: Key<U4, 0-1023>
-  OneInd: Vec<R4, 1024>
-    Metadata 'IsNormalized': Bool: '1'
+  One: String
+  One: String
+  Num: Vector<Single, 8>
+  Num: Vector<Single, 8>
+  Key: Key<Byte, 0-10>
+  OneInd: Key<UInt32, 0-1023>
+  OneInd: Vector<Single, 1024>
+    Metadata 'IsNormalized': Boolean: '1'
 ---- RowToRowMapperTransform ----
 8 columns:
-  One: Text
-  One: Text
-  Num: Vec<R4, 8>
-  Num: Vec<R4, 8>
-  Key: Key<U1, 0-10>
-  OneInd: Key<U4, 0-1023>
-  OneInd: Vec<R4, 1024>
-    Metadata 'IsNormalized': Bool: '1'
-  OneInd: Vec<R4, 10>
-    Metadata 'IsNormalized': Bool: '1'
+  One: String
+  One: String
+  Num: Vector<Single, 8>
+  Num: Vector<Single, 8>
+  Key: Key<Byte, 0-10>
+  OneInd: Key<UInt32, 0-1023>
+  OneInd: Vector<Single, 1024>
+    Metadata 'IsNormalized': Boolean: '1'
+  OneInd: Vector<Single, 10>
+    Metadata 'IsNormalized': Boolean: '1'
 ---- RowToRowMapperTransform ----
 11 columns:
-  One: Text
-  One: Text
-  One: Text
-  Num: Vec<R4, 8>
-  Num: Vec<R4, 8>
-  Num: Vec<R4, 8>
-  Key: Key<U1, 0-10>
-  OneInd: Key<U4, 0-1023>
-  OneInd: Vec<R4, 1024>
-    Metadata 'IsNormalized': Bool: '1'
-  OneInd: Vec<R4, 10>
-    Metadata 'IsNormalized': Bool: '1'
-  OneInd: Vec<R4, 10>
-    Metadata 'IsNormalized': Bool: '1'
+  One: String
+  One: String
+  One: String
+  Num: Vector<Single, 8>
+  Num: Vector<Single, 8>
+  Num: Vector<Single, 8>
+  Key: Key<Byte, 0-10>
+  OneInd: Key<UInt32, 0-1023>
+  OneInd: Vector<Single, 1024>
+    Metadata 'IsNormalized': Boolean: '1'
+  OneInd: Vector<Single, 10>
+    Metadata 'IsNormalized': Boolean: '1'
+  OneInd: Vector<Single, 10>
+    Metadata 'IsNormalized': Boolean: '1'
 ---- RowToRowMapperTransform ----
 12 columns:
-  One: Text
-  One: Text
-  One: Text
-  Num: Vec<R4, 8>
-  Num: Vec<R4, 8>
-  Num: Vec<R4, 8>
-  Key: Key<U1, 0-10>
-  Key: Vec<R4, 11>
-    Metadata 'CategoricalSlotRanges': Vec<I4, 1, 2>: Length=2, Count=2
+  One: String
+  One: String
+  One: String
+  Num: Vector<Single, 8>
+  Num: Vector<Single, 8>
+  Num: Vector<Single, 8>
+  Key: Key<Byte, 0-10>
+  Key: Vector<Single, 11>
+    Metadata 'CategoricalSlotRanges': Vector<Int32, 1, 2>: Length=2, Count=2
       [0] '0', [1] '10'
-    Metadata 'IsNormalized': Bool: '1'
-  OneInd: Key<U4, 0-1023>
-  OneInd: Vec<R4, 1024>
-    Metadata 'IsNormalized': Bool: '1'
-  OneInd: Vec<R4, 10>
-    Metadata 'IsNormalized': Bool: '1'
-  OneInd: Vec<R4, 10>
-    Metadata 'IsNormalized': Bool: '1'
+    Metadata 'IsNormalized': Boolean: '1'
+  OneInd: Key<UInt32, 0-1023>
+  OneInd: Vector<Single, 1024>
+    Metadata 'IsNormalized': Boolean: '1'
+  OneInd: Vector<Single, 10>
+    Metadata 'IsNormalized': Boolean: '1'
+  OneInd: Vector<Single, 10>
+    Metadata 'IsNormalized': Boolean: '1'
 ---- RowToRowMapperTransform ----
 13 columns:
-  One: Text
-  One: Text
-  One: Text
-  Num: Vec<R4, 8>
-  Num: Vec<R4, 8>
-  Num: Vec<R4, 8>
-  Key: Key<U1, 0-10>
-  Key: Vec<R4, 11>
-    Metadata 'CategoricalSlotRanges': Vec<I4, 1, 2>: Length=2, Count=2
+  One: String
+  One: String
+  One: String
+  Num: Vector<Single, 8>
+  Num: Vector<Single, 8>
+  Num: Vector<Single, 8>
+  Key: Key<Byte, 0-10>
+  Key: Vector<Single, 11>
+    Metadata 'CategoricalSlotRanges': Vector<Int32, 1, 2>: Length=2, Count=2
       [0] '0', [1] '10'
-    Metadata 'IsNormalized': Bool: '1'
-  Key: Vec<R4, 3>
-    Metadata 'CategoricalSlotRanges': Vec<I4, 1, 2>: Length=2, Count=2
+    Metadata 'IsNormalized': Boolean: '1'
+  Key: Vector<Single, 3>
+    Metadata 'CategoricalSlotRanges': Vector<Int32, 1, 2>: Length=2, Count=2
       [0] '0', [1] '2'
-    Metadata 'IsNormalized': Bool: '1'
-  OneInd: Key<U4, 0-1023>
-  OneInd: Vec<R4, 1024>
-    Metadata 'IsNormalized': Bool: '1'
-  OneInd: Vec<R4, 10>
-    Metadata 'IsNormalized': Bool: '1'
-  OneInd: Vec<R4, 10>
-    Metadata 'IsNormalized': Bool: '1'
+    Metadata 'IsNormalized': Boolean: '1'
+  OneInd: Key<UInt32, 0-1023>
+  OneInd: Vector<Single, 1024>
+    Metadata 'IsNormalized': Boolean: '1'
+  OneInd: Vector<Single, 10>
+    Metadata 'IsNormalized': Boolean: '1'
+  OneInd: Vector<Single, 10>
+    Metadata 'IsNormalized': Boolean: '1'

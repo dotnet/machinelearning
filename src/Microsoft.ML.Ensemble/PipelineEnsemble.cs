@@ -7,7 +7,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
-using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.Calibrators;
 using Microsoft.ML.Data;
@@ -266,26 +265,26 @@ namespace Microsoft.ML.Trainers.Ensemble
             {
                 get
                 {
-                    if (_scoreColumnKind == AnnotationUtils.Const.ScoreColumnKind.MultiClassClassification)
-                        return PredictionKind.MultiClassClassification;
+                    if (_scoreColumnKind == AnnotationUtils.Const.ScoreColumnKind.MulticlassClassification)
+                        return PredictionKind.MulticlassClassification;
                     throw Host.Except("Unknown prediction kind");
                 }
             }
 
-            private readonly VectorType _scoreType;
+            private readonly VectorDataViewType _scoreType;
 
-            public ImplVec(IHostEnvironment env, PredictorModel[] predictors, IMultiClassOutputCombiner combiner)
-                : base(env, predictors, combiner, LoaderSignature, AnnotationUtils.Const.ScoreColumnKind.MultiClassClassification)
+            public ImplVec(IHostEnvironment env, PredictorModel[] predictors, IMulticlassOutputCombiner combiner)
+                : base(env, predictors, combiner, LoaderSignature, AnnotationUtils.Const.ScoreColumnKind.MulticlassClassification)
             {
                 int classCount = CheckLabelColumn(Host, predictors, false);
-                _scoreType = new VectorType(NumberDataViewType.Single, classCount);
+                _scoreType = new VectorDataViewType(NumberDataViewType.Single, classCount);
             }
 
             public ImplVec(IHostEnvironment env, ModelLoadContext ctx, string scoreColumnKind)
                 : base(env, ctx, scoreColumnKind)
             {
                 int classCount = CheckLabelColumn(Host, PredictorModels, false);
-                _scoreType = new VectorType(NumberDataViewType.Single, classCount);
+                _scoreType = new VectorDataViewType(NumberDataViewType.Single, classCount);
             }
         }
 
@@ -532,8 +531,8 @@ namespace Microsoft.ML.Trainers.Ensemble
                     if (regressionCombiner == null)
                         throw env.Except("Combiner type incompatible with score column kind");
                     return new ImplOne(env, predictors, regressionCombiner, scoreColumnKind);
-                case AnnotationUtils.Const.ScoreColumnKind.MultiClassClassification:
-                    var vectorCombiner = combiner as IMultiClassOutputCombiner;
+                case AnnotationUtils.Const.ScoreColumnKind.MulticlassClassification:
+                    var vectorCombiner = combiner as IMulticlassOutputCombiner;
                     if (vectorCombiner == null)
                         throw env.Except("Combiner type incompatible with score column kind");
                     return new ImplVec(env, predictors, vectorCombiner);
@@ -556,7 +555,7 @@ namespace Microsoft.ML.Trainers.Ensemble
                 case AnnotationUtils.Const.ScoreColumnKind.Regression:
                 case AnnotationUtils.Const.ScoreColumnKind.AnomalyDetection:
                     return new ImplOne(env, ctx, scoreColumnKind);
-                case AnnotationUtils.Const.ScoreColumnKind.MultiClassClassification:
+                case AnnotationUtils.Const.ScoreColumnKind.MulticlassClassification:
                     return new ImplVec(env, ctx, scoreColumnKind);
                 default:
                     throw env.Except("Unknown score kind");
@@ -600,17 +599,17 @@ namespace Microsoft.ML.Trainers.Ensemble
             var labelCol = rmd.Schema.Label.Value;
 
             var labelType = labelCol.Type;
-            if (!(labelType is KeyType labelKeyType))
+            if (!(labelType is KeyDataViewType labelKeyType))
                 return CheckNonKeyLabelColumnCore(env, pred, models, isBinary, labelType);
 
             if (isBinary && labelKeyType.Count != 2)
                 throw env.Except("Label is not binary");
             var schema = rmd.Schema.Schema;
-            var mdType = labelCol.Annotations.Schema.GetColumnOrNull(AnnotationUtils.Kinds.KeyValues)?.Type as VectorType;
+            var mdType = labelCol.Annotations.Schema.GetColumnOrNull(AnnotationUtils.Kinds.KeyValues)?.Type as VectorDataViewType;
             if (mdType == null || !mdType.IsKnownSize)
                 throw env.Except("Label column of type key must have a vector of key values metadata");
 
-            return Utils.MarshalInvoke(CheckKeyLabelColumnCore<int>, mdType.ItemType.RawType, env, models, (KeyType)labelType, schema, labelCol.Index, mdType);
+            return Utils.MarshalInvoke(CheckKeyLabelColumnCore<int>, mdType.ItemType.RawType, env, models, (KeyDataViewType)labelType, schema, labelCol.Index, mdType);
         }
 
         // When the label column is not a key, we check that the number of classes is the same for all the predictors, by checking the
@@ -618,7 +617,7 @@ namespace Microsoft.ML.Trainers.Ensemble
         // If any of the predictors do not implement IValueMapper we throw an exception. Returns the class count.
         private static int CheckNonKeyLabelColumnCore(IHostEnvironment env, IPredictor pred, PredictorModel[] models, bool isBinary, DataViewType labelType)
         {
-            env.Assert(!(labelType is KeyType));
+            env.Assert(!(labelType is KeyDataViewType));
             env.AssertNonEmpty(models);
 
             if (isBinary)
@@ -643,7 +642,7 @@ namespace Microsoft.ML.Trainers.Ensemble
 
         // Checks that all the label columns of the model have the same key type as their label column - including the same
         // cardinality and the same key values, and returns the cardinality of the label column key.
-        private static int CheckKeyLabelColumnCore<T>(IHostEnvironment env, PredictorModel[] models, KeyType labelType, DataViewSchema schema, int labelIndex, VectorType keyValuesType)
+        private static int CheckKeyLabelColumnCore<T>(IHostEnvironment env, PredictorModel[] models, KeyDataViewType labelType, DataViewSchema schema, int labelIndex, VectorDataViewType keyValuesType)
             where T : IEquatable<T>
         {
             env.Assert(keyValuesType.ItemType.RawType == typeof(T));
@@ -663,7 +662,7 @@ namespace Microsoft.ML.Trainers.Ensemble
                     throw env.Except("Training schema for model {0} does not have a label column", i);
                 var labelCol = rmd.Schema.Label.Value;
 
-                var curLabelType = labelCol.Type as KeyType;
+                var curLabelType = labelCol.Type as KeyDataViewType;
                 if (!labelType.Equals(curLabelType))
                     throw env.Except("Label column of model {0} has different type than model 0", i);
 

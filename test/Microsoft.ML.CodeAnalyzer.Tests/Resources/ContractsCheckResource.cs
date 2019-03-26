@@ -72,7 +72,6 @@ namespace Microsoft.ML.Runtime
     }
     internal interface IHostEnvironment : IExceptionContext
     {
-        bool IsCancelled { get; }
     }
 }
 

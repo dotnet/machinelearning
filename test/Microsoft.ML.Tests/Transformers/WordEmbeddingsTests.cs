@@ -35,11 +35,11 @@ namespace Microsoft.ML.Tests.Transformers
                    }).Load(GetDataPath(dataPath));
 
             var est = ML.Transforms.Text.NormalizeText("NormalizedText", "SentimentText", keepDiacritics: false, keepPunctuations: false)
-                  .Append(ML.Transforms.Text.TokenizeWords("Words", "NormalizedText"))
+                  .Append(ML.Transforms.Text.TokenizeIntoWords("Words", "NormalizedText"))
                   .Append(ML.Transforms.Text.RemoveDefaultStopWords("CleanWords", "Words"));
             var words = est.Fit(data).Transform(data);
 
-            var pipe = ML.Transforms.Text.ExtractWordEmbeddings("WordEmbeddings", "CleanWords", modelKind: WordEmbeddingsExtractingEstimator.PretrainedModelKind.Sswe);
+            var pipe = ML.Transforms.Text.ApplyWordEmbedding("WordEmbeddings", "CleanWords", modelKind: WordEmbeddingEstimator.PretrainedModelKind.SentimentSpecificWordEmbedding);
 
             TestEstimatorCore(pipe, words, invalidInput: data);
 
@@ -70,7 +70,7 @@ namespace Microsoft.ML.Tests.Transformers
                    }).Load(GetDataPath(dataPath));
 
             var est = ML.Transforms.Text.NormalizeText("NormalizedText", "SentimentText", keepDiacritics: false, keepPunctuations: false)
-                  .Append(ML.Transforms.Text.TokenizeWords("Words", "NormalizedText"))
+                  .Append(ML.Transforms.Text.TokenizeIntoWords("Words", "NormalizedText"))
                   .Append(ML.Transforms.Text.RemoveDefaultStopWords("CleanWords", "Words"));
             var words = est.Fit(data).Transform(data);
             var pathToCustomModel = DeleteOutputPath("custommodel.txt");
@@ -82,7 +82,7 @@ namespace Microsoft.ML.Tests.Transformers
                 file.WriteLine("you" + " " + string.Join(" ", -1f, -2f, -4f, -6f, -1f));
                 file.WriteLine("dude" + " " + string.Join(" ", 100f, 0f, 0f, 0f, 0f));
             }
-            var pipe = ML.Transforms.Text.ExtractWordEmbeddings("WordEmbeddings", pathToCustomModel, "CleanWords");
+            var pipe = ML.Transforms.Text.ApplyWordEmbedding("WordEmbeddings", pathToCustomModel, "CleanWords");
 
             TestEstimatorCore(pipe, words, invalidInput: data);
 

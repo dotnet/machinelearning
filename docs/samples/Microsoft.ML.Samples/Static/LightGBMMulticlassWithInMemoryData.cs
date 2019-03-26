@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Linq;
 using Microsoft.ML.Data;
-using Microsoft.ML.LightGBM.StaticPipe;
+using Microsoft.ML.Trainers.LightGbm.StaticPipe;
 using Microsoft.ML.SamplesUtils;
 using Microsoft.ML.StaticPipe;
 
@@ -9,7 +9,7 @@ namespace Microsoft.ML.Samples.Static
 {
     class LightGBMMulticlassWithInMemoryData
     {
-        public void MultiClassLightGbmStaticPipelineWithInMemoryData()
+        public void MulticlassLightGbmStaticPipelineWithInMemoryData()
         {
             // Create a general context for ML.NET operations. It can be used for exception tracking and logging,
             // as a catalog of available operations and as the source of randomness.
@@ -52,7 +52,7 @@ namespace Microsoft.ML.Samples.Static
 
             // Split the static-typed data into training and test sets. Only training set is used in fitting
             // the created pipeline. Metrics are computed on the test.
-            var (trainingData, testingData) = mlContext.MulticlassClassification.TrainTestSplit(staticDataView, testFraction: 0.5);
+            var (trainingData, testingData) = mlContext.Data.TrainTestSplit(staticDataView, testFraction: 0.5);
 
             // Train the model.
             var model = pipe.Fit(trainingData);

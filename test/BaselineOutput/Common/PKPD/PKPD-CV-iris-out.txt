@@ -1,4 +1,4 @@
-maml.exe CV tr=PKPD{p=AvgPer { lr=0.8 }} threads=- norm=No dout=%Output% data=%Data% seed=1
+maml.exe CV tr=PKPD{p=AvgPer { lr=0.8 }} threads=- norm=No dout=%Output% data=%Data% seed=1 xf=Term{col=Label}
 Not adding a normalizer.
 Training learner (0,0)
 Training calibrator.
@@ -40,7 +40,7 @@ Precision ||1.0000 |1.0000 |0.9032 |
 Accuracy(micro-avg): 0.962025
 Accuracy(macro-avg): 0.966667
 Log-loss:           0.366057
-Log-loss reduction: 66.340104
+Log-loss reduction: 0.663401
 
 Confusion table
           ||========================
@@ -54,14 +54,14 @@ Precision ||1.0000 |1.0000 |0.9167 |
 Accuracy(micro-avg): 0.971831
 Accuracy(macro-avg): 0.966667
 Log-loss:           0.336734
-Log-loss reduction: 68.983181
+Log-loss reduction: 0.689832
 
 OVERALL RESULTS
 ---------------------------------------
 Accuracy(micro-avg): 0.966928 (0.0049)
 Accuracy(macro-avg): 0.966667 (0.0000)
 Log-loss:           0.351395 (0.0147)
-Log-loss reduction: 67.661643 (1.3215)
+Log-loss reduction: 0.676616 (0.0132)
 
 ---------------------------------------
 Physical memory usage(MB): %Number%

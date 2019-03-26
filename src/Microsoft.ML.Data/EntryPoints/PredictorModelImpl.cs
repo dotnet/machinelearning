@@ -6,7 +6,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using Microsoft.Data.DataView;
 using Microsoft.ML.Calibrators;
 using Microsoft.ML.Data;
 using Microsoft.ML.Model;
@@ -114,7 +113,7 @@ namespace Microsoft.ML.EntryPoints
             var calibrated = predictor as IWeaklyTypedCalibratedModelParameters;
             while (calibrated != null)
             {
-                predictor = calibrated.WeeklyTypedSubModel;
+                predictor = calibrated.WeaklyTypedSubModel;
                 calibrated = predictor as IWeaklyTypedCalibratedModelParameters;
             }
             var canGetTrainingLabelNames = predictor as ICanGetTrainingLabelNames;

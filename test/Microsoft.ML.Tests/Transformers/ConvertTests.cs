@@ -5,7 +5,6 @@
 using System;
 using System.IO;
 using System.Linq;
-using Microsoft.Data.DataView;
 using Microsoft.ML.Data;
 using Microsoft.ML.Model;
 using Microsoft.ML.RunTests;
@@ -205,8 +204,8 @@ namespace Microsoft.ML.Tests.Transformers
             var data = new[] { new MetaClass() { A = 1, B = "A" },
                                new MetaClass() { A = 2, B = "B" }};
             var pipe = ML.Transforms.Categorical.OneHotEncoding(new[] {
-                new OneHotEncodingEstimator.ColumnOptions("CatA", "A", OneHotEncodingTransformer.OutputKind.Ind),
-                new OneHotEncodingEstimator.ColumnOptions("CatB", "B", OneHotEncodingTransformer.OutputKind.Key)
+                new OneHotEncodingEstimator.ColumnOptions("CatA", "A", OneHotEncodingEstimator.OutputKind.Indicator),
+                new OneHotEncodingEstimator.ColumnOptions("CatB", "B", OneHotEncodingEstimator.OutputKind.Key)
             }).Append(ML.Transforms.Conversion.ConvertType(new[] {
                 new TypeConvertingEstimator.ColumnOptions("ConvA", DataKind.Double, "CatA"),
                 new TypeConvertingEstimator.ColumnOptions("ConvB", DataKind.UInt16, "CatB")
@@ -262,7 +261,7 @@ namespace Microsoft.ML.Tests.Transformers
             using (var ch = Env.Start("load"))
             {
                 using (var fs = File.OpenRead(modelPath))
-                    modelOld = ML.Model.Load(fs);
+                    modelOld = ML.Model.Load(fs, out var schema);
             }
             var outDataOld = modelOld.Transform(dataView);
 

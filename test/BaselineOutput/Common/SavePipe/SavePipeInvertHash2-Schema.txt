@@ -1,190 +1,190 @@
 ---- BoundLoader ----
 5 columns:
-  A: Text
-  K: Vec<Key<U4, 0-10>, 2>
-  KS: Key<U4, 0-10>
-  B: Text
-  E: Text
+  A: String
+  K: Vector<Key<UInt32, 0-10>, 2>
+  KS: Key<UInt32, 0-10>
+  B: String
+  E: String
 ---- RowToRowMapperTransform ----
 15 columns:
-  A: Text
-  K: Vec<Key<U4, 0-10>, 2>
-  KS: Key<U4, 0-10>
-  B: Text
-  E: Text
-  _tmp000: Vec<Text>
-  _tmp001: Vec<Text>
-  _tmp002: Vec<Text>
-  _tmp003: Vec<Text>
-  _tmp004: Vec<Text>
-  _tmp005: Vec<Text>
-  _tmp006: Vec<Text>
-  _tmp007: Vec<Text>
-  _tmp008: Vec<Text>
-  _tmp009: Vec<Text>
+  A: String
+  K: Vector<Key<UInt32, 0-10>, 2>
+  KS: Key<UInt32, 0-10>
+  B: String
+  E: String
+  _tmp000: Vector<String>
+  _tmp001: Vector<String>
+  _tmp002: Vector<String>
+  _tmp003: Vector<String>
+  _tmp004: Vector<String>
+  _tmp005: Vector<String>
+  _tmp006: Vector<String>
+  _tmp007: Vector<String>
+  _tmp008: Vector<String>
+  _tmp009: Vector<String>
 ---- RowToRowMapperTransform ----
 25 columns:
-  A: Text
-  K: Vec<Key<U4, 0-10>, 2>
-  KS: Key<U4, 0-10>
-  B: Text
-  E: Text
-  _tmp000: Vec<Text>
-  _tmp001: Vec<Text>
-  _tmp002: Vec<Text>
-  _tmp003: Vec<Text>
-  _tmp004: Vec<Text>
-  _tmp005: Vec<Text>
-  _tmp006: Vec<Text>
-  _tmp007: Vec<Text>
-  _tmp008: Vec<Text>
-  _tmp009: Vec<Text>
-  temp__tmp000_000: Vec<Key<U4, 0-1073741823>>
-    Metadata 'KeyValues': Vec<Text, 1073741824>: Length=1073741824, Count=1073741824
+  A: String
+  K: Vector<Key<UInt32, 0-10>, 2>
+  KS: Key<UInt32, 0-10>
+  B: String
+  E: String
+  _tmp000: Vector<String>
+  _tmp001: Vector<String>
+  _tmp002: Vector<String>
+  _tmp003: Vector<String>
+  _tmp004: Vector<String>
+  _tmp005: Vector<String>
+  _tmp006: Vector<String>
+  _tmp007: Vector<String>
+  _tmp008: Vector<String>
+  _tmp009: Vector<String>
+  temp__tmp000_000: Vector<Key<UInt32, 0-1073741823>>
+    Metadata 'KeyValues': Vector<String, 1073741824>: Length=1073741824, Count=1073741824
       [295457023] 'ant', [521979783] 'annie', [800576372] 'an', [832818636] 'angry', [922722793] 'ate'
-  temp__tmp001_000: Vec<Key<U4, 0-1073741823>>
-    Metadata 'KeyValues': Vec<Text, 1073741824>: Length=1073741824, Count=1073741824
+  temp__tmp001_000: Vector<Key<UInt32, 0-1073741823>>
+    Metadata 'KeyValues': Vector<String, 1073741824>: Length=1073741824, Count=1073741824
       [197754023] 'bowled', [594010070] 'brownies', [774818249] 'badly', [867230403] 'bakes', [897860361] 'bob'
-  temp__tmp002_000: Vec<Key<U4, 0-1073741823>>
-    Metadata 'KeyValues': Vec<Text, 1073741824>: Length=1073741824, Count=1073741824
+  temp__tmp002_000: Vector<Key<UInt32, 0-1073741823>>
+    Metadata 'KeyValues': Vector<String, 1073741824>: Length=1073741824, Count=1073741824
       [197754023] 'bowled', [594010070] 'brownies', [774818249] 'badly', [867230403] 'bakes', [897860361] 'bob'
-  temp__tmp003_000: Vec<Key<U4, 0-1073741823>>
-    Metadata 'KeyValues': Vec<Text, 1073741824>: Length=1073741824, Count=1073741824
+  temp__tmp003_000: Vector<Key<UInt32, 0-1073741823>>
+    Metadata 'KeyValues': Vector<String, 1073741824>: Length=1073741824, Count=1073741824
       [295457023] 'ant', [521979783] 'annie', [800576372] 'an', [832818636] 'angry', [922722793] 'ate'
-  temp__tmp004_000: Vec<Key<U4, 0-1073741823>>
-    Metadata 'KeyValues': Vec<Text, 1073741824>: Length=1073741824, Count=1073741824
+  temp__tmp004_000: Vector<Key<UInt32, 0-1073741823>>
+    Metadata 'KeyValues': Vector<String, 1073741824>: Length=1073741824, Count=1073741824
       [295457023] 'ant', [521979783] 'annie', [800576372] 'an', [832818636] 'angry', [922722793] 'ate'
-  temp__tmp005_000: Vec<Key<U4, 0-1073741823>>
-    Metadata 'KeyValues': Vec<Text, 1073741824>: Length=1073741824, Count=1073741824
+  temp__tmp005_000: Vector<Key<UInt32, 0-1073741823>>
+    Metadata 'KeyValues': Vector<String, 1073741824>: Length=1073741824, Count=1073741824
       [197754023] 'bowled', [594010070] 'brownies', [774818249] 'badly', [867230403] 'bakes', [897860361] 'bob'
-  temp__tmp006_000: Vec<Key<U4, 0-1073741823>>
-    Metadata 'KeyValues': Vec<Text, 1073741824>: Length=1073741824, Count=1073741824
+  temp__tmp006_000: Vector<Key<UInt32, 0-1073741823>>
+    Metadata 'KeyValues': Vector<String, 1073741824>: Length=1073741824, Count=1073741824
       [197754023] 'bowled', [594010070] 'brownies', [774818249] 'badly', [867230403] 'bakes', [897860361] 'bob'
-  temp__tmp007_000: Vec<Key<U4, 0-1073741823>>
-    Metadata 'KeyValues': Vec<Text, 1073741824>: Length=1073741824, Count=1073741824
+  temp__tmp007_000: Vector<Key<UInt32, 0-1073741823>>
+    Metadata 'KeyValues': Vector<String, 1073741824>: Length=1073741824, Count=1073741824
       [295457023] 'ant', [521979783] 'annie', [800576372] 'an', [832818636] 'angry', [922722793] 'ate'
-  temp__tmp008_000: Vec<Key<U4, 0-1073741823>>
-  temp__tmp009_000: Vec<Key<U4, 0-1073741823>>
+  temp__tmp008_000: Vector<Key<UInt32, 0-1073741823>>
+  temp__tmp009_000: Vector<Key<UInt32, 0-1073741823>>
 ---- RowToRowMapperTransform ----
 30 columns:
-  A: Text
-  K: Vec<Key<U4, 0-10>, 2>
-  KS: Key<U4, 0-10>
-  B: Text
-  E: Text
-  _tmp000: Vec<Text>
-  _tmp001: Vec<Text>
-  _tmp002: Vec<Text>
-  _tmp003: Vec<Text>
-  _tmp004: Vec<Text>
-  _tmp005: Vec<Text>
-  _tmp006: Vec<Text>
-  _tmp007: Vec<Text>
-  _tmp008: Vec<Text>
-  _tmp009: Vec<Text>
-  temp__tmp000_000: Vec<Key<U4, 0-1073741823>>
-    Metadata 'KeyValues': Vec<Text, 1073741824>: Length=1073741824, Count=1073741824
+  A: String
+  K: Vector<Key<UInt32, 0-10>, 2>
+  KS: Key<UInt32, 0-10>
+  B: String
+  E: String
+  _tmp000: Vector<String>
+  _tmp001: Vector<String>
+  _tmp002: Vector<String>
+  _tmp003: Vector<String>
+  _tmp004: Vector<String>
+  _tmp005: Vector<String>
+  _tmp006: Vector<String>
+  _tmp007: Vector<String>
+  _tmp008: Vector<String>
+  _tmp009: Vector<String>
+  temp__tmp000_000: Vector<Key<UInt32, 0-1073741823>>
+    Metadata 'KeyValues': Vector<String, 1073741824>: Length=1073741824, Count=1073741824
       [295457023] 'ant', [521979783] 'annie', [800576372] 'an', [832818636] 'angry', [922722793] 'ate'
-  temp__tmp001_000: Vec<Key<U4, 0-1073741823>>
-    Metadata 'KeyValues': Vec<Text, 1073741824>: Length=1073741824, Count=1073741824
+  temp__tmp001_000: Vector<Key<UInt32, 0-1073741823>>
+    Metadata 'KeyValues': Vector<String, 1073741824>: Length=1073741824, Count=1073741824
       [197754023] 'bowled', [594010070] 'brownies', [774818249] 'badly', [867230403] 'bakes', [897860361] 'bob'
-  temp__tmp002_000: Vec<Key<U4, 0-1073741823>>
-    Metadata 'KeyValues': Vec<Text, 1073741824>: Length=1073741824, Count=1073741824
+  temp__tmp002_000: Vector<Key<UInt32, 0-1073741823>>
+    Metadata 'KeyValues': Vector<String, 1073741824>: Length=1073741824, Count=1073741824
       [197754023] 'bowled', [594010070] 'brownies', [774818249] 'badly', [867230403] 'bakes', [897860361] 'bob'
-  temp__tmp003_000: Vec<Key<U4, 0-1073741823>>
-    Metadata 'KeyValues': Vec<Text, 1073741824>: Length=1073741824, Count=1073741824
+  temp__tmp003_000: Vector<Key<UInt32, 0-1073741823>>
+    Metadata 'KeyValues': Vector<String, 1073741824>: Length=1073741824, Count=1073741824
       [295457023] 'ant', [521979783] 'annie', [800576372] 'an', [832818636] 'angry', [922722793] 'ate'
-  temp__tmp004_000: Vec<Key<U4, 0-1073741823>>
-    Metadata 'KeyValues': Vec<Text, 1073741824>: Length=1073741824, Count=1073741824
+  temp__tmp004_000: Vector<Key<UInt32, 0-1073741823>>
+    Metadata 'KeyValues': Vector<String, 1073741824>: Length=1073741824, Count=1073741824
       [295457023] 'ant', [521979783] 'annie', [800576372] 'an', [832818636] 'angry', [922722793] 'ate'
-  temp__tmp005_000: Vec<Key<U4, 0-1073741823>>
-    Metadata 'KeyValues': Vec<Text, 1073741824>: Length=1073741824, Count=1073741824
+  temp__tmp005_000: Vector<Key<UInt32, 0-1073741823>>
+    Metadata 'KeyValues': Vector<String, 1073741824>: Length=1073741824, Count=1073741824
       [197754023] 'bowled', [594010070] 'brownies', [774818249] 'badly', [867230403] 'bakes', [897860361] 'bob'
-  temp__tmp006_000: Vec<Key<U4, 0-1073741823>>
-    Metadata 'KeyValues': Vec<Text, 1073741824>: Length=1073741824, Count=1073741824
+  temp__tmp006_000: Vector<Key<UInt32, 0-1073741823>>
+    Metadata 'KeyValues': Vector<String, 1073741824>: Length=1073741824, Count=1073741824
       [197754023] 'bowled', [594010070] 'brownies', [774818249] 'badly', [867230403] 'bakes', [897860361] 'bob'
-  temp__tmp007_000: Vec<Key<U4, 0-1073741823>>
-    Metadata 'KeyValues': Vec<Text, 1073741824>: Length=1073741824, Count=1073741824
+  temp__tmp007_000: Vector<Key<UInt32, 0-1073741823>>
+    Metadata 'KeyValues': Vector<String, 1073741824>: Length=1073741824, Count=1073741824
       [295457023] 'ant', [521979783] 'annie', [800576372] 'an', [832818636] 'angry', [922722793] 'ate'
-  temp__tmp008_000: Vec<Key<U4, 0-1073741823>>
-  temp__tmp009_000: Vec<Key<U4, 0-1073741823>>
-  F1: Vec<R4, 8>
-    Metadata 'SlotNames': Vec<Text, 8>: Length=8, Count=8
+  temp__tmp008_000: Vector<Key<UInt32, 0-1073741823>>
+  temp__tmp009_000: Vector<Key<UInt32, 0-1073741823>>
+  F1: Vector<Single, 8>
+    Metadata 'SlotNames': Vector<String, 8>: Length=8, Count=8
       [0] '{A:annie,A:ant,B:bowled}', [1] '{A:annie|ate,B:bob|bowled}', [2] '{A:ate,B:bob,A:an|angry,B:badly}', [3] '{A:ate|an,A:angry|ant}', [4] '{A:an|ant,B:bakes,B:bakes|brownies}', [5] '{A:an,B:bob|bakes,A:angry}', [6] '', [7] '{B:brownies,B:bowled|badly}'
-  F2: Vec<R4, 8>
-    Metadata 'SlotNames': Vec<Text, 8>: Length=8, Count=8
+  F2: Vector<Single, 8>
+    Metadata 'SlotNames': Vector<String, 8>: Length=8, Count=8
       [0] '{A:annie,A:ant,B:bowled}', [1] '{A:annie|ate,B:bob|bowled}', [2] '{B:bob,A:ate,B:badly,A:an|angry}', [3] '{A:ate|an,A:angry|ant}', [4] '{B:bakes,B:bakes|brownies,A:an|ant}', [5] '{B:bob|bakes,A:an,A:angry}', [6] '', [7] '{B:brownies,B:bowled|badly}'
-  F3: Vec<R4, 8>
-    Metadata 'SlotNames': Vec<Text, 8>: Length=8, Count=8
+  F3: Vector<Single, 8>
+    Metadata 'SlotNames': Vector<String, 8>: Length=8, Count=8
       [0] 'A:annie', [1] 'A:annie|ate', [2] 'A:ate', [3] 'A:ate|an', [4] 'A:an|ant', [5] 'A:an', [6] '', [7] 'B:brownies'
-  F4: Vec<R4, 8>
-    Metadata 'SlotNames': Vec<Text, 8>: Length=8, Count=8
+  F4: Vector<Single, 8>
+    Metadata 'SlotNames': Vector<String, 8>: Length=8, Count=8
       [0] 'A:annie', [1] 'A:annie|ate', [2] 'B:bob', [3] 'A:ate|an', [4] 'B:bakes', [5] 'B:bob|bakes', [6] '', [7] 'B:brownies'
-  F5: Vec<R4, 8>
+  F5: Vector<Single, 8>
 ---- SelectColumnsDataTransform ----
 20 columns:
-  A: Text
-  K: Vec<Key<U4, 0-10>, 2>
-  KS: Key<U4, 0-10>
-  B: Text
-  E: Text
-  _tmp000: Vec<Text>
-  _tmp001: Vec<Text>
-  _tmp002: Vec<Text>
-  _tmp003: Vec<Text>
-  _tmp004: Vec<Text>
-  _tmp005: Vec<Text>
-  _tmp006: Vec<Text>
-  _tmp007: Vec<Text>
-  _tmp008: Vec<Text>
-  _tmp009: Vec<Text>
-  F1: Vec<R4, 8>
-    Metadata 'SlotNames': Vec<Text, 8>: Length=8, Count=8
+  A: String
+  K: Vector<Key<UInt32, 0-10>, 2>
+  KS: Key<UInt32, 0-10>
+  B: String
+  E: String
+  _tmp000: Vector<String>
+  _tmp001: Vector<String>
+  _tmp002: Vector<String>
+  _tmp003: Vector<String>
+  _tmp004: Vector<String>
+  _tmp005: Vector<String>
+  _tmp006: Vector<String>
+  _tmp007: Vector<String>
+  _tmp008: Vector<String>
+  _tmp009: Vector<String>
+  F1: Vector<Single, 8>
+    Metadata 'SlotNames': Vector<String, 8>: Length=8, Count=8
       [0] '{A:annie,A:ant,B:bowled}', [1] '{A:annie|ate,B:bob|bowled}', [2] '{A:ate,B:bob,A:an|angry,B:badly}', [3] '{A:ate|an,A:angry|ant}', [4] '{A:an|ant,B:bakes,B:bakes|brownies}', [5] '{A:an,B:bob|bakes,A:angry}', [6] '', [7] '{B:brownies,B:bowled|badly}'
-  F2: Vec<R4, 8>
-    Metadata 'SlotNames': Vec<Text, 8>: Length=8, Count=8
+  F2: Vector<Single, 8>
+    Metadata 'SlotNames': Vector<String, 8>: Length=8, Count=8
       [0] '{A:annie,A:ant,B:bowled}', [1] '{A:annie|ate,B:bob|bowled}', [2] '{B:bob,A:ate,B:badly,A:an|angry}', [3] '{A:ate|an,A:angry|ant}', [4] '{B:bakes,B:bakes|brownies,A:an|ant}', [5] '{B:bob|bakes,A:an,A:angry}', [6] '', [7] '{B:brownies,B:bowled|badly}'
-  F3: Vec<R4, 8>
-    Metadata 'SlotNames': Vec<Text, 8>: Length=8, Count=8
+  F3: Vector<Single, 8>
+    Metadata 'SlotNames': Vector<String, 8>: Length=8, Count=8
       [0] 'A:annie', [1] 'A:annie|ate', [2] 'A:ate', [3] 'A:ate|an', [4] 'A:an|ant', [5] 'A:an', [6] '', [7] 'B:brownies'
-  F4: Vec<R4, 8>
-    Metadata 'SlotNames': Vec<Text, 8>: Length=8, Count=8
+  F4: Vector<Single, 8>
+    Metadata 'SlotNames': Vector<String, 8>: Length=8, Count=8
       [0] 'A:annie', [1] 'A:annie|ate', [2] 'B:bob', [3] 'A:ate|an', [4] 'B:bakes', [5] 'B:bob|bakes', [6] '', [7] 'B:brownies'
-  F5: Vec<R4, 8>
+  F5: Vector<Single, 8>
 ---- SelectColumnsDataTransform ----
 10 columns:
-  A: Text
-  K: Vec<Key<U4, 0-10>, 2>
-  KS: Key<U4, 0-10>
-  B: Text
-  E: Text
-  F1: Vec<R4, 8>
-    Metadata 'SlotNames': Vec<Text, 8>: Length=8, Count=8
+  A: String
+  K: Vector<Key<UInt32, 0-10>, 2>
+  KS: Key<UInt32, 0-10>
+  B: String
+  E: String
+  F1: Vector<Single, 8>
+    Metadata 'SlotNames': Vector<String, 8>: Length=8, Count=8
       [0] '{A:annie,A:ant,B:bowled}', [1] '{A:annie|ate,B:bob|bowled}', [2] '{A:ate,B:bob,A:an|angry,B:badly}', [3] '{A:ate|an,A:angry|ant}', [4] '{A:an|ant,B:bakes,B:bakes|brownies}', [5] '{A:an,B:bob|bakes,A:angry}', [6] '', [7] '{B:brownies,B:bowled|badly}'
-  F2: Vec<R4, 8>
-    Metadata 'SlotNames': Vec<Text, 8>: Length=8, Count=8
+  F2: Vector<Single, 8>
+    Metadata 'SlotNames': Vector<String, 8>: Length=8, Count=8
       [0] '{A:annie,A:ant,B:bowled}', [1] '{A:annie|ate,B:bob|bowled}', [2] '{B:bob,A:ate,B:badly,A:an|angry}', [3] '{A:ate|an,A:angry|ant}', [4] '{B:bakes,B:bakes|brownies,A:an|ant}', [5] '{B:bob|bakes,A:an,A:angry}', [6] '', [7] '{B:brownies,B:bowled|badly}'
-  F3: Vec<R4, 8>
-    Metadata 'SlotNames': Vec<Text, 8>: Length=8, Count=8
+  F3: Vector<Single, 8>
+    Metadata 'SlotNames': Vector<String, 8>: Length=8, Count=8
       [0] 'A:annie', [1] 'A:annie|ate', [2] 'A:ate', [3] 'A:ate|an', [4] 'A:an|ant', [5] 'A:an', [6] '', [7] 'B:brownies'
-  F4: Vec<R4, 8>
-    Metadata 'SlotNames': Vec<Text, 8>: Length=8, Count=8
+  F4: Vector<Single, 8>
+    Metadata 'SlotNames': Vector<String, 8>: Length=8, Count=8
       [0] 'A:annie', [1] 'A:annie|ate', [2] 'B:bob', [3] 'A:ate|an', [4] 'B:bakes', [5] 'B:bob|bakes', [6] '', [7] 'B:brownies'
-  F5: Vec<R4, 8>
+  F5: Vector<Single, 8>
 ---- SelectColumnsDataTransform ----
 7 columns:
-  A: Text
-  B: Text
-  F1: Vec<R4, 8>
-    Metadata 'SlotNames': Vec<Text, 8>: Length=8, Count=8
+  A: String
+  B: String
+  F1: Vector<Single, 8>
+    Metadata 'SlotNames': Vector<String, 8>: Length=8, Count=8
       [0] '{A:annie,A:ant,B:bowled}', [1] '{A:annie|ate,B:bob|bowled}', [2] '{A:ate,B:bob,A:an|angry,B:badly}', [3] '{A:ate|an,A:angry|ant}', [4] '{A:an|ant,B:bakes,B:bakes|brownies}', [5] '{A:an,B:bob|bakes,A:angry}', [6] '', [7] '{B:brownies,B:bowled|badly}'
-  F2: Vec<R4, 8>
-    Metadata 'SlotNames': Vec<Text, 8>: Length=8, Count=8
+  F2: Vector<Single, 8>
+    Metadata 'SlotNames': Vector<String, 8>: Length=8, Count=8
       [0] '{A:annie,A:ant,B:bowled}', [1] '{A:annie|ate,B:bob|bowled}', [2] '{B:bob,A:ate,B:badly,A:an|angry}', [3] '{A:ate|an,A:angry|ant}', [4] '{B:bakes,B:bakes|brownies,A:an|ant}', [5] '{B:bob|bakes,A:an,A:angry}', [6] '', [7] '{B:brownies,B:bowled|badly}'
-  F3: Vec<R4, 8>
-    Metadata 'SlotNames': Vec<Text, 8>: Length=8, Count=8
+  F3: Vector<Single, 8>
+    Metadata 'SlotNames': Vector<String, 8>: Length=8, Count=8
       [0] 'A:annie', [1] 'A:annie|ate', [2] 'A:ate', [3] 'A:ate|an', [4] 'A:an|ant', [5] 'A:an', [6] '', [7] 'B:brownies'
-  F4: Vec<R4, 8>
-    Metadata 'SlotNames': Vec<Text, 8>: Length=8, Count=8
+  F4: Vector<Single, 8>
+    Metadata 'SlotNames': Vector<String, 8>: Length=8, Count=8
       [0] 'A:annie', [1] 'A:annie|ate', [2] 'B:bob', [3] 'A:ate|an', [4] 'B:bakes', [5] 'B:bob|bakes', [6] '', [7] 'B:brownies'
-  F5: Vec<R4, 8>
+  F5: Vector<Single, 8>

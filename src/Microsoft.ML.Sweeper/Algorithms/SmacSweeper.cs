@@ -5,7 +5,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
@@ -134,8 +133,8 @@ namespace Microsoft.ML.Sweeper
             {
                 // Set relevant random forest arguments.
                 // Train random forest.
-                var trainer = new FastForestRegression(_host,
-                    new FastForestRegression.Options
+                var trainer = new FastForestRegressionTrainer(_host,
+                    new FastForestRegressionTrainer.Options
                     {
                         FeatureFraction = _args.SplitRatio,
                         NumberOfTrees = _args.NumOfTrees,

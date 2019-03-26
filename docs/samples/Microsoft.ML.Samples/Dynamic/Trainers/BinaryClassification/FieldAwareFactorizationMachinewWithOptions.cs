@@ -30,7 +30,7 @@ namespace Microsoft.ML.Samples.Dynamic
             var pipeline = new EstimatorChain<ITransformer>().AppendCacheCheckpoint(mlContext)
                 .Append(mlContext.BinaryClassification.Trainers.
                     FieldAwareFactorizationMachine(
-                        new FieldAwareFactorizationMachineBinaryClassificationTrainer.Options
+                        new FieldAwareFactorizationMachineTrainer.Options
                         {
                             FeatureColumnName = "Features",
                             LabelColumnName = "Sentiment",

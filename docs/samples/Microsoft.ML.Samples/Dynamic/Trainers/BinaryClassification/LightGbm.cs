@@ -2,7 +2,7 @@
 {
     public class LightGbm
     {
-        // This example requires installation of additional nuget package <a href="https://www.nuget.org/packages/Microsoft.ML.LightGBM/">Microsoft.ML.LightGBM</a>.
+        // This example requires installation of additional nuget package <a href="https://www.nuget.org/packages/Microsoft.ML.LightGbm/">Microsoft.ML.LightGbm</a>.
         public static void Example()
         {
             // Creating the ML.Net IHostEnvironment object, needed for the pipeline.
@@ -12,7 +12,7 @@
             var dataview = SamplesUtils.DatasetUtils.LoadFeaturizedAdultDataset(mlContext);
 
             // Leave out 10% of data for testing.
-            var split = mlContext.BinaryClassification.TrainTestSplit(dataview, testFraction: 0.1);
+            var split = mlContext.Data.TrainTestSplit(dataview, testFraction: 0.1);
 
             // Create the Estimator.
             var pipeline = mlContext.BinaryClassification.Trainers.LightGbm();

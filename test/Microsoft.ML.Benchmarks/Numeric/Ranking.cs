@@ -5,7 +5,7 @@
 using System.IO;
 using BenchmarkDotNet.Attributes;
 using Microsoft.ML.Data;
-using Microsoft.ML.LightGBM;
+using Microsoft.ML.Trainers.LightGbm;
 using Microsoft.ML.RunTests;
 using Microsoft.ML.TestFramework;
 using Microsoft.ML.Trainers;

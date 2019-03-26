@@ -68,17 +68,17 @@ namespace Microsoft.ML.Analyzer.Tests
             // function where the shape type is a generic type parameter. In this case, we would ideally like the analysis to get
             // chained out of their function.
             var expected = new DiagnosticResult[] {
-                VerifyCS.Diagnostic(TypeIsSchemaShapeAnalyzer.ShapeClassDiagnosticField.Rule).WithLocation(34, 13).WithArguments("Class4", "F1"),
-                VerifyCS.Diagnostic(TypeIsSchemaShapeAnalyzer.ShapeClassDiagnosticConstructor.Rule).WithLocation(35, 13).WithArguments("Class5"),
-                VerifyCS.Diagnostic(TypeIsSchemaShapeAnalyzer.ShapeClassDiagnosticConstructor.Rule).WithLocation(36, 13).WithArguments("Class6"),
+                VerifyCS.Diagnostic(TypeIsSchemaShapeAnalyzer.ShapeClassDiagnosticField.Rule).WithLocation(33, 13).WithArguments("Class4", "F1"),
+                VerifyCS.Diagnostic(TypeIsSchemaShapeAnalyzer.ShapeClassDiagnosticConstructor.Rule).WithLocation(34, 13).WithArguments("Class5"),
+                VerifyCS.Diagnostic(TypeIsSchemaShapeAnalyzer.ShapeClassDiagnosticConstructor.Rule).WithLocation(35, 13).WithArguments("Class6"),
 
-                VerifyCS.Diagnostic(TypeIsSchemaShapeAnalyzer.ShapeClassDiagnosticNoArgsSettable.Rule).WithLocation(37, 13).WithArguments("Class7", "F1"),
-                VerifyCS.Diagnostic(TypeIsSchemaShapeAnalyzer.ShapeClassDiagnosticArgsSettable.Rule).WithLocation(38, 13).WithArguments("Class8", "F2"),
-                VerifyCS.Diagnostic(TypeIsSchemaShapeAnalyzer.ShapeClassDiagnosticGettable.Rule).WithLocation(39, 13).WithArguments("Class9", "F2"),
-                VerifyCS.Diagnostic(TypeIsSchemaShapeAnalyzer.ShapeClassDiagnosticCorrespondence.Rule).WithLocation(40, 13).WithArguments("Class10"),
-                VerifyCS.Diagnostic(TypeIsSchemaShapeAnalyzer.ShapeClassDiagnosticCorrespondence.Rule).WithLocation(41, 13).WithArguments("Class11"),
+                VerifyCS.Diagnostic(TypeIsSchemaShapeAnalyzer.ShapeClassDiagnosticNoArgsSettable.Rule).WithLocation(36, 13).WithArguments("Class7", "F1"),
+                VerifyCS.Diagnostic(TypeIsSchemaShapeAnalyzer.ShapeClassDiagnosticArgsSettable.Rule).WithLocation(37, 13).WithArguments("Class8", "F2"),
+                VerifyCS.Diagnostic(TypeIsSchemaShapeAnalyzer.ShapeClassDiagnosticGettable.Rule).WithLocation(38, 13).WithArguments("Class9", "F2"),
+                VerifyCS.Diagnostic(TypeIsSchemaShapeAnalyzer.ShapeClassDiagnosticCorrespondence.Rule).WithLocation(39, 13).WithArguments("Class10"),
+                VerifyCS.Diagnostic(TypeIsSchemaShapeAnalyzer.ShapeClassDiagnosticCorrespondence.Rule).WithLocation(40, 13).WithArguments("Class11"),
 
-                new DiagnosticResult("CS0246", DiagnosticSeverity.Error).WithLocation(45, 71).WithMessage("The type or namespace name 'MissingClass' could not be found (are you missing a using directive or an assembly reference?)"),
+                new DiagnosticResult("CS0246", DiagnosticSeverity.Error).WithLocation(44, 71).WithMessage("The type or namespace name 'MissingClass' could not be found (are you missing a using directive or an assembly reference?)"),
             };
 
             var test = new VerifyCS.Test { TestCode = SourceClass };

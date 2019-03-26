@@ -1,0 +1,28 @@
+﻿<#@ include file="RegressionSamplesTemplate.ttinclude"#>
+
+<#+
+string ClassName="PoissonRegressionWithOptions";
+string Trainer = "PoissonRegression";
+string TrainerOptions = @"PoissonRegressionTrainer.Options
+            {
+                // Reduce optimization tolerance to speed up training at the cost of accuracy.
+                OptmizationTolerance = 1e-4f,
+                // Decrease history size to speed up training at the cost of accuracy.
+                HistorySize = 30,
+                // Specify scale for initial weights.
+                InitialWeightsDiameter = 0.2f
+            }";
+
+string ExpectedOutputPerInstance= @"// Expected output:
+            //   Label: 0.985, Prediction: 1.110
+            //   Label: 0.155, Prediction: 0.169
+            //   Label: 0.515, Prediction: 0.400
+            //   Label: 0.566, Prediction: 0.415
+            //   Label: 0.096, Prediction: 0.169";
+
+string ExpectedOutput = @"// Expected output:
+            //   Mean Absolute Error: 0.07
+            //   Mean Squared Error: 0.01
+            //   Root Mean Squared Error: 0.09
+            //   RSquared: 0.90";
+#>

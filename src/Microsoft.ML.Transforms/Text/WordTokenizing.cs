@@ -6,7 +6,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
@@ -105,7 +104,7 @@ namespace Microsoft.ML.Transforms.Text
 
         private const string RegistrationName = "DelimitedTokenize";
 
-        public IReadOnlyCollection<WordTokenizingEstimator.ColumnOptions> Columns => _columns.AsReadOnly();
+        internal IReadOnlyCollection<WordTokenizingEstimator.ColumnOptions> Columns => _columns.AsReadOnly();
         private readonly WordTokenizingEstimator.ColumnOptions[] _columns;
 
         private static (string name, string inputColumnName)[] GetColumnPairs(WordTokenizingEstimator.ColumnOptions[] columns)
@@ -210,13 +209,13 @@ namespace Microsoft.ML.Transforms.Text
               : base(parent.Host.Register(nameof(Mapper)), parent, inputSchema)
             {
                 _parent = parent;
-                _type = new VectorType(TextDataViewType.Instance);
+                _type = new VectorDataViewType(TextDataViewType.Instance);
                 _isSourceVector = new bool[_parent._columns.Length];
                 for (int i = 0; i < _isSourceVector.Length; i++)
                 {
                     inputSchema.TryGetColumnIndex(_parent._columns[i].InputColumnName, out int srcCol);
                     var srcType = inputSchema[srcCol].Type;
-                    _isSourceVector[i] = srcType is VectorType;
+                    _isSourceVector[i] = srcType is VectorDataViewType;
                 }
             }
 
@@ -242,7 +241,7 @@ namespace Microsoft.ML.Transforms.Text
                 var srcType = input.Schema[srcCol].Type;
                 Host.Assert(srcType.GetItemType() is TextDataViewType);
 
-                if (!(srcType is VectorType))
+                if (!(srcType is VectorDataViewType))
                     return MakeGetterOne(input, iinfo);
                 return MakeGetterVec(input, iinfo);
             }
@@ -405,7 +404,7 @@ namespace Microsoft.ML.Transforms.Text
     {
         internal static bool IsColumnTypeValid(DataViewType type) => type.GetItemType() is TextDataViewType;
 
-        internal const string ExpectedColumnType = "Text";
+        internal const string ExpectedColumnType = "String or Vector of String";
 
         /// <summary>
         /// Tokenize incoming text in <paramref name="inputColumnName"/> and output the tokens as <paramref name="outputColumnName"/>.
@@ -439,11 +438,24 @@ namespace Microsoft.ML.Transforms.Text
           : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(WordTokenizingEstimator)), new WordTokenizingTransformer(env, columns))
         {
         }
-        public sealed class ColumnOptions
+        [BestFriend]
+        internal sealed class ColumnOptions
         {
+            /// <summary>
+            /// Output column name that will be used to store the tokenization result of <see cref="InputColumnName"/> column.
+            /// </summary>
             public readonly string Name;
+            /// <summary>
+            /// Input column name that will be tokenized into words.
+            /// </summary>
             public readonly string InputColumnName;
+            /// <summary>
+            /// Seperator list used to tokenize input string. If not specified, space will be used.
+            /// </summary>
             public IReadOnlyList<char> Separators => SeparatorsArray;
+            /// <summary>
+            /// State of <see cref="Separators"/>. Since <see langword="char"/>[] is multable, it's not safe to directly expose this field to users.
+            /// </summary>
             internal readonly char[] SeparatorsArray;
 
             /// <summary>

@@ -1,4 +1,4 @@
-maml.exe TrainTest test=%Data% tr=PKPD{p=AvgPer { lr=0.8 }} norm=No dout=%Output% data=%Data% out=%Output% seed=1
+maml.exe TrainTest test=%Data% tr=PKPD{p=AvgPer { lr=0.8 }} norm=No dout=%Output% data=%Data% out=%Output% seed=1 xf=Term{col=Label}
 Not adding a normalizer.
 Training learner (0,0)
 Training calibrator.
@@ -26,14 +26,14 @@ Precision ||1.0000 |1.0000 |0.9434 |
 Accuracy(micro-avg): 0.980000
 Accuracy(macro-avg): 0.980000
 Log-loss:           0.272667
-Log-loss reduction: 75.180769
+Log-loss reduction: 0.751808
 
 OVERALL RESULTS
 ---------------------------------------
 Accuracy(micro-avg): 0.980000 (0.0000)
 Accuracy(macro-avg): 0.980000 (0.0000)
 Log-loss:           0.272667 (0.0000)
-Log-loss reduction: 75.180769 (0.0000)
+Log-loss reduction: 0.751808 (0.0000)
 
 ---------------------------------------
 Physical memory usage(MB): %Number%

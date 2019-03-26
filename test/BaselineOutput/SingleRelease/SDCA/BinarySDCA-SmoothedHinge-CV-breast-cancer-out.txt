@@ -22,7 +22,7 @@ Precision ||   0.9420 |   0.9815 |
 OVERALL 0/1 ACCURACY: 0.966102
 LOG LOSS/instance:  0.129889
 Test-set entropy (prior Log-Loss/instance): 0.956998
-LOG-LOSS REDUCTION (RIG): 86.427410
+LOG-LOSS REDUCTION (RIG): 0.864274
 AUC:                0.994539
 Warning: The predictor produced non-finite prediction values on 8 instances during testing. Possible causes: abnormal data or the predictor is numerically unstable.
 TEST POSITIVE RATIO:	0.3191 (105.0/(105.0+224.0))
@@ -37,7 +37,7 @@ Precision ||   1.0000 |   0.7698 |
 OVERALL 0/1 ACCURACY: 0.796353
 LOG LOSS/instance:  0.126797
 Test-set entropy (prior Log-Loss/instance): 0.903454
-LOG-LOSS REDUCTION (RIG): 85.965336
+LOG-LOSS REDUCTION (RIG): 0.859653
 AUC:                0.996854
 
 OVERALL RESULTS
@@ -49,7 +49,7 @@ Positive recall:    0.666027 (0.3041)
 Negative precision: 0.875620 (0.1059)
 Negative recall:    0.981818 (0.0182)
 Log-loss:           0.128343 (0.0015)
-Log-loss reduction: 86.196373 (0.2310)
+Log-loss reduction: 0.861964 (0.0023)
 F1 Score:           0.743675 (0.2122)
 AUPRC:              0.991479 (0.0016)
 

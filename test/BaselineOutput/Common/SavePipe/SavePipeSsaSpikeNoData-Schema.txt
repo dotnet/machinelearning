@@ -1,0 +1,9 @@
+---- BoundLoader ----
+1 columns:
+  Features: Single
+---- SequentialDataTransform ----
+2 columns:
+  Features: Single
+  Anomaly: Vector<Double, 3>
+    Metadata 'SlotNames': Vector<String, 3>: Length=3, Count=3
+      [0] 'Alert', [1] 'Raw Score', [2] 'P-Value Score'

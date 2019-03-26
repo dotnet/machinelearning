@@ -1,0 +1,10 @@
+﻿<#@ include file="RegressionSamplesTemplate.ttinclude"#>
+
+<#+
+string ClassName="OnlineGradientDescent";
+string Trainer = "OnlineGradientDescent";
+string TrainerOptions = null;
+
+string ExpectedOutputPerInstance= @"// TODO #2425: OGD is missing baseline tests and seems numerically unstable";
+string ExpectedOutput = @"// TODO #2425: OGD is missing baseline tests and seems numerically unstable";
+#>

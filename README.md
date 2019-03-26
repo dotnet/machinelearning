@@ -65,22 +65,22 @@ For more information, see the [.NET Foundation Code of Conduct](https://dotnetfo
 
 ## Examples
 
-Here's an example of code to train a model to predict sentiment from text samples.
+Here is a snippet code for training a model to predict sentiment from text samples. You can find complete samples in [samples repo](https://github.com/dotnet/machinelearning-samples).
 
 ```C#
+var dataPath = "sentiment.csv";
 var mlContext = new MLContext();
 var loader = mlContext.Data.CreateTextLoader(new[]
-    {
-        new TextLoader.Column("SentimentText", DataKind.String, 1),
-        new TextLoader.Column("Label", DataKind.Boolean, 0),
-    },
-    hasHeader: true,
-    separatorChar: ',');
+	{
+		new TextLoader.Column("SentimentText", DataKind.String, 1),
+		new TextLoader.Column("Label", DataKind.Boolean, 0),
+	},
+	hasHeader: true,
+	separatorChar: ',');
 var data = loader.Load(dataPath);
 var learningPipeline = mlContext.Transforms.Text.FeaturizeText("Features", "SentimentText")
-        .Append(mlContext.BinaryClassification.Trainers.FastTree());
+		.Append(mlContext.BinaryClassification.Trainers.FastTree());
 var model = learningPipeline.Fit(data);
-
 ```
 
 Now from the model we can make inferences (predictions):

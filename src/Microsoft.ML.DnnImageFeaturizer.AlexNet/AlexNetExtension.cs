@@ -6,8 +6,10 @@ using System;
 using System.IO;
 using Microsoft.ML.Data;
 using Microsoft.ML.Runtime;
+using Microsoft.ML.Transforms;
+using Microsoft.ML.Transforms.Onnx;
 
-namespace Microsoft.ML.Transforms
+namespace Microsoft.ML
 {
     /// <summary>
     /// This is an extension method to be used with the <see cref="DnnImageFeaturizerEstimator"/> in order to use a pretrained AlexNet model.

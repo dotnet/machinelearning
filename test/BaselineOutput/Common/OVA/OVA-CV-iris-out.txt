@@ -1,4 +1,4 @@
-maml.exe CV tr=OVA{p=AvgPer{ lr=0.8 }} threads=- norm=No dout=%Output% data=%Data% seed=1
+maml.exe CV tr=OVA{p=AvgPer{ lr=0.8 }} threads=- norm=No dout=%Output% data=%Data% seed=1 xf=Term{col=Label}
 Not adding a normalizer.
 Training learner 0
 Training calibrator.
@@ -28,7 +28,7 @@ Precision ||1.0000 |1.0000 |0.7368 |
 Accuracy(micro-avg): 0.873418
 Accuracy(macro-avg): 0.888889
 Log-loss:           0.393949
-Log-loss reduction: 63.775293
+Log-loss reduction: 0.637753
 
 Confusion table
           ||========================
@@ -42,14 +42,14 @@ Precision ||1.0000 |1.0000 |0.9565 |
 Accuracy(micro-avg): 0.985915
 Accuracy(macro-avg): 0.983333
 Log-loss:           0.299620
-Log-loss reduction: 72.401815
+Log-loss reduction: 0.724018
 
 OVERALL RESULTS
 ---------------------------------------
 Accuracy(micro-avg): 0.929667 (0.0562)
 Accuracy(macro-avg): 0.936111 (0.0472)
 Log-loss:           0.346785 (0.0472)
-Log-loss reduction: 68.088554 (4.3133)
+Log-loss reduction: 0.680886 (0.0431)
 
 ---------------------------------------
 Physical memory usage(MB): %Number%

@@ -1,5 +1,4 @@
 ﻿using System;
-using Microsoft.Data.DataView;
 using Microsoft.ML.Data;
 
 namespace Microsoft.ML.Samples.Dynamic
@@ -57,14 +56,14 @@ namespace Microsoft.ML.Samples.Dynamic
 
             IDataView data = loader.Load(dataFilePath);
 
-            var split = ml.BinaryClassification.TrainTestSplit(data, testFraction: 0.2);
+            var split = ml.Data.TrainTestSplit(data, testFraction: 0.2);
 
             var pipeline = ml.Transforms.Concatenate("Text", "workclass", "education", "marital-status",
                     "relationship", "ethnicity", "sex", "native-country")
                 .Append(ml.Transforms.Text.FeaturizeText("TextFeatures", "Text"))
                 .Append(ml.Transforms.Concatenate("Features", "TextFeatures", "age", "fnlwgt",
                     "education-num", "capital-gain", "capital-loss", "hours-per-week"))
-                .Append(ml.BinaryClassification.Trainers.LogisticRegression());
+                .Append(ml.BinaryClassification.Trainers.LbfgsLogisticRegression());
 
             var model = pipeline.Fit(split.TrainSet);
 

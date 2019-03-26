@@ -17,8 +17,8 @@
       <_BranchName Condition="'$(_BranchName)' == ''">$(BUILD_SOURCEBRANCHNAME)</_BranchName>
     </PropertyGroup>
 
-    <Message Importance="high" Text="&quot;$(_ReportGeneratorPath)&quot; -reports:$(BaseOutputPath)$(PlatformConfig)\coverage\*.coverage -targetdir:$(BaseOutputPath)$(PlatformConfig)\coverage -reporttypes:Cobertura" />
-    <Exec Command="&quot;$(_ReportGeneratorPath)&quot; -reports:$(BaseOutputPath)$(PlatformConfig)\coverage\*.coverage -targetdir:$(BaseOutputPath)$(PlatformConfig)\coverage -reporttypes:Cobertura" />
+    <Message Importance="high" Text="&quot;$(_ReportGeneratorPath)&quot; -reports:$(BaseOutputPath)$(PlatformConfig)\coverage\*.coverage -targetdir:$(BaseOutputPath)$(PlatformConfig)\coverage -filefilters:+https*;+*.fs -reporttypes:Cobertura" />
+    <Exec Command="&quot;$(_ReportGeneratorPath)&quot; -reports:$(BaseOutputPath)$(PlatformConfig)\coverage\*.coverage -targetdir:$(BaseOutputPath)$(PlatformConfig)\coverage -filefilters:+https*;+*.fs -reporttypes:Cobertura" />
 
     <ItemGroup>
       <_CodecovArgs Include="-f;$(BaseOutputPath)$(PlatformConfig)\coverage\Cobertura.xml" />

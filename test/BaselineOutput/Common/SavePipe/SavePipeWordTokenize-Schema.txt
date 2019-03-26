@@ -1,22 +1,22 @@
 ---- BoundLoader ----
 2 columns:
-  A: Text
-  B: Text
+  A: String
+  B: String
 ---- RowToRowMapperTransform ----
 4 columns:
-  A: Text
-  B: Text
-  C: Vec<Text>
-  D: Vec<Text>
+  A: String
+  B: String
+  C: Vector<String>
+  D: Vector<String>
 ---- RowToRowMapperTransform ----
 5 columns:
-  A: Text
-  B: Text
-  C: Vec<Text>
-  D: Vec<Text>
-  Concat: Vec<Text>
+  A: String
+  B: String
+  C: Vector<String>
+  D: Vector<String>
+  Concat: Vector<String>
 ---- SelectColumnsDataTransform ----
 3 columns:
-  A: Text
-  B: Text
-  Concat: Vec<Text>
+  A: String
+  B: String
+  Concat: Vector<String>

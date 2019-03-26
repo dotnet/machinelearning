@@ -22,7 +22,7 @@ namespace Microsoft.ML.Samples.Dynamic.PermutationFeatureImportance
             // Then append a logistic regression trainer.
             var pipeline = mlContext.Transforms.Concatenate("Features", featureNames)
                     .Append(mlContext.Transforms.Normalize("Features"))
-                    .Append(mlContext.BinaryClassification.Trainers.LogisticRegression(
+                    .Append(mlContext.BinaryClassification.Trainers.LbfgsLogisticRegression(
                         labelColumnName: labelName, featureColumnName: "Features"));
             var model = pipeline.Fit(data);
 
@@ -35,7 +35,7 @@ namespace Microsoft.ML.Samples.Dynamic.PermutationFeatureImportance
             // Compute the permutation metrics using the properly normalized data.
             var transformedData = model.Transform(data);
             var permutationMetrics = mlContext.BinaryClassification.PermutationFeatureImportance(
-                linearPredictor, transformedData, label: labelName, features: "Features", permutationCount: 3);
+                linearPredictor, transformedData, labelColumnName: labelName, permutationCount: 3);
 
             // Now let's look at which features are most important to the model overall.
             // Get the feature indices sorted by their impact on AreaUnderRocCurve.

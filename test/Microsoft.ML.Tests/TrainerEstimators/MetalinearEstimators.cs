@@ -19,13 +19,13 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         [Fact]
         public void OVAWithAllConstructorArgs()
         {
-            var (pipeline, data) = GetMultiClassPipeline();
+            var (pipeline, data) = GetMulticlassPipeline();
             var calibrator = new PlattCalibratorEstimator(Env);
             var averagePerceptron = ML.BinaryClassification.Trainers.AveragedPerceptron(
                 new AveragedPerceptronTrainer.Options { Shuffle = true });
 
             var ova = ML.MulticlassClassification.Trainers.OneVersusAll(averagePerceptron, imputeMissingLabelsAsNegative: true,
-                calibrator: calibrator, maxCalibrationExamples: 10000, useProbabilities: true);
+                calibrator: calibrator, maximumCalibrationExampleCount: 10000, useProbabilities: true);
 
             pipeline = pipeline.Append(ova)
                     .Append(new KeyToValueMappingEstimator(Env, "PredictedLabel"));
@@ -40,8 +40,8 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         [Fact]
         public void OVAUncalibrated()
         {
-            var (pipeline, data) = GetMultiClassPipeline();
-            var sdcaTrainer = ML.BinaryClassification.Trainers.StochasticDualCoordinateAscentNonCalibrated(
+            var (pipeline, data) = GetMulticlassPipeline();
+            var sdcaTrainer = ML.BinaryClassification.Trainers.SdcaNonCalibrated(
                 new SdcaNonCalibratedBinaryTrainer.Options { MaximumNumberOfIterations = 100, Shuffle = true, NumberOfThreads = 1 });
 
             pipeline = pipeline.Append(ML.MulticlassClassification.Trainers.OneVersusAll(sdcaTrainer, useProbabilities: false))
@@ -57,9 +57,9 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         [Fact]
         public void PairwiseCouplingTrainer()
         {
-            var (pipeline, data) = GetMultiClassPipeline();
+            var (pipeline, data) = GetMulticlassPipeline();
 
-            var sdcaTrainer = ML.BinaryClassification.Trainers.StochasticDualCoordinateAscentNonCalibrated(
+            var sdcaTrainer = ML.BinaryClassification.Trainers.SdcaNonCalibrated(
                 new SdcaNonCalibratedBinaryTrainer.Options { MaximumNumberOfIterations = 100, Shuffle = true, NumberOfThreads = 1 });
 
             pipeline = pipeline.Append(ML.MulticlassClassification.Trainers.PairwiseCoupling(sdcaTrainer))
@@ -82,7 +82,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
 
             var data = loader.Load(GetDataPath(TestDatasets.irisData.trainFilename));
 
-            var sdcaTrainer = ML.BinaryClassification.Trainers.StochasticDualCoordinateAscentNonCalibrated(
+            var sdcaTrainer = ML.BinaryClassification.Trainers.SdcaNonCalibrated(
                 new SdcaNonCalibratedBinaryTrainer.Options {
                     LabelColumnName = "Label",
                     FeatureColumnName = "Vars",
