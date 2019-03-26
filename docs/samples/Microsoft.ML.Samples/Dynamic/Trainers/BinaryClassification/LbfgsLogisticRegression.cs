@@ -5,7 +5,7 @@ using Microsoft.ML.Data;
 
 namespace Microsoft.ML.Samples.Dynamic.Trainers.BinaryClassification
 {
-    public static class LogisticRegression
+    public static class LbfgsLogisticRegression
     {
         public static void Example()
         {
@@ -44,22 +44,22 @@ namespace Microsoft.ML.Samples.Dynamic.Trainers.BinaryClassification
             //   Label: False, Prediction: True
             //   Label: True, Prediction: True
             //   Label: True, Prediction: True
-            //   Label: False, Prediction: True
+            //   Label: False, Prediction: False
             
             // Evaluate the overall metrics
             var metrics = mlContext.BinaryClassification.Evaluate(transformedTestData);
             SamplesUtils.ConsoleUtils.PrintMetrics(metrics);
             
             // Expected output:
-            //   Accuracy: 0.64
-            //   AUC: 0.70
-            //   F1 Score: 0.63
-            //   Negative Precision: 0.67
-            //   Negative Recall: 0.63
-            //   Positive Precision: 0.62
-            //   Positive Recall: 0.65
-            //   Log Loss: 0.90
-            //   Log Loss Reduction: 0.09
+            //   Accuracy: 0.88
+            //   AUC: 0.96
+            //   F1 Score: 0.87
+            //   Negative Precision: 0.90
+            //   Negative Recall: 0.87
+            //   Positive Precision: 0.86
+            //   Positive Recall: 0.89
+            //   Log Loss: 0.38
+            //   Log Loss Reduction: 0.62
             //   Entropy: 1.00
         }
 
@@ -75,7 +75,7 @@ namespace Microsoft.ML.Samples.Dynamic.Trainers.BinaryClassification
                     Label = label,
                     // Create random features that are correlated with the label.
                     // For data points with false label, the feature values are slightly increased by adding a constant.
-                    Features = Enumerable.Repeat(label, 50).Select(x => x ? randomFloat() : randomFloat() + 0.03f).ToArray()
+                    Features = Enumerable.Repeat(label, 50).Select(x => x ? randomFloat() : randomFloat() + 0.1f).ToArray()
                 };
             }
         }

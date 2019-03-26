@@ -72,7 +72,7 @@ namespace Microsoft.ML.Samples.Dynamic.Trainers.BinaryClassification
                     Label = label,
                     // Create random features that are correlated with the label.
                     // For data points with false label, the feature values are slightly increased by adding a constant.
-                    Features = Enumerable.Repeat(label, 50).Select(x => x ? randomFloat() : randomFloat() + 0.03f).ToArray()
+                    Features = Enumerable.Repeat(label, 50).Select(x => x ? randomFloat() : randomFloat() + <#=DataSepValue#>).ToArray()
                 };
             }
         }

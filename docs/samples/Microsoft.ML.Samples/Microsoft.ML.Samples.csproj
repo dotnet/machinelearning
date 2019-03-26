@@ -46,15 +46,15 @@
       <AutoGen>True</AutoGen>
       <DependentUpon>FastTreeWithOptions.tt</DependentUpon>
     </None>
-    <None Include="Dynamic\Trainers\BinaryClassification\LogisticRegression.cs">
+    <None Include="Dynamic\Trainers\BinaryClassification\LbfgsLogisticRegression.cs">
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
-      <DependentUpon>LogisticRegression.tt</DependentUpon>
+      <DependentUpon>LbfgsLogisticRegression.tt</DependentUpon>
     </None>
-    <None Include="Dynamic\Trainers\BinaryClassification\LogisticRegressionWithOptions.cs">
+    <None Include="Dynamic\Trainers\BinaryClassification\LbfgsLogisticRegressionWithOptions.cs">
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
-      <DependentUpon>LogisticRegressionWithOptions.tt</DependentUpon>
+      <DependentUpon>LbfgsLogisticRegressionWithOptions.tt</DependentUpon>
     </None>
     <PackageReference Include="Microsoft.ML.TensorFlow.Redist" Version="0.10.0" />
     
@@ -82,13 +82,13 @@
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>FastTreeWithOptions.cs</LastGenOutput>
     </None>
-    <None Update="Dynamic\Trainers\BinaryClassification\LogisticRegressionWithOptions.tt">
-      <LastGenOutput>LogisticRegressionWithOptions.cs</LastGenOutput>
+    <None Update="Dynamic\Trainers\BinaryClassification\LbfgsLogisticRegressionWithOptions.tt">
+      <LastGenOutput>LbfgsLogisticRegressionWithOptions.cs</LastGenOutput>
       <Generator>TextTemplatingFileGenerator</Generator>
     </None>
-    <None Update="Dynamic\Trainers\BinaryClassification\LogisticRegression.tt">
+    <None Update="Dynamic\Trainers\BinaryClassification\LbfgsLogisticRegression.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
-      <LastGenOutput>LogisticRegression.cs</LastGenOutput>
+      <LastGenOutput>LbfgsLogisticRegression.cs</LastGenOutput>
     </None>
     <None Update="Dynamic\Trainers\Regression\OnlineGradientDescent.tt">
       <LastGenOutput>OnlineGradientDescent.cs</LastGenOutput>
@@ -133,15 +133,15 @@
       <AutoGen>True</AutoGen>
       <DependentUpon>FastTreeWithOptions.tt</DependentUpon>
     </Compile>
-    <Compile Update="Dynamic\Trainers\BinaryClassification\LogisticRegression.cs">
+    <Compile Update="Dynamic\Trainers\BinaryClassification\LbfgsLogisticRegression.cs">
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
-      <DependentUpon>LogisticRegression.tt</DependentUpon>
+      <DependentUpon>LbfgsLogisticRegression.tt</DependentUpon>
     </Compile>
-    <Compile Update="Dynamic\Trainers\BinaryClassification\LogisticRegressionWithOptions.cs">
+    <Compile Update="Dynamic\Trainers\BinaryClassification\LbfgsLogisticRegressionWithOptions.cs">
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
-      <DependentUpon>LogisticRegressionWithOptions.tt</DependentUpon>
+      <DependentUpon>LbfgsLogisticRegressionWithOptions.tt</DependentUpon>
     </Compile>
     <Compile Update="Dynamic\Trainers\Regression\OnlineGradientDescent.cs">
       <DesignTime>True</DesignTime>
