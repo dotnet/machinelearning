@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.ML.EntryPoints;
+using Microsoft.ML.Runtime;
 using Microsoft.ML.Trainers.Ensemble;
 
 [assembly: EntryPointModule(typeof(AverageFactory))]
@@ -44,6 +45,6 @@ namespace Microsoft.ML.Trainers.Ensemble
     [TlcModule.Component(Name = MultiVoting.LoadName, FriendlyName = Voting.UserName)]
     internal sealed class MultiVotingFactory : ISupportMulticlassOutputCombinerFactory
     {
-        public IMultiClassOutputCombiner CreateComponent(IHostEnvironment env) => new MultiVoting(env);
+        public IMulticlassOutputCombiner CreateComponent(IHostEnvironment env) => new MultiVoting(env);
     }
 }

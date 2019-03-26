@@ -7,9 +7,9 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using Microsoft.Data.DataView;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Model;
+using Microsoft.ML.Runtime;
 
 namespace Microsoft.ML.Data
 {
@@ -43,6 +43,57 @@ namespace Microsoft.ML.Data
                 ? InternalSchemaDefinition.Create(typeof(TRow), SchemaDefinition.Direction.Read)
                 : InternalSchemaDefinition.Create(typeof(TRow), schemaDefinition);
             return new StreamingDataView<TRow>(env, data, internalSchemaDefn);
+        }
+
+        public static StreamingDataView<TRow> CreateFromEnumerable<TRow>(IHostEnvironment env, IEnumerable<TRow> data,
+            DataViewSchema schema)
+            where TRow : class
+        {
+            Contracts.AssertValue(env);
+            env.AssertValue(data);
+            env.AssertValueOrNull(schema);
+            schema = schema ?? new DataViewSchema.Builder().ToSchema();
+            return new StreamingDataView<TRow>(env, data, GetInternalSchemaDefinition<TRow>(env, schema));
+        }
+
+        internal static SchemaDefinition GetSchemaDefinition<TRow>(IHostEnvironment env, DataViewSchema schema)
+        {
+            Contracts.AssertValue(env);
+            env.AssertValue(schema);
+
+            var schemaDefinition = SchemaDefinition.Create(typeof(TRow), SchemaDefinition.Direction.Read);
+            foreach (var col in schema)
+            {
+                var name = col.Name;
+                var schemaDefinitionCol = schemaDefinition.FirstOrDefault(c => c.ColumnName == name);
+                if (schemaDefinitionCol == null)
+                    throw env.Except($"Type should contain a member named {name}");
+                var annotations = col.Annotations;
+                if (annotations != null)
+                {
+                    foreach (var annotation in annotations.Schema)
+                    {
+                        var info = Utils.MarshalInvoke(GetAnnotationInfo<int>, annotation.Type.RawType, annotation.Name, annotations);
+                        schemaDefinitionCol.AddAnnotation(annotation.Name , info);
+                    }
+                }
+            }
+            return schemaDefinition;
+        }
+
+        private static InternalSchemaDefinition GetInternalSchemaDefinition<TRow>(IHostEnvironment env, DataViewSchema schema)
+            where TRow : class
+        {
+            Contracts.AssertValue(env);
+            env.AssertValue(schema);
+            return InternalSchemaDefinition.Create(typeof(TRow), GetSchemaDefinition<TRow>(env, schema));
+        }
+
+        private static AnnotationInfo GetAnnotationInfo<T>(string kind, DataViewSchema.Annotations annotations)
+        {
+            T value = default;
+            annotations.GetValue(kind, ref value);
+            return new AnnotationInfo<T>(kind, value, annotations.Schema[kind].Type);
         }
 
         public static InputRow<TRow> CreateInputRow<TRow>(IHostEnvironment env, SchemaDefinition schemaDefinition = null)
@@ -166,7 +217,7 @@ namespace Microsoft.ML.Data
 
                 if (outputType.IsArray)
                 {
-                    VectorType vectorType = colType as VectorType;
+                    VectorDataViewType vectorType = colType as VectorDataViewType;
                     Host.Assert(vectorType != null);
 
                     // String[] -> ReadOnlyMemory<char>
@@ -184,7 +235,7 @@ namespace Microsoft.ML.Data
                     del = CreateDirectArrayGetterDelegate<int>;
                     genericType = outputType.GetElementType();
                 }
-                else if (colType is VectorType vectorType)
+                else if (colType is VectorDataViewType vectorType)
                 {
                     // VBuffer<T> -> VBuffer<T>
                     // REVIEW: Do we care about accomodating VBuffer<string> -> ReadOnlyMemory<char>?
@@ -209,7 +260,7 @@ namespace Microsoft.ML.Data
                     else
                         Host.Assert(colType.RawType == outputType);
 
-                    if (!(colType is KeyType keyType))
+                    if (!(colType is KeyDataViewType keyType))
                         del = CreateDirectGetterDelegate<int>;
                     else
                     {
@@ -299,7 +350,7 @@ namespace Microsoft.ML.Data
             private Delegate CreateKeyGetterDelegate<TDst>(Delegate peekDel, DataViewType colType)
             {
                 // Make sure the function is dealing with key.
-                KeyType keyType = colType as KeyType;
+                KeyDataViewType keyType = colType as KeyDataViewType;
                 Host.Check(keyType != null);
                 // Following equations work only with unsigned integers.
                 Host.Check(typeof(TDst) == typeof(ulong) || typeof(TDst) == typeof(uint) ||
@@ -328,10 +379,13 @@ namespace Microsoft.ML.Data
 
             protected abstract TRow GetCurrentRowObject();
 
-            public override bool IsColumnActive(int col)
+            /// <summary>
+            /// Returns whether the given column is active in this row.
+            /// </summary>
+            public override bool IsColumnActive(DataViewSchema.Column column)
             {
-                CheckColumnInRange(col);
-                return _getters[col] != null;
+                CheckColumnInRange(column.Index);
+                return _getters[column.Index] != null;
             }
 
             private void CheckColumnInRange(int columnIndex)
@@ -340,15 +394,22 @@ namespace Microsoft.ML.Data
                     throw Host.Except("Column index must be between 0 and {0}", _colCount);
             }
 
-            public override ValueGetter<TValue> GetGetter<TValue>(int col)
+            /// <summary>
+            /// Returns a value getter delegate to fetch the value of column with the given columnIndex, from the row.
+            /// This throws if the column is not active in this row, or if the type
+            /// <typeparamref name="TValue"/> differs from this column's type.
+            /// </summary>
+            /// <typeparam name="TValue"> is the column's content type.</typeparam>
+            /// <param name="column"> is the output column whose getter should be returned.</param>
+            public override ValueGetter<TValue> GetGetter<TValue>(DataViewSchema.Column column)
             {
-                if (!IsColumnActive(col))
-                    throw Host.Except("Column {0} is not active in the cursor", col);
-                var getter = _getters[col];
+                Host.CheckParam(column.Index <= _getters.Length && IsColumnActive(column), nameof(column), "requested column not active");
+
+                var getter = _getters[column.Index];
                 Contracts.AssertValue(getter);
                 var fn = getter as ValueGetter<TValue>;
                 if (fn == null)
-                    throw Host.Except("Invalid TValue in GetGetter for column #{0}: '{1}'", col, typeof(TValue));
+                    throw Host.Except("Invalid TValue in GetGetter for column #{0}: '{1}'", column, typeof(TValue));
                 return fn;
             }
         }
@@ -417,10 +478,22 @@ namespace Microsoft.ML.Data
                         _toWrap.Dispose();
                 }
 
-                public override ValueGetter<TValue> GetGetter<TValue>(int col)
-                    => _toWrap.GetGetter<TValue>(col);
+                /// <summary>
+                /// Returns a value getter delegate to fetch the value of column with the given columnIndex, from the row.
+                /// This throws if the column is not active in this row, or if the type
+                /// <typeparamref name="TValue"/> differs from this column's type.
+                /// </summary>
+                /// <typeparam name="TValue"> is the column's content type.</typeparam>
+                /// <param name="column"> is the output column whose getter should be returned.</param>
+                public override ValueGetter<TValue> GetGetter<TValue>(DataViewSchema.Column column)
+                    => _toWrap.GetGetter<TValue>(column);
+
                 public override ValueGetter<DataViewRowId> GetIdGetter() => _toWrap.GetIdGetter();
-                public override bool IsColumnActive(int col) => _toWrap.IsColumnActive(col);
+
+                /// <summary>
+                /// Returns whether the given column is active in this row.
+                /// </summary>
+                public override bool IsColumnActive(DataViewSchema.Column column) => _toWrap.IsColumnActive(column);
                 public override bool MoveNext() => _toWrap.MoveNext();
             }
 
@@ -604,7 +677,7 @@ namespace Microsoft.ML.Data
             public override DataViewRowCursor GetRowCursor(IEnumerable<DataViewSchema.Column> columnsNeeded, Random rand = null)
             {
                 var predicate = RowCursorUtils.FromColumnsToPredicate(columnsNeeded, Schema);
-                return new WrappedCursor (new Cursor(Host, this, predicate));
+                return new WrappedCursor(new Cursor(Host, this, predicate));
             }
 
             private sealed class Cursor : DataViewCursorBase
@@ -674,7 +747,7 @@ namespace Microsoft.ML.Data
             {
                 Contracts.Assert(_current != null, "The current object must be set prior to cursoring");
                 var predicate = RowCursorUtils.FromColumnsToPredicate(columnsNeeded, Schema);
-                return new WrappedCursor (new Cursor(Host, this, predicate));
+                return new WrappedCursor(new Cursor(Host, this, predicate));
             }
 
             private sealed class Cursor : DataViewCursorBase
@@ -724,7 +797,7 @@ namespace Microsoft.ML.Data
     /// <summary>
     /// A single instance of annotation information, associated with a column.
     /// </summary>
-    public abstract partial class AnnotationInfo
+    internal abstract partial class AnnotationInfo
     {
         /// <summary>
         /// The type of the annotation.
@@ -753,7 +826,7 @@ namespace Microsoft.ML.Data
     /// Strongly-typed version of <see cref="AnnotationInfo"/>, that contains the actual value of the annotation.
     /// </summary>
     /// <typeparam name="T">Type of the annotation value.</typeparam>
-    public sealed class AnnotationInfo<T> : AnnotationInfo
+    internal sealed class AnnotationInfo<T> : AnnotationInfo
     {
         public readonly T Value;
 
@@ -776,12 +849,12 @@ namespace Microsoft.ML.Data
             {
                 // Infer a type as best we can.
                 var primitiveItemType = ColumnTypeExtensions.PrimitiveTypeFromType(itemType);
-                annotationType = isVector ? new VectorType(primitiveItemType) : (DataViewType)primitiveItemType;
+                annotationType = isVector ? new VectorDataViewType(primitiveItemType) : (DataViewType)primitiveItemType;
             }
             else
             {
                 // Make sure that the types are compatible with the declared type, including whether it is a vector type.
-                VectorType annotationVectorType = annotationType as VectorType;
+                VectorDataViewType annotationVectorType = annotationType as VectorDataViewType;
                 bool annotationIsVector = annotationVectorType != null;
                 if (isVector != annotationIsVector)
                 {
@@ -806,7 +879,7 @@ namespace Microsoft.ML.Data
             var typeT = typeof(T);
             if (typeT.IsArray)
             {
-                Contracts.Assert(AnnotationType is VectorType);
+                Contracts.Assert(AnnotationType is VectorDataViewType);
                 Contracts.Check(typeof(TDst).IsGenericType && typeof(TDst).GetGenericTypeDefinition() == typeof(VBuffer<>));
                 var itemType = typeT.GetElementType();
                 var dstItemType = typeof(TDst).GetGenericArguments()[0];
@@ -828,7 +901,7 @@ namespace Microsoft.ML.Data
                 return srcMethod.GetMethodInfo().GetGenericMethodDefinition().MakeGenericMethod(dstItemType)
                     .Invoke(this, new object[] { }) as ValueGetter<TDst>;
             }
-            if (AnnotationType is VectorType annotationVectorType)
+            if (AnnotationType is VectorDataViewType annotationVectorType)
             {
                 // VBuffer<T> -> VBuffer<T>
                 // REVIEW: Do we care about accomodating VBuffer<string> -> VBuffer<ReadOnlyMemory<char>>?

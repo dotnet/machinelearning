@@ -10,6 +10,7 @@ using Microsoft.ML;
 using Microsoft.ML.Data;
 using Microsoft.ML.Model;
 using Microsoft.ML.RunTests;
+using Microsoft.ML.Runtime;
 using Microsoft.ML.StaticPipe;
 using Microsoft.ML.TestFramework.Attributes;
 using Microsoft.ML.Tools;
@@ -100,7 +101,7 @@ namespace Microsoft.ML.Tests
             var xyData = new List<TestDataXY> { new TestDataXY() { A = new float[inputSize] } };
             var stringData = new List<TestDataDifferntType> { new TestDataDifferntType() { data_0 = new string[inputSize] } };
             var sizeData = new List<TestDataSize> { new TestDataSize() { data_0 = new float[2] } };
-            var pipe = ML.Transforms.ApplyOnnxModel(modelFile, new[] { "softmaxout_1" }, new[] { "data_0" });
+            var pipe = ML.Transforms.ApplyOnnxModel(new[] { "softmaxout_1" }, new[] { "data_0" }, modelFile);
 
             var invalidDataWrongNames = ML.Data.LoadFromEnumerable(xyData);
             var invalidDataWrongTypes = ML.Data.LoadFromEnumerable(stringData);
@@ -136,7 +137,7 @@ namespace Microsoft.ML.Tests
 
             var inputNames = new[] { "data_0" };
             var outputNames = new[] { "softmaxout_1" };
-            var est = ML.Transforms.ApplyOnnxModel(modelFile, outputNames, inputNames, gpuDeviceId, fallbackToCpu);
+            var est = ML.Transforms.ApplyOnnxModel(outputNames, inputNames, modelFile, gpuDeviceId, fallbackToCpu);
             var transformer = est.Fit(dataView);
             var result = transformer.Transform(dataView);
             var resultRoles = new RoleMappedData(result);
@@ -146,12 +147,12 @@ namespace Microsoft.ML.Tests
                 ms.Position = 0;
                 var loadedView = ModelFileUtils.LoadTransforms(Env, dataView, ms);
 
-                loadedView.Schema.TryGetColumnIndex(outputNames[0], out int softMaxOut1);
+                var sofMaxOut1Col = loadedView.Schema[outputNames[0]];
 
-                using (var cursor = loadedView.GetRowCursor(loadedView.Schema[softMaxOut1]))
+                using (var cursor = loadedView.GetRowCursor(sofMaxOut1Col))
                 {
                     VBuffer<float> softMaxValue = default;
-                    var softMaxGetter = cursor.GetGetter<VBuffer<float>>(softMaxOut1);
+                    var softMaxGetter = cursor.GetGetter<VBuffer<float>>(sofMaxOut1Col);
                     float sum = 0f;
                     int i = 0;
                     while (cursor.MoveNext())
@@ -201,12 +202,12 @@ namespace Microsoft.ML.Tests
             TestEstimatorCore(pipe.AsDynamic, data.AsDynamic);
 
             var result = pipe.Fit(data).Transform(data).AsDynamic;
-            result.Schema.TryGetColumnIndex("softmaxout_1", out int output);
+            var softmaxOutCol = result.Schema["softmaxout_1"];
 
-            using (var cursor = result.GetRowCursor(result.Schema["softmaxout_1"]))
+            using (var cursor = result.GetRowCursor(softmaxOutCol))
             {
                 var buffer = default(VBuffer<float>);
-                var getter = cursor.GetGetter<VBuffer<float>>(output);
+                var getter = cursor.GetGetter<VBuffer<float>>(softmaxOutCol);
                 var numRows = 0;
                 while (cursor.MoveNext())
                 {
@@ -240,13 +241,12 @@ namespace Microsoft.ML.Tests
                     }
                 });
 
-            var onnx = ML.Transforms.ApplyOnnxModel(modelFile, "softmaxout_1", "data_0").Fit(dataView).Transform(dataView);
+            var onnx = ML.Transforms.ApplyOnnxModel("softmaxout_1", "data_0", modelFile).Fit(dataView).Transform(dataView);
+            var scoreCol = onnx.Schema["softmaxout_1"];
 
-            onnx.Schema.TryGetColumnIndex("softmaxout_1", out int score);
-
-            using (var curs = onnx.GetRowCursor(onnx.Schema["softmaxout_1"]))
+            using (var curs = onnx.GetRowCursor(scoreCol))
             {
-                var getScores = curs.GetGetter<VBuffer<float>>(score);
+                var getScores = curs.GetGetter<VBuffer<float>>(scoreCol);
                 var buffer = default(VBuffer<float>);
                 while (curs.MoveNext())
                 {
@@ -271,14 +271,14 @@ namespace Microsoft.ML.Tests
                         inb = new float[] {1,2,3,4,5}
                     }
                 });
-            var onnx = ML.Transforms.ApplyOnnxModel(modelFile, new[] { "outa", "outb" }, new[] { "ina", "inb" }).Fit(dataView).Transform(dataView);
+            var onnx = ML.Transforms.ApplyOnnxModel(new[] { "outa", "outb" }, new[] { "ina", "inb" }, modelFile).Fit(dataView).Transform(dataView);
 
-            onnx.Schema.TryGetColumnIndex("outa", out int scoresa);
-            onnx.Schema.TryGetColumnIndex("outb", out int scoresb);
-            using (var curs = onnx.GetRowCursor(onnx.Schema["outa"], onnx.Schema["outb"]))
+            var outaCol = onnx.Schema["outa"];
+            var outbCol = onnx.Schema["outb"];
+            using (var curs = onnx.GetRowCursor(outaCol, onnx.Schema["outb"]))
             {
-                var getScoresa = curs.GetGetter<VBuffer<float>>(scoresa);
-                var getScoresb = curs.GetGetter<VBuffer<float>>(scoresb);
+                var getScoresa = curs.GetGetter<VBuffer<float>>(outaCol);
+                var getScoresb = curs.GetGetter<VBuffer<float>>(outbCol);
                 var buffera = default(VBuffer<float>);
                 var bufferb = default(VBuffer<float>);
 

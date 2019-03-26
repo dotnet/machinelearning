@@ -10,6 +10,7 @@
 
 using Microsoft.ML;
 using Microsoft.ML.Data;
+using Microsoft.ML.Runtime;
 using Microsoft.ML.StaticPipe;
 
 namespace Microsoft.ML.StaticPipe

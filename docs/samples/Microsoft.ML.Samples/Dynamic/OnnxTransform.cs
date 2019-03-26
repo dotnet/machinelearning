@@ -2,7 +2,6 @@ using System;
 using System.Linq;
 using Microsoft.ML.Data;
 using Microsoft.ML.OnnxRuntime;
-using Microsoft.ML.Transforms;
 
 namespace Microsoft.ML.Samples.Dynamic
 {
@@ -35,7 +34,7 @@ namespace Microsoft.ML.Samples.Dynamic
             var mlContext = new MLContext();
             var data = GetTensorData();
             var idv = mlContext.Data.LoadFromEnumerable(data);
-            var pipeline = mlContext.Transforms.ApplyOnnxModel(modelPath, new[] { outputInfo.Key }, new[] { inputInfo.Key });
+            var pipeline = mlContext.Transforms.ApplyOnnxModel(new[] { outputInfo.Key }, new[] { inputInfo.Key }, modelPath);
 
             // Run the pipeline and get the transformed values
             var transformedValues = pipeline.Fit(idv).Transform(idv);

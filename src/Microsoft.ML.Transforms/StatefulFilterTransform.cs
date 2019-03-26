@@ -6,8 +6,8 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using Microsoft.Data.DataView;
 using Microsoft.ML.Data;
+using Microsoft.ML.Runtime;
 
 namespace Microsoft.ML.Transforms
 {
@@ -226,24 +226,34 @@ namespace Microsoft.ML.Transforms
 
             public override DataViewSchema Schema => _parent._bindings.Schema;
 
-            public override bool IsColumnActive(int col)
+            /// <summary>
+            /// Returns whether the given column is active in this row.
+            /// </summary>
+            public override bool IsColumnActive(DataViewSchema.Column column)
             {
-                Contracts.CheckParam(0 <= col && col < Schema.Count, nameof(col));
+                Contracts.CheckParam(column.Index < Schema.Count, nameof(column));
                 bool isSrc;
-                int iCol = _parent._bindings.MapColumnIndex(out isSrc, col);
+                int iCol = _parent._bindings.MapColumnIndex(out isSrc, column.Index);
                 if (isSrc)
-                    return _input.IsColumnActive(iCol);
-                return _appendedRow.IsColumnActive(iCol);
+                    return _input.IsColumnActive(_input.Schema[iCol]);
+                return _appendedRow.IsColumnActive(_appendedRow.Schema[iCol]);
             }
 
-            public override ValueGetter<TValue> GetGetter<TValue>(int col)
+            /// <summary>
+            /// Returns a value getter delegate to fetch the value of column with the given columnIndex, from the row.
+            /// This throws if the column is not active in this row, or if the type
+            /// <typeparamref name="TValue"/> differs from this column's type.
+            /// </summary>
+            /// <typeparam name="TValue"> is the column's content type.</typeparam>
+            /// <param name="column"> is the output column whose getter should be returned.</param>
+            public override ValueGetter<TValue> GetGetter<TValue>(DataViewSchema.Column column)
             {
-                Contracts.CheckParam(0 <= col && col < Schema.Count, nameof(col));
+                Contracts.CheckParam(column.Index < Schema.Count, nameof(column));
                 bool isSrc;
-                int iCol = _parent._bindings.MapColumnIndex(out isSrc, col);
+                int iCol = _parent._bindings.MapColumnIndex(out isSrc, column.Index);
                 return isSrc ?
-                    _input.GetGetter<TValue>(iCol)
-                    : _appendedRow.GetGetter<TValue>(iCol);
+                    _input.GetGetter<TValue>(_input.Schema[iCol])
+                    : _appendedRow.GetGetter<TValue>(_appendedRow.Schema[iCol]);
             }
         }
     }

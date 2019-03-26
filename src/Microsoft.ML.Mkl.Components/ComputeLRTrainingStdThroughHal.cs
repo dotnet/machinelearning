@@ -5,11 +5,12 @@
 using System;
 using Microsoft.ML.Data;
 using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Runtime;
 using Microsoft.ML.Trainers;
 
 namespace Microsoft.ML.Trainers
 {
-    using MklOls = OrdinaryLeastSquaresRegressionTrainer.Mkl;
+    using MklOls = OlsTrainer.Mkl;
 
     public sealed class ComputeLRTrainingStdThroughMkl : ComputeLogisticRegressionStandardDeviation
     {

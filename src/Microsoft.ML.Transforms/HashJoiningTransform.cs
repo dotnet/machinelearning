@@ -7,12 +7,12 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Threading;
-using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
 using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Runtime;
 using Microsoft.ML.Transforms;
 
 [assembly: LoadableClass(HashJoiningTransform.Summary, typeof(HashJoiningTransform), typeof(HashJoiningTransform.Arguments), typeof(SignatureDataTransform),
@@ -39,7 +39,7 @@ namespace Microsoft.ML.Transforms
         private static class Defaults
         {
             public const bool Join = true;
-            public const int HashBits = NumBitsLim - 1;
+            public const int NumberOfBits = NumBitsLim - 1;
             public const uint Seed = 314489979;
             public const bool Ordered = true;
         }
@@ -57,7 +57,7 @@ namespace Microsoft.ML.Transforms
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Number of bits to hash into. Must be between 1 and 31, inclusive.",
                 ShortName = "bits", SortOrder = 2)]
-            public int HashBits = Defaults.HashBits;
+            public int NumberOfBits = Defaults.NumberOfBits;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Hashing seed")]
             public uint Seed = Defaults.Seed;
@@ -77,7 +77,7 @@ namespace Microsoft.ML.Transforms
             public string CustomSlotMap;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Number of bits to hash into. Must be between 1 and 31, inclusive.", ShortName = "bits")]
-            public int? HashBits;
+            public int? NumberOfBits;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Hashing seed")]
             public uint? Seed;
@@ -96,7 +96,7 @@ namespace Microsoft.ML.Transforms
             internal bool TryUnparse(StringBuilder sb)
             {
                 Contracts.AssertValue(sb);
-                if (Join != null || !string.IsNullOrEmpty(CustomSlotMap) || HashBits != null ||
+                if (Join != null || !string.IsNullOrEmpty(CustomSlotMap) || NumberOfBits != null ||
                     Seed != null || Ordered != null)
                 {
                     return false;
@@ -105,7 +105,8 @@ namespace Microsoft.ML.Transforms
             }
         }
 
-        public sealed class ColumnOptions
+        [BestFriend]
+        internal sealed class ColumnOptions
         {
             // Either VBuffer<Key<U4>> or a single Key<U4>.
             // Note that if CustomSlotMap contains only one array, the output type of the transform will a single Key<U4>.
@@ -113,7 +114,7 @@ namespace Microsoft.ML.Transforms
             // If # of hash bits is less than 31, the key type will have a positive count.
             public readonly DataViewType OutputColumnType;
 
-            public readonly int HashBits;
+            public readonly int NumberOfBits;
             public readonly uint HashSeed;
             public readonly bool Ordered;
             public readonly int[][] SlotMap; // null if the input is a single column
@@ -123,30 +124,30 @@ namespace Microsoft.ML.Transforms
                 get { return OutputColumnType.GetValueCount(); }
             }
 
-            public ColumnOptions(int[][] slotMap, int hashBits, uint hashSeed, bool ordered)
+            public ColumnOptions(int[][] slotMap, int numberOfBits, uint hashSeed, bool ordered)
             {
                 Contracts.CheckValueOrNull(slotMap);
-                Contracts.Check(NumBitsMin <= hashBits && hashBits < NumBitsLim);
+                Contracts.Check(NumBitsMin <= numberOfBits && numberOfBits < NumBitsLim);
 
                 SlotMap = slotMap;
-                HashBits = hashBits;
+                NumberOfBits = numberOfBits;
                 HashSeed = hashSeed;
                 Ordered = ordered;
-                var itemType = GetItemType(hashBits);
+                var itemType = GetItemType(numberOfBits);
                 if (Utils.Size(SlotMap) <= 1)
                     OutputColumnType = itemType;
                 else
-                    OutputColumnType = new VectorType(itemType, SlotMap.Length);
+                    OutputColumnType = new VectorDataViewType(itemType, SlotMap.Length);
             }
 
             /// <summary>
             /// Constructs the correct KeyType for the given hash bits.
-            /// Because of array size limitation, if hashBits = 31, the key type is not contiguous (not transformable into indicator array)
+            /// Because of array size limitation, if numberOfBits = 31, the key type is not contiguous (not transformable into indicator array)
             /// </summary>
-            private static KeyType GetItemType(int hashBits)
+            private static KeyDataViewType GetItemType(int numberOfBits)
             {
-                var keyCount = (ulong)1 << hashBits;
-                return new KeyType(typeof(uint), keyCount);
+                var keyCount = (ulong)1 << numberOfBits;
+                return new KeyDataViewType(typeof(uint), keyCount);
             }
         }
 
@@ -182,14 +183,14 @@ namespace Microsoft.ML.Transforms
         /// <param name="name">Name of the output column.</param>
         /// <param name="source">Name of the column to be transformed. If this is null '<paramref name="name"/>' will be used.</param>
         /// <param name="join">Whether the values need to be combined for a single hash.</param>
-        /// <param name="hashBits">Number of bits to hash into. Must be between 1 and 31, inclusive.</param>
+        /// <param name="numberOfBits">Number of bits to hash into. Must be between 1 and 31, inclusive.</param>
         public HashJoiningTransform(IHostEnvironment env,
             IDataView input,
             string name,
             string source = null,
              bool join = Defaults.Join,
-            int hashBits = Defaults.HashBits)
-            : this(env, new Arguments() { Columns = new[] { new Column() { Source = source ?? name, Name = name } }, Join = join, HashBits = hashBits }, input)
+            int numberOfBits = Defaults.NumberOfBits)
+            : this(env, new Arguments() { Columns = new[] { new Column() { Source = source ?? name, Name = name } }, Join = join, NumberOfBits = numberOfBits }, input)
         {
         }
 
@@ -200,18 +201,18 @@ namespace Microsoft.ML.Transforms
             Host.AssertNonEmpty(Infos);
             Host.Assert(Infos.Length == Utils.Size(args.Columns));
 
-            if (args.HashBits < NumBitsMin || args.HashBits >= NumBitsLim)
-                throw Host.ExceptUserArg(nameof(args.HashBits), "hashBits should be between {0} and {1} inclusive", NumBitsMin, NumBitsLim - 1);
+            if (args.NumberOfBits < NumBitsMin || args.NumberOfBits >= NumBitsLim)
+                throw Host.ExceptUserArg(nameof(args.NumberOfBits), "numberOfBits should be between {0} and {1} inclusive", NumBitsMin, NumBitsLim - 1);
 
             _exes = new ColumnOptions[Infos.Length];
             for (int i = 0; i < Infos.Length; i++)
             {
-                var hashBits = args.Columns[i].HashBits ?? args.HashBits;
-                Host.CheckUserArg(NumBitsMin <= hashBits && hashBits < NumBitsLim, nameof(args.HashBits));
+                var numberOfBits = args.Columns[i].NumberOfBits ?? args.NumberOfBits;
+                Host.CheckUserArg(NumBitsMin <= numberOfBits && numberOfBits < NumBitsLim, nameof(args.NumberOfBits));
                 _exes[i] = CreateColumnOptionsEx(
                     args.Columns[i].Join ?? args.Join,
                     args.Columns[i].CustomSlotMap,
-                    args.Columns[i].HashBits ?? args.HashBits,
+                    args.Columns[i].NumberOfBits ?? args.NumberOfBits,
                     args.Columns[i].Seed ?? args.Seed,
                     args.Columns[i].Ordered ?? args.Ordered,
                     Infos[i]);
@@ -240,8 +241,8 @@ namespace Microsoft.ML.Transforms
             _exes = new ColumnOptions[Infos.Length];
             for (int i = 0; i < Infos.Length; i++)
             {
-                int hashBits = ctx.Reader.ReadInt32();
-                Host.CheckDecode(NumBitsMin <= hashBits && hashBits < NumBitsLim);
+                int numberOfBits = ctx.Reader.ReadInt32();
+                Host.CheckDecode(NumBitsMin <= numberOfBits && numberOfBits < NumBitsLim);
 
                 uint hashSeed = ctx.Reader.ReadUInt32();
                 bool ordered = ctx.Reader.ReadBoolByte();
@@ -252,7 +253,7 @@ namespace Microsoft.ML.Transforms
                 int[][] slotMap = null;
                 if (slotMapCount > 0)
                 {
-                    Host.CheckDecode(Infos[i].TypeSrc is VectorType);
+                    Host.CheckDecode(Infos[i].TypeSrc is VectorDataViewType);
 
                     slotMap = new int[slotMapCount][];
                     for (int j = 0; j < slotMapCount; j++)
@@ -267,7 +268,7 @@ namespace Microsoft.ML.Transforms
                     }
                 }
 
-                _exes[i] = new ColumnOptions(slotMap, hashBits, hashSeed, ordered);
+                _exes[i] = new ColumnOptions(slotMap, numberOfBits, hashSeed, ordered);
             }
 
             SetMetadata();
@@ -307,8 +308,8 @@ namespace Microsoft.ML.Transforms
             {
                 var ex = _exes[iColumn];
 
-                Host.Assert(NumBitsMin <= ex.HashBits && ex.HashBits < NumBitsLim);
-                ctx.Writer.Write(ex.HashBits);
+                Host.Assert(NumBitsMin <= ex.NumberOfBits && ex.NumberOfBits < NumBitsLim);
+                ctx.Writer.Write(ex.NumberOfBits);
 
                 ctx.Writer.Write(ex.HashSeed);
                 ctx.Writer.WriteBoolByte(ex.Ordered);
@@ -326,10 +327,10 @@ namespace Microsoft.ML.Transforms
             }
         }
 
-        private ColumnOptions CreateColumnOptionsEx(bool join, string customSlotMap, int hashBits, uint hashSeed, bool ordered, ColInfo colInfo)
+        private ColumnOptions CreateColumnOptionsEx(bool join, string customSlotMap, int numberOfBits, uint hashSeed, bool ordered, ColInfo colInfo)
         {
             int[][] slotMap = null;
-            if (colInfo.TypeSrc is VectorType vectorType)
+            if (colInfo.TypeSrc is VectorDataViewType vectorType)
             {
                 // fill in the slot map
                 if (!string.IsNullOrWhiteSpace(customSlotMap))
@@ -339,7 +340,7 @@ namespace Microsoft.ML.Transforms
                 Host.Assert(Utils.Size(slotMap) >= 1);
             }
 
-            return new ColumnOptions(slotMap, hashBits, hashSeed, ordered);
+            return new ColumnOptions(slotMap, numberOfBits, hashSeed, ordered);
         }
 
         private int[][] CompileSlotMap(string slotMapString, int srcSlotCount)
@@ -399,7 +400,7 @@ namespace Microsoft.ML.Transforms
                 using (var bldr = md.BuildMetadata(i))
                 {
                     bldr.AddGetter<VBuffer<ReadOnlyMemory<char>>>(AnnotationUtils.Kinds.SlotNames,
-                        new VectorType(TextDataViewType.Instance, ex.SlotMap.Length), GetSlotNames);
+                        new VectorDataViewType(TextDataViewType.Instance, ex.SlotMap.Length), GetSlotNames);
                 }
             }
             md.Seal();
@@ -487,7 +488,7 @@ namespace Microsoft.ML.Transforms
             // And then we generate a delegate using the generic delegate generator
             DataViewType itemType;
             MethodInfo mi;
-            if (!(Infos[iinfo].TypeSrc is VectorType vectorType))
+            if (!(Infos[iinfo].TypeSrc is VectorDataViewType vectorType))
             {
                 itemType = Infos[iinfo].TypeSrc;
                 mi = _methGetterOneToOne;
@@ -514,12 +515,12 @@ namespace Microsoft.ML.Transforms
         private ValueGetter<uint> ComposeGetterOneToOne<TSrc>(DataViewRow input, int iinfo)
         {
             Host.AssertValue(input);
-            Host.Assert(!(Infos[iinfo].TypeSrc is VectorType));
+            Host.Assert(!(Infos[iinfo].TypeSrc is VectorDataViewType));
 
             var getSrc = GetSrcGetter<TSrc>(input, iinfo);
             var hashFunction = ComposeHashDelegate<TSrc>();
             var src = default(TSrc);
-            var mask = (1U << _exes[iinfo].HashBits) - 1;
+            var mask = (1U << _exes[iinfo].NumberOfBits) - 1;
             var hashSeed = _exes[iinfo].HashSeed;
             return
                 (ref uint dst) =>
@@ -538,7 +539,7 @@ namespace Microsoft.ML.Transforms
         private ValueGetter<VBuffer<uint>> ComposeGetterVecToVec<TSrc>(DataViewRow input, int iinfo)
         {
             Host.AssertValue(input);
-            VectorType srcType = Infos[iinfo].TypeSrc as VectorType;
+            VectorDataViewType srcType = Infos[iinfo].TypeSrc as VectorDataViewType;
             Host.Assert(srcType != null);
 
             var getSrc = GetSrcGetter<VBuffer<TSrc>>(input, iinfo);
@@ -548,7 +549,7 @@ namespace Microsoft.ML.Transforms
             int expectedSrcLength = srcType.Size;
             int[][] slotMap = _exes[iinfo].SlotMap;
             // REVIEW: consider adding a fix-zero functionality (subtract emptyTextHash from all hashes)
-            var mask = (1U << _exes[iinfo].HashBits) - 1;
+            var mask = (1U << _exes[iinfo].NumberOfBits) - 1;
             var hashSeed = _exes[iinfo].HashSeed;
             bool ordered = _exes[iinfo].Ordered;
             var denseSource = default(VBuffer<TSrc>);
@@ -586,7 +587,7 @@ namespace Microsoft.ML.Transforms
         private ValueGetter<uint> ComposeGetterVecToOne<TSrc>(DataViewRow input, int iinfo)
         {
             Host.AssertValue(input);
-            VectorType srcType = Infos[iinfo].TypeSrc as VectorType;
+            VectorDataViewType srcType = Infos[iinfo].TypeSrc as VectorDataViewType;
             Host.Assert(srcType != null);
             Host.Assert(Utils.Size(_exes[iinfo].SlotMap) == 1);
 
@@ -596,7 +597,7 @@ namespace Microsoft.ML.Transforms
             var hashFunction = ComposeHashDelegate<TSrc>();
             var src = default(VBuffer<TSrc>);
             int expectedSrcLength = srcType.Size;
-            var mask = (1U << _exes[iinfo].HashBits) - 1;
+            var mask = (1U << _exes[iinfo].NumberOfBits) - 1;
             var hashSeed = _exes[iinfo].HashSeed;
             bool ordered = _exes[iinfo].Ordered;
             var denseSource = default(VBuffer<TSrc>);

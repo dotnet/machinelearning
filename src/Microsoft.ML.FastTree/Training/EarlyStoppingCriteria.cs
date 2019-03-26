@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.EntryPoints;
+using Microsoft.ML.Runtime;
 using Microsoft.ML.Trainers.FastTree;
 
 [assembly: LoadableClass(typeof(TolerantEarlyStoppingRule), typeof(TolerantEarlyStoppingRule.Options), typeof(SignatureEarlyStoppingCriterion), "Tolerant (TR)", "tr")]
@@ -30,7 +31,10 @@ namespace Microsoft.ML.Trainers.FastTree
 {
     internal delegate void SignatureEarlyStoppingCriterion(bool lowerIsBetter);
 
-    // These criteria will be used in FastTree and NeuralNets.
+    /// <summary>
+    /// Early stopping rule used to terminate training process once meeting a specified criterion.
+    /// Used for setting <see cref="EarlyStoppingRule"/> <see cref="BoostedTreeOptions.EarlyStoppingRule"/>.
+    /// </summary>
     public abstract class EarlyStoppingRuleBase
     {
         /// <summary>

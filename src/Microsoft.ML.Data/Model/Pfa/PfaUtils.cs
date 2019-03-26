@@ -2,9 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.Data.DataView;
 using Microsoft.ML.Data;
 using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Runtime;
 using Newtonsoft.Json.Linq;
 
 namespace Microsoft.ML.Model.Pfa
@@ -158,7 +158,7 @@ namespace Microsoft.ML.Model.Pfa
             public static JToken PfaTypeOrNullForColumnType(DataViewType type)
             {
                 Contracts.CheckValue(type, nameof(type));
-                if (type is VectorType vectorType)
+                if (type is VectorDataViewType vectorType)
                 {
                     // We represent vectors as the union of array (for dense) and map (for sparse),
                     // of the appropriate item type.
@@ -177,7 +177,7 @@ namespace Microsoft.ML.Model.Pfa
                 if (!(itemType is PrimitiveDataViewType))
                     return null;
 
-                if (itemType is KeyType keyType)
+                if (itemType is KeyDataViewType keyType)
                 {
                     // Keys will retain the property that they are just numbers,
                     // with 0 representing missing.
@@ -226,7 +226,7 @@ namespace Microsoft.ML.Model.Pfa
             {
                 Contracts.CheckValue(itemType, nameof(itemType));
 
-                if (itemType is KeyType)
+                if (itemType is KeyDataViewType)
                     return 0;
 
                 System.Type rawType = itemType.RawType;

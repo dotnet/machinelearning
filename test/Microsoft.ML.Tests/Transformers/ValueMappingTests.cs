@@ -60,9 +60,9 @@ namespace Microsoft.ML.Tests.Transformers
 
             var result = t.Transform(dataView);
             var cursor = result.GetRowCursorForAllColumns();
-            var getterD = cursor.GetGetter<int>(result.Schema["D"].Index);
-            var getterE = cursor.GetGetter<int>(result.Schema["E"].Index);
-            var getterF = cursor.GetGetter<int>(result.Schema["F"].Index);
+            var getterD = cursor.GetGetter<int>(result.Schema["D"]);
+            var getterE = cursor.GetGetter<int>(result.Schema["E"]);
+            var getterF = cursor.GetGetter<int>(result.Schema["F"]);
             cursor.MoveNext();
 
             int dValue = 0;
@@ -95,9 +95,9 @@ namespace Microsoft.ML.Tests.Transformers
 
             var result = t.Transform(dataView);
             var cursor = result.GetRowCursorForAllColumns();
-            var getterVecD = cursor.GetGetter<VBuffer<int>>(result.Schema["VecD"].Index);
-            var getterE = cursor.GetGetter<int>(result.Schema["E"].Index);
-            var getterF = cursor.GetGetter<int>(result.Schema["F"].Index);
+            var getterVecD = cursor.GetGetter<VBuffer<int>>(result.Schema["VecD"]);
+            var getterE = cursor.GetGetter<int>(result.Schema["E"]);
+            var getterF = cursor.GetGetter<int>(result.Schema["F"]);
             cursor.MoveNext();
 
             VBuffer<int> dValue = default;
@@ -128,9 +128,9 @@ namespace Microsoft.ML.Tests.Transformers
 
             var result = t.Transform(dataView);
             var cursor = result.GetRowCursorForAllColumns();
-            var getterVecD = cursor.GetGetter<VBuffer<uint>>(result.Schema["VecD"].Index);
-            var getterE = cursor.GetGetter<uint>(result.Schema["E"].Index);
-            var getterF = cursor.GetGetter<uint>(result.Schema["F"].Index);
+            var getterVecD = cursor.GetGetter<VBuffer<uint>>(result.Schema["VecD"]);
+            var getterE = cursor.GetGetter<uint>(result.Schema["E"]);
+            var getterF = cursor.GetGetter<uint>(result.Schema["F"]);
             cursor.MoveNext();
 
             VBuffer<uint> dValue = default;
@@ -169,9 +169,9 @@ namespace Microsoft.ML.Tests.Transformers
 
             var result = t.Transform(dataView);
             var cursor = result.GetRowCursorForAllColumns();
-            var getterD = cursor.GetGetter<VBuffer<int>>(result.Schema["D"].Index);
-            var getterE = cursor.GetGetter<VBuffer<int>>(result.Schema["E"].Index);
-            var getterF = cursor.GetGetter<VBuffer<int>>(result.Schema["F"].Index);
+            var getterD = cursor.GetGetter<VBuffer<int>>(result.Schema["D"]);
+            var getterE = cursor.GetGetter<VBuffer<int>>(result.Schema["E"]);
+            var getterF = cursor.GetGetter<VBuffer<int>>(result.Schema["F"]);
             cursor.MoveNext();
 
             var valuesArray = values.ToArray();
@@ -210,9 +210,9 @@ namespace Microsoft.ML.Tests.Transformers
 
             var result = t.Transform(dataView);
             var cursor = result.GetRowCursorForAllColumns();
-            var getterD = cursor.GetGetter<int>(result.Schema["D"].Index);
-            var getterE = cursor.GetGetter<int>(result.Schema["E"].Index);
-            var getterF = cursor.GetGetter<int>(result.Schema["F"].Index);
+            var getterD = cursor.GetGetter<int>(result.Schema["D"]);
+            var getterE = cursor.GetGetter<int>(result.Schema["E"]);
+            var getterF = cursor.GetGetter<int>(result.Schema["F"]);
             cursor.MoveNext();
 
             int dValue = 0;
@@ -244,9 +244,9 @@ namespace Microsoft.ML.Tests.Transformers
             var result = t.Transform(dataView);
 
             var cursor = result.GetRowCursorForAllColumns();
-            var getterD = cursor.GetGetter<VBuffer<ReadOnlyMemory<char>>>(3);
-            var getterE = cursor.GetGetter<VBuffer<ReadOnlyMemory<char>>>(4);
-            var getterF = cursor.GetGetter<VBuffer<ReadOnlyMemory<char>>>(5);
+            var getterD = cursor.GetGetter<VBuffer<ReadOnlyMemory<char>>>(result.Schema[3]);
+            var getterE = cursor.GetGetter<VBuffer<ReadOnlyMemory<char>>>(result.Schema[4]);
+            var getterF = cursor.GetGetter<VBuffer<ReadOnlyMemory<char>>>(result.Schema[5]);
             cursor.MoveNext();
 
             VBuffer<ReadOnlyMemory<char>> dValue = default;
@@ -276,9 +276,9 @@ namespace Microsoft.ML.Tests.Transformers
 
             var result = t.Transform(dataView);
             var cursor = result.GetRowCursorForAllColumns();
-            var getterD = cursor.GetGetter<int>(result.Schema["D"].Index);
-            var getterE = cursor.GetGetter<int>(result.Schema["E"].Index);
-            var getterF = cursor.GetGetter<int>(result.Schema["F"].Index);
+            var getterD = cursor.GetGetter<int>(result.Schema["D"]);
+            var getterE = cursor.GetGetter<int>(result.Schema["E"]);
+            var getterF = cursor.GetGetter<int>(result.Schema["F"]);
             cursor.MoveNext();
 
             int dValue = 1;
@@ -376,9 +376,9 @@ namespace Microsoft.ML.Tests.Transformers
 
             var result = t.Transform(dataView);
             var cursor = result.GetRowCursorForAllColumns();
-            var getterD = cursor.GetGetter<uint>(result.Schema["D"].Index);
-            var getterE = cursor.GetGetter<uint>(result.Schema["E"].Index);
-            var getterF = cursor.GetGetter<uint>(result.Schema["F"].Index);
+            var getterD = cursor.GetGetter<uint>(result.Schema["D"]);
+            var getterE = cursor.GetGetter<uint>(result.Schema["E"]);
+            var getterF = cursor.GetGetter<uint>(result.Schema["F"]);
             cursor.MoveNext();
 
             // The expected values will contain the actual uints and are not generated.
@@ -415,9 +415,9 @@ namespace Microsoft.ML.Tests.Transformers
 
             var result = t.Transform(dataView);
             var cursor = result.GetRowCursorForAllColumns();
-            var getterD = cursor.GetGetter<ulong>(result.Schema["D"].Index);
-            var getterE = cursor.GetGetter<ulong>(result.Schema["E"].Index);
-            var getterF = cursor.GetGetter<ulong>(result.Schema["F"].Index);
+            var getterD = cursor.GetGetter<ulong>(result.Schema["D"]);
+            var getterE = cursor.GetGetter<ulong>(result.Schema["E"]);
+            var getterF = cursor.GetGetter<ulong>(result.Schema["F"]);
             cursor.MoveNext();
 
             // The expected values will contain the actual uints and are not generated.
@@ -452,9 +452,9 @@ namespace Microsoft.ML.Tests.Transformers
 
             var result = t.Transform(dataView);
             var cursor = result.GetRowCursorForAllColumns();
-            var getterD = cursor.GetGetter<uint>(result.Schema["D"].Index);
-            var getterE = cursor.GetGetter<uint>(result.Schema["E"].Index);
-            var getterF = cursor.GetGetter<uint>(result.Schema["F"].Index);
+            var getterD = cursor.GetGetter<uint>(result.Schema["D"]);
+            var getterE = cursor.GetGetter<uint>(result.Schema["E"]);
+            var getterF = cursor.GetGetter<uint>(result.Schema["F"]);
             cursor.MoveNext();
 
             // The expected values will contain the generated key type values starting from 1.
@@ -490,7 +490,7 @@ namespace Microsoft.ML.Tests.Transformers
 
             var result = t.Transform(dataView);
             var cursor = result.GetRowCursorForAllColumns();
-            var getterD = cursor.GetGetter<ReadOnlyMemory<char>>(result.Schema["DOutput"].Index);
+            var getterD = cursor.GetGetter<ReadOnlyMemory<char>>(result.Schema["DOutput"]);
             cursor.MoveNext();
 
             // The expected values will contain the generated key type values starting from 1.
@@ -507,11 +507,15 @@ namespace Microsoft.ML.Tests.Transformers
             var badData = new[] { new TestWrong() { A = "bar", B = 1.2f } };
             var badDataView = ML.Data.LoadFromEnumerable(badData);
 
-            var keys = new List<string>() { "foo", "bar", "test", "wahoo" };
-            var values = new List<int>() { 1, 2, 3, 4 };
+            var keyValuePairs = new List<KeyValuePair<string,int>>() {
+                new KeyValuePair<string,int>("foo", 1),
+                new KeyValuePair<string,int>("bar", 2),
+                new KeyValuePair<string,int>("test", 3),
+                new KeyValuePair<string,int>("wahoo", 4)
+                };
 
             // Workout on value mapping
-            var est = ML.Transforms.Conversion.ValueMap(keys, values, new ColumnOptions[] { ("D", "A"), ("E", "B"), ("F", "C") });
+            var est = ML.Transforms.Conversion.MapValue(keyValuePairs, new[] { new InputOutputColumnPair("D", "A"), new InputOutputColumnPair("E", "B"), new InputOutputColumnPair("F", "C") });
             TestEstimatorCore(est, validFitInput: dataView, invalidInput: badDataView);
         }
 
@@ -523,14 +527,14 @@ namespace Microsoft.ML.Tests.Transformers
             var badData = new[] { new TestWrong() { A = "bar", B = 1.2f } };
             var badDataView = ML.Data.LoadFromEnumerable(badData);
 
-            var keys = new List<string>() { "foo", "bar", "test" };
-            var values = new List<int[]>() {
-                new int[] {2, 3, 4 },
-                new int[] {100, 200 },
-                new int[] {400, 500, 600, 700 }};
+            var keyValuePairs = new List<KeyValuePair<string,int[]>>() {
+                new KeyValuePair<string,int[]>("foo", new int[] {2, 3, 4 }),
+                new KeyValuePair<string,int[]>("bar", new int[] {100, 200 }),
+                new KeyValuePair<string,int[]>("test", new int[] {400, 500, 600, 700 }),
+                };
 
             // Workout on value mapping
-            var est = ML.Transforms.Conversion.ValueMap(keys, values, new ColumnOptions[] { ("D", "A"), ("E", "B"), ("F", "C") });
+            var est = ML.Transforms.Conversion.MapValue(keyValuePairs, new[] { new InputOutputColumnPair("D", "A"), new InputOutputColumnPair("E", "B"), new InputOutputColumnPair("F", "C") });
             TestEstimatorCore(est, validFitInput: dataView, invalidInput: badDataView);
         }
 
@@ -543,11 +547,15 @@ namespace Microsoft.ML.Tests.Transformers
             var badData = new[] { new TestWrong() { B = 1.2f } };
             var badDataView = ML.Data.LoadFromEnumerable(badData);
 
-            var keys = new List<ReadOnlyMemory<char>>() { "foo".AsMemory(), "bar".AsMemory(), "test".AsMemory(), "wahoo".AsMemory() };
-            var values = new List<int>() { 1, 2, 3, 4 };
+            var keyValuePairs = new List<KeyValuePair<ReadOnlyMemory<char>,int>>() {
+                new KeyValuePair<ReadOnlyMemory<char>,int>("foo".AsMemory(), 1),
+                new KeyValuePair<ReadOnlyMemory<char>,int>("bar".AsMemory(), 2),
+                new KeyValuePair<ReadOnlyMemory<char>,int>("test".AsMemory(), 3),
+                new KeyValuePair<ReadOnlyMemory<char>,int>("wahoo".AsMemory(), 4) 
+                };
 
-            var est = ML.Transforms.Text.TokenizeWords("TokenizeB", "B")
-                .Append(ML.Transforms.Conversion.ValueMap(keys, values, new ColumnOptions[] { ("VecB", "TokenizeB") }));
+            var est = ML.Transforms.Text.TokenizeIntoWords("TokenizeB", "B")
+                .Append(ML.Transforms.Conversion.MapValue("VecB", keyValuePairs, "TokenizeB"));
             TestEstimatorCore(est, validFitInput: dataView, invalidInput: badDataView);
         }
 
@@ -600,9 +608,9 @@ namespace Microsoft.ML.Tests.Transformers
             var transformer = est.Fit(dataView);
             using (var ms = new MemoryStream())
             {
-                transformer.SaveTo(Env, ms);
+                ML.Model.Save(transformer, null, ms);
                 ms.Position = 0;
-                var loadedTransformer = TransformerChain.LoadFrom(Env, ms);
+                var loadedTransformer = ML.Model.Load(ms, out var schema);
                 var result = loadedTransformer.Transform(dataView);
                 Assert.Equal(5, result.Schema.Count);
                 Assert.True(result.Schema.TryGetColumnIndex("D", out int col));
@@ -643,7 +651,7 @@ namespace Microsoft.ML.Tests.Transformers
                 Assert.True(result.Schema.TryGetColumnIndex("Label", out int labelIdx));
                 Assert.True(result.Schema.TryGetColumnIndex("GroupId", out int groupIdx));
 
-                Assert.True(result.Schema[labelIdx].Type is KeyType);
+                Assert.True(result.Schema[labelIdx].Type is KeyDataViewType);
                 Assert.Equal((ulong)5, result.Schema[labelIdx].Type.GetItemType().GetKeyCount());
 
                 var t = result.GetColumn<uint>(result.Schema["Label"]);

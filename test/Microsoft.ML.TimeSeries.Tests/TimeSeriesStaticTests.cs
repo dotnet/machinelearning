@@ -58,7 +58,7 @@ namespace Microsoft.ML.Tests
             var staticData = dataView.AssertStatic(env, c => new { Value = c.R4.Scalar });
             // Build the pipeline
             var staticLearningPipeline = staticData.MakeNewEstimator()
-                .Append(r => r.Value.IidChangePointDetect(80, Size));
+                .Append(r => r.Value.DetectIidChangePoint(80, Size));
             // Train
             var detector = staticLearningPipeline.Fit(staticData);
             // Transform
@@ -104,7 +104,7 @@ namespace Microsoft.ML.Tests
             var staticData = dataView.AssertStatic(env, c => new { Value = c.R4.Scalar });
             // Build the pipeline
             var staticLearningPipeline = staticData.MakeNewEstimator()
-                .Append(r => r.Value.SsaChangePointDetect(95, ChangeHistorySize, MaxTrainingSize, SeasonalitySize));
+                .Append(r => r.Value.DetectChangePointBySsa(95, ChangeHistorySize, MaxTrainingSize, SeasonalitySize));
             // Train
             var detector = staticLearningPipeline.Fit(staticData);
             // Transform
@@ -148,7 +148,7 @@ namespace Microsoft.ML.Tests
             var staticData = dataView.AssertStatic(env, c => new { Value = c.R4.Scalar });
             // Build the pipeline
             var staticLearningPipeline = staticData.MakeNewEstimator()
-                .Append(r => r.Value.IidSpikeDetect(80, PvalHistoryLength));
+                .Append(r => r.Value.DetectIidSpike(80, PvalHistoryLength));
             // Train
             var detector = staticLearningPipeline.Fit(staticData);
             // Transform
@@ -203,7 +203,7 @@ namespace Microsoft.ML.Tests
             var staticData = dataView.AssertStatic(env, c => new { Value = c.R4.Scalar });
             // Build the pipeline
             var staticLearningPipeline = staticData.MakeNewEstimator()
-                .Append(r => r.Value.SsaSpikeDetect(80, ChangeHistoryLength, TrainingWindowSize, SeasonalityWindowSize));
+                .Append(r => r.Value.DetectSpikeBySsa(80, ChangeHistoryLength, TrainingWindowSize, SeasonalityWindowSize));
             // Train
             var detector = staticLearningPipeline.Fit(staticData);
             // Transform

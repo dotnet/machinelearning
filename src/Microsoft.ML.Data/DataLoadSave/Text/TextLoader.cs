@@ -7,12 +7,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Text;
-using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
 using Microsoft.ML.Internal.Utilities;
-using Microsoft.ML.Model;
+using Microsoft.ML.Runtime;
 
 [assembly: LoadableClass(TextLoader.Summary, typeof(ILegacyDataLoader), typeof(TextLoader), typeof(TextLoader.Options), typeof(SignatureDataLoader),
     "Text Loader", "TextLoader", "Text", DocName = "loader/TextLoader.md")]
@@ -20,12 +19,15 @@ using Microsoft.ML.Model;
 [assembly: LoadableClass(TextLoader.Summary, typeof(ILegacyDataLoader), typeof(TextLoader), null, typeof(SignatureLoadDataLoader),
     "Text Loader", TextLoader.LoaderSignature)]
 
+[assembly: LoadableClass(TextLoader.Summary, typeof(TextLoader), null, typeof(SignatureLoadModel),
+    "Text Loader", TextLoader.LoaderSignature)]
+
 namespace Microsoft.ML.Data
 {
     /// <summary>
     /// Loads a text file into an IDataView. Supports basic mapping from input columns to <see cref="IDataView"/> columns.
     /// </summary>
-    public sealed partial class TextLoader : IDataLoader<IMultiStreamSource>, ICanSaveModel
+    public sealed partial class TextLoader : IDataLoader<IMultiStreamSource>
     {
         /// <summary>
         /// Describes how an input column should be mapped to an <see cref="IDataView"/> column.
@@ -630,9 +632,9 @@ namespace Microsoft.ML.Data
 
                 DataViewType type = itemType;
                 if (isegVar >= 0)
-                    type = new VectorType(itemType);
+                    type = new VectorDataViewType(itemType);
                 else if (size > 1 || segs[0].ForceVector)
-                    type = new VectorType(itemType, size);
+                    type = new VectorDataViewType(itemType, size);
 
                 return new ColInfo(name, type, segs, isegVar, size);
             }
@@ -729,7 +731,7 @@ namespace Microsoft.ML.Data
                         }
                         else
                         {
-                            kind = col.Type == default? InternalDataKind.R4 : col.Type;
+                            kind = col.Type == default ? InternalDataKind.R4 : col.Type;
                             ch.CheckUserArg(Enum.IsDefined(typeof(InternalDataKind), kind), nameof(Column.Type), "Bad item type");
                             itemType = ColumnTypeExtensions.PrimitiveTypeFromKind(kind);
                         }
@@ -893,7 +895,7 @@ namespace Microsoft.ML.Data
                     if (isKey)
                     {
                         ulong count;
-                        Contracts.CheckDecode(KeyType.IsValidDataType(kind.ToType()));
+                        Contracts.CheckDecode(KeyDataViewType.IsValidDataType(kind.ToType()));
 
                         // Special treatment for versions that had Min and Contiguous fields in KeyType.
                         if (ctx.Header.ModelVerWritten < VersionNoMinCount)
@@ -915,7 +917,7 @@ namespace Microsoft.ML.Data
                             count = ctx.Reader.ReadUInt64();
                             Contracts.CheckDecode(0 < count);
                         }
-                        itemType = new KeyType(kind.ToType(), count);
+                        itemType = new KeyDataViewType(kind.ToType(), count);
                     }
                     else
                         itemType = ColumnTypeExtensions.PrimitiveTypeFromKind(kind);
@@ -977,8 +979,8 @@ namespace Microsoft.ML.Data
                     InternalDataKind rawKind = type.GetRawKind();
                     Contracts.Assert((InternalDataKind)(byte)rawKind == rawKind);
                     ctx.Writer.Write((byte)rawKind);
-                    ctx.Writer.WriteBoolByte(type is KeyType);
-                    if (type is KeyType key)
+                    ctx.Writer.WriteBoolByte(type is KeyDataViewType);
+                    if (type is KeyDataViewType key)
                         ctx.Writer.Write(key.Count);
                     ctx.Writer.Write(info.Segments.Length);
                     foreach (var seg in info.Segments)
@@ -1190,31 +1192,31 @@ namespace Microsoft.ML.Data
         {
             switch (sep)
             {
-                case "space":
-                case " ":
-                    return ' ';
-                case "tab":
-                case "\t":
-                    return '\t';
-                case "comma":
-                case ",":
-                    return ',';
-                case "colon":
-                case ":":
-                    _host.CheckUserArg((_flags & OptionFlags.AllowSparse) == 0, nameof(Options.Separator),
-                        "When the separator is colon, turn off allowSparse");
-                    return ':';
-                case "semicolon":
-                case ";":
-                    return ';';
-                case "bar":
-                case "|":
-                    return '|';
-                default:
-                    char ch = sep[0];
-                    if (sep.Length != 1 || ch < ' ' || '0' <= ch && ch <= '9' || ch == '"')
-                        throw _host.ExceptUserArg(nameof(Options.Separator), "Illegal separator: '{0}'", sep);
-                    return sep[0];
+            case "space":
+            case " ":
+                return ' ';
+            case "tab":
+            case "\t":
+                return '\t';
+            case "comma":
+            case ",":
+                return ',';
+            case "colon":
+            case ":":
+                _host.CheckUserArg((_flags & OptionFlags.AllowSparse) == 0, nameof(Options.Separator),
+                    "When the separator is colon, turn off allowSparse");
+                return ':';
+            case "semicolon":
+            case ";":
+                return ';';
+            case "bar":
+            case "|":
+                return '|';
+            default:
+                char ch = sep[0];
+                if (sep.Length != 1 || ch < ' ' || '0' <= ch && ch <= '9' || ch == '"')
+                    throw _host.ExceptUserArg(nameof(Options.Separator), "Illegal separator: '{0}'", sep);
+                return sep[0];
             }
         }
 
@@ -1286,12 +1288,9 @@ namespace Microsoft.ML.Data
                 ch.Assert(h.Loader == null || h.Loader is ICommandLineComponentFactory);
                 var loader = h.Loader as ICommandLineComponentFactory;
 
-                if (loader == null || string.IsNullOrWhiteSpace(loader.Name))
-                    goto LDone;
-
-                // Make sure the loader binds to us.
-                var info = host.ComponentCatalog.GetLoadableClassInfo<SignatureDataLoader>(loader.Name);
-                if (info.Type != typeof(ILegacyDataLoader) || info.ArgType != typeof(Options))
+                // Make sure that the schema is described using either the syntax TextLoader{<settings>} or the syntax Text{<settings>},
+                // where "settings" is a string that can be parsed by CmdParser into an object of type TextLoader.Options.
+                if (loader == null || string.IsNullOrWhiteSpace(loader.Name) || (loader.Name != LoaderSignature && loader.Name != "Text"))
                     goto LDone;
 
                 var optionsNew = new Options();
@@ -1311,7 +1310,7 @@ namespace Microsoft.ML.Data
                 error = false;
                 options = optionsNew;
 
-            LDone:
+                LDone:
                 return !error;
             }
         }
@@ -1461,7 +1460,8 @@ namespace Microsoft.ML.Data
                 var memberInfo = memberInfos[index];
                 var mappingAttr = memberInfo.GetCustomAttribute<LoadColumnAttribute>();
 
-                host.Assert(mappingAttr != null, $"Field or property {memberInfo.Name} is missing the {nameof(LoadColumnAttribute)} attribute");
+                if (mappingAttr == null)
+                    throw host.Except($"{(memberInfo is FieldInfo ? "Field" : "Property")} '{memberInfo.Name}' is missing the {nameof(LoadColumnAttribute)} attribute");
 
                 var mappingAttrName = memberInfo.GetCustomAttribute<ColumnNameAttribute>();
 
@@ -1471,20 +1471,20 @@ namespace Microsoft.ML.Data
                 InternalDataKind dk;
                 switch (memberInfo)
                 {
-                    case FieldInfo field:
-                        if (!InternalDataKindExtensions.TryGetDataKind(field.FieldType.IsArray ? field.FieldType.GetElementType() : field.FieldType, out dk))
-                            throw Contracts.Except($"Field {memberInfo.Name} is of unsupported type.");
+                case FieldInfo field:
+                    if (!InternalDataKindExtensions.TryGetDataKind(field.FieldType.IsArray ? field.FieldType.GetElementType() : field.FieldType, out dk))
+                        throw Contracts.Except($"Field {memberInfo.Name} is of unsupported type.");
 
-                        break;
+                    break;
 
-                    case PropertyInfo property:
-                        if (!InternalDataKindExtensions.TryGetDataKind(property.PropertyType.IsArray ? property.PropertyType.GetElementType() : property.PropertyType, out dk))
-                            throw Contracts.Except($"Property {memberInfo.Name} is of unsupported type.");
-                        break;
+                case PropertyInfo property:
+                    if (!InternalDataKindExtensions.TryGetDataKind(property.PropertyType.IsArray ? property.PropertyType.GetElementType() : property.PropertyType, out dk))
+                        throw Contracts.Except($"Property {memberInfo.Name} is of unsupported type.");
+                    break;
 
-                    default:
-                        Contracts.Assert(false);
-                        throw Contracts.ExceptNotSupp("Expected a FieldInfo or a PropertyInfo");
+                default:
+                    Contracts.Assert(false);
+                    throw Contracts.ExceptNotSupp("Expected a FieldInfo or a PropertyInfo");
                 }
 
                 column.Type = dk;

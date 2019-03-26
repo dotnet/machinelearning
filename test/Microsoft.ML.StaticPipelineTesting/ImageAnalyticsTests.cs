@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.Data.DataView;
 using Microsoft.ML.Data;
 using Microsoft.ML.StaticPipe;
 using Xunit;
@@ -28,7 +27,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             var schema = reader.AsDynamic.GetOutputSchema();
             Assert.True(schema.TryGetColumnIndex("Data", out int col), "Could not find 'Data' column");
             var type = schema[col].Type;
-            var vecType = type as VectorType;
+            var vecType = type as VectorDataViewType;
             Assert.True(vecType?.Size > 0, $"Type was supposed to be known size vector but was instead '{type}'");
             Assert.Equal(NumberDataViewType.Single, vecType.ItemType);
             Assert.Equal(3, vecType.Dimensions.Length);

@@ -26,7 +26,7 @@ namespace Microsoft.ML.Samples.Dynamic
 
             // Pipeline which goes through SentimentText and normalizes it, tokenize it by words, and removes default stopwords.
             var wordsPipeline = ml.Transforms.Text.NormalizeText("NormalizedText", "SentimentText", keepDiacritics: false, keepPunctuations: false)
-                .Append(ml.Transforms.Text.TokenizeWords("Words", "NormalizedText"))
+                .Append(ml.Transforms.Text.TokenizeIntoWords("Words", "NormalizedText"))
                 .Append(ml.Transforms.Text.RemoveDefaultStopWords("CleanWords", "Words"));
 
             var wordsDataview = wordsPipeline.Fit(trainData).Transform(trainData);
@@ -61,8 +61,8 @@ namespace Microsoft.ML.Samples.Dynamic
 
             // Let's apply pretrained word embedding model GloVeTwitter25D.
             // 25D means each word mapped into 25 dimensional space, basically each word represented by 25 float values.
-            var gloveWordEmbedding = ml.Transforms.Text.ExtractWordEmbeddings("GloveEmbeddings", "CleanWords",
-                WordEmbeddingsExtractingEstimator.PretrainedModelKind.GloVeTwitter25D);
+            var gloveWordEmbedding = ml.Transforms.Text.ApplyWordEmbedding("GloveEmbeddings", "CleanWords",
+                WordEmbeddingEstimator.PretrainedModelKind.GloVeTwitter25D);
 
             // We also have option to apply custom word embedding models.
             // Let's first create one.
@@ -81,7 +81,7 @@ namespace Microsoft.ML.Samples.Dynamic
                 file.WriteLine("best" + " " + string.Join(" ", 0f, 0f, 20f));
             }
             // Now let's add custom embedding on top of same words.
-            var pipeline = gloveWordEmbedding.Append(ml.Transforms.Text.ExtractWordEmbeddings("CustomEmbeddings", @".\custommodel.txt", "CleanWords"));
+            var pipeline = gloveWordEmbedding.Append(ml.Transforms.Text.ApplyWordEmbedding("CustomEmbeddings", @".\custommodel.txt", "CleanWords"));
 
             // And do all required transformations.
             var embeddingDataview = pipeline.Fit(wordsDataview).Transform(wordsDataview);

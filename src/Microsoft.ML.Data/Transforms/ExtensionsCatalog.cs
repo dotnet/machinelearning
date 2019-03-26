@@ -2,34 +2,47 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Generic;
 using System.Linq;
-using Microsoft.Data.DataView;
 using Microsoft.ML.Data;
+using Microsoft.ML.Runtime;
 using Microsoft.ML.Transforms;
 
 namespace Microsoft.ML
 {
-    public sealed class ColumnOptions
+    /// <summary>
+    /// Specifies input and output column names for a transformation.
+    /// </summary>
+    public sealed class InputOutputColumnPair
     {
-        private readonly string _outputColumnName;
-        private readonly string _inputColumnName;
+        /// <summary>
+        /// Name of the column to transform. If set to <see langword="null"/>, the value of the <see cref="OutputColumnName"/> will be used as source.
+        /// </summary>
+        public string InputColumnName { get; }
+        /// <summary>
+        /// Name of the column resulting from the transformation of <see cref="InputColumnName"/>.
+        /// </summary>
+        public string OutputColumnName { get; }
 
-        public ColumnOptions(string outputColumnName, string inputColumnName)
+        /// <summary>
+        /// Specifies input and output column names for a transformation.
+        /// </summary>
+        /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.</param>
+        /// <param name="inputColumnName">Name of the column to transform. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.</param>
+        public InputOutputColumnPair(string outputColumnName, string inputColumnName = null)
         {
-            _outputColumnName = outputColumnName;
-            _inputColumnName = inputColumnName;
-        }
-
-        public static implicit operator ColumnOptions((string outputColumnName, string inputColumnName) value)
-        {
-            return new ColumnOptions(value.outputColumnName, value.inputColumnName);
+            Contracts.CheckNonEmpty(outputColumnName, nameof(outputColumnName));
+            InputColumnName = inputColumnName ?? outputColumnName;
+            OutputColumnName = outputColumnName;
         }
 
         [BestFriend]
-        internal static (string outputColumnName, string inputColumnName)[] ConvertToValueTuples(ColumnOptions[] infos)
-        {
-            return infos.Select(info => (info._outputColumnName, info._inputColumnName)).ToArray();
-        }
+        internal static (string outputColumnName, string inputColumnName)[] ConvertToValueTuples(InputOutputColumnPair[] infos) =>
+            infos.Select(info => (info.OutputColumnName, info.InputColumnName)).ToArray();
+
+        [BestFriend]
+        internal static IReadOnlyList<InputOutputColumnPair> ConvertFromValueTuples((string outputColumnName, string inputColumnName)[] infos) =>
+            infos.Select(info => new InputOutputColumnPair(info.outputColumnName, info.inputColumnName)).ToList().AsReadOnly();
     }
 
     /// <summary>
@@ -66,8 +79,13 @@ namespace Microsoft.ML
         /// ]]>
         /// </format>
         /// </example>
-        public static ColumnCopyingEstimator CopyColumns(this TransformsCatalog catalog, params ColumnOptions[] columns)
-            => new ColumnCopyingEstimator(CatalogUtils.GetEnvironment(catalog), ColumnOptions.ConvertToValueTuples(columns));
+        [BestFriend]
+        internal static ColumnCopyingEstimator CopyColumns(this TransformsCatalog catalog, params InputOutputColumnPair[] columns)
+        {
+            var env = CatalogUtils.GetEnvironment(catalog);
+            env.CheckValue(columns, nameof(columns));
+            return new ColumnCopyingEstimator(env, InputOutputColumnPair.ConvertToValueTuples(columns));
+        }
 
         /// <summary>
         /// Concatenates columns together.
@@ -141,7 +159,7 @@ namespace Microsoft.ML
         /// </summary>
         /// <remarks>
         /// <format type="text/markdown"><![CDATA[
-        /// <xref:Microsoft.ML.SelectColumns(Microsoft.ML.TransformsCatalog, string[])> operates on the schema of an input <xref:Microsoft.Data.DataView.IDataView>,
+        /// <xref:Microsoft.ML.SelectColumns(Microsoft.ML.TransformsCatalog, string[])> operates on the schema of an input <xref:Microsoft.ML.IDataView>,
         /// dropping unselected columns from the schema.
         /// ]]></format>
         /// </remarks>

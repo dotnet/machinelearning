@@ -6,12 +6,12 @@ using System;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
 using Microsoft.ML.Internal.Utilities;
-using Microsoft.ML.Model;
 using Microsoft.ML.Numeric;
+using Microsoft.ML.Runtime;
 
 namespace Microsoft.ML.Trainers.Ensemble
 {
-    internal abstract class BaseMultiCombiner : IMultiClassOutputCombiner, ICanSaveModel
+    internal abstract class BaseMultiCombiner : IMulticlassOutputCombiner, ICanSaveModel
     {
         protected readonly IHost Host;
 

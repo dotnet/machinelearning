@@ -2,11 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using Microsoft.Data.DataView;
 using Microsoft.ML.Data;
 using Microsoft.ML.Internal.CpuMath;
 using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Runtime;
 
 namespace Microsoft.ML.Transforms
 {
@@ -17,7 +16,7 @@ namespace Microsoft.ML.Transforms
         private static StatAggregator CreateStatAggregator(IChannel ch, DataViewType type, ReplacementKind? kind, bool bySlot, DataViewRowCursor cursor, int col)
         {
             ch.Assert(type.GetItemType() is NumberDataViewType);
-            if (!(type is VectorType vectorType))
+            if (!(type is VectorDataViewType vectorType))
             {
                 // The type is a scalar.
                 if (kind == ReplacementKind.Mean)
@@ -166,7 +165,7 @@ namespace Microsoft.ML.Transforms
             {
                 Ch.AssertValue(cursor);
                 Ch.Assert(0 <= col);
-                _getter = cursor.GetGetter<TValue>(col);
+                _getter = cursor.GetGetter<TValue>(cursor.Schema[col]);
             }
 
             public sealed override void ProcessRow()
@@ -210,7 +209,7 @@ namespace Microsoft.ML.Transforms
 
         private abstract class StatAggregatorBySlot<TItem, TStatItem> : StatAggregator<VBuffer<TItem>, TStatItem[]>
         {
-            protected StatAggregatorBySlot(IChannel ch, VectorType type, DataViewRowCursor cursor, int col)
+            protected StatAggregatorBySlot(IChannel ch, VectorDataViewType type, DataViewRowCursor cursor, int col)
                 : base(ch, cursor, col)
             {
                 Ch.AssertValue(type);
@@ -311,7 +310,7 @@ namespace Microsoft.ML.Transforms
             // The count of the number of times ProcessValue has been called on a specific slot (used for tracking sparsity).
             private readonly long[] _valuesProcessed;
 
-            protected MinMaxAggregatorBySlot(IChannel ch, VectorType type, DataViewRowCursor cursor, int col, bool returnMax)
+            protected MinMaxAggregatorBySlot(IChannel ch, VectorDataViewType type, DataViewRowCursor cursor, int col, bool returnMax)
                 : base(ch, type, cursor, col)
             {
                 Ch.AssertValue(type);
@@ -591,7 +590,7 @@ namespace Microsoft.ML.Transforms
 
             public sealed class MeanAggregatorBySlot : StatAggregatorBySlot<float, MeanStatDouble>
             {
-                public MeanAggregatorBySlot(IChannel ch, VectorType type, DataViewRowCursor cursor, int col)
+                public MeanAggregatorBySlot(IChannel ch, VectorDataViewType type, DataViewRowCursor cursor, int col)
                     : base(ch, type, cursor, col)
                 {
                 }
@@ -670,7 +669,7 @@ namespace Microsoft.ML.Transforms
 
             public sealed class MinMaxAggregatorBySlot : MinMaxAggregatorBySlot<float, float>
             {
-                public MinMaxAggregatorBySlot(IChannel ch, VectorType type, DataViewRowCursor cursor, int col, bool returnMax)
+                public MinMaxAggregatorBySlot(IChannel ch, VectorDataViewType type, DataViewRowCursor cursor, int col, bool returnMax)
                     : base(ch, type, cursor, col, returnMax)
                 {
                     float bound = ReturnMax ? float.NegativeInfinity : float.PositiveInfinity;
@@ -748,7 +747,7 @@ namespace Microsoft.ML.Transforms
 
             public sealed class MeanAggregatorBySlot : StatAggregatorBySlot<double, MeanStatDouble>
             {
-                public MeanAggregatorBySlot(IChannel ch, VectorType type, DataViewRowCursor cursor, int col)
+                public MeanAggregatorBySlot(IChannel ch, VectorDataViewType type, DataViewRowCursor cursor, int col)
                     : base(ch, type, cursor, col)
                 {
                 }
@@ -823,7 +822,7 @@ namespace Microsoft.ML.Transforms
 
             public sealed class MinMaxAggregatorBySlot : MinMaxAggregatorBySlot<double, double>
             {
-                public MinMaxAggregatorBySlot(IChannel ch, VectorType type, DataViewRowCursor cursor, int col, bool returnMax)
+                public MinMaxAggregatorBySlot(IChannel ch, VectorDataViewType type, DataViewRowCursor cursor, int col, bool returnMax)
                     : base(ch, type, cursor, col, returnMax)
                 {
                     double bound = ReturnMax ? double.MinValue : double.MaxValue;

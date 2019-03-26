@@ -135,17 +135,16 @@ namespace Microsoft.ML.Functional.Tests
                 separatorChar: TestDatasets.Sentiment.fileSeparator);
 
             // Create a training pipeline.
-            // TODO #2802: Update FeaturizeText to allow specifications of word-grams and char-grams.
             var pipeline = mlContext.Transforms.Text.FeaturizeText("Features",
                     new TextFeaturizingEstimator.Options
                     {
-                        UseCharExtractor = true,
-                        UseWordExtractor = true,
-                        VectorNormalizer = TextFeaturizingEstimator.TextNormKind.L1
+                        CharFeatureExtractor = new WordBagEstimator.Options() { NgramLength = 3, UseAllLengths = false },
+                        WordFeatureExtractor = new WordBagEstimator.Options(),
+                        Norm = TextFeaturizingEstimator.NormFunction.L1
                     }, "SentimentText")
                 .AppendCacheCheckpoint(mlContext)
-                .Append(mlContext.BinaryClassification.Trainers.StochasticDualCoordinateAscent(
-                    new SdcaBinaryTrainer.Options { NumberOfThreads = 1 }));
+                .Append(mlContext.BinaryClassification.Trainers.SdcaLogisticRegression(
+                    new SdcaLogisticRegressionBinaryTrainer.Options { NumberOfThreads = 1 }));
 
             // Train the model.
             var model = pipeline.Fit(data);
@@ -175,7 +174,7 @@ namespace Microsoft.ML.Functional.Tests
 
             // Compose the transformation.
             var pipeline = mlContext.Transforms.Concatenate("Features", Iris.Features)
-                .Append(mlContext.Transforms.Normalize("Features", mode: NormalizingEstimator.NormalizerMode.MinMax));
+                .Append(mlContext.Transforms.Normalize("Features", mode: NormalizingEstimator.NormalizationMode.MinMax));
             
             // Transform the data.
             var transformedData = pipeline.Fit(data).Transform(data);

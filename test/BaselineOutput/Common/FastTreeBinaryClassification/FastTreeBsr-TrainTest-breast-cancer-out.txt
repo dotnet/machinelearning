@@ -22,7 +22,7 @@ Precision ||   0.8927 |   0.9817 |
 OVERALL 0/1 ACCURACY: 0.948498
 LOG LOSS/instance:  0.837162
 Test-set entropy (prior Log-Loss/instance): 0.929318
-LOG-LOSS REDUCTION (RIG): 9.916564
+LOG-LOSS REDUCTION (RIG): 0.099166
 AUC:                0.983973
 
 OVERALL RESULTS
@@ -34,7 +34,7 @@ Positive recall:    0.966805 (0.0000)
 Negative precision: 0.981735 (0.0000)
 Negative recall:    0.938865 (0.0000)
 Log-loss:           0.837162 (0.0000)
-Log-loss reduction: 9.916564 (0.0000)
+Log-loss reduction: 0.099166 (0.0000)
 F1 Score:           0.928287 (0.0000)
 AUPRC:              0.939241 (0.0000)
 

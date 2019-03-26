@@ -7,7 +7,7 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 
-namespace Microsoft.ML.Data
+namespace Microsoft.ML.Runtime
 {
     using Stopwatch = System.Diagnostics.Stopwatch;
 
@@ -465,7 +465,7 @@ namespace Microsoft.ML.Data
             public Host(HostEnvironmentBase<ConsoleEnvironment> source, string shortName, string parentFullName, Random rand, bool verbose)
                 : base(source, shortName, parentFullName, rand, verbose)
             {
-                IsCancelled = source.IsCancelled;
+                IsCanceled = source.IsCanceled;
             }
 
             protected override IChannel CreateCommChannel(ChannelProviderBase parent, string name)

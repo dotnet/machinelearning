@@ -6,15 +6,14 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.Data;
 using Microsoft.ML.Data.IO;
-using Microsoft.ML.Internal.Internallearn;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Model;
 using Microsoft.ML.Recommender;
 using Microsoft.ML.Recommender.Internal;
+using Microsoft.ML.Runtime;
 using Microsoft.ML.Trainers.Recommender;
 
 [assembly: LoadableClass(typeof(MatrixFactorizationModelParameters), null, typeof(SignatureLoadModel), "Matrix Factorization Predictor Executor", MatrixFactorizationModelParameters.LoaderSignature)]
@@ -90,7 +89,7 @@ namespace Microsoft.ML.Trainers.Recommender
         internal DataViewType MatrixColumnIndexType { get; }
         internal DataViewType MatrixRowIndexType { get; }
 
-        internal MatrixFactorizationModelParameters(IHostEnvironment env, SafeTrainingAndModelBuffer buffer, KeyType matrixColumnIndexType, KeyType matrixRowIndexType)
+        internal MatrixFactorizationModelParameters(IHostEnvironment env, SafeTrainingAndModelBuffer buffer, KeyDataViewType matrixColumnIndexType, KeyDataViewType matrixRowIndexType)
         {
             Contracts.CheckValue(env, nameof(env));
             _host = env.Register(RegistrationName);
@@ -146,8 +145,8 @@ namespace Microsoft.ML.Trainers.Recommender
             _leftFactorMatrix = Utils.ReadSingleArray(ctx.Reader, checked(NumberOfRows * ApproximationRank));
             _rightFactorMatrix = Utils.ReadSingleArray(ctx.Reader, checked(NumberOfColumns * ApproximationRank));
 
-            MatrixColumnIndexType = new KeyType(typeof(uint), NumberOfColumns);
-            MatrixRowIndexType = new KeyType(typeof(uint), NumberOfRows);
+            MatrixColumnIndexType = new KeyDataViewType(typeof(uint), NumberOfColumns);
+            MatrixRowIndexType = new KeyDataViewType(typeof(uint), NumberOfRows);
         }
 
         /// <summary>
@@ -387,9 +386,9 @@ namespace Microsoft.ML.Trainers.Recommender
                 return getters;
             }
 
-            public DataViewRow GetRow(DataViewRow input, Func<int, bool> active)
+            DataViewRow ISchemaBoundRowMapper.GetRow(DataViewRow input, IEnumerable<DataViewSchema.Column> activeColumns)
             {
-                var activeArray = Utils.BuildArray(OutputSchema.Count, active);
+                var activeArray = Utils.BuildArray(OutputSchema.Count, activeColumns);
                 var getters = CreateGetter(input, activeArray);
                 return new SimpleRow(OutputSchema, input, getters);
             }

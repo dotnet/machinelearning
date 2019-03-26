@@ -2,12 +2,14 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using Microsoft.ML.Runtime;
+
 namespace Microsoft.ML.Trainers.FastTree
 {
     public abstract class RandomForestTrainerBase<TOptions, TTransformer, TModel> : FastTreeTrainerBase<TOptions, TTransformer, TModel>
         where TOptions : FastForestOptionsBase, new()
         where TModel : class
-        where TTransformer: ISingleFeaturePredictionTransformer<TModel>
+        where TTransformer : ISingleFeaturePredictionTransformer<TModel>
     {
         private readonly bool _quantileEnabled;
 
@@ -66,7 +68,8 @@ namespace Microsoft.ML.Trainers.FastTree
                        FastTreeTrainerOptions.HistogramPoolSize, FastTreeTrainerOptions.Seed, FastTreeTrainerOptions.FeatureFractionPerSplit,
                        FastTreeTrainerOptions.AllowEmptyTrees, FastTreeTrainerOptions.GainConfidenceLevel, FastTreeTrainerOptions.MaximumCategoricalGroupCountPerNode,
                        FastTreeTrainerOptions.MaximumCategoricalSplitPointCount, _quantileEnabled, FastTreeTrainerOptions.NumberOfQuantileSamples, ParallelTraining,
-                       FastTreeTrainerOptions.MinimumExampleFractionForCategoricalSplit, FastTreeTrainerOptions.Bundling, FastTreeTrainerOptions.MinimumExamplesForCategoricalSplit, FastTreeTrainerOptions.Bias);
+                       FastTreeTrainerOptions.MinimumExampleFractionForCategoricalSplit, FastTreeTrainerOptions.Bundling, FastTreeTrainerOptions.MinimumExamplesForCategoricalSplit,
+                       FastTreeTrainerOptions.Bias, Host);
         }
 
         internal abstract class RandomForestObjectiveFunction : ObjectiveFunctionBase

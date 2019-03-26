@@ -6,12 +6,11 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
-using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Runtime;
 using Microsoft.ML.Transforms;
 
 [assembly: LoadableClass(RangeFilter.Summary, typeof(RangeFilter), typeof(RangeFilter.Options), typeof(SignatureDataTransform),
@@ -107,7 +106,7 @@ namespace Microsoft.ML.Transforms
                 _type = schema[_index].Type;
                 if (!IsValidRangeFilterColumnType(ch, _type))
                     throw ch.ExceptUserArg(nameof(options.Column), "Column '{0}' does not have compatible type", options.Column);
-                if (_type is KeyType)
+                if (_type is KeyDataViewType)
                 {
                     if (options.Min < 0)
                     {
@@ -128,7 +127,7 @@ namespace Microsoft.ML.Transforms
                     throw ch.ExceptUserArg(nameof(options.Min), "min must be less than or equal to max");
                 _complement = options.Complement;
                 _includeMin = options.IncludeMin;
-                _includeMax = options.IncludeMax ?? (options.Max == null || (_type is KeyType && _max >= 1));
+                _includeMax = options.IncludeMax ?? (options.Max == null || (_type is KeyDataViewType && _max >= 1));
             }
         }
 
@@ -154,7 +153,7 @@ namespace Microsoft.ML.Transforms
 
             _type = schema[_index].Type;
             if (_type != NumberDataViewType.Single && _type != NumberDataViewType.Double && _type.GetKeyCount() == 0)
-                throw Host.ExceptSchemaMismatch(nameof(schema), "source", column, "float, double or KeyType", _type.ToString());
+                throw Host.ExceptSchemaMismatch(nameof(schema), "source", column, "Single, Double or Key", _type.ToString());
 
             _min = ctx.Reader.ReadDouble();
             _max = ctx.Reader.ReadDouble();
@@ -243,7 +242,7 @@ namespace Microsoft.ML.Transforms
                 return new SingleRowCursor(this, input, active);
             if (_type == NumberDataViewType.Double)
                 return new DoubleRowCursor(this, input, active);
-            Host.Assert(_type is KeyType);
+            Host.Assert(_type is KeyDataViewType);
             return RowCursorBase.CreateKeyRowCursor(this, input, active);
         }
 
@@ -308,14 +307,20 @@ namespace Microsoft.ML.Transforms
             private bool TestNotCC(Double value) => _min > value || value > _max;
 
             protected abstract Delegate GetGetter();
-
-            public override ValueGetter<TValue> GetGetter<TValue>(int col)
+            /// <summary>
+            /// Returns a value getter delegate to fetch the value of column with the given columnIndex, from the row.
+            /// This throws if the column is not active in this row, or if the type
+            /// <typeparamref name="TValue"/> differs from this column's type.
+            /// </summary>
+            /// <typeparam name="TValue"> is the column's content type.</typeparam>
+            /// <param name="column"> is the output column whose getter should be returned.</param>
+            public override ValueGetter<TValue> GetGetter<TValue>(DataViewSchema.Column column)
             {
-                Ch.Check(0 <= col && col < Schema.Count);
-                Ch.Check(IsColumnActive(col));
+                Ch.Check(0 <= column.Index && column.Index < Schema.Count);
+                Ch.Check(IsColumnActive(column));
 
-                if (col != Parent._index)
-                    return Input.GetGetter<TValue>(col);
+                if (column.Index != Parent._index)
+                    return Input.GetGetter<TValue>(column);
                 var fn = GetGetter() as ValueGetter<TValue>;
                 if (fn == null)
                     throw Ch.Except("Invalid TValue in GetGetter: '{0}'", typeof(TValue));
@@ -325,7 +330,7 @@ namespace Microsoft.ML.Transforms
 
             public static DataViewRowCursor CreateKeyRowCursor(RangeFilter filter, DataViewRowCursor input, bool[] active)
             {
-                Contracts.Assert(filter._type is KeyType);
+                Contracts.Assert(filter._type is KeyDataViewType);
                 Func<RangeFilter, DataViewRowCursor, bool[], DataViewRowCursor> del = CreateKeyRowCursor<int>;
                 var methodInfo = del.GetMethodInfo().GetGenericMethodDefinition().MakeGenericMethod(filter._type.RawType);
                 return (DataViewRowCursor)methodInfo.Invoke(null, new object[] { filter, input, active });
@@ -333,7 +338,7 @@ namespace Microsoft.ML.Transforms
 
             private static DataViewRowCursor CreateKeyRowCursor<TSrc>(RangeFilter filter, DataViewRowCursor input, bool[] active)
             {
-                Contracts.Assert(filter._type is KeyType);
+                Contracts.Assert(filter._type is KeyDataViewType);
                 return new KeyRowCursor<TSrc>(filter, input, active);
             }
         }
@@ -348,7 +353,7 @@ namespace Microsoft.ML.Transforms
                 : base(parent, input, active)
             {
                 Ch.Assert(Parent._type == NumberDataViewType.Single);
-                _srcGetter = Input.GetGetter<Single>(Parent._index);
+                _srcGetter = Input.GetGetter<Single>(Input.Schema[Parent._index]);
                 _getter =
                     (ref Single value) =>
                     {
@@ -381,7 +386,7 @@ namespace Microsoft.ML.Transforms
                 : base(parent, input, active)
             {
                 Ch.Assert(Parent._type == NumberDataViewType.Double);
-                _srcGetter = Input.GetGetter<Double>(Parent._index);
+                _srcGetter = Input.GetGetter<Double>(Input.Schema[Parent._index]);
                 _getter =
                     (ref Double value) =>
                     {
@@ -417,7 +422,7 @@ namespace Microsoft.ML.Transforms
             {
                 Ch.Assert(Parent._type.GetKeyCount() > 0);
                 _count = Parent._type.GetKeyCount();
-                _srcGetter = Input.GetGetter<T>(Parent._index);
+                _srcGetter = Input.GetGetter<T>(Input.Schema[Parent._index]);
                 _getter =
                     (ref T dst) =>
                     {
@@ -430,13 +435,13 @@ namespace Microsoft.ML.Transforms
 
             protected override Delegate GetGetter()
             {
-                Ch.Assert(Parent._type is KeyType);
+                Ch.Assert(Parent._type is KeyDataViewType);
                 return _getter;
             }
 
             protected override bool Accept()
             {
-                Ch.Assert(Parent._type is KeyType);
+                Ch.Assert(Parent._type is KeyDataViewType);
                 _srcGetter(ref _value);
                 ulong value = 0;
                 _conv(in _value, ref value);

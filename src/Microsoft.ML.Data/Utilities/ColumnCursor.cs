@@ -4,8 +4,7 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using Microsoft.Data.DataView;
+using Microsoft.ML.Runtime;
 
 namespace Microsoft.ML.Data
 {
@@ -71,7 +70,7 @@ namespace Microsoft.ML.Data
             else if (typeof(T).IsArray)
             {
                 // Output is an array type.
-                if (!(colType is VectorType colVectorType))
+                if (!(colType is VectorDataViewType colVectorType))
                     throw Contracts.ExceptParam(nameof(column), string.Format("Cannot load vector type, {0}, specified in {1} to the user-defined type, {2}.", column.Type, nameof(column), typeof(T)));
                 var elementType = typeof(T).GetElementType();
                 if (elementType == colVectorType.ItemType.RawType)
@@ -101,9 +100,10 @@ namespace Microsoft.ML.Data
             Contracts.AssertValue(data);
             Contracts.Assert(0 <= col && col < data.Schema.Count);
 
-            using (var cursor = data.GetRowCursor(data.Schema[col]))
+            var column = data.Schema[col];
+            using (var cursor = data.GetRowCursor(column))
             {
-                var getter = cursor.GetGetter<T>(col);
+                var getter = cursor.GetGetter<T>(column);
                 T curValue = default;
                 while (cursor.MoveNext())
                 {
@@ -118,9 +118,10 @@ namespace Microsoft.ML.Data
             Contracts.AssertValue(data);
             Contracts.Assert(0 <= col && col < data.Schema.Count);
 
-            using (var cursor = data.GetRowCursor(data.Schema[col]))
+            var column = data.Schema[col];
+            using (var cursor = data.GetRowCursor(column))
             {
-                var getter = cursor.GetGetter<TData>(col);
+                var getter = cursor.GetGetter<TData>(column);
                 TData curValue = default;
                 while (cursor.MoveNext())
                 {
@@ -135,9 +136,10 @@ namespace Microsoft.ML.Data
             Contracts.AssertValue(data);
             Contracts.Assert(0 <= col && col < data.Schema.Count);
 
-            using (var cursor = data.GetRowCursor(data.Schema[col]))
+            var column = data.Schema[col];
+            using (var cursor = data.GetRowCursor(column))
             {
-                var getter = cursor.GetGetter<VBuffer<T>>(col);
+                var getter = cursor.GetGetter<VBuffer<T>>(column);
                 VBuffer<T> curValue = default;
                 while (cursor.MoveNext())
                 {
@@ -156,9 +158,10 @@ namespace Microsoft.ML.Data
             Contracts.AssertValue(data);
             Contracts.Assert(0 <= col && col < data.Schema.Count);
 
-            using (var cursor = data.GetRowCursor(data.Schema[col]))
+            var column = data.Schema[col];
+            using (var cursor = data.GetRowCursor(column))
             {
-                var getter = cursor.GetGetter<VBuffer<TData>>(col);
+                var getter = cursor.GetGetter<VBuffer<TData>>(column);
                 VBuffer<TData> curValue = default;
                 while (cursor.MoveNext())
                 {

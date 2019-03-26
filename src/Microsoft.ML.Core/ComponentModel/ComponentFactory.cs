@@ -4,7 +4,7 @@
 
 using System;
 
-namespace Microsoft.ML
+namespace Microsoft.ML.Runtime
 {
     /// <summary>
     /// This is a token interface that all component factories must implement.

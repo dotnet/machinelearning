@@ -11,17 +11,14 @@ using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
-using Microsoft.Data.DataView;
+using Microsoft.ML.Runtime;
 
 namespace Microsoft.ML.Internal.Utilities
 {
-
     [BestFriend]
     internal static partial class Utils
     {
-        // Maximum size of one-dimensional array.
-        // See: https://msdn.microsoft.com/en-us/library/hh285054(v=vs.110).aspx
-        public const int ArrayMaxSize = 0X7FEFFFFF;
+        public const int ArrayMaxSize = ArrayUtils.ArrayMaxSize;
 
         public static bool StartsWithInvariantCultureIgnoreCase(this string str, string startsWith)
         {
@@ -243,8 +240,7 @@ namespace Microsoft.ML.Internal.Utilities
         /// </summary>
         public static bool TryFindIndexSorted(this int[] input, int min, int lim, int value, out int index)
         {
-            index = input.FindIndexSorted(min, lim, value);
-            return index < lim && input[index] == value;
+            return ArrayUtils.TryFindIndexSorted(input, min, lim, value, out index);
         }
 
         /// <summary>
@@ -277,29 +273,7 @@ namespace Microsoft.ML.Internal.Utilities
         /// </summary>
         public static int FindIndexSorted(this ReadOnlySpan<int> input, int min, int lim, int value)
         {
-            Contracts.Assert(0 <= min & min <= lim & lim <= input.Length);
-
-            int minCur = min;
-            int limCur = lim;
-            while (minCur < limCur)
-            {
-                int mid = (int)(((uint)minCur + (uint)limCur) / 2);
-                Contracts.Assert(minCur <= mid & mid < limCur);
-
-                if (input[mid] >= value)
-                    limCur = mid;
-                else
-                    minCur = mid + 1;
-
-                Contracts.Assert(min <= minCur & minCur <= limCur & limCur <= lim);
-                Contracts.Assert(minCur == min || input[minCur - 1] < value);
-                Contracts.Assert(limCur == lim || input[limCur] >= value);
-            }
-            Contracts.Assert(min <= minCur & minCur == limCur & limCur <= lim);
-            Contracts.Assert(minCur == min || input[minCur - 1] < value);
-            Contracts.Assert(limCur == lim || input[limCur] >= value);
-
-            return minCur;
+            return ArrayUtils.FindIndexSorted(input, min, lim, value);
         }
 
         /// <summary>
@@ -758,7 +732,7 @@ namespace Microsoft.ML.Internal.Utilities
             var result = new bool[length];
             foreach (var col in columnsNeeded)
             {
-                if(col.Index < result.Length)
+                if (col.Index < result.Length)
                     result[col.Index] = true;
             }
 
@@ -774,6 +748,41 @@ namespace Microsoft.ML.Internal.Utilities
             for (int i = 0; i < result.Length; i++)
                 result[i] = func(i);
             return result;
+        }
+
+        /// <summary>
+        /// Given a predicate, over a range of values defined by a limit calculate
+        /// first the values for which that predicate was true, and second an inverse
+        /// map.
+        /// </summary>
+        /// <param name="schema">The input schema where the predicate can check if columns are active.</param>
+        /// <param name="pred">The predicate to test for various value</param>
+        /// <param name="map">An ascending array of values from 0 inclusive
+        /// to <paramref name="schema.Count"/> exclusive, holding all values for which
+        /// <paramref name="pred"/> is true</param>
+        /// <param name="invMap">Forms an inverse mapping of <paramref name="map"/>,
+        /// so that <c><paramref name="invMap"/>[<paramref name="map"/>[i]] == i</c>,
+        /// and for other entries not appearing in <paramref name="map"/>,
+        /// <c><paramref name="invMap"/>[i] == -1</c></param>
+        public static void BuildSubsetMaps(DataViewSchema schema, Func<DataViewSchema.Column, bool> pred, out int[] map, out int[] invMap)
+        {
+            Contracts.CheckValue(schema, nameof(schema));
+            Contracts.Check(schema.Count > 0, nameof(schema));
+            Contracts.CheckValue(pred, nameof(pred));
+            // REVIEW: Better names?
+            List<int> mapList = new List<int>();
+            invMap = new int[schema.Count];
+            for (int c = 0; c < schema.Count; ++c)
+            {
+                if (!pred(schema[c]))
+                {
+                    invMap[c] = -1;
+                    continue;
+                }
+                invMap[c] = mapList.Count;
+                mapList.Add(c);
+            }
+            map = mapList.ToArray();
         }
 
         /// <summary>
@@ -931,28 +940,7 @@ namespace Microsoft.ML.Internal.Utilities
 
         public static int EnsureSize<T>(ref T[] array, int min, int max, bool keepOld, out bool resized)
         {
-            Contracts.CheckParam(min <= max, nameof(max), "min must not exceed max");
-            // This code adapted from the private method EnsureCapacity code of List<T>.
-            int size = Utils.Size(array);
-            if (size >= min)
-            {
-                resized = false;
-                return size;
-            }
-
-            int newSize = size == 0 ? 4 : size * 2;
-            // This constant taken from the internal code of system\array.cs of mscorlib.
-            if ((uint)newSize > max)
-                newSize = max;
-            if (newSize < min)
-                newSize = min;
-            if (keepOld && size > 0)
-                Array.Resize(ref array, newSize);
-            else
-                array = new T[newSize];
-
-            resized = true;
-            return newSize;
+            return ArrayUtils.EnsureSize(ref array, min, max, keepOld, out resized);
         }
 
         /// <summary>

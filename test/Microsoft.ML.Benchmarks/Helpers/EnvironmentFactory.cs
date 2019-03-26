@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.ML.Data;
+using Microsoft.ML.Runtime;
 using Microsoft.ML.Trainers;
 using Microsoft.ML.Transforms;
 
@@ -40,7 +41,7 @@ namespace Microsoft.ML.Benchmarks
             environment.ComponentCatalog.RegisterAssembly(typeof(TTransformer).Assembly);
             environment.ComponentCatalog.RegisterAssembly(typeof(TTrainer).Assembly);
 
-            environment.ComponentCatalog.RegisterAssembly(typeof(MissingValueDroppingTransformer).Assembly);
+            environment.ComponentCatalog.RegisterAssembly(typeof(OneHotEncodingTransformer).Assembly);
 
             return ctx;
         }

@@ -5,10 +5,10 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Microsoft.Data.DataView;
 using Microsoft.ML.Data;
 using Microsoft.ML.Functional.Tests.Datasets;
 using Xunit;
+using Xunit.Sdk;
 
 namespace Microsoft.ML.Functional.Tests
 {
@@ -83,14 +83,14 @@ namespace Microsoft.ML.Functional.Tests
         /// </summary>
         /// <param name="array1">An array of floats.</param>
         /// <param name="array2">An array of floats.</param>
-        public static void AssertEqual(float[] array1, float[] array2)
+        public static void AssertEqual(float[] array1, float[] array2, int precision = 6)
         {
             Assert.NotNull(array1);
             Assert.NotNull(array2);
             Assert.Equal(array1.Length, array2.Length);
 
             for (int i = 0; i < array1.Length; i++)
-                Assert.Equal(array1[i], array2[i]);
+                Assert.Equal(array1[i], array2[i], precision: precision);
         }
 
         /// <summary>
@@ -166,7 +166,7 @@ namespace Microsoft.ML.Functional.Tests
         public static void AssertMetrics(AnomalyDetectionMetrics metrics)
         {
             Assert.InRange(metrics.AreaUnderRocCurve, 0, 1);
-            Assert.InRange(metrics.DetectionRateAtKFalsePositives, 0, 1);
+            Assert.InRange(metrics.DetectionRateAtFalsePositiveCount, 0, 1);
         }
 
         /// <summary>
@@ -210,10 +210,10 @@ namespace Microsoft.ML.Functional.Tests
         }
 
         /// <summary>
-        /// Check that a <see cref="MultiClassClassifierMetrics"/> object is valid.
+        /// Check that a <see cref="MulticlassClassificationMetrics"/> object is valid.
         /// </summary>
         /// <param name="metrics">The metrics object.</param>
-        public static void AssertMetrics(MultiClassClassifierMetrics metrics)
+        public static void AssertMetrics(MulticlassClassificationMetrics metrics)
         {
             Assert.InRange(metrics.MacroAccuracy, 0, 1);
             Assert.InRange(metrics.MicroAccuracy, 0, 1);
@@ -266,6 +266,33 @@ namespace Microsoft.ML.Functional.Tests
             AssertMetricStatistics(metrics.MeanSquaredError);
             AssertMetricStatistics(metrics.RSquared);
             AssertMetricStatistics(metrics.LossFunction);
+        }
+
+        /// <summary>
+        /// Assert that two float arrays are not equal.
+        /// </summary>
+        /// <param name="array1">An array of floats.</param>
+        /// <param name="array2">An array of floats.</param>
+        public static void AssertNotEqual(float[] array1, float[] array2)
+        {
+            Assert.NotNull(array1);
+            Assert.NotNull(array2);
+            Assert.Equal(array1.Length, array2.Length);
+
+            bool mismatch = false;
+            for (int i = 0; i < array1.Length; i++)
+                try
+                {
+                    // Use Assert to test for equality rather than
+                    // to roll our own float equality checker.
+                    Assert.Equal(array1[i], array2[i]);
+                }
+                catch(EqualException)
+                {
+                    mismatch = true;
+                    break;
+                }
+            Assert.True(mismatch);
         }
 
         /// <summary>

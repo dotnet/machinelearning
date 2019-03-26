@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using Microsoft.ML.Data;
 using Microsoft.ML.EntryPoints;
+using Microsoft.ML.Runtime;
 
 namespace Microsoft.ML.Trainers.Ensemble
 {
@@ -42,12 +43,12 @@ namespace Microsoft.ML.Trainers.Ensemble
     {
     }
 
-    internal interface IMultiClassOutputCombiner : IOutputCombiner<VBuffer<Single>>
+    internal interface IMulticlassOutputCombiner : IOutputCombiner<VBuffer<Single>>
     {
     }
 
     [TlcModule.ComponentKind("EnsembleMulticlassOutputCombiner")]
-    internal interface ISupportMulticlassOutputCombinerFactory : IComponentFactory<IMultiClassOutputCombiner>
+    internal interface ISupportMulticlassOutputCombinerFactory : IComponentFactory<IMulticlassOutputCombiner>
     {
     }
 

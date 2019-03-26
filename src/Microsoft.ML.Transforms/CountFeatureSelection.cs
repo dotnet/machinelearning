@@ -6,17 +6,17 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
 using Microsoft.ML.Internal.Utilities;
-using Microsoft.ML.Transforms.FeatureSelection;
+using Microsoft.ML.Runtime;
+using Microsoft.ML.Transforms;
 
 [assembly: LoadableClass(CountFeatureSelectingEstimator.Summary, typeof(IDataTransform), typeof(CountFeatureSelectingEstimator), typeof(CountFeatureSelectingEstimator.Options), typeof(SignatureDataTransform),
     CountFeatureSelectingEstimator.UserName, "CountFeatureSelectionTransform", "CountFeatureSelection")]
 
-namespace Microsoft.ML.Transforms.FeatureSelection
+namespace Microsoft.ML.Transforms
 {
     /// <include file='doc.xml' path='doc/members/member[@name="CountFeatureSelection"]' />
     public sealed class CountFeatureSelectingEstimator : IEstimator<ITransformer>
@@ -47,7 +47,8 @@ namespace Microsoft.ML.Transforms.FeatureSelection
         /// <summary>
         /// Describes how the transformer handles one column pair.
         /// </summary>
-        public sealed class ColumnOptions
+        [BestFriend]
+        internal sealed class ColumnOptions
         {
             /// <summary> Name of the column resulting from the transformation of <see cref="InputColumnName"/>.</summary>
             public readonly string Name;
@@ -261,7 +262,7 @@ namespace Microsoft.ML.Transforms.FeatureSelection
                     throw env.ExceptUserArg(nameof(CountFeatureSelectingEstimator.Options.Columns), "Source column '{0}' not found", colName);
 
                 var colType = schema[colSrc].Type;
-                if (colType is VectorType vectorType && !vectorType.IsKnownSize)
+                if (colType is VectorDataViewType vectorType && !vectorType.IsKnownSize)
                     throw env.ExceptUserArg(nameof(CountFeatureSelectingEstimator.Options.Columns), "Variable length column '{0}' is not allowed", colName);
 
                 activeCols.Add(schema[colSrc]);
@@ -280,7 +281,7 @@ namespace Microsoft.ML.Transforms.FeatureSelection
                 pch.SetHeader(header, e => { e.SetProgress(0, rowCur, rowCount); });
                 for (int i = 0; i < size; i++)
                 {
-                    if (colTypes[i] is VectorType vectorType)
+                    if (colTypes[i] is VectorDataViewType vectorType)
                         aggregators[i] = GetVecAggregator(cursor, vectorType, colSrcs[i]);
                     else
                         aggregators[i] = GetOneAggregator(cursor, colTypes[i], colSrcs[i]);
@@ -309,19 +310,19 @@ namespace Microsoft.ML.Transforms.FeatureSelection
 
         private static CountAggregator GetOneAggregator<T>(DataViewRow row, DataViewType colType, int colSrc)
         {
-            return new CountAggregator<T>(colType, row.GetGetter<T>(colSrc));
+            return new CountAggregator<T>(colType, row.GetGetter<T>(row.Schema[colSrc]));
         }
 
-        private static CountAggregator GetVecAggregator(DataViewRow row, VectorType colType, int colSrc)
+        private static CountAggregator GetVecAggregator(DataViewRow row, VectorDataViewType colType, int colSrc)
         {
-            Func<DataViewRow, VectorType, int, CountAggregator> del = GetVecAggregator<int>;
+            Func<DataViewRow, VectorDataViewType, int, CountAggregator> del = GetVecAggregator<int>;
             var methodInfo = del.GetMethodInfo().GetGenericMethodDefinition().MakeGenericMethod(colType.ItemType.RawType);
             return (CountAggregator)methodInfo.Invoke(null, new object[] { row, colType, colSrc });
         }
 
-        private static CountAggregator GetVecAggregator<T>(DataViewRow row, VectorType colType, int colSrc)
+        private static CountAggregator GetVecAggregator<T>(DataViewRow row, VectorDataViewType colType, int colSrc)
         {
-            return new CountAggregator<T>(colType, row.GetGetter<VBuffer<T>>(colSrc));
+            return new CountAggregator<T>(colType, row.GetGetter<VBuffer<T>>(row.Schema[colSrc]));
         }
 
         private abstract class CountAggregator
@@ -355,7 +356,7 @@ namespace Microsoft.ML.Transforms.FeatureSelection
                     _isMissing = (in T value) => false;
             }
 
-            public CountAggregator(VectorType type, ValueGetter<VBuffer<T>> getter)
+            public CountAggregator(VectorDataViewType type, ValueGetter<VBuffer<T>> getter)
             {
                 Contracts.Assert(type.IsKnownSize);
                 var size = type.Size;

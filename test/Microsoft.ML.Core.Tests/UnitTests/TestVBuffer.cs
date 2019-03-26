@@ -10,6 +10,7 @@ using Microsoft.ML.Internal.Internallearn;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Numeric;
 using Microsoft.ML.RunTests;
+using Microsoft.ML.Runtime;
 using Xunit;
 using Xunit.Abstractions;
 

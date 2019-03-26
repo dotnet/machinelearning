@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System.IO;
-using Microsoft.Data.DataView;
 using Microsoft.ML.Data;
 using Microsoft.ML.Data.IO;
 using Microsoft.ML.Model;
@@ -11,7 +10,6 @@ using Microsoft.ML.RunTests;
 using Microsoft.ML.StaticPipe;
 using Microsoft.ML.Tools;
 using Microsoft.ML.Transforms;
-using Microsoft.ML.Transforms.FeatureSelection;
 using Microsoft.ML.Transforms.Text;
 using Xunit;
 using Xunit.Abstractions;
@@ -184,9 +182,9 @@ namespace Microsoft.ML.Tests.Transformers
 
             var est = ML.Transforms.FeatureSelection.SelectFeaturesBasedOnMutualInformation("FeatureSelect", "VectorFloat", slotsInOutput: 1, labelColumnName: "Label")
                 .Append(ML.Transforms.FeatureSelection.SelectFeaturesBasedOnMutualInformation(labelColumnName: "Label", slotsInOutput: 2, numberOfBins: 100,
-                    columns: new ColumnOptions[] {
-                        ("out1", "VectorFloat"),
-                        ("out2", "VectorDouble")
+                    columns: new[] {
+                        new InputOutputColumnPair("out1", "VectorFloat"),
+                        new InputOutputColumnPair("out2", "VectorDouble")
                     }));
             TestEstimatorCore(est, data);
 

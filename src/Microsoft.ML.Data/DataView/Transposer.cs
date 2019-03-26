@@ -7,9 +7,9 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using Microsoft.Data.DataView;
 using Microsoft.ML.Data.IO;
 using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Runtime;
 
 namespace Microsoft.ML.Data
 {
@@ -136,7 +136,7 @@ namespace Microsoft.ML.Data
                     var type = schema[_cols[c].Index].Type;
                     if (!saver.IsColumnSavable(type))
                         throw ch.ExceptParam(nameof(view), "Column named '{0}' is not serializable by the transposer", _cols[c].Name);
-                    if (type is VectorType vectorType && !vectorType.IsKnownSize)
+                    if (type is VectorDataViewType vectorType && !vectorType.IsKnownSize)
                         throw ch.ExceptParam(nameof(view), "Column named '{0}' is vector, but not of known size, and so cannot be transposed", _cols[c].Name);
                 }
 
@@ -249,12 +249,12 @@ namespace Microsoft.ML.Data
 
         private SlotCursor GetSlotCursorCore<T>(int col)
         {
-            if (_view.Schema[col].Type is VectorType)
+            if (_view.Schema[col].Type is VectorDataViewType)
                 return new SlotCursorVec<T>(this, col);
             return new SlotCursorOne<T>(this, col);
         }
 
-        VectorType ITransposeDataView.GetSlotType(int col)
+        VectorDataViewType ITransposeDataView.GetSlotType(int col)
         {
             // We don't need the col-th column to be transposed by this transform, so
             // its type is inherited from input data.
@@ -265,11 +265,11 @@ namespace Microsoft.ML.Data
             PrimitiveDataViewType elementType = null;
             if (transposedColumn.Type is PrimitiveDataViewType)
                 elementType = (PrimitiveDataViewType)transposedColumn.Type;
-            else if (transposedColumn.Type is VectorType)
-                elementType = ((VectorType)transposedColumn.Type).ItemType;
+            else if (transposedColumn.Type is VectorDataViewType)
+                elementType = ((VectorDataViewType)transposedColumn.Type).ItemType;
             _host.Assert(elementType != null);
 
-            return new VectorType(elementType, RowCount);
+            return new VectorDataViewType(elementType, RowCount);
         }
 
         #region IDataView implementation stuff, passthrough on to view.
@@ -318,7 +318,7 @@ namespace Microsoft.ML.Data
                 return getter;
             }
 
-            public override VectorType GetSlotType()
+            public override VectorDataViewType GetSlotType()
             {
                 Ch.Assert(0 <= _col && _col < _parent.Schema.Count);
                 return ((ITransposeDataView)_parent).GetSlotType(_col);
@@ -376,14 +376,15 @@ namespace Microsoft.ML.Data
                         Ch.Check(IsGood, RowCursorUtils.FetchValueStateError);
                         if (!valid)
                         {
-                            using (var cursor = _view.GetRowCursor(_view.Schema[_col]))
+                            var currentColumn = _view.Schema[_col];
+                            using (var cursor = _view.GetRowCursor(currentColumn))
                             {
                                 int[] indices = null;
                                 T[] values = null;
                                 int len = -1;
                                 int count = 0;
                                 T value = default(T);
-                                ValueGetter<T> getter = cursor.GetGetter<T>(_col);
+                                ValueGetter<T> getter = cursor.GetGetter<T>(currentColumn);
                                 while (cursor.MoveNext())
                                 {
                                     len++;
@@ -527,7 +528,8 @@ namespace Microsoft.ML.Data
                 // is having its values loaded into _indices/_values/_counts while the current column is being
                 // served up to the consumer through _cbuff.
 
-                using (var cursor = _view.GetRowCursor(_view.Schema[_colCurr]))
+                var currentColumn = _view.Schema[_colCurr];
+                using (var cursor = _view.GetRowCursor(currentColumn))
                 {
                     // Make sure that the buffers (and subbuffers) are all of appropriate size.
                     Utils.EnsureSize(ref _indices, vecLen);
@@ -540,7 +542,7 @@ namespace Microsoft.ML.Data
                     if (vecLen > 0)
                         Array.Clear(_counts, 0, vecLen);
 
-                    var getter = cursor.GetGetter<VBuffer<T>>(_colCurr);
+                    var getter = cursor.GetGetter<VBuffer<T>>(currentColumn);
                     int irbuff = 0; // Next index into _rbuff. During the copy phase this doubles as the lim.
                     int countSum = 0;
                     // In the key value pair, the first is the slot index, then second is the row index in _rbuff.
@@ -974,7 +976,7 @@ namespace Microsoft.ML.Data
                     {
                         Contracts.AssertValue(parent);
                         Contracts.AssertValue(input);
-                        Contracts.Assert(input.IsColumnActive(parent.SrcCol));
+                        Contracts.Assert(input.IsColumnActive(input.Schema[parent.SrcCol]));
                         Parent = parent;
                     }
                 }
@@ -1015,7 +1017,7 @@ namespace Microsoft.ML.Data
                         Contracts.AssertValue(row);
                         Contracts.Assert(row.Schema == _view.Schema);
                         Contracts.AssertValue(pred);
-                        Contracts.Assert(row.IsColumnActive(SrcCol));
+                        Contracts.Assert(row.IsColumnActive(row.Schema[SrcCol]));
                         return new RowImpl(this, row, pred(0));
                     }
 
@@ -1030,16 +1032,26 @@ namespace Microsoft.ML.Data
                             _isActive = isActive;
                         }
 
-                        public override bool IsColumnActive(int col)
+                        /// <summary>
+                        /// Returns whether the given column is active in this row.
+                        /// </summary>
+                        public override bool IsColumnActive(DataViewSchema.Column column)
                         {
-                            Contracts.CheckParam(0 <= col && col < Parent.ColumnCount, nameof(col));
+                            Contracts.CheckParam(column.Index < Parent.ColumnCount, nameof(column));
                             return _isActive;
                         }
 
-                        public override ValueGetter<TValue> GetGetter<TValue>(int col)
+                        /// <summary>
+                        /// Returns a value getter delegate to fetch the value of column with the given columnIndex, from the row.
+                        /// This throws if the column is not active in this row, or if the type
+                        /// <typeparamref name="TValue"/> differs from this column's type.
+                        /// </summary>
+                        /// <typeparam name="TValue"> is the column's content type.</typeparam>
+                        /// <param name="column"> is the output column whose getter should be returned.</param>
+                        public override ValueGetter<TValue> GetGetter<TValue>(DataViewSchema.Column column)
                         {
-                            Contracts.Check(IsColumnActive(col));
-                            return Input.GetGetter<TValue>(Parent.SrcCol);
+                            Contracts.Check(IsColumnActive(column));
+                            return Input.GetGetter<TValue>(Input.Schema[Parent.SrcCol]);
                         }
                     }
                 }
@@ -1052,7 +1064,7 @@ namespace Microsoft.ML.Data
                 {
                     private readonly int[] _lims;
                     // Cache of the types of each slice.
-                    private readonly VectorType[] _types;
+                    private readonly VectorDataViewType[] _types;
 
                     public override DataViewSchema OutputSchema { get; }
 
@@ -1072,7 +1084,7 @@ namespace Microsoft.ML.Data
                     public ColumnSplitter(IDataView view, int col, int[] lims)
                         : base(view, col)
                     {
-                        var type = _view.Schema[SrcCol].Type as VectorType;
+                        var type = _view.Schema[SrcCol].Type as VectorDataViewType;
                         // Only valid use is for two or more slices.
                         Contracts.Assert(Utils.Size(lims) >= 2);
                         Contracts.AssertValue(type);
@@ -1082,10 +1094,10 @@ namespace Microsoft.ML.Data
                         Contracts.Assert(lims[lims.Length - 1] == type.Size);
 
                         _lims = lims;
-                        _types = new VectorType[_lims.Length];
-                        _types[0] = new VectorType(type.ItemType, _lims[0]);
+                        _types = new VectorDataViewType[_lims.Length];
+                        _types[0] = new VectorDataViewType(type.ItemType, _lims[0]);
                         for (int c = 1; c < _lims.Length; ++c)
-                            _types[c] = new VectorType(type.ItemType, _lims[c] - _lims[c - 1]);
+                            _types[c] = new VectorDataViewType(type.ItemType, _lims[c] - _lims[c - 1]);
 
                         var selectedColumn = _view.Schema[col];
                         var schemaBuilder = new DataViewSchema.Builder();
@@ -1099,7 +1111,7 @@ namespace Microsoft.ML.Data
                         Contracts.AssertValue(row);
                         Contracts.Assert(row.Schema == _view.Schema);
                         Contracts.AssertValue(pred);
-                        Contracts.Assert(row.IsColumnActive(SrcCol));
+                        Contracts.Assert(row.IsColumnActive(row.Schema[SrcCol]));
                         return new RowImpl(this, row, pred);
                     }
 
@@ -1121,7 +1133,7 @@ namespace Microsoft.ML.Data
                         public RowImpl(ColumnSplitter<T> parent, DataViewRow input, Func<int, bool> pred)
                             : base(parent, input)
                         {
-                            _inputGetter = input.GetGetter<VBuffer<T>>(Parent.SrcCol);
+                            _inputGetter = input.GetGetter<VBuffer<T>>(input.Schema[Parent.SrcCol]);
                             _srcIndicesLims = new int[Lims.Length];
                             _lastValid = -1;
                             _getters = new ValueGetter<VBuffer<T>>[Lims.Length];
@@ -1129,17 +1141,27 @@ namespace Microsoft.ML.Data
                                 _getters[c] = pred(c) ? CreateGetter(c) : null;
                         }
 
-                        public override bool IsColumnActive(int col)
+                        /// <summary>
+                        /// Returns whether the given column is active in this row.
+                        /// </summary>
+                        public override bool IsColumnActive(DataViewSchema.Column column)
                         {
-                            Contracts.CheckParam(0 <= col && col < Parent.ColumnCount, nameof(col));
-                            return _getters[col] != null;
+                            Contracts.CheckParam(column.Index < Parent.ColumnCount, nameof(column));
+                            return _getters[column.Index] != null;
                         }
 
-                        public override ValueGetter<TValue> GetGetter<TValue>(int col)
+                        /// <summary>
+                        /// Returns a value getter delegate to fetch the value of column with the given columnIndex, from the row.
+                        /// This throws if the column is not active in this row, or if the type
+                        /// <typeparamref name="TValue"/> differs from this column's type.
+                        /// </summary>
+                        /// <typeparam name="TValue"> is the column's content type.</typeparam>
+                        /// <param name="column"> is the output column whose getter should be returned.</param>
+                        public override ValueGetter<TValue> GetGetter<TValue>(DataViewSchema.Column column)
                         {
-                            Contracts.Check(IsColumnActive(col));
-                            Contracts.AssertValue(_getters[col]);
-                            var fn = _getters[col] as ValueGetter<TValue>;
+                            Contracts.Check(IsColumnActive(column) && column.Index < _getters.Length);
+                            Contracts.AssertValue(_getters[column.Index]);
+                            var fn = _getters[column.Index] as ValueGetter<TValue>;
                             if (fn == null)
                                 throw Contracts.Except("Invalid TValue in GetGetter: '{0}'", typeof(TValue));
                             return fn;
@@ -1261,22 +1283,34 @@ namespace Microsoft.ML.Data
                     }
                 }
 
-                public override bool IsColumnActive(int col)
+                /// <summary>
+                /// Returns whether the given column is active in this row.
+                /// </summary>
+                public override bool IsColumnActive(DataViewSchema.Column column)
                 {
-                    Ch.Check(0 <= col && col < Schema.Count, "col");
+                    Ch.Check(column.Index < Schema.Count, nameof(column));
                     int splitInd;
                     int splitCol;
-                    _slicer.OutputColumnToSplitterIndices(col, out splitInd, out splitCol);
-                    return _sliceRows[splitInd] != null && _sliceRows[splitInd].IsColumnActive(splitCol);
+                    _slicer.OutputColumnToSplitterIndices(column.Index, out splitInd, out splitCol);
+                    var row = _sliceRows[splitInd];
+                    return row != null && row.IsColumnActive(row.Schema[splitCol]);
                 }
 
-                public override ValueGetter<TValue> GetGetter<TValue>(int col)
+                /// <summary>
+                /// Returns a value getter delegate to fetch the value of column with the given columnIndex, from the row.
+                /// This throws if the column is not active in this row, or if the type
+                /// <typeparamref name="TValue"/> differs from this column's type.
+                /// </summary>
+                /// <typeparam name="TValue"> is the column's content type.</typeparam>
+                /// <param name="column"> is the output column whose getter should be returned.</param>
+                public override ValueGetter<TValue> GetGetter<TValue>(DataViewSchema.Column column)
                 {
-                    Ch.Check(IsColumnActive(col));
+                    Ch.Check(IsColumnActive(column));
                     int splitInd;
                     int splitCol;
-                    _slicer.OutputColumnToSplitterIndices(col, out splitInd, out splitCol);
-                    return _sliceRows[splitInd].GetGetter<TValue>(splitCol);
+                    _slicer.OutputColumnToSplitterIndices(column.Index, out splitInd, out splitCol);
+                    var splitIndRow = _sliceRows[splitInd];
+                    return splitIndRow.GetGetter<TValue>(splitIndRow.Schema[splitCol]);
                 }
             }
         }
@@ -1431,16 +1465,26 @@ namespace Microsoft.ML.Data
                         _getter = _slotCursor.GetGetter<T>();
                 }
 
-                public override bool IsColumnActive(int col)
+                /// <summary>
+                /// Returns whether the given column is active in this row.
+                /// </summary>
+                public override bool IsColumnActive(DataViewSchema.Column column)
                 {
-                    Ch.CheckParam(col == 0, nameof(col));
+                    Ch.CheckParam(column.Index == 0, nameof(column));
                     return _getter != null;
                 }
 
-                public override ValueGetter<TValue> GetGetter<TValue>(int col)
+                /// <summary>
+                /// Returns a value getter delegate to fetch the value of column with the given columnIndex, from the row.
+                /// This throws if the column is not active in this row, or if the type
+                /// <typeparamref name="TValue"/> differs from this column's type.
+                /// </summary>
+                /// <typeparam name="TValue"> is the column's content type.</typeparam>
+                /// <param name="column"> is the output column whose getter should be returned.</param>
+                public override ValueGetter<TValue> GetGetter<TValue>(DataViewSchema.Column column)
                 {
-                    Ch.CheckParam(col == 0, nameof(col));
-                    Ch.CheckParam(_getter != null, nameof(col), "requested column not active");
+                    Ch.CheckParam(column.Index == 0, nameof(column));
+                    Ch.CheckParam(_getter != null, nameof(column), "requested column not active");
 
                     var getter = _getter as ValueGetter<TValue>;
                     if (getter == null)
@@ -1481,15 +1525,25 @@ namespace Microsoft.ML.Data
                 Schema = builder.ToSchema();
             }
 
-            public override bool IsColumnActive(int col)
+            /// <summary>
+            /// Returns whether the given column is active in this row.
+            /// </summary>
+            public override bool IsColumnActive(DataViewSchema.Column column)
             {
-                Ch.CheckParam(col == 0, nameof(col));
+                Ch.CheckParam(column.Index == 0, nameof(column));
                 return true;
             }
 
-            public override ValueGetter<TValue> GetGetter<TValue>(int col)
+            /// <summary>
+            /// Returns a value getter delegate to fetch the value of column with the given columnIndex, from the row.
+            /// This throws if the column is not active in this row, or if the type
+            /// <typeparamref name="TValue"/> differs from this column's type.
+            /// </summary>
+            /// <typeparam name="TValue"> is the column's content type.</typeparam>
+            /// <param name="column"> is the output column whose getter should be returned.</param>
+            public override ValueGetter<TValue> GetGetter<TValue>(DataViewSchema.Column column)
             {
-                Ch.CheckParam(col == 0, nameof(col));
+                Ch.CheckParam(column.Index == 0, nameof(column));
                 return _slotCursor.GetGetterWithVectorType<TValue>(Ch);
             }
 

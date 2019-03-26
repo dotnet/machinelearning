@@ -33,7 +33,7 @@
 #r @"../../bin/AnyCPU.Debug/Microsoft.ML.FSharp.Tests/net461/Microsoft.ML.Api.dll" 
 #r @"../../bin/AnyCPU.Debug/Microsoft.ML.FSharp.Tests/net461/Microsoft.ML.Sweeper.dll" 
 #r @"../../bin/AnyCPU.Debug/Microsoft.ML.FSharp.Tests/net461/Microsoft.ML.dll" 
-#r @"../../bin/AnyCPU.Debug/Microsoft.ML.FSharp.Tests/net461/Microsoft.ML.StandardLearners.dll" 
+#r @"../../bin/AnyCPU.Debug/Microsoft.ML.FSharp.Tests/net461/Microsoft.ML.StandardTrainers.dll" 
 #r @"../../bin/AnyCPU.Debug/Microsoft.ML.FSharp.Tests/net461/Microsoft.ML.PipelineInference.dll" 
 #r @"../../bin/AnyCPU.Debug/Microsoft.ML.FSharp.Tests/net461/xunit.core.dll" 
 #r @"../../bin/AnyCPU.Debug/Microsoft.ML.FSharp.Tests/net461/xunit.assert.dll" 
@@ -83,7 +83,7 @@ module SmokeTest1 =
 
         let model = pipeline.Fit(data)
 
-        let engine = model.CreatePredictionEngine<SentimentData, SentimentPrediction>(ml)
+        let engine = ml.Model.CreatePredictionEngine<SentimentData, SentimentPrediction>(model)
         
         let predictions =
             [ SentimentData(SentimentText = "This is a gross exaggeration. Nobody is setting a kangaroo court. There was a simple addition.")
@@ -123,7 +123,7 @@ module SmokeTest2 =
         
         let model = pipeline.Fit(data)
 
-        let engine = model.CreatePredictionEngine<SentimentData, SentimentPrediction>(ml)
+        let engine = ml.Model.CreatePredictionEngine<SentimentData, SentimentPrediction>(model)
 
         let predictions =
             [ { SentimentText = "This is a gross exaggeration. Nobody is setting a kangaroo court. There was a simple addition."; Sentiment = false }
@@ -160,7 +160,7 @@ module SmokeTest3 =
         
         let model = pipeline.Fit(data)
 
-        let engine = model.CreatePredictionEngine<SentimentData, SentimentPrediction>(ml)
+        let engine = ml.Model.CreatePredictionEngine<SentimentData, SentimentPrediction>(model)
 
         let predictions =
             [ SentimentData(SentimentText = "This is a gross exaggeration. Nobody is setting a kangaroo court. There was a simple addition.".AsMemory())

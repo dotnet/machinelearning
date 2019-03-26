@@ -3,7 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using Microsoft.Data.DataView;
+using Microsoft.ML.Runtime;
 
 namespace Microsoft.ML.Data
 {
@@ -50,7 +50,7 @@ namespace Microsoft.ML.Data
         /// <see cref="ITransposeDataView.GetSlotType"/> for the column from which this slot cursor
         /// was created.
         /// </summary>
-        public abstract VectorType GetSlotType();
+        public abstract VectorDataViewType GetSlotType();
 
         /// <summary>
         /// A getter delegate for the slot values. The type <typeparamref name="TValue"/> must correspond

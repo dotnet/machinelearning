@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace Microsoft.ML.Samples.Dynamic
+﻿namespace Microsoft.ML.Samples.Dynamic
 {
     public static class StochasticGradientDescentNonCalibrated
     {
@@ -20,10 +16,10 @@ namespace Microsoft.ML.Samples.Dynamic
             var data = SamplesUtils.DatasetUtils.LoadFeaturizedAdultDataset(mlContext);
 
             // Leave out 10% of data for testing.
-            var trainTestData = mlContext.BinaryClassification.TrainTestSplit(data, testFraction: 0.1);
+            var trainTestData = mlContext.Data.TrainTestSplit(data, testFraction: 0.1);
 
             // Create data training pipeline.
-            var pipeline = mlContext.BinaryClassification.Trainers.StochasticGradientDescentNonCalibrated();
+            var pipeline = mlContext.BinaryClassification.Trainers.SgdNonCalibrated();
 
             // Fit this pipeline to the training data.
             var model = pipeline.Fit(trainTestData.TrainSet);

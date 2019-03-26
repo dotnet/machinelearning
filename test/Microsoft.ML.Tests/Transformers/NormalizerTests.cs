@@ -5,9 +5,9 @@
 using System;
 using System.Collections.Immutable;
 using System.IO;
-using Microsoft.Data.DataView;
 using Microsoft.ML.Data;
 using Microsoft.ML.Data.IO;
+using Microsoft.ML.Experimental;
 using Microsoft.ML.Model;
 using Microsoft.ML.RunTests;
 using Microsoft.ML.StaticPipe;
@@ -52,18 +52,18 @@ namespace Microsoft.ML.Tests.Transformers
                 new NormalizingEstimator.BinningColumnOptions("float4bin", "float4"),
                 new NormalizingEstimator.BinningColumnOptions("double1bin", "double1"),
                 new NormalizingEstimator.BinningColumnOptions("double4bin", "double4"),
-                new NormalizingEstimator.SupervisedBinningColumOptions("float1supervisedbin", "float1", labelColumn: "int1"),
-                new NormalizingEstimator.SupervisedBinningColumOptions("float4supervisedbin", "float4", labelColumn: "int1"),
-                new NormalizingEstimator.SupervisedBinningColumOptions("double1supervisedbin", "double1", labelColumn: "int1"),
-                new NormalizingEstimator.SupervisedBinningColumOptions("double4supervisedbin", "double4", labelColumn: "int1"),
-                new NormalizingEstimator.MeanVarColumnOptions("float1mv", "float1"),
-                new NormalizingEstimator.MeanVarColumnOptions("float4mv", "float4"),
-                new NormalizingEstimator.MeanVarColumnOptions("double1mv", "double1"),
-                new NormalizingEstimator.MeanVarColumnOptions("double4mv", "double4"),
-                new NormalizingEstimator.LogMeanVarColumnOptions("float1lmv", "float1"),
-                new NormalizingEstimator.LogMeanVarColumnOptions("float4lmv", "float4"),
-                new NormalizingEstimator.LogMeanVarColumnOptions("double1lmv", "double1"),
-                new NormalizingEstimator.LogMeanVarColumnOptions("double4lmv", "double4"));
+                new NormalizingEstimator.SupervisedBinningColumOptions("float1supervisedbin", "float1", labelColumnName: "int1"),
+                new NormalizingEstimator.SupervisedBinningColumOptions("float4supervisedbin", "float4", labelColumnName: "int1"),
+                new NormalizingEstimator.SupervisedBinningColumOptions("double1supervisedbin", "double1", labelColumnName: "int1"),
+                new NormalizingEstimator.SupervisedBinningColumOptions("double4supervisedbin", "double4", labelColumnName: "int1"),
+                new NormalizingEstimator.MeanVarianceColumnOptions("float1mv", "float1"),
+                new NormalizingEstimator.MeanVarianceColumnOptions("float4mv", "float4"),
+                new NormalizingEstimator.MeanVarianceColumnOptions("double1mv", "double1"),
+                new NormalizingEstimator.MeanVarianceColumnOptions("double4mv", "double4"),
+                new NormalizingEstimator.LogMeanVarianceColumnOptions("float1lmv", "float1"),
+                new NormalizingEstimator.LogMeanVarianceColumnOptions("float4lmv", "float4"),
+                new NormalizingEstimator.LogMeanVarianceColumnOptions("double1lmv", "double1"),
+                new NormalizingEstimator.LogMeanVarianceColumnOptions("double4lmv", "double4"));
 
             var data = loader.Load(dataPath);
 
@@ -117,14 +117,14 @@ namespace Microsoft.ML.Tests.Transformers
                 new NormalizingEstimator.BinningColumnOptions("float4bin", "float4"),
                 new NormalizingEstimator.BinningColumnOptions("double1bin", "double1"),
                 new NormalizingEstimator.BinningColumnOptions("double4bin", "double4"),
-                new NormalizingEstimator.MeanVarColumnOptions("float1mv", "float1"),
-                new NormalizingEstimator.MeanVarColumnOptions("float4mv", "float4"),
-                new NormalizingEstimator.MeanVarColumnOptions("double1mv", "double1"),
-                new NormalizingEstimator.MeanVarColumnOptions("double4mv", "double4"),
-                new NormalizingEstimator.LogMeanVarColumnOptions("float1lmv", "float1"),
-                new NormalizingEstimator.LogMeanVarColumnOptions("float4lmv", "float4"),
-                new NormalizingEstimator.LogMeanVarColumnOptions("double1lmv", "double1"),
-                new NormalizingEstimator.LogMeanVarColumnOptions("double4lmv", "double4"));
+                new NormalizingEstimator.MeanVarianceColumnOptions("float1mv", "float1"),
+                new NormalizingEstimator.MeanVarianceColumnOptions("float4mv", "float4"),
+                new NormalizingEstimator.MeanVarianceColumnOptions("double1mv", "double1"),
+                new NormalizingEstimator.MeanVarianceColumnOptions("double4mv", "double4"),
+                new NormalizingEstimator.LogMeanVarianceColumnOptions("float1lmv", "float1"),
+                new NormalizingEstimator.LogMeanVarianceColumnOptions("float4lmv", "float4"),
+                new NormalizingEstimator.LogMeanVarianceColumnOptions("double1lmv", "double1"),
+                new NormalizingEstimator.LogMeanVarianceColumnOptions("double4lmv", "double4"));
 
             var data = loader.Load(dataPath);
 
@@ -187,22 +187,22 @@ namespace Microsoft.ML.Tests.Transformers
             var floatCdfLogMeanData = transformer.Columns[12].ModelParameters as NormalizingTransformer.CdfNormalizerModelParameters<float>;
             Assert.Equal(1.75623953f, floatCdfLogMeanData.Mean);
             Assert.True(true == floatCdfLogMeanData.UseLog);
-            Assert.Equal(0.140807763f, floatCdfLogMeanData.Stddev);
+            Assert.Equal(0.140807763f, floatCdfLogMeanData.StandardDeviation);
 
             var floatCdfLogMeanDataVec = transformer.Columns[13].ModelParameters as NormalizingTransformer.CdfNormalizerModelParameters<ImmutableArray<float>>;
             Assert.Equal(4, floatCdfLogMeanDataVec.Mean.Length);
             Assert.True(true == floatCdfLogMeanDataVec.UseLog);
-            Assert.Equal(4, floatCdfLogMeanDataVec.Stddev.Length);
+            Assert.Equal(4, floatCdfLogMeanDataVec.StandardDeviation.Length);
 
             var doubleCdfLogMeanData = transformer.Columns[14].ModelParameters as NormalizingTransformer.CdfNormalizerModelParameters<double>;
             Assert.Equal(1.7562395401953814, doubleCdfLogMeanData.Mean);
             Assert.True(doubleCdfLogMeanData.UseLog);
-            Assert.Equal(0.14080776721611848, doubleCdfLogMeanData.Stddev);
+            Assert.Equal(0.14080776721611848, doubleCdfLogMeanData.StandardDeviation);
 
             var doubleCdfLogMeanDataVec = transformer.Columns[15].ModelParameters as NormalizingTransformer.CdfNormalizerModelParameters<ImmutableArray<double>>;
             Assert.Equal(4, doubleCdfLogMeanDataVec.Mean.Length);
             Assert.True(doubleCdfLogMeanDataVec.UseLog);
-            Assert.Equal(4, doubleCdfLogMeanDataVec.Stddev.Length);
+            Assert.Equal(4, doubleCdfLogMeanDataVec.StandardDeviation.Length);
 
             Done();
         }
@@ -223,9 +223,9 @@ namespace Microsoft.ML.Tests.Transformers
             var data = loader.Load(dataPath);
 
             var est1 = new NormalizingEstimator(Env, "float4");
-            var est2 = new NormalizingEstimator(Env, NormalizingEstimator.NormalizerMode.MinMax, ("float4", "float4"));
+            var est2 = new NormalizingEstimator(Env, NormalizingEstimator.NormalizationMode.MinMax, ("float4", "float4"));
             var est3 = new NormalizingEstimator(Env, new NormalizingEstimator.MinMaxColumnOptions("float4"));
-            var est4 = ML.Transforms.Normalize(NormalizingEstimator.NormalizerMode.MinMax, ("float4", "float4"));
+            var est4 = ML.Transforms.Normalize("float4", "float4", NormalizingEstimator.NormalizationMode.MinMax);
             var est5 = ML.Transforms.Normalize("float4");
 
             var data1 = est1.Fit(data).Transform(data);
@@ -243,10 +243,10 @@ namespace Microsoft.ML.Tests.Transformers
             CheckSameValues(data1, data4);
             CheckSameValues(data1, data5);
 
-            // Tests for SupervisedBinning
-            var est6 = new NormalizingEstimator(Env, NormalizingEstimator.NormalizerMode.SupervisedBinning, ("float4", "float4"));
-            var est7 = new NormalizingEstimator(Env, new NormalizingEstimator.SupervisedBinningColumOptions("float4"));
-            var est8 = ML.Transforms.Normalize(NormalizingEstimator.NormalizerMode.SupervisedBinning, ("float4", "float4"));
+            // Tests for MeanVariance
+            var est6 = new NormalizingEstimator(Env, NormalizingEstimator.NormalizationMode.MeanVariance, ("float4", "float4"));
+            var est7 = new NormalizingEstimator(Env, new NormalizingEstimator.MeanVarianceColumnOptions("float4"));
+            var est8 = ML.Transforms.Normalize("float4", "float4", NormalizingEstimator.NormalizationMode.MeanVariance);
 
             var data6 = est6.Fit(data).Transform(data);
             var data7 = est7.Fit(data).Transform(data);
@@ -255,6 +255,127 @@ namespace Microsoft.ML.Tests.Transformers
             CheckSameSchemas(data6.Schema, data8.Schema);
             CheckSameValues(data6, data7);
             CheckSameValues(data6, data8);
+
+            // Tests for LogMeanVariance
+            var est9 = new NormalizingEstimator(Env, NormalizingEstimator.NormalizationMode.LogMeanVariance, ("float4", "float4"));
+            var est10 = new NormalizingEstimator(Env, new NormalizingEstimator.LogMeanVarianceColumnOptions("float4"));
+            var est11 = ML.Transforms.Normalize("float4", "float4", NormalizingEstimator.NormalizationMode.LogMeanVariance);
+
+            var data9 = est9.Fit(data).Transform(data);
+            var data10 = est10.Fit(data).Transform(data);
+            var data11 = est11.Fit(data).Transform(data);
+            CheckSameSchemas(data9.Schema, data10.Schema);
+            CheckSameSchemas(data9.Schema, data11.Schema);
+            CheckSameValues(data9, data10);
+            CheckSameValues(data9, data11);
+
+            // Tests for Binning
+            var est12 = new NormalizingEstimator(Env, NormalizingEstimator.NormalizationMode.Binning, ("float4", "float4"));
+            var est13 = new NormalizingEstimator(Env, new NormalizingEstimator.BinningColumnOptions("float4"));
+            var est14 = ML.Transforms.Normalize("float4", "float4", NormalizingEstimator.NormalizationMode.Binning);
+
+            var data12 = est12.Fit(data).Transform(data);
+            var data13 = est13.Fit(data).Transform(data);
+            var data14 = est14.Fit(data).Transform(data);
+            CheckSameSchemas(data12.Schema, data13.Schema);
+            CheckSameSchemas(data12.Schema, data14.Schema);
+            CheckSameValues(data12, data13);
+            CheckSameValues(data12, data14);
+
+            // Tests for SupervisedBinning
+            var est15 = new NormalizingEstimator(Env, NormalizingEstimator.NormalizationMode.SupervisedBinning, ("float4", "float4"));
+            var est16 = new NormalizingEstimator(Env, new NormalizingEstimator.SupervisedBinningColumOptions("float4"));
+            var est17 = ML.Transforms.Normalize("float4", "float4", NormalizingEstimator.NormalizationMode.SupervisedBinning);
+
+            var data15 = est15.Fit(data).Transform(data);
+            var data16 = est16.Fit(data).Transform(data);
+            var data17 = est17.Fit(data).Transform(data);
+            CheckSameSchemas(data15.Schema, data16.Schema);
+            CheckSameSchemas(data15.Schema, data17.Schema);
+            CheckSameValues(data15, data16);
+            CheckSameValues(data15, data17);
+
+            Done();
+        }
+
+        [Fact]
+        public void NormalizerExperimentalExtensions()
+        {
+            string dataPath = GetDataPath(TestDatasets.iris.trainFilename);
+
+            var loader = new TextLoader(Env, new TextLoader.Options
+            {
+                Columns = new[] {
+                    new TextLoader.Column("Label", DataKind.Single, 0),
+                    new TextLoader.Column("float4", DataKind.Single, new[]{new TextLoader.Range(1, 4) }),
+                }
+            });
+
+            var data = loader.Load(dataPath);
+
+            // Normalizer Extensions
+            var est1 = ML.Transforms.Normalize("float4", "float4", NormalizingEstimator.NormalizationMode.MinMax);
+            var est2 = ML.Transforms.Normalize("float4", "float4", NormalizingEstimator.NormalizationMode.MeanVariance);
+            var est3 = ML.Transforms.Normalize("float4", "float4", NormalizingEstimator.NormalizationMode.LogMeanVariance); 
+            var est4 = ML.Transforms.Normalize("float4", "float4", NormalizingEstimator.NormalizationMode.Binning); 
+            var est5 = ML.Transforms.Normalize("float4", "float4", NormalizingEstimator.NormalizationMode.SupervisedBinning);
+
+            // Normalizer Extensions (Experimental)
+            var est6 = ML.Transforms.NormalizeMinMax("float4", "float4");
+            var est7 = ML.Transforms.NormalizeMeanVariance("float4", "float4");
+            var est8 = ML.Transforms.NormalizeLogMeanVariance("float4", "float4");
+            var est9 = ML.Transforms.NormalizeBinning("float4", "float4");
+            var est10 = ML.Transforms.NormalizeSupervisedBinning("float4", "float4");
+
+            // Fit and Transpose 
+            var data1 = est1.Fit(data).Transform(data);
+            var data2 = est2.Fit(data).Transform(data);
+            var data3 = est3.Fit(data).Transform(data);
+            var data4 = est4.Fit(data).Transform(data);
+            var data5 = est5.Fit(data).Transform(data);
+            var data6 = est6.Fit(data).Transform(data);
+            var data7 = est7.Fit(data).Transform(data);
+            var data8 = est8.Fit(data).Transform(data);
+            var data9 = est9.Fit(data).Transform(data);
+            var data10 = est10.Fit(data).Transform(data);
+
+            // Schema Checks
+            CheckSameSchemas(data1.Schema, data6.Schema);
+            CheckSameSchemas(data2.Schema, data7.Schema);
+            CheckSameSchemas(data3.Schema, data8.Schema);
+            CheckSameSchemas(data4.Schema, data9.Schema);
+            CheckSameSchemas(data5.Schema, data10.Schema);
+
+            // Value Checks
+            CheckSameValues(data1, data6);
+            CheckSameValues(data2, data7);
+            CheckSameValues(data3, data8);
+            CheckSameValues(data4, data9);
+            CheckSameValues(data5, data10);
+
+            Done();
+        }
+
+        [Fact]
+        public void NormalizerExperimentalExtensionGetColumnPairs()
+        {
+            string dataPath = GetDataPath(TestDatasets.iris.trainFilename);
+
+            var loader = new TextLoader(Env, new TextLoader.Options
+            {
+                Columns = new[] {
+                    new TextLoader.Column("Label", DataKind.Single, 0),
+                    new TextLoader.Column("input", DataKind.Single, new[]{new TextLoader.Range(1, 4) }),
+                }
+            });
+
+            var data = loader.Load(dataPath);
+            var est = ML.Transforms.Normalize("output", "input", NormalizingEstimator.NormalizationMode.MinMax);
+            var t = est.Fit(data);
+
+            Assert.Single(t.GetColumnPairs());
+            Assert.Equal("output", t.GetColumnPairs()[0].OutputColumnName);
+            Assert.Equal("input", t.GetColumnPairs()[0].InputColumnName);
 
             Done();
         }
@@ -273,8 +394,8 @@ namespace Microsoft.ML.Tests.Transformers
                 separator: ';', hasHeader: true)
                 .Load(dataSource);
 
-            var est = ML.Transforms.Projection.LpNormalize("lpnorm", "features")
-                .Append(ML.Transforms.Projection.GlobalContrastNormalize("gcnorm", "features"))
+            var est = ML.Transforms.NormalizeLpNorm("lpnorm", "features")
+                .Append(ML.Transforms.NormalizeGlobalContrast("gcnorm", "features"))
                 .Append(new VectorWhiteningEstimator(ML, "whitened", "features"));
             TestEstimatorCore(est, data.AsDynamic, invalidInput: invalidData.AsDynamic);
 
@@ -308,7 +429,7 @@ namespace Microsoft.ML.Tests.Transformers
                 .Load(dataSource);
 
             var est = new VectorWhiteningEstimator(ML, "whitened1", "features")
-                .Append(new VectorWhiteningEstimator(ML, "whitened2", "features", kind: WhiteningKind.Pca, pcaNum: 5));
+                .Append(new VectorWhiteningEstimator(ML, "whitened2", "features", kind: WhiteningKind.PrincipalComponentAnalysis, rank: 5));
             TestEstimatorCore(est, data.AsDynamic, invalidInput: invalidData.AsDynamic);
 
             var outputPath = GetOutputPath("NormalizerEstimator", "whitened.tsv");
@@ -369,8 +490,8 @@ namespace Microsoft.ML.Tests.Transformers
                 separator: ';', hasHeader: true)
                 .Load(dataSource);
 
-            var est = ML.Transforms.Projection.LpNormalize("lpNorm1", "features")
-                .Append(ML.Transforms.Projection.LpNormalize("lpNorm2", "features", normKind: LpNormalizingEstimatorBase.NormalizerKind.L1Norm, subMean: true));
+            var est = ML.Transforms.NormalizeLpNorm("lpNorm1", "features")
+                .Append(ML.Transforms.NormalizeLpNorm("lpNorm2", "features", norm: LpNormNormalizingEstimatorBase.NormFunction.L1, ensureZeroMean: true));
             TestEstimatorCore(est, data.AsDynamic, invalidInput: invalidData.AsDynamic);
 
             var outputPath = GetOutputPath("NormalizerEstimator", "lpNorm.tsv");
@@ -402,7 +523,7 @@ namespace Microsoft.ML.Tests.Transformers
                 c => (label: c.LoadFloat(11), features: c.LoadFloat(0, 10)),
                 separator: ';', hasHeader: true)
                 .Load(dataSource).AsDynamic;
-            var pipe = ML.Transforms.Projection.LpNormalize("whitened", "features");
+            var pipe = ML.Transforms.NormalizeLpNorm("whitened", "features");
 
             var result = pipe.Fit(dataView).Transform(dataView);
             var resultRoles = new RoleMappedData(result);
@@ -428,8 +549,8 @@ namespace Microsoft.ML.Tests.Transformers
                 separator: ';', hasHeader: true)
                 .Load(dataSource);
 
-            var est = ML.Transforms.Projection.GlobalContrastNormalize("gcnNorm1", "features")
-                .Append(ML.Transforms.Projection.GlobalContrastNormalize("gcnNorm2", "features", substractMean: false, useStdDev: true, scale: 3));
+            var est = ML.Transforms.NormalizeGlobalContrast("gcnNorm1", "features")
+                .Append(ML.Transforms.NormalizeGlobalContrast("gcnNorm2", "features", ensureZeroMean: false, ensureUnitStandardDeviation: true, scale: 3));
             TestEstimatorCore(est, data.AsDynamic, invalidInput: invalidData.AsDynamic);
 
             var outputPath = GetOutputPath("NormalizerEstimator", "gcnNorm.tsv");
@@ -461,7 +582,7 @@ namespace Microsoft.ML.Tests.Transformers
                 c => (label: c.LoadFloat(11), features: c.LoadFloat(0, 10)),
                 separator: ';', hasHeader: true)
                 .Load(dataSource).AsDynamic;
-            var pipe = ML.Transforms.Projection.GlobalContrastNormalize("whitened", "features");
+            var pipe = ML.Transforms.NormalizeGlobalContrast("whitened", "features");
 
             var result = pipe.Fit(dataView).Transform(dataView);
             var resultRoles = new RoleMappedData(result);

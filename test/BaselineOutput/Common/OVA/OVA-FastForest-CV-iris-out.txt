@@ -1,4 +1,4 @@
-maml.exe CV tr=OVA{p=FastForest{ }} threads=- norm=No dout=%Output% data=%Data% seed=1
+maml.exe CV tr=OVA{p=FastForest{ }} threads=- norm=No dout=%Output% data=%Data% seed=1 xf=Term{col=Label}
 Not adding a normalizer.
 Training learner 0
 Making per-feature arrays
@@ -70,7 +70,7 @@ Precision ||1.0000 |0.9615 |0.8438 |
 Accuracy(micro-avg): 0.924051
 Accuracy(macro-avg): 0.932540
 Log-loss:           0.197783
-Log-loss reduction: 81.813342
+Log-loss reduction: 0.818133
 
 Confusion table
           ||========================
@@ -84,14 +84,14 @@ Precision ||1.0000 |0.9048 |0.9524 |
 Accuracy(micro-avg): 0.957746
 Accuracy(macro-avg): 0.953030
 Log-loss:           0.103360
-Log-loss reduction: 90.479422
+Log-loss reduction: 0.904794
 
 OVERALL RESULTS
 ---------------------------------------
 Accuracy(micro-avg): 0.940899 (0.0168)
 Accuracy(macro-avg): 0.942785 (0.0102)
 Log-loss:           0.150571 (0.0472)
-Log-loss reduction: 86.146382 (4.3330)
+Log-loss reduction: 0.861464 (0.0433)
 
 ---------------------------------------
 Physical memory usage(MB): %Number%

@@ -7,12 +7,12 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Numerics.Tensors;
-using Microsoft.Data.DataView;
 using Microsoft.ML.Data;
 using Microsoft.ML.OnnxRuntime;
+using Microsoft.ML.Runtime;
 using OnnxShape = System.Collections.Generic.List<int>;
 
-namespace Microsoft.ML.Transforms
+namespace Microsoft.ML.Transforms.Onnx
 {
     /// <summary>
     /// OnnxModel is a utility class to load ONNX models and retrieve metadata

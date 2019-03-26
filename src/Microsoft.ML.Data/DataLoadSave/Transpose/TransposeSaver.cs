@@ -7,12 +7,12 @@ using System.Collections.Generic;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Text;
-using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
 using Microsoft.ML.Data.IO;
 using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Runtime;
 using Microsoft.ML.Transforms;
 
 [assembly: LoadableClass(TransposeSaver.Summary, typeof(TransposeSaver), typeof(TransposeSaver.Arguments), typeof(SignatureDataSaver),
@@ -66,7 +66,7 @@ namespace Microsoft.ML.Data.IO
         {
             _host.CheckValue(type, nameof(type));
             // We can't transpose variable length columns at all, so nor can we save them.
-            if (type is VectorType vectorType && !vectorType.IsKnownSize)
+            if (type is VectorDataViewType vectorType && !vectorType.IsKnownSize)
                 return false;
             // Since we'll be presumably saving vectors of these, attempt to construct
             // an artificial vector type out of this. Obviously if you can't make a vector
@@ -75,7 +75,7 @@ namespace Microsoft.ML.Data.IO
             var primitiveType = itemType as PrimitiveDataViewType;
             if (primitiveType == null)
                 return false;
-            var newVectorType = new VectorType(primitiveType, size: 2);
+            var newVectorType = new VectorDataViewType(primitiveType, size: 2);
             return _internalSaver.IsColumnSavable(newVectorType);
         }
 

@@ -6,8 +6,9 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Runtime;
 
-namespace Microsoft.ML
+namespace Microsoft.ML.Data
 {
     /// <summary>
     /// A file handle.

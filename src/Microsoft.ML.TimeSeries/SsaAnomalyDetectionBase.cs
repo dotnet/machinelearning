@@ -4,11 +4,10 @@
 
 using System;
 using System.IO;
-using Microsoft.Data.DataView;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
 using Microsoft.ML.Internal.Utilities;
-using Microsoft.ML.Model;
+using Microsoft.ML.Runtime;
 
 namespace Microsoft.ML.Transforms.TimeSeries
 {
@@ -59,23 +58,23 @@ namespace Microsoft.ML.Transforms.TimeSeries
         {
             switch (errorFunction)
             {
-            case ErrorFunction.SignedDifference:
-                return SignedDifference;
+                case ErrorFunction.SignedDifference:
+                    return SignedDifference;
 
-            case ErrorFunction.AbsoluteDifference:
-                return AbsoluteDifference;
+                case ErrorFunction.AbsoluteDifference:
+                    return AbsoluteDifference;
 
-            case ErrorFunction.SignedProportion:
-                return SignedProportion;
+                case ErrorFunction.SignedProportion:
+                    return SignedProportion;
 
-            case ErrorFunction.AbsoluteProportion:
-                return AbsoluteProportion;
+                case ErrorFunction.AbsoluteProportion:
+                    return AbsoluteProportion;
 
-            case ErrorFunction.SquaredDifference:
-                return SquaredDifference;
+                case ErrorFunction.SquaredDifference:
+                    return SquaredDifference;
 
-            default:
-                throw Contracts.Except(ErrorFunctionHelpText);
+                default:
+                    throw Contracts.Except(ErrorFunctionHelpText);
             }
         }
     }
@@ -252,7 +251,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
 
                 var colType = inputSchema[col].Type;
                 if (colType != NumberDataViewType.Single)
-                    throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", InputColumnName, "float", colType.ToString());
+                    throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", InputColumnName, "Single", colType.ToString());
 
                 return Transform(new EmptyDataView(Host, inputSchema)).Schema;
             }

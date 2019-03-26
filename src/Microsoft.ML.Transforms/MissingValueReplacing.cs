@@ -9,15 +9,13 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text;
-using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
 using Microsoft.ML.Data.IO;
-using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Internal.Utilities;
-using Microsoft.ML.Model;
 using Microsoft.ML.Model.OnnxConverter;
+using Microsoft.ML.Runtime;
 using Microsoft.ML.Transforms;
 
 [assembly: LoadableClass(MissingValueReplacingTransformer.Summary, typeof(IDataTransform), typeof(MissingValueReplacingTransformer), typeof(MissingValueReplacingTransformer.Options), typeof(SignatureDataTransform),
@@ -119,7 +117,7 @@ namespace Microsoft.ML.Transforms
             public Column[] Columns;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "The replacement method to utilize", ShortName = "kind")]
-            public ReplacementKind ReplacementKind = (ReplacementKind)MissingValueReplacingEstimator.Defaults.ReplacementMode;
+            public ReplacementKind ReplacementKind = (ReplacementKind)MissingValueReplacingEstimator.Defaults.Mode;
 
             // Specifying by-slot imputation for vectors of unknown size will cause a warning, and the imputation will be global.
             [Argument(ArgumentType.AtMostOnce, HelpText = "Whether to impute values by slot", ShortName = "slot")]
@@ -228,13 +226,13 @@ namespace Microsoft.ML.Transforms
                 if (!saver.TryLoadTypeAndValue(ctx.Reader.BaseStream, out DataViewType savedType, out object repValue))
                     throw Host.ExceptDecode();
                 _replaceTypes[i] = savedType;
-                if (savedType is VectorType savedVectorType)
+                if (savedType is VectorDataViewType savedVectorType)
                 {
                     // REVIEW: The current implementation takes the serialized VBuffer, densifies it, and stores the values array.
                     // It might be of value to consider storing the VBuffer in order to possibly benefit from sparsity. However, this would
                     // necessitate a reimplementation of the FillValues code to accomodate sparse VBuffers.
                     object[] args = new object[] { repValue, savedVectorType, i };
-                    Func<VBuffer<int>, VectorType, int, int[]> func = GetValuesArray<int>;
+                    Func<VBuffer<int>, VectorDataViewType, int, int[]> func = GetValuesArray<int>;
                     var meth = func.GetMethodInfo().GetGenericMethodDefinition().MakeGenericMethod(savedVectorType.ItemType.RawType);
                     _repValues[i] = meth.Invoke(this, args);
                 }
@@ -245,7 +243,7 @@ namespace Microsoft.ML.Transforms
             }
         }
 
-        private T[] GetValuesArray<T>(VBuffer<T> src, VectorType srcType, int iinfo)
+        private T[] GetValuesArray<T>(VBuffer<T> src, VectorDataViewType srcType, int iinfo)
         {
             Host.Assert(srcType != null);
             Host.Assert(srcType.Size == src.Length);
@@ -280,14 +278,14 @@ namespace Microsoft.ML.Transforms
             List<int> columnsToImpute = null;
             // REVIEW: Would like to get rid of the sourceColumns list but seems to be the best way to provide
             // the cursor with what columns to cursor through.
-           var sourceColumns = new List<DataViewSchema.Column>();
+            var sourceColumns = new List<DataViewSchema.Column>();
             for (int iinfo = 0; iinfo < columns.Length; iinfo++)
             {
                 input.Schema.TryGetColumnIndex(columns[iinfo].InputColumnName, out int colSrc);
                 sources[iinfo] = colSrc;
                 var type = input.Schema[colSrc].Type;
-                if (type is VectorType vectorType)
-                     type = new VectorType(vectorType.ItemType, vectorType);
+                if (type is VectorDataViewType vectorType)
+                    type = new VectorDataViewType(vectorType.ItemType, vectorType.Dimensions);
                 Delegate isNa = GetIsNADelegate(type);
                 types[iinfo] = type;
                 var kind = (ReplacementKind)columns[iinfo].Replacement;
@@ -327,7 +325,7 @@ namespace Microsoft.ML.Transforms
                 {
                     int iinfo = columnsToImpute[ii];
                     bool bySlot = columns[ii].ImputeBySlot;
-                    if (types[iinfo] is VectorType vectorType && !vectorType.IsKnownSize && bySlot)
+                    if (types[iinfo] is VectorDataViewType vectorType && !vectorType.IsKnownSize && bySlot)
                     {
                         ch.Warning("By-slot imputation can not be done on variable-length column");
                         bySlot = false;
@@ -443,7 +441,7 @@ namespace Microsoft.ML.Transforms
                 cols[i] = new MissingValueReplacingEstimator.ColumnOptions(
                     item.Name,
                     item.Source,
-                    (MissingValueReplacingEstimator.ColumnOptions.ReplacementMode)(item.Kind ?? options.ReplacementKind),
+                    (MissingValueReplacingEstimator.ReplacementMode)(item.Kind ?? options.ReplacementKind),
                     item.Slot ?? options.ImputeBySlot,
                     item.ReplacementString);
             };
@@ -556,10 +554,10 @@ namespace Microsoft.ML.Transforms
                 for (int i = 0; i < _parent.ColumnPairs.Length; i++)
                 {
                     var type = _infos[i].TypeSrc;
-                    VectorType vectorType = type as VectorType;
+                    VectorDataViewType vectorType = type as VectorDataViewType;
                     if (vectorType != null)
                     {
-                        vectorType = new VectorType(vectorType.ItemType, vectorType);
+                        vectorType = new VectorDataViewType(vectorType.ItemType, vectorType.Dimensions);
                         type = vectorType;
                     }
                     var repType = _parent._repIsDefault[i] != null ? _parent._replaceTypes[i] : _parent._replaceTypes[i].GetItemType();
@@ -567,7 +565,7 @@ namespace Microsoft.ML.Transforms
                         throw Host.ExceptParam(nameof(InputSchema), "Column '{0}' item type '{1}' does not match expected ColumnType of '{2}'",
                             _infos[i].InputColumnName, _parent._replaceTypes[i].GetItemType().ToString(), _infos[i].TypeSrc);
                     // If type is a vector and the value is not either a scalar or a vector of the same size, throw an error.
-                    if (repType is VectorType repVectorType)
+                    if (repType is VectorDataViewType repVectorType)
                     {
                         if (vectorType == null)
                             throw Host.ExceptParam(nameof(inputSchema), "Column '{0}' item type '{1}' cannot be a vector when Columntype is a scalar of type '{2}'",
@@ -618,7 +616,7 @@ namespace Microsoft.ML.Transforms
                 Host.Assert(0 <= iinfo && iinfo < _infos.Length);
                 disposer = null;
 
-                if (!(_infos[iinfo].TypeSrc is VectorType))
+                if (!(_infos[iinfo].TypeSrc is VectorDataViewType))
                     return ComposeGetterOne(input, iinfo);
                 return ComposeGetterVec(input, iinfo);
             }
@@ -634,7 +632,7 @@ namespace Microsoft.ML.Transforms
             /// </summary>
             private Delegate ComposeGetterOne<T>(DataViewRow input, int iinfo)
             {
-                var getSrc = input.GetGetter<T>(ColMapNewToOld[iinfo]);
+                var getSrc = input.GetGetter<T>(input.Schema[ColMapNewToOld[iinfo]]);
                 var src = default(T);
                 var isNA = (InPredicate<T>)_isNAs[iinfo];
                 Host.Assert(_parent._repValues[iinfo] is T);
@@ -660,7 +658,7 @@ namespace Microsoft.ML.Transforms
             /// </summary>
             private Delegate ComposeGetterVec<T>(DataViewRow input, int iinfo)
             {
-                var getSrc = input.GetGetter<VBuffer<T>>(ColMapNewToOld[iinfo]);
+                var getSrc = input.GetGetter<VBuffer<T>>(input.Schema[ColMapNewToOld[iinfo]]);
                 var isNA = (InPredicate<T>)_isNAs[iinfo];
                 var isDefault = Data.Conversion.Conversions.Instance.GetIsDefaultPredicate<T>(_infos[iinfo].TypeSrc.GetItemType());
 
@@ -864,7 +862,7 @@ namespace Microsoft.ML.Transforms
             {
                 Type rawType;
                 var type = _infos[iinfo].TypeSrc;
-                if (type is VectorType vectorType)
+                if (type is VectorDataViewType vectorType)
                     rawType = vectorType.ItemType.RawType;
                 else
                     rawType = type.RawType;
@@ -876,7 +874,7 @@ namespace Microsoft.ML.Transforms
                 var node = ctx.CreateNode(opType, srcVariableName, dstVariableName, ctx.GetNodeName(opType));
                 node.AddAttribute("replaced_value_float", Single.NaN);
 
-                if (!(_infos[iinfo].TypeSrc is VectorType))
+                if (!(_infos[iinfo].TypeSrc is VectorDataViewType))
                     node.AddAttribute("imputed_value_floats", Enumerable.Repeat((float)_parent._repValues[iinfo], 1));
                 else
                 {
@@ -892,41 +890,42 @@ namespace Microsoft.ML.Transforms
 
     public sealed class MissingValueReplacingEstimator : IEstimator<MissingValueReplacingTransformer>
     {
+        /// <summary>
+        /// The possible ways to replace missing values.
+        /// </summary>
+        public enum ReplacementMode : byte
+        {
+            /// <summary>
+            /// Replace with the default value of the column based on its type. For example, 'zero' for numeric and 'empty' for string/text columns.
+            /// </summary>
+            DefaultValue = 0,
+            /// <summary>
+            /// Replace with the mean value of the column. Supports only numeric/time span/ DateTime columns.
+            /// </summary>
+            Mean = 1,
+            /// <summary>
+            /// Replace with the minimum value of the column. Supports only numeric/time span/ DateTime columns.
+            /// </summary>
+            Minimum = 2,
+            /// <summary>
+            /// Replace with the maximum value of the column. Supports only numeric/time span/ DateTime columns.
+            /// </summary>
+            Maximum = 3,
+        }
+
         [BestFriend]
         internal static class Defaults
         {
-            public const ColumnOptions.ReplacementMode ReplacementMode = ColumnOptions.ReplacementMode.DefaultValue;
+            public const ReplacementMode Mode = ReplacementMode.DefaultValue;
             public const bool ImputeBySlot = true;
         }
 
         /// <summary>
         /// Describes how the transformer handles one column pair.
         /// </summary>
-        public sealed class ColumnOptions
+        [BestFriend]
+        internal sealed class ColumnOptions
         {
-            /// <summary>
-            /// The possible ways to replace missing values.
-            /// </summary>
-            public enum ReplacementMode : byte
-            {
-                /// <summary>
-                /// Replace with the default value of the column based on its type. For example, 'zero' for numeric and 'empty' for string/text columns.
-                /// </summary>
-                DefaultValue = 0,
-                /// <summary>
-                /// Replace with the mean value of the column. Supports only numeric/time span/ DateTime columns.
-                /// </summary>
-                Mean = 1,
-                /// <summary>
-                /// Replace with the minimum value of the column. Supports only numeric/time span/ DateTime columns.
-                /// </summary>
-                Minimum = 2,
-                /// <summary>
-                /// Replace with the maximum value of the column. Supports only numeric/time span/ DateTime columns.
-                /// </summary>
-                Maximum = 3,
-            }
-
             /// <summary> Name of the column resulting from the transformation of <see cref="InputColumnName"/>.</summary>
             public readonly string Name;
             /// <summary> Name of column to transform. </summary>
@@ -951,7 +950,7 @@ namespace Microsoft.ML.Transforms
             /// <param name="imputeBySlot">If true, per-slot imputation of replacement is performed.
             /// Otherwise, replacement value is imputed for the entire vector column. This setting is ignored for scalars and variable vectors,
             /// where imputation is always for the entire column.</param>
-            public ColumnOptions(string name, string inputColumnName = null, ReplacementMode replacementMode = Defaults.ReplacementMode,
+            public ColumnOptions(string name, string inputColumnName = null, ReplacementMode replacementMode = Defaults.Mode,
                 bool imputeBySlot = Defaults.ImputeBySlot)
             {
                 Contracts.CheckNonWhiteSpace(name, nameof(name));
@@ -975,7 +974,7 @@ namespace Microsoft.ML.Transforms
         private readonly IHost _host;
         private readonly ColumnOptions[] _columns;
 
-        internal MissingValueReplacingEstimator(IHostEnvironment env, string outputColumnName, string inputColumnName = null, ColumnOptions.ReplacementMode replacementKind = Defaults.ReplacementMode)
+        internal MissingValueReplacingEstimator(IHostEnvironment env, string outputColumnName, string inputColumnName = null, ReplacementMode replacementKind = Defaults.Mode)
             : this(env, new ColumnOptions(outputColumnName, inputColumnName ?? outputColumnName, replacementKind))
         {
 
@@ -1009,9 +1008,9 @@ namespace Microsoft.ML.Transforms
                     metadata.Add(slotMeta);
                 if (col.Annotations.TryFindColumn(AnnotationUtils.Kinds.IsNormalized, out var normalized))
                     metadata.Add(normalized);
-                var type = !(col.ItemType is VectorType vectorType) ?
+                var type = !(col.ItemType is VectorDataViewType vectorType) ?
                     col.ItemType :
-                    new VectorType(vectorType.ItemType, vectorType);
+                    new VectorDataViewType(vectorType.ItemType, vectorType.Dimensions);
                 result[colInfo.Name] = new SchemaShape.Column(colInfo.Name, col.Kind, type, false, new SchemaShape(metadata.ToArray()));
             }
             return new SchemaShape(result.Values);

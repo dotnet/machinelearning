@@ -2,8 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using Microsoft.Data.DataView;
+using Microsoft.ML.Runtime;
 
 namespace Microsoft.ML.Data
 {
@@ -34,13 +33,13 @@ namespace Microsoft.ML.Data
         ///  Predicted Anomalies     :         TP                |           FP
         ///  Predicted Non-Anomalies :         FN                |           TN
         ///  </remarks>
-        public double DetectionRateAtKFalsePositives { get; }
+        public double DetectionRateAtFalsePositiveCount { get; }
 
         internal AnomalyDetectionMetrics(IExceptionContext ectx, DataViewRow overallResult)
         {
             double FetchDouble(string name) => RowCursorUtils.Fetch<double>(ectx, overallResult, name);
             AreaUnderRocCurve = FetchDouble(BinaryClassifierEvaluator.Auc);
-            DetectionRateAtKFalsePositives = FetchDouble(AnomalyDetectionEvaluator.OverallMetrics.DrAtK);
+            DetectionRateAtFalsePositiveCount = FetchDouble(AnomalyDetectionEvaluator.OverallMetrics.DrAtK);
         }
     }
 }

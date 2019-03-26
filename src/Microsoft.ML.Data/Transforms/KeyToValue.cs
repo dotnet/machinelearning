@@ -7,13 +7,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Text;
-using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
-using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Model.Pfa;
+using Microsoft.ML.Runtime;
 using Microsoft.ML.Transforms;
 using Newtonsoft.Json.Linq;
 
@@ -69,7 +68,7 @@ namespace Microsoft.ML.Transforms
         [BestFriend]
         internal const string UserName = "Key To Value Transform";
 
-        public IReadOnlyCollection<(string outputColumnName, string inputColumnName)> Columns => ColumnPairs.AsReadOnly();
+        internal IReadOnlyCollection<(string outputColumnName, string inputColumnName)> Columns => ColumnPairs.AsReadOnly();
 
         private static VersionInfo GetVersionInfo()
         {
@@ -235,10 +234,10 @@ namespace Microsoft.ML.Transforms
                     DataViewType valsItemType = typeVals.GetItemType();
                     DataViewType srcItemType = typeSrc.GetItemType();
                     Host.Check(typeVals.GetVectorSize() == srcItemType.GetKeyCountAsInt32(Host), "KeyValues metadata size does not match column type key count");
-                    if (!(typeSrc is VectorType vectorType))
+                    if (!(typeSrc is VectorDataViewType vectorType))
                         types[iinfo] = valsItemType;
                     else
-                        types[iinfo] = new VectorType((PrimitiveDataViewType)valsItemType, vectorType);
+                        types[iinfo] = new VectorDataViewType((PrimitiveDataViewType)valsItemType, vectorType.Dimensions);
 
                     // MarshalInvoke with two generic params.
                     Func<int, DataViewType, DataViewType, KeyToValueMap> func = GetKeyMetadata<int, int>;
@@ -263,7 +262,7 @@ namespace Microsoft.ML.Transforms
                 Host.Check(keyMetadata.Length == keyItemType.GetKeyCountAsInt32(Host));
 
                 VBufferUtils.Densify(ref keyMetadata);
-                return new KeyToValueMap<TKey, TValue>(this, (KeyType)keyItemType, (PrimitiveDataViewType)valItemType, keyMetadata, iinfo);
+                return new KeyToValueMap<TKey, TValue>(this, (KeyDataViewType)keyItemType, (PrimitiveDataViewType)valItemType, keyMetadata, iinfo);
             }
             /// <summary>
             /// A map is an object capable of creating the association from an input type, to an output
@@ -314,7 +313,7 @@ namespace Microsoft.ML.Transforms
 
                 private readonly ValueMapper<TKey, UInt32> _convertToUInt;
 
-                public KeyToValueMap(Mapper parent, KeyType typeKey, PrimitiveDataViewType typeVal, VBuffer<TValue> values, int iinfo)
+                public KeyToValueMap(Mapper parent, KeyDataViewType typeKey, PrimitiveDataViewType typeVal, VBuffer<TValue> values, int iinfo)
                     : base(parent, typeVal, iinfo)
                 {
                     Parent.Host.Assert(values.IsDense);
@@ -364,11 +363,11 @@ namespace Microsoft.ML.Transforms
                     // NA value.
 
                     Parent.Host.AssertValue(input);
-
-                    if (!(Parent._types[InfoIndex] is VectorType))
+                    var column = input.Schema[Parent.ColMapNewToOld[InfoIndex]];
+                    if (!(Parent._types[InfoIndex] is VectorDataViewType))
                     {
                         var src = default(TKey);
-                        ValueGetter<TKey> getSrc = input.GetGetter<TKey>(Parent.ColMapNewToOld[InfoIndex]);
+                        ValueGetter<TKey> getSrc = input.GetGetter<TKey>(column);
                         ValueGetter<TValue> retVal =
                             (ref TValue dst) =>
                             {
@@ -381,7 +380,7 @@ namespace Microsoft.ML.Transforms
                     {
                         var src = default(VBuffer<TKey>);
                         var dstItem = default(TValue);
-                        ValueGetter<VBuffer<TKey>> getSrc = input.GetGetter<VBuffer<TKey>>(Parent.ColMapNewToOld[InfoIndex]);
+                        ValueGetter<VBuffer<TKey>> getSrc = input.GetGetter<VBuffer<TKey>>(column);
                         ValueGetter<VBuffer<TValue>> retVal =
                             (ref VBuffer<TValue> dst) =>
                             {
@@ -487,7 +486,7 @@ namespace Microsoft.ML.Transforms
                     JObject cellRef = PfaUtils.Cell(cellName);
 
                     var srcType = Parent.InputSchema[Parent.ColMapNewToOld[InfoIndex]].Type;
-                    if (srcType is VectorType)
+                    if (srcType is VectorDataViewType)
                     {
                         var funcName = ctx.GetFreeFunctionName("mapKeyToValue");
                         ctx.Pfa.AddFunc(funcName, new JArray(PfaUtils.Param("key", PfaUtils.Type.Int)),

@@ -7,7 +7,7 @@ using Microsoft.ML;
 using Microsoft.ML.Data;
 using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Internal.Utilities;
-using Microsoft.ML.Model;
+using Microsoft.ML.Runtime;
 using Microsoft.ML.Trainers.Ensemble;
 
 [assembly: LoadableClass(typeof(MultiMedian), typeof(MultiMedian.Options), typeof(SignatureCombiner),
@@ -38,7 +38,7 @@ namespace Microsoft.ML.Trainers.Ensemble
         [TlcModule.Component(Name = LoadName, FriendlyName = Median.UserName)]
         public sealed class Options : OptionsBase, ISupportMulticlassOutputCombinerFactory
         {
-            public IMultiClassOutputCombiner CreateComponent(IHostEnvironment env) => new MultiMedian(env, this);
+            public IMulticlassOutputCombiner CreateComponent(IHostEnvironment env) => new MultiMedian(env, this);
         }
 
         public MultiMedian(IHostEnvironment env, Options options)

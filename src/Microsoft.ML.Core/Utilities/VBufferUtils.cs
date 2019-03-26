@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using Microsoft.ML.Data;
+using Microsoft.ML.Runtime;
 
 namespace Microsoft.ML.Internal.Utilities
 {
@@ -18,79 +19,6 @@ namespace Microsoft.ML.Internal.Utilities
     internal static class VBufferUtils
     {
         private const float SparsityThreshold = 0.25f;
-
-        /// <summary>
-        /// A helper method that gives us an iterable over the items given the fields from a <see cref="VBuffer{T}"/>.
-        /// Note that we have this in a separate utility class, rather than in its more natural location of
-        /// <see cref="VBuffer{T}"/> itself, due to a bug in the C++/CLI compiler. (DevDiv 1097919:
-        /// [C++/CLI] Nested generic types are not correctly imported from metadata). So, if we want to use
-        /// <see cref="VBuffer{T}"/> in C++/CLI projects, we cannot have a generic struct with a nested class
-        /// that has the outer struct type as a field.
-        /// </summary>
-        internal static IEnumerable<KeyValuePair<int, T>> Items<T>(T[] values, int[] indices, int length, int count, bool all)
-        {
-            Contracts.AssertValueOrNull(values);
-            Contracts.Assert(0 <= count && count <= Utils.Size(values));
-            Contracts.Assert(count <= length);
-            Contracts.Assert(count == length || count <= Utils.Size(indices));
-
-            if (count == length)
-            {
-                for (int i = 0; i < count; i++)
-                    yield return new KeyValuePair<int, T>(i, values[i]);
-            }
-            else if (!all)
-            {
-                for (int i = 0; i < count; i++)
-                    yield return new KeyValuePair<int, T>(indices[i], values[i]);
-            }
-            else
-            {
-                int slotCur = -1;
-                for (int i = 0; i < count; i++)
-                {
-                    int slot = indices[i];
-                    Contracts.Assert(slotCur < slot && slot < length);
-                    while (++slotCur < slot)
-                        yield return new KeyValuePair<int, T>(slotCur, default(T));
-                    Contracts.Assert(slotCur == slot);
-                    yield return new KeyValuePair<int, T>(slotCur, values[i]);
-                }
-                Contracts.Assert(slotCur < length);
-                while (++slotCur < length)
-                    yield return new KeyValuePair<int, T>(slotCur, default(T));
-            }
-        }
-
-        internal static IEnumerable<T> DenseValues<T>(T[] values, int[] indices, int length, int count)
-        {
-            Contracts.AssertValueOrNull(values);
-            Contracts.Assert(0 <= count && count <= Utils.Size(values));
-            Contracts.Assert(count <= length);
-            Contracts.Assert(count == length || count <= Utils.Size(indices));
-
-            if (count == length)
-            {
-                for (int i = 0; i < length; i++)
-                    yield return values[i];
-            }
-            else
-            {
-                int slotCur = -1;
-                for (int i = 0; i < count; i++)
-                {
-                    int slot = indices[i];
-                    Contracts.Assert(slotCur < slot && slot < length);
-                    while (++slotCur < slot)
-                        yield return default(T);
-                    Contracts.Assert(slotCur == slot);
-                    yield return values[i];
-                }
-                Contracts.Assert(slotCur < length);
-                while (++slotCur < length)
-                    yield return default(T);
-            }
-        }
 
         public static bool HasNaNs(in VBuffer<Single> buffer)
         {
@@ -437,7 +365,7 @@ namespace Microsoft.ML.Internal.Utilities
             if (!editor.CreatedNewValues)
             {
                 // Densify in place.
-                for (int i = values.Length; --i >= 0; )
+                for (int i = values.Length; --i >= 0;)
                 {
                     Contracts.Assert(i <= indices[i]);
                     editor.Values[indices[i]] = values[i];
@@ -505,7 +433,7 @@ namespace Microsoft.ML.Internal.Utilities
             editor.Values.Slice(lim, sliceLength).CopyTo(editor.Values.Slice(denseCount));
             editor.Indices.Slice(lim, sliceLength).CopyTo(editor.Indices.Slice(denseCount));
             int i = lim - 1;
-            for (int ii = denseCount; --ii >= 0; )
+            for (int ii = denseCount; --ii >= 0;)
             {
                 editor.Values[ii] = i >= 0 && dstIndices[i] == ii ? dstValues[i--] : default(T);
                 editor.Indices[ii] = ii;
@@ -828,7 +756,7 @@ namespace Microsoft.ML.Internal.Utilities
 
                 // Go from the end, so that even if we're writing over dst's vectors in
                 // place, we do not corrupt the data as we are reorganizing it.
-                for (int i = newCount; --i >= 0; )
+                for (int i = newCount; --i >= 0;)
                 {
                     if (sIndex < dIndex)
                     {

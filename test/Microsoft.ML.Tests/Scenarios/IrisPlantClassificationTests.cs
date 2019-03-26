@@ -30,9 +30,10 @@ namespace Microsoft.ML.Scenarios
 
             var pipe = mlContext.Transforms.Concatenate("Features", "SepalLength", "SepalWidth", "PetalLength", "PetalWidth")
                             .Append(mlContext.Transforms.Normalize("Features"))
+                            .Append(mlContext.Transforms.Conversion.MapValueToKey("Label"))
                             .AppendCacheCheckpoint(mlContext)
-                            .Append(mlContext.MulticlassClassification.Trainers.StochasticDualCoordinateAscent(
-                                new SdcaMultiClassTrainer.Options { NumberOfThreads = 1 }));
+                            .Append(mlContext.MulticlassClassification.Trainers.SdcaMaximumEntropy(
+                                new SdcaMaximumEntropyMulticlassTrainer.Options { NumberOfThreads = 1 }));
 
             // Read training and test data sets
             string dataPath = GetDataPath(TestDatasets.iris.trainFilename);
@@ -44,7 +45,7 @@ namespace Microsoft.ML.Scenarios
             var trainedModel = pipe.Fit(trainData);
 
             // Make predictions
-            var predictFunction = trainedModel.CreatePredictionEngine<IrisData, IrisPrediction>(mlContext);
+            var predictFunction = mlContext.Model.CreatePredictionEngine<IrisData, IrisPrediction>(trainedModel);
             IrisPrediction prediction = predictFunction.Predict(new IrisData()
             {
                 SepalLength = 5.1f,
@@ -83,7 +84,7 @@ namespace Microsoft.ML.Scenarios
 
             // Evaluate the trained pipeline
             var predicted = trainedModel.Transform(testData);
-            var metrics = mlContext.MulticlassClassification.Evaluate(predicted, topK: 3);
+            var metrics = mlContext.MulticlassClassification.Evaluate(predicted, topKPredictionCount: 3);
 
             Assert.Equal(.98, metrics.MacroAccuracy);
             Assert.Equal(.98, metrics.MicroAccuracy, 2);

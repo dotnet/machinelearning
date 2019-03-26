@@ -4,7 +4,6 @@
 
 using System;
 using System.Text;
-using Microsoft.Data.DataView;
 using Microsoft.ML.Data;
 using Microsoft.ML.Data.Conversion;
 using Xunit;

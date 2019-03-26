@@ -7,6 +7,7 @@ using System.IO;
 using System.Reflection;
 using System.Text;
 using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Runtime;
 
 namespace Microsoft.ML
 {
@@ -28,13 +29,20 @@ namespace Microsoft.ML
         {
             get
             {
-                switch (LoaderAssemblyName)
+                string[] nameDetails = LoaderAssemblyName.Split(',');
+                switch (nameDetails[0])
                 {
                     case "Microsoft.ML.HalLearners":
-                        return "Microsoft.ML.Mkl.Components";
+                        nameDetails[0] = "Microsoft.ML.Mkl.Components";
+                        break;
+                    case "Microsoft.ML.StandardLearners":
+                        nameDetails[0] = "Microsoft.ML.StandardTrainers";
+                        break;
                     default:
                         return LoaderAssemblyName;
                 }
+
+                return string.Join(",", nameDetails);
             }
         }
 
@@ -159,6 +167,7 @@ namespace Microsoft.ML
 
             // TryLoadModelCore should rewind on failure.
             Contracts.Assert(fp == ent.Stream.Position);
+
             return false;
         }
 

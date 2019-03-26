@@ -8,14 +8,13 @@ using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Text;
-using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
-using Microsoft.ML.ImageAnalytics;
 using Microsoft.ML.Internal.Utilities;
-using Microsoft.ML.Model;
+using Microsoft.ML.Runtime;
 using Microsoft.ML.Transforms;
+using Microsoft.ML.Transforms.Image;
 
 [assembly: LoadableClass(ImageLoadingTransformer.Summary, typeof(IDataTransform), typeof(ImageLoadingTransformer), typeof(ImageLoadingTransformer.Options), typeof(SignatureDataTransform),
     ImageLoadingTransformer.UserName, "ImageLoaderTransform", "ImageLoader")]
@@ -27,7 +26,7 @@ using Microsoft.ML.Transforms;
 
 [assembly: LoadableClass(typeof(IRowMapper), typeof(ImageLoadingTransformer), null, typeof(SignatureLoadRowMapper), "", ImageLoadingTransformer.LoaderSignature)]
 
-namespace Microsoft.ML.ImageAnalytics
+namespace Microsoft.ML.Data
 {
     /// <summary>
     /// The <see cref="ITransformer"/> produced by fitting an <see cref="IDataView"/> to an <see cref="ImageLoadingEstimator"/>.
@@ -82,7 +81,7 @@ namespace Microsoft.ML.ImageAnalytics
         /// <summary>
         /// The columns passed to this <see cref="ITransformer"/>.
         /// </summary>
-        public IReadOnlyCollection<(string outputColumnName, string inputColumnName)> Columns => ColumnPairs.AsReadOnly();
+        internal IReadOnlyCollection<(string outputColumnName, string inputColumnName)> Columns => ColumnPairs.AsReadOnly();
 
         /// <summary>
         /// Initializes a new instance of <see cref="ImageLoadingTransformer"/>.
@@ -169,12 +168,12 @@ namespace Microsoft.ML.ImageAnalytics
         private sealed class Mapper : OneToOneMapperBase
         {
             private readonly ImageLoadingTransformer _parent;
-            private readonly ImageType _imageType;
+            private readonly ImageDataViewType _imageType;
 
             public Mapper(ImageLoadingTransformer parent, DataViewSchema inputSchema)
                 : base(parent.Host.Register(nameof(Mapper)), parent, inputSchema)
             {
-                _imageType = new ImageType();
+                _imageType = new ImageDataViewType();
                 _parent = parent;
             }
 
@@ -184,7 +183,7 @@ namespace Microsoft.ML.ImageAnalytics
                 Contracts.Assert(0 <= iinfo && iinfo < _parent.ColumnPairs.Length);
 
                 disposer = null;
-                var getSrc = input.GetGetter<ReadOnlyMemory<char>>(ColMapNewToOld[iinfo]);
+                var getSrc = input.GetGetter<ReadOnlyMemory<char>>(input.Schema[ColMapNewToOld[iinfo]]);
                 ReadOnlyMemory<char> src = default;
                 ValueGetter<Bitmap> del =
                     (ref Bitmap dst) =>
@@ -242,7 +241,7 @@ namespace Microsoft.ML.ImageAnalytics
     /// </remarks>
     public sealed class ImageLoadingEstimator : TrivialEstimator<ImageLoadingTransformer>
     {
-        private readonly ImageType _imageType;
+        private readonly ImageDataViewType _imageType;
 
         /// <summary>
         /// Load images in memory.
@@ -258,7 +257,7 @@ namespace Microsoft.ML.ImageAnalytics
         internal ImageLoadingEstimator(IHostEnvironment env, ImageLoadingTransformer transformer)
             : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(ImageLoadingEstimator)), transformer)
         {
-            _imageType = new ImageType();
+            _imageType = new ImageDataViewType();
         }
 
         /// <summary>
