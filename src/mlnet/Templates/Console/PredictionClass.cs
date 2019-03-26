@@ -82,7 +82,7 @@ if("MulticlassClassification".Equals(TaskType)){
             
             #line default
             #line hidden
-            this.Write("        public float[] Scores { get; set; }\r\n");
+            this.Write("        public float[] Score { get; set; }\r\n");
             
             #line 33 "E:\src\machinelearning-automl\src\mlnet\Templates\Console\PredictionClass.tt"
 }else{ 

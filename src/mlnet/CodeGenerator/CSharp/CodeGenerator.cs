@@ -299,7 +299,18 @@ namespace Microsoft.ML.CLI.CodeGenerator.CSharp
 
         private string GeneratePredictProgramCSFileContent(string namespaceValue)
         {
-            PredictProgram predictProgram = new PredictProgram() { TaskType = settings.MlTask.ToString(), LabelName = settings.LabelName, Namespace = namespaceValue, TestDataPath = settings.TestDataset, TrainDataPath = settings.TrainDataset };
+            PredictProgram predictProgram = new PredictProgram()
+            {
+                TaskType = settings.MlTask.ToString(),
+                LabelName = settings.LabelName,
+                Namespace = namespaceValue,
+                TestDataPath = settings.TestDataset,
+                TrainDataPath = settings.TrainDataset,
+                HasHeader = columnInferenceResult.TextLoaderOptions.HasHeader,
+                Separator = columnInferenceResult.TextLoaderOptions.Separators.FirstOrDefault(),
+                AllowQuoting = columnInferenceResult.TextLoaderOptions.AllowQuoting,
+                AllowSparse = columnInferenceResult.TextLoaderOptions.AllowSparse,
+            };
             return predictProgram.TransformText();
         }
         #endregion

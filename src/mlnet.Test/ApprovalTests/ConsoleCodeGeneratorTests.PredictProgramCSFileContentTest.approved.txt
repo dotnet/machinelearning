@@ -70,7 +70,9 @@ namespace TestNamespace.Predict
             IDataView dataView = mlContext.Data.LoadFromTextFile<SampleObservation>(
                                             path: dataFilePath,
                                             hasHeader: true,
-                                            separatorChar: ',');
+                                            separatorChar: ',',
+                                            allowQuoting: true,
+                                            allowSparse: true);
 
             // Here (SampleObservation object) you could provide new test data, hardcoded or from the end-user application, instead of the row from the file.
             SampleObservation sampleForPrediction = mlContext.Data.CreateEnumerable<SampleObservation>(dataView, false)

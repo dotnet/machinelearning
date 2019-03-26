@@ -200,7 +200,7 @@ namespace Microsoft.ML.CLI.Utilities
             var proc = new System.Diagnostics.Process();
             proc.StartInfo.FileName = @"dotnet";
 
-            proc.StartInfo.Arguments = $"new sln --name {solutionFile} --output {outputPath}";
+            proc.StartInfo.Arguments = $"new sln --name {solutionFile} --output {outputPath} --force";
             proc.StartInfo.UseShellExecute = false;
             proc.StartInfo.RedirectStandardOutput = true;
             proc.Start();

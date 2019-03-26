@@ -29,7 +29,7 @@ namespace  <#= Namespace #>.Model.DataModels
         public <#= PredictionLabelType#> Prediction { get; set; }
 <# }#>
 <#if("MulticlassClassification".Equals(TaskType)){ #>
-        public float[] Scores { get; set; }
+        public float[] Score { get; set; }
 <#}else{ #>
         public float Score { get; set; }
 <#}#>
