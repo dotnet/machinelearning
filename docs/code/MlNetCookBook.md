@@ -580,6 +580,53 @@ var biases = modelParameters.GetBiases();
 ```
 For more explainability samples, refer to the [Explainability CookBook](./ExplainabilityCookBook.md)
 
+
+
+
+
+
+## How do I look at the global feature importance?
+The below snippet shows how to get a glimpse of the the feature importance, or how much each column of data impacts the performance of the model.
+
+```csharp
+var transformedData = model.Transform(data);
+
+var featureImportance = context.Regression.PermutationFeatureImportance(model.LastTransformer, transformedData);
+
+foreach (var metricsStatistics in featureImportance)
+{
+    Console.WriteLine($"Root Mean Squared - {metricsStatistics.Rms.Mean}");
+}
+```
+
+## How do I get a model's weights to look at the global feature importance?
+The below snippet shows how to get a model's weights to help determine the feature importance of the model.
+
+```csharp
+var linearModel = model.LastTransformer.Model;
+
+var weights = new VBuffer<float>();
+linearModel.GetFeatureWeights(ref weights);
+```
+
+## How do I look at the feature importance per row?
+The below snippet shows how to get feature importance for each row.
+
+```csharp
+var model = pipeline.Fit(data);
+var transfomedData = model.Transform(data);
+
+var linearModel = model.LastTransformer;
+
+var featureContributionCalculation = context.Model.Explainability.FeatureContributionCalculation(linearModel.Model, featureColumn: "Features", normalize: false);
+
+var featureContributionData = featureContributionCalculation.Fit(transfomedData).Transform(transfomedData);
+
+var shuffledSubset = context.Data.TakeRows(context.Data.ShuffleRows(featureContributionData), 10);
+
+var preview = shuffledSubset.Preview();
+```
+
 ## What is normalization and why do I need to care?
 
 In ML.NET we expose a number of [parametric and non-parametric algorithms](https://machinelearningmastery.com/parametric-and-nonparametric-machine-learning-algorithms/).
@@ -793,6 +840,7 @@ var transformedData = pipeline.Fit(data).Transform(data);
 var embeddings = transformedData.GetColumn<float[]>(mlContext, "Embeddings").Take(10).ToArray();
 var unigrams = transformedData.GetColumn<float[]>(mlContext, "BagOfWords").Take(10).ToArray();
 ```
+
 ## How do I train using cross-validation?
 
 [Cross-validation](https://en.wikipedia.org/wiki/Cross-validation_(statistics)) is a useful technique for ML applications. It helps estimate the variance of the model quality from one run to another and also eliminates the need to extract a separate test set for evaluation.
@@ -843,6 +891,7 @@ var microAccuracies = cvResults.Select(r => r.Metrics.AccuracyMicro);
 Console.WriteLine(microAccuracies.Average());
 
 ```
+
 ## Can I mix and match static and dynamic pipelines?
 
 Yes, we can have both of them in our codebase. The static pipelines are just a statically-typed way to build dynamic pipelines.
