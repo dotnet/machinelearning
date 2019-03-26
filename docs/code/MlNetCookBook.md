@@ -577,12 +577,6 @@ var biases = modelParameters.GetBiases();
 // 		[2]	-9.709775	float
 
 ```
-For more explainability samples, refer to the [Explainability CookBook](./ExplainabilityCookBook.md)
-
-
-
-
-
 
 ## How do I look at the global feature importance?
 The below snippet shows how to get a glimpse of the the feature importance, or how much each column of data impacts the performance of the model.
@@ -617,7 +611,7 @@ var transfomedData = model.Transform(data);
 
 var linearModel = model.LastTransformer;
 
-var featureContributionCalculation = context.Model.Explainability.FeatureContributionCalculation(linearModel.Model, featureColumn: "Features", normalize: false);
+var featureContributionCalculation = context.Transforms.CalculateFeatureContribution(linearModel, normalize: false);
 
 var featureContributionData = featureContributionCalculation.Fit(transfomedData).Transform(transfomedData);
 
