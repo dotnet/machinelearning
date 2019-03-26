@@ -1,0 +1,34 @@
+﻿<#@ include file="BinaryClassification.ttinclude"#>
+<#+
+string ClassName="LogisticRegressionWithOptions";
+string Trainer = "LbfgsLogisticRegression";
+string TrainerOptions = @"LbfgsLogisticRegressionBinaryTrainer.Options()
+            {
+                MaximumNumberOfIterations = 100,
+                OptmizationTolerance = 1e-8f,
+                L2Regularization = 0.01f
+            }";
+bool IsCalibrated = true;
+
+string OptionsInclude = "using Microsoft.ML.Trainers;";
+string Comments= "";
+
+string ExpectedOutputPerInstance= @"// Expected output:
+            //   Label: True, Prediction: True
+            //   Label: False, Prediction: True
+            //   Label: True, Prediction: True
+            //   Label: True, Prediction: True
+            //   Label: False, Prediction: True";
+
+string ExpectedOutput = @"// Expected output:
+            //   Accuracy: 0.64
+            //   AUC: 0.70
+            //   F1 Score: 0.63
+            //   Negative Precision: 0.66
+            //   Negative Recall: 0.63
+            //   Positive Precision: 0.61
+            //   Positive Recall: 0.65
+            //   Log Loss: 0.90
+            //   Log Loss Reduction: 0.09
+            //   Entropy: 1.00";
+#>

@@ -46,6 +46,16 @@
       <AutoGen>True</AutoGen>
       <DependentUpon>FastTreeWithOptions.tt</DependentUpon>
     </None>
+    <None Include="Dynamic\Trainers\BinaryClassification\LogisticRegression.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>LogisticRegression.tt</DependentUpon>
+    </None>
+    <None Include="Dynamic\Trainers\BinaryClassification\LogisticRegressionWithOptions.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>LogisticRegressionWithOptions.tt</DependentUpon>
+    </None>
     <PackageReference Include="Microsoft.ML.TensorFlow.Redist" Version="0.10.0" />
     
     <ProjectReference Include="..\..\..\src\Microsoft.ML.Analyzer\Microsoft.ML.Analyzer.csproj">
@@ -71,6 +81,14 @@
     <None Update="Dynamic\Trainers\BinaryClassification\FastTreeWithOptions.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>FastTreeWithOptions.cs</LastGenOutput>
+    </None>
+    <None Update="Dynamic\Trainers\BinaryClassification\LogisticRegressionWithOptions.tt">
+      <LastGenOutput>LogisticRegressionWithOptions.cs</LastGenOutput>
+      <Generator>TextTemplatingFileGenerator</Generator>
+    </None>
+    <None Update="Dynamic\Trainers\BinaryClassification\LogisticRegression.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>LogisticRegression.cs</LastGenOutput>
     </None>
     <None Update="Dynamic\Trainers\Regression\OnlineGradientDescent.tt">
       <LastGenOutput>OnlineGradientDescent.cs</LastGenOutput>
@@ -114,6 +132,16 @@
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
       <DependentUpon>FastTreeWithOptions.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Dynamic\Trainers\BinaryClassification\LogisticRegression.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>LogisticRegression.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Dynamic\Trainers\BinaryClassification\LogisticRegressionWithOptions.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>LogisticRegressionWithOptions.tt</DependentUpon>
     </Compile>
     <Compile Update="Dynamic\Trainers\Regression\OnlineGradientDescent.cs">
       <DesignTime>True</DesignTime>
