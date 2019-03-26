@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Generic;
 using Microsoft.ML.Data;
 
 namespace Microsoft.ML.Experimental
@@ -11,6 +12,7 @@ namespace Microsoft.ML.Experimental
         /// <summary>
         /// Returns the names of the input-output column pairs on which the transformation is applied.
         /// </summary>
-        public static InputOutputColumnPair[] GetColumnPairs(this OneToOneTransformerBase transformer) => InputOutputColumnPair.ConvertFromValueTuples(transformer.ColumnPairs);
+        public static IReadOnlyList<InputOutputColumnPair> GetColumnPairs(this OneToOneTransformerBase transformer) =>
+            InputOutputColumnPair.ConvertFromValueTuples(transformer.ColumnPairs);
     }
 }

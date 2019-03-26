@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Generic;
 using System.Linq;
 using Microsoft.ML.Data;
 using Microsoft.ML.Runtime;
@@ -40,8 +41,8 @@ namespace Microsoft.ML
             infos.Select(info => (info.OutputColumnName, info.InputColumnName)).ToArray();
 
         [BestFriend]
-        internal static InputOutputColumnPair[] ConvertFromValueTuples((string outputColumnName, string inputColumnName)[] infos) =>
-            infos.Select(info => new InputOutputColumnPair(info.outputColumnName, info.inputColumnName)).ToArray();
+        internal static IReadOnlyList<InputOutputColumnPair> ConvertFromValueTuples((string outputColumnName, string inputColumnName)[] infos) =>
+            infos.Select(info => new InputOutputColumnPair(info.outputColumnName, info.inputColumnName)).ToList().AsReadOnly();
     }
 
     /// <summary>
