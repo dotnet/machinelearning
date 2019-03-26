@@ -14,7 +14,7 @@ namespace Microsoft.ML.Data
     public abstract class OneToOneTransformerBase : RowToRowTransformerBase
     {
         [BestFriend]
-        private protected readonly (string outputColumnName, string inputColumnName)[] ColumnPairs;
+        internal readonly (string outputColumnName, string inputColumnName)[] ColumnPairs;
 
         [BestFriend]
         private protected OneToOneTransformerBase(IHost host, params (string outputColumnName, string inputColumnName)[] columns) : base(host)

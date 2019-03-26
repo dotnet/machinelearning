@@ -357,6 +357,30 @@ namespace Microsoft.ML.Tests.Transformers
         }
 
         [Fact]
+        public void NormalizerExperimentalExtensionGetColumnPairs()
+        {
+            string dataPath = GetDataPath(TestDatasets.iris.trainFilename);
+
+            var loader = new TextLoader(Env, new TextLoader.Options
+            {
+                Columns = new[] {
+                    new TextLoader.Column("Label", DataKind.Single, 0),
+                    new TextLoader.Column("input", DataKind.Single, new[]{new TextLoader.Range(1, 4) }),
+                }
+            });
+
+            var data = loader.Load(dataPath);
+            var est = ML.Transforms.Normalize("output", "input", NormalizingEstimator.NormalizationMode.MinMax);
+            var t = est.Fit(data);
+
+            Assert.Single(t.GetColumnPairs());
+            Assert.Equal("output", t.GetColumnPairs()[0].OutputColumnName);
+            Assert.Equal("input", t.GetColumnPairs()[0].InputColumnName);
+
+            Done();
+        }
+
+        [Fact]
         public void LpGcNormAndWhiteningWorkout()
         {
             string dataSource = GetDataPath(TestDatasets.generatedRegressionDataset.trainFilename);
