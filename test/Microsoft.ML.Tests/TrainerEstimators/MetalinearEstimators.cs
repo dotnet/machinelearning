@@ -52,6 +52,36 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         }
 
         /// <summary>
+        /// Test what OVA preserves key values for label.
+        /// </summary>
+        [Fact]
+        public void OvaKeyNames()
+        {
+            var textLoaderOptions = new TextLoader.Options()
+            {
+                Columns = new[]
+                {   new TextLoader.Column("Label", DataKind.Single, 0),
+                    new TextLoader.Column("Row", DataKind.Single, 1),
+                    new TextLoader.Column("Column", DataKind.Single, 2),
+                },
+                HasHeader = true,
+                Separators = new[] { '\t' }
+            };
+            var textLoader = ML.Data.CreateTextLoader(textLoaderOptions);
+            var data = textLoader.Load(TestDatasets.trivialMatrixFactorization.trainFilename);
+
+            var ap = ML.BinaryClassification.Trainers.AveragedPerceptron();
+            var ova = ML.MulticlassClassification.Trainers.OneVersusAll(ap);
+
+            var pipeline = ML.Transforms.Conversion.MapValueToKey("Label")
+                .Append(ML.Transforms.Concatenate("Features", "Row", "Column"))
+                .Append(ova)
+                .Append(ML.Transforms.Conversion.MapKeyToValue("PredictedLabel"));
+
+            var model = pipeline.Fit(data);
+        }
+
+        /// <summary>
         /// Pairwise Coupling trainer
         /// </summary>
         [Fact]
@@ -83,12 +113,14 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             var data = loader.Load(GetDataPath(TestDatasets.irisData.trainFilename));
 
             var sdcaTrainer = ML.BinaryClassification.Trainers.SdcaNonCalibrated(
-                new SdcaNonCalibratedBinaryTrainer.Options {
+                new SdcaNonCalibratedBinaryTrainer.Options
+                {
                     LabelColumnName = "Label",
                     FeatureColumnName = "Vars",
                     MaximumNumberOfIterations = 100,
                     Shuffle = true,
-                    NumberOfThreads = 1, });
+                    NumberOfThreads = 1,
+                });
 
             var pipeline = new ColumnConcatenatingEstimator(Env, "Vars", "SepalLength", "SepalWidth", "PetalLength", "PetalWidth")
                 .Append(new ValueToKeyMappingEstimator(Env, "Label"), TransformerScope.TrainTest)
