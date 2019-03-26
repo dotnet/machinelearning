@@ -40,8 +40,8 @@ namespace Microsoft.ML
             infos.Select(info => (info.OutputColumnName, info.InputColumnName)).ToArray();
 
         [BestFriend]
-        internal static  InputOutputColumnPair[] ConvertFromValueTuples((string outputColumnName, string inputColumnName)[] infos) =>
-            infos.Select(v => new InputOutputColumnPair(v.outputColumnName, v.inputColumnName)).ToArray();
+        internal static InputOutputColumnPair[] ConvertFromValueTuples((string outputColumnName, string inputColumnName)[] infos) =>
+            infos.Select(info => new InputOutputColumnPair(info.outputColumnName, info.inputColumnName)).ToArray();
     }
 
     /// <summary>

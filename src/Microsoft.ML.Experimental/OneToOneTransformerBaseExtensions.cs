@@ -9,7 +9,7 @@ namespace Microsoft.ML.Experimental
     public static class OneToOneTransformerBaseExtensions
     {
         /// <summary>
-        /// Returns Input/Output column pair(s) for a <see cref="OneToOneTransformerBase"/>
+        /// Returns the names of the input-output column pairs on which the transformation is applied.
         /// </summary>
         public static InputOutputColumnPair[] GetColumnPairs(this OneToOneTransformerBase transformer) => InputOutputColumnPair.ConvertFromValueTuples(transformer.ColumnPairs);
     }
