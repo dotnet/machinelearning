@@ -17,7 +17,8 @@ namespace Microsoft.ML.Auto.Test
         {
             var context = new MLContext();
             var columnInfo = new ColumnInformation();
-            var trainerNames = Enum.GetValues(typeof(TrainerName)).Cast<TrainerName>();
+            var trainerNames = Enum.GetValues(typeof(TrainerName)).Cast<TrainerName>()
+                .Except(new[] { TrainerName.Ova });
             foreach (var trainerName in trainerNames)
             {
                 var extension = TrainerExtensionCatalog.GetTrainerExtension(trainerName);
@@ -194,16 +195,25 @@ namespace Microsoft.ML.Auto.Test
         {
             var pipelineNode = new FastForestOvaExtension().CreatePipelineNode(null, new ColumnInformation());
             var expectedJson = @"{
-  ""Name"": ""FastForestOva"",
+  ""Name"": ""Ova"",
   ""NodeType"": ""Trainer"",
-  ""InColumns"": [
-    ""Features""
-  ],
-  ""OutColumns"": [
-    ""Score""
-  ],
+  ""InColumns"": null,
+  ""OutColumns"": null,
   ""Properties"": {
-    ""LabelColumn"": ""Label""
+    ""LabelColumn"": ""Label"",
+    ""BinaryTrainer"": {
+      ""Name"": ""FastForestBinary"",
+      ""NodeType"": ""Trainer"",
+      ""InColumns"": [
+        ""Features""
+      ],
+      ""OutColumns"": [
+        ""Score""
+      ],
+      ""Properties"": {
+        ""LabelColumn"": ""Label""
+      }
+    }
   }
 }";
             Util.AssertObjectMatchesJson(expectedJson, pipelineNode);

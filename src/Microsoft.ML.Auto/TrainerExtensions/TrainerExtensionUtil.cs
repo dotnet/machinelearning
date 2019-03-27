@@ -32,6 +32,7 @@ namespace Microsoft.ML.Auto
         LogisticRegressionMulti,
         OnlineGradientDescentRegression,
         OrdinaryLeastSquaresRegression,
+        Ova,
         PoissonRegression,
         SdcaBinary,
         SdcaMulti,
@@ -79,8 +80,17 @@ namespace Microsoft.ML.Auto
         public static PipelineNode BuildOvaPipelineNode(ITrainerExtension multiExtension, ITrainerExtension binaryExtension,
             IEnumerable<SweepableParam> sweepParams, ColumnInformation columnInfo)
         {
-            var ovaNode = binaryExtension.CreatePipelineNode(sweepParams, columnInfo);
-            ovaNode.Name = TrainerExtensionCatalog.GetTrainerName(multiExtension).ToString();
+            var ovaNode = new PipelineNode()
+            {
+                Name = TrainerName.Ova.ToString(),
+                NodeType = PipelineNodeType.Trainer,
+                Properties = new Dictionary<string, object>()
+                {
+                    { LabelColumn, columnInfo.LabelColumn }
+                }
+            };
+            var binaryNode = binaryExtension.CreatePipelineNode(sweepParams, columnInfo);
+            ovaNode.Properties["BinaryTrainer"] = binaryNode;
             return ovaNode;
         }
 
