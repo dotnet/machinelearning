@@ -1,0 +1,49 @@
+maml.exe CV tr=MultiClassNaiveBayes threads=- cache=- dout=%Output% loader=Text{sparse- col=Attr:TX:6 col=Label:0 col=Features:1-5,6,7-9} data=%Data% seed=1
+Not adding a normalizer.
+Not training a calibrator because it is not needed.
+Not adding a normalizer.
+Not training a calibrator because it is not needed.
+
+Confusion table
+          ||======================
+PREDICTED ||        0 |        1 | Recall
+TRUTH     ||======================
+        0 ||      228 |        0 | 1.0000
+        1 ||      134 |        0 | 0.0000
+          ||======================
+Precision ||   0.6298 |   0.0000 |
+Accuracy(micro-avg): 0.629834
+Accuracy(macro-avg): 0.500000
+Log-loss:           34.538776
+Log-loss reduction: -51.407404
+
+Confusion table
+          ||======================
+PREDICTED ||        0 |        1 | Recall
+TRUTH     ||======================
+        0 ||      230 |        0 | 1.0000
+        1 ||      107 |        0 | 0.0000
+          ||======================
+Precision ||   0.6825 |   0.0000 |
+Accuracy(micro-avg): 0.682493
+Accuracy(macro-avg): 0.500000
+Log-loss:           34.538776
+Log-loss reduction: -54.264136
+
+OVERALL RESULTS
+---------------------------------------
+Accuracy(micro-avg): 0.656163 (0.0263)
+Accuracy(macro-avg): 0.500000 (0.0000)
+Log-loss:           34.538776 (0.0000)
+Log-loss reduction: -52.835770 (1.4284)
+
+---------------------------------------
+Physical memory usage(MB): %Number%
+Virtual memory usage(MB): %Number%
+%DateTime%	 Time elapsed(s): %Number%
+
+--- Progress log ---
+[1] 'Multi Class Naive Bayes training' started.
+[1] 'Multi Class Naive Bayes training' finished in %Time%.
+[2] 'Multi Class Naive Bayes training #2' started.
+[2] 'Multi Class Naive Bayes training #2' finished in %Time%.
