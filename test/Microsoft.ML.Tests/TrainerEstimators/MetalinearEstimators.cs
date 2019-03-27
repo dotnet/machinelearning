@@ -68,7 +68,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                 Separators = new[] { '\t' }
             };
             var textLoader = ML.Data.CreateTextLoader(textLoaderOptions);
-            var data = textLoader.Load(TestDatasets.trivialMatrixFactorization.trainFilename);
+            var data = textLoader.Load(GetDataPath(TestDatasets.trivialMatrixFactorization.trainFilename));
 
             var ap = ML.BinaryClassification.Trainers.AveragedPerceptron();
             var ova = ML.MulticlassClassification.Trainers.OneVersusAll(ap);
