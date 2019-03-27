@@ -136,8 +136,6 @@ else{#>
             var metrics = mlContext.<#= TaskType #>.Evaluate(predictions, "<#= LabelName #>", "Score");
             ConsoleHelper.PrintRegressionMetrics(metrics);
 <#} #>
-            RegressionMetrics metrics = mlContext.Regression.Evaluate(predictions, "fare_amount", "Score");
-            ConsoleHelper.PrintRegressionMetrics(metrics);
         }
 <#}else{#>
         private static void EvaluateModel(MLContext mlContext, IDataView trainingDataView, IEstimator<ITransformer> trainingPipeline)

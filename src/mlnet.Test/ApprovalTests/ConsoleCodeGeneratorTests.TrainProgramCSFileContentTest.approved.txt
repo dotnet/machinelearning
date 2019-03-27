@@ -87,8 +87,6 @@ namespace TestNamespace.Train
             IDataView predictions = mlModel.Transform(testDataView);
             var metrics = mlContext.BinaryClassification.EvaluateNonCalibrated(predictions, "Label", "Score");
             ConsoleHelper.PrintBinaryClassificationMetrics(metrics);
-            RegressionMetrics metrics = mlContext.Regression.Evaluate(predictions, "fare_amount", "Score");
-            ConsoleHelper.PrintRegressionMetrics(metrics);
         }
         private static void SaveModel(MLContext mlContext, ITransformer mlModel, string modelRelativePath)
         {

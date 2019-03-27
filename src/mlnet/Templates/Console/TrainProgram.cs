@@ -191,9 +191,7 @@ if("BinaryClassification".Equals(TaskType)){
             this.Write(this.ToStringHelper.ToStringWithCulture(LabelName));
             this.Write("\", \"Score\");\r\n            ConsoleHelper.PrintRegressionMetrics(metrics);\r\n");
 } 
-            this.Write("            RegressionMetrics metrics = mlContext.Regression.Evaluate(predictions" +
-                    ", \"fare_amount\", \"Score\");\r\n            ConsoleHelper.PrintRegressionMetrics(met" +
-                    "rics);\r\n        }\r\n");
+            this.Write("        }\r\n");
 }else{
             this.Write(@"        private static void EvaluateModel(MLContext mlContext, IDataView trainingDataView, IEstimator<ITransformer> trainingPipeline)
         {
