@@ -53,7 +53,8 @@ namespace Microsoft.ML.Auto
 
         public RunResult<T> ToIterationResult()
         {
-            return new RunResult<T>(ModelContainer, EvaluatedMetrics, Estimator, Pipeline.ToPipeline(), Exception, RuntimeInSeconds, PipelineInferenceTimeInSeconds);
+            return new RunResult<T>(ModelContainer, EvaluatedMetrics, Estimator, Pipeline.Trainer.TrainerName.ToString(),
+                Pipeline.ToPipeline(), Exception, RuntimeInSeconds, PipelineInferenceTimeInSeconds);
         }
     }
 }

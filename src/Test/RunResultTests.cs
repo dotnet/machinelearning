@@ -20,10 +20,10 @@ namespace Microsoft.ML.Auto.Test
 
             var runResults = new List<RunResult<RegressionMetrics>>()
             {
-                new RunResult<RegressionMetrics>(null, null, null, null, null, 0, 0),
-                new RunResult<RegressionMetrics>(null, metrics1, null, null, null, 0, 0),
-                new RunResult<RegressionMetrics>(null, metrics2, null, null, null, 0, 0),
-                new RunResult<RegressionMetrics>(null, metrics3, null, null, null, 0, 0),
+                new RunResult<RegressionMetrics>(null, null, null, null, null, null, 0, 0),
+                new RunResult<RegressionMetrics>(null, metrics1, null, null, null, null, 0, 0),
+                new RunResult<RegressionMetrics>(null, metrics2, null, null, null, null, 0, 0),
+                new RunResult<RegressionMetrics>(null, metrics3, null, null, null, null, 0, 0),
             };
 
             var metricsAgent = new RegressionMetricsAgent(RegressionMetric.RSquared);
@@ -36,7 +36,7 @@ namespace Microsoft.ML.Auto.Test
         {
             var runResults = new List<RunResult<RegressionMetrics>>()
             {
-                new RunResult<RegressionMetrics>(null, null, null, null, null, 0, 0),
+                new RunResult<RegressionMetrics>(null, null, null, null, null, null, 0, 0),
             };
 
             var metricsAgent = new RegressionMetricsAgent(RegressionMetric.RSquared);

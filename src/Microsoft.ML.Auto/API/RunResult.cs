@@ -26,6 +26,7 @@ namespace Microsoft.ML.Auto
         internal RunResult(ModelContainer modelContainer,
             T metrics,
             IEstimator<ITransformer> estimator,
+            string trainerName,
             Pipeline pipeline,
             Exception exception,
             double runtimeInSeconds,
@@ -38,8 +39,7 @@ namespace Microsoft.ML.Auto
             Exception = exception;
             RuntimeInSeconds = runtimeInSeconds;
             PipelineInferenceTimeInSeconds = pipelineInferenceTimeInSeconds;
-
-            TrainerName = pipeline?.Nodes.Where(n => n.NodeType == PipelineNodeType.Trainer).Last().Name;
+            TrainerName = trainerName;
         }
     }
 }
