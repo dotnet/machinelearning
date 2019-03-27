@@ -48,7 +48,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         public void SdcaLogisticRegression()
         {
             // Generate C# objects as training examples.
-            var rawData = SamplesUtils.DatasetUtils.GenerateBinaryLabelFloatFeatureVectorSamples(100);
+            var rawData = SamplesUtils.DatasetUtils.GenerateBinaryLabelFloatFeatureVectorFloatWeightSamples(100);
 
             // Create a new context for ML.NET operations. It can be used for exception tracking and logging, 
             // as a catalog of available operations and as the source of randomness.
@@ -89,10 +89,65 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         }
 
         [Fact]
+        public void SdcaLogisticRegressionWithWeight()
+        {
+            // Generate C# objects as training examples.
+            var rawData = SamplesUtils.DatasetUtils.GenerateBinaryLabelFloatFeatureVectorFloatWeightSamples(100);
+
+            // Create a new context for ML.NET operations. It can be used for exception tracking and logging, 
+            // as a catalog of available operations and as the source of randomness.
+            var mlContext = new MLContext(0);
+
+            // Read the data as an IDataView.
+            var data = mlContext.Data.LoadFromEnumerable(rawData);
+
+            // ML.NET doesn't cache data set by default. Caching is very helpful when working with iterative
+            // algorithms which needs many data passes. Since SDCA is the case, we cache.
+            data = mlContext.Data.Cache(data);
+
+            // Verify SdcaLogisticRegression with and without weights.
+            var sdcaWithoutWeightBinary = mlContext.BinaryClassification.Trainers.SdcaLogisticRegression(
+                new SdcaLogisticRegressionBinaryTrainer.Options { NumberOfThreads = 1 });
+            var sdcaWithWeightBinary = mlContext.BinaryClassification.Trainers.SdcaLogisticRegression(
+                new SdcaLogisticRegressionBinaryTrainer.Options { ExampleWeightColumnName = "Weight", NumberOfThreads = 1 });
+
+            var prediction1 = sdcaWithoutWeightBinary.Fit(data).Transform(data);
+            var prediction2 = sdcaWithWeightBinary.Fit(data).Transform(data);
+
+            var metrics1 = mlContext.BinaryClassification.Evaluate(prediction1);
+            var metrics2 = mlContext.BinaryClassification.Evaluate(prediction2);
+
+            Assert.Equal(0.9658, metrics1.AreaUnderRocCurve, 4);
+            Assert.Equal(0.3488, metrics1.LogLoss, 4);
+            Assert.Equal(0.9596, metrics2.AreaUnderRocCurve, 4);
+            Assert.Equal(0.3591, metrics2.LogLoss, 4);
+
+            // Verify SdcaMaximumEntropy with and without weights.
+            var sdcaWithoutWeightMulticlass = mlContext.Transforms.Conversion.MapValueToKey("LabelIndex", "Label").
+               Append(mlContext.MulticlassClassification.Trainers.SdcaMaximumEntropy(
+                   new SdcaMaximumEntropyMulticlassTrainer.Options { LabelColumnName = "LabelIndex", NumberOfThreads = 1 }));
+
+            var sdcaWithWeightMulticlass = mlContext.Transforms.Conversion.MapValueToKey("LabelIndex", "Label").
+                Append(mlContext.MulticlassClassification.Trainers.SdcaMaximumEntropy(
+                    new SdcaMaximumEntropyMulticlassTrainer.Options { LabelColumnName = "LabelIndex", ExampleWeightColumnName = "Weight", NumberOfThreads = 1 }));
+
+            var prediction3 = sdcaWithoutWeightMulticlass.Fit(data).Transform(data);
+            var prediction4 = sdcaWithWeightMulticlass.Fit(data).Transform(data);
+
+            var metrics3 = mlContext.MulticlassClassification.Evaluate(prediction3, labelColumnName: "LabelIndex", topKPredictionCount: 1);
+            var metrics4 = mlContext.MulticlassClassification.Evaluate(prediction4, labelColumnName: "LabelIndex", topKPredictionCount: 1);
+
+            Assert.Equal(0.9000, metrics3.TopKAccuracy, 4);
+            Assert.Equal(0.2411, metrics3.LogLoss, 4);
+            Assert.Equal(0.8800, metrics4.TopKAccuracy, 4);
+            Assert.Equal(0.2469, metrics4.LogLoss, 4);
+        }
+
+        [Fact]
         public void SdcaSupportVectorMachine()
         {
             // Generate C# objects as training examples.
-            var rawData = SamplesUtils.DatasetUtils.GenerateBinaryLabelFloatFeatureVectorSamples(100);
+            var rawData = SamplesUtils.DatasetUtils.GenerateBinaryLabelFloatFeatureVectorFloatWeightSamples(100);
 
             // Create a new context for ML.NET operations. It can be used for exception tracking and logging, 
             // as a catalog of available operations and as the source of randomness.

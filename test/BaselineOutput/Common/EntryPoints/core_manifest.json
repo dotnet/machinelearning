@@ -15007,6 +15007,18 @@
           "Default": "Label"
         },
         {
+          "Name": "ExampleWeightColumnName",
+          "Type": "String",
+          "Desc": "Column to use for example weight",
+          "Aliases": [
+            "weight"
+          ],
+          "Required": false,
+          "SortOrder": 4.0,
+          "IsNullable": false,
+          "Default": null
+        },
+        {
           "Name": "NormalizeFeatures",
           "Type": {
             "Kind": "Enum",
@@ -15218,6 +15230,7 @@
         }
       ],
       "InputKind": [
+        "ITrainerInputWithWeight",
         "ITrainerInputWithLabel",
         "ITrainerInput"
       ],
@@ -15314,6 +15327,18 @@
           "SortOrder": 3.0,
           "IsNullable": false,
           "Default": "Label"
+        },
+        {
+          "Name": "ExampleWeightColumnName",
+          "Type": "String",
+          "Desc": "Column to use for example weight",
+          "Aliases": [
+            "weight"
+          ],
+          "Required": false,
+          "SortOrder": 4.0,
+          "IsNullable": false,
+          "Default": null
         },
         {
           "Name": "NormalizeFeatures",
@@ -15492,6 +15517,7 @@
         }
       ],
       "InputKind": [
+        "ITrainerInputWithWeight",
         "ITrainerInputWithLabel",
         "ITrainerInput"
       ],
@@ -15588,6 +15614,18 @@
           "SortOrder": 3.0,
           "IsNullable": false,
           "Default": "Label"
+        },
+        {
+          "Name": "ExampleWeightColumnName",
+          "Type": "String",
+          "Desc": "Column to use for example weight",
+          "Aliases": [
+            "weight"
+          ],
+          "Required": false,
+          "SortOrder": 4.0,
+          "IsNullable": false,
+          "Default": null
         },
         {
           "Name": "NormalizeFeatures",
@@ -15766,6 +15804,7 @@
         }
       ],
       "InputKind": [
+        "ITrainerInputWithWeight",
         "ITrainerInputWithLabel",
         "ITrainerInput"
       ],
