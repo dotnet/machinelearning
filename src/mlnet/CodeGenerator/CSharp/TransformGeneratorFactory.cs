@@ -12,7 +12,7 @@ namespace Microsoft.ML.CLI.CodeGenerator.CSharp
     {
         string GenerateTransformer();
 
-        string GenerateUsings();
+        string[] GenerateUsings();
     }
 
     internal static class TransformGeneratorFactory

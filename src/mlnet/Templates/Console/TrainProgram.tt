@@ -131,7 +131,7 @@ else{#>
             ConsoleHelper.PrintBinaryClassificationMetrics(metrics);
 <#} if("MulticlassClassification".Equals(TaskType)){ #>
             var metrics = mlContext.<#= TaskType #>.Evaluate(predictions, "<#= LabelName #>", "Score");
-            ConsoleHelper.PrintBinaryClassificationMetrics(metrics);
+            ConsoleHelper.PrintMultiClassClassificationMetrics(metrics);
 <#}if("Regression".Equals(TaskType)){ #>
             var metrics = mlContext.<#= TaskType #>.Evaluate(predictions, "<#= LabelName #>", "Score");
             ConsoleHelper.PrintRegressionMetrics(metrics);

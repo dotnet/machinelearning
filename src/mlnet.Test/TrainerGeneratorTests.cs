@@ -52,7 +52,7 @@ namespace mlnet.Test
             string expectedTrainerString = "LightGbm(new Options(){LearningRate=0.1f,NumLeaves=1,UseSoftmax=true,LabelColumn=\"Label\",FeatureColumn=\"Features\"})";
             string expectedUsings = "using Microsoft.ML.LightGBM;\r\n";
             Assert.AreEqual(expectedTrainerString, actual.Item1);
-            Assert.AreEqual(expectedUsings, actual.Item2);
+            Assert.AreEqual(expectedUsings, actual.Item2[0]);
 
         }
 
@@ -90,7 +90,7 @@ namespace mlnet.Test
             var expectedUsings = "using Microsoft.ML.Trainers.HalLearners;\r\n";
             string expectedTrainerString = "SymbolicStochasticGradientDescent(new SymSgdClassificationTrainer.Options(){LearningRate=0.1f,LabelColumn=\"Label\",FeatureColumn=\"Features\"})";
             Assert.AreEqual(expectedTrainerString, actual.Item1);
-            Assert.AreEqual(expectedUsings, actual.Item2);
+            Assert.AreEqual(expectedUsings, actual.Item2[0]);
 
         }
 
@@ -127,7 +127,7 @@ namespace mlnet.Test
             var expectedUsings = "using Microsoft.ML.Trainers;\r\n";
             string expectedTrainerString = "StochasticGradientDescent(new SgdBinaryTrainer.Options(){Shuffle=true,LabelColumn=\"Label\",FeatureColumn=\"Features\"})";
             Assert.AreEqual(expectedTrainerString, actual.Item1);
-            Assert.AreEqual(expectedUsings, actual.Item2);
+            Assert.AreEqual(expectedUsings, actual.Item2[0]);
 
         }
 
@@ -164,7 +164,7 @@ namespace mlnet.Test
             var expectedUsings = "using Microsoft.ML.Trainers;\r\n";
             string expectedTrainerString = "StochasticDualCoordinateAscent(new SdcaBinaryTrainer.Options(){BiasLearningRate=0.1f,LabelColumn=\"Label\",FeatureColumn=\"Features\"})";
             Assert.AreEqual(expectedTrainerString, actual.Item1);
-            Assert.AreEqual(expectedUsings, actual.Item2);
+            Assert.AreEqual(expectedUsings, actual.Item2[0]);
 
         }
 
@@ -201,7 +201,7 @@ namespace mlnet.Test
             var expectedUsings = "using Microsoft.ML.Trainers;\r\n";
             string expectedTrainerString = "StochasticDualCoordinateAscent(new SdcaMultiClassTrainer.Options(){BiasLearningRate=0.1f,LabelColumn=\"Label\",FeatureColumn=\"Features\"})";
             Assert.AreEqual(expectedTrainerString, actual.Item1);
-            Assert.AreEqual(expectedUsings, actual.Item2);
+            Assert.AreEqual(expectedUsings, actual.Item2[0]);
 
         }
 
@@ -238,7 +238,7 @@ namespace mlnet.Test
             var expectedUsings = "using Microsoft.ML.Trainers;\r\n";
             string expectedTrainerString = "StochasticDualCoordinateAscent(new SdcaRegressionTrainer.Options(){BiasLearningRate=0.1f,LabelColumn=\"Label\",FeatureColumn=\"Features\"})";
             Assert.AreEqual(expectedTrainerString, actual.Item1);
-            Assert.AreEqual(expectedUsings, actual.Item2);
+            Assert.AreEqual(expectedUsings, actual.Item2[0]);
 
         }
 
@@ -275,7 +275,7 @@ namespace mlnet.Test
             var expectedUsings = "using Microsoft.ML.Trainers;\r\n";
             string expectedTrainerString = "PoissonRegression(new PoissonRegression.Options(){MaxIterations=1,LabelColumn=\"Label\",FeatureColumn=\"Features\"})";
             Assert.AreEqual(expectedTrainerString, actual.Item1);
-            Assert.AreEqual(expectedUsings, actual.Item2);
+            Assert.AreEqual(expectedUsings, actual.Item2[0]);
 
         }
 
@@ -312,7 +312,7 @@ namespace mlnet.Test
             var expectedUsings = "using Microsoft.ML.Trainers.HalLearners;\r\n";
             string expectedTrainerString = "OrdinaryLeastSquares(new OlsLinearRegressionTrainer.Options(){L2Weight=0.1f,LabelColumn=\"Label\",FeatureColumn=\"Features\"})";
             Assert.AreEqual(expectedTrainerString, actual.Item1);
-            Assert.AreEqual(expectedUsings, actual.Item2);
+            Assert.AreEqual(expectedUsings, actual.Item2[0]);
 
         }
 
@@ -349,7 +349,7 @@ namespace mlnet.Test
             var expectedUsings = "using Microsoft.ML.Trainers;\r\n";
             string expectedTrainerString = "OnlineGradientDescent(new OnlineGradientDescentTrainer.Options(){RecencyGainMulti=true,LabelColumn=\"Label\",FeatureColumn=\"Features\"})";
             Assert.AreEqual(expectedTrainerString, actual.Item1);
-            Assert.AreEqual(expectedUsings, actual.Item2);
+            Assert.AreEqual(expectedUsings, actual.Item2[0]);
 
         }
 
@@ -386,7 +386,7 @@ namespace mlnet.Test
             var expectedUsings = "using Microsoft.ML.Trainers;\r\n";
             string expectedTrainerString = "LogisticRegression(new LogisticRegression.Options(){DenseOptimizer=true,LabelColumn=\"Label\",FeatureColumn=\"Features\"})";
             Assert.AreEqual(expectedTrainerString, actual.Item1);
-            Assert.AreEqual(expectedUsings, actual.Item2);
+            Assert.AreEqual(expectedUsings, actual.Item2[0]);
 
         }
 
@@ -423,7 +423,7 @@ namespace mlnet.Test
             var expectedUsings = "using Microsoft.ML.Trainers;\r\n";
             string expectedTrainerString = "LogisticRegression(new MulticlassLogisticRegression.Options(){DenseOptimizer=true,LabelColumn=\"Label\",FeatureColumn=\"Features\"})";
             Assert.AreEqual(expectedTrainerString, actual.Item1);
-            Assert.AreEqual(expectedUsings, actual.Item2);
+            Assert.AreEqual(expectedUsings, actual.Item2[0]);
 
         }
 
@@ -460,7 +460,7 @@ namespace mlnet.Test
             var expectedUsings = "using Microsoft.ML.Trainers;\r\n ";
             string expectedTrainerString = "LinearSupportVectorMachines(new LinearSvmTrainer.Options(){NoBias=true,LabelColumn=\"Label\",FeatureColumn=\"Features\"})";
             Assert.AreEqual(expectedTrainerString, actual.Item1);
-            Assert.AreEqual(expectedUsings, actual.Item2);
+            Assert.AreEqual(expectedUsings, actual.Item2[0]);
 
         }
 
@@ -498,7 +498,7 @@ namespace mlnet.Test
             var expectedUsings = "using Microsoft.ML.Trainers;\r\n";
             string expectedTrainerString = "OnlineGradientDescent(new OnlineGradientDescentTrainer.Options(){Shrinkage=0.1f,LabelColumn=\"Label\",FeatureColumn=\"Features\"})";
             Assert.AreEqual(expectedTrainerString, actual.Item1);
-            Assert.AreEqual(expectedUsings, actual.Item2);
+            Assert.AreEqual(expectedUsings, actual.Item2[0]);
 
         }
 
@@ -536,7 +536,7 @@ namespace mlnet.Test
             var expectedUsings = "using Microsoft.ML.Trainers.FastTree;\r\n";
             string expectedTrainerString = "FastTree(new FastTreeRegressionTrainer.Options(){Shrinkage=0.1f,LabelColumn=\"Label\",FeatureColumn=\"Features\"})";
             Assert.AreEqual(expectedTrainerString, actual.Item1);
-            Assert.AreEqual(expectedUsings, actual.Item2);
+            Assert.AreEqual(expectedUsings, actual.Item2[0]);
 
         }
 
@@ -574,7 +574,7 @@ namespace mlnet.Test
             var expectedUsings = "using Microsoft.ML.Trainers.FastTree;\r\n";
             string expectedTrainerString = "FastTree(new FastTreeBinaryClassificationTrainer.Options(){Shrinkage=0.1f,LabelColumn=\"Label\",FeatureColumn=\"Features\"})";
             Assert.AreEqual(expectedTrainerString, actual.Item1);
-            Assert.AreEqual(expectedUsings, actual.Item2);
+            Assert.AreEqual(expectedUsings, actual.Item2[0]);
 
         }
 
@@ -611,7 +611,7 @@ namespace mlnet.Test
             var expectedUsings = "using Microsoft.ML.Trainers.FastTree;\r\n";
             string expectedTrainerString = "FastForest(new FastForestRegression.Options(){Shrinkage=0.1f,LabelColumn=\"Label\",FeatureColumn=\"Features\"})";
             Assert.AreEqual(expectedTrainerString, actual.Item1);
-            Assert.AreEqual(expectedUsings, actual.Item2);
+            Assert.AreEqual(expectedUsings, actual.Item2[0]);
 
         }
 
@@ -649,7 +649,7 @@ namespace mlnet.Test
             var expectedUsings = "using Microsoft.ML.Trainers.FastTree;\r\n";
             string expectedTrainerString = "FastForest(new FastForestClassification.Options(){Shrinkage=0.1f,LabelColumn=\"Label\",FeatureColumn=\"Features\"})";
             Assert.AreEqual(expectedTrainerString, actual.Item1);
-            Assert.AreEqual(expectedUsings, actual.Item2);
+            Assert.AreEqual(expectedUsings, actual.Item2[0]);
 
         }
 
@@ -687,7 +687,7 @@ namespace mlnet.Test
             var expectedUsings = "using Microsoft.ML.Trainers;\r\n ";
             string expectedTrainerString = "AveragedPerceptron(new AveragedPerceptronTrainer.Options(){Shuffle=true,LabelColumn=\"Label\",FeatureColumn=\"Features\"})";
             Assert.AreEqual(expectedTrainerString, actual.Item1);
-            Assert.AreEqual(expectedUsings, actual.Item2);
+            Assert.AreEqual(expectedUsings, actual.Item2[0]);
 
         }
     }

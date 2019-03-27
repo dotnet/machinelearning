@@ -51,7 +51,7 @@ namespace mlnet.Test
             string expectedTrainer = "LightGbm(new Options(){LearningRate=0.1f,NumLeaves=1,UseSoftmax=true,LabelColumn=\"Label\",FeatureColumn=\"Features\"})";
             string expectedUsing = "using Microsoft.ML.LightGBM;\r\n";
             Assert.AreEqual(expectedTrainer, actual.Item1);
-            Assert.AreEqual(expectedUsing, actual.Item2);
+            Assert.AreEqual(expectedUsing, actual.Item2[0]);
         }
 
         [TestMethod]
@@ -80,7 +80,7 @@ namespace mlnet.Test
             string expectedTransform = "Categorical.OneHotEncoding(new []{new OneHotEncodingEstimator.ColumnOptions(\"Label\",\"Label\")})";
             var expectedUsings = "using Microsoft.ML.Transforms;\r\n";
             Assert.AreEqual(expectedTransform, actual[0].Item1);
-            Assert.AreEqual(expectedUsings, actual[0].Item2);
+            Assert.AreEqual(expectedUsings, actual[0].Item2[0]);
         }
 
         [TestMethod]
@@ -130,7 +130,7 @@ namespace mlnet.Test
             string expectedTrainer = "LightGbm(new Options(){Booster=new TreeBooster(){},LabelColumn=\"Label\",FeatureColumn=\"Features\"})";
             var expectedUsings = "using Microsoft.ML.LightGBM;\r\n";
             Assert.AreEqual(expectedTrainer, actual.Item1);
-            Assert.AreEqual(expectedUsings, actual.Item2);
+            Assert.AreEqual(expectedUsings, actual.Item2[0]);
         }
     }
 }

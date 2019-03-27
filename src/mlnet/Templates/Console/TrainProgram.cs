@@ -182,8 +182,8 @@ if("BinaryClassification".Equals(TaskType)){
             this.Write(this.ToStringHelper.ToStringWithCulture(TaskType));
             this.Write(".Evaluate(predictions, \"");
             this.Write(this.ToStringHelper.ToStringWithCulture(LabelName));
-            this.Write("\", \"Score\");\r\n            ConsoleHelper.PrintBinaryClassificationMetrics(metrics)" +
-                    ";\r\n");
+            this.Write("\", \"Score\");\r\n            ConsoleHelper.PrintMultiClassClassificationMetrics(metr" +
+                    "ics);\r\n");
 }if("Regression".Equals(TaskType)){ 
             this.Write("            var metrics = mlContext.");
             this.Write(this.ToStringHelper.ToStringWithCulture(TaskType));

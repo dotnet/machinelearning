@@ -3,6 +3,8 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
+using System.Linq;
+using System.Text;
 using Microsoft.ML.Auto;
 
 namespace Microsoft.ML.CLI.CodeGenerator.CSharp
@@ -36,7 +38,7 @@ namespace Microsoft.ML.CLI.CodeGenerator.CSharp
                 }
             }
 
-            internal override string Usings => "using Microsoft.ML.LightGBM;\r\n";
+            internal override string[] Usings => new string[] { "using Microsoft.ML.LightGBM;\r\n" };
 
             public LightGbm(PipelineNode node) : base(node)
             {
@@ -70,7 +72,7 @@ namespace Microsoft.ML.CLI.CodeGenerator.CSharp
                 }
             }
 
-            internal override string Usings => "using Microsoft.ML.Trainers;\r\n ";
+            internal override string[] Usings => new string[] { "using Microsoft.ML.Trainers;\r\n " };
 
             public AveragedPerceptron(PipelineNode node) : base(node)
             {
@@ -80,7 +82,7 @@ namespace Microsoft.ML.CLI.CodeGenerator.CSharp
         #region FastTree
         internal abstract class FastTreeBase : TrainerGeneratorBase
         {
-            internal override string Usings => "using Microsoft.ML.Trainers.FastTree;\r\n";
+            internal override string[] Usings => new string[] { "using Microsoft.ML.Trainers.FastTree;\r\n" };
 
             //The named parameters to the trainer.
             internal override IDictionary<string, string> NamedParameters
@@ -196,7 +198,7 @@ namespace Microsoft.ML.CLI.CodeGenerator.CSharp
                 }
             }
 
-            internal override string Usings => "using Microsoft.ML.Trainers;\r\n ";
+            internal override string[] Usings => new string[] { "using Microsoft.ML.Trainers;\r\n " };
 
             public LinearSvm(PipelineNode node) : base(node)
             {
@@ -230,7 +232,7 @@ namespace Microsoft.ML.CLI.CodeGenerator.CSharp
                 }
             }
 
-            internal override string Usings => "using Microsoft.ML.Trainers;\r\n";
+            internal override string[] Usings => new string[] { "using Microsoft.ML.Trainers;\r\n" };
 
             public LogisticRegressionBase(PipelineNode node) : base(node)
             {
@@ -285,7 +287,7 @@ namespace Microsoft.ML.CLI.CodeGenerator.CSharp
                 }
             }
 
-            internal override string Usings => "using Microsoft.ML.Trainers;\r\n";
+            internal override string[] Usings => new string[] { "using Microsoft.ML.Trainers;\r\n" };
 
             public OnlineGradientDescentRegression(PipelineNode node) : base(node)
             {
@@ -315,7 +317,7 @@ namespace Microsoft.ML.CLI.CodeGenerator.CSharp
                 }
             }
 
-            internal override string Usings => "using Microsoft.ML.Trainers.HalLearners;\r\n";
+            internal override string[] Usings => new string[] { "using Microsoft.ML.Trainers.HalLearners;\r\n" };
 
             public OrdinaryLeastSquaresRegression(PipelineNode node) : base(node)
             {
@@ -350,7 +352,7 @@ namespace Microsoft.ML.CLI.CodeGenerator.CSharp
                 }
             }
 
-            internal override string Usings => "using Microsoft.ML.Trainers;\r\n";
+            internal override string[] Usings => new string[] { "using Microsoft.ML.Trainers;\r\n" };
 
             public PoissonRegression(PipelineNode node) : base(node)
             {
@@ -382,7 +384,7 @@ namespace Microsoft.ML.CLI.CodeGenerator.CSharp
                 }
             }
 
-            internal override string Usings => "using Microsoft.ML.Trainers;\r\n";
+            internal override string[] Usings => new string[] { "using Microsoft.ML.Trainers;\r\n" };
 
             public StochasticDualCoordinateAscentBase(PipelineNode node) : base(node)
             {
@@ -447,7 +449,7 @@ namespace Microsoft.ML.CLI.CodeGenerator.CSharp
                 }
             }
 
-            internal override string Usings => "using Microsoft.ML.Trainers;\r\n";
+            internal override string[] Usings => new string[] { "using Microsoft.ML.Trainers;\r\n" };
 
             public StochasticGradientDescentClassification(PipelineNode node) : base(node)
             {
@@ -477,11 +479,58 @@ namespace Microsoft.ML.CLI.CodeGenerator.CSharp
                 }
             }
 
-            internal override string Usings => "using Microsoft.ML.Trainers.HalLearners;\r\n";
+            internal override string[] Usings => new string[] { "using Microsoft.ML.Trainers.HalLearners;\r\n" };
 
             public SymbolicStochasticGradientDescent(PipelineNode node) : base(node)
             {
+
             }
+        }
+
+        internal class OneVersusAll : TrainerGeneratorBase
+        {
+            private PipelineNode node;
+            private string[] binaryTrainerUsings = null;
+
+            //ClassName of the trainer
+            internal override string MethodName => "OneVersusAll";
+
+            //ClassName of the options to trainer
+            internal override string OptionsName => null;
+
+            //The named parameters to the trainer.
+            internal override IDictionary<string, string> NamedParameters => null;
+
+            internal override string[] Usings => new string[] { "using Microsoft.ML.Trainers;\r\n" };
+
+            public OneVersusAll(PipelineNode node) : base(node)
+            {
+                this.node = node;
+            }
+
+            public override string GenerateTrainer()
+            {
+                StringBuilder sb = new StringBuilder();
+                sb.Append(MethodName);
+                sb.Append("(");
+                sb.Append("mlContext.BinaryClassification.Trainers."); // This is dependent on the name of the MLContext object in template.
+                var trainerGenerator = TrainerGeneratorFactory.GetInstance((PipelineNode)this.node.Properties["BinaryTrainer"]);
+                binaryTrainerUsings = trainerGenerator.GenerateUsings();
+                sb.Append(trainerGenerator.GenerateTrainer());
+                sb.Append(",");
+                sb.Append("labelColumnName:");
+                sb.Append("\"");
+                sb.Append(node.Properties["LabelColumn"]);
+                sb.Append("\"");
+                sb.Append(")");
+                return sb.ToString();
+            }
+
+            public override string[] GenerateUsings()
+            {
+                return binaryTrainerUsings;
+            }
+
         }
 
     }

@@ -15,7 +15,7 @@ namespace Microsoft.ML.CLI.CodeGenerator.CSharp
         //abstract properties
         internal abstract string MethodName { get; }
 
-        internal abstract string Usings { get; }
+        internal abstract string[] Usings { get; }
 
         protected string[] inputColumns;
 
@@ -49,7 +49,7 @@ namespace Microsoft.ML.CLI.CodeGenerator.CSharp
 
         public abstract string GenerateTransformer();
 
-        public string GenerateUsings()
+        public string[] GenerateUsings()
         {
             return Usings;
         }

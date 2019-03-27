@@ -25,7 +25,7 @@ namespace Microsoft.ML.CLI.CodeGenerator.CSharp
         internal abstract string OptionsName { get; }
         internal abstract string MethodName { get; }
         internal abstract IDictionary<string, string> NamedParameters { get; }
-        internal abstract string Usings { get; }
+        internal abstract string[] Usings { get; }
 
         /// <summary>
         /// Generates an instance of TrainerGenerator
@@ -39,7 +39,10 @@ namespace Microsoft.ML.CLI.CodeGenerator.CSharp
         private void Initialize(PipelineNode node)
         {
             this.node = node;
-            hasAdvancedSettings = node.Properties.Keys.Any(t => !NamedParameters.ContainsKey(t));
+            if (NamedParameters != null)
+            {
+                hasAdvancedSettings = node.Properties.Keys.Any(t => !NamedParameters.ContainsKey(t));
+            }
             seperator = hasAdvancedSettings ? "=" : ":";
             if (!node.Properties.ContainsKey("LabelColumn"))
             {
@@ -87,11 +90,19 @@ namespace Microsoft.ML.CLI.CodeGenerator.CSharp
                 }
                 //more special cases to handle
 
-                arguments.Add(hasAdvancedSettings ? kv.Key : NamedParameters[kv.Key], value);
+                if (NamedParameters != null)
+                {
+                    arguments.Add(hasAdvancedSettings ? kv.Key : NamedParameters[kv.Key], value);
+                }
+                else
+                {
+                    arguments.Add(kv.Key, value);
+                }
+
             }
         }
 
-        private static string BuildComplexParameter(string paramName, IDictionary<string, object> arguments, string seperator)
+        internal static string BuildComplexParameter(string paramName, IDictionary<string, object> arguments, string seperator)
         {
             StringBuilder sb = new StringBuilder();
             sb.Append("new ");
@@ -102,7 +113,7 @@ namespace Microsoft.ML.CLI.CodeGenerator.CSharp
             return sb.ToString();
         }
 
-        private static string AppendArguments(IDictionary<string, object> arguments, string seperator)
+        internal static string AppendArguments(IDictionary<string, object> arguments, string seperator)
         {
             if (arguments.Count == 0)
                 return string.Empty;
@@ -122,7 +133,7 @@ namespace Microsoft.ML.CLI.CodeGenerator.CSharp
             return sb.ToString();
         }
 
-        public string GenerateTrainer()
+        public virtual string GenerateTrainer()
         {
             StringBuilder sb = new StringBuilder();
             sb.Append(MethodName);
@@ -140,7 +151,7 @@ namespace Microsoft.ML.CLI.CodeGenerator.CSharp
             return sb.ToString();
         }
 
-        public string GenerateUsings()
+        public virtual string[] GenerateUsings()
         {
             if (hasAdvancedSettings)
                 return Usings;

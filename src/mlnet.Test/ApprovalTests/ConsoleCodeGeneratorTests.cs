@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using ApprovalTests;
 using ApprovalTests.Reporters;
@@ -18,7 +19,8 @@ namespace mlnet.Test
     [UseReporter(typeof(DiffReporter))]
     public class ConsoleCodeGeneratorTests
     {
-        private Pipeline pipeline;
+        private Pipeline mockedPipeline;
+        private Pipeline mockedOvaPipeline;
         private ColumnInferenceResults columnInference = default;
         private string namespaceValue = "TestNamespace";
 
@@ -49,6 +51,29 @@ namespace mlnet.Test
         [TestMethod]
         [UseReporter(typeof(DiffReporter))]
         [MethodImpl(MethodImplOptions.NoInlining)]
+        public void TrainProgramCSFileContentOvaTest()
+        {
+            (Pipeline pipeline,
+                        ColumnInferenceResults columnInference) = GetMockedOvaPipelineAndInference();
+
+            var consoleCodeGen = new CodeGenerator(pipeline, columnInference, new CodeGeneratorSettings()
+            {
+                MlTask = TaskKind.MulticlassClassification,
+                OutputBaseDir = null,
+                OutputName = "MyNamespace",
+                TrainDataset = "x:\\dummypath\\dummy_train.csv",
+                TestDataset = "x:\\dummypath\\dummy_test.csv",
+                LabelName = "Label",
+                ModelPath = "x:\\models\\model.zip"
+            });
+            var result = consoleCodeGen.GenerateTrainProjectContents(namespaceValue, typeof(float));
+
+            Approvals.Verify(result.Item1);
+        }
+
+        [TestMethod]
+        [UseReporter(typeof(DiffReporter))]
+        [MethodImpl(MethodImplOptions.NoInlining)]
         public void TrainProgramCSFileContentTest()
         {
             (Pipeline pipeline,
@@ -68,6 +93,7 @@ namespace mlnet.Test
 
             Approvals.Verify(result.Item1);
         }
+
 
 
         [TestMethod]
@@ -211,7 +237,7 @@ namespace mlnet.Test
 
         private (Pipeline, ColumnInferenceResults) GetMockedPipelineAndInference()
         {
-            if (pipeline == null)
+            if (mockedPipeline == null)
             {
                 MLContext context = new MLContext();
                 // same learners with different hyperparams
@@ -224,7 +250,7 @@ namespace mlnet.Test
                 var inferredPipeline1 = new SuggestedPipeline(transforms1, new List<SuggestedTransform>(), trainer1, context, true);
                 var inferredPipeline2 = new SuggestedPipeline(transforms2, new List<SuggestedTransform>(), trainer2, context, false);
 
-                this.pipeline = inferredPipeline1.ToPipeline();
+                this.mockedPipeline = inferredPipeline1.ToPipeline();
                 var textLoaderArgs = new TextLoader.Options()
                 {
                     Columns = new[] {
@@ -247,7 +273,50 @@ namespace mlnet.Test
                     ColumnInformation = new ColumnInformation() { LabelColumn = "Label" }
                 };
             }
-            return (pipeline, columnInference);
+            return (mockedPipeline, columnInference);
+        }
+
+        private (Pipeline, ColumnInferenceResults) GetMockedOvaPipelineAndInference()
+        {
+            if (mockedOvaPipeline == null)
+            {
+                MLContext context = new MLContext();
+                // same learners with different hyperparams
+                var hyperparams1 = new Microsoft.ML.Auto.ParameterSet(new List<Microsoft.ML.Auto.IParameterValue>() { new LongParameterValue("NumLeaves", 2) });
+                var hyperparams2 = new Microsoft.ML.Auto.ParameterSet(new List<Microsoft.ML.Auto.IParameterValue>() { new LongParameterValue("NumLeaves", 6) });
+                var trainer1 = new SuggestedTrainer(context, new FastForestOvaExtension(), new ColumnInformation(), hyperparams1);
+                var trainer2 = new SuggestedTrainer(context, new FastForestOvaExtension(), new ColumnInformation(), hyperparams2);
+                var transforms1 = new List<SuggestedTransform>() { ColumnConcatenatingExtension.CreateSuggestedTransform(context, new[] { "In" }, "Out") };
+                var transforms2 = new List<SuggestedTransform>() { ColumnConcatenatingExtension.CreateSuggestedTransform(context, new[] { "In" }, "Out") };
+                var inferredPipeline1 = new SuggestedPipeline(transforms1, new List<SuggestedTransform>(), trainer1, context, true);
+                var inferredPipeline2 = new SuggestedPipeline(transforms2, new List<SuggestedTransform>(), trainer2, context, false);
+
+                this.mockedOvaPipeline = inferredPipeline1.ToPipeline();
+                var textLoaderArgs = new TextLoader.Options()
+                {
+                    Columns = new[] {
+                        new TextLoader.Column("Label", DataKind.Boolean, 0),
+                        new TextLoader.Column("col1", DataKind.Single, 1),
+                        new TextLoader.Column("col2", DataKind.Single, 0),
+                        new TextLoader.Column("col3", DataKind.String, 0),
+                        new TextLoader.Column("col4", DataKind.Int32, 0),
+                        new TextLoader.Column("col5", DataKind.UInt32, 0),
+                    },
+                    AllowQuoting = true,
+                    AllowSparse = true,
+                    HasHeader = true,
+                    Separators = new[] { ',' }
+                };
+
+
+                this.columnInference = new ColumnInferenceResults()
+                {
+                    TextLoaderOptions = textLoaderArgs,
+                    ColumnInformation = new ColumnInformation() { LabelColumn = "Label" }
+                };
+
+            }
+            return (mockedOvaPipeline, columnInference);
         }
     }
 }

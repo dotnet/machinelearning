@@ -89,24 +89,14 @@ namespace Microsoft.ML.CLI.CodeGenerator
             {
                 var optimizationMetric = new MulticlassExperimentSettings().OptimizingMetric;
                 var progressReporter = new ProgressHandlers.MulticlassClassificationHandler(optimizationMetric);
-
-                var experimentSettings = new MulticlassExperimentSettings()
-                {
-                    MaxExperimentTimeInSeconds = settings.MaxExplorationTime,
-                    ProgressHandler = progressReporter,
-                    EnableCaching = this.enableCaching,
-                    OptimizingMetric = optimizationMetric
-                };
-
-                // Inclusion list for currently supported learners. Need to remove once we have codegen support for all other learners.
-                experimentSettings.Trainers.Clear();
-                experimentSettings.Trainers.Add(MulticlassClassificationTrainer.LightGbm);
-                experimentSettings.Trainers.Add(MulticlassClassificationTrainer.LogisticRegression);
-                experimentSettings.Trainers.Add(MulticlassClassificationTrainer.StochasticDualCoordinateAscent);
-
                 var result = context.Auto()
-                .CreateMulticlassClassificationExperiment(experimentSettings)
-                    .Execute(trainData, validationData, columnInformation);
+                    .CreateMulticlassClassificationExperiment(new MulticlassExperimentSettings()
+                    {
+                        MaxExperimentTimeInSeconds = settings.MaxExplorationTime,
+                        ProgressHandler = progressReporter,
+                        EnableCaching = this.enableCaching,
+                        OptimizingMetric = optimizationMetric
+                    }).Execute(trainData, validationData, columnInformation);
                 logger.Log(LogLevel.Info, Strings.RetrieveBestPipeline);
                 var bestIteration = result.Best();
                 pipeline = bestIteration.Pipeline;

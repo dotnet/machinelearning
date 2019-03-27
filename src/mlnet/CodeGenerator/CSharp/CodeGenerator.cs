@@ -79,7 +79,7 @@ namespace Microsoft.ML.CLI.CodeGenerator.CSharp
         {
             var result = GenerateTransformsAndTrainers();
 
-            var trainProgramCSFileContent = GenerateTrainProgramCSFileContent(result.Usings, result.Trainer, result.PreTrainerTransforms, result.PostTrainerTransforms, namespaceValue, pipeline.CacheBeforeTrainer, labelTypeCsharp.Name);
+            var trainProgramCSFileContent = GenerateTrainProgramCSFileContent(result.Usings, result.TrainerMethod, result.PreTrainerTransforms, result.PostTrainerTransforms, namespaceValue, pipeline.CacheBeforeTrainer, labelTypeCsharp.Name);
             trainProgramCSFileContent = Utils.FormatCode(trainProgramCSFileContent);
 
             var trainProjectFileContent = GeneratTrainProjectFileContent(namespaceValue);
@@ -108,11 +108,10 @@ namespace Microsoft.ML.CLI.CodeGenerator.CSharp
             return (observationCSFileContent, predictionCSFileContent, modelProjectFileContent);
         }
 
-        internal (string Usings, string Trainer, List<string> PreTrainerTransforms, List<string> PostTrainerTransforms) GenerateTransformsAndTrainers()
+        internal (string Usings, string TrainerMethod, List<string> PreTrainerTransforms, List<string> PostTrainerTransforms) GenerateTransformsAndTrainers()
         {
             StringBuilder usingsBuilder = new StringBuilder();
             var usings = new List<string>();
-            var trainerAndUsings = this.GenerateTrainerAndUsings();
 
             // Get pre-trainer transforms
             var nodes = pipeline.Nodes.TakeWhile(t => t.NodeType == PipelineNodeType.Transform);
@@ -125,14 +124,17 @@ namespace Microsoft.ML.CLI.CodeGenerator.CSharp
             var postTrainerTransformsAndUsings = this.GenerateTransformsAndUsings(nodes);
 
             //Get trainer code and its associated usings.
-            var trainer = trainerAndUsings.Item1;
-            usings.Add(trainerAndUsings.Item2);
+            (string trainerMethod, string[] trainerUsings) = this.GenerateTrainerAndUsings();
+            if (trainerUsings != null)
+            {
+                usings.AddRange(trainerUsings);
+            }
 
             //Get transforms code and its associated (unique) usings.
-            var preTrainerTransforms = preTrainerTransformsAndUsings.Select(t => t.Item1).ToList();
-            var postTrainerTransforms = postTrainerTransformsAndUsings.Select(t => t.Item1).ToList();
-            usings.AddRange(preTrainerTransformsAndUsings.Select(t => t.Item2));
-            usings.AddRange(postTrainerTransformsAndUsings.Select(t => t.Item2));
+            var preTrainerTransforms = preTrainerTransformsAndUsings?.Select(t => t.Item1).ToList();
+            var postTrainerTransforms = postTrainerTransformsAndUsings?.Select(t => t.Item1).ToList();
+            usings.AddRange(preTrainerTransformsAndUsings.Where(t => t.Item2 != null).SelectMany(t => t.Item2));
+            usings.AddRange(postTrainerTransformsAndUsings.Where(t => t.Item2 != null).SelectMany(t => t.Item2));
             usings = usings.Distinct().ToList();
 
             //Combine all using statements to actual text.
@@ -143,14 +145,14 @@ namespace Microsoft.ML.CLI.CodeGenerator.CSharp
                     usingsBuilder.Append(t);
             });
 
-            return (usingsBuilder.ToString(), trainer, preTrainerTransforms, postTrainerTransforms);
+            return (usingsBuilder.ToString(), trainerMethod, preTrainerTransforms, postTrainerTransforms);
         }
 
-        internal IList<(string, string)> GenerateTransformsAndUsings(IEnumerable<PipelineNode> nodes)
+        internal IList<(string, string[])> GenerateTransformsAndUsings(IEnumerable<PipelineNode> nodes)
         {
             //var nodes = pipeline.Nodes.TakeWhile(t => t.NodeType == PipelineNodeType.Transform);
             //var nodes = pipeline.Nodes.Where(t => t.NodeType == PipelineNodeType.Transform);
-            var results = new List<(string, string)>();
+            var results = new List<(string, string[])>();
             foreach (var node in nodes)
             {
                 ITransformGenerator generator = TransformGeneratorFactory.GetInstance(node);
@@ -160,9 +162,15 @@ namespace Microsoft.ML.CLI.CodeGenerator.CSharp
             return results;
         }
 
-        internal (string, string) GenerateTrainerAndUsings()
+        internal (string, string[]) GenerateTrainerAndUsings()
         {
-            ITrainerGenerator generator = TrainerGeneratorFactory.GetInstance(pipeline);
+            if (pipeline == null)
+                throw new ArgumentNullException(nameof(pipeline));
+            var node = pipeline.Nodes.Where(t => t.NodeType == PipelineNodeType.Trainer).First();
+            if (node == null)
+                throw new ArgumentException($"The trainer was not found.");
+
+            ITrainerGenerator generator = TrainerGeneratorFactory.GetInstance(node);
             var trainerString = generator.GenerateTrainer();
             var trainerUsings = generator.GenerateUsings();
             return (trainerString, trainerUsings);
@@ -229,7 +237,7 @@ namespace Microsoft.ML.CLI.CodeGenerator.CSharp
 
         #region Train Project
         private string GenerateTrainProgramCSFileContent(string usings,
-            string trainer,
+            string trainerMethod,
             List<string> preTrainerTransforms,
             List<string> postTrainerTransforms,
             string namespaceValue,
@@ -244,7 +252,7 @@ namespace Microsoft.ML.CLI.CodeGenerator.CSharp
                 Separator = columnInferenceResult.TextLoaderOptions.Separators.FirstOrDefault(),
                 AllowQuoting = columnInferenceResult.TextLoaderOptions.AllowQuoting,
                 AllowSparse = columnInferenceResult.TextLoaderOptions.AllowSparse,
-                Trainer = trainer,
+                Trainer = trainerMethod,
                 GeneratedUsings = usings,
                 Path = settings.TrainDataset,
                 TestPath = settings.TestDataset,

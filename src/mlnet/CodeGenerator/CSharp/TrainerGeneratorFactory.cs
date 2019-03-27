@@ -12,18 +12,14 @@ namespace Microsoft.ML.CLI.CodeGenerator.CSharp
     internal interface ITrainerGenerator
     {
         string GenerateTrainer();
-        string GenerateUsings();
+
+        string[] GenerateUsings();
     }
 
     internal static class TrainerGeneratorFactory
     {
-        internal static ITrainerGenerator GetInstance(Pipeline pipeline)
+        internal static ITrainerGenerator GetInstance(PipelineNode node)
         {
-            if (pipeline == null)
-                throw new ArgumentNullException(nameof(pipeline));
-            var node = pipeline.Nodes.Where(t => t.NodeType == PipelineNodeType.Trainer).First();
-            if (node == null)
-                throw new ArgumentException($"The trainer was not found.");
             if (Enum.TryParse(node.Name, out TrainerName trainer))
             {
                 switch (trainer)
@@ -66,6 +62,8 @@ namespace Microsoft.ML.CLI.CodeGenerator.CSharp
                         return new StochasticGradientDescentClassification(node);
                     case TrainerName.SymSgdBinary:
                         return new SymbolicStochasticGradientDescent(node);
+                    case TrainerName.Ova:
+                        return new OneVersusAll(node);
                     default:
                         throw new ArgumentException($"The trainer '{trainer}' is not handled currently.");
                 }
