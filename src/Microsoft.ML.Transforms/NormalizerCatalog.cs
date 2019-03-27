@@ -29,29 +29,6 @@ namespace Microsoft.ML
             => new NormalizingEstimator(CatalogUtils.GetEnvironment(catalog), outputColumnName, inputColumnName ?? outputColumnName, mode);
 
         /// <summary>
-        /// Normalize (rescale) several columns according to the specified <paramref name="mode"/>.
-        /// </summary>
-        /// <param name="catalog">The transform catalog</param>
-        /// <param name="mode">The <see cref="NormalizingEstimator.NormalizationMode"/> used to map the old values to the new ones. </param>
-        /// <param name="columns">The pairs of input and output columns.</param>
-        /// <example>
-        /// <format type="text/markdown">
-        /// <![CDATA[
-        /// [!code-csharp[Normalize](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Normalizer.cs)]
-        /// ]]>
-        /// </format>
-        /// </example>
-        [BestFriend]
-        internal static NormalizingEstimator Normalize(this TransformsCatalog catalog,
-            NormalizingEstimator.NormalizationMode mode,
-            params InputOutputColumnPair[] columns)
-        {
-            var env = CatalogUtils.GetEnvironment(catalog);
-            env.CheckValue(columns, nameof(columns));
-            return new NormalizingEstimator(env, mode, InputOutputColumnPair.ConvertToValueTuples(columns));
-        }
-
-        /// <summary>
         /// Normalize (rescale) columns according to specified custom parameters.
         /// </summary>
         /// <param name="catalog">The transform catalog</param>
