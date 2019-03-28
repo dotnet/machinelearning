@@ -673,17 +673,18 @@ namespace Microsoft.ML.Tests.TrainerEstimators
 
             // First copy the trained left factor matrix to an aligned for applying SSE code.
             var leftFactorMatrix = model.Model.LeftFactorMatrix;
-            var leftFactorMatrixAligned = new AlignedArray(m * k, 16);
+            var leftFactorMatrixAligned = new AlignedArray(m * k, 64);
             for (int i = 0; i < leftFactorMatrix.Count; ++i)
                 leftFactorMatrixAligned[i] = leftFactorMatrix[i];
 
             // Second copy the trained right factor row to a k-by-1 aligned vector for applying SSE code.
-            var rightFactorVectorAligned = new AlignedArray(k, 16);
+            var rightFactorVectorAligned = new AlignedArray(k, 64);
             for (int i = 0; i < k; ++i)
                 rightFactorVectorAligned[i] = model.Model.RightFactorMatrix[1 * k + i]; // value at the i-th row and j-th column is indexed by i * k + j.
 
-            // Prepare buffer to store result.
-            var valuesAtSecondColumn = new AlignedArray(m, 16);
+            // Prepare buffer to store result. The result will be a matrix-vector product, where the matrix is leftFactorMatrix
+            // and the vector is the 2nd row of rightFactorMatrix.
+            var valuesAtSecondColumn = new AlignedArray(m, 64);
 
             // Compute leftFactorMatrixAligned (m-by-k) * rightFactorVectorAligned (k-by-1).
             CpuMathUtils.MatrixTimesSource(false, leftFactorMatrixAligned, rightFactorVectorAligned, valuesAtSecondColumn, m);
