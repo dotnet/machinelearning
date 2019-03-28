@@ -254,6 +254,31 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                 Assert.True(pred.Score != 0);
         }
 
+        internal class MatrixElementZeroBased256By256
+        {
+            // Matrix column index starts from 0 and is at most _synthesizedMatrixColumnCount.
+            [KeyType(_matrixColumnCount)]
+            public uint MatrixColumnIndex;
+            // Matrix row index starts from 0 and is at most _synthesizedMatrixRowCount.
+            [KeyType(_matrixRowCount)]
+            public uint MatrixRowIndex;
+            // The value at the MatrixColumnIndex-th column and the MatrixRowIndex-th row in the considered matrix.
+            public float Value;
+        }
+
+        internal class MatrixElementZeroBasedForScore256By256
+        {
+            // Matrix column index starts from 0 and is at most _synthesizedMatrixColumnCount.
+            // Contieuous=true means that all values from 0 to _synthesizedMatrixColumnCount are allowed keys.
+            [KeyType(_matrixColumnCount)]
+            public uint MatrixColumnIndex;
+            // Matrix row index starts from 0 and is at most _synthesizedMatrixRowCount.
+            // Contieuous=true means that all values from 0 to _synthesizedMatrixRowCount are allowed keys.
+            [KeyType(_matrixRowCount)]
+            public uint MatrixRowIndex;
+            public float Score;
+        }
+
         internal class MatrixElementZeroBased
         {
             // Matrix column index starts from 0 and is at most _synthesizedMatrixColumnCount.
@@ -605,15 +630,18 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             CompareNumbersWithTolerance(0.00316973357, testResults[2].Score, digitsOfPrecision: 5);
         }
 
+        const int _matrixColumnCount = 256;
+        const int _matrixRowCount = 256;
+
         [MatrixFactorizationFact]
         public void InspectMatrixFactorizationModel()
         {
             // Create an in-memory matrix as a list of tuples (column index, row index, value).
             // Iterators i and j are column and row indexes, respectively.
-            var dataMatrix = new List<MatrixElementZeroBased>();
-            for (uint i = 0; i < _synthesizedMatrixColumnCount; ++i)
-                for (uint j = 0; j < _synthesizedMatrixRowCount; ++j)
-                    dataMatrix.Add(new MatrixElementZeroBased() { MatrixColumnIndex = i, MatrixRowIndex = j, Value = (i + j) % 5 });
+            var dataMatrix = new List<MatrixElementZeroBased256By256>();
+            for (uint i = 0; i < _matrixColumnCount; ++i)
+                for (uint j = 0; j < _matrixRowCount; ++j)
+                    dataMatrix.Add(new MatrixElementZeroBased256By256() { MatrixColumnIndex = i, MatrixRowIndex = j, Value = (i + j) % 5 });
 
             // Convert the in-memory matrix into an IDataView so that ML.NET components can consume it.
             var dataView = ML.Data.LoadFromEnumerable(dataMatrix);
@@ -629,7 +657,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                 LabelColumnName = nameof(MatrixElement.Value),
                 NumberOfIterations = 100,
                 NumberOfThreads = 1, // To eliminate randomness, # of threads must be 1.
-                ApproximationRank = 32,
+                ApproximationRank = 64,
                 LearningRate = 0.5,
             };
 
@@ -639,20 +667,20 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             var model = pipeline.Fit(dataView);
 
             // Check if the expected types in the trained model are expected.
-            Assert.True(model.MatrixColumnIndexColumnName == nameof(MatrixElementZeroBased.MatrixColumnIndex));
-            Assert.True(model.MatrixRowIndexColumnName == nameof(MatrixElementZeroBased.MatrixRowIndex));
+            Assert.True(model.MatrixColumnIndexColumnName == nameof(MatrixElementZeroBased256By256.MatrixColumnIndex));
+            Assert.True(model.MatrixRowIndexColumnName == nameof(MatrixElementZeroBased256By256.MatrixRowIndex));
             var matColKeyType = model.MatrixColumnIndexColumnType as KeyDataViewType;
             Assert.NotNull(matColKeyType);
             var matRowKeyType = model.MatrixRowIndexColumnType as KeyDataViewType;
             Assert.NotNull(matRowKeyType);
-            Assert.True(matColKeyType.Count == _synthesizedMatrixColumnCount);
-            Assert.True(matRowKeyType.Count == _synthesizedMatrixRowCount);
+            Assert.True(matColKeyType.Count == _matrixColumnCount);
+            Assert.True(matRowKeyType.Count == _matrixRowCount);
 
             // Create a test set with assigning scores. It stands for the 2nd column of the training matrix.
-            var testMatrix = new List<MatrixElementZeroBased>();
+            var testMatrix = new List<MatrixElementZeroBasedForScore256By256>();
             for (/* column index */ uint i = 1; i < 2; ++i)
-                for (/* row index */ uint j = 0; j < _synthesizedMatrixRowCount; ++j)
-                    testMatrix.Add(new MatrixElementZeroBased() { MatrixColumnIndex = i, MatrixRowIndex = j });
+                for (/* row index */ uint j = 0; j < _matrixRowCount; ++j)
+                    testMatrix.Add(new MatrixElementZeroBasedForScore256By256() { MatrixColumnIndex = i, MatrixRowIndex = j, Score = 0 });
 
             // Load test set as IDataView.
             var testData = ML.Data.LoadFromEnumerable(testMatrix);
@@ -661,7 +689,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             var transformedTestData = model.Transform(testData);
 
             // Load back predictions on the 2nd column as IEnumerable<MatrixElementZeroBasedForScore>.
-            var predictions = mlContext.Data.CreateEnumerable<MatrixElementZeroBasedForScore>(transformedTestData, false).ToList();
+            var predictions = mlContext.Data.CreateEnumerable<MatrixElementZeroBasedForScore256By256>(transformedTestData, false).ToList();
 
             // Inspect the trained model.
             int m = model.Model.NumberOfRows;
