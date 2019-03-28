@@ -46,6 +46,8 @@ namespace Microsoft.ML.Samples.Dynamic
             //   Number of tokens: 112
             //   Character Tokens: M,L,.,N,E,T,',s,<?>,T,o,k,e,n,i,z,e,I,n,t,o,C,h,a,r,a,c,t,e,r,s,A,s,K,e,y,s,<?>,A,P,I,<?>,
             //                     s,p,l,i,t,s,<?>,t,e,x,t,/,s,t,r,i,n,g,<?>,i,n,t,o,<?>,c,h,a,r,a,c,t,e,r,s,.
+            //
+            // <?>: is a unicode control character used instead of spaces ('\u2400').
         }
 
         public class TextData
