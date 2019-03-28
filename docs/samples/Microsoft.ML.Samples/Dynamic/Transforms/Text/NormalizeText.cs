@@ -15,10 +15,10 @@ namespace Microsoft.ML.Samples.Dynamic
             // Create an empty data sample list. The 'NormalizeText' API does not require training data as
             // the estimator ('TextNormalizingEstimator') created by 'NormalizeText' API is not a trainable estimator.
             // The empty list is only needed to pass input schema to the pipeline.
-            var samples = new List<TextData>();
+            var emptySamples = new List<TextData>();
 
             // Convert sample list to an empty IDataView.
-            var dataview = mlContext.Data.LoadFromEnumerable(samples);
+            var emptyDataView = mlContext.Data.LoadFromEnumerable(emptySamples);
 
             // A pipeline for normalizing text.
             var normTextPipeline = mlContext.Transforms.Text.NormalizeText("NormalizedText", "Text",
@@ -28,7 +28,7 @@ namespace Microsoft.ML.Samples.Dynamic
                 keepNumbers: false);
 
             // Fit to data.
-            var normTextTransformer = normTextPipeline.Fit(dataview);
+            var normTextTransformer = normTextPipeline.Fit(emptyDataView);
 
             // Create the prediction engine to get the normalized text from the input text/string.
             var predictionEngine = mlContext.Model.CreatePredictionEngine<TextData, TransformedTextData>(normTextTransformer);
