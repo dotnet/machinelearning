@@ -690,7 +690,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
 
             // Check if results computed by SSE code and MF predictor are the same.
             for (int i = 0; i < predictions.Count(); ++i)
-                Assert.Equal(predictions[i].Score, valuesAtSecondColumn[i], 5);
+                Assert.Equal(predictions[i].Score, valuesAtSecondColumn[i], 3);
         }
     }
 }

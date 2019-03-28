@@ -19,6 +19,12 @@ namespace Microsoft.ML.Internal.CpuMath
         public static int GetVectorAlignment()
             => Vector128Alignment;
 
+        /// <summary>
+        /// Check if <paramref name="a"/>'s alignment is suitable to SSE instructions. Returns <see langword="true"/>
+        /// if <paramref name="a"/>'s alignment is ok and <see langword="false"/> otherwise.
+        /// </summary>
+        /// <param name="a">The vector being checked.</param>
+        /// <returns>Whether <see langword="true"/> is aligned well.</returns>
         private static bool Compat(AlignedArray a)
         {
             Contracts.AssertValue(a);
