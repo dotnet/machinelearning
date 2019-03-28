@@ -4,7 +4,7 @@ using System.Text;
 
 namespace Microsoft.ML.Samples.Dynamic
 {
-    public static class TokenizeIntoCharacters
+    public static class TokenizeIntoCharactersAsKeys
     {
         public static void Example()
         {
@@ -15,10 +15,10 @@ namespace Microsoft.ML.Samples.Dynamic
             // Create an empty data sample list. The 'TokenizeIntoCharactersAsKeys' does not require training data as
             // the estimator ('TokenizingByCharactersEstimator') created by 'TokenizeIntoCharactersAsKeys' API is not a trainable estimator.
             // The empty list is only needed to pass input schema to the pipeline.
-            var samples = new List<TextData>();
+            var emptySamples = new List<TextData>();
 
             // Convert sample list to an empty IDataView.
-            var dataview = mlContext.Data.LoadFromEnumerable(samples);
+            var emptyDataView = mlContext.Data.LoadFromEnumerable(emptySamples);
 
             // A pipeline for converting text into vector of characters.
             // The 'TokenizeIntoCharactersAsKeys' produces result as key type.
@@ -27,7 +27,7 @@ namespace Microsoft.ML.Samples.Dynamic
                 .Append(mlContext.Transforms.Conversion.MapKeyToValue("CharTokens"));
 
             // Fit to data.
-            var textTransformer = textPipeline.Fit(dataview);
+            var textTransformer = textPipeline.Fit(emptyDataView);
 
             // Create the prediction engine to get the character vector from the input text/string.
             var predictionEngine = mlContext.Model.CreatePredictionEngine<TextData, TransformedTextData>(textTransformer);
@@ -43,7 +43,7 @@ namespace Microsoft.ML.Samples.Dynamic
             Console.WriteLine($"\nCharacter Tokens: {string.Join(",", prediction.CharTokens)}");
 
             //  Expected output:
-            //   Number of tokens: 112
+            //   Number of tokens: 77
             //   Character Tokens: M,L,.,N,E,T,',s,<?>,T,o,k,e,n,i,z,e,I,n,t,o,C,h,a,r,a,c,t,e,r,s,A,s,K,e,y,s,<?>,A,P,I,<?>,
             //                     s,p,l,i,t,s,<?>,t,e,x,t,/,s,t,r,i,n,g,<?>,i,n,t,o,<?>,c,h,a,r,a,c,t,e,r,s,.
             //

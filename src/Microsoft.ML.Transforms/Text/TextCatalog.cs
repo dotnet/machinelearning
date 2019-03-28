@@ -60,7 +60,7 @@ namespace Microsoft.ML
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
-        /// [!code-csharp[TokenizeIntoCharacters](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/Text/TokenizeIntoCharacters.cs)]
+        /// [!code-csharp[TokenizeIntoCharacters](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/Text/TokenizeIntoCharactersAsKeys.cs)]
         /// ]]>
         /// </format>
         /// </example>
