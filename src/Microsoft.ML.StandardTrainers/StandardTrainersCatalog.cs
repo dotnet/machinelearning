@@ -512,7 +512,7 @@ namespace Microsoft.ML
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
-        /// [!code-csharp[Logistic Regression](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/LogisticRegression.cs)]
+        /// [!code-csharp[Logistic Regression](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Trainers/BinaryClassification/LbfgsLogisticRegression.cs)]
         /// ]]>
         /// </format>
         /// </example>
@@ -536,6 +536,13 @@ namespace Microsoft.ML
         /// </summary>
         /// <param name="catalog">The binary classification catalog trainer object.</param>
         /// <param name="options">Advanced arguments to the algorithm.</param>
+        /// <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        /// [!code-csharp[Logistic Regression](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Trainers/BinaryClassification/LbfgsLogisticRegressionWithOptions.cs)]
+        /// ]]>
+        /// </format>
+        /// </example>
         public static LbfgsLogisticRegressionBinaryTrainer LbfgsLogisticRegression(this BinaryClassificationCatalog.BinaryClassificationTrainers catalog, LROptions options)
         {
             Contracts.CheckValue(catalog, nameof(catalog));
