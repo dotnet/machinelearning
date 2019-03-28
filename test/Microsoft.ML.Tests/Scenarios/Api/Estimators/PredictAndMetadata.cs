@@ -50,9 +50,9 @@ namespace Microsoft.ML.Tests.Scenarios.Api
             // Iris-setosa is 0.2
             // Iris-versicolor is 0.3
             // Iris-virginica is 0.5.
-            Assert.True(originalLabels.GetItemOrDefault(0).ToString() == "Iris-setosa");
-            Assert.True(originalLabels.GetItemOrDefault(1).ToString() == "Iris-versicolor");
-            Assert.True(originalLabels.GetItemOrDefault(2).ToString() == "Iris-virginica");
+            Assert.Equal("Iris-setosa", originalLabels.GetItemOrDefault(0).ToString());
+            Assert.Equal("Iris-versicolor", originalLabels.GetItemOrDefault(1).ToString());
+            Assert.Equal("Iris-virginica", originalLabels.GetItemOrDefault(2).ToString());
 
             // Let's look how we can convert key value for PredictedLabel to original labels.
             // We need to read KeyValues for "PredictedLabel" column.
