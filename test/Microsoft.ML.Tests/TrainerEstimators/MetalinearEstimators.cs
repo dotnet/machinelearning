@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Linq;
 using Microsoft.ML.Calibrators;
 using Microsoft.ML.Data;
 using Microsoft.ML.RunTests;
@@ -77,8 +78,10 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                 .Append(ML.Transforms.Concatenate("Features", "Row", "Column"))
                 .Append(ova)
                 .Append(ML.Transforms.Conversion.MapKeyToValue("PredictedLabel"));
-
             var model = pipeline.Fit(data);
+            var result = model.Transform(data);
+            Assert.NotNull(result.Schema["Score"].Annotations.Schema.GetColumnOrNull("TrainingLabelValues"));
+            Assert.Equal(new[] { 1.0f, 3.0f, 2.0f }, result.GetColumn<float>("PredictedLabel").Distinct());
         }
 
         /// <summary>
