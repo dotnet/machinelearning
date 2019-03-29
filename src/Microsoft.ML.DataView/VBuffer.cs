@@ -48,6 +48,12 @@ namespace Microsoft.ML.Data
         /// <summary>
         /// The logical length of the buffer.
         /// </summary>
+        /// <remarks>
+        /// Note that if this vector <see cref="IsDense"/>, then this will be the same as the <see cref="ReadOnlySpan{T}.Length"/>
+        /// as returned from <see cref="GetValues"/>, since all values are explicitly represented in a dense representation. If
+        /// this is a sparse representation, then that <see cref="ReadOnlySpan{T}.Length"/> will be somewhat shorter, as this
+        /// field contains the number of both explicit and implicit entries.
+        /// </remarks>
         public readonly int Length;
 
         /// <summary>
@@ -259,7 +265,7 @@ namespace Microsoft.ML.Data
         /// </summary>
         /// <param name="dst">The destination buffer. This <see cref="Span{T}.Length"/> must be at least <see cref="Length"/>
         /// plus <paramref name="ivDst"/>.</param>
-        /// <param name="ivDst">The starting index of <paramref name="dst"/> at which to start copying</param>
+        /// <param name="ivDst">The starting index of <paramref name="dst"/> at which to start copying.</param>
         /// <param name="defaultValue">The value to fill in for the implicit sparse entries. This is a potential exception to
         /// general expectation of sparse <see cref="VBuffer{T}"/> that the implicit sparse entries have the default value
         /// of <typeparamref name="T"/>.</param>
@@ -316,7 +322,7 @@ namespace Microsoft.ML.Data
         /// <param name="all">If <see langword="true"/> all pairs, even those implicit values of a sparse representation,
         /// will be returned, with the implicit values having the default value, as is appropriate. If left
         /// <see langword="false"/> then only explicitly defined values are returned.</param>
-        /// <returns></returns>
+        /// <returns>The index/value pairs.</returns>
         public IEnumerable<KeyValuePair<int, T>> Items(bool all = false)
         {
             return Items(_values, _indices, Length, _count, all);
@@ -335,9 +341,20 @@ namespace Microsoft.ML.Data
         /// In the case of a sparse vector, it will try to find the entry with that index, and set <paramref name="dst"/>
         /// to that stored value, or if no such value was found, assign it the default value.
         /// </summary>
-        /// <param name="slot">The slot index, which must be a non-negative number less than <see cref="Length"/>.
-        /// If it is not in that </param>
-        /// <param name="dst">The value stored </param>
+        /// <remarks>
+        /// In the case where <see cref="IsDense"/> is <see langword="true"/>, this will take constant time since it an
+        /// directly lookup. For sparse vectors, however, because it must perform a bisection seach on the indices to
+        /// find the appropriate value, that takes logarithmic time with respect to the number of explicitly represented
+        /// items, which is to say, the <see cref="ReadOnlySpan{Int32}.Length"/> of the return value of <see cref="GetIndices"/>.
+        ///
+        /// For that reason, a single completely isolated lookup, since constructing <see cref="ReadOnlySpan{T}"/> as
+        /// <see cref="GetValues"/> does is not a free operation, it may be more efficient to use this method. However
+        /// if one is doing a more involved computation involving many operations, it may be faster to utiltize
+        /// <see cref="GetValues"/> and, if appropriate, <see cref="GetIndices"/> directly.
+        /// </remarks>
+        /// <param name="slot">The slot index, which must be a non-negative number less than <see cref="Length"/>.</param>
+        /// <param name="dst">The value stored at that index, or if this is a sparse vector where this is an implicit
+        /// entry, the default value for <typeparamref name="T"/>.</param>
         public void GetItemOrDefault(int slot, ref T dst)
         {
             Contracts.CheckParam(0 <= slot && slot < Length, nameof(slot));
