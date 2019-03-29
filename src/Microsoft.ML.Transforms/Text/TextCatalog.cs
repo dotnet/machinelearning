@@ -125,7 +125,7 @@ namespace Microsoft.ML
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
-        /// [!code-csharp[FeaturizeText](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/WordEmbeddingTransform.cs)]
+        /// [!code-csharp[ApplyWordEmbedding](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/Text/ApplyWordEmbedding.cs)]
         /// ]]>
         /// </format>
         /// </example>
@@ -143,7 +143,7 @@ namespace Microsoft.ML
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
-        /// [!code-csharp[FeaturizeText](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/WordEmbeddingTransform.cs)]
+        /// [!code-csharp[ApplyWordEmbedding](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/Text/ApplyCustomWordEmbedding.cs)]
         /// ]]>
         /// </format>
         /// </example>
