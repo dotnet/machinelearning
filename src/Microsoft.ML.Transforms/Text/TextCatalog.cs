@@ -297,7 +297,7 @@ namespace Microsoft.ML
             int maximumNgramsCount = NgramExtractingEstimator.Defaults.MaximumNgramsCount,
             NgramExtractingEstimator.WeightingCriteria weighting = NgramExtractingEstimator.WeightingCriteria.Tf)
             => new WordBagEstimator(Contracts.CheckRef(catalog, nameof(catalog)).GetEnvironment(),
-                outputColumnName, inputColumnName, ngramLength, skipLength, useAllLengths, maximumNgramsCount);
+                outputColumnName, inputColumnName, ngramLength, skipLength, useAllLengths, maximumNgramsCount, weighting);
 
         /// <summary>
         /// Produces a bag of counts of ngrams (sequences of consecutive words) in <paramref name="inputColumnNames"/>
