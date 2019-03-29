@@ -9,7 +9,7 @@ namespace Microsoft.ML.Samples.Dynamic.Trainers.BinaryClassification
         public static void Example()
         {
             // Generate IEnumerable<BinaryLabelFloatFeatureVectorSample> as training examples.
-            var rawData = SamplesUtils.DatasetUtils.GenerateBinaryLabelFloatFeatureVectorSamples(100);
+            var rawData = SamplesUtils.DatasetUtils.GenerateBinaryLabelFloatFeatureVectorFloatWeightSamples(100);
 
             // Information in first example.
             // Label: true

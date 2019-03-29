@@ -104,13 +104,14 @@ namespace Microsoft.ML.Trainers
         {
             Host.CheckValue(labelColumn, nameof(labelColumn));
             Host.CheckValue(featureColumn, nameof(featureColumn));
+            Host.CheckValueOrNull(weightColumn);
 
             _loss = options.LossFunction ?? options.LossFunctionFactory.CreateComponent(env);
             Loss = _loss;
         }
 
         internal SdcaRegressionTrainer(IHostEnvironment env, Options options)
-            : this(env, options, options.FeatureColumnName, options.LabelColumnName)
+            : this(env, options, options.FeatureColumnName, options.LabelColumnName, options.ExampleWeightColumnName)
         {
         }
 
