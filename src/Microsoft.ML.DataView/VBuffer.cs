@@ -401,16 +401,16 @@ namespace Microsoft.ML.Data
             Contracts.CheckParam(valuesCount == null || valuesCount.Value <= newLogicalLength, nameof(valuesCount),
                 "If specified, must be no greater than " + nameof(newLogicalLength));
 
-            int logicallValuesCount = valuesCount ?? newLogicalLength;
+            int logicalValuesCount = valuesCount ?? newLogicalLength;
 
             int maxCapacity = maxValuesCapacity ?? ArrayUtils.ArrayMaxSize;
 
             T[] values = _values;
             bool createdNewValues;
-            ArrayUtils.EnsureSize(ref values, logicallValuesCount, maxCapacity, keepOldOnResize, out createdNewValues);
+            ArrayUtils.EnsureSize(ref values, logicalValuesCount, maxCapacity, keepOldOnResize, out createdNewValues);
 
             int[] indices = _indices;
-            bool isDense = newLogicalLength == logicallValuesCount;
+            bool isDense = newLogicalLength == logicalValuesCount;
             bool createdNewIndices;
             if (isDense && !requireIndicesOnDense)
             {
@@ -418,12 +418,12 @@ namespace Microsoft.ML.Data
             }
             else
             {
-                ArrayUtils.EnsureSize(ref indices, logicallValuesCount, maxCapacity, keepOldOnResize, out createdNewIndices);
+                ArrayUtils.EnsureSize(ref indices, logicalValuesCount, maxCapacity, keepOldOnResize, out createdNewIndices);
             }
 
             return new VBufferEditor<T>(
                 newLogicalLength,
-                logicallValuesCount,
+                logicalValuesCount,
                 values,
                 indices,
                 requireIndicesOnDense,

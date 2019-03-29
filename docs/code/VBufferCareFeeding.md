@@ -28,6 +28,8 @@ A `VBuffer<T>` is a struct, and has the following most important members:
 * `ReadOnlySpan<int> GetIndices()`: For a dense representation, this span will
   have length of `0`, but for a sparse representation, this will be of the
   same length as the span returned from `GetValues()`, and be parallel to it.
+  All indices must be between `0` inclusive and `Length` exclusive, and all
+  values in this span should be in strictly increasing order.
 
 Regarding the generic type parameter `T`, the basic assumption made about this
 type is that assignment (that is, using `=`) is sufficient to create an
@@ -77,7 +79,7 @@ indices. While it is a *requirement*, it is regrettably not one we can
 practically enforce without a heavy performance cost. So, if you are creating
 your own `VBuffer`s, be careful that you are creating indices that are in
 strictly increasing order, and in the right range (non-negative and less than
-`Length`). We cannot check!
+`Length`). We cannot check, but we *do* rely on it!
 
 # Buffer Reuse
 
@@ -99,13 +101,13 @@ fail in *some* case.
 The reason why this becomes important is because [garbage collection][2] in
 .NET is not free. Creating and destroying these arrays *can* be cheap,
 provided that they are sufficiently small, short lived, and only ever exist in
-a single thread. But, if that ever does not hold, there is a possibility these
+a single thread. But, when that does not hold, there is a possibility these
 arrays could be allocated on the large object heap, or promoted to gen-2
-collection. The results could be disastrous: in one particularly memorable
-incident regarding neural net training, the move to `IDataView` and its
-`VBuffer`s resulted in a more than tenfold decrease in runtime performance,
-because under the old regime the garbage collection of the feature vectors was
-just taking so much time.
+collection. The results then are sometimes disastrous: in one particularly
+memorable incident regarding neural net training, the move to `IDataView` and
+its `VBuffer`s resulted in a more than tenfold decrease in runtime
+performance, because under the old regime the garbage collection of the
+feature vectors was just taking so much time.
 
 This design requirement of buffer reuse has deeper implications for the
 ecosystem merely than the type here. For example, it is one crucial reason why
@@ -154,8 +156,8 @@ that has actual values, stored in freshly allocated buffers. In subsequent
 calls, *perhaps* these are judged as insufficiently large, and new arrays are
 internally allocated, but we would expect at some point the arrays would
 become "large enough" to accommodate many values, so reallocations would
-become increasingly rare. In this way, we eventually avoid nearly all
-allocations and garbage collection.
+become increasingly rare. In this way, we avoid nearly all allocations and
+garbage collection.
 
 A common mistake made by first time users is to do something like move the
 `var value` declaration inside the `while` loop, thus dooming `getter` to have
@@ -178,13 +180,13 @@ First, one creates the `VBufferEditor<T>` structure using one of the
 `VBufferEditor.Create` methods. You pass in a `VBuffer<T>` as a `ref`
 parameter. (For this purpose, it is useful to remember that a
 `default(VBuffer<T>)` is itself a completely valid, though completely empty,
-`VBuffer<T>`.) The editor is past that line considered to "own" the internal
-structure of the `VBuffer<T>` you passed in. (So, correct code should not
-continue to use that `VBuffer<T>` structure from that point onwards.)
+`VBuffer<T>`.) The editor is, past that statement, considered to "own" the
+internal structure of the `VBuffer<T>` you passed in. (So, correct code should
+not continue to use the input `VBuffer<T>` structure from that point onwards.)
 
-Then, one parties on the `Span<T>` for values and, if in a sparse application,
-the `Span<int>` for indices, on that editor, in whatever way is appropriate
-for the task.
+Then, one puts new values into `Span<T>` and, if in a sparse vector is the
+desired result, puts new indices into `Span<int>`, on that editor, in whatever
+way is appropriate and necessary for the task.
 
 Last, one calls one of the `Commit` methods to get another `VBuffer`, with the
 values and indices accessible through the `VBuffer<T>` methods the same as
@@ -192,10 +194,10 @@ those that had been set in the editor structure.
 
 Similar to how creating a `VBufferEditor<T>` out of a `VBuffer<T>` renders the
 passed in `VBuffer<T>` invalid, likewise, getting the `VBuffer<T>` out of the
-editor out of the `VBufferEditor<T>` through one of the commit methods renders
-the *editor* invalid. In both cases, "ownership" of the internal buffers is
-passed along to the successor structure, rendering the original structure
-invalid, in some sense.
+editor out of the `VBufferEditor<T>` through one of the `Commit` methods
+renders the *editor* invalid. In both cases, "ownership" of the internal
+buffers is passed along to the successor structure, rendering the original
+structure invalid, in some sense.
 
 Internally, these buffers are backed by arrays that are reallocated *if
 needed* by the editor upon its creation, but reused if they are large enough.
@@ -223,7 +225,7 @@ returns with the value returned, the caller is now considered to own that
 buffer.
 
 There is a corollary on this point: because the caller owns any `VBuffer`,
-then could should not do anything that irrevocably destroys its usefulness to
+then code should not do anything that irrevocably destroys its usefulness to
 the caller. For example, consider this method that takes a vector `src`, and
 stores the scaled result in `dst`.
 
@@ -237,10 +239,10 @@ value from `src` seen by the factor `c`.
 One possible alternate (wrong) implementation of this would be to just say
 `dst=src` then edit `dst` and scale its contents by `c`. But, then `dst` and
 `src` would share references to their internal arrays, completely compromising
-the caller's ability to do anything useful with them: if the caller were to
+the caller's ability to do anything useful with `src`: if the caller were to
 pass `dst` into some other method that modified it, this could easily
 (silently!) modify the contents of `src`. The point is: if you are writing
-code *anywhere* whose end result is that two distinct `VBuffer` structs share
+code *anywhere* whose end result is that two distinct `VBuffer`s share
 references to their internal arrays, you've almost certainly introduced a
 **nasty** pernicious bug.
 
@@ -249,7 +251,8 @@ references to their internal arrays, you've almost certainly introduced a
 In addition to the public utilities around `VBuffer` and `VBufferEditor`
 already mentioned, ML.NET's internal infrastructure and implementation code
 has a number of utilities for operating over `VBuffer`s that we have written
-to be generally useful. We will not treat on these in detail here, but:
+to be generally useful. We will not treat on these in detail here since they
+are internal and not part of the public API, but:
 
 * `VBufferUtils` contains utilities
   mainly for non-numeric manipulation of `VBuffer`s.
