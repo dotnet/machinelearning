@@ -127,7 +127,7 @@
     <value>Exiting ...</value>
   </data>
   <data name="ExplorePipeline" xml:space="preserve">
-    <value>Exploring pipelines for task of type</value>
+    <value>Exploring multiple combinations of ML algorithms and settings to find you the best model for ML task</value>
   </data>
   <data name="ExplorePipelineException" xml:space="preserve">
     <value>Exception occured while exploring pipelines</value>

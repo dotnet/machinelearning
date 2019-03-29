@@ -4,7 +4,9 @@
 
 using System;
 using Microsoft.ML.Auto;
+using Microsoft.ML.CLI.ShellProgressBar;
 using Microsoft.ML.Data;
+using NLog;
 
 namespace Microsoft.ML.CLI.Utilities
 {
@@ -21,25 +23,32 @@ namespace Microsoft.ML.CLI.Utilities
             private readonly Func<RunResult<RegressionMetrics>, double> GetScore;
             private RunResult<RegressionMetrics> bestResult;
             private int iterationIndex;
+            private ProgressBar progressBar;
+            private string optimizationMetric = string.Empty;
 
-            public RegressionHandler(RegressionMetric optimizationMetric)
+            public RegressionHandler(RegressionMetric optimizationMetric, ShellProgressBar.ProgressBar progressBar)
             {
-                isMaximizing = new OptimizingMetricInfo(optimizationMetric).IsMaximizing;
+                this.isMaximizing = new OptimizingMetricInfo(optimizationMetric).IsMaximizing;
+                this.optimizationMetric = optimizationMetric.ToString();
+                this.progressBar = progressBar;
                 GetScore = (RunResult<RegressionMetrics> result) => new RegressionMetricsAgent(optimizationMetric).GetScore(result?.ValidationMetrics);
-                ConsolePrinter.PrintRegressionMetricsHeader();
+                ConsolePrinter.PrintRegressionMetricsHeader(LogLevel.Trace);
             }
 
             public void Report(RunResult<RegressionMetrics> iterationResult)
             {
                 iterationIndex++;
                 UpdateBestResult(iterationResult);
-                ConsolePrinter.PrintMetrics(iterationIndex, iterationResult.TrainerName, iterationResult.ValidationMetrics, GetScore(bestResult), iterationResult.RuntimeInSeconds);
+                ConsolePrinter.PrintMetrics(iterationIndex, iterationResult.TrainerName, iterationResult.ValidationMetrics, GetScore(bestResult), iterationResult.RuntimeInSeconds, LogLevel.Trace);
             }
 
             private void UpdateBestResult(RunResult<RegressionMetrics> iterationResult)
             {
                 if (MetricComparator(GetScore(iterationResult), GetScore(bestResult), isMaximizing) > 0)
+                {
                     bestResult = iterationResult;
+                    progressBar.Message = $"Best {this.optimizationMetric} : {GetScore(bestResult)} , Best Algorithm : {iterationResult.TrainerName}";
+                }
             }
         }
 
@@ -49,25 +58,32 @@ namespace Microsoft.ML.CLI.Utilities
             private readonly Func<RunResult<BinaryClassificationMetrics>, double> GetScore;
             private RunResult<BinaryClassificationMetrics> bestResult;
             private int iterationIndex;
+            private ProgressBar progressBar;
+            private string optimizationMetric = string.Empty;
 
-            public BinaryClassificationHandler(BinaryClassificationMetric optimizationMetric)
+            public BinaryClassificationHandler(BinaryClassificationMetric optimizationMetric, ProgressBar progressBar)
             {
-                isMaximizing = new OptimizingMetricInfo(optimizationMetric).IsMaximizing;
+                this.isMaximizing = new OptimizingMetricInfo(optimizationMetric).IsMaximizing;
+                this.optimizationMetric = optimizationMetric.ToString();
+                this.progressBar = progressBar;
                 GetScore = (RunResult<BinaryClassificationMetrics> result) => new BinaryMetricsAgent(optimizationMetric).GetScore(result?.ValidationMetrics);
-                ConsolePrinter.PrintBinaryClassificationMetricsHeader();
+                ConsolePrinter.PrintBinaryClassificationMetricsHeader(LogLevel.Trace);
             }
 
             public void Report(RunResult<BinaryClassificationMetrics> iterationResult)
             {
                 iterationIndex++;
                 UpdateBestResult(iterationResult);
-                ConsolePrinter.PrintMetrics(iterationIndex, iterationResult.TrainerName, iterationResult.ValidationMetrics, GetScore(bestResult), iterationResult.RuntimeInSeconds);
+                ConsolePrinter.PrintMetrics(iterationIndex, iterationResult.TrainerName, iterationResult.ValidationMetrics, GetScore(bestResult), iterationResult.RuntimeInSeconds, LogLevel.Trace);
             }
 
             private void UpdateBestResult(RunResult<BinaryClassificationMetrics> iterationResult)
             {
                 if (MetricComparator(GetScore(iterationResult), GetScore(bestResult), isMaximizing) > 0)
+                {
                     bestResult = iterationResult;
+                    progressBar.Message = $"Best {this.optimizationMetric} : {GetScore(bestResult)} , Best Algorithm : {iterationResult.TrainerName}";
+                }
             }
         }
 
@@ -77,25 +93,32 @@ namespace Microsoft.ML.CLI.Utilities
             private readonly Func<RunResult<MultiClassClassifierMetrics>, double> GetScore;
             private RunResult<MultiClassClassifierMetrics> bestResult;
             private int iterationIndex;
+            private ProgressBar progressBar;
+            private string optimizationMetric = string.Empty;
 
-            public MulticlassClassificationHandler(MulticlassClassificationMetric optimizationMetric)
+            public MulticlassClassificationHandler(MulticlassClassificationMetric optimizationMetric, ProgressBar progressBar)
             {
-                isMaximizing = new OptimizingMetricInfo(optimizationMetric).IsMaximizing;
+                this.isMaximizing = new OptimizingMetricInfo(optimizationMetric).IsMaximizing;
+                this.optimizationMetric = optimizationMetric.ToString();
+                this.progressBar = progressBar;
                 GetScore = (RunResult<MultiClassClassifierMetrics> result) => new MultiMetricsAgent(optimizationMetric).GetScore(result?.ValidationMetrics);
-                ConsolePrinter.PrintMulticlassClassificationMetricsHeader();
+                ConsolePrinter.PrintMulticlassClassificationMetricsHeader(LogLevel.Trace);
             }
 
             public void Report(RunResult<MultiClassClassifierMetrics> iterationResult)
             {
                 iterationIndex++;
                 UpdateBestResult(iterationResult);
-                ConsolePrinter.PrintMetrics(iterationIndex, iterationResult.TrainerName, iterationResult.ValidationMetrics, GetScore(bestResult), iterationResult.RuntimeInSeconds);
+                ConsolePrinter.PrintMetrics(iterationIndex, iterationResult.TrainerName, iterationResult.ValidationMetrics, GetScore(bestResult), iterationResult.RuntimeInSeconds, LogLevel.Trace);
             }
 
             private void UpdateBestResult(RunResult<MultiClassClassifierMetrics> iterationResult)
             {
                 if (MetricComparator(GetScore(iterationResult), GetScore(bestResult), isMaximizing) > 0)
+                {
                     bestResult = iterationResult;
+                    progressBar.Message = $"Best {this.optimizationMetric} : {GetScore(bestResult)} , Best Algorithm : {iterationResult.TrainerName}";
+                }
             }
         }
 

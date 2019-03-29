@@ -18,5 +18,16 @@ namespace Microsoft.ML.Auto
             double maxScore = results.Select(r => metricsAgent.GetScore(r.ValidationMetrics)).Max();
             return results.First(r => Math.Abs(metricsAgent.GetScore(r.ValidationMetrics) - maxScore) < 1E-20);
         }
+
+        public static IEnumerable<RunResult<T>> GetTopNRunResults<T>(IEnumerable<RunResult<T>> results,
+            IMetricsAgent<T> metricsAgent, int n)
+        {
+            results = results.Where(r => r.ValidationMetrics != null);
+            if (!results.Any()) { return null; }
+
+            var orderedResults = results.OrderByDescending(t => metricsAgent.GetScore(t.ValidationMetrics));
+
+            return orderedResults.Take(n);
+        }
     }
 }

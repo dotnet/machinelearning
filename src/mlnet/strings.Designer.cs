@@ -10,8 +10,8 @@
 
 namespace Microsoft.ML.CLI {
     using System;
-
-
+    
+    
     /// <summary>
     ///   A strongly-typed resource class, for looking up localized strings, etc.
     /// </summary>
@@ -23,15 +23,15 @@ namespace Microsoft.ML.CLI {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     internal class Strings {
-
+        
         private static global::System.Resources.ResourceManager resourceMan;
-
+        
         private static global::System.Globalization.CultureInfo resourceCulture;
-
+        
         [global::System.Diagnostics.CodeAnalysis.SuppressMessageAttribute("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode")]
         internal Strings() {
         }
-
+        
         /// <summary>
         ///   Returns the cached ResourceManager instance used by this class.
         /// </summary>
@@ -45,7 +45,7 @@ namespace Microsoft.ML.CLI {
                 return resourceMan;
             }
         }
-
+        
         /// <summary>
         ///   Overrides the current thread's CurrentUICulture property for all
         ///   resource lookups using this strongly typed resource class.
@@ -59,7 +59,7 @@ namespace Microsoft.ML.CLI {
                 resourceCulture = value;
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Best pipeline.
         /// </summary>
@@ -68,7 +68,7 @@ namespace Microsoft.ML.CLI {
                 return ResourceManager.GetString("BestPipeline", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Creating Data loader ....
         /// </summary>
@@ -77,7 +77,7 @@ namespace Microsoft.ML.CLI {
                 return ResourceManager.GetString("CreateDataLoader", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Exiting ....
         /// </summary>
@@ -86,16 +86,16 @@ namespace Microsoft.ML.CLI {
                 return ResourceManager.GetString("Exiting", resourceCulture);
             }
         }
-
+        
         /// <summary>
-        ///   Looks up a localized string similar to Exploring pipelines for task of type.
+        ///   Looks up a localized string similar to Exploring multiple combinations of ML algorithms and settings to find you the best model for ML task.
         /// </summary>
         internal static string ExplorePipeline {
             get {
                 return ResourceManager.GetString("ExplorePipeline", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Exception occured while exploring pipelines.
         /// </summary>
@@ -104,7 +104,7 @@ namespace Microsoft.ML.CLI {
                 return ResourceManager.GetString("ExplorePipelineException", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Generating a console project for the best pipeline at location .
         /// </summary>
@@ -113,7 +113,7 @@ namespace Microsoft.ML.CLI {
                 return ResourceManager.GetString("GenerateProject", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to An Error occured during inferring columns.
         /// </summary>
@@ -122,7 +122,7 @@ namespace Microsoft.ML.CLI {
                 return ResourceManager.GetString("InferColumnError", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Inferring Columns ....
         /// </summary>
@@ -131,7 +131,7 @@ namespace Microsoft.ML.CLI {
                 return ResourceManager.GetString("InferColumns", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Loading data ....
         /// </summary>
@@ -140,7 +140,7 @@ namespace Microsoft.ML.CLI {
                 return ResourceManager.GetString("LoadData", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Metrics for Binary Classification models.
         /// </summary>
@@ -149,16 +149,16 @@ namespace Microsoft.ML.CLI {
                 return ResourceManager.GetString("MetricsForBinaryClassModels", resourceCulture);
             }
         }
-
+        
         /// <summary>
-        ///   Looks up a localized string similar to Metrics for Multi-class Classification models.
+        ///   Looks up a localized string similar to Metrics for multi-class models.
         /// </summary>
         internal static string MetricsForMulticlassModels {
             get {
                 return ResourceManager.GetString("MetricsForMulticlassModels", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Metrics for regression models.
         /// </summary>
@@ -167,7 +167,7 @@ namespace Microsoft.ML.CLI {
                 return ResourceManager.GetString("MetricsForRegressionModels", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Retrieving best pipeline ....
         /// </summary>
@@ -176,7 +176,7 @@ namespace Microsoft.ML.CLI {
                 return ResourceManager.GetString("RetrieveBestPipeline", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Saving the best model ....
         /// </summary>
@@ -185,7 +185,7 @@ namespace Microsoft.ML.CLI {
                 return ResourceManager.GetString("SavingBestModel", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Unsupported ml-task.
         /// </summary>

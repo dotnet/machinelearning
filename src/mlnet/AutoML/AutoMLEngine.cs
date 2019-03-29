@@ -2,10 +2,14 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
+using System.Collections.Generic;
 using Microsoft.Data.DataView;
 using Microsoft.ML.Auto;
 using Microsoft.ML.CLI.Data;
+using Microsoft.ML.CLI.ShellProgressBar;
 using Microsoft.ML.CLI.Utilities;
+using Microsoft.ML.Data;
 using NLog;
 
 namespace Microsoft.ML.CLI.CodeGenerator
@@ -42,68 +46,51 @@ namespace Microsoft.ML.CLI.CodeGenerator
             return columnInference;
         }
 
-        (Pipeline, ITransformer) IAutoMLEngine.ExploreModels(MLContext context, IDataView trainData, IDataView validationData, ColumnInformation columnInformation)
+        IEnumerable<RunResult<BinaryClassificationMetrics>> IAutoMLEngine.ExploreBinaryClassificationModels(MLContext context, IDataView trainData, IDataView validationData, ColumnInformation columnInformation, BinaryClassificationMetric optimizationMetric, ProgressBar progressBar)
         {
-            ITransformer model = null;
-
-            Pipeline pipeline = null;
-
-            if (taskKind == TaskKind.BinaryClassification)
-            {
-                var optimizationMetric = new BinaryExperimentSettings().OptimizingMetric;
-                var progressReporter = new ProgressHandlers.BinaryClassificationHandler(optimizationMetric);
-                var result = context.Auto()
-                    .CreateBinaryClassificationExperiment(new BinaryExperimentSettings()
-                    {
-                        MaxExperimentTimeInSeconds = settings.MaxExplorationTime,
-                        ProgressHandler = progressReporter,
-                        EnableCaching = this.enableCaching,
-                        OptimizingMetric = optimizationMetric
-                    })
-                    .Execute(trainData, validationData, columnInformation);
-                logger.Log(LogLevel.Info, Strings.RetrieveBestPipeline);
-                var bestIteration = result.Best();
-                pipeline = bestIteration.Pipeline;
-                model = bestIteration.Model;
-            }
-
-            if (taskKind == TaskKind.Regression)
-            {
-                var optimizationMetric = new RegressionExperimentSettings().OptimizingMetric;
-                var progressReporter = new ProgressHandlers.RegressionHandler(optimizationMetric);
-                var result = context.Auto()
-                    .CreateRegressionExperiment(new RegressionExperimentSettings()
-                    {
-                        MaxExperimentTimeInSeconds = settings.MaxExplorationTime,
-                        ProgressHandler = progressReporter,
-                        OptimizingMetric = optimizationMetric,
-                        EnableCaching = this.enableCaching
-                    }).Execute(trainData, validationData, columnInformation);
-                logger.Log(LogLevel.Info, Strings.RetrieveBestPipeline);
-                var bestIteration = result.Best();
-                pipeline = bestIteration.Pipeline;
-                model = bestIteration.Model;
-            }
-
-            if (taskKind == TaskKind.MulticlassClassification)
-            {
-                var optimizationMetric = new MulticlassExperimentSettings().OptimizingMetric;
-                var progressReporter = new ProgressHandlers.MulticlassClassificationHandler(optimizationMetric);
-                var result = context.Auto()
-                    .CreateMulticlassClassificationExperiment(new MulticlassExperimentSettings()
-                    {
-                        MaxExperimentTimeInSeconds = settings.MaxExplorationTime,
-                        ProgressHandler = progressReporter,
-                        EnableCaching = this.enableCaching,
-                        OptimizingMetric = optimizationMetric
-                    }).Execute(trainData, validationData, columnInformation);
-                logger.Log(LogLevel.Info, Strings.RetrieveBestPipeline);
-                var bestIteration = result.Best();
-                pipeline = bestIteration.Pipeline;
-                model = bestIteration.Model;
-            }
-
-            return (pipeline, model);
+            var progressReporter = new ProgressHandlers.BinaryClassificationHandler(optimizationMetric, progressBar);
+            var result = context.Auto()
+                .CreateBinaryClassificationExperiment(new BinaryExperimentSettings()
+                {
+                    MaxExperimentTimeInSeconds = settings.MaxExplorationTime,
+                    ProgressHandler = progressReporter,
+                    EnableCaching = this.enableCaching,
+                    OptimizingMetric = optimizationMetric
+                })
+                .Execute(trainData, validationData, columnInformation);
+            logger.Log(LogLevel.Trace, Strings.RetrieveBestPipeline);
+            return result;
         }
+
+        IEnumerable<RunResult<RegressionMetrics>> IAutoMLEngine.ExploreRegressionModels(MLContext context, IDataView trainData, IDataView validationData, ColumnInformation columnInformation, RegressionMetric optimizationMetric, ProgressBar progressBar)
+        {
+            var progressReporter = new ProgressHandlers.RegressionHandler(optimizationMetric, progressBar);
+            var result = context.Auto()
+                .CreateRegressionExperiment(new RegressionExperimentSettings()
+                {
+                    MaxExperimentTimeInSeconds = settings.MaxExplorationTime,
+                    ProgressHandler = progressReporter,
+                    OptimizingMetric = optimizationMetric,
+                    EnableCaching = this.enableCaching
+                }).Execute(trainData, validationData, columnInformation);
+            logger.Log(LogLevel.Trace, Strings.RetrieveBestPipeline);
+            return result;
+        }
+
+        IEnumerable<RunResult<MultiClassClassifierMetrics>> IAutoMLEngine.ExploreMultiClassificationModels(MLContext context, IDataView trainData, IDataView validationData, ColumnInformation columnInformation, MulticlassClassificationMetric optimizationMetric, ProgressBar progressBar)
+        {
+            var progressReporter = new ProgressHandlers.MulticlassClassificationHandler(optimizationMetric, progressBar);
+            var result = context.Auto()
+                .CreateMulticlassClassificationExperiment(new MulticlassExperimentSettings()
+                {
+                    MaxExperimentTimeInSeconds = settings.MaxExplorationTime,
+                    ProgressHandler = progressReporter,
+                    EnableCaching = this.enableCaching,
+                    OptimizingMetric = optimizationMetric
+                }).Execute(trainData, validationData, columnInformation);
+            logger.Log(LogLevel.Trace, Strings.RetrieveBestPipeline);
+            return result;
+        }
+
     }
 }

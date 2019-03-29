@@ -91,8 +91,8 @@ namespace Microsoft.ML.Auto
             UserInputValidationUtil.ValidateExperimentExecuteArgs(trainData, columnInfo, validationData);
 
             // run autofit & get all pipelines run in that process
-            var experiment = new Experiment<RegressionMetrics>(context, TaskKind.Regression, trainData, columnInfo, 
-                validationData, preFeaturizers, new OptimizingMetricInfo(_settings.OptimizingMetric), 
+            var experiment = new Experiment<RegressionMetrics>(context, TaskKind.Regression, trainData, columnInfo,
+                validationData, preFeaturizers, new OptimizingMetricInfo(_settings.OptimizingMetric),
                 _settings.ProgressHandler, _settings, new RegressionMetricsAgent(_settings.OptimizingMetric),
                 TrainerExtensionUtil.GetTrainerNames(_settings.Trainers));
 

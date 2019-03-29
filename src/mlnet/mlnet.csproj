@@ -14,6 +14,7 @@
     <PackageReference Include="Microsoft.CodeAnalysis" Version="2.10.0" />
     <PackageReference Include="NLog" Version="4.5.11" />
     <PackageReference Include="System.CommandLine.Experimental" Version="0.1.0-alpha-63904-01" />
+    <PackageReference Include="System.Text.Encoding.CodePages" Version="4.6.0-preview3.19128.7" />
   </ItemGroup>
 
   <ItemGroup>

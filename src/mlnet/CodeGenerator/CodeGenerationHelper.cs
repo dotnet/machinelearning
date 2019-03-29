@@ -3,11 +3,17 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
+using System.Runtime.ExceptionServices;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.Data.DataView;
 using Microsoft.ML.Auto;
 using Microsoft.ML.CLI.CodeGenerator.CSharp;
 using Microsoft.ML.CLI.Data;
+using Microsoft.ML.CLI.ShellProgressBar;
 using Microsoft.ML.CLI.Utilities;
 using Microsoft.ML.Data;
 using NLog;
@@ -21,6 +27,7 @@ namespace Microsoft.ML.CLI.CodeGenerator
         private NewCommandSettings settings;
         private static Logger logger = LogManager.GetCurrentClassLogger();
         private TaskKind taskKind;
+
         public CodeGenerationHelper(IAutoMLEngine automlEngine, NewCommandSettings settings)
         {
             this.automlEngine = automlEngine;
@@ -64,11 +71,54 @@ namespace Microsoft.ML.CLI.CodeGenerator
             (IDataView trainData, IDataView validationData) = LoadData(context, textLoaderOptions);
 
             // Explore the models
-            (Pipeline, ITransformer) result = default;
+
+            // The reason why we are doing this way of defining 3 different results is because of the AutoML API 
+            // i.e there is no common class/interface to handle all three tasks together.
+
+            IEnumerable<RunResult<BinaryClassificationMetrics>> binaryRunResults = default;
+            IEnumerable<RunResult<MultiClassClassifierMetrics>> multiRunResults = default;
+            IEnumerable<RunResult<RegressionMetrics>> regressionRunResults = default;
+
             Console.WriteLine($"{Strings.ExplorePipeline}: {settings.MlTask}");
             try
             {
-                result = automlEngine.ExploreModels(context, trainData, validationData, columnInformation);
+                var options = new ProgressBarOptions
+                {
+                    ForegroundColor = ConsoleColor.Yellow,
+                    ForegroundColorDone = ConsoleColor.DarkGreen,
+                    BackgroundColor = ConsoleColor.DarkGray,
+                    BackgroundCharacter = '\u2593'
+                };
+                var wait = TimeSpan.FromSeconds(settings.MaxExplorationTime);
+                using (var pbar = new FixedDurationBar(wait, "", options))
+                {
+                    Task t = default;
+                    switch (taskKind)
+                    {
+                        case TaskKind.BinaryClassification:
+                            t = Task.Run(() => binaryRunResults = automlEngine.ExploreBinaryClassificationModels(context, trainData, validationData, columnInformation, new BinaryExperimentSettings().OptimizingMetric, pbar));
+                            break;
+                        case TaskKind.Regression:
+                            t = Task.Run(() => regressionRunResults = automlEngine.ExploreRegressionModels(context, trainData, validationData, columnInformation, new RegressionExperimentSettings().OptimizingMetric, pbar));
+                            break;
+                        case TaskKind.MulticlassClassification:
+                            t = Task.Run(() => multiRunResults = automlEngine.ExploreMultiClassificationModels(context, trainData, validationData, columnInformation, new MulticlassExperimentSettings().OptimizingMetric, pbar));
+                            break;
+                        default:
+                            logger.Log(LogLevel.Error, Strings.UnsupportedMlTask);
+                            break;
+                    }
+
+                    if (!pbar.CompletedHandle.WaitOne(wait))
+                        Console.Error.WriteLine($"{nameof(FixedDurationBar)} did not signal {nameof(FixedDurationBar.CompletedHandle)} after {wait}");
+
+                    if (t.IsCompleted == false)
+                    {
+                        logger.Log(LogLevel.Info, "Waiting for the last iteration to complete ...");
+                    }
+                    t.Wait();
+                }
+
             }
             catch (Exception e)
             {
@@ -80,18 +130,42 @@ namespace Microsoft.ML.CLI.CodeGenerator
             }
 
             //Get the best pipeline
-            Pipeline pipeline = null;
-            pipeline = result.Item1;
-            var model = result.Item2;
+            Pipeline bestPipeline = null;
+            ITransformer bestModel = null;
+
+            switch (taskKind)
+            {
+                case TaskKind.BinaryClassification:
+                    var bestBinaryIteration = binaryRunResults.Best();
+                    bestPipeline = bestBinaryIteration.Pipeline;
+                    bestModel = bestBinaryIteration.Model;
+                    ConsolePrinter.ExperimentResultsHeader(LogLevel.Info, settings.MlTask, settings.Dataset.Name, columnInformation.LabelColumn, settings.MaxExplorationTime.ToString(), binaryRunResults.Count());
+                    ConsolePrinter.PrintIterationSummary(binaryRunResults, new BinaryExperimentSettings().OptimizingMetric, 5);
+                    break;
+                case TaskKind.Regression:
+                    var bestRegressionIteration = regressionRunResults.Best();
+                    bestPipeline = bestRegressionIteration.Pipeline;
+                    bestModel = bestRegressionIteration.Model;
+                    ConsolePrinter.ExperimentResultsHeader(LogLevel.Info, settings.MlTask, settings.Dataset.Name, columnInformation.LabelColumn, settings.MaxExplorationTime.ToString(), regressionRunResults.Count());
+                    ConsolePrinter.PrintIterationSummary(regressionRunResults, new RegressionExperimentSettings().OptimizingMetric, 5);
+                    break;
+                case TaskKind.MulticlassClassification:
+                    var bestMultiIteration = multiRunResults.Best();
+                    bestPipeline = bestMultiIteration.Pipeline;
+                    bestModel = bestMultiIteration.Model;
+                    ConsolePrinter.ExperimentResultsHeader(LogLevel.Info, settings.MlTask, settings.Dataset.Name, columnInformation.LabelColumn, settings.MaxExplorationTime.ToString(), multiRunResults.Count());
+                    ConsolePrinter.PrintIterationSummary(multiRunResults, new MulticlassExperimentSettings().OptimizingMetric, 5);
+                    break;
+            }
 
             // Save the model
             logger.Log(LogLevel.Info, Strings.SavingBestModel);
             var modelprojectDir = Path.Combine(settings.OutputPath.FullName, $"{settings.Name}.Model");
             var modelPath = new FileInfo(Path.Combine(modelprojectDir, "MLModel.zip"));
-            Utils.SaveModel(model, modelPath, context);
+            Utils.SaveModel(bestModel, modelPath, context);
 
             // Generate the Project
-            GenerateProject(columnInference, pipeline, columnInformation.LabelColumn, modelPath);
+            GenerateProject(columnInference, bestPipeline, columnInformation.LabelColumn, modelPath);
         }
 
         internal void GenerateProject(ColumnInferenceResults columnInference, Pipeline pipeline, string labelName, FileInfo modelPath)
