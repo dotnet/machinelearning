@@ -18,7 +18,7 @@ namespace Microsoft.ML.Auto
         /// (Please note: for an experiment with high runtime operating on a large dataset, opting to keep models in 
         /// memory could cause a system to run out of memory.)
         /// </summary>
-        public DirectoryInfo ModelDirectory { get; set; } = null;
+        public DirectoryInfo ModelDirectory { get; set; } = new DirectoryInfo(Path.Combine(Path.GetTempPath(), "Microsoft.ML.Auto"));
 
         /// <summary>
         /// This setting controls whether or not an AutoML experiment will make use of ML.NET-provided caching.
