@@ -21,15 +21,16 @@ namespace Microsoft.ML.Samples.Dynamic
             // Convert sample list to an empty IDataView.
             var emptyDataView = mlContext.Data.LoadFromEnumerable(emptySamples);
 
+            // Write a custom 3-dimensional word embedding model with 4 words.
+            // Each line follows '<word> <float> <float> <float>' pattern.
+            // Lines that do not confirm to the pattern are ignored.
             var pathToCustomModel = @".\custommodel.txt";
             using (StreamWriter file = new StreamWriter(pathToCustomModel, false))
             {
-
-                file.WriteLine("This is custom file for 4 words with 3 dimensional word embedding vector. This first line in this file does not confirm to the '<word> <float> <float> <float>' pattern, and is therefore ignored");
-                file.WriteLine("greate" + " " + string.Join(" ", 1.0f, 2.0f, 3.0f));
-                file.WriteLine("product" + " " + string.Join(" ", -1.0f, -2.0f, -3.0f));
-                file.WriteLine("like" + " " + string.Join(" ", -1f, 100.0f, -100f));
-                file.WriteLine("buy" + " " + string.Join(" ", 0f, 0f, 20f));
+                file.WriteLine("great 1.0 2.0 3.0");
+                file.WriteLine("product -1.0 -2.0 -3.0");
+                file.WriteLine("like -1 100.0 -100");
+                file.WriteLine("buy 0 0 20");
             }
 
             // A pipeline for converting text into a 9-dimension word embedding vector using the custom word embedding model.
@@ -50,7 +51,7 @@ namespace Microsoft.ML.Samples.Dynamic
             var predictionEngine = mlContext.Model.CreatePredictionEngine<TextData, TransformedTextData>(textTransformer);
 
             // Call the prediction API to convert the text into embedding vector.
-            var data = new TextData() { Text = "This is a greate product. I would like to buy it again."  };
+            var data = new TextData() { Text = "This is a great product. I would like to buy it again."  };
             var prediction = predictionEngine.Predict(data);
 
             // Print the length of the embedding vector.

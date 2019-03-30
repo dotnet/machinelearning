@@ -39,7 +39,7 @@ namespace Microsoft.ML.Samples.Dynamic
             var predictionEngine = mlContext.Model.CreatePredictionEngine<TextData, TransformedTextData>(textTransformer);
 
             // Call the prediction API to convert the text into embedding vector.
-            var data = new TextData() { Text = "This is a greate product. I would like to buy it again."  };
+            var data = new TextData() { Text = "This is a great product. I would like to buy it again."  };
             var prediction = predictionEngine.Predict(data);
 
             // Print the length of the embedding vector.
