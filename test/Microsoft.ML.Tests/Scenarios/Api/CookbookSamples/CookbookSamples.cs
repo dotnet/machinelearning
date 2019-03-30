@@ -147,7 +147,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
             var metrics = mlContext.Regression.Evaluate(model.Transform(testData), label: r => r.Target, score: r => r.Prediction);
 
             // Saving and loading happens to 'dynamic' models, so the static typing is lost in the process.
-            mlContext.Model.Save(model.AsDynamic, trainData.AsDynamic.Schema, modelPath);
+            mlContext.Model.Save(model, trainData, modelPath);
 
             // Potentially, the lines below can be in a different process altogether.
 
