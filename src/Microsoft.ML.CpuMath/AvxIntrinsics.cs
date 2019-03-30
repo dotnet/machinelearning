@@ -422,10 +422,11 @@ namespace Microsoft.ML.Internal.CpuMath
                 float* pDstEnd = pdst + dst.Length;
                 float* pDstCurrent = pdst;
                 float* pVectorizationEnd = pDstEnd - 4;
+                float* pAvxVectorizationEnd = pDstEnd - 8;
 
                 Vector256<float> scalarVector256 = Vector256.Create(scalar);
 
-                while (pDstCurrent <= pDstEnd - 8)
+                while (pDstCurrent <= pAvxVectorizationEnd)
                 {
                     Vector256<float> dstVector = Avx.LoadVector256(pDstCurrent);
                     dstVector = Avx.Add(dstVector, scalarVector256);
@@ -574,10 +575,11 @@ namespace Microsoft.ML.Internal.CpuMath
                 float* pSrcCurrent = psrc;
                 float* pDstCurrent = pdst;
                 float* pVectorizationEnd = pDstEnd - 4;
+                float* pAvxVectorizationEnd = pDstEnd - 8;
 
                 Vector256<float> scaleVector256 = Vector256.Create(scale);
 
-                while (pDstCurrent <= pDstEnd - 8)
+                while (pDstCurrent <= pAvxVectorizationEnd)
                 {
                     Vector256<float> srcVector = Avx.LoadVector256(pSrcCurrent);
                     srcVector = Avx.Multiply(srcVector, scaleVector256);
@@ -619,11 +621,12 @@ namespace Microsoft.ML.Internal.CpuMath
                 float* pDstEnd = pdst + dst.Length;
                 float* pDstCurrent = pdst;
                 float* pVectorizationEnd = pDstEnd - 4;
+                float* pAvxVectorizationEnd = pDstEnd - 8;
 
                 Vector256<float> a256 = Vector256.Create(a);
                 Vector256<float> b256 = Vector256.Create(b);
 
-                while (pDstCurrent <= pDstEnd - 8)
+                while (pDstCurrent <= pAvxVectorizationEnd)
                 {
                     Vector256<float> dstVector = Avx.LoadVector256(pDstCurrent);
                     dstVector = Avx.Add(dstVector, b256);
@@ -668,10 +671,11 @@ namespace Microsoft.ML.Internal.CpuMath
                 float* pSrcCurrent = psrc;
                 float* pDstCurrent = pdst;
                 float* pEnd = pdst + count;
+                float* pVectorizationEnd = pEnd - 8;
 
                 Vector256<float> scaleVector256 = Vector256.Create(scale);
 
-                while (pDstCurrent <= pEnd - 8)
+                while (pDstCurrent <= pVectorizationEnd)
                 {
                     Vector256<float> dstVector = Avx.LoadVector256(pDstCurrent);
 
@@ -722,13 +726,14 @@ namespace Microsoft.ML.Internal.CpuMath
             fixed (float* pres = &MemoryMarshal.GetReference(result))
             {
                 float* pResEnd = pres + count;
+                float* pVectorizationEnd = pResEnd - 8;
                 float* pSrcCurrent = psrc;
                 float* pDstCurrent = pdst;
                 float* pResCurrent = pres;
 
                 Vector256<float> scaleVector256 = Vector256.Create(scale);
 
-                while (pResCurrent <= pResEnd - 8)
+                while (pResCurrent <= pVectorizationEnd)
                 {
                     Vector256<float> dstVector = Avx.LoadVector256(pDstCurrent);
                     dstVector = MultiplyAdd(pSrcCurrent, scaleVector256, dstVector);
@@ -782,10 +787,11 @@ namespace Microsoft.ML.Internal.CpuMath
                 int* pIdxCurrent = pidx;
                 float* pDstCurrent = pdst;
                 int* pEnd = pidx + count;
+                int* pVectorizationEnd = pEnd - 8;
 
                 Vector256<float> scaleVector256 = Vector256.Create(scale);
 
-                while (pIdxCurrent <= pEnd - 8)
+                while (pIdxCurrent <= pVectorizationEnd)
                 {
                     Vector256<float> dstVector = Load8(pDstCurrent, pIdxCurrent);
                     dstVector = MultiplyAdd(pSrcCurrent, scaleVector256, dstVector);
@@ -830,8 +836,9 @@ namespace Microsoft.ML.Internal.CpuMath
                 float* pSrcCurrent = psrc;
                 float* pDstCurrent = pdst;
                 float* pEnd = psrc + count;
+                float* pVectorizationEnd = pEnd - 8;
 
-                while (pSrcCurrent <= pEnd - 8)
+                while (pSrcCurrent <= pVectorizationEnd)
                 {
                     Vector256<float> srcVector = Avx.LoadVector256(pSrcCurrent);
                     Vector256<float> dstVector = Avx.LoadVector256(pDstCurrent);
@@ -882,8 +889,9 @@ namespace Microsoft.ML.Internal.CpuMath
                 int* pIdxCurrent = pidx;
                 float* pDstCurrent = pdst;
                 int* pEnd = pidx + count;
+                int* pVectorizationEnd = pEnd - 8;
 
-                while (pIdxCurrent <= pEnd - 8)
+                while (pIdxCurrent <= pVectorizationEnd)
                 {
                     Vector256<float> dstVector = Load8(pDstCurrent, pIdxCurrent);
                     Vector256<float> srcVector = Avx.LoadVector256(pSrcCurrent);
@@ -930,8 +938,9 @@ namespace Microsoft.ML.Internal.CpuMath
                 float* pSrc2Current = psrc2;
                 float* pDstCurrent = pdst;
                 float* pEnd = pdst + count;
+                float* pVectorizationEnd = pEnd - 8;
 
-                while (pDstCurrent <= pEnd - 8)
+                while (pDstCurrent <= pVectorizationEnd)
                 {
                     Vector256<float> src1Vector = Avx.LoadVector256(pSrc1Current);
                     Vector256<float> src2Vector = Avx.LoadVector256(pSrc2Current);
@@ -1062,11 +1071,12 @@ namespace Microsoft.ML.Internal.CpuMath
             fixed (float* psrc = &MemoryMarshal.GetReference(src))
             {
                 float* pSrcEnd = psrc + src.Length;
+                float* pVectorizationEnd = pSrcEnd - 8;
                 float* pSrcCurrent = psrc;
 
                 Vector256<float> result256 = Vector256<float>.Zero;
 
-                while (pSrcCurrent <= pSrcEnd - 8)
+                while (pSrcCurrent <= pVectorizationEnd)
                 {
                     Vector256<float> srcVector = Avx.LoadVector256(pSrcCurrent);
                     result256 = MultiplyAdd(srcVector, srcVector, result256);
@@ -1106,12 +1116,13 @@ namespace Microsoft.ML.Internal.CpuMath
             fixed (float* psrc = &MemoryMarshal.GetReference(src))
             {
                 float* pSrcEnd = psrc + src.Length;
+                float* pVectorizationEnd = pSrcEnd - 8;
                 float* pSrcCurrent = psrc;
 
                 Vector256<float> result256 = Vector256<float>.Zero;
                 Vector256<float> meanVector256 = Vector256.Create(mean);
 
-                while (pSrcCurrent <= pSrcEnd - 8)
+                while (pSrcCurrent <= pVectorizationEnd)
                 {
                     Vector256<float> srcVector = Avx.LoadVector256(pSrcCurrent);
                     srcVector = Avx.Subtract(srcVector, meanVector256);
@@ -1154,11 +1165,12 @@ namespace Microsoft.ML.Internal.CpuMath
             fixed (float* psrc = &MemoryMarshal.GetReference(src))
             {
                 float* pSrcEnd = psrc + src.Length;
+                float* pVectorizationEnd = pSrcEnd - 8;
                 float* pSrcCurrent = psrc;
 
                 Vector256<float> result256 = Vector256<float>.Zero;
 
-                while (pSrcCurrent <= pSrcEnd - 8)
+                while (pSrcCurrent <= pVectorizationEnd)
                 {
                     Vector256<float> srcVector = Avx.LoadVector256(pSrcCurrent);
                     result256 = Avx.Add(result256, Avx.And(srcVector, _absMask256));
@@ -1198,12 +1210,13 @@ namespace Microsoft.ML.Internal.CpuMath
             fixed (float* psrc = &MemoryMarshal.GetReference(src))
             {
                 float* pSrcEnd = psrc + src.Length;
+                float* pVectorizationEnd = pSrcEnd - 8;
                 float* pSrcCurrent = psrc;
 
                 Vector256<float> result256 = Vector256<float>.Zero;
                 Vector256<float> meanVector256 = Vector256.Create(mean);
 
-                while (pSrcCurrent <= pSrcEnd - 8)
+                while (pSrcCurrent <= pVectorizationEnd)
                 {
                     Vector256<float> srcVector = Avx.LoadVector256(pSrcCurrent);
                     srcVector = Avx.Subtract(srcVector, meanVector256);
@@ -1247,11 +1260,12 @@ namespace Microsoft.ML.Internal.CpuMath
             fixed (float* psrc = &MemoryMarshal.GetReference(src))
             {
                 float* pSrcEnd = psrc + src.Length;
+                float* pVectorizationEnd = pSrcEnd - 8;
                 float* pSrcCurrent = psrc;
 
                 Vector256<float> result256 = Vector256<float>.Zero;
 
-                while (pSrcCurrent <= pSrcEnd - 8)
+                while (pSrcCurrent <= pVectorizationEnd)
                 {
                     Vector256<float> srcVector = Avx.LoadVector256(pSrcCurrent);
                     result256 = Avx.Max(result256, Avx.And(srcVector, _absMask256));
@@ -1291,12 +1305,13 @@ namespace Microsoft.ML.Internal.CpuMath
             fixed (float* psrc = &MemoryMarshal.GetReference(src))
             {
                 float* pSrcEnd = psrc + src.Length;
+                float* pVectorizationEnd = pSrcEnd - 8;
                 float* pSrcCurrent = psrc;
 
                 Vector256<float> result256 = Vector256<float>.Zero;
                 Vector256<float> meanVector256 = Vector256.Create(mean);
 
-                while (pSrcCurrent <= pSrcEnd - 8)
+                while (pSrcCurrent <= pVectorizationEnd)
                 {
                     Vector256<float> srcVector = Avx.LoadVector256(pSrcCurrent);
                     srcVector = Avx.Subtract(srcVector, meanVector256);
@@ -1345,10 +1360,11 @@ namespace Microsoft.ML.Internal.CpuMath
                 float* pSrcCurrent = psrc;
                 float* pDstCurrent = pdst;
                 float* pSrcEnd = psrc + count;
+                float* pVectorizationEnd = pSrcEnd - 8;
 
                 Vector256<float> result256 = Vector256<float>.Zero;
 
-                while (pSrcCurrent <= pSrcEnd - 8)
+                while (pSrcCurrent <= pVectorizationEnd)
                 {
                     Vector256<float> dstVector = Avx.LoadVector256(pDstCurrent);
                     result256 = MultiplyAdd(pSrcCurrent, dstVector, result256);
@@ -1402,10 +1418,11 @@ namespace Microsoft.ML.Internal.CpuMath
                 float* pDstCurrent = pdst;
                 int* pIdxCurrent = pidx;
                 int* pIdxEnd = pidx + count;
+                int* pVectorizationEnd = pIdxEnd - 8;
 
                 Vector256<float> result256 = Vector256<float>.Zero;
 
-                while (pIdxCurrent <= pIdxEnd - 8)
+                while (pIdxCurrent <= pVectorizationEnd)
                 {
                     Vector256<float> srcVector = Load8(pSrcCurrent, pIdxCurrent);
                     result256 = MultiplyAdd(pDstCurrent, srcVector, result256);
@@ -1456,10 +1473,11 @@ namespace Microsoft.ML.Internal.CpuMath
                 float* pSrcCurrent = psrc;
                 float* pDstCurrent = pdst;
                 float* pSrcEnd = psrc + count;
+                float* pVectorizationEnd = pSrcEnd - 8;
 
                 Vector256<float> sqDistanceVector256 = Vector256<float>.Zero;
 
-                while (pSrcCurrent <= pSrcEnd - 8)
+                while (pSrcCurrent <= pVectorizationEnd)
                 {
                     Vector256<float> distanceVector = Avx.Subtract(Avx.LoadVector256(pSrcCurrent),
                                                                     Avx.LoadVector256(pDstCurrent));
@@ -1507,6 +1525,7 @@ namespace Microsoft.ML.Internal.CpuMath
             fixed (float* pdst2 = &MemoryMarshal.GetReference(w))
             {
                 float* pSrcEnd = psrc + count;
+                float* pVectorizationEnd = pSrcEnd - 8;
                 float* pSrcCurrent = psrc;
                 float* pDst1Current = pdst1;
                 float* pDst2Current = pdst2;
@@ -1514,7 +1533,7 @@ namespace Microsoft.ML.Internal.CpuMath
                 Vector256<float> xPrimal256 = Vector256.Create(primalUpdate);
                 Vector256<float> xThreshold256 = Vector256.Create(threshold);
 
-                while (pSrcCurrent <= pSrcEnd - 8)
+                while (pSrcCurrent <= pVectorizationEnd)
                 {
                     Vector256<float> xDst1 = Avx.LoadVector256(pDst1Current);
                     xDst1 = MultiplyAdd(pSrcCurrent, xPrimal256, xDst1);
@@ -1568,13 +1587,14 @@ namespace Microsoft.ML.Internal.CpuMath
             fixed (float* pdst2 = &MemoryMarshal.GetReference(w))
             {
                 int* pIdxEnd = pidx + count;
+                int* pVectorizationEnd = pIdxEnd - 8;
                 float* pSrcCurrent = psrc;
                 int* pIdxCurrent = pidx;
 
                 Vector256<float> xPrimal256 = Vector256.Create(primalUpdate);
                 Vector256<float> xThreshold = Vector256.Create(threshold);
 
-                while (pIdxCurrent <= pIdxEnd - 8)
+                while (pIdxCurrent <= pVectorizationEnd)
                 {
                     Vector256<float> xDst1 = Load8(pdst1, pIdxCurrent);
                     xDst1 = MultiplyAdd(pSrcCurrent, xPrimal256, xDst1);
