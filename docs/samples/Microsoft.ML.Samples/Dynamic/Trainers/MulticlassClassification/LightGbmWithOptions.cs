@@ -1,15 +1,14 @@
 ﻿using System;
 using System.Linq;
 using Microsoft.ML.Data;
-using Microsoft.ML.LightGBM;
 using Microsoft.ML.SamplesUtils;
-using static Microsoft.ML.LightGBM.Options;
+using Microsoft.ML.Trainers.LightGbm;
 
 namespace Microsoft.ML.Samples.Dynamic.Trainers.MulticlassClassification
 {
     public static class LightGbmWithOptions
     {
-        // This example requires installation of additional nuget package <a href="https://www.nuget.org/packages/Microsoft.ML.LightGBM/">Microsoft.ML.LightGBM</a>.
+        // This example requires installation of additional nuget package <a href="https://www.nuget.org/packages/Microsoft.ML.LightGbm/">Microsoft.ML.LightGbm</a>.
         public static void Example()
         {
             // Create a general context for ML.NET operations. It can be used for exception tracking and logging,
@@ -33,11 +32,11 @@ namespace Microsoft.ML.Samples.Dynamic.Trainers.MulticlassClassification
             //  - Convert the string labels into key types.
             //  - Apply LightGbm multiclass trainer with advanced options.
             var pipeline = mlContext.Transforms.Conversion.MapValueToKey("LabelIndex", "Label")
-                        .Append(mlContext.MulticlassClassification.Trainers.LightGbm(new Options
+                        .Append(mlContext.MulticlassClassification.Trainers.LightGbm(new LightGbmMulticlassTrainer.Options
                         {
                             LabelColumnName = "LabelIndex",
                             FeatureColumnName = "Features",
-                            Booster = new DartBooster.Options
+                            Booster = new DartBooster.Options()
                             {
                                 TreeDropFraction = 0.15,
                                 XgboostDartMode = false
@@ -57,7 +56,7 @@ namespace Microsoft.ML.Samples.Dynamic.Trainers.MulticlassClassification
             var dataWithPredictions = model.Transform(split.TestSet);
 
             // Evaluate the trained model using the test set.
-            var metrics = mlContext.MulticlassClassification.Evaluate(dataWithPredictions, label: "LabelIndex");
+            var metrics = mlContext.MulticlassClassification.Evaluate(dataWithPredictions, labelColumnName: "LabelIndex");
 
             // Check if metrics are reasonable.
             Console.WriteLine($"Macro accuracy: {metrics.MacroAccuracy:F4}, Micro accuracy: {metrics.MicroAccuracy:F4}.");

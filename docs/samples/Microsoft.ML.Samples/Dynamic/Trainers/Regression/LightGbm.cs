@@ -6,7 +6,7 @@ namespace Microsoft.ML.Samples.Dynamic.Trainers.Regression
 {
     class LightGbm
     {
-        // This example requires installation of additional nuget package <a href="https://www.nuget.org/packages/Microsoft.ML.LightGBM/">Microsoft.ML.LightGBM</a>.
+        // This example requires installation of additional nuget package <a href="https://www.nuget.org/packages/Microsoft.ML.LightGbm/">Microsoft.ML.LightGbm</a>.
         public static void Example()
         {
             // Create a new ML context, for ML.NET operations. It can be used for exception tracking and logging, 
@@ -51,7 +51,7 @@ namespace Microsoft.ML.Samples.Dynamic.Trainers.Regression
 
             // Evaluate how the model is doing on the test data.
             var dataWithPredictions = model.Transform(split.TestSet);
-            var metrics = mlContext.Regression.Evaluate(dataWithPredictions, label: labelName);
+            var metrics = mlContext.Regression.Evaluate(dataWithPredictions, labelColumnName: labelName);
             SamplesUtils.ConsoleUtils.PrintMetrics(metrics);
 
             // Expected output

@@ -6,7 +6,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.Calibrators;
 using Microsoft.ML.Command;
@@ -25,7 +24,8 @@ namespace Microsoft.ML.Data
 {
     using ColumnRole = RoleMappedSchema.ColumnRole;
 
-    public enum NormalizeOption
+    [BestFriend]
+    internal enum NormalizeOption
     {
         No,
         Warn,

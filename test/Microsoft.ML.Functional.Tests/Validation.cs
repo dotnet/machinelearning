@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.Data.DataView;
 using Microsoft.ML.Data;
 using Microsoft.ML.Functional.Tests.Datasets;
 using Microsoft.ML.RunTests;
@@ -37,16 +36,16 @@ namespace Microsoft.ML.Functional.Tests
 
             // Create a pipeline to train on the housing data.
             var pipeline = mlContext.Transforms.Concatenate("Features", HousingRegression.Features)
-                .Append(mlContext.Regression.Trainers.OrdinaryLeastSquares());
+                .Append(mlContext.Regression.Trainers.Ols());
 
             // Compute the CV result.
-            var cvResult = mlContext.Regression.CrossValidate(data, pipeline, numFolds: 5);
+            var cvResult = mlContext.Regression.CrossValidate(data, pipeline, numberOfFolds: 5);
 
             // Check that the results are valid
             Assert.IsType<RegressionMetrics>(cvResult[0].Metrics);
-            Assert.IsType<TransformerChain<RegressionPredictionTransformer<OrdinaryLeastSquaresRegressionModelParameters>>>(cvResult[0].Model);
+            Assert.IsType<TransformerChain<RegressionPredictionTransformer<OlsModelParameters>>>(cvResult[0].Model);
             Assert.True(cvResult[0].ScoredHoldOutSet is IDataView);
-            Assert.Equal(5, cvResult.Length);
+            Assert.Equal(5, cvResult.Count);
 
             // And validate the metrics.
             foreach (var result in cvResult)
@@ -79,11 +78,12 @@ namespace Microsoft.ML.Functional.Tests
             var preprocessedValidData = preprocessor.Transform(validData);
 
             // Train the model with a validation set.
-            var trainedModel = mlContext.Regression.Trainers.FastTree(new FastTreeRegressionTrainer.Options {
-                    NumberOfTrees = 2,
-                    EarlyStoppingMetric = EarlyStoppingMetric.L2Norm,
-                    EarlyStoppingRule = new GeneralityLossRule()
-                })
+            var trainedModel = mlContext.Regression.Trainers.FastTree(new FastTreeRegressionTrainer.Options
+            {
+                NumberOfTrees = 2,
+                EarlyStoppingMetric = EarlyStoppingMetric.L2Norm,
+                EarlyStoppingRule = new GeneralityLossRule()
+            })
                 .Fit(trainData: preprocessedTrainData, validationData: preprocessedValidData);
 
             // Combine the model.

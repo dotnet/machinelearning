@@ -7,7 +7,6 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.Calibrators;
 using Microsoft.ML.Data;
@@ -123,7 +122,7 @@ namespace Microsoft.ML.Trainers
 
             Weight = weights;
             Bias = bias;
-            _inputType = new VectorType(NumberDataViewType.Single, Weight.Length);
+            _inputType = new VectorDataViewType(NumberDataViewType.Single, Weight.Length);
 
             if (Weight.IsDense)
                 _weightsDense = Weight;
@@ -142,7 +141,7 @@ namespace Microsoft.ML.Trainers
             // int: number of weights
             // Float[]: weights
             // bool: has model stats
-            // (Conditional) LinearModelStatistics: stats
+            // (Conditional) LinearModelParameterStatistics: stats
 
             Bias = ctx.Reader.ReadFloat();
             Host.CheckDecode(FloatUtils.IsFinite(Bias));
@@ -178,7 +177,7 @@ namespace Microsoft.ML.Trainers
             else
                 Weight = new VBuffer<float>(len, Utils.Size(weights), weights, indices);
 
-            _inputType = new VectorType(NumberDataViewType.Single, Weight.Length);
+            _inputType = new VectorDataViewType(NumberDataViewType.Single, Weight.Length);
             WarnOnOldNormalizer(ctx, GetType(), Host);
 
             if (Weight.IsDense)
@@ -200,7 +199,7 @@ namespace Microsoft.ML.Trainers
             // int: number of weights
             // Float[]: weights
             // bool: has model stats
-            // (Conditional) LinearModelStatistics: stats
+            // (Conditional) LinearModelParameterStatistics: stats
 
             ctx.Writer.Write(Bias);
             ctx.Writer.Write(Weight.Length);
@@ -367,7 +366,7 @@ namespace Microsoft.ML.Trainers
             AnnotationUtils.GetSlotNames(schema, RoleMappedSchema.ColumnRole.Feature, Weight.Length, ref names);
             var subBuilder = new DataViewSchema.Annotations.Builder();
             subBuilder.AddSlotNames(Weight.Length, (ref VBuffer<ReadOnlyMemory<char>> dst) => names.CopyTo(ref dst));
-            var colType = new VectorType(NumberDataViewType.Single, Weight.Length);
+            var colType = new VectorDataViewType(NumberDataViewType.Single, Weight.Length);
             var builder = new DataViewSchema.Annotations.Builder();
             builder.AddPrimitiveValue("Bias", NumberDataViewType.Single, Bias);
             builder.Add("Weights", colType, (ref VBuffer<float> dst) => Weight.CopyTo(ref dst), subBuilder.ToAnnotations());
@@ -414,9 +413,7 @@ namespace Microsoft.ML.Trainers
         internal const string RegistrationName = "LinearBinaryPredictor";
 
         private const string ModelStatsSubModelFilename = "ModelStats";
-        private readonly LinearModelStatistics _stats;
-
-        public LinearModelStatistics Statistics { get { return _stats; } }
+        public readonly ModelStatisticsBase Statistics;
 
         private static VersionInfo GetVersionInfo()
         {
@@ -439,11 +436,11 @@ namespace Microsoft.ML.Trainers
         /// of the i-th feature. Note that this will take ownership of the <see cref="VBuffer{T}"/>.</param>
         /// <param name="bias">The bias added to every output score.</param>
         /// <param name="stats"></param>
-        internal LinearBinaryModelParameters(IHostEnvironment env, in VBuffer<float> weights, float bias, LinearModelStatistics stats = null)
+        internal LinearBinaryModelParameters(IHostEnvironment env, in VBuffer<float> weights, float bias, ModelStatisticsBase stats = null)
             : base(env, RegistrationName, in weights, bias)
         {
             Contracts.AssertValueOrNull(stats);
-            _stats = stats;
+            Statistics = stats;
         }
 
         private LinearBinaryModelParameters(IHostEnvironment env, ModelLoadContext ctx)
@@ -455,9 +452,19 @@ namespace Microsoft.ML.Trainers
 
             // *** Binary format ***
             // (Base class)
-            // LinearModelStatistics: model statistics (optional, in a separate stream)
-
-            ctx.LoadModelOrNull<LinearModelStatistics, SignatureLoadModel>(Host, out _stats, ModelStatsSubModelFilename);
+            // LinearModelParameterStatistics: model statistics (optional, in a separate stream)
+            try
+            {
+                LinearModelParameterStatistics stats;
+                ctx.LoadModelOrNull<LinearModelParameterStatistics, SignatureLoadModel>(Host, out stats, ModelStatsSubModelFilename);
+                Statistics = stats;
+            }
+            catch (Exception)
+            {
+                ModelStatisticsBase stats;
+                ctx.LoadModelOrNull<ModelStatisticsBase, SignatureLoadModel>(Host, out stats, ModelStatsSubModelFilename);
+                Statistics = stats;
+            }
         }
 
         private static IPredictorProducing<float> Create(IHostEnvironment env, ModelLoadContext ctx)
@@ -479,14 +486,14 @@ namespace Microsoft.ML.Trainers
         {
             // *** Binary format ***
             // (Base class)
-            // LinearModelStatistics: model statistics (optional, in a separate stream)
+            // LinearModelParameterStatistics: model statistics (optional, in a separate stream)
 
             base.SaveCore(ctx);
             ctx.SetVersionInfo(GetVersionInfo());
 
-            Contracts.AssertValueOrNull(_stats);
-            if (_stats != null)
-                ctx.SaveModel(_stats, ModelStatsSubModelFilename);
+            Contracts.AssertValueOrNull(Statistics);
+            if (Statistics != null)
+                ctx.SaveModel(Statistics, ModelStatsSubModelFilename);
         }
 
         private protected override PredictionKind PredictionKind => PredictionKind.BinaryClassification;
@@ -511,7 +518,7 @@ namespace Microsoft.ML.Trainers
             writer.WriteLine(LinearPredictorUtils.LinearModelAsText("Linear Binary Classification Predictor", null, null,
                 in weights, Bias, schema));
 
-            _stats?.SaveText(writer, this, schema.Feature.Value, 20);
+            Statistics?.SaveText(writer, schema.Feature.Value, 20);
         }
 
         ///<inheritdoc/>
@@ -522,17 +529,17 @@ namespace Microsoft.ML.Trainers
             var weights = Weight;
             List<KeyValuePair<string, object>> results = new List<KeyValuePair<string, object>>();
             LinearPredictorUtils.SaveLinearModelWeightsInKeyValuePairs(in weights, Bias, schema, results);
-            _stats?.SaveSummaryInKeyValuePairs(this, schema.Feature.Value, int.MaxValue, results);
+            Statistics?.SaveSummaryInKeyValuePairs(schema.Feature.Value, int.MaxValue, results);
             return results;
         }
 
         private protected override DataViewRow GetStatsIRowOrNull(RoleMappedSchema schema)
         {
-            if (_stats == null)
+            if (Statistics == null)
                 return null;
             var names = default(VBuffer<ReadOnlyMemory<char>>);
             AnnotationUtils.GetSlotNames(schema, RoleMappedSchema.ColumnRole.Feature, Weight.Length, ref names);
-            var meta = _stats.MakeStatisticsMetadata(this, schema, in names);
+            var meta = Statistics.MakeStatisticsMetadata(schema, in names);
             return AnnotationUtils.AnnotationsAsRow(meta);
         }
 

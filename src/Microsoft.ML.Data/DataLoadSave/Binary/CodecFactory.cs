@@ -6,7 +6,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
-using Microsoft.Data.DataView;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Runtime;
 
@@ -101,9 +100,9 @@ namespace Microsoft.ML.Data.IO
         public bool TryGetCodec(DataViewType type, out IValueCodec codec)
         {
             // Handle the primier types specially.
-            if (type is KeyType)
+            if (type is KeyDataViewType)
                 return GetKeyCodec(type, out codec);
-            if (type is VectorType vectorType)
+            if (type is VectorDataViewType vectorType)
                 return GetVBufferCodec(vectorType, out codec);
             return _simpleCodecTypeMap.TryGetValue(type.RawType, out codec);
         }

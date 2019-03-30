@@ -7,7 +7,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Text;
-using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
@@ -163,27 +162,50 @@ namespace Microsoft.ML.Transforms.Text
         /// <summary>
         /// Provide details about the topics discovered by <a href="https://arxiv.org/abs/1412.1576">LightLDA.</a>
         /// </summary>
-        public sealed class LdaSummary
+        public sealed class ModelParameters
         {
+            public struct ItemScore
+            {
+                public readonly int Item;
+                public readonly float Score;
+                public ItemScore(int item, float score)
+                {
+                    Item = item;
+                    Score = score;
+                }
+            }
+            public struct WordItemScore
+            {
+                public readonly int Item;
+                public readonly string Word;
+                public readonly float Score;
+                public WordItemScore(int item, string word, float score)
+                {
+                    Item = item;
+                    Word = word;
+                    Score = score;
+                }
+            }
+
             // For each topic, provide information about the (item, score) pairs.
-            public readonly ImmutableArray<List<(int Item, float Score)>> ItemScoresPerTopic;
+            public readonly IReadOnlyList<IReadOnlyList<ItemScore>> ItemScoresPerTopic;
 
             // For each topic, provide information about the (item, word, score) tuple.
-            public readonly ImmutableArray<List<(int Item, string Word, float Score)>> WordScoresPerTopic;
+            public readonly IReadOnlyList<IReadOnlyList<WordItemScore>> WordScoresPerTopic;
 
-            internal LdaSummary(ImmutableArray<List<(int Item, float Score)>> itemScoresPerTopic)
+            internal ModelParameters(IReadOnlyList<IReadOnlyList<ItemScore>> itemScoresPerTopic)
             {
                 ItemScoresPerTopic = itemScoresPerTopic;
             }
 
-            internal LdaSummary(ImmutableArray<List<(int Item, string Word, float Score)>> wordScoresPerTopic)
+            internal ModelParameters(IReadOnlyList<IReadOnlyList<WordItemScore>> wordScoresPerTopic)
             {
                 WordScoresPerTopic = wordScoresPerTopic;
             }
         }
 
         [BestFriend]
-        internal LdaSummary GetLdaDetails(int iinfo)
+        internal ModelParameters GetLdaDetails(int iinfo)
         {
             Contracts.Assert(0 <= iinfo && iinfo < _ldas.Length);
 
@@ -302,40 +324,40 @@ namespace Microsoft.ML.Transforms.Text
                 }
             }
 
-            internal LdaSummary GetLdaSummary(VBuffer<ReadOnlyMemory<char>> mapping)
+            internal ModelParameters GetLdaSummary(VBuffer<ReadOnlyMemory<char>> mapping)
             {
                 if (mapping.Length == 0)
                 {
-                    var itemScoresPerTopicBuilder = ImmutableArray.CreateBuilder<List<(int Item, float Score)>>();
+                    var itemScoresPerTopicBuilder = ImmutableArray.CreateBuilder<List<ModelParameters.ItemScore>>();
                     for (int i = 0; i < _ldaTrainer.NumTopic; i++)
                     {
                         var scores = _ldaTrainer.GetTopicSummary(i);
-                        var itemScores = new List<(int, float)>();
+                        var itemScores = new List<ModelParameters.ItemScore>();
                         foreach (KeyValuePair<int, float> p in scores)
                         {
-                            itemScores.Add((p.Key, p.Value));
+                            itemScores.Add(new ModelParameters.ItemScore(p.Key, p.Value));
                         }
 
                         itemScoresPerTopicBuilder.Add(itemScores);
                     }
-                    return new LdaSummary(itemScoresPerTopicBuilder.ToImmutable());
+                    return new ModelParameters(itemScoresPerTopicBuilder.ToImmutable());
                 }
                 else
                 {
                     ReadOnlyMemory<char> slotName = default;
-                    var wordScoresPerTopicBuilder = ImmutableArray.CreateBuilder<List<(int Item, string Word, float Score)>>();
+                    var wordScoresPerTopicBuilder = ImmutableArray.CreateBuilder<List<ModelParameters.WordItemScore>>();
                     for (int i = 0; i < _ldaTrainer.NumTopic; i++)
                     {
                         var scores = _ldaTrainer.GetTopicSummary(i);
-                        var wordScores = new List<(int, string, float)>();
+                        var wordScores = new List<ModelParameters.WordItemScore>();
                         foreach (KeyValuePair<int, float> p in scores)
                         {
                             mapping.GetItemOrDefault(p.Key, ref slotName);
-                            wordScores.Add((p.Key, slotName.ToString(), p.Value));
+                            wordScores.Add(new ModelParameters.WordItemScore(p.Key, slotName.ToString(), p.Value));
                         }
                         wordScoresPerTopicBuilder.Add(wordScores);
                     }
-                    return new LdaSummary(wordScoresPerTopicBuilder.ToImmutable());
+                    return new ModelParameters(wordScoresPerTopicBuilder.ToImmutable());
                 }
             }
 
@@ -545,9 +567,9 @@ namespace Microsoft.ML.Transforms.Text
                         throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", _parent.ColumnPairs[i].inputColumnName);
 
                     var srcCol = inputSchema[_srcCols[i]];
-                    var srcType = srcCol.Type as VectorType;
+                    var srcType = srcCol.Type as VectorDataViewType;
                     if (srcType == null || !srcType.IsKnownSize || !(srcType.ItemType is NumberDataViewType))
-                        throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", _parent.ColumnPairs[i].inputColumnName, "known-size vector of float", srcCol.Type.ToString());
+                        throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", _parent.ColumnPairs[i].inputColumnName, "known-size vector of Single", srcCol.Type.ToString());
                 }
             }
 
@@ -557,7 +579,7 @@ namespace Microsoft.ML.Transforms.Text
                 for (int i = 0; i < _parent.ColumnPairs.Length; i++)
                 {
                     var info = _parent._columns[i];
-                    result[i] = new DataViewSchema.DetachedColumn(_parent.ColumnPairs[i].outputColumnName, new VectorType(NumberDataViewType.Single, info.NumberOfTopics), null);
+                    result[i] = new DataViewSchema.DetachedColumn(_parent.ColumnPairs[i].outputColumnName, new VectorDataViewType(NumberDataViewType.Single, info.NumberOfTopics), null);
                 }
                 return result;
             }
@@ -778,9 +800,9 @@ namespace Microsoft.ML.Transforms.Text
                 if (!inputData.Schema.TryGetColumnIndex(columns[i].InputColumnName, out int srcCol))
                     throw env.ExceptSchemaMismatch(nameof(inputData), "input", columns[i].InputColumnName);
 
-                var srcColType = inputSchema[srcCol].Type as VectorType;
+                var srcColType = inputSchema[srcCol].Type as VectorDataViewType;
                 if (srcColType == null || !srcColType.IsKnownSize || !(srcColType.ItemType is NumberDataViewType))
-                    throw env.ExceptSchemaMismatch(nameof(inputSchema), "input", columns[i].InputColumnName, "known-size vector of float", srcColType.ToString());
+                    throw env.ExceptSchemaMismatch(nameof(inputSchema), "input", columns[i].InputColumnName, "known-size vector of Single", srcColType.ToString());
 
                 srcCols[i] = srcCol;
                 activeColumns.Add(inputData.Schema[srcCol]);
@@ -982,7 +1004,8 @@ namespace Microsoft.ML.Transforms.Text
         /// <summary>
         /// Describes how the transformer handles one column pair.
         /// </summary>
-        public sealed class ColumnOptions
+        [BestFriend]
+        internal sealed class ColumnOptions
         {
             /// <summary>
             /// Name of the column resulting from the transformation of <cref see="InputColumnName"/>.
@@ -1203,7 +1226,7 @@ namespace Microsoft.ML.Transforms.Text
                 if (!inputSchema.TryFindColumn(colInfo.InputColumnName, out var col))
                     throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.InputColumnName);
                 if (col.ItemType.RawType != typeof(float) || col.Kind == SchemaShape.Column.VectorKind.Scalar)
-                    throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.InputColumnName, "vector of float", col.GetTypeString());
+                    throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.InputColumnName, "vector of Single", col.GetTypeString());
 
                 result[colInfo.Name] = new SchemaShape.Column(colInfo.Name, SchemaShape.Column.VectorKind.Vector, NumberDataViewType.Single, false);
             }

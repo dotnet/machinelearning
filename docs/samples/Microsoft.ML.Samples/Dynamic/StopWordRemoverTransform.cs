@@ -25,7 +25,7 @@ namespace Microsoft.ML.Samples.Dynamic
 
             // Let's take SentimentText column and break it into vector of words.
             string originalTextColumnName = "Words";
-            var words = ml.Transforms.Text.TokenizeWords("SentimentText", originalTextColumnName);
+            var words = ml.Transforms.Text.TokenizeIntoWords("SentimentText", originalTextColumnName);
 
             // Default pipeline will apply default stop word remover which is based on predifined set of words for certain languages.
             var defaultPipeline = words.Append(ml.Transforms.Text.RemoveDefaultStopWords(originalTextColumnName, "DefaultRemover"));

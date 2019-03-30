@@ -4,7 +4,6 @@
 
 using System.Collections.Generic;
 using System.Linq;
-using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
@@ -26,7 +25,7 @@ using Microsoft.ML.Transforms.TimeSeries;
 namespace Microsoft.ML.Transforms.TimeSeries
 {
     /// <summary>
-    /// This class implements the spike detector transform for an i.i.d. sequence based on adaptive kernel density estimation.
+    /// <see cref="ITransformer"/> produced by fitting the <see cref="IDataView"/> to an <see cref="IidSpikeEstimator" />.
     /// </summary>
     public sealed class IidSpikeDetector : IidAnomalyDetectionBaseWrapper, IStatefulTransformer
     {
@@ -172,16 +171,10 @@ namespace Microsoft.ML.Transforms.TimeSeries
     }
 
     /// <summary>
-    /// Estimator for <see cref="IidSpikeDetector"/>
+    /// The <see cref="IEstimator{ITransformer}"/> for detecting a signal spike on an
+    /// <a href="https://en.wikipedia.org/wiki/Independent_and_identically_distributed_random_variables"> independent identically distributed (i.i.d.)</a> time series.
+    /// Detection is based on adaptive kernel density estimation.
     /// </summary>
-    /// <p>Example code can be found by searching for <i>IidSpikeDetector</i> in <a href='https://github.com/dotnet/machinelearning'>ML.NET.</a></p>
-    /// <example>
-    /// <format type="text/markdown">
-    /// <![CDATA[
-    /// [!code-csharp[MF](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/IidSpikeDetectorTransform.cs)]
-    /// ]]>
-    /// </format>
-    /// </example>
     public sealed class IidSpikeEstimator : TrivialEstimator<IidSpikeDetector>
     {
         /// <summary>
@@ -223,7 +216,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
             if (!inputSchema.TryFindColumn(Transformer.InternalTransform.InputColumnName, out var col))
                 throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", Transformer.InternalTransform.InputColumnName);
             if (col.ItemType != NumberDataViewType.Single)
-                throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", Transformer.InternalTransform.InputColumnName, "float", col.GetTypeString());
+                throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", Transformer.InternalTransform.InputColumnName, "Single", col.GetTypeString());
 
             var metadata = new List<SchemaShape.Column>() {
                 new SchemaShape.Column(AnnotationUtils.Kinds.SlotNames, SchemaShape.Column.VectorKind.Vector, TextDataViewType.Instance, false)

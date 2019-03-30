@@ -6,7 +6,6 @@ using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using System.Security;
-using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.Calibrators;
 using Microsoft.ML.CommandLine;
@@ -20,20 +19,20 @@ using Microsoft.ML.Runtime;
 using Microsoft.ML.Trainers;
 using Microsoft.ML.Transforms;
 
-[assembly: LoadableClass(typeof(SymbolicStochasticGradientDescentClassificationTrainer), typeof(SymbolicStochasticGradientDescentClassificationTrainer.Options),
+[assembly: LoadableClass(typeof(SymbolicSgdLogisticRegressionBinaryTrainer), typeof(SymbolicSgdLogisticRegressionBinaryTrainer.Options),
     new[] { typeof(SignatureBinaryClassifierTrainer), typeof(SignatureTrainer), typeof(SignatureFeatureScorerTrainer) },
-    SymbolicStochasticGradientDescentClassificationTrainer.UserNameValue,
-    SymbolicStochasticGradientDescentClassificationTrainer.LoadNameValue,
-    SymbolicStochasticGradientDescentClassificationTrainer.ShortName)]
+    SymbolicSgdLogisticRegressionBinaryTrainer.UserNameValue,
+    SymbolicSgdLogisticRegressionBinaryTrainer.LoadNameValue,
+    SymbolicSgdLogisticRegressionBinaryTrainer.ShortName)]
 
-[assembly: LoadableClass(typeof(void), typeof(SymbolicStochasticGradientDescentClassificationTrainer), null, typeof(SignatureEntryPointModule), SymbolicStochasticGradientDescentClassificationTrainer.LoadNameValue)]
+[assembly: LoadableClass(typeof(void), typeof(SymbolicSgdLogisticRegressionBinaryTrainer), null, typeof(SignatureEntryPointModule), SymbolicSgdLogisticRegressionBinaryTrainer.LoadNameValue)]
 
 namespace Microsoft.ML.Trainers
 {
     using TPredictor = CalibratedModelParametersBase<LinearBinaryModelParameters, PlattCalibrator>;
 
     /// <include file='doc.xml' path='doc/members/member[@name="SymSGD"]/*' />
-    public sealed class SymbolicStochasticGradientDescentClassificationTrainer : TrainerEstimatorBase<BinaryPredictionTransformer<TPredictor>, TPredictor>
+    public sealed class SymbolicSgdLogisticRegressionBinaryTrainer : TrainerEstimatorBase<BinaryPredictionTransformer<TPredictor>, TPredictor>
     {
         internal const string LoadNameValue = "SymbolicSGD";
         internal const string UserNameValue = "Symbolic SGD (binary)";
@@ -44,7 +43,7 @@ namespace Microsoft.ML.Trainers
         {
             /// <summary>
             /// Degree of lock-free parallelism. Determinism not guaranteed if this is set to higher than 1.
-            /// Multi-threading is not supported currently.
+            /// The default value is the number of logical cores that are available on the system.
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Degree of lock-free parallelism. Determinism not guaranteed. " +
                 "Multi-threading is not supported currently.", ShortName = "nt")]
@@ -171,7 +170,7 @@ namespace Microsoft.ML.Trainers
             if (examples.Schema.Weight.HasValue)
                 ch.Assert(examplesToFeedTrain.Schema.Weight.HasValue);
 
-            ch.Check(examplesToFeedTrain.Schema.Feature.Value.Type is VectorType vecType && vecType.Size > 0, "Training set has no features, aborting training.");
+            ch.Check(examplesToFeedTrain.Schema.Feature.Value.Type is VectorDataViewType vecType && vecType.Size > 0, "Training set has no features, aborting training.");
             return examplesToFeedTrain;
         }
 
@@ -196,9 +195,9 @@ namespace Microsoft.ML.Trainers
         private protected override PredictionKind PredictionKind => PredictionKind.BinaryClassification;
 
         /// <summary>
-        /// Initializes a new instance of <see cref="SymbolicStochasticGradientDescentClassificationTrainer"/>
+        /// Initializes a new instance of <see cref="SymbolicSgdLogisticRegressionBinaryTrainer"/>
         /// </summary>
-        internal SymbolicStochasticGradientDescentClassificationTrainer(IHostEnvironment env, Options options)
+        internal SymbolicSgdLogisticRegressionBinaryTrainer(IHostEnvironment env, Options options)
             : base(Contracts.CheckRef(env, nameof(env)).Register(LoadNameValue), TrainerUtils.MakeR4VecFeature(options.FeatureColumnName),
                   TrainerUtils.MakeBoolScalarLabel(options.LabelColumnName))
         {
@@ -224,7 +223,7 @@ namespace Microsoft.ML.Trainers
              => new BinaryPredictionTransformer<TPredictor>(Host, model, trainSchema, FeatureColumn.Name);
 
         /// <summary>
-        /// Continues the training of <see cref="SymbolicStochasticGradientDescentClassificationTrainer"/> using an already trained <paramref name="modelParameters"/>
+        /// Continues the training of <see cref="SymbolicSgdLogisticRegressionBinaryTrainer"/> using an already trained <paramref name="modelParameters"/>
         /// a <see cref="BinaryPredictionTransformer"/>.
         /// </summary>
         public BinaryPredictionTransformer<TPredictor> Fit(IDataView trainData, LinearModelParameters modelParameters)
@@ -242,8 +241,8 @@ namespace Microsoft.ML.Trainers
 
         [TlcModule.EntryPoint(Name = "Trainers.SymSgdBinaryClassifier",
             Desc = "Train a symbolic SGD.",
-            UserName = SymbolicStochasticGradientDescentClassificationTrainer.UserNameValue,
-            ShortName = SymbolicStochasticGradientDescentClassificationTrainer.ShortName)]
+            UserName = SymbolicSgdLogisticRegressionBinaryTrainer.UserNameValue,
+            ShortName = SymbolicSgdLogisticRegressionBinaryTrainer.ShortName)]
         internal static CommonOutputs.BinaryClassificationOutput TrainSymSgd(IHostEnvironment env, Options options)
         {
             Contracts.CheckValue(env, nameof(env));
@@ -252,7 +251,7 @@ namespace Microsoft.ML.Trainers
             EntryPointUtils.CheckInputArgs(host, options);
 
             return TrainerEntryPointsUtils.Train<Options, CommonOutputs.BinaryClassificationOutput>(host, options,
-                () => new SymbolicStochasticGradientDescentClassificationTrainer(host, options),
+                () => new SymbolicSgdLogisticRegressionBinaryTrainer(host, options),
                 () => TrainerEntryPointsUtils.FindColumn(host, options.TrainingData.Schema, options.LabelColumnName));
         }
 
@@ -325,7 +324,7 @@ namespace Microsoft.ML.Trainers
             // giving an array, we are at _storage[_storageIndex][_indexInCurArray].
             private int _indexInCurArray;
             // This is used to access AccelMemBudget, AccelChunkSize and UsedMemory
-            private readonly SymbolicStochasticGradientDescentClassificationTrainer _trainer;
+            private readonly SymbolicSgdLogisticRegressionBinaryTrainer _trainer;
 
             private readonly IChannel _ch;
 
@@ -337,7 +336,7 @@ namespace Microsoft.ML.Trainers
             /// </summary>
             /// <param name="trainer"></param>
             /// <param name="ch"></param>
-            public ArrayManager(SymbolicStochasticGradientDescentClassificationTrainer trainer, IChannel ch)
+            public ArrayManager(SymbolicSgdLogisticRegressionBinaryTrainer trainer, IChannel ch)
             {
                 _storage = new List<VeryLongArray>();
                 // Setting the default value to 2^17.
@@ -501,7 +500,7 @@ namespace Microsoft.ML.Trainers
             // This is the index to go over the instances in instanceProperties
             private int _instanceIndex;
             // This is used to access AccelMemBudget, AccelChunkSize and UsedMemory
-            private readonly SymbolicStochasticGradientDescentClassificationTrainer _trainer;
+            private readonly SymbolicSgdLogisticRegressionBinaryTrainer _trainer;
             private readonly IChannel _ch;
 
             // Whether memorySize was big enough to load the entire instances into the buffer
@@ -512,7 +511,7 @@ namespace Microsoft.ML.Trainers
             // Tells if we have gone through the dataset entirely.
             public bool FinishedTheLoad => !_cursorMoveNext;
 
-            public InputDataManager(SymbolicStochasticGradientDescentClassificationTrainer trainer, FloatLabelCursor.Factory cursorFactory, IChannel ch)
+            public InputDataManager(SymbolicSgdLogisticRegressionBinaryTrainer trainer, FloatLabelCursor.Factory cursorFactory, IChannel ch)
             {
                 _instIndices = new ArrayManager<int>(trainer, ch);
                 _instValues = new ArrayManager<float>(trainer, ch);
@@ -663,7 +662,8 @@ namespace Microsoft.ML.Trainers
         {
             int numFeatures = data.Schema.Feature.Value.Type.GetVectorSize();
             var cursorFactory = new FloatLabelCursor.Factory(data, CursOpt.Label | CursOpt.Features);
-            int numThreads = 1;
+            int numThreads = _options.NumberOfThreads ?? Environment.ProcessorCount;
+
             ch.CheckUserArg(numThreads > 0, nameof(_options.NumberOfThreads),
                 "The number of threads must be either null or a positive integer.");
 

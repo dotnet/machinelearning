@@ -1,11 +1,10 @@
-﻿using Microsoft.ML.LightGBM;
-using static Microsoft.ML.LightGBM.Options;
+﻿﻿using Microsoft.ML.Trainers.LightGbm;
 
 namespace Microsoft.ML.Samples.Dynamic.Trainers.BinaryClassification
 {
     class LightGbmWithOptions
     {
-        // This example requires installation of additional nuget package <a href="https://www.nuget.org/packages/Microsoft.ML.LightGBM/">Microsoft.ML.LightGBM</a>.
+        // This example requires installation of additional nuget package <a href="https://www.nuget.org/packages/Microsoft.ML.LightGbm/">Microsoft.ML.LightGbm</a>.
         public static void Example()
         {
             // Creating the ML.Net IHostEnvironment object, needed for the pipeline
@@ -19,7 +18,7 @@ namespace Microsoft.ML.Samples.Dynamic.Trainers.BinaryClassification
 
             // Create the pipeline with LightGbm Estimator using advanced options.
             var pipeline = mlContext.BinaryClassification.Trainers.LightGbm(
-                                new Options
+                                new LightGbmBinaryTrainer.Options
                                 {
                                     Booster = new GossBooster.Options
                                     {

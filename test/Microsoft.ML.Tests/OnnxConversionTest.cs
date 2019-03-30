@@ -9,7 +9,6 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
 using Google.Protobuf;
-using Microsoft.Data.DataView;
 using Microsoft.ML.Data;
 using Microsoft.ML.Model.OnnxConverter;
 using Microsoft.ML.RunTests;
@@ -18,6 +17,7 @@ using Microsoft.ML.TestFramework.Attributes;
 using Microsoft.ML.Tools;
 using Microsoft.ML.Trainers;
 using Microsoft.ML.Transforms;
+using Microsoft.ML.Transforms.Onnx;
 using Newtonsoft.Json;
 using Xunit;
 using Xunit.Abstractions;
@@ -59,7 +59,7 @@ namespace Microsoft.ML.Tests
             var dynamicPipeline =
                 mlContext.Transforms.Normalize("FeatureVector")
                 .AppendCacheCheckpoint(mlContext)
-                .Append(mlContext.Regression.Trainers.StochasticDualCoordinateAscent(new SdcaRegressionTrainer.Options() {
+                .Append(mlContext.Regression.Trainers.Sdca(new SdcaRegressionTrainer.Options() {
                     LabelColumnName = "Target",
                     FeatureColumnName = "FeatureVector",
                     NumberOfThreads = 1
@@ -78,7 +78,7 @@ namespace Microsoft.ML.Tests
                 // Step 3: Evaluate the saved ONNX model using the data used to train the ML.NET pipeline.
                 string[] inputNames = onnxModel.Graph.Input.Select(valueInfoProto => valueInfoProto.Name).ToArray();
                 string[] outputNames = onnxModel.Graph.Output.Select(valueInfoProto => valueInfoProto.Name).ToArray();
-                var onnxEstimator = mlContext.Transforms.ApplyOnnxModel(onnxModelPath, outputNames, inputNames);
+                var onnxEstimator = mlContext.Transforms.ApplyOnnxModel(outputNames, inputNames, onnxModelPath);
                 var onnxTransformer = onnxEstimator.Fit(data);
                 var onnxResult = onnxTransformer.Transform(data);
 
@@ -138,13 +138,13 @@ namespace Microsoft.ML.Tests
                 hasHeader: true);
 
             var pipeline = mlContext.Transforms.Normalize("Features").
-                Append(mlContext.Clustering.Trainers.KMeans(new Trainers.KMeansPlusPlusTrainer.Options
+                Append(mlContext.Clustering.Trainers.KMeans(new Trainers.KMeansTrainer.Options
                 {
                     FeatureColumnName = DefaultColumnNames.Features,
                     MaximumNumberOfIterations = 1,
                     NumberOfClusters = 4,
                     NumberOfThreads = 1,
-                    InitializationAlgorithm = Trainers.KMeansPlusPlusTrainer.InitializationAlgorithm.Random
+                    InitializationAlgorithm = Trainers.KMeansTrainer.InitializationAlgorithm.Random
                 }));
 
             var model = pipeline.Fit(data);
@@ -162,7 +162,7 @@ namespace Microsoft.ML.Tests
                 // Evaluate the saved ONNX model using the data used to train the ML.NET pipeline.
                 string[] inputNames = onnxModel.Graph.Input.Select(valueInfoProto => valueInfoProto.Name).ToArray();
                 string[] outputNames = onnxModel.Graph.Output.Select(valueInfoProto => valueInfoProto.Name).ToArray();
-                var onnxEstimator = mlContext.Transforms.ApplyOnnxModel(onnxModelPath, outputNames, inputNames);
+                var onnxEstimator = mlContext.Transforms.ApplyOnnxModel(outputNames, inputNames, onnxModelPath);
                 var onnxTransformer = onnxEstimator.Fit(data);
                 var onnxResult = onnxTransformer.Transform(data);
                 CompareSelectedR4VectorColumns("Score", "Score0", transformedData, onnxResult, 3);
@@ -215,7 +215,7 @@ namespace Microsoft.ML.Tests
                 separatorChar: '\t',
                 hasHeader: true);
 
-            var pipeline = mlContext.Transforms.Categorical.OneHotEncoding("F2", "F2", Transforms.OneHotEncodingTransformer.OutputKind.Bag)
+            var pipeline = mlContext.Transforms.Categorical.OneHotEncoding("F2", "F2", Transforms.OneHotEncodingEstimator.OutputKind.Bag)
             .Append(mlContext.Transforms.ReplaceMissingValues(new MissingValueReplacingEstimator.ColumnOptions("F2")))
             .Append(mlContext.Transforms.Concatenate("Features", "F1", "F2"))
             .Append(mlContext.BinaryClassification.Trainers.FastTree(labelColumnName: "Label", featureColumnName: "Features", numberOfLeaves: 2, numberOfTrees: 1, minimumExampleCountPerLeaf: 2));
@@ -317,7 +317,7 @@ namespace Microsoft.ML.Tests
             var dynamicPipeline =
                 mlContext.Transforms.Normalize("FeatureVector")
                 .AppendCacheCheckpoint(mlContext)
-                .Append(mlContext.Regression.Trainers.StochasticDualCoordinateAscent(new SdcaRegressionTrainer.Options() {
+                .Append(mlContext.Regression.Trainers.Sdca(new SdcaRegressionTrainer.Options() {
                     LabelColumnName = "Target",
                     FeatureColumnName = "FeatureVector",
                     NumberOfThreads = 1
@@ -385,7 +385,7 @@ namespace Microsoft.ML.Tests
 
             var pipeline = mlContext.Transforms.Normalize("Features").
                 Append(mlContext.Transforms.Conversion.MapValueToKey("Label")).
-                Append(mlContext.MulticlassClassification.Trainers.LogisticRegression(new MulticlassLogisticRegression.Options() { NumberOfThreads = 1 }));
+                Append(mlContext.MulticlassClassification.Trainers.LbfgsMaximumEntropy(new LbfgsMaximumEntropyMulticlassTrainer.Options() { NumberOfThreads = 1 }));
 
             var model = pipeline.Fit(data);
             var transformedData = model.Transform(data);
@@ -413,7 +413,7 @@ namespace Microsoft.ML.Tests
                 separatorChar: '\t',
                 hasHeader: true);
 
-            var pipeline = mlContext.Transforms.Categorical.OneHotEncoding("F2", "F2", Transforms.OneHotEncodingTransformer.OutputKind.Bag)
+            var pipeline = mlContext.Transforms.Categorical.OneHotEncoding("F2", "F2", Transforms.OneHotEncodingEstimator.OutputKind.Bag)
             .Append(mlContext.Transforms.ReplaceMissingValues(new MissingValueReplacingEstimator.ColumnOptions("F2")))
             .Append(mlContext.Transforms.Concatenate("Features", "F1", "F2"))
             .Append(mlContext.Transforms.Normalize("Features"))

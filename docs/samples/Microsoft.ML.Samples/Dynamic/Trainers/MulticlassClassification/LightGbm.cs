@@ -7,7 +7,7 @@ namespace Microsoft.ML.Samples.Dynamic.Trainers.MulticlassClassification
 {
     public static class LightGbm
     {
-        // This example requires installation of additional nuget package <a href="https://www.nuget.org/packages/Microsoft.ML.LightGBM/">Microsoft.ML.LightGBM</a>.
+        // This example requires installation of additional nuget package <a href="https://www.nuget.org/packages/Microsoft.ML.LightGbm/">Microsoft.ML.LightGbm</a>.
         public static void Example()
         {
             // Create a general context for ML.NET operations. It can be used for exception tracking and logging,
@@ -46,7 +46,7 @@ namespace Microsoft.ML.Samples.Dynamic.Trainers.MulticlassClassification
             var dataWithPredictions = model.Transform(split.TestSet);
 
             // Evaluate the trained model using the test set.
-            var metrics = mlContext.MulticlassClassification.Evaluate(dataWithPredictions, label: "LabelIndex");
+            var metrics = mlContext.MulticlassClassification.Evaluate(dataWithPredictions, labelColumnName: "LabelIndex");
 
             // Check if metrics are reasonable.
             Console.WriteLine($"Macro accuracy: {metrics.MacroAccuracy:F4}, Micro accuracy: {metrics.MicroAccuracy:F4}.");

@@ -244,7 +244,7 @@ We tried to make `Preview` debugger-friendly: our expectation is that, if you en
 Here is the code sample:
 ```csharp
 var estimator = mlContext.Transforms.Categorical.MapValueToKey("Label")
-    .Append(mlContext.MulticlassClassification.Trainers.StochasticDualCoordinateAscent())
+    .Append(mlContext.MulticlassClassification.Trainers.SdcaCalibrated())
     .Append(mlContext.Transforms.Conversion.MapKeyToValue("PredictedLabel"));
 
 var data = mlContext.Data.LoadFromTextFile(new TextLoader.Column[] {
@@ -355,7 +355,7 @@ var pipeline =
     // once so adding a caching step before it is not helpful.
     .AppendCacheCheckpoint(mlContext)
     // Add the SDCA regression trainer.
-    .Append(mlContext.Regression.Trainers.StochasticDualCoordinateAscent(labelColumnName: "Target", featureColumnName: "FeatureVector"));
+    .Append(mlContext.Regression.Trainers.Sdca(labelColumnName: "Target", featureColumnName: "FeatureVector"));
 
 // Step three. Fit the pipeline to the training data.
 var model = pipeline.Fit(trainData);
@@ -376,26 +376,25 @@ var testData = mlContext.Data.LoadFromTextFile<AdultData>(testDataPath,
     separatorChar: ','
 );
 // Calculate metrics of the model on the test data.
-var metrics = mlContext.Regression.Evaluate(model.Transform(testData), label: "Target");
+var metrics = mlContext.Regression.Evaluate(model.Transform(testData), labelColumnName: "Target");
 ```
 
 ## How do I save and load the model?
 
 Assuming that the model metrics look good to you, it's time to 'operationalize' the model. This is where ML.NET really shines: the `model` object you just built is ready for immediate consumption, it will apply all the same steps that it has 'learned' during training, and it can be persisted and reused in different environments.
 
-Here's what you do to save the model to a file, and reload it (potentially in a different context).
+Here's what you do to save the model as well as its input schema to a file, and reload it (potentially in a different context).
 
 ```csharp
-using (var stream = File.Create(modelPath))
-{
-    mlContext.Model.Save(model, stream);
-}
+// Saving and loading happens to transformers. We save the input schema with this model.
+mlContext.Model.Save(model, trainData.Schema, modelPath);
 
 // Potentially, the lines below can be in a different process altogether.
-ITransformer loadedModel;
-using (var stream = File.OpenRead(modelPath))
-    loadedModel = mlContext.Model.Load(stream);
+// When you load the model, it's a non-specific ITransformer. We also recover
+// the original schema.
+ITransformer loadedModel = mlContext.Model.Load(modelPath, out var schema);
 ```
+
 ## How do I use the model to make one prediction?
 
 Since any ML.NET model is a transformer, you can of course use `model.Transform` to apply the model to the 'data view' and obtain predictions this way. 
@@ -423,9 +422,9 @@ var pipeline =
     // Cache data in memory for steps after the cache check point stage.
     .AppendCacheCheckpoint(mlContext)
     // Use the multi-class SDCA model to predict the label using features.
-    .Append(mlContext.MulticlassClassification.Trainers.StochasticDualCoordinateAscent())
+    .Append(mlContext.MulticlassClassification.Trainers.SdcaCalibrated())
     // Apply the inverse conversion from 'PredictedLabel' column back to string value.
-    .Append(mlContext.Transforms.Conversion.MapKeyToValue(("PredictedLabel", "Data")));
+    .Append(mlContext.Transforms.Conversion.MapKeyToValue("Data", "PredictedLabel"));
 
 // Train the model.
 var model = pipeline.Fit(trainData);
@@ -512,7 +511,7 @@ var pipeline =
     // Convert each categorical feature into one-hot encoding independently.
     mlContext.Transforms.Categorical.OneHotEncoding("CategoricalOneHot", "CategoricalFeatures")
     // Convert all categorical features into indices, and build a 'word bag' of these.
-    .Append(mlContext.Transforms.Categorical.OneHotEncoding("CategoricalBag", "CategoricalFeatures", OneHotEncodingTransformer.OutputKind.Bag))
+    .Append(mlContext.Transforms.Categorical.OneHotEncoding("CategoricalBag", "CategoricalFeatures", OneHotEncodingEstimator.OutputKind.Bag))
     // One-hot encode the workclass column, then drop all the categories that have fewer than 10 instances in the train set.
     .Append(mlContext.Transforms.Categorical.OneHotEncoding("WorkclassOneHot", "Workclass"))
     .Append(mlContext.Transforms.FeatureSelection.SelectFeaturesBasedOnCount("WorkclassOneHotTrimmed", "WorkclassOneHot", count: 10));
@@ -547,13 +546,13 @@ var pipeline =
     // Cache data in memory for steps after the cache check point stage.
     .AppendCacheCheckpoint(mlContext)
     // Use the multi-class SDCA model to predict the label using features.
-    .Append(mlContext.MulticlassClassification.Trainers.StochasticDualCoordinateAscent());
+    .Append(mlContext.MulticlassClassification.Trainers.SdcaCalibrated());
 
 // Train the model.
 var trainedModel = pipeline.Fit(trainData);
 
 // Inspect the model parameters. 
-var modelParameters = trainedModel.LastTransformer.Model as MulticlassLogisticRegressionModelParameters;
+var modelParameters = trainedModel.LastTransformer.Model as MaximumEntropyModelParameters;
 
 // Now we can use 'modelParameters' to look at the weights.
 // 'weights' will be an array of weight vectors, one vector per class.
@@ -595,7 +594,7 @@ As a general rule, *if you use a parametric learner, you need to make sure your 
 
 ML.NET offers several built-in scaling algorithms, or 'normalizers':
 - MinMax normalizer: for each feature, we learn the minimum and maximum value of it, and then linearly rescale it so that the values fit between -1 and 1.
-- MeanVar normalizer: for each feature, compute the mean and variance, and then linearly rescale it to zero-mean, unit-variance.
+- MeanVariance normalizer: for each feature, compute the mean and variance, and then linearly rescale it to zero-mean, unit-variance.
 - CDF normalizer: for each feature, compute the mean and variance, and then replace each value `x` with `Cdf(x)`, where `Cdf` is the cumulative density function of normal distribution with these mean and variance. 
 - Binning normalizer: discretize the feature value into `N` 'buckets', and then replace each value with the index of the bucket, divided by `N-1`.
 
@@ -630,8 +629,8 @@ var trainData = mlContext.Data.LoadFromTextFile<IrisInputAllFeatures>(dataPath,
 var pipeline =
     mlContext.Transforms.Normalize(
         new NormalizingEstimator.MinMaxColumnOptions("MinMaxNormalized", "Features", fixZero: true),
-        new NormalizingEstimator.MeanVarColumnOptions("MeanVarNormalized", "Features", fixZero: true),
-        new NormalizingEstimator.BinningColumnOptions("BinNormalized", "Features", numBins: 256));
+        new NormalizingEstimator.MeanVarianceColumnOptions("MeanVarNormalized", "Features", fixZero: true),
+        new NormalizingEstimator.BinningColumnOptions("BinNormalized", "Features", maximumBinCount: 256));
 
 // Let's train our pipeline of normalizers, and then apply it to the same data.
 var normalizedData = pipeline.Fit(trainData).Transform(trainData);
@@ -772,15 +771,15 @@ var pipeline =
 
     // NLP pipeline 2: bag of bigrams, using hashes instead of dictionary indices.
     .Append(new WordHashBagEstimator(mlContext, "BagOfBigrams","NormalizedMessage", 
-                ngramLength: 2, allLengths: false))
+                ngramLength: 2, useAllLengths: false))
 
     // NLP pipeline 3: bag of tri-character sequences with TF-IDF weighting.
-    .Append(mlContext.Transforms.Text.TokenizeCharacters("MessageChars", "Message"))
+    .Append(mlContext.Transforms.Text.ProduceCharactersAsKeys("MessageChars", "Message"))
     .Append(new NgramExtractingEstimator(mlContext, "BagOfTrichar", "MessageChars", 
                 ngramLength: 3, weighting: NgramExtractingEstimator.WeightingCriteria.TfIdf))
 
     // NLP pipeline 4: word embeddings.
-    .Append(mlContext.Transforms.Text.TokenizeWords("TokenizedMessage", "NormalizedMessage"))
+    .Append(mlContext.Transforms.Text.ProduceWordTokens("TokenizedMessage", "NormalizedMessage"))
     .Append(mlContext.Transforms.Text.ExtractWordEmbeddings("Embeddings", "TokenizedMessage",
                 WordEmbeddingsExtractingEstimator.PretrainedModelKind.SentimentSpecificWordEmbedding));
 
@@ -822,7 +821,7 @@ var pipeline =
     // Notice that unused part in the data may not be cached.
     .AppendCacheCheckpoint(mlContext)
     // Use the multi-class SDCA model to predict the label using features.
-    .Append(mlContext.MulticlassClassification.Trainers.StochasticDualCoordinateAscent());
+    .Append(mlContext.MulticlassClassification.Trainers.SdcaCalibrated());
 
 // Split the data 90:10 into train and test sets, train and evaluate.
 var split = mlContext.Data.TrainTestSplit(data, testFraction: 0.1);
@@ -1018,7 +1017,5 @@ using (var fs = File.Create(modelPath))
 newContext.ComponentCatalog.RegisterAssembly(typeof(CustomMappings).Assembly);
 
 // Now we can load the model.
-ITransformer loadedModel;
-using (var fs = File.OpenRead(modelPath))
-    loadedModel = newContext.Model.Load(fs);
+ITransformer loadedModel = newContext.Model.Load(modelPath, out var schema);
 ```

@@ -56,7 +56,7 @@ namespace Microsoft.ML.Tests.Transformers
             dataView = reader.Load(dataSource).AsDynamic;
 
             var pipeVariations = new TextNormalizingEstimator(ML, columns: new[] { ("NormText", "text") }).Append(
-                                new TextNormalizingEstimator(ML, textCase: TextNormalizingEstimator.CaseNormalizationMode.Upper, columns: new[] { ("UpperText", "text") })).Append(
+                                new TextNormalizingEstimator(ML, caseMode: TextNormalizingEstimator.CaseMode.Upper, columns: new[] { ("UpperText", "text") })).Append(
                                 new TextNormalizingEstimator(ML, keepDiacritics: true, columns: new[] { ("WithDiacriticsText", "text") })).Append(
                                 new TextNormalizingEstimator(ML, keepNumbers: false, columns: new[] { ("NoNumberText", "text") })).Append(
                                 new TextNormalizingEstimator(ML, keepPunctuations: false, columns: new[] { ("NoPuncText", "text") }));

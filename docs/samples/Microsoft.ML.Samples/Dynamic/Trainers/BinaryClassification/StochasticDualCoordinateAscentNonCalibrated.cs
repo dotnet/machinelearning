@@ -9,7 +9,7 @@ namespace Microsoft.ML.Samples.Dynamic.Trainers.BinaryClassification
         public static void Example()
         {
             // Generate IEnumerable<BinaryLabelFloatFeatureVectorSample> as training examples.
-            var rawData = SamplesUtils.DatasetUtils.GenerateBinaryLabelFloatFeatureVectorSamples(100);
+            var rawData = SamplesUtils.DatasetUtils.GenerateBinaryLabelFloatFeatureVectorFloatWeightSamples(100);
 
             // Information in first example.
             // Label: true
@@ -40,8 +40,8 @@ namespace Microsoft.ML.Samples.Dynamic.Trainers.BinaryClassification
 
             // Step 2: Create a binary classifier. This trainer may produce a logistic regression model.
             // We set the "Label" column as the label of the dataset, and the "Features" column as the features column.
-            var pipeline = mlContext.BinaryClassification.Trainers.StochasticDualCoordinateAscentNonCalibrated(
-                labelColumnName: "Label", featureColumnName: "Features", loss: new HingeLoss(), l2Regularization: 0.001f);
+            var pipeline = mlContext.BinaryClassification.Trainers.SdcaNonCalibrated(
+                labelColumnName: "Label", featureColumnName: "Features", lossFunction: new HingeLoss(), l2Regularization: 0.001f);
 
             // Step 3: Train the pipeline created.
             var model = pipeline.Fit(data);

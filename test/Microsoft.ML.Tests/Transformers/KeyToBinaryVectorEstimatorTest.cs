@@ -5,7 +5,6 @@
 using System;
 using System.IO;
 using System.Linq;
-using Microsoft.Data.DataView;
 using Microsoft.ML.Data;
 using Microsoft.ML.Model;
 using Microsoft.ML.RunTests;
@@ -49,10 +48,10 @@ namespace Microsoft.ML.Tests.Transformers
             dataView = new ValueToKeyMappingEstimator(Env, new[]{
                     new ValueToKeyMappingEstimator.ColumnOptions("TermA", "A"),
                     new ValueToKeyMappingEstimator.ColumnOptions("TermB", "B"),
-                    new ValueToKeyMappingEstimator.ColumnOptions("TermC", "C", textKeyValues:true)
+                    new ValueToKeyMappingEstimator.ColumnOptions("TermC", "C", addKeyValueAnnotationsAsText:true)
                 }).Fit(dataView).Transform(dataView);
 
-            var pipe = ML.Transforms.Conversion.MapKeyToBinaryVector(("CatA", "TermA"), ("CatC", "TermC"));
+            var pipe = ML.Transforms.Conversion.MapKeyToBinaryVector(new[] { new InputOutputColumnPair("CatA", "TermA"), new InputOutputColumnPair("CatC", "TermC") });
             TestEstimatorCore(pipe, dataView);
             Done();
         }
@@ -99,14 +98,19 @@ namespace Microsoft.ML.Tests.Transformers
 
             var dataView = ML.Data.LoadFromEnumerable(data);
             var termEst = new ValueToKeyMappingEstimator(Env, new[] {
-                new ValueToKeyMappingEstimator.ColumnOptions("TA", "A", textKeyValues: true),
-                new ValueToKeyMappingEstimator.ColumnOptions("TB", "B", textKeyValues: true),
+                new ValueToKeyMappingEstimator.ColumnOptions("TA", "A", addKeyValueAnnotationsAsText: true),
+                new ValueToKeyMappingEstimator.ColumnOptions("TB", "B", addKeyValueAnnotationsAsText: true),
                 new ValueToKeyMappingEstimator.ColumnOptions("TC", "C"),
                 new ValueToKeyMappingEstimator.ColumnOptions("TD", "D") });
             var termTransformer = termEst.Fit(dataView);
             dataView = termTransformer.Transform(dataView);
 
-            var pipe = ML.Transforms.Conversion.MapKeyToBinaryVector(("CatA", "TA"), ("CatB", "TB"), ("CatC", "TC"), ("CatD", "TD"));
+            var pipe = ML.Transforms.Conversion.MapKeyToBinaryVector(new[] {
+                new InputOutputColumnPair("CatA", "TA"),
+                new InputOutputColumnPair("CatB", "TB"),
+                new InputOutputColumnPair("CatC", "TC"),
+                new InputOutputColumnPair("CatD", "TD")
+            });
 
             var result = pipe.Fit(dataView).Transform(dataView);
             ValidateMetadata(result);
@@ -151,12 +155,12 @@ namespace Microsoft.ML.Tests.Transformers
             var dataView = ML.Data.LoadFromEnumerable(data);
             var est = new ValueToKeyMappingEstimator(Env, new[]{
                     new ValueToKeyMappingEstimator.ColumnOptions("TermA", "A"),
-                    new ValueToKeyMappingEstimator.ColumnOptions("TermB", "B", textKeyValues:true),
+                    new ValueToKeyMappingEstimator.ColumnOptions("TermB", "B", addKeyValueAnnotationsAsText:true),
                     new ValueToKeyMappingEstimator.ColumnOptions("TermC", "C")
             });
             var transformer = est.Fit(dataView);
             dataView = transformer.Transform(dataView);
-            var pipe = ML.Transforms.Conversion.MapKeyToBinaryVector(("CatA", "TermA"), ("CatB", "TermB"), ("CatC", "TermC"));
+            var pipe = ML.Transforms.Conversion.MapKeyToBinaryVector(new[] { new InputOutputColumnPair("CatA", "TermA"), new InputOutputColumnPair("CatB", "TermB"), new InputOutputColumnPair("CatC", "TermC") });
             var result = pipe.Fit(dataView).Transform(dataView);
             var resultRoles = new RoleMappedData(result);
             using (var ms = new MemoryStream())

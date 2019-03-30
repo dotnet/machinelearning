@@ -167,6 +167,7 @@ namespace Microsoft.ML
 
             // TryLoadModelCore should rewind on failure.
             Contracts.Assert(fp == ent.Stream.Position);
+
             return false;
         }
 

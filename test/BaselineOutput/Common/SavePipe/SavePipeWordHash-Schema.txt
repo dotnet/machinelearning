@@ -1,152 +1,152 @@
 ---- BoundLoader ----
 2 columns:
-  One: Text
-  Two: Text
+  One: String
+  Two: String
 ---- RowToRowMapperTransform ----
 17 columns:
-  One: Text
-  Two: Text
-  _tmp000: Vec<Text>
-  _tmp001: Vec<Text>
-  _tmp002: Vec<Text>
-  _tmp003: Vec<Text>
-  _tmp004: Vec<Text>
-  _tmp005: Vec<Text>
-  _tmp006: Vec<Text>
-  _tmp007: Vec<Text>
-  _tmp008: Vec<Text>
-  _tmp009: Vec<Text>
-  _tmp010: Vec<Text>
-  _tmp011: Vec<Text>
-  _tmp012: Vec<Text>
-  _tmp013: Vec<Text>
-  _tmp014: Vec<Text>
+  One: String
+  Two: String
+  _tmp000: Vector<String>
+  _tmp001: Vector<String>
+  _tmp002: Vector<String>
+  _tmp003: Vector<String>
+  _tmp004: Vector<String>
+  _tmp005: Vector<String>
+  _tmp006: Vector<String>
+  _tmp007: Vector<String>
+  _tmp008: Vector<String>
+  _tmp009: Vector<String>
+  _tmp010: Vector<String>
+  _tmp011: Vector<String>
+  _tmp012: Vector<String>
+  _tmp013: Vector<String>
+  _tmp014: Vector<String>
 ---- RowToRowMapperTransform ----
 32 columns:
-  One: Text
-  Two: Text
-  _tmp000: Vec<Text>
-  _tmp001: Vec<Text>
-  _tmp002: Vec<Text>
-  _tmp003: Vec<Text>
-  _tmp004: Vec<Text>
-  _tmp005: Vec<Text>
-  _tmp006: Vec<Text>
-  _tmp007: Vec<Text>
-  _tmp008: Vec<Text>
-  _tmp009: Vec<Text>
-  _tmp010: Vec<Text>
-  _tmp011: Vec<Text>
-  _tmp012: Vec<Text>
-  _tmp013: Vec<Text>
-  _tmp014: Vec<Text>
-  temp__tmp000_000: Vec<Key<U4, 0-1073741823>>
-  temp__tmp001_000: Vec<Key<U4, 0-1073741823>>
-  temp__tmp002_000: Vec<Key<U4, 0-1073741823>>
-  temp__tmp003_000: Vec<Key<U4, 0-1073741823>>
-  temp__tmp004_000: Vec<Key<U4, 0-1073741823>>
-  temp__tmp005_000: Vec<Key<U4, 0-1073741823>>
-  temp__tmp006_000: Vec<Key<U4, 0-1073741823>>
-  temp__tmp007_000: Vec<Key<U4, 0-1073741823>>
-  temp__tmp008_000: Vec<Key<U4, 0-1073741823>>
-  temp__tmp009_000: Vec<Key<U4, 0-1073741823>>
-  temp__tmp010_000: Vec<Key<U4, 0-1073741823>>
-  temp__tmp011_000: Vec<Key<U4, 0-1073741823>>
-  temp__tmp012_000: Vec<Key<U4, 0-1073741823>>
-  temp__tmp013_000: Vec<Key<U4, 0-1073741823>>
-  temp__tmp014_000: Vec<Key<U4, 0-1073741823>>
+  One: String
+  Two: String
+  _tmp000: Vector<String>
+  _tmp001: Vector<String>
+  _tmp002: Vector<String>
+  _tmp003: Vector<String>
+  _tmp004: Vector<String>
+  _tmp005: Vector<String>
+  _tmp006: Vector<String>
+  _tmp007: Vector<String>
+  _tmp008: Vector<String>
+  _tmp009: Vector<String>
+  _tmp010: Vector<String>
+  _tmp011: Vector<String>
+  _tmp012: Vector<String>
+  _tmp013: Vector<String>
+  _tmp014: Vector<String>
+  temp__tmp000_000: Vector<Key<UInt32, 0-1073741823>>
+  temp__tmp001_000: Vector<Key<UInt32, 0-1073741823>>
+  temp__tmp002_000: Vector<Key<UInt32, 0-1073741823>>
+  temp__tmp003_000: Vector<Key<UInt32, 0-1073741823>>
+  temp__tmp004_000: Vector<Key<UInt32, 0-1073741823>>
+  temp__tmp005_000: Vector<Key<UInt32, 0-1073741823>>
+  temp__tmp006_000: Vector<Key<UInt32, 0-1073741823>>
+  temp__tmp007_000: Vector<Key<UInt32, 0-1073741823>>
+  temp__tmp008_000: Vector<Key<UInt32, 0-1073741823>>
+  temp__tmp009_000: Vector<Key<UInt32, 0-1073741823>>
+  temp__tmp010_000: Vector<Key<UInt32, 0-1073741823>>
+  temp__tmp011_000: Vector<Key<UInt32, 0-1073741823>>
+  temp__tmp012_000: Vector<Key<UInt32, 0-1073741823>>
+  temp__tmp013_000: Vector<Key<UInt32, 0-1073741823>>
+  temp__tmp014_000: Vector<Key<UInt32, 0-1073741823>>
 ---- RowToRowMapperTransform ----
 41 columns:
-  One: Text
-  Two: Text
-  _tmp000: Vec<Text>
-  _tmp001: Vec<Text>
-  _tmp002: Vec<Text>
-  _tmp003: Vec<Text>
-  _tmp004: Vec<Text>
-  _tmp005: Vec<Text>
-  _tmp006: Vec<Text>
-  _tmp007: Vec<Text>
-  _tmp008: Vec<Text>
-  _tmp009: Vec<Text>
-  _tmp010: Vec<Text>
-  _tmp011: Vec<Text>
-  _tmp012: Vec<Text>
-  _tmp013: Vec<Text>
-  _tmp014: Vec<Text>
-  temp__tmp000_000: Vec<Key<U4, 0-1073741823>>
-  temp__tmp001_000: Vec<Key<U4, 0-1073741823>>
-  temp__tmp002_000: Vec<Key<U4, 0-1073741823>>
-  temp__tmp003_000: Vec<Key<U4, 0-1073741823>>
-  temp__tmp004_000: Vec<Key<U4, 0-1073741823>>
-  temp__tmp005_000: Vec<Key<U4, 0-1073741823>>
-  temp__tmp006_000: Vec<Key<U4, 0-1073741823>>
-  temp__tmp007_000: Vec<Key<U4, 0-1073741823>>
-  temp__tmp008_000: Vec<Key<U4, 0-1073741823>>
-  temp__tmp009_000: Vec<Key<U4, 0-1073741823>>
-  temp__tmp010_000: Vec<Key<U4, 0-1073741823>>
-  temp__tmp011_000: Vec<Key<U4, 0-1073741823>>
-  temp__tmp012_000: Vec<Key<U4, 0-1073741823>>
-  temp__tmp013_000: Vec<Key<U4, 0-1073741823>>
-  temp__tmp014_000: Vec<Key<U4, 0-1073741823>>
-  F11: Vec<R4, 32>
-  F12: Vec<R4, 32>
-  F13: Vec<R4, 32768>
-  F21: Vec<R4, 32>
-  F22: Vec<R4, 32>
-  F23: Vec<R4, 32768>
-  F31: Vec<R4, 32>
-  F32: Vec<R4, 32>
-  F33: Vec<R4, 32>
+  One: String
+  Two: String
+  _tmp000: Vector<String>
+  _tmp001: Vector<String>
+  _tmp002: Vector<String>
+  _tmp003: Vector<String>
+  _tmp004: Vector<String>
+  _tmp005: Vector<String>
+  _tmp006: Vector<String>
+  _tmp007: Vector<String>
+  _tmp008: Vector<String>
+  _tmp009: Vector<String>
+  _tmp010: Vector<String>
+  _tmp011: Vector<String>
+  _tmp012: Vector<String>
+  _tmp013: Vector<String>
+  _tmp014: Vector<String>
+  temp__tmp000_000: Vector<Key<UInt32, 0-1073741823>>
+  temp__tmp001_000: Vector<Key<UInt32, 0-1073741823>>
+  temp__tmp002_000: Vector<Key<UInt32, 0-1073741823>>
+  temp__tmp003_000: Vector<Key<UInt32, 0-1073741823>>
+  temp__tmp004_000: Vector<Key<UInt32, 0-1073741823>>
+  temp__tmp005_000: Vector<Key<UInt32, 0-1073741823>>
+  temp__tmp006_000: Vector<Key<UInt32, 0-1073741823>>
+  temp__tmp007_000: Vector<Key<UInt32, 0-1073741823>>
+  temp__tmp008_000: Vector<Key<UInt32, 0-1073741823>>
+  temp__tmp009_000: Vector<Key<UInt32, 0-1073741823>>
+  temp__tmp010_000: Vector<Key<UInt32, 0-1073741823>>
+  temp__tmp011_000: Vector<Key<UInt32, 0-1073741823>>
+  temp__tmp012_000: Vector<Key<UInt32, 0-1073741823>>
+  temp__tmp013_000: Vector<Key<UInt32, 0-1073741823>>
+  temp__tmp014_000: Vector<Key<UInt32, 0-1073741823>>
+  F11: Vector<Single, 32>
+  F12: Vector<Single, 32>
+  F13: Vector<Single, 32768>
+  F21: Vector<Single, 32>
+  F22: Vector<Single, 32>
+  F23: Vector<Single, 32768>
+  F31: Vector<Single, 32>
+  F32: Vector<Single, 32>
+  F33: Vector<Single, 32>
 ---- SelectColumnsDataTransform ----
 26 columns:
-  One: Text
-  Two: Text
-  _tmp000: Vec<Text>
-  _tmp001: Vec<Text>
-  _tmp002: Vec<Text>
-  _tmp003: Vec<Text>
-  _tmp004: Vec<Text>
-  _tmp005: Vec<Text>
-  _tmp006: Vec<Text>
-  _tmp007: Vec<Text>
-  _tmp008: Vec<Text>
-  _tmp009: Vec<Text>
-  _tmp010: Vec<Text>
-  _tmp011: Vec<Text>
-  _tmp012: Vec<Text>
-  _tmp013: Vec<Text>
-  _tmp014: Vec<Text>
-  F11: Vec<R4, 32>
-  F12: Vec<R4, 32>
-  F13: Vec<R4, 32768>
-  F21: Vec<R4, 32>
-  F22: Vec<R4, 32>
-  F23: Vec<R4, 32768>
-  F31: Vec<R4, 32>
-  F32: Vec<R4, 32>
-  F33: Vec<R4, 32>
+  One: String
+  Two: String
+  _tmp000: Vector<String>
+  _tmp001: Vector<String>
+  _tmp002: Vector<String>
+  _tmp003: Vector<String>
+  _tmp004: Vector<String>
+  _tmp005: Vector<String>
+  _tmp006: Vector<String>
+  _tmp007: Vector<String>
+  _tmp008: Vector<String>
+  _tmp009: Vector<String>
+  _tmp010: Vector<String>
+  _tmp011: Vector<String>
+  _tmp012: Vector<String>
+  _tmp013: Vector<String>
+  _tmp014: Vector<String>
+  F11: Vector<Single, 32>
+  F12: Vector<Single, 32>
+  F13: Vector<Single, 32768>
+  F21: Vector<Single, 32>
+  F22: Vector<Single, 32>
+  F23: Vector<Single, 32768>
+  F31: Vector<Single, 32>
+  F32: Vector<Single, 32>
+  F33: Vector<Single, 32>
 ---- SelectColumnsDataTransform ----
 11 columns:
-  One: Text
-  Two: Text
-  F11: Vec<R4, 32>
-  F12: Vec<R4, 32>
-  F13: Vec<R4, 32768>
-  F21: Vec<R4, 32>
-  F22: Vec<R4, 32>
-  F23: Vec<R4, 32768>
-  F31: Vec<R4, 32>
-  F32: Vec<R4, 32>
-  F33: Vec<R4, 32>
+  One: String
+  Two: String
+  F11: Vector<Single, 32>
+  F12: Vector<Single, 32>
+  F13: Vector<Single, 32768>
+  F21: Vector<Single, 32>
+  F22: Vector<Single, 32>
+  F23: Vector<Single, 32768>
+  F31: Vector<Single, 32>
+  F32: Vector<Single, 32>
+  F33: Vector<Single, 32>
 ---- SelectColumnsDataTransform ----
 9 columns:
-  F21: Vec<R4, 32>
-  F22: Vec<R4, 32>
-  F23: Vec<R4, 32768>
-  F31: Vec<R4, 32>
-  F32: Vec<R4, 32>
-  F33: Vec<R4, 32>
-  F11: Vec<R4, 32>
-  F12: Vec<R4, 32>
-  F13: Vec<R4, 32768>
+  F21: Vector<Single, 32>
+  F22: Vector<Single, 32>
+  F23: Vector<Single, 32768>
+  F31: Vector<Single, 32>
+  F32: Vector<Single, 32>
+  F33: Vector<Single, 32>
+  F11: Vector<Single, 32>
+  F12: Vector<Single, 32>
+  F13: Vector<Single, 32768>

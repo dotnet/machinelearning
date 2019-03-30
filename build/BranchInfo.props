@@ -1,7 +1,34 @@
 <Project>
   <PropertyGroup>
+    <StableProjects>
+      Microsoft.ML.DataView;
+      Microsoft.ML.CpuMath;
+      Microsoft.ML;
+      Microsoft.ML.Core;
+      Microsoft.ML.Data;
+      Microsoft.ML.KMeansClustering;
+      Microsoft.ML.PCA;
+      Microsoft.ML.StandardTrainers;
+      Microsoft.ML.Transforms;
+      Microsoft.ML.FastTree;
+      Microsoft.ML.ImageAnalytics;
+      Microsoft.ML.LightGbm;
+      Microsoft.ML.Mkl.Components;
+      Microsoft.ML.Mkl.Redist;
+    </StableProjects>
+    <IsStableProject Condition="'$(MSBuildProjectName.Contains(.symbols))' == 'false'">$(StableProjects.Contains($(MSBuildProjectName)))</IsStableProject>
+    <IsStableProject Condition="'$(MSBuildProjectName.Contains(.symbols))' == 'true'">$(StableProjects.Contains($(MSBuildProjectName.Substring(0, $(MSBuildProjectName.IndexOf(.symbols))))))</IsStableProject>
+    <IsStableProject Condition="'$(UseStableVersionForNativeAssets)' == 'true'">true</IsStableProject>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(IsStableProject)' == 'true'">
+    <MajorVersion>1</MajorVersion>
+    <MinorVersion>1</MinorVersion>
+    <PatchVersion>0</PatchVersion>
+    <PreReleaseLabel>preview</PreReleaseLabel>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(IsStableProject)' != 'true'">
     <MajorVersion>0</MajorVersion>
-    <MinorVersion>12</MinorVersion>
+    <MinorVersion>13</MinorVersion>
     <PatchVersion>0</PatchVersion>
     <PreReleaseLabel>preview</PreReleaseLabel>
   </PropertyGroup>

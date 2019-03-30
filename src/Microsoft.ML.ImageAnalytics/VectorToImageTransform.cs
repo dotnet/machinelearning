@@ -7,14 +7,12 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
 using System.Text;
-using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
-using Microsoft.ML.ImageAnalytics;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Runtime;
-using Microsoft.ML.Transforms;
+using Microsoft.ML.Transforms.Image;
 
 [assembly: LoadableClass(VectorToImageConvertingTransformer.Summary, typeof(IDataTransform), typeof(VectorToImageConvertingTransformer), typeof(VectorToImageConvertingTransformer.Options), typeof(SignatureDataTransform),
     ImagePixelExtractingTransformer.UserName, "VectorToImageTransform", "VectorToImage")]
@@ -28,7 +26,7 @@ using Microsoft.ML.Transforms;
 [assembly: LoadableClass(typeof(IRowMapper), typeof(VectorToImageConvertingTransformer), null, typeof(SignatureLoadRowMapper),
     VectorToImageConvertingTransformer.UserName, VectorToImageConvertingTransformer.LoaderSignature)]
 
-namespace Microsoft.ML.ImageAnalytics
+namespace Microsoft.ML.Transforms.Image
 {
     /// <summary>
     /// <see cref="ITransformer"/> produced by fitting the <see cref="IDataView"/> to an <see cref="VectorToImageConvertingEstimator" /> .
@@ -306,18 +304,18 @@ namespace Microsoft.ML.ImageAnalytics
         private protected override void CheckInputColumn(DataViewSchema inputSchema, int col, int srcCol)
         {
             var inputColName = _columns[col].InputColumnName;
-            var vectorType = inputSchema[srcCol].Type as VectorType;
+            var vectorType = inputSchema[srcCol].Type as VectorDataViewType;
             if (vectorType == null)
                 throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", inputColName, "image", inputSchema[srcCol].Type.ToString());
 
             if (vectorType.GetValueCount() != _columns[col].ImageHeight * _columns[col].ImageWidth * _columns[col].Planes)
-                throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", inputColName, new VectorType(vectorType.ItemType, _columns[col].ImageHeight, _columns[col].ImageWidth, _columns[col].Planes).ToString(), vectorType.ToString());
+                throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", inputColName, new VectorDataViewType(vectorType.ItemType, _columns[col].ImageHeight, _columns[col].ImageWidth, _columns[col].Planes).ToString(), vectorType.ToString());
         }
 
         private sealed class Mapper : OneToOneMapperBase
         {
             private readonly VectorToImageConvertingTransformer _parent;
-            private readonly ImageType[] _types;
+            private readonly ImageDataViewType[] _types;
 
             public Mapper(VectorToImageConvertingTransformer parent, DataViewSchema inputSchema)
                 : base(parent.Host.Register(nameof(Mapper)), parent, inputSchema)
@@ -421,15 +419,15 @@ namespace Microsoft.ML.ImageAnalytics
                     };
             }
 
-            private static ImageType[] ConstructTypes(VectorToImageConvertingEstimator.ColumnOptions[] columns)
+            private static ImageDataViewType[] ConstructTypes(VectorToImageConvertingEstimator.ColumnOptions[] columns)
             {
-                return columns.Select(c => new ImageType(c.ImageHeight, c.ImageWidth)).ToArray();
+                return columns.Select(c => new ImageDataViewType(c.ImageHeight, c.ImageWidth)).ToArray();
             }
         }
     }
 
     /// <summary>
-    /// <see cref="IEstimator{TTransformer}"/> that converts vectors containing pixel representations of images in to<see cref="ImageType"/> representation.
+    /// <see cref="IEstimator{TTransformer}"/> that converts vectors containing pixel representations of images in to<see cref="ImageDataViewType"/> representation.
     /// </summary>
     /// <remarks>
     /// Calling <see cref="IEstimator{TTransformer}.Fit(IDataView)"/> in this estimator, produces an <see cref="VectorToImageConvertingTransformer"/>.
@@ -451,7 +449,8 @@ namespace Microsoft.ML.ImageAnalytics
         /// <summary>
         /// Describes how the transformer handles one vector to image conversion column pair.
         /// </summary>
-        public sealed class ColumnOptions
+        [BestFriend]
+        internal sealed class ColumnOptions
         {
             /// <summary>Name of the column resulting from the transformation of <see cref="InputColumnName"/>.</summary>
             public readonly string Name;
@@ -735,9 +734,9 @@ namespace Microsoft.ML.ImageAnalytics
                 if (!inputSchema.TryFindColumn(colInfo.InputColumnName, out var col))
                     throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.InputColumnName);
                 if (col.Kind != SchemaShape.Column.VectorKind.Vector || (col.ItemType != NumberDataViewType.Single && col.ItemType != NumberDataViewType.Double && col.ItemType != NumberDataViewType.Byte))
-                    throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.InputColumnName, "known-size vector of type float, double or byte", col.GetTypeString());
+                    throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.InputColumnName, "known-size vector of type Single, Double or Byte", col.GetTypeString());
 
-                var itemType = new ImageType(colInfo.ImageHeight, colInfo.ImageWidth);
+                var itemType = new ImageDataViewType(colInfo.ImageHeight, colInfo.ImageWidth);
                 result[colInfo.Name] = new SchemaShape.Column(colInfo.Name, SchemaShape.Column.VectorKind.Scalar, itemType, false);
             }
 

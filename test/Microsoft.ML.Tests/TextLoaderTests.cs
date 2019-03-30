@@ -5,7 +5,6 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using Microsoft.Data.DataView;
 using Microsoft.ML.Data;
 using Microsoft.ML.Model;
 using Microsoft.ML.RunTests;
@@ -590,13 +589,21 @@ namespace Microsoft.ML.EntryPoints.Tests
         public void ThrowsExceptionWithPropertyName()
         {
             var mlContext = new MLContext(seed: 1);
-            try
-            {
-                mlContext.Data.LoadFromTextFile<ModelWithoutColumnAttribute>("fakefile.txt");
-            }
-            // REVIEW: the issue of different exceptions being thrown is tracked under #2037.
-            catch (Xunit.Sdk.TrueException) { }
-            catch (NullReferenceException) { };
+            var ex = Assert.Throws<InvalidOperationException>(() => mlContext.Data.LoadFromTextFile<ModelWithoutColumnAttribute>("fakefile.txt"));
+            Assert.StartsWith($"Field 'String1' is missing the {nameof(LoadColumnAttribute)} attribute", ex.Message);
+        }
+
+        [Fact]
+        public void ParseSchemaFromTextFile()
+        {
+            var mlContext = new MLContext(seed: 1);
+            var fileName = GetDataPath(TestDatasets.adult.trainFilename);
+            var loader = mlContext.Data.CreateTextLoader(new TextLoader.Options(), new MultiFileSource(fileName));
+            var data = loader.Load(new MultiFileSource(fileName));
+            Assert.NotNull(data.Schema.GetColumnOrNull("Label"));
+            Assert.NotNull(data.Schema.GetColumnOrNull("Workclass"));
+            Assert.NotNull(data.Schema.GetColumnOrNull("Categories"));
+            Assert.NotNull(data.Schema.GetColumnOrNull("NumericFeatures"));
         }
 
         public class QuoteInput
@@ -785,7 +792,7 @@ namespace Microsoft.ML.EntryPoints.Tests
             {
                 var result = ModelFileUtils.LoadLoader(mlContext, rep, new MultiFileSource(breastCancerPath), false);
                 Assert.True(result.Schema.TryGetColumnIndex("key", out int featureIdx));
-                Assert.True(result.Schema[featureIdx].Type is KeyType keyType && keyType.Count == typeof(uint).ToMaxInt());
+                Assert.True(result.Schema[featureIdx].Type is KeyDataViewType keyType && keyType.Count == typeof(uint).ToMaxInt());
             }
         }
     }

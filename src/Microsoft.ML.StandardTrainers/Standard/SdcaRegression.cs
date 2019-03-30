@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
@@ -105,13 +104,14 @@ namespace Microsoft.ML.Trainers
         {
             Host.CheckValue(labelColumn, nameof(labelColumn));
             Host.CheckValue(featureColumn, nameof(featureColumn));
+            Host.CheckValueOrNull(weightColumn);
 
             _loss = options.LossFunction ?? options.LossFunctionFactory.CreateComponent(env);
             Loss = _loss;
         }
 
         internal SdcaRegressionTrainer(IHostEnvironment env, Options options)
-            : this(env, options, options.FeatureColumnName, options.LabelColumnName)
+            : this(env, options, options.FeatureColumnName, options.LabelColumnName, options.ExampleWeightColumnName)
         {
         }
 

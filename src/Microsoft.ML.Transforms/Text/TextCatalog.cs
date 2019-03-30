@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Generic;
 using Microsoft.ML.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Transforms.Text;
@@ -23,6 +22,13 @@ namespace Microsoft.ML
         /// <param name="catalog">The text-related transform's catalog.</param>
         /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.</param>
         /// <param name="inputColumnName">Name of the column to transform. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.</param>
+        /// <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        /// [!code-csharp[FeaturizeText](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/Text/FeaturizeText.cs)]
+        /// ]]>
+        /// </format>
+        /// </example>
         public static TextFeaturizingEstimator FeaturizeText(this TransformsCatalog.TextTransforms catalog,
             string outputColumnName,
             string inputColumnName = null)
@@ -39,7 +45,7 @@ namespace Microsoft.ML
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
-        /// [!code-csharp[FeaturizeText](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/TextTransform.cs)]
+        /// [!code-csharp[FeaturizeText](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/Text/FeaturizeTextWithOptions.cs)]
         /// ]]>
         /// </format>
         /// </example>
@@ -56,8 +62,16 @@ namespace Microsoft.ML
         /// <param name="catalog">The text-related transform's catalog.</param>
         /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.</param>
         /// <param name="inputColumnName">Name of the column to transform. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.</param>
-        /// <param name="useMarkerCharacters">Whether to use marker characters to separate words.</param>
-        public static TokenizingByCharactersEstimator TokenizeCharacters(this TransformsCatalog.TextTransforms catalog,
+        /// <param name="useMarkerCharacters">Whether to prepend a marker character, <see langword="0x02"/>, to the beginning,
+        /// and append another marker character, <see langword="0x03"/>, to the end of the output vector of characters.</param>
+        /// <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        /// [!code-csharp[TokenizeIntoCharacters](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/Text/TokenizeIntoCharactersAsKeys.cs)]
+        /// ]]>
+        /// </format>
+        /// </example>
+        public static TokenizingByCharactersEstimator TokenizeIntoCharactersAsKeys(this TransformsCatalog.TextTransforms catalog,
             string outputColumnName,
             string inputColumnName = null,
             bool useMarkerCharacters = CharTokenizingDefaults.UseMarkerCharacters)
@@ -68,13 +82,19 @@ namespace Microsoft.ML
         /// Tokenize incoming text in input columns and output the tokens as output columns.
         /// </summary>
         /// <param name="catalog">The text-related transform's catalog.</param>
-        /// <param name="useMarkerCharacters">Whether to use marker characters to separate words.</param>
+        /// <param name="useMarkerCharacters">Whether to prepend a marker character, <see langword="0x02"/>, to the beginning,
+        /// and append another marker character, <see langword="0x03"/>, to the end of the output vector of characters.</param>
         /// <param name="columns">Pairs of columns to run the tokenization on.</param>
 
-        public static TokenizingByCharactersEstimator TokenizeCharacters(this TransformsCatalog.TextTransforms catalog,
+        [BestFriend]
+        internal static TokenizingByCharactersEstimator TokenizeIntoCharactersAsKeys(this TransformsCatalog.TextTransforms catalog,
             bool useMarkerCharacters = CharTokenizingDefaults.UseMarkerCharacters,
-            params ColumnOptions[] columns)
-            => new TokenizingByCharactersEstimator(Contracts.CheckRef(catalog, nameof(catalog)).GetEnvironment(), useMarkerCharacters, ColumnOptions.ConvertToValueTuples(columns));
+            params InputOutputColumnPair[] columns)
+        {
+            var env = CatalogUtils.GetEnvironment(catalog);
+            env.CheckValue(columns, nameof(columns));
+            return new TokenizingByCharactersEstimator(env, useMarkerCharacters, InputOutputColumnPair.ConvertToValueTuples(columns));
+        }
 
         /// <summary>
         /// Normalizes incoming text in <paramref name="inputColumnName"/> by changing case, removing diacritical marks, punctuation marks and/or numbers
@@ -83,19 +103,19 @@ namespace Microsoft.ML
         /// <param name="catalog">The text-related transform's catalog.</param>
         /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.</param>
         /// <param name="inputColumnName">Name of the column to transform. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.</param>
-        /// <param name="textCase">Casing text using the rules of the invariant culture.</param>
+        /// <param name="caseMode">Casing text using the rules of the invariant culture.</param>
         /// <param name="keepDiacritics">Whether to keep diacritical marks or remove them.</param>
         /// <param name="keepPunctuations">Whether to keep punctuation marks or remove them.</param>
         /// <param name="keepNumbers">Whether to keep numbers or remove them.</param>
         public static TextNormalizingEstimator NormalizeText(this TransformsCatalog.TextTransforms catalog,
             string outputColumnName,
             string inputColumnName = null,
-            TextNormalizingEstimator.CaseNormalizationMode textCase = TextNormalizeDefaults.TextCase,
+            TextNormalizingEstimator.CaseMode caseMode = TextNormalizeDefaults.Mode,
             bool keepDiacritics = TextNormalizeDefaults.KeepDiacritics,
             bool keepPunctuations = TextNormalizeDefaults.KeepPunctuations,
             bool keepNumbers = TextNormalizeDefaults.KeepNumbers)
             => new TextNormalizingEstimator(Contracts.CheckRef(catalog, nameof(catalog)).GetEnvironment(),
-                outputColumnName, inputColumnName, textCase, keepDiacritics, keepPunctuations, keepNumbers);
+                outputColumnName, inputColumnName, caseMode, keepDiacritics, keepPunctuations, keepNumbers);
 
         /// <include file='doc.xml' path='doc/members/member[@name="WordEmbeddings"]/*' />
         /// <param name="catalog">The text-related transform's catalog.</param>
@@ -117,8 +137,8 @@ namespace Microsoft.ML
 
         /// <include file='doc.xml' path='doc/members/member[@name="WordEmbeddings"]/*' />
         /// <param name="catalog">The text-related transform's catalog.</param>
-        /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.</param>
         /// <param name="customModelFile">The path of the pre-trained embeedings model to use. </param>
+        /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.</param>
         /// <param name="inputColumnName">Name of the column to transform.</param>
         /// <example>
         /// <format type="text/markdown">
@@ -145,7 +165,8 @@ namespace Microsoft.ML
         /// ]]>
         /// </format>
         /// </example>
-        public static WordEmbeddingEstimator ApplyWordEmbedding(this TransformsCatalog.TextTransforms catalog,
+        [BestFriend]
+        internal static WordEmbeddingEstimator ApplyWordEmbedding(this TransformsCatalog.TextTransforms catalog,
            WordEmbeddingEstimator.PretrainedModelKind modelKind = WordEmbeddingEstimator.PretrainedModelKind.SentimentSpecificWordEmbedding,
            params WordEmbeddingEstimator.ColumnOptions[] columns)
             => new WordEmbeddingEstimator(Contracts.CheckRef(catalog, nameof(catalog)).GetEnvironment(), modelKind, columns);
@@ -158,29 +179,19 @@ namespace Microsoft.ML
         /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.</param>
         /// <param name="inputColumnName">Name of the column to transform. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.</param>
         /// <param name="separators">The separators to use (uses space character by default).</param>
-        public static WordTokenizingEstimator TokenizeWords(this TransformsCatalog.TextTransforms catalog,
+        public static WordTokenizingEstimator TokenizeIntoWords(this TransformsCatalog.TextTransforms catalog,
             string outputColumnName,
             string inputColumnName = null,
             char[] separators = null)
             => new WordTokenizingEstimator(Contracts.CheckRef(catalog, nameof(catalog)).GetEnvironment(), outputColumnName, inputColumnName, separators);
 
         /// <summary>
-        /// Tokenizes incoming text in input columns and outputs the tokens using <paramref name="separators"/> as separators.
-        /// </summary>
-        /// <param name="catalog">The text-related transform's catalog.</param>
-        /// <param name="columns">Pairs of columns to run the tokenization on.</param>
-        /// <param name="separators">The separators to use (uses space character by default).</param>
-        public static WordTokenizingEstimator TokenizeWords(this TransformsCatalog.TextTransforms catalog,
-            (string outputColumnName, string inputColumnName)[] columns,
-            char[] separators = null)
-            => new WordTokenizingEstimator(Contracts.CheckRef(catalog, nameof(catalog)).GetEnvironment(), columns, separators);
-
-        /// <summary>
         ///  Tokenizes incoming text in input columns, using per-column configurations, and outputs the tokens.
         /// </summary>
         /// <param name="catalog">The text-related transform's catalog.</param>
         /// <param name="columns">Pairs of columns to run the tokenization on.</param>
-        public static WordTokenizingEstimator TokenizeWords(this TransformsCatalog.TextTransforms catalog,
+        [BestFriend]
+        internal static WordTokenizingEstimator TokenizeIntoWords(this TransformsCatalog.TextTransforms catalog,
             params WordTokenizingEstimator.ColumnOptions[] columns)
           => new WordTokenizingEstimator(Contracts.CheckRef(catalog, nameof(catalog)).GetEnvironment(), columns);
 
@@ -193,8 +204,8 @@ namespace Microsoft.ML
         /// <param name="inputColumnName">Name of the column to transform. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.</param>
         /// <param name="ngramLength">Ngram length.</param>
         /// <param name="skipLength">Maximum number of tokens to skip when constructing an ngram.</param>
-        /// <param name="allLengths">Whether to include all ngram lengths up to <paramref name="ngramLength"/> or only <paramref name="ngramLength"/>.</param>
-        /// <param name="maxNumTerms">Maximum number of ngrams to store in the dictionary.</param>
+        /// <param name="useAllLengths">Whether to include all ngram lengths up to <paramref name="ngramLength"/> or only <paramref name="ngramLength"/>.</param>
+        /// <param name="maximumNgramsCount">Maximum number of n-grams to store in the dictionary.</param>
         /// <param name="weighting">Statistical measure used to evaluate how important a word is to a document in a corpus.</param>
         /// <example>
         /// <format type="text/markdown">
@@ -208,32 +219,11 @@ namespace Microsoft.ML
             string inputColumnName = null,
             int ngramLength = NgramExtractingEstimator.Defaults.NgramLength,
             int skipLength = NgramExtractingEstimator.Defaults.SkipLength,
-            bool allLengths = NgramExtractingEstimator.Defaults.AllLengths,
-            int maxNumTerms = NgramExtractingEstimator.Defaults.MaxNumTerms,
+            bool useAllLengths = NgramExtractingEstimator.Defaults.UseAllLengths,
+            int maximumNgramsCount = NgramExtractingEstimator.Defaults.MaximumNgramsCount,
             NgramExtractingEstimator.WeightingCriteria weighting = NgramExtractingEstimator.Defaults.Weighting) =>
             new NgramExtractingEstimator(Contracts.CheckRef(catalog, nameof(catalog)).GetEnvironment(), outputColumnName, inputColumnName,
-                ngramLength, skipLength, allLengths, maxNumTerms, weighting);
-
-        /// <summary>
-        /// Produces a bag of counts of ngrams (sequences of consecutive words) in <paramref name="columns.inputs"/>
-        /// and outputs bag of word vector for each output in <paramref name="columns.output"/>
-        /// </summary>
-        /// <param name="catalog">The text-related transform's catalog.</param>
-        /// <param name="columns">Pairs of columns to compute bag of word vector.</param>
-        /// <param name="ngramLength">Ngram length.</param>
-        /// <param name="skipLength">Maximum number of tokens to skip when constructing an ngram.</param>
-        /// <param name="allLengths">Whether to include all ngram lengths up to <paramref name="ngramLength"/> or only <paramref name="ngramLength"/>.</param>
-        /// <param name="maxNumTerms">Maximum number of ngrams to store in the dictionary.</param>
-        /// <param name="weighting">Statistical measure used to evaluate how important a word is to a document in a corpus.</param>
-        public static NgramExtractingEstimator ProduceNgrams(this TransformsCatalog.TextTransforms catalog,
-            (string outputColumnName, string inputColumnName)[] columns,
-            int ngramLength = NgramExtractingEstimator.Defaults.NgramLength,
-            int skipLength = NgramExtractingEstimator.Defaults.SkipLength,
-            bool allLengths = NgramExtractingEstimator.Defaults.AllLengths,
-            int maxNumTerms = NgramExtractingEstimator.Defaults.MaxNumTerms,
-            NgramExtractingEstimator.WeightingCriteria weighting = NgramExtractingEstimator.Defaults.Weighting)
-            => new NgramExtractingEstimator(Contracts.CheckRef(catalog, nameof(catalog)).GetEnvironment(), columns,
-                ngramLength, skipLength, allLengths, maxNumTerms, weighting);
+                ngramLength, skipLength, useAllLengths, maximumNgramsCount, weighting);
 
         /// <summary>
         /// Produces a bag of counts of ngrams (sequences of consecutive words) in <paramref name="columns.inputs"/>
@@ -241,7 +231,8 @@ namespace Microsoft.ML
         /// </summary>
         /// <param name="catalog">The text-related transform's catalog.</param>
         /// <param name="columns">Pairs of columns to run the ngram process on.</param>
-        public static NgramExtractingEstimator ProduceNgrams(this TransformsCatalog.TextTransforms catalog,
+        [BestFriend]
+        internal static NgramExtractingEstimator ProduceNgrams(this TransformsCatalog.TextTransforms catalog,
              params NgramExtractingEstimator.ColumnOptions[] columns)
           => new NgramExtractingEstimator(Contracts.CheckRef(catalog, nameof(catalog)).GetEnvironment(), columns);
 
@@ -266,24 +257,6 @@ namespace Microsoft.ML
             => new StopWordsRemovingEstimator(Contracts.CheckRef(catalog, nameof(catalog)).GetEnvironment(), outputColumnName, inputColumnName, language);
 
         /// <summary>
-        /// Removes stop words from incoming token streams in input columns
-        /// and outputs the token streams without stop words as output columns.
-        /// </summary>
-        /// <param name="catalog">The text-related transform's catalog.</param>
-        /// <param name="columns">Pairs of columns to remove stop words on.</param>
-        /// <param name="language">Langauge of the input text columns <paramref name="columns"/>.</param>
-        /// <example>
-        /// <format type="text/markdown">
-        /// <![CDATA[
-        ///  [!code-csharp[FastTree](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/StopWordRemoverTransform.cs)]
-        /// ]]></format>
-        /// </example>
-        public static StopWordsRemovingEstimator RemoveDefaultStopWords(this TransformsCatalog.TextTransforms catalog,
-            (string outputColumnName, string inputColumnName)[] columns,
-             StopWordsRemovingEstimator.Language language = StopWordsRemovingEstimator.Language.English)
-            => new StopWordsRemovingEstimator(Contracts.CheckRef(catalog, nameof(catalog)).GetEnvironment(), columns, language);
-
-        /// <summary>
         /// Removes stop words from incoming token streams in <paramref name="inputColumnName"/>
         /// and outputs the token streams without stopwords as <paramref name="outputColumnName"/>.
         /// </summary>
@@ -304,24 +277,6 @@ namespace Microsoft.ML
             => new CustomStopWordsRemovingEstimator(Contracts.CheckRef(catalog, nameof(catalog)).GetEnvironment(), outputColumnName, inputColumnName, stopwords);
 
         /// <summary>
-        /// Removes stop words from incoming token streams in input columns
-        /// and outputs the token streams without stop words as output columns.
-        /// </summary>
-        /// <param name="catalog">The text-related transform's catalog.</param>
-        /// <param name="columns">Pairs of columns to remove stop words on.</param>
-        /// <param name="stopwords">Array of words to remove.</param>
-        /// <example>
-        /// <format type="text/markdown">
-        /// <![CDATA[
-        ///  [!code-csharp[FastTree](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/StopWordRemoverTransform.cs)]
-        /// ]]></format>
-        /// </example>
-        public static CustomStopWordsRemovingEstimator RemoveStopWords(this TransformsCatalog.TextTransforms catalog,
-            (string outputColumnName, string inputColumnName)[] columns,
-             params string[] stopwords)
-            => new CustomStopWordsRemovingEstimator(Contracts.CheckRef(catalog, nameof(catalog)).GetEnvironment(), columns, stopwords);
-
-        /// <summary>
         /// Produces a bag of counts of ngrams (sequences of consecutive words) in <paramref name="inputColumnName"/>
         /// and outputs bag of word vector as <paramref name="outputColumnName"/>
         /// </summary>
@@ -330,19 +285,19 @@ namespace Microsoft.ML
         /// <param name="inputColumnName">Name of the column to transform. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.</param>
         /// <param name="ngramLength">Ngram length.</param>
         /// <param name="skipLength">Maximum number of tokens to skip when constructing an ngram.</param>
-        /// <param name="allLengths">Whether to include all ngram lengths up to <paramref name="ngramLength"/> or only <paramref name="ngramLength"/>.</param>
-        /// <param name="maxNumTerms">Maximum number of ngrams to store in the dictionary.</param>
+        /// <param name="useAllLengths">Whether to include all ngram lengths up to <paramref name="ngramLength"/> or only <paramref name="ngramLength"/>.</param>
+        /// <param name="maximumNgramsCount">Maximum number of ngrams to store in the dictionary.</param>
         /// <param name="weighting">Statistical measure used to evaluate how important a word is to a document in a corpus.</param>
         public static WordBagEstimator ProduceWordBags(this TransformsCatalog.TextTransforms catalog,
             string outputColumnName,
             string inputColumnName = null,
             int ngramLength = NgramExtractingEstimator.Defaults.NgramLength,
             int skipLength = NgramExtractingEstimator.Defaults.SkipLength,
-            bool allLengths = NgramExtractingEstimator.Defaults.AllLengths,
-            int maxNumTerms = NgramExtractingEstimator.Defaults.MaxNumTerms,
+            bool useAllLengths = NgramExtractingEstimator.Defaults.UseAllLengths,
+            int maximumNgramsCount = NgramExtractingEstimator.Defaults.MaximumNgramsCount,
             NgramExtractingEstimator.WeightingCriteria weighting = NgramExtractingEstimator.WeightingCriteria.Tf)
             => new WordBagEstimator(Contracts.CheckRef(catalog, nameof(catalog)).GetEnvironment(),
-                outputColumnName, inputColumnName, ngramLength, skipLength, allLengths, maxNumTerms);
+                outputColumnName, inputColumnName, ngramLength, skipLength, useAllLengths, maximumNgramsCount, weighting);
 
         /// <summary>
         /// Produces a bag of counts of ngrams (sequences of consecutive words) in <paramref name="inputColumnNames"/>
@@ -353,39 +308,19 @@ namespace Microsoft.ML
         /// <param name="inputColumnNames">Name of the columns to transform.</param>
         /// <param name="ngramLength">Ngram length.</param>
         /// <param name="skipLength">Maximum number of tokens to skip when constructing an ngram.</param>
-        /// <param name="allLengths">Whether to include all ngram lengths up to <paramref name="ngramLength"/> or only <paramref name="ngramLength"/>.</param>
-        /// <param name="maxNumTerms">Maximum number of ngrams to store in the dictionary.</param>
+        /// <param name="useAllLengths">Whether to include all ngram lengths up to <paramref name="ngramLength"/> or only <paramref name="ngramLength"/>.</param>
+        /// <param name="maximumNgramsCount">Maximum number of ngrams to store in the dictionary.</param>
         /// <param name="weighting">Statistical measure used to evaluate how important a word is to a document in a corpus.</param>
         public static WordBagEstimator ProduceWordBags(this TransformsCatalog.TextTransforms catalog,
             string outputColumnName,
             string[] inputColumnNames,
             int ngramLength = NgramExtractingEstimator.Defaults.NgramLength,
             int skipLength = NgramExtractingEstimator.Defaults.SkipLength,
-            bool allLengths = NgramExtractingEstimator.Defaults.AllLengths,
-            int maxNumTerms = NgramExtractingEstimator.Defaults.MaxNumTerms,
+            bool useAllLengths = NgramExtractingEstimator.Defaults.UseAllLengths,
+            int maximumNgramsCount = NgramExtractingEstimator.Defaults.MaximumNgramsCount,
             NgramExtractingEstimator.WeightingCriteria weighting = NgramExtractingEstimator.WeightingCriteria.Tf)
             => new WordBagEstimator(Contracts.CheckRef(catalog, nameof(catalog)).GetEnvironment(),
-                outputColumnName, inputColumnNames, ngramLength, skipLength, allLengths, maxNumTerms, weighting);
-
-        /// <summary>
-        /// Produces a bag of counts of ngrams (sequences of consecutive words) in <paramref name="columns.inputs"/>
-        /// and outputs bag of word vector for each output in <paramref name="columns.output"/>
-        /// </summary>
-        /// <param name="catalog">The text-related transform's catalog.</param>
-        /// <param name="columns">Pairs of columns to compute bag of word vector.</param>
-        /// <param name="ngramLength">Ngram length.</param>
-        /// <param name="skipLength">Maximum number of tokens to skip when constructing an ngram.</param>
-        /// <param name="allLengths">Whether to include all ngram lengths up to <paramref name="ngramLength"/> or only <paramref name="ngramLength"/>.</param>
-        /// <param name="maxNumTerms">Maximum number of ngrams to store in the dictionary.</param>
-        /// <param name="weighting">Statistical measure used to evaluate how important a word is to a document in a corpus.</param>
-        public static WordBagEstimator ProduceWordBags(this TransformsCatalog.TextTransforms catalog,
-            (string outputColumnName, string[] inputColumnNames)[] columns,
-            int ngramLength = NgramExtractingEstimator.Defaults.NgramLength,
-            int skipLength = NgramExtractingEstimator.Defaults.SkipLength,
-            bool allLengths = NgramExtractingEstimator.Defaults.AllLengths,
-            int maxNumTerms = NgramExtractingEstimator.Defaults.MaxNumTerms,
-            NgramExtractingEstimator.WeightingCriteria weighting = NgramExtractingEstimator.WeightingCriteria.Tf)
-            => new WordBagEstimator(Contracts.CheckRef(catalog, nameof(catalog)).GetEnvironment(), columns, ngramLength, skipLength, allLengths, maxNumTerms, weighting);
+                outputColumnName, inputColumnNames, ngramLength, skipLength, useAllLengths, maximumNgramsCount, weighting);
 
         /// <summary>
         /// Produces a bag of counts of hashed ngrams in <paramref name="inputColumnName"/>
@@ -394,28 +329,30 @@ namespace Microsoft.ML
         /// <param name="catalog">The text-related transform's catalog.</param>
         /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.</param>
         /// <param name="inputColumnName">Name of the column to transform. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.</param>
-        /// <param name="hashBits">Number of bits to hash into. Must be between 1 and 30, inclusive.</param>
+        /// <param name="numberOfBits">Number of bits to hash into. Must be between 1 and 30, inclusive.</param>
         /// <param name="ngramLength">Ngram length.</param>
         /// <param name="skipLength">Maximum number of tokens to skip when constructing an ngram.</param>
-        /// <param name="allLengths">Whether to include all ngram lengths up to <paramref name="ngramLength"/> or only <paramref name="ngramLength"/>.</param>
+        /// <param name="useAllLengths">Whether to include all ngram lengths up to <paramref name="ngramLength"/> or only <paramref name="ngramLength"/>.</param>
         /// <param name="seed">Hashing seed.</param>
-        /// <param name="ordered">Whether the position of each source column should be included in the hash (when there are multiple source columns).</param>
-        /// <param name="invertHash">During hashing we constuct mappings between original values and the produced hash values.
+        /// <param name="useOrderedHashing">Whether the position of each source column should be included in the hash (when there are multiple source columns).</param>
+        /// <param name="maximumNumberOfInverts">During hashing we constuct mappings between original values and the produced hash values.
         /// Text representation of original values are stored in the slot names of the  metadata for the new column.Hashing, as such, can map many initial values to one.
-        /// <paramref name="invertHash"/> specifies the upper bound of the number of distinct input values mapping to a hash that should be retained.
+        /// <paramref name="maximumNumberOfInverts"/> specifies the upper bound of the number of distinct input values mapping to a hash that should be retained.
         /// <value>0</value> does not retain any input values. <value>-1</value> retains all input values mapping to each hash.</param>
         public static WordHashBagEstimator ProduceHashedWordBags(this TransformsCatalog.TextTransforms catalog,
             string outputColumnName,
             string inputColumnName = null,
-            int hashBits = NgramHashExtractingTransformer.DefaultArguments.HashBits,
+            int numberOfBits = NgramHashExtractingTransformer.DefaultArguments.NumberOfBits,
             int ngramLength = NgramHashExtractingTransformer.DefaultArguments.NgramLength,
             int skipLength = NgramHashExtractingTransformer.DefaultArguments.SkipLength,
-            bool allLengths = NgramHashExtractingTransformer.DefaultArguments.AllLengths,
+            bool useAllLengths = NgramHashExtractingTransformer.DefaultArguments.UseAllLengths,
             uint seed = NgramHashExtractingTransformer.DefaultArguments.Seed,
-            bool ordered = NgramHashExtractingTransformer.DefaultArguments.Ordered,
-            int invertHash = NgramHashExtractingTransformer.DefaultArguments.InvertHash)
+            bool useOrderedHashing = NgramHashExtractingTransformer.DefaultArguments.Ordered,
+            int maximumNumberOfInverts = NgramHashExtractingTransformer.DefaultArguments.MaximumNumberOfInverts)
             => new WordHashBagEstimator(Contracts.CheckRef(catalog, nameof(catalog)).GetEnvironment(),
-                outputColumnName, inputColumnName, hashBits, ngramLength, skipLength, allLengths, seed, ordered, invertHash);
+                outputColumnName, inputColumnName, numberOfBits: numberOfBits, ngramLength: ngramLength,
+                skipLength: skipLength, useAllLengths: useAllLengths, seed: seed, useOrderedHashing: useOrderedHashing,
+                maximumNumberOfInverts: maximumNumberOfInverts);
 
         /// <summary>
         /// Produces a bag of counts of hashed ngrams in <paramref name="inputColumnNames"/>
@@ -424,56 +361,30 @@ namespace Microsoft.ML
         /// <param name="catalog">The text-related transform's catalog.</param>
         /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnNames"/>.</param>
         /// <param name="inputColumnNames">Name of the columns to transform. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.</param>
-        /// <param name="hashBits">Number of bits to hash into. Must be between 1 and 30, inclusive.</param>
+        /// <param name="numberOfBits">Number of bits to hash into. Must be between 1 and 30, inclusive.</param>
         /// <param name="ngramLength">Ngram length.</param>
         /// <param name="skipLength">Maximum number of tokens to skip when constructing an ngram.</param>
-        /// <param name="allLengths">Whether to include all ngram lengths up to <paramref name="ngramLength"/> or only <paramref name="ngramLength"/>.</param>
+        /// <param name="useAllLengths">Whether to include all ngram lengths up to <paramref name="ngramLength"/> or only <paramref name="ngramLength"/>.</param>
         /// <param name="seed">Hashing seed.</param>
-        /// <param name="ordered">Whether the position of each source column should be included in the hash (when there are multiple source columns).</param>
-        /// <param name="invertHash">During hashing we constuct mappings between original values and the produced hash values.
+        /// <param name="useOrderedHashing">Whether the position of each source column should be included in the hash (when there are multiple source columns).</param>
+        /// <param name="maximumNumberOfInverts">During hashing we constuct mappings between original values and the produced hash values.
         /// Text representation of original values are stored in the slot names of the  metadata for the new column.Hashing, as such, can map many initial values to one.
-        /// <paramref name="invertHash"/> specifies the upper bound of the number of distinct input values mapping to a hash that should be retained.
+        /// <paramref name="maximumNumberOfInverts"/> specifies the upper bound of the number of distinct input values mapping to a hash that should be retained.
         /// <value>0</value> does not retain any input values. <value>-1</value> retains all input values mapping to each hash.</param>
         public static WordHashBagEstimator ProduceHashedWordBags(this TransformsCatalog.TextTransforms catalog,
             string outputColumnName,
             string[] inputColumnNames,
-            int hashBits = NgramHashExtractingTransformer.DefaultArguments.HashBits,
+            int numberOfBits = NgramHashExtractingTransformer.DefaultArguments.NumberOfBits,
             int ngramLength = NgramHashExtractingTransformer.DefaultArguments.NgramLength,
             int skipLength = NgramHashExtractingTransformer.DefaultArguments.SkipLength,
-            bool allLengths = NgramHashExtractingTransformer.DefaultArguments.AllLengths,
+            bool useAllLengths = NgramHashExtractingTransformer.DefaultArguments.UseAllLengths,
             uint seed = NgramHashExtractingTransformer.DefaultArguments.Seed,
-            bool ordered = NgramHashExtractingTransformer.DefaultArguments.Ordered,
-            int invertHash = NgramHashExtractingTransformer.DefaultArguments.InvertHash)
+            bool useOrderedHashing = NgramHashExtractingTransformer.DefaultArguments.Ordered,
+            int maximumNumberOfInverts = NgramHashExtractingTransformer.DefaultArguments.MaximumNumberOfInverts)
             => new WordHashBagEstimator(Contracts.CheckRef(catalog, nameof(catalog)).GetEnvironment(),
-                outputColumnName, inputColumnNames, hashBits, ngramLength, skipLength, allLengths, seed, ordered, invertHash);
-
-        /// <summary>
-        /// Produces a bag of counts of hashed ngrams in <paramref name="columns.inputs"/>
-        /// and outputs bag of word vector for each output in <paramref name="columns.output"/>
-        /// </summary>
-        /// <param name="catalog">The text-related transform's catalog.</param>
-        /// <param name="columns">Pairs of columns to compute bag of word vector.</param>
-        /// <param name="hashBits">Number of bits to hash into. Must be between 1 and 30, inclusive.</param>
-        /// <param name="ngramLength">Ngram length.</param>
-        /// <param name="skipLength">Maximum number of tokens to skip when constructing an ngram.</param>
-        /// <param name="allLengths">Whether to include all ngram lengths up to <paramref name="ngramLength"/> or only <paramref name="ngramLength"/>.</param>
-        /// <param name="seed">Hashing seed.</param>
-        /// <param name="ordered">Whether the position of each source column should be included in the hash (when there are multiple source columns).</param>
-        /// <param name="invertHash">During hashing we constuct mappings between original values and the produced hash values.
-        /// Text representation of original values are stored in the slot names of the  metadata for the new column.Hashing, as such, can map many initial values to one.
-        /// <paramref name="invertHash"/> specifies the upper bound of the number of distinct input values mapping to a hash that should be retained.
-        /// <value>0</value> does not retain any input values. <value>-1</value> retains all input values mapping to each hash.</param>
-        public static WordHashBagEstimator ProduceHashedWordBags(this TransformsCatalog.TextTransforms catalog,
-            (string outputColumnName, string[] inputColumnNames)[] columns,
-            int hashBits = NgramHashExtractingTransformer.DefaultArguments.HashBits,
-            int ngramLength = NgramHashExtractingTransformer.DefaultArguments.NgramLength,
-            int skipLength = NgramHashExtractingTransformer.DefaultArguments.SkipLength,
-            bool allLengths = NgramHashExtractingTransformer.DefaultArguments.AllLengths,
-            uint seed = NgramHashExtractingTransformer.DefaultArguments.Seed,
-            bool ordered = NgramHashExtractingTransformer.DefaultArguments.Ordered,
-            int invertHash = NgramHashExtractingTransformer.DefaultArguments.InvertHash)
-            => new WordHashBagEstimator(Contracts.CheckRef(catalog, nameof(catalog)).GetEnvironment(),
-               columns, hashBits, ngramLength, skipLength, allLengths, seed, ordered, invertHash);
+                outputColumnName, inputColumnNames, numberOfBits: numberOfBits, ngramLength: ngramLength,
+                skipLength: skipLength, useAllLengths: useAllLengths, seed: seed, useOrderedHashing: useOrderedHashing,
+                maximumNumberOfInverts: maximumNumberOfInverts);
 
         /// <summary>
         /// Produces a bag of counts of hashed ngrams in <paramref name="inputColumnName"/>
@@ -485,28 +396,31 @@ namespace Microsoft.ML
         /// <param name="catalog">The text-related transform's catalog.</param>
         /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.</param>
         /// <param name="inputColumnName">Name of the column to transform. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.</param>
-        /// <param name="hashBits">Number of bits to hash into. Must be between 1 and 30, inclusive.</param>
+        /// <param name="numberOfBits">Number of bits to hash into. Must be between 1 and 30, inclusive.</param>
         /// <param name="ngramLength">Ngram length.</param>
         /// <param name="skipLength">Maximum number of tokens to skip when constructing an ngram.</param>
-        /// <param name="allLengths">Whether to include all ngram lengths up to <paramref name="ngramLength"/> or only <paramref name="ngramLength"/>.</param>
+        /// <param name="useAllLengths">Whether to include all ngram lengths up to <paramref name="ngramLength"/> or only <paramref name="ngramLength"/>.</param>
         /// <param name="seed">Hashing seed.</param>
-        /// <param name="ordered">Whether the position of each source column should be included in the hash (when there are multiple source columns).</param>
-        /// <param name="invertHash">During hashing we constuct mappings between original values and the produced hash values.
+        /// <param name="useOrderedHashing">Whether the position of each source column should be included in the hash (when there are multiple source columns).</param>
+        /// <param name="maximumNumberOfInverts">During hashing we constuct mappings between original values and the produced hash values.
         /// Text representation of original values are stored in the slot names of the  metadata for the new column.Hashing, as such, can map many initial values to one.
-        /// <paramref name="invertHash"/> specifies the upper bound of the number of distinct input values mapping to a hash that should be retained.
+        /// <paramref name="maximumNumberOfInverts"/> specifies the upper bound of the number of distinct input values mapping to a hash that should be retained.
         /// <value>0</value> does not retain any input values. <value>-1</value> retains all input values mapping to each hash.</param>
+        /// <param name="rehashUnigrams">Whether to rehash unigrams.</param>
         public static NgramHashingEstimator ProduceHashedNgrams(this TransformsCatalog.TextTransforms catalog,
             string outputColumnName,
             string inputColumnName = null,
-            int hashBits = NgramHashingEstimator.Defaults.HashBits,
+            int numberOfBits = NgramHashingEstimator.Defaults.NumberOfBits,
             int ngramLength = NgramHashingEstimator.Defaults.NgramLength,
             int skipLength = NgramHashingEstimator.Defaults.SkipLength,
-            bool allLengths = NgramHashingEstimator.Defaults.AllLengths,
+            bool useAllLengths = NgramHashingEstimator.Defaults.UseAllLengths,
             uint seed = NgramHashingEstimator.Defaults.Seed,
-            bool ordered = NgramHashingEstimator.Defaults.Ordered,
-            int invertHash = NgramHashingEstimator.Defaults.InvertHash)
+            bool useOrderedHashing = NgramHashingEstimator.Defaults.UseOrderedHashing,
+            int maximumNumberOfInverts = NgramHashingEstimator.Defaults.MaximumNumberOfInverts,
+            bool rehashUnigrams = NgramHashingEstimator.Defaults.RehashUnigrams)
             => new NgramHashingEstimator(Contracts.CheckRef(catalog, nameof(catalog)).GetEnvironment(),
-                outputColumnName, inputColumnName, hashBits, ngramLength, skipLength, allLengths, seed, ordered, invertHash);
+                new[] {new NgramHashingEstimator.ColumnOptions(outputColumnName, new[] { inputColumnName }, ngramLength: ngramLength, skipLength: skipLength,
+                useAllLengths: useAllLengths, numberOfBits: numberOfBits, seed: seed, useOrderedHashing: useOrderedHashing, maximumNumberOfInverts: maximumNumberOfInverts, rehashUnigrams) });
 
         /// <summary>
         /// Produces a bag of counts of hashed ngrams in <paramref name="inputColumnNames"/>
@@ -517,60 +431,46 @@ namespace Microsoft.ML
         /// </summary>
         /// <param name="catalog">The text-related transform's catalog.</param>
         /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnNames"/>.</param>
-        /// <param name="inputColumnNames">Name of the columns to transform.</param>
-        /// <param name="hashBits">Number of bits to hash into. Must be between 1 and 30, inclusive.</param>
+        /// <param name="inputColumnNames">Names of the columns to transform. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.</param>
+        /// <param name="numberOfBits">Number of bits to hash into. Must be between 1 and 30, inclusive.</param>
         /// <param name="ngramLength">Ngram length.</param>
         /// <param name="skipLength">Maximum number of tokens to skip when constructing an ngram.</param>
-        /// <param name="allLengths">Whether to include all ngram lengths up to <paramref name="ngramLength"/> or only <paramref name="ngramLength"/>.</param>
+        /// <param name="useAllLengths">Whether to include all ngram lengths up to <paramref name="ngramLength"/> or only <paramref name="ngramLength"/>.</param>
         /// <param name="seed">Hashing seed.</param>
-        /// <param name="ordered">Whether the position of each source column should be included in the hash (when there are multiple source columns).</param>
-        /// <param name="invertHash">During hashing we constuct mappings between original values and the produced hash values.
+        /// <param name="useOrderedHashing">Whether the position of each source column should be included in the hash (when there are multiple source columns).</param>
+        /// <param name="maximumNumberOfInverts">During hashing we constuct mappings between original values and the produced hash values.
         /// Text representation of original values are stored in the slot names of the  metadata for the new column.Hashing, as such, can map many initial values to one.
-        /// <paramref name="invertHash"/> specifies the upper bound of the number of distinct input values mapping to a hash that should be retained.
+        /// <paramref name="maximumNumberOfInverts"/> specifies the upper bound of the number of distinct input values mapping to a hash that should be retained.
         /// <value>0</value> does not retain any input values. <value>-1</value> retains all input values mapping to each hash.</param>
+        /// <param name="rehashUnigrams">Whether to rehash unigrams.</param>
         public static NgramHashingEstimator ProduceHashedNgrams(this TransformsCatalog.TextTransforms catalog,
             string outputColumnName,
-            string[] inputColumnNames,
-            int hashBits = NgramHashingEstimator.Defaults.HashBits,
+            string[] inputColumnNames = null,
+            int numberOfBits = NgramHashingEstimator.Defaults.NumberOfBits,
             int ngramLength = NgramHashingEstimator.Defaults.NgramLength,
             int skipLength = NgramHashingEstimator.Defaults.SkipLength,
-            bool allLengths = NgramHashingEstimator.Defaults.AllLengths,
+            bool useAllLengths = NgramHashingEstimator.Defaults.UseAllLengths,
             uint seed = NgramHashingEstimator.Defaults.Seed,
-            bool ordered = NgramHashingEstimator.Defaults.Ordered,
-            int invertHash = NgramHashingEstimator.Defaults.InvertHash)
-             => new NgramHashingEstimator(Contracts.CheckRef(catalog, nameof(catalog)).GetEnvironment(),
-                 outputColumnName, inputColumnNames, hashBits, ngramLength, skipLength, allLengths, seed, ordered, invertHash);
+            bool useOrderedHashing = NgramHashingEstimator.Defaults.UseOrderedHashing,
+            int maximumNumberOfInverts = NgramHashingEstimator.Defaults.MaximumNumberOfInverts,
+            bool rehashUnigrams = NgramHashingEstimator.Defaults.RehashUnigrams)
+            => new NgramHashingEstimator(Contracts.CheckRef(catalog, nameof(catalog)).GetEnvironment(),
+                new[] {new NgramHashingEstimator.ColumnOptions(outputColumnName, inputColumnNames, ngramLength: ngramLength, skipLength: skipLength,
+                useAllLengths: useAllLengths, numberOfBits: numberOfBits, seed: seed, useOrderedHashing: useOrderedHashing, maximumNumberOfInverts: maximumNumberOfInverts, rehashUnigrams) });
 
         /// <summary>
-        /// Produces a bag of counts of hashed ngrams in <paramref name="columns.inputs"/>
-        /// and outputs ngram vector for each output in <paramref name="columns.output"/>
+        /// Produces a bag of counts of hashed ngrams for each <paramref name="columns"/>. For each column,
+        /// <see cref="NgramHashingEstimator.ColumnOptions.InputColumnNames"/> are the input columns of the output column named as <see cref="NgramHashingEstimator.ColumnOptions.Name"/>.
         ///
         /// <see cref="NgramHashingEstimator"/> is different from <see cref="WordHashBagEstimator"/> in a way that <see cref="NgramHashingEstimator"/>
         /// takes tokenized text as input while <see cref="WordHashBagEstimator"/> tokenizes text internally.
         /// </summary>
         /// <param name="catalog">The text-related transform's catalog.</param>
-        /// <param name="columns">Pairs of columns to compute bag of word vector.</param>
-        /// <param name="hashBits">Number of bits to hash into. Must be between 1 and 30, inclusive.</param>
-        /// <param name="ngramLength">Ngram length.</param>
-        /// <param name="skipLength">Maximum number of tokens to skip when constructing an ngram.</param>
-        /// <param name="allLengths">Whether to include all ngram lengths up to <paramref name="ngramLength"/> or only <paramref name="ngramLength"/>.</param>
-        /// <param name="seed">Hashing seed.</param>
-        /// <param name="ordered">Whether the position of each source column should be included in the hash (when there are multiple source columns).</param>
-        /// <param name="invertHash">During hashing we constuct mappings between original values and the produced hash values.
-        /// Text representation of original values are stored in the slot names of the  metadata for the new column.Hashing, as such, can map many initial values to one.
-        /// <paramref name="invertHash"/> specifies the upper bound of the number of distinct input values mapping to a hash that should be retained.
-        /// <value>0</value> does not retain any input values. <value>-1</value> retains all input values mapping to each hash.</param>
-        public static NgramHashingEstimator ProduceHashedNgrams(this TransformsCatalog.TextTransforms catalog,
-            (string outputColumnName, string[] inputColumnNames)[] columns,
-            int hashBits = NgramHashingEstimator.Defaults.HashBits,
-            int ngramLength = NgramHashingEstimator.Defaults.NgramLength,
-            int skipLength = NgramHashingEstimator.Defaults.SkipLength,
-            bool allLengths = NgramHashingEstimator.Defaults.AllLengths,
-            uint seed = NgramHashingEstimator.Defaults.Seed,
-            bool ordered = NgramHashingEstimator.Defaults.Ordered,
-            int invertHash = NgramHashingEstimator.Defaults.InvertHash)
-             => new NgramHashingEstimator(Contracts.CheckRef(catalog, nameof(catalog)).GetEnvironment(),
-                 columns, hashBits, ngramLength, skipLength, allLengths, seed, ordered, invertHash);
+        /// <param name="columns">Pairs of columns to compute n-grams. Note that gram indices are generated by hashing.</param>
+        [BestFriend]
+        internal static NgramHashingEstimator ProduceHashedNgrams(this TransformsCatalog.TextTransforms catalog,
+            NgramHashingEstimator.ColumnOptions[] columns)
+             => new NgramHashingEstimator(Contracts.CheckRef(catalog, nameof(catalog)).GetEnvironment(), columns);
 
         /// <summary>
         /// Uses <a href="https://arxiv.org/abs/1412.1576">LightLDA</a> to transform a document (represented as a vector of floats)
@@ -580,9 +480,16 @@ namespace Microsoft.ML
         /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.</param>
         /// <param name="inputColumnName">Name of the column to transform. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.</param>
         /// <param name="numberOfTopics">The number of topics.</param>
+        /// <param name="alphaSum">Dirichlet prior on document-topic vectors.</param>
+        /// <param name="beta">Dirichlet prior on vocab-topic vectors.</param>
+        /// <param name="samplingStepCount">Number of Metropolis Hasting step.</param>
         /// <param name="maximumNumberOfIterations">Number of iterations.</param>
+        /// <param name="likelihoodInterval">Compute log likelihood over local dataset on this iteration interval.</param>
+        /// <param name="numberOfThreads">The number of training threads. Default value depends on number of logical processors.</param>
         /// <param name="maximumTokenCountPerDocument">The threshold of maximum count of tokens per doc.</param>
         /// <param name="numberOfSummaryTermsPerTopic">The number of words to summarize the topic.</param>
+        /// <param name="numberOfBurninIterations">The number of burn-in iterations.</param>
+        /// <param name="resetRandomGenerator">Reset the random number generator for each document.</param>
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
@@ -594,21 +501,20 @@ namespace Microsoft.ML
             string outputColumnName,
             string inputColumnName = null,
             int numberOfTopics = LatentDirichletAllocationEstimator.Defaults.NumberOfTopics,
+            float alphaSum = LatentDirichletAllocationEstimator.Defaults.AlphaSum,
+            float beta = LatentDirichletAllocationEstimator.Defaults.Beta,
+            int samplingStepCount = LatentDirichletAllocationEstimator.Defaults.SamplingStepCount,
             int maximumNumberOfIterations = LatentDirichletAllocationEstimator.Defaults.MaximumNumberOfIterations,
+            int likelihoodInterval = LatentDirichletAllocationEstimator.Defaults.LikelihoodInterval,
+            int numberOfThreads = LatentDirichletAllocationEstimator.Defaults.NumberOfThreads,
             int maximumTokenCountPerDocument = LatentDirichletAllocationEstimator.Defaults.MaximumTokenCountPerDocument,
-            int numberOfSummaryTermsPerTopic = LatentDirichletAllocationEstimator.Defaults.NumberOfSummaryTermsPerTopic)
+            int numberOfSummaryTermsPerTopic = LatentDirichletAllocationEstimator.Defaults.NumberOfSummaryTermsPerTopic,
+            int numberOfBurninIterations = LatentDirichletAllocationEstimator.Defaults.NumberOfBurninIterations,
+            bool resetRandomGenerator = LatentDirichletAllocationEstimator.Defaults.ResetRandomGenerator)
             => new LatentDirichletAllocationEstimator(CatalogUtils.GetEnvironment(catalog),
-                outputColumnName, inputColumnName, numberOfTopics,
-                LatentDirichletAllocationEstimator.Defaults.AlphaSum,
-                LatentDirichletAllocationEstimator.Defaults.Beta,
-                LatentDirichletAllocationEstimator.Defaults.SamplingStepCount,
-                maximumNumberOfIterations,
-                LatentDirichletAllocationEstimator.Defaults.NumberOfThreads,
-                maximumTokenCountPerDocument,
-                numberOfSummaryTermsPerTopic,
-                LatentDirichletAllocationEstimator.Defaults.LikelihoodInterval,
-                LatentDirichletAllocationEstimator.Defaults.NumberOfBurninIterations,
-                LatentDirichletAllocationEstimator.Defaults.ResetRandomGenerator);
+                outputColumnName, inputColumnName, numberOfTopics, alphaSum, beta, samplingStepCount,
+                maximumNumberOfIterations, numberOfThreads, maximumTokenCountPerDocument, numberOfSummaryTermsPerTopic,
+                likelihoodInterval, numberOfBurninIterations, resetRandomGenerator);
 
         /// <summary>
         /// Uses <a href="https://arxiv.org/abs/1412.1576">LightLDA</a> to transform a document (represented as a vector of floats)
@@ -616,7 +522,8 @@ namespace Microsoft.ML
         /// </summary>
         /// <param name="catalog">The transform's catalog.</param>
         /// <param name="columns">Describes the parameters of LDA for each column pair.</param>
-        public static LatentDirichletAllocationEstimator LatentDirichletAllocation(
+        [BestFriend]
+        internal static LatentDirichletAllocationEstimator LatentDirichletAllocation(
             this TransformsCatalog.TextTransforms catalog,
             params LatentDirichletAllocationEstimator.ColumnOptions[] columns)
             => new LatentDirichletAllocationEstimator(CatalogUtils.GetEnvironment(catalog), columns);

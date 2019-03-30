@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using Microsoft.ML.Data;
 using Microsoft.ML.StaticPipe;
 
 namespace Microsoft.ML.Samples.Static
@@ -89,7 +91,7 @@ namespace Microsoft.ML.Samples.Static
             // Evaluate how the model is doing on the test data
             var dataWithPredictions = model.Transform(testData);
 
-            var metrics = mlContext.BinaryClassification.Evaluate(dataWithPredictions, row => row.Label, row => row.Score);
+            var metrics = mlContext.BinaryClassification.EvaluateWithPRCurve(dataWithPredictions, row => row.Label, row => row.Score, out List<BinaryPrecisionRecallDataPoint> prCurve);
 
             Console.WriteLine($"Accuracy: {metrics.Accuracy}"); // 0.83
             Console.WriteLine($"AUC: {metrics.AreaUnderRocCurve}"); // 0.88
@@ -98,7 +100,15 @@ namespace Microsoft.ML.Samples.Static
             Console.WriteLine($"Negative Precision: {metrics.NegativePrecision}"); // 0.87
             Console.WriteLine($"Negative Recall: {metrics.NegativeRecall}"); // 0.91
             Console.WriteLine($"Positive Precision: {metrics.PositivePrecision}"); // 0.65
-            Console.WriteLine($"Positive Recall: {metrics.PositiveRecall}"); // 0.55          
+            Console.WriteLine($"Positive Recall: {metrics.PositiveRecall}"); // 0.55
+
+            foreach(var prData in prCurve)
+            {
+                Console.Write($"Threshold: {prData.Threshold} ");
+                Console.Write($"Precision: {prData.Precision} ");
+                Console.Write($"Recall: {prData.Recall} ");
+                Console.WriteLine($"FPR: {prData.FalsePositiveRate}");
+            }
         }
     }
 }

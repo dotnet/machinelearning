@@ -101,7 +101,7 @@ namespace Microsoft.ML.Tests
             var xyData = new List<TestDataXY> { new TestDataXY() { A = new float[inputSize] } };
             var stringData = new List<TestDataDifferntType> { new TestDataDifferntType() { data_0 = new string[inputSize] } };
             var sizeData = new List<TestDataSize> { new TestDataSize() { data_0 = new float[2] } };
-            var pipe = ML.Transforms.ApplyOnnxModel(modelFile, new[] { "softmaxout_1" }, new[] { "data_0" });
+            var pipe = ML.Transforms.ApplyOnnxModel(new[] { "softmaxout_1" }, new[] { "data_0" }, modelFile);
 
             var invalidDataWrongNames = ML.Data.LoadFromEnumerable(xyData);
             var invalidDataWrongTypes = ML.Data.LoadFromEnumerable(stringData);
@@ -137,7 +137,7 @@ namespace Microsoft.ML.Tests
 
             var inputNames = new[] { "data_0" };
             var outputNames = new[] { "softmaxout_1" };
-            var est = ML.Transforms.ApplyOnnxModel(modelFile, outputNames, inputNames, gpuDeviceId, fallbackToCpu);
+            var est = ML.Transforms.ApplyOnnxModel(outputNames, inputNames, modelFile, gpuDeviceId, fallbackToCpu);
             var transformer = est.Fit(dataView);
             var result = transformer.Transform(dataView);
             var resultRoles = new RoleMappedData(result);
@@ -241,7 +241,7 @@ namespace Microsoft.ML.Tests
                     }
                 });
 
-            var onnx = ML.Transforms.ApplyOnnxModel(modelFile, "softmaxout_1", "data_0").Fit(dataView).Transform(dataView);
+            var onnx = ML.Transforms.ApplyOnnxModel("softmaxout_1", "data_0", modelFile).Fit(dataView).Transform(dataView);
             var scoreCol = onnx.Schema["softmaxout_1"];
 
             using (var curs = onnx.GetRowCursor(scoreCol))
@@ -271,7 +271,7 @@ namespace Microsoft.ML.Tests
                         inb = new float[] {1,2,3,4,5}
                     }
                 });
-            var onnx = ML.Transforms.ApplyOnnxModel(modelFile, new[] { "outa", "outb" }, new[] { "ina", "inb" }).Fit(dataView).Transform(dataView);
+            var onnx = ML.Transforms.ApplyOnnxModel(new[] { "outa", "outb" }, new[] { "ina", "inb" }, modelFile).Fit(dataView).Transform(dataView);
 
             var outaCol = onnx.Schema["outa"];
             var outbCol = onnx.Schema["outb"];

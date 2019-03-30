@@ -4,7 +4,6 @@
 
 using System.IO;
 using System.Text;
-using Microsoft.Data.DataView;
 using Microsoft.ML.Calibrators;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
@@ -52,7 +51,7 @@ namespace Microsoft.ML.EntryPoints
             var calibrated = predictor as IWeaklyTypedCalibratedModelParameters;
             while (calibrated != null)
             {
-                predictor = calibrated.WeeklyTypedSubModel;
+                predictor = calibrated.WeaklyTypedSubModel;
                 calibrated = predictor as IWeaklyTypedCalibratedModelParameters;
             }
 

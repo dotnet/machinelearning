@@ -7,7 +7,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Text;
-using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
@@ -15,6 +14,7 @@ using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Model;
 using Microsoft.ML.Numeric;
 using Microsoft.ML.Runtime;
+using Microsoft.ML.Trainers;
 
 [assembly: LoadableClass(typeof(IDataScorerTransform), typeof(FeatureContributionScorer), typeof(FeatureContributionScorer.Arguments),
     typeof(SignatureDataScorer), "Feature Contribution Scorer", "fcc", "wtf", "fct", "FeatureContributionCalculationScorer", AnnotationUtils.Const.ScoreColumnKind.FeatureContribution)]
@@ -340,7 +340,7 @@ namespace Microsoft.ML.Data
                             FeatureColumn.Annotations.GetValue(AnnotationUtils.Kinds.SlotNames, ref value));
 
                     var schemaBuilder = new DataViewSchema.Builder();
-                    var featureContributionType = new VectorType(NumberDataViewType.Single, FeatureColumn.Type as VectorType);
+                    var featureContributionType = new VectorDataViewType(NumberDataViewType.Single, ((VectorDataViewType)FeatureColumn.Type).Dimensions);
                     schemaBuilder.AddColumn(DefaultColumnNames.FeatureContributions, featureContributionType, metadataBuilder.ToAnnotations());
                     _outputSchema = schemaBuilder.ToSchema();
                 }

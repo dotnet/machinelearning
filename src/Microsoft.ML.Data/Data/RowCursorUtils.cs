@@ -7,7 +7,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Text;
-using Microsoft.Data.DataView;
 using Microsoft.ML.Data.Conversion;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Runtime;
@@ -153,10 +152,10 @@ namespace Microsoft.ML.Data
             Contracts.CheckParam(0 <= col && col < row.Schema.Count, nameof(col));
             Contracts.CheckParam(row.IsColumnActive(row.Schema[col]), nameof(col), "column was not active");
 
-            var typeSrc = row.Schema[col].Type as VectorType;
+            var typeSrc = row.Schema[col].Type as VectorDataViewType;
             Contracts.Check(typeSrc != null, "Source column type must be vector");
 
-            Func<VectorType, PrimitiveDataViewType, GetterFactory, ValueGetter<VBuffer<int>>> del = GetVecGetterAsCore<int, int>;
+            Func<VectorDataViewType, PrimitiveDataViewType, GetterFactory, ValueGetter<VBuffer<int>>> del = GetVecGetterAsCore<int, int>;
             var methodInfo = del.GetMethodInfo().GetGenericMethodDefinition().MakeGenericMethod(typeSrc.ItemType.RawType, typeDst.RawType);
             return (Delegate)methodInfo.Invoke(null, new object[] { typeSrc, typeDst, GetterFactory.Create(row, col) });
         }
@@ -173,10 +172,10 @@ namespace Microsoft.ML.Data
             Contracts.CheckParam(0 <= col && col < row.Schema.Count, nameof(col));
             Contracts.CheckParam(row.IsColumnActive(row.Schema[col]), nameof(col), "column was not active");
 
-            var typeSrc = row.Schema[col].Type as VectorType;
+            var typeSrc = row.Schema[col].Type as VectorDataViewType;
             Contracts.Check(typeSrc != null, "Source column type must be vector");
 
-            Func<VectorType, PrimitiveDataViewType, GetterFactory, ValueGetter<VBuffer<TDst>>> del = GetVecGetterAsCore<int, TDst>;
+            Func<VectorDataViewType, PrimitiveDataViewType, GetterFactory, ValueGetter<VBuffer<TDst>>> del = GetVecGetterAsCore<int, TDst>;
             var methodInfo = del.GetMethodInfo().GetGenericMethodDefinition().MakeGenericMethod(typeSrc.ItemType.RawType, typeof(TDst));
             return (ValueGetter<VBuffer<TDst>>)methodInfo.Invoke(null, new object[] { typeSrc, typeDst, GetterFactory.Create(row, col) });
         }
@@ -193,7 +192,7 @@ namespace Microsoft.ML.Data
 
             var typeSrc = cursor.GetSlotType();
 
-            Func<VectorType, PrimitiveDataViewType, GetterFactory, ValueGetter<VBuffer<TDst>>> del = GetVecGetterAsCore<int, TDst>;
+            Func<VectorDataViewType, PrimitiveDataViewType, GetterFactory, ValueGetter<VBuffer<TDst>>> del = GetVecGetterAsCore<int, TDst>;
             var methodInfo = del.GetMethodInfo().GetGenericMethodDefinition().MakeGenericMethod(typeSrc.ItemType.RawType, typeof(TDst));
             return (ValueGetter<VBuffer<TDst>>)methodInfo.Invoke(null, new object[] { typeSrc, typeDst, GetterFactory.Create(cursor) });
         }
@@ -248,7 +247,7 @@ namespace Microsoft.ML.Data
             }
         }
 
-        private static ValueGetter<VBuffer<TDst>> GetVecGetterAsCore<TSrc, TDst>(VectorType typeSrc, PrimitiveDataViewType typeDst, GetterFactory getterFact)
+        private static ValueGetter<VBuffer<TDst>> GetVecGetterAsCore<TSrc, TDst>(VectorDataViewType typeSrc, PrimitiveDataViewType typeDst, GetterFactory getterFact)
         {
             Contracts.Assert(typeof(TSrc) == typeSrc.ItemType.RawType);
             Contracts.Assert(typeof(TDst) == typeDst.RawType);
@@ -302,7 +301,7 @@ namespace Microsoft.ML.Data
             Contracts.CheckValue(cursor, nameof(cursor));
             Contracts.Check(0 <= col && col < cursor.Schema.Count);
             DataViewType type = cursor.Schema[col].Type;
-            Contracts.Check(type is KeyType);
+            Contracts.Check(type is KeyDataViewType);
             return Utils.MarshalInvoke(GetIsNewGroupDelegateCore<int>, type.RawType, cursor, col);
         }
 
@@ -339,10 +338,10 @@ namespace Microsoft.ML.Data
             if (type == NumberDataViewType.Single || type == NumberDataViewType.Double || type is BooleanDataViewType)
                 return null;
 
-            if (allowKeys && type is KeyType)
+            if (allowKeys && type is KeyDataViewType)
                 return null;
 
-            return allowKeys ? "Expected R4, R8, Bool or Key type" : "Expected R4, R8 or Bool type";
+            return allowKeys ? "Expected Single, Double, Boolean or Key type" : "Expected Single, Double or Boolean type";
         }
 
         public static ValueGetter<Single> GetLabelGetter(DataViewRow cursor, int labelIndex)
@@ -386,7 +385,7 @@ namespace Microsoft.ML.Data
                     };
             }
 
-            if (!(type is KeyType keyType))
+            if (!(type is KeyDataViewType keyType))
                 throw Contracts.Except("Only floating point number, boolean, and key type values can be used as label.");
 
             Contracts.Assert(TestGetLabelGetter(type) == null);
@@ -414,7 +413,7 @@ namespace Microsoft.ML.Data
                 return cursor.GetGetter<Single>();
             if (type == NumberDataViewType.Double || type is BooleanDataViewType)
                 return GetVecGetterAs<Single>(NumberDataViewType.Single, cursor);
-            if (!(type is KeyType keyType))
+            if (!(type is KeyDataViewType keyType))
             {
                 throw Contracts.Except("Only floating point number, boolean, and key type values can be used as label.");
             }

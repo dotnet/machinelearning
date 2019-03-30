@@ -8,14 +8,12 @@ using System.Drawing;
 using System.Drawing.Imaging;
 using System.Linq;
 using System.Text;
-using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
-using Microsoft.ML.ImageAnalytics;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Runtime;
-using Microsoft.ML.Transforms;
+using Microsoft.ML.Transforms.Image;
 
 [assembly: LoadableClass(ImageGrayscalingTransformer.Summary, typeof(IDataTransform), typeof(ImageGrayscalingTransformer), typeof(ImageGrayscalingTransformer.Options), typeof(SignatureDataTransform),
     ImageGrayscalingTransformer.UserName, "ImageGrayscaleTransform", "ImageGrayscale")]
@@ -29,7 +27,7 @@ using Microsoft.ML.Transforms;
 [assembly: LoadableClass(typeof(IRowMapper), typeof(ImageGrayscalingTransformer), null, typeof(SignatureLoadRowMapper),
     ImageGrayscalingTransformer.UserName, ImageGrayscalingTransformer.LoaderSignature)]
 
-namespace Microsoft.ML.ImageAnalytics
+namespace Microsoft.ML.Transforms.Image
 {
     // REVIEW: Rewrite as LambdaTransform to simplify.
     // REVIEW: Should it be separate transform or part of ImageResizerTransform?
@@ -166,7 +164,7 @@ namespace Microsoft.ML.ImageAnalytics
 
         private protected override void CheckInputColumn(DataViewSchema inputSchema, int col, int srcCol)
         {
-            if (!(inputSchema[srcCol].Type is ImageType))
+            if (!(inputSchema[srcCol].Type is ImageDataViewType))
                 throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", ColumnPairs[col].inputColumnName, "image", inputSchema[srcCol].Type.ToString());
         }
 
@@ -266,8 +264,8 @@ namespace Microsoft.ML.ImageAnalytics
             {
                 if (!inputSchema.TryFindColumn(colInfo.inputColumnName, out var col))
                     throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.inputColumnName);
-                if (!(col.ItemType is ImageType) || col.Kind != SchemaShape.Column.VectorKind.Scalar)
-                    throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.inputColumnName, new ImageType().ToString(), col.GetTypeString());
+                if (!(col.ItemType is ImageDataViewType) || col.Kind != SchemaShape.Column.VectorKind.Scalar)
+                    throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.inputColumnName, new ImageDataViewType().ToString(), col.GetTypeString());
 
                 result[colInfo.outputColumnName] = new SchemaShape.Column(colInfo.outputColumnName, col.Kind, col.ItemType, col.IsKey, col.Annotations);
             }

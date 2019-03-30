@@ -37,10 +37,10 @@ namespace Microsoft.ML.SamplesUtils
         }
 
         /// <summary>
-        /// Pretty-print MultiClassClassifierMetrics objects.
+        /// Pretty-print MulticlassClassificationMetrics objects.
         /// </summary>
-        /// <param name="metrics"><see cref="MultiClassClassifierMetrics"/> object.</param>
-        public static void PrintMetrics(MultiClassClassifierMetrics metrics)
+        /// <param name="metrics"><see cref="MulticlassClassificationMetrics"/> object.</param>
+        public static void PrintMetrics(MulticlassClassificationMetrics metrics)
         {
             Console.WriteLine($"Micro Accuracy: {metrics.MicroAccuracy:F2}");
             Console.WriteLine($"Macro Accuracy: {metrics.MacroAccuracy:F2}");
@@ -55,7 +55,7 @@ namespace Microsoft.ML.SamplesUtils
         public static void PrintMetrics(RegressionMetrics metrics)
         {
             Console.WriteLine($"Mean Absolute Error: {metrics.MeanAbsoluteError:F2}");
-            Console.WriteLine($"Mean Square dError: {metrics.MeanSquaredError:F2}");
+            Console.WriteLine($"Mean Squared Error: {metrics.MeanSquaredError:F2}");
             Console.WriteLine($"Root Mean Squared Error: {metrics.RootMeanSquaredError:F2}");
             Console.WriteLine($"RSquared: {metrics.RSquared:F2}");
         }

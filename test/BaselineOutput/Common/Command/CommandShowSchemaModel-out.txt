@@ -1,23 +1,23 @@
 ---- BoundLoader ----
 3 columns:
-  NumFeatures: Vec<R4, 6>
-    Metadata 'SlotNames': Vec<Text, 6>: Length=6, Count=6
+  NumFeatures: Vector<Single, 6>
+    Metadata 'SlotNames': Vector<String, 6>: Length=6, Count=6
       [0] 'age', [1] 'fnlwgt', [2] 'education-num', [3] 'capital-gain', [4] 'capital-loss', [5] 'hours-per-week'
-  CatFeaturesText: Vec<Text, 8>
-    Metadata 'SlotNames': Vec<Text, 8>: Length=8, Count=8
+  CatFeaturesText: Vector<String, 8>
+    Metadata 'SlotNames': Vector<String, 8>: Length=8, Count=8
       [0] 'Workclass', [1] 'education', [2] 'marital-status', [3] 'occupation', [4] 'relationship', [5] 'ethnicity', [6] 'sex', [7] 'native-country-region'
-  Label: R4
+  Label: Single
 ---- RowToRowMapperTransform ----
 4 columns:
-  NumFeatures: Vec<R4, 6>
-    Metadata 'SlotNames': Vec<Text, 6>: Length=6, Count=6
+  NumFeatures: Vector<Single, 6>
+    Metadata 'SlotNames': Vector<String, 6>: Length=6, Count=6
       [0] 'age', [1] 'fnlwgt', [2] 'education-num', [3] 'capital-gain', [4] 'capital-loss', [5] 'hours-per-week'
-  CatFeaturesText: Vec<Text, 8>
-    Metadata 'SlotNames': Vec<Text, 8>: Length=8, Count=8
+  CatFeaturesText: Vector<String, 8>
+    Metadata 'SlotNames': Vector<String, 8>: Length=8, Count=8
       [0] 'Workclass', [1] 'education', [2] 'marital-status', [3] 'occupation', [4] 'relationship', [5] 'ethnicity', [6] 'sex', [7] 'native-country-region'
-  Label: R4
-  CatFeatures: Vec<Key<U4, 0-75>, 8>
-    Metadata 'KeyValues': Vec<Text, 76>: Length=76, Count=76
+  Label: Single
+  CatFeatures: Vector<Key<UInt32, 0-75>, 8>
+    Metadata 'KeyValues': Vector<String, 76>: Length=76, Count=76
       [0] 'Private', [1] '11th', [2] 'Never-married', [3] 'Machine-op-inspct', [4] 'Own-child', [5] 'Black', [6] 'Male', [7] 'United-States', [8] 'HS-grad', [9] 'Married-civ-spouse'
       [10] 'Farming-fishing', [11] 'Husband', [12] 'White', [13] 'Local-gov', [14] 'Assoc-acdm', [15] 'Protective-serv', [16] 'Some-college', [17] '?', [18] 'Female', [19] '10th'
       [20] 'Other-service', [21] 'Not-in-family', [22] 'Unmarried', [23] 'Self-emp-not-inc', [24] 'Prof-school', [25] 'Prof-specialty', [26] '7th-8th', [27] 'Craft-repair', [28] 'Federal-gov', [29] 'Bachelors'
@@ -26,19 +26,19 @@
       [50] 'Handlers-cleaners', [51] '9th', [52] 'Married-spouse-absent', [53] 'Other', [54] 'Dominican-Republic', [55] 'Armed-Forces', [56] 'Amer-Indian-Inuit', [57] 'Ireland', [58] 'Germany', [59] '12th'
       [60] 'Other-relative', [61] 'Philippines', [62] 'Thailand', [63] 'Haiti', [64] 'El-Salvador', [65] 'Puerto-Rico', [66] 'Vietnam', [67] '1st-4th', [68] 'South', [69] 'Married-AF-spouse'
       [70] 'Columbia', [71] 'Japan', [72] 'India', [73] 'Cambodia', [74] 'Poland', [75] 'Laos'
-    Metadata 'SlotNames': Vec<Text, 8>: Length=8, Count=8
+    Metadata 'SlotNames': Vector<String, 8>: Length=8, Count=8
       [0] 'Workclass', [1] 'education', [2] 'marital-status', [3] 'occupation', [4] 'relationship', [5] 'ethnicity', [6] 'sex', [7] 'native-country-region'
 ---- RowToRowMapperTransform ----
 5 columns:
-  NumFeatures: Vec<R4, 6>
-    Metadata 'SlotNames': Vec<Text, 6>: Length=6, Count=6
+  NumFeatures: Vector<Single, 6>
+    Metadata 'SlotNames': Vector<String, 6>: Length=6, Count=6
       [0] 'age', [1] 'fnlwgt', [2] 'education-num', [3] 'capital-gain', [4] 'capital-loss', [5] 'hours-per-week'
-  CatFeaturesText: Vec<Text, 8>
-    Metadata 'SlotNames': Vec<Text, 8>: Length=8, Count=8
+  CatFeaturesText: Vector<String, 8>
+    Metadata 'SlotNames': Vector<String, 8>: Length=8, Count=8
       [0] 'Workclass', [1] 'education', [2] 'marital-status', [3] 'occupation', [4] 'relationship', [5] 'ethnicity', [6] 'sex', [7] 'native-country-region'
-  Label: R4
-  CatFeatures: Vec<Key<U4, 0-75>, 8>
-    Metadata 'KeyValues': Vec<Text, 76>: Length=76, Count=76
+  Label: Single
+  CatFeatures: Vector<Key<UInt32, 0-75>, 8>
+    Metadata 'KeyValues': Vector<String, 76>: Length=76, Count=76
       [0] 'Private', [1] '11th', [2] 'Never-married', [3] 'Machine-op-inspct', [4] 'Own-child', [5] 'Black', [6] 'Male', [7] 'United-States', [8] 'HS-grad', [9] 'Married-civ-spouse'
       [10] 'Farming-fishing', [11] 'Husband', [12] 'White', [13] 'Local-gov', [14] 'Assoc-acdm', [15] 'Protective-serv', [16] 'Some-college', [17] '?', [18] 'Female', [19] '10th'
       [20] 'Other-service', [21] 'Not-in-family', [22] 'Unmarried', [23] 'Self-emp-not-inc', [24] 'Prof-school', [25] 'Prof-specialty', [26] '7th-8th', [27] 'Craft-repair', [28] 'Federal-gov', [29] 'Bachelors'
@@ -47,14 +47,14 @@
       [50] 'Handlers-cleaners', [51] '9th', [52] 'Married-spouse-absent', [53] 'Other', [54] 'Dominican-Republic', [55] 'Armed-Forces', [56] 'Amer-Indian-Inuit', [57] 'Ireland', [58] 'Germany', [59] '12th'
       [60] 'Other-relative', [61] 'Philippines', [62] 'Thailand', [63] 'Haiti', [64] 'El-Salvador', [65] 'Puerto-Rico', [66] 'Vietnam', [67] '1st-4th', [68] 'South', [69] 'Married-AF-spouse'
       [70] 'Columbia', [71] 'Japan', [72] 'India', [73] 'Cambodia', [74] 'Poland', [75] 'Laos'
-    Metadata 'SlotNames': Vec<Text, 8>: Length=8, Count=8
+    Metadata 'SlotNames': Vector<String, 8>: Length=8, Count=8
       [0] 'Workclass', [1] 'education', [2] 'marital-status', [3] 'occupation', [4] 'relationship', [5] 'ethnicity', [6] 'sex', [7] 'native-country-region'
-  CatFeatures: Vec<R4, 8, 76>
-    Metadata 'CategoricalSlotRanges': Vec<I4, 8, 2>: Length=16, Count=16
+  CatFeatures: Vector<Single, 8, 76>
+    Metadata 'CategoricalSlotRanges': Vector<Int32, 8, 2>: Length=16, Count=16
       [0] '0', [1] '75', [2] '76', [3] '151', [4] '152', [5] '227', [6] '228', [7] '303', [8] '304', [9] '379'
       [10] '380', [11] '455', [12] '456', [13] '531', [14] '532', [15] '607'
-    Metadata 'IsNormalized': Bool: '1'
-    Metadata 'SlotNames': Vec<Text, 8, 76>: Length=608, Count=608
+    Metadata 'IsNormalized': Boolean: '1'
+    Metadata 'SlotNames': Vector<String, 8, 76>: Length=608, Count=608
       [0] 'Workclass.Private', [1] 'Workclass.11th', [2] 'Workclass.Never-married', [3] 'Workclass.Machine-op-inspct', [4] 'Workclass.Own-child', [5] 'Workclass.Black', [6] 'Workclass.Male', [7] 'Workclass.United-States', [8] 'Workclass.HS-grad', [9] 'Workclass.Married-civ-spouse'
       [10] 'Workclass.Farming-fishing', [11] 'Workclass.Husband', [12] 'Workclass.White', [13] 'Workclass.Local-gov', [14] 'Workclass.Assoc-acdm', [15] 'Workclass.Protective-serv', [16] 'Workclass.Some-college', [17] 'Workclass.?', [18] 'Workclass.Female', [19] 'Workclass.10th'
       [20] 'Workclass.Other-service', [21] 'Workclass.Not-in-family', [22] 'Workclass.Unmarried', [23] 'Workclass.Self-emp-not-inc', [24] 'Workclass.Prof-school', [25] 'Workclass.Prof-specialty', [26] 'Workclass.7th-8th', [27] 'Workclass.Craft-repair', [28] 'Workclass.Federal-gov', [29] 'Workclass.Bachelors'
@@ -118,15 +118,15 @@
       [600] 'native-country-region.South', [601] 'native-country-region.Married-AF-spouse', [602] 'native-country-region.Columbia', [603] 'native-country-region.Japan', [604] 'native-country-region.India', [605] 'native-country-region.Cambodia', [606] 'native-country-region.Poland', [607] 'native-country-region.Laos'
 ---- RowToRowMapperTransform ----
 6 columns:
-  NumFeatures: Vec<R4, 6>
-    Metadata 'SlotNames': Vec<Text, 6>: Length=6, Count=6
+  NumFeatures: Vector<Single, 6>
+    Metadata 'SlotNames': Vector<String, 6>: Length=6, Count=6
       [0] 'age', [1] 'fnlwgt', [2] 'education-num', [3] 'capital-gain', [4] 'capital-loss', [5] 'hours-per-week'
-  CatFeaturesText: Vec<Text, 8>
-    Metadata 'SlotNames': Vec<Text, 8>: Length=8, Count=8
+  CatFeaturesText: Vector<String, 8>
+    Metadata 'SlotNames': Vector<String, 8>: Length=8, Count=8
       [0] 'Workclass', [1] 'education', [2] 'marital-status', [3] 'occupation', [4] 'relationship', [5] 'ethnicity', [6] 'sex', [7] 'native-country-region'
-  Label: R4
-  CatFeatures: Vec<Key<U4, 0-75>, 8>
-    Metadata 'KeyValues': Vec<Text, 76>: Length=76, Count=76
+  Label: Single
+  CatFeatures: Vector<Key<UInt32, 0-75>, 8>
+    Metadata 'KeyValues': Vector<String, 76>: Length=76, Count=76
       [0] 'Private', [1] '11th', [2] 'Never-married', [3] 'Machine-op-inspct', [4] 'Own-child', [5] 'Black', [6] 'Male', [7] 'United-States', [8] 'HS-grad', [9] 'Married-civ-spouse'
       [10] 'Farming-fishing', [11] 'Husband', [12] 'White', [13] 'Local-gov', [14] 'Assoc-acdm', [15] 'Protective-serv', [16] 'Some-college', [17] '?', [18] 'Female', [19] '10th'
       [20] 'Other-service', [21] 'Not-in-family', [22] 'Unmarried', [23] 'Self-emp-not-inc', [24] 'Prof-school', [25] 'Prof-specialty', [26] '7th-8th', [27] 'Craft-repair', [28] 'Federal-gov', [29] 'Bachelors'
@@ -135,14 +135,14 @@
       [50] 'Handlers-cleaners', [51] '9th', [52] 'Married-spouse-absent', [53] 'Other', [54] 'Dominican-Republic', [55] 'Armed-Forces', [56] 'Amer-Indian-Inuit', [57] 'Ireland', [58] 'Germany', [59] '12th'
       [60] 'Other-relative', [61] 'Philippines', [62] 'Thailand', [63] 'Haiti', [64] 'El-Salvador', [65] 'Puerto-Rico', [66] 'Vietnam', [67] '1st-4th', [68] 'South', [69] 'Married-AF-spouse'
       [70] 'Columbia', [71] 'Japan', [72] 'India', [73] 'Cambodia', [74] 'Poland', [75] 'Laos'
-    Metadata 'SlotNames': Vec<Text, 8>: Length=8, Count=8
+    Metadata 'SlotNames': Vector<String, 8>: Length=8, Count=8
       [0] 'Workclass', [1] 'education', [2] 'marital-status', [3] 'occupation', [4] 'relationship', [5] 'ethnicity', [6] 'sex', [7] 'native-country-region'
-  CatFeatures: Vec<R4, 8, 76>
-    Metadata 'CategoricalSlotRanges': Vec<I4, 8, 2>: Length=16, Count=16
+  CatFeatures: Vector<Single, 8, 76>
+    Metadata 'CategoricalSlotRanges': Vector<Int32, 8, 2>: Length=16, Count=16
       [0] '0', [1] '75', [2] '76', [3] '151', [4] '152', [5] '227', [6] '228', [7] '303', [8] '304', [9] '379'
       [10] '380', [11] '455', [12] '456', [13] '531', [14] '532', [15] '607'
-    Metadata 'IsNormalized': Bool: '1'
-    Metadata 'SlotNames': Vec<Text, 8, 76>: Length=608, Count=608
+    Metadata 'IsNormalized': Boolean: '1'
+    Metadata 'SlotNames': Vector<String, 8, 76>: Length=608, Count=608
       [0] 'Workclass.Private', [1] 'Workclass.11th', [2] 'Workclass.Never-married', [3] 'Workclass.Machine-op-inspct', [4] 'Workclass.Own-child', [5] 'Workclass.Black', [6] 'Workclass.Male', [7] 'Workclass.United-States', [8] 'Workclass.HS-grad', [9] 'Workclass.Married-civ-spouse'
       [10] 'Workclass.Farming-fishing', [11] 'Workclass.Husband', [12] 'Workclass.White', [13] 'Workclass.Local-gov', [14] 'Workclass.Assoc-acdm', [15] 'Workclass.Protective-serv', [16] 'Workclass.Some-college', [17] 'Workclass.?', [18] 'Workclass.Female', [19] 'Workclass.10th'
       [20] 'Workclass.Other-service', [21] 'Workclass.Not-in-family', [22] 'Workclass.Unmarried', [23] 'Workclass.Self-emp-not-inc', [24] 'Workclass.Prof-school', [25] 'Workclass.Prof-specialty', [26] 'Workclass.7th-8th', [27] 'Workclass.Craft-repair', [28] 'Workclass.Federal-gov', [29] 'Workclass.Bachelors'
@@ -204,11 +204,11 @@
       [580] 'native-country-region.Mexico', [581] 'native-country-region.Transport-moving', [582] 'native-country-region.Handlers-cleaners', [583] 'native-country-region.9th', [584] 'native-country-region.Married-spouse-absent', [585] 'native-country-region.Other', [586] 'native-country-region.Dominican-Republic', [587] 'native-country-region.Armed-Forces', [588] 'native-country-region.Amer-Indian-Inuit', [589] 'native-country-region.Ireland'
       [590] 'native-country-region.Germany', [591] 'native-country-region.12th', [592] 'native-country-region.Other-relative', [593] 'native-country-region.Philippines', [594] 'native-country-region.Thailand', [595] 'native-country-region.Haiti', [596] 'native-country-region.El-Salvador', [597] 'native-country-region.Puerto-Rico', [598] 'native-country-region.Vietnam', [599] 'native-country-region.1st-4th'
       [600] 'native-country-region.South', [601] 'native-country-region.Married-AF-spouse', [602] 'native-country-region.Columbia', [603] 'native-country-region.Japan', [604] 'native-country-region.India', [605] 'native-country-region.Cambodia', [606] 'native-country-region.Poland', [607] 'native-country-region.Laos'
-  Features: Vec<R4, 614>
-    Metadata 'CategoricalSlotRanges': Vec<I4, 8, 2>: Length=16, Count=16
+  Features: Vector<Single, 614>
+    Metadata 'CategoricalSlotRanges': Vector<Int32, 8, 2>: Length=16, Count=16
       [0] '6', [1] '81', [2] '82', [3] '157', [4] '158', [5] '233', [6] '234', [7] '309', [8] '310', [9] '385'
       [10] '386', [11] '461', [12] '462', [13] '537', [14] '538', [15] '613'
-    Metadata 'SlotNames': Vec<Text, 614>: Length=614, Count=614
+    Metadata 'SlotNames': Vector<String, 614>: Length=614, Count=614
       [0] 'NumFeatures.age', [1] 'NumFeatures.fnlwgt', [2] 'NumFeatures.education-num', [3] 'NumFeatures.capital-gain', [4] 'NumFeatures.capital-loss', [5] 'NumFeatures.hours-per-week', [6] 'CatFeatures.Workclass.Private', [7] 'CatFeatures.Workclass.11th', [8] 'CatFeatures.Workclass.Never-married', [9] 'CatFeatures.Workclass.Machine-op-inspct'
       [10] 'CatFeatures.Workclass.Own-child', [11] 'CatFeatures.Workclass.Black', [12] 'CatFeatures.Workclass.Male', [13] 'CatFeatures.Workclass.United-States', [14] 'CatFeatures.Workclass.HS-grad', [15] 'CatFeatures.Workclass.Married-civ-spouse', [16] 'CatFeatures.Workclass.Farming-fishing', [17] 'CatFeatures.Workclass.Husband', [18] 'CatFeatures.Workclass.White', [19] 'CatFeatures.Workclass.Local-gov'
       [20] 'CatFeatures.Workclass.Assoc-acdm', [21] 'CatFeatures.Workclass.Protective-serv', [22] 'CatFeatures.Workclass.Some-college', [23] 'CatFeatures.Workclass.?', [24] 'CatFeatures.Workclass.Female', [25] 'CatFeatures.Workclass.10th', [26] 'CatFeatures.Workclass.Other-service', [27] 'CatFeatures.Workclass.Not-in-family', [28] 'CatFeatures.Workclass.Unmarried', [29] 'CatFeatures.Workclass.Self-emp-not-inc'

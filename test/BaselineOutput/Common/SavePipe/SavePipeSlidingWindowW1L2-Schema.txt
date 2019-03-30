@@ -1,0 +1,7 @@
+---- BoundLoader ----
+1 columns:
+  Input: Single
+---- SlidingWindowTransform ----
+2 columns:
+  Input: Single
+  Output: Vector<Single>
