@@ -155,9 +155,8 @@ point, probably the first call, `value` is replaced with a `VBuffer<float>`
 that has actual values, stored in freshly allocated buffers. In subsequent
 calls, *perhaps* these are judged as insufficiently large, and new arrays are
 internally allocated, but we would expect at some point the arrays would
-become "large enough" to accommodate many values, so reallocations would
-become increasingly rare. In this way, we avoid nearly all allocations and
-garbage collection.
+become "large enough," and we would no longer have to allocate new buffers and
+garbage collect old ones after that point.
 
 A common mistake made by first time users is to do something like move the
 `var value` declaration inside the `while` loop, thus dooming `getter` to have
@@ -233,11 +232,11 @@ stores the scaled result in `dst`.
 ScaleBy(in VBuffer<float> src, ref VBuffer<float> dst, float c)
 ```
 
-What this does is, copy the values from `src` to `dst`, while scaling each
-value from `src` seen by the factor `c`.
+What this does is, copy the values from `src` to `dst` while scaling the
+values we are copying by the factor `c`.
 
 One possible alternate (wrong) implementation of this would be to just say
-`dst=src` then edit `dst` and scale its contents by `c`. But, then `dst` and
+`dst=src` then edit `dst` and scale each value by `c`. But, then `dst` and
 `src` would share references to their internal arrays, completely compromising
 the caller's ability to do anything useful with `src`: if the caller were to
 pass `dst` into some other method that modified it, this could easily
