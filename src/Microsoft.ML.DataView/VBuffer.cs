@@ -162,32 +162,32 @@ namespace Microsoft.ML.Data
         /// <summary>
         /// Copy from this buffer to the given destination, forcing a dense representation.
         /// </summary>
-        public void CopyToDense(ref VBuffer<T> dst)
+        public void CopyToDense(ref VBuffer<T> destination)
         {
             // create a dense editor
-            var editor = VBufferEditor.Create(ref dst, Length);
+            var editor = VBufferEditor.Create(ref destination, Length);
 
             if (!IsDense)
                 CopyTo(editor.Values);
             else if (Length > 0)
                 _values.AsSpan(0, Length).CopyTo(editor.Values);
-            dst = editor.Commit();
+            destination = editor.Commit();
         }
 
         /// <summary>
         /// Copy from this buffer to the given destination.
         /// </summary>
-        public void CopyTo(ref VBuffer<T> dst)
+        public void CopyTo(ref VBuffer<T> destination)
         {
-            var editor = VBufferEditor.Create(ref dst, Length, _count);
+            var editor = VBufferEditor.Create(ref destination, Length, _count);
             if (IsDense)
             {
                 if (Length > 0)
                 {
                     _values.AsSpan(0, Length).CopyTo(editor.Values);
                 }
-                dst = editor.Commit();
-                Debug.Assert(dst.IsDense);
+                destination = editor.Commit();
+                Debug.Assert(destination.IsDense);
             }
             else
             {
@@ -196,57 +196,57 @@ namespace Microsoft.ML.Data
                     _values.AsSpan(0, _count).CopyTo(editor.Values);
                     _indices.AsSpan(0, _count).CopyTo(editor.Indices);
                 }
-                dst = editor.Commit();
+                destination = editor.Commit();
             }
         }
 
         /// <summary>
         /// Copy a range of values from this buffer to the given destination.
         /// </summary>
-        /// <param name="dst">The destination buffer. After the copy, this will have <see cref="VBuffer{T}.Length"/>
+        /// <param name="destination">The destination buffer. After the copy, this will have <see cref="VBuffer{T}.Length"/>
         /// of <paramref name="length"/>.</param>
-        /// <param name="srcMin">The minimum inclusive index to start copying from this vector.</param>
-        /// <param name="length">The logical number of values to copy from this vector into <paramref name="dst"/>.</param>
-        public void CopyTo(ref VBuffer<T> dst, int srcMin, int length)
+        /// <param name="sourceIndex">The minimum inclusive index to start copying from this vector.</param>
+        /// <param name="length">The logical number of values to copy from this vector into <paramref name="destination"/>.</param>
+        public void CopyTo(ref VBuffer<T> destination, int sourceIndex, int length)
         {
-            Contracts.CheckParam(0 <= srcMin && srcMin <= Length, nameof(srcMin));
-            Contracts.CheckParam(0 <= length && srcMin <= Length - length, nameof(length));
+            Contracts.CheckParam(0 <= sourceIndex && sourceIndex <= Length, nameof(sourceIndex));
+            Contracts.CheckParam(0 <= length && sourceIndex <= Length - length, nameof(length));
 
             if (IsDense)
             {
-                var editor = VBufferEditor.Create(ref dst, length, length);
+                var editor = VBufferEditor.Create(ref destination, length, length);
                 if (length > 0)
                 {
-                    _values.AsSpan(srcMin, length).CopyTo(editor.Values);
+                    _values.AsSpan(sourceIndex, length).CopyTo(editor.Values);
                 }
-                dst = editor.Commit();
-                Debug.Assert(dst.IsDense);
+                destination = editor.Commit();
+                Debug.Assert(destination.IsDense);
             }
             else
             {
                 int copyCount = 0;
                 if (_count > 0)
                 {
-                    int copyMin = ArrayUtils.FindIndexSorted(_indices, 0, _count, srcMin);
-                    int copyLim = ArrayUtils.FindIndexSorted(_indices, copyMin, _count, srcMin + length);
+                    int copyMin = ArrayUtils.FindIndexSorted(_indices, 0, _count, sourceIndex);
+                    int copyLim = ArrayUtils.FindIndexSorted(_indices, copyMin, _count, sourceIndex + length);
                     Debug.Assert(copyMin <= copyLim);
                     copyCount = copyLim - copyMin;
-                    var editor = VBufferEditor.Create(ref dst, length, copyCount);
+                    var editor = VBufferEditor.Create(ref destination, length, copyCount);
                     if (copyCount > 0)
                     {
                         _values.AsSpan(copyMin, copyCount).CopyTo(editor.Values);
                         if (copyCount < length)
                         {
                             for (int i = 0; i < copyCount; ++i)
-                                editor.Indices[i] = _indices[i + copyMin] - srcMin;
+                                editor.Indices[i] = _indices[i + copyMin] - sourceIndex;
                         }
                     }
-                    dst = editor.Commit();
+                    destination = editor.Commit();
                 }
                 else
                 {
-                    var editor = VBufferEditor.Create(ref dst, length, copyCount);
-                    dst = editor.Commit();
+                    var editor = VBufferEditor.Create(ref destination, length, copyCount);
+                    destination = editor.Commit();
                 }
             }
         }
@@ -254,36 +254,37 @@ namespace Microsoft.ML.Data
         /// <summary>
         /// Copy from this buffer to the given destination span. This "densifies."
         /// </summary>
-        /// <param name="dst">The destination buffer. This <see cref="Span{T}.Length"/> must have least <see cref="Length"/>.</param>
-        public void CopyTo(Span<T> dst)
+        /// <param name="destination">The destination buffer. This <see cref="Span{T}.Length"/> must have least <see cref="Length"/>.</param>
+        public void CopyTo(Span<T> destination)
         {
-            CopyTo(dst, 0);
+            CopyTo(destination, 0);
         }
 
         /// <summary>
         /// Copy from this buffer to the given destination span, starting at the specified index. This "densifies."
         /// </summary>
-        /// <param name="dst">The destination buffer. This <see cref="Span{T}.Length"/> must be at least <see cref="Length"/>
-        /// plus <paramref name="ivDst"/>.</param>
-        /// <param name="ivDst">The starting index of <paramref name="dst"/> at which to start copying.</param>
+        /// <param name="destination">The destination buffer. This <see cref="Span{T}.Length"/> must be at least <see cref="Length"/>
+        /// plus <paramref name="destinationIndex"/>.</param>
+        /// <param name="destinationIndex">The starting index of <paramref name="destination"/> at which to start copying.</param>
         /// <param name="defaultValue">The value to fill in for the implicit sparse entries. This is a potential exception to
         /// general expectation of sparse <see cref="VBuffer{T}"/> that the implicit sparse entries have the default value
         /// of <typeparamref name="T"/>.</param>
-        public void CopyTo(Span<T> dst, int ivDst, T defaultValue = default(T))
+        public void CopyTo(Span<T> destination, int destinationIndex, T defaultValue = default(T))
         {
-            Contracts.CheckParam(0 <= ivDst && ivDst <= dst.Length - Length, nameof(dst), "dst is not large enough");
+            Contracts.CheckParam(0 <= destinationIndex && destinationIndex <= destination.Length - Length,
+                nameof(destination), "Not large enough to hold these values.");
 
             if (Length == 0)
                 return;
             if (IsDense)
             {
-                _values.AsSpan(0, Length).CopyTo(dst.Slice(ivDst));
+                _values.AsSpan(0, Length).CopyTo(destination.Slice(destinationIndex));
                 return;
             }
 
             if (_count == 0)
             {
-                dst.Slice(ivDst, Length).Clear();
+                destination.Slice(destinationIndex, Length).Clear();
                 return;
             }
 
@@ -293,27 +294,27 @@ namespace Microsoft.ML.Data
                 int slot = _indices[islot];
                 Debug.Assert(slot >= iv);
                 while (iv < slot)
-                    dst[ivDst + iv++] = defaultValue;
+                    destination[destinationIndex + iv++] = defaultValue;
                 Debug.Assert(iv == slot);
-                dst[ivDst + iv++] = _values[islot];
+                destination[destinationIndex + iv++] = _values[islot];
             }
             while (iv < Length)
-                dst[ivDst + iv++] = defaultValue;
+                destination[destinationIndex + iv++] = defaultValue;
         }
 
         /// <summary>
         /// Copy from a section of a source array to the given destination.
         /// </summary>
-        public static void Copy(T[] src, int srcIndex, ref VBuffer<T> dst, int length)
+        public static void Copy(T[] source, int sourceIndex, ref VBuffer<T> destination, int length)
         {
-            Contracts.CheckParam(0 <= length && length <= ArrayUtils.Size(src), nameof(length));
-            Contracts.CheckParam(0 <= srcIndex && srcIndex <= ArrayUtils.Size(src) - length, nameof(srcIndex));
-            var editor = VBufferEditor.Create(ref dst, length, length);
+            Contracts.CheckParam(0 <= length && length <= ArrayUtils.Size(source), nameof(length));
+            Contracts.CheckParam(0 <= sourceIndex && sourceIndex <= ArrayUtils.Size(source) - length, nameof(sourceIndex));
+            var editor = VBufferEditor.Create(ref destination, length, length);
             if (length > 0)
             {
-                src.AsSpan(srcIndex, length).CopyTo(editor.Values);
+                source.AsSpan(sourceIndex, length).CopyTo(editor.Values);
             }
-            dst = editor.Commit();
+            destination = editor.Commit();
         }
 
         /// <summary>
@@ -338,7 +339,7 @@ namespace Microsoft.ML.Data
 
         /// <summary>
         /// Gets the item stored in this structure. In the case of a dense vector this is a simple lookup.
-        /// In the case of a sparse vector, it will try to find the entry with that index, and set <paramref name="dst"/>
+        /// In the case of a sparse vector, it will try to find the entry with that index, and set <paramref name="destination"/>
         /// to that stored value, or if no such value was found, assign it the default value.
         /// </summary>
         /// <remarks>
@@ -353,19 +354,19 @@ namespace Microsoft.ML.Data
         /// <see cref="GetValues"/> and, if appropriate, <see cref="GetIndices"/> directly.
         /// </remarks>
         /// <param name="slot">The slot index, which must be a non-negative number less than <see cref="Length"/>.</param>
-        /// <param name="dst">The value stored at that index, or if this is a sparse vector where this is an implicit
+        /// <param name="destination">The value stored at that index, or if this is a sparse vector where this is an implicit
         /// entry, the default value for <typeparamref name="T"/>.</param>
-        public void GetItemOrDefault(int slot, ref T dst)
+        public void GetItemOrDefault(int slot, ref T destination)
         {
             Contracts.CheckParam(0 <= slot && slot < Length, nameof(slot));
 
             int index;
             if (IsDense)
-                dst = _values[slot];
+                destination = _values[slot];
             else if (_count > 0 && ArrayUtils.TryFindIndexSorted(_indices, 0, _count, slot, out index))
-                dst = _values[index];
+                destination = _values[index];
             else
-                dst = default(T);
+                destination = default(T);
         }
 
         public T GetItemOrDefault(int slot)

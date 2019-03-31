@@ -225,25 +225,25 @@ buffer.
 
 There is a corollary on this point: because the caller owns any `VBuffer`,
 then code should not do anything that irrevocably destroys its usefulness to
-the caller. For example, consider this method that takes a vector `src`, and
-stores the scaled result in `dst`.
+the caller. For example, consider this method that takes a vector `source`,
+and stores the scaled result in `destination`.
 
 ```csharp
-ScaleBy(in VBuffer<float> src, ref VBuffer<float> dst, float c)
+ScaleBy(in VBuffer<float> source, ref VBuffer<float> destination, float c)
 ```
 
-What this does is, copy the values from `src` to `dst` while scaling the
-values we are copying by the factor `c`.
+What this does is, copy the values from `source` to `destination` while
+scaling the values we are copying by the factor `c`.
 
 One possible alternate (wrong) implementation of this would be to just say
-`dst=src` then edit `dst` and scale each value by `c`. But, then `dst` and
-`src` would share references to their internal arrays, completely compromising
-the caller's ability to do anything useful with `src`: if the caller were to
-pass `dst` into some other method that modified it, this could easily
-(silently!) modify the contents of `src`. The point is: if you are writing
-code *anywhere* whose end result is that two distinct `VBuffer`s share
-references to their internal arrays, you've almost certainly introduced a
-**nasty** pernicious bug.
+`destination=source` then edit `destination` and scale each value by `c`. But,
+then `destination` and `source` would share references to their internal
+arrays, completely compromising the caller's ability to do anything useful
+with `source`: if the caller were to pass `destination` into some other method
+that modified it, this could easily (silently!) modify the contents of
+`source`. The point is: if you are writing code *anywhere* whose end result is
+that two distinct `VBuffer`s share references to their internal arrays, you've
+almost certainly introduced a **nasty** pernicious bug.
 
 # Internal Utilities for Working with `VBuffer`s
 
