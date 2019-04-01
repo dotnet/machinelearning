@@ -6,7 +6,7 @@ using Microsoft.ML.Trainers;
 
 namespace Microsoft.ML.Samples.Dynamic.Trainers.Regression
 {
-    public static class PoissonRegressionWithOptions
+    public static class LbfgsPoissonRegressionWithOptions
     {
         public static void Example()
         {
@@ -61,7 +61,7 @@ namespace Microsoft.ML.Samples.Dynamic.Trainers.Regression
             // Evaluate the overall metrics
             var metrics = mlContext.Regression.Evaluate(transformedTestData);
             SamplesUtils.ConsoleUtils.PrintMetrics(metrics);
-            
+
             // Expected output:
             //   Mean Absolute Error: 0.07
             //   Mean Squared Error: 0.01
