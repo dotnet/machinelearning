@@ -567,7 +567,7 @@ namespace Microsoft.ML
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
-        ///  [!code-csharp[PoissonRegression](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Trainers/Regression/PoissonRegression.cs)]
+        ///  [!code-csharp[PoissonRegression](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Trainers/Regression/LbfgsPoissonRegression.cs)]
         /// ]]></format>
         /// </example>
         public static LbfgsPoissonRegressionTrainer LbfgsPoissonRegression(this RegressionCatalog.RegressionTrainers catalog,
@@ -593,7 +593,7 @@ namespace Microsoft.ML
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
-        ///  [!code-csharp[PoissonRegression](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Trainers/Regression/PoissonRegressionWithOptions.cs)]
+        ///  [!code-csharp[PoissonRegression](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Trainers/Regression/LbfgsPoissonRegressionWithOptions.cs)]
         /// ]]></format>
         /// </example>
         public static LbfgsPoissonRegressionTrainer LbfgsPoissonRegression(this RegressionCatalog.RegressionTrainers catalog, LbfgsPoissonRegressionTrainer.Options options)

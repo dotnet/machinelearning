@@ -1,8 +1,8 @@
 ﻿<#@ include file="RegressionSamplesTemplate.ttinclude"#>
 
 <#+
-string ClassName="PoissonRegression";
-string Trainer = "PoissonRegression";
+string ClassName="LbfgsPoissonRegression";
+string Trainer = "LbfgsPoissonRegression";
 string TrainerOptions = null;
 
 string ExpectedOutputPerInstance= @"// Expected output:
