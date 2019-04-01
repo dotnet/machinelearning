@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.IO;
+using Microsoft.ML.Experimental;
 using Microsoft.ML.Functional.Tests.Datasets;
 using Microsoft.ML.RunTests;
 using Microsoft.ML.TestFramework;
@@ -33,7 +34,7 @@ namespace Microsoft.ML.Functional.Tests
 
             // Create a pipeline to train on the housing data.
             var pipeline = mlContext.Transforms.Concatenate("Features", HousingRegression.Features)
-                .Append(mlContext.Transforms.Normalize("Features"))
+                .Append(mlContext.Transforms.NormalizeMinMax("Features"))
                 .AppendCacheCheckpoint(mlContext)
                 .Append(mlContext.Regression.Trainers.FastTree(
                     new FastTreeRegressionTrainer.Options { NumberOfThreads = 1, NumberOfTrees = 10 }));
@@ -85,7 +86,7 @@ namespace Microsoft.ML.Functional.Tests
 
             // Create a pipeline to train on the housing data.
             var pipeline = mlContext.Transforms.Concatenate("Features", HousingRegression.Features)
-                .Append(mlContext.Transforms.Normalize("Features"))
+                .Append(mlContext.Transforms.NormalizeMinMax("Features"))
                 .AppendCacheCheckpoint(mlContext)
                 .Append(mlContext.Clustering.Trainers.KMeans(
                     new KMeansTrainer.Options { NumberOfThreads = 1, MaximumNumberOfIterations = 10 }));
@@ -137,7 +138,7 @@ namespace Microsoft.ML.Functional.Tests
 
             // Create a pipeline to train on the housing data.
             var pipeline = mlContext.Transforms.Concatenate("Features", HousingRegression.Features)
-                .Append(mlContext.Transforms.Normalize("Features"))
+                .Append(mlContext.Transforms.NormalizeMinMax("Features"))
                 .AppendCacheCheckpoint(mlContext)
                 .Append(mlContext.Regression.Trainers.Sdca(
                     new SdcaRegressionTrainer.Options { NumberOfThreads = 1, MaximumNumberOfIterations = 10 }));

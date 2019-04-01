@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Net;
 using Microsoft.ML.Data;
+using Microsoft.ML.Experimental;
 
 namespace Microsoft.ML.SamplesUtils
 {
@@ -171,7 +172,7 @@ namespace Microsoft.ML.SamplesUtils
                     "occupation", "relationship", "ethnicity", "native-country", "age", "education-num",
                     "capital-gain", "capital-loss", "hours-per-week"))
                 // Min-max normalize all the features
-                .Append(mlContext.Transforms.Normalize("Features"));
+                .Append(mlContext.Transforms.NormalizeMinMax("Features"));
 
             var data = loader.Load(dataFile);
             var featurizedData = pipeline.Fit(data).Transform(data);

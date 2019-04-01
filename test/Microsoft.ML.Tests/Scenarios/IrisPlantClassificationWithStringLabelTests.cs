@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.ML.Data;
+using Microsoft.ML.Experimental;
 using Microsoft.ML.Trainers;
 using Xunit;
 
@@ -34,7 +35,7 @@ namespace Microsoft.ML.Scenarios
 
             // Create Estimator
             var pipe = mlContext.Transforms.Concatenate("Features", "SepalLength", "SepalWidth", "PetalLength", "PetalWidth")
-                .Append(mlContext.Transforms.Normalize("Features"))
+                .Append(mlContext.Transforms.NormalizeMinMax("Features"))
                 .Append(mlContext.Transforms.Conversion.MapValueToKey("Label", "IrisPlantType"), TransformerScope.TrainTest)
                 .AppendCacheCheckpoint(mlContext)
                 .Append(mlContext.MulticlassClassification.Trainers.SdcaMaximumEntropy(

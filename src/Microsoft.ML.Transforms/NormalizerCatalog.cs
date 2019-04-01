@@ -10,25 +10,6 @@ namespace Microsoft.ML
     public static class NormalizationCatalog
     {
         /// <summary>
-        /// Normalize (rescale) the column according to the specified <paramref name="mode"/>.
-        /// </summary>
-        /// <param name="catalog">The transform catalog</param>
-        /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.</param>
-        /// <param name="inputColumnName">Name of the column to transform. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.</param>
-        /// <param name="mode">The <see cref="NormalizingEstimator.NormalizationMode"/> used to map the old values in the new scale. </param>
-        /// <example>
-        /// <format type="text/markdown">
-        /// <![CDATA[
-        /// [!code-csharp[Normalize](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Normalizer.cs)]
-        /// ]]>
-        /// </format>
-        /// </example>
-        public static NormalizingEstimator Normalize(this TransformsCatalog catalog,
-           string outputColumnName, string inputColumnName = null,
-            NormalizingEstimator.NormalizationMode mode = NormalizingEstimator.NormalizationMode.MinMax)
-            => new NormalizingEstimator(CatalogUtils.GetEnvironment(catalog), outputColumnName, inputColumnName ?? outputColumnName, mode);
-
-        /// <summary>
         /// Normalize (rescale) columns according to specified custom parameters.
         /// </summary>
         /// <param name="catalog">The transform catalog</param>

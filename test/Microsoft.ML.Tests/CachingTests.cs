@@ -5,6 +5,7 @@
 using System.Linq;
 using System.Threading;
 using Microsoft.ML.Data;
+using Microsoft.ML.Experimental;
 using Microsoft.ML.RunTests;
 using Microsoft.ML.StaticPipe;
 using Xunit;
@@ -43,8 +44,8 @@ namespace Microsoft.ML.Tests
             var trainData = Enumerable.Range(0, 100).Select(c => new MyData()).ToArray();
 
             var pipe = ML.Transforms.CopyColumns("F1", "Features")
-                .Append(ML.Transforms.Normalize("Norm1", "F1"))
-                .Append(ML.Transforms.Normalize("Norm2", "F1", Transforms.NormalizingEstimator.NormalizationMode.MeanVariance));
+                .Append(ML.Transforms.NormalizeMinMax("Norm1", "F1"))
+                .Append(ML.Transforms.NormalizeMeanVariance("Norm2", "F1"));
 
             pipe.Fit(ML.Data.LoadFromEnumerable(trainData));
 
@@ -53,8 +54,8 @@ namespace Microsoft.ML.Tests
             trainData = Enumerable.Range(0, 100).Select(c => new MyData()).ToArray();
             pipe = ML.Transforms.CopyColumns("F1", "Features")
                 .AppendCacheCheckpoint(ML)
-                .Append(ML.Transforms.Normalize("Norm1", "F1"))
-                .Append(ML.Transforms.Normalize("Norm2", "F1", Transforms.NormalizingEstimator.NormalizationMode.MeanVariance));
+                .Append(ML.Transforms.NormalizeMinMax("Norm1", "F1"))
+                .Append(ML.Transforms.NormalizeMeanVariance("Norm2", "F1"));
 
             pipe.Fit(ML.Data.LoadFromEnumerable(trainData));
 

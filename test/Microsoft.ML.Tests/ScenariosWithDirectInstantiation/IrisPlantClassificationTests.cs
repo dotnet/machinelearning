@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.ML.Data;
+using Microsoft.ML.Experimental;
 using Microsoft.ML.RunTests;
 using Microsoft.ML.Trainers;
 using Xunit;
@@ -27,7 +28,7 @@ namespace Microsoft.ML.Scenarios
             );
 
             var pipe = mlContext.Transforms.Concatenate("Features", "SepalLength", "SepalWidth", "PetalLength", "PetalWidth")
-                .Append(mlContext.Transforms.Normalize("Features"))
+                .Append(mlContext.Transforms.NormalizeMinMax("Features"))
                 .Append(mlContext.Transforms.Conversion.MapValueToKey("Label"))
                 .AppendCacheCheckpoint(mlContext)
                 .Append(mlContext.MulticlassClassification.Trainers.SdcaMaximumEntropy(

@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.ML.Data;
+using Microsoft.ML.Experimental;
 using Microsoft.ML.Functional.Tests.Datasets;
 using Microsoft.ML.RunTests;
 using Microsoft.ML.TestFramework;
@@ -254,7 +255,7 @@ namespace Microsoft.ML.Functional.Tests
 
             // Compose the transformation.
             var pipeline = mlContext.Transforms.Concatenate("Features", Iris.Features)
-                .Append(mlContext.Transforms.Normalize("Features", mode: NormalizingEstimator.NormalizationMode.MinMax));
+                .Append(mlContext.Transforms.NormalizeMinMax("Features"));
 
             // Fit the pipeline.
             var model = pipeline.Fit(data);

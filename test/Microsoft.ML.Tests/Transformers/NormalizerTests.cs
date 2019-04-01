@@ -225,8 +225,8 @@ namespace Microsoft.ML.Tests.Transformers
             var est1 = new NormalizingEstimator(Env, "float4");
             var est2 = new NormalizingEstimator(Env, NormalizingEstimator.NormalizationMode.MinMax, ("float4", "float4"));
             var est3 = new NormalizingEstimator(Env, new NormalizingEstimator.MinMaxColumnOptions("float4"));
-            var est4 = ML.Transforms.Normalize("float4", "float4", NormalizingEstimator.NormalizationMode.MinMax);
-            var est5 = ML.Transforms.Normalize("float4");
+            var est4 = ML.Transforms.NormalizeMinMax("float4", "float4");
+            var est5 = ML.Transforms.NormalizeMinMax("float4");
 
             var data1 = est1.Fit(data).Transform(data);
             var data2 = est2.Fit(data).Transform(data);
@@ -246,7 +246,7 @@ namespace Microsoft.ML.Tests.Transformers
             // Tests for MeanVariance
             var est6 = new NormalizingEstimator(Env, NormalizingEstimator.NormalizationMode.MeanVariance, ("float4", "float4"));
             var est7 = new NormalizingEstimator(Env, new NormalizingEstimator.MeanVarianceColumnOptions("float4"));
-            var est8 = ML.Transforms.Normalize("float4", "float4", NormalizingEstimator.NormalizationMode.MeanVariance);
+            var est8 = ML.Transforms.NormalizeMeanVariance("float4", "float4");
 
             var data6 = est6.Fit(data).Transform(data);
             var data7 = est7.Fit(data).Transform(data);
@@ -259,7 +259,7 @@ namespace Microsoft.ML.Tests.Transformers
             // Tests for LogMeanVariance
             var est9 = new NormalizingEstimator(Env, NormalizingEstimator.NormalizationMode.LogMeanVariance, ("float4", "float4"));
             var est10 = new NormalizingEstimator(Env, new NormalizingEstimator.LogMeanVarianceColumnOptions("float4"));
-            var est11 = ML.Transforms.Normalize("float4", "float4", NormalizingEstimator.NormalizationMode.LogMeanVariance);
+            var est11 = ML.Transforms.NormalizeLogMeanVariance("float4", "float4");
 
             var data9 = est9.Fit(data).Transform(data);
             var data10 = est10.Fit(data).Transform(data);
@@ -272,7 +272,7 @@ namespace Microsoft.ML.Tests.Transformers
             // Tests for Binning
             var est12 = new NormalizingEstimator(Env, NormalizingEstimator.NormalizationMode.Binning, ("float4", "float4"));
             var est13 = new NormalizingEstimator(Env, new NormalizingEstimator.BinningColumnOptions("float4"));
-            var est14 = ML.Transforms.Normalize("float4", "float4", NormalizingEstimator.NormalizationMode.Binning);
+            var est14 = ML.Transforms.NormalizeBinning("float4", "float4");
 
             var data12 = est12.Fit(data).Transform(data);
             var data13 = est13.Fit(data).Transform(data);
@@ -285,7 +285,7 @@ namespace Microsoft.ML.Tests.Transformers
             // Tests for SupervisedBinning
             var est15 = new NormalizingEstimator(Env, NormalizingEstimator.NormalizationMode.SupervisedBinning, ("float4", "float4"));
             var est16 = new NormalizingEstimator(Env, new NormalizingEstimator.SupervisedBinningColumOptions("float4"));
-            var est17 = ML.Transforms.Normalize("float4", "float4", NormalizingEstimator.NormalizationMode.SupervisedBinning);
+            var est17 = ML.Transforms.NormalizeSupervisedBinning("float4", "float4");
 
             var data15 = est15.Fit(data).Transform(data);
             var data16 = est16.Fit(data).Transform(data);
@@ -314,11 +314,11 @@ namespace Microsoft.ML.Tests.Transformers
             var data = loader.Load(dataPath);
 
             // Normalizer Extensions
-            var est1 = ML.Transforms.Normalize("float4", "float4", NormalizingEstimator.NormalizationMode.MinMax);
-            var est2 = ML.Transforms.Normalize("float4", "float4", NormalizingEstimator.NormalizationMode.MeanVariance);
-            var est3 = ML.Transforms.Normalize("float4", "float4", NormalizingEstimator.NormalizationMode.LogMeanVariance); 
-            var est4 = ML.Transforms.Normalize("float4", "float4", NormalizingEstimator.NormalizationMode.Binning); 
-            var est5 = ML.Transforms.Normalize("float4", "float4", NormalizingEstimator.NormalizationMode.SupervisedBinning);
+            var est1 = ML.Transforms.NormalizeMinMax("float4", "float4");
+            var est2 = ML.Transforms.NormalizeMeanVariance("float4", "float4");
+            var est3 = ML.Transforms.NormalizeLogMeanVariance("float4", "float4"); 
+            var est4 = ML.Transforms.NormalizeBinning("float4", "float4"); 
+            var est5 = ML.Transforms.NormalizeSupervisedBinning("float4", "float4");
 
             // Normalizer Extensions (Experimental)
             var est6 = ML.Transforms.NormalizeMinMax("float4", "float4");
@@ -370,7 +370,7 @@ namespace Microsoft.ML.Tests.Transformers
             });
 
             var data = loader.Load(dataPath);
-            var est = ML.Transforms.Normalize("output", "input", NormalizingEstimator.NormalizationMode.MinMax);
+            var est = ML.Transforms.NormalizeMinMax("output", "input");
             var t = est.Fit(data);
 
             Assert.Single(t.GetColumnPairs());
