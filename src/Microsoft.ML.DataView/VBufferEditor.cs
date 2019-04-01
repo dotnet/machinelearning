@@ -29,10 +29,14 @@ namespace Microsoft.ML.Data
         /// Creates a <see cref="VBufferEditor{T}"/> using
         /// <paramref name="destination"/>'s values and indices buffers.
         /// </summary>
-        /// <param name="destination">The destination buffer. Note that the resulting <see cref="VBufferEditor{T}"/> is assumed to take ownership
+        /// <param name="destination">
+        /// The destination buffer. Note that the resulting <see cref="VBufferEditor{T}"/> is assumed to take ownership
         /// of this passed in object, and so whatever <see cref="VBuffer{T}"/> was passed in as this parameter should not be used again, since its
-        /// underlying buffers are being potentially reused.</param>
-        /// <param name="newLogicalLength">The logical length of the new buffer being edited.</param>
+        /// underlying buffers are being potentially reused.
+        /// </param>
+        /// <param name="newLogicalLength">
+        /// The logical length of the new buffer being edited.
+        /// </param>
         /// <param name="valuesCount">
         /// The optional number of physical values to be represented in the buffer.
         /// The buffer will be dense if <paramref name="valuesCount"/> is omitted.
@@ -71,9 +75,7 @@ namespace Microsoft.ML.Data
     /// </summary>
     /// <remarks>
     /// The <see cref="VBuffer{T}"/> structure by itself is immutable. However, the purpose of <see cref="VBuffer{T}"/>
-    /// in general, and its typical usage through <see cref="ValueGetter{TValue}"/>, is to enable buffer re-use. That is
-    /// the purpose of this structure: for situations where one wants to exploit buffer re-use to avoid costly memory
-    /// allocation and garbage collector cleanup, there is this structure as created through
+    /// is to enable buffer re-use we can edit them through this structure, as created through
     /// <see cref="VBufferEditor.Create{T}(ref VBuffer{T}, int, int?, int?, bool, bool)"/> or
     /// <see cref="VBufferEditor.CreateFromBuffer{T}(ref VBuffer{T})"/>.
     /// </remarks>
@@ -94,8 +96,7 @@ namespace Microsoft.ML.Data
         public readonly Span<int> Indices;
 
         /// <summary>
-        /// Gets a value indicating whether a new <see cref="Values"/> array was allocated. If this is <see langword="false"/>,
-        /// then the resulting <see cref="VBuffer{T}"/> from <see cref="Commit"/>
+        /// Gets a value indicating whether a new <see cref="Values"/> array was allocated.
         /// </summary>
         public bool CreatedNewValues { get; }
 

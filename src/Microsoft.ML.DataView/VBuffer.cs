@@ -72,8 +72,8 @@ namespace Microsoft.ML.Data
         /// </summary>
         /// <remarks>
         /// To give one example, if <see cref="GetIndices"/> returns [3, 5] and <see cref="GetValues"/>() produces [98, 76],
-        /// this <see cref="VBuffer{T}"/> stands for a vector with non-zeros values 98 and 76 respectively at the 4th and 6th
-        /// coordinates, and zeros at all other coordinates. (Zero, because that is the default value for all .NET numeric
+        /// this <see cref="VBuffer{T}"/> stands for a vector with non-zero values 98 and 76 respectively at the 4th and 6th
+        /// coordinates, and zeros at all other indices. (Zero, because that is the default value for all .NET numeric
         /// types.)
         /// </remarks>
         public ReadOnlySpan<int> GetIndices() => IsDense ? default : _indices.AsSpan(0, _count);
@@ -95,16 +95,22 @@ namespace Microsoft.ML.Data
         /// specified it should be considered a buffer to be held on to, to be possibly used.
         /// </summary>
         /// <param name="length">The logical length of the resulting instance.</param>
-        /// <param name="values">The values to be used. This must be at least as long as <paramref name="length"/>. If
+        /// <param name="values">
+        /// The values to be used. This must be at least as long as <paramref name="length"/>. If
         /// <paramref name="length"/> is 0, it is legal for this to be <see langword="null"/>. The constructed buffer
-        /// takes ownership of this array.</param>
-        /// <param name="indices">The internal indices buffer. Because this constructor is for dense representations
+        /// takes ownership of this array.
+        /// </param>
+        /// <param name="indices">
+        /// The internal indices buffer. Because this constructor is for dense representations
         /// this will not be immediately useful, but it does provide a buffer to be potentially reused to avoid
         /// allocation. This is mostly non-null in situations where you want to produce a dense
         /// <see cref="VBuffer{T}"/>, but you happen to have an indices array "left over" and you don't want to
-        /// needlessly lose.</param>
-        /// <remarks>The resulting structure takes ownership of the passed in arrays, so they should not be used for
-        /// other purposes in the future.</remarks>
+        /// needlessly lose.
+        /// </param>
+        /// <remarks>
+        /// The resulting structure takes ownership of the passed in arrays, so they should not be used for
+        /// other purposes in the future.
+        /// </remarks>
         public VBuffer(int length, T[] values, int[] indices = null)
         {
             Contracts.CheckParam(length >= 0, nameof(length));
@@ -120,12 +126,14 @@ namespace Microsoft.ML.Data
         /// Construct a possibly sparse vector representation.
         /// </summary>
         /// <param name="length">The length of the constructed buffer.</param>
-        /// <param name="count">The count of explicit entries. This must be between 0 and <paramref name="count"/>, both
+        /// <param name="count">The count of explicit entries. This must be between 0 and <paramref name="length"/>, both
         /// inclusive. If it equals <paramref name="length"/> the result is a dense vector, and if less this will be a
         /// sparse vector.</param>
-        /// <param name="values">The values to be used. This must be at least as long as <paramref name="count"/>. If
-        /// <paramref name="count"/> is 0, it is legal for this to be <see langword="null"/>.</param>
-        /// <param name="indices">The values to be used. If we are constructing a dense representation, or
+        /// <param name="values">
+        /// The values to be used. This must be at least as long as <paramref name="count"/>. If
+        /// <paramref name="count"/> is 0, it is legal for this to be <see langword="null"/>.
+        /// </param>
+        /// <param name="indices">The indices to be used. If we are constructing a dense representation, or
         /// <paramref name="count"/> is 0, this can be <see langword="null"/>. Otherwise, this must be at least as long
         /// as <paramref name="count"/>.</param>
         /// <remarks>The resulting structure takes ownership of the passed in arrays, so they should not be used for
@@ -162,6 +170,8 @@ namespace Microsoft.ML.Data
         /// <summary>
         /// Copy from this buffer to the given destination, forcing a dense representation.
         /// </summary>
+        /// <param name="destination">The destination buffer. After the copy, this will have <see cref="VBuffer{T}.Length"/>
+        /// of <see cref="Length"/>.</param>
         public void CopyToDense(ref VBuffer<T> destination)
         {
             // create a dense editor
@@ -177,6 +187,8 @@ namespace Microsoft.ML.Data
         /// <summary>
         /// Copy from this buffer to the given destination.
         /// </summary>
+        /// <param name="destination">The destination buffer. After the copy, this will have <see cref="VBuffer{T}.Length"/>
+        /// of <see cref="Length"/>.</param>
         public void CopyTo(ref VBuffer<T> destination)
         {
             var editor = VBufferEditor.Create(ref destination, Length, _count);
@@ -320,9 +332,11 @@ namespace Microsoft.ML.Data
         /// <summary>
         /// Returns the joint list of all index/value pairs.
         /// </summary>
-        /// <param name="all">If <see langword="true"/> all pairs, even those implicit values of a sparse representation,
+        /// <param name="all">
+        /// If <see langword="true"/> all pairs, even those implicit values of a sparse representation,
         /// will be returned, with the implicit values having the default value, as is appropriate. If left
-        /// <see langword="false"/> then only explicitly defined values are returned.</param>
+        /// <see langword="false"/> then only explicitly defined values are returned.
+        /// </param>
         /// <returns>The index/value pairs.</returns>
         public IEnumerable<KeyValuePair<int, T>> Items(bool all = false)
         {
@@ -344,7 +358,7 @@ namespace Microsoft.ML.Data
         /// </summary>
         /// <remarks>
         /// In the case where <see cref="IsDense"/> is <see langword="true"/>, this will take constant time since it an
-        /// directly lookup. For sparse vectors, however, because it must perform a bisection seach on the indices to
+        /// directly lookup. For sparse vectors, however, because it must perform a bisection search on the indices to
         /// find the appropriate value, that takes logarithmic time with respect to the number of explicitly represented
         /// items, which is to say, the <see cref="ReadOnlySpan{Int32}.Length"/> of the return value of <see cref="GetIndices"/>.
         ///
@@ -353,31 +367,36 @@ namespace Microsoft.ML.Data
         /// if one is doing a more involved computation involving many operations, it may be faster to utiltize
         /// <see cref="GetValues"/> and, if appropriate, <see cref="GetIndices"/> directly.
         /// </remarks>
-        /// <param name="slot">The slot index, which must be a non-negative number less than <see cref="Length"/>.</param>
+        /// <param name="index">The index, which must be a non-negative number less than <see cref="Length"/>.</param>
         /// <param name="destination">The value stored at that index, or if this is a sparse vector where this is an implicit
         /// entry, the default value for <typeparamref name="T"/>.</param>
-        public void GetItemOrDefault(int slot, ref T destination)
+        public void GetItemOrDefault(int index, ref T destination)
         {
-            Contracts.CheckParam(0 <= slot && slot < Length, nameof(slot));
+            Contracts.CheckParam(0 <= index && index < Length, nameof(index));
 
-            int index;
             if (IsDense)
-                destination = _values[slot];
-            else if (_count > 0 && ArrayUtils.TryFindIndexSorted(_indices, 0, _count, slot, out index))
                 destination = _values[index];
+            else if (_count > 0 && ArrayUtils.TryFindIndexSorted(_indices, 0, _count, index, out int bufferIndex))
+                destination = _values[bufferIndex];
             else
                 destination = default(T);
         }
 
-        public T GetItemOrDefault(int slot)
+        /// <summary>
+        /// A variant of <see cref="GetItemOrDefault(int, ref T)"/> that returns the value instead of passing it
+        /// back using a reference parameter.
+        /// </summary>
+        /// <param name="index">The index, which must be a non-negative number less than <see cref="Length"/>.</param>
+        /// <returns>The value stored at that index, or if this is a sparse vector where this is an implicit
+        /// entry, the default value for <typeparamref name="T"/>.</returns>
+        public T GetItemOrDefault(int index)
         {
-            Contracts.CheckParam(0 <= slot && slot < Length, nameof(slot));
+            Contracts.CheckParam(0 <= index && index < Length, nameof(index));
 
-            int index;
             if (IsDense)
-                return _values[slot];
-            if (_count > 0 && ArrayUtils.TryFindIndexSorted(_indices, 0, _count, slot, out index))
                 return _values[index];
+            if (_count > 0 && ArrayUtils.TryFindIndexSorted(_indices, 0, _count, index, out int bufferIndex))
+                return _values[bufferIndex];
             return default(T);
         }
 
