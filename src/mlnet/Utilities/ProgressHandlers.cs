@@ -47,7 +47,11 @@ namespace Microsoft.ML.CLI.Utilities
                 if (MetricComparator(GetScore(iterationResult), GetScore(bestResult), isMaximizing) > 0)
                 {
                     bestResult = iterationResult;
-                    progressBar.Message = $"Best {this.optimizationMetric} : {GetScore(bestResult)} , Best Algorithm : {iterationResult.TrainerName}";
+                    progressBar.Message = $"Best {this.optimizationMetric} : {GetScore(bestResult):F2} , Best Algorithm : {bestResult.TrainerName}, Last Algorithm : {bestResult.TrainerName}";
+                }
+                else
+                {
+                    progressBar.Message = $"Best {this.optimizationMetric} : {GetScore(bestResult):F2} , Best Algorithm : {bestResult.TrainerName}, Last Algorithm : {iterationResult.TrainerName}";
                 }
             }
         }
@@ -82,7 +86,11 @@ namespace Microsoft.ML.CLI.Utilities
                 if (MetricComparator(GetScore(iterationResult), GetScore(bestResult), isMaximizing) > 0)
                 {
                     bestResult = iterationResult;
-                    progressBar.Message = $"Best {this.optimizationMetric} : {GetScore(bestResult)} , Best Algorithm : {iterationResult.TrainerName}";
+                    progressBar.Message = $"Best {this.optimizationMetric} : {GetScore(bestResult):F2} , Best Algorithm : {bestResult.TrainerName}, Last Algorithm : {bestResult.TrainerName}";
+                }
+                else
+                {
+                    progressBar.Message = $"Best {this.optimizationMetric} : {GetScore(bestResult):F2} , Best Algorithm : {bestResult.TrainerName}, Last Algorithm : {iterationResult.TrainerName}";
                 }
             }
         }
@@ -117,7 +125,11 @@ namespace Microsoft.ML.CLI.Utilities
                 if (MetricComparator(GetScore(iterationResult), GetScore(bestResult), isMaximizing) > 0)
                 {
                     bestResult = iterationResult;
-                    progressBar.Message = $"Best {this.optimizationMetric} : {GetScore(bestResult)} , Best Algorithm : {iterationResult.TrainerName}";
+                    progressBar.Message = $"Best {this.optimizationMetric} : {GetScore(bestResult):F2} , Best Algorithm : {bestResult.TrainerName}, Last Algorithm : {bestResult.TrainerName}";
+                }
+                else
+                {
+                    progressBar.Message = $"Best {this.optimizationMetric} : {GetScore(bestResult):F2} , Best Algorithm : {bestResult.TrainerName}, Last Algorithm : {iterationResult.TrainerName}";
                 }
             }
         }

@@ -86,8 +86,9 @@ namespace Microsoft.ML.CLI.CodeGenerator
                 {
                     ForegroundColor = ConsoleColor.Yellow,
                     ForegroundColorDone = ConsoleColor.DarkGreen,
-                    BackgroundColor = ConsoleColor.DarkGray,
-                    BackgroundCharacter = '\u2593'
+                    BackgroundColor = ConsoleColor.Gray,
+                    ProgressCharacter = '\u2593',
+                    BackgroundCharacter = '─',
                 };
                 var wait = TimeSpan.FromSeconds(settings.MaxExplorationTime);
                 using (var pbar = new FixedDurationBar(wait, "", options))
@@ -114,9 +115,10 @@ namespace Microsoft.ML.CLI.CodeGenerator
 
                     if (t.IsCompleted == false)
                     {
-                        logger.Log(LogLevel.Info, "Waiting for the last iteration to complete ...");
+                        string originalMessage = pbar.Message;
+                        pbar.Message = " Waiting for the last iteration to complete ...";
+                        t.Wait();
                     }
-                    t.Wait();
                 }
 
             }
