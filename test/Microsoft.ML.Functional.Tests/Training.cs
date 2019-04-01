@@ -5,6 +5,7 @@
 using System;
 using System.Linq;
 using Microsoft.ML.Data;
+using Microsoft.ML.Experimental;
 using Microsoft.ML.Functional.Tests.Datasets;
 using Microsoft.ML.RunTests;
 using Microsoft.ML.TestFramework;
@@ -316,7 +317,7 @@ namespace Microsoft.ML.Functional.Tests
 
             // Create a transformation pipeline.
             var featurizationPipeline = mlContext.Transforms.Concatenate("Features", HousingRegression.Features)
-                .Append(mlContext.Transforms.Normalize("Features"))
+                .Append(mlContext.Transforms.NormalizeMinMax("Features"))
                 .AppendCacheCheckpoint(mlContext);
 
             var trainer = mlContext.Regression.Trainers.OnlineGradientDescent(
@@ -360,7 +361,7 @@ namespace Microsoft.ML.Functional.Tests
 
             // Create a transformation pipeline.
             var featurizationPipeline = mlContext.Transforms.Concatenate("Features", HousingRegression.Features)
-                .Append(mlContext.Transforms.Normalize("Features"))
+                .Append(mlContext.Transforms.NormalizeMinMax("Features"))
                 .AppendCacheCheckpoint(mlContext);
 
             var trainer = mlContext.Regression.Trainers.LbfgsPoissonRegression(

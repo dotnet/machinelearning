@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using Microsoft.ML.Experimental;
 using Microsoft.ML.Trainers;
 
 namespace Microsoft.ML.Samples.Dynamic.PermutationFeatureImportance
@@ -21,7 +22,7 @@ namespace Microsoft.ML.Samples.Dynamic.PermutationFeatureImportance
             // Normalize the data set so that for each feature, its maximum value is 1 while its minimum value is 0.
             // Then append a logistic regression trainer.
             var pipeline = mlContext.Transforms.Concatenate("Features", featureNames)
-                    .Append(mlContext.Transforms.Normalize("Features"))
+                    .Append(mlContext.Transforms.NormalizeMinMax("Features"))
                     .Append(mlContext.BinaryClassification.Trainers.LbfgsLogisticRegression(
                         labelColumnName: labelName, featureColumnName: "Features"));
             var model = pipeline.Fit(data);

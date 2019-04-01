@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Microsoft.ML.Data;
+using Microsoft.ML.Experimental;
 using Microsoft.ML.RunTests;
 using Microsoft.ML.TestFramework;
 using Microsoft.ML.Trainers;
@@ -93,7 +94,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
             var pipeline =
                 // First 'normalize' the data (rescale to be
                 // between -1 and 1 for all examples), and then train the model.
-                mlContext.Transforms.Normalize("FeatureVector")
+                mlContext.Transforms.NormalizeMinMax("FeatureVector")
                 // We add a step for caching data in memory so that the downstream iterative training
                 // algorithm can efficiently scan through the data multiple times. Otherwise, the following
                 // trainer will read data from disk multiple times. The caching mechanism uses an on-demand strategy.

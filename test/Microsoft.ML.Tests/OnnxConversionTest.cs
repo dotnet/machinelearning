@@ -10,6 +10,7 @@ using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
 using Google.Protobuf;
 using Microsoft.ML.Data;
+using Microsoft.ML.Experimental;
 using Microsoft.ML.Model.OnnxConverter;
 using Microsoft.ML.RunTests;
 using Microsoft.ML.Runtime;
@@ -57,7 +58,7 @@ namespace Microsoft.ML.Tests
                 hasHeader: true);
             var cachedTrainData = mlContext.Data.Cache(data);
             var dynamicPipeline =
-                mlContext.Transforms.Normalize("FeatureVector")
+                mlContext.Transforms.NormalizeMinMax("FeatureVector")
                 .AppendCacheCheckpoint(mlContext)
                 .Append(mlContext.Regression.Trainers.Sdca(new SdcaRegressionTrainer.Options() {
                     LabelColumnName = "Target",
@@ -137,7 +138,7 @@ namespace Microsoft.ML.Tests
                 separatorChar: '\t',
                 hasHeader: true);
 
-            var pipeline = mlContext.Transforms.Normalize("Features").
+            var pipeline = mlContext.Transforms.NormalizeMinMax("Features").
                 Append(mlContext.Clustering.Trainers.KMeans(new Trainers.KMeansTrainer.Options
                 {
                     FeatureColumnName = DefaultColumnNames.Features,
@@ -315,7 +316,7 @@ namespace Microsoft.ML.Tests
                 hasHeader: true);
             var cachedTrainData = mlContext.Data.Cache(data);
             var dynamicPipeline =
-                mlContext.Transforms.Normalize("FeatureVector")
+                mlContext.Transforms.NormalizeMinMax("FeatureVector")
                 .AppendCacheCheckpoint(mlContext)
                 .Append(mlContext.Regression.Trainers.Sdca(new SdcaRegressionTrainer.Options() {
                     LabelColumnName = "Target",
@@ -352,7 +353,7 @@ namespace Microsoft.ML.Tests
                 hasHeader: true);
             var cachedTrainData = mlContext.Data.Cache(data);
             var dynamicPipeline =
-                mlContext.Transforms.Normalize("FeatureVector")
+                mlContext.Transforms.NormalizeMinMax("FeatureVector")
                 .AppendCacheCheckpoint(mlContext)
                 .Append(mlContext.Regression.Trainers.LightGbm(labelColumnName: "Target", featureColumnName: "FeatureVector", numberOfIterations: 3, numberOfLeaves: 16, minimumExampleCountPerLeaf: 100));
             var model = dynamicPipeline.Fit(data);
@@ -383,7 +384,7 @@ namespace Microsoft.ML.Tests
                 separatorChar: '\t',
                 hasHeader: true);
 
-            var pipeline = mlContext.Transforms.Normalize("Features").
+            var pipeline = mlContext.Transforms.NormalizeMinMax("Features").
                 Append(mlContext.Transforms.Conversion.MapValueToKey("Label")).
                 Append(mlContext.MulticlassClassification.Trainers.LbfgsMaximumEntropy(new LbfgsMaximumEntropyMulticlassTrainer.Options() { NumberOfThreads = 1 }));
 
@@ -416,7 +417,7 @@ namespace Microsoft.ML.Tests
             var pipeline = mlContext.Transforms.Categorical.OneHotEncoding("F2", "F2", Transforms.OneHotEncodingEstimator.OutputKind.Bag)
             .Append(mlContext.Transforms.ReplaceMissingValues(new MissingValueReplacingEstimator.ColumnOptions("F2")))
             .Append(mlContext.Transforms.Concatenate("Features", "F1", "F2"))
-            .Append(mlContext.Transforms.Normalize("Features"))
+            .Append(mlContext.Transforms.NormalizeMinMax("Features"))
             .Append(mlContext.BinaryClassification.Trainers.FastTree(labelColumnName: "Label", featureColumnName: "Features", numberOfLeaves: 2, numberOfTrees: 1, minimumExampleCountPerLeaf: 2));
 
             var model = pipeline.Fit(data);

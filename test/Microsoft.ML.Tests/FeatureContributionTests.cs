@@ -6,13 +6,12 @@ using System;
 using System.IO;
 using Microsoft.ML.Calibrators;
 using Microsoft.ML.Data;
+using Microsoft.ML.Experimental;
 using Microsoft.ML.Data.IO;
 using Microsoft.ML.Internal.Utilities;
-using Microsoft.ML.Model;
 using Microsoft.ML.RunTests;
 using Microsoft.ML.TestFramework.Attributes;
 using Microsoft.ML.Trainers;
-using Microsoft.ML.Transforms;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -306,7 +305,7 @@ namespace Microsoft.ML.Tests
             var srcDV = bldr.GetDataView();
 
             var pipeline = ML.Transforms.Concatenate("Features", "X1", "X2VBuffer", "X3Important")
-                .Append(ML.Transforms.Normalize("Features"));
+                .Append(ML.Transforms.NormalizeMinMax("Features"));
 
             if (task == TaskType.BinaryClassification)
                 return pipeline.Append(ML.Transforms.Conversion.ConvertType("Label", outputKind: DataKind.Boolean))
