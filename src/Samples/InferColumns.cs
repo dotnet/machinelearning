@@ -10,42 +10,29 @@ using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.Auto;
 using Microsoft.ML.Data;
-using Samples.DataStructures;
+using Samples.Helpers;
 
 namespace Samples
 {
-    static class AutoTrainRegression
+    static class InferColumns
     {
         private static string BaseDatasetsLocation = "Data";
         private static string TrainDataPath = Path.Combine(BaseDatasetsLocation, "taxi-fare-train.csv");
         private static string TestDataPath = Path.Combine(BaseDatasetsLocation, "taxi-fare-test.csv");
         private static string ModelPath = Path.Combine(BaseDatasetsLocation, "TaxiFareModel.zip");
-        private static string LabelColumn = "FareAmount";
+        private static string LabelColumn = "fare_amount";
         private static uint ExperimentTime = 60;
 
         public static void Run()
         {
             MLContext mlContext = new MLContext();
 
-            // STEP 1: Create text loader options
-            var textLoaderOptions = new TextLoader.Options()
-            {
-                Columns = new[]
-                {
-                    new TextLoader.Column("VendorId", DataKind.String, 0),
-                    new TextLoader.Column("RateCode", DataKind.Single, 1),
-                    new TextLoader.Column("PassengerCount", DataKind.Single, 2),
-                    new TextLoader.Column("TripTimeInSeconds", DataKind.Single, 3),
-                    new TextLoader.Column("TripDistance", DataKind.Single, 4),
-                    new TextLoader.Column("PaymentType", DataKind.String, 5),
-                    new TextLoader.Column("FareAmount", DataKind.Single, 6),
-                },
-                HasHeader = true,
-                Separators = new[] { ',' }
-            };
+            // STEP 1: Infer columns
+            ColumnInferenceResults columnInference = mlContext.Auto().InferColumns(TrainDataPath, LabelColumn, groupColumns: false);
+            ConsoleHelper.Print(columnInference);
 
             // STEP 2: Load data
-            TextLoader textLoader = mlContext.Data.CreateTextLoader(textLoaderOptions);
+            TextLoader textLoader = mlContext.Data.CreateTextLoader(columnInference.TextLoaderOptions);
             IDataView trainDataView = textLoader.Load(TrainDataPath);
             IDataView testDataView = textLoader.Load(TestDataPath);
 
@@ -69,22 +56,6 @@ namespace Samples
             // STEP 6: Save the best model for later deployment and inferencing
             using (FileStream fs = File.Create(ModelPath))
                 best.Model.SaveTo(mlContext, fs);
-
-            // STEP 7: Create prediction engine from the best trained model
-            var predictionEngine = best.Model.CreatePredictionEngine<TaxiTrip, TaxiTripFarePrediction>(mlContext);
-
-            // STEP 8: Initialize a new test taxi trip, and get the predicted fare
-            var testTaxiTrip = new TaxiTrip
-            {
-                VendorId = "VTS",
-                RateCode = 1,
-                PassengerCount = 1,
-                TripTimeInSeconds = 1140,
-                TripDistance = 3.75f,
-                PaymentType = "CRD"
-            };
-            var prediction = predictionEngine.Predict(testTaxiTrip);
-            Console.WriteLine($"Predicted fare for test taxi trip: {prediction.FareAmount}");
 
             Console.WriteLine("Press any key to continue...");
             Console.ReadKey();

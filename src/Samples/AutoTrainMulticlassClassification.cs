@@ -10,13 +10,13 @@ using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.Auto;
 using Microsoft.ML.Data;
-using Samples.Helpers;
+using Samples.DataStructures;
 
 namespace Samples
 {
     public class AutoTrainMulticlassClassification
     {
-        private static string BaseDatasetsLocation = Path.Combine("..", "..", "..", "..", "src", "Samples", "Data");
+        private static string BaseDatasetsLocation = "Data";
         private static string TrainDataPath = Path.Combine(BaseDatasetsLocation, "optdigits-train.csv");
         private static string TestDataPath = Path.Combine(BaseDatasetsLocation, "optdigits-test.csv");
         private static string ModelPath = Path.Combine(BaseDatasetsLocation, "OptDigits.zip");
@@ -26,12 +26,20 @@ namespace Samples
         {
             MLContext mlContext = new MLContext();
 
-            // STEP 1: Infer columns
-            ColumnInferenceResults columnInference = mlContext.Auto().InferColumns(TrainDataPath);
-            ConsoleHelper.Print(columnInference);
+            // STEP 1: Create text loader options
+            var textLoaderOptions = new TextLoader.Options()
+            {
+                Columns = new[]
+                {
+                    new TextLoader.Column("PixelValues", DataKind.Single, 0, 63),
+                    new TextLoader.Column("Label", DataKind.Single, 64),
+                },
+                HasHeader = true,
+                Separators = new[] { ',' }
+            };
 
             // STEP 2: Load data
-            TextLoader textLoader = mlContext.Data.CreateTextLoader(columnInference.TextLoaderOptions);
+            TextLoader textLoader = mlContext.Data.CreateTextLoader(textLoaderOptions);
             IDataView trainDataView = textLoader.Load(TrainDataPath);
             IDataView testDataView = textLoader.Load(TestDataPath);
 
@@ -55,6 +63,17 @@ namespace Samples
             // STEP 6: Save the best model for later deployment and inferencing
             using (FileStream fs = File.Create(ModelPath))
                 best.Model.SaveTo(mlContext, fs);
+
+            // STEP 7: Create prediction engine from the best trained model
+            var predictionEngine = best.Model.CreatePredictionEngine<PixelData, PixelPrediction>(mlContext);
+
+            // STEP 8: Initialize new pixel data, and get the predicted number
+            var testPixelData = new PixelData
+            {
+                PixelValues = new float[] { 0, 0, 1, 8, 15, 10, 0, 0, 0, 3, 13, 15, 14, 14, 0, 0, 0, 5, 10, 0, 10, 12, 0, 0, 0, 0, 3, 5, 15, 10, 2, 0, 0, 0, 16, 16, 16, 16, 12, 0, 0, 1, 8, 12, 14, 8, 3, 0, 0, 0, 0, 10, 13, 0, 0, 0, 0, 0, 0, 11, 9, 0, 0, 0 }
+            };
+            var prediction = predictionEngine.Predict(testPixelData);
+            Console.WriteLine($"Predicted number for test pixels: {prediction.Prediction}");
 
             Console.WriteLine("Press any key to continue...");
             Console.ReadKey();

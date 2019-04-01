@@ -15,7 +15,7 @@ namespace Samples
 {
     static class AdvancedTrainingSettings
     {
-        private static string BaseDatasetsLocation = Path.Combine("..", "..", "..", "..", "src", "Samples", "Data");
+        private static string BaseDatasetsLocation = "Data";
         private static string TrainDataPath = Path.Combine(BaseDatasetsLocation, "taxi-fare-train.csv");
         private static string TestDataPath = Path.Combine(BaseDatasetsLocation, "taxi-fare-test.csv");
         private static string ModelPath = Path.Combine(BaseDatasetsLocation, "TaxiFareModel.zip");

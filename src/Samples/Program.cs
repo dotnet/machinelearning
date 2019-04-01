@@ -36,6 +36,9 @@ namespace Samples
                 RefitBestModel.Run();
                 Console.Clear();
 
+                InferColumns.Run();
+                Console.Clear();
+
                 Console.WriteLine("Done");
             }
             catch (Exception ex)

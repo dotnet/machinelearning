@@ -10,29 +10,36 @@ using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.Auto;
 using Microsoft.ML.Data;
-using Samples.Helpers;
+using Samples.DataStructures;
 
 namespace Samples
 {
     public class AutoTrainBinaryClassification
     {
-        private static string BaseDatasetsLocation = Path.Combine("..", "..", "..", "..", "src", "Samples", "Data");
+        private static string BaseDatasetsLocation = "Data";
         private static string TrainDataPath = Path.Combine(BaseDatasetsLocation, "wikipedia-detox-250-line-data.tsv");
         private static string TestDataPath = Path.Combine(BaseDatasetsLocation, "wikipedia-detox-250-line-test.tsv");
         private static string ModelPath = Path.Combine(BaseDatasetsLocation, "SentimentModel.zip");
-        private static string LabelColumn = "Sentiment";
         private static uint ExperimentTime = 60;
 
         public static void Run()
         {
             MLContext mlContext = new MLContext();
 
-            // STEP 1: Infer columns
-            ColumnInferenceResults columnInference = mlContext.Auto().InferColumns(TrainDataPath, LabelColumn);
-            ConsoleHelper.Print(columnInference);
+            // STEP 1: Create text loader options
+            var textLoaderOptions = new TextLoader.Options()
+            {
+                Columns = new[]
+                {
+                    new TextLoader.Column("Label", DataKind.Boolean, 0),
+                    new TextLoader.Column("Text", DataKind.String, 1),
+                },
+                HasHeader = true,
+                Separators = new[] { '\t' }
+            };
 
             // STEP 2: Load data
-            TextLoader textLoader = mlContext.Data.CreateTextLoader(columnInference.TextLoaderOptions);
+            TextLoader textLoader = mlContext.Data.CreateTextLoader(textLoaderOptions);
             IDataView trainDataView = textLoader.Load(TrainDataPath);
             IDataView testDataView = textLoader.Load(TestDataPath);
 
@@ -40,7 +47,7 @@ namespace Samples
             Console.WriteLine($"Running AutoML binary classification experiment for {ExperimentTime} seconds...");
             IEnumerable<RunResult<BinaryClassificationMetrics>> runResults = mlContext.Auto()
                                                                              .CreateBinaryClassificationExperiment(ExperimentTime)
-                                                                             .Execute(trainDataView, LabelColumn);
+                                                                             .Execute(trainDataView);
 
             // STEP 4: Print metric from the best model
             RunResult<BinaryClassificationMetrics> best = runResults.Best();
@@ -50,12 +57,23 @@ namespace Samples
 
             // STEP 5: Evaluate test data
             IDataView testDataViewWithBestScore = best.Model.Transform(testDataView);
-            BinaryClassificationMetrics testMetrics = mlContext.BinaryClassification.EvaluateNonCalibrated(testDataViewWithBestScore, label: LabelColumn);
+            BinaryClassificationMetrics testMetrics = mlContext.BinaryClassification.EvaluateNonCalibrated(testDataViewWithBestScore);
             Console.WriteLine($"Accuracy of best model on test data: {testMetrics.Accuracy}");
 
             // STEP 6: Save the best model for later deployment and inferencing
             using (FileStream fs = File.Create(ModelPath))
                 best.Model.SaveTo(mlContext, fs);
+
+            // STEP 7: Create prediction engine from the best trained model
+            var predictionEngine = best.Model.CreatePredictionEngine<SentimentIssue, SentimentPrediction>(mlContext);
+
+            // STEP 8: Initialize a new sentiment issue, and get the predicted sentiment
+            var testSentimentIssue = new SentimentIssue
+            {
+                Text = "I hope this helps."
+            };
+            var prediction = predictionEngine.Predict(testSentimentIssue);
+            Console.WriteLine($"Predicted sentiment for test issue: {prediction.Prediction}");
 
             Console.WriteLine("Press any key to continue...");
             Console.ReadKey();
