@@ -98,13 +98,13 @@
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>OnlineGradientDescentWithOptions.cs</LastGenOutput>
     </None>
-    <None Update="Dynamic\Trainers\Regression\PoissonRegression.tt">
+    <None Update="Dynamic\Trainers\Regression\LbfgsPoissonRegression.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
-      <LastGenOutput>PoissonRegression.cs</LastGenOutput>
+      <LastGenOutput>LbfgsPoissonRegression.cs</LastGenOutput>
     </None>
-    <None Update="Dynamic\Trainers\Regression\PoissonRegressionWithOptions.tt">
+    <None Update="Dynamic\Trainers\Regression\LbfgsPoissonRegressionWithOptions.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
-      <LastGenOutput>PoissonRegressionWithOptions.cs</LastGenOutput>
+      <LastGenOutput>LbfgsPoissonRegressionWithOptions.cs</LastGenOutput>
     </None>
   </ItemGroup>
 
@@ -153,15 +153,15 @@
       <AutoGen>True</AutoGen>
       <DependentUpon>OnlineGradientDescentWithOptions.tt</DependentUpon>
     </Compile>
-    <Compile Update="Dynamic\Trainers\Regression\PoissonRegression.cs">
+    <Compile Update="Dynamic\Trainers\Regression\LbfgsPoissonRegression.cs">
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
-      <DependentUpon>PoissonRegression.tt</DependentUpon>
+      <DependentUpon>LbfgsPoissonRegression.tt</DependentUpon>
     </Compile>
-    <Compile Update="Dynamic\Trainers\Regression\PoissonRegressionWithOptions.cs">
+    <Compile Update="Dynamic\Trainers\Regression\LbfgsPoissonRegressionWithOptions.cs">
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
-      <DependentUpon>PoissonRegressionWithOptions.tt</DependentUpon>
+      <DependentUpon>LbfgsPoissonRegressionWithOptions.tt</DependentUpon>
     </Compile>
   </ItemGroup>
 

@@ -1,9 +1,9 @@
 ﻿<#@ include file="RegressionSamplesTemplate.ttinclude"#>
 
 <#+
-string ClassName="PoissonRegressionWithOptions";
-string Trainer = "PoissonRegression";
-string TrainerOptions = @"PoissonRegressionTrainer.Options
+string ClassName="LbfgsPoissonRegressionWithOptions";
+string Trainer = "LbfgsPoissonRegression";
+string TrainerOptions = @"LbfgsPoissonRegressionTrainer.Options
             {
                 // Reduce optimization tolerance to speed up training at the cost of accuracy.
                 OptmizationTolerance = 1e-4f,
