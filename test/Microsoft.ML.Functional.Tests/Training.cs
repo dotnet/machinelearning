@@ -438,7 +438,7 @@ namespace Microsoft.ML.Functional.Tests
         }
 
         /// <summary>
-        /// Training: Meta-compononts function as expected. For OVA (one-versus-all), a user will be able to specify only
+        /// Training: Meta-components function as expected. For OVA (one-versus-all), a user will be able to specify only
         /// binary classifier trainers. If they specify a different model class there should be a compile error.
         /// </summary>
         [Fact]
@@ -469,11 +469,11 @@ namespace Microsoft.ML.Functional.Tests
         }
 
         /// <summary>
-        /// Training: Meta-compononts function as expected. For OVA (one-versus-all), a user will be able to specify only
+        /// Training: Meta-components function as expected. For OVA (one-versus-all), a user will be able to specify only
         /// binary classifier trainers. If they specify a different model class there should be a compile error.
         /// </summary>
         [Fact]
-        public void MetacomponentsFunctionWithKeyHandeling()
+        public void MetacomponentsFunctionWithKeyHandling()
         {
             var mlContext = new MLContext(seed: 1);
 
@@ -498,6 +498,8 @@ namespace Microsoft.ML.Functional.Tests
 
             // Evaluate the model.
             var binaryClassificationMetrics = mlContext.MulticlassClassification.Evaluate(binaryClassificationPredictions);
+
+            Assert.Equal(0.4367, binaryClassificationMetrics.LogLoss, 4);
         }
     }
 }

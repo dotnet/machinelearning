@@ -442,7 +442,7 @@ namespace Microsoft.ML.Data
         {
             var cols = new List<SchemaShape.Column>();
             if (labelColumn != null && labelColumn.Value.IsKey)
-
+            {
                 if (labelColumn.Value.Annotations.TryFindColumn(Kinds.KeyValues, out var metaCol) &&
                     metaCol.Kind == SchemaShape.Column.VectorKind.Vector)
                 {
@@ -450,6 +450,7 @@ namespace Microsoft.ML.Data
                         cols.Add(new SchemaShape.Column(Kinds.SlotNames, SchemaShape.Column.VectorKind.Vector, TextDataViewType.Instance, false));
                     cols.Add(new SchemaShape.Column(Kinds.TrainingLabelValues, SchemaShape.Column.VectorKind.Vector, metaCol.ItemType, false));
                 }
+            }
             cols.AddRange(GetTrainerOutputAnnotation());
             return cols;
         }
