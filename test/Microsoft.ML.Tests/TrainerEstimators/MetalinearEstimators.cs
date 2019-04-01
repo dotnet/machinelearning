@@ -53,38 +53,6 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         }
 
         /// <summary>
-        /// Test what OVA preserves key values for label.
-        /// </summary>
-        [Fact]
-        public void OvaKeyNames()
-        {
-            var textLoaderOptions = new TextLoader.Options()
-            {
-                Columns = new[]
-                {   new TextLoader.Column("Label", DataKind.Single, 0),
-                    new TextLoader.Column("Row", DataKind.Single, 1),
-                    new TextLoader.Column("Column", DataKind.Single, 2),
-                },
-                HasHeader = true,
-                Separators = new[] { '\t' }
-            };
-            var textLoader = ML.Data.CreateTextLoader(textLoaderOptions);
-            var data = textLoader.Load(GetDataPath(TestDatasets.trivialMatrixFactorization.trainFilename));
-
-            var ap = ML.BinaryClassification.Trainers.AveragedPerceptron();
-            var ova = ML.MulticlassClassification.Trainers.OneVersusAll(ap);
-
-            var pipeline = ML.Transforms.Conversion.MapValueToKey("Label")
-                .Append(ML.Transforms.Concatenate("Features", "Row", "Column"))
-                .Append(ova)
-                .Append(ML.Transforms.Conversion.MapKeyToValue("PredictedLabel"));
-            var model = pipeline.Fit(data);
-            var result = model.Transform(data);
-            Assert.NotNull(result.Schema["Score"].Annotations.Schema.GetColumnOrNull("TrainingLabelValues"));
-            Assert.Equal(new[] { 1.0f, 3.0f, 2.0f }, result.GetColumn<float>("PredictedLabel").Distinct());
-        }
-
-        /// <summary>
         /// Pairwise Coupling trainer
         /// </summary>
         [Fact]

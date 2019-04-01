@@ -467,5 +467,37 @@ namespace Microsoft.ML.Functional.Tests
             // Evaluate the model.
             var binaryClassificationMetrics = mlContext.MulticlassClassification.Evaluate(binaryClassificationPredictions);
         }
+
+        /// <summary>
+        /// Training: Meta-compononts function as expected. For OVA (one-versus-all), a user will be able to specify only
+        /// binary classifier trainers. If they specify a different model class there should be a compile error.
+        /// </summary>
+        [Fact]
+        public void MetacomponentsFunctionWithKeyHandeling()
+        {
+            var mlContext = new MLContext(seed: 1);
+
+            var data = mlContext.Data.LoadFromTextFile<Iris>(GetDataPath(TestDatasets.iris.trainFilename),
+                hasHeader: TestDatasets.iris.fileHasHeader,
+                separatorChar: TestDatasets.iris.fileSeparator);
+
+            // Create a model training an OVA trainer with a binary classifier.
+            var binaryClassificationTrainer = mlContext.BinaryClassification.Trainers.LbfgsLogisticRegression(
+                new LbfgsLogisticRegressionBinaryTrainer.Options { MaximumNumberOfIterations = 10, NumberOfThreads = 1, });
+            var binaryClassificationPipeline = mlContext.Transforms.Concatenate("Features", Iris.Features)
+                .AppendCacheCheckpoint(mlContext)
+                .Append(mlContext.Transforms.Conversion.MapValueToKey("Label"))
+                .Append(mlContext.MulticlassClassification.Trainers.OneVersusAll(binaryClassificationTrainer))
+                .Append(mlContext.Transforms.Conversion.MapKeyToValue("PredictedLabel"));
+
+            // Fit the binary classification pipeline.
+            var binaryClassificationModel = binaryClassificationPipeline.Fit(data);
+
+            // Transform the data
+            var binaryClassificationPredictions = binaryClassificationModel.Transform(data);
+
+            // Evaluate the model.
+            var binaryClassificationMetrics = mlContext.MulticlassClassification.Evaluate(binaryClassificationPredictions);
+        }
     }
 }
