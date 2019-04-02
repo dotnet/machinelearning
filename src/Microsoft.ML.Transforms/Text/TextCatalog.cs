@@ -186,6 +186,13 @@ namespace Microsoft.ML
         /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.</param>
         /// <param name="inputColumnName">Name of the column to transform. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.</param>
         /// <param name="separators">The separators to use (uses space character by default).</param>
+        /// <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        /// [!code-csharp[TokenizeIntoWords](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/Text/TokenizeIntoWords.cs)]
+        /// ]]>
+        /// </format>
+        /// </example>
         public static WordTokenizingEstimator TokenizeIntoWords(this TransformsCatalog.TextTransforms catalog,
             string outputColumnName,
             string inputColumnName = null,
@@ -254,8 +261,9 @@ namespace Microsoft.ML
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
-        ///  [!code-csharp[FastTree](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/StopWordRemoverTransform.cs)]
-        /// ]]></format>
+        /// [!code-csharp[RemoveDefaultStopWords](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/Text/RemoveDefaultStopWords.cs)]
+        /// ]]>
+        /// </format>
         /// </example>
         public static StopWordsRemovingEstimator RemoveDefaultStopWords(this TransformsCatalog.TextTransforms catalog,
             string outputColumnName,
@@ -274,8 +282,9 @@ namespace Microsoft.ML
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
-        ///  [!code-csharp[FastTree](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/StopWordRemoverTransform.cs)]
-        /// ]]></format>
+        /// [!code-csharp[RemoveStopWords](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/Text/RemoveStopWords.cs)]
+        /// ]]>
+        /// </format>
         /// </example>
         public static CustomStopWordsRemovingEstimator RemoveStopWords(this TransformsCatalog.TextTransforms catalog,
             string outputColumnName,
