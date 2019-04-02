@@ -41,20 +41,32 @@ namespace Microsoft.ML.Samples.Dynamic
                            .Append(mlContext.Transforms.ConvertToGrayscale("Grayscale", "ImageObject"));
 
             var transformedData = pipeline.Fit(data).Transform(data);
-
             // The transformedData IDataView contains the loaded images column, and the grayscaled column.
             
-            // Preview 1 row of the transformedData. 
-            var transformedDataPreview = transformedData.Preview(1);
-            foreach (var kvPair in transformedDataPreview.RowView[0].Values)
+            // Preview the transformedData. 
+            var transformedDataPreview = transformedData.Preview();
+            PrintPreview(transformedDataPreview);
+            // ImagePath    Name         ImageObject            Grayscale
+            // tomato.bmp   tomato       System.Drawing.Bitmap  System.Drawing.Bitmap
+            // banana.jpg   banana       System.Drawing.Bitmap  System.Drawing.Bitmap
+            // hotdog.jpg   hotdog       System.Drawing.Bitmap  System.Drawing.Bitmap
+            // tomato.jpg   tomato       System.Drawing.Bitmap  System.Drawing.Bitmap
+        }
+
+        private static void PrintPreview(DataDebuggerPreview data)
+        {
+            foreach (var colInfo in data.ColumnView)
+                Console.Write("{0, -25}", colInfo.Column.Name);
+
+            Console.WriteLine();
+            foreach (var row in data.RowView)
             {
-                Console.WriteLine("{0} : {1}", kvPair.Key, kvPair.Value);
+                foreach (var kvPair in row.Values)
+                {
+                    Console.Write("{0, -25}", kvPair.Value);
+                }
+                Console.WriteLine();
             }
-            
-            // ImagePath : tomato.bmp
-            // Name : tomato
-            // ImageObject : System.Drawing.Bitmap
-            // Grayscale : System.Drawing.Bitmap
         }
     }
 }

@@ -43,46 +43,38 @@ namespace Microsoft.ML.Samples.Dynamic
                           .Append(mlContext.Transforms.ResizeImages("ImageObjectResized", inputColumnName:"ImageObject", imageWidth: 100, imageHeight: 100 ))
                           .Append(mlContext.Transforms.ExtractPixels("Pixels", "ImageObjectResized"));
 
-
             var transformedData = pipeline.Fit(data).Transform(data);
 
-            // The transformedData IDataView contains the loaded images now
-
-            // Preview 1 row of the transformedData. 
-            var transformedDataPreview = transformedData.Preview(1);
-            foreach (var kvPair in transformedDataPreview.RowView[0].Values)
-            {
-                Console.WriteLine("{0} : {1}", kvPair.Key, kvPair.Value);
-            }
-
-            // ImagePath: tomato.bmp
-            // Name : tomato
-            // ImageObject : System.Drawing.Bitmap
-            // ImageObjectResized : System.Drawing.Bitmap
-            // Pixels : Dense vector of size 30000
-
-            Console.WriteLine("--------------------------------------------------");
-
-            // Using schema comprehension to display raw pixels for each row.
-            // Display original columns 'ImagePath' and 'Name', and extracted pixels in column 'Pixels'.
-            var convertedData = mlContext.Data.CreateEnumerable<TransformedData>(transformedData, true);
-            foreach (var item in convertedData)
-            {
-                var pixels = item.Pixels.Take(5);
-                Console.WriteLine("{0} {1}  pixels:{2}...", item.ImagePath, item.Name, string.Join(",", pixels));
-            }
-
-            // tomato.bmp tomato pixels:255,255,255,255,255...
-            // banana.jpg banana pixels:255,255,255,255,255...
-            // hotdog.jpg hotdog pixels:255,255,255,255,255...
-            // tomato.jpg tomato pixels:255,255,255,255,255...
+            // Preview the transformedData. 
+            var transformedDataPreview = transformedData.Preview();
+            PrintPreview(transformedDataPreview);
+            // ImagePath    Name         ImageObject            ImageObjectResized      Pixels
+            // tomato.bmp   tomato       System.Drawing.Bitmap  System.Drawing.Bitmap   255,255,255,255,255...
+            // banana.jpg   banana       System.Drawing.Bitmap  System.Drawing.Bitmap   255,255,255,255,255...
+            // hotdog.jpg   hotdog       System.Drawing.Bitmap  System.Drawing.Bitmap   255,255,255,255,255...
+            // tomato.jpg   tomato       System.Drawing.Bitmap  System.Drawing.Bitmap   255,255,255,255,255...
         }
 
-        private sealed class TransformedData
+        private static void PrintPreview(DataDebuggerPreview data)
         {
-            public string ImagePath { get; set; }
-            public string Name { get; set; }
-            public float[] Pixels { get; set; }
+            foreach (var colInfo in data.ColumnView)
+                Console.Write("{0, -25}", colInfo.Column.Name);
+
+            Console.WriteLine();
+            foreach (var row in data.RowView)
+            {
+                foreach (var kvPair in row.Values)
+                {
+                    if(kvPair.Key == "Pixels")
+                    {
+                        var pixels = ((VBuffer<float>)kvPair.Value).DenseValues().Take(5);
+                        Console.Write("{0}...", string.Join(",", pixels));
+                    }
+                    else
+                        Console.Write("{0, -25}", kvPair.Value);
+                }
+                Console.WriteLine();
+            }
         }
     }
 }
