@@ -12,7 +12,7 @@ namespace Microsoft.ML.Samples.Dynamic
             // as well as the source of randomness.
             var mlContext = new MLContext();
 
-            // Create an empty data sample list. The 'TokenizeIntoWords' does not require training data as
+            // Create an empty list as the dataset. The 'TokenizeIntoWords' does not require training data as
             // the estimator ('WordTokenizingEstimator') created by 'TokenizeIntoWords' API is not a trainable estimator.
             // The empty list is only needed to pass input schema to the pipeline.
             var emptySamples = new List<TextData>();
@@ -21,6 +21,8 @@ namespace Microsoft.ML.Samples.Dynamic
             var emptyDataView = mlContext.Data.LoadFromEnumerable(emptySamples);
 
             // A pipeline for converting text into vector of words.
+            // The following call to 'TokenizeIntoWords' tokenizes text/string into words using space as a separator.
+            // Space is also a default value for the 'separators' argument if it is not specified.
             var textPipeline = mlContext.Transforms.Text.TokenizeIntoWords("Words", "Text", separators: new[] { ' ' });
 
             // Fit to data.

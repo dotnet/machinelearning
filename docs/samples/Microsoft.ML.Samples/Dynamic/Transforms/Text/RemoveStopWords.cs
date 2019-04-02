@@ -12,7 +12,7 @@ namespace Microsoft.ML.Samples.Dynamic
             // as well as the source of randomness.
             var mlContext = new MLContext();
 
-            // Create an empty data sample list. The 'RemoveStopWords' does not require training data as
+            // Create an empty list as the dataset. The 'RemoveStopWords' does not require training data as
             // the estimator ('CustomStopWordsRemovingEstimator') created by 'RemoveStopWords' API is not a trainable estimator.
             // The empty list is only needed to pass input schema to the pipeline.
             var emptySamples = new List<TextData>();
