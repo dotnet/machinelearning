@@ -93,17 +93,20 @@ namespace Microsoft.ML.CLI.CodeGenerator
                 var wait = TimeSpan.FromSeconds(settings.MaxExplorationTime);
                 using (var pbar = new FixedDurationBar(wait, "", options))
                 {
-                    Task t = default;
+                    Thread t = default;
                     switch (taskKind)
                     {
                         case TaskKind.BinaryClassification:
-                            t = Task.Run(() => binaryRunResults = automlEngine.ExploreBinaryClassificationModels(context, trainData, validationData, columnInformation, new BinaryExperimentSettings().OptimizingMetric, pbar));
+                            t = new Thread(() => binaryRunResults = automlEngine.ExploreBinaryClassificationModels(context, trainData, validationData, columnInformation, new BinaryExperimentSettings().OptimizingMetric, pbar));
+                            t.Start();
                             break;
                         case TaskKind.Regression:
-                            t = Task.Run(() => regressionRunResults = automlEngine.ExploreRegressionModels(context, trainData, validationData, columnInformation, new RegressionExperimentSettings().OptimizingMetric, pbar));
+                            t = new Thread(() => regressionRunResults = automlEngine.ExploreRegressionModels(context, trainData, validationData, columnInformation, new RegressionExperimentSettings().OptimizingMetric, pbar));
+                            t.Start();
                             break;
                         case TaskKind.MulticlassClassification:
-                            t = Task.Run(() => multiRunResults = automlEngine.ExploreMultiClassificationModels(context, trainData, validationData, columnInformation, new MulticlassExperimentSettings().OptimizingMetric, pbar));
+                            t = new Thread(() => multiRunResults = automlEngine.ExploreMultiClassificationModels(context, trainData, validationData, columnInformation, new MulticlassExperimentSettings().OptimizingMetric, pbar));
+                            t.Start();
                             break;
                         default:
                             logger.Log(LogLevel.Error, Strings.UnsupportedMlTask);
@@ -111,13 +114,19 @@ namespace Microsoft.ML.CLI.CodeGenerator
                     }
 
                     if (!pbar.CompletedHandle.WaitOne(wait))
-                        Console.Error.WriteLine($"{nameof(FixedDurationBar)} did not signal {nameof(FixedDurationBar.CompletedHandle)} after {wait}");
+                        pbar.Message = $"{nameof(FixedDurationBar)} did not signal {nameof(FixedDurationBar.CompletedHandle)} after {wait}";
 
-                    if (t.IsCompleted == false)
+                    if (t.IsAlive == true)
                     {
+                        string waitingMessage = "Waiting for the last iteration to complete ...";
                         string originalMessage = pbar.Message;
-                        pbar.Message = " Waiting for the last iteration to complete ...";
-                        t.Wait();
+                        pbar.Message = waitingMessage;
+                        t.Join();
+                        if (waitingMessage.Equals(pbar.Message))
+                        {
+                            // Corner cases where thread was alive but has completed all iterations.
+                            pbar.Message = originalMessage;
+                        }
                     }
                 }
 
