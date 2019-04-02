@@ -35,7 +35,7 @@ namespace Microsoft.ML.Benchmarks
             }, hasHeader: true);
 
             var estimatorPipeline = ml.Transforms.Categorical.OneHotEncoding("CatFeatures")
-                .Append(ml.Transforms.Normalize("NumFeatures"))
+                .Append(ml.Transforms.NormalizeMinMax("NumFeatures"))
                 .Append(ml.Transforms.Concatenate("Features", "NumFeatures", "CatFeatures"))
                 .Append(ml.Clustering.Trainers.KMeans("Features"))
                 .Append(ml.Transforms.Concatenate("Features", "Features", "Score"))
