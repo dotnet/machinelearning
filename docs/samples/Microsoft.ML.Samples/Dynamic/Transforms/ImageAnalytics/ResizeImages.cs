@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using Microsoft.ML.Data;
 
 namespace Microsoft.ML.Samples.Dynamic
@@ -37,24 +38,22 @@ namespace Microsoft.ML.Samples.Dynamic
             var imagesFolder = Path.GetDirectoryName(imagesDataFile);
             // Image loading pipeline. 
             var pipeline = mlContext.Transforms.LoadImages("ImageReal", imagesFolder, "ImagePath")
-                        .Append(mlContext.Transforms.ResizeImages("ImageReal", imageWidth: 100, imageHeight: 100));
-                                
+                        .Append(mlContext.Transforms.ResizeImages("ImageResized", inputColumnName: "ImageReal", imageWidth: 100, imageHeight: 100));
+
 
             var transformedData = pipeline.Fit(data).Transform(data);
 
-            // The transformedData IDataView contains the loaded images now
-            //Preview of the transformedData
-            var transformedDataPreview = transformedData.Preview();
-
-            // Preview of the content of the images.tsv file
-            // The actual images, in the ImageReal column are of type System.Drawing.Bitmap.
-            //
-            // ImagePath    Name        ImageReal
-            // tomato.bmp   tomato      {System.Drawing.Bitmap}
-            // banana.jpg   banana      {System.Drawing.Bitmap}
-            // hotdog.jpg   hotdog      {System.Drawing.Bitmap}
-            // tomato.jpg   tomato      {System.Drawing.Bitmap}
-
+            // Preview 1 row of the transformedData. 
+            var transformedDataPreview = transformedData.Preview(1);
+            foreach (var kvPair in transformedDataPreview.RowView[0].Values)
+            {
+                Console.WriteLine("{0} : {1}", kvPair.Key, kvPair.Value);
+            }
+            
+            // ImagePath : tomato.bmp
+            // Name : tomato
+            // ImageReal : System.Drawing.Bitmap
+            // ImageResized : System.Drawing.Bitmap
         }
     }
 }

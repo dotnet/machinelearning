@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using Microsoft.ML.Data;
 
 namespace Microsoft.ML.Samples.Dynamic
@@ -42,18 +43,18 @@ namespace Microsoft.ML.Samples.Dynamic
             var transformedData = pipeline.Fit(data).Transform(data);
 
             // The transformedData IDataView contains the loaded images column, and the grayscaled column.
-            // Preview of the transformedData
-            var transformedDataPreview = transformedData.Preview();
-
-            // Preview of the content of the images.tsv file
-            // The actual images, in the Grayscale column are of type System.Drawing.Bitmap.
-            //
-            // ImagePath    Name        ImageObject                   Grayscale
-            // tomato.bmp   tomato      {System.Drawing.Bitmap}     {System.Drawing.Bitmap}
-            // banana.jpg   banana      {System.Drawing.Bitmap}     {System.Drawing.Bitmap}
-            // hotdog.jpg   hotdog      {System.Drawing.Bitmap}     {System.Drawing.Bitmap}
-            // tomato.jpg   tomato      {System.Drawing.Bitmap}     {System.Drawing.Bitmap}
-
+            
+            // Preview 1 row of the transformedData. 
+            var transformedDataPreview = transformedData.Preview(1);
+            foreach (var kvPair in transformedDataPreview.RowView[0].Values)
+            {
+                Console.WriteLine("{0} : {1}", kvPair.Key, kvPair.Value);
+            }
+            
+            // ImagePath : tomato.bmp
+            // Name : tomato
+            // ImageObject : System.Drawing.Bitmap
+            // Grayscale : System.Drawing.Bitmap
         }
     }
 }
