@@ -40,7 +40,7 @@ namespace Microsoft.ML.Samples.Dynamic
             var imagesFolder = Path.GetDirectoryName(imagesDataFile);
             // Image loading pipeline. 
             var pipeline = mlContext.Transforms.LoadImages("ImageObject", imagesFolder, "ImagePath")
-                          .Append(mlContext.Transforms.ResizeImages("ImageObjectResized", inputColumnName:"ImageObject", imageWidth: 100, imageHeight: 100 ))
+                          .Append(mlContext.Transforms.ResizeImages("ImageObjectResized", inputColumnName: "ImageObject", imageWidth: 100, imageHeight: 100))
                           .Append(mlContext.Transforms.ExtractPixels("Pixels", "ImageObjectResized"));
 
             var transformedData = pipeline.Fit(data).Transform(data);
@@ -58,20 +58,20 @@ namespace Microsoft.ML.Samples.Dynamic
         private static void PrintPreview(DataDebuggerPreview data)
         {
             foreach (var colInfo in data.ColumnView)
-                Console.Write("{0, -25}", colInfo.Column.Name);
+                Console.Write("{0,-25}", colInfo.Column.Name);
 
             Console.WriteLine();
             foreach (var row in data.RowView)
             {
                 foreach (var kvPair in row.Values)
                 {
-                    if(kvPair.Key == "Pixels")
+                    if (kvPair.Key == "Pixels")
                     {
                         var pixels = ((VBuffer<float>)kvPair.Value).DenseValues().Take(5);
                         Console.Write("{0}...", string.Join(",", pixels));
                     }
                     else
-                        Console.Write("{0, -25}", kvPair.Value);
+                        Console.Write("{0,-25}", kvPair.Value);
                 }
                 Console.WriteLine();
             }

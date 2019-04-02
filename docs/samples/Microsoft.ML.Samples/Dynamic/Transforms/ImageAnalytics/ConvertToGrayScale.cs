@@ -42,7 +42,7 @@ namespace Microsoft.ML.Samples.Dynamic
 
             var transformedData = pipeline.Fit(data).Transform(data);
             // The transformedData IDataView contains the loaded images column, and the grayscaled column.
-            
+
             // Preview the transformedData. 
             var transformedDataPreview = transformedData.Preview();
             PrintPreview(transformedDataPreview);
@@ -56,15 +56,13 @@ namespace Microsoft.ML.Samples.Dynamic
         private static void PrintPreview(DataDebuggerPreview data)
         {
             foreach (var colInfo in data.ColumnView)
-                Console.Write("{0, -25}", colInfo.Column.Name);
+                Console.Write("{0,-25}", colInfo.Column.Name);
 
             Console.WriteLine();
             foreach (var row in data.RowView)
             {
                 foreach (var kvPair in row.Values)
-                {
-                    Console.Write("{0, -25}", kvPair.Value);
-                }
+                    Console.Write("{0,-25}", kvPair.Value);
                 Console.WriteLine();
             }
         }

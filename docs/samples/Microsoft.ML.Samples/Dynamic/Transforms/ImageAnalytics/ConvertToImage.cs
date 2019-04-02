@@ -44,7 +44,7 @@ namespace Microsoft.ML.Samples.Dynamic
         private static void PrintPreview(DataDebuggerPreview data)
         {
             foreach (var colInfo in data.ColumnView)
-                Console.Write("{0, -25}", colInfo.Column.Name);
+                Console.Write("{0,-25}", colInfo.Column.Name);
 
             Console.WriteLine();
             foreach (var row in data.RowView)
@@ -54,10 +54,10 @@ namespace Microsoft.ML.Samples.Dynamic
                     if (kvPair.Key == "Pixels" || kvPair.Key == "Features")
                     {
                         var rawValues = ((VBuffer<float>)kvPair.Value).DenseValues().Take(5);
-                        Console.Write("{0, -25}", string.Join(",", rawValues));
+                        Console.Write("{0,-25}", string.Join(",", rawValues));
                     }
                     else
-                        Console.Write("{0, -25}", kvPair.Value);
+                        Console.Write("{0,-25}", kvPair.Value);
                 }
                 Console.WriteLine();
             }
@@ -74,12 +74,7 @@ namespace Microsoft.ML.Samples.Dynamic
             var random = new Random(seed);
 
             for (int i = 0; i < count; i++)
-            {
-                yield return new DataPoint
-                {
-                    Features = Enumerable.Repeat(0, inputSize).Select(x => (float)random.Next(0, 256)).ToArray()
-                };
-            }
+                yield return new DataPoint { Features = Enumerable.Repeat(0, inputSize).Select(x => (float)random.Next(0, 256)).ToArray() };
         }
     }
 }
