@@ -8,7 +8,6 @@ using System.IO.Compression;
 using System.Linq;
 using Microsoft.ML.Calibrators;
 using Microsoft.ML.Data;
-using Microsoft.ML.Experimental;
 using Microsoft.ML.Functional.Tests.Datasets;
 using Microsoft.ML.RunTests;
 using Microsoft.ML.Trainers.FastTree;

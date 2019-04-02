@@ -6,7 +6,6 @@ using System;
 using System.IO;
 using Microsoft.ML.Calibrators;
 using Microsoft.ML.Data;
-using Microsoft.ML.Experimental;
 using Microsoft.ML.Data.IO;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.RunTests;

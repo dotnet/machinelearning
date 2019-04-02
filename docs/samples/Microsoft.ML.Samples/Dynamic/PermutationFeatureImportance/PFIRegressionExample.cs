@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Linq;
-using Microsoft.ML.Experimental;
 
 namespace Microsoft.ML.Samples.Dynamic.PermutationFeatureImportance
 {

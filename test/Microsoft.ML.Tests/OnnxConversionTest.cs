@@ -10,7 +10,6 @@ using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
 using Google.Protobuf;
 using Microsoft.ML.Data;
-using Microsoft.ML.Experimental;
 using Microsoft.ML.Model.OnnxConverter;
 using Microsoft.ML.RunTests;
 using Microsoft.ML.Runtime;

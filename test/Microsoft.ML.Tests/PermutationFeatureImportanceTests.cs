@@ -6,7 +6,6 @@ using System;
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.ML.Data;
-using Microsoft.ML.Experimental;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.RunTests;
 using Microsoft.ML.Trainers;

@@ -5,7 +5,6 @@
 using System.Linq;
 using System.Threading;
 using Microsoft.ML.Data;
-using Microsoft.ML.Experimental;
 using Microsoft.ML.RunTests;
 using Microsoft.ML.StaticPipe;
 using Xunit;

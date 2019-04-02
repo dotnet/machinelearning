@@ -7,7 +7,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Net;
 using Microsoft.ML.Data;
-using Microsoft.ML.Experimental;
 
 namespace Microsoft.ML.SamplesUtils
 {
