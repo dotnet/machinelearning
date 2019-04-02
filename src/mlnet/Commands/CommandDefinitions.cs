@@ -74,7 +74,7 @@ namespace Microsoft.ML.CLI.Commands
                 new Argument<FileInfo>(defaultValue: default(FileInfo)).ExistingOnly());
 
             Option MlTask() =>
-                new Option("--ml-task", "Type of ML task to perform. Current supported tasks: regression and binary-classification",
+                new Option("--ml-task", "Type of ML task to perform. Current supported tasks: regression, binary-classification, multiclass-classification.",
                 new Argument<string>().FromAmong(GetMlTaskSuggestions()));
 
             Option LabelName() =>
@@ -90,7 +90,7 @@ namespace Microsoft.ML.CLI.Commands
                 new Argument<uint>(defaultValue: 10));
 
             Option Verbosity() =>
-                new Option(new List<string>() { "--verbosity" }, "Output verbosity choices: q[uiet], m[inimal] (by default) and diag[nostic]",
+                new Option(new List<string>() { "--verbosity" }, "Output verbosity choices: q[uiet], m[inimal] (by default) and diag[nostic].",
                 new Argument<string>(defaultValue: "m").FromAmong(GetVerbositySuggestions()));
 
             Option Name() =>
