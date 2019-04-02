@@ -131,7 +131,8 @@ namespace Microsoft.ML.Trainers
                     int size = cursor.Label + 1;
                     Utils.EnsureSize(ref labelHistogram, size);
                     Utils.EnsureSize(ref featureHistogram, size);
-                    Utils.EnsureSize(ref featureHistogram[cursor.Label], featureCount);
+                    if (featureHistogram[cursor.Label] == null)
+                        featureHistogram[cursor.Label] = new int[featureCount];
                     labelHistogram[cursor.Label] += 1;
                     labelCount = labelCount < size ? size : labelCount;
 
