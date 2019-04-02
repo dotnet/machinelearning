@@ -275,7 +275,7 @@ namespace Microsoft.ML.Functional.Tests
             var data = loader.Load(file);
 
             // Pipeline.
-            var pipeline = ML.Transforms.Normalize("Features");
+            var pipeline = ML.Transforms.NormalizeMinMax("Features");
 
             // Train.
             var model = pipeline.Fit(data);
@@ -330,7 +330,7 @@ namespace Microsoft.ML.Functional.Tests
         {
             var file = new MultiFileSource(GetDataPath(TestDatasets.adult.trainFilename));
             var loader = ML.Data.CreateTextLoader<InputData>(hasHeader: true, dataSample: file);
-            var composite = loader.Append(ML.Transforms.Normalize("Features"));
+            var composite = loader.Append(ML.Transforms.NormalizeMinMax("Features"));
             var loaderWithEmbeddedModel = composite.Fit(file);
 
             string modelPath = GetOutputPath(FullTestName + "-model.zip");
@@ -368,7 +368,7 @@ namespace Microsoft.ML.Functional.Tests
         {
             var file = new MultiFileSource(GetDataPath(TestDatasets.adult.trainFilename));
             var loader = ML.Data.CreateTextLoader<InputData>(hasHeader: true, dataSample: file);
-            var estimator = ML.Transforms.Normalize("Features");
+            var estimator = ML.Transforms.NormalizeMinMax("Features");
             var data = loader.Load(file);
             var model = estimator.Fit(data);
 
@@ -401,7 +401,7 @@ namespace Microsoft.ML.Functional.Tests
         {
             var file = new MultiFileSource(GetDataPath(TestDatasets.adult.trainFilename));
             var loader = ML.Data.CreateTextLoader<InputData>(hasHeader: true, dataSample: file);
-            var estimator = ML.Transforms.Normalize("Features");
+            var estimator = ML.Transforms.NormalizeMinMax("Features");
             var model = estimator.Fit(loader.Load(file));
 
             string modelPath = GetOutputPath(FullTestName + "-model.zip");

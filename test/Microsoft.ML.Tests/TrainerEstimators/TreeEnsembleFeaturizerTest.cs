@@ -16,7 +16,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         public void TreeEnsembleFeaturizerOutputSchemaTest()
         {
             // Create data set
-            var data = SamplesUtils.DatasetUtils.GenerateBinaryLabelFloatFeatureVectorSamples(1000).ToList();
+            var data = SamplesUtils.DatasetUtils.GenerateBinaryLabelFloatFeatureVectorFloatWeightSamples(1000).ToList();
             var dataView = ML.Data.LoadFromEnumerable(data);
 
             // Define a tree model whose trees will be extracted to construct a tree featurizer.
@@ -36,8 +36,8 @@ namespace Microsoft.ML.Tests.TrainerEstimators
 
             // To get output schema, we need to create RoleMappedSchema for calling Bind(...).
             var roleMappedSchema = new RoleMappedSchema(dataView.Schema,
-                label: nameof(SamplesUtils.DatasetUtils.BinaryLabelFloatFeatureVectorSample.Label),
-                feature: nameof(SamplesUtils.DatasetUtils.BinaryLabelFloatFeatureVectorSample.Features));
+                label: nameof(SamplesUtils.DatasetUtils.BinaryLabelFloatFeatureVectorFloatWeightSample.Label),
+                feature: nameof(SamplesUtils.DatasetUtils.BinaryLabelFloatFeatureVectorFloatWeightSample.Features));
 
             // Retrieve output schema. 
             var boundMapper = (treeFeaturizer as ISchemaBindableMapper).Bind(Env, roleMappedSchema);

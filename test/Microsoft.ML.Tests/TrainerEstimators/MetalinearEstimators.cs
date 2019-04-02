@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Linq;
 using Microsoft.ML.Calibrators;
 using Microsoft.ML.Data;
 using Microsoft.ML.RunTests;
@@ -83,12 +84,14 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             var data = loader.Load(GetDataPath(TestDatasets.irisData.trainFilename));
 
             var sdcaTrainer = ML.BinaryClassification.Trainers.SdcaNonCalibrated(
-                new SdcaNonCalibratedBinaryTrainer.Options {
+                new SdcaNonCalibratedBinaryTrainer.Options
+                {
                     LabelColumnName = "Label",
                     FeatureColumnName = "Vars",
                     MaximumNumberOfIterations = 100,
                     Shuffle = true,
-                    NumberOfThreads = 1, });
+                    NumberOfThreads = 1,
+                });
 
             var pipeline = new ColumnConcatenatingEstimator(Env, "Vars", "SepalLength", "SepalWidth", "PetalLength", "PetalWidth")
                 .Append(new ValueToKeyMappingEstimator(Env, "Label"), TransformerScope.TrainTest)

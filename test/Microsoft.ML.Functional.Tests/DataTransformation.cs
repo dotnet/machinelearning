@@ -7,7 +7,6 @@ using Microsoft.ML.Functional.Tests.Datasets;
 using Microsoft.ML.RunTests;
 using Microsoft.ML.TestFramework;
 using Microsoft.ML.Trainers;
-using Microsoft.ML.Transforms;
 using Microsoft.ML.Transforms.Text;
 using Xunit;
 using Xunit.Abstractions;
@@ -174,7 +173,7 @@ namespace Microsoft.ML.Functional.Tests
 
             // Compose the transformation.
             var pipeline = mlContext.Transforms.Concatenate("Features", Iris.Features)
-                .Append(mlContext.Transforms.Normalize("Features", mode: NormalizingEstimator.NormalizationMode.MinMax));
+                .Append(mlContext.Transforms.NormalizeMinMax("Features"));
             
             // Transform the data.
             var transformedData = pipeline.Fit(data).Transform(data);

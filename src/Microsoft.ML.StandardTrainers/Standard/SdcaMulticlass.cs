@@ -103,7 +103,7 @@ namespace Microsoft.ML.Trainers
         }
 
         internal SdcaMulticlassTrainerBase(IHostEnvironment env, MulticlassOptions options)
-            : this(env, options, options.FeatureColumnName, options.LabelColumnName)
+            : this(env, options, options.FeatureColumnName, options.LabelColumnName, options.ExampleWeightColumnName)
         {
         }
 
