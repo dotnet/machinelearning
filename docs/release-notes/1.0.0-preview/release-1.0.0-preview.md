@@ -1,6 +1,6 @@
 # ML.NET 1.0.0-preview Release Notes
 
-This release is `Release Candidate` for version `1.0.0` of [ML.NET](https://aka.ms/mlnet). We have closed our main [API project](https://github.com/dotnet/machinelearning/projects/13). The next release will be `1.0.0` and during this sprint we are focusing on improving documentation and samples. The goal is to avoid any new breaking changes going forward. One change in this release is that we have moved `IDataView` back into `Microsoft.ML` namespace based on some feedback that we received.
+This release is `Release Candidate` for version `1.0.0` of [ML.NET](https://aka.ms/mlnet). We have closed our main [API project](https://github.com/dotnet/machinelearning/projects/13). The next release will be `1.0.0` and during this sprint we are focusing on improving documentation and samples and consider addressing major critical issues. The goal is to avoid any new breaking changes going forward. One change in this release is that we have moved `IDataView` back into `Microsoft.ML` namespace based on some feedback that we received.
 
 ### Installation
 
@@ -27,6 +27,7 @@ Below are a few of the highlights from this release. There are many other improv
 * Remove Value-tuples in the public API. ([#2950](https://github.com/dotnet/machinelearning/pull/2950))
 * Categorizing NuGets into preview and stable. ([#2951](https://github.com/dotnet/machinelearning/pull/2951))
 * Hiding `ColumnOptions`. ([#2959](https://github.com/dotnet/machinelearning/pull/2959))
+* Asynchronous cancellation mechanism. ([#2797](https://github.com/dotnet/machinelearning/pull/2797))
 
 ### Acknowledgements
 
