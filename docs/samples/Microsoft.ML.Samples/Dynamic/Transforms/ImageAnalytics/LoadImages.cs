@@ -40,7 +40,7 @@ namespace Microsoft.ML.Samples.Dynamic
             var pipeline = mlContext.Transforms.LoadImages("ImageObject", imagesFolder, "ImagePath");
 
             var transformedData = pipeline.Fit(data).Transform(data);
-            // The transformedData IDataView contains the loaded images now
+            // The transformedData IDataView contains the loaded images now.
 
             // Preview the transformedData. 
             var transformedDataPreview = transformedData.Preview();

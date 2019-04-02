@@ -41,7 +41,7 @@ namespace Microsoft.ML.Samples.Dynamic
                         .Append(mlContext.Transforms.ResizeImages("ImageObjectResized", inputColumnName: "ImageObject", imageWidth: 100, imageHeight: 100));
 
             var transformedData = pipeline.Fit(data).Transform(data);
-            // The transformedData IDataView contains the resized images now
+            // The transformedData IDataView contains the resized images now.
 
             // Preview the transformedData. 
             var transformedDataPreview = transformedData.Preview();
