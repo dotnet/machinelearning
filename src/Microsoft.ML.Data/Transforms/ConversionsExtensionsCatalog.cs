@@ -413,7 +413,7 @@ namespace Microsoft.ML
             this TransformsCatalog.ConversionTransforms catalog,
             string outputColumnName, IDataView lookupMap, DataViewSchema.Column keyColumn, DataViewSchema.Column valueColumn, string inputColumnName = null)
         {
-            return new ValueMappingEstimator(CatalogUtils.GetEnvironment(catalog), lookupMap, keyColumn.Name, valueColumn.Name,
+            return new ValueMappingEstimator(CatalogUtils.GetEnvironment(catalog), lookupMap, keyColumn, valueColumn,
               new[] { (outputColumnName, inputColumnName ?? outputColumnName) });
         }
 
@@ -442,8 +442,7 @@ namespace Microsoft.ML
         {
             var env = CatalogUtils.GetEnvironment(catalog);
             env.CheckValue(columns, nameof(columns));
-            return new ValueMappingEstimator(env, lookupMap, keyColumn.Name, valueColumn.Name,
-                InputOutputColumnPair.ConvertToValueTuples(columns));
+            return new ValueMappingEstimator(env, lookupMap, keyColumn, valueColumn, InputOutputColumnPair.ConvertToValueTuples(columns));
         }
     }
 }
