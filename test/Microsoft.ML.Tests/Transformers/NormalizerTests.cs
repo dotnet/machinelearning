@@ -212,8 +212,9 @@ namespace Microsoft.ML.Tests.Transformers
         public void NormalizerParametersMultiColumnApi()
         {
             string dataPath = GetDataPath("iris.txt");
+            var context = new MLContext(seed: 0);
 
-            var loader = new TextLoader(Env, new TextLoader.Options
+            var loader = new TextLoader(context, new TextLoader.Options
             {
                 Columns = new[] {
                     new TextLoader.Column("Label", DataKind.Single, 0),
@@ -226,7 +227,7 @@ namespace Microsoft.ML.Tests.Transformers
                 },
                 HasHeader = true
             }, new MultiFileSource(dataPath));
-            var context = new MLContext(seed: 0);
+
             var est = context.Transforms.NormalizeMinMax(
                 new[] { new InputOutputColumnPair("float1"), new InputOutputColumnPair("float4"),
                     new InputOutputColumnPair("double1"), new InputOutputColumnPair("double4"), })
@@ -241,7 +242,7 @@ namespace Microsoft.ML.Tests.Transformers
                                     new InputOutputColumnPair("double1lmv", "double1"), new InputOutputColumnPair("double4lmv", "double4")}))
                     .Append(context.Transforms.NormalizeSupervisedBinning(
                                 new[] {new InputOutputColumnPair("float1nsb", "float1"), new InputOutputColumnPair("float4nsb", "float4"),
-                                    new InputOutputColumnPair("double1nsp", "double1"), new InputOutputColumnPair("double4nsb", "double4")}));
+                                    new InputOutputColumnPair("double1nsb", "double1"), new InputOutputColumnPair("double4nsb", "double4")}));
 
             var data = loader.Load(dataPath);
 
