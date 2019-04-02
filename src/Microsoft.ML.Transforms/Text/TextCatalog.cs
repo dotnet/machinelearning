@@ -151,6 +151,7 @@ namespace Microsoft.ML
         /// <format type="text/markdown">
         /// <![CDATA[
         /// [!code-csharp[ApplyWordEmbedding](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/Text/ApplyCustomWordEmbedding.cs)]
+        /// [!code-fsharp[ApplyWordEmbedding](~/../docs/samples/docs/samples/Microsoft.ML.Samples.FSharp/Dynamic/Transforms/Text/ApplyCustomWordEmbedding.fs)]
         /// ]]>
         /// </format>
         /// </example>
