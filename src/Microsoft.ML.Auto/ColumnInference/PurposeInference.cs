@@ -47,13 +47,12 @@ namespace Microsoft.ML.Auto
         {
             private readonly IDataView _data;
             private readonly int _columnId;
-            private bool _isPurposeSuggested;
             private ColumnPurpose _suggestedPurpose;
             private readonly Lazy<DataViewType> _type;
             private readonly Lazy<string> _columnName;
-            private object _cachedData;
+            private IReadOnlyList<ReadOnlyMemory<char>> _cachedData;
 
-            public bool IsPurposeSuggested { get { return _isPurposeSuggested; } }
+            public bool IsPurposeSuggested { get; private set; }
 
             public ColumnPurpose SuggestedPurpose
             {
@@ -61,7 +60,7 @@ namespace Microsoft.ML.Auto
                 set
                 {
                     _suggestedPurpose = value;
-                    _isPurposeSuggested = true;
+                    IsPurposeSuggested = true;
                 }
             }
 
@@ -83,26 +82,30 @@ namespace Microsoft.ML.Auto
                 return new Column(_columnId, _suggestedPurpose);
             }
 
-            public T[] GetData<T>()
+            public IReadOnlyList<ReadOnlyMemory<char>> GetColumnData()
             {
-                if (_cachedData is T[])
-                    return _cachedData as T[];
+                if (_cachedData != null)
+                    return _cachedData;
 
-                var results = new List<T>();
+                var results = new List<ReadOnlyMemory<char>>();
+
                 using (var cursor = _data.GetRowCursor(new[] { _data.Schema[_columnId] }))
                 {
-                    var getter = cursor.GetGetter<T>(_columnId);
+                    var getter = cursor.GetGetter<ReadOnlyMemory<char>>(_columnId);
                     while (cursor.MoveNext())
                     {
-                        T value = default(T);
+                        var value = default(ReadOnlyMemory<char>);
                         getter(ref value);
-                        results.Add(value);
+
+                        var copy = new ReadOnlyMemory<char>(value.ToArray());
+
+                        results.Add(copy);
                     }
                 }
 
-                T[] resultArray;
-                _cachedData = resultArray = results.ToArray();
-                return resultArray;
+                _cachedData = results;
+
+                return results;
             }
         }
 
@@ -117,7 +120,8 @@ namespace Microsoft.ML.Auto
                     {
                         if (column.IsPurposeSuggested || !column.Type.IsText())
                             continue;
-                        var data = column.GetData<ReadOnlyMemory<char>>();
+
+                        var data = column.GetColumnData();
 
                         long sumLength = 0;
                         int sumSpaces = 0;
@@ -140,11 +144,11 @@ namespace Microsoft.ML.Auto
                             }
                         }
 
-                        if (imagePathCount < data.Length - 1)
+                        if (imagePathCount < data.Count - 1)
                         {
-                            Double avgLength = 1.0 * sumLength / data.Length;
-                            Double cardinalityRatio = 1.0 * seen.Count / data.Length;
-                            Double avgSpaces = 1.0 * sumSpaces / data.Length;
+                            Double avgLength = 1.0 * sumLength / data.Count;
+                            Double cardinalityRatio = 1.0 * seen.Count / data.Count;
+                            Double avgSpaces = 1.0 * sumSpaces / data.Count;
                             if (cardinalityRatio < 0.7)
                                 column.SuggestedPurpose = ColumnPurpose.CategoricalFeature;
                             // (note: the columns.Count() == 1 condition below, in case a dataset has only
@@ -218,7 +222,7 @@ namespace Microsoft.ML.Auto
         private static IEnumerable<IPurposeInferenceExpert> GetExperts()
         {
             // Each of the experts respects the decisions of all the experts above.
-            
+
             // Single-value text columns may be category, name, text or ignore.
             yield return new Experts.TextClassification();
             // Vector-value text columns are always treated as text.
@@ -248,7 +252,7 @@ namespace Microsoft.ML.Auto
                 var column = data.Schema[i];
                 IntermediateColumn intermediateCol;
 
-                if(column.IsHidden)
+                if (column.IsHidden)
                 {
                     intermediateCol = new IntermediateColumn(data, i, ColumnPurpose.Ignore);
                     allColumns.Add(intermediateCol);
@@ -256,7 +260,7 @@ namespace Microsoft.ML.Auto
                 }
 
                 var columnPurpose = columnInfo.GetColumnPurpose(column.Name);
-                if(columnPurpose == null)
+                if (columnPurpose == null)
                 {
                     intermediateCol = new IntermediateColumn(data, i);
                     columnsToInfer.Add(intermediateCol);
