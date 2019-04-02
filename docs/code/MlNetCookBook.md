@@ -344,7 +344,7 @@ var cachedTrainData = mlContext.Data.Cache(trainData);
 var pipeline =
     // First 'normalize' the data (rescale to be
     // between -1 and 1 for all examples)
-    mlContext.Transforms.Normalize("FeatureVector")
+    mlContext.Transforms.NormalizeMinMax("FeatureVector")
     // We add a step for caching data in memory so that the downstream iterative training
     // algorithm can efficiently scan through the data multiple times. Otherwise, the following
     // trainer will load data from disk multiple times. The caching mechanism uses an on-demand strategy.
@@ -625,18 +625,15 @@ var trainData = mlContext.Data.LoadFromTextFile<IrisInputAllFeatures>(dataPath,
     separatorChar: ','
 );
 
-// Apply all kinds of standard ML.NET normalization to the raw features.
+// Apply MinMax normalization to the raw features.
 var pipeline =
-    mlContext.Transforms.Normalize(
-        new NormalizingEstimator.MinMaxColumnOptions("MinMaxNormalized", "Features", fixZero: true),
-        new NormalizingEstimator.MeanVarianceColumnOptions("MeanVarNormalized", "Features", fixZero: true),
-        new NormalizingEstimator.BinningColumnOptions("BinNormalized", "Features", maximumBinCount: 256));
+    mlContext.Transforms.NormalizeMinMax("MinMaxNormalized", "Features");
 
 // Let's train our pipeline of normalizers, and then apply it to the same data.
 var normalizedData = pipeline.Fit(trainData).Transform(trainData);
 
 // Inspect one column of the resulting dataset.
-var meanVarValues = normalizedData.GetColumn<float[]>(normalizedData.Schema["MeanVarNormalized"]).ToArray();
+var meanVarValues = normalizedData.GetColumn<float[]>(normalizedData.Schema["MinMaxNormalized"]).ToArray();
 ```
 
 ## How do I train my model on categorical data?

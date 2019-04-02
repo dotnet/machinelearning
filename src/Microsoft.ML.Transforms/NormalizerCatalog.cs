@@ -33,7 +33,6 @@ namespace Microsoft.ML
         }
 
         /// <summary>
-        /// Normalize (rescale) the column according to the <see cref="NormalizingEstimator.NormalizationMode.MinMax"/> mode.
         /// It normalizes the data based on the observed minimum and maximum values of the data.
         /// </summary>
         /// <param name="catalog">The transform catalog</param>
@@ -41,6 +40,13 @@ namespace Microsoft.ML
         /// <param name="inputColumnName">Name of the column to transform. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.</param>
         /// <param name="maximumExampleCount">Maximum number of examples used to train the normalizer.</param>
         /// <param name="fixZero">Whether to map zero to zero, preserving sparsity.</param>
+        /// <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        /// [!code-csharp[Normalize](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Normalizer.cs)]
+        /// ]]>
+        /// </format>
+        /// </example>
         public static NormalizingEstimator NormalizeMinMax(this TransformsCatalog catalog,
            string outputColumnName, string inputColumnName = null,
            long maximumExampleCount = NormalizingEstimator.Defaults.MaximumExampleCount,
@@ -51,7 +57,6 @@ namespace Microsoft.ML
         }
 
         /// <summary>
-        /// Normalize (rescale) the column according to the <see cref="NormalizingEstimator.NormalizationMode.MeanVariance"/> mode.
         /// It normalizes the data based on the computed mean and variance of the data.
         /// </summary>
         /// <param name="catalog">The transform catalog</param>
@@ -71,7 +76,6 @@ namespace Microsoft.ML
         }
 
         /// <summary>
-        /// Normalize (rescale) the column according to the <see cref="NormalizingEstimator.NormalizationMode.LogMeanVariance"/> mode.
         /// It normalizes the data based on the computed mean and variance of the logarithm of the data.
         /// </summary>
         /// <param name="catalog">The transform catalog</param>
@@ -89,7 +93,6 @@ namespace Microsoft.ML
         }
 
         /// <summary>
-        /// Normalize (rescale) the column according to the <see cref="NormalizingEstimator.NormalizationMode.Binning"/> mode.
         /// The values are assigned into bins with equal density.
         /// </summary>
         /// <param name="catalog">The transform catalog</param>
@@ -109,7 +112,6 @@ namespace Microsoft.ML
         }
 
         /// <summary>
-        /// Normalize (rescale) the column according to the <see cref="NormalizingEstimator.NormalizationMode.SupervisedBinning"/> mode.
         /// The values are assigned into bins based on correlation with the <paramref name="labelColumnName"/> column.
         /// </summary>
         /// <param name="catalog">The transform catalog</param>
