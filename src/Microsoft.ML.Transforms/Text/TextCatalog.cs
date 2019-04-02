@@ -107,6 +107,13 @@ namespace Microsoft.ML
         /// <param name="keepDiacritics">Whether to keep diacritical marks or remove them.</param>
         /// <param name="keepPunctuations">Whether to keep punctuation marks or remove them.</param>
         /// <param name="keepNumbers">Whether to keep numbers or remove them.</param>
+        /// <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        /// [!code-csharp[NormalizeText](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/Text/NormalizeText.cs)]
+        /// ]]>
+        /// </format>
+        /// </example>
         public static TextNormalizingEstimator NormalizeText(this TransformsCatalog.TextTransforms catalog,
             string outputColumnName,
             string inputColumnName = null,
@@ -125,7 +132,7 @@ namespace Microsoft.ML
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
-        /// [!code-csharp[FeaturizeText](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/WordEmbeddingTransform.cs)]
+        /// [!code-csharp[ApplyWordEmbedding](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/Text/ApplyWordEmbedding.cs)]
         /// ]]>
         /// </format>
         /// </example>
@@ -143,7 +150,7 @@ namespace Microsoft.ML
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
-        /// [!code-csharp[FeaturizeText](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/WordEmbeddingTransform.cs)]
+        /// [!code-csharp[ApplyWordEmbedding](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/Text/ApplyCustomWordEmbedding.cs)]
         /// ]]>
         /// </format>
         /// </example>
