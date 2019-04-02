@@ -3,17 +3,7 @@ using System.Collections.Generic;
 namespace Microsoft.ML.Samples.Dynamic
 {
     public static class MapValueToArray
-    {
-        class DataPoint
-        {
-            public string Timeframe { get; set; }
-        }
-
-        class TransformedData : DataPoint
-        {
-            public int[] Feature { get; set; }
-        }
-
+    { 
         /// This example demonstrates the use of MapValue by mapping strings to array values, which allows for mapping data to numeric arrays. 
         /// This functionality is useful when the generated column will serve as the Features column for a trainer. Most of the trainers take a numeric vector, as the Features column. 
         /// In this example, we are mapping the Timeframe data to arbitrary integer arrays.
@@ -30,13 +20,13 @@ namespace Microsoft.ML.Samples.Dynamic
                 new DataPoint() { Timeframe = "12-25yrs" },
                 new DataPoint() { Timeframe = "0-5yrs" },
                 new DataPoint() { Timeframe = "12-25yrs" },
-                 new DataPoint() { Timeframe = "25+yrs" },
+                new DataPoint() { Timeframe = "25+yrs" },
             };
 
             var data = mlContext.Data.LoadFromEnumerable(rawData);
 
-            // If the list of keys and values are known, they can be passed to the API.
-            // Creating a list of key-value pairs based on the dataset
+            // Creating a list of key-value pairs to indicate the mapping between the 
+            // DataPoint values, and the arrays they should map to. 
             var timeframeMap = new Dictionary<string, int[]>();
             timeframeMap["0-4yrs"] = new int[] { 0, 5, 300 };
             timeframeMap["0-5yrs"] = new int[] { 0, 5, 300 };
@@ -44,8 +34,8 @@ namespace Microsoft.ML.Samples.Dynamic
             timeframeMap["12-25yrs"] = new int[] { 12, 50, 300 };
             timeframeMap["25+yrs"] = new int[] { 12, 50, 300 };
 
-            // Constructs the ValueMappingEstimator making the ML.net pipeline.
-            var pipeline = mlContext.Transforms.Conversion.MapValue("Feature", timeframeMap, "Timeframe");
+            // Constructs the ValueMappingEstimator making the ML.NET pipeline.
+            var pipeline = mlContext.Transforms.Conversion.MapValue("Features", timeframeMap, "Timeframe");
 
             // Fits the ValueMappingEstimator and transforms the data adding the Features column.
             IDataView transformedData = pipeline.Fit(data).Transform(data);
@@ -53,19 +43,25 @@ namespace Microsoft.ML.Samples.Dynamic
             // Getting the resulting data as an IEnumerable.
             IEnumerable<TransformedData> featuresColumn = mlContext.Data.CreateEnumerable<TransformedData>(transformedData, reuseRowObject: false);
 
-            Console.WriteLine($"Timeframe     Feature");
+            Console.WriteLine($"Timeframe     Features");
             foreach (var featureRow in featuresColumn)
-            {
-                Console.WriteLine($"{featureRow.Timeframe}\t\t {string.Join(",", featureRow.Feature)}");
-            }
+                Console.WriteLine($"{featureRow.Timeframe}\t\t {string.Join(",", featureRow.Features)}");
 
-            // Timeframe      Feature
-            // 0 - 4yrs       0, 5, 300
-            // 6 - 11yrs      6, 11, 300
-            // 12 - 25yrs     12, 50, 300
-            // 0 - 5yrs       0, 5, 300
-            // 12 - 25yrs     12, 50,300
-            // 25 + yrs       12, 50, 300
+            // Timeframe      Features
+            // 0-4yrs       0, 5, 300
+            // 6-11yrs      6, 11, 300
+            // 12-25yrs     12, 50, 300
+            // 0-5yrs       0, 5, 300
+            // 12-25yrs     12, 50,300
+            // 25+yrs       12, 50, 300
+        }
+        public class DataPoint
+        {
+            public string Timeframe { get; set; }
+        }
+        public class TransformedData : DataPoint
+        {
+            public int[] Features { get; set; }
         }
     }
 }

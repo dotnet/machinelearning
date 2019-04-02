@@ -5,24 +5,6 @@ namespace Microsoft.ML.Samples.Dynamic
 {
     public static class MapValueIdvLookup
     {
-        // Type for the IDataVIew that will be serving as the map
-        private class LookupMap
-        {
-            public float Value { get; set; }
-            public string Category { get; set; }
-
-        }
-
-        private class DataPoint
-        {
-            public float Price { get; set; }
-        }
-
-        private class TransformedData : DataPoint
-        {
-            public string PriceCategory { get; set; }
-        }
-
         /// This example demonstrates the use of MapValue by mapping floats to strings, looking up the mapping in an IDataView. 
         /// This is useful to map types to a grouping. 
         public static void Example()
@@ -47,17 +29,17 @@ namespace Microsoft.ML.Samples.Dynamic
             // Create the lookup map data IEnumerable.   
             var lookupData = new[] {
                 new LookupMap { Value = 3.14f, Category = "Low" },
-                new LookupMap { Category = "Low" , Value = 1.19f },
-                new LookupMap { Category = "Low" , Value = 2.17f },
-                new LookupMap { Category = "Medium", Value = 33.784f},
-                new LookupMap { Category = "High", Value = 2000f}
+                new LookupMap { Value = 1.19f , Category = "Low" },
+                new LookupMap { Value = 2.17f , Category = "Low" },
+                new LookupMap { Value = 33.784f, Category = "Medium" },
+                new LookupMap { Value = 2000f, Category = "High"}
 
             };
 
             // Convert to IDataView
             var lookupIdvMap = mlContext.Data.LoadFromEnumerable(lookupData);
 
-            // Constructs the ValueMappingEstimator making the ML.net pipeline
+            // Constructs the ValueMappingEstimator making the ML.NET pipeline
             var pipeline = mlContext.Transforms.Conversion.MapValue("PriceCategory", lookupIdvMap, lookupIdvMap.Schema["Value"], lookupIdvMap.Schema["Category"], "Price");
 
             // Fits the ValueMappingEstimator and transforms the data converting the Price to PriceCategory.
@@ -78,6 +60,21 @@ namespace Microsoft.ML.Samples.Dynamic
             // 1.19            Low
             // 2.17            Low
             // 33.784          Medium
+        }
+
+        // Type for the IDataView that will be serving as the map
+        private class LookupMap
+        {
+            public float Value { get; set; }
+            public string Category { get; set; }
+        }
+        private class DataPoint
+        {
+            public float Price { get; set; }
+        }
+        private class TransformedData : DataPoint
+        {
+            public string PriceCategory { get; set; }
         }
     }
 }

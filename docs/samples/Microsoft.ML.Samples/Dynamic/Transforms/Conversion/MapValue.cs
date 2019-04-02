@@ -2,29 +2,13 @@
 using System.Collections.Generic;
 using Microsoft.ML.Data;
 
+
 namespace Microsoft.ML.Samples.Dynamic
 {
     public static class MapValue
     {
-        class DataPoint
-        {
-            public string Timeframe { get; set; }
-            public int Score { get; set; }
-        }
-
-        class TransformedData : DataPoint
-        {
-            public string TimeframeCategory { get; set; }
-            public string ScoreCategory { get; set; }
-
-            public uint Label { get; set; }
-        }
-
-
-
         /// This example demonstrates the use of the ValueMappingEstimator by mapping strings to other string values, or floats to strings. 
-        /// This is useful to map types to a grouping. 
-        /// It is possible to have multiple values map to the same category.
+        /// This is useful to map types to a category. 
         public static void Example()
         {
             // Create a new ML context, for ML.NET operations. It can be used for exception tracking and logging, 
@@ -38,7 +22,7 @@ namespace Microsoft.ML.Samples.Dynamic
                 new DataPoint() { Timeframe = "12-25yrs" , Score = 3 },
                 new DataPoint() { Timeframe = "0-5yrs" , Score = 4 },
                 new DataPoint() { Timeframe = "12-25yrs" , Score = 5 },
-                 new DataPoint() { Timeframe = "25+yrs" , Score = 5 },
+                new DataPoint() { Timeframe = "25+yrs" , Score = 5 },
             };
 
             var data = mlContext.Data.LoadFromEnumerable(rawData);
@@ -70,7 +54,7 @@ namespace Microsoft.ML.Samples.Dynamic
             // Constructs the ML.net pipeline
             var pipeline = mlContext.Transforms.Conversion.MapValue("TimeframeCategory", timeframeMap, "Timeframe")
                            .Append(mlContext.Transforms.Conversion.MapValue("ScoreCategory", scoreMap, "Score"))
-                           // on the MapValue below, the treatValuesAsKeyType is set to true. The type of the Label column will be a key type, 
+                           // on the MapValue below, the treatValuesAsKeyType is set to true. The type of the Label column will be a KeyDataViewType type, 
                            // and it can be used as input for trainers performing multiclass classification.
                            .Append(mlContext.Transforms.Conversion.MapValue("Label", timeframeKeyMap, "Timeframe", treatValuesAsKeyType: true));
 
@@ -83,19 +67,28 @@ namespace Microsoft.ML.Samples.Dynamic
 
             Console.WriteLine($" Timeframe   TimeframeCategory   Label    Score   ScoreCategory");
             foreach (var featureRow in features)
-            {
                 Console.WriteLine($"{featureRow.Timeframe}\t\t{featureRow.TimeframeCategory}\t\t\t{featureRow.Label}\t\t{featureRow.Score}\t{featureRow.ScoreCategory}");
-            }
 
             // TransformedData obtained post-transformation.
             //
             //  Timeframe   TimeframeCategory   Label    Score   ScoreCategory
-            // 0 - 4yrs         Short              1       1       Low
-            // 6 - 11yrs        Medium             2       2       Low
-            // 12 - 25yrs       Long               3       3       Average
-            // 0 - 5yrs         Short              1       4       High
-            // 12 - 25yrs       Long               3       5       High
-            // 25 + yrs         Long               3       5       High
+            // 0-4yrs         Short              1       1       Low
+            // 6-11yrs        Medium             2       2       Low
+            // 12-25yrs       Long               3       3       Average
+            // 0-5yrs         Short              1       4       High
+            // 12-25yrs       Long               3       5       High
+            // 25+yrs         Long               3       5       High
+        }
+        private class DataPoint
+        {
+            public string Timeframe { get; set; }
+            public int Score { get; set; }
+        }
+        private class TransformedData : DataPoint
+        {
+            public string TimeframeCategory { get; set; }
+            public string ScoreCategory { get; set; }
+            public uint Label { get; set; }
         }
     }
 }
