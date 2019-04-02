@@ -261,7 +261,7 @@ namespace Microsoft.ML
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
-        /// [!code-csharp[RemoveStopWords](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/Text/RemoveDefaultStopWords.cs)]
+        /// [!code-csharp[RemoveDefaultStopWords](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/Text/RemoveDefaultStopWords.cs)]
         /// ]]>
         /// </format>
         /// </example>

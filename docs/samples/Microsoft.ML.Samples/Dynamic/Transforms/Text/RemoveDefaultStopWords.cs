@@ -22,6 +22,7 @@ namespace Microsoft.ML.Samples.Dynamic
 
             // A pipeline for removing stop words from input text/string.
             // The pipeline first tokenizes text into words then removes stop words.
+            // The 'RemoveDefaultStopWords' API ignores casing of the text/string e.g. 'tHe' and 'the' are considered the same stop words.
             var textPipeline = mlContext.Transforms.Text.TokenizeIntoWords("Words", "Text")
                 .Append(mlContext.Transforms.Text.RemoveDefaultStopWords("WordsWithoutStopWords", "Words", language: StopWordsRemovingEstimator.Language.English));
 
@@ -32,7 +33,7 @@ namespace Microsoft.ML.Samples.Dynamic
             var predictionEngine = mlContext.Model.CreatePredictionEngine<TextData, TransformedTextData>(textTransformer);
 
             // Call the prediction API to remove stop words.
-            var data = new TextData() { Text = "ML.NET's RemoveDefaultStopWords API removes stop words from the text/string. It requires the text/string to be tokenized beforehand." };
+            var data = new TextData() { Text = "ML.NET's RemoveDefaultStopWords API removes stop words from tHe text/string. It requires the text/string to be tokenized beforehand." };
             var prediction = predictionEngine.Predict(data);
 
             // Print the length of the word vector after the stop words removed.
