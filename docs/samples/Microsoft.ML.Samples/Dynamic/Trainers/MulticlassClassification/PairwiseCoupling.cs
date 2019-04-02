@@ -43,13 +43,6 @@ namespace Microsoft.ML.Samples.Dynamic.Trainers.MulticlassClassification
             foreach (var p in predictions.Take(5))
                 Console.WriteLine($"Label: {p.Label}, Prediction: {p.PredictedLabel}");
 
-            // Expected output:
-            //   Label: 1, Prediction: 1
-            //   Label: 2, Prediction: 2
-            //   Label: 3, Prediction: 2
-            //   Label: 2, Prediction: 2
-            //   Label: 3, Prediction: 2
-            
             // Evaluate the overall metrics
             var metrics = mlContext.MulticlassClassification.Evaluate(transformedTestData);
             SamplesUtils.ConsoleUtils.PrintMetrics(metrics);

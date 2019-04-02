@@ -5,7 +5,7 @@ using Microsoft.ML.Data;
 
 namespace Microsoft.ML.Samples.Dynamic.Trainers.MulticlassClassification
 {
-    public static class OneVersusAll
+    public static class NaiveBayes
     {
         public static void Example()
         {
@@ -24,8 +24,8 @@ namespace Microsoft.ML.Samples.Dynamic.Trainers.MulticlassClassification
             var pipeline =
                     // Convert the string labels into key types.
                     mlContext.Transforms.Conversion.MapValueToKey("Label")
-                    // Apply OneVersusAll multiclass meta trainer on top of binary trainer.
-                    .Append(mlContext.MulticlassClassification.Trainers.OneVersusAll(mlContext.BinaryClassification.Trainers.SdcaLogisticRegression()));
+                    // Apply NaiveBayes multiclass trainer.
+                    .Append(mlContext.MulticlassClassification.Trainers.NaiveBayes());
 
             // Train the model.
             var model = pipeline.Fit(trainingData);
@@ -49,10 +49,10 @@ namespace Microsoft.ML.Samples.Dynamic.Trainers.MulticlassClassification
             
             // Expected output:
             // Expected output:
-            // Micro Accuracy: 0.90
-            // Macro Accuracy: 0.90
-            // Log Loss: 0.37
-            // Log Loss Reduction: 0.67
+            // Micro Accuracy: 0.35
+            // Macro Accuracy: 0.33
+            // Log Loss: 34.54
+            // Log Loss Reduction: -30.47
         }
 
         private static IEnumerable<DataPoint> GenerateRandomDataPoints(int count, int seed=0)
@@ -73,7 +73,7 @@ namespace Microsoft.ML.Samples.Dynamic.Trainers.MulticlassClassification
             }
         }
 
-        // Example with label and 50 feature values. A data set is a collection of such examples.
+        // Example with label and 20 feature values. A data set is a collection of such examples.
         private class DataPoint
         {
             public uint Label { get; set; }

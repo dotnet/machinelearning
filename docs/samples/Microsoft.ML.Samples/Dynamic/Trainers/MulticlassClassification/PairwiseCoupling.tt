@@ -4,9 +4,7 @@ string ClassName="PairwiseCoupling";
 string Trainer = "mlContext.BinaryClassification.Trainers.SdcaLogisticRegression";
 string MetaTrainer = "PairwiseCoupling";
 string TrainerOptions = null;
-bool IsCalibrated = true;
 
-string DataSepValue = "0.1f";
 string OptionsInclude = "";
 string Comments= "";
 

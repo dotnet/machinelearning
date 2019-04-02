@@ -1,15 +1,15 @@
 ﻿<#@ include file="MulticlassClassification.ttinclude"#>
 <#+
-string ClassName="OneVersusAll";
-string Trainer = "mlContext.BinaryClassification.Trainers.SdcaLogisticRegression";
-string MetaTrainer = "OneVersusAll";
+string ClassName="NaiveBayes";
+string Trainer = "NaiveBayes";
+string MetaTrainer = null;
 string TrainerOptions = null;
 
 string OptionsInclude = "";
 string Comments= "";
 
 string ExpectedOutputPerInstance= @"// Expected output:
-            //   Label: 1, Prediction: 1
+            //   Label: 1, Prediction: 2
             //   Label: 2, Prediction: 2
             //   Label: 3, Prediction: 2
             //   Label: 2, Prediction: 2
@@ -17,8 +17,8 @@ string ExpectedOutputPerInstance= @"// Expected output:
 
 string ExpectedOutput = @"// Expected output:
             // Expected output:
-            // Micro Accuracy: 0.90
-            // Macro Accuracy: 0.90
-            // Log Loss: 0.37
-            // Log Loss Reduction: 0.67";
+            // Micro Accuracy: 0.35
+            // Macro Accuracy: 0.33
+            // Log Loss: 34.54
+            // Log Loss Reduction: -30.47";
 #>

@@ -32,7 +32,11 @@ namespace Microsoft.ML.Samples.Dynamic.Trainers.MulticlassClassification
                     .Append(mlContext.MulticlassClassification.Trainers.<#=MetaTrainer#>(<#=Trainer#>()));
 <# } else if (TrainerOptions == null) { #>
             // Define the trainer.
-            var pipeline = mlContext.MulticlassClassification.Trainers.<#=Trainer#>();
+            var pipeline =
+                    // Convert the string labels into key types.
+                    mlContext.Transforms.Conversion.MapValueToKey("Label")
+                    // Apply <#=Trainer#> multiclass trainer.
+                    .Append(mlContext.MulticlassClassification.Trainers.<#=Trainer#>());
 <# } else { #>
             // Define trainer options.
             var options = new <#=TrainerOptions#>;
@@ -57,11 +61,8 @@ namespace Microsoft.ML.Samples.Dynamic.Trainers.MulticlassClassification
             foreach (var p in predictions.Take(5))
                 Console.WriteLine($"Label: {p.Label}, Prediction: {p.PredictedLabel}");
 
-            <#=ExpectedOutputPerInstance#>
-            <# string Evaluator = IsCalibrated ? "Evaluate" : "EvaluateNonCalibrated"; #>
-
             // Evaluate the overall metrics
-            var metrics = mlContext.MulticlassClassification.<#=Evaluator#>(transformedTestData);
+            var metrics = mlContext.MulticlassClassification.Evaluate(transformedTestData);
             SamplesUtils.ConsoleUtils.PrintMetrics(metrics);
             
             <#=ExpectedOutput#>
@@ -85,7 +86,7 @@ namespace Microsoft.ML.Samples.Dynamic.Trainers.MulticlassClassification
             }
         }
 
-        // Example with label and 50 feature values. A data set is a collection of such examples.
+        // Example with label and 20 feature values. A data set is a collection of such examples.
         private class DataPoint
         {
             public uint Label { get; set; }
