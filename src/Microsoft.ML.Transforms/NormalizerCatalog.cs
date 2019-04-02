@@ -130,6 +130,13 @@ namespace Microsoft.ML
         /// <param name="columns">List of Output and Input column pairs.</param>
         /// <param name="maximumExampleCount">Maximum number of examples used to train the normalizer.</param>
         /// <param name="useCdf">Whether to use CDF as the output.</param>
+        /// <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        /// [!code-csharp[Normalize](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Normalizer.cs)]
+        /// ]]>
+        /// </format>
+        /// </example>
         public static NormalizingEstimator NormalizeLogMeanVariance(this TransformsCatalog catalog, InputOutputColumnPair[] columns,
             long maximumExampleCount = NormalizingEstimator.Defaults.MaximumExampleCount,
             bool useCdf = NormalizingEstimator.Defaults.LogMeanVarCdf) =>
