@@ -578,8 +578,26 @@ var biases = modelParameters.GetBiases();
 
 ```
 
+## How do I get a model's weights to look at the global feature importance?
+The below snippet shows how to get a model's weights to help determine the feature importance of the model for a linear model.
+
+```csharp
+var linearModel = model.LastTransformer.Model;
+
+var weights = linearModel.Weights;
+```
+
+The below snipper shows how to get the weights for a fast tree model.
+
+```csharp
+var treeModel = model.LastTransformer.Model;
+
+var weights = new VBuffer<float>();
+treeModel.GetFeatureWeights(ref weights);
+```
+
 ## How do I look at the global feature importance?
-The below snippet shows how to get a glimpse of the the feature importance, or how much each column of data impacts the performance of the model.
+The below snippet shows how to get a glimpse of the the feature importance, or how much each feature impacts the performance of the model. It also outputs the difference in root mean squared for each feature as though the feature were replaced with a random value.
 
 ```csharp
 var transformedData = model.Transform(data);
@@ -588,36 +606,30 @@ var featureImportance = context.Regression.PermutationFeatureImportance(model.La
 
 foreach (var metricsStatistics in featureImportance)
 {
-    Console.WriteLine($"Root Mean Squared - {metricsStatistics.Rms.Mean}");
+    Console.WriteLine($"Feature I: Difference in RMS - {metricsStatistics.Rms.Mean}");
 }
 ```
 
-## How do I get a model's weights to look at the global feature importance?
-The below snippet shows how to get a model's weights to help determine the feature importance of the model.
-
-```csharp
-var linearModel = model.LastTransformer.Model;
-
-var weights = new VBuffer<float>();
-linearModel.GetFeatureWeights(ref weights);
-```
-
-## How do I look at the feature importance per row?
-The below snippet shows how to get feature importance for each row.
+## How do I look at the local feature importance per example?
+The below snippet shows how to get feature importance for each example of data.
 
 ```csharp
 var model = pipeline.Fit(data);
-var transfomedData = model.Transform(data);
+var transformedData = model.Transform(data);
 
 var linearModel = model.LastTransformer;
 
 var featureContributionCalculation = context.Transforms.CalculateFeatureContribution(linearModel, normalize: false);
 
-var featureContributionData = featureContributionCalculation.Fit(transfomedData).Transform(transfomedData);
+var featureContributionData = featureContributionCalculation.Fit(transformedData).Transform(transformedData);
 
 var shuffledSubset = context.Data.TakeRows(context.Data.ShuffleRows(featureContributionData), 10);
+var scoringEnumerator = context.Data.CreateEnumerable<HousingData>(shuffledSubset, true);
 
-var preview = shuffledSubset.Preview();
+foreach (var row in scoringEnumerator)
+{
+    Console.WriteLine(row);
+}
 ```
 
 ## What is normalization and why do I need to care?
