@@ -31,24 +31,19 @@ namespace Microsoft.ML.Trainers
     /// and the value at the location specified by the two indexes. For an example data structure of a tuple, one can use:
     /// </para>
     /// <code language="csharp">
-    /// // The following variables defines the shape of a m-by-n matrix. The variable firstRowIndex indicates the integer that
-    /// // would be mapped to the first row index. If user data uses 0-based indices for rows, firstRowIndex can be set to 0.
-    /// // Similarly, for 1-based indices, firstRowIndex could be 1.
-    /// const int firstRowIndex = 1;
-    /// const int firstColumnIndex = 1;
+    /// // The following variables defines the shape of a m-by-n matrix. Indexes start with 0; that is, our indexing system
+    /// // is 0-based.
     /// const int m = 60;
     /// const int n = 100;
     ///
     /// // A tuple of row index, column index, and rating. It specifies a value in the rating matrix.
     /// class MatrixElement
     /// {
-    ///     // Matrix column index starts from firstColumnIndex and is at most firstColumnIndex+n-1.
-    ///     // Contieuous=true means that all values from firstColumnIndex to firstColumnIndex+n-1 are allowed keys.
-    ///     // [KeyType(Contiguous = true, Count = n, Min = firstColumnIndex)]
-    ///     // public uint MatrixColumnIndex;
-    ///     // Matrix row index starts from firstRowIndex and is at most firstRowIndex+m-1.
-    ///     // Contieuous=true means that all values from firstRowIndex to firstRowIndex+m-1 are allowed keys.
-    ///     [KeyType(Contiguous = true, Count = m, Min = firstRowIndex)]
+    ///     // Matrix column index starts from 0 and is at most n-1.
+    ///     [KeyType(n)]
+    ///     public uint MatrixColumnIndex;
+    ///     // Matrix row index starts from 0 and is at most m-1.
+    ///     [KeyType(m)]
     ///     public uint MatrixRowIndex;
     ///     // The rating at the MatrixColumnIndex-th column and the MatrixRowIndex-th row.
     ///     public float Value;
@@ -65,7 +60,7 @@ namespace Microsoft.ML.Trainers
     /// <i>R</i> is approximated by the product of <i>P</i>'s transpose and <i>Q</i>. This trainer implements
     /// <a href='https://www.csie.ntu.edu.tw/~cjlin/papers/libmf/mf_adaptive_pakdd.pdf'>a stochastic gradient method</a> for finding <i>P</i>
     /// and <i>Q</i> via minimizing the distance between<i> R</i> and the product of <i>P</i>'s transpose and Q.</para>.
-    /// <para>For users interested in the mathematical details, please see the references below.</para>
+    /// <para>The underlying library used in ML.NET matrix factorization can be found on <a href='https://github.com/cjlin1/libmf'>a Github repository</a>. For users interested in the mathematical details, please see the references below.</para>
     /// <list type = 'bullet'>
     ///     <item>
     ///         <description><a href='https://www.csie.ntu.edu.tw/~cjlin/papers/libmf/libmf_journal.pdf' > A Fast Parallel Stochastic Gradient Method for Matrix Factorization in Shared Memory Systems</a></description>
@@ -75,6 +70,9 @@ namespace Microsoft.ML.Trainers
     ///     </item>
     ///     <item>
     ///         <description><a href='https://www.csie.ntu.edu.tw/~cjlin/papers/libmf/libmf_open_source.pdf' > LIBMF: A Library for Parallel Matrix Factorization in Shared-memory Systems</a></description>
+    ///     </item>
+    ///     <item>
+    ///         <description><a href='https://www.csie.ntu.edu.tw/~cjlin/papers/one-class-mf/biased-mf-sdm-with-supp.pdf' > Selection of Negative Samples for One-class Matrix Factorization</a></description>
     ///     </item>
     /// </list>
     /// </remarks>
