@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using Microsoft.ML.Data;
-using Microsoft.ML.Transforms;
 
 namespace Microsoft.ML.Samples.Dynamic
 {
@@ -28,7 +26,7 @@ namespace Microsoft.ML.Samples.Dynamic
             // 35   1       6-11yrs     1         3         32            5  ...
 
             // A pipeline for normalizing the Induced column.
-            var pipeline = ml.Transforms.Normalize("Induced");
+            var pipeline = ml.Transforms.NormalizeMinMax("Induced");
             // The transformed (normalized according to Normalizer.NormalizerMode.MinMax) data.
             var transformer = pipeline.Fit(trainData);
 
@@ -58,8 +56,8 @@ namespace Microsoft.ML.Samples.Dynamic
 
             // Composing a different pipeline if we wanted to normalize more than one column at a time. 
             // Using log scale as the normalization mode. 
-            var multiColPipeline = ml.Transforms.Normalize("LogInduced", "Induced", NormalizingEstimator.NormalizationMode.LogMeanVariance)
-                .Append(ml.Transforms.Normalize("LogSpontaneous", "Spontaneous", NormalizingEstimator.NormalizationMode.LogMeanVariance));
+            var multiColPipeline = ml.Transforms.NormalizeMinMax("LogInduced", "Induced")
+                .Append(ml.Transforms.NormalizeMinMax("LogSpontaneous", "Spontaneous"));
             // The transformed data.
             var multiColtransformer = multiColPipeline.Fit(trainData);
             var multiColtransformedData = multiColtransformer.Transform(trainData);
