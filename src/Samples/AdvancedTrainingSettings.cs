@@ -6,7 +6,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.Auto;
 using Microsoft.ML.Data;
@@ -70,7 +69,7 @@ namespace Samples
 
             // STEP 7: Save the best model for later deployment and inferencing
             using (FileStream fs = File.Create(ModelPath))
-                best.Model.SaveTo(mlContext, fs);
+                mlContext.Model.Save(best.Model, textLoader, fs);
 
             Console.WriteLine("Press any key to continue...");
             Console.ReadKey();

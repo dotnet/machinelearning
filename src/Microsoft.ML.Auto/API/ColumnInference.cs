@@ -17,7 +17,7 @@ namespace Microsoft.ML.Auto
     public sealed class ColumnInformation
     {
         public string LabelColumn { get; set; } = DefaultColumnNames.Label;
-        public string WeightColumn { get; set; }
+        public string ExampleWeightColumn { get; set; }
         public string SamplingKeyColumn { get; set; }
         public ICollection<string> CategoricalColumns { get; } = new Collection<string>();
         public ICollection<string> NumericColumns { get; } = new Collection<string>();

@@ -15,6 +15,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace mlnet.Test
 {
+    [Ignore]
     [TestClass]
     [UseReporter(typeof(DiffReporter))]
     public class ConsoleCodeGeneratorTests

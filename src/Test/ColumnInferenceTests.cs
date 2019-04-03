@@ -109,12 +109,12 @@ namespace Microsoft.ML.Auto.Test
                 new ColumnInformation()
                 {
                     LabelColumn = DefaultColumnNames.Label,
-                    WeightColumn = DefaultColumnNames.Weight,
+                    ExampleWeightColumn = DefaultColumnNames.Weight,
                 },
                 groupColumns : false);
 
             Assert.AreEqual(DefaultColumnNames.Label, result.ColumnInformation.LabelColumn);
-            Assert.AreEqual(DefaultColumnNames.Weight, result.ColumnInformation.WeightColumn);
+            Assert.AreEqual(DefaultColumnNames.Weight, result.ColumnInformation.ExampleWeightColumn);
             Assert.AreEqual(result.ColumnInformation.NumericColumns.Count(), 3);
         }
 
@@ -125,11 +125,11 @@ namespace Microsoft.ML.Auto.Test
                 new ColumnInformation()
                 {
                     LabelColumn = DefaultColumnNames.Label,
-                    WeightColumn = DefaultColumnNames.Weight,
+                    ExampleWeightColumn = DefaultColumnNames.Weight,
                 });
 
             Assert.AreEqual(DefaultColumnNames.Label, result.ColumnInformation.LabelColumn);
-            Assert.AreEqual(DefaultColumnNames.Weight, result.ColumnInformation.WeightColumn);
+            Assert.AreEqual(DefaultColumnNames.Weight, result.ColumnInformation.ExampleWeightColumn);
             Assert.AreEqual(1, result.ColumnInformation.NumericColumns.Count());
             Assert.AreEqual(DefaultColumnNames.Features, result.ColumnInformation.NumericColumns.First());
         }
@@ -145,7 +145,7 @@ namespace Microsoft.ML.Auto.Test
             Assert.AreEqual(DatasetUtil.MlNetGeneratedRegressionLabel, result.ColumnInformation.LabelColumn);
             Assert.AreEqual(1, result.ColumnInformation.NumericColumns.Count());
             Assert.AreEqual(DefaultColumnNames.Features, result.ColumnInformation.NumericColumns.First());
-            Assert.AreEqual(null, result.ColumnInformation.WeightColumn);
+            Assert.AreEqual(null, result.ColumnInformation.ExampleWeightColumn);
         }
     }
 }

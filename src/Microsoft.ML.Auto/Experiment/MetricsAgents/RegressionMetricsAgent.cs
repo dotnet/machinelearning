@@ -25,11 +25,11 @@ namespace Microsoft.ML.Auto
             switch (_optimizingMetric)
             {
                 case RegressionMetric.MeanAbsoluteError:
-                    return metrics.L1;
+                    return metrics.MeanAbsoluteError;
                 case RegressionMetric.MeanSquaredError:
-                    return metrics.L2;
+                    return metrics.MeanSquaredError;
                 case RegressionMetric.RootMeanSquaredError:
-                    return metrics.Rms;
+                    return metrics.RootMeanSquaredError;
                 case RegressionMetric.RSquared:
                     return metrics.RSquared;
                 default:
@@ -47,11 +47,11 @@ namespace Microsoft.ML.Auto
             switch (_optimizingMetric)
             {
                 case RegressionMetric.MeanAbsoluteError:
-                    return metrics.L1 == 0;
+                    return metrics.MeanAbsoluteError == 0;
                 case RegressionMetric.MeanSquaredError:
-                    return metrics.L2 == 0;
+                    return metrics.MeanSquaredError == 0;
                 case RegressionMetric.RootMeanSquaredError:
-                    return metrics.Rms == 0;
+                    return metrics.RootMeanSquaredError == 0;
                 case RegressionMetric.RSquared:
                     return metrics.RSquared == 1;
                 default:

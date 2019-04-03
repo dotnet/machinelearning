@@ -19,12 +19,12 @@ namespace Microsoft.ML.Auto.Test
                 negativeRecall, f1Score, auprc);
         }
 
-        public static MultiClassClassifierMetrics CreateMulticlassClassificationMetrics(
+        public static MulticlassClassificationMetrics CreateMulticlassClassificationMetrics(
             double accuracyMicro, double accuracyMacro, double logLoss,
             double logLossReduction, int topK, double topKAccuracy,
             double[] perClassLogLoss)
         {
-            return CreateInstance<MultiClassClassifierMetrics>(accuracyMicro,
+            return CreateInstance<MulticlassClassificationMetrics>(accuracyMicro,
                 accuracyMacro, logLoss, logLossReduction, topK,
                 topKAccuracy, perClassLogLoss);
         }

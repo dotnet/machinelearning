@@ -4,7 +4,6 @@
 
 using System.Collections.Generic;
 using System.Linq;
-using Microsoft.Data.DataView;
 using Microsoft.ML.Data;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -243,7 +242,7 @@ namespace Microsoft.ML.Auto.Test
         {
             TransformInferenceTestCore(new (string, DataViewType, ColumnPurpose, ColumnDimensions)[]
                 {
-                    (DefaultColumnNames.Features, new VectorType(NumberDataViewType.Single), ColumnPurpose.NumericFeature, new ColumnDimensions(null, null)),
+                    (DefaultColumnNames.Features, new VectorDataViewType(NumberDataViewType.Single), ColumnPurpose.NumericFeature, new ColumnDimensions(null, null)),
                 }, @"[]");
         }
 
@@ -296,7 +295,7 @@ namespace Microsoft.ML.Auto.Test
         {
             TransformInferenceTestCore(new (string, DataViewType, ColumnPurpose, ColumnDimensions)[]
                 {
-                    ("Numeric", new VectorType(NumberDataViewType.Single), ColumnPurpose.NumericFeature, new ColumnDimensions(null, null)),
+                    ("Numeric", new VectorDataViewType(NumberDataViewType.Single), ColumnPurpose.NumericFeature, new ColumnDimensions(null, null)),
                 }, @"[
   {
     ""Name"": ""ColumnCopying"",
@@ -629,7 +628,7 @@ namespace Microsoft.ML.Auto.Test
         {
             TransformInferenceTestCore(new(string, DataViewType, ColumnPurpose, ColumnDimensions)[]
                 {
-                    (DefaultColumnNames.Features, new VectorType(NumberDataViewType.Single), ColumnPurpose.NumericFeature, new ColumnDimensions(null, null)),
+                    (DefaultColumnNames.Features, new VectorDataViewType(NumberDataViewType.Single), ColumnPurpose.NumericFeature, new ColumnDimensions(null, null)),
                     (DefaultColumnNames.Label, NumberDataViewType.Single, ColumnPurpose.Label, new ColumnDimensions(null, null)),
                 }, @"[]");
         }
@@ -639,7 +638,7 @@ namespace Microsoft.ML.Auto.Test
         {
             TransformInferenceTestCore(new(string, DataViewType, ColumnPurpose, ColumnDimensions)[]
                 {
-                    (DefaultColumnNames.Features, new VectorType(NumberDataViewType.Single), ColumnPurpose.NumericFeature, new ColumnDimensions(null, null)),
+                    (DefaultColumnNames.Features, new VectorDataViewType(NumberDataViewType.Single), ColumnPurpose.NumericFeature, new ColumnDimensions(null, null)),
                     ("CustomLabel", NumberDataViewType.Single, ColumnPurpose.Label, new ColumnDimensions(null, null)),
                 }, @"[]");
         }
@@ -649,7 +648,7 @@ namespace Microsoft.ML.Auto.Test
         {
             TransformInferenceTestCore(new (string, DataViewType, ColumnPurpose, ColumnDimensions)[]
                 {
-                    (DefaultColumnNames.Features, new VectorType(NumberDataViewType.Single), ColumnPurpose.NumericFeature, new ColumnDimensions(null, null)),
+                    (DefaultColumnNames.Features, new VectorDataViewType(NumberDataViewType.Single), ColumnPurpose.NumericFeature, new ColumnDimensions(null, null)),
                     ("CustomLabel", TextDataViewType.Instance, ColumnPurpose.Label, new ColumnDimensions(null, null)),
                 }, @"[
   {

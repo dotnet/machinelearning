@@ -15,7 +15,7 @@ namespace Microsoft.ML.Auto
             {
                 new SweepableDiscreteParam("LearningRate", new object[] { 0.01f, 0.1f, 0.5f, 1.0f}),
                 new SweepableDiscreteParam("DecreaseLearningRate", new object[] { false, true }),
-                new SweepableFloatParam("L2RegularizerWeight", 0.0f, 0.4f),
+                new SweepableFloatParam("L2Regularization", 0.0f, 0.4f),
             };
         }
 
@@ -33,9 +33,9 @@ namespace Microsoft.ML.Auto
         {
             return new SweepableParam[]
             {
-                new SweepableLongParam("NumLeaves", 2, 128, isLogScale: true, stepSize: 4),
-                new SweepableDiscreteParam("MinDocumentsInLeafs", new object[] { 1, 10, 50 }),
-                new SweepableDiscreteParam("NumTrees", new object[] { 20, 100, 500 }),
+                new SweepableLongParam("NumberOfLeaves", 2, 128, isLogScale: true, stepSize: 4),
+                new SweepableDiscreteParam("MinimumExampleCountPerLeaf", new object[] { 1, 10, 50 }),
+                new SweepableDiscreteParam("NumberOfTrees", new object[] { 20, 100, 500 }),
             };
         }
 
@@ -43,7 +43,7 @@ namespace Microsoft.ML.Auto
         {
             return BuildTreeArgsParams().Concat(new List<SweepableParam>()
             {
-                new SweepableFloatParam("LearningRates", 0.025f, 0.4f, isLogScale: true),
+                new SweepableFloatParam("LearningRate", 0.025f, 0.4f, isLogScale: true),
                 new SweepableFloatParam("Shrinkage", 0.025f, 4f, isLogScale: true),
             });
         }
@@ -51,12 +51,12 @@ namespace Microsoft.ML.Auto
         private static IEnumerable<SweepableParam> BuildLbfgsArgsParams()
         {
             return new SweepableParam[] {
-                new SweepableFloatParam("L2Weight", 0.0f, 1.0f, numSteps: 4),
-                new SweepableFloatParam("L1Weight", 0.0f, 1.0f, numSteps: 4),
-                new SweepableDiscreteParam("OptTol", new object[] { 1e-4f, 1e-7f }),
-                new SweepableDiscreteParam("MemorySize", new object[] { 5, 20, 50 }),
-                new SweepableLongParam("MaxIterations", 1, int.MaxValue),
-                new SweepableFloatParam("InitWtsDiameter", 0.0f, 1.0f, numSteps: 5),
+                new SweepableFloatParam("L2Regularization", 0.0f, 1.0f, numSteps: 4),
+                new SweepableFloatParam("L1Regularization", 0.0f, 1.0f, numSteps: 4),
+                new SweepableDiscreteParam("OptmizationTolerance", new object[] { 1e-4f, 1e-7f }),
+                new SweepableDiscreteParam("HistorySize", new object[] { 5, 20, 50 }),
+                new SweepableLongParam("MaximumNumberOfIterations", 1, int.MaxValue),
+                new SweepableFloatParam("InitialWeightsDiameter", 0.0f, 1.0f, numSteps: 5),
                 new SweepableDiscreteParam("DenseOptimizer", new object[] { false, true }),
             };
         }
@@ -81,25 +81,32 @@ namespace Microsoft.ML.Auto
             return BuildBoostedTreeArgsParams();
         }
 
+        public static IEnumerable<SweepableParam> BuildLightGbmParamsMulticlass()
+        {
+            return BuildLightGbmParams().Union(new SweepableParam[]
+            {
+                new SweepableDiscreteParam("UseSoftmax", new object[] { true, false }),
+            });
+        }
+
         public static IEnumerable<SweepableParam> BuildLightGbmParams()
         {
             return new SweepableParam[]
             {
-                new SweepableDiscreteParam("NumBoostRound", new object[] { 10, 20, 50, 100, 150, 200 }),
+                new SweepableDiscreteParam("NumberOfIterations", new object[] { 10, 20, 50, 100, 150, 200 }),
                 new SweepableFloatParam("LearningRate", 0.025f, 0.4f, isLogScale: true),
-                new SweepableLongParam("NumLeaves", 2, 128, isLogScale: true, stepSize: 4),
-                new SweepableDiscreteParam("MinDataPerLeaf", new object[] { 1, 10, 20, 50 }),
-                new SweepableDiscreteParam("UseSoftmax", new object[] { true, false }),
-                new SweepableDiscreteParam("UseCat", new object[] { true, false }),
-                new SweepableDiscreteParam("UseMissing", new object[] { true, false }),
-                new SweepableDiscreteParam("MinDataPerGroup", new object[] { 10, 50, 100, 200 }),
-                new SweepableDiscreteParam("MaxCatThreshold", new object[] { 8, 16, 32, 64 }),
-                new SweepableDiscreteParam("CatSmooth", new object[] { 1, 10, 20 }),
-                new SweepableDiscreteParam("CatL2", new object[] { 0.1, 0.5, 1, 5, 10 }),
+                new SweepableLongParam("NumberOfLeaves", 2, 128, isLogScale: true, stepSize: 4),
+                new SweepableDiscreteParam("MinimumExampleCountPerLeaf", new object[] { 1, 10, 20, 50 }),
+                new SweepableDiscreteParam("UseCategoricalSplit", new object[] { true, false }),
+                new SweepableDiscreteParam("HandleMissingValue", new object[] { true, false }),
+                new SweepableDiscreteParam("MinimumExampleCountPerGroup", new object[] { 10, 50, 100, 200 }),
+                new SweepableDiscreteParam("MaximumCategoricalSplitPointCount", new object[] { 8, 16, 32, 64 }),
+                new SweepableDiscreteParam("CategoricalSmoothing", new object[] { 1, 10, 20 }),
+                new SweepableDiscreteParam("L2CategoricalRegularization", new object[] { 0.1, 0.5, 1, 5, 10 }),
 
-                // TreeBooster params
-                new SweepableDiscreteParam("RegLambda", new object[] { 0f, 0.5f, 1f }),
-                new SweepableDiscreteParam("RegAlpha", new object[] { 0f, 0.5f, 1f })
+                // Booster params
+                new SweepableDiscreteParam("L2Regularization", new object[] { 0f, 0.5f, 1f }),
+                new SweepableDiscreteParam("L1Regularization", new object[] { 0f, 0.5f, 1f })
             };
         }
 
@@ -112,7 +119,7 @@ namespace Microsoft.ML.Auto
             }.Concat(BuildOnlineLinearArgsParams());
         }
 
-        public static IEnumerable<SweepableParam> BuildLogisticRegressionParams()
+        public static IEnumerable<SweepableParam> BuildLbfgsLogisticRegressionParams()
         {
             return BuildLbfgsArgsParams();
         }
@@ -122,7 +129,7 @@ namespace Microsoft.ML.Auto
             return BuildAveragedLinearArgsParams();
         }
 
-        public static IEnumerable<SweepableParam> BuildPoissonRegressionParams()
+        public static IEnumerable<SweepableParam> BuildLbfgsPoissonRegressionParams()
         {
             return BuildLbfgsArgsParams();
         }
@@ -130,33 +137,33 @@ namespace Microsoft.ML.Auto
         public static IEnumerable<SweepableParam> BuildSdcaParams()
         {
             return new SweepableParam[] {
-                new SweepableDiscreteParam("L2Const", new object[] { "<Auto>", 1e-7f, 1e-6f, 1e-5f, 1e-4f, 1e-3f, 1e-2f }),
-                new SweepableDiscreteParam("L1Threshold", new object[] { "<Auto>", 0f, 0.25f, 0.5f, 0.75f, 1f }),
+                new SweepableDiscreteParam("L2Regularization", new object[] { "<Auto>", 1e-7f, 1e-6f, 1e-5f, 1e-4f, 1e-3f, 1e-2f }),
+                new SweepableDiscreteParam("L1Regularization", new object[] { "<Auto>", 0f, 0.25f, 0.5f, 0.75f, 1f }),
                 new SweepableDiscreteParam("ConvergenceTolerance", new object[] { 0.001f, 0.01f, 0.1f, 0.2f }),
-                new SweepableDiscreteParam("MaxIterations", new object[] { "<Auto>", 10, 20, 100 }),
+                new SweepableDiscreteParam("MaximumNumberOfIterations", new object[] { "<Auto>", 10, 20, 100 }),
                 new SweepableDiscreteParam("Shuffle", null, isBool: true),
                 new SweepableDiscreteParam("BiasLearningRate", new object[] { 0.0f, 0.01f, 0.1f, 1f })
             };
         }
 
-        public static IEnumerable<SweepableParam> BuildOrdinaryLeastSquaresParams()
+        public static IEnumerable<SweepableParam> BuildOlsParams()
         {
             return new SweepableParam[] {
-                new SweepableDiscreteParam("L2Weight", new object[] { 1e-6f, 0.1f, 1f })
+                new SweepableDiscreteParam("L2Regularization", new object[] { 1e-6f, 0.1f, 1f })
             };
         }
 
         public static IEnumerable<SweepableParam> BuildSgdParams()
         {
             return new SweepableParam[] {
-                new SweepableDiscreteParam("L2Weight", new object[] { 1e-7f, 5e-7f, 1e-6f, 5e-6f, 1e-5f }),
+                new SweepableDiscreteParam("L2Regularization", new object[] { 1e-7f, 5e-7f, 1e-6f, 5e-6f, 1e-5f }),
                 new SweepableDiscreteParam("ConvergenceTolerance", new object[] { 1e-2f, 1e-3f, 1e-4f, 1e-5f }),
-                new SweepableDiscreteParam("MaxIterations", new object[] { 1, 5, 10, 20 }),
+                new SweepableDiscreteParam("NumberOfIterations", new object[] { 1, 5, 10, 20 }),
                 new SweepableDiscreteParam("Shuffle", null, isBool: true),
             };
         }
 
-        public static IEnumerable<SweepableParam> BuildSymSgdParams()
+        public static IEnumerable<SweepableParam> BuildSymSgdLogisticRegressionParams()
         {
             return new SweepableParam[] {
                 new SweepableDiscreteParam("NumberOfIterations", new object[] { 1, 5, 10, 20, 30, 40, 50 }),

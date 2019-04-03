@@ -2,7 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.Data.DataView;
+using Microsoft.ML.Data;
 
 namespace Microsoft.ML.Auto
 {
@@ -30,15 +30,15 @@ namespace Microsoft.ML.Auto
                 // If categorical text feature, calculate cardinality
                 if (itemType.IsText() && purpose.Purpose == ColumnPurpose.CategoricalFeature)
                 {
-                    cardinality = DatasetDimensionsUtil.GetTextColumnCardinality(data, i);
+                    cardinality = DatasetDimensionsUtil.GetTextColumnCardinality(data, column);
                 }
 
                 // If numeric feature, discover missing values
                 if (itemType == NumberDataViewType.Single)
                 {
                     hasMissing = column.Type.IsVector() ? 
-                        DatasetDimensionsUtil.HasMissingNumericVector(data, i) : 
-                        DatasetDimensionsUtil.HasMissingNumericSingleValue(data, i);
+                        DatasetDimensionsUtil.HasMissingNumericVector(data, column) : 
+                        DatasetDimensionsUtil.HasMissingNumericSingleValue(data, column);
                 }
 
                 colDimensions[i] = new ColumnDimensions(cardinality, hasMissing);

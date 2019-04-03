@@ -6,7 +6,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.Auto;
 using Microsoft.ML.Data;
@@ -62,10 +61,10 @@ namespace Samples
 
             // STEP 6: Save the best model for later deployment and inferencing
             using (FileStream fs = File.Create(ModelPath))
-                best.Model.SaveTo(mlContext, fs);
+                mlContext.Model.Save(best.Model, textLoader, fs);
 
             // STEP 7: Create prediction engine from the best trained model
-            var predictionEngine = best.Model.CreatePredictionEngine<SentimentIssue, SentimentPrediction>(mlContext);
+            var predictionEngine = mlContext.Model.CreatePredictionEngine<SentimentIssue, SentimentPrediction>(best.Model);
 
             // STEP 8: Initialize a new sentiment issue, and get the predicted sentiment
             var testSentimentIssue = new SentimentIssue

@@ -32,7 +32,8 @@ namespace Microsoft.ML.CLI.Utilities
             }
         }
 
-        internal static void SaveModel(ITransformer model, FileInfo modelPath, MLContext mlContext)
+        internal static void SaveModel(ITransformer model, FileInfo modelPath, MLContext mlContext,
+            DataViewSchema modelInputSchema)
         {
 
             if (!Directory.Exists(modelPath.Directory.FullName))
@@ -40,8 +41,8 @@ namespace Microsoft.ML.CLI.Utilities
                 Directory.CreateDirectory(modelPath.Directory.FullName);
             }
 
-            using (var fs = System.IO.File.Create(modelPath.FullName))
-                model.SaveTo(mlContext, fs);
+            using (var fs = File.Create(modelPath.FullName))
+                mlContext.Model.Save(model, modelInputSchema, fs);
         }
 
         internal static string Sanitize(string name)
@@ -125,8 +126,8 @@ namespace Microsoft.ML.CLI.Utilities
 
             result.LabelColumn = Sanitize(columnInformation.LabelColumn);
 
-            if (!string.IsNullOrEmpty(columnInformation.WeightColumn))
-                result.WeightColumn = Sanitize(columnInformation.WeightColumn);
+            if (!string.IsNullOrEmpty(columnInformation.ExampleWeightColumn))
+                result.ExampleWeightColumn = Sanitize(columnInformation.ExampleWeightColumn);
 
             if (!string.IsNullOrEmpty(columnInformation.SamplingKeyColumn))
                 result.SamplingKeyColumn = Sanitize(columnInformation.SamplingKeyColumn);

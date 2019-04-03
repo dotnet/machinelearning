@@ -5,7 +5,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Microsoft.Data.DataView;
 using Microsoft.ML.Data;
 
 namespace Microsoft.ML.Auto
@@ -37,10 +36,10 @@ namespace Microsoft.ML.Auto
         FastTree,
         LightGbm,
         LinearSupportVectorMachines,
-        LogisticRegression,
-        StochasticDualCoordinateAscent,
-        StochasticGradientDescent,
-        SymbolicStochasticGradientDescent,
+        LbfgsLogisticRegression,
+        SdcaLogisticRegression,
+        SgdCalibrated,
+        SymbolicSgdLogisticRegression,
     }
 
     public sealed class BinaryClassificationExperiment

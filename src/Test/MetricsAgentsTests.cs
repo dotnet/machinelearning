@@ -128,7 +128,7 @@ namespace Microsoft.ML.Auto.Test
             return new BinaryMetricsAgent(metric).GetScore(metrics);
         }
 
-        private static double GetScore(MultiClassClassifierMetrics metrics, MulticlassClassificationMetric metric)
+        private static double GetScore(MulticlassClassificationMetrics metrics, MulticlassClassificationMetric metric)
         {
             return new MultiMetricsAgent(metric).GetScore(metrics);
         }
@@ -143,7 +143,7 @@ namespace Microsoft.ML.Auto.Test
             return new BinaryMetricsAgent(metric).IsModelPerfect(metrics);
         }
 
-        private static bool IsPerfectModel(MultiClassClassifierMetrics metrics, MulticlassClassificationMetric metric)
+        private static bool IsPerfectModel(MulticlassClassificationMetrics metrics, MulticlassClassificationMetric metric)
         {
             return new MultiMetricsAgent(metric).IsModelPerfect(metrics);
         }

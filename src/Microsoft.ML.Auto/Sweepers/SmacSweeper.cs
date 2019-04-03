@@ -5,7 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Microsoft.Data.DataView;
+using System.Reflection;
 using Microsoft.ML.Data;
 using Microsoft.ML.Trainers.FastTree;
 using Float = System.Single;
@@ -113,11 +113,11 @@ namespace Microsoft.ML.Auto
 
             // Set relevant random forest arguments.
             // Train random forest.
-            var trainer = _context.Regression.Trainers.FastForest(new FastForestRegression.Options()
+            var trainer = _context.Regression.Trainers.FastForest(new FastForestRegressionTrainer.Options()
             {
                 FeatureFraction = _args.SplitRatio,
-                NumTrees = _args.NumOfTrees,
-                MinDocumentsInLeafs = _args.NMinForSplit
+                NumberOfTrees = _args.NumOfTrees,
+                MinimumExampleCountPerLeaf = _args.NMinForSplit
             });
             var predictor = trainer.Fit(data).Model;
 
@@ -321,14 +321,30 @@ namespace Microsoft.ML.Auto
                 {
                     Float[] transformedParams = SweeperProbabilityUtils.ParameterSetAsFloatArray(_sweepParameters, config, true);
                     VBuffer<Float> features = new VBuffer<Float>(transformedParams.Length, transformedParams);
-                    List<int> path = null;
-                    var leafId = forest.GetLeaf(treeId, features, ref path);
-                    var leafValue = forest.GetLeafValue(treeId, leafId);
+                    var leafId = GetLeaf(forest, treeId, features);
+                    var leafValue = GetLeafValue(forest, treeId, leafId);
                     leafValues.Add(leafValue);
                 }
                 datasetLeafValues.Add(leafValues.ToArray());
             }
             return datasetLeafValues.ToArray();
+        }
+
+        // Todo: Remove the reflection below for TreeTreeEnsembleModelParameters methods GetLeaf and GetLeafValue. 
+        // Long-term, replace with tree featurizer once it becomes available
+        // Tracking issue -- https://github.com/dotnet/machinelearning-automl/issues/342
+        private static MethodInfo GetLeafMethod = typeof(TreeEnsembleModelParameters).GetMethod("GetLeaf", BindingFlags.NonPublic | BindingFlags.Instance);
+        private static MethodInfo GetLeafValueMethod = typeof(TreeEnsembleModelParameters).GetMethod("GetLeafValue", BindingFlags.NonPublic | BindingFlags.Instance);
+
+        private static int GetLeaf(TreeEnsembleModelParameters model, int treeId, VBuffer<Float> features)
+        {
+            List<int> path = null;
+            return (int)GetLeafMethod.Invoke(model, new object[] { treeId, features, path });
+        }
+
+        private static float GetLeafValue(TreeEnsembleModelParameters model, int treeId, int leafId)
+        {
+            return (float)GetLeafValueMethod.Invoke(model, new object[] { treeId, leafId });
         }
 
         /// <summary>

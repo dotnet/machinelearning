@@ -4,7 +4,6 @@
 
 using System;
 using System.Collections.Generic;
-using Microsoft.Data.DataView;
 using Microsoft.ML.Auto;
 using Microsoft.ML.CLI.Data;
 using Microsoft.ML.CLI.ShellProgressBar;
@@ -77,7 +76,7 @@ namespace Microsoft.ML.CLI.CodeGenerator
             return result;
         }
 
-        IEnumerable<RunResult<MultiClassClassifierMetrics>> IAutoMLEngine.ExploreMultiClassificationModels(MLContext context, IDataView trainData, IDataView validationData, ColumnInformation columnInformation, MulticlassClassificationMetric optimizationMetric, ProgressBar progressBar)
+        IEnumerable<RunResult<MulticlassClassificationMetrics>> IAutoMLEngine.ExploreMultiClassificationModels(MLContext context, IDataView trainData, IDataView validationData, ColumnInformation columnInformation, MulticlassClassificationMetric optimizationMetric, ProgressBar progressBar)
         {
             var progressReporter = new ProgressHandlers.MulticlassClassificationHandler(optimizationMetric, progressBar);
             var result = context.Auto()

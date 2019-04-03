@@ -4,19 +4,18 @@
 
 using System;
 using System.Collections.Generic;
-using Microsoft.Data.DataView;
 using Microsoft.ML.Data;
 
 namespace Microsoft.ML.Auto
 {
     internal static class DatasetDimensionsUtil
     {
-        public static int GetTextColumnCardinality(IDataView data, int colIndex)
+        public static int GetTextColumnCardinality(IDataView data, DataViewSchema.Column column)
         {
             var seen = new HashSet<string>();
-            using (var cursor = data.GetRowCursor(new[] { data.Schema[colIndex] }))
+            using (var cursor = data.GetRowCursor(new[] { column }))
             {
-                var getter = cursor.GetGetter<ReadOnlyMemory<char>>(colIndex);
+                var getter = cursor.GetGetter<ReadOnlyMemory<char>>(column);
                 while (cursor.MoveNext())
                 {
                     var value = default(ReadOnlyMemory<char>);
@@ -28,11 +27,11 @@ namespace Microsoft.ML.Auto
             return seen.Count;
         }
 
-        public static bool HasMissingNumericSingleValue(IDataView data, int colIndex)
+        public static bool HasMissingNumericSingleValue(IDataView data, DataViewSchema.Column column)
         {
-            using (var cursor = data.GetRowCursor(new[] { data.Schema[colIndex] }))
+            using (var cursor = data.GetRowCursor(new[] { column }))
             {
-                var getter = cursor.GetGetter<Single>(colIndex);
+                var getter = cursor.GetGetter<Single>(column);
                 var value = default(Single);
                 while (cursor.MoveNext())
                 {
@@ -46,11 +45,11 @@ namespace Microsoft.ML.Auto
             }
         }
 
-        public static bool HasMissingNumericVector(IDataView data, int colIndex)
+        public static bool HasMissingNumericVector(IDataView data, DataViewSchema.Column column)
         {
-            using (var cursor = data.GetRowCursor(new[] { data.Schema[colIndex] }))
+            using (var cursor = data.GetRowCursor(new[] { column }))
             {
-                var getter = cursor.GetGetter<VBuffer<Single>>(colIndex);
+                var getter = cursor.GetGetter<VBuffer<Single>>(column);
                 var value = default(VBuffer<Single>);
                 while (cursor.MoveNext())
                 {

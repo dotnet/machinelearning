@@ -6,7 +6,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.Auto;
 using Microsoft.ML.Data;
@@ -63,15 +62,15 @@ namespace Samples
 
             // STEP 5: Evaluate test data
             IDataView testDataViewWithBestScore = best.Model.Transform(testDataView);
-            RegressionMetrics testMetrics = mlContext.Regression.Evaluate(testDataViewWithBestScore, label: LabelColumn);
+            RegressionMetrics testMetrics = mlContext.Regression.Evaluate(testDataViewWithBestScore, labelColumnName: LabelColumn);
             Console.WriteLine($"RSquared of best model on test data: {testMetrics.RSquared}");
 
             // STEP 6: Save the best model for later deployment and inferencing
             using (FileStream fs = File.Create(ModelPath))
-                best.Model.SaveTo(mlContext, fs);
+                mlContext.Model.Save(best.Model, textLoader, fs);
 
             // STEP 7: Create prediction engine from the best trained model
-            var predictionEngine = best.Model.CreatePredictionEngine<TaxiTrip, TaxiTripFarePrediction>(mlContext);
+            var predictionEngine = mlContext.Model.CreatePredictionEngine<TaxiTrip, TaxiTripFarePrediction>(best.Model);
 
             // STEP 8: Initialize a new test taxi trip, and get the predicted fare
             var testTaxiTrip = new TaxiTrip

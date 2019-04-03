@@ -56,22 +56,21 @@ namespace Microsoft.ML.Auto.Test
     ""Score""
   ],
   ""Properties"": {
-    ""NumBoostRound"": 20,
+    ""NumberOfIterations"": 20,
     ""LearningRate"": 1,
-    ""NumLeaves"": 1,
-    ""MinDataPerLeaf"": 10,
-    ""UseSoftmax"": false,
-    ""UseCat"": false,
-    ""UseMissing"": false,
-    ""MinDataPerGroup"": 50,
-    ""MaxCatThreshold"": 16,
-    ""CatSmooth"": 10,
-    ""CatL2"": 0.5,
+    ""NumberOfLeaves"": 1,
+    ""MinimumExampleCountPerLeaf"": 10,
+    ""UseCategoricalSplit"": false,
+    ""HandleMissingValue"": false,
+    ""MinimumExampleCountPerGroup"": 50,
+    ""MaximumCategoricalSplitPointCount"": 16,
+    ""CategoricalSmoothing"": 10,
+    ""L2CategoricalRegularization"": 0.5,
     ""Booster"": {
-      ""Name"": ""Options.TreeBooster.Options"",
+      ""Name"": ""GradientBooster.Options"",
       ""Properties"": {
-        ""RegLambda"": 0.5,
-        ""RegAlpha"": 0.5
+        ""L2Regularization"": 0.5,
+        ""L1Regularization"": 0.5
       }
     },
     ""LabelColumn"": ""Label""
@@ -89,9 +88,9 @@ namespace Microsoft.ML.Auto.Test
                 sweepParam.RawValue = 1;
             }
 
-            var pipelineNode = new SdcaBinaryExtension().CreatePipelineNode(sweepParams, new ColumnInformation());
+            var pipelineNode = new SdcaLogisticRegressionBinaryExtension().CreatePipelineNode(sweepParams, new ColumnInformation());
             var expectedJson = @"{
-  ""Name"": ""SdcaBinary"",
+  ""Name"": ""SdcaLogisticRegressionBinary"",
   ""NodeType"": ""Trainer"",
   ""InColumns"": [
     ""Features""
@@ -100,10 +99,10 @@ namespace Microsoft.ML.Auto.Test
     ""Score""
   ],
   ""Properties"": {
-    ""L2Const"": 1E-07,
-    ""L1Threshold"": 0.0,
+    ""L2Regularization"": 1E-07,
+    ""L1Regularization"": 0.0,
     ""ConvergenceTolerance"": 0.01,
-    ""MaxIterations"": 10,
+    ""MaximumNumberOfIterations"": 10,
     ""Shuffle"": true,
     ""BiasLearningRate"": 0.01,
     ""LabelColumn"": ""Label""
@@ -140,7 +139,7 @@ namespace Microsoft.ML.Auto.Test
             var columnInfo = new ColumnInformation()
             {
                 LabelColumn = "L",
-                WeightColumn = "W"
+                ExampleWeightColumn = "W"
             };
             var sweepParams = SweepableParams.BuildFastForestParams();
             foreach (var sweepParam in sweepParams)
@@ -159,9 +158,9 @@ namespace Microsoft.ML.Auto.Test
     ""Score""
   ],
   ""Properties"": {
-    ""NumLeaves"": 1,
-    ""MinDocumentsInLeafs"": 10,
-    ""NumTrees"": 100,
+    ""NumberOfLeaves"": 1,
+    ""MinimumExampleCountPerLeaf"": 10,
+    ""NumberOfTrees"": 100,
     ""LabelColumn"": ""L"",
     ""WeightColumn"": ""W""
   }
@@ -224,14 +223,14 @@ namespace Microsoft.ML.Auto.Test
         {
             var props = new Dictionary<string, object>()
             {
-                {"NumBoostRound", 1 },
+                {"NumberOfIterations", 1 },
                 {"LearningRate", 1 },
                 {"Booster", new CustomProperty() {
-                    Name = "Options.TreeBooster.Arguments",
+                    Name = "GradientBooster.Options",
                     Properties = new Dictionary<string, object>()
                     {
-                        {"RegLambda", 1 },
-                        {"RegAlpha", 1 },
+                        {"L2Regularization", 1 },
+                        {"L1Regularization", 1 },
                     }
                 } },
             };
@@ -242,10 +241,10 @@ namespace Microsoft.ML.Auto.Test
             foreach (var paramSet in new ParameterSet[] { binaryParams, multiParams, regressionParams })
             {
                 Assert.AreEqual(4, paramSet.Count);
-                Assert.AreEqual("1", paramSet["NumBoostRound"].ValueText);
+                Assert.AreEqual("1", paramSet["NumberOfIterations"].ValueText);
                 Assert.AreEqual("1", paramSet["LearningRate"].ValueText);
-                Assert.AreEqual("1", paramSet["RegLambda"].ValueText);
-                Assert.AreEqual("1", paramSet["RegAlpha"].ValueText);
+                Assert.AreEqual("1", paramSet["L2Regularization"].ValueText);
+                Assert.AreEqual("1", paramSet["L1Regularization"].ValueText);
             }
         }
 
@@ -257,7 +256,7 @@ namespace Microsoft.ML.Auto.Test
                 {"LearningRate", 1 },
             };
 
-            var sdcaParams = TrainerExtensionUtil.BuildParameterSet(TrainerName.SdcaBinary, props);
+            var sdcaParams = TrainerExtensionUtil.BuildParameterSet(TrainerName.SdcaLogisticRegressionBinary, props);
 
             Assert.AreEqual(1, sdcaParams.Count);
             Assert.AreEqual("1", sdcaParams["LearningRate"].ValueText);

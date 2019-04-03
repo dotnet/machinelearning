@@ -6,7 +6,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
-using Microsoft.Data.DataView;
 using Microsoft.ML.Data;
 
 namespace Microsoft.ML.Auto
@@ -272,16 +271,15 @@ namespace Microsoft.ML.Auto
             var data = new List<ReadOnlyMemory<char>[]>();
             using (var cursor = idv.GetRowCursor(idv.Schema))
             {
-                var column = cursor.Schema.GetColumnOrNull("C");
-                int columnIndex = column.Value.Index;
-                var colType = column.Value.Type;
+                var column = cursor.Schema.GetColumnOrNull("C").Value;
+                var colType = column.Type;
                 ValueGetter<VBuffer<ReadOnlyMemory<char>>> vecGetter = null;
                 ValueGetter<ReadOnlyMemory<char>> oneGetter = null;
                 bool isVector = colType.IsVector();
-                if (isVector) { vecGetter = cursor.GetGetter<VBuffer<ReadOnlyMemory<char>>>(columnIndex); }
+                if (isVector) { vecGetter = cursor.GetGetter<VBuffer<ReadOnlyMemory<char>>>(column); }
                 else
                 {
-                    oneGetter = cursor.GetGetter<ReadOnlyMemory<char>>(columnIndex);
+                    oneGetter = cursor.GetGetter<ReadOnlyMemory<char>>(column);
                 }
 
                 VBuffer<ReadOnlyMemory<char>> line = default;

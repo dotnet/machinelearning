@@ -4,7 +4,6 @@
 
 using System.Collections.Generic;
 using System.Linq;
-using Microsoft.Data.DataView;
 using Microsoft.ML.Data;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -54,7 +53,7 @@ namespace Microsoft.ML.Auto.Test
                 new (string, DataViewType, ColumnPurpose, ColumnDimensions)[]
                 {
                     ("Numeric1", NumberDataViewType.Single, ColumnPurpose.NumericFeature, new ColumnDimensions(null, null)),
-                    ("Label", new KeyType(typeof(uint), 3), ColumnPurpose.Label, new ColumnDimensions(null, null)),
+                    ("Label", new KeyDataViewType(typeof(uint), 3), ColumnPurpose.Label, new ColumnDimensions(null, null)),
                 }, @"[]");
         }
 

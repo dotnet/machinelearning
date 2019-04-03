@@ -104,7 +104,7 @@ namespace Samples.Helpers
             // add column data
             var info = _results.ColumnInformation;
             AppendTableRow(tableRows, info.LabelColumn, "Label");
-            AppendTableRow(tableRows, info.WeightColumn, "Weight");
+            AppendTableRow(tableRows, info.ExampleWeightColumn, "Weight");
             AppendTableRow(tableRows, info.SamplingKeyColumn, "Sampling Key");
             AppendTableRows(tableRows, info.CategoricalColumns, "Categorical");
             AppendTableRows(tableRows, info.NumericColumns, "Numeric");

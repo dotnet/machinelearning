@@ -6,7 +6,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.Auto;
 using Microsoft.ML.Data;
@@ -50,12 +49,12 @@ namespace Samples
 
             // STEP 5: Evaluate test data
             IDataView testDataViewWithBestScore = best.Model.Transform(testDataView);
-            RegressionMetrics testMetrics = mlContext.Regression.Evaluate(testDataViewWithBestScore, label: LabelColumn);
+            RegressionMetrics testMetrics = mlContext.Regression.Evaluate(testDataViewWithBestScore, labelColumnName: LabelColumn);
             Console.WriteLine($"RSquared of best model on test data: {testMetrics.RSquared}");
 
             // STEP 6: Save the best model for later deployment and inferencing
             using (FileStream fs = File.Create(ModelPath))
-                best.Model.SaveTo(mlContext, fs);
+                mlContext.Model.Save(best.Model, textLoader, fs);
 
             Console.WriteLine("Press any key to continue...");
             Console.ReadKey();

@@ -9,7 +9,6 @@ using System.Linq;
 using System.Runtime.ExceptionServices;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.Data.DataView;
 using Microsoft.ML.Auto;
 using Microsoft.ML.CLI.CodeGenerator.CSharp;
 using Microsoft.ML.CLI.Data;
@@ -76,7 +75,7 @@ namespace Microsoft.ML.CLI.CodeGenerator
             // i.e there is no common class/interface to handle all three tasks together.
 
             IEnumerable<RunResult<BinaryClassificationMetrics>> binaryRunResults = default;
-            IEnumerable<RunResult<MultiClassClassifierMetrics>> multiRunResults = default;
+            IEnumerable<RunResult<MulticlassClassificationMetrics>> multiRunResults = default;
             IEnumerable<RunResult<RegressionMetrics>> regressionRunResults = default;
 
             Console.WriteLine($"{Strings.ExplorePipeline}: {settings.MlTask}");
@@ -173,7 +172,7 @@ namespace Microsoft.ML.CLI.CodeGenerator
             logger.Log(LogLevel.Info, Strings.SavingBestModel);
             var modelprojectDir = Path.Combine(settings.OutputPath.FullName, $"{settings.Name}.Model");
             var modelPath = new FileInfo(Path.Combine(modelprojectDir, "MLModel.zip"));
-            Utils.SaveModel(bestModel, modelPath, context);
+            Utils.SaveModel(bestModel, modelPath, context, trainData.Schema);
 
             // Generate the Project
             GenerateProject(columnInference, bestPipeline, columnInformation.LabelColumn, modelPath);

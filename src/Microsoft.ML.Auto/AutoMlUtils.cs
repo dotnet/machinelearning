@@ -4,7 +4,7 @@
 
 using System;
 using System.Threading;
-using Microsoft.Data.DataView;
+using Microsoft.ML.Data;
 
 namespace Microsoft.ML.Auto
 {
@@ -30,7 +30,7 @@ namespace Microsoft.ML.Auto
             MLContext context, IDataView trainData, ColumnInformation columnInfo)
         {
             IDataView validationData;
-            var splitData = catalog.TrainTestSplit(trainData, samplingKeyColumn: columnInfo.SamplingKeyColumn);
+            var splitData = context.Data.TrainTestSplit(trainData, samplingKeyColumnName: columnInfo.SamplingKeyColumn);
             trainData = splitData.TrainSet;
             validationData = splitData.TestSet;
             trainData = trainData.DropLastColumn(context);

@@ -95,11 +95,11 @@ namespace Microsoft.ML.CLI.Utilities
             }
         }
 
-        internal class MulticlassClassificationHandler : IProgress<RunResult<MultiClassClassifierMetrics>>
+        internal class MulticlassClassificationHandler : IProgress<RunResult<MulticlassClassificationMetrics>>
         {
             private readonly bool isMaximizing;
-            private readonly Func<RunResult<MultiClassClassifierMetrics>, double> GetScore;
-            private RunResult<MultiClassClassifierMetrics> bestResult;
+            private readonly Func<RunResult<MulticlassClassificationMetrics>, double> GetScore;
+            private RunResult<MulticlassClassificationMetrics> bestResult;
             private int iterationIndex;
             private ProgressBar progressBar;
             private string optimizationMetric = string.Empty;
@@ -109,18 +109,18 @@ namespace Microsoft.ML.CLI.Utilities
                 this.isMaximizing = new OptimizingMetricInfo(optimizationMetric).IsMaximizing;
                 this.optimizationMetric = optimizationMetric.ToString();
                 this.progressBar = progressBar;
-                GetScore = (RunResult<MultiClassClassifierMetrics> result) => new MultiMetricsAgent(optimizationMetric).GetScore(result?.ValidationMetrics);
+                GetScore = (RunResult<MulticlassClassificationMetrics> result) => new MultiMetricsAgent(optimizationMetric).GetScore(result?.ValidationMetrics);
                 ConsolePrinter.PrintMulticlassClassificationMetricsHeader(LogLevel.Trace);
             }
 
-            public void Report(RunResult<MultiClassClassifierMetrics> iterationResult)
+            public void Report(RunResult<MulticlassClassificationMetrics> iterationResult)
             {
                 iterationIndex++;
                 UpdateBestResult(iterationResult);
                 ConsolePrinter.PrintMetrics(iterationIndex, iterationResult.TrainerName, iterationResult.ValidationMetrics, GetScore(bestResult), iterationResult.RuntimeInSeconds, LogLevel.Trace);
             }
 
-            private void UpdateBestResult(RunResult<MultiClassClassifierMetrics> iterationResult)
+            private void UpdateBestResult(RunResult<MulticlassClassificationMetrics> iterationResult)
             {
                 if (MetricComparator(GetScore(iterationResult), GetScore(bestResult), isMaximizing) > 0)
                 {

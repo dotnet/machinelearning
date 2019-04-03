@@ -27,19 +27,19 @@ namespace Microsoft.ML.Auto
                 { TrainerName.LightGbmRegression, typeof(LightGbmRegressionExtension) },
                 { TrainerName.LinearSvmBinary, typeof(LinearSvmBinaryExtension) },
                 { TrainerName.LinearSvmOva, typeof(LinearSvmOvaExtension) },
-                { TrainerName.LogisticRegressionBinary, typeof(LogisticRegressionBinaryExtension) },
-                { TrainerName.LogisticRegressionMulti, typeof(LogisticRegressionMultiExtension) },
-                { TrainerName.LogisticRegressionOva, typeof(LogisticRegressionOvaExtension) },
+                { TrainerName.LbfgsLogisticRegressionBinary, typeof(LbfgsLogisticRegressionBinaryExtension) },
+                { TrainerName.LbfgsMaximumEntropyMulti, typeof(LbfgsMaximumEntropyMultiExtension) },
+                { TrainerName.LbfgsLogisticRegressionOva, typeof(LbfgsLogisticRegressionOvaExtension) },
                 { TrainerName.OnlineGradientDescentRegression, typeof(OnlineGradientDescentRegressionExtension) },
-                { TrainerName.OrdinaryLeastSquaresRegression, typeof(OrdinaryLeastSquaresRegressionExtension) },
-                { TrainerName.PoissonRegression, typeof(PoissonRegressionExtension) },
-                { TrainerName.SdcaBinary, typeof(SdcaBinaryExtension) },
-                { TrainerName.SdcaMulti, typeof(SdcaMultiExtension) },
+                { TrainerName.OlsRegression, typeof(OlsRegressionExtension) },
+                { TrainerName.LbfgsPoissonRegression, typeof(LbfgsPoissonRegressionExtension) },
+                { TrainerName.SdcaLogisticRegressionBinary, typeof(SdcaLogisticRegressionBinaryExtension) },
+                { TrainerName.SdcaMaximumEntropyMulti, typeof(SdcaMaximumEntropyMultiExtension) },
                 { TrainerName.SdcaRegression, typeof(SdcaRegressionExtension) },
-                { TrainerName.StochasticGradientDescentBinary, typeof(SgdBinaryExtension) },
-                { TrainerName.StochasticGradientDescentOva, typeof(SgdOvaExtension) },
-                { TrainerName.SymSgdBinary, typeof(SymSgdBinaryExtension) },
-                { TrainerName.SymSgdOva, typeof(SymSgdOvaExtension) }
+                { TrainerName.SgdCalibratedBinary, typeof(SgdCalibratedBinaryExtension) },
+                { TrainerName.SgdCalibratedOva, typeof(SgdCalibratedOvaExtension) },
+                { TrainerName.SymbolicSgdLogisticRegressionBinary, typeof(SymbolicSgdLogisticRegressionBinaryExtension) },
+                { TrainerName.SymbolicSgdLogisticRegressionOva, typeof(SymbolicSgdLogisticRegressionOvaExtension) }
             };
 
         private static readonly IDictionary<Type, TrainerName> _extensionTypesToTrainerNames =
@@ -92,14 +92,14 @@ namespace Microsoft.ML.Auto
             return new ITrainerExtension[]
             {
                 new AveragedPerceptronBinaryExtension(),
-                new SdcaBinaryExtension(),
+                new SdcaLogisticRegressionBinaryExtension(),
                 new LightGbmBinaryExtension(),
-                new SymSgdBinaryExtension(),
+                new SymbolicSgdLogisticRegressionBinaryExtension(),
                 new LinearSvmBinaryExtension(),
                 new FastTreeBinaryExtension(),
-                new LogisticRegressionBinaryExtension(),
+                new LbfgsLogisticRegressionBinaryExtension(),
                 new FastForestBinaryExtension(),
-                new SgdBinaryExtension()
+                new SgdCalibratedBinaryExtension()
             };
         }
 
@@ -108,15 +108,15 @@ namespace Microsoft.ML.Auto
             return new ITrainerExtension[]
             {
                 new AveragedPerceptronOvaExtension(),
-                new SdcaMultiExtension(),
+                new SdcaMaximumEntropyMultiExtension(),
                 new LightGbmMultiExtension(),
-                new SymSgdOvaExtension(),
+                new SymbolicSgdLogisticRegressionOvaExtension(),
                 new FastTreeOvaExtension(),
                 new LinearSvmOvaExtension(),
-                new LogisticRegressionOvaExtension(),
-                new SgdOvaExtension(),
+                new LbfgsLogisticRegressionOvaExtension(),
+                new SgdCalibratedOvaExtension(),
                 new FastForestOvaExtension(),
-                new LogisticRegressionMultiExtension()
+                new LbfgsMaximumEntropyMultiExtension()
             };
         }
 
@@ -129,9 +129,9 @@ namespace Microsoft.ML.Auto
                 new FastTreeRegressionExtension(),
                 new FastTreeTweedieRegressionExtension(),
                 new FastForestRegressionExtension(),
-                new PoissonRegressionExtension(),
+                new LbfgsPoissonRegressionExtension(),
                 new OnlineGradientDescentRegressionExtension(),
-                new OrdinaryLeastSquaresRegressionExtension(),
+                new OlsRegressionExtension(),
             };
         }
     }

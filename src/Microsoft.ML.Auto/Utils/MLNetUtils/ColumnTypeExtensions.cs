@@ -2,8 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.Data.DataView;
 using Microsoft.ML.Data;
+using Microsoft.ML.Runtime;
 
 namespace Microsoft.ML.Auto
 {
@@ -26,17 +26,17 @@ namespace Microsoft.ML.Auto
 
         public static bool IsVector(this DataViewType columnType)
         {
-            return columnType is VectorType;
+            return columnType is VectorDataViewType;
         }
 
         public static bool IsKey(this DataViewType columnType)
         {
-            return columnType is KeyType;
+            return columnType is KeyDataViewType;
         }
 
         public static bool IsKnownSizeVector(this DataViewType columnType)
         {
-            var vector = columnType as VectorType;
+            var vector = columnType as VectorDataViewType;
             if (vector == null)
             {
                 return false;
@@ -46,7 +46,7 @@ namespace Microsoft.ML.Auto
 
         public static DataViewType GetItemType(this DataViewType columnType)
         {
-            var vector = columnType as VectorType;
+            var vector = columnType as VectorDataViewType;
             if (vector == null)
             {
                 return columnType;
@@ -59,7 +59,7 @@ namespace Microsoft.ML.Auto
         /// </summary>
         public static int GetVectorSize(this DataViewType columnType)
         {
-            return (columnType as VectorType)?.Size ?? 0;
+            return (columnType as VectorDataViewType)?.Size ?? 0;
         }
 
         public static DataKind GetRawKind(this DataViewType columnType)
@@ -73,7 +73,7 @@ namespace Microsoft.ML.Auto
         /// </summary>
         public static ulong GetKeyCount(this DataViewType columnType)
         {
-            return (columnType as KeyType)?.Count ?? 0;
+            return (columnType as KeyDataViewType)?.Count ?? 0;
         }
 
         /// <summary>

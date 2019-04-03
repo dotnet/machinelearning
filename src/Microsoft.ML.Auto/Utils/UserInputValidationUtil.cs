@@ -6,7 +6,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using Microsoft.Data.DataView;
 using Microsoft.ML.Data;
 
 namespace Microsoft.ML.Auto
@@ -65,7 +64,7 @@ namespace Microsoft.ML.Auto
         {
             ValidateColumnInformation(columnInformation);
             ValidateTrainDataColumn(trainData, columnInformation.LabelColumn, LabelColumnPurposeName);
-            ValidateTrainDataColumn(trainData, columnInformation.WeightColumn, WeightColumnPurposeName);
+            ValidateTrainDataColumn(trainData, columnInformation.ExampleWeightColumn, WeightColumnPurposeName);
             ValidateTrainDataColumn(trainData, columnInformation.SamplingKeyColumn, SamplingKeyColumnPurposeName);
             ValidateTrainDataColumns(trainData, columnInformation.CategoricalColumns, CategoricalColumnPurposeName,
                 new DataViewType[] { NumberDataViewType.Single, TextDataViewType.Instance });
@@ -88,7 +87,7 @@ namespace Microsoft.ML.Auto
             // keep a list of all columns, to detect duplicates
             var allColumns = new List<string>();
             allColumns.Add(columnInformation.LabelColumn);
-            if (columnInformation.WeightColumn != null) { allColumns.Add(columnInformation.WeightColumn); }
+            if (columnInformation.ExampleWeightColumn != null) { allColumns.Add(columnInformation.ExampleWeightColumn); }
             if (columnInformation.CategoricalColumns != null) { allColumns.AddRange(columnInformation.CategoricalColumns); }
             if (columnInformation.NumericColumns != null) { allColumns.AddRange(columnInformation.NumericColumns); }
             if (columnInformation.TextColumns != null) { allColumns.AddRange(columnInformation.TextColumns); }

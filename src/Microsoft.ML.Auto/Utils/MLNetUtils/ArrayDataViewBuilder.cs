@@ -4,8 +4,8 @@
 
 using System;
 using System.Collections.Generic;
-using Microsoft.Data.DataView;
 using Microsoft.ML.Data;
+using Microsoft.ML.Runtime;
 
 namespace Microsoft.ML.Auto
 {
@@ -78,14 +78,14 @@ namespace Microsoft.ML.Auto
         /// <param name="name">The name of the column.</param>
         /// <param name="getKeyValues">The delegate that does a reverse lookup based upon the given key. This is for annotation creation</param>
         /// <param name="keyCount">The count of unique keys specified in values</param>
-        /// <param name="values">The values to add to the column. Note that since this is creating a <see cref="KeyType"/> column, the values will be offset by 1.</param>
+        /// <param name="values">The values to add to the column. Note that since this is creating a <see cref="KeyDataViewType"/> column, the values will be offset by 1.</param>
         public void AddColumn<T1>(string name, ValueGetter<VBuffer<ReadOnlyMemory<char>>> getKeyValues, ulong keyCount, params T1[] values)
         {
             _host.CheckValue(getKeyValues, nameof(getKeyValues));
             _host.CheckParam(keyCount > 0, nameof(keyCount));
             CheckLength(name, values);
             var elemType = values.GetType().GetElementType();
-            _columns.Add(new AssignmentColumn<T1>(new KeyType(elemType, keyCount), values));
+            _columns.Add(new AssignmentColumn<T1>(new KeyDataViewType(elemType, keyCount), values));
             _getKeyValues.Add(name, getKeyValues);
             _names.Add(name);
         }
@@ -205,13 +205,14 @@ namespace Microsoft.ML.Auto
             public DataViewRowCursor GetRowCursor(IEnumerable<DataViewSchema.Column> columnsNeeded, Random rand = null)
             {
                 var predicate = RowCursorUtils.FromColumnsToPredicate(columnsNeeded, Schema);
-
+                
                 return new Cursor(_host, this, predicate, rand);
             }
 
             public DataViewRowCursor[] GetRowCursorSet(IEnumerable<DataViewSchema.Column> columnsNeeded, int n, Random rand = null)
             {
                 var predicate = RowCursorUtils.FromColumnsToPredicate(columnsNeeded, Schema);
+                
                 return new DataViewRowCursor[] { new Cursor(_host, this, predicate, rand) };
             }
 
@@ -267,25 +268,36 @@ namespace Microsoft.ML.Auto
                     }
                 }
 
-                public override bool IsColumnActive(int col)
+                /// <summary>
+                /// Returns whether the given column is active in this row.
+                /// </summary>
+                public override bool IsColumnActive(DataViewSchema.Column column)
                 {
-                    Ch.Check(0 <= col & col < Schema.Count);
-                    return _active[col];
+                    Ch.Check(column.Index < Schema.Count);
+                    return _active[column.Index];
                 }
 
-                public override ValueGetter<TValue> GetGetter<TValue>(int col)
+                /// <summary>
+                /// Returns a value getter delegate to fetch the value of column with the given columnIndex, from the row.
+                /// This throws if the column is not active in this row, or if the type
+                /// <typeparamref name="TValue"/> differs from this column's type.
+                /// </summary>
+                /// <typeparam name="TValue"> is the column's content type.</typeparam>
+                /// <param name="column"> is the output column whose getter should be returned.</param>
+                public override ValueGetter<TValue> GetGetter<TValue>(DataViewSchema.Column column)
                 {
-                    Ch.Check(0 <= col & col < Schema.Count);
-                    Ch.Check(_active[col], "column is not active");
-                    var column = _view._columns[col] as Column<TValue>;
-                    if (column == null)
+                    Ch.Check(column.Index < Schema.Count);
+                    Ch.Check(column.Index < _active.Length && _active[column.Index], "the requested column is not active");
+
+                    var columnValue = _view._columns[column.Index] as Column<TValue>;
+                    if (columnValue == null)
                         throw Ch.Except("Invalid TValue: '{0}'", typeof(TValue));
 
                     return
                         (ref TValue value) =>
                         {
                             Ch.Check(IsGood, RowCursorUtils.FetchValueStateError);
-                            column.CopyOut(MappedIndex(), ref value);
+                            columnValue.CopyOut(MappedIndex(), ref value);
                         };
                 }
 
@@ -418,7 +430,7 @@ namespace Microsoft.ML.Auto
                         }
                     }
                 }
-                return new VectorType(itemType, degree);
+                return new VectorDataViewType(itemType, degree);
             }
         }
 
@@ -450,6 +462,7 @@ namespace Microsoft.ML.Auto
                 VBuffer<T>.Copy(src, 0, ref dst, MLNetUtils.Size(src));
             }
         }
+
         #endregion
     }
 }

@@ -5,8 +5,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text.RegularExpressions;
-using Microsoft.Data.DataView;
 using Microsoft.ML.Data;
 
 namespace Microsoft.ML.Auto
@@ -88,10 +86,11 @@ namespace Microsoft.ML.Auto
                     return _cachedData;
 
                 var results = new List<ReadOnlyMemory<char>>();
-
-                using (var cursor = _data.GetRowCursor(new[] { _data.Schema[_columnId] }))
+                var column = _data.Schema[_columnId];
+                
+                using (var cursor = _data.GetRowCursor(new[] { column }))
                 {
-                    var getter = cursor.GetGetter<ReadOnlyMemory<char>>(_columnId);
+                    var getter = cursor.GetGetter<ReadOnlyMemory<char>>(column);
                     while (cursor.MoveNext())
                     {
                         var value = default(ReadOnlyMemory<char>);

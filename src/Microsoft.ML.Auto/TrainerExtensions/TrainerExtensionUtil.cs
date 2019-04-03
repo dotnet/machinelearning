@@ -6,8 +6,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using Microsoft.ML.Data;
-using Microsoft.ML.EntryPoints;
+using Microsoft.ML.Calibrators;
+using Microsoft.ML.Trainers;
+using Microsoft.ML.Trainers.LightGbm;
 
 namespace Microsoft.ML.Auto
 {
@@ -27,20 +28,20 @@ namespace Microsoft.ML.Auto
         LightGbmRegression,
         LinearSvmBinary,
         LinearSvmOva,
-        LogisticRegressionBinary,
-        LogisticRegressionOva,
-        LogisticRegressionMulti,
+        LbfgsLogisticRegressionBinary,
+        LbfgsLogisticRegressionOva,
+        LbfgsMaximumEntropyMulti,
         OnlineGradientDescentRegression,
-        OrdinaryLeastSquaresRegression,
+        OlsRegression,
         Ova,
-        PoissonRegression,
-        SdcaBinary,
-        SdcaMulti,
+        LbfgsPoissonRegression,
+        SdcaLogisticRegressionBinary,
+        SdcaMaximumEntropyMulti,
         SdcaRegression,
-        StochasticGradientDescentBinary,
-        StochasticGradientDescentOva,
-        SymSgdBinary,
-        SymSgdOva
+        SgdCalibratedBinary,
+        SgdCalibratedOva,
+        SymbolicSgdLogisticRegressionBinary,
+        SymbolicSgdLogisticRegressionOva
     }
 
     internal static class TrainerExtensionUtil
@@ -48,10 +49,10 @@ namespace Microsoft.ML.Auto
         private const string WeightColumn = "WeightColumn";
         private const string LabelColumn = "LabelColumn";
 
-        public static T CreateOptions<T>(IEnumerable<SweepableParam> sweepParams, string labelColumn) where T : LearnerInputBaseWithLabel
+        public static T CreateOptions<T>(IEnumerable<SweepableParam> sweepParams, string labelColumn) where T : TrainerInputBaseWithLabel
         {
             var options = Activator.CreateInstance<T>();
-            options.LabelColumn = labelColumn;
+            options.LabelColumnName = labelColumn;
             if (sweepParams != null)
             {
                 UpdateFields(options, sweepParams);
@@ -59,20 +60,24 @@ namespace Microsoft.ML.Auto
             return options;
         }
 
-        private static string[] _lightGbmTreeBoosterParamNames = new[] { "RegLambda", "RegAlpha" };
-        private const string LightGbmTreeBoosterPropName = "Booster";
+        private static string[] _lightGbmBoosterParamNames = new[] { "L2Regularization", "L1Regularization" };
+        private const string LightGbmBoosterPropName = "Booster";
 
-        public static LightGBM.Options CreateLightGbmOptions(IEnumerable<SweepableParam> sweepParams, ColumnInformation columnInfo)
+        public static TOptions CreateLightGbmOptions<TOptions, TOutput, TTransformer, TModel>(IEnumerable<SweepableParam> sweepParams, ColumnInformation columnInfo)
+            where TOptions : LightGbmTrainerBase<TOptions, TOutput, TTransformer, TModel>.OptionsBase, new()
+            where TTransformer : ISingleFeaturePredictionTransformer<TModel>
+            where TModel : class
         {
-            var options = new LightGBM.Options();
-            options.LabelColumn = columnInfo.LabelColumn;
-            options.WeightColumn = columnInfo.WeightColumn;
+            var options = new TOptions();
+            options.LabelColumnName = columnInfo.LabelColumn;
+            options.ExampleWeightColumnName = columnInfo.ExampleWeightColumn;
+            options.Booster = new GradientBooster.Options();
             if (sweepParams != null)
             {
-                var treeBoosterParams = sweepParams.Where(p => _lightGbmTreeBoosterParamNames.Contains(p.Name));
-                var parentArgParams = sweepParams.Except(treeBoosterParams);
+                var boosterParams = sweepParams.Where(p => _lightGbmBoosterParamNames.Contains(p.Name));
+                var parentArgParams = sweepParams.Except(boosterParams);
                 UpdateFields(options, parentArgParams);
-                UpdateFields(options.Booster, treeBoosterParams);
+                UpdateFields(options.Booster, boosterParams);
             }
             return options;
         }
@@ -147,14 +152,14 @@ namespace Microsoft.ML.Auto
             }
             else
             {
-                var treeBoosterParams = sweepParams.Where(p => _lightGbmTreeBoosterParamNames.Contains(p.Name));
-                var parentArgParams = sweepParams.Except(treeBoosterParams);
+                var boosterParams = sweepParams.Where(p => _lightGbmBoosterParamNames.Contains(p.Name));
+                var parentArgParams = sweepParams.Except(boosterParams);
 
-                var treeBoosterProps = treeBoosterParams.ToDictionary(p => p.Name, p => (object)p.ProcessedValue());
-                var treeBoosterCustomProp = new CustomProperty("Options.TreeBooster.Options", treeBoosterProps);
+                var boosterProps = boosterParams.ToDictionary(p => p.Name, p => (object)p.ProcessedValue());
+                var boosterCustomProp = new CustomProperty("GradientBooster.Options", boosterProps);
 
                 props = parentArgParams.ToDictionary(p => p.Name, p => (object)p.ProcessedValue());
-                props[LightGbmTreeBoosterPropName] = treeBoosterCustomProp;
+                props[LightGbmBoosterPropName] = boosterCustomProp;
             }
 
             props[LabelColumn] = labelColumn;
@@ -188,7 +193,7 @@ namespace Microsoft.ML.Auto
             columnInfo.LabelColumn = props[LabelColumn] as string;
 
             props.TryGetValue(WeightColumn, out var weightColumn);
-            columnInfo.WeightColumn = weightColumn as string;
+            columnInfo.ExampleWeightColumn = weightColumn as string;
 
             return columnInfo;
         }
@@ -202,8 +207,8 @@ namespace Microsoft.ML.Auto
             }
             else
             {
-                var parentProps = props.Where(p => p.Key != LightGbmTreeBoosterPropName);
-                var treeProps = ((CustomProperty)props[LightGbmTreeBoosterPropName]).Properties;
+                var parentProps = props.Where(p => p.Key != LightGbmBoosterPropName);
+                var treeProps = ((CustomProperty)props[LightGbmBoosterPropName]).Properties;
                 var allProps = parentProps.Union(treeProps);
                 parameters = allProps.Select(p => new StringParameterValue(p.Key, p.Value.ToString()));
             }
@@ -288,14 +293,14 @@ namespace Microsoft.ML.Auto
                     return TrainerName.LightGbmBinary;
                 case BinaryClassificationTrainer.LinearSupportVectorMachines:
                     return TrainerName.LinearSvmBinary;
-                case BinaryClassificationTrainer.LogisticRegression:
-                    return TrainerName.LogisticRegressionBinary;
-                case BinaryClassificationTrainer.StochasticDualCoordinateAscent:
-                    return TrainerName.SdcaBinary;
-                case BinaryClassificationTrainer.StochasticGradientDescent:
-                    return TrainerName.StochasticGradientDescentBinary;
-                case BinaryClassificationTrainer.SymbolicStochasticGradientDescent:
-                    return TrainerName.SymSgdBinary;
+                case BinaryClassificationTrainer.LbfgsLogisticRegression:
+                    return TrainerName.LbfgsLogisticRegressionBinary;
+                case BinaryClassificationTrainer.SdcaLogisticRegression:
+                    return TrainerName.SdcaLogisticRegressionBinary;
+                case BinaryClassificationTrainer.SgdCalibrated:
+                    return TrainerName.SgdCalibratedBinary;
+                case BinaryClassificationTrainer.SymbolicSgdLogisticRegression:
+                    return TrainerName.SymbolicSgdLogisticRegressionBinary;
             }
 
             // never expected to reach here
@@ -316,16 +321,16 @@ namespace Microsoft.ML.Auto
                     return TrainerName.LightGbmMulti;
                 case MulticlassClassificationTrainer.LinearSupportVectorMachinesOVA:
                     return TrainerName.LinearSvmOva;
-                case MulticlassClassificationTrainer.LogisticRegression:
-                    return TrainerName.LogisticRegressionMulti;
-                case MulticlassClassificationTrainer.LogisticRegressionOVA:
-                    return TrainerName.LogisticRegressionOva;
-                case MulticlassClassificationTrainer.StochasticDualCoordinateAscent:
-                    return TrainerName.SdcaMulti;
-                case MulticlassClassificationTrainer.StochasticGradientDescentOVA:
-                    return TrainerName.StochasticGradientDescentOva;
-                case MulticlassClassificationTrainer.SymbolicStochasticGradientDescentOVA:
-                    return TrainerName.SymSgdOva;
+                case MulticlassClassificationTrainer.LbfgsMaximumEntropy:
+                    return TrainerName.LbfgsMaximumEntropyMulti;
+                case MulticlassClassificationTrainer.LbfgsLogisticRegressionOVA:
+                    return TrainerName.LbfgsLogisticRegressionOva;
+                case MulticlassClassificationTrainer.SdcaMaximumEntropy:
+                    return TrainerName.SdcaMaximumEntropyMulti;
+                case MulticlassClassificationTrainer.SgdCalibratedOVA:
+                    return TrainerName.SgdCalibratedOva;
+                case MulticlassClassificationTrainer.SymbolicSgdLogisticRegressionOVA:
+                    return TrainerName.SymbolicSgdLogisticRegressionOva;
             }
 
             // never expected to reach here
@@ -346,10 +351,10 @@ namespace Microsoft.ML.Auto
                     return TrainerName.LightGbmRegression;
                 case RegressionTrainer.OnlineGradientDescent:
                     return TrainerName.OnlineGradientDescentRegression;
-                case RegressionTrainer.OrdinaryLeastSquares:
-                    return TrainerName.OrdinaryLeastSquaresRegression;
-                case RegressionTrainer.PoissonRegression:
-                    return TrainerName.PoissonRegression;
+                case RegressionTrainer.Ols:
+                    return TrainerName.OlsRegression;
+                case RegressionTrainer.LbfgsPoissonRegression:
+                    return TrainerName.LbfgsPoissonRegression;
                 case RegressionTrainer.StochasticDualCoordinateAscent:
                     return TrainerName.SdcaRegression;
             }

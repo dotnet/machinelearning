@@ -2,10 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Generic;
 using System.Linq;
-using Microsoft.Data.DataView;
+using Microsoft.ML.Data;
 
 namespace Microsoft.ML.Auto
 {
@@ -18,7 +17,7 @@ namespace Microsoft.ML.Auto
                 return ColumnPurpose.Label;
             }
 
-            if (columnName == columnInfo.WeightColumn)
+            if (columnName == columnInfo.ExampleWeightColumn)
             {
                 return ColumnPurpose.Weight;
             }
@@ -63,7 +62,7 @@ namespace Microsoft.ML.Auto
                         columnInfo.LabelColumn = column.name;
                         break;
                     case ColumnPurpose.Weight:
-                        columnInfo.WeightColumn = column.name;
+                        columnInfo.ExampleWeightColumn = column.name;
                         break;
                     case ColumnPurpose.SamplingKey:
                         columnInfo.SamplingKeyColumn = column.name;

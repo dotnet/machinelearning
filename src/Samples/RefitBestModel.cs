@@ -5,7 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using Microsoft.Data.DataView;
+using System.Linq;
 using Microsoft.ML;
 using Microsoft.ML.Auto;
 using Microsoft.ML.Data;
@@ -63,12 +63,12 @@ namespace Samples
 
             // STEP 6: Evaluate test data
             IDataView testDataViewWithBestScore = refitBestModel.Transform(testDataView);
-            RegressionMetrics testMetrics = mlContext.Regression.Evaluate(testDataViewWithBestScore, label: LabelColumn);
+            RegressionMetrics testMetrics = mlContext.Regression.Evaluate(testDataViewWithBestScore, labelColumnName: LabelColumn);
             Console.WriteLine($"RSquared of the re-fit model on test data: {testMetrics.RSquared}");
 
             // STEP 7: Save the re-fit best model for later deployment and inferencing
             using (FileStream fs = File.Create(ModelPath))
-                refitBestModel.SaveTo(mlContext, fs);
+                mlContext.Model.Save(best.Model, textLoader, fs);
 
             Console.WriteLine("Press any key to continue...");
             Console.ReadKey();

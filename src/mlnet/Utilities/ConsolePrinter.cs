@@ -18,17 +18,17 @@ namespace Microsoft.ML.CLI.Utilities
 
         internal static void PrintMetrics(int iteration, string trainerName, BinaryClassificationMetrics metrics, double bestMetric, double runtimeInSeconds, LogLevel logLevel)
         {
-            logger.Log(logLevel, $"{iteration,-4} {trainerName,-35} {metrics?.Accuracy ?? double.NaN,9:F4} {metrics?.Auc ?? double.NaN,8:F4} {metrics?.Auprc ?? double.NaN,8:F4} {metrics?.F1Score ?? double.NaN,9:F4} {bestMetric,8:F4} {runtimeInSeconds,9:F1}");
+            logger.Log(logLevel, $"{iteration,-4} {trainerName,-35} {metrics?.Accuracy ?? double.NaN,9:F4} {metrics?.AreaUnderRocCurve ?? double.NaN,8:F4} {metrics?.AreaUnderPrecisionRecallCurve ?? double.NaN,8:F4} {metrics?.F1Score ?? double.NaN,9:F4} {bestMetric,8:F4} {runtimeInSeconds,9:F1}");
         }
 
-        internal static void PrintMetrics(int iteration, string trainerName, MultiClassClassifierMetrics metrics, double bestMetric, double runtimeInSeconds, LogLevel logLevel)
+        internal static void PrintMetrics(int iteration, string trainerName, MulticlassClassificationMetrics metrics, double bestMetric, double runtimeInSeconds, LogLevel logLevel)
         {
-            logger.Log(logLevel, $"{iteration,-4} {trainerName,-35} {metrics?.AccuracyMicro ?? double.NaN,14:F4} {metrics?.AccuracyMacro ?? double.NaN,14:F4} {bestMetric,14:F4} {runtimeInSeconds,9:F1}");
+            logger.Log(logLevel, $"{iteration,-4} {trainerName,-35} {metrics?.MicroAccuracy ?? double.NaN,14:F4} {metrics?.MicroAccuracy ?? double.NaN,14:F4} {bestMetric,14:F4} {runtimeInSeconds,9:F1}");
         }
 
         internal static void PrintMetrics(int iteration, string trainerName, RegressionMetrics metrics, double bestMetric, double runtimeInSeconds, LogLevel logLevel)
         {
-            logger.Log(logLevel, $"{iteration,-4} {trainerName,-35} {metrics?.RSquared ?? double.NaN,9:F4} {metrics?.LossFn ?? double.NaN,12:F2} {metrics?.L1 ?? double.NaN,15:F2} {metrics?.L2 ?? double.NaN,15:F2} {metrics?.Rms ?? double.NaN,12:F2} {bestMetric,12:F4} {runtimeInSeconds,9:F1}");
+            logger.Log(logLevel, $"{iteration,-4} {trainerName,-35} {metrics?.RSquared ?? double.NaN,9:F4} {metrics?.LossFunction ?? double.NaN,12:F2} {metrics?.MeanAbsoluteError ?? double.NaN,15:F2} {metrics?.MeanSquaredError ?? double.NaN,15:F2} {metrics?.RootMeanSquaredError ?? double.NaN,12:F2} {bestMetric,12:F4} {runtimeInSeconds,9:F1}");
         }
 
 
@@ -111,7 +111,7 @@ namespace Microsoft.ML.CLI.Utilities
             logger.Log(LogLevel.Info, $"------------------------------------------------------------------------------------------------------------------");
         }
 
-        internal static void PrintIterationSummary(IEnumerable<RunResult<MultiClassClassifierMetrics>> results, MulticlassClassificationMetric optimizationMetric, int count)
+        internal static void PrintIterationSummary(IEnumerable<RunResult<MulticlassClassificationMetrics>> results, MulticlassClassificationMetric optimizationMetric, int count)
         {
             var metricsAgent = new MultiMetricsAgent(optimizationMetric);
             var topNResults = RunResultUtil.GetTopNRunResults(results, metricsAgent, count);

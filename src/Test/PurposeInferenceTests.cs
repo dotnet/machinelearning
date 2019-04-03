@@ -1,5 +1,4 @@
 ﻿using System.Linq;
-using Microsoft.Data.DataView;
 using Microsoft.ML.Data;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -22,7 +21,7 @@ namespace Microsoft.ML.Auto.Test
 
             // normalize 'Features' column. this has the effect of creating 2 columns named
             // 'Features' in the data view, the first of which gets marked as 'Hidden'
-            var normalizer = context.Transforms.Normalize(DefaultColumnNames.Features);
+            var normalizer = context.Transforms.NormalizeMinMax(DefaultColumnNames.Features);
             data = normalizer.Fit(data).Transform(data);
 
             // infer purposes

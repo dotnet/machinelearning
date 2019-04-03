@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using Microsoft.Data.DataView;
 using Microsoft.ML.Data;
 
 namespace Microsoft.ML.Auto
@@ -18,7 +17,7 @@ namespace Microsoft.ML.Auto
         /// <param name="getter">The getter delegate for the slot names.</param>
         public static void AddSlotNames(this DataViewSchema.Annotations.Builder builder, int size, ValueGetter<VBuffer<ReadOnlyMemory<char>>> getter)
         {
-            builder.Add("SlotNames", new VectorType(TextDataViewType.Instance, size), getter, null);
+            builder.Add("SlotNames", new VectorDataViewType(TextDataViewType.Instance, size), getter, null);
         }
 
         /// <summary>
@@ -31,7 +30,7 @@ namespace Microsoft.ML.Auto
         /// <param name="getter">The getter delegate for the key values.</param>
         public static void AddKeyValues<TValue>(this DataViewSchema.Annotations.Builder builder, int size, PrimitiveDataViewType valueType, ValueGetter<VBuffer<TValue>> getter)
         {
-            builder.Add("KeyValues", new VectorType(valueType, size), getter, null);
+            builder.Add("KeyValues", new VectorDataViewType(valueType, size), getter, null);
         }
     }
 }

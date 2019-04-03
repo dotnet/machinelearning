@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System.IO;
-using Microsoft.ML.Data;
 
 namespace Microsoft.ML.Auto
 {
@@ -19,7 +18,7 @@ namespace Microsoft.ML.Auto
             _model = model;
         }
 
-        internal ModelContainer(MLContext mlContext, FileInfo fileInfo, ITransformer model)
+        internal ModelContainer(MLContext mlContext, FileInfo fileInfo, ITransformer model, DataViewSchema modelInputSchema)
         {
             _mlContext = mlContext;
             _fileInfo = fileInfo;
@@ -27,7 +26,7 @@ namespace Microsoft.ML.Auto
             // Write model to disk
             using (var fs = File.Create(fileInfo.FullName))
             {
-                model.SaveTo(mlContext, fs);
+                _mlContext.Model.Save(model, modelInputSchema, fs);
             }
         }
 
@@ -43,7 +42,7 @@ namespace Microsoft.ML.Auto
             ITransformer model;
             using (var stream = new FileStream(_fileInfo.FullName, FileMode.Open, FileAccess.Read, FileShare.Read))
             {
-                model = _mlContext.Model.Load(stream);
+                model = _mlContext.Model.Load(stream, out var modelInputSchema);
             }
             return model;
         }

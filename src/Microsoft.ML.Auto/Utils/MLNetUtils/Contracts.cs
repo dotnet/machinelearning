@@ -5,6 +5,7 @@
 using System;
 using System.Diagnostics;
 using System.Globalization;
+using Microsoft.ML.Runtime;
 
 namespace Microsoft.ML.Auto
 {

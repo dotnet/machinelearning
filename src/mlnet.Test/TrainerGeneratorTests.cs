@@ -9,6 +9,7 @@ namespace mlnet.Test
     /****************************
      * TODO : Add all trainer tests :
      * **************************/
+    [Ignore]
     [TestClass]
     public class TrainerGeneratorTests
     {

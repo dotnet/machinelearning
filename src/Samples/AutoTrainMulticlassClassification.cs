@@ -6,7 +6,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.Auto;
 using Microsoft.ML.Data;
@@ -45,27 +44,27 @@ namespace Samples
 
             // STEP 3: Auto featurize, auto train and auto hyperparameter tune
             Console.WriteLine($"Running AutoML multiclass classification experiment for {ExperimentTime} seconds...");
-            IEnumerable<RunResult<MultiClassClassifierMetrics>> runResults = mlContext.Auto()
+            IEnumerable<RunResult<MulticlassClassificationMetrics>> runResults = mlContext.Auto()
                                                                              .CreateMulticlassClassificationExperiment(ExperimentTime)
                                                                              .Execute(trainDataView);
 
             // STEP 4: Print metric from the best model
-            RunResult<MultiClassClassifierMetrics> best = runResults.Best();
+            RunResult<MulticlassClassificationMetrics> best = runResults.Best();
             Console.WriteLine($"Total models produced: {runResults.Count()}");
             Console.WriteLine($"Best model's trainer: {best.TrainerName}");
-            Console.WriteLine($"AccuracyMacro of best model from validation data: {best.ValidationMetrics.AccuracyMacro}");
+            Console.WriteLine($"AccuracyMacro of best model from validation data: {best.ValidationMetrics.MacroAccuracy}");
 
             // STEP 5: Evaluate test data
             IDataView testDataViewWithBestScore = best.Model.Transform(testDataView);
-            MultiClassClassifierMetrics testMetrics = mlContext.MulticlassClassification.Evaluate(testDataViewWithBestScore);
-            Console.WriteLine($"AccuracyMacro of best model on test data: {testMetrics.AccuracyMacro}");
+            MulticlassClassificationMetrics testMetrics = mlContext.MulticlassClassification.Evaluate(testDataViewWithBestScore);
+            Console.WriteLine($"AccuracyMacro of best model on test data: {testMetrics.MacroAccuracy}");
 
             // STEP 6: Save the best model for later deployment and inferencing
             using (FileStream fs = File.Create(ModelPath))
-                best.Model.SaveTo(mlContext, fs);
+                mlContext.Model.Save(best.Model, textLoader, fs);
 
             // STEP 7: Create prediction engine from the best trained model
-            var predictionEngine = best.Model.CreatePredictionEngine<PixelData, PixelPrediction>(mlContext);
+            var predictionEngine = mlContext.Model.CreatePredictionEngine<PixelData, PixelPrediction>(best.Model);
 
             // STEP 8: Initialize new pixel data, and get the predicted number
             var testPixelData = new PixelData

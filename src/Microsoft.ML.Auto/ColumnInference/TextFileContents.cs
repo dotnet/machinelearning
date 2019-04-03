@@ -89,11 +89,10 @@ namespace Microsoft.ML.Auto
                 var idv = context.Data.TakeRows(textLoader.Load(source), 1000);
                 var columnCounts = new List<int>();
                 var column = idv.Schema["C"];
-                var columnIndex = column.Index;
 
-                using (var cursor = idv.GetRowCursor(new[] { idv.Schema[columnIndex] }))
+                using (var cursor = idv.GetRowCursor(new[] { column }))
                 {
-                    var getter = cursor.GetGetter<VBuffer<ReadOnlyMemory<char>>>(columnIndex);
+                    var getter = cursor.GetGetter<VBuffer<ReadOnlyMemory<char>>>(column);
 
                     VBuffer<ReadOnlyMemory<char>> line = default;
                     while (cursor.MoveNext())

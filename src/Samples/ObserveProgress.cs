@@ -4,7 +4,6 @@
 
 using System;
 using System.IO;
-using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.Auto;
 using Microsoft.ML.Data;
@@ -83,7 +82,7 @@ namespace Samples
     {
         public static void PrintRegressionMetrics(int iteration, string trainerName, RegressionMetrics metrics)
         {
-            Console.WriteLine($"{iteration,-3}{trainerName,-35}{metrics.RSquared,-10:0.###}{metrics.LossFn,-8:0.##}{metrics.L1,-15:#.##}{metrics.L2,-15:#.##}{metrics.Rms,-10:#.##}");
+            Console.WriteLine($"{iteration,-3}{trainerName,-35}{metrics.RSquared,-10:0.###}{metrics.LossFunction,-8:0.##}{metrics.MeanAbsoluteError,-15:#.##}{metrics.MeanSquaredError,-15:#.##}{metrics.RootMeanSquaredError,-10:#.##}");
         }
 
         public static void PrintRegressionMetricsHeader()

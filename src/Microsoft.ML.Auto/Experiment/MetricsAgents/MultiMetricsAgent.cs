@@ -6,7 +6,7 @@ using Microsoft.ML.Data;
 
 namespace Microsoft.ML.Auto
 {
-    internal class MultiMetricsAgent : IMetricsAgent<MultiClassClassifierMetrics>
+    internal class MultiMetricsAgent : IMetricsAgent<MulticlassClassificationMetrics>
     {
         private readonly MulticlassClassificationMetric _optimizingMetric;
 
@@ -15,7 +15,7 @@ namespace Microsoft.ML.Auto
             this._optimizingMetric = optimizingMetric;
         }
 
-        public double GetScore(MultiClassClassifierMetrics metrics)
+        public double GetScore(MulticlassClassificationMetrics metrics)
         {
             if (metrics == null)
             {
@@ -25,9 +25,9 @@ namespace Microsoft.ML.Auto
             switch (_optimizingMetric)
             {
                 case MulticlassClassificationMetric.MacroAccuracy:
-                    return metrics.AccuracyMacro;
+                    return metrics.MacroAccuracy;
                 case MulticlassClassificationMetric.MicroAccuracy:
-                    return metrics.AccuracyMicro;
+                    return metrics.MicroAccuracy;
                 case MulticlassClassificationMetric.LogLoss:
                     return metrics.LogLoss;
                 case MulticlassClassificationMetric.LogLossReduction:
@@ -39,7 +39,7 @@ namespace Microsoft.ML.Auto
             }
         }
 
-        public bool IsModelPerfect(MultiClassClassifierMetrics metrics)
+        public bool IsModelPerfect(MulticlassClassificationMetrics metrics)
         {
             if (metrics == null)
             {
@@ -49,9 +49,9 @@ namespace Microsoft.ML.Auto
             switch (_optimizingMetric)
             {
                 case MulticlassClassificationMetric.MacroAccuracy:
-                    return metrics.AccuracyMacro == 1;
+                    return metrics.MacroAccuracy == 1;
                 case MulticlassClassificationMetric.MicroAccuracy:
-                    return metrics.AccuracyMicro == 1;
+                    return metrics.MicroAccuracy == 1;
                 case MulticlassClassificationMetric.LogLoss:
                     return metrics.LogLoss == 0;
                 case MulticlassClassificationMetric.LogLossReduction:

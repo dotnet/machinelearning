@@ -15,7 +15,7 @@ namespace Microsoft.ML.Auto.Test
             var columnInfo = new ColumnInformation()
             {
                 LabelColumn = "Label",
-                WeightColumn = "Weight",
+                ExampleWeightColumn = "Weight",
                 SamplingKeyColumn = "SamplingKey",
             };
             columnInfo.CategoricalColumns.Add("Cat");

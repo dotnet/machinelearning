@@ -7,8 +7,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Text;
-using Microsoft.Data.DataView;
 
 namespace Microsoft.ML.Auto
 {
@@ -25,6 +23,7 @@ namespace Microsoft.ML.Auto
         private readonly IMetricsAgent<T> _metricsAgent;
         private readonly IEnumerable<TrainerName> _trainerWhitelist;
         private readonly DirectoryInfo _modelDirectory;
+        private readonly DataViewSchema _trainDataOriginalSchema;
 
         private IDataView _trainData;
         private IDataView _validationData;
@@ -50,6 +49,7 @@ namespace Microsoft.ML.Auto
             }
             _trainData = trainData;
             _validationData = validationData;
+            _trainDataOriginalSchema = _trainData.Schema;
 
             _history = new List<SuggestedPipelineResult<T>>();
             _columnInfo = columnInfo;
@@ -203,7 +203,7 @@ namespace Microsoft.ML.Auto
                 var modelFileInfo = GetNextModelFileInfo();
                 var modelContainer = modelFileInfo == null ?
                     new ModelContainer(_context, model) :
-                    new ModelContainer(_context, modelFileInfo, model);
+                    new ModelContainer(_context, modelFileInfo, model, _trainDataOriginalSchema);
 
                 runResult = new SuggestedPipelineResult<T>(metrics, estimator, modelContainer, pipeline, score, null);
             }
@@ -225,11 +225,11 @@ namespace Microsoft.ML.Auto
             switch(_task)
             {
                 case TaskKind.BinaryClassification:
-                    return _context.BinaryClassification.EvaluateNonCalibrated(scoredData, label: _columnInfo.LabelColumn) as T;
+                    return _context.BinaryClassification.EvaluateNonCalibrated(scoredData, labelColumnName: _columnInfo.LabelColumn) as T;
                 case TaskKind.MulticlassClassification:
-                    return _context.MulticlassClassification.Evaluate(scoredData, label: _columnInfo.LabelColumn) as T;
+                    return _context.MulticlassClassification.Evaluate(scoredData, labelColumnName: _columnInfo.LabelColumn) as T;
                 case TaskKind.Regression:
-                    return _context.Regression.Evaluate(scoredData, label: _columnInfo.LabelColumn) as T;
+                    return _context.Regression.Evaluate(scoredData, labelColumnName: _columnInfo.LabelColumn) as T;
                 // should not be possible to reach here
                 default:
                     throw new InvalidOperationException($"unsupported machine learning task type {_task}");

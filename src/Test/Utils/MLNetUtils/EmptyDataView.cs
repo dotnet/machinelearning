@@ -4,7 +4,8 @@
 
 using System;
 using System.Collections.Generic;
-using Microsoft.Data.DataView;
+using Microsoft.ML.Data;
+using Microsoft.ML.Runtime;
 
 namespace Microsoft.ML.Auto.Test
 {
@@ -59,11 +60,20 @@ namespace Microsoft.ML.Auto.Test
 
             protected override bool MoveNextCore() => false;
 
-            public override bool IsColumnActive(int col) => 0 <= col && col < _active.Length && _active[col];
+            /// <summary>
+            /// Returns whether the given column is active in this row.
+            /// </summary>
+            public override bool IsColumnActive(DataViewSchema.Column column) => column.Index < _active.Length && _active[column.Index];
 
-            public override ValueGetter<TValue> GetGetter<TValue>(int col)
+            /// <summary>
+            /// Returns a value getter delegate to fetch the value of column with the given columnIndex, from the row.
+            /// This throws if the column is not active in this row, or if the type
+            /// <typeparamref name="TValue"/> differs from this column's type.
+            /// </summary>
+            /// <typeparam name="TValue"> is the column's content type.</typeparam>
+            /// <param name="column"> is the output column whose getter should be returned.</param>
+            public override ValueGetter<TValue> GetGetter<TValue>(DataViewSchema.Column column)
             {
-                Ch.Check(IsColumnActive(col), "Cannot get getter for inactive column");
                 return (ref TValue value) => throw Ch.Except(RowCursorUtils.FetchValueStateError);
             }
         }

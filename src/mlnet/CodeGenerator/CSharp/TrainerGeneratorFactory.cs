@@ -42,25 +42,25 @@ namespace Microsoft.ML.CLI.CodeGenerator.CSharp
                         return new FastTreeTweedie(node);
                     case TrainerName.LinearSvmBinary:
                         return new LinearSvm(node);
-                    case TrainerName.LogisticRegressionBinary:
+                    case TrainerName.LbfgsLogisticRegressionBinary:
                         return new LogisticRegressionBinary(node);
-                    case TrainerName.LogisticRegressionMulti:
+                    case TrainerName.LbfgsMaximumEntropyMulti:
                         return new LogisticRegressionMulti(node);
                     case TrainerName.OnlineGradientDescentRegression:
                         return new OnlineGradientDescentRegression(node);
-                    case TrainerName.OrdinaryLeastSquaresRegression:
+                    case TrainerName.OlsRegression:
                         return new OrdinaryLeastSquaresRegression(node);
-                    case TrainerName.PoissonRegression:
+                    case TrainerName.LbfgsPoissonRegression:
                         return new PoissonRegression(node);
-                    case TrainerName.SdcaBinary:
+                    case TrainerName.SdcaLogisticRegressionBinary:
                         return new StochasticDualCoordinateAscentBinary(node);
-                    case TrainerName.SdcaMulti:
+                    case TrainerName.SdcaMaximumEntropyMulti:
                         return new StochasticDualCoordinateAscentMulti(node);
                     case TrainerName.SdcaRegression:
                         return new StochasticDualCoordinateAscentRegression(node);
-                    case TrainerName.StochasticGradientDescentBinary:
+                    case TrainerName.SgdCalibratedBinary:
                         return new StochasticGradientDescentClassification(node);
-                    case TrainerName.SymSgdBinary:
+                    case TrainerName.SymbolicSgdLogisticRegressionBinary:
                         return new SymbolicStochasticGradientDescent(node);
                     case TrainerName.Ova:
                         return new OneVersusAll(node);
