@@ -1,4 +1,6 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
+using System.Linq;
 using Microsoft.ML.Data;
 
 namespace Microsoft.ML.Samples.Dynamic
@@ -38,24 +40,41 @@ namespace Microsoft.ML.Samples.Dynamic
             var imagesFolder = Path.GetDirectoryName(imagesDataFile);
             // Image loading pipeline. 
             var pipeline = mlContext.Transforms.LoadImages("ImageObject", imagesFolder, "ImagePath")
-                          .Append(mlContext.Transforms.ResizeImages("ImageObject", imageWidth: 100, imageHeight: 100 ))
-                          .Append(mlContext.Transforms.ExtractPixels("Pixels", "ImageObject"));
-
+                          .Append(mlContext.Transforms.ResizeImages("ImageObjectResized", inputColumnName: "ImageObject", imageWidth: 100, imageHeight: 100))
+                          .Append(mlContext.Transforms.ExtractPixels("Pixels", "ImageObjectResized"));
 
             var transformedData = pipeline.Fit(data).Transform(data);
 
-            // The transformedData IDataView contains the loaded images now
-            //Preview of the transformedData
+            // Preview the transformedData. 
             var transformedDataPreview = transformedData.Preview();
+            PrintPreview(transformedDataPreview);
+            // ImagePath    Name         ImageObject            ImageObjectResized      Pixels
+            // tomato.bmp   tomato       System.Drawing.Bitmap  System.Drawing.Bitmap   255,255,255,255,255...
+            // banana.jpg   banana       System.Drawing.Bitmap  System.Drawing.Bitmap   255,255,255,255,255...
+            // hotdog.jpg   hotdog       System.Drawing.Bitmap  System.Drawing.Bitmap   255,255,255,255,255...
+            // tomato.jpg   tomato       System.Drawing.Bitmap  System.Drawing.Bitmap   255,255,255,255,255...
+        }
 
-            // Preview of the content of the images.tsv file
-            //
-            // ImagePath    Name        ImageObject                 "Pixels"
-            // tomato.bmp   tomato      {System.Drawing.Bitmap}     [ 255, 255, 255, ..... 232, 243, 226, ...
-            // banana.jpg   banana      {System.Drawing.Bitmap}     [ 255, 255, 255, ..... 90,  54,  43, ...
-            // hotdog.jpg   hotdog      {System.Drawing.Bitmap}     [ 255, 255, 255, ..... 132, 143, 126, ...
-            // tomato.jpg   tomato      {System.Drawing.Bitmap}     [ 255, 255, 255, ..... 16,  21,  23, ...
+        private static void PrintPreview(DataDebuggerPreview data)
+        {
+            foreach (var colInfo in data.ColumnView)
+                Console.Write("{0,-25}", colInfo.Column.Name);
 
+            Console.WriteLine();
+            foreach (var row in data.RowView)
+            {
+                foreach (var kvPair in row.Values)
+                {
+                    if (kvPair.Key == "Pixels")
+                    {
+                        var pixels = ((VBuffer<float>)kvPair.Value).DenseValues().Take(5);
+                        Console.Write("{0}...", string.Join(",", pixels));
+                    }
+                    else
+                        Console.Write("{0,-25}", kvPair.Value);
+                }
+                Console.WriteLine();
+            }
         }
     }
 }
