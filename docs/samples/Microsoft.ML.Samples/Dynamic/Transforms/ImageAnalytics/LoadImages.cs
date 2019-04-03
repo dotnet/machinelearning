@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using Microsoft.ML.Data;
 
 namespace Microsoft.ML.Samples.Dynamic
@@ -36,22 +37,33 @@ namespace Microsoft.ML.Samples.Dynamic
 
             var imagesFolder = Path.GetDirectoryName(imagesDataFile);
             // Image loading pipeline. 
-            var pipeline = mlContext.Transforms.LoadImages("ImageReal", imagesFolder, "ImagePath");
+            var pipeline = mlContext.Transforms.LoadImages("ImageObject", imagesFolder, "ImagePath");
+
             var transformedData = pipeline.Fit(data).Transform(data);
+            // The transformedData IDataView contains the loaded images now.
 
-            // The transformedData IDataView contains the loaded images now
-            //Preview of the transformedData
+            // Preview the transformedData. 
             var transformedDataPreview = transformedData.Preview();
+            PrintPreview(transformedDataPreview);
+            // ImagePath    Name         ImageObject           
+            // tomato.bmp   tomato       System.Drawing.Bitmap
+            // banana.jpg   banana       System.Drawing.Bitmap
+            // hotdog.jpg   hotdog       System.Drawing.Bitmap
+            // tomato.jpg   tomato       System.Drawing.Bitmap
+        }
 
-            // Preview of the content of the images.tsv file
-            // The actual images, in the ImageReal column are of type System.Drawing.Bitmap.
-            //
-            // ImagePath    Name        ImageReal
-            // tomato.bmp   tomato      {System.Drawing.Bitmap}
-            // banana.jpg   banana      {System.Drawing.Bitmap}
-            // hotdog.jpg   hotdog      {System.Drawing.Bitmap}
-            // tomato.jpg   tomato      {System.Drawing.Bitmap}
+        private static void PrintPreview(DataDebuggerPreview data)
+        {
+            foreach (var colInfo in data.ColumnView)
+                Console.Write("{0,-25}", colInfo.Column.Name);
 
+            Console.WriteLine();
+            foreach (var row in data.RowView)
+            {
+                foreach (var kvPair in row.Values)
+                    Console.Write("{0,-25}", kvPair.Value);
+                Console.WriteLine();
+            }
         }
     }
 }
