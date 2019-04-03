@@ -15,6 +15,7 @@ namespace micro
     {
         private MLContext _context;
         private ITransformer _trainedModel;
+        private ITransformer _trainedModelOldFormat;
 
         [GlobalSetup]
         public void Setup()
@@ -37,6 +38,8 @@ namespace micro
 
             // Load model.
             _trainedModel = _context.Model.Load(modelPath, out var inputSchema);
+
+            _trainedModelOldFormat = _context.Model.Load(BaseTestClass.GetDataPath("backcompat", "SentimentModel.zip"), out inputSchema);
         }
 
         [Benchmark]
@@ -44,6 +47,11 @@ namespace micro
         {
             return _context.Model.CreatePredictionEngine<SentimentData, SentimentPrediction>(_trainedModel);
         }
-    }
 
+        [Benchmark]
+        public PredictionEngine<SentimentData, SentimentPrediction> CreatePredictionEngineFromOldFormat()
+        {
+            return _context.Model.CreatePredictionEngine<SentimentData, SentimentPrediction>(_trainedModelOldFormat);
+        }
+    }
 }

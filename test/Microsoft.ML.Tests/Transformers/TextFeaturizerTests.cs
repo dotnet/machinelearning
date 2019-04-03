@@ -4,6 +4,7 @@
 
 using System;
 using System.IO;
+using System.Linq;
 using System.Text.RegularExpressions;
 using Microsoft.ML;
 using Microsoft.ML.Data;
@@ -643,6 +644,19 @@ namespace Microsoft.ML.Tests.Transformers
         public void TestLdaCommandLine()
         {
             Assert.Equal(Maml.Main(new[] { @"showschema loader=Text{col=A:R4:0-10} xf=lda{col=B:A} in=f:\2.txt" }), (int)0);
+        }
+
+        [Fact]
+        public void TestTextFeaturizerBackCompat()
+        {
+            var modelPath = GetDataPath("backcompat", "SentimentModel.zip");
+            var model = ML.Model.Load(modelPath, out var inputSchema);
+            var outputSchema = model.GetOutputSchema(inputSchema);
+            Assert.Contains("SentimentText", outputSchema.Select(col => col.Name));
+            Assert.Contains("Label", outputSchema.Select(col => col.Name));
+            Assert.Contains("Features", outputSchema.Select(col => col.Name));
+            Assert.Contains("PredictedLabel", outputSchema.Select(col => col.Name));
+            Assert.Contains("Score", outputSchema.Select(col => col.Name));
         }
     }
 }

@@ -4,12 +4,12 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
-using Microsoft.ML.Data.IO;
 using Microsoft.ML.Internal.Internallearn;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Runtime;
@@ -702,9 +702,30 @@ namespace Microsoft.ML.Transforms.Text
                     for (int i = 0; i < n; i++)
                     {
                         var dirName = string.Format(TransformDirTemplate, i);
-                        ctx.LoadModel<IDataTransform, SignatureLoadDataTransform>(env, out var xf, dirName, data);
-                        data = xf;
-                        ITransformer transformer = new TransformWrapper(_host, xf);
+                        ITransformer transformer;
+                        // Try to load as an ITransformer.
+                        try
+                        {
+                            ctx.LoadModelOrNull<ITransformer, SignatureLoadModel>(env, out transformer, dirName);
+                        }
+                        catch
+                        {
+                            transformer = null;
+                        }
+
+                        // If that didn't work, this should be a RowToRowMapperTransform with a "Mapper" folder in it containing an ITransformer.
+                        var mapperDirName = Path.Combine(dirName, "Mapper");
+                        if (transformer == null && ctx.ContainsModel(mapperDirName))
+                            ctx.LoadModelOrNull<ITransformer, SignatureLoadModel>(env, out transformer, mapperDirName);
+
+                        if (transformer != null)
+                            data = transformer.Transform(data);
+                        else
+                        {
+                            ctx.LoadModel<IDataTransform, SignatureLoadDataTransform>(env, out var xf, dirName, data);
+                            data = xf;
+                            transformer = new TransformWrapper(_host, xf);
+                        }
                         _chain = _chain.Append(transformer);
                     }
                 }
