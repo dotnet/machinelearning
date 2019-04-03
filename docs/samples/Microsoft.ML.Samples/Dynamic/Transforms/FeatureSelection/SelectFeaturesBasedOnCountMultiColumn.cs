@@ -4,7 +4,7 @@ using Microsoft.ML.Data;
 
 namespace Microsoft.ML.Samples.Dynamic
 {
-    public static class SelectFeaturesBasedOnCount
+    public static class SelectFeaturesBasedOnCountMultiColumn
     {
         public static void Example()
         {
@@ -23,23 +23,34 @@ namespace Microsoft.ML.Samples.Dynamic
             // 4       5       6
             // 4       NaN     NaN
 
+            Console.WriteLine("Contents of column 'GroupC'");
+            PrintDataColumn(data, "GroupC");
+            // NaN     8       9
+            // NaN     8       9
+            // NaN     8       9
+            // 7       8       9
+
             // Second, we define the transformations that we apply on the data. Remember that an Estimator does not transform data
             // directly, but it needs to be trained on data using .Fit(), and it will output a Transformer, which can transform data.
 
             // We will use the SelectFeaturesBasedOnCount transform estimator, to retain only those slots which have 
             // at least 'count' non-default values per slot.
-            var pipeline = mlContext.Transforms.FeatureSelection.SelectFeaturesBasedOnCount(
-                outputColumnName: "FeaturesSelectedGroupB", inputColumnName: "GroupB", count: 3);
 
-            // The pipeline can then be trained, using .Fit(), and the resulting transformer can be used to transform data. 
+            // Multi column example : This pipeline uses two columns for transformation
+            var pipeline = mlContext.Transforms.FeatureSelection.SelectFeaturesBasedOnCount(
+                new InputOutputColumnPair[] { new InputOutputColumnPair("GroupB"), new InputOutputColumnPair("GroupC") },
+                count: 3);
+
             var transformedData = pipeline.Fit(data).Transform(data);
 
-            Console.WriteLine("Contents of column 'FeaturesSelectedGroupB'");
-            PrintDataColumn(transformedData, "FeaturesSelectedGroupB");
-            // 4       6
-            // 4       6
-            // 4       6
-            // 4       NaN
+            var convertedData = mlContext.Data.CreateEnumerable<TransformedData>(transformedData, true);
+            Console.WriteLine("Contents of two columns 'GroupB' and 'GroupC'.");
+            foreach (var item in convertedData)
+                Console.WriteLine("{0}\t\t{1}", string.Join(" ", item.GroupB), string.Join(" ", item.GroupC));
+            // 4 6             8 9
+            // 4 6             8 9
+            // 4 6             8 9
+            // 4 NaN           8 9
         }
 
         private static void PrintDataColumn(IDataView transformedData, string columnName)
@@ -52,6 +63,13 @@ namespace Microsoft.ML.Samples.Dynamic
                     Console.Write($"{row[i]}\t");
                 Console.WriteLine();
             }
+        }
+
+        private class TransformedData
+        {
+            public float[] GroupB { get; set; }
+
+            public float[] GroupC { get; set; }
         }
 
         public class NumericData
@@ -80,21 +98,21 @@ namespace Microsoft.ML.Samples.Dynamic
                     Label = true,
                     GroupA = new float[] { 1, 2, 3 },
                     GroupB = new float[] { 4, float.NaN, 6 },
-                    GroupC = new float[] { 7, 8, 9 },
+                    GroupC = new float[] { float.NaN, 8, 9 },
                 },
                 new NumericData
                 {
                     Label = false,
                     GroupA = new float[] { 1, 2, 3 },
                     GroupB = new float[] { 4, 5, 6 },
-                    GroupC = new float[] { 7, 8, 9 },
+                    GroupC = new float[] { float.NaN, 8, 9 },
                 },
                 new NumericData
                 {
                     Label = true,
                     GroupA = new float[] { 1, 2, 3 },
                     GroupB = new float[] { 4, 5, 6 },
-                    GroupC = new float[] { 7, 8, 9 },
+                    GroupC = new float[] { float.NaN, 8, 9 },
                 },
                 new NumericData
                 {

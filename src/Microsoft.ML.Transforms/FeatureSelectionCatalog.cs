@@ -24,7 +24,7 @@ namespace Microsoft.ML
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
-        /// [!code-csharp[SelectFeaturesBasedOnMutualInformation](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/SelectFeaturesBasedOnMutualInformation.cs)]
+        /// [!code-csharp[SelectFeaturesBasedOnMutualInformation](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/FeatureSelection/SelectFeaturesBasedOnMutualInformation.cs)]
         /// ]]>
         /// </format>
         /// </example>
@@ -44,7 +44,7 @@ namespace Microsoft.ML
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
-        /// [!code-csharp[SelectFeaturesBasedOnMutualInformation](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/SelectFeaturesBasedOnMutualInformation.cs)]
+        /// [!code-csharp[SelectFeaturesBasedOnMutualInformation](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/FeatureSelection/SelectFeaturesBasedOnMutualInformationMultiColumn.cs)]
         /// ]]>
         /// </format>
         /// </example>
@@ -76,7 +76,7 @@ namespace Microsoft.ML
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
-        /// [!code-csharp[SelectFeaturesBasedOnCount](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/SelectFeaturesBasedOnCount.cs)]
+        /// [!code-csharp[SelectFeaturesBasedOnCount](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/FeatureSelection/SelectFeaturesBasedOnCount.cs)]
         /// ]]>
         /// </format>
         /// </example>
@@ -93,7 +93,7 @@ namespace Microsoft.ML
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
-        /// [!code-csharp[SelectFeaturesBasedOnCount](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/SelectFeaturesBasedOnCount.cs)]
+        /// [!code-csharp[SelectFeaturesBasedOnCount](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/FeatureSelection/SelectFeaturesBasedOnCountMultiColumn.cs)]
         /// ]]>
         /// </format>
         /// </example>
