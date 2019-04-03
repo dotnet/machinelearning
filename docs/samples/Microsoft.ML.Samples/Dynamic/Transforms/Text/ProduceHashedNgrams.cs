@@ -33,10 +33,14 @@ namespace Microsoft.ML.Samples.Dynamic
             var textPipeline = mlContext.Transforms.Text.TokenizeIntoWords("Tokens", "Text")
                 .Append(mlContext.Transforms.Conversion.MapValueToKey("Tokens"))
                 .Append(mlContext.Transforms.Text.ProduceHashedNgrams("NgramFeatures", "Tokens", 
-                        numberOfBits: 5, ngramLength: 3, useAllLengths: false));
+                        numberOfBits: 5,
+                        ngramLength: 3,
+                        useAllLengths: false,
+                        maximumNumberOfInverts: 1));
             
             // Fit to data.
             var textTransformer = textPipeline.Fit(dataview);
+            var transformedDataView = textTransformer.Transform(dataview);
 
             // Create the prediction engine to get the features extracted from the text.
             var predictionEngine = mlContext.Model.CreatePredictionEngine<TextData, TransformedTextData>(textTransformer);
@@ -47,6 +51,21 @@ namespace Microsoft.ML.Samples.Dynamic
             // Print the length of the feature vector.
             Console.WriteLine($"Number of Features: {prediction.NgramFeatures.Length}");
 
+            // Preview of the produced Ngrams.
+            // Get the slot names from the column's metadata.
+            // If the column is a vector column the slot names corresponds to the names associated with each position in the vector.
+            VBuffer<ReadOnlyMemory<char>> slotNames = default;
+            transformedDataView.Schema["NgramFeatures"].GetSlotNames(ref slotNames);
+            var NgramFeaturesColumn = transformedDataView.GetColumn<VBuffer<float>>(transformedDataView.Schema["NgramFeatures"]);
+            var slots = slotNames.GetValues();
+            Console.Write("Ngrams: ");
+            foreach (var featureRow in NgramFeaturesColumn)
+            {
+                foreach (var item in featureRow.Items())
+                    Console.Write($"{slots[item.Key]}  ");
+                Console.WriteLine();
+            }
+
             // Print the first 10 feature values.
             Console.Write("Features: ");
             for (int i = 0; i < 10; i++)
@@ -54,7 +73,8 @@ namespace Microsoft.ML.Samples.Dynamic
 
             //  Expected output:
             //   Number of Features:  32
-            //   Features:  0.0000  0.0000  2.0000  0.0000  0.0000  1.0000  0.0000  0.0000  1.0000  0.0000
+            //   Ngrams:   This|is|an  example|to|compute  compute|Ngrams|using  Ngrams|using|hashing.  an|example|to  is|an|example  a|sequence|of  of|'N'|consecutive  is|a|sequence  Ngram|is|a  ...
+            //   Features:   0.0000          0.0000               2.0000               0.0000               0.0000        1.0000          0.0000        0.0000              1.0000          0.0000  ...
         }
 
         public class TextData
