@@ -1,7 +1,6 @@
-﻿using Microsoft.ML.Data;
-using Microsoft.ML.SamplesUtils;
+﻿using Microsoft.ML.SamplesUtils;
 
-namespace Microsoft.ML.Samples.Dynamic.Trainers.MulticlassClassification
+namespace Microsoft.ML.Samples.Dynamic
 {
     public static class StochasticDualCoordinateAscent
     {
