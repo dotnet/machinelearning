@@ -317,10 +317,10 @@ namespace Microsoft.ML.Auto
         /// <summary>
         /// Automatically infer transforms for the data view
         /// </summary>
-        public static SuggestedTransform[] InferTransforms(MLContext context, TaskKind task, (string, DataViewType, ColumnPurpose, ColumnDimensions)[] columns)
+        public static SuggestedTransform[] InferTransforms(MLContext context, TaskKind task, DatasetColumnInfo[] columns)
         {
-            var intermediateCols = columns.Where(c => c.Item3 != ColumnPurpose.Ignore)
-                .Select(c => new IntermediateColumn(c.Item1, c.Item2, c.Item3, c.Item4))
+            var intermediateCols = columns.Where(c => c.Purpose != ColumnPurpose.Ignore)
+                .Select(c => new IntermediateColumn(c.Name, c.Type, c.Purpose, c.Dimensions))
                 .ToArray();
 
             var suggestedTransforms = new List<SuggestedTransform>();

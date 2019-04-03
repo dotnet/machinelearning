@@ -14,7 +14,6 @@ namespace Microsoft.ML.Auto
         public BinaryClassificationMetric OptimizingMetric { get; set; } = BinaryClassificationMetric.Accuracy;
         public ICollection<BinaryClassificationTrainer> Trainers { get; } =
                     Enum.GetValues(typeof(BinaryClassificationTrainer)).OfType<BinaryClassificationTrainer>().ToList();
-        public IProgress<RunResult<BinaryClassificationMetrics>> ProgressHandler { get; set; }
     }
 
     public enum BinaryClassificationMetric
@@ -42,74 +41,33 @@ namespace Microsoft.ML.Auto
         SymbolicSgdLogisticRegression,
     }
 
-    public sealed class BinaryClassificationExperiment
+    public sealed class BinaryClassificationExperiment : ExperimentBase<BinaryClassificationMetrics>
     {
-        private readonly MLContext _context;
-        private readonly BinaryExperimentSettings _settings;
-
         internal BinaryClassificationExperiment(MLContext context, BinaryExperimentSettings settings)
+            : base(context,
+                  new BinaryMetricsAgent(context, settings.OptimizingMetric),
+                  new OptimizingMetricInfo(settings.OptimizingMetric),
+                  settings,
+                  TaskKind.BinaryClassification,
+                  TrainerExtensionUtil.GetTrainerNames(settings.Trainers))
         {
-            _context = context;
-            _settings = settings;
-        }
-
-        public IEnumerable<RunResult<BinaryClassificationMetrics>> Execute(IDataView trainData, string labelColumn = DefaultColumnNames.Label,
-            string samplingKeyColumn = null, IEstimator<ITransformer> preFeaturizers = null)
-        {
-            var columnInformation = new ColumnInformation()
-            {
-                LabelColumn = labelColumn,
-                SamplingKeyColumn = samplingKeyColumn
-            };
-            return Execute(_context, trainData, columnInformation, null, preFeaturizers);
-        }
-
-        public IEnumerable<RunResult<BinaryClassificationMetrics>> Execute(IDataView trainData, ColumnInformation columnInformation, IEstimator<ITransformer> preFeaturizers = null)
-        {
-            return Execute(_context, trainData, columnInformation, null, preFeaturizers);
-        }
-
-        public IEnumerable<RunResult<BinaryClassificationMetrics>> Execute(IDataView trainData, IDataView validationData, string labelColumn = DefaultColumnNames.Label, IEstimator<ITransformer> preFeaturizers = null)
-        {
-            var columnInformation = new ColumnInformation() { LabelColumn = labelColumn };
-            return Execute(_context, trainData, columnInformation, validationData, preFeaturizers);
-        }
-
-        public IEnumerable<RunResult<BinaryClassificationMetrics>> Execute(IDataView trainData, IDataView validationData, ColumnInformation columnInformation, IEstimator<ITransformer> preFeaturizers = null)
-        {
-            return Execute(_context, trainData, columnInformation, validationData, preFeaturizers);
-        }
-
-        internal IEnumerable<RunResult<BinaryClassificationMetrics>> Execute(IDataView trainData, uint numberOfCVFolds, ColumnInformation columnInformation = null, IEstimator<ITransformer> preFeaturizers = null)
-        {
-            throw new NotImplementedException();
-        }
-
-        internal IEnumerable<RunResult<BinaryClassificationMetrics>> Execute(MLContext context,
-            IDataView trainData,
-            ColumnInformation columnInfo,
-            IDataView validationData = null,
-            IEstimator<ITransformer> preFeaturizers = null)
-        {
-            columnInfo = columnInfo ?? new ColumnInformation();
-            UserInputValidationUtil.ValidateExperimentExecuteArgs(trainData, columnInfo, validationData);
-
-            // run autofit & get all pipelines run in that process
-            var experiment = new Experiment<BinaryClassificationMetrics>(context, TaskKind.BinaryClassification, trainData, columnInfo, 
-                validationData, preFeaturizers, new OptimizingMetricInfo(_settings.OptimizingMetric), _settings.ProgressHandler, 
-                _settings, new BinaryMetricsAgent(_settings.OptimizingMetric), 
-                TrainerExtensionUtil.GetTrainerNames(_settings.Trainers));
-
-            return experiment.Execute();
         }
     }
 
     public static class BinaryExperimentResultExtensions
     {
-        public static RunResult<BinaryClassificationMetrics> Best(this IEnumerable<RunResult<BinaryClassificationMetrics>> results, BinaryClassificationMetric metric = BinaryClassificationMetric.Accuracy)
+        public static RunDetails<BinaryClassificationMetrics> Best(this IEnumerable<RunDetails<BinaryClassificationMetrics>> results, BinaryClassificationMetric metric = BinaryClassificationMetric.Accuracy)
         {
-            var metricsAgent = new BinaryMetricsAgent(metric);
-            return RunResultUtil.GetBestRunResult(results, metricsAgent);
+            var metricsAgent = new BinaryMetricsAgent(null, metric);
+            var isMetricMaximizing = new OptimizingMetricInfo(metric).IsMaximizing;
+            return BestResultUtil.GetBestRun(results, metricsAgent, isMetricMaximizing);
+        }
+
+        public static CrossValidationRunDetails<BinaryClassificationMetrics> Best(this IEnumerable<CrossValidationRunDetails<BinaryClassificationMetrics>> results, BinaryClassificationMetric metric = BinaryClassificationMetric.Accuracy)
+        {
+            var metricsAgent = new BinaryMetricsAgent(null, metric);
+            var isMetricMaximizing = new OptimizingMetricInfo(metric).IsMaximizing;
+            return BestResultUtil.GetBestRun(results, metricsAgent, isMetricMaximizing);
         }
     }
 }

@@ -18,14 +18,14 @@ namespace Microsoft.ML.Auto
         /// (Please note: for an experiment with high runtime operating on a large dataset, opting to keep models in 
         /// memory could cause a system to run out of memory.)
         /// </summary>
-        public DirectoryInfo ModelDirectory { get; set; } = new DirectoryInfo(Path.Combine(Path.GetTempPath(), "Microsoft.ML.Auto"));
+        public DirectoryInfo CacheDirectory { get; set; } = new DirectoryInfo(Path.Combine(Path.GetTempPath(), "Microsoft.ML.Auto"));
 
         /// <summary>
         /// This setting controls whether or not an AutoML experiment will make use of ML.NET-provided caching.
         /// If set to true, caching will be forced on for all pipelines. If set to false, caching will be forced off.
         /// If set to null (default value), AutoML will decide whether to enable caching for each model.
         /// </summary>
-        public bool? EnableCaching = null;
+        public bool? CacheBeforeTrainer = null;
 
         internal int MaxModels = int.MaxValue;
         internal IDebugLogger DebugLogger;

@@ -58,11 +58,11 @@ namespace Samples
                     MaxExperimentTimeInSeconds = 3600,
                     CancellationToken = cts.Token
                 });
-            IEnumerable<RunResult<RegressionMetrics>> runResults = new List<RunResult<RegressionMetrics>>();
+            IEnumerable<RunDetails<RegressionMetrics>> runDetails = new List<RunDetails<RegressionMetrics>>();
             Console.WriteLine($"Running AutoML experiment...");
             Task experimentTask = Task.Run(() =>
                 {
-                    runResults = experiment.Execute(trainDataView, LabelColumn);
+                    runDetails = experiment.Execute(trainDataView, LabelColumn);
                 });
 
             // STEP 4: Stop the experiment run after any key is pressed
@@ -71,7 +71,7 @@ namespace Samples
             cts.Cancel();
             experimentTask.Wait();
 
-            Console.WriteLine($"{runResults.Count()} models were returned after {stopwatch.Elapsed.TotalSeconds:0.00} seconds");
+            Console.WriteLine($"{runDetails.Count()} models were returned after {stopwatch.Elapsed.TotalSeconds:0.00} seconds");
 
             Console.WriteLine("Press any key to continue...");
             Console.ReadKey();

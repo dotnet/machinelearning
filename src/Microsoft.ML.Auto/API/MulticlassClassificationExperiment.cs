@@ -14,7 +14,6 @@ namespace Microsoft.ML.Auto
         public MulticlassClassificationMetric OptimizingMetric { get; set; } = MulticlassClassificationMetric.MicroAccuracy;
         public ICollection<MulticlassClassificationTrainer> Trainers { get; } =
             Enum.GetValues(typeof(MulticlassClassificationTrainer)).OfType<MulticlassClassificationTrainer>().ToList();
-        public IProgress<RunResult<MulticlassClassificationMetrics>> ProgressHandler { get; set; }
     }
 
     public enum MulticlassClassificationMetric
@@ -40,74 +39,33 @@ namespace Microsoft.ML.Auto
         SymbolicSgdLogisticRegressionOVA,
     }
 
-    public sealed class MulticlassClassificationExperiment
+    public sealed class MulticlassClassificationExperiment : ExperimentBase<MulticlassClassificationMetrics>
     {
-        private readonly MLContext _context;
-        private readonly MulticlassExperimentSettings _settings;
-
         internal MulticlassClassificationExperiment(MLContext context, MulticlassExperimentSettings settings)
+            : base(context,
+                  new MultiMetricsAgent(context, settings.OptimizingMetric),
+                  new OptimizingMetricInfo(settings.OptimizingMetric),
+                  settings,
+                  TaskKind.MulticlassClassification,
+                  TrainerExtensionUtil.GetTrainerNames(settings.Trainers))
         {
-            _context = context;
-            _settings = settings;
-        }
-
-        public IEnumerable<RunResult<MulticlassClassificationMetrics>> Execute(IDataView trainData, string labelColumn = DefaultColumnNames.Label,
-            string samplingKeyColumn = null, IEstimator<ITransformer> preFeaturizers = null)
-        {
-            var columnInformation = new ColumnInformation()
-            {
-                LabelColumn = labelColumn,
-                SamplingKeyColumn = samplingKeyColumn
-            };
-            return Execute(_context, trainData, columnInformation, null, preFeaturizers);
-        }
-
-        public IEnumerable<RunResult<MulticlassClassificationMetrics>> Execute(IDataView trainData, ColumnInformation columnInformation, IEstimator<ITransformer> preFeaturizers = null)
-        {
-            return Execute(_context, trainData, columnInformation, null, preFeaturizers);
-        }
-
-        public IEnumerable<RunResult<MulticlassClassificationMetrics>> Execute(IDataView trainData, IDataView validationData, string labelColumn = DefaultColumnNames.Label, IEstimator<ITransformer> preFeaturizers = null)
-        {
-            var columnInformation = new ColumnInformation() { LabelColumn = labelColumn };
-            return Execute(_context, trainData, columnInformation, validationData, preFeaturizers);
-        }
-
-        public IEnumerable<RunResult<MulticlassClassificationMetrics>> Execute(IDataView trainData, IDataView validationData, ColumnInformation columnInformation, IEstimator<ITransformer> preFeaturizers = null)
-        {
-            return Execute(_context, trainData, columnInformation, validationData, preFeaturizers);
-        }
-
-        internal IEnumerable<RunResult<MulticlassClassificationMetrics>> Execute(IDataView trainData, uint numberOfCVFolds, ColumnInformation columnInformation = null, IEstimator<ITransformer> preFeaturizers = null)
-        {
-            throw new NotImplementedException();
-        }
-
-        internal IEnumerable<RunResult<MulticlassClassificationMetrics>> Execute(MLContext context,
-            IDataView trainData,
-            ColumnInformation columnInfo,
-            IDataView validationData = null,
-            IEstimator<ITransformer> preFeaturizers = null)
-        {
-            columnInfo = columnInfo ?? new ColumnInformation();
-            UserInputValidationUtil.ValidateExperimentExecuteArgs(trainData, columnInfo, validationData);
-
-            // run autofit & get all pipelines run in that process
-            var experiment = new Experiment<MulticlassClassificationMetrics>(context, TaskKind.MulticlassClassification, trainData, 
-                columnInfo, validationData, preFeaturizers, new OptimizingMetricInfo(_settings.OptimizingMetric),
-                _settings.ProgressHandler, _settings, new MultiMetricsAgent(_settings.OptimizingMetric),
-                TrainerExtensionUtil.GetTrainerNames(_settings.Trainers));
-            
-            return experiment.Execute();
         }
     }
 
     public static class MulticlassExperimentResultExtensions
     {
-        public static RunResult<MulticlassClassificationMetrics> Best(this IEnumerable<RunResult<MulticlassClassificationMetrics>> results, MulticlassClassificationMetric metric = MulticlassClassificationMetric.MicroAccuracy)
+        public static RunDetails<MulticlassClassificationMetrics> Best(this IEnumerable<RunDetails<MulticlassClassificationMetrics>> results, MulticlassClassificationMetric metric = MulticlassClassificationMetric.MicroAccuracy)
         {
-            var metricsAgent = new MultiMetricsAgent(metric);
-            return RunResultUtil.GetBestRunResult(results, metricsAgent);
+            var metricsAgent = new MultiMetricsAgent(null, metric);
+            var isMetricMaximizing = new OptimizingMetricInfo(metric).IsMaximizing;
+            return BestResultUtil.GetBestRun(results, metricsAgent, isMetricMaximizing);
+        }
+
+        public static CrossValidationRunDetails<MulticlassClassificationMetrics> Best(this IEnumerable<CrossValidationRunDetails<MulticlassClassificationMetrics>> results, MulticlassClassificationMetric metric = MulticlassClassificationMetric.MicroAccuracy)
+        {
+            var metricsAgent = new MultiMetricsAgent(null, metric);
+            var isMetricMaximizing = new OptimizingMetricInfo(metric).IsMaximizing;
+            return BestResultUtil.GetBestRun(results, metricsAgent, isMetricMaximizing);
         }
     }
 }

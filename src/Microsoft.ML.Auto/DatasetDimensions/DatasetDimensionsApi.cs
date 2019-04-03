@@ -8,7 +8,7 @@ namespace Microsoft.ML.Auto
 {
     internal class DatasetDimensionsApi
     {
-        private const int MaxRowsToRead = 1000;
+        private const long MaxRowsToRead = 1000;
 
         public static ColumnDimensions[] CalcColumnDimensions(MLContext context, IDataView data, PurposeInference.Column[] purposes)
         {

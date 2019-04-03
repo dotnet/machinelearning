@@ -45,48 +45,45 @@ namespace Microsoft.ML.CLI.CodeGenerator
             return columnInference;
         }
 
-        IEnumerable<RunResult<BinaryClassificationMetrics>> IAutoMLEngine.ExploreBinaryClassificationModels(MLContext context, IDataView trainData, IDataView validationData, ColumnInformation columnInformation, BinaryClassificationMetric optimizationMetric, ProgressBar progressBar)
+        IEnumerable<RunDetails<BinaryClassificationMetrics>> IAutoMLEngine.ExploreBinaryClassificationModels(MLContext context, IDataView trainData, IDataView validationData, ColumnInformation columnInformation, BinaryClassificationMetric optimizationMetric, ProgressBar progressBar)
         {
             var progressReporter = new ProgressHandlers.BinaryClassificationHandler(optimizationMetric, progressBar);
             var result = context.Auto()
                 .CreateBinaryClassificationExperiment(new BinaryExperimentSettings()
                 {
                     MaxExperimentTimeInSeconds = settings.MaxExplorationTime,
-                    ProgressHandler = progressReporter,
-                    EnableCaching = this.enableCaching,
+                    CacheBeforeTrainer = this.enableCaching,
                     OptimizingMetric = optimizationMetric
                 })
-                .Execute(trainData, validationData, columnInformation);
+                .Execute(trainData, validationData, columnInformation, progressHandler: progressReporter);
             logger.Log(LogLevel.Trace, Strings.RetrieveBestPipeline);
             return result;
         }
 
-        IEnumerable<RunResult<RegressionMetrics>> IAutoMLEngine.ExploreRegressionModels(MLContext context, IDataView trainData, IDataView validationData, ColumnInformation columnInformation, RegressionMetric optimizationMetric, ProgressBar progressBar)
+        IEnumerable<RunDetails<RegressionMetrics>> IAutoMLEngine.ExploreRegressionModels(MLContext context, IDataView trainData, IDataView validationData, ColumnInformation columnInformation, RegressionMetric optimizationMetric, ProgressBar progressBar)
         {
             var progressReporter = new ProgressHandlers.RegressionHandler(optimizationMetric, progressBar);
             var result = context.Auto()
                 .CreateRegressionExperiment(new RegressionExperimentSettings()
                 {
                     MaxExperimentTimeInSeconds = settings.MaxExplorationTime,
-                    ProgressHandler = progressReporter,
                     OptimizingMetric = optimizationMetric,
-                    EnableCaching = this.enableCaching
-                }).Execute(trainData, validationData, columnInformation);
+                    CacheBeforeTrainer = this.enableCaching
+                }).Execute(trainData, validationData, columnInformation, progressHandler: progressReporter);
             logger.Log(LogLevel.Trace, Strings.RetrieveBestPipeline);
             return result;
         }
 
-        IEnumerable<RunResult<MulticlassClassificationMetrics>> IAutoMLEngine.ExploreMultiClassificationModels(MLContext context, IDataView trainData, IDataView validationData, ColumnInformation columnInformation, MulticlassClassificationMetric optimizationMetric, ProgressBar progressBar)
+        IEnumerable<RunDetails<MulticlassClassificationMetrics>> IAutoMLEngine.ExploreMultiClassificationModels(MLContext context, IDataView trainData, IDataView validationData, ColumnInformation columnInformation, MulticlassClassificationMetric optimizationMetric, ProgressBar progressBar)
         {
             var progressReporter = new ProgressHandlers.MulticlassClassificationHandler(optimizationMetric, progressBar);
             var result = context.Auto()
                 .CreateMulticlassClassificationExperiment(new MulticlassExperimentSettings()
                 {
                     MaxExperimentTimeInSeconds = settings.MaxExplorationTime,
-                    ProgressHandler = progressReporter,
-                    EnableCaching = this.enableCaching,
+                    CacheBeforeTrainer = this.enableCaching,
                     OptimizingMetric = optimizationMetric
-                }).Execute(trainData, validationData, columnInformation);
+                }).Execute(trainData, validationData, columnInformation, progressHandler: progressReporter);
             logger.Log(LogLevel.Trace, Strings.RetrieveBestPipeline);
             return result;
         }

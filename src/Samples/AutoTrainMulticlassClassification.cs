@@ -44,13 +44,13 @@ namespace Samples
 
             // STEP 3: Auto featurize, auto train and auto hyperparameter tune
             Console.WriteLine($"Running AutoML multiclass classification experiment for {ExperimentTime} seconds...");
-            IEnumerable<RunResult<MulticlassClassificationMetrics>> runResults = mlContext.Auto()
+            IEnumerable<RunDetails<MulticlassClassificationMetrics>> runDetails = mlContext.Auto()
                                                                              .CreateMulticlassClassificationExperiment(ExperimentTime)
                                                                              .Execute(trainDataView);
 
             // STEP 4: Print metric from the best model
-            RunResult<MulticlassClassificationMetrics> best = runResults.Best();
-            Console.WriteLine($"Total models produced: {runResults.Count()}");
+            RunDetails<MulticlassClassificationMetrics> best = runDetails.Best();
+            Console.WriteLine($"Total models produced: {runDetails.Count()}");
             Console.WriteLine($"Best model's trainer: {best.TrainerName}");
             Console.WriteLine($"AccuracyMacro of best model from validation data: {best.ValidationMetrics.MacroAccuracy}");
 

@@ -15,13 +15,13 @@ namespace Microsoft.ML.Auto.Test
         [TestMethod]
         public void TransformInferenceNumAndCatCols()
         {
-            TransformInferenceTestCore(new (string, DataViewType, ColumnPurpose, ColumnDimensions)[]
+            TransformInferenceTestCore(new[]
                 {
-                    ("Numeric1", NumberDataViewType.Single, ColumnPurpose.NumericFeature, new ColumnDimensions(null, null)),
-                    ("Categorical1", TextDataViewType.Instance, ColumnPurpose.CategoricalFeature, new ColumnDimensions(7, null)),
-                    ("Categorical2", TextDataViewType.Instance, ColumnPurpose.CategoricalFeature, new ColumnDimensions(7, null)),
-                    ("LargeCat1", TextDataViewType.Instance, ColumnPurpose.CategoricalFeature, new ColumnDimensions(500, null)),
-                    ("LargeCat2", TextDataViewType.Instance, ColumnPurpose.CategoricalFeature, new ColumnDimensions(500, null)),
+                    new DatasetColumnInfo("Numeric1", NumberDataViewType.Single, ColumnPurpose.NumericFeature, new ColumnDimensions(null, null)),
+                    new DatasetColumnInfo("Categorical1", TextDataViewType.Instance, ColumnPurpose.CategoricalFeature, new ColumnDimensions(7, null)),
+                    new DatasetColumnInfo("Categorical2", TextDataViewType.Instance, ColumnPurpose.CategoricalFeature, new ColumnDimensions(7, null)),
+                    new DatasetColumnInfo("LargeCat1", TextDataViewType.Instance, ColumnPurpose.CategoricalFeature, new ColumnDimensions(500, null)),
+                    new DatasetColumnInfo("LargeCat2", TextDataViewType.Instance, ColumnPurpose.CategoricalFeature, new ColumnDimensions(500, null)),
                 }, @"[
   {
     ""Name"": ""OneHotEncoding"",
@@ -70,14 +70,14 @@ namespace Microsoft.ML.Auto.Test
         [TestMethod]
         public void TransformInferenceNumCatAndFeatCols()
         {
-            TransformInferenceTestCore(new (string, DataViewType, ColumnPurpose, ColumnDimensions)[]
+            TransformInferenceTestCore(new[]
                 {
-                    (DefaultColumnNames.Features, NumberDataViewType.Single, ColumnPurpose.NumericFeature, new ColumnDimensions(null, null)),
-                    ("Numeric1", NumberDataViewType.Single, ColumnPurpose.NumericFeature, new ColumnDimensions(null, null)),
-                    ("Categorical1", TextDataViewType.Instance, ColumnPurpose.CategoricalFeature, new ColumnDimensions(7, null)),
-                    ("Categorical2", TextDataViewType.Instance, ColumnPurpose.CategoricalFeature, new ColumnDimensions(7, null)),
-                    ("LargeCat1", TextDataViewType.Instance, ColumnPurpose.CategoricalFeature, new ColumnDimensions(500, null)),
-                    ("LargeCat2", TextDataViewType.Instance, ColumnPurpose.CategoricalFeature, new ColumnDimensions(500, null)),
+                    new DatasetColumnInfo(DefaultColumnNames.Features, NumberDataViewType.Single, ColumnPurpose.NumericFeature, new ColumnDimensions(null, null)),
+                    new DatasetColumnInfo("Numeric1", NumberDataViewType.Single, ColumnPurpose.NumericFeature, new ColumnDimensions(null, null)),
+                    new DatasetColumnInfo("Categorical1", TextDataViewType.Instance, ColumnPurpose.CategoricalFeature, new ColumnDimensions(7, null)),
+                    new DatasetColumnInfo("Categorical2", TextDataViewType.Instance, ColumnPurpose.CategoricalFeature, new ColumnDimensions(7, null)),
+                    new DatasetColumnInfo("LargeCat1", TextDataViewType.Instance, ColumnPurpose.CategoricalFeature, new ColumnDimensions(500, null)),
+                    new DatasetColumnInfo("LargeCat2", TextDataViewType.Instance, ColumnPurpose.CategoricalFeature, new ColumnDimensions(500, null)),
                 }, @"[
   {
     ""Name"": ""OneHotEncoding"",
@@ -127,11 +127,11 @@ namespace Microsoft.ML.Auto.Test
         [TestMethod]
         public void TransformInferenceCatAndFeatCols()
         {
-            TransformInferenceTestCore(new(string, DataViewType, ColumnPurpose, ColumnDimensions)[]
+            TransformInferenceTestCore(new[]
                 {
-                    (DefaultColumnNames.Features, NumberDataViewType.Single, ColumnPurpose.NumericFeature, new ColumnDimensions(null, null)),
-                    ("Categorical1", TextDataViewType.Instance, ColumnPurpose.CategoricalFeature, new ColumnDimensions(7, null)),
-                    ("LargeCat1", TextDataViewType.Instance, ColumnPurpose.CategoricalFeature, new ColumnDimensions(500, null)),
+                    new DatasetColumnInfo(DefaultColumnNames.Features, NumberDataViewType.Single, ColumnPurpose.NumericFeature, new ColumnDimensions(null, null)),
+                    new DatasetColumnInfo("Categorical1", TextDataViewType.Instance, ColumnPurpose.CategoricalFeature, new ColumnDimensions(7, null)),
+                    new DatasetColumnInfo("LargeCat1", TextDataViewType.Instance, ColumnPurpose.CategoricalFeature, new ColumnDimensions(500, null)),
                 }, @"[
   {
     ""Name"": ""OneHotEncoding"",
@@ -174,9 +174,9 @@ namespace Microsoft.ML.Auto.Test
         [TestMethod]
         public void TransformInferenceNumericCol()
         {
-            TransformInferenceTestCore(new (string, DataViewType, ColumnPurpose, ColumnDimensions)[]
+            TransformInferenceTestCore(new[]
                 {
-                    ("Numeric", NumberDataViewType.Single, ColumnPurpose.NumericFeature, new ColumnDimensions(null, null)),
+                    new DatasetColumnInfo("Numeric", NumberDataViewType.Single, ColumnPurpose.NumericFeature, new ColumnDimensions(null, null)),
                 },
                 @"[
   {
@@ -196,10 +196,10 @@ namespace Microsoft.ML.Auto.Test
         [TestMethod]
         public void TransformInferenceNumericCols()
         {
-            TransformInferenceTestCore(new (string, DataViewType, ColumnPurpose, ColumnDimensions)[]
+            TransformInferenceTestCore(new[]
                 {
-                    ("Numeric1", NumberDataViewType.Single, ColumnPurpose.NumericFeature, new ColumnDimensions(null, null)),
-                    ("Numeric2", NumberDataViewType.Single, ColumnPurpose.NumericFeature, new ColumnDimensions(null, null)),
+                    new DatasetColumnInfo("Numeric1", NumberDataViewType.Single, ColumnPurpose.NumericFeature, new ColumnDimensions(null, null)),
+                    new DatasetColumnInfo("Numeric2", NumberDataViewType.Single, ColumnPurpose.NumericFeature, new ColumnDimensions(null, null)),
                 }, @"[
   {
     ""Name"": ""ColumnConcatenating"",
@@ -219,9 +219,9 @@ namespace Microsoft.ML.Auto.Test
         [TestMethod]
         public void TransformInferenceFeatColScalar()
         {
-            TransformInferenceTestCore(new (string, DataViewType, ColumnPurpose, ColumnDimensions)[]
+            TransformInferenceTestCore(new[]
                 {
-                    (DefaultColumnNames.Features, NumberDataViewType.Single, ColumnPurpose.NumericFeature, new ColumnDimensions(null, null)),
+                    new DatasetColumnInfo(DefaultColumnNames.Features, NumberDataViewType.Single, ColumnPurpose.NumericFeature, new ColumnDimensions(null, null)),
                 }, @"[
   {
     ""Name"": ""ColumnConcatenating"",
@@ -240,19 +240,19 @@ namespace Microsoft.ML.Auto.Test
         [TestMethod]
         public void TransformInferenceFeatColVector()
         {
-            TransformInferenceTestCore(new (string, DataViewType, ColumnPurpose, ColumnDimensions)[]
+            TransformInferenceTestCore(new[]
                 {
-                    (DefaultColumnNames.Features, new VectorDataViewType(NumberDataViewType.Single), ColumnPurpose.NumericFeature, new ColumnDimensions(null, null)),
+                    new DatasetColumnInfo(DefaultColumnNames.Features, new VectorDataViewType(NumberDataViewType.Single), ColumnPurpose.NumericFeature, new ColumnDimensions(null, null)),
                 }, @"[]");
         }
 
         [TestMethod]
         public void NumericAndFeatCol()
         {
-            TransformInferenceTestCore(new (string, DataViewType, ColumnPurpose, ColumnDimensions)[]
+            TransformInferenceTestCore(new[]
                 {
-                    (DefaultColumnNames.Features, NumberDataViewType.Single, ColumnPurpose.NumericFeature, new ColumnDimensions(null, null)),
-                    ("Numeric", NumberDataViewType.Single, ColumnPurpose.NumericFeature, new ColumnDimensions(null, null)),
+                    new DatasetColumnInfo(DefaultColumnNames.Features, NumberDataViewType.Single, ColumnPurpose.NumericFeature, new ColumnDimensions(null, null)),
+                    new DatasetColumnInfo("Numeric", NumberDataViewType.Single, ColumnPurpose.NumericFeature, new ColumnDimensions(null, null)),
                 }, @"[
   {
     ""Name"": ""ColumnConcatenating"",
@@ -272,9 +272,9 @@ namespace Microsoft.ML.Auto.Test
         [TestMethod]
         public void NumericScalarCol()
         {
-            TransformInferenceTestCore(new (string, DataViewType, ColumnPurpose, ColumnDimensions)[]
+            TransformInferenceTestCore(new[]
                 {
-                    ("Numeric", NumberDataViewType.Single, ColumnPurpose.NumericFeature, new ColumnDimensions(null, null)),
+                    new DatasetColumnInfo("Numeric", NumberDataViewType.Single, ColumnPurpose.NumericFeature, new ColumnDimensions(null, null)),
                 }, @"[
   {
     ""Name"": ""ColumnConcatenating"",
@@ -293,9 +293,9 @@ namespace Microsoft.ML.Auto.Test
         [TestMethod]
         public void NumericVectorCol()
         {
-            TransformInferenceTestCore(new (string, DataViewType, ColumnPurpose, ColumnDimensions)[]
+            TransformInferenceTestCore(new[]
                 {
-                    ("Numeric", new VectorDataViewType(NumberDataViewType.Single), ColumnPurpose.NumericFeature, new ColumnDimensions(null, null)),
+                    new DatasetColumnInfo("Numeric", new VectorDataViewType(NumberDataViewType.Single), ColumnPurpose.NumericFeature, new ColumnDimensions(null, null)),
                 }, @"[
   {
     ""Name"": ""ColumnCopying"",
@@ -314,9 +314,9 @@ namespace Microsoft.ML.Auto.Test
         [TestMethod]
         public void TransformInferenceTextCol()
         {
-            TransformInferenceTestCore(new(string, DataViewType, ColumnPurpose, ColumnDimensions)[]
+            TransformInferenceTestCore(new[]
                 {
-                    ("Text", TextDataViewType.Instance, ColumnPurpose.TextFeature, new ColumnDimensions(null, null)),
+                    new DatasetColumnInfo("Text", TextDataViewType.Instance, ColumnPurpose.TextFeature, new ColumnDimensions(null, null)),
                 }, @"[
   {
     ""Name"": ""TextFeaturizing"",
@@ -346,10 +346,10 @@ namespace Microsoft.ML.Auto.Test
         [TestMethod]
         public void TransformInferenceTextAndFeatCol()
         {
-            TransformInferenceTestCore(new(string, DataViewType, ColumnPurpose, ColumnDimensions)[]
+            TransformInferenceTestCore(new[]
                 {
-                    (DefaultColumnNames.Features, NumberDataViewType.Single, ColumnPurpose.NumericFeature, new ColumnDimensions(null, null)),
-                    ("Text", TextDataViewType.Instance, ColumnPurpose.TextFeature, new ColumnDimensions(null, null)),
+                    new DatasetColumnInfo(DefaultColumnNames.Features, NumberDataViewType.Single, ColumnPurpose.NumericFeature, new ColumnDimensions(null, null)),
+                    new DatasetColumnInfo("Text", TextDataViewType.Instance, ColumnPurpose.TextFeature, new ColumnDimensions(null, null)),
                 },
                 @"[
   {
@@ -381,9 +381,9 @@ namespace Microsoft.ML.Auto.Test
         [TestMethod]
         public void TransformInferenceBoolCol()
         {
-            TransformInferenceTestCore(new (string, DataViewType, ColumnPurpose, ColumnDimensions)[]
+            TransformInferenceTestCore(new[]
                 {
-                    ("Bool", BooleanDataViewType.Instance, ColumnPurpose.NumericFeature, new ColumnDimensions(null, null)),
+                    new DatasetColumnInfo("Bool", BooleanDataViewType.Instance, ColumnPurpose.NumericFeature, new ColumnDimensions(null, null)),
                 }, @"[
   {
     ""Name"": ""TypeConverting"",
@@ -413,10 +413,10 @@ namespace Microsoft.ML.Auto.Test
         [TestMethod]
         public void TransformInferenceBoolAndNumCols()
         {
-            TransformInferenceTestCore(new (string, DataViewType, ColumnPurpose, ColumnDimensions)[]
+            TransformInferenceTestCore(new[]
                 {
-                    ("Numeric", NumberDataViewType.Single, ColumnPurpose.NumericFeature, new ColumnDimensions(null, null)),
-                    ("Bool", BooleanDataViewType.Instance, ColumnPurpose.NumericFeature, new ColumnDimensions(null, null)),
+                    new DatasetColumnInfo("Numeric", NumberDataViewType.Single, ColumnPurpose.NumericFeature, new ColumnDimensions(null, null)),
+                    new DatasetColumnInfo("Bool", BooleanDataViewType.Instance, ColumnPurpose.NumericFeature, new ColumnDimensions(null, null)),
                 }, @"[
   {
     ""Name"": ""TypeConverting"",
@@ -447,10 +447,10 @@ namespace Microsoft.ML.Auto.Test
         [TestMethod]
         public void TransformInferenceBoolAndFeatCol()
         {
-            TransformInferenceTestCore(new (string, DataViewType, ColumnPurpose, ColumnDimensions)[]
+            TransformInferenceTestCore(new[]
                 {
-                    (DefaultColumnNames.Features, NumberDataViewType.Single, ColumnPurpose.NumericFeature, new ColumnDimensions(null, null)),
-                    ("Bool", BooleanDataViewType.Instance, ColumnPurpose.NumericFeature, new ColumnDimensions(null, null)),
+                    new DatasetColumnInfo(DefaultColumnNames.Features, NumberDataViewType.Single, ColumnPurpose.NumericFeature, new ColumnDimensions(null, null)),
+                    new DatasetColumnInfo("Bool", BooleanDataViewType.Instance, ColumnPurpose.NumericFeature, new ColumnDimensions(null, null)),
                 }, @"[
   {
     ""Name"": ""TypeConverting"",
@@ -481,10 +481,10 @@ namespace Microsoft.ML.Auto.Test
         [TestMethod]
         public void TransformInferenceNumericMissingCol()
         {
-            TransformInferenceTestCore(new(string, DataViewType, ColumnPurpose, ColumnDimensions)[]
+            TransformInferenceTestCore(new[]
                 {
-                    ("Missing", NumberDataViewType.Single, ColumnPurpose.NumericFeature, new ColumnDimensions(null, true)),
-                    ("Numeric", NumberDataViewType.Single, ColumnPurpose.NumericFeature, new ColumnDimensions(null, false)),
+                    new DatasetColumnInfo("Missing", NumberDataViewType.Single, ColumnPurpose.NumericFeature, new ColumnDimensions(null, true)),
+                    new DatasetColumnInfo("Numeric", NumberDataViewType.Single, ColumnPurpose.NumericFeature, new ColumnDimensions(null, false)),
                 }, @"[
   {
     ""Name"": ""MissingValueIndicating"",
@@ -538,11 +538,11 @@ namespace Microsoft.ML.Auto.Test
         [TestMethod]
         public void TransformInferenceNumericMissingCols()
         {
-            TransformInferenceTestCore(new(string, DataViewType, ColumnPurpose, ColumnDimensions)[]
+            TransformInferenceTestCore(new[]
                 {
-                    ("Missing1", NumberDataViewType.Single, ColumnPurpose.NumericFeature, new ColumnDimensions(null, true)),
-                    ("Missing2", NumberDataViewType.Single, ColumnPurpose.NumericFeature, new ColumnDimensions(null, true)),
-                    ("Numeric", NumberDataViewType.Single, ColumnPurpose.NumericFeature, new ColumnDimensions(null, false)),
+                    new DatasetColumnInfo("Missing1", NumberDataViewType.Single, ColumnPurpose.NumericFeature, new ColumnDimensions(null, true)),
+                    new DatasetColumnInfo("Missing2", NumberDataViewType.Single, ColumnPurpose.NumericFeature, new ColumnDimensions(null, true)),
+                    new DatasetColumnInfo("Numeric", NumberDataViewType.Single, ColumnPurpose.NumericFeature, new ColumnDimensions(null, false)),
                 }, @"[
   {
     ""Name"": ""MissingValueIndicating"",
@@ -604,10 +604,10 @@ namespace Microsoft.ML.Auto.Test
         [TestMethod]
         public void TransformInferenceIgnoreCol()
         {
-            TransformInferenceTestCore(new (string, DataViewType, ColumnPurpose, ColumnDimensions)[]
+            TransformInferenceTestCore(new[]
                 {
-                    ("Numeric1", NumberDataViewType.Single, ColumnPurpose.Ignore, new ColumnDimensions(null, null)),
-                    ("Numeric2", NumberDataViewType.Single, ColumnPurpose.NumericFeature, new ColumnDimensions(null, null)),
+                    new DatasetColumnInfo("Numeric1", NumberDataViewType.Single, ColumnPurpose.Ignore, new ColumnDimensions(null, null)),
+                    new DatasetColumnInfo("Numeric2", NumberDataViewType.Single, ColumnPurpose.NumericFeature, new ColumnDimensions(null, null)),
                 }, @"[
   {
     ""Name"": ""ColumnConcatenating"",
@@ -626,30 +626,30 @@ namespace Microsoft.ML.Auto.Test
         [TestMethod]
         public void TransformInferenceDefaultLabelCol()
         {
-            TransformInferenceTestCore(new(string, DataViewType, ColumnPurpose, ColumnDimensions)[]
+            TransformInferenceTestCore(new[]
                 {
-                    (DefaultColumnNames.Features, new VectorDataViewType(NumberDataViewType.Single), ColumnPurpose.NumericFeature, new ColumnDimensions(null, null)),
-                    (DefaultColumnNames.Label, NumberDataViewType.Single, ColumnPurpose.Label, new ColumnDimensions(null, null)),
+                    new DatasetColumnInfo(DefaultColumnNames.Features, new VectorDataViewType(NumberDataViewType.Single), ColumnPurpose.NumericFeature, new ColumnDimensions(null, null)),
+                    new DatasetColumnInfo(DefaultColumnNames.Label, NumberDataViewType.Single, ColumnPurpose.Label, new ColumnDimensions(null, null)),
                 }, @"[]");
         }
 
         [TestMethod]
         public void TransformInferenceCustomLabelCol()
         {
-            TransformInferenceTestCore(new(string, DataViewType, ColumnPurpose, ColumnDimensions)[]
+            TransformInferenceTestCore(new[]
                 {
-                    (DefaultColumnNames.Features, new VectorDataViewType(NumberDataViewType.Single), ColumnPurpose.NumericFeature, new ColumnDimensions(null, null)),
-                    ("CustomLabel", NumberDataViewType.Single, ColumnPurpose.Label, new ColumnDimensions(null, null)),
+                    new DatasetColumnInfo(DefaultColumnNames.Features, new VectorDataViewType(NumberDataViewType.Single), ColumnPurpose.NumericFeature, new ColumnDimensions(null, null)),
+                    new DatasetColumnInfo("CustomLabel", NumberDataViewType.Single, ColumnPurpose.Label, new ColumnDimensions(null, null)),
                 }, @"[]");
         }
 
         [TestMethod]
         public void TransformInferenceCustomTextLabelColMulticlass()
         {
-            TransformInferenceTestCore(new (string, DataViewType, ColumnPurpose, ColumnDimensions)[]
+            TransformInferenceTestCore(new[]
                 {
-                    (DefaultColumnNames.Features, new VectorDataViewType(NumberDataViewType.Single), ColumnPurpose.NumericFeature, new ColumnDimensions(null, null)),
-                    ("CustomLabel", TextDataViewType.Instance, ColumnPurpose.Label, new ColumnDimensions(null, null)),
+                    new DatasetColumnInfo(DefaultColumnNames.Features, new VectorDataViewType(NumberDataViewType.Single), ColumnPurpose.NumericFeature, new ColumnDimensions(null, null)),
+                    new DatasetColumnInfo("CustomLabel", TextDataViewType.Instance, ColumnPurpose.Label, new ColumnDimensions(null, null)),
                 }, @"[
   {
     ""Name"": ""ValueToKeyMapping"",
@@ -668,11 +668,11 @@ namespace Microsoft.ML.Auto.Test
         [TestMethod]
         public void TransformInferenceMissingNameCollision()
         {
-            TransformInferenceTestCore(new (string, DataViewType, ColumnPurpose, ColumnDimensions)[]
+            TransformInferenceTestCore(new[]
                 {
-                    ("Missing", NumberDataViewType.Single, ColumnPurpose.NumericFeature, new ColumnDimensions(null, true)),
-                    ("Missing_MissingIndicator", NumberDataViewType.Single, ColumnPurpose.NumericFeature, new ColumnDimensions(null, false)),
-                    ("Missing_MissingIndicator0", NumberDataViewType.Single, ColumnPurpose.NumericFeature, new ColumnDimensions(null, false)),
+                    new DatasetColumnInfo("Missing", NumberDataViewType.Single, ColumnPurpose.NumericFeature, new ColumnDimensions(null, true)),
+                    new DatasetColumnInfo("Missing_MissingIndicator", NumberDataViewType.Single, ColumnPurpose.NumericFeature, new ColumnDimensions(null, false)),
+                    new DatasetColumnInfo("Missing_MissingIndicator0", NumberDataViewType.Single, ColumnPurpose.NumericFeature, new ColumnDimensions(null, false)),
                 }, @"[
   {
     ""Name"": ""MissingValueIndicating"",
@@ -725,7 +725,7 @@ namespace Microsoft.ML.Auto.Test
         }
 
         private static void TransformInferenceTestCore(
-            (string name, DataViewType type, ColumnPurpose purpose, ColumnDimensions dimensions)[] columns,
+            DatasetColumnInfo[] columns,
             string expectedJson,
             TaskKind task = TaskKind.BinaryClassification)
         {
@@ -736,7 +736,7 @@ namespace Microsoft.ML.Auto.Test
         }
 
         private static void TestApplyTransformsToRealDataView(IEnumerable<SuggestedTransform> transforms,
-            IEnumerable<(string name, DataViewType type, ColumnPurpose purpose, ColumnDimensions dimensions)> columns)
+            IEnumerable<DatasetColumnInfo> columns)
         {
             // create a dummy data view from input columns
             var data = BuildDummyDataView(columns);
@@ -754,10 +754,9 @@ namespace Microsoft.ML.Auto.Test
             Assert.AreEqual(NumberDataViewType.Single, featuresCol.Value.Type.GetItemType());
         }
 
-        private static IDataView BuildDummyDataView(
-            IEnumerable<(string name, DataViewType type, ColumnPurpose purpose, ColumnDimensions dimensions)> columns)
+        private static IDataView BuildDummyDataView(IEnumerable<DatasetColumnInfo> columns)
         {
-            return BuildDummyDataView(columns.Select(c => (c.name, c.type)));
+            return BuildDummyDataView(columns.Select(c => (c.Name, c.Type)));
         }
 
         private static IDataView BuildDummyDataView(IEnumerable<(string name, DataViewType type)> columns)

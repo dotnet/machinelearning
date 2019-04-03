@@ -15,18 +15,18 @@ namespace Microsoft.ML.Auto
 
         public static Pipeline GetNextPipeline(MLContext context,
             IEnumerable<PipelineScore> history,
-            (string, DataViewType, ColumnPurpose, ColumnDimensions)[] columns,
+            DatasetColumnInfo[] columns,
             TaskKind task,
             bool isMaximizingMetric = true)
         {
-            var inferredHistory = history.Select(r => SuggestedPipelineResult.FromPipelineRunResult(context, r));
+            var inferredHistory = history.Select(r => SuggestedPipelineRunDetails.FromPipelineRunResult(context, r));
             var nextInferredPipeline = GetNextInferredPipeline(context, inferredHistory, columns, task, isMaximizingMetric);
             return nextInferredPipeline?.ToPipeline();
         }
 
         public static SuggestedPipeline GetNextInferredPipeline(MLContext context,
-            IEnumerable<SuggestedPipelineResult> history,
-            (string, DataViewType, ColumnPurpose, ColumnDimensions)[] columns,
+            IEnumerable<SuggestedPipelineRunDetails> history,
+            DatasetColumnInfo[] columns,
             TaskKind task,
             bool isMaximizingMetric,
             IEnumerable<TrainerName> trainerWhitelist = null,
@@ -87,7 +87,7 @@ namespace Microsoft.ML.Auto
         /// <summary>
         /// Get top trainers from first stage
         /// </summary>
-        private static IEnumerable<SuggestedTrainer> GetTopTrainers(IEnumerable<SuggestedPipelineResult> history, 
+        private static IEnumerable<SuggestedTrainer> GetTopTrainers(IEnumerable<SuggestedPipelineRunDetails> history, 
             IEnumerable<SuggestedTrainer> availableTrainers,
             bool isMaximizingMetric)
         {
@@ -95,7 +95,7 @@ namespace Microsoft.ML.Auto
             history = history.Take(availableTrainers.Count());
 
             history = history.GroupBy(r => r.Pipeline.Trainer.TrainerName).Select(g => g.First());
-            IEnumerable<SuggestedPipelineResult> sortedHistory = history.OrderBy(r => r.Score);
+            IEnumerable<SuggestedPipelineRunDetails> sortedHistory = history.OrderBy(r => r.Score);
             if(isMaximizingMetric)
             {
                 sortedHistory = sortedHistory.Reverse();
@@ -104,7 +104,7 @@ namespace Microsoft.ML.Auto
             return topTrainers;
         }
 
-        private static IEnumerable<SuggestedTrainer> OrderTrainersByNumTrials(IEnumerable<SuggestedPipelineResult> history,
+        private static IEnumerable<SuggestedTrainer> OrderTrainersByNumTrials(IEnumerable<SuggestedPipelineRunDetails> history,
             IEnumerable<SuggestedTrainer> selectedTrainers)
         {
             var selectedTrainerNames = new HashSet<TrainerName>(selectedTrainers.Select(t => t.TrainerName));
@@ -115,7 +115,7 @@ namespace Microsoft.ML.Auto
         }
 
         private static SuggestedPipeline GetNextFirstStagePipeline(MLContext context,
-            IEnumerable<SuggestedPipelineResult> history,
+            IEnumerable<SuggestedPipelineRunDetails> history,
             IEnumerable<SuggestedTrainer> availableTrainers,
             ICollection<SuggestedTransform> transforms,
             ICollection<SuggestedTransform> transformsPostTrainer,
@@ -188,7 +188,7 @@ namespace Microsoft.ML.Auto
         /// Samples new hyperparameters for the trainer, and sets them.
         /// Returns true if success (new hyperparams were suggested and set). Else, returns false.
         /// </summary>
-        private static bool SampleHyperparameters(MLContext context, SuggestedTrainer trainer, IEnumerable<SuggestedPipelineResult> history, bool isMaximizingMetric)
+        private static bool SampleHyperparameters(MLContext context, SuggestedTrainer trainer, IEnumerable<SuggestedPipelineRunDetails> history, bool isMaximizingMetric)
         {
             var sps = ConvertToValueGenerators(trainer.SweepParams);
             var sweeper = new SmacSweeper(context,
@@ -197,7 +197,7 @@ namespace Microsoft.ML.Auto
                     SweptParameters = sps
                 });
 
-            IEnumerable<SuggestedPipelineResult> historyToUse = history
+            IEnumerable<SuggestedPipelineRunDetails> historyToUse = history
                 .Where(r => r.RunSucceded && r.Pipeline.Trainer.TrainerName == trainer.TrainerName && r.Pipeline.Trainer.HyperParamSet != null && r.Pipeline.Trainer.HyperParamSet.Any());
 
             // get new set of hyperparameter values

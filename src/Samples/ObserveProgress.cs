@@ -47,17 +47,16 @@ namespace Samples
             // STEP 3: Auto inference with a callback configured
             RegressionExperiment autoExperiment = mlContext.Auto().CreateRegressionExperiment(new RegressionExperimentSettings()
             {
-                MaxExperimentTimeInSeconds = 60,
-                ProgressHandler = new ProgressHandler()
+                MaxExperimentTimeInSeconds = 60
             });
-            autoExperiment.Execute(trainDataView, LabelColumn);
+            autoExperiment.Execute(trainDataView, LabelColumn, progressHandler: new ProgressHandler());
 
             Console.WriteLine("Press any key to continue...");
             Console.ReadKey();
         }
     }
 
-    class ProgressHandler : IProgress<RunResult<RegressionMetrics>>
+    class ProgressHandler : IProgress<RunDetails<RegressionMetrics>>
     {
         int iterationIndex;
         private bool _initialized = false;
@@ -66,7 +65,7 @@ namespace Samples
         {
         }
 
-        public void Report(RunResult<RegressionMetrics> iterationResult)
+        public void Report(RunDetails<RegressionMetrics> iterationResult)
         {
             if (!_initialized)
             {

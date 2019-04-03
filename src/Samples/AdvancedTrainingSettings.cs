@@ -57,13 +57,13 @@ namespace Samples
 
             // STEP 5: Run AutoML experiment
             Console.WriteLine($"Running AutoML regression experiment for {ExperimentTime} seconds...");
-            IEnumerable<RunResult<RegressionMetrics>> runResults = mlContext.Auto()
+            IEnumerable<RunDetails<RegressionMetrics>> runDetails = mlContext.Auto()
                                                                    .CreateRegressionExperiment(ExperimentTime)
                                                                    .Execute(trainDataView, columnInformation, preFeaturizer);
             
             // STEP 6: Print metric from best model
-            RunResult<RegressionMetrics> best = runResults.Best();
-            Console.WriteLine($"Total models produced: {runResults.Count()}");
+            RunDetails<RegressionMetrics> best = runDetails.Best();
+            Console.WriteLine($"Total models produced: {runDetails.Count()}");
             Console.WriteLine($"Best model's trainer: {best.TrainerName}");
             Console.WriteLine($"RSquared of best model from validation data: {best.ValidationMetrics.RSquared}");
 

@@ -1,0 +1,111 @@
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+
+namespace Microsoft.ML.Auto
+{
+    internal class CrossValSummaryRunner<TMetrics> : IRunner<RunDetails<TMetrics>>
+        where TMetrics : class
+    {
+        private readonly MLContext _context;
+        private readonly IDataView[] _trainDatasets;
+        private readonly IDataView[] _validDatasets;
+        private readonly IMetricsAgent<TMetrics> _metricsAgent;
+        private readonly IEstimator<ITransformer> _preFeaturizer;
+        private readonly ITransformer[] _preprocessorTransforms;
+        private readonly string _labelColumn;
+        private readonly OptimizingMetricInfo _optimizingMetricInfo;
+        private readonly IDebugLogger _logger;
+        private readonly DataViewSchema _modelInputSchema;
+
+        public CrossValSummaryRunner(MLContext context,
+            IDataView[] trainDatasets,
+            IDataView[] validDatasets,
+            IMetricsAgent<TMetrics> metricsAgent,
+            IEstimator<ITransformer> preFeaturizer,
+            string labelColumn,
+            OptimizingMetricInfo optimizingMetricInfo,
+            IDebugLogger logger)
+        {
+            _context = context;
+            _trainDatasets = trainDatasets;
+            _validDatasets = validDatasets;
+            _metricsAgent = metricsAgent;
+            _preFeaturizer = preFeaturizer;
+            _labelColumn = labelColumn;
+            _optimizingMetricInfo = optimizingMetricInfo;
+            _logger = logger;
+            _modelInputSchema = trainDatasets[0].Schema;
+
+            if (_preFeaturizer != null)
+            {
+                _preprocessorTransforms = new ITransformer[_trainDatasets.Length];
+                for (var i = 0; i < _trainDatasets.Length; i++)
+                {
+                    // preprocess train and validation data
+                    _preprocessorTransforms[i] = _preFeaturizer.Fit(_trainDatasets[i]);
+                    _trainDatasets[i] = _preprocessorTransforms[i].Transform(_trainDatasets[i]);
+                    _validDatasets[i] = _preprocessorTransforms[i].Transform(_validDatasets[i]);
+                }
+            }
+        }
+
+        public (SuggestedPipelineRunDetails suggestedPipelineRunDetails, RunDetails<TMetrics> runDetails)
+            Run(SuggestedPipeline pipeline, DirectoryInfo modelDirectory, int iterationNum)
+        {
+            var trainResults = new List<(ModelContainer model, TMetrics metrics, Exception exception, double score)>();
+
+            for (var i = 0; i < _trainDatasets.Length; i++)
+            {
+                var modelFileInfo = RunnerUtil.GetModelFileInfo(modelDirectory, iterationNum, i + 1);
+                var trainResult = RunnerUtil.TrainAndScorePipeline(_context, pipeline, _trainDatasets[i], _validDatasets[i],
+                    _labelColumn, _metricsAgent, _preFeaturizer, _preprocessorTransforms?.ElementAt(i), modelFileInfo, _modelInputSchema, 
+                    _logger);
+                trainResults.Add(trainResult);
+            }
+
+            var allRunsSucceeded = trainResults.All(r => r.exception == null);
+            if (!allRunsSucceeded)
+            {
+                var firstException = trainResults.First(r => r.exception != null).exception;
+                var errorRunDetails = new SuggestedPipelineRunDetails<TMetrics>(pipeline, double.NaN, false, null, null, firstException);
+                return (errorRunDetails, errorRunDetails.ToIterationResult());
+            }
+
+            // Get the model from the best fold
+            var bestFoldIndex = BestResultUtil.GetIndexOfBestScore(trainResults.Select(r => r.score), _optimizingMetricInfo.IsMaximizing);
+            var bestModel = trainResults.ElementAt(bestFoldIndex).model;
+
+            // Get the metrics from the fold whose score is closest to avg of all fold scores
+            var avgScore = trainResults.Average(r => r.score);
+            var indexClosestToAvg = GetIndexClosestToAverage(trainResults.Select(r => r.score), avgScore);
+            var metricsClosestToAvg = trainResults[indexClosestToAvg].metrics;
+
+            // Build result objects
+            var suggestedPipelineRunDetails = new SuggestedPipelineRunDetails<TMetrics>(pipeline, avgScore, allRunsSucceeded, metricsClosestToAvg, bestModel, null);
+            var runDetails = suggestedPipelineRunDetails.ToIterationResult();
+            return (suggestedPipelineRunDetails, runDetails);
+        }
+
+        private static int GetIndexClosestToAverage(IEnumerable<double> values, double average)
+        {
+            int avgFoldIndex = -1;
+            var smallestDistFromAvg = double.PositiveInfinity;
+            for (var i = 0; i < values.Count(); i++)
+            {
+                var distFromAvg = Math.Abs(values.ElementAt(i) - average);
+                if (distFromAvg < smallestDistFromAvg)
+                {
+                    smallestDistFromAvg = distFromAvg;
+                    avgFoldIndex = i;
+                }
+            }
+            return avgFoldIndex;
+        }
+    }
+}

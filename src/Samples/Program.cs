@@ -39,6 +39,9 @@ namespace Samples
                 InferColumns.Run();
                 Console.Clear();
 
+                CrossValidation.Run();
+                Console.Clear();
+
                 Console.WriteLine("Done");
             }
             catch (Exception ex)

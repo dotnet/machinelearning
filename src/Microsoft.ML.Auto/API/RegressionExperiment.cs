@@ -14,7 +14,6 @@ namespace Microsoft.ML.Auto
         public RegressionMetric OptimizingMetric { get; set; } = RegressionMetric.RSquared;
         public ICollection<RegressionTrainer> Trainers { get; } =
                      Enum.GetValues(typeof(RegressionTrainer)).OfType<RegressionTrainer>().ToList();
-        public IProgress<RunResult<RegressionMetrics>> ProgressHandler { get; set; }
     }
 
     public enum RegressionMetric
@@ -37,74 +36,33 @@ namespace Microsoft.ML.Auto
         StochasticDualCoordinateAscent,
     }
 
-    public sealed class RegressionExperiment
+    public sealed class RegressionExperiment : ExperimentBase<RegressionMetrics>
     {
-        private readonly MLContext _context;
-        private readonly RegressionExperimentSettings _settings;
-
-        internal RegressionExperiment(MLContext context, RegressionExperimentSettings settings)
+        internal RegressionExperiment(MLContext context, RegressionExperimentSettings settings) 
+            : base(context,
+                  new RegressionMetricsAgent(context, settings.OptimizingMetric),
+                  new OptimizingMetricInfo(settings.OptimizingMetric),
+                  settings,
+                  TaskKind.Regression,
+                  TrainerExtensionUtil.GetTrainerNames(settings.Trainers))
         {
-            _context = context;
-            _settings = settings;
-        }
-
-        public IEnumerable<RunResult<RegressionMetrics>> Execute(IDataView trainData, string labelColumn = DefaultColumnNames.Label,
-            string samplingKeyColumn = null, IEstimator<ITransformer> preFeaturizers = null)
-        {
-            var columnInformation = new ColumnInformation()
-            {
-                LabelColumn = labelColumn,
-                SamplingKeyColumn = samplingKeyColumn
-            };
-            return Execute(_context, trainData, columnInformation, null, preFeaturizers);
-        }
-
-        public IEnumerable<RunResult<RegressionMetrics>> Execute(IDataView trainData, ColumnInformation columnInformation, IEstimator<ITransformer> preFeaturizers = null)
-        {
-            return Execute(_context, trainData, columnInformation, null, preFeaturizers);
-        }
-
-        public IEnumerable<RunResult<RegressionMetrics>> Execute(IDataView trainData, IDataView validationData, string labelColumn = DefaultColumnNames.Label, IEstimator<ITransformer> preFeaturizers = null)
-        {
-            var columnInformation = new ColumnInformation() { LabelColumn = labelColumn };
-            return Execute(_context, trainData, columnInformation, validationData, preFeaturizers);
-        }
-
-        public IEnumerable<RunResult<RegressionMetrics>> Execute(IDataView trainData, IDataView validationData, ColumnInformation columnInformation, IEstimator<ITransformer> preFeaturizers = null)
-        {
-            return Execute(_context, trainData, columnInformation, validationData, preFeaturizers);
-        }
-
-        internal IEnumerable<RunResult<RegressionMetrics>> Execute(IDataView trainData, uint numberOfCVFolds, ColumnInformation columnInformation = null, IEstimator<ITransformer> preFeaturizers = null)
-        {
-            throw new NotImplementedException();
-        }
-
-        internal IEnumerable<RunResult<RegressionMetrics>> Execute(MLContext context,
-            IDataView trainData,
-            ColumnInformation columnInfo,
-            IDataView validationData = null,
-            IEstimator<ITransformer> preFeaturizers = null)
-        {
-            columnInfo = columnInfo ?? new ColumnInformation();
-            UserInputValidationUtil.ValidateExperimentExecuteArgs(trainData, columnInfo, validationData);
-
-            // run autofit & get all pipelines run in that process
-            var experiment = new Experiment<RegressionMetrics>(context, TaskKind.Regression, trainData, columnInfo,
-                validationData, preFeaturizers, new OptimizingMetricInfo(_settings.OptimizingMetric),
-                _settings.ProgressHandler, _settings, new RegressionMetricsAgent(_settings.OptimizingMetric),
-                TrainerExtensionUtil.GetTrainerNames(_settings.Trainers));
-
-            return experiment.Execute();
         }
     }
 
     public static class RegressionExperimentResultExtensions
     {
-        public static RunResult<RegressionMetrics> Best(this IEnumerable<RunResult<RegressionMetrics>> results, RegressionMetric metric = RegressionMetric.RSquared)
+        public static RunDetails<RegressionMetrics> Best(this IEnumerable<RunDetails<RegressionMetrics>> results, RegressionMetric metric = RegressionMetric.RSquared)
         {
-            var metricsAgent = new RegressionMetricsAgent(metric);
-            return RunResultUtil.GetBestRunResult(results, metricsAgent);
+            var metricsAgent = new RegressionMetricsAgent(null, metric);
+            var isMetricMaximizing = new OptimizingMetricInfo(metric).IsMaximizing;
+            return BestResultUtil.GetBestRun(results, metricsAgent, isMetricMaximizing);
+        }
+
+        public static CrossValidationRunDetails<RegressionMetrics> Best(this IEnumerable<CrossValidationRunDetails<RegressionMetrics>> results, RegressionMetric metric = RegressionMetric.RSquared)
+        {
+            var metricsAgent = new RegressionMetricsAgent(null, metric);
+            var isMetricMaximizing = new OptimizingMetricInfo(metric).IsMaximizing;
+            return BestResultUtil.GetBestRun(results, metricsAgent, isMetricMaximizing);
         }
     }
 }

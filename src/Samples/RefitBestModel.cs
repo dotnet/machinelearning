@@ -52,13 +52,13 @@ namespace Samples
             IDataView smallTrainDataView = textLoader.Load(SmallTrainDataPath);
 
             // STEP 4: Auto-featurization, model selection, and hyperparameter tuning
-            Console.WriteLine($"Running AutoML regression classification experiment for {ExperimentTime} seconds...");
-            IEnumerable<RunResult<RegressionMetrics>> runResults = mlContext.Auto()
+            Console.WriteLine($"Running AutoML regression experiment for {ExperimentTime} seconds...");
+            IEnumerable<RunDetails<RegressionMetrics>> runDetails = mlContext.Auto()
                                                                    .CreateRegressionExperiment(ExperimentTime)
                                                                    .Execute(smallTrainDataView, LabelColumn);
 
             // STEP 5: Refit best model on entire training data
-            RunResult<RegressionMetrics> best = runResults.Best();
+            RunDetails<RegressionMetrics> best = runDetails.Best();
             var refitBestModel = best.Estimator.Fit(trainDataView);
 
             // STEP 6: Evaluate test data

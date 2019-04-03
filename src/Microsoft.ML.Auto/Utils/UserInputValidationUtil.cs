@@ -46,6 +46,14 @@ namespace Microsoft.ML.Auto
             ValidatePath(path);
         }
 
+        public static void ValidateNumberOfCVFoldsArg(uint numberOfCVFolds)
+        {
+            if (numberOfCVFolds <= 1)
+            {
+                throw new ArgumentException($"{nameof(numberOfCVFolds)} must be at least 2", nameof(numberOfCVFolds));
+            }
+        }
+
         private static void ValidateTrainData(IDataView trainData)
         {
             if (trainData == null)

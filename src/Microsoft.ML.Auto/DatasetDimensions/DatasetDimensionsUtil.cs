@@ -62,5 +62,24 @@ namespace Microsoft.ML.Auto
                 return false;
             }
         }
+
+        public static ulong CountRows(IDataView data, ulong maxRows)
+        {
+            var cursor = data.GetRowCursor(new[] { data.Schema[0] });
+            ulong rowCount = 0;
+            while (cursor.MoveNext())
+            {
+                if (++rowCount == maxRows)
+                {
+                    break;
+                }
+            }
+            return rowCount;
+        }
+
+        public static bool IsDataViewEmpty(IDataView data)
+        {
+            return CountRows(data, 1) == 0;
+        }
     }
 }

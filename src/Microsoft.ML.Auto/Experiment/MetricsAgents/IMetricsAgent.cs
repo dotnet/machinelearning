@@ -8,6 +8,8 @@ namespace Microsoft.ML.Auto
     {
         double GetScore(T metrics);
 
-        bool IsModelPerfect(T metrics);
+        bool IsModelPerfect(double score);
+
+        T EvaluateMetrics(IDataView data, string labelColumn);
     }
 }

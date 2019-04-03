@@ -10,7 +10,7 @@ namespace Microsoft.ML.Auto
 {
     internal class TransformPostTrainerInference
     {
-        public static IEnumerable<SuggestedTransform> InferTransforms(MLContext context, TaskKind task, (string, DataViewType, ColumnPurpose, ColumnDimensions)[] columns)
+        public static IEnumerable<SuggestedTransform> InferTransforms(MLContext context, TaskKind task, DatasetColumnInfo[] columns)
         {
             var suggestedTransforms = new List<SuggestedTransform>();
             suggestedTransforms.AddRange(InferLabelTransforms(context, task, columns));
@@ -18,7 +18,7 @@ namespace Microsoft.ML.Auto
         }
 
         private static IEnumerable<SuggestedTransform> InferLabelTransforms(MLContext context, TaskKind task, 
-            (string name, DataViewType type, ColumnPurpose purpose, ColumnDimensions dimensions)[] columns)
+            DatasetColumnInfo[] columns)
         {
             var inferredTransforms = new List<SuggestedTransform>();
 
@@ -31,8 +31,8 @@ namespace Microsoft.ML.Auto
             // convert predicted label column back from key to value.
             // (Non-key label column was converted to key, b/c multiclass trainers only 
             // accept label columns that are key type)
-            var labelColumn = columns.First(c => c.purpose == ColumnPurpose.Label);
-            if (!labelColumn.type.IsKey())
+            var labelColumn = columns.First(c => c.Purpose == ColumnPurpose.Label);
+            if (!labelColumn.Type.IsKey())
             {
                 inferredTransforms.Add(KeyToValueMappingExtension.CreateSuggestedTransform(context, DefaultColumnNames.PredictedLabel, DefaultColumnNames.PredictedLabel));
             }

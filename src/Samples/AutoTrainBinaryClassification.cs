@@ -44,13 +44,13 @@ namespace Samples
 
             // STEP 3: Auto featurize, auto train and auto hyperparameter tune
             Console.WriteLine($"Running AutoML binary classification experiment for {ExperimentTime} seconds...");
-            IEnumerable<RunResult<BinaryClassificationMetrics>> runResults = mlContext.Auto()
+            IEnumerable<RunDetails<BinaryClassificationMetrics>> runDetails = mlContext.Auto()
                                                                              .CreateBinaryClassificationExperiment(ExperimentTime)
                                                                              .Execute(trainDataView);
 
             // STEP 4: Print metric from the best model
-            RunResult<BinaryClassificationMetrics> best = runResults.Best();
-            Console.WriteLine($"Total models produced: {runResults.Count()}");
+            RunDetails<BinaryClassificationMetrics> best = runDetails.Best();
+            Console.WriteLine($"Total models produced: {runDetails.Count()}");
             Console.WriteLine($"Best model's trainer: {best.TrainerName}");
             Console.WriteLine($"Accuracy of best model from validation data: {best.ValidationMetrics.Accuracy}");
 

@@ -79,10 +79,10 @@ namespace Microsoft.ML.CLI.Utilities
             logger.Log(logLevel, $"{"Total number of models explored",-30} : {numModelsExplored}");
             logger.Log(logLevel, $"------------------------------------------------------------------------------------------------------------------");
         }
-        internal static void PrintIterationSummary(IEnumerable<RunResult<BinaryClassificationMetrics>> results, BinaryClassificationMetric optimizationMetric, int count)
+        internal static void PrintIterationSummary(IEnumerable<RunDetails<BinaryClassificationMetrics>> results, BinaryClassificationMetric optimizationMetric, int count)
         {
-            var metricsAgent = new BinaryMetricsAgent(optimizationMetric);
-            var topNResults = RunResultUtil.GetTopNRunResults(results, metricsAgent, count);
+            var metricsAgent = new BinaryMetricsAgent(null, optimizationMetric);
+            var topNResults = BestResultUtil.GetTopNRunResults(results, metricsAgent, count, new OptimizingMetricInfo(optimizationMetric).IsMaximizing);
             logger.Log(LogLevel.Info, $"------------------------------------------------------------------------------------------------------------------");
             logger.Log(LogLevel.Info, $"Top {topNResults?.Count()} models explored                                          ");
             logger.Log(LogLevel.Info, $"------------------------------------------------------------------------------------------------------------------");
@@ -95,10 +95,10 @@ namespace Microsoft.ML.CLI.Utilities
             logger.Log(LogLevel.Info, $"------------------------------------------------------------------------------------------------------------------");
         }
 
-        internal static void PrintIterationSummary(IEnumerable<RunResult<RegressionMetrics>> results, RegressionMetric optimizationMetric, int count)
+        internal static void PrintIterationSummary(IEnumerable<RunDetails<RegressionMetrics>> results, RegressionMetric optimizationMetric, int count)
         {
-            var metricsAgent = new RegressionMetricsAgent(optimizationMetric);
-            var topNResults = RunResultUtil.GetTopNRunResults(results, metricsAgent, count);
+            var metricsAgent = new RegressionMetricsAgent(null, optimizationMetric);
+            var topNResults = BestResultUtil.GetTopNRunResults(results, metricsAgent, count, new OptimizingMetricInfo(optimizationMetric).IsMaximizing);
             logger.Log(LogLevel.Info, $"------------------------------------------------------------------------------------------------------------------");
             logger.Log(LogLevel.Info, $"Top {topNResults?.Count()} models explored                                          ");
             logger.Log(LogLevel.Info, $"------------------------------------------------------------------------------------------------------------------");
@@ -111,10 +111,10 @@ namespace Microsoft.ML.CLI.Utilities
             logger.Log(LogLevel.Info, $"------------------------------------------------------------------------------------------------------------------");
         }
 
-        internal static void PrintIterationSummary(IEnumerable<RunResult<MulticlassClassificationMetrics>> results, MulticlassClassificationMetric optimizationMetric, int count)
+        internal static void PrintIterationSummary(IEnumerable<RunDetails<MulticlassClassificationMetrics>> results, MulticlassClassificationMetric optimizationMetric, int count)
         {
-            var metricsAgent = new MultiMetricsAgent(optimizationMetric);
-            var topNResults = RunResultUtil.GetTopNRunResults(results, metricsAgent, count);
+            var metricsAgent = new MultiMetricsAgent(null, optimizationMetric);
+            var topNResults = BestResultUtil.GetTopNRunResults(results, metricsAgent, count, new OptimizingMetricInfo(optimizationMetric).IsMaximizing);
             logger.Log(LogLevel.Info, $"------------------------------------------------------------------------------------------------------------------");
             logger.Log(LogLevel.Info, $"Top {topNResults?.Count()} models explored                                          ");
             logger.Log(LogLevel.Info, $"------------------------------------------------------------------------------------------------------------------");

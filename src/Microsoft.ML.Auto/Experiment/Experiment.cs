@@ -10,112 +10,78 @@ using System.Linq;
 
 namespace Microsoft.ML.Auto
 {
-    internal class Experiment<T> where T : class
+    internal class Experiment<TRunDetails, TMetrics> where TRunDetails : RunDetails
     {
-        private readonly IList<SuggestedPipelineResult<T>> _history;
-        private readonly ColumnInformation _columnInfo;
         private readonly MLContext _context;
         private readonly OptimizingMetricInfo _optimizingMetricInfo;
         private readonly TaskKind _task;
-        private readonly IEstimator<ITransformer> _preFeaturizers;
-        private readonly IProgress<RunResult<T>> _progressCallback;
+        private readonly IProgress<TRunDetails> _progressCallback;
         private readonly ExperimentSettings _experimentSettings;
-        private readonly IMetricsAgent<T> _metricsAgent;
+        private readonly IMetricsAgent<TMetrics> _metricsAgent;
         private readonly IEnumerable<TrainerName> _trainerWhitelist;
         private readonly DirectoryInfo _modelDirectory;
-        private readonly DataViewSchema _trainDataOriginalSchema;
+        private readonly DatasetColumnInfo[] _datasetColumnInfo;
+        private readonly IRunner<TRunDetails> _runner;
+        private readonly IList<SuggestedPipelineRunDetails> _history = new List<SuggestedPipelineRunDetails>();
 
-        private IDataView _trainData;
-        private IDataView _validationData;
-        private ITransformer _preprocessorTransform;
-
-        List<RunResult<T>> iterationResults = new List<RunResult<T>>();
 
         public Experiment(MLContext context,
             TaskKind task,
-            IDataView trainData,
-            ColumnInformation columnInfo,
-            IDataView validationData,
-            IEstimator<ITransformer> preFeaturizers,
             OptimizingMetricInfo metricInfo,
-            IProgress<RunResult<T>> progressCallback,
+            IProgress<TRunDetails> progressCallback,
             ExperimentSettings experimentSettings,
-            IMetricsAgent<T> metricsAgent,
-            IEnumerable<TrainerName> trainerWhitelist)
+            IMetricsAgent<TMetrics> metricsAgent,
+            IEnumerable<TrainerName> trainerWhitelist,
+            DatasetColumnInfo[] datasetColumnInfo,
+            IRunner<TRunDetails> runner)
         {
-            if (validationData == null)
-            {
-                (trainData, validationData) = context.Regression.TestValidateSplit(context, trainData, columnInfo);
-            }
-            _trainData = trainData;
-            _validationData = validationData;
-            _trainDataOriginalSchema = _trainData.Schema;
-
-            _history = new List<SuggestedPipelineResult<T>>();
-            _columnInfo = columnInfo;
             _context = context;
             _optimizingMetricInfo = metricInfo;
             _task = task;
-            _preFeaturizers = preFeaturizers;
             _progressCallback = progressCallback;
             _experimentSettings = experimentSettings;
             _metricsAgent = metricsAgent;
             _trainerWhitelist = trainerWhitelist;
-            _modelDirectory = GetModelDirectory(_experimentSettings.ModelDirectory);
+            _modelDirectory = GetModelDirectory(_experimentSettings.CacheDirectory);
+            _datasetColumnInfo = datasetColumnInfo;
+            _runner = runner;
         }
 
-        public List<RunResult<T>> Execute()
+        public IList<TRunDetails> Execute()
         {
-            if (_preFeaturizers != null)
-            {
-                // preprocess train and validation data
-                _preprocessorTransform = _preFeaturizers.Fit(_trainData);
-                _trainData = _preprocessorTransform.Transform(_trainData);
-                _validationData = _preprocessorTransform.Transform(_validationData);
-            }
-
             var stopwatch = Stopwatch.StartNew();
-            var columns = AutoMlUtils.GetColumnInfoTuples(_context, _trainData, _columnInfo);
+            var iterationResults = new List<TRunDetails>();
 
             do
             {
-                SuggestedPipeline pipeline = null;
-                SuggestedPipelineResult<T> runResult = null;
+                var iterationStopwatch = Stopwatch.StartNew();
 
-                try
+                // get next pipeline
+                var getPiplelineStopwatch = Stopwatch.StartNew();
+                var pipeline = PipelineSuggester.GetNextInferredPipeline(_context, _history, _datasetColumnInfo, _task, _optimizingMetricInfo.IsMaximizing, _trainerWhitelist, _experimentSettings.CacheBeforeTrainer);
+                var pipelineInferenceTimeInSeconds = getPiplelineStopwatch.Elapsed.TotalSeconds;
+
+                // break if no candidates returned, means no valid pipeline available
+                if (pipeline == null)
                 {
-                    var iterationStopwatch = Stopwatch.StartNew();
-                    var getPiplelineStopwatch = Stopwatch.StartNew();
-
-                    // get next pipeline
-                    pipeline = PipelineSuggester.GetNextInferredPipeline(_context, _history, columns, _task, _optimizingMetricInfo.IsMaximizing, _trainerWhitelist, _experimentSettings.EnableCaching);
-
-                    getPiplelineStopwatch.Stop();
-
-                    // break if no candidates returned, means no valid pipeline available
-                    if (pipeline == null)
-                    {
-                        break;
-                    }
-
-                    // evaluate pipeline
-                    runResult = ProcessPipeline(pipeline);
-
-                    runResult.RuntimeInSeconds = iterationStopwatch.Elapsed.TotalSeconds;
-                    runResult.PipelineInferenceTimeInSeconds = getPiplelineStopwatch.Elapsed.TotalSeconds;
-                }
-                catch (Exception ex)
-                {
-                    WriteDebugLog(DebugStream.Exception, $"{pipeline?.Trainer} Crashed {ex}");
-                    runResult = new SuggestedPipelineResult<T>(null, null, null, pipeline, -1, ex);
+                    break;
                 }
 
-                var iterationResult = runResult.ToIterationResult();
-                ReportProgress(iterationResult);
-                iterationResults.Add(iterationResult);
+                // evaluate pipeline
+                WriteDebugLog(DebugStream.RunResult, $"Evaluating pipeline {pipeline.ToString()}");
+                (SuggestedPipelineRunDetails suggestedPipelineRunDetails, TRunDetails runDetails)
+                    = _runner.Run(pipeline, _modelDirectory, _history.Count + 1);
+                _history.Add(suggestedPipelineRunDetails);
+                WriteIterationLog(pipeline, suggestedPipelineRunDetails, iterationStopwatch);
+
+                runDetails.RuntimeInSeconds = iterationStopwatch.Elapsed.TotalSeconds;
+                runDetails.PipelineInferenceTimeInSeconds = getPiplelineStopwatch.Elapsed.TotalSeconds;
+
+                ReportProgress(runDetails);
+                iterationResults.Add(runDetails);
 
                 // if model is perfect, break
-                if (_metricsAgent.IsModelPerfect(iterationResult.ValidationMetrics))
+                if (_metricsAgent.IsModelPerfect(suggestedPipelineRunDetails.Score))
                 {
                     break;
                 }
@@ -154,7 +120,7 @@ namespace Microsoft.ML.Auto
             return experimentDirInfo;
         }
 
-        private void ReportProgress(RunResult<T> iterationResult)
+        private void ReportProgress(TRunDetails iterationResult)
         {
             try
             {
@@ -166,77 +132,7 @@ namespace Microsoft.ML.Auto
             }
         }
 
-        private FileInfo GetNextModelFileInfo()
-        {
-            if (_experimentSettings.ModelDirectory == null)
-            {
-                return null;
-            }
-
-            return new FileInfo(Path.Combine(_modelDirectory.FullName, 
-                $"Model{_history.Count + 1}.zip"));
-        }
-
-        private SuggestedPipelineResult<T> ProcessPipeline(SuggestedPipeline pipeline)
-        {
-            // run pipeline
-            var stopwatch = Stopwatch.StartNew();
-
-            WriteDebugLog(DebugStream.RunResult, $"Processing pipeline {pipeline.ToString()}");
-
-            SuggestedPipelineResult<T> runResult;
-
-            try
-            {
-                var model = pipeline.ToEstimator().Fit(_trainData);
-                var scoredValidationData = model.Transform(_validationData);
-                var metrics = GetEvaluatedMetrics(scoredValidationData);
-                var score = _metricsAgent.GetScore(metrics);
-
-                var estimator = pipeline.ToEstimator();
-                if (_preFeaturizers != null)
-                {
-                    estimator = _preFeaturizers.Append(estimator);
-                    model = _preprocessorTransform.Append(model);
-                }
-
-                var modelFileInfo = GetNextModelFileInfo();
-                var modelContainer = modelFileInfo == null ?
-                    new ModelContainer(_context, model) :
-                    new ModelContainer(_context, modelFileInfo, model, _trainDataOriginalSchema);
-
-                runResult = new SuggestedPipelineResult<T>(metrics, estimator, modelContainer, pipeline, score, null);
-            }
-            catch(Exception ex)
-            {
-                WriteDebugLog(DebugStream.Exception, $"{pipeline.Trainer} Crashed {ex}");
-                runResult = new SuggestedPipelineResult<T>(null, pipeline.ToEstimator(), null, pipeline, 0, ex);
-            }
-
-            // save pipeline run
-            _history.Add(runResult);
-            WriteIterationLog(pipeline, runResult, stopwatch);
-
-            return runResult;
-        }
-
-        private T GetEvaluatedMetrics(IDataView scoredData)
-        {
-            switch(_task)
-            {
-                case TaskKind.BinaryClassification:
-                    return _context.BinaryClassification.EvaluateNonCalibrated(scoredData, labelColumnName: _columnInfo.LabelColumn) as T;
-                case TaskKind.MulticlassClassification:
-                    return _context.MulticlassClassification.Evaluate(scoredData, labelColumnName: _columnInfo.LabelColumn) as T;
-                case TaskKind.Regression:
-                    return _context.Regression.Evaluate(scoredData, labelColumnName: _columnInfo.LabelColumn) as T;
-                // should not be possible to reach here
-                default:
-                    throw new InvalidOperationException($"unsupported machine learning task type {_task}");
-            }
-        }
-
-        private void WriteIterationLog(SuggestedPipeline pipeline, SuggestedPipelineResult runResult, Stopwatch stopwatch)
+        private void WriteIterationLog(SuggestedPipeline pipeline, SuggestedPipelineRunDetails runResult, Stopwatch stopwatch)
         {
             // debug log pipeline result
             if (runResult.RunSucceded)

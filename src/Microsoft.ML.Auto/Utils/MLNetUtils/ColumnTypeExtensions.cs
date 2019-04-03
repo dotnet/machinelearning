@@ -85,5 +85,25 @@ namespace Microsoft.ML.Auto
             ulong keyCount = columnType.GetKeyCount();
             return (int)keyCount;
         }
+
+        /// <summary>
+        /// Equivalent to calling Equals(ColumnType) for non-vector types. For vector type,
+        /// returns true if current and other vector types have the same size and item type.
+        /// </summary>
+        public static bool SameSizeAndItemType(this DataViewType columnType, DataViewType other)
+        {
+            if (other == null)
+                return false;
+
+            if (columnType.Equals(other))
+                return true;
+
+            // For vector types, we don't care about the factoring of the dimensions.
+            if (!(columnType is VectorDataViewType vectorType) || !(other is VectorDataViewType otherVectorType))
+                return false;
+            if (!vectorType.ItemType.Equals(otherVectorType.ItemType))
+                return false;
+            return vectorType.Size == otherVectorType.Size;
+        }
     }
 }

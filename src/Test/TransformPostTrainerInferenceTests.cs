@@ -16,10 +16,10 @@ namespace Microsoft.ML.Auto.Test
         public void TransformPostTrainerMulticlassNonKeyLabel()
         {
             TransformPostTrainerInferenceTestCore(TaskKind.MulticlassClassification,
-                new (string, DataViewType, ColumnPurpose, ColumnDimensions)[]
+                new[]
                 {
-                    ("Numeric1", NumberDataViewType.Single, ColumnPurpose.NumericFeature, new ColumnDimensions(null, null)),
-                    ("Label", NumberDataViewType.Single, ColumnPurpose.Label, new ColumnDimensions(null, null)),
+                    new DatasetColumnInfo("Numeric1", NumberDataViewType.Single, ColumnPurpose.NumericFeature, new ColumnDimensions(null, null)),
+                    new DatasetColumnInfo("Label", NumberDataViewType.Single, ColumnPurpose.Label, new ColumnDimensions(null, null)),
                 }, @"[
   {
     ""Name"": ""KeyToValueMapping"",
@@ -39,10 +39,10 @@ namespace Microsoft.ML.Auto.Test
         public void TransformPostTrainerBinaryLabel()
         {
             TransformPostTrainerInferenceTestCore(TaskKind.BinaryClassification,
-                new (string, DataViewType, ColumnPurpose, ColumnDimensions)[]
+                new[]
                 {
-                    ("Numeric1", NumberDataViewType.Single, ColumnPurpose.NumericFeature, new ColumnDimensions(null, null)),
-                    ("Label", NumberDataViewType.Single, ColumnPurpose.Label, new ColumnDimensions(null, null)),
+                    new DatasetColumnInfo("Numeric1", NumberDataViewType.Single, ColumnPurpose.NumericFeature, new ColumnDimensions(null, null)),
+                    new DatasetColumnInfo("Label", NumberDataViewType.Single, ColumnPurpose.Label, new ColumnDimensions(null, null)),
                 }, @"[]");
         }
 
@@ -50,16 +50,16 @@ namespace Microsoft.ML.Auto.Test
         public void TransformPostTrainerMulticlassKeyLabel()
         {
             TransformPostTrainerInferenceTestCore(TaskKind.MulticlassClassification,
-                new (string, DataViewType, ColumnPurpose, ColumnDimensions)[]
+                new[]
                 {
-                    ("Numeric1", NumberDataViewType.Single, ColumnPurpose.NumericFeature, new ColumnDimensions(null, null)),
-                    ("Label", new KeyDataViewType(typeof(uint), 3), ColumnPurpose.Label, new ColumnDimensions(null, null)),
+                    new DatasetColumnInfo("Numeric1", NumberDataViewType.Single, ColumnPurpose.NumericFeature, new ColumnDimensions(null, null)),
+                    new DatasetColumnInfo("Label", new KeyDataViewType(typeof(uint), 3), ColumnPurpose.Label, new ColumnDimensions(null, null)),
                 }, @"[]");
         }
 
         private static void TransformPostTrainerInferenceTestCore(
             TaskKind task,
-            (string name, DataViewType type, ColumnPurpose purpose, ColumnDimensions dimensions)[] columns,
+            DatasetColumnInfo[] columns,
             string expectedJson)
         {
             var transforms = TransformInferenceApi.InferTransformsPostTrainer(new MLContext(), task, columns);

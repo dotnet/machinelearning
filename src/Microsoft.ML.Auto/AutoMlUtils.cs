@@ -20,37 +20,5 @@ namespace Microsoft.ML.Auto
                 throw new InvalidOperationException(message);
             }
         }
-
-        public static IDataView DropLastColumn(this IDataView data, MLContext context)
-        {
-            return context.Transforms.DropColumns(data.Schema[data.Schema.Count - 1].Name).Fit(data).Transform(data);
-        }
-
-        public static (IDataView testData, IDataView validationData) TestValidateSplit(this TrainCatalogBase catalog, 
-            MLContext context, IDataView trainData, ColumnInformation columnInfo)
-        {
-            IDataView validationData;
-            var splitData = context.Data.TrainTestSplit(trainData, samplingKeyColumnName: columnInfo.SamplingKeyColumn);
-            trainData = splitData.TrainSet;
-            validationData = splitData.TestSet;
-            trainData = trainData.DropLastColumn(context);
-            validationData = validationData.DropLastColumn(context);
-            return (trainData, validationData);
-        }
-
-        public static (string, DataViewType, ColumnPurpose, ColumnDimensions)[] GetColumnInfoTuples(MLContext context,
-            IDataView data, ColumnInformation columnInfo)
-        {
-            var purposes = PurposeInference.InferPurposes(context, data, columnInfo);
-            var colDimensions = DatasetDimensionsApi.CalcColumnDimensions(context, data, purposes);
-            var cols = new (string, DataViewType, ColumnPurpose, ColumnDimensions)[data.Schema.Count];
-            for (var i = 0; i < cols.Length; i++)
-            {
-                var schemaCol = data.Schema[i];
-                var col = (schemaCol.Name, schemaCol.Type, purposes[i].Purpose, colDimensions[i]);
-                cols[i] = col;
-            }
-            return cols;
-        }
     }
 }

@@ -125,32 +125,41 @@ namespace Microsoft.ML.Auto.Test
 
         private static double GetScore(BinaryClassificationMetrics metrics, BinaryClassificationMetric metric)
         {
-            return new BinaryMetricsAgent(metric).GetScore(metrics);
+            return new BinaryMetricsAgent(null, metric).GetScore(metrics);
         }
 
         private static double GetScore(MulticlassClassificationMetrics metrics, MulticlassClassificationMetric metric)
         {
-            return new MultiMetricsAgent(metric).GetScore(metrics);
+            return new MultiMetricsAgent(null, metric).GetScore(metrics);
         }
 
         private static double GetScore(RegressionMetrics metrics, RegressionMetric metric)
         {
-            return new RegressionMetricsAgent(metric).GetScore(metrics);
+            return new RegressionMetricsAgent(null, metric).GetScore(metrics);
         }
 
         private static bool IsPerfectModel(BinaryClassificationMetrics metrics, BinaryClassificationMetric metric)
         {
-            return new BinaryMetricsAgent(metric).IsModelPerfect(metrics);
+            var metricsAgent = new BinaryMetricsAgent(null, metric);
+            return IsPerfectModel(metricsAgent, metrics);
         }
 
         private static bool IsPerfectModel(MulticlassClassificationMetrics metrics, MulticlassClassificationMetric metric)
         {
-            return new MultiMetricsAgent(metric).IsModelPerfect(metrics);
+            var metricsAgent = new MultiMetricsAgent(null, metric);
+            return IsPerfectModel(metricsAgent, metrics);
         }
 
         private static bool IsPerfectModel(RegressionMetrics metrics, RegressionMetric metric)
         {
-            return new RegressionMetricsAgent(metric).IsModelPerfect(metrics);
+            var metricsAgent = new RegressionMetricsAgent(null, metric);
+            return IsPerfectModel(metricsAgent, metrics);
+        }
+
+        private static bool IsPerfectModel<TMetrics>(IMetricsAgent<TMetrics> metricsAgent, TMetrics metrics)
+        {
+            var score = metricsAgent.GetScore(metrics);
+            return metricsAgent.IsModelPerfect(score);
         }
     }
 }

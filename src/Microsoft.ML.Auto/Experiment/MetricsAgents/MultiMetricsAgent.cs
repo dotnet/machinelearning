@@ -8,11 +8,14 @@ namespace Microsoft.ML.Auto
 {
     internal class MultiMetricsAgent : IMetricsAgent<MulticlassClassificationMetrics>
     {
+        private readonly MLContext _mlContext;
         private readonly MulticlassClassificationMetric _optimizingMetric;
 
-        public MultiMetricsAgent(MulticlassClassificationMetric optimizingMetric)
+        public MultiMetricsAgent(MLContext mlContext,
+            MulticlassClassificationMetric optimizingMetric)
         {
-            this._optimizingMetric = optimizingMetric;
+            _mlContext = mlContext;
+            _optimizingMetric = optimizingMetric;
         }
 
         public double GetScore(MulticlassClassificationMetrics metrics)
@@ -39,9 +42,9 @@ namespace Microsoft.ML.Auto
             }
         }
 
-        public bool IsModelPerfect(MulticlassClassificationMetrics metrics)
+        public bool IsModelPerfect(double score)
         {
-            if (metrics == null)
+            if (double.IsNaN(score))
             {
                 return false;
             }
@@ -49,18 +52,23 @@ namespace Microsoft.ML.Auto
             switch (_optimizingMetric)
             {
                 case MulticlassClassificationMetric.MacroAccuracy:
-                    return metrics.MacroAccuracy == 1;
+                    return score == 1;
                 case MulticlassClassificationMetric.MicroAccuracy:
-                    return metrics.MicroAccuracy == 1;
+                    return score == 1;
                 case MulticlassClassificationMetric.LogLoss:
-                    return metrics.LogLoss == 0;
+                    return score == 0;
                 case MulticlassClassificationMetric.LogLossReduction:
-                    return metrics.LogLossReduction == 1;
+                    return score == 1;
                 case MulticlassClassificationMetric.TopKAccuracy:
-                    return metrics.TopKAccuracy == 1;
+                    return score == 1;
                 default:
                     throw MetricsAgentUtil.BuildMetricNotSupportedException(_optimizingMetric);
             }
+        }
+        
+        public MulticlassClassificationMetrics EvaluateMetrics(IDataView data, string labelColumn)
+        {
+            return _mlContext.MulticlassClassification.Evaluate(data, labelColumn);
         }
     }
 }

@@ -8,11 +8,14 @@ namespace Microsoft.ML.Auto
 {
     internal class BinaryMetricsAgent : IMetricsAgent<BinaryClassificationMetrics>
     {
+        private readonly MLContext _mlContext;
         private readonly BinaryClassificationMetric _optimizingMetric;
 
-        public BinaryMetricsAgent(BinaryClassificationMetric optimizingMetric)
+        public BinaryMetricsAgent(MLContext mlContext,
+            BinaryClassificationMetric optimizingMetric)
         {
-            this._optimizingMetric = optimizingMetric;
+            _mlContext = mlContext;
+            _optimizingMetric = optimizingMetric;
         }
 
         public double GetScore(BinaryClassificationMetrics metrics)
@@ -45,9 +48,9 @@ namespace Microsoft.ML.Auto
             }
         }
 
-        public bool IsModelPerfect(BinaryClassificationMetrics metrics)
+        public bool IsModelPerfect(double score)
         {
-            if (metrics == null)
+            if (double.IsNaN(score))
             {
                 return false;
             }
@@ -55,24 +58,29 @@ namespace Microsoft.ML.Auto
             switch (_optimizingMetric)
             {
                 case BinaryClassificationMetric.Accuracy:
-                    return metrics.Accuracy == 1;
+                    return score == 1;
                 case BinaryClassificationMetric.AreaUnderRocCurve:
-                    return metrics.AreaUnderRocCurve == 1;
+                    return score == 1;
                 case BinaryClassificationMetric.AreaUnderPrecisionRecallCurve:
-                    return metrics.AreaUnderPrecisionRecallCurve == 1;
+                    return score == 1;
                 case BinaryClassificationMetric.F1Score:
-                    return metrics.F1Score == 1;
+                    return score == 1;
                 case BinaryClassificationMetric.NegativePrecision:
-                    return metrics.NegativePrecision == 1;
+                    return score == 1;
                 case BinaryClassificationMetric.NegativeRecall:
-                    return metrics.NegativeRecall == 1;
+                    return score == 1;
                 case BinaryClassificationMetric.PositivePrecision:
-                    return metrics.PositivePrecision == 1;
+                    return score == 1;
                 case BinaryClassificationMetric.PositiveRecall:
-                    return metrics.PositiveRecall == 1;
+                    return score == 1;
                 default:
                     throw MetricsAgentUtil.BuildMetricNotSupportedException(_optimizingMetric);
             }
+        }
+
+        public BinaryClassificationMetrics EvaluateMetrics(IDataView data, string labelColumn)
+        {
+            return _mlContext.BinaryClassification.EvaluateNonCalibrated(data, labelColumn);
         }
     }
 }

@@ -8,11 +8,13 @@ namespace Microsoft.ML.Auto
 {
     internal class RegressionMetricsAgent : IMetricsAgent<RegressionMetrics>
     {
+        private readonly MLContext _mlContext;
         private readonly RegressionMetric _optimizingMetric;
 
-        public RegressionMetricsAgent(RegressionMetric optimizingMetric)
+        public RegressionMetricsAgent(MLContext mlContext, RegressionMetric optimizingMetric)
         {
-            this._optimizingMetric = optimizingMetric;
+            _mlContext = mlContext;
+            _optimizingMetric = optimizingMetric;
         }
 
         public double GetScore(RegressionMetrics metrics)
@@ -37,9 +39,9 @@ namespace Microsoft.ML.Auto
             }
         }
 
-        public bool IsModelPerfect(RegressionMetrics metrics)
+        public bool IsModelPerfect(double score)
         {
-            if (metrics == null)
+            if (double.IsNaN(score))
             {
                 return false;
             }
@@ -47,16 +49,21 @@ namespace Microsoft.ML.Auto
             switch (_optimizingMetric)
             {
                 case RegressionMetric.MeanAbsoluteError:
-                    return metrics.MeanAbsoluteError == 0;
+                    return score == 0;
                 case RegressionMetric.MeanSquaredError:
-                    return metrics.MeanSquaredError == 0;
+                    return score == 0;
                 case RegressionMetric.RootMeanSquaredError:
-                    return metrics.RootMeanSquaredError == 0;
+                    return score == 0;
                 case RegressionMetric.RSquared:
-                    return metrics.RSquared == 1;
+                    return score == 1;
                 default:
                     throw MetricsAgentUtil.BuildMetricNotSupportedException(_optimizingMetric);
             }
+        }
+
+        public RegressionMetrics EvaluateMetrics(IDataView data, string labelColumn)
+        {
+            return _mlContext.Regression.Evaluate(data, labelColumn);
         }
     }
 }
