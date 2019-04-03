@@ -19,7 +19,7 @@ namespace Microsoft.ML.Samples.Dynamic
                 new TextData(){ Text = "ML.NET's LatentDirichletAllocation API is the best for topic model." },
                 new TextData(){ Text = "I like to eat broccoli and banana." },
                 new TextData(){ Text = "I eat a banana in the breakfast." },
-                new TextData(){ Text = "This car is expensive compared to last week." },
+                new TextData(){ Text = "This car is expensive compared to last week's price." },
                 new TextData(){ Text = "This car was $X last week." },
             };
 
