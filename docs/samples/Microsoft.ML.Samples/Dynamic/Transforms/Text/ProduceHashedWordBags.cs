@@ -18,11 +18,11 @@ namespace Microsoft.ML.Samples.Dynamic
             var samples = new List<TextData>()
             {
                 new TextData(){ Text = "This is an example to compute bag-of-word features using hashing." },
-                new TextData(){ Text = "ML.NET's ProduceHashedWordBags API produces count of Ngrams and hashes it as an index into a vector of given bit length." },
+                new TextData(){ Text = "ML.NET's ProduceHashedWordBags API produces count of n-grams and hashes it as an index into a vector of given bit length." },
                 new TextData(){ Text = "It does so by first tokenizing text/string into words/tokens then " },
-                new TextData(){ Text = "computing Ngram and hash them to the index given by hash value." },
-                new TextData(){ Text = "The hashing schem reduces the size of the output feature vector" },
-                new TextData(){ Text = "which is useful in case when number of Ngrams is very large." },
+                new TextData(){ Text = "computing n-grams and hash them to the index given by hash value." },
+                new TextData(){ Text = "The hashing reduces the size of the output feature vector" },
+                new TextData(){ Text = "which is useful in case when number of n-grams is very large." },
             };
 
             // Convert training data to IDataView.
@@ -32,7 +32,7 @@ namespace Microsoft.ML.Samples.Dynamic
             // The following call to 'ProduceHashedWordBags' implicitly tokenizes the text/string into words/tokens.
             // Please note that the length of the output feature vector depends on the 'numberOfBits' settings.
             var textPipeline = mlContext.Transforms.Text.ProduceHashedWordBags("BagOfWordFeatures", "Text",
-                numberOfBits: 8, ngramLength: 3, useAllLengths: false);
+                numberOfBits: 5, ngramLength: 3, useAllLengths: false);
 
             // Fit to data.
             var textTransformer = textPipeline.Fit(dataview);
@@ -52,8 +52,8 @@ namespace Microsoft.ML.Samples.Dynamic
                 Console.Write($"{prediction.BagOfWordFeatures[i]:F4}  ");
 
             //  Expected output:
-            //   Number of Features: 256
-            //   Features:    0.0000  0.0000  0.0000  0.0000  0.0000  0.0000  0.0000  0.0000  0.0000  0.0000
+            //   Number of Features: 32
+            //   Features:  0.0000  0.0000  0.0000  0.0000  0.0000  0.0000  1.0000  2.0000  0.0000  0.0000
         }
 
         public class TextData

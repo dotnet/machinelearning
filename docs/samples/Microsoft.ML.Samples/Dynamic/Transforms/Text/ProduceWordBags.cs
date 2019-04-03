@@ -20,11 +20,11 @@ namespace Microsoft.ML.Samples.Dynamic
                 new TextData(){ Text = "This is an example to compute bag-of-word features." },
                 new TextData(){ Text = "ML.NET's ProduceWordBags API produces bag-of-word features from input text." },
                 new TextData(){ Text = "It does so by first tokenizing text/string into words/tokens then " },
-                new TextData(){ Text = "computing Ngram and their neumeric values." },
-                new TextData(){ Text = "Each position in the output vector corresponds to a particular Ngram." },
+                new TextData(){ Text = "computing n-grams and their neumeric values." },
+                new TextData(){ Text = "Each position in the output vector corresponds to a particular n-gram." },
                 new TextData(){ Text = "The value at each position corresponds to," },
-                new TextData(){ Text = "the number of times Ngram occured in the data (Tf), or" },
-                new TextData(){ Text = "the inverse of the number of documents contain the Ngram (Idf), or." },
+                new TextData(){ Text = "the number of times n-gram occured in the data (Tf), or" },
+                new TextData(){ Text = "the inverse of the number of documents contain the n-gram (Idf)," },
                 new TextData(){ Text = "or compute both and multipy together (Tf-Idf)." },
             };
 
@@ -33,7 +33,7 @@ namespace Microsoft.ML.Samples.Dynamic
 
             // A pipeline for converting text into numeric bag-of-word features.
             // The following call to 'ProduceWordBags' implicitly tokenizes the text/string into words/tokens.
-            // Please note that the length of the output feature vector depends on the Ngram settings.
+            // Please note that the length of the output feature vector depends on the n-gram settings.
             var textPipeline = mlContext.Transforms.Text.ProduceWordBags("BagOfWordFeatures", "Text",
                 ngramLength: 3, useAllLengths: false, weighting: NgramExtractingEstimator.WeightingCriteria.Tf);
 
@@ -50,14 +50,14 @@ namespace Microsoft.ML.Samples.Dynamic
             // Print the length of the feature vector.
             Console.WriteLine($"Number of Features: {prediction.BagOfWordFeatures.Length}");
 
-            // Preview of the produced Ngrams.
+            // Preview of the produced n-grams.
             // Get the slot names from the column's metadata.
             // If the column is a vector column the slot names corresponds to the names associated with each position in the vector.
             VBuffer<ReadOnlyMemory<char>> slotNames = default;
             transformedDataView.Schema["BagOfWordFeatures"].GetSlotNames(ref slotNames);
             var BagOfWordFeaturesColumn = transformedDataView.GetColumn<VBuffer<float>>(transformedDataView.Schema["BagOfWordFeatures"]);
             var slots = slotNames.GetValues();
-            Console.Write("Ngrams: ");
+            Console.Write("N-grams: ");
             foreach (var featureRow in BagOfWordFeaturesColumn)
             {
                 foreach (var item in featureRow.Items())
@@ -72,7 +72,7 @@ namespace Microsoft.ML.Samples.Dynamic
 
             //  Expected output:
             //   Number of Features: 62
-            //   Ngrams:   This|is|an  is|an|example  an|example|to  example|to|compute  to|compute|bag-of-word  compute|bag-of-word|features.  ML.NET's|ProduceWordBags|API  ProduceWordBags|API|produces  API|produces|bag-of-word  produces|bag-of-word|features  ...
+            //   N-grams:   This|is|an  is|an|example  an|example|to  example|to|compute  to|compute|bag-of-word  compute|bag-of-word|features.  ML.NET's|ProduceWordBags|API  ProduceWordBags|API|produces  API|produces|bag-of-word  produces|bag-of-word|features  ...
             //   Features:    1.0000       1.0000        1.0000           1.0000                1.0000                      1.0000                           0.0000                         0.0000                  0.0000                       0.0000              ...
         }
 
