@@ -31,7 +31,7 @@ namespace Microsoft.ML.Samples.Dynamic
             // before passing tokens to LatentDirichletAllocation.
             var pipeline = mlContext.Transforms.Text.NormalizeText("normText", "Text")
                 .Append(mlContext.Transforms.Text.TokenizeIntoWords("Tokens", "normText"))
-                .Append(mlContext.Transforms.Text.RemoveStopWords("Tokens"))
+                .Append(mlContext.Transforms.Text.RemoveDefaultStopWords("Tokens"))
                 .Append(mlContext.Transforms.Conversion.MapValueToKey("Tokens"))
                 .Append(mlContext.Transforms.Text.ProduceNgrams("Tokens"))
                 .Append(mlContext.Transforms.Text.LatentDirichletAllocation("Features", "Tokens", numberOfTopics: 3));
@@ -50,8 +50,8 @@ namespace Microsoft.ML.Samples.Dynamic
             // For LatentDirichletAllocation, we had specified numTopic:3. Hence each prediction has been featurized as a vector of floats with length 3.
 
             //  Topic1  Topic2  Topic3
-            //  0.6364  0.3636  0.0000
-            //  0.4118  0.1765  0.4118
+            //  0.6364  0.2727  0.0909
+            //  0.5455  0.1818  0.2727
         }
 
         private static void PrintPredictions(TransformedTextData prediction)
