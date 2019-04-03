@@ -23,7 +23,7 @@ namespace Microsoft.ML.Samples.Dynamic
                 new TextData(){ Text = "The value at each position corresponds to," },
                 new TextData(){ Text = "the number of times Ngram occured in the data (Tf), or" },
                 new TextData(){ Text = "the inverse of the number of documents that contain the Ngram (Idf), or." },
-                new TextData(){ Text = "or compute both and multipy together (Tf-Idf)." },
+                new TextData(){ Text = "or compute both and multiply together (Tf-Idf)." },
             };
 
             // Convert training data to IDataView.
@@ -34,9 +34,12 @@ namespace Microsoft.ML.Samples.Dynamic
             // This is acheived by calling 'TokenizeIntoWords' first followed by 'ProduceNgrams'.
             // Please note that the length of the output feature vector depends on the Ngram settings.
             var textPipeline = mlContext.Transforms.Text.TokenizeIntoWords("Tokens", "Text")
+                // 'ProduceNgrams' takes key type as input. Converting the tokens into key type using 'MapValueToKey'.
                 .Append(mlContext.Transforms.Conversion.MapValueToKey("Tokens"))
                 .Append(mlContext.Transforms.Text.ProduceNgrams("NgramFeatures", "Tokens",
-                ngramLength: 3, useAllLengths: false, weighting: NgramExtractingEstimator.WeightingCriteria.Tf));
+                    ngramLength: 3,
+                    useAllLengths: false,
+                    weighting: NgramExtractingEstimator.WeightingCriteria.Tf));
             
             // Fit to data.
             var textTransformer = textPipeline.Fit(dataview);
@@ -51,7 +54,9 @@ namespace Microsoft.ML.Samples.Dynamic
             // Print the length of the feature vector.
             Console.WriteLine($"Number of Features: {prediction.NgramFeatures.Length}");
 
-            // Preview of the produced .
+            // Preview of the produced Ngrams.
+            // Get the slot names from the column's metadata.
+            // If the column is a vector column the slot names corresponds to the names associated with each position in the vector.
             VBuffer<ReadOnlyMemory<char>> slotNames = default;
             transformedDataView.Schema["NgramFeatures"].GetSlotNames(ref slotNames);
             var NgramFeaturesColumn = transformedDataView.GetColumn<VBuffer<float>>(transformedDataView.Schema["NgramFeatures"]);
