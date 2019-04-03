@@ -56,8 +56,8 @@ namespace Microsoft.ML.Samples.Dynamic
 
             // Composing a different pipeline if we wanted to normalize more than one column at a time. 
             // Using log scale as the normalization mode. 
-            var multiColPipeline = ml.Transforms.NormalizeMinMax("LogInduced", "Induced")
-                .Append(ml.Transforms.NormalizeMinMax("LogSpontaneous", "Spontaneous"));
+            var multiColPipeline = ml.Transforms.NormalizeLogMeanVariance(new[] { new InputOutputColumnPair("LogInduced", "Induced"), new InputOutputColumnPair("LogSpontaneous", "Spontaneous") });
+
             // The transformed data.
             var multiColtransformer = multiColPipeline.Fit(trainData);
             var multiColtransformedData = multiColtransformer.Transform(trainData);

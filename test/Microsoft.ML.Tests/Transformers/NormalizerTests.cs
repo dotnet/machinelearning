@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Immutable;
 using System.IO;
+using Microsoft.ML;
 using Microsoft.ML.Data;
 using Microsoft.ML.Data.IO;
 using Microsoft.ML.Experimental;
@@ -203,6 +204,181 @@ namespace Microsoft.ML.Tests.Transformers
             Assert.Equal(4, doubleCdfLogMeanDataVec.Mean.Length);
             Assert.True(doubleCdfLogMeanDataVec.UseLog);
             Assert.Equal(4, doubleCdfLogMeanDataVec.StandardDeviation.Length);
+
+            Done();
+        }
+
+        [Fact]
+        public void NormalizerParametersMultiColumnApi()
+        {
+            string dataPath = GetDataPath("iris.txt");
+            var context = new MLContext(seed: 0);
+
+            var loader = new TextLoader(context, new TextLoader.Options
+            {
+                Columns = new[] {
+                    new TextLoader.Column("Label", DataKind.Single, 0),
+                    new TextLoader.Column("float1", DataKind.Single, 1),
+                    new TextLoader.Column("float4", DataKind.Single, new[]{new TextLoader.Range(1, 4) }),
+                    new TextLoader.Column("double1", DataKind.Double, 1),
+                    new TextLoader.Column("double4", DataKind.Double, new[]{new TextLoader.Range(1, 4) }),
+                    new TextLoader.Column("int1", DataKind.Int32, 0),
+                    new TextLoader.Column("float0", DataKind.Single, new[]{ new TextLoader.Range { Min = 1, VariableEnd = true } })
+                },
+                HasHeader = true
+            }, new MultiFileSource(dataPath));
+
+            var est = context.Transforms.NormalizeMinMax(
+                new[] { new InputOutputColumnPair("float1"), new InputOutputColumnPair("float4"),
+                    new InputOutputColumnPair("double1"), new InputOutputColumnPair("double4"), })
+                    .Append(context.Transforms.NormalizeBinning(
+                                new[] {new InputOutputColumnPair("float1bin", "float1"), new InputOutputColumnPair("float4bin", "float4"),
+                                    new InputOutputColumnPair("double1bin", "double1"), new InputOutputColumnPair("double4bin", "double4")}))
+                    .Append(context.Transforms.NormalizeMeanVariance(
+                                new[] {new InputOutputColumnPair("float1mv", "float1"), new InputOutputColumnPair("float4mv", "float4"),
+                                    new InputOutputColumnPair("double1mv", "double1"), new InputOutputColumnPair("double4mv", "double4")}))
+                    .Append(context.Transforms.NormalizeLogMeanVariance(
+                                new[] {new InputOutputColumnPair("float1lmv", "float1"), new InputOutputColumnPair("float4lmv", "float4"),
+                                    new InputOutputColumnPair("double1lmv", "double1"), new InputOutputColumnPair("double4lmv", "double4")}))
+                    .Append(context.Transforms.NormalizeSupervisedBinning(
+                                new[] {new InputOutputColumnPair("float1nsb", "float1"), new InputOutputColumnPair("float4nsb", "float4"),
+                                    new InputOutputColumnPair("double1nsb", "double1"), new InputOutputColumnPair("double4nsb", "double4")}));
+
+            var data = loader.Load(dataPath);
+
+            var transformer = est.Fit(data);
+            var transformers = transformer.ToImmutableArray();
+            var floatAffineModel = ((NormalizingTransformer)transformers[0]).Columns[0].ModelParameters as NormalizingTransformer.AffineNormalizerModelParameters<float>;
+            Assert.Equal(0.12658228f, floatAffineModel.Scale);
+            Assert.Equal(0, floatAffineModel.Offset);
+
+            var floatAffineModelVec = ((NormalizingTransformer)transformers[0]).Columns[1].ModelParameters as NormalizingTransformer.AffineNormalizerModelParameters<ImmutableArray<float>>;
+            Assert.Equal(4, floatAffineModelVec.Scale.Length);
+            Assert.Empty(floatAffineModelVec.Offset);
+
+            var doubleAffineModel = ((NormalizingTransformer)transformers[0]).Columns[2].ModelParameters as NormalizingTransformer.AffineNormalizerModelParameters<double>;
+            Assert.Equal(0.12658227848101264, doubleAffineModel.Scale);
+            Assert.Equal(0, doubleAffineModel.Offset);
+
+            var doubleAffineModelVector = ((NormalizingTransformer)transformers[0]).Columns[3].ModelParameters as NormalizingTransformer.AffineNormalizerModelParameters<ImmutableArray<double>>;
+            Assert.Equal(4, doubleAffineModelVector.Scale.Length);
+            Assert.Equal(0.12658227848101264, doubleAffineModelVector.Scale[0]);
+            Assert.Equal(0.4, doubleAffineModelVector.Scale[3]);
+            Assert.Empty(doubleAffineModelVector.Offset);
+
+            var floatBinModel = ((NormalizingTransformer)transformers[1]).Columns[0].ModelParameters as NormalizingTransformer.BinNormalizerModelParameters<float>;
+            Assert.True(35 == floatBinModel.UpperBounds.Length);
+            Assert.True(0.550632954f == floatBinModel.UpperBounds[0]);
+            Assert.True(float.PositiveInfinity == floatBinModel.UpperBounds[34]);
+            Assert.True(34 == floatBinModel.Density);
+            Assert.True(0 == floatBinModel.Offset);
+
+            var floatBinModelVector = ((NormalizingTransformer)transformers[1]).Columns[1].ModelParameters as NormalizingTransformer.BinNormalizerModelParameters<ImmutableArray<float>>;
+            Assert.True(4 == floatBinModelVector.UpperBounds.Length);
+            Assert.True(35 == floatBinModelVector.UpperBounds[0].Length);
+            Assert.True(0.550632954f == floatBinModelVector.UpperBounds[0][0]);
+            Assert.True(float.PositiveInfinity == floatBinModelVector.UpperBounds[0][floatBinModelVector.UpperBounds[0].Length - 1]);
+            Assert.True(0.0600000024f == floatBinModelVector.UpperBounds[3][0]);
+            Assert.True(float.PositiveInfinity == floatBinModelVector.UpperBounds[3][floatBinModelVector.UpperBounds[3].Length - 1]);
+            Assert.True(4 == floatBinModelVector.Density.Length);
+            Assert.True(0 == floatBinModelVector.Offset.Length);
+
+            var doubleBinModel = ((NormalizingTransformer)transformers[1]).Columns[2].ModelParameters as NormalizingTransformer.BinNormalizerModelParameters<double>;
+            Assert.Equal(35, doubleBinModel.UpperBounds.Length);
+            Assert.True(0.550632911392405 == doubleBinModel.UpperBounds[0]);
+            Assert.True(double.PositiveInfinity == doubleBinModel.UpperBounds[34]);
+            Assert.Equal(34, doubleBinModel.Density);
+            Assert.Equal(0, doubleBinModel.Offset);
+
+            var doubleBinModelVector = ((NormalizingTransformer)transformers[1]).Columns[3].ModelParameters as NormalizingTransformer.BinNormalizerModelParameters<ImmutableArray<double>>;
+            Assert.Equal(35, doubleBinModelVector.UpperBounds[0].Length);
+            Assert.True(0.550632911392405 == doubleBinModelVector.UpperBounds[0][0]);
+            Assert.True(double.PositiveInfinity == doubleBinModelVector.UpperBounds[0][doubleBinModelVector.UpperBounds[0].Length - 1]);
+            Assert.True(0.060000000000000012 == doubleBinModelVector.UpperBounds[3][0]);
+            Assert.True(double.PositiveInfinity == doubleBinModelVector.UpperBounds[3][doubleBinModelVector.UpperBounds[3].Length - 1]);
+            Assert.Equal(4, doubleBinModelVector.Density.Length);
+            Assert.Empty(doubleBinModelVector.Offset);
+
+            var floatCdfMeanModel = ((NormalizingTransformer)transformers[2]).Columns[0].ModelParameters as NormalizingTransformer.AffineNormalizerModelParameters<float>;
+            Assert.Equal(1.33754611f, floatCdfMeanModel.Scale);
+            Assert.Equal(0, floatCdfMeanModel.Offset);
+
+            var floatCdfMeanModelVector = ((NormalizingTransformer)transformers[2]).Columns[1].ModelParameters as NormalizingTransformer.AffineNormalizerModelParameters<ImmutableArray<float>>;
+            Assert.Equal(1.33754611f, floatCdfMeanModelVector.Scale[0]);
+            Assert.Equal(1.75526536f, floatCdfMeanModelVector.Scale[3]);
+            Assert.Equal(4, floatCdfMeanModelVector.Scale.Length);
+            Assert.Empty(floatCdfMeanModelVector.Offset);
+
+            var doubleCdfMeanModel = ((NormalizingTransformer)transformers[2]).Columns[2].ModelParameters as NormalizingTransformer.AffineNormalizerModelParameters<double>;
+            Assert.Equal(1.3375461389666252, doubleCdfMeanModel.Scale);
+            Assert.Equal(0, doubleCdfMeanModel.Offset);
+
+            var doubleCdfMeanModelVector = ((NormalizingTransformer)transformers[2]).Columns[3].ModelParameters as NormalizingTransformer.AffineNormalizerModelParameters<ImmutableArray<double>>;
+            Assert.Equal(4, doubleCdfMeanModelVector.Scale.Length);
+            Assert.True(1.3375461389666252 == doubleCdfMeanModelVector.Scale[0]);
+            Assert.True(1.7552654477786787 == doubleCdfMeanModelVector.Scale[3]);
+            Assert.Empty(doubleCdfMeanModelVector.Offset);
+
+            var floatCdfLogMeanModel = ((NormalizingTransformer)transformers[3]).Columns[0].ModelParameters as NormalizingTransformer.CdfNormalizerModelParameters<float>;
+            Assert.Equal(-0.310623198747635f, floatCdfLogMeanModel.Mean);
+            Assert.True(true == floatCdfLogMeanModel.UseLog);
+            Assert.Equal(0.140807763f, floatCdfLogMeanModel.StandardDeviation);
+
+            var floatCdfLogMeanModelVector = ((NormalizingTransformer)transformers[3]).Columns[1].ModelParameters as NormalizingTransformer.CdfNormalizerModelParameters<ImmutableArray<float>>;
+            Assert.Equal(4, floatCdfLogMeanModelVector.Mean.Length);
+            Assert.True(-0.3106232f == floatCdfLogMeanModelVector.Mean[0]);
+            Assert.True(-1.08362031f == floatCdfLogMeanModelVector.Mean[3]);
+            Assert.True(true == floatCdfLogMeanModelVector.UseLog);
+            Assert.Equal(4, floatCdfLogMeanModelVector.StandardDeviation.Length);
+            Assert.True(0.140807763f == floatCdfLogMeanModelVector.StandardDeviation[0]);
+            Assert.True(0.9843767f == floatCdfLogMeanModelVector.StandardDeviation[3]);
+
+            var doubleCdfLogMeanModel = ((NormalizingTransformer)transformers[3]).Columns[2].ModelParameters as NormalizingTransformer.CdfNormalizerModelParameters<double>;
+            Assert.Equal(-0.31062321927759518, doubleCdfLogMeanModel.Mean);
+            Assert.True(doubleCdfLogMeanModel.UseLog);
+            Assert.Equal(0.14080776721611871, doubleCdfLogMeanModel.StandardDeviation);
+
+            var doubleCdfLogMeanModelVector = ((NormalizingTransformer)transformers[3]).Columns[3].ModelParameters as NormalizingTransformer.CdfNormalizerModelParameters<ImmutableArray<double>>;
+            Assert.Equal(4, doubleCdfLogMeanModelVector.Mean.Length);
+            Assert.True(-0.31062321927759518 == doubleCdfLogMeanModelVector.Mean[0]);
+            Assert.True(-1.0836203140680853 == doubleCdfLogMeanModelVector.Mean[3]);
+            Assert.True(doubleCdfLogMeanModelVector.UseLog);
+            Assert.Equal(4, doubleCdfLogMeanModelVector.StandardDeviation.Length);
+            Assert.True(0.14080776721611871 == doubleCdfLogMeanModelVector.StandardDeviation[0]);
+            Assert.True(0.98437679839698122 == doubleCdfLogMeanModelVector.StandardDeviation[3]);
+
+            floatBinModel = ((NormalizingTransformer)transformers[4]).Columns[0].ModelParameters as NormalizingTransformer.BinNormalizerModelParameters<float>;
+            Assert.True(4 == floatBinModel.UpperBounds.Length);
+            Assert.True(0.6139241f == floatBinModel.UpperBounds[0]);
+            Assert.True(float.PositiveInfinity == floatBinModel.UpperBounds[3]);
+            Assert.True(3 == floatBinModel.Density);
+            Assert.True(0 == floatBinModel.Offset);
+
+            floatBinModelVector = ((NormalizingTransformer)transformers[4]).Columns[1].ModelParameters as NormalizingTransformer.BinNormalizerModelParameters<ImmutableArray<float>>;
+            Assert.True(4 == floatBinModelVector.UpperBounds.Length);
+            Assert.True(4 == floatBinModelVector.UpperBounds[0].Length);
+            Assert.True(0.6139241f == floatBinModelVector.UpperBounds[0][0]);
+            Assert.True(float.PositiveInfinity == floatBinModelVector.UpperBounds[0][floatBinModelVector.UpperBounds[0].Length - 1]);
+            Assert.True(0.32f == floatBinModelVector.UpperBounds[3][0]);
+            Assert.True(float.PositiveInfinity == floatBinModelVector.UpperBounds[3][floatBinModelVector.UpperBounds[3].Length - 1]);
+            Assert.True(4 == floatBinModelVector.Density.Length);
+            Assert.True(0 == floatBinModelVector.Offset.Length);
+
+            doubleBinModel = ((NormalizingTransformer)transformers[4]).Columns[2].ModelParameters as NormalizingTransformer.BinNormalizerModelParameters<double>;
+            Assert.Equal(4, doubleBinModel.UpperBounds.Length);
+            Assert.True(0.61392405063291133 == doubleBinModel.UpperBounds[0]);
+            Assert.True(float.PositiveInfinity == doubleBinModel.UpperBounds[3]);
+            Assert.Equal(3, doubleBinModel.Density);
+            Assert.Equal(0, doubleBinModel.Offset);
+
+            doubleBinModelVector = ((NormalizingTransformer)transformers[4]).Columns[3].ModelParameters as NormalizingTransformer.BinNormalizerModelParameters<ImmutableArray<double>>;
+            Assert.Equal(4, doubleBinModelVector.UpperBounds[0].Length);
+            Assert.True(0.6139240506329113335 == doubleBinModelVector.UpperBounds[0][0]);
+            Assert.True(double.PositiveInfinity == doubleBinModelVector.UpperBounds[0][doubleBinModelVector.UpperBounds[0].Length - 1]);
+            Assert.True(0.32 == doubleBinModelVector.UpperBounds[3][0]);
+            Assert.True(double.PositiveInfinity == doubleBinModelVector.UpperBounds[3][doubleBinModelVector.UpperBounds[3].Length - 1]);
+            Assert.Equal(4, doubleBinModelVector.Density.Length);
+            Assert.Empty(doubleBinModelVector.Offset);
 
             Done();
         }
