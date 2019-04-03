@@ -216,7 +216,7 @@ namespace Microsoft.ML
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
-        /// [!code-csharp[MapValueToKey](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/Conversions/MapKeyToValueMultiColumn.cs)]
+        /// [!code-csharp[MapValueToKey](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/Conversions/MapValueToKeyMultiColumn.cs)]
         /// ]]>
         /// </format>
         /// </example>
