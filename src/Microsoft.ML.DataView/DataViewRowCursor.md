@@ -1,28 +1,28 @@
 ﻿# `ICursor` Notes
 
 This document includes some more in depth notes on some expert topics for
-`ICursor` implementations.
+`DataViewRow` and `DataViewRowCursor` implementations.
 
 ## `Batch`
 
-Some cursorable implementations, like `IDataView`, can through
-`GetRowCursorSet` return a set of parallel cursors that partition the sequence
-of rows as would have normally been returned through a plain old
-`GetRowCursor`, just sharded into multiple cursors. These cursors can be
-accessed across multiple threads to enable parallel evaluation of a data
-pipeline. This is key for the data pipeline performance.
+`IDataView.GetRowCursorSet` can return a set of parallel cursors that
+partition the sequence of rows as would have normally been returned through a
+more typical call to `GetRowCursor`. These cursors can be accessed across
+multiple threads to enable parallel evaluation of a data pipeline. This is key
+for the data pipeline performance during featurization.
 
 However, even though the data pipeline can perform this parallel evaluation,
 at the end of this parallelization we usually ultimately want to recombine the
 separate thread's streams back into a single stream. This is accomplished
-through `Batch`.
+through `DataViewRow.Batch`.
 
 So, to review what actually happens in ML.NET code: multiple cursors are
 returned through a method like `IDataView.GetRowCursorSet`. Operations can
 happen on top of these cursors -- most commonly, transforms creating new
-cursors on top of them -- and the `IRowCursorConsolidator` implementation will
-utilize this `Batch` field to "reconcile" the multiple cursors back down into
-one cursor.
+cursors on top of them. This `Batch` property can then be used to reconcile
+these separate cursors into a single cohesive sequence again. An example of
+this internal to the ML.NET code base is the
+`DataViewUtils.ConsolidateGeneric` utility method.
 
 It may help to first understand this process intuitively, to understand
 `Batch`'s requirements: when we reconcile the outputs of multiple cursors, the
@@ -33,26 +33,28 @@ cursor until the `Batch` ID changes. Whereupon, the consolidator will find the
 next cursor with the next lowest batch ID (which should be greater, of course,
 than the `Batch` value we were just iterating on).
 
-Put another way: if we called `GetRowCursor` (possibly with an `IRandom`
+Put another way: if we called `GetRowCursor` (possibly with a `Random`
 instance), and we store all the values from the rows from that cursoring in
 some list, in order. Now, imagine we create `GetRowCursorSet` (with an
-identically constructed `IRandom` instance), and store the values from the
-rows from the cursorings from all of them in a different list, in order,
+identically constructed `Random` instance), and store the values from the rows
+from the cursorings from all of them in a different list, in order,
 accompanied by their `Batch` value. Then: if we were to perform a *stable*
 sort on the second list keyed by the stored `Batch` value, it should have
 content identical to the first list.
 
-So: `Batch` is a `long` value associated with every `ICounted` implementation
-(including implementations of `ICursor`). This quantity must be:
-
-Non-decreasing as we call `MoveNext` or `MoveMany`. That is, it is fine for
+So: `Batch` is a `long` value associated with every `DataViewRow`
+implementation (including implementations of `ICursor`). This quantity must be
+non-decreasing as we call `MoveNext` or `MoveMany`. That is, it is fine for
 the `Batch` to repeat the same batch value within the same cursor (though not
 across cursors from the same set), but any change in the value must be an
 increase.
 
 The requirement of consistency is for one cursor or cursors from a *single*
 call to `GetRowCursor` or `GetRowCursorSet`. It is not required that the
-`Batch` be consistent among multiple independent cursorings.
+`Batch` be consistent among multiple independent cursorings, since which
+"batch" a row belongs to is often an artifact of whatever thread worker
+happens to be available to process that row, which is deliberately not
+intended to be a deterministic process.
 
 ## `MoveNext` and `MoveMany`
 
@@ -64,13 +66,13 @@ they not throw, return `true`, or have any other behavior.
 
 This treats on the requirements of a proper `GetIdGetter` implementation.
 
-It is common for objects to serve multiple `ICounted` instances to iterate
-over what is supposed to be the same data, for example, in an `IDataView` a cursor
-set will produce the same data as a serial cursor, just partitioned, and a
-shuffled cursor will produce the same data as a serial cursor or any other
-shuffled cursor, only shuffled. The ID exists for applications that need to
-reconcile which entry is actually which. Ideally this ID should be unique, but
-for practical reasons, it suffices if collisions are simply extremely
+It is common for objects to serve multiple `DataViewRow` instances to iterate
+over what is supposed to be the same data, for example, in an `IDataView` a
+cursor set will produce the same data as a serial cursor, just partitioned,
+and a shuffled cursor will produce the same data as a serial cursor or any
+other shuffled cursor, only shuffled. The ID exists for applications that need
+to reconcile which entry is actually which. Ideally this ID should be unique,
+but for practical reasons, it suffices if collisions are simply extremely
 improbable.
 
 To be specific, the original case motivating this functionality was SDCA where
@@ -92,27 +94,27 @@ transformed, cached, saved, or whatever), that the IDs between the two
 different data views would have any discernable relationship.
 
 Since this ID is practically often derived from the IDs of some other
-`ICounted` (for example, for a transform, the IDs of the output are usually derived
-from the IDs of the input), it is not only necessary to claim that the ID
-generated here is probabilistically unique, but also describe a procedure or
-set of guidelines implementors of this method should attempt to follow, in
-order to ensure that downstream components have a fair shake at producing
-unique IDs themselves.
+`DataViewRow`. For example, when applying `ITransformer.Transform`, the IDs of
+the output are usually derived from the IDs of the input. It is not only
+necessary to claim that the ID generated here is probabilistically unique, but
+also describe a procedure or set of guidelines implementors of this method
+should attempt to follow, in order to ensure that downstream components have a
+fair shake at producing unique IDs themselves.
 
 Duplicate IDs being improbable is practically accomplished with a
-hashing-derived mechanism. For this we have the `UInt128` methods `Fork`,
-`Next`, and `Combine`. See their documentation for specifics, but they all
-have in common that they treat the `UInt128` as some sort of intermediate hash
-state, then return a new hash state based on hashing of a block of additional
-'bits.' (Since the bits hashed may be fixed, depending on the operation, this
-can be very efficient.) The basic assumption underlying all of that collisions
-between two different hash states on the same data, or hashes on the same hash
-state on different data, are unlikely to collide. Note that this is also the
-reason why `UInt128` was introduced; collisions become likely when we have the
-number of elements on the order of the square root of the hash space. The
-square root of `UInt64.MaxValue` is only several billion, a totally reasonable
-number of instances in a dataset, whereas a collision in a 128-bit space is
-less likely.
+hashing-derived mechanism. For this we have the `DataViewRowId` methods
+`Fork`, `Next`, and `Combine`. See their documentation for specifics, but they
+all have in common that they treat the `DataViewRowId` as some sort of
+intermediate hash state, then return a new hash state based on hashing of a
+block of additional 'bits.' (Since the bits hashed may be fixed, depending on
+the operation, this can be very efficient.) The basic assumption underlying
+all of that collisions between two different hash states on the same data, or
+hashes on the same hash state on different data, are unlikely to collide. Note
+that this is also the reason why `DataViewRowId` was introduced; collisions
+become likely when we have the number of elements on the order of the square
+root of the hash space. The square root of `UInt64.MaxValue` is only several
+billion, a totally reasonable number of instances in a dataset, whereas a
+collision in a 128-bit space is less likely.
 
 Let's consider the IDs of a collection of entities, then, to be ideally an
 "acceptable set." An "acceptable set" is one that is not especially or
@@ -121,9 +123,9 @@ unlikely to result in an especially or perversely likely to collide set of
 IDs, so long as the IDs are done according to the following operations that
 operate on acceptable sets.
 
-1. The simple enumeration of `UInt128` numeric values from any number is an
-   acceptable set. (This covers how most loaders generate IDs. Typically, we
-   start from 0, but other choices, like -1, are acceptable.)
+1. The simple enumeration of `DataViewRowId` numeric values from any number is
+   an acceptable set. (This covers how most loaders generate IDs. Typically,
+   we start from 0, but other choices, like -1, are acceptable.)
 
 2. The subset of any acceptable set is an acceptable set. (For example, all
    filter transforms that map any input row to 0 or 1 output rows, can just
@@ -163,12 +165,38 @@ never arise that the same ID is hashed against the same data, and are
 introduced as if we expect them to be two separate IDs.
 
 Of course, with a malicious actor upstream, collisions are possible and can be
-engineered quite trivially (for example, just by returning a constant ID for all
-rows), but we're not supposing that the input `IDataView` is maliciously
+engineered quite trivially (for example, just by returning a constant ID for
+all rows), but we're not supposing that the input `IDataView` is maliciously
 engineering hash states, or applying the operations above in any strange way
-to attempt to induce collisions. For example, you could take, operation 1, define it
-to be the enumeration of all `UInt128` values, then take operation 2 to select
-out specifically those that are hash states that will result in collisions.
-But I'm supposing this is not happening. If you are running an implementation
-of a dataview in memory that you're supposing is malicious, you probably have
-bigger problems than someone inducing collisions.
+to attempt to induce collisions. For example, you could take, operation 1,
+define it to be the enumeration of all `DataViewRowId` values, then take
+operation 2 to select out specifically those that are hash states that will
+result in collisions. But I'm supposing this is not happening. If you are
+running an implementation of a dataview in memory that you're supposing is
+malicious, you probably have bigger problems than someone inducing collisions.
+
+Despite the apparent complexity, it should be noted that in *most*
+applications, since the vast majority of `IDataView` implementations are
+either the result of applying a simple row-to-row transformer (in which case
+passing through the ID is perfectly acceptable), or the result of enumerating
+over some sequential dataset (in which case the ordinal value is a perfectly
+fine ID). The details above only become very important with things like, say,
+combining multiple `IDataView` together, performing one-to-many row
+transformations, or other such things like this, in which case the details
+above become important.
+
+One common thought that comes thought that comes up is the idea that we can
+have some "global position" instead of ID. This was actually my first idea,
+and multiple people have asked the question to the point where it would
+probably be best to have a ready answer. While if this were possible it would
+definitely make for a cleaner, simpler solution, it runs afoul of the earlier
+desire with regard to data view cursor sets, that is, that `IDataView` cursors
+should, if possible, present split cursors that can be independently "batches"
+of the data. But, let's imagine something like the operation for filtering; if
+I have a batch `0` comprised of 64 rows, and a batch `1` with another 64 rows,
+and I do a filter for, say, missing values, I could not provide the row
+sequence number for batch `1` until I had counted the number of rows that
+passed in batch `0`, which compromises the whole point of why we wanted to
+have cursor sets in the first place. The same is true also for one-to-many
+`IDataView` implementations (for example, joins). So, regrettably, that
+simpler solution would not work.
