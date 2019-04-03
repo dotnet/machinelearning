@@ -51,6 +51,8 @@ namespace Microsoft.ML.Samples.Dynamic
             Console.WriteLine($"Number of Features: {prediction.BagOfWordFeatures.Length}");
 
             // Preview of the produced Ngrams.
+            // Get the slot names from the column's metadata.
+            // If the column is a vector column the slot names corresponds to the names associated with each position in the vector.
             VBuffer<ReadOnlyMemory<char>> slotNames = default;
             transformedDataView.Schema["BagOfWordFeatures"].GetSlotNames(ref slotNames);
             var BagOfWordFeaturesColumn = transformedDataView.GetColumn<VBuffer<float>>(transformedDataView.Schema["BagOfWordFeatures"]);
