@@ -33,9 +33,7 @@ namespace Microsoft.ML.Samples.Dynamic
             var textPipeline = mlContext.Transforms.Text.TokenizeIntoWords("Tokens", "Text")
                 .Append(mlContext.Transforms.Conversion.MapValueToKey("Tokens"))
                 .Append(mlContext.Transforms.Text.ProduceHashedNgrams("NgramFeatures", "Tokens", 
-                        numberOfBits: 5,
-                        ngramLength: 3,
-                        useAllLengths: false, maximumNumberOfInverts: -1));
+                        numberOfBits: 5, ngramLength: 3, useAllLengths: false));
             
             // Fit to data.
             var textTransformer = textPipeline.Fit(dataview);
