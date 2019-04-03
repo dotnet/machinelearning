@@ -3,7 +3,7 @@ using Microsoft.ML.SamplesUtils;
 
 namespace Microsoft.ML.Samples.Dynamic
 {
-    public class MapKeyToValueInputOutputPair
+    public class MapKeyToValueMultiColumn
     {
         public static void Example()
         {

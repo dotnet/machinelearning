@@ -106,7 +106,7 @@ namespace Microsoft.ML
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
-        /// [!code-csharp[ValueToKey](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/KeyToValueToKeyInputOutputPair.cs)]
+        /// [!code-csharp[MapKeyToValue](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/KeyToValueToKey.cs)]
         /// ]]>
         /// </format>
         /// </example>
@@ -121,7 +121,7 @@ namespace Microsoft.ML
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
-        /// [!code-csharp[ValueToKey](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/Conversion/MapKeyToValueInputOutputPair.cs)]
+        /// [!code-csharp[MapKeyToValue](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/Conversion/MapKeyToValueMultiColumn.cs)]
         /// ]]>
         /// </format>
         /// </example>
@@ -187,7 +187,7 @@ namespace Microsoft.ML
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
-        /// [!code-csharp[ValueToKey](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/MapValueToKeyInputOutputPair.cs)]
+        /// [!code-csharp[MapValueToKey](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/Conversion/MapValueToKeyManyColumn.cs)]
         /// ]]>
         /// </format>
         /// </example>
@@ -216,7 +216,7 @@ namespace Microsoft.ML
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
-        /// [!code-csharp[MapValueToKey](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/Conversions/MapKeyToValueInputOutputPair.cs)]
+        /// [!code-csharp[MapValueToKey](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/Conversions/MapKeyToValueMultiColumn.cs)]
         /// ]]>
         /// </format>
         /// </example>
