@@ -19,7 +19,7 @@ namespace Microsoft.ML.Samples.Dynamic
                 new TextData(){ Text = "This is an example to compute Ngrams using hashing." },
                 new TextData(){ Text = "Ngram is a sequence of 'N' consecutive words/tokens." },
                 new TextData(){ Text = "ML.NET's ProduceHashedNgrams API produces count of Ngrams and hashes it as an index into a vector of given bit length." },
-                new TextData(){ Text = "The hashing schem reduces the size of the output feature vector" },
+                new TextData(){ Text = "The hashing reduces the size of the output feature vector" },
                 new TextData(){ Text = "which is useful in case when number of Ngrams is very large." },
             };
 
@@ -32,7 +32,10 @@ namespace Microsoft.ML.Samples.Dynamic
             // Please note that the length of the output feature vector depends on the 'numberOfBits' settings.
             var textPipeline = mlContext.Transforms.Text.TokenizeIntoWords("Tokens", "Text")
                 .Append(mlContext.Transforms.Conversion.MapValueToKey("Tokens"))
-                .Append(mlContext.Transforms.Text.ProduceHashedNgrams("NgramFeatures", "Tokens", numberOfBits: 8, ngramLength: 3, useAllLengths: false));
+                .Append(mlContext.Transforms.Text.ProduceHashedNgrams("NgramFeatures", "Tokens", 
+                        numberOfBits: 5,
+                        ngramLength: 3,
+                        useAllLengths: false, maximumNumberOfInverts: -1));
             
             // Fit to data.
             var textTransformer = textPipeline.Fit(dataview);
@@ -52,8 +55,8 @@ namespace Microsoft.ML.Samples.Dynamic
                 Console.Write($"{prediction.NgramFeatures[i]:F4}  ");
 
             //  Expected output:
-            //   Number of Features: 256
-            //   Features:    0.0000  0.0000  1.0000  0.0000  0.0000  0.0000  0.0000  0.0000  0.0000  0.0000
+            //   Number of Features:  32
+            //   Features:  0.0000  0.0000  2.0000  0.0000  0.0000  1.0000  0.0000  0.0000  1.0000  0.0000
         }
 
         public class TextData

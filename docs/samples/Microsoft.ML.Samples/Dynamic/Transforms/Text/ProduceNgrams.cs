@@ -22,7 +22,7 @@ namespace Microsoft.ML.Samples.Dynamic
                 new TextData(){ Text = "Each position in the vector corresponds to a particular Ngram." },
                 new TextData(){ Text = "The value at each position corresponds to," },
                 new TextData(){ Text = "the number of times Ngram occured in the data (Tf), or" },
-                new TextData(){ Text = "the inverse of the number of documents that contain the Ngram (Idf), or." },
+                new TextData(){ Text = "the inverse of the number of documents that contain the Ngram (Idf)," },
                 new TextData(){ Text = "or compute both and multiply together (Tf-Idf)." },
             };
 
@@ -75,7 +75,7 @@ namespace Microsoft.ML.Samples.Dynamic
                 Console.Write($"{prediction.NgramFeatures[i]:F4}  ");
 
             //  Expected output:
-            //   Number of Features: 332
+            //   Number of Features: 52
             //   Ngrams:   This|is|an  is|an|example  an|example|to  example|to|compute  to|compute|Ngrams.  Ngram|is|a  is|a|sequence  a|sequence|of  sequence|of|'N'  of|'N'|consecutive  ...
             //   Features:    1.0000      1.0000          1.0000           1.0000             1.0000            0.0000      0.0000          0.0000          0.0000          0.0000          ...
         }
