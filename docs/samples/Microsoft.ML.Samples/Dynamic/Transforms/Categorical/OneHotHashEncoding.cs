@@ -27,22 +27,12 @@ namespace Microsoft.ML.Samples.Dynamic
             var data = mlContext.Data.LoadFromEnumerable(samples);
 
             // A pipeline for one hot hash encoding the 'Education' column.
-            var bagPipeline = mlContext.Transforms.Categorical.OneHotHashEncoding("EducationOneHotHashEncoded", "Education", numberOfBits: 3);
+            var pipeline = mlContext.Transforms.Categorical.OneHotHashEncoding("EducationOneHotHashEncoded", "Education", numberOfBits: 3);
 
             // Fit and transform the data.
-            var hashEncodedData = bagPipeline.Fit(data).Transform(data);
+            var hashEncodedData = pipeline.Fit(data).Transform(data);
 
-            // Getting the data of the newly created column, so we can preview it.
-            var encodedColumn = hashEncodedData.GetColumn<float[]>("EducationOneHotHashEncoded");
-
-            Console.WriteLine("One Hot Hash Encoding of single column 'Education', based on the bagging strategy.");
-            foreach (var row in encodedColumn)
-            {
-                for (var i = 0; i < row.Length; i++)
-                    Console.Write($"{row[i]} ");
-                Console.WriteLine();
-            }
-
+            PrintDataColumn(hashEncodedData, "EducationOneHotHashEncoded");
             // We have 8 slots, because we used numberOfBits = 3.
 
             // 0 0 0 1 0 0 0 0
@@ -51,7 +41,7 @@ namespace Microsoft.ML.Samples.Dynamic
             // 0 0 0 0 1 0 0 0
             // 0 0 0 0 0 0 0 1
 
-            // A pipeline for one hot hash encoding the Education column (using keying strategy).
+            // A pipeline for one hot hash encoding the 'Education' column (using keying strategy).
             var keyPipeline = mlContext.Transforms.Categorical.OneHotHashEncoding("EducationOneHotHashEncoded", "Education", 
                 outputKind: OneHotEncodingEstimator.OutputKind.Key,
                 numberOfBits: 3);
@@ -71,26 +61,18 @@ namespace Microsoft.ML.Samples.Dynamic
             // 5
             // 5
             // 8
+        }
 
-            // Multi column example : A pipeline for one hot has encoding two columns 'Education' and 'ZipCode' 
-            var multiColumnKeyPipeline = mlContext.Transforms.Categorical.OneHotHashEncoding(
-                new InputOutputColumnPair[] { new InputOutputColumnPair("Education"), new InputOutputColumnPair("ZipCode") },
-                numberOfBits: 3);
+        private static void PrintDataColumn(IDataView transformedData, string columnName)
+        {
+            var countSelectColumn = transformedData.GetColumn<float[]>(transformedData.Schema[columnName]);
 
-            // Fit and Transform the data.
-            var transformedData = multiColumnKeyPipeline.Fit(data).Transform(data);
-
-            var convertedData = mlContext.Data.CreateEnumerable<TransformedData>(transformedData, true);
-
-            Console.WriteLine("One Hot Hash Encoding of two columns 'Education' and 'ZipCode'.");
-            foreach (var item in convertedData)
-                Console.WriteLine("{0}\t\t\t{1}", string.Join(" ", item.Education), string.Join(" ", item.ZipCode));
-
-            // 0 0 0 1 0 0 0 0                 0 0 0 0 0 0 0 1
-            // 0 0 0 1 0 0 0 0                 1 0 0 0 0 0 0 0
-            // 0 0 0 0 1 0 0 0                 0 0 0 0 0 0 0 1
-            // 0 0 0 0 1 0 0 0                 1 0 0 0 0 0 0 0
-            // 0 0 0 0 0 0 0 1                 0 0 0 0 0 0 0 1
+            foreach (var row in countSelectColumn)
+            {
+                for (var i = 0; i < row.Length; i++)
+                    Console.Write($"{row[i]}\t");
+                Console.WriteLine();
+            }
         }
 
         private class DataPoint
@@ -100,13 +82,6 @@ namespace Microsoft.ML.Samples.Dynamic
             public string Education { get; set; }
 
             public string ZipCode { get; set; }
-        }
-
-        private class TransformedData
-        {
-            public float[] Education { get; set; }
-
-            public float[] ZipCode { get; set; }
         }
     }
 }

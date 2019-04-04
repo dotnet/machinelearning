@@ -27,24 +27,13 @@ namespace Microsoft.ML.Samples.Dynamic
             var data = mlContext.Data.LoadFromEnumerable(samples);
 
             // A pipeline for one hot encoding the Education column.
-            var bagPipeline = mlContext.Transforms.Categorical.OneHotEncoding("EducationOneHotEncoded", "Education");
-            
+            var pipeline = mlContext.Transforms.Categorical.OneHotEncoding("EducationOneHotEncoded", "Education");
+
             // Fit and transform the data.
-            var oneHotEncodedData = bagPipeline.Fit(data).Transform(data);
+            var oneHotEncodedData = pipeline.Fit(data).Transform(data);
 
-            // Getting the data of the newly created column, so we can preview it.
-            var encodedDataColumn = oneHotEncodedData.GetColumn<float[]>("EducationOneHotEncoded");
-
-            Console.WriteLine("One Hot Encoding of single column 'Education'");
-            foreach (var row in encodedDataColumn)
-            {
-                for (var i = 0; i < row.Length; i++)
-                    Console.Write($"{row[i]} ");
-                Console.WriteLine();
-            }
-
+            PrintDataColumn(oneHotEncodedData, "EducationOneHotEncoded");
             // We have 3 slots, because there are three categories in the 'Education' column.
-            
             // 1 0 0
             // 1 0 0
             // 0 1 0
@@ -53,12 +42,11 @@ namespace Microsoft.ML.Samples.Dynamic
 
             // A pipeline for one hot encoding the Education column (using keying).
             var keyPipeline = mlContext.Transforms.Categorical.OneHotEncoding("EducationOneHotEncoded", "Education", OutputKind.Key);
-            
-            // Fit and Transform data.
-            var keyTransformer = keyPipeline.Fit(data).Transform(data);
 
-            // Getting the data of the newly created column, so we can preview it.
-            var keyEncodedColumn = keyTransformer.GetColumn<uint>("EducationOneHotEncoded");
+            // Fit and Transform data.
+            oneHotEncodedData = keyPipeline.Fit(data).Transform(data);
+
+            var keyEncodedColumn = oneHotEncodedData.GetColumn<uint>("EducationOneHotEncoded");
 
             Console.WriteLine("One Hot Encoding of single column 'Education', with key type output.");
             foreach (var element in keyEncodedColumn)
@@ -69,30 +57,18 @@ namespace Microsoft.ML.Samples.Dynamic
             // 2
             // 2
             // 3
-
-            // Multi column example : A pipeline for one hot encoding two columns 'Education' and 'ZipCode' 
-            var multiColumnKeyPipeline = mlContext.Transforms.Categorical.OneHotEncoding(
-                new InputOutputColumnPair[] {
-                    new InputOutputColumnPair("Education"),
-                    new InputOutputColumnPair("ZipCode"),
-                });
-
-            // Fit and Transform data.
-            var transformedData = multiColumnKeyPipeline.Fit(data).Transform(data);
-
-            var convertedData = mlContext.Data.CreateEnumerable<TransformedData>(transformedData, true);
-
-            Console.WriteLine("One Hot Encoding of two columns 'Education' and 'ZipCode'.");
-            foreach (var item in convertedData)
-                Console.WriteLine("{0}\t\t\t{1}", string.Join(" ", item.Education), string.Join(" ", item.ZipCode));
-
-            // 1 0 0                   1 0
-            // 1 0 0                   0 1
-            // 0 1 0                   1 0
-            // 0 1 0                   0 1
-            // 0 0 1                   1 0
         }
+        private static void PrintDataColumn(IDataView transformedData, string columnName)
+        {
+            var countSelectColumn = transformedData.GetColumn<float[]>(transformedData.Schema[columnName]);
 
+            foreach (var row in countSelectColumn)
+            {
+                for (var i = 0; i < row.Length; i++)
+                    Console.Write($"{row[i]}\t");
+                Console.WriteLine();
+            }
+        }
         private class DataPoint
         {
             public float Label { get; set; }
@@ -100,13 +76,6 @@ namespace Microsoft.ML.Samples.Dynamic
             public string Education { get; set; }
 
             public string ZipCode { get; set; }
-        }
-
-        private class TransformedData
-        {
-            public float[] Education { get; set; }
-
-            public float[] ZipCode { get; set; }
         }
     }
 }
