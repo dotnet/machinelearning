@@ -88,7 +88,7 @@ namespace Microsoft.ML.CLI {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Exploring multiple combinations of ML algorithms and settings to find you the best model for ML task.
+        ///   Looks up a localized string similar to Exploring multiple ML algorithms and settings to find you the best model for ML task.
         /// </summary>
         internal static string ExplorePipeline {
             get {
@@ -102,6 +102,42 @@ namespace Microsoft.ML.CLI {
         internal static string ExplorePipelineException {
             get {
                 return ResourceManager.GetString("ExplorePipelineException", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to For further learning check.
+        /// </summary>
+        internal static string FurtherLearning {
+            get {
+                return ResourceManager.GetString("FurtherLearning", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Generated log file .
+        /// </summary>
+        internal static string GenerateLogFile {
+            get {
+                return ResourceManager.GetString("GenerateLogFile", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Generated C# code for model consumption.
+        /// </summary>
+        internal static string GenerateModelConsumption {
+            get {
+                return ResourceManager.GetString("GenerateModelConsumption", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Generated C# code for model training.
+        /// </summary>
+        internal static string GenerateModelTraining {
+            get {
+                return ResourceManager.GetString("GenerateModelTraining", resourceCulture);
             }
         }
         
@@ -129,6 +165,15 @@ namespace Microsoft.ML.CLI {
         internal static string InferColumns {
             get {
                 return ResourceManager.GetString("InferColumns", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to https://aka.ms/mlnet-cli.
+        /// </summary>
+        internal static string LearningHttpLink {
+            get {
+                return ResourceManager.GetString("LearningHttpLink", resourceCulture);
             }
         }
         
@@ -178,7 +223,7 @@ namespace Microsoft.ML.CLI {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Saving the best model ....
+        ///   Looks up a localized string similar to Generated trained model for consumption.
         /// </summary>
         internal static string SavingBestModel {
             get {

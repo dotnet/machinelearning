@@ -127,7 +127,7 @@
     <value>Exiting ...</value>
   </data>
   <data name="ExplorePipeline" xml:space="preserve">
-    <value>Exploring multiple combinations of ML algorithms and settings to find you the best model for ML task</value>
+    <value>Exploring multiple ML algorithms and settings to find you the best model for ML task</value>
   </data>
   <data name="ExplorePipelineException" xml:space="preserve">
     <value>Exception occured while exploring pipelines</value>
@@ -157,9 +157,24 @@
     <value>Retrieving best pipeline ...</value>
   </data>
   <data name="SavingBestModel" xml:space="preserve">
-    <value>Saving the best model ...</value>
+    <value>Generated trained model for consumption</value>
   </data>
   <data name="UnsupportedMlTask" xml:space="preserve">
     <value>Unsupported ml-task</value>
+  </data>
+  <data name="GenerateLogFile" xml:space="preserve">
+    <value>Generated log file </value>
+  </data>
+  <data name="GenerateModelConsumption" xml:space="preserve">
+    <value>Generated C# code for model consumption</value>
+  </data>
+  <data name="GenerateModelTraining" xml:space="preserve">
+    <value>Generated C# code for model training</value>
+  </data>
+  <data name="FurtherLearning" xml:space="preserve">
+    <value>For further learning check</value>
+  </data>
+  <data name="LearningHttpLink" xml:space="preserve">
+    <value>https://aka.ms/mlnet-cli</value>
   </data>
 </root>

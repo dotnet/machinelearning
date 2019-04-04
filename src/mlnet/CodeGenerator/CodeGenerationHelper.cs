@@ -79,12 +79,13 @@ namespace Microsoft.ML.CLI.CodeGenerator
             IEnumerable<RunDetails<RegressionMetrics>> regressionRunDetails = default;
 
             Console.WriteLine($"{Strings.ExplorePipeline}: {settings.MlTask}");
+            Console.WriteLine($"{Strings.FurtherLearning}: {Strings.LearningHttpLink}");
             try
             {
                 var options = new ProgressBarOptions
                 {
                     ForegroundColor = ConsoleColor.Yellow,
-                    ForegroundColorDone = ConsoleColor.DarkGreen,
+                    ForegroundColorDone = ConsoleColor.Yellow,
                     BackgroundColor = ConsoleColor.Gray,
                     ProgressCharacter = '\u2593',
                     BackgroundCharacter = '─',
@@ -169,19 +170,22 @@ namespace Microsoft.ML.CLI.CodeGenerator
             }
 
             // Save the model
-            logger.Log(LogLevel.Info, Strings.SavingBestModel);
             var modelprojectDir = Path.Combine(settings.OutputPath.FullName, $"{settings.Name}.Model");
             var modelPath = new FileInfo(Path.Combine(modelprojectDir, "MLModel.zip"));
             Utils.SaveModel(bestModel, modelPath, context, trainData.Schema);
+            Console.ForegroundColor = ConsoleColor.Yellow;
+            logger.Log(LogLevel.Info, $"{Strings.SavingBestModel}: {modelPath}");
 
             // Generate the Project
             GenerateProject(columnInference, bestPipeline, columnInformation.LabelColumn, modelPath);
+            logger.Log(LogLevel.Info, $"{Strings.GenerateModelConsumption} : { Path.Combine(settings.OutputPath.FullName, $"{settings.Name}.Predict")}");
+            logger.Log(LogLevel.Info, $"{Strings.GenerateModelTraining} : { Path.Combine(settings.OutputPath.FullName, $"{settings.Name}.Train")}");
+            Console.ResetColor();
         }
 
         internal void GenerateProject(ColumnInferenceResults columnInference, Pipeline pipeline, string labelName, FileInfo modelPath)
         {
-            //Generate code
-            logger.Log(LogLevel.Info, $"{Strings.GenerateProject} : {settings.OutputPath.FullName}");
+            // Generate code
             var codeGenerator = new CodeGenerator.CSharp.CodeGenerator(
                 pipeline,
                 columnInference,
@@ -200,10 +204,10 @@ namespace Microsoft.ML.CLI.CodeGenerator
 
         internal (IDataView, IDataView) LoadData(MLContext context, TextLoader.Options textLoaderOptions)
         {
-            logger.Log(LogLevel.Info, Strings.CreateDataLoader);
+            logger.Log(LogLevel.Trace, Strings.CreateDataLoader);
             var textLoader = context.Data.CreateTextLoader(textLoaderOptions);
 
-            logger.Log(LogLevel.Info, Strings.LoadData);
+            logger.Log(LogLevel.Trace, Strings.LoadData);
             var trainData = textLoader.Load(settings.Dataset.FullName);
             var validationData = settings.ValidationDataset == null ? null : textLoader.Load(settings.ValidationDataset.FullName);
 

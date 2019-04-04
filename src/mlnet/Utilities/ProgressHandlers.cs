@@ -39,7 +39,12 @@ namespace Microsoft.ML.CLI.Utilities
             {
                 iterationIndex++;
                 UpdateBestResult(iterationResult);
-                ConsolePrinter.PrintMetrics(iterationIndex, iterationResult.TrainerName, iterationResult.ValidationMetrics, GetScore(bestResult), iterationResult.RuntimeInSeconds, LogLevel.Trace);
+                progressBar.Message = $"Best {this.optimizationMetric}: {GetScore(bestResult):F4}, Best Algorithm: {bestResult?.TrainerName}, Last Algorithm: {iterationResult?.TrainerName}";
+                ConsolePrinter.PrintMetrics(iterationIndex, iterationResult?.TrainerName, iterationResult?.ValidationMetrics, GetScore(bestResult), iterationResult?.RuntimeInSeconds, LogLevel.Trace);
+                if (iterationResult.Exception != null)
+                {
+                    ConsolePrinter.PrintException(iterationResult.Exception, LogLevel.Trace);
+                }
             }
 
             private void UpdateBestResult(RunDetails<RegressionMetrics> iterationResult)
@@ -47,11 +52,6 @@ namespace Microsoft.ML.CLI.Utilities
                 if (MetricComparator(GetScore(iterationResult), GetScore(bestResult), isMaximizing) > 0)
                 {
                     bestResult = iterationResult;
-                    progressBar.Message = $"Best {this.optimizationMetric} : {GetScore(bestResult):F2} , Best Algorithm : {bestResult.TrainerName}, Last Algorithm : {bestResult.TrainerName}";
-                }
-                else
-                {
-                    progressBar.Message = $"Best {this.optimizationMetric} : {GetScore(bestResult):F2} , Best Algorithm : {bestResult.TrainerName}, Last Algorithm : {iterationResult.TrainerName}";
                 }
             }
         }
@@ -78,7 +78,12 @@ namespace Microsoft.ML.CLI.Utilities
             {
                 iterationIndex++;
                 UpdateBestResult(iterationResult);
-                ConsolePrinter.PrintMetrics(iterationIndex, iterationResult.TrainerName, iterationResult.ValidationMetrics, GetScore(bestResult), iterationResult.RuntimeInSeconds, LogLevel.Trace);
+                progressBar.Message = $"Best {this.optimizationMetric}: {GetScore(bestResult):F4}, Best Algorithm: {bestResult?.TrainerName}, Last Algorithm: {iterationResult?.TrainerName}";
+                ConsolePrinter.PrintMetrics(iterationIndex, iterationResult?.TrainerName, iterationResult?.ValidationMetrics, GetScore(bestResult), iterationResult?.RuntimeInSeconds, LogLevel.Trace);
+                if (iterationResult.Exception != null)
+                {
+                    ConsolePrinter.PrintException(iterationResult.Exception, LogLevel.Trace);
+                }
             }
 
             private void UpdateBestResult(RunDetails<BinaryClassificationMetrics> iterationResult)
@@ -86,11 +91,6 @@ namespace Microsoft.ML.CLI.Utilities
                 if (MetricComparator(GetScore(iterationResult), GetScore(bestResult), isMaximizing) > 0)
                 {
                     bestResult = iterationResult;
-                    progressBar.Message = $"Best {this.optimizationMetric} : {GetScore(bestResult):F2} , Best Algorithm : {bestResult.TrainerName}, Last Algorithm : {bestResult.TrainerName}";
-                }
-                else
-                {
-                    progressBar.Message = $"Best {this.optimizationMetric} : {GetScore(bestResult):F2} , Best Algorithm : {bestResult.TrainerName}, Last Algorithm : {iterationResult.TrainerName}";
                 }
             }
         }
@@ -117,7 +117,12 @@ namespace Microsoft.ML.CLI.Utilities
             {
                 iterationIndex++;
                 UpdateBestResult(iterationResult);
-                ConsolePrinter.PrintMetrics(iterationIndex, iterationResult.TrainerName, iterationResult.ValidationMetrics, GetScore(bestResult), iterationResult.RuntimeInSeconds, LogLevel.Trace);
+                progressBar.Message = $"Best {this.optimizationMetric}: {GetScore(bestResult):F4}, Best Algorithm: {bestResult?.TrainerName}, Last Algorithm: {iterationResult?.TrainerName}";
+                ConsolePrinter.PrintMetrics(iterationIndex, iterationResult?.TrainerName, iterationResult?.ValidationMetrics, GetScore(bestResult), iterationResult?.RuntimeInSeconds, LogLevel.Trace);
+                if (iterationResult.Exception != null)
+                {
+                    ConsolePrinter.PrintException(iterationResult.Exception, LogLevel.Trace);
+                }
             }
 
             private void UpdateBestResult(RunDetails<MulticlassClassificationMetrics> iterationResult)
@@ -125,11 +130,6 @@ namespace Microsoft.ML.CLI.Utilities
                 if (MetricComparator(GetScore(iterationResult), GetScore(bestResult), isMaximizing) > 0)
                 {
                     bestResult = iterationResult;
-                    progressBar.Message = $"Best {this.optimizationMetric} : {GetScore(bestResult):F2} , Best Algorithm : {bestResult.TrainerName}, Last Algorithm : {bestResult.TrainerName}";
-                }
-                else
-                {
-                    progressBar.Message = $"Best {this.optimizationMetric} : {GetScore(bestResult):F2} , Best Algorithm : {bestResult.TrainerName}, Last Algorithm : {iterationResult.TrainerName}";
                 }
             }
         }

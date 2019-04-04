@@ -29,20 +29,23 @@ namespace Microsoft.ML.Auto
             return results.ElementAt(indexOfBestScore);
         }
 
-        public static IEnumerable<RunDetails<T>> GetTopNRunResults<T>(IEnumerable<RunDetails<T>> results,
+        public static IEnumerable<(RunDetails<T>, int)> GetTopNRunResults<T>(IEnumerable<RunDetails<T>> results,
             IMetricsAgent<T> metricsAgent, int n, bool isMetricMaximizing)
         {
             results = results.Where(r => r.ValidationMetrics != null);
             if (!results.Any()) { return null; }
 
-            IEnumerable<RunDetails<T>> orderedResults;
+            var indexedValues = results.Select((k, v) => (k, v));
+
+            IEnumerable<(RunDetails<T>, int)> orderedResults;
             if (isMetricMaximizing)
             {
-                orderedResults = results.OrderByDescending(t => metricsAgent.GetScore(t.ValidationMetrics));
+                orderedResults = indexedValues.OrderByDescending(t => metricsAgent.GetScore(t.Item1.ValidationMetrics));
+
             }
             else
             {
-                orderedResults = results.OrderBy(t => metricsAgent.GetScore(t.ValidationMetrics));
+                orderedResults = indexedValues.OrderBy(t => metricsAgent.GetScore(t.Item1.ValidationMetrics));
             }
 
             return orderedResults.Take(n);

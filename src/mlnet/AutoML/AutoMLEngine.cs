@@ -29,8 +29,8 @@ namespace Microsoft.ML.CLI.CodeGenerator
 
         public ColumnInferenceResults InferColumns(MLContext context, ColumnInformation columnInformation)
         {
-            //Check what overload method of InferColumns needs to be called.
-            logger.Log(LogLevel.Info, Strings.InferColumns);
+            // Check what overload method of InferColumns needs to be called.
+            logger.Log(LogLevel.Trace, Strings.InferColumns);
             ColumnInferenceResults columnInference = null;
             var dataset = settings.Dataset.FullName;
             if (columnInformation.LabelColumn != null)
