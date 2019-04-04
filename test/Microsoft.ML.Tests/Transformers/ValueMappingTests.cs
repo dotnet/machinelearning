@@ -736,12 +736,8 @@ namespace Microsoft.ML.Tests.Transformers
         }
 
         [Fact]
-        public static void TestValueMapWithNonDefaultColumnOrder()
+        public void TestValueMapWithNonDefaultColumnOrder()
         {
-            // Create a new ML context, for ML.NET operations. It can be used for exception tracking and logging, 
-            // as well as the source of randomness.
-            var mlContext = new MLContext();
-
             // Get a small dataset as an IEnumerable.
             var rawData = new[] {
                 new DataPoint() { Price = 3.14f },
@@ -752,7 +748,7 @@ namespace Microsoft.ML.Tests.Transformers
             };
 
             // Convert to IDataView
-            var data = mlContext.Data.LoadFromEnumerable(rawData);
+            var data = ML.Data.LoadFromEnumerable(rawData);
 
             // Create the lookup map data IEnumerable.   
             var lookupData = new[] {
@@ -764,24 +760,23 @@ namespace Microsoft.ML.Tests.Transformers
             };
 
             // Convert to IDataView
-            var lookupIdvMap = mlContext.Data.LoadFromEnumerable(lookupData);
+            var lookupIdvMap = ML.Data.LoadFromEnumerable(lookupData);
 
             // Constructs the ValueMappingEstimator making the ML.NET pipeline
-            var pipeline = mlContext.Transforms.Conversion.MapValue("PriceCategory", lookupIdvMap, lookupIdvMap.Schema["Value"], lookupIdvMap.Schema["Category"], "Price");
+            var pipeline = ML.Transforms.Conversion.MapValue("PriceCategory", lookupIdvMap, lookupIdvMap.Schema["Value"], lookupIdvMap.Schema["Category"], "Price");
 
             // Fits the ValueMappingEstimator and transforms the data converting the Price to PriceCategory.
             IDataView transformedData = pipeline.Fit(data).Transform(data);
 
             // Getting the resulting data as an IEnumerable.
-            var features = mlContext.Data.CreateEnumerable<TransformedData>(transformedData, reuseRowObject: false).ToList();
+            var features = ML.Data.CreateEnumerable<TransformedData>(transformedData, reuseRowObject: false).ToList();
 
-            var expectedPrices = new float[] { 3.14f, 2000f, 1.19f, 2.17f, 33.784f };
             var expectedCategories = new string[] { "Low", "High", "Low", "Low", "Medium" };
 
             for(int i = 0; i < features.Count; ++i)
             {
                 var feature = features[i];
-                Assert.Equal(expectedPrices[i], feature.Price);
+                Assert.Equal(rawData[i].Price, feature.Price);
                 Assert.Equal(expectedCategories[i], feature.PriceCategory);
             }
         }

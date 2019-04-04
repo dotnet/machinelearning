@@ -300,9 +300,6 @@ namespace Microsoft.ML.Transforms
         private ValueMap _valueMap;
         private readonly byte[] _dataView;
 
-        private readonly DataViewSchema.Column _lookupKeyColumn;
-        private readonly DataViewSchema.Column _lookupValueColumn;
-
         internal DataViewType ValueColumnType => _valueMap.ValueColumn.Type;
         internal DataViewSchema.Annotations ValueColumnMetadata { get; }
 
@@ -373,10 +370,8 @@ namespace Microsoft.ML.Transforms
             DataViewSchema.Column lookupKeyColumn, DataViewSchema.Column lookupValueColumn, (string outputColumnName, string inputColumnName)[] columns)
             : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(ValueMappingTransformer)), columns)
         {
-            _lookupKeyColumn = lookupKeyColumn;
-            _lookupValueColumn = lookupValueColumn;
-            _valueMap = CreateValueMapFromDataView(lookupMap, _lookupKeyColumn, _lookupValueColumn);
-            ValueColumnMetadata = lookupMap.Schema[_lookupValueColumn.Index].Annotations;
+            _valueMap = CreateValueMapFromDataView(lookupMap, lookupKeyColumn, lookupValueColumn);
+            ValueColumnMetadata = lookupMap.Schema[lookupValueColumn.Index].Annotations;
 
             // Create the byte array of the original IDataView, this is used for saving out the data.
             _dataView = GetBytesFromDataView(Host, lookupMap, lookupKeyColumn.Name, lookupValueColumn.Name);
