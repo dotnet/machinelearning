@@ -16,9 +16,9 @@ namespace Samples.Dynamic
             // Get a small dataset as an IEnumerable and convert it to an IDataView.
             var rawData = GetData();
 
-            Console.WriteLine("Contents of two columns 'Label' and 'GroupA'.");
+            Console.WriteLine("Contents of two columns 'Label' and 'NumericVector'.");
             foreach (var item in rawData)
-                Console.WriteLine("{0}\t\t{1}", item.Label, string.Join(" ", item.GroupA));
+                Console.WriteLine("{0}\t\t{1}", item.Label, string.Join(" ", item.NumericVector));
             // True            4 0 6
             // False           0 5 7
             // True            4 0 6
@@ -30,14 +30,14 @@ namespace Samples.Dynamic
             // vector based on highest mutual information between that slot and a specified label. 
 
             var pipeline = mlContext.Transforms.FeatureSelection.SelectFeaturesBasedOnMutualInformation(
-                outputColumnName: "FeaturesSelectedGroupA", inputColumnName: "GroupA", labelColumnName: "Label",
+                outputColumnName: "NumericVector", labelColumnName: "Label",
                 slotsInOutput:2);
 
             // The pipeline can then be trained, using .Fit(), and the resulting transformer can be used to transform data. 
             var transformedData = pipeline.Fit(data).Transform(data);
 
-            Console.WriteLine("Contents of column 'FeaturesSelectedGroupA'");
-            PrintDataColumn(transformedData, "FeaturesSelectedGroupA");
+            Console.WriteLine("Contents of column 'NumericVector'");
+            PrintDataColumn(transformedData, "NumericVector");
             // 4 0
             // 0 5
             // 4 0
@@ -61,7 +61,7 @@ namespace Samples.Dynamic
             public bool Label;
 
             [VectorType(3)]
-            public float[] GroupA { get; set; }
+            public float[] NumericVector { get; set; }
         }
 
         /// <summary>
@@ -74,22 +74,22 @@ namespace Samples.Dynamic
                 new NumericData
                 {
                     Label = true,
-                    GroupA = new float[] { 4, 0, 6 },
+                    NumericVector = new float[] { 4, 6, 0 },
                 },
                 new NumericData
                 {
                     Label = false,
-                    GroupA = new float[] { 0, 5, 7 },
+                    NumericVector = new float[] { 0, 7, 5 },
                 },
                 new NumericData
                 {
                     Label = true,
-                    GroupA = new float[] { 4, 0, 6 },
+                    NumericVector = new float[] { 4, 6, 0 },
                 },
                 new NumericData
                 {
                     Label = false,
-                    GroupA = new float[] { 0, 5, 7 },
+                    NumericVector = new float[] { 0, 7, 5 },
                 }
             };
             return data;

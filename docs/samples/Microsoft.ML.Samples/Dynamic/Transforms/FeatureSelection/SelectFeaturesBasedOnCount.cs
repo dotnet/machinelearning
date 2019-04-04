@@ -19,9 +19,9 @@ namespace Samples.Dynamic
 
             var convertedData = mlContext.Data.CreateEnumerable<InputData>(data, true);
 
-            Console.WriteLine("Contents of two columns 'GroupA' and 'Info'.");
+            Console.WriteLine("Contents of two columns 'NumericVector' and 'StringVector'.");
             foreach (var item in convertedData)
-                Console.WriteLine("{0}\t\t\t{1}", string.Join("\t", item.GroupA), string.Join("\t", item.Info));
+                Console.WriteLine("{0}\t\t\t{1}", string.Join("\t", item.NumericVector), string.Join("\t", item.StringVector));
             // 4       NaN     6                       A       WA   Male
             // 4       5       6                       A            Female
             // 4       5       6                       A       NY
@@ -31,13 +31,13 @@ namespace Samples.Dynamic
 
             // Usage on numeric column.
             var pipeline = mlContext.Transforms.FeatureSelection.SelectFeaturesBasedOnCount(
-                outputColumnName: "FeaturesSelectedGroupA", inputColumnName: "GroupA", count: 3);
+                outputColumnName: "NumericVector", count: 3);
 
             // The pipeline can then be trained, using .Fit(), and the resulting transformer can be used to transform data. 
             var transformedData = pipeline.Fit(data).Transform(data);
 
-            Console.WriteLine("Contents of column 'FeaturesSelectedGroupA'");
-            var featuresSelectedGroupA = transformedData.GetColumn<float[]>(transformedData.Schema["FeaturesSelectedGroupA"]);
+            Console.WriteLine("Contents of column 'NumericVector'");
+            var featuresSelectedGroupA = transformedData.GetColumn<float[]>(transformedData.Schema["NumericVector"]);
             foreach (var row in featuresSelectedGroupA)
             {
                 for (var i = 0; i < row.Length; i++)
@@ -51,12 +51,12 @@ namespace Samples.Dynamic
 
             // Usage on text column.
             pipeline = mlContext.Transforms.FeatureSelection.SelectFeaturesBasedOnCount(
-                outputColumnName: "FeaturesSelectedInfo", inputColumnName: "Info", count: 3);
+                outputColumnName: "StringVector", count: 3);
 
             transformedData = pipeline.Fit(data).Transform(data);
 
-            Console.WriteLine("Contents of column 'FeaturesSelectedInfo'");
-            var featuresSelectedInfo = transformedData.GetColumn<string[]>(transformedData.Schema["FeaturesSelectedInfo"]);
+            Console.WriteLine("Contents of column 'StringVector'");
+            var featuresSelectedInfo = transformedData.GetColumn<string[]>(transformedData.Schema["StringVector"]);
             foreach (var row in featuresSelectedInfo)
             {
                 for (var i = 0; i < row.Length; i++)
@@ -72,10 +72,10 @@ namespace Samples.Dynamic
         public class InputData
         {
             [VectorType(3)]
-            public float[] GroupA { get; set; }
+            public float[] NumericVector { get; set; }
 
             [VectorType(3)]
-            public string[] Info { get; set; }
+            public string[] StringVector { get; set; }
         }
 
         /// <summary>
@@ -87,23 +87,23 @@ namespace Samples.Dynamic
             {
                 new InputData
                 {
-                    GroupA = new float[] { 4, float.NaN, 6 },
-                    Info = new string[] { "A", "WA", "Male"}
+                    NumericVector = new float[] { 4, float.NaN, 6 },
+                    StringVector = new string[] { "A", "WA", "Male"}
                 },
                 new InputData
                 {
-                    GroupA = new float[] { 4, 5, 6 },
-                    Info = new string[] { "A", "", "Female"}
+                    NumericVector = new float[] { 4, 5, 6 },
+                    StringVector = new string[] { "A", "", "Female"}
                 },
                 new InputData
                 {
-                    GroupA = new float[] { 4, 5, 6 },
-                    Info = new string[] { "A", "NY", null}
+                    NumericVector = new float[] { 4, 5, 6 },
+                    StringVector = new string[] { "A", "NY", null}
                 },
                 new InputData
                 {
-                    GroupA = new float[] { 4, float.NaN, float.NaN },
-                    Info = new string[] { "A", null, "Male"}
+                    NumericVector = new float[] { 4, float.NaN, float.NaN },
+                    StringVector = new string[] { "A", null, "Male"}
                 }
             };
             return data;

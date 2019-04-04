@@ -16,9 +16,9 @@ namespace Samples.Dynamic
             // Get a small dataset as an IEnumerable and convert it to an IDataView.
             var rawData = GetData();
 
-            Console.WriteLine("Contents of columns 'Label', 'GroupA' and 'GroupB'.");
+            Console.WriteLine("Contents of columns 'Label', 'NumericVectorA' and 'NumericVectorB'.");
             foreach (var item in rawData)
-                Console.WriteLine("{0}\t\t{1}\t\t{2}", item.Label, string.Join(" ", item.GroupA), string.Join(" ", item.GroupB));
+                Console.WriteLine("{0}\t\t{1}\t\t{2}", item.Label, string.Join(" ", item.NumericVectorA), string.Join(" ", item.NumericVectorB));
             // True            4 0 6           7 8 9
             // False           0 5 7           7 9 0
             // True            4 0 6           7 8 9
@@ -31,18 +31,18 @@ namespace Samples.Dynamic
 
             // Multi column example : This pipeline transform two columns using the provided parameters.
             var pipeline = mlContext.Transforms.FeatureSelection.SelectFeaturesBasedOnMutualInformation(
-                new InputOutputColumnPair[] { new InputOutputColumnPair("GroupA"), new InputOutputColumnPair("GroupB") },
+                new InputOutputColumnPair[] { new InputOutputColumnPair("NumericVectorA"), new InputOutputColumnPair("NumericVectorB") },
                 labelColumnName: "Label",
                 slotsInOutput: 4);
 
             var transformedData = pipeline.Fit(data).Transform(data);
 
             var convertedData = mlContext.Data.CreateEnumerable<TransformedData>(transformedData, true);
-            Console.WriteLine("Contents of two columns 'GroupA' and 'GroupB'.");
+            Console.WriteLine("Contents of two columns 'NumericVectorA' and 'NumericVectorB'.");
             foreach (var item in convertedData)
-                Console.WriteLine("{0}\t\t{1}", string.Join(" ", item.GroupA), string.Join(" ", item.GroupB));
+                Console.WriteLine("{0}\t\t{1}", string.Join(" ", item.NumericVectorA), string.Join(" ", item.NumericVectorB));
 
-            // Here, we see SelectFeaturesBasedOnMutualInformation selected 4 slots. (3 slots from the 'GroupB' column and 1 slot from the 'GroupC' column.)
+            // Here, we see SelectFeaturesBasedOnMutualInformation selected 4 slots.
             // 4 0 6           9
             // 0 5 7           0
             // 4 0 6           9
@@ -51,9 +51,9 @@ namespace Samples.Dynamic
 
         private class TransformedData
         {
-            public float[] GroupA { get; set; }
+            public float[] NumericVectorA { get; set; }
 
-            public float[] GroupB { get; set; }
+            public float[] NumericVectorB { get; set; }
         }
 
         public class NumericData
@@ -61,10 +61,10 @@ namespace Samples.Dynamic
             public bool Label;
 
             [VectorType(3)]
-            public float[] GroupA { get; set; }
+            public float[] NumericVectorA { get; set; }
 
             [VectorType(3)]
-            public float[] GroupB { get; set; }
+            public float[] NumericVectorB { get; set; }
         }
 
         /// <summary>
@@ -77,26 +77,26 @@ namespace Samples.Dynamic
                 new NumericData
                 {
                     Label = true,
-                    GroupA = new float[] { 4, 0, 6 },
-                    GroupB = new float[] { 7, 8, 9 },
+                    NumericVectorA = new float[] { 4, 0, 6 },
+                    NumericVectorB = new float[] { 7, 8, 9 },
                 },
                 new NumericData
                 {
                     Label = false,
-                    GroupA = new float[] { 0, 5, 7 },
-                    GroupB = new float[] { 7, 9, 0 },
+                    NumericVectorA = new float[] { 0, 5, 7 },
+                    NumericVectorB = new float[] { 7, 9, 0 },
                 },
                 new NumericData
                 {
                     Label = true,
-                    GroupA = new float[] { 4, 0, 6 },
-                    GroupB = new float[] { 7, 8, 9 },
+                    NumericVectorA = new float[] { 4, 0, 6 },
+                    NumericVectorB = new float[] { 7, 8, 9 },
                 },
                 new NumericData
                 {
                     Label = false,
-                    GroupA = new float[] { 0, 5, 7 },
-                    GroupB = new float[] { 7, 8, 0 },
+                    NumericVectorA = new float[] { 0, 5, 7 },
+                    NumericVectorB = new float[] { 7, 8, 0 },
                 }
             };
             return data;

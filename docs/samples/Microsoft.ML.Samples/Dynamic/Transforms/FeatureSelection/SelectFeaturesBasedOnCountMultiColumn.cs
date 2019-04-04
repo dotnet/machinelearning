@@ -16,9 +16,9 @@ namespace Samples.Dynamic
             // Get a small dataset as an IEnumerable and convert it to an IDataView.
             var rawData = GetData();
 
-            Console.WriteLine("Contents of two columns 'GroupA' and 'Info'.");
+            Console.WriteLine("Contents of two columns 'NumericVector' and 'StringVector'.");
             foreach (var item in rawData)
-                Console.WriteLine("{0}\t\t\t{1}", string.Join("\t", item.GroupA), string.Join("\t", item.Info));
+                Console.WriteLine("{0}\t\t\t{1}", string.Join("\t", item.NumericVector), string.Join("\t", item.StringVector));
             // 4       NaN     6                       A   WA      Male
             // 4       5       6                       A           Female
             // 4       5       6                       A   NY
@@ -31,15 +31,15 @@ namespace Samples.Dynamic
 
             // Multi column example. This pipeline transform two columns using the provided parameters.
             var pipeline = mlContext.Transforms.FeatureSelection.SelectFeaturesBasedOnCount(
-                new InputOutputColumnPair[] { new InputOutputColumnPair("GroupA"), new InputOutputColumnPair("Info") },
+                new InputOutputColumnPair[] { new InputOutputColumnPair("NumericVector"), new InputOutputColumnPair("StringVector") },
                 count: 3);
 
             var transformedData = pipeline.Fit(data).Transform(data);
 
             var convertedData = mlContext.Data.CreateEnumerable<TransformedData>(transformedData, true);
-            Console.WriteLine("Contents of two columns 'GroupA' and 'Info'.");
+            Console.WriteLine("Contents of two columns 'NumericVector' and 'StringVector'.");
             foreach (var item in convertedData)
-                Console.WriteLine("{0}\t\t\t{1}", string.Join("\t", item.GroupA), string.Join("\t", item.Info));
+                Console.WriteLine("{0}\t\t\t{1}", string.Join("\t", item.NumericVector), string.Join("\t", item.StringVector));
             // 4       6                       A   Male
             // 4       6                       A   Female
             // 4       6                       A
@@ -48,18 +48,18 @@ namespace Samples.Dynamic
 
         private class TransformedData
         {
-            public float[] GroupA { get; set; }
+            public float[] NumericVector { get; set; }
 
-            public string[] Info { get; set; }
+            public string[] StringVector { get; set; }
         }
 
         public class InputData
         {
             [VectorType(3)]
-            public float[] GroupA { get; set; }
+            public float[] NumericVector { get; set; }
 
             [VectorType(3)]
-            public string[] Info { get; set; }
+            public string[] StringVector { get; set; }
         }
 
         /// <summary>
@@ -71,23 +71,23 @@ namespace Samples.Dynamic
             {
                 new InputData
                 {
-                    GroupA = new float[] { 4, float.NaN, 6 },
-                    Info = new string[] { "A", "WA", "Male"}
+                    NumericVector = new float[] { 4, float.NaN, 6 },
+                    StringVector = new string[] { "A", "WA", "Male"}
                 },
                 new InputData
                 {
-                    GroupA = new float[] { 4, 5, 6 },
-                    Info = new string[] { "A", "", "Female"}
+                    NumericVector = new float[] { 4, 5, 6 },
+                    StringVector = new string[] { "A", "", "Female"}
                 },
                 new InputData
                 {
-                    GroupA = new float[] { 4, 5, 6 },
-                    Info = new string[] { "A", "NY", null}
+                    NumericVector = new float[] { 4, 5, 6 },
+                    StringVector = new string[] { "A", "NY", null}
                 },
                 new InputData
                 {
-                    GroupA = new float[] { 4, float.NaN, float.NaN },
-                    Info = new string[] { "A", null, "Male"}
+                    NumericVector = new float[] { 4, float.NaN, float.NaN },
+                    StringVector = new string[] { "A", null, "Male"}
                 }
             };
             return data;
