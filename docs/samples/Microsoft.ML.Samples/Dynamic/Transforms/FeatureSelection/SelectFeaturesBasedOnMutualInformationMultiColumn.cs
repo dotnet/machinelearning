@@ -1,8 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using Microsoft.ML;
 using Microsoft.ML.Data;
 
-namespace Microsoft.ML.Samples.Dynamic
+namespace Samples.Dynamic
 {
     public static class SelectFeaturesBasedOnMutualInformationMultiColumn
     {
@@ -15,9 +16,9 @@ namespace Microsoft.ML.Samples.Dynamic
             // Get a small dataset as an IEnumerable and convert it to an IDataView.
             var rawData = GetData();
 
-            Console.WriteLine("Contents of columns 'Label', 'GroupB' and 'GroupC'.");
+            Console.WriteLine("Contents of columns 'Label', 'GroupA' and 'GroupB'.");
             foreach (var item in rawData)
-                Console.WriteLine("{0}\t\t{1}\t\t{2}", item.Label, string.Join(" ", item.GroupB), string.Join(" ", item.GroupC));
+                Console.WriteLine("{0}\t\t{1}\t\t{2}", item.Label, string.Join(" ", item.GroupA), string.Join(" ", item.GroupB));
             // True            4 0 6           7 8 9
             // False           0 5 7           7 9 0
             // True            4 0 6           7 8 9
@@ -28,18 +29,18 @@ namespace Microsoft.ML.Samples.Dynamic
             // We define a MutualInformationFeatureSelectingEstimator that selects the top k slots in a feature 
             // vector based on highest mutual information between that slot and a specified label. 
 
-            // Multi column example : This pipeline uses two columns for transformation.
+            // Multi column example : This pipeline transform two columns using the provided parameters.
             var pipeline = mlContext.Transforms.FeatureSelection.SelectFeaturesBasedOnMutualInformation(
-                new InputOutputColumnPair[] { new InputOutputColumnPair("GroupB"), new InputOutputColumnPair("GroupC") },
+                new InputOutputColumnPair[] { new InputOutputColumnPair("GroupA"), new InputOutputColumnPair("GroupB") },
                 labelColumnName: "Label",
                 slotsInOutput: 4);
 
             var transformedData = pipeline.Fit(data).Transform(data);
 
             var convertedData = mlContext.Data.CreateEnumerable<TransformedData>(transformedData, true);
-            Console.WriteLine("Contents of two columns 'GroupB' and 'GroupC'.");
+            Console.WriteLine("Contents of two columns 'GroupA' and 'GroupB'.");
             foreach (var item in convertedData)
-                Console.WriteLine("{0}\t\t{1}", string.Join(" ", item.GroupB), string.Join(" ", item.GroupC));
+                Console.WriteLine("{0}\t\t{1}", string.Join(" ", item.GroupA), string.Join(" ", item.GroupB));
 
             // Here, we see SelectFeaturesBasedOnMutualInformation selected 4 slots. (3 slots from the 'GroupB' column and 1 slot from the 'GroupC' column.)
             // 4 0 6           9
@@ -50,9 +51,9 @@ namespace Microsoft.ML.Samples.Dynamic
 
         private class TransformedData
         {
-            public float[] GroupB { get; set; }
+            public float[] GroupA { get; set; }
 
-            public float[] GroupC { get; set; }
+            public float[] GroupB { get; set; }
         }
 
         public class NumericData
@@ -64,9 +65,6 @@ namespace Microsoft.ML.Samples.Dynamic
 
             [VectorType(3)]
             public float[] GroupB { get; set; }
-
-            [VectorType(3)]
-            public float[] GroupC { get; set; }
         }
 
         /// <summary>
@@ -79,30 +77,26 @@ namespace Microsoft.ML.Samples.Dynamic
                 new NumericData
                 {
                     Label = true,
-                    GroupA = new float[] { 1, 2, 3 },
-                    GroupB = new float[] { 4, 0, 6 },
-                    GroupC = new float[] { 7, 8, 9 },
+                    GroupA = new float[] { 4, 0, 6 },
+                    GroupB = new float[] { 7, 8, 9 },
                 },
                 new NumericData
                 {
                     Label = false,
-                    GroupA = new float[] { 1, 2, 3 },
-                    GroupB = new float[] { 0, 5, 7 },
-                    GroupC = new float[] { 7, 9, 0 },
+                    GroupA = new float[] { 0, 5, 7 },
+                    GroupB = new float[] { 7, 9, 0 },
                 },
                 new NumericData
                 {
                     Label = true,
-                    GroupA = new float[] { 1, 2, 3 },
-                    GroupB = new float[] { 4, 0, 6 },
-                    GroupC = new float[] { 7, 8, 9 },
+                    GroupA = new float[] { 4, 0, 6 },
+                    GroupB = new float[] { 7, 8, 9 },
                 },
                 new NumericData
                 {
                     Label = false,
-                    GroupA = new float[] { 1, 2, 3 },
-                    GroupB = new float[] { 0, 5, 7 },
-                    GroupC = new float[] { 7, 8, 0 },
+                    GroupA = new float[] { 0, 5, 7 },
+                    GroupB = new float[] { 7, 8, 0 },
                 }
             };
             return data;

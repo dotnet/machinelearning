@@ -1,8 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using Microsoft.ML;
 using Microsoft.ML.Data;
 
-namespace Microsoft.ML.Samples.Dynamic
+namespace Samples.Dynamic
 {
     public static class SelectFeaturesBasedOnCount
     {
@@ -16,92 +17,93 @@ namespace Microsoft.ML.Samples.Dynamic
             var rawData = GetData();
             var data = mlContext.Data.LoadFromEnumerable(rawData);
 
-            Console.WriteLine("Contents of column 'GroupB'");
-            PrintDataColumn(data, "GroupB");
-            // 4       NaN     6
-            // 4       5       6
-            // 4       5       6
-            // 4       NaN     NaN
+            var convertedData = mlContext.Data.CreateEnumerable<InputData>(data, true);
 
-            // Second, we define the transformations that we apply on the data. Remember that an Estimator does not transform data
-            // directly, but it needs to be trained on data using .Fit(), and it will output a Transformer, which can transform data.
+            Console.WriteLine("Contents of two columns 'GroupA' and 'Info'.");
+            foreach (var item in convertedData)
+                Console.WriteLine("{0}\t\t\t{1}", string.Join("\t", item.GroupA), string.Join("\t", item.Info));
+            // 4       NaN     6                       A       WA   Male
+            // 4       5       6                       A            Female
+            // 4       5       6                       A       NY
+            // 4       NaN     NaN                     A            Male
 
-            // We will use the SelectFeaturesBasedOnCount transform estimator, to retain only those slots which have 
-            // at least 'count' non-default values per slot.
+            // We will use the SelectFeaturesBasedOnCount to retain only those slots which have at least 'count' non-default values per slot.
+
+            // Usage on numeric column.
             var pipeline = mlContext.Transforms.FeatureSelection.SelectFeaturesBasedOnCount(
-                outputColumnName: "FeaturesSelectedGroupB", inputColumnName: "GroupB", count: 3);
+                outputColumnName: "FeaturesSelectedGroupA", inputColumnName: "GroupA", count: 3);
 
             // The pipeline can then be trained, using .Fit(), and the resulting transformer can be used to transform data. 
             var transformedData = pipeline.Fit(data).Transform(data);
 
-            Console.WriteLine("Contents of column 'FeaturesSelectedGroupB'");
-            PrintDataColumn(transformedData, "FeaturesSelectedGroupB");
-            // 4       6
-            // 4       6
-            // 4       6
-            // 4       NaN
-        }
-
-        private static void PrintDataColumn(IDataView transformedData, string columnName)
-        {
-            var countSelectColumn = transformedData.GetColumn<float[]>(transformedData.Schema[columnName]);
-
-            foreach (var row in countSelectColumn)
+            Console.WriteLine("Contents of column 'FeaturesSelectedGroupA'");
+            var featuresSelectedGroupA = transformedData.GetColumn<float[]>(transformedData.Schema["FeaturesSelectedGroupA"]);
+            foreach (var row in featuresSelectedGroupA)
             {
                 for (var i = 0; i < row.Length; i++)
                     Console.Write($"{row[i]}\t");
                 Console.WriteLine();
             }
+            // 4       6
+            // 4       6
+            // 4       6
+            // 4       NaN
+
+            // Usage on text column.
+            pipeline = mlContext.Transforms.FeatureSelection.SelectFeaturesBasedOnCount(
+                outputColumnName: "FeaturesSelectedInfo", inputColumnName: "Info", count: 3);
+
+            transformedData = pipeline.Fit(data).Transform(data);
+
+            Console.WriteLine("Contents of column 'FeaturesSelectedInfo'");
+            var featuresSelectedInfo = transformedData.GetColumn<string[]>(transformedData.Schema["FeaturesSelectedInfo"]);
+            foreach (var row in featuresSelectedInfo)
+            {
+                for (var i = 0; i < row.Length; i++)
+                    Console.Write($"{row[i]}\t");
+                Console.WriteLine();
+            }
+            // A       Male
+            // A       Female
+            // A
+            // A       Male
         }
 
-        public class NumericData
+        public class InputData
         {
-            public bool Label;
-
             [VectorType(3)]
             public float[] GroupA { get; set; }
 
             [VectorType(3)]
-            public float[] GroupB { get; set; }
-
-            [VectorType(3)]
-            public float[] GroupC { get; set; }
+            public string[] Info { get; set; }
         }
 
         /// <summary>
-        /// Returns a few rows of numeric data.
+        /// Return a few rows of data.
         /// </summary>
-        public static IEnumerable<NumericData> GetData()
+        public static IEnumerable<InputData> GetData()
         {
-            var data = new List<NumericData>
+            var data = new List<InputData>
             {
-                new NumericData
+                new InputData
                 {
-                    Label = true,
-                    GroupA = new float[] { 1, 2, 3 },
-                    GroupB = new float[] { 4, float.NaN, 6 },
-                    GroupC = new float[] { 7, 8, 9 },
+                    GroupA = new float[] { 4, float.NaN, 6 },
+                    Info = new string[] { "A", "WA", "Male"}
                 },
-                new NumericData
+                new InputData
                 {
-                    Label = false,
-                    GroupA = new float[] { 1, 2, 3 },
-                    GroupB = new float[] { 4, 5, 6 },
-                    GroupC = new float[] { 7, 8, 9 },
+                    GroupA = new float[] { 4, 5, 6 },
+                    Info = new string[] { "A", "", "Female"}
                 },
-                new NumericData
+                new InputData
                 {
-                    Label = true,
-                    GroupA = new float[] { 1, 2, 3 },
-                    GroupB = new float[] { 4, 5, 6 },
-                    GroupC = new float[] { 7, 8, 9 },
+                    GroupA = new float[] { 4, 5, 6 },
+                    Info = new string[] { "A", "NY", null}
                 },
-                new NumericData
+                new InputData
                 {
-                    Label = false,
-                    GroupA = new float[] { 1, 2, 3 },
-                    GroupB = new float[] { 4, float.NaN, float.NaN },
-                    GroupC = new float[] { 7, 8, 9 },
+                    GroupA = new float[] { 4, float.NaN, float.NaN },
+                    Info = new string[] { "A", null, "Male"}
                 }
             };
             return data;
