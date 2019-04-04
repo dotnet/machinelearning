@@ -5,7 +5,7 @@ using Microsoft.ML.Transforms;
 
 namespace Microsoft.ML.Samples.Dynamic
 {
-    public class KeyToValueValueToKey
+    public class KeyToValueToKey
     {
         public static void Example()
         {

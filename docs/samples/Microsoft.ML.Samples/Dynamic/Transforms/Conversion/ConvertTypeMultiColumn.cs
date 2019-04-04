@@ -58,6 +58,7 @@ namespace Microsoft.ML.Samples.Dynamic
             //      1       8904        6.368924E+17        8.09
 
         }
+
         // The initial data type
         private class InputData
         {
@@ -66,6 +67,7 @@ namespace Microsoft.ML.Samples.Dynamic
             public DateTime Feature3;
             public double Feature4;
         }
+
         // The resulting data type after the transformation
         private class TransformedData : InputData
         {

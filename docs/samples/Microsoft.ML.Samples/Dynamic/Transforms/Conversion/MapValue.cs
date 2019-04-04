@@ -79,11 +79,13 @@ namespace Microsoft.ML.Samples.Dynamic
             // 12-25yrs       Long               3       5       High
             // 25+yrs         Long               3       5       High
         }
+
         private class DataPoint
         {
             public string Timeframe { get; set; }
             public int Score { get; set; }
         }
+
         private class TransformedData : DataPoint
         {
             public string TimeframeCategory { get; set; }

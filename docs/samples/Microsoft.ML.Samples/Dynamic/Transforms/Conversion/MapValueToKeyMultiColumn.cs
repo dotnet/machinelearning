@@ -54,6 +54,7 @@ namespace Microsoft.ML.Samples.Dynamic
             // If we wanted to provide the mapping, rather than letting the transform create it, 
             // we could do so by creating an IDataView one column containing the values to map to. 
             // If the values in the dataset are not found in the lookup IDataView they will get mapped to the mising value, 0.
+            // The keyData are shared among the columns.
             // Create the lookup map data IEnumerable.  
             var lookupData = new[] {
                 new LookupMap { Key = "0-4yrs" },
@@ -88,16 +89,19 @@ namespace Microsoft.ML.Samples.Dynamic
             // 12 - 25yrs        0                  25 + yrs          3
             // 0 - 5yrs          0                  0 - 5yrs          0
         }
+
         private class DataPoint
         {
             public string StudyTime { get; set; }
             public string DevelopmentTime { get; set; }
         }
+
         private class TransformedData : DataPoint
         {
             public uint StudyTimeCategory { get; set; }
             public uint DevelopmentTimeCategory { get; set; }
         }
+
         // Type for the IDataView that will be serving as the map
         private class LookupMap
         {
