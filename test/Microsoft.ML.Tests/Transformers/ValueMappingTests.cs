@@ -569,6 +569,18 @@ namespace Microsoft.ML.Tests.Transformers
             ReadOnlyMemory<char> dValue = default;
             getterD(ref dValue);
             Assert.Equal("foo2".AsMemory(), dValue);
+
+            var annotations = result.Schema["D"].Annotations;
+            var allowedKeyValueGetter = annotations.GetGetter<VBuffer<ReadOnlyMemory<char>>>(annotations.Schema["KeyValues"]);
+            VBuffer<ReadOnlyMemory<char>> allowedKeys = default;
+            allowedKeyValueGetter(ref allowedKeys);
+
+            // There should be 3 keys, "foo1", "foo2", and "foo3".
+            Assert.Equal(3, allowedKeys.Length);
+            var allowedKeyPool = new HashSet<ReadOnlyMemory<char>>(allowedKeys.DenseValues());
+            Assert.Contains("foo1".AsMemory(), allowedKeyPool);
+            Assert.Contains("foo2".AsMemory(), allowedKeyPool);
+            Assert.Contains("foo3".AsMemory(), allowedKeyPool);
         }
 
         [Fact]

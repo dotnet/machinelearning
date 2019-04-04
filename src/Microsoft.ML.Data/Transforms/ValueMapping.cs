@@ -301,7 +301,7 @@ namespace Microsoft.ML.Transforms
         private readonly byte[] _dataView;
 
         internal DataViewType ValueColumnType => _valueMap.ValueColumn.Type;
-        internal DataViewSchema.Annotations ValueColumnMetadata { get; }
+        internal DataViewSchema.Annotations ValueColumnMetadata => _valueMap.ValueColumn.Annotations;
 
         private static VersionInfo GetVersionInfo()
         {
@@ -371,7 +371,6 @@ namespace Microsoft.ML.Transforms
             : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(ValueMappingTransformer)), columns)
         {
             _valueMap = CreateValueMapFromDataView(lookupMap, lookupKeyColumn, lookupValueColumn);
-            ValueColumnMetadata = lookupMap.Schema[lookupValueColumn.Index].Annotations;
 
             // Create the byte array of the original IDataView, this is used for saving out the data.
             _dataView = GetBytesFromDataView(Host, lookupMap, lookupKeyColumn.Name, lookupValueColumn.Name);
@@ -767,7 +766,6 @@ namespace Microsoft.ML.Transforms
         {
             private Dictionary<TKey, TValue> _mapping;
             private TValue _missingValue;
-            private readonly DataViewSchema.Annotations _valueMetadata;
 
             private Dictionary<TKey, TValue> CreateDictionary()
             {
@@ -779,8 +777,6 @@ namespace Microsoft.ML.Transforms
             public ValueMap(DataViewSchema.Column keyColumn, DataViewSchema.Column valueColumn) : base(keyColumn, valueColumn)
             {
                 _mapping = CreateDictionary();
-                _valueMetadata = valueColumn.Annotations;
-
             }
 
             /// <summary>
@@ -946,26 +942,23 @@ namespace Microsoft.ML.Transforms
 
         private protected override IRowMapper MakeRowMapper(DataViewSchema schema)
         {
-            return new Mapper(this, schema, _valueMap, ValueColumnMetadata, ColumnPairs);
+            return new Mapper(this, schema, _valueMap, ColumnPairs);
         }
 
         private sealed class Mapper : OneToOneMapperBase
         {
             private readonly DataViewSchema _inputSchema;
             private readonly ValueMap _valueMap;
-            private readonly DataViewSchema.Annotations _valueMetadata;
             private readonly (string outputColumnName, string inputColumnName)[] _columns;
             private readonly ValueMappingTransformer _parent;
 
             internal Mapper(ValueMappingTransformer transform,
                             DataViewSchema inputSchema,
                             ValueMap valueMap,
-                            DataViewSchema.Annotations valueMetadata,
                             (string outputColumnName, string inputColumnName)[] columns)
                 : base(transform.Host.Register(nameof(Mapper)), transform, inputSchema)
             {
                 _inputSchema = inputSchema;
-                _valueMetadata = valueMetadata;
                 _valueMap = valueMap;
                 _columns = columns;
                 _parent = transform;
@@ -990,7 +983,7 @@ namespace Microsoft.ML.Transforms
                     var colType = _valueMap.ValueColumn.Type;
                     if (_inputSchema[_columns[i].inputColumnName].Type is VectorDataViewType)
                         colType = new VectorDataViewType(ColumnTypeExtensions.PrimitiveTypeFromType(_valueMap.ValueColumn.Type.GetItemType().RawType));
-                    result[i] = new DataViewSchema.DetachedColumn(_columns[i].outputColumnName, colType, _valueMetadata);
+                    result[i] = new DataViewSchema.DetachedColumn(_columns[i].outputColumnName, colType, _valueMap.ValueColumn.Annotations);
                 }
                 return result;
             }
