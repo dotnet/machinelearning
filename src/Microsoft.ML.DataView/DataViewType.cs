@@ -12,6 +12,11 @@ namespace Microsoft.ML.Data
     /// <summary>
     /// This is the abstract base class for all types in the <see cref="IDataView"/> type system.
     /// </summary>
+    /// <remarks>
+    /// Those that which to utilize the extension of the <see cref="IDataView"/> type system should
+    /// derive from one of the more specific abstract classes <see cref="StructuredDataViewType"/> or
+    /// <see cref="PrimitiveDataViewType"/>.
+    /// </remarks>
     public abstract class DataViewType : IEquatable<DataViewType>
     {
         /// <summary>
@@ -43,6 +48,15 @@ namespace Microsoft.ML.Data
     /// <summary>
     /// The abstract base class for all non-primitive types.
     /// </summary>
+    /// <remarks>
+    /// This class stands in constrast to <see cref="PrimitiveDataViewType"/>. As that class is defined
+    /// to encapsulate cases where instances of the reference type can be freely copied without concerns
+    /// about ownership, mutability, or dispoal, this is defined for those types that are more disposed.
+    ///
+    /// To take the most conspicuous example, <see cref="VectorDataViewType"/> is a structure type,
+    /// which through the buffer sharing mechanisms of its <see cref="VBuffer{T}"/> representation type,
+    /// does not have assignment as sufficient to create an independent copy.
+    /// </remarks>
     public abstract class StructuredDataViewType : DataViewType
     {
         protected StructuredDataViewType(Type rawType)
@@ -66,7 +80,7 @@ namespace Microsoft.ML.Data
     }
 
     /// <summary>
-    /// The standard text type.
+    /// The standard text type. This has representation type of <see cref="ReadOnlyMemory{T}"/> with type parameter <see cref="char"/>.
     /// </summary>
     public sealed class TextDataViewType : PrimitiveDataViewType
     {
@@ -98,7 +112,8 @@ namespace Microsoft.ML.Data
     }
 
     /// <summary>
-    /// The standard number types.
+    /// The standard number type. This class is not directly instantiable. All allowed instances of this
+    /// type are singletons, and are accessible as static properties on this class.
     /// </summary>
     public sealed class NumberDataViewType : PrimitiveDataViewType
     {
@@ -108,6 +123,9 @@ namespace Microsoft.ML.Data
         }
 
         private static volatile NumberDataViewType _instSByte;
+        /// <summary>
+        /// The singleton instance of the <see cref="NumberDataViewType"/> with representation type of <see cref="sbyte"/>.
+        /// </summary>
         public static NumberDataViewType SByte
         {
             get
@@ -119,6 +137,7 @@ namespace Microsoft.ML.Data
         }
 
         private static volatile NumberDataViewType _instByte;
+        /// The singleton instance of the <see cref="NumberDataViewType"/> with representation type of <see cref="byte"/>.
         public static NumberDataViewType Byte
         {
             get
@@ -130,6 +149,7 @@ namespace Microsoft.ML.Data
         }
 
         private static volatile NumberDataViewType _instInt16;
+        /// The singleton instance of the <see cref="NumberDataViewType"/> with representation type of <see cref="short"/>.
         public static NumberDataViewType Int16
         {
             get
@@ -141,6 +161,7 @@ namespace Microsoft.ML.Data
         }
 
         private static volatile NumberDataViewType _instUInt16;
+        /// The singleton instance of the <see cref="NumberDataViewType"/> with representation type of <see cref="ushort"/>.
         public static NumberDataViewType UInt16
         {
             get
@@ -152,6 +173,7 @@ namespace Microsoft.ML.Data
         }
 
         private static volatile NumberDataViewType _instInt32;
+        /// The singleton instance of the <see cref="NumberDataViewType"/> with representation type of <see cref="int"/>.
         public static NumberDataViewType Int32
         {
             get
@@ -163,6 +185,7 @@ namespace Microsoft.ML.Data
         }
 
         private static volatile NumberDataViewType _instUInt32;
+        /// The singleton instance of the <see cref="NumberDataViewType"/> with representation type of <see cref="uint"/>.
         public static NumberDataViewType UInt32
         {
             get
@@ -174,6 +197,7 @@ namespace Microsoft.ML.Data
         }
 
         private static volatile NumberDataViewType _instInt64;
+        /// The singleton instance of the <see cref="NumberDataViewType"/> with representation type of <see cref="long"/>.
         public static NumberDataViewType Int64
         {
             get
@@ -185,6 +209,7 @@ namespace Microsoft.ML.Data
         }
 
         private static volatile NumberDataViewType _instUInt64;
+        /// The singleton instance of the <see cref="NumberDataViewType"/> with representation type of <see cref="ulong"/>.
         public static NumberDataViewType UInt64
         {
             get
@@ -196,6 +221,7 @@ namespace Microsoft.ML.Data
         }
 
         private static volatile NumberDataViewType _instSingle;
+        /// The singleton instance of the <see cref="NumberDataViewType"/> with representation type of <see cref="float"/>.
         public static NumberDataViewType Single
         {
             get
@@ -207,6 +233,7 @@ namespace Microsoft.ML.Data
         }
 
         private static volatile NumberDataViewType _instDouble;
+        /// The singleton instance of the <see cref="NumberDataViewType"/> with representation type of <see cref="double"/>.
         public static NumberDataViewType Double
         {
             get
@@ -229,7 +256,7 @@ namespace Microsoft.ML.Data
     }
 
     /// <summary>
-    /// The DataViewRowId type.
+    /// The <see cref="RowIdDataViewType "/> type. This has representation type of <see cref="DataViewRowId"/>.
     /// </summary>
     public sealed class RowIdDataViewType : PrimitiveDataViewType
     {
@@ -264,7 +291,7 @@ namespace Microsoft.ML.Data
     }
 
     /// <summary>
-    /// The standard boolean type.
+    /// The standard boolean type. This has representation type of <see cref="bool"/>.
     /// </summary>
     public sealed class BooleanDataViewType : PrimitiveDataViewType
     {
@@ -298,6 +325,9 @@ namespace Microsoft.ML.Data
         }
     }
 
+    /// <summary>
+    /// The standard date time type. This has representation type of <see cref="DateTime"/>.
+    /// </summary>
     public sealed class DateTimeDataViewType : PrimitiveDataViewType
     {
         private static volatile DateTimeDataViewType _instance;
@@ -327,6 +357,9 @@ namespace Microsoft.ML.Data
         public override string ToString() => "DateTime";
     }
 
+    /// <summary>
+    /// The standard date time offset type. This has representation type of <see cref="DateTimeOffset"/>.
+    /// </summary>
     public sealed class DateTimeOffsetDataViewType : PrimitiveDataViewType
     {
         private static volatile DateTimeOffsetDataViewType _instance;
@@ -357,7 +390,7 @@ namespace Microsoft.ML.Data
     }
 
     /// <summary>
-    /// The standard timespan type.
+    /// The standard timespan type. This has representation type of <see cref="TimeSpan"/>.
     /// </summary>
     public sealed class TimeSpanDataViewType : PrimitiveDataViewType
     {
