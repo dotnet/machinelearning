@@ -72,6 +72,12 @@ namespace Microsoft.ML
         /// <param name="catalog">The conversion transform's catalog.</param>
         /// <param name="columns">Specifies the names of the columns on which to apply the transformation.</param>
         /// <param name="outputKind">The expected kind of the output column.</param>
+        /// <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        ///  [!code-csharp[ConvertType](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/Conversion/ConvertTypeMultiColumn.cs)]
+        /// ]]></format>
+        /// </example>
         public static TypeConvertingEstimator ConvertType(this TransformsCatalog.ConversionTransforms catalog,
             InputOutputColumnPair[] columns,
             DataKind outputKind = ConvertDefaults.DefaultOutputKind)
@@ -100,7 +106,7 @@ namespace Microsoft.ML
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
-        ///  [!code-csharp[KeyToValueMappingEstimator](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/ValueMappingStringToKeyType.cs)]
+        ///  [!code-csharp[MapKeyToValue](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/Conversion/ValueMappingStringToKeyType.cs)]
         /// ]]></format>
         /// </example>
         public static KeyToValueMappingEstimator MapKeyToValue(this TransformsCatalog.ConversionTransforms catalog, string outputColumnName, string inputColumnName = null)
@@ -173,7 +179,7 @@ namespace Microsoft.ML
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
-        /// [!code-csharp[ValueToKey](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/KeyToValueValueToKey.cs)]
+        /// [!code-csharp[MapKeyToValue](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/Conversion/KeyToValueToKey.cs)]
         /// ]]>
         /// </format>
         /// </example>
@@ -223,7 +229,7 @@ namespace Microsoft.ML
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
-        /// [!code-csharp[ValueToKey](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/KeyToValueValueToKey.cs)]
+        /// [!code-csharp[MapKeyToValue](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/Conversion/KeyToValueValueToKey.cs)]
         /// ]]>
         /// </format>
         /// </example>
@@ -246,10 +252,7 @@ namespace Microsoft.ML
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
-        ///  [!code-csharp[ValueMappingEstimator](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/ValueMapping.cs)]
-        ///  [!code-csharp[ValueMappingEstimator](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/ValueMappingStringToKeyType.cs)]
-        ///  [!code-csharp[ValueMappingEstimator](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/ValueMappingFloatToString.cs)]
-        ///  [!code-csharp[ValueMappingEstimator](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/ValueMappingStringToArray.cs)]
+        ///  [!code-csharp[MapValue](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/Conversion/MapValue.cs)]
         /// ]]></format>
         /// </example>
         public static ValueMappingEstimator<TInputType, TOutputType> MapValue<TInputType, TOutputType>(
@@ -274,15 +277,6 @@ namespace Microsoft.ML
         /// <param name="keyValuePairs">Specifies the mapping that will be perfomed. The keys will be mapped to the values as specified in the <paramref name="keyValuePairs"/>.</param>
         /// <param name="columns">The columns to apply this transform on.</param>
         /// <returns>An instance of the <see cref="ValueMappingEstimator"/></returns>
-        /// <example>
-        /// <format type="text/markdown">
-        /// <![CDATA[
-        ///  [!code-csharp[ValueMappingEstimator](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/ValueMapping.cs)]
-        ///  [!code-csharp[ValueMappingEstimator](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/ValueMappingStringToKeyType.cs)]
-        ///  [!code-csharp[ValueMappingEstimator](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/ValueMappingFloatToString.cs)]
-        ///  [!code-csharp[ValueMappingEstimator](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/ValueMappingStringToArray.cs)]
-        /// ]]></format>
-        /// </example>
         [BestFriend]
         internal static ValueMappingEstimator<TInputType, TOutputType> MapValue<TInputType, TOutputType>(
             this TransformsCatalog.ConversionTransforms catalog,
@@ -306,12 +300,6 @@ namespace Microsoft.ML
         /// <param name="treatValuesAsKeyType">Whether to treat the values as a <see cref="KeyDataViewType"/>.</param>
         /// <param name="columns">The columns to apply this transform on.</param>
         /// <returns>An instance of the <see cref="ValueMappingEstimator"/></returns>
-        /// <example>
-        /// <format type="text/markdown">
-        /// <![CDATA[
-        ///  [!code-csharp[ValueMappingEstimator](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/ValueMappingStringToKeyType.cs)]
-        /// ]]></format>
-        /// </example>
         [BestFriend]
         internal static ValueMappingEstimator<TInputType, TOutputType> MapValue<TInputType, TOutputType>(
             this TransformsCatalog.ConversionTransforms catalog,
@@ -340,10 +328,7 @@ namespace Microsoft.ML
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
-        ///  [!code-csharp[ValueMappingEstimator](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/ValueMapping.cs)]
-        ///  [!code-csharp[ValueMappingEstimator](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/ValueMappingStringToKeyType.cs)]
-        ///  [!code-csharp[ValueMappingEstimator](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/ValueMappingFloatToString.cs)]
-        ///  [!code-csharp[ValueMappingEstimator](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/ValueMappingStringToArray.cs)]
+        ///  [!code-csharp[MapValue](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/Conversion/MappValueToArray.cs)]
         /// ]]></format>
         /// </example>
         public static ValueMappingEstimator<TInputType, TOutputType> MapValue<TInputType, TOutputType>(
@@ -367,15 +352,6 @@ namespace Microsoft.ML
         /// <param name="keyValuePairs">Specifies the mapping that will be perfomed. The keys will be mapped to the values as specified in the <paramref name="keyValuePairs"/>.</param>
         /// <param name="columns">The columns to apply this transform on.</param>
         /// <returns>An instance of the <see cref="ValueMappingEstimator"/></returns>
-        /// <example>
-        /// <format type="text/markdown">
-        /// <![CDATA[
-        ///  [!code-csharp[ValueMappingEstimator](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/ValueMapping.cs)]
-        ///  [!code-csharp[ValueMappingEstimator](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/ValueMappingStringToKeyType.cs)]
-        ///  [!code-csharp[ValueMappingEstimator](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/ValueMappingFloatToString.cs)]
-        ///  [!code-csharp[ValueMappingEstimator](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/ValueMappingStringToArray.cs)]
-        /// ]]></format>
-        /// </example>
         [BestFriend]
         internal static ValueMappingEstimator<TInputType, TOutputType> MapValue<TInputType, TOutputType>(
             this TransformsCatalog.ConversionTransforms catalog,
@@ -403,10 +379,7 @@ namespace Microsoft.ML
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
-        ///  [!code-csharp[ValueMappingEstimator](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/ValueMapping.cs)]
-        ///  [!code-csharp[ValueMappingEstimator](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/ValueMappingStringToKeyType.cs)]
-        ///  [!code-csharp[ValueMappingEstimator](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/ValueMappingFloatToString.cs)]
-        ///  [!code-csharp[ValueMappingEstimator](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/ValueMappingStringToArray.cs)]
+        ///  [!code-csharp[MapValue](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/Conversion/MappValueIdvLookup.cs)]
         /// ]]></format>
         /// </example>
         public static ValueMappingEstimator MapValue(
@@ -426,15 +399,6 @@ namespace Microsoft.ML
         /// <param name="valueColumn">The value column in <paramref name="lookupMap"/>.</param>
         /// <param name="columns">The columns to apply this transform on.</param>
         /// <returns>A instance of the ValueMappingEstimator</returns>
-        /// <example>
-        /// <format type="text/markdown">
-        /// <![CDATA[
-        ///  [!code-csharp[ValueMappingEstimator](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/ValueMapping.cs)]
-        ///  [!code-csharp[ValueMappingEstimator](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/ValueMappingStringToKeyType.cs)]
-        ///  [!code-csharp[ValueMappingEstimator](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/ValueMappingFloatToString.cs)]
-        ///  [!code-csharp[ValueMappingEstimator](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/ValueMappingStringToArray.cs)]
-        /// ]]></format>
-        /// </example>
         [BestFriend]
         internal static ValueMappingEstimator MapValue(
             this TransformsCatalog.ConversionTransforms catalog,
