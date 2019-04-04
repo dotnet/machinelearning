@@ -16,11 +16,11 @@ namespace Microsoft.ML.Samples.Dynamic
             // Get a small dataset as an IEnumerable.
             var samples = new List<DataPoint>()
             {
-                new DataPoint(){ Label = 0, Education = "0-5yrs", ZipCode = "98005" },
-                new DataPoint(){ Label = 1, Education = "0-5yrs", ZipCode = "98052" },
-                new DataPoint(){ Label = 45, Education = "6-11yrs", ZipCode = "98005" },
-                new DataPoint(){ Label = 50, Education = "6-11yrs", ZipCode = "98052" },
-                new DataPoint(){ Label = 50, Education = "11-15yrs", ZipCode = "98005" },
+                new DataPoint(){ Education = "0-5yrs" },
+                new DataPoint(){ Education = "0-5yrs" },
+                new DataPoint(){ Education = "6-11yrs" },
+                new DataPoint(){ Education = "6-11yrs" },
+                new DataPoint(){ Education = "11-15yrs" },
             };
 
             // Convert training data to IDataView.
@@ -77,11 +77,7 @@ namespace Microsoft.ML.Samples.Dynamic
 
         private class DataPoint
         {
-            public float Label { get; set; }
-
             public string Education { get; set; }
-
-            public string ZipCode { get; set; }
         }
     }
 }
