@@ -264,7 +264,14 @@ namespace Microsoft.ML
         {
             var keys = keyValuePairs.Select(pair => pair.Key);
             var values = keyValuePairs.Select(pair => pair.Value);
-            return new ValueMappingEstimator<TInputType, TOutputType>(CatalogUtils.GetEnvironment(catalog), keys, values, treatValuesAsKeyType,
+
+            var lookupMap = DataViewHelper.CreateDataView(catalog.GetEnvironment(), keys, values,
+                ValueMappingTransformer.DefaultKeyColumnName,
+                ValueMappingTransformer.DefaultValueColumnName, treatValuesAsKeyType);
+
+            return new ValueMappingEstimator<TInputType, TOutputType>(catalog.GetEnvironment(), lookupMap,
+                lookupMap.Schema[ValueMappingTransformer.DefaultKeyColumnName],
+                lookupMap.Schema[ValueMappingTransformer.DefaultValueColumnName],
                 new[] { (outputColumnName, inputColumnName ?? outputColumnName) });
         }
 
@@ -287,7 +294,15 @@ namespace Microsoft.ML
             env.CheckValue(columns, nameof(columns));
             var keys = keyValuePairs.Select(pair => pair.Key);
             var values = keyValuePairs.Select(pair => pair.Value);
-            return new ValueMappingEstimator<TInputType, TOutputType>(env, keys, values, InputOutputColumnPair.ConvertToValueTuples(columns));
+
+            var lookupMap = DataViewHelper.CreateDataView(catalog.GetEnvironment(), keys, values,
+                ValueMappingTransformer.DefaultKeyColumnName,
+                ValueMappingTransformer.DefaultValueColumnName, false);
+
+            return new ValueMappingEstimator<TInputType, TOutputType>(catalog.GetEnvironment(), lookupMap,
+                lookupMap.Schema[ValueMappingTransformer.DefaultKeyColumnName],
+                lookupMap.Schema[ValueMappingTransformer.DefaultValueColumnName],
+                InputOutputColumnPair.ConvertToValueTuples(columns));
         }
 
         /// <summary>
@@ -311,8 +326,15 @@ namespace Microsoft.ML
             env.CheckValue(columns, nameof(columns));
             var keys = keyValuePairs.Select(pair => pair.Key);
             var values = keyValuePairs.Select(pair => pair.Value);
-            return new ValueMappingEstimator<TInputType, TOutputType>(env, keys, values, treatValuesAsKeyType,
-                  InputOutputColumnPair.ConvertToValueTuples(columns));
+
+            var lookupMap = DataViewHelper.CreateDataView(catalog.GetEnvironment(), keys, values,
+                ValueMappingTransformer.DefaultKeyColumnName,
+                ValueMappingTransformer.DefaultValueColumnName, treatValuesAsKeyType);
+
+            return new ValueMappingEstimator<TInputType, TOutputType>(catalog.GetEnvironment(), lookupMap,
+                lookupMap.Schema[ValueMappingTransformer.DefaultKeyColumnName],
+                lookupMap.Schema[ValueMappingTransformer.DefaultValueColumnName],
+                InputOutputColumnPair.ConvertToValueTuples(columns));
         }
 
         /// <summary>
@@ -339,7 +361,15 @@ namespace Microsoft.ML
         {
             var keys = keyValuePairs.Select(pair => pair.Key);
             var values = keyValuePairs.Select(pair => pair.Value);
-            return new ValueMappingEstimator<TInputType, TOutputType>(CatalogUtils.GetEnvironment(catalog), keys, values,
+
+            // Convert parallel key and value lists to IDataView with two columns, so that the underlying infra can use it.
+            var lookupMap = DataViewHelper.CreateDataView(catalog.GetEnvironment(), keys, values,
+                ValueMappingTransformer.DefaultKeyColumnName,
+                ValueMappingTransformer.DefaultValueColumnName);
+
+            return new ValueMappingEstimator<TInputType, TOutputType>(catalog.GetEnvironment(), lookupMap,
+                lookupMap.Schema[ValueMappingTransformer.DefaultKeyColumnName],
+                lookupMap.Schema[ValueMappingTransformer.DefaultValueColumnName],
                 new[] { (outputColumnName, inputColumnName ?? outputColumnName) });
         }
 
@@ -362,8 +392,15 @@ namespace Microsoft.ML
             env.CheckValue(columns, nameof(columns));
             var keys = keyValuePairs.Select(pair => pair.Key);
             var values = keyValuePairs.Select(pair => pair.Value);
-            return new ValueMappingEstimator<TInputType, TOutputType>(env, keys, values,
-                    InputOutputColumnPair.ConvertToValueTuples(columns));
+
+            var lookupMap = DataViewHelper.CreateDataView(catalog.GetEnvironment(), keys, values,
+                ValueMappingTransformer.DefaultKeyColumnName,
+                ValueMappingTransformer.DefaultValueColumnName);
+
+            return new ValueMappingEstimator<TInputType, TOutputType>(catalog.GetEnvironment(), lookupMap,
+                lookupMap.Schema[ValueMappingTransformer.DefaultKeyColumnName],
+                lookupMap.Schema[ValueMappingTransformer.DefaultValueColumnName],
+                InputOutputColumnPair.ConvertToValueTuples(columns));
         }
 
         /// <summary>
@@ -386,7 +423,7 @@ namespace Microsoft.ML
             this TransformsCatalog.ConversionTransforms catalog,
             string outputColumnName, IDataView lookupMap, DataViewSchema.Column keyColumn, DataViewSchema.Column valueColumn, string inputColumnName = null)
         {
-            return new ValueMappingEstimator(CatalogUtils.GetEnvironment(catalog), lookupMap, keyColumn.Name, valueColumn.Name,
+            return new ValueMappingEstimator(CatalogUtils.GetEnvironment(catalog), lookupMap, keyColumn, valueColumn,
               new[] { (outputColumnName, inputColumnName ?? outputColumnName) });
         }
 
@@ -406,8 +443,7 @@ namespace Microsoft.ML
         {
             var env = CatalogUtils.GetEnvironment(catalog);
             env.CheckValue(columns, nameof(columns));
-            return new ValueMappingEstimator(env, lookupMap, keyColumn.Name, valueColumn.Name,
-                InputOutputColumnPair.ConvertToValueTuples(columns));
+            return new ValueMappingEstimator(env, lookupMap, keyColumn, valueColumn, InputOutputColumnPair.ConvertToValueTuples(columns));
         }
     }
 }
