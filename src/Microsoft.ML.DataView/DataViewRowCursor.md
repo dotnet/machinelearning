@@ -33,7 +33,7 @@ cursor until the `Batch` ID changes. Whereupon, the consolidator will find the
 next cursor with the next lowest batch ID (which should be greater, of course,
 than the `Batch` value we were just iterating on).
 
-Put another way: if we called `GetRowCursor` (possibly with a `Random`
+Put another way: suppose we called `GetRowCursor` (possibly with a `Random`
 instance), and we store all the values from the rows from that cursoring in
 some list, in order. Now, imagine we create `GetRowCursorSet` (with an
 identically constructed `Random` instance), and store the values from the rows
@@ -92,28 +92,30 @@ if the "same" data were presented in a different data view (as by, say, being
 transformed, cached, saved, or whatever), that the IDs between the two
 different data views would have any discernable relationship.
 
-Since this ID is practically often derived from the IDs of some other
-`DataViewRow`. For example, when applying `ITransformer.Transform`, the IDs of
-the output are usually derived from the IDs of the input. It is not only
-necessary to claim that the ID generated here is probabilistically unique, but
-also describe a procedure or set of guidelines implementors of this method
-should attempt to follow, in order to ensure that downstream components have a
-fair shake at producing unique IDs themselves.
+This ID is practically often derived from the IDs of some other `DataViewRow`.
+For example, when applying `ITransformer.Transform`, the IDs of the output are
+usually derived from the IDs of the input. It is not only necessary to claim
+that the ID generated here is probabilistically unique, but also describe a
+procedure or set of guidelines implementors of this method should attempt to
+follow, in order to ensure that downstream components have a fair shake at
+producing unique IDs themselves.
 
 Duplicate IDs being improbable is practically accomplished with a
 hashing-derived mechanism. For this we have the `DataViewRowId` methods
 `Fork`, `Next`, and `Combine`. See their documentation for specifics, but they
 all have in common that they treat the `DataViewRowId` as some sort of
 intermediate hash state, then return a new hash state based on hashing of a
-block of additional 'bits.' (Since the bits hashed may be fixed, depending on
-the operation, this can be very efficient.) The basic assumption underlying
-all of that collisions between two different hash states on the same data, or
-hashes on the same hash state on different data, are unlikely to collide. Note
-that this is also the reason why `DataViewRowId` was introduced; collisions
-become likely when we have the number of elements on the order of the square
-root of the hash space. The square root of `UInt64.MaxValue` is only several
-billion, a totally reasonable number of instances in a dataset, whereas a
-collision in a 128-bit space is less likely.
+block of additional bits. (Since the additional bits hashed in `Fork` and
+`Next` are specific, that is, effectively `0`, and `1`, this can be very
+efficient.) The basic assumption underlying all of this is that collisions
+between two different hash states on the same data, or hashes on the same hash
+state on different data, are unlikely to collide.
+
+Note that this is also the reason why `DataViewRowId` was introduced;
+collisions become likely when we have the number of elements on the order of
+the square root of the hash space. The square root of `UInt64.MaxValue` is
+only several billion, a totally reasonable number of instances in a dataset,
+whereas a collision in a 128-bit space is less likely.
 
 Let's consider the IDs of a collection of entities, then, to be ideally an
 "acceptable set." An "acceptable set" is one that is not especially or
@@ -175,28 +177,27 @@ running an implementation of a dataview in memory that you're supposing is
 malicious, you probably have bigger problems than someone inducing collisions
 to make SDCA converge suboptimally.
 
-Despite the apparent complexity, it should be noted that in *most*
-applications, since the vast majority of `IDataView` implementations are
-either the result of applying a simple row-to-row transformer (in which case
-passing through the ID is perfectly acceptable), or the result of enumerating
-over some sequential dataset (in which case the ordinal value is a perfectly
-fine ID). The details above only become very important with things like, say,
-combining multiple `IDataView` together, performing one-to-many row
+It should be noted that in *most* applications it is not nearly so complicated
+as all this: the vast majority of `IDataView` implementations are either the
+result of applying a simple row-to-row transformer (in which case passing
+through the ID is perfectly acceptable), or the result of enumerating over
+some sequential dataset (in which case the ordinal value is a perfectly fine
+ID). The details above only become very important with things like, say,
+combining multiple `IDataView`s together, performing one-to-many row
 transformations, or other such things like this, in which case the details
 above become important.
 
-One common thought that comes thought that comes up is the idea that we can
-have some "global position" instead of ID. This was actually my first idea,
-and multiple people have asked the question to the point where it would
-probably be best to have a ready answer. While if this were possible it would
-definitely make for a cleaner, simpler solution, it runs afoul of the earlier
-desire with regard to data view cursor sets, that is, that `IDataView` cursors
-should, if possible, present split cursors that can be independently "batches"
-of the data. But, let's imagine something like the operation for filtering; if
-I have a batch `0` comprised of 64 rows, and a batch `1` with another 64 rows,
-and I do a filter for, say, missing values, I could not provide the row
-sequence number for batch `1` until I had counted the number of rows that
-passed in batch `0`, which compromises the whole point of why we wanted to
-have cursor sets in the first place. The same is true also for one-to-many
-`IDataView` implementations (for example, joins). So, regrettably, that
-simpler solution would not work.
+One common thought that comes up is the idea that we can have some "global
+position" instead of ID. This was actually my first idea, and multiple people
+have asked the question to the point where it would probably be best to have a
+ready answer. While if this were possible it would definitely make for a
+cleaner, simpler solution, it runs afoul of the earlier desire with regard to
+data view cursor sets, that is, that `IDataView` cursors should, if possible,
+present split cursors that can be independently "batches" of the data. But,
+let's imagine something like the operation for filtering; if I have a batch
+`0` comprised of 64 rows, and a batch `1` with another 64 rows, and I do a
+filter for, say, missing values, I could not provide the row sequence number
+for batch `1` until I had counted the number of rows that passed in batch `0`,
+which compromises the whole point of why we wanted to have cursor sets in the
+first place. The same is true also for one-to-many `IDataView` implementations
+(for example, joins). So, regrettably, that simpler solution would not work.
