@@ -76,12 +76,12 @@ namespace Microsoft.ML.Samples.Dynamic
             //   Features:     0.0000        0.0000            0.0000           0.0000              0.0000                          0.0000               1.0000                         2.0000                   0.0000          0.0000         ...
         }
 
-        public class TextData
+        private class TextData
         {
             public string Text { get; set; }
         }
 
-        public class TransformedTextData : TextData
+        private class TransformedTextData : TextData
         {
             public float[] BagOfWordFeatures { get; set; }
         }
