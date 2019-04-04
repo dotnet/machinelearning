@@ -39,7 +39,7 @@ namespace Microsoft.ML.CLI.Utilities
 
         internal static void PrintMulticlassClassificationMetricsHeader(LogLevel logLevel)
         {
-            logger.Log(logLevel, CreateRow($"{"",-4} {"Trainer",-35} {"AccuracyMicro",14} {"AccuracyMacro",14} {"Duration",9} {"#Iteration",9}", Width));
+            logger.Log(logLevel, CreateRow($"{"",-4} {"Trainer",-35} {"MicroAccuracy",14} {"MacroAccuracy",14} {"Duration",9} {"#Iteration",9}", Width));
         }
 
         internal static void PrintRegressionMetricsHeader(LogLevel logLevel)

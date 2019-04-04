@@ -26,6 +26,7 @@ namespace Microsoft.ML.Auto
             IDataView[] validDatasets,
             IMetricsAgent<TMetrics> metricsAgent,
             IEstimator<ITransformer> preFeaturizer,
+            ITransformer[] preprocessorTransforms,
             string labelColumn,
             IDebugLogger logger)
         {
@@ -34,21 +35,10 @@ namespace Microsoft.ML.Auto
             _validDatasets = validDatasets;
             _metricsAgent = metricsAgent;
             _preFeaturizer = preFeaturizer;
+            _preprocessorTransforms = preprocessorTransforms;
             _labelColumn = labelColumn;
             _logger = logger;
             _modelInputSchema = trainDatasets[0].Schema;
-
-            if (_preFeaturizer != null)
-            {
-                _preprocessorTransforms = new ITransformer[_trainDatasets.Length];
-                for (var i = 0; i < _trainDatasets.Length; i++)
-                {
-                    // Preprocess train and validation data
-                    _preprocessorTransforms[i] = _preFeaturizer.Fit(_trainDatasets[i]);
-                    _trainDatasets[i] = _preprocessorTransforms[i].Transform(_trainDatasets[i]);
-                    _validDatasets[i] = _preprocessorTransforms[i].Transform(_validDatasets[i]);
-                }
-            }
         }
 
         public (SuggestedPipelineRunDetails suggestedPipelineRunDetails, CrossValidationRunDetails<TMetrics> runDetails) 
@@ -60,7 +50,7 @@ namespace Microsoft.ML.Auto
             {
                 var modelFileInfo = RunnerUtil.GetModelFileInfo(modelDirectory, iterationNum, i + 1);
                 var trainResult = RunnerUtil.TrainAndScorePipeline(_context, pipeline, _trainDatasets[i], _validDatasets[i],
-                    _labelColumn, _metricsAgent, _preFeaturizer, _preprocessorTransforms?[i], modelFileInfo, _modelInputSchema, _logger);
+                    _labelColumn, _metricsAgent, _preprocessorTransforms?[i], modelFileInfo, _modelInputSchema, _logger);
                 trainResults.Add(new SuggestedPipelineTrainResult<TMetrics>(trainResult.model, trainResult.metrics, trainResult.exception, trainResult.score));
             }
 
@@ -68,7 +58,7 @@ namespace Microsoft.ML.Auto
             var allRunsSucceeded = trainResults.All(r => r.Exception == null);
 
             var suggestedPipelineRunDetails = new SuggestedPipelineCrossValRunDetails<TMetrics>(pipeline, avgScore, allRunsSucceeded, trainResults);
-            var runDetails = suggestedPipelineRunDetails.ToIterationResult();
+            var runDetails = suggestedPipelineRunDetails.ToIterationResult(_preFeaturizer);
             return (suggestedPipelineRunDetails, runDetails);
         }
 

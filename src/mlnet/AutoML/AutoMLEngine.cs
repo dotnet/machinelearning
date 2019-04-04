@@ -33,7 +33,7 @@ namespace Microsoft.ML.CLI.CodeGenerator
             logger.Log(LogLevel.Trace, Strings.InferColumns);
             ColumnInferenceResults columnInference = null;
             var dataset = settings.Dataset.FullName;
-            if (columnInformation.LabelColumn != null)
+            if (columnInformation.LabelColumnName != null)
             {
                 columnInference = context.Auto().InferColumns(dataset, columnInformation, groupColumns: false);
             }

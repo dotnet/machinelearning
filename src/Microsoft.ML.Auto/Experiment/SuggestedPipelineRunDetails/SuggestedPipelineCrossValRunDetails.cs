@@ -44,9 +44,10 @@ namespace Microsoft.ML.Auto
             Results = results;
         }
 
-        public CrossValidationRunDetails<TMetrics> ToIterationResult()
+        public CrossValidationRunDetails<TMetrics> ToIterationResult(IEstimator<ITransformer> preFeaturizer)
         {
-            return new CrossValidationRunDetails<TMetrics>(Pipeline.Trainer.TrainerName.ToString(), Pipeline.ToEstimator(),
+            var estimator = SuggestedPipelineRunDetailsUtil.PrependPreFeaturizer(Pipeline.ToEstimator(), preFeaturizer);
+            return new CrossValidationRunDetails<TMetrics>(Pipeline.Trainer.TrainerName.ToString(), estimator,
                 Pipeline.ToPipeline(), Results.Select(r => r.ToTrainResult()));
         }
     }

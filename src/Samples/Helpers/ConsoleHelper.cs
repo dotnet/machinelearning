@@ -103,13 +103,13 @@ namespace Samples.Helpers
 
             // add column data
             var info = _results.ColumnInformation;
-            AppendTableRow(tableRows, info.LabelColumn, "Label");
-            AppendTableRow(tableRows, info.ExampleWeightColumn, "Weight");
-            AppendTableRow(tableRows, info.SamplingKeyColumn, "Sampling Key");
-            AppendTableRows(tableRows, info.CategoricalColumns, "Categorical");
-            AppendTableRows(tableRows, info.NumericColumns, "Numeric");
-            AppendTableRows(tableRows, info.TextColumns, "Text");
-            AppendTableRows(tableRows, info.IgnoredColumns, "Ignored");
+            AppendTableRow(tableRows, info.LabelColumnName, "Label");
+            AppendTableRow(tableRows, info.ExampleWeightColumnName, "Weight");
+            AppendTableRow(tableRows, info.SamplingKeyColumnName, "Sampling Key");
+            AppendTableRows(tableRows, info.CategoricalColumnNames, "Categorical");
+            AppendTableRows(tableRows, info.NumericColumnNames, "Numeric");
+            AppendTableRows(tableRows, info.TextColumnNames, "Text");
+            AppendTableRows(tableRows, info.IgnoredColumnNames, "Ignored");
 
             Console.WriteLine(ConsoleHelper.BuildStringTable(tableRows));
         }

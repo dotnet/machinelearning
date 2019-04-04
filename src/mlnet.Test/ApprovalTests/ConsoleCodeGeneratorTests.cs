@@ -270,7 +270,7 @@ namespace mlnet.Test
                 this.columnInference = new ColumnInferenceResults()
                 {
                     TextLoaderOptions = textLoaderArgs,
-                    ColumnInformation = new ColumnInformation() { LabelColumn = "Label" }
+                    ColumnInformation = new ColumnInformation() { LabelColumnName = "Label" }
                 };
             }
             return (mockedPipeline, columnInference);
@@ -312,7 +312,7 @@ namespace mlnet.Test
                 this.columnInference = new ColumnInferenceResults()
                 {
                     TextLoaderOptions = textLoaderArgs,
-                    ColumnInformation = new ColumnInformation() { LabelColumn = "Label" }
+                    ColumnInformation = new ColumnInformation() { LabelColumnName = "Label" }
                 };
 
             }

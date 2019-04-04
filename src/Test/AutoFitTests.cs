@@ -21,7 +21,7 @@ namespace Microsoft.ML.Auto.Test
             var trainData = textLoader.Load(dataPath);
             var results = context.Auto()
                 .CreateBinaryClassificationExperiment(0)
-                .Execute(trainData, new ColumnInformation() { LabelColumn = DatasetUtil.UciAdultLabel });
+                .Execute(trainData, new ColumnInformation() { LabelColumnName = DatasetUtil.UciAdultLabel });
             var best = results.Best();
             Assert.IsTrue(best.ValidationMetrics.Accuracy > 0.70);
             Assert.IsNotNull(best.Estimator);
@@ -58,7 +58,7 @@ namespace Microsoft.ML.Auto.Test
             var results = context.Auto()
                 .CreateRegressionExperiment(0)
                 .Execute(trainData, validationData,
-                    new ColumnInformation() { LabelColumn = DatasetUtil.MlNetGeneratedRegressionLabel });
+                    new ColumnInformation() { LabelColumnName = DatasetUtil.MlNetGeneratedRegressionLabel });
 
             Assert.IsTrue(results.Max(i => i.ValidationMetrics.RSquared > 0.9));
         }

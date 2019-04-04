@@ -37,8 +37,8 @@ namespace Microsoft.ML.Auto
         {
             var columnInformation = new ColumnInformation()
             {
-                LabelColumn = labelColumn,
-                SamplingKeyColumn = samplingKeyColumn
+                LabelColumnName = labelColumn,
+                SamplingKeyColumnName = samplingKeyColumn
             };
             return Execute(trainData, columnInformation, preFeaturizers, progressHandler);
         }
@@ -56,19 +56,19 @@ namespace Microsoft.ML.Auto
             if (rowCount < crossValRowCountThreshold)
             {
                 const int numCrossValFolds = 10;
-                var splitResult = SplitUtil.CrossValSplit(Context, trainData, numCrossValFolds, columnInformation?.SamplingKeyColumn);
+                var splitResult = SplitUtil.CrossValSplit(Context, trainData, numCrossValFolds, columnInformation?.SamplingKeyColumnName);
                 return ExecuteCrossValSummary(splitResult.trainDatasets, columnInformation, splitResult.validationDatasets, preFeaturizer, progressHandler);
             }
             else
             {
-                var splitResult = SplitUtil.TrainValidateSplit(Context, trainData, columnInformation?.SamplingKeyColumn);
+                var splitResult = SplitUtil.TrainValidateSplit(Context, trainData, columnInformation?.SamplingKeyColumnName);
                 return ExecuteTrainValidate(splitResult.trainData, columnInformation, splitResult.validationData, preFeaturizer, progressHandler);
             }
         }
 
         public IEnumerable<RunDetails<TMetrics>> Execute(IDataView trainData, IDataView validationData, string labelColumn = DefaultColumnNames.Label, IEstimator<ITransformer> preFeaturizer = null, IProgress<RunDetails<TMetrics>> progressHandler = null)
         {
-            var columnInformation = new ColumnInformation() { LabelColumn = labelColumn };
+            var columnInformation = new ColumnInformation() { LabelColumnName = labelColumn };
             return Execute(trainData, validationData, columnInformation, preFeaturizer, progressHandler);
         }
 
@@ -76,31 +76,31 @@ namespace Microsoft.ML.Auto
         {
             if (validationData == null)
             {
-                var splitResult = SplitUtil.TrainValidateSplit(Context, trainData, columnInformation?.SamplingKeyColumn);
+                var splitResult = SplitUtil.TrainValidateSplit(Context, trainData, columnInformation?.SamplingKeyColumnName);
                 trainData = splitResult.trainData;
                 validationData = splitResult.validationData;
             }
             return ExecuteTrainValidate(trainData, columnInformation, validationData, preFeaturizer, progressHandler);
         }
 
-        public IEnumerable<CrossValidationRunDetails<TMetrics>> Execute(IDataView trainData, uint numberOfCVFolds, ColumnInformation columnInformation = null, IEstimator<ITransformer> preFeaturizers = null, IProgress<CrossValidationRunDetails<TMetrics>> progressHandler = null)
+        public IEnumerable<CrossValidationRunDetails<TMetrics>> Execute(IDataView trainData, uint numberOfCVFolds, ColumnInformation columnInformation = null, IEstimator<ITransformer> preFeaturizer = null, IProgress<CrossValidationRunDetails<TMetrics>> progressHandler = null)
         {
             UserInputValidationUtil.ValidateNumberOfCVFoldsArg(numberOfCVFolds);
-            var splitResult = SplitUtil.CrossValSplit(Context, trainData, numberOfCVFolds, columnInformation?.SamplingKeyColumn);
-            return ExecuteCrossVal(splitResult.trainDatasets, columnInformation, splitResult.validationDatasets, preFeaturizers, progressHandler);
+            var splitResult = SplitUtil.CrossValSplit(Context, trainData, numberOfCVFolds, columnInformation?.SamplingKeyColumnName);
+            return ExecuteCrossVal(splitResult.trainDatasets, columnInformation, splitResult.validationDatasets, preFeaturizer, progressHandler);
         }
 
         public IEnumerable<CrossValidationRunDetails<TMetrics>> Execute(IDataView trainData, 
             uint numberOfCVFolds, string labelColumn = DefaultColumnNames.Label,
-            string samplingKeyColumn = null, IEstimator<ITransformer> preFeaturizers = null, 
+            string samplingKeyColumn = null, IEstimator<ITransformer> preFeaturizer = null, 
             Progress<CrossValidationRunDetails<TMetrics>> progressHandler = null)
         {
             var columnInformation = new ColumnInformation()
             {
-                LabelColumn = labelColumn,
-                SamplingKeyColumn = samplingKeyColumn
+                LabelColumnName = labelColumn,
+                SamplingKeyColumnName = samplingKeyColumn
             };
-            return Execute(trainData, numberOfCVFolds, columnInformation, preFeaturizers, progressHandler);
+            return Execute(trainData, numberOfCVFolds, columnInformation, preFeaturizer, progressHandler);
         }
 
         private IEnumerable<RunDetails<TMetrics>> ExecuteTrainValidate(IDataView trainData,
@@ -111,8 +111,18 @@ namespace Microsoft.ML.Auto
         {
             columnInfo = columnInfo ?? new ColumnInformation();
             UserInputValidationUtil.ValidateExperimentExecuteArgs(trainData, columnInfo, validationData);
-            var runner = new TrainValidateRunner<TMetrics>(Context, trainData, validationData, columnInfo.LabelColumn, _metricsAgent,
-                preFeaturizer, _settings.DebugLogger);
+
+            // Apply pre-featurizer
+            ITransformer preprocessorTransform = null;
+            if (preFeaturizer != null)
+            {
+                preprocessorTransform = preFeaturizer.Fit(trainData);
+                trainData = preprocessorTransform.Transform(trainData);
+                validationData = preprocessorTransform.Transform(validationData);
+            }
+
+            var runner = new TrainValidateRunner<TMetrics>(Context, trainData, validationData, columnInfo.LabelColumnName, _metricsAgent,
+                preFeaturizer, preprocessorTransform, _settings.DebugLogger);
             var columns = DatasetColumnInfoUtil.GetDatasetColumnInfo(Context, trainData, columnInfo);
             return Execute(columnInfo, columns, preFeaturizer, progressHandler, runner);
         }
@@ -125,8 +135,13 @@ namespace Microsoft.ML.Auto
         {
             columnInfo = columnInfo ?? new ColumnInformation();
             UserInputValidationUtil.ValidateExperimentExecuteArgs(trainDatasets[0], columnInfo, validationDatasets[0]);
-            var runner = new CrossValRunner<TMetrics>(Context, trainDatasets, validationDatasets, _metricsAgent, preFeaturizer, 
-                columnInfo.LabelColumn, _settings.DebugLogger);
+
+            // Apply pre-featurizer
+            ITransformer[] preprocessorTransforms = null;
+            (trainDatasets, validationDatasets, preprocessorTransforms) = ApplyPreFeaturizerCrossVal(trainDatasets, validationDatasets, preFeaturizer);
+
+            var runner = new CrossValRunner<TMetrics>(Context, trainDatasets, validationDatasets, _metricsAgent, preFeaturizer,
+                preprocessorTransforms, columnInfo.LabelColumnName, _settings.DebugLogger);
             var columns = DatasetColumnInfoUtil.GetDatasetColumnInfo(Context, trainDatasets[0], columnInfo);
             return Execute(columnInfo, columns, preFeaturizer, progressHandler, runner);
         }
@@ -139,8 +154,13 @@ namespace Microsoft.ML.Auto
         {
             columnInfo = columnInfo ?? new ColumnInformation();
             UserInputValidationUtil.ValidateExperimentExecuteArgs(trainDatasets[0], columnInfo, validationDatasets[0]);
+
+            // Apply pre-featurizer
+            ITransformer[] preprocessorTransforms = null;
+            (trainDatasets, validationDatasets, preprocessorTransforms) = ApplyPreFeaturizerCrossVal(trainDatasets, validationDatasets, preFeaturizer);
+
             var runner = new CrossValSummaryRunner<TMetrics>(Context, trainDatasets, validationDatasets, _metricsAgent, preFeaturizer,
-                columnInfo.LabelColumn, _optimizingMetricInfo, _settings.DebugLogger);
+                preprocessorTransforms, columnInfo.LabelColumnName, _optimizingMetricInfo, _settings.DebugLogger);
             var columns = DatasetColumnInfoUtil.GetDatasetColumnInfo(Context, trainDatasets[0], columnInfo);
             return Execute(columnInfo, columns, preFeaturizer, progressHandler, runner);
         }
@@ -157,6 +177,26 @@ namespace Microsoft.ML.Auto
                 _settings, _metricsAgent, _trainerWhitelist, columns, runner);
 
             return experiment.Execute();
+        }
+
+        private static (IDataView[] trainDatasets, IDataView[] validDatasets, ITransformer[] preprocessorTransforms)
+            ApplyPreFeaturizerCrossVal(IDataView[] trainDatasets, IDataView[] validDatasets, IEstimator<ITransformer> preFeaturizer)
+        {
+            if (preFeaturizer == null)
+            {
+                return (trainDatasets, validDatasets, null);
+            }
+
+            var preprocessorTransforms = new ITransformer[trainDatasets.Length];
+            for (var i = 0; i < trainDatasets.Length; i++)
+            {
+                // Preprocess train and validation data
+                preprocessorTransforms[i] = preFeaturizer.Fit(trainDatasets[i]);
+                trainDatasets[i] = preprocessorTransforms[i].Transform(trainDatasets[i]);
+                validDatasets[i] = preprocessorTransforms[i].Transform(validDatasets[i]);
+            }
+
+            return (trainDatasets, validDatasets, preprocessorTransforms);
         }
     }
 }

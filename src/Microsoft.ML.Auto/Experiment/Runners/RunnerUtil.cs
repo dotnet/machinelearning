@@ -16,7 +16,6 @@ namespace Microsoft.ML.Auto
             IDataView validData,
             string labelColumn,
             IMetricsAgent<TMetrics> metricsAgent,
-            IEstimator<ITransformer> preFeaturizer,
             ITransformer preprocessorTransform,
             FileInfo modelFileInfo,
             DataViewSchema modelInputSchema,
@@ -30,11 +29,9 @@ namespace Microsoft.ML.Auto
                 var scoredData = model.Transform(validData);
                 var metrics = metricsAgent.EvaluateMetrics(scoredData, labelColumn);
                 var score = metricsAgent.GetScore(metrics);
-
-                estimator = pipeline.ToEstimator();
-                if (preFeaturizer != null)
+                
+                if (preprocessorTransform != null)
                 {
-                    estimator = preFeaturizer.Append(estimator);
                     model = preprocessorTransform.Append(model);
                 }
 

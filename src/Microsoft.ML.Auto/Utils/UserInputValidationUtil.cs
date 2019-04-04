@@ -71,35 +71,35 @@ namespace Microsoft.ML.Auto
         private static void ValidateColumnInformation(IDataView trainData, ColumnInformation columnInformation)
         {
             ValidateColumnInformation(columnInformation);
-            ValidateTrainDataColumn(trainData, columnInformation.LabelColumn, LabelColumnPurposeName);
-            ValidateTrainDataColumn(trainData, columnInformation.ExampleWeightColumn, WeightColumnPurposeName);
-            ValidateTrainDataColumn(trainData, columnInformation.SamplingKeyColumn, SamplingKeyColumnPurposeName);
-            ValidateTrainDataColumns(trainData, columnInformation.CategoricalColumns, CategoricalColumnPurposeName,
+            ValidateTrainDataColumn(trainData, columnInformation.LabelColumnName, LabelColumnPurposeName);
+            ValidateTrainDataColumn(trainData, columnInformation.ExampleWeightColumnName, WeightColumnPurposeName);
+            ValidateTrainDataColumn(trainData, columnInformation.SamplingKeyColumnName, SamplingKeyColumnPurposeName);
+            ValidateTrainDataColumns(trainData, columnInformation.CategoricalColumnNames, CategoricalColumnPurposeName,
                 new DataViewType[] { NumberDataViewType.Single, TextDataViewType.Instance });
-            ValidateTrainDataColumns(trainData, columnInformation.NumericColumns, NumericColumnPurposeName,
+            ValidateTrainDataColumns(trainData, columnInformation.NumericColumnNames, NumericColumnPurposeName,
                 new DataViewType[] { NumberDataViewType.Single, BooleanDataViewType.Instance });
-            ValidateTrainDataColumns(trainData, columnInformation.TextColumns, TextColumnPurposeName,
+            ValidateTrainDataColumns(trainData, columnInformation.TextColumnNames, TextColumnPurposeName,
                 new DataViewType[] { TextDataViewType.Instance });
-            ValidateTrainDataColumns(trainData, columnInformation.IgnoredColumns, IgnoredColumnPurposeName);
+            ValidateTrainDataColumns(trainData, columnInformation.IgnoredColumnNames, IgnoredColumnPurposeName);
         }
 
         private static void ValidateColumnInformation(ColumnInformation columnInformation)
         {
-            ValidateLabelColumn(columnInformation.LabelColumn);
+            ValidateLabelColumn(columnInformation.LabelColumnName);
 
-            ValidateColumnInfoEnumerationProperty(columnInformation.CategoricalColumns, CategoricalColumnPurposeName);
-            ValidateColumnInfoEnumerationProperty(columnInformation.NumericColumns, NumericColumnPurposeName);
-            ValidateColumnInfoEnumerationProperty(columnInformation.TextColumns, TextColumnPurposeName);
-            ValidateColumnInfoEnumerationProperty(columnInformation.IgnoredColumns, IgnoredColumnPurposeName);
+            ValidateColumnInfoEnumerationProperty(columnInformation.CategoricalColumnNames, CategoricalColumnPurposeName);
+            ValidateColumnInfoEnumerationProperty(columnInformation.NumericColumnNames, NumericColumnPurposeName);
+            ValidateColumnInfoEnumerationProperty(columnInformation.TextColumnNames, TextColumnPurposeName);
+            ValidateColumnInfoEnumerationProperty(columnInformation.IgnoredColumnNames, IgnoredColumnPurposeName);
 
             // keep a list of all columns, to detect duplicates
             var allColumns = new List<string>();
-            allColumns.Add(columnInformation.LabelColumn);
-            if (columnInformation.ExampleWeightColumn != null) { allColumns.Add(columnInformation.ExampleWeightColumn); }
-            if (columnInformation.CategoricalColumns != null) { allColumns.AddRange(columnInformation.CategoricalColumns); }
-            if (columnInformation.NumericColumns != null) { allColumns.AddRange(columnInformation.NumericColumns); }
-            if (columnInformation.TextColumns != null) { allColumns.AddRange(columnInformation.TextColumns); }
-            if (columnInformation.IgnoredColumns != null) { allColumns.AddRange(columnInformation.IgnoredColumns); }
+            allColumns.Add(columnInformation.LabelColumnName);
+            if (columnInformation.ExampleWeightColumnName != null) { allColumns.Add(columnInformation.ExampleWeightColumnName); }
+            if (columnInformation.CategoricalColumnNames != null) { allColumns.AddRange(columnInformation.CategoricalColumnNames); }
+            if (columnInformation.NumericColumnNames != null) { allColumns.AddRange(columnInformation.NumericColumnNames); }
+            if (columnInformation.TextColumnNames != null) { allColumns.AddRange(columnInformation.TextColumnNames); }
+            if (columnInformation.IgnoredColumnNames != null) { allColumns.AddRange(columnInformation.IgnoredColumnNames); }
 
             var duplicateColName = FindFirstDuplicate(allColumns);
             if (duplicateColName != null)

@@ -28,6 +28,7 @@ namespace Microsoft.ML.Auto
             IDataView[] validDatasets,
             IMetricsAgent<TMetrics> metricsAgent,
             IEstimator<ITransformer> preFeaturizer,
+            ITransformer[] preprocessorTransforms,
             string labelColumn,
             OptimizingMetricInfo optimizingMetricInfo,
             IDebugLogger logger)
@@ -37,22 +38,11 @@ namespace Microsoft.ML.Auto
             _validDatasets = validDatasets;
             _metricsAgent = metricsAgent;
             _preFeaturizer = preFeaturizer;
+            _preprocessorTransforms = preprocessorTransforms;
             _labelColumn = labelColumn;
             _optimizingMetricInfo = optimizingMetricInfo;
             _logger = logger;
             _modelInputSchema = trainDatasets[0].Schema;
-
-            if (_preFeaturizer != null)
-            {
-                _preprocessorTransforms = new ITransformer[_trainDatasets.Length];
-                for (var i = 0; i < _trainDatasets.Length; i++)
-                {
-                    // preprocess train and validation data
-                    _preprocessorTransforms[i] = _preFeaturizer.Fit(_trainDatasets[i]);
-                    _trainDatasets[i] = _preprocessorTransforms[i].Transform(_trainDatasets[i]);
-                    _validDatasets[i] = _preprocessorTransforms[i].Transform(_validDatasets[i]);
-                }
-            }
         }
 
         public (SuggestedPipelineRunDetails suggestedPipelineRunDetails, RunDetails<TMetrics> runDetails)
@@ -64,7 +54,7 @@ namespace Microsoft.ML.Auto
             {
                 var modelFileInfo = RunnerUtil.GetModelFileInfo(modelDirectory, iterationNum, i + 1);
                 var trainResult = RunnerUtil.TrainAndScorePipeline(_context, pipeline, _trainDatasets[i], _validDatasets[i],
-                    _labelColumn, _metricsAgent, _preFeaturizer, _preprocessorTransforms?.ElementAt(i), modelFileInfo, _modelInputSchema, 
+                    _labelColumn, _metricsAgent, _preprocessorTransforms?.ElementAt(i), modelFileInfo, _modelInputSchema, 
                     _logger);
                 trainResults.Add(trainResult);
             }
@@ -74,7 +64,7 @@ namespace Microsoft.ML.Auto
             {
                 var firstException = trainResults.First(r => r.exception != null).exception;
                 var errorRunDetails = new SuggestedPipelineRunDetails<TMetrics>(pipeline, double.NaN, false, null, null, firstException);
-                return (errorRunDetails, errorRunDetails.ToIterationResult());
+                return (errorRunDetails, errorRunDetails.ToIterationResult(_preFeaturizer));
             }
 
             // Get the model from the best fold
@@ -88,7 +78,7 @@ namespace Microsoft.ML.Auto
 
             // Build result objects
             var suggestedPipelineRunDetails = new SuggestedPipelineRunDetails<TMetrics>(pipeline, avgScore, allRunsSucceeded, metricsClosestToAvg, bestModel, null);
-            var runDetails = suggestedPipelineRunDetails.ToIterationResult();
+            var runDetails = suggestedPipelineRunDetails.ToIterationResult(_preFeaturizer);
             return (suggestedPipelineRunDetails, runDetails);
         }
 

@@ -48,9 +48,10 @@ namespace Microsoft.ML.Auto
             Exception = ex;
         }
 
-        public RunDetails<TMetrics> ToIterationResult()
+        public RunDetails<TMetrics> ToIterationResult(IEstimator<ITransformer> preFeaturizer)
         {
-            return new RunDetails<TMetrics>(Pipeline.Trainer.TrainerName.ToString(), Pipeline.ToEstimator(),
+            var estimator = SuggestedPipelineRunDetailsUtil.PrependPreFeaturizer(Pipeline.ToEstimator(), preFeaturizer);
+            return new RunDetails<TMetrics>(Pipeline.Trainer.TrainerName.ToString(), estimator,
                 Pipeline.ToPipeline(), ModelContainer, ValidationMetrics, Exception);
         }
     }

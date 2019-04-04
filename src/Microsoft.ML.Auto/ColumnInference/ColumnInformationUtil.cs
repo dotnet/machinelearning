@@ -12,37 +12,37 @@ namespace Microsoft.ML.Auto
     {
         internal static ColumnPurpose? GetColumnPurpose(this ColumnInformation columnInfo, string columnName)
         {
-            if (columnName == columnInfo.LabelColumn)
+            if (columnName == columnInfo.LabelColumnName)
             {
                 return ColumnPurpose.Label;
             }
 
-            if (columnName == columnInfo.ExampleWeightColumn)
+            if (columnName == columnInfo.ExampleWeightColumnName)
             {
                 return ColumnPurpose.Weight;
             }
 
-            if (columnName == columnInfo.SamplingKeyColumn)
+            if (columnName == columnInfo.SamplingKeyColumnName)
             {
                 return ColumnPurpose.SamplingKey;
             }
 
-            if (columnInfo.CategoricalColumns.Contains(columnName))
+            if (columnInfo.CategoricalColumnNames.Contains(columnName))
             {
                 return ColumnPurpose.CategoricalFeature;
             }
 
-            if (columnInfo.NumericColumns.Contains(columnName))
+            if (columnInfo.NumericColumnNames.Contains(columnName))
             {
                 return ColumnPurpose.NumericFeature;
             }
 
-            if (columnInfo.TextColumns.Contains(columnName))
+            if (columnInfo.TextColumnNames.Contains(columnName))
             {
                 return ColumnPurpose.TextFeature;
             }
 
-            if (columnInfo.IgnoredColumns.Contains(columnName))
+            if (columnInfo.IgnoredColumnNames.Contains(columnName))
             {
                 return ColumnPurpose.Ignore;
             }
@@ -59,25 +59,25 @@ namespace Microsoft.ML.Auto
                 switch (column.purpose)
                 {
                     case ColumnPurpose.Label:
-                        columnInfo.LabelColumn = column.name;
+                        columnInfo.LabelColumnName = column.name;
                         break;
                     case ColumnPurpose.Weight:
-                        columnInfo.ExampleWeightColumn = column.name;
+                        columnInfo.ExampleWeightColumnName = column.name;
                         break;
                     case ColumnPurpose.SamplingKey:
-                        columnInfo.SamplingKeyColumn = column.name;
+                        columnInfo.SamplingKeyColumnName = column.name;
                         break;
                     case ColumnPurpose.CategoricalFeature:
-                        columnInfo.CategoricalColumns.Add(column.name);
+                        columnInfo.CategoricalColumnNames.Add(column.name);
                         break;
                     case ColumnPurpose.Ignore:
-                        columnInfo.IgnoredColumns.Add(column.name);
+                        columnInfo.IgnoredColumnNames.Add(column.name);
                         break;
                     case ColumnPurpose.NumericFeature:
-                        columnInfo.NumericColumns.Add(column.name);
+                        columnInfo.NumericColumnNames.Add(column.name);
                         break;
                     case ColumnPurpose.TextFeature:
-                        columnInfo.TextColumns.Add(column.name);
+                        columnInfo.TextColumnNames.Add(column.name);
                         break;
                 }
             }

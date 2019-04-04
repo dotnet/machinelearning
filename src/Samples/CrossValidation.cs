@@ -52,14 +52,16 @@ namespace Samples
             IEnumerable<CrossValidationRunDetails<RegressionMetrics>> runDetails = mlContext.Auto()
                                                                    .CreateRegressionExperiment(ExperimentTime)
                                                                    .Execute(trainDataView, 5, LabelColumn);
-
-            // Get best fold from cross validation
-
-            // STEP 4: Print metrics summary from best model
+            
+            // STEP 4: Print metrics from best iteration
             CrossValidationRunDetails<RegressionMetrics> best = runDetails.Best();
             Console.WriteLine($"Total models produced: {runDetails.Count()}");
             Console.WriteLine($"Best model's trainer: {best.TrainerName}");
-            Console.WriteLine($"Average RSquared of all cross validation folds on best iteration: {best.Results.Average(r => r.ValidationMetrics.RSquared)}");
+            for (var i = 0; i < best.Results.Count(); i++)
+            {
+                Console.WriteLine($"RSquared from cross validation fold #{i+1}: {best.Results.ElementAt(i).ValidationMetrics.RSquared}");
+            }
+            Console.WriteLine($"Average RSquared from all cross validation folds: {best.Results.Average(r => r.ValidationMetrics.RSquared)}");
 
             Console.WriteLine("Press any key to continue...");
             Console.ReadKey();

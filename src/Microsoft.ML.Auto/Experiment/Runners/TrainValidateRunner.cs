@@ -25,6 +25,7 @@ namespace Microsoft.ML.Auto
             string labelColumn,
             IMetricsAgent<TMetrics> metricsAgent,
             IEstimator<ITransformer> preFeaturizer,
+            ITransformer preprocessorTransform,
             IDebugLogger logger)
         {
             _context = context;
@@ -33,15 +34,9 @@ namespace Microsoft.ML.Auto
             _labelColumn = labelColumn;
             _metricsAgent = metricsAgent;
             _preFeaturizer = preFeaturizer;
+            _preprocessorTransform = preprocessorTransform;
             _logger = logger;
             _modelInputSchema = trainData.Schema;
-
-            if (_preFeaturizer != null)
-            {
-                _preprocessorTransform = _preFeaturizer.Fit(_trainData);
-                _trainData = _preprocessorTransform.Transform(_trainData);
-                _validData = _preprocessorTransform.Transform(_validData);
-            }
         }
 
         public (SuggestedPipelineRunDetails suggestedPipelineRunDetails, RunDetails<TMetrics> runDetails) 
@@ -49,14 +44,14 @@ namespace Microsoft.ML.Auto
         {
             var modelFileInfo = GetModelFileInfo(modelDirectory, iterationNum);
             var trainResult = RunnerUtil.TrainAndScorePipeline(_context, pipeline, _trainData, _validData,
-                _labelColumn, _metricsAgent, _preFeaturizer, _preprocessorTransform, modelFileInfo, _modelInputSchema, _logger);
+                _labelColumn, _metricsAgent, _preprocessorTransform, modelFileInfo, _modelInputSchema, _logger);
             var suggestedPipelineRunDetails = new SuggestedPipelineRunDetails<TMetrics>(pipeline,
                 trainResult.score,
                 trainResult.exception == null,
                 trainResult.metrics,
                 trainResult.model,
                 trainResult.exception);
-            var runDetails = suggestedPipelineRunDetails.ToIterationResult();
+            var runDetails = suggestedPipelineRunDetails.ToIterationResult(_preFeaturizer);
             return (suggestedPipelineRunDetails, runDetails);
         }
 

@@ -39,7 +39,7 @@ namespace Samples
             Console.WriteLine($"Running AutoML regression experiment for {ExperimentTime} seconds...");
             IEnumerable<RunDetails<RegressionMetrics>> runDetails = mlContext.Auto()
                                                                    .CreateRegressionExperiment(ExperimentTime)
-                                                                   .Execute(trainDataView, LabelColumn);
+                                                                   .Execute(trainDataView, columnInference.ColumnInformation);
 
             // STEP 4: Print metric from best model
             RunDetails<RegressionMetrics> best = runDetails.Best();

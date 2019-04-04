@@ -31,7 +31,7 @@ namespace Microsoft.ML.CLI.CodeGenerator.CSharp
         {
             // Get Namespace
             var namespaceValue = Utils.Normalize(settings.OutputName);
-            var labelType = columnInferenceResult.TextLoaderOptions.Columns.Where(t => t.Name == columnInferenceResult.ColumnInformation.LabelColumn).First().DataKind;
+            var labelType = columnInferenceResult.TextLoaderOptions.Columns.Where(t => t.Name == columnInferenceResult.ColumnInformation.LabelColumnName).First().DataKind;
             Type labelTypeCsharp = Utils.GetCSharpType(labelType);
 
             // Generate Model Project

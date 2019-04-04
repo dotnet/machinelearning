@@ -26,7 +26,7 @@ namespace Microsoft.ML.Auto.Test
         public void ValidateExperimentExecuteNullLabel()
         {
             UserInputValidationUtil.ValidateExperimentExecuteArgs(Data, 
-                new ColumnInformation() { LabelColumn = null }, null);
+                new ColumnInformation() { LabelColumnName = null }, null);
         }
 
         [TestMethod]
@@ -34,7 +34,7 @@ namespace Microsoft.ML.Auto.Test
         public void ValidateExperimentExecuteLabelNotInTrain()
         {
             UserInputValidationUtil.ValidateExperimentExecuteArgs(Data,
-                new ColumnInformation() { LabelColumn = "L" }, null);
+                new ColumnInformation() { LabelColumnName = "L" }, null);
         }
 
         [TestMethod]
@@ -42,7 +42,7 @@ namespace Microsoft.ML.Auto.Test
         public void ValidateExperimentExecuteNumericColNotInTrain()
         {
             var columnInfo = new ColumnInformation();
-            columnInfo.NumericColumns.Add("N");
+            columnInfo.NumericColumnNames.Add("N");
 
             UserInputValidationUtil.ValidateExperimentExecuteArgs(Data, columnInfo, null);
         }
@@ -52,7 +52,7 @@ namespace Microsoft.ML.Auto.Test
         public void ValidateExperimentExecuteNullNumericCol()
         {
             var columnInfo = new ColumnInformation();
-            columnInfo.NumericColumns.Add(null);
+            columnInfo.NumericColumnNames.Add(null);
             UserInputValidationUtil.ValidateExperimentExecuteArgs(Data, columnInfo, null);
         }
 
@@ -61,7 +61,7 @@ namespace Microsoft.ML.Auto.Test
         public void ValidateExperimentExecuteDuplicateCol()
         {
             var columnInfo = new ColumnInformation();
-            columnInfo.NumericColumns.Add(DefaultColumnNames.Label);
+            columnInfo.NumericColumnNames.Add(DefaultColumnNames.Label);
 
             UserInputValidationUtil.ValidateExperimentExecuteArgs(Data, columnInfo, null);
         }
@@ -82,7 +82,7 @@ namespace Microsoft.ML.Auto.Test
             var validData = validDataBuilder.GetDataView();
 
             UserInputValidationUtil.ValidateExperimentExecuteArgs(trainData, 
-                new ColumnInformation() { LabelColumn = "0" }, validData);
+                new ColumnInformation() { LabelColumnName = "0" }, validData);
         }
 
         [TestMethod]
@@ -102,7 +102,7 @@ namespace Microsoft.ML.Auto.Test
             var validData = validDataBuilder.GetDataView();
 
             UserInputValidationUtil.ValidateExperimentExecuteArgs(trainData,
-                new ColumnInformation() { LabelColumn = "0" }, validData);
+                new ColumnInformation() { LabelColumnName = "0" }, validData);
         }
 
         [TestMethod]
@@ -122,7 +122,7 @@ namespace Microsoft.ML.Auto.Test
             var validData = validDataBuilder.GetDataView();
 
             UserInputValidationUtil.ValidateExperimentExecuteArgs(trainData,
-                new ColumnInformation() { LabelColumn = "0" }, validData);
+                new ColumnInformation() { LabelColumnName = "0" }, validData);
         }
 
         [TestMethod]
@@ -179,7 +179,7 @@ namespace Microsoft.ML.Auto.Test
             var dataView = new EmptyDataView(new MLContext(), schema);
 
             var columnInfo = new ColumnInformation();
-            columnInfo.NumericColumns.Add(TextPurposeColName);
+            columnInfo.NumericColumnNames.Add(TextPurposeColName);
 
             UserInputValidationUtil.ValidateExperimentExecuteArgs(dataView, columnInfo, null);
         }

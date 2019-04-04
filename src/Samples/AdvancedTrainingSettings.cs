@@ -48,19 +48,20 @@ namespace Samples
             IDataView testDataView = textLoader.Load(TestDataPath);
 
             // STEP 3: Build a pre-featurizer for use in our AutoML experiment
-            IEstimator<ITransformer> preFeaturizer = mlContext.Transforms.Categorical.OneHotEncoding("RateCode");
+            IEstimator<ITransformer> preFeaturizer = mlContext.Transforms.Conversion.MapValue("IsCash", 
+                new[] { new KeyValuePair<string, bool>("CSH", true) }, "PaymentType");
 
             // STEP 4: Initialize custom column information for use in AutoML experiment
-            ColumnInformation columnInformation = new ColumnInformation() { LabelColumn = LabelColumn };
-            columnInformation.CategoricalColumns.Add("VendorId");
-            columnInformation.IgnoredColumns.Add("PaymentType");
+            ColumnInformation columnInformation = new ColumnInformation() { LabelColumnName = LabelColumn };
+            columnInformation.CategoricalColumnNames.Add("VendorId");
+            columnInformation.IgnoredColumnNames.Add("PaymentType");
 
             // STEP 5: Run AutoML experiment
             Console.WriteLine($"Running AutoML regression experiment for {ExperimentTime} seconds...");
             IEnumerable<RunDetails<RegressionMetrics>> runDetails = mlContext.Auto()
                                                                    .CreateRegressionExperiment(ExperimentTime)
                                                                    .Execute(trainDataView, columnInformation, preFeaturizer);
-            
+
             // STEP 6: Print metric from best model
             RunDetails<RegressionMetrics> best = runDetails.Best();
             Console.WriteLine($"Total models produced: {runDetails.Count()}");

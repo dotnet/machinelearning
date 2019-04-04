@@ -124,32 +124,32 @@ namespace Microsoft.ML.CLI.Utilities
         {
             var result = new ColumnInformation();
 
-            result.LabelColumn = Sanitize(columnInformation.LabelColumn);
+            result.LabelColumnName = Sanitize(columnInformation.LabelColumnName);
 
-            if (!string.IsNullOrEmpty(columnInformation.ExampleWeightColumn))
-                result.ExampleWeightColumn = Sanitize(columnInformation.ExampleWeightColumn);
+            if (!string.IsNullOrEmpty(columnInformation.ExampleWeightColumnName))
+                result.ExampleWeightColumnName = Sanitize(columnInformation.ExampleWeightColumnName);
 
-            if (!string.IsNullOrEmpty(columnInformation.SamplingKeyColumn))
-                result.SamplingKeyColumn = Sanitize(columnInformation.SamplingKeyColumn);
+            if (!string.IsNullOrEmpty(columnInformation.SamplingKeyColumnName))
+                result.SamplingKeyColumnName = Sanitize(columnInformation.SamplingKeyColumnName);
 
-            foreach (var value in columnInformation.CategoricalColumns)
+            foreach (var value in columnInformation.CategoricalColumnNames)
             {
-                result.CategoricalColumns.Add(Sanitize(value));
+                result.CategoricalColumnNames.Add(Sanitize(value));
             }
 
-            foreach (var value in columnInformation.IgnoredColumns)
+            foreach (var value in columnInformation.IgnoredColumnNames)
             {
-                result.IgnoredColumns.Add(Sanitize(value));
+                result.IgnoredColumnNames.Add(Sanitize(value));
             }
 
-            foreach (var value in columnInformation.NumericColumns)
+            foreach (var value in columnInformation.NumericColumnNames)
             {
-                result.NumericColumns.Add(Sanitize(value));
+                result.NumericColumnNames.Add(Sanitize(value));
             }
 
-            foreach (var value in columnInformation.TextColumns)
+            foreach (var value in columnInformation.TextColumnNames)
             {
-                result.TextColumns.Add(Sanitize(value));
+                result.TextColumnNames.Add(Sanitize(value));
             }
 
 

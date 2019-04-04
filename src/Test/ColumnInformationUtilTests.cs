@@ -14,14 +14,14 @@ namespace Microsoft.ML.Auto.Test
         {
             var columnInfo = new ColumnInformation()
             {
-                LabelColumn = "Label",
-                ExampleWeightColumn = "Weight",
-                SamplingKeyColumn = "SamplingKey",
+                LabelColumnName = "Label",
+                ExampleWeightColumnName = "Weight",
+                SamplingKeyColumnName = "SamplingKey",
             };
-            columnInfo.CategoricalColumns.Add("Cat");
-            columnInfo.NumericColumns.Add("Num");
-            columnInfo.TextColumns.Add("Text");
-            columnInfo.IgnoredColumns.Add("Ignored");
+            columnInfo.CategoricalColumnNames.Add("Cat");
+            columnInfo.NumericColumnNames.Add("Num");
+            columnInfo.TextColumnNames.Add("Text");
+            columnInfo.IgnoredColumnNames.Add("Ignored");
 
             Assert.AreEqual(ColumnPurpose.Label, ColumnInformationUtil.GetColumnPurpose(columnInfo, "Label"));
             Assert.AreEqual(ColumnPurpose.Weight, ColumnInformationUtil.GetColumnPurpose(columnInfo, "Weight"));

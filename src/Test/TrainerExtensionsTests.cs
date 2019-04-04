@@ -138,8 +138,8 @@ namespace Microsoft.ML.Auto.Test
         {
             var columnInfo = new ColumnInformation()
             {
-                LabelColumn = "L",
-                ExampleWeightColumn = "W"
+                LabelColumnName = "L",
+                ExampleWeightColumnName = "W"
             };
             var sweepParams = SweepableParams.BuildFastForestParams();
             foreach (var sweepParam in sweepParams)
@@ -171,7 +171,7 @@ namespace Microsoft.ML.Auto.Test
         [TestMethod]
         public void BuildDefaultAveragedPerceptronPipelineNode()
         {
-            var pipelineNode = new AveragedPerceptronBinaryExtension().CreatePipelineNode(null, new ColumnInformation() { LabelColumn = "L" });
+            var pipelineNode = new AveragedPerceptronBinaryExtension().CreatePipelineNode(null, new ColumnInformation() { LabelColumnName = "L" });
             var expectedJson = @"{
   ""Name"": ""AveragedPerceptronBinary"",
   ""NodeType"": ""Trainer"",

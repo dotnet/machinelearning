@@ -18,7 +18,7 @@ namespace Microsoft.ML.Auto.Test
         {
             var context = new MLContext();
             var uciAdult = DatasetUtil.GetUciAdultDataView();
-            var columns = DatasetColumnInfoUtil.GetDatasetColumnInfo(context, uciAdult, new ColumnInformation() { LabelColumn = DatasetUtil.UciAdultLabel });
+            var columns = DatasetColumnInfoUtil.GetDatasetColumnInfo(context, uciAdult, new ColumnInformation() { LabelColumnName = DatasetUtil.UciAdultLabel });
 
             // get next pipeline
             var pipeline = PipelineSuggester.GetNextPipeline(context, new List<PipelineScore>(), columns, TaskKind.BinaryClassification);
@@ -42,7 +42,7 @@ namespace Microsoft.ML.Auto.Test
         {
             var context = new MLContext();
             var uciAdult = DatasetUtil.GetUciAdultDataView();
-            var columns = DatasetColumnInfoUtil.GetDatasetColumnInfo(context, uciAdult, new ColumnInformation() { LabelColumn = DatasetUtil.UciAdultLabel });
+            var columns = DatasetColumnInfoUtil.GetDatasetColumnInfo(context, uciAdult, new ColumnInformation() { LabelColumnName = DatasetUtil.UciAdultLabel });
 
             // Get next pipeline loop
             var history = new List<PipelineScore>();

@@ -69,8 +69,8 @@ namespace Microsoft.ML.Auto
             where TModel : class
         {
             var options = new TOptions();
-            options.LabelColumnName = columnInfo.LabelColumn;
-            options.ExampleWeightColumnName = columnInfo.ExampleWeightColumn;
+            options.LabelColumnName = columnInfo.LabelColumnName;
+            options.ExampleWeightColumnName = columnInfo.ExampleWeightColumnName;
             options.Booster = new GradientBooster.Options();
             if (sweepParams != null)
             {
@@ -91,7 +91,7 @@ namespace Microsoft.ML.Auto
                 NodeType = PipelineNodeType.Trainer,
                 Properties = new Dictionary<string, object>()
                 {
-                    { LabelColumn, columnInfo.LabelColumn }
+                    { LabelColumn, columnInfo.LabelColumnName }
                 }
             };
             var binaryNode = binaryExtension.CreatePipelineNode(sweepParams, columnInfo);
@@ -190,10 +190,10 @@ namespace Microsoft.ML.Auto
         {
             var columnInfo = new ColumnInformation();
 
-            columnInfo.LabelColumn = props[LabelColumn] as string;
+            columnInfo.LabelColumnName = props[LabelColumn] as string;
 
             props.TryGetValue(WeightColumn, out var weightColumn);
-            columnInfo.ExampleWeightColumn = weightColumn as string;
+            columnInfo.ExampleWeightColumnName = weightColumn as string;
 
             return columnInfo;
         }

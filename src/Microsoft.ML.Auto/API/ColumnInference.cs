@@ -16,12 +16,12 @@ namespace Microsoft.ML.Auto
 
     public sealed class ColumnInformation
     {
-        public string LabelColumn { get; set; } = DefaultColumnNames.Label;
-        public string ExampleWeightColumn { get; set; }
-        public string SamplingKeyColumn { get; set; }
-        public ICollection<string> CategoricalColumns { get; } = new Collection<string>();
-        public ICollection<string> NumericColumns { get; } = new Collection<string>();
-        public ICollection<string> TextColumns { get; } = new Collection<string>();
-        public ICollection<string> IgnoredColumns { get; } = new Collection<string>();
+        public string LabelColumnName { get; set; } = DefaultColumnNames.Label;
+        public string ExampleWeightColumnName { get; set; }
+        public string SamplingKeyColumnName { get; set; }
+        public ICollection<string> CategoricalColumnNames { get; } = new Collection<string>();
+        public ICollection<string> NumericColumnNames { get; } = new Collection<string>();
+        public ICollection<string> TextColumnNames { get; } = new Collection<string>();
+        public ICollection<string> IgnoredColumnNames { get; } = new Collection<string>();
     }
 }
