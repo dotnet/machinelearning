@@ -56,7 +56,7 @@ namespace Microsoft.ML.Samples.Dynamic
 
             // Preview of the produced n-grams.
             // Get the slot names from the column's metadata.
-            // If the column is a vector column the slot names corresponds to the names associated with each position in the vector.
+            // The slot names for a vector column corresponds to the names associated with each position in the vector.
             VBuffer<ReadOnlyMemory<char>> slotNames = default;
             transformedDataView.Schema["NgramFeatures"].GetSlotNames(ref slotNames);
             var NgramFeaturesColumn = transformedDataView.GetColumn<VBuffer<float>>(transformedDataView.Schema["NgramFeatures"]);
