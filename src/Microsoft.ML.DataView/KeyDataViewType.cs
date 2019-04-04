@@ -30,7 +30,7 @@ namespace Microsoft.ML.Data
     public sealed class KeyDataViewType : PrimitiveDataViewType
     {
         /// <summary>
-        /// Constructor for this type.
+        /// Initializes a new instance of the <see cref="KeyDataViewType"/> class.
         /// </summary>
         /// <param name="type">
         /// The underlying representation type. Should be one of <see cref="byte"/>, <see cref="ushort"/>,
@@ -53,7 +53,7 @@ namespace Microsoft.ML.Data
         }
 
         /// <summary>
-        /// Constructor for this type. This differs from the hypothetically more general
+        /// Initializes a new instance of the <see cref="KeyDataViewType"/> class. This differs from the hypothetically more general
         /// <see cref="KeyDataViewType.KeyDataViewType(Type, ulong)"/> constructor by taking an <see cref="int"/> for
         /// <paramref name="count"/>, to more naturally facilitate the most common case that the key value is being used
         /// as an enumeration over an array or list of some form.
