@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.IO;
 using BenchmarkDotNet.Attributes;
 using Microsoft.ML;
 using Microsoft.ML.Benchmarks;
@@ -39,7 +40,7 @@ namespace micro
             // Load model.
             _trainedModel = _context.Model.Load(modelPath, out var inputSchema);
 
-            _trainedModelOldFormat = _context.Model.Load(BaseTestClass.GetDataPath("backcompat", "SentimentModel.zip"), out inputSchema);
+            _trainedModelOldFormat = _context.Model.Load(Path.Combine("TestModels", "SentimentModel.zip"), out inputSchema);
         }
 
         [Benchmark]

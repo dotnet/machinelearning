@@ -708,7 +708,7 @@ namespace Microsoft.ML.Transforms.Text
                         {
                             ctx.LoadModelOrNull<ITransformer, SignatureLoadModel>(env, out transformer, dirName);
                         }
-                        catch
+                        catch (FormatException)
                         {
                             transformer = null;
                         }

@@ -649,7 +649,7 @@ namespace Microsoft.ML.Tests.Transformers
         [Fact]
         public void TestTextFeaturizerBackCompat()
         {
-            var modelPath = GetDataPath("backcompat", "SentimentModel.zip");
+            var modelPath = Path.Combine("TestModels", "SentimentModel.zip");
             var model = ML.Model.Load(modelPath, out var inputSchema);
             var outputSchema = model.GetOutputSchema(inputSchema);
             Assert.Contains("SentimentText", outputSchema.Select(col => col.Name));
@@ -657,6 +657,19 @@ namespace Microsoft.ML.Tests.Transformers
             Assert.Contains("Features", outputSchema.Select(col => col.Name));
             Assert.Contains("PredictedLabel", outputSchema.Select(col => col.Name));
             Assert.Contains("Score", outputSchema.Select(col => col.Name));
+
+            // Take a few examples out of the test data and run predictions on top.
+            var engine = ML.Model.CreatePredictionEngine<SentimentData, SentimentPrediction>(model, inputSchema);
+            var testData = ML.Data.CreateEnumerable<SentimentData>(
+                ML.Data.LoadFromTextFile(GetDataPath(TestDatasets.Sentiment.testFilename),
+                TestDatasets.Sentiment.GetLoaderColumns(), hasHeader: true), false);
+            foreach (var input in testData.Take(5))
+            {
+                var prediction = engine.Predict(input);
+                // Verify that predictions match and scores are separated from zero.
+                Assert.Equal(input.Sentiment, prediction.Sentiment);
+                Assert.True(input.Sentiment && prediction.Score > 1 || !input.Sentiment && prediction.Score < -1);
+            }
         }
     }
 }
