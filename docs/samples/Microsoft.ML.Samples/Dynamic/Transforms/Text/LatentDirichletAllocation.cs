@@ -43,8 +43,8 @@ namespace Microsoft.ML.Samples.Dynamic
             var predictionEngine = mlContext.Model.CreatePredictionEngine<TextData, TransformedTextData>(transformer);
 
             // Convert the sample text into LDA features and print it.
-            PrintPredictions(predictionEngine.Predict(samples[0]));
-            PrintPredictions(predictionEngine.Predict(samples[1]));
+            PrintLdaFeatures(predictionEngine.Predict(samples[0]));
+            PrintLdaFeatures(predictionEngine.Predict(samples[1]));
 
             // Features obtained post-transformation.
             // For LatentDirichletAllocation, we had specified numTopic:3. Hence each prediction has been featurized as a vector of floats with length 3.
@@ -54,19 +54,19 @@ namespace Microsoft.ML.Samples.Dynamic
             //  0.5455  0.1818  0.2727
         }
 
-        private static void PrintPredictions(TransformedTextData prediction)
+        private static void PrintLdaFeatures(TransformedTextData prediction)
         {
             for (int i = 0; i < prediction.Features.Length; i++)
                 Console.Write($"{prediction.Features[i]:F4}  ");
             Console.WriteLine();
         }
 
-        public class TextData
+        private class TextData
         {
             public string Text { get; set; }
         }
 
-        public class TransformedTextData : TextData
+        private class TransformedTextData : TextData
         {
             public float[] Features { get; set; }
         }
