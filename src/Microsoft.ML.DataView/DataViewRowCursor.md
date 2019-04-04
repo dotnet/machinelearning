@@ -1,7 +1,7 @@
-﻿# `ICursor` Notes
+﻿# `DataViewRowCursor` Notes
 
 This document includes some more in depth notes on some expert topics for
-`DataViewRow` and `DataViewRowCursor` implementations.
+`DataViewRow` and `DataViewRowCursor` derived classes.
 
 ## `Batch`
 
@@ -42,12 +42,11 @@ accompanied by their `Batch` value. Then: if we were to perform a *stable*
 sort on the second list keyed by the stored `Batch` value, it should have
 content identical to the first list.
 
-So: `Batch` is a `long` value associated with every `DataViewRow`
-implementation (including implementations of `ICursor`). This quantity must be
-non-decreasing as we call `MoveNext` or `MoveMany`. That is, it is fine for
-the `Batch` to repeat the same batch value within the same cursor (though not
-across cursors from the same set), but any change in the value must be an
-increase.
+So: `Batch` is a `long` value associated with every `DataViewRow` instance.
+This quantity must be non-decreasing as we call `MoveNext` or `MoveMany`. That
+is, it is fine for the `Batch` to repeat the same batch value within the same
+cursor (though not across cursors from the same set), but any change in the
+value must be an increase.
 
 The requirement of consistency is for one cursor or cursors from a *single*
 call to `GetRowCursor` or `GetRowCursorSet`. It is not required that the
@@ -173,7 +172,8 @@ define it to be the enumeration of all `DataViewRowId` values, then take
 operation 2 to select out specifically those that are hash states that will
 result in collisions. But I'm supposing this is not happening. If you are
 running an implementation of a dataview in memory that you're supposing is
-malicious, you probably have bigger problems than someone inducing collisions.
+malicious, you probably have bigger problems than someone inducing collisions
+to make SDCA converge suboptimally.
 
 Despite the apparent complexity, it should be noted that in *most*
 applications, since the vast majority of `IDataView` implementations are
