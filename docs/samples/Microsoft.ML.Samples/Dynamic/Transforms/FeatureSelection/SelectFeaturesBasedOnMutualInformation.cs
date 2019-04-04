@@ -21,10 +21,11 @@ namespace Samples.Dynamic
             foreach (var item in rawData)
                 Console.WriteLine("{0,-25} {1,-25}", item.Label, string.Join(",", item.NumericVector));
 
-            // True            4 0 6
-            // False           0 5 7
-            // True            4 0 6
-            // False           0 5 7
+            // Label                       NumericVector
+            // True                        4,0,6
+            // False                       0,5,7
+            // True                        4,0,6
+            // False                       0,5,7
 
             var data = mlContext.Data.LoadFromEnumerable(rawData);
 
