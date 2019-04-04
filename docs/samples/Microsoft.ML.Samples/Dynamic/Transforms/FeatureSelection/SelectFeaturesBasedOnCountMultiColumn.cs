@@ -16,13 +16,16 @@ namespace Samples.Dynamic
             // Get a small dataset as an IEnumerable and convert it to an IDataView.
             var rawData = GetData();
 
-            Console.WriteLine("Contents of two columns 'NumericVector' and 'StringVector'.");
+            // Printing the columns of the input data. 
+            Console.WriteLine($"NumericVector             StringVector");
             foreach (var item in rawData)
-                Console.WriteLine("{0}\t\t\t{1}", string.Join("\t", item.NumericVector), string.Join("\t", item.StringVector));
-            // 4       NaN     6                       A   WA      Male
-            // 4       5       6                       A           Female
-            // 4       5       6                       A   NY
-            // 4       NaN     NaN                     A           Male
+                Console.WriteLine("{0,-25} {1,-25}", string.Join(",", item.NumericVector), string.Join(",", item.StringVector));
+
+            // NumericVector             StringVector
+            // 4,NaN,6                   A,WA,Male
+            // 4,5,6                     A,,Female
+            // 4,5,6                     A,NY,
+            // 4,NaN,NaN                 A,,Male
 
             var data = mlContext.Data.LoadFromEnumerable(rawData);
 
@@ -37,13 +40,17 @@ namespace Samples.Dynamic
             var transformedData = pipeline.Fit(data).Transform(data);
 
             var convertedData = mlContext.Data.CreateEnumerable<TransformedData>(transformedData, true);
-            Console.WriteLine("Contents of two columns 'NumericVector' and 'StringVector'.");
+
+            // Printing the columns of the transformed data. 
+            Console.WriteLine($"NumericVector             StringVector");
             foreach (var item in convertedData)
-                Console.WriteLine("{0}\t\t\t{1}", string.Join("\t", item.NumericVector), string.Join("\t", item.StringVector));
-            // 4       6                       A   Male
-            // 4       6                       A   Female
-            // 4       6                       A
-            // 4       NaN                     A   Male
+                Console.WriteLine("{0,-25} {1,-25}", string.Join(",", item.NumericVector), string.Join(",", item.StringVector));
+
+            // NumericVector             StringVector
+            // 4,6                       A,Male
+            // 4,6                       A,Female
+            // 4,6                       A,
+            // 4,NaN                     A,Male
         }
 
         private class TransformedData

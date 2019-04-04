@@ -16,13 +16,16 @@ namespace Samples.Dynamic
             // Get a small dataset as an IEnumerable and convert it to an IDataView.
             var rawData = GetData();
 
-            Console.WriteLine("Contents of columns 'Label', 'NumericVectorA' and 'NumericVectorB'.");
+            // Printing the columns of the input data. 
+            Console.WriteLine($"NumericVectorA            NumericVectorB");
             foreach (var item in rawData)
-                Console.WriteLine("{0}\t\t{1}\t\t{2}", item.Label, string.Join(" ", item.NumericVectorA), string.Join(" ", item.NumericVectorB));
-            // True            4 0 6           7 8 9
-            // False           0 5 7           7 9 0
-            // True            4 0 6           7 8 9
-            // False           0 5 7           7 8 0
+                Console.WriteLine("{0,-25} {1,-25}", string.Join(",", item.NumericVectorA), string.Join(",", item.NumericVectorB));
+
+            // NumericVectorA              NumericVectorB
+            // 4,0,6                       7,8,9
+            // 0,5,7                       7,9,0
+            // 4,0,6                       7,8,9
+            // 0,5,7                       7,8,0
 
             var data = mlContext.Data.LoadFromEnumerable(rawData);
 
@@ -38,15 +41,17 @@ namespace Samples.Dynamic
             var transformedData = pipeline.Fit(data).Transform(data);
 
             var convertedData = mlContext.Data.CreateEnumerable<TransformedData>(transformedData, true);
-            Console.WriteLine("Contents of two columns 'NumericVectorA' and 'NumericVectorB'.");
-            foreach (var item in convertedData)
-                Console.WriteLine("{0}\t\t{1}", string.Join(" ", item.NumericVectorA), string.Join(" ", item.NumericVectorB));
 
-            // Here, we see SelectFeaturesBasedOnMutualInformation selected 4 slots.
-            // 4 0 6           9
-            // 0 5 7           0
-            // 4 0 6           9
-            // 0 5 7           0
+            // Printing the columns of the transformed data. 
+            Console.WriteLine($"NumericVectorA            NumericVectorB");
+            foreach (var item in convertedData)
+                Console.WriteLine("{0,-25} {1,-25}", string.Join(",", item.NumericVectorA), string.Join(",", item.NumericVectorB));
+
+            // NumericVectorA              NumericVectorB
+            // 4,0,6                       9
+            // 0,5,7                       0
+            // 4,0,6                       9
+            // 0,5,7                       0
         }
 
         private class TransformedData
