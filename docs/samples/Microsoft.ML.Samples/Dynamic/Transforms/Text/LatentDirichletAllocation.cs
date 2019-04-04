@@ -15,10 +15,10 @@ namespace Microsoft.ML.Samples.Dynamic
             // Create a small dataset as an IEnumerable.
             var samples = new List<TextData>()
             {
-                new TextData(){ Text = "ML.NET's LatentDirichletAllocation API computes topic model." },
-                new TextData(){ Text = "ML.NET's LatentDirichletAllocation API is the best for topic model." },
-                new TextData(){ Text = "I like to eat broccoli and banana." },
-                new TextData(){ Text = "I eat a banana in the breakfast." },
+                new TextData(){ Text = "ML.NET's LatentDirichletAllocation API computes topic models." },
+                new TextData(){ Text = "ML.NET's LatentDirichletAllocation API is the best for topic models." },
+                new TextData(){ Text = "I like to eat broccoli and bananas." },
+                new TextData(){ Text = "I eat bananas for breakfast." },
                 new TextData(){ Text = "This car is expensive compared to last week's price." },
                 new TextData(){ Text = "This car was $X last week." },
             };
@@ -28,9 +28,9 @@ namespace Microsoft.ML.Samples.Dynamic
 
             // A pipeline for featurizing the text/string using LatentDirichletAllocation API.
             // To be more accurate in computing the LDA features, the pipeline first normalizes text and removes stop words
-            // before passing tokens to LatentDirichletAllocation.
-            var pipeline = mlContext.Transforms.Text.NormalizeText("normText", "Text")
-                .Append(mlContext.Transforms.Text.TokenizeIntoWords("Tokens", "normText"))
+            // before passing tokens (the individual words, lower cased, with common words removed) to LatentDirichletAllocation.
+            var pipeline = mlContext.Transforms.Text.NormalizeText("NormalizedText", "Text")
+                .Append(mlContext.Transforms.Text.TokenizeIntoWords("Tokens", "NormalizedText"))
                 .Append(mlContext.Transforms.Text.RemoveDefaultStopWords("Tokens"))
                 .Append(mlContext.Transforms.Conversion.MapValueToKey("Tokens"))
                 .Append(mlContext.Transforms.Text.ProduceNgrams("Tokens"))
