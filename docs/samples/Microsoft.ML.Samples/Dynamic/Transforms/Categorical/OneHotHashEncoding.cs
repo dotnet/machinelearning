@@ -2,11 +2,11 @@
 using System.Collections.Generic;
 using Microsoft.ML;
 using Microsoft.ML.Data;
-using static Microsoft.ML.Transforms.OneHotEncodingEstimator;
+using Microsoft.ML.Transforms;
 
 namespace Samples.Dynamic
 {
-    public static class OneHotEncoding
+    public static class OneHotHashEncoding
     {
         public static void Example()
         {
@@ -27,38 +27,43 @@ namespace Samples.Dynamic
             // Convert training data to IDataView.
             var data = mlContext.Data.LoadFromEnumerable(samples);
 
-            // A pipeline for one hot encoding the Education column.
-            var pipeline = mlContext.Transforms.Categorical.OneHotEncoding("EducationOneHotEncoded", "Education");
+            // A pipeline for one hot hash encoding the 'Education' column.
+            var pipeline = mlContext.Transforms.Categorical.OneHotHashEncoding("EducationOneHotHashEncoded", "Education", numberOfBits: 3);
 
             // Fit and transform the data.
-            var oneHotEncodedData = pipeline.Fit(data).Transform(data);
+            var hashEncodedData = pipeline.Fit(data).Transform(data);
 
-            PrintDataColumn(oneHotEncodedData, "EducationOneHotEncoded");
-            // We have 3 slots, because there are three categories in the 'Education' column.
-            // 1 0 0
-            // 1 0 0
-            // 0 1 0
-            // 0 1 0
-            // 0 0 1
+            PrintDataColumn(hashEncodedData, "EducationOneHotHashEncoded");
+            // We have 8 slots, because we used numberOfBits = 3.
 
-            // A pipeline for one hot encoding the Education column (using keying).
-            var keyPipeline = mlContext.Transforms.Categorical.OneHotEncoding("EducationOneHotEncoded", "Education", OutputKind.Key);
+            // 0 0 0 1 0 0 0 0
+            // 0 0 0 1 0 0 0 0
+            // 0 0 0 0 1 0 0 0
+            // 0 0 0 0 1 0 0 0
+            // 0 0 0 0 0 0 0 1
 
-            // Fit and Transform data.
-            oneHotEncodedData = keyPipeline.Fit(data).Transform(data);
+            // A pipeline for one hot hash encoding the 'Education' column (using keying strategy).
+            var keyPipeline = mlContext.Transforms.Categorical.OneHotHashEncoding("EducationOneHotHashEncoded", "Education", 
+                outputKind: OneHotEncodingEstimator.OutputKind.Key,
+                numberOfBits: 3);
 
-            var keyEncodedColumn = oneHotEncodedData.GetColumn<uint>("EducationOneHotEncoded");
+            // Fit and transform the data.
+            var hashKeyEncodedData = keyPipeline.Fit(data).Transform(data);
 
-            Console.WriteLine("One Hot Encoding of single column 'Education', with key type output.");
+            // Getting the data of the newly created column, so we can preview it.
+            var keyEncodedColumn = hashKeyEncodedData.GetColumn<uint>("EducationOneHotHashEncoded");
+
+            Console.WriteLine("One Hot Hash Encoding of single column 'Education', with key type output.");
             foreach (var element in keyEncodedColumn)
                 Console.WriteLine(element);
 
-            // 1
-            // 1
-            // 2
-            // 2
-            // 3
+            // 4
+            // 4
+            // 5
+            // 5
+            // 8
         }
+
         private static void PrintDataColumn(IDataView transformedData, string columnName)
         {
             var countSelectColumn = transformedData.GetColumn<float[]>(transformedData.Schema[columnName]);
@@ -70,6 +75,7 @@ namespace Samples.Dynamic
                 Console.WriteLine();
             }
         }
+
         private class DataPoint
         {
             public string Education { get; set; }
