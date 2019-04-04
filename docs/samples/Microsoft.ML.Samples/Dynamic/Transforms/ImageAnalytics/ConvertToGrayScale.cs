@@ -1,8 +1,9 @@
 ﻿using System;
 using System.IO;
+using Microsoft.ML;
 using Microsoft.ML.Data;
 
-namespace Microsoft.ML.Samples.Dynamic
+namespace Samples.Dynamic
 {
     public static class ConvertToGrayscale
     {
