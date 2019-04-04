@@ -267,7 +267,7 @@ namespace Microsoft.ML.CLI.CodeGenerator.CSharp
 
         private string GeneratTrainProjectFileContent(string namespaceValue)
         {
-            var trainProjectFileContent = new TrainProject() { Namespace = namespaceValue,/*The following args need to dynamic*/ IncludeHalLearnersPackage = true, IncludeLightGBMPackage = true };
+            var trainProjectFileContent = new TrainProject() { Namespace = namespaceValue,/*The following args need to dynamic*/ IncludeMklComponentsPackage = true, IncludeLightGBMPackage = true };
             return trainProjectFileContent.TransformText();
         }
 
@@ -299,9 +299,9 @@ namespace Microsoft.ML.CLI.CodeGenerator.CSharp
         #endregion
 
         #region Predict Project
-        private static string GeneratPredictProjectFileContent(string namespaceValue, bool includeHalLearnersPackage, bool includeLightGBMPackage)
+        private static string GeneratPredictProjectFileContent(string namespaceValue, bool includeMklComponentsPackage, bool includeLightGBMPackage)
         {
-            var predictProjectFileContent = new PredictProject() { Namespace = namespaceValue, IncludeHalLearnersPackage = includeHalLearnersPackage, IncludeLightGBMPackage = includeLightGBMPackage };
+            var predictProjectFileContent = new PredictProject() { Namespace = namespaceValue, IncludeMklComponentsPackage = includeMklComponentsPackage, IncludeLightGBMPackage = includeLightGBMPackage };
             return predictProjectFileContent.TransformText();
         }
 

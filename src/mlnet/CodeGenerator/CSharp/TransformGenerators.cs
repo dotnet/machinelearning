@@ -15,9 +15,7 @@ namespace Microsoft.ML.CLI.CodeGenerator.CSharp
         {
         }
 
-        internal override string MethodName => "Normalize";
-
-        internal override string[] Usings => null;
+        internal override string MethodName => "NormalizeMinMax";
 
         public override string GenerateTransformer()
         {
@@ -42,9 +40,7 @@ namespace Microsoft.ML.CLI.CodeGenerator.CSharp
 
         internal override string MethodName => "Categorical.OneHotEncoding";
 
-        internal override string[] Usings => new string[] { "using Microsoft.ML.Transforms;\r\n" };
-
-        private string ArgumentsName = "OneHotEncodingEstimator.ColumnOptions";
+        private string ArgumentsName = "InputOutputColumnPair";
 
         public override string GenerateTransformer()
         {
@@ -79,8 +75,6 @@ namespace Microsoft.ML.CLI.CodeGenerator.CSharp
 
         internal override string MethodName => "Concatenate";
 
-        internal override string[] Usings => null;
-
         public override string GenerateTransformer()
         {
             StringBuilder sb = new StringBuilder();
@@ -111,8 +105,6 @@ namespace Microsoft.ML.CLI.CodeGenerator.CSharp
 
         internal override string MethodName => "CopyColumns";
 
-        internal override string[] Usings => null;
-
         public override string GenerateTransformer()
         {
             StringBuilder sb = new StringBuilder();
@@ -135,8 +127,6 @@ namespace Microsoft.ML.CLI.CodeGenerator.CSharp
         }
 
         internal override string MethodName => "Conversion.MapKeyToValue";
-
-        internal override string[] Usings => new string[] { "using Microsoft.ML.Transforms;\r\n" };
 
         public override string GenerateTransformer()
         {
@@ -161,9 +151,7 @@ namespace Microsoft.ML.CLI.CodeGenerator.CSharp
 
         internal override string MethodName => "IndicateMissingValues";
 
-        internal override string[] Usings => null;
-
-        private string ArgumentsName = "ColumnOptions";
+        private string ArgumentsName = "InputOutputColumnPair";
 
         public override string GenerateTransformer()
         {
@@ -199,8 +187,7 @@ namespace Microsoft.ML.CLI.CodeGenerator.CSharp
 
         internal override string MethodName => "ReplaceMissingValues";
 
-        private string ArgumentsName = "MissingValueReplacingEstimator.ColumnOptions";
-        internal override string[] Usings => new string[] { "using Microsoft.ML.Transforms;\r\n" };
+        private string ArgumentsName = "InputOutputColumnPair";
 
         public override string GenerateTransformer()
         {
@@ -235,9 +222,7 @@ namespace Microsoft.ML.CLI.CodeGenerator.CSharp
 
         internal override string MethodName => "Categorical.OneHotHashEncoding";
 
-        internal override string[] Usings => new string[] { "using Microsoft.ML.Transforms;\r\n" };
-
-        private string ArgumentsName = "OneHotHashEncodingEstimator.ColumnOptions";
+        private string ArgumentsName = "InputOutputColumnPair";
 
         public override string GenerateTransformer()
         {
@@ -272,8 +257,6 @@ namespace Microsoft.ML.CLI.CodeGenerator.CSharp
 
         internal override string MethodName => "Text.FeaturizeText";
 
-        internal override string[] Usings => null;
-
         public override string GenerateTransformer()
         {
             StringBuilder sb = new StringBuilder();
@@ -297,9 +280,7 @@ namespace Microsoft.ML.CLI.CodeGenerator.CSharp
 
         internal override string MethodName => "Conversion.ConvertType";
 
-        internal override string[] Usings => new string[] { "using Microsoft.ML.Transforms;\r\n" };
-
-        private string ArgumentsName = "TypeConvertingEstimator.ColumnOptions";
+        private string ArgumentsName = "InputOutputColumnPair";
 
         public override string GenerateTransformer()
         {
@@ -313,8 +294,6 @@ namespace Microsoft.ML.CLI.CodeGenerator.CSharp
                 sb.Append(ArgumentsName);
                 sb.Append("(");
                 sb.Append(outputColumns[i]);
-                sb.Append(",");
-                sb.Append("DataKind.Single");
                 sb.Append(",");
                 sb.Append(inputColumns[i]);
                 sb.Append(")");
@@ -335,8 +314,6 @@ namespace Microsoft.ML.CLI.CodeGenerator.CSharp
         }
 
         internal override string MethodName => "Conversion.MapValueToKey";
-
-        internal override string[] Usings => new string[] { "using Microsoft.ML.Transforms;\r\n" };
 
         public override string GenerateTransformer()
         {

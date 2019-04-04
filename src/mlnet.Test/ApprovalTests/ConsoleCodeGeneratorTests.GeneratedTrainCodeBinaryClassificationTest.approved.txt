@@ -72,7 +72,7 @@ namespace MyNamespace
                                       .AppendCacheCheckpoint(mlContext);
 
             // Set the training algorithm, then create and config the modelBuilder  
-            var trainer = mlContext.BinaryClassification.Trainers.LightGbm(new Options() { NumLeaves = 2, Booster = new Options.TreeBooster.Options() { }, LabelColumn = "Label", FeatureColumn = "Features" });
+            var trainer = mlContext.BinaryClassification.Trainers.LightGbm(new Options() { NumLeaves = 2, Booster = new Options.TreeBooster.Options() { }, LabelColumnName = "Label", FeatureColumnName = "Features" });
             var trainingPipeline = dataProcessPipeline.Append(trainer);
 
             // Train the model fitting to the DataSet

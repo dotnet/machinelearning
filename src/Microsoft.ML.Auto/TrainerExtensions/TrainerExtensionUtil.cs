@@ -46,8 +46,8 @@ namespace Microsoft.ML.Auto
 
     internal static class TrainerExtensionUtil
     {
-        private const string WeightColumn = "WeightColumn";
-        private const string LabelColumn = "LabelColumn";
+        private const string WeightColumn = "ExampleWeightColumnName";
+        private const string LabelColumn = "LabelColumnName";
 
         public static T CreateOptions<T>(IEnumerable<SweepableParam> sweepParams, string labelColumn) where T : TrainerInputBaseWithLabel
         {

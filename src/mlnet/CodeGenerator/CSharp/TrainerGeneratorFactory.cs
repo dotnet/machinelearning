@@ -25,9 +25,11 @@ namespace Microsoft.ML.CLI.CodeGenerator.CSharp
                 switch (trainer)
                 {
                     case TrainerName.LightGbmBinary:
+                        return new LightGbmBinary(node);
                     case TrainerName.LightGbmMulti:
+                        return new LightGbmMulti(node);
                     case TrainerName.LightGbmRegression:
-                        return new LightGbm(node);
+                        return new LightGbmRegression(node);
                     case TrainerName.AveragedPerceptronBinary:
                         return new AveragedPerceptron(node);
                     case TrainerName.FastForestBinary:
@@ -43,15 +45,15 @@ namespace Microsoft.ML.CLI.CodeGenerator.CSharp
                     case TrainerName.LinearSvmBinary:
                         return new LinearSvm(node);
                     case TrainerName.LbfgsLogisticRegressionBinary:
-                        return new LogisticRegressionBinary(node);
+                        return new LbfgsLogisticRegressionBinary(node);
                     case TrainerName.LbfgsMaximumEntropyMulti:
-                        return new LogisticRegressionMulti(node);
+                        return new LbfgsMaximumEntropyMulti(node);
                     case TrainerName.OnlineGradientDescentRegression:
                         return new OnlineGradientDescentRegression(node);
                     case TrainerName.OlsRegression:
-                        return new OrdinaryLeastSquaresRegression(node);
+                        return new OlsRegression(node);
                     case TrainerName.LbfgsPoissonRegression:
-                        return new PoissonRegression(node);
+                        return new LbfgsPoissonRegression(node);
                     case TrainerName.SdcaLogisticRegressionBinary:
                         return new StochasticDualCoordinateAscentBinary(node);
                     case TrainerName.SdcaMaximumEntropyMulti:
@@ -59,9 +61,9 @@ namespace Microsoft.ML.CLI.CodeGenerator.CSharp
                     case TrainerName.SdcaRegression:
                         return new StochasticDualCoordinateAscentRegression(node);
                     case TrainerName.SgdCalibratedBinary:
-                        return new StochasticGradientDescentClassification(node);
+                        return new SgdCalibratedBinary(node);
                     case TrainerName.SymbolicSgdLogisticRegressionBinary:
-                        return new SymbolicStochasticGradientDescent(node);
+                        return new SymbolicSgdLogisticRegressionBinary(node);
                     case TrainerName.Ova:
                         return new OneVersusAll(node);
                     default:

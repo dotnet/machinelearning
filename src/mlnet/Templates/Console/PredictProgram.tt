@@ -17,7 +17,6 @@ using System.Linq;
 using System.Collections.Generic;
 using Microsoft.ML;
 using Microsoft.ML.Data;
-using Microsoft.Data.DataView;
 using <#= Namespace #>.Model.DataModels;
 
 
@@ -55,7 +54,7 @@ namespace <#= Namespace #>.Predict
         private static void Predict(MLContext mlContext, ITransformer mlModel, SampleObservation sampleData)
         {
             // Create prediction engine related to the loaded ML model          
-            var predEngine = mlModel.CreatePredictionEngine<SampleObservation, SamplePrediction>(mlContext);
+            var predEngine = mlContext.Model.CreatePredictionEngine<SampleObservation, SamplePrediction>(mlModel);
 
             // Try a single prediction
             var predictionResult = predEngine.Predict(sampleData);
@@ -73,7 +72,7 @@ namespace <#= Namespace #>.Predict
             ITransformer mlModel;
             using (var stream = new FileStream(modelFilePath, FileMode.Open, FileAccess.Read, FileShare.Read))
             {
-                mlModel = mlContext.Model.Load(stream);
+                mlModel = mlContext.Model.Load(stream, out var modelInputSchema);
             }
 
             return mlModel;

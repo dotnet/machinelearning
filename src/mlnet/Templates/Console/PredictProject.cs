@@ -28,13 +28,15 @@ namespace Microsoft.ML.CLI.Templates.Console
         {
             this.Write("<Project Sdk=\"Microsoft.NET.Sdk\">\r\n\r\n  <PropertyGroup>\r\n    <OutputType>Exe</Outp" +
                     "utType>\r\n    <TargetFramework>netcoreapp2.1</TargetFramework>\r\n  </PropertyGroup" +
-                    ">\r\n  <ItemGroup>\r\n    <PackageReference Include=\"Microsoft.ML\" Version=\"0.11.0\" " +
-                    "/>\r\n");
+                    ">\r\n  <ItemGroup>\r\n    <PackageReference Include=\"Microsoft.ML\" Version=\"1.0.0-pr" +
+                    "eview\" />\r\n");
  if(IncludeLightGBMPackage){ 
-            this.Write("    <PackageReference Include=\"Microsoft.ML.LightGBM\" Version=\"0.11.0\" />\r\n");
+            this.Write("    <PackageReference Include=\"Microsoft.ML.LightGBM\" Version=\"1.0.0-preview\" />\r" +
+                    "\n");
 }
- if(IncludeHalLearnersPackage){ 
-            this.Write("    <PackageReference Include=\"Microsoft.ML.HalLearners\" Version=\"0.11.0\" />\r\n");
+ if(IncludeMklComponentsPackage){ 
+            this.Write("    <PackageReference Include=\"Microsoft.ML.Mkl.Components\" Version=\"1.0.0-previe" +
+                    "w\" />\r\n");
 }
             this.Write("  </ItemGroup>\r\n  <ItemGroup>\r\n    <ProjectReference Include=\"..\\");
             this.Write(this.ToStringHelper.ToStringWithCulture(Namespace));
@@ -46,7 +48,7 @@ namespace Microsoft.ML.CLI.Templates.Console
 
 public string Namespace {get;set;}
 public bool IncludeLightGBMPackage {get;set;}
-public bool IncludeHalLearnersPackage {get;set;}
+public bool IncludeMklComponentsPackage {get;set;}
 
     }
     #region Base class

@@ -11,12 +11,12 @@
     <TargetFramework>netcoreapp2.1</TargetFramework>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Microsoft.ML" Version="0.11.0" />
+    <PackageReference Include="Microsoft.ML" Version="1.0.0-preview" />
 <# if(IncludeLightGBMPackage){ #>
-    <PackageReference Include="Microsoft.ML.LightGBM" Version="0.11.0" />
+    <PackageReference Include="Microsoft.ML.LightGBM" Version="1.0.0-preview" />
 <#}#>
-<# if(IncludeHalLearnersPackage){ #>
-    <PackageReference Include="Microsoft.ML.HalLearners" Version="0.11.0" />
+<# if(IncludeMklComponentsPackage){ #>
+    <PackageReference Include="Microsoft.ML.Mkl.Components" Version="1.0.0-preview" />
 <#}#>
   </ItemGroup>
   <ItemGroup>
@@ -26,5 +26,5 @@
 <#+
 public string Namespace {get;set;}
 public bool IncludeLightGBMPackage {get;set;}
-public bool IncludeHalLearnersPackage {get;set;}
+public bool IncludeMklComponentsPackage {get;set;}
 #>

@@ -15,7 +15,7 @@ namespace Microsoft.ML.CLI.CodeGenerator.CSharp
         //abstract properties
         internal abstract string MethodName { get; }
 
-        internal abstract string[] Usings { get; }
+        internal virtual string[] Usings => null;
 
         protected string[] inputColumns;
 

@@ -8,8 +8,6 @@ using System;
 using System.IO;
 using System.Linq;
 using Microsoft.ML;
-using Microsoft.ML.Data;
-using Microsoft.Data.DataView;
 using TestNamespace.Model.DataModels;
 
 namespace TestNamespace.Train
@@ -50,7 +48,7 @@ namespace TestNamespace.Train
             EvaluateModel(mlContext, mlModel, testDataView);
 
             // Save model
-            SaveModel(mlContext, mlModel, MODEL_FILEPATH);
+            SaveModel(mlContext, mlModel, MODEL_FILEPATH, trainingDataView.Schema);
 
             Console.WriteLine("=============== End of process, hit any key to finish ===============");
             Console.ReadKey();
@@ -63,7 +61,7 @@ namespace TestNamespace.Train
                                       .AppendCacheCheckpoint(mlContext);
 
             // Set the training algorithm 
-            var trainer = mlContext.MulticlassClassification.Trainers.OneVersusAll(mlContext.BinaryClassification.Trainers.FastForest(numLeaves: 2, labelColumnName: "Label", featureColumnName: "Features"), labelColumnName: "Label");
+            var trainer = mlContext.MulticlassClassification.Trainers.OneVersusAll(mlContext.BinaryClassification.Trainers.FastForest(labelColumnName: "Label", featureColumnName: "Features"), labelColumnName: "Label");
             var trainingPipeline = dataProcessPipeline.Append(trainer);
 
             return trainingPipeline;
@@ -85,14 +83,14 @@ namespace TestNamespace.Train
             Console.WriteLine("===== Evaluating Model's accuracy with Test data =====");
             IDataView predictions = mlModel.Transform(testDataView);
             var metrics = mlContext.MulticlassClassification.Evaluate(predictions, "Label", "Score");
-            ConsoleHelper.PrintMultiClassClassificationMetrics(metrics);
+            ConsoleHelper.PrintMulticlassClassificationMetrics(metrics);
         }
-        private static void SaveModel(MLContext mlContext, ITransformer mlModel, string modelRelativePath)
+        private static void SaveModel(MLContext mlContext, ITransformer mlModel, string modelRelativePath, DataViewSchema modelInputSchema)
         {
             // Save/persist the trained model to a .ZIP file
             Console.WriteLine($"=============== Saving the model  ===============");
             using (var fs = new FileStream(GetAbsolutePath(modelRelativePath), FileMode.Create, FileAccess.Write, FileShare.Write))
-                mlContext.Model.Save(mlModel, fs);
+                mlContext.Model.Save(mlModel, modelInputSchema, fs);
 
             Console.WriteLine("The model is saved to {0}", GetAbsolutePath(modelRelativePath));
         }

@@ -18,10 +18,9 @@ namespace mlnet.Test
             Pipeline pipeline = new Pipeline(new PipelineNode[] { node });
             CodeGenerator codeGenerator = new CodeGenerator(pipeline, null, null);
             var actual = codeGenerator.GenerateTransformsAndUsings(new PipelineNode[] { node });
-            var expectedTransform = "ReplaceMissingValues(new []{new MissingValueReplacingEstimator.ColumnOptions(\"categorical_column_1\",\"categorical_column_1\")})";
-            string expectedUsings = "using Microsoft.ML.Transforms;\r\n";
+            var expectedTransform = "ReplaceMissingValues(new []{new InputOutputColumnPair(\"categorical_column_1\",\"categorical_column_1\")})";
             Assert.AreEqual(expectedTransform, actual[0].Item1);
-            Assert.AreEqual(expectedUsings, actual[0].Item2[0]);
+            Assert.IsNull(actual[0].Item2);
         }
 
         [TestMethod]
@@ -33,10 +32,9 @@ namespace mlnet.Test
             Pipeline pipeline = new Pipeline(new PipelineNode[] { node });
             CodeGenerator codeGenerator = new CodeGenerator(pipeline, null, null);
             var actual = codeGenerator.GenerateTransformsAndUsings(new PipelineNode[] { node });
-            string expectedTransform = "Categorical.OneHotEncoding(new []{new OneHotEncodingEstimator.ColumnOptions(\"categorical_column_1\",\"categorical_column_1\")})";
-            var expectedUsings = "using Microsoft.ML.Transforms;\r\n";
+            string expectedTransform = "Categorical.OneHotEncoding(new []{new InputOutputColumnPair(\"categorical_column_1\",\"categorical_column_1\")})";
             Assert.AreEqual(expectedTransform, actual[0].Item1);
-            Assert.AreEqual(expectedUsings, actual[0].Item2[0]);
+            Assert.IsNull(actual[0].Item2);
         }
 
         [TestMethod]
@@ -48,7 +46,7 @@ namespace mlnet.Test
             Pipeline pipeline = new Pipeline(new PipelineNode[] { node });
             CodeGenerator codeGenerator = new CodeGenerator(pipeline, null, null);
             var actual = codeGenerator.GenerateTransformsAndUsings(new PipelineNode[] { node });
-            string expectedTransform = "Normalize(\"numeric_column_1_copy\",\"numeric_column_1\")";
+            string expectedTransform = "NormalizeMinMax(\"numeric_column_1_copy\",\"numeric_column_1\")";
             string expectedUsings = null;
             Assert.AreEqual(expectedTransform, actual[0].Item1);
             Assert.AreEqual(expectedUsings, actual[0].Item2);
@@ -94,9 +92,8 @@ namespace mlnet.Test
             CodeGenerator codeGenerator = new CodeGenerator(pipeline, null, null);
             var actual = codeGenerator.GenerateTransformsAndUsings(new PipelineNode[] { node });
             string expectedTransform = "Conversion.MapKeyToValue(\"Label\",\"Label\")";
-            var expectedUsings = "using Microsoft.ML.Transforms;\r\n";
             Assert.AreEqual(expectedTransform, actual[0].Item1);
-            Assert.AreEqual(expectedUsings, actual[0].Item2[0]);
+            Assert.IsNull(actual[0].Item2);
         }
 
         [TestMethod]
@@ -108,7 +105,7 @@ namespace mlnet.Test
             Pipeline pipeline = new Pipeline(new PipelineNode[] { node });
             CodeGenerator codeGenerator = new CodeGenerator(pipeline, null, null);
             var actual = codeGenerator.GenerateTransformsAndUsings(new PipelineNode[] { node });
-            string expectedTransform = "IndicateMissingValues(new []{new ColumnOptions(\"numeric_column_1\",\"numeric_column_1\")})";
+            string expectedTransform = "IndicateMissingValues(new []{new InputOutputColumnPair(\"numeric_column_1\",\"numeric_column_1\")})";
             string expectedUsings = null;
             Assert.AreEqual(expectedTransform, actual[0].Item1);
             Assert.AreEqual(expectedUsings, actual[0].Item2);
@@ -123,10 +120,9 @@ namespace mlnet.Test
             Pipeline pipeline = new Pipeline(new PipelineNode[] { node });
             CodeGenerator codeGenerator = new CodeGenerator(pipeline, null, null);
             var actual = codeGenerator.GenerateTransformsAndUsings(new PipelineNode[] { node });
-            string expectedTransform = "Categorical.OneHotHashEncoding(new []{new OneHotHashEncodingEstimator.ColumnOptions(\"Categorical_column_1\",\"Categorical_column_1\")})";
-            var expectedUsings = "using Microsoft.ML.Transforms;\r\n";
+            string expectedTransform = "Categorical.OneHotHashEncoding(new []{new InputOutputColumnPair(\"Categorical_column_1\",\"Categorical_column_1\")})";
             Assert.AreEqual(expectedTransform, actual[0].Item1);
-            Assert.AreEqual(expectedUsings, actual[0].Item2[0]);
+            Assert.IsNull(actual[0].Item2);
         }
 
         [TestMethod]
@@ -153,10 +149,9 @@ namespace mlnet.Test
             Pipeline pipeline = new Pipeline(new PipelineNode[] { node });
             CodeGenerator codeGenerator = new CodeGenerator(pipeline, null, null);
             var actual = codeGenerator.GenerateTransformsAndUsings(new PipelineNode[] { node });
-            string expectedTransform = "Conversion.ConvertType(new []{new TypeConvertingEstimator.ColumnOptions(\"R4_column_1\",DataKind.Single,\"I4_column_1\")})";
-            string expectedUsings = "using Microsoft.ML.Transforms;\r\n";
+            string expectedTransform = "Conversion.ConvertType(new []{new InputOutputColumnPair(\"R4_column_1\",\"I4_column_1\")})";
             Assert.AreEqual(expectedTransform, actual[0].Item1);
-            Assert.AreEqual(expectedUsings, actual[0].Item2[0]);
+            Assert.IsNull(actual[0].Item2);
         }
 
         [TestMethod]
@@ -169,9 +164,8 @@ namespace mlnet.Test
             CodeGenerator codeGenerator = new CodeGenerator(pipeline, null, null);
             var actual = codeGenerator.GenerateTransformsAndUsings(new PipelineNode[] { node });
             string expectedTransform = "Conversion.MapValueToKey(\"Label\",\"Label\")";
-            var expectedUsings = "using Microsoft.ML.Transforms;\r\n";
             Assert.AreEqual(expectedTransform, actual[0].Item1);
-            Assert.AreEqual(expectedUsings, actual[0].Item2[0]);
+            Assert.IsNull(actual[0].Item2);
         }
 
     }

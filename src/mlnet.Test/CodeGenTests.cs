@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
+using System.Linq;
 using Microsoft.ML;
 using Microsoft.ML.Auto;
 using Microsoft.ML.CLI.CodeGenerator.CSharp;
@@ -28,9 +29,10 @@ namespace mlnet.Test
             Pipeline pipeline = new Pipeline(new PipelineNode[] { node });
             CodeGenerator codeGenerator = new CodeGenerator(pipeline, null, null);
             var actual = codeGenerator.GenerateTrainerAndUsings();
-            string expected = "LightGbm(learningRate:0.1f,numLeaves:1,labelColumnName:\"Label\",featureColumnName:\"Features\")";
+            string expected = "LightGbm(new LightGbmBinaryTrainer.Options(){LearningRate=0.1f,NumLeaves=1,LabelColumnName=\"Label\",FeatureColumnName=\"Features\"})";
             Assert.AreEqual(expected, actual.Item1);
-            Assert.IsNull(actual.Item2);
+            Assert.AreEqual(1, actual.Item2.Count());
+            Assert.AreEqual("using Microsoft.ML.Trainers.LightGbm;\r\n", actual.Item2.First());
         }
 
         [TestMethod]
@@ -48,8 +50,8 @@ namespace mlnet.Test
             Pipeline pipeline = new Pipeline(new PipelineNode[] { node });
             CodeGenerator codeGenerator = new CodeGenerator(pipeline, null, null);
             var actual = codeGenerator.GenerateTrainerAndUsings();
-            string expectedTrainer = "LightGbm(new Options(){LearningRate=0.1f,NumLeaves=1,UseSoftmax=true,LabelColumn=\"Label\",FeatureColumn=\"Features\"})";
-            string expectedUsing = "using Microsoft.ML.LightGBM;\r\n";
+            string expectedTrainer = "LightGbm(new LightGbmBinaryTrainer.Options(){LearningRate=0.1f,NumLeaves=1,UseSoftmax=true,LabelColumnName=\"Label\",FeatureColumnName=\"Features\"})";
+            string expectedUsing = "using Microsoft.ML.Trainers.LightGbm;\r\n";
             Assert.AreEqual(expectedTrainer, actual.Item1);
             Assert.AreEqual(expectedUsing, actual.Item2[0]);
         }
@@ -63,7 +65,7 @@ namespace mlnet.Test
             Pipeline pipeline = new Pipeline(new PipelineNode[] { node });
             CodeGenerator codeGenerator = new CodeGenerator(pipeline, null, null);
             var actual = codeGenerator.GenerateTransformsAndUsings(new List<PipelineNode>() { node });
-            string expected = "Normalize(\"Label\",\"Label\")";
+            string expected = "NormalizeMinMax(\"Label\",\"Label\")";
             Assert.AreEqual(expected, actual[0].Item1);
             Assert.IsNull(actual[0].Item2);
         }
@@ -77,10 +79,9 @@ namespace mlnet.Test
             Pipeline pipeline = new Pipeline(new PipelineNode[] { node });
             CodeGenerator codeGenerator = new CodeGenerator(pipeline, null, null);
             var actual = codeGenerator.GenerateTransformsAndUsings(new List<PipelineNode>() { node });
-            string expectedTransform = "Categorical.OneHotEncoding(new []{new OneHotEncodingEstimator.ColumnOptions(\"Label\",\"Label\")})";
-            var expectedUsings = "using Microsoft.ML.Transforms;\r\n";
+            string expectedTransform = "Categorical.OneHotEncoding(new []{new InputOutputColumnPair(\"Label\",\"Label\")})";
             Assert.AreEqual(expectedTransform, actual[0].Item1);
-            Assert.AreEqual(expectedUsings, actual[0].Item2[0]);
+            Assert.IsNull(actual[0].Item2);
         }
 
         [TestMethod]
@@ -127,8 +128,8 @@ namespace mlnet.Test
             Pipeline pipeline = new Pipeline(new PipelineNode[] { node });
             CodeGenerator codeGenerator = new CodeGenerator(pipeline, null, null);
             var actual = codeGenerator.GenerateTrainerAndUsings();
-            string expectedTrainer = "LightGbm(new Options(){Booster=new TreeBooster(){},LabelColumn=\"Label\",FeatureColumn=\"Features\"})";
-            var expectedUsings = "using Microsoft.ML.LightGBM;\r\n";
+            string expectedTrainer = "LightGbm(new LightGbmBinaryTrainer.Options(){Booster=new TreeBooster(){},LabelColumnName=\"Label\",FeatureColumnName=\"Features\"})";
+            var expectedUsings = "using Microsoft.ML.Trainers.LightGbm;\r\n";
             Assert.AreEqual(expectedTrainer, actual.Item1);
             Assert.AreEqual(expectedUsings, actual.Item2[0]);
         }

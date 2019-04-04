@@ -8,10 +8,7 @@ using System;
 using System.IO;
 using System.Linq;
 using Microsoft.ML;
-using Microsoft.ML.Data;
-using Microsoft.Data.DataView;
 using TestNamespace.Model.DataModels;
-using Microsoft.ML.LightGBM;
 
 namespace TestNamespace.Train
 {
@@ -51,7 +48,7 @@ namespace TestNamespace.Train
             EvaluateModel(mlContext, mlModel, testDataView);
 
             // Save model
-            SaveModel(mlContext, mlModel, MODEL_FILEPATH);
+            SaveModel(mlContext, mlModel, MODEL_FILEPATH, trainingDataView.Schema);
 
             Console.WriteLine("=============== End of process, hit any key to finish ===============");
             Console.ReadKey();
@@ -64,7 +61,7 @@ namespace TestNamespace.Train
                                       .AppendCacheCheckpoint(mlContext);
 
             // Set the training algorithm 
-            var trainer = mlContext.BinaryClassification.Trainers.LightGbm(new Options() { NumLeaves = 2, Booster = new Options.TreeBooster.Options() { }, LabelColumn = "Label", FeatureColumn = "Features" });
+            var trainer = mlContext.BinaryClassification.Trainers.LightGbm(labelColumnName: "Label", featureColumnName: "Features");
             var trainingPipeline = dataProcessPipeline.Append(trainer);
 
             return trainingPipeline;
@@ -88,12 +85,12 @@ namespace TestNamespace.Train
             var metrics = mlContext.BinaryClassification.EvaluateNonCalibrated(predictions, "Label", "Score");
             ConsoleHelper.PrintBinaryClassificationMetrics(metrics);
         }
-        private static void SaveModel(MLContext mlContext, ITransformer mlModel, string modelRelativePath)
+        private static void SaveModel(MLContext mlContext, ITransformer mlModel, string modelRelativePath, DataViewSchema modelInputSchema)
         {
             // Save/persist the trained model to a .ZIP file
             Console.WriteLine($"=============== Saving the model  ===============");
             using (var fs = new FileStream(GetAbsolutePath(modelRelativePath), FileMode.Create, FileAccess.Write, FileShare.Write))
-                mlContext.Model.Save(mlModel, fs);
+                mlContext.Model.Save(mlModel, modelInputSchema, fs);
 
             Console.WriteLine("The model is saved to {0}", GetAbsolutePath(modelRelativePath));
         }

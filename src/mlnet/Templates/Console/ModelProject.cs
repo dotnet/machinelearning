@@ -39,7 +39,7 @@ namespace Microsoft.ML.CLI.Templates.Console
     </RestoreSources>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include=""Microsoft.ML"" Version=""0.11.0"" />
+    <PackageReference Include=""Microsoft.ML"" Version=""1.0.0-preview"" />
   </ItemGroup>
 
   <ItemGroup>

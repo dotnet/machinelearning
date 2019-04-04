@@ -15,8 +15,6 @@ using System;
 using System.IO;
 using System.Linq;
 using Microsoft.ML;
-using Microsoft.ML.Data;
-using Microsoft.Data.DataView;
 using <#= Namespace #>.Model.DataModels;
 <#= GeneratedUsings #>
 namespace <#= Namespace #>.Train
@@ -68,7 +66,7 @@ namespace <#= Namespace #>.Train
 <#}#>
 
             // Save model
-            SaveModel(mlContext, mlModel, MODEL_FILEPATH);
+            SaveModel(mlContext, mlModel, MODEL_FILEPATH, trainingDataView.Schema);
 
             Console.WriteLine("=============== End of process, hit any key to finish ===============");
             Console.ReadKey();
@@ -131,7 +129,7 @@ else{#>
             ConsoleHelper.PrintBinaryClassificationMetrics(metrics);
 <#} if("MulticlassClassification".Equals(TaskType)){ #>
             var metrics = mlContext.<#= TaskType #>.Evaluate(predictions, "<#= LabelName #>", "Score");
-            ConsoleHelper.PrintMultiClassClassificationMetrics(metrics);
+            ConsoleHelper.PrintMulticlassClassificationMetrics(metrics);
 <#}if("Regression".Equals(TaskType)){ #>
             var metrics = mlContext.<#= TaskType #>.Evaluate(predictions, "<#= LabelName #>", "Score");
             ConsoleHelper.PrintRegressionMetrics(metrics);
@@ -144,23 +142,23 @@ else{#>
             // in order to evaluate and get the model's accuracy metrics
             Console.WriteLine("=============== Cross-validating to get model's accuracy metrics ===============");
 <#if("BinaryClassification".Equals(TaskType)){ #>
-            var crossValidationResults = mlContext.<#= TaskType #>.CrossValidateNonCalibrated(trainingDataView, trainingPipeline, numFolds: <#= Kfolds #>, labelColumn:"<#= LabelName #>");
+            var crossValidationResults = mlContext.<#= TaskType #>.CrossValidateNonCalibrated(trainingDataView, trainingPipeline, numberOfFolds: <#= Kfolds #>, labelColumnName:"<#= LabelName #>");
             ConsoleHelper.PrintBinaryClassificationFoldsAverageMetrics(crossValidationResults);
 <#}#><#if("MulticlassClassification".Equals(TaskType)){ #>
-            var crossValidationResults = mlContext.<#= TaskType #>.CrossValidate(trainingDataView, trainingPipeline, numFolds: <#= Kfolds #>, labelColumn:"<#= LabelName #>");
+            var crossValidationResults = mlContext.<#= TaskType #>.CrossValidate(trainingDataView, trainingPipeline, numberOfFolds: <#= Kfolds #>, labelColumnName:"<#= LabelName #>");
             ConsoleHelper.PrintMulticlassClassificationFoldsAverageMetrics(crossValidationResults);
 <#}#><#if("Regression".Equals(TaskType)){ #>
-            var crossValidationResults = mlContext.<#= TaskType #>.CrossValidate(trainingDataView, trainingPipeline, numFolds: <#= Kfolds #>, labelColumn:"<#= LabelName #>");
+            var crossValidationResults = mlContext.<#= TaskType #>.CrossValidate(trainingDataView, trainingPipeline, numberOfFolds: <#= Kfolds #>, labelColumnName:"<#= LabelName #>");
             ConsoleHelper.PrintRegressionFoldsAverageMetrics(crossValidationResults);
 <#}#>
         }
 <#}#>
-        private static void SaveModel(MLContext mlContext, ITransformer mlModel, string modelRelativePath)
+        private static void SaveModel(MLContext mlContext, ITransformer mlModel, string modelRelativePath, DataViewSchema modelInputSchema)
         {
             // Save/persist the trained model to a .ZIP file
             Console.WriteLine($"=============== Saving the model  ===============");
             using (var fs = new FileStream(GetAbsolutePath(modelRelativePath), FileMode.Create, FileAccess.Write, FileShare.Write))
-                mlContext.Model.Save(mlModel, fs);
+                mlContext.Model.Save(mlModel, modelInputSchema, fs);
 
             Console.WriteLine("The model is saved to {0}", GetAbsolutePath(modelRelativePath));
         }

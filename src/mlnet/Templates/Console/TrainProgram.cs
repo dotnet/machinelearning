@@ -37,8 +37,6 @@ using System;
 using System.IO;
 using System.Linq;
 using Microsoft.ML;
-using Microsoft.ML.Data;
-using Microsoft.Data.DataView;
 using ");
             this.Write(this.ToStringHelper.ToStringWithCulture(Namespace));
             this.Write(".Model.DataModels;\r\n");
@@ -103,7 +101,7 @@ if(!string.IsNullOrEmpty(TestPath)){
 }
             this.Write(@"
             // Save model
-            SaveModel(mlContext, mlModel, MODEL_FILEPATH);
+            SaveModel(mlContext, mlModel, MODEL_FILEPATH, trainingDataView.Schema);
 
             Console.WriteLine(""=============== End of process, hit any key to finish ==============="");
             Console.ReadKey();
@@ -182,7 +180,7 @@ if("BinaryClassification".Equals(TaskType)){
             this.Write(this.ToStringHelper.ToStringWithCulture(TaskType));
             this.Write(".Evaluate(predictions, \"");
             this.Write(this.ToStringHelper.ToStringWithCulture(LabelName));
-            this.Write("\", \"Score\");\r\n            ConsoleHelper.PrintMultiClassClassificationMetrics(metr" +
+            this.Write("\", \"Score\");\r\n            ConsoleHelper.PrintMulticlassClassificationMetrics(metr" +
                     "ics);\r\n");
 }if("Regression".Equals(TaskType)){ 
             this.Write("            var metrics = mlContext.");
@@ -202,9 +200,9 @@ if("BinaryClassification".Equals(TaskType)){
 if("BinaryClassification".Equals(TaskType)){ 
             this.Write("            var crossValidationResults = mlContext.");
             this.Write(this.ToStringHelper.ToStringWithCulture(TaskType));
-            this.Write(".CrossValidateNonCalibrated(trainingDataView, trainingPipeline, numFolds: ");
+            this.Write(".CrossValidateNonCalibrated(trainingDataView, trainingPipeline, numberOfFolds: ");
             this.Write(this.ToStringHelper.ToStringWithCulture(Kfolds));
-            this.Write(", labelColumn:\"");
+            this.Write(", labelColumnName:\"");
             this.Write(this.ToStringHelper.ToStringWithCulture(LabelName));
             this.Write("\");\r\n            ConsoleHelper.PrintBinaryClassificationFoldsAverageMetrics(cross" +
                     "ValidationResults);\r\n");
@@ -212,9 +210,9 @@ if("BinaryClassification".Equals(TaskType)){
 if("MulticlassClassification".Equals(TaskType)){ 
             this.Write("            var crossValidationResults = mlContext.");
             this.Write(this.ToStringHelper.ToStringWithCulture(TaskType));
-            this.Write(".CrossValidate(trainingDataView, trainingPipeline, numFolds: ");
+            this.Write(".CrossValidate(trainingDataView, trainingPipeline, numberOfFolds: ");
             this.Write(this.ToStringHelper.ToStringWithCulture(Kfolds));
-            this.Write(", labelColumn:\"");
+            this.Write(", labelColumnName:\"");
             this.Write(this.ToStringHelper.ToStringWithCulture(LabelName));
             this.Write("\");\r\n            ConsoleHelper.PrintMulticlassClassificationFoldsAverageMetrics(c" +
                     "rossValidationResults);\r\n");
@@ -222,21 +220,21 @@ if("MulticlassClassification".Equals(TaskType)){
 if("Regression".Equals(TaskType)){ 
             this.Write("            var crossValidationResults = mlContext.");
             this.Write(this.ToStringHelper.ToStringWithCulture(TaskType));
-            this.Write(".CrossValidate(trainingDataView, trainingPipeline, numFolds: ");
+            this.Write(".CrossValidate(trainingDataView, trainingPipeline, numberOfFolds: ");
             this.Write(this.ToStringHelper.ToStringWithCulture(Kfolds));
-            this.Write(", labelColumn:\"");
+            this.Write(", labelColumnName:\"");
             this.Write(this.ToStringHelper.ToStringWithCulture(LabelName));
             this.Write("\");\r\n            ConsoleHelper.PrintRegressionFoldsAverageMetrics(crossValidation" +
                     "Results);\r\n");
 }
             this.Write("        }\r\n");
 }
-            this.Write(@"        private static void SaveModel(MLContext mlContext, ITransformer mlModel, string modelRelativePath)
+            this.Write(@"        private static void SaveModel(MLContext mlContext, ITransformer mlModel, string modelRelativePath, DataViewSchema modelInputSchema)
         {
             // Save/persist the trained model to a .ZIP file
             Console.WriteLine($""=============== Saving the model  ==============="");
             using (var fs = new FileStream(GetAbsolutePath(modelRelativePath), FileMode.Create, FileAccess.Write, FileShare.Write))
-                mlContext.Model.Save(mlModel, fs);
+                mlContext.Model.Save(mlModel, modelInputSchema, fs);
 
             Console.WriteLine(""The model is saved to {0}"", GetAbsolutePath(modelRelativePath));
         }

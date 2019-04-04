@@ -44,11 +44,11 @@ namespace Microsoft.ML.CLI.CodeGenerator.CSharp
                 hasAdvancedSettings = node.Properties.Keys.Any(t => !NamedParameters.ContainsKey(t));
             }
             seperator = hasAdvancedSettings ? "=" : ":";
-            if (!node.Properties.ContainsKey("LabelColumn"))
+            if (!node.Properties.ContainsKey("LabelColumnName"))
             {
-                node.Properties.Add("LabelColumn", "Label");
+                node.Properties.Add("LabelColumnName", "Label");
             }
-            node.Properties.Add("FeatureColumn", "Features");
+            node.Properties.Add("FeatureColumnName", "Features");
 
             foreach (var kv in node.Properties)
             {

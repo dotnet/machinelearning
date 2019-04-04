@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
-using System.Linq;
 using System.Text;
 using Microsoft.ML.Auto;
 
@@ -11,13 +10,10 @@ namespace Microsoft.ML.CLI.CodeGenerator.CSharp
 {
     internal static class TrainerGenerators
     {
-        internal class LightGbm : TrainerGeneratorBase
+        internal abstract class LightGbmBase : TrainerGeneratorBase
         {
             //ClassName of the trainer
             internal override string MethodName => "LightGbm";
-
-            //ClassName of the options to trainer
-            internal override string OptionsName => "Options";
 
             //The named parameters to the trainer.
             internal override IDictionary<string, string> NamedParameters
@@ -27,20 +23,47 @@ namespace Microsoft.ML.CLI.CodeGenerator.CSharp
                     return
                     new Dictionary<string, string>()
                     {
-                        {"NumLeaves","numLeaves" },
-                        {"LabelColumn","labelColumnName" },
-                        {"FeatureColumn","featureColumnName" },
-                        {"MinDataPerLeaf","minDataPerLeaf" },
+                        {"NumberOfLeaves","numberOfLeaves" },
+                        {"LabelColumnName","labelColumnName" },
+                        {"FeatureColumnName","featureColumnName" },
+                        {"MinimumExampleCountPerLeaf","minimumExampleCountPerLeaf" },
                         {"LearningRate","learningRate" },
-                        {"NumBoostRound","numBoostRound" },
-                        {"WeightColumn","exampleWeightColumnName" }
+                        {"NumberOfIterations","numberOfIterations" },
+                        {"ExampleWeightColumnName","exampleWeightColumnName" }
                     };
                 }
             }
 
-            internal override string[] Usings => new string[] { "using Microsoft.ML.LightGBM;\r\n" };
+            internal override string[] Usings => new string[] { "using Microsoft.ML.Trainers.LightGbm;\r\n" };
 
-            public LightGbm(PipelineNode node) : base(node)
+            public LightGbmBase(PipelineNode node) : base(node)
+            {
+            }
+        }
+
+        internal class LightGbmBinary : LightGbmBase
+        {
+            internal override string OptionsName => "LightGbmBinaryTrainer.Options";
+
+            public LightGbmBinary(PipelineNode node) : base(node)
+            {
+            }
+        }
+
+        internal class LightGbmMulti : LightGbmBase
+        {
+            internal override string OptionsName => "LightGbmMulticlassTrainer.Options";
+
+            public LightGbmMulti(PipelineNode node) : base(node)
+            {
+            }
+        }
+
+        internal class LightGbmRegression : LightGbmBase
+        {
+            internal override string OptionsName => "LightGbmRegressionTrainer.Options";
+
+            public LightGbmRegression(PipelineNode node) : base(node)
             {
             }
         }
@@ -61,13 +84,13 @@ namespace Microsoft.ML.CLI.CodeGenerator.CSharp
                     return
                     new Dictionary<string, string>()
                     {
-                        {"LabelColumn","labelColumnName" },
-                        {"FeatureColumn","featureColumnName" },
+                        {"LabelColumnName","labelColumnName" },
+                        {"FeatureColumnName","featureColumnName" },
                         {"LossFunction","lossFunction" },
                         {"LearningRate","learningRate" },
                         {"DecreaseLearningRate","decreaseLearningRate" },
-                        {"L2RegularizerWeight","l2RegularizerWeight" },
-                        {"NumberOfIterations","numIterations" }
+                        {"L2Regularization","l2Regularization" },
+                        {"NumberOfIterations","numberOfIterations" }
                         };
                 }
             }
@@ -92,13 +115,13 @@ namespace Microsoft.ML.CLI.CodeGenerator.CSharp
                     return
                     new Dictionary<string, string>()
                     {
-                        {"WeightColumn","exampleWeightColumnName" },
-                        {"LabelColumn","labelColumnName" },
-                        {"FeatureColumn","featureColumnName" },
+                        {"ExampleWeightColumnName","exampleWeightColumnName" },
+                        {"LabelColumnName","labelColumnName" },
+                        {"FeatureColumnName","featureColumnName" },
                         {"LearningRate","learningRate" },
-                        {"NumLeaves","numLeaves" },
-                        {"NumTrees","numTrees" },
-                        {"MinDatapointsInLeaves","minDatapointsInLeaves" },
+                        {"NumberOfLeaves","numberOfLeaves" },
+                        {"NumberOfTrees","numberOfTrees" },
+                        {"MinimumExampleCountPerLeaf","minimumExampleCountPerLeaf" },
                         };
                 }
             }
@@ -140,7 +163,7 @@ namespace Microsoft.ML.CLI.CodeGenerator.CSharp
             internal override string MethodName => "FastTree";
 
             //ClassName of the options to trainer
-            internal override string OptionsName => "FastTreeBinaryClassificationTrainer.Options";
+            internal override string OptionsName => "FastTreeBinaryTrainer.Options";
 
             public FastTreeClassification(PipelineNode node) : base(node)
             {
@@ -177,7 +200,7 @@ namespace Microsoft.ML.CLI.CodeGenerator.CSharp
         internal class LinearSvm : TrainerGeneratorBase
         {
             //ClassName of the trainer
-            internal override string MethodName => "LinearSupportVectorMachines";
+            internal override string MethodName => "LinearSvm";
 
             //ClassName of the options to trainer
             internal override string OptionsName => "LinearSvmTrainer.Options";
@@ -190,9 +213,9 @@ namespace Microsoft.ML.CLI.CodeGenerator.CSharp
                     return
                     new Dictionary<string, string>()
                     {
-                        {"WeightColumn", "exampleWeightColumnName" },
-                        {"LabelColumn","labelColumnName" },
-                        {"FeatureColumn","featureColumnName" },
+                        {"ExampleWeightColumnName", "exampleWeightColumnName" },
+                        {"LabelColumnName","labelColumnName" },
+                        {"FeatureColumnName","featureColumnName" },
                         {"NumberOfIterations","numIterations" },
                     };
                 }
@@ -207,11 +230,8 @@ namespace Microsoft.ML.CLI.CodeGenerator.CSharp
 
         #region Logistic Regression
 
-        internal abstract class LogisticRegressionBase : TrainerGeneratorBase
+        internal abstract class LbfgsLogisticRegressionBase : TrainerGeneratorBase
         {
-            //ClassName of the trainer
-            internal override string MethodName => "LogisticRegression";
-
             //The named parameters to the trainer.
             internal override IDictionary<string, string> NamedParameters
             {
@@ -220,40 +240,44 @@ namespace Microsoft.ML.CLI.CodeGenerator.CSharp
                     return
                     new Dictionary<string, string>()
                     {
-                        {"WeightColumn","exampleWeightColumnName" },
-                        {"LabelColumn","labelColumnName" },
-                        {"FeatureColumn","featureColumnName" },
-                        {"L1Weight","l1Weight" },
-                        {"L2Weight","l2Weight" },
-                        {"OptTol","optimizationTolerance" },
-                        {"MemorySize","memorySize" },
-                        {"EnforceNonNegativity","enforceNoNegativity" },
+                        {"ExampleWeightColumnName","exampleWeightColumnName" },
+                        {"LabelColumnName","labelColumnName" },
+                        {"FeatureColumnName","featureColumnName" },
+                        {"L1Regularization","l1Regularization" },
+                        {"L2Regularization","l2Regularization" },
+                        {"OptmizationTolerance","optimizationTolerance" },
+                        {"HistorySize","historySize" },
+                        {"EnforceNonNegativity","enforceNonNegativity" },
                     };
                 }
             }
 
             internal override string[] Usings => new string[] { "using Microsoft.ML.Trainers;\r\n" };
 
-            public LogisticRegressionBase(PipelineNode node) : base(node)
+            public LbfgsLogisticRegressionBase(PipelineNode node) : base(node)
             {
             }
         }
-        internal class LogisticRegressionBinary : LogisticRegressionBase
+        internal class LbfgsLogisticRegressionBinary : LbfgsLogisticRegressionBase
         {
-            //ClassName of the options to trainer
-            internal override string OptionsName => "LogisticRegression.Options";
+            internal override string MethodName => "LbfgsLogisticRegression";
 
-            public LogisticRegressionBinary(PipelineNode node) : base(node)
+            //ClassName of the options to trainer
+            internal override string OptionsName => "LbfgsLogisticRegressionBinaryTrainer.Options";
+
+            public LbfgsLogisticRegressionBinary(PipelineNode node) : base(node)
             {
             }
         }
 
-        internal class LogisticRegressionMulti : LogisticRegressionBase
+        internal class LbfgsMaximumEntropyMulti : LbfgsLogisticRegressionBase
         {
-            //ClassName of the options to trainer
-            internal override string OptionsName => "MulticlassLogisticRegression.Options";
+            internal override string MethodName => "LbfgsMaximumEntropy";
 
-            public LogisticRegressionMulti(PipelineNode node) : base(node)
+            //ClassName of the options to trainer
+            internal override string OptionsName => "LbfgsMaximumEntropyMulticlassTrainer.Options";
+
+            public LbfgsMaximumEntropyMulti(PipelineNode node) : base(node)
             {
             }
         }
@@ -277,12 +301,11 @@ namespace Microsoft.ML.CLI.CodeGenerator.CSharp
                     {
                         {"LearningRate" , "learningRate" },
                         {"DecreaseLearningRate" , "decreaseLearningRate" },
-                        {"L2RegularizerWeight" , "l2RegularizerWeight" },
-                        {"NumIterations" , "numIterations" },
-                        {"LabelColumn" , "labelColumnName" },
-                        {"FeatureColumn" , "featureColumnName" },
+                        {"L2Regularization" , "l2Regularization" },
+                        {"NumberOfIterations" , "numberOfIterations" },
+                        {"LabelColumnName" , "labelColumnName" },
+                        {"FeatureColumnName" , "featureColumnName" },
                         {"LossFunction" ,"lossFunction" },
-
                     };
                 }
             }
@@ -294,13 +317,13 @@ namespace Microsoft.ML.CLI.CodeGenerator.CSharp
             }
         }
 
-        internal class OrdinaryLeastSquaresRegression : TrainerGeneratorBase
+        internal class OlsRegression : TrainerGeneratorBase
         {
             //ClassName of the trainer
-            internal override string MethodName => "OrdinaryLeastSquares";
+            internal override string MethodName => "Ols";
 
             //ClassName of the options to trainer
-            internal override string OptionsName => "OlsLinearRegressionTrainer.Options";
+            internal override string OptionsName => "OlsTrainer.Options";
 
             //The named parameters to the trainer.
             internal override IDictionary<string, string> NamedParameters
@@ -310,51 +333,51 @@ namespace Microsoft.ML.CLI.CodeGenerator.CSharp
                     return
                     new Dictionary<string, string>()
                     {
-                        {"WeightColumn","exampleWeightColumnName" },
-                        {"LabelColumn","labelColumnName" },
-                        {"FeatureColumn","featureColumnName" },
-                    };
-                }
-            }
-
-            internal override string[] Usings => new string[] { "using Microsoft.ML.Trainers.HalLearners;\r\n" };
-
-            public OrdinaryLeastSquaresRegression(PipelineNode node) : base(node)
-            {
-            }
-        }
-
-        internal class PoissonRegression : TrainerGeneratorBase
-        {
-            //ClassName of the trainer
-            internal override string MethodName => "PoissonRegression";
-
-            //ClassName of the options to trainer
-            internal override string OptionsName => "PoissonRegression.Options";
-
-            //The named parameters to the trainer.
-            internal override IDictionary<string, string> NamedParameters
-            {
-                get
-                {
-                    return
-                    new Dictionary<string, string>()
-                    {
-                        {"WeightColumn","exampleWeightColumnName" },
-                        {"LabelColumn","labelColumnName" },
-                        {"FeatureColumn","featureColumnName" },
-                        {"L1Weight","l1Weight" },
-                        {"L2Weight","l2Weight" },
-                        {"OptTol","optimizationTolerance" },
-                        {"MemorySize","memorySize" },
-                        {"EnforceNonNegativity","enforceNoNegativity" },
+                        {"ExampleWeightColumnName","exampleWeightColumnName" },
+                        {"LabelColumnName","labelColumnName" },
+                        {"FeatureColumnName","featureColumnName" },
                     };
                 }
             }
 
             internal override string[] Usings => new string[] { "using Microsoft.ML.Trainers;\r\n" };
 
-            public PoissonRegression(PipelineNode node) : base(node)
+            public OlsRegression(PipelineNode node) : base(node)
+            {
+            }
+        }
+
+        internal class LbfgsPoissonRegression : TrainerGeneratorBase
+        {
+            //ClassName of the trainer
+            internal override string MethodName => "LbfgsPoissonRegression";
+
+            //ClassName of the options to trainer
+            internal override string OptionsName => "LbfgsPoissonRegressionTrainer.Options";
+
+            //The named parameters to the trainer.
+            internal override IDictionary<string, string> NamedParameters
+            {
+                get
+                {
+                    return
+                    new Dictionary<string, string>()
+                    {
+                        {"ExampleWeightColumnName","exampleWeightColumnName" },
+                        {"LabelColumnName","labelColumnName" },
+                        {"FeatureColumnName","featureColumnName" },
+                        {"L1Regularization","l1Regularization" },
+                        {"L2Regularization","l2Regularization" },
+                        {"OptmizationTolerance","optimizationTolerance" },
+                        {"HistorySize","historySize" },
+                        {"EnforceNonNegativity","enforceNonNegativity" },
+                    };
+                }
+            }
+
+            internal override string[] Usings => new string[] { "using Microsoft.ML.Trainers;\r\n" };
+
+            public LbfgsPoissonRegression(PipelineNode node) : base(node)
             {
             }
         }
@@ -362,9 +385,6 @@ namespace Microsoft.ML.CLI.CodeGenerator.CSharp
         #region SDCA
         internal abstract class StochasticDualCoordinateAscentBase : TrainerGeneratorBase
         {
-            //ClassName of the trainer
-            internal override string MethodName => "StochasticDualCoordinateAscent";
-
             //The named parameters to the trainer.
             internal override IDictionary<string, string> NamedParameters
             {
@@ -373,13 +393,13 @@ namespace Microsoft.ML.CLI.CodeGenerator.CSharp
                     return
                     new Dictionary<string, string>()
                     {
-                        {"WeightColumn","exampleWeightColumnName" },
-                        {"LabelColumn","labelColumnName" },
-                        {"FeatureColumn","featureColumnName" },
+                        {"ExampleWeightColumnName","exampleWeightColumnName" },
+                        {"LabelColumnName","labelColumnName" },
+                        {"FeatureColumnName","featureColumnName" },
                         {"Loss","loss" },
-                        {"L2Const","l2Const" },
-                        {"L1Threshold","l1Threshold" },
-                        {"MaxIterations","maxIterations" }
+                        {"L2Regularization","l2Regularization" },
+                        {"L1Regularization","l1Regularization" },
+                        {"MaximumNumberOfIterations","maximumNumberOfIterations" }
                     };
                 }
             }
@@ -393,8 +413,10 @@ namespace Microsoft.ML.CLI.CodeGenerator.CSharp
 
         internal class StochasticDualCoordinateAscentBinary : StochasticDualCoordinateAscentBase
         {
+            internal override string MethodName => "SdcaLogisticRegression";
+
             //ClassName of the options to trainer
-            internal override string OptionsName => "SdcaBinaryTrainer.Options";
+            internal override string OptionsName => "SdcaLogisticRegressionBinaryTrainer.Options";
 
             public StochasticDualCoordinateAscentBinary(PipelineNode node) : base(node)
             {
@@ -403,8 +425,10 @@ namespace Microsoft.ML.CLI.CodeGenerator.CSharp
 
         internal class StochasticDualCoordinateAscentMulti : StochasticDualCoordinateAscentBase
         {
+            internal override string MethodName => "SdcaMaximumEntropy";
+
             //ClassName of the options to trainer
-            internal override string OptionsName => "SdcaMultiClassTrainer.Options";
+            internal override string OptionsName => "SdcaMaximumEntropyMulticlassTrainer.Options";
 
             public StochasticDualCoordinateAscentMulti(PipelineNode node) : base(node)
             {
@@ -413,6 +437,8 @@ namespace Microsoft.ML.CLI.CodeGenerator.CSharp
 
         internal class StochasticDualCoordinateAscentRegression : StochasticDualCoordinateAscentBase
         {
+            internal override string MethodName => "Sdca";
+
             //ClassName of the options to trainer
             internal override string OptionsName => "SdcaRegressionTrainer.Options";
 
@@ -422,13 +448,13 @@ namespace Microsoft.ML.CLI.CodeGenerator.CSharp
         }
         #endregion
 
-        internal class StochasticGradientDescentClassification : TrainerGeneratorBase
+        internal class SgdCalibratedBinary : TrainerGeneratorBase
         {
             //ClassName of the trainer
-            internal override string MethodName => "StochasticGradientDescent";
+            internal override string MethodName => "SgdCalibrated";
 
             //ClassName of the options to trainer
-            internal override string OptionsName => "SgdBinaryTrainer.Options";
+            internal override string OptionsName => "SgdCalibratedTrainer.Options";
 
             //The named parameters to the trainer.
             internal override IDictionary<string, string> NamedParameters
@@ -438,31 +464,30 @@ namespace Microsoft.ML.CLI.CodeGenerator.CSharp
                     return
                     new Dictionary<string, string>()
                     {
-                        {"WeightColumn","exampleWeightColumnName" },
-                        {"LabelColumn","labelColumnName" },
-                        {"FeatureColumn","featureColumnName" },
-                        {"NumIterations","numIterations" },
-                        {"MaxIterations","maxIterations" },
-                        {"InitLearningRate","initLearningRate" },
-                        {"L2Weight","l2Weight" }
+                        {"ExampleWeightColumnName","exampleWeightColumnName" },
+                        {"LabelColumnName","labelColumnName" },
+                        {"FeatureColumnName","featureColumnName" },
+                        {"NumberOfIterations","numberOfIterations" },
+                        {"LearningRate","learningRate" },
+                        {"L2Regularization","l2Regularization" }
                     };
                 }
             }
 
             internal override string[] Usings => new string[] { "using Microsoft.ML.Trainers;\r\n" };
 
-            public StochasticGradientDescentClassification(PipelineNode node) : base(node)
+            public SgdCalibratedBinary(PipelineNode node) : base(node)
             {
             }
         }
 
-        internal class SymbolicStochasticGradientDescent : TrainerGeneratorBase
+        internal class SymbolicSgdLogisticRegressionBinary : TrainerGeneratorBase
         {
             //ClassName of the trainer
-            internal override string MethodName => "SymbolicStochasticGradientDescent";
+            internal override string MethodName => "SymbolicSgdLogisticRegression";
 
             //ClassName of the options to trainer
-            internal override string OptionsName => "SymSgdClassificationTrainer.Options";
+            internal override string OptionsName => "SymbolicSgdLogisticRegressionBinaryTrainer.Options";
 
             //The named parameters to the trainer.
             internal override IDictionary<string, string> NamedParameters
@@ -472,16 +497,16 @@ namespace Microsoft.ML.CLI.CodeGenerator.CSharp
                     return
                     new Dictionary<string, string>()
                     {
-                        {"LabelColumn","labelColumnName" },
-                        {"FeatureColumn","featureColumnName" },
+                        {"LabelColumnName","labelColumnName" },
+                        {"FeatureColumnName","featureColumnName" },
                         {"NumberOfIterations","numberOfIterations" }
                     };
                 }
             }
 
-            internal override string[] Usings => new string[] { "using Microsoft.ML.Trainers.HalLearners;\r\n" };
+            internal override string[] Usings => new string[] { "using Microsoft.ML.Trainers;\r\n" };
 
-            public SymbolicStochasticGradientDescent(PipelineNode node) : base(node)
+            public SymbolicSgdLogisticRegressionBinary(PipelineNode node) : base(node)
             {
 
             }
@@ -520,7 +545,7 @@ namespace Microsoft.ML.CLI.CodeGenerator.CSharp
                 sb.Append(",");
                 sb.Append("labelColumnName:");
                 sb.Append("\"");
-                sb.Append(node.Properties["LabelColumn"]);
+                sb.Append(node.Properties["LabelColumnName"]);
                 sb.Append("\"");
                 sb.Append(")");
                 return sb.ToString();

@@ -9,7 +9,6 @@ namespace mlnet.Test
     /****************************
      * TODO : Add all trainer tests :
      * **************************/
-    [Ignore]
     [TestClass]
     public class TrainerGeneratorTests
     {
@@ -22,13 +21,13 @@ namespace mlnet.Test
             var elementProperties = new Dictionary<string, object>()
             {
                 {"LearningRate", 0.1f },
-                {"NumLeaves", 1 },
+                {"NumberOfLeaves", 1 },
             };
             PipelineNode node = new PipelineNode("LightGbmBinary", PipelineNodeType.Trainer, default(string[]), default(string), elementProperties);
             Pipeline pipeline = new Pipeline(new PipelineNode[] { node });
             CodeGenerator codeGenerator = new CodeGenerator(pipeline, null, null);
             var actual = codeGenerator.GenerateTrainerAndUsings();
-            string expectedTrainerString = "LightGbm(learningRate:0.1f,numLeaves:1,labelColumnName:\"Label\",featureColumnName:\"Features\")";
+            string expectedTrainerString = "LightGbm(learningRate:0.1f,numberOfLeaves:1,labelColumnName:\"Label\",featureColumnName:\"Features\")";
             Assert.AreEqual(expectedTrainerString, actual.Item1);
             Assert.IsNull(actual.Item2);
 
@@ -50,32 +49,32 @@ namespace mlnet.Test
             Pipeline pipeline = new Pipeline(new PipelineNode[] { node });
             CodeGenerator codeGenerator = new CodeGenerator(pipeline, null, null);
             var actual = codeGenerator.GenerateTrainerAndUsings();
-            string expectedTrainerString = "LightGbm(new Options(){LearningRate=0.1f,NumLeaves=1,UseSoftmax=true,LabelColumn=\"Label\",FeatureColumn=\"Features\"})";
-            string expectedUsings = "using Microsoft.ML.LightGBM;\r\n";
+            string expectedTrainerString = "LightGbm(new LightGbmBinaryTrainer.Options(){LearningRate=0.1f,NumLeaves=1,UseSoftmax=true,LabelColumnName=\"Label\",FeatureColumnName=\"Features\"})";
+            string expectedUsings = "using Microsoft.ML.Trainers.LightGbm;\r\n";
             Assert.AreEqual(expectedTrainerString, actual.Item1);
             Assert.AreEqual(expectedUsings, actual.Item2[0]);
 
         }
 
         [TestMethod]
-        public void SymSgdBinaryBasicTest()
+        public void SymbolicSgdLogisticRegressionBinaryBasicTest()
         {
 
             var context = new MLContext();
 
             var elementProperties = new Dictionary<string, object>();
-            PipelineNode node = new PipelineNode("SymSgdBinary", PipelineNodeType.Trainer, default(string[]), default(string), elementProperties);
+            PipelineNode node = new PipelineNode("SymbolicSgdLogisticRegressionBinary", PipelineNodeType.Trainer, default(string[]), default(string), elementProperties);
             Pipeline pipeline = new Pipeline(new PipelineNode[] { node });
             CodeGenerator codeGenerator = new CodeGenerator(pipeline, null, null);
             var actual = codeGenerator.GenerateTrainerAndUsings();
-            string expectedTrainerString = "SymbolicStochasticGradientDescent(labelColumnName:\"Label\",featureColumnName:\"Features\")";
+            string expectedTrainerString = "SymbolicSgdLogisticRegression(labelColumnName:\"Label\",featureColumnName:\"Features\")";
             Assert.AreEqual(expectedTrainerString, actual.Item1);
             Assert.IsNull(actual.Item2);
 
         }
 
         [TestMethod]
-        public void SymSgdBinaryAdvancedParameterTest()
+        public void SymbolicSgdLogisticRegressionBinaryAdvancedParameterTest()
         {
 
             var context = new MLContext();
@@ -84,35 +83,35 @@ namespace mlnet.Test
             {
                 {"LearningRate", 0.1f },
             };
-            PipelineNode node = new PipelineNode("SymSgdBinary", PipelineNodeType.Trainer, default(string[]), default(string), elementProperties);
+            PipelineNode node = new PipelineNode("SymbolicSgdLogisticRegressionBinary", PipelineNodeType.Trainer, default(string[]), default(string), elementProperties);
             Pipeline pipeline = new Pipeline(new PipelineNode[] { node });
             CodeGenerator codeGenerator = new CodeGenerator(pipeline, null, null);
             var actual = codeGenerator.GenerateTrainerAndUsings();
-            var expectedUsings = "using Microsoft.ML.Trainers.HalLearners;\r\n";
-            string expectedTrainerString = "SymbolicStochasticGradientDescent(new SymSgdClassificationTrainer.Options(){LearningRate=0.1f,LabelColumn=\"Label\",FeatureColumn=\"Features\"})";
+            var expectedUsings = "using Microsoft.ML.Trainers;\r\n";
+            string expectedTrainerString = "SymbolicSgdLogisticRegression(new SymbolicSgdLogisticRegressionBinaryTrainer.Options(){LearningRate=0.1f,LabelColumnName=\"Label\",FeatureColumnName=\"Features\"})";
             Assert.AreEqual(expectedTrainerString, actual.Item1);
             Assert.AreEqual(expectedUsings, actual.Item2[0]);
 
         }
 
         [TestMethod]
-        public void StochasticGradientDescentBinaryBasicTest()
+        public void SgdCalibratedBinaryBasicTest()
         {
             var context = new MLContext();
 
             var elementProperties = new Dictionary<string, object>();
-            PipelineNode node = new PipelineNode("StochasticGradientDescentBinary", PipelineNodeType.Trainer, default(string[]), default(string), elementProperties);
+            PipelineNode node = new PipelineNode("SgdCalibratedBinary", PipelineNodeType.Trainer, default(string[]), default(string), elementProperties);
             Pipeline pipeline = new Pipeline(new PipelineNode[] { node });
             CodeGenerator codeGenerator = new CodeGenerator(pipeline, null, null);
             var actual = codeGenerator.GenerateTrainerAndUsings();
-            string expectedTrainerString = "StochasticGradientDescent(labelColumnName:\"Label\",featureColumnName:\"Features\")";
+            string expectedTrainerString = "SgdCalibrated(labelColumnName:\"Label\",featureColumnName:\"Features\")";
             Assert.AreEqual(expectedTrainerString, actual.Item1);
             Assert.IsNull(actual.Item2);
 
         }
 
         [TestMethod]
-        public void StochasticGradientDescentBinaryAdvancedParameterTest()
+        public void SgdCalibratedBinaryAdvancedParameterTest()
         {
 
             var context = new MLContext();
@@ -121,35 +120,35 @@ namespace mlnet.Test
             {
                 {"Shuffle", true },
             };
-            PipelineNode node = new PipelineNode("StochasticGradientDescentBinary", PipelineNodeType.Trainer, default(string[]), default(string), elementProperties);
+            PipelineNode node = new PipelineNode("SgdCalibratedBinary", PipelineNodeType.Trainer, default(string[]), default(string), elementProperties);
             Pipeline pipeline = new Pipeline(new PipelineNode[] { node });
             CodeGenerator codeGenerator = new CodeGenerator(pipeline, null, null);
             var actual = codeGenerator.GenerateTrainerAndUsings();
             var expectedUsings = "using Microsoft.ML.Trainers;\r\n";
-            string expectedTrainerString = "StochasticGradientDescent(new SgdBinaryTrainer.Options(){Shuffle=true,LabelColumn=\"Label\",FeatureColumn=\"Features\"})";
+            string expectedTrainerString = "SgdCalibrated(new SgdCalibratedTrainer.Options(){Shuffle=true,LabelColumnName=\"Label\",FeatureColumnName=\"Features\"})";
             Assert.AreEqual(expectedTrainerString, actual.Item1);
             Assert.AreEqual(expectedUsings, actual.Item2[0]);
 
         }
 
         [TestMethod]
-        public void SDCABinaryBasicTest()
+        public void SdcaLogisticRegressionBinaryBasicTest()
         {
             var context = new MLContext();
 
             var elementProperties = new Dictionary<string, object>();
-            PipelineNode node = new PipelineNode("SdcaBinary", PipelineNodeType.Trainer, default(string[]), default(string), elementProperties);
+            PipelineNode node = new PipelineNode("SdcaLogisticRegressionBinary", PipelineNodeType.Trainer, default(string[]), default(string), elementProperties);
             Pipeline pipeline = new Pipeline(new PipelineNode[] { node });
             CodeGenerator codeGenerator = new CodeGenerator(pipeline, null, null);
             var actual = codeGenerator.GenerateTrainerAndUsings();
-            string expectedTrainerString = "StochasticDualCoordinateAscent(labelColumnName:\"Label\",featureColumnName:\"Features\")";
+            string expectedTrainerString = "SdcaLogisticRegression(labelColumnName:\"Label\",featureColumnName:\"Features\")";
             Assert.AreEqual(expectedTrainerString, actual.Item1);
             Assert.IsNull(actual.Item2);
 
         }
 
         [TestMethod]
-        public void SDCABinaryAdvancedParameterTest()
+        public void SdcaLogisticRegressionBinaryAdvancedParameterTest()
         {
 
             var context = new MLContext();
@@ -158,35 +157,35 @@ namespace mlnet.Test
             {
                 {"BiasLearningRate", 0.1f },
             };
-            PipelineNode node = new PipelineNode("SdcaBinary", PipelineNodeType.Trainer, default(string[]), default(string), elementProperties);
+            PipelineNode node = new PipelineNode("SdcaLogisticRegressionBinary", PipelineNodeType.Trainer, default(string[]), default(string), elementProperties);
             Pipeline pipeline = new Pipeline(new PipelineNode[] { node });
             CodeGenerator codeGenerator = new CodeGenerator(pipeline, null, null);
             var actual = codeGenerator.GenerateTrainerAndUsings();
             var expectedUsings = "using Microsoft.ML.Trainers;\r\n";
-            string expectedTrainerString = "StochasticDualCoordinateAscent(new SdcaBinaryTrainer.Options(){BiasLearningRate=0.1f,LabelColumn=\"Label\",FeatureColumn=\"Features\"})";
+            string expectedTrainerString = "SdcaLogisticRegression(new SdcaLogisticRegressionBinaryTrainer.Options(){BiasLearningRate=0.1f,LabelColumnName=\"Label\",FeatureColumnName=\"Features\"})";
             Assert.AreEqual(expectedTrainerString, actual.Item1);
             Assert.AreEqual(expectedUsings, actual.Item2[0]);
 
         }
 
         [TestMethod]
-        public void SDCAMultiBasicTest()
+        public void SdcaMaximumEntropyMultiBasicTest()
         {
             var context = new MLContext();
 
             var elementProperties = new Dictionary<string, object>();
-            PipelineNode node = new PipelineNode("SdcaMulti", PipelineNodeType.Trainer, default(string[]), default(string), elementProperties);
+            PipelineNode node = new PipelineNode("SdcaMaximumEntropyMulti", PipelineNodeType.Trainer, default(string[]), default(string), elementProperties);
             Pipeline pipeline = new Pipeline(new PipelineNode[] { node });
             CodeGenerator codeGenerator = new CodeGenerator(pipeline, null, null);
             var actual = codeGenerator.GenerateTrainerAndUsings();
-            string expectedTrainerString = "StochasticDualCoordinateAscent(labelColumnName:\"Label\",featureColumnName:\"Features\")";
+            string expectedTrainerString = "SdcaMaximumEntropy(labelColumnName:\"Label\",featureColumnName:\"Features\")";
             Assert.AreEqual(expectedTrainerString, actual.Item1);
             Assert.IsNull(actual.Item2);
 
         }
 
         [TestMethod]
-        public void SDCAMultiAdvancedParameterTest()
+        public void SdcaMaximumEntropyMultiAdvancedParameterTest()
         {
 
             var context = new MLContext();
@@ -195,19 +194,19 @@ namespace mlnet.Test
             {
                 {"BiasLearningRate", 0.1f },
             };
-            PipelineNode node = new PipelineNode("SdcaMulti", PipelineNodeType.Trainer, default(string[]), default(string), elementProperties);
+            PipelineNode node = new PipelineNode("SdcaMaximumEntropyMulti", PipelineNodeType.Trainer, default(string[]), default(string), elementProperties);
             Pipeline pipeline = new Pipeline(new PipelineNode[] { node });
             CodeGenerator codeGenerator = new CodeGenerator(pipeline, null, null);
             var actual = codeGenerator.GenerateTrainerAndUsings();
             var expectedUsings = "using Microsoft.ML.Trainers;\r\n";
-            string expectedTrainerString = "StochasticDualCoordinateAscent(new SdcaMultiClassTrainer.Options(){BiasLearningRate=0.1f,LabelColumn=\"Label\",FeatureColumn=\"Features\"})";
+            string expectedTrainerString = "SdcaMaximumEntropy(new SdcaMaximumEntropyMulticlassTrainer.Options(){BiasLearningRate=0.1f,LabelColumnName=\"Label\",FeatureColumnName=\"Features\"})";
             Assert.AreEqual(expectedTrainerString, actual.Item1);
             Assert.AreEqual(expectedUsings, actual.Item2[0]);
 
         }
 
         [TestMethod]
-        public void SDCARegressionBasicTest()
+        public void SdcaRegressionBasicTest()
         {
             var context = new MLContext();
 
@@ -216,14 +215,14 @@ namespace mlnet.Test
             Pipeline pipeline = new Pipeline(new PipelineNode[] { node });
             CodeGenerator codeGenerator = new CodeGenerator(pipeline, null, null);
             var actual = codeGenerator.GenerateTrainerAndUsings();
-            string expectedTrainerString = "StochasticDualCoordinateAscent(labelColumnName:\"Label\",featureColumnName:\"Features\")";
+            string expectedTrainerString = "Sdca(labelColumnName:\"Label\",featureColumnName:\"Features\")";
             Assert.AreEqual(expectedTrainerString, actual.Item1);
             Assert.IsNull(actual.Item2);
 
         }
 
         [TestMethod]
-        public void SDCARegressionAdvancedParameterTest()
+        public void SdcaRegressionAdvancedParameterTest()
         {
 
             var context = new MLContext();
@@ -237,81 +236,81 @@ namespace mlnet.Test
             CodeGenerator codeGenerator = new CodeGenerator(pipeline, null, null);
             var actual = codeGenerator.GenerateTrainerAndUsings();
             var expectedUsings = "using Microsoft.ML.Trainers;\r\n";
-            string expectedTrainerString = "StochasticDualCoordinateAscent(new SdcaRegressionTrainer.Options(){BiasLearningRate=0.1f,LabelColumn=\"Label\",FeatureColumn=\"Features\"})";
+            string expectedTrainerString = "Sdca(new SdcaRegressionTrainer.Options(){BiasLearningRate=0.1f,LabelColumnName=\"Label\",FeatureColumnName=\"Features\"})";
             Assert.AreEqual(expectedTrainerString, actual.Item1);
             Assert.AreEqual(expectedUsings, actual.Item2[0]);
 
         }
 
         [TestMethod]
-        public void PoissonRegressionBasicTest()
+        public void LbfgsPoissonRegressionBasicTest()
         {
             var context = new MLContext();
 
             var elementProperties = new Dictionary<string, object>();
-            PipelineNode node = new PipelineNode("PoissonRegression", PipelineNodeType.Trainer, default(string[]), default(string), elementProperties);
+            PipelineNode node = new PipelineNode("LbfgsPoissonRegression", PipelineNodeType.Trainer, default(string[]), default(string), elementProperties);
             Pipeline pipeline = new Pipeline(new PipelineNode[] { node });
             CodeGenerator codeGenerator = new CodeGenerator(pipeline, null, null);
             var actual = codeGenerator.GenerateTrainerAndUsings();
-            string expectedTrainerString = "PoissonRegression(labelColumnName:\"Label\",featureColumnName:\"Features\")";
+            string expectedTrainerString = "LbfgsPoissonRegression(labelColumnName:\"Label\",featureColumnName:\"Features\")";
             Assert.AreEqual(expectedTrainerString, actual.Item1);
             Assert.IsNull(actual.Item2);
 
         }
 
         [TestMethod]
-        public void PoissonRegressionAdvancedParameterTest()
+        public void LbfgsPoissonRegressionAdvancedParameterTest()
         {
 
             var context = new MLContext();
 
             var elementProperties = new Dictionary<string, object>()
             {
-                {"MaxIterations", 1 },
+                {"MaximumNumberOfIterations", 1 },
             };
-            PipelineNode node = new PipelineNode("PoissonRegression", PipelineNodeType.Trainer, default(string[]), default(string), elementProperties);
+            PipelineNode node = new PipelineNode("LbfgsPoissonRegression", PipelineNodeType.Trainer, default(string[]), default(string), elementProperties);
             Pipeline pipeline = new Pipeline(new PipelineNode[] { node });
             CodeGenerator codeGenerator = new CodeGenerator(pipeline, null, null);
             var actual = codeGenerator.GenerateTrainerAndUsings();
             var expectedUsings = "using Microsoft.ML.Trainers;\r\n";
-            string expectedTrainerString = "PoissonRegression(new PoissonRegression.Options(){MaxIterations=1,LabelColumn=\"Label\",FeatureColumn=\"Features\"})";
+            string expectedTrainerString = "LbfgsPoissonRegression(new LbfgsPoissonRegressionTrainer.Options(){MaximumNumberOfIterations=1,LabelColumnName=\"Label\",FeatureColumnName=\"Features\"})";
             Assert.AreEqual(expectedTrainerString, actual.Item1);
             Assert.AreEqual(expectedUsings, actual.Item2[0]);
 
         }
 
         [TestMethod]
-        public void OrdinaryLeastSquaresRegressionBasicTest()
+        public void OlsRegressionBasicTest()
         {
             var context = new MLContext();
 
             var elementProperties = new Dictionary<string, object>();
-            PipelineNode node = new PipelineNode("OrdinaryLeastSquaresRegression", PipelineNodeType.Trainer, default(string[]), default(string), elementProperties);
+            PipelineNode node = new PipelineNode("OlsRegression", PipelineNodeType.Trainer, default(string[]), default(string), elementProperties);
             Pipeline pipeline = new Pipeline(new PipelineNode[] { node });
             CodeGenerator codeGenerator = new CodeGenerator(pipeline, null, null);
             var actual = codeGenerator.GenerateTrainerAndUsings();
-            string expectedTrainerString = "OrdinaryLeastSquares(labelColumnName:\"Label\",featureColumnName:\"Features\")";
+            string expectedTrainerString = "Ols(labelColumnName:\"Label\",featureColumnName:\"Features\")";
             Assert.AreEqual(expectedTrainerString, actual.Item1);
             Assert.IsNull(actual.Item2);
 
         }
 
         [TestMethod]
-        public void OrdinaryLeastSquaresRegressionAdvancedParameterTest()
+        public void OlsRegressionAdvancedParameterTest()
         {
 
             var context = new MLContext();
 
             var elementProperties = new Dictionary<string, object>()
             {
-                {"L2Weight", 0.1f },
+                {"L2Regularization", 0.1f },
             };
-            PipelineNode node = new PipelineNode("OrdinaryLeastSquaresRegression", PipelineNodeType.Trainer, default(string[]), default(string), elementProperties);
+            PipelineNode node = new PipelineNode("OlsRegression", PipelineNodeType.Trainer, default(string[]), default(string), elementProperties);
             Pipeline pipeline = new Pipeline(new PipelineNode[] { node });
             CodeGenerator codeGenerator = new CodeGenerator(pipeline, null, null);
             var actual = codeGenerator.GenerateTrainerAndUsings();
-            var expectedUsings = "using Microsoft.ML.Trainers.HalLearners;\r\n";
-            string expectedTrainerString = "OrdinaryLeastSquares(new OlsLinearRegressionTrainer.Options(){L2Weight=0.1f,LabelColumn=\"Label\",FeatureColumn=\"Features\"})";
+            var expectedUsings = "using Microsoft.ML.Trainers;\r\n";
+            string expectedTrainerString = "Ols(new OlsTrainer.Options(){L2Regularization=0.1f,LabelColumnName=\"Label\",FeatureColumnName=\"Features\"})";
             Assert.AreEqual(expectedTrainerString, actual.Item1);
             Assert.AreEqual(expectedUsings, actual.Item2[0]);
 
@@ -348,30 +347,30 @@ namespace mlnet.Test
             CodeGenerator codeGenerator = new CodeGenerator(pipeline, null, null);
             var actual = codeGenerator.GenerateTrainerAndUsings();
             var expectedUsings = "using Microsoft.ML.Trainers;\r\n";
-            string expectedTrainerString = "OnlineGradientDescent(new OnlineGradientDescentTrainer.Options(){RecencyGainMulti=true,LabelColumn=\"Label\",FeatureColumn=\"Features\"})";
+            string expectedTrainerString = "OnlineGradientDescent(new OnlineGradientDescentTrainer.Options(){RecencyGainMulti=true,LabelColumnName=\"Label\",FeatureColumnName=\"Features\"})";
             Assert.AreEqual(expectedTrainerString, actual.Item1);
             Assert.AreEqual(expectedUsings, actual.Item2[0]);
 
         }
 
         [TestMethod]
-        public void LogisticRegressionBinaryBasicTest()
+        public void LbfgsLogisticRegressionBinaryBasicTest()
         {
             var context = new MLContext();
 
             var elementProperties = new Dictionary<string, object>();
-            PipelineNode node = new PipelineNode("LogisticRegressionBinary", PipelineNodeType.Trainer, default(string[]), default(string), elementProperties);
+            PipelineNode node = new PipelineNode("LbfgsLogisticRegressionBinary", PipelineNodeType.Trainer, default(string[]), default(string), elementProperties);
             Pipeline pipeline = new Pipeline(new PipelineNode[] { node });
             CodeGenerator codeGenerator = new CodeGenerator(pipeline, null, null);
             var actual = codeGenerator.GenerateTrainerAndUsings();
-            string expectedTrainerString = "LogisticRegression(labelColumnName:\"Label\",featureColumnName:\"Features\")";
+            string expectedTrainerString = "LbfgsLogisticRegression(labelColumnName:\"Label\",featureColumnName:\"Features\")";
             Assert.AreEqual(expectedTrainerString, actual.Item1);
             Assert.IsNull(actual.Item2);
 
         }
 
         [TestMethod]
-        public void LogisticRegressionBinaryAdvancedParameterTest()
+        public void LbfgsLogisticRegressionBinaryAdvancedParameterTest()
         {
 
             var context = new MLContext();
@@ -380,35 +379,35 @@ namespace mlnet.Test
             {
                 {"DenseOptimizer", true },
             };
-            PipelineNode node = new PipelineNode("LogisticRegressionBinary", PipelineNodeType.Trainer, default(string[]), default(string), elementProperties);
+            PipelineNode node = new PipelineNode("LbfgsLogisticRegressionBinary", PipelineNodeType.Trainer, default(string[]), default(string), elementProperties);
             Pipeline pipeline = new Pipeline(new PipelineNode[] { node });
             CodeGenerator codeGenerator = new CodeGenerator(pipeline, null, null);
             var actual = codeGenerator.GenerateTrainerAndUsings();
             var expectedUsings = "using Microsoft.ML.Trainers;\r\n";
-            string expectedTrainerString = "LogisticRegression(new LogisticRegression.Options(){DenseOptimizer=true,LabelColumn=\"Label\",FeatureColumn=\"Features\"})";
+            string expectedTrainerString = "LbfgsLogisticRegression(new LbfgsLogisticRegressionBinaryTrainer.Options(){DenseOptimizer=true,LabelColumnName=\"Label\",FeatureColumnName=\"Features\"})";
             Assert.AreEqual(expectedTrainerString, actual.Item1);
             Assert.AreEqual(expectedUsings, actual.Item2[0]);
 
         }
 
         [TestMethod]
-        public void LogisticRegressionMultiBasicTest()
+        public void LbfgsMaximumEntropyMultiMultiBasicTest()
         {
             var context = new MLContext();
 
             var elementProperties = new Dictionary<string, object>();
-            PipelineNode node = new PipelineNode("LogisticRegressionMulti", PipelineNodeType.Trainer, default(string[]), default(string), elementProperties);
+            PipelineNode node = new PipelineNode("LbfgsMaximumEntropyMulti", PipelineNodeType.Trainer, default(string[]), default(string), elementProperties);
             Pipeline pipeline = new Pipeline(new PipelineNode[] { node });
             CodeGenerator codeGenerator = new CodeGenerator(pipeline, null, null);
             var actual = codeGenerator.GenerateTrainerAndUsings();
-            string expectedTrainerString = "LogisticRegression(labelColumnName:\"Label\",featureColumnName:\"Features\")";
+            string expectedTrainerString = "LbfgsMaximumEntropy(labelColumnName:\"Label\",featureColumnName:\"Features\")";
             Assert.AreEqual(expectedTrainerString, actual.Item1);
             Assert.IsNull(actual.Item2);
 
         }
 
         [TestMethod]
-        public void LogisticRegressionMultiAdvancedParameterTest()
+        public void LbfgsMaximumEntropyMultiAdvancedParameterTest()
         {
 
             var context = new MLContext();
@@ -417,12 +416,12 @@ namespace mlnet.Test
             {
                 {"DenseOptimizer", true },
             };
-            PipelineNode node = new PipelineNode("LogisticRegressionMulti", PipelineNodeType.Trainer, default(string[]), default(string), elementProperties);
+            PipelineNode node = new PipelineNode("LbfgsMaximumEntropyMulti", PipelineNodeType.Trainer, default(string[]), default(string), elementProperties);
             Pipeline pipeline = new Pipeline(new PipelineNode[] { node });
             CodeGenerator codeGenerator = new CodeGenerator(pipeline, null, null);
             var actual = codeGenerator.GenerateTrainerAndUsings();
             var expectedUsings = "using Microsoft.ML.Trainers;\r\n";
-            string expectedTrainerString = "LogisticRegression(new MulticlassLogisticRegression.Options(){DenseOptimizer=true,LabelColumn=\"Label\",FeatureColumn=\"Features\"})";
+            string expectedTrainerString = "LbfgsMaximumEntropy(new LbfgsMaximumEntropyMulticlassTrainer.Options(){DenseOptimizer=true,LabelColumnName=\"Label\",FeatureColumnName=\"Features\"})";
             Assert.AreEqual(expectedTrainerString, actual.Item1);
             Assert.AreEqual(expectedUsings, actual.Item2[0]);
 
@@ -438,7 +437,7 @@ namespace mlnet.Test
             Pipeline pipeline = new Pipeline(new PipelineNode[] { node });
             CodeGenerator codeGenerator = new CodeGenerator(pipeline, null, null);
             var actual = codeGenerator.GenerateTrainerAndUsings();
-            string expectedTrainerString = "LinearSupportVectorMachines(labelColumnName:\"Label\",featureColumnName:\"Features\")";
+            string expectedTrainerString = "LinearSvm(labelColumnName:\"Label\",featureColumnName:\"Features\")";
             Assert.AreEqual(expectedTrainerString, actual.Item1);
             Assert.IsNull(actual.Item2);
 
@@ -459,7 +458,7 @@ namespace mlnet.Test
             CodeGenerator codeGenerator = new CodeGenerator(pipeline, null, null);
             var actual = codeGenerator.GenerateTrainerAndUsings();
             var expectedUsings = "using Microsoft.ML.Trainers;\r\n ";
-            string expectedTrainerString = "LinearSupportVectorMachines(new LinearSvmTrainer.Options(){NoBias=true,LabelColumn=\"Label\",FeatureColumn=\"Features\"})";
+            string expectedTrainerString = "LinearSvm(new LinearSvmTrainer.Options(){NoBias=true,LabelColumnName=\"Label\",FeatureColumnName=\"Features\"})";
             Assert.AreEqual(expectedTrainerString, actual.Item1);
             Assert.AreEqual(expectedUsings, actual.Item2[0]);
 
@@ -497,7 +496,7 @@ namespace mlnet.Test
             CodeGenerator codeGenerator = new CodeGenerator(pipeline, null, null);
             var actual = codeGenerator.GenerateTrainerAndUsings();
             var expectedUsings = "using Microsoft.ML.Trainers;\r\n";
-            string expectedTrainerString = "OnlineGradientDescent(new OnlineGradientDescentTrainer.Options(){Shrinkage=0.1f,LabelColumn=\"Label\",FeatureColumn=\"Features\"})";
+            string expectedTrainerString = "OnlineGradientDescent(new OnlineGradientDescentTrainer.Options(){Shrinkage=0.1f,LabelColumnName=\"Label\",FeatureColumnName=\"Features\"})";
             Assert.AreEqual(expectedTrainerString, actual.Item1);
             Assert.AreEqual(expectedUsings, actual.Item2[0]);
 
@@ -535,7 +534,7 @@ namespace mlnet.Test
             CodeGenerator codeGenerator = new CodeGenerator(pipeline, null, null);
             var actual = codeGenerator.GenerateTrainerAndUsings();
             var expectedUsings = "using Microsoft.ML.Trainers.FastTree;\r\n";
-            string expectedTrainerString = "FastTree(new FastTreeRegressionTrainer.Options(){Shrinkage=0.1f,LabelColumn=\"Label\",FeatureColumn=\"Features\"})";
+            string expectedTrainerString = "FastTree(new FastTreeRegressionTrainer.Options(){Shrinkage=0.1f,LabelColumnName=\"Label\",FeatureColumnName=\"Features\"})";
             Assert.AreEqual(expectedTrainerString, actual.Item1);
             Assert.AreEqual(expectedUsings, actual.Item2[0]);
 
@@ -573,7 +572,7 @@ namespace mlnet.Test
             CodeGenerator codeGenerator = new CodeGenerator(pipeline, null, null);
             var actual = codeGenerator.GenerateTrainerAndUsings();
             var expectedUsings = "using Microsoft.ML.Trainers.FastTree;\r\n";
-            string expectedTrainerString = "FastTree(new FastTreeBinaryClassificationTrainer.Options(){Shrinkage=0.1f,LabelColumn=\"Label\",FeatureColumn=\"Features\"})";
+            string expectedTrainerString = "FastTree(new FastTreeBinaryTrainer.Options(){Shrinkage=0.1f,LabelColumnName=\"Label\",FeatureColumnName=\"Features\"})";
             Assert.AreEqual(expectedTrainerString, actual.Item1);
             Assert.AreEqual(expectedUsings, actual.Item2[0]);
 
@@ -610,7 +609,7 @@ namespace mlnet.Test
             CodeGenerator codeGenerator = new CodeGenerator(pipeline, null, null);
             var actual = codeGenerator.GenerateTrainerAndUsings();
             var expectedUsings = "using Microsoft.ML.Trainers.FastTree;\r\n";
-            string expectedTrainerString = "FastForest(new FastForestRegression.Options(){Shrinkage=0.1f,LabelColumn=\"Label\",FeatureColumn=\"Features\"})";
+            string expectedTrainerString = "FastForest(new FastForestRegression.Options(){Shrinkage=0.1f,LabelColumnName=\"Label\",FeatureColumnName=\"Features\"})";
             Assert.AreEqual(expectedTrainerString, actual.Item1);
             Assert.AreEqual(expectedUsings, actual.Item2[0]);
 
@@ -648,7 +647,7 @@ namespace mlnet.Test
             CodeGenerator codeGenerator = new CodeGenerator(pipeline, null, null);
             var actual = codeGenerator.GenerateTrainerAndUsings();
             var expectedUsings = "using Microsoft.ML.Trainers.FastTree;\r\n";
-            string expectedTrainerString = "FastForest(new FastForestClassification.Options(){Shrinkage=0.1f,LabelColumn=\"Label\",FeatureColumn=\"Features\"})";
+            string expectedTrainerString = "FastForest(new FastForestClassification.Options(){Shrinkage=0.1f,LabelColumnName=\"Label\",FeatureColumnName=\"Features\"})";
             Assert.AreEqual(expectedTrainerString, actual.Item1);
             Assert.AreEqual(expectedUsings, actual.Item2[0]);
 
@@ -686,7 +685,7 @@ namespace mlnet.Test
             CodeGenerator codeGenerator = new CodeGenerator(pipeline, null, null);
             var actual = codeGenerator.GenerateTrainerAndUsings();
             var expectedUsings = "using Microsoft.ML.Trainers;\r\n ";
-            string expectedTrainerString = "AveragedPerceptron(new AveragedPerceptronTrainer.Options(){Shuffle=true,LabelColumn=\"Label\",FeatureColumn=\"Features\"})";
+            string expectedTrainerString = "AveragedPerceptron(new AveragedPerceptronTrainer.Options(){Shuffle=true,LabelColumnName=\"Label\",FeatureColumnName=\"Features\"})";
             Assert.AreEqual(expectedTrainerString, actual.Item1);
             Assert.AreEqual(expectedUsings, actual.Item2[0]);
 

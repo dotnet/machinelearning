@@ -73,7 +73,7 @@ namespace Microsoft.ML.Auto.Test
         ""L1Regularization"": 0.5
       }
     },
-    ""LabelColumn"": ""Label""
+    ""LabelColumnName"": ""Label""
   }
 }";
             Util.AssertObjectMatchesJson(expectedJson, pipelineNode);
@@ -105,7 +105,7 @@ namespace Microsoft.ML.Auto.Test
     ""MaximumNumberOfIterations"": 10,
     ""Shuffle"": true,
     ""BiasLearningRate"": 0.01,
-    ""LabelColumn"": ""Label""
+    ""LabelColumnName"": ""Label""
   }
 }";
             Util.AssertObjectMatchesJson(expectedJson, pipelineNode);
@@ -127,7 +127,7 @@ namespace Microsoft.ML.Auto.Test
     ""Score""
   ],
   ""Properties"": {
-    ""LabelColumn"": ""Label""
+    ""LabelColumnName"": ""Label""
   }
 }";
             Util.AssertObjectMatchesJson(expectedJson, pipelineNode);
@@ -161,8 +161,8 @@ namespace Microsoft.ML.Auto.Test
     ""NumberOfLeaves"": 1,
     ""MinimumExampleCountPerLeaf"": 10,
     ""NumberOfTrees"": 100,
-    ""LabelColumn"": ""L"",
-    ""WeightColumn"": ""W""
+    ""LabelColumnName"": ""L"",
+    ""ExampleWeightColumnName"": ""W""
   }
 }";
             Util.AssertObjectMatchesJson(expectedJson, pipelineNode);
@@ -182,7 +182,7 @@ namespace Microsoft.ML.Auto.Test
     ""Score""
   ],
   ""Properties"": {
-    ""LabelColumn"": ""L"",
+    ""LabelColumnName"": ""L"",
     ""NumberOfIterations"": 10
   }
 }";
@@ -199,7 +199,7 @@ namespace Microsoft.ML.Auto.Test
   ""InColumns"": null,
   ""OutColumns"": null,
   ""Properties"": {
-    ""LabelColumn"": ""Label"",
+    ""LabelColumnName"": ""Label"",
     ""BinaryTrainer"": {
       ""Name"": ""FastForestBinary"",
       ""NodeType"": ""Trainer"",
@@ -210,7 +210,7 @@ namespace Microsoft.ML.Auto.Test
         ""Score""
       ],
       ""Properties"": {
-        ""LabelColumn"": ""Label""
+        ""LabelColumnName"": ""Label""
       }
     }
   }

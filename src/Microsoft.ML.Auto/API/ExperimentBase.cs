@@ -48,7 +48,7 @@ namespace Microsoft.ML.Auto
         {
             // Cross val threshold for # of dataset rows --
             // If dataset has < threshold # of rows, use cross val.
-            // Else, use run experiment using train-validate split.
+            // Else, run experiment using train-validate split.
             const int crossValRowCountThreshold = 15000;
 
             var rowCount = DatasetDimensionsUtil.CountRows(trainData, crossValRowCountThreshold);

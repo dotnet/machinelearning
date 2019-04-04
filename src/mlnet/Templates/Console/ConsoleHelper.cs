@@ -44,119 +44,121 @@ namespace ");
                     "onsole.WriteLine($\"*************************************************\");\r\n       " +
                     "     Console.WriteLine($\"*       Metrics for regression model      \");\r\n        " +
                     "    Console.WriteLine($\"*------------------------------------------------\");\r\n  " +
-                    "          Console.WriteLine($\"*       LossFn:        {metrics.LossFn:0.##}\");\r\n " +
-                    "           Console.WriteLine($\"*       R2 Score:      {metrics.RSquared:0.##}\");" +
-                    "\r\n            Console.WriteLine($\"*       Absolute loss: {metrics.L1:#.##}\");\r\n " +
-                    "           Console.WriteLine($\"*       Squared loss:  {metrics.L2:#.##}\");\r\n    " +
-                    "        Console.WriteLine($\"*       RMS loss:      {metrics.Rms:#.##}\");\r\n      " +
-                    "      Console.WriteLine($\"*************************************************\");\r\n" +
-                    "        }\r\n\r\n        public static void PrintRegressionFoldsAverageMetrics(Train" +
-                    "CatalogBase.CrossValidationResult<RegressionMetrics>[] crossValidationResults)\r\n" +
-                    "        {\r\n            var L1 = crossValidationResults.Select(r => r.Metrics.L1)" +
-                    ";\r\n            var L2 = crossValidationResults.Select(r => r.Metrics.L2);\r\n     " +
-                    "       var RMS = crossValidationResults.Select(r => r.Metrics.L1);\r\n            " +
-                    "var lossFunction = crossValidationResults.Select(r => r.Metrics.LossFn);\r\n      " +
-                    "      var R2 = crossValidationResults.Select(r => r.Metrics.RSquared);\r\n\r\n      " +
-                    "      Console.WriteLine($\"******************************************************" +
-                    "*******************************************************\");\r\n            Console." +
-                    "WriteLine($\"*       Metrics for Regression model      \");\r\n            Console.W" +
-                    "riteLine($\"*--------------------------------------------------------------------" +
-                    "----------------------------------------\");\r\n            Console.WriteLine($\"*  " +
-                    "     Average L1 Loss:    {L1.Average():0.###} \");\r\n            Console.WriteLine" +
-                    "($\"*       Average L2 Loss:    {L2.Average():0.###}  \");\r\n            Console.Wr" +
-                    "iteLine($\"*       Average RMS:          {RMS.Average():0.###}  \");\r\n            " +
-                    "Console.WriteLine($\"*       Average Loss Function: {lossFunction.Average():0.###" +
-                    "}  \");\r\n            Console.WriteLine($\"*       Average R-squared: {R2.Average()" +
-                    ":0.###}  \");\r\n            Console.WriteLine($\"**********************************" +
-                    "***************************************************************************\");\r\n" +
-                    "        }\r\n\r\n        public static void PrintBinaryClassificationMetrics(BinaryC" +
-                    "lassificationMetrics metrics)\r\n        {\r\n            Console.WriteLine($\"******" +
-                    "******************************************************\");\r\n            Console.W" +
-                    "riteLine($\"*       Metrics for binary classification model      \");\r\n           " +
-                    " Console.WriteLine($\"*----------------------------------------------------------" +
-                    "-\");\r\n            Console.WriteLine($\"*       Accuracy: {metrics.Accuracy:P2}\");" +
-                    "\r\n            Console.WriteLine($\"*       Auc:      {metrics.Auc:P2}\");\r\n       " +
-                    "     Console.WriteLine($\"*******************************************************" +
-                    "*****\");\r\n        }\r\n\r\n\r\n        public static void PrintBinaryClassificationFol" +
-                    "dsAverageMetrics(TrainCatalogBase.CrossValidationResult<BinaryClassificationMetr" +
-                    "ics>[] crossValResults)\r\n        {\r\n            var metricsInMultipleFolds = cro" +
-                    "ssValResults.Select(r => r.Metrics);\r\n\r\n            var AccuracyValues = metrics" +
-                    "InMultipleFolds.Select(m => m.Accuracy);\r\n            var AccuracyAverage = Accu" +
-                    "racyValues.Average();\r\n            var AccuraciesStdDeviation = CalculateStandar" +
-                    "dDeviation(AccuracyValues);\r\n            var AccuraciesConfidenceInterval95 = Ca" +
-                    "lculateConfidenceInterval95(AccuracyValues);\r\n\r\n\r\n            Console.WriteLine(" +
-                    "$\"******************************************************************************" +
-                    "*******************************\");\r\n            Console.WriteLine($\"*       Metr" +
-                    "ics for Binary Classification model      \");\r\n            Console.WriteLine($\"*-" +
-                    "--------------------------------------------------------------------------------" +
-                    "---------------------------\");\r\n            Console.WriteLine($\"*       Average " +
-                    "Accuracy:    {AccuracyAverage:0.###}  - Standard deviation: ({AccuraciesStdDevia" +
-                    "tion:#.###})  - Confidence Interval 95%: ({AccuraciesConfidenceInterval95:#.###}" +
-                    ")\");\r\n            Console.WriteLine($\"******************************************" +
-                    "*******************************************************************\");\r\n\r\n      " +
-                    "  }\r\n\r\n        public static void PrintMultiClassClassificationMetrics(MultiClas" +
-                    "sClassifierMetrics metrics)\r\n        {\r\n            Console.WriteLine($\"********" +
-                    "****************************************************\");\r\n            Console.Wri" +
-                    "teLine($\"*    Metrics for multi-class classification model   \");\r\n            Co" +
-                    "nsole.WriteLine($\"*-----------------------------------------------------------\")" +
-                    ";\r\n            Console.WriteLine($\"    AccuracyMacro = {metrics.AccuracyMacro:0." +
-                    "####}, a value between 0 and 1, the closer to 1, the better\");\r\n            Cons" +
-                    "ole.WriteLine($\"    AccuracyMicro = {metrics.AccuracyMicro:0.####}, a value betw" +
-                    "een 0 and 1, the closer to 1, the better\");\r\n            Console.WriteLine($\"   " +
-                    " LogLoss = {metrics.LogLoss:0.####}, the closer to 0, the better\");\r\n           " +
-                    " for (int i = 0; i < metrics.PerClassLogLoss.Length; i++)\r\n            {\r\n      " +
-                    "          Console.WriteLine($\"    LogLoss for class {i + 1} = {metrics.PerClassL" +
-                    "ogLoss[i]:0.####}, the closer to 0, the better\");\r\n            }\r\n            Co" +
-                    "nsole.WriteLine($\"************************************************************\")" +
-                    ";\r\n        }\r\n\r\n        public static void PrintMulticlassClassificationFoldsAve" +
-                    "rageMetrics(TrainCatalogBase.CrossValidationResult<MultiClassClassifierMetrics>[" +
-                    "] crossValResults)\r\n        {\r\n            var metricsInMultipleFolds = crossVal" +
-                    "Results.Select(r => r.Metrics);\r\n\r\n            var microAccuracyValues = metrics" +
-                    "InMultipleFolds.Select(m => m.AccuracyMicro);\r\n            var microAccuracyAver" +
-                    "age = microAccuracyValues.Average();\r\n            var microAccuraciesStdDeviatio" +
-                    "n = CalculateStandardDeviation(microAccuracyValues);\r\n            var microAccur" +
-                    "aciesConfidenceInterval95 = CalculateConfidenceInterval95(microAccuracyValues);\r" +
-                    "\n\r\n            var macroAccuracyValues = metricsInMultipleFolds.Select(m => m.Ac" +
-                    "curacyMacro);\r\n            var macroAccuracyAverage = macroAccuracyValues.Averag" +
-                    "e();\r\n            var macroAccuraciesStdDeviation = CalculateStandardDeviation(m" +
-                    "acroAccuracyValues);\r\n            var macroAccuraciesConfidenceInterval95 = Calc" +
-                    "ulateConfidenceInterval95(macroAccuracyValues);\r\n\r\n            var logLossValues" +
-                    " = metricsInMultipleFolds.Select(m => m.LogLoss);\r\n            var logLossAverag" +
-                    "e = logLossValues.Average();\r\n            var logLossStdDeviation = CalculateSta" +
-                    "ndardDeviation(logLossValues);\r\n            var logLossConfidenceInterval95 = Ca" +
-                    "lculateConfidenceInterval95(logLossValues);\r\n\r\n            var logLossReductionV" +
-                    "alues = metricsInMultipleFolds.Select(m => m.LogLossReduction);\r\n            var" +
-                    " logLossReductionAverage = logLossReductionValues.Average();\r\n            var lo" +
-                    "gLossReductionStdDeviation = CalculateStandardDeviation(logLossReductionValues);" +
-                    "\r\n            var logLossReductionConfidenceInterval95 = CalculateConfidenceInte" +
-                    "rval95(logLossReductionValues);\r\n\r\n            Console.WriteLine($\"*************" +
+                    "          Console.WriteLine($\"*       LossFn:        {metrics.LossFunction:0.##}" +
+                    "\");\r\n            Console.WriteLine($\"*       R2 Score:      {metrics.RSquared:0." +
+                    "##}\");\r\n            Console.WriteLine($\"*       Absolute loss: {metrics.MeanAbso" +
+                    "luteError:#.##}\");\r\n            Console.WriteLine($\"*       Squared loss:  {metr" +
+                    "ics.MeanSquaredError:#.##}\");\r\n            Console.WriteLine($\"*       RMS loss:" +
+                    "      {metrics.RootMeanSquaredError:#.##}\");\r\n            Console.WriteLine($\"**" +
+                    "***********************************************\");\r\n        }\r\n\r\n        public " +
+                    "static void PrintRegressionFoldsAverageMetrics(IEnumerable<TrainCatalogBase.Cros" +
+                    "sValidationResult<RegressionMetrics>> crossValidationResults)\r\n        {\r\n      " +
+                    "      var L1 = crossValidationResults.Select(r => r.Metrics.MeanAbsoluteError);\r" +
+                    "\n            var L2 = crossValidationResults.Select(r => r.Metrics.MeanSquaredEr" +
+                    "ror);\r\n            var RMS = crossValidationResults.Select(r => r.Metrics.MeanAb" +
+                    "soluteError);\r\n            var lossFunction = crossValidationResults.Select(r =>" +
+                    " r.Metrics.LossFunction);\r\n            var R2 = crossValidationResults.Select(r " +
+                    "=> r.Metrics.RSquared);\r\n\r\n            Console.WriteLine($\"*********************" +
                     "********************************************************************************" +
-                    "****************\");\r\n            Console.WriteLine($\"*       Metrics for Multi-c" +
-                    "lass Classification model      \");\r\n            Console.WriteLine($\"*-----------" +
+                    "********\");\r\n            Console.WriteLine($\"*       Metrics for Regression mode" +
+                    "l      \");\r\n            Console.WriteLine($\"*-----------------------------------" +
+                    "-------------------------------------------------------------------------\");\r\n  " +
+                    "          Console.WriteLine($\"*       Average L1 Loss:    {L1.Average():0.###} \"" +
+                    ");\r\n            Console.WriteLine($\"*       Average L2 Loss:    {L2.Average():0." +
+                    "###}  \");\r\n            Console.WriteLine($\"*       Average RMS:          {RMS.Av" +
+                    "erage():0.###}  \");\r\n            Console.WriteLine($\"*       Average Loss Functi" +
+                    "on: {lossFunction.Average():0.###}  \");\r\n            Console.WriteLine($\"*      " +
+                    " Average R-squared: {R2.Average():0.###}  \");\r\n            Console.WriteLine($\"*" +
+                    "********************************************************************************" +
+                    "****************************\");\r\n        }\r\n\r\n        public static void PrintBi" +
+                    "naryClassificationMetrics(BinaryClassificationMetrics metrics)\r\n        {\r\n     " +
+                    "       Console.WriteLine($\"*****************************************************" +
+                    "*******\");\r\n            Console.WriteLine($\"*       Metrics for binary classific" +
+                    "ation model      \");\r\n            Console.WriteLine($\"*-------------------------" +
+                    "----------------------------------\");\r\n            Console.WriteLine($\"*       A" +
+                    "ccuracy: {metrics.Accuracy:P2}\");\r\n            Console.WriteLine($\"*       Auc: " +
+                    "     {metrics.AreaUnderRocCurve:P2}\");\r\n            Console.WriteLine($\"********" +
+                    "****************************************************\");\r\n        }\r\n\r\n\r\n        " +
+                    "public static void PrintBinaryClassificationFoldsAverageMetrics(IEnumerable<Trai" +
+                    "nCatalogBase.CrossValidationResult<BinaryClassificationMetrics>> crossValResults" +
+                    ")\r\n        {\r\n            var metricsInMultipleFolds = crossValResults.Select(r " +
+                    "=> r.Metrics);\r\n\r\n            var AccuracyValues = metricsInMultipleFolds.Select" +
+                    "(m => m.Accuracy);\r\n            var AccuracyAverage = AccuracyValues.Average();\r" +
+                    "\n            var AccuraciesStdDeviation = CalculateStandardDeviation(AccuracyVal" +
+                    "ues);\r\n            var AccuraciesConfidenceInterval95 = CalculateConfidenceInter" +
+                    "val95(AccuracyValues);\r\n\r\n\r\n            Console.WriteLine($\"********************" +
+                    "********************************************************************************" +
+                    "*********\");\r\n            Console.WriteLine($\"*       Metrics for Binary Classif" +
+                    "ication model      \");\r\n            Console.WriteLine($\"*-----------------------" +
                     "--------------------------------------------------------------------------------" +
-                    "-----------------\");\r\n            Console.WriteLine($\"*       Average MicroAccur" +
-                    "acy:    {microAccuracyAverage:0.###}  - Standard deviation: ({microAccuraciesStd" +
-                    "Deviation:#.###})  - Confidence Interval 95%: ({microAccuraciesConfidenceInterva" +
-                    "l95:#.###})\");\r\n            Console.WriteLine($\"*       Average MacroAccuracy:  " +
-                    "  {macroAccuracyAverage:0.###}  - Standard deviation: ({macroAccuraciesStdDeviat" +
-                    "ion:#.###})  - Confidence Interval 95%: ({macroAccuraciesConfidenceInterval95:#." +
-                    "###})\");\r\n            Console.WriteLine($\"*       Average LogLoss:          {log" +
-                    "LossAverage:#.###}  - Standard deviation: ({logLossStdDeviation:#.###})  - Confi" +
-                    "dence Interval 95%: ({logLossConfidenceInterval95:#.###})\");\r\n            Consol" +
-                    "e.WriteLine($\"*       Average LogLossReduction: {logLossReductionAverage:#.###} " +
-                    " - Standard deviation: ({logLossReductionStdDeviation:#.###})  - Confidence Inte" +
-                    "rval 95%: ({logLossReductionConfidenceInterval95:#.###})\");\r\n            Console" +
-                    ".WriteLine($\"*******************************************************************" +
-                    "******************************************\");\r\n\r\n        }\r\n\r\n        public sta" +
-                    "tic double CalculateStandardDeviation(IEnumerable<double> values)\r\n        {\r\n  " +
-                    "          double average = values.Average();\r\n            double sumOfSquaresOfD" +
-                    "ifferences = values.Select(val => (val - average) * (val - average)).Sum();\r\n   " +
-                    "         double standardDeviation = Math.Sqrt(sumOfSquaresOfDifferences / (value" +
-                    "s.Count() - 1));\r\n            return standardDeviation;\r\n        }\r\n\r\n        pu" +
-                    "blic static double CalculateConfidenceInterval95(IEnumerable<double> values)\r\n  " +
-                    "      {\r\n            double confidenceInterval95 = 1.96 * CalculateStandardDevia" +
-                    "tion(values) / Math.Sqrt((values.Count() - 1));\r\n            return confidenceIn" +
-                    "terval95;\r\n        }\r\n    }\r\n}\r\n");
+                    "-----\");\r\n            Console.WriteLine($\"*       Average Accuracy:    {Accuracy" +
+                    "Average:0.###}  - Standard deviation: ({AccuraciesStdDeviation:#.###})  - Confid" +
+                    "ence Interval 95%: ({AccuraciesConfidenceInterval95:#.###})\");\r\n            Cons" +
+                    "ole.WriteLine($\"****************************************************************" +
+                    "*********************************************\");\r\n\r\n        }\r\n\r\n        public " +
+                    "static void PrintMulticlassClassificationMetrics(MulticlassClassificationMetrics" +
+                    " metrics)\r\n        {\r\n            Console.WriteLine($\"**************************" +
+                    "**********************************\");\r\n            Console.WriteLine($\"*    Metr" +
+                    "ics for multi-class classification model   \");\r\n            Console.WriteLine($\"" +
+                    "*-----------------------------------------------------------\");\r\n            Con" +
+                    "sole.WriteLine($\"    MacroAccuracy = {metrics.MacroAccuracy:0.####}, a value bet" +
+                    "ween 0 and 1, the closer to 1, the better\");\r\n            Console.WriteLine($\"  " +
+                    "  MicroAccuracy = {metrics.MicroAccuracy:0.####}, a value between 0 and 1, the c" +
+                    "loser to 1, the better\");\r\n            Console.WriteLine($\"    LogLoss = {metric" +
+                    "s.LogLoss:0.####}, the closer to 0, the better\");\r\n            for (int i = 0; i" +
+                    " < metrics.PerClassLogLoss.Count; i++)\r\n            {\r\n                Console.W" +
+                    "riteLine($\"    LogLoss for class {i + 1} = {metrics.PerClassLogLoss[i]:0.####}, " +
+                    "the closer to 0, the better\");\r\n            }\r\n            Console.WriteLine($\"*" +
+                    "***********************************************************\");\r\n        }\r\n\r\n   " +
+                    "     public static void PrintMulticlassClassificationFoldsAverageMetrics(IEnumer" +
+                    "able<TrainCatalogBase.CrossValidationResult<MulticlassClassificationMetrics>> cr" +
+                    "ossValResults)\r\n        {\r\n            var metricsInMultipleFolds = crossValResu" +
+                    "lts.Select(r => r.Metrics);\r\n\r\n            var microAccuracyValues = metricsInMu" +
+                    "ltipleFolds.Select(m => m.MicroAccuracy);\r\n            var microAccuracyAverage " +
+                    "= microAccuracyValues.Average();\r\n            var microAccuraciesStdDeviation = " +
+                    "CalculateStandardDeviation(microAccuracyValues);\r\n            var microAccuracie" +
+                    "sConfidenceInterval95 = CalculateConfidenceInterval95(microAccuracyValues);\r\n\r\n " +
+                    "           var macroAccuracyValues = metricsInMultipleFolds.Select(m => m.MacroA" +
+                    "ccuracy);\r\n            var macroAccuracyAverage = macroAccuracyValues.Average();" +
+                    "\r\n            var macroAccuraciesStdDeviation = CalculateStandardDeviation(macro" +
+                    "AccuracyValues);\r\n            var macroAccuraciesConfidenceInterval95 = Calculat" +
+                    "eConfidenceInterval95(macroAccuracyValues);\r\n\r\n            var logLossValues = m" +
+                    "etricsInMultipleFolds.Select(m => m.LogLoss);\r\n            var logLossAverage = " +
+                    "logLossValues.Average();\r\n            var logLossStdDeviation = CalculateStandar" +
+                    "dDeviation(logLossValues);\r\n            var logLossConfidenceInterval95 = Calcul" +
+                    "ateConfidenceInterval95(logLossValues);\r\n\r\n            var logLossReductionValue" +
+                    "s = metricsInMultipleFolds.Select(m => m.LogLossReduction);\r\n            var log" +
+                    "LossReductionAverage = logLossReductionValues.Average();\r\n            var logLos" +
+                    "sReductionStdDeviation = CalculateStandardDeviation(logLossReductionValues);\r\n  " +
+                    "          var logLossReductionConfidenceInterval95 = CalculateConfidenceInterval" +
+                    "95(logLossReductionValues);\r\n\r\n            Console.WriteLine($\"*****************" +
+                    "********************************************************************************" +
+                    "************\");\r\n            Console.WriteLine($\"*       Metrics for Multi-class" +
+                    " Classification model      \");\r\n            Console.WriteLine($\"*---------------" +
+                    "--------------------------------------------------------------------------------" +
+                    "-------------\");\r\n            Console.WriteLine($\"*       Average MicroAccuracy:" +
+                    "    {microAccuracyAverage:0.###}  - Standard deviation: ({microAccuraciesStdDevi" +
+                    "ation:#.###})  - Confidence Interval 95%: ({microAccuraciesConfidenceInterval95:" +
+                    "#.###})\");\r\n            Console.WriteLine($\"*       Average MacroAccuracy:    {m" +
+                    "acroAccuracyAverage:0.###}  - Standard deviation: ({macroAccuraciesStdDeviation:" +
+                    "#.###})  - Confidence Interval 95%: ({macroAccuraciesConfidenceInterval95:#.###}" +
+                    ")\");\r\n            Console.WriteLine($\"*       Average LogLoss:          {logLoss" +
+                    "Average:#.###}  - Standard deviation: ({logLossStdDeviation:#.###})  - Confidenc" +
+                    "e Interval 95%: ({logLossConfidenceInterval95:#.###})\");\r\n            Console.Wr" +
+                    "iteLine($\"*       Average LogLossReduction: {logLossReductionAverage:#.###}  - S" +
+                    "tandard deviation: ({logLossReductionStdDeviation:#.###})  - Confidence Interval" +
+                    " 95%: ({logLossReductionConfidenceInterval95:#.###})\");\r\n            Console.Wri" +
+                    "teLine($\"***********************************************************************" +
+                    "**************************************\");\r\n\r\n        }\r\n\r\n        public static " +
+                    "double CalculateStandardDeviation(IEnumerable<double> values)\r\n        {\r\n      " +
+                    "      double average = values.Average();\r\n            double sumOfSquaresOfDiffe" +
+                    "rences = values.Select(val => (val - average) * (val - average)).Sum();\r\n       " +
+                    "     double standardDeviation = Math.Sqrt(sumOfSquaresOfDifferences / (values.Co" +
+                    "unt() - 1));\r\n            return standardDeviation;\r\n        }\r\n\r\n        public" +
+                    " static double CalculateConfidenceInterval95(IEnumerable<double> values)\r\n      " +
+                    "  {\r\n            double confidenceInterval95 = 1.96 * CalculateStandardDeviation" +
+                    "(values) / Math.Sqrt((values.Count() - 1));\r\n            return confidenceInterv" +
+                    "al95;\r\n        }\r\n    }\r\n}\r\n");
             return this.GenerationEnvironment.ToString();
         }
 
