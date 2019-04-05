@@ -22,9 +22,9 @@ struct mf_parameter_bridge
     float eta;
     float alpha;
     float c;
-    int8_t do_nmf;
-    int8_t quiet;
-    int8_t copy_data;
+    uint8_t do_nmf;
+    uint8_t quiet;
+    uint8_t copy_data;
 };
 
 EXPORT_API(void) MFDestroyModel(mf_model *&model);

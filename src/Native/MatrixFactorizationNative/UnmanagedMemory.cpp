@@ -9,7 +9,7 @@
 
 using namespace mf;
 
-EXPORT_API(mf_parameter) make_param(const mf_parameter_bridge *param_bridge)
+mf_parameter make_param(const mf_parameter_bridge *param_bridge)
 {
     mf_parameter param;
     param.fun = param_bridge->fun;
@@ -24,9 +24,9 @@ EXPORT_API(mf_parameter) make_param(const mf_parameter_bridge *param_bridge)
     param.eta = param_bridge->eta;
     param.alpha = param_bridge->alpha;
     param.c = param_bridge->c;
-    param.do_nmf = static_cast<bool>(param_bridge->do_nmf);
-    param.quiet = static_cast<bool>(param_bridge->quiet);
-    param.copy_data = static_cast<bool>(param_bridge->copy_data);
+    param.do_nmf = param_bridge->do_nmf != 0 ? true : false;
+    param.quiet = param_bridge->quiet != 0 ? true : false;
+    param.copy_data = param_bridge->copy_data != 0 ? true : false;
     return param;
 }
 
