@@ -1,7 +1,8 @@
 ﻿using System;
+using Microsoft.ML;
 using Microsoft.ML.Data;
 
-namespace Microsoft.ML.Samples.Dynamic
+namespace Samples.Dynamic
 {
     public static class ConvertType
     {

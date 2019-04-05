@@ -1,7 +1,8 @@
 ﻿using System;
+using Microsoft.ML;
 using Microsoft.ML.Data;
 
-namespace Microsoft.ML.Samples.Dynamic
+namespace Samples.Dynamic
 {
     // This example illustrates how to convert multiple columns of different types to one type, in this case System.Single. 
     // This is often a useful data transformation before concatenating the features together and passing them to a particular estimator.

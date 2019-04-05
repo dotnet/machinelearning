@@ -1,7 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using Microsoft.ML;
 
-namespace Microsoft.ML.Samples.Dynamic
+namespace Samples.Dynamic
 {
     public static class MapValueToKeyMultiColumn
     {
@@ -29,7 +30,7 @@ namespace Microsoft.ML.Samples.Dynamic
                 new  InputOutputColumnPair("StudyTimeCategory", "StudyTime"),
                 new  InputOutputColumnPair("CourseCategory", "Course")
                 },
-                keyOrdinality: Transforms.ValueToKeyMappingEstimator.KeyOrdinality.ByValue,
+                keyOrdinality: Microsoft.ML.Transforms.ValueToKeyMappingEstimator.KeyOrdinality.ByValue,
                 addKeyValueAnnotationsAsText: true);
 
             // Fits the pipeline to the data.

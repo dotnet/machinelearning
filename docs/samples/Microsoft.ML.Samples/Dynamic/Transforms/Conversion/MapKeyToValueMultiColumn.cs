@@ -1,7 +1,8 @@
 ﻿using System;
+using Microsoft.ML;
 using Microsoft.ML.SamplesUtils;
 
-namespace Microsoft.ML.Samples.Dynamic
+namespace Samples.Dynamic
 {
     public class MapKeyToValueMultiColumn
     {
@@ -32,12 +33,9 @@ namespace Microsoft.ML.Samples.Dynamic
                     // Apply StochasticDualCoordinateAscent multiclass trainer.
                     .Append(mlContext.MulticlassClassification.Trainers.SdcaMaximumEntropy());
 
-            // Split the data into training and test sets. Only training set is used in fitting
-            // the created pipeline. Metrics are computed on the test.
-            var split = mlContext.Data.TrainTestSplit(dataView, testFraction: 0.1);
-
-            // Train the model and do predictions on the test set.
-            var dataWithPredictions = pipeline.Fit(split.TrainSet).Transform(split.TestSet);
+            // Train the model and do predictions on same data set. 
+            // Typically predictions would be in a different, validation set. 
+            var dataWithPredictions = pipeline.Fit(dataView).Transform(dataView);
 
             // at this point, the Label colum is tranformed from strings, to DataViewKeyType and
             // the transformation has added the PredictedLabel column, with 
