@@ -43,6 +43,13 @@ namespace Microsoft.ML.Samples.Dynamic.Trainers.MulticlassClassification
             foreach (var p in predictions.Take(5))
                 Console.WriteLine($"Label: {p.Label}, Prediction: {p.PredictedLabel}");
 
+            // Expected output:
+            //   Label: 1, Prediction: 2
+            //   Label: 2, Prediction: 2
+            //   Label: 3, Prediction: 2
+            //   Label: 2, Prediction: 2
+            //   Label: 3, Prediction: 2
+
             // Evaluate the overall metrics
             var metrics = mlContext.MulticlassClassification.Evaluate(transformedTestData);
             SamplesUtils.ConsoleUtils.PrintMetrics(metrics);
@@ -60,7 +67,7 @@ namespace Microsoft.ML.Samples.Dynamic.Trainers.MulticlassClassification
             float randomFloat() => (float)random.NextDouble();
             for (int i = 0; i < count; i++)
             {
-                // Generate Labels that are integers 0, 1 or 2
+                // Generate Labels that are integers 1, 2 or 3
                 var label = random.Next(1, 4);
                 yield return new DataPoint
                 {
