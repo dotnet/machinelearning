@@ -259,7 +259,7 @@ namespace Microsoft.ML.Trainers.Recommender
         /// Compute the (approximated) value at the <paramref name="srcCol"/>-th column and the
         /// <paramref name="srcRow"/>-th row. Notice that both of <paramref name="srcCol"/> and
         /// <paramref name="srcRow"/> are 1-based indexes, so the first row/column index is 1.
-        /// The reason of having 1-based indexing system is that key-valued getter in ML.NET returns
+        /// The reason for having 1-based indexing system is that key-valued getter in ML.NET returns
         /// 1 for its first value and 0 is used to denote missing value.
         /// </summary>
         /// <param name="srcCol">1-based column index.</param>
@@ -278,7 +278,7 @@ namespace Microsoft.ML.Trainers.Recommender
                 return;
             }
 
-            // The index system in the LIBMF (the library trains the model) is 0-based, so we need to minus one
+            // The index system in the LIBMF (the library trains the model) is 0-based, so we need to deduct one
             // from 1-based indexes returned by ML.NET's key-valued getters. We also throw when seeing 0 becuase
             // missing index is not meaningful to the trained model.
             dst = Score((int)(srcCol - 1), (int)(srcRow - 1));
