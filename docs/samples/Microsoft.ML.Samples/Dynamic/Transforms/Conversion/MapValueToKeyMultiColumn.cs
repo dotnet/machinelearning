@@ -16,10 +16,10 @@ namespace Microsoft.ML.Samples.Dynamic
 
             // Get a small dataset as an IEnumerable.
             var rawData = new[] {
-                new DataPoint() { StudyTime = "0-4yrs" , DevelopmentTime = "6-11yrs" },
-                new DataPoint() { StudyTime = "6-11yrs" , DevelopmentTime = "6-11yrs" },
-                new DataPoint() { StudyTime = "12-25yrs" , DevelopmentTime = "25+yrs" },
-                new DataPoint() { StudyTime = "0-5yrs" , DevelopmentTime = "0-5yrs" }
+                new DataPoint() { StudyTime = "0-4yrs" , Course = "CS" },
+                new DataPoint() { StudyTime = "6-11yrs" , Course = "CS" },
+                new DataPoint() { StudyTime = "12-25yrs" , Course = "LA" },
+                new DataPoint() { StudyTime = "0-5yrs" , Course = "DS" }
             };
 
             var data = mlContext.Data.LoadFromEnumerable(rawData);
@@ -27,7 +27,7 @@ namespace Microsoft.ML.Samples.Dynamic
             // Constructs the ML.net pipeline
             var pipeline = mlContext.Transforms.Conversion.MapValueToKey(new[] {
                 new  InputOutputColumnPair("StudyTimeCategory", "StudyTime"),
-                new  InputOutputColumnPair("DevelopmentTimeCategory", "DevelopmentTime")
+                new  InputOutputColumnPair("CourseCategory", "Course")
                 },
                 keyOrdinality: Transforms.ValueToKeyMappingEstimator.KeyOrdinality.ByValue,
                 addKeyValueAnnotationsAsText: true);
@@ -39,9 +39,9 @@ namespace Microsoft.ML.Samples.Dynamic
             // This will contain the newly created columns.
             IEnumerable<TransformedData> features = mlContext.Data.CreateEnumerable<TransformedData>(transformedData, reuseRowObject: false);
 
-            Console.WriteLine($" StudyTime   StudyTimeCategory   DevelopmentTime    DevelopmentTimeCategory");
+            Console.WriteLine($" StudyTime   StudyTimeCategory   Course    CourseCategory");
             foreach (var featureRow in features)
-                Console.WriteLine($"{featureRow.StudyTime}\t\t{featureRow.StudyTimeCategory}\t\t\t{featureRow.DevelopmentTime}\t\t{featureRow.DevelopmentTimeCategory}");
+                Console.WriteLine($"{featureRow.StudyTime}\t\t{featureRow.StudyTimeCategory}\t\t\t{featureRow.Course}\t\t{featureRow.CourseCategory}");
 
             // TransformedData obtained post-transformation.
             //
@@ -54,12 +54,15 @@ namespace Microsoft.ML.Samples.Dynamic
             // If we wanted to provide the mapping, rather than letting the transform create it, 
             // we could do so by creating an IDataView one column containing the values to map to. 
             // If the values in the dataset are not found in the lookup IDataView they will get mapped to the mising value, 0.
-            // The keyData are shared among the columns.
+            // The keyData are shared among the columns, therefore the keys are not contiguous for the column. 
             // Create the lookup map data IEnumerable.  
             var lookupData = new[] {
                 new LookupMap { Key = "0-4yrs" },
                 new LookupMap { Key = "6-11yrs" },
-                new LookupMap { Key = "25+yrs"  }
+                new LookupMap { Key = "25+yrs"  },
+                new LookupMap { Key = "CS" },
+                new LookupMap { Key = "DS" },
+                new LookupMap { Key = "LA"  }
             };
 
             // Convert to IDataView
@@ -68,7 +71,7 @@ namespace Microsoft.ML.Samples.Dynamic
             // Constructs the ML.net pipeline
             var pipelineWithLookupMap = mlContext.Transforms.Conversion.MapValueToKey(new[] {
                 new  InputOutputColumnPair("StudyTimeCategory", "StudyTime"),
-                new  InputOutputColumnPair("DevelopmentTimeCategory", "DevelopmentTime")
+                new  InputOutputColumnPair("CourseCategory", "Course")
                 },
                 keyData: lookupIdvMap);
 
@@ -81,7 +84,7 @@ namespace Microsoft.ML.Samples.Dynamic
 
             Console.WriteLine($" StudyTime   StudyTimeCategory   DevelopmentTime    DevelopmentTimeCategory");
             foreach (var featureRow in features)
-                Console.WriteLine($"{featureRow.StudyTime}\t\t{featureRow.StudyTimeCategory}\t\t\t{featureRow.DevelopmentTime}\t\t{featureRow.DevelopmentTimeCategory}");
+                Console.WriteLine($"{featureRow.StudyTime}\t\t{featureRow.StudyTimeCategory}\t\t\t{featureRow.Course}\t\t{featureRow.CourseCategory}");
 
             // StudyTime    StudyTimeCategory   DevelopmentTime     DevelopmentTimeCategory
             // 0 - 4yrs          1                  6 - 11yrs         2
@@ -93,13 +96,13 @@ namespace Microsoft.ML.Samples.Dynamic
         private class DataPoint
         {
             public string StudyTime { get; set; }
-            public string DevelopmentTime { get; set; }
+            public string Course { get; set; }
         }
 
         private class TransformedData : DataPoint
         {
             public uint StudyTimeCategory { get; set; }
-            public uint DevelopmentTimeCategory { get; set; }
+            public uint CourseCategory { get; set; }
         }
 
         // Type for the IDataView that will be serving as the map
