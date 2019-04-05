@@ -19,7 +19,6 @@ namespace Microsoft.ML.Tests.TrainerEstimators
 
             var data = TextLoaderStatic.CreateLoader(Env, ctx => (Label: ctx.LoadFloat(0), Features: ctx.LoadFloat(1, 10)))
                 .Load(dataPath).Cache();
-
             var binaryData = ML.Transforms.Conversion.ConvertType("Label", outputKind: DataKind.Boolean)
                 .Fit(data.AsDynamic).Transform(data.AsDynamic);
 
@@ -36,10 +35,14 @@ namespace Microsoft.ML.Tests.TrainerEstimators
 
             TestEstimatorCore(regressionTrainer, data.AsDynamic);
             var mcData = ML.Transforms.Conversion.MapValueToKey("Label").Fit(data.AsDynamic).Transform(data.AsDynamic);
-
+            
             var mcTrainer = ML.MulticlassClassification.Trainers.SdcaMaximumEntropy(
                 new SdcaMaximumEntropyMulticlassTrainer.Options { ConvergenceTolerance = 1e-2f, MaximumNumberOfIterations = 10 });
             TestEstimatorCore(mcTrainer, mcData);
+
+            var mcTrainerNonCalibrated = ML.MulticlassClassification.Trainers.SdcaNonCalibrated(
+                new SdcaNonCalibratedMulticlassTrainer.Options { ConvergenceTolerance = 1e-2f, MaximumNumberOfIterations = 10 });
+            TestEstimatorCore(mcTrainerNonCalibrated, mcData);
 
             Done();
         }
