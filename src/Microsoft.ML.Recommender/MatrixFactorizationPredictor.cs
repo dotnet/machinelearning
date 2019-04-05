@@ -292,7 +292,6 @@ namespace Microsoft.ML.Trainers.Recommender
         /// </summary>
         /// <param name="columnIndex">0-based column index.</param>
         /// <param name="rowIndex">0-based row index.</param>
-        /// <returns></returns>
         private float Score(int columnIndex, int rowIndex)
         {
             _host.Assert(0 <= rowIndex && rowIndex < NumberOfRows);
