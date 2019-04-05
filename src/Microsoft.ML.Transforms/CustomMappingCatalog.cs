@@ -27,6 +27,7 @@ namespace Microsoft.ML
         /// <format type="text/markdown">
         /// <![CDATA[
         ///  [!code-csharp[FastTree](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/CustomMapping.cs)]
+        ///  [!code-csharp[FastTree](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/CustomMappingSampleSaveAndLoad.cs)]
         /// ]]></format>
         /// </example>
         public static CustomMappingEstimator<TSrc, TDst> CustomMapping<TSrc, TDst>(this TransformsCatalog catalog, Action<TSrc, TDst> mapAction, string contractName,
