@@ -224,7 +224,7 @@ namespace Microsoft.ML
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
-        /// [!code-csharp[LpNormalize](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/NgramExtraction.cs?range=1-5,11-74)]
+        /// [!code-csharp[ProduceNgrams](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/Text/ProduceNgrams.cs)]
         /// ]]>
         /// </format>
         /// </example>
@@ -459,6 +459,13 @@ namespace Microsoft.ML
         /// <paramref name="maximumNumberOfInverts"/> specifies the upper bound of the number of distinct input values mapping to a hash that should be retained.
         /// <value>0</value> does not retain any input values. <value>-1</value> retains all input values mapping to each hash.</param>
         /// <param name="rehashUnigrams">Whether to rehash unigrams.</param>
+        /// <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        /// [!code-csharp[ProduceHashedNgrams](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/Text/ProduceHashedNgrams.cs)]
+        /// ]]>
+        /// </format>
+        /// </example>
         public static NgramHashingEstimator ProduceHashedNgrams(this TransformsCatalog.TextTransforms catalog,
             string outputColumnName,
             string[] inputColumnNames = null,
