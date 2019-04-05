@@ -41,6 +41,10 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                 new SdcaMaximumEntropyMulticlassTrainer.Options { ConvergenceTolerance = 1e-2f, MaximumNumberOfIterations = 10 });
             TestEstimatorCore(mcTrainer, mcData);
 
+            var mcTrainerNonCalibrated = ML.MulticlassClassification.Trainers.SdcaNonCalibrated(
+               new SdcaNonCalibratedMulticlassTrainer.Options { ConvergenceTolerance = 1e-2f, MaximumNumberOfIterations = 10 });
+            TestEstimatorCore(mcTrainerNonCalibrated, mcData);
+
             Done();
         }
 
