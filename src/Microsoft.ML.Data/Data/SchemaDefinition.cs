@@ -32,7 +32,9 @@ namespace Microsoft.ML.Data
         }
 
         /// <summary>
-        /// Marks member as <see cref="KeyDataViewType"/> and specifies <see cref="KeyDataViewType"/> cardinality.
+        /// Marks member as <see cref="KeyDataViewType"/>. The <paramref name="count"/> should be set to
+        /// one mroe than the maximum value for the keys (to account for missing values).
+        /// If the values are outside of the specified cardinality they will be mapped to the missing value representation: 0.
         /// </summary>
         /// <param name="count">Cardinality of <see cref="KeyDataViewType"/>.</param>
         public KeyTypeAttribute(ulong count)
