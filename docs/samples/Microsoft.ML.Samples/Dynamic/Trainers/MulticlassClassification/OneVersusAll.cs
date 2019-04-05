@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.ML;
 using Microsoft.ML.Data;
+using Microsoft.ML.SamplesUtils;
 
-namespace Microsoft.ML.Samples.Dynamic.Trainers.MulticlassClassification
+namespace Samples.Dynamic.Trainers.MulticlassClassification
 {
     public static class OneVersusAll
     {
@@ -52,7 +54,7 @@ namespace Microsoft.ML.Samples.Dynamic.Trainers.MulticlassClassification
 
             // Evaluate the overall metrics
             var metrics = mlContext.MulticlassClassification.Evaluate(transformedTestData);
-            SamplesUtils.ConsoleUtils.PrintMetrics(metrics);
+            ConsoleUtils.PrintMetrics(metrics);
             
             // Expected output:
             //  Micro Accuracy: 0.90
