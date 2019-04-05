@@ -1,8 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
+using Microsoft.ML;
+using Microsoft.ML.Transforms.Text;
 
-namespace Microsoft.ML.Samples.Dynamic
+namespace Samples.Dynamic
 {
     public static class ApplyWordEmbedding
     {
@@ -29,8 +30,8 @@ namespace Microsoft.ML.Samples.Dynamic
             // The pipeline first normalizes and tokenizes text then applies word embedding transformation.
             var textPipeline = mlContext.Transforms.Text.NormalizeText("Text")
                 .Append(mlContext.Transforms.Text.TokenizeIntoWords("Tokens", "Text"))
-                .Append(mlContext.Transforms.Text.ApplyWordEmbedding("Features", "Tokens", 
-                    Transforms.Text.WordEmbeddingEstimator.PretrainedModelKind.SentimentSpecificWordEmbedding));
+                .Append(mlContext.Transforms.Text.ApplyWordEmbedding("Features", "Tokens",
+                    WordEmbeddingEstimator.PretrainedModelKind.SentimentSpecificWordEmbedding));
 
             // Fit to data.
             var textTransformer = textPipeline.Fit(emptyDataView);
@@ -55,12 +56,12 @@ namespace Microsoft.ML.Samples.Dynamic
             //   Features: -1.2489 0.2384 -1.3034 -0.9135 -3.4978 -0.1784 -1.3823 -0.3863 -2.5262 -0.8950 ...
         }
 
-        public class TextData
+        private class TextData
         {
             public string Text { get; set; }
         }
 
-        public class TransformedTextData : TextData
+        private class TransformedTextData : TextData
         {
             public float[] Features { get; set; }
         }

@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
+using Microsoft.ML;
 
-namespace Microsoft.ML.Samples.Dynamic
+namespace Samples.Dynamic
 {
     public static class TokenizeIntoWords
     {
@@ -46,12 +46,12 @@ namespace Microsoft.ML.Samples.Dynamic
             //   Words: ML.NET's,TokenizeIntoWords,API,splits,text/string,into,words,using,the,list,of,characters,provided,as,separators.
         }
 
-        public class TextData
+        private class TextData
         {
             public string Text { get; set; }
         }
 
-        public class TransformedTextData : TextData
+        private class TransformedTextData : TextData
         {
             public string[] Words { get; set; }
         }
