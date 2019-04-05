@@ -32,7 +32,7 @@ using Newtonsoft.Json.Linq;
     MaximumEntropyModelParameters.LoaderSignature)]
 
 [assembly: LoadableClass(typeof(LinearMulticlassModelParameters), null, typeof(SignatureLoadModel),
-    "Multiclass LR No Prob",
+    "Multiclass LR No Calib",
     LinearMulticlassModelParameters.LoaderSignature)]
 
 [assembly: LoadableClass(typeof(void), typeof(LbfgsMaximumEntropyMulticlassTrainer), null, typeof(SignatureEntryPointModule), LbfgsMaximumEntropyMulticlassTrainer.LoadNameValue)]
