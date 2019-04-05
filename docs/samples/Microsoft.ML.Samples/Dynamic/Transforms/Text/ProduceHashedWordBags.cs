@@ -1,10 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
+using Microsoft.ML;
 using Microsoft.ML.Data;
-using Microsoft.ML.Transforms.Text;
 
-namespace Microsoft.ML.Samples.Dynamic
+namespace Samples.Dynamic
 {
     public static class ProduceHashedWordBags
     {
