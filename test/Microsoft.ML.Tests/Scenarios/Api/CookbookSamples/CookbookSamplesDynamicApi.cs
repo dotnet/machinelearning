@@ -284,9 +284,9 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
 
             var featureImportance = context.Regression.PermutationFeatureImportance(model.LastTransformer, transformedData);
 
-            foreach (var metricsStatistics in featureImportance)
+            for (int i = 0; i < featureImportance.Count(); i++)
             {
-                Console.WriteLine($"Root Mean Squared - {metricsStatistics.RootMeanSquaredError.Mean}");
+                Console.WriteLine($"Feature {i}: Difference in RMS - {featureImportance[i].RootMeanSquaredError.Mean}");
             }
         }
 

@@ -597,16 +597,16 @@ treeModel.GetFeatureWeights(ref weights);
 ```
 
 ## How do I look at the global feature importance?
-The below snippet shows how to get a glimpse of the the feature importance, or how much each feature impacts the performance of the model. It also outputs the difference in root mean squared for each feature as though the feature were replaced with a random value.
+The below snippet shows how to get a glimpse of the the feature importance. Permutation Feature Importance works by computing the change in the evaluation metrics when each feature is replaced by a random value. In this case, we are investigating the change in the root mean squared error. For more information on permutation feature importance, review the [documentation](https://docs.microsoft.com/en-us/dotnet/machine-learning/how-to-guides/determine-global-feature-importance-in-model).
 
 ```csharp
 var transformedData = model.Transform(data);
 
 var featureImportance = context.Regression.PermutationFeatureImportance(model.LastTransformer, transformedData);
 
-foreach (var metricsStatistics in featureImportance)
+for (int i = 0; i < featureImportance.Count(); i++)
 {
-    Console.WriteLine($"Feature I: Difference in RMS - {metricsStatistics.Rms.Mean}");
+    Console.WriteLine($"Feature {i}: Difference in RMS - {featureImportance[i].RootMeanSquaredError.Mean}");
 }
 ```
 
