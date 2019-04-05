@@ -48,10 +48,10 @@ namespace Microsoft.ML.Samples.Dynamic.Trainers.MulticlassClassification
             SamplesUtils.ConsoleUtils.PrintMetrics(metrics);
             
             // Expected output:
-            // Micro Accuracy: 0.90
-            // Macro Accuracy: 0.90
-            // Log Loss: 0.37
-            // Log Loss Reduction: 0.67
+            //  Micro Accuracy: 0.90
+            //  Macro Accuracy: 0.90
+            //  Log Loss: 0.37
+            //  Log Loss Reduction: 0.67
         }
 
         private static IEnumerable<DataPoint> GenerateRandomDataPoints(int count, int seed=0)
@@ -61,7 +61,7 @@ namespace Microsoft.ML.Samples.Dynamic.Trainers.MulticlassClassification
             for (int i = 0; i < count; i++)
             {
                 // Generate Labels that are integers 0, 1 or 2
-                var label = random.Next(3);
+                var label = random.Next(1, 4);
                 yield return new DataPoint
                 {
                     Label = (uint)label,

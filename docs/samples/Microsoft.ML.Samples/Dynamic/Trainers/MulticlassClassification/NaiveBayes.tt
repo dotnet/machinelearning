@@ -16,8 +16,8 @@ string ExpectedOutputPerInstance= @"// Expected output:
             //   Label: 3, Prediction: 2";
 
 string ExpectedOutput = @"// Expected output:
-            // Micro Accuracy: 0.35
-            // Macro Accuracy: 0.33
-            // Log Loss: 34.54
-            // Log Loss Reduction: -30.47";
+            //  Micro Accuracy: 0.35
+            //  Macro Accuracy: 0.33
+            //  Log Loss: 34.54
+            //  Log Loss Reduction: -30.47";
 #>
