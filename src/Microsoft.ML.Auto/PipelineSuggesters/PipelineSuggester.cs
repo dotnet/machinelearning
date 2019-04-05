@@ -19,13 +19,13 @@ namespace Microsoft.ML.Auto
             TaskKind task,
             bool isMaximizingMetric = true)
         {
-            var inferredHistory = history.Select(r => SuggestedPipelineRunDetails.FromPipelineRunResult(context, r));
+            var inferredHistory = history.Select(r => SuggestedPipelineRunDetail.FromPipelineRunResult(context, r));
             var nextInferredPipeline = GetNextInferredPipeline(context, inferredHistory, columns, task, isMaximizingMetric);
             return nextInferredPipeline?.ToPipeline();
         }
 
         public static SuggestedPipeline GetNextInferredPipeline(MLContext context,
-            IEnumerable<SuggestedPipelineRunDetails> history,
+            IEnumerable<SuggestedPipelineRunDetail> history,
             DatasetColumnInfo[] columns,
             TaskKind task,
             bool isMaximizingMetric,
@@ -87,7 +87,7 @@ namespace Microsoft.ML.Auto
         /// <summary>
         /// Get top trainers from first stage
         /// </summary>
-        private static IEnumerable<SuggestedTrainer> GetTopTrainers(IEnumerable<SuggestedPipelineRunDetails> history, 
+        private static IEnumerable<SuggestedTrainer> GetTopTrainers(IEnumerable<SuggestedPipelineRunDetail> history, 
             IEnumerable<SuggestedTrainer> availableTrainers,
             bool isMaximizingMetric)
         {
@@ -95,7 +95,7 @@ namespace Microsoft.ML.Auto
             history = history.Take(availableTrainers.Count());
 
             history = history.GroupBy(r => r.Pipeline.Trainer.TrainerName).Select(g => g.First());
-            IEnumerable<SuggestedPipelineRunDetails> sortedHistory = history.OrderBy(r => r.Score);
+            IEnumerable<SuggestedPipelineRunDetail> sortedHistory = history.OrderBy(r => r.Score);
             if(isMaximizingMetric)
             {
                 sortedHistory = sortedHistory.Reverse();
@@ -104,7 +104,7 @@ namespace Microsoft.ML.Auto
             return topTrainers;
         }
 
-        private static IEnumerable<SuggestedTrainer> OrderTrainersByNumTrials(IEnumerable<SuggestedPipelineRunDetails> history,
+        private static IEnumerable<SuggestedTrainer> OrderTrainersByNumTrials(IEnumerable<SuggestedPipelineRunDetail> history,
             IEnumerable<SuggestedTrainer> selectedTrainers)
         {
             var selectedTrainerNames = new HashSet<TrainerName>(selectedTrainers.Select(t => t.TrainerName));
@@ -115,7 +115,7 @@ namespace Microsoft.ML.Auto
         }
 
         private static SuggestedPipeline GetNextFirstStagePipeline(MLContext context,
-            IEnumerable<SuggestedPipelineRunDetails> history,
+            IEnumerable<SuggestedPipelineRunDetail> history,
             IEnumerable<SuggestedTrainer> availableTrainers,
             ICollection<SuggestedTransform> transforms,
             ICollection<SuggestedTransform> transformsPostTrainer,
@@ -188,7 +188,7 @@ namespace Microsoft.ML.Auto
         /// Samples new hyperparameters for the trainer, and sets them.
         /// Returns true if success (new hyperparams were suggested and set). Else, returns false.
         /// </summary>
-        private static bool SampleHyperparameters(MLContext context, SuggestedTrainer trainer, IEnumerable<SuggestedPipelineRunDetails> history, bool isMaximizingMetric)
+        private static bool SampleHyperparameters(MLContext context, SuggestedTrainer trainer, IEnumerable<SuggestedPipelineRunDetail> history, bool isMaximizingMetric)
         {
             var sps = ConvertToValueGenerators(trainer.SweepParams);
             var sweeper = new SmacSweeper(context,
@@ -197,7 +197,7 @@ namespace Microsoft.ML.Auto
                     SweptParameters = sps
                 });
 
-            IEnumerable<SuggestedPipelineRunDetails> historyToUse = history
+            IEnumerable<SuggestedPipelineRunDetail> historyToUse = history
                 .Where(r => r.RunSucceded && r.Pipeline.Trainer.TrainerName == trainer.TrainerName && r.Pipeline.Trainer.HyperParamSet != null && r.Pipeline.Trainer.HyperParamSet.Any());
 
             // get new set of hyperparameter values

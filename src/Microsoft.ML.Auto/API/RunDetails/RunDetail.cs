@@ -6,7 +6,7 @@ using System;
 
 namespace Microsoft.ML.Auto
 {
-    public sealed class RunDetails<TMetrics> : RunDetails
+    public sealed class RunDetail<TMetrics> : RunDetail
     {
         public TMetrics ValidationMetrics { get; private set; }
         public ITransformer Model { get { return _modelContainer.GetModel(); } }
@@ -14,7 +14,7 @@ namespace Microsoft.ML.Auto
 
         private readonly ModelContainer _modelContainer;
 
-        internal RunDetails(string trainerName,
+        internal RunDetail(string trainerName,
             IEstimator<ITransformer> estimator,
             Pipeline pipeline,
             ModelContainer modelContainer,
@@ -27,7 +27,7 @@ namespace Microsoft.ML.Auto
         }
     }
 
-    public abstract class RunDetails
+    public abstract class RunDetail
     {
         public string TrainerName { get; private set; }
         public double RuntimeInSeconds { get; internal set; }
@@ -36,7 +36,7 @@ namespace Microsoft.ML.Auto
         internal Pipeline Pipeline { get; private set; }
         internal double PipelineInferenceTimeInSeconds { get; set; }
 
-        internal RunDetails(string trainerName,
+        internal RunDetail(string trainerName,
             IEstimator<ITransformer> estimator,
             Pipeline pipeline)
         {

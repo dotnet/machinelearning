@@ -51,14 +51,14 @@ namespace Microsoft.ML.Auto
 
     public static class RegressionExperimentResultExtensions
     {
-        public static RunDetails<RegressionMetrics> Best(this IEnumerable<RunDetails<RegressionMetrics>> results, RegressionMetric metric = RegressionMetric.RSquared)
+        public static RunDetail<RegressionMetrics> Best(this IEnumerable<RunDetail<RegressionMetrics>> results, RegressionMetric metric = RegressionMetric.RSquared)
         {
             var metricsAgent = new RegressionMetricsAgent(null, metric);
             var isMetricMaximizing = new OptimizingMetricInfo(metric).IsMaximizing;
             return BestResultUtil.GetBestRun(results, metricsAgent, isMetricMaximizing);
         }
 
-        public static CrossValidationRunDetails<RegressionMetrics> Best(this IEnumerable<CrossValidationRunDetails<RegressionMetrics>> results, RegressionMetric metric = RegressionMetric.RSquared)
+        public static CrossValidationRunDetail<RegressionMetrics> Best(this IEnumerable<CrossValidationRunDetail<RegressionMetrics>> results, RegressionMetric metric = RegressionMetric.RSquared)
         {
             var metricsAgent = new RegressionMetricsAgent(null, metric);
             var isMetricMaximizing = new OptimizingMetricInfo(metric).IsMaximizing;

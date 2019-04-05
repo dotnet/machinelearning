@@ -56,7 +56,7 @@ namespace Samples
         }
     }
 
-    class ProgressHandler : IProgress<RunDetails<RegressionMetrics>>
+    class ProgressHandler : IProgress<RunDetail<RegressionMetrics>>
     {
         int iterationIndex;
         private bool _initialized = false;
@@ -65,7 +65,7 @@ namespace Samples
         {
         }
 
-        public void Report(RunDetails<RegressionMetrics> iterationResult)
+        public void Report(RunDetail<RegressionMetrics> iterationResult)
         {
             if (!_initialized)
             {

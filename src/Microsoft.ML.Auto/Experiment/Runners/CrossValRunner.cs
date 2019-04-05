@@ -8,7 +8,7 @@ using System.Linq;
 
 namespace Microsoft.ML.Auto
 {
-    internal class CrossValRunner<TMetrics> : IRunner<CrossValidationRunDetails<TMetrics>>
+    internal class CrossValRunner<TMetrics> : IRunner<CrossValidationRunDetail<TMetrics>>
         where TMetrics : class
     {
         private readonly MLContext _context;
@@ -41,7 +41,7 @@ namespace Microsoft.ML.Auto
             _modelInputSchema = trainDatasets[0].Schema;
         }
 
-        public (SuggestedPipelineRunDetails suggestedPipelineRunDetails, CrossValidationRunDetails<TMetrics> runDetails) 
+        public (SuggestedPipelineRunDetail suggestedPipelineRunDetail, CrossValidationRunDetail<TMetrics> runDetail) 
             Run(SuggestedPipeline pipeline, DirectoryInfo modelDirectory, int iterationNum)
         {
             var trainResults = new List<SuggestedPipelineTrainResult<TMetrics>>();
@@ -57,9 +57,9 @@ namespace Microsoft.ML.Auto
             var avgScore = CalcAverageScore(trainResults.Select(r => r.Score));
             var allRunsSucceeded = trainResults.All(r => r.Exception == null);
 
-            var suggestedPipelineRunDetails = new SuggestedPipelineCrossValRunDetails<TMetrics>(pipeline, avgScore, allRunsSucceeded, trainResults);
-            var runDetails = suggestedPipelineRunDetails.ToIterationResult(_preFeaturizer);
-            return (suggestedPipelineRunDetails, runDetails);
+            var suggestedPipelineRunDetail = new SuggestedPipelineCrossValRunDetail<TMetrics>(pipeline, avgScore, allRunsSucceeded, trainResults);
+            var runDetail = suggestedPipelineRunDetail.ToIterationResult(_preFeaturizer);
+            return (suggestedPipelineRunDetail, runDetail);
         }
 
         private static double CalcAverageScore(IEnumerable<double> scores)

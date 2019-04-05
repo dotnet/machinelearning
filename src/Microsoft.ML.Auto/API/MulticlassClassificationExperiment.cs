@@ -54,14 +54,14 @@ namespace Microsoft.ML.Auto
 
     public static class MulticlassExperimentResultExtensions
     {
-        public static RunDetails<MulticlassClassificationMetrics> Best(this IEnumerable<RunDetails<MulticlassClassificationMetrics>> results, MulticlassClassificationMetric metric = MulticlassClassificationMetric.MicroAccuracy)
+        public static RunDetail<MulticlassClassificationMetrics> Best(this IEnumerable<RunDetail<MulticlassClassificationMetrics>> results, MulticlassClassificationMetric metric = MulticlassClassificationMetric.MicroAccuracy)
         {
             var metricsAgent = new MultiMetricsAgent(null, metric);
             var isMetricMaximizing = new OptimizingMetricInfo(metric).IsMaximizing;
             return BestResultUtil.GetBestRun(results, metricsAgent, isMetricMaximizing);
         }
 
-        public static CrossValidationRunDetails<MulticlassClassificationMetrics> Best(this IEnumerable<CrossValidationRunDetails<MulticlassClassificationMetrics>> results, MulticlassClassificationMetric metric = MulticlassClassificationMetric.MicroAccuracy)
+        public static CrossValidationRunDetail<MulticlassClassificationMetrics> Best(this IEnumerable<CrossValidationRunDetail<MulticlassClassificationMetrics>> results, MulticlassClassificationMetric metric = MulticlassClassificationMetric.MicroAccuracy)
         {
             var metricsAgent = new MultiMetricsAgent(null, metric);
             var isMetricMaximizing = new OptimizingMetricInfo(metric).IsMaximizing;

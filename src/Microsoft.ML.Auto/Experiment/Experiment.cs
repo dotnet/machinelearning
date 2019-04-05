@@ -10,30 +10,30 @@ using System.Linq;
 
 namespace Microsoft.ML.Auto
 {
-    internal class Experiment<TRunDetails, TMetrics> where TRunDetails : RunDetails
+    internal class Experiment<TRunDetail, TMetrics> where TRunDetail : RunDetail
     {
         private readonly MLContext _context;
         private readonly OptimizingMetricInfo _optimizingMetricInfo;
         private readonly TaskKind _task;
-        private readonly IProgress<TRunDetails> _progressCallback;
+        private readonly IProgress<TRunDetail> _progressCallback;
         private readonly ExperimentSettings _experimentSettings;
         private readonly IMetricsAgent<TMetrics> _metricsAgent;
         private readonly IEnumerable<TrainerName> _trainerWhitelist;
         private readonly DirectoryInfo _modelDirectory;
         private readonly DatasetColumnInfo[] _datasetColumnInfo;
-        private readonly IRunner<TRunDetails> _runner;
-        private readonly IList<SuggestedPipelineRunDetails> _history = new List<SuggestedPipelineRunDetails>();
+        private readonly IRunner<TRunDetail> _runner;
+        private readonly IList<SuggestedPipelineRunDetail> _history = new List<SuggestedPipelineRunDetail>();
 
 
         public Experiment(MLContext context,
             TaskKind task,
             OptimizingMetricInfo metricInfo,
-            IProgress<TRunDetails> progressCallback,
+            IProgress<TRunDetail> progressCallback,
             ExperimentSettings experimentSettings,
             IMetricsAgent<TMetrics> metricsAgent,
             IEnumerable<TrainerName> trainerWhitelist,
             DatasetColumnInfo[] datasetColumnInfo,
-            IRunner<TRunDetails> runner)
+            IRunner<TRunDetail> runner)
         {
             _context = context;
             _optimizingMetricInfo = metricInfo;
@@ -47,10 +47,10 @@ namespace Microsoft.ML.Auto
             _runner = runner;
         }
 
-        public IList<TRunDetails> Execute()
+        public IList<TRunDetail> Execute()
         {
             var stopwatch = Stopwatch.StartNew();
-            var iterationResults = new List<TRunDetails>();
+            var iterationResults = new List<TRunDetail>();
 
             do
             {
@@ -69,19 +69,19 @@ namespace Microsoft.ML.Auto
 
                 // evaluate pipeline
                 Log(LogSeverity.Debug, $"Evaluating pipeline {pipeline.ToString()}");
-                (SuggestedPipelineRunDetails suggestedPipelineRunDetails, TRunDetails runDetails)
+                (SuggestedPipelineRunDetail suggestedPipelineRunDetail, TRunDetail runDetail)
                     = _runner.Run(pipeline, _modelDirectory, _history.Count + 1);
-                _history.Add(suggestedPipelineRunDetails);
-                WriteIterationLog(pipeline, suggestedPipelineRunDetails, iterationStopwatch);
+                _history.Add(suggestedPipelineRunDetail);
+                WriteIterationLog(pipeline, suggestedPipelineRunDetail, iterationStopwatch);
 
-                runDetails.RuntimeInSeconds = iterationStopwatch.Elapsed.TotalSeconds;
-                runDetails.PipelineInferenceTimeInSeconds = getPiplelineStopwatch.Elapsed.TotalSeconds;
+                runDetail.RuntimeInSeconds = iterationStopwatch.Elapsed.TotalSeconds;
+                runDetail.PipelineInferenceTimeInSeconds = getPiplelineStopwatch.Elapsed.TotalSeconds;
 
-                ReportProgress(runDetails);
-                iterationResults.Add(runDetails);
+                ReportProgress(runDetail);
+                iterationResults.Add(runDetail);
 
                 // if model is perfect, break
-                if (_metricsAgent.IsModelPerfect(suggestedPipelineRunDetails.Score))
+                if (_metricsAgent.IsModelPerfect(suggestedPipelineRunDetail.Score))
                 {
                     break;
                 }
@@ -120,7 +120,7 @@ namespace Microsoft.ML.Auto
             return experimentDirInfo;
         }
 
-        private void ReportProgress(TRunDetails iterationResult)
+        private void ReportProgress(TRunDetail iterationResult)
         {
             try
             {
@@ -132,7 +132,7 @@ namespace Microsoft.ML.Auto
             }
         }
 
-        private void WriteIterationLog(SuggestedPipeline pipeline, SuggestedPipelineRunDetails runResult, Stopwatch stopwatch)
+        private void WriteIterationLog(SuggestedPipeline pipeline, SuggestedPipelineRunDetail runResult, Stopwatch stopwatch)
         {
             Log(LogSeverity.Debug, $"{_history.Count}\t{runResult.Score}\t{stopwatch.Elapsed}\t{pipeline.ToString()}");
         }

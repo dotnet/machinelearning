@@ -6,7 +6,7 @@ using System.IO;
 
 namespace Microsoft.ML.Auto
 {
-    internal class TrainValidateRunner<TMetrics> : IRunner<RunDetails<TMetrics>>
+    internal class TrainValidateRunner<TMetrics> : IRunner<RunDetail<TMetrics>>
         where TMetrics : class
     {
         private readonly MLContext _context;
@@ -39,20 +39,20 @@ namespace Microsoft.ML.Auto
             _modelInputSchema = trainData.Schema;
         }
 
-        public (SuggestedPipelineRunDetails suggestedPipelineRunDetails, RunDetails<TMetrics> runDetails) 
+        public (SuggestedPipelineRunDetail suggestedPipelineRunDetail, RunDetail<TMetrics> runDetail) 
             Run(SuggestedPipeline pipeline, DirectoryInfo modelDirectory, int iterationNum)
         {
             var modelFileInfo = GetModelFileInfo(modelDirectory, iterationNum);
             var trainResult = RunnerUtil.TrainAndScorePipeline(_context, pipeline, _trainData, _validData,
                 _labelColumn, _metricsAgent, _preprocessorTransform, modelFileInfo, _modelInputSchema, _logger);
-            var suggestedPipelineRunDetails = new SuggestedPipelineRunDetails<TMetrics>(pipeline,
+            var suggestedPipelineRunDetail = new SuggestedPipelineRunDetail<TMetrics>(pipeline,
                 trainResult.score,
                 trainResult.exception == null,
                 trainResult.metrics,
                 trainResult.model,
                 trainResult.exception);
-            var runDetails = suggestedPipelineRunDetails.ToIterationResult(_preFeaturizer);
-            return (suggestedPipelineRunDetails, runDetails);
+            var runDetail = suggestedPipelineRunDetail.ToIterationResult(_preFeaturizer);
+            return (suggestedPipelineRunDetail, runDetail);
         }
 
         private static FileInfo GetModelFileInfo(DirectoryInfo modelDirectory, int iterationNum)

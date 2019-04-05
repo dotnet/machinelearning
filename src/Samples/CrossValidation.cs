@@ -49,12 +49,12 @@ namespace Samples
 
             // STEP 3: Start an AutoML experiment using 5 cross validation folds
             Console.WriteLine($"Running AutoML regression experiment for {ExperimentTime} seconds...");
-            IEnumerable<CrossValidationRunDetails<RegressionMetrics>> runDetails = mlContext.Auto()
+            IEnumerable<CrossValidationRunDetail<RegressionMetrics>> runDetails = mlContext.Auto()
                                                                    .CreateRegressionExperiment(ExperimentTime)
                                                                    .Execute(trainDataView, 5, LabelColumn);
             
             // STEP 4: Print metrics from best iteration
-            CrossValidationRunDetails<RegressionMetrics> best = runDetails.Best();
+            CrossValidationRunDetail<RegressionMetrics> best = runDetails.Best();
             Console.WriteLine($"Total models produced: {runDetails.Count()}");
             Console.WriteLine($"Best model's trainer: {best.TrainerName}");
             for (var i = 0; i < best.Results.Count(); i++)

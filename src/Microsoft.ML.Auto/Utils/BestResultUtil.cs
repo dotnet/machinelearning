@@ -9,7 +9,7 @@ namespace Microsoft.ML.Auto
 {
     internal class BestResultUtil
     {
-        public static RunDetails<TMetrics> GetBestRun<TMetrics>(IEnumerable<RunDetails<TMetrics>> results,
+        public static RunDetail<TMetrics> GetBestRun<TMetrics>(IEnumerable<RunDetail<TMetrics>> results,
             IMetricsAgent<TMetrics> metricsAgent, bool isMetricMaximizing)
         {
             results = results.Where(r => r.ValidationMetrics != null);
@@ -19,7 +19,7 @@ namespace Microsoft.ML.Auto
             return results.ElementAt(indexOfBestScore);
         }
 
-        public static CrossValidationRunDetails<TMetrics> GetBestRun<TMetrics>(IEnumerable<CrossValidationRunDetails<TMetrics>> results,
+        public static CrossValidationRunDetail<TMetrics> GetBestRun<TMetrics>(IEnumerable<CrossValidationRunDetail<TMetrics>> results,
             IMetricsAgent<TMetrics> metricsAgent, bool isMetricMaximizing)
         {
             results = results.Where(r => r.Results != null && r.Results.Any(x => x.ValidationMetrics != null));
@@ -29,7 +29,7 @@ namespace Microsoft.ML.Auto
             return results.ElementAt(indexOfBestScore);
         }
 
-        public static IEnumerable<(RunDetails<T>, int)> GetTopNRunResults<T>(IEnumerable<RunDetails<T>> results,
+        public static IEnumerable<(RunDetail<T>, int)> GetTopNRunResults<T>(IEnumerable<RunDetail<T>> results,
             IMetricsAgent<T> metricsAgent, int n, bool isMetricMaximizing)
         {
             results = results.Where(r => r.ValidationMetrics != null);
@@ -37,7 +37,7 @@ namespace Microsoft.ML.Auto
 
             var indexedValues = results.Select((k, v) => (k, v));
 
-            IEnumerable<(RunDetails<T>, int)> orderedResults;
+            IEnumerable<(RunDetail<T>, int)> orderedResults;
             if (isMetricMaximizing)
             {
                 orderedResults = indexedValues.OrderByDescending(t => metricsAgent.GetScore(t.Item1.ValidationMetrics));

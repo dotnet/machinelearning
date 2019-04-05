@@ -13,11 +13,11 @@ namespace Microsoft.ML.CLI.CodeGenerator
     {
         ColumnInferenceResults InferColumns(MLContext context, ColumnInformation columnInformation);
 
-        IEnumerable<RunDetails<BinaryClassificationMetrics>> ExploreBinaryClassificationModels(MLContext context, IDataView trainData, IDataView validationData, ColumnInformation columnInformation, BinaryClassificationMetric optimizationMetric, ProgressBar progressBar);
+        IEnumerable<RunDetail<BinaryClassificationMetrics>> ExploreBinaryClassificationModels(MLContext context, IDataView trainData, IDataView validationData, ColumnInformation columnInformation, BinaryClassificationMetric optimizationMetric, ProgressBar progressBar);
 
-        IEnumerable<RunDetails<MulticlassClassificationMetrics>> ExploreMultiClassificationModels(MLContext context, IDataView trainData, IDataView validationData, ColumnInformation columnInformation, MulticlassClassificationMetric optimizationMetric, ProgressBar progressBar);
+        IEnumerable<RunDetail<MulticlassClassificationMetrics>> ExploreMultiClassificationModels(MLContext context, IDataView trainData, IDataView validationData, ColumnInformation columnInformation, MulticlassClassificationMetric optimizationMetric, ProgressBar progressBar);
 
-        IEnumerable<RunDetails<RegressionMetrics>> ExploreRegressionModels(MLContext context, IDataView trainData, IDataView validationData, ColumnInformation columnInformation, RegressionMetric optimizationMetric, ProgressBar progressBar);
+        IEnumerable<RunDetail<RegressionMetrics>> ExploreRegressionModels(MLContext context, IDataView trainData, IDataView validationData, ColumnInformation columnInformation, RegressionMetric optimizationMetric, ProgressBar progressBar);
 
     }
 }

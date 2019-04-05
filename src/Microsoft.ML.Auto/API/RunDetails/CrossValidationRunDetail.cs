@@ -7,11 +7,11 @@ using System.Collections.Generic;
 
 namespace Microsoft.ML.Auto
 {
-    public sealed class CrossValidationRunDetails<TMetrics> : RunDetails
+    public sealed class CrossValidationRunDetail<TMetrics> : RunDetail
     {
         public IEnumerable<TrainResult<TMetrics>> Results { get; private set; }
 
-        internal CrossValidationRunDetails(string trainerName,
+        internal CrossValidationRunDetail(string trainerName,
             IEstimator<ITransformer> estimator,
             Pipeline pipeline,
             IEnumerable<TrainResult<TMetrics>> results) : base(trainerName, estimator, pipeline)

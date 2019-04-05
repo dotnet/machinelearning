@@ -74,9 +74,9 @@ namespace Microsoft.ML.CLI.CodeGenerator
             // The reason why we are doing this way of defining 3 different results is because of the AutoML API 
             // i.e there is no common class/interface to handle all three tasks together.
 
-            IEnumerable<RunDetails<BinaryClassificationMetrics>> binaryRunDetails = default;
-            IEnumerable<RunDetails<MulticlassClassificationMetrics>> multiRunDetails = default;
-            IEnumerable<RunDetails<RegressionMetrics>> regressionRunDetails = default;
+            IEnumerable<RunDetail<BinaryClassificationMetrics>> binaryRunDetails = default;
+            IEnumerable<RunDetail<MulticlassClassificationMetrics>> multiRunDetails = default;
+            IEnumerable<RunDetail<RegressionMetrics>> regressionRunDetails = default;
 
             Console.WriteLine($"{Strings.ExplorePipeline}: {settings.MlTask}");
             Console.WriteLine($"{Strings.FurtherLearning}: {Strings.LearningHttpLink}");

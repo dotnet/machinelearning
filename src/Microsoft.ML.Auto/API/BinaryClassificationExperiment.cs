@@ -56,14 +56,14 @@ namespace Microsoft.ML.Auto
 
     public static class BinaryExperimentResultExtensions
     {
-        public static RunDetails<BinaryClassificationMetrics> Best(this IEnumerable<RunDetails<BinaryClassificationMetrics>> results, BinaryClassificationMetric metric = BinaryClassificationMetric.Accuracy)
+        public static RunDetail<BinaryClassificationMetrics> Best(this IEnumerable<RunDetail<BinaryClassificationMetrics>> results, BinaryClassificationMetric metric = BinaryClassificationMetric.Accuracy)
         {
             var metricsAgent = new BinaryMetricsAgent(null, metric);
             var isMetricMaximizing = new OptimizingMetricInfo(metric).IsMaximizing;
             return BestResultUtil.GetBestRun(results, metricsAgent, isMetricMaximizing);
         }
 
-        public static CrossValidationRunDetails<BinaryClassificationMetrics> Best(this IEnumerable<CrossValidationRunDetails<BinaryClassificationMetrics>> results, BinaryClassificationMetric metric = BinaryClassificationMetric.Accuracy)
+        public static CrossValidationRunDetail<BinaryClassificationMetrics> Best(this IEnumerable<CrossValidationRunDetail<BinaryClassificationMetrics>> results, BinaryClassificationMetric metric = BinaryClassificationMetric.Accuracy)
         {
             var metricsAgent = new BinaryMetricsAgent(null, metric);
             var isMetricMaximizing = new OptimizingMetricInfo(metric).IsMaximizing;

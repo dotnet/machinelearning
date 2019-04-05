@@ -17,11 +17,11 @@ namespace Microsoft.ML.CLI.Utilities
             return (isMaximizing ? a.CompareTo(b) : -a.CompareTo(b));
         }
 
-        internal class RegressionHandler : IProgress<RunDetails<RegressionMetrics>>
+        internal class RegressionHandler : IProgress<RunDetail<RegressionMetrics>>
         {
             private readonly bool isMaximizing;
-            private readonly Func<RunDetails<RegressionMetrics>, double> GetScore;
-            private RunDetails<RegressionMetrics> bestResult;
+            private readonly Func<RunDetail<RegressionMetrics>, double> GetScore;
+            private RunDetail<RegressionMetrics> bestResult;
             private int iterationIndex;
             private ProgressBar progressBar;
             private string optimizationMetric = string.Empty;
@@ -31,11 +31,11 @@ namespace Microsoft.ML.CLI.Utilities
                 this.isMaximizing = new OptimizingMetricInfo(optimizationMetric).IsMaximizing;
                 this.optimizationMetric = optimizationMetric.ToString();
                 this.progressBar = progressBar;
-                GetScore = (RunDetails<RegressionMetrics> result) => new RegressionMetricsAgent(null, optimizationMetric).GetScore(result?.ValidationMetrics);
+                GetScore = (RunDetail<RegressionMetrics> result) => new RegressionMetricsAgent(null, optimizationMetric).GetScore(result?.ValidationMetrics);
                 ConsolePrinter.PrintRegressionMetricsHeader(LogLevel.Trace);
             }
 
-            public void Report(RunDetails<RegressionMetrics> iterationResult)
+            public void Report(RunDetail<RegressionMetrics> iterationResult)
             {
                 iterationIndex++;
                 UpdateBestResult(iterationResult);
@@ -47,7 +47,7 @@ namespace Microsoft.ML.CLI.Utilities
                 }
             }
 
-            private void UpdateBestResult(RunDetails<RegressionMetrics> iterationResult)
+            private void UpdateBestResult(RunDetail<RegressionMetrics> iterationResult)
             {
                 if (MetricComparator(GetScore(iterationResult), GetScore(bestResult), isMaximizing) > 0)
                 {
@@ -56,11 +56,11 @@ namespace Microsoft.ML.CLI.Utilities
             }
         }
 
-        internal class BinaryClassificationHandler : IProgress<RunDetails<BinaryClassificationMetrics>>
+        internal class BinaryClassificationHandler : IProgress<RunDetail<BinaryClassificationMetrics>>
         {
             private readonly bool isMaximizing;
-            private readonly Func<RunDetails<BinaryClassificationMetrics>, double> GetScore;
-            private RunDetails<BinaryClassificationMetrics> bestResult;
+            private readonly Func<RunDetail<BinaryClassificationMetrics>, double> GetScore;
+            private RunDetail<BinaryClassificationMetrics> bestResult;
             private int iterationIndex;
             private ProgressBar progressBar;
             private string optimizationMetric = string.Empty;
@@ -70,11 +70,11 @@ namespace Microsoft.ML.CLI.Utilities
                 this.isMaximizing = new OptimizingMetricInfo(optimizationMetric).IsMaximizing;
                 this.optimizationMetric = optimizationMetric.ToString();
                 this.progressBar = progressBar;
-                GetScore = (RunDetails<BinaryClassificationMetrics> result) => new BinaryMetricsAgent(null, optimizationMetric).GetScore(result?.ValidationMetrics);
+                GetScore = (RunDetail<BinaryClassificationMetrics> result) => new BinaryMetricsAgent(null, optimizationMetric).GetScore(result?.ValidationMetrics);
                 ConsolePrinter.PrintBinaryClassificationMetricsHeader(LogLevel.Trace);
             }
 
-            public void Report(RunDetails<BinaryClassificationMetrics> iterationResult)
+            public void Report(RunDetail<BinaryClassificationMetrics> iterationResult)
             {
                 iterationIndex++;
                 UpdateBestResult(iterationResult);
@@ -86,7 +86,7 @@ namespace Microsoft.ML.CLI.Utilities
                 }
             }
 
-            private void UpdateBestResult(RunDetails<BinaryClassificationMetrics> iterationResult)
+            private void UpdateBestResult(RunDetail<BinaryClassificationMetrics> iterationResult)
             {
                 if (MetricComparator(GetScore(iterationResult), GetScore(bestResult), isMaximizing) > 0)
                 {
@@ -95,11 +95,11 @@ namespace Microsoft.ML.CLI.Utilities
             }
         }
 
-        internal class MulticlassClassificationHandler : IProgress<RunDetails<MulticlassClassificationMetrics>>
+        internal class MulticlassClassificationHandler : IProgress<RunDetail<MulticlassClassificationMetrics>>
         {
             private readonly bool isMaximizing;
-            private readonly Func<RunDetails<MulticlassClassificationMetrics>, double> GetScore;
-            private RunDetails<MulticlassClassificationMetrics> bestResult;
+            private readonly Func<RunDetail<MulticlassClassificationMetrics>, double> GetScore;
+            private RunDetail<MulticlassClassificationMetrics> bestResult;
             private int iterationIndex;
             private ProgressBar progressBar;
             private string optimizationMetric = string.Empty;
@@ -109,11 +109,11 @@ namespace Microsoft.ML.CLI.Utilities
                 this.isMaximizing = new OptimizingMetricInfo(optimizationMetric).IsMaximizing;
                 this.optimizationMetric = optimizationMetric.ToString();
                 this.progressBar = progressBar;
-                GetScore = (RunDetails<MulticlassClassificationMetrics> result) => new MultiMetricsAgent(null, optimizationMetric).GetScore(result?.ValidationMetrics);
+                GetScore = (RunDetail<MulticlassClassificationMetrics> result) => new MultiMetricsAgent(null, optimizationMetric).GetScore(result?.ValidationMetrics);
                 ConsolePrinter.PrintMulticlassClassificationMetricsHeader(LogLevel.Trace);
             }
 
-            public void Report(RunDetails<MulticlassClassificationMetrics> iterationResult)
+            public void Report(RunDetail<MulticlassClassificationMetrics> iterationResult)
             {
                 iterationIndex++;
                 UpdateBestResult(iterationResult);
@@ -125,7 +125,7 @@ namespace Microsoft.ML.CLI.Utilities
                 }
             }
 
-            private void UpdateBestResult(RunDetails<MulticlassClassificationMetrics> iterationResult)
+            private void UpdateBestResult(RunDetail<MulticlassClassificationMetrics> iterationResult)
             {
                 if (MetricComparator(GetScore(iterationResult), GetScore(bestResult), isMaximizing) > 0)
                 {

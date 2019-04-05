@@ -18,12 +18,12 @@ namespace Microsoft.ML.Auto.Test
             var metrics2 = MetricsUtil.CreateRegressionMetrics(0.3, 0.3, 0.3, 0.3, 0.3);
             var metrics3 = MetricsUtil.CreateRegressionMetrics(0.1, 0.1, 0.1, 0.1, 0.1);
 
-            var runResults = new List<RunDetails<RegressionMetrics>>()
+            var runResults = new List<RunDetail<RegressionMetrics>>()
             {
-                new RunDetails<RegressionMetrics>(null, null, null, null, null, null),
-                new RunDetails<RegressionMetrics>(null, null, null, null, metrics1, null),
-                new RunDetails<RegressionMetrics>(null, null, null, null, metrics2, null),
-                new RunDetails<RegressionMetrics>(null, null, null, null, metrics3, null),
+                new RunDetail<RegressionMetrics>(null, null, null, null, null, null),
+                new RunDetail<RegressionMetrics>(null, null, null, null, metrics1, null),
+                new RunDetail<RegressionMetrics>(null, null, null, null, metrics2, null),
+                new RunDetail<RegressionMetrics>(null, null, null, null, metrics3, null),
             };
 
             var metricsAgent = new RegressionMetricsAgent(null, RegressionMetric.RSquared);
@@ -34,9 +34,9 @@ namespace Microsoft.ML.Auto.Test
         [TestMethod]
         public void FindBestResultWithAllNullMetrics()
         {
-            var runResults = new List<RunDetails<RegressionMetrics>>()
+            var runResults = new List<RunDetail<RegressionMetrics>>()
             {
-                new RunDetails<RegressionMetrics>(null, null, null, null, null, null),
+                new RunDetail<RegressionMetrics>(null, null, null, null, null, null),
             };
 
             var metricsAgent = new RegressionMetricsAgent(null, RegressionMetric.RSquared);

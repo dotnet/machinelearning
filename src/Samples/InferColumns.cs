@@ -37,12 +37,12 @@ namespace Samples
 
             // STEP 3: Auto featurize, auto train and auto hyperparameter tune
             Console.WriteLine($"Running AutoML regression experiment for {ExperimentTime} seconds...");
-            IEnumerable<RunDetails<RegressionMetrics>> runDetails = mlContext.Auto()
+            IEnumerable<RunDetail<RegressionMetrics>> runDetails = mlContext.Auto()
                                                                    .CreateRegressionExperiment(ExperimentTime)
                                                                    .Execute(trainDataView, columnInference.ColumnInformation);
 
             // STEP 4: Print metric from best model
-            RunDetails<RegressionMetrics> best = runDetails.Best();
+            RunDetail<RegressionMetrics> best = runDetails.Best();
             Console.WriteLine($"Total models produced: {runDetails.Count()}");
             Console.WriteLine($"Best model's trainer: {best.TrainerName}");
             Console.WriteLine($"RSquared of best model from validation data: {best.ValidationMetrics.RSquared}");

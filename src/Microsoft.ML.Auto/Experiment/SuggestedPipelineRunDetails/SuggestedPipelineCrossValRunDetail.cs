@@ -32,11 +32,11 @@ namespace Microsoft.ML.Auto
         }
     }
 
-    internal sealed class SuggestedPipelineCrossValRunDetails<TMetrics> : SuggestedPipelineRunDetails
+    internal sealed class SuggestedPipelineCrossValRunDetail<TMetrics> : SuggestedPipelineRunDetail
     {
         public readonly IEnumerable<SuggestedPipelineTrainResult<TMetrics>> Results;
 
-        internal SuggestedPipelineCrossValRunDetails(SuggestedPipeline pipeline,
+        internal SuggestedPipelineCrossValRunDetail(SuggestedPipeline pipeline,
             double score,
             bool runSucceeded,
             IEnumerable<SuggestedPipelineTrainResult<TMetrics>> results) : base(pipeline, score, runSucceeded)
@@ -44,10 +44,10 @@ namespace Microsoft.ML.Auto
             Results = results;
         }
 
-        public CrossValidationRunDetails<TMetrics> ToIterationResult(IEstimator<ITransformer> preFeaturizer)
+        public CrossValidationRunDetail<TMetrics> ToIterationResult(IEstimator<ITransformer> preFeaturizer)
         {
-            var estimator = SuggestedPipelineRunDetailsUtil.PrependPreFeaturizer(Pipeline.ToEstimator(), preFeaturizer);
-            return new CrossValidationRunDetails<TMetrics>(Pipeline.Trainer.TrainerName.ToString(), estimator,
+            var estimator = SuggestedPipelineRunDetailUtil.PrependPreFeaturizer(Pipeline.ToEstimator(), preFeaturizer);
+            return new CrossValidationRunDetail<TMetrics>(Pipeline.Trainer.TrainerName.ToString(), estimator,
                 Pipeline.ToPipeline(), Results.Select(r => r.ToTrainResult()));
         }
     }

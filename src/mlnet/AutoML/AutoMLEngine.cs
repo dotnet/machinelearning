@@ -45,7 +45,7 @@ namespace Microsoft.ML.CLI.CodeGenerator
             return columnInference;
         }
 
-        IEnumerable<RunDetails<BinaryClassificationMetrics>> IAutoMLEngine.ExploreBinaryClassificationModels(MLContext context, IDataView trainData, IDataView validationData, ColumnInformation columnInformation, BinaryClassificationMetric optimizationMetric, ProgressBar progressBar)
+        IEnumerable<RunDetail<BinaryClassificationMetrics>> IAutoMLEngine.ExploreBinaryClassificationModels(MLContext context, IDataView trainData, IDataView validationData, ColumnInformation columnInformation, BinaryClassificationMetric optimizationMetric, ProgressBar progressBar)
         {
             var progressReporter = new ProgressHandlers.BinaryClassificationHandler(optimizationMetric, progressBar);
             var result = context.Auto()
@@ -61,7 +61,7 @@ namespace Microsoft.ML.CLI.CodeGenerator
             return result;
         }
 
-        IEnumerable<RunDetails<RegressionMetrics>> IAutoMLEngine.ExploreRegressionModels(MLContext context, IDataView trainData, IDataView validationData, ColumnInformation columnInformation, RegressionMetric optimizationMetric, ProgressBar progressBar)
+        IEnumerable<RunDetail<RegressionMetrics>> IAutoMLEngine.ExploreRegressionModels(MLContext context, IDataView trainData, IDataView validationData, ColumnInformation columnInformation, RegressionMetric optimizationMetric, ProgressBar progressBar)
         {
             var progressReporter = new ProgressHandlers.RegressionHandler(optimizationMetric, progressBar);
             var result = context.Auto()
@@ -76,7 +76,7 @@ namespace Microsoft.ML.CLI.CodeGenerator
             return result;
         }
 
-        IEnumerable<RunDetails<MulticlassClassificationMetrics>> IAutoMLEngine.ExploreMultiClassificationModels(MLContext context, IDataView trainData, IDataView validationData, ColumnInformation columnInformation, MulticlassClassificationMetric optimizationMetric, ProgressBar progressBar)
+        IEnumerable<RunDetail<MulticlassClassificationMetrics>> IAutoMLEngine.ExploreMultiClassificationModels(MLContext context, IDataView trainData, IDataView validationData, ColumnInformation columnInformation, MulticlassClassificationMetric optimizationMetric, ProgressBar progressBar)
         {
             var progressReporter = new ProgressHandlers.MulticlassClassificationHandler(optimizationMetric, progressBar);
             var result = context.Auto()

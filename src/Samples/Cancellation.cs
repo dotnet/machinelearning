@@ -58,7 +58,7 @@ namespace Samples
                     MaxExperimentTimeInSeconds = 3600,
                     CancellationToken = cts.Token
                 });
-            IEnumerable<RunDetails<RegressionMetrics>> runDetails = new List<RunDetails<RegressionMetrics>>();
+            IEnumerable<RunDetail<RegressionMetrics>> runDetails = new List<RunDetail<RegressionMetrics>>();
             Console.WriteLine($"Running AutoML experiment...");
             Task experimentTask = Task.Run(() =>
                 {

@@ -4,7 +4,7 @@
 
 namespace Microsoft.ML.Auto
 {
-    internal static class SuggestedPipelineRunDetailsUtil
+    internal static class SuggestedPipelineRunDetailUtil
     {
         public static IEstimator<ITransformer> PrependPreFeaturizer(IEstimator<ITransformer> estimator, IEstimator<ITransformer> preFeaturizer)
         {

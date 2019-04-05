@@ -32,8 +32,8 @@ namespace Microsoft.ML.Auto
             _trainerWhitelist = trainerWhitelist;
         }
 
-        public IEnumerable<RunDetails<TMetrics>> Execute(IDataView trainData, string labelColumn = DefaultColumnNames.Label,
-            string samplingKeyColumn = null, IEstimator<ITransformer> preFeaturizers = null, IProgress<RunDetails<TMetrics>> progressHandler = null)
+        public IEnumerable<RunDetail<TMetrics>> Execute(IDataView trainData, string labelColumn = DefaultColumnNames.Label,
+            string samplingKeyColumn = null, IEstimator<ITransformer> preFeaturizers = null, IProgress<RunDetail<TMetrics>> progressHandler = null)
         {
             var columnInformation = new ColumnInformation()
             {
@@ -43,8 +43,8 @@ namespace Microsoft.ML.Auto
             return Execute(trainData, columnInformation, preFeaturizers, progressHandler);
         }
 
-        public IEnumerable<RunDetails<TMetrics>> Execute(IDataView trainData, ColumnInformation columnInformation, 
-            IEstimator<ITransformer> preFeaturizer = null, IProgress<RunDetails<TMetrics>> progressHandler = null)
+        public IEnumerable<RunDetail<TMetrics>> Execute(IDataView trainData, ColumnInformation columnInformation, 
+            IEstimator<ITransformer> preFeaturizer = null, IProgress<RunDetail<TMetrics>> progressHandler = null)
         {
             // Cross val threshold for # of dataset rows --
             // If dataset has < threshold # of rows, use cross val.
@@ -66,13 +66,13 @@ namespace Microsoft.ML.Auto
             }
         }
 
-        public IEnumerable<RunDetails<TMetrics>> Execute(IDataView trainData, IDataView validationData, string labelColumn = DefaultColumnNames.Label, IEstimator<ITransformer> preFeaturizer = null, IProgress<RunDetails<TMetrics>> progressHandler = null)
+        public IEnumerable<RunDetail<TMetrics>> Execute(IDataView trainData, IDataView validationData, string labelColumn = DefaultColumnNames.Label, IEstimator<ITransformer> preFeaturizer = null, IProgress<RunDetail<TMetrics>> progressHandler = null)
         {
             var columnInformation = new ColumnInformation() { LabelColumnName = labelColumn };
             return Execute(trainData, validationData, columnInformation, preFeaturizer, progressHandler);
         }
 
-        public IEnumerable<RunDetails<TMetrics>> Execute(IDataView trainData, IDataView validationData, ColumnInformation columnInformation, IEstimator<ITransformer> preFeaturizer = null, IProgress<RunDetails<TMetrics>> progressHandler = null)
+        public IEnumerable<RunDetail<TMetrics>> Execute(IDataView trainData, IDataView validationData, ColumnInformation columnInformation, IEstimator<ITransformer> preFeaturizer = null, IProgress<RunDetail<TMetrics>> progressHandler = null)
         {
             if (validationData == null)
             {
@@ -83,17 +83,17 @@ namespace Microsoft.ML.Auto
             return ExecuteTrainValidate(trainData, columnInformation, validationData, preFeaturizer, progressHandler);
         }
 
-        public IEnumerable<CrossValidationRunDetails<TMetrics>> Execute(IDataView trainData, uint numberOfCVFolds, ColumnInformation columnInformation = null, IEstimator<ITransformer> preFeaturizer = null, IProgress<CrossValidationRunDetails<TMetrics>> progressHandler = null)
+        public IEnumerable<CrossValidationRunDetail<TMetrics>> Execute(IDataView trainData, uint numberOfCVFolds, ColumnInformation columnInformation = null, IEstimator<ITransformer> preFeaturizer = null, IProgress<CrossValidationRunDetail<TMetrics>> progressHandler = null)
         {
             UserInputValidationUtil.ValidateNumberOfCVFoldsArg(numberOfCVFolds);
             var splitResult = SplitUtil.CrossValSplit(Context, trainData, numberOfCVFolds, columnInformation?.SamplingKeyColumnName);
             return ExecuteCrossVal(splitResult.trainDatasets, columnInformation, splitResult.validationDatasets, preFeaturizer, progressHandler);
         }
 
-        public IEnumerable<CrossValidationRunDetails<TMetrics>> Execute(IDataView trainData, 
+        public IEnumerable<CrossValidationRunDetail<TMetrics>> Execute(IDataView trainData, 
             uint numberOfCVFolds, string labelColumn = DefaultColumnNames.Label,
             string samplingKeyColumn = null, IEstimator<ITransformer> preFeaturizer = null, 
-            Progress<CrossValidationRunDetails<TMetrics>> progressHandler = null)
+            Progress<CrossValidationRunDetail<TMetrics>> progressHandler = null)
         {
             var columnInformation = new ColumnInformation()
             {
@@ -103,11 +103,11 @@ namespace Microsoft.ML.Auto
             return Execute(trainData, numberOfCVFolds, columnInformation, preFeaturizer, progressHandler);
         }
 
-        private IEnumerable<RunDetails<TMetrics>> ExecuteTrainValidate(IDataView trainData,
+        private IEnumerable<RunDetail<TMetrics>> ExecuteTrainValidate(IDataView trainData,
             ColumnInformation columnInfo,
             IDataView validationData,
             IEstimator<ITransformer> preFeaturizer,
-            IProgress<RunDetails<TMetrics>> progressHandler)
+            IProgress<RunDetail<TMetrics>> progressHandler)
         {
             columnInfo = columnInfo ?? new ColumnInformation();
             UserInputValidationUtil.ValidateExperimentExecuteArgs(trainData, columnInfo, validationData);
@@ -127,11 +127,11 @@ namespace Microsoft.ML.Auto
             return Execute(columnInfo, columns, preFeaturizer, progressHandler, runner);
         }
 
-        private IEnumerable<CrossValidationRunDetails<TMetrics>> ExecuteCrossVal(IDataView[] trainDatasets,
+        private IEnumerable<CrossValidationRunDetail<TMetrics>> ExecuteCrossVal(IDataView[] trainDatasets,
             ColumnInformation columnInfo,
             IDataView[] validationDatasets,
             IEstimator<ITransformer> preFeaturizer,
-            IProgress<CrossValidationRunDetails<TMetrics>> progressHandler)
+            IProgress<CrossValidationRunDetail<TMetrics>> progressHandler)
         {
             columnInfo = columnInfo ?? new ColumnInformation();
             UserInputValidationUtil.ValidateExperimentExecuteArgs(trainDatasets[0], columnInfo, validationDatasets[0]);
@@ -146,11 +146,11 @@ namespace Microsoft.ML.Auto
             return Execute(columnInfo, columns, preFeaturizer, progressHandler, runner);
         }
 
-        private IEnumerable<RunDetails<TMetrics>> ExecuteCrossValSummary(IDataView[] trainDatasets,
+        private IEnumerable<RunDetail<TMetrics>> ExecuteCrossValSummary(IDataView[] trainDatasets,
             ColumnInformation columnInfo,
             IDataView[] validationDatasets,
             IEstimator<ITransformer> preFeaturizer,
-            IProgress<RunDetails<TMetrics>> progressHandler)
+            IProgress<RunDetail<TMetrics>> progressHandler)
         {
             columnInfo = columnInfo ?? new ColumnInformation();
             UserInputValidationUtil.ValidateExperimentExecuteArgs(trainDatasets[0], columnInfo, validationDatasets[0]);
@@ -165,15 +165,15 @@ namespace Microsoft.ML.Auto
             return Execute(columnInfo, columns, preFeaturizer, progressHandler, runner);
         }
 
-        private IEnumerable<TRunDetails> Execute<TRunDetails>(ColumnInformation columnInfo,
+        private IEnumerable<TRunDetail> Execute<TRunDetail>(ColumnInformation columnInfo,
             DatasetColumnInfo[] columns,
             IEstimator<ITransformer> preFeaturizer,
-            IProgress<TRunDetails> progressHandler,
-            IRunner<TRunDetails> runner)
-            where TRunDetails : RunDetails
+            IProgress<TRunDetail> progressHandler,
+            IRunner<TRunDetail> runner)
+            where TRunDetail : RunDetail
         {
             // Execute experiment & get all pipelines run
-            var experiment = new Experiment<TRunDetails, TMetrics>(Context, _task, _optimizingMetricInfo, progressHandler,
+            var experiment = new Experiment<TRunDetail, TMetrics>(Context, _task, _optimizingMetricInfo, progressHandler,
                 _settings, _metricsAgent, _trainerWhitelist, columns, runner);
 
             return experiment.Execute();

@@ -53,12 +53,12 @@ namespace Samples
 
             // STEP 4: Auto-featurization, model selection, and hyperparameter tuning
             Console.WriteLine($"Running AutoML regression experiment for {ExperimentTime} seconds...");
-            IEnumerable<RunDetails<RegressionMetrics>> runDetails = mlContext.Auto()
+            IEnumerable<RunDetail<RegressionMetrics>> runDetails = mlContext.Auto()
                                                                    .CreateRegressionExperiment(ExperimentTime)
                                                                    .Execute(smallTrainDataView, LabelColumn);
 
             // STEP 5: Refit best model on entire training data
-            RunDetails<RegressionMetrics> best = runDetails.Best();
+            RunDetail<RegressionMetrics> best = runDetails.Best();
             var refitBestModel = best.Estimator.Fit(trainDataView);
 
             // STEP 6: Evaluate test data

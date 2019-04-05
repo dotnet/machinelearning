@@ -68,7 +68,7 @@ namespace Microsoft.ML.CLI.Utilities
             return "|" + message.PadRight(width - 2) + "|";
         }
 
-        internal static void PrintIterationSummary(IEnumerable<RunDetails<BinaryClassificationMetrics>> results, BinaryClassificationMetric optimizationMetric, int count)
+        internal static void PrintIterationSummary(IEnumerable<RunDetail<BinaryClassificationMetrics>> results, BinaryClassificationMetric optimizationMetric, int count)
         {
             var metricsAgent = new BinaryMetricsAgent(null, optimizationMetric);
             var topNResults = BestResultUtil.GetTopNRunResults(results, metricsAgent, count, new OptimizingMetricInfo(optimizationMetric).IsMaximizing);
@@ -86,7 +86,7 @@ namespace Microsoft.ML.CLI.Utilities
             logger.Log(LogLevel.Info, TABLESEPERATOR);
         }
 
-        internal static void PrintIterationSummary(IEnumerable<RunDetails<RegressionMetrics>> results, RegressionMetric optimizationMetric, int count)
+        internal static void PrintIterationSummary(IEnumerable<RunDetail<RegressionMetrics>> results, RegressionMetric optimizationMetric, int count)
         {
             var metricsAgent = new RegressionMetricsAgent(null, optimizationMetric);
             var topNResults = BestResultUtil.GetTopNRunResults(results, metricsAgent, count, new OptimizingMetricInfo(optimizationMetric).IsMaximizing);
@@ -104,7 +104,7 @@ namespace Microsoft.ML.CLI.Utilities
             logger.Log(LogLevel.Info, TABLESEPERATOR);
         }
 
-        internal static void PrintIterationSummary(IEnumerable<RunDetails<MulticlassClassificationMetrics>> results, MulticlassClassificationMetric optimizationMetric, int count)
+        internal static void PrintIterationSummary(IEnumerable<RunDetail<MulticlassClassificationMetrics>> results, MulticlassClassificationMetric optimizationMetric, int count)
         {
             var metricsAgent = new MultiMetricsAgent(null, optimizationMetric);
             var topNResults = BestResultUtil.GetTopNRunResults(results, metricsAgent, count, new OptimizingMetricInfo(optimizationMetric).IsMaximizing);

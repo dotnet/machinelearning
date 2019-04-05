@@ -9,7 +9,7 @@ using System.Linq;
 
 namespace Microsoft.ML.Auto
 {
-    internal class CrossValSummaryRunner<TMetrics> : IRunner<RunDetails<TMetrics>>
+    internal class CrossValSummaryRunner<TMetrics> : IRunner<RunDetail<TMetrics>>
         where TMetrics : class
     {
         private readonly MLContext _context;
@@ -45,7 +45,7 @@ namespace Microsoft.ML.Auto
             _modelInputSchema = trainDatasets[0].Schema;
         }
 
-        public (SuggestedPipelineRunDetails suggestedPipelineRunDetails, RunDetails<TMetrics> runDetails)
+        public (SuggestedPipelineRunDetail suggestedPipelineRunDetail, RunDetail<TMetrics> runDetail)
             Run(SuggestedPipeline pipeline, DirectoryInfo modelDirectory, int iterationNum)
         {
             var trainResults = new List<(ModelContainer model, TMetrics metrics, Exception exception, double score)>();
@@ -63,8 +63,8 @@ namespace Microsoft.ML.Auto
             if (!allRunsSucceeded)
             {
                 var firstException = trainResults.First(r => r.exception != null).exception;
-                var errorRunDetails = new SuggestedPipelineRunDetails<TMetrics>(pipeline, double.NaN, false, null, null, firstException);
-                return (errorRunDetails, errorRunDetails.ToIterationResult(_preFeaturizer));
+                var errorRunDetail = new SuggestedPipelineRunDetail<TMetrics>(pipeline, double.NaN, false, null, null, firstException);
+                return (errorRunDetail, errorRunDetail.ToIterationResult(_preFeaturizer));
             }
 
             // Get the model from the best fold
@@ -77,9 +77,9 @@ namespace Microsoft.ML.Auto
             var metricsClosestToAvg = trainResults[indexClosestToAvg].metrics;
 
             // Build result objects
-            var suggestedPipelineRunDetails = new SuggestedPipelineRunDetails<TMetrics>(pipeline, avgScore, allRunsSucceeded, metricsClosestToAvg, bestModel, null);
-            var runDetails = suggestedPipelineRunDetails.ToIterationResult(_preFeaturizer);
-            return (suggestedPipelineRunDetails, runDetails);
+            var suggestedPipelineRunDetail = new SuggestedPipelineRunDetail<TMetrics>(pipeline, avgScore, allRunsSucceeded, metricsClosestToAvg, bestModel, null);
+            var runDetail = suggestedPipelineRunDetail.ToIterationResult(_preFeaturizer);
+            return (suggestedPipelineRunDetail, runDetail);
         }
 
         private static int GetIndexClosestToAverage(IEnumerable<double> values, double average)

@@ -6,9 +6,9 @@ using System.IO;
 
 namespace Microsoft.ML.Auto
 {
-    internal interface IRunner<TRunDetails> where TRunDetails : RunDetails
+    internal interface IRunner<TRunDetail> where TRunDetail : RunDetail
     {
-        (SuggestedPipelineRunDetails suggestedPipelineRunDetails, TRunDetails runDetails) 
+        (SuggestedPipelineRunDetail suggestedPipelineRunDetail, TRunDetail runDetail) 
             Run (SuggestedPipeline pipeline, DirectoryInfo modelDirectory, int iterationNum);
     }
 }

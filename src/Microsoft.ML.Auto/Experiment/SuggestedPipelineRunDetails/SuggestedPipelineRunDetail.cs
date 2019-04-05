@@ -6,22 +6,22 @@ using System;
 
 namespace Microsoft.ML.Auto
 {
-    internal class SuggestedPipelineRunDetails
+    internal class SuggestedPipelineRunDetail
     {
         public readonly SuggestedPipeline Pipeline;
         public readonly bool RunSucceded;
         public readonly double Score;
 
-        public SuggestedPipelineRunDetails(SuggestedPipeline pipeline, double score, bool runSucceeded)
+        public SuggestedPipelineRunDetail(SuggestedPipeline pipeline, double score, bool runSucceeded)
         {
             Pipeline = pipeline;
             Score = score;
             RunSucceded = runSucceeded;
         }
 
-        public static SuggestedPipelineRunDetails FromPipelineRunResult(MLContext context, PipelineScore pipelineRunResult)
+        public static SuggestedPipelineRunDetail FromPipelineRunResult(MLContext context, PipelineScore pipelineRunResult)
         {
-            return new SuggestedPipelineRunDetails(SuggestedPipeline.FromPipeline(context, pipelineRunResult.Pipeline), pipelineRunResult.Score, pipelineRunResult.RunSucceded);
+            return new SuggestedPipelineRunDetail(SuggestedPipeline.FromPipeline(context, pipelineRunResult.Pipeline), pipelineRunResult.Score, pipelineRunResult.RunSucceded);
         }
 
         public IRunResult ToRunResult(bool isMetricMaximizing)
@@ -30,13 +30,13 @@ namespace Microsoft.ML.Auto
         }
     }
 
-    internal class SuggestedPipelineRunDetails<TMetrics> : SuggestedPipelineRunDetails
+    internal class SuggestedPipelineRunDetail<TMetrics> : SuggestedPipelineRunDetail
     {
         public readonly TMetrics ValidationMetrics;
         public readonly ModelContainer ModelContainer;
         public readonly Exception Exception;
 
-        internal SuggestedPipelineRunDetails(SuggestedPipeline pipeline,
+        internal SuggestedPipelineRunDetail(SuggestedPipeline pipeline,
             double score,
             bool runSucceeded,
             TMetrics validationMetrics,
@@ -48,10 +48,10 @@ namespace Microsoft.ML.Auto
             Exception = ex;
         }
 
-        public RunDetails<TMetrics> ToIterationResult(IEstimator<ITransformer> preFeaturizer)
+        public RunDetail<TMetrics> ToIterationResult(IEstimator<ITransformer> preFeaturizer)
         {
-            var estimator = SuggestedPipelineRunDetailsUtil.PrependPreFeaturizer(Pipeline.ToEstimator(), preFeaturizer);
-            return new RunDetails<TMetrics>(Pipeline.Trainer.TrainerName.ToString(), estimator,
+            var estimator = SuggestedPipelineRunDetailUtil.PrependPreFeaturizer(Pipeline.ToEstimator(), preFeaturizer);
+            return new RunDetail<TMetrics>(Pipeline.Trainer.TrainerName.ToString(), estimator,
                 Pipeline.ToPipeline(), ModelContainer, ValidationMetrics, Exception);
         }
     }
