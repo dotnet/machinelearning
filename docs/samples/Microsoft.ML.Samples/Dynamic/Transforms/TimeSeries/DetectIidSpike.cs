@@ -46,35 +46,55 @@ namespace Samples.Dynamic
             // Convert data to IDataView.
             var dataView = ml.Data.LoadFromEnumerable(data);
 
-            // Setup the estimator arguments
+            // Setup IidSpikeDetector arguments
             string outputColumnName = nameof(IidSpikePrediction.Prediction);
             string inputColumnName = nameof(IidSpikeData.Value);
+            // The transformed model.
+            ITransformer model = ml.Transforms.DetectIidSpike(outputColumnName, inputColumnName, 95, Size).Fit(dataView);
 
-            // The transformed data.
-            var transformedData = ml.Transforms.DetectIidSpike(outputColumnName, inputColumnName, 95, Size / 4).Fit(dataView).Transform(dataView);
+            // Create a time series prediction engine from the model.
+            var engine = model.CreateTimeSeriesPredictionFunction<IidSpikeData, IidSpikePrediction>(ml);
+            for (int index = 0; index < 5; index++)
+            {
+                // Anomaly spike detection.
+                var prediction = engine.Predict(new IidSpikeData(5));
+                Console.WriteLine("{0}\t{1}\t{2:0.00}\t{3:0.00}", 5, prediction.Prediction[0],
+                    prediction.Prediction[1], prediction.Prediction[2]);
+            }
 
-            // Getting the data of the newly created column as an IEnumerable of IidSpikePrediction.
-            var predictionColumn = ml.Data.CreateEnumerable<IidSpikePrediction>(transformedData, reuseRowObject: false);
+            // Spike.
+            var spikePrediction = engine.Predict(new IidSpikeData(10));
+            Console.WriteLine("{0}\t{1}\t{2:0.00}\t{3:0.00}", 10, spikePrediction.Prediction[0],
+                spikePrediction.Prediction[1], spikePrediction.Prediction[2]);
 
-            Console.WriteLine($"{outputColumnName} column obtained post-transformation.");
-            Console.WriteLine("Alert\tScore\tP-Value");
-            foreach (var prediction in predictionColumn)
-                Console.WriteLine("{0}\t{1:0.00}\t{2:0.00}", prediction.Prediction[0], prediction.Prediction[1], prediction.Prediction[2]);
-            Console.WriteLine("");
+            // Checkpoint the model.
+            var modelPath = "temp.zip";
+            engine.CheckPoint(ml, modelPath);
 
-            // Prediction column obtained post-transformation.
-            // Alert   Score   P-Value
-            // 0       5.00    0.50
-            // 0       5.00    0.50
-            // 0       5.00    0.50
-            // 0       5.00    0.50
-            // 0       5.00    0.50
-            // 1       10.00   0.00   <-- alert is on, predicted spike
-            // 0       5.00    0.26
-            // 0       5.00    0.26
-            // 0       5.00    0.50
-            // 0       5.00    0.50
-            // 0       5.00    0.50
+            // Load the model.
+            using (var file = File.OpenRead(modelPath))
+                model = ml.Model.Load(file, out DataViewSchema schema);
+
+            for (int index = 0; index < 5; index++)
+            {
+                // Anomaly spike detection.
+                var prediction = engine.Predict(new IidSpikeData(5));
+                Console.WriteLine("{0}\t{1}\t{2:0.00}\t{3:0.00}", 5, prediction.Prediction[0],
+                    prediction.Prediction[1], prediction.Prediction[2]);
+            }
+
+            // Data Alert   Score   P-Value
+            // 5      0       5.00    0.50
+            // 5      0       5.00    0.50
+            // 5      0       5.00    0.50
+            // 5      0       5.00    0.50
+            // 5      0       5.00    0.50
+            // 10     1      10.00    0.00  <-- alert is on, predicted spike (check-point model)
+            // 5      0       5.00    0.26  <-- load model from disk.
+            // 5      0       5.00    0.26
+            // 5      0       5.00    0.50
+            // 5      0       5.00    0.50
+            // 5      0       5.00    0.50
         }
     }
 }
