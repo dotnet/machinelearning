@@ -17,7 +17,7 @@ namespace Samples.Dynamic
             // Downloading a few images, and an images.tsv file, which contains a list of the files from the dotnet/machinelearning/test/data/images/.
             // If you inspect the fileSystem, after running this line, an "images" folder will be created, containing 4 images, and a .tsv file
             // enumerating the images. 
-            var imagesDataFile = SamplesUtils.DatasetUtils.DownloadImages();
+            var imagesDataFile = Microsoft.ML.SamplesUtils.DatasetUtils.DownloadImages();
 
             // Preview of the content of the images.tsv file
             //
