@@ -65,6 +65,13 @@ namespace Microsoft.ML.Transforms.TimeSeries
         /// </summary>
         /// <param name="env">Usually <see cref="MLContext"/>.</param>
         /// <param name="modelPath">Path to file on disk where the updated model needs to be saved.</param>
+        /// <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        /// [!code-csharp[CheckPoint](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/TimeSeries/DetectChangePointBySsa.cs)]
+        /// ]]>
+        /// </format>
+        /// </example>
         public void CheckPoint(IHostEnvironment env, string modelPath)
         {
             using (var file = File.Create(modelPath))
