@@ -48,7 +48,6 @@ namespace Microsoft.ML.Samples.Dynamic.Trainers.MulticlassClassification
             SamplesUtils.ConsoleUtils.PrintMetrics(metrics);
             
             // Expected output:
-            // Expected output:
             // Micro Accuracy: 0.35
             // Macro Accuracy: 0.33
             // Log Loss: 34.54

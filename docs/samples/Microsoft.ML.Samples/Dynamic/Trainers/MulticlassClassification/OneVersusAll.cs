@@ -48,7 +48,6 @@ namespace Microsoft.ML.Samples.Dynamic.Trainers.MulticlassClassification
             SamplesUtils.ConsoleUtils.PrintMetrics(metrics);
             
             // Expected output:
-            // Expected output:
             // Micro Accuracy: 0.90
             // Macro Accuracy: 0.90
             // Log Loss: 0.37
@@ -73,7 +72,7 @@ namespace Microsoft.ML.Samples.Dynamic.Trainers.MulticlassClassification
             }
         }
 
-        // Example with label and 50 feature values. A data set is a collection of such examples.
+        // Example with label and 20 feature values. A data set is a collection of such examples.
         private class DataPoint
         {
             public uint Label { get; set; }
