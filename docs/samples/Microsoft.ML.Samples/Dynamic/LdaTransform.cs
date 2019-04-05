@@ -26,7 +26,7 @@ namespace Microsoft.ML.Samples.Dynamic
             // "car truck driver bus pickup horse"
 
             string review = nameof(SamplesUtils.DatasetUtils.SampleTopicsData.Review);
-            string ldaFeatures = "LdaFeatures";
+            string ldaFeatures = "Review";
 
             // A pipeline for featurizing the "Review" column
             var pipeline = ml.Transforms.Text.ProduceWordBags(review).
