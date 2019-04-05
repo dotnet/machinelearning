@@ -5,7 +5,7 @@ namespace Microsoft.ML.Samples.Static
 {
     public class AveragedPerceptronBinaryClassificationExample
     {
-        public static void AveragedPerceptronBinaryClassification()
+        public static void Example()
         {
             // Downloading a classification dataset from github.com/dotnet/machinelearning.
             // It will be stored in the same path as the executable

@@ -6,7 +6,7 @@ namespace Microsoft.ML.Samples.Static
 {
     public class SdcaRegressionExample
     {
-        public static void SdcaRegression()
+        public static void Example()
         {
             // Downloading a regression dataset from github.com/dotnet/machinelearning
             // this will create a housing.txt file in the filsystem this code will run

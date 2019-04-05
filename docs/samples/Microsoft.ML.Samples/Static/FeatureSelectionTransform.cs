@@ -7,7 +7,7 @@ namespace Microsoft.ML.Samples.Dynamic
 {
     public class FeatureSelectionTransformStaticExample
     {
-        public static void FeatureSelectionTransform()
+        public static void Example()
         {
             // Downloading a classification dataset from github.com/dotnet/machinelearning.
             // It will be stored in the same path as the executable

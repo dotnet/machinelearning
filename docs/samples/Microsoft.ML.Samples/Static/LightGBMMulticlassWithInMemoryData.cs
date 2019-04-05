@@ -9,7 +9,7 @@ namespace Microsoft.ML.Samples.Static
 {
     class LightGBMMulticlassWithInMemoryData
     {
-        public void MulticlassLightGbmStaticPipelineWithInMemoryData()
+        public void Example()
         {
             // Create a general context for ML.NET operations. It can be used for exception tracking and logging,
             // as a catalog of available operations and as the source of randomness.

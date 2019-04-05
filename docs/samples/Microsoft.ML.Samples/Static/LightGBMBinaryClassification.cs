@@ -6,7 +6,7 @@ namespace Microsoft.ML.Samples.Static
 {
     public class LightGbmBinaryClassificationExample
     {
-        public static void LightGbmBinaryClassification()
+        public static void Example()
         {
             // Downloading a classification dataset from github.com/dotnet/machinelearning.
             // It will be stored in the same path as the executable
