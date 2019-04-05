@@ -133,19 +133,19 @@ namespace Microsoft.ML.Recommender.Internal
             /// Specify if the factor matrices should be non-negative.
             /// </summary>
             [FieldOffset(48)]
-            public int DoNmf;
+            public byte DoNmf;
 
             /// <summary>
             /// Set to true so that LIBMF may produce less information to STDOUT.
             /// </summary>
-            [FieldOffset(52)]
-            public int Quiet;
+            [FieldOffset(49)]
+            public byte Quiet;
 
             /// <summary>
             /// Set to false so that LIBMF may reuse and modifiy the data passed in.
             /// </summary>
-            [FieldOffset(56)]
-            public int CopyData;
+            [FieldOffset(50)]
+            public byte CopyData;
         }
 
         [StructLayout(LayoutKind.Explicit)]
@@ -223,9 +223,9 @@ namespace Microsoft.ML.Recommender.Internal
             _mfParam.Eta = (float)eta;
             _mfParam.Alpha = (float)alpha;
             _mfParam.C = (float)c;
-            _mfParam.DoNmf = doNmf ? 1 : 0;
-            _mfParam.Quiet = quiet ? 1 : 0;
-            _mfParam.CopyData = copyData ? 1 : 0;
+            _mfParam.DoNmf = doNmf ? (byte)1 : (byte)0;
+            _mfParam.Quiet = quiet ? (byte)1 : (byte)0;
+            _mfParam.CopyData = copyData ? (byte)1 : (byte)0;
         }
 
         ~SafeTrainingAndModelBuffer()
