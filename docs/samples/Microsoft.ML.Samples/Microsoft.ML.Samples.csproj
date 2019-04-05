@@ -90,6 +90,14 @@
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>LbfgsLogisticRegression.cs</LastGenOutput>
     </None>
+    <None Update="Dynamic\Trainers\MulticlassClassification\PairwiseCoupling.tt">
+      <LastGenOutput>PairwiseCoupling.cs</LastGenOutput>
+      <Generator>TextTemplatingFileGenerator</Generator>
+    </None>
+    <None Update="Dynamic\Trainers\MulticlassClassification\OneVersusAll.tt">
+      <LastGenOutput>OneVersusAll.cs</LastGenOutput>
+      <Generator>TextTemplatingFileGenerator</Generator>
+    </None>
     <None Update="Dynamic\Trainers\Regression\OnlineGradientDescent.tt">
       <LastGenOutput>OnlineGradientDescent.cs</LastGenOutput>
       <Generator>TextTemplatingFileGenerator</Generator>
@@ -142,6 +150,16 @@
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
       <DependentUpon>LbfgsLogisticRegressionWithOptions.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Dynamic\Trainers\MulticlassClassification\PairwiseCoupling.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>PairwiseCoupling.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Dynamic\Trainers\MulticlassClassification\OneVersusAll.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>OneVersusAll.tt</DependentUpon>
     </Compile>
     <Compile Update="Dynamic\Trainers\Regression\OnlineGradientDescent.cs">
       <DesignTime>True</DesignTime>
