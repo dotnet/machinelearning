@@ -17,6 +17,7 @@ namespace Microsoft.ML.EntryPoints
     /// REVIEW: currently, the graph is executed synchronously, one node at a time. This is an implementation choice, we
     /// probably need to consider parallel asynchronous execution, once we agree on an acceptable syntax for it.
     /// </summary>
+    [BestFriend]
     internal sealed class GraphRunner
     {
         private const string RegistrationName = "GraphRunner";
