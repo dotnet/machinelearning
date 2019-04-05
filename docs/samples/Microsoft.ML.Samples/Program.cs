@@ -1,4 +1,6 @@
-﻿using Samples.Dynamic;
+﻿using System;
+using System.Reflection;
+using Samples.Dynamic;
 
 namespace Microsoft.ML.Samples
 {
@@ -6,7 +8,31 @@ namespace Microsoft.ML.Samples
     {
         static void Main(string[] args)
         {
-            CalculateFeatureContribution.Example();
+            DataViewEnumerable.Example();
+
+            if (args[1] == "-runall")
+                RunAll();
+        }
+
+        internal static void RunAll()
+        {
+            foreach (var type in Assembly.GetExecutingAssembly().GetTypes())
+            {
+                var method = type.GetMethod("Example", BindingFlags.NonPublic | BindingFlags.Public
+                    | BindingFlags.Static | BindingFlags.FlattenHierarchy);
+
+                if (method != null)
+                {
+                    try
+                    {
+                        method.Invoke(null, null);
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.Write(ex);
+                    }
+                }
+            }
         }
     }
 }
