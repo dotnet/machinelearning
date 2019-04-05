@@ -25,7 +25,7 @@ namespace Microsoft.ML.Samples.Dynamic.Trainers.BinaryClassification
             var options = new LbfgsLogisticRegressionBinaryTrainer.Options()
             {
                 MaximumNumberOfIterations = 100,
-                OptmizationTolerance = 1e-8f,
+                OptimizationTolerance = 1e-8f,
                 L2Regularization = 0.01f
             };
 

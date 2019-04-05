@@ -25,7 +25,7 @@ namespace Microsoft.ML.Samples.Dynamic.Trainers.Regression
             var options = new LbfgsPoissonRegressionTrainer.Options
             {
                 // Reduce optimization tolerance to speed up training at the cost of accuracy.
-                OptmizationTolerance = 1e-4f,
+                OptimizationTolerance = 1e-4f,
                 // Decrease history size to speed up training at the cost of accuracy.
                 HistorySize = 30,
                 // Specify scale for initial weights.
