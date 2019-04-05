@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
+using Microsoft.ML;
 
-namespace Microsoft.ML.Samples.Dynamic
+namespace Samples.Dynamic
 {
     public static class TokenizeIntoCharactersAsKeys
     {
@@ -50,12 +50,12 @@ namespace Microsoft.ML.Samples.Dynamic
             // <?>: is a unicode control character used instead of spaces ('\u2400').
         }
 
-        public class TextData
+        private class TextData
         {
             public string Text { get; set; }
         }
 
-        public class TransformedTextData : TextData
+        private class TransformedTextData : TextData
         {
             public string[] CharTokens { get; set; }
         }

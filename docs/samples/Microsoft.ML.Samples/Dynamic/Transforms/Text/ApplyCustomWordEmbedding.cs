@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Text;
+using Microsoft.ML;
 
-namespace Microsoft.ML.Samples.Dynamic
+namespace Samples.Dynamic
 {
     public static class ApplyCustomWordEmbedding
     {
@@ -67,12 +67,12 @@ namespace Microsoft.ML.Samples.Dynamic
             //   Features: -1.0000 0.0000 -100.0000 0.0000 34.0000 -25.6667 1.0000 100.0000 20.0000
         }
 
-        public class TextData
+        private class TextData
         {
             public string Text { get; set; }
         }
 
-        public class TransformedTextData : TextData
+        private class TransformedTextData : TextData
         {
             public float[] Features { get; set; }
         }

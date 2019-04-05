@@ -1,8 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using Microsoft.ML;
 using Microsoft.ML.Transforms.Text;
 
-namespace Microsoft.ML.Samples.Dynamic
+namespace Samples.Dynamic
 {
     public static class RemoveDefaultStopWords
     {
@@ -47,12 +48,12 @@ namespace Microsoft.ML.Samples.Dynamic
             //   Words without stop words: ML.NET's,RemoveDefaultStopWords,API,removes,stop,words,text/string.,requires,text/string,tokenized,beforehand.
         }
 
-        public class TextData
+        private class TextData
         {
             public string Text { get; set; }
         }
 
-        public class TransformedTextData : TextData
+        private class TransformedTextData : TextData
         {
             public string[] WordsWithoutStopWords { get; set; }
         }
