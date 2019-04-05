@@ -50,12 +50,12 @@ namespace Samples.Dynamic
             // <?>: is a unicode control character used instead of spaces ('\u2400').
         }
 
-        public class TextData
+        private class TextData
         {
             public string Text { get; set; }
         }
 
-        public class TransformedTextData : TextData
+        private class TransformedTextData : TextData
         {
             public string[] CharTokens { get; set; }
         }

@@ -60,12 +60,12 @@ namespace Samples.Dynamic
             //   Features: 0.0857  0.0857  0.0857  0.0857  0.0857  0.0857  0.0857  0.0857  0.0857  0.1715 ...
         }
 
-        public class TextData
+        private class TextData
         {
             public string Text { get; set; }
         }
 
-        public class TransformedTextData : TextData
+        private class TransformedTextData : TextData
         {
             public float[] Features { get; set; }
         }

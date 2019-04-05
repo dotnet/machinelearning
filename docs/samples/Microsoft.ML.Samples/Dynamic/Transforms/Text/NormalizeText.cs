@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using Microsoft.ML;
+using Microsoft.ML.Transforms.Text;
 
 namespace Samples.Dynamic
 {
@@ -22,7 +23,7 @@ namespace Samples.Dynamic
 
             // A pipeline for normalizing text.
             var normTextPipeline = mlContext.Transforms.Text.NormalizeText("NormalizedText", "Text",
-                Transforms.Text.TextNormalizingEstimator.CaseMode.Lower,
+                TextNormalizingEstimator.CaseMode.Lower,
                 keepDiacritics: false,
                 keepPunctuations: false,
                 keepNumbers: false);
@@ -44,12 +45,12 @@ namespace Samples.Dynamic
             //   Normalized Text: mlnets normalizetext api changes the case of the text and removeskeeps diacritics punctuations andor numbers
         }
 
-        public class TextData
+        private class TextData
         {
             public string Text { get; set; }
         }
 
-        public class TransformedTextData : TextData
+        private class TransformedTextData : TextData
         {
             public string NormalizedText { get; set; }
         }

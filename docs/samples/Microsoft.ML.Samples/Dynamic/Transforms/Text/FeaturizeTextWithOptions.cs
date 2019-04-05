@@ -67,12 +67,12 @@ namespace Samples.Dynamic
             //   Tokens: ml.net's,featurizetext,api,uses,composition,basic,transforms,convert,text,numeric,features.
         }
 
-        public class TextData
+        private class TextData
         {
             public string Text { get; set; }
         }
 
-        public class TransformedTextData : TextData
+        private class TransformedTextData : TextData
         {
             public float[] Features { get; set; }
             public string[] OutputTokens { get; set; }

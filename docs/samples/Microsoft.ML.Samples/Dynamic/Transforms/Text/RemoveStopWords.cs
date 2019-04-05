@@ -47,12 +47,12 @@ namespace Samples.Dynamic
             //   Words without stop words: ML.NET's,RemoveStopWords,API,removes,stop,words,text/string,using,list,of,stop,words,provided,user.
         }
 
-        public class TextData
+        private class TextData
         {
             public string Text { get; set; }
         }
 
-        public class TransformedTextData : TextData
+        private class TransformedTextData : TextData
         {
             public string[] WordsWithoutStopWords { get; set; }
         }
