@@ -255,6 +255,16 @@ namespace Microsoft.ML.Trainers.Recommender
             return mapper as ValueMapper<TMatrixColumnIndexIn, TMatrixRowIndexIn, TOut>;
         }
 
+        /// <summary>
+        /// Compute the (approximated) value at the <paramref name="srcCol"/>-th column and the
+        /// <paramref name="srcRow"/>-th row. Notice that both of <paramref name="srcCol"/> and
+        /// <paramref name="srcRow"/> are 1-based indexes, so the first row/column index is 1.
+        /// The reason for having 1-based indexing system is that key-valued getter in ML.NET returns
+        /// 1 for its first value and 0 is used to denote missing value.
+        /// </summary>
+        /// <param name="srcCol">1-based column index.</param>
+        /// <param name="srcRow">1-based row index.</param>
+        /// <param name="dst">value at the <paramref name="srcCol"/>-th column and the <paramref name="srcRow"/>-th row.</param>
         private void MapperCore(in uint srcCol, ref uint srcRow, ref float dst)
         {
             // REVIEW: The key-type version a bit more "strict" than the predictor
@@ -267,9 +277,21 @@ namespace Microsoft.ML.Trainers.Recommender
                 dst = float.NaN;
                 return;
             }
+
+            // The index system in the LIBMF (the library trains the model) is 0-based, so we need to deduct one
+            // from 1-based indexes returned by ML.NET's key-valued getters. We also throw when seeing 0 becuase
+            // missing index is not meaningful to the trained model.
             dst = Score((int)(srcCol - 1), (int)(srcRow - 1));
         }
 
+        /// <summary>
+        /// Compute the (approximated) value at the <paramref name="columnIndex"/>-th column and the
+        /// <paramref name="rowIndex"/>-th row. Notice that, in contrast to <see cref="MapperCore"/>,
+        /// both of <paramref name="columnIndex"/> and <paramref name="rowIndex"/> are 0-based indexes,
+        /// so the first row/column index is 0.
+        /// </summary>
+        /// <param name="columnIndex">0-based column index.</param>
+        /// <param name="rowIndex">0-based row index.</param>
         private float Score(int columnIndex, int rowIndex)
         {
             _host.Assert(0 <= rowIndex && rowIndex < NumberOfRows);

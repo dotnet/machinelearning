@@ -275,6 +275,9 @@ namespace Microsoft.ML.Recommender.Internal
                     }
                     rowGetter(ref row);
                     // REVIEW: Instead of ignoring, should I throw in the row > rowCount case?
+                    // The index system in the LIBMF (the underlying library trains the model) is 0-based, so we need
+                    // to deduct one from 1-based indexes returned by ML.NET's key-valued getters. We also skip 0 returned
+                    // by key-valued getter becuase missing value is not meaningful to the trained model.
                     if (row == 0 || row > (uint)rowCount)
                     {
                         numSkipped++;
