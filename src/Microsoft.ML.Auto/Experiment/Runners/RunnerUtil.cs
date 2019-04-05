@@ -44,7 +44,7 @@ namespace Microsoft.ML.Auto
             }
             catch (Exception ex)
             {
-                logger?.Log(DebugStream.Exception, $"Pipeline crashed: {pipeline.ToString()} . Exception: {ex}");
+                logger?.Log(LogSeverity.Error, $"Pipeline crashed: {pipeline.ToString()} . Exception: {ex}");
                 return (null, null, ex, double.NaN);
             }
         }

@@ -68,7 +68,7 @@ namespace Microsoft.ML.Auto
                 }
 
                 // evaluate pipeline
-                WriteDebugLog(DebugStream.RunResult, $"Evaluating pipeline {pipeline.ToString()}");
+                Log(LogSeverity.Debug, $"Evaluating pipeline {pipeline.ToString()}");
                 (SuggestedPipelineRunDetails suggestedPipelineRunDetails, TRunDetails runDetails)
                     = _runner.Run(pipeline, _modelDirectory, _history.Count + 1);
                 _history.Add(suggestedPipelineRunDetails);
@@ -128,27 +128,23 @@ namespace Microsoft.ML.Auto
             }
             catch (Exception ex)
             {
-                WriteDebugLog(DebugStream.Exception, $"Progress report callback reported exception {ex}");
+                Log(LogSeverity.Error, $"Progress report callback reported exception {ex}");
             }
         }
 
         private void WriteIterationLog(SuggestedPipeline pipeline, SuggestedPipelineRunDetails runResult, Stopwatch stopwatch)
         {
-            // debug log pipeline result
-            if (runResult.RunSucceded)
-            {
-                WriteDebugLog(DebugStream.RunResult, $"{_history.Count}\t{runResult.Score}\t{stopwatch.Elapsed}\t{pipeline.ToString()}");
-            }
+            Log(LogSeverity.Debug, $"{_history.Count}\t{runResult.Score}\t{stopwatch.Elapsed}\t{pipeline.ToString()}");
         }
 
-        private void WriteDebugLog(DebugStream stream, string message)
+        private void Log(LogSeverity severity, string message)
         {
             if(_experimentSettings?.DebugLogger == null)
             {
                 return;
             }
 
-            _experimentSettings.DebugLogger.Log(stream, message);
+            _experimentSettings.DebugLogger.Log(severity, message);
         }
     }
 }

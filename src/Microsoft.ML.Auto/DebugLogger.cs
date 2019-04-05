@@ -6,12 +6,12 @@ namespace Microsoft.ML.Auto
 {
     internal interface IDebugLogger
     {
-        void Log(DebugStream stream, string message);
+        void Log(LogSeverity logLevel, string message);
     }
 
-    internal enum DebugStream
+    internal enum LogSeverity
     {
-        Exception,
-        RunResult
+        Error,
+        Debug
     }
 }

@@ -2,9 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Generic;
 using Microsoft.ML.Auto;
+using Microsoft.ML.CLI.AutoML;
 using Microsoft.ML.CLI.Data;
 using Microsoft.ML.CLI.ShellProgressBar;
 using Microsoft.ML.CLI.Utilities;
@@ -53,7 +53,8 @@ namespace Microsoft.ML.CLI.CodeGenerator
                 {
                     MaxExperimentTimeInSeconds = settings.MaxExplorationTime,
                     CacheBeforeTrainer = this.enableCaching,
-                    OptimizingMetric = optimizationMetric
+                    OptimizingMetric = optimizationMetric,
+                    DebugLogger = AutoMLDebugLogger.Instance
                 })
                 .Execute(trainData, validationData, columnInformation, progressHandler: progressReporter);
             logger.Log(LogLevel.Trace, Strings.RetrieveBestPipeline);
@@ -68,7 +69,8 @@ namespace Microsoft.ML.CLI.CodeGenerator
                 {
                     MaxExperimentTimeInSeconds = settings.MaxExplorationTime,
                     OptimizingMetric = optimizationMetric,
-                    CacheBeforeTrainer = this.enableCaching
+                    CacheBeforeTrainer = this.enableCaching,
+                    DebugLogger = AutoMLDebugLogger.Instance
                 }).Execute(trainData, validationData, columnInformation, progressHandler: progressReporter);
             logger.Log(LogLevel.Trace, Strings.RetrieveBestPipeline);
             return result;
@@ -82,7 +84,8 @@ namespace Microsoft.ML.CLI.CodeGenerator
                 {
                     MaxExperimentTimeInSeconds = settings.MaxExplorationTime,
                     CacheBeforeTrainer = this.enableCaching,
-                    OptimizingMetric = optimizationMetric
+                    OptimizingMetric = optimizationMetric,
+                    DebugLogger = AutoMLDebugLogger.Instance
                 }).Execute(trainData, validationData, columnInformation, progressHandler: progressReporter);
             logger.Log(LogLevel.Trace, Strings.RetrieveBestPipeline);
             return result;
