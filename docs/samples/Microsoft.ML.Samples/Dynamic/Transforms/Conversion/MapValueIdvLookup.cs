@@ -1,7 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using Microsoft.ML;
 
-namespace Microsoft.ML.Samples.Dynamic
+namespace Samples.Dynamic
 {
     public static class MapValueIdvLookup
     {
@@ -68,10 +69,12 @@ namespace Microsoft.ML.Samples.Dynamic
             public float Value { get; set; }
             public string Category { get; set; }
         }
+
         private class DataPoint
         {
             public float Price { get; set; }
         }
+
         private class TransformedData : DataPoint
         {
             public string PriceCategory { get; set; }

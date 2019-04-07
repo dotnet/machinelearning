@@ -1,7 +1,8 @@
 ﻿using System;
+using Microsoft.ML;
 using Microsoft.ML.Data;
 
-namespace Microsoft.ML.Samples.Dynamic
+namespace Samples.Dynamic
 {
     // This example illustrates how to convert multiple columns of different types to one type, in this case System.Single. 
     // This is often a useful data transformation before concatenating the features together and passing them to a particular estimator.
@@ -58,6 +59,7 @@ namespace Microsoft.ML.Samples.Dynamic
             //      1       8904        6.368924E+17        8.09
 
         }
+
         // The initial data type
         private class InputData
         {
@@ -66,6 +68,7 @@ namespace Microsoft.ML.Samples.Dynamic
             public DateTime Feature3;
             public double Feature4;
         }
+
         // The resulting data type after the transformation
         private class TransformedData : InputData
         {
