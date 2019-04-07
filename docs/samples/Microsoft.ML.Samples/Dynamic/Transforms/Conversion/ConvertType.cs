@@ -1,7 +1,8 @@
 ﻿using System;
+using Microsoft.ML;
 using Microsoft.ML.Data;
 
-namespace Microsoft.ML.Samples.Dynamic
+namespace Samples.Dynamic
 {
     public static class ConvertType
     {
@@ -39,10 +40,12 @@ namespace Microsoft.ML.Samples.Dynamic
             // A: False    Aconv:0
             // A: False    Aconv:0
         }
+
         private class InputData
         {
             public bool Survived;
         }
+
         private sealed class TransformedData : InputData
         {
             public Int32 SurvivedInt32 { get; set; }

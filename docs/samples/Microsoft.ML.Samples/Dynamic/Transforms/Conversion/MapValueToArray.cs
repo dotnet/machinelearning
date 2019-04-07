@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
-namespace Microsoft.ML.Samples.Dynamic
+using Microsoft.ML;
+
+namespace Samples.Dynamic
 {
     public static class MapValueToArray
     { 
@@ -55,10 +57,12 @@ namespace Microsoft.ML.Samples.Dynamic
             // 12-25yrs     12, 50,300
             // 25+yrs       12, 50, 300
         }
+
         public class DataPoint
         {
             public string Timeframe { get; set; }
         }
+
         public class TransformedData : DataPoint
         {
             public int[] Features { get; set; }
