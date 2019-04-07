@@ -4,6 +4,10 @@ using Microsoft.ML.SamplesUtils;
 
 namespace Samples.Dynamic
 {
+    /// This example demonstrates the use of the ValueToKeyMappingEstimator, by mapping KeyType values to the original strings. 
+    /// For more on ML.NET KeyTypes see: https://github.com/dotnet/machinelearning/blob/master/docs/code/IDataViewTypeSystem.md#key-types 
+    /// It is possible to have multiple values map to the same category.
+
     public class MapKeyToValueMultiColumn
     {
         public static void Example()

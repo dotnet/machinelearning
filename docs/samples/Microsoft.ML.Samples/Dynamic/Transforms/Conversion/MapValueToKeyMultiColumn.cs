@@ -6,8 +6,8 @@ namespace Samples.Dynamic
 {
     public static class MapValueToKeyMultiColumn
     {
-        /// This example demonstrates the use of the ValueMappingEstimator by mapping strings to other string values, or floats to strings. 
-        /// This is useful to map types to a grouping. 
+        /// This example demonstrates the use of the ValueToKeyMappingEstimator, by mapping strings to KeyType values. 
+        /// For more on ML.NET KeyTypes see: https://github.com/dotnet/machinelearning/blob/master/docs/code/IDataViewTypeSystem.md#key-types 
         /// It is possible to have multiple values map to the same category.
         public static void Example()
         {
@@ -46,11 +46,11 @@ namespace Samples.Dynamic
 
             // TransformedData obtained post-transformation.
             //
-            //  StudyTime   StudyTimeCategory   DevelopmentTime    DevelopmentTimeCategory
-            // 0-4yrs          1                6-11yrs                3
-            // 6-11yrs         4                6-11yrs                3
-            // 12-25yrs        3                25+yrs                 2
-            // 0-5yrs          2                0-5yrs                 1
+            // StudyTime     StudyTimeCategory   Course    CourseCategory
+            // 0-4yrs          1                   CS          1
+            // 6-11yrs         4                   CS          1
+            // 12-25yrs        3                   LA          3
+            // 0-5yrs          2                   DS          2
 
             // If we wanted to provide the mapping, rather than letting the transform create it, 
             // we could do so by creating an IDataView one column containing the values to map to. 
@@ -83,15 +83,16 @@ namespace Samples.Dynamic
             // This will contain the newly created columns.
             features = mlContext.Data.CreateEnumerable<TransformedData>(transformedData, reuseRowObject: false);
 
-            Console.WriteLine($" StudyTime   StudyTimeCategory   DevelopmentTime    DevelopmentTimeCategory");
+            Console.WriteLine($" StudyTime   StudyTimeCategory  Course CourseCategory");
             foreach (var featureRow in features)
                 Console.WriteLine($"{featureRow.StudyTime}\t\t{featureRow.StudyTimeCategory}\t\t\t{featureRow.Course}\t\t{featureRow.CourseCategory}");
 
-            // StudyTime    StudyTimeCategory   DevelopmentTime     DevelopmentTimeCategory
-            // 0 - 4yrs          1                  6 - 11yrs         2
-            // 6 - 11yrs         2                  6 - 11yrs         2
-            // 12 - 25yrs        0                  25 + yrs          3
-            // 0 - 5yrs          0                  0 - 5yrs          0
+            // StudyTime    StudyTimeCategory  Course     CourseCategory
+            // 0 - 4yrs          1              CS              4
+            // 6 - 11yrs         2              CS              4
+            // 12 - 25yrs        0              LA              6
+            // 0 - 5yrs          0              DS              5
+
         }
 
         private class DataPoint
