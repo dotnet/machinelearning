@@ -113,7 +113,7 @@ namespace Microsoft.ML.Trainers
         /// <summary>
         /// Advanced options for the <see cref="MatrixFactorizationTrainer"/>.
         /// </summary>
-        public sealed class Options
+        public class Options
         {
             /// <summary>
             /// The name of variable (i.e., Column in a <see cref="IDataView"/> type system) used as matrix's column index.

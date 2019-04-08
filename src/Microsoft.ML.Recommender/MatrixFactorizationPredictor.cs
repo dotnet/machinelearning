@@ -110,7 +110,7 @@ namespace Microsoft.ML.Trainers.Recommender
             MatrixRowIndexType = matrixRowIndexType;
         }
 
-        private MatrixFactorizationModelParameters(IHostEnvironment env, ModelLoadContext ctx)
+        internal MatrixFactorizationModelParameters(IHostEnvironment env, ModelLoadContext ctx)
         {
             Contracts.CheckValue(env, nameof(env));
             _host = env.Register(RegistrationName);

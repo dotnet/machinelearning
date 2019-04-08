@@ -5,6 +5,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.ML.Data;
+using Microsoft.ML.Recommender;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Trainers;
 
@@ -92,6 +93,24 @@ namespace Microsoft.ML
             public MatrixFactorizationTrainer MatrixFactorization(
                 MatrixFactorizationTrainer.Options options)
                     => new MatrixFactorizationTrainer(Owner.GetEnvironment(), options);
+
+            public MatrixFactorizationEstimator MatrixFactorizationMap(
+                string columnIndexLatentOutputColumnName,     // output 0
+                string rowIndexLatentOutputColumnName,        // output 1
+                string similarColumnIndexesOutputColumnName,  // output 2
+                string similarRowIndexesOutputColumnName,     // output 3
+                string labelColumnName,                       // input 0
+                string matrixColumnIndexColumnName,           // input 1
+                string matrixRowIndexColumnName,              // input 2
+                int similarIndexCount,
+                bool excludeKnownIndexPairs,
+                int approximationRank = MatrixFactorizationTrainer.Defaults.ApproximationRank,
+                double learningRate = MatrixFactorizationTrainer.Defaults.LearningRate,
+                int numberOfIterations = MatrixFactorizationTrainer.Defaults.NumIterations)
+                    => new MatrixFactorizationEstimator(Owner.GetEnvironment(),
+                        columnIndexLatentOutputColumnName, rowIndexLatentOutputColumnName, similarColumnIndexesOutputColumnName, similarRowIndexesOutputColumnName,
+                        labelColumnName, matrixColumnIndexColumnName, matrixRowIndexColumnName, similarIndexCount, excludeKnownIndexPairs,
+                        approximationRank, learningRate, numberOfIterations);
         }
 
         /// <summary>

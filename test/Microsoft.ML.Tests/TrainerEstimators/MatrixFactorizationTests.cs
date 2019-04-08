@@ -603,5 +603,74 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             CompareNumbersWithTolerance(0.05511549, testResults[1].Score, digitsOfPrecision: 5);
             CompareNumbersWithTolerance(0.00316973357, testResults[2].Score, digitsOfPrecision: 5);
         }
+
+        private class LatentVectorAndNeighbors
+        {
+            [VectorType(16)]
+            public float[] ColumnLatentVector { get; set; }
+
+            [VectorType(16)]
+            public float[] RowLatentVector { get; set; }
+
+            [VectorType(1)]
+            [KeyType(_oneClassMatrixRowCount)]
+            public uint[] SimilarRows { get; set; }
+
+            [VectorType(1)]
+            [KeyType(_oneClassMatrixColumnCount)]
+            public uint[] SImilarColumns { get; set; }
+        }
+
+        [Fact]
+        public void OneClassMatrixFactorizationMap()
+        {
+            // Create an in-memory matrix as a list of tuples (column index, row index, value). For one-class matrix
+            // factorization problem, unspecified matrix elements are all a constant provided by user. If that constant is 0.15,
+            // the following list means a 3-by-2 training matrix with elements:
+            //   (0, 0, 1), (1, 1, 1), (0, 2, 1), (0, 1, 0.15), (1, 0, 0.15), (1, 2, 0.15).
+            // because matrix elements at (0, 1), (1, 0), and (1, 2) are not specified. Below is a visualization of the training matrix.
+            //   [1, ?]
+            //   |?, 1| where ? will be set to 0.15 by user when creating the trainer.
+            //   [1, ?]
+            var dataMatrix = new List<OneClassMatrixElementZeroBased>();
+            dataMatrix.Add(new OneClassMatrixElementZeroBased() { MatrixColumnIndex = 0, MatrixRowIndex = 0, Value = 1 });
+            dataMatrix.Add(new OneClassMatrixElementZeroBased() { MatrixColumnIndex = 1, MatrixRowIndex = 1, Value = 1 });
+            dataMatrix.Add(new OneClassMatrixElementZeroBased() { MatrixColumnIndex = 0, MatrixRowIndex = 2, Value = 1 });
+
+            // Convert the in-memory matrix into an IDataView so that ML.NET components can consume it.
+            var dataView = ML.Data.LoadFromEnumerable(dataMatrix);
+
+            // Create a matrix factorization trainer which may consume "Value" as the training label, "MatrixColumnIndex" as the
+            // matrix's column index, and "MatrixRowIndex" as the matrix's row index.
+            var mlContext = new MLContext(seed: 1);
+
+            var options = new MatrixFactorizationTrainer.Options
+            {
+                MatrixColumnIndexColumnName = nameof(MatrixElement.MatrixColumnIndex),
+                MatrixRowIndexColumnName = nameof(MatrixElement.MatrixRowIndex),
+                LabelColumnName = nameof(MatrixElement.Value),
+                LossFunction = MatrixFactorizationTrainer.LossFunctionType.SquareLossOneClass,
+                NumberOfIterations = 100,
+                NumberOfThreads = 1, // To eliminate randomness, # of threads must be 1.
+                Lambda = 0.025, // Let's test non-default regularization coefficient.
+                ApproximationRank = 16,
+                Alpha = 0.01, // Importance coefficient of loss function over matrix elements not specified in the input matrix.
+                C = 0.15, // Desired value for matrix elements not specified in the input matrix.
+            };
+
+            var pipeline = mlContext.Recommendation().Trainers.MatrixFactorizationMap(
+                nameof(LatentVectorAndNeighbors.ColumnLatentVector), nameof(LatentVectorAndNeighbors.RowLatentVector),
+                nameof(LatentVectorAndNeighbors.SImilarColumns), nameof(LatentVectorAndNeighbors.SimilarRows),
+                nameof(OneClassMatrixElementZeroBased.Value), nameof(OneClassMatrixElementZeroBased.MatrixColumnIndex),
+                nameof(OneClassMatrixElementZeroBased.MatrixRowIndex), 1, false);
+
+            // Train a matrix factorization model.
+            var model = pipeline.Fit(dataView);
+
+            // Apply the trained model to the training set.
+            var prediction = model.Transform(dataView);
+
+            var predictedtResults = mlContext.Data.CreateEnumerable<LatentVectorAndNeighbors>(prediction, false).ToList();
+        }
     }
 }
