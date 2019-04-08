@@ -26,7 +26,7 @@ namespace Microsoft.ML.Recommender.Internal
             public int U;
 
             /// <summary>
-            /// olumn index;
+            /// Column index;
             /// </summary>
             public int V;
 
