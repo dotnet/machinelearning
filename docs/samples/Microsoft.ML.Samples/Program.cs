@@ -11,7 +11,7 @@ namespace Microsoft.ML.Samples
         {
             //DataViewEnumerable.Example();
 
-            //if (args[1] == "-runall")
+            if (args[1] == "-runall")
                 RunAll();
         }
 
