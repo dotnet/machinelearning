@@ -111,6 +111,9 @@ namespace Microsoft.ML
                         columnIndexLatentOutputColumnName, rowIndexLatentOutputColumnName, similarColumnIndexesOutputColumnName, similarRowIndexesOutputColumnName,
                         labelColumnName, matrixColumnIndexColumnName, matrixRowIndexColumnName, similarIndexCount, excludeKnownIndexPairs,
                         approximationRank, learningRate, numberOfIterations);
+
+            public MatrixFactorizationEstimator MatrixFactorizationMap(MatrixFactorizationTransformer.Options options)
+                    => new MatrixFactorizationEstimator(Owner.GetEnvironment(), options);
         }
 
         /// <summary>

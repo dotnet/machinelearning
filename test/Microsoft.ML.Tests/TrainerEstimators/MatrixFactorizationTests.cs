@@ -8,6 +8,7 @@ using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using Microsoft.ML.Data;
+using Microsoft.ML.Recommender;
 using Microsoft.ML.RunTests;
 using Microsoft.ML.TestFramework.Attributes;
 using Microsoft.ML.Trainers;
@@ -604,12 +605,12 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             CompareNumbersWithTolerance(0.00316973357, testResults[2].Score, digitsOfPrecision: 5);
         }
 
-        private class LatentVectorAndNeighbors
+        private class LatentVectorAndNeighbors : OneClassMatrixElementZeroBased
         {
-            [VectorType(16)]
+            [VectorType(2)]
             public float[] ColumnLatentVector { get; set; }
 
-            [VectorType(16)]
+            [VectorType(2)]
             public float[] RowLatentVector { get; set; }
 
             [VectorType(1)]
@@ -644,25 +645,27 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             // matrix's column index, and "MatrixRowIndex" as the matrix's row index.
             var mlContext = new MLContext(seed: 1);
 
-            var options = new MatrixFactorizationTrainer.Options
+            var options = new MatrixFactorizationTransformer.Options
             {
                 MatrixColumnIndexColumnName = nameof(MatrixElement.MatrixColumnIndex),
                 MatrixRowIndexColumnName = nameof(MatrixElement.MatrixRowIndex),
                 LabelColumnName = nameof(MatrixElement.Value),
                 LossFunction = MatrixFactorizationTrainer.LossFunctionType.SquareLossOneClass,
-                NumberOfIterations = 100,
+                NumberOfIterations = 10,
                 NumberOfThreads = 1, // To eliminate randomness, # of threads must be 1.
                 Lambda = 0.025, // Let's test non-default regularization coefficient.
-                ApproximationRank = 16,
+                ApproximationRank = 2,
                 Alpha = 0.01, // Importance coefficient of loss function over matrix elements not specified in the input matrix.
                 C = 0.15, // Desired value for matrix elements not specified in the input matrix.
+                ColumnIndexLatentOutputColumnName = nameof(LatentVectorAndNeighbors.ColumnLatentVector),
+                RowIndexLatentOutputColumnName = nameof(LatentVectorAndNeighbors.RowLatentVector),
+                SimilarColumnIndexesOutputColumnName = nameof(LatentVectorAndNeighbors.SImilarColumns),
+                SimilarRowIndexesOutputColumnName = nameof(LatentVectorAndNeighbors.SimilarRows),
+                SimilarIndexCount = 1,
+                ExcludeKnownIndexPairs = false
             };
 
-            var pipeline = mlContext.Recommendation().Trainers.MatrixFactorizationMap(
-                nameof(LatentVectorAndNeighbors.ColumnLatentVector), nameof(LatentVectorAndNeighbors.RowLatentVector),
-                nameof(LatentVectorAndNeighbors.SImilarColumns), nameof(LatentVectorAndNeighbors.SimilarRows),
-                nameof(OneClassMatrixElementZeroBased.Value), nameof(OneClassMatrixElementZeroBased.MatrixColumnIndex),
-                nameof(OneClassMatrixElementZeroBased.MatrixRowIndex), 1, false);
+            var pipeline = mlContext.Recommendation().Trainers.MatrixFactorizationMap(options);
 
             // Train a matrix factorization model.
             var model = pipeline.Fit(dataView);
@@ -671,6 +674,19 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             var prediction = model.Transform(dataView);
 
             var predictedtResults = mlContext.Data.CreateEnumerable<LatentVectorAndNeighbors>(prediction, false).ToList();
+
+            var k = model.SubModel.ApproximationRank;
+            var P = model.SubModel.LeftFactorMatrix.ToList();
+            var Q = model.SubModel.RightFactorMatrix.ToList();
+
+            foreach(var result in predictedtResults)
+            {
+                int shift = 0;
+                shift = (int)(result.MatrixColumnIndex - 1) * k;
+                Assert.Equal(Q.GetRange(shift, k), result.ColumnLatentVector);
+                shift = (int)(result.MatrixRowIndex - 1) * k;
+                Assert.Equal(P.GetRange(shift, k), result.RowLatentVector);
+            }
         }
     }
 }
