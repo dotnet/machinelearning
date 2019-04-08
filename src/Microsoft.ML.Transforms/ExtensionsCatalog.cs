@@ -24,7 +24,7 @@ namespace Microsoft.ML
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
-        ///  [!code-csharp[RPCA](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/IndicateMissingValues.cs)]
+        ///  [!code-csharp[MissingValueIndicator](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/IndicateMissingValues.cs)]
         /// ]]></format>
         /// </example>
         public static MissingValueIndicatorEstimator IndicateMissingValues(this TransformsCatalog catalog,
@@ -41,7 +41,7 @@ namespace Microsoft.ML
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
-        ///  [!code-csharp[RPCA](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/IndicateMissingValuesMultiColumn.cs)]
+        ///  [!code-csharp[MissingValueIndicator](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/IndicateMissingValuesMultiColumn.cs)]
         /// ]]></format>
         /// </example>
         public static MissingValueIndicatorEstimator IndicateMissingValues(this TransformsCatalog catalog, InputOutputColumnPair[] columns)
@@ -69,7 +69,7 @@ namespace Microsoft.ML
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
-        ///  [!code-csharp[RPCA](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/ReplaceMissingValues.cs)]
+        ///  [!code-csharp[MissingValuesReplace](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/ReplaceMissingValues.cs)]
         /// ]]></format>
         /// </example>
         public static MissingValueReplacingEstimator ReplaceMissingValues(this TransformsCatalog catalog,
@@ -92,7 +92,7 @@ namespace Microsoft.ML
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
-        ///  [!code-csharp[RPCA](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/ReplaceMissingValuesMultiColumn.cs)]
+        ///  [!code-csharp[MissingValuesReplace](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/ReplaceMissingValuesMultiColumn.cs)]
         /// ]]></format>
         /// </example>
         public static MissingValueReplacingEstimator ReplaceMissingValues(this TransformsCatalog catalog,

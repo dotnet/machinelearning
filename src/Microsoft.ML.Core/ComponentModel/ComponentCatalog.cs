@@ -1020,12 +1020,11 @@ namespace Microsoft.ML.Runtime
         /// Gets a value indicating whether <paramref name="assembly"/> can contain extensions.
         /// </summary>
         /// <remarks>
-        /// All ML.NET product assemblies won't contain extensions besides Microsoft.ML.Samples.
+        /// All ML.NET product assemblies won't contain extensions.
         /// </remarks>
         private static bool CanContainExtensions(Assembly assembly)
         {
             if (assembly.FullName.StartsWith("Microsoft.ML.", StringComparison.Ordinal)
-                && !assembly.FullName.StartsWith("Microsoft.ML.Samples", StringComparison.Ordinal)
                 && HasMLNetPublicKey(assembly))
             {
                 return false;
