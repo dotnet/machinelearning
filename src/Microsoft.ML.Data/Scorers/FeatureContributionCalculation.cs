@@ -17,10 +17,10 @@ using Microsoft.ML.Runtime;
 using Microsoft.ML.Trainers;
 
 [assembly: LoadableClass(typeof(IDataScorerTransform), typeof(FeatureContributionScorer), typeof(FeatureContributionScorer.Arguments),
-    typeof(SignatureDataScorer), "Feature Contribution Scorer", "fcc", "wtf", "fct", "FeatureContributionCalculationScorer", AnnotationUtils.Const.ScoreColumnKind.FeatureContribution)]
+    typeof(SignatureDataScorer), "Feature Contribution Scorer", "fcc", "fct", "FeatureContributionCalculationScorer", AnnotationUtils.Const.ScoreColumnKind.FeatureContribution)]
 
 [assembly: LoadableClass(typeof(ISchemaBindableMapper), typeof(FeatureContributionScorer), typeof(FeatureContributionScorer.Arguments),
-    typeof(SignatureBindableMapper), "Feature Contribution Mapper", "fcc", "wtf", "fct", AnnotationUtils.Const.ScoreColumnKind.FeatureContribution)]
+    typeof(SignatureBindableMapper), "Feature Contribution Mapper", "fcc", "fct", AnnotationUtils.Const.ScoreColumnKind.FeatureContribution)]
 
 [assembly: LoadableClass(typeof(ISchemaBindableMapper), typeof(FeatureContributionScorer), null, typeof(SignatureLoadModel),
     "Feature Contribution Mapper", FeatureContributionScorer.MapperLoaderSignature)]
@@ -33,7 +33,7 @@ namespace Microsoft.ML.Data
     internal sealed class FeatureContributionScorer
     {
         // Apparently, loader signature is limited in length to 24 characters.
-        internal const string MapperLoaderSignature = "WTFBindable";
+        internal const string MapperLoaderSignature = "FCCBindable";
 
         internal sealed class Arguments : ScorerArgumentsBase
         {
@@ -103,7 +103,7 @@ namespace Microsoft.ML.Data
             private static VersionInfo GetVersionInfo()
             {
                 return new VersionInfo(
-                    modelSignature: "WTF SCBI",
+                    modelSignature: "FCC SCBI",
                     verWrittenCur: 0x00010001, // Initial
                     verReadableCur: 0x00010001,
                     verWeCanReadBack: 0x00010001,
