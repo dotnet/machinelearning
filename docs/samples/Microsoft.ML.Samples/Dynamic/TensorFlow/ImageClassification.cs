@@ -1,10 +1,10 @@
 using System;
+using System.IO;
 using System.Linq;
 using System.Net;
-using Microsoft.ML.Data;
-using System.IO;
-using ICSharpCode.SharpZipLib.Tar;
 using ICSharpCode.SharpZipLib.GZip;
+using ICSharpCode.SharpZipLib.Tar;
+using Microsoft.ML.Data;
 
 namespace Microsoft.ML.Samples.Dynamic
 {
