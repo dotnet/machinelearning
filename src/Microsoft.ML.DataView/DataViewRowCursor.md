@@ -5,6 +5,10 @@ This document includes some more in depth notes on some expert topics for
 
 ## `Batch`
 
+The `Batch` property is the mechanims by which the data from the multiple
+cursors returned by `IDataView.GetRowCursorSet` can be reconciled into a
+single, cohesive, sequence.
+
 `IDataView.GetRowCursorSet` can return a set of parallel cursors that
 partition the sequence of rows as would have normally been returned through a
 more typical call to `GetRowCursor`. These cursors can be accessed across
@@ -12,16 +16,21 @@ multiple threads to enable parallel evaluation of a data pipeline. This is key
 for the data pipeline performance during featurization.
 
 However, even though the data pipeline can perform this parallel evaluation,
-at the end of this parallelization we usually ultimately want to recombine the
-separate thread's streams back into a single stream. This is accomplished
-through `DataViewRow.Batch`.
+at the end of this parallelization we sometimes want to recombine the separate
+thread's streams back into a single cohesive sequence. This can be done for
+several reasons: we may want repeatability and determinism, or the cursor may
+be stateful in some way that precludes the sharding inherent . But, for this end consumer that calls
+the single cursor. And, since a core `IDataView` design principle is
+repeatability, we now have a problem of how to reconcile those separate
+partitioninging. This reconciliation to re-sequence the partitioned dataset is
+accomplished through `DataViewRow.Batch`.
 
-So, to review what actually happens in ML.NET code: multiple cursors are
-returned through a method like `IDataView.GetRowCursorSet`. Operations can
-happen on top of these cursors -- most commonly, transforms creating new
-cursors on top of them. This `Batch` property can then be used to reconcile
-these separate cursors into a single cohesive sequence again. An example of
-this internal to the ML.NET code base is the
+So, to review what actually happens in this ML.NET utility code: multiple
+cursors are returned through a method like `IDataView.GetRowCursorSet`.
+Operations can happen on top of these cursors -- most commonly, transforms
+creating new cursors on top of them. This `Batch` property can then be used to
+reconcile these separate cursors into a single cohesive sequence again. An
+example of this internal to the ML.NET code base is the
 `DataViewUtils.ConsolidateGeneric` utility method.
 
 It may help to first understand this process intuitively, to understand
@@ -33,8 +42,8 @@ cursor until the `Batch` ID changes. Whereupon, the consolidator will find the
 next cursor with the next lowest batch ID (which should be greater, of course,
 than the `Batch` value we were just iterating on).
 
-Put another way: suppose we called `GetRowCursor` (possibly with a `Random`
-instance), and we store all the values from the rows from that cursoring in
+Put another way: suppose we called `GetRowCursor` (with an optional `Random`
+parameter), and we store all the values from the rows from that cursoring in
 some list, in order. Now, imagine we create `GetRowCursorSet` (with an
 identically constructed `Random` instance), and store the values from the rows
 from the cursorings from all of them in a different list, in order,
@@ -55,11 +64,15 @@ call to `GetRowCursor` or `GetRowCursorSet`. It is not required that the
 happens to be available to process that row, which is deliberately not
 intended to be a deterministic process.
 
-## `MoveNext` and `MoveMany`
+Note also that if there is only a single cursor, as returned from
+`GetRowCursor`, or even `GetRowCursorSet` with an array of length one, it is
+typical and perfectly fine for `Batch` to just be `0`.
 
-Once `MoveNext` or `MoveMany` returns `false`, naturally all subsequent calls
-to either of these two methods should return `false`. It is important that
-they not throw, return `true`, or have any other behavior.
+## `MoveNext`
+
+Once `MoveNext` returns `false`, naturally all subsequent calls to either of
+that method should return `false`. It is important that they not throw, return
+`true`, or have any other behavior.
 
 ## `GetIdGetter`
 
@@ -98,7 +111,7 @@ usually derived from the IDs of the input. It is not only necessary to claim
 that the ID generated here is probabilistically unique, but also describe a
 procedure or set of guidelines implementors of this method should attempt to
 follow, in order to ensure that downstream components have a fair shake at
-producing unique IDs themselves.
+producing unique IDs themselves, which I will here attempt to do:
 
 Duplicate IDs being improbable is practically accomplished with a
 hashing-derived mechanism. For this we have the `DataViewRowId` methods
@@ -130,7 +143,9 @@ operate on acceptable sets.
 
 2. The subset of any acceptable set is an acceptable set. (For example, all
    filter transforms that map any input row to 0 or 1 output rows, can just
-   pass through the input cursor's IDs.)
+   pass through the input cursor's IDs.) Note that this covers the simplest
+   and most common case of `ITransformer` row-to-row mapping transforms, as
+   well as any one-to-one-or-zero filter.
 
 3. Applying `Fork` to every element of an acceptable set exactly once will
    result in an acceptable set.
