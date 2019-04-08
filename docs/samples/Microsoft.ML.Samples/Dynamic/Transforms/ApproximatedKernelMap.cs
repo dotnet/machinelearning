@@ -9,6 +9,7 @@ namespace Samples.Dynamic
 {
     public static class ApproximatedKernelMap
     {
+        // Transform feature vector to another non-linear space. See https://people.eecs.berkeley.edu/~brecht/papers/07.rah.rec.nips.pdf.
         public static void Example()
         {
             // Create a new ML context, for ML.NET operations. It can be used for exception tracking and logging, 

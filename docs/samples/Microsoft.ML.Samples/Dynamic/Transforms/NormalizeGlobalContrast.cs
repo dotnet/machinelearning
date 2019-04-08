@@ -24,7 +24,7 @@ namespace Samples.Dynamic
             var data = mlContext.Data.LoadFromEnumerable(samples);
             // NormalizeLpNorm normalize rows individually by rescaling them to unit norm.
             // Performs the following operaion on a row X:  Y = scale *(X - M) / D
-            // where M is mean and D is either Standard deviation or L2 norm.
+            // where M is mean vectors and D is value of either Standard deviation or L2 norm.
             var approximation = mlContext.Transforms.NormalizeGlobalContrast("Features", ensureZeroMean: false, scale:2, ensureUnitStandardDeviation:true);
 
             // Now we can transform the data and look at the output to confirm the behavior of the estimator.
