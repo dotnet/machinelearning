@@ -14,7 +14,7 @@ namespace Microsoft.ML.Samples.Dynamic
         {
             // Download the squeeznet image model from ONNX model zoo, version 1.2
             // https://github.com/onnx/models/tree/master/squeezenet
-            var modelPath = @"squeezenet\model.onnx";
+            var modelPath = @"squeezenet\00000001\model.onnx";
 
             // Inspect the model's inputs and outputs
             var session = new InferenceSession(modelPath);
