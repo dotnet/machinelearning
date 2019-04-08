@@ -52,10 +52,10 @@ sort on the second list keyed by the stored `Batch` value, it should have
 content identical to the first list.
 
 So: `Batch` is a `long` value associated with every `DataViewRow` instance.
-This quantity must be non-decreasing as we call `MoveNext` or `MoveMany`. That
-is, it is fine for the `Batch` to repeat the same batch value within the same
-cursor (though not across cursors from the same set), but any change in the
-value must be an increase.
+This quantity must be non-decreasing as we call `MoveNext`. That is, it is
+fine for the `Batch` to repeat the same batch value within the same cursor
+(though not across cursors from the same set), but any change in the value
+must be an increase.
 
 The requirement of consistency is for one cursor or cursors from a *single*
 call to `GetRowCursor` or `GetRowCursorSet`. It is not required that the
