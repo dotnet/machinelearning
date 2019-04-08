@@ -8,8 +8,9 @@ namespace Samples.Dynamic
     class MapKeyToBinaryVector
     {
         /// This example demonstrates the use of MapKeyToVector by mapping keys to floats[] of 0 and 1, representing the number in binary format. 
-        /// Because the ML.NET KeyType maps the missing value to zero, counting of uints starts at 1, so the values
-        /// converted to KeyTypes will appear skewed by one. See  https://github.com/dotnet/machinelearning/issues/3072
+        /// Because the ML.NET KeyType maps the missing value to zero, counting starts at 1, so the uint values
+        /// converted to KeyTypes will appear skewed by one. 
+        /// See https://github.com/dotnet/machinelearning/blob/master/docs/code/IDataViewTypeSystem.md#key-types
         public static void Example()
         {
             // Create a new ML context, for ML.NET operations. It can be used for exception tracking and logging, 
