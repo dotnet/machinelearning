@@ -203,7 +203,7 @@ namespace Microsoft.ML.Transforms
         /// <summary>
         /// Create a new instance of a LaplacianKernel.
         /// </summary>
-        /// <param name="a">The coefficient in the exponent of the kernel function</param>
+        /// <param name="a">The coefficient in the exponent of the kernel function.</param>
         public LaplacianKernel(float a = 1)
         {
             Contracts.CheckParam(a > 0, nameof(a));
