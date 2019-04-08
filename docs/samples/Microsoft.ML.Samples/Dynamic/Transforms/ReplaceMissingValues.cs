@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using Microsoft.ML;
 using Microsoft.ML.Data;
 using Microsoft.ML.Transforms;
@@ -31,7 +30,8 @@ namespace Samples.Dynamic
 
             // Now we can transform the data and look at the output to confirm the behavior of the estimator.
             // This operation doesn't actually evaluate data until we read the data below.
-            var defaultTransformedData = defaultPipeline.Fit(data).Transform(data);
+            var defaultTransformer = defaultPipeline.Fit(data);
+            var defaultTransformedData = defaultTransformer.Transform(data);
 
             // We can extract the newly created column as an IEnumerable of SampleDataTransformed, the class we define below.
             var defaultRowEnumerable = mlContext.Data.CreateEnumerable<SampleDataTransformed>(defaultTransformedData, reuseRowObject: false);
@@ -52,7 +52,8 @@ namespace Samples.Dynamic
 
             // Now we can transform the data and look at the output to confirm the behavior of the estimator.
             // This operation doesn't actually evaluate data until we read the data below.
-            var meanTransformedData = meanPipeline.Fit(data).Transform(data);
+            var meanTransformer = meanPipeline.Fit(data);
+            var meanTransformedData = meanTransformer.Transform(data);
 
             // We can extract the newly created column as an IEnumerable of SampleDataTransformed, the class we define below.
             var meanRowEnumerable = mlContext.Data.CreateEnumerable<SampleDataTransformed>(meanTransformedData, reuseRowObject: false);
