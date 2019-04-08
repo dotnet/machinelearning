@@ -1,6 +1,6 @@
 <Project>
   <Import Project="..\..\Directory.Build.props" />
   <PropertyGroup>
-    <AssemblyOriginatorKeyFile>$(ToolsDir)Samples.snk</AssemblyOriginatorKeyFile>
+    <AssemblyOriginatorKeyFile>$(ToolsDir)Test.snk</AssemblyOriginatorKeyFile>
   </PropertyGroup>
 </Project>
