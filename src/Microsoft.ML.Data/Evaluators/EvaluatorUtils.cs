@@ -1353,14 +1353,43 @@ namespace Microsoft.ML.Data
             host.CheckValue(confusionDataView, nameof(confusionDataView));
             host.CheckParam(sample == -1 || sample >= 2, nameof(sample), "Should be -1 to indicate no sampling, or at least 2");
 
-            // Get the class names.
-            int countCol;
-            host.Check(confusionDataView.Schema.TryGetColumnIndex(MetricKinds.ColumnNames.Count, out countCol), "Did not find the count column");
-            var type = confusionDataView.Schema[countCol].Annotations.Schema.GetColumnOrNull(AnnotationUtils.Kinds.SlotNames)?.Type as VectorDataViewType;
+            var weightColumn = confusionDataView.Schema.GetColumnOrNull(MetricKinds.ColumnNames.Weight);
+            bool isWeighted = weightColumn.HasValue;
+
+            var confusionMatrix = GetConfusionTableAsType(host, confusionDataView, binary, sample, false);
+            var confusionTableString = GetConfusionTableAsString(confusionMatrix, false);
+
+            // if there is a Weight column, return the weighted confusionMatrix as well, from this function.
+            if (isWeighted)
+            {
+                confusionMatrix = GetConfusionTableAsType(host, confusionDataView, binary, sample, false);
+                weightedConfusionTable = GetConfusionTableAsString(confusionMatrix, true);
+            }
+            else
+                weightedConfusionTable = null;
+
+            return confusionTableString;
+        }
+
+        public static ConfusionMatrix GetConfusionTableAsType(IHost host, IDataView confusionDataView, bool binary = true, int sample = -1, bool getWeighted = false)
+        {
+            host.CheckValue(confusionDataView, nameof(confusionDataView));
+            host.CheckParam(sample == -1 || sample >= 2, nameof(sample), "Should be -1 to indicate no sampling, or at least 2");
+
+            // check that there is a Weight column, if isWeighted parameter is set to true.
+            var weightColumn = confusionDataView.Schema.GetColumnOrNull(MetricKinds.ColumnNames.Weight);
+            if (getWeighted)
+                host.CheckParam(weightColumn.HasValue, nameof(getWeighted), "There is no Weight column in the confusionMatrix data view.");
+
+            // Get the counts names.
+            var countColumn = confusionDataView.Schema.GetColumnOrNull(MetricKinds.ColumnNames.Count);
+            host.Check(countColumn.HasValue, "Did not find the count column");
+            var type = countColumn.Value.Annotations.Schema.GetColumnOrNull(AnnotationUtils.Kinds.SlotNames)?.Type as VectorDataViewType;
             host.Check(type != null && type.IsKnownSize && type.ItemType is TextDataViewType, "The Count column does not have a text vector metadata of kind SlotNames.");
 
+            // Get the class names
             var labelNames = default(VBuffer<ReadOnlyMemory<char>>);
-            confusionDataView.Schema[countCol].Annotations.GetValue(AnnotationUtils.Kinds.SlotNames, ref labelNames);
+            countColumn.Value.Annotations.GetValue(AnnotationUtils.Kinds.SlotNames, ref labelNames);
             host.Check(labelNames.IsDense, "Slot names vector must be dense");
 
             int numConfusionTableLabels = sample < 0 ? labelNames.Length : Math.Min(labelNames.Length, sample);
@@ -1387,27 +1416,20 @@ namespace Microsoft.ML.Data
 
             double[] precisionSums;
             double[] recallSums;
-            var confusionTable = GetConfusionTableAsArray(confusionDataView, countCol, labelNames.Length,
+            double[][] confusionTable;
+
+            if(getWeighted)
+                confusionTable = GetConfusionTableAsArray(confusionDataView, weightColumn.Value.Index, labelNames.Length,
+                  labelIndexToConfIndexMap, numConfusionTableLabels, out precisionSums, out recallSums);
+            else
+                confusionTable = GetConfusionTableAsArray(confusionDataView, countColumn.Value.Index, labelNames.Length,
                 labelIndexToConfIndexMap, numConfusionTableLabels, out precisionSums, out recallSums);
 
             var predictedLabelNames = GetPredictedLabelNames(in labelNames, labelIndexToConfIndexMap);
-            var confusionTableString = GetConfusionTableAsString(confusionTable, recallSums, precisionSums,
-               predictedLabelNames,
-               sampled: numConfusionTableLabels < labelNames.Length, binary: binary);
+            bool sampled = numConfusionTableLabels < labelNames.Length;
 
-            int weightIndex;
-            if (confusionDataView.Schema.TryGetColumnIndex(MetricKinds.ColumnNames.Weight, out weightIndex))
-            {
-                confusionTable = GetConfusionTableAsArray(confusionDataView, weightIndex, labelNames.Length,
-                   labelIndexToConfIndexMap, numConfusionTableLabels, out precisionSums, out recallSums);
-                weightedConfusionTable = GetConfusionTableAsString(confusionTable, recallSums, precisionSums,
-                    predictedLabelNames,
-                    sampled: numConfusionTableLabels < labelNames.Length, prefix: "Weighted ", binary: binary);
-            }
-            else
-                weightedConfusionTable = null;
+            return new ConfusionMatrix(host, precisionSums, recallSums, confusionTable, predictedLabelNames, sampled, binary);
 
-            return confusionTableString;
         }
 
         private static List<ReadOnlyMemory<char>> GetPredictedLabelNames(in VBuffer<ReadOnlyMemory<char>> labelNames, int[] labelIndexToConfIndexMap)
@@ -1553,13 +1575,13 @@ namespace Microsoft.ML.Data
         }
 
         // Get a string representation of a confusion table.
-        private static string GetConfusionTableAsString(double[][] confusionTable, double[] rowSums, double[] columnSums,
-            List<ReadOnlyMemory<char>> predictedLabelNames, string prefix = "", bool sampled = false, bool binary = true)
+        internal static string GetConfusionTableAsString(ConfusionMatrix confusionMatrix, bool isWeighted)
         {
-            int numLabels = Utils.Size(confusionTable);
+            string prefix = isWeighted ? "Weighted " : "";
+            int numLabels = Utils.Size(confusionMatrix.ConfusionTableCounts);
 
             int colWidth = numLabels == 2 ? 8 : 5;
-            int maxNameLen = predictedLabelNames.Max(name => name.Length);
+            int maxNameLen = confusionMatrix.PredictedLabelNames.Max(name => name.Length);
             // If the names are too long to fit in the column header, we back off to using class indices
             // in the header. This will also require putting the indices in the row, but it's better than
             // the alternative of having ambiguous abbreviated column headers, or having a table potentially
@@ -1572,7 +1594,7 @@ namespace Microsoft.ML.Data
             {
                 // The row label will also include the index, so a user can easily match against the header.
                 // In such a case, a label like "Foo" would be presented as something like "5. Foo".
-                rowDigitLen = Math.Max(predictedLabelNames.Count - 1, 0).ToString().Length;
+                rowDigitLen = Math.Max(confusionMatrix.PredictedLabelNames.Count - 1, 0).ToString().Length;
                 Contracts.Assert(rowDigitLen >= 1);
                 rowLabelLen += rowDigitLen + 2;
             }
@@ -1591,10 +1613,11 @@ namespace Microsoft.ML.Data
             else
                 rowLabelFormat = string.Format("{{1,{0}}} ||", paddingLen);
 
+            var confusionTable = confusionMatrix.ConfusionTableCounts;
             var sb = new StringBuilder();
-            if (numLabels == 2 && binary)
+            if (numLabels == 2 && confusionMatrix.Binary)
             {
-                var positiveCaps = predictedLabelNames[0].ToString().ToUpper();
+                var positiveCaps = confusionMatrix.PredictedLabelNames[0].ToString().ToUpper();
 
                 var numTruePos = confusionTable[0][0];
                 var numFalseNeg = confusionTable[0][1];
@@ -1607,7 +1630,7 @@ namespace Microsoft.ML.Data
 
             sb.AppendLine();
             sb.AppendFormat("{0}Confusion table", prefix);
-            if (sampled)
+            if (confusionMatrix.Sampled)
                 sb.AppendLine(" (sampled)");
             else
                 sb.AppendLine();
@@ -1619,7 +1642,7 @@ namespace Microsoft.ML.Data
             sb.AppendFormat("PREDICTED {0}||", pad);
             string format = string.Format(" {{{0},{1}}} |", useNumbersInHeader ? 0 : 1, colWidth);
             for (int i = 0; i < numLabels; i++)
-                sb.AppendFormat(format, i, predictedLabelNames[i]);
+                sb.AppendFormat(format, i, confusionMatrix.PredictedLabelNames[i]);
             sb.AppendLine(" Recall");
             sb.AppendFormat("TRUTH     {0}||", pad);
             for (int i = 0; i < numLabels; i++)
@@ -1631,10 +1654,10 @@ namespace Microsoft.ML.Data
                 string.IsNullOrWhiteSpace(prefix) ? "N0" : "F1");
             for (int i = 0; i < numLabels; i++)
             {
-                sb.AppendFormat(rowLabelFormat, i, predictedLabelNames[i]);
+                sb.AppendFormat(rowLabelFormat, i, confusionMatrix.PredictedLabelNames[i]);
                 for (int j = 0; j < numLabels; j++)
                     sb.AppendFormat(format2, confusionTable[i][j]);
-                Double recall = rowSums[i] > 0 ? confusionTable[i][i] / rowSums[i] : 0;
+                Double recall = confusionMatrix.RecallSums[i] > 0 ? confusionTable[i][i] / confusionMatrix.RecallSums[i] : 0;
                 sb.AppendFormat(" {0,5:F4}", recall);
                 sb.AppendLine();
             }
@@ -1646,7 +1669,7 @@ namespace Microsoft.ML.Data
             format = string.Format("{{0,{0}:N4}} |", colWidth + 1);
             for (int i = 0; i < numLabels; i++)
             {
-                Double precision = columnSums[i] > 0 ? confusionTable[i][i] / columnSums[i] : 0;
+                Double precision = confusionMatrix.PrecisionSums[i] > 0 ? confusionTable[i][i] / confusionMatrix.PrecisionSums[i] : 0;
                 sb.AppendFormat(format, precision);
             }
             sb.AppendLine();

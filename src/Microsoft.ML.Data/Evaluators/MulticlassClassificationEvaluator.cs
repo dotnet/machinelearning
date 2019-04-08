@@ -518,13 +518,14 @@ namespace Microsoft.ML.Data
             var resultDict = ((IEvaluator)this).Evaluate(roles);
             Host.Assert(resultDict.ContainsKey(MetricKinds.OverallMetrics));
             var overall = resultDict[MetricKinds.OverallMetrics];
+            var confusionMatrix = resultDict[MetricKinds.ConfusionMatrix];
 
             MulticlassClassificationMetrics result;
             using (var cursor = overall.GetRowCursorForAllColumns())
             {
                 var moved = cursor.MoveNext();
                 Host.Assert(moved);
-                result = new MulticlassClassificationMetrics(Host, cursor, _outputTopKAcc ?? 0);
+                result = new MulticlassClassificationMetrics(Host, cursor, _outputTopKAcc ?? 0, confusionMatrix);
                 moved = cursor.MoveNext();
                 Host.Assert(!moved);
             }

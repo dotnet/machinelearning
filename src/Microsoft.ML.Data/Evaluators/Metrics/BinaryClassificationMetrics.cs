@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Linq;
 using Microsoft.ML.Runtime;
 
 namespace Microsoft.ML.Data
@@ -74,6 +75,8 @@ namespace Microsoft.ML.Data
         /// </remarks>
         public double AreaUnderPrecisionRecallCurve { get; }
 
+        public ConfusionMatrix ConfusionMatrix { get; }
+
         private protected static T Fetch<T>(IExceptionContext ectx, DataViewRow row, string name)
         {
             var column = row.Schema.GetColumnOrNull(name);
@@ -84,9 +87,9 @@ namespace Microsoft.ML.Data
             return val;
         }
 
-        internal BinaryClassificationMetrics(IExceptionContext ectx, DataViewRow overallResult)
+        internal BinaryClassificationMetrics(IHost host, DataViewRow overallResult, IDataView confusionMatrix)
         {
-            double Fetch(string name) => Fetch<double>(ectx, overallResult, name);
+            double Fetch(string name) => Fetch<double>(host, overallResult, name);
             AreaUnderRocCurve = Fetch(BinaryClassifierEvaluator.Auc);
             Accuracy = Fetch(BinaryClassifierEvaluator.Accuracy);
             PositivePrecision = Fetch(BinaryClassifierEvaluator.PosPrecName);
@@ -95,6 +98,7 @@ namespace Microsoft.ML.Data
             NegativeRecall = Fetch(BinaryClassifierEvaluator.NegRecallName);
             F1Score = Fetch(BinaryClassifierEvaluator.F1);
             AreaUnderPrecisionRecallCurve = Fetch(BinaryClassifierEvaluator.AuPrc);
+            ConfusionMatrix = MetricWriter.GetConfusionTableAsType(host, confusionMatrix);
         }
 
         [BestFriend]

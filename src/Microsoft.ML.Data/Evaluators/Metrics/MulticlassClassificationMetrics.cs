@@ -82,9 +82,12 @@ namespace Microsoft.ML.Data
         /// </remarks>
         public IReadOnlyList<double> PerClassLogLoss { get; }
 
-        internal MulticlassClassificationMetrics(IExceptionContext ectx, DataViewRow overallResult, int topKPredictionCount)
+        // The confusion matrix.
+        public ConfusionMatrix ConfusionMatrix { get; }
+
+        internal MulticlassClassificationMetrics(IHost host, DataViewRow overallResult, int topKPredictionCount, IDataView confusionMatrix)
         {
-            double FetchDouble(string name) => RowCursorUtils.Fetch<double>(ectx, overallResult, name);
+            double FetchDouble(string name) => RowCursorUtils.Fetch<double>(host, overallResult, name);
             MicroAccuracy = FetchDouble(MulticlassClassificationEvaluator.AccuracyMicro);
             MacroAccuracy = FetchDouble(MulticlassClassificationEvaluator.AccuracyMacro);
             LogLoss = FetchDouble(MulticlassClassificationEvaluator.LogLoss);
@@ -93,8 +96,9 @@ namespace Microsoft.ML.Data
             if (topKPredictionCount > 0)
                 TopKAccuracy = FetchDouble(MulticlassClassificationEvaluator.TopKAccuracy);
 
-            var perClassLogLoss = RowCursorUtils.Fetch<VBuffer<double>>(ectx, overallResult, MulticlassClassificationEvaluator.PerClassLogLoss);
+            var perClassLogLoss = RowCursorUtils.Fetch<VBuffer<double>>(host, overallResult, MulticlassClassificationEvaluator.PerClassLogLoss);
             PerClassLogLoss = perClassLogLoss.DenseValues().ToImmutableArray();
+            ConfusionMatrix = MetricWriter.GetConfusionTableAsType(host, confusionMatrix, binary: false, perClassLogLoss.Length, getWeighted:false);
         }
 
         internal MulticlassClassificationMetrics(double accuracyMicro, double accuracyMacro, double logLoss, double logLossReduction,
