@@ -7,7 +7,7 @@ namespace Microsoft.ML.Samples
     {
         static void Main(string[] args)
         {
-            OnnxTransformExample.Example();
+            ReplaceMissingValues.Example();
         }
     }
 }
