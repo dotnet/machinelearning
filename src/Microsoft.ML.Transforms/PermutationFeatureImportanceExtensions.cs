@@ -41,7 +41,7 @@ namespace Microsoft.ML
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
-        /// [!code-csharp[PFI](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/PermutationFeatureImportance/PFIRegressionExample.cs)]
+        /// [!code-csharp[PermutationFeatureImportance](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Trainers/Regression/PermutationFeatureImportance.cs)]
         /// ]]>
         /// </format>
         /// </example>
@@ -117,7 +117,7 @@ namespace Microsoft.ML
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
-        /// [!code-csharp[PFI](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/PermutationFeatureImportance/PfiBinaryClassificationExample.cs)]
+        /// [!code-csharp[PermutationFeatureImportance](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Trainers/BinaryClassification/PermutationFeatureImportance.cs)]
         /// ]]>
         /// </format>
         /// </example>
@@ -194,6 +194,13 @@ namespace Microsoft.ML
         /// example of working with these results to analyze the feature importance of a model.
         /// </para>
         /// </remarks>
+        /// <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        /// [!code-csharp[PermutationFeatureImportance](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Trainers/MulticlassClassification/PermutationFeatureImportance.cs)]
+        /// ]]>
+        /// </format>
+        /// </example>
         /// <param name="catalog">The clustering catalog.</param>
         /// <param name="predictionTransformer">The model on which to evaluate feature importance.</param>
         /// <param name="data">The evaluation data set.</param>
@@ -272,6 +279,13 @@ namespace Microsoft.ML
         /// example of working with these results to analyze the feature importance of a model.
         /// </para>
         /// </remarks>
+        /// <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        /// [!code-csharp[PermutationFeatureImportance](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Trainers/Ranking/PermutationFeatureImportance.cs)]
+        /// ]]>
+        /// </format>
+        /// </example>
         /// <param name="catalog">The clustering catalog.</param>
         /// <param name="predictionTransformer">The model on which to evaluate feature importance.</param>
         /// <param name="data">The evaluation data set.</param>
