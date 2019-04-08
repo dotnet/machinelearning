@@ -28,7 +28,7 @@ namespace Microsoft.ML
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
-        /// [!code-csharp[FCT](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/FeatureContributionCalculationTransform.cs)]
+        /// [!code-csharp[CalculateFeatureContribution](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/CalculateFeatureContribution.cs)]
         /// ]]>
         /// </format>
         /// </example>
@@ -54,7 +54,7 @@ namespace Microsoft.ML
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
-        /// [!code-csharp[FCT](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/FeatureContributionCalculationTransform.cs)]
+        /// [!code-csharp[CalculateFeatureContributionCalibrated](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/CalculateFeatureContributionCalibrated.cs)]
         /// ]]>
         /// </format>
         /// </example>
