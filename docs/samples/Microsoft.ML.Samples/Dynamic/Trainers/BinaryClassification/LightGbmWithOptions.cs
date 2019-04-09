@@ -1,6 +1,7 @@
-﻿﻿using Microsoft.ML.Trainers.LightGbm;
+﻿using Microsoft.ML;
+using Microsoft.ML.Trainers.LightGbm;
 
-namespace Microsoft.ML.Samples.Dynamic.Trainers.BinaryClassification
+namespace Samples.Dynamic.Trainers.BinaryClassification
 {
     class LightGbmWithOptions
     {
@@ -11,7 +12,7 @@ namespace Microsoft.ML.Samples.Dynamic.Trainers.BinaryClassification
             var mlContext = new MLContext();
 
             // Download and featurize the dataset.
-            var dataview = SamplesUtils.DatasetUtils.LoadFeaturizedAdultDataset(mlContext);
+            var dataview = Microsoft.ML.SamplesUtils.DatasetUtils.LoadFeaturizedAdultDataset(mlContext);
 
             // Leave out 10% of data for testing.
             var split = mlContext.Data.TrainTestSplit(dataview, testFraction: 0.1);
@@ -34,7 +35,7 @@ namespace Microsoft.ML.Samples.Dynamic.Trainers.BinaryClassification
             var dataWithPredictions = model.Transform(split.TestSet);
 
             var metrics = mlContext.BinaryClassification.Evaluate(dataWithPredictions);
-            SamplesUtils.ConsoleUtils.PrintMetrics(metrics);
+            Microsoft.ML.SamplesUtils.ConsoleUtils.PrintMetrics(metrics);
 
             // Expected output:
             //   Accuracy: 0.88

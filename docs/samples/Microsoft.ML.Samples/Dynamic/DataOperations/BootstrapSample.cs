@@ -1,7 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using Microsoft.ML;
 
-namespace Microsoft.ML.Samples.Dynamic
+namespace Samples.Dynamic
 {
     public static class BootstrapSample
     {
@@ -12,7 +13,7 @@ namespace Microsoft.ML.Samples.Dynamic
             var mlContext = new MLContext();
 
             // Get a small dataset as an IEnumerable and them read it as ML.NET's data type.
-            IEnumerable<SamplesUtils.DatasetUtils.BinaryLabelFloatFeatureVectorFloatWeightSample> enumerableOfData = SamplesUtils.DatasetUtils.GenerateBinaryLabelFloatFeatureVectorFloatWeightSamples(5);
+            IEnumerable<Microsoft.ML.SamplesUtils.DatasetUtils.BinaryLabelFloatFeatureVectorFloatWeightSample> enumerableOfData = Microsoft.ML.SamplesUtils.DatasetUtils.GenerateBinaryLabelFloatFeatureVectorFloatWeightSamples(5);
             var data = mlContext.Data.LoadFromEnumerable(enumerableOfData);
 
             // Look at the original dataset
@@ -43,7 +44,7 @@ namespace Microsoft.ML.Samples.Dynamic
             {
                 var resample = mlContext.Data.BootstrapSample(data, seed: i);
 
-                var enumerable = mlContext.Data.CreateEnumerable<SamplesUtils.DatasetUtils.BinaryLabelFloatFeatureVectorFloatWeightSample>(resample, reuseRowObject: false);
+                var enumerable = mlContext.Data.CreateEnumerable<Microsoft.ML.SamplesUtils.DatasetUtils.BinaryLabelFloatFeatureVectorFloatWeightSample>(resample, reuseRowObject: false);
                 Console.WriteLine($"Label\tFeatures[0]");
                 foreach (var row in enumerable)
                 {

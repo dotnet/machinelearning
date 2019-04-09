@@ -1,4 +1,6 @@
-﻿namespace Microsoft.ML.Samples.Dynamic
+﻿using Microsoft.ML;
+
+namespace Samples.Dynamic
 {
     public static class StochasticGradientDescentNonCalibrated
     {
@@ -13,7 +15,7 @@
             var mlContext = new MLContext(seed: 0);
 
             // Download and featurize the dataset.
-            var data = SamplesUtils.DatasetUtils.LoadFeaturizedAdultDataset(mlContext);
+            var data = Microsoft.ML.SamplesUtils.DatasetUtils.LoadFeaturizedAdultDataset(mlContext);
 
             // Leave out 10% of data for testing.
             var trainTestData = mlContext.Data.TrainTestSplit(data, testFraction: 0.1);
@@ -27,7 +29,7 @@
             // Evaluate how the model is doing on the test data.
             var dataWithPredictions = model.Transform(trainTestData.TestSet);
             var metrics = mlContext.BinaryClassification.EvaluateNonCalibrated(dataWithPredictions);
-            SamplesUtils.ConsoleUtils.PrintMetrics(metrics);
+            Microsoft.ML.SamplesUtils.ConsoleUtils.PrintMetrics(metrics);
 
             // Expected output:
             //  Accuracy: 0.85
