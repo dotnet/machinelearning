@@ -1,5 +1,7 @@
 ﻿using System;
-namespace Microsoft.ML.Samples.Dynamic
+using Microsoft.ML;
+
+namespace Samples.Dynamic
 {
     public static class SelectColumns
     {
@@ -10,7 +12,7 @@ namespace Microsoft.ML.Samples.Dynamic
             var mlContext = new MLContext();
 
             // Get a small dataset as an IEnumerable and them read it as ML.NET's data type.
-            var enumerableData = SamplesUtils.DatasetUtils.GetInfertData();
+            var enumerableData = Microsoft.ML.SamplesUtils.DatasetUtils.GetInfertData();
             var data = mlContext.Data.LoadFromEnumerable(enumerableData);
 
             // Before transformation, take a look at the dataset

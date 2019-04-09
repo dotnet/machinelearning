@@ -1,10 +1,11 @@
 ﻿using System;
 using System.Linq;
+using Microsoft.ML;
 using Microsoft.ML.Data;
 using Microsoft.ML.SamplesUtils;
 using Microsoft.ML.Trainers.LightGbm;
 
-namespace Microsoft.ML.Samples.Dynamic.Trainers.MulticlassClassification
+namespace Samples.Dynamic.Trainers.MulticlassClassification
 {
     public static class LightGbmWithOptions
     {

@@ -1,15 +1,16 @@
 ﻿using System;
 using System.Linq;
+using Microsoft.ML;
 using Microsoft.ML.Trainers;
 
-namespace Microsoft.ML.Samples.Dynamic.Trainers.BinaryClassification
+namespace Samples.Dynamic.Trainers.BinaryClassification
 {
     public static class StochasticDualCoordinateAscentNonCalibrated
     {
         public static void Example()
         {
             // Generate IEnumerable<BinaryLabelFloatFeatureVectorSample> as training examples.
-            var rawData = SamplesUtils.DatasetUtils.GenerateBinaryLabelFloatFeatureVectorFloatWeightSamples(100);
+            var rawData = Microsoft.ML.SamplesUtils.DatasetUtils.GenerateBinaryLabelFloatFeatureVectorFloatWeightSamples(100);
 
             // Information in first example.
             // Label: true
@@ -49,7 +50,7 @@ namespace Microsoft.ML.Samples.Dynamic.Trainers.BinaryClassification
             // Step 4: Make prediction and evaluate its quality (on training set).
             var prediction = model.Transform(data);
 
-            var rawPrediction = mlContext.Data.CreateEnumerable<SamplesUtils.DatasetUtils.NonCalibratedBinaryClassifierOutput>(prediction, false);
+            var rawPrediction = mlContext.Data.CreateEnumerable<Microsoft.ML.SamplesUtils.DatasetUtils.NonCalibratedBinaryClassifierOutput>(prediction, false);
 
             // Step 5: Inspect the prediction of the first example.
             // Note that positive/negative label may be associated with positive/negative score

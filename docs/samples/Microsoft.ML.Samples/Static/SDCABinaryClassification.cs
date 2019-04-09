@@ -1,9 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using Microsoft.ML;
 using Microsoft.ML.Data;
 using Microsoft.ML.StaticPipe;
 
-namespace Microsoft.ML.Samples.Static
+namespace Samples.Static
 {
     public class SdcaBinaryClassificationExample
     {
@@ -11,7 +12,7 @@ namespace Microsoft.ML.Samples.Static
         {
             // Downloading a classification dataset from github.com/dotnet/machinelearning.
             // It will be stored in the same path as the executable
-            string dataFilePath = SamplesUtils.DatasetUtils.DownloadAdultDataset();
+            string dataFilePath = Microsoft.ML.SamplesUtils.DatasetUtils.DownloadAdultDataset();
 
             // Data Preview
             // 1. Column [Label]: IsOver50K (boolean)

@@ -4,9 +4,10 @@
 
 using System;
 using System.Collections.Generic;
+using Microsoft.ML;
 using Microsoft.ML.Data;
 
-namespace Microsoft.ML.Samples.Dynamic
+namespace Samples.Dynamic
 {
     public static class DetectIidChangePoint
     {

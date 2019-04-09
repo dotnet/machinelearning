@@ -1,7 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using Microsoft.ML;
 
-namespace Microsoft.ML.Samples.Dynamic
+namespace Samples.Dynamic
 {
     public static class CopyColumns
     {
@@ -12,7 +13,7 @@ namespace Microsoft.ML.Samples.Dynamic
             var mlContext = new MLContext();
 
             // Get a small dataset as an IEnumerable and them read it as ML.NET's data type.
-            IEnumerable<SamplesUtils.DatasetUtils.SampleInfertData> data = SamplesUtils.DatasetUtils.GetInfertData();
+            IEnumerable<Microsoft.ML.SamplesUtils.DatasetUtils.SampleInfertData> data = Microsoft.ML.SamplesUtils.DatasetUtils.GetInfertData();
             var trainData = mlContext.Data.LoadFromEnumerable(data);
 
             // Preview of the data.
