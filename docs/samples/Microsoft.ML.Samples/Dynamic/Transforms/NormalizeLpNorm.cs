@@ -24,8 +24,9 @@ namespace Samples.Dynamic
             // Convert training data to IDataView, the general data type used in ML.NET.
             var data = mlContext.Data.LoadFromEnumerable(samples);
             // NormalizeLpNorm normalize rows individually by rescaling them to unit norm.
-            // Performs the following operaion on a row X:  Y = (X - M) / D 
-            // where M is mean vector, and D is calculated value of selected `norm` parameter .
+            // Performs the following operaion on a row X:  Y = (X - M(X)) / D(X) 
+            // where M(X) is scalar value of mean for current row,
+            // and D(X) is scalar value of selected `norm` parameter .
             var approximation = mlContext.Transforms.NormalizeLpNorm("Features", norm: LpNormNormalizingEstimatorBase.NormFunction.L1, ensureZeroMean: true);
 
             // Now we can transform the data and look at the output to confirm the behavior of the estimator.
@@ -34,6 +35,7 @@ namespace Samples.Dynamic
             var transformedData = tansformer.Transform(data);
 
             var column = transformedData.GetColumn<float[]>("Features").ToArray();
+            // Expected output:
             // 0.2500,  0.2500, -0.2500, -0.2500
             // 0.2500,  0.2500, -0.2500, -0.2500
             // 0.2500, -0.2500,  0.2500, -0.2500
@@ -44,7 +46,7 @@ namespace Samples.Dynamic
 
         private class DataPoint
         {
-            [VectorType(7)]
+            [VectorType(4)]
             public float[] Features { get; set; }
         }
     }
