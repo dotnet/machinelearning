@@ -1,9 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using Microsoft.ML;
 using Microsoft.ML.Data;
 using Microsoft.ML.StaticPipe;
 
-namespace Microsoft.ML.Samples.Dynamic
+namespace Samples.Static
 {
     public class FeatureSelectionTransformStaticExample
     {
@@ -11,7 +12,7 @@ namespace Microsoft.ML.Samples.Dynamic
         {
             // Downloading a classification dataset from github.com/dotnet/machinelearning.
             // It will be stored in the same path as the executable
-            string dataFilePath = SamplesUtils.DatasetUtils.DownloadBreastCancerDataset();
+            string dataFilePath = Microsoft.ML.SamplesUtils.DatasetUtils.DownloadBreastCancerDataset();
 
             // Data Preview
             //    1. Label							0=benign, 1=malignant

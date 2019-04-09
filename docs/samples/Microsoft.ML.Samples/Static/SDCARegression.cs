@@ -1,8 +1,9 @@
 using System;
+using Microsoft.ML;
 using Microsoft.ML.StaticPipe;
 using Microsoft.ML.Trainers;
 
-namespace Microsoft.ML.Samples.Static
+namespace Samples.Static
 {
     public class SdcaRegressionExample
     {
@@ -11,7 +12,7 @@ namespace Microsoft.ML.Samples.Static
             // Downloading a regression dataset from github.com/dotnet/machinelearning
             // this will create a housing.txt file in the filsystem this code will run
             // you can open the file to see the data. 
-            string dataFile = SamplesUtils.DatasetUtils.DownloadHousingRegressionDataset();
+            string dataFile = Microsoft.ML.SamplesUtils.DatasetUtils.DownloadHousingRegressionDataset();
 
             // Creating the ML.Net IHostEnvironment object, needed for the pipeline
             var mlContext = new MLContext();
