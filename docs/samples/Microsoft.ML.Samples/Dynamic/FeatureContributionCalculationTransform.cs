@@ -1,9 +1,10 @@
 ﻿using System;
+using Microsoft.ML;
 using Microsoft.ML.Data;
 using Microsoft.ML.SamplesUtils;
 using Microsoft.ML.Trainers;
 
-namespace Microsoft.ML.Samples.Dynamic
+namespace Samples.Dynamic
 {
     public static class FeatureContributionCalculationTransform
     {

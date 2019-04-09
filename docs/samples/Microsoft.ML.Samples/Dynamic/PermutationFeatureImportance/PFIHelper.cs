@@ -2,8 +2,9 @@
 using System.Linq;
 using Microsoft.ML.Trainers;
 using Microsoft.ML.SamplesUtils;
+using Microsoft.ML;
 
-namespace Microsoft.ML.Samples.Dynamic.PermutationFeatureImportance
+namespace Samples.Dynamic.PermutationFeatureImportance
 {
     public static class PfiHelper
     {
