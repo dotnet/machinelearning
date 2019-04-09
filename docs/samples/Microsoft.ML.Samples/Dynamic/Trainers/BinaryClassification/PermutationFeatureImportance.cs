@@ -1,8 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.ML;
 
-namespace Microsoft.ML.Samples.Dynamic.Trainers.BinaryClassification
+namespace Samples.Dynamic.Trainers.BinaryClassification
 {
     public static class PermutationFeatureImportance
     {
@@ -27,9 +28,13 @@ namespace Microsoft.ML.Samples.Dynamic.Trainers.BinaryClassification
             // Fit the pipeline to the data.
             var model = pipeline.Fit(data);
 
-            // Compute the permutation metrics for the linear model using the normalized data.
+            // Transform the dataset.
             var transformedData = model.Transform(data);
+
+            // Extract the predictor.
             var linearPredictor = model.LastTransformer;
+
+            // Compute the permutation metrics for the linear model using the normalized data.
             var permutationMetrics = mlContext.BinaryClassification.PermutationFeatureImportance(
                 linearPredictor, transformedData, permutationCount: 30);
 

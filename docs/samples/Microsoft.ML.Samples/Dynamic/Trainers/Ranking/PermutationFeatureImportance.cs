@@ -1,8 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.ML;
 
-namespace Microsoft.ML.Samples.Dynamic.Trainers.Ranking
+namespace Samples.Dynamic.Trainers.Ranking
 {
     public static class PermutationFeatureImportance
     {
@@ -29,9 +30,13 @@ namespace Microsoft.ML.Samples.Dynamic.Trainers.Ranking
             // Fit the pipeline to the data.
             var model = pipeline.Fit(data);
 
-            // Compute the permutation metrics for the linear model using the normalized data.
+            // Transform the dataset.
             var transformedData = model.Transform(data);
+
+            // Extract the predictor.
             var linearPredictor = model.LastTransformer;
+
+            // Compute the permutation metrics for the linear model using the normalized data.
             var permutationMetrics = mlContext.Ranking.PermutationFeatureImportance(
                 linearPredictor, transformedData, permutationCount: 30);
 
