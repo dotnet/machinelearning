@@ -39,6 +39,7 @@ namespace Samples.Dynamic
             var column = transformedData.GetColumn<float[]>("Features").ToArray();
             foreach (var row in column)
                 Console.WriteLine(string.Join(", ", row.Select(x => x.ToString("f4"))));
+            // Expected output:
             // 0.6726, 0.6726, 0.8816, 0.2819
             // 0.9101, 0.9101, 0.6939, 0.2819
             // 0.3274, 0.3274, 0.4329, 0.2819
@@ -48,20 +49,23 @@ namespace Samples.Dynamic
             var columnFixZero = noCdfData.GetColumn<float[]>("Features").ToArray();
             foreach (var row in columnFixZero)
                 Console.WriteLine(string.Join(", ", row.Select(x => x.ToString("f4"))));
+            // Expected output:
             // 0.8165, 0.8165, 1.5492, 0.0000
             // 1.6330, 1.6330, 1.0328, 0.0000
             // 0.0000, 0.0000, 0.5164, 0.0000
             //-0.8165,-0.8165,-0.5164, 2.0000
 
-            // Let's get transformation parameters. Since we work with only one column we need to pass 0 as parameter for function.
-            // If case if we have multiple column transformations we need to pass index of InputOutputColumnPair.
+            // Let's get transformation parameters. Since we work with only one column we need to pass 0 as parameter for GetNormalizerModelParameters.
+            // If we have multiple column transformations we need to pass index of InputOutputColumnPair.
             var transformParams = (normalizeTransform.GetNormalizerModelParameters(0) as Microsoft.ML.Transforms.NormalizingTransformer.CdfNormalizerModelParameters<ImmutableArray<float>>);
-            Console.WriteLine($"Values for slot 1 would be transfromed by applying y= 0.5* (1 + ERF((x- {transformParams.Mean[1]}) / ({transformParams.StandardDeviation[1]} * sqrt(2)))");
+            Console.WriteLine($"Values for slot 1 would be transfromed by applying y = 0.5* (1 + ERF((x- {transformParams.Mean[1]}) / ({transformParams.StandardDeviation[1]} * sqrt(2)))");
             // ERF is https://en.wikipedia.org/wiki/Error_function.
+            // Expected output:
             // Values for slot 1 would be transfromed by applying y = 0.5 * (1 + ERF((x - 0.5) / (1.118034 * sqrt(2)))
 
             var noCdfParams = (normalizeNoCdfTransform.GetNormalizerModelParameters(0) as Microsoft.ML.Transforms.NormalizingTransformer.AffineNormalizerModelParameters<ImmutableArray<float>>);
-            Console.WriteLine($"Values for slot 1 would be transfromed by applying y= (x - ({(noCdfParams.Offset.Length == 0 ? 0 : noCdfParams.Offset[1])})) * {noCdfParams.Scale[1]}");
+            Console.WriteLine($"Values for slot 1 would be transfromed by applying y = (x - ({(noCdfParams.Offset.Length == 0 ? 0 : noCdfParams.Offset[1])})) * {noCdfParams.Scale[1]}");
+            // Expected output:
             // Values for slot 1 would be transfromed by applying y = (x - (0)) * 0.8164966
         }
 
