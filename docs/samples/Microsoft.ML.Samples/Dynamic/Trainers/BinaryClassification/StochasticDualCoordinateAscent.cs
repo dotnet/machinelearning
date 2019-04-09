@@ -49,10 +49,10 @@ namespace Microsoft.ML.Samples.Dynamic.Trainers.BinaryClassification
             // the "Features" column produced by FeaturizeText as the features column.
             var pipeline = mlContext.Transforms.Text.FeaturizeText("Features", "SentimentText")
                     .AppendCacheCheckpoint(mlContext) // Add a data-cache step within a pipeline.
-                    .Append(mlContext.BinaryClassification.Trainers.SdcaNonCalibrated(labelColumnName: "Sentiment", featureColumnName: "Features", l2Regularization: 0.001f));
+                    .Append(mlContext.BinaryClassification.Trainers.SdcaLogisticRegression(labelColumnName: "Sentiment", featureColumnName: "Features", l2Regularization: 0.001f));
 
             // Step 3: Run Cross-Validation on this pipeline.
-            var cvResults = mlContext.BinaryClassification.CrossValidateNonCalibrated(data, pipeline, labelColumnName: "Sentiment");
+            var cvResults = mlContext.BinaryClassification.CrossValidate(data, pipeline, labelColumnName: "Sentiment");
 
             var accuracies = cvResults.Select(r => r.Metrics.Accuracy);
             Console.WriteLine(accuracies.Average());
@@ -69,7 +69,7 @@ namespace Microsoft.ML.Samples.Dynamic.Trainers.BinaryClassification
                                       }));
 
             // Run Cross-Validation on this second pipeline.
-            var cvResults_advancedPipeline = mlContext.BinaryClassification.CrossValidateNonCalibrated(data, pipeline, labelColumnName: "Sentiment", numberOfFolds: 3);
+            var cvResults_advancedPipeline = mlContext.BinaryClassification.CrossValidate(data, pipeline, labelColumnName: "Sentiment", numberOfFolds: 3);
             accuracies = cvResults_advancedPipeline.Select(r => r.Metrics.Accuracy);
             Console.WriteLine(accuracies.Average());
 
