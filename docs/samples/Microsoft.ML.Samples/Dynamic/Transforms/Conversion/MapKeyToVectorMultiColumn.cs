@@ -5,7 +5,7 @@ using Microsoft.ML.Data;
 
 namespace Samples.Dynamic
 {
-    class MapKeyToVectorMultiColumn
+    public class MapKeyToVectorMultiColumn
     {
         /// This example demonstrates the use of MapKeyToVector by mapping keys to floats[] for multiple columns at once. 
         /// Because the ML.NET KeyType maps the missing value to zero, counting starts at 1, so the uint values
@@ -30,10 +30,10 @@ namespace Samples.Dynamic
             var data = mlContext.Data.LoadFromEnumerable(rawData);
 
             // Constructs the ML.net pipeline
-            var pipeline = mlContext.Transforms.Conversion.MapKeyToVector(
-                new[]{
-                new InputOutputColumnPair ("TimeframeVector", "Timeframe"),
-                new InputOutputColumnPair ("CategoryVector", "Category") });
+            var pipeline = mlContext.Transforms.Conversion.MapKeyToVector(new[]{
+                    new InputOutputColumnPair ("TimeframeVector", "Timeframe"),
+                    new InputOutputColumnPair ("CategoryVector", "Category")
+            });
 
             // Fits the pipeline to the data.
             IDataView transformedData = pipeline.Fit(data).Transform(data);
@@ -44,7 +44,7 @@ namespace Samples.Dynamic
 
             Console.WriteLine($" Timeframe           TimeframeVector         Category    CategoryVector");
             foreach (var featureRow in features)
-                Console.WriteLine($"{featureRow.Timeframe}\t\t\t{string.Join(',', featureRow.TimeframeVector)}\t\t\t{featureRow.Category}\t\t{string.Join(',', featureRow.CategoryVector)}");
+                Console.WriteLine($"{featureRow.Timeframe}     {string.Join(',', featureRow.TimeframeVector)}   {featureRow.Category}      {string.Join(',', featureRow.CategoryVector)}");
 
             // TransformedData obtained post-transformation.
             //
