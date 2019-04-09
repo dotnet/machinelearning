@@ -1,8 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using Microsoft.ML;
 using Microsoft.ML.Data;
 
-namespace Microsoft.ML.Samples.Dynamic
+namespace Samples.Dynamic
 {
     public static class NormalizerTransform
     {
@@ -13,7 +14,7 @@ namespace Microsoft.ML.Samples.Dynamic
             var ml = new MLContext();
 
             // Get a small dataset as an IEnumerable and convert it to an IDataView.
-            IEnumerable<SamplesUtils.DatasetUtils.SampleInfertData> data = SamplesUtils.DatasetUtils.GetInfertData();
+            IEnumerable<Microsoft.ML.SamplesUtils.DatasetUtils.SampleInfertData> data = Microsoft.ML.SamplesUtils.DatasetUtils.GetInfertData();
             var trainData = ml.Data.LoadFromEnumerable(data);
 
             // Preview of the data.

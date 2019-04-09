@@ -1,8 +1,9 @@
 ﻿using System;
+using Microsoft.ML;
 using Microsoft.ML.Data;
 using Microsoft.ML.Trainers;
 
-namespace Microsoft.ML.Samples.Dynamic
+namespace Samples.Dynamic
 {
     public class KMeansWithOptions
     {
@@ -13,7 +14,7 @@ namespace Microsoft.ML.Samples.Dynamic
             var ml = new MLContext(seed: 1);
 
             // Get a small dataset as an IEnumerable and convert it to an IDataView.
-            var data = SamplesUtils.DatasetUtils.GetInfertData();
+            var data = Microsoft.ML.SamplesUtils.DatasetUtils.GetInfertData();
             var trainData = ml.Data.LoadFromEnumerable(data);
 
             // Preview of the data.

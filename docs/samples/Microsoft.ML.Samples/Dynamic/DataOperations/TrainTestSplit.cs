@@ -1,11 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.Linq;
-using Microsoft.ML.Data;
+using Microsoft.ML;
 using static Microsoft.ML.DataOperationsCatalog;
 
-namespace Microsoft.ML.Samples.Dynamic
+namespace Samples.Dynamic
 {
     /// <summary>
     /// Sample class showing how to use TrainTestSplit.
