@@ -1,5 +1,7 @@
 project (MatrixFactorizationNative)
 add_definitions(-D_SCL_SECURE_NO_WARNINGS)
+add_definitions(-DUSESSE)
+add_definitions(-DUSEOMP)
 
 include_directories(libmf)
 
