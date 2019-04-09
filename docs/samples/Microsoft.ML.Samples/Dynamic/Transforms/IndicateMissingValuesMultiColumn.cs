@@ -23,8 +23,9 @@ namespace Samples.Dynamic
             var data = mlContext.Data.LoadFromEnumerable(samples);
 
             // IndicateMissingValues is used to create a boolean containing 'true' where the value in the 
-            // input column is missing. For floats, missing values are float.NaN.
-            // We can use an array of InputOutputColumnPair to apply the MissingValueIndicatorEstimator to multiple columns in one pass over the data.
+            // input column is missing. For floats and doubles, missing values are NaN.
+            // We can use an array of InputOutputColumnPair to apply the MissingValueIndicatorEstimator
+            // to multiple columns in one pass over the data.
             var pipeline = mlContext.Transforms.IndicateMissingValues(new[] {
                 new InputOutputColumnPair("MissingIndicator1", "Features1"),
                 new InputOutputColumnPair("MissingIndicator2", "Features2")

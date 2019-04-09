@@ -24,9 +24,9 @@ namespace Samples.Dynamic
             };
             var data = mlContext.Data.LoadFromEnumerable(samples);
 
-            // Default ReplaceMode:
-            // ReplaceMissingValues is used to create a column where missing values are replaced according to the ReplacementMode.
-            var defaultPipeline = mlContext.Transforms.ReplaceMissingValues("MissingReplaced", "Features", MissingValueReplacingEstimator.ReplacementMode.DefaultValue);
+            // Here we use the default replacement mode, which replaces the value with the default value for its type.
+            var defaultPipeline = mlContext.Transforms.ReplaceMissingValues("MissingReplaced", "Features",
+                MissingValueReplacingEstimator.ReplacementMode.DefaultValue);
 
             // Now we can transform the data and look at the output to confirm the behavior of the estimator.
             // This operation doesn't actually evaluate data until we read the data below.
@@ -46,9 +46,9 @@ namespace Samples.Dynamic
             // Features: [-1, 2, -3]    MissingReplaced: [-1, 2, -3]
             // Features: [-1, NaN, -3]  MissingReplaced: [-1, 0, -3]
 
-            // Mean ReplaceMode:
-            // ReplaceMissingValues is used to create a column where missing values are replaced according to the ReplacementMode.
-            var meanPipeline = mlContext.Transforms.ReplaceMissingValues("MissingReplaced", "Features", MissingValueReplacingEstimator.ReplacementMode.Mean);
+            // Here we use the mean replacement mode, which replaces the value with the mean of the non values that were not missing.
+            var meanPipeline = mlContext.Transforms.ReplaceMissingValues("MissingReplaced", "Features",
+                MissingValueReplacingEstimator.ReplacementMode.Mean);
 
             // Now we can transform the data and look at the output to confirm the behavior of the estimator.
             // This operation doesn't actually evaluate data until we read the data below.

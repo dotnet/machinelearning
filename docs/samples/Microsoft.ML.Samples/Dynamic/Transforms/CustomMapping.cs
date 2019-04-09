@@ -27,8 +27,8 @@ namespace Samples.Dynamic
                 (input, output) => output.IsUnderThirty = input.Age < 30;
 
             // Custom transformations can be used to transform data directly, or as part of a pipeline of estimators.
-            // Note: If contractName is null in the CustomMapping estimator, any pipeline of estimators containing it, cannot be saved and loaded back. 
-            // See other sample on how to load and save the CustomMapping estimator.
+            // Note: If contractName is null in the CustomMapping estimator, any pipeline of estimators containing it,
+            // cannot be saved and loaded back. 
             var pipeline = mlContext.Transforms.CustomMapping(mapping, contractName: null);
 
             // Now we can transform the data and look at the output to confirm the behavior of the estimator.
