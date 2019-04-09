@@ -1,5 +1,4 @@
-﻿using Microsoft.ML.Samples.Dynamic;
-using Samples.Dynamic;
+﻿using Samples.Dynamic;
 
 namespace Microsoft.ML.Samples
 {

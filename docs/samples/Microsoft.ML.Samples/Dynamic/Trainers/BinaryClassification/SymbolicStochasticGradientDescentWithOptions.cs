@@ -1,4 +1,6 @@
-﻿namespace Microsoft.ML.Samples.Dynamic.Trainers.BinaryClassification
+﻿using Microsoft.ML;
+
+namespace Samples.Dynamic.Trainers.BinaryClassification
 {
     public static class SymbolicStochasticGradientDescentWithOptions
     {
@@ -14,13 +16,13 @@
             var mlContext = new MLContext(seed: 0);
 
             // Download and featurize the dataset.
-            var data = SamplesUtils.DatasetUtils.LoadFeaturizedAdultDataset(mlContext);
+            var data = Microsoft.ML.SamplesUtils.DatasetUtils.LoadFeaturizedAdultDataset(mlContext);
 
             // Leave out 10% of data for testing.
             var split = mlContext.Data.TrainTestSplit(data, testFraction: 0.1);
             // Create data training pipeline
             var pipeline = mlContext.BinaryClassification.Trainers.SymbolicSgdLogisticRegression(
-                    new ML.Trainers.SymbolicSgdLogisticRegressionBinaryTrainer.Options()
+                    new Microsoft.ML.Trainers.SymbolicSgdLogisticRegressionBinaryTrainer.Options()
                     {
                         LearningRate = 0.2f,
                         NumberOfIterations = 10,
@@ -33,7 +35,7 @@
             // Evaluate how the model is doing on the test data.
             var dataWithPredictions = model.Transform(split.TestSet);
             var metrics = mlContext.BinaryClassification.EvaluateNonCalibrated(dataWithPredictions);
-            SamplesUtils.ConsoleUtils.PrintMetrics(metrics);
+            Microsoft.ML.SamplesUtils.ConsoleUtils.PrintMetrics(metrics);
 
             // Expected output:
             //   Accuracy: 0.84

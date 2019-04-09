@@ -1,12 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.ML;
 using Microsoft.ML.Data;
 <# if (TrainerOptions != null) { #>
 <#=OptionsInclude#>
 <# } #>
 
-namespace Microsoft.ML.Samples.Dynamic.Trainers.BinaryClassification
+namespace Samples.Dynamic.Trainers.BinaryClassification
 {
     public static class <#=ClassName#>
     {<#=Comments#>

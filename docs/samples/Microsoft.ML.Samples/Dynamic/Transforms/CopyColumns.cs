@@ -31,8 +31,7 @@ namespace Samples.Dynamic
             // use CopyColumns to rename ImageId to Label. Technically, the ImageId column still exists, but it won't be
             // materialized unless you actually need it somewhere (e.g. if you were to save the transformed data
             // without explicitly dropping the column). This is a general property of IDataView's lazy evaluation.
-            string labelColumnName = "Label";
-            var pipeline = mlContext.Transforms.CopyColumns(labelColumnName, "ImageId");
+            var pipeline = mlContext.Transforms.CopyColumns("Label", "ImageId");
 
             // Now we can transform the data and look at the output to confirm the behavior of CopyColumns.
             // Don't forget that this operation doesn't actually evaluate data until we read the data below.
@@ -42,7 +41,7 @@ namespace Samples.Dynamic
             var rowEnumerable = mlContext.Data.CreateEnumerable<TransformedData>(transformedData, reuseRowObject: false);
 
             // And finally, we can write out the rows of the dataset, looking at the columns of interest.
-            Console.WriteLine($"ImageId and Label columns obtained post-transformation.");
+            Console.WriteLine($"Label and ImageId columns obtained post-transformation.");
             foreach (var row in rowEnumerable)
             {
                 Console.WriteLine($"Label: {row.Label} ImageId: {row.ImageId}");
