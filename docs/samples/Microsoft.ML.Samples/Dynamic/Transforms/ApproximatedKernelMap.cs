@@ -33,13 +33,13 @@ namespace Samples.Dynamic
             var transformedData = tansformer.Transform(data);
 
             var column = transformedData.GetColumn<float[]>("Features").ToArray();
+            foreach (var row in column)
+                Console.WriteLine(string.Join(", ", row.Select(x => x.ToString("f4"))));
             // Expected output:
             //-0.0119, 0.5867, 0.4942,  0.7041
             // 0.4720, 0.5639, 0.4346,  0.2671
             //-0.2243, 0.7071, 0.7053, -0.1681
             // 0.0846, 0.5836, 0.6575,  0.0581
-            foreach (var row in column)
-                Console.WriteLine(string.Join(", ", row.Select(x => x.ToString("f4"))));
         }
 
         private class DataPoint
