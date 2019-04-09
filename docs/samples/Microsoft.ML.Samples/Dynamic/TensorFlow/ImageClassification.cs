@@ -1,5 +1,9 @@
 using System;
+using System.IO;
 using System.Linq;
+using System.Net;
+using ICSharpCode.SharpZipLib.GZip;
+using ICSharpCode.SharpZipLib.Tar;
 using Microsoft.ML.Data;
 
 namespace Microsoft.ML.Samples.Dynamic
@@ -13,7 +17,14 @@ namespace Microsoft.ML.Samples.Dynamic
         {
             // Download the ResNet 101 model from the location below.
             // https://storage.googleapis.com/download.tensorflow.org/models/tflite_11_05_08/resnet_v2_101.tgz
-            var modelLocation = @"resnet_v2_101/resnet_v2_101_299_frozen.pb";
+
+            string modelLocation = "resnet_v2_101_299_frozen.pb";
+            if (!File.Exists(modelLocation))
+            {
+                modelLocation = Download(@"https://storage.googleapis.com/download.tensorflow.org/models/tflite_11_05_08/resnet_v2_101.tgz", @"resnet_v2_101_299_frozen.tgz");
+                Unzip(Path.Join(Directory.GetCurrentDirectory(), modelLocation), Directory.GetCurrentDirectory());
+                modelLocation = "resnet_v2_101_299_frozen.pb";
+            }
 
             var mlContext = new MLContext();
             var data = GetTensorData();
@@ -22,7 +33,7 @@ namespace Microsoft.ML.Samples.Dynamic
             // Create a ML pipeline.
             var pipeline = mlContext.Model.LoadTensorFlowModel(modelLocation).ScoreTensorFlowModel(
                 new[] { nameof(OutputScores.output) },
-                new[] { nameof(TensorData.input) });
+                new[] { nameof(TensorData.input) }, addBatchDimensionInput: true);
 
             // Run the pipeline and get the transformed values.
             var estimator = pipeline.Fit(idv);
@@ -85,6 +96,32 @@ namespace Microsoft.ML.Samples.Dynamic
         class OutputScores
         {
             public float[] output { get; set; }
+        }
+
+        private static string Download(string baseGitPath, string dataFile)
+        {
+            using (WebClient client = new WebClient())
+            {
+                client.DownloadFile(new Uri($"{baseGitPath}"), dataFile);
+            }
+
+            return dataFile;
+        }
+
+        /// <summary>
+        /// Taken from https://github.com/icsharpcode/SharpZipLib/wiki/GZip-and-Tar-Samples.
+        /// </summary>
+        private static void Unzip(string path, string targetDir)
+        {
+            Stream inStream = File.OpenRead(path);
+            Stream gzipStream = new GZipInputStream(inStream);
+
+            TarArchive tarArchive = TarArchive.CreateInputTarArchive(gzipStream);
+            tarArchive.ExtractContents(targetDir);
+            tarArchive.Close();
+
+            gzipStream.Close();
+            inStream.Close();
         }
     }
 }
