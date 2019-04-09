@@ -29,7 +29,8 @@ namespace Microsoft.ML.Samples.Dynamic.Trainers.Ranking
                     Booster = new GradientBooster.Options
                     {
                         FeatureFraction = 0.9
-                    }
+                    },
+                    RowGroupColumnName = "GroupId"
                 });
 
             // Fit this pipeline to the training Data.
@@ -43,7 +44,7 @@ namespace Microsoft.ML.Samples.Dynamic.Trainers.Ranking
 
             // Expected output:
             //   DCG: @1:1.71, @2:3.88, @3:7.93
-            //   NDCG: @1:7.98, @2:12.14, @3:16.62
+            //   NDCG: @1:0.08, @2:0.12, @3:0.17
         }
     }
 }
