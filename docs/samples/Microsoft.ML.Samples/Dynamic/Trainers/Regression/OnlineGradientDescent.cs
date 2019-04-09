@@ -1,9 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.ML;
 using Microsoft.ML.Data;
 
-namespace Microsoft.ML.Samples.Dynamic.Trainers.Regression
+namespace Samples.Dynamic.Trainers.Regression
 {
     public static class OnlineGradientDescent
     {
@@ -43,7 +44,7 @@ namespace Microsoft.ML.Samples.Dynamic.Trainers.Regression
 
             // Evaluate the overall metrics
             var metrics = mlContext.Regression.Evaluate(transformedTestData);
-            SamplesUtils.ConsoleUtils.PrintMetrics(metrics);
+            Microsoft.ML.SamplesUtils.ConsoleUtils.PrintMetrics(metrics);
 
             // TODO #2425: OGD is missing baseline tests and seems numerically unstable
         }
