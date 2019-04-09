@@ -25,7 +25,7 @@ namespace Samples.Dynamic
             var data = mlContext.Data.LoadFromEnumerable(samples);
             // NormalizeLpNorm normalize rows individually by rescaling them to unit norm.
             // Performs the following operaion on a row X:  Y = (X - M(X)) / D(X) 
-            // where M(X) is scalar value of mean for current row,
+            // where M(X) is scalar value of mean for current row if ensureZeroMean = true or 0 othewise
             // and D(X) is scalar value of selected `norm` parameter .
             var approximation = mlContext.Transforms.NormalizeLpNorm("Features", norm: LpNormNormalizingEstimatorBase.NormFunction.L1, ensureZeroMean: true);
 
