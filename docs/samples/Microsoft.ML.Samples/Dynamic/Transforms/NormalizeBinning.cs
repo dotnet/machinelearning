@@ -42,19 +42,19 @@ namespace Samples.Dynamic
             foreach (var row in column)
                 Console.WriteLine(string.Join(", ", row.Select(x => x.ToString("f4"))));
             // Expected output:
-            // 1.0000, 0.6667, 1.0000, 0.0000
-            // 0.6667, 1.0000, 0.6667, 0.0000
-            // 0.3333, 0.3333, 0.3333, 0.0000
-            // 0.0000, 0.0000, 0.0000, 1.0000
+            //  1.0000, 0.6667, 1.0000, 0.0000
+            //  0.6667, 1.0000, 0.6667, 0.0000
+            //  0.3333, 0.3333, 0.3333, 0.0000
+            //  0.0000, 0.0000, 0.0000, 1.0000
 
             var columnFixZero = fixZeroData.GetColumn<float[]>("Features").ToArray();
             foreach (var row in columnFixZero)
                 Console.WriteLine(string.Join(", ", row.Select(x => x.ToString("f4"))));
             // Expected output:
-            // 1.0000, 0.3333, 1.0000, 0.0000
-            // 0.6667, 0.6667, 0.6667, 0.0000
-            // 0.3333, 0.0000, 0.3333, 0.0000
-            // 0.0000, -0.3333, 0.0000, 1.0000
+            //  1.0000, 0.3333, 1.0000, 0.0000
+            //  0.6667, 0.6667, 0.6667, 0.0000
+            //  0.3333, 0.0000, 0.3333, 0.0000
+            //  0.0000, -0.3333, 0.0000, 1.0000
 
             // Let's get transformation parameters. Since we work with only one column we need to pass 0 as parameter for GetNormalizerModelParameters.
             // If we have multiple column transformations we need to pass index of InputOutputColumnPair.
@@ -63,18 +63,18 @@ namespace Samples.Dynamic
             Console.WriteLine("Where Index(x) is the index of the bin to which x belongs");
             Console.WriteLine($"Bins upper bounds are: {string.Join(" ", transformParams.UpperBounds[0])}");
             // Expected output:
-            // Values for slot 0 would be transfromed by applying y = (Index(x) / 3) - 0
-            // Where Index(x) is the index of the bin to which x belongs
-            // Bins upper bounds are: 3 5 7 ∞
+            //  Values for slot 0 would be transfromed by applying y = (Index(x) / 3) - 0
+            //  Where Index(x) is the index of the bin to which x belongs
+            //  Bins upper bounds are: 3 5 7 ∞
 
             var fixZeroParams = (normalizeFixZeroTransform.GetNormalizerModelParameters(0) as Microsoft.ML.Transforms.NormalizingTransformer.BinNormalizerModelParameters<ImmutableArray<float>>);
             Console.WriteLine($"Values for slot 1 would be transfromed by applying y = (Index(x) / {fixZeroParams.Density[1]}) - {(fixZeroParams.Offset.Length == 0 ? 0 : fixZeroParams.Offset[1])}");
             Console.WriteLine("Where Index(x) is the index of the bin to which x belongs");
             Console.WriteLine($"Bins upper bounds are: {string.Join(" ", fixZeroParams.UpperBounds[1])}");
             // Expected output:
-            // Values for slot 1 would be transfromed by applying y = (Index(x) / 3) - 0.3333333
-            // Where Index(x) is the index of the bin to which x belongs
-            // Bins upper bounds are: -0.5 0.5 1.5 ∞
+            //  Values for slot 1 would be transfromed by applying y = (Index(x) / 3) - 0.3333333
+            //  Where Index(x) is the index of the bin to which x belongs
+            //  Bins upper bounds are: -0.5 0.5 1.5 ∞
         }
 
         private class DataPoint
