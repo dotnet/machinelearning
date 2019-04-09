@@ -54,6 +54,8 @@ namespace Samples.Dynamic
 
             // Create a time series prediction engine from the model.
             var engine = model.CreateTimeSeriesPredictionFunction<IidSpikeData, IidSpikePrediction>(ml);
+
+            // Create non-anomalous data and check for anomaly.
             for (int index = 0; index < 5; index++)
             {
                 // Anomaly spike detection.

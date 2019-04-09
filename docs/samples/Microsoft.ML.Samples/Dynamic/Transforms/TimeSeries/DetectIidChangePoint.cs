@@ -58,6 +58,8 @@ namespace Samples.Dynamic
 
             // Create a time series prediction engine from the model.
             var engine = model.CreateTimeSeriesPredictionFunction<IidChangePointData, ChangePointPrediction>(ml);
+
+            // Create non-anomalous data and check for change point.
             for (int index = 0; index < 8; index++)
             {
                 // Anomaly change point detection.
