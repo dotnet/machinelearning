@@ -1,9 +1,10 @@
 using System;
 using System.Linq;
+using Microsoft.ML;
 using Microsoft.ML.Data;
 using Microsoft.ML.OnnxRuntime;
 
-namespace Microsoft.ML.Samples.Dynamic
+namespace Samples.Dynamic
 {
     public static class OnnxTransformExample
     {

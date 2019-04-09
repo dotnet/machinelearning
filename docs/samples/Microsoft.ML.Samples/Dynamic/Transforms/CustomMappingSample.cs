@@ -1,5 +1,7 @@
 ﻿using System;
-namespace Microsoft.ML.Samples.Dynamic
+using Microsoft.ML;
+
+namespace Samples.Dynamic
 {
     public static class CustomMapping
     {
@@ -10,7 +12,7 @@ namespace Microsoft.ML.Samples.Dynamic
             var mlContext = new MLContext();
 
             // Get a small dataset as an IEnumerable and convert it to an IDataView.
-            var data = SamplesUtils.DatasetUtils.GetInfertData();
+            var data = Microsoft.ML.SamplesUtils.DatasetUtils.GetInfertData();
             var trainData = mlContext.Data.LoadFromEnumerable(data);
 
             // Preview of the data.
@@ -22,7 +24,7 @@ namespace Microsoft.ML.Samples.Dynamic
             //  35       4       6-11yrs    ...
 
             // We define the custom mapping between input and output rows that will be applied by the transformation.
-            Action<SamplesUtils.DatasetUtils.SampleInfertData, OutputRow> mapping =
+            Action<Microsoft.ML.SamplesUtils.DatasetUtils.SampleInfertData, OutputRow> mapping =
                 (input, output) => output.IsUnderThirty = input.Age < 30;
 
             // Custom transformations can be used to transform data directly, or as part of a pipeline. Below we transform data directly.
