@@ -59,7 +59,7 @@ namespace Microsoft.ML.Samples.Dynamic.Trainers.BinaryClassification
 
             // If we wanted to specify more advanced parameters for the algorithm, 
             // we could do so by tweaking the 'advancedSetting'.
-            var advancedPipeline = mlContext.Transforms.Text.FeaturizeText("SentimentText", "Features")
+            var advancedPipeline = mlContext.Transforms.Text.FeaturizeText("Features", "SentimentText")
                                   .Append(mlContext.BinaryClassification.Trainers.SdcaLogisticRegression(
                                       new SdcaLogisticRegressionBinaryTrainer.Options { 
                                         LabelColumnName = "Sentiment",
@@ -69,7 +69,7 @@ namespace Microsoft.ML.Samples.Dynamic.Trainers.BinaryClassification
                                       }));
 
             // Run Cross-Validation on this second pipeline.
-            var cvResults_advancedPipeline = mlContext.BinaryClassification.CrossValidate(data, pipeline, labelColumnName: "Sentiment", numberOfFolds: 3);
+            var cvResults_advancedPipeline = mlContext.BinaryClassification.CrossValidate(data, advancedPipeline, labelColumnName: "Sentiment", numberOfFolds: 3);
             accuracies = cvResults_advancedPipeline.Select(r => r.Metrics.Accuracy);
             Console.WriteLine(accuracies.Average());
 
