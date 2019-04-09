@@ -1,10 +1,9 @@
 # Key Values
 
-Most commonly, key-values are used to encode items where it is convenient or
-efficient to represent values using numbers, but you want to maintain the
-logical "idea" that these numbers are keys indexing some underlying, implicit
-set of values, in a way more explicit than simply mapping to a number would
-allow you to do.
+Most commonly, in key-valued data, each value takes one of a limited number of
+distinct values. We might view them as being the enumeration into a set. They
+are represented in memory using unsigned integers. Most commonly this is
+`uint`, but `byte`, `ushort`, and `ulong` are possible values to use as well.
 
 A more formal description of key values and types is
 [here](IDataViewTypeSystem.md#key-types). *This* document's motivation is less
@@ -12,138 +11,154 @@ to describe what key types and values are, and more to instead describe why
 key types are necessary and helpful things to have. Necessarily, this document,
 is more anecdotal in its descriptions to motivate its content.
 
-Let's take a few examples of transforms that produce keys:
+Let's take a few examples of transformers that produce keys:
 
-* The `TermTransform` forms a dictionary of unique observed values to a key.
-  The key type's count indicates the number of items in the set, and through
-  the `KeyValue` metadata "remembers" what each key is representing.
+* The `ValueToKeyMappingTransformer` has a dictionary of unique values
+  obvserved when it was fit, each mapped to a key-value. The key type's count
+  indicates the number of items in the set, and through the `KeyValue`
+  annotation "remembers" what each key is representing.
 
-* The `HashTransform` performs a hash of input values, and produces a key
-  value with count equal to the range of the hash function, which, if a b bit
-  hash was used, will produce a 2ᵇ hash.
+* The `TokenizingByCharactersTransformer` will take input strings and produce
+  key values representing the characters observed in the string. The
+  `KeyValue` annotation "remembers" what each key is representing. (Note that
+  unlike many other key-valued operations, this uses a representation type of
+  `ushort` instead of `uint`.)
 
-* The `CharTokenizeTransform` will take input strings and produce key values
-  representing the characters observed in the string.
+* The `HashingTransformer` performs a hash of input values, and produces a key
+  value with count equal to the range of the hash function, which, if a `b`
+  bit hash was used, will produce values with a key-type of count `2ᵇ` .
+
+Note that in the first two cases, these are enumerating into a set with actual
+specific values, whereas in the last case we are also enumerating into a set,
+but one without values, since hashes don't intrinsically correspond to a
+single item.
 
 ## Keys as Intermediate Values
 
 Explicitly invoking transforms that produce key values, and using those key
-values, is sometimes helpful. However, given that most trainers expect the
-feature vector to be a vector of floating point values and *not* keys, in
+values, is sometimes helpful. However, given that trainers typically expect
+the feature vector to be a vector of floating point values and *not* keys, in
 typical usage the majority of usages of keys is as some sort of intermediate
 value on the way to that final feature vector. (Unless, say, doing something
-like preparing labels for a multiclass learner.)
+like preparing labels for a multiclass trainer.)
 
-So why not go directly to the feature vector, and forget this key stuff?
-Actually, to take text as the canonical example, we used to. However, by
-structuring the transforms from, say, text to key to vector, rather than text
-to vector *directly*, we are able to simplify a lot of code on the
-implementation side, which is both less for us to maintain, and also for users
-gives consistency in behavior.
+So why not go directly to the feature vector from whatever the input was, and
+forget this key stuff? Actually, to take text processing as the canonical
+example, we used to. However, by structuring the transforms from, say, text to
+key to vector, rather than text to vector *directly*, we were able to make a
+more flexible pipeline, and re-use smaller, simpler components. Having
+multiple composable transformers instead of one "omni-bus" transformer that
+does everything makes the process easier to understand, maintain, and exploit
+for novel purposes, while giving people greater visibility into the
+composability of what actually happens.
 
-So for example, the `CharTokenize` above might appear to be a strange choice:
-*why* represent characters as keys? The reason is that the ngram transform is
-written to ingest keys, not text, and so we can use the same transform for
-both the n-gram featurization of words, as well as n-char grams.
+So for example, the `TokenizingByCharactersTransformer` above might appear to
+be a strange choice: *why* represent characters as keys? The reason is that
+the ngram transform which often comes after it, is written to ingest keys, not
+text, and so we can use the same transform for both the n-gram featurization
+of words, as well as n-char grams.
 
 Now, much of this complexity is hidden from the user: most users will just use
-the `text` transform, select some options for n-grams, and chargrams, and not
-be aware of these internal invisible keys. Similarly, use the categorical or
-categorical hash transforms, without knowing that internally it is just the
-term or hash transform followed by a `KeyToVector` transform. But, keys are
-still there, and it would be impossible to really understand ML.NET's
-featurization pipeline without understanding keys. Any user that wants to
-understand how, say, the text transform resulted in a particular featurization
+the text featurization transform, select some options for n-grams, and
+chargrams, and not necessarily have to be aware of the usage of these internal
+keys, at least. Similarly, this user can use the categorical or categorical
+hash transforms, without knowing that internally it is just the term or hash
+transform followed by a `KeyToVectorMappingTransformer`. But, keys are still
+there, and it would be impossible to really understand ML.NET's featurization
+pipeline without understanding keys. Any user that wants to debug how, say,
+the text transform's multiple steps resulted in a particular featurization
 will have to inspect the key values to get that understanding.
 
-## Keys are not Numbers
+## The Representation of Keys
 
 As an actual CLR data type, key values are stored as some form of unsigned
-integer (most commonly `uint`). The most common confusion that arises from
-this is to ascribe too much importance to the fact that it is a `uint`, and
-think these are somehow just numbers. This is incorrect.
+integer (most commonly `uint`, but the other unsigned integer types are legal
+as well). One common confusion that arises from this is to ascribe too much
+importance to the fact that it is a `uint`, and think these are somehow just
+numbers. This is incorrect.
+
+Most importantly, that the cardinality of the set they're enumerating is part
+of the type is critical information. In an `IDataView`, these are represented
+by the `KeyDataViewType` (or a vector of those types), with `RawType` being
+one of the aforementioned .NET unsigned numeric types, and most critically
+`Count` holding the cardinality of the set being represented. By encoding this
+in the schema, one can tell in downstream `ITransformer`s.
 
 For keys, the concept of order and difference has no inherent, real meaning as
 it does for numbers, or at least, the meaning is different and highly domain
-dependent. Consider a numeric `U4` type, with values `0`, `1`, and `2`. The
-difference between `0` and `1` is `1`, and the difference between `1` and `2`
-is `1`, because they're numbers. Very well: now consider that you train a term
-transform over the input tokens `apple`, `pear`, and `orange`: this will also
-map to the keys logically represented as the numbers `0`, `1`, and `2`
-respectively. Yet for a key, is the difference between keys `0` and `1`, `1`?
+dependent. Consider a numeric `uint` type (specifically,
+`NumberDataViewType.UInt32`), with values `0`, `1`, and `2`. The difference
+between `0` and `1` is `1`, and the difference between `1` and `2` is `1`,
+because they're numbers. Very well: now consider that you call
+`ValueToKeyMappingEstimator.Fit` to get the transformer over the input tokens
+`apple`, `pear`, and `orange`: this will also map to the keys physically
+represented as the `uint`s `1`, `2`, and `3` respectively, which corresponds
+to the logical ordinal indices of `0`, `1`, and `2`, again respectively.
+
+Yet for a key, is the difference between the logical indices `0` and `1`, `1`?
 No, the difference is `0` maps to `apple` and `1` to `pear`. Also order
-doesn't mean one key is somehow "larger," it just means we saw one before
-another -- or something else, if sorting by value happened to be selected.
+doesn't mean one key is somehow "larger," it just sometimes means we saw one
+before another -- or something else, if sorting by value happened to be
+selected, or if the dictionary was constructed in some other fashion.
 
-Also: ML.NET's vectors can be sparse. Implicit entries in a sparse vector are
-assumed to have the `default` value for that type -- that is, implicit values
-for numeric types will be zero. But what would be the implicit default value
-for a key value be? Take the `apple`, `pear`, and `orange` example above -- it
-would inappropriate for the default value to be `0`, because that means the
-result is `apple`, would be appropriate. The only really appropriate "default"
-choice is that the value is unknown, that is, missing.
+There's also the matter of default values. For key values, the default key
+value should be the "missing" value for they key. So logically, `0` is the
+missing value for any key type. The alternative is that the default value
+would be whatever key value happened to correspond to the "first" key value,
+which would be very strange and unnatural. Consider the `apple`, `pear`, and
+`orange` example above -- it would be inappropriate for the default value to
+be `apple`, since that's fairly arbitrary. Or, to extend this reasoning to
+sparse `VBuffer`s, would it be appropriate for a sparse `VBuffer` of key to
+have a value of `apple` for every implicit value? That doesn't make sense. So,
+the default value is the missing value.
 
-An implication of this is that there is a distinction between the logical
-value of a key-value, and the actual physical value of the value in the
-underlying type. This will be covered more later.
+One of the more confusing consequences of this is that since, practically,
+these key values are more often than not used as indices of one form or
+another, and the first non-missing value is `1`, that in certain circumstances
+like, say, writing out key values to text, that non-missing values will be
+written out starting at `0`, even though physically they are stored starting
+from the `1` value -- that is, the representation value for non-missing values
+is written as the value minus `1`.
 
-## As an Enumeration of a Set: `KeyValues` Metadata
+It may be tempting to think to avoid this by using nullables, for instance,
+`uint?` instead of `uint`, since `default(uint?)` is `null`, a perfectly
+intuitive missing value. However, since this has some performance and space
+implications, and so many critical transformers use this as an intermediate
+format for featurization, the decision was, that the performance gain we get
+from not using nullables justified this modest bit of extra complexity. Note
+however, that if you take a key-value with representation type `uint` and map
+it to an `uint?` through operations like `MLContext.Data.CreateEnumerable`, it
+will perform this more intuitive mapping.
 
-While keys can be used for many purposes, they are often used to enumerate
-items from some underlying set. In order to map keys back to this original
-set, many transform producing key values will also produce `KeyValues`
-metadata associated with that output column.
+## As an Enumeration of a Set: `KeyValues` Annotation
 
-Valid `KeyValues` metadata is a vector of length equal to the count of the
-type of the column. This can be of varying types: it is often text, but does
-not need to be. For example, a `term` applied to a column would have
-`KeyValue` metadata of item type equal to the item type of the input data.
+Since keys being an enumeration of some underlying set, there is often a
+collection holding those items. This is expressed through the `KeyValues`
+annotation kind. Note that this annotation is not part of the
+`KeyDataViewType` structure itself, but rather the annotations of the column
+with that type, as accessible through the `DataViewSchema.Column` extension
+methods `HasKeyValues` and `GetKeyValues`.
 
-How this metadata is used downstream depends on the purposes of who is
-consuming it, but common uses are: in multiclass classification, for
+Practically, the type of this is most often a vector of text. However, other
+types are possible, and when `ValueToKeyMappingEstimator.Fit` is applied to an
+input column with some item type, the resulting annotation type would be a
+vector of that input item type. So if you were to apply it to a
+`NumberDataViewType.Int32` column, you'd have a vector of
+`NumberDataViewType.Int32` annotations.
+
+How this annotation is used downstream depends on the purposes of who is
+consuming it, but common uses are, in multiclass classification, for
 determining the human readable class names, or if used in featurization,
-determining the names of the features.
+determining the names of the features, or part of the names of the features.
 
-Note that `KeyValues` data is optional, and sometimes is not even sensible.
-For example, if we consider a clustering algorithm, the prediction of the
-cluster of an example would. So for example, if there were five clusters, then
-the prediction would indicate the cluster by `U4<0-4>`. Yet, these clusters
-were found by the algorithm itself, and they have no natural descriptions.
+Note that `KeyValues` kind annotation data is optional, since it is not always
+sensible to have specific values in all cases where key values are
+appropriate. For example, consider the output of the `k`-means clustering
+algorithm. If there were five clusters, then the prediction would indicate the
+cluster by a value with key-type of count five. Yet, there is no "value"
+associated with each key.
 
-## Actual Implementation
-
-This may be of use only to writers or extenders of ML.NET, or users of our
-API. How key values are presented *logically* to users of ML.NET, is distinct
-from how they are actually stored *physically* in actual memory, both in
-ML.NET source and through the API. For key values:
-
-* All key values are stored in unsigned integers.
-* The missing key values is always stored as `0`. See the note above about the
-  default value, to see why this must be so.
-* Valid non-missing key values are stored from `1`, onwards, irrespective of
-whatever we claim in the key type that minimum value is.
-
-So when, in the prior example, the term transform would map `apple`, `pear`,
-and `orange` seemingly to `0`, `1`, and `2`, values of `U4<0-2>`, in reality,
-if you were to fire up the debugger you would see that they were stored with
-`1`, `2`, and `3`, with unrecognized values being mapped to the "default"
-missing value of `0`.
-
-Nevertheless, we almost never talk about this, no more than we would talk
-about our "strings" really being implemented as string slices: this is purely
-an implementation detail, relevant only to people working with key values at
-the source level. To a regular non-API user of ML.NET, key values appear
-*externally* to be simply values, just as strings appear to be simply strings,
-and so forth.
-
-There is another implication: a hypothetical type `U1<4000-4002>` is actually
-a sensible type in this scheme. The `U1` indicates that is stored in one byte,
-which would on first glance seem to conflict with values like `4000`, but
-remember that the first valid key-value is stored as `1`, and we've identified
-the valid range as spanning the three values 4000 through 4002. That is,
-`4000` would be represented physically as `1`.
-
-The reality cannot be seen by any conventional means I am aware of, save for
-viewing ML.NET's workings in the debugger or using the API and inspecting
-these raw values yourself: that `4000` you would see is really stored as the
-`byte` `1`, `4001` as `2`, `4002` as `3`, and a missing value stored as `0`.
+Another example is hash based featurization: if you apply, say, a 10-bit hash,
+you know you're enumerating into a set of 1024 values, so a key type is
+appropriate. However, because it's a hash you don't have any particular
+"original values" associated with it.

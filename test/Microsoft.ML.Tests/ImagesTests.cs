@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
 using System.Linq;
@@ -753,6 +754,44 @@ namespace Microsoft.ML.Tests
             }
 
             Done();
+        }
+
+        [Fact]
+        public void TestConvertToImage()
+        {
+            var mlContext = new MLContext(0);
+
+            // Create a list of training data points.
+            var dataPoints = GenerateRandomDataPoints(10);
+
+            // Convert the list of data points to an IDataView object, which is consumable by ML.NET API.
+            var data = mlContext.Data.LoadFromEnumerable(dataPoints);
+
+            var pipeline = mlContext.Transforms.ConvertToImage(224, 224, "Features");
+
+            TestEstimatorCore(pipeline, data);
+            Done();
+        }
+
+        private const int inputSize = 3 * 224 * 224;
+
+        private static IEnumerable<DataPoint> GenerateRandomDataPoints(int count, int seed = 0)
+        {
+            var random = new Random(seed);
+
+            for (int i = 0; i < count; i++)
+            {
+                yield return new DataPoint
+                {
+                    Features = Enumerable.Repeat(0, inputSize).Select(x => random.NextDouble()*100).ToArray()
+                };
+            }
+        }
+
+        private class DataPoint
+        {
+            [VectorType(inputSize)]
+            public double[] Features { get; set; }
         }
     }
 }

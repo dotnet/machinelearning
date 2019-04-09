@@ -102,6 +102,7 @@ namespace Microsoft.ML.StaticPipe
                 {
                     options.LabelColumnName = labelName;
                     options.FeatureColumnName = featuresName;
+                    options.ExampleWeightColumnName = weightsName;
 
                     var trainer = new SdcaRegressionTrainer(env, options);
                     if (onFit != null)
@@ -206,6 +207,7 @@ namespace Microsoft.ML.StaticPipe
                 {
                     options.LabelColumnName = labelName;
                     options.FeatureColumnName = featuresName;
+                    options.ExampleWeightColumnName = weightsName;
 
                     var trainer = new SdcaLogisticRegressionBinaryTrainer(env, options);
                     if (onFit != null)
@@ -313,6 +315,7 @@ namespace Microsoft.ML.StaticPipe
                 {
                     options.FeatureColumnName = featuresName;
                     options.LabelColumnName = labelName;
+                    options.ExampleWeightColumnName = weightsName;
 
                     var trainer = new SdcaNonCalibratedBinaryTrainer(env, options);
                     if (onFit != null)
@@ -407,6 +410,7 @@ namespace Microsoft.ML.StaticPipe
                 {
                     options.LabelColumnName = labelName;
                     options.FeatureColumnName = featuresName;
+                    options.ExampleWeightColumnName = weightsName;
 
                     var trainer = new SdcaMaximumEntropyMulticlassTrainer(env, options);
                     if (onFit != null)
@@ -499,6 +503,7 @@ namespace Microsoft.ML.StaticPipe
                 {
                     options.LabelColumnName = labelName;
                     options.FeatureColumnName = featuresName;
+                    options.ExampleWeightColumnName = weightsName;
 
                     var trainer = new SdcaNonCalibratedMulticlassTrainer(env, options);
                     if (onFit != null)

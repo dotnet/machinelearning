@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
+using Microsoft.ML;
 using Microsoft.ML.Data;
 using static Microsoft.ML.Transforms.OneHotEncodingEstimator;
 
-namespace Microsoft.ML.Samples.Dynamic
+namespace Samples.Dynamic
 {
     public static class OneHotEncoding
     {
@@ -17,53 +17,39 @@ namespace Microsoft.ML.Samples.Dynamic
             // Get a small dataset as an IEnumerable.
             var samples = new List<DataPoint>()
             {
-                new DataPoint(){ Label = 0, Education = "0-5yrs" },
-                new DataPoint(){ Label = 1, Education = "0-5yrs" },
-                new DataPoint(){ Label = 45, Education = "6-11yrs" },
-                new DataPoint(){ Label = 50, Education = "6-11yrs" },
-                new DataPoint(){ Label = 50, Education = "11-15yrs" },
+                new DataPoint(){ Education = "0-5yrs" },
+                new DataPoint(){ Education = "0-5yrs" },
+                new DataPoint(){ Education = "6-11yrs" },
+                new DataPoint(){ Education = "6-11yrs" },
+                new DataPoint(){ Education = "11-15yrs" },
             };
 
             // Convert training data to IDataView.
-            var trainData = mlContext.Data.LoadFromEnumerable(samples);
+            var data = mlContext.Data.LoadFromEnumerable(samples);
 
             // A pipeline for one hot encoding the Education column.
-            var bagPipeline = mlContext.Transforms.Categorical.OneHotEncoding("EducationOneHotEncoded", "Education", OutputKind.Bag);
-            // Fit to data.
-            var bagTransformer = bagPipeline.Fit(trainData);
+            var pipeline = mlContext.Transforms.Categorical.OneHotEncoding("EducationOneHotEncoded", "Education");
 
-            // Get transformed data
-            var bagTransformedData = bagTransformer.Transform(trainData);
-            // Getting the data of the newly created column, so we can preview it.
-            var bagEncodedColumn = bagTransformedData.GetColumn<float[]>("EducationOneHotEncoded");
+            // Fit and transform the data.
+            var oneHotEncodedData = pipeline.Fit(data).Transform(data);
 
-            var keyPipeline = mlContext.Transforms.Categorical.OneHotEncoding("EducationOneHotEncoded", "Education", OutputKind.Key);
-            // Fit to data.
-            var keyTransformer = keyPipeline.Fit(trainData);
-
-            // Get transformed data
-            var keyTransformedData = keyTransformer.Transform(trainData);
-            // Getting the data of the newly created column, so we can preview it.
-            var keyEncodedColumn = keyTransformedData.GetColumn<uint>("EducationOneHotEncoded");
-
-            Console.WriteLine("One Hot Encoding based on the bagging strategy.");
-            foreach (var row in bagEncodedColumn)
-            {
-                for (var i = 0; i < row.Length; i++)
-                    Console.Write($"{row[i]} ");
-            }
-
-            // data column obtained post-transformation.
-            // Since there are only two categories in the Education column of the trainData, the output vector
-            // for one hot will have two slots.
-            //
-            // 0 0 0
-            // 0 0 0
-            // 0 0 1
-            // 0 0 1
+            PrintDataColumn(oneHotEncodedData, "EducationOneHotEncoded");
+            // We have 3 slots, because there are three categories in the 'Education' column.
+            // 1 0 0
+            // 1 0 0
             // 0 1 0
+            // 0 1 0
+            // 0 0 1
 
-            Console.WriteLine("One Hot Encoding with key type output.");
+            // A pipeline for one hot encoding the Education column (using keying).
+            var keyPipeline = mlContext.Transforms.Categorical.OneHotEncoding("EducationOneHotEncoded", "Education", OutputKind.Key);
+
+            // Fit and Transform data.
+            oneHotEncodedData = keyPipeline.Fit(data).Transform(data);
+
+            var keyEncodedColumn = oneHotEncodedData.GetColumn<uint>("EducationOneHotEncoded");
+
+            Console.WriteLine("One Hot Encoding of single column 'Education', with key type output.");
             foreach (var element in keyEncodedColumn)
                 Console.WriteLine(element);
 
@@ -72,13 +58,20 @@ namespace Microsoft.ML.Samples.Dynamic
             // 2
             // 2
             // 3
-
         }
+        private static void PrintDataColumn(IDataView transformedData, string columnName)
+        {
+            var countSelectColumn = transformedData.GetColumn<float[]>(transformedData.Schema[columnName]);
 
+            foreach (var row in countSelectColumn)
+            {
+                for (var i = 0; i < row.Length; i++)
+                    Console.Write($"{row[i]}\t");
+                Console.WriteLine();
+            }
+        }
         private class DataPoint
         {
-            public float Label { get; set; }
-
             public string Education { get; set; }
         }
     }

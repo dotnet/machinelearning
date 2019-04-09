@@ -47,9 +47,9 @@ namespace Microsoft.ML.Samples.Dynamic.Trainers.BinaryClassification
             // Featurize the text column through the FeaturizeText API. 
             // Then append a binary classifier, setting the "Label" column as the label of the dataset, and 
             // the "Features" column produced by FeaturizeText as the features column.
-            var pipeline = mlContext.Transforms.Text.FeaturizeText("SentimentText", "Features")
+            var pipeline = mlContext.Transforms.Text.FeaturizeText("Features", "SentimentText")
                     .AppendCacheCheckpoint(mlContext) // Add a data-cache step within a pipeline.
-                    .Append(mlContext.BinaryClassification.Trainers.SdcaNonCalibrated(labelColumnName: "Sentiment", featureColumnName: "Features", l2Regularization: 0.001f));
+                    .Append(mlContext.BinaryClassification.Trainers.SdcaLogisticRegression(labelColumnName: "Sentiment", featureColumnName: "Features", l2Regularization: 0.001f));
 
             // Step 3: Run Cross-Validation on this pipeline.
             var cvResults = mlContext.BinaryClassification.CrossValidate(data, pipeline, labelColumnName: "Sentiment");
@@ -59,7 +59,7 @@ namespace Microsoft.ML.Samples.Dynamic.Trainers.BinaryClassification
 
             // If we wanted to specify more advanced parameters for the algorithm, 
             // we could do so by tweaking the 'advancedSetting'.
-            var advancedPipeline = mlContext.Transforms.Text.FeaturizeText("SentimentText", "Features")
+            var advancedPipeline = mlContext.Transforms.Text.FeaturizeText("Features", "SentimentText")
                                   .Append(mlContext.BinaryClassification.Trainers.SdcaLogisticRegression(
                                       new SdcaLogisticRegressionBinaryTrainer.Options { 
                                         LabelColumnName = "Sentiment",
@@ -69,7 +69,7 @@ namespace Microsoft.ML.Samples.Dynamic.Trainers.BinaryClassification
                                       }));
 
             // Run Cross-Validation on this second pipeline.
-            var cvResults_advancedPipeline = mlContext.BinaryClassification.CrossValidate(data, pipeline, labelColumnName: "Sentiment", numberOfFolds: 3);
+            var cvResults_advancedPipeline = mlContext.BinaryClassification.CrossValidate(data, advancedPipeline, labelColumnName: "Sentiment", numberOfFolds: 3);
             accuracies = cvResults_advancedPipeline.Select(r => r.Metrics.Accuracy);
             Console.WriteLine(accuracies.Average());
 

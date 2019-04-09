@@ -6,7 +6,7 @@ namespace Microsoft.ML.Samples.Dynamic
 {
     public static partial class TransformSamples
     {
-        public static void NgramTransform()
+        public static void Example()
         {
             // Create a new ML context, for ML.NET operations. It can be used for exception tracking and logging, 
             // as well as the source of randomness.

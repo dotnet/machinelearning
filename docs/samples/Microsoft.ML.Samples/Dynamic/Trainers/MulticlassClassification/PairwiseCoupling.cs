@@ -1,11 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.ML;
 using Microsoft.ML.Data;
+using Microsoft.ML.SamplesUtils;
 
-namespace Microsoft.ML.Samples.Dynamic.Trainers.Regression
+namespace Samples.Dynamic.Trainers.MulticlassClassification
 {
-    public static class PoissonRegression
+    public static class PairwiseCoupling
     {
         public static void Example()
         {
@@ -21,7 +23,11 @@ namespace Microsoft.ML.Samples.Dynamic.Trainers.Regression
             var trainingData = mlContext.Data.LoadFromEnumerable(dataPoints);
 
             // Define the trainer.
-            var pipeline = mlContext.Regression.Trainers.LbfgsPoissonRegression();
+            var pipeline =
+                    // Convert the string labels into key types.
+                    mlContext.Transforms.Conversion.MapValueToKey("Label")
+                    // Apply PairwiseCoupling multiclass meta trainer on top of binary trainer.
+                    .Append(mlContext.MulticlassClassification.Trainers.PairwiseCoupling(mlContext.BinaryClassification.Trainers.SdcaLogisticRegression()));
 
             // Train the model.
             var model = pipeline.Fit(trainingData);
@@ -37,24 +43,24 @@ namespace Microsoft.ML.Samples.Dynamic.Trainers.Regression
 
             // Look at 5 predictions
             foreach (var p in predictions.Take(5))
-                Console.WriteLine($"Label: {p.Label:F3}, Prediction: {p.Score:F3}");
+                Console.WriteLine($"Label: {p.Label}, Prediction: {p.PredictedLabel}");
 
             // Expected output:
-            //   Label: 0.985, Prediction: 1.109
-            //   Label: 0.155, Prediction: 0.171
-            //   Label: 0.515, Prediction: 0.400
-            //   Label: 0.566, Prediction: 0.417
-            //   Label: 0.096, Prediction: 0.172
+            //   Label: 1, Prediction: 1
+            //   Label: 2, Prediction: 2
+            //   Label: 3, Prediction: 2
+            //   Label: 2, Prediction: 2
+            //   Label: 3, Prediction: 2
 
             // Evaluate the overall metrics
-            var metrics = mlContext.Regression.Evaluate(transformedTestData);
-            SamplesUtils.ConsoleUtils.PrintMetrics(metrics);
+            var metrics = mlContext.MulticlassClassification.Evaluate(transformedTestData);
+            ConsoleUtils.PrintMetrics(metrics);
             
             // Expected output:
-            //   Mean Absolute Error: 0.07
-            //   Mean Squared Error: 0.01
-            //   Root Mean Squared Error: 0.09
-            //   RSquared: 0.90
+            //  Micro Accuracy: 0.90
+            //  Macro Accuracy: 0.90
+            //  Log Loss: 0.37
+            //  Log Loss Reduction: 0.67
         }
 
         private static IEnumerable<DataPoint> GenerateRandomDataPoints(int count, int seed=0)
@@ -63,21 +69,23 @@ namespace Microsoft.ML.Samples.Dynamic.Trainers.Regression
             float randomFloat() => (float)random.NextDouble();
             for (int i = 0; i < count; i++)
             {
-                float label = randomFloat();
+                // Generate Labels that are integers 1, 2 or 3
+                var label = random.Next(1, 4);
                 yield return new DataPoint
                 {
-                    Label = label,
+                    Label = (uint)label,
                     // Create random features that are correlated with the label.
-                    Features = Enumerable.Repeat(label, 50).Select(x => x + randomFloat()).ToArray()
+                    // The feature values are slightly increased by adding a constant multiple of label.
+                    Features = Enumerable.Repeat(label, 20).Select(x => randomFloat() + label * 0.1f).ToArray()
                 };
             }
         }
 
-        // Example with label and 50 feature values. A data set is a collection of such examples.
+        // Example with label and 20 feature values. A data set is a collection of such examples.
         private class DataPoint
         {
-            public float Label { get; set; }
-            [VectorType(50)]
+            public uint Label { get; set; }
+            [VectorType(20)]
             public float[] Features { get; set; }
         }
 
@@ -85,10 +93,9 @@ namespace Microsoft.ML.Samples.Dynamic.Trainers.Regression
         private class Prediction
         {
             // Original label.
-            public float Label { get; set; }
-            // Predicted score from the trainer.
-            public float Score { get; set; }
+            public uint Label { get; set; }
+            // Predicted label from the trainer.
+            public uint PredictedLabel { get; set; }
         }
     }
 }
-

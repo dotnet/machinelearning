@@ -1,11 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
+using Microsoft.ML;
 using Microsoft.ML.Data;
+using Microsoft.ML.SamplesUtils;
 using Microsoft.ML.Transforms;
 
-namespace Microsoft.ML.Samples.Dynamic
+namespace Samples.Dynamic
 {
-    public class KeyToValueValueToKey
+    public class KeyToValueToKey
     {
         public static void Example()
         {
@@ -14,7 +16,7 @@ namespace Microsoft.ML.Samples.Dynamic
             var ml = new MLContext();
 
             // Get a small dataset as an IEnumerable and load it into ML.NET data set.
-            IEnumerable<SamplesUtils.DatasetUtils.SampleTopicsData> data = SamplesUtils.DatasetUtils.GetTopicsData();
+            IEnumerable<DatasetUtils.SampleTopicsData> data = DatasetUtils.GetTopicsData();
             var trainData = ml.Data.LoadFromEnumerable(data);
 
             // Preview of one of the columns of the the topics data. 

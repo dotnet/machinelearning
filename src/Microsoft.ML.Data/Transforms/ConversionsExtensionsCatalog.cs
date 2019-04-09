@@ -72,6 +72,12 @@ namespace Microsoft.ML
         /// <param name="catalog">The conversion transform's catalog.</param>
         /// <param name="columns">Specifies the names of the columns on which to apply the transformation.</param>
         /// <param name="outputKind">The expected kind of the output column.</param>
+        /// <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        ///  [!code-csharp[ConvertType](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/Conversion/ConvertTypeMultiColumn.cs)]
+        /// ]]></format>
+        /// </example>
         public static TypeConvertingEstimator ConvertType(this TransformsCatalog.ConversionTransforms catalog,
             InputOutputColumnPair[] columns,
             DataKind outputKind = ConvertDefaults.DefaultOutputKind)
@@ -100,8 +106,9 @@ namespace Microsoft.ML
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
-        ///  [!code-csharp[KeyToValueMappingEstimator](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/ValueMappingStringToKeyType.cs)]
-        /// ]]></format>
+        /// [!code-csharp[MapKeyToValue](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/Conversion/KeyToValueToKey.cs)]
+        /// ]]>
+        /// </format>
         /// </example>
         public static KeyToValueMappingEstimator MapKeyToValue(this TransformsCatalog.ConversionTransforms catalog, string outputColumnName, string inputColumnName = null)
             => new KeyToValueMappingEstimator(CatalogUtils.GetEnvironment(catalog), outputColumnName, inputColumnName);
@@ -111,6 +118,13 @@ namespace Microsoft.ML
         /// </summary>
         /// <param name="catalog">The conversion transform's catalog.</param>
         /// <param name="columns">Specifies the names of the columns on which to apply the transformation.</param>
+        /// <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        /// [!code-csharp[MapKeyToValue](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/Conversion/MapKeyToValueMultiColumn.cs)]
+        /// ]]>
+        /// </format>
+        /// </example>
         public static KeyToValueMappingEstimator MapKeyToValue(this TransformsCatalog.ConversionTransforms catalog, InputOutputColumnPair[] columns)
         {
             var env = CatalogUtils.GetEnvironment(catalog);
@@ -136,6 +150,12 @@ namespace Microsoft.ML
         /// <param name="inputColumnName">Name of the column to transform. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.</param>
         /// <param name="outputCountVector">Whether to combine multiple indicator vectors into a single vector of counts instead of concatenating them.
         /// This is only relevant when the input column is a vector of keys.</param>
+        /// <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        ///  [!code-csharp[MapKeyToVector](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/Conversions/MapKeyToVector.cs)]
+        /// ]]></format>
+        /// </example>
         public static KeyToVectorMappingEstimator MapKeyToVector(this TransformsCatalog.ConversionTransforms catalog,
             string outputColumnName, string inputColumnName = null, bool outputCountVector = KeyToVectorMappingEstimator.Defaults.OutputCountVector)
             => new KeyToVectorMappingEstimator(CatalogUtils.GetEnvironment(catalog), outputColumnName, inputColumnName, outputCountVector);
@@ -147,6 +167,12 @@ namespace Microsoft.ML
         /// <param name="columns">Specifies the names of the columns on which to apply the transformation.</param>
         /// <param name="outputCountVector">Whether to combine multiple indicator vectors into a single vector of counts instead of concatenating them.
         /// This is only relevant when the input column is a vector of keys.</param>
+        /// <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        ///  [!code-csharp[MapKeyToVector](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/Conversions/MapKeyToVectorMultiColumn.cs)]
+        /// ]]></format>
+        /// </example>
         public static KeyToVectorMappingEstimator MapKeyToVector(this TransformsCatalog.ConversionTransforms catalog,
             InputOutputColumnPair[] columns, bool outputCountVector = KeyToVectorMappingEstimator.Defaults.OutputCountVector)
         {
@@ -173,7 +199,7 @@ namespace Microsoft.ML
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
-        /// [!code-csharp[ValueToKey](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/KeyToValueValueToKey.cs)]
+        /// [!code-csharp[MapValueToKey](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/Conversion/KeyToValueToKey.cs)]
         /// ]]>
         /// </format>
         /// </example>
@@ -199,6 +225,13 @@ namespace Microsoft.ML
         /// <param name="keyData">The data view containing the terms. If specified, this should be a single column data
         /// view, and the key-values will be taken from that column. If unspecified, the key-values will be determined
         /// from the input data upon fitting.</param>
+        /// <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        /// [!code-csharp[MapValueToKey](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/Conversions/MapValueToKeyMultiColumn.cs)]
+        /// ]]>
+        /// </format>
+        /// </example>
         public static ValueToKeyMappingEstimator MapValueToKey(this TransformsCatalog.ConversionTransforms catalog,
             InputOutputColumnPair[] columns,
             int maximumNumberOfKeys = ValueToKeyMappingEstimator.Defaults.MaximumNumberOfKeys,
@@ -220,13 +253,6 @@ namespace Microsoft.ML
         /// <param name="keyData">The data view containing the terms. If specified, this should be a single column data
         /// view, and the key-values will be taken from that column. If unspecified, the key-values will be determined
         /// from the input data upon fitting.</param>
-        /// <example>
-        /// <format type="text/markdown">
-        /// <![CDATA[
-        /// [!code-csharp[ValueToKey](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/KeyToValueValueToKey.cs)]
-        /// ]]>
-        /// </format>
-        /// </example>
         [BestFriend]
         internal static ValueToKeyMappingEstimator MapValueToKey(this TransformsCatalog.ConversionTransforms catalog,
             ValueToKeyMappingEstimator.ColumnOptions[] columns, IDataView keyData = null)
@@ -246,10 +272,7 @@ namespace Microsoft.ML
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
-        ///  [!code-csharp[ValueMappingEstimator](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/ValueMapping.cs)]
-        ///  [!code-csharp[ValueMappingEstimator](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/ValueMappingStringToKeyType.cs)]
-        ///  [!code-csharp[ValueMappingEstimator](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/ValueMappingFloatToString.cs)]
-        ///  [!code-csharp[ValueMappingEstimator](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/ValueMappingStringToArray.cs)]
+        ///  [!code-csharp[MapValue](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/Conversion/MapValue.cs)]
         /// ]]></format>
         /// </example>
         public static ValueMappingEstimator<TInputType, TOutputType> MapValue<TInputType, TOutputType>(
@@ -261,7 +284,14 @@ namespace Microsoft.ML
         {
             var keys = keyValuePairs.Select(pair => pair.Key);
             var values = keyValuePairs.Select(pair => pair.Value);
-            return new ValueMappingEstimator<TInputType, TOutputType>(CatalogUtils.GetEnvironment(catalog), keys, values, treatValuesAsKeyType,
+
+            var lookupMap = DataViewHelper.CreateDataView(catalog.GetEnvironment(), keys, values,
+                ValueMappingTransformer.DefaultKeyColumnName,
+                ValueMappingTransformer.DefaultValueColumnName, treatValuesAsKeyType);
+
+            return new ValueMappingEstimator<TInputType, TOutputType>(catalog.GetEnvironment(), lookupMap,
+                lookupMap.Schema[ValueMappingTransformer.DefaultKeyColumnName],
+                lookupMap.Schema[ValueMappingTransformer.DefaultValueColumnName],
                 new[] { (outputColumnName, inputColumnName ?? outputColumnName) });
         }
 
@@ -274,15 +304,6 @@ namespace Microsoft.ML
         /// <param name="keyValuePairs">Specifies the mapping that will be perfomed. The keys will be mapped to the values as specified in the <paramref name="keyValuePairs"/>.</param>
         /// <param name="columns">The columns to apply this transform on.</param>
         /// <returns>An instance of the <see cref="ValueMappingEstimator"/></returns>
-        /// <example>
-        /// <format type="text/markdown">
-        /// <![CDATA[
-        ///  [!code-csharp[ValueMappingEstimator](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/ValueMapping.cs)]
-        ///  [!code-csharp[ValueMappingEstimator](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/ValueMappingStringToKeyType.cs)]
-        ///  [!code-csharp[ValueMappingEstimator](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/ValueMappingFloatToString.cs)]
-        ///  [!code-csharp[ValueMappingEstimator](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/ValueMappingStringToArray.cs)]
-        /// ]]></format>
-        /// </example>
         [BestFriend]
         internal static ValueMappingEstimator<TInputType, TOutputType> MapValue<TInputType, TOutputType>(
             this TransformsCatalog.ConversionTransforms catalog,
@@ -293,7 +314,15 @@ namespace Microsoft.ML
             env.CheckValue(columns, nameof(columns));
             var keys = keyValuePairs.Select(pair => pair.Key);
             var values = keyValuePairs.Select(pair => pair.Value);
-            return new ValueMappingEstimator<TInputType, TOutputType>(env, keys, values, InputOutputColumnPair.ConvertToValueTuples(columns));
+
+            var lookupMap = DataViewHelper.CreateDataView(catalog.GetEnvironment(), keys, values,
+                ValueMappingTransformer.DefaultKeyColumnName,
+                ValueMappingTransformer.DefaultValueColumnName, false);
+
+            return new ValueMappingEstimator<TInputType, TOutputType>(catalog.GetEnvironment(), lookupMap,
+                lookupMap.Schema[ValueMappingTransformer.DefaultKeyColumnName],
+                lookupMap.Schema[ValueMappingTransformer.DefaultValueColumnName],
+                InputOutputColumnPair.ConvertToValueTuples(columns));
         }
 
         /// <summary>
@@ -306,12 +335,6 @@ namespace Microsoft.ML
         /// <param name="treatValuesAsKeyType">Whether to treat the values as a <see cref="KeyDataViewType"/>.</param>
         /// <param name="columns">The columns to apply this transform on.</param>
         /// <returns>An instance of the <see cref="ValueMappingEstimator"/></returns>
-        /// <example>
-        /// <format type="text/markdown">
-        /// <![CDATA[
-        ///  [!code-csharp[ValueMappingEstimator](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/ValueMappingStringToKeyType.cs)]
-        /// ]]></format>
-        /// </example>
         [BestFriend]
         internal static ValueMappingEstimator<TInputType, TOutputType> MapValue<TInputType, TOutputType>(
             this TransformsCatalog.ConversionTransforms catalog,
@@ -323,8 +346,15 @@ namespace Microsoft.ML
             env.CheckValue(columns, nameof(columns));
             var keys = keyValuePairs.Select(pair => pair.Key);
             var values = keyValuePairs.Select(pair => pair.Value);
-            return new ValueMappingEstimator<TInputType, TOutputType>(env, keys, values, treatValuesAsKeyType,
-                  InputOutputColumnPair.ConvertToValueTuples(columns));
+
+            var lookupMap = DataViewHelper.CreateDataView(catalog.GetEnvironment(), keys, values,
+                ValueMappingTransformer.DefaultKeyColumnName,
+                ValueMappingTransformer.DefaultValueColumnName, treatValuesAsKeyType);
+
+            return new ValueMappingEstimator<TInputType, TOutputType>(catalog.GetEnvironment(), lookupMap,
+                lookupMap.Schema[ValueMappingTransformer.DefaultKeyColumnName],
+                lookupMap.Schema[ValueMappingTransformer.DefaultValueColumnName],
+                InputOutputColumnPair.ConvertToValueTuples(columns));
         }
 
         /// <summary>
@@ -340,10 +370,7 @@ namespace Microsoft.ML
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
-        ///  [!code-csharp[ValueMappingEstimator](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/ValueMapping.cs)]
-        ///  [!code-csharp[ValueMappingEstimator](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/ValueMappingStringToKeyType.cs)]
-        ///  [!code-csharp[ValueMappingEstimator](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/ValueMappingFloatToString.cs)]
-        ///  [!code-csharp[ValueMappingEstimator](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/ValueMappingStringToArray.cs)]
+        ///  [!code-csharp[MapValue](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/Conversion/MappValueToArray.cs)]
         /// ]]></format>
         /// </example>
         public static ValueMappingEstimator<TInputType, TOutputType> MapValue<TInputType, TOutputType>(
@@ -354,7 +381,15 @@ namespace Microsoft.ML
         {
             var keys = keyValuePairs.Select(pair => pair.Key);
             var values = keyValuePairs.Select(pair => pair.Value);
-            return new ValueMappingEstimator<TInputType, TOutputType>(CatalogUtils.GetEnvironment(catalog), keys, values,
+
+            // Convert parallel key and value lists to IDataView with two columns, so that the underlying infra can use it.
+            var lookupMap = DataViewHelper.CreateDataView(catalog.GetEnvironment(), keys, values,
+                ValueMappingTransformer.DefaultKeyColumnName,
+                ValueMappingTransformer.DefaultValueColumnName);
+
+            return new ValueMappingEstimator<TInputType, TOutputType>(catalog.GetEnvironment(), lookupMap,
+                lookupMap.Schema[ValueMappingTransformer.DefaultKeyColumnName],
+                lookupMap.Schema[ValueMappingTransformer.DefaultValueColumnName],
                 new[] { (outputColumnName, inputColumnName ?? outputColumnName) });
         }
 
@@ -367,15 +402,6 @@ namespace Microsoft.ML
         /// <param name="keyValuePairs">Specifies the mapping that will be perfomed. The keys will be mapped to the values as specified in the <paramref name="keyValuePairs"/>.</param>
         /// <param name="columns">The columns to apply this transform on.</param>
         /// <returns>An instance of the <see cref="ValueMappingEstimator"/></returns>
-        /// <example>
-        /// <format type="text/markdown">
-        /// <![CDATA[
-        ///  [!code-csharp[ValueMappingEstimator](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/ValueMapping.cs)]
-        ///  [!code-csharp[ValueMappingEstimator](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/ValueMappingStringToKeyType.cs)]
-        ///  [!code-csharp[ValueMappingEstimator](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/ValueMappingFloatToString.cs)]
-        ///  [!code-csharp[ValueMappingEstimator](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/ValueMappingStringToArray.cs)]
-        /// ]]></format>
-        /// </example>
         [BestFriend]
         internal static ValueMappingEstimator<TInputType, TOutputType> MapValue<TInputType, TOutputType>(
             this TransformsCatalog.ConversionTransforms catalog,
@@ -386,8 +412,15 @@ namespace Microsoft.ML
             env.CheckValue(columns, nameof(columns));
             var keys = keyValuePairs.Select(pair => pair.Key);
             var values = keyValuePairs.Select(pair => pair.Value);
-            return new ValueMappingEstimator<TInputType, TOutputType>(env, keys, values,
-                    InputOutputColumnPair.ConvertToValueTuples(columns));
+
+            var lookupMap = DataViewHelper.CreateDataView(catalog.GetEnvironment(), keys, values,
+                ValueMappingTransformer.DefaultKeyColumnName,
+                ValueMappingTransformer.DefaultValueColumnName);
+
+            return new ValueMappingEstimator<TInputType, TOutputType>(catalog.GetEnvironment(), lookupMap,
+                lookupMap.Schema[ValueMappingTransformer.DefaultKeyColumnName],
+                lookupMap.Schema[ValueMappingTransformer.DefaultValueColumnName],
+                InputOutputColumnPair.ConvertToValueTuples(columns));
         }
 
         /// <summary>
@@ -403,17 +436,14 @@ namespace Microsoft.ML
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
-        ///  [!code-csharp[ValueMappingEstimator](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/ValueMapping.cs)]
-        ///  [!code-csharp[ValueMappingEstimator](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/ValueMappingStringToKeyType.cs)]
-        ///  [!code-csharp[ValueMappingEstimator](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/ValueMappingFloatToString.cs)]
-        ///  [!code-csharp[ValueMappingEstimator](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/ValueMappingStringToArray.cs)]
+        ///  [!code-csharp[MapValue](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/Conversion/MappValueIdvLookup.cs)]
         /// ]]></format>
         /// </example>
         public static ValueMappingEstimator MapValue(
             this TransformsCatalog.ConversionTransforms catalog,
             string outputColumnName, IDataView lookupMap, DataViewSchema.Column keyColumn, DataViewSchema.Column valueColumn, string inputColumnName = null)
         {
-            return new ValueMappingEstimator(CatalogUtils.GetEnvironment(catalog), lookupMap, keyColumn.Name, valueColumn.Name,
+            return new ValueMappingEstimator(CatalogUtils.GetEnvironment(catalog), lookupMap, keyColumn, valueColumn,
               new[] { (outputColumnName, inputColumnName ?? outputColumnName) });
         }
 
@@ -426,15 +456,6 @@ namespace Microsoft.ML
         /// <param name="valueColumn">The value column in <paramref name="lookupMap"/>.</param>
         /// <param name="columns">The columns to apply this transform on.</param>
         /// <returns>A instance of the ValueMappingEstimator</returns>
-        /// <example>
-        /// <format type="text/markdown">
-        /// <![CDATA[
-        ///  [!code-csharp[ValueMappingEstimator](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/ValueMapping.cs)]
-        ///  [!code-csharp[ValueMappingEstimator](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/ValueMappingStringToKeyType.cs)]
-        ///  [!code-csharp[ValueMappingEstimator](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/ValueMappingFloatToString.cs)]
-        ///  [!code-csharp[ValueMappingEstimator](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/ValueMappingStringToArray.cs)]
-        /// ]]></format>
-        /// </example>
         [BestFriend]
         internal static ValueMappingEstimator MapValue(
             this TransformsCatalog.ConversionTransforms catalog,
@@ -442,8 +463,7 @@ namespace Microsoft.ML
         {
             var env = CatalogUtils.GetEnvironment(catalog);
             env.CheckValue(columns, nameof(columns));
-            return new ValueMappingEstimator(env, lookupMap, keyColumn.Name, valueColumn.Name,
-                InputOutputColumnPair.ConvertToValueTuples(columns));
+            return new ValueMappingEstimator(env, lookupMap, keyColumn, valueColumn, InputOutputColumnPair.ConvertToValueTuples(columns));
         }
     }
 }
