@@ -4,6 +4,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.ML;
 using Microsoft.ML.Data;
+using static Microsoft.ML.Transforms.NormalizingTransformer;
 
 namespace Samples.Dynamic
 {
@@ -57,13 +58,13 @@ namespace Samples.Dynamic
 
             // Let's get transformation parameters. Since we work with only one column we need to pass 0 as parameter for GetNormalizerModelParameters.
             // If we have multiple column transformations we need to pass index of InputOutputColumnPair.
-            var transformParams = (normalizeTransform.GetNormalizerModelParameters(0) as Microsoft.ML.Transforms.NormalizingTransformer.CdfNormalizerModelParameters<ImmutableArray<float>>);
+            var transformParams = normalizeTransform.GetNormalizerModelParameters(0) as CdfNormalizerModelParameters<ImmutableArray<float>>;
             Console.WriteLine($"Values for slot 1 would be transfromed by applying y = 0.5* (1 + ERF((x- {transformParams.Mean[1]}) / ({transformParams.StandardDeviation[1]} * sqrt(2)))");
             // ERF is https://en.wikipedia.org/wiki/Error_function.
             // Expected output:
             //  Values for slot 1 would be transfromed by applying y = 0.5 * (1 + ERF((x - 0.5) / (1.118034 * sqrt(2)))
 
-            var noCdfParams = (normalizeNoCdfTransform.GetNormalizerModelParameters(0) as Microsoft.ML.Transforms.NormalizingTransformer.AffineNormalizerModelParameters<ImmutableArray<float>>);
+            var noCdfParams = normalizeNoCdfTransform.GetNormalizerModelParameters(0) as AffineNormalizerModelParameters<ImmutableArray<float>>;
             Console.WriteLine($"Values for slot 1 would be transfromed by applying y = (x - ({(noCdfParams.Offset.Length == 0 ? 0 : noCdfParams.Offset[1])})) * {noCdfParams.Scale[1]}");
             // Expected output:
             //  Values for slot 1 would be transfromed by applying y = (x - (0)) * 0.8164966
