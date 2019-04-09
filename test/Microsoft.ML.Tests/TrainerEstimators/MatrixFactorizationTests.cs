@@ -269,11 +269,9 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         internal class MatrixElementZeroBasedForScore256By256
         {
             // Matrix column index starts from 0 and is at most _synthesizedMatrixColumnCount.
-            // Contieuous=true means that all values from 0 to _synthesizedMatrixColumnCount are allowed keys.
             [KeyType(_matrixColumnCount)]
             public uint MatrixColumnIndex;
             // Matrix row index starts from 0 and is at most _synthesizedMatrixRowCount.
-            // Contieuous=true means that all values from 0 to _synthesizedMatrixRowCount are allowed keys.
             [KeyType(_matrixRowCount)]
             public uint MatrixRowIndex;
             public float Score;
@@ -294,11 +292,9 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         internal class MatrixElementZeroBasedForScore
         {
             // Matrix column index starts from 0 and is at most _synthesizedMatrixColumnCount.
-            // Contieuous=true means that all values from 0 to _synthesizedMatrixColumnCount are allowed keys.
             [KeyType(_synthesizedMatrixColumnCount)]
             public uint MatrixColumnIndex;
             // Matrix row index starts from 0 and is at most _synthesizedMatrixRowCount.
-            // Contieuous=true means that all values from 0 to _synthesizedMatrixRowCount are allowed keys.
             [KeyType(_synthesizedMatrixRowCount)]
             public uint MatrixRowIndex;
             public float Score;
