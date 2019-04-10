@@ -82,7 +82,6 @@ namespace Samples.Dynamic
         private class TransformedData : InputData
         {
             public bool IsUnderThirty { get; set; }
-
         }
     }
 }
