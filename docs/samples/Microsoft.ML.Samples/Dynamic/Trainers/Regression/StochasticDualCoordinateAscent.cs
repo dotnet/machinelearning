@@ -1,8 +1,6 @@
-﻿using System;
-using System.Linq;
-using Microsoft.ML.Data;
+﻿using Microsoft.ML;
 
-namespace Microsoft.ML.Samples.Dynamic.Trainers.Regression
+namespace Samples.Dynamic.Trainers.Regression
 {
     public static class StochasticDualCoordinateAscent
     {
@@ -14,7 +12,7 @@ namespace Microsoft.ML.Samples.Dynamic.Trainers.Regression
             var mlContext = new MLContext(seed: 0);
 
             // Create in-memory examples as C# native class and convert to IDataView
-            var data = SamplesUtils.DatasetUtils.GenerateFloatLabelFloatFeatureVectorSamples(1000);
+            var data = Microsoft.ML.SamplesUtils.DatasetUtils.GenerateFloatLabelFloatFeatureVectorSamples(1000);
             var dataView = mlContext.Data.LoadFromEnumerable(data);
 
             // Split the data into training and test sets. Only training set is used in fitting
@@ -30,7 +28,7 @@ namespace Microsoft.ML.Samples.Dynamic.Trainers.Regression
 
             // Evaluate the trained model using the test set.
             var metrics = mlContext.Regression.Evaluate(dataWithPredictions);
-            SamplesUtils.ConsoleUtils.PrintMetrics(metrics);
+            Microsoft.ML.SamplesUtils.ConsoleUtils.PrintMetrics(metrics);
 
             // Expected output:
             //   L1: 0.27

@@ -1,7 +1,8 @@
 ﻿using System;
+using Microsoft.ML;
 using Microsoft.ML.Data;
 
-namespace Microsoft.ML.Samples.Dynamic
+namespace Samples.Dynamic
 {
     public static class ConcatTransform
     {
@@ -12,7 +13,7 @@ namespace Microsoft.ML.Samples.Dynamic
             var mlContext = new MLContext();
 
             // Get a small dataset as an IEnumerable and them read it as ML.NET's data type.
-            var data = SamplesUtils.DatasetUtils.GetInfertData();
+            var data = Microsoft.ML.SamplesUtils.DatasetUtils.GetInfertData();
             var trainData = mlContext.Data.LoadFromEnumerable(data);
 
             // Preview of the data.
