@@ -150,8 +150,6 @@ namespace Microsoft.ML.CLI.Utilities
             {
                 result.TextColumnNames.Add(Sanitize(value));
             }
-
-
             return result;
         }
 
@@ -174,7 +172,7 @@ namespace Microsoft.ML.CLI.Utilities
         }
 
 
-        internal static void AddProjectsToSolution(string modelprojectDir,
+        internal static int AddProjectsToSolution(string modelprojectDir,
             string modelProjectName,
             string predictProjectDir,
             string predictProjectName,
@@ -182,34 +180,44 @@ namespace Microsoft.ML.CLI.Utilities
             string trainProjectName,
             string solutionName)
         {
-            var proc2 = new System.Diagnostics.Process();
-            proc2.StartInfo.FileName = @"dotnet";
-
-            proc2.StartInfo.Arguments = $"sln {solutionName} add {Path.Combine(trainProjectDir, trainProjectName)} {Path.Combine(predictProjectDir, predictProjectName)} {Path.Combine(modelprojectDir, modelProjectName)}";
-            proc2.StartInfo.UseShellExecute = false;
-            proc2.StartInfo.RedirectStandardOutput = true;
-            proc2.Start();
-            string outPut2 = proc2.StandardOutput.ReadToEnd();
-
-            proc2.WaitForExit();
-            var exitCode2 = proc2.ExitCode;
-            proc2.Close();
+            var proc = new System.Diagnostics.Process();
+            try
+            {
+                proc.StartInfo.FileName = @"dotnet";
+                proc.StartInfo.Arguments = $"sln \"{solutionName}\" add \"{Path.Combine(trainProjectDir, trainProjectName)}\" \"{Path.Combine(predictProjectDir, predictProjectName)}\" \"{Path.Combine(modelprojectDir, modelProjectName)}\"";
+                proc.StartInfo.UseShellExecute = false;
+                proc.StartInfo.RedirectStandardOutput = true;
+                proc.Start();
+                string outPut = proc.StandardOutput.ReadToEnd();
+                proc.WaitForExit();
+                var exitCode = proc.ExitCode;
+                return exitCode;
+            }
+            finally
+            {
+                proc.Close();
+            }
         }
 
-        internal static void CreateSolutionFile(string solutionFile, string outputPath)
+        internal static int CreateSolutionFile(string solutionFile, string outputPath)
         {
             var proc = new System.Diagnostics.Process();
-            proc.StartInfo.FileName = @"dotnet";
-
-            proc.StartInfo.Arguments = $"new sln --name {solutionFile} --output {outputPath} --force";
-            proc.StartInfo.UseShellExecute = false;
-            proc.StartInfo.RedirectStandardOutput = true;
-            proc.Start();
-            string outPut = proc.StandardOutput.ReadToEnd();
-
-            proc.WaitForExit();
-            var exitCode = proc.ExitCode;
-            proc.Close();
+            try
+            {
+                proc.StartInfo.FileName = @"dotnet";
+                proc.StartInfo.Arguments = $"new sln --name \"{solutionFile}\" --output \"{outputPath}\" --force";
+                proc.StartInfo.UseShellExecute = false;
+                proc.StartInfo.RedirectStandardOutput = true;
+                proc.Start();
+                string outPut = proc.StandardOutput.ReadToEnd();
+                proc.WaitForExit();
+                var exitCode = proc.ExitCode;
+                return exitCode;
+            }
+            finally
+            {
+                proc.Close();
+            }
         }
     }
 }
