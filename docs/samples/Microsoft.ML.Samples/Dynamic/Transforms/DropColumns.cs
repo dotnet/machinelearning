@@ -54,18 +54,16 @@ namespace Samples.Dynamic
             var rowEnumerable = mlContext.Data.CreateEnumerable<TransformedData>(transformedData, reuseRowObject: false);
             Console.WriteLine($"The columns we didn't drop are still available.");
             foreach (var row in rowEnumerable)
-            {
-                Console.WriteLine($"Age: {row.Age} Geneder: {row.Gender} Education: {row.Education}");
-            }
+                Console.WriteLine($"Age: {row.Age} Gender: {row.Gender} Education: {row.Education}");
 
             // Expected output:
             //  The columns we didn't drop are still available.
-            //  Age: 21 Geneder: Male Education: BS
-            //  Age: 23 Geneder: Female Education: MBA
-            //  Age: 28 Geneder: Male Education: PhD
-            //  Age: 22 Geneder: Male Education: BS
-            //  Age: 23 Geneder: Female Education: MS
-            //  Age: 27 Geneder: Female Education: PhD
+            //  Age: 21 Gender: Male Education: BS
+            //  Age: 23 Gender: Female Education: MBA
+            //  Age: 28 Gender: Male Education: PhD
+            //  Age: 22 Gender: Male Education: BS
+            //  Age: 23 Gender: Female Education: MS
+            //  Age: 27 Gender: Female Education: PhD
         }
 
         private class InputData

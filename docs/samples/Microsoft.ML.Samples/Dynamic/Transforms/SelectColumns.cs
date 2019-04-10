@@ -29,7 +29,7 @@ namespace Samples.Dynamic
             // Select a subset of columns to keep.
             var pipeline = mlContext.Transforms.SelectColumns("Age", "Education");
 
-            // Now we can transform the data and look at the output to confirm the behavior of CopyColumns.
+            // Now we can transform the data and look at the output to confirm the behavior of SelectColumns.
             // Don't forget that this operation doesn't actually evaluate data until we read the data below,
             // as transformations are lazy in ML.NET.
             var transformedData = pipeline.Fit(dataview).Transform(dataview);
@@ -46,9 +46,7 @@ namespace Samples.Dynamic
             // And finally, we can write out the rows of the dataset, looking at the columns of interest.
             Console.WriteLine($"Age and Educations columns obtained post-transformation.");
             foreach (var row in rowEnumerable)
-            {
                 Console.WriteLine($"Age: {row.Age} Education: {row.Education}");
-            }
 
             // Expected output:
             //  Age and Educations columns obtained post-transformation.

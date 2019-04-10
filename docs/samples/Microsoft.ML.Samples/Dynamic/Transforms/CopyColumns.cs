@@ -16,18 +16,18 @@ namespace Samples.Dynamic
             var samples = new List<InputData>()
             {
                 new InputData(){ ImageId = 1, Features = new [] { 1.0f, 1.0f, 1.0f} },
-                new InputData(){ ImageId = 1, Features = new [] { 2.0f, 2.0f, 2.0f} },
-                new InputData(){ ImageId = 1, Features = new [] { 3.0f, 3.0f, 3.0f} },
-                new InputData(){ ImageId = 1, Features = new [] { 4.0f, 4.0f, 4.0f} },
-                new InputData(){ ImageId = 1, Features = new [] { 5.0f, 5.0f, 5.0f} },
-                new InputData(){ ImageId = 1, Features = new [] { 6.0f, 6.0f, 6.0f} },
+                new InputData(){ ImageId = 2, Features = new [] { 2.0f, 2.0f, 2.0f} },
+                new InputData(){ ImageId = 3, Features = new [] { 3.0f, 3.0f, 3.0f} },
+                new InputData(){ ImageId = 4, Features = new [] { 4.0f, 4.0f, 4.0f} },
+                new InputData(){ ImageId = 5, Features = new [] { 5.0f, 5.0f, 5.0f} },
+                new InputData(){ ImageId = 6, Features = new [] { 6.0f, 6.0f, 6.0f} },
             };
 
             // Convert training data to IDataView.
             var dataview = mlContext.Data.LoadFromEnumerable(samples);
 
             // CopyColumns is commonly used to rename columns.
-            // For example, if you want to train towards ImageId, and your learner expects a "Label" column, you can
+            // For example, if you want to train towards ImageId, and your trainer expects a "Label" column, you can
             // use CopyColumns to rename ImageId to Label. Technically, the ImageId column still exists, but it won't be
             // materialized unless you actually need it somewhere (e.g. if you were to save the transformed data
             // without explicitly dropping the column). This is a general property of IDataView's lazy evaluation.
@@ -43,18 +43,16 @@ namespace Samples.Dynamic
             // And finally, we can write out the rows of the dataset, looking at the columns of interest.
             Console.WriteLine($"Label and ImageId columns obtained post-transformation.");
             foreach (var row in rowEnumerable)
-            {
                 Console.WriteLine($"Label: {row.Label} ImageId: {row.ImageId}");
-            }
 
             // Expected output:
             // ImageId and Label columns obtained post-transformation.
             //  Label: 1 ImageId: 1
-            //  Label: 1 ImageId: 1
-            //  Label: 1 ImageId: 1
-            //  Label: 1 ImageId: 1
-            //  Label: 1 ImageId: 1
-            //  Label: 1 ImageId: 1
+            //  Label: 2 ImageId: 2
+            //  Label: 3 ImageId: 3
+            //  Label: 4 ImageId: 4
+            //  Label: 5 ImageId: 5
+            //  Label: 6 ImageId: 6
         }
 
         private class InputData
