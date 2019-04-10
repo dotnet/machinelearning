@@ -54,8 +54,6 @@ namespace Samples.Dynamic
             //  1/4/2012        34      0
             //  1/5/2012        35      0
             //  1/6/2012        35      0
-
-            Console.ReadLine();
         }
     }
 }
