@@ -68,7 +68,14 @@ namespace Microsoft.ML.Transforms.TimeSeries
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
-        /// [!code-csharp[CheckPoint](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/TimeSeries/DetectChangePointBySsa.cs)]
+        /// This is an example for checkpointing time series that detects change point using Singular Spectrum Analysis (SSA) model.
+        /// [!code-csharp[MF](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/TimeSeries/DetectChangePointBySsa.cs)]
+        /// This is an example for checkpointing time series that detects spike using Singular Spectrum Analysis (SSA) model.
+        /// [!code-csharp[MF](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/TimeSeries/DetectSpikeBySsa.cs)]
+        /// This is an example for checkpointing time series that detects change point in independent and identically distributed(IID) time series.
+        /// [!code-csharp[MF](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/TimeSeries/DetectIidChangePoint.cs)]
+        /// This is an example for checkpointing time series that detects spike in independent and identically distributed(IID) time series.
+        /// [!code-csharp[MF](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/TimeSeries/DetectIidSpike.cs)]
         /// ]]>
         /// </format>
         /// </example>
@@ -268,8 +275,14 @@ namespace Microsoft.ML.Transforms.TimeSeries
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
-        /// [!code-csharp[MF](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/TimeSeries/DetectChangePointBySsa.css)]
+        /// This is an example for detecting change point using Singular Spectrum Analysis (SSA) model.
+        /// [!code-csharp[MF](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/TimeSeries/DetectChangePointBySsa.cs)]
+        /// This is an example for detecting spike using Singular Spectrum Analysis (SSA) model.
         /// [!code-csharp[MF](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/TimeSeries/DetectSpikeBySsa.cs)]
+        /// This is an example for detecting change point in independent and identically distributed(IID) time series.
+        /// [!code-csharp[MF](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/TimeSeries/DetectIidChangePoint.cs)]
+        /// This is an example for detecting spike in independent and identically distributed(IID) time series.
+        /// [!code-csharp[MF](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/TimeSeries/DetectIidSpike.cs)]
         /// ]]>
         /// </format>
         /// </example>
