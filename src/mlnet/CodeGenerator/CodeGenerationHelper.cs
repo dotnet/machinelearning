@@ -91,44 +91,67 @@ namespace Microsoft.ML.CLI.CodeGenerator
                     BackgroundCharacter = '─',
                 };
                 var wait = TimeSpan.FromSeconds(settings.MaxExplorationTime);
-                using (var pbar = new FixedDurationBar(wait, "", options))
+                var verboseLevel = Utils.GetVerbosity(settings.Verbosity);
+                if (verboseLevel > LogLevel.Trace && !Console.IsOutputRedirected)
                 {
-                    Thread t = default;
+                    using (var pbar = new FixedDurationBar(wait, "", options))
+                    {
+                        Thread t = default;
+                        switch (taskKind)
+                        {
+                            case TaskKind.BinaryClassification:
+                                t = new Thread(() => binaryRunDetails = automlEngine.ExploreBinaryClassificationModels(context, trainData, validationData, columnInformation, new BinaryExperimentSettings().OptimizingMetric, pbar));
+                                t.Start();
+                                break;
+                            case TaskKind.Regression:
+                                t = new Thread(() => regressionRunDetails = automlEngine.ExploreRegressionModels(context, trainData, validationData, columnInformation, new RegressionExperimentSettings().OptimizingMetric, pbar));
+                                t.Start();
+                                break;
+                            case TaskKind.MulticlassClassification:
+                                t = new Thread(() => multiRunDetails = automlEngine.ExploreMultiClassificationModels(context, trainData, validationData, columnInformation, new MulticlassExperimentSettings().OptimizingMetric, pbar));
+                                t.Start();
+                                break;
+                            default:
+                                logger.Log(LogLevel.Error, Strings.UnsupportedMlTask);
+                                break;
+                        }
+
+                        if (!pbar.CompletedHandle.WaitOne(wait))
+                            pbar.Message = $"{nameof(FixedDurationBar)} did not signal {nameof(FixedDurationBar.CompletedHandle)} after {wait}";
+
+                        if (t.IsAlive == true)
+                        {
+                            string waitingMessage = "Waiting for the last iteration to complete ...";
+                            string originalMessage = pbar.Message;
+                            pbar.Message = waitingMessage;
+                            t.Join();
+                            if (waitingMessage.Equals(pbar.Message))
+                            {
+                                // Corner cases where thread was alive but has completed all iterations.
+                                pbar.Message = originalMessage;
+                            }
+                        }
+                    }
+                }
+                else
+                {
                     switch (taskKind)
                     {
                         case TaskKind.BinaryClassification:
-                            t = new Thread(() => binaryRunDetails = automlEngine.ExploreBinaryClassificationModels(context, trainData, validationData, columnInformation, new BinaryExperimentSettings().OptimizingMetric, pbar));
-                            t.Start();
+                            binaryRunDetails = automlEngine.ExploreBinaryClassificationModels(context, trainData, validationData, columnInformation, new BinaryExperimentSettings().OptimizingMetric);
                             break;
                         case TaskKind.Regression:
-                            t = new Thread(() => regressionRunDetails = automlEngine.ExploreRegressionModels(context, trainData, validationData, columnInformation, new RegressionExperimentSettings().OptimizingMetric, pbar));
-                            t.Start();
+                            regressionRunDetails = automlEngine.ExploreRegressionModels(context, trainData, validationData, columnInformation, new RegressionExperimentSettings().OptimizingMetric);
                             break;
                         case TaskKind.MulticlassClassification:
-                            t = new Thread(() => multiRunDetails = automlEngine.ExploreMultiClassificationModels(context, trainData, validationData, columnInformation, new MulticlassExperimentSettings().OptimizingMetric, pbar));
-                            t.Start();
+                            multiRunDetails = automlEngine.ExploreMultiClassificationModels(context, trainData, validationData, columnInformation, new MulticlassExperimentSettings().OptimizingMetric);
                             break;
                         default:
                             logger.Log(LogLevel.Error, Strings.UnsupportedMlTask);
                             break;
                     }
-
-                    if (!pbar.CompletedHandle.WaitOne(wait))
-                        pbar.Message = $"{nameof(FixedDurationBar)} did not signal {nameof(FixedDurationBar.CompletedHandle)} after {wait}";
-
-                    if (t.IsAlive == true)
-                    {
-                        string waitingMessage = "Waiting for the last iteration to complete ...";
-                        string originalMessage = pbar.Message;
-                        pbar.Message = waitingMessage;
-                        t.Join();
-                        if (waitingMessage.Equals(pbar.Message))
-                        {
-                            // Corner cases where thread was alive but has completed all iterations.
-                            pbar.Message = originalMessage;
-                        }
-                    }
                 }
+
 
             }
             catch (Exception e)

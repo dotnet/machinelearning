@@ -34,7 +34,7 @@ namespace Microsoft.ML.CLI.ShellProgressBar
             : base(maxTicks, message, options)
         {
             Console.WriteLine();
-            Console.SetCursorPosition(Console.CursorLeft, Console.CursorTop - 1);
+            Console.SetCursorPosition(Console.CursorLeft, Math.Max(0, Console.CursorTop - 1));
             _originalCursorTop = Console.CursorTop;
             _originalWindowTop = Console.WindowTop;
             _originalColor = Console.ForegroundColor;

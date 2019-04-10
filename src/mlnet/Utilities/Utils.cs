@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Microsoft.CodeAnalysis;
@@ -26,7 +25,7 @@ namespace Microsoft.ML.CLI.Utilities
                 case "m":
                     return LogLevel.Info;
                 case "diag":
-                    return LogLevel.Debug;
+                    return LogLevel.Trace;
                 default:
                     return LogLevel.Info;
             }
