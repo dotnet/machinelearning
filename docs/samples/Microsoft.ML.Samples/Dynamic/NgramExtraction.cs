@@ -1,8 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using Microsoft.ML;
 using Microsoft.ML.Data;
 
-namespace Microsoft.ML.Samples.Dynamic
+namespace Samples.Dynamic
 {
     public static partial class TransformSamples
     {
@@ -13,7 +14,7 @@ namespace Microsoft.ML.Samples.Dynamic
             var ml = new MLContext();
 
             // Get a small dataset as an IEnumerable and convert to IDataView.
-            IEnumerable<SamplesUtils.DatasetUtils.SampleSentimentData> data = SamplesUtils.DatasetUtils.GetSentimentData();
+            IEnumerable<Microsoft.ML.SamplesUtils.DatasetUtils.SampleSentimentData> data = Microsoft.ML.SamplesUtils.DatasetUtils.GetSentimentData();
             var trainData = ml.Data.LoadFromEnumerable(data);
 
             // Preview of the data.
