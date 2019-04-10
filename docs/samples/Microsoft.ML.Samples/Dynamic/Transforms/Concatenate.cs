@@ -28,10 +28,10 @@ namespace Samples.Dynamic
             var dataview = mlContext.Data.LoadFromEnumerable(samples);
 
             // A pipeline for concatenating the "Feature1", "Feature2" and "Feature3" columns together into a vector that will be the Features column.
-            // Concatenation is necessary because learners take **feature vectors** as inputs.
+            // Concatenation is necessary because trainers take feature vectors as inputs.
             //
-            // Please note that the "Feature3" column is converted from int32 to float using the ConvertType API.
-            // The Concatenate API requires all columns to be of same type.
+            // Please note that the "Feature3" column is converted from int32 to float using the ConvertType.
+            // The Concatenate requires all columns to be of same type.
             var pipeline = mlContext.Transforms.Conversion.ConvertType("Feature3", outputKind: DataKind.Single)
                 .Append(mlContext.Transforms.Concatenate("Features", new[] { "Feature1", "Feature2", "Feature3" }));
 
