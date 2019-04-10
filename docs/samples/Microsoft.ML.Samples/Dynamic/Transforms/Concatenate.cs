@@ -29,12 +29,11 @@ namespace Samples.Dynamic
 
             // A pipeline for concatenating the "Feature1", "Feature2" and "Feature3" columns together into a vector that will be the Features column.
             // Concatenation is necessary because learners take **feature vectors** as inputs.
-            //   e.g. var regressionTrainer = mlContext.Regression.Trainers.FastTree(labelColumn: "Label", featureColumn: "Features");
             //
             // Please note that the "Feature3" column is converted from int32 to float using the ConvertType API.
-            // The Concatenate API requires all the columns to be of same type.
-            var pipeline = mlContext.Transforms.Conversion.ConvertType("Feature4", "Feature3", outputKind: DataKind.Single)
-                .Append(mlContext.Transforms.Concatenate("Features", new[] { "Feature1", "Feature2", "Feature4" }));
+            // The Concatenate API requires all columns to be of same type.
+            var pipeline = mlContext.Transforms.Conversion.ConvertType("Feature3", outputKind: DataKind.Single)
+                .Append(mlContext.Transforms.Concatenate("Features", new[] { "Feature1", "Feature2", "Feature3" }));
 
             // The transformed data.
             var transformedData = pipeline.Fit(dataview).Transform(dataview);
@@ -46,31 +45,27 @@ namespace Samples.Dynamic
             // And we can write out a few rows
             Console.WriteLine($"Features column obtained post-transformation.");
             foreach (var featureRow in featuresColumn)
-            {
-                foreach (var value in featureRow.Features)
-                    Console.Write($"{value} ");
-                Console.WriteLine("");
-            }
+                Console.WriteLine(string.Join(" ", featureRow.Features));
 
             // Expected output:
-            // Features column obtained post-transformation.
-            //
-            //   0.1 1.1 2.1 3.1 1
-            //   0.2 1.2 2.2 3.2 2
-            //   0.3 1.3 2.3 3.3 3
-            //   0.4 1.4 2.4 3.4 4
-            //   0.5 1.5 2.5 3.5 5
-            //   0.6 1.6 2.6 3.6 6
+            //  Features column obtained post-transformation.
+            //  0.1 1.1 2.1 3.1 1
+            //  0.2 1.2 2.2 3.2 2
+            //  0.3 1.3 2.3 3.3 3
+            //  0.4 1.4 2.4 3.4 4
+            //  0.5 1.5 2.5 3.5 5
+            //  0.6 1.6 2.6 3.6 6
         }
 
         private class InputData
         {
             public float Feature1;
+            [VectorType(3)]
             public float[] Feature2;
             public int Feature3;
         }
 
-        private sealed class TransformedData : InputData
+        private sealed class TransformedData
         {
             public float[] Features { get; set; }
         }
