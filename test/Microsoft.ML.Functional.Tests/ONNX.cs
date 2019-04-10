@@ -15,11 +15,6 @@ using Xunit.Abstractions;
 
 namespace Microsoft.ML.Functional.Tests
 {
-    internal sealed class OnnxScoreColumn
-    {
-        public float[] Score { get; set; }
-    }
-
     public class ONNX : BaseTestClass
     {
         public ONNX(ITestOutputHelper output) : base(output)
@@ -60,7 +55,7 @@ namespace Microsoft.ML.Functional.Tests
 
             // Create prediction engine and test predictions.
             var originalPredictionEngine = mlContext.Model.CreatePredictionEngine<HousingRegression, ScoreColumn>(model);
-            var onnxPredictionEngine = mlContext.Model.CreatePredictionEngine<HousingRegression, OnnxScoreColumn>(onnxModel);
+            var onnxPredictionEngine = mlContext.Model.CreatePredictionEngine<HousingRegression, VectorScoreColumn>(onnxModel);
 
             // Take a handful of examples out of the dataset and compute predictions.
             var dataEnumerator = mlContext.Data.CreateEnumerable<HousingRegression>(mlContext.Data.TakeRows(data, 5), false);
