@@ -42,9 +42,6 @@ namespace Samples.Dynamic.Trainers.Regression
             // The bias represents the average prediction for the training data.
             Console.WriteLine($"Average prediction: {gam.Bias:0.00}");
 
-            // Expected output:
-            //   Average predicted cost: 22.53
-
             // Let's take a look at the features that the model built. Similar to a linear model, we have
             // one response per feature. Unlike a linear model, this response is a function instead of a line.
             // Each feature response represents the deviation from the average prediction as a function of the 
@@ -84,7 +81,7 @@ namespace Samples.Dynamic.Trainers.Regression
             //  x < 0.37 => 0.040
             //  x < 0.44 => 0.083
             //  x < ∞ => 0.123
-
+            //
             //  Feature1
             //  x < 0.00 => -0.245
             //  x < 0.06 => 0.671
@@ -110,6 +107,7 @@ namespace Samples.Dynamic.Trainers.Regression
         private class Data
         {
             public float Label { get; set; }
+
             [VectorType(2)]
             public float[] Features { get; set; }
         }

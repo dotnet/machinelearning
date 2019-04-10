@@ -2,11 +2,10 @@
 using System.Collections.Generic;
 using Microsoft.ML;
 using Microsoft.ML.Data;
-using Microsoft.ML.Trainers.FastTree;
 
-namespace Samples.Dynamic.Trainers.Regression
+namespace Samples.Dynamic.Trainers.BinaryClassification
 {
-    public static class GamWithOptions
+    public static class Gam
     {
         // This example requires installation of additional NuGet package
         // <a href="https://www.nuget.org/packages/Microsoft.ML.FastTree/">Microsoft.ML.FastTree</a>.
@@ -15,7 +14,7 @@ namespace Samples.Dynamic.Trainers.Regression
             // Create a new context for ML.NET operations. It can be used for exception tracking and logging, 
             // as a catalog of available operations and as the source of randomness.
             var mlContext = new MLContext();
-
+            
             // Create training and validation datasets.
             var samples = GenerateData();
 
@@ -29,16 +28,15 @@ namespace Samples.Dynamic.Trainers.Regression
 
             // Create a GAM trainer.
             // Use a small number of bins for this example.
-            var trainer = mlContext.Regression.Trainers.Gam(
-                new GamRegressionTrainer.Options { MaximumBinCountPerFeature = 16 });
+            var trainer = mlContext.BinaryClassification.Trainers.Gam(maximumBinCountPerFeature: 16);
 
             // Fit the model to the data using a validation set.
             // GAM will use a technique called validation pruning to tune the model after training
             // to improve generalization.
             var model = trainer.Fit(trainSet, validSet);
-
+            
             // Extract the model parameters.
-            var gam = model.Model;
+            var gam = model.Model.SubModel;
 
             // Now investigate the bias and shape functions of the GAM model.
             // The bias represents the average prediction for the training data.
@@ -66,32 +64,27 @@ namespace Samples.Dynamic.Trainers.Regression
             }
 
             // Expected output:
-            //  Average prediction: 1.33
+            //  Average prediction: 0.82
             //
             //  Feature0
-            //  x < -0.44 => 0.128
-            //  x < -0.38 => 0.066
-            //  x < -0.32 => 0.040
-            //  x < -0.26 => -0.006
-            //  x < -0.20 => -0.035
-            //  x < -0.13 => -0.050
-            //  x < 0.06 => -0.077
-            //  x < 0.12 => -0.075
-            //  x < 0.18 => -0.052
-            //  x < 0.25 => -0.031
-            //  x < 0.31 => -0.002
-            //  x < 0.37 => 0.040
-            //  x < 0.44 => 0.083
-            //  x < ∞ => 0.123
+            //  x < -0.44 => 0.286
+            //  x < -0.38 => 0.225
+            //  x < -0.32 => 0.048
+            //  x < -0.26 => -0.110
+            //  x < -0.20 => -0.116
+            //  x < 0.18 => -0.143
+            //  x < 0.25 => -0.115
+            //  x < 0.31 => -0.005
+            //  x < 0.37 => 0.097
+            //  x < 0.44 => 0.263
+            //  x < ∞ => 0.284
             //
             //  Feature1
-            //  x < 0.00 => -0.245
-            //  x < 0.06 => 0.671
-            //  x < 0.24 => 0.723
-            //  x < 0.31 => -0.141
-            //  x < 0.37 => -0.241
-            //  x < ∞ => -0.248
-            
+            //  x < 0.00 => -0.350
+            //  x < 0.24 => 0.875
+            //  x < 0.31 => -0.138
+            //  x < ∞ => -0.188
+
             // Let's consider this output. To score a given example, we look up the first bin where the inequality
             // is satisfied for the feature value. We can look at the whole function to get a sense for how the
             // model responds to the variable on a global level.
@@ -108,7 +101,7 @@ namespace Samples.Dynamic.Trainers.Regression
 
         private class Data
         {
-            public float Label { get; set; }
+            public bool Label { get; set; }
 
             [VectorType(2)]
             public float[] Features { get; set; }
@@ -123,17 +116,15 @@ namespace Samples.Dynamic.Trainers.Regression
         /// <returns></returns>
         private static IEnumerable<Data> GenerateData(int numExamples = 25000, int seed = 1)
         {
-            float bias = 1.0f;
             var rng = new Random(seed);
             for (int i = 0; i < numExamples; i++)
             {
                 // Generate random, uncoupled features.
-                var data = new Data
-                {
+                var data = new Data {
                     Features = new float[2] { (float)(rng.NextDouble() - 0.5), (float)(rng.NextDouble() - 0.5) }
                 };
                 // Compute the label from the shape functions and add noise.
-                data.Label = bias + Parabola(data.Features[0]) + SimplePiecewise(data.Features[1]) + (float)(rng.NextDouble() - 0.5);
+                data.Label = Sigmoid(Parabola(data.Features[0]) + SimplePiecewise(data.Features[1]) + (float)(rng.NextDouble() - 0.5)) > 0.5;
 
                 yield return data;
             }
@@ -150,5 +141,7 @@ namespace Samples.Dynamic.Trainers.Regression
             else
                 return 0;
         }
+
+        private static double Sigmoid(double x) => 1.0 / (1.0 + Math.Exp(-1 * x));
     }
 }
