@@ -92,10 +92,10 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             // MF produce different matrixes on different platforms, so at least test thier content on windows.
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
-                Assert.Equal(leftMatrix[0], (double)0.3091519, 5);
-                Assert.Equal(leftMatrix[leftMatrix.Count - 1], (double)0.5639161, 5);
-                Assert.Equal(rightMatrix[0], (double)0.243584976, 5);
-                Assert.Equal(rightMatrix[rightMatrix.Count - 1], (double)0.380032182, 5);
+                Assert.Equal(0.33491, leftMatrix[0], 5);
+                Assert.Equal(0.571346991, leftMatrix[leftMatrix.Count - 1], 5);
+                Assert.Equal(0.2433036714792256, rightMatrix[0], 5);
+                Assert.Equal(0.381277978420258, rightMatrix[rightMatrix.Count - 1], 5);
             }
             // Read the test data set as an IDataView
             var testData = reader.Load(new MultiFileSource(GetDataPath(TestDatasets.trivialMatrixFactorization.testFilename)));
@@ -123,7 +123,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
             {
                 // Linux case
-                var expectedUnixL2Error = 0.616821448679879; // Linux baseline
+                var expectedUnixL2Error = 0.614457914950479; // Linux baseline
                 Assert.InRange(metrices.MeanSquaredError, expectedUnixL2Error - tolerance, expectedUnixL2Error + tolerance);
             }
             else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
@@ -136,7 +136,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             else if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
                 // Windows case
-                var expectedWindowsL2Error = 0.61528733643754685; // Windows baseline
+                var expectedWindowsL2Error = 0.6098110249191965; // Windows baseline
                 Assert.InRange(metrices.MeanSquaredError, expectedWindowsL2Error - tolerance, expectedWindowsL2Error + tolerance);
             }
 
