@@ -17,7 +17,7 @@ using Microsoft.ML.Trainers;
     new[] { typeof(SignatureMulticlassClassifierTrainer), typeof(SignatureTrainer) },
     NaiveBayesMulticlassTrainer.UserName,
     NaiveBayesMulticlassTrainer.LoadName,
-    NaiveBayesMulticlassTrainer.ShortName, DocName = "trainer/NaiveBayes.md")]
+    NaiveBayesMulticlassTrainer.ShortName)]
 
 [assembly: LoadableClass(typeof(NaiveBayesMulticlassModelParameters), null, typeof(SignatureLoadModel),
     "Multi Class Naive Bayes predictor", NaiveBayesMulticlassModelParameters.LoaderSignature)]
@@ -26,6 +26,12 @@ using Microsoft.ML.Trainers;
 
 namespace Microsoft.ML.Trainers
 {
+    /// <summary>
+    /// Naive Bayes classifier is based on Bayes' theorem. It assumes independence among the presence of features
+    /// in a class even though they may be dependent on each other. It is a multi-class trainer that accepts
+    /// binary feature values of type float, i.e., feature values are either true or false, specifically a
+    /// feature value greater than zero is treated as true.
+    /// </summary>
     public sealed class NaiveBayesMulticlassTrainer : TrainerEstimatorBase<MulticlassPredictionTransformer<NaiveBayesMulticlassModelParameters>, NaiveBayesMulticlassModelParameters>
     {
         internal const string LoadName = "MultiClassNaiveBayes";

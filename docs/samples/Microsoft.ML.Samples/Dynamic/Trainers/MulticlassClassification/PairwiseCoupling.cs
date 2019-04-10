@@ -66,7 +66,7 @@ namespace Samples.Dynamic.Trainers.MulticlassClassification
         private static IEnumerable<DataPoint> GenerateRandomDataPoints(int count, int seed=0)
         {
             var random = new Random(seed);
-            float randomFloat() => (float)random.NextDouble();
+            float randomFloat() => (float)(random.NextDouble() - 0.5);
             for (int i = 0; i < count; i++)
             {
                 // Generate Labels that are integers 1, 2 or 3
@@ -76,7 +76,7 @@ namespace Samples.Dynamic.Trainers.MulticlassClassification
                     Label = (uint)label,
                     // Create random features that are correlated with the label.
                     // The feature values are slightly increased by adding a constant multiple of label.
-                    Features = Enumerable.Repeat(label, 20).Select(x => randomFloat() + label * 0.1f).ToArray()
+                    Features = Enumerable.Repeat(label, 20).Select(x => randomFloat() + label * 0.2f).ToArray()
                 };
             }
         }

@@ -9,6 +9,10 @@ namespace Samples.Dynamic.Trainers.MulticlassClassification
 {
     public static class NaiveBayes
     {
+        // Naive Bayes classifier is based on Bayes' theorem. 
+        // It assumes independence among the presence of features in a class even though they may be dependent on each other.
+        // It is  a multi-class trainer that accepts binary feature values of type float, i.e., feature values are either true or false.
+        // Specifically a feature value greater than zero is treated as true, zero or less is treated as false.
         public static void Example()
         {
             // Create a new context for ML.NET operations. It can be used for exception tracking and logging, 
@@ -46,19 +50,19 @@ namespace Samples.Dynamic.Trainers.MulticlassClassification
                 Console.WriteLine($"Label: {p.Label}, Prediction: {p.PredictedLabel}");
 
             // Expected output:
-            //   Label: 1, Prediction: 2
+            //   Label: 1, Prediction: 1
             //   Label: 2, Prediction: 2
-            //   Label: 3, Prediction: 2
+            //   Label: 3, Prediction: 3
             //   Label: 2, Prediction: 2
-            //   Label: 3, Prediction: 2
+            //   Label: 3, Prediction: 3
 
             // Evaluate the overall metrics
             var metrics = mlContext.MulticlassClassification.Evaluate(transformedTestData);
             ConsoleUtils.PrintMetrics(metrics);
             
             // Expected output:
-            //  Micro Accuracy: 0.35
-            //  Macro Accuracy: 0.33
+            //  Micro Accuracy: 0.88
+            //  Macro Accuracy: 0.88
             //  Log Loss: 34.54
             //  Log Loss Reduction: -30.47
         }
@@ -66,7 +70,7 @@ namespace Samples.Dynamic.Trainers.MulticlassClassification
         private static IEnumerable<DataPoint> GenerateRandomDataPoints(int count, int seed=0)
         {
             var random = new Random(seed);
-            float randomFloat() => (float)random.NextDouble();
+            float randomFloat() => (float)(random.NextDouble() - 0.5);
             for (int i = 0; i < count; i++)
             {
                 // Generate Labels that are integers 1, 2 or 3
