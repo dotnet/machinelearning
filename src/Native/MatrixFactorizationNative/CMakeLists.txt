@@ -1,16 +1,19 @@
 project (MatrixFactorizationNative)
 add_definitions(-D_SCL_SECURE_NO_WARNINGS)
-add_definitions(-DUSESSE)
 add_definitions(-DUSEOMP)
-
-find_package(OPENMP REQUIRED)
-
+add_definitions(-DUSESSE)
 
 include_directories(libmf)
 
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
-set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${OpenMP_EXE_LINKER_FLAGS}")
+if(UNIX)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -O3 -pthread -std=c++0x -march=native")
+    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -fopenmp")
+endif()
+if(WIN32)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /W4 /nologo /O2 /EHsc /D \"_CRT_SECURE_NO_DEPRECATE\" /openmp")
+    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${OpenMP_EXE_LINKER_FLAGS}")
+endif()
+
 set(SOURCES UnmanagedMemory.cpp libmf/mf.cpp)
 
 if(NOT WIN32)
