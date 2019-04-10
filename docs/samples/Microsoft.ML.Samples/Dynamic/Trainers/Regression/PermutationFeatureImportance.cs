@@ -14,16 +14,17 @@ namespace Samples.Dynamic.Trainers.Regression
             var mlContext = new MLContext(seed:1);
 
             // Create sample data.
-            var samples = Data.GenerateData();
+            var samples = GenerateData();
 
             // Load the sample data as an IDataView.
             var data = mlContext.Data.LoadFromEnumerable(samples);
 
             // Define a training pipeline that concatenates features into a vector, normalizes them, and then
             // trains a linear model.
-            var pipeline = mlContext.Transforms.Concatenate("Features", Data.FeatureColumns)
-                    .Append(mlContext.Transforms.NormalizeMinMax("Features"))
-                    .Append(mlContext.Regression.Trainers.Ols());
+            var featureColumns = new string[] { nameof(Data.Feature1), nameof(Data.Feature2) };
+            var pipeline = mlContext.Transforms.Concatenate("Features", featureColumns)
+                .Append(mlContext.Transforms.NormalizeMinMax("Features"))
+                .Append(mlContext.Regression.Trainers.Ols());
 
             // Fit the pipeline to the data.
             var model = pipeline.Fit(data);
@@ -49,7 +50,7 @@ namespace Samples.Dynamic.Trainers.Regression
             foreach (int i in sortedIndices)
             {
                 Console.WriteLine("{0}\t{1:0.00}\t{2:G4}\t{3:G4}",
-                    Data.FeatureColumns[i],
+                    featureColumns[i],
                     linearPredictor.Model.Weights[i],
                     rmse[i].Mean,
                     1.96 * rmse[i].StandardError);
@@ -68,25 +69,33 @@ namespace Samples.Dynamic.Trainers.Regression
             public float Feature1 { get; set; }
 
             public float Feature2 { get; set; }
+        }
 
-            public static readonly string[] FeatureColumns = new string[] { nameof(Feature1), nameof(Feature2) };
-
-            public static IEnumerable<Data> GenerateData(int nExamples = 10000,
-                double bias = 0, double weight1 = 1, double weight2 = 2, int seed = 1)
+        /// <summary>
+        /// Generate an enumerable of Data objects, creating the label as a simple
+        /// linear combination of the features.
+        /// </summary>
+        /// <param name="nExamples">The number of examples.</param>
+        /// <param name="bias">The bias, or offset, in the calculation of the label.</param>
+        /// <param name="weight1">The weight to multiply the first feature with to compute the label.</param>
+        /// <param name="weight2">The weight to multiply the second feature with to compute the label.</param>
+        /// <param name="seed">The seed for generating feature values and label noise.</param>
+        /// <returns>An enumerable of Data objects.</returns>
+        private static IEnumerable<Data> GenerateData(int nExamples = 10000,
+            double bias = 0, double weight1 = 1, double weight2 = 2, int seed = 1)
+        {
+            var rng = new Random(seed);
+            for (int i = 0; i < nExamples; i++)
             {
-                var rng = new Random(seed);
-                for (int i = 0; i < nExamples; i++)
+                var data = new Data
                 {
-                    var data = new Data
-                    {
-                        Feature1 = (float)(rng.Next(10) * (rng.NextDouble() - 0.5)),
-                        Feature2 = (float)(rng.Next(10) * (rng.NextDouble() - 0.5)),
-                    };
+                    Feature1 = (float)(rng.Next(10) * (rng.NextDouble() - 0.5)),
+                    Feature2 = (float)(rng.Next(10) * (rng.NextDouble() - 0.5)),
+                };
 
-                    // Create a noisy label.
-                    data.Label = (float)(bias + weight1 * data.Feature1 + weight2 * data.Feature2 + rng.NextDouble() - 0.5);
-                    yield return data;
-                }
+                // Create a noisy label.
+                data.Label = (float)(bias + weight1 * data.Feature1 + weight2 * data.Feature2 + rng.NextDouble() - 0.5);
+                yield return data;
             }
         }
     }
