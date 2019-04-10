@@ -9,7 +9,6 @@ namespace Samples.Dynamic
 {
     public static class DetectChangePointBySsa
     {
-
         // This example creates a time series (list of Data with the i-th element corresponding to the i-th time slot). 
         // It demostrates stateful prediction engine that updates the state of the model and allows for saving/reloading.
         // The estimator is applied then to identify points where data distribution changed.

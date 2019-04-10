@@ -13,7 +13,6 @@ namespace Samples.Dynamic
 {
     public static class DetectIidChangePoint
     {
-
         // This example creates a time series (list of Data with the i-th element corresponding to the i-th time slot). 
         // The estimator is applied then to identify points where data distribution changed.
         public static void Example()

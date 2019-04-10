@@ -9,7 +9,6 @@ namespace Samples.Dynamic
 {
     public static class DetectIidSpike
     {
-
         // This example creates a time series (list of Data with the i-th element corresponding to the i-th time slot). 
         // The estimator is applied then to identify spiking points in the series.
         public static void Example()
