@@ -1,6 +1,7 @@
-﻿using Microsoft.ML.Data;
+﻿using Microsoft.ML;
+using Microsoft.ML.Data;
 
-namespace Microsoft.ML.Samples.Dynamic
+namespace Samples.Dynamic
 {
     public class PriorTrainer
     {
@@ -11,7 +12,7 @@ namespace Microsoft.ML.Samples.Dynamic
             var mlContext = new MLContext();
 
             // Download and featurize the dataset.
-            var dataFiles = SamplesUtils.DatasetUtils.DownloadSentimentDataset();
+            var dataFiles = Microsoft.ML.SamplesUtils.DatasetUtils.DownloadSentimentDataset();
             var trainFile = dataFiles[0];
             var testFile = dataFiles[1];
 
@@ -48,7 +49,7 @@ namespace Microsoft.ML.Samples.Dynamic
             // Step 4: Evaluate on the test set
             var transformedData = trainedPipeline.Transform(loader.Load(testFile));
             var evalMetrics = mlContext.BinaryClassification.Evaluate(transformedData, labelColumnName: "Sentiment");
-            SamplesUtils.ConsoleUtils.PrintMetrics(evalMetrics);
+            Microsoft.ML.SamplesUtils.ConsoleUtils.PrintMetrics(evalMetrics);
 
             // The Prior trainer outputs the proportion of a label in the dataset as the probability of that label.
             // In this case 'Accuracy: 0.50' means that there is a split of around 50%-50% of positive and negative labels in the test dataset.

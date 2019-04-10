@@ -1,8 +1,9 @@
 ﻿using System;
 using System.Linq;
+using Microsoft.ML;
 using Microsoft.ML.Trainers;
 
-namespace Microsoft.ML.Samples.Dynamic.PermutationFeatureImportance
+namespace Samples.Dynamic.PermutationFeatureImportance
 {
     public static class PfiBinaryClassification
     {
