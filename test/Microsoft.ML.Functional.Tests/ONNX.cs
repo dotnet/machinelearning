@@ -17,7 +17,6 @@ namespace Microsoft.ML.Functional.Tests
 {
     internal sealed class OnnxScoreColumn
     {
-        [ColumnName("Score0")]
         public float[] Score { get; set; }
     }
 
@@ -55,7 +54,8 @@ namespace Microsoft.ML.Functional.Tests
                 mlContext.Model.ConvertToOnnx(model, data, file);
 
             // Load the model as a transform.
-            var onnxEstimator = mlContext.Transforms.ApplyOnnxModel(modelPath);
+            var onnxEstimator = mlContext.Transforms.ApplyOnnxModel(modelPath)
+                .Append(mlContext.Transforms.CopyColumns("Score", "Score0"));
             var onnxModel = onnxEstimator.Fit(data);
 
             // Create prediction engine and test predictions.
