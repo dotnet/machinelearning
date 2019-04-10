@@ -1,8 +1,9 @@
 ﻿using System;
+using Microsoft.ML;
 using Microsoft.ML.Data;
 using Microsoft.ML.SamplesUtils;
 
-namespace Microsoft.ML.Samples.Dynamic.Trainers.Regression
+namespace Samples.Dynamic.Trainers.Regression
 {
     public static class OrdinaryLeastSquares
     {
@@ -12,7 +13,7 @@ namespace Microsoft.ML.Samples.Dynamic.Trainers.Regression
         public static void Example()
         {
             // Downloading a regression dataset from github.com/dotnet/machinelearning
-            string dataFile = SamplesUtils.DatasetUtils.DownloadHousingRegressionDataset();
+            string dataFile = Microsoft.ML.SamplesUtils.DatasetUtils.DownloadHousingRegressionDataset();
 
             // Create a new ML context, for ML.NET operations. It can be used for exception tracking and logging, 
             // as well as the source of randomness.

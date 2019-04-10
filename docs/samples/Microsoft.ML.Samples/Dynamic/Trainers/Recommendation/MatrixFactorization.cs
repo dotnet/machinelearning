@@ -1,8 +1,9 @@
 using System;
 using System.Collections.Generic;
+using Microsoft.ML;
 using static Microsoft.ML.SamplesUtils.DatasetUtils;
 
-namespace Microsoft.ML.Samples.Dynamic.Trainers.Recommendation
+namespace Samples.Dynamic.Trainers.Recommendation
 {
     public static class MatrixFactorization
     {
@@ -38,7 +39,7 @@ namespace Microsoft.ML.Samples.Dynamic.Trainers.Recommendation
             var metrics = mlContext.Recommendation().Evaluate(prediction,
                 labelColumnName: nameof(MatrixElement.Value), scoreColumnName: nameof(MatrixElementForScore.Score));
             // Print out some metrics for checking the model's quality.
-            SamplesUtils.ConsoleUtils.PrintMetrics(metrics);
+            Microsoft.ML.SamplesUtils.ConsoleUtils.PrintMetrics(metrics);
             // L1: 0.17
             // L2: 0.05
             // LossFunction: 0.05

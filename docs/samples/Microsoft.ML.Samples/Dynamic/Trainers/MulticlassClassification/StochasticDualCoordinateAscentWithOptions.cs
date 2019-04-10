@@ -1,7 +1,8 @@
-﻿using Microsoft.ML.SamplesUtils;
+﻿using Microsoft.ML;
+using Microsoft.ML.SamplesUtils;
 using Microsoft.ML.Trainers;
 
-namespace Microsoft.ML.Samples.Dynamic.Trainers.MulticlassClassification
+namespace Samples.Dynamic.Trainers.MulticlassClassification
 {
     public static class StochasticDualCoordinateAscentWithOptions
     {
@@ -54,7 +55,7 @@ namespace Microsoft.ML.Samples.Dynamic.Trainers.MulticlassClassification
 
             // Evaluate the trained model using the test set.
             var metrics = mlContext.MulticlassClassification.Evaluate(dataWithPredictions);
-            SamplesUtils.ConsoleUtils.PrintMetrics(metrics);
+            Microsoft.ML.SamplesUtils.ConsoleUtils.PrintMetrics(metrics);
 
             // Expected output:
             //   Micro Accuracy: 0.82

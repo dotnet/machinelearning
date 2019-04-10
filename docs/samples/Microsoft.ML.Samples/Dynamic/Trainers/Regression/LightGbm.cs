@@ -1,8 +1,9 @@
 ﻿using System;
 using System.Linq;
+using Microsoft.ML;
 using Microsoft.ML.Data;
 
-namespace Microsoft.ML.Samples.Dynamic.Trainers.Regression
+namespace Samples.Dynamic.Trainers.Regression
 {
     class LightGbm
     {
@@ -14,7 +15,7 @@ namespace Microsoft.ML.Samples.Dynamic.Trainers.Regression
             var mlContext = new MLContext();
 
             // Download and load the housing dataset into an IDataView.
-            var dataView = SamplesUtils.DatasetUtils.LoadHousingRegressionDataset(mlContext);
+            var dataView = Microsoft.ML.SamplesUtils.DatasetUtils.LoadHousingRegressionDataset(mlContext);
 
             //////////////////// Data Preview ////////////////////
             /// Only 6 columns are displayed here.
@@ -52,7 +53,7 @@ namespace Microsoft.ML.Samples.Dynamic.Trainers.Regression
             // Evaluate how the model is doing on the test data.
             var dataWithPredictions = model.Transform(split.TestSet);
             var metrics = mlContext.Regression.Evaluate(dataWithPredictions, labelColumnName: labelName);
-            SamplesUtils.ConsoleUtils.PrintMetrics(metrics);
+            Microsoft.ML.SamplesUtils.ConsoleUtils.PrintMetrics(metrics);
 
             // Expected output
             //   L1: 4.97

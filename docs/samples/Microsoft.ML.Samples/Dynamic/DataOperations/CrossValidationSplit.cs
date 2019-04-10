@@ -1,8 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using Microsoft.ML;
 using static Microsoft.ML.DataOperationsCatalog;
 
-namespace Microsoft.ML.Samples.Dynamic
+namespace Samples.Dynamic
 {
     /// <summary>
     /// Sample class showing how to use CrossValidationSplit.
