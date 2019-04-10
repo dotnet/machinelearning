@@ -93,7 +93,7 @@ namespace Samples.Dynamic
         /// <param name="weight1">The weight to multiply the first feature with to compute the label.</param>
         /// <param name="weight2">The weight to multiply the second feature with to compute the label.</param>
         /// <param name="seed">The seed for generating feature values and label noise.</param>
-        /// <returns></returns>
+        /// <returns>An enumerable of Data objects.</returns>
         private static IEnumerable<Data> GenerateData(int nExamples = 10000,
             double bias = 0, double weight1 = 1, double weight2 = 2, int seed = 1)
         {

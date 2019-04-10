@@ -91,6 +91,16 @@ namespace Samples.Dynamic
             public float[] FeatureContributions { get; set; }
         }
 
+        /// <summary>
+        /// Generate an enumerable of Data objects, creating the label as a simple
+        /// linear combination of the features.
+        /// </summary>
+        /// <param name="nExamples">The number of examples.</param>
+        /// <param name="bias">The bias, or offset, in the calculation of the label.</param>
+        /// <param name="weight1">The weight to multiply the first feature with to compute the label.</param>
+        /// <param name="weight2">The weight to multiply the second feature with to compute the label.</param>
+        /// <param name="seed">The seed for generating feature values and label noise.</param>
+        /// <returns>An enumerable of Data objects.</returns>
         private static IEnumerable<Data> GenerateData(int nExamples = 10000,
             double bias = 0, double weight1 = 1, double weight2 = 2, int seed = 1)
         {
