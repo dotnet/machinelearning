@@ -13,21 +13,6 @@ namespace Samples.Dynamic
 {
     public static class DetectIidChangePoint
     {
-        class ChangePointPrediction
-        {
-            [VectorType(4)]
-            public double[] Prediction { get; set; }
-        }
-
-        class IidChangePointData
-        {
-            public float Value;
-
-            public IidChangePointData(float value)
-            {
-                Value = value;
-            }
-        }
 
         // This example creates a time series (list of Data with the i-th element corresponding to the i-th time slot). 
         // The estimator is applied then to identify points where data distribution changed.
@@ -39,39 +24,66 @@ namespace Samples.Dynamic
 
             // Generate sample series data with a change
             const int Size = 16;
-            var data = new List<IidChangePointData>(Size);
-            for (int i = 0; i < Size / 2; i++)
-                data.Add(new IidChangePointData(5));
-            // This is a change point
-            for (int i = 0; i < Size / 2; i++)
-                data.Add(new IidChangePointData(7));
+            var data = new List<TimeSeriesData>(Size)
+            {
+                new TimeSeriesData(5),
+                new TimeSeriesData(5),
+                new TimeSeriesData(5),
+                new TimeSeriesData(5),
+                new TimeSeriesData(5),
+                new TimeSeriesData(5),
+                new TimeSeriesData(5),
+                new TimeSeriesData(5),
+
+                //Change point data.
+                new TimeSeriesData(7),
+                new TimeSeriesData(7),
+                new TimeSeriesData(7),
+                new TimeSeriesData(7),
+                new TimeSeriesData(7),
+                new TimeSeriesData(7),
+                new TimeSeriesData(7),
+                new TimeSeriesData(7),
+            };
 
             // Convert data to IDataView.
             var dataView = ml.Data.LoadFromEnumerable(data);
 
             // Setup IidSpikeDetector arguments
             string outputColumnName = nameof(ChangePointPrediction.Prediction);
-            string inputColumnName = nameof(IidChangePointData.Value);
+            string inputColumnName = nameof(TimeSeriesData.Value);
 
             // Time Series model.
             ITransformer model = ml.Transforms.DetectIidChangePoint(outputColumnName, inputColumnName, 95, Size / 4).Fit(dataView);
 
             // Create a time series prediction engine from the model.
-            var engine = model.CreateTimeSeriesPredictionFunction<IidChangePointData, ChangePointPrediction>(ml);
+            var engine = model.CreateTimeSeriesPredictionFunction<TimeSeriesData, ChangePointPrediction>(ml);
 
+            Console.WriteLine($"{outputColumnName} column obtained post-transformation.");
+            Console.WriteLine("Data\tAlert\tScore\tP-Value\tMartingale value");
+            
+            // Data Alert      Score   P-Value Martingale value
+            
             // Create non-anomalous data and check for change point.
             for (int index = 0; index < 8; index++)
             {
                 // Anomaly change point detection.
-                var prediction = engine.Predict(new IidChangePointData(5));
-                Console.WriteLine("{0}\t{1}\t{2:0.00}\t{3:0.00}\t{4:0.00}", 5, prediction.Prediction[0],
-                    prediction.Prediction[1], prediction.Prediction[2], prediction.Prediction[3]);
+                PrintPrediction(5, engine.Predict(new TimeSeriesData(5)));
             }
 
+            // 5       0       5.00    0.50    0.00       <-- Time Series 1.
+            // 5       0       5.00    0.50    0.00
+            // 5       0       5.00    0.50    0.00
+            // 5       0       5.00    0.50    0.00
+            // 5       0       5.00    0.50    0.00
+            // 5       0       5.00    0.50    0.00
+            // 5       0       5.00    0.50    0.00
+            // 5       0       5.00    0.50    0.00
+
             // Change point
-            var changePointPrediction = engine.Predict(new IidChangePointData(7));
-            Console.WriteLine("{0}\t{1}\t{2:0.00}\t{3:0.00}\t{4:0.00}", 7, changePointPrediction.Prediction[0],
-                changePointPrediction.Prediction[1], changePointPrediction.Prediction[2], changePointPrediction.Prediction[3]);
+            PrintPrediction(7, engine.Predict(new TimeSeriesData(7)));
+
+            // 7       1       7.00    0.00    10298.67   <-- alert is on, predicted changepoint (and model is checkpointed).
 
             // Checkpoint the model.
             var modelPath = "temp.zip";
@@ -86,36 +98,12 @@ namespace Samples.Dynamic
                 model = ml.Model.Load(file, out DataViewSchema schema);
 
             // Create a time series prediction engine from the checkpointed model.
-            engine = model.CreateTimeSeriesPredictionFunction<IidChangePointData, ChangePointPrediction>(ml);
+            engine = model.CreateTimeSeriesPredictionFunction<TimeSeriesData, ChangePointPrediction>(ml);
             for (int index = 0; index < 8; index++)
             {
                 // Anomaly change point detection.
-                var prediction = engine.Predict(new IidChangePointData(7));
-                Console.WriteLine("{0}\t{1}\t{2:0.00}\t{3:0.00}\t{4:0.00}", 7, prediction.Prediction[0],
-                    prediction.Prediction[1], prediction.Prediction[2], prediction.Prediction[3]);
+                PrintPrediction(7, engine.Predict(new TimeSeriesData(7)));
             }
-
-            // Prediction from the original time series engine should match the prediction from 
-            // check pointed model.
-            engine = timeseries1;
-            for (int index = 0; index < 8; index++)
-            {
-                // Anomaly change point detection.
-                var prediction = engine.Predict(new IidChangePointData(7));
-                Console.WriteLine("{0}\t{1}\t{2:0.00}\t{3:0.00}\t{4:0.00}", 7, prediction.Prediction[0],
-                    prediction.Prediction[1], prediction.Prediction[2], prediction.Prediction[3]);
-            }
-
-            // Data Alert      Score   P-Value Martingale value
-            // 5       0       5.00    0.50    0.00       <-- Time Series 1.
-            // 5       0       5.00    0.50    0.00
-            // 5       0       5.00    0.50    0.00
-            // 5       0       5.00    0.50    0.00
-            // 5       0       5.00    0.50    0.00
-            // 5       0       5.00    0.50    0.00
-            // 5       0       5.00    0.50    0.00
-            // 5       0       5.00    0.50    0.00
-            // 7       1       7.00    0.00    10298.67   <-- alert is on, predicted changepoint (and model is checkpointed).
 
             // 7       0       7.00    0.13    33950.16   <-- Time Series 2 : Model loaded back from disk and prediction is made.
             // 7       0       7.00    0.26    60866.34
@@ -125,6 +113,15 @@ namespace Samples.Dynamic
             // 7       0       7.00    0.50    0.00
             // 7       0       7.00    0.50    0.00
 
+            // Prediction from the original time series engine should match the prediction from 
+            // check pointed model.
+            engine = timeseries1;
+            for (int index = 0; index < 8; index++)
+            {
+                // Anomaly change point detection.
+                PrintPrediction(7, engine.Predict(new TimeSeriesData(7)));
+            }
+
             // 7       0       7.00    0.13    33950.16   <-- Time Series 1 and prediction is made.
             // 7       0       7.00    0.26    60866.34
             // 7       0       7.00    0.38    78362.04
@@ -132,6 +129,26 @@ namespace Samples.Dynamic
             // 7       0       7.00    0.50    0.00
             // 7       0       7.00    0.50    0.00
             // 7       0       7.00    0.50    0.00
+        }
+
+        private static void PrintPrediction(float value, ChangePointPrediction prediction) =>
+            Console.WriteLine("{0}\t{1}\t{2:0.00}\t{3:0.00}\t{4:0.00}", value, prediction.Prediction[0],
+                prediction.Prediction[1], prediction.Prediction[2], prediction.Prediction[3]);
+
+        class ChangePointPrediction
+        {
+            [VectorType(4)]
+            public double[] Prediction { get; set; }
+        }
+
+        class TimeSeriesData
+        {
+            public float Value;
+
+            public TimeSeriesData(float value)
+            {
+                Value = value;
+            }
         }
     }
 }

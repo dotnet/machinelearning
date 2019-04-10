@@ -1,27 +1,12 @@
 using System;
 using System.Collections.Generic;
+using Microsoft.ML;
 using Microsoft.ML.Data;
 
-namespace Microsoft.ML.Samples.Dynamic
+namespace Samples.Dynamic
 {
     public static class DetectSpikeBySsaBatchPrediction
     {
-        class SsaSpikeData
-        {
-            public float Value;
-
-            public SsaSpikeData(float value)
-            {
-                Value = value;
-            }
-        }
-
-        class SsaSpikePrediction
-        {
-            [VectorType(3)]
-            public double[] Prediction { get; set; }
-        }
-
         // This example creates a time series (list of Data with the i-th element corresponding to the i-th time slot). 
         // The estimator is applied then to identify spiking points in the series.
         // This estimator can account for temporal seasonality in the data.
@@ -35,20 +20,41 @@ namespace Microsoft.ML.Samples.Dynamic
             const int SeasonalitySize = 5;
             const int TrainingSeasons = 3;
             const int TrainingSize = SeasonalitySize * TrainingSeasons;
-            var data = new List<SsaSpikeData>();
-            for (int i = 0; i < TrainingSeasons; i++)
-                for (int j = 0; j < SeasonalitySize; j++)
-                    data.Add(new SsaSpikeData(j));
-            // This is a spike
-            data.Add(new SsaSpikeData(100));
-            for (int i = 0; i < SeasonalitySize; i++)
-                data.Add(new SsaSpikeData(i));
+            var data = new List<TimeSeriesData>()
+            {
+                new TimeSeriesData(0),
+                new TimeSeriesData(1),
+                new TimeSeriesData(2),
+                new TimeSeriesData(3),
+                new TimeSeriesData(4),
+
+                new TimeSeriesData(0),
+                new TimeSeriesData(1),
+                new TimeSeriesData(2),
+                new TimeSeriesData(3),
+                new TimeSeriesData(4),
+
+                new TimeSeriesData(0),
+                new TimeSeriesData(1),
+                new TimeSeriesData(2),
+                new TimeSeriesData(3),
+                new TimeSeriesData(4),
+
+                //This is a spike.
+                new TimeSeriesData(100),
+
+                new TimeSeriesData(0),
+                new TimeSeriesData(1),
+                new TimeSeriesData(2),
+                new TimeSeriesData(3),
+                new TimeSeriesData(4),
+            };
 
             // Convert data to IDataView.
             var dataView = ml.Data.LoadFromEnumerable(data);
 
             // Setup estimator arguments
-            var inputColumnName = nameof(SsaSpikeData.Value);
+            var inputColumnName = nameof(TimeSeriesData.Value);
             var outputColumnName = nameof(SsaSpikePrediction.Prediction);
 
             // The transformed data.
@@ -61,32 +67,51 @@ namespace Microsoft.ML.Samples.Dynamic
             Console.WriteLine("Data\tAlert\tScore\tP-Value");
             int k = 0;
             foreach (var prediction in predictionColumn)
-                Console.WriteLine("{0}\t{1}\t{2:0.00}\t{3:0.00}", data[k++].Value, prediction.Prediction[0], prediction.Prediction[1], prediction.Prediction[2]);
-            Console.WriteLine("");
+                PrintPrediction(data[k++].Value, prediction);
 
             // Prediction column obtained post-transformation.
             // Data    Alert   Score   P-Value
-            // 0       0     - 2.53    0.50
-            // 1       0     - 0.01    0.01
+            // 0       0      -2.53    0.50
+            // 1       0      -0.01    0.01
             // 2       0       0.76    0.14
             // 3       0       0.69    0.28
             // 4       0       1.44    0.18
-            // 0       0     - 1.84    0.17
+            // 0       0      -1.84    0.17
             // 1       0       0.22    0.44
             // 2       0       0.20    0.45
             // 3       0       0.16    0.47
             // 4       0       1.33    0.18
-            // 0       0     - 1.79    0.07
+            // 0       0      -1.79    0.07
             // 1       0       0.16    0.50
             // 2       0       0.09    0.50
             // 3       0       0.08    0.45
             // 4       0       1.31    0.12
             // 100     1      98.21    0.00   <-- alert is on, predicted spike
-            // 0       0    - 13.83    0.29
-            // 1       0     - 1.74    0.44
-            // 2       0     - 0.47    0.46
-            // 3       0    - 16.50    0.29
-            // 4       0    - 29.82    0.21
+            // 0       0     -13.83    0.29
+            // 1       0      -1.74    0.44
+            // 2       0      -0.47    0.46
+            // 3       0     -16.50    0.29
+            // 4       0     -29.82    0.21
+        }
+
+        private static void PrintPrediction(float value, SsaSpikePrediction prediction) => 
+            Console.WriteLine("{0}\t{1}\t{2:0.00}\t{3:0.00}", value, prediction.Prediction[0], 
+                prediction.Prediction[1], prediction.Prediction[2]);
+
+        class TimeSeriesData
+        {
+            public float Value;
+
+            public TimeSeriesData(float value)
+            {
+                Value = value;
+            }
+        }
+
+        class SsaSpikePrediction
+        {
+            [VectorType(3)]
+            public double[] Prediction { get; set; }
         }
     }
 }

@@ -4,27 +4,13 @@
 
 using System;
 using System.Collections.Generic;
+using Microsoft.ML;
 using Microsoft.ML.Data;
 
-namespace Microsoft.ML.Samples.Dynamic
+namespace Samples.Dynamic
 {
     public static class DetectIidChangePointBatchPrediction
     {
-        class ChangePointPrediction
-        {
-            [VectorType(4)]
-            public double[] Prediction { get; set; }
-        }
-
-        class IidChangePointData
-        {
-            public float Value;
-
-            public IidChangePointData(float value)
-            {
-                Value = value;
-            }
-        }
 
         // This example creates a time series (list of Data with the i-th element corresponding to the i-th time slot). 
         // The estimator is applied then to identify points where data distribution changed.
@@ -36,19 +22,34 @@ namespace Microsoft.ML.Samples.Dynamic
 
             // Generate sample series data with a change
             const int Size = 16;
-            var data = new List<IidChangePointData>(Size);
-            for (int i = 0; i < Size / 2; i++)
-                data.Add(new IidChangePointData(5));
-            // This is a change point
-            for (int i = 0; i < Size / 2; i++)
-                data.Add(new IidChangePointData(7));
+            var data = new List<TimeSeriesData>(Size)
+            {
+                new TimeSeriesData(5),
+                new TimeSeriesData(5),
+                new TimeSeriesData(5),
+                new TimeSeriesData(5),
+                new TimeSeriesData(5),
+                new TimeSeriesData(5),
+                new TimeSeriesData(5),
+                new TimeSeriesData(5),
+
+                //Change point data.
+                new TimeSeriesData(7),
+                new TimeSeriesData(7),
+                new TimeSeriesData(7),
+                new TimeSeriesData(7),
+                new TimeSeriesData(7),
+                new TimeSeriesData(7),
+                new TimeSeriesData(7),
+                new TimeSeriesData(7),
+            };
 
             // Convert data to IDataView.
             var dataView = ml.Data.LoadFromEnumerable(data);
 
             // Setup estimator arguments
             string outputColumnName = nameof(ChangePointPrediction.Prediction);
-            string inputColumnName = nameof(IidChangePointData.Value);
+            string inputColumnName = nameof(TimeSeriesData.Value);
 
             // The transformed data.
             var transformedData = ml.Transforms.DetectIidChangePoint(outputColumnName, inputColumnName, 95, Size / 4).Fit(dataView).Transform(dataView);
@@ -60,8 +61,7 @@ namespace Microsoft.ML.Samples.Dynamic
             Console.WriteLine("Data\tAlert\tScore\tP-Value\tMartingale value");
             int k = 0;
             foreach (var prediction in predictionColumn)
-                Console.WriteLine("{0}\t{1}\t{2:0.00}\t{3:0.00}\t{4:0.00}", data[k++].Value, prediction.Prediction[0], prediction.Prediction[1], prediction.Prediction[2], prediction.Prediction[3]);
-            Console.WriteLine("");
+                PrintPrediction(data[k++].Value, prediction);
 
             // Prediction column obtained post-transformation.
             // Data Alert      Score   P-Value Martingale value
@@ -81,6 +81,26 @@ namespace Microsoft.ML.Samples.Dynamic
             // 7       0       7.00    0.50    0.00
             // 7       0       7.00    0.50    0.00
             // 7       0       7.00    0.50    0.00
+        }
+
+        private static void PrintPrediction(float value, ChangePointPrediction prediction) =>
+            Console.WriteLine("{0}\t{1}\t{2:0.00}\t{3:0.00}\t{4:0.00}", value, prediction.Prediction[0], 
+                prediction.Prediction[1], prediction.Prediction[2], prediction.Prediction[3]);
+
+        class ChangePointPrediction
+        {
+            [VectorType(4)]
+            public double[] Prediction { get; set; }
+        }
+
+        class TimeSeriesData
+        {
+            public float Value;
+
+            public TimeSeriesData(float value)
+            {
+                Value = value;
+            }
         }
     }
 }
