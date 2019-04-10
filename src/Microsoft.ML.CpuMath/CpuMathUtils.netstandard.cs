@@ -41,7 +41,7 @@ namespace Microsoft.ML.Internal.CpuMath
         }
 
         /// <summary>
-        /// Compute the product of (flattened because its type is <see cref="AlignedArray"/> instead of a matrix) matrix <paramref name="mat"/>
+        /// Compute the product of matrix <paramref name="mat"/> (the matrix is flattened because its type is <see cref="AlignedArray"/> instead of a matrix)
         /// and a vector <paramref name="src"/>.
         /// </summary>
         /// <param name="tran">Whether to transpose <paramref name="mat"/> before doing any computation.</param>
