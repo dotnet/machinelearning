@@ -14,13 +14,14 @@ namespace Samples.Dynamic
             var mlContext = new MLContext(seed: 1);
 
             // Create a small dataset.
-            var samples = Data.GenerateData();
+            var samples = GenerateData();
 
             // Convert training data to IDataView.
             var data = mlContext.Data.LoadFromEnumerable(samples);
 
             // Create a pipeline to concatenate the features into a feature vector and normalize it.
-            var transformPipeline = mlContext.Transforms.Concatenate("Features", Data.FeatureColumns)
+            var transformPipeline = mlContext.Transforms.Concatenate("Features",
+                    new string[] { nameof(Data.Feature1), nameof(Data.Feature2) })
                 .Append(mlContext.Transforms.NormalizeMeanVariance("Features"));
 
             // Fit the pipeline.
@@ -70,28 +71,10 @@ namespace Samples.Dynamic
         private class Data
         {
             public float Label { get; set; }
+
             public float Feature1 { get; set; }
+
             public float Feature2 { get; set; }
-
-            public static readonly string[] FeatureColumns = new string[] { nameof(Feature1), nameof(Feature2) };
-
-            public static IEnumerable<Data> GenerateData(int nExamples = 10000,
-                double bias = 0, double weight1 = 1, double weight2 = 2, int seed = 1)
-            {
-                var rng = new Random(seed);
-                for (int i = 0; i < nExamples; i++)
-                {
-                    var data = new Data
-                    {
-                        Feature1 = (float)(rng.Next(10) * (rng.NextDouble() - 0.5)),
-                        Feature2 = (float)(rng.Next(10) * (rng.NextDouble() - 0.5)),
-                    };
-
-                    // Create a noisy label.
-                    data.Label = (float)(bias + weight1 * data.Feature1 + weight2 * data.Feature2 + rng.NextDouble() - 0.5);
-                    yield return data;
-                }
-            }
         }
 
         private class ScoredData : Data
@@ -99,6 +82,34 @@ namespace Samples.Dynamic
             public float Score { get; set; }
             public float[] Features { get; set; }
             public float[] FeatureContributions { get; set; }
+        }
+
+        /// <summary>
+        /// Generate an enumerable of Data objects, creating the label as a simple
+        /// linear combination of the features.
+        /// </summary>
+        /// <param name="nExamples">The number of examples.</param>
+        /// <param name="bias">The bias, or offset, in the calculation of the label.</param>
+        /// <param name="weight1">The weight to multiply the first feature with to compute the label.</param>
+        /// <param name="weight2">The weight to multiply the second feature with to compute the label.</param>
+        /// <param name="seed">The seed for generating feature values and label noise.</param>
+        /// <returns></returns>
+        private static IEnumerable<Data> GenerateData(int nExamples = 10000,
+            double bias = 0, double weight1 = 1, double weight2 = 2, int seed = 1)
+        {
+            var rng = new Random(seed);
+            for (int i = 0; i < nExamples; i++)
+            {
+                var data = new Data
+                {
+                    Feature1 = (float)(rng.Next(10) * (rng.NextDouble() - 0.5)),
+                    Feature2 = (float)(rng.Next(10) * (rng.NextDouble() - 0.5)),
+                };
+
+                // Create a noisy label.
+                data.Label = (float)(bias + weight1 * data.Feature1 + weight2 * data.Feature2 + rng.NextDouble() - 0.5);
+                yield return data;
+            }
         }
     }
 }

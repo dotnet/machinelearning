@@ -14,13 +14,14 @@ namespace Samples.Dynamic
             var mlContext = new MLContext();
 
             // Create a small dataset.
-            var samples = Data.GenerateData();
+            var samples = GenerateData();
 
             // Convert training data to IDataView.
             var data = mlContext.Data.LoadFromEnumerable(samples);
 
             // Create a pipeline to concatenate the features into a feature vector and normalize it.
-            var transformPipeline = mlContext.Transforms.Concatenate("Features", Data.FeatureColumns)
+            var transformPipeline = mlContext.Transforms.Concatenate("Features", 
+                    new string[] { nameof(Data.Feature1), nameof(Data.Feature2) })
                 .Append(mlContext.Transforms.NormalizeMeanVariance("Features"));
 
             // Fit the pipeline.
@@ -77,31 +78,6 @@ namespace Samples.Dynamic
             public float Feature1 { get; set; }
 
             public float Feature2 { get; set; }
-
-            public static readonly string[] FeatureColumns = new string[] { nameof(Feature1), nameof(Feature2) };
-
-            public static IEnumerable<Data> GenerateData(int nExamples = 10000,
-                double bias = 0, double weight1 = 1, double weight2 = 2, int seed = 1)
-            {
-                var rng = new Random(seed);
-                for (int i = 0; i < nExamples; i++)
-                {
-                    var data = new Data
-                    {
-                        Feature1 = (float)(rng.Next(10) * (rng.NextDouble() - 0.5)),
-                        Feature2 = (float)(rng.Next(10) * (rng.NextDouble() - 0.5)),
-                    };
-
-                    // Create a Boolean label with noise.
-                    var value = bias + weight1 * data.Feature1 + weight2 * data.Feature2 + rng.NextDouble() - 0.5;
-                    data.Label = Sigmoid(value) > 0.5;
-                    yield return data;
-                }
-            }
-            private static double Sigmoid(double x)
-            {
-                return 1.0 / (1.0 + Math.Exp(-1 * x));
-            }
         }
 
         private class ScoredData : Data
@@ -114,5 +90,25 @@ namespace Samples.Dynamic
 
             public float[] FeatureContributions { get; set; }
         }
+
+        private static IEnumerable<Data> GenerateData(int nExamples = 10000,
+            double bias = 0, double weight1 = 1, double weight2 = 2, int seed = 1)
+        {
+            var rng = new Random(seed);
+            for (int i = 0; i < nExamples; i++)
+            {
+                var data = new Data
+                {
+                    Feature1 = (float)(rng.Next(10) * (rng.NextDouble() - 0.5)),
+                    Feature2 = (float)(rng.Next(10) * (rng.NextDouble() - 0.5)),
+                };
+
+                // Create a Boolean label with noise.
+                var value = bias + weight1 * data.Feature1 + weight2 * data.Feature2 + rng.NextDouble() - 0.5;
+                data.Label = Sigmoid(value) > 0.5;
+                yield return data;
+            }
+        }
+        private static double Sigmoid(double x) => 1.0 / (1.0 + Math.Exp(-1 * x));
     }
 }
