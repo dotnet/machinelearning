@@ -45,10 +45,10 @@ Why does IDataView need a special type system? The .NET type system is not
 well suited to machine-learning and data analysis needs. For example, while
 one could argue that `typeof(double[])` indicates a vector of double values,
 it explicitly does not include the dimensionality of the vector/array.
-Similarly, there is no good way to indicate a subset of an integer type, for
-example integers from 1 to 100, as a .NET type. In short, there is no
-reasonable way to encode complete range and dimensionality information in a
-`System.Type`.
+Similarly, while enumeration over a set can be done with `enum`, there is no
+concept of an enumeration over a set determined at runtime (for example, the
+unique terms observed in a dataset). In short, there is no reasonable way to
+encode complete range and dimensionality information in a `System.Type`.
 
 In addition, a well-defined type system, including complete specification of
 standard data types and conversions, enables separately authored components to
@@ -57,71 +57,75 @@ seamlessly work together without surprises.
 ### Basic Concepts
 
 `IDataView`, in the narrow sense, is an interface implemented by many
-components. At a high level, it is analogous to the .Net interface
+components. At a high level, it is analogous to the .NET interface
 `IEnumerable<T>`, with some very significant differences.
 
 While `IEnumerable<T>` is a sequence of objects of type `T`, `IDataView` is a
-sequence of rows. An `IDataView` object has an associated `ISchema` object
-that defines the `IDataView`'s columns, including their names, types, indices,
-and associated annotations. Each row of the `IDataView` has a value for each
-column defined by the schema.
+sequence of rows. An `IDataView` object has an associated `DataViewSchema`
+object that defines the `IDataView`'s columns, including their names, types,
+indices, and associated annotations. Each row of the `IDataView` has a value
+for each column defined by the schema.
 
 Just as `IEnumerable<T>` has an associated enumerator interface, namely
-`IEnumerator<T>`, `IDataView` has an associated cursor interface, namely
-`IRowCursor`. In the enumerable world, an enumerator object implements a
-Current property that returns the current value of the iteration as an object
-of type `T`. In the IDataView world, an `IRowCursor` object encapsulates the
-current row of the iteration. There is no separate object that represents the
-current row. Instead, the cursor implements methods that provide the values of
-the current row, when requested. Additionally, the methods that serve up
-values do not require memory allocation on each invocation, but use sharable
-buffers. This scheme significantly reduces the memory allocations needed to
-cursor through data.
+`IEnumerator<T>`, `IDataView` has an associated cursor type, namely the
+abstract class `DataViewRowCursor`. In the enumerable world, an enumerator
+object implements a `Current` property that returns the current value of the
+iteration as an object of type `T`. In the IDataView world, a
+`DataViewRowCursor` object encapsulates the current row of the iteration.
+There is no separate object that represents the current row. Instead, the
+cursor implements methods that provide the values of the current row, when
+requested. Additionally, the methods that serve up values do not require
+memory allocation on each invocation, but use sharable buffers. This scheme
+significantly reduces the memory allocations needed to cursor through data.
 
 Both `IDataView` and `IEnumerable<T>` present a read-only view on data, in the
 sense that a sequence presented by each is not directly mutable.
 "Modifications" to the sequence are accomplished by additional operators or
 transforms applied to the sequence, so do not modify any underlying data. For
 example, to normalize a numeric column in an `IDataView` object, a
-normalization transform is applied to the sequence to form a new `IDataView`
-object representing the composition. In the new view, the normalized values
-are contained in a new column. Often, the new column has the same name as the
-original source column and "replaces" the source column in the new view.
-Columns that are not involved in the transformation are simply "passed
-through" from the source `IDataView` to the new one.
+normalization transformer is applied using the `ITransformer.Transform` method
+to form a new `IDataView` object representing the composition. In the new
+view, the normalized values are contained in a new column. Often, the new
+column has the same name as the original source column and "replaces" the
+source column in the new view. Columns that are not involved in the
+transformation are simply "passed through" from the source `IDataView` to the
+new one.
 
-Detailed specifications of the `IDataView`, `ISchema`, and `IRowCursor`
-interfaces are in other documents.
+Detailed specifications of the `IDataView`, `DataViewSchema`, and
+`DataViewRowCursor` types are in other documents.
 
-### Column Types
+### IDataView Types
 
-Each column in an `IDataView` has an associated column type. The collection of
-column types is open, in the sense that new code can introduce new column
+Each column in an `IDataView` has an associated type. The collection of types
+in the IDataView system is open, in the sense that new code can introduce new
 types without requiring modification of all `IDataView` related components.
 While introducing new types is possible, we expect it will also be relatively
 rare.
 
-All column type implementations derive from the abstract class `ColumnType`.
+All column type implementations derive from the abstract class `DataViewType`.
 Primitive column types are those whose implementation derives from the
-abstract class `PrimitiveType`, which derives from `ColumnType`.
+abstract class `PrimitiveDataViewType`, which derives from `DataViewType`.
 
 ### Representation Type
 
-A column type has an associated .Net type, known as its representation type or
-raw type.
+A type in the IDataView system has an associated .NET type, known as its
+representation type or raw type.
 
-Note that a column type often contains much more information than the
-associated .Net representation type. Moreover, many distinct column types can
-use the same representation type. Consequently, code should not assume that a
-particular .Net type implies a particular column type.
+Note that a type in the IDataView system often contains much more information
+than the associated .NET representation type. Moreover, many distinct types
+can use the same representation type. Consequently, code should not assume
+that a particular .NET type implies a particular type of the IDataView type
+system. To give the most conspicuous example, `NumberDataViewType.UInt32` and
+most instances of `KeyDataViewType` users will encounter, will both have
+`ItemType == typeof(uint)`.
 
 ### Standard Column Types
 
-There is a set of predefined standard column types, divided into standard
-primitive types and vector types. Note that there can be types that are
-neither primitive nor vector types. These types are not standard types and may
-require extra care when handling them. For example, a `PictureType` value
-might require disposing when it is no longer needed.
+There is a set of predefined standard types, divided into standard primitive
+types and vector types. Note that there can be types that are neither
+primitive nor vector types. These types are not standard types and may require
+extra care when handling them. For example, a `ImageDataViewType` value might
+require disposing when it is no longer needed.
 
 Standard primitive types include the text type, the boolean type, numeric
 types, and key types. Numeric types are further split into floating-point
@@ -136,7 +140,7 @@ level, this dimensionality information indicates the length of the vector
 type. A length of zero means that the vector type is variable length, that is,
 different values may have different lengths. Additional detail of vector types
 is in a subsequent section. Vector types are instances of the sealed class
-`VectorType`, which derives from `ColumnType`.
+`VectorDataViewType`, which derives from `DataViewType`.
 
 This document uses convenient shorthand for standard types:
 
@@ -160,11 +164,13 @@ This document uses convenient shorthand for standard types:
 
 * `DZ`: datetime zone, a date and time with a timezone
 
-* `U4[100-199]`: A key type based on `U4` representing legal values from 100
-  to 199, inclusive
+* `U4[100]`: A key type based on `U4` representing logical non-missing values
+  from 0 to 99, inclusive. It must be pointed out, that range is represented
+  *physically* as 1 to 100, with the default value `0` corresponding to the
+  missing value.
 
 * `V<R4,3,2>`: A vector type with item type `R4` and dimensionality
-  information [3,2]
+  information `[3,2]`
 
 See the sections on the specific types for more detail.
 
@@ -174,14 +180,13 @@ conversions.
 
 ### Default Value
 
-Each column type has an associated default value corresponding to the default
-value of its representation type, as defined by the .Net (C# and CLR)
-specifications.
+Each type in the IDataView system has an associated default value
+corresponding to the default value of its representation type, as defined by
+the .Net (C# and CLR) specifications.
 
 The standard conversions map source default values to destination default
 values. For example, the standard conversion from `TX` to `R8` maps the empty
-text value to the value zero. Note that the empty text value is distinct from
-the missing text value, as discussed next.
+text value to the value zero.
 
 ### Missing Value
 
@@ -201,10 +206,11 @@ treating them all as missing/invalid.
 A standard conversion from a source type with `NA` to a destination type with
 `NA` maps `NA` to `NA`. A standard conversion from a source type with `NA` to
 a destination type without `NA` maps `NA` to the default value of the
-destination type. For example, converting a text `NA` value to `R4` produces a
-`NaN`, but converting a text `NA` to `U4` results in zero. Note that this
+destination type. For example, converting a `R4` to `R8` produces a `NaN`, but
+converting a an `R4` `NA` to `U4` results in zero. Note that this
 specification does not address diagnostic user messages, so, in certain
-environments, the latter situation may generate a warning to the user.
+environments, the latter situation may generate a warning to the user, or even
+an exception.
 
 Note that a vector type does not support a representation of missing, but may
 contain `NA` values of its item type. Generally, there is no standard
@@ -226,10 +232,10 @@ the missing and default values are identical, as they are for key types.
 
 ### Annotations
 
-A column in an `DataViewSchema` can have additional column-wide information, known as
-annotations. For each string value, known as an annotation kind, a column may have a
-value associated with that annotation kind. The value also has an associated
-type, which is a compatible column type.
+A column in an `DataViewSchema` can have additional column-wide information,
+known as annotations. For each string value, known as an annotation kind, a
+column may have a value associated with that annotation kind. The value also
+has an associated type, which is a compatible column type.
 
 For example:
 
@@ -237,14 +243,15 @@ For example:
   annotation named `IsNormalized`.
 
 * A column whose type is `V<R4,17>`, meaning a vector of length 17 whose items
-  are single-precision floating-point values, might have `SlotNames` annotation
-  of type `V<TX,17>`, meaning a vector of length 17 whose items are text.
+  are single-precision floating-point values, might have `SlotNames`
+  annotation of type `V<TX,17>`, meaning a vector of length 17 whose items are
+  text.
 
 * A column produced by a scorer may have several pieces of associated
-  annotations, indicating the "scoring column group id" that it belongs to, what
-  kind of scorer produced the column (for example, binary classification), and the
-  precise semantics of the column (for example, predicted label, raw score,
-  probability).
+  annotations, indicating the "scoring column group id" that it belongs to,
+  what kind of scorer produced the column (for example, binary
+  classification), and the precise semantics of the column (for example,
+  predicted label, raw score, probability).
 
 The `DataViewSchema` class, including the annotations API, is fully specified in
 another document.
@@ -252,57 +259,52 @@ another document.
 ## Text Type
 
 The text type, denoted by the shorthand `TX`, represents text values. The
-`TextType` class derives from `PrimitiveType` and has a single instance,
-exposed as `TextType.Instance`. The representation type of `TX` is an
-immutable struct known as `DvText`. A `DvText` value represents a sequence of
-characters whose length is contained in its `Length` field. The missing/`NA`
-value has a `Length` of -1, while all other values have a non-negative
-`Length`. The default value has a `Length` of zero and represents an empty
+`TextDataViewType` class derives from `PrimitiveDataViewType` and has a single
+instance, exposed as `TextDataViewType.Instance`. The representation type of
+`TX` is an immutable `struct`, [`ReadOnlyMemory<char>`][ReadOnlyMemory]. Note
+that the default value has a `ReadOnlyMemory<char>` represents an empty
 sequence of characters.
 
+[ReadOnlyMemory]: https://docs.microsoft.com/en-us/dotnet/api/system.readonlymemory-1?view=netstandard-2.1
+
 In text processing transformations, it is very common to split text into
-pieces. A key advantage of using `DvText` instead of `System.String` for text
-values is that these splits require no memory allocation—the derived `DvText`
-references the same underlying `System.String` as the original `DvText` does.
-Another reason that `System.String` is not ideal for text is that we want the
-default value to be empty and not `NA`. For `System.String`, the default value
-is null, which would be a more natural representation for `NA` than for empty
-text. By using a custom struct wrapper around a portion (or span) of a
-`System.String`, we address both the memory efficiency and default value
-problems.
+pieces. A key advantage of using `ReadOnlyMemory<char>` instead of
+`System.String` for text values is that these splits require no memory
+allocation -- the derived `ReadOnlyMemory<char>` references the same
+underlying memory, most commonly backed by `System.String`, as the original
+`ReadOnlyMemory<char>` does. Another reason that `System.String` is not ideal
+for text is that we want the default value to be empty and not `null`. For
+`System.String`, the default value is `null`, which would be a more natural
+representation for `NA` than for empty text. There is no notion of `NA` text
+for this type.
 
 ## Boolean Type
 
 The standard boolean type, denoted by the shorthand `BL`, represents
-true/false values. The `BooleanType` class derives from `PrimitiveType` and
-has a single instance, exposed as `BooleanType.Instance`. The representation
-type of `BL` is the `DvBool` enumeration type, logically stored as `sbyte`:
+true/false values. The `BooleanDataViewType` class derives from
+`PrimitiveDataViewType` and has a single instance, exposed as
+`BooleanDataViewType.Instance`. The representation type of `BL` is the
+`System.Boolean` structure, and correspondingly takes values either `true` or
+`false`.
 
-`DvBool` | `sbyte` Value
---------:|:-------------
-`NA`     | -128
-`False`  | 0
-`True`   | 1
-
-The default value of `BL` is `DvBool.False` and the `NA` value of `BL` is
-`DvBool.NA`. Note that the underlying type of the `DvBool` `enum` is signed
-byte and the default and `NA` values of `BL` align with the default and `NA`
-values of `I1`.
+The default value of `BL` is `false`, and it has no `NA` value.
 
 There is a standard conversion from `TX` to `BL`. There are standard
 conversions from `BL` to all signed integer and floating point numeric types,
-with `DvBool.False` mapping to zero, `DvBool.True` mapping to one, and
-`DvBool.NA` mapping to `NA`.
+with `false` mapping to zero and `true` mapping to one.
 
 ## Number Types
 
-The standard number types are all instances of the sealed class NumberType,
-which is derived from PrimitiveType. There are two standard floating-point
-types, four standard signed integer types, and four standard unsigned integer
-types. Each of these is represented by a single instance of NumberType and
-there are static properties of NumberType to access each instance. For
-example, to test whether a variable type represents `I4`, use the C# code
-`type == NumberType.I4`.
+The standard number types are all instances of the sealed class
+`NumberDataViewType`, which is derived from `PrimitiveDataViewType`. There are
+two standard floating-point types, four standard signed integer types, and
+four standard unsigned integer types. Each of these is represented by a single
+instance of `NumberDataViewType` and there are static properties of
+`NumberDataViewType` to access each instance, whose names are the same as the
+type names of their respresentation type in the BCL's `System` namespace. For
+example, to test whether a variable type represents `I4` (which has the .NET
+respresentation type `System.Int32`, or `int`), use the C# code `type ==
+NumberType.Int32`.
 
 Floating-point arithmetic has a well-deserved reputation for being
 troublesome. This is primarily because it is imprecise, in the sense that the
@@ -336,11 +338,8 @@ floating-point type and from each integer type to each floating-point type.
 ### Signed Integer Types
 
 The signed integer types, `I1`, `I2`, `I4`, and `I8`, have representation
-types Sytem.SByte, `System.Int16`, `System.Int32`, and `System.Int64`. The
-default value of each of these is zero. Each of these has a non-zero value
-that is its own additive inverse, namely `(-2)^^{8n-1}`, where `n` is the
-number of bytes in the representation type. This is the minimum value of each
-of these types. We follow R's lead and use these values as the `NA` values.
+types `Sytem.SByte`, `System.Int16`, `System.Int32`, and `System.Int64`. The
+default value of each of these is zero.
 
 There are standard conversions from each signed integer type to every other
 signed integer type. There are also standard conversions from text to each
@@ -353,7 +352,7 @@ to signed integer types.
 ### Unsigned Integer Types
 
 The unsigned integer types, `U1`, `U2`, `U4`, and `U8`, have representation
-types Sytem.Byte, `System.UInt16`, `System.UInt32`, and `System.UInt64`,
+types `Sytem.Byte`, `System.UInt16`, `System.UInt32`, and `System.UInt64`,
 respectively. The default value of each of these is zero. These types do not
 have an `NA` value.
 
@@ -368,52 +367,47 @@ integer types.
 
 ## Key Types
 
-Key types are used for data that is represented numerically, but where the
-order and/or magnitude of the values is not semantically meaningful. For
-example, hash values, social security numbers, and the index of a term in a
-dictionary are all best modeled with a key type.
+Key types are used for data that is represented numerically, but that is
+conceptually understood to be an enumeration into a known cardinality set. For
+example, hash values, the index of a term in a dictionary, or other
+categorical values, are all best modeled with a key type.
 
 The representation type of a key type, also called its underlying type, must
 be one of the standard four .Net unsigned integer types. The `NA` and default
 values of a key type are the same value, namely the representational value
 zero.
 
-Key types are instances of the sealed class `KeyType`, which derives from
-`PrimitiveType`.
+Key types are instances of the sealed class `KeyDataViewType`, which derives
+from `PrimitiveDataViewType`. In addition to its underlying type, a key type
+specifies a count value, from `1` to `ulong.MaxValue`, inclusive.
 
-In addition to its underlying type, a key type specifies:
-
-* A count value, from `1` to `ulong.MaxValue`, inclusive
-
-Regardless of the count value, the representational value zero
-always means `NA` and the representational value one is always the first valid
-value of the key type.
+Regardless of the count value, the representational value zero always means
+`NA`, and the representational value one is always the first valid value of
+the key type.
 
 Notes:
 
-* The `Count` property returns the count, or cardinality of the key type. This 
-  is of type `ulong`. The legal representation values are from one up to 
-  and including `Count`. The `Count` is required to be representable in the 
-  underlying type, so, for example, the `Count` value of a key type based
-  on `System.Byte` must not exceed `255`. As an example of the usefulness 
-  of the `Count` property, consider the `KeyToVector` transform implemented
-  as part of ML.NET. It maps from a key type value to an indicator vector.
-  The length of the vector is the `Count` of the key type, which is required
-  to be positive. For a key value of `k`, with `1 ≤ k ≤ Count`, the resulting
-  vector has a value of one in the (`k-1`)th slot, and zero in all other slots.
-  An `NA` value (with representation zero) is mapped to the all- zero vector 
-  of length `Count`.
+* The `Count` property returns the count, or cardinality of the key type. This
+  is of type `ulong`. The legal representation values are from one up to and
+  including `Count`. The `Count` is required to be representable in the
+  underlying type, so, for example, the `Count` value of a key type based on
+  `System.Byte` must not exceed `255`. As an example of the usefulness of the
+  `Count` property, consider the `KeyToVectorMappingTransformer` transformer
+  implemented as part of ML.NET. It maps from a key type value to an indicator
+  vector. The length of the vector is the `Count` of the key type, which is
+  required to be positive. For a key value of `k`, with `1 ≤ k ≤ Count`, the
+  resulting vector has a value of one in the (`k-1`)th slot, and zero in all
+  other slots. An `NA` value (with representation zero) is mapped to the all-
+  zero vector of length `Count`.
 
 * For a key type with positive `Count`, a representation value should be
   between `0` and `Count`, inclusive, with `0` meaning `NA`. When processing
   values from an untrusted source, it is best to guard against values bigger
   than `Count` and treat such values as equivalent to `NA`.
 
-* The shorthand for a key type with representation type `U1`, and semantic
-  values from `0` to `99`, inclusive, is `U1[0-99]`. Note that the `Count` 
-  value is `100`, which is representable in a `System.Byte`. Recall that
-  the representation values always start at 1 and extend up to `Count`,
-  in this case `100`.
+* The shorthand for a key type with representation type `U1`, and count `100`,
+  is `U1[100]`. Recall that the representation values always start at 1 and
+  extend up to `Count`, in this case `100`.
 
 There are standard conversions from text to each key type. This conversion
 parses the text as a standard non-negative integer value and honors the `Count`
@@ -429,7 +423,7 @@ There are standard conversions from one key type to another, provided:
   than the number of bytes in the source's underlying type, or the `Count`
   value is positive. In the latter case, the `Count` is necessarily less than
   2k, where k is the number of bits in the destination type's underlying type.
-  For example, `U1[0-100]` and `U2[0-100]` can be converted in both directions.
+  For example, `U1[100]` and `U2[100]` can be converted in both directions.
 
 ## Vector Types
 
@@ -440,10 +434,10 @@ critical for high dimensional machine-learning applications.
 
 For example, when processing text, it is common to hash all or parts of the
 text and encode the resulting hash values, first as a key type, then as
-indicator or bag vectors using the `KeyToVector` transform. Using a `k`-bit
-hash produces a key type with `Count` equal to `2^^k`, and vectors of the same
-length. It is common to use `20` or more hash bits, producing vectors of
-length a million or more. The vectors are typically very sparse. In systems
+indicator or bag vectors using the `KeyToVectorMappingTransformer`. Using a
+`k`-bit hash produces a key type with `Count` equal to `2^^k`, and vectors of
+the same length. It is common to use `20` or more hash bits, producing vectors
+of length a million or more. The vectors are typically very sparse. In systems
 that do not support vector-valued columns, each of these million or more
 values is placed in a separate (sparse) column, leading to a massive explosion
 of the column space. Most tabular systems are not designed to scale to
@@ -455,17 +449,18 @@ sparse matrix of values has been needlessly transposed. This is very
 inefficient when there are just a few (often one) non-zero entries among the
 column values. Vector types solve these issues.
 
-A vector type is an instance of the sealed `VectorType` class, which derives
-from `ColumnType`. The vector type contains its `ItemType`, which must be a
-`PrimitiveType`, and its dimensionality information. The dimensionality
-information consists of one or more non-negative integer values. The
-`VectorSize` is the product of the dimensions. A dimension value of zero means
-that the true value of that dimension can vary from value to value.
+A vector type is an instance of the sealed `VectorDataViewType` class, which
+derives from `DataViewType`. The vector type contains its `ItemType`, which
+must be a `PrimitiveDataViewType`, and its dimensionality information. The
+dimensionality information consists of one or more non-negative integer
+values. The `VectorSize` is the product of the dimensions. A dimension value
+of zero means that the true value of that dimension can vary from value to
+value.
 
 For example, tokenizing a text by splitting it into multiple terms generates a
 vector of text of varying/unknown length. The result type shorthand is
 `V<TX,*>`. Hashing this using `6` bits then produces the vector type
-`V<U4[0-63],*>`. Applying the `KeyToVector` transform then produces the vector
+`V<U4[64],*>`. Applying the `KeyToVector` transform then produces the vector
 type `V<R4,*,64>`. Each of these vector types has a `VectorSize` of zero,
 indicating that the total number of slots varies, but the latter still has
 potentially useful dimensionality information: the vector slots are
@@ -473,13 +468,13 @@ partitioned into an unknown number of runs of consecutive slots each of length
 `64`.
 
 As another example, consider an image data set. The data starts with a `TX`
-column containing URLs for images. Applying an `ImageLoader` transform
-generates a column of a custom (non-standard) type, `Picture<*,*,4>`, where
-the asterisks indicate that the picture dimensions are unknown. The last
+column containing URLs for images. Applying an `ImageLoadingTransformer`
+generates a column of a custom (non-standard) type, `Image<*,*,4>`, where
+the asterisks indicate that the image dimensions are unknown. The last
 dimension of `4` indicates that there are four channels in each pixel: the
 three color components, plus the alpha channel. Applying an `ImageResizer`
 transform scales and crops the images to a specified size, for example,
-`100x100`, producing a type of `Picture<100,100,4>`. Finally, applying a
+`100x100`, producing a type of `Image<100,100,4>`. Finally, applying a
 `ImagePixelExtractor` transform (and specifying that the alpha channel should
 be dropped), produces the vector type `V<R4,3,100,100>`. In this example, the
 `ImagePixelExtractor` re-organized the color information into separate planes,
@@ -488,10 +483,11 @@ and divided each pixel value by 256 to get pixel values between zero and one.
 ### Equivalence
 
 Note that two vector types are equivalent when they have equivalent item types
-and have identical dimensionality information. To test for compatibility,
-instead of equivalence, in the sense that the total `VectorSize` should be the
-same, use the `SameSizeAndItem` method instead of the Equals method (see the
-`ColumnType` code below).
+and have identical dimensionality information. We might however say that two
+vector types with dimensions `{6}` and `{3,2}`, and the same item type, are
+compatible, in the sense that `VBuffer` of length `6` are both legal values
+for those types. To test for compatibility, a looser concept, one would check
+the vector `Size` and `ItemType`s are the same.
 
 ### Representation Type
 
@@ -501,54 +497,13 @@ type of `V<R8,10>` is `VBuffer<double>`. When the vector type's `VectorSize`
 is positive, each value of the type will have length equal to the
 `VectorSize`.
 
-The struct `VBuffer<T>`, sketched below, provides both dense and sparse
-representations and encourages cooperative buffer sharing. A complete
-discussion of `VBuffer<T>` and associated coding idioms is in another
-document.
+The struct `VBuffer<T>` provides both dense and sparse representations and
+encourages cooperative buffer sharing and reuse. A complete discussion of
+`VBuffer<T>` and associated coding idioms is in the API documentation, a
+document [dedicated to vectors specifically](VBufferCareFeeding.md), [as well
+as the `IDataView` design principles](IDataViewDesignPrinciples.md).
 
-Notes:
-
-* `VBuffer<T>` contains four public readonly fields: `Length`, `Count`,
-  `Values`, and `Indices`.
-
-* `Length` is the logical length of the vector, and must be non-negative.
-
-* `Count` is the number of items explicitly represented in the vector. `Count`
-  is non-negative and less than or equal to Length.
-
-* When `Count` is equal to Length, the vector is dense. Otherwise, the vector
-  is sparse.
-
-* The `Values` array contains the explicitly represented item values. The
-  length of the `Values` array is at least `Count`, but not necessarily equal
-  to `Count`. Only the first `Count` items in `Values` are part of the vector;
-  any remaining items are garbage and should be ignored. Note that when
-  `Count` is zero, `Values` may be null.
-
-* The `Indices` array is only relevant when the vector is sparse. In the
-  sparse case, `Indices` is parallel to `Values`, only the first `Count` items
-  are meaningful, the indices must be non-negative and less than `Length`, and
-  the indices must be strictly increasing. Note that when `Count` is zero,
-  `Indices` may be null. In the dense case, `Indices` is not meaningful and
-  may or may not be null.
-
-* It is very common for the arrays in a `VBuffer<T>` to be larger than needed
-  for their current value. A special case of this is when a dense `VBuffer<T>`
-  has a non-null `Indices` array. The extra items in the arrays are not
-  meaningful and should be ignored. Allowing these buffers to be larger than
-  currently needed reduces the need to reallocate buffers for different
-  values. For example, when cursoring through a vector valued column with
-  `VectorSize` of 100, client code could pre-allocate values and indices
-  arrays and seed a `VBuffer<T>` with those arrays. When fetching values, the
-  client code passes the `VBuffer<T>` by reference. The called code can re-use
-  those arrays, filling them with the current values.
-
-* Generally, vectors should use a sparse representation only when the number
-  of non-default items is at most half the value of Length. However, this
-  guideline is not a mandate.
-
-See the full `IDataView` technical specification for additional details on
-`VBuffer<T>`, including complete discussion of programming idioms, and
+These together include complete discussion of programming idioms, and
 information on helper classes for building and manipulating vectors.
 
 ## Standard Conversions
@@ -568,29 +523,24 @@ conversions are exposed by the `ConvertTransform`.
 
 There are standard conversions from `TX` to the standard primitive types,
 `R4`, `R8`, `I1`, `I2`, `I4`, `I8`, `U1`, `U2`, `U4`, `U8`, and `BL`. For non-
-empty, non-missing `TX` values, these conversions use standard parsing of
-floating-point and integer values. For `BL`, the mapping is case insensitive,
-maps text values `{ true, yes, t, y, 1, +1, + }` to `DvBool.True`, and maps
-the values `{ false, no, f, n, 0, -1, - }` to `DvBool.False`.
+empty `TX` values, these conversions use standard parsing of floating-point
+and integer values. For `BL`, the mapping is case insensitive, maps text
+values `{ true, yes, t, y, 1, +1, + }` to `true`, and maps the values
+`{ false, no, f, n, 0, -1, - }` to `false`.
 
-If parsing fails, the result is the `NA` value for floating-point, signed
-integer types, and boolean, and zero for unsigned integer types. Note that
-overflow of an integer type is considered failure of parsing, so produces an
-`NA` (or zero for unsigned). These conversions map missing/`NA` text to `NA`,
-for floating-point and signed integer types, and to zero for unsigned integer
-types.
+If parsing fails, the result is the `NA` value for floating-point, or an
+exception being thrown.
 
 These conversions are required to map empty text (the default value of `TX`)
 to the default value of the destination, which is zero for all numeric types
-and DvBool.False for `BL`. This may seem unfortunate at first glance, but
-leads to some nice invariants. For example, when loading a text file with
-sparse row specifications, it's desirable for the result to be the same
-whether the row is first processed entirely as `TX` values, then parsed, or
-processed directly into numeric values, that is, parsing as the row is
-processed. In the latter case, it is simple to map implicit items (suppressed
-due to sparsity) to zero. In the former case, these items are first mapped to
-the empty text value. To get the same result, we need empty text to map to
-zero.
+and `false` for `BL`. This may seem unfortunate at first glance, but leads to
+some nice invariants. For example, when loading a text file with sparse row
+specifications, it's desirable for the result to be the same whether the row
+is first processed entirely as `TX` values, then parsed, or processed directly
+into numeric values, that is, parsing as the row is processed. In the latter
+case, it is simple to map implicit items (suppressed due to sparsity) to zero.
+In the former case, these items are first mapped to the empty text value. To
+get the same result, we need empty text to map to zero.
 
 ### Floating Point
 
@@ -601,14 +551,13 @@ case of `R8` to `R4`).
 ### Signed Integer
 
 There are standard conversions from each signed integer type to each other
-signed integer type. These conversions map `NA` to `NA`, map any other numeric
-value that fits in the destination type to the corresponding value, and maps
-any numeric value that does not fit in the destination type to `NA`. For
-example, when mapping from `I1` to `I2`, the source `NA` value, namely 0x80,
-is mapped to the destination `NA` value, namely 0x8000, and all other numeric
-values are mapped as expected. When mapping from `I2` to `I1`, any value that
-is too large in magnitude to fit in `I1`, such as 312, is mapped to `NA`,
-namely 0x80.
+signed integer type. These conversions map any other numeric value that fits
+in the destination type to the corresponding value, and maps any numeric value
+that does not fit in the destination type to `NA`. For example, when mapping
+from `I1` to `I2`, the source `NA` value, namely 0x80, is mapped to the
+destination `NA` value, namely 0x8000, and all other numeric values are mapped
+as expected. When mapping from `I2` to `I1`, any value that is too large in
+magnitude to fit in `I1`, such as 312, is mapped to `NA`, namely 0x80.
 
 ### Signed Integer to Floating Point
 
@@ -635,15 +584,14 @@ floating-point type. These conversions map all values according to the IEEE
 
 There are standard conversions from one key type to another, provided:
 
-* The source and destination key types have the same `Min` and `Count` values.
+* The source and destination key types have the same `Count` values.
 
 * Either the number of bytes in the destination's underlying type is greater
   than the number of bytes in the source's underlying type, or the `Count`
   value is positive. In the latter case, the `Count` is necessarily less than
   `2^^k`, where `k` is the number of bits in the destination type's underlying
-  type. For example, `U1[1-*]` can be converted to `U2[1-*]`, but `U2[1-*]`
-  cannot be converted to `U1[1-*]`. Also, `U1[1-100]` and `U2[1-100]` can be
-  converted in both directions.
+  type. For example, for values key-typed as having `Count==100` can be
+  converted to and from key-typed columns using both `byte` and `ushort`.
 
 The conversion maps source representation values to the corresponding
 destination representation values. There are no special cases, because of the
@@ -657,158 +605,99 @@ zero, and `DvBool.NA` to the numeric type's `NA` value.
 
 ## Type Classes
 
-This chapter contains information on the C# classes used to represent column
-types. Since the IDataView type system is extensible this list describes only
-the core data types.
+This chapter contains information on the C# classes used to represent types in
+the DataView system types. Since the IDataView type system is extensible this
+list describes only the core data types.
 
-### `ColumnType` Abstract Class
+### `DataViewType` Abstract Class
 
-The IDataView system includes the abstract class `ColumnType`. This is the
-base class for all column types. `ColumnType` has several convenience
-properties that simplify testing for common patterns. For example, the
-`IsVector` property indicates whether the `ColumnType` is an instance of
-`VectorType`.
+The IDataView system includes the abstract class `DataViewType`. This is the
+base class for all types in the IDataView system. In the following notes, the
+symbol `type` is a variable of type `DataViewType`. This abstract class has,
+on itself, only one member:
 
-In the following notes, the symbol `type` is a variable of type `ColumnType`.
+* The `type.RawType` property indicates the representation type of the
+  IDataView type. Its use should generally be restricted to constructing
+  generic type and method instantiations. For example, `type.RawType ==
+  typeof(uint)` is `true` for both `NumberDataViewType.UInt32` and some
+  `KeyDataViewType` instances.
 
-* The `type.RawType` property indicates the representation type of the column
-  type. Its use should generally be restricted to constructing generic type
-  and method instantiations. In particular, testing whether `type.RawType ==
-  typeof(int)` is not sufficient to test for the standard `U4` type. The
-  proper test is `type == NumberType.I4`, since there is a single universal
-  instance of the `I4` type.
+### `PrimitiveDataViewType` Abstract Class
 
-* Certain .Net types have a corresponding `DataKind` `enum` value. The value
-  of the `type.RawKind` property is consistent with `type.RawType`. For .Net
-  types that do not have a corresponding `DataKind` value, the `type.RawKind`
-  property returns zero. The `type.RawKind` property is particularly useful
-  when switching over raw type possibilities, but only after testing for the
-  broader kind of the type (key type, numeric type, etc.).
+The `PrimitiveDataViewType` abstract class derives from `DataViewType`
+and is the base class of all primitive type implementations.
 
-* The `type.IsVector` property is equivalent to `type is VectorType`.
+### `TextDataViewType` Sealed Class
 
-* The `type.IsNumber` property is equivalent to `type is NumberType`.
+The `TextDataViewType` sealed class derives from `PrimitiveDataViewType` and
+is a singleton-class for the standard text type. The instance is exposed by
+the static `TextDataViewType.Instance` property.
 
-* The `type.IsText` property is equivalent to `type is TextType`. There is a
-  single instance of the `TextType`, so this is also equivalent to `type ==
-  TextType.Instance`.
+### `BooleanDataViewType` Sealed Class
 
-* The `type.IsBool` property is equivalent to `type is BoolType`. There is a
-  single instance of the `BoolType`, so this is also equivalent to `type ==
-  BoolType.Instance`.
+The `BooleanDataViewType` sealed class derives from `PrimitiveDataViewType`
+and is a singleton-class for the standard boolean type. The instance is
+exposed by the static `BooleanDataViewType.Instance` property.
 
-* Type `type.IsKey` property is equivalent to `type is KeyType`.
+### `NumberDataViewType` Sealed Class
 
-* If `type` is a key type, then `type.KeyCount` is the same as
-  `((KeyType)type).Count`. If `type` is not a key type, then `type.KeyCount`
-  is zero. Note that a key type can have a `Count` value of zero, indicating
-  that the count is unknown, so `type.KeyCount` being zero does not imply that
-  `type` is not a key type. In summary, `type.KeyCount` is equivalent to:
-  `type is KeyType ? ((KeyType)type).Count : 0`.
+The `NumberDataViewType` sealed class derives from `PrimitiveDataViewType` and
+exposes single instances of each of the standard numeric types, `Single`,
+`Double`, `SByte`, `Int16`, `Int32`, `Int64`, `Byte`, `UInt16`, `UInt32`,
+`UInt64`, each of which has the representation type from the .NET `System`
+namespace as indicated by the name of the instance.
 
-* The `type.ItemType` property is the item type of the vector type, if `type`
-  is a vector type, and is the same as `type` otherwise. For example, to test
-  for a type that is either `TX` or a vector of `TX`, one can use
-  `type.ItemType.IsText`.
+### `RowIdDataViewType` Sealed Class
 
-* The `type.IsKnownSizeVector` property is equivalent to `type.VectorSize >
-  0`.
-
-* The `type.VectorSize` property is zero if either `type` is not a vector type
-  or if `type` is a vector type of unknown/variable length. Otherwise, it is
-  the length of vectors belonging to the type.
-
-* The `type.ValueCount` property is one if `type` is not a vector type and the
-  same as `type.VectorSize` if `type` is a vector type.
-
-* The `Equals` method returns whether the types are semantically equivalent.
-  Note that for vector types, this requires the dimensionality information to
-  be identical.
-
-* The `SameSizeAndItemType` method is the same as `Equals` for non-vector
-  types. For vector types, it returns true iff the two types have the same
-  item type and have the same `VectorSize` values. For example, for the two
-  vector types `V<R4,3,2>` and `V<R4,6>`, `Equals` returns false but
-  `SameSizeAndItemType` returns true.
-
-### `PrimitiveType` Abstract Class
-
-The `PrimitiveType` abstract class derives from `ColumnType` and is the base
-class of all primitive type implementations.
-
-### `TextType` Sealed Class
-
-The `TextType` sealed class derives from `PrimitiveType` and is a singleton-
-class for the standard text type. The instance is exposed by the static
-`TextType.Instance` property.
-
-### `BooleanType` Sealed Class
-
-The `BooleanType` sealed class derives from `PrimitiveType` and is a
-singleton-class for the standard boolean type. The instance is exposed by the
+The `RowIdDataViewType` sealed class derives from `PrimitiveDataViewType` and
+is a singleton-class for a 16-byte row ID. The instance is exposed by the
 static `BooleanType.Instance` property.
 
-### `NumberType` Sealed Class
+### `DateTimeDataViewType` Sealed Class
 
-The `NumberType` sealed class derives from `PrimitiveType` and exposes single
-instances of each of the standard numeric types, `R4`, `R8`, `I1`, `I2`, `I4`,
-`I8`, `U1`, `U2`, `U4`, `U8`, and `UG`.
+The `DateTimeDataViewType` sealed class derives from `PrimitiveDataViewType`
+and is a singleton-class for the standard datetime type. The instance is
+exposed by the static `DateTimeDataViewType.Instance` property.
 
-### `DateTimeType` Sealed Class
+### `DateTimeOffsetDataViewType` Sealed Class
 
-The `DateTimeType` sealed class derives from `PrimitiveType` and is a
-singleton-class for the standard datetime type. The instance is exposed by the
-static `DateTimeType.Instance` property.
+The `DateTimeOffsetDataViewType` sealed class derives from
+`PrimitiveDataViewType` and is a singleton-class for the standard datetime
+timezone type. The instance is exposed by the static
+`DateTimeOffsetDataViewType.Instance` property.
 
-### `DateTimeZoneType` Sealed Class
+### `TimeSpanDataViewType` Sealed Class
 
-The `DateTimeZoneType` sealed class derives from `PrimitiveType` and is a
-singleton-class for the standard datetime timezone type. The instance is
-exposed by the static `DateTimeType.Instance` property.
+The `TimeSpanDataViewType` sealed class derives from `PrimitiveDataViewType`
+and is a singleton-class for the standard datetime timezone type. The instance
+is exposed by the static `TimeSpanDataViewType.Instance` property.
 
-### `TimeSpanType` Sealed Class
+### `KeyDataViewType` Sealed Class
 
-The `TimeSpanType` sealed class derives from `PrimitiveType` and is a
-singleton-class for the standard datetime timezone type. The instance is
-exposed by the static `TimeSpanType.Instance` property.
-
-### `KeyType` Sealed Class
-
-The `KeyType` sealed class derives from `PrimitiveType` and instances
+The `KeyDataViewType` sealed class derives from `PrimitiveType` and instances
 represent key types.
 
-Notes:
-
-* Two key types are considered equal iff their kind, min, count, and
-  contiguous values are the same.
-
-* The static `IsValidDataKind` method returns true iff kind is `U1`, `U2`,
-  `U4`, or `U8`. These are the only valid underlying data kinds for key types.
-
-* The inherited `KeyCount` property returns the same value as the `Count`
-  property.
+Note that two key types are considered equal iff their kind and count are the
+same, though they may be different instances. (Unlike many of the
+aforementioned types, which are based on singleton instances.)
 
 ### `VectorType` Sealed Class
 
-The `VectorType` sealed class derives from `ColumnType` and instances
+The `VectorType` sealed class derives from `DataViewType` and instances
 represent vector types. The item type is specified as the first parameter to
 each constructor and the dimension information is inferred from the additional
 parameters.
 
-* The `DimCount` property indicates the number of dimensions and the `GetDim`
-  method returns a particular dimension value. All dimension values are non-
-  negative integers. A dimension value of zero indicates unknown (or variable)
-  in that dimension.
+* The `Dimensions` property is an immutable array of `int` indicating the
+  dimensions of the vector. This will be of length at least one. All dimension
+  values are non-negative integers. A dimension value of zero indicates
+  unknown (or variable) in that dimension.
 
 * The `VectorSize` property returns the product of the dimensions.
-
-* The `IsSubtypeOf(VectorType other)` method returns true if this is a subtype
-  of `other`, in the sense that they have the same item type, and either have
-  the same `VectorSize` or `other.VectorSize` is zero.
 
 * The inherited `Equals` method returns true if the two types have the same
   item type and the same dimension information.
 
-* The inherited `SameSizeAndItemType(ColumnType other)` method returns true if
-  `other` is a vector type with the same item type and the same `VectorSize`
-  value.
+* The inherited `SameSizeAndItemType(DataViewType other)` method returns true
+  if `other` is a vector type with the same item type and the same
+  `VectorSize` value.

@@ -1,9 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.ML;
 using Microsoft.ML.Data;
 
-namespace Microsoft.ML.Samples.Dynamic
+namespace Samples.Dynamic
 {
     public sealed class VectorWhitenWithOptions
     {
@@ -15,7 +16,7 @@ namespace Microsoft.ML.Samples.Dynamic
             var ml = new MLContext();
 
             // Get a small dataset as an IEnumerable and convert it to an IDataView.
-            var data = SamplesUtils.DatasetUtils.GetVectorOfNumbersData();
+            var data = Microsoft.ML.SamplesUtils.DatasetUtils.GetVectorOfNumbersData();
             var trainData = ml.Data.LoadFromEnumerable(data);
 
             // Preview of the data.
@@ -39,13 +40,13 @@ namespace Microsoft.ML.Samples.Dynamic
 
 
             // A pipeline to project Features column into white noise vector.
-            var whiteningPipeline = ml.Transforms.VectorWhiten(nameof(SamplesUtils.DatasetUtils.SampleVectorOfNumbersData.Features), kind: Transforms.WhiteningKind.PrincipalComponentAnalysis, rank: 4);
+            var whiteningPipeline = ml.Transforms.VectorWhiten(nameof(Microsoft.ML.SamplesUtils.DatasetUtils.SampleVectorOfNumbersData.Features), kind: Microsoft.ML.Transforms.WhiteningKind.PrincipalComponentAnalysis, rank: 4);
             // The transformed (projected) data.
             var transformedData = whiteningPipeline.Fit(trainData).Transform(trainData);
             // Getting the data of the newly created column, so we can preview it.
-            var whitening = transformedData.GetColumn<VBuffer<float>>(transformedData.Schema[nameof(SamplesUtils.DatasetUtils.SampleVectorOfNumbersData.Features)]);
+            var whitening = transformedData.GetColumn<VBuffer<float>>(transformedData.Schema[nameof(Microsoft.ML.SamplesUtils.DatasetUtils.SampleVectorOfNumbersData.Features)]);
 
-            printHelper(nameof(SamplesUtils.DatasetUtils.SampleVectorOfNumbersData.Features), whitening);
+            printHelper(nameof(Microsoft.ML.SamplesUtils.DatasetUtils.SampleVectorOfNumbersData.Features), whitening);
 
             // Features column obtained post-transformation.
             // -0.979  0.867  1.449  1.236

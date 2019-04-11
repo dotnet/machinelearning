@@ -1,4 +1,4 @@
-maml.exe CV tr=PriorPredictor threads=- dout=%Output% data=%Data% seed=1
+maml.exe CV tr=PriorPredictor threads=- dout=%Output% loader=Text{col=Label:BL:0 col=Features:~} data=%Data% seed=1
 Not adding a normalizer.
 Not training a calibrator because it is not needed.
 Not adding a normalizer.

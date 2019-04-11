@@ -1,10 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.ML;
 using Microsoft.ML.Data;
 using Microsoft.ML.Trainers;
 
-namespace Microsoft.ML.Samples.Dynamic.Trainers.BinaryClassification
+namespace Samples.Dynamic.Trainers.BinaryClassification
 {
     public static class LbfgsLogisticRegressionWithOptions
     {
@@ -57,7 +58,7 @@ namespace Microsoft.ML.Samples.Dynamic.Trainers.BinaryClassification
             
             // Evaluate the overall metrics
             var metrics = mlContext.BinaryClassification.Evaluate(transformedTestData);
-            SamplesUtils.ConsoleUtils.PrintMetrics(metrics);
+            Microsoft.ML.SamplesUtils.ConsoleUtils.PrintMetrics(metrics);
             
             // Expected output:
             //   Accuracy: 0.87

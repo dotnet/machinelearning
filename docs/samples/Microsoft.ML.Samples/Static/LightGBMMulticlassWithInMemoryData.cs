@@ -4,8 +4,9 @@ using Microsoft.ML.Data;
 using Microsoft.ML.Trainers.LightGbm.StaticPipe;
 using Microsoft.ML.SamplesUtils;
 using Microsoft.ML.StaticPipe;
+using Microsoft.ML;
 
-namespace Microsoft.ML.Samples.Static
+namespace Samples.Static
 {
     class LightGBMMulticlassWithInMemoryData
     {
