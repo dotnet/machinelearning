@@ -5,6 +5,7 @@
     <OutputType>Exe</OutputType>
     <SignAssembly>false</SignAssembly>
     <PublicSign>false</PublicSign>
+    <RootNamespace>Samples</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>
