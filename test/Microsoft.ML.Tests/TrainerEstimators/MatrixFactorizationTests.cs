@@ -8,6 +8,7 @@ using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using Microsoft.ML.Data;
+using Microsoft.ML.Internal.CpuMath;
 using Microsoft.ML.RunTests;
 using Microsoft.ML.TestFramework.Attributes;
 using Microsoft.ML.Trainers;
@@ -253,6 +254,29 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                 Assert.True(pred.Score != 0);
         }
 
+        internal class MatrixElementZeroBased256By256
+        {
+            // Matrix column index starts from 0 and is at most _synthesizedMatrixColumnCount.
+            [KeyType(_matrixColumnCount)]
+            public uint MatrixColumnIndex;
+            // Matrix row index starts from 0 and is at most _synthesizedMatrixRowCount.
+            [KeyType(_matrixRowCount)]
+            public uint MatrixRowIndex;
+            // The value at the MatrixColumnIndex-th column and the MatrixRowIndex-th row in the considered matrix.
+            public float Value;
+        }
+
+        internal class MatrixElementZeroBasedForScore256By256
+        {
+            // Matrix column index starts from 0 and is at most _synthesizedMatrixColumnCount.
+            [KeyType(_matrixColumnCount)]
+            public uint MatrixColumnIndex;
+            // Matrix row index starts from 0 and is at most _synthesizedMatrixRowCount.
+            [KeyType(_matrixRowCount)]
+            public uint MatrixRowIndex;
+            public float Score;
+        }
+
         internal class MatrixElementZeroBased
         {
             // Matrix column index starts from 0 and is at most _synthesizedMatrixColumnCount.
@@ -268,11 +292,9 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         internal class MatrixElementZeroBasedForScore
         {
             // Matrix column index starts from 0 and is at most _synthesizedMatrixColumnCount.
-            // Contieuous=true means that all values from 0 to _synthesizedMatrixColumnCount are allowed keys.
             [KeyType(_synthesizedMatrixColumnCount)]
             public uint MatrixColumnIndex;
             // Matrix row index starts from 0 and is at most _synthesizedMatrixRowCount.
-            // Contieuous=true means that all values from 0 to _synthesizedMatrixRowCount are allowed keys.
             [KeyType(_synthesizedMatrixRowCount)]
             public uint MatrixRowIndex;
             public float Score;
@@ -602,6 +624,98 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             // to 0.15 (specified by s.C = 0.15 in the trainer) than positive example's score.
             CompareNumbersWithTolerance(0.05511549, testResults[1].Score, digitsOfPrecision: 5);
             CompareNumbersWithTolerance(0.00316973357, testResults[2].Score, digitsOfPrecision: 5);
+        }
+
+        const int _matrixColumnCount = 256;
+        const int _matrixRowCount = 256;
+
+        [MatrixFactorizationFact]
+        public void InspectMatrixFactorizationModel()
+        {
+            // Create an in-memory matrix as a list of tuples (column index, row index, value).
+            // Iterators i and j are column and row indexes, respectively.
+            var dataMatrix = new List<MatrixElementZeroBased256By256>();
+            for (uint i = 0; i < _matrixColumnCount; ++i)
+                for (uint j = 0; j < _matrixRowCount; ++j)
+                    dataMatrix.Add(new MatrixElementZeroBased256By256() { MatrixColumnIndex = i, MatrixRowIndex = j, Value = (i + j) % 5 });
+
+            // Convert the in-memory matrix into an IDataView so that ML.NET components can consume it.
+            var dataView = ML.Data.LoadFromEnumerable(dataMatrix);
+
+            // Create a matrix factorization trainer which may consume "Value" as the training label, "MatrixColumnIndex" as the
+            // matrix's column index, and "MatrixRowIndex" as the matrix's row index.
+            var mlContext = new MLContext(seed: 1);
+
+            var options = new MatrixFactorizationTrainer.Options
+            {
+                MatrixColumnIndexColumnName = nameof(MatrixElement.MatrixColumnIndex),
+                MatrixRowIndexColumnName = nameof(MatrixElement.MatrixRowIndex),
+                LabelColumnName = nameof(MatrixElement.Value),
+                NumberOfIterations = 100,
+                NumberOfThreads = 1, // To eliminate randomness, # of threads must be 1.
+                ApproximationRank = 64,
+                LearningRate = 0.5,
+            };
+
+            var pipeline = mlContext.Recommendation().Trainers.MatrixFactorization(options);
+
+            // Train a matrix factorization model.
+            var model = pipeline.Fit(dataView);
+
+            // Check if the expected types in the trained model are expected.
+            Assert.True(model.MatrixColumnIndexColumnName == nameof(MatrixElementZeroBased256By256.MatrixColumnIndex));
+            Assert.True(model.MatrixRowIndexColumnName == nameof(MatrixElementZeroBased256By256.MatrixRowIndex));
+            var matColKeyType = model.MatrixColumnIndexColumnType as KeyDataViewType;
+            Assert.NotNull(matColKeyType);
+            var matRowKeyType = model.MatrixRowIndexColumnType as KeyDataViewType;
+            Assert.NotNull(matRowKeyType);
+            Assert.True(matColKeyType.Count == _matrixColumnCount);
+            Assert.True(matRowKeyType.Count == _matrixRowCount);
+
+            // Create a test set with assigning scores. It stands for the 2nd column of the training matrix.
+            var testMatrix = new List<MatrixElementZeroBasedForScore256By256>();
+            for (/* column index */ uint i = 1; i < 2; ++i)
+                for (/* row index */ uint j = 0; j < _matrixRowCount; ++j)
+                    testMatrix.Add(new MatrixElementZeroBasedForScore256By256() { MatrixColumnIndex = i, MatrixRowIndex = j, Score = 0 });
+
+            // Load test set as IDataView.
+            var testData = ML.Data.LoadFromEnumerable(testMatrix);
+
+            // Apply the trained model to the training set
+            var transformedTestData = model.Transform(testData);
+
+            // Load back predictions on the 2nd column as IEnumerable<MatrixElementZeroBasedForScore>.
+            var predictions = mlContext.Data.CreateEnumerable<MatrixElementZeroBasedForScore256By256>(transformedTestData, false).ToList();
+
+            // Inspect the trained model.
+            int m = model.Model.NumberOfRows;
+            int n = model.Model.NumberOfColumns;
+            int k = model.Model.ApproximationRank;
+
+            // The training matrix is approximated by leftFactorMatrix * rightFactorMatrix^T, where "^T" means matrix transpose.
+            // Thus, to compute the approximation of the 2nd column, we only need the whole leftFactorMatrix and the 2nd row in rightFactorMatrix.
+
+            // First copy the trained left factor matrix to an aligned for applying SSE code.
+            var leftFactorMatrix = model.Model.LeftFactorMatrix;
+            var leftFactorMatrixAligned = new AlignedArray(m * k, 64);
+            for (int i = 0; i < leftFactorMatrix.Count; ++i)
+                leftFactorMatrixAligned[i] = leftFactorMatrix[i];
+
+            // Second copy the trained right factor row to a k-by-1 aligned vector for applying SSE code.
+            var rightFactorVectorAligned = new AlignedArray(k, 64);
+            for (int i = 0; i < k; ++i)
+                rightFactorVectorAligned[i] = model.Model.RightFactorMatrix[1 * k + i]; // value at the i-th row and j-th column is indexed by i * k + j.
+
+            // Prepare buffer to store result. The result will be a matrix-vector product, where the matrix is leftFactorMatrix
+            // and the vector is the 2nd row of rightFactorMatrix.
+            var valuesAtSecondColumn = new AlignedArray(m, 64);
+
+            // Compute leftFactorMatrixAligned (m-by-k) * rightFactorVectorAligned (k-by-1).
+            CpuMathUtils.MatrixTimesSource(false, leftFactorMatrixAligned, rightFactorVectorAligned, valuesAtSecondColumn, m);
+
+            // Check if results computed by SSE code and MF predictor are the same.
+            for (int i = 0; i < predictions.Count(); ++i)
+                Assert.Equal(predictions[i].Score, valuesAtSecondColumn[i], 3);
         }
     }
 }
