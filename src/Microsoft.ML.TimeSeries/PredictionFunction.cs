@@ -65,6 +65,14 @@ namespace Microsoft.ML.Transforms.TimeSeries
         /// </summary>
         /// <param name="env">Usually <see cref="MLContext"/>.</param>
         /// <param name="modelPath">Path to file on disk where the updated model needs to be saved.</param>
+        /// <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        /// This is an example for checkpointing time series that detects change point using Singular Spectrum Analysis (SSA) model.
+        /// [!code-csharp[MF](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/TimeSeries/DetectChangePointBySsa.cs)]
+        /// ]]>
+        /// </format>
+        /// </example>
         public void CheckPoint(IHostEnvironment env, string modelPath)
         {
             using (var file = File.Create(modelPath))
@@ -261,8 +269,8 @@ namespace Microsoft.ML.Transforms.TimeSeries
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
-        /// [!code-csharp[MF](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/IidSpikeDetectorTransform.cs)]
-        /// [!code-csharp[MF](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/IidChangePointDetectorTransform.cs)]
+        /// This is an example for detecting change point using Singular Spectrum Analysis (SSA) model.
+        /// [!code-csharp[MF](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/TimeSeries/DetectChangePointBySsa.cs)]
         /// ]]>
         /// </format>
         /// </example>
