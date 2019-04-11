@@ -6,7 +6,7 @@ using Microsoft.ML.Data;
 
 namespace Samples.Dynamic.Trainers.BinaryClassification
 {
-    public static class LbfgsLogisticRegression
+    public static class Prior
     {
         public static void Example()
         {
@@ -22,7 +22,7 @@ namespace Samples.Dynamic.Trainers.BinaryClassification
             var trainingData = mlContext.Data.LoadFromEnumerable(dataPoints);
 
             // Define the trainer.
-            var pipeline = mlContext.BinaryClassification.Trainers.LbfgsLogisticRegression();
+            var pipeline = mlContext.BinaryClassification.Trainers.Prior();
 
             // Train the model.
             var model = pipeline.Fit(trainingData);
@@ -41,10 +41,10 @@ namespace Samples.Dynamic.Trainers.BinaryClassification
                 Console.WriteLine($"Label: {p.Label}, Prediction: {p.PredictedLabel}");
 
             // Expected output:
-            //   Label: True, Prediction: True
-            //   Label: False, Prediction: True
-            //   Label: True, Prediction: True
-            //   Label: True, Prediction: True
+            //   Label: True, Prediction: False
+            //   Label: False, Prediction: False
+            //   Label: True, Prediction: False
+            //   Label: True, Prediction: False
             //   Label: False, Prediction: False
             
             // Evaluate the overall metrics
@@ -58,16 +58,13 @@ namespace Samples.Dynamic.Trainers.BinaryClassification
             Console.WriteLine($"Positive Recall: {metrics.PositiveRecall:F2}");
             
             // Expected output:
-            //   Accuracy: 0.88
-            //   AUC: 0.96
-            //   F1 Score: 0.87
-            //   Negative Precision: 0.90
-            //   Negative Recall: 0.87
-            //   Positive Precision: 0.86
-            //   Positive Recall: 0.89
-            //   Log Loss: 0.38
-            //   Log Loss Reduction: 0.62
-            //   Entropy: 1.00
+            //   Accuracy: 0.52
+            //   AUC: 0.50
+            //   F1 Score: NaN
+            //   Negative Precision: 0.52
+            //   Negative Recall: 1.00
+            //   Positive Precision: 0.00
+            //   Positive Recall: 0.00
         }
 
         private static IEnumerable<DataPoint> GenerateRandomDataPoints(int count, int seed=0)
@@ -82,7 +79,7 @@ namespace Samples.Dynamic.Trainers.BinaryClassification
                     Label = label,
                     // Create random features that are correlated with the label.
                     // For data points with false label, the feature values are slightly increased by adding a constant.
-                    Features = Enumerable.Repeat(label, 50).Select(x => x ? randomFloat() : randomFloat() + 0.1f).ToArray()
+                    Features = Enumerable.Repeat(label, 50).Select(x => x ? randomFloat() : randomFloat() + 0.03f).ToArray()
                 };
             }
         }

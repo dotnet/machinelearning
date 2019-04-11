@@ -9,6 +9,7 @@ string TrainerOptions = @"LbfgsLogisticRegressionBinaryTrainer.Options()
                 L2Regularization = 0.01f
             }";
 bool IsCalibrated = true;
+bool CacheData = false;
 
 string DataSepValue = "0.1f";
 string OptionsInclude = "using Microsoft.ML.Trainers;";

@@ -3,10 +3,11 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.ML;
 using Microsoft.ML.Data;
+using Microsoft.ML.Trainers;
 
 namespace Samples.Dynamic.Trainers.BinaryClassification
 {
-    public static class LbfgsLogisticRegression
+    public static class SdcaNonCalibratedWithOptions
     {
         public static void Example()
         {
@@ -21,8 +22,27 @@ namespace Samples.Dynamic.Trainers.BinaryClassification
             // Convert the list of data points to an IDataView object, which is consumable by ML.NET API.
             var trainingData = mlContext.Data.LoadFromEnumerable(dataPoints);
 
+            // ML.NET doesn't cache data set by default. Therefore, if one reads a data set from a file and accesses it many times,
+			// it can be slow due to expensive featurization and disk operations. When the considered data can fit into memory,
+			// a solution is to cache the data in memory. Caching is especially helpful when working with iterative algorithms 
+			// which needs many data passes.
+			trainingData = mlContext.Data.Cache(trainingData);
+
+            // Define trainer options.
+            var options = new SdcaNonCalibratedBinaryTrainer.Options()
+            {
+                // Specify loss function.
+                LossFunction = new HingeLoss(),
+                // Make the convergence tolerance tighter.
+                ConvergenceTolerance = 0.05f,
+                // Increase the maximum number of passes over training data.
+                MaximumNumberOfIterations = 30,
+                // Give the instances of the positive class slightly more weight.
+                PositiveInstanceWeight = 1.2f,
+            };
+
             // Define the trainer.
-            var pipeline = mlContext.BinaryClassification.Trainers.LbfgsLogisticRegression();
+            var pipeline = mlContext.BinaryClassification.Trainers.SdcaNonCalibrated(options);
 
             // Train the model.
             var model = pipeline.Fit(trainingData);
@@ -41,14 +61,14 @@ namespace Samples.Dynamic.Trainers.BinaryClassification
                 Console.WriteLine($"Label: {p.Label}, Prediction: {p.PredictedLabel}");
 
             // Expected output:
+            //   Label: True, Prediction: False
+            //   Label: False, Prediction: False
+            //   Label: True, Prediction: True
             //   Label: True, Prediction: True
             //   Label: False, Prediction: True
-            //   Label: True, Prediction: True
-            //   Label: True, Prediction: True
-            //   Label: False, Prediction: False
             
             // Evaluate the overall metrics
-            var metrics = mlContext.BinaryClassification.Evaluate(transformedTestData);
+            var metrics = mlContext.BinaryClassification.EvaluateNonCalibrated(transformedTestData);
             Console.WriteLine($"Accuracy: {metrics.Accuracy:F2}");
             Console.WriteLine($"AUC: {metrics.AreaUnderRocCurve:F2}");
             Console.WriteLine($"F1 Score: {metrics.F1Score:F2}");
@@ -58,16 +78,13 @@ namespace Samples.Dynamic.Trainers.BinaryClassification
             Console.WriteLine($"Positive Recall: {metrics.PositiveRecall:F2}");
             
             // Expected output:
-            //   Accuracy: 0.88
-            //   AUC: 0.96
-            //   F1 Score: 0.87
-            //   Negative Precision: 0.90
-            //   Negative Recall: 0.87
-            //   Positive Precision: 0.86
-            //   Positive Recall: 0.89
-            //   Log Loss: 0.38
-            //   Log Loss Reduction: 0.62
-            //   Entropy: 1.00
+            //   Accuracy: 0.61
+            //   AUC: 0.67
+            //   F1 Score: 0.65
+            //   Negative Precision: 0.69
+            //   Negative Recall: 0.45
+            //   Positive Precision: 0.56
+            //   Positive Recall: 0.77
         }
 
         private static IEnumerable<DataPoint> GenerateRandomDataPoints(int count, int seed=0)
@@ -82,7 +99,7 @@ namespace Samples.Dynamic.Trainers.BinaryClassification
                     Label = label,
                     // Create random features that are correlated with the label.
                     // For data points with false label, the feature values are slightly increased by adding a constant.
-                    Features = Enumerable.Repeat(label, 50).Select(x => x ? randomFloat() : randomFloat() + 0.1f).ToArray()
+                    Features = Enumerable.Repeat(label, 50).Select(x => x ? randomFloat() : randomFloat() + 0.03f).ToArray()
                 };
             }
         }

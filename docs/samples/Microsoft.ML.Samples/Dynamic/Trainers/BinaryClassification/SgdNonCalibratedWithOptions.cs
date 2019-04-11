@@ -3,10 +3,11 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.ML;
 using Microsoft.ML.Data;
+using Microsoft.ML.Trainers;
 
 namespace Samples.Dynamic.Trainers.BinaryClassification
 {
-    public static class LbfgsLogisticRegression
+    public static class SgdNonCalibratedWithOptions
     {
         public static void Example()
         {
@@ -21,8 +22,16 @@ namespace Samples.Dynamic.Trainers.BinaryClassification
             // Convert the list of data points to an IDataView object, which is consumable by ML.NET API.
             var trainingData = mlContext.Data.LoadFromEnumerable(dataPoints);
 
+            // Define trainer options.
+            var options = new SgdNonCalibratedTrainer.Options
+            {
+                LearningRate = 0.01,
+                NumberOfIterations = 10,
+                L2Regularization = 1e-7f
+            };
+
             // Define the trainer.
-            var pipeline = mlContext.BinaryClassification.Trainers.LbfgsLogisticRegression();
+            var pipeline = mlContext.BinaryClassification.Trainers.SgdNonCalibrated(options);
 
             // Train the model.
             var model = pipeline.Fit(trainingData);
@@ -41,14 +50,14 @@ namespace Samples.Dynamic.Trainers.BinaryClassification
                 Console.WriteLine($"Label: {p.Label}, Prediction: {p.PredictedLabel}");
 
             // Expected output:
-            //   Label: True, Prediction: True
-            //   Label: False, Prediction: True
+            //   Label: True, Prediction: False
+            //   Label: False, Prediction: False
             //   Label: True, Prediction: True
             //   Label: True, Prediction: True
             //   Label: False, Prediction: False
             
             // Evaluate the overall metrics
-            var metrics = mlContext.BinaryClassification.Evaluate(transformedTestData);
+            var metrics = mlContext.BinaryClassification.EvaluateNonCalibrated(transformedTestData);
             Console.WriteLine($"Accuracy: {metrics.Accuracy:F2}");
             Console.WriteLine($"AUC: {metrics.AreaUnderRocCurve:F2}");
             Console.WriteLine($"F1 Score: {metrics.F1Score:F2}");
@@ -58,16 +67,13 @@ namespace Samples.Dynamic.Trainers.BinaryClassification
             Console.WriteLine($"Positive Recall: {metrics.PositiveRecall:F2}");
             
             // Expected output:
-            //   Accuracy: 0.88
-            //   AUC: 0.96
-            //   F1 Score: 0.87
-            //   Negative Precision: 0.90
-            //   Negative Recall: 0.87
-            //   Positive Precision: 0.86
-            //   Positive Recall: 0.89
-            //   Log Loss: 0.38
-            //   Log Loss Reduction: 0.62
-            //   Entropy: 1.00
+            //   Accuracy: 0.59
+            //   AUC: 0.61
+            //   F1 Score: 0.41
+            //   Negative Precision: 0.57
+            //   Negative Recall: 0.85
+            //   Positive Precision: 0.64
+            //   Positive Recall: 0.30
         }
 
         private static IEnumerable<DataPoint> GenerateRandomDataPoints(int count, int seed=0)
@@ -82,7 +88,7 @@ namespace Samples.Dynamic.Trainers.BinaryClassification
                     Label = label,
                     // Create random features that are correlated with the label.
                     // For data points with false label, the feature values are slightly increased by adding a constant.
-                    Features = Enumerable.Repeat(label, 50).Select(x => x ? randomFloat() : randomFloat() + 0.1f).ToArray()
+                    Features = Enumerable.Repeat(label, 50).Select(x => x ? randomFloat() : randomFloat() + 0.03f).ToArray()
                 };
             }
         }

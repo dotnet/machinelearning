@@ -1,0 +1,36 @@
+﻿<#@ include file="BinaryClassification.ttinclude"#>
+<#+
+string ClassName="AveragedPerceptronWithOptions";
+string Trainer = "AveragedPerceptron";
+bool IsCalibrated = true;
+
+string DataSepValue = "0.03f";
+string OptionsInclude = "using Microsoft.ML.Trainers;";
+string Comments= "";
+bool CacheData = false;
+
+string TrainerOptions = @"AveragedPerceptronTrainer.Options
+            {
+                LossFunction = new SmoothedHingeLoss(),
+                LearningRate = 0.1f,
+                LazyUpdate = false,
+                RecencyGain = 0.1f,
+                NumberOfIterations = 10
+            }";
+
+string ExpectedOutputPerInstance= @"// Expected output:
+            //   Label: True, Prediction: True
+            //   Label: False, Prediction: False
+            //   Label: True, Prediction: True
+            //   Label: True, Prediction: True
+            //   Label: False, Prediction: False";
+
+string ExpectedOutput = @"// Expected output:
+            //   Accuracy: 0.62
+            //   AUC: 0.66
+            //   F1 Score: 0.54
+            //   Negative Precision: 0.61
+            //   Negative Recall: 0.76
+            //   Positive Precision: 0.64
+            //   Positive Recall: 0.47";
+#>

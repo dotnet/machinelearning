@@ -1,12 +1,13 @@
-﻿using Microsoft.ML;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using Microsoft.ML;
+using Microsoft.ML.Data;
 
 namespace Samples.Dynamic.Trainers.BinaryClassification
 {
     public static class AveragedPerceptron
     {
-        // In this examples we will use the adult income dataset. The goal is to predict
-        // if a person's income is above $50K or not, based on demographic information about that person.
-        // For more details about this dataset, please see https://archive.ics.uci.edu/ml/datasets/adult.
         public static void Example()
         {
             // Create a new context for ML.NET operations. It can be used for exception tracking and logging, 
@@ -14,31 +15,90 @@ namespace Samples.Dynamic.Trainers.BinaryClassification
             // Setting the seed to a fixed number in this example to make outputs deterministic.
             var mlContext = new MLContext(seed: 0);
 
-            // Download and featurize the dataset.
-            var data = Microsoft.ML.SamplesUtils.DatasetUtils.LoadFeaturizedAdultDataset(mlContext);
+            // Create a list of training data points.
+            var dataPoints = GenerateRandomDataPoints(1000);
 
-            // Leave out 10% of data for testing.
-            var trainTestData = mlContext.Data.TrainTestSplit(data, testFraction: 0.1);
+            // Convert the list of data points to an IDataView object, which is consumable by ML.NET API.
+            var trainingData = mlContext.Data.LoadFromEnumerable(dataPoints);
 
-            // Create data training pipeline.
-            var pipeline = mlContext.BinaryClassification.Trainers.AveragedPerceptron(numberOfIterations: 10);
+            // Define the trainer.
+            var pipeline = mlContext.BinaryClassification.Trainers.AveragedPerceptron();
 
-            // Fit this pipeline to the training data.
-            var model = pipeline.Fit(trainTestData.TrainSet);
+            // Train the model.
+            var model = pipeline.Fit(trainingData);
 
-            // Evaluate how the model is doing on the test data.
-            var dataWithPredictions = model.Transform(trainTestData.TestSet);
-            var metrics = mlContext.BinaryClassification.EvaluateNonCalibrated(dataWithPredictions);
-            Microsoft.ML.SamplesUtils.ConsoleUtils.PrintMetrics(metrics);
+            // Create testing data. Use different random seed to make it different from training data.
+            var testData = mlContext.Data.LoadFromEnumerable(GenerateRandomDataPoints(500, seed:123));
+
+            // Run the model on test data set.
+            var transformedTestData = model.Transform(testData);
+
+            // Convert IDataView object to a list.
+            var predictions = mlContext.Data.CreateEnumerable<Prediction>(transformedTestData, reuseRowObject: false).ToList();
+
+            // Look at 5 predictions
+            foreach (var p in predictions.Take(5))
+                Console.WriteLine($"Label: {p.Label}, Prediction: {p.PredictedLabel}");
 
             // Expected output:
-            //   Accuracy: 0.86
-            //   AUC: 0.91
-            //   F1 Score: 0.68
-            //   Negative Precision: 0.90
-            //   Negative Recall: 0.91
-            //   Positive Precision: 0.70
-            //   Positive Recall: 0.66
+            //   Label: True, Prediction: True
+            //   Label: False, Prediction: False
+            //   Label: True, Prediction: True
+            //   Label: True, Prediction: False
+            //   Label: False, Prediction: True
+            
+            // Evaluate the overall metrics
+            var metrics = mlContext.BinaryClassification.Evaluate(transformedTestData);
+            Console.WriteLine($"Accuracy: {metrics.Accuracy:F2}");
+            Console.WriteLine($"AUC: {metrics.AreaUnderRocCurve:F2}");
+            Console.WriteLine($"F1 Score: {metrics.F1Score:F2}");
+            Console.WriteLine($"Negative Precision: {metrics.NegativePrecision:F2}");
+            Console.WriteLine($"Negative Recall: {metrics.NegativeRecall:F2}");
+            Console.WriteLine($"Positive Precision: {metrics.PositivePrecision:F2}");
+            Console.WriteLine($"Positive Recall: {metrics.PositiveRecall:F2}");
+            
+            // Expected output:
+            //   Accuracy: 0.55
+            //   AUC: 0.58
+            //   F1 Score: 0.53
+            //   Negative Precision: 0.57
+            //   Negative Recall: 0.56
+            //   Positive Precision: 0.53
+            //   Positive Recall: 0.54
+        }
+
+        private static IEnumerable<DataPoint> GenerateRandomDataPoints(int count, int seed=0)
+        {
+            var random = new Random(seed);
+            float randomFloat() => (float)random.NextDouble();
+            for (int i = 0; i < count; i++)
+            {
+                var label = randomFloat() > 0.5f;
+                yield return new DataPoint
+                {
+                    Label = label,
+                    // Create random features that are correlated with the label.
+                    // For data points with false label, the feature values are slightly increased by adding a constant.
+                    Features = Enumerable.Repeat(label, 50).Select(x => x ? randomFloat() : randomFloat() + 0.03f).ToArray()
+                };
+            }
+        }
+
+        // Example with label and 50 feature values. A data set is a collection of such examples.
+        private class DataPoint
+        {
+            public bool Label { get; set; }
+            [VectorType(50)]
+            public float[] Features { get; set; }
+        }
+
+        // Class used to capture predictions.
+        private class Prediction
+        {
+            // Original label.
+            public bool Label { get; set; }
+            // Predicted label from the trainer.
+            public bool PredictedLabel { get; set; }
         }
     }
 }

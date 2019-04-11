@@ -1,0 +1,36 @@
+﻿<#@ include file="BinaryClassification.ttinclude"#>
+<#+
+string ClassName = "SymbolicSgdLogisticRegressionWithOptions";
+string Trainer = "SymbolicSgdLogisticRegression";
+bool IsCalibrated = true;
+bool CacheData = false;
+
+string DataSepValue = "0.03f";
+string OptionsInclude = "using Microsoft.ML.Trainers;";
+string Comments = @"
+        // This example requires installation of additional NuGet package
+        // <a href=""https://www.nuget.org/packages/Microsoft.ML.Mkl.Components/"">Microsoft.ML.Mkl.Components</a>.";
+
+string TrainerOptions = @"SymbolicSgdLogisticRegressionBinaryTrainer.Options()
+            {
+                LearningRate = 0.2f,
+                NumberOfIterations = 10,
+                NumberOfThreads = 1,
+            }";
+
+string ExpectedOutputPerInstance = @"// Expected output:
+            //   Label: True, Prediction: False
+            //   Label: False, Prediction: False
+            //   Label: True, Prediction: True
+            //   Label: True, Prediction: True
+            //   Label: False, Prediction: False";
+
+string ExpectedOutput = @"// Expected output:
+            //   Accuracy: 0.53
+            //   AUC: 0.55
+            //   F1 Score: 0.51
+            //   Negative Precision: 0.55
+            //   Negative Recall: 0.55
+            //   Positive Precision: 0.51
+            //   Positive Recall: 0.51";
+#>

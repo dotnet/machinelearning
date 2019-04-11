@@ -4,6 +4,7 @@ string ClassName="LbfgsLogisticRegression";
 string Trainer = "LbfgsLogisticRegression";
 string TrainerOptions = null;
 bool IsCalibrated = true;
+bool CacheData = false;
 
 string DataSepValue = "0.1f";
 string OptionsInclude = "";
