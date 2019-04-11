@@ -9,8 +9,8 @@ namespace Samples.Dynamic.Trainers.Recommendation
 {
     public static class OneClassMatrixFactorizationWithOptions
     {
-        // This example shows the use of ML.NET's one-class matrix factorization module which implements
-        // Algorithm 1 in a <a href="https://www.csie.ntu.edu.tw/~cjlin/papers/one-class-mf/biased-mf-sdm-with-supp.pdf">paper</a>.
+        // This example shows the use of ML.NET's one-class matrix factorization module which implements a coordinate descent method
+        // described in Algorithm 1 in a <a href="https://www.csie.ntu.edu.tw/~cjlin/papers/one-class-mf/biased-mf-sdm-with-supp.pdf">paper</a>.
         // See page 28 in of <a href="https://www.csie.ntu.edu.tw/~cjlin/talks/facebook.pdf">slides</a> for a brief introduction to
         // one-class matrix factorization.
         // In this example we will create in-memory data and then use it to train a one-class matrix factorization model.
@@ -29,7 +29,7 @@ namespace Samples.Dynamic.Trainers.Recommendation
             // Convert the in-memory matrix into an IDataView so that ML.NET components can consume it.
             var dataView = mlContext.Data.LoadFromEnumerable(data);
 
-            // Create a matrix factorization trainer which may consume "Value" as the training label, "MatrixColumnIndex" as the
+            // Create a matrix factorization trainer which takes "Value" as the training label, "MatrixColumnIndex" as the
             // matrix's column index, and "MatrixRowIndex" as the matrix's row index. Here nameof(...) is used to extract field
             // names' in MatrixElement class.
             var options = new MatrixFactorizationTrainer.Options
@@ -41,9 +41,12 @@ namespace Samples.Dynamic.Trainers.Recommendation
                 NumberOfThreads = 8,
                 ApproximationRank = 32,
                 Alpha = 1,
-                // The desired of unobserved values.
+                // The desired values of matrix elements not specified in the training set.
+                // If the training set doesn't tell the value at the u-th row and v-th column,
+                // its desired value would be set 0.15. In other words, this parameter determines
+                // the value of all missing matrix elements.
                 C = 0.15,
-                // To enable one-class matrix factorization, the following line is required.
+                // This argument enables one-class matrix factorization.
                 LossFunction = MatrixFactorizationTrainer.LossFunctionType.SquareLossOneClass
             };
 
@@ -58,7 +61,8 @@ namespace Samples.Dynamic.Trainers.Recommendation
             var results = mlContext.Data.CreateEnumerable<MatrixElement>(prediction, false).ToList();
             // Feed the test data into the model and then iterate through a few predictions.
             foreach (var pred in results.Take(15))
-                Console.WriteLine($"Predicted value at row {pred.MatrixRowIndex - 1} and column {pred.MatrixColumnIndex - 1} is {pred.Score} and its expected value is {pred.Value}.");
+                Console.WriteLine($"Predicted value at row {pred.MatrixRowIndex - 1} and column {pred.MatrixColumnIndex - 1} is " +
+                    $"{pred.Score} and its expected value is {pred.Value}.");
 
             // Expected output similar to:
             // Predicted value at row 0 and column 0 is 0.9873335 and its expected value is 1.
@@ -79,12 +83,13 @@ namespace Samples.Dynamic.Trainers.Recommendation
             //
             // Note: use the advanced options constructor to set the number of threads to 1 for a deterministic behavior.
 
-            // Two columns with highest predicted score to the 2nd row (indexed by 1). If we view row index as user ID and column as game ID,
-            // the following list contains the games recommended by the trained model. Note that sometime, you may want to exclude training
-            // data from your predicted results because those games were already purchased.
+            // Assume that row index is user ID and column index game ID, the following list contains the games recommended by the trained model.
+            // Note that sometime, you may want to exclude training data from your predicted results because those would represent games that
+            // were already purchased.
+            // The variable topColumns stores two matrix elements with the highest predicted scores on the 1st row.
             var topColumns = results.Where(element => element.MatrixRowIndex == 1).OrderByDescending(element => element.Score).Take(2);
 
-            Console.WriteLine("Top 2 predictions at the 1nd row:");
+            Console.WriteLine("Top 2 predictions on the 1st row:");
             foreach (var top in topColumns)
                 Console.WriteLine($"Predicted value at row {top.MatrixRowIndex - 1} and column {top.MatrixColumnIndex - 1} is {top.Score} and its expected value is {top.Value}.");
 
