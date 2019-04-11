@@ -16,38 +16,43 @@ namespace Samples.Dynamic.Trainers.BinaryClassification
             // as a catalog of available operations and as the source of randomness.
             var mlContext = new MLContext();
 
-            // Create training and validation datasets.
+            // Create the dataset.
             var samples = GenerateData();
 
             // Convert the dataset to an IDataView.
             var data = mlContext.Data.LoadFromEnumerable(samples);
 
-            // Create train and set set.
+            // Create training and validation datasets.
             var dataSets = mlContext.Data.TrainTestSplit(data);
             var trainSet = dataSets.TrainSet;
             var validSet = dataSets.TestSet;
 
             // Create a GAM trainer.
-            // Use a small number of bins for this example.
+            // Use a small number of bins for this example. The setting below means for each feature, 
+            // we divide its range into 16 discrete regions for the training process. Note that these
+            // regions are not evenly spaced, and that the final model may contain fewer bins, as
+            // neighboring bins with identical values will be combined. In general, we recommend using
+            // at least the default number of bins, as a small number of bins limits the capacity of
+            // the model.
             var trainer = mlContext.BinaryClassification.Trainers.Gam(
                 new GamBinaryTrainer.Options { MaximumBinCountPerFeature = 16 });
 
-            // Fit the model to the data using a validation set.
-            // GAM will use a technique called validation pruning to tune the model after training
-            // to improve generalization.
+            // Fit the model using both of training and validation sets. GAM can use a technique called 
+            // pruning to tune the model to the validation set after training to improve generalization.
             var model = trainer.Fit(trainSet, validSet);
 
             // Extract the model parameters.
             var gam = model.Model.SubModel;
 
-            // Now investigate the bias and shape functions of the GAM model.
-            // The bias represents the average prediction for the training data.
+            // Now we can inspect the parameters of the Generalized Additive Model to understand the fit
+            // and potentially learn about our dataset.
+            // First, we will look at the bias; the bias represents the average prediction for the training data.
             Console.WriteLine($"Average prediction: {gam.Bias:0.00}");
 
-            // Let's take a look at the features that the model built. Similar to a linear model, we have
-            // one response per feature. Unlike a linear model, this response is a function instead of a line.
-            // Each feature response represents the deviation from the average prediction as a function of the 
-            // feature value.
+            // Now look at the shape functions that the model has learned. Similar to a linear model, we have
+            // one response per feature, and they are independent. Unlike a linear model, this response is a 
+            // generic function instead of a line. Because we have included a bias term, each feature response 
+            // represents the deviation from the average prediction as a function of the feature value.
             for (int i = 0; i < gam.NumberOfShapeFunctions; i++)
             {
                 // Break a line.
@@ -55,11 +60,12 @@ namespace Samples.Dynamic.Trainers.BinaryClassification
 
                 // Get the bin upper bounds for the feature.
                 var binUpperBounds = gam.GetBinUpperBounds(i);
-                // Get the bin effects; these are the effect size for each bin.
+
+                // Get the bin effects; these are the function values for each bin.
                 var binEffects = gam.GetBinEffects(i);
 
                 // Now, write the function to the console. The function is a set of bins, and the corresponding
-                // function values. You can think of GAMs as building a bar-chart lookup table.
+                // function values. You can think of GAMs as building a bar-chart or lookup table for each feature.
                 Console.WriteLine($"Feature{i}");
                 for (int j = 0; j < binUpperBounds.Count; j++)
                     Console.WriteLine($"x < {binUpperBounds[j]:0.00} => {binEffects[j]:0.000}");
