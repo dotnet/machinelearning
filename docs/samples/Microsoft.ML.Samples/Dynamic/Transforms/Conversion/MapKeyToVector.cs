@@ -67,8 +67,8 @@ namespace Samples.Dynamic
 
         private class TransformedData : DataPoint
         {
-            public uint[] TimeframeVector { get; set; }
-            public uint[] CategoryVector { get; set; }
+            public float[] TimeframeVector { get; set; }
+            public float[] CategoryVector { get; set; }
         }
     }
 }

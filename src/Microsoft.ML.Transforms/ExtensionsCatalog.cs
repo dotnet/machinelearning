@@ -24,7 +24,7 @@ namespace Microsoft.ML
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
-        ///  [!code-csharp[RPCA](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/IndicateMissingValues.cs)]
+        ///  [!code-csharp[MissingValueIndicator](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/IndicateMissingValues.cs)]
         /// ]]></format>
         /// </example>
         public static MissingValueIndicatorEstimator IndicateMissingValues(this TransformsCatalog catalog,
@@ -38,6 +38,12 @@ namespace Microsoft.ML
         /// </summary>
         /// <param name="catalog">The transform extensions' catalog.</param>
         /// <param name="columns">Specifies the names of the columns on which to apply the transformation.</param>
+        /// <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        ///  [!code-csharp[MissingValueIndicator](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/IndicateMissingValuesMultiColumn.cs)]
+        /// ]]></format>
+        /// </example>
         public static MissingValueIndicatorEstimator IndicateMissingValues(this TransformsCatalog catalog, InputOutputColumnPair[] columns)
         {
             var env = CatalogUtils.GetEnvironment(catalog);
@@ -63,7 +69,7 @@ namespace Microsoft.ML
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
-        ///  [!code-csharp[RPCA](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/ReplaceMissingValues.cs)]
+        ///  [!code-csharp[MissingValuesReplace](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/ReplaceMissingValues.cs)]
         /// ]]></format>
         /// </example>
         public static MissingValueReplacingEstimator ReplaceMissingValues(this TransformsCatalog catalog,
@@ -83,6 +89,12 @@ namespace Microsoft.ML
         /// <param name="imputeBySlot">If true, per-slot imputation of replacement is performed.
         /// Otherwise, replacement value is imputed for the entire vector column. This setting is ignored for scalars and variable vectors,
         /// where imputation is always for the entire column.</param>
+        /// <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        ///  [!code-csharp[MissingValuesReplace](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/ReplaceMissingValuesMultiColumn.cs)]
+        /// ]]></format>
+        /// </example>
         public static MissingValueReplacingEstimator ReplaceMissingValues(this TransformsCatalog catalog,
             InputOutputColumnPair[] columns,
             MissingValueReplacingEstimator.ReplacementMode replacementMode = MissingValueReplacingEstimator.Defaults.Mode,

@@ -11,5 +11,6 @@ using Microsoft.ML.Internal.CpuMath.Core;
 [assembly: InternalsVisibleTo(assemblyName: "LibSvmWrapper" + InternalPublicKey.Value)]
 [assembly: InternalsVisibleTo(assemblyName: "Microsoft.ML.Runtime.NeuralNetworks" + InternalPublicKey.Value)]
 [assembly: InternalsVisibleTo(assemblyName: "Microsoft.ML.RServerScoring.NeuralNetworks" + InternalPublicKey.Value)]
+[assembly: InternalsVisibleTo(assemblyName: "Microsoft.ML.Tests" + PublicKey.TestValue)]
 [assembly: InternalsVisibleTo(assemblyName: "RunTests" + InternalPublicKey.Value)]
 [assembly: InternalsVisibleTo(assemblyName: "SseTests" + InternalPublicKey.Value)]
