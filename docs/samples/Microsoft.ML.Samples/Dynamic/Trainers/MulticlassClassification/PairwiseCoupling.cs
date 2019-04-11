@@ -76,7 +76,7 @@ namespace Samples.Dynamic.Trainers.MulticlassClassification
                     Label = (uint)label,
                     // Create random features that are correlated with the label.
                     // The feature values are slightly increased by adding a constant multiple of label.
-                    Features = Enumerable.Repeat(label, 20).Select(x => randomFloat() + label * 0.1f).ToArray()
+                    Features = Enumerable.Repeat(label, 20).Select(x => randomFloat() + label * 0.2f).ToArray()
                 };
             }
         }
