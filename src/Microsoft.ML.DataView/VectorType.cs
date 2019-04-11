@@ -12,7 +12,8 @@ using Microsoft.ML.Internal.Utilities;
 namespace Microsoft.ML.Data
 {
     /// <summary>
-    /// The standard vector type.
+    /// The standard vector type. The representation type of this is <see cref="VBuffer{T}"/>,
+    /// where the type parameter is in <see cref="ItemType"/>.
     /// </summary>
     public sealed class VectorDataViewType : StructuredDataViewType
     {
@@ -21,6 +22,16 @@ namespace Microsoft.ML.Data
         /// As with <see cref="Size"/>, a zero value indicates that the vector type is considered to have
         /// unknown length along that dimension.
         /// </summary>
+        /// <remarks>
+        /// In the case where this is a multi-dimensional type, that is, a situation where <see cref="Dimensions"/>
+        /// has length greater than one, since <see cref="VBuffer{T}"/> itself is a single dimensional structure,
+        /// we must clarify what we mean. The indices represent a "flattened" view of the coordinates implicit in the
+        /// dimensions. We consider that that last dimension is the most "minor" index. In the case where <see cref="Dimensions"/>
+        /// has length <c>2</c>, this is commonly referred to as row-major order. So, if you hypothetically had
+        /// dimensions of <c>{ 5, 2 }</c>, then the <see cref="VBuffer{T}"/> values would be all of length <c>10</c>,
+        /// and the flattened indices in the  of <c>0, 1, 2, 3, 4, ...</c> would correspond to "coordinates" of
+        /// <c>(0, 0), (0, 1), (1, 0), (1, 1), (2, 0), ...</c>, respectively.
+        /// </remarks>
         public ImmutableArray<int> Dimensions { get; }
 
         /// <summary>
