@@ -236,17 +236,18 @@ with a key type.
 The IDataView system includes several standard kinds of components and the
 ability to compose them to produce efficient data pipelines:
 
-Estimators and transformers. The langauge is derived from a similar idiom in Spark 
+Estimators and transformers. The langauge is derived from a similar idiom in
+[Spark](https://spark.apache.org/).
 
-A data loader represents a data source as an `IDataView`. A transformer is
-applied via its `Fit` method to an `IDataView` to produce a derived
+A data loader allows data sources to be read as an `IDataView`. A transformer
+is applied via its `Transform` method to an `IDataView` to produce a derived
 `IDataView`. A saver serializes the data produced by an `IDataView` to a
 stream, in some cases in a format that can be read by a loader. There are
 other more specific kinds of components defined and used by the ML.NET code
 base, for example, scorers, evaluators, joins, and caches, but most of the
 aforementioned are internal. While there are several standard kinds of
-components, the set of component kinds is open. In the sequel we discuss the
-most important types of components in the public API of ML.NET.
+components, the set of component kinds is open. In the following sections we
+discuss the most important types of components in the public API of ML.NET.
 
 ### Transformers
 
@@ -255,20 +256,24 @@ primary responsibilities, from a user's point of view.
 
 As the name suggests, the primary method is `Transform`, which takes
 `IDataView` as input and produce an `IDataView` as output, using the
-`ITransformer.Fit` method. Many transformers simply "add" one or more computed
-columns to their input schema. More precisely, their output schema includes
-all the columns of the input schema, plus some additional columns, whose
-values are computed from some of the input column values. It is common for an
-added column to have the same name as an input column, in which case, the
-added column hides the input column. Both the original column and new column
-are present in the output schema and available for downstream components (in
-particular, savers and diagnostic tools) to inspect. For example, a data view
-that comes from a normalization transformer may, for each slot of a
-vector-valued column named `"Features"`, apply an offset and scale factor and
-bundle the results in a new vector-valued column, also named `"Features"`.
-From the user's perspective (which is entirely based on column names), the
-Features column was "modified" by the transform, but the original values are
-available downstream via the hidden column.
+`ITransformer.Transform` method. Many transformers simply "add" one or more
+computed columns to their input schema. More precisely, their output schema
+includes all the columns of the input schema, plus some additional columns,
+whose values are computed from some of the input column values. It is common
+for an added column to have the same name as an input column, in which case,
+the added column hides the input column. Both the original column and new
+column are present in the output schema and available for downstream
+components (in particular, savers and diagnostic tools) to inspect. For
+example, a data view that comes from a normalization transformer may, for each
+slot of a vector-valued column named `"Features"`, apply an offset and scale
+factor and bundle the results in a new vector-valued column, also named
+`"Features"`. From the user's perspective (which is entirely based on column
+names), the Features column was "modified" by the transform, but the original
+values are available downstream via the hidden column.
+
+Transformers, being identified as central to our concept of a "model," are
+serializable. When deserialized, the transformer should behave identically to
+its serialized version.
 
 ### Estimators
 
@@ -278,14 +283,10 @@ dictionary-based mappers, such as the `ValueToKeyMappingTransformer`, build
 their state from training data.
 
 This training occurs with another structure generally parallel to
-`ITransformer` called `IEstimator`, that returns an `ITransformer` once it is
-`Fit`. For example, `NormalizingEstimator` implements
-`IEstimator<NormalizingTransformer>`.
-
-instantiated from user-provided parameters. Typically, the
-transform behavior is later serialized. When deserialized, the transform is
-not retrained; its behavior is entirely determined by the serialized
-information.
+`ITransformer` called `IEstimator` configured using user parameters, that
+returns an `ITransformer` once it is `Fit`. For example,
+`NormalizingEstimator` implements `IEstimator<NormalizingTransformer>`, so the
+return value of `Fit` is `NormalizingTransformer`.
 
 ### Composition Examples
 
@@ -297,12 +298,6 @@ which maps each term to a key value via a dictionary, and
 vector. Similarly, `OneHotHashEncodingTransformer` is the composition of
 `HashingTransformer`, which maps each term to a key value via hashing, and
 `ValueToKeyMappingTransformer`.
-
-Similarly, `WordBagTransform` and `WordHashBagTransform` are each the
-composition of three transforms. `WordBagTransform` consists of
-`WordTokenizeTransform`, `TermTransform`, and `NgramTransform`, while
-`WordHashBagTransform` consists of `WordTokenizeTransform`, `HashTransform`,
-and `NgramHashTransform`.
 
 ### Schema Propagation
 
@@ -350,10 +345,11 @@ column and row directions.
 A row cursor has a set of active columns, determined by arguments passed to
 `GetRowCursor`. Generally, the cursor, and any upstream components, will only
 perform computation or data movement necessary to provide values of the active
-columns. For example, when `TermTransform` builds its term dictionary from its
-input `IDataView`, it gets a row cursor from the input view with only the term
-column active. Any data loading or computation not required to materialize the
-term column is avoided. This is lazy computation in the column direction.
+columns. For example, when `ValueToKeyMappingTransformer` builds its term
+dictionary from its input `IDataView`, it gets a row cursor from the input
+view with only the term column active. Any data loading or computation not
+required to materialize the term column is avoided. This is lazy computation
+in the column direction.
 
 Generally, creating a row cursor is a very cheap operation. The expense is in
 the data movement and computation required to iterate over the rows. If a

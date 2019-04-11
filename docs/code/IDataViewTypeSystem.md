@@ -137,7 +137,7 @@ level, this dimensionality information indicates the length of the vector
 type. A length of zero means that the vector type is variable length, that is,
 different values may have different lengths. Additional detail of vector types
 is in a subsequent section. Vector types are instances of the sealed class
-`VectorDataViewType`, which derives from `ColumnDataViewType`.
+`VectorDataViewType`, which derives from `DataViewType`.
 
 This document uses convenient shorthand for standard types:
 
@@ -480,10 +480,11 @@ and divided each pixel value by 256 to get pixel values between zero and one.
 ### Equivalence
 
 Note that two vector types are equivalent when they have equivalent item types
-and have identical dimensionality information. To test for compatibility,
-instead of equivalence, in the sense that the total `VectorSize` should be the
-same, use the `SameSizeAndItem` method instead of the Equals method (see the
-`DataViewType` code below).
+and have identical dimensionality information. We might however say that two
+vector types with dimensions `{6}` and `{3,2}`, and the same item type, are
+compatible, in the sense that `VBuffer` of length `6` are both legal values
+for those types. To test for compatibility, a looser concept, one would check
+the vector `Size` and `ItemType`s are the same.
 
 ### Representation Type
 
@@ -624,13 +625,13 @@ In the following notes, the symbol `type` is a variable of type
 
 ### `PrimitiveDataViewType` Abstract Class
 
-The `PrimitiveDataViewType` abstract class derives from `ColumnDataViewType`
+The `PrimitiveDataViewType` abstract class derives from `DataViewType`
 and is the base class of all primitive type implementations.
 
 ### `TextDataViewType` Sealed Class
 
 The `TextDataViewType` sealed class derives from `PrimitiveDataViewType` and
-is a singleton- class for the standard text type. The instance is exposed by
+is a singleton-class for the standard text type. The instance is exposed by
 the static `TextDataViewType.Instance` property.
 
 ### `BooleanDataViewType` Sealed Class
@@ -688,9 +689,9 @@ represent vector types. The item type is specified as the first parameter to
 each constructor and the dimension information is inferred from the additional
 parameters.
 
-* Thd `Dimensions` property is an immutable array of `int` indicating the
+* The `Dimensions` property is an immutable array of `int` indicating the
   dimensions of the vector. This will be of length at least one. All dimension
-  values are non- negative integers. A dimension value of zero indicates
+  values are non-negative integers. A dimension value of zero indicates
   unknown (or variable) in that dimension.
 
 * The `VectorSize` property returns the product of the dimensions.
