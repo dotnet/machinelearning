@@ -2,7 +2,6 @@
 using Microsoft.ML;
 using Microsoft.ML.Data;
 using Microsoft.ML.SamplesUtils;
-using Microsoft.ML.Trainers;
 
 namespace Samples.Dynamic
 {
@@ -77,7 +76,6 @@ namespace Samples.Dynamic
 
                 index++;
             }
-            Console.ReadLine();
 
             // The output of the above code is:
             // Label Score   BiggestFeature Value   Weight Contribution
