@@ -96,8 +96,8 @@ Detailed specifications of the `IDataView`, `DataViewSchema`, and
 
 ### IDataView Types
 
-Each column in an `IDataView` has an associated column type. The collection of
-column types is open, in the sense that new code can introduce new column
+Each column in an `IDataView` has an associated type. The collection of types
+in the IDataView system is open, in the sense that new code can introduce new
 types without requiring modification of all `IDataView` related components.
 While introducing new types is possible, we expect it will also be relatively
 rare.
@@ -108,21 +108,24 @@ abstract class `PrimitiveDataViewType`, which derives from `DataViewType`.
 
 ### Representation Type
 
-A column type has an associated .NET type, known as its representation type or
-raw type.
+A type in the IDataView system has an associated .NET type, known as its
+representation type or raw type.
 
-Note that a column type often contains much more information than the
-associated .NET representation type. Moreover, many distinct column types can
-use the same representation type. Consequently, code should not assume that a
-particular .NET type implies a particular column type.
+Note that a type in the IDataView system often contains much more information
+than the associated .NET representation type. Moreover, many distinct types
+can use the same representation type. Consequently, code should not assume
+that a particular .NET type implies a particular type of the IDataView type
+system. To give the most conspicuous example, `NumberDataViewType.UInt32` and
+most instances of `KeyDataViewType` users will encounter, will both have
+`ItemType == typeof(uint)`.
 
 ### Standard Column Types
 
-There is a set of predefined standard column types, divided into standard
-primitive types and vector types. Note that there can be types that are
-neither primitive nor vector types. These types are not standard types and may
-require extra care when handling them. For example, a `ImageDataViewType`
-value might require disposing when it is no longer needed.
+There is a set of predefined standard types, divided into standard primitive
+types and vector types. Note that there can be types that are neither
+primitive nor vector types. These types are not standard types and may require
+extra care when handling them. For example, a `ImageDataViewType` value might
+require disposing when it is no longer needed.
 
 Standard primitive types include the text type, the boolean type, numeric
 types, and key types. Numeric types are further split into floating-point
@@ -177,9 +180,9 @@ conversions.
 
 ### Default Value
 
-Each column type has an associated default value corresponding to the default
-value of its representation type, as defined by the .Net (C# and CLR)
-specifications.
+Each type in the IDataView system has an associated default value
+corresponding to the default value of its representation type, as defined by
+the .Net (C# and CLR) specifications.
 
 The standard conversions map source default values to destination default
 values. For example, the standard conversion from `TX` to `R8` maps the empty
@@ -433,7 +436,7 @@ For example, when processing text, it is common to hash all or parts of the
 text and encode the resulting hash values, first as a key type, then as
 indicator or bag vectors using the `KeyToVectorMappingTransformer`. Using a
 `k`-bit hash produces a key type with `Count` equal to `2^^k`, and vectors of
-the same length. It is common to use `20` or more hash bits, producing vectors7
+the same length. It is common to use `20` or more hash bits, producing vectors
 of length a million or more. The vectors are typically very sparse. In systems
 that do not support vector-valued columns, each of these million or more
 values is placed in a separate (sparse) column, leading to a massive explosion
@@ -602,26 +605,22 @@ zero, and `DvBool.NA` to the numeric type's `NA` value.
 
 ## Type Classes
 
-This chapter contains information on the C# classes used to represent column
-types. Since the IDataView type system is extensible this list describes only
-the core data types.
+This chapter contains information on the C# classes used to represent types in
+the DataView system types. Since the IDataView type system is extensible this
+list describes only the core data types.
 
 ### `DataViewType` Abstract Class
 
 The IDataView system includes the abstract class `DataViewType`. This is the
-base class for all column types. `DataViewType` has several convenience
-properties that simplify testing for common patterns. For example, the
-`IsVector` property indicates whether the `DataViewType` is an instance of
-`VectorType`.
+base class for all types in the IDataView system. In the following notes, the
+symbol `type` is a variable of type `DataViewType`. This abstract class has,
+on itself, only one member:
 
-In the following notes, the symbol `type` is a variable of type
-`DataViewType`.
-
-* The `type.RawType` property indicates the representation type of the column
-  type. Its use should generally be restricted to constructing generic type
-  and method instantiations. For example, `type.RawType == typeof(uint)` is
-  `true` for both `NumberDataViewType.UInt32` and some `KeyDataViewType`
-  instances.
+* The `type.RawType` property indicates the representation type of the
+  IDataView type. Its use should generally be restricted to constructing
+  generic type and method instantiations. For example, `type.RawType ==
+  typeof(uint)` is `true` for both `NumberDataViewType.UInt32` and some
+  `KeyDataViewType` instances.
 
 ### `PrimitiveDataViewType` Abstract Class
 
