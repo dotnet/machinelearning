@@ -19,32 +19,32 @@ namespace Microsoft.ML.CLI.Utilities
 
         internal static void PrintMetrics(int iteration, string trainerName, BinaryClassificationMetrics metrics, double bestMetric, double? runtimeInSeconds, LogLevel logLevel, int iterationNumber = -1)
         {
-            logger.Log(logLevel, CreateRow($"{iteration,-4} {trainerName,-35} {metrics?.Accuracy ?? double.NaN,9:F4} {metrics?.AreaUnderRocCurve ?? double.NaN,8:F4} {metrics?.AreaUnderPrecisionRecallCurve ?? double.NaN,8:F4} {metrics?.F1Score ?? double.NaN,9:F4} {runtimeInSeconds.Value,9:F1} {iterationNumber + 1,9}", Width));
+            logger.Log(logLevel, CreateRow($"{iteration,-4} {trainerName,-35} {metrics?.Accuracy ?? double.NaN,9:F4} {metrics?.AreaUnderRocCurve ?? double.NaN,8:F4} {metrics?.AreaUnderPrecisionRecallCurve ?? double.NaN,8:F4} {metrics?.F1Score ?? double.NaN,9:F4} {runtimeInSeconds.Value,9:F1} {iterationNumber + 1,10}", Width));
         }
 
         internal static void PrintMetrics(int iteration, string trainerName, MulticlassClassificationMetrics metrics, double bestMetric, double? runtimeInSeconds, LogLevel logLevel, int iterationNumber = -1)
         {
-            logger.Log(logLevel, CreateRow($"{iteration,-4} {trainerName,-35} {metrics?.MicroAccuracy ?? double.NaN,14:F4} {metrics?.MacroAccuracy ?? double.NaN,14:F4} {runtimeInSeconds.Value,9:F1} {iterationNumber + 1,9}", Width));
+            logger.Log(logLevel, CreateRow($"{iteration,-4} {trainerName,-35} {metrics?.MicroAccuracy ?? double.NaN,14:F4} {metrics?.MacroAccuracy ?? double.NaN,14:F4} {runtimeInSeconds.Value,9:F1} {iterationNumber + 1,10}", Width));
         }
 
         internal static void PrintMetrics(int iteration, string trainerName, RegressionMetrics metrics, double bestMetric, double? runtimeInSeconds, LogLevel logLevel, int iterationNumber = -1)
         {
-            logger.Log(logLevel, CreateRow($"{iteration,-4} {trainerName,-35} {metrics?.RSquared ?? double.NaN,9:F4} {metrics?.LossFunction ?? double.NaN,12:F2} {metrics?.MeanAbsoluteError ?? double.NaN,15:F2} {metrics?.MeanSquaredError ?? double.NaN,15:F2} {metrics?.RootMeanSquaredError ?? double.NaN,12:F2} {runtimeInSeconds.Value,9:F1} {iterationNumber + 1,9}", Width));
+            logger.Log(logLevel, CreateRow($"{iteration,-4} {trainerName,-35} {metrics?.RSquared ?? double.NaN,8:F4} {metrics?.MeanAbsoluteError ?? double.NaN,13:F2} {metrics?.MeanSquaredError ?? double.NaN,12:F2} {metrics?.RootMeanSquaredError ?? double.NaN,8:F2} {runtimeInSeconds.Value,9:F1} {iterationNumber + 1,10}", Width));
         }
 
         internal static void PrintBinaryClassificationMetricsHeader(LogLevel logLevel)
         {
-            logger.Log(logLevel, CreateRow($"{"",-4} {"Trainer",-35} {"Accuracy",9} {"AUC",8} {"AUPRC",8} {"F1-score",9} {"Duration",9} {"#Iteration",9}", Width));
+            logger.Log(logLevel, CreateRow($"{"",-4} {"Trainer",-35} {"Accuracy",9} {"AUC",8} {"AUPRC",8} {"F1-score",9} {"Duration",9} {"#Iteration",10}", Width));
         }
 
         internal static void PrintMulticlassClassificationMetricsHeader(LogLevel logLevel)
         {
-            logger.Log(logLevel, CreateRow($"{"",-4} {"Trainer",-35} {"MicroAccuracy",14} {"MacroAccuracy",14} {"Duration",9} {"#Iteration",9}", Width));
+            logger.Log(logLevel, CreateRow($"{"",-4} {"Trainer",-35} {"MicroAccuracy",14} {"MacroAccuracy",14} {"Duration",9} {"#Iteration",10}", Width));
         }
 
         internal static void PrintRegressionMetricsHeader(LogLevel logLevel)
         {
-            logger.Log(logLevel, CreateRow($"{"",-4} {"Trainer",-35} {"RSquared",8} {"LossFn",10} {"Absolute-loss",13} {"Squared-loss",12} {"RMS-loss",10} {"Duration",9} {"#Iteration",9}", Width));
+            logger.Log(logLevel, CreateRow($"{"",-4} {"Trainer",-35} {"RSquared",8} {"Absolute-loss",13} {"Squared-loss",12} {"RMS-loss",8} {"Duration",9} {"#Iteration",10}", Width));
         }
 
         internal static void ExperimentResultsHeader(LogLevel logLevel, string mltask, string datasetName, string labelName, string time, int numModelsExplored)
@@ -58,7 +58,7 @@ namespace Microsoft.ML.CLI.Utilities
             logger.Log(logLevel, CreateRow($"{"ML Task",-7}: {mltask,-20}", Width));
             logger.Log(logLevel, CreateRow($"{"Dataset",-7}: {datasetName,-25}", Width));
             logger.Log(logLevel, CreateRow($"{"Label",-6}: {labelName,-25}", Width));
-            logger.Log(logLevel, CreateRow($"{"Exploration time",-16}: {time} Secs", Width));
+            logger.Log(logLevel, CreateRow($"{"Total experiment time",-22}: {time} Secs", Width));
             logger.Log(logLevel, CreateRow($"{"Total number of models explored",-30}: {numModelsExplored}", Width));
             logger.Log(logLevel, TABLESEPERATOR);
         }

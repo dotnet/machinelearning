@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Runtime.ExceptionServices;
@@ -36,6 +37,7 @@ namespace Microsoft.ML.CLI.CodeGenerator
 
         public void GenerateCode()
         {
+            Stopwatch watch = Stopwatch.StartNew();
             var context = new MLContext();
 
             // Infer columns
@@ -92,6 +94,7 @@ namespace Microsoft.ML.CLI.CodeGenerator
                 };
                 var wait = TimeSpan.FromSeconds(settings.MaxExplorationTime);
                 var verboseLevel = Utils.GetVerbosity(settings.Verbosity);
+
                 if (verboseLevel > LogLevel.Trace && !Console.IsOutputRedirected)
                 {
                     using (var pbar = new FixedDurationBar(wait, "", options))
@@ -163,6 +166,8 @@ namespace Microsoft.ML.CLI.CodeGenerator
                 return;
             }
 
+            var elapsedTime = watch.Elapsed.TotalSeconds;
+
             //Get the best pipeline
             Pipeline bestPipeline = null;
             ITransformer bestModel = null;
@@ -173,21 +178,21 @@ namespace Microsoft.ML.CLI.CodeGenerator
                     var bestBinaryIteration = binaryRunDetails.Best();
                     bestPipeline = bestBinaryIteration.Pipeline;
                     bestModel = bestBinaryIteration.Model;
-                    ConsolePrinter.ExperimentResultsHeader(LogLevel.Info, settings.MlTask, settings.Dataset.Name, columnInformation.LabelColumnName, settings.MaxExplorationTime.ToString(), binaryRunDetails.Count());
+                    ConsolePrinter.ExperimentResultsHeader(LogLevel.Info, settings.MlTask, settings.Dataset.Name, columnInformation.LabelColumnName, elapsedTime.ToString("F2"), binaryRunDetails.Count());
                     ConsolePrinter.PrintIterationSummary(binaryRunDetails, new BinaryExperimentSettings().OptimizingMetric, 5);
                     break;
                 case TaskKind.Regression:
                     var bestRegressionIteration = regressionRunDetails.Best();
                     bestPipeline = bestRegressionIteration.Pipeline;
                     bestModel = bestRegressionIteration.Model;
-                    ConsolePrinter.ExperimentResultsHeader(LogLevel.Info, settings.MlTask, settings.Dataset.Name, columnInformation.LabelColumnName, settings.MaxExplorationTime.ToString(), regressionRunDetails.Count());
+                    ConsolePrinter.ExperimentResultsHeader(LogLevel.Info, settings.MlTask, settings.Dataset.Name, columnInformation.LabelColumnName, elapsedTime.ToString("F2"), regressionRunDetails.Count());
                     ConsolePrinter.PrintIterationSummary(regressionRunDetails, new RegressionExperimentSettings().OptimizingMetric, 5);
                     break;
                 case TaskKind.MulticlassClassification:
                     var bestMultiIteration = multiRunDetails.Best();
                     bestPipeline = bestMultiIteration.Pipeline;
                     bestModel = bestMultiIteration.Model;
-                    ConsolePrinter.ExperimentResultsHeader(LogLevel.Info, settings.MlTask, settings.Dataset.Name, columnInformation.LabelColumnName, settings.MaxExplorationTime.ToString(), multiRunDetails.Count());
+                    ConsolePrinter.ExperimentResultsHeader(LogLevel.Info, settings.MlTask, settings.Dataset.Name, columnInformation.LabelColumnName, elapsedTime.ToString("F2"), multiRunDetails.Count());
                     ConsolePrinter.PrintIterationSummary(multiRunDetails, new MulticlassExperimentSettings().OptimizingMetric, 5);
                     break;
             }

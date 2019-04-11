@@ -110,7 +110,11 @@ namespace Microsoft.ML.CLI.ShellProgressBar
             var depth = indentation.Length;
             var maxCharacterWidth = Console.WindowWidth - (depth * 2) + 2;
             var duration = ((endDate ?? DateTime.Now) - startDate);
-            var durationString = $"{duration.Hours:00}:{duration.Minutes:00}:{duration.Seconds:00}";
+            string durationString = null;
+            if (duration.Days > 0)
+                durationString = $"{duration.Days:00}:{duration.Hours:00}:{duration.Minutes:00}:{duration.Seconds:00}";
+            else
+                durationString = $"{duration.Hours:00}:{duration.Minutes:00}:{duration.Seconds:00}";
 
             var column1Width = Console.WindowWidth - durationString.Length - (depth * 2) + 2;
             var column2Width = durationString.Length;
