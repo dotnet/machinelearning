@@ -392,37 +392,42 @@ namespace Microsoft.ML.Data
 
                 InternalSchemaDefinition.GetVectorAndItemType(memberInfo, out bool isVector, out Type dataType);
 
-                PrimitiveDataViewType itemType;
-                var keyAttr = memberInfo.GetCustomAttribute<KeyTypeAttribute>();
-                if (keyAttr != null)
-                {
-                    if (!KeyDataViewType.IsValidDataType(dataType))
-                        throw Contracts.ExceptParam(nameof(userType), "Member {0} marked with KeyType attribute, but does not appear to be a valid kind of data for a key type", memberInfo.Name);
-                    if (keyAttr.KeyCount == null)
-                        itemType = new KeyDataViewType(dataType, dataType.ToMaxInt());
-                    else
-                        itemType = new KeyDataViewType(dataType, keyAttr.KeyCount.Count.GetValueOrDefault());
-                }
-                else
-                    itemType = ColumnTypeExtensions.PrimitiveTypeFromType(dataType);
-
                 // Get the column type.
                 DataViewType columnType;
-                var vectorAttr = memberInfo.GetCustomAttribute<VectorTypeAttribute>();
-                if (vectorAttr != null && !isVector)
-                    throw Contracts.ExceptParam(nameof(userType), $"Member {memberInfo.Name} marked with {nameof(VectorTypeAttribute)}, but does not appear to be a vector type", memberInfo.Name);
-                if (isVector)
+                if (TypeManager.GetDataViewTypeOrNull(dataType) == null)
                 {
-                    int[] dims = vectorAttr?.Dims;
-                    if (dims != null && dims.Any(d => d < 0))
-                        throw Contracts.ExceptParam(nameof(userType), "Some of member {0}'s dimension lengths are negative");
-                    if (Utils.Size(dims) == 0)
-                        columnType = new VectorDataViewType(itemType, 0);
+                    PrimitiveDataViewType itemType;
+                    var keyAttr = memberInfo.GetCustomAttribute<KeyTypeAttribute>();
+                    if (keyAttr != null)
+                    {
+                        if (!KeyDataViewType.IsValidDataType(dataType))
+                            throw Contracts.ExceptParam(nameof(userType), "Member {0} marked with KeyType attribute, but does not appear to be a valid kind of data for a key type", memberInfo.Name);
+                        if (keyAttr.KeyCount == null)
+                            itemType = new KeyDataViewType(dataType, dataType.ToMaxInt());
+                        else
+                            itemType = new KeyDataViewType(dataType, keyAttr.KeyCount.Count.GetValueOrDefault());
+                    }
                     else
-                        columnType = new VectorDataViewType(itemType, dims);
+                        itemType = ColumnTypeExtensions.PrimitiveTypeFromType(dataType);
+
+                    var vectorAttr = memberInfo.GetCustomAttribute<VectorTypeAttribute>();
+                    if (vectorAttr != null && !isVector)
+                        throw Contracts.ExceptParam(nameof(userType), $"Member {memberInfo.Name} marked with {nameof(VectorTypeAttribute)}, but does not appear to be a vector type", memberInfo.Name);
+                    if (isVector)
+                    {
+                        int[] dims = vectorAttr?.Dims;
+                        if (dims != null && dims.Any(d => d < 0))
+                            throw Contracts.ExceptParam(nameof(userType), "Some of member {0}'s dimension lengths are negative");
+                        if (Utils.Size(dims) == 0)
+                            columnType = new VectorDataViewType(itemType, 0);
+                        else
+                            columnType = new VectorDataViewType(itemType, dims);
+                    }
+                    else
+                        columnType = itemType;
                 }
                 else
-                    columnType = itemType;
+                    columnType = TypeManager.GetDataViewTypeOrNull(dataType);
 
                 cols.Add(new Column(memberInfo.Name, columnType, name));
             }

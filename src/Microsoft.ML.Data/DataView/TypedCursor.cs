@@ -319,6 +319,10 @@ namespace Microsoft.ML.Data
 
                     del = CreateDirectSetter<int>;
                 }
+                else if (TypeManager.GetRawTypeOrNull(colType) != null)
+                {
+                    del = CreateDirectSetter<int>;
+                }
                 else
                 {
                     // REVIEW: Is this even possible?

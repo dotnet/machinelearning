@@ -13,6 +13,12 @@ namespace Microsoft.ML.Transforms.Image
     {
         public readonly int Height;
         public readonly int Width;
+
+        static ImageDataViewType()
+        {
+            TypeManager.Register(typeof(Bitmap), new ImageDataViewType());
+        }
+
         public ImageDataViewType(int height, int width)
            : base(typeof(Bitmap))
         {

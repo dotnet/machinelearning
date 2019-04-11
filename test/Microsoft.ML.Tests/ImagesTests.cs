@@ -185,6 +185,53 @@ namespace Microsoft.ML.Tests
         }
 
         [Fact]
+        public void TestGrayScaleInMemory()
+        {
+            var imagesDataFile = SamplesUtils.DatasetUtils.DownloadImages();
+
+            var data = ML.Data.CreateTextLoader(new TextLoader.Options()
+            {
+                Columns = new[]
+                {
+                    new TextLoader.Column("ImagePath", DataKind.String, 0),
+                    new TextLoader.Column("Name", DataKind.String, 1),
+             }
+            }).Load(imagesDataFile);
+
+            var imagesFolder = Path.GetDirectoryName(imagesDataFile);
+            // Image loading and conversion pipeline.
+            var pipeline = ML.Transforms.LoadImages("ImageObject", imagesFolder, "ImagePath")
+                           .Append(ML.Transforms.ConvertToGrayscale("Grayscale", "ImageObject"));
+
+            var transformedData = pipeline.Fit(data).Transform(data);
+
+            var transformedDataPoints = ML.Data.CreateEnumerable<TransformedImageDataPoint>(transformedData, true).ToList();
+
+            foreach (var datapoint in transformedDataPoints)
+            {
+                var image = datapoint.Grayscale;
+                Assert.NotNull(image);
+                for (int x = 0; x < image.Width; x++)
+                {
+                    for (int y = 0; y < image.Height; y++)
+                    {
+                        var pixel = image.GetPixel(x, y);
+                        // greyscale image has same values for R, G and B.
+                        Assert.True(pixel.R == pixel.G && pixel.G == pixel.B);
+                    }
+                }
+            }
+        }
+
+        private class TransformedImageDataPoint
+        {
+            public string ImagePath { get; set; }
+            public string Name { get; set; }
+            public Bitmap ImageObject { get; set; }
+            public Bitmap Grayscale { get; set; }
+        }
+
+        [Fact]
         public void TestBackAndForthConversionWithAlphaInterleave()
         {
             IHostEnvironment env = new MLContext();
