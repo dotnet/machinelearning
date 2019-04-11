@@ -55,7 +55,7 @@ namespace Samples.Dynamic.Trainers.Regression
 
             // Evaluate the overall metrics
             var metrics = mlContext.Regression.Evaluate(transformedTestData);
-            SamplesUtils.ConsoleUtils.PrintMetrics(metrics);
+            Microsoft.ML.SamplesUtils.ConsoleUtils.PrintMetrics(metrics);
 
             <#=ExpectedOutput#>
         }

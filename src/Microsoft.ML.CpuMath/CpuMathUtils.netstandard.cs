@@ -19,11 +19,17 @@ namespace Microsoft.ML.Internal.CpuMath
         public static int GetVectorAlignment()
             => Vector128Alignment;
 
+        /// <summary>
+        /// Check if <paramref name="a"/>'s alignment is suitable to SSE instructions. Returns <see langword="true"/>
+        /// if <paramref name="a"/>'s alignment is ok and <see langword="false"/> otherwise.
+        /// </summary>
+        /// <param name="a">The vector being checked.</param>
+        /// <returns>Whether <paramref name="a"/> is aligned well.</returns>
         private static bool Compat(AlignedArray a)
         {
             Contracts.AssertValue(a);
             Contracts.Assert(a.Size > 0);
-            return a.CbAlign == Vector128Alignment;
+            return a.CbAlign % Vector128Alignment == 0;
         }
 
         private static unsafe float* Ptr(AlignedArray a, float* p)
@@ -34,6 +40,19 @@ namespace Microsoft.ML.Internal.CpuMath
             return q;
         }
 
+        /// <summary>
+        /// Compute the product of matrix <paramref name="mat"/> (the matrix is flattened because its type is <see cref="AlignedArray"/> instead of a matrix)
+        /// and a vector <paramref name="src"/>.
+        /// </summary>
+        /// <param name="tran">Whether to transpose <paramref name="mat"/> before doing any computation.</param>
+        /// <param name="mat">If <paramref name="tran"/> is <see langword="false"/>, <paramref name="mat"/> is a m-by-n matrix, and the value at the i-th row and the j-th column is indexed by i * n + j in <paramref name="mat"/>.
+        /// If <paramref name="tran"/> is <see langword="true"/>, <paramref name="mat"/> would be viewed a n-by-m matrix, and the value at the i-th row and the j-th column in the transposed matrix is indexed by j * m + i in the
+        /// original <paramref name="mat"/>.</param>
+        /// <param name="src">A n-by-1 matrix, which is also a vector.</param>
+        /// <param name="dst">A m-by-1 matrix, which is also a vector.</param>
+        /// <param name="crun">The truncation level of <paramref name="dst"/>. For example, if <paramref name="crun"/> is 2, <paramref name="dst"/>
+        /// will be considered as a 2-by-1 matrix and therefore elements after its 2nd element will be ignored. If no truncation should happen,
+        /// set <paramref name="crun"/> to the length of <paramref name="dst"/>.</param>
         public static void MatrixTimesSource(bool tran, AlignedArray mat, AlignedArray src, AlignedArray dst, int crun)
         {
             Contracts.Assert(Compat(mat));
