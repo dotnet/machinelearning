@@ -43,7 +43,7 @@ namespace Samples.Dynamic.Trainers.BinaryClassification
             Console.WriteLine($"Average prediction: {gam.Bias:0.00}");
 
             // Let's take a look at the features that the model built. Similar to a linear model, we have
-            // one response per feature. Unlike a linear model, this response is a function instead of a line.
+            // one response per feature. Unlike a linear model, this response is a step function (https://en.wikipedia.org/wiki/Step_function) instead of a line.
             // Each feature response represents the deviation from the average prediction as a function of the 
             // feature value.
             for (int i = 0; i < gam.NumberOfShapeFunctions; i++)
