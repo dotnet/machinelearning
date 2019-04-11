@@ -65,20 +65,24 @@ namespace Samples.Dynamic
             // Let's get transformation parameters. Since we work with only one column we need to pass 0 as parameter for GetNormalizerModelParameters.
             // If we have multiple column transformations we need to pass index of InputOutputColumnPair.
             var transformParams = normalizeTransform.GetNormalizerModelParameters(0) as BinNormalizerModelParameters<ImmutableArray<float>>;
-            Console.WriteLine($"Values for slot 0 would be transfromed by applying y = (Index(x) / {transformParams.Density[0]}) - {(transformParams.Offset.Length == 0 ? 0 : transformParams.Offset[0])}");
+            Console.WriteLine($"The 1-index value in resulting array would be produce by:");
+            Console.WriteLine($"y = (Index(x) / {transformParams.Density[0]}) - {(transformParams.Offset.Length == 0 ? 0 : transformParams.Offset[0])}");
             Console.WriteLine("Where Index(x) is the index of the bin to which x belongs");
             Console.WriteLine($"Bins upper borders are: {string.Join(" ", transformParams.UpperBounds[0])}");
             // Expected output:
-            //  Values for slot 0 would be transfromed by applying y = (Index(x) / 2) - 0
+            //  The 1-index value in resulting array would be produce by:
+            //  y = (Index(x) / 2) - 0
             //  Where Index(x) is the index of the bin to which x belongs
             //  Bins upper bounds are: 4.5 7 ∞
 
             var fixZeroParams = normalizeFixZeroTransform.GetNormalizerModelParameters(0) as BinNormalizerModelParameters<ImmutableArray<float>>;
-            Console.WriteLine($"Values for slot 1 would be transfromed by applying y = (Index(x) / {fixZeroParams.Density[1]}) - {(fixZeroParams.Offset.Length == 0 ? 0 : fixZeroParams.Offset[1])}");
+            Console.WriteLine($"The 1-index value in resulting array would be produce by:");
+            Console.WriteLine($" y = (Index(x) / {fixZeroParams.Density[1]}) - {(fixZeroParams.Offset.Length == 0 ? 0 : fixZeroParams.Offset[1])}");
             Console.WriteLine("Where Index(x) is the index of the bin to which x belongs");
             Console.WriteLine($"Bins upper borders are: {string.Join(" ", fixZeroParams.UpperBounds[1])}");
             // Expected output:
-            //  Values for slot 1 would be transfromed by applying y = (Index(x) / 2) - 0.5
+            //  The 1-index value in resulting array would be produce by:
+            //  y = (Index(x) / 2) - 0.5
             //  Where Index(x) is the index of the bin to which x belongs
             //  Bins upper bounds are: -2 1.5 ∞
         }

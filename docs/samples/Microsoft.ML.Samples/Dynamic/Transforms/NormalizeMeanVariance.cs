@@ -59,15 +59,19 @@ namespace Samples.Dynamic
             // Let's get transformation parameters. Since we work with only one column we need to pass 0 as parameter for GetNormalizerModelParameters.
             // If we have multiple column transformations we need to pass index of InputOutputColumnPair.
             var transformParams = normalizeTransform.GetNormalizerModelParameters(0) as CdfNormalizerModelParameters<ImmutableArray<float>>;
-            Console.WriteLine($"Values for slot 1 would be transfromed by applying y = 0.5* (1 + ERF((x- {transformParams.Mean[1]}) / ({transformParams.StandardDeviation[1]} * sqrt(2)))");
+            Console.WriteLine($"The 1-index value in resulting array would be produce by:");
+            Console.WriteLine($" y = 0.5* (1 + ERF((x- {transformParams.Mean[1]}) / ({transformParams.StandardDeviation[1]} * sqrt(2)))");
             // ERF is https://en.wikipedia.org/wiki/Error_function.
             // Expected output:
-            //  Values for slot 1 would be transfromed by applying y = 0.5 * (1 + ERF((x - 0.5) / (1.118034 * sqrt(2)))
+            //  The 1-index value in resulting array would be produce by:
+            //  y = 0.5 * (1 + ERF((x - 0.5) / (1.118034 * sqrt(2)))
 
             var noCdfParams = normalizeNoCdfTransform.GetNormalizerModelParameters(0) as AffineNormalizerModelParameters<ImmutableArray<float>>;
-            Console.WriteLine($"Values for slot 1 would be transfromed by applying y = (x - ({(noCdfParams.Offset.Length == 0 ? 0 : noCdfParams.Offset[1])})) * {noCdfParams.Scale[1]}");
+            var offset = noCdfParams.Offset.Length == 0 ? 0 : noCdfParams.Offset[1];
+            var scale = noCdfParams.Scale[1];
+            Console.WriteLine($"Values for slot 1 would be transfromed by applying y = (x - ({offset})) * {scale}");
             // Expected output:
-            //  Values for slot 1 would be transfromed by applying y = (x - (0)) * 0.8164966
+            // The 1-index value in resulting array would be produce by: y = (x - (0)) * 0.8164966
         }
 
         private class DataPoint

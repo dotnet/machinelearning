@@ -20,13 +20,6 @@ namespace Microsoft.ML
         /// <param name="catalog">The transform catalog</param>
         /// <param name="mode">The <see cref="NormalizingEstimator.NormalizationMode"/> used to map the old values to the new ones. </param>
         /// <param name="columns">The pairs of input and output columns.</param>
-        /// <example>
-        /// <format type="text/markdown">
-        /// <![CDATA[
-        /// [!code-csharp[Normalize](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Normalizer.cs)]
-        /// ]]>
-        /// </format>
-        /// </example>
         [BestFriend]
         internal static NormalizingEstimator Normalize(this TransformsCatalog catalog,
             NormalizingEstimator.NormalizationMode mode,
@@ -68,13 +61,6 @@ namespace Microsoft.ML
         /// <param name="columns">List of Output and Input column pairs.</param>
         /// <param name="maximumExampleCount">Maximum number of examples used to train the normalizer.</param>
         /// <param name="fixZero">Whether to map zero to zero, preserving sparsity.</param>
-        /// <example>
-        /// <format type="text/markdown">
-        /// <![CDATA[
-        /// [!code-csharp[NormalizeMinMax](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/NormalizeMinMax.cs)]
-        /// ]]>
-        /// </format>
-        /// </example>
         public static NormalizingEstimator NormalizeMinMax(this TransformsCatalog catalog, InputOutputColumnPair[] columns,
            long maximumExampleCount = NormalizingEstimator.Defaults.MaximumExampleCount,
            bool fixZero = NormalizingEstimator.Defaults.EnsureZeroUntouched) =>
@@ -116,13 +102,6 @@ namespace Microsoft.ML
         /// <param name="maximumExampleCount">Maximum number of examples used to train the normalizer.</param>
         /// <param name="fixZero">Whether to map zero to zero, preserving sparsity.</param>
         /// <param name="useCdf">Whether to use CDF as the output.</param>
-        /// <example>
-        /// <format type="text/markdown">
-        /// <![CDATA[
-        /// [!code-csharp[NormalizeMeanVariance](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/NormalizeMeanVariance.cs)]
-        /// ]]>
-        /// </format>
-        /// </example>
         public static NormalizingEstimator NormalizeMeanVariance(this TransformsCatalog catalog, InputOutputColumnPair[] columns,
             long maximumExampleCount = NormalizingEstimator.Defaults.MaximumExampleCount,
             bool fixZero = NormalizingEstimator.Defaults.EnsureZeroUntouched,
@@ -162,13 +141,6 @@ namespace Microsoft.ML
         /// <param name="columns">List of Output and Input column pairs.</param>
         /// <param name="maximumExampleCount">Maximum number of examples used to train the normalizer.</param>
         /// <param name="useCdf">Whether to use CDF as the output.</param>
-        /// <example>
-        /// <format type="text/markdown">
-        /// <![CDATA[
-        /// [!code-csharp[NormalizeLogMeanVariance](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/NormalizeLogMeanVariance.cs)]
-        /// ]]>
-        /// </format>
-        /// </example>
         public static NormalizingEstimator NormalizeLogMeanVariance(this TransformsCatalog catalog, InputOutputColumnPair[] columns,
             long maximumExampleCount = NormalizingEstimator.Defaults.MaximumExampleCount,
             bool useCdf = NormalizingEstimator.Defaults.LogMeanVarCdf) =>
@@ -210,13 +182,6 @@ namespace Microsoft.ML
         /// <param name="maximumExampleCount">Maximum number of examples used to train the normalizer.</param>
         /// <param name="fixZero">Whether to map zero to zero, preserving sparsity.</param>
         /// <param name="maximumBinCount">Maximum number of bins (power of 2 recommended).</param>
-        /// <example>
-        /// <format type="text/markdown">
-        /// <![CDATA[
-        /// [!code-csharp[NormalizeBinning](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/NormalizeBinning.cs)]
-        /// ]]>
-        /// </format>
-        /// </example>
         public static NormalizingEstimator NormalizeBinning(this TransformsCatalog catalog, InputOutputColumnPair[] columns,
             long maximumExampleCount = NormalizingEstimator.Defaults.MaximumExampleCount,
             bool fixZero = NormalizingEstimator.Defaults.EnsureZeroUntouched,
@@ -265,13 +230,6 @@ namespace Microsoft.ML
         /// <param name="fixZero">Whether to map zero to zero, preserving sparsity.</param>
         /// <param name="maximumBinCount">Maximum number of bins (power of 2 recommended).</param>
         /// <param name="mininimumExamplesPerBin">Minimum number of examples per bin.</param>
-        /// <example>
-        /// <format type="text/markdown">
-        /// <![CDATA[
-        /// [!code-csharp[NormalizeBinning](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/NormalizeSupervisedBinning.cs)]
-        /// ]]>
-        /// </format>
-        /// </example>
         public static NormalizingEstimator NormalizeSupervisedBinning(this TransformsCatalog catalog, InputOutputColumnPair[] columns,
             string labelColumnName = DefaultColumnNames.Label,
             long maximumExampleCount = NormalizingEstimator.Defaults.MaximumExampleCount,
