@@ -83,6 +83,15 @@ namespace Samples.Dynamic.Trainers.Recommendation
             // the following list contains the games recommended by the trained model. Note that sometime, you may want to exclude training
             // data from your predicted results because those games were already purchased.
             var topColumns = results.Where(element => element.MatrixRowIndex == 1).OrderByDescending(element => element.Score).Take(2);
+
+            Console.WriteLine("Top 2 predictions at the 1nd row:");
+            foreach (var top in topColumns)
+                Console.WriteLine($"Predicted value at row {top.MatrixRowIndex - 1} and column {top.MatrixColumnIndex - 1} is {top.Score} and its expected value is {top.Value}.");
+
+            // Expected output similar to:
+            // Top 2 predictions at the 2nd row:
+            // Predicted value at row 0 and column 0 is 0.9871138 and its expected value is 1.
+            // Predicted value at row 0 and column 10 is 0.9871138 and its expected value is 1.
         }
 
         // The following variables defines the shape of a matrix. Its shape is _synthesizedMatrixRowCount-by-_synthesizedMatrixColumnCount.
