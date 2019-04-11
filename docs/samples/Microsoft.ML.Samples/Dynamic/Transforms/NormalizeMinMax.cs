@@ -58,7 +58,7 @@ namespace Samples.Dynamic
             // -0.5000,-0.5000,-0.3333, 1.0000
 
             // Let's get transformation parameters. Since we work with only one column we need to pass 0 as parameter for GetNormalizerModelParameters.
-            // If we have multiple column transformations we need to pass index of InputOutputColumnPair.
+            // If we have multiple columns transformations we need to pass index of InputOutputColumnPair.
             var transformParams = normalizeTransform.GetNormalizerModelParameters(0) as AffineNormalizerModelParameters<ImmutableArray<float>>;
             Console.WriteLine($"The 1-index value in resulting array would be produce by:");
              Console.WriteLine($" y = (x - ({(transformParams.Offset.Length == 0 ? 0 : transformParams.Offset[1])})) * {transformParams.Scale[1]}");
