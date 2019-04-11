@@ -165,25 +165,22 @@ namespace Microsoft.ML.Auto
         /// <returns>Array of parameter sets, which will then be evaluated.</returns>
         private ParameterSet[] GreedyPlusRandomSearch(ParameterSet[] parents, FastForestRegressionModelParameters forest, int numOfCandidates, IEnumerable<IRunResult> previousRuns)
         {
-            // REVIEW: The IsMetricMaximizing flag affects the comparator, so that
-            // performing Max() should get the best, regardless of if it is maximizing or
-            // minimizing.
             RunResult bestRun = (RunResult)previousRuns.Max();
             RunResult worstRun = (RunResult)previousRuns.Min();
-            double bestVal = bestRun.IsMetricMaximizing ? bestRun.MetricValue : worstRun.MetricValue - bestRun.MetricValue;
+            double bestVal = bestRun.MetricValue;
 
             HashSet<Tuple<double, ParameterSet>> configurations = new HashSet<Tuple<double, ParameterSet>>();
 
             // Perform local search.
             foreach (ParameterSet c in parents)
             {
-                Tuple<double, ParameterSet> bestChildKvp = LocalSearch(c, forest, bestVal, _args.Epsilon);
+                Tuple<double, ParameterSet> bestChildKvp = LocalSearch(c, forest, bestVal, _args.Epsilon, bestRun.IsMetricMaximizing);
                 configurations.Add(bestChildKvp);
             }
 
             // Additional set of random configurations to choose from during local search.
             ParameterSet[] randomConfigs = _randomSweeper.ProposeSweeps(_args.NumRandomEISearchConfigurations, previousRuns);
-            double[] randomEIs = EvaluateConfigurationsByEI(forest, bestVal, randomConfigs);
+            double[] randomEIs = EvaluateConfigurationsByEI(forest, bestVal, randomConfigs, bestRun.IsMetricMaximizing);
             AutoMlUtils.Assert(randomConfigs.Length == randomEIs.Length);
 
             for (int i = 0; i < randomConfigs.Length; i++)
@@ -210,17 +207,17 @@ namespace Microsoft.ML.Auto
         /// <param name="bestVal">Best performance seen thus far.</param>
         /// <param name="epsilon">Threshold for when to stop the local search.</param>
         /// <returns></returns>
-        private Tuple<double, ParameterSet> LocalSearch(ParameterSet parent, FastForestRegressionModelParameters forest, double bestVal, double epsilon)
+        private Tuple<double, ParameterSet> LocalSearch(ParameterSet parent, FastForestRegressionModelParameters forest, double bestVal, double epsilon, bool isMetricMaximizing)
         {
             try
             {
-                double currentBestEI = EvaluateConfigurationsByEI(forest, bestVal, new ParameterSet[] { parent })[0];
+                double currentBestEI = EvaluateConfigurationsByEI(forest, bestVal, new ParameterSet[] { parent }, isMetricMaximizing)[0];
                 ParameterSet currentBestConfig = parent;
 
                 for (; ; )
                 {
                     ParameterSet[] neighborhood = GetOneMutationNeighborhood(currentBestConfig);
-                    double[] eis = EvaluateConfigurationsByEI(forest, bestVal, neighborhood);
+                    double[] eis = EvaluateConfigurationsByEI(forest, bestVal, neighborhood, isMetricMaximizing);
                     int bestIndex = eis.ArgMax();
                     if (eis[bestIndex] - currentBestEI < _args.Epsilon)
                         break;
@@ -366,11 +363,11 @@ namespace Microsoft.ML.Auto
             return meansAndStdDevs;
         }
 
-        private double[] EvaluateConfigurationsByEI(FastForestRegressionModelParameters forest, double bestVal, ParameterSet[] configs)
+        private double[] EvaluateConfigurationsByEI(FastForestRegressionModelParameters forest, double bestVal, ParameterSet[] configs, bool isMetricMaximizing)
         {
             double[][] leafPredictions = GetForestRegressionLeafValues(forest, configs);
             double[][] forestStatistics = ComputeForestStats(leafPredictions);
-            return ComputeEIs(bestVal, forestStatistics);
+            return ComputeEIs(bestVal, forestStatistics, isMetricMaximizing);
         }
 
         private ParameterSet[] GetKBestConfigurations(IEnumerable<IRunResult> previousRuns, int k = 10)
@@ -397,11 +394,15 @@ namespace Microsoft.ML.Auto
             return outSet.ToArray();
         }
 
-        private double ComputeEI(double bestVal, double[] forestStatistics)
+        private double ComputeEI(double bestVal, double[] forestStatistics, bool isMetricMaximizing)
         {
             double empMean = forestStatistics[0];
             double empStdDev = forestStatistics[1];
             double centered = empMean - bestVal;
+            if (!isMetricMaximizing)
+            {
+                centered *= -1;
+            }
             if (empStdDev == 0)
             {
                 return centered;
@@ -410,11 +411,11 @@ namespace Microsoft.ML.Auto
             return centered * SweeperProbabilityUtils.StdNormalCdf(ztrans) + empStdDev * SweeperProbabilityUtils.StdNormalPdf(ztrans);
         }
 
-        private double[] ComputeEIs(double bestVal, double[][] forestStatistics)
+        private double[] ComputeEIs(double bestVal, double[][] forestStatistics, bool isMetricMaximizing)
         {
             double[] eis = new double[forestStatistics.Length];
             for (int i = 0; i < forestStatistics.Length; i++)
-                eis[i] = ComputeEI(bestVal, forestStatistics[i]);
+                eis[i] = ComputeEI(bestVal, forestStatistics[i], isMetricMaximizing);
             return eis;
         }
     }
