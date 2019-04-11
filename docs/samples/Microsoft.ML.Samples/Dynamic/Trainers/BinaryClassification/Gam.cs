@@ -30,7 +30,7 @@ namespace Samples.Dynamic.Trainers.BinaryClassification
             // Use a small number of bins for this example. The setting below means for each feature, we divide its range into 16 independent discrete regions. For example, if a feature `Age`'s origin range is from 0 to 255. The first region might be 0-15 and the second region 16-31.
             var trainer = mlContext.BinaryClassification.Trainers.Gam(maximumBinCountPerFeature: 16);
 
-            // Fit the model to the data using a validation set.
+            // Fit the model using both of training and validation sets.
             // GAM will use a technique called validation pruning to tune the model after training
             // to improve generalization.
             var model = trainer.Fit(trainSet, validSet);
