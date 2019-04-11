@@ -21,7 +21,7 @@ namespace Samples.Dynamic.Trainers.BinaryClassification
             // Convert the dataset to an IDataView.
             var data = mlContext.Data.LoadFromEnumerable(samples);
 
-            // Create train and set set.
+            // Create training and validation sets.
             var dataSets = mlContext.Data.TrainTestSplit(data);
             var trainSet = dataSets.TrainSet;
             var validSet = dataSets.TestSet;
