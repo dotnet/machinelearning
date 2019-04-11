@@ -120,8 +120,7 @@ namespace Microsoft.ML.RunTests
         {
             var predictors = new[] {
                 TestLearners.binaryPrior};
-            var datasets = GetDatasetsForBinaryClassifierBaseTest();
-            RunAllTests(predictors, datasets);
+            RunAllTests(predictors, new[] { TestDatasets.breastCancerBoolLabel });
             Done();
         }
 
