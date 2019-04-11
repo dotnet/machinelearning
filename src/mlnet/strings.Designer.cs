@@ -239,5 +239,23 @@ namespace Microsoft.ML.CLI {
                 return ResourceManager.GetString("UnsupportedMlTask", resourceCulture);
             }
         }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Waiting for the first iteration to complete ....
+        /// </summary>
+        internal static string WaitingForFirstIteration {
+            get {
+                return ResourceManager.GetString("WaitingForFirstIteration", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Waiting for the last iteration to complete ....
+        /// </summary>
+        internal static string WaitingForLastIteration {
+            get {
+                return ResourceManager.GetString("WaitingForLastIteration", resourceCulture);
+            }
+        }
     }
 }

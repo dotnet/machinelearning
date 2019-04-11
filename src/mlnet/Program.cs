@@ -61,7 +61,7 @@ namespace Microsoft.ML.CLI
 
             var parser = new CommandLineBuilder()
                          // parser
-                         .AddCommand(CommandDefinitions.New(handler))
+                         .AddCommand(CommandDefinitions.AutoTrain(handler))
                          .UseDefaults()
                          .Build();
 

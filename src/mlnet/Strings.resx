@@ -177,4 +177,10 @@
   <data name="LearningHttpLink" xml:space="preserve">
     <value>https://aka.ms/mlnet-cli</value>
   </data>
+  <data name="WaitingForFirstIteration" xml:space="preserve">
+    <value>Waiting for the first iteration to complete ...</value>
+  </data>
+  <data name="WaitingForLastIteration" xml:space="preserve">
+    <value>Waiting for the last iteration to complete ...</value>
+  </data>
 </root>

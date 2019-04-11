@@ -31,7 +31,7 @@ namespace mlnet.Test
 
             var parser = new CommandLineBuilder()
                         // Parser
-                        .AddCommand(CommandDefinitions.New(handler))
+                        .AddCommand(CommandDefinitions.AutoTrain(handler))
                         .UseDefaults()
                         .UseExceptionHandler((e, ctx) =>
                         {
@@ -41,7 +41,7 @@ namespace mlnet.Test
 
             var trainDataset = Path.GetTempFileName();
             var testDataset = Path.GetTempFileName();
-            string[] args = new[] { "new", "--ml-task", "binary-classification", "--dataset", trainDataset, "--label-column-name", "Label" };
+            string[] args = new[] { "auto-train", "--ml-task", "binary-classification", "--dataset", trainDataset, "--label-column-name", "Label" };
             parser.InvokeAsync(args).Wait();
             File.Delete(trainDataset);
             File.Delete(testDataset);
@@ -63,7 +63,7 @@ namespace mlnet.Test
 
             var parser = new CommandLineBuilder()
                         // parser
-                        .AddCommand(CommandDefinitions.New(handler))
+                        .AddCommand(CommandDefinitions.AutoTrain(handler))
                         .UseDefaults()
                         .UseExceptionHandler((e, ctx) =>
                         {
@@ -76,22 +76,22 @@ namespace mlnet.Test
             var testDataset = Path.GetTempFileName();
 
             //wrong value to ml-task
-            string[] args = new[] { "new", "--ml-task", "bad-value", "--train-dataset", trainDataset, "--label-column-name", "Label" };
+            string[] args = new[] { "auto-train", "--ml-task", "bad-value", "--train-dataset", trainDataset, "--label-column-name", "Label" };
             parser.InvokeAsync(args).Wait();
             Assert.IsFalse(parsingSuccessful);
 
             // Incorrect invocation
-            args = new[] { "new", "binary-classification", "--train-dataset", trainDataset, "--label-column-name", "Label" };
+            args = new[] { "auto-train", "binary-classification", "--train-dataset", trainDataset, "--label-column-name", "Label" };
             parser.InvokeAsync(args).Wait();
             Assert.IsFalse(parsingSuccessful);
 
             // Non-existent file test
-            args = new[] { "new", "--ml-task", "binary-classification", "--train-dataset", "nonexistentfile.csv", "--label-column-name", "Label" };
+            args = new[] { "auto-train", "--ml-task", "binary-classification", "--train-dataset", "nonexistentfile.csv", "--label-column-name", "Label" };
             parser.InvokeAsync(args).Wait();
             Assert.IsFalse(parsingSuccessful);
 
             // No label column or index test
-            args = new[] { "new", "--ml-task", "binary-classification", "--train-dataset", trainDataset, "--test-dataset", testDataset };
+            args = new[] { "auto-train", "--ml-task", "binary-classification", "--train-dataset", trainDataset, "--test-dataset", testDataset };
             parser.InvokeAsync(args).Wait();
             File.Delete(trainDataset);
             File.Delete(testDataset);
@@ -128,7 +128,7 @@ namespace mlnet.Test
 
             var parser = new CommandLineBuilder()
                         // Parser
-                        .AddCommand(CommandDefinitions.New(handler))
+                        .AddCommand(CommandDefinitions.AutoTrain(handler))
                         .UseDefaults()
                         .UseExceptionHandler((e, ctx) =>
                         {
@@ -137,7 +137,7 @@ namespace mlnet.Test
                         .Build();
 
             // Incorrect mltask test
-            string[] args = new[] { "new", "--ml-task", "binary-classification", "--dataset", trainDataset, "--label-column-name", labelName, "--validation-dataset", validDataset, "--test-dataset", testDataset, "--max-exploration-time", "5", "--name", name, "--output-path", outputPath, "--has-header", falseString };
+            string[] args = new[] { "auto-train", "--ml-task", "binary-classification", "--dataset", trainDataset, "--label-column-name", labelName, "--validation-dataset", validDataset, "--test-dataset", testDataset, "--max-exploration-time", "5", "--name", name, "--output-path", outputPath, "--has-header", falseString };
             parser.InvokeAsync(args).Wait();
             File.Delete(trainDataset);
             File.Delete(testDataset);
@@ -164,7 +164,7 @@ namespace mlnet.Test
 
             var parser = new CommandLineBuilder()
                         // Parser
-                        .AddCommand(CommandDefinitions.New(handler))
+                        .AddCommand(CommandDefinitions.AutoTrain(handler))
                         .UseDefaults()
                         .UseExceptionHandler((e, ctx) =>
                         {
@@ -173,17 +173,17 @@ namespace mlnet.Test
                         .Build();
 
             // Incorrect arguments : specifying dataset and train-dataset
-            string[] args = new[] { "new", "--ml-task", "BinaryClassification", "--dataset", dataset, "--train-dataset", trainDataset, "--label-column-name", labelName, "--test-dataset", testDataset, "--max-exploration-time", "5" };
+            string[] args = new[] { "auto-train", "--ml-task", "BinaryClassification", "--dataset", dataset, "--train-dataset", trainDataset, "--label-column-name", labelName, "--test-dataset", testDataset, "--max-exploration-time", "5" };
             parser.InvokeAsync(args).Wait();
             Assert.IsFalse(parsingSuccessful);
 
             // Incorrect arguments : specifying  train-dataset and not specifying test-dataset
-            args = new[] { "new", "--ml-task", "BinaryClassification", "--train-dataset", trainDataset, "--label-column-name", labelName, "--max-exploration-time", "5" };
+            args = new[] { "auto-train", "--ml-task", "BinaryClassification", "--train-dataset", trainDataset, "--label-column-name", labelName, "--max-exploration-time", "5" };
             parser.InvokeAsync(args).Wait();
             Assert.IsFalse(parsingSuccessful);
 
             // Incorrect arguments : specifying  label column name and index
-            args = new[] { "new", "--ml-task", "BinaryClassification", "--train-dataset", trainDataset, "--label-column-name", labelName, "--label-column-index", "0", "--test-dataset", testDataset, "--max-exploration-time", "5" };
+            args = new[] { "auto-train", "--ml-task", "BinaryClassification", "--train-dataset", trainDataset, "--label-column-name", labelName, "--label-column-index", "0", "--test-dataset", testDataset, "--max-exploration-time", "5" };
             parser.InvokeAsync(args).Wait();
             File.Delete(trainDataset);
             File.Delete(testDataset);
@@ -214,7 +214,7 @@ namespace mlnet.Test
 
             var parser = new CommandLineBuilder()
                         // Parser
-                        .AddCommand(CommandDefinitions.New(handler))
+                        .AddCommand(CommandDefinitions.AutoTrain(handler))
                         .UseDefaults()
                         .UseExceptionHandler((e, ctx) =>
                         {
@@ -223,7 +223,7 @@ namespace mlnet.Test
                         .Build();
 
             // valid cache test
-            string[] args = new[] { "new", "--ml-task", "binary-classification", "--dataset", trainDataset, "--label-column-name", labelName, "--cache", cache };
+            string[] args = new[] { "auto-train", "--ml-task", "binary-classification", "--dataset", trainDataset, "--label-column-name", labelName, "--cache", cache };
             parser.InvokeAsync(args).Wait();
             Assert.IsTrue(parsingSuccessful);
 
@@ -231,7 +231,7 @@ namespace mlnet.Test
 
             cache = "off";
             // valid cache test
-            args = new[] { "new", "--ml-task", "binary-classification", "--dataset", trainDataset, "--label-column-name", labelName, "--cache", cache };
+            args = new[] { "auto-train", "--ml-task", "binary-classification", "--dataset", trainDataset, "--label-column-name", labelName, "--cache", cache };
             parser.InvokeAsync(args).Wait();
             Assert.IsTrue(parsingSuccessful);
 
@@ -239,14 +239,14 @@ namespace mlnet.Test
 
             cache = "auto";
             // valid cache test
-            args = new[] { "new", "--ml-task", "binary-classification", "--dataset", trainDataset, "--label-column-name", labelName, "--cache", cache };
+            args = new[] { "auto-train", "--ml-task", "binary-classification", "--dataset", trainDataset, "--label-column-name", labelName, "--cache", cache };
             parser.InvokeAsync(args).Wait();
             Assert.IsTrue(parsingSuccessful);
 
             parsingSuccessful = false;
 
             // invalid cache test
-            args = new[] { "new", "--ml-task", "binary-classification", "--dataset", trainDataset, "--label-column-name", labelName, "--cache", "blah" };
+            args = new[] { "auto-train", "--ml-task", "binary-classification", "--dataset", trainDataset, "--label-column-name", labelName, "--cache", "blah" };
             parser.InvokeAsync(args).Wait();
             Assert.IsFalse(parsingSuccessful);
 
@@ -276,7 +276,7 @@ namespace mlnet.Test
 
             var parser = new CommandLineBuilder()
                         // Parser
-                        .AddCommand(CommandDefinitions.New(handler))
+                        .AddCommand(CommandDefinitions.AutoTrain(handler))
                         .UseDefaults()
                         .UseExceptionHandler((e, ctx) =>
                         {
@@ -285,13 +285,13 @@ namespace mlnet.Test
                         .Build();
 
             // valid cache test
-            string[] args = new[] { "new", "--ml-task", "binary-classification", "--dataset", trainDataset, "--label-column-name", labelName, "--ignore-columns", ignoreColumns };
+            string[] args = new[] { "auto-train", "--ml-task", "binary-classification", "--dataset", trainDataset, "--label-column-name", labelName, "--ignore-columns", ignoreColumns };
             parser.InvokeAsync(args).Wait();
             Assert.IsTrue(parsingSuccessful);
 
             parsingSuccessful = false;
 
-            args = new[] { "new", "--ml-task", "binary-classification", "--dataset", trainDataset, "--label-column-name", labelName, "--ignore-columns", "a b c" };
+            args = new[] { "auto-train", "--ml-task", "binary-classification", "--dataset", trainDataset, "--label-column-name", labelName, "--ignore-columns", "a b c" };
             parser.InvokeAsync(args).Wait();
             Assert.IsFalse(parsingSuccessful);
 

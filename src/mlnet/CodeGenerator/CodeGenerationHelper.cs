@@ -99,32 +99,31 @@ namespace Microsoft.ML.CLI.CodeGenerator
                 {
                     using (var pbar = new FixedDurationBar(wait, "", options))
                     {
+                        pbar.Message = Strings.WaitingForFirstIteration;
                         Thread t = default;
                         switch (taskKind)
                         {
                             case TaskKind.BinaryClassification:
                                 t = new Thread(() => binaryRunDetails = automlEngine.ExploreBinaryClassificationModels(context, trainData, validationData, columnInformation, new BinaryExperimentSettings().OptimizingMetric, pbar));
-                                t.Start();
                                 break;
                             case TaskKind.Regression:
                                 t = new Thread(() => regressionRunDetails = automlEngine.ExploreRegressionModels(context, trainData, validationData, columnInformation, new RegressionExperimentSettings().OptimizingMetric, pbar));
-                                t.Start();
                                 break;
                             case TaskKind.MulticlassClassification:
                                 t = new Thread(() => multiRunDetails = automlEngine.ExploreMultiClassificationModels(context, trainData, validationData, columnInformation, new MulticlassExperimentSettings().OptimizingMetric, pbar));
-                                t.Start();
                                 break;
                             default:
                                 logger.Log(LogLevel.Error, Strings.UnsupportedMlTask);
                                 break;
                         }
+                        t.Start();
 
                         if (!pbar.CompletedHandle.WaitOne(wait))
                             pbar.Message = $"{nameof(FixedDurationBar)} did not signal {nameof(FixedDurationBar.CompletedHandle)} after {wait}";
 
                         if (t.IsAlive == true)
                         {
-                            string waitingMessage = "Waiting for the last iteration to complete ...";
+                            string waitingMessage = Strings.WaitingForLastIteration;
                             string originalMessage = pbar.Message;
                             pbar.Message = waitingMessage;
                             t.Join();
