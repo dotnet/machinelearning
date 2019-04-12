@@ -108,7 +108,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
             var dataPath2 = GetDataPath(TestDatasets.iris.trainFilename);
             var data2 = dataReader.Load(dataPath2);
 
-            var singleTrainer = mlContext.BinaryClassification.Trainers.LightGbm();
+            var singleTrainer = mlContext.BinaryClassification.Trainers.FastTree();
 
             // Create a training pipeline.
             var pipelineUnamed = mlContext.Transforms.Conversion.MapValueToKey("Label")
