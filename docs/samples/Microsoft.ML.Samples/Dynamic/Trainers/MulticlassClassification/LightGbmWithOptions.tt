@@ -1,0 +1,34 @@
+﻿<#@ include file="MulticlassClassification.ttinclude"#>
+<#+
+string ClassName = "LightGbmWithOptions";
+string Trainer = "LightGbm";
+string MetaTrainer = null;
+string TrainerOptions = @"LightGbmMulticlassTrainer.Options
+                        {
+                            Booster = new DartBooster.Options()
+                            {
+                                TreeDropFraction = 0.15,
+                                XgboostDartMode = false
+                            }
+                        }";
+
+string OptionsInclude = "using Microsoft.ML.Trainers.LightGbm;";
+string Comments = @"
+        // This example requires installation of additional NuGet package
+        // <a href=""https://www.nuget.org/packages/Microsoft.ML.FastTree/"">Microsoft.ML.FastTree</a>.";
+
+bool CacheData = false;
+
+string ExpectedOutputPerInstance = @"// Expected output:
+            //   Label: 1, Prediction: 1
+            //   Label: 2, Prediction: 2
+            //   Label: 3, Prediction: 3
+            //   Label: 2, Prediction: 2
+            //   Label: 3, Prediction: 3";
+
+string ExpectedOutput = @"// Expected output:
+            //  Micro Accuracy: 0.98
+            //  Macro Accuracy: 0.98
+            //  Log Loss: 0.06
+            //  Log Loss Reduction: 0.80";
+#>

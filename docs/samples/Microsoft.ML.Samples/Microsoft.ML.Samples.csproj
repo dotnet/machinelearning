@@ -7,7 +7,7 @@
     <PublicSign>false</PublicSign>
     <RootNamespace>Samples</RootNamespace>
   </PropertyGroup>
-
+ 
   <ItemGroup>
     <ProjectReference Include="..\..\..\src\Microsoft.ML.LightGbm.StaticPipe\Microsoft.ML.LightGbm.StaticPipe.csproj" />
     <ProjectReference Include="..\..\..\src\Microsoft.ML.LightGbm\Microsoft.ML.LightGbm.csproj" />
@@ -179,6 +179,22 @@
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>SymbolicSgdLogisticRegressionWithOptions.cs</LastGenOutput>
     </None>
+    <None Update="Dynamic\Trainers\MulticlassClassification\LbfgsMaximumEntropy.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>LbfgsMaximumEntropy.cs</LastGenOutput>
+    </None>
+    <None Update="Dynamic\Trainers\MulticlassClassification\LbfgsMaximumEntropyWithOptions.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>LbfgsMaximumEntropyWithOptions.cs</LastGenOutput>
+    </None>
+    <None Update="Dynamic\Trainers\MulticlassClassification\LightGbm.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>LightGbm.cs</LastGenOutput>
+    </None>
+    <None Update="Dynamic\Trainers\MulticlassClassification\LightGbmWithOptions.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>LightGbmWithOptions.cs</LastGenOutput>
+    </None>
     <None Update="Dynamic\Trainers\MulticlassClassification\NaiveBayes.tt">
       <LastGenOutput>NaiveBayes.cs</LastGenOutput>
       <Generator>TextTemplatingFileGenerator</Generator>
@@ -198,6 +214,22 @@
     <None Update="Dynamic\Trainers\Regression\FastForestWithOptions.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>FastForestWithOptions.cs</LastGenOutput>
+    </None>
+    <None Update="Dynamic\Trainers\MulticlassClassification\SdcaMaximumEntropy.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>SdcaMaximumEntropy.cs</LastGenOutput>
+    </None>
+    <None Update="Dynamic\Trainers\MulticlassClassification\SdcaMaximumEntropyWithOptions.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>SdcaMaximumEntropyWithOptions.cs</LastGenOutput>
+    </None>
+    <None Update="Dynamic\Trainers\MulticlassClassification\SdcaNonCalibrated.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>SdcaNonCalibrated.cs</LastGenOutput>
+    </None>
+    <None Update="Dynamic\Trainers\MulticlassClassification\SdcaNonCalibratedWithOptions.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>SdcaNonCalibratedWithOptions.cs</LastGenOutput>
     </None>
     <None Update="Dynamic\Trainers\Regression\FastTree.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
@@ -395,6 +427,26 @@
       <AutoGen>True</AutoGen>
       <DependentUpon>SymbolicSgdLogisticRegressionWithOptions.tt</DependentUpon>
     </Compile>
+    <Compile Update="Dynamic\Trainers\MulticlassClassification\LbfgsMaximumEntropy.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>LbfgsMaximumEntropy.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Dynamic\Trainers\MulticlassClassification\LbfgsMaximumEntropyWithOptions.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>LbfgsMaximumEntropyWithOptions.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Dynamic\Trainers\MulticlassClassification\LightGbm.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>LightGbm.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Dynamic\Trainers\MulticlassClassification\LightGbmWithOptions.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>LightGbmWithOptions.tt</DependentUpon>
+    </Compile>
     <Compile Update="Dynamic\Trainers\MulticlassClassification\PairwiseCoupling.cs">
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
@@ -444,6 +496,26 @@
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
       <DependentUpon>LightGbmWithOptions.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Dynamic\Trainers\MulticlassClassification\SdcaMaximumEntropy.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>SdcaMaximumEntropy.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Dynamic\Trainers\MulticlassClassification\SdcaMaximumEntropyWithOptions.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>SdcaMaximumEntropyWithOptions.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Dynamic\Trainers\MulticlassClassification\SdcaNonCalibrated.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>SdcaNonCalibrated.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Dynamic\Trainers\MulticlassClassification\SdcaNonCalibratedWithOptions.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>SdcaNonCalibratedWithOptions.tt</DependentUpon>
     </Compile>
     <Compile Update="Dynamic\Trainers\MulticlassClassification\NaiveBayes.cs">
       <DesignTime>True</DesignTime>
