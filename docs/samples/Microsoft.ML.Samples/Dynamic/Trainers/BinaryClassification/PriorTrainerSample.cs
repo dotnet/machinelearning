@@ -26,7 +26,7 @@ namespace Samples.Dynamic
             var loader = mlContext.Data.CreateTextLoader(
                 columns: new[]
                     {
-                        new TextLoader.Column("Sentiment", DataKind.Single, 0),
+                        new TextLoader.Column("Sentiment", DataKind.Boolean, 0),
                         new TextLoader.Column("SentimentText", DataKind.String, 1)
                     },
                 hasHeader: true
@@ -63,7 +63,7 @@ namespace Samples.Dynamic
             //  Positive Precision: 0.50
             //  Positive Recall: 1.00
             //  LogLoss: 1.05
-            //  LogLossReduction: -4.89
+            //  LogLossReduction: -0.05
             //  Entropy: 1.00
         }
     }
