@@ -59,16 +59,6 @@
       <AutoGen>True</AutoGen>
       <DependentUpon>LbfgsLogisticRegressionWithOptions.tt</DependentUpon>
     </None>
-    <None Include="Dynamic\Trainers\BinaryClassification\Gam.cs">
-      <DesignTime>True</DesignTime>
-      <AutoGen>True</AutoGen>
-      <DependentUpon>Gam.tt</DependentUpon>
-    </None>
-    <None Include="Dynamic\Trainers\BinaryClassification\GamWithOptions.cs">
-      <DesignTime>True</DesignTime>
-      <AutoGen>True</AutoGen>
-      <DependentUpon>GamWithOptions.tt</DependentUpon>
-    </None>
     <PackageReference Include="Microsoft.ML.TensorFlow.Redist" Version="0.10.0" />
     
     <ProjectReference Include="..\..\..\src\Microsoft.ML.Analyzer\Microsoft.ML.Analyzer.csproj">
