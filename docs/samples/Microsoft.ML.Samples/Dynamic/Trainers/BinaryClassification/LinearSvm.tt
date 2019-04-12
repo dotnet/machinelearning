@@ -1,0 +1,28 @@
+﻿<#@ include file="BinaryClassification.ttinclude"#>
+<#+
+string ClassName = "LinearSvm";
+string Trainer = "LinearSvm";
+string TrainerOptions = null;
+bool IsCalibrated = false;
+bool CacheData = false;
+
+string DataSepValue = "0.03f";
+string OptionsInclude = "";
+string Comments = "";
+
+string ExpectedOutputPerInstance = @"// Expected output:
+            //   Label: True, Prediction: True
+            //   Label: False, Prediction: False
+            //   Label: True, Prediction: True
+            //   Label: True, Prediction: False
+            //   Label: False, Prediction: True";
+
+string ExpectedOutput = @"// Expected output:
+            //   Accuracy: 0.53
+            //   AUC: 0.56
+            //   F1 Score: 0.49
+            //   Negative Precision: 0.55
+            //   Negative Recall: 0.58
+            //   Positive Precision: 0.50
+            //   Positive Recall: 0.47";
+#>

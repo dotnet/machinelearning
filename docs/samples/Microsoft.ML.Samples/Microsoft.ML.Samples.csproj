@@ -109,6 +109,14 @@
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>LightGbmWithOptions.cs</LastGenOutput>
     </None>
+    <None Update="Dynamic\Trainers\BinaryClassification\LinearSvm.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>LinearSvm.cs</LastGenOutput>
+    </None>
+    <None Update="Dynamic\Trainers\BinaryClassification\LinearSvmWithOptions.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>LinearSvmWithOptions.cs</LastGenOutput>
+    </None>
     <None Update="Dynamic\Trainers\BinaryClassification\SdcaLogisticRegression.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>SdcaLogisticRegression.cs</LastGenOutput>
@@ -233,6 +241,16 @@
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
       <DependentUpon>LightGbmWithOptions.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Dynamic\Trainers\BinaryClassification\LinearSvm.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>LinearSvm.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Dynamic\Trainers\BinaryClassification\LinearSvmWithOptions.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>LinearSvmWithOptions.tt</DependentUpon>
     </Compile>
     <Compile Update="Dynamic\Trainers\BinaryClassification\PriorTrainer.cs">
       <DesignTime>True</DesignTime>
