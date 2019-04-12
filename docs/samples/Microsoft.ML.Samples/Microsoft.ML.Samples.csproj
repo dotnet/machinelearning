@@ -195,6 +195,14 @@
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>LightGbmWithOptions.cs</LastGenOutput>
     </None>
+    <None Update="Dynamic\Trainers\Clustering\KMeans.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>KMeans.cs</LastGenOutput>
+    </None>
+    <None Update="Dynamic\Trainers\Clustering\KMeansWithOptions.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>KMeansWithOptions.cs</LastGenOutput>
+    </None>
     <None Update="Dynamic\Trainers\MulticlassClassification\NaiveBayes.tt">
       <LastGenOutput>NaiveBayes.cs</LastGenOutput>
       <Generator>TextTemplatingFileGenerator</Generator>
@@ -446,6 +454,16 @@
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
       <DependentUpon>LightGbmWithOptions.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Dynamic\Trainers\Clustering\KMeans.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>KMeans.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Dynamic\Trainers\Clustering\KMeansWithOptions.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>KMeansWithOptions.tt</DependentUpon>
     </Compile>
     <Compile Update="Dynamic\Trainers\MulticlassClassification\PairwiseCoupling.cs">
       <DesignTime>True</DesignTime>
