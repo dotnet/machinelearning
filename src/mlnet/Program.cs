@@ -51,7 +51,9 @@ namespace Microsoft.ML.CLI
                  // Override the Logger Configuration
                  var logconsole = LogManager.Configuration.FindTargetByName("logconsole");
                  var logfile = (FileTarget)LogManager.Configuration.FindTargetByName("logfile");
-                 logfile.FileName = $"{outputBaseDir}/logs/debug_log.txt";
+                 var logFilePath = Path.Combine(Path.Combine(outputBaseDir, "logs"), "debug_log.txt");
+                 logfile.FileName = logFilePath;
+                 options.LogFilePath = logFilePath;
                  var config = LogManager.Configuration;
                  config.AddRule(verbosity, LogLevel.Fatal, logconsole);
 

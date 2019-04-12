@@ -13,7 +13,7 @@ using Microsoft.ML.Data;
 using TestNamespace.Model.DataModels;
 
 
-namespace TestNamespace.Predict
+namespace TestNamespace.ConsoleApp
 {
     class Program
     {
@@ -27,38 +27,22 @@ namespace TestNamespace.Predict
         {
             MLContext mlContext = new MLContext();
 
-            //Load ML Model from .zip file
-            ITransformer mlModel = LoadModelFromFile(mlContext, MODEL_FILEPATH);
+            // Training code used by ML.NET CLI and AutoML to generate the model
+            //ModelBuilder.CreateModel();
+
+            ITransformer mlModel = mlContext.Model.Load(MODEL_FILEPATH, out DataViewSchema inputSchema);
+            var predEngine = mlContext.Model.CreatePredictionEngine<SampleObservation, SamplePrediction>(mlModel);
 
             // Create sample data to do a single prediction with it 
             SampleObservation sampleData = CreateSingleDataSample(mlContext, DATA_FILEPATH);
 
-            // Test a single prediction
-            Predict(mlContext, mlModel, sampleData);
+            // Try a single prediction
+            SamplePrediction predictionResult = predEngine.Predict(sampleData);
+
+            Console.WriteLine($"Single Prediction --> Actual value: {sampleData.Label} | Predicted value: {predictionResult.Prediction}");
 
             Console.WriteLine("=============== End of process, hit any key to finish ===============");
             Console.ReadKey();
-        }
-
-        private static void Predict(MLContext mlContext, ITransformer mlModel, SampleObservation sampleData)
-        {
-            // Create prediction engine related to the loaded ML model          
-            var predEngine = mlContext.Model.CreatePredictionEngine<SampleObservation, SamplePrediction>(mlModel);
-
-            // Try a single prediction
-            var predictionResult = predEngine.Predict(sampleData);
-            Console.WriteLine($"Single Prediction --> Actual value: {sampleData.Label} | Predicted value: {predictionResult.Prediction}");
-        }
-
-        private static ITransformer LoadModelFromFile(MLContext mlContext, string modelFilePath)
-        {
-            ITransformer mlModel;
-            using (var stream = new FileStream(modelFilePath, FileMode.Open, FileAccess.Read, FileShare.Read))
-            {
-                mlModel = mlContext.Model.Load(stream, out var modelInputSchema);
-            }
-
-            return mlModel;
         }
 
         // Method to load single row of data to try a single prediction

@@ -35,5 +35,7 @@ namespace Microsoft.ML.CLI.Data
 
         public List<string> IgnoreColumns { get; set; } = new List<string>();
 
+        public string LogFilePath { get; set; }
+
     }
 }

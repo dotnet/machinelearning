@@ -183,4 +183,13 @@
   <data name="WaitingForLastIteration" xml:space="preserve">
     <value>Waiting for the last iteration to complete ...</value>
   </data>
+  <data name="ErrorBestPipeline" xml:space="preserve">
+    <value>Error occured while retreiving best pipeline.</value>
+  </data>
+  <data name="LookIntoLogFile" xml:space="preserve">
+    <value>Please see the log file for more info.</value>
+  </data>
+  <data name="SeeLogFileForMoreInfo" xml:space="preserve">
+    <value>Check out log file for more information</value>
+  </data>
 </root>

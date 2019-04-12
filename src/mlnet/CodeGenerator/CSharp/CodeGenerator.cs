@@ -46,55 +46,37 @@ namespace Microsoft.ML.CLI.CodeGenerator.CSharp
             Utils.WriteOutputToFiles(modelProjectContents.PredictionCSFileContent, "Prediction.cs", dataModelsDir);
             Utils.WriteOutputToFiles(modelProjectContents.ModelProjectFileContent, modelProjectName, modelprojectDir);
 
-            // Generate Predict Project
-            var predictProjectContents = GeneratePredictProjectContents(namespaceValue);
+            // Generate ConsoleApp Project
+            var consoleAppProjectContents = GenerateConsoleAppProjectContents(namespaceValue, labelTypeCsharp);
 
             // Write files to disk. 
-            var predictProjectDir = Path.Combine(settings.OutputBaseDir, $"{settings.OutputName}.Predict");
-            var predictProjectName = $"{settings.OutputName}.Predict.csproj";
+            var consoleAppProjectDir = Path.Combine(settings.OutputBaseDir, $"{settings.OutputName}.ConsoleApp");
+            var consoleAppProjectName = $"{settings.OutputName}.ConsoleApp.csproj";
 
-            Utils.WriteOutputToFiles(predictProjectContents.PredictProgramCSFileContent, "Program.cs", predictProjectDir);
-            Utils.WriteOutputToFiles(predictProjectContents.PredictProjectFileContent, predictProjectName, predictProjectDir);
-
-            // Generate Train Project
-            (string trainProgramCSFileContent, string trainProjectFileContent, string consoleHelperCSFileContent) = GenerateTrainProjectContents(namespaceValue, labelTypeCsharp);
-
-            // Write files to disk. 
-            var trainProjectDir = Path.Combine(settings.OutputBaseDir, $"{settings.OutputName}.Train");
-            var trainProjectName = $"{settings.OutputName}.Train.csproj";
-
-            Utils.WriteOutputToFiles(trainProgramCSFileContent, "Program.cs", trainProjectDir);
-            Utils.WriteOutputToFiles(consoleHelperCSFileContent, "ConsoleHelper.cs", trainProjectDir);
-            Utils.WriteOutputToFiles(trainProjectFileContent, trainProjectName, trainProjectDir);
+            Utils.WriteOutputToFiles(consoleAppProjectContents.ConsoleAppProgramCSFileContent, "Program.cs", consoleAppProjectDir);
+            Utils.WriteOutputToFiles(consoleAppProjectContents.modelBuilderCSFileContent, "ModelBuilder.cs", consoleAppProjectDir);
+            Utils.WriteOutputToFiles(consoleAppProjectContents.ConsoleAppProjectFileContent, consoleAppProjectName, consoleAppProjectDir);
 
             // New solution file.
             Utils.CreateSolutionFile(settings.OutputName, settings.OutputBaseDir);
 
             // Add projects to solution
             var solutionPath = Path.Combine(settings.OutputBaseDir, $"{settings.OutputName}.sln");
-            Utils.AddProjectsToSolution(modelprojectDir, modelProjectName, predictProjectDir, predictProjectName, trainProjectDir, trainProjectName, solutionPath);
+            Utils.AddProjectsToSolution(modelprojectDir, modelProjectName, consoleAppProjectDir, consoleAppProjectName, solutionPath);
         }
 
-        internal (string, string, string) GenerateTrainProjectContents(string namespaceValue, Type labelTypeCsharp)
-        {
-            var result = GenerateTransformsAndTrainers();
-
-            var trainProgramCSFileContent = GenerateTrainProgramCSFileContent(result.Usings, result.TrainerMethod, result.PreTrainerTransforms, result.PostTrainerTransforms, namespaceValue, pipeline.CacheBeforeTrainer, labelTypeCsharp.Name);
-            trainProgramCSFileContent = Utils.FormatCode(trainProgramCSFileContent);
-
-            var trainProjectFileContent = GeneratTrainProjectFileContent(namespaceValue);
-            var consoleHelperCSFileContent = GenerateConsoleHelper(namespaceValue);
-
-            return (trainProgramCSFileContent, trainProjectFileContent, consoleHelperCSFileContent);
-        }
-
-        internal (string PredictProgramCSFileContent, string PredictProjectFileContent) GeneratePredictProjectContents(string namespaceValue)
+        internal (string ConsoleAppProgramCSFileContent, string ConsoleAppProjectFileContent, string modelBuilderCSFileContent) GenerateConsoleAppProjectContents(string namespaceValue, Type labelTypeCsharp)
         {
             var predictProgramCSFileContent = GeneratePredictProgramCSFileContent(namespaceValue);
             predictProgramCSFileContent = Utils.FormatCode(predictProgramCSFileContent);
 
             var predictProjectFileContent = GeneratPredictProjectFileContent(namespaceValue, true, true);
-            return (predictProgramCSFileContent, predictProjectFileContent);
+
+            var transformsAndTrainers = GenerateTransformsAndTrainers();
+            var modelBuilderCSFileContent = GenerateModelBuilderCSFileContent(transformsAndTrainers.Usings, transformsAndTrainers.TrainerMethod, transformsAndTrainers.PreTrainerTransforms, transformsAndTrainers.PostTrainerTransforms, namespaceValue, pipeline.CacheBeforeTrainer, labelTypeCsharp.Name);
+            modelBuilderCSFileContent = Utils.FormatCode(modelBuilderCSFileContent);
+
+            return (predictProgramCSFileContent, predictProjectFileContent, modelBuilderCSFileContent);
         }
 
         internal (string ObservationCSFileContent, string PredictionCSFileContent, string ModelProjectFileContent) GenerateModelProjectContents(string namespaceValue, Type labelTypeCsharp)
@@ -235,49 +217,6 @@ namespace Microsoft.ML.CLI.CodeGenerator.CSharp
             return result;
         }
 
-        #region Train Project
-        private string GenerateTrainProgramCSFileContent(string usings,
-            string trainerMethod,
-            List<string> preTrainerTransforms,
-            List<string> postTrainerTransforms,
-            string namespaceValue,
-            bool cacheBeforeTrainer,
-            string predictionLabelType)
-        {
-            var trainProgram = new TrainProgram()
-            {
-                PreTrainerTransforms = preTrainerTransforms,
-                PostTrainerTransforms = postTrainerTransforms,
-                HasHeader = columnInferenceResult.TextLoaderOptions.HasHeader,
-                Separator = columnInferenceResult.TextLoaderOptions.Separators.FirstOrDefault(),
-                AllowQuoting = columnInferenceResult.TextLoaderOptions.AllowQuoting,
-                AllowSparse = columnInferenceResult.TextLoaderOptions.AllowSparse,
-                Trainer = trainerMethod,
-                GeneratedUsings = usings,
-                Path = settings.TrainDataset,
-                TestPath = settings.TestDataset,
-                TaskType = settings.MlTask.ToString(),
-                Namespace = namespaceValue,
-                LabelName = settings.LabelName,
-                CacheBeforeTrainer = cacheBeforeTrainer,
-            };
-
-            return trainProgram.TransformText();
-        }
-
-        private string GeneratTrainProjectFileContent(string namespaceValue)
-        {
-            var trainProjectFileContent = new TrainProject() { Namespace = namespaceValue,/*The following args need to dynamic*/ IncludeMklComponentsPackage = true, IncludeLightGBMPackage = true };
-            return trainProjectFileContent.TransformText();
-        }
-
-        private static string GenerateConsoleHelper(string namespaceValue)
-        {
-            var consoleHelperCodeGen = new ConsoleHelper() { Namespace = namespaceValue };
-            return consoleHelperCodeGen.TransformText();
-        }
-        #endregion
-
         #region Model project
         private static string GenerateModelProjectFileContent()
         {
@@ -320,6 +259,35 @@ namespace Microsoft.ML.CLI.CodeGenerator.CSharp
                 AllowSparse = columnInferenceResult.TextLoaderOptions.AllowSparse,
             };
             return predictProgram.TransformText();
+        }
+
+        private string GenerateModelBuilderCSFileContent(string usings,
+            string trainerMethod,
+            List<string> preTrainerTransforms,
+            List<string> postTrainerTransforms,
+            string namespaceValue,
+            bool cacheBeforeTrainer,
+            string predictionLabelType)
+        {
+            var modelBuilder = new ModelBuilder()
+            {
+                PreTrainerTransforms = preTrainerTransforms,
+                PostTrainerTransforms = postTrainerTransforms,
+                HasHeader = columnInferenceResult.TextLoaderOptions.HasHeader,
+                Separator = columnInferenceResult.TextLoaderOptions.Separators.FirstOrDefault(),
+                AllowQuoting = columnInferenceResult.TextLoaderOptions.AllowQuoting,
+                AllowSparse = columnInferenceResult.TextLoaderOptions.AllowSparse,
+                Trainer = trainerMethod,
+                GeneratedUsings = usings,
+                Path = settings.TrainDataset,
+                TestPath = settings.TestDataset,
+                TaskType = settings.MlTask.ToString(),
+                Namespace = namespaceValue,
+                LabelName = settings.LabelName,
+                CacheBeforeTrainer = cacheBeforeTrainer,
+            };
+
+            return modelBuilder.TransformText();
         }
         #endregion
 

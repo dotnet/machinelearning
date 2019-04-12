@@ -79,6 +79,15 @@ namespace Microsoft.ML.CLI {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Error occured while retreiving best pipeline..
+        /// </summary>
+        internal static string ErrorBestPipeline {
+            get {
+                return ResourceManager.GetString("ErrorBestPipeline", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Exiting ....
         /// </summary>
         internal static string Exiting {
@@ -187,6 +196,15 @@ namespace Microsoft.ML.CLI {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Please see the log file for more info..
+        /// </summary>
+        internal static string LookIntoLogFile {
+            get {
+                return ResourceManager.GetString("LookIntoLogFile", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Metrics for Binary Classification models.
         /// </summary>
         internal static string MetricsForBinaryClassModels {
@@ -228,6 +246,15 @@ namespace Microsoft.ML.CLI {
         internal static string SavingBestModel {
             get {
                 return ResourceManager.GetString("SavingBestModel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Check out log file for more information.
+        /// </summary>
+        internal static string SeeLogFileForMoreInfo {
+            get {
+                return ResourceManager.GetString("SeeLogFileForMoreInfo", resourceCulture);
             }
         }
         

@@ -5,25 +5,27 @@
 //*****************************************************************************************
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Microsoft.ML;
+using Microsoft.ML.Data;
 using TestNamespace.Model.DataModels;
 
-namespace TestNamespace.Train
+namespace TestNamespace.ConsoleApp
 {
-    class Program
+    public static class ModelBuilder
     {
         private static string TRAIN_DATA_FILEPATH = @"x:\dummypath\dummy_train.csv";
         private static string TEST_DATA_FILEPATH = @"x:\dummypath\dummy_test.csv";
         private static string MODEL_FILEPATH = @"../../../../TestNamespace.Model/MLModel.zip";
 
-        static void Main(string[] args)
-        {
-            // Create MLContext to be shared across the model creation workflow objects 
-            // Set a random seed for repeatable/deterministic results across multiple trainings.
-            MLContext mlContext = new MLContext(seed: 1);
+        // Create MLContext to be shared across the model creation workflow objects 
+        // Set a random seed for repeatable/deterministic results across multiple trainings.
+        private static MLContext mlContext = new MLContext(seed: 1);
 
+        public static void CreateModel()
+        {
             // Load Data
             IDataView trainingDataView = mlContext.Data.LoadFromTextFile<SampleObservation>(
                                             path: TRAIN_DATA_FILEPATH,
@@ -49,9 +51,6 @@ namespace TestNamespace.Train
 
             // Save model
             SaveModel(mlContext, mlModel, MODEL_FILEPATH, trainingDataView.Schema);
-
-            Console.WriteLine("=============== End of process, hit any key to finish ===============");
-            Console.ReadKey();
         }
 
         public static IEstimator<ITransformer> BuildTrainingPipeline(MLContext mlContext)
@@ -61,7 +60,7 @@ namespace TestNamespace.Train
                                       .AppendCacheCheckpoint(mlContext);
 
             // Set the training algorithm 
-            var trainer = mlContext.MulticlassClassification.Trainers.OneVersusAll(mlContext.BinaryClassification.Trainers.FastForest(labelColumnName: "Label", featureColumnName: "Features"), labelColumnName: "Label");
+            var trainer = mlContext.Regression.Trainers.LightGbm(labelColumnName: "Label", featureColumnName: "Features");
             var trainingPipeline = dataProcessPipeline.Append(trainer);
 
             return trainingPipeline;
@@ -82,8 +81,8 @@ namespace TestNamespace.Train
             // Evaluate the model and show accuracy stats
             Console.WriteLine("===== Evaluating Model's accuracy with Test data =====");
             IDataView predictions = mlModel.Transform(testDataView);
-            var metrics = mlContext.MulticlassClassification.Evaluate(predictions, "Label", "Score");
-            ConsoleHelper.PrintMulticlassClassificationMetrics(metrics);
+            var metrics = mlContext.Regression.Evaluate(predictions, "Label", "Score");
+            PrintRegressionMetrics(metrics);
         }
         private static void SaveModel(MLContext mlContext, ITransformer mlModel, string modelRelativePath, DataViewSchema modelInputSchema)
         {
@@ -103,6 +102,38 @@ namespace TestNamespace.Train
             string fullPath = Path.Combine(assemblyFolderPath, relativePath);
 
             return fullPath;
+        }
+
+        public static void PrintRegressionMetrics(RegressionMetrics metrics)
+        {
+            Console.WriteLine($"*************************************************");
+            Console.WriteLine($"*       Metrics for regression model      ");
+            Console.WriteLine($"*------------------------------------------------");
+            Console.WriteLine($"*       LossFn:        {metrics.LossFunction:0.##}");
+            Console.WriteLine($"*       R2 Score:      {metrics.RSquared:0.##}");
+            Console.WriteLine($"*       Absolute loss: {metrics.MeanAbsoluteError:#.##}");
+            Console.WriteLine($"*       Squared loss:  {metrics.MeanSquaredError:#.##}");
+            Console.WriteLine($"*       RMS loss:      {metrics.RootMeanSquaredError:#.##}");
+            Console.WriteLine($"*************************************************");
+        }
+
+        public static void PrintRegressionFoldsAverageMetrics(IEnumerable<TrainCatalogBase.CrossValidationResult<RegressionMetrics>> crossValidationResults)
+        {
+            var L1 = crossValidationResults.Select(r => r.Metrics.MeanAbsoluteError);
+            var L2 = crossValidationResults.Select(r => r.Metrics.MeanSquaredError);
+            var RMS = crossValidationResults.Select(r => r.Metrics.MeanAbsoluteError);
+            var lossFunction = crossValidationResults.Select(r => r.Metrics.LossFunction);
+            var R2 = crossValidationResults.Select(r => r.Metrics.RSquared);
+
+            Console.WriteLine($"*************************************************************************************************************");
+            Console.WriteLine($"*       Metrics for Regression model      ");
+            Console.WriteLine($"*------------------------------------------------------------------------------------------------------------");
+            Console.WriteLine($"*       Average L1 Loss:    {L1.Average():0.###} ");
+            Console.WriteLine($"*       Average L2 Loss:    {L2.Average():0.###}  ");
+            Console.WriteLine($"*       Average RMS:          {RMS.Average():0.###}  ");
+            Console.WriteLine($"*       Average Loss Function: {lossFunction.Average():0.###}  ");
+            Console.WriteLine($"*       Average R-squared: {R2.Average():0.###}  ");
+            Console.WriteLine($"*************************************************************************************************************");
         }
     }
 }

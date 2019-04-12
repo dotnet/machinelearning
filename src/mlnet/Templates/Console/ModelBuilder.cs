@@ -20,7 +20,7 @@ namespace Microsoft.ML.CLI.Templates.Console
     /// Class to produce the template output
     /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.VisualStudio.TextTemplating", "15.0.0.0")]
-    public partial class TrainProgram : TrainProgramBase
+    public partial class ModelBuilder : ModelBuilderBase
     {
         /// <summary>
         /// Create the template output
@@ -34,17 +34,19 @@ namespace Microsoft.ML.CLI.Templates.Console
 //*****************************************************************************************
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Microsoft.ML;
+using Microsoft.ML.Data;
 using ");
             this.Write(this.ToStringHelper.ToStringWithCulture(Namespace));
             this.Write(".Model.DataModels;\r\n");
             this.Write(this.ToStringHelper.ToStringWithCulture(GeneratedUsings));
             this.Write("\r\nnamespace ");
             this.Write(this.ToStringHelper.ToStringWithCulture(Namespace));
-            this.Write(".Train\r\n{\r\n    class Program\r\n    {\r\n        private static string TRAIN_DATA_FIL" +
-                    "EPATH = @\"");
+            this.Write(".ConsoleApp\r\n{\r\n    public static class ModelBuilder\r\n    {\r\n        private stat" +
+                    "ic string TRAIN_DATA_FILEPATH = @\"");
             this.Write(this.ToStringHelper.ToStringWithCulture(Path));
             this.Write("\";\r\n");
 if(!string.IsNullOrEmpty(TestPath)){ 
@@ -56,12 +58,12 @@ if(!string.IsNullOrEmpty(TestPath)){
             this.Write(this.ToStringHelper.ToStringWithCulture(Namespace));
             this.Write(@".Model/MLModel.zip"";
 
-        static void Main(string[] args)
-        {
-            // Create MLContext to be shared across the model creation workflow objects 
-            // Set a random seed for repeatable/deterministic results across multiple trainings.
-            MLContext mlContext = new MLContext(seed: 1);
+        // Create MLContext to be shared across the model creation workflow objects 
+        // Set a random seed for repeatable/deterministic results across multiple trainings.
+        private static MLContext mlContext = new MLContext(seed: 1);
 
+        public static void CreateModel()
+        {
             // Load Data
             IDataView trainingDataView = mlContext.Data.LoadFromTextFile<SampleObservation>(
                                             path: TRAIN_DATA_FILEPATH,
@@ -90,8 +92,8 @@ if(!string.IsNullOrEmpty(TestPath)){
             this.Write("            // Build training pipeline\r\n            IEstimator<ITransformer> trai" +
                     "ningPipeline = BuildTrainingPipeline(mlContext);\r\n\r\n");
  if(string.IsNullOrEmpty(TestPath)){ 
-            this.Write("            // Evaluate quality of Model\r\n            EvaluateModel(mlContext, tr" +
-                    "ainingDataView, trainingPipeline);\r\n\r\n");
+            this.Write("            // Evaluate quality of Model\r\n            Evaluate(mlContext, trainin" +
+                    "gDataView, trainingPipeline);\r\n\r\n");
 }
             this.Write("            // Train Model\r\n            ITransformer mlModel = TrainModel(mlConte" +
                     "xt, trainingDataView, trainingPipeline);\r\n");
@@ -99,17 +101,9 @@ if(!string.IsNullOrEmpty(TestPath)){
             this.Write("\r\n            // Evaluate quality of Model\r\n            EvaluateModel(mlContext, " +
                     "mlModel, testDataView);\r\n");
 }
-            this.Write(@"
-            // Save model
-            SaveModel(mlContext, mlModel, MODEL_FILEPATH, trainingDataView.Schema);
-
-            Console.WriteLine(""=============== End of process, hit any key to finish ==============="");
-            Console.ReadKey();
-        }
-
-        public static IEstimator<ITransformer> BuildTrainingPipeline(MLContext mlContext)
-        {
-");
+            this.Write("\r\n            // Save model\r\n            SaveModel(mlContext, mlModel, MODEL_FILE" +
+                    "PATH, trainingDataView.Schema);\r\n        }\r\n\r\n        public static IEstimator<I" +
+                    "Transformer> BuildTrainingPipeline(MLContext mlContext)\r\n        {\r\n");
  if(PreTrainerTransforms.Count >0 ) {
             this.Write("            // Data process configuration with pipeline data transformations \r\n  " +
                     "          var dataProcessPipeline = ");
@@ -173,25 +167,23 @@ if("BinaryClassification".Equals(TaskType)){
             this.Write(this.ToStringHelper.ToStringWithCulture(TaskType));
             this.Write(".EvaluateNonCalibrated(predictions, \"");
             this.Write(this.ToStringHelper.ToStringWithCulture(LabelName));
-            this.Write("\", \"Score\");\r\n            ConsoleHelper.PrintBinaryClassificationMetrics(metrics)" +
-                    ";\r\n");
+            this.Write("\", \"Score\");\r\n            PrintBinaryClassificationMetrics(metrics);\r\n");
 } if("MulticlassClassification".Equals(TaskType)){ 
             this.Write("            var metrics = mlContext.");
             this.Write(this.ToStringHelper.ToStringWithCulture(TaskType));
             this.Write(".Evaluate(predictions, \"");
             this.Write(this.ToStringHelper.ToStringWithCulture(LabelName));
-            this.Write("\", \"Score\");\r\n            ConsoleHelper.PrintMulticlassClassificationMetrics(metr" +
-                    "ics);\r\n");
+            this.Write("\", \"Score\");\r\n            PrintMulticlassClassificationMetrics(metrics);\r\n");
 }if("Regression".Equals(TaskType)){ 
             this.Write("            var metrics = mlContext.");
             this.Write(this.ToStringHelper.ToStringWithCulture(TaskType));
             this.Write(".Evaluate(predictions, \"");
             this.Write(this.ToStringHelper.ToStringWithCulture(LabelName));
-            this.Write("\", \"Score\");\r\n            ConsoleHelper.PrintRegressionMetrics(metrics);\r\n");
+            this.Write("\", \"Score\");\r\n            PrintRegressionMetrics(metrics);\r\n");
 } 
             this.Write("        }\r\n");
 }else{
-            this.Write(@"        private static void EvaluateModel(MLContext mlContext, IDataView trainingDataView, IEstimator<ITransformer> trainingPipeline)
+            this.Write(@"        private static void Evaluate(MLContext mlContext, IDataView trainingDataView, IEstimator<ITransformer> trainingPipeline)
         {
             // Cross-Validate with single dataset (since we don't have two datasets, one for training and for evaluate)
             // in order to evaluate and get the model's accuracy metrics
@@ -204,8 +196,8 @@ if("BinaryClassification".Equals(TaskType)){
             this.Write(this.ToStringHelper.ToStringWithCulture(Kfolds));
             this.Write(", labelColumnName:\"");
             this.Write(this.ToStringHelper.ToStringWithCulture(LabelName));
-            this.Write("\");\r\n            ConsoleHelper.PrintBinaryClassificationFoldsAverageMetrics(cross" +
-                    "ValidationResults);\r\n");
+            this.Write("\");\r\n            PrintBinaryClassificationFoldsAverageMetrics(crossValidationResu" +
+                    "lts);\r\n");
 }
 if("MulticlassClassification".Equals(TaskType)){ 
             this.Write("            var crossValidationResults = mlContext.");
@@ -214,8 +206,8 @@ if("MulticlassClassification".Equals(TaskType)){
             this.Write(this.ToStringHelper.ToStringWithCulture(Kfolds));
             this.Write(", labelColumnName:\"");
             this.Write(this.ToStringHelper.ToStringWithCulture(LabelName));
-            this.Write("\");\r\n            ConsoleHelper.PrintMulticlassClassificationFoldsAverageMetrics(c" +
-                    "rossValidationResults);\r\n");
+            this.Write("\");\r\n            PrintMulticlassClassificationFoldsAverageMetrics(crossValidation" +
+                    "Results);\r\n");
 }
 if("Regression".Equals(TaskType)){ 
             this.Write("            var crossValidationResults = mlContext.");
@@ -224,8 +216,7 @@ if("Regression".Equals(TaskType)){
             this.Write(this.ToStringHelper.ToStringWithCulture(Kfolds));
             this.Write(", labelColumnName:\"");
             this.Write(this.ToStringHelper.ToStringWithCulture(LabelName));
-            this.Write("\");\r\n            ConsoleHelper.PrintRegressionFoldsAverageMetrics(crossValidation" +
-                    "Results);\r\n");
+            this.Write("\");\r\n            PrintRegressionFoldsAverageMetrics(crossValidationResults);\r\n");
 }
             this.Write("        }\r\n");
 }
@@ -248,9 +239,141 @@ if("Regression".Equals(TaskType)){
 
             return fullPath;
         }
-    }
-}
+
 ");
+if("Regression".Equals(TaskType)){ 
+            this.Write("        public static void PrintRegressionMetrics(RegressionMetrics metrics)\r\n   " +
+                    "     {\r\n            Console.WriteLine($\"****************************************" +
+                    "*********\");\r\n            Console.WriteLine($\"*       Metrics for regression mod" +
+                    "el      \");\r\n            Console.WriteLine($\"*----------------------------------" +
+                    "--------------\");\r\n            Console.WriteLine($\"*       LossFn:        {metri" +
+                    "cs.LossFunction:0.##}\");\r\n            Console.WriteLine($\"*       R2 Score:     " +
+                    " {metrics.RSquared:0.##}\");\r\n            Console.WriteLine($\"*       Absolute lo" +
+                    "ss: {metrics.MeanAbsoluteError:#.##}\");\r\n            Console.WriteLine($\"*      " +
+                    " Squared loss:  {metrics.MeanSquaredError:#.##}\");\r\n            Console.WriteLin" +
+                    "e($\"*       RMS loss:      {metrics.RootMeanSquaredError:#.##}\");\r\n            C" +
+                    "onsole.WriteLine($\"*************************************************\");\r\n       " +
+                    " }\r\n\r\n        public static void PrintRegressionFoldsAverageMetrics(IEnumerable<" +
+                    "TrainCatalogBase.CrossValidationResult<RegressionMetrics>> crossValidationResult" +
+                    "s)\r\n        {\r\n            var L1 = crossValidationResults.Select(r => r.Metrics" +
+                    ".MeanAbsoluteError);\r\n            var L2 = crossValidationResults.Select(r => r." +
+                    "Metrics.MeanSquaredError);\r\n            var RMS = crossValidationResults.Select(" +
+                    "r => r.Metrics.MeanAbsoluteError);\r\n            var lossFunction = crossValidati" +
+                    "onResults.Select(r => r.Metrics.LossFunction);\r\n            var R2 = crossValida" +
+                    "tionResults.Select(r => r.Metrics.RSquared);\r\n\r\n            Console.WriteLine($\"" +
+                    "********************************************************************************" +
+                    "*****************************\");\r\n            Console.WriteLine($\"*       Metric" +
+                    "s for Regression model      \");\r\n            Console.WriteLine($\"*--------------" +
+                    "--------------------------------------------------------------------------------" +
+                    "--------------\");\r\n            Console.WriteLine($\"*       Average L1 Loss:    {" +
+                    "L1.Average():0.###} \");\r\n            Console.WriteLine($\"*       Average L2 Loss" +
+                    ":    {L2.Average():0.###}  \");\r\n            Console.WriteLine($\"*       Average " +
+                    "RMS:          {RMS.Average():0.###}  \");\r\n            Console.WriteLine($\"*     " +
+                    "  Average Loss Function: {lossFunction.Average():0.###}  \");\r\n            Consol" +
+                    "e.WriteLine($\"*       Average R-squared: {R2.Average():0.###}  \");\r\n            " +
+                    "Console.WriteLine($\"************************************************************" +
+                    "*************************************************\");\r\n        }\r\n");
+ } if("BinaryClassification".Equals(TaskType)){ 
+            this.Write("        public static void PrintBinaryClassificationMetrics(BinaryClassificationM" +
+                    "etrics metrics)\r\n        {\r\n            Console.WriteLine($\"********************" +
+                    "****************************************\");\r\n            Console.WriteLine($\"*  " +
+                    "     Metrics for binary classification model      \");\r\n            Console.Write" +
+                    "Line($\"*-----------------------------------------------------------\");\r\n        " +
+                    "    Console.WriteLine($\"*       Accuracy: {metrics.Accuracy:P2}\");\r\n            " +
+                    "Console.WriteLine($\"*       Auc:      {metrics.AreaUnderRocCurve:P2}\");\r\n       " +
+                    "     Console.WriteLine($\"*******************************************************" +
+                    "*****\");\r\n        }\r\n\r\n\r\n        public static void PrintBinaryClassificationFol" +
+                    "dsAverageMetrics(IEnumerable<TrainCatalogBase.CrossValidationResult<BinaryClassi" +
+                    "ficationMetrics>> crossValResults)\r\n        {\r\n            var metricsInMultiple" +
+                    "Folds = crossValResults.Select(r => r.Metrics);\r\n\r\n            var AccuracyValue" +
+                    "s = metricsInMultipleFolds.Select(m => m.Accuracy);\r\n            var AccuracyAve" +
+                    "rage = AccuracyValues.Average();\r\n            var AccuraciesStdDeviation = Calcu" +
+                    "lateStandardDeviation(AccuracyValues);\r\n            var AccuraciesConfidenceInte" +
+                    "rval95 = CalculateConfidenceInterval95(AccuracyValues);\r\n\r\n\r\n            Console" +
+                    ".WriteLine($\"*******************************************************************" +
+                    "******************************************\");\r\n            Console.WriteLine($\"*" +
+                    "       Metrics for Binary Classification model      \");\r\n            Console.Wri" +
+                    "teLine($\"*----------------------------------------------------------------------" +
+                    "--------------------------------------\");\r\n            Console.WriteLine($\"*    " +
+                    "   Average Accuracy:    {AccuracyAverage:0.###}  - Standard deviation: ({Accurac" +
+                    "iesStdDeviation:#.###})  - Confidence Interval 95%: ({AccuraciesConfidenceInterv" +
+                    "al95:#.###})\");\r\n            Console.WriteLine($\"*******************************" +
+                    "******************************************************************************\")" +
+                    ";\r\n        }\r\n\r\n        public static double CalculateStandardDeviation(IEnumera" +
+                    "ble<double> values)\r\n        {\r\n            double average = values.Average();\r\n" +
+                    "            double sumOfSquaresOfDifferences = values.Select(val => (val - avera" +
+                    "ge) * (val - average)).Sum();\r\n            double standardDeviation = Math.Sqrt(" +
+                    "sumOfSquaresOfDifferences / (values.Count() - 1));\r\n            return standardD" +
+                    "eviation;\r\n        }\r\n\r\n        public static double CalculateConfidenceInterval" +
+                    "95(IEnumerable<double> values)\r\n        {\r\n            double confidenceInterval" +
+                    "95 = 1.96 * CalculateStandardDeviation(values) / Math.Sqrt((values.Count() - 1))" +
+                    ";\r\n            return confidenceInterval95;\r\n        }\r\n");
+} if("MulticlassClassification".Equals(TaskType)){
+            this.Write("        public static void PrintMulticlassClassificationMetrics(MulticlassClassif" +
+                    "icationMetrics metrics)\r\n        {\r\n            Console.WriteLine($\"************" +
+                    "************************************************\");\r\n            Console.WriteLi" +
+                    "ne($\"*    Metrics for multi-class classification model   \");\r\n            Consol" +
+                    "e.WriteLine($\"*-----------------------------------------------------------\");\r\n " +
+                    "           Console.WriteLine($\"    MacroAccuracy = {metrics.MacroAccuracy:0.####" +
+                    "}, a value between 0 and 1, the closer to 1, the better\");\r\n            Console." +
+                    "WriteLine($\"    MicroAccuracy = {metrics.MicroAccuracy:0.####}, a value between " +
+                    "0 and 1, the closer to 1, the better\");\r\n            Console.WriteLine($\"    Log" +
+                    "Loss = {metrics.LogLoss:0.####}, the closer to 0, the better\");\r\n            for" +
+                    " (int i = 0; i < metrics.PerClassLogLoss.Count; i++)\r\n            {\r\n           " +
+                    "     Console.WriteLine($\"    LogLoss for class {i + 1} = {metrics.PerClassLogLos" +
+                    "s[i]:0.####}, the closer to 0, the better\");\r\n            }\r\n            Console" +
+                    ".WriteLine($\"************************************************************\");\r\n  " +
+                    "      }\r\n\r\n        public static void PrintMulticlassClassificationFoldsAverageM" +
+                    "etrics(IEnumerable<TrainCatalogBase.CrossValidationResult<MulticlassClassificati" +
+                    "onMetrics>> crossValResults)\r\n        {\r\n            var metricsInMultipleFolds " +
+                    "= crossValResults.Select(r => r.Metrics);\r\n\r\n            var microAccuracyValues" +
+                    " = metricsInMultipleFolds.Select(m => m.MicroAccuracy);\r\n            var microAc" +
+                    "curacyAverage = microAccuracyValues.Average();\r\n            var microAccuraciesS" +
+                    "tdDeviation = CalculateStandardDeviation(microAccuracyValues);\r\n            var " +
+                    "microAccuraciesConfidenceInterval95 = CalculateConfidenceInterval95(microAccurac" +
+                    "yValues);\r\n\r\n            var macroAccuracyValues = metricsInMultipleFolds.Select" +
+                    "(m => m.MacroAccuracy);\r\n            var macroAccuracyAverage = macroAccuracyVal" +
+                    "ues.Average();\r\n            var macroAccuraciesStdDeviation = CalculateStandardD" +
+                    "eviation(macroAccuracyValues);\r\n            var macroAccuraciesConfidenceInterva" +
+                    "l95 = CalculateConfidenceInterval95(macroAccuracyValues);\r\n\r\n            var log" +
+                    "LossValues = metricsInMultipleFolds.Select(m => m.LogLoss);\r\n            var log" +
+                    "LossAverage = logLossValues.Average();\r\n            var logLossStdDeviation = Ca" +
+                    "lculateStandardDeviation(logLossValues);\r\n            var logLossConfidenceInter" +
+                    "val95 = CalculateConfidenceInterval95(logLossValues);\r\n\r\n            var logLoss" +
+                    "ReductionValues = metricsInMultipleFolds.Select(m => m.LogLossReduction);\r\n     " +
+                    "       var logLossReductionAverage = logLossReductionValues.Average();\r\n        " +
+                    "    var logLossReductionStdDeviation = CalculateStandardDeviation(logLossReducti" +
+                    "onValues);\r\n            var logLossReductionConfidenceInterval95 = CalculateConf" +
+                    "idenceInterval95(logLossReductionValues);\r\n\r\n            Console.WriteLine($\"***" +
+                    "********************************************************************************" +
+                    "**************************\");\r\n            Console.WriteLine($\"*       Metrics f" +
+                    "or Multi-class Classification model      \");\r\n            Console.WriteLine($\"*-" +
+                    "--------------------------------------------------------------------------------" +
+                    "---------------------------\");\r\n            Console.WriteLine($\"*       Average " +
+                    "MicroAccuracy:    {microAccuracyAverage:0.###}  - Standard deviation: ({microAcc" +
+                    "uraciesStdDeviation:#.###})  - Confidence Interval 95%: ({microAccuraciesConfide" +
+                    "nceInterval95:#.###})\");\r\n            Console.WriteLine($\"*       Average MacroA" +
+                    "ccuracy:    {macroAccuracyAverage:0.###}  - Standard deviation: ({macroAccuracie" +
+                    "sStdDeviation:#.###})  - Confidence Interval 95%: ({macroAccuraciesConfidenceInt" +
+                    "erval95:#.###})\");\r\n            Console.WriteLine($\"*       Average LogLoss:    " +
+                    "      {logLossAverage:#.###}  - Standard deviation: ({logLossStdDeviation:#.###}" +
+                    ")  - Confidence Interval 95%: ({logLossConfidenceInterval95:#.###})\");\r\n        " +
+                    "    Console.WriteLine($\"*       Average LogLossReduction: {logLossReductionAvera" +
+                    "ge:#.###}  - Standard deviation: ({logLossReductionStdDeviation:#.###})  - Confi" +
+                    "dence Interval 95%: ({logLossReductionConfidenceInterval95:#.###})\");\r\n         " +
+                    "   Console.WriteLine($\"*********************************************************" +
+                    "****************************************************\");\r\n\r\n        }\r\n\r\n        " +
+                    "public static double CalculateStandardDeviation(IEnumerable<double> values)\r\n   " +
+                    "     {\r\n            double average = values.Average();\r\n            double sumOf" +
+                    "SquaresOfDifferences = values.Select(val => (val - average) * (val - average)).S" +
+                    "um();\r\n            double standardDeviation = Math.Sqrt(sumOfSquaresOfDifference" +
+                    "s / (values.Count() - 1));\r\n            return standardDeviation;\r\n        }\r\n\r\n" +
+                    "        public static double CalculateConfidenceInterval95(IEnumerable<double> v" +
+                    "alues)\r\n        {\r\n            double confidenceInterval95 = 1.96 * CalculateSta" +
+                    "ndardDeviation(values) / Math.Sqrt((values.Count() - 1));\r\n            return co" +
+                    "nfidenceInterval95;\r\n        }\r\n");
+}
+            this.Write("    }\r\n}\r\n");
             return this.GenerationEnvironment.ToString();
         }
 
@@ -276,7 +399,7 @@ public IList<string> PostTrainerTransforms {get;set;}
     /// Base class for this transformation
     /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.VisualStudio.TextTemplating", "15.0.0.0")]
-    public class TrainProgramBase
+    public class ModelBuilderBase
     {
         #region Fields
         private global::System.Text.StringBuilder generationEnvironmentField;

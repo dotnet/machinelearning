@@ -43,11 +43,6 @@
       <AutoGen>True</AutoGen>
       <DependentUpon>Strings.resx</DependentUpon>
     </Compile>
-    <Compile Update="Templates\Console\ConsoleHelper.cs">
-      <DesignTime>True</DesignTime>
-      <AutoGen>True</AutoGen>
-      <DependentUpon>ConsoleHelper.tt</DependentUpon>
-    </Compile>
     <Compile Update="Templates\Console\ModelProject.cs">
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
@@ -73,15 +68,10 @@
       <AutoGen>True</AutoGen>
       <DependentUpon>PredictProject.tt</DependentUpon>
     </Compile>
-    <Compile Update="Templates\Console\TrainProgram.cs">
+    <Compile Update="Templates\Console\ModelBuilder.cs">
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
-      <DependentUpon>TrainProgram.tt</DependentUpon>
-    </Compile>
-    <Compile Update="Templates\Console\TrainProject.cs">
-      <DesignTime>True</DesignTime>
-      <AutoGen>True</AutoGen>
-      <DependentUpon>TrainProject.tt</DependentUpon>
+      <DependentUpon>ModelBuilder.tt</DependentUpon>
     </Compile>
   </ItemGroup>
 
@@ -95,10 +85,6 @@
   <ItemGroup>
     <None Update="NLog.config">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="Templates\Console\ConsoleHelper.tt">
-      <Generator>TextTemplatingFilePreprocessor</Generator>
-      <LastGenOutput>ConsoleHelper.cs</LastGenOutput>
     </None>
     <None Update="Templates\Console\ModelProject.tt">
       <Generator>TextTemplatingFilePreprocessor</Generator>
@@ -120,13 +106,9 @@
       <Generator>TextTemplatingFilePreprocessor</Generator>
       <LastGenOutput>PredictProject.cs</LastGenOutput>
     </None>
-    <None Update="Templates\Console\TrainProgram.tt">
+    <None Update="Templates\Console\ModelBuilder.tt">
       <Generator>TextTemplatingFilePreprocessor</Generator>
-      <LastGenOutput>TrainProgram.cs</LastGenOutput>
-    </None>
-    <None Update="Templates\Console\TrainProject.tt">
-      <Generator>TextTemplatingFilePreprocessor</Generator>
-      <LastGenOutput>TrainProject.cs</LastGenOutput>
+      <LastGenOutput>ModelBuilder.cs</LastGenOutput>
     </None>
   </ItemGroup>
 

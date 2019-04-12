@@ -174,17 +174,16 @@ namespace Microsoft.ML.CLI.Utilities
 
         internal static int AddProjectsToSolution(string modelprojectDir,
             string modelProjectName,
-            string predictProjectDir,
-            string predictProjectName,
-            string trainProjectDir,
-            string trainProjectName,
-            string solutionName)
+            string consoleAppProjectDir,
+            string consoleAppProjectName,
+            string solutionPath)
         {
+            // TODO make this method generic : (string solutionpath, string[] projects)
             var proc = new System.Diagnostics.Process();
             try
             {
                 proc.StartInfo.FileName = @"dotnet";
-                proc.StartInfo.Arguments = $"sln \"{solutionName}\" add \"{Path.Combine(trainProjectDir, trainProjectName)}\" \"{Path.Combine(predictProjectDir, predictProjectName)}\" \"{Path.Combine(modelprojectDir, modelProjectName)}\"";
+                proc.StartInfo.Arguments = $"sln \"{solutionPath}\" add  \"{Path.Combine(consoleAppProjectDir, consoleAppProjectName)}\" \"{Path.Combine(modelprojectDir, modelProjectName)}\"";
                 proc.StartInfo.UseShellExecute = false;
                 proc.StartInfo.RedirectStandardOutput = true;
                 proc.Start();
