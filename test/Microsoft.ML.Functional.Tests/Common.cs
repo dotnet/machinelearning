@@ -238,7 +238,7 @@ namespace Microsoft.ML.Functional.Tests
         {
             // Confusion matrix validations
             Assert.NotNull(confusionMatrix);
-            Assert.NotEmpty(confusionMatrix.ConfusionTableCounts);
+            Assert.NotEmpty(confusionMatrix.Counts);
             Assert.NotEmpty(confusionMatrix.PerClassPrecision);
             Assert.NotEmpty(confusionMatrix.PerClassRecall);
             Assert.NotNull(confusionMatrix.ClassIndicators);

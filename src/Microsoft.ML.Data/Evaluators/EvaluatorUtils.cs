@@ -1348,7 +1348,7 @@ namespace Microsoft.ML.Data
         /// is assigned the string representation of the weighted confusion table. Otherwise it is assigned null.</param>
         /// <param name="binary">Indicates whether the confusion table is for binary classification.</param>
         /// <param name="sample">Indicates how many classes to sample from the confusion table (-1 indicates no sampling)</param>
-        public static string GetConfusionTable(IHost host, IDataView confusionDataView, out string weightedConfusionTable, bool binary = true, int sample = -1)
+        public static string GetConfusionTableAsFormattedString(IHost host, IDataView confusionDataView, out string weightedConfusionTable, bool binary = true, int sample = -1)
         {
             host.CheckValue(confusionDataView, nameof(confusionDataView));
             host.CheckParam(sample == -1 || sample >= 2, nameof(sample), "Should be -1 to indicate no sampling, or at least 2");
@@ -1356,13 +1356,13 @@ namespace Microsoft.ML.Data
             var weightColumn = confusionDataView.Schema.GetColumnOrNull(MetricKinds.ColumnNames.Weight);
             bool isWeighted = weightColumn.HasValue;
 
-            var confusionMatrix = GetConfusionTableAsType(host, confusionDataView, binary, sample, false);
+            var confusionMatrix = GetConfusionTable(host, confusionDataView, binary, sample, false);
             var confusionTableString = GetConfusionTableAsString(confusionMatrix, false);
 
             // if there is a Weight column, return the weighted confusionMatrix as well, from this function.
             if (isWeighted)
             {
-                confusionMatrix = GetConfusionTableAsType(host, confusionDataView, binary, sample, false);
+                confusionMatrix = GetConfusionTable(host, confusionDataView, binary, sample, true);
                 weightedConfusionTable = GetConfusionTableAsString(confusionMatrix, true);
             }
             else
@@ -1371,7 +1371,7 @@ namespace Microsoft.ML.Data
             return confusionTableString;
         }
 
-        public static ConfusionMatrix GetConfusionTableAsType(IHost host, IDataView confusionDataView, bool binary = true, int sample = -1, bool getWeighted = false)
+        public static ConfusionMatrix GetConfusionTable(IHost host, IDataView confusionDataView, bool binary = true, int sample = -1, bool getWeighted = false)
         {
             host.CheckValue(confusionDataView, nameof(confusionDataView));
             host.CheckParam(sample == -1 || sample >= 2, nameof(sample), "Should be -1 to indicate no sampling, or at least 2");
@@ -1584,7 +1584,7 @@ namespace Microsoft.ML.Data
         internal static string GetConfusionTableAsString(ConfusionMatrix confusionMatrix, bool isWeighted)
         {
             string prefix = isWeighted ? "Weighted " : "";
-            int numLabels = confusionMatrix?.ConfusionTableCounts == null? 0: confusionMatrix.ConfusionTableCounts.Length;
+            int numLabels = confusionMatrix?.Counts == null? 0: confusionMatrix.Counts.Length;
 
             int colWidth = numLabels == 2 ? 8 : 5;
             int maxNameLen = confusionMatrix.PredictedClassesIndicators.Max(name => name.Length);
@@ -1619,9 +1619,9 @@ namespace Microsoft.ML.Data
             else
                 rowLabelFormat = string.Format("{{1,{0}}} ||", paddingLen);
 
-            var confusionTable = confusionMatrix.ConfusionTableCounts;
+            var confusionTable = confusionMatrix.Counts;
             var sb = new StringBuilder();
-            if (numLabels == 2 && confusionMatrix.Binary)
+            if (numLabels == 2 && confusionMatrix.IsBinary)
             {
                 var positiveCaps = confusionMatrix.PredictedClassesIndicators[0].ToString().ToUpper();
 
@@ -1636,7 +1636,7 @@ namespace Microsoft.ML.Data
 
             sb.AppendLine();
             sb.AppendFormat("{0}Confusion table", prefix);
-            if (confusionMatrix.Sampled)
+            if (confusionMatrix.IsSampled)
                 sb.AppendLine(" (sampled)");
             else
                 sb.AppendLine();

@@ -1383,7 +1383,7 @@ namespace Microsoft.ML.Data
             fold = ColumnSelectingTransformer.CreateKeep(Host, fold, colsToKeep.ToArray());
 
             string weightedConf;
-            var unweightedConf = MetricWriter.GetConfusionTable(Host, conf, out weightedConf);
+            var unweightedConf = MetricWriter.GetConfusionTableAsFormattedString(Host, conf, out weightedConf);
             string weightedFold;
             var unweightedFold = MetricWriter.GetPerFoldResults(Host, fold, out weightedFold);
             ch.Assert(string.IsNullOrEmpty(weightedConf) == string.IsNullOrEmpty(weightedFold));

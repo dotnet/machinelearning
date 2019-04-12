@@ -28,7 +28,7 @@ namespace Microsoft.ML.Data
         /// The confsion matrix counts for the combinations actual class/predicted class.
         /// The actual classes are in the rows of the table, and the predicted classes in the columns.
         /// </summary>
-        public ImmutableArray<ImmutableArray<double>> ConfusionTableCounts { get; }
+        public ImmutableArray<ImmutableArray<double>> Counts { get; }
 
         /// <summary>
         /// The indicators of the predicted classes.
@@ -49,8 +49,8 @@ namespace Microsoft.ML.Data
         /// </summary>
         internal IReadOnlyList<ReadOnlyMemory<char>> PredictedClassesIndicators;
 
-        internal readonly bool Sampled;
-        internal readonly bool Binary;
+        internal readonly bool IsSampled;
+        internal readonly bool IsBinary;
 
         private readonly IHost _host;
 
@@ -63,11 +63,11 @@ namespace Microsoft.ML.Data
         /// <param name="confusionTableCounts">The counts of the confusion table. The actual classes values are in the rows of the 2D array,
         /// and the counts of the predicted classes are in the columns.</param>
         /// <param name="labelNames">The predicted classes names, or the indexes of the classes, if the names are missing.</param>
-        /// <param name="sampled">Whether the classes are sampled.</param>
-        /// <param name="binary">Whether the confusion table is the result of a binary classification. </param>
+        /// <param name="isSampled">Whether the classes are sampled.</param>
+        /// <param name="isBinary">Whether the confusion table is the result of a binary classification. </param>
         /// <param name="classIndicators">The Annotations of the Count column, in the confusionTable idv.</param>
         internal ConfusionMatrix(IHost host, double[] precision, double[] recall, double[][] confusionTableCounts,
-            List<ReadOnlyMemory<char>> labelNames, bool sampled, bool binary, DataViewSchema.Annotations classIndicators)
+            List<ReadOnlyMemory<char>> labelNames, bool isSampled, bool isBinary, DataViewSchema.Annotations classIndicators)
         {
             _host = host;
 
@@ -83,8 +83,8 @@ namespace Microsoft.ML.Data
 
             PerClassPrecision = precision.ToImmutableArray();
             PerClassRecall = recall.ToImmutableArray();
-            Sampled = sampled;
-            Binary = binary;
+            IsSampled = isSampled;
+            IsBinary = isBinary;
             PredictedClassesIndicators = labelNames.AsReadOnly();
 
             NumberOfPredictedClasses = confusionTableCounts.Length;
@@ -93,7 +93,7 @@ namespace Microsoft.ML.Data
             for (int i = 0; i < NumberOfPredictedClasses; i++)
                 counts.Add(ImmutableArray.Create(confusionTableCounts[i]));
 
-            ConfusionTableCounts = counts.ToImmutableArray();
+            Counts = counts.ToImmutableArray();
             ClassIndicators = classIndicators;
         }
 
@@ -111,12 +111,12 @@ namespace Microsoft.ML.Data
         /// <returns></returns>
         public double GetCountForClassPair(int predictedClassIndicatorIndex, int actualClassIndicatorIndex)
         {
-            _host.CheckParam(predictedClassIndicatorIndex > -1 && predictedClassIndicatorIndex < ConfusionTableCounts.Length,
+            _host.CheckParam(predictedClassIndicatorIndex > -1 && predictedClassIndicatorIndex < Counts.Length,
                 nameof(predictedClassIndicatorIndex), "Invalid index. Should be non-negative, less than the number of classes.");
-            _host.CheckParam(actualClassIndicatorIndex > -1 && actualClassIndicatorIndex < ConfusionTableCounts.Length,
+            _host.CheckParam(actualClassIndicatorIndex > -1 && actualClassIndicatorIndex < Counts.Length,
                 nameof(actualClassIndicatorIndex), "Invalid index. Should be non-negative, less than the number of classes.");
 
-            return ConfusionTableCounts[actualClassIndicatorIndex][predictedClassIndicatorIndex];
+            return Counts[actualClassIndicatorIndex][predictedClassIndicatorIndex];
         }
     }
 }

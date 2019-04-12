@@ -82,7 +82,10 @@ namespace Microsoft.ML.Data
         /// </remarks>
         public IReadOnlyList<double> PerClassLogLoss { get; }
 
-        // The confusion matrix.
+        /// <summary>
+        /// The <a href="https://en.wikipedia.org/wiki/Confusion_matrix">confusion matrix</a> giving the counts of the
+        /// predicted classes versus the actual classes.
+        /// </summary>
         public ConfusionMatrix ConfusionMatrix { get; }
 
         internal MulticlassClassificationMetrics(IHost host, DataViewRow overallResult, int topKPredictionCount, IDataView confusionMatrix)
@@ -98,7 +101,7 @@ namespace Microsoft.ML.Data
 
             var perClassLogLoss = RowCursorUtils.Fetch<VBuffer<double>>(host, overallResult, MulticlassClassificationEvaluator.PerClassLogLoss);
             PerClassLogLoss = perClassLogLoss.DenseValues().ToImmutableArray();
-            ConfusionMatrix = MetricWriter.GetConfusionTableAsType(host, confusionMatrix, binary: false, perClassLogLoss.Length, getWeighted:false);
+            ConfusionMatrix = MetricWriter.GetConfusionTable(host, confusionMatrix, binary: false, perClassLogLoss.Length);
         }
 
         internal MulticlassClassificationMetrics(double accuracyMicro, double accuracyMacro, double logLoss, double logLossReduction,

@@ -890,7 +890,7 @@ namespace Microsoft.ML.Data
             if (!_outputPerClass)
                 fold = DropPerClassColumn(fold);
 
-            var unweightedConf = MetricWriter.GetConfusionTable(Host, conf, out string weightedConf, false, _numConfusionTableClasses);
+            var unweightedConf = MetricWriter.GetConfusionTableAsFormattedString(Host, conf, out string weightedConf, false, _numConfusionTableClasses);
             var unweightedFold = MetricWriter.GetPerFoldResults(Host, fold, out string weightedFold);
             ch.Assert(string.IsNullOrEmpty(weightedConf) == string.IsNullOrEmpty(weightedFold));
             if (!string.IsNullOrEmpty(weightedConf))
