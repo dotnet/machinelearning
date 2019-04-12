@@ -157,6 +157,14 @@
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>GamWithOptions.cs</LastGenOutput>
     </None>
+    <None Update="Dynamic\Trainers\Regression\OrdinaryLeastSquares.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>OrdinaryLeastSquares.cs</LastGenOutput>
+    </None>
+    <None Update="Dynamic\Trainers\Regression\OrdinaryLeastSquaresWithOptions.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>OrdinaryLeastSquaresWithOptions.cs</LastGenOutput>
+    </None>
   </ItemGroup>
 
   <ItemGroup>
@@ -273,6 +281,16 @@
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
       <DependentUpon>GamWithOptions.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Dynamic\Trainers\Regression\OrdinaryLeastSquares.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>OrdinaryLeastSquares.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Dynamic\Trainers\Regression\OrdinaryLeastSquaresWithOptions.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>OrdinaryLeastSquaresWithOptions.tt</DependentUpon>
     </Compile>
   </ItemGroup>
 
