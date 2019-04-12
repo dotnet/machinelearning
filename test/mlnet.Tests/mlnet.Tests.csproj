@@ -13,8 +13,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Microsoft.ML.Auto\Microsoft.ML.Auto.csproj" />
-    <ProjectReference Include="..\mlnet\mlnet.csproj" />
+    <ProjectReference Include="..\..\src\Microsoft.ML.Auto\Microsoft.ML.Auto.csproj" />
+    <ProjectReference Include="..\..\src\mlnet\mlnet.csproj" />
   </ItemGroup>
 
 </Project>

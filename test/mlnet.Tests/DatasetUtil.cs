@@ -8,7 +8,7 @@ using System.Net;
 using Microsoft.ML;
 using Microsoft.ML.Auto;
 
-namespace mlnet.Test
+namespace mlnet.Tests
 {
     internal static class DatasetUtil
     {

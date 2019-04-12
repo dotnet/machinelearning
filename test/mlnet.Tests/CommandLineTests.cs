@@ -12,7 +12,7 @@ using Microsoft.ML.CLI.Commands;
 using Microsoft.ML.CLI.Data;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace mlnet.Test
+namespace mlnet.Tests
 {
     [TestClass]
     public class CommandLineTests

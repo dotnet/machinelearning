@@ -10,7 +10,7 @@ using Microsoft.ML.CLI.CodeGenerator.CSharp;
 using Microsoft.ML.Data;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace mlnet.Test
+namespace mlnet.Tests
 {
     [TestClass]
     public class CodeGeneratorTests

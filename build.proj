@@ -93,8 +93,8 @@
   </Target>-->
 
   <Target Name="RunTests">
-    <MSBuild Projects="src\Test\run-tests.proj" Targets="RunTests" />
-    <MSBuild Projects="src\mlnet.Test\run-tests.proj" Targets="RunTests" />
+    <MSBuild Projects="test\Microsoft.ML.AutoML.Tests\run-tests.proj" Targets="RunTests" />
+    <MSBuild Projects="test\mlnet.Tests\run-tests.proj" Targets="RunTests" />
   </Target>
 
   <!-- Override CleanAllProjects from dir.traversal.targets and just remove the full BinDir -->
