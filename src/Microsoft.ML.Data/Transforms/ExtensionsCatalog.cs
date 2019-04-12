@@ -51,7 +51,7 @@ namespace Microsoft.ML
     public static class TransformExtensionsCatalog
     {
         /// <summary>
-        /// Create a <see cref="ColumnCopyingEstimator"/> that copies the data from the column specified in <paramref name="inputColumnName"/>
+        /// Create a <see cref="ColumnCopyingEstimator"/> which copies the data from the column specified in <paramref name="inputColumnName"/>
         /// to a new column: <paramref name="outputColumnName"/>.
         /// </summary>
         /// <remarks>For more information see <see cref="ColumnCopyingEstimator"/>.</remarks>
@@ -71,10 +71,10 @@ namespace Microsoft.ML
             => new ColumnCopyingEstimator(CatalogUtils.GetEnvironment(catalog), outputColumnName, inputColumnName);
 
         /// <summary>
-        /// Create a <see cref="ColumnCopyingEstimator"/> that copies the data from the column specified in <see cref="InputOutputColumnPair.InputColumnName" />
+        /// Create a <see cref="ColumnCopyingEstimator"/> which copies the data from the column specified in <see cref="InputOutputColumnPair.InputColumnName" />
         /// to a new column: <see cref="InputOutputColumnPair.OutputColumnName" />.
         /// </summary>
-        /// <remarks>This estimator can operate over several columns.
+        /// <remarks>This transform can operate over several columns.
         /// For more information see <see cref="ColumnCopyingEstimator"/>.</remarks>
         /// <param name="catalog">The transform's catalog.</param>
         /// <param name="columns">The pairs of input and output columns. This estimator operates over any data type.</param>
