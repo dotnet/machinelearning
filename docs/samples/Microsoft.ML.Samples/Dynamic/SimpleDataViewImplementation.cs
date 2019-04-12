@@ -89,10 +89,9 @@ namespace Samples.Dynamic
         /// code generation is impossible on some situations, like Unity or other similar platforms, implementing
         /// something even closely resembling this may become necessary.
         ///
-        /// This implementation of <see cref="IDataView"/> is, in fact, much simpler than practically anything you would
-        /// find in the ML.NET codebase. In this case we have a completely fixed schema (the two fields of
-        /// <see cref="InputObject"/>), with fixed types. However, for the purpose of the sample, we keep things as
-        /// simple as possible, but without being simplistic, I hope.
+        /// This implementation of <see cref="IDataView"/>, being didactic, is much simpler than practically
+        /// anything one would find in the ML.NET codebase. In this case we have a completely fixed schema (the two
+        /// fields of <see cref="InputObject"/>), with fixed types.
         ///
         /// For <see cref="Schema"/>, note that we keep a very simple schema based off the members of the object. You
         /// may in fact note that it is possible in this specific case, this implementation of
@@ -107,12 +106,12 @@ namespace Samples.Dynamic
         /// <see cref="GetRowCount"/> to return <see langword="null"/>, even after we might hypothetically know after
         /// the first pass, given the immutability principle of <see cref="IDatView"/>), and the
         /// <see cref="GetRowCursorSet(IEnumerable{DataViewSchema.Column}, int, Random)"/> method returns a single item.
-        /// 
+        ///
         /// The <see cref="DataViewRowCursor"/> derived class has more documentation specific to its behavior.
-        /// 
-        /// Note that this implementation, as well as the nested <see cref="DataViewRowCursor"/> derived class, does almost
-        /// no validation of parameters or guard against misuse than we would like from, say, implementations of the same
-        /// classes within the ML.NET codebase.
+        ///
+        /// Note that this implementation, as well as the nested <see cref="DataViewRowCursor"/> derived class, does
+        /// almost no validation of parameters or guard against misuse than we would like from, say, implementations of
+        /// the same classes within the ML.NET codebase.
         /// </summary>
         private sealed class InputObjectDataView : IDataView
         {
@@ -133,19 +132,16 @@ namespace Samples.Dynamic
             public long? GetRowCount() => null;
 
             public DataViewRowCursor GetRowCursor(IEnumerable<DataViewSchema.Column> columnsNeeded, Random rand = null)
-            {
-                return new Cursor(this, columnsNeeded.Any(c => c.Index == 0), columnsNeeded.Any(c => c.Index == 1));
-            }
+                => new Cursor(this, columnsNeeded.Any(c => c.Index == 0), columnsNeeded.Any(c => c.Index == 1));
 
             public DataViewRowCursor[] GetRowCursorSet(IEnumerable<DataViewSchema.Column> columnsNeeded, int n, Random rand = null)
                 => new[] { GetRowCursor(columnsNeeded, rand) };
 
             /// <summary>
-            /// Having this be a private sealed nested class follows the typical pattern: in most <see
-            /// cref="IDataView"/>
-            /// implementations, the cursor instance is almost always that. The only "common" exceptions to this
-            /// tendency are those implementations that are such thin wrappings of existing <see cref="IDataView"/>
-            /// without even bothering to change the schema.
+            /// Having this be a private sealed nested class follows the typical pattern: in most
+            /// <see cref="IDataView"/> implementations, the cursor instance is almost always that. The only "common"
+            /// exceptions to this tendency are those implementations that are such thin wrappings of existing
+            /// <see cref="IDataView"/> without even bothering to change the schema.
             ///
             /// On the subject of schema, note that there is an expectation that the <see cref="Schema"/> object is
             /// reference equal to the <see cref="IDataView.Schema"/> object that created this cursor, as we see here.
@@ -175,12 +171,12 @@ namespace Samples.Dynamic
             /// <see cref="IEnumerator{T}"/> which has no concept of lazy evaluation, there is no real practical benefit
             /// to doing this. However, it is best of course to illustrate the general principle for the sake of the
             /// example.
-            /// 
+            ///
             /// Even in this simple form, we see the reason why <see cref="GetGetter{TValue}(DataViewSchema.Column)"/>
-            /// is beneficial: the <see cref="ValueGetter{TValue}"/> implementations themselves are simple to the
-            /// point where their operation is dwarfed by the simple acts of casting and validation checking one sees
-            /// in <see cref="GetGetter{TValue}(DataViewSchema.Column)"/>. In this way we only pay the cost of
-            /// validation and casting once, not every time we get a value.
+            /// is beneficial: the <see cref="ValueGetter{TValue}"/> implementations themselves are simple to the point
+            /// where their operation is dwarfed by the simple acts of casting and validation checking one sees in
+            /// <see cref="GetGetter{TValue}(DataViewSchema.Column)"/>. In this way we only pay the cost of validation
+            /// and casting once, not every time we get a value.
             /// </summary>
             private sealed class Cursor : DataViewRowCursor
             {
