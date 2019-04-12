@@ -17,11 +17,11 @@ phases:
     name: Centos_x64
     buildScript: ./build.sh
     customMatrixes:
-      Build_Debug_3.0:
+      Debug_3.0:
         _configuration: Debug-Intrinsics
         _config_short: DI
         _includeBenchmarkData: false
-      Build_Release_2.1:
+      Release_2.1:
         _configuration: Release
         _config_short: R
         _includeBenchmarkData: true
@@ -34,11 +34,11 @@ phases:
     name: Ubuntu_x64
     buildScript: ./build.sh
     customMatrixes:
-      Build_Debug_2.1:
+      Debug_2.1:
         _configuration: Debug
         _config_short: D
         _includeBenchmarkData: false
-      Build_Release_3.0:
+      Release_3.0:
         _configuration: Release-Intrinsics
         _config_short: RI
         _includeBenchmarkData: true
@@ -58,11 +58,11 @@ phases:
     name: Windows_x64_1
     buildScript: build.cmd
     customMatrixes:
-      Build_Debug_3.0:
+      Debug_3.0:
         _configuration: Debug-Intrinsics
         _config_short: DI
         _includeBenchmarkData: false
-      Build_Release_2.1:
+      Release_3.0:
         _configuration: Release-Intrinsics
         _config_short: RI
         _includeBenchmarkData: true
@@ -74,11 +74,11 @@ phases:
     name: Windows_x64_2
     buildScript: build.cmd
     customMatrixes:
-      Build_Debug_netfx:
+      Debug_netfx:
         _configuration: Debug-netfx
         _config_short: DFX
         _includeBenchmarkData: false
-      Build_Release_netfx:
+      Release_netfx:
         _configuration: Release-netfx
         _config_short: RFX
         _includeBenchmarkData: false
