@@ -59,6 +59,16 @@
       <AutoGen>True</AutoGen>
       <DependentUpon>LbfgsLogisticRegressionWithOptions.tt</DependentUpon>
     </None>
+    <None Include="Dynamic\Trainers\BinaryClassification\Gam.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Gam.tt</DependentUpon>
+    </None>
+    <None Include="Dynamic\Trainers\BinaryClassification\GamWithOptions.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>GamWithOptions.tt</DependentUpon>
+    </None>
     <PackageReference Include="Microsoft.ML.TensorFlow.Redist" Version="0.10.0" />
     
     <ProjectReference Include="..\..\..\src\Microsoft.ML.Analyzer\Microsoft.ML.Analyzer.csproj">
@@ -116,6 +126,14 @@
     <None Update="Dynamic\Trainers\Regression\LbfgsPoissonRegressionWithOptions.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>LbfgsPoissonRegressionWithOptions.cs</LastGenOutput>
+    </None>
+    <None Update="Dynamic\Trainers\Regression\Gam.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>Gam.cs</LastGenOutput>
+    </None>
+    <None Update="Dynamic\Trainers\Regression\GamWithOptions.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>GamWithOptions.cs</LastGenOutput>
     </None>
   </ItemGroup>
 
@@ -183,6 +201,16 @@
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
       <DependentUpon>LbfgsPoissonRegressionWithOptions.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Dynamic\Trainers\Regression\Gam.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Gam.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Dynamic\Trainers\Regression\GamWithOptions.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>GamWithOptions.tt</DependentUpon>
     </Compile>
   </ItemGroup>
 

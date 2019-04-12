@@ -1,6 +1,7 @@
 ﻿<#@ include file="RegressionSamplesTemplate.ttinclude"#>
 
 <#+
+string ClassHeader = null;
 string ClassName="LbfgsPoissonRegressionWithOptions";
 string Trainer = "LbfgsPoissonRegression";
 string TrainerOptions = @"LbfgsPoissonRegressionTrainer.Options

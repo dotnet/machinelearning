@@ -9,6 +9,9 @@ using Microsoft.ML.Trainers;
 
 namespace Samples.Dynamic.Trainers.Regression
 {
+<# if (ClassHeader != null) { #>
+	<#=ClassHeader#>
+<# } #>
     public static class <#=ClassName#>
     {
         public static void Example()
@@ -26,7 +29,7 @@ namespace Samples.Dynamic.Trainers.Regression
 
 <# if (TrainerOptions == null) { #>
             // Define the trainer.
-            var pipeline = mlContext.Regression.Trainers.<#=Trainer#>();
+            var pipeline = mlContext.Regression.Trainers.<#=Trainer#>;
 <# } else { #>
             // Define trainer options.
             var options = new <#=TrainerOptions#>;
@@ -39,7 +42,7 @@ namespace Samples.Dynamic.Trainers.Regression
             var model = pipeline.Fit(trainingData);
 
             // Create testing data. Use different random seed to make it different from training data.
-            var testData = mlContext.Data.LoadFromEnumerable(GenerateRandomDataPoints(500, seed:123));
+            var testData = mlContext.Data.LoadFromEnumerable(GenerateRandomDataPoints(500, seed: 123));
 
             // Run the model on test data set.
             var transformedTestData = model.Transform(testData);

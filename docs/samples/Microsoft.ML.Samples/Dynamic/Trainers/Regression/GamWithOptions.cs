@@ -3,14 +3,14 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.ML;
 using Microsoft.ML.Data;
-using Microsoft.ML.Trainers.FastTree;
+using Microsoft.ML.Trainers;
 
 namespace Samples.Dynamic.Trainers.Regression
 {
+	// This example requires installation of additional NuGet package
+    // <a href="https://www.nuget.org/packages/Microsoft.ML.FastTree/">Microsoft.ML.FastTree</a>. 
     public static class GamWithOptions
     {
-        // This example requires installation of additional NuGet package
-        // <a href="https://www.nuget.org/packages/Microsoft.ML.FastTree/">Microsoft.ML.FastTree</a>.
         public static void Example()
         {
             // Create a new context for ML.NET operations. It can be used for exception tracking and logging, 
@@ -18,16 +18,18 @@ namespace Samples.Dynamic.Trainers.Regression
             // Setting the seed to a fixed number in this example to make outputs deterministic.
             var mlContext = new MLContext(seed: 0);
 
-            // Create a list of training examples.
-            var examples = GenerateRandomDataPoints(1000);
+            // Create a list of training data points.
+            var dataPoints = GenerateRandomDataPoints(1000);
 
-            // Convert the examples list to an IDataView object, which is consumable by ML.NET API.
-            var trainingData = mlContext.Data.LoadFromEnumerable(examples);
+            // Convert the list of data points to an IDataView object, which is consumable by ML.NET API.
+            var trainingData = mlContext.Data.LoadFromEnumerable(dataPoints);
 
             // Define trainer options.
-            var options = new GamRegressionTrainer.Options
+            var options = new Microsoft.ML.Trainers.FastTree.GamRegressionTrainer.Options
             {
-                // The entropy (regularization) coefficient.
+                LabelColumnName = "Label",
+                FeatureColumnName = "Features",
+				// The entropy (regularization) coefficient.
                 EntropyCoefficient = 0.3,
                 // Reduce the number of iterations to 50.
                 NumberOfIterations = 50
@@ -39,8 +41,8 @@ namespace Samples.Dynamic.Trainers.Regression
             // Train the model.
             var model = pipeline.Fit(trainingData);
 
-            // Create testing examples. Use different random seed to make it different from training data.
-            var testData = mlContext.Data.LoadFromEnumerable(GenerateRandomDataPoints(500, seed:123));
+            // Create testing data. Use different random seed to make it different from training data.
+            var testData = mlContext.Data.LoadFromEnumerable(GenerateRandomDataPoints(500, seed: 123));
 
             // Run the model on test data set.
             var transformedTestData = model.Transform(testData);
@@ -53,21 +55,21 @@ namespace Samples.Dynamic.Trainers.Regression
                 Console.WriteLine($"Label: {p.Label:F3}, Prediction: {p.Score:F3}");
 
             // Expected output:
-            //   Label: 0.985, Prediction: 0.841
-            //   Label: 0.155, Prediction: 0.187
-            //   Label: 0.515, Prediction: 0.496
-            //   Label: 0.566, Prediction: 0.467
-            //   Label: 0.096, Prediction: 0.144
+			// Label: 0.985, Prediction: 0.841
+			// Label: 0.155, Prediction: 0.187
+			// Label: 0.515, Prediction: 0.496
+			// Label: 0.566, Prediction: 0.467
+			// Label: 0.096, Prediction: 0.144
 
             // Evaluate the overall metrics
             var metrics = mlContext.Regression.Evaluate(transformedTestData);
             Microsoft.ML.SamplesUtils.ConsoleUtils.PrintMetrics(metrics);
 
             // Expected output:
-            //   Mean Absolute Error: 0.06
-            //   Mean Squared Error: 0.01
-            //   Root Mean Squared Error: 0.08
-            //   RSquared: 0.93
+			// Mean Absolute Error: 0.06
+			// Mean Squared Error: 0.01
+			// Root Mean Squared Error: 0.08
+			// RSquared: 0.93
         }
 
         private static IEnumerable<DataPoint> GenerateRandomDataPoints(int count, int seed=0)
@@ -76,11 +78,11 @@ namespace Samples.Dynamic.Trainers.Regression
             float randomFloat() => (float)random.NextDouble();
             for (int i = 0; i < count; i++)
             {
-                var label = randomFloat();
+                float label = randomFloat();
                 yield return new DataPoint
                 {
                     Label = label,
-                    // Create random features that are correlated with label.
+                    // Create random features that are correlated with the label.
                     Features = Enumerable.Repeat(label, 50).Select(x => x + randomFloat()).ToArray()
                 };
             }
@@ -104,3 +106,4 @@ namespace Samples.Dynamic.Trainers.Regression
         }
     }
 }
+
