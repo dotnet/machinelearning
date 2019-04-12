@@ -129,14 +129,15 @@ namespace Samples.Dynamic.Trainers.Regression
         {
             float bias = 1.0f;
             var rng = new Random(seed);
+            float centeredFloat() => (float)(rng.NextDouble() - 0.5);
             for (int i = 0; i < numExamples; i++)
             {
                 // Generate random, uncoupled features.
                 var data = new Data {
-                    Features = new float[2] { (float)(rng.NextDouble() - 0.5), (float)(rng.NextDouble() - 0.5) }
+                    Features = new float[2] { centeredFloat(), centeredFloat() }
                 };
                 // Compute the label from the shape functions and add noise.
-                data.Label = bias + Parabola(data.Features[0]) + SimplePiecewise(data.Features[1]) + (float)(rng.NextDouble() - 0.5);
+                data.Label = bias + Parabola(data.Features[0]) + SimplePiecewise(data.Features[1]) + centeredFloat();
 
                 yield return data;
             }

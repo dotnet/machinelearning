@@ -34,8 +34,14 @@ namespace Samples.Dynamic.Trainers.BinaryClassification
             // neighboring bins with identical values will be combined. In general, we recommend using
             // at least the default number of bins, as a small number of bins limits the capacity of
             // the model.
+            // Also, set the learning rate to half the default to slow down the gradient descent, and
+            // double the number of iterations to compensate.
             var trainer = mlContext.BinaryClassification.Trainers.Gam(
-                new GamBinaryTrainer.Options { MaximumBinCountPerFeature = 16 });
+                new GamBinaryTrainer.Options {
+                    NumberOfIterations = 19000,
+                    MaximumBinCountPerFeature = 16,
+                    LearningRate = 0.001
+                });
 
             // Fit the model using both of training and validation sets. GAM can use a technique called 
             // pruning to tune the model to the validation set after training to improve generalization.
@@ -125,15 +131,16 @@ namespace Samples.Dynamic.Trainers.BinaryClassification
         private static IEnumerable<Data> GenerateData(int numExamples = 25000, int seed = 1)
         {
             var rng = new Random(seed);
+            float centeredFloat() => (float)(rng.NextDouble() - 0.5);
             for (int i = 0; i < numExamples; i++)
             {
                 // Generate random, uncoupled features.
                 var data = new Data
                 {
-                    Features = new float[2] { (float)(rng.NextDouble() - 0.5), (float)(rng.NextDouble() - 0.5) }
+                    Features = new float[2] { centeredFloat(), centeredFloat() }
                 };
                 // Compute the label from the shape functions and add noise.
-                data.Label = Sigmoid(Parabola(data.Features[0]) + SimplePiecewise(data.Features[1]) + (float)(rng.NextDouble() - 0.5)) > 0.5;
+                data.Label = Sigmoid(Parabola(data.Features[0]) + SimplePiecewise(data.Features[1]) + centeredFloat()) > 0.5;
 
                 yield return data;
             }

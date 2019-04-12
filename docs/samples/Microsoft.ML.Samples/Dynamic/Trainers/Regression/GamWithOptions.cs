@@ -34,8 +34,12 @@ namespace Samples.Dynamic.Trainers.Regression
             // neighboring bins with identical values will be combined. In general, we recommend using
             // at least the default number of bins, as a small number of bins limits the capacity of
             // the model.
+            // Also, change the pruning metrics to use the mean absolute error for pruning.
             var trainer = mlContext.Regression.Trainers.Gam(
-                new GamRegressionTrainer.Options { MaximumBinCountPerFeature = 16 });
+                new GamRegressionTrainer.Options {
+                    MaximumBinCountPerFeature = 16,
+                    PruningMetrics = 1
+                });
 
             // Fit the model using both of training and validation sets. GAM can use a technique called 
             // pruning to tune the model to the validation set after training to improve generalization.
@@ -112,6 +116,36 @@ namespace Samples.Dynamic.Trainers.Regression
             // Distillation." <a href='https://arxiv.org/abs/1710.06169'>arXiv:1710.06169</a>."
         }
 
+//        Feature0
+//x< -0.44 => 0.131
+//x< -0.38 => 0.067
+//x< -0.32 => 0.041
+//x< -0.26 => -0.005
+//x< -0.20 => -0.035
+//x< -0.13 => -0.050
+//x< -0.07 => -0.079
+//x< -0.01 => -0.083
+//x< 0.06 => -0.079
+//x< 0.12 => -0.075
+//x< 0.18 => -0.052
+//x< 0.25 => -0.030
+//x< 0.31 => -0.002
+//x< 0.37 => 0.041
+//x< 0.44 => 0.084
+//x< ∞ => 0.126
+
+//Feature1
+//x< -0.37 => -0.255
+//x< -0.25 => -0.247
+//x< 0.00 => -0.249
+//x< 0.06 => 0.671
+//x< 0.12 => 0.743
+//x< 0.24 => 0.746
+//x< 0.31 => -0.143
+//x< 0.37 => -0.245
+//x< 0.43 => -0.261
+//x< ∞ => -0.257
+
         private class Data
         {
             public float Label { get; set; }
@@ -131,15 +165,16 @@ namespace Samples.Dynamic.Trainers.Regression
         {
             float bias = 1.0f;
             var rng = new Random(seed);
+            float centeredFloat() => (float)(rng.NextDouble() - 0.5);
             for (int i = 0; i < numExamples; i++)
             {
                 // Generate random, uncoupled features.
                 var data = new Data
                 {
-                    Features = new float[2] { (float)(rng.NextDouble() - 0.5), (float)(rng.NextDouble() - 0.5) }
+                    Features = new float[2] { centeredFloat(), centeredFloat() }
                 };
                 // Compute the label from the shape functions and add noise.
-                data.Label = bias + Parabola(data.Features[0]) + SimplePiecewise(data.Features[1]) + (float)(rng.NextDouble() - 0.5);
+                data.Label = bias + Parabola(data.Features[0]) + SimplePiecewise(data.Features[1]) + centeredFloat();
 
                 yield return data;
             }

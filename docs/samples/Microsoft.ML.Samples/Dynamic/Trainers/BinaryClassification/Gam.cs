@@ -123,14 +123,15 @@ namespace Samples.Dynamic.Trainers.BinaryClassification
         private static IEnumerable<Data> GenerateData(int numExamples = 25000, int seed = 1)
         {
             var rng = new Random(seed);
+            float centeredFloat() => (float)(rng.NextDouble() - 0.5);
             for (int i = 0; i < numExamples; i++)
             {
                 // Generate random, uncoupled features.
                 var data = new Data {
-                    Features = new float[2] { (float)(rng.NextDouble() - 0.5), (float)(rng.NextDouble() - 0.5) }
+                    Features = new float[2] { centeredFloat(), centeredFloat() }
                 };
                 // Compute the label from the shape functions and add noise.
-                data.Label = Sigmoid(Parabola(data.Features[0]) + SimplePiecewise(data.Features[1]) + (float)(rng.NextDouble() - 0.5)) > 0.5;
+                data.Label = Sigmoid(Parabola(data.Features[0]) + SimplePiecewise(data.Features[1]) + centeredFloat()) > 0.5;
 
                 yield return data;
             }
