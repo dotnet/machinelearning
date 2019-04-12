@@ -32,13 +32,12 @@ namespace Microsoft.ML.Trainers
     ///
     /// [!include[io](~/../docs/samples/docs/api-reference/io-columns-binary-classification.md)]
     ///
-    /// ### Trainer FAQ
-    /// | Question | Answer |
+    /// ### Trainer Characteristics
+    /// |  |  |
     /// | -- | -- |
     /// | Machine learning task | Binary classification |
     /// | Is normalization required? | Yes |
     /// | Is caching required? | No |
-    /// | Is convertible to ONNX format? | Yes |
     /// | Additional required NuGet | None |
     ///
     /// ### Training Algorithm Details
@@ -50,7 +49,7 @@ namespace Microsoft.ML.Trainers
     /// It starts with a set of initial weights (zero, random, or initialized from a previous learner). Then, for each example in the training set, the weighted sum of the features (sigma[0, D-1] (w_i * f_i)) is computed.
     /// If this value has the same sign as the label of the current example, the weights remain the same. If they have opposite signs,
     /// the weights vector is updated by either adding or subtracting (if the label is positive or negative, respectively) the feature vector of the current example,
-    /// multiplied by a factor 0 &lt; a &lt;= 1, called the learning rate. In a generalization of this algorithm, the weights are updated by adding the feature vector multiplied by the learning rate,
+    /// multiplied by a factor 0 < a <= 1, called the learning rate. In a generalization of this algorithm, the weights are updated by adding the feature vector multiplied by the learning rate,
     /// and by the gradient of some loss function (in the specific case described above, the loss is hinge-loss, whose gradient is 1 when it is non-zero).
     ///
     /// In Averaged Perceptron (aka voted-perceptron), for each iteration, i.e. pass through the training data, a weight vector is calculated as explained above.
