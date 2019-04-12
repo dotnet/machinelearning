@@ -1,23 +1,21 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Reflection;
 using Samples.Dynamic;
 
 namespace Microsoft.ML.Samples
 {
-    internal static class Program
+    public static class Program
     {
-        static void Main(string[] args)
+        public static void Main(string[] args)
         {
-            //DataViewEnumerable.Example();
+            CalculateFeatureContribution.Example();
 
-            //if (args[1] == "-runall")
+            if (args.Length > 0 && args[0] == "-runall")
                 RunAll();
         }
 
         internal static void RunAll()
         {
-            List<Type> failures = new List<Type>();
             foreach (var type in Assembly.GetExecutingAssembly().GetTypes())
             {
                 var method = type.GetMethod("Example", BindingFlags.NonPublic | BindingFlags.Public
@@ -31,8 +29,12 @@ namespace Microsoft.ML.Samples
                     }
                     catch (Exception ex)
                     {
+                        // Print the exception for debugging.
+                        Console.Write(type);
                         Console.Write(ex);
-                        failures.Add(type);
+
+                        // Throw to fail.
+                        throw ex;
                     }
                 }
             }

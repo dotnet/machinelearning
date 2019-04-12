@@ -6,6 +6,7 @@
     <SignAssembly>false</SignAssembly>
     <PublicSign>false</PublicSign>
     <RootNamespace>Samples</RootNamespace>
+	<StartupObject>Microsoft.ML.Samples.Program</StartupObject>
   </PropertyGroup>
 
   <ItemGroup>
