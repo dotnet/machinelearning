@@ -22,10 +22,6 @@ namespace Samples.Dynamic
             };
             // Convert training data to IDataView, the general data type used in ML.NET.
             var data = mlContext.Data.LoadFromEnumerable(samples);
-            // NormalizeLpNorm normalize rows individually by rescaling them to unit norm.
-            // Performs the following operaion on a row X:  Y = scale *(X - M(X)) / D(X)
-            // where M(X) is scalar value of mean for current row if ensureZeroMean = true or 0 othewise
-            // and D(X) is scalar value of either Standard deviation or L2 norm.
             var approximation = mlContext.Transforms.NormalizeGlobalContrast("Features", ensureZeroMean: false, scale:2, ensureUnitStandardDeviation:true);
 
             // Now we can transform the data and look at the output to confirm the behavior of the estimator.
