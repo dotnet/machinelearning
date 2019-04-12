@@ -440,7 +440,7 @@ namespace Microsoft.ML.Data
         /// <param name="labelColumn">Label column.</param>
         public static IEnumerable<SchemaShape.Column> AnnotationsForMulticlassScoreColumn(SchemaShape.Column? labelColumn = null)
         {
-           var cols = new List<SchemaShape.Column>();
+            var cols = new List<SchemaShape.Column>();
             if (labelColumn != null && labelColumn.Value.IsKey)
             {
                 if (labelColumn.Value.Annotations.TryFindColumn(Kinds.KeyValues, out var metaCol) &&
