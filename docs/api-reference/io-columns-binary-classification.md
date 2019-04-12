@@ -1,5 +1,5 @@
-### Input/Output Columns
-The label column data must be [System.Boolean](xref:System.Boolean). This trainer outputs the following columns:
+### Input and Output Columns
+The label column data must be <xref:System.Single>. This trainer outputs the following columns:
 
 | Column Name | Column Type | Description|
 | -- | -- | -- |
