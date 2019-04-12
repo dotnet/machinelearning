@@ -27,6 +27,8 @@ namespace Samples.Dynamic.Trainers.Regression
             // Define trainer options.
             var options = new Microsoft.ML.Trainers.FastTree.FastTreeRegressionTrainer.Options
             {
+                LabelColumnName = nameof(DataPoint.Label),
+                FeatureColumnName = nameof(DataPoint.Features),
                 // Use L2Norm for early stopping.
                 EarlyStoppingMetric = Microsoft.ML.Trainers.FastTree.EarlyStoppingMetric.L2Norm,
                 // Create a simpler model by penalizing usage of new features.
@@ -55,7 +57,7 @@ namespace Samples.Dynamic.Trainers.Regression
                 Console.WriteLine($"Label: {p.Label:F3}, Prediction: {p.Score:F3}");
 
             // Expected output:
-			// Label: 0.985, Prediction: 0.950
+            // Label: 0.985, Prediction: 0.950
             // Label: 0.155, Prediction: 0.111
             // Label: 0.515, Prediction: 0.475
             // Label: 0.566, Prediction: 0.575

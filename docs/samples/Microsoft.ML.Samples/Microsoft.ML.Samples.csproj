@@ -113,6 +113,14 @@
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>FastTree.cs</LastGenOutput>
     </None>
+    <None Update="Dynamic\Trainers\Regression\FastTreeTweedie.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>FastTreeTweedie.cs</LastGenOutput>
+    </None>
+    <None Update="Dynamic\Trainers\Regression\FastTreeTweedieWithOptions.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>FastTreeTweedieWithOptions.cs</LastGenOutput>
+    </None>
     <None Update="Dynamic\Trainers\Regression\FastTreeWithOptions.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>FastTreeWithOptions.cs</LastGenOutput>
@@ -210,6 +218,16 @@
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
       <DependentUpon>FastTree.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Dynamic\Trainers\Regression\FastTreeTweedie.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>FastTreeTweedie.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Dynamic\Trainers\Regression\FastTreeTweedieWithOptions.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>FastTreeTweedieWithOptions.tt</DependentUpon>
     </Compile>
     <Compile Update="Dynamic\Trainers\Regression\FastTreeWithOptions.cs">
       <DesignTime>True</DesignTime>

@@ -6,10 +6,10 @@ using Microsoft.ML.Data;
 
 namespace Samples.Dynamic.Trainers.Regression
 {
+    // This example requires installation of additional NuGet package
+    // <a href="https://www.nuget.org/packages/Microsoft.ML.FastTree/">Microsoft.ML.FastTree</a>. 
     public static class FastTreeTweedie
     {
-        // This example requires installation of additional NuGet package
-        // <a href="https://www.nuget.org/packages/Microsoft.ML.FastTree/">Microsoft.ML.FastTree</a>.
         public static void Example()
         {
             // Create a new context for ML.NET operations. It can be used for exception tracking and logging, 
@@ -17,20 +17,20 @@ namespace Samples.Dynamic.Trainers.Regression
             // Setting the seed to a fixed number in this example to make outputs deterministic.
             var mlContext = new MLContext(seed: 0);
 
-            // Create a list of training examples.
-            var examples = GenerateRandomDataPoints(1000);
+            // Create a list of training data points.
+            var dataPoints = GenerateRandomDataPoints(1000);
 
-            // Convert the examples list to an IDataView object, which is consumable by ML.NET API.
-            var trainingData = mlContext.Data.LoadFromEnumerable(examples);
+            // Convert the list of data points to an IDataView object, which is consumable by ML.NET API.
+            var trainingData = mlContext.Data.LoadFromEnumerable(dataPoints);
 
             // Define the trainer.
-            var pipeline = mlContext.Regression.Trainers.FastTreeTweedie();
+            var pipeline = mlContext.Regression.Trainers.FastTreeTweedie(labelColumnName: nameof(DataPoint.Label), featureColumnName: nameof(DataPoint.Features));
 
             // Train the model.
             var model = pipeline.Fit(trainingData);
 
-            // Create testing examples. Use different random seed to make it different from training data.
-            var testData = mlContext.Data.LoadFromEnumerable(GenerateRandomDataPoints(500, seed:123));
+            // Create testing data. Use different random seed to make it different from training data.
+            var testData = mlContext.Data.LoadFromEnumerable(GenerateRandomDataPoints(500, seed: 123));
 
             // Run the model on test data set.
             var transformedTestData = model.Transform(testData);
@@ -43,21 +43,21 @@ namespace Samples.Dynamic.Trainers.Regression
                 Console.WriteLine($"Label: {p.Label:F3}, Prediction: {p.Score:F3}");
 
             // Expected output:
-            //   Label: 0.985, Prediction: 0.945
-            //   Label: 0.155, Prediction: 0.104
-            //   Label: 0.515, Prediction: 0.515
-            //   Label: 0.566, Prediction: 0.448
-            //   Label: 0.096, Prediction: 0.082
+            // Label: 0.985, Prediction: 0.945
+            // Label: 0.155, Prediction: 0.104
+            // Label: 0.515, Prediction: 0.515
+            // Label: 0.566, Prediction: 0.448
+            // Label: 0.096, Prediction: 0.082
 
             // Evaluate the overall metrics
             var metrics = mlContext.Regression.Evaluate(transformedTestData);
             Microsoft.ML.SamplesUtils.ConsoleUtils.PrintMetrics(metrics);
 
             // Expected output:
-            //   Mean Absolute Error: 0.05
-            //   Mean Squared Error: 0.00
-            //   Root Mean Squared Error: 0.06
-            //   RSquared: 0.95
+            // Mean Absolute Error: 0.05
+            // Mean Squared Error: 0.00
+            // Root Mean Squared Error: 0.06
+            // RSquared: 0.95
         }
 
         private static IEnumerable<DataPoint> GenerateRandomDataPoints(int count, int seed=0)
@@ -66,11 +66,11 @@ namespace Samples.Dynamic.Trainers.Regression
             float randomFloat() => (float)random.NextDouble();
             for (int i = 0; i < count; i++)
             {
-                var label = randomFloat();
+                float label = randomFloat();
                 yield return new DataPoint
                 {
                     Label = label,
-                    // Create random features that are correlated with label.
+                    // Create random features that are correlated with the label.
                     Features = Enumerable.Repeat(label, 50).Select(x => x + randomFloat()).ToArray()
                 };
             }
@@ -94,3 +94,4 @@ namespace Samples.Dynamic.Trainers.Regression
         }
     }
 }
+

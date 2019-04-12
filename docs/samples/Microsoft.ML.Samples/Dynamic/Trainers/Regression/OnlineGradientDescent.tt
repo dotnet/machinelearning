@@ -3,7 +3,7 @@
 <#+
 string ClassHeader = null;
 string ClassName="OnlineGradientDescent";
-string Trainer = "OnlineGradientDescent(labelColumnName: nameof(DataPoint.Label), featureColumnName: nameof(DataPoint.Features))";
+string Trainer = "OnlineGradientDescent(labelColumnName: nameof(DataPoint.Label), featureColumnName: nameof(DataPoint.Feature))";
 string TrainerOptions = null;
 
 string ExpectedOutputPerInstance= @"// TODO #2425: OGD is missing baseline tests and seems numerically unstable";

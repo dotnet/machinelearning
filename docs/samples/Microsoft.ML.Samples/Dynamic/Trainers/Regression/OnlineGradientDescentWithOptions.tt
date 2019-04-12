@@ -6,7 +6,7 @@ string ClassName="OnlineGradientDescentWithOptions";
 string Trainer = "OnlineGradientDescent";
 string TrainerOptions = @" OnlineGradientDescentTrainer.Options
             {
-				LabelColumnName = nameof(DataPoint.Label),
+                LabelColumnName = nameof(DataPoint.Label),
                 FeatureColumnName = nameof(DataPoint.Features),
                 // Change the loss function.
                 LossFunction = new TweedieLoss(),

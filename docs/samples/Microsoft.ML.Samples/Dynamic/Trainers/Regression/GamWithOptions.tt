@@ -8,24 +8,24 @@ string ClassName="GamWithOptions";
 string Trainer = @"Gam";
 string TrainerOptions = @"Microsoft.ML.Trainers.FastTree.GamRegressionTrainer.Options
             {
-				LabelColumnName = nameof(DataPoint.Label),
+                LabelColumnName = nameof(DataPoint.Label),
                 FeatureColumnName = nameof(DataPoint.Features),
-				// The entropy (regularization) coefficient.
+                // The entropy (regularization) coefficient.
                 EntropyCoefficient = 0.3,
                 // Reduce the number of iterations to 50.
                 NumberOfIterations = 50
             }";
 
 string ExpectedOutputPerInstance= @"// Expected output:
-			// Label: 0.985, Prediction: 0.841
-			// Label: 0.155, Prediction: 0.187
-			// Label: 0.515, Prediction: 0.496
-			// Label: 0.566, Prediction: 0.467
-			// Label: 0.096, Prediction: 0.144";
+            // Label: 0.985, Prediction: 0.841
+            // Label: 0.155, Prediction: 0.187
+            // Label: 0.515, Prediction: 0.496
+            // Label: 0.566, Prediction: 0.467
+            // Label: 0.096, Prediction: 0.144";
 
 string ExpectedOutput = @"// Expected output:
-			// Mean Absolute Error: 0.06
-			// Mean Squared Error: 0.01
-			// Root Mean Squared Error: 0.08
-			// RSquared: 0.93";
+            // Mean Absolute Error: 0.06
+            // Mean Squared Error: 0.01
+            // Root Mean Squared Error: 0.08
+            // RSquared: 0.93";
 #>

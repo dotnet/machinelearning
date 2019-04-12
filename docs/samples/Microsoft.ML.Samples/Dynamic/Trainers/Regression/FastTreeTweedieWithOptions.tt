@@ -4,9 +4,9 @@
 string ClassHeader = @"// This example requires installation of additional NuGet package
     // <a href=""https://www.nuget.org/packages/Microsoft.ML.FastTree/"">Microsoft.ML.FastTree</a>. ";
 
-string ClassName="FastTreeWithOptions";
-string Trainer = @"FastTree";
-string TrainerOptions = @"Microsoft.ML.Trainers.FastTree.FastTreeRegressionTrainer.Options
+string ClassName="FastTreeTweedieWithOptions";
+string Trainer = @"FastTreeTweedie";
+string TrainerOptions = @"Microsoft.ML.Trainers.FastTree.FastTreeTweedieTrainer.Options
             {
                 LabelColumnName = nameof(DataPoint.Label),
                 FeatureColumnName = nameof(DataPoint.Features),
@@ -19,15 +19,15 @@ string TrainerOptions = @"Microsoft.ML.Trainers.FastTree.FastTreeRegressionTrain
             }";
 
 string ExpectedOutputPerInstance= @"// Expected output:
-            // Label: 0.985, Prediction: 0.950
-            // Label: 0.155, Prediction: 0.111
-            // Label: 0.515, Prediction: 0.475
-            // Label: 0.566, Prediction: 0.575
-            // Label: 0.096, Prediction: 0.093";
+            // Label: 0.985, Prediction: 0.954
+            // Label: 0.155, Prediction: 0.103
+            // Label: 0.515, Prediction: 0.450
+            // Label: 0.566, Prediction: 0.515
+            // Label: 0.096, Prediction: 0.078";
 
 string ExpectedOutput = @"// Expected output:
             // Mean Absolute Error: 0.05
             // Mean Squared Error: 0.00
-            // Root Mean Squared Error: 0.06
+            // Root Mean Squared Error: 0.07
             // RSquared: 0.95";
 #>

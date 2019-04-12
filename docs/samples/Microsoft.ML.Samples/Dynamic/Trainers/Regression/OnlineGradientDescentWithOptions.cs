@@ -25,7 +25,7 @@ namespace Samples.Dynamic.Trainers.Regression
             // Define trainer options.
             var options = new  OnlineGradientDescentTrainer.Options
             {
-				LabelColumnName = nameof(DataPoint.Label),
+                LabelColumnName = nameof(DataPoint.Label),
                 FeatureColumnName = nameof(DataPoint.Features),
                 // Change the loss function.
                 LossFunction = new TweedieLoss(),
