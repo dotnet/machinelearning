@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Drawing;
 using System.IO;
 using Microsoft.ML;
 using Microsoft.ML.Data;
@@ -51,6 +52,9 @@ namespace Samples.Dynamic
             // banana.jpg   banana       System.Drawing.Bitmap
             // hotdog.jpg   hotdog       System.Drawing.Bitmap
             // tomato.jpg   tomato       System.Drawing.Bitmap
+
+            // Images are stored as Bitmap. Dispose them after use.
+            DisposeImages(transformedDataPreview);
         }
 
         private static void PrintPreview(DataDebuggerPreview data)
@@ -64,6 +68,28 @@ namespace Samples.Dynamic
                 foreach (var kvPair in row.Values)
                     Console.Write("{0,-25}", kvPair.Value);
                 Console.WriteLine();
+            }
+        }
+
+        private static void DisposeImages(DataDebuggerPreview data)
+        {
+            foreach (var colInfo in data.ColumnView)
+            {
+                foreach (var col in colInfo.Values)
+                {
+                    if (col is Bitmap)
+                        ((Bitmap)col).Dispose();
+                }
+            }
+
+            Console.WriteLine();
+            foreach (var row in data.RowView)
+            {
+                foreach (var kvPair in row.Values)
+                {
+                    if (kvPair.Key == "ImageObject")
+                        ((Bitmap)kvPair.Value).Dispose();
+                }
             }
         }
     }
