@@ -18,19 +18,19 @@ namespace Microsoft.ML.CLI.Commands
         {
             var newCommand = new System.CommandLine.Command("auto-train", "Create a new .NET project using ML.NET to train and run a model", handler: handler)
             {
+                MlTask(),
                 Dataset(),
                 ValidationDataset(),
                 TestDataset(),
-                MlTask(),
                 LabelName(),
-                MaxExplorationTime(),
                 LabelColumnIndex(),
+                HasHeader(),
+                MaxExplorationTime(),
+                Cache(),
+                IgnoreColumns(),
                 Verbosity(),
                 Name(),
                 OutputPath(),
-                HasHeader(),
-                Cache(),
-                IgnoreColumns(),
             };
 
             newCommand.Argument.AddValidator((sym) =>
