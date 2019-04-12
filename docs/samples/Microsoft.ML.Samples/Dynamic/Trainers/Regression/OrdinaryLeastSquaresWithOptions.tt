@@ -1,0 +1,27 @@
+﻿<#@ include file="RegressionSamplesTemplate.ttinclude"#>
+
+<#+
+string ClassHeader = null;
+string ClassName="OlsWithOptions";
+string Trainer = "Ols";
+string TrainerOptions = @"OlsTrainer.Options
+            {
+                LabelColumnName = nameof(DataPoint.Label),
+                FeatureColumnName = nameof(DataPoint.Features),
+                L2Regularization = 0.1f,
+                CalculateStatistics = false
+            }";
+
+string ExpectedOutputPerInstance= @"// Expected output:
+            //   Label: 0.985, Prediction: 0.960
+            //   Label: 0.155, Prediction: 0.075
+            //   Label: 0.515, Prediction: 0.456
+            //   Label: 0.566, Prediction: 0.499
+            //   Label: 0.096, Prediction: 0.080";
+
+string ExpectedOutput = @"// Expected output:
+            //   Mean Absolute Error: 0.03
+            //   Mean Squared Error: 0.00
+            //   Root Mean Squared Error: 0.04
+            //   RSquared: 0.98";
+#>

@@ -3,7 +3,7 @@
 <#+
 string ClassHeader = null;
 string ClassName="LbfgsPoissonRegression";
-string Trainer = "LbfgsPoissonRegression(labelColumnName: nameof(DataPoint.Label), featureColumnName: nameof(DataPoint.Feature))";
+string Trainer = "LbfgsPoissonRegression(labelColumnName: nameof(DataPoint.Label), featureColumnName: nameof(DataPoint.Features))";
 string TrainerOptions = null;
 
 string ExpectedOutputPerInstance= @"// Expected output:

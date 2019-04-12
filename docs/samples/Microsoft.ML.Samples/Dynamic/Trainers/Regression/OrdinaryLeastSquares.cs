@@ -6,7 +6,7 @@ using Microsoft.ML.Data;
 
 namespace Samples.Dynamic.Trainers.Regression
 {
-    public static class OnlineGradientDescent
+    public static class Ols
     {
         public static void Example()
         {
@@ -22,7 +22,7 @@ namespace Samples.Dynamic.Trainers.Regression
             var trainingData = mlContext.Data.LoadFromEnumerable(dataPoints);
 
             // Define the trainer.
-            var pipeline = mlContext.Regression.Trainers.OnlineGradientDescent(labelColumnName: nameof(DataPoint.Label), featureColumnName: nameof(DataPoint.Features));
+            var pipeline = mlContext.Regression.Trainers.Ols(labelColumnName: nameof(DataPoint.Label), featureColumnName: nameof(DataPoint.Features));
 
             // Train the model.
             var model = pipeline.Fit(trainingData);
@@ -40,13 +40,22 @@ namespace Samples.Dynamic.Trainers.Regression
             foreach (var p in predictions.Take(5))
                 Console.WriteLine($"Label: {p.Label:F3}, Prediction: {p.Score:F3}");
 
-            // TODO #2425: OGD is missing baseline tests and seems numerically unstable
+            // Expected output:
+            //   Label: 0.985, Prediction: 0.961
+            //   Label: 0.155, Prediction: 0.072
+            //   Label: 0.515, Prediction: 0.455
+            //   Label: 0.566, Prediction: 0.499
+            //   Label: 0.096, Prediction: 0.080
 
             // Evaluate the overall metrics
             var metrics = mlContext.Regression.Evaluate(transformedTestData);
             Microsoft.ML.SamplesUtils.ConsoleUtils.PrintMetrics(metrics);
 
-            // TODO #2425: OGD is missing baseline tests and seems numerically unstable
+            // Expected output:
+            //   Mean Absolute Error: 0.03
+            //   Mean Squared Error: 0.00
+            //   Root Mean Squared Error: 0.04
+            //   RSquared: 0.98
         }
 
         private static IEnumerable<DataPoint> GenerateRandomDataPoints(int count, int seed=0)
