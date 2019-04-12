@@ -31,12 +31,13 @@ using Microsoft.ML.Transforms;
 namespace Microsoft.ML.Transforms
 {
     /// <summary>
-    /// Estimator creating the <see cref="ColumnCopyingTransformer"/>.
+    /// <see cref="IEstimator{TTransformer}"/> creating the <see cref="ColumnCopyingTransformer"/>.
     /// </summary>
     /// <remarks>
     /// <format type="text/markdown"><![CDATA[
-    /// ### Estimator FAQ
-    /// | Question | Answer |
+    ///
+    /// ###  Estimator Characteristics
+    /// |  |  |
     /// | -- | -- |
     /// | Does this estimator need to look at the data to train its parameters? | No |
     /// | Input column data type. | Any |
@@ -82,8 +83,7 @@ namespace Microsoft.ML.Transforms
     }
 
     /// <summary>
-    /// Transformer that creates a new column, named as specified in the output column name parameters, and
-    /// copies the data from the input column to this new column.
+    /// <see cref="ITransformer"/> resulting from fitting an <see cref="ColumnCopyingEstimator"/>.
     /// </summary>
     public sealed class ColumnCopyingTransformer : OneToOneTransformerBase
     {

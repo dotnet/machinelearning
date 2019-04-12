@@ -51,15 +51,15 @@ namespace Microsoft.ML
     public static class TransformExtensionsCatalog
     {
         /// <summary>
-        /// Creates a <see cref="ColumnCopyingEstimator"/> that copies the data from the column specified in <paramref name="inputColumnName"/>
+        /// Create a <see cref="ColumnCopyingEstimator"/> that copies the data from the column specified in <paramref name="inputColumnName"/>
         /// to a new column: <paramref name="outputColumnName"/>.
         /// </summary>
-        /// <remarks>For more information on this estimator see <see cref="ColumnCopyingEstimator"/>.</remarks>
+        /// <remarks>For more information see <see cref="ColumnCopyingEstimator"/>.</remarks>
         /// <param name="catalog">The transform's catalog.</param>
         /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.
-        /// The type of data, is the same as the one in the input column.</param>
+        /// This column's data type will be the same as that of the input column.</param>
         /// <param name="inputColumnName">Name of the column to copy the data from.
-        /// This estimator operates over any type of data.</param>
+        /// This estimator operates over any data type.</param>
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
@@ -71,13 +71,13 @@ namespace Microsoft.ML
             => new ColumnCopyingEstimator(CatalogUtils.GetEnvironment(catalog), outputColumnName, inputColumnName);
 
         /// <summary>
-        /// Creates a <see cref="ColumnCopyingEstimator"/> that copies the data from the column specified in <see cref="InputOutputColumnPair.InputColumnName" />
+        /// Create a <see cref="ColumnCopyingEstimator"/> that copies the data from the column specified in <see cref="InputOutputColumnPair.InputColumnName" />
         /// to a new column: <see cref="InputOutputColumnPair.OutputColumnName" />.
         /// </summary>
         /// <remarks>This estimator can operate over several columns.
-        /// For more information on this estimator see <see cref="ColumnCopyingEstimator"/>.</remarks>
+        /// For more information see <see cref="ColumnCopyingEstimator"/>.</remarks>
         /// <param name="catalog">The transform's catalog.</param>
-        /// <param name="columns">The pairs of input and output columns. This estimator operates over any type of data.</param>
+        /// <param name="columns">The pairs of input and output columns. This estimator operates over any data type.</param>
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
