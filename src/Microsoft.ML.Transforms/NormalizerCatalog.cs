@@ -248,7 +248,7 @@ namespace Microsoft.ML
         /// <param name="ensureZeroMean">If <see langword="true"/>, subtract mean from each value before normalizing and use the raw input otherwise.</param>
         /// <remarks>
         /// This transform performs the following operation on a each row X:  Y = (X - M(X)) / D(X)
-        /// where M(X) is scalar value of mean for current row if <paramref name="ensureZeroMean"/>set to <see langword="true"/> or <value>0</value> othewise
+        /// where M(X) is scalar value of mean for all elements in the current row if <paramref name="ensureZeroMean"/>set to <see langword="true"/> or <value>0</value> othewise
         /// and D(X) is scalar value of selected <paramref name="norm"/>.
         /// </remarks>
         /// <example>
@@ -283,9 +283,9 @@ namespace Microsoft.ML
         /// <param name="scale">Scale features by this value.</param>
         /// <remarks>
         /// This transform performs the following operation on a row X: Y = scale * (X - M(X)) / D(X)
-        /// where M(X) is scalar value of mean for current row if <paramref name="ensureZeroMean"/>set to <see langword="true"/> or <value>0</value> othewise
+        /// where M(X) is scalar value of mean for all elements in the current row if <paramref name="ensureZeroMean"/>set to <see langword="true"/> or <value>0</value> othewise
         /// D(X) is scalar value of standard deviation for row if <paramref name="ensureUnitStandardDeviation"/> set to <see langword="true"/> or
-        /// L2 norm value for this row if it set to <see langword="false"/> and scale is <paramref name="scale"/>.
+        /// L2 norm of this row vector if <paramref name="ensureUnitStandardDeviation"/> set to <see langword="false"/> and scale is <paramref name="scale"/>.
         /// </remarks>
         /// <example>
         /// <format type="text/markdown">
