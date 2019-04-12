@@ -41,7 +41,7 @@ namespace Microsoft.ML.Transforms
     /// | -- | -- |
     /// | Does this estimator need to look at the data to train its parameters? | No |
     /// | Input column data type | Any |
-    /// | Output column data type | The same as the data type in the input column. |
+    /// | Output column data type | The same as the data type in the input column |
     ///
     /// The resulting <see cref="ColumnCopyingTransformer"/> creates a new column, named as specified in the output column name parameters, and
     /// copies the data from the input column to this new column.
