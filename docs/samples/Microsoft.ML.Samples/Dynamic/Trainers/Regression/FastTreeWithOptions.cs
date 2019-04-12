@@ -7,7 +7,7 @@ using Microsoft.ML.Trainers;
 
 namespace Samples.Dynamic.Trainers.Regression
 {
-	// This example requires installation of additional NuGet package
+    // This example requires installation of additional NuGet package
     // <a href="https://www.nuget.org/packages/Microsoft.ML.FastTree/">Microsoft.ML.FastTree</a>. 
     public static class FastTreeWithOptions
     {

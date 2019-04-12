@@ -10,7 +10,7 @@ using Microsoft.ML.Trainers;
 namespace Samples.Dynamic.Trainers.Regression
 {
 <# if (ClassHeader != null) { #>
-	<#=ClassHeader#>
+    <#=ClassHeader#>
 <# } #>
     public static class <#=ClassName#>
     {

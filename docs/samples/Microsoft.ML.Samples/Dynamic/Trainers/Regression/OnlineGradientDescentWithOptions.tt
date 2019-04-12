@@ -1,6 +1,7 @@
 ﻿<#@ include file="RegressionSamplesTemplate.ttinclude"#>
 
 <#+
+string ClassHeader = null;
 string ClassName="OnlineGradientDescentWithOptions";
 string Trainer = "OnlineGradientDescent";
 string TrainerOptions = @" OnlineGradientDescentTrainer.Options
