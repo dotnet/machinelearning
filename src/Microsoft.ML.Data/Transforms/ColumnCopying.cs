@@ -31,8 +31,18 @@ using Microsoft.ML.Transforms;
 namespace Microsoft.ML.Transforms
 {
     /// <summary>
-    /// <see cref="ColumnCopyingEstimator"/> copies the input column to another column named as specified in the parameters of the transformation.
+    /// Estimator creating the <see cref="ColumnCopyingTransformer"/>.
     /// </summary>
+    /// <remarks>
+    /// <format type="text/markdown"><![CDATA[
+    /// ### Estimator FAQ
+    /// | Question | Answer |
+    /// | -- | -- |
+    /// | Does this estimator need to look at the data to train its parameters? | No |
+    /// | Is the transformer created convertible to ONNX format? | Yes |
+    /// ]]>
+    /// </format>
+    /// </remarks>
     public sealed class ColumnCopyingEstimator : TrivialEstimator<ColumnCopyingTransformer>
     {
         [BestFriend]
@@ -67,6 +77,10 @@ namespace Microsoft.ML.Transforms
         }
     }
 
+    /// <summary>
+    /// Transformer that creates a new column, named as specified in the output column name parameters, and
+    /// copies the data from the input column Name.
+    /// </summary>
     public sealed class ColumnCopyingTransformer : OneToOneTransformerBase
     {
         [BestFriend]
