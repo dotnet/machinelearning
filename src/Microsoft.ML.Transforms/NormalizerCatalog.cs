@@ -246,10 +246,15 @@ namespace Microsoft.ML
         /// <param name="inputColumnName">Name of column to transform. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.</param>
         /// <param name="norm">Type of norm to use to normalize each sample. The indicated norm of the resulted vector will be normalized to one.</param>
         /// <param name="ensureZeroMean">If <see langword="true"/>, subtract mean from each value before normalizing and use the raw input otherwise.</param>
+        /// <remarks>
+        /// This transform performs the following operation on a each row X:  Y = (X - M(X)) / D(X)
+        /// where M(X) is scalar value of mean for all elements in the current row if <paramref name="ensureZeroMean"/>set to <see langword="true"/> or <value>0</value> othewise
+        /// and D(X) is scalar value of selected <paramref name="norm"/>.
+        /// </remarks>
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
-        /// [!code-csharp[LpNormalize](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/ProjectionTransforms.cs?range=1-6,12-112)]
+        /// [!code-csharp[NormalizeLpNorm](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/NormalizeLpNorm.cs)]
         /// ]]>
         /// </format>
         /// </example>
@@ -276,10 +281,16 @@ namespace Microsoft.ML
         /// <param name="ensureZeroMean">If <see langword="true"/>, subtract mean from each value before normalizing and use the raw input otherwise.</param>
         /// <param name="ensureUnitStandardDeviation">If <see langword="true"/>, resulted vector's standard deviation would be one. Otherwise, resulted vector's L2-norm would be one.</param>
         /// <param name="scale">Scale features by this value.</param>
+        /// <remarks>
+        /// This transform performs the following operation on a row X: Y = scale * (X - M(X)) / D(X)
+        /// where M(X) is scalar value of mean for all elements in the current row if <paramref name="ensureZeroMean"/>set to <see langword="true"/> or <value>0</value> othewise
+        /// D(X) is scalar value of standard deviation for row if <paramref name="ensureUnitStandardDeviation"/> set to <see langword="true"/> or
+        /// L2 norm of this row vector if <paramref name="ensureUnitStandardDeviation"/> set to <see langword="false"/> and scale is <paramref name="scale"/>.
+        /// </remarks>
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
-        /// [!code-csharp[GlobalContrastNormalize](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/ProjectionTransforms.cs?range=1-6,12-112)]
+        /// [!code-csharp[NormalizeGlobalContrast](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/NormalizeGlobalContrast.cs)]
         /// ]]>
         /// </format>
         /// </example>

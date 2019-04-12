@@ -626,6 +626,120 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             CompareNumbersWithTolerance(0.00316973357, testResults[2].Score, digitsOfPrecision: 5);
         }
 
+        [MatrixFactorizationFact]
+        public void OneClassMatrixFactorizationSample()
+        {
+            // Create a new context for ML.NET operations. It can be used for exception tracking and logging,
+            // as a catalog of available operations and as the source of randomness.
+            var mlContext = new MLContext(seed: 0);
+
+            // Get a small in-memory dataset.
+            GetOneClassMatrix(out List<OneClassMatrixElement> data, out List<OneClassMatrixElement> testData);
+
+            // Convert the in-memory matrix into an IDataView so that ML.NET components can consume it.
+            var dataView = mlContext.Data.LoadFromEnumerable(data);
+
+            // Create a matrix factorization trainer which may consume "Value" as the training label, "MatrixColumnIndex" as the
+            // matrix's column index, and "MatrixRowIndex" as the matrix's row index. Here nameof(...) is used to extract field
+            // names' in MatrixElement class.
+            var options = new MatrixFactorizationTrainer.Options
+            {
+                MatrixColumnIndexColumnName = nameof(OneClassMatrixElement.MatrixColumnIndex),
+                MatrixRowIndexColumnName = nameof(OneClassMatrixElement.MatrixRowIndex),
+                LabelColumnName = nameof(OneClassMatrixElement.Value),
+                NumberOfIterations = 20,
+                NumberOfThreads = 8,
+                ApproximationRank = 32,
+                Alpha = 1,
+                // The desired of unobserved values.
+                C = 0.15,
+                // To enable one-class matrix factorization, the following line is required.
+                LossFunction = MatrixFactorizationTrainer.LossFunctionType.SquareLossOneClass
+            };
+
+            var pipeline = mlContext.Recommendation().Trainers.MatrixFactorization(options);
+
+            // Train a matrix factorization model.
+            var model = pipeline.Fit(dataView);
+
+            // Apply the trained model to the test set. Notice that training is a partial 
+            var prediction = model.Transform(mlContext.Data.LoadFromEnumerable(testData));
+
+            var results = mlContext.Data.CreateEnumerable<OneClassMatrixElement>(prediction, false).ToList();
+
+            Assert.Equal(6000, results.Count);
+
+            var firstElement = results.First();
+            var lastElement = results.Last();
+
+            Assert.Equal(1u, firstElement.MatrixColumnIndex);
+            Assert.Equal(1u, firstElement.MatrixRowIndex);
+            Assert.Equal(0.987113833, firstElement.Score, 3);
+            Assert.Equal(1, firstElement.Value, 3);
+
+            Assert.Equal(60u, lastElement.MatrixColumnIndex);
+            Assert.Equal(100u, lastElement.MatrixRowIndex);
+            Assert.Equal(0.149993762, lastElement.Score, 3);
+            Assert.Equal(0.15, lastElement.Value, 3);
+
+            // Two columns with highest predicted score to the 2nd row (indexed by 1). If we view row index as user ID and column as game ID,
+            // the following list contains the games recommended by the trained model. Note that sometime, you may want to exclude training
+            // data from your predicted results because those games were already purchased.
+            var topColumns = results.Where(element => element.MatrixRowIndex == 1).OrderByDescending(element => element.Score).Take(2);
+
+            firstElement = topColumns.First();
+            lastElement = topColumns.Last();
+
+            Assert.Equal(1u, firstElement.MatrixColumnIndex);
+            Assert.Equal(1u, firstElement.MatrixRowIndex);
+            Assert.Equal(0.987113833, firstElement.Score, 3);
+            Assert.Equal(1, firstElement.Value, 3);
+
+            Assert.Equal(11u, lastElement.MatrixColumnIndex);
+            Assert.Equal(1u, lastElement.MatrixRowIndex);
+            Assert.Equal(0.987113833, lastElement.Score, 3);
+            Assert.Equal(1, lastElement.Value, 3);
+        }
+
+        // A data structure used to encode a single value in matrix
+        private class OneClassMatrixElement
+        {
+            // Matrix column index. Its allowed range is from 0 to _synthesizedMatrixColumnCount - 1.
+            [KeyType(_synthesizedMatrixColumnCount)]
+            public uint MatrixColumnIndex { get; set; }
+            // Matrix row index. Its allowed range is from 0 to _synthesizedMatrixRowCount - 1.
+            [KeyType(_synthesizedMatrixRowCount)]
+            public uint MatrixRowIndex { get; set; }
+            // The value at the MatrixColumnIndex-th column and the MatrixRowIndex-th row.
+            public float Value { get; set; }
+            // The predicted value at the MatrixColumnIndex-th column and the MatrixRowIndex-th row.
+            public float Score { get; set; }
+        }
+
+        // Create an in-memory matrix as a list of tuples (column index, row index, value). Notice that one-class matrix
+        // factorization handle scenerios where only positive signals (e.g., on Facebook, only likes are recorded and no dislike before)
+        // can be observed so that all values are set to 1.
+        private static void GetOneClassMatrix(out List<OneClassMatrixElement> observedMatrix, out List<OneClassMatrixElement> fullMatrix)
+        {
+            // The matrix factorization model will be trained only using observedMatrix but we will see it can learn all information 
+            // carried in fullMatrix.
+            observedMatrix = new List<OneClassMatrixElement>();
+            fullMatrix = new List<OneClassMatrixElement>();
+            for (uint i = 0; i < _synthesizedMatrixColumnCount; ++i)
+                for (uint j = 0; j < _synthesizedMatrixRowCount; ++j)
+                {
+                    if ((i + j) % 10 == 0)
+                    {
+                        // Set observed elements' values to 1 (means like).
+                        observedMatrix.Add(new OneClassMatrixElement() { MatrixColumnIndex = i, MatrixRowIndex = j, Value = 1, Score = 0 });
+                        fullMatrix.Add(new OneClassMatrixElement() { MatrixColumnIndex = i, MatrixRowIndex = j, Value = 1, Score = 0 });
+                    }
+                    else
+                        // Set unobserved elements' values to 0.15, a value smaller than observed values (means dislike).
+                        fullMatrix.Add(new OneClassMatrixElement() { MatrixColumnIndex = i, MatrixRowIndex = j, Value = 0.15f, Score = 0 });
+                }
+        }
+
         const int _matrixColumnCount = 256;
         const int _matrixRowCount = 256;
 
