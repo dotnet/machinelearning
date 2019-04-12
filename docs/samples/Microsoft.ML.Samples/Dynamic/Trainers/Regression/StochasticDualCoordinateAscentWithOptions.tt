@@ -1,0 +1,31 @@
+﻿<#@ include file="RegressionSamplesTemplate.ttinclude"#>
+
+<#+
+string ClassHeader = null;
+string ClassName="SdcaWithOptions";
+string Trainer = "Sdca";
+string TrainerOptions = @"SdcaRegressionTrainer.Options
+            {
+                LabelColumnName = nameof(DataPoint.Label),
+                FeatureColumnName = nameof(DataPoint.Features),
+                // Make the convergence tolerance tighter.
+                ConvergenceTolerance = 0.02f,
+                // Increase the maximum number of passes over training data.
+                MaximumNumberOfIterations = 30,
+                // Increase learning rate for bias
+                BiasLearningRate = 0.1f
+            }";
+
+string ExpectedOutputPerInstance= @"// Expected output:
+            //   Label: 0.985, Prediction: 0.927
+            //   Label: 0.155, Prediction: 0.062
+            //   Label: 0.515, Prediction: 0.439
+            //   Label: 0.566, Prediction: 0.500
+            //   Label: 0.096, Prediction: 0.078";
+
+string ExpectedOutput = @"// Expected output:
+            //   Mean Absolute Error: 0.04
+            //   Mean Squared Error: 0.00
+            //   Root Mean Squared Error: 0.05
+            //   RSquared: 0.98";
+#>

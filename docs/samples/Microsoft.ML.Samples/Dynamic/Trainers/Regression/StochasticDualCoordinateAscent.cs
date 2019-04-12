@@ -1,8 +1,12 @@
-﻿using Microsoft.ML;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using Microsoft.ML;
+using Microsoft.ML.Data;
 
 namespace Samples.Dynamic.Trainers.Regression
 {
-    public static class StochasticDualCoordinateAscent
+    public static class Sdca
     {
         public static void Example()
         {
@@ -11,31 +15,81 @@ namespace Samples.Dynamic.Trainers.Regression
             // Setting the seed to a fixed number in this example to make outputs deterministic.
             var mlContext = new MLContext(seed: 0);
 
-            // Create in-memory examples as C# native class and convert to IDataView
-            var data = Microsoft.ML.SamplesUtils.DatasetUtils.GenerateFloatLabelFloatFeatureVectorSamples(1000);
-            var dataView = mlContext.Data.LoadFromEnumerable(data);
+            // Create a list of training data points.
+            var dataPoints = GenerateRandomDataPoints(1000);
 
-            // Split the data into training and test sets. Only training set is used in fitting
-            // the created pipeline. Metrics are computed on the test.
-            var split = mlContext.Data.TrainTestSplit(dataView, testFraction: 0.1);
+            // Convert the list of data points to an IDataView object, which is consumable by ML.NET API.
+            var trainingData = mlContext.Data.LoadFromEnumerable(dataPoints);
+
+            // Define the trainer.
+            var pipeline = mlContext.Regression.Trainers.Sdca(labelColumnName: nameof(DataPoint.Label), featureColumnName: nameof(DataPoint.Features));
 
             // Train the model.
-            var pipeline = mlContext.Regression.Trainers.Sdca();
-            var model = pipeline.Fit(split.TrainSet);
+            var model = pipeline.Fit(trainingData);
 
-            // Do prediction on the test set.
-            var dataWithPredictions = model.Transform(split.TestSet);
+            // Create testing data. Use different random seed to make it different from training data.
+            var testData = mlContext.Data.LoadFromEnumerable(GenerateRandomDataPoints(500, seed: 123));
 
-            // Evaluate the trained model using the test set.
-            var metrics = mlContext.Regression.Evaluate(dataWithPredictions);
+            // Run the model on test data set.
+            var transformedTestData = model.Transform(testData);
+
+            // Convert IDataView object to a list.
+            var predictions = mlContext.Data.CreateEnumerable<Prediction>(transformedTestData, reuseRowObject: false).ToList();
+
+            // Look at 5 predictions
+            foreach (var p in predictions.Take(5))
+                Console.WriteLine($"Label: {p.Label:F3}, Prediction: {p.Score:F3}");
+
+            // Expected output:
+            //   Label: 0.985, Prediction: 0.960
+            //   Label: 0.155, Prediction: 0.072
+            //   Label: 0.515, Prediction: 0.455
+            //   Label: 0.566, Prediction: 0.500
+            //   Label: 0.096, Prediction: 0.079
+
+            // Evaluate the overall metrics
+            var metrics = mlContext.Regression.Evaluate(transformedTestData);
             Microsoft.ML.SamplesUtils.ConsoleUtils.PrintMetrics(metrics);
 
             // Expected output:
-            //   L1: 0.27
-            //   L2: 0.11
-            //   LossFunction: 0.11
-            //   RMS: 0.33
-            //   RSquared: 0.56
+            //   Mean Absolute Error: 0.03
+            //   Mean Squared Error: 0.00
+            //   Root Mean Squared Error: 0.04
+            //   RSquared: 0.98
+        }
+
+        private static IEnumerable<DataPoint> GenerateRandomDataPoints(int count, int seed=0)
+        {
+            var random = new Random(seed);
+            float randomFloat() => (float)random.NextDouble();
+            for (int i = 0; i < count; i++)
+            {
+                float label = randomFloat();
+                yield return new DataPoint
+                {
+                    Label = label,
+                    // Create random features that are correlated with the label.
+                    Features = Enumerable.Repeat(label, 50).Select(x => x + randomFloat()).ToArray()
+                };
+            }
+        }
+
+        // Example with label and 50 feature values. A data set is a collection of such examples.
+        private class DataPoint
+        {
+            public float Label { get; set; }
+            [VectorType(50)]
+            public float[] Features { get; set; }
+        }
+
+        // Class used to capture predictions.
+        private class Prediction
+        {
+            // Original label.
+            public float Label { get; set; }
+            // Predicted score from the trainer.
+            public float Score { get; set; }
         }
     }
 }
+

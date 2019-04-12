@@ -165,6 +165,14 @@
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>OrdinaryLeastSquaresWithOptions.cs</LastGenOutput>
     </None>
+    <None Update="Dynamic\Trainers\Regression\StochasticDualCoordinateAscent.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>StochasticDualCoordinateAscent.cs</LastGenOutput>
+    </None>
+    <None Update="Dynamic\Trainers\Regression\StochasticDualCoordinateAscentWithOptions.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>StochasticDualCoordinateAscentWithOptions.cs</LastGenOutput>
+    </None>
   </ItemGroup>
 
   <ItemGroup>
@@ -291,6 +299,16 @@
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
       <DependentUpon>OrdinaryLeastSquaresWithOptions.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Dynamic\Trainers\Regression\StochasticDualCoordinateAscent.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>StochasticDualCoordinateAscent.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Dynamic\Trainers\Regression\StochasticDualCoordinateAscentWithOptions.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>StochasticDualCoordinateAscentWithOptions.tt</DependentUpon>
     </Compile>
   </ItemGroup>
 
