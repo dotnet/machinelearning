@@ -39,6 +39,7 @@ namespace Microsoft.ML.CLI.CodeGenerator
         {
             Stopwatch watch = Stopwatch.StartNew();
             var context = new MLContext();
+            var verboseLevel = Utils.GetVerbosity(settings.Verbosity);
 
             // Infer columns
             ColumnInferenceResults columnInference = null;
@@ -56,7 +57,7 @@ namespace Microsoft.ML.CLI.CodeGenerator
             {
                 logger.Log(LogLevel.Error, $"{Strings.InferColumnError}");
                 logger.Log(LogLevel.Error, e.Message);
-                logger.Log(LogLevel.Debug, e.ToString());
+                logger.Log(LogLevel.Trace, e.ToString());
                 logger.Log(LogLevel.Error, Strings.Exiting);
                 return;
             }
@@ -79,9 +80,20 @@ namespace Microsoft.ML.CLI.CodeGenerator
             IEnumerable<RunDetail<BinaryClassificationMetrics>> binaryRunDetails = default;
             IEnumerable<RunDetail<MulticlassClassificationMetrics>> multiRunDetails = default;
             IEnumerable<RunDetail<RegressionMetrics>> regressionRunDetails = default;
+            if (verboseLevel > LogLevel.Trace)
+            {
+                Console.Write($"{Strings.ExplorePipeline}: ");
+                Console.ForegroundColor = ConsoleColor.Yellow;
+                Console.WriteLine($"{settings.MlTask}");
+                Console.ResetColor();
+                Console.Write($"{Strings.FurtherLearning}: ");
+                Console.ForegroundColor = ConsoleColor.Yellow;
+                Console.WriteLine($"{ Strings.LearningHttpLink}");
+                Console.ResetColor();
+            }
 
-            Console.WriteLine($"{Strings.ExplorePipeline}: {settings.MlTask}");
-            Console.WriteLine($"{Strings.FurtherLearning}: {Strings.LearningHttpLink}");
+            logger.Log(LogLevel.Trace, $"{Strings.ExplorePipeline}: {settings.MlTask}");
+            logger.Log(LogLevel.Trace, $"{Strings.FurtherLearning}: {Strings.LearningHttpLink}");
             try
             {
                 var options = new ProgressBarOptions
@@ -93,7 +105,6 @@ namespace Microsoft.ML.CLI.CodeGenerator
                     BackgroundCharacter = '─',
                 };
                 var wait = TimeSpan.FromSeconds(settings.MaxExplorationTime);
-                var verboseLevel = Utils.GetVerbosity(settings.Verbosity);
 
                 if (verboseLevel > LogLevel.Trace && !Console.IsOutputRedirected)
                 {
@@ -205,8 +216,8 @@ namespace Microsoft.ML.CLI.CodeGenerator
 
             // Generate the Project
             GenerateProject(columnInference, bestPipeline, columnInformation.LabelColumnName, modelPath);
-            logger.Log(LogLevel.Info, $"{Strings.GenerateModelConsumption} : { Path.Combine(settings.OutputPath.FullName, $"{settings.Name}.Predict")}");
-            logger.Log(LogLevel.Info, $"{Strings.GenerateModelTraining} : { Path.Combine(settings.OutputPath.FullName, $"{settings.Name}.Train")}");
+            logger.Log(LogLevel.Info, $"{Strings.GenerateModelConsumption}: { Path.Combine(settings.OutputPath.FullName, $"{settings.Name}.Predict")}");
+            logger.Log(LogLevel.Info, $"{Strings.GenerateModelTraining}: { Path.Combine(settings.OutputPath.FullName, $"{settings.Name}.Train")}");
             Console.ResetColor();
         }
 

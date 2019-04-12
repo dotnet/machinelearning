@@ -81,6 +81,14 @@ namespace Microsoft.ML.CLI.Utilities
             foreach (var pair in topNResults)
             {
                 var result = pair.Item1;
+                if (i == 0)
+                {
+                    // Print top iteration colored.
+                    Console.ForegroundColor = ConsoleColor.Yellow;
+                    PrintMetrics(++i, result?.TrainerName, result?.ValidationMetrics, metricsAgent.GetScore(result?.ValidationMetrics), result?.RuntimeInSeconds, LogLevel.Info, pair.Item2);
+                    Console.ResetColor();
+                    continue;
+                }
                 PrintMetrics(++i, result?.TrainerName, result?.ValidationMetrics, metricsAgent.GetScore(result?.ValidationMetrics), result?.RuntimeInSeconds, LogLevel.Info, pair.Item2);
             }
             logger.Log(LogLevel.Info, TABLESEPERATOR);
@@ -99,6 +107,14 @@ namespace Microsoft.ML.CLI.Utilities
             foreach (var pair in topNResults)
             {
                 var result = pair.Item1;
+                if (i == 0)
+                {
+                    // Print top iteration colored.
+                    Console.ForegroundColor = ConsoleColor.Yellow;
+                    PrintMetrics(++i, result?.TrainerName, result?.ValidationMetrics, metricsAgent.GetScore(result?.ValidationMetrics), result?.RuntimeInSeconds, LogLevel.Info, pair.Item2);
+                    Console.ResetColor();
+                    continue;
+                }
                 PrintMetrics(++i, result?.TrainerName, result?.ValidationMetrics, metricsAgent.GetScore(result?.ValidationMetrics), result?.RuntimeInSeconds, LogLevel.Info, pair.Item2);
             }
             logger.Log(LogLevel.Info, TABLESEPERATOR);
@@ -116,6 +132,14 @@ namespace Microsoft.ML.CLI.Utilities
             foreach (var pair in topNResults)
             {
                 var result = pair.Item1;
+                if (i == 0)
+                {
+                    // Print top iteration colored.
+                    Console.ForegroundColor = ConsoleColor.Yellow;
+                    PrintMetrics(++i, result?.TrainerName, result?.ValidationMetrics, metricsAgent.GetScore(result?.ValidationMetrics), result?.RuntimeInSeconds, LogLevel.Info, pair.Item2);
+                    Console.ResetColor();
+                    continue;
+                }
                 PrintMetrics(++i, result?.TrainerName, result?.ValidationMetrics, metricsAgent.GetScore(result?.ValidationMetrics), result?.RuntimeInSeconds, LogLevel.Info, pair.Item2);
             }
             logger.Log(LogLevel.Info, TABLESEPERATOR);
