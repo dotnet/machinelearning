@@ -39,7 +39,11 @@ namespace Microsoft.ML.Transforms
     /// | Question | Answer |
     /// | -- | -- |
     /// | Does this estimator need to look at the data to train its parameters? | No |
-    /// | Is the transformer created convertible to ONNX format? | Yes |
+    /// | Input column data type. | Any |
+    /// | Output column data type. | The same as the data type in the input column. |
+    ///
+    /// The resulting <see cref="ColumnCopyingTransformer"/> creates a new column, named as specified in the output column name parameters, and
+    /// copies the data from the input column to this new column.
     /// ]]>
     /// </format>
     /// </remarks>
@@ -79,7 +83,7 @@ namespace Microsoft.ML.Transforms
 
     /// <summary>
     /// Transformer that creates a new column, named as specified in the output column name parameters, and
-    /// copies the data from the input column Name.
+    /// copies the data from the input column to this new column.
     /// </summary>
     public sealed class ColumnCopyingTransformer : OneToOneTransformerBase
     {

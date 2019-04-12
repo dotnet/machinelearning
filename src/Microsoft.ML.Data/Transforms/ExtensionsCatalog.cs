@@ -56,8 +56,10 @@ namespace Microsoft.ML
         /// </summary>
         /// <remarks>For more information on this estimator see <see cref="ColumnCopyingEstimator"/>.</remarks>
         /// <param name="catalog">The transform's catalog.</param>
-        /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.</param>
-        /// <param name="inputColumnName">Name of the column to copy the data from.</param>
+        /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.
+        /// The type of data, is the same as the one in the input column.</param>
+        /// <param name="inputColumnName">Name of the column to copy the data from.
+        /// This estimator operates over any type of data.</param>
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
@@ -74,8 +76,8 @@ namespace Microsoft.ML
         /// </summary>
         /// <remarks>This estimator can operate over several columns.
         /// For more information on this estimator see <see cref="ColumnCopyingEstimator"/>.</remarks>
-        /// <param name="catalog">The transform's catalog</param>
-        /// <param name="columns">The pairs of input and output columns.</param>
+        /// <param name="catalog">The transform's catalog.</param>
+        /// <param name="columns">The pairs of input and output columns. This estimator operates over any type of data.</param>
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
