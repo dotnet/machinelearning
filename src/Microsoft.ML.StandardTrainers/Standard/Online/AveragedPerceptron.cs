@@ -23,9 +23,25 @@ using Microsoft.ML.Trainers;
 namespace Microsoft.ML.Trainers
 {
     /// <summary>
-    /// The <see cref="IEstimator{TTransformer}"/> for the averaged perceptron trainer.
+    /// The <see cref="IEstimator{TTransformer}"/> to predict a target using a linear binary classification model trained with the averaged perceptron.
     /// </summary>
     /// <remarks>
+    /// <format type="text/markdown"><![CDATA[
+    /// To create this trainer, use [AveragedPerceptron](xref:Microsoft.ML.StandardTrainersCatalog.AveragedPerceptron(Microsoft.ML.BinaryClassificationCatalog.BinaryClassificationTrainers,System.String,System.String,Microsoft.ML.Trainers.IClassificationLoss,System.Single,System.Boolean,System.Single,System.Int32)
+    /// or [AveragedPerceptron(Options)](xref:Microsoft.ML.StandardTrainersCatalog.AveragedPerceptron(Microsoft.ML.BinaryClassificationCatalog.BinaryClassificationTrainers,Microsoft.ML.Trainers.AveragedPerceptronTrainer.Options).
+    ///
+    /// [!include[io](~/../docs/samples/docs/api-reference/io-columns-binary-classification.md)]
+    ///
+    /// ### Trainer FAQ
+    /// | Question | Answer |
+    /// | -- | -- |
+    /// | Machine learning task | Binary classification |
+    /// | Is normalization required? | Yes |
+    /// | Is caching required? | No |
+    /// | Is convertible to ONNX format? | Yes |
+    /// | Additional required NuGet | None |
+    ///
+    /// ### Training Algorithm Details
     /// The perceptron is a classification algorithm that makes its predictions by finding a separating hyperplane.
     /// For instance, with feature values f0, f1,..., f_D-1, the prediction is given by determining what side of the hyperplane the point falls into.
     /// That is the same as the sign of sigma[0, D-1] (w_i * f_i), where w_0, w_1,..., w_D-1 are the weights computed by the algorithm.
@@ -40,9 +56,14 @@ namespace Microsoft.ML.Trainers
     /// In Averaged Perceptron (aka voted-perceptron), for each iteration, i.e. pass through the training data, a weight vector is calculated as explained above.
     /// The final prediction is then calculate by averaging the weighted sum from each weight vector and looking at the sign of the result.
     ///
-    /// For more information see <a href="https://en.wikipedia.org/wiki/Perceptron">Wikipedia entry for Perceptron</a>
-    /// or <a href="https://citeseer.ist.psu.edu/viewdoc/summary?doi=10.1.1.48.8200">Large Margin Classification Using the Perceptron Algorithm</a>
+    /// For more information see [Wikipedia entry for Perceptron](https://en.wikipedia.org/wiki/Perceptron)
+    /// or [Large Margin Classification Using the Perceptron Algorithm](https://citeseer.ist.psu.edu/viewdoc/summary?doi=10.1.1.48.8200).
+    /// ]]>
+    /// </format>
     /// </remarks>
+    /// <seealso cref="StandardTrainersCatalog.AveragedPerceptron(BinaryClassificationCatalog.BinaryClassificationTrainers, string, string, IClassificationLoss, float, bool, float, int)" />
+    /// <seealso cref="StandardTrainersCatalog.AveragedPerceptron(BinaryClassificationCatalog.BinaryClassificationTrainers, AveragedPerceptronTrainer.Options)"/>
+    /// <seealso cref="Options"/>
     public sealed class AveragedPerceptronTrainer : AveragedLinearTrainer<BinaryPredictionTransformer<LinearBinaryModelParameters>, LinearBinaryModelParameters>
     {
         internal const string LoadNameValue = "AveragedPerceptron";
@@ -53,7 +74,8 @@ namespace Microsoft.ML.Trainers
         private readonly Options _args;
 
         /// <summary>
-        /// Options for the <see cref="AveragedPerceptronTrainer"/>.
+        /// Options for the <see cref="AveragedPerceptronTrainer"/> as used in
+        /// [AveragedPerceptron(Options)](xref:Microsoft.ML.StandardTrainersCatalog.AveragedPerceptron(Microsoft.ML.BinaryClassificationCatalog.BinaryClassificationTrainers,Microsoft.ML.Trainers.AveragedPerceptronTrainer.Options).
         /// </summary>
         public sealed class Options : AveragedLinearOptions
         {
