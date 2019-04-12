@@ -34,7 +34,7 @@ namespace Microsoft.ML.CLI.ShellProgressBar
 
         /// <summary>
         /// When true will redraw the progressbar using a timer, otherwise only update when
-        /// <see cref="ProgressBarBase.Tick"/> is called.
+        /// <see cref="ProgressBarBase.Tick(string)"/> is called.
         /// Defaults to true
         ///  </summary>
         public bool DisplayTimeInRealTime { get; set; } = true;

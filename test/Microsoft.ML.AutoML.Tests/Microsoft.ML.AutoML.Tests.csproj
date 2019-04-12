@@ -5,6 +5,10 @@
 
     <IsPackable>false</IsPackable>
 
+    <!-- TODO: make the code compliant and remove the following two lines: -->
+    <UseStyleCopAnalyzer>false</UseStyleCopAnalyzer>
+    <UseMLCodeAnalyzer>false</UseMLCodeAnalyzer>
+
     <RootNamespace>Microsoft.ML.Auto.Test</RootNamespace>
   </PropertyGroup>
 

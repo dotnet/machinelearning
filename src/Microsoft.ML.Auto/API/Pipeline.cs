@@ -93,7 +93,7 @@ namespace Microsoft.ML.Auto
         public readonly double Score;
 
         /// <summary>
-        /// This setting is true if the pipeline run succeeded & ran to completion.
+        /// This setting is true if the pipeline run succeeded and ran to completion.
         /// Else, it is false if some exception was thrown before the run could complete.
         /// </summary>
         public readonly bool RunSucceded;
