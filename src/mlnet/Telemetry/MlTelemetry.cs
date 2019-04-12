@@ -35,7 +35,7 @@ namespace Microsoft.DotNet.Cli.Telemetry
 
             var telemetry = new Telemetry();
 
-            var fileSizeBucket = Math.Ceiling(Math.Log(dataFileSize, 2));
+            var fileSizeBucket = Math.Pow(2, Math.Ceiling(Math.Log(dataFileSize, 2)));
 
             var fileNameHash = string.IsNullOrEmpty(dataFileName) ? string.Empty : Sha256Hasher.Hash(dataFileName);
 
