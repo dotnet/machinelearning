@@ -6,7 +6,7 @@ using Microsoft.ML.Trainers.LightGbm;
 
 namespace Samples.Dynamic.Trainers.Regression
 {
-    class LightGbmWithOptions
+    class LightGbmWithOptionsAdvanced
     {
         // This example requires installation of additional nuget package <a href="https://www.nuget.org/packages/Microsoft.ML.LightGbm/">Microsoft.ML.LightGbm</a>.
         public static void Example()

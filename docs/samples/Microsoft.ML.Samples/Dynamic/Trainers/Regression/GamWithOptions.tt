@@ -8,8 +8,8 @@ string ClassName="GamWithOptions";
 string Trainer = @"Gam";
 string TrainerOptions = @"Microsoft.ML.Trainers.FastTree.GamRegressionTrainer.Options
             {
-                LabelColumnName = ""Label"",
-                FeatureColumnName = ""Features"",
+				LabelColumnName = nameof(DataPoint.Label),
+                FeatureColumnName = nameof(DataPoint.Features),
 				// The entropy (regularization) coefficient.
                 EntropyCoefficient = 0.3,
                 // Reduce the number of iterations to 50.

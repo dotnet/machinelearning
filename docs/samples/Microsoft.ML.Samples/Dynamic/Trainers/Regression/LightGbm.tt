@@ -4,8 +4,8 @@
 string ClassHeader = @"// This example requires installation of additional NuGet package
     // <a href=""https://www.nuget.org/packages/Microsoft.ML.FastTree/"">Microsoft.ML.FastTree</a>. ";
 
-string ClassName="FastForest";
-string Trainer = @"FastForest(labelColumnName: nameof(DataPoint.Label), featureColumnName: nameof(DataPoint.Features))";
+string ClassName="LightGbm";
+string Trainer = @"LightGbm(labelColumnName: nameof(DataPoint.Label), featureColumnName: nameof(DataPoint.Features))";
 string TrainerOptions = null;
 
 string ExpectedOutputPerInstance= @"// Expected output:

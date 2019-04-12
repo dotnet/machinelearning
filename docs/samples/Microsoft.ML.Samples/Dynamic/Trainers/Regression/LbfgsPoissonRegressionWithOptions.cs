@@ -25,6 +25,8 @@ namespace Samples.Dynamic.Trainers.Regression
             // Define trainer options.
             var options = new LbfgsPoissonRegressionTrainer.Options
             {
+				LabelColumnName = nameof(DataPoint.Label),
+                FeatureColumnName = nameof(DataPoint.Features),
                 // Reduce optimization tolerance to speed up training at the cost of accuracy.
                 OptimizationTolerance = 1e-4f,
                 // Decrease history size to speed up training at the cost of accuracy.

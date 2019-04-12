@@ -27,6 +27,8 @@ namespace Samples.Dynamic.Trainers.Regression
             // Define trainer options.
             var options = new Microsoft.ML.Trainers.FastTree.FastForestRegressionTrainer.Options
             {
+				LabelColumnName = nameof(DataPoint.Label),
+                FeatureColumnName = nameof(DataPoint.Features),
                 // Only use 80% of features to reduce over-fitting.
                 FeatureFraction = 0.8,
                 // Create a simpler model by penalizing usage of new features.

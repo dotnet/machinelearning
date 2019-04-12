@@ -9,7 +9,7 @@ namespace Samples.Dynamic.Trainers.Regression
 {
     // This example requires installation of additional NuGet package
     // <a href="https://www.nuget.org/packages/Microsoft.ML.FastTree/">Microsoft.ML.FastTree</a>. 
-    public static class GamWithOptions
+    public static class LightGbmWithOptions
     {
         public static void Example()
         {
@@ -25,18 +25,22 @@ namespace Samples.Dynamic.Trainers.Regression
             var trainingData = mlContext.Data.LoadFromEnumerable(dataPoints);
 
             // Define trainer options.
-            var options = new Microsoft.ML.Trainers.FastTree.GamRegressionTrainer.Options
+            var options = new Microsoft.ML.Trainers.LightGbm.LightGbmRegressionTrainer.Options
             {
-				LabelColumnName = nameof(DataPoint.Label),
+                LabelColumnName = nameof(DataPoint.Label),
                 FeatureColumnName = nameof(DataPoint.Features),
-				// The entropy (regularization) coefficient.
-                EntropyCoefficient = 0.3,
-                // Reduce the number of iterations to 50.
-                NumberOfIterations = 50
+                NumberOfLeaves = 4,
+                MinimumExampleCountPerLeaf = 6,
+                LearningRate = 0.001,
+                Booster = new Microsoft.ML.Trainers.LightGbm.GossBooster.Options()
+                {
+                    TopRate = 0.3,
+                    OtherRate = 0.2
+               }
             };
 
             // Define the trainer.
-            var pipeline = mlContext.Regression.Trainers.Gam(options);
+            var pipeline = mlContext.Regression.Trainers.LightGbm(options);
 
             // Train the model.
             var model = pipeline.Fit(trainingData);
@@ -55,21 +59,21 @@ namespace Samples.Dynamic.Trainers.Regression
                 Console.WriteLine($"Label: {p.Label:F3}, Prediction: {p.Score:F3}");
 
             // Expected output:
-			// Label: 0.985, Prediction: 0.841
-			// Label: 0.155, Prediction: 0.187
-			// Label: 0.515, Prediction: 0.496
-			// Label: 0.566, Prediction: 0.467
-			// Label: 0.096, Prediction: 0.144
+            // Label: 0.985, Prediction: 0.866
+            // Label: 0.155, Prediction: 0.171
+            // Label: 0.515, Prediction: 0.470
+            // Label: 0.566, Prediction: 0.476
+            // Label: 0.096, Prediction: 0.140
 
             // Evaluate the overall metrics
             var metrics = mlContext.Regression.Evaluate(transformedTestData);
             Microsoft.ML.SamplesUtils.ConsoleUtils.PrintMetrics(metrics);
 
             // Expected output:
-			// Mean Absolute Error: 0.06
-			// Mean Squared Error: 0.01
-			// Root Mean Squared Error: 0.08
-			// RSquared: 0.93
+            // Mean Absolute Error: 0.06
+            // Mean Squared Error: 0.01
+            // Root Mean Squared Error: 0.08
+            // RSquared: 0.93
         }
 
         private static IEnumerable<DataPoint> GenerateRandomDataPoints(int count, int seed=0)

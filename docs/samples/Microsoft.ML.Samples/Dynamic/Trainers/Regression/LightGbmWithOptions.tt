@@ -4,18 +4,20 @@
 string ClassHeader = @"// This example requires installation of additional NuGet package
     // <a href=""https://www.nuget.org/packages/Microsoft.ML.FastTree/"">Microsoft.ML.FastTree</a>. ";
 
-string ClassName="FastForestWithOptions";
-string Trainer = @"FastForest";
-string TrainerOptions = @"Microsoft.ML.Trainers.FastTree.FastForestRegressionTrainer.Options
+string ClassName="LightGbmWithOptions";
+string Trainer = @"LightGbm";
+string TrainerOptions = @"Microsoft.ML.Trainers.LightGbm.LightGbmRegressionTrainer.Options
             {
-				LabelColumnName = nameof(DataPoint.Label),
+                LabelColumnName = nameof(DataPoint.Label),
                 FeatureColumnName = nameof(DataPoint.Features),
-                // Only use 80% of features to reduce over-fitting.
-                FeatureFraction = 0.8,
-                // Create a simpler model by penalizing usage of new features.
-                FeatureFirstUsePenalty = 0.1,
-                // Reduce the number of trees to 50.
-                NumberOfTrees = 50
+                NumberOfLeaves = 4,
+                MinimumExampleCountPerLeaf = 6,
+                LearningRate = 0.001,
+                Booster = new Microsoft.ML.Trainers.LightGbm.GossBooster.Options()
+                {
+                    TopRate = 0.3,
+                    OtherRate = 0.2
+               }
             }";
 
 string ExpectedOutputPerInstance= @"// Expected output:
