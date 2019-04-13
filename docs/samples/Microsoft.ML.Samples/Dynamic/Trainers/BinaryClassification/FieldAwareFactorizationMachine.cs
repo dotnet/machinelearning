@@ -1,8 +1,9 @@
 ﻿using System;
 using System.Linq;
+using Microsoft.ML;
 using Microsoft.ML.Data;
 
-namespace Microsoft.ML.Samples.Dynamic
+namespace Samples.Dynamic
 {
     public static class FFMBinaryClassification
     {
@@ -13,7 +14,7 @@ namespace Microsoft.ML.Samples.Dynamic
             var mlContext = new MLContext();
 
             // Download and featurize the dataset.
-            var dataviews = SamplesUtils.DatasetUtils.LoadFeaturizedSentimentDataset(mlContext);
+            var dataviews = Microsoft.ML.SamplesUtils.DatasetUtils.LoadFeaturizedSentimentDataset(mlContext);
             var trainData = dataviews[0];
             var testData = dataviews[1];
 
@@ -61,7 +62,7 @@ namespace Microsoft.ML.Samples.Dynamic
             var dataWithPredictions = model.Transform(testData);
 
             var metrics = mlContext.BinaryClassification.Evaluate(dataWithPredictions, "Sentiment");
-            SamplesUtils.ConsoleUtils.PrintMetrics(metrics);
+            Microsoft.ML.SamplesUtils.ConsoleUtils.PrintMetrics(metrics);
 
             //  Accuracy: 0.72
             //  AUC: 0.75
