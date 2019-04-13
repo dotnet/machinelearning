@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp2.1</TargetFramework>
+    <IsPackable>false</IsPackable>
+    <!-- TODO: make the code compliant and remove the following two lines: -->
+    <UseStyleCopAnalyzer>false</UseStyleCopAnalyzer>
+    <UseMLCodeAnalyzer>false</UseMLCodeAnalyzer>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="ApprovalTests" Version="3.0.19" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="15.9.0" />
+    <PackageReference Include="MSTest.TestAdapter" Version="1.3.2" />
+    <PackageReference Include="MSTest.TestFramework" Version="1.3.2" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Microsoft.ML.Auto\Microsoft.ML.Auto.csproj" />
+    <ProjectReference Include="..\..\src\mlnet\mlnet.csproj" />
+  </ItemGroup>
+
+</Project>

@@ -1,0 +1,19 @@
+<Project>
+  <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), Directory.Build.props))\Directory.Build.props" />
+
+  <ItemGroup>
+    <Project Include="$(MSBuildThisFileDirectory)**\*.csproj" />
+  </ItemGroup>
+
+  <Target Name="RunTests">
+    <Message Importance="High" Text="Running tests ..." />
+    <MSBuild Targets="VSTest"
+             Projects="@(Project)"
+             Properties="VSTestNoBuild=true" />
+  </Target>
+
+  <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), Directory.Build.targets))\Directory.Build.targets" />
+
+  <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), dir.traversal.targets))\dir.traversal.targets" />
+
+</Project>

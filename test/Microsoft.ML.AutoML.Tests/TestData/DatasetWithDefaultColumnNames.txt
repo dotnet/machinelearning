@@ -1,0 +1,4 @@
+﻿Label,Weight,Name,Features,FeatureContributions,Feature1
+0,1,GUID1,1,1,1
+0,1,GUID2,1,1,1
+1,1,GUID3,1,1,1
