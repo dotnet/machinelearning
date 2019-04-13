@@ -6,7 +6,7 @@ using Microsoft.ML.Trainers.FastTree;
 
 namespace Samples.Dynamic.Trainers.BinaryClassification
 {
-    public static class GamWithOptionsAdvanced
+    public static class GamWithOptions
     {
         // This example requires installation of additional NuGet package
         // <a href="https://www.nuget.org/packages/Microsoft.ML.FastTree/">Microsoft.ML.FastTree</a>.
@@ -37,8 +37,7 @@ namespace Samples.Dynamic.Trainers.BinaryClassification
             // Also, set the learning rate to half the default to slow down the gradient descent, and
             // double the number of iterations to compensate.
             var trainer = mlContext.BinaryClassification.Trainers.Gam(
-                new GamBinaryTrainer.Options
-                {
+                new GamBinaryTrainer.Options {
                     NumberOfIterations = 19000,
                     MaximumBinCountPerFeature = 16,
                     LearningRate = 0.001

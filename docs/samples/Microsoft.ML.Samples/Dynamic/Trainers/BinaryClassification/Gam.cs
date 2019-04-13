@@ -2,11 +2,10 @@
 using System.Collections.Generic;
 using Microsoft.ML;
 using Microsoft.ML.Data;
-using Microsoft.ML.Trainers.FastTree;
 
 namespace Samples.Dynamic.Trainers.BinaryClassification
 {
-    public static class GamWithOptionsAdvanced
+    public static class Gam
     {
         // This example requires installation of additional NuGet package
         // <a href="https://www.nuget.org/packages/Microsoft.ML.FastTree/">Microsoft.ML.FastTree</a>.
@@ -15,14 +14,14 @@ namespace Samples.Dynamic.Trainers.BinaryClassification
             // Create a new context for ML.NET operations. It can be used for exception tracking and logging, 
             // as a catalog of available operations and as the source of randomness.
             var mlContext = new MLContext();
-
+            
             // Create the dataset.
             var samples = GenerateData();
 
             // Convert the dataset to an IDataView.
             var data = mlContext.Data.LoadFromEnumerable(samples);
 
-            // Create training and validation datasets.
+            // Create training and validation sets.
             var dataSets = mlContext.Data.TrainTestSplit(data);
             var trainSet = dataSets.TrainSet;
             var validSet = dataSets.TestSet;
@@ -34,20 +33,12 @@ namespace Samples.Dynamic.Trainers.BinaryClassification
             // neighboring bins with identical values will be combined. In general, we recommend using
             // at least the default number of bins, as a small number of bins limits the capacity of
             // the model.
-            // Also, set the learning rate to half the default to slow down the gradient descent, and
-            // double the number of iterations to compensate.
-            var trainer = mlContext.BinaryClassification.Trainers.Gam(
-                new GamBinaryTrainer.Options
-                {
-                    NumberOfIterations = 19000,
-                    MaximumBinCountPerFeature = 16,
-                    LearningRate = 0.001
-                });
+            var trainer = mlContext.BinaryClassification.Trainers.Gam(maximumBinCountPerFeature: 16);
 
             // Fit the model using both of training and validation sets. GAM can use a technique called 
             // pruning to tune the model to the validation set after training to improve generalization.
             var model = trainer.Fit(trainSet, validSet);
-
+            
             // Extract the model parameters.
             var gam = model.Model.SubModel;
 
@@ -136,8 +127,7 @@ namespace Samples.Dynamic.Trainers.BinaryClassification
             for (int i = 0; i < numExamples; i++)
             {
                 // Generate random, uncoupled features.
-                var data = new Data
-                {
+                var data = new Data {
                     Features = new float[2] { centeredFloat(), centeredFloat() }
                 };
                 // Compute the label from the shape functions and add noise.
