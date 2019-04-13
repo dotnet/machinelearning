@@ -396,6 +396,9 @@ namespace Microsoft.ML.Transforms.Image
                             g.DrawImage(src, destRectangle, srcRectangle, GraphicsUnit.Pixel);
                         }
                         Contracts.Assert(dst.Width == info.ImageWidth && dst.Height == info.ImageHeight);
+
+                        src.Dispose();
+                        src = null;
                     };
 
                 return del;
