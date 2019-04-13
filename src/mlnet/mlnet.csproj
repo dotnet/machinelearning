@@ -26,18 +26,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Reference Include="mscorlib">
-      <HintPath>mscorlib</HintPath>
-    </Reference>
-    <Reference Include="System">
-      <HintPath>System</HintPath>
-    </Reference>
-    <Reference Include="System.Core">
-      <HintPath>System.Core</HintPath>
-    </Reference>
-  </ItemGroup>
-
-  <ItemGroup>
     <Service Include="{508349b6-6b84-4df5-91f0-309beebad82d}" />
   </ItemGroup>
 
@@ -116,4 +104,7 @@
     </None>
   </ItemGroup>
 
+  <!-- CLI tool is only compatible with Core so don't try to build it on FX --> 
+  <Import Condition="'$(TargetFramework)' != 'netcoreapp2.1'" Project="$(RepoRoot)build\Empty.targets" />
+  
 </Project>
