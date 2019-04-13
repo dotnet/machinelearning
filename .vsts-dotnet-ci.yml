@@ -68,21 +68,22 @@ phases:
     queue:
       name: Hosted macOS
 
-- template: /build/ci/phase-template.yml
-  parameters:
-    name: Windows_NetFx
-    buildScript: build.cmd
-    customMatrixes:
-      Build_Debug_netfx:
-        _configuration: Debug-netfx
-        _config_short: DFX
-        _includeBenchmarkData: false
-      Build_Release_netfx:
-        _configuration: Release-netfx
-        _config_short: RFX
-        _includeBenchmarkData: false
-    queue:
-      name: Hosted VS2017
+# TODO: re-enable once we figure out how to not run mlnet in netfx
+# - template: /build/ci/phase-template.yml
+#   parameters:
+#     name: Windows_NetFx
+#     buildScript: build.cmd
+#     customMatrixes:
+#       Build_Debug_netfx:
+#         _configuration: Debug-netfx
+#         _config_short: DFX
+#         _includeBenchmarkData: false
+#       Build_Release_netfx:
+#         _configuration: Release-netfx
+#         _config_short: RFX
+#         _includeBenchmarkData: false
+#     queue:
+#       name: Hosted VS2017
 
 - template: /build/ci/phase-template.yml
   parameters:
