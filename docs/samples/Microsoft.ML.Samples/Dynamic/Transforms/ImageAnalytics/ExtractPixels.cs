@@ -48,59 +48,35 @@ namespace Samples.Dynamic
             var transformedData = pipeline.Fit(data).Transform(data);
 
             // Preview the transformedData. 
-            var transformedDataPreview = transformedData.Preview();
-            PrintPreview(transformedDataPreview);
+            PrintColumns(transformedData);
+
             // ImagePath    Name         ImageObject            ImageObjectResized      Pixels
             // tomato.bmp   tomato       System.Drawing.Bitmap  System.Drawing.Bitmap   255,255,255,255,255...
             // banana.jpg   banana       System.Drawing.Bitmap  System.Drawing.Bitmap   255,255,255,255,255...
             // hotdog.jpg   hotdog       System.Drawing.Bitmap  System.Drawing.Bitmap   255,255,255,255,255...
             // tomato.jpg   tomato       System.Drawing.Bitmap  System.Drawing.Bitmap   255,255,255,255,255...
-
-            // Images are stored as Bitmap. Dispose them after use.
-            DisposeImages(transformedDataPreview);
         }
-
-        private static void PrintPreview(DataDebuggerPreview data)
+        private static void PrintColumns(IDataView transformedData)
         {
-            foreach (var colInfo in data.ColumnView)
-                Console.Write("{0,-25}", colInfo.Column.Name);
+            var imagePathColumn = transformedData.GetColumn<string>("ImagePath").GetEnumerator();
+            var namePathColumn = transformedData.GetColumn<string>("Name").GetEnumerator();
+            var imageObjectColumn = transformedData.GetColumn<Bitmap>("ImageObject").GetEnumerator();
+            var imageObjectResizedColumn = transformedData.GetColumn<Bitmap>("ImageObjectResized").GetEnumerator();
+            var pixelsColumn = transformedData.GetColumn<VBuffer<float>>("Pixels").GetEnumerator();
 
-            Console.WriteLine();
-            foreach (var row in data.RowView)
+            Console.WriteLine("{0, -25} {1, -25} {2, -25} {3, -25} {4, -25}", "ImagePath", "Name", "ImageObject", "ImageObjectResized", "Pixels");
+            while (imagePathColumn.MoveNext() && namePathColumn.MoveNext() && imageObjectColumn.MoveNext() && imageObjectResizedColumn.MoveNext() && pixelsColumn.MoveNext())
             {
-                foreach (var kvPair in row.Values)
-                {
-                    if (kvPair.Key == "Pixels")
-                    {
-                        var pixels = ((VBuffer<float>)kvPair.Value).DenseValues().Take(5);
-                        Console.Write("{0}...", string.Join(",", pixels));
-                    }
-                    else
-                        Console.Write("{0,-25}", kvPair.Value);
-                }
-                Console.WriteLine();
-            }
-        }
+                Console.WriteLine("{0, -25} {1, -25} {2, -25} {3, -25} {4, -25}",
+                    imagePathColumn.Current,
+                    namePathColumn.Current,
+                    imageObjectColumn.Current,
+                    imageObjectResizedColumn.Current,
+                    string.Join(",", pixelsColumn.Current.DenseValues().Take(5)) + "...");
 
-        private static void DisposeImages(DataDebuggerPreview data)
-        {
-            foreach (var colInfo in data.ColumnView)
-            {
-                foreach (var col in colInfo.Values)
-                {
-                    if (col is Bitmap)
-                        ((Bitmap)col).Dispose();
-                }
-            }
-
-            Console.WriteLine();
-            foreach (var row in data.RowView)
-            {
-                foreach (var kvPair in row.Values)
-                {
-                    if (kvPair.Key == "ImageObject")
-                        ((Bitmap)kvPair.Value).Dispose();
-                }
+                //Dispose bitmap image.
+                imageObjectResizedColumn.Current.Dispose();
+                imageObjectColumn.Current.Dispose();
             }
         }
     }

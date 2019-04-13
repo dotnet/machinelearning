@@ -33,60 +33,31 @@ namespace Samples.Dynamic
 
             var transformedData = pipeline.Fit(data).Transform(data);
 
-            // Preview the transformedData. 
-            var transformedDataPreview = transformedData.Preview();
-            PrintPreview(transformedDataPreview);
+            // Preview the transformedData.
+            PrintColumns(transformedData);
+
             // Features                 Image                    Pixels
-            // 185,209,196,142,52       System.Drawing.Bitmap    185,209,196,142,52
-            // 182,235,84,23,87         System.Drawing.Bitmap    182,235,84,23,87
-            // 192,214,247,22,38        System.Drawing.Bitmap    192,214,247,22,38
-            // 242,161,141,223,192      System.Drawing.Bitmap    242,161,141,223,192
-
-            // Images are stored as Bitmap. Dispose them after use.
-            DisposeImages(transformedDataPreview);
+            // 185,209,196,142,52...    System.Drawing.Bitmap    185,209,196,142,52...
+            // 182,235,84,23,87...      System.Drawing.Bitmap    182,235,84,23,87...
+            // 192,214,247,22,38...     System.Drawing.Bitmap    192,214,247,22,38...
+            // 242,161,141,223,192...   System.Drawing.Bitmap    242,161,141,223,192...
         }
 
-        private static void PrintPreview(DataDebuggerPreview data)
+        private static void PrintColumns(IDataView transformedData)
         {
-            foreach (var colInfo in data.ColumnView)
-                Console.Write("{0,-25}", colInfo.Column.Name);
-
-            Console.WriteLine();
-            foreach (var row in data.RowView)
+            var featuresColumn = transformedData.GetColumn<VBuffer<float>>("Features").GetEnumerator();
+            var imageColumn = transformedData.GetColumn<Bitmap>("Image").GetEnumerator();
+            var pixelsColumn = transformedData.GetColumn<VBuffer<float>>("Pixels").GetEnumerator();
+            Console.WriteLine("{0, -25} {1, -25} {2, -25}", "Features", "Image", "Pixels");
+            while (featuresColumn.MoveNext() && imageColumn.MoveNext() && pixelsColumn.MoveNext())
             {
-                foreach (var kvPair in row.Values)
-                {
-                    if (kvPair.Key == "Pixels" || kvPair.Key == "Features")
-                    {
-                        var rawValues = ((VBuffer<float>)kvPair.Value).DenseValues().Take(5);
-                        Console.Write("{0,-25}", string.Join(",", rawValues));
-                    }
-                    else
-                        Console.Write("{0,-25}", kvPair.Value);
-                }
-                Console.WriteLine();
-            }
-        }
+                Console.WriteLine("{0, -25} {1, -25} {2, -25}",
+                    string.Join(",", featuresColumn.Current.DenseValues().Take(5)) + "...",
+                    imageColumn.Current,
+                    string.Join(",", pixelsColumn.Current.DenseValues().Take(5)) + "...");
 
-        private static void DisposeImages(DataDebuggerPreview data)
-        {
-            foreach (var colInfo in data.ColumnView)
-            {
-                foreach (var col in colInfo.Values)
-                {
-                    if (col is Bitmap)
-                        ((Bitmap)col).Dispose();
-                }
-            }
-
-            Console.WriteLine();
-            foreach (var row in data.RowView)
-            {
-                foreach (var kvPair in row.Values)
-                {
-                    if (kvPair.Key == "ImageObject")
-                        ((Bitmap)kvPair.Value).Dispose();
-                }
+                //Dispose bitmap image.
+                imageColumn.Current.Dispose();
             }
         }
 
