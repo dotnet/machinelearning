@@ -1,8 +1,9 @@
 ﻿using System;
 using System.IO;
+using Microsoft.ML;
 using Microsoft.ML.Data;
 
-namespace Microsoft.ML.Samples.Dynamic
+namespace Samples.Dynamic
 {
     public static class TextClassification
     {
@@ -12,7 +13,7 @@ namespace Microsoft.ML.Samples.Dynamic
         /// </summary>
         public static void Example()
         {
-            string modelLocation = SamplesUtils.DatasetUtils.DownloadTensorFlowSentimentModel();
+            string modelLocation = Microsoft.ML.SamplesUtils.DatasetUtils.DownloadTensorFlowSentimentModel();
 
             var mlContext = new MLContext();
             var data = new[] { new IMDBSentiment() {

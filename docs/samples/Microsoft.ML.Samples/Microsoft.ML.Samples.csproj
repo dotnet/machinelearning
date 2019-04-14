@@ -1,8 +1,11 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-
+  
   <PropertyGroup>
     <TargetFramework>netcoreapp2.1</TargetFramework>
     <OutputType>Exe</OutputType>
+    <SignAssembly>false</SignAssembly>
+    <PublicSign>false</PublicSign>
+    <RootNamespace>Samples</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>
@@ -46,6 +49,16 @@
       <AutoGen>True</AutoGen>
       <DependentUpon>FastTreeWithOptions.tt</DependentUpon>
     </None>
+    <None Include="Dynamic\Trainers\BinaryClassification\LbfgsLogisticRegression.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>LbfgsLogisticRegression.tt</DependentUpon>
+    </None>
+    <None Include="Dynamic\Trainers\BinaryClassification\LbfgsLogisticRegressionWithOptions.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>LbfgsLogisticRegressionWithOptions.tt</DependentUpon>
+    </None>
     <PackageReference Include="Microsoft.ML.TensorFlow.Redist" Version="0.10.0" />
     
     <ProjectReference Include="..\..\..\src\Microsoft.ML.Analyzer\Microsoft.ML.Analyzer.csproj">
@@ -72,6 +85,22 @@
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>FastTreeWithOptions.cs</LastGenOutput>
     </None>
+    <None Update="Dynamic\Trainers\BinaryClassification\LbfgsLogisticRegressionWithOptions.tt">
+      <LastGenOutput>LbfgsLogisticRegressionWithOptions.cs</LastGenOutput>
+      <Generator>TextTemplatingFileGenerator</Generator>
+    </None>
+    <None Update="Dynamic\Trainers\BinaryClassification\LbfgsLogisticRegression.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>LbfgsLogisticRegression.cs</LastGenOutput>
+    </None>
+    <None Update="Dynamic\Trainers\MulticlassClassification\PairwiseCoupling.tt">
+      <LastGenOutput>PairwiseCoupling.cs</LastGenOutput>
+      <Generator>TextTemplatingFileGenerator</Generator>
+    </None>
+    <None Update="Dynamic\Trainers\MulticlassClassification\OneVersusAll.tt">
+      <LastGenOutput>OneVersusAll.cs</LastGenOutput>
+      <Generator>TextTemplatingFileGenerator</Generator>
+    </None>
     <None Update="Dynamic\Trainers\Regression\OnlineGradientDescent.tt">
       <LastGenOutput>OnlineGradientDescent.cs</LastGenOutput>
       <Generator>TextTemplatingFileGenerator</Generator>
@@ -80,13 +109,13 @@
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>OnlineGradientDescentWithOptions.cs</LastGenOutput>
     </None>
-    <None Update="Dynamic\Trainers\Regression\PoissonRegression.tt">
+    <None Update="Dynamic\Trainers\Regression\LbfgsPoissonRegression.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
-      <LastGenOutput>PoissonRegression.cs</LastGenOutput>
+      <LastGenOutput>LbfgsPoissonRegression.cs</LastGenOutput>
     </None>
-    <None Update="Dynamic\Trainers\Regression\PoissonRegressionWithOptions.tt">
+    <None Update="Dynamic\Trainers\Regression\LbfgsPoissonRegressionWithOptions.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
-      <LastGenOutput>PoissonRegressionWithOptions.cs</LastGenOutput>
+      <LastGenOutput>LbfgsPoissonRegressionWithOptions.cs</LastGenOutput>
     </None>
   </ItemGroup>
 
@@ -115,6 +144,26 @@
       <AutoGen>True</AutoGen>
       <DependentUpon>FastTreeWithOptions.tt</DependentUpon>
     </Compile>
+    <Compile Update="Dynamic\Trainers\BinaryClassification\LbfgsLogisticRegression.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>LbfgsLogisticRegression.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Dynamic\Trainers\BinaryClassification\LbfgsLogisticRegressionWithOptions.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>LbfgsLogisticRegressionWithOptions.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Dynamic\Trainers\MulticlassClassification\PairwiseCoupling.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>PairwiseCoupling.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Dynamic\Trainers\MulticlassClassification\OneVersusAll.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>OneVersusAll.tt</DependentUpon>
+    </Compile>
     <Compile Update="Dynamic\Trainers\Regression\OnlineGradientDescent.cs">
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
@@ -125,16 +174,34 @@
       <AutoGen>True</AutoGen>
       <DependentUpon>OnlineGradientDescentWithOptions.tt</DependentUpon>
     </Compile>
-    <Compile Update="Dynamic\Trainers\Regression\PoissonRegression.cs">
+    <Compile Update="Dynamic\Trainers\Regression\LbfgsPoissonRegression.cs">
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
-      <DependentUpon>PoissonRegression.tt</DependentUpon>
+      <DependentUpon>LbfgsPoissonRegression.tt</DependentUpon>
     </Compile>
-    <Compile Update="Dynamic\Trainers\Regression\PoissonRegressionWithOptions.cs">
+    <Compile Update="Dynamic\Trainers\Regression\LbfgsPoissonRegressionWithOptions.cs">
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
-      <DependentUpon>PoissonRegressionWithOptions.tt</DependentUpon>
+      <DependentUpon>LbfgsPoissonRegressionWithOptions.tt</DependentUpon>
     </Compile>
   </ItemGroup>
 
+  <ItemGroup>
+    <PackageReference Include="Microsoft.ML.Onnx.TestModels" Version="$(MicrosoftMLOnnxTestModelsVersion)" />
+  </ItemGroup>
+  
+    <ItemGroup>
+    <Content Include="$(ObjDir)DnnImageModels\ResNet18Onnx\ResNet18.onnx">
+      <Link>DnnImageModels\ResNet18Onnx\ResNet18.onnx</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+  
+    <ItemGroup>
+    <Content Include="$(ObjDir)DnnImageModels\ResNetPrepOnnx\ResNetPreprocess.onnx">
+      <Link>DnnImageModels\ResNetPrepOnnx\ResNetPreprocess.onnx</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+  
 </Project>

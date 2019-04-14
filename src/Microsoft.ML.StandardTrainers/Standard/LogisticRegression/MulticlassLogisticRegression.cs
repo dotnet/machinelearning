@@ -31,6 +31,10 @@ using Newtonsoft.Json.Linq;
     "Multiclass LR Executor",
     MaximumEntropyModelParameters.LoaderSignature)]
 
+[assembly: LoadableClass(typeof(LinearMulticlassModelParameters), null, typeof(SignatureLoadModel),
+    "Multiclass LR No Calib",
+    LinearMulticlassModelParameters.LoaderSignature)]
+
 [assembly: LoadableClass(typeof(void), typeof(LbfgsMaximumEntropyMulticlassTrainer), null, typeof(SignatureEntryPointModule), LbfgsMaximumEntropyMulticlassTrainer.LoadNameValue)]
 
 namespace Microsoft.ML.Trainers

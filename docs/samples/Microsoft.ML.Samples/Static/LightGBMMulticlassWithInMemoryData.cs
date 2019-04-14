@@ -4,12 +4,13 @@ using Microsoft.ML.Data;
 using Microsoft.ML.Trainers.LightGbm.StaticPipe;
 using Microsoft.ML.SamplesUtils;
 using Microsoft.ML.StaticPipe;
+using Microsoft.ML;
 
-namespace Microsoft.ML.Samples.Static
+namespace Samples.Static
 {
     class LightGBMMulticlassWithInMemoryData
     {
-        public void MulticlassLightGbmStaticPipelineWithInMemoryData()
+        public void Example()
         {
             // Create a general context for ML.NET operations. It can be used for exception tracking and logging,
             // as a catalog of available operations and as the source of randomness.

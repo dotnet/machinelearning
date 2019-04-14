@@ -9,31 +9,64 @@ using Microsoft.ML.Internal.DataView;
 namespace Microsoft.ML.Data
 {
     /// <summary>
-    /// KeyDataViewTypes are for "id"-like data. The information happens to be stored in an unsigned integer
-    /// type, but the information is not inherently numeric, so, typically, arithmetic is not
-    /// meaningful. Examples are SSNs, phone numbers, auto-generated/incremented key values,
-    /// class numbers, etc. For example, in multi-class classification, the label is typically
-    /// a class number which is naturally a KeyDataViewType.
+    /// This type is for data representing some enumerated value. This is an enumeration over a defined, known
+    /// cardinality set, as expressed through <see cref="Count"/>. The underlying .NET type is one of the unsigned
+    /// integer types. Most commonly this will be <see cref="uint"/>, but could alternately be <see cref="byte"/>,
+    /// <see cref="ushort"/>, or <see cref="ulong"/>. Despite this, the information is not inherently numeric, so,
+    /// typically, arithmetic is not meaningful. For example, in multi-class classification, the label is typically a
+    /// class number which is naturally a <see cref="KeyDataViewType"/>.
     ///
-    /// KeyDataViewTypes have a cardinality (i.e., <see cref="Count"/>) that is strictly positive.
+    /// Note that for data of this type, a value of 0, being the default value of the representation type, indicates
+    /// the missing value since it would not be sensible for the default value to correspond to any one particular specific
+    /// value of the set. The first non-missing value for the enumeration of the set is always <c>1</c>.
     ///
-    /// Note that the underlying representation value does not necessarily match the logical value.
-    /// For example, if a KeyDataViewType has range 0-5000, then it has a <see cref="Count"/> of 5001, but
-    /// the representational values are 1-5001. The representation value zero is reserved
-    /// to mean a missing value (similar to NaN).
+    /// For instance, if you had a key value with a <see cref="Count"/> of 3, then the <see cref="uint"/> value <c>0</c>
+    /// would correspond to the missing key value, and one of the values of <c>1</c>, <c>2</c>, or <c>3</c> would be one
+    /// of the valid values, and no other values should in principle be used.
+    ///
+    /// Note that in usage and structure, this is quite close in intended usage and structure to so-called "factor
+    /// variables" in R.
     /// </summary>
     public sealed class KeyDataViewType : PrimitiveDataViewType
     {
+        /// <summary>
+        /// Initializes a new instance of the <see cref="KeyDataViewType"/> class.
+        /// </summary>
+        /// <param name="type">
+        /// The underlying representation type. Should be one of <see cref="byte"/>, <see cref="ushort"/>,
+        /// <see cref="uint"/> (the most common choice), or <see cref="ulong"/>.
+        /// </param>
+        /// <param name="count">
+        /// The cardinality of the underlying set. This must not exceed the associated maximum value of the
+        /// representation type. For example, if <paramref name="type"/> is <see cref="uint"/>, then this must not
+        /// exceed <see cref="uint.MaxValue"/>.
+        /// </param>
         public KeyDataViewType(Type type, ulong count)
             : base(type)
         {
-            Contracts.CheckParam(IsValidDataType(type), nameof(type), "Type is not valid, it must be {0}, {1}, {2}, or {3}.", typeof(byte), typeof(ushort), typeof(uint), typeof(ulong));
+            if (!IsValidDataType(type))
+                throw Contracts.ExceptParam(nameof(type), $"Type is not valid, it must be {typeof(byte).Name}, {typeof(ushort).Name}, {typeof(uint).Name}, or {typeof(ulong).Name}.");
             if (count == 0 || GetMaxInt(type) < count)
-                throw Contracts.ExceptParam(nameof(count), "The cardinality of a {0} must not exceed {1}.MaxValue" +
-                    " and must be strictly positive but got {2}.", nameof(KeyDataViewType), type.Name, count);
+                throw Contracts.ExceptParam(nameof(count), $"The cardinality of a {nameof(KeyDataViewType)} must not exceed {type.Name}.{nameof(uint.MaxValue)} " +
+                    $"and must be strictly positive, but got {count}.");
             Count = count;
         }
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="KeyDataViewType"/> class. This differs from the hypothetically more general
+        /// <see cref="KeyDataViewType.KeyDataViewType(Type, ulong)"/> constructor by taking an <see cref="int"/> for
+        /// <paramref name="count"/>, to more naturally facilitate the most common case that the key value is being used
+        /// as an enumeration over an array or list of some form.
+        /// </summary>
+        /// <param name="type">
+        /// The underlying representation type. Should be one of <see cref="byte"/>, <see cref="ushort"/>,
+        /// <see cref="uint"/> (the most common choice), or <see cref="ulong"/>.
+        /// </param>
+        /// <param name="count">
+        /// The cardinality of the underlying set. This must not exceed the associated maximum value of the
+        /// representation type. For example, if <paramref name="type"/> is <see cref="uint"/>, then this must not
+        /// exceed <see cref="uint.MaxValue"/>.
+        /// </param>
         public KeyDataViewType(Type type, int count)
             : this(type, (ulong)count)
         {
@@ -42,7 +75,8 @@ namespace Microsoft.ML.Data
 
         /// <summary>
         /// Returns true iff the given type is valid for a <see cref="KeyDataViewType"/>. The valid ones are
-        /// <see cref="byte"/>, <see cref="ushort"/>, <see cref="uint"/>, and <see cref="ulong"/>, that is, the unsigned integer types.
+        /// <see cref="byte"/>, <see cref="ushort"/>, <see cref="uint"/>, and <see cref="ulong"/>, that is, the unsigned
+        /// integer types.
         /// </summary>
         public static bool IsValidDataType(Type type)
         {
@@ -79,12 +113,13 @@ namespace Microsoft.ML.Data
         }
 
         /// <summary>
-        /// <see cref="Count"/> is the cardinality of the <see cref="KeyDataViewType"/>. Note that such a key type can be converted to a
-        /// bit vector representation by mapping to a vector of length <see cref="Count"/>, with "id" mapped to a
-        /// vector with 1 in slot (id - 1) and 0 in all other slots. This is the standard "indicator"
-        /// representation. Note that an id of 0 is used to represent the notion "none", which is
-        /// typically mapped, by for example, one-hot encoding, to a vector of all zeros (of length <see cref="Count"/>).
+        /// <see cref="Count"/> is the cardinality of the <see cref="KeyDataViewType"/>.
         /// </summary>
+        /// <remarks>
+        /// The typical legal values for data of this type ranges from the missing value of <c>0</c>, and non-missing
+        /// values ranging from to <c>1</c> through <see cref="Count"/>, inclusive, being the enumeration into whatever
+        /// set the key values are enumerated over.
+        /// </remarks>
         public ulong Count { get; }
 
         /// <summary>
@@ -116,9 +151,7 @@ namespace Microsoft.ML.Data
         /// <param name="other">The other object to compare against.</param>
         /// <returns><see langword="true" /> if both objects are equal, otherwise <see langword="false"/>.</returns>
         public override bool Equals(object other)
-        {
-            return other is DataViewType tmp && Equals(tmp);
-        }
+            => other is DataViewType tmp && Equals(tmp);
 
         /// <summary>
         /// Retrieves the hash code.
