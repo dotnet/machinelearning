@@ -6,10 +6,10 @@ using Microsoft.ML.Data;
 
 namespace Samples.Dynamic.Trainers.Regression
 {
-    // This example requires installation of additional NuGet package
-    // <a href="https://www.nuget.org/packages/Microsoft.ML.FastTree/">Microsoft.ML.FastTree</a>. 
     public static class FastTreeTweedie
     {
+        // This example requires installation of additional NuGet package
+        // <a href="https://www.nuget.org/packages/Microsoft.ML.FastTree/">Microsoft.ML.FastTree</a>. 
         public static void Example()
         {
             // Create a new context for ML.NET operations. It can be used for exception tracking and logging, 
