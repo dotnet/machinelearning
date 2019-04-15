@@ -38,7 +38,7 @@ namespace Microsoft.ML.Trainers
     /// | Machine learning task | Binary classification |
     /// | Is normalization required? | Yes |
     /// | Is caching required? | No |
-    /// | Additional required NuGet | None |
+    /// | Required NuGet in addition to Microsoft.ML | None |
     ///
     /// ### Training Algorithm Details
     /// The perceptron is a classification algorithm that makes its predictions by finding a separating hyperplane.
