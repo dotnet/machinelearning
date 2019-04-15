@@ -17,11 +17,11 @@ phases:
     name: Centos_x64
     buildScript: ./build.sh
     customMatrixes:
-      Debug_3.0:
+      Debug_Netcore30:
         _configuration: Debug-Intrinsics
         _config_short: DI
         _includeBenchmarkData: false
-      Release_2.1:
+      Release_Netcore21:
         _configuration: Release
         _config_short: R
         _includeBenchmarkData: true
@@ -34,11 +34,11 @@ phases:
     name: Ubuntu_x64
     buildScript: ./build.sh
     customMatrixes:
-      Debug_2.1:
+      Debug_Netcore21:
         _configuration: Debug
         _config_short: D
         _includeBenchmarkData: false
-      Release_3.0:
+      Release_Netcore30:
         _configuration: Release-Intrinsics
         _config_short: RI
         _includeBenchmarkData: true
@@ -48,14 +48,14 @@ phases:
 
 - template: /build/ci/phase-template.yml
   parameters:
-    name: MacOS_x64
+    name: MacOS_x64_Netcore21
     buildScript: ./build.sh
     queue:
       name: Hosted macOS
 
 - template: /build/ci/phase-template.yml
   parameters:
-    name: Windows_x64_1
+    name: Windows_x64_Netcore30
     buildScript: build.cmd
     customMatrixes:
       Debug_3.0:
@@ -71,14 +71,14 @@ phases:
 
 - template: /build/ci/phase-template.yml
   parameters:
-    name: Windows_x64_2
+    name: Windows_x64_Netfx
     buildScript: build.cmd
     customMatrixes:
-      Debug_netfx:
+      Debug:
         _configuration: Debug-netfx
         _config_short: DFX
         _includeBenchmarkData: false
-      Release_netfx:
+      Release:
         _configuration: Release-netfx
         _config_short: RFX
         _includeBenchmarkData: false
@@ -87,14 +87,14 @@ phases:
 
 - template: /build/ci/phase-template.yml
   parameters:
-    name: Windows_x64_3
+    name: Windows_x64_Netcore21
     buildScript: build.cmd
     queue:
       name: Hosted VS2017
 
 - template: /build/ci/phase-template.yml
   parameters:
-    name: Windows_x86
+    name: Windows_x86_Netcore21
     architecture: x86
     buildScript: build.cmd
     queue:

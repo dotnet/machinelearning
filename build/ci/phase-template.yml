@@ -21,11 +21,11 @@ phases:
       parallel: 99
       matrix:
         ${{ if eq(parameters.customMatrixes, '') }}:
-          Debug_2.1:
+          Debug:
             _configuration: Debug
             _config_short: D
             _includeBenchmarkData: false
-          Release_2.1:
+          Release:
             _configuration: Release
             _config_short: R
             _includeBenchmarkData: true
