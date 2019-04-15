@@ -9,6 +9,8 @@ namespace Samples.Dynamic.Trainers.Ranking
 {
     public static class LightGbmWithOptions
     {
+        // This example requires installation of additional NuGet package
+        // <a href="https://www.nuget.org/packages/Microsoft.ML.LightGbm/">Microsoft.ML.LightGbm</a>.
         public static void Example()
         {
             // Create a new context for ML.NET operations. It can be used for exception tracking and logging, 
@@ -24,17 +26,17 @@ namespace Samples.Dynamic.Trainers.Ranking
 
             // Define trainer options.
             var options = new LightGbmRankingTrainer.Options
+            {
+                NumberOfLeaves = 4,
+                MinimumExampleCountPerGroup = 10,
+                LearningRate = 0.1,
+                NumberOfIterations = 2,
+                Booster = new GradientBooster.Options
                 {
-                    NumberOfLeaves = 4,
-                    MinimumExampleCountPerGroup = 10,
-                    LearningRate = 0.1,
-                    NumberOfIterations = 2,
-                    Booster = new GradientBooster.Options
-                    {
-                        FeatureFraction = 0.9
-                    },
-                    RowGroupColumnName = "GroupId"
-                };
+                    FeatureFraction = 0.9
+                },
+                RowGroupColumnName = "GroupId"
+            };
 
             // Define the trainer.
             var pipeline = mlContext.Ranking.Trainers.LightGbm(options);
@@ -56,19 +58,19 @@ namespace Samples.Dynamic.Trainers.Ranking
                 Console.WriteLine($"Label: {p.Label}, Score: {p.Score}");
 
             // Expected output:
-            //   Label: 5, Score: 0.08021358
-            //   Label: 4, Score: 0.02909304
-            //   Label: 4, Score: -0.07772876
-            //   Label: 1, Score: -0.07772876
-            //   Label: 1, Score: -0.003321914
+            //   Label: 5, Score: 0.05836755
+            //   Label: 1, Score: -0.06531862
+            //   Label: 3, Score: -0.004557075
+            //   Label: 3, Score: -0.009396422
+            //   Label: 1, Score: -0.05871891
 
             // Evaluate the overall metrics
             var metrics = mlContext.Ranking.Evaluate(transformedTestData);
             PrintMetrics(metrics);
             
             // Expected output:
-            //   DCG: @1:22.88, @2:33.29, @3:39.35
-            //   NDCG: @1:0.54, @2:0.51, @3:0.51
+            //   DCG: @1:28.83, @2:46.36, @3:56.18
+            //   NDCG: @1:0.69, @2:0.72, @3:0.74
         }
 
         private static IEnumerable<DataPoint> GenerateRandomDataPoints(int count, int seed = 0, int groupSize = 10)
@@ -84,7 +86,7 @@ namespace Samples.Dynamic.Trainers.Ranking
                     GroupId = (uint)(i / groupSize),
                     // Create random features that are correlated with the label.
                     // For data points with larger labels, the feature values are slightly increased by adding a constant.
-                    Features = Enumerable.Repeat(randomFloat() + label * 0.1f, 50).ToArray()
+                    Features = Enumerable.Repeat(label, 50).Select(x => randomFloat() + x * 0.1f).ToArray()
                 };
             }
         }

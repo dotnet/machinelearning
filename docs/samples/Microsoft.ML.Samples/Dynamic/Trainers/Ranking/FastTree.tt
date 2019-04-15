@@ -5,16 +5,18 @@ string Trainer = "FastTree";
 string TrainerOptions = null;
 
 string OptionsInclude = "";
-string Comments = "";
+string Comments= @"
+        // This example requires installation of additional NuGet package
+        // <a href=""https://www.nuget.org/packages/Microsoft.ML.FastTree/"">Microsoft.ML.FastTree</a>.";
 
 string ExpectedOutputPerInstance = @"// Expected output:
-			//   Label: 5, Score: 9.94396
-			//   Label: 4, Score: 2.556023
-			//   Label: 4, Score: -5.264654
-			//   Label: 1, Score: -8.955013
-			//   Label: 1, Score: -3.514952";
+            //   Label: 5, Score: 13.0154
+            //   Label: 1, Score: -19.27798
+            //   Label: 3, Score: -12.43686
+            //   Label: 3, Score: -8.178633
+            //   Label: 1, Score: -17.09313";
 
 string ExpectedOutput = @"// Expected output:
-			//   DCG: @1:23.80, @2:37.17, @3:46.52
-			//   NDCG: @1:0.56, @2:0.57, @3:0.60";
+            //   DCG: @1:41.95, @2:63.33, @3:75.65
+            //   NDCG: @1:0.99, @2:0.98, @3:0.99";
 #>

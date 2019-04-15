@@ -9,6 +9,8 @@ namespace Samples.Dynamic.Trainers.Ranking
 {
     public static class FastTreeWithOptions
     {
+        // This example requires installation of additional NuGet package
+        // <a href="https://www.nuget.org/packages/Microsoft.ML.FastTree/">Microsoft.ML.FastTree</a>.
         public static void Example()
         {
             // Create a new context for ML.NET operations. It can be used for exception tracking and logging, 
@@ -53,19 +55,19 @@ namespace Samples.Dynamic.Trainers.Ranking
                 Console.WriteLine($"Label: {p.Label}, Score: {p.Score}");
 
             // Expected output:
-            //   Label: 5, Score: 3.755302
-            //   Label: 4, Score: 0.3836164
-            //   Label: 4, Score: -5.73735
-            //   Label: 1, Score: -9.847338
-            //   Label: 1, Score: -2.719545
+            //   Label: 5, Score: 8.098782
+            //   Label: 1, Score: -11.2527
+            //   Label: 3, Score: -10.89519
+            //   Label: 3, Score: -5.050685
+            //   Label: 1, Score: -10.44891
 
             // Evaluate the overall metrics
             var metrics = mlContext.Ranking.Evaluate(transformedTestData);
             PrintMetrics(metrics);
             
             // Expected output:
-            //   DCG: @1:24.81, @2:38.36, @3:46.26
-            //   NDCG: @1:0.60, @2:0.59, @3:0.60
+            //   DCG: @1:41.03, @2:60.07, @3:74.30
+            //   NDCG: @1:0.97, @2:0.93, @3:0.97
         }
 
         private static IEnumerable<DataPoint> GenerateRandomDataPoints(int count, int seed = 0, int groupSize = 10)
@@ -81,7 +83,7 @@ namespace Samples.Dynamic.Trainers.Ranking
                     GroupId = (uint)(i / groupSize),
                     // Create random features that are correlated with the label.
                     // For data points with larger labels, the feature values are slightly increased by adding a constant.
-                    Features = Enumerable.Repeat(randomFloat() + label * 0.1f, 50).ToArray()
+                    Features = Enumerable.Repeat(label, 50).Select(x => randomFloat() + x * 0.1f).ToArray()
                 };
             }
         }

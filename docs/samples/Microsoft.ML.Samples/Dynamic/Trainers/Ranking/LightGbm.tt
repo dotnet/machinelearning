@@ -5,16 +5,18 @@ string Trainer = "LightGbm";
 string TrainerOptions = null;
 
 string OptionsInclude = "";
-string Comments = "";
+string Comments= @"
+        // This example requires installation of additional NuGet package
+        // <a href=""https://www.nuget.org/packages/Microsoft.ML.LightGbm/"">Microsoft.ML.LightGbm</a>.";
 
 string ExpectedOutputPerInstance = @"// Expected output:
-            //   Label: 5, Score: 2.195333
-            //   Label: 4, Score: 0.2596574
-            //   Label: 4, Score: -2.168355
-            //   Label: 1, Score: -3.074823
-            //   Label: 1, Score: -1.523607";
+            //   Label: 5, Score: 2.493263
+            //   Label: 1, Score: -4.528436
+            //   Label: 3, Score: -3.002865
+            //   Label: 3, Score: -2.151812
+            //   Label: 1, Score: -4.089102";
 
 string ExpectedOutput = @"// Expected output:
-            //   DCG: @1:26.03, @2:37.57, @3:45.83
-            //   NDCG: @1:0.61, @2:0.57, @3:0.59";
+            //   DCG: @1:41.95, @2:63.76, @3:75.97
+            //   NDCG: @1:0.99, @2:0.99, @3:0.99";
 #>

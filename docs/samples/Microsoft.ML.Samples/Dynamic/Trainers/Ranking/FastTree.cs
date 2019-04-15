@@ -8,6 +8,8 @@ namespace Samples.Dynamic.Trainers.Ranking
 {
     public static class FastTree
     {
+        // This example requires installation of additional NuGet package
+        // <a href="https://www.nuget.org/packages/Microsoft.ML.FastTree/">Microsoft.ML.FastTree</a>.
         public static void Example()
         {
             // Create a new context for ML.NET operations. It can be used for exception tracking and logging, 
@@ -41,19 +43,19 @@ namespace Samples.Dynamic.Trainers.Ranking
                 Console.WriteLine($"Label: {p.Label}, Score: {p.Score}");
 
             // Expected output:
-			//   Label: 5, Score: 9.94396
-			//   Label: 4, Score: 2.556023
-			//   Label: 4, Score: -5.264654
-			//   Label: 1, Score: -8.955013
-			//   Label: 1, Score: -3.514952
+            //   Label: 5, Score: 13.0154
+            //   Label: 1, Score: -19.27798
+            //   Label: 3, Score: -12.43686
+            //   Label: 3, Score: -8.178633
+            //   Label: 1, Score: -17.09313
 
             // Evaluate the overall metrics
             var metrics = mlContext.Ranking.Evaluate(transformedTestData);
             PrintMetrics(metrics);
             
             // Expected output:
-			//   DCG: @1:23.80, @2:37.17, @3:46.52
-			//   NDCG: @1:0.56, @2:0.57, @3:0.60
+            //   DCG: @1:41.95, @2:63.33, @3:75.65
+            //   NDCG: @1:0.99, @2:0.98, @3:0.99
         }
 
         private static IEnumerable<DataPoint> GenerateRandomDataPoints(int count, int seed = 0, int groupSize = 10)
@@ -69,7 +71,7 @@ namespace Samples.Dynamic.Trainers.Ranking
                     GroupId = (uint)(i / groupSize),
                     // Create random features that are correlated with the label.
                     // For data points with larger labels, the feature values are slightly increased by adding a constant.
-                    Features = Enumerable.Repeat(randomFloat() + label * 0.1f, 50).ToArray()
+                    Features = Enumerable.Repeat(label, 50).Select(x => randomFloat() + x * 0.1f).ToArray()
                 };
             }
         }
