@@ -36,7 +36,8 @@ namespace Samples.Dynamic.Trainers.Clustering
             // Convert IDataView object to a list.
             var predictions = mlContext.Data.CreateEnumerable<Prediction>(transformedTestData, reuseRowObject: false).ToList();
 
-            // Look at 5 predictions
+            // Print 5 predictions. Note that the label is only used as a comparison wiht the predicted label.
+            // It is not used during training.
             foreach (var p in predictions.Take(2))
                 Console.WriteLine($"Label: {p.Label}, Prediction: {p.PredictedLabel}");
             foreach (var p in predictions.TakeLast(3))
@@ -51,9 +52,7 @@ namespace Samples.Dynamic.Trainers.Clustering
 
             // Evaluate the overall metrics
             var metrics = mlContext.Clustering.Evaluate(transformedTestData, "Label", "Score", "Features");
-            Console.WriteLine($"Normalized Mutual Information: {metrics.NormalizedMutualInformation:F2}");
-            Console.WriteLine($"Average Distance: {metrics.AverageDistance:F2}");
-            Console.WriteLine($"Davies Bouldin Index: {metrics.DaviesBouldinIndex:F2}");
+            PrintMetrics(metrics);
             
             // Expected output:
             //   Normalized Mutual Information: 0.95
@@ -71,8 +70,6 @@ namespace Samples.Dynamic.Trainers.Clustering
             // Expected output similar to:
             //   The first 3 coordinates of the first centroid are: (0.6035213, 0.6017533, 0.5964218)
             //   The first 3 coordinates of the second centroid are: (0.4031044, 0.4175443, 0.4082336)
-            //
-            // Note: use the advanced options constructor to set the number of threads to 1 for a deterministic behavior.
         }
 
         private static IEnumerable<DataPoint> GenerateRandomDataPoints(int count, int seed = 0)
@@ -86,7 +83,7 @@ namespace Samples.Dynamic.Trainers.Clustering
                 {
                     Label = (uint)label,
                     // Create random features with two clusters.
-                    // The first half has feature values cetered around 0.6 the second half has values centered around 0.4.
+                    // The first half has feature values centered around 0.6 the second half has values centered around 0.4.
                     Features = Enumerable.Repeat(label, 50).Select(index => label == 0 ? randomFloat() + 0.1f : randomFloat() - 0.1f).ToArray()
                 };
             }
@@ -95,6 +92,7 @@ namespace Samples.Dynamic.Trainers.Clustering
         // Example with label and 50 feature values. A data set is a collection of such examples.
         private class DataPoint
         {
+            // The label is not used during training, just for comparison with the predicted label.
             [KeyType(2)]
             public uint Label { get; set; }
 
@@ -105,10 +103,18 @@ namespace Samples.Dynamic.Trainers.Clustering
         // Class used to capture predictions.
         private class Prediction
         {
-            // Original label.
+            // Original label (not used during training, just for comparison).
             public uint Label { get; set; }
             // Predicted label from the trainer.
             public uint PredictedLabel { get; set; }
+        }
+
+        // Pretty-print of ClusteringMetrics object.
+        private static void PrintMetrics(ClusteringMetrics metrics)
+        {
+            Console.WriteLine($"Normalized Mutual Information: {metrics.NormalizedMutualInformation:F2}");
+            Console.WriteLine($"Average Distance: {metrics.AverageDistance:F2}");
+            Console.WriteLine($"Davies Bouldin Index: {metrics.DaviesBouldinIndex:F2}");
         }
     }
 }

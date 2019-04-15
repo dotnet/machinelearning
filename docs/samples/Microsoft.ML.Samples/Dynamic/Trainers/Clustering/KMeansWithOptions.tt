@@ -5,7 +5,6 @@ string Trainer = "KMeans";
 string TrainerOptions = @"KMeansTrainer.Options
             {
                 NumberOfClusters = 2,
-                MaximumNumberOfIterations = 100,
                 OptimizationTolerance = 1e-6f,
                 NumberOfThreads = 1
             }";
