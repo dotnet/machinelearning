@@ -45,9 +45,12 @@ namespace Microsoft.ML.Transforms
     ///
     /// The resulting <see cref="ColumnCopyingTransformer"/> creates a new column, named as specified in the output column name parameters, and
     /// copies the data from the input column to this new column.
+    /// See the See Also section for links to examples of the usage.
     /// ]]>
     /// </format>
     /// </remarks>
+    /// <seealso cref="TransformExtensionsCatalog.CopyColumns(TransformsCatalog, InputOutputColumnPair[])" />
+    /// <seealso cref="TransformExtensionsCatalog.CopyColumns(TransformsCatalog, string, string)" />
     public sealed class ColumnCopyingEstimator : TrivialEstimator<ColumnCopyingTransformer>
     {
         [BestFriend]
