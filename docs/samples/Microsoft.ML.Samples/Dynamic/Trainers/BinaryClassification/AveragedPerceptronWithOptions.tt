@@ -2,9 +2,10 @@
 <#+
 string ClassName="AveragedPerceptronWithOptions";
 string Trainer = "AveragedPerceptron";
-bool IsCalibrated = true;
+bool IsCalibrated = false;
 
-string DataSepValue = "0.03f";
+string LabelThreshold = "0.5f";
+string DataSepValue = "0.1f";
 string OptionsInclude = "using Microsoft.ML.Trainers;";
 string Comments= "";
 bool CacheData = false;
@@ -26,11 +27,11 @@ string ExpectedOutputPerInstance= @"// Expected output:
             //   Label: False, Prediction: False";
 
 string ExpectedOutput = @"// Expected output:
-            //   Accuracy: 0.62
-            //   AUC: 0.66
-            //   F1 Score: 0.54
-            //   Negative Precision: 0.61
-            //   Negative Recall: 0.76
-            //   Positive Precision: 0.64
-            //   Positive Recall: 0.47";
+			//   Accuracy: 0.89
+			//   AUC: 0.96
+			//   F1 Score: 0.88
+			//   Negative Precision: 0.87
+			//   Negative Recall: 0.92
+			//   Positive Precision: 0.91
+			//   Positive Recall: 0.85";
 #>

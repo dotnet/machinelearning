@@ -6,7 +6,8 @@ string TrainerOptions = null;
 bool IsCalibrated = false;
 bool CacheData = false;
 
-string DataSepValue = "0.03f";
+string LabelThreshold = "0.5f";
+string DataSepValue = "0.1f";
 string OptionsInclude = "";
 string Comments = "";
 
@@ -14,15 +15,15 @@ string ExpectedOutputPerInstance = @"// Expected output:
             //   Label: True, Prediction: True
             //   Label: False, Prediction: False
             //   Label: True, Prediction: True
-            //   Label: True, Prediction: False
+            //   Label: True, Prediction: True
             //   Label: False, Prediction: True";
 
 string ExpectedOutput = @"// Expected output:
-            //   Accuracy: 0.53
-            //   AUC: 0.56
-            //   F1 Score: 0.49
-            //   Negative Precision: 0.55
-            //   Negative Recall: 0.58
-            //   Positive Precision: 0.50
-            //   Positive Recall: 0.47";
+			//   Accuracy: 0.73
+			//   AUC: 0.83
+			//   F1 Score: 0.75
+			//   Negative Precision: 0.84
+			//   Negative Recall: 0.60
+			//   Positive Precision: 0.66
+			//   Positive Recall: 0.87";
 #>

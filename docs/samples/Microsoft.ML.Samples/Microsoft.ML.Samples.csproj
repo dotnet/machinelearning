@@ -7,7 +7,7 @@
     <PublicSign>false</PublicSign>
     <RootNamespace>Samples</RootNamespace>
   </PropertyGroup>
-  
+
   <ItemGroup>
     <ProjectReference Include="..\..\..\src\Microsoft.ML.LightGbm.StaticPipe\Microsoft.ML.LightGbm.StaticPipe.csproj" />
     <ProjectReference Include="..\..\..\src\Microsoft.ML.LightGbm\Microsoft.ML.LightGbm.csproj" />
@@ -116,6 +116,10 @@
     <None Update="Dynamic\Trainers\BinaryClassification\LinearSvmWithOptions.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>LinearSvmWithOptions.cs</LastGenOutput>
+    </None>
+    <None Update="Dynamic\Trainers\BinaryClassification\PriorTrainer.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>PriorTrainer.cs</LastGenOutput>
     </None>
     <None Update="Dynamic\Trainers\BinaryClassification\SdcaLogisticRegression.tt">
       <Generator>TextTemplatingFileGenerator</Generator>

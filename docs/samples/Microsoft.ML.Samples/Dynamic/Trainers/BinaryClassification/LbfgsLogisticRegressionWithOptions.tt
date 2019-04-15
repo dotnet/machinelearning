@@ -11,6 +11,7 @@ string TrainerOptions = @"LbfgsLogisticRegressionBinaryTrainer.Options()
 bool IsCalibrated = true;
 bool CacheData = false;
 
+string LabelThreshold = "0.5f";
 string DataSepValue = "0.1f";
 string OptionsInclude = "using Microsoft.ML.Trainers;";
 string Comments= "";

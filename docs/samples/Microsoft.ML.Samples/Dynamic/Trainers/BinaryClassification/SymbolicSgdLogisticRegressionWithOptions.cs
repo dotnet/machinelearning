@@ -47,7 +47,7 @@ namespace Samples.Dynamic.Trainers.BinaryClassification
             // Convert IDataView object to a list.
             var predictions = mlContext.Data.CreateEnumerable<Prediction>(transformedTestData, reuseRowObject: false).ToList();
 
-            // Look at 5 predictions
+            // Print 5 predictions.
             foreach (var p in predictions.Take(5))
                 Console.WriteLine($"Label: {p.Label}, Prediction: {p.PredictedLabel}");
 
@@ -58,24 +58,18 @@ namespace Samples.Dynamic.Trainers.BinaryClassification
             //   Label: True, Prediction: True
             //   Label: False, Prediction: False
             
-            // Evaluate the overall metrics
+            // Evaluate the overall metrics.
             var metrics = mlContext.BinaryClassification.Evaluate(transformedTestData);
-            Console.WriteLine($"Accuracy: {metrics.Accuracy:F2}");
-            Console.WriteLine($"AUC: {metrics.AreaUnderRocCurve:F2}");
-            Console.WriteLine($"F1 Score: {metrics.F1Score:F2}");
-            Console.WriteLine($"Negative Precision: {metrics.NegativePrecision:F2}");
-            Console.WriteLine($"Negative Recall: {metrics.NegativeRecall:F2}");
-            Console.WriteLine($"Positive Precision: {metrics.PositivePrecision:F2}");
-            Console.WriteLine($"Positive Recall: {metrics.PositiveRecall:F2}");
+            PrintMetrics(metrics);
             
             // Expected output:
-            //   Accuracy: 0.53
-            //   AUC: 0.55
-            //   F1 Score: 0.51
-            //   Negative Precision: 0.55
-            //   Negative Recall: 0.55
-            //   Positive Precision: 0.51
-            //   Positive Recall: 0.51
+			//   Accuracy: 0.72
+			//   AUC: 0.81
+			//   F1 Score: 0.66
+			//   Negative Precision: 0.68
+			//   Negative Recall: 0.87
+			//   Positive Precision: 0.80
+			//   Positive Recall: 0.56
         }
 
         private static IEnumerable<DataPoint> GenerateRandomDataPoints(int count, int seed=0)
@@ -90,7 +84,7 @@ namespace Samples.Dynamic.Trainers.BinaryClassification
                     Label = label,
                     // Create random features that are correlated with the label.
                     // For data points with false label, the feature values are slightly increased by adding a constant.
-                    Features = Enumerable.Repeat(label, 50).Select(x => x ? randomFloat() : randomFloat() + 0.03f).ToArray()
+                    Features = Enumerable.Repeat(label, 50).Select(x => x ? randomFloat() : randomFloat() + 0.1f).ToArray()
                 };
             }
         }
@@ -110,6 +104,18 @@ namespace Samples.Dynamic.Trainers.BinaryClassification
             public bool Label { get; set; }
             // Predicted label from the trainer.
             public bool PredictedLabel { get; set; }
+        }
+
+        // Pretty-print BinaryClassificationMetrics objects.
+        private static void PrintMetrics(BinaryClassificationMetrics metrics)
+        {
+            Console.WriteLine($"Accuracy: {metrics.Accuracy:F2}");
+            Console.WriteLine($"AUC: {metrics.AreaUnderRocCurve:F2}");
+            Console.WriteLine($"F1 Score: {metrics.F1Score:F2}");
+            Console.WriteLine($"Negative Precision: {metrics.NegativePrecision:F2}");
+            Console.WriteLine($"Negative Recall: {metrics.NegativeRecall:F2}");
+            Console.WriteLine($"Positive Precision: {metrics.PositivePrecision:F2}");
+            Console.WriteLine($"Positive Recall: {metrics.PositiveRecall:F2}");
         }
     }
 }

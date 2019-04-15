@@ -6,9 +6,12 @@ string TrainerOptions = null;
 bool IsCalibrated = true;
 bool CacheData = false;
 
+string LabelThreshold = "0.5f";
 string DataSepValue = "0.03f";
 string OptionsInclude = "";
-string Comments= "";
+string Comments= @"
+		// This example requires installation of additional nuget package
+		// <a href=""https://www.nuget.org/packages/Microsoft.ML.LightGbm/"">Microsoft.ML.LightGbm</a>.";
 
 string ExpectedOutputPerInstance = @"// Expected output:
             //   Label: True, Prediction: True

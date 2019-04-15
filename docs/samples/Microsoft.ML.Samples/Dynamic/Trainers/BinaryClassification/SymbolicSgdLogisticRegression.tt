@@ -6,7 +6,8 @@ string TrainerOptions = null;
 bool IsCalibrated = true;
 bool CacheData = false;
 
-string DataSepValue = "0.03f";
+string LabelThreshold = "0.5f";
+string DataSepValue = "0.1f";
 string OptionsInclude = "";
 string Comments = @"
         // This example requires installation of additional NuGet package
@@ -20,11 +21,11 @@ string ExpectedOutputPerInstance = @"// Expected output:
             //   Label: False, Prediction: True";
 
 string ExpectedOutput = @"// Expected output:
-            //   Accuracy: 0.55
-            //   AUC: 0.57
-            //   F1 Score: 0.51
-            //   Negative Precision: 0.57
-            //   Negative Recall: 0.61
-            //   Positive Precision: 0.53
-            //   Positive Recall: 0.49";
+			//   Accuracy: 0.69
+			//   AUC: 0.76
+			//   F1 Score: 0.68
+			//   Negative Precision: 0.72
+			//   Negative Recall: 0.66
+			//   Positive Precision: 0.66
+			//   Positive Recall: 0.71";
 #>

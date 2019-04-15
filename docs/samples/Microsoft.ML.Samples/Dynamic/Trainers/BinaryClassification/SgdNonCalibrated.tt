@@ -6,6 +6,7 @@ string TrainerOptions = null;
 bool IsCalibrated = false;
 bool CacheData = false;
 
+string LabelThreshold = "0.5f";
 string DataSepValue = "0.03f";
 string OptionsInclude = "";
 string Comments = "";

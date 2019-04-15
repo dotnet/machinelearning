@@ -22,10 +22,10 @@ namespace Samples.Dynamic.Trainers.BinaryClassification
             var trainingData = mlContext.Data.LoadFromEnumerable(dataPoints);
 
             // ML.NET doesn't cache data set by default. Therefore, if one reads a data set from a file and accesses it many times,
-			// it can be slow due to expensive featurization and disk operations. When the considered data can fit into memory,
-			// a solution is to cache the data in memory. Caching is especially helpful when working with iterative algorithms 
-			// which needs many data passes.
-			trainingData = mlContext.Data.Cache(trainingData);
+            // it can be slow due to expensive featurization and disk operations. When the considered data can fit into memory,
+            // a solution is to cache the data in memory. Caching is especially helpful when working with iterative algorithms 
+            // which needs many data passes.
+            trainingData = mlContext.Data.Cache(trainingData);
 
             // Define the trainer.
             var pipeline = mlContext.BinaryClassification.Trainers.SdcaLogisticRegression();
@@ -42,7 +42,7 @@ namespace Samples.Dynamic.Trainers.BinaryClassification
             // Convert IDataView object to a list.
             var predictions = mlContext.Data.CreateEnumerable<Prediction>(transformedTestData, reuseRowObject: false).ToList();
 
-            // Look at 5 predictions
+            // Print 5 predictions.
             foreach (var p in predictions.Take(5))
                 Console.WriteLine($"Label: {p.Label}, Prediction: {p.PredictedLabel}");
 
@@ -53,15 +53,9 @@ namespace Samples.Dynamic.Trainers.BinaryClassification
             //   Label: True, Prediction: True
             //   Label: False, Prediction: True
             
-            // Evaluate the overall metrics
+            // Evaluate the overall metrics.
             var metrics = mlContext.BinaryClassification.Evaluate(transformedTestData);
-            Console.WriteLine($"Accuracy: {metrics.Accuracy:F2}");
-            Console.WriteLine($"AUC: {metrics.AreaUnderRocCurve:F2}");
-            Console.WriteLine($"F1 Score: {metrics.F1Score:F2}");
-            Console.WriteLine($"Negative Precision: {metrics.NegativePrecision:F2}");
-            Console.WriteLine($"Negative Recall: {metrics.NegativeRecall:F2}");
-            Console.WriteLine($"Positive Precision: {metrics.PositivePrecision:F2}");
-            Console.WriteLine($"Positive Recall: {metrics.PositiveRecall:F2}");
+            PrintMetrics(metrics);
             
             // Expected output:
             //   Accuracy: 0.63
@@ -105,6 +99,18 @@ namespace Samples.Dynamic.Trainers.BinaryClassification
             public bool Label { get; set; }
             // Predicted label from the trainer.
             public bool PredictedLabel { get; set; }
+        }
+
+        // Pretty-print BinaryClassificationMetrics objects.
+        private static void PrintMetrics(BinaryClassificationMetrics metrics)
+        {
+            Console.WriteLine($"Accuracy: {metrics.Accuracy:F2}");
+            Console.WriteLine($"AUC: {metrics.AreaUnderRocCurve:F2}");
+            Console.WriteLine($"F1 Score: {metrics.F1Score:F2}");
+            Console.WriteLine($"Negative Precision: {metrics.NegativePrecision:F2}");
+            Console.WriteLine($"Negative Recall: {metrics.NegativeRecall:F2}");
+            Console.WriteLine($"Positive Precision: {metrics.PositivePrecision:F2}");
+            Console.WriteLine($"Positive Recall: {metrics.PositiveRecall:F2}");
         }
     }
 }

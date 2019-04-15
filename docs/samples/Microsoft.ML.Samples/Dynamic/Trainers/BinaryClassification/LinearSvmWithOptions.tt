@@ -4,7 +4,8 @@ string ClassName = "LinearSvmWithOptions";
 string Trainer = "LinearSvm";
 bool IsCalibrated = false;
 
-string DataSepValue = "0.03f";
+string LabelThreshold = "0.5f";
+string DataSepValue = "0.1f";
 string OptionsInclude = "using Microsoft.ML.Trainers;";
 string Comments = "";
 bool CacheData = false;
@@ -17,18 +18,18 @@ string TrainerOptions = @"LinearSvmTrainer.Options
             }";
 
 string ExpectedOutputPerInstance = @"// Expected output:
-            //   Label: True, Prediction: False
-            //   Label: False, Prediction: False
+            //   Label: True, Prediction: True
+            //   Label: False, Prediction: True
             //   Label: True, Prediction: True
             //   Label: True, Prediction: True
             //   Label: False, Prediction: False";
 
 string ExpectedOutput = @"// Expected output:
-            //   Accuracy: 0.58
-            //   AUC: 0.67
-            //   F1 Score: 0.28
-            //   Negative Precision: 0.56
-            //   Negative Recall: 0.94
-            //   Positive Precision: 0.74
-            //   Positive Recall: 0.18";
+			//   Accuracy: 0.85
+			//   AUC: 0.95
+			//   F1 Score: 0.86
+			//   Negative Precision: 0.91
+			//   Negative Recall: 0.80
+			//   Positive Precision: 0.80
+			//   Positive Recall: 0.92";
 #>

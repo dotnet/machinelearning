@@ -9,6 +9,8 @@ namespace Samples.Dynamic.Trainers.BinaryClassification
 {
     public static class LightGbmWithOptions
     {
+		// This example requires installation of additional nuget package
+		// <a href="https://www.nuget.org/packages/Microsoft.ML.LightGbm/">Microsoft.ML.LightGbm</a>.
         public static void Example()
         {
             // Create a new context for ML.NET operations. It can be used for exception tracking and logging, 
@@ -47,7 +49,7 @@ namespace Samples.Dynamic.Trainers.BinaryClassification
             // Convert IDataView object to a list.
             var predictions = mlContext.Data.CreateEnumerable<Prediction>(transformedTestData, reuseRowObject: false).ToList();
 
-            // Look at 5 predictions
+            // Print 5 predictions.
             foreach (var p in predictions.Take(5))
                 Console.WriteLine($"Label: {p.Label}, Prediction: {p.PredictedLabel}");
 
@@ -58,15 +60,9 @@ namespace Samples.Dynamic.Trainers.BinaryClassification
             //   Label: True, Prediction: True
             //   Label: False, Prediction: False
             
-            // Evaluate the overall metrics
+            // Evaluate the overall metrics.
             var metrics = mlContext.BinaryClassification.Evaluate(transformedTestData);
-            Console.WriteLine($"Accuracy: {metrics.Accuracy:F2}");
-            Console.WriteLine($"AUC: {metrics.AreaUnderRocCurve:F2}");
-            Console.WriteLine($"F1 Score: {metrics.F1Score:F2}");
-            Console.WriteLine($"Negative Precision: {metrics.NegativePrecision:F2}");
-            Console.WriteLine($"Negative Recall: {metrics.NegativeRecall:F2}");
-            Console.WriteLine($"Positive Precision: {metrics.PositivePrecision:F2}");
-            Console.WriteLine($"Positive Recall: {metrics.PositiveRecall:F2}");
+            PrintMetrics(metrics);
             
             // Expected output:
             //   Accuracy: 0.71
@@ -110,6 +106,18 @@ namespace Samples.Dynamic.Trainers.BinaryClassification
             public bool Label { get; set; }
             // Predicted label from the trainer.
             public bool PredictedLabel { get; set; }
+        }
+
+        // Pretty-print BinaryClassificationMetrics objects.
+        private static void PrintMetrics(BinaryClassificationMetrics metrics)
+        {
+            Console.WriteLine($"Accuracy: {metrics.Accuracy:F2}");
+            Console.WriteLine($"AUC: {metrics.AreaUnderRocCurve:F2}");
+            Console.WriteLine($"F1 Score: {metrics.F1Score:F2}");
+            Console.WriteLine($"Negative Precision: {metrics.NegativePrecision:F2}");
+            Console.WriteLine($"Negative Recall: {metrics.NegativeRecall:F2}");
+            Console.WriteLine($"Positive Precision: {metrics.PositivePrecision:F2}");
+            Console.WriteLine($"Positive Recall: {metrics.PositiveRecall:F2}");
         }
     }
 }
