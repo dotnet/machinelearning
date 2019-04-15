@@ -512,7 +512,7 @@ namespace Microsoft.ML
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
-        /// [!code-csharp[Logistic Regression](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/LogisticRegression.cs)]
+        /// [!code-csharp[Logistic Regression](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Trainers/BinaryClassification/LbfgsLogisticRegression.cs)]
         /// ]]>
         /// </format>
         /// </example>
@@ -536,6 +536,13 @@ namespace Microsoft.ML
         /// </summary>
         /// <param name="catalog">The binary classification catalog trainer object.</param>
         /// <param name="options">Advanced arguments to the algorithm.</param>
+        /// <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        /// [!code-csharp[Logistic Regression](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Trainers/BinaryClassification/LbfgsLogisticRegressionWithOptions.cs)]
+        /// ]]>
+        /// </format>
+        /// </example>
         public static LbfgsLogisticRegressionBinaryTrainer LbfgsLogisticRegression(this BinaryClassificationCatalog.BinaryClassificationTrainers catalog, LROptions options)
         {
             Contracts.CheckValue(catalog, nameof(catalog));
@@ -560,7 +567,7 @@ namespace Microsoft.ML
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
-        ///  [!code-csharp[PoissonRegression](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Trainers/Regression/PoissonRegression.cs)]
+        ///  [!code-csharp[PoissonRegression](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Trainers/Regression/LbfgsPoissonRegression.cs)]
         /// ]]></format>
         /// </example>
         public static LbfgsPoissonRegressionTrainer LbfgsPoissonRegression(this RegressionCatalog.RegressionTrainers catalog,
@@ -586,7 +593,7 @@ namespace Microsoft.ML
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
-        ///  [!code-csharp[PoissonRegression](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Trainers/Regression/PoissonRegressionWithOptions.cs)]
+        ///  [!code-csharp[PoissonRegression](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Trainers/Regression/LbfgsPoissonRegressionWithOptions.cs)]
         /// ]]></format>
         /// </example>
         public static LbfgsPoissonRegressionTrainer LbfgsPoissonRegression(this RegressionCatalog.RegressionTrainers catalog, LbfgsPoissonRegressionTrainer.Options options)
@@ -693,6 +700,12 @@ namespace Microsoft.ML
         /// <param name="maximumCalibrationExampleCount">Number of instances to train the calibrator.</param>
         /// <param name="useProbabilities">Use probabilities (vs. raw outputs) to identify top-score category.</param>
         /// <typeparam name="TModel">The type of the model. This type parameter will usually be inferred automatically from <paramref name="binaryEstimator"/>.</typeparam>
+        /// <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        ///  [!code-csharp[SDCA](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Trainers/MulticlassClassification/OneVersusAll.cs)]
+        /// ]]></format>
+        /// </example>
         public static OneVersusAllTrainer OneVersusAll<TModel>(this MulticlassClassificationCatalog.MulticlassClassificationTrainers catalog,
             ITrainerEstimator<BinaryPredictionTransformer<TModel>, TModel> binaryEstimator,
             string labelColumnName = DefaultColumnNames.Label,
@@ -726,6 +739,12 @@ namespace Microsoft.ML
         /// <param name="imputeMissingLabelsAsNegative">Whether to treat missing labels as having negative labels, instead of keeping them missing.</param>
         /// <param name="maximumCalibrationExampleCount">Number of instances to train the calibrator.</param>
         /// <typeparam name="TModel">The type of the model. This type parameter will usually be inferred automatically from <paramref name="binaryEstimator"/>.</typeparam>
+        /// <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        ///  [!code-csharp[SDCA](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Trainers/MulticlassClassification/PairwiseCoupling.cs)]
+        /// ]]></format>
+        /// </example>
         public static PairwiseCouplingTrainer PairwiseCoupling<TModel>(this MulticlassClassificationCatalog.MulticlassClassificationTrainers catalog,
             ITrainerEstimator<ISingleFeaturePredictionTransformer<TModel>, TModel> binaryEstimator,
             string labelColumnName = DefaultColumnNames.Label,

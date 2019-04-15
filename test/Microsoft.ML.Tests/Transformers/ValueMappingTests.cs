@@ -55,7 +55,15 @@ namespace Microsoft.ML.Tests.Transformers
             var keys = new List<string>() { "foo", "bar", "test", "wahoo" };
             var values = new List<int>() { 1, 2, 3, 4 };
 
-            var estimator = new ValueMappingEstimator<string, int>(Env, keys, values, new[] { ("D", "A"), ("E", "B"), ("F", "C") });
+            var lookupMap = DataViewHelper.CreateDataView(Env, keys, values,
+                ValueMappingTransformer.DefaultKeyColumnName,
+                ValueMappingTransformer.DefaultValueColumnName, false);
+
+            var estimator = new ValueMappingEstimator<string, int>(Env, lookupMap,
+                lookupMap.Schema[ValueMappingTransformer.DefaultKeyColumnName],
+                lookupMap.Schema[ValueMappingTransformer.DefaultValueColumnName],
+                new[] { ("D", "A"), ("E", "B"), ("F", "C") });
+
             var t = estimator.Fit(dataView);
 
             var result = t.Transform(dataView);
@@ -85,9 +93,19 @@ namespace Microsoft.ML.Tests.Transformers
             var keys = new List<ReadOnlyMemory<char>>() { "foo".AsMemory(), "bar".AsMemory(), "test".AsMemory(), "wahoo".AsMemory() };
             var values = new List<int>() { 1, 2, 3, 4 };
 
+            var lookupMap = DataViewHelper.CreateDataView(Env, keys, values,
+                ValueMappingTransformer.DefaultKeyColumnName,
+                ValueMappingTransformer.DefaultValueColumnName, false);
+
+            var valueMappingEstimator = new ValueMappingEstimator<string, int>(Env, lookupMap,
+                lookupMap.Schema[ValueMappingTransformer.DefaultKeyColumnName],
+                lookupMap.Schema[ValueMappingTransformer.DefaultValueColumnName],
+                new[] { ("VecD", "TokenizeA"), ("E", "B"), ("F", "C") });
+
             var estimator = new WordTokenizingEstimator(Env, new[]{
                     new WordTokenizingEstimator.ColumnOptions("TokenizeA", "A")
-                }).Append(new ValueMappingEstimator<ReadOnlyMemory<char>, int>(Env, keys, values, new[] { ("VecD", "TokenizeA"), ("E", "B"), ("F", "C") }));
+                }).Append(valueMappingEstimator);
+
             var schema = estimator.GetOutputSchema(SchemaShape.Create(dataView.Schema));
             Assert.True(schema.TryFindColumn("VecD", out var originalColumn));
             Assert.Equal(SchemaShape.Column.VectorKind.VariableVector, originalColumn.Kind);
@@ -118,12 +136,14 @@ namespace Microsoft.ML.Tests.Transformers
             var data = new[] { new TestClass() { A = "bar test foo", B = "test", C = "foo" } };
             var dataView = ML.Data.LoadFromEnumerable(data);
 
-            var keys = new List<ReadOnlyMemory<char>>() { "foo".AsMemory(), "bar".AsMemory(), "test".AsMemory(), "wahoo".AsMemory() };
-            var values = new List<ReadOnlyMemory<char>>() { "a".AsMemory(), "b".AsMemory(), "c".AsMemory(), "d".AsMemory() };
+            var keyValuePairs = new List<KeyValuePair<string, string>>() {
+                new KeyValuePair<string, string>("foo", "a"),
+                new KeyValuePair<string, string>("bar", "b"),
+                new KeyValuePair<string, string>("test", "c"),
+                new KeyValuePair<string, string>("wahoo", "d")};
 
-            var estimator = new WordTokenizingEstimator(Env, new[]{
-                    new WordTokenizingEstimator.ColumnOptions("TokenizeA", "A")
-                }).Append(new ValueMappingEstimator<ReadOnlyMemory<char>, ReadOnlyMemory<char>>(Env, keys, values, true, new[] { ("VecD", "TokenizeA"), ("E", "B"), ("F", "C") }));
+            var estimator = new WordTokenizingEstimator(Env, new[] { new WordTokenizingEstimator.ColumnOptions("TokenizeA", "A") }).
+                Append(ML.Transforms.Conversion.MapValue(keyValuePairs, true, new[] { new InputOutputColumnPair("VecD", "TokenizeA"), new InputOutputColumnPair("E", "B"), new InputOutputColumnPair("F", "C") }));
             var t = estimator.Fit(dataView);
 
             var result = t.Transform(dataView);
@@ -157,7 +177,15 @@ namespace Microsoft.ML.Tests.Transformers
                 new int[] {100, 200 },
                 new int[] {400, 500, 600, 700 }};
 
-            var estimator = new ValueMappingEstimator<string, int>(Env, keys, values, new[] { ("D", "A"), ("E", "B"), ("F", "C") });
+            var lookupMap = DataViewHelper.CreateDataView(Env, keys, values,
+                ValueMappingTransformer.DefaultKeyColumnName,
+                ValueMappingTransformer.DefaultValueColumnName);
+
+            var estimator = new ValueMappingEstimator<string, int>(Env, lookupMap,
+                lookupMap.Schema[ValueMappingTransformer.DefaultKeyColumnName],
+                lookupMap.Schema[ValueMappingTransformer.DefaultValueColumnName],
+                new[] { ("D", "A"), ("E", "B"), ("F", "C") });
+
             var schema = estimator.GetOutputSchema(SchemaShape.Create(dataView.Schema));
             foreach (var name in new[] { "D", "E", "F" })
             {
@@ -205,7 +233,7 @@ namespace Microsoft.ML.Tests.Transformers
                             };
             var mapView = ML.Data.LoadFromEnumerable(map);
 
-            var estimator = new ValueMappingEstimator(Env, mapView, "Key", "Value", new[] { ("D", "A"), ("E", "B"), ("F", "C") });
+            var estimator = new ValueMappingEstimator(Env, mapView, mapView.Schema["Key"], mapView.Schema["Value"], new[] { ("D", "A"), ("E", "B"), ("F", "C") });
             var t = estimator.Fit(dataView);
 
             var result = t.Transform(dataView);
@@ -238,7 +266,15 @@ namespace Microsoft.ML.Tests.Transformers
                 new string[] {"forest", "city", "town" },
                 new string[] {"winter", "summer", "autumn", "spring" }};
 
-            var estimator = new ValueMappingEstimator<string, string>(Env, keys, values, new[] { ("D", "A"), ("E", "B"), ("F", "C") });
+            var lookupMap = DataViewHelper.CreateDataView(Env, keys, values,
+                ValueMappingTransformer.DefaultKeyColumnName,
+                ValueMappingTransformer.DefaultValueColumnName);
+
+            var estimator = new ValueMappingEstimator<string, int>(Env, lookupMap,
+                lookupMap.Schema[ValueMappingTransformer.DefaultKeyColumnName],
+                lookupMap.Schema[ValueMappingTransformer.DefaultValueColumnName],
+                new[] { ("D", "A"), ("E", "B"), ("F", "C") });
+
             var t = estimator.Fit(dataView);
 
             var result = t.Transform(dataView);
@@ -271,7 +307,15 @@ namespace Microsoft.ML.Tests.Transformers
             var keys = new List<string>() { "foo", "bar", "test", "wahoo" };
             var values = new List<int>() { 1, 2, 3, 4 };
 
-            var estimator = new ValueMappingEstimator<string, int>(Env, keys, values, new[] { ("D", "A"), ("E", "B"), ("F", "C") });
+            var lookupMap = DataViewHelper.CreateDataView(Env, keys, values,
+                ValueMappingTransformer.DefaultKeyColumnName,
+                ValueMappingTransformer.DefaultValueColumnName, false);
+
+            var estimator = new ValueMappingEstimator<string, int>(Env, lookupMap,
+                lookupMap.Schema[ValueMappingTransformer.DefaultKeyColumnName],
+                lookupMap.Schema[ValueMappingTransformer.DefaultValueColumnName],
+                new[] { ("D", "A"), ("E", "B"), ("F", "C") });
+
             var t = estimator.Fit(dataView);
 
             var result = t.Transform(dataView);
@@ -301,7 +345,14 @@ namespace Microsoft.ML.Tests.Transformers
             var keys = new List<string>() { "foo", "foo" };
             var values = new List<int>() { 1, 2 };
 
-            Assert.Throws<InvalidOperationException>(() => new ValueMappingEstimator<string, int>(Env, keys, values, new[] { ("D", "A"), ("E", "B"), ("F", "C") }));
+            var lookupMap = DataViewHelper.CreateDataView(Env, keys, values,
+                ValueMappingTransformer.DefaultKeyColumnName,
+                ValueMappingTransformer.DefaultValueColumnName, false);
+
+            Assert.Throws<InvalidOperationException>(() => new ValueMappingEstimator<string, int>(Env, lookupMap,
+                lookupMap.Schema[ValueMappingTransformer.DefaultKeyColumnName],
+                lookupMap.Schema[ValueMappingTransformer.DefaultValueColumnName],
+                new[] { ("D", "A"), ("E", "B"), ("F", "C") }));
         }
 
         [Fact]
@@ -310,11 +361,16 @@ namespace Microsoft.ML.Tests.Transformers
             var data = new[] { new TestClass() { A = "barTest", B = "test", C = "foo" } };
             var dataView = ML.Data.LoadFromEnumerable(data);
 
-            var keys = new List<string>() { "foo", "bar", "test", "wahoo" };
-            var values = new List<int>() { 1, 2, 3, 4 };
+            var keyValuePairs = new List<KeyValuePair<string, int>>() {
+                new KeyValuePair<string,int>("foo", 1),
+                new KeyValuePair<string,int>("bar", 2),
+                new KeyValuePair<string,int>("test", 3),
+                new KeyValuePair<string,int>("wahoo", 4)};
 
-            var estimator = new ValueMappingEstimator<string, int>(Env, keys, values, new[] { ("D", "A"), ("E", "B"), ("F", "C") });
-            var outputSchema  = estimator.GetOutputSchema(SchemaShape.Create(dataView.Schema));
+            var est = ML.Transforms.Conversion.MapValue(keyValuePairs,
+                new[] { new InputOutputColumnPair("D", "A"), new InputOutputColumnPair("E", "B"), new InputOutputColumnPair("F", "C") });
+
+            var outputSchema  = est.GetOutputSchema(SchemaShape.Create(dataView.Schema));
 
             Assert.Equal(6, outputSchema.Count());
             Assert.True(outputSchema.TryFindColumn("D", out SchemaShape.Column dColumn));
@@ -337,10 +393,15 @@ namespace Microsoft.ML.Tests.Transformers
             var data = new[] { new TestClass() { A = "bar", B = "test", C = "foo" } };
             var dataView = ML.Data.LoadFromEnumerable(data);
 
-            var keys = new List<string>() { "foo", "bar", "test", "wahoo" };
-            var values = new List<string>() { "t", "s", "u", "v" };
+            var keyValuePairs = new List<KeyValuePair<string, string>>() {
+                new KeyValuePair<string, string>("foo", "t"),
+                new KeyValuePair<string, string>("bar", "s"),
+                new KeyValuePair<string, string>("test", "u"),
+                new KeyValuePair<string, string>("wahoo", "v") };
 
-            var estimator = new ValueMappingEstimator<string, string>(Env, keys, values, true, new[] { ("D", "A"), ("E", "B"), ("F", "C") });
+            var estimator = ML.Transforms.Conversion.MapValue(keyValuePairs, true,
+                new[] { new InputOutputColumnPair("D", "A"), new InputOutputColumnPair("E", "B"), new InputOutputColumnPair("F", "C") });
+
             var outputSchema  = estimator.GetOutputSchema(SchemaShape.Create(dataView.Schema));
             Assert.Equal(6, outputSchema.Count());
             Assert.True(outputSchema.TryFindColumn("D", out SchemaShape.Column dColumn));
@@ -365,12 +426,15 @@ namespace Microsoft.ML.Tests.Transformers
             var data = new[] { new TestClass() { A = "bar", B = "test2", C = "wahoo" } };
             var dataView = ML.Data.LoadFromEnumerable(data);
 
-            var keys = new List<string>() { "foo", "bar", "test", "wahoo" };
-
             // These are the expected key type values
-            var values = new List<uint>() { 51, 25, 42, 61 };
+            var keyValuePairs = new List<KeyValuePair<string, uint>>() {
+                new KeyValuePair<string, uint>("foo", 51),
+                new KeyValuePair<string, uint>("bar", 25),
+                new KeyValuePair<string, uint>("test", 42),
+                new KeyValuePair<string, uint>("wahoo", 61)};
 
-            var estimator = new ValueMappingEstimator<string, uint>(Env, keys, values, true, new[] { ("D", "A"), ("E", "B"), ("F", "C") });
+            // Workout on value mapping
+            var estimator = ML.Transforms.Conversion.MapValue(keyValuePairs, true, new[] { new InputOutputColumnPair("D", "A"), new InputOutputColumnPair("E", "B"), new InputOutputColumnPair("F", "C") });
 
             var t = estimator.Fit(dataView);
 
@@ -404,12 +468,14 @@ namespace Microsoft.ML.Tests.Transformers
             var data = new[] { new TestClass() { A = "bar", B = "test2", C = "wahoo" } };
             var dataView = ML.Data.LoadFromEnumerable(data);
 
-            var keys = new List<string>() { "foo", "bar", "test", "wahoo" };
+            var keyValuePairs = new List<KeyValuePair<string, ulong>>() {
+                new KeyValuePair<string, ulong>("foo", 51),
+                new KeyValuePair<string, ulong>("bar", Int32.MaxValue + 1L),
+                new KeyValuePair<string, ulong>("test", 42),
+                new KeyValuePair<string, ulong>("wahoo", 61)};
 
-            // These are the expected key type values
-            var values = new List<ulong>() { 51, Int32.MaxValue, 42, 61 };
-
-            var estimator = new ValueMappingEstimator<string, ulong>(Env, keys, values, true, new[] { ("D", "A"), ("E", "B"), ("F", "C") });
+            // Workout on value mapping
+            var estimator = ML.Transforms.Conversion.MapValue(keyValuePairs, true, new[] { new InputOutputColumnPair("D", "A"), new InputOutputColumnPair("E", "B"), new InputOutputColumnPair("F", "C") });
 
             var t = estimator.Fit(dataView);
 
@@ -423,7 +489,7 @@ namespace Microsoft.ML.Tests.Transformers
             // The expected values will contain the actual uints and are not generated.
             ulong dValue = 1;
             getterD(ref dValue);
-            Assert.Equal<ulong>(Int32.MaxValue, dValue);
+            Assert.Equal<ulong>(Int32.MaxValue + 1L, dValue);
 
             // Should be 0 as test2 is a missing key
             ulong eValue = 0;
@@ -442,12 +508,16 @@ namespace Microsoft.ML.Tests.Transformers
             var data = new[] { new TestClass() { A = "bar", B = "test", C = "notfound" } };
             var dataView = ML.Data.LoadFromEnumerable(data);
 
-            var keys = new List<string>() { "foo", "bar", "test", "wahoo" };
-
             // Generating the list of strings for the key type values, note that foo1 is duplicated as intended to test that the same index value is returned
-            var values = new List<string>() { "foo1", "foo2", "foo1", "foo3" };
+            var keyValuePairs = new List<KeyValuePair<string, string>>() {
+                new KeyValuePair<string, string>("foo", "foo1"),
+                new KeyValuePair<string, string>("bar", "foo2"),
+                new KeyValuePair<string, string>("test", "foo1"),
+                new KeyValuePair<string, string>("wahoo", "foo3")};
 
-            var estimator = new ValueMappingEstimator<string, string>(Env, keys, values, true, new[] { ("D", "A"), ("E", "B"), ("F", "C") });
+            // Workout on value mapping
+            var estimator = ML.Transforms.Conversion.MapValue(keyValuePairs, true, new[] { new InputOutputColumnPair("D", "A"), new InputOutputColumnPair("E", "B"), new InputOutputColumnPair("F", "C") });
+
             var t = estimator.Fit(dataView);
 
             var result = t.Transform(dataView);
@@ -479,13 +549,15 @@ namespace Microsoft.ML.Tests.Transformers
             var data = new[] { new TestClass() { A = "bar", B = "test", C = "notfound" } };
             var dataView = ML.Data.LoadFromEnumerable(data);
 
-            var keys = new List<ReadOnlyMemory<char>>() { "foo".AsMemory(), "bar".AsMemory(), "test".AsMemory(), "wahoo".AsMemory() };
+            var keyValuePairs = new List<KeyValuePair<string, string>>() {
+                new KeyValuePair<string, string>("foo", "foo1"),
+                new KeyValuePair<string, string>("bar", "foo2"),
+                new KeyValuePair<string, string>("test", "foo1"),
+                new KeyValuePair<string, string>("wahoo", "foo3")};
 
-            // Generating the list of strings for the key type values, note that foo1 is duplicated as intended to test that the same index value is returned
-            var values = new List<ReadOnlyMemory<char>>() { "foo1".AsMemory(), "foo2".AsMemory(), "foo1".AsMemory(), "foo3".AsMemory() };
+            var estimator = ML.Transforms.Conversion.MapValue("D", keyValuePairs, "A", true).
+                Append(ML.Transforms.Conversion.MapKeyToValue("DOutput", "D"));
 
-            var estimator = new ValueMappingEstimator<ReadOnlyMemory<char>, ReadOnlyMemory<char>>(Env, keys, values, true, new[] { ("D", "A") })
-                            .Append(new KeyToValueMappingEstimator(Env, ("DOutput","D")));
             var t = estimator.Fit(dataView);
 
             var result = t.Transform(dataView);
@@ -497,6 +569,18 @@ namespace Microsoft.ML.Tests.Transformers
             ReadOnlyMemory<char> dValue = default;
             getterD(ref dValue);
             Assert.Equal("foo2".AsMemory(), dValue);
+
+            var annotations = result.Schema["D"].Annotations;
+            var allowedKeyValueGetter = annotations.GetGetter<VBuffer<ReadOnlyMemory<char>>>(annotations.Schema["KeyValues"]);
+            VBuffer<ReadOnlyMemory<char>> allowedKeys = default;
+            allowedKeyValueGetter(ref allowedKeys);
+
+            // There should be 3 keys, "foo1", "foo2", and "foo3".
+            Assert.Equal(3, allowedKeys.Length);
+            var allowedKeyPool = new HashSet<ReadOnlyMemory<char>>(allowedKeys.DenseValues());
+            Assert.Contains("foo1".AsMemory(), allowedKeyPool);
+            Assert.Contains("foo2".AsMemory(), allowedKeyPool);
+            Assert.Contains("foo3".AsMemory(), allowedKeyPool);
         }
 
         [Fact]
@@ -507,12 +591,11 @@ namespace Microsoft.ML.Tests.Transformers
             var badData = new[] { new TestWrong() { A = "bar", B = 1.2f } };
             var badDataView = ML.Data.LoadFromEnumerable(badData);
 
-            var keyValuePairs = new List<KeyValuePair<string,int>>() {
-                new KeyValuePair<string,int>("foo", 1),
-                new KeyValuePair<string,int>("bar", 2),
-                new KeyValuePair<string,int>("test", 3),
-                new KeyValuePair<string,int>("wahoo", 4)
-                };
+            var keyValuePairs = new List<KeyValuePair<string, int>>() {
+                new KeyValuePair<string, int>("foo", 1),
+                new KeyValuePair<string, int>("bar", 2),
+                new KeyValuePair<string, int>("test", 3),
+                new KeyValuePair<string, int>("wahoo", 4)};
 
             // Workout on value mapping
             var est = ML.Transforms.Conversion.MapValue(keyValuePairs, new[] { new InputOutputColumnPair("D", "A"), new InputOutputColumnPair("E", "B"), new InputOutputColumnPair("F", "C") });
@@ -600,10 +683,14 @@ namespace Microsoft.ML.Tests.Transformers
         {
             var data = new[] { new TestClass() { A = "bar", B = "foo", C = "test", } };
             var dataView = ML.Data.LoadFromEnumerable(data);
-            var est = new ValueMappingEstimator<string, int>(Env, 
-                                                new List<string>() { "foo", "bar", "test" }, 
-                                                new List<int>() { 2, 43, 56 }, 
-                                                new [] { ("D", "A"), ("E", "B") });
+
+            var keyValuePairs = new List<KeyValuePair<string, int>>() {
+                new KeyValuePair<string,int>("foo", 2),
+                new KeyValuePair<string,int>("bar", 43),
+                new KeyValuePair<string,int>("test", 56)};
+
+            var est = ML.Transforms.Conversion.MapValue(keyValuePairs,
+                new[] { new InputOutputColumnPair("D", "A"), new InputOutputColumnPair("E", "B") });
 
             var transformer = est.Fit(dataView);
             using (var ms = new MemoryStream())
@@ -658,6 +745,68 @@ namespace Microsoft.ML.Tests.Transformers
                 uint s = t.First();
                 Assert.Equal((uint)3, s);
             }
+        }
+
+        [Fact]
+        public void TestValueMapWithNonDefaultColumnOrder()
+        {
+            // Get a small dataset as an IEnumerable.
+            var rawData = new[] {
+                new DataPoint() { Price = 3.14f },
+                new DataPoint() { Price = 2000f },
+                new DataPoint() { Price = 1.19f },
+                new DataPoint() { Price = 2.17f },
+                new DataPoint() { Price = 33.784f },
+            };
+
+            // Convert to IDataView
+            var data = ML.Data.LoadFromEnumerable(rawData);
+
+            // Create the lookup map data IEnumerable.   
+            var lookupData = new[] {
+                new LookupMap { Value = 3.14f, Category = "Low" },
+                new LookupMap { Value = 1.19f , Category = "Low" },
+                new LookupMap { Value = 2.17f , Category = "Low" },
+                new LookupMap { Value = 33.784f, Category = "Medium" },
+                new LookupMap { Value = 2000f, Category = "High"}
+            };
+
+            // Convert to IDataView
+            var lookupIdvMap = ML.Data.LoadFromEnumerable(lookupData);
+
+            // Constructs the ValueMappingEstimator making the ML.NET pipeline
+            var pipeline = ML.Transforms.Conversion.MapValue("PriceCategory", lookupIdvMap, lookupIdvMap.Schema["Value"], lookupIdvMap.Schema["Category"], "Price");
+
+            // Fits the ValueMappingEstimator and transforms the data converting the Price to PriceCategory.
+            IDataView transformedData = pipeline.Fit(data).Transform(data);
+
+            // Getting the resulting data as an IEnumerable.
+            var features = ML.Data.CreateEnumerable<TransformedData>(transformedData, reuseRowObject: false).ToList();
+
+            var expectedCategories = new string[] { "Low", "High", "Low", "Low", "Medium" };
+
+            for(int i = 0; i < features.Count; ++i)
+            {
+                var feature = features[i];
+                Assert.Equal(rawData[i].Price, feature.Price);
+                Assert.Equal(expectedCategories[i], feature.PriceCategory);
+            }
+        }
+
+        private class LookupMap
+        {
+            public string Category { get; set; }
+            public float Value { get; set; }
+        }
+
+        private class DataPoint
+        {
+            public float Price { get; set; }
+        }
+
+        private class TransformedData : DataPoint
+        {
+            public string PriceCategory { get; set; }
         }
     }
 }

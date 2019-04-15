@@ -230,7 +230,7 @@ namespace Microsoft.ML.StaticPipe
     /// <summary>
     /// Static API extension methods for <see cref="SsaSpikeEstimator"/>.
     /// </summary>
-    public static class SsaSpikeDetecotStaticExtensions
+    public static class SsaSpikeDetectorStaticExtensions
     {
         private sealed class OutColumn : Vector<double>
         {

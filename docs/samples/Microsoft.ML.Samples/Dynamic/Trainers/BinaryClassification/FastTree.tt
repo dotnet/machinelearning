@@ -1,5 +1,4 @@
 ﻿<#@ include file="TreeSamplesTemplate.ttinclude"#>
-
 <#+
 string ClassName="FastTree";
 string Trainer = "FastTree";

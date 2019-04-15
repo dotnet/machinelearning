@@ -40,7 +40,7 @@ namespace Microsoft.ML.Benchmarks
                 .Append(ml.Clustering.Trainers.KMeans("Features"))
                 .Append(ml.Transforms.Concatenate("Features", "Features", "Score"))
                 .Append(ml.BinaryClassification.Trainers.LbfgsLogisticRegression(
-                    new LbfgsLogisticRegressionBinaryTrainer.Options { EnforceNonNegativity = true, OptmizationTolerance = 1e-3f, }));
+                    new LbfgsLogisticRegressionBinaryTrainer.Options { EnforceNonNegativity = true, OptimizationTolerance = 1e-3f, }));
 
             var model = estimatorPipeline.Fit(input);
             // Return the last model in the chain.
