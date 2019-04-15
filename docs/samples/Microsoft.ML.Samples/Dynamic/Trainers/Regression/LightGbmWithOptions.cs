@@ -10,7 +10,7 @@ namespace Samples.Dynamic.Trainers.Regression
     public static class LightGbmWithOptions
     {
         // This example requires installation of additional NuGet package
-        // <a href="https://www.nuget.org/packages/Microsoft.ML.FastTree/">Microsoft.ML.FastTree</a>. 
+        // <a href="https://www.nuget.org/packages/Microsoft.ML.LightGbm/">Microsoft.ML.LightGbm</a>. 
         public static void Example()
         {
             // Create a new context for ML.NET operations. It can be used for exception tracking and logging, 

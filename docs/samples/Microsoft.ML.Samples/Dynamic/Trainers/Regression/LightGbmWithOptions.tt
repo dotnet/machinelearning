@@ -2,7 +2,7 @@
 
 <#+
 string ClassHeader = @"// This example requires installation of additional NuGet package
-        // <a href=""https://www.nuget.org/packages/Microsoft.ML.FastTree/"">Microsoft.ML.FastTree</a>. ";
+        // <a href=""https://www.nuget.org/packages/Microsoft.ML.LightGbm/"">Microsoft.ML.LightGbm</a>. ";
 
 string ClassName="LightGbmWithOptions";
 string Trainer = @"LightGbm";
