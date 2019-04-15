@@ -4,12 +4,13 @@ string ClassName="FieldAwareFactorizationMachine";
 string Trainer = @"FieldAwareFactorizationMachine(
                 // Specify three feature columns!
                 new[] {nameof(DataPoint.Field0), nameof(DataPoint.Field1), nameof(DataPoint.Field2) },
-				// Specify binary label's column name.
+                // Specify binary label's column name.
                 nameof(DataPoint.Label) )";
 
 string OptionsInclude = null;
 
-string Comments = @"// This example first train a field-aware factorization to binary classification, measure the trained model's quality, and finally
+string Comments = @"
+        // This example first train a field-aware factorization to binary classification, measure the trained model's quality, and finally
         // use the trained model to make prediction.";
 
 string TrainerDescription = @"// This trainer trains field-aware factorization (FFM) for binary classification. See https://www.csie.ntu.edu.tw/~cjlin/papers/ffm.pdf

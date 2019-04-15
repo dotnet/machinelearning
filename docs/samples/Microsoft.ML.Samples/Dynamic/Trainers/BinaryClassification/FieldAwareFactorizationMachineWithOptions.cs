@@ -8,7 +8,8 @@ using Microsoft.ML.Trainers;
 namespace Samples.Dynamic.Trainers.BinaryClassification
 {
     public static class FieldAwareFactorizationMachineWithOptions
-    {// This example first train a field-aware factorization to binary classification, measure the trained model's quality, and finally
+    {
+        // This example first train a field-aware factorization to binary classification, measure the trained model's quality, and finally
         // use the trained model to make prediction.
         public static void Example()
         {
@@ -37,7 +38,7 @@ namespace Samples.Dynamic.Trainers.BinaryClassification
             };
 
             // Define the trainer.
-			// This trainer trains field-aware factorization (FFM) for binary classification. See https://www.csie.ntu.edu.tw/~cjlin/papers/ffm.pdf
+            // This trainer trains field-aware factorization (FFM) for binary classification. See https://www.csie.ntu.edu.tw/~cjlin/papers/ffm.pdf
             // for the theory behind and https://github.com/wschin/fast-ffm/blob/master/fast-ffm.pdf for the training
             // algorithm implemented in ML.NET.
             var pipeline = mlContext.BinaryClassification.Trainers.FieldAwareFactorizationMachine(options);
@@ -48,11 +49,11 @@ namespace Samples.Dynamic.Trainers.BinaryClassification
             // Run the model on training data set.
             var transformedTrainingData = model.Transform(trainingData);
 
-			// Measure the quality of the trained model.
+            // Measure the quality of the trained model.
             var metrics = mlContext.BinaryClassification.Evaluate(transformedTrainingData);
 
-			// Show the quality metrics.
-            Microsoft.ML.SamplesUtils.ConsoleUtils.PrintMetrics(metrics);
+            // Show the quality metrics.
+            PrintMetrics(metrics);
 
             // Expected output:
             //   Accuracy: 0.99
@@ -66,7 +67,7 @@ namespace Samples.Dynamic.Trainers.BinaryClassification
             //   Log Loss Reduction: 0.83
             //   Entropy: 1.00
 
-			// Create prediction function from the trained model.
+            // Create prediction function from the trained model.
             var engine = mlContext.Model.CreatePredictionEngine<DataPoint, Result>(model);
 
             // Make some predictions.
@@ -88,6 +89,7 @@ namespace Samples.Dynamic.Trainers.BinaryClassification
         // Number of features per field.
         const int featureLength = 5;
 
+        // This class defines objects fed to the trained model.
         private class DataPoint
         {
             // Label.
@@ -106,6 +108,8 @@ namespace Samples.Dynamic.Trainers.BinaryClassification
             public float[] Field2 { get; set; }
         }
 
+        // This class defines objects produced by trained model. The trained model maps
+        // a DataPoint to a Result.
         public class Result
         {
             // Label.
@@ -118,6 +122,7 @@ namespace Samples.Dynamic.Trainers.BinaryClassification
             public float Probability { get; set; }
         }
 
+        // Function used to create toy data sets.
         private static IEnumerable<DataPoint> GenerateRandomDataPoints(int exampleCount, int seed = 0)
         {
             var rnd = new Random(seed);
@@ -135,7 +140,7 @@ namespace Samples.Dynamic.Trainers.BinaryClassification
 
                 // Fill feature vectors according the assigned label.
                 // Notice that features from different fields have different biases and therefore different distributions.
-				// In practices such as game recommendation, one may use one field to store features from user profile and
+                // In practices such as game recommendation, one may use one field to store features from user profile and
                 // another field to store features from game profile.
                 for (int j = 0; j < featureLength; ++j)
                 {
@@ -161,6 +166,21 @@ namespace Samples.Dynamic.Trainers.BinaryClassification
                 data.Add(sample);
             }
             return data;
+        }
+
+        // Function used to show evaluation metrics such as accuracy of predictions.
+        private static void PrintMetrics(CalibratedBinaryClassificationMetrics metrics)
+        {
+            Console.WriteLine($"Accuracy: {metrics.Accuracy:F2}");
+            Console.WriteLine($"AUC: {metrics.AreaUnderRocCurve:F2}");
+            Console.WriteLine($"F1 Score: {metrics.F1Score:F2}");
+            Console.WriteLine($"Negative Precision: {metrics.NegativePrecision:F2}");
+            Console.WriteLine($"Negative Recall: {metrics.NegativeRecall:F2}");
+            Console.WriteLine($"Positive Precision: {metrics.PositivePrecision:F2}");
+            Console.WriteLine($"Positive Recall: {metrics.PositiveRecall:F2}");
+            Console.WriteLine($"Log Loss: {metrics.LogLoss:F2}");
+            Console.WriteLine($"Log Loss Reduction: {metrics.LogLossReduction:F2}");
+            Console.WriteLine($"Entropy: {metrics.Entropy:F2}");
         }
     }
 }
