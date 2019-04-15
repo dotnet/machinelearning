@@ -4,7 +4,6 @@ using System.Linq;
 using Microsoft.ML;
 using Microsoft.ML.Data;
 
-
 namespace Samples.Dynamic.Trainers.MulticlassClassification
 {
     public static class NaiveBayes
