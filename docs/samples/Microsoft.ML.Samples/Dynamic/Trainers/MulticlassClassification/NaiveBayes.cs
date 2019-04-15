@@ -71,6 +71,9 @@ namespace Samples.Dynamic.Trainers.MulticlassClassification
             //  Log Loss Reduction: -30.47
         }
 
+        
+        // Generates random uniform doubles in [-0.5, 0.5) range with labels 1, 2 or 3.
+        // For NaiveBayes values greater than zero are treated as true, zero or less are treated as false.
         private static IEnumerable<DataPoint> GenerateRandomDataPoints(int count, int seed=0)
         {
             var random = new Random(seed);

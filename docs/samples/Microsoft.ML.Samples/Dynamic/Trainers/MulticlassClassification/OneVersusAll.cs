@@ -67,6 +67,8 @@ namespace Samples.Dynamic.Trainers.MulticlassClassification
             //  Log Loss Reduction: 0.67
         }
 
+        
+        // Generates random uniform doubles in [-0.5, 0.5) range with labels 1, 2 or 3.
         private static IEnumerable<DataPoint> GenerateRandomDataPoints(int count, int seed=0)
         {
             var random = new Random(seed);

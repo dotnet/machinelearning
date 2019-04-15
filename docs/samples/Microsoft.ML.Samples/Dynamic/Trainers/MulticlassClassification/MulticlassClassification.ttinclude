@@ -76,6 +76,7 @@ namespace Samples.Dynamic.Trainers.MulticlassClassification
             <#=ExpectedOutput#>
         }
 
+        <#=DataGenerationComments#>
         private static IEnumerable<DataPoint> GenerateRandomDataPoints(int count, int seed=0)
         {
             var random = new Random(seed);
