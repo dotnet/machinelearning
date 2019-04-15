@@ -13390,7 +13390,7 @@
           }
         },
         {
-          "Name": "OptmizationTolerance",
+          "Name": "OptimizationTolerance",
           "Type": "Float",
           "Desc": "Tolerance parameter for optimization convergence. Low = slower, more accurate",
           "Aliases": [
@@ -13711,7 +13711,7 @@
           }
         },
         {
-          "Name": "OptmizationTolerance",
+          "Name": "OptimizationTolerance",
           "Type": "Float",
           "Desc": "Tolerance parameter for optimization convergence. Low = slower, more accurate",
           "Aliases": [
@@ -14740,7 +14740,7 @@
           }
         },
         {
-          "Name": "OptmizationTolerance",
+          "Name": "OptimizationTolerance",
           "Type": "Float",
           "Desc": "Tolerance parameter for optimization convergence. Low = slower, more accurate",
           "Aliases": [

@@ -4,7 +4,7 @@ using Microsoft.ML;
 using Microsoft.ML.Data;
 using Microsoft.ML.Trainers.FastTree;
 
-namespace Microsoft.ML.Samples.Dynamic.Trainers.Regression
+namespace Samples.Dynamic.Trainers.Regression
 {
     public static class GamWithOptions
     {
@@ -115,7 +115,7 @@ namespace Microsoft.ML.Samples.Dynamic.Trainers.Regression
             // Tan, Caruana, Hooker, and Lou. "Distill-and-Compare: Auditing Black-Box Models Using Transparent Model 
             // Distillation." <a href='https://arxiv.org/abs/1710.06169'>arXiv:1710.06169</a>."
         }
-
+        
         private class Data
         {
             public float Label { get; set; }

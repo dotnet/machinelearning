@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using Microsoft.ML;
 using Microsoft.ML.Data;
 
-namespace Microsoft.ML.Samples.Dynamic.Trainers.Regression
+namespace Samples.Dynamic.Trainers.Regression
 {
     public static class Gam
     {

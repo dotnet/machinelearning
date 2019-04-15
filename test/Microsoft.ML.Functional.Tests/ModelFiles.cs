@@ -6,6 +6,7 @@ using System;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
+using System.Text.RegularExpressions;
 using Microsoft.ML.Calibrators;
 using Microsoft.ML.Data;
 using Microsoft.ML.Functional.Tests.Datasets;
@@ -67,7 +68,7 @@ namespace Microsoft.ML.Functional.Tests
                 {
                     // The only line in the file is the version of the model.
                     var line = reader.ReadLine();
-                    Assert.Equal(@"1.0.0.0", line);
+                    Assert.Matches(new Regex(@"(\d+).(\d+)\.(\d+)\.(\d+) \@BuiltBy:(.)* \@SrcCode:(.)*"), line);
                 }
             }
         }

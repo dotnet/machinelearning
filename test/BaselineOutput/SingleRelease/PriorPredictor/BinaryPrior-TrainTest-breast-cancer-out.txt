@@ -1,4 +1,4 @@
-maml.exe TrainTest test=%Data% tr=PriorPredictor dout=%Output% data=%Data% out=%Output% seed=1
+maml.exe TrainTest test=%Data% tr=PriorPredictor dout=%Output% loader=Text{col=Label:BL:0 col=Features:~} data=%Data% out=%Output% seed=1
 Not adding a normalizer.
 Not training a calibrator because it is not needed.
 TEST POSITIVE RATIO:	0.3448 (241.0/(241.0+458.0))
