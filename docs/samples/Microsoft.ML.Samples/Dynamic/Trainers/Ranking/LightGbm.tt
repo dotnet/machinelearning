@@ -1,0 +1,20 @@
+﻿<#@ include file="Ranking.ttinclude"#>
+<#+
+string ClassName = "LightGbm";
+string Trainer = "LightGbm";
+string TrainerOptions = null;
+
+string OptionsInclude = "";
+string Comments = "";
+
+string ExpectedOutputPerInstance = @"// Expected output:
+            //   Label: 5, Score: 2.195333
+            //   Label: 4, Score: 0.2596574
+            //   Label: 4, Score: -2.168355
+            //   Label: 1, Score: -3.074823
+            //   Label: 1, Score: -1.523607";
+
+string ExpectedOutput = @"// Expected output:
+            //   DCG: @1:26.03, @2:37.57, @3:45.83
+            //   NDCG: @1:0.61, @2:0.57, @3:0.59";
+#>

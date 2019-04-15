@@ -3,11 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.ML;
 using Microsoft.ML.Data;
-using Microsoft.ML.Trainers.LightGbm;
 
 namespace Samples.Dynamic.Trainers.Ranking
 {
-    public static class LightGbmWithOptions
+    public static class FastTree
     {
         public static void Example()
         {
@@ -22,22 +21,8 @@ namespace Samples.Dynamic.Trainers.Ranking
             // Convert the list of data points to an IDataView object, which is consumable by ML.NET API.
             var trainingData = mlContext.Data.LoadFromEnumerable(dataPoints);
 
-            // Define trainer options.
-            var options = new LightGbmRankingTrainer.Options
-                {
-                    NumberOfLeaves = 4,
-                    MinimumExampleCountPerGroup = 10,
-                    LearningRate = 0.1,
-                    NumberOfIterations = 2,
-                    Booster = new GradientBooster.Options
-                    {
-                        FeatureFraction = 0.9
-                    },
-                    RowGroupColumnName = "GroupId"
-                };
-
             // Define the trainer.
-            var pipeline = mlContext.Ranking.Trainers.LightGbm(options);
+            var pipeline = mlContext.Ranking.Trainers.FastTree();
 
             // Train the model.
             var model = pipeline.Fit(trainingData);
@@ -56,19 +41,19 @@ namespace Samples.Dynamic.Trainers.Ranking
                 Console.WriteLine($"Label: {p.Label}, Score: {p.Score}");
 
             // Expected output:
-            //   Label: 5, Score: 0.08021358
-            //   Label: 4, Score: 0.02909304
-            //   Label: 4, Score: -0.07772876
-            //   Label: 1, Score: -0.07772876
-            //   Label: 1, Score: -0.003321914
+			//   Label: 5, Score: 9.94396
+			//   Label: 4, Score: 2.556023
+			//   Label: 4, Score: -5.264654
+			//   Label: 1, Score: -8.955013
+			//   Label: 1, Score: -3.514952
 
             // Evaluate the overall metrics
             var metrics = mlContext.Ranking.Evaluate(transformedTestData);
             PrintMetrics(metrics);
             
             // Expected output:
-            //   DCG: @1:22.88, @2:33.29, @3:39.35
-            //   NDCG: @1:0.54, @2:0.51, @3:0.51
+			//   DCG: @1:23.80, @2:37.17, @3:46.52
+			//   NDCG: @1:0.56, @2:0.57, @3:0.60
         }
 
         private static IEnumerable<DataPoint> GenerateRandomDataPoints(int count, int seed = 0, int groupSize = 10)

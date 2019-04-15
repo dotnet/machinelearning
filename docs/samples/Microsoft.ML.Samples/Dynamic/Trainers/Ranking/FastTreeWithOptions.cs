@@ -3,11 +3,11 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.ML;
 using Microsoft.ML.Data;
-using Microsoft.ML.Trainers.LightGbm;
+using Microsoft.ML.Trainers.FastTree;
 
 namespace Samples.Dynamic.Trainers.Ranking
 {
-    public static class LightGbmWithOptions
+    public static class FastTreeWithOptions
     {
         public static void Example()
         {
@@ -23,21 +23,18 @@ namespace Samples.Dynamic.Trainers.Ranking
             var trainingData = mlContext.Data.LoadFromEnumerable(dataPoints);
 
             // Define trainer options.
-            var options = new LightGbmRankingTrainer.Options
-                {
-                    NumberOfLeaves = 4,
-                    MinimumExampleCountPerGroup = 10,
-                    LearningRate = 0.1,
-                    NumberOfIterations = 2,
-                    Booster = new GradientBooster.Options
-                    {
-                        FeatureFraction = 0.9
-                    },
-                    RowGroupColumnName = "GroupId"
-                };
+            var options = new FastTreeRankingTrainer.Options 
+            {
+                // Use NdcgAt3 for early stopping.
+                EarlyStoppingMetric = EarlyStoppingRankingMetric.NdcgAt3,
+                // Create a simpler model by penalizing usage of new features.
+                FeatureFirstUsePenalty = 0.1,
+                // Reduce the number of trees to 50.
+                NumberOfTrees = 50
+            };
 
             // Define the trainer.
-            var pipeline = mlContext.Ranking.Trainers.LightGbm(options);
+            var pipeline = mlContext.Ranking.Trainers.FastTree(options);
 
             // Train the model.
             var model = pipeline.Fit(trainingData);
@@ -56,19 +53,19 @@ namespace Samples.Dynamic.Trainers.Ranking
                 Console.WriteLine($"Label: {p.Label}, Score: {p.Score}");
 
             // Expected output:
-            //   Label: 5, Score: 0.08021358
-            //   Label: 4, Score: 0.02909304
-            //   Label: 4, Score: -0.07772876
-            //   Label: 1, Score: -0.07772876
-            //   Label: 1, Score: -0.003321914
+            //   Label: 5, Score: 3.755302
+            //   Label: 4, Score: 0.3836164
+            //   Label: 4, Score: -5.73735
+            //   Label: 1, Score: -9.847338
+            //   Label: 1, Score: -2.719545
 
             // Evaluate the overall metrics
             var metrics = mlContext.Ranking.Evaluate(transformedTestData);
             PrintMetrics(metrics);
             
             // Expected output:
-            //   DCG: @1:22.88, @2:33.29, @3:39.35
-            //   NDCG: @1:0.54, @2:0.51, @3:0.51
+            //   DCG: @1:24.81, @2:38.36, @3:46.26
+            //   NDCG: @1:0.60, @2:0.59, @3:0.60
         }
 
         private static IEnumerable<DataPoint> GenerateRandomDataPoints(int count, int seed = 0, int groupSize = 10)

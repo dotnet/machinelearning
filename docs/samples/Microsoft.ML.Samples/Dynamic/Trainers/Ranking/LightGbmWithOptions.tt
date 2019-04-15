@@ -1,0 +1,31 @@
+﻿<#@ include file="Ranking.ttinclude"#>
+<#+
+string ClassName = "LightGbmWithOptions";
+string Trainer = "LightGbm";
+string TrainerOptions = @"LightGbmRankingTrainer.Options
+                {
+                    NumberOfLeaves = 4,
+                    MinimumExampleCountPerGroup = 10,
+                    LearningRate = 0.1,
+                    NumberOfIterations = 2,
+                    Booster = new GradientBooster.Options
+                    {
+                        FeatureFraction = 0.9
+                    },
+                    RowGroupColumnName = ""GroupId""
+                }";
+
+string OptionsInclude = "using Microsoft.ML.Trainers.LightGbm;";
+string Comments = "";
+
+string ExpectedOutputPerInstance = @"// Expected output:
+            //   Label: 5, Score: 0.08021358
+            //   Label: 4, Score: 0.02909304
+            //   Label: 4, Score: -0.07772876
+            //   Label: 1, Score: -0.07772876
+            //   Label: 1, Score: -0.003321914";
+
+string ExpectedOutput = @"// Expected output:
+            //   DCG: @1:22.88, @2:33.29, @3:39.35
+            //   NDCG: @1:0.54, @2:0.51, @3:0.51";
+#>

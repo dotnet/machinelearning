@@ -1,0 +1,20 @@
+﻿<#@ include file="Ranking.ttinclude"#>
+<#+
+string ClassName = "FastTree";
+string Trainer = "FastTree";
+string TrainerOptions = null;
+
+string OptionsInclude = "";
+string Comments = "";
+
+string ExpectedOutputPerInstance = @"// Expected output:
+			//   Label: 5, Score: 9.94396
+			//   Label: 4, Score: 2.556023
+			//   Label: 4, Score: -5.264654
+			//   Label: 1, Score: -8.955013
+			//   Label: 1, Score: -3.514952";
+
+string ExpectedOutput = @"// Expected output:
+			//   DCG: @1:23.80, @2:37.17, @3:46.52
+			//   NDCG: @1:0.56, @2:0.57, @3:0.60";
+#>
