@@ -28,7 +28,7 @@ namespace Samples.Dynamic.Trainers.Regression
             var model = pipeline.Fit(trainingData);
 
             // Create testing data. Use different random seed to make it different from training data.
-            var testData = mlContext.Data.LoadFromEnumerable(GenerateRandomDataPoints(500, seed: 123));
+            var testData = mlContext.Data.LoadFromEnumerable(GenerateRandomDataPoints(5, seed: 123));
 
             // Run the model on test data set.
             var transformedTestData = model.Transform(testData);
@@ -36,8 +36,8 @@ namespace Samples.Dynamic.Trainers.Regression
             // Convert IDataView object to a list.
             var predictions = mlContext.Data.CreateEnumerable<Prediction>(transformedTestData, reuseRowObject: false).ToList();
 
-            // Look at 5 predictions
-            foreach (var p in predictions.Take(5))
+            // Look at predictions
+            foreach (var p in predictions)
                 Console.WriteLine($"Label: {p.Label:F3}, Prediction: {p.Score:F3}");
 
             // Expected output:
@@ -52,10 +52,10 @@ namespace Samples.Dynamic.Trainers.Regression
             Microsoft.ML.SamplesUtils.ConsoleUtils.PrintMetrics(metrics);
 
             // Expected output:
-            //   Mean Absolute Error: 0.03
+            //   Mean Absolute Error: 0.05
             //   Mean Squared Error: 0.00
-            //   Root Mean Squared Error: 0.04
-            //   RSquared: 0.98
+            //   Root Mean Squared Error: 0.06
+            //   RSquared: 0.97
         }
 
         private static IEnumerable<DataPoint> GenerateRandomDataPoints(int count, int seed=0)

@@ -24,8 +24,8 @@ string ExpectedOutputPerInstance= @"// Expected output:
             //   Label: 0.096, Prediction: 0.078";
 
 string ExpectedOutput = @"// Expected output:
-            //   Mean Absolute Error: 0.04
+            //   Mean Absolute Error: 0.05
             //   Mean Squared Error: 0.00
-            //   Root Mean Squared Error: 0.05
-            //   RSquared: 0.98";
+            //   Root Mean Squared Error: 0.06
+            //   RSquared: 0.97";
 #>
