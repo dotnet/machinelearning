@@ -9,7 +9,18 @@ using Microsoft.ML.Runtime;
 
 namespace Microsoft.ML.Transforms
 {
-    /// <include file='doc.xml' path='doc/members/member[@name="ValueToKeyMappingEstimator"]/*' />
+    /// <summary>
+    /// Converts input values (words, numbers, etc.) to index in a dictionary.
+    /// </summary>
+    /// <remarks>
+    /// The ValueToKeyMappingEstimator builds up term vocabularies(dictionaries) mapping the input values to the keys on the dictionary.
+    /// If multiple columns are used, each column builds/uses exactly one vocabulary.
+    /// The output columns are KeyDataViewType-valued.
+    /// The Key value is the one-based index of the item in the dictionary.
+    /// If the key is not found in the dictionary, it is assigned the missing value indicator.
+    /// This dictionary mapping values to keys is most commonly learnt from the unique values in input data,
+    /// but can be defined through other means: either with the mapping defined, or as loaded from an external file.
+    ///  </remarks>
     public sealed class ValueToKeyMappingEstimator : IEstimator<ValueToKeyMappingTransformer>
     {
         [BestFriend]
@@ -76,7 +87,7 @@ namespace Microsoft.ML.Transforms
         internal sealed class ColumnOptions : ColumnOptionsBase
         {
             /// <summary>
-            /// Describes how the transformer handles one column pair.
+            /// Describes how the transformer handles onumn pair.
             /// </summary>
             /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.</param>
             /// <param name="inputColumnName">Name of the column to transform. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.</param>

@@ -31,7 +31,22 @@ using Microsoft.ML.Transforms;
 
 namespace Microsoft.ML.Transforms
 {
-    /// <include file='doc.xml' path='doc/members/member[@name="ValueMappingEstimator"]/*' />
+    /// <summary>
+    /// The ValueMappingEstimator is a 1-1 mapping from one value to another value.
+    /// </summary>
+    /// <remarks>
+    /// Given two sets of values, one serving as the key, and the other as the value of a Dictionary, the ValueMappingEstimator builds up this dictionary so that when given a specific key it will return a
+    /// specific value.The ValueMappingEstimator supports keys and values of different <see cref = "System.Type" /> to support different data types.
+    /// Examples for using a ValueMappingEstimator are:
+    /// <list type ='bullet'>
+    /// <item ><description> Converting a string value to a string value, this can be useful for grouping (i.e. 'cat', 'dog', 'horse' maps to 'mammals')</description></item>
+    /// <item><description> Converting a string value to a integer value (i.e. converting the text description like quality to an numeric where 'good' maps to 1, 'poor' maps to 0</description></item>
+    /// <item><description> Converting a integer value to a string value and have the string value represented as a <see cref="KeyDataViewType"/>
+    /// (i.e. convert zip codes to a state string value, which will generate a unique integer value that can be used as a label.</description></item>
+    /// </list>
+    /// Values can be repeated to allow for multiple keys to map to the same value, however keys can not be repeated. The mapping between keys and values
+    /// can be specified either through lists, where the key list and value list must be the same size or can be done through an <see cref="IDataView"/>.
+    ///  </remarks>
     public class ValueMappingEstimator : TrivialEstimator<ValueMappingTransformer>
     {
         private readonly (string outputColumnName, string inputColumnName)[] _columns;
