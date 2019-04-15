@@ -57,21 +57,21 @@ namespace Samples.Dynamic.Trainers.Regression
                 Console.WriteLine($"Label: {p.Label:F3}, Prediction: {p.Score:F3}");
 
             // Expected output:
-            // Label: 0.985, Prediction: 0.950
-            // Label: 0.155, Prediction: 0.111
-            // Label: 0.515, Prediction: 0.475
-            // Label: 0.566, Prediction: 0.575
-            // Label: 0.096, Prediction: 0.093
+            //   Label: 0.985, Prediction: 0.950
+            //   Label: 0.155, Prediction: 0.111
+            //   Label: 0.515, Prediction: 0.475
+            //   Label: 0.566, Prediction: 0.575
+            //   Label: 0.096, Prediction: 0.093
 
             // Evaluate the overall metrics
             var metrics = mlContext.Regression.Evaluate(transformedTestData);
             Microsoft.ML.SamplesUtils.ConsoleUtils.PrintMetrics(metrics);
 
             // Expected output:
-            // Mean Absolute Error: 0.05
-            // Mean Squared Error: 0.00
-            // Root Mean Squared Error: 0.06
-            // RSquared: 0.95
+            //   Mean Absolute Error: 0.05
+            //   Mean Squared Error: 0.00
+            //   Root Mean Squared Error: 0.06
+            //   RSquared: 0.95
         }
 
         private static IEnumerable<DataPoint> GenerateRandomDataPoints(int count, int seed=0)
