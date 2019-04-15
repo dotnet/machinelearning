@@ -54,7 +54,6 @@ namespace Microsoft.ML
         /// Create a <see cref="ColumnCopyingEstimator"/>, which copies the data from the column specified in <paramref name="inputColumnName"/>
         /// to a new column: <paramref name="outputColumnName"/>.
         /// </summary>
-        /// <remarks>For more information see <see cref="ColumnCopyingEstimator"/>.</remarks>
         /// <param name="catalog">The transform's catalog.</param>
         /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.
         /// This column's data type will be the same as that of the input column.</param>
@@ -74,8 +73,7 @@ namespace Microsoft.ML
         /// Create a <see cref="ColumnCopyingEstimator"/>, which copies the data from the column specified in <see cref="InputOutputColumnPair.InputColumnName" />
         /// to a new column: <see cref="InputOutputColumnPair.OutputColumnName" />.
         /// </summary>
-        /// <remarks>This transform can operate over several columns.
-        /// For more information see <see cref="ColumnCopyingEstimator"/>.</remarks>
+        /// <remarks>This transform can operate over several columns.</remarks>
         /// <param name="catalog">The transform's catalog.</param>
         /// <param name="columns">The pairs of input and output columns. This estimator operates over any data type.</param>
         /// <example>
