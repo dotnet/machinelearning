@@ -5,42 +5,32 @@ This document includes some more in depth notes on some expert topics for
 
 ## `Batch`
 
-The `Batch` property is the mechanims by which the data from the multiple
-cursors returned by `IDataView.GetRowCursorSet` can be reconciled into a
-single, cohesive, sequence.
+Multiple cursors can be returned through a method like
+`IDataView.GetRowCursorSet`. Operations can happen on top of these cursors --
+most commonly, transforms creating new cursors on top of them for  parallel
+evaluation of a data pipeline. But the question is, if you need to "recombine"
+them into a sequence again, how do to it? The `Batch` property is the
+mechanism by which the data from these multiple cursors returned by
+`IDataView.GetRowCursorSet` can be reconciled into a single, cohesive,
+sequence.
 
-`IDataView.GetRowCursorSet` can return a set of parallel cursors that
-partition the sequence of rows as would have normally been returned through a
-more typical call to `GetRowCursor`. These cursors can be accessed across
-multiple threads to enable parallel evaluation of a data pipeline. This is key
-for the data pipeline performance during featurization.
+The question might be, why recombine. This can be done for several reasons: we
+may want repeatability and determinism in such a way that requires we view the
+rows in a simple sequence, or the cursor may be stateful in some way that
+precludes partitioning it, or some other consideration. And, since a core
+`IDataView` design principle is repeatability, we now have a problem of how to
+reconcile those separate partitioning.
 
-However, even though the data pipeline can perform this parallel evaluation,
-at the end of this parallelization we sometimes want to recombine the separate
-thread's streams back into a single cohesive sequence. This can be done for
-several reasons: we may want repeatability and determinism, or the cursor may
-be stateful in some way that precludes the sharding inherent . But, for this end consumer that calls
-the single cursor. And, since a core `IDataView` design principle is
-repeatability, we now have a problem of how to reconcile those separate
-partitioninging. This reconciliation to re-sequence the partitioned dataset is
-accomplished through `DataViewRow.Batch`.
-
-So, to review what actually happens in this ML.NET utility code: multiple
-cursors are returned through a method like `IDataView.GetRowCursorSet`.
-Operations can happen on top of these cursors -- most commonly, transforms
-creating new cursors on top of them. This `Batch` property can then be used to
-reconcile these separate cursors into a single cohesive sequence again. An
-example of this internal to the ML.NET code base is the
-`DataViewUtils.ConsolidateGeneric` utility method.
-
-It may help to first understand this process intuitively, to understand
-`Batch`'s requirements: when we reconcile the outputs of multiple cursors, the
-consolidator will take the set of cursors. It will find the one with the
-"lowest" `Batch` ID. (This must be uniquely determined: that is, no two
-cursors should ever return the same `Batch` value.) It will iterate on that
-cursor until the `Batch` ID changes. Whereupon, the consolidator will find the
-next cursor with the next lowest batch ID (which should be greater, of course,
-than the `Batch` value we were just iterating on).
+Incidentally, for those working on the ML.NET codebase, there is an internal
+method `DataViewUtils.ConsolidateGeneric` utility method to perform this
+function. It may be helpful to understand how it works intuitively, so that we
+can understand `Batch`'s requirements: when we reconcile the outputs of
+multiple cursors, the consolidator will take the set of cursors. It will find
+the one with the "lowest" `Batch` ID. (This must be uniquely determined: that
+is, no two cursors should ever return the same `Batch` value.) It will iterate
+on that cursor until the `Batch` ID changes. Whereupon, the consolidator will
+find the next cursor with the next lowest batch ID (which should be greater,
+of course, than the `Batch` value we were just iterating on).
 
 Put another way: suppose we called `GetRowCursor` (with an optional `Random`
 parameter), and we store all the values from the rows from that cursoring in
@@ -203,16 +193,20 @@ transformations, or other such things like this, in which case the details
 above become important.
 
 One common thought that comes up is the idea that we can have some "global
-position" instead of ID. This was actually my first idea, and multiple people
-have asked the question to the point where it would probably be best to have a
-ready answer. While if this were possible it would definitely make for a
-cleaner, simpler solution, it runs afoul of the earlier desire with regard to
-data view cursor sets, that is, that `IDataView` cursors should, if possible,
-present split cursors that can be independently "batches" of the data. But,
-let's imagine something like the operation for filtering; if I have a batch
-`0` comprised of 64 rows, and a batch `1` with another 64 rows, and I do a
-filter for, say, missing values, I could not provide the row sequence number
-for batch `1` until I had counted the number of rows that passed in batch `0`,
-which compromises the whole point of why we wanted to have cursor sets in the
-first place. The same is true also for one-to-many `IDataView` implementations
-(for example, joins). So, regrettably, that simpler solution would not work.
+position" instead of ID.  This was actually the first idea by the original
+implementor, and if if it *were* possible it would definitely make for a
+cleaner, simpler solution, and multiple people have asked the question to the
+point where it would probably be best to have a ready answer about where it
+broke down, to undersatnd how it fails. It runs afoul of the earlier desire
+with regard to data view cursor sets, that is, that `IDataView` cursors
+should, if possible, present split cursors that can run independently on
+"batches" of the data. But, let's imagine something like the operation for
+filtering; if I have a batch `0` comprised of 64 rows, and a batch `1` with
+another 64 rows, and one filters rows with missing values, the ML.NET code
+could not provide the row sequence number for batch `1` until  had counted the
+number of rows that passed in batch `0`, which compromises the whole point of
+why we wanted to have cursor sets in the first place. The same is true also
+for one-to-many `IDataView` implementations (for example, joins, or something
+like that), where even a strictly increasing (but not necessarily contiguous)
+value may not be possible, since you cannot even bound the number. So,
+regrettably, that simpler solution would not work.
