@@ -7,9 +7,21 @@ using System.Threading;
 
 namespace Microsoft.ML.Auto
 {
-    public class ExperimentSettings
+    /// <summary>
+    /// Base class for experiment settings. All task-specific AutoML experiment settings
+    /// (like <see cref="BinaryExperimentSettings"/>) inherit from this class.
+    /// </summary>
+    public abstract class ExperimentSettings
     {
+        /// <summary>
+        /// Maximum time in seconds the experiment is allowed to run.
+        /// </summary>
         public uint MaxExperimentTimeInSeconds { get; set; } = 24 * 60 * 60;
+
+        /// <summary>
+        /// Cancellation token for the AutoML experiment. It propagates the notification
+        /// that the experiment should be canceled.
+        /// </summary>
         public CancellationToken CancellationToken { get; set; } = default;
 
         /// <summary>
@@ -26,7 +38,7 @@ namespace Microsoft.ML.Auto
         /// If set to null (default value), AutoML will decide whether to enable caching for each model.
         /// </summary>
         public bool? CacheBeforeTrainer = null;
-
+        
         internal int MaxModels = int.MaxValue;
         internal IDebugLogger DebugLogger;
     }

@@ -4,11 +4,19 @@
 
 namespace Microsoft.ML.Auto
 {
+    /// <summary>
+    /// Class containing AutoML extension methods to <see cref="MLContext"/>
+    /// </summary>
     public static class MLContextExtension
     {
-        public static AutoMLCatalog Auto(this MLContext mlContext)
+        /// <summary>
+        /// Returns a catalog of all possible AutoML operations.
+        /// </summary>
+        /// <param name="mlContext"><see cref="MLContext"/> instance.</param>
+        /// <returns>A catalog of all possible AutoML operations.</returns>
+        public static AutoCatalog Auto(this MLContext mlContext)
         {
-            return new AutoMLCatalog(mlContext);
+            return new AutoCatalog(mlContext);
         }
     }
 }

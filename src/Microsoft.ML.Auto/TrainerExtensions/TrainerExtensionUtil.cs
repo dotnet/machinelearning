@@ -291,7 +291,7 @@ namespace Microsoft.ML.Auto
                     return TrainerName.FastTreeBinary;
                 case BinaryClassificationTrainer.LightGbm:
                     return TrainerName.LightGbmBinary;
-                case BinaryClassificationTrainer.LinearSupportVectorMachines:
+                case BinaryClassificationTrainer.LinearSvm:
                     return TrainerName.LinearSvmBinary;
                 case BinaryClassificationTrainer.LbfgsLogisticRegression:
                     return TrainerName.LbfgsLogisticRegressionBinary;

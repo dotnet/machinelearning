@@ -6,23 +6,38 @@ using System;
 
 namespace Microsoft.ML.Auto
 {
-    public enum InferenceType
+    /// <summary>
+    /// Type of exception encountered by AutoML.
+    /// </summary>
+    public enum InferenceExceptionType
     {
-        ColumnDataKind,
+        /// <summary>
+        /// Exception that occurs when AutoML is inferring the data type of a column.
+        /// </summary>
+        ColumnDataType,
+
+        /// <summary>
+        /// Exception that occurs when AutoML is attempting to split a dataset into distinct columns.
+        /// </summary>
         ColumnSplit,
-        Label,
     }
 
+    /// <summary>
+    /// Exception thrown by AutoML.
+    /// </summary>
     public sealed class InferenceException : Exception
     {
-        public InferenceType InferenceType;
-
-        public InferenceException(InferenceType inferenceType, string message)
+        /// <summary>
+        /// Type of AutoML exception that occurred.
+        /// </summary>
+        public InferenceExceptionType InferenceExceptionType;
+        
+        internal InferenceException(InferenceExceptionType inferenceType, string message)
         : base(message)
         {
         }
 
-        public InferenceException(InferenceType inferenceType, string message, Exception inner)
+        internal InferenceException(InferenceExceptionType inferenceType, string message, Exception inner)
             : base(message, inner)
         {
         }

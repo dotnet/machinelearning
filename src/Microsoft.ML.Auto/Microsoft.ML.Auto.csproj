@@ -26,6 +26,14 @@
     <AssemblyName>Microsoft.ML.Auto</AssemblyName>
   </PropertyGroup>
 
+  <PropertyGroup>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <NoWarn>1701;1702</NoWarn>
+  </PropertyGroup>
+
   <ItemGroup Condition="'$(IncludeMLNetNotices)' != 'false'">
     <Content Include="$(RepoRoot)\THIRD-PARTY-NOTICES.TXT" Pack="true" PackagePath="" />
     <Content Include="$(RepoRoot)\LICENSE" Pack="true" PackagePath="" />
