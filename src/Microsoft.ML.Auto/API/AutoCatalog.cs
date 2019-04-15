@@ -24,21 +24,11 @@ namespace Microsoft.ML.Auto
         /// <param name="maxExperimentTimeInSeconds">Maximum number of seconds that experiment will run.</param>
         /// <returns>A new AutoML regression experiment.</returns>
         /// <example>
-        /// <code>
-        /// MLContext mlContext = new MLContext();
-        /// 
-        /// // Infer columns
-        /// var columnInferenceResults = mlContext.Auto().InferColumns(@"C:\dataset\train.csv", "LabelColumn");
-        /// 
-        /// // Load data
-        /// var textLoader = mlContext.Data.CreateTextLoader(columnInference.TextLoaderOptions);
-        /// IDataView trainDataView = textLoader.Load(@"C:\dataset\train.csv");
-        /// 
-        /// // Run an AutoML experiment
-        /// var experimentResult = mlContext.Auto()
-        ///     .CreateRegressionExperiment(60)
-        ///     .Execute(trainDataView, columnInference.ColumnInformation);
-        /// </code>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        /// [!code-csharp[RegressionExperiment](~/../docs/samples/docs/samples/Microsoft.ML.Samples/AutoML/RegressionExperiment.cs)]
+        /// ]]>
+        /// </format>
         /// </example>
         public RegressionExperiment CreateRegressionExperiment(uint maxExperimentTimeInSeconds)
         {
@@ -54,25 +44,11 @@ namespace Microsoft.ML.Auto
         /// <param name="experimentSettings">Settings for the AutoML experiment.</param>
         /// <returns>A new AutoML regression experiment.</returns>
         /// <example>
-        /// <code>
-        /// MLContext mlContext = new MLContext();
-        /// 
-        /// // Infer columns
-        /// var columnInferenceResults = mlContext.Auto().InferColumns(@"C:\dataset\train.csv", "LabelColumn");
-        /// 
-        /// // Load data
-        /// var textLoader = mlContext.Data.CreateTextLoader(columnInference.TextLoaderOptions);
-        /// IDataView trainDataView = textLoader.Load(@"C:\dataset\train.csv");
-        /// 
-        /// // Run an AutoML experiment
-        /// var experimentSettings = new RegressionExperimentSettings()
-        /// {
-        ///     MaxExperimentTimeInSeconds = 60
-        /// };
-        /// var experimentResult = mlContext.Auto()
-        ///     .CreateRegressionExperiment(experimentSettings)
-        ///     .Execute(trainDataView, columnInference.ColumnInformation);
-        /// </code>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        /// [!code-csharp[RegressionExperimentWithExperimentSettings](~/../docs/samples/docs/samples/Microsoft.ML.Samples/AutoML/RegressionExperimentWithExperimentSettings.cs)]
+        /// ]]>
+        /// </format>
         /// </example>
         public RegressionExperiment CreateRegressionExperiment(RegressionExperimentSettings experimentSettings)
         {
@@ -85,21 +61,11 @@ namespace Microsoft.ML.Auto
         /// <param name="maxExperimentTimeInSeconds">Maximum number of seconds that experiment will run.</param>
         /// <returns>A new AutoML binary classification experiment.</returns>
         /// <example>
-        /// <code>
-        /// MLContext mlContext = new MLContext();
-        /// 
-        /// // Infer columns
-        /// var columnInferenceResults = mlContext.Auto().InferColumns(@"C:\dataset\train.csv", "LabelColumn");
-        /// 
-        /// // Load data
-        /// var textLoader = mlContext.Data.CreateTextLoader(columnInference.TextLoaderOptions);
-        /// IDataView trainDataView = textLoader.Load(@"C:\dataset\train.csv");
-        /// 
-        /// // Run an AutoML experiment
-        /// var experimentResult = mlContext.Auto()
-        ///     .CreateBinaryClassificationExperiment(60)
-        ///     .Execute(trainDataView, columnInference.ColumnInformation);
-        /// </code>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        /// [!code-csharp[BinaryClassificationExperiment](~/../docs/samples/docs/samples/Microsoft.ML.Samples/AutoML/BinaryClassificationExperiment.cs)]
+        /// ]]>
+        /// </format>
         /// </example>
         public BinaryClassificationExperiment CreateBinaryClassificationExperiment(uint maxExperimentTimeInSeconds)
         {
@@ -115,25 +81,11 @@ namespace Microsoft.ML.Auto
         /// <param name="experimentSettings">Settings for the AutoML experiment.</param>
         /// <returns>A new AutoML binary classification experiment.</returns>
         /// <example>
-        /// <code>
-        /// MLContext mlContext = new MLContext();
-        /// 
-        /// // Infer columns
-        /// var columnInferenceResults = mlContext.Auto().InferColumns(@"C:\dataset\train.csv", "LabelColumn");
-        /// 
-        /// // Load data
-        /// var textLoader = mlContext.Data.CreateTextLoader(columnInference.TextLoaderOptions);
-        /// IDataView trainDataView = textLoader.Load(@"C:\dataset\train.csv");
-        /// 
-        /// // Run an AutoML experiment
-        /// var experimentSettings = new BinaryExperimentSettings()
-        /// {
-        ///     MaxExperimentTimeInSeconds = 60
-        /// };
-        /// var experimentResult = mlContext.Auto()
-        ///     .CreateBinaryClassificationExperiment(experimentSettings)
-        ///     .Execute(trainDataView, columnInference.ColumnInformation);
-        /// </code>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        /// [!code-csharp[BinaryClassificationExperimentWithExperimentSettings](~/../docs/samples/docs/samples/Microsoft.ML.Samples/AutoML/BinaryClassificationExperimentWithExperimentSettings.cs)]
+        /// ]]>
+        /// </format>
         /// </example>
         public BinaryClassificationExperiment CreateBinaryClassificationExperiment(BinaryExperimentSettings experimentSettings)
         {
@@ -146,21 +98,11 @@ namespace Microsoft.ML.Auto
         /// <param name="maxExperimentTimeInSeconds">Maximum number of seconds that experiment will run.</param>
         /// <returns>A new AutoML multiclass classification experiment.</returns>
         /// <example>
-        /// <code>
-        /// MLContext mlContext = new MLContext();
-        /// 
-        /// // Infer columns
-        /// var columnInferenceResults = mlContext.Auto().InferColumns(@"C:\dataset\train.csv", "LabelColumn");
-        /// 
-        /// // Load data
-        /// var textLoader = mlContext.Data.CreateTextLoader(columnInference.TextLoaderOptions);
-        /// IDataView trainDataView = textLoader.Load(@"C:\dataset\train.csv");
-        /// 
-        /// // Run an AutoML experiment
-        /// var experimentResult = mlContext.Auto()
-        ///     .CreateMulticlassClassificationExperiment(60)
-        ///     .Execute(trainDataView, columnInference.ColumnInformation);
-        /// </code>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        /// [!code-csharp[MulticlassClassificationExperiment](~/../docs/samples/docs/samples/Microsoft.ML.Samples/AutoML/MulticlassClassificationExperiment.cs)]
+        /// ]]>
+        /// </format>
         /// </example>
         public MulticlassClassificationExperiment CreateMulticlassClassificationExperiment(uint maxExperimentTimeInSeconds)
         {
@@ -176,25 +118,11 @@ namespace Microsoft.ML.Auto
         /// <param name="experimentSettings">Settings for the AutoML experiment.</param>
         /// <returns>A new AutoML multiclass classification experiment.</returns>
         /// <example>
-        /// <code>
-        /// MLContext mlContext = new MLContext();
-        /// 
-        /// // Infer columns
-        /// var columnInferenceResults = mlContext.Auto().InferColumns(@"C:\dataset\train.csv", "LabelColumn");
-        /// 
-        /// // Load data
-        /// var textLoader = mlContext.Data.CreateTextLoader(columnInference.TextLoaderOptions);
-        /// IDataView trainDataView = textLoader.Load(@"C:\dataset\train.csv");
-        /// 
-        /// // Run an AutoML experiment
-        /// var experimentSettings = new MulticlassExperimentSettings()
-        /// {
-        ///     MaxExperimentTimeInSeconds = 60
-        /// };
-        /// var experimentResult = mlContext.Auto()
-        ///     .CreateMulticlassClassificationExperiment(experimentSettings)
-        ///     .Execute(trainDataView, columnInference.ColumnInformation);
-        /// </code>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        /// [!code-csharp[MulticlassClassificationExperimentWithExperimentSettings](~/../docs/samples/docs/samples/Microsoft.ML.Samples/AutoML/MulticlassClassificationExperimentWithExperimentSettings.cs)]
+        /// ]]>
+        /// </format>
         /// </example>
         public MulticlassClassificationExperiment CreateMulticlassClassificationExperiment(MulticlassExperimentSettings experimentSettings)
         {
@@ -206,9 +134,9 @@ namespace Microsoft.ML.Auto
         /// </summary>
         /// <param name="path">Path to a dataset file.</param>
         /// <param name="labelColumnName">The name of the label column.</param>
-        /// <param name="separatorChar">The character used as separator between data points in a row. If null, AutoML will try to infer this value.</param>
-        /// <param name="allowQuoting">Whether the file can contain column defined by a quoted string. If null, AutoML will try to infer this value.</param>
-        /// <param name="allowSparse">Whether the file can contain numerical vectors in sparse format. If null, AutoML will try to infer this value.</param>
+        /// <param name="separatorChar">The character used as separator between data points in a row. If <see langword="null"/>, AutoML will try to infer this value.</param>
+        /// <param name="allowQuoting">Whether the file can contain column defined by a quoted string. If <see langword="null"/>, AutoML will try to infer this value.</param>
+        /// <param name="allowSparse">Whether the file can contain numerical vectors in sparse format. If <see langword="null"/>, AutoML will try to infer this value.</param>
         /// <param name="trimWhitespace">Whether trailing whitespace should be removed from dataset file lines.</param>
         /// <param name="groupColumns">Whether to group together (when possible) original columns in the dataset file into vector columns in the resulting data structures. See <see cref="TextLoader.Range"/> for more information.</param>
         /// <returns>Information inferred about the columns in the provided dataset.</returns>
@@ -222,22 +150,6 @@ namespace Microsoft.ML.Auto
         /// (For instance, is the column categorical, numeric, or text data,? Should the column be ignored? Etc). 
         /// The <see cref="ColumnInformation"/> can be inspected and modified (or kept as is) and passed to an AutoML experiment for running.
         /// </remarks>
-        /// <example>
-        /// <code>
-        /// var mlContext = new MLContext();
-        /// 
-        /// // Infer columns
-        /// ColumnInferenceResults columnInference = mlContext.Auto().InferColumns(@"C:\dataset\train_data.csv", "LabelColumn");
-        /// 
-        /// // Load data using inferred columns
-        /// TextLoader textLoader = mlContext.Data.CreateTextLoader(columnInference.TextLoaderOptions);
-        /// 
-        /// // Run an AutoML experiment using the inferred columns.
-        /// var experiment = new MLContext().Auto()
-        ///     .CreateRegressionExperiment(60)
-        ///     .Execute(trainDataView, columnInference.ColumnInformation);
-        /// </code>
-        /// </example>
         public ColumnInferenceResults InferColumns(string path, string labelColumnName = DefaultColumnNames.Label, char? separatorChar = null, bool? allowQuoting = null, 
             bool? allowSparse = null, bool trimWhitespace = false, bool groupColumns = true)
         {
@@ -250,9 +162,9 @@ namespace Microsoft.ML.Auto
         /// </summary>
         /// <param name="path">Path to a dataset file.</param>
         /// <param name="columnInformation">Column information for the dataset.</param>
-        /// <param name="separatorChar">The character used as separator between data points in a row. If null, AutoML will try to infer this value.</param>
-        /// <param name="allowQuoting">Whether the file can contain column defined by a quoted string. If null, AutoML will try to infer this value.</param>
-        /// <param name="allowSparse">Whether the file can contain numerical vectors in sparse format. If null, AutoML will try to infer this value.</param>
+        /// <param name="separatorChar">The character used as separator between data points in a row. If <see langword="null"/>, AutoML will try to infer this value.</param>
+        /// <param name="allowQuoting">Whether the file can contain column defined by a quoted string. If <see langword="null"/>, AutoML will try to infer this value.</param>
+        /// <param name="allowSparse">Whether the file can contain numerical vectors in sparse format. If <see langword="null"/>, AutoML will try to infer this value.</param>
         /// <param name="trimWhitespace">Whether trailing whitespace should be removed from dataset file lines.</param>
         /// <param name="groupColumns">Whether to group together (when possible) original columns in the dataset file into vector columns in the resulting data structures. See <see cref="TextLoader.Range"/> for more information.</param>
         /// <returns>Information inferred about the columns in the provided dataset.</returns>
@@ -266,26 +178,6 @@ namespace Microsoft.ML.Auto
         /// (For instance, is the column categorical, numeric, or text data,? Should the column be ignored? Etc). 
         /// The <see cref="ColumnInformation"/> can be inspected and modified (or kept as is) and passed to an AutoML experiment for running.
         /// </remarks>
-        /// <example>
-        /// <code>
-        /// var mlContext = new MLContext();
-        /// 
-        /// // Infer columns
-        /// var columnInformation = new ColumnInformation()
-        /// {
-        ///     LabelColumnName = "LabelColumn"
-        /// };
-        /// ColumnInferenceResults columnInference = mlContext.Auto().InferColumns(@"C:\dataset\train_data.csv", columnInformation);
-        /// 
-        /// // Load data using inferred columns
-        /// TextLoader textLoader = mlContext.Data.CreateTextLoader(columnInference.TextLoaderOptions);
-        /// 
-        /// // Run an AutoML experiment using the inferred columns.
-        /// var experiment = new MLContext().Auto()
-        ///     .CreateRegressionExperiment(60)
-        ///     .Execute(trainDataView, columnInference.ColumnInformation);
-        /// </code>
-        /// </example>
         public ColumnInferenceResults InferColumns(string path, ColumnInformation columnInformation, char? separatorChar = null, bool? allowQuoting = null,
             bool? allowSparse = null, bool trimWhitespace = false, bool groupColumns = true)
         {
@@ -300,9 +192,9 @@ namespace Microsoft.ML.Auto
         /// <param name="path">Path to a dataset file.</param>
         /// <param name="labelColumnIndex">Column index of the label column in the dataset.</param>
         /// <param name="hasHeader">Whether or not the dataset file has a header row.</param>
-        /// <param name="separatorChar">The character used as separator between data points in a row. If null, AutoML will try to infer this value.</param>
-        /// <param name="allowQuoting">Whether the file can contain column defined by a quoted string. If null, AutoML will try to infer this value.</param>
-        /// <param name="allowSparse">Whether the file can contain numerical vectors in sparse format. If null, AutoML will try to infer this value.</param>
+        /// <param name="separatorChar">The character used as separator between data points in a row. If <see langword="null"/>, AutoML will try to infer this value.</param>
+        /// <param name="allowQuoting">Whether the file can contain column defined by a quoted string. If <see langword="null"/>, AutoML will try to infer this value.</param>
+        /// <param name="allowSparse">Whether the file can contain numerical vectors in sparse format. If <see langword="null"/>, AutoML will try to infer this value.</param>
         /// <param name="trimWhitespace">Whether trailing whitespace should be removed from dataset file lines.</param>
         /// <param name="groupColumns">Whether to group together (when possible) original columns in the dataset file into vector columns in the resulting data structures. See <see cref="TextLoader.Range"/> for more information.</param>
         /// <returns>Information inferred about the columns in the provided dataset.</returns>

@@ -22,7 +22,6 @@
 
   <ItemGroup>
     <Project Include="Microsoft.ML.sln" />
-    <Project Include="Microsoft.ML.AutoML.sln" />
   </ItemGroup>
 
   <Import Project="dir.traversal.targets" />

@@ -26,7 +26,7 @@ namespace Microsoft.ML.Auto
 
         /// <summary>
         /// This is a pointer to a directory where all models trained during the AutoML experiment will be saved.
-        /// If null, models will be kept in memory instead of written to disk.
+        /// If <see langword="null"/>, models will be kept in memory instead of written to disk.
         /// (Please note: for an experiment with high runtime operating on a large dataset, opting to keep models in 
         /// memory could cause a system to run out of memory.)
         /// </summary>
@@ -35,7 +35,7 @@ namespace Microsoft.ML.Auto
         /// <summary>
         /// This setting controls whether or not an AutoML experiment will make use of ML.NET-provided caching.
         /// If set to true, caching will be forced on for all pipelines. If set to false, caching will be forced off.
-        /// If set to null (default value), AutoML will decide whether to enable caching for each model.
+        /// If set to <see langword="null"/> (default value), AutoML will decide whether to enable caching for each model.
         /// </summary>
         public bool? CacheBeforeTrainer = null;
         
