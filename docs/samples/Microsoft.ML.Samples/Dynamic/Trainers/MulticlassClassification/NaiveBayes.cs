@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.ML;
 using Microsoft.ML.Data;
-using Microsoft.ML.SamplesUtils;
+
 
 namespace Samples.Dynamic.Trainers.MulticlassClassification
 {
@@ -58,7 +58,11 @@ namespace Samples.Dynamic.Trainers.MulticlassClassification
 
             // Evaluate the overall metrics
             var metrics = mlContext.MulticlassClassification.Evaluate(transformedTestData);
-            ConsoleUtils.PrintMetrics(metrics);
+            Console.WriteLine($"Micro Accuracy: {metrics.MicroAccuracy:F2}");
+            Console.WriteLine($"Macro Accuracy: {metrics.MacroAccuracy:F2}");
+            Console.WriteLine($"Log Loss: {metrics.LogLoss:F2}");
+            Console.WriteLine($"Log Loss Reduction: {metrics.LogLossReduction:F2}");
+
             
             // Expected output:
             //  Micro Accuracy: 0.88
