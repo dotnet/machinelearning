@@ -1356,13 +1356,13 @@ namespace Microsoft.ML.Data
             var weightColumn = confusionDataView.Schema.GetColumnOrNull(MetricKinds.ColumnNames.Weight);
             bool isWeighted = weightColumn.HasValue;
 
-            var confusionMatrix = GetConfusionTable(host, confusionDataView, binary, sample, false);
+            var confusionMatrix = GetConfusionMatrix(host, confusionDataView, binary, sample, false);
             var confusionTableString = GetConfusionTableAsString(confusionMatrix, false);
 
             // if there is a Weight column, return the weighted confusionMatrix as well, from this function.
             if (isWeighted)
             {
-                confusionMatrix = GetConfusionTable(host, confusionDataView, binary, sample, true);
+                confusionMatrix = GetConfusionMatrix(host, confusionDataView, binary, sample, true);
                 weightedConfusionTable = GetConfusionTableAsString(confusionMatrix, true);
             }
             else
@@ -1371,7 +1371,7 @@ namespace Microsoft.ML.Data
             return confusionTableString;
         }
 
-        public static ConfusionMatrix GetConfusionTable(IHost host, IDataView confusionDataView, bool binary = true, int sample = -1, bool getWeighted = false)
+        public static ConfusionMatrix GetConfusionMatrix(IHost host, IDataView confusionDataView, bool binary = true, int sample = -1, bool getWeighted = false)
         {
             host.CheckValue(confusionDataView, nameof(confusionDataView));
             host.CheckParam(sample == -1 || sample >= 2, nameof(sample), "Should be -1 to indicate no sampling, or at least 2");
@@ -1384,7 +1384,8 @@ namespace Microsoft.ML.Data
             // Get the counts names.
             var countColumn = confusionDataView.Schema[MetricKinds.ColumnNames.Count];
             var type = countColumn.Annotations.Schema.GetColumnOrNull(AnnotationUtils.Kinds.SlotNames)?.Type as VectorDataViewType;
-            host.Assert(type != null && type.IsKnownSize && type.ItemType is TextDataViewType, "The Count column does not have a text vector metadata of kind SlotNames.");
+            //"The Count column does not have a text vector metadata of kind SlotNames."
+            host.Assert(type != null && type.IsKnownSize && type.ItemType is TextDataViewType);
 
             // Get the class names
             var labelNames = default(VBuffer<ReadOnlyMemory<char>>);
@@ -1435,7 +1436,7 @@ namespace Microsoft.ML.Data
             var predictedLabelNames = GetPredictedLabelNames(in labelNames, labelIndexToConfIndexMap);
             bool sampled = numConfusionTableLabels < labelNames.Length;
 
-            return new ConfusionMatrix(host, precision, recall, confusionTable, predictedLabelNames, sampled, binary, countColumn.Annotations);
+            return new ConfusionMatrix(host, precision, recall, confusionTable, predictedLabelNames, sampled, binary);
         }
 
         private static List<ReadOnlyMemory<char>> GetPredictedLabelNames(in VBuffer<ReadOnlyMemory<char>> labelNames, int[] labelIndexToConfIndexMap)
@@ -1584,7 +1585,7 @@ namespace Microsoft.ML.Data
         internal static string GetConfusionTableAsString(ConfusionMatrix confusionMatrix, bool isWeighted)
         {
             string prefix = isWeighted ? "Weighted " : "";
-            int numLabels = confusionMatrix?.Counts == null? 0: confusionMatrix.Counts.Length;
+            int numLabels = confusionMatrix?.Counts == null? 0: confusionMatrix.Counts.Count;
 
             int colWidth = numLabels == 2 ? 8 : 5;
             int maxNameLen = confusionMatrix.PredictedClassesIndicators.Max(name => name.Length);

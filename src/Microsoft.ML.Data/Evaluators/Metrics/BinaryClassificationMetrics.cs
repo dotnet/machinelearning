@@ -75,7 +75,7 @@ namespace Microsoft.ML.Data
         public double AreaUnderPrecisionRecallCurve { get; }
 
         /// <summary>
-        /// The <a href="https://en.wikipedia.org/wiki/Confusion_matrix">2 dimentional confusion matrix</a> giving the counts of the
+        /// The <a href="https://en.wikipedia.org/wiki/Confusion_matrix">confusion matrix</a> giving the counts of the
         /// true positives, true negatives, false positives and false negatives for the two classes of data.
         /// </summary>
         public ConfusionMatrix ConfusionMatrix { get; }
@@ -101,7 +101,7 @@ namespace Microsoft.ML.Data
             NegativeRecall = Fetch(BinaryClassifierEvaluator.NegRecallName);
             F1Score = Fetch(BinaryClassifierEvaluator.F1);
             AreaUnderPrecisionRecallCurve = Fetch(BinaryClassifierEvaluator.AuPrc);
-            ConfusionMatrix = MetricWriter.GetConfusionTable(host, confusionMatrix);
+            ConfusionMatrix = MetricWriter.GetConfusionMatrix(host, confusionMatrix);
         }
 
         [BestFriend]

@@ -231,7 +231,7 @@ namespace Microsoft.ML.Functional.Tests
             // Confusion matrix validations
             Assert.NotNull(metrics.ConfusionMatrix);
             AssertConfusionMatrix(metrics.ConfusionMatrix);
-           
+
         }
 
         internal static void AssertConfusionMatrix(ConfusionMatrix confusionMatrix)
@@ -241,23 +241,12 @@ namespace Microsoft.ML.Functional.Tests
             Assert.NotEmpty(confusionMatrix.Counts);
             Assert.NotEmpty(confusionMatrix.PerClassPrecision);
             Assert.NotEmpty(confusionMatrix.PerClassRecall);
-            Assert.NotNull(confusionMatrix.ClassIndicators);
 
             foreach (var precision in confusionMatrix.PerClassPrecision)
                 Assert.InRange(precision, 0, 1);
 
             foreach (var recall in confusionMatrix.PerClassRecall)
                 Assert.InRange(recall, 0, 1);
-
-
-            // Get the values in the annotations
-            var classIndicatorsBuffer = new VBuffer<ReadOnlyMemory<char>>();
-            confusionMatrix.ClassIndicators.GetValue("SlotNames", ref classIndicatorsBuffer);
-
-            var classIndicators = classIndicatorsBuffer.GetValues();
-
-            foreach (var value in classIndicators)
-               Assert.False(value.IsEmpty);
 
         }
 

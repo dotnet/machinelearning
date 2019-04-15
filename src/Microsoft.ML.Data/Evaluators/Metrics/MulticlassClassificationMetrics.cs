@@ -101,7 +101,7 @@ namespace Microsoft.ML.Data
 
             var perClassLogLoss = RowCursorUtils.Fetch<VBuffer<double>>(host, overallResult, MulticlassClassificationEvaluator.PerClassLogLoss);
             PerClassLogLoss = perClassLogLoss.DenseValues().ToImmutableArray();
-            ConfusionMatrix = MetricWriter.GetConfusionTable(host, confusionMatrix, binary: false, perClassLogLoss.Length);
+            ConfusionMatrix = MetricWriter.GetConfusionMatrix(host, confusionMatrix, binary: false, perClassLogLoss.Length);
         }
 
         internal MulticlassClassificationMetrics(double accuracyMicro, double accuracyMacro, double logLoss, double logLossReduction,

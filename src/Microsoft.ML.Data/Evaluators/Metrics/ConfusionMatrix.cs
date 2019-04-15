@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 using Microsoft.ML.Runtime;
 
 namespace Microsoft.ML.Data
@@ -17,31 +18,24 @@ namespace Microsoft.ML.Data
         /// <summary>
         /// The calculated value of <a href="https://en.wikipedia.org/wiki/Precision_and_recall#Precision">precision</a> for each class.
         /// </summary>
-        public ImmutableArray<double> PerClassPrecision { get; }
+        public IReadOnlyList<double> PerClassPrecision { get; }
 
         /// <summary>
         /// The calculated value of <a href="https://en.wikipedia.org/wiki/Precision_and_recall#Recall">recall</a> for each class.
         /// </summary>
-        public ImmutableArray<double> PerClassRecall { get; }
+        public IReadOnlyList<double> PerClassRecall { get; }
 
         /// <summary>
         /// The confsion matrix counts for the combinations actual class/predicted class.
         /// The actual classes are in the rows of the table, and the predicted classes in the columns.
         /// </summary>
-        public ImmutableArray<ImmutableArray<double>> Counts { get; }
+        public IReadOnlyList<IReadOnlyList<double>> Counts { get; }
 
         /// <summary>
         /// The indicators of the predicted classes.
         /// It might be the classes names, or just indices of the predicted classes, if the name mapping is missing.
         /// </summary>
         public int NumberOfPredictedClasses { get; }
-
-        /// <summary>
-        /// The <see cref="DataViewSchema.Annotations"/> associated with the Confusion Matrix counts.
-        /// It contains information about the predicted classes, if that information is available.
-        /// It can be the classes names, or their indices.
-        /// </summary>
-        public DataViewSchema.Annotations ClassIndicators { get; }
 
         /// <summary>
         /// The indicators of the predicted classes.
@@ -53,9 +47,11 @@ namespace Microsoft.ML.Data
         internal readonly bool IsBinary;
 
         private readonly IHost _host;
+        private string _formattedConfusionMatrix;
 
         /// <summary>
-        /// The confusion matrix as a structured type, built from the counts of the confusion table idv.
+        /// The confusion matrix as a structured type, built from the counts of the confusion table <see cref="IDataView"/> that the <see cref="BinaryClassifierEvaluator"/> or
+        /// the <see cref="MulticlassClassificationEvaluator"/> construct.
         /// </summary>
         /// <param name="host">The IHost instance. </param>
         /// <param name="precision">The values of precision per class.</param>
@@ -65,9 +61,8 @@ namespace Microsoft.ML.Data
         /// <param name="labelNames">The predicted classes names, or the indexes of the classes, if the names are missing.</param>
         /// <param name="isSampled">Whether the classes are sampled.</param>
         /// <param name="isBinary">Whether the confusion table is the result of a binary classification. </param>
-        /// <param name="classIndicators">The Annotations of the Count column, in the confusionTable idv.</param>
-        internal ConfusionMatrix(IHost host, double[] precision, double[] recall, double[][] confusionTableCounts,
-            List<ReadOnlyMemory<char>> labelNames, bool isSampled, bool isBinary, DataViewSchema.Annotations classIndicators)
+       internal ConfusionMatrix(IHost host, double[] precision, double[] recall, double[][] confusionTableCounts,
+            List<ReadOnlyMemory<char>> labelNames, bool isSampled, bool isBinary)
         {
             _host = host;
 
@@ -88,20 +83,25 @@ namespace Microsoft.ML.Data
             PredictedClassesIndicators = labelNames.AsReadOnly();
 
             NumberOfPredictedClasses = confusionTableCounts.Length;
-            List<ImmutableArray<double>> counts = new List<ImmutableArray<double>>(NumberOfPredictedClasses);
+            List<IReadOnlyList<double>> counts = new List<IReadOnlyList<double>>(NumberOfPredictedClasses);
 
             for (int i = 0; i < NumberOfPredictedClasses; i++)
-                counts.Add(ImmutableArray.Create(confusionTableCounts[i]));
+                counts.Add(confusionTableCounts[i].ToList().AsReadOnly());
 
-            Counts = counts.ToImmutableArray();
-            ClassIndicators = classIndicators;
+            Counts = counts.AsReadOnly();
         }
 
         /// <summary>
         /// Returns a human readable representation of the confusion table.
         /// </summary>
         /// <returns></returns>
-        public string GetFormattedConfusionTable() => MetricWriter.GetConfusionTableAsString(this, false);
+        public string GetFormattedConfusionTable() {
+
+            if(_formattedConfusionMatrix == null)
+                _formattedConfusionMatrix = MetricWriter.GetConfusionTableAsString(this, false);
+
+            return _formattedConfusionMatrix;
+        }
 
         /// <summary>
         /// Gets the confusion table count for the pair <paramref name="predictedClassIndicatorIndex"/>/<paramref name="actualClassIndicatorIndex"/>.
@@ -111,9 +111,9 @@ namespace Microsoft.ML.Data
         /// <returns></returns>
         public double GetCountForClassPair(int predictedClassIndicatorIndex, int actualClassIndicatorIndex)
         {
-            _host.CheckParam(predictedClassIndicatorIndex > -1 && predictedClassIndicatorIndex < Counts.Length,
+            _host.CheckParam(predictedClassIndicatorIndex > -1 && predictedClassIndicatorIndex < Counts.Count,
                 nameof(predictedClassIndicatorIndex), "Invalid index. Should be non-negative, less than the number of classes.");
-            _host.CheckParam(actualClassIndicatorIndex > -1 && actualClassIndicatorIndex < Counts.Length,
+            _host.CheckParam(actualClassIndicatorIndex > -1 && actualClassIndicatorIndex < Counts.Count,
                 nameof(actualClassIndicatorIndex), "Invalid index. Should be non-negative, less than the number of classes.");
 
             return Counts[actualClassIndicatorIndex][predictedClassIndicatorIndex];
