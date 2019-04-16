@@ -28,16 +28,6 @@ namespace Microsoft.ML.Auto
         /// <remarks>
         /// The collection is auto-populated with all possible trainers (all values of <see cref="BinaryClassificationTrainer" />).
         /// </remarks>
-        /// <example>
-        /// <code>
-        /// // Create an AutoML experiment that can only use LightGBM
-        /// var experimentSettings = new BinaryExperimentSettings();
-        /// experimentSettings.MaxExperimentTimeInSeconds = 60;
-        /// experimentSettings.Trainers.Clear();
-        /// experimentSettings.Trainers.Add(BinaryClassificationTrainer.LightGbm);
-        /// var experiment = new MLContext().Auto().CreateBinaryClassificationExperiment(experimentSettings);
-        /// </code>
-        /// </example>
         public ICollection<BinaryClassificationTrainer> Trainers { get; } =
                     Enum.GetValues(typeof(BinaryClassificationTrainer)).OfType<BinaryClassificationTrainer>().ToList();
     }

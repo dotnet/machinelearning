@@ -28,16 +28,6 @@ namespace Microsoft.ML.Auto
         /// <remarks>
         /// The collection is auto-populated with all possible trainers (all values of <see cref="RegressionTrainer" />).
         /// </remarks>
-        /// <example>
-        /// <code>
-        /// // Create an AutoML experiment that can only use LightGBM
-        /// var experimentSettings = new RegressionExperimentSettings();
-        /// experimentSettings.MaxExperimentTimeInSeconds = 60;
-        /// experimentSettings.Trainers.Clear();
-        /// experimentSettings.Trainers.Add(RegressionTrainer.LightGbm);
-        /// var experiment = new MLContext().Auto().CreateRegressionExperiment(experimentSettings);
-        /// </code>
-        /// </example>
         public ICollection<RegressionTrainer> Trainers { get; } =
                      Enum.GetValues(typeof(RegressionTrainer)).OfType<RegressionTrainer>().ToList();
     }

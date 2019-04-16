@@ -28,16 +28,6 @@ namespace Microsoft.ML.Auto
         /// <remarks>
         /// The collection is auto-populated with all possible trainers (all values of <see cref="MulticlassClassificationTrainer" />).
         /// </remarks>
-        /// <example>
-        /// <code>
-        /// // Create an AutoML experiment that can only use LightGBM
-        /// var experimentSettings = new MulticlassExperimentSettings();
-        /// experimentSettings.MaxExperimentTimeInSeconds = 60;
-        /// experimentSettings.Trainers.Clear();
-        /// experimentSettings.Trainers.Add(MulticlassClassificationTrainer.LightGbm);
-        /// var experiment = new MLContext().Auto().CreateMulticlassClassificationExperiment(experimentSettings);
-        /// </code>
-        /// </example>
         public ICollection<MulticlassClassificationTrainer> Trainers { get; } =
             Enum.GetValues(typeof(MulticlassClassificationTrainer)).OfType<MulticlassClassificationTrainer>().ToList();
     }
