@@ -36,31 +36,30 @@ namespace Samples.Dynamic.Trainers.Regression
             // Convert IDataView object to a list.
             var predictions = mlContext.Data.CreateEnumerable<Prediction>(transformedTestData, reuseRowObject: false).ToList();
 
-            // Look at predictions
+            // Look at 5 predictions for the Label, side by side with the actual Label for comparison.
             foreach (var p in predictions)
                 Console.WriteLine($"Label: {p.Label:F3}, Prediction: {p.Score:F3}");
 
-            // TODO #2425: OGD is missing baseline tests and seems numerically unstable
+            // This trainer is not numerically stable. Please see issue #2425.
 
             // Evaluate the overall metrics
             var metrics = mlContext.Regression.Evaluate(transformedTestData);
             PrintMetrics(metrics);
 
-            // TODO #2425: OGD is missing baseline tests and seems numerically unstable
+            // This trainer is not numerically stable. Please see issue #2425.
         }
 
         private static IEnumerable<DataPoint> GenerateRandomDataPoints(int count, int seed=0)
         {
             var random = new Random(seed);
-            float randomFloat() => (float)random.NextDouble();
             for (int i = 0; i < count; i++)
             {
-                float label = randomFloat();
+                float label = (float)random.NextDouble();
                 yield return new DataPoint
                 {
                     Label = label,
                     // Create random features that are correlated with the label.
-                    Features = Enumerable.Repeat(label, 50).Select(x => x + randomFloat()).ToArray()
+                    Features = Enumerable.Repeat(label, 50).Select(x => x + (float)random.NextDouble()).ToArray()
                 };
             }
         }

@@ -28,16 +28,13 @@ namespace Samples.Dynamic.Trainers.Regression
                 LabelColumnName = nameof(DataPoint.Label),
                 FeatureColumnName = nameof(DataPoint.Features),
                 // Change the loss function.
-                LossFunction = new SquaredLoss(),
+                LossFunction = new TweedieLoss(),
                 // Give an extra gain to more recent updates.
-                RecencyGain = 0.0f,
+                RecencyGain = 0.1f,
                 // Turn off lazy updates.
                 LazyUpdate = false,
                 // Specify scale for initial weights.
-                InitialWeightsDiameter = 0.01f,
-                LearningRate = 0.01f,
-                L2Regularization = 0.005f,
-                NumberOfIterations = 100
+                InitialWeightsDiameter = 0.2f
             };
 
             // Define the trainer.
@@ -55,31 +52,30 @@ namespace Samples.Dynamic.Trainers.Regression
             // Convert IDataView object to a list.
             var predictions = mlContext.Data.CreateEnumerable<Prediction>(transformedTestData, reuseRowObject: false).ToList();
 
-            // Look at predictions
+            // Look at 5 predictions for the Label, side by side with the actual Label for comparison.
             foreach (var p in predictions)
                 Console.WriteLine($"Label: {p.Label:F3}, Prediction: {p.Score:F3}");
 
-            // TODO #2425: OGD is missing baseline tests and seems numerically unstable
+            // This trainer is not numerically stable. Please see issue #2425.
 
             // Evaluate the overall metrics
             var metrics = mlContext.Regression.Evaluate(transformedTestData);
             PrintMetrics(metrics);
 
-            // TODO #2425: OGD is missing baseline tests and seems numerically unstable
+            // This trainer is not numerically stable. Please see issue #2425.
         }
 
         private static IEnumerable<DataPoint> GenerateRandomDataPoints(int count, int seed=0)
         {
             var random = new Random(seed);
-            float randomFloat() => (float)random.NextDouble();
             for (int i = 0; i < count; i++)
             {
-                float label = randomFloat();
+                float label = (float)random.NextDouble();
                 yield return new DataPoint
                 {
                     Label = label,
                     // Create random features that are correlated with the label.
-                    Features = Enumerable.Repeat(label, 50).Select(x => x + randomFloat()).ToArray()
+                    Features = Enumerable.Repeat(label, 50).Select(x => x + (float)random.NextDouble()).ToArray()
                 };
             }
         }
