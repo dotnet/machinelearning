@@ -22,6 +22,7 @@ namespace Microsoft.ML.Auto
         private protected readonly OptimizingMetricInfo OptimizingMetricInfo;
         private protected readonly TExperimentSettings Settings;
 
+        private readonly AutoMLLogger _logger;
         private readonly TaskKind _task;
         private readonly IEnumerable<TrainerName> _trainerWhitelist;
 
@@ -36,6 +37,7 @@ namespace Microsoft.ML.Auto
             MetricsAgent = metricsAgent;
             OptimizingMetricInfo = optimizingMetricInfo;
             Settings = settings;
+            _logger = new AutoMLLogger(context);
             _task = task;
             _trainerWhitelist = trainerWhitelist;
         }
@@ -249,7 +251,7 @@ namespace Microsoft.ML.Auto
             }
 
             var runner = new TrainValidateRunner<TMetrics>(Context, trainData, validationData, columnInfo.LabelColumnName, MetricsAgent,
-                preFeaturizer, preprocessorTransform, Settings.DebugLogger);
+                preFeaturizer, preprocessorTransform, _logger);
             var columns = DatasetColumnInfoUtil.GetDatasetColumnInfo(Context, trainData, columnInfo);
             return Execute(columnInfo, columns, preFeaturizer, progressHandler, runner);
         }
@@ -268,12 +270,12 @@ namespace Microsoft.ML.Auto
             (trainDatasets, validationDatasets, preprocessorTransforms) = ApplyPreFeaturizerCrossVal(trainDatasets, validationDatasets, preFeaturizer);
 
             var runner = new CrossValRunner<TMetrics>(Context, trainDatasets, validationDatasets, MetricsAgent, preFeaturizer,
-                preprocessorTransforms, columnInfo.LabelColumnName, Settings.DebugLogger);
+                preprocessorTransforms, columnInfo.LabelColumnName, _logger);
             var columns = DatasetColumnInfoUtil.GetDatasetColumnInfo(Context, trainDatasets[0], columnInfo);
 
             // Execute experiment & get all pipelines run
             var experiment = new Experiment<CrossValidationRunDetail<TMetrics>, TMetrics>(Context, _task, OptimizingMetricInfo, progressHandler,
-                Settings, MetricsAgent, _trainerWhitelist, columns, runner);
+                Settings, MetricsAgent, _trainerWhitelist, columns, runner, _logger);
             var runDetails = experiment.Execute();
 
             var bestRun = GetBestCrossValRun(runDetails);
@@ -295,7 +297,7 @@ namespace Microsoft.ML.Auto
             (trainDatasets, validationDatasets, preprocessorTransforms) = ApplyPreFeaturizerCrossVal(trainDatasets, validationDatasets, preFeaturizer);
 
             var runner = new CrossValSummaryRunner<TMetrics>(Context, trainDatasets, validationDatasets, MetricsAgent, preFeaturizer,
-                preprocessorTransforms, columnInfo.LabelColumnName, OptimizingMetricInfo, Settings.DebugLogger);
+                preprocessorTransforms, columnInfo.LabelColumnName, OptimizingMetricInfo, _logger);
             var columns = DatasetColumnInfoUtil.GetDatasetColumnInfo(Context, trainDatasets[0], columnInfo);
             return Execute(columnInfo, columns, preFeaturizer, progressHandler, runner);
         }
@@ -308,7 +310,7 @@ namespace Microsoft.ML.Auto
         {
             // Execute experiment & get all pipelines run
             var experiment = new Experiment<RunDetail<TMetrics>, TMetrics>(Context, _task, OptimizingMetricInfo, progressHandler,
-                Settings, MetricsAgent, _trainerWhitelist, columns, runner);
+                Settings, MetricsAgent, _trainerWhitelist, columns, runner, _logger);
             var runDetails = experiment.Execute();
 
             var bestRun = GetBestRun(runDetails);

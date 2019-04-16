@@ -55,7 +55,6 @@ namespace Microsoft.ML.Auto
         public CacheBeforeTrainer CacheBeforeTrainer = CacheBeforeTrainer.Auto;
         
         internal int MaxModels = int.MaxValue;
-        internal IDebugLogger DebugLogger;
     }
 
     /// <summary>

@@ -19,7 +19,7 @@ namespace Microsoft.ML.Auto
             ITransformer preprocessorTransform,
             FileInfo modelFileInfo,
             DataViewSchema modelInputSchema,
-            IDebugLogger logger) where TMetrics : class
+            AutoMLLogger logger) where TMetrics : class
         {
             try
             {
@@ -44,7 +44,7 @@ namespace Microsoft.ML.Auto
             }
             catch (Exception ex)
             {
-                logger?.Log(LogSeverity.Error, $"Pipeline crashed: {pipeline.ToString()} . Exception: {ex}");
+                logger.Error($"Pipeline crashed: {pipeline.ToString()} . Exception: {ex}");
                 return (null, null, ex, double.NaN);
             }
         }
