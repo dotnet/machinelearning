@@ -6,10 +6,10 @@ using Microsoft.ML.OnnxRuntime;
 
 namespace Samples.Dynamic
 {
-    public static class OnnxTransformExample
+    public static class ApplyOnnxModel
     {
         /// <summary>
-        /// Example use of OnnxEstimator in an ML.NET pipeline
+        /// Example use of ApplyOnnxModel in an ML.NET pipeline
         /// </summary>
         public static void Example()
         {
