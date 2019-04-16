@@ -157,7 +157,7 @@ namespace Microsoft.ML.Trainers
         public abstract class OptionsBase : TrainerInputBaseWithWeight
         {
             /// <summary>
-            /// The L2 <a href='tmpurl_regularization'>regularization</a> hyperparameter.
+            /// The L2 <a href='https://en.wikipedia.org/wiki/Regularization_(mathematics)'>regularization</a> hyperparameter.
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "L2 regularizer constant. By default the l2 constant is automatically inferred based on data set.", NullName = "<Auto>", ShortName = "l2, L2Const", SortOrder = 1)]
             [TGUI(Label = "L2 Regularizer Constant", SuggestedSweeps = "<Auto>,1e-7,1e-6,1e-5,1e-4,1e-3,1e-2")]
@@ -166,7 +166,7 @@ namespace Microsoft.ML.Trainers
 
             // REVIEW: make the default positive when we know how to consume a sparse model
             /// <summary>
-            /// The L1 <a href='tmpurl_regularization'>regularization</a> hyperparameter.
+            /// The L1 <a href='https://en.wikipedia.org/wiki/Regularization_(mathematics)'>regularization</a> hyperparameter.
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "L1 soft threshold (L1/L2). Note that it is easier to control and sweep using the threshold parameter than the raw L1-regularizer constant. By default the l1 threshold is automatically inferred based on data set.",
                 NullName = "<Auto>", Name = "L1Threshold", ShortName = "l1", SortOrder = 2)]
@@ -1776,7 +1776,7 @@ namespace Microsoft.ML.Trainers
         public class OptionsBase : TrainerInputBaseWithWeight
         {
             /// <summary>
-            /// The L2 weight for <a href='tmpurl_regularization'>regularization</a>.
+            /// The L2 weight for <a href='https://en.wikipedia.org/wiki/Regularization_(mathematics)'>regularization</a>.
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "L2 Regularization constant", ShortName = "l2, L2Weight", SortOrder = 50)]
             [TGUI(Label = "L2 Regularization Constant", SuggestedSweeps = "1e-7,5e-7,1e-6,5e-6,1e-5")]
