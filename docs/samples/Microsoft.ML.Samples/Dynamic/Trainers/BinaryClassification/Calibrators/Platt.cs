@@ -27,7 +27,7 @@ namespace Samples.Dynamic.Trainers.BinaryClassification.Calibrators
             // Let's score the new data. The score will give us a numerical estimation of the chance that the particular sample 
             // bears positive sentiment. This estimate is relative to the numbers obtained. 
             var scoredData = transformer.Transform(trainTestData.TestSet);
-            var scoredDataPreview = scoredData.Preview();
+            var scoredDataPreview = scoredData;
 
             PrintRowViewValues(scoredDataPreview);
             // Preview of scoredDataPreview.RowView
@@ -45,7 +45,7 @@ namespace Samples.Dynamic.Trainers.BinaryClassification.Calibrators
             // Transform the scored data with a calibrator transfomer by adding a new column names "Probability". 
             // This column is a calibrated version of the "Score" column, meaning its values are a valid probability value in the [0, 1] interval
             // representing the chance that the respective sample bears positive sentiment. 
-            var finalData = calibratorTransformer.Transform(scoredData).Preview();
+            var finalData = calibratorTransformer.Transform(scoredData);
             PrintRowViewValues(finalData);
             // Score   4.18144   Probability 0.8511352
             // Score  -14.10248  Probability 0.001633563
@@ -54,18 +54,30 @@ namespace Samples.Dynamic.Trainers.BinaryClassification.Calibrators
             // Score   5.36571   Probability 0.9065308
         }
 
-        private static void PrintRowViewValues(Microsoft.ML.Data.DataDebuggerPreview data)
+        private static void PrintRowViewValues(IDataView transformedData)
         {
-            var firstRows = data.RowView.Take(5);
-
-            foreach (Microsoft.ML.Data.DataDebuggerPreview.RowInfo row in firstRows)
+            int count = 0;
+            using (var cursor = transformedData.GetRowCursor(transformedData.Schema))
             {
-                foreach (var kvPair in row.Values)
+                var scoreGetter = cursor.GetGetter<float>(cursor.Schema["Score"]);
+                var probabilityGetter = cursor.Schema.GetColumnOrNull("Probability") != null ? cursor.GetGetter<float>(cursor.Schema["Probability"]) : null;
+                while (cursor.MoveNext())
                 {
-                    if (kvPair.Key.Equals("Score") || kvPair.Key.Equals("Probability"))
-                        Console.Write($" {kvPair.Key} {kvPair.Value} ");
+                    float score = default;
+                    scoreGetter(ref score);
+                    Console.Write("{0, -10} {1, -10}", "Score", score);
+
+                    if (probabilityGetter != null)
+                    {
+                        float probability = default;
+                        probabilityGetter(ref probability);
+                        Console.Write("{0, -10} {1, -10}", "Probability", probability);
+                    }
+
+                    Console.WriteLine();
+                    if (count++ >= 4)
+                        break;
                 }
-                Console.WriteLine();
             }
         }
     }
