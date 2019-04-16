@@ -27,11 +27,12 @@ namespace Samples.Dynamic.Trainers.Regression
             {
                 LabelColumnName = nameof(DataPoint.Label),
                 FeatureColumnName = nameof(DataPoint.Features),
-                // Make the convergence tolerance tighter.
+                // Make the convergence tolerance tighter. It effectively leads to more training iterations.
                 ConvergenceTolerance = 0.02f,
-                // Increase the maximum number of passes over training data.
+                // Increase the maximum number of passes over training data. Similar to ConvergenceTolerance,
+				// this value specifics the hard iteration limit on the training algorithm.
                 MaximumNumberOfIterations = 30,
-                // Increase learning rate for bias
+                // Increase learning rate for bias.
                 BiasLearningRate = 0.1f
             };
 
@@ -63,7 +64,7 @@ namespace Samples.Dynamic.Trainers.Regression
 
             // Evaluate the overall metrics
             var metrics = mlContext.Regression.Evaluate(transformedTestData);
-            Microsoft.ML.SamplesUtils.ConsoleUtils.PrintMetrics(metrics);
+            PrintMetrics(metrics);
 
             // Expected output:
             //   Mean Absolute Error: 0.05
@@ -103,6 +104,15 @@ namespace Samples.Dynamic.Trainers.Regression
             public float Label { get; set; }
             // Predicted score from the trainer.
             public float Score { get; set; }
+        }
+
+        // Print some evaluation metrics to regression problems.
+        private static void PrintMetrics(RegressionMetrics metrics)
+        {
+            Console.WriteLine($"Mean Absolute Error: {metrics.MeanAbsoluteError:F2}");
+            Console.WriteLine($"Mean Squared Error: {metrics.MeanSquaredError:F2}");
+            Console.WriteLine($"Root Mean Squared Error: {metrics.RootMeanSquaredError:F2}");
+            Console.WriteLine($"RSquared: {metrics.RSquared:F2}");
         }
     }
 }

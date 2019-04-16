@@ -3,6 +3,7 @@
 <#+
 string ClassHeader = null;
 string ClassName="LbfgsPoissonRegressionWithOptions";
+string ExtraUsing = "using Microsoft.ML.Trainers;";
 string Trainer = "LbfgsPoissonRegression";
 string TrainerOptions = @"LbfgsPoissonRegressionTrainer.Options
             {

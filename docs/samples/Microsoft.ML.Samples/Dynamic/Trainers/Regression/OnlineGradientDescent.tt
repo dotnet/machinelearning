@@ -3,6 +3,7 @@
 <#+
 string ClassHeader = null;
 string ClassName="OnlineGradientDescent";
+string ExtraUsing = null;
 string Trainer = "OnlineGradientDescent(labelColumnName: nameof(DataPoint.Label), featureColumnName: nameof(DataPoint.Features))";
 string TrainerOptions = null;
 

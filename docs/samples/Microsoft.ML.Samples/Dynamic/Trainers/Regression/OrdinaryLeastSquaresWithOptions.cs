@@ -27,7 +27,9 @@ namespace Samples.Dynamic.Trainers.Regression
             {
                 LabelColumnName = nameof(DataPoint.Label),
                 FeatureColumnName = nameof(DataPoint.Features),
+                // Larger values leads to smaller (closer to zero) model parameters.
                 L2Regularization = 0.1f,
+                // Whether to computate standard error and other statistics of model parameters.
                 CalculateStatistics = false
             };
 
@@ -59,7 +61,7 @@ namespace Samples.Dynamic.Trainers.Regression
 
             // Evaluate the overall metrics
             var metrics = mlContext.Regression.Evaluate(transformedTestData);
-            Microsoft.ML.SamplesUtils.ConsoleUtils.PrintMetrics(metrics);
+            PrintMetrics(metrics);
 
             // Expected output:
             //   Mean Absolute Error: 0.05
@@ -99,6 +101,15 @@ namespace Samples.Dynamic.Trainers.Regression
             public float Label { get; set; }
             // Predicted score from the trainer.
             public float Score { get; set; }
+        }
+
+        // Print some evaluation metrics to regression problems.
+        private static void PrintMetrics(RegressionMetrics metrics)
+        {
+            Console.WriteLine($"Mean Absolute Error: {metrics.MeanAbsoluteError:F2}");
+            Console.WriteLine($"Mean Squared Error: {metrics.MeanSquaredError:F2}");
+            Console.WriteLine($"Root Mean Squared Error: {metrics.RootMeanSquaredError:F2}");
+            Console.WriteLine($"RSquared: {metrics.RSquared:F2}");
         }
     }
 }

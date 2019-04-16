@@ -3,6 +3,7 @@
 <#+
 string ClassHeader = null;
 string ClassName="OnlineGradientDescentWithOptions";
+string ExtraUsing = "using Microsoft.ML.Trainers;";
 string Trainer = "OnlineGradientDescent";
 string TrainerOptions = @" OnlineGradientDescentTrainer.Options
             {

@@ -5,6 +5,7 @@ string ClassHeader = @"// This example requires installation of additional NuGet
         // <a href=""https://www.nuget.org/packages/Microsoft.ML.FastTree/"">Microsoft.ML.FastTree</a>. ";
 
 string ClassName="Gam";
+string ExtraUsing = null;
 string Trainer = @"Gam(labelColumnName: nameof(DataPoint.Label), featureColumnName: nameof(DataPoint.Features))";
 string TrainerOptions = null;
 

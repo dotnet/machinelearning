@@ -3,11 +3,11 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.ML;
 using Microsoft.ML.Data;
-using Microsoft.ML.Trainers;
+using Microsoft.ML.Trainers.FastTree;
 
 namespace Samples.Dynamic.Trainers.Regression
 {
-    public static class FastTreeWithOptions
+    public static class FastTreeWithOptionsRegression
     {
         // This example requires installation of additional NuGet package
         // <a href="https://www.nuget.org/packages/Microsoft.ML.FastTree/">Microsoft.ML.FastTree</a>. 
@@ -25,11 +25,12 @@ namespace Samples.Dynamic.Trainers.Regression
             var trainingData = mlContext.Data.LoadFromEnumerable(dataPoints);
 
             // Define trainer options.
-            var options = new Microsoft.ML.Trainers.FastTree.FastTreeRegressionTrainer.Options
+            var options = new FastTreeRegressionTrainer.Options
             {
                 LabelColumnName = nameof(DataPoint.Label),
                 FeatureColumnName = nameof(DataPoint.Features),
-                // Use L2Norm for early stopping.
+                // Use L2-norm for early stopping. If the gradient's L2-norm is smaller than
+                // an auto-computed value, training process will stop.
                 EarlyStoppingMetric = Microsoft.ML.Trainers.FastTree.EarlyStoppingMetric.L2Norm,
                 // Create a simpler model by penalizing usage of new features.
                 FeatureFirstUsePenalty = 0.1,
@@ -65,7 +66,7 @@ namespace Samples.Dynamic.Trainers.Regression
 
             // Evaluate the overall metrics
             var metrics = mlContext.Regression.Evaluate(transformedTestData);
-            Microsoft.ML.SamplesUtils.ConsoleUtils.PrintMetrics(metrics);
+            PrintMetrics(metrics);
 
             // Expected output:
             //   Mean Absolute Error: 0.03
@@ -105,6 +106,15 @@ namespace Samples.Dynamic.Trainers.Regression
             public float Label { get; set; }
             // Predicted score from the trainer.
             public float Score { get; set; }
+        }
+
+        // Print some evaluation metrics to regression problems.
+        private static void PrintMetrics(RegressionMetrics metrics)
+        {
+            Console.WriteLine($"Mean Absolute Error: {metrics.MeanAbsoluteError:F2}");
+            Console.WriteLine($"Mean Squared Error: {metrics.MeanSquaredError:F2}");
+            Console.WriteLine($"Root Mean Squared Error: {metrics.RootMeanSquaredError:F2}");
+            Console.WriteLine($"RSquared: {metrics.RSquared:F2}");
         }
     }
 }

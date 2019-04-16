@@ -2,16 +2,21 @@
 
 <#+
 string ClassHeader = @"// This example requires installation of additional NuGet package
-        // <a href=""https://www.nuget.org/packages/Microsoft.ML.LightGbm/"">Microsoft.ML.LightGbm</a>. ";
+        // <a href=""https://www.nuget.org/packages/Microsoft.ML.LightGbm/"">Microsoft.ML.LightGBM</a>. ";
 
 string ClassName="LightGbmWithOptions";
+string ExtraUsing = "using Microsoft.ML.Trainers.LightGbm;";
 string Trainer = @"LightGbm";
-string TrainerOptions = @"Microsoft.ML.Trainers.LightGbm.LightGbmRegressionTrainer.Options
+string TrainerOptions = @"LightGbmRegressionTrainer.Options
             {
                 LabelColumnName = nameof(DataPoint.Label),
                 FeatureColumnName = nameof(DataPoint.Features),
+                // How many leaves a single tree should have.
                 NumberOfLeaves = 4,
+                // Each leaf contains at least this number of training data points.
                 MinimumExampleCountPerLeaf = 6,
+                // The step size per update. Using a large value might reduce the
+                // training time but also increase the algorithm's numerical stability.
                 LearningRate = 0.001,
                 Booster = new Microsoft.ML.Trainers.LightGbm.GossBooster.Options()
                 {

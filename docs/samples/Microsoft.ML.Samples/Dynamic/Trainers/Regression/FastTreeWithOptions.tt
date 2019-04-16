@@ -4,13 +4,15 @@
 string ClassHeader = @"// This example requires installation of additional NuGet package
         // <a href=""https://www.nuget.org/packages/Microsoft.ML.FastTree/"">Microsoft.ML.FastTree</a>. ";
 
-string ClassName="FastTreeWithOptions";
+string ClassName="FastTreeWithOptionsRegression";
+string ExtraUsing = "using Microsoft.ML.Trainers.FastTree;";
 string Trainer = @"FastTree";
-string TrainerOptions = @"Microsoft.ML.Trainers.FastTree.FastTreeRegressionTrainer.Options
+string TrainerOptions = @"FastTreeRegressionTrainer.Options
             {
                 LabelColumnName = nameof(DataPoint.Label),
                 FeatureColumnName = nameof(DataPoint.Features),
-                // Use L2Norm for early stopping.
+                // Use L2-norm for early stopping. If the gradient's L2-norm is smaller than
+                // an auto-computed value, training process will stop.
                 EarlyStoppingMetric = Microsoft.ML.Trainers.FastTree.EarlyStoppingMetric.L2Norm,
                 // Create a simpler model by penalizing usage of new features.
                 FeatureFirstUsePenalty = 0.1,

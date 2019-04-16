@@ -3,12 +3,15 @@
 <#+
 string ClassHeader = null;
 string ClassName="OlsWithOptions";
+string ExtraUsing = "using Microsoft.ML.Trainers;";
 string Trainer = "Ols";
 string TrainerOptions = @"OlsTrainer.Options
             {
                 LabelColumnName = nameof(DataPoint.Label),
                 FeatureColumnName = nameof(DataPoint.Features),
+                // Larger values leads to smaller (closer to zero) model parameters.
                 L2Regularization = 0.1f,
+                // Whether to computate standard error and other statistics of model parameters.
                 CalculateStatistics = false
             }";
 
