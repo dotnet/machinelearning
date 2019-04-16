@@ -18,29 +18,17 @@ namespace Samples.Dynamic
             // Microsoft.ML.Onnx.TestModels nuget.
             var modelPath = @"squeezenet\00000001\model.onnx";
 
-            // Inspect the model's inputs and outputs
-            var session = new InferenceSession(modelPath);
-            var inputInfo = session.InputMetadata.First();
-            var outputInfo = session.OutputMetadata.First();
-            Console.WriteLine($"Input Name is {String.Join(",", inputInfo.Key)}");
-            Console.WriteLine($"Input Dimensions are {String.Join(",", inputInfo.Value.Dimensions)}");
-            Console.WriteLine($"Output Name is {String.Join(",", outputInfo.Key)}");
-            Console.WriteLine($"Output Dimensions are {String.Join(",", outputInfo.Value.Dimensions)}");
-            // Results..
-            // Input Name is data_0
-            // Input Dimensions are 1,3,224,224
-            // Output Name is softmaxout_1
-            // Output Dimensions are 1,1000,1,1
-
             // Create ML pipeline to score the data using OnnxScoringEstimator
             var mlContext = new MLContext();
-            var data = GetTensorData();
-            var idv = mlContext.Data.LoadFromEnumerable(data);
-            var pipeline = mlContext.Transforms.ApplyOnnxModel(new[] { outputInfo.Key }, new[] { inputInfo.Key }, modelPath);
 
-            // Run the pipeline and get the transformed values
-            var transformedValues = pipeline.Fit(idv).Transform(idv);
-
+            // Generate sample test data.
+            var samples = GetTensorData();
+            // Convert training data to IDataView, the general data type used in ML.NET.
+            var data = mlContext.Data.LoadFromEnumerable(samples);
+            // Create the pipeline to score using provided onnx model.
+            var pipeline = mlContext.Transforms.ApplyOnnxModel(modelPath);
+            // Fit the pipeline and get the transformed values
+            var transformedValues = pipeline.Fit(data).Transform(data);
             // Retrieve model scores into Prediction class
             var predictions = mlContext.Data.CreateEnumerable<Prediction>(transformedValues, reuseRowObject: false);
 
