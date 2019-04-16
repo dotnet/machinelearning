@@ -107,13 +107,13 @@ namespace Microsoft.ML.CLI.Utilities
             }
         }
 
-        internal static bool? GetCacheSettings(string input)
+        internal static CacheBeforeTrainer GetCacheSettings(string input)
         {
             switch (input)
             {
-                case "on": return true;
-                case "off": return false;
-                case "auto": return null;
+                case "on": return CacheBeforeTrainer.On;
+                case "off": return CacheBeforeTrainer.Off;
+                case "auto": return CacheBeforeTrainer.Auto;
                 default:
                     throw new ArgumentException($"{nameof(input)} is invalid", nameof(input));
             }

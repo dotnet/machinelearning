@@ -16,7 +16,7 @@ namespace Microsoft.ML.Auto
         private readonly IMetricsAgent<TMetrics> _metricsAgent;
         private readonly IEstimator<ITransformer> _preFeaturizer;
         private readonly ITransformer _preprocessorTransform;
-        private readonly IDebugLogger _logger;
+        private readonly AutoMLLogger _logger;
         private readonly DataViewSchema _modelInputSchema;
 
         public TrainValidateRunner(MLContext context,
@@ -26,7 +26,7 @@ namespace Microsoft.ML.Auto
             IMetricsAgent<TMetrics> metricsAgent,
             IEstimator<ITransformer> preFeaturizer,
             ITransformer preprocessorTransform,
-            IDebugLogger logger)
+            AutoMLLogger logger)
         {
             _context = context;
             _trainData = trainData;

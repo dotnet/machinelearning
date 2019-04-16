@@ -20,7 +20,7 @@ namespace Microsoft.ML.Auto
         private readonly ITransformer[] _preprocessorTransforms;
         private readonly string _labelColumn;
         private readonly OptimizingMetricInfo _optimizingMetricInfo;
-        private readonly IDebugLogger _logger;
+        private readonly AutoMLLogger _logger;
         private readonly DataViewSchema _modelInputSchema;
 
         public CrossValSummaryRunner(MLContext context,
@@ -31,7 +31,7 @@ namespace Microsoft.ML.Auto
             ITransformer[] preprocessorTransforms,
             string labelColumn,
             OptimizingMetricInfo optimizingMetricInfo,
-            IDebugLogger logger)
+            AutoMLLogger logger)
         {
             _context = context;
             _trainDatasets = trainDatasets;

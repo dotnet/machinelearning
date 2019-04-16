@@ -49,13 +49,33 @@ namespace Microsoft.ML.Auto
         public DirectoryInfo CacheDirectory { get; set; } = new DirectoryInfo(Path.Combine(Path.GetTempPath(), "Microsoft.ML.Auto"));
 
         /// <summary>
-        /// This setting controls whether or not an AutoML experiment will make use of ML.NET-provided caching.
-        /// If set to true, caching will be forced on for all pipelines. If set to false, caching will be forced off.
-        /// If set to <see langword="null"/> (default value), AutoML will decide whether to enable caching for each model.
+        /// Whether AutoML should cache before ML.NET trainers.
+        /// See <see cref="TrainerInfo.WantCaching"/> for more information on caching.
         /// </summary>
-        public bool? CacheBeforeTrainer = null;
+        public CacheBeforeTrainer CacheBeforeTrainer = CacheBeforeTrainer.Auto;
         
         internal int MaxModels = int.MaxValue;
-        internal IDebugLogger DebugLogger;
+    }
+
+    /// <summary>
+    /// Whether AutoML should cache before ML.NET trainers.
+    /// See <see cref="TrainerInfo.WantCaching"/> for more information on caching.
+    /// </summary>
+    public enum CacheBeforeTrainer
+    {
+        /// <summary>
+        /// Dynamically determine whether to cache before each trainer.
+        /// </summary>
+        Auto,
+
+        /// <summary>
+        /// Always force caching on.
+        /// </summary>
+        On,
+
+        /// <summary>
+        /// Always force caching off.
+        /// </summary>
+        Off,
     }
 }

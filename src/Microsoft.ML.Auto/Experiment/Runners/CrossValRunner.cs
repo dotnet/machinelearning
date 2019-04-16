@@ -18,7 +18,7 @@ namespace Microsoft.ML.Auto
         private readonly IEstimator<ITransformer> _preFeaturizer;
         private readonly ITransformer[] _preprocessorTransforms;
         private readonly string _labelColumn;
-        private readonly IDebugLogger _logger;
+        private readonly AutoMLLogger _logger;
         private readonly DataViewSchema _modelInputSchema;
 
         public CrossValRunner(MLContext context,
@@ -28,7 +28,7 @@ namespace Microsoft.ML.Auto
             IEstimator<ITransformer> preFeaturizer,
             ITransformer[] preprocessorTransforms,
             string labelColumn,
-            IDebugLogger logger)
+            AutoMLLogger logger)
         {
             _context = context;
             _trainDatasets = trainDatasets;
