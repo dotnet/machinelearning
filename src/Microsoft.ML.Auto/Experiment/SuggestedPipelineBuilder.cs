@@ -13,11 +13,11 @@ namespace Microsoft.ML.Auto
             ICollection<SuggestedTransform> transforms,
             ICollection<SuggestedTransform> transformsPostTrainer,
             SuggestedTrainer trainer,
-            bool? enableCaching)
+            CacheBeforeTrainer cacheBeforeTrainerSettings)
         {
             var trainerInfo = trainer.BuildTrainer().Info;
             AddNormalizationTransforms(context, trainerInfo, transforms);
-            var cacheBeforeTrainer = ShouldCacheBeforeTrainer(trainerInfo, enableCaching);
+            var cacheBeforeTrainer = ShouldCacheBeforeTrainer(trainerInfo, cacheBeforeTrainerSettings);
             return new SuggestedPipeline(transforms, transformsPostTrainer, trainer, context, cacheBeforeTrainer);
         }
 
@@ -35,9 +35,9 @@ namespace Microsoft.ML.Auto
             transforms.Add(transform);
         }
 
-        private static bool ShouldCacheBeforeTrainer(TrainerInfo trainerInfo, bool? enableCaching)
+        private static bool ShouldCacheBeforeTrainer(TrainerInfo trainerInfo, CacheBeforeTrainer cacheBeforeTrainerSettings)
         {
-            return enableCaching == true || (enableCaching == null && trainerInfo.WantCaching);
+            return cacheBeforeTrainerSettings == CacheBeforeTrainer.On || (cacheBeforeTrainerSettings == CacheBeforeTrainer.Auto && trainerInfo.WantCaching);
         }
     }
 }

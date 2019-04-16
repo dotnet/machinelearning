@@ -12,27 +12,32 @@ namespace Microsoft.ML.Auto
     /// (like <see cref="BinaryClassificationExperiment"/>) inherit from this class.
     /// </summary>
     /// <typeparam name="TMetrics">Metrics type used by task-specific AutoML experiments.</typeparam>
-    public abstract class ExperimentBase<TMetrics> where TMetrics : class
+    /// <typeparam name="TExperimentSettings">Experiment settings type.</typeparam>
+    public abstract class ExperimentBase<TMetrics, TExperimentSettings> 
+        where TMetrics : class
+        where TExperimentSettings : ExperimentSettings
     {
         private protected readonly MLContext Context;
+        private protected readonly IMetricsAgent<TMetrics> MetricsAgent;
+        private protected readonly OptimizingMetricInfo OptimizingMetricInfo;
+        private protected readonly TExperimentSettings Settings;
 
-        private readonly IMetricsAgent<TMetrics> _metricsAgent;
-        private readonly OptimizingMetricInfo _optimizingMetricInfo;
-        private readonly ExperimentSettings _settings;
+        private readonly AutoMLLogger _logger;
         private readonly TaskKind _task;
         private readonly IEnumerable<TrainerName> _trainerWhitelist;
 
         internal ExperimentBase(MLContext context,
             IMetricsAgent<TMetrics> metricsAgent,
             OptimizingMetricInfo optimizingMetricInfo,
-            ExperimentSettings settings,
+            TExperimentSettings settings,
             TaskKind task,
             IEnumerable<TrainerName> trainerWhitelist)
         {
             Context = context;
-            _metricsAgent = metricsAgent;
-            _optimizingMetricInfo = optimizingMetricInfo;
-            _settings = settings;
+            MetricsAgent = metricsAgent;
+            OptimizingMetricInfo = optimizingMetricInfo;
+            Settings = settings;
+            _logger = new AutoMLLogger(context);
             _task = task;
             _trainerWhitelist = trainerWhitelist;
         }
@@ -53,12 +58,11 @@ namespace Microsoft.ML.Auto
         /// <see cref="IProgress{T}.Report(T)"/> after each model it produces during the 
         /// course of the experiment.
         /// </param>
-        /// <returns>An enumeration of all the runs in an experiment. See <see cref="RunDetail{TMetrics}"/>
-        /// for more information on the contents of a run.</returns>
+        /// <returns>The experiment result.</returns>
         /// <remarks>
         /// Depending on the size of your data, the AutoML experiment could take a long time to execute.
         /// </remarks>
-        public IEnumerable<RunDetail<TMetrics>> Execute(IDataView trainData, string labelColumnName = DefaultColumnNames.Label,
+        public ExperimentResult<TMetrics> Execute(IDataView trainData, string labelColumnName = DefaultColumnNames.Label,
             string samplingKeyColumn = null, IEstimator<ITransformer> preFeaturizer = null, IProgress<RunDetail<TMetrics>> progressHandler = null)
         {
             var columnInformation = new ColumnInformation()
@@ -83,12 +87,11 @@ namespace Microsoft.ML.Auto
         /// <see cref="IProgress{T}.Report(T)"/> after each model it produces during the 
         /// course of the experiment.
         /// </param>
-        /// <returns>An enumeration of all the runs in an experiment. See <see cref="RunDetail{TMetrics}"/>
-        /// for more information on the contents of a run.</returns>
+        /// <returns>The experiment result.</returns>
         /// <remarks>
         /// Depending on the size of your data, the AutoML experiment could take a long time to execute.
         /// </remarks>
-        public IEnumerable<RunDetail<TMetrics>> Execute(IDataView trainData, ColumnInformation columnInformation, 
+        public ExperimentResult<TMetrics> Execute(IDataView trainData, ColumnInformation columnInformation, 
             IEstimator<ITransformer> preFeaturizer = null, IProgress<RunDetail<TMetrics>> progressHandler = null)
         {
             // Cross val threshold for # of dataset rows --
@@ -126,12 +129,11 @@ namespace Microsoft.ML.Auto
         /// <see cref="IProgress{T}.Report(T)"/> after each model it produces during the 
         /// course of the experiment.
         /// </param>
-        /// <returns>An enumeration of all the runs in an experiment. See <see cref="RunDetail{TMetrics}"/>
-        /// for more information on the contents of a run.</returns>
+        /// <returns>The experiment result.</returns>
         /// <remarks>
         /// Depending on the size of your data, the AutoML experiment could take a long time to execute.
         /// </remarks>
-        public IEnumerable<RunDetail<TMetrics>> Execute(IDataView trainData, IDataView validationData, string labelColumnName = DefaultColumnNames.Label, IEstimator<ITransformer> preFeaturizer = null, IProgress<RunDetail<TMetrics>> progressHandler = null)
+        public ExperimentResult<TMetrics> Execute(IDataView trainData, IDataView validationData, string labelColumnName = DefaultColumnNames.Label, IEstimator<ITransformer> preFeaturizer = null, IProgress<RunDetail<TMetrics>> progressHandler = null)
         {
             var columnInformation = new ColumnInformation() { LabelColumnName = labelColumnName };
             return Execute(trainData, validationData, columnInformation, preFeaturizer, progressHandler);
@@ -152,12 +154,11 @@ namespace Microsoft.ML.Auto
         /// <see cref="IProgress{T}.Report(T)"/> after each model it produces during the 
         /// course of the experiment.
         /// </param>
-        /// <returns>An enumeration of all the runs in an experiment. See <see cref="RunDetail{TMetrics}"/>
-        /// for more information on the contents of a run.</returns>
+        /// <returns>The experiment result.</returns>
         /// <remarks>
         /// Depending on the size of your data, the AutoML experiment could take a long time to execute.
         /// </remarks>
-        public IEnumerable<RunDetail<TMetrics>> Execute(IDataView trainData, IDataView validationData, ColumnInformation columnInformation, IEstimator<ITransformer> preFeaturizer = null, IProgress<RunDetail<TMetrics>> progressHandler = null)
+        public ExperimentResult<TMetrics> Execute(IDataView trainData, IDataView validationData, ColumnInformation columnInformation, IEstimator<ITransformer> preFeaturizer = null, IProgress<RunDetail<TMetrics>> progressHandler = null)
         {
             if (validationData == null)
             {
@@ -183,12 +184,11 @@ namespace Microsoft.ML.Auto
         /// <see cref="IProgress{T}.Report(T)"/> after each model it produces during the 
         /// course of the experiment.
         /// </param>
-        /// <returns>An enumeration of all the runs in an experiment. See <see cref="RunDetail{TMetrics}"/>
-        /// for more information on the contents of a run.</returns>
+        /// <returns>The cross validation experiment result.</returns>
         /// <remarks>
         /// Depending on the size of your data, the AutoML experiment could take a long time to execute.
         /// </remarks>
-        public IEnumerable<CrossValidationRunDetail<TMetrics>> Execute(IDataView trainData, uint numberOfCVFolds, ColumnInformation columnInformation = null, IEstimator<ITransformer> preFeaturizer = null, IProgress<CrossValidationRunDetail<TMetrics>> progressHandler = null)
+        public CrossValidationExperimentResult<TMetrics> Execute(IDataView trainData, uint numberOfCVFolds, ColumnInformation columnInformation = null, IEstimator<ITransformer> preFeaturizer = null, IProgress<CrossValidationRunDetail<TMetrics>> progressHandler = null)
         {
             UserInputValidationUtil.ValidateNumberOfCVFoldsArg(numberOfCVFolds);
             var splitResult = SplitUtil.CrossValSplit(Context, trainData, numberOfCVFolds, columnInformation?.SamplingKeyColumnName);
@@ -211,12 +211,11 @@ namespace Microsoft.ML.Auto
         /// <see cref="IProgress{T}.Report(T)"/> after each model it produces during the 
         /// course of the experiment.
         /// </param>
-        /// <returns>An enumeration of all the runs in an experiment. See <see cref="RunDetail{TMetrics}"/>
-        /// for more information on the contents of a run.</returns>
+        /// <returns>The cross validation experiment result.</returns>
         /// <remarks>
         /// Depending on the size of your data, the AutoML experiment could take a long time to execute.
         /// </remarks>
-        public IEnumerable<CrossValidationRunDetail<TMetrics>> Execute(IDataView trainData, 
+        public CrossValidationExperimentResult<TMetrics> Execute(IDataView trainData, 
             uint numberOfCVFolds, string labelColumnName = DefaultColumnNames.Label,
             string samplingKeyColumn = null, IEstimator<ITransformer> preFeaturizer = null, 
             Progress<CrossValidationRunDetail<TMetrics>> progressHandler = null)
@@ -229,7 +228,11 @@ namespace Microsoft.ML.Auto
             return Execute(trainData, numberOfCVFolds, columnInformation, preFeaturizer, progressHandler);
         }
 
-        private IEnumerable<RunDetail<TMetrics>> ExecuteTrainValidate(IDataView trainData,
+        private protected abstract CrossValidationRunDetail<TMetrics> GetBestCrossValRun(IEnumerable<CrossValidationRunDetail<TMetrics>> results);
+
+        private protected abstract RunDetail<TMetrics> GetBestRun(IEnumerable<RunDetail<TMetrics>> results);
+
+        private ExperimentResult<TMetrics> ExecuteTrainValidate(IDataView trainData,
             ColumnInformation columnInfo,
             IDataView validationData,
             IEstimator<ITransformer> preFeaturizer,
@@ -247,13 +250,13 @@ namespace Microsoft.ML.Auto
                 validationData = preprocessorTransform.Transform(validationData);
             }
 
-            var runner = new TrainValidateRunner<TMetrics>(Context, trainData, validationData, columnInfo.LabelColumnName, _metricsAgent,
-                preFeaturizer, preprocessorTransform, _settings.DebugLogger);
+            var runner = new TrainValidateRunner<TMetrics>(Context, trainData, validationData, columnInfo.LabelColumnName, MetricsAgent,
+                preFeaturizer, preprocessorTransform, _logger);
             var columns = DatasetColumnInfoUtil.GetDatasetColumnInfo(Context, trainData, columnInfo);
             return Execute(columnInfo, columns, preFeaturizer, progressHandler, runner);
         }
 
-        private IEnumerable<CrossValidationRunDetail<TMetrics>> ExecuteCrossVal(IDataView[] trainDatasets,
+        private CrossValidationExperimentResult<TMetrics> ExecuteCrossVal(IDataView[] trainDatasets,
             ColumnInformation columnInfo,
             IDataView[] validationDatasets,
             IEstimator<ITransformer> preFeaturizer,
@@ -266,13 +269,21 @@ namespace Microsoft.ML.Auto
             ITransformer[] preprocessorTransforms = null;
             (trainDatasets, validationDatasets, preprocessorTransforms) = ApplyPreFeaturizerCrossVal(trainDatasets, validationDatasets, preFeaturizer);
 
-            var runner = new CrossValRunner<TMetrics>(Context, trainDatasets, validationDatasets, _metricsAgent, preFeaturizer,
-                preprocessorTransforms, columnInfo.LabelColumnName, _settings.DebugLogger);
+            var runner = new CrossValRunner<TMetrics>(Context, trainDatasets, validationDatasets, MetricsAgent, preFeaturizer,
+                preprocessorTransforms, columnInfo.LabelColumnName, _logger);
             var columns = DatasetColumnInfoUtil.GetDatasetColumnInfo(Context, trainDatasets[0], columnInfo);
-            return Execute(columnInfo, columns, preFeaturizer, progressHandler, runner);
+
+            // Execute experiment & get all pipelines run
+            var experiment = new Experiment<CrossValidationRunDetail<TMetrics>, TMetrics>(Context, _task, OptimizingMetricInfo, progressHandler,
+                Settings, MetricsAgent, _trainerWhitelist, columns, runner, _logger);
+            var runDetails = experiment.Execute();
+
+            var bestRun = GetBestCrossValRun(runDetails);
+            var experimentResult = new CrossValidationExperimentResult<TMetrics>(runDetails, bestRun);
+            return experimentResult;
         }
 
-        private IEnumerable<RunDetail<TMetrics>> ExecuteCrossValSummary(IDataView[] trainDatasets,
+        private ExperimentResult<TMetrics> ExecuteCrossValSummary(IDataView[] trainDatasets,
             ColumnInformation columnInfo,
             IDataView[] validationDatasets,
             IEstimator<ITransformer> preFeaturizer,
@@ -285,24 +296,26 @@ namespace Microsoft.ML.Auto
             ITransformer[] preprocessorTransforms = null;
             (trainDatasets, validationDatasets, preprocessorTransforms) = ApplyPreFeaturizerCrossVal(trainDatasets, validationDatasets, preFeaturizer);
 
-            var runner = new CrossValSummaryRunner<TMetrics>(Context, trainDatasets, validationDatasets, _metricsAgent, preFeaturizer,
-                preprocessorTransforms, columnInfo.LabelColumnName, _optimizingMetricInfo, _settings.DebugLogger);
+            var runner = new CrossValSummaryRunner<TMetrics>(Context, trainDatasets, validationDatasets, MetricsAgent, preFeaturizer,
+                preprocessorTransforms, columnInfo.LabelColumnName, OptimizingMetricInfo, _logger);
             var columns = DatasetColumnInfoUtil.GetDatasetColumnInfo(Context, trainDatasets[0], columnInfo);
             return Execute(columnInfo, columns, preFeaturizer, progressHandler, runner);
         }
 
-        private IEnumerable<TRunDetail> Execute<TRunDetail>(ColumnInformation columnInfo,
+        private ExperimentResult<TMetrics> Execute(ColumnInformation columnInfo,
             DatasetColumnInfo[] columns,
             IEstimator<ITransformer> preFeaturizer,
-            IProgress<TRunDetail> progressHandler,
-            IRunner<TRunDetail> runner)
-            where TRunDetail : RunDetail
+            IProgress<RunDetail<TMetrics>> progressHandler,
+            IRunner<RunDetail<TMetrics>> runner)
         {
             // Execute experiment & get all pipelines run
-            var experiment = new Experiment<TRunDetail, TMetrics>(Context, _task, _optimizingMetricInfo, progressHandler,
-                _settings, _metricsAgent, _trainerWhitelist, columns, runner);
+            var experiment = new Experiment<RunDetail<TMetrics>, TMetrics>(Context, _task, OptimizingMetricInfo, progressHandler,
+                Settings, MetricsAgent, _trainerWhitelist, columns, runner, _logger);
+            var runDetails = experiment.Execute();
 
-            return experiment.Execute();
+            var bestRun = GetBestRun(runDetails);
+            var experimentResult = new ExperimentResult<TMetrics>(runDetails, bestRun);
+            return experimentResult;
         }
 
         private static (IDataView[] trainDatasets, IDataView[] validDatasets, ITransformer[] preprocessorTransforms)

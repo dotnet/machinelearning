@@ -19,14 +19,13 @@ namespace Microsoft.ML.Auto.Test
             var columnInference = context.Auto().InferColumns(dataPath, DatasetUtil.UciAdultLabel);
             var textLoader = context.Data.CreateTextLoader(columnInference.TextLoaderOptions);
             var trainData = textLoader.Load(dataPath);
-            var results = context.Auto()
+            var result = context.Auto()
                 .CreateBinaryClassificationExperiment(0)
                 .Execute(trainData, new ColumnInformation() { LabelColumnName = DatasetUtil.UciAdultLabel });
-            var best = results.Best();
-            Assert.IsTrue(best.ValidationMetrics.Accuracy > 0.70);
-            Assert.IsNotNull(best.Estimator);
-            Assert.IsNotNull(best.Model);
-            Assert.IsNotNull(best.TrainerName);
+            Assert.IsTrue(result.BestRun.ValidationMetrics.Accuracy > 0.70);
+            Assert.IsNotNull(result.BestRun.Estimator);
+            Assert.IsNotNull(result.BestRun.Model);
+            Assert.IsNotNull(result.BestRun.TrainerName);
         }
 
         [TestMethod]
@@ -36,12 +35,11 @@ namespace Microsoft.ML.Auto.Test
             var columnInference = context.Auto().InferColumns(DatasetUtil.TrivialMulticlassDatasetPath, DatasetUtil.TrivialMulticlassDatasetLabel);
             var textLoader = context.Data.CreateTextLoader(columnInference.TextLoaderOptions);
             var trainData = textLoader.Load(DatasetUtil.TrivialMulticlassDatasetPath);
-            var results = context.Auto()
+            var result = context.Auto()
                 .CreateMulticlassClassificationExperiment(0)
                 .Execute(trainData, 5, DatasetUtil.TrivialMulticlassDatasetLabel);
-            var best = results.Best();
-            Assert.IsTrue(best.Results.First().ValidationMetrics.MicroAccuracy >= 0.7);
-            var scoredData = best.Results.First().Model.Transform(trainData);
+            Assert.IsTrue(result.BestRun.Results.First().ValidationMetrics.MicroAccuracy >= 0.7);
+            var scoredData = result.BestRun.Results.First().Model.Transform(trainData);
             Assert.AreEqual(NumberDataViewType.Single, scoredData.Schema[DefaultColumnNames.PredictedLabel].Type);
         }
 
@@ -55,12 +53,12 @@ namespace Microsoft.ML.Auto.Test
             var trainData = textLoader.Load(dataPath);
             var validationData = context.Data.TakeRows(trainData, 20);
             trainData = context.Data.SkipRows(trainData, 20);
-            var results = context.Auto()
+            var result = context.Auto()
                 .CreateRegressionExperiment(0)
                 .Execute(trainData, validationData,
                     new ColumnInformation() { LabelColumnName = DatasetUtil.MlNetGeneratedRegressionLabel });
 
-            Assert.IsTrue(results.Max(i => i.ValidationMetrics.RSquared > 0.9));
+            Assert.IsTrue(result.RunDetails.Max(i => i.ValidationMetrics.RSquared > 0.9));
         }
     }
 }

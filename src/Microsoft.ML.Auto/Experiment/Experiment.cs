@@ -23,6 +23,7 @@ namespace Microsoft.ML.Auto
         private readonly DatasetColumnInfo[] _datasetColumnInfo;
         private readonly IRunner<TRunDetail> _runner;
         private readonly IList<SuggestedPipelineRunDetail> _history = new List<SuggestedPipelineRunDetail>();
+        private readonly AutoMLLogger _logger;
 
 
         public Experiment(MLContext context,
@@ -33,7 +34,8 @@ namespace Microsoft.ML.Auto
             IMetricsAgent<TMetrics> metricsAgent,
             IEnumerable<TrainerName> trainerWhitelist,
             DatasetColumnInfo[] datasetColumnInfo,
-            IRunner<TRunDetail> runner)
+            IRunner<TRunDetail> runner,
+            AutoMLLogger logger)
         {
             _context = context;
             _optimizingMetricInfo = metricInfo;
@@ -45,6 +47,7 @@ namespace Microsoft.ML.Auto
             _modelDirectory = GetModelDirectory(_experimentSettings.CacheDirectory);
             _datasetColumnInfo = datasetColumnInfo;
             _runner = runner;
+            _logger = logger;
         }
 
         public IList<TRunDetail> Execute()
@@ -58,7 +61,7 @@ namespace Microsoft.ML.Auto
 
                 // get next pipeline
                 var getPiplelineStopwatch = Stopwatch.StartNew();
-                var pipeline = PipelineSuggester.GetNextInferredPipeline(_context, _history, _datasetColumnInfo, _task, _optimizingMetricInfo.IsMaximizing, _trainerWhitelist, _experimentSettings.CacheBeforeTrainer);
+                var pipeline = PipelineSuggester.GetNextInferredPipeline(_context, _history, _datasetColumnInfo, _task, _optimizingMetricInfo.IsMaximizing, _experimentSettings.CacheBeforeTrainer, _trainerWhitelist);
                 var pipelineInferenceTimeInSeconds = getPiplelineStopwatch.Elapsed.TotalSeconds;
 
                 // break if no candidates returned, means no valid pipeline available
@@ -68,7 +71,7 @@ namespace Microsoft.ML.Auto
                 }
 
                 // evaluate pipeline
-                Log(LogSeverity.Debug, $"Evaluating pipeline {pipeline.ToString()}");
+                _logger.Trace($"Evaluating pipeline {pipeline.ToString()}");
                 (SuggestedPipelineRunDetail suggestedPipelineRunDetail, TRunDetail runDetail)
                     = _runner.Run(pipeline, _modelDirectory, _history.Count + 1);
                 _history.Add(suggestedPipelineRunDetail);
@@ -128,23 +131,13 @@ namespace Microsoft.ML.Auto
             }
             catch (Exception ex)
             {
-                Log(LogSeverity.Error, $"Progress report callback reported exception {ex}");
+                _logger.Error($"Progress report callback reported exception {ex}");
             }
         }
 
         private void WriteIterationLog(SuggestedPipeline pipeline, SuggestedPipelineRunDetail runResult, Stopwatch stopwatch)
         {
-            Log(LogSeverity.Debug, $"{_history.Count}\t{runResult.Score}\t{stopwatch.Elapsed}\t{pipeline.ToString()}");
-        }
-
-        private void Log(LogSeverity severity, string message)
-        {
-            if(_experimentSettings?.DebugLogger == null)
-            {
-                return;
-            }
-
-            _experimentSettings.DebugLogger.Log(severity, message);
+            _logger.Trace($"{_history.Count}\t{runResult.Score}\t{stopwatch.Elapsed}\t{pipeline.ToString()}");
         }
     }
 }

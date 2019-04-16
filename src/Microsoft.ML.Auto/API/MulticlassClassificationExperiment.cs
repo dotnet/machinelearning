@@ -122,7 +122,7 @@ namespace Microsoft.ML.Auto
     /// <summary>
     /// AutoML experiment on multiclass classification datasets.
     /// </summary>
-    public sealed class MulticlassClassificationExperiment : ExperimentBase<MulticlassClassificationMetrics>
+    public sealed class MulticlassClassificationExperiment : ExperimentBase<MulticlassClassificationMetrics, MulticlassExperimentSettings>
     {
         internal MulticlassClassificationExperiment(MLContext context, MulticlassExperimentSettings settings)
             : base(context,
@@ -133,38 +133,15 @@ namespace Microsoft.ML.Auto
                   TrainerExtensionUtil.GetTrainerNames(settings.Trainers))
         {
         }
-    }
 
-    /// <summary>
-    /// Extension methods that operate over multiclass experiment run results.
-    /// </summary>
-    public static class MulticlassExperimentResultExtensions
-    {
-        /// <summary>
-        /// Select the best run from an enumeration of experiment runs.
-        /// </summary>
-        /// <param name="results">Enumeration of AutoML experiment run results.</param>
-        /// <param name="metric">Metric to consider when selecting the best run.</param>
-        /// <returns>The best experiment run.</returns>
-        public static RunDetail<MulticlassClassificationMetrics> Best(this IEnumerable<RunDetail<MulticlassClassificationMetrics>> results, MulticlassClassificationMetric metric = MulticlassClassificationMetric.MicroAccuracy)
+        private protected override CrossValidationRunDetail<MulticlassClassificationMetrics> GetBestCrossValRun(IEnumerable<CrossValidationRunDetail<MulticlassClassificationMetrics>> results)
         {
-            var metricsAgent = new MultiMetricsAgent(null, metric);
-            var isMetricMaximizing = new OptimizingMetricInfo(metric).IsMaximizing;
-            return BestResultUtil.GetBestRun(results, metricsAgent, isMetricMaximizing);
+            return BestResultUtil.GetBestRun(results, MetricsAgent, OptimizingMetricInfo.IsMaximizing);
         }
 
-
-        /// <summary>
-        /// Select the best run from an enumeration of experiment cross validation runs.
-        /// </summary>
-        /// <param name="results">Enumeration of AutoML experiment cross validation run results.</param>
-        /// <param name="metric">Metric to consider when selecting the best run.</param>
-        /// <returns>The best experiment run.</returns>
-        public static CrossValidationRunDetail<MulticlassClassificationMetrics> Best(this IEnumerable<CrossValidationRunDetail<MulticlassClassificationMetrics>> results, MulticlassClassificationMetric metric = MulticlassClassificationMetric.MicroAccuracy)
+        private protected override RunDetail<MulticlassClassificationMetrics> GetBestRun(IEnumerable<RunDetail<MulticlassClassificationMetrics>> results)
         {
-            var metricsAgent = new MultiMetricsAgent(null, metric);
-            var isMetricMaximizing = new OptimizingMetricInfo(metric).IsMaximizing;
-            return BestResultUtil.GetBestRun(results, metricsAgent, isMetricMaximizing);
+            return BestResultUtil.GetBestRun(results, MetricsAgent, OptimizingMetricInfo.IsMaximizing);
         }
     }
 }

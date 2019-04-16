@@ -16,7 +16,7 @@ namespace Microsoft.ML.Auto.Test
         public void TrainerWantsCaching()
         {
             TestPipelineBuilderCaching(BuildAveragedPerceptronTrainer(),
-                new bool?[] { true, false, null },
+                new CacheBeforeTrainer[] { CacheBeforeTrainer.On, CacheBeforeTrainer.Off, CacheBeforeTrainer.Auto },
                 new[] { true, false, true });
         }
 
@@ -24,7 +24,7 @@ namespace Microsoft.ML.Auto.Test
         public void TrainerDoesntWantCaching()
         {
             TestPipelineBuilderCaching(BuildLightGbmTrainer(),
-                new bool?[] { true, false, null },
+                new CacheBeforeTrainer[] { CacheBeforeTrainer.On, CacheBeforeTrainer.Off, CacheBeforeTrainer.Auto },
                 new[] { true, false, false });
         }
 
@@ -45,13 +45,13 @@ namespace Microsoft.ML.Auto.Test
 
         private static void TestPipelineBuilderCaching(
             SuggestedTrainer trainer,
-            bool?[] enableCachingOptions,
+            CacheBeforeTrainer[] cacheBeforeTrainerSettings,
             bool[] resultShouldHaveCaching)
         {
-            for (var i = 0; i < enableCachingOptions.Length; i++)
+            for (var i = 0; i < cacheBeforeTrainerSettings.Length; i++)
             {
                 var suggestedPipeline = BuildSuggestedPipeline(trainer,
-                    enableCachingOptions[i]);
+                    cacheBeforeTrainerSettings[i]);
                 Assert.AreEqual(resultShouldHaveCaching[i],
                     suggestedPipeline.ToPipeline().CacheBeforeTrainer);
             }
@@ -72,12 +72,12 @@ namespace Microsoft.ML.Auto.Test
         }
 
         private static SuggestedPipeline BuildSuggestedPipeline(SuggestedTrainer trainer,
-            bool? enableCaching = null)
+            CacheBeforeTrainer cacheBeforeTrainer = CacheBeforeTrainer.Auto)
         {
             return SuggestedPipelineBuilder.Build(_context,
                     new List<SuggestedTransform>(),
                     new List<SuggestedTransform>(),
-                    trainer, enableCaching);
+                    trainer, cacheBeforeTrainer);
         }
     }
 }

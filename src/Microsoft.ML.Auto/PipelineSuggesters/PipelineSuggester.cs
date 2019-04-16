@@ -20,7 +20,7 @@ namespace Microsoft.ML.Auto
             bool isMaximizingMetric = true)
         {
             var inferredHistory = history.Select(r => SuggestedPipelineRunDetail.FromPipelineRunResult(context, r));
-            var nextInferredPipeline = GetNextInferredPipeline(context, inferredHistory, columns, task, isMaximizingMetric);
+            var nextInferredPipeline = GetNextInferredPipeline(context, inferredHistory, columns, task, isMaximizingMetric, CacheBeforeTrainer.Auto);
             return nextInferredPipeline?.ToPipeline();
         }
 
@@ -29,8 +29,8 @@ namespace Microsoft.ML.Auto
             DatasetColumnInfo[] columns,
             TaskKind task,
             bool isMaximizingMetric,
-            IEnumerable<TrainerName> trainerWhitelist = null,
-            bool? _enableCaching = null)
+            CacheBeforeTrainer cacheBeforeTrainer,
+            IEnumerable<TrainerName> trainerWhitelist = null)
         {
             var availableTrainers = RecipeInference.AllowedTrainers(context, task, 
                 ColumnInformationUtil.BuildColumnInfo(columns), trainerWhitelist);
@@ -40,7 +40,7 @@ namespace Microsoft.ML.Auto
             // if we haven't run all pipelines once
             if (history.Count() < availableTrainers.Count())
             {
-                return GetNextFirstStagePipeline(context, history, availableTrainers, transforms, transformsPostTrainer, _enableCaching);
+                return GetNextFirstStagePipeline(context, history, availableTrainers, transforms, transformsPostTrainer, cacheBeforeTrainer);
             }
 
             // get top trainers from stage 1 runs
@@ -71,7 +71,7 @@ namespace Microsoft.ML.Auto
                         break;
                     }
 
-                    var suggestedPipeline = SuggestedPipelineBuilder.Build(context, transforms, transformsPostTrainer, newTrainer, _enableCaching);
+                    var suggestedPipeline = SuggestedPipelineBuilder.Build(context, transforms, transformsPostTrainer, newTrainer, cacheBeforeTrainer);
 
                     // make sure we have not seen pipeline before
                     if (!visitedPipelines.Contains(suggestedPipeline))
@@ -119,10 +119,10 @@ namespace Microsoft.ML.Auto
             IEnumerable<SuggestedTrainer> availableTrainers,
             ICollection<SuggestedTransform> transforms,
             ICollection<SuggestedTransform> transformsPostTrainer,
-            bool? _enableCaching)
+            CacheBeforeTrainer cacheBeforeTrainer)
         {
             var trainer = availableTrainers.ElementAt(history.Count());
-            return SuggestedPipelineBuilder.Build(context, transforms, transformsPostTrainer, trainer, _enableCaching);
+            return SuggestedPipelineBuilder.Build(context, transforms, transformsPostTrainer, trainer, cacheBeforeTrainer);
         }
 
         private static IValueGenerator[] ConvertToValueGenerators(IEnumerable<SweepableParam> hps)

@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using Microsoft.ML.Data;
 
 namespace Microsoft.ML.Auto
 {
@@ -14,7 +15,7 @@ namespace Microsoft.ML.Auto
     /// This object contains information about each model evaluated during
     /// the AutoML experiment.
     /// </remarks>
-    /// <typeparam name="TMetrics">Type of the metrics for this experiment. (For instance, (cref Binary, Regression).)</typeparam>
+    /// <typeparam name="TMetrics">Metrics type for the experiment (like <see cref="BinaryClassificationMetrics"/>).</typeparam>
     public sealed class RunDetail<TMetrics> : RunDetail
     {
         /// <summary>
