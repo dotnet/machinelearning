@@ -50,11 +50,14 @@ namespace Samples.Dynamic.Trainers.Ranking
             // Run the model on test data set.
             var transformedTestData = model.Transform(testData);
 
-            // Convert IDataView object to a list.
-            var predictions = mlContext.Data.CreateEnumerable<Prediction>(transformedTestData, reuseRowObject: false).ToList();
+            // Take the top 5 rows.
+            var topTransformedTestData = mlContext.Data.TakeRows(transformedTestData, 5);
 
-            // Look at 5 predictions
-            foreach (var p in predictions.Take(5))
+            // Convert IDataView object to a list.
+            var predictions = mlContext.Data.CreateEnumerable<Prediction>(topTransformedTestData, reuseRowObject: false).ToList();
+
+            // Print 5 predictions.
+            foreach (var p in predictions)
                 Console.WriteLine($"Label: {p.Label}, Score: {p.Score}");
 
             // Expected output:
@@ -64,7 +67,7 @@ namespace Samples.Dynamic.Trainers.Ranking
             //   Label: 3, Score: -0.009396422
             //   Label: 1, Score: -0.05871891
 
-            // Evaluate the overall metrics
+            // Evaluate the overall metrics.
             var metrics = mlContext.Ranking.Evaluate(transformedTestData);
             PrintMetrics(metrics);
             
@@ -96,8 +99,8 @@ namespace Samples.Dynamic.Trainers.Ranking
         {
             [KeyType(5)]
             public uint Label { get; set; }
-            [KeyType(100)]            
-            public uint GroupId { get; set; }            
+            [KeyType(100)]
+            public uint GroupId { get; set; }
             [VectorType(50)]
             public float[] Features { get; set; }
         }

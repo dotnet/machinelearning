@@ -136,7 +136,7 @@ namespace Microsoft.ML
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
-        /// [!code-csharp[FastTreeBinaryClassification](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Trainers/Ranking/FastTree.cs)]
+        /// [!code-csharp[FastTree](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Trainers/Ranking/FastTree.cs)]
         /// ]]>
         /// </format>
         /// </example>
@@ -163,7 +163,7 @@ namespace Microsoft.ML
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
-        /// [!code-csharp[FastTreeBinaryClassification](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Trainers/Ranking/FastTreeWithOptions.cs)]
+        /// [!code-csharp[FastTree](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Trainers/Ranking/FastTreeWithOptions.cs)]
         /// ]]>
         /// </format>
         /// </example>

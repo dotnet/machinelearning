@@ -32,7 +32,9 @@ namespace Samples.Dynamic.Trainers.Ranking
                 // Create a simpler model by penalizing usage of new features.
                 FeatureFirstUsePenalty = 0.1,
                 // Reduce the number of trees to 50.
-                NumberOfTrees = 50
+                NumberOfTrees = 50,
+                // Specify the row group column name.
+                RowGroupColumnName = "GroupId"
             };
 
             // Define the trainer.
@@ -47,27 +49,30 @@ namespace Samples.Dynamic.Trainers.Ranking
             // Run the model on test data set.
             var transformedTestData = model.Transform(testData);
 
-            // Convert IDataView object to a list.
-            var predictions = mlContext.Data.CreateEnumerable<Prediction>(transformedTestData, reuseRowObject: false).ToList();
+            // Take the top 5 rows.
+            var topTransformedTestData = mlContext.Data.TakeRows(transformedTestData, 5);
 
-            // Look at 5 predictions
-            foreach (var p in predictions.Take(5))
+            // Convert IDataView object to a list.
+            var predictions = mlContext.Data.CreateEnumerable<Prediction>(topTransformedTestData, reuseRowObject: false).ToList();
+
+            // Print 5 predictions.
+            foreach (var p in predictions)
                 Console.WriteLine($"Label: {p.Label}, Score: {p.Score}");
 
             // Expected output:
-            //   Label: 5, Score: 8.098782
-            //   Label: 1, Score: -11.2527
-            //   Label: 3, Score: -10.89519
-            //   Label: 3, Score: -5.050685
-            //   Label: 1, Score: -10.44891
+            //   Label: 5, Score: 8.807633
+            //   Label: 1, Score: -10.71331
+            //   Label: 3, Score: -8.134147
+            //   Label: 3, Score: -6.545538
+            //   Label: 1, Score: -10.27982
 
-            // Evaluate the overall metrics
+            // Evaluate the overall metrics.
             var metrics = mlContext.Ranking.Evaluate(transformedTestData);
             PrintMetrics(metrics);
             
             // Expected output:
-            //   DCG: @1:41.03, @2:60.07, @3:74.30
-            //   NDCG: @1:0.97, @2:0.93, @3:0.97
+            //   DCG: @1:40.57, @2:61.21, @3:74.11
+            //   NDCG: @1:0.96, @2:0.95, @3:0.97
         }
 
         private static IEnumerable<DataPoint> GenerateRandomDataPoints(int count, int seed = 0, int groupSize = 10)
@@ -93,8 +98,8 @@ namespace Samples.Dynamic.Trainers.Ranking
         {
             [KeyType(5)]
             public uint Label { get; set; }
-            [KeyType(100)]            
-            public uint GroupId { get; set; }            
+            [KeyType(100)]
+            public uint GroupId { get; set; }
             [VectorType(50)]
             public float[] Features { get; set; }
         }
