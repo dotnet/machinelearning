@@ -1,8 +1,10 @@
 ﻿<#@ include file="RegressionSamplesTemplate.ttinclude"#>
 
 <#+
+string ClassHeader = null;
 string ClassName="LbfgsPoissonRegression";
-string Trainer = "LbfgsPoissonRegression";
+string ExtraUsing = null;
+string Trainer = "LbfgsPoissonRegression(labelColumnName: nameof(DataPoint.Label), featureColumnName: nameof(DataPoint.Features))";
 string TrainerOptions = null;
 
 string ExpectedOutputPerInstance= @"// Expected output:
@@ -15,6 +17,6 @@ string ExpectedOutputPerInstance= @"// Expected output:
 string ExpectedOutput = @"// Expected output:
             //   Mean Absolute Error: 0.07
             //   Mean Squared Error: 0.01
-            //   Root Mean Squared Error: 0.09
-            //   RSquared: 0.90";
+            //   Root Mean Squared Error: 0.08
+            //   RSquared: 0.93 (closer to 1 is better. The worest case is 0)";
 #>

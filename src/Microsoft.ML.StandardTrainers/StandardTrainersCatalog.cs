@@ -142,7 +142,7 @@ namespace Microsoft.ML
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
-        ///  [!code-csharp[SDCA](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Trainers/Regression/StochasticDualCoordinateAscent.cs)]
+        ///  [!code-csharp[SDCA](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Trainers/Regression/Sdca.cs)]
         /// ]]></format>
         /// </example>
         public static SdcaRegressionTrainer Sdca(this RegressionCatalog.RegressionTrainers catalog,
@@ -167,7 +167,7 @@ namespace Microsoft.ML
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
-        ///  [!code-csharp[SDCA](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Trainers/Regression/StochasticDualCoordinateAscentWithOptions.cs)]
+        ///  [!code-csharp[SDCA](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Trainers/Regression/SdcaWithOptions.cs)]
         /// ]]></format>
         /// </example>
         public static SdcaRegressionTrainer Sdca(this RegressionCatalog.RegressionTrainers catalog,
@@ -467,6 +467,13 @@ namespace Microsoft.ML
         /// <param name="decreaseLearningRate">Decrease learning rate as iterations progress.</param>
         /// <param name="l2Regularization">The L2 weight for <a href='tmpurl_regularization'>regularization</a>.</param>
         /// <param name="numberOfIterations">The number of passes through the training dataset.</param>
+        /// <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        /// [!code-csharp[OnlineGradientDescent](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Trainers/Regression/OnlineGradientDescent.cs)]
+        /// ]]>
+        /// </format>
+        /// </example>
         public static OnlineGradientDescentTrainer OnlineGradientDescent(this RegressionCatalog.RegressionTrainers catalog,
             string labelColumnName = DefaultColumnNames.Label,
             string featureColumnName = DefaultColumnNames.Features,
@@ -487,6 +494,13 @@ namespace Microsoft.ML
         /// </summary>
         /// <param name="catalog">The regression catalog trainer object.</param>
         /// <param name="options">Trainer options.</param>
+        /// <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        /// [!code-csharp[OnlineGradientDescent](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Trainers/Regression/OnlineGradientDescentWithOptions.cs)]
+        /// ]]>
+        /// </format>
+        /// </example>
         public static OnlineGradientDescentTrainer OnlineGradientDescent(this RegressionCatalog.RegressionTrainers catalog,
             OnlineGradientDescentTrainer.Options options)
         {

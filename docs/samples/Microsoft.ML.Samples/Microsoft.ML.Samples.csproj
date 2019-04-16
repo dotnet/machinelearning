@@ -105,6 +105,38 @@
       <LastGenOutput>OneVersusAll.cs</LastGenOutput>
       <Generator>TextTemplatingFileGenerator</Generator>
     </None>
+    <None Update="Dynamic\Trainers\Regression\FastForest.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>FastForest.cs</LastGenOutput>
+    </None>
+    <None Update="Dynamic\Trainers\Regression\FastForestWithOptions.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>FastForestWithOptions.cs</LastGenOutput>
+    </None>
+    <None Update="Dynamic\Trainers\Regression\FastTree.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>FastTree.cs</LastGenOutput>
+    </None>
+    <None Update="Dynamic\Trainers\Regression\FastTreeTweedie.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>FastTreeTweedie.cs</LastGenOutput>
+    </None>
+    <None Update="Dynamic\Trainers\Regression\FastTreeTweedieWithOptions.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>FastTreeTweedieWithOptions.cs</LastGenOutput>
+    </None>
+    <None Update="Dynamic\Trainers\Regression\FastTreeWithOptions.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>FastTreeWithOptions.cs</LastGenOutput>
+    </None>
+    <None Update="Dynamic\Trainers\Regression\LightGbm.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>LightGbm.cs</LastGenOutput>
+    </None>
+    <None Update="Dynamic\Trainers\Regression\LightGbmWithOptions.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>LightGbmWithOptions.cs</LastGenOutput>
+    </None>
     <None Update="Dynamic\Trainers\Regression\OnlineGradientDescent.tt">
       <LastGenOutput>OnlineGradientDescent.cs</LastGenOutput>
       <Generator>TextTemplatingFileGenerator</Generator>
@@ -120,6 +152,30 @@
     <None Update="Dynamic\Trainers\Regression\LbfgsPoissonRegressionWithOptions.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>LbfgsPoissonRegressionWithOptions.cs</LastGenOutput>
+    </None>
+    <None Update="Dynamic\Trainers\Regression\Gam.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>Gam.cs</LastGenOutput>
+    </None>
+    <None Update="Dynamic\Trainers\Regression\GamWithOptions.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>GamWithOptions.cs</LastGenOutput>
+    </None>
+    <None Update="Dynamic\Trainers\Regression\OrdinaryLeastSquares.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>OrdinaryLeastSquares.cs</LastGenOutput>
+    </None>
+    <None Update="Dynamic\Trainers\Regression\OrdinaryLeastSquaresWithOptions.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>OrdinaryLeastSquaresWithOptions.cs</LastGenOutput>
+    </None>
+    <None Update="Dynamic\Trainers\Regression\Sdca.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>Sdca.cs</LastGenOutput>
+    </None>
+    <None Update="Dynamic\Trainers\Regression\SdcaWithOptions.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>SdcaWithOptions.cs</LastGenOutput>
     </None>
   </ItemGroup>
 
@@ -168,6 +224,46 @@
       <AutoGen>True</AutoGen>
       <DependentUpon>OneVersusAll.tt</DependentUpon>
     </Compile>
+    <Compile Update="Dynamic\Trainers\Regression\FastForest.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>FastForest.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Dynamic\Trainers\Regression\FastForestWithOptions.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>FastForestWithOptions.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Dynamic\Trainers\Regression\FastTree.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>FastTree.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Dynamic\Trainers\Regression\FastTreeTweedie.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>FastTreeTweedie.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Dynamic\Trainers\Regression\FastTreeTweedieWithOptions.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>FastTreeTweedieWithOptions.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Dynamic\Trainers\Regression\FastTreeWithOptions.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>FastTreeWithOptions.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Dynamic\Trainers\Regression\LightGbm.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>LightGbm.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Dynamic\Trainers\Regression\LightGbmWithOptions.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>LightGbmWithOptions.tt</DependentUpon>
+    </Compile>
     <Compile Update="Dynamic\Trainers\MulticlassClassification\NaiveBayes.cs">
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
@@ -192,6 +288,36 @@
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
       <DependentUpon>LbfgsPoissonRegressionWithOptions.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Dynamic\Trainers\Regression\Gam.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Gam.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Dynamic\Trainers\Regression\GamWithOptions.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>GamWithOptions.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Dynamic\Trainers\Regression\OrdinaryLeastSquares.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>OrdinaryLeastSquares.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Dynamic\Trainers\Regression\OrdinaryLeastSquaresWithOptions.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>OrdinaryLeastSquaresWithOptions.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Dynamic\Trainers\Regression\Sdca.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Sdca.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Dynamic\Trainers\Regression\SdcaWithOptions.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>SdcaWithOptions.tt</DependentUpon>
     </Compile>
   </ItemGroup>
 

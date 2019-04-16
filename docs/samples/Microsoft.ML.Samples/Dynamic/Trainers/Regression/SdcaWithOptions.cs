@@ -3,14 +3,12 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.ML;
 using Microsoft.ML.Data;
-using Microsoft.ML.Trainers.FastTree;
+using Microsoft.ML.Trainers;
 
 namespace Samples.Dynamic.Trainers.Regression
 {
-    public static class GamWithOptions
+    public static class SdcaWithOptions
     {
-        // This example requires installation of additional NuGet package
-        // <a href="https://www.nuget.org/packages/Microsoft.ML.FastTree/">Microsoft.ML.FastTree</a>. 
         public static void Example()
         {
             // Create a new context for ML.NET operations. It can be used for exception tracking and logging, 
@@ -25,18 +23,21 @@ namespace Samples.Dynamic.Trainers.Regression
             var trainingData = mlContext.Data.LoadFromEnumerable(dataPoints);
 
             // Define trainer options.
-            var options = new GamRegressionTrainer.Options
+            var options = new SdcaRegressionTrainer.Options
             {
                 LabelColumnName = nameof(DataPoint.Label),
                 FeatureColumnName = nameof(DataPoint.Features),
-                // The entropy (regularization) coefficient.
-                EntropyCoefficient = 0.3,
-                // Reduce the number of iterations to 50.
-                NumberOfIterations = 50
+                // Make the convergence tolerance tighter. It effectively leads to more training iterations.
+                ConvergenceTolerance = 0.02f,
+                // Increase the maximum number of passes over training data. Similar to ConvergenceTolerance,
+				// this value specifics the hard iteration limit on the training algorithm.
+                MaximumNumberOfIterations = 30,
+                // Increase learning rate for bias.
+                BiasLearningRate = 0.1f
             };
 
             // Define the trainer.
-            var pipeline = mlContext.Regression.Trainers.Gam(options);
+            var pipeline = mlContext.Regression.Trainers.Sdca(options);
 
             // Train the model.
             var model = pipeline.Fit(trainingData);
@@ -55,21 +56,21 @@ namespace Samples.Dynamic.Trainers.Regression
                 Console.WriteLine($"Label: {p.Label:F3}, Prediction: {p.Score:F3}");
 
             // Expected output:
-            //   Label: 0.985, Prediction: 0.841
-            //   Label: 0.155, Prediction: 0.187
-            //   Label: 0.515, Prediction: 0.496
-            //   Label: 0.566, Prediction: 0.467
-            //   Label: 0.096, Prediction: 0.144
+            //   Label: 0.985, Prediction: 0.927
+            //   Label: 0.155, Prediction: 0.062
+            //   Label: 0.515, Prediction: 0.439
+            //   Label: 0.566, Prediction: 0.500
+            //   Label: 0.096, Prediction: 0.078
 
             // Evaluate the overall metrics
             var metrics = mlContext.Regression.Evaluate(transformedTestData);
             PrintMetrics(metrics);
 
             // Expected output:
-            //   Mean Absolute Error: 0.04
-            //   Mean Squared Error: 0.01
-            //   Root Mean Squared Error: 0.05
-            //   RSquared: 0.98 (closer to 1 is better. The worest case is 0)
+            //   Mean Absolute Error: 0.05
+            //   Mean Squared Error: 0.00
+            //   Root Mean Squared Error: 0.06
+            //   RSquared: 0.97 (closer to 1 is better. The worest case is 0)
         }
 
         private static IEnumerable<DataPoint> GenerateRandomDataPoints(int count, int seed=0)
