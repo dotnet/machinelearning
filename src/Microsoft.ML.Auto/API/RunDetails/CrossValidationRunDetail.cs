@@ -46,7 +46,7 @@ namespace Microsoft.ML.Auto
         public TMetrics ValidationMetrics { get; private set; }
 
         /// <summary>
-        /// Model trained during the run.
+        /// Model trained on the fold during the run.
         /// </summary>
         /// <remarks>
         /// You can use the trained model to obtain predictions on input data.
@@ -54,7 +54,7 @@ namespace Microsoft.ML.Auto
         public ITransformer Model { get { return _modelContainer.GetModel(); } }
 
         /// <summary>
-        /// Exception encountered during the fold training. This property is 
+        /// Exception encountered while training the fold. This property is 
         /// <see langword="null"/> if no exception was encountered.
         /// </summary>
         /// <remarks>
