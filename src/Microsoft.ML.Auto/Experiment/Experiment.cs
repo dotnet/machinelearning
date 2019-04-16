@@ -58,7 +58,7 @@ namespace Microsoft.ML.Auto
 
                 // get next pipeline
                 var getPiplelineStopwatch = Stopwatch.StartNew();
-                var pipeline = PipelineSuggester.GetNextInferredPipeline(_context, _history, _datasetColumnInfo, _task, _optimizingMetricInfo.IsMaximizing, _trainerWhitelist, _experimentSettings.CacheBeforeTrainer);
+                var pipeline = PipelineSuggester.GetNextInferredPipeline(_context, _history, _datasetColumnInfo, _task, _optimizingMetricInfo.IsMaximizing, _experimentSettings.CacheBeforeTrainer, _trainerWhitelist);
                 var pipelineInferenceTimeInSeconds = getPiplelineStopwatch.Elapsed.TotalSeconds;
 
                 // break if no candidates returned, means no valid pipeline available

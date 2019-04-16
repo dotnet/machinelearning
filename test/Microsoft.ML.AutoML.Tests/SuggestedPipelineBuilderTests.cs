@@ -77,7 +77,7 @@ namespace Microsoft.ML.Auto.Test
             return SuggestedPipelineBuilder.Build(_context,
                     new List<SuggestedTransform>(),
                     new List<SuggestedTransform>(),
-                    trainer, enableCaching);
+                    trainer, CacheBeforeTrainer.Auto);
         }
     }
 }
