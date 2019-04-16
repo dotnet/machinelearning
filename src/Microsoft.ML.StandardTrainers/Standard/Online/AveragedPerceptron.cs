@@ -90,7 +90,7 @@ namespace Microsoft.ML.Trainers
             public IClassificationLoss LossFunction { get; set; }
 
             /// <summary>
-            /// The <a href="tmpurl_calib">calibrator</a> for producing probabilities. Default is exponential (aka Platt) calibration.
+            /// The <a href="https://en.wikipedia.org/wiki/Calibration_(statistics)">calibrator</a> for producing probabilities. Default is exponential (aka Platt) calibration.
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "The calibrator kind to apply to the predictor. Specify null for no calibration", Visibility = ArgumentAttribute.VisibilityType.EntryPointsOnly)]
             internal ICalibratorTrainerFactory Calibrator = new PlattCalibratorTrainerFactory();

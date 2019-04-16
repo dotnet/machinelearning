@@ -1547,7 +1547,7 @@ namespace Microsoft.ML.Trainers
 
     /// <summary>
     /// The <see cref="IEstimator{TTransformer}"/> for training a binary logistic regression classification model using the stochastic dual coordinate ascent method.
-    /// The trained model is <a href='tmpurl_calib'>calibrated</a> and can produce probability by feeding the output value of the
+    /// The trained model is <a href='https://en.wikipedia.org/wiki/Calibration_(statistics)'>calibrated</a> and can produce probability by feeding the output value of the
     /// linear function to a <see cref="PlattCalibrator"/>.
     /// </summary>
     /// <include file='doc.xml' path='doc/members/member[@name="SDCA_remarks"]/*' />
@@ -2171,7 +2171,7 @@ namespace Microsoft.ML.Trainers
 
     /// <summary>
     /// The <see cref="IEstimator{TTransformer}"/> for training logistic regression using a parallel stochastic gradient method.
-    /// The trained model is <a href='tmpurl_calib'>calibrated</a> and can produce probability by feeding the output value of the
+    /// The trained model is <a href='https://en.wikipedia.org/wiki/Calibration_(statistics)'>calibrated</a> and can produce probability by feeding the output value of the
     /// linear function to a <see cref="PlattCalibrator"/>.
     /// </summary>
     /// <remarks>
