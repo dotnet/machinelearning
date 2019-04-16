@@ -64,6 +64,7 @@ namespace Microsoft.ML.Data
        internal ConfusionMatrix(IHost host, double[] precision, double[] recall, double[][] confusionTableCounts,
             List<ReadOnlyMemory<char>> labelNames, bool isSampled, bool isBinary)
         {
+            Contracts.AssertValue(host);
             _host = host;
 
             _host.AssertNonEmpty(precision);
