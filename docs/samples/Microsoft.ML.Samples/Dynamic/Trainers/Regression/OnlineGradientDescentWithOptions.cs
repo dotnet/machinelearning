@@ -28,13 +28,16 @@ namespace Samples.Dynamic.Trainers.Regression
                 LabelColumnName = nameof(DataPoint.Label),
                 FeatureColumnName = nameof(DataPoint.Features),
                 // Change the loss function.
-                LossFunction = new TweedieLoss(),
+                LossFunction = new SquaredLoss(),
                 // Give an extra gain to more recent updates.
-                RecencyGain = 0.1f,
+                RecencyGain = 0.0f,
                 // Turn off lazy updates.
                 LazyUpdate = false,
                 // Specify scale for initial weights.
-                InitialWeightsDiameter = 0.2f
+                InitialWeightsDiameter = 0.01f,
+                LearningRate = 0.01f,
+                L2Regularization = 0.005f,
+                NumberOfIterations = 100
             };
 
             // Define the trainer.
