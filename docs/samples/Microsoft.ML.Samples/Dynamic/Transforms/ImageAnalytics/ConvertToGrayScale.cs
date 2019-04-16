@@ -44,6 +44,16 @@ namespace Samples.Dynamic
 
             var transformedData = pipeline.Fit(data).Transform(data);
 
+            PrintColumns(transformedData);
+            // ImagePath    Name         ImageObject              Grayscale
+            // tomato.bmp   tomato       {Width=800, Height=534}  {Width=800, Height=534}
+            // banana.jpg   banana       {Width=800, Height=288}  {Width=800, Height=288}
+            // hotdog.jpg   hotdog       {Width=800, Height=391}  {Width=800, Height=391}
+            // tomato.jpg   tomato       {Width=800, Height=534}  {Width=800, Height=534}
+        }
+
+        private static void PrintColumns(IDataView transformedData)
+        {
             Console.WriteLine("{0, -25} {1, -25} {2, -25} {3, -25}", "ImagePath", "Name", "ImageObject", "Grayscale");
             using (var cursor = transformedData.GetRowCursor(transformedData.Schema))
             {
@@ -62,19 +72,13 @@ namespace Samples.Dynamic
                     Bitmap grayscaleImageObject = null;
                     grayscaleGetter(ref grayscaleImageObject);
 
-                    Console.WriteLine("{0, -25} {1, -25} {2, -25} {3, -25}", imagePath, name, imageObject, grayscaleImageObject);
+                    Console.WriteLine("{0, -25} {1, -25} {2, -25} {3, -25}", imagePath, name, imageObject.PhysicalDimension, grayscaleImageObject.PhysicalDimension);
 
                     //Dispose the image.
                     imageObject.Dispose();
                     grayscaleImageObject.Dispose();
                 }
             }
-
-            // ImagePath    Name         ImageObject            Grayscale
-            // tomato.bmp   tomato       System.Drawing.Bitmap  System.Drawing.Bitmap
-            // banana.jpg   banana       System.Drawing.Bitmap  System.Drawing.Bitmap
-            // hotdog.jpg   hotdog       System.Drawing.Bitmap  System.Drawing.Bitmap
-            // tomato.jpg   tomato       System.Drawing.Bitmap  System.Drawing.Bitmap
         }
     }
 }

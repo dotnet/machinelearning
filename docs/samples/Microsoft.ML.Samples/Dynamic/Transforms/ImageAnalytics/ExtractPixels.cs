@@ -50,33 +50,43 @@ namespace Samples.Dynamic
             // Preview the transformedData. 
             PrintColumns(transformedData);
 
-            // ImagePath    Name         ImageObject            ImageObjectResized      Pixels
-            // tomato.bmp   tomato       System.Drawing.Bitmap  System.Drawing.Bitmap   255,255,255,255,255...
-            // banana.jpg   banana       System.Drawing.Bitmap  System.Drawing.Bitmap   255,255,255,255,255...
-            // hotdog.jpg   hotdog       System.Drawing.Bitmap  System.Drawing.Bitmap   255,255,255,255,255...
-            // tomato.jpg   tomato       System.Drawing.Bitmap  System.Drawing.Bitmap   255,255,255,255,255...
+            // ImagePath    Name         ImageObject               ImageObjectResized        Pixels
+            // tomato.bmp   tomato       {Width=800, Height=534}   {Width=100, Height=100}   255,255,255,255,255...
+            // banana.jpg   banana       {Width=800, Height=288}   {Width=100, Height=100}   255,255,255,255,255...
+            // hotdog.jpg   hotdog       {Width=800, Height=391}   {Width=100, Height=100}   255,255,255,255,255...
+            // tomato.jpg   tomato       {Width=800, Height=534}   {Width=100, Height=100}   255,255,255,255,255...
         }
+
         private static void PrintColumns(IDataView transformedData)
         {
-            var imagePathColumn = transformedData.GetColumn<string>("ImagePath").GetEnumerator();
-            var namePathColumn = transformedData.GetColumn<string>("Name").GetEnumerator();
-            var imageObjectColumn = transformedData.GetColumn<Bitmap>("ImageObject").GetEnumerator();
-            var imageObjectResizedColumn = transformedData.GetColumn<Bitmap>("ImageObjectResized").GetEnumerator();
-            var pixelsColumn = transformedData.GetColumn<VBuffer<float>>("Pixels").GetEnumerator();
-
             Console.WriteLine("{0, -25} {1, -25} {2, -25} {3, -25} {4, -25}", "ImagePath", "Name", "ImageObject", "ImageObjectResized", "Pixels");
-            while (imagePathColumn.MoveNext() && namePathColumn.MoveNext() && imageObjectColumn.MoveNext() && imageObjectResizedColumn.MoveNext() && pixelsColumn.MoveNext())
+            using (var cursor = transformedData.GetRowCursor(transformedData.Schema))
             {
-                Console.WriteLine("{0, -25} {1, -25} {2, -25} {3, -25} {4, -25}",
-                    imagePathColumn.Current,
-                    namePathColumn.Current,
-                    imageObjectColumn.Current,
-                    imageObjectResizedColumn.Current,
-                    string.Join(",", pixelsColumn.Current.DenseValues().Take(5)) + "...");
+                var imagePathGetter = cursor.GetGetter<ReadOnlyMemory<char>>(cursor.Schema["ImagePath"]);
+                var nameGetter = cursor.GetGetter<ReadOnlyMemory<char>>(cursor.Schema["Name"]);
+                var imageObjectGetter = cursor.GetGetter<Bitmap>(cursor.Schema["ImageObject"]);
+                var resizedImageGetter = cursor.GetGetter<Bitmap>(cursor.Schema["ImageObjectResized"]);
+                var pixelsGetter = cursor.GetGetter<VBuffer<float>>(cursor.Schema["Pixels"]);
+                while (cursor.MoveNext())
+                {
+                    ReadOnlyMemory<char> imagePath = null;
+                    imagePathGetter(ref imagePath);
+                    ReadOnlyMemory<char> name = null;
+                    nameGetter(ref name);
+                    Bitmap imageObject = null;
+                    imageObjectGetter(ref imageObject);
+                    Bitmap resizedImageObject = null;
+                    resizedImageGetter(ref resizedImageObject);
+                    VBuffer<float> pixels = default;
+                    pixelsGetter(ref pixels);
 
-                //Dispose bitmap image.
-                imageObjectResizedColumn.Current.Dispose();
-                imageObjectColumn.Current.Dispose();
+                    Console.WriteLine("{0, -25} {1, -25} {2, -25} {3, -25} {4, -25}", imagePath, name,
+                        imageObject.PhysicalDimension, resizedImageObject.PhysicalDimension, string.Join(",", pixels.DenseValues().Take(5)) + "...");
+
+                    //Dispose the image.
+                    imageObject.Dispose();
+                    resizedImageObject.Dispose();
+                }
             }
         }
     }

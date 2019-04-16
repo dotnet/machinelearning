@@ -37,27 +37,35 @@ namespace Samples.Dynamic
             PrintColumns(transformedData);
 
             // Features                 Image                    Pixels
-            // 185,209,196,142,52...    System.Drawing.Bitmap    185,209,196,142,52...
-            // 182,235,84,23,87...      System.Drawing.Bitmap    182,235,84,23,87...
-            // 192,214,247,22,38...     System.Drawing.Bitmap    192,214,247,22,38...
-            // 242,161,141,223,192...   System.Drawing.Bitmap    242,161,141,223,192...
+            // 185,209,196,142,52...    {Width=224, Height=224}  185,209,196,142,52...
+            // 182,235,84,23,87...      {Width=224, Height=224}  182,235,84,23,87...
+            // 192,214,247,22,38...     {Width=224, Height=224}  192,214,247,22,38...
+            // 242,161,141,223,192...   {Width=224, Height=224}  242,161,141,223,192...
         }
 
         private static void PrintColumns(IDataView transformedData)
         {
-            var featuresColumn = transformedData.GetColumn<VBuffer<float>>("Features").GetEnumerator();
-            var imageColumn = transformedData.GetColumn<Bitmap>("Image").GetEnumerator();
-            var pixelsColumn = transformedData.GetColumn<VBuffer<float>>("Pixels").GetEnumerator();
             Console.WriteLine("{0, -25} {1, -25} {2, -25}", "Features", "Image", "Pixels");
-            while (featuresColumn.MoveNext() && imageColumn.MoveNext() && pixelsColumn.MoveNext())
+            using (var cursor = transformedData.GetRowCursor(transformedData.Schema))
             {
-                Console.WriteLine("{0, -25} {1, -25} {2, -25}",
-                    string.Join(",", featuresColumn.Current.DenseValues().Take(5)) + "...",
-                    imageColumn.Current,
-                    string.Join(",", pixelsColumn.Current.DenseValues().Take(5)) + "...");
+                var featuresGetter = cursor.GetGetter<VBuffer<float>>(cursor.Schema["Features"]);
+                var pixelsGetter = cursor.GetGetter<VBuffer<float>>(cursor.Schema["Pixels"]);
+                var imageGetter = cursor.GetGetter<Bitmap>(cursor.Schema["Image"]);
+                while (cursor.MoveNext())
+                {
+                    VBuffer<float> features = default;
+                    featuresGetter(ref features);
+                    VBuffer<float> pixels = default;
+                    pixelsGetter(ref pixels);
+                    Bitmap imageObject = null;
+                    imageGetter(ref imageObject);
 
-                //Dispose bitmap image.
-                imageColumn.Current.Dispose();
+                    Console.WriteLine("{0, -25} {1, -25} {2, -25}", string.Join(",", features.DenseValues().Take(5)) + "...",
+                        imageObject.PhysicalDimension, string.Join(",", pixels.DenseValues().Take(5)) + "...");
+
+                    //Dispose the image.
+                    imageObject.Dispose();
+                }
             }
         }
 

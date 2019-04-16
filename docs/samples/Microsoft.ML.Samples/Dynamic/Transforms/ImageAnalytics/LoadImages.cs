@@ -43,12 +43,23 @@ namespace Samples.Dynamic
 
             var transformedData = pipeline.Fit(data).Transform(data);
 
+            PrintColumns(transformedData);
+            // Preview the transformedData. 
+            // ImagePath    Name         ImageObject           
+            // tomato.bmp   tomato       {Width=800, Height=534}
+            // banana.jpg   banana       {Width=800, Height=288}
+            // hotdog.jpg   hotdog       {Width=800, Height=391}
+            // tomato.jpg   tomato       {Width=800, Height=534}
+        }
+
+        private static void PrintColumns(IDataView transformedData)
+        {
             // The transformedData IDataView contains the loaded images now.
             Console.WriteLine("{0, -25} {1, -25} {2, -25}", "ImagePath", "Name", "ImageObject");
             using (var cursor = transformedData.GetRowCursor(transformedData.Schema))
             {
-                var imagePathGetter = cursor.GetGetter<ReadOnlyMemory<char>> (cursor.Schema["ImagePath"]);
-                var nameGetter = cursor.GetGetter<ReadOnlyMemory<char>> (cursor.Schema["Name"]);
+                var imagePathGetter = cursor.GetGetter<ReadOnlyMemory<char>>(cursor.Schema["ImagePath"]);
+                var nameGetter = cursor.GetGetter<ReadOnlyMemory<char>>(cursor.Schema["Name"]);
                 var imageObjectGetter = cursor.GetGetter<Bitmap>(cursor.Schema["ImageObject"]);
                 while (cursor.MoveNext())
                 {
@@ -65,13 +76,6 @@ namespace Samples.Dynamic
                     imageObject.Dispose();
                 }
             }
-
-            // Preview the transformedData. 
-            // ImagePath    Name         ImageObject           
-            // tomato.bmp   tomato       {Width=800, Height=534}
-            // banana.jpg   banana       {Width=800, Height=288}
-            // hotdog.jpg   hotdog       {Width=800, Height=391}
-            // tomato.jpg   tomato       {Width=800, Height=534}
         }
     }
 }

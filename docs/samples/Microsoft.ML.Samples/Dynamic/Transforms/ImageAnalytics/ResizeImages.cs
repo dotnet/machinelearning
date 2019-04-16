@@ -48,27 +48,40 @@ namespace Samples.Dynamic
             // Preview the transformedData. 
             PrintColumns(transformedData);
 
-            // ImagePath    Name         ImageObject            ImageObjectResized
-            // tomato.bmp   tomato       System.Drawing.Bitmap  System.Drawing.Bitmap
-            // banana.jpg   banana       System.Drawing.Bitmap  System.Drawing.Bitmap
-            // hotdog.jpg   hotdog       System.Drawing.Bitmap  System.Drawing.Bitmap
-            // tomato.jpg   tomato       System.Drawing.Bitmap  System.Drawing.Bitmap
+            // ImagePath    Name         ImageObject               ImageObjectResized
+            // tomato.bmp   tomato       {Width=800, Height=534}   {Width=100, Height=100}
+            // banana.jpg   banana       {Width=800, Height=288}   {Width=100, Height=100}
+            // hotdog.jpg   hotdog       {Width=800, Height=391}   {Width=100, Height=100}
+            // tomato.jpg   tomato       {Width=800, Height=534}   {Width=100, Height=100}
         }
 
         private static void PrintColumns(IDataView transformedData)
         {
-            var imagePathColumn = transformedData.GetColumn<string>("ImagePath").GetEnumerator();
-            var namePathColumn = transformedData.GetColumn<string>("Name").GetEnumerator();
-            var imageObjectColumn = transformedData.GetColumn<Bitmap>("ImageObject").GetEnumerator();
-            var imageObjectResizedColumn = transformedData.GetColumn<Bitmap>("ImageObjectResized").GetEnumerator();
             Console.WriteLine("{0, -25} {1, -25} {2, -25} {3, -25}", "ImagePath", "Name", "ImageObject", "ImageObjectResized");
-            while (imagePathColumn.MoveNext() && namePathColumn.MoveNext() && imageObjectColumn.MoveNext() && imageObjectResizedColumn.MoveNext())
+            using (var cursor = transformedData.GetRowCursor(transformedData.Schema))
             {
-                Console.WriteLine("{0, -25} {1, -25} {2, -25} {3, -25}", imagePathColumn.Current, namePathColumn.Current, imageObjectColumn.Current, imageObjectResizedColumn.Current);
+                var imagePathGetter = cursor.GetGetter<ReadOnlyMemory<char>>(cursor.Schema["ImagePath"]);
+                var nameGetter = cursor.GetGetter<ReadOnlyMemory<char>>(cursor.Schema["Name"]);
+                var imageObjectGetter = cursor.GetGetter<Bitmap>(cursor.Schema["ImageObject"]);
+                var resizedImageGetter = cursor.GetGetter<Bitmap>(cursor.Schema["ImageObjectResized"]);
+                while (cursor.MoveNext())
+                {
+                    ReadOnlyMemory<char> imagePath = null;
+                    imagePathGetter(ref imagePath);
+                    ReadOnlyMemory<char> name = null;
+                    nameGetter(ref name);
+                    Bitmap imageObject = null;
+                    imageObjectGetter(ref imageObject);
+                    Bitmap resizedImageObject = null;
+                    resizedImageGetter(ref resizedImageObject);
 
-                //Dispose bitmap image.
-                imageObjectColumn.Current.Dispose();
-                imageObjectResizedColumn.Current.Dispose();
+                    Console.WriteLine("{0, -25} {1, -25} {2, -25} {3, -25}", imagePath, name,
+                        imageObject.PhysicalDimension, resizedImageObject.PhysicalDimension);
+
+                    //Dispose the image.
+                    imageObject.Dispose();
+                    resizedImageObject.Dispose();
+                }
             }
         }
     }
