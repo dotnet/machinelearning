@@ -1,8 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using Microsoft.ML;
 using Microsoft.ML.SamplesUtils;
 
-namespace Microsoft.ML.Samples.Dynamic
+namespace Samples.Dynamic
 {
     /// <summary>
     /// Sample class showing how to use ShuffleRows.
@@ -53,8 +54,6 @@ namespace Microsoft.ML.Samples.Dynamic
             //  1/4/2012        34      0
             //  1/5/2012        35      0
             //  1/6/2012        35      0
-
-            Console.ReadLine();
         }
     }
 }

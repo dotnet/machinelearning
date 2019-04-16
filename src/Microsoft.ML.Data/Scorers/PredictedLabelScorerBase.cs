@@ -62,22 +62,12 @@ namespace Microsoft.ML.Data
                 {
                     var scoreColMetadata = mapper.OutputSchema[scoreColIndex].Annotations;
 
-                    var slotColumn = scoreColMetadata.Schema.GetColumnOrNull(AnnotationUtils.Kinds.SlotNames);
-                    if (slotColumn?.Type is VectorDataViewType slotColVecType && (ulong)slotColVecType.Size == predColKeyType.Count)
+                    var trainLabelColumn = scoreColMetadata.Schema.GetColumnOrNull(AnnotationUtils.Kinds.TrainingLabelValues);
+                    if (trainLabelColumn?.Type is VectorDataViewType trainLabelColVecType && (ulong)trainLabelColVecType.Size == predColKeyType.Count)
                     {
-                        Contracts.Assert(slotColVecType.Size > 0);
-                        _predColMetadata = Utils.MarshalInvoke(KeyValueMetadataFromMetadata<int>, slotColVecType.RawType,
-                            scoreColMetadata, slotColumn.Value);
-                    }
-                    else
-                    {
-                        var trainLabelColumn = scoreColMetadata.Schema.GetColumnOrNull(AnnotationUtils.Kinds.TrainingLabelValues);
-                        if (trainLabelColumn?.Type is VectorDataViewType trainLabelColVecType && (ulong)trainLabelColVecType.Size == predColKeyType.Count)
-                        {
-                            Contracts.Assert(trainLabelColVecType.Size > 0);
-                            _predColMetadata = Utils.MarshalInvoke(KeyValueMetadataFromMetadata<int>, trainLabelColVecType.RawType,
-                                scoreColMetadata, trainLabelColumn.Value);
-                        }
+                        Contracts.Assert(trainLabelColVecType.Size > 0);
+                        _predColMetadata = Utils.MarshalInvoke(KeyValueMetadataFromMetadata<int>, trainLabelColVecType.RawType,
+                            scoreColMetadata, trainLabelColumn.Value);
                     }
                 }
             }

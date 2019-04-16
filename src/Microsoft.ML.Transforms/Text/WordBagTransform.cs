@@ -152,7 +152,7 @@ namespace Microsoft.ML.Transforms.Text
             IDataView view = input;
             view = NgramExtractionUtils.ApplyConcatOnSources(h, options.Columns, view);
             view = new WordTokenizingEstimator(env, tokenizeColumns).Fit(view).Transform(view);
-            return NgramExtractorTransform.Create(h, extractorArgs, view);
+            return NgramExtractorTransform.CreateDataTransform(h, extractorArgs, view);
         }
     }
 
@@ -256,8 +256,7 @@ namespace Microsoft.ML.Transforms.Text
 
         internal const string LoaderSignature = "NgramExtractor";
 
-        internal static IDataTransform Create(IHostEnvironment env, Options options, IDataView input,
-            TermLoaderArguments termLoaderArgs = null)
+        internal static ITransformer Create(IHostEnvironment env, Options options, IDataView input, TermLoaderArguments termLoaderArgs = null)
         {
             Contracts.CheckValue(env, nameof(env));
             var h = env.Register(LoaderSignature);
@@ -265,7 +264,8 @@ namespace Microsoft.ML.Transforms.Text
             h.CheckValue(input, nameof(input));
             h.CheckUserArg(Utils.Size(options.Columns) > 0, nameof(options.Columns), "Columns must be specified");
 
-            IDataView view = input;
+            var chain = new TransformerChain<ITransformer>();
+
             var termCols = new List<Column>();
             var isTermCol = new bool[options.Columns.Length];
 
@@ -291,53 +291,39 @@ namespace Microsoft.ML.Transforms.Text
             // of args.column are not text nor keys).
             if (termCols.Count > 0)
             {
-                ValueToKeyMappingTransformer.Options termArgs = null;
-                string[] missingDropColumns = null;
-                if (termLoaderArgs != null)
-                {
-                    termArgs =
-                        new ValueToKeyMappingTransformer.Options()
-                        {
-                            MaxNumTerms = int.MaxValue,
-                            Term = termLoaderArgs.Term,
-                            Terms = termLoaderArgs.Terms,
-                            DataFile = termLoaderArgs.DataFile,
-                            Loader = termLoaderArgs.Loader,
-                            TermsColumn = termLoaderArgs.TermsColumn,
-                            Sort = termLoaderArgs.Sort,
-                            Columns = new ValueToKeyMappingTransformer.Column[termCols.Count]
-                        };
-                    if (termLoaderArgs.DropUnknowns)
-                        missingDropColumns = new string[termCols.Count];
-                }
-                else
-                {
-                    termArgs =
-                        new ValueToKeyMappingTransformer.Options()
-                        {
-                            MaxNumTerms = Utils.Size(options.MaxNumTerms) > 0 ? options.MaxNumTerms[0] : NgramExtractingEstimator.Defaults.MaximumNgramsCount,
-                            Columns = new ValueToKeyMappingTransformer.Column[termCols.Count]
-                        };
-                }
+                var columnOptions = new List<ValueToKeyMappingEstimator.ColumnOptionsBase>();
+                string[] missingDropColumns = termLoaderArgs != null && termLoaderArgs.DropUnknowns ? new string[termCols.Count] : null;
 
                 for (int iinfo = 0; iinfo < termCols.Count; iinfo++)
                 {
                     var column = termCols[iinfo];
-                    termArgs.Columns[iinfo] =
-                        new ValueToKeyMappingTransformer.Column()
-                        {
-                            Name = column.Name,
-                            Source = column.Source,
-                            MaxNumTerms = Utils.Size(column.MaxNumTerms) > 0 ? column.MaxNumTerms[0] : default(int?)
-                        };
+                    var colOptions = new ValueToKeyMappingEstimator.ColumnOptions(
+                        column.Name,
+                        column.Source,
+                        maximumNumberOfKeys: Utils.Size(column.MaxNumTerms) > 0 ? column.MaxNumTerms[0] :
+                        Utils.Size(options.MaxNumTerms) > 0 ? options.MaxNumTerms[0] :
+                        termLoaderArgs == null ? NgramExtractingEstimator.Defaults.MaximumNgramsCount : int.MaxValue,
+                        keyOrdinality: termLoaderArgs?.Sort ?? ValueToKeyMappingEstimator.KeyOrdinality.ByOccurrence);
+                    if (termLoaderArgs != null)
+                    {
+                        colOptions.Key = termLoaderArgs.Term;
+                        colOptions.Keys = termLoaderArgs.Terms;
+                    }
+                    columnOptions.Add(colOptions);
 
                     if (missingDropColumns != null)
                         missingDropColumns[iinfo] = column.Name;
                 }
 
-                view = ValueToKeyMappingTransformer.Create(h, termArgs, view);
+                IDataView keyData = null;
+                if (termLoaderArgs?.DataFile != null)
+                {
+                    using (var ch = env.Start("Create key data view"))
+                        keyData = ValueToKeyMappingTransformer.GetKeyDataViewOrNull(env, ch, termLoaderArgs.DataFile, termLoaderArgs.TermsColumn, termLoaderArgs.Loader, out var autoConvert);
+                }
+                chain = chain.Append<ITransformer>(new ValueToKeyMappingEstimator(h, columnOptions.ToArray(), keyData).Fit(input));
                 if (missingDropColumns != null)
-                    view = new MissingValueDroppingTransformer(h, missingDropColumns.Select(x => (x, x)).ToArray()).Transform(view);
+                    chain = chain.Append<ITransformer>(new MissingValueDroppingTransformer(h, missingDropColumns.Select(x => (x, x)).ToArray()));
             }
 
             var ngramColumns = new NgramExtractingEstimator.ColumnOptions[options.Columns.Length];
@@ -354,10 +340,19 @@ namespace Microsoft.ML.Transforms.Text
                     );
             }
 
-            return new NgramExtractingEstimator(env, ngramColumns).Fit(view).Transform(view) as IDataTransform;
+            input = chain.Transform(input);
+            return chain.Append<ITransformer>(new NgramExtractingEstimator(env, ngramColumns).Fit(input));
         }
 
-        internal static IDataTransform Create(IHostEnvironment env, NgramExtractorArguments extractorArgs, IDataView input,
+        internal static IDataTransform CreateDataTransform(IHostEnvironment env, Options options, IDataView input,
+            TermLoaderArguments termLoaderArgs = null)
+        {
+            Contracts.CheckValue(env, nameof(env));
+            env.CheckValue(input, nameof(input));
+            return Create(env, options, input, termLoaderArgs).Transform(input) as IDataTransform;
+        }
+
+        internal static ITransformer Create(IHostEnvironment env, NgramExtractorArguments extractorArgs, IDataView input,
             ExtractorColumn[] cols, TermLoaderArguments termLoaderArgs = null)
         {
             Contracts.CheckValue(env, nameof(env));
@@ -440,7 +435,7 @@ namespace Microsoft.ML.Transforms.Text
         /// </summary>
         bool UseHashingTrick { get; }
 
-        IDataTransform Create(IHostEnvironment env, IDataView input, ExtractorColumn[] cols);
+        ITransformer Create(IHostEnvironment env, IDataView input, ExtractorColumn[] cols);
     }
 
     [TlcModule.ComponentKind("NgramExtractor")]
@@ -465,7 +460,7 @@ namespace Microsoft.ML.Transforms.Text
             _termLoaderArgs = termLoaderArgs;
         }
 
-        public IDataTransform Create(IHostEnvironment env, IDataView input, ExtractorColumn[] cols)
+        public ITransformer Create(IHostEnvironment env, IDataView input, ExtractorColumn[] cols)
         {
             return NgramExtractorTransform.Create(env, _extractorArgs, input, cols, _termLoaderArgs);
         }
@@ -477,22 +472,18 @@ namespace Microsoft.ML.Transforms.Text
     internal class NgramHashExtractorFactory : INgramExtractorFactory
     {
         private readonly NgramHashExtractingTransformer.NgramHashExtractorArguments _extractorArgs;
-        private readonly TermLoaderArguments _termLoaderArgs;
 
         public bool UseHashingTrick { get { return true; } }
 
-        public NgramHashExtractorFactory(NgramHashExtractingTransformer.NgramHashExtractorArguments extractorArgs,
-            TermLoaderArguments customTermsArgs = null)
+        public NgramHashExtractorFactory(NgramHashExtractingTransformer.NgramHashExtractorArguments extractorArgs)
         {
             Contracts.CheckValue(extractorArgs, nameof(extractorArgs));
-            Contracts.CheckValueOrNull(customTermsArgs);
             _extractorArgs = extractorArgs;
-            _termLoaderArgs = customTermsArgs;
         }
 
-        public IDataTransform Create(IHostEnvironment env, IDataView input, ExtractorColumn[] cols)
+        public ITransformer Create(IHostEnvironment env, IDataView input, ExtractorColumn[] cols)
         {
-            return NgramHashExtractingTransformer.Create(_extractorArgs, env, input, cols, _termLoaderArgs);
+            return NgramHashExtractingTransformer.Create(_extractorArgs, env, input, cols);
         }
     }
 

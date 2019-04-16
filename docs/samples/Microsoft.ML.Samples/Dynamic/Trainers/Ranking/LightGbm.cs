@@ -1,4 +1,6 @@
-﻿namespace Microsoft.ML.Samples.Dynamic.Trainers.Ranking
+﻿using Microsoft.ML;
+
+namespace Samples.Dynamic.Trainers.Ranking
 {
     public class LightGbm
     {
@@ -9,7 +11,7 @@
             var mlContext = new MLContext();
 
             // Download and featurize the dataset.
-            var dataview = SamplesUtils.DatasetUtils.LoadFeaturizedMslrWeb10kDataset(mlContext);
+            var dataview = Microsoft.ML.SamplesUtils.DatasetUtils.LoadFeaturizedMslrWeb10kDataset(mlContext);
 
             // Leave out 10% of the dataset for testing. Since this is a ranking problem, we must ensure that the split
             // respects the GroupId column, i.e. rows with the same GroupId are either all in the train split or all in
@@ -30,7 +32,7 @@
             var dataWithPredictions = model.Transform(split.TestSet);
 
             var metrics = mlContext.Ranking.Evaluate(dataWithPredictions);
-            SamplesUtils.ConsoleUtils.PrintMetrics(metrics);
+            Microsoft.ML.SamplesUtils.ConsoleUtils.PrintMetrics(metrics);
 
             // Expected output:
             //   DCG: @1:1.71, @2:3.88, @3:7.93

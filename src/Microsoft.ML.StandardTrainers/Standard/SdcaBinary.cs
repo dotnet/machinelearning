@@ -154,7 +154,7 @@ namespace Microsoft.ML.Trainers
         /// <summary>
         /// Options for the SDCA-based trainers.
         /// </summary>
-        public abstract class OptionsBase : TrainerInputBaseWithLabel
+        public abstract class OptionsBase : TrainerInputBaseWithWeight
         {
             /// <summary>
             /// The L2 <a href='tmpurl_regularization'>regularization</a> hyperparameter.
@@ -1505,7 +1505,7 @@ namespace Microsoft.ML.Trainers
         }
 
         private protected SdcaBinaryTrainerBase(IHostEnvironment env, BinaryOptionsBase options, ISupportSdcaClassificationLoss loss = null, bool doCalibration = false)
-            : base(env, options, TrainerUtils.MakeBoolScalarLabel(options.LabelColumnName))
+            : base(env, options, TrainerUtils.MakeBoolScalarLabel(options.LabelColumnName), TrainerUtils.MakeR4ScalarWeightColumn(options.ExampleWeightColumnName))
         {
             _loss = loss ?? new LogLossFactory().CreateComponent(env);
             Loss = _loss;

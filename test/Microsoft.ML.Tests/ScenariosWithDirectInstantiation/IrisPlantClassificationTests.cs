@@ -27,7 +27,7 @@ namespace Microsoft.ML.Scenarios
             );
 
             var pipe = mlContext.Transforms.Concatenate("Features", "SepalLength", "SepalWidth", "PetalLength", "PetalWidth")
-                .Append(mlContext.Transforms.Normalize("Features"))
+                .Append(mlContext.Transforms.NormalizeMinMax("Features"))
                 .Append(mlContext.Transforms.Conversion.MapValueToKey("Label"))
                 .AppendCacheCheckpoint(mlContext)
                 .Append(mlContext.MulticlassClassification.Trainers.SdcaMaximumEntropy(

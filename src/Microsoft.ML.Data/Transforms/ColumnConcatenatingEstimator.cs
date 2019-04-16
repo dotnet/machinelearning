@@ -87,12 +87,12 @@ namespace Microsoft.ML.Transforms
                 // Appending keys makes no real sense anyway.
                 if (col.IsKey)
                 {
-                    throw _host.Except($"Column '{sources[i]}' is key." +
+                    throw _host.Except($"Column '{sources[i]}' is key. " +
                         $"Concatenation of keys is unsupported.");
                 }
                 if (!col.ItemType.Equals(itemType))
                 {
-                    throw _host.Except($"Column '{sources[i]}' has values of {col.ItemType}" +
+                    throw _host.Except($"Column '{sources[i]}' has values of {col.ItemType}, " +
                         $"which is not the same as earlier observed type of {itemType}.");
                 }
                 varVector |= col.Kind == SchemaShape.Column.VectorKind.VariableVector;

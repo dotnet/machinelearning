@@ -3229,10 +3229,10 @@ namespace Microsoft.ML.Trainers.FastTree
         }
 
         /// <summary>
-        /// Copy the weights of all training features to <paramref name="weights"/>.
+        /// Get the cumulative split gains for each feature across all trees.
         /// </summary>
-        /// <param name="weights">a <see cref="VBuffer{T}"/> where feature weights would be assigned to.
-        /// The i-th element in <paramref name="weights"/> stores the weight of the i-th feature.</param>
+        /// <param name="weights">A <see cref="VBuffer{T}"/> to hold the cumulative split gain value for each feature.
+        /// The i-th element in <paramref name="weights"/> stores the cumulative split gain of the i-th feature.</param>
         public void GetFeatureWeights(ref VBuffer<float> weights)
         {
             var numFeatures = Math.Max(NumFeatures, MaxSplitFeatIdx + 1);

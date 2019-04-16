@@ -12,9 +12,9 @@ directly address distributed data and computation, but is suitable for single
 node processing of data partitions belonging to larger distributed data sets.
 
 IDataView is the data pipeline machinery for ML.NET. Microsoft teams consuming
-this library have implemented libraries of IDataView related components
-(loaders, transforms, savers, trainers, predictors, etc.) and have validated
-the performance, scalability and task flexibility benefits.
+this library have implemented libraries of IDataView related components (data
+loaders, transformers, estimators, trainers, etc.) and have validated the
+performance, scalability and task flexibility benefits.
 
 The name IDataView was inspired from the database world, where the term table
 typically indicates a mutable body of data, while a view is the result of a
@@ -128,10 +128,9 @@ The IDataView system design does *not* include the following:
   view.
 
 * **Efficient indexed row access**: There is no standard way in the IDataView
-  system to request the values for a specific row number. While the
-  `IRowCursor` interface has a `MoveMany(long count)` method, it only supports
-  moving forward `(count > 0)`, and is not necessarily more efficient than
-  calling `MoveNext()` repeatedly. See [here](#row-cursor).
+  system to request the values for a specific row number. Rather, like
+  enumerators, one can only move forward with `MoveNext()`. See
+  [here](#row-cursor) for more information.
 
 * **Data file formats**: The IDataView system does not dictate storage or
   transport formats. It *does* include interfaces for loader and saver
@@ -167,15 +166,15 @@ there is a precisely defined set of standard types including:
 * Single and Double precision floating point
 * Signed integer values using 1, 2, 4, or 8 bytes
 * Unsigned integer values using 1, 2, 4, or 8 bytes
-* Unsigned 16 byte values for ids and probabilistically unique hashes
+* Values for ids and probabilistically unique hashes, using 16 bytes
 * Date time, date time zone, and timespan
 * Key types
 * Vector types
 
 The set of standard types will likely be expanded over time.
 
-The IDataView type system is specified in a separate document, *IDataView Type
-System Specification*.
+The IDataView type system is specified in a separate document, [IDataView Type
+System Specification](IDataViewTypeSystem.md).
 
 IDataView provides a general mechanism for associating semantic annotations with
 columns, such as designating sets of score columns, names associated with the
@@ -235,56 +234,85 @@ with a key type.
 ## Components
 
 The IDataView system includes several standard kinds of components and the
-ability to compose them to produce efficient data pipelines. A loader
-represents a data source as an `IDataView`. A transform is applied to an
-`IDataView` to produce a derived `IDataView`. A saver serializes the data
-produced by an `IDataView` to a stream, in some cases in a format that can be
-read by a loader. There are other more specific kinds of components defined
-and used by the ML.NET code base, for example, scorers, evaluators, joins, and
-caches. While there are several standard kinds of components, the set of
-component kinds is open.
+ability to compose them to produce efficient data pipelines:
 
-### Transforms
+Estimators and transformers. The langauge is derived from a similar idiom in
+[Spark](https://spark.apache.org/).
 
-Transforms are a foundational kind of IDataView component. Transforms take an
-IDataView as input and produce an IDataView as output. Many transforms simply
-"add" one or more computed columns to their input schema. More precisely,
-their output schema includes all the columns of the input schema, plus some
-additional columns, whose values are computed from some of the input column
-values. It is common for an added column to have the same name as an input
-column, in which case, the added column hides the input column. Both the
-original column and new column are present in the output schema and available
-for downstream components (in particular, savers and diagnostic tools) to
-inspect. For example, a normalization transform may, for each slot of a
-vector-valued column named Features, apply an offset and scale factor and
-bundle the results in a new vector-valued column, also named Features. From
-the user's perspective (which is entirely based on column names), the Features
-column was "modified" by the transform, but the original values are available
-downstream via the hidden column.
+A data loader allows data sources to be read as an `IDataView`. A transformer
+is applied via its `Transform` method to an `IDataView` to produce a derived
+`IDataView`. A saver serializes the data produced by an `IDataView` to a
+stream, in some cases in a format that can be read by a loader. There are
+other more specific kinds of components defined and used by the ML.NET code
+base, for example, scorers, evaluators, joins, and caches, but most of the
+aforementioned are internal. While there are several standard kinds of
+components, the set of component kinds is open. In the following sections we
+discuss the most important types of components in the public API of ML.NET.
 
-Some transforms require training, meaning that their precise behavior is
-determined automatically from some training data. For example, normalizers and
-dictionary-based mappers, such as the TermTransform, build their state from
-training data. Training occurs when the transform is instantiated from user-
-provided parameters. Typically, the transform behavior is later serialized.
-When deserialized, the transform is not retrained; its behavior is entirely
-determined by the serialized information.
+### Transformers
+
+Transformers are a foundational kind of IDataView component. They have two
+primary responsibilities, from a user's point of view.
+
+As the name suggests, the primary method is `Transform`, which takes
+`IDataView` as input and produce an `IDataView` as output, using the
+`ITransformer.Transform` method. Many transformers simply "add" one or more
+computed columns to their input schema. More precisely, their output schema
+includes all the columns of the input schema, plus some additional columns,
+whose values are computed from some of the input column values. It is common
+for an added column to have the same name as an input column, in which case,
+the added column hides the input column. Both the original column and new
+column are present in the output schema and available for downstream
+components (in particular, savers and diagnostic tools) to inspect. For
+example, a data view that comes from a normalization transformer may, for each
+slot of a vector-valued column named `"Features"`, apply an offset and scale
+factor and bundle the results in a new vector-valued column, also named
+`"Features"`. From the user's perspective (which is entirely based on column
+names), the Features column was "modified" by the transform, but the original
+values are available downstream via the hidden column.
+
+Transformers, being identified as central to our concept of a "model," are
+serializable. When deserialized, the transformer should behave identically to
+its serialized version.
+
+### Estimators
+
+Many transformers require training, meaning that their precise behavior is
+determined from some training data. For example, normalizers and
+dictionary-based mappers, such as the `ValueToKeyMappingTransformer`, build
+their state from training data.
+
+This training occurs with another structure generally parallel to
+`ITransformer` called `IEstimator` configured using user parameters, that
+returns an `ITransformer` once it is `Fit`. For example,
+`NormalizingEstimator` implements `IEstimator<NormalizingTransformer>`, so the
+return value of `Fit` is `NormalizingTransformer`.
 
 ### Composition Examples
 
 Multiple primitive transforms may be applied to achieve higher-level
-semantics. For example, ML.NET's `CategoricalTransform` is the composition of
-two more primitive transforms, `TermTransform`, which maps each term to a key
-value via a dictionary, and `KeyToVectorTransform`, which maps from key value
-to indicator vector. Similarly, `CategoricalHashTransform` is the composition
-of `HashTransform`, which maps each term to a key value via hashing, and
-`KeyToVectorTransform`.
+semantics. For example, ML.NET's `OneHotEncodingTransformer` is the
+composition of two more primitive transforms, `ValueToKeyMappingTransformer`,
+which maps each term to a key value via a dictionary, and
+`KeyToVectorMappingTransformer`, which maps from key value to indicator
+vector. Similarly, `OneHotHashEncodingTransformer` is the composition of
+`HashingTransformer`, which maps each term to a key value via hashing, and
+`ValueToKeyMappingTransformer`.
 
-Similarly, `WordBagTransform` and `WordHashBagTransform` are each the
-composition of three transforms. `WordBagTransform` consists of
-`WordTokenizeTransform`, `TermTransform`, and `NgramTransform`, while
-`WordHashBagTransform` consists of `WordTokenizeTransform`, `HashTransform`,
-and `NgramHashTransform`.
+### Schema Propagation
+
+Because the act of fitting an estimator or transforming data is often
+extremely expensive proposition, it is useful for pipelines to know *what*
+they will produce and produce some at least preliminary validation on whether
+a pipeline can actually work before one goes through doing this.
+
+For this reason, both `ITransformer` and `IEstimator` have methods
+`GetOutputSchema`, which respectively take and return `DataViewSchema` and
+`SchemaShape`. In this way, programmatically a pipeline can be checked, at
+least to some extent, before considerable time might be wasted on an
+ultimately futile action is spent in the `Fit` method, since "downstream"
+components were configured incorrectly with the wrong types, wrong names, or
+some other issue.
 
 ## Cursoring
 
@@ -294,8 +322,7 @@ To access the data in a view, one gets a row cursor from the view by calling
 the `GetRowCursor` method. The row cursor is a movable window onto a single
 row of the view, known as the current row. The row cursor provides the column
 values of the current row. The `MoveNext()` method of the cursor advances to
-the next row. There is also a `MoveMany(long count)` method, which is
-semantically equivalent to calling `MoveNext()` repeatedly, `count` times.
+the next row.
 
 Note that a row cursor is not thread safe; it should be used in a single
 execution thread. However, multiple cursors can be active simultaneously on
@@ -318,10 +345,11 @@ column and row directions.
 A row cursor has a set of active columns, determined by arguments passed to
 `GetRowCursor`. Generally, the cursor, and any upstream components, will only
 perform computation or data movement necessary to provide values of the active
-columns. For example, when `TermTransform` builds its term dictionary from its
-input `IDataView`, it gets a row cursor from the input view with only the term
-column active. Any data loading or computation not required to materialize the
-term column is avoided. This is lazy computation in the column direction.
+columns. For example, when `ValueToKeyMappingTransformer` builds its term
+dictionary from its input `IDataView`, it gets a row cursor from the input
+view with only the term column active. Any data loading or computation not
+required to materialize the term column is avoided. This is lazy computation
+in the column direction.
 
 Generally, creating a row cursor is a very cheap operation. The expense is in
 the data movement and computation required to iterate over the rows. If a
@@ -360,17 +388,19 @@ encourage parallel execution. If the view is a transform that can benefit from
 parallelism, it requests from its input view, not just a cursor, but a cursor
 set. If that view is a transform, it typically requests from its input view a
 cursor set, etc., on up the transformation chain. At some point in the chain
-(perhaps at a loader), a component, called the splitter, determines how many
-cursors should be active, creates those cursors, and returns them together
-with a consolidator object. At the other end, the consolidator is invoked to
-marshal the multiple cursors back into a single cursor. Intervening levels
-simply create a cursor on each input cursor, return that set of cursors as
-well as the consolidator.
+(perhaps at a loader), a component determines how many cursors should be
+active, creates those cursors, and returns them. These cursors can be either
+independently processed in different threads, or else an internal utility
+method is invoked to marshal the multiple cursors back into a single cursor.
+Intervening levels simply create a cursor on each input cursor, return that
+set of cursors as well as the consolidator.
 
-The ML.NET code base includes transform base classes that implement the
-minimal amount of code required to support this batch parallel cursoring
-design. Consequently, most transform implementations do not have any special
-code to support batch parallel cursoring.
+The ML.NET code base includes internal `IDataView` implementations that
+implement the minimal amount of code required to support this batch parallel
+cursoring design, most notably by the `IDataView` implementors returned from
+`ITransformer` implementations that that are also one-to-one mappers.
+Consequently, most transformer implementations do not have any special code to
+support batch parallel cursoring.
 
 ### Memory Efficiency
 
@@ -415,9 +445,9 @@ the random number generator. Serving rows from disk in a random order is quite
 difficult to do efficiently (without seeking for each row). The binary .idv
 loader has some shuffling support, favoring performance over attempting to
 provide a uniform distribution over the permutation space. This level of
-support has been validated to be sufficient for machine learning goals (for example,
-in recent work on SA-SDCA algorithm). When the data is all in memory, as it is
-when cached, randomizing is trivial.
+support has been validated to be sufficient for machine learning goals (for
+example, in recent work on SA-SDCA algorithm). When the data is all in memory,
+as it is when cached, randomizing is trivial.
 
 ## Appendix: Comparison with LINQ
 

@@ -51,11 +51,14 @@ namespace Microsoft.ML
     public static class TransformExtensionsCatalog
     {
         /// <summary>
-        /// Copies the input column to another column named as specified in <paramref name="outputColumnName"/>.
+        /// Create a <see cref="ColumnCopyingEstimator"/>, which copies the data from the column specified in <paramref name="inputColumnName"/>
+        /// to a new column: <paramref name="outputColumnName"/>.
         /// </summary>
         /// <param name="catalog">The transform's catalog.</param>
-        /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.</param>
-        /// <param name="inputColumnName">Name of the columns to transform.</param>
+        /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.
+        /// This column's data type will be the same as that of the input column.</param>
+        /// <param name="inputColumnName">Name of the column to copy the data from.
+        /// This estimator operates over any data type.</param>
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
@@ -67,11 +70,12 @@ namespace Microsoft.ML
             => new ColumnCopyingEstimator(CatalogUtils.GetEnvironment(catalog), outputColumnName, inputColumnName);
 
         /// <summary>
-        /// Copies the input column, name specified in the first item of the tuple,
-        /// to another column, named as specified in the second item of the tuple.
+        /// Create a <see cref="ColumnCopyingEstimator"/>, which copies the data from the column specified in <see cref="InputOutputColumnPair.InputColumnName" />
+        /// to a new column: <see cref="InputOutputColumnPair.OutputColumnName" />.
         /// </summary>
-        /// <param name="catalog">The transform's catalog</param>
-        /// <param name="columns">The pairs of input and output columns.</param>
+        /// <remarks>This transform can operate over several columns.</remarks>
+        /// <param name="catalog">The transform's catalog.</param>
+        /// <param name="columns">The pairs of input and output columns. This estimator operates over any data type.</param>
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[

@@ -1,5 +1,7 @@
 ﻿using System;
-namespace Microsoft.ML.Samples.Dynamic
+using Microsoft.ML;
+
+namespace Samples.Dynamic
 {
     /// <summary>
     /// Sample class showing how to use Take.
@@ -13,7 +15,7 @@ namespace Microsoft.ML.Samples.Dynamic
             var mlContext = new MLContext();
 
             // Get a small dataset as an IEnumerable.
-            var enumerableOfData = SamplesUtils.DatasetUtils.GetSampleTemperatureData(10);
+            var enumerableOfData = Microsoft.ML.SamplesUtils.DatasetUtils.GetSampleTemperatureData(10);
             var data = mlContext.Data.LoadFromEnumerable(enumerableOfData);
 
             // Before we apply a filter, examine all the records in the dataset.
@@ -40,7 +42,7 @@ namespace Microsoft.ML.Samples.Dynamic
             var filteredData = mlContext.Data.TakeRows(data, 5);
 
             // Look at the filtered data and observe that only the first 5 rows are in the resulting dataset.
-            var enumerable = mlContext.Data.CreateEnumerable<SamplesUtils.DatasetUtils.SampleTemperatureData>(filteredData, reuseRowObject: true);
+            var enumerable = mlContext.Data.CreateEnumerable<Microsoft.ML.SamplesUtils.DatasetUtils.SampleTemperatureData>(filteredData, reuseRowObject: true);
             Console.WriteLine($"Date\tTemperature");
             foreach (var row in enumerable)
             {

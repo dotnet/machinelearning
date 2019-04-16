@@ -29,7 +29,7 @@ namespace Microsoft.ML
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
-        ///  [!code-csharp[RPCA](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/Categorical/OneHotEncoding.cs)]
+        ///  [!code-csharp[OneHotEncoding](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/Categorical/OneHotEncoding.cs)]
         /// ]]></format>
         /// </example>
         public static OneHotEncodingEstimator OneHotEncoding(this TransformsCatalog.CategoricalTransforms catalog,
@@ -53,6 +53,12 @@ namespace Microsoft.ML
         /// If <see cref="ValueToKeyMappingEstimator.KeyOrdinality.ByValue"/>, items are sorted according to their default comparison, for example, text sorting will be case sensitive (for example, 'A' then 'Z' then 'a').</param>
         /// <param name="keyData">Specifies an ordering for the encoding. If specified, this should be a single column data view,
         /// and the key-values will be taken from that column. If unspecified, the ordering will be determined from the input data upon fitting.</param>
+        /// <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        ///  [!code-csharp[OneHotEncoding](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/Categorical/OneHotEncodingMultiColumn.cs)]
+        /// ]]></format>
+        /// </example>
         public static OneHotEncodingEstimator OneHotEncoding(this TransformsCatalog.CategoricalTransforms catalog,
                 InputOutputColumnPair[] columns,
                 OneHotEncodingEstimator.OutputKind outputKind = OneHotEncodingEstimator.Defaults.OutKind,
@@ -103,6 +109,12 @@ namespace Microsoft.ML
         /// Text representation of original values are stored in the slot names of the  metadata for the new column.Hashing, as such, can map many initial values to one.
         /// <paramref name="maximumNumberOfInverts"/> specifies the upper bound of the number of distinct input values mapping to a hash that should be retained.
         /// <value>0</value> does not retain any input values. <value>-1</value> retains all input values mapping to each hash.</param>
+        /// <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        ///  [!code-csharp[OneHotHashEncoding](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/Categorical/OneHotHashEncoding.cs)]
+        /// ]]></format>
+        /// </example>
         public static OneHotHashEncodingEstimator OneHotHashEncoding(this TransformsCatalog.CategoricalTransforms catalog,
                 string outputColumnName,
                 string inputColumnName = null,
@@ -127,6 +139,12 @@ namespace Microsoft.ML
         /// Text representation of original values are stored in the slot names of the  metadata for the new column.Hashing, as such, can map many initial values to one.
         /// <paramref name="maximumNumberOfInverts"/> specifies the upper bound of the number of distinct input values mapping to a hash that should be retained.
         /// <value>0</value> does not retain any input values. <value>-1</value> retains all input values mapping to each hash.</param>
+        /// <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        ///  [!code-csharp[OneHotHashEncoding](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/Categorical/OneHotHashEncodingMultiColumn.cs)]
+        /// ]]></format>
+        /// </example>
         public static OneHotHashEncodingEstimator OneHotHashEncoding(this TransformsCatalog.CategoricalTransforms catalog,
                 InputOutputColumnPair[] columns,
                 OneHotEncodingEstimator.OutputKind outputKind = OneHotEncodingEstimator.OutputKind.Indicator,

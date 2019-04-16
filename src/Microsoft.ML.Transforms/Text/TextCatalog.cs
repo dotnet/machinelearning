@@ -22,6 +22,13 @@ namespace Microsoft.ML
         /// <param name="catalog">The text-related transform's catalog.</param>
         /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.</param>
         /// <param name="inputColumnName">Name of the column to transform. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.</param>
+        /// <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        /// [!code-csharp[FeaturizeText](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/Text/FeaturizeText.cs)]
+        /// ]]>
+        /// </format>
+        /// </example>
         public static TextFeaturizingEstimator FeaturizeText(this TransformsCatalog.TextTransforms catalog,
             string outputColumnName,
             string inputColumnName = null)
@@ -38,7 +45,7 @@ namespace Microsoft.ML
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
-        /// [!code-csharp[FeaturizeText](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/TextTransform.cs)]
+        /// [!code-csharp[FeaturizeText](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/Text/FeaturizeTextWithOptions.cs)]
         /// ]]>
         /// </format>
         /// </example>
@@ -57,6 +64,13 @@ namespace Microsoft.ML
         /// <param name="inputColumnName">Name of the column to transform. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.</param>
         /// <param name="useMarkerCharacters">Whether to prepend a marker character, <see langword="0x02"/>, to the beginning,
         /// and append another marker character, <see langword="0x03"/>, to the end of the output vector of characters.</param>
+        /// <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        /// [!code-csharp[TokenizeIntoCharacters](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/Text/TokenizeIntoCharactersAsKeys.cs)]
+        /// ]]>
+        /// </format>
+        /// </example>
         public static TokenizingByCharactersEstimator TokenizeIntoCharactersAsKeys(this TransformsCatalog.TextTransforms catalog,
             string outputColumnName,
             string inputColumnName = null,
@@ -93,6 +107,13 @@ namespace Microsoft.ML
         /// <param name="keepDiacritics">Whether to keep diacritical marks or remove them.</param>
         /// <param name="keepPunctuations">Whether to keep punctuation marks or remove them.</param>
         /// <param name="keepNumbers">Whether to keep numbers or remove them.</param>
+        /// <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        /// [!code-csharp[NormalizeText](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/Text/NormalizeText.cs)]
+        /// ]]>
+        /// </format>
+        /// </example>
         public static TextNormalizingEstimator NormalizeText(this TransformsCatalog.TextTransforms catalog,
             string outputColumnName,
             string inputColumnName = null,
@@ -111,7 +132,7 @@ namespace Microsoft.ML
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
-        /// [!code-csharp[FeaturizeText](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/WordEmbeddingTransform.cs)]
+        /// [!code-csharp[ApplyWordEmbedding](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/Text/ApplyWordEmbedding.cs)]
         /// ]]>
         /// </format>
         /// </example>
@@ -129,7 +150,7 @@ namespace Microsoft.ML
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
-        /// [!code-csharp[FeaturizeText](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/WordEmbeddingTransform.cs)]
+        /// [!code-csharp[ApplyWordEmbedding](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/Text/ApplyCustomWordEmbedding.cs)]
         /// ]]>
         /// </format>
         /// </example>
@@ -165,6 +186,13 @@ namespace Microsoft.ML
         /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.</param>
         /// <param name="inputColumnName">Name of the column to transform. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.</param>
         /// <param name="separators">The separators to use (uses space character by default).</param>
+        /// <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        /// [!code-csharp[TokenizeIntoWords](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/Text/TokenizeIntoWords.cs)]
+        /// ]]>
+        /// </format>
+        /// </example>
         public static WordTokenizingEstimator TokenizeIntoWords(this TransformsCatalog.TextTransforms catalog,
             string outputColumnName,
             string inputColumnName = null,
@@ -196,7 +224,7 @@ namespace Microsoft.ML
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
-        /// [!code-csharp[LpNormalize](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/NgramExtraction.cs?range=1-5,11-74)]
+        /// [!code-csharp[ProduceNgrams](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/Text/ProduceNgrams.cs)]
         /// ]]>
         /// </format>
         /// </example>
@@ -233,8 +261,9 @@ namespace Microsoft.ML
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
-        ///  [!code-csharp[FastTree](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/StopWordRemoverTransform.cs)]
-        /// ]]></format>
+        /// [!code-csharp[RemoveDefaultStopWords](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/Text/RemoveDefaultStopWords.cs)]
+        /// ]]>
+        /// </format>
         /// </example>
         public static StopWordsRemovingEstimator RemoveDefaultStopWords(this TransformsCatalog.TextTransforms catalog,
             string outputColumnName,
@@ -253,8 +282,9 @@ namespace Microsoft.ML
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
-        ///  [!code-csharp[FastTree](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/StopWordRemoverTransform.cs)]
-        /// ]]></format>
+        /// [!code-csharp[RemoveStopWords](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/Text/RemoveStopWords.cs)]
+        /// ]]>
+        /// </format>
         /// </example>
         public static CustomStopWordsRemovingEstimator RemoveStopWords(this TransformsCatalog.TextTransforms catalog,
             string outputColumnName,
@@ -283,7 +313,7 @@ namespace Microsoft.ML
             int maximumNgramsCount = NgramExtractingEstimator.Defaults.MaximumNgramsCount,
             NgramExtractingEstimator.WeightingCriteria weighting = NgramExtractingEstimator.WeightingCriteria.Tf)
             => new WordBagEstimator(Contracts.CheckRef(catalog, nameof(catalog)).GetEnvironment(),
-                outputColumnName, inputColumnName, ngramLength, skipLength, useAllLengths, maximumNgramsCount);
+                outputColumnName, inputColumnName, ngramLength, skipLength, useAllLengths, maximumNgramsCount, weighting);
 
         /// <summary>
         /// Produces a bag of counts of ngrams (sequences of consecutive words) in <paramref name="inputColumnNames"/>
@@ -429,6 +459,13 @@ namespace Microsoft.ML
         /// <paramref name="maximumNumberOfInverts"/> specifies the upper bound of the number of distinct input values mapping to a hash that should be retained.
         /// <value>0</value> does not retain any input values. <value>-1</value> retains all input values mapping to each hash.</param>
         /// <param name="rehashUnigrams">Whether to rehash unigrams.</param>
+        /// <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        /// [!code-csharp[ProduceHashedNgrams](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/Text/ProduceHashedNgrams.cs)]
+        /// ]]>
+        /// </format>
+        /// </example>
         public static NgramHashingEstimator ProduceHashedNgrams(this TransformsCatalog.TextTransforms catalog,
             string outputColumnName,
             string[] inputColumnNames = null,
@@ -479,7 +516,7 @@ namespace Microsoft.ML
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
-        /// [!code-csharp[LatentDirichletAllocation](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/LdaTransform.cs)]
+        /// [!code-csharp[LatentDirichletAllocation](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/Text/LatentDirichletAllocation.cs)]
         /// ]]>
         /// </format>
         /// </example>

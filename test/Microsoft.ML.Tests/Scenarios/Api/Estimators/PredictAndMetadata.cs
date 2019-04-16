@@ -37,22 +37,22 @@ namespace Microsoft.ML.Tests.Scenarios.Api
 
             var testLoader = ml.Data.LoadFromTextFile(dataPath, TestDatasets.irisData.GetLoaderColumns(), separatorChar: ',', hasHeader: true);
             var testData = ml.Data.CreateEnumerable<IrisData>(testLoader, false);
-            
+
             // During prediction we will get Score column with 3 float values.
             // We need to find way to map each score to original label.
-            // In order to do what we need to get SlotNames from Score column.
-            // Slot names on top of Score column represent original labels for i-th value in Score array.
-            VBuffer<ReadOnlyMemory<char>> slotNames = default;
-            engine.OutputSchema[nameof(IrisPrediction.Score)].GetSlotNames(ref slotNames);
+            // In order to do what we need to get TrainingLabelValues from Score column.
+            // TrainingLabelValues on top of Score column represent original labels for i-th value in Score array.
+            VBuffer<ReadOnlyMemory<char>> originalLabels = default;
+            engine.OutputSchema[nameof(IrisPrediction.Score)].Annotations.GetValue(AnnotationUtils.Kinds.TrainingLabelValues, ref originalLabels);
             // Since we apply MapValueToKey estimator with default parameters, key values
             // depends on order of occurence in data file. Which is "Iris-setosa", "Iris-versicolor", "Iris-virginica"
             // So if we have Score column equal to [0.2, 0.3, 0.5] that's mean what score for
             // Iris-setosa is 0.2
             // Iris-versicolor is 0.3
             // Iris-virginica is 0.5.
-            Assert.True(slotNames.GetItemOrDefault(0).ToString() == "Iris-setosa");
-            Assert.True(slotNames.GetItemOrDefault(1).ToString() == "Iris-versicolor");
-            Assert.True(slotNames.GetItemOrDefault(2).ToString() == "Iris-virginica");
+            Assert.Equal("Iris-setosa", originalLabels.GetItemOrDefault(0).ToString());
+            Assert.Equal("Iris-versicolor", originalLabels.GetItemOrDefault(1).ToString());
+            Assert.Equal("Iris-virginica", originalLabels.GetItemOrDefault(2).ToString());
 
             // Let's look how we can convert key value for PredictedLabel to original labels.
             // We need to read KeyValues for "PredictedLabel" column.

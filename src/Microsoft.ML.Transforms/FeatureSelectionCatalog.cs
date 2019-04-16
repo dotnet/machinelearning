@@ -24,7 +24,7 @@ namespace Microsoft.ML
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
-        /// [!code-csharp[SelectFeaturesBasedOnMutualInformation](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/FeatureSelectionTransform.cs?range=1-4,10-121)]
+        /// [!code-csharp[SelectFeaturesBasedOnMutualInformation](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/FeatureSelection/SelectFeaturesBasedOnMutualInformation.cs)]
         /// ]]>
         /// </format>
         /// </example>
@@ -41,6 +41,13 @@ namespace Microsoft.ML
         /// <param name="labelColumnName">The name of the label column.</param>
         /// <param name="slotsInOutput">The maximum number of slots to preserve in the output. The number of slots to preserve is taken across all input columns.</param>
         /// <param name="numberOfBins">Max number of bins used to approximate mutual information between each input column and the label column. Power of 2 recommended.</param>
+        /// <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        /// [!code-csharp[SelectFeaturesBasedOnMutualInformation](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/FeatureSelection/SelectFeaturesBasedOnMutualInformationMultiColumn.cs)]
+        /// ]]>
+        /// </format>
+        /// </example>
         public static MutualInformationFeatureSelectingEstimator SelectFeaturesBasedOnMutualInformation(this TransformsCatalog.FeatureSelectionTransforms catalog,
             InputOutputColumnPair[] columns,
             string labelColumnName = MutualInfoSelectDefaults.LabelColumn,
@@ -56,13 +63,6 @@ namespace Microsoft.ML
         /// <include file='doc.xml' path='doc/members/member[@name="CountFeatureSelection"]' />
         /// <param name="catalog">The transform's catalog.</param>
         /// <param name="columns">Describes the parameters of the feature selection process for each column pair.</param>
-        /// <example>
-        /// <format type="text/markdown">
-        /// <![CDATA[
-        /// [!code-csharp[SelectFeaturesBasedOnCount](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/FeatureSelectionTransform.cs?range=1-4,10-121)]
-        /// ]]>
-        /// </format>
-        /// </example>
         [BestFriend]
         internal static CountFeatureSelectingEstimator SelectFeaturesBasedOnCount(this TransformsCatalog.FeatureSelectionTransforms catalog,
             params CountFeatureSelectingEstimator.ColumnOptions[] columns)
@@ -76,7 +76,7 @@ namespace Microsoft.ML
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
-        /// [!code-csharp[SelectFeaturesBasedOnCount](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/FeatureSelectionTransform.cs?range=1-4,10-121)]
+        /// [!code-csharp[SelectFeaturesBasedOnCount](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/FeatureSelection/SelectFeaturesBasedOnCount.cs)]
         /// ]]>
         /// </format>
         /// </example>
@@ -90,6 +90,13 @@ namespace Microsoft.ML
         /// <param name="catalog">The transform's catalog.</param>
         /// <param name="columns">Specifies the names of the columns on which to apply the transformation.</param>
         /// <param name="count">If the count of non-default values for a slot is greater than or equal to this threshold in the training data, the slot is preserved.</param>
+        /// <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        /// [!code-csharp[SelectFeaturesBasedOnCount](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/FeatureSelection/SelectFeaturesBasedOnCountMultiColumn.cs)]
+        /// ]]>
+        /// </format>
+        /// </example>
         public static CountFeatureSelectingEstimator SelectFeaturesBasedOnCount(this TransformsCatalog.FeatureSelectionTransforms catalog,
             InputOutputColumnPair[] columns,
             long count = CountSelectDefaults.Count)

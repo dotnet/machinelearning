@@ -1,9 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.ML;
 using Microsoft.ML.Data;
 
-namespace Microsoft.ML.Samples.Dynamic.Trainers.AnomalyDetection
+namespace Samples.Dynamic.Trainers.AnomalyDetection
 {
     public static class RandomizedPcaSample
     {

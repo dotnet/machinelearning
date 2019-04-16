@@ -390,7 +390,7 @@ namespace Microsoft.ML.Data
             if (trainSchema?.Label == null)
                 return mapper; // We don't even have a label identified in a training schema.
             var keyType = trainSchema.Label.Value.Annotations.Schema.GetColumnOrNull(AnnotationUtils.Kinds.KeyValues)?.Type as VectorDataViewType;
-            if (keyType == null || !CanWrap(mapper, keyType))
+            if (keyType == null)
                 return mapper;
 
             // Great!! All checks pass.
@@ -409,11 +409,19 @@ namespace Microsoft.ML.Data
         /// from the model of a bindable mapper)</param>
         /// <returns>Whether we can call <see cref="LabelNameBindableMapper.CreateBound{T}"/> with
         /// this mapper and expect it to succeed</returns>
-        internal static bool CanWrap(ISchemaBoundMapper mapper, DataViewType labelNameType)
+        internal static bool CanWrapTrainingLabels(ISchemaBoundMapper mapper, DataViewType labelNameType)
+        {
+            if (GetTypesForWrapping(mapper, labelNameType, AnnotationUtils.Kinds.TrainingLabelValues, out var scoreType))
+                // Check that the type is vector, and is of compatible size with the score output.
+                return labelNameType is VectorDataViewType vectorType && vectorType.Size == scoreType.GetVectorSize();
+            return false;
+        }
+
+        internal static bool GetTypesForWrapping(ISchemaBoundMapper mapper, DataViewType labelNameType, string metaKind, out DataViewType scoreType)
         {
             Contracts.AssertValue(mapper);
             Contracts.AssertValue(labelNameType);
-
+            scoreType = null;
             ISchemaBoundRowMapper rowMapper = mapper as ISchemaBoundRowMapper;
             if (rowMapper == null)
                 return false; // We could cover this case, but it is of no practical worth as far as I see, so I decline to do so.
@@ -423,12 +431,30 @@ namespace Microsoft.ML.Data
             var scoreCol = outSchema.GetColumnOrNull(AnnotationUtils.Const.ScoreValueKind.Score);
             if (!outSchema.TryGetColumnIndex(AnnotationUtils.Const.ScoreValueKind.Score, out scoreIdx))
                 return false; // The mapper doesn't even publish a score column to attach the metadata to.
-            if (outSchema[scoreIdx].Annotations.Schema.GetColumnOrNull(AnnotationUtils.Kinds.SlotNames)?.Type != null)
-                return false; // The mapper publishes a score column, and already produces its own slot names.
-            var scoreType = outSchema[scoreIdx].Type;
+            if (outSchema[scoreIdx].Annotations.Schema.GetColumnOrNull(metaKind)?.Type != null)
+                return false; // The mapper publishes a score column, and already produces its own metakind.
+            scoreType = outSchema[scoreIdx].Type;
+            return true;
+        }
 
-            // Check that the type is vector, and is of compatible size with the score output.
-            return labelNameType is VectorDataViewType vectorType && vectorType.Size == scoreType.GetVectorSize() && vectorType.ItemType == TextDataViewType.Instance;
+        /// <summary>
+        /// This is a utility method used to determine whether <see cref="LabelNameBindableMapper"/>
+        /// can or should be used to wrap <paramref name="mapper"/>. This will not throw, since the
+        /// desired behavior in the event that it cannot be wrapped, is to just back off to the original
+        /// "unwrapped" bound mapper.
+        /// </summary>
+        /// <param name="mapper">The mapper we are seeing if we can wrap</param>
+        /// <param name="labelNameType">The type of the label names from the metadata (either
+        /// originating from the key value metadata of the training label column, or deserialized
+        /// from the model of a bindable mapper)</param>
+        /// <returns>Whether we can call <see cref="LabelNameBindableMapper.CreateBound{T}"/> with
+        /// this mapper and expect it to succeed</returns>
+        internal static bool CanWrapSlotNames(ISchemaBoundMapper mapper, DataViewType labelNameType)
+        {
+            if (GetTypesForWrapping(mapper, labelNameType, AnnotationUtils.Kinds.SlotNames, out var scoreType))
+                // Check that the type is vector, and is of compatible size with the score output.
+                return labelNameType is VectorDataViewType vectorType && vectorType.Size == scoreType.GetVectorSize() && vectorType.ItemType == TextDataViewType.Instance;
+            return false;
         }
 
         internal static ISchemaBoundMapper WrapCore<T>(IHostEnvironment env, ISchemaBoundMapper mapper, RoleMappedSchema trainSchema)
@@ -449,8 +475,12 @@ namespace Microsoft.ML.Data
                 {
                     trainSchema.Label.Value.GetKeyValues(ref value);
                 };
-
-            return LabelNameBindableMapper.CreateBound<T>(env, (ISchemaBoundRowMapper)mapper, type as VectorDataViewType, getter, AnnotationUtils.Kinds.SlotNames, CanWrap);
+            var resultMapper = mapper;
+            if (CanWrapTrainingLabels(resultMapper, type))
+                resultMapper = LabelNameBindableMapper.CreateBound<T>(env, (ISchemaBoundRowMapper)resultMapper, type as VectorDataViewType, getter, AnnotationUtils.Kinds.TrainingLabelValues, CanWrapTrainingLabels);
+            if (CanWrapSlotNames(resultMapper, type))
+                resultMapper = LabelNameBindableMapper.CreateBound<T>(env, (ISchemaBoundRowMapper)resultMapper, type as VectorDataViewType, getter, AnnotationUtils.Kinds.SlotNames, CanWrapSlotNames);
+            return resultMapper;
         }
 
         [BestFriend]
