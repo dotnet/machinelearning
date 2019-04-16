@@ -49,6 +49,16 @@
       <AutoGen>True</AutoGen>
       <DependentUpon>FastTreeWithOptions.tt</DependentUpon>
     </None>
+    <None Include="Dynamic\Trainers\BinaryClassification\FieldAwareFactorizationMachine.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>FieldAwareFactorizationMachine.tt</DependentUpon>
+    </None>
+    <None Include="Dynamic\Trainers\BinaryClassification\FieldAwareFactorizationMachineWithOptions.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>FieldAwareFactorizationMachineWithOptions.tt</DependentUpon>
+    </None>
     <None Include="Dynamic\Trainers\BinaryClassification\LbfgsLogisticRegression.cs">
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
@@ -92,6 +102,14 @@
     <None Update="Dynamic\Trainers\BinaryClassification\FastTreeWithOptions.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>FastTreeWithOptions.cs</LastGenOutput>
+    </None>
+    <None Update="Dynamic\Trainers\BinaryClassification\FieldAwareFactorizationMachine.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>FieldAwareFactorizationMachine.cs</LastGenOutput>
+    </None>
+    <None Update="Dynamic\Trainers\BinaryClassification\FieldAwareFactorizationMachineWithOptions.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>FieldAwareFactorizationMachineWithOptions.cs</LastGenOutput>
     </None>
     <None Update="Dynamic\Trainers\BinaryClassification\LbfgsLogisticRegressionWithOptions.tt">
       <LastGenOutput>LbfgsLogisticRegressionWithOptions.cs</LastGenOutput>
@@ -281,6 +299,16 @@
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
       <DependentUpon>FastTreeWithOptions.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Dynamic\Trainers\BinaryClassification\FieldAwareFactorizationMachine.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>FieldAwareFactorizationMachine.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Dynamic\Trainers\BinaryClassification\FieldAwareFactorizationMachineWithOptions.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>FieldAwareFactorizationMachineWithOptions.tt</DependentUpon>
     </Compile>
     <Compile Update="Dynamic\Trainers\BinaryClassification\LbfgsLogisticRegression.cs">
       <DesignTime>True</DesignTime>

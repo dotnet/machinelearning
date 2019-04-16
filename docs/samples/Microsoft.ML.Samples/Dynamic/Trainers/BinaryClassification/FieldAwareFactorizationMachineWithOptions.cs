@@ -3,10 +3,11 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.ML;
 using Microsoft.ML.Data;
+using Microsoft.ML.Trainers;
 
 namespace Samples.Dynamic.Trainers.BinaryClassification
 {
-    public static class FieldAwareFactorizationMachine
+    public static class FieldAwareFactorizationMachineWithOptions
     {
         // This example first train a field-aware factorization to binary classification, measure the trained model's quality, and finally
         // use the trained model to make prediction.
@@ -23,15 +24,24 @@ namespace Samples.Dynamic.Trainers.BinaryClassification
             // Convert the list of data points to an IDataView object, which is consumable by ML.NET API.
             var trainingData = mlContext.Data.LoadFromEnumerable(data);
 
+            // Define trainer options.
+            var options = new FieldAwareFactorizationMachineTrainer.Options
+            {
+                FeatureColumnName = nameof(DataPoint.Field0),
+                ExtraFeatureColumns = new[] { nameof(DataPoint.Field1), nameof(DataPoint.Field2) },
+                LabelColumnName = nameof(DataPoint.Label),
+                LambdaLatent = 0.01f,
+                LambdaLinear = 0.001f,
+                LatentDimension = 16,
+                NumberOfIterations = 50,
+                LearningRate = 0.5f
+            };
+
             // Define the trainer.
             // This trainer trains field-aware factorization (FFM) for binary classification. See https://www.csie.ntu.edu.tw/~cjlin/papers/ffm.pdf
             // for the theory behind and https://github.com/wschin/fast-ffm/blob/master/fast-ffm.pdf for the training
             // algorithm implemented in ML.NET.
-            var pipeline = mlContext.BinaryClassification.Trainers.FieldAwareFactorizationMachine(
-                // Specify three feature columns!
-                new[] {nameof(DataPoint.Field0), nameof(DataPoint.Field1), nameof(DataPoint.Field2) },
-                // Specify binary label's column name.
-                nameof(DataPoint.Label) );
+            var pipeline = mlContext.BinaryClassification.Trainers.FieldAwareFactorizationMachine(options);
 
             // Train the model.
             var model = pipeline.Fit(trainingData);
