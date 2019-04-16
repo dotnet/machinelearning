@@ -158,7 +158,7 @@ namespace Microsoft.ML.Auto
         /// </summary>
         /// <param name="path">Path to a dataset file.</param>
         /// <param name="labelColumnName">The name of the label column.</param>
-        /// <param name="separatorChar">The character used as separator between data points in a row. If <see langword="null"/>, AutoML will try to infer this value.</param>
+        /// <param name="separatorChar">The character used as separator between data elements in a row. If <see langword="null"/>, AutoML will try to infer this value.</param>
         /// <param name="allowQuoting">Whether the file can contain column defined by a quoted string. If <see langword="null"/>, AutoML will try to infer this value.</param>
         /// <param name="allowSparse">Whether the file can contain numerical vectors in sparse format. If <see langword="null"/>, AutoML will try to infer this value.</param>
         /// <param name="trimWhitespace">Whether trailing whitespace should be removed from dataset file lines.</param>
