@@ -56,7 +56,7 @@ namespace Samples.Dynamic.Trainers.BinaryClassification
 
             // Evaluate the overall metrics
             var metrics = mlContext.BinaryClassification.<#=Evaluator#>(transformedTestData);
-            SamplesUtils.ConsoleUtils.PrintMetrics(metrics);
+            Microsoft.ML.SamplesUtils.ConsoleUtils.PrintMetrics(metrics);
             
             <#=ExpectedOutput#>
         }

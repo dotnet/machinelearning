@@ -13,6 +13,13 @@ namespace Microsoft.ML
     /// The input and output of Query Operators (Transforms). This is the fundamental data pipeline
     /// type, comparable to <see cref="IEnumerable{T}"/> for LINQ.
     /// </summary>
+    /// <example>
+    /// <format type="text/markdown">
+    /// <![CDATA[
+    /// [!code-csharp[SimpleDataViewImplementation](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/SimpleDataViewImplementation.cs)]
+    /// ]]>
+    /// </format>
+    /// </example>
     public interface IDataView
     {
         /// <summary>

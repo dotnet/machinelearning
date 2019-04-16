@@ -120,8 +120,7 @@ namespace Microsoft.ML.RunTests
         {
             var predictors = new[] {
                 TestLearners.binaryPrior};
-            var datasets = GetDatasetsForBinaryClassifierBaseTest();
-            RunAllTests(predictors, datasets);
+            RunAllTests(predictors, new[] { TestDatasets.breastCancerBoolLabel });
             Done();
         }
 
@@ -2174,12 +2173,12 @@ output Out [3] from H all;
         /// <summary>
         /// Multiclass Naive Bayes test.
         /// </summary>
-        [Fact(Skip = "Need CoreTLC specific baseline update")]
+        [Fact]
         [TestCategory("Multiclass")]
         [TestCategory("Multi Class Naive Bayes Classifier")]
         public void MulticlassNaiveBayes()
         {
-            RunOneAllTests(TestLearners.MulticlassNaiveBayesClassifier, TestDatasets.breastCancerSparseBinaryFeatures);
+            RunOneAllTests(TestLearners.MulticlassNaiveBayesClassifier, TestDatasets.breastCancerPipe);
             Done();
         }
     }

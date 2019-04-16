@@ -1,0 +1,40 @@
+﻿<#@ include file="RegressionSamplesTemplate.ttinclude"#>
+
+<#+
+string ClassHeader = @"// This example requires installation of additional NuGet package
+        // <a href=""https://www.nuget.org/packages/Microsoft.ML.LightGbm/"">Microsoft.ML.LightGBM</a>. ";
+
+string ClassName="LightGbmWithOptions";
+string ExtraUsing = "using Microsoft.ML.Trainers.LightGbm;";
+string Trainer = @"LightGbm";
+string TrainerOptions = @"LightGbmRegressionTrainer.Options
+            {
+                LabelColumnName = nameof(DataPoint.Label),
+                FeatureColumnName = nameof(DataPoint.Features),
+                // How many leaves a single tree should have.
+                NumberOfLeaves = 4,
+                // Each leaf contains at least this number of training data points.
+                MinimumExampleCountPerLeaf = 6,
+                // The step size per update. Using a large value might reduce the
+                // training time but also increase the algorithm's numerical stability.
+                LearningRate = 0.001,
+                Booster = new Microsoft.ML.Trainers.LightGbm.GossBooster.Options()
+                {
+                    TopRate = 0.3,
+                    OtherRate = 0.2
+               }
+            }";
+
+string ExpectedOutputPerInstance= @"// Expected output:
+            //   Label: 0.985, Prediction: 0.866
+            //   Label: 0.155, Prediction: 0.171
+            //   Label: 0.515, Prediction: 0.470
+            //   Label: 0.566, Prediction: 0.476
+            //   Label: 0.096, Prediction: 0.140";
+
+string ExpectedOutput = @"// Expected output:
+            //   Mean Absolute Error: 0.04
+            //   Mean Squared Error: 0.00
+            //   Root Mean Squared Error: 0.06
+            //   RSquared: 0.97 (closer to 1 is better. The worest case is 0)";
+#>

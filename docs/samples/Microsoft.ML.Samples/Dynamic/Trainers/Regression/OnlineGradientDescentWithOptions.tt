@@ -1,10 +1,14 @@
 ﻿<#@ include file="RegressionSamplesTemplate.ttinclude"#>
 
 <#+
+string ClassHeader = null;
 string ClassName="OnlineGradientDescentWithOptions";
+string ExtraUsing = "using Microsoft.ML.Trainers;";
 string Trainer = "OnlineGradientDescent";
 string TrainerOptions = @" OnlineGradientDescentTrainer.Options
             {
+                LabelColumnName = nameof(DataPoint.Label),
+                FeatureColumnName = nameof(DataPoint.Features),
                 // Change the loss function.
                 LossFunction = new TweedieLoss(),
                 // Give an extra gain to more recent updates.
@@ -15,6 +19,6 @@ string TrainerOptions = @" OnlineGradientDescentTrainer.Options
                 InitialWeightsDiameter = 0.2f
             }";
 
-string ExpectedOutputPerInstance= @"// TODO #2425: OGD is missing baseline tests and seems numerically unstable";
-string ExpectedOutput = @"// TODO #2425: OGD is missing baseline tests and seems numerically unstable";
+string ExpectedOutputPerInstance= @"// This trainer is not numerically stable. Please see issue #2425.";
+string ExpectedOutput = @"// This trainer is not numerically stable. Please see issue #2425.";
 #>

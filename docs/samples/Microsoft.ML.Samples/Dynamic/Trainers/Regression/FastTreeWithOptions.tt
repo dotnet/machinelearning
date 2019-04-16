@@ -1,0 +1,35 @@
+﻿<#@ include file="RegressionSamplesTemplate.ttinclude"#>
+
+<#+
+string ClassHeader = @"// This example requires installation of additional NuGet package
+        // <a href=""https://www.nuget.org/packages/Microsoft.ML.FastTree/"">Microsoft.ML.FastTree</a>. ";
+
+string ClassName="FastTreeWithOptionsRegression";
+string ExtraUsing = "using Microsoft.ML.Trainers.FastTree;";
+string Trainer = @"FastTree";
+string TrainerOptions = @"FastTreeRegressionTrainer.Options
+            {
+                LabelColumnName = nameof(DataPoint.Label),
+                FeatureColumnName = nameof(DataPoint.Features),
+                // Use L2-norm for early stopping. If the gradient's L2-norm is smaller than
+                // an auto-computed value, training process will stop.
+                EarlyStoppingMetric = Microsoft.ML.Trainers.FastTree.EarlyStoppingMetric.L2Norm,
+                // Create a simpler model by penalizing usage of new features.
+                FeatureFirstUsePenalty = 0.1,
+                // Reduce the number of trees to 50.
+                NumberOfTrees = 50
+            }";
+
+string ExpectedOutputPerInstance= @"// Expected output:
+            //   Label: 0.985, Prediction: 0.950
+            //   Label: 0.155, Prediction: 0.111
+            //   Label: 0.515, Prediction: 0.475
+            //   Label: 0.566, Prediction: 0.575
+            //   Label: 0.096, Prediction: 0.093";
+
+string ExpectedOutput = @"// Expected output:
+            //   Mean Absolute Error: 0.03
+            //   Mean Squared Error: 0.00
+            //   Root Mean Squared Error: 0.03
+            //   RSquared: 0.99 (closer to 1 is better. The worest case is 0)";
+#>
