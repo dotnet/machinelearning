@@ -57,27 +57,30 @@ namespace Samples.Dynamic
             Console.WriteLine("{0, -25} {1, -25} {2, -25} {3, -25}", "ImagePath", "Name", "ImageObject", "Grayscale");
             using (var cursor = transformedData.GetRowCursor(transformedData.Schema))
             {
+                // Note that it is best to get the getters and values *before* iteration, so as to faciliate buffer
+                // sharing (if applicable), and column-type validation once, rather than many times.
+                ReadOnlyMemory<char> imagePath = default;
+                ReadOnlyMemory<char> name = default;
+                Bitmap imageObject = null;
+                Bitmap grayscaleImageObject = null;
+
                 var imagePathGetter = cursor.GetGetter<ReadOnlyMemory<char>>(cursor.Schema["ImagePath"]);
                 var nameGetter = cursor.GetGetter<ReadOnlyMemory<char>>(cursor.Schema["Name"]);
                 var imageObjectGetter = cursor.GetGetter<Bitmap>(cursor.Schema["ImageObject"]);
                 var grayscaleGetter = cursor.GetGetter<Bitmap>(cursor.Schema["Grayscale"]);
                 while (cursor.MoveNext())
                 {
-                    ReadOnlyMemory<char> imagePath = null;
                     imagePathGetter(ref imagePath);
-                    ReadOnlyMemory<char> name = null;
                     nameGetter(ref name);
-                    Bitmap imageObject = null;
                     imageObjectGetter(ref imageObject);
-                    Bitmap grayscaleImageObject = null;
                     grayscaleGetter(ref grayscaleImageObject);
 
                     Console.WriteLine("{0, -25} {1, -25} {2, -25} {3, -25}", imagePath, name, imageObject.PhysicalDimension, grayscaleImageObject.PhysicalDimension);
-
-                    // Dispose the image.
-                    imageObject.Dispose();
-                    grayscaleImageObject.Dispose();
                 }
+
+                // Dispose the image.
+                imageObject.Dispose();
+                grayscaleImageObject.Dispose();
             }
         }
     }

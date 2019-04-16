@@ -1,4 +1,5 @@
 ﻿using Samples.Dynamic;
+using Samples.Dynamic.Trainers.BinaryClassification.Calibrators;
 
 namespace Microsoft.ML.Samples
 {
@@ -6,7 +7,11 @@ namespace Microsoft.ML.Samples
     {
         static void Main(string[] args)
         {
-            CalculateFeatureContribution.Example();
+            ConvertToGrayscale.Example();
+            ConvertToImage.Example();
+            ExtractPixels.Example();
+            LoadImages.Example();
+            ResizeImages.Example();
         }
     }
 }

@@ -60,8 +60,18 @@ namespace Samples.Dynamic
         private static void PrintColumns(IDataView transformedData)
         {
             Console.WriteLine("{0, -25} {1, -25} {2, -25} {3, -25} {4, -25}", "ImagePath", "Name", "ImageObject", "ImageObjectResized", "Pixels");
+           
             using (var cursor = transformedData.GetRowCursor(transformedData.Schema))
             {
+                // Note that it is best to get the getters and values *before* iteration, so as to faciliate buffer
+                // sharing (if applicable), and column-type validation once, rather than many times.
+
+                ReadOnlyMemory<char> imagePath = default;
+                ReadOnlyMemory<char> name = default;
+                Bitmap imageObject = null;
+                Bitmap resizedImageObject = null;
+                VBuffer<float> pixels = default;
+
                 var imagePathGetter = cursor.GetGetter<ReadOnlyMemory<char>>(cursor.Schema["ImagePath"]);
                 var nameGetter = cursor.GetGetter<ReadOnlyMemory<char>>(cursor.Schema["Name"]);
                 var imageObjectGetter = cursor.GetGetter<Bitmap>(cursor.Schema["ImageObject"]);
@@ -69,24 +79,20 @@ namespace Samples.Dynamic
                 var pixelsGetter = cursor.GetGetter<VBuffer<float>>(cursor.Schema["Pixels"]);
                 while (cursor.MoveNext())
                 {
-                    ReadOnlyMemory<char> imagePath = null;
+                    
                     imagePathGetter(ref imagePath);
-                    ReadOnlyMemory<char> name = null;
                     nameGetter(ref name);
-                    Bitmap imageObject = null;
                     imageObjectGetter(ref imageObject);
-                    Bitmap resizedImageObject = null;
                     resizedImageGetter(ref resizedImageObject);
-                    VBuffer<float> pixels = default;
                     pixelsGetter(ref pixels);
 
                     Console.WriteLine("{0, -25} {1, -25} {2, -25} {3, -25} {4, -25}", imagePath, name,
                         imageObject.PhysicalDimension, resizedImageObject.PhysicalDimension, string.Join(",", pixels.DenseValues().Take(5)) + "...");
-
-                    // Dispose the image.
-                    imageObject.Dispose();
-                    resizedImageObject.Dispose();
                 }
+
+                // Dispose the image.
+                imageObject.Dispose();
+                resizedImageObject.Dispose();
             }
         }
     }

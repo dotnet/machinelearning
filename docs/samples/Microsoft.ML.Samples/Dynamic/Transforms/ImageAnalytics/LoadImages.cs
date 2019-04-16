@@ -58,23 +58,27 @@ namespace Samples.Dynamic
             Console.WriteLine("{0, -25} {1, -25} {2, -25}", "ImagePath", "Name", "ImageObject");
             using (var cursor = transformedData.GetRowCursor(transformedData.Schema))
             {
+                // Note that it is best to get the getters and values *before* iteration, so as to faciliate buffer
+                // sharing (if applicable), and column-type validation once, rather than many times.
+                ReadOnlyMemory<char> imagePath = default;
+                ReadOnlyMemory<char> name = default;
+                Bitmap imageObject = null;
+
                 var imagePathGetter = cursor.GetGetter<ReadOnlyMemory<char>>(cursor.Schema["ImagePath"]);
                 var nameGetter = cursor.GetGetter<ReadOnlyMemory<char>>(cursor.Schema["Name"]);
                 var imageObjectGetter = cursor.GetGetter<Bitmap>(cursor.Schema["ImageObject"]);
                 while (cursor.MoveNext())
                 {
-                    ReadOnlyMemory<char> imagePath = null;
+                    
                     imagePathGetter(ref imagePath);
-                    ReadOnlyMemory<char> name = null;
                     nameGetter(ref name);
-                    Bitmap imageObject = null;
                     imageObjectGetter(ref imageObject);
 
                     Console.WriteLine("{0, -25} {1, -25} {2, -25}", imagePath, name, imageObject.PhysicalDimension);
-
-                    // Dispose the image.
-                    imageObject.Dispose();
                 }
+
+                // Dispose the image.
+                imageObject.Dispose();
             }
         }
     }
