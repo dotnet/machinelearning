@@ -84,47 +84,47 @@ namespace Microsoft.ML.Auto
     public enum BinaryClassificationTrainer
     {
         /// <summary>
-        /// <see cref="AveragedPerceptronTrainer"/>
+        /// See <see cref="AveragedPerceptronTrainer"/>.
         /// </summary>
         AveragedPerceptron,
 
         /// <summary>
-        /// <see cref="FastForestBinaryTrainer"/>
+        /// See <see cref="FastForestBinaryTrainer"/>.
         /// </summary>
         FastForest,
 
         /// <summary>
-        /// <see cref="FastTreeBinaryTrainer"/>
+        /// See <see cref="FastTreeBinaryTrainer"/>.
         /// </summary>
         FastTree,
 
         /// <summary>
-        /// <see cref="LightGbmBinaryTrainer"/>
+        /// See <see cref="LightGbmBinaryTrainer"/>.
         /// </summary>
         LightGbm,
 
         /// <summary>
-        /// <see cref="LinearSvmTrainer"/>
+        /// See <see cref="LinearSvmTrainer"/>.
         /// </summary>
         LinearSvm,
 
         /// <summary>
-        /// <see cref="LbfgsLogisticRegressionBinaryTrainer"/>
+        /// See <see cref="LbfgsLogisticRegressionBinaryTrainer"/>.
         /// </summary>
         LbfgsLogisticRegression,
 
         /// <summary>
-        /// <see cref="LbfgsLogisticRegressionBinaryTrainer"/>
+        /// See <see cref="LbfgsLogisticRegressionBinaryTrainer"/>.
         /// </summary>
         SdcaLogisticRegression,
 
         /// <summary>
-        /// <see cref="LbfgsLogisticRegressionBinaryTrainer"/>
+        /// See <see cref="LbfgsLogisticRegressionBinaryTrainer"/>.
         /// </summary>
         SgdCalibrated,
 
         /// <summary>
-        /// <see cref="SymbolicSgdLogisticRegressionBinaryTrainer"/>
+        /// See <see cref="SymbolicSgdLogisticRegressionBinaryTrainer"/>.
         /// </summary>
         SymbolicSgdLogisticRegression,
     }

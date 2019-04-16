@@ -65,42 +65,42 @@ namespace Microsoft.ML.Auto
     public enum RegressionTrainer
     {
         /// <summary>
-        /// <see cref="FastForestRegressionTrainer"/>
+        /// See <see cref="FastForestRegressionTrainer"/>.
         /// </summary>
         FastForest,
 
         /// <summary>
-        /// <see cref="FastTreeRegressionTrainer"/>
+        /// See <see cref="FastTreeRegressionTrainer"/>.
         /// </summary>
         FastTree,
 
         /// <summary>
-        /// <see cref="FastTreeTweedieTrainer"/>
+        /// See <see cref="FastTreeTweedieTrainer"/>.
         /// </summary>
         FastTreeTweedie,
 
         /// <summary>
-        /// <see cref="LightGbmRegressionTrainer"/>
+        /// See <see cref="LightGbmRegressionTrainer"/>.
         /// </summary>
         LightGbm,
 
         /// <summary>
-        /// <see cref="OnlineGradientDescentTrainer"/>
+        /// See <see cref="OnlineGradientDescentTrainer"/>.
         /// </summary>
         OnlineGradientDescent,
 
         /// <summary>
-        /// <see cref="OlsTrainer"/>
+        /// See <see cref="OlsTrainer"/>.
         /// </summary>
         Ols,
 
         /// <summary>
-        /// <see cref="LbfgsPoissonRegressionTrainer"/>
+        /// See <see cref="LbfgsPoissonRegressionTrainer"/>.
         /// </summary>
         LbfgsPoissonRegression,
 
         /// <summary>
-        /// <see cref="SdcaRegressionTrainer"/>
+        /// See <see cref="SdcaRegressionTrainer"/>.
         /// </summary>
         StochasticDualCoordinateAscent,
     }
