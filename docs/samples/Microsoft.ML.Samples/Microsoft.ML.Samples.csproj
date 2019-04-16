@@ -93,6 +93,10 @@
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>LbfgsLogisticRegression.cs</LastGenOutput>
     </None>
+    <None Update="Dynamic\Trainers\MulticlassClassification\NaiveBayes.tt">
+      <LastGenOutput>NaiveBayes.cs</LastGenOutput>
+      <Generator>TextTemplatingFileGenerator</Generator>
+    </None>
     <None Update="Dynamic\Trainers\MulticlassClassification\PairwiseCoupling.tt">
       <LastGenOutput>PairwiseCoupling.cs</LastGenOutput>
       <Generator>TextTemplatingFileGenerator</Generator>
@@ -163,6 +167,11 @@
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
       <DependentUpon>OneVersusAll.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Dynamic\Trainers\MulticlassClassification\NaiveBayes.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>NaiveBayes.tt</DependentUpon>
     </Compile>
     <Compile Update="Dynamic\Trainers\Regression\OnlineGradientDescent.cs">
       <DesignTime>True</DesignTime>
