@@ -14,6 +14,7 @@ string TrainerOptions = @"SdcaNonCalibratedMulticlassTrainer.Options
 string OptionsInclude = "using Microsoft.ML.Trainers;";
 string Comments = "";
 bool CacheData = true;
+string DataGenerationComments= "// Generates random uniform doubles in [-0.5, 0.5) range with labels 1, 2 or 3.";
 
 string ExpectedOutputPerInstance = @"// Expected output:
             //   Label: 1, Prediction: 1
@@ -25,6 +26,6 @@ string ExpectedOutputPerInstance = @"// Expected output:
 string ExpectedOutput = @"// Expected output:
             //  Micro Accuracy: 0.91
             //  Macro Accuracy: 0.91
-            //  Log Loss: 0.36
-            //  Log Loss Reduction: 0.67";
+            //  Log Loss: 0.22
+            //  Log Loss Reduction: 0.80";
 #>

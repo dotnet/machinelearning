@@ -72,14 +72,15 @@ namespace Samples.Dynamic.Trainers.MulticlassClassification
             // Expected output:
             //  Micro Accuracy: 0.98
             //  Macro Accuracy: 0.98
-            //  Log Loss: 0.06
-            //  Log Loss Reduction: 0.80
+            //  Log Loss: 0.07
+            //  Log Loss Reduction: 0.94
         }
 
+        // Generates random uniform doubles in [-0.5, 0.5) range with labels 1, 2 or 3.
         private static IEnumerable<DataPoint> GenerateRandomDataPoints(int count, int seed=0)
         {
             var random = new Random(seed);
-            float randomFloat() => (float)random.NextDouble();
+            float randomFloat() => (float)(random.NextDouble() - 0.5);
             for (int i = 0; i < count; i++)
             {
                 // Generate Labels that are integers 1, 2 or 3
