@@ -7,6 +7,8 @@ string TrainerOptions = null;
 
 string OptionsInclude = "";
 string Comments= "";
+string DataGenerationComments= @"
+        // Generates random uniform doubles in [-0.5, 0.5) range with labels 1, 2 or 3.";
 
 string ExpectedOutputPerInstance= @"// Expected output:
             //   Label: 1, Prediction: 1

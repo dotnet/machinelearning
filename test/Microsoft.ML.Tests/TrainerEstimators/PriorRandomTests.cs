@@ -18,7 +18,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                         HasHeader = true,
                         Columns = new[]
                         {
-                            new TextLoader.Column("Label", DataKind.Single, 0),
+                            new TextLoader.Column("Label", DataKind.Boolean, 0),
                             new TextLoader.Column("F1", DataKind.String, 1),
                             new TextLoader.Column("F2", DataKind.Int32, 2),
                             new TextLoader.Column("Rest", DataKind.Single, new [] { new TextLoader.Range(3, 9) })

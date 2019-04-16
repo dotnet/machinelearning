@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
 using Microsoft.ML;
 using Microsoft.ML.Data;
@@ -32,35 +33,44 @@ namespace Samples.Dynamic
 
             var transformedData = pipeline.Fit(data).Transform(data);
 
-            // Preview the transformedData. 
-            var transformedDataPreview = transformedData.Preview();
-            PrintPreview(transformedDataPreview);
+            // Preview the transformedData.
+            PrintColumns(transformedData);
+
             // Features                 Image                    Pixels
-            // 185,209,196,142,52       System.Drawing.Bitmap    185,209,196,142,52
-            // 182,235,84,23,87         System.Drawing.Bitmap    182,235,84,23,87
-            // 192,214,247,22,38        System.Drawing.Bitmap    192,214,247,22,38
-            // 242,161,141,223,192      System.Drawing.Bitmap    242,161,141,223,192
+            // 185,209,196,142,52...    {Width=224, Height=224}  185,209,196,142,52...
+            // 182,235,84,23,87...      {Width=224, Height=224}  182,235,84,23,87...
+            // 192,214,247,22,38...     {Width=224, Height=224}  192,214,247,22,38...
+            // 242,161,141,223,192...   {Width=224, Height=224}  242,161,141,223,192...
         }
 
-        private static void PrintPreview(DataDebuggerPreview data)
+        private static void PrintColumns(IDataView transformedData)
         {
-            foreach (var colInfo in data.ColumnView)
-                Console.Write("{0,-25}", colInfo.Column.Name);
+            Console.WriteLine("{0, -25} {1, -25} {2, -25}", "Features", "Image", "Pixels");
 
-            Console.WriteLine();
-            foreach (var row in data.RowView)
+            using (var cursor = transformedData.GetRowCursor(transformedData.Schema))
             {
-                foreach (var kvPair in row.Values)
+                // Note that it is best to get the getters and values *before* iteration, so as to faciliate buffer
+                // sharing (if applicable), and column-type validation once, rather than many times.
+                VBuffer<float> features = default;
+                VBuffer<float> pixels = default;
+                Bitmap imageObject = null;
+
+                var featuresGetter = cursor.GetGetter<VBuffer<float>>(cursor.Schema["Features"]);
+                var pixelsGetter = cursor.GetGetter<VBuffer<float>>(cursor.Schema["Pixels"]);
+                var imageGetter = cursor.GetGetter<Bitmap>(cursor.Schema["Image"]);
+                while (cursor.MoveNext())
                 {
-                    if (kvPair.Key == "Pixels" || kvPair.Key == "Features")
-                    {
-                        var rawValues = ((VBuffer<float>)kvPair.Value).DenseValues().Take(5);
-                        Console.Write("{0,-25}", string.Join(",", rawValues));
-                    }
-                    else
-                        Console.Write("{0,-25}", kvPair.Value);
+                    
+                    featuresGetter(ref features);
+                    pixelsGetter(ref pixels);
+                    imageGetter(ref imageObject);
+
+                    Console.WriteLine("{0, -25} {1, -25} {2, -25}", string.Join(",", features.DenseValues().Take(5)) + "...",
+                        imageObject.PhysicalDimension, string.Join(",", pixels.DenseValues().Take(5)) + "...");
                 }
-                Console.WriteLine();
+
+                // Dispose the image.
+                imageObject.Dispose();
             }
         }
 

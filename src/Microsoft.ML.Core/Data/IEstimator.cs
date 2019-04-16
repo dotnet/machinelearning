@@ -247,6 +247,7 @@ namespace Microsoft.ML
     {
         // REVIEW: you could consider the transformer to take a different <typeparamref name="TSource"/>, but we don't have such components
         // yet, so why complicate matters?
+
         /// <summary>
         /// Train and return a data loader.
         /// </summary>

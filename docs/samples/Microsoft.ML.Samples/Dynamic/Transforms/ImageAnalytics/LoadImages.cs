@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Drawing;
 using System.IO;
 using Microsoft.ML;
 using Microsoft.ML.Data;
@@ -41,29 +42,43 @@ namespace Samples.Dynamic
             var pipeline = mlContext.Transforms.LoadImages("ImageObject", imagesFolder, "ImagePath");
 
             var transformedData = pipeline.Fit(data).Transform(data);
-            // The transformedData IDataView contains the loaded images now.
 
+            PrintColumns(transformedData);
             // Preview the transformedData. 
-            var transformedDataPreview = transformedData.Preview();
-            PrintPreview(transformedDataPreview);
             // ImagePath    Name         ImageObject           
-            // tomato.bmp   tomato       System.Drawing.Bitmap
-            // banana.jpg   banana       System.Drawing.Bitmap
-            // hotdog.jpg   hotdog       System.Drawing.Bitmap
-            // tomato.jpg   tomato       System.Drawing.Bitmap
+            // tomato.bmp   tomato       {Width=800, Height=534}
+            // banana.jpg   banana       {Width=800, Height=288}
+            // hotdog.jpg   hotdog       {Width=800, Height=391}
+            // tomato.jpg   tomato       {Width=800, Height=534}
         }
 
-        private static void PrintPreview(DataDebuggerPreview data)
+        private static void PrintColumns(IDataView transformedData)
         {
-            foreach (var colInfo in data.ColumnView)
-                Console.Write("{0,-25}", colInfo.Column.Name);
-
-            Console.WriteLine();
-            foreach (var row in data.RowView)
+            // The transformedData IDataView contains the loaded images now.
+            Console.WriteLine("{0, -25} {1, -25} {2, -25}", "ImagePath", "Name", "ImageObject");
+            using (var cursor = transformedData.GetRowCursor(transformedData.Schema))
             {
-                foreach (var kvPair in row.Values)
-                    Console.Write("{0,-25}", kvPair.Value);
-                Console.WriteLine();
+                // Note that it is best to get the getters and values *before* iteration, so as to faciliate buffer
+                // sharing (if applicable), and column-type validation once, rather than many times.
+                ReadOnlyMemory<char> imagePath = default;
+                ReadOnlyMemory<char> name = default;
+                Bitmap imageObject = null;
+
+                var imagePathGetter = cursor.GetGetter<ReadOnlyMemory<char>>(cursor.Schema["ImagePath"]);
+                var nameGetter = cursor.GetGetter<ReadOnlyMemory<char>>(cursor.Schema["Name"]);
+                var imageObjectGetter = cursor.GetGetter<Bitmap>(cursor.Schema["ImageObject"]);
+                while (cursor.MoveNext())
+                {
+                    
+                    imagePathGetter(ref imagePath);
+                    nameGetter(ref name);
+                    imageObjectGetter(ref imageObject);
+
+                    Console.WriteLine("{0, -25} {1, -25} {2, -25}", imagePath, name, imageObject.PhysicalDimension);
+                }
+
+                // Dispose the image.
+                imageObject.Dispose();
             }
         }
     }

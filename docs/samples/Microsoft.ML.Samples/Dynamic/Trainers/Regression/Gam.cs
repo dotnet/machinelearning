@@ -1,106 +1,105 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using Microsoft.ML;
-using Microsoft.ML.SamplesUtils;
+using Microsoft.ML.Data;
 
 namespace Samples.Dynamic.Trainers.Regression
 {
     public static class Gam
     {
         // This example requires installation of additional NuGet package
-        // <a href="https://www.nuget.org/packages/Microsoft.ML.FastTree/">Microsoft.ML.FastTree</a>.
+        // <a href="https://www.nuget.org/packages/Microsoft.ML.FastTree/">Microsoft.ML.FastTree</a>. 
         public static void Example()
         {
             // Create a new context for ML.NET operations. It can be used for exception tracking and logging, 
             // as a catalog of available operations and as the source of randomness.
-            var mlContext = new MLContext();
-            
-            // Read the Housing regression dataset
-            var data = DatasetUtils.LoadHousingRegressionDataset(mlContext);
+            // Setting the seed to a fixed number in this example to make outputs deterministic.
+            var mlContext = new MLContext(seed: 0);
 
-            var labelName = "MedianHomeValue";
-            var featureNames = data.Schema
-                .Select(column => column.Name) // Get the column names
-                .Where(name => name != labelName) // Drop the Label
-                .ToArray();
+            // Create a list of training data points.
+            var dataPoints = GenerateRandomDataPoints(1000);
 
-            // Create a pipeline.
-            var pipeline =
-                // Concatenate the features to create a Feature vector.
-                mlContext.Transforms.Concatenate("Features", featureNames)
-                // Append a GAM regression trainer, setting the "MedianHomeValue" column as the label of the dataset,
-                // the "Features" column produced by concatenation as the features column,
-                // and use a small number of bins to make it easy to visualize in the console window.
-                // For real applications, it is recommended to start with the default number of bins.
-                .Append(mlContext.Regression.Trainers.Gam(labelColumnName: labelName, featureColumnName: "Features", maximumBinCountPerFeature: 16));
+            // Convert the list of data points to an IDataView object, which is consumable by ML.NET API.
+            var trainingData = mlContext.Data.LoadFromEnumerable(dataPoints);
 
-            // Train the pipeline.
-            var trainedPipeline = pipeline.Fit(data);
+            // Define the trainer.
+            var pipeline = mlContext.Regression.Trainers.Gam(labelColumnName: nameof(DataPoint.Label), featureColumnName: nameof(DataPoint.Features));
 
-            // Extract the model from the pipeline.
-            var gamModel = trainedPipeline.LastTransformer.Model;
+            // Train the model.
+            var model = pipeline.Fit(trainingData);
 
-            // Now investigate the bias and shape functions of the GAM model.
-            // The bias represents the average prediction for the training data.
-            Console.WriteLine($"Average predicted cost: {gamModel.Bias:0.00}");
+            // Create testing data. Use different random seed to make it different from training data.
+            var testData = mlContext.Data.LoadFromEnumerable(GenerateRandomDataPoints(5, seed: 123));
+
+            // Run the model on test data set.
+            var transformedTestData = model.Transform(testData);
+
+            // Convert IDataView object to a list.
+            var predictions = mlContext.Data.CreateEnumerable<Prediction>(transformedTestData, reuseRowObject: false).ToList();
+
+            // Look at 5 predictions for the Label, side by side with the actual Label for comparison.
+            foreach (var p in predictions)
+                Console.WriteLine($"Label: {p.Label:F3}, Prediction: {p.Score:F3}");
 
             // Expected output:
-            //   Average predicted cost: 22.53
+            //   Label: 0.985, Prediction: 0.948
+            //   Label: 0.155, Prediction: 0.089
+            //   Label: 0.515, Prediction: 0.463
+            //   Label: 0.566, Prediction: 0.509
+            //   Label: 0.096, Prediction: 0.106
 
-            // Let's take a look at the features that the model built. Similar to a linear model, we have
-            // one response per feature. Unlike a linear model, this response is a function instead of a line.
-            // Each feature response represents the deviation from the average prediction as a function of the 
-            // feature value.
+            // Evaluate the overall metrics
+            var metrics = mlContext.Regression.Evaluate(transformedTestData);
+            PrintMetrics(metrics);
 
-            // Let's investigate the TeacherRatio variable. This is the ratio of students to teachers,
-            // so the higher it is, the more students a teacher has in their classroom.
-            // First, let's get the index of the variable we want to look at.
-            var studentTeacherRatioIndex = featureNames.ToList().FindIndex(str => str.Equals("TeacherRatio"));
+            // Expected output:
+            //   Mean Absolute Error: 0.03
+            //   Mean Squared Error: 0.00
+            //   Root Mean Squared Error: 0.03
+            //   RSquared: 0.99 (closer to 1 is better. The worest case is 0)
+        }
 
-            // Next, let's get the array of histogram bin upper bounds from the model for this feature.
-            // For each feature, the shape function is calculated at `MaxBins` locations along the range of 
-            // values that the feature takes, and the resulting shape function can be seen as a histogram of
-            // effects.
-            var teacherRatioBinUpperBounds = gamModel.GetBinUpperBounds(studentTeacherRatioIndex);
-            // And the array of bin effects; these are the effect size for each bin.
-            var teacherRatioBinEffects = gamModel.GetBinEffects(studentTeacherRatioIndex);
+        private static IEnumerable<DataPoint> GenerateRandomDataPoints(int count, int seed=0)
+        {
+            var random = new Random(seed);
+            for (int i = 0; i < count; i++)
+            {
+                float label = (float)random.NextDouble();
+                yield return new DataPoint
+                {
+                    Label = label,
+                    // Create random features that are correlated with the label.
+                    Features = Enumerable.Repeat(label, 50).Select(x => x + (float)random.NextDouble()).ToArray()
+                };
+            }
+        }
 
-            // Now, write the function to the console. The function is a set of bins, and the corresponding
-            // function values. You can think of GAMs as building a bar-chart lookup table.
-            Console.WriteLine("Student-Teacher Ratio");
-            for (int i = 0; i < teacherRatioBinUpperBounds.Count; i++)
-                Console.WriteLine($"x < {teacherRatioBinUpperBounds[i]:0.00} => {teacherRatioBinEffects[i]:0.000}");
+        // Example with label and 50 feature values. A data set is a collection of such examples.
+        private class DataPoint
+        {
+            public float Label { get; set; }
+            [VectorType(50)]
+            public float[] Features { get; set; }
+        }
 
-            //  Expected output:
-            //    Student-Teacher Ratio
-            //    x < 14.55 =>  2.105
-            //    x < 14.75 =>  2.326
-            //    x < 15.40 =>  0.903
-            //    x < 16.50 =>  0.651
-            //    x < 17.15 =>  0.587
-            //    x < 17.70 =>  0.624
-            //    x < 17.85 =>  0.684
-            //    x < 18.35 => -0.315
-            //    x < 18.55 => -0.542
-            //    x < 18.75 => -0.083
-            //    x < 19.40 => -0.442
-            //    x < 20.55 => -0.649
-            //    x < 21.05 => -1.579
-            //    x <   ∞   =>  0.318
+        // Class used to capture predictions.
+        private class Prediction
+        {
+            // Original label.
+            public float Label { get; set; }
+            // Predicted score from the trainer.
+            public float Score { get; set; }
+        }
 
-            // Let's consider this output. To score a given example, we look up the first bin where the inequality
-            // is satisfied for the feature value. We can look at the whole function to get a sense for how the
-            // model responds to the variable on a global level. For the student-teacher-ratio variable, we can see
-            // that smaller class sizes are predictive of a higher house value, while student-teacher ratios higher 
-            // than about 18 lead to lower predictions in house value. This makes intuitive sense, as smaller class 
-            // sizes are desirable and also indicative of better-funded schools, which could make buyers likely to
-            // pay more for the house.
-            
-            // Another thing to notice is that these feature functions can be noisy. See student-teacher ratios > 21.05.
-            // Common practice is to use resampling methods to estimate a confidence interval at each bin. This will
-            // help to determine if the effect is real or just sampling noise. See for example 
-            // Tan, Caruana, Hooker, and Lou. "Distill-and-Compare: Auditing Black-Box Models Using Transparent Model 
-            // Distillation." <a href='https://arxiv.org/abs/1710.06169'>arXiv:1710.06169</a>."
+        // Print some evaluation metrics to regression problems.
+        private static void PrintMetrics(RegressionMetrics metrics)
+        {
+            Console.WriteLine($"Mean Absolute Error: {metrics.MeanAbsoluteError:F2}");
+            Console.WriteLine($"Mean Squared Error: {metrics.MeanSquaredError:F2}");
+            Console.WriteLine($"Root Mean Squared Error: {metrics.RootMeanSquaredError:F2}");
+            Console.WriteLine($"RSquared: {metrics.RSquared:F2}");
         }
     }
 }
+

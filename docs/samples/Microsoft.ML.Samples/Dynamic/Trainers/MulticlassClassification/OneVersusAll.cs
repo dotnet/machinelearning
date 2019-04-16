@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.ML;
 using Microsoft.ML.Data;
-using Microsoft.ML.SamplesUtils;
 
 namespace Samples.Dynamic.Trainers.MulticlassClassification
 {
@@ -54,7 +53,11 @@ namespace Samples.Dynamic.Trainers.MulticlassClassification
 
             // Evaluate the overall metrics
             var metrics = mlContext.MulticlassClassification.Evaluate(transformedTestData);
-            ConsoleUtils.PrintMetrics(metrics);
+            Console.WriteLine($"Micro Accuracy: {metrics.MicroAccuracy:F2}");
+            Console.WriteLine($"Macro Accuracy: {metrics.MacroAccuracy:F2}");
+            Console.WriteLine($"Log Loss: {metrics.LogLoss:F2}");
+            Console.WriteLine($"Log Loss Reduction: {metrics.LogLossReduction:F2}");
+
             
             // Expected output:
             //  Micro Accuracy: 0.90
@@ -63,10 +66,12 @@ namespace Samples.Dynamic.Trainers.MulticlassClassification
             //  Log Loss Reduction: 0.67
         }
 
+        
+        // Generates random uniform doubles in [-0.5, 0.5) range with labels 1, 2 or 3.
         private static IEnumerable<DataPoint> GenerateRandomDataPoints(int count, int seed=0)
         {
             var random = new Random(seed);
-            float randomFloat() => (float)random.NextDouble();
+            float randomFloat() => (float)(random.NextDouble() - 0.5);
             for (int i = 0; i < count; i++)
             {
                 // Generate Labels that are integers 1, 2 or 3
