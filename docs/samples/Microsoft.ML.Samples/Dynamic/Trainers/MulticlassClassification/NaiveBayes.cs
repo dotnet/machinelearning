@@ -6,8 +6,12 @@ using Microsoft.ML.Data;
 
 namespace Samples.Dynamic.Trainers.MulticlassClassification
 {
-    public static class PairwiseCoupling
+    public static class NaiveBayes
     {
+        // Naive Bayes classifier is based on Bayes' theorem. 
+        // It assumes independence among the presence of features in a class even though they may be dependent on each other.
+        // It is  a multi-class trainer that accepts binary feature values of type float, i.e., feature values are either true or false.
+        // Specifically a feature value greater than zero is treated as true, zero or less is treated as false.
         public static void Example()
         {
             // Create a new context for ML.NET operations. It can be used for exception tracking and logging, 
@@ -25,8 +29,8 @@ namespace Samples.Dynamic.Trainers.MulticlassClassification
             var pipeline =
                     // Convert the string labels into key types.
                     mlContext.Transforms.Conversion.MapValueToKey("Label")
-                    // Apply PairwiseCoupling multiclass meta trainer on top of binary trainer.
-                    .Append(mlContext.MulticlassClassification.Trainers.PairwiseCoupling(mlContext.BinaryClassification.Trainers.SdcaLogisticRegression()));
+                    // Apply NaiveBayes multiclass trainer.
+                    .Append(mlContext.MulticlassClassification.Trainers.NaiveBayes());
 
             // Train the model.
             var model = pipeline.Fit(trainingData);
@@ -47,9 +51,9 @@ namespace Samples.Dynamic.Trainers.MulticlassClassification
             // Expected output:
             //   Label: 1, Prediction: 1
             //   Label: 2, Prediction: 2
-            //   Label: 3, Prediction: 2
+            //   Label: 3, Prediction: 3
             //   Label: 2, Prediction: 2
-            //   Label: 3, Prediction: 2
+            //   Label: 3, Prediction: 3
 
             // Evaluate the overall metrics
             var metrics = mlContext.MulticlassClassification.Evaluate(transformedTestData);
@@ -60,14 +64,15 @@ namespace Samples.Dynamic.Trainers.MulticlassClassification
 
             
             // Expected output:
-            //  Micro Accuracy: 0.90
-            //  Macro Accuracy: 0.90
-            //  Log Loss: 0.37
-            //  Log Loss Reduction: 0.67
+            //  Micro Accuracy: 0.88
+            //  Macro Accuracy: 0.88
+            //  Log Loss: 34.54
+            //  Log Loss Reduction: -30.47
         }
 
         
         // Generates random uniform doubles in [-0.5, 0.5) range with labels 1, 2 or 3.
+        // For NaiveBayes values greater than zero are treated as true, zero or less are treated as false.
         private static IEnumerable<DataPoint> GenerateRandomDataPoints(int count, int seed=0)
         {
             var random = new Random(seed);
