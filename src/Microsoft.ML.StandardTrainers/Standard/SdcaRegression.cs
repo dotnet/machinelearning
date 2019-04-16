@@ -38,7 +38,7 @@ namespace Microsoft.ML.Trainers
         public sealed class Options : OptionsBase
         {
             /// <summary>
-            /// A custom <a href="tmpurl_loss">loss</a>.
+            /// A custom <a href="https://en.wikipedia.org/wiki/Loss_function">loss</a>.
             /// </summary>
             /// <value>
             /// Defaults to <see cref="SquaredLoss"/>
@@ -47,7 +47,7 @@ namespace Microsoft.ML.Trainers
             internal ISupportSdcaRegressionLossFactory LossFunctionFactory = new SquaredLossFactory();
 
             /// <summary>
-            /// A custom <a href="tmpurl_loss">loss</a>.
+            /// A custom <a href="https://en.wikipedia.org/wiki/Loss_function">loss</a>.
             /// </summary>
             /// <value>
             /// Defaults to <see cref="SquaredLoss"/>

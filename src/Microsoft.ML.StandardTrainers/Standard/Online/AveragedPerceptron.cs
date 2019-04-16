@@ -79,13 +79,13 @@ namespace Microsoft.ML.Trainers
         public sealed class Options : AveragedLinearOptions
         {
             /// <summary>
-            /// A custom <a href="tmpurl_loss">loss</a>.
+            /// A custom <a href="https://en.wikipedia.org/wiki/Loss_function">loss</a>.
             /// </summary>
             [Argument(ArgumentType.Multiple, Name = "LossFunction", HelpText = "Loss Function", ShortName = "loss", SortOrder = 50)]
             internal ISupportClassificationLossFactory ClassificationLossFunctionFactory = new HingeLoss.Options();
 
             /// <summary>
-            /// A custom <a href="tmpurl_loss">loss</a>.
+            /// A custom <a href="https://en.wikipedia.org/wiki/Loss_function">loss</a>.
             /// </summary>
             public IClassificationLoss LossFunction { get; set; }
 

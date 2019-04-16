@@ -79,7 +79,7 @@ namespace Microsoft.ML
         /// <param name="labelColumnName">The name of the label column, or dependent variable.</param>
         /// <param name="featureColumnName">The features, or independent variables.</param>
         /// <param name="exampleWeightColumnName">The name of the example weight column (optional).</param>
-        /// <param name="lossFunction">The <a href="tmpurl_loss">loss</a> function minimized in the training process. Using, for example, <see cref="HingeLoss"/> leads to a support vector machine trainer.</param>
+        /// <param name="lossFunction">The <a href="https://en.wikipedia.org/wiki/Loss_function">loss</a> function minimized in the training process. Using, for example, <see cref="HingeLoss"/> leads to a support vector machine trainer.</param>
         /// <param name="numberOfIterations">The maximum number of passes through the training dataset; set to 1 to simulate online learning.</param>
         /// <param name="learningRate">The initial learning rate used by SGD.</param>
         /// <param name="l2Regularization">The L2 weight for <a href='https://en.wikipedia.org/wiki/Regularization_(mathematics)'>regularization</a>.</param>
@@ -135,7 +135,7 @@ namespace Microsoft.ML
         /// <param name="labelColumnName">The name of the label column.</param>
         /// <param name="featureColumnName">The name of the feature column.</param>
         /// <param name="exampleWeightColumnName">The name of the example weight column (optional).</param>
-        /// <param name="lossFunction">The <a href="tmpurl_loss">loss</a> function minimized in the training process. Using, for example, its default <see cref="SquaredLoss"/> leads to a least square trainer.</param>
+        /// <param name="lossFunction">The <a href="https://en.wikipedia.org/wiki/Loss_function">loss</a> function minimized in the training process. Using, for example, its default <see cref="SquaredLoss"/> leads to a least square trainer.</param>
         /// <param name="l2Regularization">The L2 weight for <a href='https://en.wikipedia.org/wiki/Regularization_(mathematics)'>regularization</a>.</param>
         /// <param name="l1Regularization">The L1 <a href='https://en.wikipedia.org/wiki/Regularization_(mathematics)'>regularization</a> hyperparameter. Higher values will tend to lead to more sparse model.</param>
         /// <param name="maximumNumberOfIterations">The maximum number of passes to perform over the data.</param>
@@ -239,7 +239,7 @@ namespace Microsoft.ML
         /// <param name="labelColumnName">The name of the label column.</param>
         /// <param name="featureColumnName">The name of the feature column.</param>
         /// <param name="exampleWeightColumnName">The name of the example weight column (optional).</param>
-        /// <param name="lossFunction">The <a href="tmpurl_loss">loss</a> function minimized in the training process. Defaults to <see cref="LogLoss"/> if not specified.</param>
+        /// <param name="lossFunction">The <a href="https://en.wikipedia.org/wiki/Loss_function">loss</a> function minimized in the training process. Defaults to <see cref="LogLoss"/> if not specified.</param>
         /// <param name="l2Regularization">The L2 weight for <a href='https://en.wikipedia.org/wiki/Regularization_(mathematics)'>regularization</a>.</param>
         /// <param name="l1Regularization">The L1 <a href='https://en.wikipedia.org/wiki/Regularization_(mathematics)'>regularization</a> hyperparameter. Higher values will tend to lead to more sparse model.</param>
         /// <param name="maximumNumberOfIterations">The maximum number of passes to perform over the data.</param>
@@ -337,7 +337,7 @@ namespace Microsoft.ML
         /// <param name="labelColumnName">The name of the label column.</param>
         /// <param name="featureColumnName">The name of the feature column.</param>
         /// <param name="exampleWeightColumnName">The name of the example weight column (optional).</param>
-        /// <param name="lossFunction">The <a href="tmpurl_loss">loss</a> function to be minimized. Defaults to <see cref="LogLoss"/> if not specified.</param>
+        /// <param name="lossFunction">The <a href="https://en.wikipedia.org/wiki/Loss_function">loss</a> function to be minimized. Defaults to <see cref="LogLoss"/> if not specified.</param>
         /// <param name="l2Regularization">The L2 weight for <a href='https://en.wikipedia.org/wiki/Regularization_(mathematics)'>regularization</a>.</param>
         /// <param name="l1Regularization">The L1 <a href='https://en.wikipedia.org/wiki/Regularization_(mathematics)'>regularization</a> hyperparameter. Higher values will tend to lead to more sparse model.</param>
         /// <param name="maximumNumberOfIterations">The maximum number of passes to perform over the data.</param>
@@ -388,7 +388,7 @@ namespace Microsoft.ML
         /// <param name="catalog">The binary classification catalog trainer object.</param>
         /// <param name="labelColumnName">The name of the label column. The column data must be <see cref="System.Boolean"/>.</param>
         /// <param name="featureColumnName">The name of the feature column. The column data must be a known-sized vector of <see cref="System.Single"/>.</param>
-        /// <param name="lossFunction">The <a href="tmpurl_loss">loss</a> function minimized in the training process. If <see langword="null"/>, <see cref="HingeLoss"/> would be used and lead to a max-margin averaged perceptron trainer.</param>
+        /// <param name="lossFunction">The <a href="https://en.wikipedia.org/wiki/Loss_function">loss</a> function minimized in the training process. If <see langword="null"/>, <see cref="HingeLoss"/> would be used and lead to a max-margin averaged perceptron trainer.</param>
         /// <param name="learningRate">The initial learning rate used by SGD.</param>
         /// <param name="decreaseLearningRate">
         /// <see langword="true" /> to decrease the <paramref name="learningRate"/> as iterations progress; otherwise, <see langword="false" />.
@@ -462,7 +462,7 @@ namespace Microsoft.ML
         /// <param name="catalog">The regression catalog trainer object.</param>
         /// <param name="labelColumnName">The name of the label column.</param>
         /// <param name="featureColumnName">The name of the feature column.</param>
-        /// <param name="lossFunction">The <a href="tmpurl_loss">loss</a> function minimized in the training process. Using, for example, <see cref="SquaredLoss"/> leads to a least square trainer.</param>
+        /// <param name="lossFunction">The <a href="https://en.wikipedia.org/wiki/Loss_function">loss</a> function minimized in the training process. Using, for example, <see cref="SquaredLoss"/> leads to a least square trainer.</param>
         /// <param name="learningRate">The initial learning rate used by SGD.</param>
         /// <param name="decreaseLearningRate">Decrease learning rate as iterations progress.</param>
         /// <param name="l2Regularization">The L2 weight for <a href='https://en.wikipedia.org/wiki/Regularization_(mathematics)'>regularization</a>.</param>

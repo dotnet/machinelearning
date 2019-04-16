@@ -1623,7 +1623,7 @@ namespace Microsoft.ML.Trainers
         public sealed class Options : BinaryOptionsBase
         {
             /// <summary>
-            /// The custom <a href="tmpurl_loss">loss</a>.
+            /// The custom <a href="https://en.wikipedia.org/wiki/Loss_function">loss</a>.
             /// </summary>
             /// <value>
             /// If unspecified, <see cref="LogLoss"/> will be used.
@@ -1632,7 +1632,7 @@ namespace Microsoft.ML.Trainers
             internal ISupportSdcaClassificationLossFactory LossFunctionFactory = new LogLossFactory();
 
             /// <summary>
-            /// The custom <a href="tmpurl_loss">loss</a>.
+            /// The custom <a href="https://en.wikipedia.org/wiki/Loss_function">loss</a>.
             /// </summary>
             /// <value>
             /// If unspecified, <see cref="LogLoss"/> will be used.
