@@ -263,6 +263,7 @@
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
       <DependentUpon>LightGbmWithOptions.tt</DependentUpon>
+    </Compile>
     <Compile Update="Dynamic\Trainers\MulticlassClassification\NaiveBayes.cs">
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
