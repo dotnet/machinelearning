@@ -206,7 +206,7 @@ namespace Microsoft.ML.Auto
         /// <param name="forest">Trained forest, for evaluation of points.</param>
         /// <param name="bestVal">Best performance seen thus far.</param>
         /// <param name="epsilon">Threshold for when to stop the local search.</param>
-        /// <param name="isMetricMaximizing">Metric type - maximizing or minimizing.</param>
+        /// <param name="isMetricMaximizing">Whether SMAC should aim to maximize (vs minimize) metric.</param>
         /// <returns></returns>
         private Tuple<double, ParameterSet> LocalSearch(ParameterSet parent, FastForestRegressionModelParameters forest, double bestVal, double epsilon, bool isMetricMaximizing)
         {

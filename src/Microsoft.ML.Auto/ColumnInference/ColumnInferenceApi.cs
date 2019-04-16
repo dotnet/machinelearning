@@ -117,7 +117,7 @@ namespace Microsoft.ML.Auto
 
             if (!splitInference.IsSuccess)
             {
-                throw new InferenceException(InferenceType.ColumnSplit, "Unable to split the file provided into multiple, consistent columns.");
+                throw new InferenceException(InferenceExceptionType.ColumnSplit, "Unable to split the file provided into multiple, consistent columns.");
             }
 
             return splitInference;
@@ -141,7 +141,7 @@ namespace Microsoft.ML.Auto
 
             if (!typeInferenceResult.IsSuccess)
             {
-                throw new InferenceException(InferenceType.ColumnDataKind, "Unable to infer column types of the file provided.");
+                throw new InferenceException(InferenceExceptionType.ColumnDataType, "Unable to infer column types of the file provided.");
             }
 
             return typeInferenceResult;
