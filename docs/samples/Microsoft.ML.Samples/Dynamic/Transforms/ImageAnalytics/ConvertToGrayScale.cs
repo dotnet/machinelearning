@@ -44,31 +44,37 @@ namespace Samples.Dynamic
 
             var transformedData = pipeline.Fit(data).Transform(data);
 
-            // The transformedData IDataView contains the loaded images column, and the grayscaled column.
-            PrintColumns(transformedData);
+            Console.WriteLine("{0, -25} {1, -25} {2, -25} {3, -25}", "ImagePath", "Name", "ImageObject", "Grayscale");
+            using (var cursor = transformedData.GetRowCursor(transformedData.Schema))
+            {
+                var imagePathGetter = cursor.GetGetter<ReadOnlyMemory<char>>(cursor.Schema["ImagePath"]);
+                var nameGetter = cursor.GetGetter<ReadOnlyMemory<char>>(cursor.Schema["Name"]);
+                var imageObjectGetter = cursor.GetGetter<Bitmap>(cursor.Schema["ImageObject"]);
+                var grayscaleGetter = cursor.GetGetter<Bitmap>(cursor.Schema["Grayscale"]);
+                while (cursor.MoveNext())
+                {
+                    ReadOnlyMemory<char> imagePath = null;
+                    imagePathGetter(ref imagePath);
+                    ReadOnlyMemory<char> name = null;
+                    nameGetter(ref name);
+                    Bitmap imageObject = null;
+                    imageObjectGetter(ref imageObject);
+                    Bitmap grayscaleImageObject = null;
+                    grayscaleGetter(ref grayscaleImageObject);
+
+                    Console.WriteLine("{0, -25} {1, -25} {2, -25} {3, -25}", imagePath, name, imageObject, grayscaleImageObject);
+
+                    //Dispose the image.
+                    imageObject.Dispose();
+                    grayscaleImageObject.Dispose();
+                }
+            }
 
             // ImagePath    Name         ImageObject            Grayscale
             // tomato.bmp   tomato       System.Drawing.Bitmap  System.Drawing.Bitmap
             // banana.jpg   banana       System.Drawing.Bitmap  System.Drawing.Bitmap
             // hotdog.jpg   hotdog       System.Drawing.Bitmap  System.Drawing.Bitmap
             // tomato.jpg   tomato       System.Drawing.Bitmap  System.Drawing.Bitmap
-        }
-
-        private static void PrintColumns(IDataView transformedData)
-        {
-            var imagePathColumn = transformedData.GetColumn<string>("ImagePath").GetEnumerator();
-            var namePathColumn = transformedData.GetColumn<string>("Name").GetEnumerator();
-            var imageObjectColumn = transformedData.GetColumn<Bitmap>("ImageObject").GetEnumerator();
-            var grayScaleColumn = transformedData.GetColumn<Bitmap>("Grayscale").GetEnumerator();
-            Console.WriteLine("{0, -25} {1, -25} {2, -25} {3, -25}", "ImagePath", "Name", "ImageObject", "Grayscale");
-            while (imagePathColumn.MoveNext() && namePathColumn.MoveNext() && imageObjectColumn.MoveNext() && grayScaleColumn.MoveNext())
-            {
-                Console.WriteLine("{0, -25} {1, -25} {2, -25} {3, -25}", imagePathColumn.Current, namePathColumn.Current, imageObjectColumn.Current, grayScaleColumn.Current);
-
-                //Dispose bitmap image.
-                imageObjectColumn.Current.Dispose();
-                grayScaleColumn.Current.Dispose();
-            }
         }
     }
 }

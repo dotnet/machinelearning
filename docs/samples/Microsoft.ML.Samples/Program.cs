@@ -6,7 +6,11 @@ namespace Microsoft.ML.Samples
     {
         static void Main(string[] args)
         {
-            CalculateFeatureContribution.Example();
+            ConvertToGrayscale.Example();
+            //ConvertToImage.Example();
+            //DnnFeaturizeImage.Example();
+            //ExtractPixels.Example();
+            LoadImages.Example();
         }
     }
 }
