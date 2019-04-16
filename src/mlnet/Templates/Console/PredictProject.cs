@@ -27,9 +27,9 @@ namespace Microsoft.ML.CLI.Templates.Console
         public virtual string TransformText()
         {
             this.Write("<Project Sdk=\"Microsoft.NET.Sdk\">\r\n\r\n  <PropertyGroup>\r\n    <OutputType>Exe</Outp" +
-                    "utType>\r\n    <TargetFramework>netcoreapp2.1</TargetFramework>\r\n  </PropertyGroup" +
-                    ">\r\n  <ItemGroup>\r\n    <PackageReference Include=\"Microsoft.ML\" Version=\"1.0.0-pr" +
-                    "eview\" />\r\n");
+                    "utType>\r\n    <TargetFramework>netstandard2.0</TargetFramework>\r\n  </PropertyGrou" +
+                    "p>\r\n  <ItemGroup>\r\n    <PackageReference Include=\"Microsoft.ML\" Version=\"1.0.0-p" +
+                    "review\" />\r\n");
  if(IncludeLightGBMPackage){ 
             this.Write("    <PackageReference Include=\"Microsoft.ML.LightGBM\" Version=\"1.0.0-preview\" />\r" +
                     "\n");

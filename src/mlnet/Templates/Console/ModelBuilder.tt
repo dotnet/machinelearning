@@ -156,9 +156,7 @@ else{#>
         {
             // Save/persist the trained model to a .ZIP file
             Console.WriteLine($"=============== Saving the model  ===============");
-            using (var fs = new FileStream(GetAbsolutePath(modelRelativePath), FileMode.Create, FileAccess.Write, FileShare.Write))
-                mlContext.Model.Save(mlModel, modelInputSchema, fs);
-
+            mlContext.Model.Save(mlModel, modelInputSchema, GetAbsolutePath(modelRelativePath));
             Console.WriteLine("The model is saved to {0}", GetAbsolutePath(modelRelativePath));
         }
 

@@ -40,7 +40,7 @@ namespace Microsoft.ML.CLI.Utilities
                 iterationIndex++;
                 UpdateBestResult(iterationResult);
                 if (progressBar != null)
-                    progressBar.Message = $"Best {this.optimizationMetric}: {GetScore(bestResult):F4}, Best Algorithm: {bestResult?.TrainerName}, Last Algorithm: {iterationResult?.TrainerName}";
+                    progressBar.Message = $"Best quality({this.optimizationMetric}): {GetScore(bestResult):F4}, Best Algorithm: {bestResult?.TrainerName}, Last Algorithm: {iterationResult?.TrainerName}";
                 ConsolePrinter.PrintMetrics(iterationIndex, iterationResult?.TrainerName, iterationResult?.ValidationMetrics, GetScore(bestResult), iterationResult?.RuntimeInSeconds, LogLevel.Trace);
                 if (iterationResult.Exception != null)
                 {
