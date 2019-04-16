@@ -53,7 +53,7 @@ namespace Samples.Dynamic.Trainers.BinaryClassification
             
             // Expected output:
             //   Accuracy: 0.68
-            //   AUC: 0.50
+            //   AUC: 0.50  (this is expected for Prior trainer)
             //   F1 Score: 0.81
             //   Negative Precision: 0.00
             //   Negative Recall: 0.00
