@@ -23,7 +23,7 @@ namespace Microsoft.ML.Auto
         /// </summary>
         /// <remarks>
         /// Internally, each run has train data and validation data. Model trained on the
-        /// run's training is evaluated against the validation data internally during the run,
+        /// run's training is evaluated against the validation data,
         /// and the metrics for that calculation are emitted here.
         /// </remarks>
         public TMetrics ValidationMetrics { get; private set; }
