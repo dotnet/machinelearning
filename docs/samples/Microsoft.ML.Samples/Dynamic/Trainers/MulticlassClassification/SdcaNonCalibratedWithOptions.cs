@@ -3,10 +3,11 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.ML;
 using Microsoft.ML.Data;
+using Microsoft.ML.Trainers;
 
 namespace Samples.Dynamic.Trainers.MulticlassClassification
 {
-    public static class OneVersusAll
+    public static class SdcaNonCalibratedWithOptions
     {
         public static void Example()
         {
@@ -21,12 +22,28 @@ namespace Samples.Dynamic.Trainers.MulticlassClassification
             // Convert the list of data points to an IDataView object, which is consumable by ML.NET API.
             var trainingData = mlContext.Data.LoadFromEnumerable(dataPoints);
 
+            // ML.NET doesn't cache data set by default. Therefore, if one reads a data set from a file and accesses it many times,
+			// it can be slow due to expensive featurization and disk operations. When the considered data can fit into memory,
+			// a solution is to cache the data in memory. Caching is especially helpful when working with iterative algorithms 
+			// which needs many data passes.
+			trainingData = mlContext.Data.Cache(trainingData);
+
+            // Define trainer options.
+            var options = new SdcaNonCalibratedMulticlassTrainer.Options
+            {
+                Loss = new HingeLoss(),
+                L1Regularization = 0.1f,
+                BiasLearningRate = 0.01f,
+                NumberOfThreads = 1
+            };
+
             // Define the trainer.
-            var pipeline =
-                    // Convert the string labels into key types.
+            var pipeline = 
+			        // Convert the string labels into key types.
                     mlContext.Transforms.Conversion.MapValueToKey("Label")
-                    // Apply OneVersusAll multiclass meta trainer on top of binary trainer.
-                    .Append(mlContext.MulticlassClassification.Trainers.OneVersusAll(mlContext.BinaryClassification.Trainers.SdcaLogisticRegression()));
+                    // Apply SdcaNonCalibrated multiclass trainer.
+                    .Append(mlContext.MulticlassClassification.Trainers.SdcaNonCalibrated(options));
+			
 
             // Train the model.
             var model = pipeline.Fit(trainingData);
@@ -49,17 +66,17 @@ namespace Samples.Dynamic.Trainers.MulticlassClassification
             //   Label: 2, Prediction: 2
             //   Label: 3, Prediction: 2
             //   Label: 2, Prediction: 2
-            //   Label: 3, Prediction: 2
+            //   Label: 3, Prediction: 3
 
             // Evaluate the overall metrics
             var metrics = mlContext.MulticlassClassification.Evaluate(transformedTestData);
             PrintMetrics(metrics);
             
             // Expected output:
-            //  Micro Accuracy: 0.90
-            //  Macro Accuracy: 0.90
-            //  Log Loss: 0.36
-            //  Log Loss Reduction: 0.68
+            //  Micro Accuracy: 0.91
+            //  Macro Accuracy: 0.91
+            //  Log Loss: 0.22
+            //  Log Loss Reduction: 0.80
         }
 
         // Generates random uniform doubles in [-0.5, 0.5) range with labels 1, 2 or 3.

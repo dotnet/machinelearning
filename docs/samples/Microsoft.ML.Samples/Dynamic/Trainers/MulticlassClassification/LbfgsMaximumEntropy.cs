@@ -6,7 +6,7 @@ using Microsoft.ML.Data;
 
 namespace Samples.Dynamic.Trainers.MulticlassClassification
 {
-    public static class OneVersusAll
+    public static class LbfgsMaximumEntropy
     {
         public static void Example()
         {
@@ -24,9 +24,9 @@ namespace Samples.Dynamic.Trainers.MulticlassClassification
             // Define the trainer.
             var pipeline =
                     // Convert the string labels into key types.
-                    mlContext.Transforms.Conversion.MapValueToKey("Label")
-                    // Apply OneVersusAll multiclass meta trainer on top of binary trainer.
-                    .Append(mlContext.MulticlassClassification.Trainers.OneVersusAll(mlContext.BinaryClassification.Trainers.SdcaLogisticRegression()));
+                    mlContext.Transforms.Conversion.MapValueToKey(nameof(DataPoint.Label))
+                    // Apply LbfgsMaximumEntropy multiclass trainer.
+                    .Append(mlContext.MulticlassClassification.Trainers.LbfgsMaximumEntropy());
 
             // Train the model.
             var model = pipeline.Fit(trainingData);
@@ -49,17 +49,17 @@ namespace Samples.Dynamic.Trainers.MulticlassClassification
             //   Label: 2, Prediction: 2
             //   Label: 3, Prediction: 2
             //   Label: 2, Prediction: 2
-            //   Label: 3, Prediction: 2
+            //   Label: 3, Prediction: 3
 
             // Evaluate the overall metrics
             var metrics = mlContext.MulticlassClassification.Evaluate(transformedTestData);
             PrintMetrics(metrics);
             
             // Expected output:
-            //  Micro Accuracy: 0.90
-            //  Macro Accuracy: 0.90
-            //  Log Loss: 0.36
-            //  Log Loss Reduction: 0.68
+            //  Micro Accuracy: 0.91
+            //  Macro Accuracy: 0.91
+            //  Log Loss: 0.24
+            //  Log Loss Reduction: 0.79
         }
 
         // Generates random uniform doubles in [-0.5, 0.5) range with labels 1, 2 or 3.
