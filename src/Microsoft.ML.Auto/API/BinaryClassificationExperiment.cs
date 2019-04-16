@@ -165,7 +165,7 @@ namespace Microsoft.ML.Auto
         /// </summary>
         /// <param name="results">Enumeration of AutoML experiment run results.</param>
         /// <param name="metric">Metric to consider when selecting the best run.</param>
-        /// <returns></returns>
+        /// <returns>The best experiment run.</returns>
         public static RunDetail<BinaryClassificationMetrics> Best(this IEnumerable<RunDetail<BinaryClassificationMetrics>> results, BinaryClassificationMetric metric = BinaryClassificationMetric.Accuracy)
         {
             var metricsAgent = new BinaryMetricsAgent(null, metric);
@@ -178,7 +178,7 @@ namespace Microsoft.ML.Auto
         /// </summary>
         /// <param name="results">Enumeration of AutoML experiment cross validation run results.</param>
         /// <param name="metric">Metric to consider when selecting the best run.</param>
-        /// <returns></returns>
+        /// <returns>The best experiment run.</returns>
         public static CrossValidationRunDetail<BinaryClassificationMetrics> Best(this IEnumerable<CrossValidationRunDetail<BinaryClassificationMetrics>> results, BinaryClassificationMetric metric = BinaryClassificationMetric.Accuracy)
         {
             var metricsAgent = new BinaryMetricsAgent(null, metric);

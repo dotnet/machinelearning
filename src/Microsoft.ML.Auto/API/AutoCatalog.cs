@@ -23,6 +23,14 @@ namespace Microsoft.ML.Auto
         /// </summary>
         /// <param name="maxExperimentTimeInSeconds">Maximum number of seconds that experiment will run.</param>
         /// <returns>A new AutoML regression experiment.</returns>
+        /// <remarks>
+        /// An experiment may run for longer than <paramref name="maxExperimentTimeInSeconds"/>.
+        /// This is because once AutoML starts training an ML.NET model, AutoML lets the
+        /// model train to completion. For instance, if the first model 
+        /// AutoML trains takes 4 hours, and the second model trained takes 5 hours,
+        /// but <paramref name="maxExperimentTimeInSeconds"/> was the number of seconds in 6 hours, 
+        /// the experiment will run for 4 + 5 = 9 hours (not 6 hours).
+        /// </remarks>
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
@@ -60,6 +68,14 @@ namespace Microsoft.ML.Auto
         /// </summary>
         /// <param name="maxExperimentTimeInSeconds">Maximum number of seconds that experiment will run.</param>
         /// <returns>A new AutoML binary classification experiment.</returns>
+        /// <remarks>
+        /// An experiment may run for longer than <paramref name="maxExperimentTimeInSeconds"/>.
+        /// This is because once AutoML starts training an ML.NET model, AutoML lets the
+        /// model train to completion. For instance, if the first model 
+        /// AutoML trains takes 4 hours, and the second model trained takes 5 hours,
+        /// but <paramref name="maxExperimentTimeInSeconds"/> was the number of seconds in 6 hours, 
+        /// the experiment will run for 4 + 5 = 9 hours (not 6 hours).
+        /// </remarks>
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
@@ -97,6 +113,14 @@ namespace Microsoft.ML.Auto
         /// </summary>
         /// <param name="maxExperimentTimeInSeconds">Maximum number of seconds that experiment will run.</param>
         /// <returns>A new AutoML multiclass classification experiment.</returns>
+        /// <remarks>
+        /// An experiment may run for longer than <paramref name="maxExperimentTimeInSeconds"/>.
+        /// This is because once AutoML starts training an ML.NET model, AutoML lets the
+        /// model train to completion. For instance, if the first model 
+        /// AutoML trains takes 4 hours, and the second model trained takes 5 hours,
+        /// but <paramref name="maxExperimentTimeInSeconds"/> was the number of seconds in 6 hours, 
+        /// the experiment will run for 4 + 5 = 9 hours (not 6 hours).
+        /// </remarks>
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
@@ -146,9 +170,9 @@ namespace Microsoft.ML.Auto
         /// instantiate a <see cref="TextLoader" />. The <see cref="TextLoader" /> can be used to 
         /// obtain an <see cref="IDataView"/> that can be fed into an AutoML experiment, 
         /// or used elsewhere in the ML.NET ecosystem (ie in <see cref="IEstimator{TTransformer}.Fit(IDataView)"/>.
-        /// The <see cref="ColumnInformation"/> contains AutoML's best guess for the purpose of each column in the dataset.
-        /// (For instance, is the column categorical, numeric, or text data,? Should the column be ignored? Etc). 
-        /// The <see cref="ColumnInformation"/> can be inspected and modified (or kept as is) and passed to an AutoML experiment for running.
+        /// The <see cref="ColumnInformation"/> contains the inferred purpose of each column in the dataset.
+        /// (For instance, is the column categorical, numeric, or text data? Should the column be ignored? Etc.)
+        /// The <see cref="ColumnInformation"/> can be inspected and modified (or kept as is) and used by an AutoML experiment.
         /// </remarks>
         public ColumnInferenceResults InferColumns(string path, string labelColumnName = DefaultColumnNames.Label, char? separatorChar = null, bool? allowQuoting = null, 
             bool? allowSparse = null, bool trimWhitespace = false, bool groupColumns = true)
@@ -174,9 +198,9 @@ namespace Microsoft.ML.Auto
         /// instantiate a <see cref="TextLoader" />. The <see cref="TextLoader" /> can be used to 
         /// obtain an <see cref="IDataView"/> that can be fed into an AutoML experiment, 
         /// or used elsewhere in the ML.NET ecosystem (ie in <see cref="IEstimator{TTransformer}.Fit(IDataView)"/>.
-        /// The <see cref="ColumnInformation"/> contains AutoML's best guess for the purpose of each column in the dataset.
-        /// (For instance, is the column categorical, numeric, or text data,? Should the column be ignored? Etc). 
-        /// The <see cref="ColumnInformation"/> can be inspected and modified (or kept as is) and passed to an AutoML experiment for running.
+        /// The <see cref="ColumnInformation"/> contains the inferred purpose of each column in the dataset.
+        /// (For instance, is the column categorical, numeric, or text data? Should the column be ignored? Etc.)
+        /// The <see cref="ColumnInformation"/> can be inspected and modified (or kept as is) and used by an AutoML experiment.
         /// </remarks>
         public ColumnInferenceResults InferColumns(string path, ColumnInformation columnInformation, char? separatorChar = null, bool? allowQuoting = null,
             bool? allowSparse = null, bool trimWhitespace = false, bool groupColumns = true)
@@ -204,9 +228,9 @@ namespace Microsoft.ML.Auto
         /// instantiate a <see cref="TextLoader" />. The <see cref="TextLoader" /> can be used to 
         /// obtain an <see cref="IDataView"/> that can be fed into an AutoML experiment, 
         /// or used elsewhere in the ML.NET ecosystem (ie in <see cref="IEstimator{TTransformer}.Fit(IDataView)"/>.
-        /// The <see cref="ColumnInformation"/> contains AutoML's best guess for the purpose of each column in the dataset.
-        /// (For instance, is the column categorical, numeric, or text data,? Should the column be ignored? Etc). 
-        /// The <see cref="ColumnInformation"/> can be inspected and modified (or kept as is) and passed to an AutoML experiment for running.
+        /// The <see cref="ColumnInformation"/> contains the inferred purpose of each column in the dataset.
+        /// (For instance, is the column categorical, numeric, or text data? Should the column be ignored? Etc.)
+        /// The <see cref="ColumnInformation"/> can be inspected and modified (or kept as is) and used by an AutoML experiment.
         /// </remarks>
         public ColumnInferenceResults InferColumns(string path, uint labelColumnIndex, bool hasHeader = false, char? separatorChar = null, 
             bool? allowQuoting = null, bool? allowSparse = null, bool trimWhitespace = false, bool groupColumns = true)

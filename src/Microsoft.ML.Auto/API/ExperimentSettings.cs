@@ -16,12 +16,28 @@ namespace Microsoft.ML.Auto
         /// <summary>
         /// Maximum time in seconds the experiment is allowed to run.
         /// </summary>
+        /// <remarks>
+        /// An experiment may run for longer than <see name="MaxExperimentTimeInSeconds"/>.
+        /// This is because once AutoML starts training an ML.NET model, AutoML lets the
+        /// model train to completion. For instance, if the first model 
+        /// AutoML trains takes 4 hours, and the second model trained takes 5 hours,
+        /// but <see name="MaxExperimentTimeInSeconds"/> was the number of seconds in 6 hours, 
+        /// the experiment will run for 4 + 5 = 9 hours (not 6 hours).
+        /// </remarks>
         public uint MaxExperimentTimeInSeconds { get; set; } = 24 * 60 * 60;
 
         /// <summary>
         /// Cancellation token for the AutoML experiment. It propagates the notification
         /// that the experiment should be canceled.
         /// </summary>
+        /// <remarks>
+        /// An experiment may not immediately stop after cancellation.
+        /// This is because once AutoML starts training an ML.NET model, AutoML lets the
+        /// model train to completion. For instance, if the first model 
+        /// AutoML trains takes 4 hours, and the second model trained takes 5 hours,
+        /// but cancellation is requested after 6 hours, 
+        /// the experiment will stop after 4 + 5 = 9 hours (not 6 hours).
+        /// </remarks>
         public CancellationToken CancellationToken { get; set; } = default;
 
         /// <summary>

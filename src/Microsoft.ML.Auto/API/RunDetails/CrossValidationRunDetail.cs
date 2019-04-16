@@ -35,7 +35,7 @@ namespace Microsoft.ML.Auto
     /// <summary>
     /// Result of a pipeline trained on a cross validation fold.
     /// </summary>
-    /// <typeparam name="TMetrics"></typeparam>
+    /// <typeparam name="TMetrics">Metrics type for the run.</typeparam>
     public sealed class TrainResult<TMetrics>
     {
         /// <summary>

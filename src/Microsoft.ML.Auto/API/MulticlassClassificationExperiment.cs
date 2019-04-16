@@ -155,7 +155,7 @@ namespace Microsoft.ML.Auto
         /// </summary>
         /// <param name="results">Enumeration of AutoML experiment run results.</param>
         /// <param name="metric">Metric to consider when selecting the best run.</param>
-        /// <returns></returns>
+        /// <returns>The best experiment run.</returns>
         public static RunDetail<MulticlassClassificationMetrics> Best(this IEnumerable<RunDetail<MulticlassClassificationMetrics>> results, MulticlassClassificationMetric metric = MulticlassClassificationMetric.MicroAccuracy)
         {
             var metricsAgent = new MultiMetricsAgent(null, metric);
@@ -169,6 +169,7 @@ namespace Microsoft.ML.Auto
         /// </summary>
         /// <param name="results">Enumeration of AutoML experiment cross validation run results.</param>
         /// <param name="metric">Metric to consider when selecting the best run.</param>
+        /// <returns>The best experiment run.</returns>
         public static CrossValidationRunDetail<MulticlassClassificationMetrics> Best(this IEnumerable<CrossValidationRunDetail<MulticlassClassificationMetrics>> results, MulticlassClassificationMetric metric = MulticlassClassificationMetric.MicroAccuracy)
         {
             var metricsAgent = new MultiMetricsAgent(null, metric);
