@@ -30,7 +30,7 @@ namespace Microsoft.ML
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
-        /// [!code-csharp[StochasticGradientDescent](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Trainers/BinaryClassification/StochasticGradientDescent.cs)]
+        /// [!code-csharp[SgdCalibrated](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Trainers/BinaryClassification/SgdCalibrated.cs)]
         /// ]]>
         /// </format>
         /// </example>
@@ -57,7 +57,7 @@ namespace Microsoft.ML
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
-        /// [!code-csharp[StochasticGradientDescentWithOptions](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Trainers/BinaryClassification/StochasticGradientDescentWithOptions.cs)]
+        /// [!code-csharp[SgdCalibrated](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Trainers/BinaryClassification/SgdCalibratedWithOptions.cs)]
         /// ]]>
         /// </format>
         /// </example>
@@ -86,7 +86,7 @@ namespace Microsoft.ML
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
-        /// [!code-csharp[StochasticGradientDescentNonCalibrated](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Trainers/BinaryClassification/StochasticGradientDescentNonCalibrated.cs)]
+        /// [!code-csharp[SgdNonCalibrated](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Trainers/BinaryClassification/SgdNonCalibrated.cs)]
         /// ]]>
         /// </format>
         /// </example>
@@ -114,7 +114,7 @@ namespace Microsoft.ML
         /// /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
-        /// [!code-csharp[StochasticGradientDescentNonCalibratedWithOptions](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Trainers/BinaryClassification/StochasticGradientDescentNonCalibratedWithOptions.cs)]
+        /// [!code-csharp[SgdNonCalibrated](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Trainers/BinaryClassification/SgdNonCalibratedWithOptions.cs)]
         /// ]]>
         /// </format>
         /// </example>
@@ -193,7 +193,7 @@ namespace Microsoft.ML
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
-        ///  [!code-csharp[SDCA](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Trainers/BinaryClassification/StochasticDualCoordinateAscent.cs)]
+        ///  [!code-csharp[SdcaLogisticRegression](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Trainers/BinaryClassification/SdcaLogisticRegression.cs)]
         /// ]]></format>
         /// </example>
         public static SdcaLogisticRegressionBinaryTrainer SdcaLogisticRegression(
@@ -218,7 +218,7 @@ namespace Microsoft.ML
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
-        ///  [!code-csharp[SDCA](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Trainers/BinaryClassification/StochasticDualCoordinateAscentWithOptions.cs)]
+        ///  [!code-csharp[SdcaLogisticRegression](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Trainers/BinaryClassification/SdcaLogisticRegressionWithOptions.cs)]
         /// ]]></format>
         /// </example>
         public static SdcaLogisticRegressionBinaryTrainer SdcaLogisticRegression(
@@ -246,7 +246,7 @@ namespace Microsoft.ML
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
-        ///  [!code-csharp[SDCA](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Trainers/BinaryClassification/StochasticDualCoordinateAscentNonCalibrated.cs)]
+        ///  [!code-csharp[SdcaNonCalibrated](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Trainers/BinaryClassification/SdcaNonCalibrated.cs)]
         /// ]]></format>
         /// </example>
         public static SdcaNonCalibratedBinaryTrainer SdcaNonCalibrated(
@@ -269,6 +269,12 @@ namespace Microsoft.ML
         /// </summary>
         /// <param name="catalog">The binary classification catalog trainer object.</param>
         /// <param name="options">Trainer options.</param>
+        /// <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        ///  [!code-csharp[SdcaNonCalibrated](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Trainers/BinaryClassification/SdcaNonCalibratedWithOptions.cs)]
+        /// ]]></format>
+        /// </example>
         public static SdcaNonCalibratedBinaryTrainer SdcaNonCalibrated(
                 this BinaryClassificationCatalog.BinaryClassificationTrainers catalog,
                 SdcaNonCalibratedBinaryTrainer.Options options)
@@ -848,7 +854,7 @@ namespace Microsoft.ML
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
-        ///  [!code-csharp[FastTree](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Trainers/BinaryClassification/PriorTrainerSample.cs)]
+        ///  [!code-csharp[Prior](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Trainers/BinaryClassification/PriorTrainer.cs)]
         /// ]]></format>
         /// </example>
         public static PriorTrainer Prior(this BinaryClassificationCatalog.BinaryClassificationTrainers catalog,

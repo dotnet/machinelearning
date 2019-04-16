@@ -69,6 +69,14 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Update="Dynamic\Trainers\BinaryClassification\AveragedPerceptron.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>AveragedPerceptron.cs</LastGenOutput>
+    </None>
+    <None Update="Dynamic\Trainers\BinaryClassification\AveragedPerceptronWithOptions.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>AveragedPerceptronWithOptions.cs</LastGenOutput>
+    </None>
     <None Update="Dynamic\Trainers\BinaryClassification\FastForest.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>FastForest.cs</LastGenOutput>
@@ -92,6 +100,66 @@
     <None Update="Dynamic\Trainers\BinaryClassification\LbfgsLogisticRegression.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>LbfgsLogisticRegression.cs</LastGenOutput>
+    </None>
+    <None Update="Dynamic\Trainers\BinaryClassification\LightGbm.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>LightGbm.cs</LastGenOutput>
+    </None>
+    <None Update="Dynamic\Trainers\BinaryClassification\LightGbmWithOptions.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>LightGbmWithOptions.cs</LastGenOutput>
+    </None>
+    <None Update="Dynamic\Trainers\BinaryClassification\LinearSvm.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>LinearSvm.cs</LastGenOutput>
+    </None>
+    <None Update="Dynamic\Trainers\BinaryClassification\LinearSvmWithOptions.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>LinearSvmWithOptions.cs</LastGenOutput>
+    </None>
+    <None Update="Dynamic\Trainers\BinaryClassification\PriorTrainer.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>PriorTrainer.cs</LastGenOutput>
+    </None>
+    <None Update="Dynamic\Trainers\BinaryClassification\SdcaLogisticRegression.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>SdcaLogisticRegression.cs</LastGenOutput>
+    </None>
+    <None Update="Dynamic\Trainers\BinaryClassification\SdcaLogisticRegressionWithOptions.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>SdcaLogisticRegressionWithOptions.cs</LastGenOutput>
+    </None>
+    <None Update="Dynamic\Trainers\BinaryClassification\SdcaNonCalibrated.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>SdcaNonCalibrated.cs</LastGenOutput>
+    </None>
+    <None Update="Dynamic\Trainers\BinaryClassification\SdcaNonCalibratedWithOptions.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>SdcaNonCalibratedWithOptions.cs</LastGenOutput>
+    </None>
+    <None Update="Dynamic\Trainers\BinaryClassification\SgdCalibrated.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>SgdCalibrated.cs</LastGenOutput>
+    </None>
+    <None Update="Dynamic\Trainers\BinaryClassification\SgdCalibratedWithOptions.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>SgdCalibratedWithOptions.cs</LastGenOutput>
+    </None>
+    <None Update="Dynamic\Trainers\BinaryClassification\SgdNonCalibrated.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>SgdNonCalibrated.cs</LastGenOutput>
+    </None>
+    <None Update="Dynamic\Trainers\BinaryClassification\SgdNonCalibratedWithOptions.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>SgdNonCalibratedWithOptions.cs</LastGenOutput>
+    </None>
+    <None Update="Dynamic\Trainers\BinaryClassification\SymbolicSgdLogisticRegression.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>SymbolicSgdLogisticRegression.cs</LastGenOutput>
+    </None>
+    <None Update="Dynamic\Trainers\BinaryClassification\SymbolicSgdLogisticRegressionWithOptions.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>SymbolicSgdLogisticRegressionWithOptions.cs</LastGenOutput>
     </None>
     <None Update="Dynamic\Trainers\MulticlassClassification\NaiveBayes.tt">
       <LastGenOutput>NaiveBayes.cs</LastGenOutput>
@@ -184,6 +252,16 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Update="Dynamic\Trainers\BinaryClassification\AveragedPerceptron.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>AveragedPerceptron.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Dynamic\Trainers\BinaryClassification\AveragedPerceptronWithOptions.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>AveragedPerceptronWithOptions.tt</DependentUpon>
+    </Compile>
     <Compile Update="Dynamic\Trainers\BinaryClassification\FastForest.cs">
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
@@ -213,6 +291,81 @@
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
       <DependentUpon>LbfgsLogisticRegressionWithOptions.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Dynamic\Trainers\BinaryClassification\LightGbm.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>LightGbm.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Dynamic\Trainers\BinaryClassification\LightGbmWithOptions.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>LightGbmWithOptions.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Dynamic\Trainers\BinaryClassification\LinearSvm.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>LinearSvm.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Dynamic\Trainers\BinaryClassification\LinearSvmWithOptions.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>LinearSvmWithOptions.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Dynamic\Trainers\BinaryClassification\PriorTrainer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>PriorTrainer.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Dynamic\Trainers\BinaryClassification\SdcaLogisticRegression.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>SdcaLogisticRegression.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Dynamic\Trainers\BinaryClassification\SdcaLogisticRegressionWithOptions.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>SdcaLogisticRegressionWithOptions.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Dynamic\Trainers\BinaryClassification\SdcaNonCalibrated.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>SdcaNonCalibrated.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Dynamic\Trainers\BinaryClassification\SdcaNonCalibratedWithOptions.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>SdcaNonCalibratedWithOptions.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Dynamic\Trainers\BinaryClassification\SgdCalibrated.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>SgdCalibrated.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Dynamic\Trainers\BinaryClassification\SgdCalibratedWithOptions.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>SgdCalibratedWithOptions.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Dynamic\Trainers\BinaryClassification\SgdNonCalibrated.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>SgdNonCalibrated.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Dynamic\Trainers\BinaryClassification\SgdNonCalibratedWithOptions.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>SgdNonCalibratedWithOptions.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Dynamic\Trainers\BinaryClassification\SymbolicSgdLogisticRegression.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>SymbolicSgdLogisticRegression.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Dynamic\Trainers\BinaryClassification\SymbolicSgdLogisticRegressionWithOptions.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>SymbolicSgdLogisticRegressionWithOptions.tt</DependentUpon>
     </Compile>
     <Compile Update="Dynamic\Trainers\MulticlassClassification\PairwiseCoupling.cs">
       <DesignTime>True</DesignTime>

@@ -1,0 +1,39 @@
+﻿<#@ include file="BinaryClassification.ttinclude"#>
+<#+
+string ClassName = "LightGbmWithOptions";
+string Trainer = "LightGbm";
+bool IsCalibrated = true;
+bool CacheData = false;
+
+string LabelThreshold = "0.5f";
+string DataSepValue = "0.03f";
+string OptionsInclude = "using Microsoft.ML.Trainers.LightGbm;";
+string Comments= @"
+		// This example requires installation of additional nuget package
+		// <a href=""https://www.nuget.org/packages/Microsoft.ML.LightGbm/"">Microsoft.ML.LightGbm</a>.";
+
+string TrainerOptions = @"LightGbmBinaryTrainer.Options
+            {
+                Booster = new GossBooster.Options
+                {
+                    TopRate = 0.3,
+                    OtherRate = 0.2
+                }
+            }";
+
+string ExpectedOutputPerInstance = @"// Expected output:
+            //   Label: True, Prediction: True
+            //   Label: False, Prediction: True
+            //   Label: True, Prediction: True
+            //   Label: True, Prediction: True
+            //   Label: False, Prediction: False";
+
+string ExpectedOutput = @"// Expected output:
+            //   Accuracy: 0.71
+            //   AUC: 0.76
+            //   F1 Score: 0.70
+            //   Negative Precision: 0.73
+            //   Negative Recall: 0.71
+            //   Positive Precision: 0.69
+            //   Positive Recall: 0.71";
+#>

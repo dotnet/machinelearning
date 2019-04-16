@@ -3,6 +3,7 @@
 string ClassName="FastTreeWithOptions";
 string Trainer = "FastTree";
 bool IsCalibrated = true;
+bool CacheData = false;
 
 string TrainerOptions = @"FastTreeBinaryTrainer.Options
             {

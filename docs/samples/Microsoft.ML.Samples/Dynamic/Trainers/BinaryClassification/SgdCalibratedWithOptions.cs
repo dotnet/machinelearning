@@ -3,14 +3,12 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.ML;
 using Microsoft.ML.Data;
-using Microsoft.ML.Trainers.FastTree;
+using Microsoft.ML.Trainers;
 
 namespace Samples.Dynamic.Trainers.BinaryClassification
 {
-    public static class FastTreeWithOptions
+    public static class SgdCalibratedWithOptions
     {
-        // This example requires installation of additional NuGet package
-        // <a href="https://www.nuget.org/packages/Microsoft.ML.FastTree/">Microsoft.ML.FastTree</a>.
         public static void Example()
         {
             // Create a new context for ML.NET operations. It can be used for exception tracking and logging, 
@@ -25,18 +23,18 @@ namespace Samples.Dynamic.Trainers.BinaryClassification
             var trainingData = mlContext.Data.LoadFromEnumerable(dataPoints);
 
             // Define trainer options.
-            var options = new FastTreeBinaryTrainer.Options
+            var options = new SgdCalibratedTrainer.Options()
             {
-                // Use L2Norm for early stopping.
-                EarlyStoppingMetric = EarlyStoppingMetric.L2Norm,
-                // Create a simpler model by penalizing usage of new features.
-                FeatureFirstUsePenalty = 0.1,
-                // Reduce the number of trees to 50.
-                NumberOfTrees = 50
+                // Make the convergence tolerance tighter.
+                ConvergenceTolerance = 5e-5,
+                // Increase the maximum number of passes over training data.
+                NumberOfIterations = 30,
+                // Give the instances of the positive class slightly more weight.
+                PositiveInstanceWeight = 1.2f,
             };
 
             // Define the trainer.
-            var pipeline = mlContext.BinaryClassification.Trainers.FastTree(options);
+            var pipeline = mlContext.BinaryClassification.Trainers.SgdCalibrated(options);
 
             // Train the model.
             var model = pipeline.Fit(trainingData);
@@ -55,7 +53,7 @@ namespace Samples.Dynamic.Trainers.BinaryClassification
                 Console.WriteLine($"Label: {p.Label}, Prediction: {p.PredictedLabel}");
 
             // Expected output:
-            //   Label: True, Prediction: True
+            //   Label: True, Prediction: False
             //   Label: False, Prediction: False
             //   Label: True, Prediction: True
             //   Label: True, Prediction: True
@@ -66,16 +64,13 @@ namespace Samples.Dynamic.Trainers.BinaryClassification
             PrintMetrics(metrics);
             
             // Expected output:
-            //   Accuracy: 0.78
-            //   AUC: 0.88
-            //   F1 Score: 0.79
-            //   Negative Precision: 0.83
+            //   Accuracy: 0.60
+            //   AUC: 0.65
+            //   F1 Score: 0.50
+            //   Negative Precision: 0.59
             //   Negative Recall: 0.74
-            //   Positive Precision: 0.74
-            //   Positive Recall: 0.84
-            //   Log Loss: 0.62
-            //   Log Loss Reduction: 37.77
-            //   Entropy: 1.00
+            //   Positive Precision: 0.61
+            //   Positive Recall: 0.43
         }
 
         private static IEnumerable<DataPoint> GenerateRandomDataPoints(int count, int seed=0)
@@ -125,4 +120,3 @@ namespace Samples.Dynamic.Trainers.BinaryClassification
         }
     }
 }
-

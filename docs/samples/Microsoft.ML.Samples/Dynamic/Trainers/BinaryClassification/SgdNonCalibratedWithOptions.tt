@@ -1,0 +1,35 @@
+﻿<#@ include file="BinaryClassification.ttinclude"#>
+<#+
+string ClassName = "SgdNonCalibratedWithOptions";
+string Trainer = "SgdNonCalibrated";
+bool IsCalibrated = false;
+bool CacheData = false;
+
+string LabelThreshold = "0.5f";
+string DataSepValue = "0.03f";
+string OptionsInclude = "using Microsoft.ML.Trainers;";
+string Comments = "";
+
+string TrainerOptions = @"SgdNonCalibratedTrainer.Options
+            {
+                LearningRate = 0.01,
+                NumberOfIterations = 10,
+                L2Regularization = 1e-7f
+            }";
+
+string ExpectedOutputPerInstance = @"// Expected output:
+            //   Label: True, Prediction: False
+            //   Label: False, Prediction: False
+            //   Label: True, Prediction: True
+            //   Label: True, Prediction: True
+            //   Label: False, Prediction: False";
+
+string ExpectedOutput = @"// Expected output:
+            //   Accuracy: 0.59
+            //   AUC: 0.61
+            //   F1 Score: 0.41
+            //   Negative Precision: 0.57
+            //   Negative Recall: 0.85
+            //   Positive Precision: 0.64
+            //   Positive Recall: 0.30";
+#>

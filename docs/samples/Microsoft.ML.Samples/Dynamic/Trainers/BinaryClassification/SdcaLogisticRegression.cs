@@ -3,14 +3,11 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.ML;
 using Microsoft.ML.Data;
-using Microsoft.ML.Trainers.FastTree;
 
 namespace Samples.Dynamic.Trainers.BinaryClassification
 {
-    public static class FastTreeWithOptions
+    public static class SdcaLogisticRegression
     {
-        // This example requires installation of additional NuGet package
-        // <a href="https://www.nuget.org/packages/Microsoft.ML.FastTree/">Microsoft.ML.FastTree</a>.
         public static void Example()
         {
             // Create a new context for ML.NET operations. It can be used for exception tracking and logging, 
@@ -24,19 +21,14 @@ namespace Samples.Dynamic.Trainers.BinaryClassification
             // Convert the list of data points to an IDataView object, which is consumable by ML.NET API.
             var trainingData = mlContext.Data.LoadFromEnumerable(dataPoints);
 
-            // Define trainer options.
-            var options = new FastTreeBinaryTrainer.Options
-            {
-                // Use L2Norm for early stopping.
-                EarlyStoppingMetric = EarlyStoppingMetric.L2Norm,
-                // Create a simpler model by penalizing usage of new features.
-                FeatureFirstUsePenalty = 0.1,
-                // Reduce the number of trees to 50.
-                NumberOfTrees = 50
-            };
+            // ML.NET doesn't cache data set by default. Therefore, if one reads a data set from a file and accesses it many times,
+            // it can be slow due to expensive featurization and disk operations. When the considered data can fit into memory,
+            // a solution is to cache the data in memory. Caching is especially helpful when working with iterative algorithms 
+            // which needs many data passes.
+            trainingData = mlContext.Data.Cache(trainingData);
 
             // Define the trainer.
-            var pipeline = mlContext.BinaryClassification.Trainers.FastTree(options);
+            var pipeline = mlContext.BinaryClassification.Trainers.SdcaLogisticRegression();
 
             // Train the model.
             var model = pipeline.Fit(trainingData);
@@ -56,26 +48,23 @@ namespace Samples.Dynamic.Trainers.BinaryClassification
 
             // Expected output:
             //   Label: True, Prediction: True
-            //   Label: False, Prediction: False
+            //   Label: False, Prediction: True
             //   Label: True, Prediction: True
             //   Label: True, Prediction: True
-            //   Label: False, Prediction: False
+            //   Label: False, Prediction: True
             
             // Evaluate the overall metrics.
             var metrics = mlContext.BinaryClassification.Evaluate(transformedTestData);
             PrintMetrics(metrics);
             
             // Expected output:
-            //   Accuracy: 0.78
-            //   AUC: 0.88
-            //   F1 Score: 0.79
-            //   Negative Precision: 0.83
-            //   Negative Recall: 0.74
-            //   Positive Precision: 0.74
-            //   Positive Recall: 0.84
-            //   Log Loss: 0.62
-            //   Log Loss Reduction: 37.77
-            //   Entropy: 1.00
+            //   Accuracy: 0.63
+            //   AUC: 0.70
+            //   F1 Score: 0.64
+            //   Negative Precision: 0.67
+            //   Negative Recall: 0.60
+            //   Positive Precision: 0.60
+            //   Positive Recall: 0.68
         }
 
         private static IEnumerable<DataPoint> GenerateRandomDataPoints(int count, int seed=0)
@@ -125,4 +114,3 @@ namespace Samples.Dynamic.Trainers.BinaryClassification
         }
     }
 }
-
