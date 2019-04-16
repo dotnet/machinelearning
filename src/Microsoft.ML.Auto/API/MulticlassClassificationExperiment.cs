@@ -84,7 +84,7 @@ namespace Microsoft.ML.Auto
         FastTreeOVA,
 
         /// <summary>
-        /// <see cref="LightGbmMulticlassTrainer"/>
+        /// See <see cref="LightGbmMulticlassTrainer"/>.
         /// </summary>
         LightGbm,
 
@@ -94,7 +94,7 @@ namespace Microsoft.ML.Auto
         LinearSupportVectorMachinesOVA,
 
         /// <summary>
-        /// <see cref="LbfgsMaximumEntropyMulticlassTrainer"/>
+        /// See <see cref="LbfgsMaximumEntropyMulticlassTrainer"/>.
         /// </summary>
         LbfgsMaximumEntropy,
 
@@ -104,7 +104,7 @@ namespace Microsoft.ML.Auto
         LbfgsLogisticRegressionOVA,
 
         /// <summary>
-        /// <see cref="SdcaMaximumEntropyMulticlassTrainer"/>
+        /// See <see cref="SdcaMaximumEntropyMulticlassTrainer"/>.
         /// </summary>
         SdcaMaximumEntropy,
 
