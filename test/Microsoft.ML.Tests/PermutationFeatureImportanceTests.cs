@@ -421,7 +421,7 @@ namespace Microsoft.ML.Tests
             var srcDV = bldr.GetDataView();
 
             var pipeline = ML.Transforms.Concatenate("Features", "X1", "X2Important", "X3", "X4Rand")
-                .Append(ML.Transforms.Normalize("Features"));
+                .Append(ML.Transforms.NormalizeMinMax("Features"));
             if (task == TaskType.BinaryClassification)
                 return pipeline.Append(ML.Transforms.Conversion.ConvertType("Label", outputKind: DataKind.Boolean))
                     .Fit(srcDV).Transform(srcDV);
@@ -501,7 +501,7 @@ namespace Microsoft.ML.Tests
             var srcDV = bldr.GetDataView();
 
             var pipeline = ML.Transforms.Concatenate("Features", "X1", "X2VBuffer", "X3Important")
-                .Append(ML.Transforms.Normalize("Features"));
+                .Append(ML.Transforms.NormalizeMinMax("Features"));
             if (task == TaskType.BinaryClassification)
             {
                 return pipeline.Append(ML.Transforms.Conversion.ConvertType("Label", outputKind: DataKind.Boolean))

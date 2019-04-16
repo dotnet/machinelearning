@@ -39,7 +39,8 @@ namespace Microsoft.ML.Transforms
             public const long MaximumExampleCount = 1000000000;
         }
 
-        public enum NormalizationMode
+        [BestFriend]
+        internal enum NormalizationMode
         {
             /// <summary>
             /// Linear rescale such that minimum and maximum values are mapped between -1 and 1.

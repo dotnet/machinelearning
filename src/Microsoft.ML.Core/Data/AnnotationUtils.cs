@@ -441,8 +441,16 @@ namespace Microsoft.ML.Data
         public static IEnumerable<SchemaShape.Column> AnnotationsForMulticlassScoreColumn(SchemaShape.Column? labelColumn = null)
         {
             var cols = new List<SchemaShape.Column>();
-            if (labelColumn != null && labelColumn.Value.IsKey && NeedsSlotNames(labelColumn.Value))
-                cols.Add(new SchemaShape.Column(Kinds.SlotNames, SchemaShape.Column.VectorKind.Vector, TextDataViewType.Instance, false));
+            if (labelColumn != null && labelColumn.Value.IsKey)
+            {
+                if (labelColumn.Value.Annotations.TryFindColumn(Kinds.KeyValues, out var metaCol) &&
+                    metaCol.Kind == SchemaShape.Column.VectorKind.Vector)
+                {
+                    if (metaCol.ItemType is TextDataViewType)
+                        cols.Add(new SchemaShape.Column(Kinds.SlotNames, SchemaShape.Column.VectorKind.Vector, TextDataViewType.Instance, false));
+                    cols.Add(new SchemaShape.Column(Kinds.TrainingLabelValues, SchemaShape.Column.VectorKind.Vector, metaCol.ItemType, false));
+                }
+            }
             cols.AddRange(GetTrainerOutputAnnotation());
             return cols;
         }

@@ -87,6 +87,7 @@ namespace Microsoft.ML
             /// <format type="text/markdown">
             /// <![CDATA[
             ///  [!code-csharp[MatrixFactorization](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Trainers/Recommendation/MatrixFactorizationWithOptions.cs)]
+            ///  [!code-csharp[MatrixFactorization](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Trainers/Recommendation/OneClassMatrixFactorizationWithOptions.cs)]
             /// ]]></format>
             /// </example>
             public MatrixFactorizationTrainer MatrixFactorization(

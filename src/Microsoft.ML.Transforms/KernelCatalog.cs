@@ -26,7 +26,7 @@ namespace Microsoft.ML
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
-        /// [!code-csharp[CreateRandomFourierFeatures](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/ProjectionTransforms.cs?range=1-6,12-112)]
+        /// [!code-csharp[ApproximatedKernelMap](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/ApproximatedKernelMap.cs)]
         /// ]]>
         /// </format>
         /// </example>

@@ -1,0 +1,34 @@
+maml.exe TrainTest test=%Data% tr=MultiClassNaiveBayes cache=- dout=%Output% loader=Text{sparse- col=Attr:TX:6 col=Label:0 col=Features:1-5,6,7-9} data=%Data% out=%Output% seed=1
+Not adding a normalizer.
+Not training a calibrator because it is not needed.
+
+Confusion table
+          ||======================
+PREDICTED ||        0 |        1 | Recall
+TRUTH     ||======================
+        0 ||      458 |        0 | 1.0000
+        1 ||      241 |        0 | 0.0000
+          ||======================
+Precision ||   0.6552 |   0.0000 |
+Accuracy(micro-avg): 0.655222
+Accuracy(macro-avg): 0.500000
+Log-loss:           34.538776
+Log-loss reduction: -52.618809
+
+OVERALL RESULTS
+---------------------------------------
+Accuracy(micro-avg): 0.655222 (0.0000)
+Accuracy(macro-avg): 0.500000 (0.0000)
+Log-loss:           34.538776 (0.0000)
+Log-loss reduction: -52.618809 (0.0000)
+
+---------------------------------------
+Physical memory usage(MB): %Number%
+Virtual memory usage(MB): %Number%
+%DateTime%	 Time elapsed(s): %Number%
+
+--- Progress log ---
+[1] 'Multi Class Naive Bayes training' started.
+[1] 'Multi Class Naive Bayes training' finished in %Time%.
+[2] 'Saving model' started.
+[2] 'Saving model' finished in %Time%.

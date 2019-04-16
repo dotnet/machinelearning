@@ -6,6 +6,7 @@ using System;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
+using System.Text.RegularExpressions;
 using Microsoft.ML.Calibrators;
 using Microsoft.ML.Data;
 using Microsoft.ML.Functional.Tests.Datasets;
@@ -67,7 +68,7 @@ namespace Microsoft.ML.Functional.Tests
                 {
                     // The only line in the file is the version of the model.
                     var line = reader.ReadLine();
-                    Assert.Equal(@"1.0.0.0", line);
+                    Assert.Matches(new Regex(@"(\d+).(\d+)\.(\d+)\.(\d+) \@BuiltBy:(.)* \@SrcCode:(.)*"), line);
                 }
             }
         }
@@ -275,7 +276,7 @@ namespace Microsoft.ML.Functional.Tests
             var data = loader.Load(file);
 
             // Pipeline.
-            var pipeline = ML.Transforms.Normalize("Features");
+            var pipeline = ML.Transforms.NormalizeMinMax("Features");
 
             // Train.
             var model = pipeline.Fit(data);
@@ -330,7 +331,7 @@ namespace Microsoft.ML.Functional.Tests
         {
             var file = new MultiFileSource(GetDataPath(TestDatasets.adult.trainFilename));
             var loader = ML.Data.CreateTextLoader<InputData>(hasHeader: true, dataSample: file);
-            var composite = loader.Append(ML.Transforms.Normalize("Features"));
+            var composite = loader.Append(ML.Transforms.NormalizeMinMax("Features"));
             var loaderWithEmbeddedModel = composite.Fit(file);
 
             string modelPath = GetOutputPath(FullTestName + "-model.zip");
@@ -368,7 +369,7 @@ namespace Microsoft.ML.Functional.Tests
         {
             var file = new MultiFileSource(GetDataPath(TestDatasets.adult.trainFilename));
             var loader = ML.Data.CreateTextLoader<InputData>(hasHeader: true, dataSample: file);
-            var estimator = ML.Transforms.Normalize("Features");
+            var estimator = ML.Transforms.NormalizeMinMax("Features");
             var data = loader.Load(file);
             var model = estimator.Fit(data);
 
@@ -401,7 +402,7 @@ namespace Microsoft.ML.Functional.Tests
         {
             var file = new MultiFileSource(GetDataPath(TestDatasets.adult.trainFilename));
             var loader = ML.Data.CreateTextLoader<InputData>(hasHeader: true, dataSample: file);
-            var estimator = ML.Transforms.Normalize("Features");
+            var estimator = ML.Transforms.NormalizeMinMax("Features");
             var model = estimator.Fit(loader.Load(file));
 
             string modelPath = GetOutputPath(FullTestName + "-model.zip");

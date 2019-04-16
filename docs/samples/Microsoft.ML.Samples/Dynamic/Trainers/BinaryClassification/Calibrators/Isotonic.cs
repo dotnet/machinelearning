@@ -1,7 +1,8 @@
 ﻿using System;
 using System.Linq;
+using Microsoft.ML;
 
-namespace Microsoft.ML.Samples.Dynamic.Trainers.BinaryClassification.Calibrators
+namespace Samples.Dynamic.Trainers.BinaryClassification.Calibrators
 {
     public static class Isotonic
     {
@@ -13,7 +14,7 @@ namespace Microsoft.ML.Samples.Dynamic.Trainers.BinaryClassification.Calibrators
             var mlContext = new MLContext(seed: 0);
 
             // Download and featurize the dataset.
-            var data = SamplesUtils.DatasetUtils.LoadFeaturizedAdultDataset(mlContext);
+            var data = Microsoft.ML.SamplesUtils.DatasetUtils.LoadFeaturizedAdultDataset(mlContext);
             // Leave out 10% of data for testing.
             var trainTestData = mlContext.Data.TrainTestSplit(data, testFraction: 0.3);
 
@@ -53,11 +54,11 @@ namespace Microsoft.ML.Samples.Dynamic.Trainers.BinaryClassification.Calibrators
             // Score   5.36571   Probability 0.8958333
         }
 
-        private static void PrintRowViewValues(Data.DataDebuggerPreview data)
+        private static void PrintRowViewValues(Microsoft.ML.Data.DataDebuggerPreview data)
         {
             var firstRows = data.RowView.Take(5);
 
-            foreach (Data.DataDebuggerPreview.RowInfo row in firstRows)
+            foreach (Microsoft.ML.Data.DataDebuggerPreview.RowInfo row in firstRows)
             {
                 foreach (var kvPair in row.Values)
                 {
