@@ -21,7 +21,7 @@ namespace Microsoft.ML.Trainers
     public abstract class AveragedLinearOptions : OnlineLinearOptions
     {
         /// <summary>
-        /// <a href="tmpurl_lr">Learning rate</a>.
+        /// Learning rate.
         /// </summary>
         [Argument(ArgumentType.AtMostOnce, HelpText = "Learning rate", ShortName = "lr", SortOrder = 50)]
         [TGUI(Label = "Learning rate", SuggestedSweeps = "0.01,0.1,0.5,1.0")]

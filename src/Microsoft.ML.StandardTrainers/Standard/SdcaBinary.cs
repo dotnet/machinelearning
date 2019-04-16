@@ -1814,7 +1814,7 @@ namespace Microsoft.ML.Trainers
             public int NumberOfIterations = Defaults.NumberOfIterations;
 
             /// <summary>
-            /// The initial <a href="tmpurl_lr">learning rate</a> used by SGD.
+            /// The initial learning rate used by SGD.
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Initial learning rate (only used by SGD)", Name = "InitialLearningRate", ShortName = "ilr,lr,InitLearningRate")]
             [TGUI(Label = "Initial Learning Rate (for SGD)")]

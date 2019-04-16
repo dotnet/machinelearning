@@ -21,7 +21,7 @@ namespace Microsoft.ML.StaticPipe
         /// <param name="features">The name of the feature column.</param>
         /// <param name="weights">The name for the example weight column.</param>
         /// <param name="numberOfIterations">The maximum number of iterations; set to 1 to simulate online learning.</param>
-        /// <param name="learningRate">The initial <a href="tmpurl_lr">learning rate</a> used by SGD.</param>
+        /// <param name="learningRate">The initial learning rate used by SGD.</param>
         /// <param name="l2Regularization">The L2 weight for <a href='tmpurl_regularization'>regularization</a>.</param>
         /// <param name="onFit">A delegate that is called every time the
         /// <see cref="Estimator{TTupleInShape, TTupleOutShape, TTransformer}.Fit(DataView{TTupleInShape})"/> method is called on the
@@ -101,7 +101,7 @@ namespace Microsoft.ML.StaticPipe
         /// <param name="features">The name of the feature column.</param>
         /// <param name="weights">The name for the example weight column.</param>
         /// <param name="numberOfIterations">The maximum number of iterations; set to 1 to simulate online learning.</param>
-        /// <param name="learningRate">The initial <a href="tmpurl_lr">learning rate</a> used by SGD.</param>
+        /// <param name="learningRate">The initial learning rate used by SGD.</param>
         /// <param name="l2Regularization">The L2 weight for <a href='tmpurl_regularization'>regularization</a>.</param>
         /// <param name="lossFunction">The loss function to use.</param>
         /// <param name="onFit">A delegate that is called every time the
