@@ -4,7 +4,6 @@
 
 using System.Collections.Generic;
 using Microsoft.ML.Auto;
-using Microsoft.ML.CLI.AutoML;
 using Microsoft.ML.CLI.Data;
 using Microsoft.ML.CLI.ShellProgressBar;
 using Microsoft.ML.CLI.Utilities;
@@ -53,8 +52,7 @@ namespace Microsoft.ML.CLI.CodeGenerator
                 {
                     MaxExperimentTimeInSeconds = settings.MaxExplorationTime,
                     CacheBeforeTrainer = this.cacheBeforeTrainer,
-                    OptimizingMetric = optimizationMetric,
-                    DebugLogger = AutoMLDebugLogger.Instance
+                    OptimizingMetric = optimizationMetric
                 })
                 .Execute(trainData, validationData, columnInformation, progressHandler: progressReporter);
             logger.Log(LogLevel.Trace, Strings.RetrieveBestPipeline);
@@ -69,8 +67,7 @@ namespace Microsoft.ML.CLI.CodeGenerator
                 {
                     MaxExperimentTimeInSeconds = settings.MaxExplorationTime,
                     OptimizingMetric = optimizationMetric,
-                    CacheBeforeTrainer = this.cacheBeforeTrainer,
-                    DebugLogger = AutoMLDebugLogger.Instance
+                    CacheBeforeTrainer = this.cacheBeforeTrainer
                 }).Execute(trainData, validationData, columnInformation, progressHandler: progressReporter);
             logger.Log(LogLevel.Trace, Strings.RetrieveBestPipeline);
             return result;
@@ -84,8 +81,7 @@ namespace Microsoft.ML.CLI.CodeGenerator
                 {
                     MaxExperimentTimeInSeconds = settings.MaxExplorationTime,
                     CacheBeforeTrainer = this.cacheBeforeTrainer,
-                    OptimizingMetric = optimizationMetric,
-                    DebugLogger = AutoMLDebugLogger.Instance
+                    OptimizingMetric = optimizationMetric
                 }).Execute(trainData, validationData, columnInformation, progressHandler: progressReporter);
             logger.Log(LogLevel.Trace, Strings.RetrieveBestPipeline);
             return result;

@@ -40,6 +40,8 @@ namespace Microsoft.ML.CLI.CodeGenerator
         {
             Stopwatch watch = Stopwatch.StartNew();
             var context = new MLContext();
+            ConsumeAutoMLSDKLogs(context);
+
             var verboseLevel = Utils.GetVerbosity(settings.Verbosity);
 
             // Infer columns
@@ -263,6 +265,18 @@ namespace Microsoft.ML.CLI.CodeGenerator
             var validationData = settings.ValidationDataset == null ? null : textLoader.Load(settings.ValidationDataset.FullName);
 
             return (trainData, validationData);
+        }
+
+        private void ConsumeAutoMLSDKLogs(MLContext context)
+        {
+            context.Log += (object sender, LoggingEventArgs loggingEventArgs) =>
+            {
+                var logMessage = loggingEventArgs.Message;
+                if (logMessage.Contains(AutoMLLogger.ChannelName))
+                {
+                    logger.Trace(loggingEventArgs.Message);
+                }
+            };
         }
     }
 }
