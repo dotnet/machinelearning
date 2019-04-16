@@ -28,7 +28,7 @@ namespace Microsoft.ML.Auto
         /// <remarks>
         /// <para>Contains the inferred purposes of each column. See <see cref="Auto.ColumnInformation"/> for more details.</para>
         /// <para>This can be fed to the AutoML API when running an experiment. 
-        /// See <typeref cref="ExperimentBase{TMetrics}.Execute(IDataView, ColumnInformation, IEstimator{ITransformer}, System.IProgress{RunDetail{TMetrics}})" />
+        /// See <typeref cref="ExperimentBase{TMetrics, TExperimentSettings}.Execute(IDataView, ColumnInformation, IEstimator{ITransformer}, System.IProgress{RunDetail{TMetrics}})" />
         /// for example.</para>
         /// </remarks>
         public ColumnInformation ColumnInformation { get; internal set; } = new ColumnInformation();
@@ -42,7 +42,7 @@ namespace Microsoft.ML.Auto
     /// it enumerates the dataset columns that AutoML should treat as categorical, 
     /// the columns AutoML should ignore, which column is the label, etc.</para>
     /// <para><see cref="ColumnInformation"/> can be fed to the AutoML API when running an experiment.
-    /// See <typeref cref="ExperimentBase{TMetrics}.Execute(IDataView, ColumnInformation, IEstimator{ITransformer}, System.IProgress{RunDetail{TMetrics}})" />
+    /// See <typeref cref="ExperimentBase{TMetrics, TExperimentSettings}.Execute(IDataView, ColumnInformation, IEstimator{ITransformer}, System.IProgress{RunDetail{TMetrics}})" />
     /// for example.</para>
     /// </remarks>
     public sealed class ColumnInformation

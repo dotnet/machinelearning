@@ -108,7 +108,7 @@ namespace Microsoft.ML.Auto
     /// <summary>
     /// AutoML experiment on regression classification datasets.
     /// </summary>
-    public sealed class RegressionExperiment : ExperimentBase<RegressionMetrics>
+    public sealed class RegressionExperiment : ExperimentBase<RegressionMetrics, RegressionExperimentSettings>
     {
         internal RegressionExperiment(MLContext context, RegressionExperimentSettings settings) 
             : base(context,
@@ -118,6 +118,16 @@ namespace Microsoft.ML.Auto
                   TaskKind.Regression,
                   TrainerExtensionUtil.GetTrainerNames(settings.Trainers))
         {
+        }
+
+        private protected override CrossValidationRunDetail<RegressionMetrics> GetBestCrossValRun(IEnumerable<CrossValidationRunDetail<RegressionMetrics>> results)
+        {
+            return BestResultUtil.GetBestRun(results, MetricsAgent, OptimizingMetricInfo.IsMaximizing);
+        }
+
+        private protected override RunDetail<RegressionMetrics> GetBestRun(IEnumerable<RunDetail<RegressionMetrics>> results)
+        {
+            return BestResultUtil.GetBestRun(results, MetricsAgent, OptimizingMetricInfo.IsMaximizing);
         }
     }
 

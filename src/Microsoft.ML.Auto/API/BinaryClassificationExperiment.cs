@@ -132,7 +132,7 @@ namespace Microsoft.ML.Auto
     /// <summary>
     /// AutoML experiment on binary classification datasets.
     /// </summary>
-    public sealed class BinaryClassificationExperiment : ExperimentBase<BinaryClassificationMetrics>
+    public sealed class BinaryClassificationExperiment : ExperimentBase<BinaryClassificationMetrics, BinaryExperimentSettings>
     {
         internal BinaryClassificationExperiment(MLContext context, BinaryExperimentSettings settings)
             : base(context,
@@ -143,37 +143,15 @@ namespace Microsoft.ML.Auto
                   TrainerExtensionUtil.GetTrainerNames(settings.Trainers))
         {
         }
-    }
 
-    /// <summary>
-    /// Extension methods that operate over binary experiment run results.
-    /// </summary>
-    public static class BinaryExperimentResultExtensions
-    {
-        /// <summary>
-        /// Select the best run from an enumeration of experiment runs.
-        /// </summary>
-        /// <param name="results">Enumeration of AutoML experiment run results.</param>
-        /// <param name="metric">Metric to consider when selecting the best run.</param>
-        /// <returns>The best experiment run.</returns>
-        public static RunDetail<BinaryClassificationMetrics> Best(this IEnumerable<RunDetail<BinaryClassificationMetrics>> results, BinaryClassificationMetric metric = BinaryClassificationMetric.Accuracy)
+        private protected override RunDetail<BinaryClassificationMetrics> GetBestRun(IEnumerable<RunDetail<BinaryClassificationMetrics>> results)
         {
-            var metricsAgent = new BinaryMetricsAgent(null, metric);
-            var isMetricMaximizing = new OptimizingMetricInfo(metric).IsMaximizing;
-            return BestResultUtil.GetBestRun(results, metricsAgent, isMetricMaximizing);
+            return BestResultUtil.GetBestRun(results, MetricsAgent, OptimizingMetricInfo.IsMaximizing);
         }
 
-        /// <summary>
-        /// Select the best run from an enumeration of experiment cross validation runs.
-        /// </summary>
-        /// <param name="results">Enumeration of AutoML experiment cross validation run results.</param>
-        /// <param name="metric">Metric to consider when selecting the best run.</param>
-        /// <returns>The best experiment run.</returns>
-        public static CrossValidationRunDetail<BinaryClassificationMetrics> Best(this IEnumerable<CrossValidationRunDetail<BinaryClassificationMetrics>> results, BinaryClassificationMetric metric = BinaryClassificationMetric.Accuracy)
+        private protected override CrossValidationRunDetail<BinaryClassificationMetrics> GetBestCrossValRun(IEnumerable<CrossValidationRunDetail<BinaryClassificationMetrics>> results)
         {
-            var metricsAgent = new BinaryMetricsAgent(null, metric);
-            var isMetricMaximizing = new OptimizingMetricInfo(metric).IsMaximizing;
-            return BestResultUtil.GetBestRun(results, metricsAgent, isMetricMaximizing);
+            return BestResultUtil.GetBestRun(results, MetricsAgent, OptimizingMetricInfo.IsMaximizing);
         }
     }
 }
