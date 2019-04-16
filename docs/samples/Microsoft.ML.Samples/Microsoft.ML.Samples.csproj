@@ -165,13 +165,13 @@
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>OrdinaryLeastSquaresWithOptions.cs</LastGenOutput>
     </None>
-    <None Update="Dynamic\Trainers\Regression\StochasticDualCoordinateAscent.tt">
+    <None Update="Dynamic\Trainers\Regression\Sdca.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
-      <LastGenOutput>StochasticDualCoordinateAscent.cs</LastGenOutput>
+      <LastGenOutput>Sdca.cs</LastGenOutput>
     </None>
-    <None Update="Dynamic\Trainers\Regression\StochasticDualCoordinateAscentWithOptions.tt">
+    <None Update="Dynamic\Trainers\Regression\SdcaWithOptions.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
-      <LastGenOutput>StochasticDualCoordinateAscentWithOptions.cs</LastGenOutput>
+      <LastGenOutput>SdcaWithOptions.cs</LastGenOutput>
     </None>
   </ItemGroup>
 
@@ -300,15 +300,15 @@
       <AutoGen>True</AutoGen>
       <DependentUpon>OrdinaryLeastSquaresWithOptions.tt</DependentUpon>
     </Compile>
-    <Compile Update="Dynamic\Trainers\Regression\StochasticDualCoordinateAscent.cs">
+    <Compile Update="Dynamic\Trainers\Regression\Sdca.cs">
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
-      <DependentUpon>StochasticDualCoordinateAscent.tt</DependentUpon>
+      <DependentUpon>Sdca.tt</DependentUpon>
     </Compile>
-    <Compile Update="Dynamic\Trainers\Regression\StochasticDualCoordinateAscentWithOptions.cs">
+    <Compile Update="Dynamic\Trainers\Regression\SdcaWithOptions.cs">
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
-      <DependentUpon>StochasticDualCoordinateAscentWithOptions.tt</DependentUpon>
+      <DependentUpon>SdcaWithOptions.tt</DependentUpon>
     </Compile>
   </ItemGroup>
 
