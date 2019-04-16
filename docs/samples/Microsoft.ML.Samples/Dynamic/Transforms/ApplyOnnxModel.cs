@@ -2,15 +2,11 @@ using System;
 using System.Linq;
 using Microsoft.ML;
 using Microsoft.ML.Data;
-using Microsoft.ML.OnnxRuntime;
 
 namespace Samples.Dynamic
 {
     public static class ApplyOnnxModel
     {
-        /// <summary>
-        /// Example use of ApplyOnnxModel in an ML.NET pipeline
-        /// </summary>
         public static void Example()
         {
             // Download the squeeznet image model from ONNX model zoo, version 1.2
@@ -54,25 +50,25 @@ namespace Samples.Dynamic
             // ----------
         }
 
-        /// <summary>
-        /// inputSize is the overall dimensions of the model input tensor.
-        /// </summary>
+        // <summary>
+        // inputSize is the overall dimensions of the model input tensor.
+        // </summary>
         private const int inputSize = 224 * 224 * 3;
 
-        /// <summary>
-        /// A class to hold sample tensor data. Member name should match  
-        /// the inputs that the model expects (in this case, data_0)
-        /// </summary>
+        // <summary>
+        // A class to hold sample tensor data. Member name should match  
+        // the inputs that the model expects (in this case, data_0)
+        // </summary>
         public class TensorData
         {
             [VectorType(inputSize)]
             public float[] data_0 { get; set; }
         }
 
-        /// <summary>
-        /// Method to generate sample test data. Returns 2 sample rows.
-        /// </summary>
-        /// <returns></returns>
+        // <summary>
+        // Method to generate sample test data. Returns 2 sample rows.
+        // </summary>
+        // <returns></returns>
         public static TensorData[] GetTensorData()
         {
             // This can be any numerical data. Assume image pixel values.
@@ -81,10 +77,10 @@ namespace Samples.Dynamic
             return new TensorData[] { new TensorData() { data_0 = image1 }, new TensorData() { data_0 = image2 } };
         }
 
-        /// <summary>
-        /// Class to contain the output values from the transformation.
-        /// This model generates a vector of 1000 floats.
-        /// </summary>
+        // <summary>
+        // Class to contain the output values from the transformation.
+        // This model generates a vector of 1000 floats.
+        // </summary>
         class Prediction
         {
             [VectorType(1000)]
