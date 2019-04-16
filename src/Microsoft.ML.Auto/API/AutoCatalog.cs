@@ -186,7 +186,7 @@ namespace Microsoft.ML.Auto
         /// </summary>
         /// <param name="path">Path to a dataset file.</param>
         /// <param name="columnInformation">Column information for the dataset.</param>
-        /// <param name="separatorChar">The character used as separator between data points in a row. If <see langword="null"/>, AutoML will try to infer this value.</param>
+        /// <param name="separatorChar">The character used as separator between data elements in a row. If <see langword="null"/>, AutoML will try to infer this value.</param>
         /// <param name="allowQuoting">Whether the file can contain column defined by a quoted string. If <see langword="null"/>, AutoML will try to infer this value.</param>
         /// <param name="allowSparse">Whether the file can contain numerical vectors in sparse format. If <see langword="null"/>, AutoML will try to infer this value.</param>
         /// <param name="trimWhitespace">Whether trailing whitespace should be removed from dataset file lines.</param>
@@ -216,7 +216,7 @@ namespace Microsoft.ML.Auto
         /// <param name="path">Path to a dataset file.</param>
         /// <param name="labelColumnIndex">Column index of the label column in the dataset.</param>
         /// <param name="hasHeader">Whether or not the dataset file has a header row.</param>
-        /// <param name="separatorChar">The character used as separator between data points in a row. If <see langword="null"/>, AutoML will try to infer this value.</param>
+        /// <param name="separatorChar">The character used as separator between data elements in a row. If <see langword="null"/>, AutoML will try to infer this value.</param>
         /// <param name="allowQuoting">Whether the file can contain column defined by a quoted string. If <see langword="null"/>, AutoML will try to infer this value.</param>
         /// <param name="allowSparse">Whether the file can contain numerical vectors in sparse format. If <see langword="null"/>, AutoML will try to infer this value.</param>
         /// <param name="trimWhitespace">Whether trailing whitespace should be removed from dataset file lines.</param>
