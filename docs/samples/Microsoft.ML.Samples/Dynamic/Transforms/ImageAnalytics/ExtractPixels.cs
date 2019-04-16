@@ -83,7 +83,7 @@ namespace Samples.Dynamic
                     Console.WriteLine("{0, -25} {1, -25} {2, -25} {3, -25} {4, -25}", imagePath, name,
                         imageObject.PhysicalDimension, resizedImageObject.PhysicalDimension, string.Join(",", pixels.DenseValues().Take(5)) + "...");
 
-                    //Dispose the image.
+                    // Dispose the image.
                     imageObject.Dispose();
                     resizedImageObject.Dispose();
                 }

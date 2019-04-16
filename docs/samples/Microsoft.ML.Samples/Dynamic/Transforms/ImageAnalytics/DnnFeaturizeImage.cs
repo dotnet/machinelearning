@@ -62,7 +62,7 @@ namespace Samples.Dynamic
             // 0.159010679
             // 0.394427955
 
-            //Dispose bitmap image objects.
+            // Dispose bitmap image objects.
             foreach (var img in transformedData.GetColumn<Bitmap>("ImageObject"))
                 img.Dispose();
         }
