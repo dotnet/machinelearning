@@ -114,12 +114,12 @@ namespace Microsoft.ML.Auto
         LbfgsLogisticRegression,
 
         /// <summary>
-        /// See <see cref="LbfgsLogisticRegressionBinaryTrainer"/>.
+        /// See <see cref="SdcaLogisticRegressionBinaryTrainer"/>.
         /// </summary>
         SdcaLogisticRegression,
 
         /// <summary>
-        /// See <see cref="LbfgsLogisticRegressionBinaryTrainer"/>.
+        /// See <see cref="SgdCalibratedTrainer"/>.
         /// </summary>
         SgdCalibrated,
 
