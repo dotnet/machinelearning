@@ -40,7 +40,7 @@ namespace Microsoft.ML.Auto
     {
         /// <summary>
         /// Each fold has training data and validation data. A model trained on the
-        /// run's training data is evaluated against the validation data internally during the run,
+        /// folds's training data is evaluated against the validation data,
         /// and the metrics for that calculation are emitted here.
         /// </summary>
         public TMetrics ValidationMetrics { get; private set; }
