@@ -33,7 +33,7 @@ namespace Microsoft.ML.Auto
     }
 
     /// <summary>
-    /// Regression metric that AutoML will try to optimize in its sweeping process during an experiment.
+    /// Regression metric that AutoML will aim to optimize in its sweeping process during an experiment.
     /// </summary>
     public enum RegressionMetric
     {

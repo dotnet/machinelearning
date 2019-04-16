@@ -33,7 +33,7 @@ namespace Microsoft.ML.Auto
     }
 
     /// <summary>
-    /// Multiclass classification metric that AutoML will try to optimize in its sweeping process during an experiment.
+    /// Multiclass classification metric that AutoML will aim to optimize in its sweeping process during an experiment.
     /// </summary>
     public enum MulticlassClassificationMetric
     {
