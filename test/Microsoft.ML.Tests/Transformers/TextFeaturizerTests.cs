@@ -542,7 +542,10 @@ namespace Microsoft.ML.Tests.Transformers
             var est = new WordTokenizingEstimator(ML, "text", "text")
                 .Append(new ValueToKeyMappingEstimator(ML, "terms", "text"))
                 .Append(new NgramExtractingEstimator(ML, "ngrams", "terms"))
-                .Append(new NgramHashingEstimator(ML, "ngramshash", "terms"));
+                .Append(new NgramHashingEstimator(ML, "ngramshash", "terms"))
+                // Also have a situation where we use invert hashing. However we only write
+                // the original non-inverted column to the actual baseline file.
+                .Append(new NgramHashingEstimator(ML, "ngramshashinvert", "terms", maximumNumberOfInverts: 2));
 
             TestEstimatorCore(est, data.AsDynamic, invalidInput: invalidData.AsDynamic);
 
