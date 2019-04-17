@@ -329,6 +329,7 @@ namespace Microsoft.ML.Transforms.Onnx
                     var col = inputSchema.GetColumnOrNull(_parent.Inputs[i]);
                     if (!col.HasValue)
                         throw Host.ExceptSchemaMismatch( nameof(inputSchema),"input", _parent.Inputs[i]);
+
                     _inputColIndices[i] = col.Value.Index;
 
                     var type = inputSchema[_inputColIndices[i]].Type;
@@ -574,6 +575,8 @@ namespace Microsoft.ML.Transforms.Onnx
                 var expectedType = OnnxUtils.OnnxToMlNetType(inputNodeInfo.Type);
                 if (col.ItemType != expectedType)
                     throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", input, expectedType.ToString(), col.ItemType.ToString());
+                if (col.Kind == SchemaShape.Column.VectorKind.VariableVector)
+                    throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", input, "vector", col.GetTypeString());
             }
 
             for (var i = 0; i < Transformer.Outputs.Length; i++)
