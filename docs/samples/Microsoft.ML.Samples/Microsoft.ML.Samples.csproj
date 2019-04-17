@@ -107,6 +107,10 @@
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>FieldAwareFactorizationMachine.cs</LastGenOutput>
     </None>
+    <None Update="Dynamic\Trainers\BinaryClassification\FactorizationMachine.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>FactorizationMachine.cs</LastGenOutput>
+    </None>
     <None Update="Dynamic\Trainers\BinaryClassification\FieldAwareFactorizationMachineWithOptions.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>FieldAwareFactorizationMachineWithOptions.cs</LastGenOutput>
@@ -304,6 +308,11 @@
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
       <DependentUpon>FieldAwareFactorizationMachine.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Dynamic\Trainers\BinaryClassification\FactorizationMachine.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>FactorizationMachine.tt</DependentUpon>
     </Compile>
     <Compile Update="Dynamic\Trainers\BinaryClassification\FieldAwareFactorizationMachineWithOptions.cs">
       <DesignTime>True</DesignTime>
