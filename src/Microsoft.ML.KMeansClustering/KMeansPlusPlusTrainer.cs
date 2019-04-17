@@ -35,8 +35,8 @@ namespace Microsoft.ML.Trainers
     /// YYK-Means observes that there is a lot of redundancy across iterations in the KMeans algorithms and most points do not change their clusters during an iteration.
     /// It uses various bounding techniques to identify this redundancy and eliminate many distance computations and optimize centroid computations.
     /// For more information on K-means, and K-means++ see:
-    /// <a href='https://en.wikipedia.org/wiki/K-means_clustering'> K - means </a>
-    /// <a href= 'https://en.wikipedia.org/wiki/K-means%2b%2b'> K - means++ </a>
+    /// <a href='https://en.wikipedia.org/wiki/K-means_clustering'>K-means</a>
+    /// <a href='https://en.wikipedia.org/wiki/K-means%2b%2b'>K-means++</a>
     /// </summary>
     public class KMeansTrainer : TrainerEstimatorBase<ClusteringPredictionTransformer<KMeansModelParameters>, KMeansModelParameters>
     {
