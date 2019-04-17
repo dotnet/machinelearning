@@ -27,10 +27,17 @@ using Microsoft.ML.Trainers;
 namespace Microsoft.ML.Trainers
 {
     /// <summary>
-    /// Naive Bayes classifier is based on Bayes' theorem. It assumes independence among the presence of features
-    /// in a class even though they may be dependent on each other. It is a multi-class trainer that accepts
-    /// binary feature values of type float, i.e., feature values are either true or false, specifically a
-    /// feature value greater than zero is treated as true.
+    /// <a href ='https://en.wikipedia.org/wiki/Naive_Bayes_classifier'>Naive Bayes</a>
+    /// is a probabilistic classifier that can be used for multiclass problems.
+    /// Using Bayes' theorem, the conditional probability for a sample belonging to a class
+    /// can be calculated based on the sample count for each feature combination groups.
+    /// However, Naive Bayes Classifier is feasible only if the number of features and
+    /// the values each feature can take is relatively small.
+    /// It assumes independence among the presence of features in a class even though
+    /// they may be dependent on each other.
+    /// This multi-class trainer accepts binary feature values of type float, i.e., 
+    /// feature values are either true or false.
+    /// Specifically a feature value greater than zero is treated as true.
     /// </summary>
     public sealed class NaiveBayesMulticlassTrainer : TrainerEstimatorBase<MulticlassPredictionTransformer<NaiveBayesMulticlassModelParameters>, NaiveBayesMulticlassModelParameters>
     {

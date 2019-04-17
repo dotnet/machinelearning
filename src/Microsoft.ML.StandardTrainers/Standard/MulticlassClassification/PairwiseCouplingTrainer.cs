@@ -15,7 +15,7 @@ using Microsoft.ML.Trainers;
 
 [assembly: LoadableClass(PairwiseCouplingTrainer.Summary, typeof(PairwiseCouplingTrainer), typeof(PairwiseCouplingTrainer.Options),
     new[] { typeof(SignatureMulticlassClassifierTrainer), typeof(SignatureTrainer) },
-    PairwiseCouplingTrainer.UserNameValue, PairwiseCouplingTrainer.LoadNameValue, DocName = "trainer/OvaPkpd.md")]
+    PairwiseCouplingTrainer.UserNameValue, PairwiseCouplingTrainer.LoadNameValue)]
 
 [assembly: LoadableClass(typeof(PairwiseCouplingModelParameters), null, typeof(SignatureLoadModel),
     "PKPD Executor",
