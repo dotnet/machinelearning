@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using Microsoft.ML;
-using static Microsoft.ML.DataOperationsCatalog;
 
 namespace Samples.Dynamic
 {
@@ -25,7 +24,7 @@ namespace Samples.Dynamic
             // we must ensure that the split leaves the rows with the same value in a particular column, in one of the splits. 
             // So below, we specify Group column as the column containing the sampling keys.
             // Notice how keeping the rows with the same value in the Group column overrides the testFraction definition. 
-            TrainTestData split = mlContext.Data.TrainTestSplit(dataview, testFraction: 0.1, samplingKeyColumnName: "Group");
+            var split = mlContext.Data.TrainTestSplit(dataview, testFraction: 0.1, samplingKeyColumnName: "Group");
             var trainSet = mlContext.Data.CreateEnumerable<DataPoint>(split.TrainSet, reuseRowObject: false);
             var testSet = mlContext.Data.CreateEnumerable<DataPoint>(split.TestSet, reuseRowObject: false);
             PrintPreviewRows(trainSet, testSet);
