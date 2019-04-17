@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using Microsoft.ML;
 
 namespace Samples.Dynamic.Trainers.BinaryClassification.Calibrators
@@ -26,9 +27,8 @@ namespace Samples.Dynamic.Trainers.BinaryClassification.Calibrators
             // Let's score the new data. The score will give us a numerical estimation of the chance that the particular sample 
             // bears positive sentiment. This estimate is relative to the numbers obtained. 
             var scoredData = transformer.Transform(trainTestData.TestSet);
-            var scoredDataPreview = scoredData;
-
-            PrintRowViewValues(scoredDataPreview);
+            var outScores = mlContext.Data.CreateEnumerable<ScoreValue>(scoredData, reuseRowObject: false);
+            PrintScore(outScores, 5);
             // Preview of scoredDataPreview.RowView
             // Score   4.18144
             // Score  -14.10248
@@ -45,39 +45,46 @@ namespace Samples.Dynamic.Trainers.BinaryClassification.Calibrators
             // This column is a calibrated version of the "Score" column, meaning its values are a valid probability value in the [0, 1] interval
             // representing the chance that the respective sample bears positive sentiment. 
             var finalData = calibratorTransformer.Transform(scoredData);
-            PrintRowViewValues(finalData);
-           // Score   4.18144   Probability 0.775
-           // Score  -14.10248  Probability 0.01923077
-           // Score   2.731951  Probability 0.7738096
-           // Score  -2.554229  Probability 0.2011494
-           // Score   5.36571   Probability 0.9117647
+            var outScoresAndProbabilities = mlContext.Data.CreateEnumerable<ScoreAndProbabilityValue>(finalData, reuseRowObject: false);
+            PrintScoreAndProbability(outScoresAndProbabilities, 5);
+            // Score   4.18144   Probability 0.775
+            // Score  -14.10248  Probability 0.01923077
+            // Score   2.731951  Probability 0.7738096
+            // Score  -2.554229  Probability 0.2011494
+            // Score   5.36571   Probability 0.9117647
         }
 
-        private static void PrintRowViewValues(IDataView transformedData)
+        private static void PrintScore(IEnumerable<ScoreValue> values, int rows)
         {
-            int count = 0;
-            using (var cursor = transformedData.GetRowCursor(transformedData.Schema))
+            foreach (var value in values)
             {
-                var scoreGetter = cursor.GetGetter<float>(cursor.Schema["Score"]);
-                var probabilityGetter = cursor.Schema.GetColumnOrNull("Probability") != null ? cursor.GetGetter<float>(cursor.Schema["Probability"]) : null;
-                while (cursor.MoveNext())
-                {
-                    float score = default;
-                    scoreGetter(ref score);
-                    Console.Write("{0, -10} {1, -10}", "Score", score);
+                if (rows-- <= 0)
+                    break;
 
-                    if (probabilityGetter != null)
-                    {
-                        float probability = default;
-                        probabilityGetter(ref probability);
-                        Console.Write("{0, -10} {1, -10}", "Probability", probability);
-                    }
-
-                    Console.WriteLine();
-                    if (count++ >= 4)
-                        break;
-                }
+                Console.WriteLine("{0, -10} {1, -10}", "Score", value.Score);
             }
+        }
+
+        private static void PrintScoreAndProbability(IEnumerable<ScoreAndProbabilityValue> values, int rows)
+        {
+            foreach (var value in values)
+            {
+                if (rows-- <= 0)
+                    break;
+
+                Console.WriteLine("{0, -10} {1, -10} {2, -10} {3, -10}", "Score", value.Score, "Probability", value.Probability);
+            }
+        }
+
+        private class ScoreValue
+        {
+            public float Score { get; set; }
+        }
+
+        private class ScoreAndProbabilityValue
+        {
+            public float Score { get; set; }
+            public float Probability { get; set; }
         }
     }
 }
