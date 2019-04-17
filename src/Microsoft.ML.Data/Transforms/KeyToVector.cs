@@ -305,7 +305,7 @@ namespace Microsoft.ML.Transforms
                     typeNames = null;
                 }
 
-                if (_parent._columns[iinfo].OutputCountVector || srcValueCount == 1)
+                if (_parent._columns[iinfo].OutputCountVector || srcType is PrimitiveDataViewType)
                 {
                     if (typeNames != null)
                     {
@@ -336,7 +336,7 @@ namespace Microsoft.ML.Transforms
                     builder.Add(AnnotationUtils.Kinds.CategoricalSlotRanges, AnnotationUtils.GetCategoricalType(srcValueCount), getter);
                 }
 
-                if (!_parent._columns[iinfo].OutputCountVector || srcValueCount == 1)
+                if (!_parent._columns[iinfo].OutputCountVector || srcType is PrimitiveDataViewType)
                 {
                     ValueGetter<bool> getter = (ref bool dst) =>
                     {
