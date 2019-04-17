@@ -28,9 +28,9 @@ namespace Microsoft.ML.CLI.Templates.Console
         /// </summary>
         public virtual string TransformText()
         {
-            this.Write("<Project Sdk=\"Microsoft.NET.Sdk\">\r\n\r\n  <PropertyGroup>\r\n    <TargetFramework>nets" +
-                    "tandard2.0</TargetFramework>\r\n  </PropertyGroup>\r\n  <ItemGroup>\r\n    <PackageRef" +
-                    "erence Include=\"Microsoft.ML\" Version=\"1.0.0-preview\" />\r\n");
+            this.Write("<Project Sdk=\"Microsoft.NET.Sdk\">\r\n\r\n  <PropertyGroup>\r\n    <TargetFramework>netc" +
+                    "oreapp2.1</TargetFramework>\r\n  </PropertyGroup>\r\n  <ItemGroup>\r\n    <PackageRefe" +
+                    "rence Include=\"Microsoft.ML\" Version=\"1.0.0-preview\" />\r\n");
             
             #line 13 "E:\src\machinelearning\src\mlnet\Templates\Console\ModelProject.tt"
  if(IncludeLightGBMPackage){ 
