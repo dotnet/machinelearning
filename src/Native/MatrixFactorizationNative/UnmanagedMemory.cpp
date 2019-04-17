@@ -115,7 +115,7 @@ EXPORT_API(float) MFCrossValidation(const mf_problem_bridge *prob_bridge, int32_
 {
     auto param = TranslateToParam(param_bridge);
     auto prob = TranslateToProblem(prob_bridge);
-    return mf_cross_validation(&prob, nr_folds, param);
+    return static_cast<float>(mf_cross_validation(&prob, nr_folds, param));
 }
 
 EXPORT_API(float) MFPredict(const mf_model_bridge *model_bridge, int32_t p_idx, int32_t q_idx)

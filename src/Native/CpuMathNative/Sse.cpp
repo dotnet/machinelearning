@@ -266,7 +266,8 @@ EXPORT_API(void) Scale(float a, _Inout_ float * pd, int c)
             _mm_storeu_ps(pd, result);
 
             pd += misalignment;
-            c -= misalignment;
+			// safe to downcast as misalignment < 16.
+            c -= static_cast<int>(misalignment);
         }
 
         if (c > 3)
@@ -532,7 +533,8 @@ EXPORT_API(float) Sum(const float* pValues, int length)
             result = _mm_add_ps(result, temp);
 
             pValues += misalignment;
-            length -= misalignment;
+			// safe to downcastcast as misalignment < 16.
+			length -= static_cast<int>(misalignment);
         }
 
         if (length > 3)
