@@ -1,7 +1,10 @@
 ﻿<#@ include file="MatrixFactorizationTemplate.ttinclude"#>
 
 <#+
-string ClassHeader = null;
+string ClassHeader = @"
+        // This example requires installation of additional nuget package <a href=""https://www.nuget.org/packages/Microsoft.ML.Recommender/"">Microsoft.ML.Recommender</a>.
+        // In this example we will create in-memory data and then use it to train 
+        // a matrix factorization model with default parameters. Afterward, quality metrics are reported.";
 string ClassName="MatrixFactorization";
 string ExtraUsing = null;
 string Trainer = @"MatrixFactorization(nameof(MatrixElement.Value), nameof(MatrixElement.MatrixColumnIndex),

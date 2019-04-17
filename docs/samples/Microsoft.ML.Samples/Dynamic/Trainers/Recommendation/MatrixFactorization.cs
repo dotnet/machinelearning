@@ -8,6 +8,10 @@ namespace Samples.Dynamic.Trainers.Recommendation
 {
     public static class MatrixFactorization
     {
+        
+        // This example requires installation of additional nuget package <a href="https://www.nuget.org/packages/Microsoft.ML.Recommender/">Microsoft.ML.Recommender</a>.
+        // In this example we will create in-memory data and then use it to train 
+        // a matrix factorization model with default parameters. Afterward, quality metrics are reported.
         public static void Example()
         {
             // Create a new context for ML.NET operations. It can be used for exception tracking and logging, 
