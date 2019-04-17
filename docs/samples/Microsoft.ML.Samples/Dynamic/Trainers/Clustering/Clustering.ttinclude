@@ -3,11 +3,14 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.ML;
 using Microsoft.ML.Data;
+<# if (TrainerOptions != null) { #>
+<#=OptionsInclude#>
+<# } #>
 
 namespace Samples.Dynamic.Trainers.Clustering
 {
-    public static class KMeans
-    {
+    public static class <#=ClassName#>
+    {<#=Comments#>
         public static void Example()
         {
             // Create a new context for ML.NET operations. It can be used for exception tracking and logging, 
@@ -16,13 +19,21 @@ namespace Samples.Dynamic.Trainers.Clustering
             var mlContext = new MLContext(seed: 0);
 
             // Convert the list of data points to an IDataView object, which is consumable by ML.NET API.
-            var dataPoints = GenerateRandomDataPoints(1000, 123);
+            var dataPoints = GenerateRandomDataPoints(1000, <#=DataSeed#>);
 
             // Convert the list of data points to an IDataView object, which is consumable by ML.NET API.
             var trainingData = mlContext.Data.LoadFromEnumerable(dataPoints);
 
+<# if (TrainerOptions == null) { #>
             // Define the trainer.
-            var pipeline = mlContext.Clustering.Trainers.KMeans(numberOfClusters: 2);
+            var pipeline = mlContext.Clustering.Trainers.<#=Trainer#>(<#=InlineTrainerOptions#>);
+<# } else { #>
+            // Define trainer options.
+            var options = new <#=TrainerOptions#>;
+
+            // Define the trainer.
+            var pipeline = mlContext.Clustering.Trainers.<#=Trainer#>(options);
+<# } #>
 
             // Train the model.
             var model = pipeline.Fit(trainingData);
@@ -43,21 +54,13 @@ namespace Samples.Dynamic.Trainers.Clustering
             foreach (var p in predictions.TakeLast(3))
                 Console.WriteLine($"Label: {p.Label}, Prediction: {p.PredictedLabel}");
 
-            // Expected output:
-            //   Label: 1, Prediction: 1
-            //   Label: 1, Prediction: 1
-            //   Label: 2, Prediction: 2
-            //   Label: 2, Prediction: 2
-            //   Label: 2, Prediction: 2
+            <#=ExpectedOutputPerInstance#>
 
             // Evaluate the overall metrics
             var metrics = mlContext.Clustering.Evaluate(transformedTestData, "Label", "Score", "Features");
             PrintMetrics(metrics);
             
-            // Expected output:
-            //   Normalized Mutual Information: 0.95
-            //   Average Distance: 4.17
-            //   Davies Bouldin Index: 2.87
+            <#=ExpectedOutput#>
 
             // Get cluster centroids and the number of clusters k from KMeansModelParameters.
             VBuffer<float>[] centroids = default;
@@ -67,9 +70,7 @@ namespace Samples.Dynamic.Trainers.Clustering
             Console.WriteLine($"The first 3 coordinates of the first centroid are: ({string.Join(", ", centroids[0].GetValues().ToArray().Take(3))})");
             Console.WriteLine($"The first 3 coordinates of the second centroid are: ({string.Join(", ", centroids[1].GetValues().ToArray().Take(3))})");
 
-            // Expected output similar to:
-            //   The first 3 coordinates of the first centroid are: (0.6035213, 0.6017533, 0.5964218)
-            //   The first 3 coordinates of the second centroid are: (0.4031044, 0.4175443, 0.4082336)
+            <#=ExpectedCentroidsOutput#>
         }
 
         private static IEnumerable<DataPoint> GenerateRandomDataPoints(int count, int seed = 0)
