@@ -19,6 +19,8 @@ namespace Microsoft.ML.CLI.CodeGenerator.CSharp
         private readonly Pipeline pipeline;
         private readonly CodeGeneratorSettings settings;
         private readonly ColumnInferenceResults columnInferenceResult;
+        private readonly HashSet<string> LightGBMTrainers = new HashSet<string>() { TrainerName.LightGbmBinary.ToString(), TrainerName.LightGbmMulti.ToString(), TrainerName.LightGbmRegression.ToString() };
+        private readonly HashSet<string> mklComponentsTrainers = new HashSet<string>() { TrainerName.OlsRegression.ToString(), TrainerName.SymbolicSgdLogisticRegressionBinary.ToString() };
 
         internal CodeGenerator(Pipeline pipeline, ColumnInferenceResults columnInferenceResult, CodeGeneratorSettings settings)
         {
@@ -29,25 +31,32 @@ namespace Microsoft.ML.CLI.CodeGenerator.CSharp
 
         public void GenerateOutput()
         {
+            // Get the extra nuget packages to be included in the generated project.
+            var trainerNodes = pipeline.Nodes.Where(t => t.NodeType == PipelineNodeType.Trainer);
+
+            bool includeLightGbmPackage = false;
+            bool includeMklComponentsPackage = false;
+            SetRequiredNugetPackages(trainerNodes, ref includeLightGbmPackage, ref includeMklComponentsPackage);
+
             // Get Namespace
             var namespaceValue = Utils.Normalize(settings.OutputName);
             var labelType = columnInferenceResult.TextLoaderOptions.Columns.Where(t => t.Name == columnInferenceResult.ColumnInformation.LabelColumnName).First().DataKind;
             Type labelTypeCsharp = Utils.GetCSharpType(labelType);
 
             // Generate Model Project
-            var modelProjectContents = GenerateModelProjectContents(namespaceValue, labelTypeCsharp);
+            var modelProjectContents = GenerateModelProjectContents(namespaceValue, labelTypeCsharp, includeLightGbmPackage, includeMklComponentsPackage);
 
             // Write files to disk. 
             var modelprojectDir = Path.Combine(settings.OutputBaseDir, $"{settings.OutputName}.Model");
             var dataModelsDir = Path.Combine(modelprojectDir, "DataModels");
             var modelProjectName = $"{settings.OutputName}.Model.csproj";
 
-            Utils.WriteOutputToFiles(modelProjectContents.ObservationCSFileContent, "Observation.cs", dataModelsDir);
-            Utils.WriteOutputToFiles(modelProjectContents.PredictionCSFileContent, "Prediction.cs", dataModelsDir);
+            Utils.WriteOutputToFiles(modelProjectContents.ObservationCSFileContent, "SampleObservation.cs", dataModelsDir);
+            Utils.WriteOutputToFiles(modelProjectContents.PredictionCSFileContent, "SamplePrediction.cs", dataModelsDir);
             Utils.WriteOutputToFiles(modelProjectContents.ModelProjectFileContent, modelProjectName, modelprojectDir);
 
             // Generate ConsoleApp Project
-            var consoleAppProjectContents = GenerateConsoleAppProjectContents(namespaceValue, labelTypeCsharp);
+            var consoleAppProjectContents = GenerateConsoleAppProjectContents(namespaceValue, labelTypeCsharp, includeLightGbmPackage, includeMklComponentsPackage);
 
             // Write files to disk. 
             var consoleAppProjectDir = Path.Combine(settings.OutputBaseDir, $"{settings.OutputName}.ConsoleApp");
@@ -65,12 +74,33 @@ namespace Microsoft.ML.CLI.CodeGenerator.CSharp
             Utils.AddProjectsToSolution(modelprojectDir, modelProjectName, consoleAppProjectDir, consoleAppProjectName, solutionPath);
         }
 
-        internal (string ConsoleAppProgramCSFileContent, string ConsoleAppProjectFileContent, string modelBuilderCSFileContent) GenerateConsoleAppProjectContents(string namespaceValue, Type labelTypeCsharp)
+        private void SetRequiredNugetPackages(IEnumerable<PipelineNode> trainerNodes, ref bool includeLightGbmPackage, ref bool includeMklComponentsPackage)
+        {
+            foreach (var node in trainerNodes)
+            {
+                PipelineNode currentNode = node;
+                if (currentNode.Name == TrainerName.Ova.ToString())
+                {
+                    currentNode = (PipelineNode)currentNode.Properties["BinaryTrainer"];
+                }
+
+                if (LightGBMTrainers.Contains(currentNode.Name))
+                {
+                    includeLightGbmPackage = true;
+                }
+                else if (mklComponentsTrainers.Contains(currentNode.Name))
+                {
+                    includeMklComponentsPackage = true;
+                }
+            }
+        }
+
+        internal (string ConsoleAppProgramCSFileContent, string ConsoleAppProjectFileContent, string modelBuilderCSFileContent) GenerateConsoleAppProjectContents(string namespaceValue, Type labelTypeCsharp, bool includeLightGbmPackage, bool includeMklComponentsPackage)
         {
             var predictProgramCSFileContent = GeneratePredictProgramCSFileContent(namespaceValue);
             predictProgramCSFileContent = Utils.FormatCode(predictProgramCSFileContent);
 
-            var predictProjectFileContent = GeneratPredictProjectFileContent(namespaceValue, true, true);
+            var predictProjectFileContent = GeneratPredictProjectFileContent(namespaceValue, includeLightGbmPackage, includeMklComponentsPackage);
 
             var transformsAndTrainers = GenerateTransformsAndTrainers();
             var modelBuilderCSFileContent = GenerateModelBuilderCSFileContent(transformsAndTrainers.Usings, transformsAndTrainers.TrainerMethod, transformsAndTrainers.PreTrainerTransforms, transformsAndTrainers.PostTrainerTransforms, namespaceValue, pipeline.CacheBeforeTrainer, labelTypeCsharp.Name);
@@ -79,14 +109,14 @@ namespace Microsoft.ML.CLI.CodeGenerator.CSharp
             return (predictProgramCSFileContent, predictProjectFileContent, modelBuilderCSFileContent);
         }
 
-        internal (string ObservationCSFileContent, string PredictionCSFileContent, string ModelProjectFileContent) GenerateModelProjectContents(string namespaceValue, Type labelTypeCsharp)
+        internal (string ObservationCSFileContent, string PredictionCSFileContent, string ModelProjectFileContent) GenerateModelProjectContents(string namespaceValue, Type labelTypeCsharp, bool includeLightGbmPackage, bool includeMklComponentsPackage)
         {
             var classLabels = this.GenerateClassLabels();
             var observationCSFileContent = GenerateObservationCSFileContent(namespaceValue, classLabels);
             observationCSFileContent = Utils.FormatCode(observationCSFileContent);
             var predictionCSFileContent = GeneratePredictionCSFileContent(labelTypeCsharp.Name, namespaceValue);
             predictionCSFileContent = Utils.FormatCode(predictionCSFileContent);
-            var modelProjectFileContent = GenerateModelProjectFileContent();
+            var modelProjectFileContent = GenerateModelProjectFileContent(includeLightGbmPackage, includeMklComponentsPackage);
             return (observationCSFileContent, predictionCSFileContent, modelProjectFileContent);
         }
 
@@ -218,9 +248,9 @@ namespace Microsoft.ML.CLI.CodeGenerator.CSharp
         }
 
         #region Model project
-        private static string GenerateModelProjectFileContent()
+        private static string GenerateModelProjectFileContent(bool includeLightGbmPackage, bool includeMklComponentsPackage)
         {
-            ModelProject modelProject = new ModelProject();
+            ModelProject modelProject = new ModelProject() { IncludeLightGBMPackage = includeLightGbmPackage, IncludeMklComponentsPackage = includeMklComponentsPackage };
             return modelProject.TransformText();
         }
 
@@ -238,9 +268,9 @@ namespace Microsoft.ML.CLI.CodeGenerator.CSharp
         #endregion
 
         #region Predict Project
-        private static string GeneratPredictProjectFileContent(string namespaceValue, bool includeMklComponentsPackage, bool includeLightGBMPackage)
+        private static string GeneratPredictProjectFileContent(string namespaceValue, bool includeLightGbmPackage, bool includeMklComponentsPackage)
         {
-            var predictProjectFileContent = new PredictProject() { Namespace = namespaceValue, IncludeMklComponentsPackage = includeMklComponentsPackage, IncludeLightGBMPackage = includeLightGBMPackage };
+            var predictProjectFileContent = new PredictProject() { Namespace = namespaceValue, IncludeMklComponentsPackage = includeMklComponentsPackage, IncludeLightGBMPackage = includeLightGbmPackage };
             return predictProjectFileContent.TransformText();
         }
 
@@ -290,6 +320,5 @@ namespace Microsoft.ML.CLI.CodeGenerator.CSharp
             return modelBuilder.TransformText();
         }
         #endregion
-
     }
 }

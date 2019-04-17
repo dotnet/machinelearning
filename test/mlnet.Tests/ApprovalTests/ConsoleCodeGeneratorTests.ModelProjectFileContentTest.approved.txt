@@ -3,13 +3,10 @@
   <PropertyGroup>
     <TargetFramework>netcoreapp2.1</TargetFramework>
   </PropertyGroup>
-    <PropertyGroup>
-    <RestoreSources>
-      https://api.nuget.org/v3/index.json;
-    </RestoreSources>
-  </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.ML" Version="1.0.0-preview" />
+    <PackageReference Include="Microsoft.ML.LightGBM" Version="1.0.0-preview" />
+    <PackageReference Include="Microsoft.ML.Mkl.Components" Version="1.0.0-preview" />
   </ItemGroup>
 
   <ItemGroup>

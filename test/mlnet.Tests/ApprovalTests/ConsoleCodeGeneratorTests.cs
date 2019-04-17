@@ -42,7 +42,7 @@ namespace mlnet.Tests
                 LabelName = "Label",
                 ModelPath = "x:\\models\\model.zip"
             });
-            var result = consoleCodeGen.GenerateConsoleAppProjectContents(namespaceValue, typeof(float));
+            var result = consoleCodeGen.GenerateConsoleAppProjectContents(namespaceValue, typeof(float), true, true);
 
             Approvals.Verify(result.modelBuilderCSFileContent);
         }
@@ -65,7 +65,7 @@ namespace mlnet.Tests
                 LabelName = "Label",
                 ModelPath = "x:\\models\\model.zip"
             });
-            var result = consoleCodeGen.GenerateConsoleAppProjectContents(namespaceValue, typeof(float));
+            var result = consoleCodeGen.GenerateConsoleAppProjectContents(namespaceValue, typeof(float), true, true);
 
             Approvals.Verify(result.modelBuilderCSFileContent);
         }
@@ -88,7 +88,7 @@ namespace mlnet.Tests
                 LabelName = "Label",
                 ModelPath = "x:\\models\\model.zip"
             });
-            var result = consoleCodeGen.GenerateConsoleAppProjectContents(namespaceValue, typeof(float));
+            var result = consoleCodeGen.GenerateConsoleAppProjectContents(namespaceValue, typeof(float), true, true);
 
             Approvals.Verify(result.modelBuilderCSFileContent);
         }
@@ -111,7 +111,7 @@ namespace mlnet.Tests
                 LabelName = "Label",
                 ModelPath = "x:\\models\\model.zip"
             });
-            var result = consoleCodeGen.GenerateModelProjectContents(namespaceValue, typeof(float));
+            var result = consoleCodeGen.GenerateModelProjectContents(namespaceValue, typeof(float), true, true);
 
             Approvals.Verify(result.ModelProjectFileContent);
         }
@@ -134,7 +134,7 @@ namespace mlnet.Tests
                 LabelName = "Label",
                 ModelPath = "x:\\models\\model.zip"
             });
-            var result = consoleCodeGen.GenerateModelProjectContents(namespaceValue, typeof(float));
+            var result = consoleCodeGen.GenerateModelProjectContents(namespaceValue, typeof(float), true, true);
 
             Approvals.Verify(result.ObservationCSFileContent);
         }
@@ -158,7 +158,7 @@ namespace mlnet.Tests
                 LabelName = "Label",
                 ModelPath = "x:\\models\\model.zip"
             });
-            var result = consoleCodeGen.GenerateModelProjectContents(namespaceValue, typeof(float));
+            var result = consoleCodeGen.GenerateModelProjectContents(namespaceValue, typeof(float), true, true);
 
             Approvals.Verify(result.PredictionCSFileContent);
         }
@@ -181,7 +181,7 @@ namespace mlnet.Tests
                 LabelName = "Label",
                 ModelPath = "x:\\models\\model.zip"
             });
-            var result = consoleCodeGen.GenerateConsoleAppProjectContents(namespaceValue, typeof(float));
+            var result = consoleCodeGen.GenerateConsoleAppProjectContents(namespaceValue, typeof(float), true, true);
 
             Approvals.Verify(result.ConsoleAppProgramCSFileContent);
         }
@@ -204,7 +204,7 @@ namespace mlnet.Tests
                 LabelName = "Label",
                 ModelPath = "x:\\models\\model.zip"
             });
-            var result = consoleCodeGen.GenerateConsoleAppProjectContents(namespaceValue, typeof(float));
+            var result = consoleCodeGen.GenerateConsoleAppProjectContents(namespaceValue, typeof(float), true, true);
 
             Approvals.Verify(result.ConsoleAppProjectFileContent);
         }
