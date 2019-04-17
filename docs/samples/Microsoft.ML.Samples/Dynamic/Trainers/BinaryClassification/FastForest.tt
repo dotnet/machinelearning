@@ -4,6 +4,7 @@ string ClassName="FastForest";
 string Trainer = "FastForest";
 string TrainerOptions = null;
 bool IsCalibrated = false;
+bool CacheData = false;
 
 string ExpectedOutputPerInstance= @"// Expected output:
             //   Label: True, Prediction: True

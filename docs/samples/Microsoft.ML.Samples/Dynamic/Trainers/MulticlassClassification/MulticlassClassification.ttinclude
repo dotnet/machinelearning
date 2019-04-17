@@ -23,6 +23,14 @@ namespace Samples.Dynamic.Trainers.MulticlassClassification
 
             // Convert the list of data points to an IDataView object, which is consumable by ML.NET API.
             var trainingData = mlContext.Data.LoadFromEnumerable(dataPoints);
+<# if (CacheData) { #>
+
+            // ML.NET doesn't cache data set by default. Therefore, if one reads a data set from a file and accesses it many times,
+			// it can be slow due to expensive featurization and disk operations. When the considered data can fit into memory,
+			// a solution is to cache the data in memory. Caching is especially helpful when working with iterative algorithms 
+			// which needs many data passes.
+			trainingData = mlContext.Data.Cache(trainingData);
+<# } #>
 
 <# if (MetaTrainer != null) { #>
             // Define the trainer.
@@ -35,7 +43,7 @@ namespace Samples.Dynamic.Trainers.MulticlassClassification
             // Define the trainer.
             var pipeline =
                     // Convert the string labels into key types.
-                    mlContext.Transforms.Conversion.MapValueToKey("Label")
+                    mlContext.Transforms.Conversion.MapValueToKey(nameof(DataPoint.Label))
                     // Apply <#=Trainer#> multiclass trainer.
                     .Append(mlContext.MulticlassClassification.Trainers.<#=Trainer#>());
 <# } else { #>
@@ -43,14 +51,19 @@ namespace Samples.Dynamic.Trainers.MulticlassClassification
             var options = new <#=TrainerOptions#>;
 
             // Define the trainer.
-            var pipeline = mlContext.MulticlassClassification.Trainers.<#=Trainer#>(options);
+            var pipeline = 
+			        // Convert the string labels into key types.
+                    mlContext.Transforms.Conversion.MapValueToKey("Label")
+                    // Apply <#=Trainer#> multiclass trainer.
+                    .Append(mlContext.MulticlassClassification.Trainers.<#=Trainer#>(options));
+			
 <# } #>
 
             // Train the model.
             var model = pipeline.Fit(trainingData);
 
             // Create testing data. Use different random seed to make it different from training data.
-            var testData = mlContext.Data.LoadFromEnumerable(GenerateRandomDataPoints(500, seed:123));
+            var testData = mlContext.Data.LoadFromEnumerable(GenerateRandomDataPoints(500, seed: 123));
 
             // Run the model on test data set.
             var transformedTestData = model.Transform(testData);
@@ -66,11 +79,7 @@ namespace Samples.Dynamic.Trainers.MulticlassClassification
 
             // Evaluate the overall metrics
             var metrics = mlContext.MulticlassClassification.Evaluate(transformedTestData);
-            Console.WriteLine($"Micro Accuracy: {metrics.MicroAccuracy:F2}");
-            Console.WriteLine($"Macro Accuracy: {metrics.MacroAccuracy:F2}");
-            Console.WriteLine($"Log Loss: {metrics.LogLoss:F2}");
-            Console.WriteLine($"Log Loss Reduction: {metrics.LogLossReduction:F2}");
-
+            PrintMetrics(metrics);
             
             <#=ExpectedOutput#>
         }
@@ -109,6 +118,15 @@ namespace Samples.Dynamic.Trainers.MulticlassClassification
             public uint Label { get; set; }
             // Predicted label from the trainer.
             public uint PredictedLabel { get; set; }
+        }
+
+        // Pretty-print MulticlassClassificationMetrics objects.
+        public static void PrintMetrics(MulticlassClassificationMetrics metrics)
+        {
+            Console.WriteLine($"Micro Accuracy: {metrics.MicroAccuracy:F2}");
+            Console.WriteLine($"Macro Accuracy: {metrics.MacroAccuracy:F2}");
+            Console.WriteLine($"Log Loss: {metrics.LogLoss:F2}");
+            Console.WriteLine($"Log Loss Reduction: {metrics.LogLossReduction:F2}");
         }
     }
 }

@@ -1,0 +1,32 @@
+﻿<#@ include file="MulticlassClassification.ttinclude"#>
+<#+
+string ClassName = "SdcaMaximumEntropyWithOptions";
+string Trainer = "SdcaMaximumEntropy";
+string MetaTrainer = null;
+string TrainerOptions = @"SdcaMaximumEntropyMulticlassTrainer.Options
+            {
+                // Make the convergence tolerance tighter.
+                ConvergenceTolerance = 0.05f,
+                // Increase the maximum number of passes over training data.
+                MaximumNumberOfIterations = 30,
+            }";
+
+string OptionsInclude = "using Microsoft.ML.Trainers;";
+string Comments = "";
+bool CacheData = true;
+string DataGenerationComments= "// Generates random uniform doubles in [-0.5, 0.5) range with labels 1, 2 or 3.";
+
+
+string ExpectedOutputPerInstance = @"// Expected output:
+            //   Label: 1, Prediction: 1
+            //   Label: 2, Prediction: 2
+            //   Label: 3, Prediction: 2
+            //   Label: 2, Prediction: 2
+            //   Label: 3, Prediction: 3";
+
+string ExpectedOutput = @"// Expected output:
+            //  Micro Accuracy: 0.92
+            //  Macro Accuracy: 0.92
+            //  Log Loss: 0.31
+            //  Log Loss Reduction: 0.72";
+#>
