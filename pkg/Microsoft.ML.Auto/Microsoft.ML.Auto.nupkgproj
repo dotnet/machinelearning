@@ -1,12 +1,8 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk" DefaultTargets="Pack">
+
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
-    <LangVersion>7.3</LangVersion>
-    <RootNamespace>Microsoft.ML.Auto</RootNamespace>
-    <!-- TODO: make the code compliant and remove the following two lines: -->
-    <UseStyleCopAnalyzer>false</UseStyleCopAnalyzer>
-    <UseMLCodeAnalyzer>false</UseMLCodeAnalyzer>
-    <IncludeInPackage>Microsoft.ML.Auto</IncludeInPackage>
+    <PackageDescription>ML.NET AutoML: Optimizes an ML pipeline for your dataset, by automatically locating the best feature engineering, model, and hyperparameters</PackageDescription>
   </PropertyGroup>
 
   <ItemGroup>
