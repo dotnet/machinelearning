@@ -38,7 +38,6 @@ namespace Microsoft.ML.Trainers
     using TScalarPredictor = IPredictorProducing<float>;
     using TScalarTrainer = ITrainerEstimator<ISingleFeaturePredictionTransformer<IPredictorProducing<float>>, IPredictorProducing<float>>;
     /// <summary>
-    /// Trains a one-versus-all multi-class classifier on top of the specified binary classifier.
     /// In this strategy, a binary classification algorithm is used to train one classifier for each class,
     /// which distinguishes that class from all other classes. Prediction is then performed by running
     /// these binary classifiers and choosing the prediction with the highest confidence score.
