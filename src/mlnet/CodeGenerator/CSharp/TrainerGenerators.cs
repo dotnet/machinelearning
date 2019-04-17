@@ -245,7 +245,7 @@ namespace Microsoft.ML.CLI.CodeGenerator.CSharp
                         {"FeatureColumnName","featureColumnName" },
                         {"L1Regularization","l1Regularization" },
                         {"L2Regularization","l2Regularization" },
-                        {"OptimizationTolerance","optimizationTolerance" },
+                        {"OptmizationTolerance","optimizationTolerance" },
                         {"HistorySize","historySize" },
                         {"EnforceNonNegativity","enforceNonNegativity" },
                     };
@@ -368,7 +368,7 @@ namespace Microsoft.ML.CLI.CodeGenerator.CSharp
                         {"FeatureColumnName","featureColumnName" },
                         {"L1Regularization","l1Regularization" },
                         {"L2Regularization","l2Regularization" },
-                        {"OptimizationTolerance","optimizationTolerance" },
+                        {"OptmizationTolerance","optimizationTolerance" },
                         {"HistorySize","historySize" },
                         {"EnforceNonNegativity","enforceNonNegativity" },
                     };
