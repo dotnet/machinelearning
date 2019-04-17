@@ -276,6 +276,14 @@
       <LastGenOutput>OneVersusAll.cs</LastGenOutput>
       <Generator>TextTemplatingFileGenerator</Generator>
     </None>
+    <None Update="Dynamic\Trainers\Recommendation\MatrixFactorization.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>MatrixFactorization.cs</LastGenOutput>
+    </None>
+    <None Update="Dynamic\Trainers\Recommendation\MatrixFactorizationWithOptions.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>MatrixFactorizationWithOptions.cs</LastGenOutput>
+    </None>
     <None Update="Dynamic\Trainers\Regression\FastForest.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>FastForest.cs</LastGenOutput>
@@ -600,6 +608,16 @@
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
       <DependentUpon>OneVersusAll.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Dynamic\Trainers\Recommendation\MatrixFactorization.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>MatrixFactorization.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Dynamic\Trainers\Recommendation\MatrixFactorizationWithOptions.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>MatrixFactorizationWithOptions.tt</DependentUpon>
     </Compile>
     <Compile Update="Dynamic\Trainers\Regression\FastForest.cs">
       <DesignTime>True</DesignTime>
