@@ -10,10 +10,15 @@ namespace Microsoft.ML
 {
     public static class ImageEstimatorsCatalog
     {
-        /// <include file='doc.xml' path='doc/members/member[@name="ImageGrayscalingEstimator"]/*' />
+        ///<summary>
+        /// Create a <see cref="ImageGrayscalingEstimator"/>, which converts images in the column specified in <see cref="InputOutputColumnPair.InputColumnName"/>
+        /// to grayscale images in a new column:  <see cref="InputOutputColumnPair.OutputColumnName" />.
+        ///</summary>
         /// <param name="catalog">The transform's catalog.</param>
-        /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.</param>
-        /// <param name="inputColumnName">Name of the column to transform. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.</param>
+        /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.
+        /// This column's data type will be the same as that of the input column.</param>
+        /// <param name="inputColumnName">Name of the column to convert images to grayscale from.
+        /// This estimator operates only on <see cref="ImageDataViewType"/>.</param>
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
@@ -23,9 +28,12 @@ namespace Microsoft.ML
         public static ImageGrayscalingEstimator ConvertToGrayscale(this TransformsCatalog catalog, string outputColumnName, string inputColumnName = null)
             => new ImageGrayscalingEstimator(CatalogUtils.GetEnvironment(catalog), new[] { (outputColumnName, inputColumnName ?? outputColumnName) });
 
-        /// <include file='doc.xml' path='doc/members/member[@name="ImageGrayscalingEstimator"]/*' />
+        ///<summary>
+        /// Create a <see cref="ImageGrayscalingEstimator"/>, which converts images in the column specified in <see cref="InputOutputColumnPair.InputColumnName"/>
+        /// to grayscale images in a new column:  <see cref="InputOutputColumnPair.OutputColumnName" />.
+        ///</summary>
         /// <param name="catalog">The transform's catalog.</param>
-        /// <param name="columns">Specifies the names of the input columns for the transformation, and their respective output column names.</param>
+        /// <param name="columns">The pairs of input and output columns. This estimator operates over any data type.</param>
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
@@ -41,20 +49,15 @@ namespace Microsoft.ML
         }
 
         /// <summary>
-        /// Loads the images from the <see cref="ImageLoadingTransformer.ImageFolder" /> into memory.
+        /// Create a <see cref="ImageLoadingEstimator"/>, which load the data from the column specified in <paramref name="inputColumnName"/>
+        /// as an image to a new column: <paramref name="outputColumnName"/>.
         /// </summary>
-        /// <remarks>
-        /// The image get loaded in memory as a <see cref="System.Drawing.Bitmap" /> type.
-        /// Loading is the first step of almost every pipeline that does image processing, and further analysis on images.
-        /// The images to load need to be in the formats supported by <see cref = "System.Drawing.Bitmap" />.
-        /// For end-to-end image processing pipelines, and scenarios in your applications, see the
-        /// <a href="https://github.com/dotnet/machinelearning-samples/tree/master/samples/csharp/getting-started"> examples in the machinelearning-samples github repository.</a>
-        /// <seealso cref = "ImageEstimatorsCatalog" />
-        /// </remarks>
         /// <param name="catalog">The transform's catalog.</param>
-        /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.</param>
-        /// <param name="imageFolder">The images folder.</param>
-        /// <param name="inputColumnName">Name of the column to transform. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.</param>
+        /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.
+        /// This column's data type will be ImageDataTypeView.</param>
+        /// <param name="inputColumnName">Name of the column to copy the data from.
+        /// This estimator operates over TextDataView.</param>
+        /// <param name="imageFolder">Folder where to look for images.</param>
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
@@ -76,7 +79,7 @@ namespace Microsoft.ML
         /// <seealso cref = "ImageEstimatorsCatalog" />
         /// </remarks>
         /// <param name="catalog">The transform's catalog.</param>
-        /// <param name="imageFolder">The images folder.</param>
+        /// <param name="imageFolder">Folder where to look for images.</param>
         /// <param name="columns">Specifies the names of the input columns for the transformation, and their respective output column names.</param>
         /// <example>
         /// <format type="text/markdown">
@@ -92,10 +95,15 @@ namespace Microsoft.ML
             return new ImageLoadingEstimator(env, imageFolder, InputOutputColumnPair.ConvertToValueTuples(columns));
         }
 
-        /// <include file='doc.xml' path='doc/members/member[@name="ImagePixelExtractingEstimator"]/*' />
+        /// <summary>
+        /// Create a <see cref="ImagePixelExtractingEstimator"/>, which exctracts pixel values from the data specified in column: <paramref name="inputColumnName"/>
+        /// to a new column: <paramref name="outputColumnName"/>.
+        /// </summary>
         /// <param name="catalog">The transform's catalog.</param>
-        /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.</param>
-        /// <param name="inputColumnName">Name of column to transform. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.</param>
+        /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.
+        /// This column's data type will be known size vector of floats or bytes depending on <paramref name="outputAsFloatArray"/>.</param>
+        /// <param name="inputColumnName">Name of the column to copy the data from.
+        /// This estimator operates over ImageDataViewType.</param>
         /// <param name="colorsToExtract">The colors to extract from the image.</param>
         /// <param name="orderOfExtraction">The order in which to extract colors from pixel.</param>
         /// <param name="interleavePixelColors">Whether to interleave the pixels colors, meaning keep them in the <paramref name="orderOfExtraction"/> order, or leave them in the plannar form:
@@ -120,7 +128,10 @@ namespace Microsoft.ML
             bool outputAsFloatArray = ImagePixelExtractingEstimator.Defaults.Convert)
             => new ImagePixelExtractingEstimator(CatalogUtils.GetEnvironment(catalog), outputColumnName, inputColumnName, colorsToExtract, orderOfExtraction, interleavePixelColors, offsetImage, scaleImage, outputAsFloatArray);
 
-        /// <include file='doc.xml' path='doc/members/member[@name="ImagePixelExtractingEstimator"]/*' />
+        /// <summary>
+        /// Create a <see cref="ImagePixelExtractingEstimator"/>, which exctracts pixel values from the data specified in column: <see cref="ImagePixelExtractingEstimator.ColumnOptions.InputColumnName"/>
+        /// to a new column: <see cref="ImagePixelExtractingEstimator.ColumnOptions.Name"/>.
+        /// </summary>
         /// <param name="catalog">The transform's catalog.</param>
         /// <param name="columnOptions">The <see cref="ImagePixelExtractingEstimator.ColumnOptions"/> describing how the transform handles each image pixel extraction output input column pair.</param>
         [BestFriend]
@@ -128,20 +139,14 @@ namespace Microsoft.ML
             => new ImagePixelExtractingEstimator(CatalogUtils.GetEnvironment(catalog), columnOptions);
 
         /// <summary>
-        /// Resizes the images to a new width and height.
+        /// Create a <see cref="ImageResizingEstimator"/>, which resize the image from the column specified in <paramref name="inputColumnName"/>
+        /// to a new column: <paramref name="outputColumnName"/>.
         /// </summary>
-        /// <remarks>
-        /// In image processing pipelines, often machine learning practitioner make use of<a href= "https://blogs.msdn.microsoft.com/mlserver/2017/04/12/image-featurization-with-a-pre-trained-deep-neural-network-model/">
-        /// pre-trained DNN featurizers</a> to extract features for usage in the machine learning algorithms.
-        /// Those pre-trained models have a defined width and height for their input images, so often, after getting loaded, the images will need to get resized before
-        /// further processing.
-        /// The new width and height can be specified in the <paramref name="imageWidth"/> and <paramref name="imageHeight"/>
-        /// <seealso cref = "ImageEstimatorsCatalog" />
-        /// <seealso cref= "ImageLoadingEstimator" />
-        /// </remarks >
         /// <param name="catalog">The transform's catalog.</param>
-        /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.</param>
-        /// <param name="inputColumnName">Name of column to transform. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.</param>
+        /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.
+        /// This column's data type will be the same as that of the input column.</param>
+        /// <param name="inputColumnName">Name of the column to copy the data from.
+        /// This estimator operates over ImageDataViewType.</param>
         /// <param name="imageWidth">The transformed image width.</param>
         /// <param name="imageHeight">The transformed image height.</param>
         /// <param name="resizing"> The type of image resizing as specified in <see cref="ImageResizingEstimator.ResizingKind"/>.</param>
@@ -196,13 +201,16 @@ namespace Microsoft.ML
             => new VectorToImageConvertingEstimator(CatalogUtils.GetEnvironment(catalog), columnOptions);
 
         /// <summary>
-        /// Converts vectors of pixels into <see cref="ImageDataViewType"/> representation.
+        /// Create a <see cref="VectorToImageConvertingEstimator"/>, which creates image from the data from the column specified in <paramref name="inputColumnName"/>
+        /// to a new column: <paramref name="outputColumnName"/>.
         /// </summary>
-        /// <param name="catalog">The transforms' catalog.</param>
+        /// <param name="catalog">The transform's catalog.</param>
         /// <param name="imageHeight">The height of the output images.</param>
         /// <param name="imageWidth">The width of the output images.</param>
-        /// <param name="outputColumnName"> Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.</param>
-        /// <param name="inputColumnName"> Name of column to transform. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.</param>
+        /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.
+        /// This column's data type will be ImageDataViewType.</param>
+        /// <param name="inputColumnName">Name of the column to copy the data from.
+        /// This estimator operates over vector of known size of floats, doubles and bytes.</param>
         /// <param name="colorsPresent">Specifies which <see cref="ImagePixelExtractingEstimator.ColorBits"/> are in present the input pixel vectors. The order of colors is specified in <paramref name="orderOfColors"/>.</param>
         /// <param name="orderOfColors">The order in which colors are presented in the input vector.</param>
         /// <param name="interleavedColors">Whether the pixels are interleaved, meaning whether they are in <paramref name="orderOfColors"/> order, or separated in the planar form:

@@ -29,16 +29,8 @@ using Microsoft.ML.Transforms.Image;
 namespace Microsoft.ML.Data
 {
     /// <summary>
-    /// The <see cref="ITransformer"/> produced by fitting an <see cref="IDataView"/> to an <see cref="ImageLoadingEstimator"/>.
+    /// <see cref="ITransformer"/> resulting from fitting an <see cref="ImageLoadingEstimator"/>.
     /// </summary>
-    /// <remarks>
-    /// Calling <see cref="ITransformer.Transform(IDataView)"/> that loads images from the disk.
-    /// Loading is the first step of almost every pipeline that does image processing, and further analysis on images.
-    /// The images to load need to be in the formats supported by <see cref = "System.Drawing.Bitmap" />.
-    /// For end-to-end image processing pipelines, and scenarios in your applications, see the
-    /// <a href="https://github.com/dotnet/machinelearning-samples/tree/master/samples/csharp/getting-started"> examples in the machinelearning-samples github repository.</a>
-    /// <seealso cref = "ImageEstimatorsCatalog"/>
-    /// </remarks>
     public sealed class ImageLoadingTransformer : OneToOneTransformerBase
     {
         internal sealed class Column : OneToOneColumn
@@ -229,16 +221,30 @@ namespace Microsoft.ML.Data
     }
 
     /// <summary>
-    /// <see cref="IEstimator{TTransformer}"/> that loads images from the disk.
+    /// <see cref="IEstimator{TTransformer}"/> for the <see cref="ImageLoadingTransformer"/>.
     /// </summary>
     /// <remarks>
-    /// Calling <see cref="IEstimator{TTransformer}.Fit(IDataView)"/> in this estimator, produces an <see cref="ImageLoadingTransformer"/>.
+    /// <format type="text/markdown"><![CDATA[
+    ///
+    /// ###  Estimator Characteristics
+    /// |  |  |
+    /// | -- | -- |
+    /// | Does this estimator need to look at the data to train its parameters? | No |
+    /// | Input column data type | TextDataViewType |
+    /// | Output column data type | ImageDataViewType |
+    ///
+    /// The resulting <see cref="ImageLoadingTransformer"/> creates a new column, named as specified in the output column name parameters, and
+    /// loads in it images specified in the input column.
     /// Loading is the first step of almost every pipeline that does image processing, and further analysis on images.
     /// The images to load need to be in the formats supported by <see cref = "System.Drawing.Bitmap" />.
     /// For end-to-end image processing pipelines, and scenarios in your applications, see the
     /// <a href = "https://github.com/dotnet/machinelearning-samples/tree/master/samples/csharp/getting-started"> examples in the machinelearning-samples github repository.</a>
-    /// <seealso cref="ImageEstimatorsCatalog" />
+    /// See the See Also section for links to examples of the usage.
+    /// ]]>
+    /// </format>
     /// </remarks>
+    /// <seealso cref="ImageEstimatorsCatalog.LoadImages(TransformsCatalog, string, string, string)" />
+
     public sealed class ImageLoadingEstimator : TrivialEstimator<ImageLoadingTransformer>
     {
         private readonly ImageDataViewType _imageType;

@@ -31,14 +31,8 @@ namespace Microsoft.ML.Transforms.Image
 {
     // REVIEW: Rewrite as LambdaTransform to simplify.
     /// <summary>
-    /// <see cref="ITransformer"/> produced by fitting the <see cref="IDataView"/> to an <see cref="ImageResizingEstimator" />.
+    /// <see cref="ITransformer"/> resulting from fitting an <see cref="ImageResizingEstimator"/>.
     /// </summary>
-    /// <remarks>
-    /// Calling <see cref="ITransformer.Transform(IDataView)"/> resizes the images to a new height and width.
-    /// <seealso cref = "ImageEstimatorsCatalog.ResizeImages(TransformsCatalog, ImageResizingEstimator.ColumnOptions[])" />
-    /// <seealso cref = "ImageEstimatorsCatalog.ResizeImages(TransformsCatalog, string, int, int, string, ImageResizingEstimator.ResizingKind, ImageResizingEstimator.Anchor)" />
-    /// <seealso cref = "ImageEstimatorsCatalog" />
-    /// </remarks >
     public sealed class ImageResizingTransformer : OneToOneTransformerBase
     {
 
@@ -404,14 +398,32 @@ namespace Microsoft.ML.Transforms.Image
     }
 
     /// <summary>
-    /// <see cref="IEstimator{TTransformer}"/> that resizes the image to a new width and height.
+    /// <see cref="IEstimator{TTransformer}"/> for the <see cref="ImageResizingTransformer"/>.
     /// </summary>
     /// <remarks>
-    /// Calling <see cref="IEstimator{TTransformer}.Fit(IDataView)"/> in this estimator, produces an <see cref="ImageResizingTransformer"/>.
-    /// <seealso cref = "ImageEstimatorsCatalog.ResizeImages(TransformsCatalog, ImageResizingEstimator.ColumnOptions[])" />
-    /// <seealso cref = "ImageEstimatorsCatalog.ResizeImages(TransformsCatalog, string, int, int, string, ResizingKind, Anchor)" />
-    /// <seealso cref = "ImageEstimatorsCatalog" />
-    /// </remarks >
+    /// <format type="text/markdown"><![CDATA[
+    ///
+    /// ###  Estimator Characteristics
+    /// |  |  |
+    /// | -- | -- |
+    /// | Does this estimator need to look at the data to train its parameters? | No |
+    /// | Input column data type | ImageDataTypeView |
+    /// | Output column data type | ImageDataTypeView |
+    ///
+    /// The resulting <see cref="ImageResizingTransformer"/> creates a new column, named as specified in the output column name parameters, and
+    /// resize the data from the input column to this new column.
+    ///
+    /// In image processing pipelines, often machine learning practitioner make use of<a href= "https://blogs.msdn.microsoft.com/mlserver/2017/04/12/image-featurization-with-a-pre-trained-deep-neural-network-model/">
+    /// pre-trained DNN featurizers</a> to extract features for usage in the machine learning algorithms.
+    /// Those pre-trained models have a defined width and height for their input images, so often, after getting loaded, the images will need to get resized before
+    /// further processing.
+    /// The new width and height can be specified in the <paramref name="imageWidth"/> and <paramref name="imageHeight"/>
+    ///
+    /// See the See Also section for links to examples of the usage.
+    /// ]]>
+    /// </format>
+    /// </remarks>
+    /// <seealso cref="ImageEstimatorsCatalog.ResizeImages(TransformsCatalog, string, int, int, string, ResizingKind, Anchor)"/>
     public sealed class ImageResizingEstimator : TrivialEstimator<ImageResizingTransformer>
     {
         internal static class Defaults
