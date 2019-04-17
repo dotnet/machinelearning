@@ -268,6 +268,26 @@
       <LastGenOutput>NaiveBayes.cs</LastGenOutput>
       <Generator>TextTemplatingFileGenerator</Generator>
     </None>
+    <None Update="Dynamic\Trainers\MulticlassClassification\LbfgsMaximumEntropy.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>LbfgsMaximumEntropy.cs</LastGenOutput>
+    </None>
+    <None Update="Dynamic\Trainers\MulticlassClassification\LbfgsMaximumEntropyWithOptions.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>LbfgsMaximumEntropyWithOptions.cs</LastGenOutput>
+    </None>
+    <None Update="Dynamic\Trainers\MulticlassClassification\LightGbm.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>LightGbm.cs</LastGenOutput>
+    </None>
+    <None Update="Dynamic\Trainers\MulticlassClassification\LightGbmWithOptions.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>LightGbmWithOptions.cs</LastGenOutput>
+    </None>
+    <None Update="Dynamic\Trainers\MulticlassClassification\NaiveBayes.tt">
+      <LastGenOutput>NaiveBayes.cs</LastGenOutput>
+      <Generator>TextTemplatingFileGenerator</Generator>
+    </None>
     <None Update="Dynamic\Trainers\MulticlassClassification\PairwiseCoupling.tt">
       <LastGenOutput>PairwiseCoupling.cs</LastGenOutput>
       <Generator>TextTemplatingFileGenerator</Generator>
@@ -323,6 +343,38 @@
     <None Update="Dynamic\Trainers\Regression\FastTreeWithOptions.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>FastTreeWithOptions.cs</LastGenOutput>
+    </None>
+    <None Update="Dynamic\Trainers\MulticlassClassification\SdcaMaximumEntropy.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>SdcaMaximumEntropy.cs</LastGenOutput>
+    </None>
+    <None Update="Dynamic\Trainers\MulticlassClassification\SdcaMaximumEntropyWithOptions.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>SdcaMaximumEntropyWithOptions.cs</LastGenOutput>
+    </None>
+    <None Update="Dynamic\Trainers\MulticlassClassification\SdcaNonCalibrated.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>SdcaNonCalibrated.cs</LastGenOutput>
+    </None>
+    <None Update="Dynamic\Trainers\MulticlassClassification\SdcaNonCalibratedWithOptions.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>SdcaNonCalibratedWithOptions.cs</LastGenOutput>
+    </None>
+    <None Update="Dynamic\Trainers\Ranking\FastTree.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>FastTree.cs</LastGenOutput>
+    </None>
+    <None Update="Dynamic\Trainers\Ranking\FastTreeWithOptions.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>FastTreeWithOptions.cs</LastGenOutput>
+    </None>
+    <None Update="Dynamic\Trainers\Ranking\LightGbm.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>LightGbm.cs</LastGenOutput>
+    </None>
+    <None Update="Dynamic\Trainers\Ranking\LightGbmWithOptions.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>LightGbmWithOptions.cs</LastGenOutput>
     </None>
     <None Update="Dynamic\Trainers\Regression\LightGbm.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
@@ -599,6 +651,16 @@
       <AutoGen>True</AutoGen>
       <DependentUpon>KMeansWithOptions.tt</DependentUpon>
     </Compile>
+    <Compile Update="Dynamic\Trainers\MulticlassClassification\LbfgsMaximumEntropy.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>LbfgsMaximumEntropy.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Dynamic\Trainers\MulticlassClassification\LbfgsMaximumEntropyWithOptions.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>LbfgsMaximumEntropyWithOptions.tt</DependentUpon>
+    </Compile>
     <Compile Update="Dynamic\Trainers\MulticlassClassification\PairwiseCoupling.cs">
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
@@ -618,6 +680,51 @@
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
       <DependentUpon>MatrixFactorizationWithOptions.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Dynamic\Trainers\MulticlassClassification\SdcaMaximumEntropy.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>SdcaMaximumEntropy.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Dynamic\Trainers\MulticlassClassification\SdcaMaximumEntropyWithOptions.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>SdcaMaximumEntropyWithOptions.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Dynamic\Trainers\MulticlassClassification\SdcaNonCalibrated.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>SdcaNonCalibrated.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Dynamic\Trainers\MulticlassClassification\SdcaNonCalibratedWithOptions.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>SdcaNonCalibratedWithOptions.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Dynamic\Trainers\MulticlassClassification\NaiveBayes.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>NaiveBayes.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Dynamic\Trainers\Ranking\FastTree.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>FastTree.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Dynamic\Trainers\Ranking\FastTreeWithOptions.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>FastTreeWithOptions.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Dynamic\Trainers\Ranking\LightGbm.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>LightGbm.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Dynamic\Trainers\Ranking\LightGbmWithOptions.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>LightGbmWithOptions.tt</DependentUpon>
     </Compile>
     <Compile Update="Dynamic\Trainers\Regression\FastForest.cs">
       <DesignTime>True</DesignTime>
