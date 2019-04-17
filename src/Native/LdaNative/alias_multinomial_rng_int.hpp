@@ -108,7 +108,7 @@ namespace wood
             int32_t H_head = 0;
             int32_t H_tail = 0;
 
-            for (auto i = 0; i < proportion_int_.size(); ++i)
+            for (size_t i = 0; i < proportion_int_.size(); ++i)
             {
                 auto val = proportion_int_[i];
                 if (val < a_int_)

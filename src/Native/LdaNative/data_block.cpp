@@ -3,11 +3,15 @@
 // See the LICENSE file in the project root for more information.
 
 #include <iostream>
+#include <stdexcept>
+#include <limits>
 #include "data_block.h"
 #include "lda_document.h"
 
 namespace lda
 {
+	using namespace std;
+
     LDADataBlock::LDADataBlock(int32_t num_threads) : 
         num_threads_(num_threads), has_read_(false), index_document_(0), documents_buffer_(nullptr), offset_buffer_(nullptr)
     {
@@ -45,8 +49,12 @@ namespace lda
 
     void LDADataBlock::Allocate(const int32_t num_document, const int64_t corpus_size)
     {
-        num_documents_ = num_document;
-        corpus_size_ = corpus_size;
+		num_documents_ = num_document;
+
+		if (corpus_size > numeric_limits<size_t>::max() / sizeof(int64_t) + 1)
+			bad_alloc();
+        corpus_size_ = static_cast<size_t>(corpus_size);
+
 
         offset_buffer_ = new int64_t[num_documents_ + 1]; // +1: one for the end of last document,
         documents_buffer_ = new int32_t[corpus_size_];

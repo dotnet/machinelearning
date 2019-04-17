@@ -44,7 +44,7 @@ namespace lda
         int64_t used_size_;
 
         int32_t num_documents_; 
-        int64_t corpus_size_;
+        size_t corpus_size_;
 
         int64_t* offset_buffer_;    // offset_buffer_ size = num_document_ + 1
         int32_t* documents_buffer_; // documents_buffer_ size = corpus_size_;
