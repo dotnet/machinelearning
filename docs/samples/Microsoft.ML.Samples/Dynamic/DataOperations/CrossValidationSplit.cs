@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using Microsoft.ML;
-using static Microsoft.ML.DataOperationsCatalog;
 
 namespace Samples.Dynamic
 {
@@ -26,7 +25,9 @@ namespace Samples.Dynamic
             // So below, we specify Group column as the column containing the sampling keys.
             // If we pass that column to cross validation it would be used to break data into certain chunks.
             var folds = mlContext.Data.CrossValidationSplit(dataview, numberOfFolds: 3, samplingKeyColumnName: "Group");
-            PrintPreviewRows(folds[0]);
+            var trainSet = mlContext.Data.CreateEnumerable<DataPoint>(folds[0].TrainSet, reuseRowObject: false);
+            var testSet = mlContext.Data.CreateEnumerable<DataPoint>(folds[0].TestSet, reuseRowObject: false);
+            PrintPreviewRows(trainSet, testSet);
 
             // The data in the Train split.
             // [Group, 1], [Features, 0.8173254]
@@ -42,7 +43,9 @@ namespace Samples.Dynamic
             // [Group, 0], [Features, 0.9060271]
             // [Group, 0], [Features, 0.2737045]
 
-            PrintPreviewRows(folds[1]);
+            trainSet = mlContext.Data.CreateEnumerable<DataPoint>(folds[1].TrainSet, reuseRowObject: false);
+            testSet = mlContext.Data.CreateEnumerable<DataPoint>(folds[1].TestSet, reuseRowObject: false);
+            PrintPreviewRows(trainSet, testSet);
             // The data in the Train split.
             // [Group, 0], [Features, 0.7262433]
             // [Group, 2], [Features, 0.7680227]
@@ -57,7 +60,9 @@ namespace Samples.Dynamic
             // [Group, 1], [Features, 0.2060332]
             // [Group, 1], [Features, 0.4421779]
 
-            PrintPreviewRows(folds[2]);
+            trainSet = mlContext.Data.CreateEnumerable<DataPoint>(folds[2].TrainSet, reuseRowObject: false);
+            testSet = mlContext.Data.CreateEnumerable<DataPoint>(folds[2].TestSet, reuseRowObject: false);
+            PrintPreviewRows(trainSet, testSet);
             // The data in the Train split.
             // [Group, 0], [Features, 0.7262433]
             // [Group, 1], [Features, 0.8173254]
@@ -74,7 +79,9 @@ namespace Samples.Dynamic
 
             // Example of a split without specifying a sampling key column.
             folds = mlContext.Data.CrossValidationSplit(dataview, numberOfFolds: 3);
-            PrintPreviewRows(folds[0]);
+            trainSet = mlContext.Data.CreateEnumerable<DataPoint>(folds[0].TrainSet, reuseRowObject: false);
+            testSet = mlContext.Data.CreateEnumerable<DataPoint>(folds[0].TestSet, reuseRowObject: false);
+            PrintPreviewRows(trainSet, testSet);
             // The data in the Train split.
             // [Group, 0], [Features, 0.7262433]
             // [Group, 1], [Features, 0.8173254]
@@ -89,7 +96,9 @@ namespace Samples.Dynamic
             // [Group, 2], [Features, 0.5588848]
             // [Group, 0], [Features, 0.9060271]
 
-            PrintPreviewRows(folds[1]);
+            trainSet = mlContext.Data.CreateEnumerable<DataPoint>(folds[1].TrainSet, reuseRowObject: false);
+            testSet = mlContext.Data.CreateEnumerable<DataPoint>(folds[1].TestSet, reuseRowObject: false);
+            PrintPreviewRows(trainSet, testSet);
             // The data in the Train split.
             // [Group, 2], [Features, 0.7680227]
             // [Group, 0], [Features, 0.5581612]
@@ -104,7 +113,9 @@ namespace Samples.Dynamic
             // [Group, 2], [Features, 0.9775497]
             // [Group, 0], [Features, 0.2737045]
 
-            PrintPreviewRows(folds[2]);
+            trainSet = mlContext.Data.CreateEnumerable<DataPoint>(folds[2].TrainSet, reuseRowObject: false);
+            testSet = mlContext.Data.CreateEnumerable<DataPoint>(folds[2].TestSet, reuseRowObject: false);
+            PrintPreviewRows(trainSet, testSet);
             // The data in the Train split.
             // [Group, 0], [Features, 0.7262433]
             // [Group, 1], [Features, 0.8173254]
@@ -144,19 +155,16 @@ namespace Samples.Dynamic
         }
 
         // print helper
-        private static void PrintPreviewRows(TrainTestData split)
+        private static void PrintPreviewRows(IEnumerable<DataPoint> trainSet, IEnumerable<DataPoint> testSet)
         {
 
-            var trainDataPreview = split.TrainSet.Preview();
-            var testDataPreview = split.TestSet.Preview();
-
             Console.WriteLine($"The data in the Train split.");
-            foreach (var row in trainDataPreview.RowView)
-                Console.WriteLine($"{row.Values[0]}, {row.Values[1]}");
+            foreach (var row in trainSet)
+                Console.WriteLine($"{row.Group}, {row.Features}");
 
             Console.WriteLine($"\nThe data in the Test split.");
-            foreach (var row in testDataPreview.RowView)
-                Console.WriteLine($"{row.Values[0]}, {row.Values[1]}");
+            foreach (var row in testSet)
+                Console.WriteLine($"{row.Group}, {row.Features}");
         }
     }
 }
