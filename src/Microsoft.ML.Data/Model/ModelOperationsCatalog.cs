@@ -105,7 +105,7 @@ namespace Microsoft.ML
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
-        /// [!code-csharp[Save](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/CustomMappingSaveAndLoad.cs)]
+        /// [!code-csharp[Save](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/ModelOperations/SaveLoadModel.cs)]
         /// ]]>
         /// </format>
         /// </example>
@@ -145,7 +145,7 @@ namespace Microsoft.ML
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
-        /// [!code-csharp[Load](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/TimeSeries/DetectChangePointBySsa.cs]
+        /// [!code-csharp[Save](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/ModelOperations/SaveLoadModel.cs)]
         /// ]]>
         /// </format>
         /// </example>
@@ -204,7 +204,7 @@ namespace Microsoft.ML
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
-        /// [!code-csharp[Load](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/CustomMappingSaveAndLoad.cs)]
+        /// [!code-csharp[Save](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/ModelOperations/SaveLoadModelFile.cs)]
         /// ]]>
         /// </format>
         /// </example>
@@ -305,7 +305,7 @@ namespace Microsoft.ML
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
-        /// [!code-csharp[Load](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/TensorFlow/TextClassification.cs)]
+        /// [!code-csharp[Save](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/ModelOperations/SaveLoadModel.cs)]
         /// ]]>
         /// </format>
         /// </example>
