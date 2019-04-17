@@ -1,0 +1,40 @@
+﻿<#@ include file="MultipleFeatureColumnsBinaryClassification.ttinclude"#>
+<#+
+string ClassName="FieldAwareFactorizationMachine";
+string Trainer = @"FieldAwareFactorizationMachine(
+                // Specify three feature columns!
+                new[] {nameof(DataPoint.Field0), nameof(DataPoint.Field1), nameof(DataPoint.Field2) },
+                // Specify binary label's column name.
+                nameof(DataPoint.Label) )";
+
+string OptionsInclude = null;
+
+string Comments = @"
+        // This example first train a field-aware factorization to binary classification, measure the trained model's quality, and finally
+        // use the trained model to make prediction.";
+
+string TrainerDescription = @"// This trainer trains field-aware factorization (FFM) for binary classification. See https://www.csie.ntu.edu.tw/~cjlin/papers/ffm.pdf
+            // for the theory behind and https://github.com/wschin/fast-ffm/blob/master/fast-ffm.pdf for the training
+            // algorithm implemented in ML.NET.";
+
+string TrainerOptions = null;
+
+string ExpectedOutputPerInstance= @"// Expected output:
+            //   Actual label: True, predicted label: True, score of being positive class: 1.115094, and probability of beling positive class: 0.7530775.
+            //   Actual label: False, predicted label: False, score of being positive class: -3.478797, and probability of beling positive class: 0.02992158.
+            //   Actual label: True, predicted label: True, score of being positive class: 3.191896, and probability of beling positive class: 0.9605282.
+            //   Actual label: False, predicted label: False, score of being positive class: -3.400863, and probability of beling positive class: 0.03226851.
+            //   Actual label: True, predicted label: True, score of being positive class: 4.06056, and probability of beling positive class: 0.9830528.";
+
+string ExpectedOutput = @"// Expected output:
+            //   Accuracy: 0.99
+            //   AUC: 1.00
+            //   F1 Score: 0.99
+            //   Negative Precision: 1.00
+            //   Negative Recall: 0.98
+            //   Positive Precision: 0.98
+            //   Positive Recall: 1.00
+            //   Log Loss: 0.17
+            //   Log Loss Reduction: 0.83
+            //   Entropy: 1.00";
+#>

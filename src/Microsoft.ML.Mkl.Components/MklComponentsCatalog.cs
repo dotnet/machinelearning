@@ -69,18 +69,18 @@ namespace Microsoft.ML
         }
 
         /// <summary>
-        /// Predict a target using a linear binary classification model trained with the <see cref="SymbolicSgdLogisticRegressionBinaryTrainer"/>.
+        /// Create an <see cref="SymbolicSgdLogisticRegressionBinaryTrainer"/> with advanced options, which predicts a target using a linear binary classification model trained over boolean label data.
         /// Stochastic gradient descent (SGD) is an iterative algorithm that optimizes a differentiable objective function.
         /// The <see cref="SymbolicSgdLogisticRegressionBinaryTrainer"/> parallelizes SGD using <a href="https://www.microsoft.com/en-us/research/project/project-parade/#!symbolic-execution">symbolic execution</a>.
         /// </summary>
         /// <param name="catalog">The <see cref="BinaryClassificationCatalog"/>.</param>
-        /// <param name="labelColumnName">The name of the label column.</param>
-        /// <param name="featureColumnName">The name of the feature column.</param>
+        /// <param name="labelColumnName">The name of the label column. The column data must be <see cref="System.Boolean"/>.</param>
+        /// <param name="featureColumnName">The name of the feature column. The column data must be a known-sized vector of <see cref="System.Single"/>.</param>
         /// <param name="numberOfIterations">Number of training iterations.</param>
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
-        /// [!code-csharp[SymbolicStochasticGradientDescent](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Trainers/BinaryClassification/SymbolicStochasticGradientDescent.cs)]
+        /// [!code-csharp[SymbolicSgdLogisticRegression](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Trainers/BinaryClassification/SymbolicSgdLogisticRegression.cs)]
         /// ]]>
         /// </format>
         /// </example>
@@ -102,7 +102,7 @@ namespace Microsoft.ML
         }
 
         /// <summary>
-        ///  Predict a target using a linear binary classification model trained with the <see cref="SymbolicSgdLogisticRegressionBinaryTrainer"/>.
+        /// Create an<see cref= "SymbolicSgdLogisticRegressionBinaryTrainer" />, which predicts a target using a linear binary classification model trained over boolean label data.
         /// Stochastic gradient descent (SGD) is an iterative algorithm that optimizes a differentiable objective function.
         /// The <see cref="SymbolicSgdLogisticRegressionBinaryTrainer"/> parallelizes SGD using <a href="https://www.microsoft.com/en-us/research/project/project-parade/#!symbolic-execution">symbolic execution</a>.
         /// </summary>
@@ -111,7 +111,7 @@ namespace Microsoft.ML
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
-        /// [!code-csharp[SymbolicStochasticGradientDescent](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Trainers/BinaryClassification/SymbolicStochasticGradientDescentWithOptions.cs)]
+        /// [!code-csharp[SymbolicSgdLogisticRegression](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Trainers/BinaryClassification/SymbolicSgdLogisticRegressionWithOptions.cs)]
         /// ]]>
         /// </format>
         /// </example>

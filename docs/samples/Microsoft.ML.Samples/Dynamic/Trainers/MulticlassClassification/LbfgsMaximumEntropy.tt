@@ -1,0 +1,25 @@
+﻿<#@ include file="MulticlassClassification.ttinclude"#>
+<#+
+string ClassName = "LbfgsMaximumEntropy";
+string Trainer = "LbfgsMaximumEntropy";
+string MetaTrainer = null;
+string TrainerOptions = null;
+
+string OptionsInclude = "";
+string Comments = "";
+bool CacheData = false;
+string DataGenerationComments= "// Generates random uniform doubles in [-0.5, 0.5) range with labels 1, 2 or 3.";
+
+string ExpectedOutputPerInstance = @"// Expected output:
+            //   Label: 1, Prediction: 1
+            //   Label: 2, Prediction: 2
+            //   Label: 3, Prediction: 2
+            //   Label: 2, Prediction: 2
+            //   Label: 3, Prediction: 3";
+
+string ExpectedOutput = @"// Expected output:
+            //  Micro Accuracy: 0.91
+            //  Macro Accuracy: 0.91
+            //  Log Loss: 0.24
+            //  Log Loss Reduction: 0.79";
+#>
