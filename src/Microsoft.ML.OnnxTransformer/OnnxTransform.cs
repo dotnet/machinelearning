@@ -565,6 +565,8 @@ namespace Microsoft.ML.Transforms.Onnx
                 var input = Transformer.Inputs[i];
                 if (!inputSchema.TryFindColumn(input, out var col))
                     throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", input);
+                if (col.Kind == SchemaShape.Column.VectorKind.VariableVector)
+                    throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", input, "vector", col.GetTypeString());
 
                 var inputsInfo = Transformer.Model.ModelInfo.InputsInfo;
                 var idx = Transformer.Model.InputNames.IndexOf(input);
@@ -575,8 +577,6 @@ namespace Microsoft.ML.Transforms.Onnx
                 var expectedType = OnnxUtils.OnnxToMlNetType(inputNodeInfo.Type);
                 if (col.ItemType != expectedType)
                     throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", input, expectedType.ToString(), col.ItemType.ToString());
-                if (col.Kind == SchemaShape.Column.VectorKind.VariableVector)
-                    throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", input, "vector", col.GetTypeString());
             }
 
             for (var i = 0; i < Transformer.Outputs.Length; i++)
