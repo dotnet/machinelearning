@@ -9,7 +9,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\src\Microsoft.ML.Auto\Microsoft.ML.Auto.csproj" />
     <ProjectReference Include="..\..\..\src\Microsoft.ML.LightGbm.StaticPipe\Microsoft.ML.LightGbm.StaticPipe.csproj" />
     <ProjectReference Include="..\..\..\src\Microsoft.ML.LightGbm\Microsoft.ML.LightGbm.csproj" />
     <ProjectReference Include="..\..\..\src\Microsoft.ML.Mkl.Components\Microsoft.ML.Mkl.Components.csproj" />
