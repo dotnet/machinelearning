@@ -434,7 +434,7 @@ namespace Microsoft.ML.Transforms.Image
     /// | Input column data type | Vector of known size of floats, doubles or bytes. |
     /// | Output column data type | ImageDataViewType |
     ///
-    /// The resulting <see cref="VectorToImageConvertingTransformer"/> creates a new column, named as specified in the output column name parameters, and
+    /// The resulting <xref:Microsoft.ML.Transforms.Image.VectorToImageConvertingTransformer> creates a new column, named as specified in the output column name parameters, and
     /// creates image from the data in the input column to this new column.
     /// See the See Also section for links to examples of the usage.
     /// ]]>

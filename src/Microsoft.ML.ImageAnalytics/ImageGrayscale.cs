@@ -220,7 +220,6 @@ namespace Microsoft.ML.Transforms.Image
     /// </summary>
     /// <remarks>
     /// <format type="text/markdown"><![CDATA[
-    ///
     /// ###  Estimator Characteristics
     /// |  |  |
     /// | -- | -- |
@@ -228,14 +227,14 @@ namespace Microsoft.ML.Transforms.Image
     /// | Input column data type | ImageDataViewType |
     /// | Output column data type | ImageDataViewType |
     ///
-    /// The resulting <see cref="ImageGrayscalingTransformer"/> creates a new column, named as specified in the output column name parameters, and
+    /// The resulting <xref:Microsoft.ML.Transforms.Image.ImageGrayscalingTransformer> creates a new column, named as specified in the output column name parameters, and
     /// converts image from input column into grayscale image.
     /// The images might be converted to grayscale to reduce the complexity of the model.
     /// The grayed out images contain less information to process than the colored images.
     /// Another use case for converting to grayscale is to generate new images out of the existing ones, so you can have a larger dataset,
-    /// a technique known as <a href = "http://www.stat.harvard.edu/Faculty_Content/meng/JCGS01.pdf"> data augmentation</a>.
+    /// a technique known as [data augmentation](http://www.stat.harvard.edu/Faculty_Content/meng/JCGS01.pdf).
     /// For end-to-end image processing pipelines, and scenarios in your applications, see the
-    /// <a href="https://github.com/dotnet/machinelearning-samples/tree/master/samples/csharp/getting-started"> examples in the machinelearning-samples github repository.</a>
+    /// [examples](https://github.com/dotnet/machinelearning-samples/tree/master/samples/csharp/getting-started) in the machinelearning-samples github repository.
     /// See the See Also section for links to more examples of the usage.
     /// ]]>
     /// </format>

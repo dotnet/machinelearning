@@ -35,7 +35,6 @@ namespace Microsoft.ML.Transforms.Image
     /// </summary>
     public sealed class ImageResizingTransformer : OneToOneTransformerBase
     {
-
         internal sealed class Column : OneToOneColumn
         {
             [Argument(ArgumentType.AtMostOnce, HelpText = "Width of the resized image", ShortName = "width")]
@@ -410,15 +409,15 @@ namespace Microsoft.ML.Transforms.Image
     /// | Input column data type | ImageDataTypeView |
     /// | Output column data type | ImageDataTypeView |
     ///
-    /// The resulting <see cref="ImageResizingTransformer"/> creates a new column, named as specified in the output column name parameters, and
+    /// The resulting <xref:Microsoft.ML.Transforms.Image.ImageResizingTransformer> creates a new column, named as specified in the output column name parameters, and
     /// resize the data from the input column to this new column.
     ///
-    /// In image processing pipelines, often machine learning practitioner make use of<a href= "https://blogs.msdn.microsoft.com/mlserver/2017/04/12/image-featurization-with-a-pre-trained-deep-neural-network-model/">
-    /// pre-trained DNN featurizers</a> to extract features for usage in the machine learning algorithms.
+    /// In image processing pipelines, often machine learning practitioner make use of
+    /// [pre-trained DNN featurizers](https://blogs.msdn.microsoft.com/mlserver/2017/04/12/image-featurization-with-a-pre-trained-deep-neural-network-model) to extract features for usage in the machine learning algorithms.
     /// Those pre-trained models have a defined width and height for their input images, so often, after getting loaded, the images will need to get resized before
     /// further processing.
-    /// The new width and height can be specified in the <paramref name="imageWidth"/> and <paramref name="imageHeight"/>
-    ///
+    /// For end-to-end image processing pipelines, and scenarios in your applications, see the
+    /// [examples](https://github.com/dotnet/machinelearning-samples/tree/master/samples/csharp/getting-started) in the machinelearning-samples github repository.
     /// See the See Also section for links to examples of the usage.
     /// ]]>
     /// </format>
