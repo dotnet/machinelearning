@@ -611,14 +611,13 @@ namespace Microsoft.ML.Transforms
     /// | Input column data type | Vector of floats |
     /// | Output column data type | Vector of floats |
     ///
-    /// The resulting <see cref="ApproximatedKernelTransformer"/> creates a new column, named as specified in
+    /// The resulting <xref:Microsoft.ML.Transforms.ApproximatedKernelTransformer> creates a new column, named as specified in
     /// the output column name parameters, where each input vector is mapped to a feature space where inner products
     /// approximate one of two shift-invariant kernel functions: The Gaussian kernel, or the Laplacian kernel.
     /// By mapping features to a space that approximate non-linear kernels, linear methods can be used to approximate
     /// more complex kernel SVM models.
-    /// This mapping is based on the <a href="http://pages.cs.wisc.edu/~brecht/papers/07.rah.rec.nips.pdf">paper</a>
+    /// This mapping is based on the paper [Random Features for Large-Scale Kernel Machines](http://pages.cs.wisc.edu/~brecht/papers/07.rah.rec.nips.pdf)
     /// by Rahimi and Recht.
-    /// See the See Also section for links to examples of the usage.
     /// ]]></format>
     /// </remarks>
     /// <seealso cref="KernelExpansionCatalog.ApproximatedKernelMap(TransformsCatalog, ColumnOptions[])"/>
