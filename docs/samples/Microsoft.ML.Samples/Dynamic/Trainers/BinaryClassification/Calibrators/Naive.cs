@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using Microsoft.ML;
 
 namespace Samples.Dynamic.Trainers.BinaryClassification.Calibrators
@@ -54,26 +55,16 @@ namespace Samples.Dynamic.Trainers.BinaryClassification.Calibrators
             // Score   5.36571   Probability 0.9117647
         }
 
-        private static void PrintScore(IEnumerable<ScoreValue> values, int rows)
+        private static void PrintScore(IEnumerable<ScoreValue> values, int numRows)
         {
-            foreach (var value in values)
-            {
-                if (rows-- <= 0)
-                    break;
-
+            foreach (var value in values.Take(numRows))
                 Console.WriteLine("{0, -10} {1, -10}", "Score", value.Score);
-            }
         }
 
-        private static void PrintScoreAndProbability(IEnumerable<ScoreAndProbabilityValue> values, int rows)
+        private static void PrintScoreAndProbability(IEnumerable<ScoreAndProbabilityValue> values, int numRows)
         {
-            foreach (var value in values)
-            {
-                if (rows-- <= 0)
-                    break;
-
+            foreach (var value in values.Take(numRows))
                 Console.WriteLine("{0, -10} {1, -10} {2, -10} {3, -10}", "Score", value.Score, "Probability", value.Probability);
-            }
         }
 
         private class ScoreValue
