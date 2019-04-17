@@ -14,10 +14,10 @@ namespace Microsoft.ML
     public static class ExplainabilityCatalog
     {
         /// <summary>
-        /// Feature Contribution Calculation computes model-specific contribution scores for each feature.
-        /// Note that this functionality is not supported by all the models. See <see cref="FeatureContributionCalculatingTransformer"/> for a list of the suported models.
+        /// Create a <see cref="FeatureContributionCalculatingEstimator"/> that computes model-specific contribution scores for
+        /// each feature of the input vector.
         /// </summary>
-        /// <param name="catalog">The model explainability operations catalog.</param>
+        /// <param name="catalog">The transforms catalog.</param>
         /// <param name="predictionTransformer">A <see cref="ISingleFeaturePredictionTransformer{TModel}"/> that supports Feature Contribution Calculation,
         /// and which will also be used for scoring.</param>
         /// <param name="numberOfPositiveContributions">The number of positive contributions to report, sorted from highest magnitude to lowest magnitude.
@@ -40,10 +40,10 @@ namespace Microsoft.ML
             => new FeatureContributionCalculatingEstimator(CatalogUtils.GetEnvironment(catalog), predictionTransformer.Model, numberOfPositiveContributions, numberOfNegativeContributions, predictionTransformer.FeatureColumnName, normalize);
 
         /// <summary>
-        /// Feature Contribution Calculation computes model-specific contribution scores for each feature.
-        /// Note that this functionality is not supported by all the models. See <see cref="FeatureContributionCalculatingTransformer"/> for a list of the suported models.
+        /// Create a <see cref="FeatureContributionCalculatingEstimator"/> that computes model-specific contribution scores for
+        /// each feature of the input vector.
         /// </summary>
-        /// <param name="catalog">The model explainability operations catalog.</param>
+        /// <param name="catalog">The transforms catalog.</param>
         /// <param name="predictionTransformer">A <see cref="ISingleFeaturePredictionTransformer{TModel}"/> that supports Feature Contribution Calculation,
         /// and which will also be used for scoring.</param>
         /// <param name="numberOfPositiveContributions">The number of positive contributions to report, sorted from highest magnitude to lowest magnitude.
