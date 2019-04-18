@@ -33,12 +33,35 @@ namespace Microsoft.ML.Trainers
     // REVIEW: make RFF transformer an option here.
 
     /// <summary>
-    /// This trainer trains an approximate PCA using Randomized SVD algorithm
-    /// Reference: https://web.stanford.edu/group/mmds/slides2010/Martinsson.pdf
+    /// The <see cref="IEstimator{TTransformer}"/> to create a model that computes anomaly scores on unlabeled examples.
     /// </summary>
     /// <remarks>
-    /// This PCA can be made into Kernel PCA by using Random Fourier Features transform
+    /// <format type="text/markdown"><![CDATA[
+    /// To create this trainer, use [RandomizedPca](xref:Microsoft.ML.PcaCatalog.RandomizedPca(Microsoft.ML.AnomalyDetectionCatalog.AnomalyDetectionTrainers,System.String,System.String,System.Int32,System.Int32,System.Boolean,System.Nullable{System.Int32}))
+    /// or [RandomizedPca(Options)](xref:Microsoft.ML.PcaCatalog.RandomizedPca(Microsoft.ML.AnomalyDetectionCatalog.AnomalyDetectionTrainers,Microsoft.ML.Trainers.RandomizedPcaTrainer.Options)).
+    ///
+    /// [!include[io](~/../docs/samples/docs/api-reference/io-columns-anomaly-detection.md)]
+    ///
+    /// ### Trainer Characteristics
+    /// |  |  |
+    /// | -- | -- |
+    /// | Machine learning task | Anomaly Detection |
+    /// | Is normalization required? | Yes |
+    /// | Is caching required? | No |
+    /// | Required NuGet in addition to Microsoft.ML | None |
+    ///
+    /// ### Training Algorithm Details
+    /// This trainer trains an approximate PCA using a randomized method for computing the singular value decomposition (SVD) of
+    /// the matrix whose rows are the input vectors.
+    /// The method is described [here](https://web.stanford.edu/group/mmds/slides2010/Martinsson.pdf).
+    ///
+    /// Note that the algorithm can be made into Kernel PCA by applying the <xref:Microsoft.ML.Transforms.ApproximatedKernelTransformer>
+    /// to the data before passing it to the trainer.
+    /// ]]>
+    /// </format>
     /// </remarks>
+    /// <seealso cref="PcaCatalog.RandomizedPca(AnomalyDetectionCatalog.AnomalyDetectionTrainers, Options)"/>
+    /// <seealso cref="PcaCatalog.RandomizedPca(AnomalyDetectionCatalog.AnomalyDetectionTrainers, string, string, int, int, bool, int?)"/>
     public sealed class RandomizedPcaTrainer : TrainerEstimatorBase<AnomalyPredictionTransformer<PcaModelParameters>, PcaModelParameters>
     {
         internal const string LoadNameValue = "pcaAnomaly";
@@ -47,6 +70,10 @@ namespace Microsoft.ML.Trainers
         internal const string Summary = "This algorithm trains an approximate PCA using Randomized SVD algorithm. "
             + "This PCA can be made into Kernel PCA by using Random Fourier Features transform.";
 
+        /// <summary>
+        /// Options for the <see cref="RandomizedPcaTrainer"/> as used in
+        /// <see cref="PcaCatalog.RandomizedPca(AnomalyDetectionCatalog.AnomalyDetectionTrainers, Options)"/>.
+        /// </summary>
         public sealed class Options : UnsupervisedTrainerInputBaseWithWeight
         {
             [Argument(ArgumentType.AtMostOnce, HelpText = "The number of components in the PCA", ShortName = "k", SortOrder = 50)]
