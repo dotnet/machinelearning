@@ -1,0 +1,26 @@
+﻿<#@ include file="MatrixFactorizationTemplate.ttinclude"#>
+
+<#+
+string ClassHeader = @"
+        // This example requires installation of additional nuget package <a href=""https://www.nuget.org/packages/Microsoft.ML.Recommender/"">Microsoft.ML.Recommender</a>.
+        // In this example we will create in-memory data and then use it to train 
+        // a matrix factorization model with default parameters. Afterward, quality metrics are reported.";
+string ClassName="MatrixFactorization";
+string ExtraUsing = null;
+string Trainer = @"MatrixFactorization(nameof(MatrixElement.Value), nameof(MatrixElement.MatrixColumnIndex),
+                   nameof(MatrixElement.MatrixRowIndex), 10, 0.2, 1)";
+string TrainerOptions = null;
+
+string ExpectedOutputPerInstance= @"// Expected output:
+            //   Actual value: 0.000, Predicted score: 1.234
+            //   Actual value: 1.000, Predicted score: 0.792
+            //   Actual value: 2.000, Predicted score: 1.831
+            //   Actual value: 3.000, Predicted score: 2.670
+            //   Actual value: 4.000, Predicted score: 2.362";
+
+string ExpectedOutput = @"// Expected output:
+            //   Mean Absolute Error: 0.67:
+            //   Mean Squared Error: 0.79
+            //   Root Mean Squared Error: 0.89
+            //   RSquared: 0.61 (closer to 1 is better. The worest case is 0)";
+#>

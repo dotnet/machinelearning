@@ -133,6 +133,13 @@ namespace Microsoft.ML
         /// <param name="numberOfLeaves">The maximum number of leaves per decision tree.</param>
         /// <param name="minimumExampleCountPerLeaf">The minimal number of data points required to form a new tree leaf.</param>
         /// <param name="learningRate">The learning rate.</param>
+        /// <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        /// [!code-csharp[FastTree](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Trainers/Ranking/FastTree.cs)]
+        /// ]]>
+        /// </format>
+        /// </example>
         public static FastTreeRankingTrainer FastTree(this RankingCatalog.RankingTrainers catalog,
             string labelColumnName = DefaultColumnNames.Label,
             string featureColumnName = DefaultColumnNames.Features,
@@ -153,6 +160,13 @@ namespace Microsoft.ML
         /// </summary>
         /// <param name="catalog">The <see cref="RankingCatalog"/>.</param>
         /// <param name="options">Trainer options.</param>
+        /// <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        /// [!code-csharp[FastTree](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Trainers/Ranking/FastTreeWithOptions.cs)]
+        /// ]]>
+        /// </format>
+        /// </example>
         public static FastTreeRankingTrainer FastTree(this RankingCatalog.RankingTrainers catalog,
             FastTreeRankingTrainer.Options options)
         {

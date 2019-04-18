@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using Microsoft.ML;
 
@@ -27,9 +28,8 @@ namespace Samples.Dynamic.Trainers.BinaryClassification.Calibrators
             // Let's score the new data. The score will give us a numerical estimation of the chance that the particular sample 
             // bears positive sentiment. This estimate is relative to the numbers obtained. 
             var scoredData = transformer.Transform(trainTestData.TestSet);
-            var scoredDataPreview = scoredData.Preview();
-
-            PrintRowViewValues(scoredDataPreview);
+            var outScores = mlContext.Data.CreateEnumerable<ScoreValue>(scoredData, reuseRowObject: false);
+            PrintScore(outScores, 5);
             // Preview of scoredDataPreview.RowView
             // Score   4.18144
             // Score  -14.10248
@@ -45,8 +45,9 @@ namespace Samples.Dynamic.Trainers.BinaryClassification.Calibrators
             // Transform the scored data with a calibrator transfomer by adding a new column names "Probability". 
             // This column is a calibrated version of the "Score" column, meaning its values are a valid probability value in the [0, 1] interval
             // representing the chance that the respective sample bears positive sentiment. 
-            var finalData = calibratorTransformer.Transform(scoredData).Preview();
-            PrintRowViewValues(finalData);
+            var finalData = calibratorTransformer.Transform(scoredData);
+            var outScoresAndProbabilities = mlContext.Data.CreateEnumerable<ScoreAndProbabilityValue>(finalData, reuseRowObject: false);
+            PrintScoreAndProbability(outScoresAndProbabilities, 5);
             // Score   4.18144   Probability 0.9856767
             // Score  -14.10248  Probability 7.890148E-07
             // Score   2.731951  Probability 0.9416927
@@ -54,19 +55,27 @@ namespace Samples.Dynamic.Trainers.BinaryClassification.Calibrators
             // Score   5.36571   Probability 0.9955735
         }
 
-        private static void PrintRowViewValues(Microsoft.ML.Data.DataDebuggerPreview data)
+        private static void PrintScore(IEnumerable<ScoreValue> values, int numRows)
         {
-            var firstRows = data.RowView.Take(5);
+            foreach (var value in values.Take(numRows))
+                Console.WriteLine("{0, -10} {1, -10}", "Score", value.Score);
+        }
 
-            foreach (Microsoft.ML.Data.DataDebuggerPreview.RowInfo row in firstRows)
-            {
-                foreach (var kvPair in row.Values)
-                {
-                    if (kvPair.Key.Equals("Score") || kvPair.Key.Equals("Probability"))
-                        Console.Write($" {kvPair.Key} {kvPair.Value} ");
-                }
-                Console.WriteLine();
-            }
+        private static void PrintScoreAndProbability(IEnumerable<ScoreAndProbabilityValue> values, int numRows)
+        {
+            foreach (var value in values.Take(numRows))
+                Console.WriteLine("{0, -10} {1, -10} {2, -10} {3, -10}", "Score", value.Score, "Probability", value.Probability);
+        }
+
+        private class ScoreValue
+        {
+            public float Score { get; set; }
+        }
+
+        private class ScoreAndProbabilityValue
+        {
+            public float Score { get; set; }
+            public float Probability { get; set; }
         }
     }
 }

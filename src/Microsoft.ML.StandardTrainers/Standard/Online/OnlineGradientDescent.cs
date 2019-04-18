@@ -52,7 +52,7 @@ namespace Microsoft.ML.Trainers
             internal ISupportRegressionLossFactory RegressionLossFunctionFactory = new SquaredLossFactory();
 
             /// <summary>
-            /// A custom <a href="tmpurl_loss">loss</a>.
+            /// A custom <a href="https://en.wikipedia.org/wiki/Loss_function">loss</a>.
             /// </summary>
             public IRegressionLoss LossFunction { get; set; }
 

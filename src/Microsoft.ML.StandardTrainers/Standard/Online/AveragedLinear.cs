@@ -21,7 +21,7 @@ namespace Microsoft.ML.Trainers
     public abstract class AveragedLinearOptions : OnlineLinearOptions
     {
         /// <summary>
-        /// <a href="tmpurl_lr">Learning rate</a>.
+        /// Learning rate.
         /// </summary>
         [Argument(ArgumentType.AtMostOnce, HelpText = "Learning rate", ShortName = "lr", SortOrder = 50)]
         [TGUI(Label = "Learning rate", SuggestedSweeps = "0.01,0.1,0.5,1.0")]
@@ -61,7 +61,7 @@ namespace Microsoft.ML.Trainers
         public bool LazyUpdate = true;
 
         /// <summary>
-        /// The L2 weight for <a href='tmpurl_regularization'>regularization</a>.
+        /// The L2 weight for <a href='https://en.wikipedia.org/wiki/Regularization_(mathematics)'>regularization</a>.
         /// </summary>
         [Argument(ArgumentType.AtMostOnce, HelpText = "L2 Regularization Weight", ShortName = "reg,L2RegularizerWeight", SortOrder = 50)]
         [TGUI(Label = "L2 Regularization Weight")]
