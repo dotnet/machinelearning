@@ -27,6 +27,23 @@ using Microsoft.ML.Trainers;
 namespace Microsoft.ML.Trainers
 {
     /// <summary>
+    /// The <see cref="IEstimator{TTransformer}"/> for training a multiclass Naive Bayes predictor that supports binary feature values.
+    /// </summary>
+    /// <remarks>
+    /// <format type="text/markdown"><![CDATA[
+    /// To create this trainer, use [NaiveBayes](xref:Microsoft.ML.StandardTrainersCatalog.NaiveBayes(Microsoft.ML.MulticlassClassificationCatalog.MulticlassClassificationTrainers,System.String,System.String)).
+    ///
+    /// [!include[io](~/../docs/samples/docs/api-reference/io-columns-multiclass-classification.md)]
+    ///
+    /// ### Trainer Characteristics
+    /// |  |  |
+    /// | -- | -- |
+    /// | Machine learning task | Multiclass classification |
+    /// | Is normalization required? | Yes |
+    /// | Is caching required? | No |
+    /// | Required NuGet in addition to Microsoft.ML | None |
+    ///
+    /// ### Training Algorithm Details
     /// <a href ='https://en.wikipedia.org/wiki/Naive_Bayes_classifier'>Naive Bayes</a>
     /// is a probabilistic classifier that can be used for multiclass problems.
     /// Using Bayes' theorem, the conditional probability for a sample belonging to a class
@@ -38,7 +55,10 @@ namespace Microsoft.ML.Trainers
     /// This multi-class trainer accepts binary feature values of type float, i.e.,
     /// feature values are either true or false.
     /// Specifically a feature value greater than zero is treated as true.
-    /// </summary>
+    /// ]]>
+    /// </format>
+    /// </remarks>
+    /// <seealso cref="StandardTrainersCatalog.NaiveBayes(Microsoft.ML.MulticlassClassificationCatalog.MulticlassClassificationTrainers,System.String,System.String)"/>
     public sealed class NaiveBayesMulticlassTrainer : TrainerEstimatorBase<MulticlassPredictionTransformer<NaiveBayesMulticlassModelParameters>, NaiveBayesMulticlassModelParameters>
     {
         internal const string LoadName = "MultiClassNaiveBayes";

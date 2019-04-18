@@ -27,8 +27,24 @@ namespace Microsoft.ML.Trainers
     using TDistPredictor = IDistPredictorProducing<float, float>;
     using TScalarTrainer = ITrainerEstimator<ISingleFeaturePredictionTransformer<IPredictorProducing<float>>, IPredictorProducing<float>>;
     using TTransformer = MulticlassPredictionTransformer<PairwiseCouplingModelParameters>;
-
     /// <summary>
+    /// The <see cref="IEstimator{TTransformer}"/> for training a pairwise coupling multi-class classifier on top of the specified binary classifier.
+    /// </summary>
+    /// <remarks>
+    /// <format type="text/markdown"><![CDATA[
+    /// To create this trainer, use [PairwiseCoupling](xref:Microsoft.ML.StandardTrainersCatalog.PairwiseCoupling``1(Microsoft.ML.MulticlassClassificationCatalog.MulticlassClassificationTrainers,Microsoft.ML.Trainers.ITrainerEstimator{Microsoft.ML.ISingleFeaturePredictionTransformer{``0},``0},System.String,System.Boolean,Microsoft.ML.IEstimator{Microsoft.ML.ISingleFeaturePredictionTransformer{Microsoft.ML.Calibrators.ICalibrator}},System.Int32)).
+    ///
+    /// [!include[io](~/../docs/samples/docs/api-reference/io-columns-multiclass-classification.md)]
+    ///
+    /// ### Trainer Characteristics
+    /// |  |  |
+    /// | -- | -- |
+    /// | Machine learning task | Multiclass classification |
+    /// | Is normalization required? | Depends on underline binary classifier |
+    /// | Is caching required? | Depends on underline binary classifier |
+    /// | Required NuGet in addition to Microsoft.ML | None |
+    ///
+    /// ### Training Algorithm Details
     /// In this strategy, a binary classification algorithm is trained on each pair of classes.
     /// The pairs are unordered but created with replacement: so, if there were three classes, 0, 1,
     /// 2, we would train classifiers for the pairs (0,0), (0,1), (0,2), (1,1), (1,2),
@@ -39,8 +55,7 @@ namespace Microsoft.ML.Trainers
     /// the pair given the data, and the final predictive probabilities out of that
     /// per class are calculated given the probability that an example is in any given
     /// pair.
-    ///
-    /// These two can allow you to exploit trainers that do not naturally have a
+    /// This can allow you to exploit trainers that do not naturally have a
     /// multiclass option, for example, using the FastTree Binary Classification
     /// to solve a multiclass problem.
     /// Alternately, it can allow ML.NET to solve a "simpler" problem even in the cases
@@ -49,8 +64,11 @@ namespace Microsoft.ML.Trainers
     /// logistic regression is a more principled way to solve a multiclass problem, it
     /// requires that the learner store a lot more intermediate state in the form of
     /// L-BFGS history for all classes *simultaneously*, rather than just one-by-one
-    /// as would be needed for a one-versus-all classification model.
-    /// </summary>
+    /// as would be needed for a pairwise coupling classification model.
+    /// ]]>
+    /// </format>
+    /// </remarks>
+    /// <seealso cref="Microsoft.ML.StandardTrainersCatalog.PairwiseCoupling``1(Microsoft.ML.MulticlassClassificationCatalog.MulticlassClassificationTrainers,Microsoft.ML.Trainers.ITrainerEstimator{Microsoft.ML.ISingleFeaturePredictionTransformer{%60%600},%60%600},System.String,System.Boolean,Microsoft.ML.IEstimator{Microsoft.ML.ISingleFeaturePredictionTransformer{Microsoft.ML.Calibrators.ICalibrator}},System.Int32)" />
     public sealed class PairwiseCouplingTrainer : MetaMulticlassTrainer<MulticlassPredictionTransformer<PairwiseCouplingModelParameters>, PairwiseCouplingModelParameters>
     {
         internal const string LoadNameValue = "PKPD";
