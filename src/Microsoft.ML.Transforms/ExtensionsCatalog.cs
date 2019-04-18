@@ -18,9 +18,9 @@ namespace Microsoft.ML
         /// </summary>
         /// <param name="catalog">The transform's catalog.</param>
         /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.
-        /// This column's data type will be vector of BoolDataViewType.</param>
+        /// This column's data type will be vector of <see cref="System.Boolean"/>.</param>
         /// <param name="inputColumnName">Name of the column to copy the data from.
-        /// This estimator operates over scalar or vector of floats or doubles.</param>
+        /// This estimator operates over scalar or vector of <see cref="System.Single"/> or <see cref="System.Double"/>.</param>
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
@@ -38,7 +38,7 @@ namespace Microsoft.ML
         /// </summary>
         /// <remarks>This transform can operate over several columns.</remarks>
         /// <param name="catalog">The transform's catalog.</param>
-        /// <param name="columns">The pairs of input and output columns. This estimator operates over data which is either scalar or vector of floats or doubles.</param>
+        /// <param name="columns">The pairs of input and output columns. This estimator operates over data which is either scalar or vector of <see cref="System.Single"/> or <see cref="System.Double"/>.</param>
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
@@ -60,7 +60,7 @@ namespace Microsoft.ML
         /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.
         /// This column's data type will be the same as that of the input column.</param>
         /// <param name="inputColumnName">Name of the column to copy the data from.
-        /// This estimator operates over scalar or vector of floats or doubles.</param>
+        /// This estimator operates over scalar or vector of <see cref="System.Single"/> or <see cref="System.Double"/>.</param>
         /// <param name="replacementMode">The type of replacement to use as specified in <see cref="MissingValueReplacingEstimator.ReplacementMode"/></param>
         /// <param name="imputeBySlot">If true, per-slot imputation of replacement is performed.
         /// Otherwise, replacement value is imputed for the entire vector column. This setting is ignored for scalars and variable vectors,

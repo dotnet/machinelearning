@@ -33,7 +33,7 @@ using Microsoft.ML.Transforms;
 namespace Microsoft.ML.Transforms
 {
     /// <summary>
-    /// <see cref="ITransformer"/> resulting from fitting an <see cref="MissingValueReplacingEstimator"/>.
+    /// <see cref="ITransformer"/> resulting from fitting a <see cref="MissingValueReplacingEstimator"/>.
     /// </summary>
     // REVIEW: May make sense to implement the transform template interface.
     public sealed partial class MissingValueReplacingTransformer : OneToOneTransformerBase
@@ -896,11 +896,12 @@ namespace Microsoft.ML.Transforms
     /// |  |  |
     /// | -- | -- |
     /// | Does this estimator need to look at the data to train its parameters? | Yes |
-    /// | Input column data type | Vector or scalar of floats or doubles |
+    /// | Input column data type | Vector or scalar of <xref:System.Single> or <xref:System.Double> |
     /// | Output column data type | The same as the data type in the input column |
+    ///
     /// The resulting <xref:Microsoft.ML.Transforms.MissingValueReplacingTransformer"/> creates a new column, named as specified in the output column name parameters, and
     /// copies the data from the input column to this new column with exception what missing values in data would be replaced according to chosen strategy.
-    /// See the See Also section for links to examples of the usage.
+    /// See the See Also section for links of examples of the usage.
     /// ]]>
     /// </format>
     /// </remarks>

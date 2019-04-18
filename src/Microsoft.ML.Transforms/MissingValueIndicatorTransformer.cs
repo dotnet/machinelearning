@@ -28,7 +28,7 @@ using Microsoft.ML.Transforms;
 namespace Microsoft.ML.Transforms
 {
     /// <summary>
-    /// <see cref="ITransformer"/> resulting from fitting an <see cref="MissingValueIndicatorEstimator"/>.
+    /// <see cref="ITransformer"/> resulting from fitting a <see cref="MissingValueIndicatorEstimator"/>.
     /// </summary>
     public sealed class MissingValueIndicatorTransformer : OneToOneTransformerBase
     {
@@ -438,12 +438,12 @@ namespace Microsoft.ML.Transforms
     /// |  |  |
     /// | -- | -- |
     /// | Does this estimator need to look at the data to train its parameters? | No |
-    /// | Input column data type | Vector or scalar value of floats or doubles. |
-    /// | Output column data type | If input column was scalar then BooleanDataViewType otherwise vector of BooleanDataViewType. |
+    /// | Input column data type | Vector or scalar value of <xref:System.Single> or <xref:System.Double> |
+    /// | Output column data type | If input column was scalar then <xref:System.Boolean> otherwise vector of <xref:System.Boolean>. |
     ///
     /// The resulting <xref:Microsoft.ML.Transfroms.MissingValueIndicatorTransformer/> creates a new column, named as specified in the output column name parameters, and
     /// fills it with vector of bools where *true* in i-th position in array indicates i-th element in input column has missing value and *false* otherwise.
-    /// See the See Also section for links to examples of the usage.
+    /// See the See Also section for links of examples of the usage.
     /// ]]>
     /// </format>
     /// </remarks>
