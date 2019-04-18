@@ -329,6 +329,7 @@ namespace Microsoft.ML.Transforms.Onnx
                     var col = inputSchema.GetColumnOrNull(_parent.Inputs[i]);
                     if (!col.HasValue)
                         throw Host.ExceptSchemaMismatch( nameof(inputSchema),"input", _parent.Inputs[i]);
+
                     _inputColIndices[i] = col.Value.Index;
 
                     var type = inputSchema[_inputColIndices[i]].Type;
@@ -564,7 +565,7 @@ namespace Microsoft.ML.Transforms.Onnx
                 var input = Transformer.Inputs[i];
                 if (!inputSchema.TryFindColumn(input, out var col))
                     throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", input);
-                if (!(col.Kind == SchemaShape.Column.VectorKind.VariableVector || col.Kind == SchemaShape.Column.VectorKind.Vector))
+                if (col.Kind == SchemaShape.Column.VectorKind.VariableVector)
                     throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", input, "vector", col.GetTypeString());
 
                 var inputsInfo = Transformer.Model.ModelInfo.InputsInfo;
