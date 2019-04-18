@@ -35,7 +35,7 @@ namespace Microsoft.ML.Trainers
     /// the values each feature can take is relatively small.
     /// It assumes independence among the presence of features in a class even though
     /// they may be dependent on each other.
-    /// This multi-class trainer accepts binary feature values of type float, i.e., 
+    /// This multi-class trainer accepts binary feature values of type float, i.e.,
     /// feature values are either true or false.
     /// Specifically a feature value greater than zero is treated as true.
     /// </summary>
