@@ -65,9 +65,9 @@ namespace Microsoft.ML.Trainers
     ///
     /// Assume that the number of classes is $m$ and number of features is $n$.
     /// Maximum entropy model assigns the $c$-th class a coefficient vector $\boldsymbol{w}_c \in {\mathbb R}^n$ and a bias $b_c \in {\mathbb R}$, for $c=1,\dots,m$.
-    /// Given a feature vector $\boldsymbol{x} \in {\mathbb R}^n$, the $c$-th class's scoring function is $\hat{y}^c = \boldsymbol{w}_c^T \boldsymbol{x} + b_c$.
+    /// Given a feature vector $\boldsymbol{x} \in {\mathbb R}^n$, the $c$-th class's score is $\hat{y}^c = \boldsymbol{w}_c^T \boldsymbol{x} + b_c$.
     /// The prability of $\boldsymbol{x}$ belonging to class $c$ is defined by $\tilde{P}(c|\boldsymbol{x}) = \frac{ e^{\hat{y}^c} }{ \sum_{c' = 1}^m e^{\hat{y}^{c'}} }$.
-    /// Let $P(c, \boldsymbol{x})$ denote the join probability of seeing $c$ and $\bodsymbol{x}$.
+    /// Let $P(c, \boldsymbol{x})$ denote the join probability of seeing $c$ and $\boldsymbol{x}$.
     /// The loss function minimized by this trainer is $-\sum_{c = 1}^m P(c, \boldsymbol{x}) \log \tilde{P}(c|\boldsymbol{x}) $, which is the negative [log-likelihood function](https://en.wikipedia.org/wiki/Likelihood_function#Log-likelihood).
     ///
     /// ### Training Algorithm Details
