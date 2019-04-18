@@ -32,8 +32,8 @@ namespace Microsoft.ML.Trainers
     /// </summary>
     /// <remarks>
     /// <format type="text/markdown"><![CDATA[
-    /// To create this trainer, use [LbfgsLogisticRegression](xref:Microsoft.ML.StandardTrainersCatalog.LbfgsLogisticRegression(BinaryClassificationCatalog.BinaryClassificationTrainers, string, string, string, float, float, float, int, bool))
-    /// or [LbfgsLogisticRegression(Options)](xref:Microsoft.ML.StandardTrainersCatalog.LbfgsLogisticRegression(BinaryClassificationCatalog.BinaryClassificationTrainers, LbfgsLogisticRegressionBinaryTrainer.Options)).
+    /// To create this trainer, use [LbfgsLogisticRegression](xref:Microsoft.ML.StandardTrainersCatalog.LbfgsLogisticRegression(Microsoft.ML.BinaryClassificationCatalog.BinaryClassificationTrainers,System.String,System.String,System.String,System.Single,System.Single,System.Single,System.Int32,System.Boolean))
+    /// or [LbfgsLogisticRegression(Options)](xref:Microsoft.ML.StandardTrainersCatalog.LbfgsLogisticRegression(Microsoft.ML.BinaryClassificationCatalog.BinaryClassificationTrainers,Microsoft.ML.Trainers.LbfgsLogisticRegressionBinaryTrainer.Options)).
     ///
     /// [!include[io](~/../docs/samples/docs/api-reference/io-columns-binary-classification.md)]
     ///
@@ -46,8 +46,8 @@ namespace Microsoft.ML.Trainers
     /// | Required NuGet in addition to Microsoft.ML | None |
     ///
     /// ### Scoring Function
-    /// Linear logistic regression is a variant of linear model. It maps feature vector $\hat{y}\left(\boldsymbol{x}\right) = \boldsymbol{x} \in {\mathbb R}^n$ to a score by using $\boldsymbol{w}^T  \boldsymbol{x} + b$,
-    /// where the $j$-th element in $\boldsymbol{w}$ is the $j$-th feature's coefficient and $b$ is a learnable bias term.
+    /// Linear logistic regression is a variant of linear model. It maps feature vector $\boldsymbol{x} \in {\mathbb R}^n$ to a scalar via $\hat{y}\left(\boldsymbol{x}\right) = \boldsymbol{w}^T  \boldsymbol{x} + b = \sum_{j=1}^n w_j x_j + b$,
+    /// where the $x_j$ is the $j$-th feature's value, the $j$-th element of $\boldsymbol{w}$ is the $j$-th feature's coefficient, and $b$ is a learnable bias.
     /// The corresponding probability of getting a true label is $\frac{1}{1 + e^{\hat{y}\left(\boldsymbol{x}\right)}}$.
     ///
     /// ### Training Algorithm Details
@@ -73,8 +73,8 @@ namespace Microsoft.ML.Trainers
     /// ]]>
     /// </format>
     /// </remarks>
-    /// <seealso cref="Microsoft.ML.StandardTrainersCatalog.LbfgsLogisticRegression(BinaryClassificationCatalog.BinaryClassificationTrainers, string, string, string, float, float, float, int, bool)"/>
-    /// <seealso cref="Microsoft.ML.StandardTrainersCatalog.LbfgsLogisticRegression(BinaryClassificationCatalog.BinaryClassificationTrainers, LbfgsLogisticRegressionBinaryTrainer.Options)"/>
+    /// <seealso cref="Microsoft.ML.StandardTrainersCatalog.LbfgsLogisticRegression(Microsoft.ML.BinaryClassificationCatalog.BinaryClassificationTrainers,System.String,System.String,System.String,System.Single,System.Single,System.Single,System.Int32,System.Boolean)"/>
+    /// <seealso cref="Microsoft.ML.StandardTrainersCatalog.LbfgsLogisticRegression(Microsoft.ML.BinaryClassificationCatalog.BinaryClassificationTrainers,Microsoft.ML.Trainers.LbfgsLogisticRegressionBinaryTrainer.Options)"/>
     /// <seealso cref="Options"/>
     public sealed partial class LbfgsLogisticRegressionBinaryTrainer : LbfgsTrainerBase<LbfgsLogisticRegressionBinaryTrainer.Options,
         BinaryPredictionTransformer<CalibratedModelParametersBase<LinearBinaryModelParameters, PlattCalibrator>>,
