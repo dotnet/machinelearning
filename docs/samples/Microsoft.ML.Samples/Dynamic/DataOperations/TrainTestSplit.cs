@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using Microsoft.ML;
-using static Microsoft.ML.DataOperationsCatalog;
 
 namespace Samples.Dynamic
 {
@@ -25,9 +24,10 @@ namespace Samples.Dynamic
             // we must ensure that the split leaves the rows with the same value in a particular column, in one of the splits. 
             // So below, we specify Group column as the column containing the sampling keys.
             // Notice how keeping the rows with the same value in the Group column overrides the testFraction definition. 
-            TrainTestData split = mlContext.Data.TrainTestSplit(dataview, testFraction: 0.1, samplingKeyColumnName: "Group");
-
-            PrintPreviewRows(split);
+            var split = mlContext.Data.TrainTestSplit(dataview, testFraction: 0.1, samplingKeyColumnName: "Group");
+            var trainSet = mlContext.Data.CreateEnumerable<DataPoint>(split.TrainSet, reuseRowObject: false);
+            var testSet = mlContext.Data.CreateEnumerable<DataPoint>(split.TestSet, reuseRowObject: false);
+            PrintPreviewRows(trainSet, testSet);
 
             //  The data in the Train split.
             //  [Group, 1], [Features, 0.8173254]
@@ -45,7 +45,9 @@ namespace Samples.Dynamic
 
             // Example of a split without specifying a sampling key column.
             split = mlContext.Data.TrainTestSplit(dataview, testFraction: 0.2);
-            PrintPreviewRows(split);
+            trainSet = mlContext.Data.CreateEnumerable<DataPoint>(split.TrainSet, reuseRowObject: false);
+            testSet = mlContext.Data.CreateEnumerable<DataPoint>(split.TestSet, reuseRowObject: false);
+            PrintPreviewRows(trainSet, testSet);
 
             // The data in the Train split.
             // [Group, 0], [Features, 0.7262433]
@@ -87,19 +89,16 @@ namespace Samples.Dynamic
         }
 
         // print helper
-        private static void PrintPreviewRows(TrainTestData split)
+        private static void PrintPreviewRows(IEnumerable<DataPoint> trainSet, IEnumerable<DataPoint> testSet)
         {
 
-            var trainDataPreview = split.TrainSet.Preview();
-            var testDataPreview = split.TestSet.Preview();
-
             Console.WriteLine($"The data in the Train split.");
-            foreach (var row in trainDataPreview.RowView)
-                Console.WriteLine($"{row.Values[0]}, {row.Values[1]}");
+            foreach (var row in trainSet)
+                Console.WriteLine($"{row.Group}, {row.Features}");
 
             Console.WriteLine($"\nThe data in the Test split.");
-            foreach (var row in testDataPreview.RowView)
-                Console.WriteLine($"{row.Values[0]}, {row.Values[1]}");
+            foreach (var row in testSet)
+                Console.WriteLine($"{row.Group}, {row.Features}");
         }
     }
 }

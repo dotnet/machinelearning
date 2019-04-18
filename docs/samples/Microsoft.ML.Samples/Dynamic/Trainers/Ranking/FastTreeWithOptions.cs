@@ -3,14 +3,14 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.ML;
 using Microsoft.ML.Data;
-using Microsoft.ML.Trainers.LightGbm;
+using Microsoft.ML.Trainers.FastTree;
 
 namespace Samples.Dynamic.Trainers.Ranking
 {
-    public static class LightGbmWithOptions
+    public static class FastTreeWithOptions
     {
         // This example requires installation of additional NuGet package
-        // <a href="https://www.nuget.org/packages/Microsoft.ML.LightGbm/">Microsoft.ML.LightGbm</a>.
+        // <a href="https://www.nuget.org/packages/Microsoft.ML.FastTree/">Microsoft.ML.FastTree</a>.
         public static void Example()
         {
             // Create a new context for ML.NET operations. It can be used for exception tracking and logging, 
@@ -25,21 +25,20 @@ namespace Samples.Dynamic.Trainers.Ranking
             var trainingData = mlContext.Data.LoadFromEnumerable(dataPoints);
 
             // Define trainer options.
-            var options = new LightGbmRankingTrainer.Options
+            var options = new FastTreeRankingTrainer.Options 
             {
-                NumberOfLeaves = 4,
-                MinimumExampleCountPerGroup = 10,
-                LearningRate = 0.1,
-                NumberOfIterations = 2,
-                Booster = new GradientBooster.Options
-                {
-                    FeatureFraction = 0.9
-                },
+                // Use NdcgAt3 for early stopping.
+                EarlyStoppingMetric = EarlyStoppingRankingMetric.NdcgAt3,
+                // Create a simpler model by penalizing usage of new features.
+                FeatureFirstUsePenalty = 0.1,
+                // Reduce the number of trees to 50.
+                NumberOfTrees = 50,
+                // Specify the row group column name.
                 RowGroupColumnName = "GroupId"
             };
 
             // Define the trainer.
-            var pipeline = mlContext.Ranking.Trainers.LightGbm(options);
+            var pipeline = mlContext.Ranking.Trainers.FastTree(options);
 
             // Train the model.
             var model = pipeline.Fit(trainingData);
@@ -61,19 +60,19 @@ namespace Samples.Dynamic.Trainers.Ranking
                 Console.WriteLine($"Label: {p.Label}, Score: {p.Score}");
 
             // Expected output:
-            //   Label: 5, Score: 0.05836755
-            //   Label: 1, Score: -0.06531862
-            //   Label: 3, Score: -0.004557075
-            //   Label: 3, Score: -0.009396422
-            //   Label: 1, Score: -0.05871891
+            //   Label: 5, Score: 8.807633
+            //   Label: 1, Score: -10.71331
+            //   Label: 3, Score: -8.134147
+            //   Label: 3, Score: -6.545538
+            //   Label: 1, Score: -10.27982
 
             // Evaluate the overall metrics.
             var metrics = mlContext.Ranking.Evaluate(transformedTestData);
             PrintMetrics(metrics);
             
             // Expected output:
-            //   DCG: @1:28.83, @2:46.36, @3:56.18
-            //   NDCG: @1:0.69, @2:0.72, @3:0.74
+            //   DCG: @1:40.57, @2:61.21, @3:74.11
+            //   NDCG: @1:0.96, @2:0.95, @3:0.97
         }
 
         private static IEnumerable<DataPoint> GenerateRandomDataPoints(int count, int seed = 0, int groupSize = 10)

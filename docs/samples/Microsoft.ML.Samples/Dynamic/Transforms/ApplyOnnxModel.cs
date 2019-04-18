@@ -2,15 +2,11 @@ using System;
 using System.Linq;
 using Microsoft.ML;
 using Microsoft.ML.Data;
-using Microsoft.ML.OnnxRuntime;
 
 namespace Samples.Dynamic
 {
-    public static class OnnxTransformExample
+    public static class ApplyOnnxModel
     {
-        /// <summary>
-        /// Example use of OnnxEstimator in an ML.NET pipeline
-        /// </summary>
         public static void Example()
         {
             // Download the squeeznet image model from ONNX model zoo, version 1.2
@@ -18,29 +14,17 @@ namespace Samples.Dynamic
             // Microsoft.ML.Onnx.TestModels nuget.
             var modelPath = @"squeezenet\00000001\model.onnx";
 
-            // Inspect the model's inputs and outputs
-            var session = new InferenceSession(modelPath);
-            var inputInfo = session.InputMetadata.First();
-            var outputInfo = session.OutputMetadata.First();
-            Console.WriteLine($"Input Name is {String.Join(",", inputInfo.Key)}");
-            Console.WriteLine($"Input Dimensions are {String.Join(",", inputInfo.Value.Dimensions)}");
-            Console.WriteLine($"Output Name is {String.Join(",", outputInfo.Key)}");
-            Console.WriteLine($"Output Dimensions are {String.Join(",", outputInfo.Value.Dimensions)}");
-            // Results..
-            // Input Name is data_0
-            // Input Dimensions are 1,3,224,224
-            // Output Name is softmaxout_1
-            // Output Dimensions are 1,1000,1,1
-
             // Create ML pipeline to score the data using OnnxScoringEstimator
             var mlContext = new MLContext();
-            var data = GetTensorData();
-            var idv = mlContext.Data.LoadFromEnumerable(data);
-            var pipeline = mlContext.Transforms.ApplyOnnxModel(new[] { outputInfo.Key }, new[] { inputInfo.Key }, modelPath);
 
-            // Run the pipeline and get the transformed values
-            var transformedValues = pipeline.Fit(idv).Transform(idv);
-
+            // Generate sample test data.
+            var samples = GetTensorData();
+            // Convert training data to IDataView, the general data type used in ML.NET.
+            var data = mlContext.Data.LoadFromEnumerable(samples);
+            // Create the pipeline to score using provided onnx model.
+            var pipeline = mlContext.Transforms.ApplyOnnxModel(modelPath);
+            // Fit the pipeline and get the transformed values
+            var transformedValues = pipeline.Fit(data).Transform(data);
             // Retrieve model scores into Prediction class
             var predictions = mlContext.Data.CreateEnumerable<Prediction>(transformedValues, reuseRowObject: false);
 
@@ -66,25 +50,18 @@ namespace Samples.Dynamic
             // ----------
         }
 
-        /// <summary>
-        /// inputSize is the overall dimensions of the model input tensor.
-        /// </summary>
+        // inputSize is the overall dimensions of the model input tensor.
         private const int inputSize = 224 * 224 * 3;
 
-        /// <summary>
-        /// A class to hold sample tensor data. Member name should match  
-        /// the inputs that the model expects (in this case, data_0)
-        /// </summary>
+        // A class to hold sample tensor data. Member name should match  
+        // the inputs that the model expects (in this case, data_0)
         public class TensorData
         {
             [VectorType(inputSize)]
             public float[] data_0 { get; set; }
         }
 
-        /// <summary>
-        /// Method to generate sample test data. Returns 2 sample rows.
-        /// </summary>
-        /// <returns></returns>
+        // Method to generate sample test data. Returns 2 sample rows.
         public static TensorData[] GetTensorData()
         {
             // This can be any numerical data. Assume image pixel values.
@@ -93,10 +70,8 @@ namespace Samples.Dynamic
             return new TensorData[] { new TensorData() { data_0 = image1 }, new TensorData() { data_0 = image2 } };
         }
 
-        /// <summary>
-        /// Class to contain the output values from the transformation.
-        /// This model generates a vector of 1000 floats.
-        /// </summary>
+        // Class to contain the output values from the transformation.
+        // This model generates a vector of 1000 floats.
         class Prediction
         {
             [VectorType(1000)]
