@@ -88,7 +88,7 @@ namespace Microsoft.ML.Trainers
 
         /// <summary>
         /// Options for the <see cref="LbfgsLogisticRegressionBinaryTrainer"/> as used in
-        /// [LbfgsLogisticRegression(Options)](xref:Microsoft.ML.StandardTrainersCatalog.LbfgsLogisticRegression(BinaryClassificationCatalog.BinaryClassificationTrainers, LbfgsLogisticRegressionBinaryTrainer.Options)).
+        /// [LbfgsLogisticRegression(Options)](xref:Microsoft.ML.StandardTrainersCatalog.LbfgsLogisticRegression(Microsoft.ML.BinaryClassificationCatalog.BinaryClassificationTrainers,Microsoft.ML.Trainers.LbfgsLogisticRegressionBinaryTrainer.Options)).
         /// </summary>
         public sealed class Options : OptionsBase
         {
