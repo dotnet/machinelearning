@@ -47,7 +47,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             CheckValidCalibratedData(calibratorTestData.ScoredData, fixedPlattCalibratorTransformer);
 
             //test estimator
-            TestEstimatorCore(calibratorTestData.Pipeline, calibratorTestData.Data);
+            TestEstimatorCore(fixedPlattCalibratorEstimator, calibratorTestData.ScoredData);
 
             Done();
         }
@@ -68,7 +68,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             CheckValidCalibratedData(calibratorTestData.ScoredData, naiveCalibratorTransformer);
 
             //test estimator
-            TestEstimatorCore(calibratorTestData.Pipeline, calibratorTestData.Data);
+            TestEstimatorCore(naiveCalibratorEstimator, calibratorTestData.ScoredData);
 
             Done();
         }
@@ -88,7 +88,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             CheckValidCalibratedData(calibratorTestData.ScoredData, pavCalibratorTransformer);
 
             //test estimator
-            TestEstimatorCore(calibratorTestData.Pipeline, calibratorTestData.Data);
+            TestEstimatorCore(pavCalibratorEstimator, calibratorTestData.ScoredData);
 
             Done();
         }
