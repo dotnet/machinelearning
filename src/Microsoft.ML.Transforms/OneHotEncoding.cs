@@ -44,7 +44,7 @@ namespace Microsoft.ML.Transforms
     {
         internal sealed class Column : ValueToKeyMappingTransformer.ColumnBase
         {
-            [Argument(ArgumentType.AtMostOnce, HelpText = "Output kind: Bag (multi-set vector), Indicator (indicator vector), Key (index), or Binary encoded indicator vector", ShortName = "kind")]
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Output kind: Bag (multi-set vector), Ind (indicator vector), Key (index), or Binary encoded indicator vector", ShortName = "kind")]
             public OneHotEncodingEstimator.OutputKind? OutputKind;
 
             internal static Column Parse(string str)
