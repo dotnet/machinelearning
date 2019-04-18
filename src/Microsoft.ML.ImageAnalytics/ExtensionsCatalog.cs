@@ -18,7 +18,7 @@ namespace Microsoft.ML
         /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.
         /// This column's data type will be the same as that of the input column.</param>
         /// <param name="inputColumnName">Name of the column to convert images to grayscale from.
-        /// This estimator operates only on <see cref="ImageDataViewType"/>.</param>
+        /// This estimator operates only on <see cref="System.Drawing.Bitmap"/>.</param>
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
@@ -54,9 +54,9 @@ namespace Microsoft.ML
         /// </summary>
         /// <param name="catalog">The transform's catalog.</param>
         /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.
-        /// This column's data type will be ImageDataTypeView.</param>
+        /// This column's data type will be <see cref="System.Drawing.Bitmap"/>.</param>
         /// <param name="inputColumnName">Name of the column to copy the data from.
-        /// This estimator operates over TextDataView.</param>
+        /// This estimator operates over text data.</param>
         /// <param name="imageFolder">Folder where to look for images.</param>
         /// <example>
         /// <format type="text/markdown">
@@ -96,14 +96,14 @@ namespace Microsoft.ML
         }
 
         /// <summary>
-        /// Create a <see cref="ImagePixelExtractingEstimator"/>, which exctracts pixel values from the data specified in column: <paramref name="inputColumnName"/>
+        /// Create a <see cref="ImagePixelExtractingEstimator"/>, which extracts pixels values from the data specified in column: <paramref name="inputColumnName"/>
         /// to a new column: <paramref name="outputColumnName"/>.
         /// </summary>
         /// <param name="catalog">The transform's catalog.</param>
         /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.
-        /// This column's data type will be known size vector of floats or bytes depending on <paramref name="outputAsFloatArray"/>.</param>
+        /// This column's data type will be known size vector of <see cref="System.Single"/>or <see cref="System.Byte"/> depending on <paramref name="outputAsFloatArray"/>.</param>
         /// <param name="inputColumnName">Name of the column to copy the data from.
-        /// This estimator operates over ImageDataViewType.</param>
+        /// This estimator operates over <see cref="System.Drawing.Bitmap"/>.</param>
         /// <param name="colorsToExtract">The colors to extract from the image.</param>
         /// <param name="orderOfExtraction">The order in which to extract colors from pixel.</param>
         /// <param name="interleavePixelColors">Whether to interleave the pixels colors, meaning keep them in the <paramref name="orderOfExtraction"/> order, or leave them in the plannar form:
@@ -146,7 +146,7 @@ namespace Microsoft.ML
         /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.
         /// This column's data type will be the same as that of the input column.</param>
         /// <param name="inputColumnName">Name of the column to copy the data from.
-        /// This estimator operates over ImageDataViewType.</param>
+        /// This estimator operates over <see cref="System.Drawing.Bitmap"/>.</param>
         /// <param name="imageWidth">The transformed image width.</param>
         /// <param name="imageHeight">The transformed image height.</param>
         /// <param name="resizing"> The type of image resizing as specified in <see cref="ImageResizingEstimator.ResizingKind"/>.</param>
@@ -208,9 +208,9 @@ namespace Microsoft.ML
         /// <param name="imageHeight">The height of the output images.</param>
         /// <param name="imageWidth">The width of the output images.</param>
         /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.
-        /// This column's data type will be ImageDataViewType.</param>
+        /// This column's data type will be <see cref="System.Drawing.Bitmap"/>.</param>
         /// <param name="inputColumnName">Name of the column to copy the data from.
-        /// This estimator operates over vector of known size of floats, doubles and bytes.</param>
+        /// This estimator operates over vector of known size of <see cref="System.Single"/>, <see cref="System.Double"/> and <see cref="System.Byte"/>.</param>
         /// <param name="colorsPresent">Specifies which <see cref="ImagePixelExtractingEstimator.ColorBits"/> are in present the input pixel vectors. The order of colors is specified in <paramref name="orderOfColors"/>.</param>
         /// <param name="orderOfColors">The order in which colors are presented in the input vector.</param>
         /// <param name="interleavedColors">Whether the pixels are interleaved, meaning whether they are in <paramref name="orderOfColors"/> order, or separated in the planar form:

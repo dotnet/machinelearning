@@ -30,7 +30,7 @@ using Microsoft.ML.Transforms.Image;
 namespace Microsoft.ML.Transforms.Image
 {
     /// <summary>
-    /// <see cref="ITransformer"/> resulting from fitting an <see cref="ImagePixelExtractingEstimator"/>.
+    /// <see cref="ITransformer"/> resulting from fitting a <see cref="ImagePixelExtractingEstimator"/>.
     /// </summary>
     public sealed class ImagePixelExtractingTransformer : OneToOneTransformerBase
     {
@@ -480,8 +480,8 @@ namespace Microsoft.ML.Transforms.Image
     /// |  |  |
     /// | -- | -- |
     /// | Does this estimator need to look at the data to train its parameters? | No |
-    /// | Input column data type | ImageDataTypeView |
-    /// | Output column data type | Vector of known size of floats or bytes |
+    /// | Input column data type | <xref:System.Drawing.Bitmap> |
+    /// | Output column data type | Vector of known size of <xref:System.Single> or <xref:System.Byte> |
     ///
     /// The resulting <xref:Microsoft.ML.Transforms.Image.ImagePixelExtractingTransformer> creates a new column, named as specified in the output column name parameters, and
     /// converts image into vector of known size of floats or bytes. Size and data type depends on specified paramaters.

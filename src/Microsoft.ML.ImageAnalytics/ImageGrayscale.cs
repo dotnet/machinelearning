@@ -32,7 +32,7 @@ namespace Microsoft.ML.Transforms.Image
     // REVIEW: Rewrite as LambdaTransform to simplify.
     // REVIEW: Should it be separate transform or part of ImageResizerTransform?
     /// <summary>
-    /// <see cref="ITransformer"/> resulting from fitting an <see cref="ImageGrayscalingTransformer"/>.
+    /// <see cref="ITransformer"/> resulting from fitting a <see cref="ImageGrayscalingTransformer"/>.
     /// </summary>
     public sealed class ImageGrayscalingTransformer : OneToOneTransformerBase
     {
@@ -224,8 +224,8 @@ namespace Microsoft.ML.Transforms.Image
     /// |  |  |
     /// | -- | -- |
     /// | Does this estimator need to look at the data to train its parameters? | No |
-    /// | Input column data type | ImageDataViewType |
-    /// | Output column data type | ImageDataViewType |
+    /// | Input column data type | <xref:System.Drawing.Bitmap> |
+    /// | Output column data type | <xref:System.Drawing.Bitmap> |
     ///
     /// The resulting <xref:Microsoft.ML.Transforms.Image.ImageGrayscalingTransformer> creates a new column, named as specified in the output column name parameters, and
     /// converts image from input column into grayscale image.

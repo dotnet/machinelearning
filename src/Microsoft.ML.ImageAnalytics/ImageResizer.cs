@@ -31,7 +31,7 @@ namespace Microsoft.ML.Transforms.Image
 {
     // REVIEW: Rewrite as LambdaTransform to simplify.
     /// <summary>
-    /// <see cref="ITransformer"/> resulting from fitting an <see cref="ImageResizingEstimator"/>.
+    /// <see cref="ITransformer"/> resulting from fitting a <see cref="ImageResizingEstimator"/>.
     /// </summary>
     public sealed class ImageResizingTransformer : OneToOneTransformerBase
     {
@@ -406,8 +406,8 @@ namespace Microsoft.ML.Transforms.Image
     /// |  |  |
     /// | -- | -- |
     /// | Does this estimator need to look at the data to train its parameters? | No |
-    /// | Input column data type | ImageDataTypeView |
-    /// | Output column data type | ImageDataTypeView |
+    /// | Input column data type | <xref:System.Drawing.Bitmap> |
+    /// | Output column data type | <xref:System.Drawing.Bitmap> |
     ///
     /// The resulting <xref:Microsoft.ML.Transforms.Image.ImageResizingTransformer> creates a new column, named as specified in the output column name parameters, and
     /// resize the data from the input column to this new column.
