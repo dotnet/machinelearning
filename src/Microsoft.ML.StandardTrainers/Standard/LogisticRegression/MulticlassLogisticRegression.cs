@@ -44,8 +44,8 @@ namespace Microsoft.ML.Trainers
     /// </summary>
     /// <remarks>
     /// <format type="text/markdown"><![CDATA[
-    /// To create this trainer, use [LbfgsMaximumEntropy](xref:Microsoft.ML.StandardTrainersCatalog.LbfgsMaximumEntropy(MulticlassClassificationCatalog.MulticlassClassificationTrainers, string, string, string, float, float, float, int, bool))
-    /// or [LbfgsMaximumEntropy(Options)](xref:Microsoft.ML.StandardTrainersCatalog.LbfgsMaximumEntropy(MulticlassClassificationCatalog.MulticlassClassificationTrainers, LbfgsMaximumEntropyMulticlassTrainer.Options)).
+    /// To create this trainer, use [LbfgsMaximumEntropy](xref:Microsoft.ML.StandardTrainersCatalog.LbfgsMaximumEntropy(Microsoft.ML.MulticlassClassificationCatalog.MulticlassClassificationTrainers,System.String,System.String,System.String,System.Single,System.Single,System.Single,System.Int32,System.Boolean))
+    /// or [LbfgsMaximumEntropy(Options)](xref:Microsoft.ML.StandardTrainersCatalog.LbfgsMaximumEntropy(Microsoft.ML.MulticlassClassificationCatalog.MulticlassClassificationTrainers,Microsoft.ML.Trainers.LbfgsMaximumEntropyMulticlassTrainer.Options)).
     ///
     /// [!include[io](~/../docs/samples/docs/api-reference/io-columns-multiclass-classification.md)]
     ///
@@ -93,8 +93,8 @@ namespace Microsoft.ML.Trainers
     /// ]]>
     /// </format>
     /// </remarks>
-    /// <seealso cref="Microsoft.ML.StandardTrainersCatalog.LbfgsMaximumEntropy(MulticlassClassificationCatalog.MulticlassClassificationTrainers, string, string, string, float, float, float, int, bool)"/>
-    /// <seealso cref="Microsoft.ML.StandardTrainersCatalog.LbfgsMaximumEntropy(MulticlassClassificationCatalog.MulticlassClassificationTrainers, LbfgsMaximumEntropyMulticlassTrainer.Options)"/>
+    /// <seealso cref="Microsoft.ML.StandardTrainersCatalog.LbfgsMaximumEntropy(Microsoft.ML.MulticlassClassificationCatalog.MulticlassClassificationTrainers,System.String,System.String,System.String,System.Single,System.Single,System.Single,System.Int32,System.Boolean)"/>
+    /// <seealso cref="Microsoft.ML.StandardTrainersCatalog.LbfgsMaximumEntropy(Microsoft.ML.MulticlassClassificationCatalog.MulticlassClassificationTrainers,Microsoft.ML.Trainers.LbfgsMaximumEntropyMulticlassTrainer.Options)"/>
     /// <seealso cref="Options"/>
     public sealed class LbfgsMaximumEntropyMulticlassTrainer : LbfgsTrainerBase<LbfgsMaximumEntropyMulticlassTrainer.Options,
         MulticlassPredictionTransformer<MaximumEntropyModelParameters>, MaximumEntropyModelParameters>
