@@ -18,8 +18,12 @@ using Microsoft.ML.Transforms;
 namespace Microsoft.ML.Transforms
 {
     /// <summary>
-    /// Produces a column of indicator vectors. The mapping between a value and a corresponding index is done through hashing.
+    /// <see cref="ITransformer"/> resulting from fitting a <see cref="OneHotHashEncodingEstimator"/>.
     /// </summary>
+    /// <remarks>
+    /// CategoricalHashOneHotVectorizer converts a categorical value into an indicator array by hashing the value and using the hash as an index in the bag.
+    /// If the input column is a vector, a single indicator bag is returned for it.
+    /// </remarks>
     public sealed class OneHotHashEncodingTransformer : ITransformer
     {
         internal sealed class Column : OneToOneColumn
@@ -199,8 +203,24 @@ namespace Microsoft.ML.Transforms
     }
 
     /// <summary>
-    /// Estimator that produces a column of indicator vectors. The mapping between a value and a corresponding index is done through hashing.
+    /// <see cref="IEstimator{TTransformer}"/> for the <see cref="OneHotHashEncodingTransformer"/>. The Estimator takes set of columns and produces a hash-based indicator vector for each column.
     /// </summary>
+    /// <remarks>
+    /// <format type="text/markdown"><![CDATA[
+    ///
+    /// ###  Estimator Characteristics
+    /// |  |  |
+    /// | -- | -- |
+    /// | Does this estimator need to look at the data to train its parameters? | Yes |
+    /// | Input column data type | Text |
+    /// | Output column data type | Vector of floats |
+    /// | Required NuGet in addition to Microsoft.ML | None|
+    ///
+    /// The resulting <see cref="OneHotHashEncodingTransformer"/> creates a new column, named as specified by the outputColumnName parameter,
+    /// and encodes the input column as a vector of floats.
+    /// ]]>
+    /// </format>
+    /// </remarks>
     public sealed class OneHotHashEncodingEstimator : IEstimator<OneHotHashEncodingTransformer>
     {
         [BestFriend]

@@ -15,11 +15,13 @@ namespace Microsoft.ML
     public static class CategoricalCatalog
     {
         /// <summary>
-        /// Convert text columns into one-hot encoded vectors.
+        /// Create a <see cref="OneHotEncodingEstimator"/> that converts the text input column specified by <paramref name="inputColumnName"/> into a column of one-hot encoded vectors named <paramref name="outputColumnName"/>.
         /// </summary>
         /// <param name="catalog">The transform catalog</param>
-        /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.</param>
-        /// <param name="inputColumnName">Name of column to transform. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.</param>
+        /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.
+        /// This column's data type will be a vector of floats. </param>
+        /// <param name="inputColumnName">Name of column to convert to one-hot vectors. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.
+        /// This column's data type should be text.</param>
         /// <param name="outputKind">Output kind: Bag (multi-set vector), Ind (indicator vector), Key (index), or Binary encoded indicator vector.</param>
         /// <param name="maximumNumberOfKeys">Maximum number of terms to keep per column when auto-training.</param>
         /// <param name="keyOrdinality">How items should be ordered when vectorized. If <see cref="ValueToKeyMappingEstimator.KeyOrdinality.ByOccurrence"/> choosen they will be in the order encountered.
@@ -43,10 +45,10 @@ namespace Microsoft.ML
                 new[] { new OneHotEncodingEstimator.ColumnOptions(outputColumnName, inputColumnName, outputKind, maximumNumberOfKeys, keyOrdinality) }, keyData);
 
         /// <summary>
-        /// Convert text columns into one-hot encoded vectors.
+        /// Create a <see cref="OneHotEncodingEstimator"/> that converts the input text column specified by <see cref="InputOutputColumnPair.InputColumnName"/> into a column of one-hot encoded vectors named <see cref="InputOutputColumnPair.OutputColumnName"/>.
         /// </summary>
         /// <param name="catalog">The transform catalog</param>
-        /// <param name="columns">Specifies the names of the columns on which to apply the transformation.</param>
+        /// <param name="columns">The pairs of input and output columns. The deta type of the input column should be text, and the data type of the output column will be a vector of floats.</param>
         /// <param name="outputKind">Output kind: Bag (multi-set vector), Ind (indicator vector), Key (index), or Binary encoded indicator vector.</param>
         /// <param name="maximumNumberOfKeys">Maximum number of terms to keep per column when auto-training.</param>
         /// <param name="keyOrdinality">How items should be ordered when vectorized. If <see cref="ValueToKeyMappingEstimator.KeyOrdinality.ByOccurrence"/> choosen they will be in the order encountered.
@@ -96,11 +98,13 @@ namespace Microsoft.ML
             => new OneHotEncodingEstimator(CatalogUtils.GetEnvironment(catalog), columns, keyData);
 
         /// <summary>
-        /// Convert a text column into hash-based one-hot encoded vector.
+        /// Create a <see cref="OneHotHashEncodingEstimator"/> that converts a text column specified by <paramref name="inputColumnName"/> into a hash-based one-hot encoded vector column named <paramref name="outputColumnName"/>.
         /// </summary>
         /// <param name="catalog">The transform catalog</param>
-        /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.</param>
-        /// <param name="inputColumnName">Name of column to transform. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.</param>
+        /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.
+        /// This column's data type will be a vector of floats.</param>
+        /// <param name="inputColumnName">Name of column to transform. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.
+        /// This column's data type should be text.</param>
         /// <param name="outputKind">The conversion mode.</param>
         /// <param name="numberOfBits">Number of bits to hash into. Must be between 1 and 30, inclusive.</param>
         /// <param name="seed">Hashing seed.</param>
@@ -127,16 +131,16 @@ namespace Microsoft.ML
                 new[] { new OneHotHashEncodingEstimator.ColumnOptions(outputColumnName, inputColumnName, outputKind, numberOfBits, seed, useOrderedHashing, maximumNumberOfInverts) });
 
         /// <summary>
-        /// Convert text columns into hash-based one-hot encoded vector columns.
+        /// Create a <see cref="OneHotHashEncodingEstimator"/> that converts the input text column specified by <see cref="InputOutputColumnPair.InputColumnName"/> into a column of hash-based one-hot encoded vectors named <see cref="InputOutputColumnPair.OutputColumnName"/>
         /// </summary>
         /// <param name="catalog">The transform catalog</param>
-        /// <param name="columns">Specifies the names of the columns on which to apply the transformation.</param>
+        /// <param name="columns">The pairs of input and output columns. The deta type of the input column should be text, and the data type of the output column will be a vector of floats.</param>
         /// <param name="outputKind">The conversion mode.</param>
         /// <param name="numberOfBits">Number of bits to hash into. Must be between 1 and 30, inclusive.</param>
         /// <param name="seed">Hashing seed.</param>
         /// <param name="useOrderedHashing">Whether the position of each term should be included in the hash.</param>
         /// <param name="maximumNumberOfInverts">During hashing we constuct mappings between original values and the produced hash values.
-        /// Text representation of original values are stored in the slot names of the  metadata for the new column.Hashing, as such, can map many initial values to one.
+        /// Text representation of original values are stored in the slot names of the  metadata for the new column. Hashing, as such, can map many initial values to one.
         /// <paramref name="maximumNumberOfInverts"/> specifies the upper bound of the number of distinct input values mapping to a hash that should be retained.
         /// <value>0</value> does not retain any input values. <value>-1</value> retains all input values mapping to each hash.</param>
         /// <example>

@@ -22,12 +22,29 @@ using Microsoft.ML.Transforms;
 
 namespace Microsoft.ML.Transforms
 {
-    /// <include file='doc.xml' path='doc/members/member[@name="CategoricalOneHotVectorizer"]/*' />
+    /// <summary>
+    /// <see cref="ITransformer"/> resulting from fitting a <see cref="OneHotEncodingEstimator"/>.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// The OneHotEncodingTransformer passes through a data set, operating on text columns, to build a dictionary of categories.
+    /// For each row, the entire text string appearing in the input column is defined as a category.</para>
+    /// <para>The output of this transform is an indicator vector.
+    /// Each slot in this vector corresponds to a category in the dictionary, so its length is the size of the built dictionary.</para>
+    /// <para>The OneHotEncodingTransformer can be applied to one or more columns, in which case it builds and uses a separate dictionary
+    /// for each column that it is applied to.</para>
+    /// <para>The<see cref="OneHotEncodingEstimator.OutputKind"/> produces integer values and KeyType columns.
+    /// The Key value is the one-based index of the slot set in the Ind/Bag options. If the Key option is not found, it is assigned the value zero.
+    /// If the <see cref="OneHotEncodingEstimator.OutputKind.Indicator"/>, <see cref="OneHotEncodingEstimator.OutputKind.Bag"/> options are not found, they result in an all zero bit vector.
+    /// <see cref="OneHotEncodingEstimator.OutputKind.Indicator"/> and <see cref="OneHotEncodingEstimator.OutputKind.Bag"/> differ simply in how the bit-vectors generated from individual slots are aggregated:
+    /// for Indicator they are concatenated and for Bag they are added.
+    /// When the source column is a singleton, the Indicator and Bag options are identical.</para>
+    /// </remarks>
     public sealed class OneHotEncodingTransformer : ITransformer
     {
         internal sealed class Column : ValueToKeyMappingTransformer.ColumnBase
         {
-            [Argument(ArgumentType.AtMostOnce, HelpText = "Output kind: Bag (multi-set vector), Ind (indicator vector), Key (index), or Binary encoded indicator vector", ShortName = "kind")]
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Output kind: Bag (multi-set vector), Indicator (indicator vector), Key (index), or Binary encoded indicator vector", ShortName = "kind")]
             public OneHotEncodingEstimator.OutputKind? OutputKind;
 
             internal static Column Parse(string str)
@@ -141,8 +158,24 @@ namespace Microsoft.ML.Transforms
         IRowToRowMapper ITransformer.GetRowToRowMapper(DataViewSchema inputSchema) => ((ITransformer)_transformer).GetRowToRowMapper(inputSchema);
     }
     /// <summary>
-    /// Estimator which takes set of columns and produce for each column indicator array.
+    /// <see cref="IEstimator{TTransformer}"/> for the <see cref="OneHotEncodingTransformer"/>. The Estimator takes set of columns and produces an indicator array for each column.
     /// </summary>
+    /// <remarks>
+    /// <format type="text/markdown"><![CDATA[
+    ///
+    /// ###  Estimator Characteristics
+    /// |  |  |
+    /// | -- | -- |
+    /// | Does this estimator need to look at the data to train its parameters? | Yes |
+    /// | Input column data type | Text |
+    /// | Output column data type | Vector of floats |
+    /// | Required NuGet in addition to Microsoft.ML | None|
+    ///
+    /// The resulting <see cref="OneHotEncodingTransformer"/> creates a new column, named as specified by the outputColumnName parameter,
+    /// and encodes the input column as a vector of floats.
+    /// ]]>
+    /// </format>
+    /// </remarks>
     public sealed class OneHotEncodingEstimator : IEstimator<OneHotEncodingTransformer>
     {
         [BestFriend]
