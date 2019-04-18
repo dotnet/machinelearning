@@ -29,8 +29,7 @@ using Microsoft.ML.Transforms.Text;
 namespace Microsoft.ML.Transforms.Text
 {
     /// <summary>
-    /// A text normalization transform that allows normalizing text case, removing diacritical marks, punctuation marks and/or numbers.
-    /// The transform operates on text input as well as vector of tokens/text (vector of ReadOnlyMemory).
+    /// <see cref="ITransformer"/> resulting from fitting a <see cref="TextNormalizingEstimator"/>.
     /// </summary>
     public sealed class TextNormalizingTransformer : OneToOneTransformerBase
     {
@@ -431,6 +430,26 @@ namespace Microsoft.ML.Transforms.Text
         }
     }
 
+    /// <summary>
+    /// <see cref="IEstimator{TTransformer}"/> for the <see cref="TextNormalizingTransformer"/>.
+    /// </summary>
+    /// <remarks>
+    /// <format type="text/markdown"><![CDATA[
+    ///
+    /// ###  Estimator Characteristics
+    /// |  |  |
+    /// | -- | -- |
+    /// | Does this estimator need to look at the data to train its parameters? | No |
+    /// | Input column data type | <xref:System.ReadOnlyMemory{System.Char}> or vector of <xref:System.ReadOnlyMemory{System.Char}> |
+    /// | Output column data type | The same as the data type in the input column |
+    ///
+    /// The resulting transformer creates a new column, named as specified in the output column name parameters, and
+    /// normalizes the textual input data by changing case, removing diacritical marks, punctuation marks and/or numbers.
+    /// See the See Also section for links to examples of the usage.
+    /// ]]>
+    /// </format>
+    /// </remarks>
+    /// <seealso cref="TextCatalog.NormalizeText" />
     public sealed class TextNormalizingEstimator : TrivialEstimator<TextNormalizingTransformer>
     {
         /// <summary>
