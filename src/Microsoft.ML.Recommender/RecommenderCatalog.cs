@@ -80,6 +80,8 @@ namespace Microsoft.ML
             /// <para>The basic idea of matrix factorization is finding two low-rank factor matrices to apporimate the training matrix.</para>
             /// <para>In this module, the expected training data is a list of tuples. Every tuple consists of a column index, a row index,
             /// and the value at the location specified by the two indexes. The training configuration is encoded in <see cref="MatrixFactorizationTrainer.Options"/>.
+            /// To invoke one-class matrix factorization, user needs to specify <see cref="MatrixFactorizationTrainer.LossFunctionType.SquareLossOneClass"/>.
+            /// The default settting <see cref="MatrixFactorizationTrainer.LossFunctionType.SquareLossRegression"/> is for standard matrix factorization problem.
             /// </para>
             /// </remarks>
             /// <param name="options">Advanced arguments to the algorithm.</param>

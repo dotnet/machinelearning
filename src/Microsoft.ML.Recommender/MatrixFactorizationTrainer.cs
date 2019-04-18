@@ -26,11 +26,33 @@ namespace Microsoft.ML.Trainers
     /// Train a matrix factorization model. It factorizes the training matrix into the product of two low-rank matrices.
     /// </summary>
     /// <remarks>
-    /// <para>The basic idea of matrix factorization is finding two low-rank factor marcies to apporimate the training matrix.
-    /// In this module, the expected training data is a list of tuples. Every tuple consists of a column index, a row index,
+    /// <format type="text/markdown"><![CDATA[
+    /// To create this trainer, use [MatrixFactorization](xref:Microsoft.ML.RecommendationCatalog.RecommendationTrainers.MatrixFactorization(System.String,System.String,System.String,System.Int32,System.Double,System.Int32))
+    /// or [MatrixFactorization(Options)](xref:Microsoft.ML.RecommendationCatalog.RecommendationTrainers.MatrixFactorization(Microsoft.ML.Trainers.MatrixFactorizationTrainer.Options)).
+    ///
+    /// ### Input and Output Columns
+    /// There are three input columns required, one for matrix row indexes, one for matrix column indexes, and one for values (i.e., labels) in matrix .
+    /// They together defines a matrix in [COO](https://en.wikipedia.org/wiki/Sparse_matrix#Coordinate_list_(COO)) format.
+    /// The type of label column is vector of <xref:System.Single> while the other two columns are key-typed scalar.
+    ///
+    /// | Output Column Name | Column Type | Description|
+    /// | -- | -- | -- |
+    /// | `Score` | <xref:System.Single> | The predicted matrix value at the location specified by input columns (row index column and column index column). |
+    ///
+    /// ### Trainer Characteristics
+    /// |  |  |
+    /// | -- | -- |
+    /// | Machine learning task | Recommender systems |
+    /// | Is normalization required? | Yes |
+    /// | Is caching required? | Yes |
+    /// | Required NuGet in addition to Microsoft.ML | Microsoft.ML.Recommender |
+    ///
+    /// ### Background
+    /// The basic idea of matrix factorization is finding two low-rank factor marcies to apporimate the training matrix.
+    /// In this module, the expected training data, the factorized matrix, is a list of tuples. Every tuple consists of a column index, a row index,
     /// and the value at the location specified by the two indexes. For an example data structure of a tuple, one can use:
-    /// </para>
-    /// <code language="csharp">
+    ///
+    /// ```csharp
     /// // The following variables defines the shape of a m-by-n matrix. Indexes start with 0; that is, our indexing system
     /// // is 0-based.
     /// const int m = 60;
@@ -48,41 +70,40 @@ namespace Microsoft.ML.Trainers
     ///     // The rating at the MatrixColumnIndex-th column and the MatrixRowIndex-th row.
     ///     public float Value;
     /// }
-    /// </code>
-    /// <para> Notice that it's not necessary to specify all entries in the training matrix, so matrix factorization can be used to fill <i>missing values</i>.
-    /// This behavior is very helpful when building recommender systems.</para>
-    /// <para>To provide a better understanding on practical uses of matrix factorization, let's consider music recommendation as an example.
+    /// ```
+    ///
+    /// Notice that it's not necessary to specify all entries in the training matrix, so matrix factorization can be used to fill <i>missing values</i>.
+    /// This behavior is very helpful when building recommender systems.
+    ///
+    /// To provide a better understanding on practical uses of matrix factorization, let's consider music recommendation as an example.
     /// Assume that user IDs and music IDs are used as row and column indexes, respectively, and matrix's values are ratings provided by those users. That is,
-    /// rating <i>r</i> at row <i>r</i> and column <i>v</i> means that user <i>u</i> give <i>r</i> to item <i>v</i>.
+    /// rating $r$ at row $u$ and column $v$ means that user $u$ give $r$ to item $v$.
     /// An imcomplete matrix is very common because not all users may provide their feedbacks to all products (for example, no one can rate ten million songs).
-    /// Assume that<i>R</i> is a m-by-n rating matrix and the rank of the two factor matrices are<i>P</i> (m-by-k matrix) and <i>Q</i> (n-by-k matrix), where k is the approximation rank.
-    /// The predicted rating at the u-th row and the v-th column in <i>R</i> would be the inner product of the u-th row of P and the v-th row of Q; that is,
-    /// <i>R</i> is approximated by the product of <i>P</i>'s transpose and <i>Q</i>. This trainer implements
-    /// <a href='https://www.csie.ntu.edu.tw/~cjlin/papers/libmf/mf_adaptive_pakdd.pdf'>a stochastic gradient method</a> for finding <i>P</i>
-    /// and <i>Q</i> via minimizing the distance between<i> R</i> and the product of <i>P</i>'s transpose and Q.</para>.
-    /// <para>The underlying library used in ML.NET matrix factorization can be found on <a href='https://github.com/cjlin1/libmf'>a Github repository</a>. For users interested in the mathematical details, please see the references below.</para>
-    /// <list type = 'bullet'>
-    ///     <item>
-    ///         <description><a href='https://www.csie.ntu.edu.tw/~cjlin/papers/libmf/libmf_journal.pdf' > A Fast Parallel Stochastic Gradient Method for Matrix Factorization in Shared Memory Systems</a></description>
-    ///     </item>
-    ///     <item>
-    ///         <description><a href='https://www.csie.ntu.edu.tw/~cjlin/papers/libmf/mf_adaptive_pakdd.pdf' > A Learning-rate Schedule for Stochastic Gradient Methods to Matrix Factorization</a></description>
-    ///     </item>
-    ///     <item>
-    ///         <description><a href='https://www.csie.ntu.edu.tw/~cjlin/papers/libmf/libmf_open_source.pdf' > LIBMF: A Library for Parallel Matrix Factorization in Shared-memory Systems</a></description>
-    ///     </item>
-    ///     <item>
-    ///         <description><a href='https://www.csie.ntu.edu.tw/~cjlin/papers/one-class-mf/biased-mf-sdm-with-supp.pdf' > Selection of Negative Samples for One-class Matrix Factorization</a></description>
-    ///     </item>
-    /// </list>
-    /// </remarks>
-    /// <example>
-    /// <format type="text/markdown">
-    /// <![CDATA[
-    /// [!code-csharp[MF](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Trainers/Recommendation/MatrixFactorization.cs)]
+    /// Assume that $R\in{\mathbb R}^{m\times n}$ is a m-by-n rating matrix and the [rank](https://en.wikipedia.org/wiki/Rank_(linear_algebra)) of the two factor matrices are $P\in {\mathbb R}^{k\times m}$ and $Q\in {\mathbb R}^{k\times n}$, where $k$ is the approximation rank.
+    /// The predicted rating at the $u$-th row and the $v$-th column in $R$ would be the inner product of the $u$-th row of P and the $v$-th row of Q; that is, $R$ is approximated by the product of $P$'s transpose ($P^T$) and $Q$.
+    /// Note that $k$ is usually much smaller than $m$ and $n$, so $P^T Q$ is usually called a low-rank approximation of $R$.
+    ///
+    /// This trainer includes a [stochastic gradient method](https://en.wikipedia.org/wiki/Stochastic_gradient_descent) and [a coordinate descent method](https://en.wikipedia.org/wiki/Coordinate_descent) for finding $P$ and $Q$ via minimizing the distance between (non-missing part of) $R$ and its approximation $P^T Q$.
+    /// The coordinate descent method included is specifically for one-class matrix factorization where all observed ratings are positive signals (that is, all rating values are 1).
+    /// Notice taht the only way to invoke one-class matrix factorization is to assign <see cref="Microsoft.ML.Trainers.MatrixFactorizationTrainer.LossFunctionType.SquareLossOneClass"/> to [loss function](Microsoft.ML.Trainers.MatrixFactorizationTrainer.Options.LossFunction)
+    /// when calling [MatrixFactorization(Options)](xref:Microsoft.ML.RecommendationCatalog.RecommendationTrainers.MatrixFactorization(Microsoft.ML.Trainers.MatrixFactorizationTrainer.Options)).
+    /// See Page 28 [here](https://www.csie.ntu.edu.tw/~cjlin/talks/facebook.pdf) for a brief introduction to one-class matrix factorization.
+    /// The default settting <see cref="MatrixFactorizationTrainer.LossFunctionType.SquareLossRegression"/> is for standard matrix factorization problem.
+    /// The underlying library used in ML.NET matrix factorization can be found on [a Github repository](https://github.com/cjlin1/libmf).
+    ///
+    /// For users interested in the mathematical details, please see the references below.
+    ///
+    /// * For the multi-threading implementation of the used stochastic gradient method, see [A Fast Parallel Stochastic Gradient Method for Matrix Factorization in Shared Memory Systems](https://www.csie.ntu.edu.tw/~cjlin/papers/libmf/libmf_journal.pdf).
+    /// * For the computation happened inside one thread, see [A Learning-rate Schedule for Stochastic Gradient Methods to Matrix Factorization](https://www.csie.ntu.edu.tw/~cjlin/papers/libmf/mf_adaptive_pakdd.pdf).
+    /// * For the coordinate descent method used and one-class matrix factorization, see [Selection of Negative Samples for One-class Matrix Factorization](https://www.csie.ntu.edu.tw/~cjlin/papers/one-class-mf/biased-mf-sdm-with-supp.pdf).
+    /// * For details in the underlying library used, see [LIBMF: A Library for Parallel Matrix Factorization in Shared-memory Systems](https://www.csie.ntu.edu.tw/~cjlin/papers/libmf/libmf_open_source.pdf).
+    ///
     /// ]]>
     /// </format>
-    /// </example>
+    /// </remarks>
+    /// <seealso cref="Microsoft.ML.RecommendationCatalog.RecommendationTrainers.MatrixFactorization(System.String,System.String,System.String,System.Int32,System.Double,System.Int32)"/>
+    /// <seealso cref="Microsoft.ML.RecommendationCatalog.RecommendationTrainers.MatrixFactorization(Microsoft.ML.Trainers.MatrixFactorizationTrainer.Options)"/>
+    /// <seealso cref="Options"/>
     public sealed class MatrixFactorizationTrainer : ITrainer<MatrixFactorizationModelParameters>,
         IEstimator<MatrixFactorizationPredictionTransformer>
     {
@@ -109,7 +130,7 @@ namespace Microsoft.ML.Trainers
         };
 
         /// <summary>
-        /// Advanced options for the <see cref="MatrixFactorizationTrainer"/>.
+        /// Options for the <see cref="MatrixFactorizationTrainer"/> in [MatrixFactorization(Options)](xref:Microsoft.ML.RecommendationCatalog.RecommendationTrainers.MatrixFactorization(Microsoft.ML.Trainers.MatrixFactorizationTrainer.Options)).
         /// </summary>
         public sealed class Options
         {
