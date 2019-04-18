@@ -111,7 +111,8 @@ namespace Microsoft.ML.Trainers.FastTree
     public sealed partial class FastTreeRegressionTrainer
     {
         /// <summary>
-        /// Options for the <see cref="FastTreeRegressionTrainer"/>.
+        /// Options for the <see cref="FastTreeRegressionTrainer"/> as used in
+        /// [FastTree(Options)](xref:Microsoft.ML.TreeExtensions.FastTree(Microsoft.ML.RegressionCatalog.RegressionTrainers,Microsoft.ML.Trainers.FastTree.FastTreeRegressionTrainer.Options)).
         /// </summary>
         [TlcModule.Component(Name = LoadNameValue, FriendlyName = UserNameValue, Desc = Summary)]
         public sealed class Options : BoostedTreeOptions, IFastTreeTrainerFactory
