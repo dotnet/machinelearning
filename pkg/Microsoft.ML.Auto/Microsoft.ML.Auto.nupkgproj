@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk" DefaultTargets="Pack">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <PackageDescription>ML.NET AutoML: Optimizes an ML pipeline for your dataset, by automatically locating the best feature engineering, model, and hyperparameters</PackageDescription>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.ML" Version="1.0.0-preview" />
+    <PackageReference Include="Microsoft.ML.LightGBM" Version="1.0.0-preview" />
+    <PackageReference Include="Microsoft.ML.Mkl.Components" Version="1.0.0-preview" />
+  </ItemGroup>
+
+</Project>

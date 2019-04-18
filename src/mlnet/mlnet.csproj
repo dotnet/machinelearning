@@ -20,22 +20,11 @@
     <PackageReference Include="System.CommandLine.Experimental" Version="0.2.0-alpha.19174.3" />
     <PackageReference Include="System.Text.Encoding.CodePages" Version="4.5.1" />
     <PackageReference Include="Microsoft.ApplicationInsights" Version="2.9.1" />
+    <PackageReference Include="Microsoft.DotNet.PlatformAbstractions" Version="2.1.0" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\Microsoft.ML.Auto\Microsoft.ML.Auto.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Reference Include="mscorlib">
-      <HintPath>mscorlib</HintPath>
-    </Reference>
-    <Reference Include="System">
-      <HintPath>System</HintPath>
-    </Reference>
-    <Reference Include="System.Core">
-      <HintPath>System.Core</HintPath>
-    </Reference>
   </ItemGroup>
 
   <ItemGroup>

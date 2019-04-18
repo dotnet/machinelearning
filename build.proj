@@ -21,8 +21,8 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <!-- <Project Include="Microsoft.ML.sln" /> -->
     <Project Include="Microsoft.ML.AutoML.sln" />
-    <Project Include="Microsoft.ML.sln" />
   </ItemGroup>
 
   <Import Project="dir.traversal.targets" />
@@ -34,7 +34,7 @@
       CreateOrUpdateCurrentVersionFile;
       RestoreProjects;
       BuildRedist;
-      BuildNative;
+      <!-- BuildNative; -->
       $(TraversalBuildDependsOn);
       DownloadExternalTestFiles;
     </TraversalBuildDependsOn>
@@ -68,7 +68,7 @@
     <Message Importance="High" Text="Building packages ..." />
 
     <ItemGroup>
-      <PkgProject Include="pkg\**\*.nupkgproj" />
+      <PkgProject Include="pkg\Microsoft.ML.Auto\Microsoft.ML.Auto.nupkgproj" />
     </ItemGroup>
 
     <MSBuild Projects="@(PkgProject)"
