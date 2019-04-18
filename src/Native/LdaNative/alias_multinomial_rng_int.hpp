@@ -108,7 +108,11 @@ namespace wood
             int32_t H_head = 0;
             int32_t H_tail = 0;
 
-            for (size_t i = 0; i < proportion_int_.size(); ++i)
+			if (proportion_int_.size() > numeric_limits<int32_t>::max())
+				bad_array_new_length();
+
+			int32_t size = static_cast<int32_t>(proportion_int_.size());
+            for (int32_t i = 0; i < size; ++i)
             {
                 auto val = proportion_int_[i];
                 if (val < a_int_)

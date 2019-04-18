@@ -100,14 +100,14 @@ namespace lda
             dict_[i].is_alias_dense_ = 0;
         }
 
-		int64_t size = 2 * upper_bound(load_factor_ * nonzero_num);
-		if (size > numeric_limits<size_t>::max() / sizeof(int64_t) + 1)
+		uint64_t size = 2 * upper_bound(load_factor_ * nonzero_num);
+		if (nonzero_num < 0 || size > numeric_limits<size_t>::max())
 			throw bad_alloc();
 
         mem_block_size_ = static_cast<size_t>(size);
 
 		size = nonzero_num * 3;
-		if (size > numeric_limits<size_t>::max() / sizeof(int64_t) + 1)
+		if (size > numeric_limits<size_t>::max())
 			throw bad_alloc();
 
         alias_mem_block_size_ = static_cast<size_t>(size);
@@ -128,13 +128,12 @@ namespace lda
             dict_[i].is_alias_dense_ = 0;
         }
 
-		if (mem_block_size > numeric_limits<size_t>::max() / sizeof(int64_t) + 1)
+		if (mem_block_size < 0 || static_cast<uint64_t>(mem_block_size) > numeric_limits<size_t>::max())
 			throw bad_alloc();
         mem_block_size_ = static_cast<size_t>(mem_block_size);
-
         mem_block_ = new int32_t[mem_block_size_]();   // NOTE : force to initialize the values to be zero
 
-		if (alias_mem_block_size > numeric_limits<size_t>::max() / sizeof(int64_t) + 1)
+		if (mem_block_size < 0 || static_cast<uint64_t>(alias_mem_block_size) > numeric_limits<size_t>::max())
 			throw bad_alloc();
         alias_mem_block_size_ = static_cast<size_t>(alias_mem_block_size);
         alias_mem_block_ = new int32_t[alias_mem_block_size_]();    //NOTE: force to initialize the values to be zero
@@ -338,14 +337,14 @@ namespace lda
             alias_offset += alias_row_size;
         }
 
-		int64_t size = dict_[num_vocabs_ - 1].end_offset_;
-		if (size > numeric_limits<size_t>::max() / sizeof(int64_t) + 1)
+		uint64_t size = dict_[num_vocabs_ - 1].end_offset_;
+		if (size > numeric_limits<size_t>::max())
 			throw bad_alloc();
         mem_block_size_ = static_cast<size_t>(size);
         mem_block_ = new int32_t[mem_block_size_]();                // NOTE: force to initialize the values to be zero
 
 		size = dict_[num_vocabs_ - 1].alias_end_offset_;
-		if (size > numeric_limits<size_t>::max() / sizeof(int64_t) + 1)
+		if (size > numeric_limits<size_t>::max())
 			bad_alloc();
         alias_mem_block_size_ = static_cast<size_t>(size);
         alias_mem_block_ = new int32_t[alias_mem_block_size_]();    //NOTE: force to initialize the values to be zero

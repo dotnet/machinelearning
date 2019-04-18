@@ -51,7 +51,7 @@ namespace lda
     {
 		num_documents_ = num_document;
 
-		if (corpus_size > numeric_limits<size_t>::max() / sizeof(int64_t) + 1)
+		if (corpus_size < 0 || static_cast<uint64_t>(corpus_size) > numeric_limits<size_t>::max())
 			bad_alloc();
         corpus_size_ = static_cast<size_t>(corpus_size);
 
