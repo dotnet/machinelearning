@@ -30,10 +30,10 @@ namespace Microsoft.ML
 
         ///<summary>
         /// Create a <see cref="ImageGrayscalingEstimator"/>, which converts images in the column specified in <see cref="InputOutputColumnPair.InputColumnName"/>
-        /// to grayscale images in a new column:  <see cref="InputOutputColumnPair.OutputColumnName" />.
+        /// to grayscale images in a new column: <see cref="InputOutputColumnPair.OutputColumnName" />.
         ///</summary>
         /// <param name="catalog">The transform's catalog.</param>
-        /// <param name="columns">The pairs of input and output columns. This estimator operates over any data type.</param>
+        /// <param name="columns">The pairs of input and output columns. This estimator operates only on <see cref="System.Drawing.Bitmap"/>.</param>
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
@@ -49,7 +49,7 @@ namespace Microsoft.ML
         }
 
         /// <summary>
-        /// Create a <see cref="ImageLoadingEstimator"/>, which load the data from the column specified in <paramref name="inputColumnName"/>
+        /// Create a <see cref="ImageLoadingEstimator"/>, which loads the data from the column specified in <paramref name="inputColumnName"/>
         /// as an image to a new column: <paramref name="outputColumnName"/>.
         /// </summary>
         /// <param name="catalog">The transform's catalog.</param>
