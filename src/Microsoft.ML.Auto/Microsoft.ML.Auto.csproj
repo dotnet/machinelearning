@@ -10,6 +10,9 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.DotNet.PlatformAbstractions" Version="2.1.0" />
+    <PackageReference Include="Microsoft.ML" Version="1.0.0-preview" />
+    <PackageReference Include="Microsoft.ML.LightGbm" Version="1.0.0-preview" />
+    <PackageReference Include="Microsoft.ML.Mkl.Components" Version="1.0.0-preview" />
   </ItemGroup>
 
   <PropertyGroup>
@@ -35,17 +38,5 @@
     <Content Include="$(RepoRoot)\THIRD-PARTY-NOTICES.TXT" Pack="true" PackagePath="" />
     <Content Include="$(RepoRoot)\LICENSE" Pack="true" PackagePath="" />
   </ItemGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="..\Microsoft.ML.Core\Microsoft.ML.Core.csproj" />
-    <ProjectReference Include="..\Microsoft.ML.LightGbm\Microsoft.ML.LightGbm.csproj" />
-    <ProjectReference Include="..\Microsoft.ML.Mkl.Components\Microsoft.ML.Mkl.Components.csproj" />
-    <ProjectReference Include="..\Microsoft.ML.Transforms\Microsoft.ML.Transforms.csproj" />
-  </ItemGroup>
   
-  <ItemGroup>
-    <NativeAssemblyReference Include="CpuMathNative" />
-    <NativeAssemblyReference Include="FastTreeNative" />
-    <NativeAssemblyReference Include="SymSgdNative" />
-  </ItemGroup>
 </Project>

@@ -21,6 +21,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Project Include="Microsoft.ML.AutoML.sln" />
     <Project Include="Microsoft.ML.sln" />
   </ItemGroup>
 

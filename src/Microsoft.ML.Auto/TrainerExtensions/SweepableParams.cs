@@ -53,7 +53,7 @@ namespace Microsoft.ML.Auto
             return new SweepableParam[] {
                 new SweepableFloatParam("L2Regularization", 0.0f, 1.0f, numSteps: 4),
                 new SweepableFloatParam("L1Regularization", 0.0f, 1.0f, numSteps: 4),
-                new SweepableDiscreteParam("OptimizationTolerance", new object[] { 1e-4f, 1e-7f }),
+                new SweepableDiscreteParam("OptmizationTolerance", new object[] { 1e-4f, 1e-7f }),
                 new SweepableDiscreteParam("HistorySize", new object[] { 5, 20, 50 }),
                 new SweepableLongParam("MaximumNumberOfIterations", 1, int.MaxValue),
                 new SweepableFloatParam("InitialWeightsDiameter", 0.0f, 1.0f, numSteps: 5),
