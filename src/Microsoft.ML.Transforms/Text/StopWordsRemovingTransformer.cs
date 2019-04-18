@@ -61,7 +61,7 @@ namespace Microsoft.ML.Transforms.Text
     }
 
     /// <summary>
-    /// <see cref="ITransformer"/> resulting from fitting an <see cref="StopWordsRemovingEstimator"/>.
+    /// <see cref="ITransformer"/> resulting from fitting a <see cref="StopWordsRemovingEstimator"/>.
     /// </summary>
     public sealed class StopWordsRemovingTransformer : OneToOneTransformerBase
     {
@@ -488,12 +488,12 @@ namespace Microsoft.ML.Transforms.Text
     /// |  |  |
     /// | -- | -- |
     /// | Does this estimator need to look at the data to train its parameters? | No |
-    /// | Input column data type | Vector of TextDataViewType |
-    /// | Output column data type | Vector of unknown size of TextDataViewType |
+    /// | Input column data type | Vector of [Text]<xref:System.ReadOnlyMemory{System.Char}> |
+    /// | Output column data type | Vector of unknown size of [Text]<xref:System.ReadOnlyMemory{System.Char}> |
     ///
     /// The resulting <xref:Microsoft.ML.Transforms.Text.StopWordsRemovingTransformer/> creates a new column, named as specified in the output column name parameters, and
     /// fills it with vector of strings similar to vector of strings in input column but removing all, predefined for certain language, strings from it.
-    /// All strings comparison made by casting predefined strings and strings from input column to lower case using casing rules of invariant culture.
+    /// All text comparison made by casting predefined text and text from input column to lower case using casing rules of invariant culture.
     /// See the See Also section for links to examples of the usage.
     /// ]]>
     /// </format>
@@ -639,7 +639,7 @@ namespace Microsoft.ML.Transforms.Text
     }
 
     /// <summary>
-    /// <see cref="ITransformer"/> resulting from fitting an <see cref="CustomStopWordsRemovingEstimator"/>.
+    /// <see cref="ITransformer"/> resulting from fitting a <see cref="CustomStopWordsRemovingEstimator"/>.
     /// </summary>
     public sealed class CustomStopWordsRemovingTransformer : OneToOneTransformerBase
     {
@@ -1094,12 +1094,12 @@ namespace Microsoft.ML.Transforms.Text
     /// |  |  |
     /// | -- | -- |
     /// | Does this estimator need to look at the data to train its parameters? | No |
-    /// | Input column data type | Vector of TextDataViewType |
-    /// | Output column data type | Vector of unknown size of TextDataViewType |
+    /// | Input column data type | Vector of [Text]<xref:System.ReadOnlyMemory{System.Char}> |
+    /// | Output column data type | Vector of unknown size of [Text]<xref:System.ReadOnlyMemory{System.Char}> |
     ///
     /// The resulting <xref:Microsoft.ML.Transforms.Text.CustomStopWordsRemovingTransformer/> creates a new column, named as specified in the output column name parameters, and
     /// fills it with vector of strings similar to vector of strings in input column but removing all specified strings from it.
-    /// All strings comparison made by casting specified strings and strings from input column to lower case using casing rules of invariant culture.
+    /// All text comparison made by casting specified text and text from input column to lower case using casing rules of invariant culture.
     /// See the See Also section for links to examples of the usage.
     /// ]]>
     /// </format>
