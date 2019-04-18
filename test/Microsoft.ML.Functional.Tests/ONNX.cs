@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.IO;
+using Microsoft.ML.Data;
 using Microsoft.ML.Functional.Tests.Datasets;
 using Microsoft.ML.RunTests;
 using Microsoft.ML.TestFramework;
@@ -48,18 +49,21 @@ namespace Microsoft.ML.Functional.Tests
                 mlContext.Model.ConvertToOnnx(model, data, file);
 
             // Load the model as a transform.
-            var onnxEstimator = mlContext.Transforms.ApplyOnnxModel(modelPath);
+            // Note that when saving an ML.NET model as an ONNX model, the column types and column names will
+            // change. The name changes as ONNX doesn't not allow the same name for an input and output within the ONNX model.
+            // Therefore names maintained but have a number appended to the end of the name. In this case, Score0 is the output
+            // of the ONNX model. We are renaming Score0 to Score using Copy Columns.
+            // ONNX also uses tensors and will return an output of a tensor with the dimension of [1,1] for a single float.
+            // Therefore the VectorScoreColumn class (which contains a float [] field called Score) is used for the return
+            // type on the Prediction engine.
+            // See #2980 and #2981 for more information.
+            var onnxEstimator = mlContext.Transforms.ApplyOnnxModel(modelPath)
+                .Append(mlContext.Transforms.CopyColumns("Score", "Score0"));
             var onnxModel = onnxEstimator.Fit(data);
-
-            // TODO #2980: ONNX outputs don't match the outputs of the model, so we must hand-correct this for now.
-            // TODO #2981: ONNX models cannot be fit as part of a pipeline, so we must use a workaround like this.
-            var onnxWorkaroundPipeline = onnxModel.Append(
-                mlContext.Transforms.CopyColumns("Score", "Score0").Fit(onnxModel.Transform(data)));
 
             // Create prediction engine and test predictions.
             var originalPredictionEngine = mlContext.Model.CreatePredictionEngine<HousingRegression, ScoreColumn>(model);
-            // TODO #2982: ONNX produces vector types and not the original output type.
-            var onnxPredictionEngine = mlContext.Model.CreatePredictionEngine<HousingRegression, VectorScoreColumn>(onnxWorkaroundPipeline);
+            var onnxPredictionEngine = mlContext.Model.CreatePredictionEngine<HousingRegression, VectorScoreColumn>(onnxModel);
 
             // Take a handful of examples out of the dataset and compute predictions.
             var dataEnumerator = mlContext.Data.CreateEnumerable<HousingRegression>(mlContext.Data.TakeRows(data, 5), false);

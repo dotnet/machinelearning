@@ -27,8 +27,8 @@ namespace Microsoft.ML.Trainers
     /// </summary>
     /// <remarks>
     /// <format type="text/markdown"><![CDATA[
-    /// To create this trainer, use [AveragedPerceptron](xref:Microsoft.ML.StandardTrainersCatalog.AveragedPerceptron(Microsoft.ML.BinaryClassificationCatalog.BinaryClassificationTrainers,System.String,System.String,Microsoft.ML.Trainers.IClassificationLoss,System.Single,System.Boolean,System.Single,System.Int32)
-    /// or [AveragedPerceptron(Options)](xref:Microsoft.ML.StandardTrainersCatalog.AveragedPerceptron(Microsoft.ML.BinaryClassificationCatalog.BinaryClassificationTrainers,Microsoft.ML.Trainers.AveragedPerceptronTrainer.Options).
+    /// To create this trainer, use [AveragedPerceptron](xref:Microsoft.ML.StandardTrainersCatalog.AveragedPerceptron(Microsoft.ML.BinaryClassificationCatalog.BinaryClassificationTrainers,System.String,System.String,Microsoft.ML.Trainers.IClassificationLoss,System.Single,System.Boolean,System.Single,System.Int32))
+    /// or [AveragedPerceptron(Options)](xref:Microsoft.ML.StandardTrainersCatalog.AveragedPerceptron(Microsoft.ML.BinaryClassificationCatalog.BinaryClassificationTrainers,Microsoft.ML.Trainers.AveragedPerceptronTrainer.Options)).
     ///
     /// [!include[io](~/../docs/samples/docs/api-reference/io-columns-binary-classification.md)]
     ///
@@ -79,18 +79,18 @@ namespace Microsoft.ML.Trainers
         public sealed class Options : AveragedLinearOptions
         {
             /// <summary>
-            /// A custom <a href="tmpurl_loss">loss</a>.
+            /// A custom <a href="https://en.wikipedia.org/wiki/Loss_function">loss</a>.
             /// </summary>
             [Argument(ArgumentType.Multiple, Name = "LossFunction", HelpText = "Loss Function", ShortName = "loss", SortOrder = 50)]
             internal ISupportClassificationLossFactory ClassificationLossFunctionFactory = new HingeLoss.Options();
 
             /// <summary>
-            /// A custom <a href="tmpurl_loss">loss</a>.
+            /// A custom <a href="https://en.wikipedia.org/wiki/Loss_function">loss</a>.
             /// </summary>
             public IClassificationLoss LossFunction { get; set; }
 
             /// <summary>
-            /// The <a href="tmpurl_calib">calibrator</a> for producing probabilities. Default is exponential (aka Platt) calibration.
+            /// The <a href="https://en.wikipedia.org/wiki/Calibration_(statistics)">calibrator</a> for producing probabilities. Default is exponential (aka Platt) calibration.
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "The calibrator kind to apply to the predictor. Specify null for no calibration", Visibility = ArgumentAttribute.VisibilityType.EntryPointsOnly)]
             internal ICalibratorTrainerFactory Calibrator = new PlattCalibratorTrainerFactory();

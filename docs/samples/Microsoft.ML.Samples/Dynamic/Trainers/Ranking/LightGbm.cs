@@ -1,42 +1,107 @@
-﻿using Microsoft.ML;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using Microsoft.ML;
+using Microsoft.ML.Data;
 
 namespace Samples.Dynamic.Trainers.Ranking
 {
-    public class LightGbm
+    public static class LightGbm
     {
-        // This example requires installation of additional nuget package <a href="https://www.nuget.org/packages/Microsoft.ML.LightGbm/">Microsoft.ML.LightGbm</a>.
         public static void Example()
         {
-            // Creating the ML.Net IHostEnvironment object, needed for the pipeline.
-            var mlContext = new MLContext();
+            // Create a new context for ML.NET operations. It can be used for exception tracking and logging, 
+            // as a catalog of available operations and as the source of randomness.
+            // Setting the seed to a fixed number in this example to make outputs deterministic.
+            var mlContext = new MLContext(seed: 0);
 
-            // Download and featurize the dataset.
-            var dataview = Microsoft.ML.SamplesUtils.DatasetUtils.LoadFeaturizedMslrWeb10kDataset(mlContext);
+            // Create a list of training data points.
+            var dataPoints = GenerateRandomDataPoints(1000);
 
-            // Leave out 10% of the dataset for testing. Since this is a ranking problem, we must ensure that the split
-            // respects the GroupId column, i.e. rows with the same GroupId are either all in the train split or all in
-            // the test split. The samplingKeyColumn parameter in Data.TrainTestSplit is used for this purpose.
-            var split = mlContext.Data.TrainTestSplit(dataview, testFraction: 0.1, samplingKeyColumnName: "GroupId");
+            // Convert the list of data points to an IDataView object, which is consumable by ML.NET API.
+            var trainingData = mlContext.Data.LoadFromEnumerable(dataPoints);
 
-            // Create the Estimator pipeline. For simplicity, we will train a small tree with 4 leaves and 2 boosting iterations.
-            var pipeline = mlContext.Ranking.Trainers.LightGbm(
-                numberOfLeaves: 4,
-                minimumExampleCountPerLeaf: 10,
-                learningRate: 0.1,
-                numberOfIterations: 2);
+            // Define the trainer.
+            var pipeline = mlContext.Ranking.Trainers.LightGbm();
 
-            // Fit this Pipeline to the Training Data.
-            var model = pipeline.Fit(split.TrainSet);
+            // Train the model.
+            var model = pipeline.Fit(trainingData);
 
-            // Evaluate how the model is doing on the test data.
-            var dataWithPredictions = model.Transform(split.TestSet);
+            // Create testing data. Use different random seed to make it different from training data.
+            var testData = mlContext.Data.LoadFromEnumerable(GenerateRandomDataPoints(500, seed:123));
 
-            var metrics = mlContext.Ranking.Evaluate(dataWithPredictions);
-            Microsoft.ML.SamplesUtils.ConsoleUtils.PrintMetrics(metrics);
+            // Run the model on test data set.
+            var transformedTestData = model.Transform(testData);
+
+            // Take the top 5 rows.
+            var topTransformedTestData = mlContext.Data.TakeRows(transformedTestData, 5);
+
+            // Convert IDataView object to a list.
+            var predictions = mlContext.Data.CreateEnumerable<Prediction>(topTransformedTestData, reuseRowObject: false).ToList();
+
+            // Print 5 predictions.
+            foreach (var p in predictions)
+                Console.WriteLine($"Label: {p.Label}, Score: {p.Score}");
 
             // Expected output:
-            //   DCG: @1:1.71, @2:3.88, @3:7.93
-            //   NDCG: @1:7.98, @2:12.14, @3:16.62
+            //   Label: 5, Score: 2.195333
+            //   Label: 4, Score: 0.2596574
+            //   Label: 4, Score: -2.168355
+            //   Label: 1, Score: -3.074823
+            //   Label: 1, Score: -1.523607
+
+            // Evaluate the overall metrics.
+            var metrics = mlContext.Ranking.Evaluate(transformedTestData);
+            PrintMetrics(metrics);
+            
+            // Expected output:
+            //   DCG: @1:26.03, @2:37.57, @3:45.83
+            //   NDCG: @1:0.61, @2:0.57, @3:0.59
+        }
+
+        private static IEnumerable<DataPoint> GenerateRandomDataPoints(int count, int seed = 0, int groupSize = 10)
+        {
+            var random = new Random(seed);
+            float randomFloat() => (float)random.NextDouble();
+            for (int i = 0; i < count; i++)
+            {
+                var label = random.Next(0, 5);
+                yield return new DataPoint
+                {
+                    Label = (uint)label,
+                    GroupId = (uint)(i / groupSize),
+                    // Create random features that are correlated with the label.
+                    // For data points with larger labels, the feature values are slightly increased by adding a constant.
+                    Features = Enumerable.Repeat(label, 50).Select(x => randomFloat() + x * 0.1f).ToArray()
+                };
+            }
+        }
+
+        // Example with label, groupId, and 50 feature values. A data set is a collection of such examples.
+        private class DataPoint
+        {
+            [KeyType(5)]
+            public uint Label { get; set; }
+            [KeyType(100)]
+            public uint GroupId { get; set; }
+            [VectorType(50)]
+            public float[] Features { get; set; }
+        }
+
+        // Class used to capture predictions.
+        private class Prediction
+        {
+            // Original label.
+            public uint Label { get; set; }
+            // Score produced from the trainer.
+            public float Score { get; set; }
+        }
+
+        // Pretty-print RankerMetrics objects.
+        public static void PrintMetrics(RankingMetrics metrics)
+        {
+            Console.WriteLine($"DCG: {string.Join(", ", metrics.DiscountedCumulativeGains.Select((d, i) => $"@{i + 1}:{d:F2}").ToArray())}");
+            Console.WriteLine($"NDCG: {string.Join(", ", metrics.NormalizedDiscountedCumulativeGains.Select((d, i) => $"@{i + 1}:{d:F2}").ToArray())}");
         }
     }
 }
