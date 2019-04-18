@@ -31,13 +31,6 @@ namespace Microsoft.ML.Auto
         /// but <paramref name="maxExperimentTimeInSeconds"/> was the number of seconds in 6 hours, 
         /// the experiment will run for 4 + 5 = 9 hours (not 6 hours).
         /// </remarks>
-        /// <example>
-        /// <format type="text/markdown">
-        /// <![CDATA[
-        /// [!code-csharp[RegressionExperiment](~/../docs/samples/docs/samples/Microsoft.ML.Samples/AutoML/RegressionExperiment.cs)]
-        /// ]]>
-        /// </format>
-        /// </example>
         public RegressionExperiment CreateRegressionExperiment(uint maxExperimentTimeInSeconds)
         {
             return new RegressionExperiment(_context, new RegressionExperimentSettings()
@@ -51,13 +44,6 @@ namespace Microsoft.ML.Auto
         /// </summary>
         /// <param name="experimentSettings">Settings for the AutoML experiment.</param>
         /// <returns>A new AutoML regression experiment.</returns>
-        /// <example>
-        /// <format type="text/markdown">
-        /// <![CDATA[
-        /// [!code-csharp[RegressionExperimentWithExperimentSettings](~/../docs/samples/docs/samples/Microsoft.ML.Samples/AutoML/RegressionExperimentWithExperimentSettings.cs)]
-        /// ]]>
-        /// </format>
-        /// </example>
         public RegressionExperiment CreateRegressionExperiment(RegressionExperimentSettings experimentSettings)
         {
             return new RegressionExperiment(_context, experimentSettings);
@@ -76,13 +62,6 @@ namespace Microsoft.ML.Auto
         /// but <paramref name="maxExperimentTimeInSeconds"/> was the number of seconds in 6 hours, 
         /// the experiment will run for 4 + 5 = 9 hours (not 6 hours).
         /// </remarks>
-        /// <example>
-        /// <format type="text/markdown">
-        /// <![CDATA[
-        /// [!code-csharp[BinaryClassificationExperiment](~/../docs/samples/docs/samples/Microsoft.ML.Samples/AutoML/BinaryClassificationExperiment.cs)]
-        /// ]]>
-        /// </format>
-        /// </example>
         public BinaryClassificationExperiment CreateBinaryClassificationExperiment(uint maxExperimentTimeInSeconds)
         {
             return new BinaryClassificationExperiment(_context, new BinaryExperimentSettings()
@@ -96,13 +75,6 @@ namespace Microsoft.ML.Auto
         /// </summary>
         /// <param name="experimentSettings">Settings for the AutoML experiment.</param>
         /// <returns>A new AutoML binary classification experiment.</returns>
-        /// <example>
-        /// <format type="text/markdown">
-        /// <![CDATA[
-        /// [!code-csharp[BinaryClassificationExperimentWithExperimentSettings](~/../docs/samples/docs/samples/Microsoft.ML.Samples/AutoML/BinaryClassificationExperimentWithExperimentSettings.cs)]
-        /// ]]>
-        /// </format>
-        /// </example>
         public BinaryClassificationExperiment CreateBinaryClassificationExperiment(BinaryExperimentSettings experimentSettings)
         {
             return new BinaryClassificationExperiment(_context, experimentSettings);
@@ -121,13 +93,6 @@ namespace Microsoft.ML.Auto
         /// but <paramref name="maxExperimentTimeInSeconds"/> was the number of seconds in 6 hours, 
         /// the experiment will run for 4 + 5 = 9 hours (not 6 hours).
         /// </remarks>
-        /// <example>
-        /// <format type="text/markdown">
-        /// <![CDATA[
-        /// [!code-csharp[MulticlassClassificationExperiment](~/../docs/samples/docs/samples/Microsoft.ML.Samples/AutoML/MulticlassClassificationExperiment.cs)]
-        /// ]]>
-        /// </format>
-        /// </example>
         public MulticlassClassificationExperiment CreateMulticlassClassificationExperiment(uint maxExperimentTimeInSeconds)
         {
             return new MulticlassClassificationExperiment(_context, new MulticlassExperimentSettings()
@@ -141,13 +106,6 @@ namespace Microsoft.ML.Auto
         /// </summary>
         /// <param name="experimentSettings">Settings for the AutoML experiment.</param>
         /// <returns>A new AutoML multiclass classification experiment.</returns>
-        /// <example>
-        /// <format type="text/markdown">
-        /// <![CDATA[
-        /// [!code-csharp[MulticlassClassificationExperimentWithExperimentSettings](~/../docs/samples/docs/samples/Microsoft.ML.Samples/AutoML/MulticlassClassificationExperimentWithExperimentSettings.cs)]
-        /// ]]>
-        /// </format>
-        /// </example>
         public MulticlassClassificationExperiment CreateMulticlassClassificationExperiment(MulticlassExperimentSettings experimentSettings)
         {
             return new MulticlassClassificationExperiment(_context, experimentSettings);

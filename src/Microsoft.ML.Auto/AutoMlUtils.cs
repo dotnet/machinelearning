@@ -4,7 +4,6 @@
 
 using System;
 using System.Threading;
-using Microsoft.ML.Data;
 
 namespace Microsoft.ML.Auto
 {
