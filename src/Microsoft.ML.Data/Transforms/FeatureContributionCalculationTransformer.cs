@@ -228,7 +228,6 @@ namespace Microsoft.ML.Transforms
 
     /// <summary>
     /// Computes model-specific per-feature contributions to the score of each input vector.
-    /// See the list of currently supported models below.
     /// </summary>
     /// <remarks>
     /// <format type="text/markdown"><![CDATA[
@@ -237,8 +236,8 @@ namespace Microsoft.ML.Transforms
     /// |  |  |
     /// | -- | -- |
     /// | Does this estimator need to look at the data to train its parameters? | No |
-    /// | Input column data type | Vector of floats |
-    /// | Output column data type | Vector of floats |
+    /// | Input column data type | Known-sized vector of <xref:System.Single> |
+    /// | Output column data type | Known-sized vector of <xref:System.Single> |
     ///
     /// Scoring a dataset with a trained model produces a score, or prediction, for each example. To understand and explain these predictions
     /// it can be useful to inspect which features influenced them most significantly. This transformer computes a model-specific
