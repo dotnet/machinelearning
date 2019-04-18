@@ -75,7 +75,30 @@ namespace Microsoft.ML.Trainers.LightGbm
     /// <summary>
     /// The <see cref="IEstimator{TTransformer}"/> for training a boosted decision tree regression model using LightGBM.
     /// </summary>
-    /// <include file='doc.xml' path='doc/members/member[@name="LightGBM_remarks"]/*' />
+    /// <remarks>
+    /// <format type="text/markdown"><![CDATA[
+    /// To create this trainer, use [LightGbm](xref:Microsoft.ML.LightGbmExtensions.LightGbm(Microsoft.ML.RegressionCatalog.RegressionTrainers,System.String,System.String,System.String,System.Nullable{System.Int32},System.Nullable{System.Int32},System.Nullable{System.Double},System.Int32))
+    /// or [LightGbm(Options)](xref:Microsoft.ML.LightGbmExtensions.LightGbm(Microsoft.ML.RegressionCatalog.RegressionTrainers,Microsoft.ML.Trainers.LightGbm.LightGbmRegressionTrainer.Options)).
+    ///
+    /// [!include[io](~/../docs/samples/docs/api-reference/io-columns-regression.md)]
+    ///
+    /// ### Trainer Characteristics
+    /// |  |  |
+    /// | -- | -- |
+    /// | Machine learning task | Regression |
+    /// | Is normalization required? | Yes |
+    /// | Is caching required? | No |
+    /// | Required NuGet in addition to Microsoft.ML | Microsoft.ML.LightGbm |
+    ///
+    /// ### Training Algorithm Details
+    /// LightGBM is an open source implementation of gradient boosting decision tree. For implementation details, please see LightGBM's official [documentation](https://lightgbm.readthedocs.io/en/latest/index.html) or
+    /// [this](https://papers.nips.cc/paper/6907-lightgbm-a-highly-efficient-gradient-boosting-decision-tree.pdf) paper.
+    /// ]]>
+    /// </format>
+    /// </remarks>
+    /// <seealso cref="Microsoft.ML.LightGbmExtensions.LightGbm(Microsoft.ML.RegressionCatalog.RegressionTrainers,System.String,System.String,System.String,System.Nullable{System.Int32},System.Nullable{System.Int32},System.Nullable{System.Double},System.Int32)"/>
+    /// <seealso cref="Microsoft.ML.LightGbmExtensions.LightGbm(Microsoft.ML.RegressionCatalog.RegressionTrainers,Microsoft.ML.Trainers.LightGbm.LightGbmRegressionTrainer.Options)"/>
+    /// <seealso cref="Options"/>
     public sealed class LightGbmRegressionTrainer : LightGbmTrainerBase<LightGbmRegressionTrainer.Options,
                                                                             float,
                                                                             RegressionPredictionTransformer<LightGbmRegressionModelParameters>,
@@ -88,6 +111,10 @@ namespace Microsoft.ML.Trainers.LightGbm
 
         private protected override PredictionKind PredictionKind => PredictionKind.Regression;
 
+        /// <summary>
+        /// Options for the <see cref="LightGbmRegressionTrainer"/> as used in
+        /// [LightGbm(Options)](xref:Microsoft.ML.LightGbmExtensions.LightGbm(Microsoft.ML.RegressionCatalog.RegressionTrainers,Microsoft.ML.Trainers.LightGbm.LightGbmRegressionTrainer.Options)).
+        /// </summary>
         public sealed class Options : OptionsBase
         {
             public enum EvaluateMetricType
