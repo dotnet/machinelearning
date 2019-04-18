@@ -21,6 +21,8 @@ Fast generation of discrete random variables
 */
 namespace wood
 {
+	using namespace std;
+
     struct alias_k_v
     {
         int32_t k_;
@@ -108,7 +110,7 @@ namespace wood
             int32_t H_head = 0;
             int32_t H_tail = 0;
 
-			if (proportion_int_.size() > numeric_limits<int32_t>::max())
+			if (proportion_int_.size() > static_cast<uint32_t>(numeric_limits<int32_t>::max()))
 				bad_array_new_length();
 
 			int32_t size = static_cast<int32_t>(proportion_int_.size());
