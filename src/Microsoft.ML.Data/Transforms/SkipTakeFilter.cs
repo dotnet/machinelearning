@@ -26,8 +26,23 @@ using Microsoft.ML.Transforms;
 namespace Microsoft.ML.Transforms
 {
     /// <summary>
-    /// Allows limiting input to a subset of row at an optional offset.  Can be used to implement data paging.
+    /// Allows limiting input to a subset of row at an optional offset. It can either take first <see cref="_take"/> rows and ignore all others.
+    /// Or it can skip first <see cref="_skip"/> rows and returns the rest.
     /// </summary>
+    /// <remarks>
+    /// <format type="text/markdown"><![CDATA[
+    ///
+    /// ###  Estimator Characteristics
+    /// |  |  |
+    /// | -- | -- |
+    /// | Does this estimator need to look at the data to train its parameters? | No |
+    /// | Input column data type | Any |
+    /// | Output column data type | The same as the data type in the input column |
+    ///
+    /// ]]>
+    /// </format>
+    /// </remarks>
+    /// <seealso cref="Microsoft.ML.DataOperationsCatalog.SkipRows(Microsoft.ML.IDataView,System.Int64)" />
     [BestFriend]
     internal sealed class SkipTakeFilter : FilterBase, ITransformTemplate
     {
