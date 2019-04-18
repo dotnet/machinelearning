@@ -182,7 +182,7 @@ phases:
     _SignType: real
     _UseEsrpSigning: true
     _TeamName: DotNetCore
-    _NuGetFeedUrl: https://dotnet.myget.org/F/dotnet-core/api/v2/package
+    _NuGetFeedUrl: https://www.myget.org/F/shmoradi-mlnet2/api/v2/package
     _SymwebSymbolServerPath: https://microsoft.artifacts.visualstudio.com/DefaultCollection
     _MsdlSymbolServerPath: https://microsoftpublicsymbols.artifacts.visualstudio.com/DefaultCollection
   queue:
@@ -236,12 +236,12 @@ phases:
       nuGetFeedType: internal 
       feedPublish: MachineLearning
       
-  # - task: MSBuild@1
-  #   displayName: Publish Packages to MyGet Feed
-  #   inputs:
-  #     solution: build/publish.proj
-  #     msbuildArguments: /t:PublishPackages /p:NuGetFeedUrl=$(_NuGetFeedUrl) /p:NuGetApiKey=$(dotnet-myget-org-api-key)
-  #     msbuildVersion: 15.0
+  - task: MSBuild@1
+    displayName: Publish Packages to MyGet Feed
+    inputs:
+      solution: build/publish.proj
+      msbuildArguments: /t:PublishPackages /p:NuGetFeedUrl=$(_NuGetFeedUrl) /p:NuGetApiKey=$(myget-shmoradi-mlnet2-api-key)
+      msbuildVersion: 15.0
 
   - task: MSBuild@1
     displayName: Publish Symbols to SymWeb Symbol Server
