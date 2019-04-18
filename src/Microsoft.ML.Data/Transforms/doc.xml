@@ -13,41 +13,6 @@
         it will keep only the rows that have missing values.
       </remarks>
     </member>
-    <example name="NAFilter">
-      <example>
-        <code language="csharp">
-          pipeline.Add(new MissingValuesRowDropper(&quot;Column1&quot;));
-        </code>
-      </example>
-    </example>
-
-    <member name="TextToKey">
-      <summary>
-        Converts input values (words, numbers, etc.) to index in a dictionary.
-      </summary>
-      <remarks>
-        The TextToKeyConverter transform builds up term vocabularies (dictionaries).
-        The TextToKeyConverter and the <see cref="T:Microsoft.ML.Transforms.HashConverter"/> are the two one primary mechanisms by which raw input is transformed into keys.
-        If multiple columns are used, each column builds/uses exactly one vocabulary.
-        The output columns are KeyDataViewType-valued.
-        The Key value is the one-based index of the item in the dictionary.
-        If the key is not found in the dictionary, it is assigned the missing value indicator.
-        This dictionary mapping values to keys is most commonly learnt from the unique values in input data,
-        but can be defined through other means: either with the mapping defined directly on the command line, or as loaded from an external file.
-      </remarks>
-      <seealso cref="T:Microsoft.ML.Transforms.HashConverter"/>
-      <seealso cref="T:Microsoft.ML.Transforms.KeyToTextConverter"/>
-    </member>
-    <example name="TextToKey">
-      <example>
-        <code language="csharp">
-          pipeline.Add(new TextToKeyConverter((&quot;Column&quot;, &quot;OutColumn&quot;))
-          { 
-              Sort = TermTransformSortOrder.Occurrence 
-          });
-        </code>
-      </example>
-    </example>
 
     <member name="NAHandle">
       <summary>
@@ -83,16 +48,6 @@
       </remarks>
       <seealso cref="T:Microsoft.ML.Data.DataKind"/>
     </member>
-    <example name="NAHandle">
-      <example>
-        <code language="csharp">
-          pipeline.Add(new MissingValueHandler(&quot;FeatureCol&quot;, &quot;CleanFeatureCol&quot;)
-          {
-              ReplaceWith  = NAHandleTransformReplacementKind.Mean
-          });
-        </code>
-      </example>
-    </example>
     
   </members>
 </doc>

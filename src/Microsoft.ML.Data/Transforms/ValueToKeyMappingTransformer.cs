@@ -41,6 +41,9 @@ namespace Microsoft.ML.Transforms
     // * The Key value is the one-based index of the item in the dictionary.
     // * Not found is assigned the value zero.
     /// <include file='doc.xml' path='doc/members/member[@name="TextToKey"]/*' />
+    /// <summary>
+    /// <see cref="ITransformer"/> resulting from fitting a <see cref="ValueToKeyMappingEstimator"/>.
+    /// </summary>
     public sealed partial class ValueToKeyMappingTransformer : OneToOneTransformerBase
     {
         [BestFriend]

@@ -22,11 +22,10 @@ namespace Microsoft.ML
         /// Create a <see cref="HashingEstimator"/>, which hashes the data from the column specified in <paramref name="inputColumnName"/>
         /// to a new column: <paramref name="outputColumnName"/>.
         /// </summary>
-        /// <remarks>For more information see <see cref="HashingEstimator"/>.</remarks>
         /// <param name="catalog">The conversion transform's catalog.</param>
         /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.
         /// This column's data type will be a vector of <see cref="System.UInt32"/>, or a <see cref="System.UInt32"/> based on whether the input column data types
-        /// were vectors or scalars.</param>
+        /// are vectors or scalars.</param>
         /// <param name="inputColumnName">Name of the column whose data will be hashed.
         /// If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.
         /// This estimator operates over text, numeric, boolean, <see cref="KeyDataViewType"/> or <see cref="DataViewRowId"/> data types. </param>
@@ -50,8 +49,7 @@ namespace Microsoft.ML
         /// Create a <see cref="HashingEstimator"/>, which hashes the data from the column specified in <see cref="InputOutputColumnPair.InputColumnName" />
         /// to a new column: <see cref="InputOutputColumnPair.OutputColumnName" />.
         /// </summary>
-        /// <remarks>This transform can operate over several columns.
-        /// For more information see <see cref="HashingEstimator"/>.</remarks>
+        /// <remarks>This transform can operate over several columns.</remarks>
         /// <param name="catalog">The transform's catalog.</param>
         /// <param name="columns">The pairs of input and output columns.
         /// This estimator operates over text, numeric, boolean and <see cref="DataViewRowId"/> data types.
@@ -82,7 +80,7 @@ namespace Microsoft.ML
         /// <summary>
         /// Create a <see cref="TypeConvertingEstimator"/>, which convertes the type of the data to the type specified in <paramref name="outputKind"/>.
         /// </summary>
-        /// <remarks>This transform can operate over several columns.For more information see <see cref="TypeConvertingEstimator"/>.</remarks>
+        /// <remarks>This transform can operate over several columns.</remarks>
         /// <param name="catalog">The conversion transform's catalog.</param>
         /// <param name="columns">Specifies the names of the columns on which to apply the transformation.
         /// This transform operates over numeric, boolean, text, <see cref="System.DateTime"/> and <see cref="KeyDataViewType"/> data types.</param>
@@ -107,7 +105,7 @@ namespace Microsoft.ML
         /// Create a <see cref="TypeConvertingEstimator"/>, which convertes the type of the data in the <see cref="TypeConvertingEstimator.ColumnOptions.InputColumnName"/>
         /// to the type specified in the <see cref="TypeConvertingEstimator.ColumnOptions.OutputKind"/>
         /// </summary>
-        /// <remarks>This transform can operate over several columns.For more information see <see cref="TypeConvertingEstimator"/>.</remarks>
+        /// <remarks>This transform can operate over several columns.</remarks>
         /// <param name="catalog">The conversion transform's catalog.</param>
         /// <param name="columns">Description of dataset columns and how to process them.
         /// This transform operates over numeric, boolean, text, <see cref="System.DateTime"/> and <see cref="KeyDataViewType"/> data types.</param>
@@ -118,7 +116,7 @@ namespace Microsoft.ML
         /// <summary>
         /// Create a <see cref="KeyToValueMappingEstimator"/>, which converts the key types back to their original values.
         /// </summary>
-        /// <remarks>For more information see <see cref="KeyToValueMappingEstimator"/>. This transform often is in the pipeline after one of the overloads of
+        /// <remarks>This transform often is in the pipeline after one of the overloads of
         /// <see cref="MapValueToKey(TransformsCatalog.ConversionTransforms, InputOutputColumnPair[], int, ValueToKeyMappingEstimator.KeyOrdinality, bool, IDataView)"/></remarks>
         /// <param name="catalog">The conversion transform's catalog.</param>
         /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.
@@ -138,7 +136,7 @@ namespace Microsoft.ML
         /// <summary>
         /// Create a <see cref="KeyToValueMappingEstimator"/>, which convert the key types back to their original values.
         /// </summary>
-        /// <remarks>This transform can operate over several columns.For more information see <see cref="KeyToValueMappingEstimator"/>.
+        /// <remarks>This transform can operate over several columns.
         /// This transform often is in the pipeline after one of the overloads of
         /// <see cref="MapValueToKey(TransformsCatalog.ConversionTransforms, InputOutputColumnPair[], int, ValueToKeyMappingEstimator.KeyOrdinality, bool, IDataView)"/></remarks>
         /// <param name="catalog">The conversion transform's catalog.</param>
@@ -162,7 +160,7 @@ namespace Microsoft.ML
         /// <summary>
         /// Create a <see cref="KeyToVectorMappingEstimator"/>, which maps key types or key values into a floating point vector.
         /// </summary>
-        /// <remarks>This transform can operate over several columns.For more information see <see cref="KeyToVectorMappingEstimator"/>.</remarks>
+        /// <remarks>This transform can operate over several columns.</remarks>
         /// <param name="catalog">The conversion transform's catalog.</param>
         /// <param name="columns">The input column to map back to the vector representing the original value.</param>
         [BestFriend]
@@ -193,8 +191,7 @@ namespace Microsoft.ML
         /// <summary>
         /// Create a <see cref="KeyToVectorMappingEstimator"/>, which maps key types or key values into columns of floating point vectors.
         /// </summary>
-        /// <remarks>This transform can operate over several columns of <see cref="KeyDataViewType"/> data types.
-        /// For more information see <see cref="KeyToVectorMappingEstimator"/>.</remarks>
+        /// <remarks>This transform can operate over several columns of <see cref="KeyDataViewType"/> data types.</remarks>
         /// <param name="catalog">The conversion transform's catalog.</param>
         /// <param name="columns">Specifies the names of the columns of <see cref="KeyDataViewType"/> data types on which to apply the transformation.
         /// The new column's data type is a vector representing the original value.</param>
@@ -219,7 +216,6 @@ namespace Microsoft.ML
         /// <summary>
         /// Create a <see cref="ValueToKeyMappingEstimator"/>, which converts value types into <see cref="KeyDataViewType"/>.
         /// </summary>
-        /// <remarks>For more information see <see cref="ValueToKeyMappingEstimator"/>.</remarks>
         /// <param name="catalog">The conversion transform's catalog.</param>
         /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.</param>
         /// <param name="inputColumnName">Name of the column to transform. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.
@@ -252,7 +248,7 @@ namespace Microsoft.ML
         /// <summary>
         /// Create a <see cref="ValueToKeyMappingEstimator"/>, which converts value types into <see cref="KeyDataViewType"/>.
         /// </summary>
-        /// <remarks>This transform can operate over several columns.For more information see <see cref="ValueToKeyMappingEstimator"/>.</remarks>
+        /// <remarks>This transform can operate over several columns.</remarks>
         /// <param name="catalog">The conversion transform's catalog.</param>
         /// <param name="columns">Specifies the names of the columns on which to apply the transformation.
         /// The input data types can be numeric, text, boolean, <see cref="System.DateTime"/> or <see cref="System.DateTimeOffset"/>.
@@ -285,9 +281,9 @@ namespace Microsoft.ML
         }
 
         /// <summary>
-        /// Create a <see cref="ValueToKeyMappingEstimator"/>, which onverts value types into <see cref="KeyDataViewType"/>, optionally loading the keys to use from <paramref name="keyData"/>.
+        /// Create a <see cref="ValueToKeyMappingEstimator"/>, which converts value types into <see cref="KeyDataViewType"/>, optionally loading the keys to use from <paramref name="keyData"/>.
         /// </summary>
-        /// <remarks>This transform can operate over several columns.For more information see <see cref="ValueToKeyMappingEstimator"/>.</remarks>
+        /// <remarks>This transform can operate over several columns.</remarks>
         /// <param name="catalog">The conversion transform's catalog.</param>
         /// <param name="columns">The data columns to map to keys.
         /// The input data types can be numeric, text, boolean, <see cref="System.DateTime"/> or <see cref="System.DateTimeOffset"/>.
@@ -301,14 +297,17 @@ namespace Microsoft.ML
             => new ValueToKeyMappingEstimator(CatalogUtils.GetEnvironment(catalog), columns, keyData);
 
         /// <summary>
-        /// Create a <see cref="ValueMappingEstimator"/>, which onverts value types into <see cref="KeyDataViewType"/>, loading the keys to use from <paramref name="keyValuePairs"/>.
+        /// Create a <see cref="ValueMappingEstimator"/>, which converts value types into <see cref="KeyDataViewType"/>, loading the keys to use from <paramref name="keyValuePairs"/>.
         /// </summary>
         /// <typeparam name="TInputType">The key type.</typeparam>
         /// <typeparam name="TOutputType">The value type.</typeparam>
         /// <param name="catalog">The conversion transform's catalog</param>
-        /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.</param>
+        /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.
+        /// The output data types can be primitives, or vectors of numeric, text, boolean, <see cref="System.DateTime"/>, <see cref="System.DateTimeOffset"/> or <see cref="DataViewRowId"/> types.</param>
         /// <param name="keyValuePairs">Specifies the mapping that will be perfomed. The keys will be mapped to the values as specified in the <paramref name="keyValuePairs"/>.</param>
-        /// <param name="inputColumnName">Name of the column to transform. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.
+        /// <param name="inputColumnName">Name of the column to transform.
+        /// If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.
+        /// The input data types can be primitives or vectors of numeric, text, boolean, <see cref="System.DateTime"/>, <see cref="System.DateTimeOffset"/> or <see cref="DataViewRowId"/> types.
         /// </param>
         /// <param name="treatValuesAsKeyType">Whether to treat the values as a <see cref="KeyDataViewType"/>.</param>
         /// <returns>An instance of the <see cref="ValueMappingEstimator"/></returns>
@@ -339,15 +338,16 @@ namespace Microsoft.ML
         }
 
         /// <summary>
-        /// Create a <see cref="ValueToKeyMappingEstimator"/>, which converts value types into <see cref="KeyDataViewType"/>, loading the keys to use from <paramref name="keyValuePairs"/>.
+        /// Create a <see cref="ValueMappingEstimator"/>, which converts value types into <see cref="KeyDataViewType"/>, loading the keys to use from <paramref name="keyValuePairs"/>.
         /// </summary>
-        /// <remarks>This transform can operate over several columns.For more information see <see cref="ValueMappingEstimator"/>.</remarks>
+        /// <remarks>This transform can operate over several columns.</remarks>
         /// <typeparam name="TInputType">The key type.</typeparam>
         /// <typeparam name="TOutputType">The value type.</typeparam>
         /// <param name="catalog">The conversion transform's catalog</param>
         /// <param name="keyValuePairs">Specifies the mapping that will be perfomed. The keys will be mapped to the values as specified in the <paramref name="keyValuePairs"/>.</param>
-        /// <param name="columns">The columns to apply this transform on.</param>
-        /// <returns>An instance of the <see cref="ValueMappingEstimator"/></returns>
+        /// <param name="columns">The columns to apply this transform on.
+        /// The data types can be primitives or vectors of numeric, text, boolean, <see cref="System.DateTime"/>, <see cref="System.DateTimeOffset"/> or <see cref="DataViewRowId"/> types.
+        /// </param>
         [BestFriend]
         internal static ValueMappingEstimator<TInputType, TOutputType> MapValue<TInputType, TOutputType>(
             this TransformsCatalog.ConversionTransforms catalog,
@@ -370,16 +370,17 @@ namespace Microsoft.ML
         }
 
         /// <summary>
-        /// Create a <see cref="ValueToKeyMappingEstimator"/>, which onverts value types into <see cref="KeyDataViewType"/>, loading the keys to use from <paramref name="keyValuePairs"/>.
+        /// Create a <see cref="ValueMappingEstimator"/>, which onverts value types into <see cref="KeyDataViewType"/>, loading the keys to use from <paramref name="keyValuePairs"/>.
         /// </summary>
-        /// <remarks>This transform can operate over several columns.For more information see <see cref="ValueMappingEstimator"/>.</remarks>
+        /// <remarks>This transform can operate over several columns.</remarks>
         /// <typeparam name="TInputType">The key type.</typeparam>
         /// <typeparam name="TOutputType">The value type.</typeparam>
         /// <param name="catalog">The conversion transform's catalog</param>
         /// <param name="keyValuePairs">Specifies the mapping that will be perfomed. The keys will be mapped to the values as specified in the <paramref name="keyValuePairs"/>.</param>
         /// <param name="treatValuesAsKeyType">Whether to treat the values as a <see cref="KeyDataViewType"/>.</param>
-        /// <param name="columns">The columns to apply this transform on.</param>
-        /// <returns>An instance of the <see cref="ValueMappingEstimator"/></returns>
+        /// <param name="columns">The columns to apply this transform on.
+        /// The data types can be primitives or vectors of numeric, text, boolean, <see cref="System.DateTime"/>, <see cref="System.DateTimeOffset"/> or <see cref="DataViewRowId"/> types.
+        /// </param>
         [BestFriend]
         internal static ValueMappingEstimator<TInputType, TOutputType> MapValue<TInputType, TOutputType>(
             this TransformsCatalog.ConversionTransforms catalog,
@@ -403,15 +404,18 @@ namespace Microsoft.ML
         }
 
         /// <summary>
-        /// Create a <see cref="ValueToKeyMappingEstimator"/>, which onverts value types into <see cref="KeyDataViewType"/>, loading the keys to use from <paramref name="keyValuePairs"/>.
+        /// Create a <see cref="ValueMappingEstimator"/>, which onverts value types into <see cref="KeyDataViewType"/>, loading the keys to use from <paramref name="keyValuePairs"/>.
         /// </summary>
         /// <typeparam name="TInputType">The key type.</typeparam>
         /// <typeparam name="TOutputType">The value type.</typeparam>
         /// <param name="catalog">The conversion transform's catalog</param>
-        /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.</param>
+        /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.
+        /// The data types can be primitives or vectors of numeric, text, boolean, <see cref="System.DateTime"/>, <see cref="System.DateTimeOffset"/> or <see cref="DataViewRowId"/> types,
+        /// as specified in the <typeparamref name="TOutputType"/>.</param>
         /// <param name="keyValuePairs">Specifies the mapping that will be perfomed. The keys will be mapped to the values as specified in the <paramref name="keyValuePairs"/>.</param>
-        /// <param name="inputColumnName">Name of the column to transform. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.</param>
-        /// <returns>An instance of the <see cref="ValueMappingEstimator"/></returns>
+        /// <param name="inputColumnName">Name of the column to transform. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.
+        /// The data types can be primitives or vectors of numeric, text, boolean, <see cref="System.DateTime"/>, <see cref="System.DateTimeOffset"/> or <see cref="DataViewRowId"/> types,
+        /// as specified in the <typeparamref name="TInputType"/>.</param>
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
@@ -439,15 +443,15 @@ namespace Microsoft.ML
         }
 
         /// <summary>
-        /// Create a <see cref="ValueToKeyMappingEstimator"/>, which onverts value types into <see cref="KeyDataViewType"/>, loading the keys to use from <paramref name="keyValuePairs"/>.
+        /// Create a <see cref="ValueMappingEstimator"/>, which onverts value types into <see cref="KeyDataViewType"/>, loading the keys to use from <paramref name="keyValuePairs"/>.
         /// </summary>
-        /// <remarks>This transform can operate over several columns.For more information see <see cref="ValueMappingEstimator"/>.</remarks>
+        /// <remarks>This transform can operate over several columns.</remarks>
         /// <typeparam name="TInputType">The key type.</typeparam>
         /// <typeparam name="TOutputType">The value type.</typeparam>
         /// <param name="catalog">The conversion transform's catalog</param>
         /// <param name="keyValuePairs">Specifies the mapping that will be perfomed. The keys will be mapped to the values as specified in the <paramref name="keyValuePairs"/>.</param>
-        /// <param name="columns">The columns to apply this transform on.</param>
-        /// <returns>An instance of the <see cref="ValueMappingEstimator"/></returns>
+        /// <param name="columns">The columns to apply this transform on.The data types can be primitives or vectors of numeric, text, boolean, <see cref="System.DateTime"/>,
+        /// <see cref="System.DateTimeOffset"/> or <see cref="DataViewRowId"/> types, as specified in the <typeparamref name="TInputType"/> and <typeparamref name="TOutputType"/>.</param>
         [BestFriend]
         internal static ValueMappingEstimator<TInputType, TOutputType> MapValue<TInputType, TOutputType>(
             this TransformsCatalog.ConversionTransforms catalog,
@@ -470,16 +474,19 @@ namespace Microsoft.ML
         }
 
         /// <summary>
-        /// Create a <see cref="ValueToKeyMappingEstimator"/>, which converts value types into <see cref="KeyDataViewType"/>, loading the keys to use from the <paramref name="lookupMap"/> where the <paramref name="keyColumn"/>
+        /// Create a <see cref="ValueMappingEstimator"/>, which converts value types into <see cref="KeyDataViewType"/>, loading the keys to use from the <paramref name="lookupMap"/> where the <paramref name="keyColumn"/>
         /// specifies the keys, and the <paramref name="valueColumn"/> the respective value.
         /// </summary>
         /// <param name="catalog">The conversion transform's catalog</param>
-        /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.</param>
+        /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.
+        /// The data types can be primitives or vectors of numeric, text, boolean, <see cref="System.DateTime"/>, <see cref="System.DateTimeOffset"/>
+        /// or <see cref="DataViewRowId"/> types.</param>
         /// <param name="lookupMap">An instance of <see cref="IDataView"/> that contains the <paramref name="keyColumn"/> and <paramref name="valueColumn"/> columns.</param>
         /// <param name="keyColumn">The key column in <paramref name="lookupMap"/>.</param>
         /// <param name="valueColumn">The value column in <paramref name="lookupMap"/>.</param>
-        /// <param name="inputColumnName">Name of the column to transform. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.</param>
-        /// <returns>A instance of the ValueMappingEstimator</returns>
+        /// <param name="inputColumnName">Name of the column to transform. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.
+        /// The data types can be primitives or vectors of numeric, text, boolean, <see cref="System.DateTime"/>, <see cref="System.DateTimeOffset"/>
+        /// or <see cref="DataViewRowId"/> types.</param>
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
@@ -495,16 +502,16 @@ namespace Microsoft.ML
         }
 
         /// <summary>
-        /// Create a <see cref="ValueToKeyMappingEstimator"/>, which converts value types into <see cref="KeyDataViewType"/>, loading the keys to use from the <paramref name="lookupMap"/> where the <paramref name="keyColumn"/>
+        /// Create a <see cref="ValueMappingEstimator"/>, which converts value types into <see cref="KeyDataViewType"/>,
+        /// loading the keys to use from the <paramref name="lookupMap"/> where the <paramref name="keyColumn"/>
         /// specifies the keys, and the <paramref name="valueColumn"/> the respective value.
         /// </summary>
-        /// <remarks>This transform can operate over several columns.For more information see <see cref="ValueMappingEstimator"/>.</remarks>
+        /// <remarks>This transform can operate over several columns.</remarks>
         /// <param name="catalog">The conversion transform's catalog</param>
         /// <param name="lookupMap">An instance of <see cref="IDataView"/> that contains the <paramref name="keyColumn"/> and <paramref name="valueColumn"/> columns.</param>
         /// <param name="keyColumn">The key column in <paramref name="lookupMap"/>.</param>
         /// <param name="valueColumn">The value column in <paramref name="lookupMap"/>.</param>
         /// <param name="columns">The columns to apply this transform on.</param>
-        /// <returns>A instance of the ValueMappingEstimator</returns>
         [BestFriend]
         internal static ValueMappingEstimator MapValue(
             this TransformsCatalog.ConversionTransforms catalog,

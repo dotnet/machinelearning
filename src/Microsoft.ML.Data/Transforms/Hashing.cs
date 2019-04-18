@@ -29,9 +29,7 @@ using Microsoft.ML.Transforms;
 namespace Microsoft.ML.Transforms
 {
     /// <summary>
-    /// This transformer can hash either single valued columns or vector columns. For vector columns,
-    /// it hashes each slot separately.
-    /// It can hash either text values or key values.
+    /// <see cref="ITransformer"/> resulting from fitting a <see cref="HashingEstimator"/>.
     /// </summary>
     public sealed class HashingTransformer : OneToOneTransformerBase
     {
@@ -1104,9 +1102,23 @@ namespace Microsoft.ML.Transforms
     }
 
     /// <summary>
-    /// Estimator for <see cref="HashingTransformer"/> which can hash either single valued columns or vector columns. For vector columns,
-    /// it hashes each slot separately. It can hash either text values or key values.
+    /// Estimator for <see cref="HashingTransformer"/>. hash either single valued columns or vector columns. For vector columns,
+    /// it hashes each slot separately.
     /// </summary>
+    /// <remarks>
+    /// <format type="text/markdown"><![CDATA[
+    ///
+    /// ###  Estimator Characteristics
+    /// |  |  |
+    /// | -- | -- |
+    /// | Does this estimator need to look at the data to train its parameters? | Yes, if the mapping of the hashes to the values is required. |
+    /// | Input column data type | Vector or primitive of text or [KeyDataViewType](xref:Microsoft.ML.Data.KeyDataViewType) data types.|
+    /// | Output column data type | Vector or primitive [System.Int32](xref:System.Int32).|
+    ///
+    /// ]]></format>
+    /// </remarks>
+    /// <seealso cref="ConversionsExtensionsCatalog.Hash(TransformsCatalog.ConversionTransforms, HashingEstimator.ColumnOptions[])"/>
+    /// <seealso cref="ConversionsExtensionsCatalog.Hash(TransformsCatalog.ConversionTransforms, string, string, int, int)"/>
     public sealed class HashingEstimator : IEstimator<HashingTransformer>
     {
         internal const int NumBitsMin = 1;

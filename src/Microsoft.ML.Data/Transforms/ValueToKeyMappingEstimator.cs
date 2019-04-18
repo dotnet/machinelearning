@@ -9,10 +9,21 @@ using Microsoft.ML.Runtime;
 
 namespace Microsoft.ML.Transforms
 {
+
     /// <summary>
-    /// Converts input values (words, numbers, etc.) to index in a dictionary.
+    /// Estimator for <see cref="ValueToKeyMappingTransformer"/>. Converts input values (words, numbers, etc.) to index in a dictionary.
+    /// <see cref="PrimitiveDataViewType"/>
     /// </summary>
     /// <remarks>
+    /// <format type="text/markdown"><![CDATA[
+    ///
+    /// ###  Estimator Characteristics
+    /// |  |  |
+    /// | -- | -- |
+    /// | Does this estimator need to look at the data to train its parameters? | Yes |
+    /// | Input column data type | Vector or primitive numeric, boolean, text, [System.DateTime](xref:System.DateTime) and [KeyDataViewType](xref:Microsoft.ML.Data.KeyDataViewType) data types.|
+    /// | Output column data type | [KeyDataViewType](xref:Microsoft.ML.Data.KeyDataViewType)|
+    ///
     /// The ValueToKeyMappingEstimator builds up term vocabularies(dictionaries) mapping the input values to the keys on the dictionary.
     /// If multiple columns are used, each column builds/uses exactly one vocabulary.
     /// The output columns are KeyDataViewType-valued.
@@ -20,7 +31,11 @@ namespace Microsoft.ML.Transforms
     /// If the key is not found in the dictionary, it is assigned the missing value indicator.
     /// This dictionary mapping values to keys is most commonly learnt from the unique values in input data,
     /// but can be defined through other means: either with the mapping defined, or as loaded from an external file.
-    ///  </remarks>
+    /// ]]></format>
+    /// </remarks>
+    /// <seealso cref="ConversionsExtensionsCatalog.MapValueToKey(TransformsCatalog.ConversionTransforms, InputOutputColumnPair[], int, KeyOrdinality, bool, IDataView)"/>
+    /// <seealso cref="ConversionsExtensionsCatalog.MapValueToKey(TransformsCatalog.ConversionTransforms, string, string, int, KeyOrdinality, bool, IDataView)"/>
+    /// <seealso cref="ConversionsExtensionsCatalog.MapValueToKey(TransformsCatalog.ConversionTransforms, ValueToKeyMappingEstimator.ColumnOptions[], IDataView)"/>
     public sealed class ValueToKeyMappingEstimator : IEstimator<ValueToKeyMappingTransformer>
     {
         [BestFriend]
