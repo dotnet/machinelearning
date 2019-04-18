@@ -4,6 +4,6 @@ The input features column data must be a known-sized vector of <xref:System.Sing
 
 | Output Column Name | Column Type | Description|
 | -- | -- | -- |
-| `Score` | <xref:System.Single> | The unbounded score that was calculated by the predictor to determine the prediction.|
-| `PredictedLabel` | <xref:System.Boolean> | The label predicted by the predictor. `false` maps to negative score and `true` maps to positive score.|
-| `Probability` | <xref:System.Single> | The probability calculated by the predictor of having true as the label. Probability value is in range [0, 1].||
+| `Score` | <xref:System.Single> | The unbounded score that was calculated by the model.|
+| `PredictedLabel` | <xref:System.Boolean> | The predicted label, based on the sign of the score. A negative score maps to `false` and a positive score maps to `true`.|
+| `Probability` | <xref:System.Single> | The probability calculated by calibrating the score of having true as the label. Probability value is in range [0, 1].||
