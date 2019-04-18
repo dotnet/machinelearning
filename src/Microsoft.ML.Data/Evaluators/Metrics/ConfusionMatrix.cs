@@ -51,7 +51,7 @@ namespace Microsoft.ML.Data
 
         /// <summary>
         /// The confusion matrix as a structured type, built from the counts of the confusion table <see cref="IDataView"/> that the <see cref="BinaryClassifierEvaluator"/> or
-        /// the <see cref="MulticlassClassificationEvaluator"/> construct.
+        /// the <see cref="MulticlassClassificationEvaluator"/> constructor.
         /// </summary>
         /// <param name="host">The IHost instance. </param>
         /// <param name="precision">The values of precision per class.</param>
@@ -96,8 +96,8 @@ namespace Microsoft.ML.Data
         /// Returns a human readable representation of the confusion table.
         /// </summary>
         /// <returns></returns>
-        public string GetFormattedConfusionTable() {
-
+        public string GetFormattedConfusionTable()
+        {
             if(_formattedConfusionMatrix == null)
                 _formattedConfusionMatrix = MetricWriter.GetConfusionTableAsString(this, false);
 
