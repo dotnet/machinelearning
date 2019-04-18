@@ -28,7 +28,6 @@ namespace Microsoft.ML.Trainers
     /// <summary>
     /// The <see cref="IEstimator{TTransformer}"/> to predict a target using a linear binary classification model
     /// trained with Linear SVM.
-    /// Linear SVM that implements PEGASOS for training. See: http://ttic.uchicago.edu/~shai/papers/ShalevSiSr07.pdf
     /// </summary>
     /// <remarks>
     /// <format type="text/markdown"><![CDATA[
@@ -46,7 +45,8 @@ namespace Microsoft.ML.Trainers
     /// | Required NuGet in addition to Microsoft.ML | None |
     ///
     /// ### Training Algorithm Details
-    /// Linear SVM is an algorithm that trains a model which is a separating hyperplane (a linear binary classification model).
+    /// Linear [SVM](https://en.wikipedia.org/wiki/Support-vector_machine#Linear_SVM) is a trainer that implements
+    /// an algorithm that finds a hyperplane in the feature space for binary classification, by solving an [SVM problem](https://en.wikipedia.org/wiki/Support-vector_machine#Computing_the_SVM_classifier).
     /// For instance, with feature values $f_0, f_1,..., f_{D-1}$, the prediction is given by determining what side of the hyperplane the point falls into.
     /// That is the same as the sign of the feautures' weighted sum, i.e. $\sum_{i = 0}^{D-1} \left(w_i * f_i \right)$, where $w_0, w_1,..., w_{D-1}$ are the weights computed by the algorithm.
     ///

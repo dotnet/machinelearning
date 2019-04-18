@@ -819,7 +819,7 @@ namespace Microsoft.ML
         }
 
         /// <summary>
-        /// Create a <see cref="LinearSvmTrainer"/>, which predicts a target using a linear binary classification model
+        /// Create a <see cref="LinearSvmTrainer"/> with advanced options, which predicts a target using a linear binary classification model
         /// trained over boolean label data.
         /// </summary>
         /// <param name="catalog">The binary classification catalog trainer object.</param>
