@@ -608,8 +608,8 @@ namespace Microsoft.ML.Transforms
     /// |  |  |
     /// | -- | -- |
     /// | Does this estimator need to look at the data to train its parameters? | Yes |
-    /// | Input column data type | Vector of floats |
-    /// | Output column data type | Vector of floats |
+    /// | Input column data type | Known-sized vector of <xref:System.Single> |
+    /// | Output column data type | Known-sized vector of <xref:System.Single> |
     ///
     /// The resulting <xref:Microsoft.ML.Transforms.ApproximatedKernelTransformer> creates a new column, named as specified in
     /// the output column name parameters, where each input vector is mapped to a feature space where inner products
