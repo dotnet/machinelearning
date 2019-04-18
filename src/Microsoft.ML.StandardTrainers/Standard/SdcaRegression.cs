@@ -24,7 +24,38 @@ namespace Microsoft.ML.Trainers
     /// <summary>
     /// The <see cref="IEstimator{TTransformer}"/> for training a regression model using the stochastic dual coordinate ascent method.
     /// </summary>
-    /// <include file='doc.xml' path='doc/members/member[@name="SDCA_remarks"]/*' />
+    /// <remarks>
+    /// <format type="text/markdown"><![CDATA[
+    /// To create this trainer, use [Sdca](xref:Microsoft.ML.StandardTrainersCatalog.Sdca(Microsoft.ML.RegressionCatalog.RegressionTrainers,System.String,System.String,System.String,Microsoft.ML.Trainers.ISupportSdcaRegressionLoss,System.Nullable{System.Single},System.Nullable{System.Single},System.Nullable{System.Int32}))
+    /// or [Sdca(Options)](xref:Microsoft.ML.StandardTrainersCatalog.Sdca(Microsoft.ML.RegressionCatalog.RegressionTrainers,Microsoft.ML.Trainers.SdcaRegressionTrainer.Options)).
+    ///
+    /// [!include[io](~/../docs/samples/docs/api-reference/io-columns-regression.md)]
+    ///
+    /// ### Trainer Characteristics
+    /// |  |  |
+    /// | -- | -- |
+    /// | Machine learning task | Regression |
+    /// | Is normalization required? | Yes |
+    /// | Is caching required? | No |
+    /// | Required NuGet in addition to Microsoft.ML | None |
+    ///
+    /// ### Training Algorithm Details
+    /// This trainer is based on the Stochastic Dual Coordinate Ascent (SDCA) method, a state-of-the-art optimization technique for convex objective functions.
+    /// The algorithm can be scaled for use on large out-of-memory data sets due to a semi-asynchronized implementation that supports multi-threading.
+    /// Convergence is underwritten by periodically enforcing synchronization between primal and dual updates in a separate thread.
+    /// Several choices of loss functions are also provided.The SDCA method combines several of the best properties and capabilities of logistic regression and SVM algorithms.
+    /// Note that SDCA is a stochastic and streaming optimization algorithm. The results depends on the order of the training data.
+    /// For reproducible results, it is recommended that one sets 'Shuffle' to False and 'NumThreads' to 1.
+    /// Elastic net regularization can be specified by the 'L2Const' and 'L1Threshold' parameters. Note that the 'L2Const' has an effect on the rate of convergence.
+    /// In general, the larger the 'L2Const', the faster SDCA converges.
+    /// For more information, see: [Scaling Up Stochastic Dual Coordinate Ascent](https://www.microsoft.com/en-us/research/wp-content/uploads/2016/06/main-3.pdf ) and
+    /// [Stochastic Dual Coordinate Ascent Methods for Regularized Loss Minimization](http://www.jmlr.org/papers/volume14/shalev-shwartz13a/shalev-shwartz13a.pdf).
+    /// ]]>
+    /// </format>
+    /// </remarks>
+    /// <seealso cref="Microsoft.ML.StandardTrainersCatalog.Sdca(Microsoft.ML.RegressionCatalog.RegressionTrainers,System.String,System.String,System.String,Microsoft.ML.Trainers.ISupportSdcaRegressionLoss,System.Nullable{System.Single},System.Nullable{System.Single},System.Nullable{System.Int32})"/>
+    /// <seealso cref="Microsoft.ML.StandardTrainersCatalog.Sdca(Microsoft.ML.RegressionCatalog.RegressionTrainers,Microsoft.ML.Trainers.SdcaRegressionTrainer.Options)"/>
+    /// <seealso cref="Options"/>
     public sealed class SdcaRegressionTrainer : SdcaTrainerBase<SdcaRegressionTrainer.Options, RegressionPredictionTransformer<LinearRegressionModelParameters>, LinearRegressionModelParameters>
     {
         internal const string LoadNameValue = "SDCAR";
