@@ -510,8 +510,8 @@ namespace Microsoft.ML.Transforms
     /// |  |  |
     /// | -- | -- |
     /// | Does this estimator need to look at the data to train its parameters? | No |
-    /// | Input column data type | KeyDataViewType |
-    /// | Output column data type | Type of the original data, conveted to KeyDataViewType. |
+    /// | Input column data type | [KeyDataViewType](xref:Microsoft.ML.Data.KeyDataViewType) |
+    /// | Output column data type | Type of the original data, prior to converting to [KeyDataViewType](xref:Microsoft.ML.Data.KeyDataViewType). |
     ///
     /// ]]></format>
     /// </remarks>
