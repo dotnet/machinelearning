@@ -41,10 +41,10 @@ namespace Microsoft.ML.Trainers
     /// or [FieldAwareFactorizationMachine(Options)](xref:Microsoft.ML.FactorizationMachineExtensions.FieldAwareFactorizationMachine(Microsoft.ML.BinaryClassificationCatalog.BinaryClassificationTrainers,Microsoft.ML.Trainers.FieldAwareFactorizationMachineTrainer.Options)).
     ///
     /// In contrast to other binary classifiers which can only support one feature column, field-aware factorization machine can consume multiple feature columns.
-    /// Each column is viewed a container of some fatures and such a container is called a field.
-    /// The motivation of splitting features into different fields is to model features from different distributions in a different way.
+    /// Each column is viewed as a container of some fatures and such a container is called a field.
+    /// Note that all feature columns must be float vectors but their dimensions can be different.
+    /// The motivation of splitting features into different fields is to model features from different distributions independently.
     /// For example, in online game store, features created from user profile and those from game profile can be assigned to two different fields.
-    /// All feature columns must be float vectors but their dimensions can be different.
     ///
     /// ### Trainer Characteristics
     /// |  |  |
@@ -57,8 +57,8 @@ namespace Microsoft.ML.Trainers
     /// ### Background
     /// Factorization machine family is a powerful model group for supervised learning problems.
     /// It was first introduced in Steffen Rendle's [Factorization Machines](http://ieeexplore.ieee.org/document/5694074/?reload=true) paper in 2010.
-    /// Later, one of its generalized version, field-aware factorization machine, became an important predictive module in recent recommender systems and click-through rate prediction contests.
-    /// For examples, see winning solutions in Steffen Rendle's KDD-Cup 2012 ([Track 1](http://www.kdd.org/kdd-cup/view/kdd-cup-2012-track-1) and[Track 2](http://www.kdd.org/kdd-cup/view/kdd-cup-2012-track-2)),
+    /// Later, one of its generalized versions, field-aware factorization machine, became an important predictive module in recent recommender systems and click-through rate prediction contests.
+    /// For examples, see winning solutions in Steffen Rendle's KDD-Cup 2012 ([Track 1](http://www.kdd.org/kdd-cup/view/kdd-cup-2012-track-1) and [Track 2](http://www.kdd.org/kdd-cup/view/kdd-cup-2012-track-2)),
     /// [Criteo's](https://www.kaggle.com/c/criteo-display-ad-challenge), [Avazu's](https://www.kaggle.com/c/avazu-ctr-prediction), and [Outbrain's](https://www.kaggle.com/c/outbrain-click-prediction) click prediction challenges on Kaggle.
     ///
     /// Factorization machines are especially powerful when feature conjunctions are extremely correlated to the signal you want to predict.
@@ -71,7 +71,7 @@ namespace Microsoft.ML.Trainers
     /// The corresponding score is $\hat{y}\left(\boldsymbol{x}\right) = \left\langle \boldsymbol{w}, \boldsymbol{x} \right\rangle + \sum_{j = 1}^n \sum_{j' = j + 1}^n \left\langle \boldsymbol{v}_{j, {\mathcal F}(j')} , \boldsymbol{v}_{j', {\mathcal F}(j)} \right\rangle x_j x_{j'}$,
     /// where $\left\langle \cdot, \cdot \right\rangle$ is the inner product operator, $\boldsymbol{w}\in{\mathbb R}^n$ stores the linear coefficients, and $\boldsymbol{v}_{j, f}\in {\mathbb R}^k$ is the $j$-th feature's representation in the $f$-th field's latent space.
     /// Note that $k$ is the latent dimension specified by the user.
-    /// The predicted label is the sign of $\hat{y}$. If $\hat{y} > 0$, this model predicts true and false otherwise.
+    /// The predicted label is the sign of $\hat{y}$. If $\hat{y} > 0$, this model predicts true. Otherwise, it predicts false.
     /// For a systematic introduction to field-aware factorization machine, please see [this paper](https://www.csie.ntu.edu.tw/~cjlin/papers/ffm.pdf)
     ///
     /// ### Training Algorithm Details
