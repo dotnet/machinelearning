@@ -40,7 +40,7 @@ using Newtonsoft.Json.Linq;
 namespace Microsoft.ML.Trainers
 {
     /// <summary>
-    /// The <see cref="IEstimator{TTransformer}"/> to predict a target using a linear logistic regression model trained with L-BFGS method.
+    /// The <see cref="IEstimator{TTransformer}"/> to predict a target using a maximum entropy multiclass classifier trained with L-BFGS method.
     /// </summary>
     /// <remarks>
     /// <format type="text/markdown"><![CDATA[
