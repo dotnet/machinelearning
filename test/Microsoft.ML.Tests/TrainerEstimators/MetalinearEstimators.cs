@@ -64,7 +64,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                 new SdcaNonCalibratedBinaryTrainer.Options { MaximumNumberOfIterations = 100, Shuffle = true, NumberOfThreads = 1 });
 
             pipeline = pipeline.Append(ML.MulticlassClassification.Trainers.PairwiseCoupling(sdcaTrainer))
-                    .Append(ML.Transforms.Conversion.MapKeyToValue("PredictedLabel"));
+                    .Append(ML.Transforms.Conversion.MapKeyToValue("PredictedLabelValue", "PredictedLabel"));
 
             TestEstimatorCore(pipeline, data);
             Done();

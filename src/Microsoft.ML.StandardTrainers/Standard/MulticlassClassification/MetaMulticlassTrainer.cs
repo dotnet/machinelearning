@@ -160,39 +160,25 @@ namespace Microsoft.ML.Trainers
 
         private SchemaShape.Column[] GetOutputColumnsCore(SchemaShape inputSchema)
         {
+            SchemaShape.Column? labelCol = null;
+            var predictedLabelAnnotationCols = AnnotationUtils.GetTrainerOutputAnnotation();
+
             if (LabelColumn.IsValid)
             {
-                bool success = inputSchema.TryFindColumn(LabelColumn.Name, out var labelCol);
+                bool success = inputSchema.TryFindColumn(LabelColumn.Name, out var inputLabelCol);
                 Contracts.Assert(success);
-
-                var metadata = new SchemaShape(labelCol.Annotations.Where(x => x.Name == AnnotationUtils.Kinds.KeyValues)
-                                .Concat(MetadataForScoreColumn()));
-                return new[]
-                {
-                    new SchemaShape.Column(DefaultColumnNames.Score, SchemaShape.Column.VectorKind.Vector, NumberDataViewType.Single, false, new SchemaShape(AnnotationUtils.AnnotationsForMulticlassScoreColumn(labelCol))),
-                    new SchemaShape.Column(DefaultColumnNames.PredictedLabel, SchemaShape.Column.VectorKind.Scalar, NumberDataViewType.UInt32, true, metadata)
-                };
+                labelCol = inputLabelCol;
+                predictedLabelAnnotationCols = predictedLabelAnnotationCols.Concat(
+                    inputLabelCol.Annotations.Where(x => x.Name == AnnotationUtils.Kinds.KeyValues));
             }
-            else
-                return new[]
-                {
-                    new SchemaShape.Column(DefaultColumnNames.Score, SchemaShape.Column.VectorKind.Vector, NumberDataViewType.Single, false, new SchemaShape(MetadataForScoreColumn())),
-                    new SchemaShape.Column(DefaultColumnNames.PredictedLabel, SchemaShape.Column.VectorKind.Scalar, NumberDataViewType.UInt32, true, new SchemaShape(MetadataForScoreColumn()))
-                };
-        }
-
-        /// <summary>
-        /// Normal metadata that we produce for score columns.
-        /// </summary>
-        private static IEnumerable<SchemaShape.Column> MetadataForScoreColumn()
-        {
-            var cols = new List<SchemaShape.Column>();
-            cols.Add(new SchemaShape.Column(AnnotationUtils.Kinds.ScoreColumnSetId, SchemaShape.Column.VectorKind.Scalar, NumberDataViewType.UInt32, true));
-            cols.Add(new SchemaShape.Column(AnnotationUtils.Kinds.ScoreColumnKind, SchemaShape.Column.VectorKind.Scalar, TextDataViewType.Instance, false));
-            cols.Add(new SchemaShape.Column(AnnotationUtils.Kinds.SlotNames, SchemaShape.Column.VectorKind.Vector, TextDataViewType.Instance, false));
-            cols.Add(new SchemaShape.Column(AnnotationUtils.Kinds.ScoreValueKind, SchemaShape.Column.VectorKind.Scalar, TextDataViewType.Instance, false));
-
-            return cols;
+            var scoreAnnotationCols = AnnotationUtils.AnnotationsForMulticlassScoreColumn(labelCol);
+            return new[]
+            {
+                    new SchemaShape.Column(DefaultColumnNames.Score, SchemaShape.Column.VectorKind.Vector, NumberDataViewType.Single,
+                        false, new SchemaShape(scoreAnnotationCols)),
+                    new SchemaShape.Column(DefaultColumnNames.PredictedLabel, SchemaShape.Column.VectorKind.Scalar, NumberDataViewType.UInt32,
+                        true, new SchemaShape(predictedLabelAnnotationCols))
+            };
         }
 
         IPredictor ITrainer.Train(TrainContext context) => ((ITrainer<IPredictor>)this).Train(context);
