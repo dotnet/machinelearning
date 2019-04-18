@@ -377,9 +377,9 @@ namespace lda {
         std::vector<std::pair<int, double>> llcontainer;
         // Set core affinity which helps performance improvement
 #ifdef _MSC_VER
-		DWORD maskLL = 0;
+        DWORD maskLL = 0;
         maskLL |= (1LL << (thread_id));
-		DWORD_PTR mask = maskLL;
+        DWORD_PTR mask = maskLL;
         SetThreadAffinityMask(GetCurrentThread(), mask);
 #elif defined(__APPLE__)
         thread_port_t thread = pthread_mach_thread_np(pthread_self());

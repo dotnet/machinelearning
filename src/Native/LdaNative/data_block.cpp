@@ -10,14 +10,14 @@
 
 namespace lda
 {
-	using namespace std;
+    using namespace std;
 
-    LDADataBlock::LDADataBlock(int32_t num_threads) : 
+    LDADataBlock::LDADataBlock(int32_t num_threads) :
         num_threads_(num_threads), has_read_(false), index_document_(0), documents_buffer_(nullptr), offset_buffer_(nullptr)
     {
     }
 
-    LDADataBlock::~LDADataBlock() 
+    LDADataBlock::~LDADataBlock()
     {
         if (has_read_)
         {
@@ -49,10 +49,10 @@ namespace lda
 
     void LDADataBlock::Allocate(const int32_t num_document, const int64_t corpus_size)
     {
-		num_documents_ = num_document;
+        num_documents_ = num_document;
 
-		if (corpus_size < 0 || static_cast<uint64_t>(corpus_size) > numeric_limits<size_t>::max())
-			bad_alloc();
+        if (corpus_size < 0 || static_cast<uint64_t>(corpus_size) > numeric_limits<size_t>::max())
+            throw bad_alloc();
         corpus_size_ = static_cast<size_t>(corpus_size);
 
 
@@ -94,7 +94,7 @@ namespace lda
     int LDADataBlock::AddDense(int32_t* term_freq, int32_t term_num)
     {
         int64_t data_length = 1;
-        
+
         int64_t idx = offset_buffer_[index_document_] + 1;
         for (int i = 0; i < term_num; ++i)
         {

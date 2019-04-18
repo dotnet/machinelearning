@@ -73,7 +73,7 @@ EXPORT_API(void) MFDestroyModel(mf_model_bridge *&model_bridge)
 
     // Delete bridge class allocated in MFTrain, MFTrainWithValidation, or MFCrossValidation.
     delete model_bridge;
-	model_bridge = nullptr;
+    model_bridge = nullptr;
 }
 
 EXPORT_API(mf_model_bridge*) MFTrain(const mf_problem_bridge *prob_bridge, const mf_parameter_bridge *param_bridge)
