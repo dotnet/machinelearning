@@ -70,7 +70,7 @@ namespace Microsoft.ML
         }
 
         /// <summary>
-        /// Create a <see cref="RandomizedPcaTrainer"/>, which computes anomaly scores on unlabeled examples.
+        /// Create a <see cref="RandomizedPcaTrainer"/> with advanced options, which computes anomaly scores on unlabeled examples.
         /// </summary>
         /// <param name="catalog">The anomaly detection catalog trainer object.</param>
         /// <param name="options">Advanced options to the algorithm.</param>

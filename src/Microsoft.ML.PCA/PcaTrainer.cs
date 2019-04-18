@@ -72,7 +72,7 @@ namespace Microsoft.ML.Trainers
 
         /// <summary>
         /// Options for the <see cref="RandomizedPcaTrainer"/> as used in
-        /// <see cref="PcaCatalog.RandomizedPca(AnomalyDetectionCatalog.AnomalyDetectionTrainers, Options)"/>.
+        /// [RandomizedPca(Options)](xref:Microsoft.ML.PcaCatalog.RandomizedPca(Microsoft.ML.AnomalyDetectionCatalog.AnomalyDetectionTrainers,Microsoft.ML.Trainers.RandomizedPcaTrainer.Options)).
         /// </summary>
         public sealed class Options : UnsupervisedTrainerInputBaseWithWeight
         {
