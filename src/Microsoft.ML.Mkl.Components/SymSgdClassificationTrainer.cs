@@ -36,8 +36,8 @@ namespace Microsoft.ML.Trainers
     /// </summary>
     /// <remarks>
     /// <format type="text/markdown"><![CDATA[
-    /// To create this trainer, use [SymbolicStochasticGradientDescent](xref:Microsoft.ML.MklComponentsCatalog.SymbolicSgdLogisticRegression(Microsoft.ML.BinaryClassificationCatalog.BinaryClassificationTrainers,System.String,System.String,System.Int32)
-    /// or [SymbolicStochasticGradientDescent(Options)](xref:Microsoft.ML.MklComponentsCatalog.SymbolicSgdLogisticRegression(Microsoft.ML.BinaryClassificationCatalog.BinaryClassificationTrainers,Microsoft.ML.Trainers.SymbolicSgdLogisticRegressionBinaryTrainer.Options).
+    /// To create this trainer, use [SymbolicStochasticGradientDescent](xref:Microsoft.ML.MklComponentsCatalog.SymbolicSgdLogisticRegression(Microsoft.ML.BinaryClassificationCatalog.BinaryClassificationTrainers,System.String,System.String,System.Int32))
+    /// or [SymbolicStochasticGradientDescent(Options)](xref:Microsoft.ML.MklComponentsCatalog.SymbolicSgdLogisticRegression(Microsoft.ML.BinaryClassificationCatalog.BinaryClassificationTrainers,Microsoft.ML.Trainers.SymbolicSgdLogisticRegressionBinaryTrainer.Options)).
     ///
     /// [!include[io](~/../docs/samples/docs/api-reference/io-columns-binary-classification.md)]
     ///
@@ -48,6 +48,7 @@ namespace Microsoft.ML.Trainers
     /// | Is normalization required? | Yes |
     /// | Is caching required? | No |
     /// | Required NuGet in addition to Microsoft.ML |Microsoft.ML.Mkl.Components |
+    ///
     /// ### Training Algorithm Details
     /// The symbolic SGD is a classification algorithm that makes its predictions by finding a separating hyperplane.
     /// For instance, with feature values $f0, f1,..., f_{D-1}$, the prediction is given by determining what side of the hyperplane the point falls into.
@@ -61,8 +62,8 @@ namespace Microsoft.ML.Trainers
     /// ]]>
     /// </format>
     /// </remarks>
-    /// <seealso cref="MklComponentsCatalog.SymbolicSgdLogisticRegression(BinaryClassificationCatalog.BinaryClassificationTrainers, string, string, int)" />
-    /// <seealso cref="MklComponentsCatalog.SymbolicSgdLogisticRegression(BinaryClassificationCatalog.BinaryClassificationTrainers, Options)"/>
+    /// <seealso cref="Microsoft.ML.MklComponentsCatalog.SymbolicSgdLogisticRegression(Microsoft.ML.BinaryClassificationCatalog.BinaryClassificationTrainers,System.String,System.String,System.Int32)" />
+    /// <seealso cref="Microsoft.ML.MklComponentsCatalog.SymbolicSgdLogisticRegression(Microsoft.ML.BinaryClassificationCatalog.BinaryClassificationTrainers,Microsoft.ML.Trainers.SymbolicSgdLogisticRegressionBinaryTrainer.Options)"/>
     /// <seealso cref="Options"/>
     public sealed class SymbolicSgdLogisticRegressionBinaryTrainer : TrainerEstimatorBase<BinaryPredictionTransformer<TPredictor>, TPredictor>
     {
