@@ -18,7 +18,7 @@ namespace Microsoft.ML
         /// </summary>
         /// <param name="catalog">The transform's catalog.</param>
         /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.
-        /// This column's data type will be vector of <see cref="System.Boolean"/>.</param>
+        /// This column's data type will be a vector of <see cref="System.Boolean"/>.</param>
         /// <param name="inputColumnName">Name of the column to copy the data from.
         /// This estimator operates over scalar or vector of <see cref="System.Single"/> or <see cref="System.Double"/>.</param>
         /// <example>
