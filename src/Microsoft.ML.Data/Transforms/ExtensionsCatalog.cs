@@ -92,11 +92,14 @@ namespace Microsoft.ML
         }
 
         /// <summary>
-        /// Concatenates columns together.
+        /// Create a <see cref="ColumnConcatenatingEstimator"/>, which concatenates one or more input columns into a new output column.
         /// </summary>
         /// <param name="catalog">The transform's catalog.</param>
-        /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnNames"/>.</param>
-        /// <param name="inputColumnNames">Name of the columns to transform.</param>
+        /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnNames"/>.
+        /// This column's data type will be a vector of the input columns' data type.</param>
+        /// <param name="inputColumnNames">Name of the columns to concatenate.
+        /// This estimator operates over any data type except key type.
+        /// If more that one column is provided, they must all have the same data type.</param>
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
@@ -108,18 +111,12 @@ namespace Microsoft.ML
             => new ColumnConcatenatingEstimator(CatalogUtils.GetEnvironment(catalog), outputColumnName, inputColumnNames);
 
         /// <summary>
-        /// DropColumns is used to select a list of columns that user wants to drop from a given input. Any column not specified will
-        /// be maintained in the output schema.
+        /// Create a <see cref="ColumnSelectingEstimator"/>, which drops a given list of columns from an <see cref="IDataView"/>. Any column not specified will
+        /// be maintained in the output.
         /// </summary>
-        /// <remarks>
-        /// <see cref="DropColumns"/> is commonly used to remove unwanted columns from the schema if the dataset is going to be serialized or
-        /// written out to a file. It is not actually necessary to drop unused columns before training or
-        /// performing transforms, as <see cref="IDataView"/>'s lazy evaluation won't actually materialize those columns.
-        /// In the case of serialization, every column in the schema will be written out. If you have columns
-        /// that you don't want to save, you can use <see cref="DropColumns"/> to remove them from the schema.
-        /// </remarks>
         /// <param name="catalog">The transform's catalog.</param>
-        /// <param name="columnNames">The array of column names to drop.</param>
+        /// <param name="columnNames">The array of column names to drop.
+        /// This estimator operates over columns of any data type.</param>
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
@@ -131,20 +128,13 @@ namespace Microsoft.ML
             => ColumnSelectingEstimator.DropColumns(CatalogUtils.GetEnvironment(catalog), columnNames);
 
         /// <summary>
-        /// Select a list of columns to keep in a given <see cref="IDataView"/>.
+        /// Create a <see cref="ColumnSelectingEstimator"/>, which keeps a given list of columns in an <see cref="IDataView"/> and drops the others.
         /// </summary>
-        /// <remarks>
-        /// <format type="text/markdown">
-        /// <see cref="SelectColumns(TransformsCatalog, string[], bool)"/> operates on the schema of an input <see cref="IDataView"/>,
-        /// either dropping unselected columns from the schema or keeping them but marking them as hidden in the schema. Keeping columns hidden
-        /// is recommended when it is necessary to understand how the inputs of a pipeline map to outputs of the pipeline. This feature
-        /// is useful, for example, in debugging a pipeline of transforms by allowing you to print out results from the middle of the pipeline.
-        /// For more information on hidden columns, please refer to [IDataView Design Principles](~/../docs/samples/docs/code/IDataViewDesignPrinciples.md).
-        /// </format>
-        /// </remarks>
         /// <param name="catalog">The transform's catalog.</param>
         /// <param name="columnNames">The array of column names to keep.</param>
-        /// <param name="keepHidden">If <see langword="true"/> will keep hidden columns and <see langword="false"/> will remove hidden columns.</param>
+        /// <param name="keepHidden">If <see langword="true"/> will keep hidden columns and <see langword="false"/> will remove hidden columns.
+        /// Keeping hidden columns, instead of dropping them, is recommended when it is necessary to understand how the inputs of a pipeline
+        /// map to outputs of the pipeline, for debugging purposes.</param>
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
@@ -159,14 +149,8 @@ namespace Microsoft.ML
                 columnNames, null, keepHidden, ColumnSelectingEstimator.Defaults.IgnoreMissing);
 
         /// <summary>
-        /// Select a list of columns to keep in a given <see cref="IDataView"/>.
+        /// Create a <see cref="ColumnSelectingEstimator"/>, which keeps a given list of columns in an <see cref="IDataView"/> and drops the others.
         /// </summary>
-        /// <remarks>
-        /// <format type="text/markdown"><![CDATA[
-        /// <xref:Microsoft.ML.SelectColumns(Microsoft.ML.TransformsCatalog, string[])> operates on the schema of an input <xref:Microsoft.ML.IDataView>,
-        /// dropping unselected columns from the schema.
-        /// ]]></format>
-        /// </remarks>
         /// <param name="catalog">The transform's catalog.</param>
         /// <param name="columnNames">The array of column names to keep.</param>
         /// <example>
