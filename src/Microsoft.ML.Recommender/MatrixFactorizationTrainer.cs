@@ -23,7 +23,7 @@ using Microsoft.ML.Trainers.Recommender;
 namespace Microsoft.ML.Trainers
 {
     /// <summary>
-    /// Train a matrix factorization model. It factorizes the training matrix into the product of two low-rank matrices.
+    /// <see cref="IEstimator{TTransformer}"/> to predict a matrix element using a matrix factorization model (also known as a type of collaborative filtering).
     /// </summary>
     /// <remarks>
     /// <format type="text/markdown"><![CDATA[
@@ -31,9 +31,11 @@ namespace Microsoft.ML.Trainers
     /// or [MatrixFactorization(Options)](xref:Microsoft.ML.RecommendationCatalog.RecommendationTrainers.MatrixFactorization(Microsoft.ML.Trainers.MatrixFactorizationTrainer.Options)).
     ///
     /// ### Input and Output Columns
-    /// There are three input columns required, one for matrix row indexes, one for matrix column indexes, and one for values (i.e., labels) in matrix .
-    /// They together defines a matrix in [COO](https://en.wikipedia.org/wiki/Sparse_matrix#Coordinate_list_(COO)) format.
-    /// The type of label column is vector of <xref:System.Single> while the other two columns are key-typed scalar.
+    /// There are three input columns required, one for matrix row indexes, one for matrix column indexes, and one for
+    /// values (i.e., labels) in matrix.
+    /// They together define a matrix in [COO](https://en.wikipedia.org/wiki/Sparse_matrix#Coordinate_list_(COO)) format.
+    /// The type for label column is a vector of <xref:System.Single> while the other two columns are
+    /// [key-typed](<xref:Microsoft.ML.Data.KeyDataViewType>) scalar.
     ///
     /// | Output Column Name | Column Type | Description|
     /// | -- | -- | -- |
@@ -48,9 +50,10 @@ namespace Microsoft.ML.Trainers
     /// | Required NuGet in addition to Microsoft.ML | Microsoft.ML.Recommender |
     ///
     /// ### Background
-    /// The basic idea of matrix factorization is finding two low-rank factor marcies to apporimate the training matrix.
-    /// In this module, the expected training data, the factorized matrix, is a list of tuples. Every tuple consists of a column index, a row index,
-    /// and the value at the location specified by the two indexes. For an example data structure of a tuple, one can use:
+    /// The basic idea of matrix factorization is finding two low-rank factor matrices to approximate the training matrix.
+    /// In this module, the expected training data (the factorized matrix) is a list of tuples.
+    /// Every tuple consists of a column index, a row index,
+    /// and the value at the location specified by the two indices. For an example data structure of a tuple, one can use:
     ///
     /// ```csharp
     /// // The following variables defines the shape of a m-by-n matrix. Indexes start with 0; that is, our indexing system
@@ -76,26 +79,27 @@ namespace Microsoft.ML.Trainers
     /// This behavior is very helpful when building recommender systems.
     ///
     /// To provide a better understanding on practical uses of matrix factorization, let's consider music recommendation as an example.
-    /// Assume that user IDs and music IDs are used as row and column indexes, respectively, and matrix's values are ratings provided by those users. That is,
-    /// rating $r$ at row $u$ and column $v$ means that user $u$ give $r$ to item $v$.
-    /// An imcomplete matrix is very common because not all users may provide their feedbacks to all products (for example, no one can rate ten million songs).
+    /// Assume that user IDs and music IDs are used as row and column indexes, respectively, and matrix's values are ratings provided by those users.
+    /// That is, rating $r$ at row $u$ and column $v$ means that user $u$ give $r$ to item $v$.
+    /// An incomplete matrix is very common because not all users may provide their feedbacks to all products (for example, no one can rate ten million songs).
     /// Assume that $R\in{\mathbb R}^{m\times n}$ is a m-by-n rating matrix and the [rank](https://en.wikipedia.org/wiki/Rank_(linear_algebra)) of the two factor matrices are $P\in {\mathbb R}^{k\times m}$ and $Q\in {\mathbb R}^{k\times n}$, where $k$ is the approximation rank.
-    /// The predicted rating at the $u$-th row and the $v$-th column in $R$ would be the inner product of the $u$-th row of P and the $v$-th row of Q; that is, $R$ is approximated by the product of $P$'s transpose ($P^T$) and $Q$.
+    /// The predicted rating at the $u$-th row and the $v$-th column in $R$ would be the inner product of the $u$-th row of $P$ and the $v$-th row of $Q$; that is, $R$ is approximated by the product of $P$'s transpose ($P^T$) and $Q$.
     /// Note that $k$ is usually much smaller than $m$ and $n$, so $P^T Q$ is usually called a low-rank approximation of $R$.
     ///
-    /// This trainer includes a [stochastic gradient method](https://en.wikipedia.org/wiki/Stochastic_gradient_descent) and [a coordinate descent method](https://en.wikipedia.org/wiki/Coordinate_descent) for finding $P$ and $Q$ via minimizing the distance between (non-missing part of) $R$ and its approximation $P^T Q$.
+    /// This trainer includes a [stochastic gradient method](https://en.wikipedia.org/wiki/Stochastic_gradient_descent) and a [coordinate descent method](https://en.wikipedia.org/wiki/Coordinate_descent) for finding $P$ and $Q$ via minimizing the distance between (non-missing part of) $R$ and its approximation $P^T Q$.
     /// The coordinate descent method included is specifically for one-class matrix factorization where all observed ratings are positive signals (that is, all rating values are 1).
-    /// Notice taht the only way to invoke one-class matrix factorization is to assign <see cref="Microsoft.ML.Trainers.MatrixFactorizationTrainer.LossFunctionType.SquareLossOneClass"/> to [loss function](Microsoft.ML.Trainers.MatrixFactorizationTrainer.Options.LossFunction)
+    /// Notice that the only way to invoke one-class matrix factorization is to assign [one-class squared loss](xref:"Microsoft.ML.Trainers.MatrixFactorizationTrainer.LossFunctionType.SquareLossOneClass")
+    /// to [loss function](Microsoft.ML.Trainers.MatrixFactorizationTrainer.Options.LossFunction)
     /// when calling [MatrixFactorization(Options)](xref:Microsoft.ML.RecommendationCatalog.RecommendationTrainers.MatrixFactorization(Microsoft.ML.Trainers.MatrixFactorizationTrainer.Options)).
-    /// See Page 28 [here](https://www.csie.ntu.edu.tw/~cjlin/talks/facebook.pdf) for a brief introduction to one-class matrix factorization.
-    /// The default settting <see cref="MatrixFactorizationTrainer.LossFunctionType.SquareLossRegression"/> is for standard matrix factorization problem.
+    /// See Page 6 and Page 28 [here](https://www.csie.ntu.edu.tw/~cjlin/talks/facebook.pdf) for a brief introduction to standard matrix factorization and one-class matrix factorization.
+    /// The [default setting](xref:Microsoft.ML.Trainers.MatrixFactorizationTrainer.LossFunctionType.SquareLossRegression) induces standard matrix factorization.
     /// The underlying library used in ML.NET matrix factorization can be found on [a Github repository](https://github.com/cjlin1/libmf).
     ///
     /// For users interested in the mathematical details, please see the references below.
     ///
     /// * For the multi-threading implementation of the used stochastic gradient method, see [A Fast Parallel Stochastic Gradient Method for Matrix Factorization in Shared Memory Systems](https://www.csie.ntu.edu.tw/~cjlin/papers/libmf/libmf_journal.pdf).
-    /// * For the computation happened inside one thread, see [A Learning-rate Schedule for Stochastic Gradient Methods to Matrix Factorization](https://www.csie.ntu.edu.tw/~cjlin/papers/libmf/mf_adaptive_pakdd.pdf).
-    /// * For the coordinate descent method used and one-class matrix factorization, see [Selection of Negative Samples for One-class Matrix Factorization](https://www.csie.ntu.edu.tw/~cjlin/papers/one-class-mf/biased-mf-sdm-with-supp.pdf).
+    /// * For the computation happening inside a single thread, see [A Learning-rate Schedule for Stochastic Gradient Methods to Matrix Factorization](https://www.csie.ntu.edu.tw/~cjlin/papers/libmf/mf_adaptive_pakdd.pdf).
+    /// * For the parallel coordinate descent method used and one-class matrix factorization formula, see [Selection of Negative Samples for One-class Matrix Factorization](https://www.csie.ntu.edu.tw/~cjlin/papers/one-class-mf/biased-mf-sdm-with-supp.pdf).
     /// * For details in the underlying library used, see [LIBMF: A Library for Parallel Matrix Factorization in Shared-memory Systems](https://www.csie.ntu.edu.tw/~cjlin/papers/libmf/libmf_open_source.pdf).
     ///
     /// ]]>
@@ -176,10 +180,10 @@ namespace Microsoft.ML.Trainers
             public double Lambda = Defaults.Lambda;
 
             /// <summary>
-            /// Rank of approximation matrixes.
+            /// Rank of approximation matrices.
             /// </summary>
             /// <remarks>
-            /// If input data has size of m-by-n we would build two approximation matrixes m-by-k and k-by-n where k is approximation rank.
+            /// If input data has size of m-by-n we would build two approximation matrices m-by-k and k-by-n where k is approximation rank.
             /// </remarks>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Latent space dimension (denoted by k). If the factorized matrix is m-by-n, " +
                 "two factor matrices found by matrix factorization are m-by-k and k-by-n, respectively. " +
@@ -215,13 +219,13 @@ namespace Microsoft.ML.Trainers
             /// <remarks>
             /// Importance of unobserved (i.e., negative) entries' loss in one-class matrix factorization.
             /// In general, only a few of matrix entries (e.g., less than 1%) in the training are observed (i.e., positive).
-            /// To balance the contributions from unobserved and obverved in the overall loss function, this parameter is
+            /// To balance the contributions from unobserved and observed in the overall loss function, this parameter is
             /// usually a small value so that the solver is able to find a factorization equally good to unobserved and observed
             /// entries. If only 10000 observed entries present in a 200000-by-300000 training matrix, one can try Alpha = 10000 / (200000*300000 - 10000).
             /// When most entries in the training matrix are observed, one can use Alpha >> 1; for example, if only 10000 in previous
             /// matrix is not observed, one can try Alpha = (200000 * 300000 - 10000) / 10000. Consequently,
             /// Alpha = (# of observed entries) / (# of unobserved entries) can make observed and unobserved entries equally important
-            /// in the minimized loss function. However, the best setting in machine learning is alwasy data-depedent so user still needs to
+            /// in the minimized loss function. However, the best setting in machine learning is always data-dependent so user still needs to
             /// try multiple values.
             /// </remarks>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Importance of unobserved entries' loss in one-class matrix factorization.")]
@@ -242,7 +246,7 @@ namespace Microsoft.ML.Trainers
             public double C = Defaults.C;
 
             /// <summary>
-            /// Number of threads will be used during training. If unspecified all aviable threads will be use.
+            /// Number of threads will be used during training. If unspecified all available threads will be use.
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Number of threads can be used in the training procedure.", ShortName = "t,numthreads")]
             public int? NumberOfThreads;
@@ -372,7 +376,7 @@ namespace Microsoft.ML.Trainers
         /// <param name="labelColumnName">The name of the label column.</param>
         /// <param name="matrixColumnIndexColumnName">The name of the column hosting the matrix's column IDs.</param>
         /// <param name="matrixRowIndexColumnName">The name of the column hosting the matrix's row IDs.</param>
-        /// <param name="approximationRank">Rank of approximation matrixes.</param>
+        /// <param name="approximationRank">Rank of approximation matrices.</param>
         /// <param name="learningRate">Initial learning rate. It specifies the speed of the training algorithm.</param>
         /// <param name="numIterations">Number of training iterations.</param>
         [BestFriend]
