@@ -15,7 +15,7 @@ namespace Microsoft.ML
     public static class CategoricalCatalog
     {
         /// <summary>
-        /// Create a <see cref="OneHotEncodingEstimator"/> that converts the text input column specified by <paramref name="inputColumnName"/> into a column of one-hot encoded vectors named <paramref name="outputColumnName"/>.
+        /// Create a <see cref="OneHotEncodingEstimator"/>, which converts the text input column specified by <paramref name="inputColumnName"/> into a column of one-hot encoded vectors named <paramref name="outputColumnName"/>.
         /// </summary>
         /// <param name="catalog">The transform catalog</param>
         /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.
@@ -45,7 +45,7 @@ namespace Microsoft.ML
                 new[] { new OneHotEncodingEstimator.ColumnOptions(outputColumnName, inputColumnName, outputKind, maximumNumberOfKeys, keyOrdinality) }, keyData);
 
         /// <summary>
-        /// Create a <see cref="OneHotEncodingEstimator"/> that converts the input text column specified by <see cref="InputOutputColumnPair.InputColumnName"/> into a column of one-hot encoded vectors named <see cref="InputOutputColumnPair.OutputColumnName"/>.
+        /// Create a <see cref="OneHotEncodingEstimator"/>, which converts the input text column specified by <see cref="InputOutputColumnPair.InputColumnName"/> into a column of one-hot encoded vectors named <see cref="InputOutputColumnPair.OutputColumnName"/>.
         /// </summary>
         /// <param name="catalog">The transform catalog</param>
         /// <param name="columns">The pairs of input and output columns. The deta type of the input column should be text, and the data type of the output column will be a vector of floats.</param>
@@ -98,7 +98,7 @@ namespace Microsoft.ML
             => new OneHotEncodingEstimator(CatalogUtils.GetEnvironment(catalog), columns, keyData);
 
         /// <summary>
-        /// Create a <see cref="OneHotHashEncodingEstimator"/> that converts a text column specified by <paramref name="inputColumnName"/> into a hash-based one-hot encoded vector column named <paramref name="outputColumnName"/>.
+        /// Create a <see cref="OneHotHashEncodingEstimator"/>, which converts a text column specified by <paramref name="inputColumnName"/> into a hash-based one-hot encoded vector column named <paramref name="outputColumnName"/>.
         /// </summary>
         /// <param name="catalog">The transform catalog</param>
         /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.
@@ -131,7 +131,7 @@ namespace Microsoft.ML
                 new[] { new OneHotHashEncodingEstimator.ColumnOptions(outputColumnName, inputColumnName, outputKind, numberOfBits, seed, useOrderedHashing, maximumNumberOfInverts) });
 
         /// <summary>
-        /// Create a <see cref="OneHotHashEncodingEstimator"/> that converts the input text column specified by <see cref="InputOutputColumnPair.InputColumnName"/> into a column of hash-based one-hot encoded vectors named <see cref="InputOutputColumnPair.OutputColumnName"/>
+        /// Create a <see cref="OneHotHashEncodingEstimator"/>, which converts the input text column specified by <see cref="InputOutputColumnPair.InputColumnName"/> into a column of hash-based one-hot encoded vectors named <see cref="InputOutputColumnPair.OutputColumnName"/>
         /// </summary>
         /// <param name="catalog">The transform catalog</param>
         /// <param name="columns">The pairs of input and output columns. The deta type of the input column should be text, and the data type of the output column will be a vector of floats.</param>

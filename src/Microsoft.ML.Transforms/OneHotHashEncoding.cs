@@ -21,7 +21,7 @@ namespace Microsoft.ML.Transforms
     /// <see cref="ITransformer"/> resulting from fitting a <see cref="OneHotHashEncodingEstimator"/>.
     /// </summary>
     /// <remarks>
-    /// CategoricalHashOneHotVectorizer converts a categorical value into an indicator array by hashing the value and using the hash as an index in the bag.
+    /// OneHotHashEncodingTransformer converts a categorical value into an indicator array by hashing the value and using the hash as an index in the bag.
     /// If the input column is a vector, a single indicator bag is returned for it.
     /// </remarks>
     public sealed class OneHotHashEncodingTransformer : ITransformer
