@@ -55,7 +55,7 @@ namespace lda
             throw bad_alloc();
         corpus_size_ = static_cast<size_t>(corpus_size);
 
-        if (num_documents_ < 0 || static_cast<uint32_t>(num_documents_) > numeric_limits<size_t>::max() - 1)
+        if (num_documents_ < 0 || static_cast<uint64_t>(num_documents_) > (numeric_limits<size_t>::max() - 1))
             throw bad_alloc();
 
         offset_buffer_ = new int64_t[num_documents_ + 1]; // +1: one for the end of last document,
