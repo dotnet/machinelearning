@@ -63,8 +63,7 @@ namespace Microsoft.ML.Trainers.FastTree
         {
 
             /// <summary>
-            /// Options for the <see cref="FastTreeBinaryTrainer"/> as used in
-            /// [FastTree(Options)](xref:"Microsoft.ML.TreeExtensions.FastTree(Microsoft.ML.BinaryClassificationCatalog.BinaryClassificationTrainers,Microsoft.ML.Trainers.FastTree.FastTreeBinaryTrainer.Options)).
+            /// Whether to use derivatives optimized for unbalanced training data.
             /// </summary>
             [Argument(ArgumentType.LastOccurenceWins, HelpText = "Option for using derivatives optimized for unbalanced sets", ShortName = "us")]
             [TGUI(Label = "Optimize for unbalanced")]
