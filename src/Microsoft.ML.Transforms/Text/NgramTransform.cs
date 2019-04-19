@@ -683,7 +683,7 @@ namespace Microsoft.ML.Transforms.Text
     /// creates a new column, named as specified in the output column name parameters, where each
     /// input vector is mapped to a vector of counts of ngrams (sequences of consecutive words) encountered in the input text.
     ///
-    /// The estimator builds a dictionary of ngrams and the [NgramExtractingTransformer]<xref:Microsoft.ML.Transforms.Text.NgramExtractingTransformer>
+    /// The estimator builds a dictionary of ngrams and the <xref:Microsoft.ML.Transforms.Text.NgramExtractingTransformer>
     /// uses the id in the dictionary as the index in the count vector that it produces.
     ///
     /// See the See Also section for links to examples of the usage.
