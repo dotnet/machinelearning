@@ -533,7 +533,7 @@ namespace Microsoft.ML.Transforms
                     throw Host.ExceptParam(nameof(inputSchema), $"Input column '{colInfo.inputColumnName}' doesn't contain key values metadata");
 
                 SchemaShape metadata = null;
-                if (col.Annotations.TryFindColumn(AnnotationUtils.Kinds.SlotNames, out var slotCol))
+                if (col.HasSlotNames() && col.Annotations.TryFindColumn(AnnotationUtils.Kinds.SlotNames, out var slotCol))
                     metadata = new SchemaShape(new[] { slotCol });
 
                 result[colInfo.outputColumnName] = new SchemaShape.Column(colInfo.outputColumnName, col.Kind, keyMetaCol.ItemType, keyMetaCol.IsKey, metadata);

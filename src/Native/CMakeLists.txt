@@ -32,7 +32,6 @@ if(WIN32)
     add_compile_options(/FC) # use full pathnames in diagnostics
     add_compile_options(/DEBUG)
     add_compile_options(/GS)
-    add_compile_options(/W1)
     add_compile_options(/Zc:inline)
     add_compile_options(/fp:precise)
     add_compile_options(/EHsc)

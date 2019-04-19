@@ -87,7 +87,7 @@ namespace Microsoft.ML.Data
             Contracts.Assert(active.Length == bindings.ColumnCount);
 
             var activeInput = bindings.GetActiveInput(columns);
-            Contracts.Assert(activeInput.Count() == bindings.Input.Count);
+            Contracts.Assert(activeInput.Length == bindings.Input.Count);
 
             // Get a predicate that determines which Mapper outputs are active.
             var predicateMapper = bindings.GetActiveMapperColumns(active);

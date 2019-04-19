@@ -43,7 +43,7 @@ namespace Microsoft.ML.Transforms
     /// | Input column data type | Any |
     /// | Output column data type | The same as the data type in the input column |
     ///
-    /// The resulting <see cref="ColumnCopyingTransformer"/> creates a new column, named as specified in the output column name parameters, and
+    /// The resulting [ColumnCopyingTransformer](xref:Microsoft.ML.Transforms.ColumnCopyingTransformer) creates a new column, named as specified in the output column name parameters, and
     /// copies the data from the input column to this new column.
     /// See the See Also section for links to examples of the usage.
     /// ]]>

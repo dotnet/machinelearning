@@ -183,7 +183,8 @@ namespace Microsoft.ML.Transforms
                     metadata.Add(slotMeta);
                 if (col.Annotations.TryFindColumn(AnnotationUtils.Kinds.CategoricalSlotRanges, out var categoricalSlotMeta))
                     metadata.Add(categoricalSlotMeta);
-                metadata.Add(new SchemaShape.Column(AnnotationUtils.Kinds.IsNormalized, SchemaShape.Column.VectorKind.Scalar, BooleanDataViewType.Instance, false));
+                if (col.IsNormalized() && col.Annotations.TryFindColumn(AnnotationUtils.Kinds.IsNormalized, out var isNormalizedAnnotation))
+                    metadata.Add(isNormalizedAnnotation);
                 result[colPair.outputColumnName] = new SchemaShape.Column(colPair.outputColumnName, col.Kind, col.ItemType, false, new SchemaShape(metadata.ToArray()));
             }
             return new SchemaShape(result.Values);
@@ -198,7 +199,7 @@ namespace Microsoft.ML.Transforms
             var host = env.Register(RegistrationName);
             host.CheckValue(options, nameof(options));
             host.CheckValue(input, nameof(input));
-            host.CheckUserArg(Utils.Size(options.Columns) > 0, nameof(options.Columns));
+            host.CheckNonEmpty(options.Columns, nameof(options.Columns));
             host.CheckUserArg(options.SlotsInOutput > 0, nameof(options.SlotsInOutput));
             host.CheckNonWhiteSpace(options.LabelColumn, nameof(options.LabelColumn));
             host.Check(options.NumBins > 1, "numBins must be greater than 1.");
