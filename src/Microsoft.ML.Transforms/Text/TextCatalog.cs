@@ -17,7 +17,7 @@ namespace Microsoft.ML
     public static class TextCatalog
     {
         /// <summary>
-        /// Create a <see cref="TextFeaturizingEstimator"/>, which transforms a text column into featurized float array that represents normalized counts of ngrams and char-grams.
+        /// Create a <see cref="TextFeaturizingEstimator"/>, which transforms a text column into a featurized vector of <see cref="System.Single"/> that represents normalized counts of ngrams and char-grams.
         /// </summary>
         /// <param name="catalog">The text-related transform's catalog.</param>
         /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.
