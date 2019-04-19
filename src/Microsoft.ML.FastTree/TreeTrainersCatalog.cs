@@ -14,7 +14,7 @@ namespace Microsoft.ML
     public static class TreeExtensions
     {
         /// <summary>
-        /// Creates <see cref="FastTreeRegressionTrainer"/>, which predicts a target using a decision tree regression model.
+        /// Create <see cref="FastTreeRegressionTrainer"/>, which predicts a target using a decision tree regression model.
         /// </summary>
         /// <param name="catalog">The <see cref="RegressionCatalog"/>.</param>
         /// <param name="labelColumnName">The name of the label column. The column data must be <see cref="System.Single"/>.</param>
@@ -46,7 +46,7 @@ namespace Microsoft.ML
         }
 
         /// <summary>
-        /// Creates <see cref="FastTreeRegressionTrainer"/>, which predicts a target using a decision tree regression model with advanced options.
+        /// Create <see cref="FastTreeRegressionTrainer"/> with advanced options, which predicts a target using a decision tree regression model.
         /// </summary>
         /// <param name="catalog">The <see cref="RegressionCatalog"/>.</param>
         /// <param name="options">Trainer options.</param>
