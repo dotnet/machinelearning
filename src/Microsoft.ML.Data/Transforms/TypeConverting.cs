@@ -523,8 +523,8 @@ namespace Microsoft.ML.Transforms
     /// |  |  |
     /// | -- | -- |
     /// | Does this estimator need to look at the data to train its parameters? | No |
-    /// | Input column data type | Vector or primitive numeric, boolean, text, [System.DateTime](xref:System.DateTime) and [KeyDataViewType](xref:Microsoft.ML.Data.KeyDataViewType) data types.|
-    /// | Output column data type | Vector or primitive numeric, boolean, text, [System.DateTime](xref:System.DateTime) and [KeyDataViewType](xref:Microsoft.ML.Data.KeyDataViewType) data types.|
+    /// | Input column data type | Vector or primitive numeric, boolean, text, [System.DateTime](xref:System.DateTime) and [key](xref:Microsoft.ML.Data.KeyDataViewType) data types.|
+    /// | Output column data type | Vector or primitive numeric, boolean, text, [System.DateTime](xref:System.DateTime) and [key](xref:Microsoft.ML.Data.KeyDataViewType) data types.|
     ///
     /// ]]></format>
     /// </remarks>

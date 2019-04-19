@@ -33,7 +33,7 @@ namespace Microsoft.ML.Transforms
 {
 
     /// <summary>
-    /// Estimator for <see cref="ValueMappingTransformer"/>. It is a 1-1 mapping from one value to another value.
+    /// Estimator for <see cref="ValueMappingTransformer"/> creating a key-value map using the pairs of values in the input data
     /// <see cref="PrimitiveDataViewType"/>
     /// </summary>
     /// <remarks>
@@ -43,15 +43,15 @@ namespace Microsoft.ML.Transforms
     /// |  |  |
     /// | -- | -- |
     /// | Does this estimator need to look at the data to train its parameters? | No |
-    /// | Input column data type | Vector or primitive numeric, boolean, text, [System.DateTime](xref:System.DateTime) and [KeyDataViewType](xref:Microsoft.ML.Data.KeyDataViewType) data types.|
-    /// | Output column data type | Vector or primitive numeric, boolean, text, [System.DateTime](xref:System.DateTime) and [KeyDataViewType](xref:Microsoft.ML.Data.KeyDataViewType) data types.|
+    /// | Input column data type | Vector or primitive numeric, boolean, text, [System.DateTime](xref:System.DateTime) and [key](xref:Microsoft.ML.Data.KeyDataViewType) data types.|
+    /// | Output column data type | Vector or primitive numeric, boolean, text, [System.DateTime](xref:System.DateTime) and [key](xref:Microsoft.ML.Data.KeyDataViewType) data types.|
     ///
     /// Given two sets of values, one serving as the key, and the other as the value of a Dictionary, the ValueMappingEstimator builds up this dictionary so that when given a specific key it will return a
     /// specific value.The ValueMappingEstimator supports keys and values of different [System.Type](xref:System.Type) to support different data types.
     /// Examples for using a ValueMappingEstimator are:
     /// * Converting a string value to a string value, this can be useful for grouping (i.e. 'cat', 'dog', 'horse' maps to 'mammals').
     /// * Converting a string value to a integer value (i.e. converting the text description like quality to an numeric where 'good' maps to 1, 'poor' maps to 0.
-    /// * Converting a integer value to a string value and have the string value represented as a [KeyDataViewType](xref:Microsoft.ML.Data.KeyDataViewType)
+    /// * Converting a integer value to a string value and have the string value represented as a [key](xref:Microsoft.ML.Data.KeyDataViewType)
     /// (i.e. convert zip codes to a state string value, which will generate a unique integer value that can be used as a label.
     ///
     /// Values can be repeated to allow for multiple keys to map to the same value, however keys can not be repeated. The mapping between keys and values

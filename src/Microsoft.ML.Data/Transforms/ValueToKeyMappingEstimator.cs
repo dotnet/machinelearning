@@ -21,8 +21,8 @@ namespace Microsoft.ML.Transforms
     /// |  |  |
     /// | -- | -- |
     /// | Does this estimator need to look at the data to train its parameters? | Yes |
-    /// | Input column data type | Vector or primitive numeric, boolean, text, [System.DateTime](xref:System.DateTime) and [KeyDataViewType](xref:Microsoft.ML.Data.KeyDataViewType) data types.|
-    /// | Output column data type | [KeyDataViewType](xref:Microsoft.ML.Data.KeyDataViewType)|
+    /// | Input column data type | Vector or primitive numeric, boolean, text, [System.DateTime](xref:System.DateTime) and [key](xref:Microsoft.ML.Data.KeyDataViewType) data types.|
+    /// | Output column data type | [key](xref:Microsoft.ML.Data.KeyDataViewType)|
     ///
     /// The ValueToKeyMappingEstimator builds up term vocabularies(dictionaries) mapping the input values to the keys on the dictionary.
     /// If multiple columns are used, each column builds/uses exactly one vocabulary.
@@ -102,7 +102,7 @@ namespace Microsoft.ML.Transforms
         internal sealed class ColumnOptions : ColumnOptionsBase
         {
             /// <summary>
-            /// Describes how the transformer handles onumn pair.
+            /// Describes how the transformer handles column pairs.
             /// </summary>
             /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.</param>
             /// <param name="inputColumnName">Name of the column to transform. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.</param>

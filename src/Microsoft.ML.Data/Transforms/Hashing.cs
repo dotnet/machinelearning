@@ -1102,7 +1102,7 @@ namespace Microsoft.ML.Transforms
     }
 
     /// <summary>
-    /// Estimator for <see cref="HashingTransformer"/>. hash either single valued columns or vector columns. For vector columns,
+    /// Estimator for <see cref="HashingTransformer"/>, which hashes either single valued columns or vector columns. For vector columns,
     /// it hashes each slot separately.
     /// </summary>
     /// <remarks>
@@ -1112,7 +1112,7 @@ namespace Microsoft.ML.Transforms
     /// |  |  |
     /// | -- | -- |
     /// | Does this estimator need to look at the data to train its parameters? | Yes, if the mapping of the hashes to the values is required. |
-    /// | Input column data type | Vector or scalars of numeric, boolean, text, [DateTime](xref: System.DateTime) and [KeyDataViewType](xref:Microsoft.ML.Data.KeyDataViewType) data types.|
+    /// | Input column data type | Vector or scalars of numeric, boolean, text, [DateTime](xref: System.DateTime) and [key](xref:Microsoft.ML.Data.KeyDataViewType) data types.|
     /// | Output column data type | Vector or scalar [System.Int32](xref:System.Int32).|
     ///
     /// ]]></format>

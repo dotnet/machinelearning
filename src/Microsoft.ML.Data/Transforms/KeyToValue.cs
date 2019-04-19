@@ -501,7 +501,7 @@ namespace Microsoft.ML.Transforms
 
     /// <summary>
     /// Utilizes KeyValues <see cref="AnnotationInfo"/> of the input column, to map keys to the corresponding values.
-    /// Maps zero values of the <see cref="KeyDataViewType"/> are mapped to the <see langword="default"/> value of the output type.
+    /// Zero values of the <see cref="KeyDataViewType"/> are mapped to the <see langword="default"/> value of the output type.
     /// </summary>
     /// <remarks>
     /// <format type="text/markdown"><![CDATA[
@@ -510,8 +510,8 @@ namespace Microsoft.ML.Transforms
     /// |  |  |
     /// | -- | -- |
     /// | Does this estimator need to look at the data to train its parameters? | No |
-    /// | Input column data type | [KeyDataViewType](xref:Microsoft.ML.Data.KeyDataViewType) |
-    /// | Output column data type | Type of the original data, prior to converting to [KeyDataViewType](xref:Microsoft.ML.Data.KeyDataViewType). |
+    /// | Input column data type | [key](xref:Microsoft.ML.Data.KeyDataViewType) |
+    /// | Output column data type | Type of the original data, prior to converting to [key](xref:Microsoft.ML.Data.KeyDataViewType). |
     ///
     /// ]]></format>
     /// </remarks>

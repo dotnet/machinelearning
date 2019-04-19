@@ -736,7 +736,7 @@ namespace Microsoft.ML.Transforms
     /// |  |  |
     /// | -- | -- |
     /// | Does this estimator need to look at the data to train its parameters? | No |
-    /// | Input column data type | [KeyDataViewType](xref:Microsoft.Ml.Data.KeyDataViewType) |
+    /// | Input column data type | [key](xref:Microsoft.Ml.Data.KeyDataViewType) |
     /// | Output column data type | A vector of [System.Single](xref:System.Single). |
     ///
     /// ]]></format>
