@@ -263,8 +263,8 @@ namespace Microsoft.ML.Trainers.FastTree
     /// ]]>
     /// </format>
     /// </remarks>
-    /// <seealso cref="Microsoft.ML.TreeExtensions.FastForest(Microsoft.ML.RegressionCatalog.RegressionTrainers,System.String,System.String,System.String,System.Int32,System.Int32,System.Int32)"/>
-    /// <seealso cref="Microsoft.ML.TreeExtensions.FastForest(Microsoft.ML.RegressionCatalog.RegressionTrainers,Microsoft.ML.Trainers.FastTree.FastForestRegressionTrainer.Options)"/>
+    /// <seealso cref="TreeExtensions.FastForest(RegressionCatalog.RegressionTrainers, string, string, string, int, int, int)"/>
+    /// <seealso cref="TreeExtensions.FastForest(RegressionCatalog.RegressionTrainers, FastForestRegressionTrainer.Options)"/>
     /// <seealso cref="Options"/>
     public sealed partial class FastForestRegressionTrainer
         : RandomForestTrainerBase<FastForestRegressionTrainer.Options, RegressionPredictionTransformer<FastForestRegressionModelParameters>, FastForestRegressionModelParameters>

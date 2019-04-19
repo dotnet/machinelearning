@@ -51,8 +51,8 @@ namespace Microsoft.ML.Trainers.FastTree
     /// ]]>
     /// </format>
     /// </remarks>
-    /// <seealso cref="Microsoft.ML.TreeExtensions.FastTree(Microsoft.ML.RegressionCatalog.RegressionTrainers,System.String,System.String,System.String,System.Int32,System.Int32,System.Int32,System.Double)"/>
-    /// <seealso cref="Microsoft.ML.TreeExtensions.FastTree(Microsoft.ML.RegressionCatalog.RegressionTrainers,Microsoft.ML.Trainers.FastTree.FastTreeRegressionTrainer.Options)"/>
+    /// <seealso cref="TreeExtensions.FastTree(RegressionCatalog.RegressionTrainers, string, string, string, int, int, int, double)"/>
+    /// <seealso cref="TreeExtensions.FastTree(RegressionCatalog.RegressionTrainers, FastTreeRegressionTrainer.Options)"/>
     /// <seealso cref="Options"/>
     public sealed partial class FastTreeRegressionTrainer
         : BoostingFastTreeTrainerBase<FastTreeRegressionTrainer.Options, RegressionPredictionTransformer<FastTreeRegressionModelParameters>, FastTreeRegressionModelParameters>

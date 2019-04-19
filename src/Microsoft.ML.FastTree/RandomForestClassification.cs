@@ -132,8 +132,8 @@ namespace Microsoft.ML.Trainers.FastTree
     /// ]]>
     /// </format>
     /// </remarks>
-    /// <seealso cref="Microsoft.ML.TreeExtensions.FastForest(Microsoft.ML.BinaryClassificationCatalog.BinaryClassificationTrainers,System.String,System.String,System.String,System.Int32,System.Int32,System.Int32)"/>
-    /// <seealso cref="Microsoft.ML.TreeExtensions.FastForest(Microsoft.ML.BinaryClassificationCatalog.BinaryClassificationTrainers,Microsoft.ML.Trainers.FastTree.FastForestBinaryTrainer.Options)"/>
+    /// <seealso cref="TreeExtensions.FastForest(BinaryClassificationCatalog.BinaryClassificationTrainers, string, string, string, int, int, int)"/>
+    /// <seealso cref="TreeExtensions.FastForest(BinaryClassificationCatalog.BinaryClassificationTrainers, FastForestBinaryTrainer.Options)"/>
     /// <seealso cref="Options"/>
     public sealed partial class FastForestBinaryTrainer :
         RandomForestTrainerBase<FastForestBinaryTrainer.Options, BinaryPredictionTransformer<FastForestBinaryModelParameters>, FastForestBinaryModelParameters>

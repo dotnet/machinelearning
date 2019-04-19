@@ -84,18 +84,16 @@ namespace Microsoft.ML.Trainers.LightGbm
     /// |  |  |
     /// | -- | -- |
     /// | Machine learning task | Ranking |
-    /// | Is normalization required? | Yes |
+    /// | Is normalization required? | No |
     /// | Is caching required? | No |
     /// | Required NuGet in addition to Microsoft.ML | Microsoft.ML.FastTree |
     ///
-    /// ### Training Algorithm Details
-    /// LightGBM is an open source implementation of gradient boosting decision tree. For implementation details, please see LightGBM's official [documentation](https://lightgbm.readthedocs.io/en/latest/index.html) or
-    /// [this](https://papers.nips.cc/paper/6907-lightgbm-a-highly-efficient-gradient-boosting-decision-tree.pdf) paper.
+    /// [!include[algorithm](~/../docs/samples/docs/api-reference/algo-details-lightgbm.md)]
     /// ]]>
     /// </format>
     /// </remarks>
-    /// <seealso cref="Microsoft.ML.LightGbmExtensions.LightGbm(Microsoft.ML.RankingCatalog.RankingTrainers,System.String,System.String,System.String,System.String,System.Nullable{System.Int32},System.Nullable{System.Int32},System.Nullable{System.Double},System.Int32)"/>
-    /// <seealso cref="Microsoft.ML.LightGbmExtensions.LightGbm(Microsoft.ML.RankingCatalog.RankingTrainers,Microsoft.ML.Trainers.LightGbm.LightGbmRankingTrainer.Options)"/>
+    /// <seealso cref="LightGbmExtensions.LightGbm(RankingCatalog.RankingTrainers, string, string, string, string, int?, int?, double?, int)"/>
+    /// <seealso cref="LightGbmExtensions.LightGbm(RankingCatalog.RankingTrainers, LightGbmRankingTrainer.Options)"/>
     /// <seealso cref="Options"/>
     public sealed class LightGbmRankingTrainer : LightGbmTrainerBase<LightGbmRankingTrainer.Options,
                                                                         float,
@@ -127,7 +125,7 @@ namespace Microsoft.ML.Trainers.LightGbm
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "An array of gains associated to each relevance label.", ShortName = "gains")]
             [TGUI(Label = "Ranking Label Gain")]
-            public int[] CustomGains = { 0,3,7,15,31,63,127,255,511,1023,2047,4095 };
+            public int[] CustomGains = { 0, 3, 7, 15, 31, 63, 127, 255, 511, 1023, 2047, 4095 };
 
             /// <summary>
             /// Parameter for the sigmoid function.
@@ -157,8 +155,8 @@ namespace Microsoft.ML.Trainers.LightGbm
             {
                 var res = base.ToDictionary(host);
                 res[GetOptionName(nameof(Sigmoid))] = Sigmoid;
-                res[GetOptionName(nameof(CustomGains))] = string.Join(",",CustomGains);
-                if(EvaluationMetric != EvaluateMetricType.Default)
+                res[GetOptionName(nameof(CustomGains))] = string.Join(",", CustomGains);
+                if (EvaluationMetric != EvaluateMetricType.Default)
                     res[GetOptionName(nameof(EvaluateMetricType))] = GetOptionName(EvaluationMetric.ToString());
 
                 return res;
@@ -195,14 +193,14 @@ namespace Microsoft.ML.Trainers.LightGbm
             : this(env,
                   new Options()
                   {
-                    LabelColumnName = labelColumnName,
-                    FeatureColumnName = featureColumnName,
-                    ExampleWeightColumnName = weightsColumnName,
-                    RowGroupColumnName = rowGroupdColumnName,
-                    NumberOfLeaves = numberOfLeaves,
-                    MinimumExampleCountPerLeaf = minimumExampleCountPerLeaf,
-                    LearningRate = learningRate,
-                    NumberOfIterations = numberOfIterations
+                      LabelColumnName = labelColumnName,
+                      FeatureColumnName = featureColumnName,
+                      ExampleWeightColumnName = weightsColumnName,
+                      RowGroupColumnName = rowGroupdColumnName,
+                      NumberOfLeaves = numberOfLeaves,
+                      MinimumExampleCountPerLeaf = minimumExampleCountPerLeaf,
+                      LearningRate = learningRate,
+                      NumberOfIterations = numberOfIterations
                   })
         {
             Host.CheckNonEmpty(rowGroupdColumnName, nameof(rowGroupdColumnName));

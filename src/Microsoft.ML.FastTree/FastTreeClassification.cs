@@ -119,8 +119,8 @@ namespace Microsoft.ML.Trainers.FastTree
     /// ]]>
     /// </format>
     /// </remarks>
-    /// <seealso cref="Microsoft.ML.TreeExtensions.FastTree(Microsoft.ML.BinaryClassificationCatalog.BinaryClassificationTrainers,System.String,System.String,System.String,System.Int32,System.Int32,System.Int32,System.Double)"/>
-    /// <seealso cref="Microsoft.ML.TreeExtensions.FastTree(Microsoft.ML.BinaryClassificationCatalog.BinaryClassificationTrainers,Microsoft.ML.Trainers.FastTree.FastTreeBinaryTrainer.Options)"/>
+    /// <seealso cref="TreeExtensions.FastTree(BinaryClassificationCatalog.BinaryClassificationTrainers, string, string, string, int, int, int, double)"/>
+    /// <seealso cref="TreeExtensions.FastTree(BinaryClassificationCatalog.BinaryClassificationTrainers, FastTreeBinaryTrainer.Options)"/>
     /// <seealso cref="Options"/>
     public sealed partial class FastTreeBinaryTrainer :
         BoostingFastTreeTrainerBase<FastTreeBinaryTrainer.Options,

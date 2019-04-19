@@ -118,7 +118,7 @@ namespace Microsoft.ML
         }
 
         /// <summary>
-        /// Creates <see cref="LightGbmRankingTrainer"/>, which predict a target using a gradient boosting decision tree ranking model.
+        /// Create <see cref="LightGbmRankingTrainer"/>, which predict a target using a gradient boosting decision tree ranking model.
         /// </summary>
         /// <param name="catalog">The <see cref="RankingCatalog"/>.</param>
         /// <param name="labelColumnName">The name of the label column. The column data must be <see cref="System.Single"/>.</param>
@@ -153,7 +153,7 @@ namespace Microsoft.ML
         }
 
         /// <summary>
-        /// Creates <see cref="LightGbmRankingTrainer"/>, which predict a target using a gradient boosting decision tree ranking model with advanced options.
+        /// Create <see cref="LightGbmRankingTrainer"/> with advanced options, which predict a target using a gradient boosting decision tree ranking model.
         /// </summary>
         /// <param name="catalog">The <see cref="RankingCatalog"/>.</param>
         /// <param name="options">Trainer options.</param>
