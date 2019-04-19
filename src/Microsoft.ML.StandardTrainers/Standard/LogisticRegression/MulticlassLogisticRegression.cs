@@ -66,7 +66,7 @@ namespace Microsoft.ML.Trainers
     /// Assume that the number of classes is $m$ and number of features is $n$.
     /// Maximum entropy model assigns the $c$-th class a coefficient vector $\boldsymbol{w}_c \in {\mathbb R}^n$ and a bias $b_c \in {\mathbb R}$, for $c=1,\dots,m$.
     /// Given a feature vector $\boldsymbol{x} \in {\mathbb R}^n$, the $c$-th class's score is $\hat{y}^c = \boldsymbol{w}_c^T \boldsymbol{x} + b_c$.
-    /// The prability of $\boldsymbol{x}$ belonging to class $c$ is defined by $\tilde{P}(c|\boldsymbol{x}) = \frac{ e^{\hat{y}^c} }{ \sum_{c' = 1}^m e^{\hat{y}^{c'}} }$.
+    /// The probability of $\boldsymbol{x}$ belonging to class $c$ is defined by $\tilde{P}(c|\boldsymbol{x}) = \frac{ e^{\hat{y}^c} }{ \sum_{c' = 1}^m e^{\hat{y}^{c'}} }$.
     /// Let $P(c, \boldsymbol{x})$ denote the join probability of seeing $c$ and $\boldsymbol{x}$.
     /// The loss function minimized by this trainer is $-\sum_{c = 1}^m P(c, \boldsymbol{x}) \log \tilde{P}(c|\boldsymbol{x}) $, which is the negative [log-likelihood function](https://en.wikipedia.org/wiki/Likelihood_function#Log-likelihood).
     ///
@@ -77,18 +77,18 @@ namespace Microsoft.ML.Trainers
     /// The number of historical states is a user-specified parameter, using a larger number may lead to a better approximation to the Hessian matrix but also a higher computation cost per step.
     ///
     /// Regularization is a method that can render an ill-posed problem more tractable by imposing constraints that provide information to supplement the data and that prevents overfitting by penalizing model's magnitude usually measured by some norm functions.
-    /// This can improve the generalization of the model learned by selecting the optimal complexity in the bias-variance tradeoff.
+    /// This can improve the generalization of the model learned by selecting the optimal complexity in the bias-variance trade-off.
     /// Regularization works by adding the penalty that is associated with coefficient values to the error of the hypothesis.
     /// An accurate model with extreme coefficient values would be penalized more, but a less accurate model with more conservative values would be penalized less.
     ///
     /// This learner supports [elastic net regularization](https://en.wikipedia.org/wiki/Elastic_net_regularization): a linear combination of L1-norm (LASSO), $|| \boldsymbol{w} ||_1$, and L2-norm (ridge), $|| \boldsymbol{w} ||_2^2$ regularizations.
-    /// L1-nrom and L2-norm regularizations have different effects and uses that are complementary in certain respects.
+    /// L1-norm and L2-norm regularizations have different effects and uses that are complementary in certain respects.
     /// Using L1-norm can increase sparsity of the trained $\boldsymbol{w}$.
-    /// When working with high-dimensional data, it shrinks small weights of irrevalent features to 0 and therefore no reource will be spent on those bad features when making prediction.
+    /// When working with high-dimensional data, it shrinks small weights of irrelevant features to 0 and therefore no reource will be spent on those bad features when making prediction.
     /// If L1-norm regularization is used, the used training algorithm would be [QWL-QN](http://citeseer.ist.psu.edu/viewdoc/summary?doi=10.1.1.68.5260).
     /// L2-norm regularization is preferable for data that is not sparse and it largely penalizes the existence of large weights.
     ///
-    /// An agressive regularization (that is, assigning large coefficients to L1-norm or L2-norm regularization terms) can harm predictive capacity by excluding important variables out of the model.
+    /// An aggressive regularization (that is, assigning large coefficients to L1-norm or L2-norm regularization terms) can harm predictive capacity by excluding important variables out of the model.
     /// Therefore, choosing the right regularization coefficients is important when applying maximum entropy classifier.
     /// ]]>
     /// </format>
