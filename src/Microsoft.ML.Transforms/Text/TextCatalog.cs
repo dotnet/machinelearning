@@ -442,7 +442,7 @@ namespace Microsoft.ML
                 useAllLengths: useAllLengths, numberOfBits: numberOfBits, seed: seed, useOrderedHashing: useOrderedHashing, maximumNumberOfInverts: maximumNumberOfInverts, rehashUnigrams) });
 
         /// <summary>
-        /// Create a <see cref="NgramHashingEstimator"/>, which copies the data from the columns specified in <paramref name="inputColumnNames"/>
+        /// Create a <see cref="NgramHashingEstimator"/>, which takes the data from the multiple columns specified in <paramref name="inputColumnNames"/>
         /// to a new column: <paramref name="outputColumnName"/> and produces a vector of counts of hashed n-grams.
         /// </summary>
         /// <remarks>
@@ -452,7 +452,7 @@ namespace Microsoft.ML
         /// <param name="catalog">The transform's catalog.</param>
         /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnNames"/>.
         /// This column's data type will be vector of known size of <see cref="System.Single"/>.</param>
-        /// <param name="inputColumnNames">Name of the columns to copy the data from.
+        /// <param name="inputColumnNames">Name of the multiple columns to take the data from.
         /// This estimator operates over vector of key type.</param>
         /// <param name="numberOfBits">Number of bits to hash into. Must be between 1 and 30, inclusive.</param>
         /// <param name="ngramLength">Ngram length.</param>

@@ -874,7 +874,7 @@ namespace Microsoft.ML.Transforms.Text
     /// It does so by hashing each n-gram and using the hash value as the index in the bag.
     ///
     /// <xref:Microsoft.ML.Transforms.Text.NgramHashingEstimator> is different from <xref:Microsoft.ML.Transforms.Text.WordHashBagEstimator>
-    /// in a way that <xref:Microsoft.ML.Transforms.Text.NgramHashingEstimator> takes tokenized text as input while <xref:Microsoft.ML.Transforms.Text.WordHashBagEstimator> tokenizes text internally.
+    /// in a way that The former takes tokenized text as input while the latter tokenizes text internally.
     /// See the See Also section for links to examples of the usage.
     /// ]]>
     /// </format>
