@@ -26,6 +26,36 @@ using Newtonsoft.Json.Linq;
 
 namespace Microsoft.ML.Transforms
 {
+    /// <summary>
+    /// <see cref="IEstimator{TTransformer}"/> for the <see cref="NormalizingTransformer"/>.
+    /// </summary>
+    /// <remarks>
+    /// <format type="text/markdown"><![CDATA[
+    ///
+    /// ###  Estimator Characteristics
+    /// |  |  |
+    /// | -- | -- |
+    /// | Does this estimator need to look at the data to train its parameters? | No |
+    /// | Input column data type | <xref:System.Single> or <xref:System.Double> |
+    /// | Output column data type | The same as the data type in the input column |
+    ///
+    /// The resulting NormalizingEstimator will normalize the data in one of the following ways based upon how it was created:
+    /// * Min Max - Linear rescale such that minimum and maximum values are mapped between -1 and 1.
+    /// * Mean Variance - Rescale to unit variance and, optionally, zero mean.
+    /// * Log Mean Variance - Rescale to unit variance on the log scale.
+    /// * Binning - Bucketize and then rescale to between -1 and 1.
+    /// * Supervised Binning - Bucketize and then rescale to between -1 and 1. Calculates bins based on correlation with the Label column.
+    ///
+    /// To create this estimator use one of the following:
+    /// * [NormalizeMinMax](xref:Microsoft.ML.NormalizationCatalog.NormalizeMinMax(Microsoft.ML.TransformsCatalog,System.String,System.String,System.Int64,System.Boolean))
+    /// * [NormalizeMeanVariance](xref:Microsoft.ML.NormalizationCatalog.NormalizeMeanVariance(Microsoft.ML.TransformsCatalog,System.String,System.String,System.Int64,System.Boolean,System.Boolean))
+    /// * [NormalizeLogMeanVariance](xref:Microsoft.ML.NormalizationCatalog.NormalizeLogMeanVariance(Microsoft.ML.TransformsCatalog,System.String,System.String,System.Int64,System.Boolean))
+    /// * [NormalizeBinning](xref:Microsoft.ML.NormalizationCatalog.NormalizeBinning(Microsoft.ML.TransformsCatalog,System.String,System.String,System.Int64,System.Boolean,System.Int32))
+    /// * [NormalizeSupervisedBinning](xref:Microsoft.ML.NormalizationCatalog.NormalizeSupervisedBinning(Microsoft.ML.TransformsCatalog,System.String,System.String,System.String,System.Int64,System.Boolean,System.Int32,System.Int32))
+    /// 
+    /// ]]>
+    /// </format>
+    /// </remarks>
     public sealed class NormalizingEstimator : IEstimator<NormalizingTransformer>
     {
         [BestFriend]
@@ -284,6 +314,9 @@ namespace Microsoft.ML.Transforms
         }
     }
 
+    /// <summary>
+    /// <see cref="ITransformer"/> resulting from fitting an <see cref="NormalizingEstimator"/>.
+    /// </summary>
     public sealed partial class NormalizingTransformer : OneToOneTransformerBase
     {
         internal const string LoaderSignature = "Normalizer";

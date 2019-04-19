@@ -31,11 +31,12 @@ namespace Microsoft.ML
         }
 
         /// <summary>
-        /// It normalizes the data based on the observed minimum and maximum values of the data.
+        /// Create a <see cref="NormalizingEstimator"/>, which normalizes based on the observed minimum and maximum values of the data.
         /// </summary>
         /// <param name="catalog">The transform catalog</param>
         /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.</param>
-        /// <param name="inputColumnName">Name of the column to transform. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.</param>
+        /// <param name="inputColumnName">Name of the column to transform. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.
+        ///                               The data type on this column should be <see cref="System.Single"/> or <see cref="System.Double"/></param>
         /// <param name="maximumExampleCount">Maximum number of examples used to train the normalizer.</param>
         /// <param name="fixZero">Whether to map zero to zero, preserving sparsity.</param>
         /// <example>
@@ -55,10 +56,10 @@ namespace Microsoft.ML
         }
 
         /// <summary>
-        /// It normalizes the data based on the observed minimum and maximum values of the data.
+        /// Create a <see cref="NormalizingEstimator"/>, which normalizes based on the observed minimum and maximum values of the data.
         /// </summary>
         /// <param name="catalog">The transform catalog</param>
-        /// <param name="columns">List of Output and Input column pairs.</param>
+        /// <param name="columns">The pairs of input and output columns. The input columns must be of data type <see cref="System.Single"/> or <see cref="System.Double"/></param>
         /// <param name="maximumExampleCount">Maximum number of examples used to train the normalizer.</param>
         /// <param name="fixZero">Whether to map zero to zero, preserving sparsity.</param>
         public static NormalizingEstimator NormalizeMinMax(this TransformsCatalog catalog, InputOutputColumnPair[] columns,
@@ -69,11 +70,12 @@ namespace Microsoft.ML
                     new NormalizingEstimator.MinMaxColumnOptions(column.OutputColumnName, column.InputColumnName, maximumExampleCount, fixZero)).ToArray());
 
         /// <summary>
-        /// It normalizes the data based on the computed mean and variance of the data.
+        /// Create a <see cref="NormalizingEstimator"/>, which normalizes based on the computed mean and variance of the data.
         /// </summary>
         /// <param name="catalog">The transform catalog</param>
         /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.</param>
-        /// <param name="inputColumnName">Name of the column to transform. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.</param>
+        /// <param name="inputColumnName">Name of the column to transform. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.
+        ///                                The data type on this column should be <see cref="System.Single"/> or <see cref="System.Double"/></param>
         /// <param name="maximumExampleCount">Maximum number of examples used to train the normalizer.</param>
         /// <param name="fixZero">Whether to map zero to zero, preserving sparsity.</param>
         /// <param name="useCdf">Whether to use CDF as the output.</param>
@@ -95,10 +97,10 @@ namespace Microsoft.ML
         }
 
         /// <summary>
-        /// It normalizes the data based on the computed mean and variance of the data.
+        /// Create a <see cref="NormalizingEstimator"/>, which normalizes based on the computed mean and variance of the data.
         /// </summary>
         /// <param name="catalog">The transform catalog</param>
-        /// <param name="columns">List of Output and Input column pairs.</param>
+        /// <param name="columns">The pairs of input and output columns. The input columns must be of data type <see cref="System.Single"/> or <see cref="System.Double"/></param>
         /// <param name="maximumExampleCount">Maximum number of examples used to train the normalizer.</param>
         /// <param name="fixZero">Whether to map zero to zero, preserving sparsity.</param>
         /// <param name="useCdf">Whether to use CDF as the output.</param>
@@ -111,11 +113,12 @@ namespace Microsoft.ML
                         new NormalizingEstimator.MeanVarianceColumnOptions(column.OutputColumnName, column.InputColumnName, maximumExampleCount, fixZero, useCdf)).ToArray());
 
         /// <summary>
-        /// It normalizes the data based on the computed mean and variance of the logarithm of the data.
+        /// Create a <see cref="NormalizingEstimator"/>, which normalizes based on the computed mean and variance of the logarithm of the data.
         /// </summary>
         /// <param name="catalog">The transform catalog</param>
         /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.</param>
-        /// <param name="inputColumnName">Name of the column to transform. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.</param>
+        /// <param name="inputColumnName">Name of the column to transform. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.
+        ///                                The data type on this column should be <see cref="System.Single"/> or <see cref="System.Double"/></param>
         /// <param name="maximumExampleCount">Maximum number of examples used to train the normalizer.</param>
         /// <param name="useCdf">Whether to use CDF as the output.</param>
         /// <example>
@@ -135,10 +138,10 @@ namespace Microsoft.ML
         }
 
         /// <summary>
-        /// It normalizes the data based on the computed mean and variance of the logarithm of the data.
+        /// Create a <see cref="NormalizingEstimator"/>, which normalizes based on the computed mean and variance of the logarithm of the data.
         /// </summary>
         /// <param name="catalog">The transform catalog</param>
-        /// <param name="columns">List of Output and Input column pairs.</param>
+        /// <param name="columns">The pairs of input and output columns. The input columns must be of data type <see cref="System.Single"/> or <see cref="System.Double"/></param>
         /// <param name="maximumExampleCount">Maximum number of examples used to train the normalizer.</param>
         /// <param name="useCdf">Whether to use CDF as the output.</param>
         public static NormalizingEstimator NormalizeLogMeanVariance(this TransformsCatalog catalog, InputOutputColumnPair[] columns,
@@ -149,11 +152,12 @@ namespace Microsoft.ML
                     new NormalizingEstimator.LogMeanVarianceColumnOptions(column.OutputColumnName, column.InputColumnName, maximumExampleCount, useCdf)).ToArray());
 
         /// <summary>
-        /// The values are assigned into bins with equal density.
+        /// Create a <see cref="NormalizingEstimator"/>, which normalizes by assigning the data into bins with equal density.
         /// </summary>
         /// <param name="catalog">The transform catalog</param>
         /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.</param>
-        /// <param name="inputColumnName">Name of the column to transform. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.</param>
+        /// <param name="inputColumnName">Name of the column to transform. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.
+        ///                                The data type on this column should be <see cref="System.Single"/> or <see cref="System.Double"/></param>
         /// <param name="maximumExampleCount">Maximum number of examples used to train the normalizer.</param>
         /// <param name="fixZero">Whether to map zero to zero, preserving sparsity.</param>
         /// <param name="maximumBinCount">Maximum number of bins (power of 2 recommended).</param>
@@ -175,10 +179,10 @@ namespace Microsoft.ML
         }
 
         /// <summary>
-        /// The values are assigned into bins with equal density.
+        /// Create a <see cref="NormalizingEstimator"/>, which normalizes by assigning the data into bins with equal density.
         /// </summary>
         /// <param name="catalog">The transform catalog</param>
-        /// <param name="columns">List of Output and Input column pairs.</param>
+        /// <param name="columns">The pairs of input and output columns. The input columns must be of data type <see cref="System.Single"/> or <see cref="System.Double"/></param>
         /// <param name="maximumExampleCount">Maximum number of examples used to train the normalizer.</param>
         /// <param name="fixZero">Whether to map zero to zero, preserving sparsity.</param>
         /// <param name="maximumBinCount">Maximum number of bins (power of 2 recommended).</param>
@@ -191,11 +195,12 @@ namespace Microsoft.ML
                     new NormalizingEstimator.BinningColumnOptions(column.OutputColumnName, column.InputColumnName, maximumExampleCount, fixZero, maximumBinCount)).ToArray());
 
         /// <summary>
-        /// The values are assigned into bins based on correlation with the <paramref name="labelColumnName"/> column.
+        /// Create a <see cref="NormalizingEstimator"/>, which normalizes by assigning the data into bins based on correlation with the <paramref name="labelColumnName"/> column.
         /// </summary>
         /// <param name="catalog">The transform catalog</param>
         /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.</param>
-        /// <param name="inputColumnName">Name of the column to transform. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.</param>
+        /// <param name="inputColumnName">Name of the column to transform. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.
+        ///                                The data type on this column should be <see cref="System.Single"/> or <see cref="System.Double"/></param>
         /// <param name="labelColumnName">Name of the label column for supervised binning.</param>
         /// <param name="maximumExampleCount">Maximum number of examples used to train the normalizer.</param>
         /// <param name="fixZero">Whether to map zero to zero, preserving sparsity.</param>
@@ -221,10 +226,10 @@ namespace Microsoft.ML
         }
 
         /// <summary>
-        /// The values are assigned into bins based on correlation with the <paramref name="labelColumnName"/> column.
+        /// Create a <see cref="NormalizingEstimator"/>, which normalizes by assigning the data into bins based on correlation with the <paramref name="labelColumnName"/> column.
         /// </summary>
         /// <param name="catalog">The transform catalog</param>
-        /// <param name="columns">List of Output and Input column pairs.</param>
+        /// <param name="columns">The pairs of input and output columns. The input columns must be of data type <see cref="System.Single"/> or <see cref="System.Double"/></param>
         /// <param name="labelColumnName">Name of the label column for supervised binning.</param>
         /// <param name="maximumExampleCount">Maximum number of examples used to train the normalizer.</param>
         /// <param name="fixZero">Whether to map zero to zero, preserving sparsity.</param>
