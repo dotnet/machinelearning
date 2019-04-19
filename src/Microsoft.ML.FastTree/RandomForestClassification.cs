@@ -120,6 +120,14 @@ namespace Microsoft.ML.Trainers.FastTree
     ///
     /// [!include[io](~/../docs/samples/docs/api-reference/io-columns-binary-classification.md)]
     ///
+    /// ### Trainer Characteristics
+    /// |  |  |
+    /// | -- | -- |
+    /// | Machine learning task | Binary classification |
+    /// | Is normalization required? | Yes |
+    /// | Is caching required? | No |
+    /// | Required NuGet in addition to Microsoft.ML | None |
+    ///
     /// [!include[algorithm](~/../docs/samples/docs/api-reference/algo-details-fastforest.md)]
     /// ]]>
     /// </format>
