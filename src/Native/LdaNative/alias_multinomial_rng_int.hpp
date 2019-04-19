@@ -110,7 +110,7 @@ namespace wood
 
 
             // note that i must fit into int32_t of L_[L_tail].first
-            if (std::numeric_limits<int32_t>::max() < proportion_int_.size() )
+            if (static_cast<uint32_t>(std::numeric_limits<int32_t>::max()) < proportion_int_.size() )
                 throw std::bad_alloc();
             int32_t size = static_cast<int32_t>(proportion_int_.size());
             for (int32_t i = 0; i < size; ++i)

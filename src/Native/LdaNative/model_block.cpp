@@ -138,8 +138,8 @@ namespace lda
         alias_mem_block_size_ = static_cast<size_t>(alias_mem_block_size);
         alias_mem_block_ = new int32_t[alias_mem_block_size_]();    //NOTE: force to initialize the values to be zero
 
-        cout << "mem_block_size = " << mem_block_size_ * 4 << endl;
-        cout << "alias_mem_block_size = " << alias_mem_block_size_ * 4 << endl;
+        cout << "mem_block_size = " << mem_block_size_ * sizeof(int32_t) << endl;
+        cout << "alias_mem_block_size = " << alias_mem_block_size_ * sizeof(int32_t) << endl;
 
         offset_ = 0;
         alias_offset_ = 0;
@@ -170,7 +170,7 @@ namespace lda
         if (fullSparse)
         {
             // use a very large threshold to ensure every row of word-topic-table using a sparse representation
-            hot_thresh = numeric_limits<int>::max();
+            hot_thresh = numeric_limits<int32_t>::max();
         }
         else
         {
@@ -180,7 +180,7 @@ namespace lda
         if (fullSparse)
         {
             // use a very large threshold to ensure every row of alias table using a sparse representation
-            alias_hot_thresh = numeric_limits<int>::max();
+            alias_hot_thresh = numeric_limits<int32_t>::max();
         }
         else
         {
@@ -253,7 +253,7 @@ namespace lda
         {
             // totally sparse
             // use a very large threshold to ensure every row of word-topic-table using a sparse representation
-            hot_thresh = numeric_limits<int>::max();
+            hot_thresh = numeric_limits<int32_t>::max();
         }
         else
         {
@@ -264,7 +264,7 @@ namespace lda
         if (fullSparse)
         {
             // use a very large threshold to ensure every row of alias table using a sparse representation
-            alias_hot_thresh = numeric_limits<int>::max();
+            alias_hot_thresh = numeric_limits<int32_t>::max();
         }
         else
         {
@@ -400,7 +400,7 @@ namespace lda
         {
             // totally sparse
             // use a very large threshold to ensure every row of word-topic-table using a sparse representation
-            hot_thresh = numeric_limits<int>::max();
+            hot_thresh = numeric_limits<int32_t>::max();
         }
         else
         {
@@ -412,7 +412,7 @@ namespace lda
         if (fullSparse)
         {
             // use a very large threshold to ensure every row of alias table using a sparse representation
-            alias_hot_thresh = numeric_limits<int>::max();
+            alias_hot_thresh = numeric_limits<int32_t>::max();
         }
         else
         {
