@@ -19,7 +19,54 @@ using Microsoft.ML.Transforms;
 
 namespace Microsoft.ML.Transforms
 {
-    /// <include file='doc.xml' path='doc/members/member[@name="MutualInformationFeatureSelection"]/*' />
+    /// <summary>
+    /// Selects the top k slots across all specified columns ordered by their mutual information with the label column
+    /// (what you can learn about the label by observing the value of the specified column).
+    /// </summary>
+    /// <remarks>
+    /// <format type="text/markdown"><![CDATA[
+    ///
+    /// ###  Estimator Characteristics
+    /// |  |  |
+    /// | -- | -- |
+    /// | Does this estimator need to look at the data to train its parameters? | Yes. |
+    /// | Input column data type | Vector or primitive of numeric, text or [key](xref:Microsoft.ML.Data.KeyDataViewType) data types.|
+    /// | Output column data type | Same as the input column.|
+    ///
+    /// Formally, the mutual information can be written as:
+    ///
+    /// MI(X,Y) = E[log(P(x,y)) - log(P(x)) - log(P(y))]
+    ///
+    /// where the expectation E is taken over the joint distribution of X and Y.
+    /// Here P(x, y) is the joint probability density function of X and Y, P(x) and P(y) are the marginal probability density functions of X and Y respectively.
+    /// In general, a higher mutual information between the dependent variable(or label) and an independent variable(or feature) means
+    /// that the label has higher mutual dependence over that feature.
+    /// It keeps the top slots in output features with the largest mutual information with the label.
+    ///
+    /// For example, for the following Features and Label column, if we specify that we want the top 2 slots(vector elements) that have the higher correlation
+    /// with the label column, the output of applying this Estimator would keep the first and the third slots only, because their values
+    /// are more correlated with the values in the Label column.
+    ///
+    /// | Label |  Features |
+    /// | -- | -- |
+    /// |True |4,6,0 |
+    /// |False|0,7,5 |
+    /// |True |4,7,0 |
+    /// |False|0,7,0 |
+    ///
+    /// This is how the dataset above would look, after fitting the estimator, and transforming the data with the resulting transformer:
+    ///
+    /// | Label |  Features |
+    /// | -- | -- |
+    /// |True |4,0 |
+    /// |False|0,5 |
+    /// |True |4,0 |
+    /// |False|0,5 |
+    ///
+    /// ]]></format>
+    /// </remarks>
+    /// <seealso cref="FeatureSelectionCatalog.SelectFeaturesBasedOnMutualInformation(TransformsCatalog.FeatureSelectionTransforms, InputOutputColumnPair[], string, int, int)"/>
+    /// <seealso cref="FeatureSelectionCatalog.SelectFeaturesBasedOnMutualInformation(TransformsCatalog.FeatureSelectionTransforms, string, string, string, int, int)"/>
     public sealed class MutualInformationFeatureSelectingEstimator : IEstimator<ITransformer>
     {
         internal const string Summary =
