@@ -178,7 +178,7 @@ namespace Microsoft.ML
         }
 
         /// <summary>
-        /// Predict a target using generalized additive models (GAM) trained with the <see cref="GamBinaryTrainer"/>.
+        /// Creates <see cref="GamBinaryTrainer"/>, which predicts a target using generalized additive models (GAM).
         /// </summary>
         /// <param name="catalog">The <see cref="BinaryClassificationCatalog"/>.</param>
         /// <param name="labelColumnName">The name of the label column.</param>
@@ -208,7 +208,7 @@ namespace Microsoft.ML
         }
 
         /// <summary>
-        /// Predict a target using generalized additive models (GAM) trained with the <see cref="GamBinaryTrainer"/>.
+        /// Creates <see cref="GamBinaryTrainer"/>, which predicts a target using generalized additive models (GAM) using advanced options.
         /// </summary>
         /// <param name="catalog">The <see cref="BinaryClassificationCatalog"/>.</param>
         /// <param name="options">Trainer options.</param>

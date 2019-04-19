@@ -30,13 +30,47 @@ namespace Microsoft.ML.Trainers.FastTree
     /// The <see cref="IEstimator{TTransformer}"/> for training a binary classification model with generalized additive models (GAM).
     /// </summary>
     /// <include file='doc.xml' path='doc/members/member[@name="GAM_remarks"]/*' />
+    /// <remarks>
+    /// <format type="text/markdown"><![CDATA[
+    /// To create this trainer, use [Gam](xref:Microsoft.ML.TreeExtensions.Gam(Microsoft.ML.BinaryClassificationCatalog.BinaryClassificationTrainers,System.String,System.String,System.String,System.Int32,System.Int32,System.Double))
+    /// or [Gam(Options)](xref:Microsoft.ML.TreeExtensions.Gam(Microsoft.ML.BinaryClassificationCatalog.BinaryClassificationTrainers,Microsoft.ML.Trainers.FastTree.GamBinaryTrainer.Options)).
+    ///
+    /// [!include[io](~/../docs/samples/docs/api-reference/io-columns-binary-classification.md)]
+    ///
+    /// ### Trainer Characteristics
+    /// |  |  |
+    /// | -- | -- |
+    /// | Machine learning task | Binary classification |
+    /// | Is normalization required? | Yes |
+    /// | Is caching required? | No |
+    /// | Required NuGet in addition to Microsoft.ML | Microsoft.ML.FastTree |
+    ///
+    /// ### Training Algorithm Details
+    /// Generalized Additive Models, or GAMs, model the data as a set of linearly independent features
+    /// similar to a linear model.For each feature, the GAM trainer learns a non-linear function,
+    /// called a "shape function", that computes the response as a function of the feature's value.
+    /// (In contrast, a linear model fits a linear response(e.g.a line) to each feature.)
+    /// To score an example, the outputs of all the shape functions are summed and the score is the total value.
+    /// This GAM trainer is implemented using shallow gradient boosted trees(e.g.tree stumps) to learn nonparametric
+    /// shape functions, and is based on the method described in Lou, Caruana, and Gehrke.
+    /// [&quot; Intelligible Models for Classification and Regression.&quot;](http://www.cs.cornell.edu/~yinlou/papers/lou-kdd12.pdf) KDD&apos;12, Beijing, China. 2012.
+    /// After training, an intercept is added to represent the average prediction over the training set,
+    /// and the shape functions are normalized to represent the deviation from the average prediction.This results
+    /// in models that are easily interpreted simply by inspecting the intercept and the shape functions.
+    /// ]]>
+    /// </format>
+    /// </remarks>
+    /// <seealso cref="Microsoft.ML.TreeExtensions.Gam(Microsoft.ML.BinaryClassificationCatalog.BinaryClassificationTrainers,System.String,System.String,System.String,System.Int32,System.Int32,System.Double)"/>
+    /// <seealso cref="Microsoft.ML.TreeExtensions.Gam(Microsoft.ML.BinaryClassificationCatalog.BinaryClassificationTrainers,Microsoft.ML.Trainers.FastTree.GamBinaryTrainer.Options)"/>
+    /// <seealso cref="Options"/>
     public sealed class GamBinaryTrainer :
         GamTrainerBase<GamBinaryTrainer.Options,
         BinaryPredictionTransformer<CalibratedModelParametersBase<GamBinaryModelParameters, PlattCalibrator>>,
         CalibratedModelParametersBase<GamBinaryModelParameters, PlattCalibrator>>
     {
         /// <summary>
-        /// Options for the <see cref="GamBinaryTrainer"/>.
+        /// Options for the <see cref="GamBinaryTrainer"/> as used in
+        /// [Gam(Options)](xref:Microsoft.ML.TreeExtensions.Gam(Microsoft.ML.BinaryClassificationCatalog.BinaryClassificationTrainers,Microsoft.ML.Trainers.FastTree.GamBinaryTrainer.Options)).
         /// </summary>
         public sealed class Options : OptionsBase
         {
