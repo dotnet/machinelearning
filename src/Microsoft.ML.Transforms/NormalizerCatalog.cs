@@ -182,6 +182,13 @@ namespace Microsoft.ML
         /// <param name="maximumExampleCount">Maximum number of examples used to train the normalizer.</param>
         /// <param name="fixZero">Whether to map zero to zero, preserving sparsity.</param>
         /// <param name="maximumBinCount">Maximum number of bins (power of 2 recommended).</param>
+        /// <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        /// [!code-csharp[NormalizeBinning](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/NormalizeBinningMulticolumn.cs)]
+        /// ]]>
+        /// </format>
+        /// </example>
         public static NormalizingEstimator NormalizeBinning(this TransformsCatalog catalog, InputOutputColumnPair[] columns,
             long maximumExampleCount = NormalizingEstimator.Defaults.MaximumExampleCount,
             bool fixZero = NormalizingEstimator.Defaults.EnsureZeroUntouched,

@@ -25,7 +25,7 @@ namespace Samples.Dynamic
             // Convert training data to IDataView, the general data type used in ML.NET.
             var data = mlContext.Data.LoadFromEnumerable(samples);
             // NormalizeBinning normalizes the data by constructing equidensity bins and produce output based on 
-            // to which bin original value belong.
+            // to which bin the original value belongs.
             var normalize = mlContext.Transforms.NormalizeBinning("Features", maximumBinCount: 4, fixZero: false);
 
             // NormalizeBinning normalizes the data by constructing equidensity bins and produce output based on 
