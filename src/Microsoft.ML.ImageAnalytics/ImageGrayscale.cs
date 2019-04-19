@@ -32,7 +32,7 @@ namespace Microsoft.ML.Transforms.Image
     // REVIEW: Rewrite as LambdaTransform to simplify.
     // REVIEW: Should it be separate transform or part of ImageResizerTransform?
     /// <summary>
-    /// <see cref="ITransformer"/> resulting from fitting a <see cref="ImageGrayscalingTransformer"/>.
+    /// <see cref="ITransformer"/> resulting from fitting an <see cref="ImageGrayscalingTransformer"/>.
     /// </summary>
     public sealed class ImageGrayscalingTransformer : OneToOneTransformerBase
     {
@@ -228,7 +228,7 @@ namespace Microsoft.ML.Transforms.Image
     /// | Output column data type | <xref:System.Drawing.Bitmap> |
     ///
     /// The resulting <xref:Microsoft.ML.Transforms.Image.ImageGrayscalingTransformer> creates a new column, named as specified in the output column name parameters, and
-    /// converts image from input column into grayscale image.
+    /// converts the image from the input column into a grayscale image.
     /// The images might be converted to grayscale to reduce the complexity of the model.
     /// The grayed out images contain less information to process than the colored images.
     /// Another use case for converting to grayscale is to generate new images out of the existing ones, so you can have a larger dataset,

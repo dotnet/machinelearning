@@ -30,7 +30,7 @@ using Microsoft.ML.Transforms.Image;
 namespace Microsoft.ML.Transforms.Image
 {
     /// <summary>
-    /// <see cref="ITransformer"/> resulting from fitting a <see cref="ImagePixelExtractingEstimator"/>.
+    /// <see cref="ITransformer"/> resulting from fitting an <see cref="ImagePixelExtractingEstimator"/>.
     /// </summary>
     public sealed class ImagePixelExtractingTransformer : OneToOneTransformerBase
     {

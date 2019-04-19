@@ -55,7 +55,7 @@ namespace Microsoft.ML
         /// <param name="catalog">The transform's catalog.</param>
         /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.
         /// This column's data type will be <see cref="System.Drawing.Bitmap"/>.</param>
-        /// <param name="inputColumnName">Name of the column to copy the data from.
+        /// <param name="inputColumnName">Name of the column with paths to the images to load.
         /// This estimator operates over text data.</param>
         /// <param name="imageFolder">Folder where to look for images.</param>
         /// <example>
@@ -76,7 +76,6 @@ namespace Microsoft.ML
         /// The images to load need to be in the formats supported by <see cref = "System.Drawing.Bitmap" />.
         /// For end-to-end image processing pipelines, and scenarios in your applications, see the
         /// <a href="https://github.com/dotnet/machinelearning-samples/tree/master/samples/csharp/getting-started"> examples in the machinelearning-samples github repository.</a>
-        /// <seealso cref = "ImageEstimatorsCatalog" />
         /// </remarks>
         /// <param name="catalog">The transform's catalog.</param>
         /// <param name="imageFolder">Folder where to look for images.</param>
@@ -101,8 +100,8 @@ namespace Microsoft.ML
         /// </summary>
         /// <param name="catalog">The transform's catalog.</param>
         /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.
-        /// This column's data type will be known size vector of <see cref="System.Single"/>or <see cref="System.Byte"/> depending on <paramref name="outputAsFloatArray"/>.</param>
-        /// <param name="inputColumnName">Name of the column to copy the data from.
+        /// This column's data type will be a known-size vector of <see cref="System.Single"/> or <see cref="System.Byte"/> depending on <paramref name="outputAsFloatArray"/>.</param>
+        /// <param name="inputColumnName">Name of the column with images.
         /// This estimator operates over <see cref="System.Drawing.Bitmap"/>.</param>
         /// <param name="colorsToExtract">The colors to extract from the image.</param>
         /// <param name="orderOfExtraction">The order in which to extract colors from pixel.</param>
@@ -145,7 +144,7 @@ namespace Microsoft.ML
         /// <param name="catalog">The transform's catalog.</param>
         /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.
         /// This column's data type will be the same as that of the input column.</param>
-        /// <param name="inputColumnName">Name of the column to copy the data from.
+        /// <param name="inputColumnName">Name of the column with images.
         /// This estimator operates over <see cref="System.Drawing.Bitmap"/>.</param>
         /// <param name="imageWidth">The transformed image width.</param>
         /// <param name="imageHeight">The transformed image height.</param>
@@ -176,8 +175,6 @@ namespace Microsoft.ML
         /// further processing.
         /// The new width and height, as well as other properties of resizing, like type of scaling (uniform, or non-uniform), and whether to pad the image,
         /// or just crop it can be specified separately for each column loaded, through the <see cref="ImageResizingEstimator.ColumnOptions"/>.
-        /// <seealso cref = "ImageEstimatorsCatalog" />
-        /// <seealso cref= "ImageLoadingEstimator" />
         /// </remarks >
         /// <param name="catalog">The transform's catalog.</param>
         /// <param name="columnOptions">The <see cref="ImageResizingEstimator.ColumnOptions"/> describing how the transform handles each image resize column.</param>
@@ -209,7 +206,7 @@ namespace Microsoft.ML
         /// <param name="imageWidth">The width of the output images.</param>
         /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.
         /// This column's data type will be <see cref="System.Drawing.Bitmap"/>.</param>
-        /// <param name="inputColumnName">Name of the column to copy the data from.
+        /// <param name="inputColumnName">Name of the column with data to be converted to image.
         /// This estimator operates over vector of known size of <see cref="System.Single"/>, <see cref="System.Double"/> and <see cref="System.Byte"/>.</param>
         /// <param name="colorsPresent">Specifies which <see cref="ImagePixelExtractingEstimator.ColorBits"/> are in present the input pixel vectors. The order of colors is specified in <paramref name="orderOfColors"/>.</param>
         /// <param name="orderOfColors">The order in which colors are presented in the input vector.</param>

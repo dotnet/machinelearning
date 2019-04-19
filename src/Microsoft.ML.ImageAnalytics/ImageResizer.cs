@@ -31,7 +31,7 @@ namespace Microsoft.ML.Transforms.Image
 {
     // REVIEW: Rewrite as LambdaTransform to simplify.
     /// <summary>
-    /// <see cref="ITransformer"/> resulting from fitting a <see cref="ImageResizingEstimator"/>.
+    /// <see cref="ITransformer"/> resulting from fitting an <see cref="ImageResizingEstimator"/>.
     /// </summary>
     public sealed class ImageResizingTransformer : OneToOneTransformerBase
     {
