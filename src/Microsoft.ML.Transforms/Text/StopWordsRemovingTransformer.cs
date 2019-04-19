@@ -492,7 +492,7 @@ namespace Microsoft.ML.Transforms.Text
     /// | Output column data type | Unknown-sized vector of [Text]<xref:System.ReadOnlyMemory{System.Char}> |
     ///
     /// The resulting <xref:Microsoft.ML.Transforms.Text.StopWordsRemovingTransformer/> creates a new column, named as specified in the output column name parameters, and
-    /// fills it with vector of texts similar to vector of texts in input column but removing all, predefined for certain language, texts from it.
+    /// fills it with vector of words similar to vector of words in input column but removing all, predefined for certain language, texts from it.
     /// All text comparison made by casting predefined text and text from input column to lower case using casing rules of invariant culture.
     /// See the See Also section for links to examples of the usage.
     /// ]]>
@@ -1095,11 +1095,11 @@ namespace Microsoft.ML.Transforms.Text
     /// | -- | -- |
     /// | Does this estimator need to look at the data to train its parameters? | No |
     /// | Input column data type | Vector of [Text]<xref:System.ReadOnlyMemory{System.Char}> |
-    /// | Output column data type | Vector of unknown size of [Text]<xref:System.ReadOnlyMemory{System.Char}> |
+    /// | Output column data type | Unknown-sized vector of [Text]<xref:System.ReadOnlyMemory{System.Char}> |
     ///
     /// The resulting <xref:Microsoft.ML.Transforms.Text.CustomStopWordsRemovingTransformer/> creates a new column, named as specified in the output column name parameters, and
-    /// fills it with vector of texts similar to vector of texts in input column but removing all specified texts from it.
-    /// All text comparison made by casting specified text and text from input column to lower case using casing rules of invariant culture.
+    /// fills it with vector of texts similar to vector of words in input column but removing all provided by user words from it.
+    /// All text comparison made by casting provided words and words from input column to lower case using casing rules of invariant culture.
     /// See the See Also section for links to examples of the usage.
     /// ]]>
     /// </format>
