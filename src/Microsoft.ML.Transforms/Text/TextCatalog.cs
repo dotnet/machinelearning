@@ -403,15 +403,18 @@ namespace Microsoft.ML
                 maximumNumberOfInverts: maximumNumberOfInverts);
 
         /// <summary>
-        /// Produces a bag of counts of hashed ngrams in <paramref name="inputColumnName"/>
-        /// and outputs ngram vector as <paramref name="outputColumnName"/>
-        ///
+        /// Create a <see cref="NgramHashingEstimator"/>, which copies the data from the column specified in <paramref name="inputColumnName"/>
+        /// to a new column: <paramref name="outputColumnName"/> and produces a vector of counts of hashed n-grams.
+        /// </summary>
+        /// <remarks>
         /// <see cref="NgramHashingEstimator"/> is different from <see cref="WordHashBagEstimator"/> in a way that <see cref="NgramHashingEstimator"/>
         /// takes tokenized text as input while <see cref="WordHashBagEstimator"/> tokenizes text internally.
-        /// </summary>
-        /// <param name="catalog">The text-related transform's catalog.</param>
-        /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.</param>
-        /// <param name="inputColumnName">Name of the column to transform. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.</param>
+        /// </remarks>
+        /// <param name="catalog">The transform's catalog.</param>
+        /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.
+        /// This column's data type will be vector of <see cref="System.Single"/>.</param>
+        /// <param name="inputColumnName">Name of the column to copy the data from.
+        /// This estimator operates over vector of key type.</param>
         /// <param name="numberOfBits">Number of bits to hash into. Must be between 1 and 30, inclusive.</param>
         /// <param name="ngramLength">Ngram length.</param>
         /// <param name="skipLength">Maximum number of tokens to skip when constructing an ngram.</param>
@@ -439,15 +442,18 @@ namespace Microsoft.ML
                 useAllLengths: useAllLengths, numberOfBits: numberOfBits, seed: seed, useOrderedHashing: useOrderedHashing, maximumNumberOfInverts: maximumNumberOfInverts, rehashUnigrams) });
 
         /// <summary>
-        /// Produces a bag of counts of hashed ngrams in <paramref name="inputColumnNames"/>
-        /// and outputs ngram vector as <paramref name="outputColumnName"/>
-        ///
+        /// Create a <see cref="NgramHashingEstimator"/>, which takes the data from the multiple columns specified in <paramref name="inputColumnNames"/>
+        /// to a new column: <paramref name="outputColumnName"/> and produces a vector of counts of hashed n-grams.
+        /// </summary>
+        /// <remarks>
         /// <see cref="NgramHashingEstimator"/> is different from <see cref="WordHashBagEstimator"/> in a way that <see cref="NgramHashingEstimator"/>
         /// takes tokenized text as input while <see cref="WordHashBagEstimator"/> tokenizes text internally.
-        /// </summary>
-        /// <param name="catalog">The text-related transform's catalog.</param>
-        /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnNames"/>.</param>
-        /// <param name="inputColumnNames">Names of the columns to transform. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.</param>
+        /// </remarks>
+        /// <param name="catalog">The transform's catalog.</param>
+        /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnNames"/>.
+        /// This column's data type will be vector of known size of <see cref="System.Single"/>.</param>
+        /// <param name="inputColumnNames">Name of the multiple columns to take the data from.
+        /// This estimator operates over vector of key type.</param>
         /// <param name="numberOfBits">Number of bits to hash into. Must be between 1 and 30, inclusive.</param>
         /// <param name="ngramLength">Ngram length.</param>
         /// <param name="skipLength">Maximum number of tokens to skip when constructing an ngram.</param>
