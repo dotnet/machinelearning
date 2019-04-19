@@ -22,8 +22,8 @@ namespace Microsoft.ML.Transforms.Text
     /// | Input column data type | Vector of [Text](xref:Microsoft.ML.Data.TextDataViewType) |
     /// | Output column data type | Vector of known-size of <xref:System.Single> |
     ///
-    /// The resulting <xref:Microsoft.ML.ITransformer/> creates a new column, named as specified in the output column name parameters, and
-    /// produces a vector of counts of n-grams (sequences of consecutive words of length 1-n) from a given data.
+    /// The resulting <xref:Microsoft.ML.ITransformer> creates a new column, named as specified in the output column name parameters, and
+    /// produces a vector of counts of n-grams (sequences of n consecutive words) from a given data.
     /// It does so by building a dictionary of ngrams and using the id in the dictionary as the index in the bag.
     ///
     /// <xref:Microsoft.ML.Transforms.Text.WordBagEstimator> is different from <xref:Microsoft.ML.Transforms.Text.NgramExtractingEstimator>
@@ -201,10 +201,6 @@ namespace Microsoft.ML.Transforms.Text
     }
 
     /// <summary>
-    /// Produces a bag of counts of n-grams (sequences of consecutive words of length 1-n) in a given text.
-    /// It does so by hashing each ngram and using the hash value as the index in the bag.
-    /// </summary>
-    /// <summary>
     /// <see cref="IEstimator{TTransformer}"/> for the <see cref="ITransformer"/>.
     /// </summary>
     /// <remarks>
@@ -217,7 +213,7 @@ namespace Microsoft.ML.Transforms.Text
     /// | Output column data type | Vector of known-size of <xref:System.Single> |
     ///
     /// The resulting <xref:Microsoft.ML.ITransformer> creates a new column, named as specified in the output column name parameters, and
-    /// produces a vector of counts of n-grams (sequences of consecutive words of length 1-n) from a given data.
+    /// produces a vector of counts of n-grams (sequences of n consecutive words) from a given data.
     /// It does so by hashing each ngram and using the hash value as the index in the bag.
     ///
     /// <xref:Microsoft.ML.Transforms.Text.WordHashBagEstimator> is different from <xref:Microsoft.ML.Transforms.Text.NgramHashingEstimator>
