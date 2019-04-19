@@ -62,13 +62,13 @@ namespace Microsoft.ML.Trainers
     /// where the trainer has a multiclass option, but using it directly is not
     /// practical due to, usually, memory constraints. For example, while a multiclass
     /// logistic regression is a more principled way to solve a multiclass problem, it
-    /// requires that the learner store a lot more intermediate state in the form of
+    /// requires that the trainer store a lot more intermediate state in the form of
     /// L-BFGS history for all classes *simultaneously*, rather than just one-by-one
     /// as would be needed for a pairwise coupling classification model.
     /// ]]>
     /// </format>
     /// </remarks>
-    /// <seealso xref="Microsoft.ML.StandardTrainersCatalog.PairwiseCoupling``1(Microsoft.ML.MulticlassClassificationCatalog.MulticlassClassificationTrainers,Microsoft.ML.Trainers.ITrainerEstimator{Microsoft.ML.ISingleFeaturePredictionTransformer{``0},``0},System.String,System.Boolean,Microsoft.ML.IEstimator{Microsoft.ML.ISingleFeaturePredictionTransformer{Microsoft.ML.Calibrators.ICalibrator}},System.Int32)" />
+    /// <seealso cref="StandardTrainersCatalog.PairwiseCoupling{TModel}(MulticlassClassificationCatalog.MulticlassClassificationTrainers, ITrainerEstimator{ISingleFeaturePredictionTransformer{TModel}, TModel}, string, bool, IEstimator{ISingleFeaturePredictionTransformer{ICalibrator}}, int)" />
     public sealed class PairwiseCouplingTrainer : MetaMulticlassTrainer<MulticlassPredictionTransformer<PairwiseCouplingModelParameters>, PairwiseCouplingModelParameters>
     {
         internal const string LoadNameValue = "PKPD";

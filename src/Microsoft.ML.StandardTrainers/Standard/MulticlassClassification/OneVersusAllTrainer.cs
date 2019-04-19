@@ -64,7 +64,7 @@ namespace Microsoft.ML.Trainers
     /// can be different from LightGbmClassifier, which develops a multi-class classifier directly.
     /// Note that even if the classifier indicates that it does not need caching, OneVersusAll will always
     /// request caching, as it will be performing multiple passes over the data set.
-    /// This learner will request normalization from the data pipeline if the classifier indicates it would benefit from it.
+    /// This trainer will request normalization from the data pipeline if the classifier indicates it would benefit from it.
     ///
     /// This can allow you to exploit trainers that do not naturally have a
     /// multiclass option, for example, using the FastTree Binary Classification
@@ -73,13 +73,13 @@ namespace Microsoft.ML.Trainers
     /// where the trainer has a multiclass option, but using it directly is not
     /// practical due to, usually, memory constraints. For example, while a multiclass
     /// logistic regression is a more principled way to solve a multiclass problem, it
-    /// requires that the learner store a lot more intermediate state in the form of
+    /// requires that the trainer store a lot more intermediate state in the form of
     /// L-BFGS history for all classes *simultaneously*, rather than just one-by-one
     /// as would be needed for a one-versus-all classification model.
     /// ]]>
     /// </format>
     /// </remarks>
-    /// <seealso xref="xref:Microsoft.ML.StandardTrainersCatalog.OneVersusAll``1(Microsoft.ML.MulticlassClassificationCatalog.MulticlassClassificationTrainers,Microsoft.ML.Trainers.ITrainerEstimator{Microsoft.ML.Data.BinaryPredictionTransformer{``0},``0},System.String,System.Boolean,Microsoft.ML.IEstimator{Microsoft.ML.ISingleFeaturePredictionTransformer{Microsoft.ML.Calibrators.ICalibrator}},System.Int32,System.Boolean)" />
+    /// <seealso cref="StandardTrainersCatalog.OneVersusAll{TModel}(MulticlassClassificationCatalog.MulticlassClassificationTrainers, ITrainerEstimator{BinaryPredictionTransformer{TModel}, TModel}, string, bool, IEstimator{ISingleFeaturePredictionTransformer{ICalibrator}}, int, bool)" />
     public sealed class OneVersusAllTrainer : MetaMulticlassTrainer<MulticlassPredictionTransformer<OneVersusAllModelParameters>, OneVersusAllModelParameters>
     {
         internal const string LoadNameValue = "OVA";
