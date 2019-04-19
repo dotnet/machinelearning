@@ -45,12 +45,12 @@ namespace Microsoft.ML.Transforms
     /// | Input columns data type | Any |
     /// | Output column data type | When not dropped, the data type is unchanged |
     ///
-    /// The resulting [ColumnSelectingTransformer](<xref:Microsoft.ML.Transforms.ColumnSelectingTransformer>)
-    /// operates on the schema of a given [IDataView](<xref:Microsoft.ML.IDataView>) dropping or keeping selected columns from the schema.
+    /// The resulting [ColumnSelectingTransformer](xref:Microsoft.ML.Transforms.ColumnSelectingTransformer)
+    /// operates on the schema of a given [IDataView](xref:Microsoft.ML.IDataView) dropping or keeping selected columns from the schema.
     ///
     /// It is commonly used to remove unwanted columns before serializing a dataset or writing it to a file.
     /// It is not necessary to drop unused columns before training or performing transforms,
-    /// as the [IDataView](<xref:Microsoft.ML.IDataView>) is lazily evaluated and will not actually materialize the columns until needed.
+    /// as the [IDataView](xref:Microsoft.ML.IDataView) is lazily evaluated and will not actually materialize the columns until needed.
     /// In the case of serialization, every column in the schema will be written out. If there are columns
     /// that should not be saved, this estimator can be used to remove them.
     ///

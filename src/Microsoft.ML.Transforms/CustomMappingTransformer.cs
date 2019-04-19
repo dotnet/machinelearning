@@ -201,7 +201,7 @@ namespace Microsoft.ML.Transforms
     }
 
     /// <summary>
-    /// Applies a custom mapping of input columns to output columns of an <see cref="IDataView"/>.
+    /// Applies a custom mapping function to the specified input columns. The result will be in output columns.
     /// </summary>
     /// <remarks>
     /// <format type="text/markdown"><![CDATA[
@@ -213,11 +213,11 @@ namespace Microsoft.ML.Transforms
     /// | Input column data type | Any |
     /// | Output column data type | Any |
     ///
-    /// The resulting [CustomMappingTransformer](<xref:Microsoft.ML.Transforms.CustomMappingTransformer>) applies a user defined mapping
+    /// The resulting [CustomMappingTransformer](xref:Microsoft.ML.Transforms.CustomMappingTransformer) applies a user defined mapping
     /// to one or more input columns and produces one or more output columns. This transformation doesn't change the number of rows,
-    /// and can be seen as a result of application of the user's function to every row of the input data.
+    /// and can be seen as the result of applying the user's function to every row of the input data.
     ///
-    /// The custom function that is applied to every row must be thread-safe and free from side effects.
+    /// The provided custom function must be thread-safe and free from side effects.
     /// The order with which it is applied to the rows of data cannot be guaranteed.
     /// ]]></format>
     /// </remarks>
