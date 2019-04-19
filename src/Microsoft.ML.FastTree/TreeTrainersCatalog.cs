@@ -384,7 +384,7 @@ namespace Microsoft.ML
         }
 
         /// <summary>
-        /// Creates <see cref="FastForestBinaryTrainer"/>, which predicts a target using a decision tree regression model.
+        /// Create <see cref="FastForestBinaryTrainer"/>, which predicts a target using a decision tree regression model.
         /// </summary>
         /// <param name="catalog">The <see cref="BinaryClassificationCatalog"/>.</param>
         /// <param name="labelColumnName">The name of the label column. The column data must be <see cref="System.Boolean"/>.</param>
