@@ -55,7 +55,8 @@ namespace Microsoft.ML.Trainers.FastTree
     public sealed partial class FastTreeBinaryTrainer
     {
         /// <summary>
-        /// Options for the <see cref="FastTreeBinaryTrainer"/>.
+        /// Options for the <see cref="FastTreeBinaryTrainer"/> as used in
+        /// [FastTree(Options)](xref:"Microsoft.ML.TreeExtensions.FastTree(Microsoft.ML.BinaryClassificationCatalog.BinaryClassificationTrainers,Microsoft.ML.Trainers.FastTree.FastTreeBinaryTrainer.Options)).
         /// </summary>
         [TlcModule.Component(Name = LoadNameValue, FriendlyName = UserNameValue, Desc = Summary)]
         public sealed class Options : BoostedTreeOptions, IFastTreeTrainerFactory

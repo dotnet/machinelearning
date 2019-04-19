@@ -68,11 +68,11 @@ namespace Microsoft.ML
         }
 
         /// <summary>
-        /// Predict a target using a decision tree binary classification model trained with the <see cref="FastTreeBinaryTrainer"/>.
+        /// Create <see cref="FastTreeBinaryTrainer"/>, which predicts a target using a decision tree binary classification model.
         /// </summary>
         /// <param name="catalog">The <see cref="BinaryClassificationCatalog"/>.</param>
-        /// <param name="labelColumnName">The name of the label column.</param>
-        /// <param name="featureColumnName">The name of the feature column.</param>
+        /// <param name="labelColumnName">The name of the label column. The column data must be <see cref="System.Boolean"/>.</param>
+        /// <param name="featureColumnName">The name of the feature column. The column data must be a known-sized vector of <see cref="System.Single"/>.</param>
         /// <param name="exampleWeightColumnName">The name of the example weight column (optional).</param>
         /// <param name="numberOfTrees">Total number of decision trees to create in the ensemble.</param>
         /// <param name="numberOfLeaves">The maximum number of leaves per decision tree.</param>
@@ -100,7 +100,7 @@ namespace Microsoft.ML
         }
 
         /// <summary>
-        /// Predict a target using a decision tree binary classification model trained with the <see cref="FastTreeBinaryTrainer"/> and advanced options.
+        /// Create <see cref="FastTreeBinaryTrainer"/> with advanced options, which predicts a target using a decision tree binary classification model.
         /// </summary>
         /// <param name="catalog">The <see cref="BinaryClassificationCatalog"/>.</param>
         /// <param name="options">Trainer options.</param>

@@ -100,7 +100,28 @@ namespace Microsoft.ML.Trainers.FastTree
     /// <summary>
     /// The <see cref="IEstimator{TTransformer}"/> for training a decision tree binary classification model using FastTree.
     /// </summary>
-    /// <include file='doc.xml' path='doc/members/member[@name="FastTree_remarks"]/*' />
+    /// <remarks>
+    /// <format type="text/markdown"><![CDATA[
+    /// To create this trainer, use [FastTree](xref:Microsoft.ML.TreeExtensions.FastTree(Microsoft.ML.BinaryClassificationCatalog.BinaryClassificationTrainers,System.String,System.String,System.String,System.Int32,System.Int32,System.Int32,System.Double))
+    /// or [FastTree(Options)](xref:"Microsoft.ML.TreeExtensions.FastTree(Microsoft.ML.BinaryClassificationCatalog.BinaryClassificationTrainers,Microsoft.ML.Trainers.FastTree.FastTreeBinaryTrainer.Options)).
+    ///
+    /// [!include[io](~/../docs/samples/docs/api-reference/io-columns-binary-classification.md)]
+    ///
+    /// ### Trainer Characteristics
+    /// |  |  |
+    /// | -- | -- |
+    /// | Machine learning task | Binary classification |
+    /// | Is normalization required? | No |
+    /// | Is caching required? | No |
+    /// | Required NuGet in addition to Microsoft.ML | Microsoft.ML.FastTree |
+    ///
+    /// [!include[algorithm](~/../docs/samples/docs/api-reference/algo-details-fasttree.md)]
+    /// ]]>
+    /// </format>
+    /// </remarks>
+    /// <seealso cref="Microsoft.ML.TreeExtensions.FastTree(Microsoft.ML.BinaryClassificationCatalog.BinaryClassificationTrainers,System.String,System.String,System.String,System.Int32,System.Int32,System.Int32,System.Double)"/>
+    /// <seealso cref="Microsoft.ML.TreeExtensions.FastTree(Microsoft.ML.BinaryClassificationCatalog.BinaryClassificationTrainers,Microsoft.ML.Trainers.FastTree.FastTreeBinaryTrainer.Options)"/>
+    /// <seealso cref="Options"/>
     public sealed partial class FastTreeBinaryTrainer :
         BoostingFastTreeTrainerBase<FastTreeBinaryTrainer.Options,
         BinaryPredictionTransformer<CalibratedModelParametersBase<FastTreeBinaryModelParameters, PlattCalibrator>>,
