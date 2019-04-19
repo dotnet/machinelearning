@@ -23,7 +23,7 @@ namespace Microsoft.ML.Transforms.Text
     /// | Output column data type | Vector of known-size of <xref:System.Single> |
     ///
     /// The resulting <xref:Microsoft.ML.ITransformer> creates a new column, named as specified in the output column name parameters, and
-    /// produces a vector of counts of n-grams (sequences of n consecutive words) from a given data.
+    /// produces a vector of n-gram counts (sequences of n consecutive words) from a given data.
     /// It does so by building a dictionary of ngrams and using the id in the dictionary as the index in the bag.
     ///
     /// <xref:Microsoft.ML.Transforms.Text.WordBagEstimator> is different from <xref:Microsoft.ML.Transforms.Text.NgramExtractingEstimator>
@@ -213,7 +213,7 @@ namespace Microsoft.ML.Transforms.Text
     /// | Output column data type | Vector of known-size of <xref:System.Single> |
     ///
     /// The resulting <xref:Microsoft.ML.ITransformer> creates a new column, named as specified in the output column name parameters, and
-    /// produces a vector of counts of n-grams (sequences of n consecutive words) from a given data.
+    /// produces a vector of n-gram counts (sequences of n consecutive words) from a given data.
     /// It does so by hashing each ngram and using the hash value as the index in the bag.
     ///
     /// <xref:Microsoft.ML.Transforms.Text.WordHashBagEstimator> is different from <xref:Microsoft.ML.Transforms.Text.NgramHashingEstimator>

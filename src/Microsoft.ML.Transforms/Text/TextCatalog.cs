@@ -294,7 +294,7 @@ namespace Microsoft.ML
 
         /// <summary>
         /// Create a <see cref="WordHashBagEstimator"/>, which maps the column specified in <paramref name="inputColumnName"/>
-        /// to a vector of counts of n-grams in a new column named <paramref name="outputColumnName"/>.
+        /// to a vector of n-gram counts in a new column named <paramref name="outputColumnName"/>.
         /// </summary>
         /// <remarks>
         /// <see cref="WordBagEstimator"/> is different from <see cref="NgramExtractingEstimator"/> in that the former
@@ -322,8 +322,8 @@ namespace Microsoft.ML
                 outputColumnName, inputColumnName, ngramLength, skipLength, useAllLengths, maximumNgramsCount, weighting);
 
         /// <summary>
-        /// Create a <see cref="WordHashBagEstimator"/>, which maps the multople columns specified in <paramref name="inputColumnNames"/>
-        /// to a vector of counts of n-grams in a new column named <paramref name="outputColumnName"/>.
+        /// Create a <see cref="WordHashBagEstimator"/>, which maps the multiple columns specified in <paramref name="inputColumnNames"/>
+        /// to a vector of n-gram counts in a new column named <paramref name="outputColumnName"/>.
         /// </summary>
         /// <remarks>
         /// <see cref="WordBagEstimator"/> is different from <see cref="NgramExtractingEstimator"/> in that the former
@@ -389,7 +389,7 @@ namespace Microsoft.ML
                 maximumNumberOfInverts: maximumNumberOfInverts);
 
         /// <summary>
-        /// Create a <see cref="WordHashBagEstimator"/>, which maps the multople columns specified in <paramref name="inputColumnNames"/>
+        /// Create a <see cref="WordHashBagEstimator"/>, which maps the multiple columns specified in <paramref name="inputColumnNames"/>
         /// to a vector of counts of hashed n-grams in a new column named <paramref name="outputColumnName"/>.
         /// </summary>
         /// <remarks>
