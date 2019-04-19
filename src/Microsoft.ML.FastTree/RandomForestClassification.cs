@@ -124,9 +124,9 @@ namespace Microsoft.ML.Trainers.FastTree
     /// |  |  |
     /// | -- | -- |
     /// | Machine learning task | Binary classification |
-    /// | Is normalization required? | Yes |
+    /// | Is normalization required? | No |
     /// | Is caching required? | No |
-    /// | Required NuGet in addition to Microsoft.ML | None |
+    /// | Required NuGet in addition to Microsoft.ML | Microsoft.ML.FastTree |
     ///
     /// [!include[algorithm](~/../docs/samples/docs/api-reference/algo-details-fastforest.md)]
     /// ]]>

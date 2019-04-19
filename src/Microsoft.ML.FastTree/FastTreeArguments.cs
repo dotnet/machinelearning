@@ -55,14 +55,16 @@ namespace Microsoft.ML.Trainers.FastTree
     public sealed partial class FastTreeBinaryTrainer
     {
         /// <summary>
-        /// Options for the <see cref="FastTreeBinaryTrainer"/>.
+        /// Options for the <see cref="FastTreeBinaryTrainer"/> as used in
+        /// [FastTree(Options)](xref:"Microsoft.ML.TreeExtensions.FastTree(Microsoft.ML.BinaryClassificationCatalog.BinaryClassificationTrainers,Microsoft.ML.Trainers.FastTree.FastTreeBinaryTrainer.Options)).
         /// </summary>
         [TlcModule.Component(Name = LoadNameValue, FriendlyName = UserNameValue, Desc = Summary)]
         public sealed class Options : BoostedTreeOptions, IFastTreeTrainerFactory
         {
 
             /// <summary>
-            /// Whether to use derivatives optimized for unbalanced training data.
+            /// Options for the <see cref="FastTreeBinaryTrainer"/> as used in
+            /// [FastTree(Options)](xref:"Microsoft.ML.TreeExtensions.FastTree(Microsoft.ML.BinaryClassificationCatalog.BinaryClassificationTrainers,Microsoft.ML.Trainers.FastTree.FastTreeBinaryTrainer.Options)).
             /// </summary>
             [Argument(ArgumentType.LastOccurenceWins, HelpText = "Option for using derivatives optimized for unbalanced sets", ShortName = "us")]
             [TGUI(Label = "Optimize for unbalanced")]
