@@ -138,8 +138,8 @@ namespace lda
         alias_mem_block_size_ = static_cast<size_t>(alias_mem_block_size);
         alias_mem_block_ = new int32_t[alias_mem_block_size_]();    //NOTE: force to initialize the values to be zero
 
-        cout << "mem_block_size = " << mem_block_size_ * sizeof(int32_t) << endl;
-        cout << "alias_mem_block_size = " << alias_mem_block_size_ * sizeof(int32_t) << endl;
+        cout << "mem_block_size = " << sizeof(mem_block_size_) << endl;
+        cout << "alias_mem_block_size = " << sizeof(alias_mem_block_size_)<< endl;
 
         offset_ = 0;
         alias_offset_ = 0;
@@ -349,8 +349,8 @@ namespace lda
         alias_mem_block_size_ = static_cast<size_t>(size);
         alias_mem_block_ = new int32_t[alias_mem_block_size_]();    //NOTE: force to initialize the values to be zero
 
-        cout << "mem_block_size = " << mem_block_size_ * 4 << endl;
-        cout << "alias_mem_block_size = " << alias_mem_block_size_ * 4 << endl;
+        cout << "mem_block_size = " << sizeof(mem_block_size_) << endl;
+        cout << "alias_mem_block_size = " << sizeof(alias_mem_block_size_) << endl;
     }
 
     void LDAModelBlock::InitFromDataBlock(const LDADataBlock *data_block, int32_t num_vocabs, int32_t num_topics)
