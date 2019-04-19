@@ -24,14 +24,14 @@ namespace Microsoft.ML
         /// </summary>
         /// <param name="catalog">The conversion transform's catalog.</param>
         /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.
-        /// This column's data type will be a vector of <see cref="System.UInt32"/>, or a <see cref="System.UInt32"/> based on whether the input column data types
+        /// This column's data type will be a vector of <see cref="System.UInt32"/>, or a scalar <see cref="System.UInt32"/> based on whether the input column data types
         /// are vectors or scalars.</param>
         /// <param name="inputColumnName">Name of the column whose data will be hashed.
         /// If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.
         /// This estimator operates over text, numeric, boolean, key or <see cref="DataViewRowId"/> data types. </param>
         /// <param name="numberOfBits">Number of bits to hash into. Must be between 1 and 31, inclusive.</param>
-        /// <param name="maximumNumberOfInverts">During hashing we constuct mappings between original values and the produced hash values.
-        /// Text representation of original values are stored in the slot names of the  metadata for the new column.Hashing, as such, can map many initial values to one.
+        /// <param name="maximumNumberOfInverts">During hashing we construct mappings between original values and the produced hash values.
+        /// Text representation of original values are stored in the slot names of the annotations for the new column.Hashing, as such, can map many initial values to one.
         /// <paramref name="maximumNumberOfInverts"/>Specifies the upper bound of the number of distinct input values mapping to a hash that should be retained.
         /// <value>0</value> does not retain any input values. <value>-1</value> retains all input values mapping to each hash.</param>
         ///  <example>
@@ -173,7 +173,7 @@ namespace Microsoft.ML
         /// </summary>
         /// <param name="catalog">The conversion transform's catalog.</param>
         /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.
-        /// The data type is a vector of <see cref="System.Single"/> representating the input value.</param>
+        /// The data type is a vector of <see cref="System.Single"/> representing the input value.</param>
         /// <param name="inputColumnName">Name of the column to transform. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.
         /// This transform operates over keys.</param>
         /// <param name="outputCountVector">Whether to combine multiple indicator vectors into a single vector of counts instead of concatenating them.
@@ -222,7 +222,7 @@ namespace Microsoft.ML
         /// The input data types can be numeric, text, boolean, <see cref="System.DateTime"/> or <see cref="System.DateTimeOffset"/>.
         /// </param>
         /// <param name="maximumNumberOfKeys">Maximum number of keys to keep per column when auto-training.</param>
-        /// <param name="keyOrdinality">How items should be ordered when vectorized. If <see cref="ValueToKeyMappingEstimator.KeyOrdinality.ByOccurrence"/> choosen they will be in the order encountered.
+        /// <param name="keyOrdinality">How items should be ordered when vectorized. If <see cref="ValueToKeyMappingEstimator.KeyOrdinality.ByOccurrence"/> chosen they will be in the order encountered.
         /// If <see cref="ValueToKeyMappingEstimator.KeyOrdinality.ByValue"/>, items are sorted according to their default comparison, for example, text sorting will be case sensitive (for example, 'A' then 'Z' then 'a').</param>
         /// <param name="addKeyValueAnnotationsAsText">Whether key value annotations should be text, regardless of the actual input type.</param>
         /// <param name="keyData">The data view containing the terms. If specified, this should be a single column data
@@ -254,7 +254,7 @@ namespace Microsoft.ML
         /// The input data types can be numeric, text, boolean, <see cref="System.DateTime"/> or <see cref="System.DateTimeOffset"/>.
         /// </param>
         /// <param name="maximumNumberOfKeys">Maximum number of keys to keep per column when auto-training.</param>
-        /// <param name="keyOrdinality">How items should be ordered when vectorized. If <see cref="ValueToKeyMappingEstimator.KeyOrdinality.ByOccurrence"/> choosen they will be in the order encountered.
+        /// <param name="keyOrdinality">How items should be ordered when vectorized. If <see cref="ValueToKeyMappingEstimator.KeyOrdinality.ByOccurrence"/> chosen they will be in the order encountered.
         /// If <see cref="ValueToKeyMappingEstimator.KeyOrdinality.ByValue"/>, items are sorted according to their default comparison, for example, text sorting will be case sensitive (for example, 'A' then 'Z' then 'a').</param>
         /// <param name="addKeyValueAnnotationsAsText">Whether key value annotations should be text, regardless of the actual input type.</param>
         /// <param name="keyData">The data view containing the terms. If specified, this should be a single column data
@@ -304,7 +304,7 @@ namespace Microsoft.ML
         /// <param name="catalog">The conversion transform's catalog</param>
         /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.
         /// The output data types can be primitives or vectors of numeric, text, boolean, <see cref="System.DateTime"/>, <see cref="System.DateTimeOffset"/> or <see cref="DataViewRowId"/> types.</param>
-        /// <param name="keyValuePairs">Specifies the mapping that will be perfomed. The keys will be mapped to the values as specified in the <paramref name="keyValuePairs"/>.</param>
+        /// <param name="keyValuePairs">Specifies the mapping that will be performed. The keys will be mapped to the values as specified in the <paramref name="keyValuePairs"/>.</param>
         /// <param name="inputColumnName">Name of the column to transform.
         /// If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.
         /// The input data types can be primitives or vectors of numeric, text, boolean, <see cref="System.DateTime"/>, <see cref="System.DateTimeOffset"/> or <see cref="DataViewRowId"/> types.
@@ -344,7 +344,7 @@ namespace Microsoft.ML
         /// <typeparam name="TInputType">The key type.</typeparam>
         /// <typeparam name="TOutputType">The value type.</typeparam>
         /// <param name="catalog">The conversion transform's catalog</param>
-        /// <param name="keyValuePairs">Specifies the mapping that will be perfomed. The keys will be mapped to the values as specified in the <paramref name="keyValuePairs"/>.</param>
+        /// <param name="keyValuePairs">Specifies the mapping that will be performed. The keys will be mapped to the values as specified in the <paramref name="keyValuePairs"/>.</param>
         /// <param name="columns">The input and output columns.
         /// The data types can be primitives or vectors of numeric, text, boolean, <see cref="System.DateTime"/>, <see cref="System.DateTimeOffset"/> or <see cref="DataViewRowId"/> types.
         /// </param>
@@ -376,7 +376,7 @@ namespace Microsoft.ML
         /// <typeparam name="TInputType">The key type.</typeparam>
         /// <typeparam name="TOutputType">The value type.</typeparam>
         /// <param name="catalog">The conversion transform's catalog</param>
-        /// <param name="keyValuePairs">Specifies the mapping that will be perfomed. The keys will be mapped to the values as specified in the <paramref name="keyValuePairs"/>.</param>
+        /// <param name="keyValuePairs">Specifies the mapping that will be performed. The keys will be mapped to the values as specified in the <paramref name="keyValuePairs"/>.</param>
         /// <param name="treatValuesAsKeyType">Whether to treat the values as a keys.</param>
         /// <param name="columns">The input and output columns.
         /// The data types can be primitives or vectors of numeric, text, boolean, <see cref="System.DateTime"/>, <see cref="System.DateTimeOffset"/> or <see cref="DataViewRowId"/> types.
@@ -412,7 +412,7 @@ namespace Microsoft.ML
         /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.
         /// The data types can be primitives or vectors of numeric, text, boolean, <see cref="System.DateTime"/>, <see cref="System.DateTimeOffset"/> or <see cref="DataViewRowId"/> types,
         /// as specified in the <typeparamref name="TOutputType"/>.</param>
-        /// <param name="keyValuePairs">Specifies the mapping that will be perfomed. The keys will be mapped to the values as specified in the <paramref name="keyValuePairs"/>.</param>
+        /// <param name="keyValuePairs">Specifies the mapping that will be performed. The keys will be mapped to the values as specified in the <paramref name="keyValuePairs"/>.</param>
         /// <param name="inputColumnName">Name of the column to transform. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.
         /// The data types can be primitives or vectors of numeric, text, boolean, <see cref="System.DateTime"/>, <see cref="System.DateTimeOffset"/> or <see cref="DataViewRowId"/> types,
         /// as specified in the <typeparamref name="TInputType"/>.</param>
@@ -449,7 +449,7 @@ namespace Microsoft.ML
         /// <typeparam name="TInputType">The key type.</typeparam>
         /// <typeparam name="TOutputType">The value type.</typeparam>
         /// <param name="catalog">The conversion transform's catalog</param>
-        /// <param name="keyValuePairs">Specifies the mapping that will be perfomed. The keys will be mapped to the values as specified in the <paramref name="keyValuePairs"/>.</param>
+        /// <param name="keyValuePairs">Specifies the mapping that will be performed. The keys will be mapped to the values as specified in the <paramref name="keyValuePairs"/>.</param>
         /// <param name="columns">The input and output columns. The data types can be primitives or vectors of numeric, text, boolean, <see cref="System.DateTime"/>,
         /// <see cref="System.DateTimeOffset"/> or <see cref="DataViewRowId"/> types, as specified in the <typeparamref name="TInputType"/> and <typeparamref name="TOutputType"/>.</param>
         [BestFriend]

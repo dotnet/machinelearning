@@ -523,14 +523,13 @@ namespace Microsoft.ML.Transforms
     /// |  |  |
     /// | -- | -- |
     /// | Does this estimator need to look at the data to train its parameters? | No |
-    /// | Input column data type | Vector or primitive numeric, boolean, text, [System.DateTime](xref:System.DateTime) and [key](xref:Microsoft.ML.Data.KeyDataViewType) data types.|
-    /// | Output column data type | Vector or primitive numeric, boolean, text, [System.DateTime](xref:System.DateTime) and [key](xref:Microsoft.ML.Data.KeyDataViewType) data types.|
+    /// | Input column data type | Vector or primitive numeric, boolean, [text](xref:Microsoft.ML.Data.TextDataViewType), [System.DateTime](xref:System.DateTime) and [key](xref:Microsoft.ML.Data.KeyDataViewType) data types.|
+    /// | Output column data type | Vector or primitive numeric, boolean, [text](xref:Microsoft.ML.Data.TextDataViewType), [System.DateTime](xref:System.DateTime) and [key](xref:Microsoft.ML.Data.KeyDataViewType) data types.|
     ///
     /// ]]></format>
     /// </remarks>
     /// <seealso cref="ConversionsExtensionsCatalog.ConvertType(TransformsCatalog.ConversionTransforms, InputOutputColumnPair[], DataKind)"/>
     /// <seealso cref="ConversionsExtensionsCatalog.ConvertType(TransformsCatalog.ConversionTransforms, string, string, DataKind)"/>
-    /// <seealso cref="ConversionsExtensionsCatalog.ConvertType(TransformsCatalog.ConversionTransforms, TypeConvertingEstimator.ColumnOptions[])"/>
     public sealed class TypeConvertingEstimator : TrivialEstimator<TypeConvertingTransformer>
     {
         internal sealed class Defaults
