@@ -122,7 +122,7 @@ namespace Microsoft.ML
         }
 
         /// <summary>
-        /// Create a <see cref="FastTreeRankingTrainer"/>, which ranks a series of inputs based on their relevance and training a decision tree ranking model.
+        /// Create a <see cref="FastTreeRankingTrainer"/>, which ranks a series of inputs based on their relevancee, using a decision tree ranking model.
         /// </summary>
         /// <param name="catalog">The <see cref="RankingCatalog"/>.</param>
         /// <param name="labelColumnName">The name of the label column. The column data must be <see cref="System.Single"/>.</param>
@@ -156,7 +156,7 @@ namespace Microsoft.ML
         }
 
         /// <summary>
-        /// Create a <see cref="FastTreeRankingTrainer"/> with advanced options, which ranks a series of inputs based on their relevance and training a decision tree ranking model.
+        /// Create a <see cref="FastTreeRankingTrainer"/> with advanced options, which ranks a series of inputs based on their relevance, using a decision tree ranking model.
         /// </summary>
         /// <param name="catalog">The <see cref="RankingCatalog"/>.</param>
         /// <param name="options">Trainer options.</param>
