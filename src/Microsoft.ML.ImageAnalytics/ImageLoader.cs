@@ -230,7 +230,7 @@ namespace Microsoft.ML.Data
     /// |  |  |
     /// | -- | -- |
     /// | Does this estimator need to look at the data to train its parameters? | No |
-    /// | Input column data type | [Text](<xref:System.ReadOnlyMemory{System.Char}>) |
+    /// | Input column data type | [Text](<xref:Microsoft.ML.Data.TextDataViewType>) |
     /// | Output column data type | <xref:System.Drawing.Bitmap> |
     ///
     /// The resulting <xref:Microsoft.ML.Data.ImageLoadingTransformer> creates a new column, named as specified in the output column name parameters, and
