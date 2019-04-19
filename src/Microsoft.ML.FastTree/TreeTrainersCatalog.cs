@@ -122,11 +122,11 @@ namespace Microsoft.ML
         }
 
         /// <summary>
-        /// Ranks a series of inputs based on their relevance, training a decision tree ranking model with the <see cref="FastTreeRankingTrainer"/>.
+        /// Create a <see cref="FastTreeRankingTrainer"/>, which ranks a series of inputs based on their relevancee, using a decision tree ranking model.
         /// </summary>
         /// <param name="catalog">The <see cref="RankingCatalog"/>.</param>
-        /// <param name="labelColumnName">The name of the label column.</param>
-        /// <param name="featureColumnName">The name of the feature column.</param>
+        /// <param name="labelColumnName">The name of the label column. The column data must be <see cref="System.Single"/>.</param>
+        /// <param name="featureColumnName">The name of the feature column. The column data must be a known-sized vector of <see cref="System.Single"/>.</param>
         /// <param name="rowGroupColumnName">The name of the group column.</param>
         /// <param name="exampleWeightColumnName">The name of the example weight column (optional).</param>
         /// <param name="numberOfTrees">Total number of decision trees to create in the ensemble.</param>
@@ -156,7 +156,7 @@ namespace Microsoft.ML
         }
 
         /// <summary>
-        /// Ranks a series of inputs based on their relevance, training a decision tree ranking model with the <see cref="FastTreeRankingTrainer"/> and advanced options.
+        /// Create a <see cref="FastTreeRankingTrainer"/> with advanced options, which ranks a series of inputs based on their relevance, using a decision tree ranking model.
         /// </summary>
         /// <param name="catalog">The <see cref="RankingCatalog"/>.</param>
         /// <param name="options">Trainer options.</param>
