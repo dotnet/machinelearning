@@ -73,8 +73,8 @@ namespace Microsoft.ML.Trainers
     /// ]]>
     /// </format>
     /// </remarks>
-    /// <seealso cref="Microsoft.ML.StandardTrainersCatalog.LbfgsLogisticRegression(Microsoft.ML.BinaryClassificationCatalog.BinaryClassificationTrainers,System.String,System.String,System.String,System.Single,System.Single,System.Single,System.Int32,System.Boolean)"/>
-    /// <seealso cref="Microsoft.ML.StandardTrainersCatalog.LbfgsLogisticRegression(Microsoft.ML.BinaryClassificationCatalog.BinaryClassificationTrainers,Microsoft.ML.Trainers.LbfgsLogisticRegressionBinaryTrainer.Options)"/>
+    /// <seealso cref="Microsoft.ML.StandardTrainersCatalog.LbfgsLogisticRegression(BinaryClassificationCatalog.BinaryClassificationTrainers, string, string, string, float, float, float, int, bool)"/>
+    /// <seealso cref="Microsoft.ML.StandardTrainersCatalog.LbfgsLogisticRegression(BinaryClassificationCatalog.BinaryClassificationTrainers, LbfgsLogisticRegressionBinaryTrainer.Options)"/>
     /// <seealso cref="Options"/>
     public sealed partial class LbfgsLogisticRegressionBinaryTrainer : LbfgsTrainerBase<LbfgsLogisticRegressionBinaryTrainer.Options,
         BinaryPredictionTransformer<CalibratedModelParametersBase<LinearBinaryModelParameters, PlattCalibrator>>,
