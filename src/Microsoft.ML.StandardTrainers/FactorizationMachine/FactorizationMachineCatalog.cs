@@ -14,7 +14,7 @@ namespace Microsoft.ML
     public static class FactorizationMachineExtensions
     {
         /// <summary>
-        /// Create an <see cref="FieldAwareFactorizationMachineTrainer"/>, which predicts a target using a field-aware factorization machine trained over boolean label data.
+        /// Create <see cref="FieldAwareFactorizationMachineTrainer"/>, which predicts a target using a field-aware factorization machine trained over boolean label data.
         /// </summary>
         /// <remarks>
         /// Note that because there is only one feature column, the underlying model is equivalent to standard factorization machine.
@@ -40,7 +40,7 @@ namespace Microsoft.ML
         }
 
         /// <summary>
-        /// Create an <see cref="FieldAwareFactorizationMachineTrainer"/>, which predicts a target using a field-aware factorization machine trained over boolean label data.
+        /// Create <see cref="FieldAwareFactorizationMachineTrainer"/>, which predicts a target using a field-aware factorization machine trained over boolean label data.
         /// </summary>
         /// <param name="catalog">The binary classification catalog trainer object.</param>
         /// <param name="labelColumnName">The name of the label column. The column data must be <see cref="System.Boolean"/>.</param>
@@ -64,7 +64,7 @@ namespace Microsoft.ML
         }
 
         /// <summary>
-        /// Create an <see cref="FieldAwareFactorizationMachineTrainer"/>, which predicts a target using a field-aware factorization machine trained over boolean label data.
+        /// Create <see cref="FieldAwareFactorizationMachineTrainer"/> using advanced options, which predicts a target using a field-aware factorization machine trained over boolean label data.
         /// </summary>
         /// <param name="catalog">The binary classification catalog trainer object.</param>
         /// <param name="options">Trainer options.</param>
