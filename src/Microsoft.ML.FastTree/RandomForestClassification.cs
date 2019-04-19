@@ -120,7 +120,7 @@ namespace Microsoft.ML.Trainers.FastTree
     ///
     /// [!include[io](~/../docs/samples/docs/api-reference/io-columns-binary-classification.md)]
     ///
-    /// [!include[algorithm](~/../docs/samples/docs/api-reference/fastforest.md)]
+    /// [!include[algorithm](~/../docs/samples/docs/api-reference/algo-details-fastforest.md)]
     /// ]]>
     /// </format>
     /// </remarks>
