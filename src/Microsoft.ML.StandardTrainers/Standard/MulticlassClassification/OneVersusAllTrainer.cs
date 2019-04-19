@@ -79,7 +79,7 @@ namespace Microsoft.ML.Trainers
     /// ]]>
     /// </format>
     /// </remarks>
-    /// <seealso cref="StandardTrainersCatalog.OneVersusAll``1(Microsoft.ML.MulticlassClassificationCatalog.MulticlassClassificationTrainers,Microsoft.ML.Trainers.ITrainerEstimator{Microsoft.ML.Data.BinaryPredictionTransformer{``0},``0},System.String,System.Boolean,Microsoft.ML.IEstimator{Microsoft.ML.ISingleFeaturePredictionTransformer{Microsoft.ML.Calibrators.ICalibrator}},System.Int32,System.Boolean)" />
+    /// <seealso xref="xref:Microsoft.ML.StandardTrainersCatalog.OneVersusAll``1(Microsoft.ML.MulticlassClassificationCatalog.MulticlassClassificationTrainers,Microsoft.ML.Trainers.ITrainerEstimator{Microsoft.ML.Data.BinaryPredictionTransformer{``0},``0},System.String,System.Boolean,Microsoft.ML.IEstimator{Microsoft.ML.ISingleFeaturePredictionTransformer{Microsoft.ML.Calibrators.ICalibrator}},System.Int32,System.Boolean)" />
     public sealed class OneVersusAllTrainer : MetaMulticlassTrainer<MulticlassPredictionTransformer<OneVersusAllModelParameters>, OneVersusAllModelParameters>
     {
         internal const string LoadNameValue = "OVA";

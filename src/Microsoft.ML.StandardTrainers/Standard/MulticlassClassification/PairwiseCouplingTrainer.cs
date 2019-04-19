@@ -68,7 +68,7 @@ namespace Microsoft.ML.Trainers
     /// ]]>
     /// </format>
     /// </remarks>
-    /// <seealso cref="Microsoft.ML.StandardTrainersCatalog.PairwiseCoupling``1(Microsoft.ML.MulticlassClassificationCatalog.MulticlassClassificationTrainers,Microsoft.ML.Trainers.ITrainerEstimator{Microsoft.ML.ISingleFeaturePredictionTransformer{%60%600},%60%600},System.String,System.Boolean,Microsoft.ML.IEstimator{Microsoft.ML.ISingleFeaturePredictionTransformer{Microsoft.ML.Calibrators.ICalibrator}},System.Int32)" />
+    /// <seealso xref="Microsoft.ML.StandardTrainersCatalog.PairwiseCoupling``1(Microsoft.ML.MulticlassClassificationCatalog.MulticlassClassificationTrainers,Microsoft.ML.Trainers.ITrainerEstimator{Microsoft.ML.ISingleFeaturePredictionTransformer{``0},``0},System.String,System.Boolean,Microsoft.ML.IEstimator{Microsoft.ML.ISingleFeaturePredictionTransformer{Microsoft.ML.Calibrators.ICalibrator}},System.Int32)" />
     public sealed class PairwiseCouplingTrainer : MetaMulticlassTrainer<MulticlassPredictionTransformer<PairwiseCouplingModelParameters>, PairwiseCouplingModelParameters>
     {
         internal const string LoadNameValue = "PKPD";
