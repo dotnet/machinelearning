@@ -37,7 +37,7 @@ namespace Microsoft.ML
         /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.
         ///                                The data type on this column is the same as the input column.</param>
         /// <param name="inputColumnName">Name of the column to transform. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.
-        ///                               The data type on this column should be <see cref="System.Single"/> or <see cref="System.Double"/></param>
+        ///                               The data type on this column should be <see cref="System.Single"/>, <see cref="System.Double"/> or a known-sized vector of those types.</param>
         /// <param name="maximumExampleCount">Maximum number of examples used to train the normalizer.</param>
         /// <param name="fixZero">Whether to map zero to zero, preserving sparsity.</param>
         /// <example>
@@ -61,7 +61,7 @@ namespace Microsoft.ML
         /// </summary>
         /// <param name="catalog">The transform catalog</param>
         /// <param name="columns">The pairs of input and output columns.
-        ///             The input columns must be of data type <see cref="System.Single"/> or <see cref="System.Double"/>.
+        ///             The input columns must be of data type <see cref="System.Single"/>, <see cref="System.Double"/> or a known-sized vector of those types.
         ///             The data type for the output column will be the same as the associated input column.</param>
         /// <param name="maximumExampleCount">Maximum number of examples used to train the normalizer.</param>
         /// <param name="fixZero">Whether to map zero to zero, preserving sparsity.</param>
@@ -79,7 +79,7 @@ namespace Microsoft.ML
         /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.
         ///                                The data type on this column is the same as the input column.</param>
         /// <param name="inputColumnName">Name of the column to transform. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.
-        ///                                The data type on this column should be <see cref="System.Single"/> or <see cref="System.Double"/></param>
+        ///                               The data type on this column should be <see cref="System.Single"/>, <see cref="System.Double"/> or a known-sized vector of those types.</param>
         /// <param name="maximumExampleCount">Maximum number of examples used to train the normalizer.</param>
         /// <param name="fixZero">Whether to map zero to zero, preserving sparsity.</param>
         /// <param name="useCdf">Whether to use CDF as the output.</param>
@@ -105,7 +105,7 @@ namespace Microsoft.ML
         /// </summary>
         /// <param name="catalog">The transform catalog</param>
         /// <param name="columns">The pairs of input and output columns.
-        ///             The input columns must be of data type <see cref="System.Single"/> or <see cref="System.Double"/>.
+        ///             The input columns must be of data type <see cref="System.Single"/>, <see cref="System.Double"/> or a known-sized vector of those types.
         ///             The data type for the output column will be the same as the associated input column.</param>
         /// <param name="maximumExampleCount">Maximum number of examples used to train the normalizer.</param>
         /// <param name="fixZero">Whether to map zero to zero, preserving sparsity.</param>
@@ -125,7 +125,7 @@ namespace Microsoft.ML
         /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.
         ///                                The data type on this column is the same as the input column.</param>
         /// <param name="inputColumnName">Name of the column to transform. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.
-        ///                                The data type on this column should be <see cref="System.Single"/> or <see cref="System.Double"/></param>
+        ///                               The data type on this column should be <see cref="System.Single"/>, <see cref="System.Double"/> or a known-sized vector of those types.</param>
         /// <param name="maximumExampleCount">Maximum number of examples used to train the normalizer.</param>
         /// <param name="useCdf">Whether to use CDF as the output.</param>
         /// <example>
@@ -149,7 +149,7 @@ namespace Microsoft.ML
         /// </summary>
         /// <param name="catalog">The transform catalog</param>
         /// <param name="columns">The pairs of input and output columns.
-        ///             The input columns must be of data type <see cref="System.Single"/> or <see cref="System.Double"/>.
+        ///             The input columns must be of data type <see cref="System.Single"/>, <see cref="System.Double"/> or a known-sized vector of those types.
         ///             The data type for the output column will be the same as the associated input column.</param>
         /// <param name="maximumExampleCount">Maximum number of examples used to train the normalizer.</param>
         /// <param name="useCdf">Whether to use CDF as the output.</param>
@@ -167,7 +167,7 @@ namespace Microsoft.ML
         /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.
         ///                                The data type on this column is the same as the input column.</param>
         /// <param name="inputColumnName">Name of the column to transform. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.
-        ///                                The data type on this column should be <see cref="System.Single"/> or <see cref="System.Double"/></param>
+        ///                               The data type on this column should be <see cref="System.Single"/>, <see cref="System.Double"/> or a known-sized vector of those types.</param>
         /// <param name="maximumExampleCount">Maximum number of examples used to train the normalizer.</param>
         /// <param name="fixZero">Whether to map zero to zero, preserving sparsity.</param>
         /// <param name="maximumBinCount">Maximum number of bins (power of 2 recommended).</param>
@@ -193,7 +193,7 @@ namespace Microsoft.ML
         /// </summary>
         /// <param name="catalog">The transform catalog</param>
         /// <param name="columns">The pairs of input and output columns.
-        ///             The input columns must be of data type <see cref="System.Single"/> or <see cref="System.Double"/>.
+        ///             The input columns must be of data type <see cref="System.Single"/>, <see cref="System.Double"/> or a known-sized vector of those types.
         ///             The data type for the output column will be the same as the associated input column.</param>
         /// <param name="maximumExampleCount">Maximum number of examples used to train the normalizer.</param>
         /// <param name="fixZero">Whether to map zero to zero, preserving sparsity.</param>
@@ -213,7 +213,7 @@ namespace Microsoft.ML
         /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.
         ///                                The data type on this column is the same as the input column.</param>
         /// <param name="inputColumnName">Name of the column to transform. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.
-        ///                                The data type on this column should be <see cref="System.Single"/> or <see cref="System.Double"/></param>
+        ///                               The data type on this column should be <see cref="System.Single"/>, <see cref="System.Double"/> or a known-sized vector of those types.</param>
         /// <param name="labelColumnName">Name of the label column for supervised binning.</param>
         /// <param name="maximumExampleCount">Maximum number of examples used to train the normalizer.</param>
         /// <param name="fixZero">Whether to map zero to zero, preserving sparsity.</param>
@@ -243,7 +243,7 @@ namespace Microsoft.ML
         /// </summary>
         /// <param name="catalog">The transform catalog</param>
         /// <param name="columns">The pairs of input and output columns.
-        ///             The input columns must be of data type <see cref="System.Single"/> or <see cref="System.Double"/>.
+        ///             The input columns must be of data type <see cref="System.Single"/>, <see cref="System.Double"/> or a known-sized vector of those types.
         ///             The data type for the output column will be the same as the associated input column.</param>
         /// <param name="labelColumnName">Name of the label column for supervised binning.</param>
         /// <param name="maximumExampleCount">Maximum number of examples used to train the normalizer.</param>
