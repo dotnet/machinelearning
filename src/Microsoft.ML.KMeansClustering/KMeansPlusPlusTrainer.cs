@@ -27,6 +27,20 @@ using Microsoft.ML.Trainers;
 namespace Microsoft.ML.Trainers
 {
     /// <summary>
+    /// The <see cref="IEstimator{TTransformer}"/> for training a KMeans clusterer
+    /// </summary>
+    /// <remarks>
+    /// <format type="text/markdown"><![CDATA[
+    /// To create this trainer, use [KMeansTrainer](xref:Microsoft.ML.Trainers.KMeansTrainer).
+    /// ### Trainer Characteristics
+    /// |  |  |
+    /// | -- | -- |
+    /// | Machine learning task | Clustering |
+    /// | Is normalization required? | Yes |
+    /// | Is caching required? | Yes |
+    /// | Required NuGet in addition to Microsoft.ML | None |
+    ///
+    /// ### Training Algorithm Details
     /// K-means is a popular clustering algorithm. With K-means, the data is clustered into a specified
     /// number of clusters in order to minimize the within-cluster sum of squares.
     /// K-means++ improves upon K-means by using the <a href='https://research.microsoft.com/apps/pubs/default.aspx?id=252149'>Yinyang K-Means</a>
@@ -37,7 +51,10 @@ namespace Microsoft.ML.Trainers
     /// For more information on K-means, and K-means++ see:
     /// <a href='https://en.wikipedia.org/wiki/K-means_clustering'>K-means</a>
     /// <a href='https://en.wikipedia.org/wiki/K-means%2b%2b'>K-means++</a>
-    /// </summary>
+    /// ]]>
+    /// </format>
+    /// </remarks>
+    /// <seealso cref="Microsoft.ML.Trainers.KMeansTrainer" />
     public class KMeansTrainer : TrainerEstimatorBase<ClusteringPredictionTransformer<KMeansModelParameters>, KMeansModelParameters>
     {
         internal const string LoadNameValue = "KMeansPlusPlus";
@@ -61,6 +78,10 @@ namespace Microsoft.ML.Trainers
             public const int NumberOfClusters = 5;
         }
 
+        /// <summary>
+        /// Options for the <see cref="KMeansTrainer"/> as used in
+        /// [KMeansTrainer(Options)](xref:"Microsoft.ML.KMeansClusteringExtensions.KMeans(Microsoft.ML.ClusteringCatalog.ClusteringTrainers,Microsoft.ML.Trainers.KMeansTrainer.Options)".
+        /// </summary>
         public sealed class Options : UnsupervisedTrainerInputBaseWithWeight
         {
             /// <summary>
