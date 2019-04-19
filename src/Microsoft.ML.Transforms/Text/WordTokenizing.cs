@@ -405,7 +405,7 @@ namespace Microsoft.ML.Transforms.Text
     /// |  |  |
     /// | -- | -- |
     /// | Does this estimator need to look at the data to train its parameters? | No |
-    /// | Input column data type | Scalar of [Text](xref:Microsoft.ML.Data.TextDataViewType)  |
+    /// | Input column data type | Scalar or Vector of [Text](xref:Microsoft.ML.Data.TextDataViewType)  |
     /// | Output column data type | Variable-size vector of [Text](xref:Microsoft.ML.Data.TextDataViewType) |
     ///
     /// The resulting <xref:Microsoft.ML.Transforms.Text.WordTokenizingTransformer> creates a new column,

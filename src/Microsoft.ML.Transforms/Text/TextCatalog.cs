@@ -139,7 +139,7 @@ namespace Microsoft.ML
         /// This column's data type will be a vector of <see cref="System.Single"/>.</param>
         /// <param name="inputColumnName">Name of the column to transform. If set to <see langword="null"/>,
         /// the value of the <paramref name="outputColumnName"/> will be used as source.
-        /// This estimator operates over vector of text data type.</param>
+        /// This estimator operates over known-sized vector of text data type.</param>
         /// <param name="modelKind">The embeddings <see cref="WordEmbeddingEstimator.PretrainedModelKind"/> to use. </param>
         /// <example>
         /// <format type="text/markdown">
@@ -164,7 +164,7 @@ namespace Microsoft.ML
         /// This column's data type will be a vector of <see cref="System.Single"/>.</param>
         /// <param name="inputColumnName">Name of the column to transform. If set to <see langword="null"/>,
         /// the value of the <paramref name="outputColumnName"/> will be used as source.
-        /// This estimator operates over vector of text data type.</param>
+        /// This estimator operates over known-sized vector of text data type.</param>
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
@@ -206,7 +206,7 @@ namespace Microsoft.ML
         /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.
         /// This column's data type will be a variable-sized vector of text.</param>
         /// <param name="inputColumnName">Name of the column to transform. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.
-        /// This estimator operates of text data type.</param>
+        /// This estimator operates on scalar of text and vector of text data type.</param>
         /// <param name="separators">The separators to use (uses space character by default).</param>
         /// <example>
         /// <format type="text/markdown">
