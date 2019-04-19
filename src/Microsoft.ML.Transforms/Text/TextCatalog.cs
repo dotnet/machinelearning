@@ -256,7 +256,7 @@ namespace Microsoft.ML
         /// </summary>
         /// <param name="catalog">The transform's catalog.</param>
         /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.
-        /// This column's data type will be unknown size vector of text.</param>
+        /// This column's data type will be unknown-size vector of text.</param>
         /// <param name="inputColumnName">Name of the column to copy the data from.
         /// This estimator operates over vector of text.</param>
         /// <param name="language">Langauge of the input text column <paramref name="inputColumnName"/>.</param>
@@ -279,7 +279,7 @@ namespace Microsoft.ML
         /// </summary>
         /// <param name="catalog">The transform's catalog.</param>
         /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.
-        /// This column's data type will be unknown size vector of text.</param>
+        /// This column's data type will be unknown-size vector of text.</param>
         /// <param name="inputColumnName">Name of the column to copy the data from.
         /// This estimator operates over vector of text.</param>
         /// <param name="stopwords">Array of words to remove.</param>
