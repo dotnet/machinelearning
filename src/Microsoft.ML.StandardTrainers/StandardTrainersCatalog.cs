@@ -854,7 +854,7 @@ namespace Microsoft.ML
         }
 
         /// <summary>
-        /// Predict a target using a binary classification model trained with <see cref="PriorTrainer"/> trainer.
+        /// Create <see cref="PriorTrainer"/>, which predict a target using a binary classification model.
         /// </summary>
         /// <remarks>
         /// This trainer uses the proportion of a label in the training set as the probability of that label.
