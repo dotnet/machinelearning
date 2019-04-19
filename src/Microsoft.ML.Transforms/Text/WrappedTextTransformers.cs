@@ -27,7 +27,7 @@ namespace Microsoft.ML.Transforms.Text
     /// It does so by building a dictionary of ngrams and using the id in the dictionary as the index in the bag.
     ///
     /// <xref:Microsoft.ML.Transforms.Text.WordBagEstimator> is different from <xref:Microsoft.ML.Transforms.Text.NgramExtractingEstimator>
-    /// in a way that the former takes tokenizes text internally while the latter takes tokenized text as input.
+    /// in that the former takes tokenizes text internally while the latter takes tokenized text as input.
     /// See the See Also section for links to examples of the usage.
     /// ]]>
     /// </format>
@@ -217,7 +217,7 @@ namespace Microsoft.ML.Transforms.Text
     /// It does so by hashing each ngram and using the hash value as the index in the bag.
     ///
     /// <xref:Microsoft.ML.Transforms.Text.WordHashBagEstimator> is different from <xref:Microsoft.ML.Transforms.Text.NgramHashingEstimator>
-    /// in a way that the former takes tokenizes text internally while the latter takes tokenized text as input.
+    /// in that the former takes tokenizes text internally while the latter takes tokenized text as input.
     /// See the See Also section for links to examples of the usage.
     /// ]]>
     /// </format>

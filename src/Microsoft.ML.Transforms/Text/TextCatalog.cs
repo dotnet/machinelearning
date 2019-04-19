@@ -293,11 +293,11 @@ namespace Microsoft.ML
             => new CustomStopWordsRemovingEstimator(Contracts.CheckRef(catalog, nameof(catalog)).GetEnvironment(), outputColumnName, inputColumnName, stopwords);
 
         /// <summary>
-        /// Create a <see cref="WordBagEstimator"/>, which takes the data from the column specified in <paramref name="inputColumnName"/>
-        /// to a new column: <paramref name="outputColumnName"/> and produces a vector of counts of n-grams.
+        /// Create a <see cref="WordHashBagEstimator"/>, which maps the column specified in <paramref name="inputColumnName"/>
+        /// to a vector of counts of n-grams in a new column named <paramref name="outputColumnName"/>.
         /// </summary>
         /// <remarks>
-        /// <see cref="WordBagEstimator"/> is different from <see cref="NgramExtractingEstimator"/> in a way that the former
+        /// <see cref="WordBagEstimator"/> is different from <see cref="NgramExtractingEstimator"/> in that the former
         /// tokenizes text internally and the latter takes tokenized text as input.
         /// </remarks>
         /// <param name="catalog">The transform's catalog.</param>
@@ -322,11 +322,11 @@ namespace Microsoft.ML
                 outputColumnName, inputColumnName, ngramLength, skipLength, useAllLengths, maximumNgramsCount, weighting);
 
         /// <summary>
-        /// Create a <see cref="WordBagEstimator"/>, which takes the data from the multiple columns specified in <paramref name="inputColumnNames"/>
-        /// to a new column: <paramref name="outputColumnName"/> and produces a vector of counts of hashed n-grams.
+        /// Create a <see cref="WordHashBagEstimator"/>, which maps the multople columns specified in <paramref name="inputColumnNames"/>
+        /// to a vector of counts of n-grams in a new column named <paramref name="outputColumnName"/>.
         /// </summary>
         /// <remarks>
-        /// <see cref="WordBagEstimator"/> is different from <see cref="NgramExtractingEstimator"/> in a way that the former
+        /// <see cref="WordBagEstimator"/> is different from <see cref="NgramExtractingEstimator"/> in that the former
         /// tokenizes text internally and the latter takes tokenized text as input.
         /// </remarks>
         /// <param name="catalog">The transform's catalog.</param>
@@ -351,11 +351,11 @@ namespace Microsoft.ML
                 outputColumnName, inputColumnNames, ngramLength, skipLength, useAllLengths, maximumNgramsCount, weighting);
 
         /// <summary>
-        /// Create a <see cref="WordHashBagEstimator"/>, which takes the data from the column specified in <paramref name="inputColumnName"/>
-        /// to a new column: <paramref name="outputColumnName"/> and produces a vector of counts of hashed n-grams.
+        /// Create a <see cref="WordHashBagEstimator"/>, which maps the column specified in <paramref name="inputColumnName"/>
+        /// to a vector of counts of hashed n-grams in a new column named <paramref name="outputColumnName"/>.
         /// </summary>
         /// <remarks>
-        /// <see cref="WordHashBagEstimator"/> is different from <see cref="NgramHashingEstimator"/> in a way that the former
+        /// <see cref="WordHashBagEstimator"/> is different from <see cref="NgramHashingEstimator"/> in that the former
         /// tokenizes text internally and the latter takes tokenized text as input.
         /// </remarks>
         /// <param name="catalog">The transform's catalog.</param>
@@ -389,11 +389,11 @@ namespace Microsoft.ML
                 maximumNumberOfInverts: maximumNumberOfInverts);
 
         /// <summary>
-        /// Create a <see cref="WordHashBagEstimator"/>, which takes the data from the multiple columns specified in <paramref name="inputColumnNames"/>
-        /// to a new column: <paramref name="outputColumnName"/> and produces a vector of counts of hashed n-grams.
+        /// Create a <see cref="WordHashBagEstimator"/>, which maps the multople columns specified in <paramref name="inputColumnNames"/>
+        /// to a vector of counts of hashed n-grams in a new column named <paramref name="outputColumnName"/>.
         /// </summary>
         /// <remarks>
-        /// <see cref="WordHashBagEstimator"/> is different from <see cref="NgramHashingEstimator"/> in a way that the former
+        /// <see cref="WordHashBagEstimator"/> is different from <see cref="NgramHashingEstimator"/> in that the former
         /// tokenizes text internally and the latter takes tokenized text as input.
         /// </remarks>
         /// <param name="catalog">The transform's catalog.</param>
