@@ -58,7 +58,7 @@ namespace Microsoft.ML.Trainers
     /// Given a feature vector $\boldsymbol{x} \in {\mathbb R}^n$, the $c$-th class's score would be $\hat{y}^c = \boldsymbol{w}_c^T \boldsymbol{x} + b_c$.
     ///
     /// If and only if the trained model is maximum entropy classifier, user can interpret the output score vector as the predicted class probabilities because [softmax function](https://en.wikipedia.org/wiki/Softmax_function) may be applied to post-process all classes' scores.
-    /// More specifically, the prability of $\boldsymbol{x}$ belonging to class $c$ is computed by $\tilde{P}(c|\boldsymbol{x}) = \frac{ e^{\hat{y}^c} }{ \sum_{c' = 1}^m e^{\hat{y}^{c'}} }$ and store at the $c$-th element in the score vector.
+    /// More specifically, the probability of $\boldsymbol{x}$ belonging to class $c$ is computed by $\tilde{P}(c|\boldsymbol{x}) = \frac{ e^{\hat{y}^c} }{ \sum_{c' = 1}^m e^{\hat{y}^{c'}} }$ and store at the $c$-th element in the score vector.
     ///
     /// ### Training Algorithm Details
     /// The optimization algorithm is an extension of (http://jmlr.org/papers/volume14/shalev-shwartz13a/shalev-shwartz13a.pdf) following a similar path proposed in an earlier [paper](https://www.csie.ntu.edu.tw/~cjlin/papers/maxent_dual.pdf).
@@ -72,7 +72,7 @@ namespace Microsoft.ML.Trainers
     /// This learner supports [elastic net regularization](https://en.wikipedia.org/wiki/Elastic_net_regularization): a linear combination of L1-norm (LASSO), $|| \boldsymbol{w}_c ||_1$, and L2-norm (ridge), $|| \boldsymbol{w}_c ||_2^2$ regularizations.
     /// L1-nrom and L2-norm regularizations have different effects and uses that are complementary in certain respects.
     /// Using L1-norm can increase sparsity of the trained $\boldsymbol{w}_c$.
-    /// When working with high-dimensional data, it shrinks small weights of irrevalent features to 0 and therefore no reource will be spent on those bad features when making prediction.
+    /// When working with high-dimensional data, it shrinks small weights of irrelevant features to 0 and therefore no resource will be spent on those bad features when making prediction.
     /// L2-norm regularization is preferable for data that is not sparse and it largely penalizes the existence of large weights.
     ///
     /// An agressive regularization (that is, assigning large coefficients to L1-norm or L2-norm regularization terms) can harm predictive capacity by excluding important variables out of the model.
@@ -80,11 +80,11 @@ namespace Microsoft.ML.Trainers
     /// ]]>
     /// </format>
     /// </remarks>
-    /// <seealso cref="Microsoft.ML.StandardTrainersCatalog.SdcaMaximumEntropy(Microsoft.ML.MulticlassClassificationCatalog.MulticlassClassificationTrainers,System.String,System.String,System.String,System.Nullable{System.Single},System.Nullable{System.Single},System.Nullable{System.Int32})"/>
-    /// <seealso cref="Microsoft.ML.StandardTrainersCatalog.SdcaMaximumEntropy(Microsoft.ML.MulticlassClassificationCatalog.MulticlassClassificationTrainers,Microsoft.ML.Trainers.SdcaMaximumEntropyMulticlassTrainer.Options)"/>
+    /// <seealso cref="Microsoft.ML.StandardTrainersCatalog.SdcaMaximumEntropy(MulticlassClassificationCatalog.MulticlassClassificationTrainers, SdcaMaximumEntropyMulticlassTrainer.Options)"/>
+    /// <seealso cref="Microsoft.ML.StandardTrainersCatalog.SdcaMaximumEntropy(MulticlassClassificationCatalog.MulticlassClassificationTrainers, string, string, string, float?, float?, int?)"/>
     /// <seealso cref="Microsoft.ML.Trainers.SdcaMaximumEntropyMulticlassTrainer.Options"/>
-    /// <seealso cref="Microsoft.ML.StandardTrainersCatalog.SdcaNonCalibrated(Microsoft.ML.MulticlassClassificationCatalog.MulticlassClassificationTrainers,System.String,System.String,System.String,Microsoft.ML.Trainers.ISupportSdcaClassificationLoss,System.Nullable{System.Single},System.Nullable{System.Single},System.Nullable{System.Int32})"/>
-    /// <seealso cref="Microsoft.ML.StandardTrainersCatalog.SdcaNonCalibrated(Microsoft.ML.MulticlassClassificationCatalog.MulticlassClassificationTrainers,Microsoft.ML.Trainers.SdcaNonCalibratedMulticlassTrainer.Options)"/>
+    /// <seealso cref="Microsoft.ML.StandardTrainersCatalog.SdcaNonCalibrated(MulticlassClassificationCatalog.MulticlassClassificationTrainers, SdcaNonCalibratedMulticlassTrainer.Options)"/>
+    /// <seealso cref="Microsoft.ML.StandardTrainersCatalog.SdcaNonCalibrated(MulticlassClassificationCatalog.MulticlassClassificationTrainers, string, string, string, ISupportSdcaClassificationLoss, float?, float?, int?)"/>
     /// <seealso cref="Microsoft.ML.Trainers.SdcaNonCalibratedMulticlassTrainer.Options"/>
     public abstract class SdcaMulticlassTrainerBase<TModel> : SdcaTrainerBase<SdcaMulticlassTrainerBase<TModel>.MulticlassOptions, MulticlassPredictionTransformer<TModel>, TModel>
         where TModel : class
@@ -522,8 +522,8 @@ namespace Microsoft.ML.Trainers
     /// ]]>
     /// </format>
     /// </remarks>
-    /// <seealso cref="Microsoft.ML.StandardTrainersCatalog.SdcaMaximumEntropy(Microsoft.ML.MulticlassClassificationCatalog.MulticlassClassificationTrainers,System.String,System.String,System.String,System.Nullable{System.Single},System.Nullable{System.Single},System.Nullable{System.Int32})"/>
-    /// <seealso cref="Microsoft.ML.StandardTrainersCatalog.SdcaMaximumEntropy(Microsoft.ML.MulticlassClassificationCatalog.MulticlassClassificationTrainers,Microsoft.ML.Trainers.SdcaMaximumEntropyMulticlassTrainer.Options)"/>
+    /// <seealso cref="Microsoft.ML.StandardTrainersCatalog.SdcaMaximumEntropy(MulticlassClassificationCatalog.MulticlassClassificationTrainers, SdcaMaximumEntropyMulticlassTrainer.Options)"/>
+    /// <seealso cref="Microsoft.ML.StandardTrainersCatalog.SdcaMaximumEntropy(MulticlassClassificationCatalog.MulticlassClassificationTrainers, string, string, string, float?, float?, int?)"/>
     /// <seealso cref="Microsoft.ML.Trainers.SdcaMaximumEntropyMulticlassTrainer.Options"/>
     public sealed class SdcaMaximumEntropyMulticlassTrainer : SdcaMulticlassTrainerBase<MaximumEntropyModelParameters>
     {
@@ -605,8 +605,8 @@ namespace Microsoft.ML.Trainers
     /// ]]>
     /// </format>
     /// </remarks>
-    /// <seealso cref="Microsoft.ML.StandardTrainersCatalog.SdcaNonCalibrated(Microsoft.ML.MulticlassClassificationCatalog.MulticlassClassificationTrainers,System.String,System.String,System.String,Microsoft.ML.Trainers.ISupportSdcaClassificationLoss,System.Nullable{System.Single},System.Nullable{System.Single},System.Nullable{System.Int32})"/>
-    /// <seealso cref="Microsoft.ML.StandardTrainersCatalog.SdcaNonCalibrated(Microsoft.ML.MulticlassClassificationCatalog.MulticlassClassificationTrainers,Microsoft.ML.Trainers.SdcaNonCalibratedMulticlassTrainer.Options)"/>
+    /// <seealso cref="Microsoft.ML.StandardTrainersCatalog.SdcaNonCalibrated(MulticlassClassificationCatalog.MulticlassClassificationTrainers, SdcaNonCalibratedMulticlassTrainer.Options)"/>
+    /// <seealso cref="Microsoft.ML.StandardTrainersCatalog.SdcaNonCalibrated(MulticlassClassificationCatalog.MulticlassClassificationTrainers, string, string, string, ISupportSdcaClassificationLoss, float?, float?, int?)"/>
     /// <seealso cref="Microsoft.ML.Trainers.SdcaNonCalibratedMulticlassTrainer.Options"/>
     public sealed class SdcaNonCalibratedMulticlassTrainer : SdcaMulticlassTrainerBase<LinearMulticlassModelParameters>
     {
