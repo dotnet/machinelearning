@@ -113,12 +113,26 @@ namespace Microsoft.ML.Trainers.FastTree
     /// <summary>
     /// The <see cref="IEstimator{TTransformer}"/> for training a decision tree binary classification model using Fast Forest.
     /// </summary>
-    /// <include file='doc.xml' path='doc/members/member[@name="FastForest_remarks"]/*' />
+    /// <remarks>
+    /// <format type="text/markdown"><![CDATA[
+    /// To create this trainer, use [FastForest](xref:Microsoft.ML.TreeExtensions.FastForest(Microsoft.ML.BinaryClassificationCatalog.BinaryClassificationTrainers,System.String,System.String,System.String,System.Int32,System.Int32,System.Int32))
+    /// or [FastForest(Options)](xref:Microsoft.ML.TreeExtensions.FastForest(Microsoft.ML.BinaryClassificationCatalog.BinaryClassificationTrainers,Microsoft.ML.Trainers.FastTree.FastForestBinaryTrainer.Options)).
+    ///
+    /// [!include[io](~/../docs/samples/docs/api-reference/io-columns-binary-classification.md)]
+    ///
+    /// [!include[algorithm](~/../docs/samples/docs/api-reference/algo-details-fastforest.md)]
+    /// ]]>
+    /// </format>
+    /// </remarks>
+    /// <seealso cref="Microsoft.ML.TreeExtensions.FastForest(Microsoft.ML.BinaryClassificationCatalog.BinaryClassificationTrainers,System.String,System.String,System.String,System.Int32,System.Int32,System.Int32)"/>
+    /// <seealso cref="Microsoft.ML.TreeExtensions.FastForest(Microsoft.ML.BinaryClassificationCatalog.BinaryClassificationTrainers,Microsoft.ML.Trainers.FastTree.FastForestBinaryTrainer.Options)"/>
+    /// <seealso cref="Options"/>
     public sealed partial class FastForestBinaryTrainer :
         RandomForestTrainerBase<FastForestBinaryTrainer.Options, BinaryPredictionTransformer<FastForestBinaryModelParameters>, FastForestBinaryModelParameters>
     {
         /// <summary>
-        /// Options for the <see cref="FastForestBinaryTrainer"/>.
+        /// Options for the <see cref="FastForestBinaryTrainer"/> as used in
+        /// [FastForest(Options)](xref:Microsoft.ML.TreeExtensions.FastForest(Microsoft.ML.BinaryClassificationCatalog.BinaryClassificationTrainers,Microsoft.ML.Trainers.FastTree.FastForestBinaryTrainer.Options)).
         /// </summary>
         public sealed class Options : FastForestOptionsBase
         {
