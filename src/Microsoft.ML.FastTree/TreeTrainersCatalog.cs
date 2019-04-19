@@ -332,11 +332,11 @@ namespace Microsoft.ML
         }
 
         /// <summary>
-        /// Predict a target using a decision tree regression model trained with the <see cref="FastForestRegressionTrainer"/>.
+        /// Create <see cref="FastForestRegressionTrainer"/>, which predicts a target using a decision tree regression model.
         /// </summary>
         /// <param name="catalog">The <see cref="RegressionCatalog"/>.</param>
-        /// <param name="labelColumnName">The name of the label column.</param>
-        /// <param name="featureColumnName">The name of the feature column.</param>
+        /// <param name="labelColumnName">The name of the label column. The column data must be <see cref="System.Single"/></param>
+        /// <param name="featureColumnName">The name of the feature column. The column data must be a known-sized vector of <see cref="System.Single"/></param>
         /// <param name="exampleWeightColumnName">The name of the example weight column (optional).</param>
         /// <param name="numberOfLeaves">The maximum number of leaves per decision tree.</param>
         /// <param name="numberOfTrees">Total number of decision trees to create in the ensemble.</param>
@@ -362,7 +362,7 @@ namespace Microsoft.ML
         }
 
         /// <summary>
-        /// Predict a target using a decision tree regression model trained with the <see cref="FastForestRegressionTrainer"/> and advanced options.
+        /// Create <see cref="FastForestRegressionTrainer"/> with advanced options, which predicts a target using a decision tree regression model.
         /// </summary>
         /// <param name="catalog">The <see cref="RegressionCatalog"/>.</param>
         /// <param name="options">Trainer options.</param>
