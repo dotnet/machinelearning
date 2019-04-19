@@ -57,11 +57,15 @@ namespace Microsoft.ML
                 outputColumnName, inputColumnNames, options);
 
         /// <summary>
-        /// Tokenize incoming text in <paramref name="inputColumnName"/> and output the tokens as <paramref name="outputColumnName"/>.
+        /// Create a <see cref="TokenizingByCharactersEstimator"/>, which tokenizes characters by splitting text into sequences of characters
+        /// using a sliding window.
         /// </summary>
         /// <param name="catalog">The text-related transform's catalog.</param>
-        /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.</param>
-        /// <param name="inputColumnName">Name of the column to transform. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.</param>
+        /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.
+        /// This column's data type will be a variable-sized vector of keys.</param>
+        /// <param name="inputColumnName">Name of the column to transform. If set to <see langword="null"/>, the value of the
+        /// <paramref name="outputColumnName"/> will be used as source.
+        /// This estimator operates over text data type.</param>
         /// <param name="useMarkerCharacters">Whether to prepend a marker character, <see langword="0x02"/>, to the beginning,
         /// and append another marker character, <see langword="0x03"/>, to the end of the output vector of characters.</param>
         /// <example>
@@ -85,7 +89,6 @@ namespace Microsoft.ML
         /// <param name="useMarkerCharacters">Whether to prepend a marker character, <see langword="0x02"/>, to the beginning,
         /// and append another marker character, <see langword="0x03"/>, to the end of the output vector of characters.</param>
         /// <param name="columns">Pairs of columns to run the tokenization on.</param>
-
         [BestFriend]
         internal static TokenizingByCharactersEstimator TokenizeIntoCharactersAsKeys(this TransformsCatalog.TextTransforms catalog,
             bool useMarkerCharacters = CharTokenizingDefaults.UseMarkerCharacters,
@@ -97,12 +100,15 @@ namespace Microsoft.ML
         }
 
         /// <summary>
-        /// Normalizes incoming text in <paramref name="inputColumnName"/> by changing case, removing diacritical marks, punctuation marks and/or numbers
-        /// and outputs new text as <paramref name="outputColumnName"/>.
+        /// Creates a <see cref="TextNormalizingEstimator"/>, which normalizes incoming text in <paramref name="inputColumnName"/> by optionally
+        /// changing case, removing diacritical marks, punctuation marks, numbers, and outputs new text as <paramref name="outputColumnName"/>.
         /// </summary>
         /// <param name="catalog">The text-related transform's catalog.</param>
-        /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.</param>
-        /// <param name="inputColumnName">Name of the column to transform. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.</param>
+        /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.
+        /// This column's data type will remain scalar of text or a vector of text depending on the input column data type.</param>
+        /// <param name="inputColumnName">Name of the column to transform. If set to <see langword="null"/>,
+        /// the value of the <paramref name="outputColumnName"/> will be used as source.
+        /// This estimator operates on text or vector of text data types.</param>
         /// <param name="caseMode">Casing text using the rules of the invariant culture.</param>
         /// <param name="keepDiacritics">Whether to keep diacritical marks or remove them.</param>
         /// <param name="keepPunctuations">Whether to keep punctuation marks or remove them.</param>
@@ -124,10 +130,16 @@ namespace Microsoft.ML
             => new TextNormalizingEstimator(Contracts.CheckRef(catalog, nameof(catalog)).GetEnvironment(),
                 outputColumnName, inputColumnName, caseMode, keepDiacritics, keepPunctuations, keepNumbers);
 
-        /// <include file='doc.xml' path='doc/members/member[@name="WordEmbeddings"]/*' />
+        /// <summary>
+        /// Create an <see cref="WordEmbeddingEstimator"/>, which is a text featurizer that converts a vector
+        /// of text into a numerical vector using pre-trained embeddings models.
+        /// </summary>
         /// <param name="catalog">The text-related transform's catalog.</param>
-        /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.</param>
-        /// <param name="inputColumnName">Name of the column to transform. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.</param>
+        /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.
+        /// This column's data type will be a vector of <see cref="System.Single"/>.</param>
+        /// <param name="inputColumnName">Name of the column to transform. If set to <see langword="null"/>,
+        /// the value of the <paramref name="outputColumnName"/> will be used as source.
+        /// This estimator operates over known-sized vector of text data type.</param>
         /// <param name="modelKind">The embeddings <see cref="WordEmbeddingEstimator.PretrainedModelKind"/> to use. </param>
         /// <example>
         /// <format type="text/markdown">
@@ -142,11 +154,17 @@ namespace Microsoft.ML
             WordEmbeddingEstimator.PretrainedModelKind modelKind = WordEmbeddingEstimator.PretrainedModelKind.SentimentSpecificWordEmbedding)
             => new WordEmbeddingEstimator(Contracts.CheckRef(catalog, nameof(catalog)).GetEnvironment(), outputColumnName, inputColumnName, modelKind);
 
-        /// <include file='doc.xml' path='doc/members/member[@name="WordEmbeddings"]/*' />
+        /// <summary>
+        /// Create an <see cref="WordEmbeddingEstimator"/>, which is a text featurizer that converts vectors
+        /// of text into numerical vectors using pre-trained embeddings models.
+        /// </summary>
         /// <param name="catalog">The text-related transform's catalog.</param>
-        /// <param name="customModelFile">The path of the pre-trained embeedings model to use. </param>
-        /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.</param>
-        /// <param name="inputColumnName">Name of the column to transform.</param>
+        /// <param name="customModelFile">The path of the pre-trained embeddings model to use.</param>
+        /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.
+        /// This column's data type will be a vector of <see cref="System.Single"/>.</param>
+        /// <param name="inputColumnName">Name of the column to transform. If set to <see langword="null"/>,
+        /// the value of the <paramref name="outputColumnName"/> will be used as source.
+        /// This estimator operates over known-sized vector of text data type.</param>
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
@@ -161,10 +179,13 @@ namespace Microsoft.ML
             => new WordEmbeddingEstimator(Contracts.CheckRef(catalog, nameof(catalog)).GetEnvironment(),
                 outputColumnName, customModelFile, inputColumnName ?? outputColumnName);
 
-        /// <include file='doc.xml' path='doc/members/member[@name="WordEmbeddings"]/*' />
+        /// <summary>
+        /// Create an <see cref="WordEmbeddingEstimator"/>, which is a text featurizer that converts vectors
+        /// of text into numerical vectors using pre-trained embeddings models.
+        /// </summary>
         /// <param name="catalog">The text-related transform's catalog.</param>
         /// <param name="modelKind">The embeddings <see cref="WordEmbeddingEstimator.PretrainedModelKind"/> to use. </param>
-        /// <param name="columns">The array columns, and per-column configurations to extract embeedings from.</param>
+        /// <param name="columns">The array columns, and per-column configurations to extract embeddings from.</param>
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
@@ -179,12 +200,13 @@ namespace Microsoft.ML
             => new WordEmbeddingEstimator(Contracts.CheckRef(catalog, nameof(catalog)).GetEnvironment(), modelKind, columns);
 
         /// <summary>
-        /// Tokenizes incoming text in <paramref name="inputColumnName"/>, using <paramref name="separators"/> as separators,
-        /// and outputs the tokens as <paramref name="outputColumnName"/>.
+        /// Create a <see cref="WordTokenizingEstimator"/>, which tokenizes input text using <paramref name="separators"/> as separators.
         /// </summary>
         /// <param name="catalog">The text-related transform's catalog.</param>
-        /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.</param>
-        /// <param name="inputColumnName">Name of the column to transform. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.</param>
+        /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.
+        /// This column's data type will be a variable-sized vector of text.</param>
+        /// <param name="inputColumnName">Name of the column to transform. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.
+        /// This estimator operates on scalar of text and vector of text data type.</param>
         /// <param name="separators">The separators to use (uses space character by default).</param>
         /// <example>
         /// <format type="text/markdown">
@@ -210,17 +232,21 @@ namespace Microsoft.ML
           => new WordTokenizingEstimator(Contracts.CheckRef(catalog, nameof(catalog)).GetEnvironment(), columns);
 
         /// <summary>
-        /// Produces a bag of counts of ngrams (sequences of consecutive words) in <paramref name="inputColumnName"/>
-        /// and outputs bag of word vector as <paramref name="outputColumnName"/>
+        /// Creates a <see cref="NgramExtractingEstimator"/> which produces a vector of counts of ngrams (sequences of consecutive words)
+        /// encountered in the input text.
         /// </summary>
         /// <param name="catalog">The text-related transform's catalog.</param>
-        /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.</param>
-        /// <param name="inputColumnName">Name of the column to transform. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.</param>
+        /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.
+        /// This column's data type will be a vector of <see cref="System.Single"/>.</param>
+        /// <param name="inputColumnName">Name of the column to transform. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.
+        /// This estimator operates over vectors of keys data type.</param>
         /// <param name="ngramLength">Ngram length.</param>
-        /// <param name="skipLength">Maximum number of tokens to skip when constructing an ngram.</param>
+        /// <param name="skipLength">Number of tokens to skip between each ngram. By default no token is skipped.</param>
         /// <param name="useAllLengths">Whether to include all ngram lengths up to <paramref name="ngramLength"/> or only <paramref name="ngramLength"/>.</param>
         /// <param name="maximumNgramsCount">Maximum number of n-grams to store in the dictionary.</param>
-        /// <param name="weighting">Statistical measure used to evaluate how important a word is to a document in a corpus.</param>
+        /// <param name="weighting">Statistical measure used to evaluate how important a word or ngram is to a document in a corpus.
+        /// When <paramref name="maximumNgramsCount"/> is smaller than the total number of encountered ngrams this measure is used
+        /// to determine which ngrams to keep.</param>
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
