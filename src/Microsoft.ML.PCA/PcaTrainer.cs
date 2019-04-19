@@ -33,12 +33,31 @@ namespace Microsoft.ML.Trainers
     // REVIEW: make RFF transformer an option here.
 
     /// <summary>
-    /// This trainer trains an approximate PCA using Randomized SVD algorithm
-    /// Reference: https://web.stanford.edu/group/mmds/slides2010/Martinsson.pdf
+    /// The <see cref="IEstimator{TTransformer}"/> for training an approximate PCA using Randomized SVD algorithm.
     /// </summary>
     /// <remarks>
-    /// This PCA can be made into Kernel PCA by using Random Fourier Features transform
+    /// <format type="text/markdown"><![CDATA[
+    /// To create this trainer, use [RandomizedPca](xref:Microsoft.ML.PcaCatalog.RandomizedPca(Microsoft.ML.AnomalyDetectionCatalog.AnomalyDetectionTrainers,System.String,System.String,System.Int32,System.Int32,System.Boolean,System.Nullable{System.Int32}))
+    /// or [RandomizedPca(Options)](xref:Microsoft.ML.PcaCatalog.RandomizedPca(Microsoft.ML.AnomalyDetectionCatalog.AnomalyDetectionTrainers,Microsoft.ML.Trainers.RandomizedPcaTrainer.Options)).
+    ///
+    /// [!include[io](~/../docs/samples/docs/api-reference/io-columns-regression.md)]
+    ///
+    /// ### Trainer Characteristics
+    /// |  |  |
+    /// | -- | -- |
+    /// | Machine learning task | Anomaly Detection |
+    /// | Is normalization required? | Yes |
+    /// | Is caching required? | No |
+    /// | Required NuGet in addition to Microsoft.ML | None |
+    ///
+    /// ### Training Algorithm Details
+    /// This PCA can be made into Kernel PCA by using Random Fourier Features transform. [Reference](https://web.stanford.edu/group/mmds/slides2010/Martinsson.pdf)
+    /// ]]>
+    /// </format>
     /// </remarks>
+    /// <seealso cref="Microsoft.ML.PcaCatalog.RandomizedPca(Microsoft.ML.AnomalyDetectionCatalog.AnomalyDetectionTrainers,System.String,System.String,System.Int32,System.Int32,System.Boolean,System.Nullable{System.Int32})"/>
+    /// <seealso cref="Microsoft.ML.PcaCatalog.RandomizedPca(Microsoft.ML.AnomalyDetectionCatalog.AnomalyDetectionTrainers,Microsoft.ML.Trainers.RandomizedPcaTrainer.Options)"/>
+    /// <seealso cref="Options"/>
     public sealed class RandomizedPcaTrainer : TrainerEstimatorBase<AnomalyPredictionTransformer<PcaModelParameters>, PcaModelParameters>
     {
         internal const string LoadNameValue = "pcaAnomaly";
