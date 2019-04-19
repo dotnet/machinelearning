@@ -35,7 +35,7 @@ namespace Microsoft.ML.Transforms
     /// ###  Estimator Characteristics
     /// |  |  |
     /// | -- | -- |
-    /// | Does this estimator need to look at the data to train its parameters? | No |
+    /// | Does this estimator need to look at the data to train its parameters? | Yes |
     /// | Input column data type | <xref:System.Single> or <xref:System.Double> |
     /// | Output column data type | The same as the data type in the input column |
     ///
