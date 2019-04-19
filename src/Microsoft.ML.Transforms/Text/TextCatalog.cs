@@ -62,7 +62,7 @@ namespace Microsoft.ML
         /// </summary>
         /// <param name="catalog">The text-related transform's catalog.</param>
         /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.
-        /// This column's data type will be a vector of keys.</param>
+        /// This column's data type will be a variable-sized vector of keys.</param>
         /// <param name="inputColumnName">Name of the column to transform. If set to <see langword="null"/>, the value of the
         /// <paramref name="outputColumnName"/> will be used as source.
         /// This estimator operates over text data type.</param>
@@ -100,15 +100,15 @@ namespace Microsoft.ML
         }
 
         /// <summary>
-        /// Creates a <see cref="TextNormalizingEstimator"/>, which normalizes incoming text in <paramref name="inputColumnName"/> by changing case,
-        /// removing diacritical marks, punctuation marks and/or numbers and outputs new text as <paramref name="outputColumnName"/>.
+        /// Creates a <see cref="TextNormalizingEstimator"/>, which normalizes incoming text in <paramref name="inputColumnName"/> by optionally
+        /// changing case, removing diacritical marks, punctuation marks, numbers, and outputs new text as <paramref name="outputColumnName"/>.
         /// </summary>
         /// <param name="catalog">The text-related transform's catalog.</param>
         /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.
         /// This column's data type will remain scalar of text or a vector of text depending on the input column data type.</param>
         /// <param name="inputColumnName">Name of the column to transform. If set to <see langword="null"/>,
         /// the value of the <paramref name="outputColumnName"/> will be used as source.
-        /// This estimator operates on text and vector of text data types.</param>
+        /// This estimator operates on text or vector of text data types.</param>
         /// <param name="caseMode">Casing text using the rules of the invariant culture.</param>
         /// <param name="keepDiacritics">Whether to keep diacritical marks or remove them.</param>
         /// <param name="keepPunctuations">Whether to keep punctuation marks or remove them.</param>
@@ -131,8 +131,8 @@ namespace Microsoft.ML
                 outputColumnName, inputColumnName, caseMode, keepDiacritics, keepPunctuations, keepNumbers);
 
         /// <summary>
-        /// Create an <see cref="WordEmbeddingEstimator"/>, which is a text featurizer that converts vectors
-        /// of text into numerical vectors using pre-trained embeddings models.
+        /// Create an <see cref="WordEmbeddingEstimator"/>, which is a text featurizer that converts a vector
+        /// of text into a numerical vector using pre-trained embeddings models.
         /// </summary>
         /// <param name="catalog">The text-related transform's catalog.</param>
         /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.
@@ -204,7 +204,7 @@ namespace Microsoft.ML
         /// </summary>
         /// <param name="catalog">The text-related transform's catalog.</param>
         /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.
-        /// This column's data type will be a vector of text.</param>
+        /// This column's data type will be a variable-sized vector of text.</param>
         /// <param name="inputColumnName">Name of the column to transform. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.
         /// This estimator operates of text data type.</param>
         /// <param name="separators">The separators to use (uses space character by default).</param>
@@ -241,7 +241,7 @@ namespace Microsoft.ML
         /// <param name="inputColumnName">Name of the column to transform. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.
         /// This estimator operates over vectors of keys data type.</param>
         /// <param name="ngramLength">Ngram length.</param>
-        /// <param name="skipLength">Number of tokens to skip between each ngram. By defaults no token is skipped.</param>
+        /// <param name="skipLength">Number of tokens to skip between each ngram. By default no token is skipped.</param>
         /// <param name="useAllLengths">Whether to include all ngram lengths up to <paramref name="ngramLength"/> or only <paramref name="ngramLength"/>.</param>
         /// <param name="maximumNgramsCount">Maximum number of n-grams to store in the dictionary.</param>
         /// <param name="weighting">Statistical measure used to evaluate how important a word or ngram is to a document in a corpus.

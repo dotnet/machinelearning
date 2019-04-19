@@ -556,14 +556,16 @@ namespace Microsoft.ML.Transforms.Text
     /// |  |  |
     /// | -- | -- |
     /// | Does this estimator need to look at the data to train its parameters? | Yes |
-    /// | Input column data type | <xref:System.ReadOnlyMemory{System.Char}> |
-    /// | Output column data type | Variable-sized vector of [Keys](<xref:Microsoft.ML.Data.KeyDataViewType>) |
+    /// | Input column data type | Scalar of [Text](xref:Microsoft.ML.Data.TextDataViewType)  |
+    /// | Output column data type | Variable-sized vector of [Keys](xref:Microsoft.ML.Data.KeyDataViewType) |
     ///
     /// The estimator tokenizes characters by splitting text into sequences of characters using a sliding window.
     /// During training, the estimator builds a key-value pair dictionary with the encountered sequences of characters.
     ///
-    /// The transformer resulting from fitting the estimator creates a new column, named as specified in the output
-    /// column name parameters, which contains the keys of the sequences of characters that were encountered in the input.
+    /// The <xref:Microsoft.ML.Transforms.Text.TokenizingByCharactersTransformer> resulting from fitting the estimator
+    /// creates a new column, named as specified in the output column name parameters, which contains the keys of the
+    /// sequences of characters that were encountered in the input.
+    ///
     /// See the See Also section for links to examples of the usage.
     /// ]]>
     /// </format>

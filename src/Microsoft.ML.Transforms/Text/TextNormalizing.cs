@@ -440,11 +440,13 @@ namespace Microsoft.ML.Transforms.Text
     /// |  |  |
     /// | -- | -- |
     /// | Does this estimator need to look at the data to train its parameters? | No |
-    /// | Input column data type | <xref:System.ReadOnlyMemory{System.Char}> or vector of <xref:System.ReadOnlyMemory{System.Char}> |
+    /// | Input column data type | [Text](xref:Microsoft.ML.Data.TextDataViewType)  or Vector of [Text](xref:Microsoft.ML.Data.TextDataViewType)  |
     /// | Output column data type | The same as the data type in the input column |
     ///
-    /// The resulting transformer creates a new column, named as specified in the output column name parameters, and
-    /// normalizes the textual input data by changing case, removing diacritical marks, punctuation marks and/or numbers.
+    /// The resulting <xref:Microsoft.ML.Transforms.Text.TextNormalizingTransformer> creates a new column, named as specified
+    /// in the output column name parameters, and normalizes the textual input data by changing case, removing diacritical marks,
+    /// punctuation marks and/or numbers.
+    ///
     /// See the See Also section for links to examples of the usage.
     /// ]]>
     /// </format>

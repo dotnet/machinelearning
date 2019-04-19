@@ -734,10 +734,10 @@ namespace Microsoft.ML.Transforms.Text
     /// |  |  |
     /// | -- | -- |
     /// | Does this estimator need to look at the data to train its parameters? | No |
-    /// | Input column data type | Vector of <xref:System.ReadOnlyMemory{System.Char}> |
+    /// | Input column data type | Vector of [Text](xref:Microsoft.ML.Data.TextDataViewType)  |
     /// | Output column data type | Known-sized vector of <xref:System.Single> |
     ///
-    /// The [WordEmbeddingTransformer](<xref:Microsoft.ML.Transforms.Text.WordEmbeddingTransformer>) produces a new column,
+    /// The <xref:Microsoft.ML.Transforms.Text.WordEmbeddingTransformer> produces a new column,
     /// named as specified in the output column name parameters, where each input vector is mapped to a numerical vector
     /// with size of 3 * dimensionality of the embedding model used. Notice that this is independent of the size of the input vector.
     ///
@@ -750,6 +750,8 @@ namespace Microsoft.ML.Transforms.Text
     /// The user can specify a custom pre-trained embeddings model or one of the available pre-trained models.
     /// The available options are various versions of [GloVe Models](https://nlp.stanford.edu/projects/glove/),
     /// [FastText](https://en.wikipedia.org/wiki/FastText), and [SSWE](https://anthology.aclweb.org/P/P14/P14-1146.pdf).
+    ///
+    /// See the See Also section for links to examples of the usage.
     /// ]]></format>
     /// </remarks>
     /// <seealso cref="TextCatalog.ApplyWordEmbedding(TransformsCatalog.TextTransforms, string, string, PretrainedModelKind)"/>
@@ -826,46 +828,67 @@ namespace Microsoft.ML.Transforms.Text
         /// </summary>
         public enum PretrainedModelKind
         {
-            /// <summary>GloVe 50 dimensional word embeddings.</summary>
+            /// <summary>
+            /// GloVe 50 dimensional word embeddings.
+            /// </summary>
             [TGUI(Label = "GloVe 50D")]
             GloVe50D = 0,
 
-            /// <summary>GloVe 100 dimensional word embeddings.</summary>
+            /// <summary>
+            /// GloVe 100 dimensional word embeddings.
+            /// </summary>
             [TGUI(Label = "GloVe 100D")]
             GloVe100D = 1,
 
-            /// <summary>GloVe 200 dimensional word embeddings.</summary>
+            /// <summary>
+            /// GloVe 200 dimensional word embeddings.
+            /// </summary>
             [TGUI(Label = "GloVe 200D")]
             GloVe200D = 2,
 
-            /// <summary>GloVe 300 dimensional word embeddings.</summary>
+            /// <summary>
+            /// GloVe 300 dimensional word embeddings.
+            /// </summary>
             [TGUI(Label = "GloVe 300D")]
             GloVe300D = 3,
 
-            /// <summary>GloVe 25 dimensional word embeddings trained on Twitter data.</summary>
+            /// <summary>
+            /// GloVe 25 dimensional word embeddings trained on Twitter data.
+            /// </summary>
             [TGUI(Label = "GloVe Twitter 25D")]
             GloVeTwitter25D = 4,
 
-            /// <summary>GloVe 50 dimensional word embeddings trained on Twitter data.</summary>
+            /// <summary>
+            /// GloVe 50 dimensional word embeddings trained on Twitter data.
+            /// </summary>
             [TGUI(Label = "GloVe Twitter 50D")]
             GloVeTwitter50D = 5,
 
-            /// <summary>GloVe 100 dimensional word embeddings trained on Twitter data.</summary>
+            /// <summary>
+            /// GloVe 100 dimensional word embeddings trained on Twitter data.
+            /// </summary>
             [TGUI(Label = "GloVe Twitter 100D")]
             GloVeTwitter100D = 6,
 
-            /// <summary>GloVe 200 dimensional word embeddings trained on Twitter data.</summary>
+            /// <summary>
+            /// GloVe 200 dimensional word embeddings trained on Twitter data.
+            /// </summary>
             [TGUI(Label = "GloVe Twitter 200D")]
             GloVeTwitter200D = 7,
 
-            /// <summary>FastText 300 dimensional word embeddings trained on Wikipedia.</summary>
+            /// <summary>
+            /// FastText 300 dimensional word embeddings trained on Wikipedia.
+            /// </summary>
             [TGUI(Label = "fastText Wikipedia 300D")]
             FastTextWikipedia300D = 8,
 
-            /// <summary>Word embeddings trained on sentiment analysis tasks.</summary>
+            /// <summary>
+            /// Word embeddings trained on sentiment analysis tasks.
+            /// </summary>
             [TGUI(Label = "Sentiment-Specific Word Embedding")]
             SentimentSpecificWordEmbedding = 9
         }
+
         /// <summary>
         /// Information for each column pair.
         /// </summary>
