@@ -119,7 +119,7 @@ namespace Microsoft.ML.Trainers.FastTree
     /// or [FastForest(Options)](xref:Microsoft.ML.TreeExtensions.FastForest(Microsoft.ML.BinaryClassificationCatalog.BinaryClassificationTrainers,Microsoft.ML.Trainers.FastTree.FastForestBinaryTrainer.Options)).
     ///
     /// [!include[io](~/../docs/samples/docs/api-reference/io-columns-binary-classification.md)]
-    /// 
+    ///
     /// [!include[io](~/../docs/samples/docs/api-reference/fastforest.md)]
     /// ]]>
     /// </format>
