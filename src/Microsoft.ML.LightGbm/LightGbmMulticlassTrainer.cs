@@ -22,7 +22,7 @@ using Microsoft.ML.Trainers.LightGbm;
 namespace Microsoft.ML.Trainers.LightGbm
 {
     /// <summary>
-    /// TThe <see cref="IEstimator{TTransformer}"/> for training a boosted decision tree multi-class classification model using LightGBM.
+    /// The <see cref="IEstimator{TTransformer}"/> for training a boosted decision tree multi-class classification model using LightGBM.
     /// </summary>
     /// <remarks>
     /// <format type="text/markdown"><![CDATA[
