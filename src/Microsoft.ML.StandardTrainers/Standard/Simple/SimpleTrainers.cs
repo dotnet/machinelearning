@@ -176,7 +176,7 @@ namespace Microsoft.ML.Trainers
     /// |  |  |
     /// | -- | -- |
     /// | Machine learning task | Binary classification |
-    /// | Is normalization required? | Yes |
+    /// | Is normalization required? | No |
     /// | Is caching required? | No |
     /// | Required NuGet in addition to Microsoft.ML | None |
     ///
@@ -186,7 +186,6 @@ namespace Microsoft.ML.Trainers
     /// </format>
     /// </remarks>
     /// <seealso cref="Microsoft.ML.StandardTrainersCatalog.Prior(Microsoft.ML.BinaryClassificationCatalog.BinaryClassificationTrainers,System.String,System.String)"/>
-    /// <seealso cref="Options"/>
     public sealed class PriorTrainer : ITrainer<PriorModelParameters>,
         ITrainerEstimator<BinaryPredictionTransformer<PriorModelParameters>, PriorModelParameters>
     {
