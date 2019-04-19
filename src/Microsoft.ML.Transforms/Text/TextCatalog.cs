@@ -297,8 +297,8 @@ namespace Microsoft.ML
         /// to a new column: <paramref name="outputColumnName"/> and produces a vector of counts of n-grams.
         /// </summary>
         /// <remarks>
-        /// <see cref="WordBagEstimator"/> is different from <see cref="NgramExtractingEstimator"/> in a way that <see cref="WordBagEstimator"/>
-        /// tokenizes text internally while <see cref="NgramExtractingEstimator"/> takes tokenized text as input.
+        /// <see cref="WordBagEstimator"/> is different from <see cref="NgramExtractingEstimator"/> in a way that the former
+        /// tokenizes text internally and the latter takes tokenized text as input.
         /// </remarks>
         /// <param name="catalog">The transform's catalog.</param>
         /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.
@@ -322,12 +322,12 @@ namespace Microsoft.ML
                 outputColumnName, inputColumnName, ngramLength, skipLength, useAllLengths, maximumNgramsCount, weighting);
 
         /// <summary>
-        /// Create a <see cref="WordHashBagEstimator"/>, which takes the data from the multiple columns specified in <paramref name="inputColumnNames"/>
+        /// Create a <see cref="WordBagEstimator"/>, which takes the data from the multiple columns specified in <paramref name="inputColumnNames"/>
         /// to a new column: <paramref name="outputColumnName"/> and produces a vector of counts of hashed n-grams.
         /// </summary>
         /// <remarks>
-        /// <see cref="WordHashBagEstimator"/> is different from <see cref="NgramHashingEstimator"/> in a way that <see cref="WordHashBagEstimator"/>
-        /// tokenizes text internally while <see cref="NgramHashingEstimator"/> takes tokenized text as input.
+        /// <see cref="WordBagEstimator"/> is different from <see cref="NgramExtractingEstimator"/> in a way that the former
+        /// tokenizes text internally and the latter takes tokenized text as input.
         /// </remarks>
         /// <param name="catalog">The transform's catalog.</param>
         /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnNames"/>.
@@ -355,8 +355,8 @@ namespace Microsoft.ML
         /// to a new column: <paramref name="outputColumnName"/> and produces a vector of counts of hashed n-grams.
         /// </summary>
         /// <remarks>
-        /// <see cref="WordHashBagEstimator"/> is different from <see cref="NgramHashingEstimator"/> in a way that <see cref="WordHashBagEstimator"/>
-        /// tokenizes text internally while <see cref="NgramHashingEstimator"/> takes tokenized text as input.
+        /// <see cref="WordHashBagEstimator"/> is different from <see cref="NgramHashingEstimator"/> in a way that the former
+        /// tokenizes text internally and the latter takes tokenized text as input.
         /// </remarks>
         /// <param name="catalog">The transform's catalog.</param>
         /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.
@@ -393,8 +393,8 @@ namespace Microsoft.ML
         /// to a new column: <paramref name="outputColumnName"/> and produces a vector of counts of hashed n-grams.
         /// </summary>
         /// <remarks>
-        /// <see cref="WordHashBagEstimator"/> is different from <see cref="NgramHashingEstimator"/> in a way that <see cref="WordHashBagEstimator"/>
-        /// tokenizes text internally while <see cref="NgramHashingEstimator"/> takes tokenized text as input.
+        /// <see cref="WordHashBagEstimator"/> is different from <see cref="NgramHashingEstimator"/> in a way that the former
+        /// tokenizes text internally and the latter takes tokenized text as input.
         /// </remarks>
         /// <param name="catalog">The transform's catalog.</param>
         /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnNames"/>.

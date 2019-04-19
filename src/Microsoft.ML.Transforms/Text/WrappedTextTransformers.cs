@@ -19,7 +19,7 @@ namespace Microsoft.ML.Transforms.Text
     /// |  |  |
     /// | -- | -- |
     /// | Does this estimator need to look at the data to train its parameters? | Yes |
-    /// | Input column data type | Vector of [Text](<xref:Microsoft.ML.Data.TextDataViewType>) |
+    /// | Input column data type | Vector of [Text](xref:Microsoft.ML.Data.TextDataViewType) |
     /// | Output column data type | Vector of known-size of <xref:System.Single> |
     ///
     /// The resulting <xref:Microsoft.ML.ITransformer/> creates a new column, named as specified in the output column name parameters, and
@@ -201,7 +201,7 @@ namespace Microsoft.ML.Transforms.Text
     }
 
     /// <summary>
-    /// Produces a bag of counts of ngrams (sequences of consecutive words of length 1-n) in a given text.
+    /// Produces a bag of counts of n-grams (sequences of consecutive words of length 1-n) in a given text.
     /// It does so by hashing each ngram and using the hash value as the index in the bag.
     /// </summary>
     /// <summary>
@@ -213,10 +213,10 @@ namespace Microsoft.ML.Transforms.Text
     /// |  |  |
     /// | -- | -- |
     /// | Does this estimator need to look at the data to train its parameters? | Yes |
-    /// | Input column data type | Vector of [Text](<xref:Microsoft.ML.Data.TextDataViewType>) |
+    /// | Input column data type | Vector of [Text](xref:Microsoft.ML.Data.TextDataViewType) |
     /// | Output column data type | Vector of known-size of <xref:System.Single> |
     ///
-    /// The resulting <xref:Microsoft.ML.ITransformer/> creates a new column, named as specified in the output column name parameters, and
+    /// The resulting <xref:Microsoft.ML.ITransformer> creates a new column, named as specified in the output column name parameters, and
     /// produces a vector of counts of n-grams (sequences of consecutive words of length 1-n) from a given data.
     /// It does so by hashing each ngram and using the hash value as the index in the bag.
     ///
