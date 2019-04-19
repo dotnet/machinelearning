@@ -518,7 +518,7 @@ namespace Microsoft.ML
         }
 
         /// <summary>
-        ///  Create an <see cref="Trainers.LbfgsLogisticRegressionBinaryTrainer"/>, which predicts a target using a linear binary classification model trained over boolean label data.
+        ///  Create <see cref="Trainers.LbfgsLogisticRegressionBinaryTrainer"/>, which predicts a target using a linear binary classification model trained over boolean label data.
         /// </summary>
         /// <param name="catalog">The binary classification catalog trainer object.</param>
         /// <param name="labelColumnName">The name of the label column. The column data must be <see cref="System.Boolean"/>.</param>
@@ -552,7 +552,7 @@ namespace Microsoft.ML
         }
 
         /// <summary>
-        /// Create an <see cref="Trainers.LbfgsLogisticRegressionBinaryTrainer"/> with advanced options, which predicts a target using a linear binary classification model trained over boolean label data.
+        /// Create <see cref="Trainers.LbfgsLogisticRegressionBinaryTrainer"/> with advanced options, which predicts a target using a linear binary classification model trained over boolean label data.
         /// </summary>
         /// <param name="catalog">The binary classification catalog trainer object.</param>
         /// <param name="options">Advanced arguments to the algorithm.</param>
