@@ -181,8 +181,50 @@ namespace Microsoft.ML.Transforms.TimeSeries
     }
 
     /// <summary>
-    /// The <see cref="IEstimator{ITransformer}"/> for detecting a signal spike through <a href="http://arxiv.org/pdf/1206.6910.pdf">Singular Spectrum Analysis (SSA)</a> of time series.
+    /// The <see cref="IEstimator{TTransformer}"/> to predict spikes in time series using Singular Spectrum Analysis.
     /// </summary>
+    /// <remarks>
+    /// <format type="text/markdown"><![CDATA[
+    /// To create this estimator, use [DetectSpikeBySsa](xref:Microsoft.ML.TimeSeriesCatalog.DetectSpikeBySsa(Microsoft.ML.TransformsCatalog,System.String,System.String,System.Int32,System.Int32,System.Int32,System.Int32,Microsoft.ML.Transforms.TimeSeries.AnomalySide,Microsoft.ML.Transforms.TimeSeries.ErrorFunction))
+    ///
+    /// ### Input and Output Columns
+    /// There is only input column and its type is <xref:System.Single>.
+    ///
+    /// | Output Column Name | Column Type | Description|
+    /// | -- | -- | -- |
+    /// | All input columns | Any | All input columns would pass by without being modified.
+    /// | `Prediction` | Known-sized vector of <xref:System.Single> | It contains alert level (non-zero value means a change point), score, and p-value.
+    ///
+    /// ### Estimator Characteristics
+    /// |  |  |
+    /// | -- | -- |
+    /// | Machine learning task | Time series analysis |
+    /// | Is normalization required? | No |
+    /// | Is caching required? | No |
+    /// | Required NuGet in addition to Microsoft.ML | Microsoft.ML.TimeSeries |
+    ///
+    /// ### Training Algorithm Details
+    /// This class implements the general anomaly detection transform based on [Singular Spectrum Analysis (SSA)](https://en.wikipedia.org/wiki/Singular_spectrum_analysis).
+    /// SSA is a powerful framework for decomposing the time-series into trend, seasonality and noise components as well as forecasting the future values of the time-series.
+    /// In principle, SSA performs spectral analysis on the input time-series where each component in the spectrum corresponds to a trend, seasonal or noise component in the time-series.
+    /// For details of the Singular Spectrum Analysis (SSA), refer to [this document](http://arxiv.org/pdf/1206.6910.pdf).
+    ///
+    /// ### Anomaly Scorer
+    /// Once the raw score at a timestamp is computed by SSA, it is fed to the anomaly scorer component to calculate the final anomaly score at that timestamp.
+    /// There are two statistics involved in this scorer, p-value and martingale score.
+    ///
+    /// The p-value score indicates the p-value of the current computed raw score according to a distribution of raw scores.
+    /// Here, the distribution is estimated based on the most recent raw score values up to certain depth back in the history.
+    /// More specifically, this distribution is estimated using [kernel density estimation](https://en.wikipedia.org/wiki/Kernel_density_estimation) with the Gaussian [kernels](https://en.wikipedia.org/wiki/Kernel_(statistics)#In_non-parametric_statistics) of adaptive bandwidth.
+    /// The p-value score is always in $[0, 1]$, and the lower its value, the more likely the current point is an outlier.
+    /// This means that the p-value score is a good measure of spikiness and therefore it is used for spike detection
+    ///
+    /// If the p-value score exceeds $1 - \frac{\text{confidence}}{100}$, the associated timestamp may get a non-zero alert value, which means a spike point is detected.
+    /// Note that $\text{confidence}$ is defined in the signature of [DetectChangePointBySsa](xref:Microsoft.ML.TimeSeriesCatalog.DetectChangePointBySsa(Microsoft.ML.TransformsCatalog,System.String,System.String,System.Int32,System.Int32,System.Int32,System.Int32,Microsoft.ML.Transforms.TimeSeries.ErrorFunction,Microsoft.ML.Transforms.TimeSeries.MartingaleType,System.Double)).
+    /// ]]>
+    /// </format>
+    /// </remarks>
+    /// <seealso cref="Microsoft.ML.TimeSeriesCatalog.DetectSpikeBySsa(Microsoft.ML.TransformsCatalog,System.String,System.String,System.Int32,System.Int32,System.Int32,System.Int32,Microsoft.ML.Transforms.TimeSeries.AnomalySide,Microsoft.ML.Transforms.TimeSeries.ErrorFunction)" />
     public sealed class SsaSpikeEstimator : IEstimator<SsaSpikeDetector>
     {
         private readonly IHost _host;
