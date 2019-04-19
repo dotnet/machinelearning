@@ -23,7 +23,7 @@ using Microsoft.ML.Trainers.Recommender;
 namespace Microsoft.ML.Trainers
 {
     /// <summary>
-    /// <see cref="IEstimator{TTransformer}"/> to predict a matrix element using a matrix factorization model (also known as a type of collaborative filtering).
+    /// The <see cref="IEstimator{TTransformer}"/> to predict elements in a matrix using matrix factorization (also known as a type of collaborative filtering).
     /// </summary>
     /// <remarks>
     /// <format type="text/markdown"><![CDATA[
@@ -140,16 +140,19 @@ namespace Microsoft.ML.Trainers
         {
             /// <summary>
             /// The name of variable (i.e., Column in a <see cref="IDataView"/> type system) used as matrix's column index.
+            /// The column data must be <see cref="System.Single"/>.
             /// </summary>
             public string MatrixColumnIndexColumnName;
 
             /// <summary>
             /// The name of variable (i.e., column in a <see cref="IDataView"/> type system) used as matrix's row index.
+            /// The column data must be <see cref="Microsoft.ML.Data.KeyDataViewType"/>.
             /// </summary>
             public string MatrixRowIndexColumnName;
 
             /// <summary>
             /// The name variable (i.e., column in a <see cref="IDataView"/> type system) used as matrix's element value.
+            /// The column data must be <see cref="Microsoft.ML.Data.KeyDataViewType"/>.
             /// </summary>
             public string LabelColumnName;
 
