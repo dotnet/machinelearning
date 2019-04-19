@@ -488,8 +488,8 @@ namespace Microsoft.ML.Transforms.Text
     /// |  |  |
     /// | -- | -- |
     /// | Does this estimator need to look at the data to train its parameters? | No |
-    /// | Input column data type | Vector of [Text]<xref:System.ReadOnlyMemory{System.Char}> |
-    /// | Output column data type | Unknown-sized vector of [Text]<xref:System.ReadOnlyMemory{System.Char}> |
+    /// | Input column data type | Vector of [Text](<xref:Microsoft.ML.Data.TextDataViewType>) |
+    /// | Output column data type | Unknown-sized vector of [Text](<xref:Microsoft.ML.Data.TextDataViewType>) |
     ///
     /// The resulting <xref:Microsoft.ML.Transforms.Text.StopWordsRemovingTransformer/> creates a new column, named as specified in the output column name parameters, and
     /// fills it with vector of words similar to vector of words in input column but removing all, predefined for certain language, texts from it.
@@ -1094,8 +1094,8 @@ namespace Microsoft.ML.Transforms.Text
     /// |  |  |
     /// | -- | -- |
     /// | Does this estimator need to look at the data to train its parameters? | No |
-    /// | Input column data type | Vector of [Text]<xref:System.ReadOnlyMemory{System.Char}> |
-    /// | Output column data type | Unknown-sized vector of [Text]<xref:System.ReadOnlyMemory{System.Char}> |
+    /// | Input column data type | Vector of [Text](<xref:Microsoft.ML.Data.TextDataViewType>) |
+    /// | Output column data type | Unknown-sized vector of [Text](<xref:Microsoft.ML.Data.TextDataViewType>) |
     ///
     /// The resulting <xref:Microsoft.ML.Transforms.Text.CustomStopWordsRemovingTransformer/> creates a new column, named as specified in the output column name parameters, and
     /// fills it with vector of texts similar to vector of words in input column but removing all provided by user words from it.
