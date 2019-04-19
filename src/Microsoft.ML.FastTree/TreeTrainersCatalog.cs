@@ -414,7 +414,7 @@ namespace Microsoft.ML
         }
 
         /// <summary>
-        /// Create <see cref="FastForestBinaryTrainer"/> with <see cref="FastForestBinaryTrainer.Options"/>, which predicts a target using a decision tree regression model.
+        /// Create <see cref="FastForestBinaryTrainer"/> with advanced options, which predicts a target using a decision tree regression model.
         /// </summary>
         /// <param name="catalog">The <see cref="BinaryClassificationCatalog"/>.</param>
         /// <param name="options">Trainer options.</param>
