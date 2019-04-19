@@ -24,11 +24,14 @@ namespace Microsoft.ML.Transforms
     /// | Input column data type | Any, except [key type](xref:Microsoft.ML.Data.KeyDataViewType). All input columns must have the same type.  |
     /// | Output column data type | A vector of the input columns' data type |
     ///
-    /// The resulting [ColumnConcatenatingTransformer](xref:Microsoft.ML.Data.ColumnConcatenatingTransformer) creates a new column,
+    /// The resulting <xref:Microsoft.ML.Data.ColumnConcatenatingTransformer> creates a new column,
     /// named as specified in the output column name parameters, where the input values are concatenated in a vector.
+    /// The order of the concatenation follows the order in which the input columns are specified.
     ///
     /// If the input columns' data type is a vector the output column data type remains the same. However, the size of
     /// the vector will be the sum of the sizes of the input vectors.
+    ///
+    /// See the See Also section for links to examples of the usage.
     /// ]]></format>
     /// </remarks>
     /// <seealso cref="TransformExtensionsCatalog.Concatenate(TransformsCatalog, string, string[])"/>

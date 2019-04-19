@@ -213,12 +213,14 @@ namespace Microsoft.ML.Transforms
     /// | Input column data type | Any |
     /// | Output column data type | Any |
     ///
-    /// The resulting [CustomMappingTransformer](xref:Microsoft.ML.Transforms.CustomMappingTransformer) applies a user defined mapping
+    /// The resulting <xref:Microsoft.ML.Transforms.CustomMappingTransformer> applies a user defined mapping
     /// to one or more input columns and produces one or more output columns. This transformation doesn't change the number of rows,
     /// and can be seen as the result of applying the user's function to every row of the input data.
     ///
     /// The provided custom function must be thread-safe and free from side effects.
     /// The order with which it is applied to the rows of data cannot be guaranteed.
+    ///
+    /// See the See Also section for links to examples of the usage.
     /// ]]></format>
     /// </remarks>
     /// <seealso cref="CustomMappingCatalog.CustomMapping{TSrc, TDst}(TransformsCatalog, Action{TSrc, TDst}, string, SchemaDefinition, SchemaDefinition)"/>
