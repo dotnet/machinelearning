@@ -19,10 +19,10 @@ namespace Microsoft.ML
         /// </summary>
         /// <param name="catalog">The transform catalog</param>
         /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.
-        /// This column's data type will be a vector of floats. </param>
+        /// This column's data type will be a vector of floats for <paramref name="outputKind"/> Bag, Indicator, and Binary. For <paramref name="outputKind"/> Key, the data type will be a key in the case of a singleton input column or a vector of keys in the case of a vector input column.</param>
         /// <param name="inputColumnName">Name of column to convert to one-hot vectors. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.
-        /// This column's data type should be text.</param>
-        /// <param name="outputKind">Output kind: Bag (multi-set vector), Ind (indicator vector), Key (index), or Binary encoded indicator vector.</param>
+        /// This column's data type can be numeric, text, boolean, <see cref="System.DateTime"/> or <see cref="System.DateTimeOffset"/></param>
+        /// <param name="outputKind">Output kind: Bag (multi-set vector), Indicator (indicator vector), Key (index), or Binary encoded indicator vector.</param>
         /// <param name="maximumNumberOfKeys">Maximum number of terms to keep per column when auto-training.</param>
         /// <param name="keyOrdinality">How items should be ordered when vectorized. If <see cref="ValueToKeyMappingEstimator.KeyOrdinality.ByOccurrence"/> choosen they will be in the order encountered.
         /// If <see cref="ValueToKeyMappingEstimator.KeyOrdinality.ByValue"/>, items are sorted according to their default comparison, for example, text sorting will be case sensitive (for example, 'A' then 'Z' then 'a').</param>
@@ -48,7 +48,9 @@ namespace Microsoft.ML
         /// Create a <see cref="OneHotEncodingEstimator"/>, which converts the input text column specified by <see cref="InputOutputColumnPair.InputColumnName"/> into a column of one-hot encoded vectors named <see cref="InputOutputColumnPair.OutputColumnName"/>.
         /// </summary>
         /// <param name="catalog">The transform catalog</param>
-        /// <param name="columns">The pairs of input and output columns. The deta type of the input column should be text, and the data type of the output column will be a vector of floats.</param>
+        /// <param name="columns">The pairs of input and output columns. The data type of the input column can be numeric, text, boolean, <see cref="System.DateTime"/> or <see cref="System.DateTimeOffset"/>.
+        /// The data type of the output column will be a vector of floats for <paramref name="outputKind"/> Bag, Indicator, and Binary.
+        /// For <paramref name="outputKind"/> Key, the data type of the output column will be a key in the case of a singleton input column or a vector of keys in the case of a vector input column.</param>
         /// <param name="outputKind">Output kind: Bag (multi-set vector), Ind (indicator vector), Key (index), or Binary encoded indicator vector.</param>
         /// <param name="maximumNumberOfKeys">Maximum number of terms to keep per column when auto-training.</param>
         /// <param name="keyOrdinality">How items should be ordered when vectorized. If <see cref="ValueToKeyMappingEstimator.KeyOrdinality.ByOccurrence"/> choosen they will be in the order encountered.
@@ -102,9 +104,9 @@ namespace Microsoft.ML
         /// </summary>
         /// <param name="catalog">The transform catalog</param>
         /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.
-        /// This column's data type will be a vector of floats.</param>
+        /// This column's data type will be a vector of floats for <paramref name="outputKind"/> Bag, Indicator, and Binary. For <paramref name="outputKind"/> Key, the data type will be a key in the case of a singleton input column or a vector of keys in the case of a vector input column.</param>
         /// <param name="inputColumnName">Name of column to transform. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.
-        /// This column's data type should be text.</param>
+        /// This column's data type can be numeric, text, boolean, <see cref="System.DateTime"/> or <see cref="System.DateTimeOffset"/>.</param>
         /// <param name="outputKind">The conversion mode.</param>
         /// <param name="numberOfBits">Number of bits to hash into. Must be between 1 and 30, inclusive.</param>
         /// <param name="seed">Hashing seed.</param>
@@ -134,7 +136,9 @@ namespace Microsoft.ML
         /// Create a <see cref="OneHotHashEncodingEstimator"/>, which converts the input text column specified by <see cref="InputOutputColumnPair.InputColumnName"/> into a column of hash-based one-hot encoded vectors named <see cref="InputOutputColumnPair.OutputColumnName"/>
         /// </summary>
         /// <param name="catalog">The transform catalog</param>
-        /// <param name="columns">The pairs of input and output columns. The deta type of the input column should be text, and the data type of the output column will be a vector of floats.</param>
+        /// <param name="columns">The pairs of input and output columns. The data type of the input column can be numeric, text, boolean, <see cref="System.DateTime"/> or <see cref="System.DateTimeOffset"/>.
+        /// The data type of the output column will be a vector of floats for <paramref name="outputKind"/> Bag, Indicator, and Binary.
+        /// For <paramref name="outputKind"/> Key, the data type of the output column will be a key in the case of a singleton input column or a vector of keys in the case of a vector input column.</param>
         /// <param name="outputKind">The conversion mode.</param>
         /// <param name="numberOfBits">Number of bits to hash into. Must be between 1 and 30, inclusive.</param>
         /// <param name="seed">Hashing seed.</param>

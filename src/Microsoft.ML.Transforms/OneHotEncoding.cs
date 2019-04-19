@@ -28,17 +28,25 @@ namespace Microsoft.ML.Transforms
     /// <remarks>
     /// <para>
     /// The OneHotEncodingTransformer passes through a data set, operating on text columns, to build a dictionary of categories.
-    /// For each row, the entire text string appearing in the input column is defined as a category.</para>
-    /// <para>The output of this transform is an <a href="https://en.wikipedia.org/wiki/Indicator_vector">indicator vector</a>.
-    /// Each slot in this vector corresponds to a category in the dictionary, so its length is the size of the built dictionary.</para>
-    /// <para>The OneHotEncodingTransformer can be applied to one or more columns, in which case it builds and uses a separate dictionary
-    /// for each column that it is applied to.</para>
-    /// <para>The<see cref="OneHotEncodingEstimator.OutputKind"/> produces integer values and KeyType columns.
-    /// The Key value is the one-based index of the slot set in the Indicator/Bag options. If the Key option is not found, it is assigned the value zero.
-    /// If the <see cref="OneHotEncodingEstimator.OutputKind.Indicator"/>, <see cref="OneHotEncodingEstimator.OutputKind.Bag"/> options are not found, they result in an all zero bit vector.
-    /// <see cref="OneHotEncodingEstimator.OutputKind.Indicator"/> and <see cref="OneHotEncodingEstimator.OutputKind.Bag"/> differ simply in how the bit-vectors generated from individual slots are aggregated:
+    /// For each row, each unique value appearing in the input column is defined as a category.</para>
+    /// <para>The output of this transform is specified by <see cref="OneHotEncodingEstimator.OutputKind"/>.</para>
+    /// <para><see cref="OneHotEncodingEstimator.OutputKind.Indicator"/> produces an <a href="https://en.wikipedia.org/wiki/Indicator_vector">indicator vector</a>.
+    /// Each slot in this vector corresponds to a category in the dictionary, so its length is the size of the built dictionary.
+    /// If the input column is a vector of categories, the output contains one indicator vector per slot in the input column, concatenated together.
+    /// If a category is not found in the bulit dictioray, the output is an all zero bit vector.</para>
+    /// <para><see cref="OneHotEncodingEstimator.OutputKind.Bag"/> produces one vector where the value in each slot is the number of occurances of the category in the input vector.
+    /// Each slot in this vector corresponds to a category in the dictionary, so its length is the size of the built dictionary.
+    /// <see cref="OneHotEncodingEstimator.OutputKind.Indicator"/> and <see cref="OneHotEncodingEstimator.OutputKind.Bag"/> differ simply in how the bit-vectors generated from individual slots in the input column are aggregated:
     /// for Indicator they are concatenated and for Bag they are added.
     /// When the source column is a singleton, the Indicator and Bag options are identical.</para>
+    /// <para><see cref="OneHotEncodingEstimator.OutputKind.Key"/> produces integer values in a KeyType column.
+    /// The Key value is the one-based index of the slot set in the Indicator/Bag options.
+    /// If the input column is a vector of categories, the output contains a vectory of integer values in a KeyType column, where each slot of the vector corresponds to the respective slot of the input vector.
+    /// If a category is not found in the bulit dictionary, it is assigned the value zero.</para>
+    /// <para><see cref="OneHotEncodingEstimator.OutputKind.Binary"/> produces a binary encoded vector to represent the categories found in the dictionary.
+    /// If a category is not found, the output is an all zero vector.</para>
+    /// <para>The OneHotEncodingTransformer can be applied to one or more columns, in which case it builds and uses a separate dictionary
+    /// for each column that it is applied to.</para>
     /// </remarks>
     public sealed class OneHotEncodingTransformer : ITransformer
     {
