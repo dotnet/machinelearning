@@ -322,7 +322,7 @@ namespace Microsoft.ML
                 outputColumnName, inputColumnName, ngramLength, skipLength, useAllLengths, maximumNgramsCount, weighting);
 
         /// <summary>
-        /// Create a <see cref="WordHashBagEstimator"/>, which takes the data from the column specified in <paramref name="inputColumnNames"/>
+        /// Create a <see cref="WordHashBagEstimator"/>, which takes the data from the multiple columns specified in <paramref name="inputColumnNames"/>
         /// to a new column: <paramref name="outputColumnName"/> and produces a vector of counts of hashed n-grams.
         /// </summary>
         /// <remarks>
@@ -332,7 +332,7 @@ namespace Microsoft.ML
         /// <param name="catalog">The transform's catalog.</param>
         /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnNames"/>.
         /// This column's data type will be known-size vector of <see cref="System.Single"/>.</param>
-        /// <param name="inputColumnNames">Name of the column to take the data from.
+        /// <param name="inputColumnNames">Names of the multiple columns to take the data from.
         /// This estimator operates over vector of text.</param>
         /// <param name="ngramLength">Ngram length.</param>
         /// <param name="skipLength">Maximum number of tokens to skip when constructing an ngram.</param>
@@ -399,7 +399,7 @@ namespace Microsoft.ML
         /// <param name="catalog">The transform's catalog.</param>
         /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnNames"/>.
         /// This column's data type will be known-size vector of <see cref="System.Single"/>.</param>
-        /// <param name="inputColumnNames">Name of the multiple columns to take the data from.
+        /// <param name="inputColumnNames">Names of the multiple columns to take the data from.
         /// This estimator operates over vector of text.</param>
         /// <param name="numberOfBits">Number of bits to hash into. Must be between 1 and 30, inclusive.</param>
         /// <param name="ngramLength">Ngram length.</param>

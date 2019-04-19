@@ -20,14 +20,14 @@ namespace Microsoft.ML.Transforms.Text
     /// | -- | -- |
     /// | Does this estimator need to look at the data to train its parameters? | Yes |
     /// | Input column data type | Vector of [Text](<xref:Microsoft.ML.Data.TextDataViewType>) |
-    /// | Output column data type | Unknown-sized vector of <xref:System.Single> |
+    /// | Output column data type | Vector of known-size of <xref:System.Single> |
     ///
     /// The resulting <xref:Microsoft.ML.ITransformer/> creates a new column, named as specified in the output column name parameters, and
     /// produces a vector of counts of n-grams (sequences of consecutive words of length 1-n) from a given data.
     /// It does so by building a dictionary of ngrams and using the id in the dictionary as the index in the bag.
     ///
     /// <xref:Microsoft.ML.Transforms.Text.WordBagEstimator> is different from <xref:Microsoft.ML.Transforms.Text.NgramExtractingEstimator>
-    /// in a way that The former takes tokenizes text internally while the latter takes tokenized text as input.
+    /// in a way that the former takes tokenizes text internally while the latter takes tokenized text as input.
     /// See the See Also section for links to examples of the usage.
     /// ]]>
     /// </format>
@@ -214,14 +214,14 @@ namespace Microsoft.ML.Transforms.Text
     /// | -- | -- |
     /// | Does this estimator need to look at the data to train its parameters? | Yes |
     /// | Input column data type | Vector of [Text](<xref:Microsoft.ML.Data.TextDataViewType>) |
-    /// | Output column data type | Vector of known-size  of <xref:System.Single> |
+    /// | Output column data type | Vector of known-size of <xref:System.Single> |
     ///
     /// The resulting <xref:Microsoft.ML.ITransformer/> creates a new column, named as specified in the output column name parameters, and
     /// produces a vector of counts of n-grams (sequences of consecutive words of length 1-n) from a given data.
     /// It does so by hashing each ngram and using the hash value as the index in the bag.
     ///
     /// <xref:Microsoft.ML.Transforms.Text.WordHashBagEstimator> is different from <xref:Microsoft.ML.Transforms.Text.NgramHashingEstimator>
-    /// in a way that The former takes tokenizes text internally while the latter takes tokenized text as input.
+    /// in a way that the former takes tokenizes text internally while the latter takes tokenized text as input.
     /// See the See Also section for links to examples of the usage.
     /// ]]>
     /// </format>
