@@ -489,10 +489,10 @@ namespace Microsoft.ML.Transforms.Text
     /// | -- | -- |
     /// | Does this estimator need to look at the data to train its parameters? | No |
     /// | Input column data type | Vector of [Text](<xref:Microsoft.ML.Data.TextDataViewType>) |
-    /// | Output column data type | Unknown-sized vector of [Text](<xref:Microsoft.ML.Data.TextDataViewType>) |
+    /// | Output column data type | Variable-sized vector of [Text](<xref:Microsoft.ML.Data.TextDataViewType>) |
     ///
-    /// The resulting <xref:Microsoft.ML.Transforms.Text.StopWordsRemovingTransformer/> creates a new column, named as specified in the output column name parameters, and
-    /// fills it with vector of words similar to vector of words in input column but removing all, predefined for certain language, texts from it.
+    /// The resulting <xref:Microsoft.ML.Transforms.Text.StopWordsRemovingTransformer/> creates a new column, named as specified in the output column name parameter,
+    /// and fills it with a vector of words containing all of the words in the input column **except the predefined list of stopwords for the specified language.
     /// All text comparison made by casting predefined text and text from input column to lower case using casing rules of invariant culture.
     /// See the See Also section for links to examples of the usage.
     /// ]]>
@@ -1097,8 +1097,8 @@ namespace Microsoft.ML.Transforms.Text
     /// | Input column data type | Vector of [Text](<xref:Microsoft.ML.Data.TextDataViewType>) |
     /// | Output column data type | Unknown-sized vector of [Text](<xref:Microsoft.ML.Data.TextDataViewType>) |
     ///
-    /// The resulting <xref:Microsoft.ML.Transforms.Text.CustomStopWordsRemovingTransformer/> creates a new column, named as specified in the output column name parameters, and
-    /// fills it with vector of texts similar to vector of words in input column but removing all provided by user words from it.
+    /// The resulting <xref:Microsoft.ML.Transforms.Text.CustomStopWordsRemovingTransformer/> creates a new column, named as specified by the output column name parameter, and
+    /// fills it with a vector of words containing all of the words in the input column except those given by the stopwords parameter.
     /// All text comparison made by casting provided words and words from input column to lower case using casing rules of invariant culture.
     /// See the See Also section for links to examples of the usage.
     /// ]]>
