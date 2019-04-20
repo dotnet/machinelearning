@@ -49,8 +49,8 @@ namespace Microsoft.ML.Trainers
     /// ]]>
     /// </format>
     /// </remarks>
-    /// <seealso cref="Microsoft.ML.StandardTrainersCatalog.OnlineGradientDescent(Microsoft.ML.RegressionCatalog.RegressionTrainers,System.String,System.String,Microsoft.ML.Trainers.IRegressionLoss,System.Single,System.Boolean,System.Single,System.Int32)"/>
-    /// <seealso cref="Microsoft.ML.StandardTrainersCatalog.OnlineGradientDescent(Microsoft.ML.RegressionCatalog.RegressionTrainers,Microsoft.ML.Trainers.OnlineGradientDescentTrainer.Options)"/>
+    /// <seealso cref="StandardTrainersCatalog.OnlineGradientDescent(RegressionCatalog.RegressionTrainers, string, string, IRegressionLoss, float, bool, float, int)"/>
+    /// <seealso cref="StandardTrainersCatalog.OnlineGradientDescent(RegressionCatalog.RegressionTrainers, OnlineGradientDescentTrainer.Options)"/>
     /// <seealso cref="Options"/>
     public sealed class OnlineGradientDescentTrainer : AveragedLinearTrainer<RegressionPredictionTransformer<LinearRegressionModelParameters>, LinearRegressionModelParameters>
     {

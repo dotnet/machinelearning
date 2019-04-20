@@ -463,7 +463,7 @@ namespace Microsoft.ML
         }
 
         /// <summary>
-        /// Creates a <see cref="OnlineGradientDescentTrainer"/>, which predicts a target using a linear regression model.
+        /// Create <see cref="OnlineGradientDescentTrainer"/>, which predicts a target using a linear regression model.
         /// </summary>
         /// <param name="catalog">The regression catalog trainer object.</param>
         /// <param name="labelColumnName">The name of the label column. The column data must be <see cref="System.Single"/>.</param>
@@ -496,7 +496,7 @@ namespace Microsoft.ML
         }
 
         /// <summary>
-        /// Creates a <see cref="OnlineGradientDescentTrainer"/>, which predicts a target using a linear regression model with advanced options.
+        /// Create <see cref="OnlineGradientDescentTrainer"/> using advanced options, which predicts a target using a linear regression model.
         /// </summary>
         /// <param name="catalog">The regression catalog trainer object.</param>
         /// <param name="options">Trainer options.</param>
