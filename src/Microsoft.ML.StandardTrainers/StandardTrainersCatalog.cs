@@ -287,7 +287,7 @@ namespace Microsoft.ML
         }
 
         /// <summary>
-        /// Predict a target using a maximum entropy classification model trained with <see cref="SdcaMaximumEntropyMulticlassTrainer"/>.
+        /// Create <see cref="SdcaMaximumEntropyMulticlassTrainer"/>, which predicts a target using a maximum entropy classification model trained with a coordinate descent method.
         /// </summary>
         /// <param name="catalog">The multiclass classification catalog trainer object.</param>
         /// <param name="labelColumnName">The name of the label column. The column data must be <see cref="Microsoft.ML.Data.KeyDataViewType"/>.</param>
@@ -316,7 +316,7 @@ namespace Microsoft.ML
         }
 
         /// <summary>
-        /// Predict a target using a maximum entropy classification model trained with <see cref="SdcaMaximumEntropyMulticlassTrainer"/> and advanced options.
+        /// Create <see cref="SdcaMaximumEntropyMulticlassTrainer"/> with advanced options, which predicts a target using a maximum entropy classification model trained with a coordinate descent method.
         /// </summary>
         /// <param name="catalog">The multiclass classification catalog trainer object.</param>
         /// <param name="options">Trainer options.</param>
@@ -337,7 +337,7 @@ namespace Microsoft.ML
         }
 
         /// <summary>
-        /// Predict a target using a linear multiclass classification model trained with <see cref="SdcaNonCalibratedMulticlassTrainer"/>.
+        /// Create <see cref="SdcaNonCalibratedMulticlassTrainer"/>, which predicts a target using a linear multiclass classification model trained with a coordinate descent method.
         /// </summary>
         /// <param name="catalog">The multiclass classification catalog trainer object.</param>
         /// <param name="labelColumnName">The name of the label column. The column data must be <see cref="Microsoft.ML.Data.KeyDataViewType"/>.</param>
@@ -368,7 +368,7 @@ namespace Microsoft.ML
         }
 
         /// <summary>
-        /// Predict a target using linear multiclass classification model trained with <see cref="SdcaNonCalibratedMulticlassTrainer"/> and advanced options.
+        /// Create <see cref="SdcaNonCalibratedMulticlassTrainer"/> with advanced options, which predicts a target using a linear multiclass classification model trained with a coordinate descent method.
         /// </summary>
         /// <param name="catalog">The multiclass classification catalog trainer object.</param>
         /// <param name="options">Trainer options.</param>

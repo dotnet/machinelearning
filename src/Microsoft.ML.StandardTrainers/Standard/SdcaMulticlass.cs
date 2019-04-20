@@ -491,7 +491,7 @@ namespace Microsoft.ML.Trainers
     }
 
     /// <summary>
-    /// The <see cref="IEstimator{TTransformer}"/> for training a maximum entropy classification model using a coordinate descent method.
+    /// The <see cref="IEstimator{TTransformer}"/> to predict a target using a maximum entropy multiclass classifier.
     /// The trained model <see cref="MaximumEntropyModelParameters"/> produces probabilities of classes.
     /// </summary>
     /// <remarks>
@@ -574,7 +574,7 @@ namespace Microsoft.ML.Trainers
     }
 
     /// <summary>
-    /// The <see cref="IEstimator{TTransformer}"/> for training a linear multiclass classifier using a coordinate ascent method.
+    /// The<see cref="IEstimator{TTransformer}"/> to predict a target using a linear multiclass classifier.
     /// The trained model <see cref="LinearMulticlassModelParameters"/> produces probabilities of classes.
     /// </summary>
     /// <remarks>
