@@ -277,12 +277,14 @@ namespace Microsoft.ML
           => new NgramExtractingEstimator(Contracts.CheckRef(catalog, nameof(catalog)).GetEnvironment(), columns);
 
         /// <summary>
-        /// Removes stop words from incoming token streams in <paramref name="inputColumnName"/>
-        /// and outputs the token streams without stopwords as <paramref name="outputColumnName"/>.
+        /// Create a <see cref="CustomStopWordsRemovingEstimator"/>, which copies the data from the column specified in <paramref name="inputColumnName"/>
+        /// to a new column: <paramref name="outputColumnName"/> and removes predifined set of text specific for <paramref name="language"/> from it.
         /// </summary>
-        /// <param name="catalog">The text-related transform's catalog.</param>
-        /// <param name="outputColumnName">The column containing output text. Null means <paramref name="inputColumnName"/> is replaced.</param>
-        /// <param name="inputColumnName">The column containing text to remove stop words on.</param>
+        /// <param name="catalog">The transform's catalog.</param>
+        /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.
+        /// This column's data type will be variable-sized vector of text.</param>
+        /// <param name="inputColumnName">Name of the column to copy the data from.
+        /// This estimator operates over vector of text.</param>
         /// <param name="language">Langauge of the input text column <paramref name="inputColumnName"/>.</param>
         /// <example>
         /// <format type="text/markdown">
@@ -298,12 +300,14 @@ namespace Microsoft.ML
             => new StopWordsRemovingEstimator(Contracts.CheckRef(catalog, nameof(catalog)).GetEnvironment(), outputColumnName, inputColumnName, language);
 
         /// <summary>
-        /// Removes stop words from incoming token streams in <paramref name="inputColumnName"/>
-        /// and outputs the token streams without stopwords as <paramref name="outputColumnName"/>.
+        /// Create a <see cref="CustomStopWordsRemovingEstimator"/>, which copies the data from the column specified in <paramref name="inputColumnName"/>
+        /// to a new column: <paramref name="outputColumnName"/> and removes text specified in <paramref name="stopwords"/> from it.
         /// </summary>
-        /// <param name="catalog">The text-related transform's catalog.</param>
-        /// <param name="outputColumnName">The column containing output text. Null means <paramref name="inputColumnName"/> is replaced.</param>
-        /// <param name="inputColumnName">The column containing text to remove stop words on.</param>
+        /// <param name="catalog">The transform's catalog.</param>
+        /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.
+        /// This column's data type will be variable-sized vector of text.</param>
+        /// <param name="inputColumnName">Name of the column to copy the data from.
+        /// This estimator operates over vector of text.</param>
         /// <param name="stopwords">Array of words to remove.</param>
         /// <example>
         /// <format type="text/markdown">
