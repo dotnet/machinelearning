@@ -463,11 +463,11 @@ namespace Microsoft.ML
         }
 
         /// <summary>
-        /// Predict a target using a linear regression model trained with the <see cref="OnlineGradientDescentTrainer"/>.
+        /// Create <see cref="OnlineGradientDescentTrainer"/>, which predicts a target using a linear regression model.
         /// </summary>
         /// <param name="catalog">The regression catalog trainer object.</param>
-        /// <param name="labelColumnName">The name of the label column.</param>
-        /// <param name="featureColumnName">The name of the feature column.</param>
+        /// <param name="labelColumnName">The name of the label column. The column data must be <see cref="System.Single"/>.</param>
+        /// <param name="featureColumnName">The name of the feature column. The column data must be a known-sized vector of <see cref="System.Single"/>.</param>
         /// <param name="lossFunction">The <a href="https://en.wikipedia.org/wiki/Loss_function">loss</a> function minimized in the training process. Using, for example, <see cref="SquaredLoss"/> leads to a least square trainer.</param>
         /// <param name="learningRate">The initial learning rate used by SGD.</param>
         /// <param name="decreaseLearningRate">Decrease learning rate as iterations progress.</param>
@@ -496,7 +496,7 @@ namespace Microsoft.ML
         }
 
         /// <summary>
-        /// Predict a target using a linear regression model trained with the <see cref="OnlineGradientDescentTrainer"/> and advanced options.
+        /// Create <see cref="OnlineGradientDescentTrainer"/> using advanced options, which predicts a target using a linear regression model.
         /// </summary>
         /// <param name="catalog">The regression catalog trainer object.</param>
         /// <param name="options">Trainer options.</param>

@@ -28,12 +28,30 @@ namespace Microsoft.ML.Trainers
     /// Online Gradient Descent (OGD) for estimating the parameters of the linear regression model.
     /// </summary>
     /// <remarks>
+    /// <format type="text/markdown"><![CDATA[
+    /// To create this trainer, use [OnlineGradientDescent](xref:Microsoft.ML.StandardTrainersCatalog.OnlineGradientDescent(Microsoft.ML.RegressionCatalog.RegressionTrainers,System.String,System.String,Microsoft.ML.Trainers.IRegressionLoss,System.Single,System.Boolean,System.Single,System.Int32))
+    /// or [OnlineGradientDescent(Options)](xref:Microsoft.ML.StandardTrainersCatalog.OnlineGradientDescent(Microsoft.ML.RegressionCatalog.RegressionTrainers,Microsoft.ML.Trainers.OnlineGradientDescentTrainer.Options)).
+    ///
+    /// [!include[io](~/../docs/samples/docs/api-reference/io-columns-regression.md)]
+    ///
+    /// ### Trainer Characteristics
+    /// |  |  |
+    /// | -- | -- |
+    /// | Machine learning task | Regression |
+    /// | Is normalization required? | Yes |
+    /// | Is caching required? | No |
+    /// | Required NuGet in addition to Microsoft.ML | None |
+    ///
+    /// ### Training Algorithm Details
     /// Stochastic gradient descent uses a simple yet efficient iterative technique to fit model coefficients using error gradients for convex loss functions.
-    /// Online Gradient Descent (OGD) implements the standard (non-batch) SGD, with a choice of loss functions,
+    /// Online Gradient Descent (OGD) implements the standard (non-batch) stochastic gradient descent, with a choice of loss functions,
     /// and an option to update the weight vector using the average of the vectors seen over time (averaged argument is set to True by default).
+    /// ]]>
+    /// </format>
     /// </remarks>
     /// <seealso cref="StandardTrainersCatalog.OnlineGradientDescent(RegressionCatalog.RegressionTrainers, string, string, IRegressionLoss, float, bool, float, int)"/>
     /// <seealso cref="StandardTrainersCatalog.OnlineGradientDescent(RegressionCatalog.RegressionTrainers, OnlineGradientDescentTrainer.Options)"/>
+    /// <seealso cref="Options"/>
     public sealed class OnlineGradientDescentTrainer : AveragedLinearTrainer<RegressionPredictionTransformer<LinearRegressionModelParameters>, LinearRegressionModelParameters>
     {
         internal const string LoadNameValue = "OnlineGradientDescent";
@@ -43,7 +61,8 @@ namespace Microsoft.ML.Trainers
         internal const string ShortName = "ogd";
 
         /// <summary>
-        /// Options for the <see cref="OnlineGradientDescentTrainer"/>.
+        /// Options for the <see cref="OnlineGradientDescentTrainer"/> as used in
+        /// [OnlineGradientDescent(Options)](xref:Microsoft.ML.StandardTrainersCatalog.OnlineGradientDescent(Microsoft.ML.RegressionCatalog.RegressionTrainers,Microsoft.ML.Trainers.OnlineGradientDescentTrainer.Options)).
         /// </summary>
         public sealed class Options : AveragedLinearOptions
         {
