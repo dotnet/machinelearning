@@ -29,14 +29,36 @@ namespace Microsoft.ML.Trainers.FastTree
     /// <summary>
     /// The <see cref="IEstimator{TTransformer}"/> for training a binary classification model with generalized additive models (GAM).
     /// </summary>
-    /// <include file='doc.xml' path='doc/members/member[@name="GAM_remarks"]/*' />
+    /// <remarks>
+    /// <format type="text/markdown"><![CDATA[
+    /// To create this trainer, use [Gam](xref:Microsoft.ML.TreeExtensions.Gam(Microsoft.ML.BinaryClassificationCatalog.BinaryClassificationTrainers,System.String,System.String,System.String,System.Int32,System.Int32,System.Double))
+    /// or [Gam(Options)](xref:Microsoft.ML.TreeExtensions.Gam(Microsoft.ML.BinaryClassificationCatalog.BinaryClassificationTrainers,Microsoft.ML.Trainers.FastTree.GamBinaryTrainer.Options)).
+    ///
+    /// [!include[io](~/../docs/samples/docs/api-reference/io-columns-binary-classification.md)]
+    ///
+    /// ### Trainer Characteristics
+    /// |  |  |
+    /// | -- | -- |
+    /// | Machine learning task | Binary classification |
+    /// | Is normalization required? | No |
+    /// | Is caching required? | No |
+    /// | Required NuGet in addition to Microsoft.ML | Microsoft.ML.FastTree |
+    ///
+    /// [!include[algorithm](~/../docs/samples/docs/api-reference/algo-details-gam.md)]
+    /// ]]>
+    /// </format>
+    /// </remarks>
+    /// <seealso cref="TreeExtensions.Gam(BinaryClassificationCatalog.BinaryClassificationTrainers, string, string, string, int, int, double)"/>
+    /// <seealso cref="TreeExtensions.Gam(BinaryClassificationCatalog.BinaryClassificationTrainers, GamBinaryTrainer.Options)"/>
+    /// <seealso cref="Options"/>
     public sealed class GamBinaryTrainer :
         GamTrainerBase<GamBinaryTrainer.Options,
         BinaryPredictionTransformer<CalibratedModelParametersBase<GamBinaryModelParameters, PlattCalibrator>>,
         CalibratedModelParametersBase<GamBinaryModelParameters, PlattCalibrator>>
     {
         /// <summary>
-        /// Options for the <see cref="GamBinaryTrainer"/>.
+        /// Options for the <see cref="GamBinaryTrainer"/> as used in
+        /// [Gam(Options)](xref:Microsoft.ML.TreeExtensions.Gam(Microsoft.ML.BinaryClassificationCatalog.BinaryClassificationTrainers,Microsoft.ML.Trainers.FastTree.GamBinaryTrainer.Options)).
         /// </summary>
         public sealed class Options : OptionsBase
         {
