@@ -15,7 +15,7 @@ namespace Microsoft.ML
     public static class MklComponentsCatalog
     {
         /// <summary>
-        /// Creates <see cref="OlsTrainer"/>, which predicts a target using a linear regression model.
+        /// Create <see cref="OlsTrainer"/>, which predicts a target using a linear regression model.
         /// </summary>
         /// <param name="catalog">The <see cref="RegressionCatalog"/>.</param>
         /// <param name="labelColumnName">The name of the label column. The column data must be <see cref="System.Single"/>.</param>
@@ -46,7 +46,7 @@ namespace Microsoft.ML
         }
 
         /// <summary>
-        /// Create <see cref="OlsTrainer"/> using advanced options, which predicts a target using a linear regression model.
+        /// Create <see cref="OlsTrainer"/> with advanced options, which predicts a target using a linear regression model.
         /// </summary>
         /// <param name="catalog">The <see cref="RegressionCatalog"/>.</param>
         /// <param name="options">Algorithm advanced options. See <see cref="OlsTrainer.Options"/>.</param>
