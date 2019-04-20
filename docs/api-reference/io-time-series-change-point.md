@@ -1,6 +1,6 @@
 ### Input and Output Columns
 There is only one input column and its type is <xref:System.Single>.
-This estimator adds the following outputs columns:
+This estimator adds the following output columns:
 
 | Output Column Name | Column Type | Description|
 | -- | -- | -- |
