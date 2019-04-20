@@ -104,6 +104,10 @@ namespace Microsoft.ML.Trainers
         internal const string UserNameValue = "Multi-class Logistic Regression";
         internal const string ShortName = "mlr";
 
+        /// <summary>
+        /// <see cref="Options"/> for <see cref="LbfgsMaximumEntropyMulticlassTrainer"/> as used in
+        /// <see cref="Microsoft.ML.StandardTrainersCatalog.LbfgsMaximumEntropy(MulticlassClassificationCatalog.MulticlassClassificationTrainers, LbfgsMaximumEntropyMulticlassTrainer.Options)"/>.
+        /// </summary>
         public sealed class Options : OptionsBase
         {
             /// <summary>
