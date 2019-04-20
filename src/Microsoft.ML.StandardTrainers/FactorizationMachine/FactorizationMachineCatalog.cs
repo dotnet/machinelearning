@@ -52,7 +52,6 @@ namespace Microsoft.ML
         ///  [!code-csharp[FieldAwareFactorizationMachine](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Trainers/BinaryClassification/FieldAwareFactorizationMachine.cs)]
         /// ]]></format>
         /// </example>
-        /// <see cref="Microsoft.ML.FactorizationMachineExtensions.FieldAwareFactorizationMachine(BinaryClassificationCatalog.BinaryClassificationTrainers, string[], string, string)"/>
         public static FieldAwareFactorizationMachineTrainer FieldAwareFactorizationMachine(this BinaryClassificationCatalog.BinaryClassificationTrainers catalog,
             string[] featureColumnNames,
             string labelColumnName = DefaultColumnNames.Label,
