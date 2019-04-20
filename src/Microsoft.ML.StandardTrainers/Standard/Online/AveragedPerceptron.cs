@@ -53,7 +53,7 @@ namespace Microsoft.ML.Trainers
     /// and by the gradient of some loss function (in the specific case described above, the loss is hinge-loss, whose gradient is 1 when it is non-zero).
     ///
     /// In Averaged Perceptron (aka voted-perceptron), for each iteration, i.e. pass through the training data, a weight vector is calculated as explained above.
-    /// The final prediction is then calculate by averaging the weighted sum from each weight vector and looking at the sign of the result.
+    /// The final prediction is then calculated by averaging the weighted sum from each weight vector and looking at the sign of the result.
     ///
     /// For more information see [Wikipedia entry for Perceptron](https://en.wikipedia.org/wiki/Perceptron)
     /// or [Large Margin Classification Using the Perceptron Algorithm](https://citeseer.ist.psu.edu/viewdoc/summary?doi=10.1.1.48.8200).
