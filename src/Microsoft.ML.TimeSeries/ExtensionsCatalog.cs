@@ -16,7 +16,7 @@ namespace Microsoft.ML
         /// </summary>
         /// <param name="catalog">The transform's catalog.</param>
         /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.
-        /// Column is a vector of type double and size 4. The vector contains Alert, Raw Score, P-Value and Martingale score as first four values.</param>
+        /// The column data is a vector of <see cref="System.Double"/>. The vector contains 4 elements: alert (non-zero value means a change point), raw score, p-Value and martingale score.</param>
         /// <param name="inputColumnName">Name of column to transform. The column data must be <see cref="System.Single"/>. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.</param>
         /// <param name="confidence">The confidence for change point detection in the range [0, 100].</param>
         /// <param name="changeHistoryLength">The length of the sliding window on p-values for computing the martingale score.</param>
@@ -39,8 +39,10 @@ namespace Microsoft.ML
         /// time series based on adaptive kernel density estimations and martingale scores.
         /// </summary>
         /// <param name="catalog">The transform's catalog.</param>
-        /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/></param>.
-        /// <param name="inputColumnName">Name of column to transform. The column data must be <see cref="System.Single"/>. The column data must be <see cref="System.Single"/>. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.</param>
+        /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.
+        /// The column data is a vector of <see cref="System.Double"/>. The vector contains 3 elements: alert (non-zero value means a spike), raw score, and p-value.</param>
+        /// <param name="inputColumnName">Name of column to transform. The column data must be <see cref="System.Single"/>.
+        /// If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.</param>
         /// <param name="confidence">The confidence for spike detection in the range [0, 100].</param>
         /// <param name="pvalueHistoryLength">The size of the sliding window for computing the p-value.</param>
         /// <param name="side">The argument that determines whether to detect positive or negative anomalies, or both.</param>
@@ -61,8 +63,9 @@ namespace Microsoft.ML
         /// </summary>
         /// <param name="catalog">The transform's catalog.</param>
         /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.
-        /// Column is a vector of type double and size 4. The vector contains Alert, Raw Score, P-Value and Martingale score as first four values.</param>
-        /// <param name="inputColumnName">Name of column to transform. The column data must be <see cref="System.Single"/>. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.</param>
+        /// The column data is a vector of <see cref="System.Double"/>. The vector contains 4 elements: alert (non-zero value means a change point), raw score, p-Value and martingale score.</param>
+        /// <param name="inputColumnName">Name of column to transform. The column data must be <see cref="System.Single"/>.
+        /// If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.</param>
         /// <param name="confidence">The confidence for change point detection in the range [0, 100].</param>
         /// <param name="trainingWindowSize">The number of points from the beginning of the sequence used for training.</param>
         /// <param name="changeHistoryLength">The size of the sliding window for computing the p-value.</param>
@@ -98,13 +101,14 @@ namespace Microsoft.ML
         /// using <a href="https://en.wikipedia.org/wiki/Singular_spectrum_analysis">Singular Spectrum Analysis (SSA)</a>.
         /// </summary>
         /// <param name="catalog">The transform's catalog.</param>
-        /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.</param>
-        /// <param name="inputColumnName">Name of column to transform. The column data must be <see cref="System.Single"/>. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.
+        /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.
+        /// The column data is a vector of <see cref="System.Double"/>. The vector contains 3 elements: alert (non-zero value means a spike), raw score, and p-value.</param>
+        /// <param name="inputColumnName">Name of column to transform. The column data must be <see cref="System.Single"/>.
+        /// If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.</param>
         /// <param name="confidence">The confidence for spike detection in the range [0, 100].</param>
         /// <param name="pvalueHistoryLength">The size of the sliding window for computing the p-value.</param>
         /// <param name="trainingWindowSize">The number of points from the beginning of the sequence used for training.</param>
         /// <param name="seasonalityWindowSize">An upper bound on the largest relevant seasonality in the input time-series.</param>
-        /// The vector contains Alert, Raw Score, P-Value as first three values.</param>
         /// <param name="side">The argument that determines whether to detect positive or negative anomalies, or both.</param>
         /// <param name="errorFunction">The function used to compute the error between the expected and the observed value.</param>
         /// <example>
