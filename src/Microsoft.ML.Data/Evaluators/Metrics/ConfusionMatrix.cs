@@ -26,8 +26,9 @@ namespace Microsoft.ML.Data
         public IReadOnlyList<double> PerClassRecall { get; }
 
         /// <summary>
-        /// The confsion matrix counts for the combinations actual class/predicted class.
-        /// The actual classes are in the rows of the table, and the predicted classes in the columns.
+        /// The confusion matrix counts for the combinations actual class/predicted class.
+        /// The actual classes are in the rows of the table (stored in the outer <see cref="IReadOnlyList{T}"/>), and the predicted classes
+        ///  in the columns(stored in the inner <see cref="IReadOnlyList{T}"/>).
         /// </summary>
         public IReadOnlyList<IReadOnlyList<double>> Counts { get; }
 
@@ -35,7 +36,7 @@ namespace Microsoft.ML.Data
         /// The indicators of the predicted classes.
         /// It might be the classes names, or just indices of the predicted classes, if the name mapping is missing.
         /// </summary>
-        public int NumberOfPredictedClasses { get; }
+        public int NumberOfClasses { get; }
 
         /// <summary>
         /// The indicators of the predicted classes.
@@ -83,10 +84,10 @@ namespace Microsoft.ML.Data
             IsBinary = isBinary;
             PredictedClassesIndicators = labelNames.AsReadOnly();
 
-            NumberOfPredictedClasses = confusionTableCounts.Length;
-            List<IReadOnlyList<double>> counts = new List<IReadOnlyList<double>>(NumberOfPredictedClasses);
+            NumberOfClasses = confusionTableCounts.Length;
+            List<IReadOnlyList<double>> counts = new List<IReadOnlyList<double>>(NumberOfClasses);
 
-            for (int i = 0; i < NumberOfPredictedClasses; i++)
+            for (int i = 0; i < NumberOfClasses; i++)
                 counts.Add(confusionTableCounts[i].ToList().AsReadOnly());
 
             Counts = counts.AsReadOnly();

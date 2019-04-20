@@ -1359,7 +1359,7 @@ namespace Microsoft.ML.Data
             var confusionMatrix = GetConfusionMatrix(host, confusionDataView, binary, sample, false);
             var confusionTableString = GetConfusionTableAsString(confusionMatrix, false);
 
-            // if there is a Weight column, return the weighted confusionMatrix as well, from this function.
+            // If there is a Weight column, return the weighted confusionMatrix as well, from this function.
             if (isWeighted)
             {
                 confusionMatrix = GetConfusionMatrix(host, confusionDataView, binary, sample, true);
