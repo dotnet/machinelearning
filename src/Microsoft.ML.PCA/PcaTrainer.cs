@@ -46,7 +46,7 @@ namespace Microsoft.ML.Trainers
     /// |  |  |
     /// | -- | -- |
     /// | Machine learning task | Anomaly Detection |
-    /// | Is normalization required? | Yes |
+    /// | Is normalization required? | No |
     /// | Is caching required? | No |
     /// | Required NuGet in addition to Microsoft.ML | None |
     ///
@@ -55,8 +55,8 @@ namespace Microsoft.ML.Trainers
     /// ]]>
     /// </format>
     /// </remarks>
-    /// <seealso cref="Microsoft.ML.PcaCatalog.RandomizedPca(Microsoft.ML.AnomalyDetectionCatalog.AnomalyDetectionTrainers,System.String,System.String,System.Int32,System.Int32,System.Boolean,System.Nullable{System.Int32})"/>
-    /// <seealso cref="Microsoft.ML.PcaCatalog.RandomizedPca(Microsoft.ML.AnomalyDetectionCatalog.AnomalyDetectionTrainers,Microsoft.ML.Trainers.RandomizedPcaTrainer.Options)"/>
+    /// <seealso cref="PcaCatalog.RandomizedPca(AnomalyDetectionCatalog.AnomalyDetectionTrainers, string, string, int, int, bool, int?)"/>
+    /// <seealso cref="PcaCatalog.RandomizedPca(AnomalyDetectionCatalog.AnomalyDetectionTrainers, RandomizedPcaTrainer.Options)"/>
     /// <seealso cref="Options"/>
     public sealed class RandomizedPcaTrainer : TrainerEstimatorBase<AnomalyPredictionTransformer<PcaModelParameters>, PcaModelParameters>
     {
