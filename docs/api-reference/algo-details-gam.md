@@ -3,7 +3,7 @@ Generalized Additive Models, or GAMs, model the data as a set of linearly
 independent features similar to a linear model. For each feature, the GAM
 trainer learns a non-linear function, called a "shape function", that computes
 the response as a function of the feature's value. (In contrast, a linear model
-fits a linear response (e.g. a line) to each feature.) To score an example, the
+fits a linear response (e.g. a line) to each feature.) To score an input, the
 outputs of all the shape functions are summed and the score is the total value.
 
 This GAM trainer is implemented using shallow gradient boosted trees (e.g. tree
