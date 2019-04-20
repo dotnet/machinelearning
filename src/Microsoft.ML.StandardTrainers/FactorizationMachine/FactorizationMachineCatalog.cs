@@ -14,19 +14,19 @@ namespace Microsoft.ML
     public static class FactorizationMachineExtensions
     {
         /// <summary>
-        /// Predict a target using a field-aware factorization machine algorithm.
+        /// Create <see cref="FieldAwareFactorizationMachineTrainer"/>, which predicts a target using a field-aware factorization machine trained over boolean label data.
         /// </summary>
         /// <remarks>
         /// Note that because there is only one feature column, the underlying model is equivalent to standard factorization machine.
         /// </remarks>
         /// <param name="catalog">The binary classification catalog trainer object.</param>
-        /// <param name="featureColumnName">The name of the feature column.</param>
-        /// <param name="labelColumnName">The name of the label column.</param>
+        /// <param name="labelColumnName">The name of the label column. The column data must be <see cref="System.Boolean"/>.</param>
+        /// <param name="featureColumnName">The name of the feature column. The column data must be a known-sized vector of <see cref="System.Single"/>.</param>
         /// <param name="exampleWeightColumnName">The name of the example weight column (optional).</param>
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
-        ///  [!code-csharp[FieldAwareFactorizationMachineWithoutArguments](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Trainers/BinaryClassification/FieldAwareFactorizationMachineWithoutArguments.cs)]
+        ///  [!code-csharp[FieldAwareFactorizationMachineWithoutArguments](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Trainers/BinaryClassification/FactorizationMachine.cs)]
         /// ]]></format>
         /// </example>
         public static FieldAwareFactorizationMachineTrainer FieldAwareFactorizationMachine(this BinaryClassificationCatalog.BinaryClassificationTrainers catalog,
@@ -40,11 +40,11 @@ namespace Microsoft.ML
         }
 
         /// <summary>
-        /// Predict a target using a field-aware factorization machine algorithm.
+        /// Create <see cref="FieldAwareFactorizationMachineTrainer"/>, which predicts a target using a field-aware factorization machine trained over boolean label data.
         /// </summary>
         /// <param name="catalog">The binary classification catalog trainer object.</param>
-        /// <param name="featureColumnNames">The name(s) of the feature columns.</param>
-        /// <param name="labelColumnName">The name of the label column.</param>
+        /// <param name="labelColumnName">The name of the label column. The column data must be <see cref="System.Boolean"/>.</param>
+        /// <param name="featureColumnNames">The names of the feature columns. The column data must be a known-sized vector of <see cref="System.Single"/>.</param>
         /// <param name="exampleWeightColumnName">The name of the example weight column (optional).</param>
         /// <example>
         /// <format type="text/markdown">
@@ -63,10 +63,10 @@ namespace Microsoft.ML
         }
 
         /// <summary>
-        /// Predict a target using a field-aware factorization machine algorithm.
+        /// Create <see cref="FieldAwareFactorizationMachineTrainer"/> using advanced options, which predicts a target using a field-aware factorization machine trained over boolean label data.
         /// </summary>
         /// <param name="catalog">The binary classification catalog trainer object.</param>
-        /// <param name="options">Advanced arguments to the algorithm.</param>
+        /// <param name="options">Trainer options.</param>
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[

@@ -30,7 +30,62 @@ namespace Microsoft.ML.Trainers
      [2] https://www.csie.ntu.edu.tw/~cjlin/papers/ffm.pdf
      [3] https://github.com/wschin/fast-ffm/blob/master/fast-ffm.pdf
     */
-    /// <include file='doc.xml' path='doc/members/member[@name="FieldAwareFactorizationMachineBinaryClassifier"]/*' />
+    /// <summary>
+    /// The <see cref="IEstimator{TTransformer}"/> to predict a target using a field-aware factorization machine model trained using a stochastic gradient method.
+    /// </summary>
+    /// <remarks>
+    /// <format type="text/markdown"><![CDATA[
+    /// [!include[io](~/../docs/samples/docs/api-reference/io-columns-binary-classification.md)]
+    /// To create this trainer, use [FieldAwareFactorizationMachine](xref:Microsoft.ML.FactorizationMachineExtensions.FieldAwareFactorizationMachine(Microsoft.ML.BinaryClassificationCatalog.BinaryClassificationTrainers,System.String,System.String,System.String))
+    /// [FieldAwareFactorizationMachine](xref:Microsoft.ML.FactorizationMachineExtensions.FieldAwareFactorizationMachine(Microsoft.ML.BinaryClassificationCatalog.BinaryClassificationTrainers,System.String[],System.String,System.String)),
+    /// or [FieldAwareFactorizationMachine(Options)](xref:Microsoft.ML.FactorizationMachineExtensions.FieldAwareFactorizationMachine(Microsoft.ML.BinaryClassificationCatalog.BinaryClassificationTrainers,Microsoft.ML.Trainers.FieldAwareFactorizationMachineTrainer.Options)).
+    ///
+    /// In contrast to other binary classifiers which can only support one feature column, field-aware factorization machine can consume multiple feature columns.
+    /// Each column is viewed as a container of some features and such a container is called a field.
+    /// Note that all feature columns must be float vectors but their dimensions can be different.
+    /// The motivation of splitting features into different fields is to model features from different distributions independently.
+    /// For example, in online game store, features created from user profile and those from game profile can be assigned to two different fields.
+    ///
+    /// ### Trainer Characteristics
+    /// |  |  |
+    /// | -- | -- |
+    /// | Machine learning task | Binary classification |
+    /// | Is normalization required? | Yes |
+    /// | Is caching required? | No |
+    /// | Required NuGet in addition to Microsoft.ML | None |
+    ///
+    /// ### Background
+    /// Factorization machine family is a powerful model group for supervised learning problems.
+    /// It was first introduced in Steffen Rendle's [Factorization Machines](http://ieeexplore.ieee.org/document/5694074/?reload=true) paper in 2010.
+    /// Later, one of its generalized versions, field-aware factorization machine, became an important predictive module in recent recommender systems and click-through rate prediction contests.
+    /// For examples, see winning solutions in Steffen Rendle's KDD-Cup 2012 ([Track 1](http://www.kdd.org/kdd-cup/view/kdd-cup-2012-track-1) and [Track 2](http://www.kdd.org/kdd-cup/view/kdd-cup-2012-track-2)),
+    /// [Criteo's](https://www.kaggle.com/c/criteo-display-ad-challenge), [Avazu's](https://www.kaggle.com/c/avazu-ctr-prediction), and [Outbrain's](https://www.kaggle.com/c/outbrain-click-prediction) click prediction challenges on Kaggle.
+    ///
+    /// Factorization machines are especially powerful when feature conjunctions are extremely correlated to the signal you want to predict.
+    /// An example of feature pairs which can form important conjunctions is user ID and music ID in music recommendation.
+    /// When a dataset consists of only dense numerical features, usage of factorization machine is not recommended or some featurizations should be performed.
+    ///
+    /// ### Scoring Function
+    /// Field-aware factorization machine is a scoring function which maps feature vectors from different fields to a scalar score.
+    /// Assume that all $m$ feature columns are concatenated into a long feature vector $\boldsymbol{x}\in {\mathbb R}^n$ and ${\mathcal F}(j)$ denotes the $j$-th feature's field indentifier.
+    /// The corresponding score is $\hat{y}\left(\boldsymbol{x}\right) = \left\langle \boldsymbol{w}, \boldsymbol{x} \right\rangle + \sum_{j = 1}^n \sum_{j' = j + 1}^n \left\langle \boldsymbol{v}_{j, {\mathcal F}(j')} , \boldsymbol{v}_{j', {\mathcal F}(j)} \right\rangle x_j x_{j'}$,
+    /// where $\left\langle \cdot, \cdot \right\rangle$ is the inner product operator, $\boldsymbol{w}\in{\mathbb R}^n$ stores the linear coefficients, and $\boldsymbol{v}_{j, f}\in {\mathbb R}^k$ is the $j$-th feature's representation in the $f$-th field's latent space.
+    /// Note that $k$ is the latent dimension specified by the user.
+    /// The predicted label is the sign of $\hat{y}$. If $\hat{y} > 0$, this model predicts true. Otherwise, it predicts false.
+    /// For a systematic introduction to field-aware factorization machine, please see [this paper](https://www.csie.ntu.edu.tw/~cjlin/papers/ffm.pdf)
+    ///
+    /// ### Training Algorithm Details
+    /// The implemented algorithm in <see cref="FieldAwareFactorizationMachineTrainer"/> is based on [a stochastic gradient method](http://jmlr.org/papers/volume12/duchi11a/duchi11a.pdf).
+    /// Algorithm details is described in Algorithm 3 in [a online document](https://github.com/wschin/fast-ffm/blob/master/fast-ffm.pdf).
+    /// The minimized loss function is [logistic loss](https://en.wikipedia.org/wiki/Loss_functions_for_classification), so the trained model can be viewed as a non-linear logistic regression.
+    ///
+    /// ]]>
+    /// </format>
+    /// </remarks>
+    /// <seealso cref="Microsoft.ML.FactorizationMachineExtensions.FieldAwareFactorizationMachine(BinaryClassificationCatalog.BinaryClassificationTrainers, string, string, string)"/>
+    /// <seealso cref="Microsoft.ML.FactorizationMachineExtensions.FieldAwareFactorizationMachine(BinaryClassificationCatalog.BinaryClassificationTrainers, string[], string, string)"/>
+    /// <seealso cref="Microsoft.ML.FactorizationMachineExtensions.FieldAwareFactorizationMachine(BinaryClassificationCatalog.BinaryClassificationTrainers, FieldAwareFactorizationMachineTrainer.Options)"/>
+    /// <seealso cref="FieldAwareFactorizationMachineTrainer.Options"/>
     public sealed class FieldAwareFactorizationMachineTrainer : ITrainer<FieldAwareFactorizationMachineModelParameters>,
         IEstimator<FieldAwareFactorizationMachinePredictionTransformer>
     {
@@ -39,6 +94,10 @@ namespace Microsoft.ML.Trainers
         internal const string LoadName = "FieldAwareFactorizationMachine";
         internal const string ShortName = "ffm";
 
+        /// <summary>
+        /// <see cref="Options"/> for <see cref="FieldAwareFactorizationMachineTrainer"/> as used in
+        /// <see cref="Microsoft.ML.FactorizationMachineExtensions.FieldAwareFactorizationMachine(BinaryClassificationCatalog.BinaryClassificationTrainers, FieldAwareFactorizationMachineTrainer.Options)"/>.
+        /// </summary>
         public sealed class Options : TrainerInputBaseWithWeight
         {
             /// <summary>
