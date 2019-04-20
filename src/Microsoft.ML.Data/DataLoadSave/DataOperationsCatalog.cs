@@ -63,7 +63,7 @@ namespace Microsoft.ML
         /// results.
         /// </summary>
         /// <typeparam name="TRow">The user-defined item type.</typeparam>
-        /// <param name="data">The data with <typeparamref name="TRow"/> to convert to an <see cref="IDataView"/>.</param>
+        /// <param name="data">The enumerable data containing type <typeparamref name="TRow"/> to convert to an<see cref="IDataView"/>.</param>
         /// <param name="schemaDefinition">The optional schema definition of the data view to create. If <c>null</c>,
         /// the schema definition is inferred from <typeparamref name="TRow"/>.</param>
         /// <returns>The constructed <see cref="IDataView"/>.</returns>
@@ -98,7 +98,7 @@ namespace Microsoft.ML
         /// One practical usage of this would be to supply the feature column names through the <see cref="DataViewSchema.Annotations"/>.
         /// </remarks>
         /// <typeparam name="TRow">The user-defined item type.</typeparam>
-        /// <param name="data">The data with <typeparamref name="TRow"/> to convert to an <see cref="IDataView"/>.</param>
+        /// <param name="data">The enumerable data containing type <typeparamref name="TRow"/> to convert to an <see cref="IDataView"/>.</param>
         /// <param name="schema">The schema of the returned <see cref="IDataView"/>.</param>
         /// <returns>An <see cref="IDataView"/> with the given <paramref name="schema"/>.</returns>
         public IDataView LoadFromEnumerable<TRow>(IEnumerable<TRow> data, DataViewSchema schema)
