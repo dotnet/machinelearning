@@ -39,8 +39,63 @@ using Newtonsoft.Json.Linq;
 
 namespace Microsoft.ML.Trainers
 {
-    /// <include file = 'doc.xml' path='doc/members/member[@name="LBFGS"]/*' />
-    /// <include file = 'doc.xml' path='docs/members/example[@name="LogisticRegressionClassifier"]/*' />
+    /// <summary>
+    /// The <see cref="IEstimator{TTransformer}"/> to predict a target using a maximum entropy multiclass classifier trained with L-BFGS method.
+    /// </summary>
+    /// <remarks>
+    /// <format type="text/markdown"><![CDATA[
+    /// To create this trainer, use [LbfgsMaximumEntropy](xref:Microsoft.ML.StandardTrainersCatalog.LbfgsMaximumEntropy(Microsoft.ML.MulticlassClassificationCatalog.MulticlassClassificationTrainers,System.String,System.String,System.String,System.Single,System.Single,System.Single,System.Int32,System.Boolean))
+    /// or [LbfgsMaximumEntropy(Options)](xref:Microsoft.ML.StandardTrainersCatalog.LbfgsMaximumEntropy(Microsoft.ML.MulticlassClassificationCatalog.MulticlassClassificationTrainers,Microsoft.ML.Trainers.LbfgsMaximumEntropyMulticlassTrainer.Options)).
+    ///
+    /// [!include[io](~/../docs/samples/docs/api-reference/io-columns-multiclass-classification.md)]
+    ///
+    /// ### Trainer Characteristics
+    /// |  |  |
+    /// | -- | -- |
+    /// | Machine learning task | Multiclass classification |
+    /// | Is normalization required? | Yes |
+    /// | Is caching required? | No |
+    /// | Required NuGet in addition to Microsoft.ML | None |
+    ///
+    /// ### Scoring Function
+    /// [Maximum entropy model](https://en.wikipedia.org/wiki/Multinomial_logistic_regression) is a generalization of linear [logistic regression](https://en.wikipedia.org/wiki/Logistic_regression).
+    /// The major difference between maximum entropy model and logistic regression is that the number of classes supported in considered classification problem.
+    /// Logistic regression is only for binary classification while maximum entropy model handles multiple classes.
+    /// See Section 1 in [this paper](https://www.csie.ntu.edu.tw/~cjlin/papers/maxent_dual.pdf) for a detailed introduction.
+    ///
+    /// Assume that the number of classes is $m$ and number of features is $n$.
+    /// Maximum entropy model assigns the $c$-th class a coefficient vector $\boldsymbol{w}_c \in {\mathbb R}^n$ and a bias $b_c \in {\mathbb R}$, for $c=1,\dots,m$.
+    /// Given a feature vector $\boldsymbol{x} \in {\mathbb R}^n$, the $c$-th class's score is $\hat{y}^c = \boldsymbol{w}_c^T \boldsymbol{x} + b_c$.
+    /// The probability of $\boldsymbol{x}$ belonging to class $c$ is defined by $\tilde{P}(c|\boldsymbol{x}) = \frac{ e^{\hat{y}^c} }{ \sum_{c' = 1}^m e^{\hat{y}^{c'}} }$.
+    /// Let $P(c, \boldsymbol{x})$ denote the join probability of seeing $c$ and $\boldsymbol{x}$.
+    /// The loss function minimized by this trainer is $-\sum_{c = 1}^m P(c, \boldsymbol{x}) \log \tilde{P}(c|\boldsymbol{x}) $, which is the negative [log-likelihood function](https://en.wikipedia.org/wiki/Likelihood_function#Log-likelihood).
+    ///
+    /// ### Training Algorithm Details
+    /// The optimization technique implemented is based on [the limited memory Broyden-Fletcher-Goldfarb-Shanno method (L-BFGS)](https://en.wikipedia.org/wiki/Limited-memory_BFGS).
+    /// L-BFGS is a [quasi-Newtonian method](https://en.wikipedia.org/wiki/Quasi-Newton_method) which replaces the expensive computation cost of Hessian matrix with an approximation but still enjoys a fast convergence rate like [Newton method](https://en.wikipedia.org/wiki/Newton%27s_method_in_optimization) where the full Hessian matrix is computed.
+    /// Since L-BFGS approximation uses only a limited amount of historical states to compute the next step direction, it is especially suited for problems with high-dimensional feature vector.
+    /// The number of historical states is a user-specified parameter, using a larger number may lead to a better approximation to the Hessian matrix but also a higher computation cost per step.
+    ///
+    /// Regularization is a method that can render an ill-posed problem more tractable by imposing constraints that provide information to supplement the data and that prevents overfitting by penalizing model's magnitude usually measured by some norm functions.
+    /// This can improve the generalization of the model learned by selecting the optimal complexity in the bias-variance trade-off.
+    /// Regularization works by adding the penalty that is associated with coefficient values to the error of the hypothesis.
+    /// An accurate model with extreme coefficient values would be penalized more, but a less accurate model with more conservative values would be penalized less.
+    ///
+    /// This learner supports [elastic net regularization](https://en.wikipedia.org/wiki/Elastic_net_regularization): a linear combination of L1-norm (LASSO), $|| \boldsymbol{w} ||_1$, and L2-norm (ridge), $|| \boldsymbol{w} ||_2^2$ regularizations.
+    /// L1-norm and L2-norm regularizations have different effects and uses that are complementary in certain respects.
+    /// Using L1-norm can increase sparsity of the trained $\boldsymbol{w}$.
+    /// When working with high-dimensional data, it shrinks small weights of irrelevant features to 0 and therefore no reource will be spent on those bad features when making prediction.
+    /// If L1-norm regularization is used, the used training algorithm would be [QWL-QN](http://citeseer.ist.psu.edu/viewdoc/summary?doi=10.1.1.68.5260).
+    /// L2-norm regularization is preferable for data that is not sparse and it largely penalizes the existence of large weights.
+    ///
+    /// An aggressive regularization (that is, assigning large coefficients to L1-norm or L2-norm regularization terms) can harm predictive capacity by excluding important variables out of the model.
+    /// Therefore, choosing the right regularization coefficients is important when applying maximum entropy classifier.
+    /// ]]>
+    /// </format>
+    /// </remarks>
+    /// <seealso cref="Microsoft.ML.StandardTrainersCatalog.LbfgsMaximumEntropy(MulticlassClassificationCatalog.MulticlassClassificationTrainers, string, string, string, float, float, float, int, bool)"/>
+    /// <seealso cref="Microsoft.ML.StandardTrainersCatalog.LbfgsMaximumEntropy(MulticlassClassificationCatalog.MulticlassClassificationTrainers, LbfgsMaximumEntropyMulticlassTrainer.Options)"/>
+    /// <seealso cref="Options"/>
     public sealed class LbfgsMaximumEntropyMulticlassTrainer : LbfgsTrainerBase<LbfgsMaximumEntropyMulticlassTrainer.Options,
         MulticlassPredictionTransformer<MaximumEntropyModelParameters>, MaximumEntropyModelParameters>
     {
@@ -49,6 +104,10 @@ namespace Microsoft.ML.Trainers
         internal const string UserNameValue = "Multi-class Logistic Regression";
         internal const string ShortName = "mlr";
 
+        /// <summary>
+        /// <see cref="Options"/> for <see cref="LbfgsMaximumEntropyMulticlassTrainer"/> as used in
+        /// <see cref="Microsoft.ML.StandardTrainersCatalog.LbfgsMaximumEntropy(MulticlassClassificationCatalog.MulticlassClassificationTrainers, LbfgsMaximumEntropyMulticlassTrainer.Options)"/>.
+        /// </summary>
         public sealed class Options : OptionsBase
         {
             /// <summary>

@@ -626,11 +626,11 @@ namespace Microsoft.ML
         }
 
         /// <summary>
-        /// Predict a target using a maximum entropy classification model trained with the L-BFGS method implemented in <see cref="LbfgsMaximumEntropyMulticlassTrainer"/>.
+        /// Create <see cref="LbfgsMaximumEntropyMulticlassTrainer"/>, which predicts a target using a maximum entropy classification model trained with the L-BFGS method.
         /// </summary>
         /// <param name="catalog">The <see cref="MulticlassClassificationCatalog.MulticlassClassificationTrainers"/>.</param>
-        /// <param name="labelColumnName">The name of the label column.</param>
-        /// <param name="featureColumnName">The name of the feature column.</param>
+        /// <param name="labelColumnName">The name of the label column. The column data must be <see cref="Microsoft.ML.Data.KeyDataViewType"/>.</param>
+        /// <param name="featureColumnName">The name of the feature column. The column data must be a known-sized vector of <see cref="System.Single"/>.</param>
         /// <param name="exampleWeightColumnName">The name of the example weight column (optional).</param>
         /// <param name="enforceNonNegativity">Enforce non-negative weights.</param>
         /// <param name="l1Regularization">The L1 <a href='https://en.wikipedia.org/wiki/Regularization_(mathematics)'>regularization</a> hyperparameter. Higher values will tend to lead to more sparse model.</param>
@@ -659,7 +659,7 @@ namespace Microsoft.ML
         }
 
         /// <summary>
-        /// Predict a target using a maximum entropy classification model trained with the L-BFGS method implemented in <see cref="LbfgsMaximumEntropyMulticlassTrainer"/>.
+        /// Create <see cref="LbfgsMaximumEntropyMulticlassTrainer"/> with advanced options, which predicts a target using a maximum entropy classification model trained with the L-BFGS method.
         /// </summary>
         /// <param name="catalog">The <see cref="MulticlassClassificationCatalog.MulticlassClassificationTrainers"/>.</param>
         /// <param name="options">Advanced arguments to the algorithm.</param>
