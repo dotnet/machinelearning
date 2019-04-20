@@ -100,7 +100,7 @@ namespace Microsoft.ML
         /// </summary>
         /// <param name="catalog">The transform's catalog.</param>
         /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.
-        /// This column's data type will be a known-size vector of <see cref="System.Single"/> or <see cref="System.Byte"/> depending on <paramref name="outputAsFloatArray"/>.</param>
+        /// This column's data type will be a known-sized vector of <see cref="System.Single"/> or <see cref="System.Byte"/> depending on <paramref name="outputAsFloatArray"/>.</param>
         /// <param name="inputColumnName">Name of the column with images.
         /// This estimator operates over <see cref="System.Drawing.Bitmap"/>.</param>
         /// <param name="colorsToExtract">The colors to extract from the image.</param>
@@ -207,7 +207,7 @@ namespace Microsoft.ML
         /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.
         /// This column's data type will be <see cref="System.Drawing.Bitmap"/>.</param>
         /// <param name="inputColumnName">Name of the column with data to be converted to image.
-        /// This estimator operates over vector of known size of <see cref="System.Single"/>, <see cref="System.Double"/> and <see cref="System.Byte"/>.</param>
+        /// This estimator operates over known-sized vector of <see cref="System.Single"/>, <see cref="System.Double"/> and <see cref="System.Byte"/>.</param>
         /// <param name="colorsPresent">Specifies which <see cref="ImagePixelExtractingEstimator.ColorBits"/> are in present the input pixel vectors. The order of colors is specified in <paramref name="orderOfColors"/>.</param>
         /// <param name="orderOfColors">The order in which colors are presented in the input vector.</param>
         /// <param name="interleavedColors">Whether the pixels are interleaved, meaning whether they are in <paramref name="orderOfColors"/> order, or separated in the planar form:

@@ -431,8 +431,9 @@ namespace Microsoft.ML.Transforms.Image
     /// |  |  |
     /// | -- | -- |
     /// | Does this estimator need to look at the data to train its parameters? | No |
-    /// | Input column data type | Vector of known size of floats, doubles or bytes. |
-    /// | Output column data type | ImageDataViewType |
+    /// | Input column data type | Known-sized vector of <xref:System.Single>, <xref:System.Double> or <xref:System.Byte>. |
+    /// | Output column data type | <xref:System.Drawing.Bitmap> |
+    /// | Required NuGet in addition to Microsoft.ML | Microsoft.ML.ImageAnalytics |
     ///
     /// The resulting <xref:Microsoft.ML.Transforms.Image.VectorToImageConvertingTransformer> creates a new column, named as specified in the output column name parameters, and
     /// creates image from the data in the input column to this new column.

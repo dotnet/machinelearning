@@ -408,9 +408,10 @@ namespace Microsoft.ML.Transforms.Image
     /// | Does this estimator need to look at the data to train its parameters? | No |
     /// | Input column data type | <xref:System.Drawing.Bitmap> |
     /// | Output column data type | <xref:System.Drawing.Bitmap> |
+    /// | Required NuGet in addition to Microsoft.ML | Microsoft.ML.ImageAnalytics |
     ///
     /// The resulting <xref:Microsoft.ML.Transforms.Image.ImageResizingTransformer> creates a new column, named as specified in the output column name parameters, and
-    /// resize the data from the input column to this new column.
+    /// resizes the data from the input column to this new column.
     ///
     /// In image processing pipelines, often machine learning practitioner make use of
     /// [pre-trained DNN featurizers](https://blogs.msdn.microsoft.com/mlserver/2017/04/12/image-featurization-with-a-pre-trained-deep-neural-network-model) to extract features for usage in the machine learning algorithms.

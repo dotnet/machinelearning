@@ -226,6 +226,7 @@ namespace Microsoft.ML.Transforms.Image
     /// | Does this estimator need to look at the data to train its parameters? | No |
     /// | Input column data type | <xref:System.Drawing.Bitmap> |
     /// | Output column data type | <xref:System.Drawing.Bitmap> |
+    /// | Required NuGet in addition to Microsoft.ML | Microsoft.ML.ImageAnalytics |
     ///
     /// The resulting <xref:Microsoft.ML.Transforms.Image.ImageGrayscalingTransformer> creates a new column, named as specified in the output column name parameters, and
     /// converts the image from the input column into a grayscale image.
