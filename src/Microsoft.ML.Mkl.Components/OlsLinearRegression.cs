@@ -37,8 +37,8 @@ namespace Microsoft.ML.Trainers
     /// </summary>
     /// <remarks>
     /// <format type="text/markdown"><![CDATA[
-    /// To create this trainer, use [Ols](xref:Microsoft.ML.MklComponentsCatalog.Ols(Microsoft.ML.RegressionCatalog.RegressionTrainers, System.String, System.String, System.String))
-    /// or [Ols(Options)](xref:Microsoft.ML.MklComponentsCatalog.Ols(Microsoft.ML.RegressionCatalog.RegressionTrainers, Microsoft.ML.Trainers.OlsTrainer.Options)).
+    /// To create this trainer, use [Ols](xref:Microsoft.ML.MklComponentsCatalog.Ols(Microsoft.ML.RegressionCatalog.RegressionTrainers,System.String,System.String,System.String))
+    /// or [Ols(Options)](xref:Microsoft.ML.MklComponentsCatalog.Ols(Microsoft.ML.RegressionCatalog.RegressionTrainers,Microsoft.ML.Trainers.OlsTrainer.Options)).
     ///
     /// [!include[io](~/../docs/samples/docs/api-reference/io-columns-regression.md)]
     ///
@@ -57,13 +57,14 @@ namespace Microsoft.ML.Trainers
     /// ]]>
     /// </format>
     /// </remarks>
-    /// <seealso cref="Microsoft.ML.MklComponentsCatalog.Ols(Microsoft.ML.RegressionCatalog.RegressionTrainers, System.String, System.String, System.String)"/>
-    /// <seealso cref="Microsoft.ML.MklComponentsCatalog.Ols(Microsoft.ML.RegressionCatalog.RegressionTrainers, Microsoft.ML.Trainers.OlsTrainer.Options)"/>
+    /// <seealso cref="MklComponentsCatalog.Ols(RegressionCatalog.RegressionTrainers, string, string, string)"/>
+    /// <seealso cref="MklComponentsCatalog.Ols(RegressionCatalog.RegressionTrainers, OlsTrainer.Options)"/>
     /// <seealso cref="Options"/>
     public sealed class OlsTrainer : TrainerEstimatorBase<RegressionPredictionTransformer<OlsModelParameters>, OlsModelParameters>
     {
         /// <summary>
-        /// Options for the <see cref="OlsTrainer"/>.
+        /// Options for the <see cref="OlsTrainer"/> as used in
+        /// [Ols(Options)](xref:Microsoft.ML.MklComponentsCatalog.Ols(Microsoft.ML.RegressionCatalog.RegressionTrainers,Microsoft.ML.Trainers.OlsTrainer.Options))
         /// </summary>
         public sealed class Options : TrainerInputBaseWithWeight
         {
