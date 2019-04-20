@@ -64,11 +64,11 @@ namespace Microsoft.ML.Trainers
     /// This learner supports [elastic net regularization](https://en.wikipedia.org/wiki/Elastic_net_regularization): a linear combination of L1-norm (LASSO), $|| \boldsymbol{w} ||_1$, and L2-norm (ridge), $|| \boldsymbol{w} ||_2^2$ regularizations.
     /// L1-norm and L2-norm regularizations have different effects and uses that are complementary in certain respects.
     /// Using L1-norm can increase sparsity of the trained $\boldsymbol{w}$.
-    /// When working with high-dimensional data, it shrinks small weights of irrelavent features to 0 and therefore no reource will be spent on those bad features when making prediction.
+    /// When working with high-dimensional data, it shrinks small weights of irrelevant features to 0 and therefore no resource will be spent on those bad features when making prediction.
     /// If L1-norm regularization is used, the used training algorithm would be [QWL-QN](http://citeseer.ist.psu.edu/viewdoc/summary?doi=10.1.1.68.5260).
     /// L2-norm regularization is preferable for data that is not sparse and it largely penalizes the existence of large weights.
     ///
-    /// An agressive regularization (that is, assigning large coefficients to L1-norm or L2-norm regularization terms) can harm predictive capacity by excluding important variables out of the model.
+    /// An aggressive regularization (that is, assigning large coefficients to L1-norm or L2-norm regularization terms) can harm predictive capacity by excluding important variables out of the model.
     /// Therefore, choosing the right regularization coefficients is important when applying logistic regression.
     /// ]]>
     /// </format>
