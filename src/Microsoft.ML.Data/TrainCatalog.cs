@@ -635,7 +635,8 @@ namespace Microsoft.ML
     }
 
     /// <summary>
-    /// The central catalog for anomaly detection tasks and trainers.
+    /// Class used to create instances of anomaly detection components,
+    /// such as trainers and evaluators.
     /// </summary>
     public sealed class AnomalyDetectionCatalog : TrainCatalogBase
     {
@@ -650,6 +651,9 @@ namespace Microsoft.ML
             Trainers = new AnomalyDetectionTrainers(this);
         }
 
+        /// <summary>
+        /// Class used to create instances of anomaly detection trainers.
+        /// </summary>
         public sealed class AnomalyDetectionTrainers : CatalogInstantiatorBase
         {
             internal AnomalyDetectionTrainers(AnomalyDetectionCatalog catalog)
