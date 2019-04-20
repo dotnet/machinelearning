@@ -25,9 +25,65 @@ using Microsoft.ML.Trainers;
 namespace Microsoft.ML.Trainers
 {
     /// <summary>
-    /// The <see cref="IEstimator{TTransformer}"/> for training a multiclass linear classification model using the stochastic dual coordinate ascent method.
+    /// The <see cref="IEstimator{TTransformer}"/> to predict a target using a linear multiclass classifier model trained with a coordinate descent method.
+    /// Depending on the used loss function, the trained model can be, for example, maximum entropy classifier or multi-class support vector machine.
     /// </summary>
-    /// <include file='doc.xml' path='doc/members/member[@name="SDCA_remarks"]/*' />
+    /// <remarks>
+    /// <format type="text/markdown"><![CDATA[
+    /// To create this trainer for maximum entropy classifier, use [SdcaMaximumEntropy](xref:Microsoft.ML.StandardTrainersCatalog.SdcaMaximumEntropy(Microsoft.ML.MulticlassClassificationCatalog.MulticlassClassificationTrainers,System.String,System.String,System.String,System.Nullable{System.Single},System.Nullable{System.Single},System.Nullable{System.Int32})) or
+    /// [SdcaMaximumEntropy(Options)](xref:Microsoft.ML.StandardTrainersCatalog.SdcaMaximumEntropy(Microsoft.ML.MulticlassClassificationCatalog.MulticlassClassificationTrainers,Microsoft.ML.Trainers.SdcaMaximumEntropyMulticlassTrainer.Options)).
+    /// To create this trainer for a [loss function](xref:Microsoft.ML.Trainers.ISupportSdcaClassificationLoss) (such as support vector machine's [hinge loss](xref:Microsoft.ML.Trainers.HingeLoss)) of your choice,
+    /// use [SdcaNonCalibrated](xref:Microsoft.ML.StandardTrainersCatalog.SdcaNonCalibrated(Microsoft.ML.MulticlassClassificationCatalog.MulticlassClassificationTrainers,System.String,System.String,System.String,Microsoft.ML.Trainers.ISupportSdcaClassificationLoss,System.Nullable{System.Single},System.Nullable{System.Single},System.Nullable{System.Int32})) or
+    /// [SdcaNonCalibrated(Options)](Microsoft.ML.StandardTrainersCatalog.SdcaNonCalibrated(Microsoft.ML.MulticlassClassificationCatalog.MulticlassClassificationTrainers,Microsoft.ML.Trainers.SdcaNonCalibratedMulticlassTrainer.Options)).
+    ///
+    /// [!include[io](~/../docs/samples/docs/api-reference/io-columns-multiclass-classification.md)]
+    ///
+    /// ### Trainer Characteristics
+    /// |  |  |
+    /// | -- | -- |
+    /// | Machine learning task | Multiclass classification |
+    /// | Is normalization required? | Yes |
+    /// | Is caching required? | No |
+    /// | Required NuGet in addition to Microsoft.ML | None |
+    ///
+    /// ### Scoring Function
+    /// This trains linear model to solve multiclass classification problems.
+    /// Assume that the number of classes is $m$ and number of features is $n$.
+    /// It assigns the $c$-th class a coefficient vector $\boldsymbol{w}_c \in {\mathbb R}^n$ and a bias $b_c \in {\mathbb R}$, for $c=1,\dots,m$.
+    /// Given a feature vector $\boldsymbol{x} \in {\mathbb R}^n$, the $c$-th class's score would be $\hat{y}^c = \boldsymbol{w}_c^T \boldsymbol{x} + b_c$.
+    /// If $\boldsymbol{x}$ belongs to class $c$, then $\hat{y}^c$ should be much larger than 0.
+    /// In contrast, a $\hat{y}^c$ much smaller than 0 means the desired label should not be $c$.
+    ///
+    /// If and only if the trained model is a maximum entropy classifier, you can interpret the output score vector as the predicted class probabilities because [softmax function](https://en.wikipedia.org/wiki/Softmax_function) may be applied to post-process all classes' scores.
+    /// More specifically, the probability of $\boldsymbol{x}$ belonging to class $c$ is computed by $\tilde{P}(c|\boldsymbol{x}) = \frac{ e^{\hat{y}^c} }{ \sum_{c' = 1}^m e^{\hat{y}^{c'}} }$ and store at the $c$-th element in the score vector.
+    /// In other cases, the output score vector is just $[\hat{y}^1, \dots, \hat{y}^m]$.
+    ///
+    /// ### Training Algorithm Details
+    /// The optimization algorithm is an extension of (http://jmlr.org/papers/volume14/shalev-shwartz13a/shalev-shwartz13a.pdf) following a similar path proposed in an earlier [paper](https://www.csie.ntu.edu.tw/~cjlin/papers/maxent_dual.pdf).
+    /// It is usually much faster than [L-BFGS](https://en.wikipedia.org/wiki/Limited-memory_BFGS) and [truncated Newton methods](https://en.wikipedia.org/wiki/Truncated_Newton_method) for large-scale and sparse data set.
+    ///
+    /// Regularization is a method that can render an ill-posed problem more tractable by imposing constraints that provide information to supplement the data and that prevents overfitting by penalizing model's magnitude usually measured by some norm functions.
+    /// This can improve the generalization of the model learned by selecting the optimal complexity in the bias-variance tradeoff.
+    /// Regularization works by adding the penalty on the magnitude of $\boldsymbol{w}_c$, $c=1,\dots,m$ to the error of the hypothesis.
+    /// An accurate model with extreme coefficient values would be penalized more, but a less accurate model with more conservative values would be penalized less.
+    ///
+    /// This trainer supports [elastic net regularization](https://en.wikipedia.org/wiki/Elastic_net_regularization): a linear combination of L1-norm (LASSO), $|| \boldsymbol{w}_c ||_1$, and L2-norm (ridge), $|| \boldsymbol{w}_c ||_2^2$ regularizations.
+    /// L1-norm and L2-norm regularizations have different effects and uses that are complementary in certain respects.
+    /// Using L1-norm can increase sparsity of the trained $\boldsymbol{w}_c$.
+    /// When working with high-dimensional data, it shrinks small weights of irrelevant features to 0 and therefore no resource will be spent on those bad features when making prediction.
+    /// L2-norm regularization is preferable for data that is not sparse and it largely penalizes the existence of large weights.
+    ///
+    /// An aggressive regularization (that is, assigning large coefficients to L1-norm or L2-norm regularization terms) can harm predictive capacity by excluding important variables out of the model.
+    /// Therefore, choosing the right regularization coefficients is important in practice.
+    /// ]]>
+    /// </format>
+    /// </remarks>
+    /// <seealso cref="Microsoft.ML.StandardTrainersCatalog.SdcaMaximumEntropy(MulticlassClassificationCatalog.MulticlassClassificationTrainers, SdcaMaximumEntropyMulticlassTrainer.Options)"/>
+    /// <seealso cref="Microsoft.ML.StandardTrainersCatalog.SdcaMaximumEntropy(MulticlassClassificationCatalog.MulticlassClassificationTrainers, string, string, string, float?, float?, int?)"/>
+    /// <seealso cref="Microsoft.ML.Trainers.SdcaMaximumEntropyMulticlassTrainer.Options"/>
+    /// <seealso cref="Microsoft.ML.StandardTrainersCatalog.SdcaNonCalibrated(MulticlassClassificationCatalog.MulticlassClassificationTrainers, SdcaNonCalibratedMulticlassTrainer.Options)"/>
+    /// <seealso cref="Microsoft.ML.StandardTrainersCatalog.SdcaNonCalibrated(MulticlassClassificationCatalog.MulticlassClassificationTrainers, string, string, string, ISupportSdcaClassificationLoss, float?, float?, int?)"/>
+    /// <seealso cref="Microsoft.ML.Trainers.SdcaNonCalibratedMulticlassTrainer.Options"/>
     public abstract class SdcaMulticlassTrainerBase<TModel> : SdcaTrainerBase<SdcaMulticlassTrainerBase<TModel>.MulticlassOptions, MulticlassPredictionTransformer<TModel>, TModel>
         where TModel : class
     {
@@ -433,12 +489,46 @@ namespace Microsoft.ML.Trainers
     }
 
     /// <summary>
-    /// The <see cref="IEstimator{TTransformer}"/> for training a maximum entropy classification model using the stochastic dual coordinate ascent method.
+    /// The <see cref="IEstimator{TTransformer}"/> to predict a target using a maximum entropy multiclass classifier.
     /// The trained model <see cref="MaximumEntropyModelParameters"/> produces probabilities of classes.
     /// </summary>
-    /// <include file='doc.xml' path='doc/members/member[@name="SDCA_remarks"]/*' />
+    /// <remarks>
+    /// <format type="text/markdown"><![CDATA[
+    /// To create this trainer, use [SdcaMaximumEntropy](xref:Microsoft.ML.StandardTrainersCatalog.SdcaMaximumEntropy(Microsoft.ML.MulticlassClassificationCatalog.MulticlassClassificationTrainers,System.String,System.String,System.String,System.Nullable{System.Single},System.Nullable{System.Single},System.Nullable{System.Int32})) or
+    /// [SdcaMaximumEntropy(Options)](xref:Microsoft.ML.StandardTrainersCatalog.SdcaMaximumEntropy(Microsoft.ML.MulticlassClassificationCatalog.MulticlassClassificationTrainers,Microsoft.ML.Trainers.SdcaMaximumEntropyMulticlassTrainer.Options)).
+    ///
+    /// [!include[io](~/../docs/samples/docs/api-reference/io-columns-multiclass-classification.md)]
+    ///
+    /// ### Trainer Characteristics
+    /// |  |  |
+    /// | -- | -- |
+    /// | Machine learning task | Multiclass classification |
+    /// | Is normalization required? | Yes |
+    /// | Is caching required? | No |
+    /// | Required NuGet in addition to Microsoft.ML | None |
+    ///
+    /// ### Scoring Function
+    /// This trains a linear model to solve multiclass classification problems.
+    /// Assume that the number of classes is $m$ and number of features is $n$.
+    /// It assigns the $c$-th class a coefficient vector $\boldsymbol{w}_c \in {\mathbb R}^n$ and a bias $b_c \in {\mathbb R}$, for $c=1,\dots,m$.
+    /// Given a feature vector $\boldsymbol{x} \in {\mathbb R}^n$, the $c$-th class's score would be $\tilde{P}(c|\boldsymbol{x}) = \frac{ e^{\hat{y}^c} }{ \sum_{c' = 1}^m e^{\hat{y}^{c'}} }$, where $\hat{y}^c = \boldsymbol{w}_c^T \boldsymbol{x} + b_c$.
+    /// Note that $\tilde{P}(c|\boldsymbol{x})$ is the probability of observing class $c$ when the feature vector is $\boldsymbol{x}$.
+    ///
+    /// ### Training Algorithm Details
+    /// See the documentation of [SdcaMulticlassTrainerBase](xref:Microsoft.ML.Trainers.SdcaMulticlassTrainerBase).
+    ///
+    /// ]]>
+    /// </format>
+    /// </remarks>
+    /// <seealso cref="Microsoft.ML.StandardTrainersCatalog.SdcaMaximumEntropy(MulticlassClassificationCatalog.MulticlassClassificationTrainers, SdcaMaximumEntropyMulticlassTrainer.Options)"/>
+    /// <seealso cref="Microsoft.ML.StandardTrainersCatalog.SdcaMaximumEntropy(MulticlassClassificationCatalog.MulticlassClassificationTrainers, string, string, string, float?, float?, int?)"/>
+    /// <seealso cref="Microsoft.ML.Trainers.SdcaMaximumEntropyMulticlassTrainer.Options"/>
     public sealed class SdcaMaximumEntropyMulticlassTrainer : SdcaMulticlassTrainerBase<MaximumEntropyModelParameters>
     {
+        /// <summary>
+        /// <see cref="Options"/> for <see cref="SdcaMaximumEntropyMulticlassTrainer"/> as used in
+        /// <see cref="Microsoft.ML.StandardTrainersCatalog.SdcaMaximumEntropy(MulticlassClassificationCatalog.MulticlassClassificationTrainers, string, string, string, float?, float?, int?)"/>
+        /// </summary>
         public sealed class Options : MulticlassOptions
         {
         }
@@ -482,13 +572,46 @@ namespace Microsoft.ML.Trainers
     }
 
     /// <summary>
-    /// The <see cref="IEstimator{TTransformer}"/> for training a multiclass linear model using the stochastic dual coordinate ascent method.
-    /// The trained model <see cref="LinearMulticlassModelParameters"/> does not produces probabilities of classes, but we can still make decisions
-    /// by choosing the class associated with the largest score.
+    /// The<see cref="IEstimator{TTransformer}"/> to predict a target using a linear multiclass classifier.
+    /// The trained model <see cref="LinearMulticlassModelParameters"/> produces probabilities of classes.
     /// </summary>
-    /// <include file='doc.xml' path='doc/members/member[@name="SDCA_remarks"]/*' />
+    /// <remarks>
+    /// <format type="text/markdown"><![CDATA[
+    /// To create this trainer, use [SdcaMaximumEntropy](xref:Microsoft.ML.StandardTrainersCatalog.SdcaMaximumEntropy(Microsoft.ML.MulticlassClassificationCatalog.MulticlassClassificationTrainers,System.String,System.String,System.String,System.Nullable{System.Single},System.Nullable{System.Single},System.Nullable{System.Int32})) or
+    /// [SdcaMaximumEntropy(Options)](xref:Microsoft.ML.StandardTrainersCatalog.SdcaMaximumEntropy(Microsoft.ML.MulticlassClassificationCatalog.MulticlassClassificationTrainers,Microsoft.ML.Trainers.SdcaMaximumEntropyMulticlassTrainer.Options)).
+    ///
+    /// [!include[io](~/../docs/samples/docs/api-reference/io-columns-multiclass-classification.md)]
+    ///
+    /// ### Trainer Characteristics
+    /// |  |  |
+    /// | -- | -- |
+    /// | Machine learning task | Multiclass classification |
+    /// | Is normalization required? | Yes |
+    /// | Is caching required? | No |
+    /// | Required NuGet in addition to Microsoft.ML | None |
+    ///
+    /// ### Scoring Function
+    /// This trains a linear model to solve multiclass classification problems.
+    /// Assume that the number of classes is $m$ and number of features is $n$.
+    /// It assigns the $c$-th class a coefficient vector $\boldsymbol{w}_c \in {\mathbb R}^n$ and a bias $b_c \in {\mathbb R}$, for $c=1,\dots,m$.
+    /// Given a feature vector $\boldsymbol{x} \in {\mathbb R}^n$, the $c$-th class's score would be $\hat{y}^c = \boldsymbol{w}_c^T \boldsymbol{x} + b_c$.
+    /// Note that the $c$-th value in the output score column is just $\hat{y}^c$.
+    ///
+    /// ### Training Algorithm Details
+    /// See the documentation of [SdcaMulticlassTrainerBase](xref:Microsoft.ML.Trainers.SdcaMulticlassTrainerBase).
+    ///
+    /// ]]>
+    /// </format>
+    /// </remarks>
+    /// <seealso cref="Microsoft.ML.StandardTrainersCatalog.SdcaNonCalibrated(MulticlassClassificationCatalog.MulticlassClassificationTrainers, SdcaNonCalibratedMulticlassTrainer.Options)"/>
+    /// <seealso cref="Microsoft.ML.StandardTrainersCatalog.SdcaNonCalibrated(MulticlassClassificationCatalog.MulticlassClassificationTrainers, string, string, string, ISupportSdcaClassificationLoss, float?, float?, int?)"/>
+    /// <seealso cref="Microsoft.ML.Trainers.SdcaNonCalibratedMulticlassTrainer.Options"/>
     public sealed class SdcaNonCalibratedMulticlassTrainer : SdcaMulticlassTrainerBase<LinearMulticlassModelParameters>
     {
+        /// <summary>
+        /// <see cref="Options"/> for <see cref="SdcaNonCalibratedMulticlassTrainer"/> as used in
+        /// <see cref="Microsoft.ML.StandardTrainersCatalog.SdcaNonCalibrated(MulticlassClassificationCatalog.MulticlassClassificationTrainers, string, string, string, ISupportSdcaClassificationLoss, float?, float?, int?)"/>.
+        /// </summary>
         public sealed class Options : MulticlassOptions
         {
             /// <summary>
