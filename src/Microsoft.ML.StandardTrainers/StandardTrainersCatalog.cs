@@ -800,22 +800,12 @@ namespace Microsoft.ML
         }
 
         /// <summary>
-        /// Predict a target using a linear binary classification model trained with the <see cref="LinearSvmTrainer"/> trainer.
+        /// Create a <see cref="LinearSvmTrainer"/>, which predicts a target using a linear binary classification model trained
+        /// over boolean label data.
         /// </summary>
-        /// <remarks>
-        /// <para>
-        /// The idea behind support vector machines (SVM), is to map instances into a high dimensional space
-        /// in which the two classes are linearly separable, i.e., there exists a hyperplane such that all the positive examples are on one side of it,
-        /// and all the negative examples are on the other.
-        /// </para>
-        /// <para>
-        /// After this mapping, quadratic programming is used to find the separating hyperplane that maximizes the
-        /// margin, i.e., the minimal distance between it and the instances.
-        /// </para>
-        /// </remarks>
-        /// <param name="catalog">The <see cref="BinaryClassificationCatalog"/>.</param>
-        /// <param name="labelColumnName">The name of the label column. </param>
-        /// <param name="featureColumnName">The name of the feature column.</param>
+        /// <param name="catalog">The binary classification catalog trainer object.</param>
+        /// <param name="labelColumnName">The name of the label column. The column data must be <see cref="System.Boolean"/>.</param>
+        /// <param name="featureColumnName">The name of the feature column. The column data must be a known-sized vector of <see cref="System.Single"/>.</param>
         /// <param name="exampleWeightColumnName">The name of the example weight column (optional).</param>
         /// <param name="numberOfIterations">The number of training iteraitons.</param>
         public static LinearSvmTrainer LinearSvm(this BinaryClassificationCatalog.BinaryClassificationTrainers catalog,
@@ -829,21 +819,11 @@ namespace Microsoft.ML
         }
 
         /// <summary>
-        /// Predict a target using a linear binary classification model trained with the <see cref="LinearSvmTrainer"/> trainer.
+        /// Create a <see cref="LinearSvmTrainer"/> with advanced options, which predicts a target using a linear binary classification model
+        /// trained over boolean label data.
         /// </summary>
-        /// <remarks>
-        /// <para>
-        /// The idea behind support vector machines (SVM), is to map instances into a high dimensional space
-        /// in which the two classes are linearly separable, i.e., there exists a hyperplane such that all the positive examples are on one side of it,
-        /// and all the negative examples are on the other.
-        /// </para>
-        /// <para>
-        /// After this mapping, quadratic programming is used to find the separating hyperplane that maximizes the
-        /// margin, i.e., the minimal distance between it and the instances.
-        /// </para>
-        /// </remarks>
-        /// <param name="catalog">The <see cref="BinaryClassificationCatalog"/>.</param>
-        /// <param name="options">Advanced arguments to the algorithm.</param>
+        /// <param name="catalog">The binary classification catalog trainer object.</param>
+        /// <param name="options">Trainer options.</param>
         public static LinearSvmTrainer LinearSvm(this BinaryClassificationCatalog.BinaryClassificationTrainers catalog,
             LinearSvmTrainer.Options options)
         {
