@@ -441,7 +441,7 @@ namespace Microsoft.ML.Data
         public static IEnumerable<SchemaShape.Column> AnnotationsForMulticlassScoreColumn(SchemaShape.Column? labelColumn = null)
         {
             var cols = new List<SchemaShape.Column>();
-            if (labelColumn.HasValue && labelColumn.Value.IsKey)
+            if (labelColumn != null && labelColumn.Value.IsKey)
             {
                 if (labelColumn.Value.Annotations.TryFindColumn(Kinds.KeyValues, out var metaCol) &&
                     metaCol.Kind == SchemaShape.Column.VectorKind.Vector)

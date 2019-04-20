@@ -41,10 +41,10 @@ namespace Microsoft.ML.Data
         /// </summary>
         public double Entropy { get; }
 
-        internal CalibratedBinaryClassificationMetrics(IExceptionContext ectx, DataViewRow overallResult)
-            : base(ectx, overallResult)
+        internal CalibratedBinaryClassificationMetrics(IHost host, DataViewRow overallResult, IDataView confusionMatrix)
+            : base(host, overallResult, confusionMatrix)
         {
-            double Fetch(string name) => Fetch<double>(ectx, overallResult, name);
+            double Fetch(string name) => Fetch<double>(host, overallResult, name);
             LogLoss = Fetch(BinaryClassifierEvaluator.LogLoss);
             LogLossReduction = Fetch(BinaryClassifierEvaluator.LogLossReduction);
             Entropy = Fetch(BinaryClassifierEvaluator.Entropy);

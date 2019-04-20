@@ -815,16 +815,18 @@ namespace Microsoft.ML.Data
             var resultDict = ((IEvaluator)this).Evaluate(roles);
             Host.Assert(resultDict.ContainsKey(MetricKinds.OverallMetrics));
             var overall = resultDict[MetricKinds.OverallMetrics];
+            var confusionMatrix = resultDict[MetricKinds.ConfusionMatrix];
 
             CalibratedBinaryClassificationMetrics result;
             using (var cursor = overall.GetRowCursorForAllColumns())
             {
                 var moved = cursor.MoveNext();
                 Host.Assert(moved);
-                result = new CalibratedBinaryClassificationMetrics(Host, cursor);
+                result = new CalibratedBinaryClassificationMetrics(Host, cursor, confusionMatrix);
                 moved = cursor.MoveNext();
                 Host.Assert(!moved);
             }
+
             return result;
         }
 
@@ -879,13 +881,14 @@ namespace Microsoft.ML.Data
                 }
             }
             prCurve = prCurveResult;
+            var confusionMatrix = resultDict[MetricKinds.ConfusionMatrix];
 
             CalibratedBinaryClassificationMetrics result;
             using (var cursor = overall.GetRowCursorForAllColumns())
             {
                 var moved = cursor.MoveNext();
                 Host.Assert(moved);
-                result = new CalibratedBinaryClassificationMetrics(Host, cursor);
+                result = new CalibratedBinaryClassificationMetrics(Host, cursor, confusionMatrix);
                 moved = cursor.MoveNext();
                 Host.Assert(!moved);
             }
@@ -939,16 +942,18 @@ namespace Microsoft.ML.Data
             var resultDict = ((IEvaluator)this).Evaluate(roles);
             Host.Assert(resultDict.ContainsKey(MetricKinds.OverallMetrics));
             var overall = resultDict[MetricKinds.OverallMetrics];
+            var confusionMatrix = resultDict[MetricKinds.ConfusionMatrix];
 
             BinaryClassificationMetrics result;
             using (var cursor = overall.GetRowCursorForAllColumns())
             {
                 var moved = cursor.MoveNext();
                 Host.Assert(moved);
-                result = new BinaryClassificationMetrics(Host, cursor);
+                result = new BinaryClassificationMetrics(Host, cursor, confusionMatrix);
                 moved = cursor.MoveNext();
                 Host.Assert(!moved);
             }
+
             return result;
         }
 
@@ -985,6 +990,7 @@ namespace Microsoft.ML.Data
             var prCurveView = resultDict[MetricKinds.PrCurve];
             Host.Assert(resultDict.ContainsKey(MetricKinds.OverallMetrics));
             var overall = resultDict[MetricKinds.OverallMetrics];
+            var confusionMatrix = resultDict[MetricKinds.ConfusionMatrix];
 
             var prCurveResult = new List<BinaryPrecisionRecallDataPoint>();
             using (var cursor = prCurveView.GetRowCursorForAllColumns())
@@ -1007,7 +1013,7 @@ namespace Microsoft.ML.Data
             {
                 var moved = cursor.MoveNext();
                 Host.Assert(moved);
-                result = new BinaryClassificationMetrics(Host, cursor);
+                result = new BinaryClassificationMetrics(Host, cursor, confusionMatrix);
                 moved = cursor.MoveNext();
                 Host.Assert(!moved);
             }
@@ -1377,7 +1383,7 @@ namespace Microsoft.ML.Data
             fold = ColumnSelectingTransformer.CreateKeep(Host, fold, colsToKeep.ToArray());
 
             string weightedConf;
-            var unweightedConf = MetricWriter.GetConfusionTable(Host, conf, out weightedConf);
+            var unweightedConf = MetricWriter.GetConfusionTableAsFormattedString(Host, conf, out weightedConf);
             string weightedFold;
             var unweightedFold = MetricWriter.GetPerFoldResults(Host, fold, out weightedFold);
             ch.Assert(string.IsNullOrEmpty(weightedConf) == string.IsNullOrEmpty(weightedFold));
