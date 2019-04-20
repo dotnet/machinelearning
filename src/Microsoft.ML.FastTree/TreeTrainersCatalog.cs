@@ -228,7 +228,7 @@ namespace Microsoft.ML
         }
 
         /// <summary>
-        /// Creates <see cref="GamRegressionTrainer"/>, which predicts a target using generalized additive models (GAM).
+        /// Create <see cref="GamRegressionTrainer"/>, which predicts a target using generalized additive models (GAM).
         /// </summary>
         /// <param name="catalog">The <see cref="RegressionCatalog"/>.</param>
         /// <param name="labelColumnName">The name of the label column. The column data must be <see cref="System.Single"/>.</param>
@@ -258,7 +258,7 @@ namespace Microsoft.ML
         }
 
         /// <summary>
-        /// Creates <see cref="GamRegressionTrainer"/>, which predicts a target using generalized additive models (GAM) using advanced options.
+        /// Create <see cref="GamRegressionTrainer"/> using advanced options, which predicts a target using generalized additive models (GAM).
         /// </summary>
         /// <param name="catalog">The <see cref="RegressionCatalog"/>.</param>
         /// <param name="options">Trainer options.</param>

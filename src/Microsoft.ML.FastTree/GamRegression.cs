@@ -37,27 +37,16 @@ namespace Microsoft.ML.Trainers.FastTree
     /// |  |  |
     /// | -- | -- |
     /// | Machine learning task | Regression |
-    /// | Is normalization required? | Yes |
+    /// | Is normalization required? | No |
     /// | Is caching required? | No |
     /// | Required NuGet in addition to Microsoft.ML | Microsoft.ML.FastTree |
     ///
-    /// ### Training Algorithm Details
-    /// Generalized Additive Models, or GAMs, model the data as a set of linearly independent features
-    /// similar to a linear model.For each feature, the GAM trainer learns a non-linear function,
-    /// called a "shape function", that computes the response as a function of the feature's value.
-    /// (In contrast, a linear model fits a linear response(e.g.a line) to each feature.)
-    /// To score an example, the outputs of all the shape functions are summed and the score is the total value.
-    /// This GAM trainer is implemented using shallow gradient boosted trees(e.g.tree stumps) to learn nonparametric
-    /// shape functions, and is based on the method described in Lou, Caruana, and Gehrke.
-    /// [&quot; Intelligible Models for Classification and Regression.&quot;](http://www.cs.cornell.edu/~yinlou/papers/lou-kdd12.pdf) KDD&apos;12, Beijing, China. 2012.
-    /// After training, an intercept is added to represent the average prediction over the training set,
-    /// and the shape functions are normalized to represent the deviation from the average prediction.This results
-    /// in models that are easily interpreted simply by inspecting the intercept and the shape functions.
+    /// [!include[algorithm](~/../docs/samples/docs/api-reference/algo-details-gam.md)]
     /// ]]>
     /// </format>
     /// </remarks>
-    /// <seealso cref="Microsoft.ML.TreeExtensions.Gam(Microsoft.ML.RegressionCatalog.RegressionTrainers,System.String,System.String,System.String,System.Int32,System.Int32,System.Double)"/>
-    /// <seealso cref="Microsoft.ML.TreeExtensions.Gam(Microsoft.ML.RegressionCatalog.RegressionTrainers,Microsoft.ML.Trainers.FastTree.GamRegressionTrainer.Options)"/>
+    /// <seealso cref="TreeExtensions.Gam(RegressionCatalog.RegressionTrainers, string, string, string, int, int, double)"/>
+    /// <seealso cref="TreeExtensions.Gam(RegressionCatalog.RegressionTrainers, GamRegressionTrainer.Options)"/>
     /// <seealso cref="Options"/>
     public sealed class GamRegressionTrainer : GamTrainerBase<GamRegressionTrainer.Options, RegressionPredictionTransformer<GamRegressionModelParameters>, GamRegressionModelParameters>
     {
