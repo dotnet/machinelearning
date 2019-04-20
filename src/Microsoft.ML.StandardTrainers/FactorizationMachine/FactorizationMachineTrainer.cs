@@ -96,7 +96,7 @@ namespace Microsoft.ML.Trainers
 
         /// <summary>
         /// <see cref="Options"/> for <see cref="FieldAwareFactorizationMachineTrainer"/> as used in
-        /// [FieldAwareFactorizationMachine(Options)](xref:Microsoft.ML.FactorizationMachineExtensions.FieldAwareFactorizationMachine(BinaryClassificationCatalog.BinaryClassificationTrainers, FieldAwareFactorizationMachineTrainer.Options)).
+        /// <see cref="Microsoft.ML.FactorizationMachineExtensions.FieldAwareFactorizationMachine(BinaryClassificationCatalog.BinaryClassificationTrainers, FieldAwareFactorizationMachineTrainer.Options)"/>.
         /// </summary>
         public sealed class Options : TrainerInputBaseWithWeight
         {
