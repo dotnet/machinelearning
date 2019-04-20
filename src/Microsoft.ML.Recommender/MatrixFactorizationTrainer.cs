@@ -105,8 +105,8 @@ namespace Microsoft.ML.Trainers
     /// ]]>
     /// </format>
     /// </remarks>
-    /// <seealso cref="Microsoft.ML.RecommendationCatalog.RecommendationTrainers.MatrixFactorization(System.String,System.String,System.String,System.Int32,System.Double,System.Int32)"/>
-    /// <seealso cref="Microsoft.ML.RecommendationCatalog.RecommendationTrainers.MatrixFactorization(Microsoft.ML.Trainers.MatrixFactorizationTrainer.Options)"/>
+    /// <seealso cref="Microsoft.ML.RecommendationCatalog.RecommendationTrainers.MatrixFactorization(string, string, string, int, double, int)"/>
+    /// <seealso cref="Microsoft.ML.RecommendationCatalog.RecommendationTrainers.MatrixFactorization(MatrixFactorizationTrainer.Options)"/>
     /// <seealso cref="Options"/>
     public sealed class MatrixFactorizationTrainer : ITrainer<MatrixFactorizationModelParameters>,
         IEstimator<MatrixFactorizationPredictionTransformer>
