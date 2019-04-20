@@ -134,7 +134,7 @@ namespace Microsoft.ML.Trainers
         };
 
         /// <summary>
-        /// Options for the <see cref="MatrixFactorizationTrainer"/> in [MatrixFactorization(Options)](xref:Microsoft.ML.RecommendationCatalog.RecommendationTrainers.MatrixFactorization(Microsoft.ML.Trainers.MatrixFactorizationTrainer.Options)).
+        /// Options for the <see cref="MatrixFactorizationTrainer"/> as used in [MatrixFactorization(Options)](xref:Microsoft.ML.RecommendationCatalog.RecommendationTrainers.MatrixFactorization(Microsoft.ML.Trainers.MatrixFactorizationTrainer.Options)).
         /// </summary>
         public sealed class Options
         {
