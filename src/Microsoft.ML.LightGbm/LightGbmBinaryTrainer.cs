@@ -95,18 +95,16 @@ namespace Microsoft.ML.Trainers.LightGbm
     /// |  |  |
     /// | -- | -- |
     /// | Machine learning task | Binary classification |
-    /// | Is normalization required? | Yes |
+    /// | Is normalization required? | No |
     /// | Is caching required? | No |
-    /// | Required NuGet in addition to Microsoft.ML | None |
+    /// | Required NuGet in addition to Microsoft.ML | Microsoft.ML.FastTree |
     ///
-    /// ### Training Algorithm Details
-    /// LightGBM is an open source implementation of gradient boosting decision tree. For implementation details, please see LightGBM's official [documentation](https://lightgbm.readthedocs.io/en/latest/index.html) or
-    /// [this](https://papers.nips.cc/paper/6907-lightgbm-a-highly-efficient-gradient-boosting-decision-tree.pdf) paper</a>.
+    /// [!include[algorithm](~/../docs/samples/docs/api-reference/algo-details-lightgbm.md)]
     /// ]]>
     /// </format>
     /// </remarks>
-    /// <seealso cref="Microsoft.ML.LightGbmExtensions.LightGbm(Microsoft.ML.BinaryClassificationCatalog.BinaryClassificationTrainers,System.String,System.String,System.String,System.Nullable{System.Int32},System.Nullable{System.Int32},System.Nullable{System.Double},System.Int32)"/>
-    /// <seealso cref="Microsoft.ML.LightGbmExtensions.LightGbm(Microsoft.ML.BinaryClassificationCatalog.BinaryClassificationTrainers,Microsoft.ML.Trainers.LightGbm.LightGbmBinaryTrainer.Options)"/>
+    /// <seealso cref="LightGbmExtensions.LightGbm(BinaryClassificationCatalog.BinaryClassificationTrainers, string, string, string, int?, int?, double?, int)"/>
+    /// <seealso cref="LightGbmExtensions.LightGbm(BinaryClassificationCatalog.BinaryClassificationTrainers, LightGbmBinaryTrainer.Options)"/>
     public sealed class LightGbmBinaryTrainer : LightGbmTrainerBase<LightGbmBinaryTrainer.Options, float,
         BinaryPredictionTransformer<CalibratedModelParametersBase<LightGbmBinaryModelParameters, PlattCalibrator>>,
         CalibratedModelParametersBase<LightGbmBinaryModelParameters, PlattCalibrator>>

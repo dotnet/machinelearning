@@ -66,7 +66,7 @@ namespace Microsoft.ML
         }
 
         /// <summary>
-        /// Creates an <see cref="LightGbmBinaryTrainer"/>, which predicts a target using a gradient boosting decision tree binary classification.
+        /// Create <see cref="LightGbmBinaryTrainer"/>, which predicts a target using a gradient boosting decision tree binary classification.
         /// </summary>
         /// <param name="catalog">The <see cref="BinaryClassificationCatalog"/>.</param>
         /// <param name="labelColumnName">The name of the label column. The column data must be <see cref="System.Boolean"/>.</param>
@@ -98,7 +98,7 @@ namespace Microsoft.ML
         }
 
         /// <summary>
-        /// Creates an <see cref="LightGbmBinaryTrainer"/>, which predicts a target using a gradient boosting decision tree binary classification and advanced options.
+        /// Create <see cref="LightGbmBinaryTrainer"/> with advanced options, which predicts a target using a gradient boosting decision tree binary classification.
         /// </summary>
         /// <param name="catalog">The <see cref="BinaryClassificationCatalog"/>.</param>
         /// <param name="options">Trainer options.</param>
