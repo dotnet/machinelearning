@@ -49,8 +49,8 @@ namespace Microsoft.ML.Trainers
     /// ]]>
     /// </format>
     /// </remarks>
-    /// <seealso cref="Microsoft.ML.StandardTrainersCatalog.LbfgsPoissonRegression(Microsoft.ML.RegressionCatalog.RegressionTrainers,System.String,System.String,System.String,System.Single,System.Single,System.Single,System.Int32,System.Boolean)"/>
-    /// <seealso cref="Microsoft.ML.StandardTrainersCatalog.LbfgsPoissonRegression(Microsoft.ML.RegressionCatalog.RegressionTrainers,Microsoft.ML.Trainers.LbfgsPoissonRegressionTrainer.Options)"/>
+    /// <seealso cref="StandardTrainersCatalog.LbfgsPoissonRegression(RegressionCatalog.RegressionTrainers, string, string, string, float, float, float, int, bool)"/>
+    /// <seealso cref="StandardTrainersCatalog.LbfgsPoissonRegression(RegressionCatalog.RegressionTrainers, LbfgsPoissonRegressionTrainer.Options)"/>
     /// <seealso cref="Options"/>
     public sealed class LbfgsPoissonRegressionTrainer : LbfgsTrainerBase<LbfgsPoissonRegressionTrainer.Options, RegressionPredictionTransformer<PoissonRegressionModelParameters>, PoissonRegressionModelParameters>
     {
@@ -60,7 +60,8 @@ namespace Microsoft.ML.Trainers
         internal const string Summary = "Poisson Regression assumes the unknown function, denoted Y has a Poisson distribution.";
 
         /// <summary>
-        /// Options for the <see cref="LbfgsPoissonRegressionTrainer"/>.
+        /// Options for the <see cref="LbfgsPoissonRegressionTrainer"/> as used in
+        /// [LbfgsPoissonRegression(Options)](xref:Microsoft.ML.StandardTrainersCatalog.LbfgsPoissonRegression(Microsoft.ML.RegressionCatalog.RegressionTrainers,Microsoft.ML.Trainers.LbfgsPoissonRegressionTrainer.Options)).
         /// </summary>
         public sealed class Options : OptionsBase
         {
