@@ -45,16 +45,16 @@ namespace Microsoft.ML.Trainers.FastTree
     /// | Required NuGet in addition to Microsoft.ML | Microsoft.ML.FastTree |
     ///
     /// ### Training Algorithm Details
-    /// The Tweedie boosting model follows the mathematics established in <a href="https://arxiv.org/pdf/1508.06378.pdf">
-    /// Insurance Premium Prediction via Gradient Tree-Boosted Tweedie Compound Poisson Models</a> from Yang, Quan, and Zou.
+    /// The Tweedie boosting model follows the mathematics established in
+    /// [Insurance Premium Prediction via Gradient Tree-Boosted Tweedie Compound Poisson Models</a> from Yang, Quan, and Zou](https://arxiv.org/pdf/1508.06378.pdf).
     /// For an introduction to Gradient Boosting, and more information, see:
     /// [Wikipedia: Gradient boosting(Gradient tree boosting)](https://en.wikipedia.org/wiki/Gradient_boosting#Gradient_tree_boosting) or
     /// [Greedy function approximation: A gradient boosting machine](https://projecteuclid.org/DPubS?service=UI&amp;version=1.0&amp;verb=Display&amp;handle=euclid.aos/1013203451).
     /// ]]>
     /// </format>
     /// </remarks>
-    /// <seealso cref="Microsoft.ML.TreeExtensions.FastTreeTweedie(Microsoft.ML.RegressionCatalog.RegressionTrainers,System.String,System.String,System.String,System.Int32,System.Int32,System.Int32,System.Double)"/>
-    /// <seealso cref="Microsoft.ML.TreeExtensions.FastTreeTweedie(Microsoft.ML.RegressionCatalog.RegressionTrainers,Microsoft.ML.Trainers.FastTree.FastTreeTweedieTrainer.Options)"/>
+    /// <seealso cref="TreeExtensions.FastTreeTweedie(RegressionCatalog.RegressionTrainers, string, string, string, int, int, int, double)"/>
+    /// <seealso cref="TreeExtensions.FastTreeTweedie(RegressionCatalog.RegressionTrainers, FastTreeTweedieTrainer.Options)"/>
     /// <seealso cref="Options"/>
     public sealed partial class FastTreeTweedieTrainer
          : BoostingFastTreeTrainerBase<FastTreeTweedieTrainer.Options, RegressionPredictionTransformer<FastTreeTweedieModelParameters>, FastTreeTweedieModelParameters>
