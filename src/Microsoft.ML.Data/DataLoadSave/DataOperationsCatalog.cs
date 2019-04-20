@@ -55,7 +55,7 @@ namespace Microsoft.ML
         /// The user maintains ownership of the <paramref name="data"/> and the resulting data view will
         /// never alter the contents of the <paramref name="data"/>.
         /// Since <see cref="IDataView"/> is assumed to be immutable, the user is expected to support
-        /// multiple enumeration of the <paramref name="data"/> that would return the same results, unless
+        /// multiple enumerations of the <paramref name="data"/> that would return the same results, unless
         /// the user knows that the data will only be cursored once.
         ///
         /// One typical usage for streaming data view could be: create the data view that lazily loads data
@@ -63,7 +63,7 @@ namespace Microsoft.ML
         /// results.
         /// </summary>
         /// <typeparam name="TRow">The user-defined item type.</typeparam>
-        /// <param name="data">The data to wrap around.</param>
+        /// <param name="data">The enumerable data containing type <typeparamref name="TRow"/> to convert to an<see cref="IDataView"/>.</param>
         /// <param name="schemaDefinition">The optional schema definition of the data view to create. If <c>null</c>,
         /// the schema definition is inferred from <typeparamref name="TRow"/>.</param>
         /// <returns>The constructed <see cref="IDataView"/>.</returns>
@@ -83,22 +83,22 @@ namespace Microsoft.ML
         }
 
         /// <summary>
-        /// Create a new <see cref="IDataView"/> over an enumerable of the items of user-defined type, and the provided <see cref="DataViewSchema"/>
+        /// Create a new <see cref="IDataView"/> over an enumerable of the items of user-defined type using the provided <see cref="DataViewSchema"/>,
         /// which might contain more information about the schema than the type can capture.
         /// </summary>
         /// <remarks>
         /// The user maintains ownership of the <paramref name="data"/> and the resulting data view will
         /// never alter the contents of the <paramref name="data"/>.
         /// Since <see cref="IDataView"/> is assumed to be immutable, the user is expected to support
-        /// multiple enumeration of the <paramref name="data"/> that would return the same results, unless
+        /// multiple enumerations of the <paramref name="data"/> that would return the same results, unless
         /// the user knows that the data will only be cursored once.
         /// One typical usage for streaming data view could be: create the data view that lazily loads data
         /// as needed, then apply pre-trained transformations to it and cursor through it for transformation
         /// results.
         /// One practical usage of this would be to supply the feature column names through the <see cref="DataViewSchema.Annotations"/>.
         /// </remarks>
-        /// <typeparam name="TRow">The <typeparamref name="TRow"/> to convert to an <see cref="IDataView"/>.</typeparam>
-        /// <param name="data">The data with <typeparamref name="TRow"/> to convert to an <see cref="IDataView"/>.</param>
+        /// <typeparam name="TRow">The user-defined item type.</typeparam>
+        /// <param name="data">The enumerable data containing type <typeparamref name="TRow"/> to convert to an <see cref="IDataView"/>.</param>
         /// <param name="schema">The schema of the returned <see cref="IDataView"/>.</param>
         /// <returns>An <see cref="IDataView"/> with the given <paramref name="schema"/>.</returns>
         public IDataView LoadFromEnumerable<TRow>(IEnumerable<TRow> data, DataViewSchema schema)
@@ -112,7 +112,7 @@ namespace Microsoft.ML
         /// <summary>
         /// Convert an <see cref="IDataView"/> into a strongly-typed <see cref="IEnumerable{TRow}"/>.
         /// </summary>
-        /// <typeparam name="TRow">The user-defined row type.</typeparam>
+        /// <typeparam name="TRow">The user-defined item type.</typeparam>
         /// <param name="data">The underlying data view.</param>
         /// <param name="reuseRowObject">Whether to return the same object on every row, or allocate a new one per row.</param>
         /// <param name="ignoreMissingColumns">Whether to ignore the case when a requested column is not present in the data view.</param>

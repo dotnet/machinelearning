@@ -12,7 +12,7 @@ using Microsoft.ML.Data;
 namespace Microsoft.ML
 {
     /// <summary>
-    /// This class represents the <see cref="DataViewSchema"/> of an object like, for interstance, an <see cref="IDataView"/> or an <see cref="DataViewRow"/>.
+    /// This class represents the schema of an <see cref="IDataView"/> or a <see cref="DataViewRow"/>.
     /// On the high level, the schema is a collection of <see cref="DataViewSchema.Column"/>.
     /// </summary>
     [DebuggerTypeProxy(typeof(SchemaDebuggerProxy))]
