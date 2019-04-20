@@ -24,7 +24,28 @@ namespace Microsoft.ML.Trainers.LightGbm
     /// <summary>
     /// The <see cref="IEstimator{TTransformer}"/> for training a boosted decision tree multi-class classification model using LightGBM.
     /// </summary>
-    /// <include file='doc.xml' path='doc/members/member[@name="LightGBM_remarks"]/*' />
+    /// <remarks>
+    /// <format type="text/markdown"><![CDATA[
+    /// To create this trainer, use [LightGbm](xref:Microsoft.ML.LightGbmExtensions.LightGbm(Microsoft.ML.MulticlassClassificationCatalog.MulticlassClassificationTrainers,System.String,System.String,System.String,System.Nullable{System.Int32},System.Nullable{System.Int32},System.Nullable{System.Double},System.Int32))
+    /// or [LightGbm(Options)](xref:Microsoft.ML.LightGbmExtensions.LightGbm(Microsoft.ML.MulticlassClassificationCatalog.MulticlassClassificationTrainers,Microsoft.ML.Trainers.LightGbm.LightGbmMulticlassTrainer.Options)).
+    ///
+    /// [!include[io](~/../docs/samples/docs/api-reference/io-columns-multiclass-classification.md)]
+    ///
+    /// ### Trainer Characteristics
+    /// |  |  |
+    /// | -- | -- |
+    /// | Machine learning task | Multiclass classification |
+    /// | Is normalization required? | No |
+    /// | Is caching required? | No |
+    /// | Required NuGet in addition to Microsoft.ML | Microsoft.ML.FastTree |
+    ///
+    /// [!include[algorithm](~/../docs/samples/docs/api-reference/algo-details-lightgbm.md)]
+    /// ]]>
+    /// </format>
+    /// </remarks>
+    /// <seealso cref="LightGbmExtensions.LightGbm(MulticlassClassificationCatalog.MulticlassClassificationTrainers, string, string, string, int?, int?, double?, int)"/>
+    /// <seealso cref="LightGbmExtensions.LightGbm(MulticlassClassificationCatalog.MulticlassClassificationTrainers, LightGbmMulticlassTrainer.Options)"/>
+    /// <seealso cref="Options"/>
     public sealed class LightGbmMulticlassTrainer : LightGbmTrainerBase<LightGbmMulticlassTrainer.Options,
                                                                         VBuffer<float>,
                                                                         MulticlassPredictionTransformer<OneVersusAllModelParameters>,
@@ -40,6 +61,10 @@ namespace Microsoft.ML.Trainers.LightGbm
         private int _tlcNumClass;
         private protected override PredictionKind PredictionKind => PredictionKind.MulticlassClassification;
 
+        /// <summary>
+        /// Options for the <see cref="LightGbmMulticlassTrainer"/> as used in
+        ///  [LightGbm(Options)](xref:Microsoft.ML.LightGbmExtensions.LightGbm(Microsoft.ML.MulticlassClassificationCatalog.MulticlassClassificationTrainers,Microsoft.ML.Trainers.LightGbm.LightGbmMulticlassTrainer.Options)).
+        /// </summary>
         public sealed class Options : OptionsBase
         {
             public enum EvaluateMetricType

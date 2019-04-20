@@ -173,7 +173,7 @@ namespace Microsoft.ML
         }
 
         /// <summary>
-        /// Predict a target using a gradient boosting decision tree multiclass classification model trained with the <see cref="LightGbmMulticlassTrainer"/>.
+        /// Create <see cref="LightGbmMulticlassTrainer"/>, which predicts a target using a gradient boosting decision tree multiclass classification model.
         /// </summary>
         /// <param name="catalog">The <see cref="MulticlassClassificationCatalog"/>.</param>
         /// <param name="labelColumnName">The name of the label column.</param>
@@ -205,7 +205,7 @@ namespace Microsoft.ML
         }
 
         /// <summary>
-        /// Predict a target using a gradient boosting decision tree multiclass classification model trained with the <see cref="LightGbmMulticlassTrainer"/> and advanced options.
+        /// Create <see cref="LightGbmMulticlassTrainer"/> with advanced options, which predicts a target using a gradient boosting decision tree multiclass classification model.
         /// </summary>
         /// <param name="catalog">The <see cref="MulticlassClassificationCatalog"/>.</param>
         /// <param name="options">Trainer options.</param>
