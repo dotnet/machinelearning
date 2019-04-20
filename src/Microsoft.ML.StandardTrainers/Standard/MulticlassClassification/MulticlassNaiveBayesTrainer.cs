@@ -44,7 +44,7 @@ namespace Microsoft.ML.Trainers
     /// | Required NuGet in addition to Microsoft.ML | None |
     ///
     /// ### Training Algorithm Details
-    /// <a href ='https://en.wikipedia.org/wiki/Naive_Bayes_classifier'>Naive Bayes</a>
+    /// [Naive Bayes](https://en.wikipedia.org/wiki/Naive_Bayes_classifier)
     /// is a probabilistic classifier that can be used for multiclass problems.
     /// Using Bayes' theorem, the conditional probability for a sample belonging to a class
     /// can be calculated based on the sample count for each feature combination groups.
@@ -52,9 +52,9 @@ namespace Microsoft.ML.Trainers
     /// the values each feature can take is relatively small.
     /// It assumes independence among the presence of features in a class even though
     /// they may be dependent on each other.
-    /// This multi-class trainer accepts binary feature values of type float, i.e.,
-    /// feature values are either true or false.
-    /// Specifically a feature value greater than zero is treated as true.
+    /// This multi-class trainer accepts "binary" feature values of type float:
+    /// feature values that are greater than zero are treated as true and feature values
+    /// that are less or equal to 0 are treated as false.
     /// ]]>
     /// </format>
     /// </remarks>
