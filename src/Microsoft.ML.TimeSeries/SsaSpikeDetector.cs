@@ -187,27 +187,11 @@ namespace Microsoft.ML.Transforms.TimeSeries
     /// <format type="text/markdown"><![CDATA[
     /// To create this estimator, use [DetectSpikeBySsa](xref:Microsoft.ML.TimeSeriesCatalog.DetectSpikeBySsa(Microsoft.ML.TransformsCatalog,System.String,System.String,System.Int32,System.Int32,System.Int32,System.Int32,Microsoft.ML.Transforms.TimeSeries.AnomalySide,Microsoft.ML.Transforms.TimeSeries.ErrorFunction))
     ///
-    /// ### Input and Output Columns
-    /// There is only input column and its type is <xref:System.Single>.
+    /// [!include[io](~/../docs/samples/docs/api-reference/io-time-series-spike.md)]
     ///
-    /// | Output Column Name | Column Type | Description|
-    /// | -- | -- | -- |
-    /// | All input columns | Any | All input columns would pass by without being modified.
-    /// | `Prediction` | Known-sized vector of <xref:System.Single> | It contains alert level (non-zero value means a change point), score, and p-value.
+    /// [!include[io](~/../docs/samples/docs/api-reference/time-series-props.md)]
     ///
-    /// ### Estimator Characteristics
-    /// |  |  |
-    /// | -- | -- |
-    /// | Machine learning task | Time series analysis |
-    /// | Is normalization required? | No |
-    /// | Is caching required? | No |
-    /// | Required NuGet in addition to Microsoft.ML | Microsoft.ML.TimeSeries |
-    ///
-    /// ### Training Algorithm Details
-    /// This class implements the general anomaly detection transform based on [Singular Spectrum Analysis (SSA)](https://en.wikipedia.org/wiki/Singular_spectrum_analysis).
-    /// SSA is a powerful framework for decomposing the time-series into trend, seasonality and noise components as well as forecasting the future values of the time-series.
-    /// In principle, SSA performs spectral analysis on the input time-series where each component in the spectrum corresponds to a trend, seasonal or noise component in the time-series.
-    /// For details of the Singular Spectrum Analysis (SSA), refer to [this document](http://arxiv.org/pdf/1206.6910.pdf).
+    /// [!include[io](~/../docs/samples/docs/api-reference/time-series-ssa.md)]
     ///
     /// [!include[io](~/../docs/samples/docs/api-reference/time-series-scorer.md)]
     /// ]]>

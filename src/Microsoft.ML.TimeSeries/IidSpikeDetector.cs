@@ -179,25 +179,11 @@ namespace Microsoft.ML.Transforms.TimeSeries
     /// <format type="text/markdown"><![CDATA[
     /// To create this estimator, use [DetectIidSpike](xref:Microsoft.ML.TimeSeriesCatalog.DetectIidSpike(Microsoft.ML.TransformsCatalog,System.String,System.String,System.Int32,System.Int32,Microsoft.ML.Transforms.TimeSeries.AnomalySide)).
     ///
-    /// ### Input and Output Columns
-    /// There is only input column and its type is <xref:System.Single>.
+    /// [!include[io](~/../docs/samples/docs/api-reference/io-time-series-spike.md)]
     ///
-    /// | Output Column Name | Column Type | Description|
-    /// | -- | -- | -- |
-    /// | All input columns | Any | All input columns would pass by without being modified.
-    /// | `Prediction` | Known-sized vector of <xref:System.Single> | It contains alert level (non-zero value means a change point), score, and p-value.
+    /// [!include[io](~/../docs/samples/docs/api-reference/time-series-props.md)]
     ///
-    /// ### Estimator Characteristics
-    /// |  |  |
-    /// | -- | -- |
-    /// | Machine learning task | Time series analysis |
-    /// | Is normalization required? | No |
-    /// | Is caching required? | No |
-    /// | Required NuGet in addition to Microsoft.ML | Microsoft.ML.TimeSeries |
-    ///
-    /// ### Training Algorithm Details
-    /// This trainer assumes that data points collected in the considered time series are independently sampled from the same distribution (independent identically distributed).
-    /// Thus, the value at the current timestamp can be viewed as the predicted value, raw score, at the next timestamp in expectation.
+    /// [!include[io](~/../docs/samples/docs/api-reference/time-series-iid.md)]
     ///
     /// [!include[io](~/../docs/samples/docs/api-reference/time-series-scorer.md)]
     /// ]]>
