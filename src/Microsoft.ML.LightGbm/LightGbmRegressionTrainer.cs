@@ -86,18 +86,16 @@ namespace Microsoft.ML.Trainers.LightGbm
     /// |  |  |
     /// | -- | -- |
     /// | Machine learning task | Regression |
-    /// | Is normalization required? | Yes |
+    /// | Is normalization required? | No |
     /// | Is caching required? | No |
-    /// | Required NuGet in addition to Microsoft.ML | Microsoft.ML.LightGbm |
+    /// | Required NuGet in addition to Microsoft.ML | Microsoft.ML.FastTree |
     ///
-    /// ### Training Algorithm Details
-    /// LightGBM is an open source implementation of gradient boosting decision tree. For implementation details, please see LightGBM's official [documentation](https://lightgbm.readthedocs.io/en/latest/index.html) or
-    /// [this](https://papers.nips.cc/paper/6907-lightgbm-a-highly-efficient-gradient-boosting-decision-tree.pdf) paper.
+    /// [!include[algorithm](~/../docs/samples/docs/api-reference/algo-details-lightgbm.md)]
     /// ]]>
     /// </format>
     /// </remarks>
-    /// <seealso cref="Microsoft.ML.LightGbmExtensions.LightGbm(Microsoft.ML.RegressionCatalog.RegressionTrainers,System.String,System.String,System.String,System.Nullable{System.Int32},System.Nullable{System.Int32},System.Nullable{System.Double},System.Int32)"/>
-    /// <seealso cref="Microsoft.ML.LightGbmExtensions.LightGbm(Microsoft.ML.RegressionCatalog.RegressionTrainers,Microsoft.ML.Trainers.LightGbm.LightGbmRegressionTrainer.Options)"/>
+    /// <seealso cref="LightGbmExtensions.LightGbm(RegressionCatalog.RegressionTrainers, string, string, string, int?, int?, double?, int)"/>
+    /// <seealso cref="LightGbmExtensions.LightGbm(RegressionCatalog.RegressionTrainers, LightGbmRegressionTrainer.Options)"/>
     /// <seealso cref="Options"/>
     public sealed class LightGbmRegressionTrainer : LightGbmTrainerBase<LightGbmRegressionTrainer.Options,
                                                                             float,
