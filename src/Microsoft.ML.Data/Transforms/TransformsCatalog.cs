@@ -46,7 +46,7 @@ namespace Microsoft.ML
         }
 
         /// <summary>
-        /// Class used by <see cref="MLContext"> to create instances of categorical data transform components.
+        /// Class used by <see cref="MLContext"/> to create instances of categorical data transform components.
         /// </summary>
         public sealed class CategoricalTransforms : IInternalCatalog
         {
@@ -60,7 +60,7 @@ namespace Microsoft.ML
         }
 
         /// <summary>
-        /// Class used by <see cref="MLContext"> to create instances of type conversion data transform components.
+        /// Class used by <see cref="MLContext"/> to create instances of type conversion data transform components.
         /// </summary>
         public sealed class ConversionTransforms : IInternalCatalog
         {
@@ -74,7 +74,7 @@ namespace Microsoft.ML
         }
 
         /// <summary>
-        /// Class used by <see cref="MLContext"> to create instances of text data transform components.
+        /// Class used by <see cref="MLContext"/> to create instances of text data transform components.
         /// </summary>
         public sealed class TextTransforms : IInternalCatalog
         {
@@ -88,7 +88,7 @@ namespace Microsoft.ML
         }
 
         /// <summary>
-        /// Class used by <see cref="MLContext"> to create instances of feature selection transform components.
+        /// Class used by <see cref="MLContext"/> to create instances of feature selection transform components.
         /// </summary>
         public sealed class FeatureSelectionTransforms : IInternalCatalog
         {

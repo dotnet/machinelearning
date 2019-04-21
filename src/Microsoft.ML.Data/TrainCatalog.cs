@@ -141,7 +141,7 @@ namespace Microsoft.ML
     }
 
     /// <summary>
-    /// Class used by <cref="MLContext"/> to create instances of binary classification components,
+    /// Class used by <see cref="MLContext"/> to create instances of binary classification components,
     /// such as trainers and calibrators.
     /// </summary>
     public sealed class BinaryClassificationCatalog : TrainCatalogBase
@@ -160,7 +160,7 @@ namespace Microsoft.ML
 
         /// <summary>
         /// Class used by <see cref="MLContext"/> to create instances of binary classification trainers.
-        /// </summary
+        /// </summary>
         public sealed class BinaryClassificationTrainers : CatalogInstantiatorBase
         {
             internal BinaryClassificationTrainers(BinaryClassificationCatalog catalog)

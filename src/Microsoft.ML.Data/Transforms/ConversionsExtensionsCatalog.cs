@@ -14,7 +14,7 @@ namespace Microsoft.ML
     using HashDefaults = HashingEstimator.Defaults;
 
     /// <summary>
-    /// Collection of extension methods for <see cref="TransformsCatalog"> to create instances of data conversion and mapping transformer components.
+    /// Collection of extension methods for <see cref="TransformsCatalog"/> to create instances of data conversion and mapping transformer components.
     /// </summary>
     public static class ConversionsExtensionsCatalog
     {
