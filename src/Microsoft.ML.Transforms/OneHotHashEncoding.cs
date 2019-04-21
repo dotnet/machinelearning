@@ -199,7 +199,7 @@ namespace Microsoft.ML.Transforms
     }
 
     /// <summary>
-    /// Converts one or more input columns of categorical values into as many ourput columns of hash-based one-hot encoded vectors.
+    /// Converts one or more input columns of categorical values into as many output columns of hash-based one-hot encoded vectors.
     /// </summary>
     /// <remarks>
     /// <format type="text/markdown"><![CDATA[

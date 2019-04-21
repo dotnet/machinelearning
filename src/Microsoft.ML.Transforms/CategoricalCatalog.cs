@@ -53,6 +53,8 @@ namespace Microsoft.ML
         /// Create a <see cref="OneHotEncodingEstimator"/>, which converts one or more input text columns specified in <paramref name="columns"/>
         /// into as many columns of one-hot encoded vectors.
         /// </summary>
+        /// <remarks>If multiple columns are passed to the estimator, all of the columns will be processed in a single pass over the data.
+        /// Therefore, it is more efficient to specify one estimator with many columns than it is to specify many estimators each with a single column.</remarks>
         /// <param name="catalog">The transform catalog.</param>
         /// <param name="columns">The pairs of input and output columns. The output columns' data type will be a vector of <see cref="System.Single"/> if <paramref name="outputKind"/> is
         /// <see cref="OneHotEncodingEstimator.OutputKind.Bag"/>, <see cref="OneHotEncodingEstimator.OutputKind.Indicator"/>, and <see cref="OneHotEncodingEstimator.OutputKind.Binary"/>.
@@ -149,6 +151,8 @@ namespace Microsoft.ML
         /// Create a <see cref="OneHotHashEncodingEstimator"/>, which converts one or more input text columns specified by <paramref name="columns"/>
         /// into as many columns of hash-based one-hot encoded vectors.
         /// </summary>
+        /// <remarks>If multiple columns are passed to the estimator, all of the columns will be processed in a single pass over the data.
+        /// Therefore, it is more efficient to specify one estimator with many columns than it is to specify many estimators each with a single column.</remarks>
         /// <param name="catalog">The transform catalog</param>
         /// <param name="columns">The pairs of input and output columns. The output columns' data type will be a vector of <see cref="System.Single"/> if <paramref name="outputKind"/> is
         /// <see cref="OneHotEncodingEstimator.OutputKind.Bag"/>, <see cref="OneHotEncodingEstimator.OutputKind.Indicator"/>, and <see cref="OneHotEncodingEstimator.OutputKind.Binary"/>.

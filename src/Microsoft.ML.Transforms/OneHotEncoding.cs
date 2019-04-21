@@ -143,7 +143,7 @@ namespace Microsoft.ML.Transforms
         IRowToRowMapper ITransformer.GetRowToRowMapper(DataViewSchema inputSchema) => ((ITransformer)_transformer).GetRowToRowMapper(inputSchema);
     }
     /// <summary>
-    /// Converts one or more input columns of categorical values into as many ourput columns of one-hot encoded vectors.
+    /// Converts one or more input columns of categorical values into as many output columns of one-hot encoded vectors.
     /// </summary>
     /// <remarks>
     /// <format type="text/markdown"><![CDATA[
@@ -185,8 +185,6 @@ namespace Microsoft.ML.Transforms
     ///
     /// The OneHotEncodingTransformer can be applied to one or more columns, in which case it builds and uses a separate dictionary
     /// for each column that it is applied to.
-    ///
-    /// See the See Also section for links to examples of the usage.
     /// ]]>
     /// </format>
     /// </remarks>
