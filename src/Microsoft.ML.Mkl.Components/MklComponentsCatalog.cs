@@ -10,9 +10,9 @@ using Microsoft.ML.Transforms;
 namespace Microsoft.ML
 {
     /// <summary>
-    /// Collection extension methods for <cref="RegressionCatalog.RegressionTrainers"/>,
+    /// Collection of extension methods for <see cref="RegressionCatalog.RegressionTrainers"/>,
     /// <see cref="BinaryClassificationCatalog.BinaryClassificationTrainers"/>, and <see cref="TransformsCatalog"/>
-    /// to create of MKL (Math Kernel Library) trainer and transform components.
+    /// to create MKL (Math Kernel Library) trainer and transform components.
     /// </summary>
     public static class MklComponentsCatalog
     {

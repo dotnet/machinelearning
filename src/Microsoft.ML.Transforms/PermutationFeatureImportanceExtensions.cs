@@ -11,9 +11,9 @@ using Microsoft.ML.Transforms;
 namespace Microsoft.ML
 {
     /// <summary>
-    /// Collection of extension methods used by <see cref="RegressionCatalog"/>, 
-    /// <see cref="BinaryClassificationCatalog"/>, <see cref="MulticlassClassificationCatalog"/>, 
-    /// and <see cref="RankingCatalog"/> to create instances of permutation feature importance components.
+    /// Collection of extension methods used by <see cref="RegressionCatalog"/>,
+    ///  <see cref="BinaryClassificationCatalog"/>, <see cref="MulticlassClassificationCatalog"/>,
+    ///  and <see cref="RankingCatalog"/> to create instances of permutation feature importance components.
     /// </summary>
     public static class PermutationFeatureImportanceExtensions
     {
