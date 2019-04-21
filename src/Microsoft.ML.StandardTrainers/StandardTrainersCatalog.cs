@@ -17,12 +17,12 @@ namespace Microsoft.ML
     public static class StandardTrainersCatalog
     {
         /// <summary>
-        /// Predict a target using a linear classification model trained with <see cref="SgdCalibratedTrainer"/>.
+        /// Create <see cref="SgdCalibratedTrainer"/>, which predicts a target using a linear classification model.
         /// Stochastic gradient descent (SGD) is an iterative algorithm that optimizes a differentiable objective function.
         /// </summary>
         /// <param name="catalog">The binary classification catalog trainer object.</param>
-        /// <param name="labelColumnName">The name of the label column, or dependent variable.</param>
-        /// <param name="featureColumnName">The features, or independent variables.</param>
+        /// <param name="labelColumnName">The name of the label column, or dependent variable. The column data must be <see cref="System.Boolean"/>.</param>
+        /// <param name="featureColumnName">The features, or independent variables. The column data must be a known-sized vector of <see cref="System.Single"/>.</param>
         /// <param name="exampleWeightColumnName">The name of the example weight column (optional).</param>
         /// <param name="numberOfIterations">The maximum number of passes through the training dataset; set to 1 to simulate online learning.</param>
         /// <param name="learningRate">The initial learning rate used by SGD.</param>
@@ -49,7 +49,7 @@ namespace Microsoft.ML
         }
 
         /// <summary>
-        /// Predict a target using a linear classification model trained with <see cref="SgdCalibratedTrainer"/> and advanced options.
+        /// Create <see cref="Trainers.SgdCalibratedTrainer"/> with advanced options, which predicts a target using a linear classification model.
         /// Stochastic gradient descent (SGD) is an iterative algorithm that optimizes a differentiable objective function.
         /// </summary>
         /// <param name="catalog">The binary classification catalog trainer object.</param>
@@ -72,12 +72,12 @@ namespace Microsoft.ML
         }
 
         /// <summary>
-        /// Predict a target using a linear classification model trained with <see cref="SgdNonCalibratedTrainer"/>.
+        /// Create <see cref="Trainers.SgdNonCalibratedTrainer"/>, which predicts a target using a linear classification model.
         /// Stochastic gradient descent (SGD) is an iterative algorithm that optimizes a differentiable objective function.
         /// </summary>
         /// <param name="catalog">The binary classification catalog trainer object.</param>
-        /// <param name="labelColumnName">The name of the label column, or dependent variable.</param>
-        /// <param name="featureColumnName">The features, or independent variables.</param>
+        /// <param name="labelColumnName">The name of the label column, or dependent variable. The column data must be <see cref="System.Boolean"/>.</param>
+        /// <param name="featureColumnName">The features, or independent variables. The column data must be a known-sized vector of <see cref="System.Single"/>.</param>
         /// <param name="exampleWeightColumnName">The name of the example weight column (optional).</param>
         /// <param name="lossFunction">The <a href="https://en.wikipedia.org/wiki/Loss_function">loss</a> function minimized in the training process. Using, for example, <see cref="HingeLoss"/> leads to a support vector machine trainer.</param>
         /// <param name="numberOfIterations">The maximum number of passes through the training dataset; set to 1 to simulate online learning.</param>
@@ -106,7 +106,7 @@ namespace Microsoft.ML
         }
 
         /// <summary>
-        /// Predict a target using a linear classification model trained with <see cref="SgdNonCalibratedTrainer"/> and advanced options.
+        /// Create <see cref="Trainers.SgdNonCalibratedTrainer"/> with advanced options, which predicts a target using a linear classification model.
         /// Stochastic gradient descent (SGD) is an iterative algorithm that optimizes a differentiable objective function.
         /// </summary>
         /// <param name="catalog">The binary classification catalog trainer object.</param>
