@@ -9,6 +9,9 @@ using Microsoft.ML.Runtime;
 
 namespace Microsoft.ML
 {
+    /// <summary/>
+    /// Collection of extension methods for the <see cref="DataOperationsCatalog"/>.
+    /// <summary>
     public static class TextLoaderSaverCatalog
     {
         /// <summary>

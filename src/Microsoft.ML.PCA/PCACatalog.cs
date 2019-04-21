@@ -10,6 +10,10 @@ using static Microsoft.ML.Trainers.RandomizedPcaTrainer;
 
 namespace Microsoft.ML
 {
+    /// <summary>
+    /// Collection of extension methods used by the <see cref="AnomalyDetectionCatalog.AnomalyDetectionTrainers"/>,
+    /// and <see cref="TransformsCatalog"/> catalogs to create instances of Principal Component Analysis (PCA) components.
+    /// </summary>
     public static class PcaCatalog
     {
         /// <summary>Initializes a new instance of <see cref="PrincipalComponentAnalyzer"/>.</summary>

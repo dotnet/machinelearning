@@ -10,8 +10,9 @@ using Microsoft.ML.Runtime;
 namespace Microsoft.ML
 {
     /// <summary>
-    /// The <see cref="MLContext"/> is a starting point for all ML.NET operations. It is instantiated by user,
-    /// provides mechanisms for logging and entry points for training, prediction, model operations etc.
+    /// The starting point for all ML.NET applications. Once instantiated by the user, it
+    /// provides mechanisms for data preparation, feature enginering, training, prediction, model evaluation,
+    /// and logging.
     /// </summary>
     public sealed class MLContext : IHostEnvironment
     {

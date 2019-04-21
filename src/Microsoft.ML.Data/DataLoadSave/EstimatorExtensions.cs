@@ -10,7 +10,7 @@ using Microsoft.ML.Runtime;
 namespace Microsoft.ML
 {
     /// <summary>
-    /// Extension methods that allow chaining estimator and transformer pipes together.
+    /// Extension methods that allow chaining of estimator and transformer pipelines.
     /// </summary>
     public static class LearningPipelineExtensions
     {

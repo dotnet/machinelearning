@@ -11,7 +11,7 @@ using Microsoft.ML.Transforms;
 namespace Microsoft.ML
 {
     /// <summary>
-    /// Specifies input and output column names for a transformation.
+    /// Specifies input and output column names for transformer components that operate on multiple input/output columns.
     /// </summary>
     public sealed class InputOutputColumnPair
     {
@@ -46,7 +46,8 @@ namespace Microsoft.ML
     }
 
     /// <summary>
-    /// Extension methods for the <see cref="TransformsCatalog"/>.
+    /// Collection of extension methods for <see cref="TransformsCatalog"/> to create instances of transform components
+    // that manipulate columns.
     /// </summary>
     public static class TransformExtensionsCatalog
     {

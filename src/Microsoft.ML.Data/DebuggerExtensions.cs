@@ -9,7 +9,7 @@ using Microsoft.ML.Transforms;
 namespace Microsoft.ML
 {
     /// <summary>
-    /// Static extensions for data preview.
+    /// Class used to create instances of preview objects for debugging.
     /// </summary>
     public static class DebuggerExtensions
     {

@@ -9,7 +9,8 @@ using Microsoft.ML.Trainers;
 namespace Microsoft.ML
 {
     /// <summary>
-    /// Extension method to create <see cref="FieldAwareFactorizationMachineTrainer"/>
+    /// Collection of extension methods for the <see cref="BinaryClassificationCatalog"/> to create instances
+    /// of field aware factorization trainer components.
     /// </summary>
     public static class FactorizationMachineExtensions
     {

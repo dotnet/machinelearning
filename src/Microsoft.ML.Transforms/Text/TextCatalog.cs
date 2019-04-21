@@ -12,7 +12,7 @@ namespace Microsoft.ML
     using TextNormalizeDefaults = TextNormalizingEstimator.Defaults;
 
     /// <summary>
-    /// The catalog of text related transformations.
+    /// Collection of extension methods for the <see cref="TransformsCatalog"/>.
     /// </summary>
     public static class TextCatalog
     {
