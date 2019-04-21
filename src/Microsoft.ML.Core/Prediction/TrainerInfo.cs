@@ -5,7 +5,7 @@
 namespace Microsoft.ML
 {
     /// <summary>
-    /// Properties of a trainer. Exposed via the <see cref="TrainerEstimatorBase.Info"> property of each trainer.
+    /// Properties of a trainer. Exposed via the <see cref="TrainerEstimatorBase{TTransformer,TModel}.Info"> property of each trainer.
     /// </summary>
     public sealed class TrainerInfo
     {

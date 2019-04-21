@@ -11,7 +11,7 @@ namespace Microsoft.ML
 {
     /// <summary>
     /// Class containing an extension method for <see cref="TransformsCatalog"/> to create instances of
-    /// custom mapping transformer components.
+    /// user-defined one-to-one row mapping transformer components.
     /// </summary>
     public static class CustomMappingCatalog
     {

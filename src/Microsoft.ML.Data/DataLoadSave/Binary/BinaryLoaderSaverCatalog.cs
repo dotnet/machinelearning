@@ -10,7 +10,8 @@ using Microsoft.ML.Runtime;
 namespace Microsoft.ML
 {
     /// <summary>
-    /// Class used by <see cref="MLContext"/> to create instances of loader and saver components.
+    /// Collection of extension methods for the <see cref="DataOperationsCatalog"/> to create instances of
+    /// components to save and read <see cref="IDataView"/> objects to and from a high-performance binary format.
     /// </summary>
     public static class BinaryLoaderSaverCatalog
     {

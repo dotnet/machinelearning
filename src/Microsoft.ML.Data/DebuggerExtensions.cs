@@ -10,6 +10,7 @@ namespace Microsoft.ML
 {
     /// <summary>
     /// Class used to create instances of preview objects for debugging.
+    /// Note: this class and all methods should only be used for debugging and not in production code.
     /// </summary>
     public static class DebuggerExtensions
     {

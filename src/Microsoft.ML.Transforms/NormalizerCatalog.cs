@@ -10,8 +10,8 @@ using Microsoft.ML.Transforms;
 namespace Microsoft.ML
 {
     /// <summary>
-    /// Collection of extension methods for <see cref="TransformsCatalog"/> to create instances of normalization
-    /// data transform components.
+    /// Collection of extension methods for <see cref="TransformsCatalog"/> to create instances of numerical
+    /// normalization components.
     /// </summary>
     public static class NormalizationCatalog
     {

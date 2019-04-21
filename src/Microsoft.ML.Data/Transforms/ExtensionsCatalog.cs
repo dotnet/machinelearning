@@ -11,8 +11,12 @@ using Microsoft.ML.Transforms;
 namespace Microsoft.ML
 {
     /// <summary>
-    /// Specifies input and output column names for transformer components that operate on multiple input/output columns.
+    /// Specifies input and output column names for transformer components that operate on multiple columns.
     /// </summary>
+    /// <remarks>
+    /// It is often advantageous to transform several columns at once as all of the changes can be done in a
+    /// single data pass.
+    /// </remarks>
     public sealed class InputOutputColumnPair
     {
         /// <summary>
