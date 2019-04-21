@@ -211,7 +211,7 @@ namespace Microsoft.ML
         }
 
         /// <summary>
-        /// Create <see cref="SdcaLogisticRegressionBinaryTrainer"/> using advanced options, which predicts a target using a linear classification model.
+        /// Create <see cref="SdcaLogisticRegressionBinaryTrainer"/> with advanced options, which predicts a target using a linear classification model.
         /// </summary>
         /// <param name="catalog">The binary classification catalog trainer object.</param>
         /// <param name="options">Trainer options.</param>
@@ -233,11 +233,11 @@ namespace Microsoft.ML
         }
 
         /// <summary>
-        /// Predict a target using a linear classification model trained with <see cref="SdcaNonCalibratedBinaryTrainer"/>.
+        /// Create <see cref="SdcaNonCalibratedBinaryTrainer"/>, which predicts a target using a linear classification model.
         /// </summary>
         /// <param name="catalog">The binary classification catalog trainer object.</param>
-        /// <param name="labelColumnName">The name of the label column.</param>
-        /// <param name="featureColumnName">The name of the feature column.</param>
+        /// <param name="labelColumnName">The name of the label column. The column data must be <see cref="System.Boolean"/>.</param>
+        /// <param name="featureColumnName">The name of the feature column. The column data must be a known-sized vector of <see cref="System.Single"/>.</param>
         /// <param name="exampleWeightColumnName">The name of the example weight column (optional).</param>
         /// <param name="lossFunction">The <a href="https://en.wikipedia.org/wiki/Loss_function">loss</a> function minimized in the training process. Defaults to <see cref="LogLoss"/> if not specified.</param>
         /// <param name="l2Regularization">The L2 weight for <a href='https://en.wikipedia.org/wiki/Regularization_(mathematics)'>regularization</a>.</param>
@@ -265,7 +265,7 @@ namespace Microsoft.ML
         }
 
         /// <summary>
-        /// Predict a target using a linear classification model trained with <see cref="SdcaNonCalibratedBinaryTrainer"/> and advanced options.
+        /// Create <see cref="SdcaNonCalibratedBinaryTrainer"/> using advanced options, which predicts a target using a linear classification model trained over boolean label data.
         /// </summary>
         /// <param name="catalog">The binary classification catalog trainer object.</param>
         /// <param name="options">Trainer options.</param>
