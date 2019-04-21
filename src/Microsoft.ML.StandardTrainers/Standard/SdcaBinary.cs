@@ -2189,11 +2189,7 @@ namespace Microsoft.ML.Trainers
     /// | Is caching required? | No |
     /// | Required NuGet in addition to Microsoft.ML | None |
     ///
-    /// ### Training Algorithm Details
-    /// The Stochastic Gradient Descent (SGD) is one of the popular stochastic optimization procedures that can be integrated
-    /// into several machine learning tasks to achieve state-of-the-art performance. This trainer implements the Hogwild Stochastic Gradient Descent for binary classification
-    /// that supports multi-threading without any locking. If the associated optimization problem is sparse, Hogwild Stochastic Gradient Descent achieves a nearly optimal
-    /// rate of convergence. For more details about Hogwild Stochastic Gradient Descent can be found [here](http://arxiv.org/pdf/1106.5730v2.pdf).
+    /// [!include[io](~/../docs/samples/docs/api-reference/algo-details-sgd.md)]
     /// ]]>
     /// </format>
     /// </remarks>
@@ -2279,11 +2275,7 @@ namespace Microsoft.ML.Trainers
     /// | Is caching required? | No |
     /// | Required NuGet in addition to Microsoft.ML | None |
     ///
-    /// ### Training Algorithm Details
-    /// The Stochastic Gradient Descent is one of the popular stochastic optimization procedures that can be integrated
-    /// into several machine learning tasks to achieve state-of-the-art performance. This trainer implements the Hogwild Stochastic Gradient Descent for binary classification
-    /// that supports multi-threading without any locking. If the associated optimization problem is sparse, Hogwild Stochastic Gradient Descent achieves a nearly optimal
-    /// rate of convergence. For more details about Hogwild Stochastic Gradient Descent can be found [here](http://arxiv.org/pdf/1106.5730v2.pdf).
+    /// [!include[io](~/../docs/samples/docs/api-reference/algo-details-sgd.md)]
     /// ]]>
     /// </format>
     /// </remarks>
