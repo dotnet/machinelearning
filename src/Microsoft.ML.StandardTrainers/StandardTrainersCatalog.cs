@@ -233,7 +233,7 @@ namespace Microsoft.ML
         }
 
         /// <summary>
-        /// Creates a <see cref="SdcaNonCalibratedBinaryTrainer"/> that predicts a target using a linear classification model.
+        /// Create <see cref="SdcaNonCalibratedBinaryTrainer"/>, which predicts a target using a linear classification model.
         /// </summary>
         /// <param name="catalog">The binary classification catalog trainer object.</param>
         /// <param name="labelColumnName">The name of the label column. The column data must be <see cref="System.Boolean"/>.</param>
@@ -265,7 +265,7 @@ namespace Microsoft.ML
         }
 
         /// <summary>
-        /// Creates a <see cref="SdcaNonCalibratedBinaryTrainer"/> that predicts a target using a linear classification model trained over boolean label data with advanced options.
+        /// Create <see cref="SdcaNonCalibratedBinaryTrainer"/> using advanced options, which predicts a target using a linear classification model trained over boolean label data.
         /// </summary>
         /// <param name="catalog">The binary classification catalog trainer object.</param>
         /// <param name="options">Trainer options.</param>
