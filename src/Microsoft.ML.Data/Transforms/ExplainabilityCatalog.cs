@@ -12,7 +12,7 @@ namespace Microsoft.ML
     using FeatureContributionDefaults = FeatureContributionCalculatingEstimator.Defaults;
 
     /// <summary>
-    /// Collection of extension methods for <see cref="TranformsCatalog"/> to create instances of model explainability components.
+    /// Collection of extension methods for <see cref="TransformsCatalog"/> to create instances of model explainability components.
     /// </summary>
     public static class ExplainabilityCatalog
     {
