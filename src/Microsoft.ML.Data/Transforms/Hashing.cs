@@ -1113,7 +1113,7 @@ namespace Microsoft.ML.Transforms
     /// | -- | -- |
     /// | Does this estimator need to look at the data to train its parameters? | Yes, if the mapping of the hashes to the values is required. |
     /// | Input column data type | Vector or scalars of numeric, boolean, [text](xref:Microsoft.ML.Data.TextDataViewType), [DateTime](xref: System.DateTime) and [key](xref:Microsoft.ML.Data.KeyDataViewType) data types.|
-    /// | Output column data type | Vector or scalar [System.Int32](xref:System.Int32).|
+    /// | Output column data type | Vector or scalar [key](xref:Microsoft.ML.Data.KeyDataViewType)|
     ///
     /// ]]></format>
     /// </remarks>

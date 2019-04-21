@@ -18,7 +18,7 @@ using Microsoft.ML.Transforms;
 namespace Microsoft.ML.Transforms
 {
     /// <summary>
-    /// Produces a column of indicator vectors. The mapping between a value and a corresponding index is done through hashing.
+    /// <see cref="ITransformer"/> resulting from fitting a <see cref="OneHotHashEncodingEstimator"/>.
     /// </summary>
     public sealed class OneHotHashEncodingTransformer : ITransformer
     {
@@ -199,8 +199,54 @@ namespace Microsoft.ML.Transforms
     }
 
     /// <summary>
-    /// Estimator that produces a column of indicator vectors. The mapping between a value and a corresponding index is done through hashing.
+    /// Converts one or more input columns of categorical values into as many output columns of hash-based one-hot encoded vectors.
     /// </summary>
+    /// <remarks>
+    /// <format type="text/markdown"><![CDATA[
+    ///
+    /// ###  Estimator Characteristics
+    /// |  |  |
+    /// | -- | -- |
+    /// | Does this estimator need to look at the data to train its parameters? | Yes |
+    /// | Input column data type | Scalar or vector of numeric, boolean, [text](xref:Microsoft.ML.Data.TextDataViewType), or [key](xref:Microsoft.ML.Data.KeyDataViewType) |
+    /// | Output column data type | Scalar or vector of [key](xref:Microsoft.ML.Data.KeyDataViewType), or vector of <xref:System.Single> |
+    ///
+    /// The resulting <xref:Microsoft.ML.Transforms.OneHotEncodingTransformer> converts one or more input columns into as many output
+    /// columns of one-hot encoded vectors, where indexing is done by hashing the value and using the hash as an index.
+    ///
+    /// The <xref:Microsoft.ML.Transforms.OneHotEncodingEstimator> is often used to convert categorical data into a form that can be
+    /// provided to a machine learning algorithm.
+    ///
+    /// The output of this transform is specified by <xref:Microsoft.ML.Transforms.OneHotEncodingEstimator.OutputKind>:
+    ///
+    /// - <xref:Microsoft.ML.Transforms.OneHotEncodingEstimator.OutputKind.Indicator> produces an [indicator vector](https://en.wikipedia.org/wiki/Indicator_vector).
+    /// Each slot in this vector corresponds to a category in the dictionary, so its length is the size of the built dictionary.
+    /// If a value is not found in the dictioray, the output is the zero vector.
+    ///
+    /// - <xref:Microsoft.ML.Transforms.OneHotEncodingEstimator.OutputKind.Bag> produces one vector such that each slot stores the number
+    /// of occurances of the corresponding value in the input vector.
+    /// Each slot in this vector corresponds to a value in the dictionary, so its length is the size of the built dictionary.
+    /// <xref:Microsoft.ML.Transforms.OneHotEncodingEstimator.OutputKind.Indicator> and <xref:Microsoft.ML.Transforms.OneHotEncodingEstimator.OutputKind.Bag>
+    /// differ simply in how the bit-vectors generated from individual slots in the input column are aggregated:
+    /// for Indicator they are concatenated and for Bag they are added. When the source column is a Scalar, the Indicator and Bag options are identical.
+    ///
+    /// - <xref:Microsoft.ML.Transforms.OneHotEncodingEstimator.OutputKind.Key> produces keys in a <xref:Microsoft.ML.Data.KeyDataViewType> column.
+    /// If the input column is a vector, the output contains a vectory [keys](xref:Microsoft.ML.Data.KeyDataViewType), where each slot of the
+    /// vector corresponds to the respective slot of the input vector.
+    /// If a category is not found in the bulit dictionary, it is assigned the value zero.
+    ///
+    /// - <xref:Microsoft.ML.Transforms.OneHotEncodingEstimator.OutputKind.Binary> produces a binary encoded vector to represent the values found in the dictionary
+    /// that are present in the input column. If a value in the input column is not found in the dictionary, the output is the zero vector.
+    ///
+    /// The OneHotEncodingTransformer can be applied to one or more columns, in which case it builds and uses a separate dictionary
+    /// for each column that it is applied to.
+    ///
+    /// See the See Also section for links to examples of the usage.
+    /// ]]>
+    /// </format>
+    /// </remarks>
+    /// <seealso cref="CategoricalCatalog.OneHotHashEncoding(TransformsCatalog.CategoricalTransforms, string, string, OneHotEncodingEstimator.OutputKind, int, uint, bool, int)"/>
+    /// <seealso cref="CategoricalCatalog.OneHotHashEncoding(TransformsCatalog.CategoricalTransforms, InputOutputColumnPair[], OneHotEncodingEstimator.OutputKind, int, uint, bool, int)"/>
     public sealed class OneHotHashEncodingEstimator : IEstimator<OneHotHashEncodingTransformer>
     {
         [BestFriend]

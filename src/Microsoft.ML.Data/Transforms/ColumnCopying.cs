@@ -86,7 +86,7 @@ namespace Microsoft.ML.Transforms
     }
 
     /// <summary>
-    /// <see cref="ITransformer"/> resulting from fitting an <see cref="ColumnCopyingEstimator"/>.
+    /// <see cref="ITransformer"/> resulting from fitting a <see cref="ColumnCopyingEstimator"/>.
     /// </summary>
     public sealed class ColumnCopyingTransformer : OneToOneTransformerBase
     {
