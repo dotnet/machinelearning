@@ -9,7 +9,7 @@ using Microsoft.ML.Trainers;
 namespace Microsoft.ML
 {
     /// <summary>
-    /// Collection of extension methods for the <see cref="ClusteringCatalog.ClusteringTrainers"> to create
+    /// Collection of extension methods for the <see cref="ClusteringCatalog.ClusteringTrainers"/> to create
     /// instances of KMeans trainers.
     /// </summary>
     public static class KMeansClusteringExtensions

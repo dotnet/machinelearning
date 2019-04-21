@@ -10,7 +10,7 @@ using Microsoft.ML.Transforms;
 namespace Microsoft.ML
 {
     /// <summary>
-    /// Collection of extension methods for <see cref="TransformsCatalog.CategoricalTransforms" to create categorical
+    /// Collection of extension methods for <see cref="TransformsCatalog.CategoricalTransforms"/> to create categorical
     /// transformer components.
     /// </summary>
     public static class CategoricalCatalog

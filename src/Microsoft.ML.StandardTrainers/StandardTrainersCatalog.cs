@@ -12,9 +12,9 @@ namespace Microsoft.ML
     using LROptions = LbfgsLogisticRegressionBinaryTrainer.Options;
 
     /// <summary>
-    /// Collection of extension methods for <see cref="RegressionCatalog.RegressionTrainers"/>, 
-    /// <see cref="BinaryClassificationCatalog.BinaryClassificationTrainers"/>, and
-    /// <see cref="MulticlassClassificationCatalog.MulticlassClassificationTrainers"/> to create
+    /// Collection of extension methods for <see cref="RegressionCatalog.RegressionTrainers"/>,
+    ///  <see cref="BinaryClassificationCatalog.BinaryClassificationTrainers"/>, and
+    ///  <see cref="MulticlassClassificationCatalog.MulticlassClassificationTrainers"/> to create
     /// instances of trainer components.
     /// </summary>
     public static class StandardTrainersCatalog
