@@ -35,7 +35,7 @@ namespace Microsoft.ML.Transforms
     ///
     /// Formally, the mutual information can be written as:
     ///
-    /// MI(X,Y) = E[log(P(x,y)) - log(P(x)) - log(P(y))]
+    /// $\text{MI}(X,Y) = E_{x,y}[\log(P(x,y)) - \log(P(x)) - \log(P(y))]$ where $x$ and $y$ are observations of random variables $X$ and $Y$.
     ///
     /// where the expectation E is taken over the joint distribution of X and Y.
     /// Here P(x, y) is the joint probability density function of X and Y, P(x) and P(y) are the marginal probability density functions of X and Y respectively.
