@@ -40,11 +40,12 @@ namespace Microsoft.ML
             => new PrincipalComponentAnalyzer(CatalogUtils.GetEnvironment(catalog), columns);
 
         /// <summary>
-        /// Trains an approximate principal component analysis (PCA) model using randomized SVD algorithm.
+        /// Create <see cref="RandomizedPcaTrainer"/>, which trains an approximate principal component analysis (PCA) model using randomized singular value decomposition (SVD) algorithm.
         /// </summary>
         /// <param name="catalog">The anomaly detection catalog trainer object.</param>
-        /// <param name="featureColumnName">The name of the feature column.</param>
-        /// <param name="exampleWeightColumnName">The name of the example weight column (optional).</param>
+        /// <param name="featureColumnName">The name of the feature column. The column data must be a known-sized vector of <see cref="System.Single"/>.</param>
+        /// <param name="exampleWeightColumnName">The name of the example weight column (optional). To use the weight column, the column data
+        /// must be of type <see cref="System.Single"/>.</param>
         /// <param name="rank">The number of components in the PCA.</param>
         /// <param name="oversampling">Oversampling parameter for randomized PCA training.</param>
         /// <param name="ensureZeroMean">If enabled, data is centered to be zero mean.</param>
@@ -69,7 +70,7 @@ namespace Microsoft.ML
         }
 
         /// <summary>
-        /// Trains an approximate principal component analysis (PCA) model using randomized SVD algorithm.
+        /// Create <see cref="RandomizedPcaTrainer"/> with advanced options, which trains an approximate principal component analysis (PCA) model using randomized singular value decomposition (SVD) algorithm.
         /// </summary>
         /// <param name="catalog">The anomaly detection catalog trainer object.</param>
         /// <param name="options">Advanced options to the algorithm.</param>
