@@ -41,8 +41,8 @@ namespace Microsoft.ML.Transforms.Onnx
     /// ###  Estimator Characteristics
     /// |  |  |
     /// | -- | -- |
-    /// | Does this estimator need to look at the data to train its parameters? | Yes |
-    /// | Input column data type | <xref:System.Single> or <xref:System.Double> or a known-sized vector of those types. |
+    /// | Does this estimator need to look at the data to train its parameters? | No |
+    /// | Input column data type | Known-sized vector of <xref:System.Single> or <xref:System.Double> types. |
     /// | Output column data type | The same data type as the input column |
     ///
     /// Supports inferencing of models in ONNX 1.2 and 1.3 format (opset 7, 8 and 9), using the
