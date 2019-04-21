@@ -292,7 +292,7 @@ namespace Microsoft.ML
         }
 
         /// <summary>
-        /// Create a prediction engine for one-time prediction.
+        /// Create a prediction engine for one-time prediction (default usage).
         /// </summary>
         /// <typeparam name="TSrc">The class that defines the input data.</typeparam>
         /// <typeparam name="TDst">The class that defines the output data.</typeparam>
