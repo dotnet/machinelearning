@@ -150,40 +150,6 @@
       </example>
     </member>
 
-    <member name="LightLDA">
-      <summary>
-        The LDA transform implements LightLDA, a state-of-the-art implementation of Latent Dirichlet Allocation.
-      </summary>
-      <remarks>
-        Latent Dirichlet Allocation is a well-known topic modeling algorithm that infers topical structure from text data,
-        and can be used to featurize any text fields as low-dimensional topical vectors. 
-        <para>LightLDA is an extremely efficient implementation of LDA developed in MSR-Asia that incorporates a number of 
-         optimization techniques. See <a href="https://arxiv.org/abs/1412.1576">LightLDA: Big Topic Models on Modest Compute Clusters</a>.
-        </para>
-        <para>
-          With the LDA transform, ML.NET users can train a topic model to produce 1 million topics with 1 million vocabulary
-          on a 1-billion-token document set one a single machine in a few hours (typically, LDA at this scale takes days and requires large clusters).
-          The most significant innovation is a super-efficient O(1) <a href="https://en.wikipedia.org/wiki/Metropolis–Hastings_algorithm">Metropolis-Hastings sampling algorithm</a>,
-          whose running cost is (surprisingly) agnostic of model size,
-          allowing it to converges nearly an order of magnitude faster than other <a href="https://en.wikipedia.org/wiki/Gibbs_sampling">Gibbs samplers.</a>
-        </para>
-        <para>
-          For more details please see original LightLDA paper, and its open source implementation. 
-          <list type="bullet">
-            <item><description><a href="https://arxiv.org/abs/1412.1576"> LightLDA: Big Topic Models on Modest Computer Clusters</a></description></item>
-            <item><description><a href=" https://github.com/Microsoft/LightLDA">LightLDA </a></description></item>
-          </list>
-        </para>
-      </remarks>
-    </member>
-    <example name="LightLDA">
-      <example>
-        <code language="csharp">
-          pipeline.Add(new LightLda((&quot;InTextCol&quot; , &quot;OutTextCol&quot;)));
-        </code>
-      </example>
-    </example>
-
     <member name="WordEmbeddings">
       <summary>
         Word Embeddings transform is a text featurizer which converts vectors of text tokens into sentence vectors using a pre-trained model.

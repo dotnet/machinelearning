@@ -556,12 +556,15 @@ namespace Microsoft.ML
              => new NgramHashingEstimator(Contracts.CheckRef(catalog, nameof(catalog)).GetEnvironment(), columns);
 
         /// <summary>
-        /// Uses <a href="https://arxiv.org/abs/1412.1576">LightLDA</a> to transform a document (represented as a vector of floats)
-        /// into a vector of floats over a set of topics.
+        /// Create a <see cref="LatentDirichletAllocationEstimator"/>, which uses <a href="https://arxiv.org/abs/1412.1576">LightLDA</a> to transform text (represented as a vector of floats)
+        /// into a vector of <see cref="System.Single"/> indicating the similarity of the text with each topic identified.
         /// </summary>
         /// <param name="catalog">The transform's catalog.</param>
-        /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.</param>
-        /// <param name="inputColumnName">Name of the column to transform. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.</param>
+        /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.
+        /// This estimator outputs a vector of <see cref="System.Single"/>.</param>
+        /// <param name="inputColumnName">Name of the column to transform. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.
+        /// This estimator operates over a vector of <see cref="System.Single"/>.
+        /// </param>
         /// <param name="numberOfTopics">The number of topics.</param>
         /// <param name="alphaSum">Dirichlet prior on document-topic vectors.</param>
         /// <param name="beta">Dirichlet prior on vocab-topic vectors.</param>

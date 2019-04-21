@@ -28,7 +28,7 @@ namespace Microsoft.ML
         /// are vectors or scalars.</param>
         /// <param name="inputColumnName">Name of the column whose data will be hashed.
         /// If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.
-        /// This estimator operates over text, numeric, boolean, key or <see cref="DataViewRowId"/> data types. </param>
+        /// This estimator operates over vectors or scalars of text, numeric, boolean, key or <see cref="DataViewRowId"/> data types. </param>
         /// <param name="numberOfBits">Number of bits to hash into. Must be between 1 and 31, inclusive.</param>
         /// <param name="maximumNumberOfInverts">During hashing we construct mappings between original values and the produced hash values.
         /// Text representation of original values are stored in the slot names of the annotations for the new column.Hashing, as such, can map many initial values to one.
