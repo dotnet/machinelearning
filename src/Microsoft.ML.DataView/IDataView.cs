@@ -180,7 +180,7 @@ namespace Microsoft.ML
     }
 
     /// <summary>
-    /// Class used to cursor through rows of an <see cref="IDataView"/>. 
+    /// Class used to cursor through rows of an <see cref="IDataView"/>.
     /// </summary>
     /// <remarks>
     /// Note that this is also an <see cref="DataViewRow"/>. The <see cref="DataViewRow.Position"/> is
