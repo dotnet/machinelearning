@@ -27,11 +27,38 @@ using Microsoft.ML.Trainers;
 namespace Microsoft.ML.Trainers
 {
     /// <summary>
-    /// Naive Bayes classifier is based on Bayes' theorem. It assumes independence among the presence of features
-    /// in a class even though they may be dependent on each other. It is a multi-class trainer that accepts
-    /// binary feature values of type float, i.e., feature values are either true or false, specifically a
-    /// feature value greater than zero is treated as true.
+    /// The <see cref="IEstimator{TTransformer}"/> for training a multiclass Naive Bayes predictor that supports binary feature values.
     /// </summary>
+    /// <remarks>
+    /// <format type="text/markdown"><![CDATA[
+    /// To create this trainer, use [NaiveBayes](xref:Microsoft.ML.StandardTrainersCatalog.NaiveBayes(Microsoft.ML.MulticlassClassificationCatalog.MulticlassClassificationTrainers,System.String,System.String)).
+    ///
+    /// [!include[io](~/../docs/samples/docs/api-reference/io-columns-multiclass-classification.md)]
+    ///
+    /// ### Trainer Characteristics
+    /// |  |  |
+    /// | -- | -- |
+    /// | Machine learning task | Multiclass classification |
+    /// | Is normalization required? | Yes |
+    /// | Is caching required? | No |
+    /// | Required NuGet in addition to Microsoft.ML | None |
+    ///
+    /// ### Training Algorithm Details
+    /// [Naive Bayes](https://en.wikipedia.org/wiki/Naive_Bayes_classifier)
+    /// is a probabilistic classifier that can be used for multiclass problems.
+    /// Using Bayes' theorem, the conditional probability for a sample belonging to a class
+    /// can be calculated based on the sample count for each feature combination groups.
+    /// However, Naive Bayes Classifier is feasible only if the number of features and
+    /// the values each feature can take is relatively small.
+    /// It assumes independence among the presence of features in a class even though
+    /// they may be dependent on each other.
+    /// This multi-class trainer accepts "binary" feature values of type float:
+    /// feature values that are greater than zero are treated as true and feature values
+    /// that are less or equal to 0 are treated as false.
+    /// ]]>
+    /// </format>
+    /// </remarks>
+    /// <seealso cref="StandardTrainersCatalog.NaiveBayes(Microsoft.ML.MulticlassClassificationCatalog.MulticlassClassificationTrainers,System.String,System.String)"/>
     public sealed class NaiveBayesMulticlassTrainer : TrainerEstimatorBase<MulticlassPredictionTransformer<NaiveBayesMulticlassModelParameters>, NaiveBayesMulticlassModelParameters>
     {
         internal const string LoadName = "MultiClassNaiveBayes";
