@@ -2179,7 +2179,7 @@ namespace Microsoft.ML.Trainers
     /// To create this trainer, use [SgdCalibrated](xref:Microsoft.ML.StandardTrainersCatalog.SgdCalibrated(Microsoft.ML.BinaryClassificationCatalog.BinaryClassificationTrainers,System.String,System.String,System.String,System.Int32,System.Double,System.Single))
     /// or [SgdCalibrated(Options)](xref:Microsoft.ML.StandardTrainersCatalog.SgdCalibrated(Microsoft.ML.BinaryClassificationCatalog.BinaryClassificationTrainers,Microsoft.ML.Trainers.SgdCalibratedTrainer.Options)).
     ///
-    /// [!include[io](~/../docs/samples/docs/api-reference/io-columns-regression.md)]
+    /// [!include[io](~/../docs/samples/docs/api-reference/io-columns-binary-classification.md)]
     ///
     /// ### Trainer Characteristics
     /// |  |  |
@@ -2265,7 +2265,7 @@ namespace Microsoft.ML.Trainers
     /// To create this trainer, use [SgdNonCalibrated](xref:Microsoft.ML.StandardTrainersCatalog.SgdNonCalibrated(Microsoft.ML.BinaryClassificationCatalog.BinaryClassificationTrainers,System.String,System.String,System.String,Microsoft.ML.Trainers.IClassificationLoss,System.Int32,System.Double,System.Single))
     /// or [SgdNonCalibrated(Options)](xref:Microsoft.ML.StandardTrainersCatalog.SgdNonCalibrated(Microsoft.ML.BinaryClassificationCatalog.BinaryClassificationTrainers,Microsoft.ML.Trainers.SgdNonCalibratedTrainer.Options)).
     ///
-    /// [!include[io](~/../docs/samples/docs/api-reference/io-columns-regression.md)]
+    /// [!include[io](~/../docs/samples/docs/api-reference/io-columns-binary-classification.md)]
     ///
     /// ### Trainer Characteristics
     /// |  |  |
