@@ -50,13 +50,13 @@ namespace Microsoft.ML.Trainers
     /// | Required NuGet in addition to Microsoft.ML |Microsoft.ML.Mkl.Components |
     ///
     /// ### Training Algorithm Details
-    /// The symbolic SGD is a classification algorithm that makes its predictions by finding a separating hyperplane.
+    /// The symbolic stochastic gradient descent is an algorithm that makes its predictions by finding a separating hyperplane.
     /// For instance, with feature values $f0, f1,..., f_{D-1}$, the prediction is given by determining what side of the hyperplane the point falls into.
-    /// That is the same as the sign of the feautures' weighted sum, i.e. $\sum_{i = 0}^{D-1} (w_i * f_i)$, where $w_0, w_1,..., w_{D-1}$ are the weights computed by the algorithm.
+    /// That is the same as the sign of the feature's weighted sum, i.e. $\sum_{i = 0}^{D-1} (w_i * f_i)$, where $w_0, w_1,..., w_{D-1}$ are the weights computed by the algorithm.
     ///
-    /// While most of SGD algorithms is inherently sequential - at each step, the processing of the current example depends on the parameters learned from previous examples.
+    /// While most symbolic stochastic gradient descent algorithms are inherently sequential - at each step, the processing of the current example depends on the parameters learned from previous examples.
     /// This algorithm trains local models in separate threads and probabilistic model cobminer that allows the local models to be combined
-    /// to produce the same result as what a sequential SGD would have produced, in expectation.
+    /// to produce the same result as what a sequential symbolic stochastic gradient descent would have produced, in expectation.
     ///
     /// For more information see [Parallel Stochastic Gradient Descent with Sound Combiners](https://arxiv.org/abs/1705.08030).
     /// ]]>
