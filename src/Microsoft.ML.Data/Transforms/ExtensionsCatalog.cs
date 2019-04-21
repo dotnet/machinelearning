@@ -51,7 +51,7 @@ namespace Microsoft.ML
 
     /// <summary>
     /// Collection of extension methods for <see cref="TransformsCatalog"/> to create instances of transform components
-    // that manipulate columns.
+    /// that manipulate columns.
     /// </summary/>
     public static class TransformExtensionsCatalog
     {
