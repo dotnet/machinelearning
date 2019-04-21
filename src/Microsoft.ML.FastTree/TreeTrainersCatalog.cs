@@ -9,7 +9,9 @@ using Microsoft.ML.Trainers.FastTree;
 namespace Microsoft.ML
 {
     /// <summary>
-    /// Tree <see cref="TrainCatalogBase"/> extension methods.
+    /// Collection of extension methods used by <see cref="RegressionCatalog"/>,
+    ///  <see cref="BinaryClassificationCatalog"/>, <see cref="MulticlassClassificationCatalog"/>,
+    ///  and <see cref="RankingCatalog"/> to create instances of decision tree trainers.
     /// </summary>
     public static class TreeExtensions
     {

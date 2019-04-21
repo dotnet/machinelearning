@@ -9,7 +9,9 @@ using Microsoft.ML.Trainers.LightGbm;
 namespace Microsoft.ML
 {
     /// <summary>
-    /// LightGBM extension methods.
+    /// Collection of extension methods for the <see cref="RegressionCatalog.RegressionTrainers"/>,
+    ///  <see cref="BinaryClassificationCatalog.BinaryClassificationTrainers"/>, <see cref="RankingCatalog.RankingTrainers"/>,
+    ///  and <see cref="MulticlassClassificationCatalog.MulticlassClassificationTrainers"/> catalogs.
     /// </summary>
     public static class LightGbmExtensions
     {

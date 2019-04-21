@@ -10,7 +10,8 @@ using Microsoft.ML.Transforms;
 namespace Microsoft.ML
 {
     /// <summary>
-    /// Extension methods for custom mapping transformers.
+    /// Class containing an extension method for <see cref="TransformsCatalog"/> to create instances of
+    /// user-defined one-to-one row mapping transformer components.
     /// </summary>
     public static class CustomMappingCatalog
     {

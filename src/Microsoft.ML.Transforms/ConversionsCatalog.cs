@@ -9,7 +9,8 @@ using Microsoft.ML.Transforms;
 namespace Microsoft.ML
 {
     /// <summary>
-    /// Extensions for the <see cref="TransformsCatalog.ConversionTransforms"/>.
+    /// Collection of extension methods for <see cref="TransformsCatalog"/> to create instances of
+    /// key to binary vector mapping transformer components
     /// </summary>
     public static class ConversionsCatalog
     {

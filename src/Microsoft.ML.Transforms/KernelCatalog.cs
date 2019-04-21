@@ -8,7 +8,8 @@ using Microsoft.ML.Transforms;
 namespace Microsoft.ML
 {
     /// <summary>
-    /// The catalog of numerical feature engineering using kernel methods.
+    /// Collection of extension methods for <see cref="TransformsCatalog"/> to create instances of kernel method
+    /// feature engineering transformer components.
     /// </summary>
     public static class KernelExpansionCatalog
     {

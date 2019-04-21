@@ -13,7 +13,7 @@ using Microsoft.ML.Runtime;
 namespace Microsoft.ML
 {
     /// <summary>
-    /// An object serving as a 'catalog' of available model operations.
+    /// Class used by <see cref="MLContext"/> to save and load trained models.
     /// </summary>
     public sealed class ModelOperationsCatalog : IInternalCatalog
     {

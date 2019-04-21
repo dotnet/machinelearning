@@ -7,8 +7,7 @@ using Microsoft.ML.Runtime;
 namespace Microsoft.ML
 {
     /// <summary>
-    /// Similar to training context, a transform context is an object serving as a 'catalog' of available transforms.
-    /// Individual transforms are exposed as extension methods of this class or its subclasses.
+    /// Class used by <see cref="MLContext"/> to create instances of transform components.
     /// </summary>
     public sealed class TransformsCatalog : IInternalCatalog
     {
@@ -47,7 +46,7 @@ namespace Microsoft.ML
         }
 
         /// <summary>
-        /// The catalog of operations over categorical data.
+        /// Class used by <see cref="MLContext"/> to create instances of categorical data transform components.
         /// </summary>
         public sealed class CategoricalTransforms : IInternalCatalog
         {
@@ -61,7 +60,7 @@ namespace Microsoft.ML
         }
 
         /// <summary>
-        /// The catalog of type conversion operations.
+        /// Class used by <see cref="MLContext"/> to create instances of type conversion data transform components.
         /// </summary>
         public sealed class ConversionTransforms : IInternalCatalog
         {
@@ -75,7 +74,7 @@ namespace Microsoft.ML
         }
 
         /// <summary>
-        /// The catalog of text processing operations.
+        /// Class used by <see cref="MLContext"/> to create instances of text data transform components.
         /// </summary>
         public sealed class TextTransforms : IInternalCatalog
         {
@@ -89,7 +88,7 @@ namespace Microsoft.ML
         }
 
         /// <summary>
-        /// The catalog of feature selection operations.
+        /// Class used by <see cref="MLContext"/> to create instances of feature selection transform components.
         /// </summary>
         public sealed class FeatureSelectionTransforms : IInternalCatalog
         {

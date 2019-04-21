@@ -8,6 +8,9 @@ using Microsoft.ML.Transforms.Image;
 
 namespace Microsoft.ML
 {
+    /// <summary>
+    /// Collection of extension methods for <see cref="TransformsCatalog"/> to create instances of image processing transformer components.
+    /// </summary>
     public static class ImageEstimatorsCatalog
     {
         ///<summary>

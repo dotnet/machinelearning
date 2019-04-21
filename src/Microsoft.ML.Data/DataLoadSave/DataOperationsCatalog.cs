@@ -11,8 +11,8 @@ using Microsoft.ML.Transforms;
 namespace Microsoft.ML
 {
     /// <summary>
-    /// A catalog of operations over data that are not transformers or estimators.
-    /// This includes data loaders, saving, caching, filtering etc.
+    /// Class used to create components that operate on data, but are not part of the model training pipeline.
+    /// Includes components to load, save, cache, filter, shuffle, and split data.
     /// </summary>
     public sealed class DataOperationsCatalog : IInternalCatalog
     {

@@ -9,6 +9,10 @@ using Microsoft.ML.Runtime;
 
 namespace Microsoft.ML
 {
+    /// <summary>
+    /// Collection of extension methods for the <see cref="DataOperationsCatalog"/> to read from delimited text
+    /// files such as csv and tsv.
+    /// </summary>
     public static class TextLoaderSaverCatalog
     {
         /// <summary>

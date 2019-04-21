@@ -12,6 +12,10 @@ namespace Microsoft.ML
     using CountSelectDefaults = CountFeatureSelectingEstimator.Defaults;
     using MutualInfoSelectDefaults = MutualInformationFeatureSelectingEstimator.Defaults;
 
+    /// <summary>
+    /// Collection of extension methods for <see cref="TransformsCatalog"/> to create instances of feature
+    /// selection transformer components.
+    /// </summary>
     public static class FeatureSelectionCatalog
     {
         /// <summary>
