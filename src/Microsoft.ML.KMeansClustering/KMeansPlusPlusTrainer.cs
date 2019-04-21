@@ -32,6 +32,9 @@ namespace Microsoft.ML.Trainers
     /// <remarks>
     /// <format type="text/markdown"><![CDATA[
     /// To create this trainer, use [KMeansTrainer](xref:Microsoft.ML.Trainers.KMeansTrainer).
+    ///
+    /// [!include[io](~/../docs/samples/docs/api-reference/io-columns-clustering.md)]
+    ///
     /// ### Trainer Characteristics
     /// |  |  |
     /// | -- | -- |
