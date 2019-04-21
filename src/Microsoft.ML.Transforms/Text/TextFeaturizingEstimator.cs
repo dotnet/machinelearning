@@ -31,10 +31,36 @@ namespace Microsoft.ML.Transforms.Text
     /// </summary>
     public interface IStopWordsRemoverOptions { }
 
-    // A transform that turns a collection of text documents into numerical feature vectors. The feature vectors are counts
-    // of (word or character) ngrams in a given text. It offers ngram hashing (finding the ngram token string name to feature
-    // integer index mapping through hashing) as an option.
-    /// <include file='doc.xml' path='doc/members/member[@name="TextFeaturizingEstimator "]/*' />
+    /// <summary>
+    ///  An estimator that turns a collection of text documents into numerical feature vectors.
+    ///  The feature vectors are normalized counts of word and/or character ngrams (based on the options supplied).
+    /// </summary>
+    /// <remarks>
+    /// <format type="text/markdown"><![CDATA[
+    ///
+    /// ###  Estimator Characteristics
+    /// |  |  |
+    /// | -- | -- |
+    /// | Does this estimator need to look at the data to train its parameters? | Yes. |
+    /// | Input column data type | [text](xref:Microsoft.ML.Data.TextDataViewType) |
+    /// | Output column data type | Vector of <xref:System.Single> |
+    ///
+    /// This estimator gives the user one-stop solution for doing:
+    /// * Language Detection
+    /// * [Tokenization](https://en.wikipedia.org/wiki/Lexical_analysis#Tokenization)
+    /// * [Text normalization](https://en.wikipedia.org/wiki/Text_normalization)
+    /// * [Predefined and custom stopwords removal](https://en.wikipedia.org/wiki/Stop_words)
+    /// * [Word-based or character-based Ngram extraction and SkipGram extraction (through the advanced [options](xref:Microsoft.ML.Transforms.TextFeaturizingEstimator.Options.WordFeatureExtractor))](https://en.wikipedia.org/wiki/N-gram)
+    /// * [TF, IDF or TF-IDF](https://en.wikipedia.org/wiki/Tf%E2%80%93idf)
+    /// * [L-p vector normalization](xref: Microsoft.ML.Transforms.LpNormNormalizingTransformer)
+    ///
+    ///  By default the features are made of (word/character) n-grams/skip-grams​ and the number of features are equal to the vocabulary size found by analyzing the data.
+    ///  To output an additional column with the tokens generated, use [OutputTokensColumnName](xref: Microsoft.ML.Transforms.TextFeaturizingEstimator.Options.OutputTokensColumnName).
+    ///  The number of features can also be specified by selecting the maximum number of n-gram to keep in the <xref:Microsoft.ML.Transforms.TextFeaturizingEstimator.Options>, where the estimator can be further tuned.
+    /// ]]></format>
+    /// </remarks>
+    /// <seealso cref="TextCatalog.FeaturizeText(TransformsCatalog.TextTransforms, string, Options, string[])"/>
+    /// <seealso cref="TextCatalog.FeaturizeText(TransformsCatalog.TextTransforms, string, string)"/>
     public sealed class TextFeaturizingEstimator : IEstimator<ITransformer>
     {
         /// <summary>

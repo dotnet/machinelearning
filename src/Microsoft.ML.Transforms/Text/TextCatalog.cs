@@ -17,11 +17,14 @@ namespace Microsoft.ML
     public static class TextCatalog
     {
         /// <summary>
-        /// Transform a text column into featurized float array that represents counts of ngrams and char-grams.
+        /// Create a <see cref="TextFeaturizingEstimator"/>, which transforms a text column into a featurized vector of <see cref="System.Single"/> that represents normalized counts of ngrams and char-grams.
         /// </summary>
         /// <param name="catalog">The text-related transform's catalog.</param>
-        /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.</param>
-        /// <param name="inputColumnName">Name of the column to transform. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.</param>
+        /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.
+        /// This column's data type will be a vector of <see cref="System.Single"/>. </param>
+        /// <param name="inputColumnName">Name of the column to transform. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.
+        /// This estimator operates over text data.
+        /// </param>
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
@@ -36,12 +39,17 @@ namespace Microsoft.ML
                 outputColumnName, inputColumnName);
 
         /// <summary>
-        /// Transform several text columns into featurized float array that represents counts of ngrams and char-grams.
+        ///  Create a <see cref="TextFeaturizingEstimator"/>, which transforms a text column into featurized float array that represents normalized counts of ngrams and char-grams.
         /// </summary>
+        /// <remarks>This transform can operate over several columns.</remarks>
         /// <param name="catalog">The text-related transform's catalog.</param>
-        /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnNames"/>.</param>
+        /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnNames"/>.
+        /// This column's data type will be a vector of <see cref="System.Single"/>.
+        /// </param>
         /// <param name="options">Advanced options to the algorithm.</param>
-        /// <param name="inputColumnNames">Name of the columns to transform. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.</param>
+        /// <param name="inputColumnNames">Name of the columns to transform. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.
+        /// This estimator operates over text data, and it can transform several columns at once, yielding one vector of <see cref="System.Single"/>
+        /// as the resulting features for all columns.</param>
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
