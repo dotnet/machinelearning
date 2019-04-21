@@ -160,7 +160,7 @@ namespace Microsoft.ML
         }
 
         /// <summary>
-        /// Creates <see cref="SdcaRegressionTrainer"/> with advanced options, which predicts a target using a linear regression model trained.
+        /// Create <see cref="SdcaRegressionTrainer"/> with advanced options, which predicts a target using a linear regression model.
         /// </summary>
         /// <param name="catalog">The regression catalog trainer object.</param>
         /// <param name="options">Trainer options.</param>
@@ -181,7 +181,7 @@ namespace Microsoft.ML
         }
 
         /// <summary>
-        /// Create <see cref="SdcaLogisticRegressionBinaryTrainer"/>, that predicts a target using a linear classification model.
+        /// Create <see cref="SdcaLogisticRegressionBinaryTrainer"/>, which predicts a target using a linear classification model.
         /// </summary>
         /// <param name="catalog">The binary classification catalog trainer object.</param>
         /// <param name="labelColumnName">The name of the label column. The column data must be <see cref="System.Single"/>.</param>
