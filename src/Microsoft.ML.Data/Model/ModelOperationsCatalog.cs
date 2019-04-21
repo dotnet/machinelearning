@@ -292,7 +292,7 @@ namespace Microsoft.ML
         }
 
         /// <summary>
-        /// Create a prediction engine for one-time prediction.
+        /// Create a prediction engine for one-time prediction (default usage).
         /// </summary>
         /// <typeparam name="TSrc">The class that defines the input data.</typeparam>
         /// <typeparam name="TDst">The class that defines the output data.</typeparam>
@@ -317,6 +317,15 @@ namespace Microsoft.ML
             return transformer.CreatePredictionEngine<TSrc, TDst>(_env, ignoreMissingColumns, inputSchemaDefinition, outputSchemaDefinition);
         }
 
+        /// <summary>
+        /// Create a prediction engine for one-time prediction.
+        /// It's mainly used in conjunction with <see cref="Load(Stream, out DataViewSchema)"/>,
+        /// where input schema is extracted during loading the model.
+        /// </summary>
+        /// <typeparam name="TSrc">The class that defines the input data.</typeparam>
+        /// <typeparam name="TDst">The class that defines the output data.</typeparam>
+        /// <param name="transformer">The transformer to use for prediction.</param>
+        /// <param name="inputSchema">Input schema.</param>
         public PredictionEngine<TSrc, TDst> CreatePredictionEngine<TSrc, TDst>(ITransformer transformer, DataViewSchema inputSchema)
             where TSrc : class
             where TDst : class, new()
