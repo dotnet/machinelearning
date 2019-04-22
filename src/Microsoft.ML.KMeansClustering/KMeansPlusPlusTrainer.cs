@@ -31,7 +31,8 @@ namespace Microsoft.ML.Trainers
     /// </summary>
     /// <remarks>
     /// <format type="text/markdown"><![CDATA[
-    /// To create this trainer, use [KMeansTrainer](xref:Microsoft.ML.Trainers.KMeansTrainer).
+    /// To create this trainer, use [KMeans](xref:Microsoft.ML.KMeansClusteringExtensions.KMeans(Microsoft.ML.ClusteringCatalog.ClusteringTrainers,System.String,System.String,System.Int32))
+    /// or [Kmeans(Options)](xref:Microsoft.ML.KMeansClusteringExtensions.KMeans(Microsoft.ML.ClusteringCatalog.ClusteringTrainers,Microsoft.ML.Trainers.KMeansTrainer.Options)).
     ///
     /// [!include[io](~/../docs/samples/docs/api-reference/io-columns-clustering.md)]
     ///
