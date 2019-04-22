@@ -82,7 +82,7 @@ namespace Microsoft.ML.Trainers
     /// Assume that user IDs and music IDs are used as row and column indexes, respectively, and matrix's values are ratings provided by those users.
     /// That is, rating $r$ at row $u$ and column $v$ means that user $u$ give $r$ to item $v$.
     /// An incomplete matrix is very common because not all users may provide their feedbacks to all products (for example, no one can rate ten million songs).
-    /// Assume that $R\in{\mathcal R}^{m\times n}$ is a m-by-n rating matrix and the [rank](https://en.wikipedia.org/wiki/Rank_(linear_algebra)) of the two factor matrices are $P\in {\mathcal R}^{k\times m}$ and $Q\in {\mathcal R}^{k\times n}$, where $k$ is the approximation rank.
+    /// Assume that $R\in{\mathbb R}^{m\times n}$ is a m-by-n rating matrix and the [rank](https://en.wikipedia.org/wiki/Rank_(linear_algebra)) of the two factor matrices are $P\in {\mathbb R}^{k\times m}$ and $Q\in {\mathbb R}^{k\times n}$, where $k$ is the approximation rank.
     /// The predicted rating at the $u$-th row and the $v$-th column in $R$ would be the inner product of the $u$-th row of $P$ and the $v$-th row of $Q$; that is, $R$ is approximated by the product of $P$'s transpose ($P^T$) and $Q$.
     /// Note that $k$ is usually much smaller than $m$ and $n$, so $P^T Q$ is usually called a low-rank approximation of $R$.
     ///

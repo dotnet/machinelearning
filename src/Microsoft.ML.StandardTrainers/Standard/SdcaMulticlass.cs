@@ -49,8 +49,8 @@ namespace Microsoft.ML.Trainers
     /// ### Scoring Function
     /// This trains linear model to solve multiclass classification problems.
     /// Assume that the number of classes is $m$ and number of features is $n$.
-    /// It assigns the $c$-th class a coefficient vector $\textbf{\textit{w}}_c \in {\mathcal R}^n$ and a bias $b_c \in {\mathcal R}$, for $c=1,\dots,m$.
-    /// Given a feature vector $\textbf{\textit{x}} \in {\mathcal R}^n$, the $c$-th class's score would be $\hat{y}^c = \textbf{\textit{w}}_c^T \textbf{\textit{x}} + b_c$.
+    /// It assigns the $c$-th class a coefficient vector $\textbf{\textit{w}}_c \in {\mathbb R}^n$ and a bias $b_c \in {\mathbb R}$, for $c=1,\dots,m$.
+    /// Given a feature vector $\textbf{\textit{x}} \in {\mathbb R}^n$, the $c$-th class's score would be $\hat{y}^c = \textbf{\textit{w}}_c^T \textbf{\textit{x}} + b_c$.
     /// If $\textbf{\textit{x}}$ belongs to class $c$, then $\hat{y}^c$ should be much larger than 0.
     /// In contrast, a $\hat{y}^c$ much smaller than 0 means the desired label should not be $c$.
     ///
@@ -510,8 +510,8 @@ namespace Microsoft.ML.Trainers
     /// ### Scoring Function
     /// This trains a linear model to solve multiclass classification problems.
     /// Assume that the number of classes is $m$ and number of features is $n$.
-    /// It assigns the $c$-th class a coefficient vector $\textbf{\textit{w}}_c \in {\mathcal R}^n$ and a bias $b_c \in {\mathcal R}$, for $c=1,\dots,m$.
-    /// Given a feature vector $\textbf{\textit{x}} \in {\mathcal R}^n$, the $c$-th class's score would be $\tilde{P}(c | \textbf{\textit{x}}) = \frac{ e^{\hat{y}^c} }{ \sum_{c' = 1}^m e^{\hat{y}^{c'}} }$, where $\hat{y}^c = \textbf{\textit{w}}_c^T \textbf{\textit{x}} + b_c$.
+    /// It assigns the $c$-th class a coefficient vector $\textbf{\textit{w}}_c \in {\mathbb R}^n$ and a bias $b_c \in {\mathbb R}$, for $c=1,\dots,m$.
+    /// Given a feature vector $\textbf{\textit{x}} \in {\mathbb R}^n$, the $c$-th class's score would be $\tilde{P}(c | \textbf{\textit{x}}) = \frac{ e^{\hat{y}^c} }{ \sum_{c' = 1}^m e^{\hat{y}^{c'}} }$, where $\hat{y}^c = \textbf{\textit{w}}_c^T \textbf{\textit{x}} + b_c$.
     /// Note that $\tilde{P}(c | \textbf{\textit{x}})$ is the probability of observing class $c$ when the feature vector is $\textbf{\textit{x}}$.
     ///
     /// ### Training Algorithm Details
@@ -593,8 +593,8 @@ namespace Microsoft.ML.Trainers
     /// ### Scoring Function
     /// This trains a linear model to solve multiclass classification problems.
     /// Assume that the number of classes is $m$ and number of features is $n$.
-    /// It assigns the $c$-th class a coefficient vector $\textbf{\textit{w}}_c \in {\mathcal R}^n$ and a bias $b_c \in {\mathcal R}$, for $c=1,\dots,m$.
-    /// Given a feature vector $\textbf{\textit{x}} \in {\mathcal R}^n$, the $c$-th class's score would be $\hat{y}^c = \textbf{\textit{w}}_c^T \textbf{\textit{x}} + b_c$.
+    /// It assigns the $c$-th class a coefficient vector $\textbf{\textit{w}}_c \in {\mathbb R}^n$ and a bias $b_c \in {\mathbb R}$, for $c=1,\dots,m$.
+    /// Given a feature vector $\textbf{\textit{x}} \in {\mathbb R}^n$, the $c$-th class's score would be $\hat{y}^c = \textbf{\textit{w}}_c^T \textbf{\textit{x}} + b_c$.
     /// Note that the $c$-th value in the output score column is just $\hat{y}^c$.
     ///
     /// ### Training Algorithm Details
