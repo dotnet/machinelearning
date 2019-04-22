@@ -40,7 +40,7 @@ namespace Microsoft.ML.Trainers
     /// To create this trainer, use [RandomizedPca](xref:Microsoft.ML.PcaCatalog.RandomizedPca(Microsoft.ML.AnomalyDetectionCatalog.AnomalyDetectionTrainers,System.String,System.String,System.Int32,System.Int32,System.Boolean,System.Nullable{System.Int32}))
     /// or [RandomizedPca(Options)](xref:Microsoft.ML.PcaCatalog.RandomizedPca(Microsoft.ML.AnomalyDetectionCatalog.AnomalyDetectionTrainers,Microsoft.ML.Trainers.RandomizedPcaTrainer.Options)).
     ///
-    /// [!include[io](~/../docs/samples/docs/api-reference/io-anomaly-detection.md)]
+    /// [!include[io](~/../docs/samples/docs/api-reference/io-columns-anomaly-detection.md)]
     ///
     /// ### Trainer Characteristics
     /// |  |  |
