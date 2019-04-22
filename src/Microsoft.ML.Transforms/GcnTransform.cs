@@ -822,19 +822,19 @@ namespace Microsoft.ML.Transforms
     ///     $y = \frac{x}{L(x)}$
     ///
     /// There are four types of norm that can be selected by the user to be applied on input vector $x$. They are defined as follows:
-    /// - <xref:Microsoft.ML.Transforms.Text.TextFeaturizingEstimator.NormFunction.L1>
+    /// - <xref:Microsoft.ML.Transforms.LpNormNormalizingEstimatorBase.NormFunction.L1>
     ///
     ///     $L_1(x) = \sum_i |x_i|$
     ///
-    /// - <xref:Microsoft.ML.Transforms.Text.TextFeaturizingEstimator.NormFunction.L2>
+    /// - <xref:Microsoft.ML.Transforms.LpNormNormalizingEstimatorBase.NormFunction.L2>
     ///
     ///     $L_2(x) = \sqrt{\sum_i x_i^2}$
     ///
-    /// - <xref:Microsoft.ML.Transforms.Text.TextFeaturizingEstimator.NormFunction.Infinity>
+    /// - <xref:Microsoft.ML.Transforms.LpNormNormalizingEstimatorBase.NormFunction.Infinity>
     ///
     ///     $L_{\infty}(x) = \max_i\{|x_i|\}$
     ///
-    /// - <xref:Microsoft.ML.Transforms.Text.TextFeaturizingEstimator.NormFunction.StandardDeviation>
+    /// - <xref:Microsoft.ML.Transforms.LpNormNormalizingEstimatorBase.NormFunction.StandardDeviation>
     ///
     ///     $L_\sigma(x)$ is defined as the standard deviation of the elements of the input vector $x$
     ///
@@ -909,9 +909,8 @@ namespace Microsoft.ML.Transforms
     /// | Output column data type | Vector of <xref:System.Single> |
     ///
     ///
-    /// The resulting <xref:Microsoft.ML.Transforms.LpNormNormalizingTransformer> normalizes vectors in the input column individually
-    /// by rescaling them applying the global contrast normalization. The <xref:Microsoft.ML.Transforms.LpNormNormalizingTransformer>
-    /// performs the following operation on each input vector $x$:
+    /// The resulting <xref:Microsoft.ML.Transforms.LpNormNormalizingTransformer> normalizes vectors in the input column individually,
+    /// rescaling them by applying global contrast normalization. The transform performs the following operation on each input vector $x$:
     ///
     ///     $y = \frac{s * x - \mu(x)}{L(x)}$
     ///
