@@ -41,11 +41,25 @@ namespace Microsoft.ML.Transforms.Onnx
     }
 
     /// <summary>
-    /// The Dnn Image Featurizer is just a wrapper around two <see cref="OnnxScoringEstimator"/>s and three <see cref="ColumnCopyingEstimator"/>
+    /// The Dnn Image Featurizer is just a wrapper around two <see cref="OnnxScoringEstimator"/> and three <see cref="ColumnCopyingEstimator"/>
     /// with present pretrained DNN models. The ColumnsCopying are there to allow arbitrary column input and output names, as by default
     /// the ONNXTransformer requires the names of the columns to be identical to the names of the ONNX model nodes.
     /// Note that because of this, it only works on Windows machines as that is a constraint of the OnnxTransformer.
     /// </summary>
+    /// <remarks>
+    /// <format type="text/markdown"><![CDATA[
+    ///
+    /// ###  Estimator Characteristics
+    /// |  |  |
+    /// | -- | -- |
+    /// | Does this estimator need to look at the data to train its parameters? | No |
+    /// | Input column data type | Vector of <xref:System.Single> |
+    /// | Output column data type | <xref:System.Single> |
+    ///
+    /// ]]>
+    /// </format>
+    /// </remarks>
+    /// <seealso cref="OnnxCatalog.DnnFeaturizeImage(TransformsCatalog, string, Func{DnnImageFeaturizerInput, EstimatorChain{ColumnCopyingTransformer}}, string)"/>
     public sealed class DnnImageFeaturizerEstimator : IEstimator<TransformerChain<ColumnCopyingTransformer>>
     {
         private readonly EstimatorChain<ColumnCopyingTransformer> _modelChain;
