@@ -64,11 +64,11 @@ namespace Microsoft.ML.Trainers
     /// See Section 1 in [this paper](https://www.csie.ntu.edu.tw/~cjlin/papers/maxent_dual.pdf) for a detailed introduction.
     ///
     /// Assume that the number of classes is $m$ and number of features is $n$.
-    /// Maximum entropy model assigns the $c$-th class a coefficient vector $\mathbb{w}_c \in {\mathcal R}^n$ and a bias $b_c \in {\mathcal R}$, for $c=1,\dots,m$.
-    /// Given a feature vector $\mathbb{x} \in {\mathcal R}^n$, the $c$-th class's score is $\hat{y}^c = \mathbb{w}_c^T \mathbb{x} + b_c$.
-    /// The probability of $\mathbb{x}$ belonging to class $c$ is defined by $\tilde{P}(c|\mathbb{x}) = \frac{ e^{\hat{y}^c} }{ \sum_{c' = 1}^m e^{\hat{y}^{c'}} }$.
-    /// Let $P(c, \mathbb{x})$ denote the join probability of seeing $c$ and $\mathbb{x}$.
-    /// The loss function minimized by this trainer is $-\sum_{c = 1}^m P(c, \mathbb{x}) \log \tilde{P}(c|\mathbb{x}) $, which is the negative [log-likelihood function](https://en.wikipedia.org/wiki/Likelihood_function#Log-likelihood).
+    /// Maximum entropy model assigns the $c$-th class a coefficient vector $\textbf{\textit{w}}_c \in {\mathcal R}^n$ and a bias $b_c \in {\mathcal R}$, for $c=1,\dots,m$.
+    /// Given a feature vector $\textbf{\textit{x}} \in {\mathcal R}^n$, the $c$-th class's score is $\hat{y}^c = \textbf{\textit{w}}_c^T \textbf{\textit{x}} + b_c$.
+    /// The probability of $\textbf{\textit{x}}$ belonging to class $c$ is defined by $\tilde{P}(c | \textbf{\textit{x}}) = \frac{ e^{\hat{y}^c} }{ \sum_{c' = 1}^m e^{\hat{y}^{c'}} }$.
+    /// Let $P(c, \textbf{\textit{x}})$ denote the join probability of seeing $c$ and $\textbf{\textit{x}}$.
+    /// The loss function minimized by this trainer is $-\sum_{c = 1}^m P(c, \textbf{\textit{x}}) \log \tilde{P}(c | \textbf{\textit{x}}) $, which is the negative [log-likelihood function](https://en.wikipedia.org/wiki/Likelihood_function#Log-likelihood).
     ///
     /// ### Training Algorithm Details
     /// The optimization technique implemented is based on [the limited memory Broyden-Fletcher-Goldfarb-Shanno method (L-BFGS)](https://en.wikipedia.org/wiki/Limited-memory_BFGS).
@@ -81,9 +81,9 @@ namespace Microsoft.ML.Trainers
     /// Regularization works by adding the penalty that is associated with coefficient values to the error of the hypothesis.
     /// An accurate model with extreme coefficient values would be penalized more, but a less accurate model with more conservative values would be penalized less.
     ///
-    /// This learner supports [elastic net regularization](https://en.wikipedia.org/wiki/Elastic_net_regularization): a linear combination of L1-norm (LASSO), $|| \mathbb{w} ||_1$, and L2-norm (ridge), $|| \mathbb{w} ||_2^2$ regularizations.
+    /// This learner supports [elastic net regularization](https://en.wikipedia.org/wiki/Elastic_net_regularization): a linear combination of L1-norm (LASSO), $|| \textbf{\textit{w}} ||_1$, and L2-norm (ridge), $|| \textbf{\textit{w}} ||_2^2$ regularizations.
     /// L1-norm and L2-norm regularizations have different effects and uses that are complementary in certain respects.
-    /// Using L1-norm can increase sparsity of the trained $\mathbb{w}$.
+    /// Using L1-norm can increase sparsity of the trained $\textbf{\textit{w}}$.
     /// When working with high-dimensional data, it shrinks small weights of irrelevant features to 0 and therefore no reource will be spent on those bad features when making prediction.
     /// If L1-norm regularization is used, the used training algorithm would be [QWL-QN](http://citeseer.ist.psu.edu/viewdoc/summary?doi=10.1.1.68.5260).
     /// L2-norm regularization is preferable for data that is not sparse and it largely penalizes the existence of large weights.

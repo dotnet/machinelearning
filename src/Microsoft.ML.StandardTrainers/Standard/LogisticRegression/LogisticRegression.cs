@@ -46,9 +46,9 @@ namespace Microsoft.ML.Trainers
     /// | Required NuGet in addition to Microsoft.ML | None |
     ///
     /// ### Scoring Function
-    /// Linear logistic regression is a variant of linear model. It maps feature vector $\mathbb{x} \in {\mathcal R}^n$ to a scalar via $\hat{y}\left(\mathbb{x}\right) = \mathbb{w}^T  \mathbb{x} + b = \sum_{j=1}^n w_j x_j + b$,
-    /// where the $x_j$ is the $j$-th feature's value, the $j$-th element of $\mathbb{w}$ is the $j$-th feature's coefficient, and $b$ is a learnable bias.
-    /// The corresponding probability of getting a true label is $\frac{1}{1 + e^{\hat{y}\left(\mathbb{x}\right)}}$.
+    /// Linear logistic regression is a variant of linear model. It maps feature vector $\textbf{\textit{x}} \in {\mathcal R}^n$ to a scalar via $\hat{y}\left( \textbf{\textit{x}} \right) = \textbf{\textit{w}}^T  \textbf{\textit{x}} + b = \sum_{j=1}^n w_j x_j + b$,
+    /// where the $x_j$ is the $j$-th feature's value, the $j$-th element of $\textbf{\textit{w}}$ is the $j$-th feature's coefficient, and $b$ is a learnable bias.
+    /// The corresponding probability of getting a true label is $\frac{1}{1 + e^{\hat{y}\left( \textbf{\textit{x}} \right)}}$.
     ///
     /// ### Training Algorithm Details
     /// The optimization technique implemented is based on [the limited memory Broyden-Fletcher-Goldfarb-Shanno method (L-BFGS)](https://en.wikipedia.org/wiki/Limited-memory_BFGS).
@@ -61,9 +61,9 @@ namespace Microsoft.ML.Trainers
     /// Regularization works by adding the penalty that is associated with coefficient values to the error of the hypothesis.
     /// An accurate model with extreme coefficient values would be penalized more, but a less accurate model with more conservative values would be penalized less.
     ///
-    /// This learner supports [elastic net regularization](https://en.wikipedia.org/wiki/Elastic_net_regularization): a linear combination of L1-norm (LASSO), $|| \mathbb{w} ||_1$, and L2-norm (ridge), $|| \mathbb{w} ||_2^2$ regularizations.
+    /// This learner supports [elastic net regularization](https://en.wikipedia.org/wiki/Elastic_net_regularization): a linear combination of L1-norm (LASSO), $|| \textbf{\textit{w}} ||_1$, and L2-norm (ridge), $|| \textbf{\textit{w}} ||_2^2$ regularizations.
     /// L1-norm and L2-norm regularizations have different effects and uses that are complementary in certain respects.
-    /// Using L1-norm can increase sparsity of the trained $\mathbb{w}$.
+    /// Using L1-norm can increase sparsity of the trained $\textbf{\textit{w}}$.
     /// When working with high-dimensional data, it shrinks small weights of irrelevant features to 0 and therefore no resource will be spent on those bad features when making prediction.
     /// If L1-norm regularization is used, the used training algorithm would be [QWL-QN](http://citeseer.ist.psu.edu/viewdoc/summary?doi=10.1.1.68.5260).
     /// L2-norm regularization is preferable for data that is not sparse and it largely penalizes the existence of large weights.

@@ -67,9 +67,9 @@ namespace Microsoft.ML.Trainers
     ///
     /// ### Scoring Function
     /// Field-aware factorization machine is a scoring function which maps feature vectors from different fields to a scalar score.
-    /// Assume that all $m$ feature columns are concatenated into a long feature vector $\mathbb{x}\in {\mathcal R}^n$ and ${\mathcal F}(j)$ denotes the $j$-th feature's field indentifier.
-    /// The corresponding score is $\hat{y}\left(\mathbb{x}\right) = \left\langle \mathbb{w}, \mathbb{x} \right\rangle + \sum_{j = 1}^n \sum_{j' = j + 1}^n \left\langle \mathbb{v}_{j, {\mathcal F}(j')} , \mathbb{v}_{j', {\mathcal F}(j)} \right\rangle x_j x_{j'}$,
-    /// where $\left\langle \cdot, \cdot \right\rangle$ is the inner product operator, $\mathbb{w}\in{\mathcal R}^n$ stores the linear coefficients, and $\mathbb{v}_{j, f}\in {\mathcal R}^k$ is the $j$-th feature's representation in the $f$-th field's latent space.
+    /// Assume that all $m$ feature columns are concatenated into a long feature vector $\textbf{\textit{x}} \in {\mathcal R}^n$ and ${\mathcal F}(j)$ denotes the $j$-th feature's field indentifier.
+    /// The corresponding score is $\hat{y}\left(\textbf{\textit{x}}\right) = \left\langle \textbf{\textit{w}}, \textbf{\textit{x}} \right\rangle + \sum_{j = 1}^n \sum_{j' = j + 1}^n \left\langle \textbf{\textit{v}}_{j, {\mathcal F}(j')} , \textbf{\textit{v}}_{j', {\mathcal F}(j)} \right\rangle x_j x_{j'}$,
+    /// where $\left\langle \cdot, \cdot \right\rangle$ is the inner product operator, $\textbf{\textit{w}} \in {\mathcal R}^n$ stores the linear coefficients, and $\textbf{\textit{v}}_{j, f}\in {\mathcal R}^k$ is the $j$-th feature's representation in the $f$-th field's latent space.
     /// Note that $k$ is the latent dimension specified by the user.
     /// The predicted label is the sign of $\hat{y}$. If $\hat{y} > 0$, this model predicts true. Otherwise, it predicts false.
     /// For a systematic introduction to field-aware factorization machine, please see [this paper](https://www.csie.ntu.edu.tw/~cjlin/papers/ffm.pdf)
