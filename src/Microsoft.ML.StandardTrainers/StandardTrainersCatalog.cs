@@ -268,7 +268,7 @@ namespace Microsoft.ML
         }
 
         /// <summary>
-        /// Create <see cref="SdcaNonCalibratedBinaryTrainer"/> using advanced options, which predicts a target using a linear classification model trained over boolean label data.
+        /// Create <see cref="SdcaNonCalibratedBinaryTrainer"/> with advanced options, which predicts a target using a linear classification model trained over boolean label data.
         /// </summary>
         /// <param name="catalog">The binary classification catalog trainer object.</param>
         /// <param name="options">Trainer options.</param>
