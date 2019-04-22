@@ -111,7 +111,7 @@ namespace Microsoft.ML.Auto
     /// <example>
     /// <format type="text/markdown">
     /// <![CDATA[
-    ///  [!code-csharp[SDCA](~/../docs/samples/Microsoft.ML.AutoML.Samples/RegressionExperiment.cs)]
+    ///  [!code-csharp[RegressionExperiment](~/../docs/samples/Microsoft.ML.AutoML.Samples/RegressionExperiment.cs)]
     /// ]]></format>
     /// </example>
     public sealed class RegressionExperiment : ExperimentBase<RegressionMetrics, RegressionExperimentSettings>
