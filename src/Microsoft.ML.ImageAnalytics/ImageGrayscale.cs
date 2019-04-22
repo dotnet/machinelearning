@@ -236,7 +236,7 @@ namespace Microsoft.ML.Transforms.Image
     /// a technique known as [data augmentation](http://www.stat.harvard.edu/Faculty_Content/meng/JCGS01.pdf).
     /// For end-to-end image processing pipelines, and scenarios in your applications, see the
     /// [examples](https://github.com/dotnet/machinelearning-samples/tree/master/samples/csharp/getting-started) in the machinelearning-samples github repository.
-    /// See the See Also section for links to more examples of the usage.
+    /// Check the See Also section for links to more examples of the usage.
     /// ]]>
     /// </format>
     /// </remarks>
