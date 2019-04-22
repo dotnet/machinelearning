@@ -46,7 +46,9 @@ namespace Microsoft.ML.Transforms.Text
     //
     // See <a href="https://github.com/dotnet/machinelearning/blob/master/test/Microsoft.ML.TestFramework/DataPipe/TestDataPipe.cs"/>
     // for an example on how to use LatentDirichletAllocationTransformer.
-    /// <include file='doc.xml' path='doc/members/member[@name="LightLDA"]/*' />
+    /// <summary>
+    /// <see cref="ITransformer"/> resulting from fitting a <see cref="LatentDirichletAllocationEstimator"/>.
+    /// </summary>
     public sealed class LatentDirichletAllocationTransformer : OneToOneTransformerBase
     {
         internal sealed class Options : TransformInputBase
@@ -936,7 +938,56 @@ namespace Microsoft.ML.Transforms.Text
             => new Mapper(this, schema);
     }
 
-    /// <include file='doc.xml' path='doc/members/member[@name="LightLDA"]/*' />
+    /// <summary>
+    /// The LDA transform implements <a href="https://arxiv.org/abs/1412.1576">LightLDA</a>, a state-of-the-art implementation of Latent Dirichlet Allocation.
+    /// </summary>
+    /// <remarks>
+    /// <format type="text/markdown"><![CDATA[
+    ///
+    /// ###  Estimator Characteristics
+    /// |  |  |
+    /// | -- | -- |
+    /// | Does this estimator need to look at the data to train its parameters? | Yes |
+    /// | Input column data type | Vector of <xref:System.Single> |
+    /// | Output column data type | Vector of <xref:System.Single>|
+    ///
+    ///  Latent Dirichlet Allocation is a well-known [topic modeling](https://en.wikipedia.org/wiki/Topic_model) algorithm that infers semantic structure from text data,
+    ///  and ultimately helps answer the question on "what is this document about?".
+    ///  It can be used to featurize any text fields as low-dimensional topical vectors.
+    ///  LightLDA is an extremely efficient implementation of LDA that incorporates a number of
+    ///  optimization techniques.
+    ///  With the LDA transform, ML.NET users can train a topic model to produce 1 million topics with 1 million words vocabulary
+    ///  on a 1-billion-token document set one a single machine in a few hours(typically, LDA at this scale takes days and requires large clusters).
+    ///  The most significant innovation is a super-efficient $O(1)$. [Metropolis-Hastings sampling algorithm](https://en.wikipedia.org/wiki/Metropolis–Hastings_algorithm),
+    ///  whose running cost is agnostic of model size, allowing it to converges nearly an order of magnitude faster than other [Gibbs samplers](https://en.wikipedia.org/wiki/Gibbs_sampling).
+    ///
+    ///  In an ML.NET pipeline, this estimator requires the output of some preprocessing, as its input.
+    ///  A typical pipeline operating on text would require text normalization, tokenization and producing n-grams to supply to the LDA estimator.
+    ///  See the example usage in the See Also section for usage suggestions.
+    ///
+    ///  If we have the following three examples of text, as data points, and use the LDA transform with the number of topics set to 3,
+    ///  we would get the results displayed in the table below. Example documents:
+    ///  * I like to eat bananas.
+    ///  * I eat bananas everyday.
+    ///  * First celebrated in 1970, Earth Day now includes events in more than 193 countries,
+    ///    which are now coordinated globally by the Earth Day Network.
+    ///
+    ///  Notice the similarity in values of the first and second row, compared to the third,
+    ///  and see how those values are indicative of similarities between those two (small) bodies of text.
+    ///
+    ///  | Topic1  | Topic2  | Topic 3 |
+    ///  | ------- | ------- | ------- |
+    ///  |  0.5714 | 0.0000  | 0.4286  |
+    ///  |  0.5714 | 0.0000  | 0.4286  |
+    ///  |  0.2400 | 0.3200  | 0.4400  |
+    ///
+    ///  For more technical details you can consult the following papers.
+    ///  * [LightLDA: Big Topic Models on Modest Computer Clusters](https://arxiv.org/abs/1412.1576)
+    ///  * [LightLDA](https://github.com/Microsoft/LightLDA)
+    ///
+    /// ]]></format>
+    /// </remarks>
+    /// <seealso cref="TextCatalog.LatentDirichletAllocation(TransformsCatalog.TextTransforms, string, string, int, float, float, int, int, int, int, int, int, int, bool)"/>
     public sealed class LatentDirichletAllocationEstimator : IEstimator<LatentDirichletAllocationTransformer>
     {
         [BestFriend]

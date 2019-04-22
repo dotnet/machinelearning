@@ -3,6 +3,7 @@
 string ClassName="FastForestWithOptions";
 string Trainer = "FastForest";
 bool IsCalibrated = false;
+bool CacheData = false;
 
 string TrainerOptions = @"FastForestBinaryTrainer.Options
             {

@@ -151,14 +151,18 @@ namespace Microsoft.ML.RunTests
         private void CheckSameSchemaShape(SchemaShape promised, SchemaShape delivered)
         {
             Assert.True(promised.Count == delivered.Count);
-            var sortedCols1 = promised.OrderBy(x => x.Name);
-            var sortedCols2 = delivered.OrderBy(x => x.Name);
+            var promisedCols = promised.OrderBy(x => x.Name);
+            var deliveredCols = delivered.OrderBy(x => x.Name);
 
-            foreach (var (x, y) in sortedCols1.Zip(sortedCols2, (x, y) => (x, y)))
+            foreach (var (p, d) in promisedCols.Zip(deliveredCols, (p, d) => (p, d)))
             {
-                Assert.Equal(x.Name, y.Name);
+                Assert.Equal(p.Name, d.Name);
                 // We want the 'promised' metadata to be a superset of 'delivered'.
-                Assert.True(y.IsCompatibleWith(x), $"Mismatch on {x.Name}");
+                Assert.True(d.IsCompatibleWith(p), $"Mismatch on {p.Name}, there was a mismatch, or some unexpected annotations was present.");
+                // We also want the 'delivered' to be a superset of 'promised'. Since the above
+                // test must have worked if we got this far, I believe the only plausible reason
+                // this could happen is if there was something promised but not delivered.
+                Assert.True(p.IsCompatibleWith(d), $"Mismatch on {p.Name}, something was promised in the annotations but not delivered.");
             }
         }
 

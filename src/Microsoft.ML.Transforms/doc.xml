@@ -2,61 +2,6 @@
 <doc>
   <members>
 
-    <member name="CategoricalHashOneHotVectorizer">
-      <summary>
-        Encodes the categorical variable with hash-based encoding. 
-      </summary>
-      <remarks>
-        CategoricalHashOneHotVectorizer converts a categorical value into an indicator array by hashing the value and using the hash as an index in the bag.
-        If the input column is a vector, a single indicator bag is returned for it.
-      </remarks>
-    </member>
-    <example name="CategoricalHashOneHotVectorizer">
-      <example>
-        <code language="csharp">
-          pipeline.Add(new CategoricalHashOneHotVectorizer(&quot;Text1&quot;) 
-          { 
-            NumberOfBits = 10, 
-            Seed = 314489979, 
-            OutputKind = CategoricalTransformOutputKind.Bag 
-          });
-        </code>
-      </example>
-    </example>
-
-    <member name="CategoricalOneHotVectorizer">
-      <summary>
-        Converts the categorical value into an indicator array by building a dictionary of categories based on the data and using the id in the dictionary as the index in the array
-      </summary>
-      <remarks>
-        <para>
-        The CategoricalOneHotVectorizer transform passes through a data set, operating on text columns, to
-        build a dictionary of categories.
-        For each row, the entire text string appearing in the input column is defined as a category.</para>
-        <para>The output of this transform is an indicator vector.</para>
-        Each slot in this vector corresponds to a category in the dictionary, so its length is the size of the built dictionary.
-        <para>The CategoricalOneHotVectorizer can be applied to one or more columns, in which case it builds and uses a separate dictionary
-        for each column that it is applied to.</para>
-        
-        <para>The <see cref="T:Microsoft.ML.Transforms.CategoricalTransformOutputKind"/> produces integer values and KeyType columns.
-        The Key value is the one-based index of the slot set in the Ind/Bag options.
-        If the Key option is not found, it is assigned the value zero.
-        In the <see cref="F:Microsoft.ML.Transforms.CategoricalTransformOutputKind.Ind"/>, <see cref="F:Microsoft.ML.Transforms.CategoricalTransformOutputKind.Bag"/> options are not found, they result in an all zero bit vector.
-        <see cref="F:Microsoft.ML.Transforms.CategoricalTransformOutputKind.Ind"/> and <see cref="F:Microsoft.ML.Transforms.CategoricalTransformOutputKind.Bag"/> differ simply in how the bit-vectors generated from individual slots are aggregated:
-        for Ind they are concatenated and for Bag they are added.
-        When the source column is a singleton, the Ind and Bag options are identical.</para>
-      </remarks>
-    </member>
-    <example name="CategoricalOneHotVectorizer">
-      <example>
-        An example of how to add the CategoricalOneHotVectorizer transform to a pipeline with two text column
-        features named &quot;Text1&quot; and &quot;Text2&quot;.
-        <code language="csharp">
-          pipeline.Add(new CategoricalOneHotVectorizer(&quot;Text1&quot;, &quot;Text1&quot;));
-        </code>
-      </example>
-    </example>
-
     <member name="CountFeatureSelection">
       <summary>
         Selects the slots for which the count of non-default values is greater than or equal to a threshold.
@@ -166,42 +111,6 @@
       </example>
     </example>
 
-    <member name="NAIndicator">
-      <summary>
-        This transform can transform either scalars or vectors (both fixed and variable size),
-        creating output columns that indicate, through the true/false booleans whether the row has a missing value.
-      </summary>
-    </member>
-    <example name="NAIndicator">
-      <example>
-        <code language="csharp">
-          pipeline.Add(new MissingValueIndicator(&quot;Column1&quot;));
-        </code>
-      </example>
-    </example>
-    
-    <member name="NAReplace">
-      <summary>
-        Create an output column of the same type and size of the input column, 
-        where missing values are replaced with either the default value or the mean/min/max value (for non-text columns only). 
-      </summary>
-      <remarks>
-        This transform can transform either scalars or vectors (both fixed and variable size),
-        creating output columns that are identical to the input columns except for replacing NA values
-        with either the default value, user input, or imputed values (min/max/mean are currently supported).
-        Imputation modes are supported for vectors both by slot and across all slots.
-      </remarks>
-    </member>
-    <example name="NAReplace">
-      <example>
-        <code language="csharp">
-          pipeline.Add(new MissingValueSubstitutor(&quot;FeatureCol&quot;)
-          { 
-              ReplacementKind = NAReplaceTransformReplacementKind.Mean 
-          });
-        </code>
-      </example>
-    </example>
   
     <member name="LpNormNormalize">
       <summary>

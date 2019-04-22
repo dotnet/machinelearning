@@ -232,7 +232,7 @@ namespace Microsoft.ML.Transforms
                     typeNames = null;
                 }
 
-                if (_infos[iinfo].TypeSrc.GetValueCount() == 1)
+                if (_infos[iinfo].TypeSrc is PrimitiveDataViewType)
                 {
                     if (typeNames != null)
                     {

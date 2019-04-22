@@ -1,12 +1,27 @@
-﻿using Samples.Dynamic;
+﻿using System;
+using System.Reflection;
 
 namespace Microsoft.ML.Samples
 {
-    internal static class Program
+    public static class Program
     {
-        static void Main(string[] args)
+        public static void Main(string[] args) => RunAll();
+
+        internal static void RunAll()
         {
-            CalculateFeatureContribution.Example();
+            int samples = 0;
+            foreach (var type in Assembly.GetExecutingAssembly().GetTypes())
+            {
+                var sample = type.GetMethod("Example", BindingFlags.Public | BindingFlags.Static | BindingFlags.FlattenHierarchy);
+
+                if(sample != null)
+                {
+                    sample.Invoke(null, null);
+                    samples++;
+                }
+            }
+
+            Console.WriteLine("Number of samples that ran without any exception: " + samples);
         }
     }
 }

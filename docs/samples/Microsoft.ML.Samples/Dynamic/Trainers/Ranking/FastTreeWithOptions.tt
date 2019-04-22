@@ -1,0 +1,32 @@
+﻿<#@ include file="Ranking.ttinclude"#>
+<#+
+string ClassName = "FastTreeWithOptions";
+string Trainer = "FastTree";
+string TrainerOptions = @"FastTreeRankingTrainer.Options 
+            {
+                // Use NdcgAt3 for early stopping.
+                EarlyStoppingMetric = EarlyStoppingRankingMetric.NdcgAt3,
+                // Create a simpler model by penalizing usage of new features.
+                FeatureFirstUsePenalty = 0.1,
+                // Reduce the number of trees to 50.
+                NumberOfTrees = 50,
+                // Specify the row group column name.
+                RowGroupColumnName = ""GroupId""
+            }";
+
+string OptionsInclude = "using Microsoft.ML.Trainers.FastTree;";
+string Comments= @"
+        // This example requires installation of additional NuGet package
+        // <a href=""https://www.nuget.org/packages/Microsoft.ML.FastTree/"">Microsoft.ML.FastTree</a>.";
+
+string ExpectedOutputPerInstance = @"// Expected output:
+            //   Label: 5, Score: 8.807633
+            //   Label: 1, Score: -10.71331
+            //   Label: 3, Score: -8.134147
+            //   Label: 3, Score: -6.545538
+            //   Label: 1, Score: -10.27982";
+
+string ExpectedOutput = @"// Expected output:
+            //   DCG: @1:40.57, @2:61.21, @3:74.11
+            //   NDCG: @1:0.96, @2:0.95, @3:0.97";
+#>

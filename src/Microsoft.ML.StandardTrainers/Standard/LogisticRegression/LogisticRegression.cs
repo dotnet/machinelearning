@@ -27,8 +27,55 @@ using Microsoft.ML.Trainers;
 namespace Microsoft.ML.Trainers
 {
 
-    /// <include file='doc.xml' path='doc/members/member[@name="LBFGS"]/*' />
-    /// <include file='doc.xml' path='docs/members/example[@name="LogisticRegressionBinaryClassifier"]/*' />
+    /// <summary>
+    /// The <see cref="IEstimator{TTransformer}"/> to predict a target using a linear logistic regression model trained with L-BFGS method.
+    /// </summary>
+    /// <remarks>
+    /// <format type="text/markdown"><![CDATA[
+    /// To create this trainer, use [LbfgsLogisticRegression](xref:Microsoft.ML.StandardTrainersCatalog.LbfgsLogisticRegression(Microsoft.ML.BinaryClassificationCatalog.BinaryClassificationTrainers,System.String,System.String,System.String,System.Single,System.Single,System.Single,System.Int32,System.Boolean))
+    /// or [LbfgsLogisticRegression(Options)](xref:Microsoft.ML.StandardTrainersCatalog.LbfgsLogisticRegression(Microsoft.ML.BinaryClassificationCatalog.BinaryClassificationTrainers,Microsoft.ML.Trainers.LbfgsLogisticRegressionBinaryTrainer.Options)).
+    ///
+    /// [!include[io](~/../docs/samples/docs/api-reference/io-columns-binary-classification.md)]
+    ///
+    /// ### Trainer Characteristics
+    /// |  |  |
+    /// | -- | -- |
+    /// | Machine learning task | Binary classification |
+    /// | Is normalization required? | Yes |
+    /// | Is caching required? | No |
+    /// | Required NuGet in addition to Microsoft.ML | None |
+    ///
+    /// ### Scoring Function
+    /// Linear logistic regression is a variant of linear model. It maps feature vector $\boldsymbol{x} \in {\mathbb R}^n$ to a scalar via $\hat{y}\left(\boldsymbol{x}\right) = \boldsymbol{w}^T  \boldsymbol{x} + b = \sum_{j=1}^n w_j x_j + b$,
+    /// where the $x_j$ is the $j$-th feature's value, the $j$-th element of $\boldsymbol{w}$ is the $j$-th feature's coefficient, and $b$ is a learnable bias.
+    /// The corresponding probability of getting a true label is $\frac{1}{1 + e^{\hat{y}\left(\boldsymbol{x}\right)}}$.
+    ///
+    /// ### Training Algorithm Details
+    /// The optimization technique implemented is based on [the limited memory Broyden-Fletcher-Goldfarb-Shanno method (L-BFGS)](https://en.wikipedia.org/wiki/Limited-memory_BFGS).
+    /// L-BFGS is a [quasi-Newtonian method](https://en.wikipedia.org/wiki/Quasi-Newton_method) which replaces the expensive computation cost of Hessian matrix with an approximation but still enjoys a fast convergence rate like [Newton method](https://en.wikipedia.org/wiki/Newton%27s_method_in_optimization) where the full Hessian matrix is computed.
+    /// Since L-BFGS approximation uses only a limited amount of historical states to compute the next step direction, it is especially suited for problems with high-dimensional feature vector.
+    /// The number of historical states is a user-specified parameter, using a larger number may lead to a better approximation to the Hessian matrix but also a higher computation cost per step.
+    ///
+    /// Regularization is a method that can render an ill-posed problem more tractable by imposing constraints that provide information to supplement the data and that prevents overfitting by penalizing model's magnitude usually measured by some norm functions.
+    /// This can improve the generalization of the model learned by selecting the optimal complexity in the bias-variance tradeoff.
+    /// Regularization works by adding the penalty that is associated with coefficient values to the error of the hypothesis.
+    /// An accurate model with extreme coefficient values would be penalized more, but a less accurate model with more conservative values would be penalized less.
+    ///
+    /// This learner supports [elastic net regularization](https://en.wikipedia.org/wiki/Elastic_net_regularization): a linear combination of L1-norm (LASSO), $|| \boldsymbol{w} ||_1$, and L2-norm (ridge), $|| \boldsymbol{w} ||_2^2$ regularizations.
+    /// L1-norm and L2-norm regularizations have different effects and uses that are complementary in certain respects.
+    /// Using L1-norm can increase sparsity of the trained $\boldsymbol{w}$.
+    /// When working with high-dimensional data, it shrinks small weights of irrelevant features to 0 and therefore no resource will be spent on those bad features when making prediction.
+    /// If L1-norm regularization is used, the used training algorithm would be [QWL-QN](http://citeseer.ist.psu.edu/viewdoc/summary?doi=10.1.1.68.5260).
+    /// L2-norm regularization is preferable for data that is not sparse and it largely penalizes the existence of large weights.
+    ///
+    /// An aggressive regularization (that is, assigning large coefficients to L1-norm or L2-norm regularization terms) can harm predictive capacity by excluding important variables out of the model.
+    /// Therefore, choosing the right regularization coefficients is important when applying logistic regression.
+    /// ]]>
+    /// </format>
+    /// </remarks>
+    /// <seealso cref="Microsoft.ML.StandardTrainersCatalog.LbfgsLogisticRegression(BinaryClassificationCatalog.BinaryClassificationTrainers, string, string, string, float, float, float, int, bool)"/>
+    /// <seealso cref="Microsoft.ML.StandardTrainersCatalog.LbfgsLogisticRegression(BinaryClassificationCatalog.BinaryClassificationTrainers, LbfgsLogisticRegressionBinaryTrainer.Options)"/>
+    /// <seealso cref="Options"/>
     public sealed partial class LbfgsLogisticRegressionBinaryTrainer : LbfgsTrainerBase<LbfgsLogisticRegressionBinaryTrainer.Options,
         BinaryPredictionTransformer<CalibratedModelParametersBase<LinearBinaryModelParameters, PlattCalibrator>>,
         CalibratedModelParametersBase<LinearBinaryModelParameters, PlattCalibrator>>
@@ -39,6 +86,10 @@ namespace Microsoft.ML.Trainers
         internal const string Summary = "Logistic Regression is a method in statistics used to predict the probability of occurrence of an event and can "
             + "be used as a classification algorithm. The algorithm predicts the probability of occurrence of an event by fitting data to a logistical function.";
 
+        /// <summary>
+        /// Options for the <see cref="LbfgsLogisticRegressionBinaryTrainer"/> as used in
+        /// <see cref="Microsoft.ML.StandardTrainersCatalog.LbfgsLogisticRegression(BinaryClassificationCatalog.BinaryClassificationTrainers, LbfgsLogisticRegressionBinaryTrainer.Options)"/>
+        /// </summary>
         public sealed class Options : OptionsBase
         {
             /// <summary>

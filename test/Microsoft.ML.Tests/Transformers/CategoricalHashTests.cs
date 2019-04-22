@@ -65,7 +65,8 @@ namespace Microsoft.ML.Tests.Transformers
             string dataPath = GetDataPath("breast-cancer.txt");
             var reader = TextLoaderStatic.CreateLoader(ML, ctx => (
                 ScalarString: ctx.LoadText(1),
-                VectorString: ctx.LoadText(1, 4)));
+                VectorString: ctx.LoadText(1, 4),
+                SingleVectorString: ctx.LoadText(1, 1)));
             var data = reader.Load(dataPath);
             var wrongCollection = new[] { new TestClass() { A = "1", B = "2", C = "3", }, new TestClass() { A = "4", B = "5", C = "6" } };
 
@@ -74,6 +75,7 @@ namespace Microsoft.ML.Tests.Transformers
                   Append(row => (
                       row.ScalarString,
                       row.VectorString,
+                      row.SingleVectorString,
                       // Create a VarVector column
                       VarVectorString: row.ScalarString.TokenizeIntoWords())).
                   Append(row => (
@@ -82,7 +84,9 @@ namespace Microsoft.ML.Tests.Transformers
                       C: row.VectorString.OneHotHashEncoding(outputKind: CategoricalHashStaticExtensions.OneHotHashVectorOutputKind.Bag),
                       D: row.ScalarString.OneHotHashEncoding(outputKind: CategoricalHashStaticExtensions.OneHotHashScalarOutputKind.Bin),
                       E: row.VectorString.OneHotHashEncoding(outputKind: CategoricalHashStaticExtensions.OneHotHashVectorOutputKind.Bin),
-                      F: row.VarVectorString.OneHotHashEncoding()
+                      F: row.VarVectorString.OneHotHashEncoding(),
+                      // The following column and SingleVectorString are meant to test the special case of a vector that happens to be of length 1.
+                      G: row.SingleVectorString.OneHotHashEncoding(outputKind: CategoricalHashStaticExtensions.OneHotHashVectorOutputKind.Bag)
                   ));
 
             TestEstimatorCore(est.AsDynamic, data.AsDynamic, invalidInput: invalidData);

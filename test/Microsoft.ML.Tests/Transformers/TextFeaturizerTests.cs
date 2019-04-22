@@ -4,6 +4,7 @@
 
 using System;
 using System.IO;
+using System.Linq;
 using System.Text.RegularExpressions;
 using Microsoft.ML;
 using Microsoft.ML.Data;
@@ -481,7 +482,7 @@ namespace Microsoft.ML.Tests.Transformers
             var xf = factory.CreateComponent(ML, tokenized,
                 new[] {
                     new StopWordsRemovingTransformer.Column() { Name = "Text", Source = "Text" }
-                });
+                }).Transform(tokenized);
 
             using (var cursor = xf.GetRowCursorForAllColumns())
             {
@@ -541,7 +542,10 @@ namespace Microsoft.ML.Tests.Transformers
             var est = new WordTokenizingEstimator(ML, "text", "text")
                 .Append(new ValueToKeyMappingEstimator(ML, "terms", "text"))
                 .Append(new NgramExtractingEstimator(ML, "ngrams", "terms"))
-                .Append(new NgramHashingEstimator(ML, "ngramshash", "terms"));
+                .Append(new NgramHashingEstimator(ML, "ngramshash", "terms"))
+                // Also have a situation where we use invert hashing. However we only write
+                // the original non-inverted column to the actual baseline file.
+                .Append(new NgramHashingEstimator(ML, "ngramshashinvert", "terms", maximumNumberOfInverts: 2));
 
             TestEstimatorCore(est, data.AsDynamic, invalidInput: invalidData.AsDynamic);
 
@@ -643,6 +647,32 @@ namespace Microsoft.ML.Tests.Transformers
         public void TestLdaCommandLine()
         {
             Assert.Equal(Maml.Main(new[] { @"showschema loader=Text{col=A:R4:0-10} xf=lda{col=B:A} in=f:\2.txt" }), (int)0);
+        }
+
+        [Fact]
+        public void TestTextFeaturizerBackCompat()
+        {
+            var modelPath = Path.Combine("TestModels", "SentimentModel.zip");
+            var model = ML.Model.Load(modelPath, out var inputSchema);
+            var outputSchema = model.GetOutputSchema(inputSchema);
+            Assert.Contains("SentimentText", outputSchema.Select(col => col.Name));
+            Assert.Contains("Label", outputSchema.Select(col => col.Name));
+            Assert.Contains("Features", outputSchema.Select(col => col.Name));
+            Assert.Contains("PredictedLabel", outputSchema.Select(col => col.Name));
+            Assert.Contains("Score", outputSchema.Select(col => col.Name));
+
+            // Take a few examples out of the test data and run predictions on top.
+            var engine = ML.Model.CreatePredictionEngine<SentimentData, SentimentPrediction>(model, inputSchema);
+            var testData = ML.Data.CreateEnumerable<SentimentData>(
+                ML.Data.LoadFromTextFile(GetDataPath(TestDatasets.Sentiment.testFilename),
+                TestDatasets.Sentiment.GetLoaderColumns(), hasHeader: true), false);
+            foreach (var input in testData.Take(5))
+            {
+                var prediction = engine.Predict(input);
+                // Verify that predictions match and scores are separated from zero.
+                Assert.Equal(input.Sentiment, prediction.Sentiment);
+                Assert.True(input.Sentiment && prediction.Score > 1 || !input.Sentiment && prediction.Score < -1);
+            }
         }
     }
 }

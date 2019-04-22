@@ -33,8 +33,7 @@ namespace Microsoft.ML.Data
     using PfaType = PfaUtils.Type;
 
     /// <summary>
-    /// Concatenates columns in an <see cref="IDataView"/> into one single column. Please see <see cref="ColumnConcatenatingEstimator"/> for
-    /// constructing <see cref="ColumnConcatenatingTransformer"/>.
+    /// <see cref="ITransformer"/> resulting from fitting an <see cref="ColumnConcatenatingEstimator"/>.
     /// </summary>
     public sealed class ColumnConcatenatingTransformer : RowToRowTransformerBase
     {

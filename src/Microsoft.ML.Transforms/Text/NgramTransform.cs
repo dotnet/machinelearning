@@ -30,8 +30,7 @@ using Microsoft.ML.Transforms.Text;
 namespace Microsoft.ML.Transforms.Text
 {
     /// <summary>
-    /// Produces a bag of counts of ngrams(sequences of consecutive values of length 1-n) in a given vector of keys.
-    /// It does so by building a dictionary of ngrams and using the id in the dictionary as the index in the bag.
+    /// <see cref="ITransformer"/> resulting from fitting an <see cref="NgramExtractingEstimator"/>.
     /// </summary>
     public sealed class NgramExtractingTransformer : OneToOneTransformerBase
     {
@@ -668,9 +667,29 @@ namespace Microsoft.ML.Transforms.Text
     }
 
     /// <summary>
-    /// Produces a bag of counts of ngrams(sequences of consecutive values of length 1-n) in a given vector of keys.
-    /// It does so by building a dictionary of ngrams and using the id in the dictionary as the index in the bag.
+    /// Produces a vector of counts of ngrams (sequences of consecutive words) encountered in the input text.
     /// </summary>
+    /// <remarks>
+    /// <format type="text/markdown"><![CDATA[
+    ///
+    /// ###  Estimator Characteristics
+    /// |  |  |
+    /// | -- | -- |
+    /// | Does this estimator need to look at the data to train its parameters? | Yes |
+    /// | Input column data type | Vector of [Keys](xref:Microsoft.ML.Data.KeyDataViewType) |
+    /// | Output column data type | Known-sized vector of <xref:System.Single> |
+    ///
+    /// The resulting <xref:Microsoft.ML.Transforms.Text.NgramExtractingTransformer>
+    /// creates a new column, named as specified in the output column name parameters, where each
+    /// input vector is mapped to a vector of counts of ngrams (sequences of consecutive words) encountered in the input text.
+    ///
+    /// The estimator builds a dictionary of ngrams and the <xref:Microsoft.ML.Transforms.Text.NgramExtractingTransformer>
+    /// uses the id in the dictionary as the index in the count vector that it produces.
+    ///
+    /// See the See Also section for links to examples of the usage.
+    /// ]]></format>
+    /// </remarks>
+    /// <seealso cref="TextCatalog.ProduceNgrams(TransformsCatalog.TextTransforms, string, string, int, int, bool, int, WeightingCriteria)"/>
     public sealed class NgramExtractingEstimator : IEstimator<NgramExtractingTransformer>
     {
         /// <summary>
@@ -679,12 +698,18 @@ namespace Microsoft.ML.Transforms.Text
         /// </summary>
         public enum WeightingCriteria
         {
+            /// <summary>Term Frequency. Calculated based on the number of occurrences in the document.</summary>
             [EnumValueDisplay("TF (Term Frequency)")]
             Tf = 0,
 
+            /// <summary>
+            /// Inverse Document Frequency. A ratio (the logarithm of inverse relative frequency)
+            /// that measures the information a slot provides by determining how common or rare it is across the entire corpus.
+            /// </summary>
             [EnumValueDisplay("IDF (Inverse Document Frequency)")]
             Idf = 1,
 
+            /// <summary>The product of the term frequency and the inverse document frequency.</summary>
             [EnumValueDisplay("TF-IDF")]
             TfIdf = 2
         }
@@ -782,7 +807,7 @@ namespace Microsoft.ML.Transforms.Text
                 return false;
             if (!col.IsKey)
                 return false;
-            // Can only accept key types that can be converted to U4.
+            // Can only accept key types that can be converted to U8.
             if (!NgramUtils.IsValidNgramRawType(col.ItemType.RawType))
                 return false;
             return true;

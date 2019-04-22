@@ -4,6 +4,7 @@ string ClassName="FastTree";
 string Trainer = "FastTree";
 string TrainerOptions = null;
 bool IsCalibrated = true;
+bool CacheData = false;
 
 string ExpectedOutputPerInstance= @"// Expected output:
             //   Label: True, Prediction: True

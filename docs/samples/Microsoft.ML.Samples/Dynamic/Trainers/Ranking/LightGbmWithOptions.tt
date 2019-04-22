@@ -1,0 +1,33 @@
+﻿<#@ include file="Ranking.ttinclude"#>
+<#+
+string ClassName = "LightGbmWithOptions";
+string Trainer = "LightGbm";
+string TrainerOptions = @"LightGbmRankingTrainer.Options
+            {
+                NumberOfLeaves = 4,
+                MinimumExampleCountPerGroup = 10,
+                LearningRate = 0.1,
+                NumberOfIterations = 2,
+                Booster = new GradientBooster.Options
+                {
+                    FeatureFraction = 0.9
+                },
+                RowGroupColumnName = ""GroupId""
+            }";
+
+string OptionsInclude = "using Microsoft.ML.Trainers.LightGbm;";
+string Comments= @"
+        // This example requires installation of additional NuGet package
+        // <a href=""https://www.nuget.org/packages/Microsoft.ML.LightGbm/"">Microsoft.ML.LightGbm</a>.";
+
+string ExpectedOutputPerInstance = @"// Expected output:
+            //   Label: 5, Score: 0.05836755
+            //   Label: 1, Score: -0.06531862
+            //   Label: 3, Score: -0.004557075
+            //   Label: 3, Score: -0.009396422
+            //   Label: 1, Score: -0.05871891";
+
+string ExpectedOutput = @"// Expected output:
+            //   DCG: @1:28.83, @2:46.36, @3:56.18
+            //   NDCG: @1:0.69, @2:0.72, @3:0.74";
+#>

@@ -35,17 +35,7 @@ using Microsoft.ML.Transforms;
 namespace Microsoft.ML.Transforms
 {
     /// <summary>
-    /// Lp-Norm (vector/row-wise) normalization transform. Has the following two set of arguments:
-    /// 1- Lp-Norm normalizer arguments:
-    ///    Normalize rows individually by rescaling them to unit norm (L2, L1 or LInf).
-    ///    Performs the following operation on a vector X:
-    ///         Y = (X - M) / D, where M is mean and D is either L2 norm, L1 norm or LInf norm.
-    ///    Scaling inputs to unit norms is a common operation for text classification or clustering.
-    /// 2- Global contrast normalization (GCN) arguments:
-    ///    Performs the following operation on a vector X:
-    ///         Y = (s * X - M) / D, where s is a scale, M is mean and D is either L2 norm or standard deviation.
-    ///    Usage examples and Matlab code:
-    ///    <a href="https://www.cs.stanford.edu/~acoates/papers/coatesleeng_aistats_2011.pdf">https://www.cs.stanford.edu/~acoates/papers/coatesleeng_aistats_2011.pdf</a>.
+    /// <see cref="ITransformer"/> resulting from fitting a <see cref="LpNormNormalizingEstimator"/> or <see cref="GlobalContrastNormalizingEstimator"/>.
     /// </summary>
     public sealed class LpNormNormalizingTransformer : OneToOneTransformerBase
     {
@@ -641,7 +631,7 @@ namespace Microsoft.ML.Transforms
     }
 
     /// <summary>
-    /// Base estimator class for LpNorm and Gcn normalizers.
+    /// Base estimator class for <see cref="LpNormNormalizingEstimator"/> and <see cref="GlobalContrastNormalizingEstimator"/> normalizers.
     /// </summary>
     public abstract class LpNormNormalizingEstimatorBase : TrivialEstimator<LpNormNormalizingTransformer>
     {
@@ -805,8 +795,53 @@ namespace Microsoft.ML.Transforms
     }
 
     /// <summary>
-    /// Lp Normalizing estimator takes columns and normalizes them individually by rescaling them to unit norm.
+    /// Normalizes (scales) vectors in the input column to the unit norm. The type of norm that is used can be specified by the user.
     /// </summary>
+    /// <remarks>
+    /// <format type="text/markdown"><![CDATA[
+    ///
+    /// ###  Estimator Characteristics
+    /// |  |  |
+    /// | -- | -- |
+    /// | Does this estimator need to look at the data to train its parameters? | No |
+    /// | Input column data type | Vector of <xref:System.Single> |
+    /// | Output column data type | Vector of <xref:System.Single> |
+    ///
+    ///
+    /// The resulting <xref:Microsoft.ML.Transforms.LpNormNormalizingTransformer> normalizes vectors in the input column individually
+    /// by rescaling them to the unit norm.
+    ///
+    /// Let $x$ be the input vector, $n$ the size of the vector, $L(x)$ the norm function selected by the user.
+    /// Let $\mu(x) = \sum_i x_i / n$ be the mean of the values of vector $x$. The <xref:Microsoft.ML.Transforms.LpNormNormalizingTransformer>
+    /// performs the following operation on each input vector $x$:
+    ///
+    ///     $y = \frac{x - \mu(x)}{L(x)}$
+    ///
+    /// if the user specifies that the mean should be zero, or otherwise:
+    ///
+    ///     $y = \frac{x}{L(x)}$
+    ///
+    /// There are four types of norm that can be selected by the user to be applied on input vector $x$. They are defined as follows:
+    /// - <xref:Microsoft.ML.Transforms.LpNormNormalizingEstimatorBase.NormFunction.L1>
+    ///
+    ///     $L_1(x) = \sum_i |x_i|$
+    ///
+    /// - <xref:Microsoft.ML.Transforms.LpNormNormalizingEstimatorBase.NormFunction.L2>
+    ///
+    ///     $L_2(x) = \sqrt{\sum_i x_i^2}$
+    ///
+    /// - <xref:Microsoft.ML.Transforms.LpNormNormalizingEstimatorBase.NormFunction.Infinity>
+    ///
+    ///     $L_{\infty}(x) = \max_i\{|x_i|\}$
+    ///
+    /// - <xref:Microsoft.ML.Transforms.LpNormNormalizingEstimatorBase.NormFunction.StandardDeviation>
+    ///
+    ///     $L_\sigma(x)$ is defined as the standard deviation of the elements of the input vector $x$
+    ///
+    /// ]]>
+    /// </format>
+    /// </remarks>
+    /// <seealso cref="NormalizationCatalog.NormalizeLpNorm(TransformsCatalog, string, string, LpNormNormalizingEstimatorBase.NormFunction, bool)"/>
     public sealed class LpNormNormalizingEstimator : LpNormNormalizingEstimatorBase
     {
         /// <summary>
@@ -861,8 +896,31 @@ namespace Microsoft.ML.Transforms
     }
 
     /// <summary>
-    /// Global contrast normalizing estimator takes columns and performs global constrast normalization.
+    /// Normalizes (scales) vectors in the input column applying the global contrast normalization.
     /// </summary>
+    /// <remarks>
+    /// <format type="text/markdown"><![CDATA[
+    ///
+    /// ###  Estimator Characteristics
+    /// |  |  |
+    /// | -- | -- |
+    /// | Does this estimator need to look at the data to train its parameters? | No |
+    /// | Input column data type | Vector of <xref:System.Single> |
+    /// | Output column data type | Vector of <xref:System.Single> |
+    ///
+    ///
+    /// The resulting <xref:Microsoft.ML.Transforms.LpNormNormalizingTransformer> normalizes vectors in the input column individually,
+    /// rescaling them by applying global contrast normalization. The transform performs the following operation on each input vector $x$:
+    ///
+    ///     $y = \frac{s * x - \mu(x)}{L(x)}$
+    ///
+    /// Where $s$ is a user provided scaling factor, $\mu(x)$ is the mean of the elements of vector $x$, and $L(x)$ is the $L_2$ norm or the
+    /// standard deviation of the elements of vector $x$. These settings can be specified by the user when the
+    /// <xref:Microsoft.ML.Transforms.GlobalContrastNormalizingEstimator> is initialized.
+    /// ]]>
+    /// </format>
+    /// </remarks>
+    /// <seealso cref="NormalizationCatalog.NormalizeGlobalContrast(TransformsCatalog, string, string, bool, bool, float)"/>
     public sealed class GlobalContrastNormalizingEstimator : LpNormNormalizingEstimatorBase
     {
         /// <summary>

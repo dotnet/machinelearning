@@ -183,6 +183,10 @@ namespace Microsoft.ML.Functional.Tests
             Assert.InRange(metrics.NegativeRecall, 0, 1);
             Assert.InRange(metrics.PositivePrecision, 0, 1);
             Assert.InRange(metrics.PositiveRecall, 0, 1);
+
+            // Confusion matrix validations
+            Assert.NotNull(metrics.ConfusionMatrix);
+            AssertConfusionMatrix(metrics.ConfusionMatrix);
         }
 
         /// <summary>
@@ -195,6 +199,10 @@ namespace Microsoft.ML.Functional.Tests
             Assert.InRange(metrics.LogLoss, double.NegativeInfinity, 1);
             Assert.InRange(metrics.LogLossReduction, double.NegativeInfinity, 100);
             AssertMetrics(metrics as BinaryClassificationMetrics);
+
+            // Confusion matrix validations
+            Assert.NotNull(metrics.ConfusionMatrix);
+            AssertConfusionMatrix(metrics.ConfusionMatrix);
         }
 
         /// <summary>
@@ -219,6 +227,27 @@ namespace Microsoft.ML.Functional.Tests
             Assert.InRange(metrics.MicroAccuracy, 0, 1);
             Assert.True(metrics.LogLoss >= 0);
             Assert.InRange(metrics.TopKAccuracy, 0, 1);
+
+            // Confusion matrix validations
+            Assert.NotNull(metrics.ConfusionMatrix);
+            AssertConfusionMatrix(metrics.ConfusionMatrix);
+
+        }
+
+        internal static void AssertConfusionMatrix(ConfusionMatrix confusionMatrix)
+        {
+            // Confusion matrix validations
+            Assert.NotNull(confusionMatrix);
+            Assert.NotEmpty(confusionMatrix.Counts);
+            Assert.NotEmpty(confusionMatrix.PerClassPrecision);
+            Assert.NotEmpty(confusionMatrix.PerClassRecall);
+
+            foreach (var precision in confusionMatrix.PerClassPrecision)
+                Assert.InRange(precision, 0, 1);
+
+            foreach (var recall in confusionMatrix.PerClassRecall)
+                Assert.InRange(recall, 0, 1);
+
         }
 
         /// <summary>

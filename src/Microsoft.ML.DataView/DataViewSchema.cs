@@ -12,8 +12,8 @@ using Microsoft.ML.Data;
 namespace Microsoft.ML
 {
     /// <summary>
-    /// This class represents the <see cref="DataViewSchema"/> of an object like, for interstance, an <see cref="IDataView"/> or an <see cref="DataViewRow"/>.
-    /// On the high level, the schema is a collection of <see cref="DataViewSchema.Column"/>.
+    /// Represents the schema of an <see cref="IDataView"/> or an <see cref="DataViewRow"/>.
+    /// The schema is a collection of <see cref="DataViewSchema.Column"/>.
     /// </summary>
     [DebuggerTypeProxy(typeof(SchemaDebuggerProxy))]
     public sealed class DataViewSchema : IReadOnlyList<DataViewSchema.Column>
@@ -167,7 +167,7 @@ namespace Microsoft.ML
         }
 
         /// <summary>
-        /// The annotations of one <see cref="Column"/>.
+        /// The schema annotations of one <see cref="Column"/>.
         /// </summary>
         [DebuggerTypeProxy(typeof(AnnotationsDebuggerProxy))]
         public sealed class Annotations
@@ -188,7 +188,7 @@ namespace Microsoft.ML
             /// Create an annotations row by supplying the schema columns and the getter delegates for all the values.
             /// </summary>
             /// <remarks>
-            /// Note: The <paramref name="getters"/> array will be owned by this <see cref="Annotations"/> instance.
+            /// Note: The <paramref name="getters"/> array is owned by this <see cref="Annotations"/> instance.
             /// </remarks>
             internal Annotations(DataViewSchema schema, Delegate[] getters)
             {
@@ -251,7 +251,7 @@ namespace Microsoft.ML
             }
 
             /// <summary>
-            /// The class that incrementally builds an <see cref="Annotations"/>.
+            /// Class containing operations to build an <see cref="Annotations"/>.
             /// </summary>
             public sealed class Builder
             {
@@ -373,7 +373,7 @@ namespace Microsoft.ML
         }
 
         /// <summary>
-        /// The class that incrementally builds a <see cref="DataViewSchema"/>.
+        /// Class containing operations to build a <see cref="DataViewSchema"/>.
         /// </summary>
         public sealed class Builder
         {

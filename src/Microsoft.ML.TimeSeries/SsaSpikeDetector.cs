@@ -181,8 +181,23 @@ namespace Microsoft.ML.Transforms.TimeSeries
     }
 
     /// <summary>
-    /// The <see cref="IEstimator{ITransformer}"/> for detecting a signal spike through <a href="http://arxiv.org/pdf/1206.6910.pdf">Singular Spectrum Analysis (SSA)</a> of time series.
+    /// The <see cref="IEstimator{TTransformer}"/> to predict spikes in time series using Singular Spectrum Analysis.
     /// </summary>
+    /// <remarks>
+    /// <format type="text/markdown"><![CDATA[
+    /// To create this estimator, use [DetectSpikeBySsa](xref:Microsoft.ML.TimeSeriesCatalog.DetectSpikeBySsa(Microsoft.ML.TransformsCatalog,System.String,System.String,System.Int32,System.Int32,System.Int32,System.Int32,Microsoft.ML.Transforms.TimeSeries.AnomalySide,Microsoft.ML.Transforms.TimeSeries.ErrorFunction))
+    ///
+    /// [!include[io](~/../docs/samples/docs/api-reference/io-time-series-spike.md)]
+    ///
+    /// [!include[io](~/../docs/samples/docs/api-reference/time-series-props.md)]
+    ///
+    /// [!include[io](~/../docs/samples/docs/api-reference/time-series-ssa.md)]
+    ///
+    /// [!include[io](~/../docs/samples/docs/api-reference/time-series-scorer.md)]
+    /// ]]>
+    /// </format>
+    /// </remarks>
+    /// <seealso cref="Microsoft.ML.TimeSeriesCatalog.DetectSpikeBySsa(Microsoft.ML.TransformsCatalog,System.String,System.String,System.Int32,System.Int32,System.Int32,System.Int32,Microsoft.ML.Transforms.TimeSeries.AnomalySide,Microsoft.ML.Transforms.TimeSeries.ErrorFunction)" />
     public sealed class SsaSpikeEstimator : IEstimator<SsaSpikeDetector>
     {
         private readonly IHost _host;
