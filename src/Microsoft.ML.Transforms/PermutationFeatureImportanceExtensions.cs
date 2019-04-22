@@ -53,7 +53,7 @@ namespace Microsoft.ML
         /// <param name="catalog">The regression catalog.</param>
         /// <param name="predictionTransformer">The model on which to evaluate feature importance.</param>
         /// <param name="data">The evaluation data set.</param>
-        /// <param name="labelColumnName">Label column name.  The column data must be <see cref="System.Single"/>.</param>
+        /// <param name="labelColumnName">Label column name. The column data must be <see cref="System.Single"/>.</param>
         /// <param name="useFeatureWeightFilter">Use features weight to pre-filter features.</param>
         /// <param name="numberOfExamplesToUse">Limit the number of examples to evaluate on. <cref langword="null"/> means up to ~2 bln examples from <paramref param="data"/> will be used.</param>
         /// <param name="permutationCount">The number of permutations to perform.</param>
@@ -209,7 +209,7 @@ namespace Microsoft.ML
         /// <param name="catalog">The clustering catalog.</param>
         /// <param name="predictionTransformer">The model on which to evaluate feature importance.</param>
         /// <param name="data">The evaluation data set.</param>
-        /// <param name="labelColumnName">Label column name. The column data must be <see cref="System.UInt32"/>.</param>
+        /// <param name="labelColumnName">Label column name. The column data must be <see cref="KeyDataViewType"/>.</param>
         /// <param name="useFeatureWeightFilter">Use features weight to pre-filter features.</param>
         /// <param name="numberOfExamplesToUse">Limit the number of examples to evaluate on. <cref langword="null"/> means up to ~2 bln examples from <paramref param="data"/> will be used.</param>
         /// <param name="permutationCount">The number of permutations to perform.</param>
@@ -294,7 +294,7 @@ namespace Microsoft.ML
         /// <param name="catalog">The clustering catalog.</param>
         /// <param name="predictionTransformer">The model on which to evaluate feature importance.</param>
         /// <param name="data">The evaluation data set.</param>
-        /// <param name="labelColumnName">Label column name.  The column data must be <see cref="System.Single"/>.</param>
+        /// <param name="labelColumnName">Label column name. The column data must be <see cref="System.Single"/> or <see cref="KeyDataViewType"/>.</param>
         /// <param name="rowGroupColumnName">GroupId column name</param>
         /// <param name="useFeatureWeightFilter">Use features weight to pre-filter features.</param>
         /// <param name="numberOfExamplesToUse">Limit the number of examples to evaluate on. <cref langword="null"/> means up to ~2 bln examples from <paramref param="data"/> will be used.</param>
