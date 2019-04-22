@@ -127,7 +127,7 @@ namespace Microsoft.ML
         /// Create a <see cref="FastTreeRankingTrainer"/>, which ranks a series of inputs based on their relevancee, using a decision tree ranking model.
         /// </summary>
         /// <param name="catalog">The <see cref="RankingCatalog"/>.</param>
-        /// <param name="labelColumnName">The name of the label column. The column data must be <see cref="System.Single"/>.</param>
+        /// <param name="labelColumnName">The name of the label column. The column data must be <see cref="System.Single"/> or <see cref="KeyDataViewType"/>.</param>
         /// <param name="featureColumnName">The name of the feature column. The column data must be a known-sized vector of <see cref="System.Single"/>.</param>
         /// <param name="rowGroupColumnName">The name of the group column.</param>
         /// <param name="exampleWeightColumnName">The name of the example weight column (optional).</param>
