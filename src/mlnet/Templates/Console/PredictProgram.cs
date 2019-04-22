@@ -37,18 +37,19 @@ namespace Microsoft.ML.CLI.Templates.Console
 //*****************************************************************************************
 
 using System;
+using System.IO;
 using System.Linq;
 using Microsoft.ML;
 using ");
             
-            #line 17 "E:\src\machinelearning\src\mlnet\Templates\Console\PredictProgram.tt"
+            #line 18 "E:\src\machinelearning\src\mlnet\Templates\Console\PredictProgram.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(Namespace));
             
             #line default
             #line hidden
             this.Write(".Model.DataModels;\r\n\r\n\r\nnamespace ");
             
-            #line 20 "E:\src\machinelearning\src\mlnet\Templates\Console\PredictProgram.tt"
+            #line 21 "E:\src\machinelearning\src\mlnet\Templates\Console\PredictProgram.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(Namespace));
             
             #line default
@@ -57,35 +58,35 @@ using ");
                     "d and use for predictions\r\n        private const string MODEL_FILEPATH = @\"MLMod" +
                     "el.zip\";\r\n\r\n        //Dataset to use for predictions \r\n");
             
-            #line 28 "E:\src\machinelearning\src\mlnet\Templates\Console\PredictProgram.tt"
+            #line 29 "E:\src\machinelearning\src\mlnet\Templates\Console\PredictProgram.tt"
 if(string.IsNullOrEmpty(TestDataPath)){ 
             
             #line default
             #line hidden
             this.Write("        private const string DATA_FILEPATH = @\"");
             
-            #line 29 "E:\src\machinelearning\src\mlnet\Templates\Console\PredictProgram.tt"
+            #line 30 "E:\src\machinelearning\src\mlnet\Templates\Console\PredictProgram.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(TrainDataPath));
             
             #line default
             #line hidden
             this.Write("\";\r\n");
             
-            #line 30 "E:\src\machinelearning\src\mlnet\Templates\Console\PredictProgram.tt"
+            #line 31 "E:\src\machinelearning\src\mlnet\Templates\Console\PredictProgram.tt"
  } else{ 
             
             #line default
             #line hidden
             this.Write("        private const string DATA_FILEPATH = @\"");
             
-            #line 31 "E:\src\machinelearning\src\mlnet\Templates\Console\PredictProgram.tt"
+            #line 32 "E:\src\machinelearning\src\mlnet\Templates\Console\PredictProgram.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(TestDataPath));
             
             #line default
             #line hidden
             this.Write("\";\r\n");
             
-            #line 32 "E:\src\machinelearning\src\mlnet\Templates\Console\PredictProgram.tt"
+            #line 33 "E:\src\machinelearning\src\mlnet\Templates\Console\PredictProgram.tt"
  } 
             
             #line default
@@ -98,7 +99,7 @@ if(string.IsNullOrEmpty(TestDataPath)){
             // Training code used by ML.NET CLI and AutoML to generate the model
             //ModelBuilder.CreateModel();
 
-            ITransformer mlModel = mlContext.Model.Load(MODEL_FILEPATH, out DataViewSchema inputSchema);
+            ITransformer mlModel = mlContext.Model.Load(GetAbsolutePath(MODEL_FILEPATH), out DataViewSchema inputSchema);
             var predEngine = mlContext.Model.CreatePredictionEngine<SampleObservation, SamplePrediction>(mlModel);
 
             // Create sample data to do a single prediction with it 
@@ -109,42 +110,42 @@ if(string.IsNullOrEmpty(TestDataPath)){
 
 ");
             
-            #line 50 "E:\src\machinelearning\src\mlnet\Templates\Console\PredictProgram.tt"
+            #line 51 "E:\src\machinelearning\src\mlnet\Templates\Console\PredictProgram.tt"
 if("BinaryClassification".Equals(TaskType)){ 
             
             #line default
             #line hidden
             this.Write("            Console.WriteLine($\"Single Prediction --> Actual value: {sampleData.");
             
-            #line 51 "E:\src\machinelearning\src\mlnet\Templates\Console\PredictProgram.tt"
+            #line 52 "E:\src\machinelearning\src\mlnet\Templates\Console\PredictProgram.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(Utils.Normalize(LabelName)));
             
             #line default
             #line hidden
             this.Write("} | Predicted value: {predictionResult.Prediction}\");\r\n");
             
-            #line 52 "E:\src\machinelearning\src\mlnet\Templates\Console\PredictProgram.tt"
+            #line 53 "E:\src\machinelearning\src\mlnet\Templates\Console\PredictProgram.tt"
 }else if("Regression".Equals(TaskType)){
             
             #line default
             #line hidden
             this.Write("            Console.WriteLine($\"Single Prediction --> Actual value: {sampleData.");
             
-            #line 53 "E:\src\machinelearning\src\mlnet\Templates\Console\PredictProgram.tt"
+            #line 54 "E:\src\machinelearning\src\mlnet\Templates\Console\PredictProgram.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(Utils.Normalize(LabelName)));
             
             #line default
             #line hidden
             this.Write("} | Predicted value: {predictionResult.Score}\");\r\n");
             
-            #line 54 "E:\src\machinelearning\src\mlnet\Templates\Console\PredictProgram.tt"
+            #line 55 "E:\src\machinelearning\src\mlnet\Templates\Console\PredictProgram.tt"
 } else if("MulticlassClassification".Equals(TaskType)){
             
             #line default
             #line hidden
             this.Write("            Console.WriteLine($\"Single Prediction --> Actual value: {sampleData.");
             
-            #line 55 "E:\src\machinelearning\src\mlnet\Templates\Console\PredictProgram.tt"
+            #line 56 "E:\src\machinelearning\src\mlnet\Templates\Console\PredictProgram.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(Utils.Normalize(LabelName)));
             
             #line default
@@ -152,7 +153,7 @@ if("BinaryClassification".Equals(TaskType)){
             this.Write("} | Predicted value: {predictionResult.Prediction} | Predicted scores: [{String.J" +
                     "oin(\",\", predictionResult.Score)}]\");\r\n");
             
-            #line 56 "E:\src\machinelearning\src\mlnet\Templates\Console\PredictProgram.tt"
+            #line 57 "E:\src\machinelearning\src\mlnet\Templates\Console\PredictProgram.tt"
 }
             
             #line default
@@ -171,28 +172,28 @@ if("BinaryClassification".Equals(TaskType)){
                                             path: dataFilePath,
                                             hasHeader : ");
             
-            #line 69 "E:\src\machinelearning\src\mlnet\Templates\Console\PredictProgram.tt"
+            #line 70 "E:\src\machinelearning\src\mlnet\Templates\Console\PredictProgram.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(HasHeader.ToString().ToLowerInvariant()));
             
             #line default
             #line hidden
             this.Write(",\r\n                                            separatorChar : \'");
             
-            #line 70 "E:\src\machinelearning\src\mlnet\Templates\Console\PredictProgram.tt"
+            #line 71 "E:\src\machinelearning\src\mlnet\Templates\Console\PredictProgram.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(Regex.Escape(Separator.ToString())));
             
             #line default
             #line hidden
             this.Write("\',\r\n                                            allowQuoting : ");
             
-            #line 71 "E:\src\machinelearning\src\mlnet\Templates\Console\PredictProgram.tt"
+            #line 72 "E:\src\machinelearning\src\mlnet\Templates\Console\PredictProgram.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(AllowQuoting.ToString().ToLowerInvariant()));
             
             #line default
             #line hidden
             this.Write(",\r\n                                            allowSparse: ");
             
-            #line 72 "E:\src\machinelearning\src\mlnet\Templates\Console\PredictProgram.tt"
+            #line 73 "E:\src\machinelearning\src\mlnet\Templates\Console\PredictProgram.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(AllowSparse.ToString().ToLowerInvariant()));
             
             #line default
@@ -204,13 +205,23 @@ if("BinaryClassification".Equals(TaskType)){
                                                                         .First();
             return sampleForPrediction;
         }
+
+        public static string GetAbsolutePath(string relativePath)
+        {
+            FileInfo _dataRoot = new FileInfo(typeof(Program).Assembly.Location);
+            string assemblyFolderPath = _dataRoot.Directory.FullName;
+
+            string fullPath = Path.Combine(assemblyFolderPath, relativePath);
+
+            return fullPath;
+        }
     }
 }
 ");
             return this.GenerationEnvironment.ToString();
         }
         
-        #line 81 "E:\src\machinelearning\src\mlnet\Templates\Console\PredictProgram.tt"
+        #line 92 "E:\src\machinelearning\src\mlnet\Templates\Console\PredictProgram.tt"
 
 public string TaskType {get;set;}
 public string Namespace {get;set;}
