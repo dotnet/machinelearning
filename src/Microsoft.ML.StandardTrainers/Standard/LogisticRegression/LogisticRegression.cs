@@ -46,7 +46,7 @@ namespace Microsoft.ML.Trainers
     /// | Required NuGet in addition to Microsoft.ML | None |
     ///
     /// ### Scoring Function
-    /// Linear logistic regression is a variant of linear model. It maps feature vector $\mathbb{x} \in {\mathbb R}^n$ to a scalar via $\hat{y}\left(\mathbb{x}\right) = \mathbb{w}^T  \mathbb{x} + b = \sum_{j=1}^n w_j x_j + b$,
+    /// Linear logistic regression is a variant of linear model. It maps feature vector $\mathbb{x} \in {\mathcal R}^n$ to a scalar via $\hat{y}\left(\mathbb{x}\right) = \mathbb{w}^T  \mathbb{x} + b = \sum_{j=1}^n w_j x_j + b$,
     /// where the $x_j$ is the $j$-th feature's value, the $j$-th element of $\mathbb{w}$ is the $j$-th feature's coefficient, and $b$ is a learnable bias.
     /// The corresponding probability of getting a true label is $\frac{1}{1 + e^{\hat{y}\left(\mathbb{x}\right)}}$.
     ///

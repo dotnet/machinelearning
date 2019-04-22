@@ -64,8 +64,8 @@ namespace Microsoft.ML.Trainers
     /// See Section 1 in [this paper](https://www.csie.ntu.edu.tw/~cjlin/papers/maxent_dual.pdf) for a detailed introduction.
     ///
     /// Assume that the number of classes is $m$ and number of features is $n$.
-    /// Maximum entropy model assigns the $c$-th class a coefficient vector $\mathbb{w}_c \in {\mathbb R}^n$ and a bias $b_c \in {\mathbb R}$, for $c=1,\dots,m$.
-    /// Given a feature vector $\mathbb{x} \in {\mathbb R}^n$, the $c$-th class's score is $\hat{y}^c = \mathbb{w}_c^T \mathbb{x} + b_c$.
+    /// Maximum entropy model assigns the $c$-th class a coefficient vector $\mathbb{w}_c \in {\mathcal R}^n$ and a bias $b_c \in {\mathcal R}$, for $c=1,\dots,m$.
+    /// Given a feature vector $\mathbb{x} \in {\mathcal R}^n$, the $c$-th class's score is $\hat{y}^c = \mathbb{w}_c^T \mathbb{x} + b_c$.
     /// The probability of $\mathbb{x}$ belonging to class $c$ is defined by $\tilde{P}(c|\mathbb{x}) = \frac{ e^{\hat{y}^c} }{ \sum_{c' = 1}^m e^{\hat{y}^{c'}} }$.
     /// Let $P(c, \mathbb{x})$ denote the join probability of seeing $c$ and $\mathbb{x}$.
     /// The loss function minimized by this trainer is $-\sum_{c = 1}^m P(c, \mathbb{x}) \log \tilde{P}(c|\mathbb{x}) $, which is the negative [log-likelihood function](https://en.wikipedia.org/wiki/Likelihood_function#Log-likelihood).
