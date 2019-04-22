@@ -102,7 +102,7 @@ namespace Microsoft.ML.Auto
         }
 
         /// <summary>
-        /// Creates a new AutoML experiment to run on a binary classification dataset.
+        /// Creates a new AutoML experiment to run on a multiclass classification dataset.
         /// </summary>
         /// <param name="experimentSettings">Settings for the AutoML experiment.</param>
         /// <returns>A new AutoML multiclass classification experiment.</returns>
