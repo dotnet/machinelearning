@@ -256,21 +256,21 @@ if("Regression".Equals(TaskType)){
                     "s)\r\n        {\r\n            var L1 = crossValidationResults.Select(r => r.Metrics" +
                     ".MeanAbsoluteError);\r\n            var L2 = crossValidationResults.Select(r => r." +
                     "Metrics.MeanSquaredError);\r\n            var RMS = crossValidationResults.Select(" +
-                    "r => r.Metrics.MeanAbsoluteError);\r\n            var lossFunction = crossValidati" +
-                    "onResults.Select(r => r.Metrics.LossFunction);\r\n            var R2 = crossValida" +
-                    "tionResults.Select(r => r.Metrics.RSquared);\r\n\r\n            Console.WriteLine($\"" +
-                    "********************************************************************************" +
-                    "*****************************\");\r\n            Console.WriteLine($\"*       Metric" +
-                    "s for Regression model      \");\r\n            Console.WriteLine($\"*--------------" +
+                    "r => r.Metrics.RootMeanSquaredError);\r\n            var lossFunction = crossValid" +
+                    "ationResults.Select(r => r.Metrics.LossFunction);\r\n            var R2 = crossVal" +
+                    "idationResults.Select(r => r.Metrics.RSquared);\r\n\r\n            Console.WriteLine" +
+                    "($\"*****************************************************************************" +
+                    "********************************\");\r\n            Console.WriteLine($\"*       Met" +
+                    "rics for Regression model      \");\r\n            Console.WriteLine($\"*-----------" +
                     "--------------------------------------------------------------------------------" +
-                    "--------------\");\r\n            Console.WriteLine($\"*       Average L1 Loss:    {" +
-                    "L1.Average():0.###} \");\r\n            Console.WriteLine($\"*       Average L2 Loss" +
-                    ":    {L2.Average():0.###}  \");\r\n            Console.WriteLine($\"*       Average " +
-                    "RMS:          {RMS.Average():0.###}  \");\r\n            Console.WriteLine($\"*     " +
-                    "  Average Loss Function: {lossFunction.Average():0.###}  \");\r\n            Consol" +
-                    "e.WriteLine($\"*       Average R-squared: {R2.Average():0.###}  \");\r\n            " +
-                    "Console.WriteLine($\"************************************************************" +
-                    "*************************************************\");\r\n        }\r\n");
+                    "-----------------\");\r\n            Console.WriteLine($\"*       Average L1 Loss:  " +
+                    "     {L1.Average():0.###} \");\r\n            Console.WriteLine($\"*       Average L" +
+                    "2 Loss:       {L2.Average():0.###}  \");\r\n            Console.WriteLine($\"*      " +
+                    " Average RMS:           {RMS.Average():0.###}  \");\r\n            Console.WriteLin" +
+                    "e($\"*       Average Loss Function: {lossFunction.Average():0.###}  \");\r\n        " +
+                    "    Console.WriteLine($\"*       Average R-squared:     {R2.Average():0.###}  \");" +
+                    "\r\n            Console.WriteLine($\"**********************************************" +
+                    "***************************************************************\");\r\n        }\r\n");
  } if("BinaryClassification".Equals(TaskType)){ 
             this.Write("        public static void PrintBinaryClassificationMetrics(BinaryClassificationM" +
                     "etrics metrics)\r\n        {\r\n            Console.WriteLine($\"********************" +

@@ -119,18 +119,18 @@ namespace TestNamespace.ConsoleApp
         {
             var L1 = crossValidationResults.Select(r => r.Metrics.MeanAbsoluteError);
             var L2 = crossValidationResults.Select(r => r.Metrics.MeanSquaredError);
-            var RMS = crossValidationResults.Select(r => r.Metrics.MeanAbsoluteError);
+            var RMS = crossValidationResults.Select(r => r.Metrics.RootMeanSquaredError);
             var lossFunction = crossValidationResults.Select(r => r.Metrics.LossFunction);
             var R2 = crossValidationResults.Select(r => r.Metrics.RSquared);
 
             Console.WriteLine($"*************************************************************************************************************");
             Console.WriteLine($"*       Metrics for Regression model      ");
             Console.WriteLine($"*------------------------------------------------------------------------------------------------------------");
-            Console.WriteLine($"*       Average L1 Loss:    {L1.Average():0.###} ");
-            Console.WriteLine($"*       Average L2 Loss:    {L2.Average():0.###}  ");
-            Console.WriteLine($"*       Average RMS:          {RMS.Average():0.###}  ");
+            Console.WriteLine($"*       Average L1 Loss:       {L1.Average():0.###} ");
+            Console.WriteLine($"*       Average L2 Loss:       {L2.Average():0.###}  ");
+            Console.WriteLine($"*       Average RMS:           {RMS.Average():0.###}  ");
             Console.WriteLine($"*       Average Loss Function: {lossFunction.Average():0.###}  ");
-            Console.WriteLine($"*       Average R-squared: {R2.Average():0.###}  ");
+            Console.WriteLine($"*       Average R-squared:     {R2.Average():0.###}  ");
             Console.WriteLine($"*************************************************************************************************************");
         }
     }

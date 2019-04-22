@@ -5,6 +5,7 @@
 //*****************************************************************************************
 
 using System;
+using System.IO;
 using System.Linq;
 using Microsoft.ML;
 using TestNamespace.Model.DataModels;
@@ -27,7 +28,7 @@ namespace TestNamespace.ConsoleApp
             // Training code used by ML.NET CLI and AutoML to generate the model
             //ModelBuilder.CreateModel();
 
-            ITransformer mlModel = mlContext.Model.Load(MODEL_FILEPATH, out DataViewSchema inputSchema);
+            ITransformer mlModel = mlContext.Model.Load(GetAbsolutePath(MODEL_FILEPATH), out DataViewSchema inputSchema);
             var predEngine = mlContext.Model.CreatePredictionEngine<SampleObservation, SamplePrediction>(mlModel);
 
             // Create sample data to do a single prediction with it 
@@ -58,6 +59,16 @@ namespace TestNamespace.ConsoleApp
             SampleObservation sampleForPrediction = mlContext.Data.CreateEnumerable<SampleObservation>(dataView, false)
                                                                         .First();
             return sampleForPrediction;
+        }
+
+        public static string GetAbsolutePath(string relativePath)
+        {
+            FileInfo _dataRoot = new FileInfo(typeof(Program).Assembly.Location);
+            string assemblyFolderPath = _dataRoot.Directory.FullName;
+
+            string fullPath = Path.Combine(assemblyFolderPath, relativePath);
+
+            return fullPath;
         }
     }
 }
