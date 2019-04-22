@@ -1,5 +1,5 @@
 ### Input and Output Columns
-The input label column data must be <xref:System.Single> or [key-typed](xref:Microsoft.ML.Data.KeyDataViewType). and input group column
+The input label column data must be <xref:System.Single> or [key-typed](xref:Microsoft.ML.Data.KeyDataViewType). and input row group column
 data must be <xref:System.UInt32>. This trainer outputs the following columns:
 
 | Output Column Name | Column Type | Description|
