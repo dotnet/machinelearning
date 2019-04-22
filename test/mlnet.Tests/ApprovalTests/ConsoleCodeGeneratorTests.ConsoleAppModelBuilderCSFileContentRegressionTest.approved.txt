@@ -119,7 +119,7 @@ namespace TestNamespace.ConsoleApp
         {
             var L1 = crossValidationResults.Select(r => r.Metrics.MeanAbsoluteError);
             var L2 = crossValidationResults.Select(r => r.Metrics.MeanSquaredError);
-            var RMS = crossValidationResults.Select(r => r.Metrics.MeanAbsoluteError);
+            var RMS = crossValidationResults.Select(r => r.Metrics.RootMeanSquaredError);
             var lossFunction = crossValidationResults.Select(r => r.Metrics.LossFunction);
             var R2 = crossValidationResults.Select(r => r.Metrics.RSquared);
 
