@@ -179,7 +179,7 @@ namespace Microsoft.ML
         /// </summary>
         /// <param name="catalog">The <see cref="MulticlassClassificationCatalog"/>.</param>
         /// <param name="labelColumnName">The name of the label column. The column data must be <see cref="KeyDataViewType"/>.</param>
-        /// <param name="featureColumnName">The name of the feature column. The column data must be <see cref="System.Single"/>.</param>
+        /// <param name="featureColumnName">The name of the feature column. The column data must be a known-sized vector of <see cref="System.Single"/>.</param>
         /// <param name="exampleWeightColumnName">The name of the example weight column (optional).</param>
         /// <param name="numberOfLeaves">The maximum number of leaves in one tree.</param>
         /// <param name="minimumExampleCountPerLeaf">The minimal number of data points required to form a new tree leaf.</param>
