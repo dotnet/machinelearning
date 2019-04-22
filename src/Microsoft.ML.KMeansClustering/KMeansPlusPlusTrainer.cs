@@ -26,7 +26,38 @@ using Microsoft.ML.Trainers;
 
 namespace Microsoft.ML.Trainers
 {
-    /// <include file='./doc.xml' path='doc/members/member[@name="KMeans++"]/*' />
+    /// <summary>
+    /// The <see cref="IEstimator{TTransformer}"/> for training a KMeans clusterer
+    /// </summary>
+    /// <remarks>
+    /// <format type="text/markdown"><![CDATA[
+    /// To create this trainer, use [KMeansTrainer](xref:Microsoft.ML.Trainers.KMeansTrainer).
+    ///
+    /// [!include[io](~/../docs/samples/docs/api-reference/io-columns-clustering.md)]
+    ///
+    /// ### Trainer Characteristics
+    /// |  |  |
+    /// | -- | -- |
+    /// | Machine learning task | Clustering |
+    /// | Is normalization required? | Yes |
+    /// | Is caching required? | Yes |
+    /// | Required NuGet in addition to Microsoft.ML | None |
+    ///
+    /// ### Training Algorithm Details
+    /// K-means is a popular clustering algorithm. With K-means, the data is clustered into a specified
+    /// number of clusters in order to minimize the within-cluster sum of squares.
+    /// K-means++ improves upon K-means by using the [Yinyang K-Means](https://research.microsoft.com/apps/pubs/default.aspx?id=252149)
+    /// method for choosing the initial cluster centers.
+    /// K-Means++ accelerates K-Means up to an order of magnitude while producing exactly the same clustering results(modulo floating point precision issues).
+    /// K-Means++ observes that there is a lot of redundancy across iterations in the KMeans algorithms and most points do not change their clusters during an iteration.
+    /// It uses various bounding techniques to identify this redundancy and eliminate many distance computations and optimize centroid computations.
+    /// For more information on K-means, and K-means++ see:
+    /// [K-means](https://en.wikipedia.org/wiki/K-means_clustering)
+    /// [K-means++](https://en.wikipedia.org/wiki/K-means%2b%2b)
+    /// ]]>
+    /// </format>
+    /// </remarks>
+    /// <seealso cref="Microsoft.ML.Trainers.KMeansTrainer" />
     public class KMeansTrainer : TrainerEstimatorBase<ClusteringPredictionTransformer<KMeansModelParameters>, KMeansModelParameters>
     {
         internal const string LoadNameValue = "KMeansPlusPlus";
@@ -50,6 +81,10 @@ namespace Microsoft.ML.Trainers
             public const int NumberOfClusters = 5;
         }
 
+        /// <summary>
+        /// Options for the <see cref="KMeansTrainer"/> as used in
+        /// [KMeansTrainer(Options)](xref:"Microsoft.ML.KMeansClusteringExtensions.KMeans(Microsoft.ML.ClusteringCatalog.ClusteringTrainers,Microsoft.ML.Trainers.KMeansTrainer.Options)".
+        /// </summary>
         public sealed class Options : UnsupervisedTrainerInputBaseWithWeight
         {
             /// <summary>

@@ -6,6 +6,9 @@ using Microsoft.ML.Data;
 
 namespace Microsoft.ML
 {
+    /// <summary>
+    /// Class used to load data from one or more files.
+    /// </summary>
     public static class DataLoaderExtensions
     {
         /// <summary>

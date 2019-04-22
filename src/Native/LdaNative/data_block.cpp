@@ -3,17 +3,21 @@
 // See the LICENSE file in the project root for more information.
 
 #include <iostream>
+#include <stdexcept>
+#include <limits>
 #include "data_block.h"
 #include "lda_document.h"
 
 namespace lda
 {
-    LDADataBlock::LDADataBlock(int32_t num_threads) : 
+    using namespace std;
+
+    LDADataBlock::LDADataBlock(int32_t num_threads) :
         num_threads_(num_threads), has_read_(false), index_document_(0), documents_buffer_(nullptr), offset_buffer_(nullptr)
     {
     }
 
-    LDADataBlock::~LDADataBlock() 
+    LDADataBlock::~LDADataBlock()
     {
         if (has_read_)
         {
@@ -46,7 +50,13 @@ namespace lda
     void LDADataBlock::Allocate(const int32_t num_document, const int64_t corpus_size)
     {
         num_documents_ = num_document;
-        corpus_size_ = corpus_size;
+
+        if (corpus_size < 0 || static_cast<uint64_t>(corpus_size) > numeric_limits<size_t>::max())
+            throw bad_alloc();
+        corpus_size_ = static_cast<size_t>(corpus_size);
+
+        if (num_documents_ < 0 || static_cast<uint64_t>(num_documents_) >(numeric_limits<size_t>::max() - 1))
+            throw bad_alloc();
 
         offset_buffer_ = new int64_t[num_documents_ + 1]; // +1: one for the end of last document,
         documents_buffer_ = new int32_t[corpus_size_];
@@ -86,7 +96,7 @@ namespace lda
     int LDADataBlock::AddDense(int32_t* term_freq, int32_t term_num)
     {
         int64_t data_length = 1;
-        
+
         int64_t idx = offset_buffer_[index_document_] + 1;
         for (int i = 0; i < term_num; ++i)
         {

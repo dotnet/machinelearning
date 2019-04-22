@@ -28,12 +28,30 @@ namespace Microsoft.ML.Trainers
     /// The <see cref="IEstimator{TTransformer}"/> for training a Poisson regression model.
     /// </summary>
     /// <remarks>
-    /// <a href='https://en.wikipedia.org/wiki/Poisson_regression'>Poisson regression</a> is a parameterized regression method.
+    /// <format type="text/markdown"><![CDATA[
+    /// To create this trainer, use [LbfgsPoissonRegression](xref:Microsoft.ML.StandardTrainersCatalog.LbfgsPoissonRegression(Microsoft.ML.RegressionCatalog.RegressionTrainers,System.String,System.String,System.String,System.Single,System.Single,System.Single,System.Int32,System.Boolean))
+    /// or [LbfgsPoissonRegression(Options)](xref:Microsoft.ML.StandardTrainersCatalog.LbfgsPoissonRegression(Microsoft.ML.RegressionCatalog.RegressionTrainers,Microsoft.ML.Trainers.LbfgsPoissonRegressionTrainer.Options)).
+    ///
+    /// [!include[io](~/../docs/samples/docs/api-reference/io-columns-regression.md)]
+    ///
+    /// ### Trainer Characteristics
+    /// |  |  |
+    /// | -- | -- |
+    /// | Machine learning task | Regression |
+    /// | Is normalization required? | Yes |
+    /// | Is caching required? | No |
+    /// | Required NuGet in addition to Microsoft.ML | None |
+    ///
+    /// ### Training Algorithm Details
+    /// [Poisson regression](https://en.wikipedia.org/wiki/Poisson_regression) is a parameterized regression method.
     /// It assumes that the log of the conditional mean of the dependent variable follows a linear function of the dependent variables.
     /// Assuming that the dependent variable follows a Poisson distribution, the regression parameters can be estimated by maximizing the likelihood of the obtained observations.
+    /// ]]>
+    /// </format>
     /// </remarks>
     /// <seealso cref="StandardTrainersCatalog.LbfgsPoissonRegression(RegressionCatalog.RegressionTrainers, string, string, string, float, float, float, int, bool)"/>
-    /// <seealso cref="StandardTrainersCatalog.LbfgsPoissonRegression(RegressionCatalog.RegressionTrainers, Options)"/>
+    /// <seealso cref="StandardTrainersCatalog.LbfgsPoissonRegression(RegressionCatalog.RegressionTrainers, LbfgsPoissonRegressionTrainer.Options)"/>
+    /// <seealso cref="Options"/>
     public sealed class LbfgsPoissonRegressionTrainer : LbfgsTrainerBase<LbfgsPoissonRegressionTrainer.Options, RegressionPredictionTransformer<PoissonRegressionModelParameters>, PoissonRegressionModelParameters>
     {
         internal const string LoadNameValue = "PoissonRegression";
@@ -42,7 +60,8 @@ namespace Microsoft.ML.Trainers
         internal const string Summary = "Poisson Regression assumes the unknown function, denoted Y has a Poisson distribution.";
 
         /// <summary>
-        /// Options for the <see cref="LbfgsPoissonRegressionTrainer"/>.
+        /// Options for the <see cref="LbfgsPoissonRegressionTrainer"/> as used in
+        /// [LbfgsPoissonRegression(Options)](xref:Microsoft.ML.StandardTrainersCatalog.LbfgsPoissonRegression(Microsoft.ML.RegressionCatalog.RegressionTrainers,Microsoft.ML.Trainers.LbfgsPoissonRegressionTrainer.Options)).
         /// </summary>
         public sealed class Options : OptionsBase
         {

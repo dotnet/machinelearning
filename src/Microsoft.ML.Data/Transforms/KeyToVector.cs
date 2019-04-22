@@ -31,7 +31,7 @@ using Newtonsoft.Json.Linq;
 namespace Microsoft.ML.Transforms
 {
     /// <summary>
-    /// Converts the key types back to their original vectors.
+    /// <see cref="ITransformer"/> resulting from fitting a <see cref="KeyToVectorMappingEstimator"/>.
     /// </summary>
     public sealed class KeyToVectorMappingTransformer : OneToOneTransformerBase
     {
@@ -305,7 +305,7 @@ namespace Microsoft.ML.Transforms
                     typeNames = null;
                 }
 
-                if (_parent._columns[iinfo].OutputCountVector || srcValueCount == 1)
+                if (_parent._columns[iinfo].OutputCountVector || srcType is PrimitiveDataViewType)
                 {
                     if (typeNames != null)
                     {
@@ -336,7 +336,7 @@ namespace Microsoft.ML.Transforms
                     builder.Add(AnnotationUtils.Kinds.CategoricalSlotRanges, AnnotationUtils.GetCategoricalType(srcValueCount), getter);
                 }
 
-                if (!_parent._columns[iinfo].OutputCountVector || srcValueCount == 1)
+                if (!_parent._columns[iinfo].OutputCountVector || srcType is PrimitiveDataViewType)
                 {
                     ValueGetter<bool> getter = (ref bool dst) =>
                     {
@@ -725,6 +725,22 @@ namespace Microsoft.ML.Transforms
     /// <summary>
     /// Estimator for <see cref="KeyToVectorMappingTransformer"/>. Converts the key types back to their original vectors.
     /// </summary>
+    /// <summary>
+    /// Utilizes KeyValues <see cref="AnnotationInfo"/> of the input column, to map keys to a vector representing the original value.
+    /// Maps zero values of the <see cref="KeyDataViewType"/> are mapped to the <see langword="default"/> value of the output type.
+    /// </summary>
+    /// <remarks>
+    /// <format type="text/markdown"><![CDATA[
+    ///
+    /// ###  Estimator Characteristics
+    /// |  |  |
+    /// | -- | -- |
+    /// | Does this estimator need to look at the data to train its parameters? | No |
+    /// | Input column data type | [key](xref:Microsoft.Ml.Data.KeyDataViewType) |
+    /// | Output column data type | A vector of [System.Single](xref:System.Single). |
+    ///
+    /// ]]></format>
+    /// </remarks>
     public sealed class KeyToVectorMappingEstimator : TrivialEstimator<KeyToVectorMappingTransformer>
     {
         internal static class Defaults

@@ -10,11 +10,30 @@ using Microsoft.ML.Runtime;
 
 namespace Microsoft.ML.Transforms.Text
 {
-
     /// <summary>
-    /// Produces a bag of counts of ngrams (sequences of consecutive words) in a given text.
-    /// It does so by building a dictionary of ngrams and using the id in the dictionary as the index in the bag.
+    /// <see cref="IEstimator{TTransformer}"/> for the <see cref="ITransformer"/>.
     /// </summary>
+    /// <remarks>
+    /// <format type="text/markdown"><![CDATA[
+    /// ###  Estimator Characteristics
+    /// |  |  |
+    /// | -- | -- |
+    /// | Does this estimator need to look at the data to train its parameters? | Yes |
+    /// | Input column data type | Vector of [Text](xref:Microsoft.ML.Data.TextDataViewType) |
+    /// | Output column data type | Vector of known-size of <xref:System.Single> |
+    ///
+    /// The resulting <xref:Microsoft.ML.ITransformer> creates a new column, named as specified in the output column name parameters, and
+    /// produces a vector of n-gram counts (sequences of n consecutive words) from a given data.
+    /// It does so by building a dictionary of ngrams and using the id in the dictionary as the index in the bag.
+    ///
+    /// <xref:Microsoft.ML.Transforms.Text.WordBagEstimator> is different from <xref:Microsoft.ML.Transforms.Text.NgramExtractingEstimator>
+    /// in that the former takes tokenizes text internally while the latter takes tokenized text as input.
+    /// See the See Also section for links to examples of the usage.
+    /// ]]>
+    /// </format>
+    /// </remarks>
+    /// <seealso cref="TextCatalog.ProduceWordBags(TransformsCatalog.TextTransforms, string, string, int, int, bool, int, NgramExtractingEstimator.WeightingCriteria)" />
+    /// <seealso cref="TextCatalog.ProduceWordBags(TransformsCatalog.TextTransforms, string, string[], int, int, bool, int, NgramExtractingEstimator.WeightingCriteria)" />
     public sealed class WordBagEstimator : IEstimator<ITransformer>
     {
         private readonly IHost _host;
@@ -182,9 +201,29 @@ namespace Microsoft.ML.Transforms.Text
     }
 
     /// <summary>
-    /// Produces a bag of counts of ngrams (sequences of consecutive words of length 1-n) in a given text.
-    /// It does so by hashing each ngram and using the hash value as the index in the bag.
+    /// <see cref="IEstimator{TTransformer}"/> for the <see cref="ITransformer"/>.
     /// </summary>
+    /// <remarks>
+    /// <format type="text/markdown"><![CDATA[
+    /// ###  Estimator Characteristics
+    /// |  |  |
+    /// | -- | -- |
+    /// | Does this estimator need to look at the data to train its parameters? | Yes |
+    /// | Input column data type | Vector of [Text](xref:Microsoft.ML.Data.TextDataViewType) |
+    /// | Output column data type | Vector of known-size of <xref:System.Single> |
+    ///
+    /// The resulting <xref:Microsoft.ML.ITransformer> creates a new column, named as specified in the output column name parameters, and
+    /// produces a vector of n-gram counts (sequences of n consecutive words) from a given data.
+    /// It does so by hashing each ngram and using the hash value as the index in the bag.
+    ///
+    /// <xref:Microsoft.ML.Transforms.Text.WordHashBagEstimator> is different from <xref:Microsoft.ML.Transforms.Text.NgramHashingEstimator>
+    /// in that the former takes tokenizes text internally while the latter takes tokenized text as input.
+    /// See the See Also section for links to examples of the usage.
+    /// ]]>
+    /// </format>
+    /// </remarks>
+    /// <seealso cref="TextCatalog.ProduceHashedWordBags(TransformsCatalog.TextTransforms, string, string, int, int, int, bool, uint, bool, int)" />
+    /// <seealso cref="TextCatalog.ProduceHashedWordBags(TransformsCatalog.TextTransforms, string, string[], int, int, int, bool, uint, bool, int)" />
     public sealed class WordHashBagEstimator : IEstimator<ITransformer>
     {
         private readonly IHost _host;

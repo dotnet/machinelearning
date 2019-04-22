@@ -26,6 +26,43 @@ using Newtonsoft.Json.Linq;
 
 namespace Microsoft.ML.Transforms
 {
+    /// <summary>
+    /// <see cref="IEstimator{TTransformer}"/> for the <see cref="NormalizingTransformer"/>.
+    /// </summary>
+    /// <remarks>
+    /// <format type="text/markdown"><![CDATA[
+    ///
+    /// ###  Estimator Characteristics
+    /// |  |  |
+    /// | -- | -- |
+    /// | Does this estimator need to look at the data to train its parameters? | Yes |
+    /// | Input column data type | <xref:System.Single> or <xref:System.Double> or a known-sized vector of those types. |
+    /// | Output column data type | The same data type as the input column |
+    ///
+    /// The resulting NormalizingEstimator will normalize the data in one of the following ways based upon how it was created:
+    /// * Min Max - A linear rescale that is based upon the minimum and maximum values for each row.
+    /// * Mean Variance - Rescale each row to unit variance and, optionally, zero mean.
+    /// * Log Mean Variance - Rescale each row to unit variance based on a log scale.
+    /// * Binning - Bucketizes the data in each row and performs a linear rescale based on the calculated bins.
+    /// * Supervised Binning - Bucketize the data in each row and performas a linear rescale based on the calculated bins. The bin calculation is based on correlation of the Label column.
+    ///
+    /// ### Estimator Details
+    /// The interval of the normalized data depends on whether fixZero is specified or not. fixZero defaults to true.
+    /// When fixZero is false, the normalized interval is $[0,1]$ and the distribution of the normalized values depends on the normalization mode. For example, with Min Max, the minimum
+    /// and maximum values are mapped to 0 and 1 respectively and remaining values fall in between.
+    /// When fixZero is set, the normalized interval is $[-1,1]$ with the distribution of the normalized values depending on the normalization mode, but the behavior is different.
+    /// With Min Max, the distribution depends on how far away the number is from 0, resulting in the number with the largest distance being mapped to 1 if its a positive number
+    /// or -1 if its a negative number. The distance from 0 will affect the distribution with a majority of numbers that are closer together normalizing towards 0.
+    ///
+    /// To create this estimator use one of the following:
+    /// * [NormalizeMinMax](xref:Microsoft.ML.NormalizationCatalog.NormalizeMinMax(Microsoft.ML.TransformsCatalog, System.String, System.String, System.Int64, System.Boolean))
+    /// * [NormalizeMeanVariance](xref:Microsoft.ML.NormalizationCatalog.NormalizeMeanVariance(Microsoft.ML.TransformsCatalog,System.String,System.String,System.Int64,System.Boolean,System.Boolean))
+    /// * [NormalizeLogMeanVariance](xref:Microsoft.ML.NormalizationCatalog.NormalizeLogMeanVariance(Microsoft.ML.TransformsCatalog,System.String,System.String,System.Int64,System.Boolean))
+    /// * [NormalizeBinning](xref:Microsoft.ML.NormalizationCatalog.NormalizeBinning(Microsoft.ML.TransformsCatalog,System.String,System.String,System.Int64,System.Boolean,System.Int32))
+    /// * [NormalizeSupervisedBinning](xref:Microsoft.ML.NormalizationCatalog.NormalizeSupervisedBinning(Microsoft.ML.TransformsCatalog,System.String,System.String,System.String,System.Int64,System.Boolean,System.Int32,System.Int32))
+    /// ]]>
+    /// </format>
+    /// </remarks>
     public sealed class NormalizingEstimator : IEstimator<NormalizingTransformer>
     {
         [BestFriend]
@@ -284,6 +321,9 @@ namespace Microsoft.ML.Transforms
         }
     }
 
+    /// <summary>
+    /// <see cref="ITransformer"/> resulting from fitting an <see cref="NormalizingEstimator"/>.
+    /// </summary>
     public sealed partial class NormalizingTransformer : OneToOneTransformerBase
     {
         internal const string LoaderSignature = "Normalizer";

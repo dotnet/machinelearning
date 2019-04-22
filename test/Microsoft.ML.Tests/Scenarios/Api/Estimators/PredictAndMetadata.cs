@@ -67,5 +67,68 @@ namespace Microsoft.ML.Tests.Scenarios.Api
                 Assert.True(deciphieredLabel == input.Label);
             }
         }
+
+        [Fact]
+        void MulticlassConfusionMatrixSlotNames()
+        {
+            var mlContext = new MLContext(seed: 1);
+
+            var dataPath = GetDataPath(TestDatasets.irisData.trainFilename);
+            var data = mlContext.Data.LoadFromTextFile<IrisData>(dataPath, separatorChar: ',');
+
+            var pipeline = mlContext.Transforms.Concatenate("Features", "SepalLength", "SepalWidth", "PetalLength", "PetalWidth")
+                .Append(mlContext.Transforms.Conversion.MapValueToKey("Label"))
+                .Append(mlContext.MulticlassClassification.Trainers.SdcaMaximumEntropy(
+                    new SdcaMaximumEntropyMulticlassTrainer.Options { MaximumNumberOfIterations = 100, Shuffle = true, NumberOfThreads = 1, }));
+
+            var model = pipeline.Fit(data);
+
+            // Evaluate the model.
+            var scoredData = model.Transform(data);
+            var metrics = mlContext.MulticlassClassification.Evaluate(scoredData);
+
+            // Check that the SlotNames column is there. 
+            Assert.NotNull(scoredData.Schema["Score"].Annotations.Schema.GetColumnOrNull(AnnotationUtils.Kinds.SlotNames));
+
+            //Assert that the confusion matrix has the class names, in the Annotations of the Count column
+            Assert.Equal("Iris-setosa", metrics.ConfusionMatrix.PredictedClassesIndicators[0].ToString());
+            Assert.Equal("Iris-versicolor", metrics.ConfusionMatrix.PredictedClassesIndicators[1].ToString());
+            Assert.Equal("Iris-virginica", metrics.ConfusionMatrix.PredictedClassesIndicators[2].ToString());
+
+            var dataReader = mlContext.Data.CreateTextLoader(
+                columns: new[]
+                    {
+                        new TextLoader.Column("Label", DataKind.Single, 0), //notice the label being loaded as a float
+                        new TextLoader.Column("Features", DataKind.Single, new[]{ new TextLoader.Range(1,4) })
+                    },
+                hasHeader: false,
+                separatorChar: '\t'
+            );
+
+            var dataPath2 = GetDataPath(TestDatasets.iris.trainFilename);
+            var data2 = dataReader.Load(dataPath2);
+
+            var singleTrainer = mlContext.BinaryClassification.Trainers.FastTree();
+
+            // Create a training pipeline.
+            var pipelineUnamed = mlContext.Transforms.Conversion.MapValueToKey("Label")
+                .Append(mlContext.MulticlassClassification.Trainers.OneVersusAll(singleTrainer));
+
+            // Train the model.
+            var model2 = pipelineUnamed.Fit(data2);
+
+            // Evaluate the model.
+            var scoredData2 = model2.Transform(data2);
+            var metrics2 = mlContext.MulticlassClassification.Evaluate(scoredData2);
+
+            // Check that the SlotNames column is not there. 
+            Assert.Null(scoredData2.Schema["Score"].Annotations.Schema.GetColumnOrNull(AnnotationUtils.Kinds.SlotNames));
+            
+            //Assert that the confusion matrix has just ints, as class indicators, in the Annotations of the Count column
+            Assert.Equal("0", metrics2.ConfusionMatrix.PredictedClassesIndicators[0].ToString());
+            Assert.Equal("1", metrics2.ConfusionMatrix.PredictedClassesIndicators[1].ToString());
+            Assert.Equal("2", metrics2.ConfusionMatrix.PredictedClassesIndicators[2].ToString());
+
+        }
     }
 }

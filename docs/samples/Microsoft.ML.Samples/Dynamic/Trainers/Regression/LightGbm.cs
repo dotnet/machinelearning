@@ -1,66 +1,105 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using Microsoft.ML;
 using Microsoft.ML.Data;
 
 namespace Samples.Dynamic.Trainers.Regression
 {
-    class LightGbm
+    public static class LightGbm
     {
-        // This example requires installation of additional nuget package <a href="https://www.nuget.org/packages/Microsoft.ML.LightGbm/">Microsoft.ML.LightGbm</a>.
+        // This example requires installation of additional NuGet package
+        // <a href="https://www.nuget.org/packages/Microsoft.ML.LightGbm/">Microsoft.ML.LightGBM</a>. 
         public static void Example()
         {
-            // Create a new ML context, for ML.NET operations. It can be used for exception tracking and logging, 
-            // as well as the source of randomness.
-            var mlContext = new MLContext();
+            // Create a new context for ML.NET operations. It can be used for exception tracking and logging, 
+            // as a catalog of available operations and as the source of randomness.
+            // Setting the seed to a fixed number in this example to make outputs deterministic.
+            var mlContext = new MLContext(seed: 0);
 
-            // Download and load the housing dataset into an IDataView.
-            var dataView = Microsoft.ML.SamplesUtils.DatasetUtils.LoadHousingRegressionDataset(mlContext);
+            // Create a list of training data points.
+            var dataPoints = GenerateRandomDataPoints(1000);
 
-            //////////////////// Data Preview ////////////////////
-            /// Only 6 columns are displayed here.
-            // MedianHomeValue    CrimesPerCapita    PercentResidental    PercentNonRetail    CharlesRiver    NitricOxides    RoomsPerDwelling    PercentPre40s     ...
-            // 24.00              0.00632            18.00                2.310               0               0.5380          6.5750              65.20             ...
-            // 21.60              0.02731            00.00                7.070               0               0.4690          6.4210              78.90             ...
-            // 34.70              0.02729            00.00                7.070               0               0.4690          7.1850              61.10             ...
+            // Convert the list of data points to an IDataView object, which is consumable by ML.NET API.
+            var trainingData = mlContext.Data.LoadFromEnumerable(dataPoints);
 
-            var split = mlContext.Data.TrainTestSplit(dataView, testFraction: 0.1);
+            // Define the trainer.
+            var pipeline = mlContext.Regression.Trainers.LightGbm(labelColumnName: nameof(DataPoint.Label), featureColumnName: nameof(DataPoint.Features));
 
-            // Create the estimator, here we only need LightGbm trainer
-            // as data is already processed in a form consumable by the trainer.
-            var labelName = "MedianHomeValue";
-            var featureNames = dataView.Schema
-                .Select(column => column.Name) // Get the column names
-                .Where(name => name != labelName) // Drop the Label
-                .ToArray();
-            var pipeline = mlContext.Transforms.Concatenate("Features", featureNames)
-                           .Append(mlContext.Regression.Trainers.LightGbm(
-                                            labelColumnName: labelName,
-                                            numberOfLeaves: 4,
-                                            minimumExampleCountPerLeaf: 6,
-                                            learningRate: 0.001));
+            // Train the model.
+            var model = pipeline.Fit(trainingData);
 
-            // Fit this pipeline to the training data.
-            var model = pipeline.Fit(split.TrainSet);
+            // Create testing data. Use different random seed to make it different from training data.
+            var testData = mlContext.Data.LoadFromEnumerable(GenerateRandomDataPoints(5, seed: 123));
 
-            // Get the feature importance based on the information gain used during training.
-            VBuffer<float> weights = default;
-            model.LastTransformer.Model.GetFeatureWeights(ref weights);
-            var weightsValues = weights.DenseValues().ToArray();
-            Console.WriteLine($"weight 0 - {weightsValues[0]}"); // CrimesPerCapita  (weight 0) = 0.1898361
-            Console.WriteLine($"weight 5 - {weightsValues[5]}"); // RoomsPerDwelling (weight 5) = 1
+            // Run the model on test data set.
+            var transformedTestData = model.Transform(testData);
 
-            // Evaluate how the model is doing on the test data.
-            var dataWithPredictions = model.Transform(split.TestSet);
-            var metrics = mlContext.Regression.Evaluate(dataWithPredictions, labelColumnName: labelName);
-            Microsoft.ML.SamplesUtils.ConsoleUtils.PrintMetrics(metrics);
+            // Convert IDataView object to a list.
+            var predictions = mlContext.Data.CreateEnumerable<Prediction>(transformedTestData, reuseRowObject: false).ToList();
 
-            // Expected output
-            //   L1: 4.97
-            //   L2: 51.37
-            //   LossFunction: 51.37
-            //   RMS: 7.17
-            //   RSquared: 0.08
+            // Look at 5 predictions for the Label, side by side with the actual Label for comparison.
+            foreach (var p in predictions)
+                Console.WriteLine($"Label: {p.Label:F3}, Prediction: {p.Score:F3}");
+
+            // Expected output:
+            //   Label: 0.985, Prediction: 0.864
+            //   Label: 0.155, Prediction: 0.164
+            //   Label: 0.515, Prediction: 0.470
+            //   Label: 0.566, Prediction: 0.501
+            //   Label: 0.096, Prediction: 0.138
+
+            // Evaluate the overall metrics
+            var metrics = mlContext.Regression.Evaluate(transformedTestData);
+            PrintMetrics(metrics);
+
+            // Expected output:
+            //   Mean Absolute Error: 0.10
+            //   Mean Squared Error: 0.01
+            //   Root Mean Squared Error: 0.11
+            //   RSquared: 0.89 (closer to 1 is better. The worest case is 0)
+        }
+
+        private static IEnumerable<DataPoint> GenerateRandomDataPoints(int count, int seed=0)
+        {
+            var random = new Random(seed);
+            for (int i = 0; i < count; i++)
+            {
+                float label = (float)random.NextDouble();
+                yield return new DataPoint
+                {
+                    Label = label,
+                    // Create random features that are correlated with the label.
+                    Features = Enumerable.Repeat(label, 50).Select(x => x + (float)random.NextDouble()).ToArray()
+                };
+            }
+        }
+
+        // Example with label and 50 feature values. A data set is a collection of such examples.
+        private class DataPoint
+        {
+            public float Label { get; set; }
+            [VectorType(50)]
+            public float[] Features { get; set; }
+        }
+
+        // Class used to capture predictions.
+        private class Prediction
+        {
+            // Original label.
+            public float Label { get; set; }
+            // Predicted score from the trainer.
+            public float Score { get; set; }
+        }
+
+        // Print some evaluation metrics to regression problems.
+        private static void PrintMetrics(RegressionMetrics metrics)
+        {
+            Console.WriteLine($"Mean Absolute Error: {metrics.MeanAbsoluteError:F2}");
+            Console.WriteLine($"Mean Squared Error: {metrics.MeanSquaredError:F2}");
+            Console.WriteLine($"Root Mean Squared Error: {metrics.RootMeanSquaredError:F2}");
+            Console.WriteLine($"RSquared: {metrics.RSquared:F2}");
         }
     }
 }
+

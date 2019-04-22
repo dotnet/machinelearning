@@ -29,7 +29,7 @@ using Microsoft.ML.Transforms.Text;
 namespace Microsoft.ML.Transforms.Text
 {
     /// <summary>
-    /// Character-oriented tokenizer where text is considered a sequence of characters.
+    /// <see cref="ITransformer"/> resulting from fitting a <see cref="TokenizingByCharactersEstimator"/>.
     /// </summary>
     public sealed class TokenizingByCharactersTransformer : OneToOneTransformerBase
     {
@@ -547,8 +547,30 @@ namespace Microsoft.ML.Transforms.Text
     }
 
     /// <summary>
-    /// Character tokenizer splits text into sequences of characters using a sliding window.
+    /// <see cref="IEstimator{TTransformer}"/> for the <see cref="TokenizingByCharactersTransformer"/>.
     /// </summary>
+    /// <remarks>
+    /// <format type="text/markdown"><![CDATA[
+    ///
+    /// ###  Estimator Characteristics
+    /// |  |  |
+    /// | -- | -- |
+    /// | Does this estimator need to look at the data to train its parameters? | Yes |
+    /// | Input column data type | Scalar or Vector of [Text](xref:Microsoft.ML.Data.TextDataViewType)  |
+    /// | Output column data type | Variable-sized vector of [Keys](xref:Microsoft.ML.Data.KeyDataViewType) |
+    ///
+    /// The estimator tokenizes characters by splitting text into sequences of characters using a sliding window.
+    /// During training, the estimator builds a key-value pair dictionary with the encountered sequences of characters.
+    ///
+    /// The <xref:Microsoft.ML.Transforms.Text.TokenizingByCharactersTransformer> resulting from fitting the estimator
+    /// creates a new column, named as specified in the output column name parameters, which contains the keys of the
+    /// sequences of characters that were encountered in the input.
+    ///
+    /// See the See Also section for links to examples of the usage.
+    /// ]]>
+    /// </format>
+    /// </remarks>
+    /// <seealso cref="TextCatalog.TokenizeIntoCharactersAsKeys(TransformsCatalog.TextTransforms, string, string, bool)" />
     public sealed class TokenizingByCharactersEstimator : TrivialEstimator<TokenizingByCharactersTransformer>
     {
         internal static class Defaults

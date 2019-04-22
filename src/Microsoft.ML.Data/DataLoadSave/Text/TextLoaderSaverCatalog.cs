@@ -9,6 +9,10 @@ using Microsoft.ML.Runtime;
 
 namespace Microsoft.ML
 {
+    /// <summary>
+    /// Collection of extension methods for the <see cref="DataOperationsCatalog"/> to read from delimited text
+    /// files such as csv and tsv.
+    /// </summary>
     public static class TextLoaderSaverCatalog
     {
         /// <summary>
@@ -19,7 +23,7 @@ namespace Microsoft.ML
         /// <param name="separatorChar">The character used as separator between data points in a row. By default the tab character is used as separator.</param>
         /// <param name="hasHeader">Whether the file has a header.</param>
         /// <param name="dataSample">The optional location of a data sample. The sample can be used to infer column names and number of slots in each column.</param>
-        /// <param name="allowQuoting">Whether the file can contain column defined by a quoted string.</param>
+        /// <param name="allowQuoting">Whether the file can contain columns defined by a quoted string.</param>
         /// <param name="trimWhitespace">Remove trailing whitespace from lines</param>
         /// <param name="allowSparse">Whether the file can contain numerical vectors in sparse format.</param>
         public static TextLoader CreateTextLoader(this DataOperationsCatalog catalog,
@@ -90,7 +94,7 @@ namespace Microsoft.ML
         /// <param name="columns">The columns of the schema.</param>
         /// <param name="separatorChar">The character used as separator between data points in a row. By default the tab character is used as separator.</param>
         /// <param name="hasHeader">Whether the file has a header.</param>
-        /// <param name="allowQuoting">Whether the file can contain column defined by a quoted string.</param>
+        /// <param name="allowQuoting">Whether the file can contain columns defined by a quoted string.</param>
         /// <param name="trimWhitespace">Remove trailing whitespace from lines</param>
         /// <param name="allowSparse">Whether the file can contain numerical vectors in sparse format.</param>
         /// <returns>The data view.</returns>

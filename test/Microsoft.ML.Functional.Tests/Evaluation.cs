@@ -152,7 +152,7 @@ namespace Microsoft.ML.Functional.Tests
                 .Append(mlContext.Transforms.Conversion.MapValueToKey("Label"))
                 .AppendCacheCheckpoint(mlContext)
                 .Append(mlContext.MulticlassClassification.Trainers.SdcaMaximumEntropy(
-                    new SdcaMaximumEntropyMulticlassTrainer.Options { NumberOfThreads = 1}));
+                    new SdcaMaximumEntropyMulticlassTrainer.Options { NumberOfThreads = 1 }));
 
             // Train the model.
             var model = pipeline.Fit(data);

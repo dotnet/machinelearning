@@ -55,7 +55,8 @@ namespace Microsoft.ML.Trainers.FastTree
     public sealed partial class FastTreeBinaryTrainer
     {
         /// <summary>
-        /// Options for the <see cref="FastTreeBinaryTrainer"/>.
+        /// Options for the <see cref="FastTreeBinaryTrainer"/> as used in
+        /// [FastTree(Options)](xref:"Microsoft.ML.TreeExtensions.FastTree(Microsoft.ML.BinaryClassificationCatalog.BinaryClassificationTrainers,Microsoft.ML.Trainers.FastTree.FastTreeBinaryTrainer.Options)).
         /// </summary>
         [TlcModule.Component(Name = LoadNameValue, FriendlyName = UserNameValue, Desc = Summary)]
         public sealed class Options : BoostedTreeOptions, IFastTreeTrainerFactory
@@ -110,7 +111,8 @@ namespace Microsoft.ML.Trainers.FastTree
     public sealed partial class FastTreeRegressionTrainer
     {
         /// <summary>
-        /// Options for the <see cref="FastTreeRegressionTrainer"/>.
+        /// Options for the <see cref="FastTreeRegressionTrainer"/> as used in
+        /// [FastTree(Options)](xref:Microsoft.ML.TreeExtensions.FastTree(Microsoft.ML.RegressionCatalog.RegressionTrainers,Microsoft.ML.Trainers.FastTree.FastTreeRegressionTrainer.Options)).
         /// </summary>
         [TlcModule.Component(Name = LoadNameValue, FriendlyName = UserNameValue, Desc = Summary)]
         public sealed class Options : BoostedTreeOptions, IFastTreeTrainerFactory
@@ -153,7 +155,8 @@ namespace Microsoft.ML.Trainers.FastTree
     public sealed partial class FastTreeTweedieTrainer
     {
         /// <summary>
-        /// Options for the <see cref="FastTreeTweedieTrainer"/>.
+        /// Options for the <see cref="FastTreeTweedieTrainer"/> as used in
+        /// [FastTreeTweedie(Options)](xref:Microsoft.ML.TreeExtensions.FastTreeTweedie(Microsoft.ML.RegressionCatalog.RegressionTrainers,Microsoft.ML.Trainers.FastTree.FastTreeTweedieTrainer.Options)).
         /// </summary>
         [TlcModule.Component(Name = LoadNameValue, FriendlyName = UserNameValue, Desc = Summary)]
         public sealed class Options : BoostedTreeOptions, IFastTreeTrainerFactory
@@ -211,7 +214,8 @@ namespace Microsoft.ML.Trainers.FastTree
     public sealed partial class FastTreeRankingTrainer
     {
         /// <summary>
-        /// Options for the <see cref="FastTreeRankingTrainer"/>.
+        /// Options for the <see cref="FastTreeRankingTrainer"/> as used in
+        /// [FastTree(Options)](xref:Microsoft.ML.TreeExtensions.FastTree(Microsoft.ML.RankingCatalog.RankingTrainers,Microsoft.ML.Trainers.FastTree.FastTreeRankingTrainer.Options)).
         /// </summary>
         [TlcModule.Component(Name = LoadNameValue, FriendlyName = UserNameValue, Desc = Summary)]
         public sealed class Options : BoostedTreeOptions, IFastTreeTrainerFactory

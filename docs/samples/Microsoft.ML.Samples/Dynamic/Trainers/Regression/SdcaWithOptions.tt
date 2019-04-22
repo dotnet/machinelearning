@@ -1,0 +1,33 @@
+﻿<#@ include file="RegressionSamplesTemplate.ttinclude"#>
+
+<#+
+string ClassHeader = null;
+string ClassName="SdcaWithOptions";
+string ExtraUsing = "using Microsoft.ML.Trainers;";
+string Trainer = "Sdca";
+string TrainerOptions = @"SdcaRegressionTrainer.Options
+            {
+                LabelColumnName = nameof(DataPoint.Label),
+                FeatureColumnName = nameof(DataPoint.Features),
+                // Make the convergence tolerance tighter. It effectively leads to more training iterations.
+                ConvergenceTolerance = 0.02f,
+                // Increase the maximum number of passes over training data. Similar to ConvergenceTolerance,
+				// this value specifics the hard iteration limit on the training algorithm.
+                MaximumNumberOfIterations = 30,
+                // Increase learning rate for bias.
+                BiasLearningRate = 0.1f
+            }";
+
+string ExpectedOutputPerInstance= @"// Expected output:
+            //   Label: 0.985, Prediction: 0.927
+            //   Label: 0.155, Prediction: 0.062
+            //   Label: 0.515, Prediction: 0.439
+            //   Label: 0.566, Prediction: 0.500
+            //   Label: 0.096, Prediction: 0.078";
+
+string ExpectedOutput = @"// Expected output:
+            //   Mean Absolute Error: 0.05
+            //   Mean Squared Error: 0.00
+            //   Root Mean Squared Error: 0.06
+            //   RSquared: 0.97 (closer to 1 is better. The worest case is 0)";
+#>

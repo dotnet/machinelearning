@@ -518,13 +518,14 @@ namespace Microsoft.ML.Data
             var resultDict = ((IEvaluator)this).Evaluate(roles);
             Host.Assert(resultDict.ContainsKey(MetricKinds.OverallMetrics));
             var overall = resultDict[MetricKinds.OverallMetrics];
+            var confusionMatrix = resultDict[MetricKinds.ConfusionMatrix];
 
             MulticlassClassificationMetrics result;
             using (var cursor = overall.GetRowCursorForAllColumns())
             {
                 var moved = cursor.MoveNext();
                 Host.Assert(moved);
-                result = new MulticlassClassificationMetrics(Host, cursor, _outputTopKAcc ?? 0);
+                result = new MulticlassClassificationMetrics(Host, cursor, _outputTopKAcc ?? 0, confusionMatrix);
                 moved = cursor.MoveNext();
                 Host.Assert(!moved);
             }
@@ -889,7 +890,7 @@ namespace Microsoft.ML.Data
             if (!_outputPerClass)
                 fold = DropPerClassColumn(fold);
 
-            var unweightedConf = MetricWriter.GetConfusionTable(Host, conf, out string weightedConf, false, _numConfusionTableClasses);
+            var unweightedConf = MetricWriter.GetConfusionTableAsFormattedString(Host, conf, out string weightedConf, false, _numConfusionTableClasses);
             var unweightedFold = MetricWriter.GetPerFoldResults(Host, fold, out string weightedFold);
             ch.Assert(string.IsNullOrEmpty(weightedConf) == string.IsNullOrEmpty(weightedFold));
             if (!string.IsNullOrEmpty(weightedConf))

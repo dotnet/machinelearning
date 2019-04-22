@@ -46,7 +46,6 @@ namespace Microsoft.ML.Transforms
         ZeroPhaseComponentAnalysis
     }
 
-    /// <include file='doc.xml' path='doc/members/member[@name="Whitening"]/*'/>
     public sealed class VectorWhiteningTransformer : OneToOneTransformerBase
     {
         internal sealed class Options
@@ -666,7 +665,6 @@ namespace Microsoft.ML.Transforms
         }
     }
 
-    /// <include file='doc.xml' path='doc/members/member[@name="Whitening"]/*'/>
     public sealed class VectorWhiteningEstimator : IEstimator<VectorWhiteningTransformer>
     {
         [BestFriend]
@@ -801,7 +799,6 @@ namespace Microsoft.ML.Transforms
         private readonly IHost _host;
         private readonly ColumnOptions[] _infos;
 
-        /// <include file='doc.xml' path='doc/members/member[@name="Whitening"]/*'/>
         /// <param name="env">The environment.</param>
         /// <param name="columns">Describes the parameters of the whitening process for each column pair.</param>
         internal VectorWhiteningEstimator(IHostEnvironment env, params ColumnOptions[] columns)
@@ -810,7 +807,6 @@ namespace Microsoft.ML.Transforms
             _infos = columns;
         }
 
-        /// <include file='doc.xml' path='doc/members/member[@name="Whitening"]/*'/>
         /// <param name="env">The environment.</param>
         /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.</param>
         /// <param name="inputColumnName">Name of column to transform. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.</param>

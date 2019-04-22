@@ -14,7 +14,7 @@
 #include <iostream>
 #include <assert.h>
 /*
-Algorithm described in 
+Algorithm described in
 https://www.jstatsoft.org/v11/i03/paper
 George Marsaglia
 Fast generation of discrete random variables
@@ -108,7 +108,12 @@ namespace wood
             int32_t H_head = 0;
             int32_t H_tail = 0;
 
-            for (auto i = 0; i < proportion_int_.size(); ++i)
+
+            // note that i must fit into int32_t of L_[L_tail].first
+            if (static_cast<uint32_t>(std::numeric_limits<int32_t>::max()) < proportion_int_.size() )
+                throw std::bad_alloc();
+            int32_t size = static_cast<int32_t>(proportion_int_.size());
+            for (int32_t i = 0; i < size; ++i)
             {
                 auto val = proportion_int_[i];
                 if (val < a_int_)
@@ -154,7 +159,7 @@ namespace wood
                 auto first = L_[L_head].first;
                 auto second = L_[L_head].second;
                 alias_kv[first].k_ = first;
-                alias_kv[first].v_ = first  * a_int_ + second;
+                alias_kv[first].v_ = first * a_int_ + second;
                 ++L_head;
             }
             while (H_head != H_tail)
@@ -227,7 +232,7 @@ namespace wood
                 *p = i;  p++;
                 *p = (i + 1) * a_int_;
             }
-            
+
             int32_t L_head = 0;
             int32_t L_tail = 0;
 
@@ -295,8 +300,8 @@ namespace wood
                 *p = first; p++;
                 *p = first * a_int_ + second;
                 ++H_head;
-            }    
-            memcpy(memory, internal_memory_, sizeof(int32_t)* 2 * n_);
+            }
+            memcpy(memory, internal_memory_, sizeof(int32_t) * 2 * n_);
         }
 
         inline void SetProportionMass(std::vector<float> &proportion,

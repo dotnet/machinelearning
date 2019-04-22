@@ -206,7 +206,7 @@ namespace Microsoft.ML.Data
     {
         public static bool IsValidNgramRawType(Type rawType)
         {
-            // Can only accept key types that can be converted to U4 (uint).
+            // Can only accept key types that can be converted to U8 (ulong).
             return rawType != typeof(ulong);
         }
     }

@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using Microsoft.ML;
 using Microsoft.ML.Calibrators;
@@ -76,6 +77,8 @@ namespace Microsoft.ML.Calibrators
         /// <summary>
         /// Gets the output <see cref="SchemaShape"/> of the <see cref="IDataView"/> after fitting the calibrator.
         /// Fitting the calibrator will add a column named "Probability" to the schema. If you already had such a column, a new one will be added.
+        /// The same annotation data that would be produced by <see cref="AnnotationUtils.GetTrainerOutputAnnotation(bool)"/> is marked as
+        /// being present on the output, if it is present on the input score column.
         /// </summary>
         /// <param name="inputSchema">The input <see cref="SchemaShape"/>.</param>
         SchemaShape IEstimator<CalibratorTransformer<TICalibrator>>.GetOutputSchema(SchemaShape inputSchema)
@@ -96,13 +99,32 @@ namespace Microsoft.ML.Calibrators
             checkColumnValid(WeightColumn, "weight");
             checkColumnValid(LabelColumn, "label");
 
+            bool success = inputSchema.TryFindColumn(ScoreColumn.Name, out var inputScoreCol);
+            Host.Assert(success);
+            const SchemaShape.Column.VectorKind scalar = SchemaShape.Column.VectorKind.Scalar;
+
+            var annotations = new List<SchemaShape.Column>();
+            annotations.Add(new SchemaShape.Column(AnnotationUtils.Kinds.IsNormalized,
+                SchemaShape.Column.VectorKind.Scalar, BooleanDataViewType.Instance, false));
+            // We only propagate this training column metadata if it looks like it's all there, and all correct.
+            if (inputScoreCol.Annotations.TryFindColumn(AnnotationUtils.Kinds.ScoreColumnSetId, out var setIdCol) &&
+                setIdCol.Kind == scalar && setIdCol.IsKey && setIdCol.ItemType == NumberDataViewType.UInt32 &&
+                inputScoreCol.Annotations.TryFindColumn(AnnotationUtils.Kinds.ScoreColumnKind, out var kindCol) &&
+                kindCol.Kind == scalar && kindCol.ItemType is TextDataViewType &&
+                inputScoreCol.Annotations.TryFindColumn(AnnotationUtils.Kinds.ScoreValueKind, out var valueKindCol) &&
+                valueKindCol.Kind == scalar && valueKindCol.ItemType is TextDataViewType)
+            {
+                annotations.Add(setIdCol);
+                annotations.Add(kindCol);
+                annotations.Add(valueKindCol);
+            }
+
             // Create the new Probability column.
             var outColumns = inputSchema.ToDictionary(x => x.Name);
             outColumns[DefaultColumnNames.Probability] = new SchemaShape.Column(DefaultColumnNames.Probability,
                 SchemaShape.Column.VectorKind.Scalar,
                 NumberDataViewType.Single,
-                false,
-                new SchemaShape(AnnotationUtils.GetTrainerOutputAnnotation(true)));
+                false, new SchemaShape(annotations));
 
             return new SchemaShape(outColumns.Values);
         }
@@ -182,7 +204,7 @@ namespace Microsoft.ML.Calibrators
 
             // *** Binary format ***
             // model: _calibrator
-            ctx.SaveModel(_calibrator, @"Calibrator");
+            ctx.SaveModel(_calibrator, "Calibrator");
         }
 
         private protected override IRowMapper MakeRowMapper(DataViewSchema schema) => new Mapper<TICalibrator>(this, _calibrator, schema);
@@ -223,9 +245,34 @@ namespace Microsoft.ML.Calibrators
 
             protected override DataViewSchema.DetachedColumn[] GetOutputColumnsCore()
             {
+                var builder = new DataViewSchema.Annotations.Builder();
+                var annotation = InputSchema[_scoreColIndex].Annotations;
+                var schema = annotation.Schema;
+
+                // We only propagate this training column metadata if it looks like it's all there, and all correct.
+                if (schema.GetColumnOrNull(AnnotationUtils.Kinds.ScoreColumnSetId) is DataViewSchema.Column setIdCol &&
+                    setIdCol.Type is KeyDataViewType setIdType && setIdType.RawType == typeof(uint) &&
+                    schema.GetColumnOrNull(AnnotationUtils.Kinds.ScoreColumnKind) is DataViewSchema.Column kindCol &&
+                    kindCol.Type is TextDataViewType &&
+                    schema.GetColumnOrNull(AnnotationUtils.Kinds.ScoreValueKind) is DataViewSchema.Column valueKindCol &&
+                    valueKindCol.Type is TextDataViewType)
+                {
+                    builder.Add(setIdCol.Name, setIdType, annotation.GetGetter<uint>(setIdCol));
+                    // Now, this next one I'm a little less sure about. It is entirely reasonable for someone to, say,
+                    // try to calibrate the result of a regression or ranker training, or something else. But should we
+                    // just pass through this class just like that? Having throught through the alternatives I view this
+                    // as the least harmful thing we could be doing, but it is something to consider I may be wrong
+                    // about if it proves that it ever causes problems to, say, have something identified as a probability
+                    // column but be marked as being a regression task, or what have you.
+                    builder.Add(kindCol.Name, kindCol.Type, annotation.GetGetter<ReadOnlyMemory<char>>(kindCol));
+                    builder.Add(valueKindCol.Name, valueKindCol.Type, annotation.GetGetter<ReadOnlyMemory<char>>(valueKindCol));
+                }
+                // Probabilities are always considered normalized.
+                builder.Add(AnnotationUtils.Kinds.IsNormalized, BooleanDataViewType.Instance, (ref bool value) => value = true);
+
                 return new[]
                 {
-                    new DataViewSchema.DetachedColumn(DefaultColumnNames.Probability, NumberDataViewType.Single, null)
+                    new DataViewSchema.DetachedColumn(DefaultColumnNames.Probability, NumberDataViewType.Single, builder.ToAnnotations())
                 };
             }
 

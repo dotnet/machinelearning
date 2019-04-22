@@ -56,7 +56,6 @@ namespace Microsoft.ML.Mkl.Components.StaticPipe
             }
         }
 
-        /// <include file='../Microsoft.ML.Mkl.Components/doc.xml' path='doc/members/member[@name="Whitening"]/*'/>
         /// <param name="input">The column to which the transform will be applied.</param>
         /// <param name="eps">Whitening constant, prevents division by zero when scaling the data by inverse of eigenvalues.</param>
         /// <param name="maxRows">Maximum number of rows used to train the transform.</param>
@@ -67,7 +66,6 @@ namespace Microsoft.ML.Mkl.Components.StaticPipe
             int pcaNum = VectorWhiteningEstimator.Defaults.Rank)
             => new OutPipelineColumn(input, WhiteningKind.PrincipalComponentAnalysis, eps, maxRows, pcaNum);
 
-        /// <include file='../Microsoft.ML.Mkl.Components/doc.xml' path='doc/members/member[@name="Whitening"]/*'/>
         /// <param name="input">The column to which the transform will be applied.</param>
         /// <param name="eps">Whitening constant, prevents division by zero.</param>
         /// <param name="maxRows">Maximum number of rows used to train the transform.</param>

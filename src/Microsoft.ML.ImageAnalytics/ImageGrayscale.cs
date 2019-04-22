@@ -32,18 +32,8 @@ namespace Microsoft.ML.Transforms.Image
     // REVIEW: Rewrite as LambdaTransform to simplify.
     // REVIEW: Should it be separate transform or part of ImageResizerTransform?
     /// <summary>
-    /// <see cref="ITransformer"/> produced by fitting the <see cref="IDataView"/> to an <see cref="ImageGrayscalingEstimator" />.
+    /// <see cref="ITransformer"/> resulting from fitting an <see cref="ImageGrayscalingTransformer"/>.
     /// </summary>
-    /// <remarks>
-    /// Calling <see cref="ITransformer.Transform(IDataView)"/> converts the image to grayscale.
-    /// The images might be converted to grayscale to reduce the complexity of the model.
-    /// The grayed out images contain less information to process than the colored images.
-    /// Another use case for converting to grayscale is to generate new images out of the existing ones, so you can have a larger dataset,
-    /// a technique known as <a href = "http://www.stat.harvard.edu/Faculty_Content/meng/JCGS01.pdf"> data augmentation</a>.
-    /// For end-to-end image processing pipelines, and scenarios in your applications, see the
-    /// <a href="https://github.com/dotnet/machinelearning-samples/tree/master/samples/csharp/getting-started"> examples in the machinelearning-samples github repository.</a>
-    /// <seealso cref = "ImageEstimatorsCatalog" />
-    /// </remarks>
     public sealed class ImageGrayscalingTransformer : OneToOneTransformerBase
     {
         internal sealed class Column : OneToOneColumn
@@ -226,21 +216,33 @@ namespace Microsoft.ML.Transforms.Image
     }
 
     /// <summary>
-    /// <see cref="IEstimator{TTransformer}"/> that converts the image to grayscale.
+    /// <see cref="IEstimator{TTransformer}"/> for the <see cref="ImageGrayscalingTransformer"/>.
     /// </summary>
     /// <remarks>
-    /// Calling <see cref="IEstimator{TTransformer}.Fit(IDataView)"/> in this estimator, produces an <see cref="ImageGrayscalingEstimator"/>.
+    /// <format type="text/markdown"><![CDATA[
+    /// ###  Estimator Characteristics
+    /// |  |  |
+    /// | -- | -- |
+    /// | Does this estimator need to look at the data to train its parameters? | No |
+    /// | Input column data type | <xref:System.Drawing.Bitmap> |
+    /// | Output column data type | <xref:System.Drawing.Bitmap> |
+    /// | Required NuGet in addition to Microsoft.ML | Microsoft.ML.ImageAnalytics |
+    ///
+    /// The resulting <xref:Microsoft.ML.Transforms.Image.ImageGrayscalingTransformer> creates a new column, named as specified in the output column name parameters, and
+    /// converts the image from the input column into a grayscale image.
     /// The images might be converted to grayscale to reduce the complexity of the model.
     /// The grayed out images contain less information to process than the colored images.
     /// Another use case for converting to grayscale is to generate new images out of the existing ones, so you can have a larger dataset,
-    /// a technique known as <a href = "http://www.stat.harvard.edu/Faculty_Content/meng/JCGS01.pdf"> data augmentation</a>.
+    /// a technique known as [data augmentation](http://www.stat.harvard.edu/Faculty_Content/meng/JCGS01.pdf).
     /// For end-to-end image processing pipelines, and scenarios in your applications, see the
-    /// <a href="https://github.com/dotnet/machinelearning-samples/tree/master/samples/csharp/getting-started"> examples in the machinelearning-samples github repository.</a>
-    /// <seealso cref = "ImageEstimatorsCatalog" />
-    /// </remarks >
+    /// [examples](https://github.com/dotnet/machinelearning-samples/tree/master/samples/csharp/getting-started) in the machinelearning-samples github repository.
+    /// See the See Also section for links to more examples of the usage.
+    /// ]]>
+    /// </format>
+    /// </remarks>
+    /// <seealso cref="ImageEstimatorsCatalog.ConvertToGrayscale(TransformsCatalog, string, string)" />
     public sealed class ImageGrayscalingEstimator : TrivialEstimator<ImageGrayscalingTransformer>
     {
-
         /// <summary>
         /// Converts the images to grayscale.
         /// </summary>

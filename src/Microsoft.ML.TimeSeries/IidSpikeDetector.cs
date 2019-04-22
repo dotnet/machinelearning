@@ -171,10 +171,25 @@ namespace Microsoft.ML.Transforms.TimeSeries
     }
 
     /// <summary>
-    /// The <see cref="IEstimator{ITransformer}"/> for detecting a signal spike on an
-    /// <a href="https://en.wikipedia.org/wiki/Independent_and_identically_distributed_random_variables"> independent identically distributed (i.i.d.)</a> time series.
-    /// Detection is based on adaptive kernel density estimation.
+    /// The <see cref="IEstimator{TTransformer}"/> to detect a signal spike on an
+    /// <a href="https://en.wikipedia.org/wiki/Independent_and_identically_distributed_random_variables"> independent identically distributed (i.i.d.)</a>
+    /// time series based on adaptive kernel density estimation.
     /// </summary>
+    /// <remarks>
+    /// <format type="text/markdown"><![CDATA[
+    /// To create this estimator, use [DetectIidSpike](xref:Microsoft.ML.TimeSeriesCatalog.DetectIidSpike(Microsoft.ML.TransformsCatalog,System.String,System.String,System.Int32,System.Int32,Microsoft.ML.Transforms.TimeSeries.AnomalySide)).
+    ///
+    /// [!include[io](~/../docs/samples/docs/api-reference/io-time-series-spike.md)]
+    ///
+    /// [!include[io](~/../docs/samples/docs/api-reference/time-series-props.md)]
+    ///
+    /// [!include[io](~/../docs/samples/docs/api-reference/time-series-iid.md)]
+    ///
+    /// [!include[io](~/../docs/samples/docs/api-reference/time-series-scorer.md)]
+    /// ]]>
+    /// </format>
+    /// </remarks>
+    /// <seealso cref="Microsoft.ML.TimeSeriesCatalog.DetectIidSpike(Microsoft.ML.TransformsCatalog,System.String,System.String,System.Int32,System.Int32,Microsoft.ML.Transforms.TimeSeries.AnomalySide)" />
     public sealed class IidSpikeEstimator : TrivialEstimator<IidSpikeDetector>
     {
         /// <summary>

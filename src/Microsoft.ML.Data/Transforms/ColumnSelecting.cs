@@ -33,8 +33,32 @@ using Microsoft.ML.Transforms;
 namespace Microsoft.ML.Transforms
 {
     /// <summary>
-    /// The ColumnSelectingEstimator supports selection of specified columns to keep from a given input.
+    /// Keeps or drops selected columns from an <see cref="IDataView"/>.
     /// </summary>
+    /// <remarks>
+    /// <format type="text/markdown"><![CDATA[
+    ///
+    /// ###  Estimator Characteristics
+    /// |  |  |
+    /// | -- | -- |
+    /// | Does this estimator need to look at the data to train its parameters? | No |
+    /// | Input columns data type | Any |
+    ///
+    /// The resulting <xref:Microsoft.ML.Transforms.ColumnSelectingTransformer>
+    /// operates on the schema of a given <xref:Microsoft.ML.IDataView> by dropping or keeping selected columns from the schema.
+    ///
+    /// It is commonly used to remove unwanted columns before serializing a dataset or writing it to a file.
+    /// It is not necessary to drop unused columns before training or performing transforms,
+    /// as the <xref:Microsoft.ML.IDataView> is lazily evaluated and will not actually materialize the columns until needed.
+    /// In the case of serialization, every column in the schema will be written out. If there are columns
+    /// that should not be saved, this estimator can be used to remove them.
+    ///
+    /// See the See Also section for links to examples of the usage.
+    /// ]]></format>
+    /// </remarks>
+    /// <seealso cref="TransformExtensionsCatalog.DropColumns(TransformsCatalog, string[])"/>
+    /// <seealso cref="TransformExtensionsCatalog.SelectColumns(TransformsCatalog, string[])"/>
+    /// <seealso cref="TransformExtensionsCatalog.SelectColumns(TransformsCatalog, string[], bool)"/>
     public sealed class ColumnSelectingEstimator : TrivialEstimator<ColumnSelectingTransformer>
     {
         [BestFriend]
@@ -119,7 +143,7 @@ namespace Microsoft.ML.Transforms
     }
 
     /// <summary>
-    /// The <see cref="ColumnSelectingTransformer"/> allows the user to specify columns to drop or keep from a given input.
+    /// <see cref="ITransformer"/> resulting from fitting an <see cref="ColumnSelectingEstimator"/>.
     /// </summary>
     public sealed class ColumnSelectingTransformer : ITransformer
     {

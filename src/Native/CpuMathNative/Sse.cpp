@@ -158,7 +158,7 @@ EXPORT_API(void) MatMulTran(_In_ const float * pmat, _In_ const float * psrc, _I
     }
 
     pm += 3 * crow;
-    
+
     for (; ps < psLim; ps += 4)
     {
         __m128 x01 = _mm_load_ps(ps);
@@ -219,9 +219,9 @@ EXPORT_API(void) Scale(float a, _Inout_ float * pd, int c)
     {
         switch (c)
         {
-            case 3: pd[2] *= a;
-            case 2: pd[1] *= a;
-            case 1: pd[0] *= a;
+        case 3: pd[2] *= a;
+        case 2: pd[1] *= a;
+        case 1: pd[0] *= a;
         }
         return;
     }
@@ -266,7 +266,8 @@ EXPORT_API(void) Scale(float a, _Inout_ float * pd, int c)
             _mm_storeu_ps(pd, result);
 
             pd += misalignment;
-            c -= misalignment;
+            // safe to downcast as misalignment <= 128.
+            c -= static_cast<int>(misalignment);
         }
 
         if (c > 3)
@@ -489,9 +490,9 @@ EXPORT_API(float) Sum(const float* pValues, int length)
 
         switch (length)
         {
-            case 3: result += pValues[2];
-            case 2: result += pValues[1];
-            case 1: result += pValues[0];
+        case 3: result += pValues[2];
+        case 2: result += pValues[1];
+        case 1: result += pValues[0];
         }
 
         return result;
@@ -532,7 +533,8 @@ EXPORT_API(float) Sum(const float* pValues, int length)
             result = _mm_add_ps(result, temp);
 
             pValues += misalignment;
-            length -= misalignment;
+            // safe to downcast as misalignment < 16.
+            length -= static_cast<int>(misalignment);
         }
 
         if (length > 3)
