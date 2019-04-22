@@ -74,7 +74,7 @@ namespace Microsoft.ML.Trainers
 
         /// <summary>
         /// Options for the <see cref="AveragedPerceptronTrainer"/> as used in
-        /// [AveragedPerceptron(Options)](xref:Microsoft.ML.StandardTrainersCatalog.AveragedPerceptron(Microsoft.ML.BinaryClassificationCatalog.BinaryClassificationTrainers,Microsoft.ML.Trainers.AveragedPerceptronTrainer.Options).
+        /// <see cref="Microsoft.ML.StandardTrainersCatalog.AveragedPerceptron(BinaryClassificationCatalog.BinaryClassificationTrainers, Options)"/>.
         /// </summary>
         public sealed class Options : AveragedLinearOptions
         {
