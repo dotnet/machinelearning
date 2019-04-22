@@ -73,7 +73,7 @@ namespace Microsoft.ML.Trainers
 
         /// <summary>
         /// Options for the <see cref="SymbolicSgdLogisticRegressionBinaryTrainer"/> as used in
-        /// [SymbolicStochasticGradientDescent(Options)](xref:Microsoft.ML.MklComponentsCatalog.SymbolicSgdLogisticRegression(Microsoft.ML.BinaryClassificationCatalog.BinaryClassificationTrainers,Microsoft.ML.Trainers.SymbolicSgdLogisticRegressionBinaryTrainer.Options).
+        /// <see cref="Microsoft.ML.MklComponentsCatalog.SymbolicSgdLogisticRegression(BinaryClassificationCatalog.BinaryClassificationTrainers, Options)"/>.
         /// </summary>
         public sealed class Options : TrainerInputBaseWithLabel
         {
