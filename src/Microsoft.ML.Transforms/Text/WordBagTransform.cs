@@ -47,12 +47,12 @@ namespace Microsoft.ML.Transforms.Text
             public int? NgramLength;
 
             [Argument(ArgumentType.AtMostOnce,
-                HelpText = "Maximum number of tokens to skip when constructing an ngram",
+                HelpText = "Maximum number of tokens to skip when constructing an n-gram",
                 ShortName = "skips")]
             public int? SkipLength;
 
             [Argument(ArgumentType.AtMostOnce,
-                HelpText = "Whether to include all ngram lengths up to " + nameof(NgramLength) + " or only " + nameof(NgramLength),
+                HelpText = "Whether to include all n-gram lengths up to " + nameof(NgramLength) + " or only " + nameof(NgramLength),
                 Name = "AllLengths", ShortName = "all")]
             public bool? UseAllLengths;
 
@@ -169,12 +169,12 @@ namespace Microsoft.ML.Transforms.Text
             public int? NgramLength;
 
             [Argument(ArgumentType.AtMostOnce,
-                HelpText = "Maximum number of tokens to skip when constructing an ngram",
+                HelpText = "Maximum number of tokens to skip when constructing an n-gram",
                 ShortName = "skips")]
             public int? SkipLength;
 
             [Argument(ArgumentType.AtMostOnce, HelpText =
-                "Whether to include all ngram lengths up to " + nameof(NgramLength) + " or only " + nameof(NgramLength),
+                "Whether to include all n-gram lengths up to " + nameof(NgramLength) + " or only " + nameof(NgramLength),
                 Name = "AllLengths", ShortName = "all")]
             public bool? UseAllLengths;
 
@@ -219,12 +219,12 @@ namespace Microsoft.ML.Transforms.Text
             public int NgramLength = 1;
 
             [Argument(ArgumentType.AtMostOnce,
-                HelpText = "Maximum number of tokens to skip when constructing an ngram",
+                HelpText = "Maximum number of tokens to skip when constructing an n-gram",
                 ShortName = "skips")]
             public int SkipLength = NgramExtractingEstimator.Defaults.SkipLength;
 
             [Argument(ArgumentType.AtMostOnce,
-                HelpText = "Whether to include all ngram lengths up to " + nameof(NgramLength) + " or only " + nameof(NgramLength),
+                HelpText = "Whether to include all n-gram lengths up to " + nameof(NgramLength) + " or only " + nameof(NgramLength),
                 Name = "AllLengths", ShortName = "all")]
             public bool UseAllLengths = NgramExtractingEstimator.Defaults.UseAllLengths;
 
@@ -285,9 +285,9 @@ namespace Microsoft.ML.Transforms.Text
             }
 
             // If the column types of args.column are text, apply term transform to convert them to keys.
-            // Otherwise, skip term transform and apply ngram transform directly.
+            // Otherwise, skip term transform and apply n-gram transform directly.
             // This logic allows NgramExtractorTransform to handle both text and key input columns.
-            // Note: ngram transform handles the validation of the types natively (in case the types
+            // Note: n-gram transform handles the validation of the types natively (in case the types
             // of args.column are not text nor keys).
             if (termCols.Count > 0)
             {
@@ -425,7 +425,7 @@ namespace Microsoft.ML.Transforms.Text
     }
 
     /// <summary>
-    /// An ngram extractor factory interface to create an ngram extractor transform.
+    /// An n-gram extractor factory interface to create an n-gram extractor transform.
     /// </summary>
     internal interface INgramExtractorFactory
     {

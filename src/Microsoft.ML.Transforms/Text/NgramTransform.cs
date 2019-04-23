@@ -36,15 +36,15 @@ namespace Microsoft.ML.Transforms.Text
     {
         internal sealed class Column : OneToOneColumn
         {
-            [Argument(ArgumentType.AtMostOnce, HelpText = "Maximum ngram length", ShortName = "ngram")]
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Maximum n-gram length", ShortName = "n-gram")]
             public int? NgramLength;
 
             [Argument(ArgumentType.AtMostOnce, HelpText =
-                "Whether to include all ngram lengths up to " + nameof(NgramLength) + " or only " + nameof(NgramLength), Name = "AllLengths", ShortName = "all")]
+                "Whether to include all n-gram lengths up to " + nameof(NgramLength) + " or only " + nameof(NgramLength), Name = "AllLengths", ShortName = "all")]
             public bool? UseAllLengths;
 
             [Argument(ArgumentType.AtMostOnce,
-                HelpText = "Maximum number of tokens to skip when constructing an ngram",
+                HelpText = "Maximum number of tokens to skip when constructing an n-gram",
                 ShortName = "skips")]
             public int? SkipLength;
 
@@ -78,15 +78,15 @@ namespace Microsoft.ML.Transforms.Text
             [Argument(ArgumentType.Multiple, HelpText = "New column definition(s) (optional form: name:src)", Name = "Column", ShortName = "col", SortOrder = 1)]
             public Column[] Columns;
 
-            [Argument(ArgumentType.AtMostOnce, HelpText = "Maximum ngram length", ShortName = "ngram")]
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Maximum n-gram length", ShortName = "n-gram")]
             public int NgramLength = NgramExtractingEstimator.Defaults.NgramLength;
 
             [Argument(ArgumentType.AtMostOnce, HelpText =
-                "Whether to store all ngram lengths up to ngramLength, or only ngramLength", Name = "AllLengths", ShortName = "all")]
+                "Whether to store all n-gram lengths up to ngramLength, or only ngramLength", Name = "AllLengths", ShortName = "all")]
             public bool UseAllLengths = NgramExtractingEstimator.Defaults.UseAllLengths;
 
             [Argument(ArgumentType.AtMostOnce,
-                HelpText = "Maximum number of tokens to skip when constructing an ngram",
+                HelpText = "Maximum number of tokens to skip when constructing an n-gram",
                 ShortName = "skips")]
             public int SkipLength = NgramExtractingEstimator.Defaults.SkipLength;
 
@@ -182,7 +182,7 @@ namespace Microsoft.ML.Transforms.Text
 
         private readonly ImmutableArray<TransformInfo> _transformInfos;
 
-        // These contain the ngram maps
+        // These contain the n-gram maps
         private readonly SequencePool[] _ngramMaps;
 
         // Ngram inverse document frequencies
@@ -353,7 +353,7 @@ namespace Microsoft.ML.Transforms.Text
                     if (counts[max] < lims[max] && pool.TryAdd(ngram, 0, lim, out slot) && ++counts[max] >= lims[max])
                         numFull++;
 
-                    // Note: 'slot' is either the id of the added ngram or -1. In case it is -1, find its id.
+                    // Note: 'slot' is either the id of the added n-gram or -1. In case it is -1, find its id.
                     // Note: 'more' controls whether more n-grams/skip-grams should be processed in the current
                     //       row. For IDF, as we are interested in counting the occurrence of n-grams/skip-
                     //       grams, more should not be updated.
@@ -382,8 +382,8 @@ namespace Microsoft.ML.Transforms.Text
             // <base>
             // for each column
             //   _transformInfo
-            //   the ngram SequencePool
-            //   the ngram inverse document frequencies
+            //   the n-gram SequencePool
+            //   the n-gram inverse document frequencies
             var transformInfos = new TransformInfo[columnsLength];
             _ngramMaps = new SequencePool[columnsLength];
             _invDocFreqs = new double[columnsLength][];
@@ -456,8 +456,8 @@ namespace Microsoft.ML.Transforms.Text
             // <base>
             // for each added column
             //   _transformInfo
-            //   the ngram SequencePool
-            //   the ngram inverse document frequencies
+            //   the n-gram SequencePool
+            //   the n-gram inverse document frequencies
             SaveColumns(ctx);
             for (int i = 0; i < _transformInfos.Length; i++)
             {
@@ -543,7 +543,7 @@ namespace Microsoft.ML.Transforms.Text
                     var n = pool.GetById(slot, ref ngram);
                     Host.Assert(n >= 0);
 
-                    // Get the unigrams composing the current ngram.
+                    // Get the unigrams composing the current n-gram.
                     ComposeNgramString(ngram, n, sb, keyCount,
                         unigramNames.GetItemOrDefault);
                     dstEditor.Values[slot] = sb.ToString().AsMemory();
@@ -734,8 +734,8 @@ namespace Microsoft.ML.Transforms.Text
         /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.</param>
         /// <param name="inputColumnName">Name of the column to transform. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.</param>
         /// <param name="ngramLength">Ngram length.</param>
-        /// <param name="skipLength">Maximum number of tokens to skip when constructing an ngram.</param>
-        /// <param name="useAllLengths">Whether to include all ngram lengths up to <paramref name="ngramLength"/> or only <paramref name="ngramLength"/>.</param>
+        /// <param name="skipLength">Maximum number of tokens to skip when constructing an n-gram.</param>
+        /// <param name="useAllLengths">Whether to include all n-gram lengths up to <paramref name="ngramLength"/> or only <paramref name="ngramLength"/>.</param>
         /// <param name="maximumNgramsCount">Maximum number of n-grams to store in the dictionary.</param>
         /// <param name="weighting">Statistical measure used to evaluate how important a word is to a document in a corpus.</param>
         internal NgramExtractingEstimator(IHostEnvironment env,
@@ -756,8 +756,8 @@ namespace Microsoft.ML.Transforms.Text
         /// <param name="env">The environment.</param>
         /// <param name="columns">Pairs of columns to compute bag of word vector.</param>
         /// <param name="ngramLength">Ngram length.</param>
-        /// <param name="skipLength">Maximum number of tokens to skip when constructing an ngram.</param>
-        /// <param name="useAllLengths">Whether to include all ngram lengths up to <paramref name="ngramLength"/> or only <paramref name="ngramLength"/>.</param>
+        /// <param name="skipLength">Maximum number of tokens to skip when constructing an n-gram.</param>
+        /// <param name="useAllLengths">Whether to include all n-gram lengths up to <paramref name="ngramLength"/> or only <paramref name="ngramLength"/>.</param>
         /// <param name="maximumNgramsCount">Maximum number of n-grams to store in the dictionary.</param>
         /// <param name="weighting">Statistical measure used to evaluate how important a word is to a document in a corpus.</param>
         internal NgramExtractingEstimator(IHostEnvironment env,
@@ -825,11 +825,11 @@ namespace Microsoft.ML.Transforms.Text
             public readonly string Name;
             /// <summary>Name of column to transform.</summary>
             public readonly string InputColumnName;
-            /// <summary>Maximum ngram length.</summary>
+            /// <summary>Maximum n-gram length.</summary>
             public readonly int NgramLength;
-            /// <summary>Maximum number of tokens to skip when constructing an ngram.</summary>
+            /// <summary>Maximum number of tokens to skip when constructing an n-gram.</summary>
             public readonly int SkipLength;
-            /// <summary>Whether to store all ngram lengths up to ngramLength, or only ngramLength.</summary>
+            /// <summary>Whether to store all n-gram lengths up to ngramLength, or only ngramLength.</summary>
             public readonly bool UseAllLengths;
             /// <summary>The weighting criteria.</summary>
             public readonly WeightingCriteria Weighting;
@@ -848,9 +848,9 @@ namespace Microsoft.ML.Transforms.Text
             /// </summary>
             /// <param name="name">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.</param>
             /// <param name="inputColumnName">Name of column to transform. If set to <see langword="null"/>, the value of the <paramref name="name"/> will be used as source.</param>
-            /// <param name="ngramLength">Maximum ngram length.</param>
-            /// <param name="skipLength">Maximum number of tokens to skip when constructing an ngram.</param>
-            /// <param name="useAllLengths">Whether to store all ngram lengths up to ngramLength, or only ngramLength.</param>
+            /// <param name="ngramLength">Maximum n-gram length.</param>
+            /// <param name="skipLength">Maximum number of tokens to skip when constructing an n-gram.</param>
+            /// <param name="useAllLengths">Whether to store all n-gram lengths up to ngramLength, or only ngramLength.</param>
             /// <param name="weighting">The weighting criteria.</param>
             /// <param name="maximumNgramsCount">Maximum number of n-grams to store in the dictionary.</param>
             public ColumnOptions(string name, string inputColumnName = null,
