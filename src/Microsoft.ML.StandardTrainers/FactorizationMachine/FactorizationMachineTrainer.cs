@@ -77,8 +77,8 @@ namespace Microsoft.ML.Trainers
     /// For a systematic introduction to field-aware factorization machine, please see [this paper](https://www.csie.ntu.edu.tw/~cjlin/papers/ffm.pdf)
     ///
     /// ### Training Algorithm Details
-    /// The implemented algorithm in <see cref="FieldAwareFactorizationMachineTrainer"/> is based on [a stochastic gradient method](http://jmlr.org/papers/volume12/duchi11a/duchi11a.pdf).
-    /// Algorithm details is described in Algorithm 3 in [a online document](https://github.com/wschin/fast-ffm/blob/master/fast-ffm.pdf).
+    /// The algorithm implemented in <xref:Microsoft.ML.Trainers.FieldAwareFactorizationMachineTrainer> is based on [a stochastic gradient method](http://jmlr.org/papers/volume12/duchi11a/duchi11a.pdf).
+    /// Algorithm details is described in Algorithm 3 in [this online document](https://github.com/wschin/fast-ffm/blob/master/fast-ffm.pdf).
     /// The minimized loss function is [logistic loss](https://en.wikipedia.org/wiki/Loss_functions_for_classification), so the trained model can be viewed as a non-linear logistic regression.
     ///
     /// ]]>
