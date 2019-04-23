@@ -643,7 +643,7 @@ namespace Microsoft.ML
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
-        ///  [!code-csharp[PoissonRegression](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Trainers/MulticlassClassification/LbfgsMaximumEntropy.cs)]
+        ///  [!code-csharp[Lbfgs](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Trainers/MulticlassClassification/LbfgsMaximumEntropy.cs)]
         /// ]]></format>
         /// </example>
         public static LbfgsMaximumEntropyMulticlassTrainer LbfgsMaximumEntropy(this MulticlassClassificationCatalog.MulticlassClassificationTrainers catalog,
