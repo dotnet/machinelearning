@@ -227,7 +227,7 @@ namespace Microsoft.ML.Transforms
     }
 
     /// <summary>
-    /// Computes model-specific per-feature contributions to the score of each input vector.
+    /// Estimator for <see cref="FeatureContributionCalculatingTransformer"/>. Computes model-specific per-feature contributions to the score of each input vector.
     /// </summary>
     /// <remarks>
     /// <format type="text/markdown"><![CDATA[
@@ -246,31 +246,31 @@ namespace Microsoft.ML.Transforms
     ///
     /// Feature Contribution Calculation is currently supported for the following models:
     /// - Regression:
-    ///   - OlsTrainer
-    ///   - SdcaRegressionTrainer
-    ///   - OnlineGradientDescentTrainer
-    ///   - LbfgsPoissonRegressionTrainer
-    ///   - GamRegressionTrainer
-    ///   - LightGbmRegressionTrainer
-    ///   - FastTreeRegressionTrainer
-    ///   - FastForestRegressionTrainer
-    ///   - FastTreeTweedieTrainer
+    ///   - <xref:Microsoft.ML.Trainers.OlsTrainer>
+    ///   - <xref:Microsoft.ML.Trainers.SdcaRegressionTrainer>
+    ///   - <xref:Microsoft.ML.Trainers.OnlineGradientDescentTrainer>
+    ///   - <xref:Microsoft.ML.Trainers.LbfgsPoissonRegressionTrainer>
+    ///   - <xref:Microsoft.ML.Trainers.FastTree.GamRegressionTrainer>
+    ///   - <xref:Microsoft.ML.Trainers.LightGbm.LightGbmRegressionTrainer>
+    ///   - <xref:Microsoft.ML.Trainers.FastTree.FastTreeRegressionTrainer>
+    ///   - <xref:Microsoft.ML.Trainers.FastTree.FastForestRegressionTrainer>
+    ///   - <xref:Microsoft.ML.Trainers.FastTree.FastTreeTweedieTrainer>
     /// - Binary Classification:
-    ///   - AveragedPerceptronTrainer
-    ///   - LinearSvmTrainer
-    ///   - LbfgsLogisticRegressionBinaryTrainer
-    ///   - SdcaNonCalibratedBinaryTrainer
-    ///   - SdcaLogisticRegressionBinaryTrainer
-    ///   - SgdCalibratedTrainer
-    ///   - SgdNonCalibratedTrainer
-    ///   - SymbolicSgdLogisticRegressionBinaryTrainer
-    ///   - GamBinaryTrainer
-    ///   - FastForestBinaryTrainer
-    ///   - FastTreeBinaryTrainer
-    ///   - LightGbmBinaryTrainer
+    ///   - <xref:Microsoft.ML.Trainers.AveragedPerceptronTrainer>
+    ///   - <xref:Microsoft.ML.Trainers.LinearSvmTrainer>
+    ///   - <xref:Microsoft.ML.Trainers.LbfgsLogisticRegressionBinaryTrainer>
+    ///   - <xref:Microsoft.ML.Trainers.SdcaNonCalibratedBinaryTrainer>
+    ///   - <xref:Microsoft.ML.Trainers.SdcaLogisticRegressionBinaryTrainer>
+    ///   - <xref:Microsoft.ML.Trainers.SgdCalibratedTrainer>
+    ///   - <xref:Microsoft.ML.Trainers.SgdNonCalibratedTrainer>
+    ///   - <xref:Microsoft.ML.Trainers.SymbolicSgdLogisticRegressionBinaryTrainer>
+    ///   - <xref:Microsoft.ML.Trainers.FastTree.GamBinaryTrainer>
+    ///   - <xref:Microsoft.ML.Trainers.FastTree.FastForestBinaryTrainer>
+    ///   - <xref:Microsoft.ML.Trainers.FastTree.FastTreeBinaryTrainer>
+    ///   - <xref:Microsoft.ML.Trainers.LightGbm.LightGbmBinaryTrainer>
     /// - Ranking:
-    ///   - FastTreeRankingTrainer
-    ///   - LightGbmRankingTrainer
+    ///   - <xref:Microsoft.ML.Trainers.FastTree.FastTreeRankingTrainer>
+    ///   - <xref:Microsoft.ML.Trainers.LightGbm.LightGbmRankingTrainer>
     ///
     /// For linear models, the contribution of a given feature is equal to the product of feature value times the corresponding weight. Similarly,
     /// for Generalized Additive Models (GAM), the contribution of a feature is equal to the shape function for the given feature evaluated at
