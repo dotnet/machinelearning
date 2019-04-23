@@ -22,7 +22,7 @@ namespace Microsoft.ML.Trainers
     /// <example>
     /// <format type="text/markdown">
     /// <![CDATA[
-    ///  [!code-csharp[KMeans](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/KMeans.cs)]
+    ///  [!code-csharp[KMeans](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Trainers/Clustering/KMeans.cs)]
     /// ]]></format>
     /// </example>
     public sealed class KMeansModelParameters :

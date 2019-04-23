@@ -73,7 +73,7 @@ namespace Samples.Dynamic
                 .Append(mlContext.Transforms.Conversion.MapValue("VariableLenghtFeatures", lookupMap,
                     lookupMap.Schema["Words"], lookupMap.Schema["Ids"], "TokenizedWords"))
                 .Append(mlContext.Transforms.CustomMapping(ResizeFeaturesAction, "Resize"))
-                .Append(tensorFlowModel.ScoreTensorFlowModel(new[] { "Prediction/Softmax" }, new[] { "Features" }))
+                .Append(tensorFlowModel.ScoreTensorFlowModel("Prediction/Softmax", "Features"))
                 .Append(mlContext.Transforms.CopyColumns("Prediction", "Prediction/Softmax"))
                 .Fit(dataView);
             var engine = mlContext.Model.CreatePredictionEngine<IMDBSentiment, OutputScores>(model);
