@@ -46,7 +46,7 @@ namespace Microsoft.ML.Trainers
     /// |  |  |
     /// | -- | -- |
     /// | Machine learning task | Anomaly Detection |
-    /// | Is normalization required? | No |
+    /// | Is normalization required? | Yes |
     /// | Is caching required? | No |
     /// | Required NuGet in addition to Microsoft.ML | None |
     ///
