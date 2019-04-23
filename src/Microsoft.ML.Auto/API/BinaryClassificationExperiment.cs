@@ -135,7 +135,7 @@ namespace Microsoft.ML.Auto
     /// <example>
     /// <format type="text/markdown">
     /// <![CDATA[
-    ///  [!code-csharp[BinaryClassificationExperiment](~/../docs/samples/Microsoft.ML.AutoML.Samples/BinaryClassificationExperiment.cs)]
+    ///  [!code-csharp[BinaryClassificationExperiment](~/../docs/samples_automl/docs/samples/Microsoft.ML.AutoML.Samples/BinaryClassificationExperiment.cs)]
     /// ]]></format>
     /// </example>
     public sealed class BinaryClassificationExperiment : ExperimentBase<BinaryClassificationMetrics, BinaryExperimentSettings>
