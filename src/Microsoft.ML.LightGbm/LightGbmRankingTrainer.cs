@@ -23,6 +23,9 @@ using Microsoft.ML.Trainers.LightGbm;
 
 namespace Microsoft.ML.Trainers.LightGbm
 {
+    /// <summary>
+    /// Model parameters for <see cref="LightGbmRankingTrainer"/>.
+    /// </summary>
     public sealed class LightGbmRankingModelParameters : TreeEnsembleModelParametersBasedOnRegressionTree
     {
         internal const string LoaderSignature = "LightGBMRankerExec";

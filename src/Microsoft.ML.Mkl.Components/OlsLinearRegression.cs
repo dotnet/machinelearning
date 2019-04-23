@@ -538,7 +538,7 @@ namespace Microsoft.ML.Trainers
     }
 
     /// <summary>
-    /// Model parameters for the <see cref="OlsTrainer"/>.
+    /// Model parameters for <see cref="OlsTrainer"/>.
     /// </summary>
     public sealed class OlsModelParameters : RegressionModelParameters
     {

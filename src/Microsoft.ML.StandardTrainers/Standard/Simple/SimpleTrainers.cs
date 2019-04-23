@@ -322,6 +322,9 @@ namespace Microsoft.ML.Trainers
         }
     }
 
+    /// <summary>
+    /// Model parameters for <see cref="PriorTrainer"/>.
+    /// </summary>
     public sealed class PriorModelParameters :
         ModelParametersBase<float>,
         IDistPredictorProducing<float, float>,

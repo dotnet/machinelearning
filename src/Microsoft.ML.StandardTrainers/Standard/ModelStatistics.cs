@@ -204,7 +204,7 @@ namespace Microsoft.ML.Trainers
 
     // REVIEW: Reconcile with the stats in OLS learner.
     /// <summary>
-    /// The statistics for linear predictor.
+    /// The statistics for linear model.
     /// </summary>
     public sealed class LinearModelParameterStatistics : ModelStatisticsBase
     {

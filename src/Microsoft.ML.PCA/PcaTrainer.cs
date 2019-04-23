@@ -406,7 +406,7 @@ namespace Microsoft.ML.Trainers
 
     // REVIEW: move the predictor to a different file and fold EigenUtils.cs to this file.
     /// <summary>
-    /// Model parameters for the <see cref="RandomizedPcaTrainer"/>.
+    /// Model parameters for <see cref="RandomizedPcaTrainer"/>.
     /// </summary>
     public sealed class PcaModelParameters : ModelParametersBase<float>,
         IValueMapper,

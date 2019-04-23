@@ -468,6 +468,9 @@ namespace Microsoft.ML.Trainers.FastTree
         }
     }
 
+    /// <summary>
+    /// Model parameters for <see cref="FastForestRegressionTrainer"/>.
+    /// </summary>
     public sealed class FastTreeRegressionModelParameters : TreeEnsembleModelParametersBasedOnRegressionTree
     {
         internal const string LoaderSignature = "FastTreeRegressionExec";

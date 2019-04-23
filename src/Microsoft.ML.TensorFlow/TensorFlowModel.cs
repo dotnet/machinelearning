@@ -50,7 +50,7 @@ namespace Microsoft.ML.Transforms
         }
 
         /// <summary>
-        /// Scores a dataset using a pre-traiend <a href="https://www.tensorflow.org/">TensorFlow</a> model.
+        /// Scores a dataset using a pre-trained <a href="https://www.tensorflow.org/">TensorFlow</a> model.
         /// </summary>
         /// <param name="inputColumnName"> The name of the model input.</param>
         /// <param name="outputColumnName">The name of the requested model output.</param>
@@ -67,7 +67,7 @@ namespace Microsoft.ML.Transforms
             => new TensorFlowEstimator(_env, new[] { outputColumnName }, new[] { inputColumnName }, this, addBatchDimensionInput);
 
         /// <summary>
-        /// Scores a dataset using a pre-traiend TensorFlow model.
+        /// Scores a dataset using a pre-trained TensorFlow model.
         /// </summary>
         /// <param name="inputColumnNames"> The names of the model inputs.</param>
         /// <param name="outputColumnNames">The names of the requested model outputs.</param>
