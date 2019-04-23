@@ -1453,7 +1453,7 @@ namespace Microsoft.ML.Trainers
         public override TrainerInfo Info { get; }
 
         /// <summary>
-        /// Options base class for binary SDCA trainers.
+        /// Options for <see cref="SdcaBinaryTrainerBase{TModelParameters}"/>.
         /// </summary>
         public class BinaryOptionsBase : OptionsBase
         {
