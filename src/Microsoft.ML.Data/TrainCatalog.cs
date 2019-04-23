@@ -288,7 +288,7 @@ namespace Microsoft.ML
             /// <example>
             /// <format type="text/markdown">
             /// <![CDATA[
-            /// [!code-csharp[NaiveCalibrator](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/BinaryClassification/Calibrators/Naive.cs)]
+            /// [!code-csharp[NaiveCalibrator](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Trainers/BinaryClassification/Calibrators/Naive.cs)]
             /// ]]>
             /// </format>
             /// </example>
@@ -307,7 +307,7 @@ namespace Microsoft.ML
             /// <example>
             /// <format type="text/markdown">
             /// <![CDATA[
-            /// [!code-csharp[PlattCalibrator](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/BinaryClassification/Calibrators/Platt.cs)]
+            /// [!code-csharp[PlattCalibrator](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Trainers/BinaryClassification/Calibrators/Platt.cs)]
             /// ]]>
             /// </format>
             /// </example>
@@ -328,7 +328,7 @@ namespace Microsoft.ML
             /// <example>
             /// <format type="text/markdown">
             /// <![CDATA[
-            /// [!code-csharp[FixedPlattCalibrator](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/BinaryClassification/Calibrators/FixedPlatt.cs)]
+            /// [!code-csharp[FixedPlattCalibrator](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Trainers/BinaryClassification/Calibrators/FixedPlatt.cs)]
             /// ]]>
             /// </format>
             /// </example>
@@ -353,7 +353,7 @@ namespace Microsoft.ML
             /// <example>
             /// <format type="text/markdown">
             /// <![CDATA[
-            /// [!code-csharp[PairAdjacentViolators](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/BinaryClassification/Calibrators/Isotonic.cs)]
+            /// [!code-csharp[PairAdjacentViolators](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Trainers/BinaryClassification/Calibrators/Isotonic.cs)]
             /// ]]>
             /// </format>
             /// </example>
