@@ -1641,7 +1641,7 @@ namespace Microsoft.ML.Trainers
     /// To create this trainer, use [SdcaNonCalibrated](xref:Microsoft.ML.StandardTrainersCatalog.SdcaNonCalibrated(Microsoft.ML.BinaryClassificationCatalog.BinaryClassificationTrainers,System.String,System.String,System.String,Microsoft.ML.Trainers.ISupportSdcaClassificationLoss,System.Nullable{System.Single},System.Nullable{System.Single},System.Nullable{System.Int32}))
     /// or [SdcaNonCalibrated(Options)](xref:Microsoft.ML.StandardTrainersCatalog.SdcaNonCalibrated(Microsoft.ML.BinaryClassificationCatalog.BinaryClassificationTrainers,Microsoft.ML.Trainers.SdcaNonCalibratedBinaryTrainer.Options)).
     ///
-    /// [!include[io](~/../docs/samples/docs/api-reference/io-columns-binary-classification.md)]
+    /// [!include[io](~/../docs/samples/docs/api-reference/io-columns-binary-classification-no-prob.md)]
     ///
     /// ### Trainer Characteristics
     /// |  |  |
@@ -2308,7 +2308,7 @@ namespace Microsoft.ML.Trainers
     /// To create this trainer, use [SgdNonCalibrated](xref:Microsoft.ML.StandardTrainersCatalog.SgdNonCalibrated(Microsoft.ML.BinaryClassificationCatalog.BinaryClassificationTrainers,System.String,System.String,System.String,Microsoft.ML.Trainers.IClassificationLoss,System.Int32,System.Double,System.Single))
     /// or [SgdNonCalibrated(Options)](xref:Microsoft.ML.StandardTrainersCatalog.SgdNonCalibrated(Microsoft.ML.BinaryClassificationCatalog.BinaryClassificationTrainers,Microsoft.ML.Trainers.SgdNonCalibratedTrainer.Options)).
     ///
-    /// [!include[io](~/../docs/samples/docs/api-reference/io-columns-binary-classification.md)]
+    /// [!include[io](~/../docs/samples/docs/api-reference/io-columns-binary-classification-no-prob.md)]
     ///
     /// ### Trainer Characteristics
     /// |  |  |

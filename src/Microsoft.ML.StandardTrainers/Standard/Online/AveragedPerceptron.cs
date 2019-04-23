@@ -30,7 +30,7 @@ namespace Microsoft.ML.Trainers
     /// To create this trainer, use [AveragedPerceptron](xref:Microsoft.ML.StandardTrainersCatalog.AveragedPerceptron(Microsoft.ML.BinaryClassificationCatalog.BinaryClassificationTrainers,System.String,System.String,Microsoft.ML.Trainers.IClassificationLoss,System.Single,System.Boolean,System.Single,System.Int32))
     /// or [AveragedPerceptron(Options)](xref:Microsoft.ML.StandardTrainersCatalog.AveragedPerceptron(Microsoft.ML.BinaryClassificationCatalog.BinaryClassificationTrainers,Microsoft.ML.Trainers.AveragedPerceptronTrainer.Options)).
     ///
-    /// [!include[io](~/../docs/samples/docs/api-reference/io-columns-binary-classification.md)]
+    /// [!include[io](~/../docs/samples/docs/api-reference/io-columns-binary-classification-no-prob.md)]
     ///
     /// ### Trainer Characteristics
     /// |  |  |
