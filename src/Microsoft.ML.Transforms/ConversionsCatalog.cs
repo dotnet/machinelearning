@@ -30,7 +30,7 @@ namespace Microsoft.ML
         }
 
         /// <summary>
-        /// Create a <see cref="KeyToBinaryVectorMappingEstimator"/>, which converts key types to their corresponding binary representation.
+        /// Create a <see cref="KeyToBinaryVectorMappingEstimator"/>, which converts key types to their corresponding binary representation of the original value.
         /// </summary>
         /// <param name="catalog">The categorical transform's catalog.</param>
         /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.</param>
@@ -38,7 +38,7 @@ namespace Microsoft.ML
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
-        ///  [!code-csharp[MapKeyToVector](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/Conversions/MapKeyToBinaryVector.cs)]
+        ///  [!code-csharp[MapKeyToVector](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/Conversion/MapKeyToBinaryVector.cs)]
         /// ]]></format>
         /// </example>
         public static KeyToBinaryVectorMappingEstimator MapKeyToBinaryVector(this TransformsCatalog.ConversionTransforms catalog,

@@ -426,7 +426,7 @@ namespace Microsoft.ML.Transforms
     }
 
     /// <summary>
-    /// Estimator for <see cref="KeyToBinaryVectorMappingTransformer"/>. Converts key types to their corresponding binary representation.
+    /// Estimator for <see cref="KeyToBinaryVectorMappingTransformer"/>. Converts key types to their corresponding binary representation of the original value.
     /// </summary>
     /// <remarks>
     /// <format type="text/markdown"><![CDATA[
