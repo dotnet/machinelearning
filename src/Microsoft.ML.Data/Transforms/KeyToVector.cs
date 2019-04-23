@@ -724,7 +724,7 @@ namespace Microsoft.ML.Transforms
 
     /// <summary>
     /// Estimator for <see cref="KeyToVectorMappingTransformer"/>. Maps the value of a key
-    /// into a floating point vector representing the value.
+    /// into a known-sized vector of <see cref="System.Single"/>.
     /// </summary>
     /// <remarks>
     /// <format type="text/markdown"><![CDATA[

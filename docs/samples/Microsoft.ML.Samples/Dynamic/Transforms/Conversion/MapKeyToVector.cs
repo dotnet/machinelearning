@@ -28,13 +28,14 @@ namespace Samples.Dynamic
 
             var data = mlContext.Data.LoadFromEnumerable(rawData);
 
-            // First transform just maps key type to indicator vector. i.e. it's produces vector of zeros with size of
-            // key cardinality and set 1 to corresponding key's value index in that array.
-            // Next we create vector of keys (same cardinality) and apply two transforms for them.
-            // One count output as count vector and output vector with size equal to key cardinality
-            // and put key counts to corresponding indexes in array.
-            // Second output indicator vector for each key and concatenate them together.
-            // Result vector would be size of key cardinality * size of original vector.
+            // First transform just maps key type to indicator vector. i.e. it's produces vector filled with
+            // zeros with size of key cardinality and set 1 to corresponding key's value index in that array.
+            // After that we concatenate two columns with single int values into vector of ints.
+            // Third transform will create vector of keys, where key type is shared across whole vector.
+            // Forth transfrom output data as count vector and that vector would have size equal to shared key type
+            // cardinality and put key counts to corresponding indexes in array.
+            // Fifth transform output indicator vector for each key and concatenate them together.
+            // Result vector would be size of key cardinality multiplied by size of original vector.
             var pipeline = mlContext.Transforms.Conversion.MapKeyToVector("TimeframeVector", "Timeframe")
                            .Append(mlContext.Transforms.Concatenate("Parts", "PartA", "PartB"))
                            .Append(mlContext.Transforms.Conversion.MapValueToKey("Parts"))
@@ -65,7 +66,6 @@ namespace Samples.Dynamic
         {
             [KeyType(9)]
             public uint Timeframe { get; set; }
-
             public int PartA { get; set; }
             public int PartB { get; set; }
 

@@ -18,7 +18,7 @@ namespace Samples.Dynamic
                 new DataPoint() { Label = false, Feature = 0.0326252f},
                 new DataPoint() { Label = false, Feature = 0.8426974f},
                 new DataPoint() { Label = true, Feature = 0.9947656f},
-                new DataPoint() { Label = true, Feature=1.017325f},
+                new DataPoint() { Label = true, Feature = 1.017325f},
             };
 
             var data = mlContext.Data.LoadFromEnumerable(rawData);
