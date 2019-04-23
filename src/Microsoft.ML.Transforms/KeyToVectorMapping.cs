@@ -440,6 +440,7 @@ namespace Microsoft.ML.Transforms
     ///
     /// ]]></format>
     /// </remarks>
+    /// <seealso cref="ConversionsCatalog.MapKeyToBinaryVector(TransformsCatalog.ConversionTransforms, string, string)"/>
     public sealed class KeyToBinaryVectorMappingEstimator : TrivialEstimator<KeyToBinaryVectorMappingTransformer>
     {
         internal KeyToBinaryVectorMappingEstimator(IHostEnvironment env, params (string outputColumnName, string inputColumnName)[] columns)
