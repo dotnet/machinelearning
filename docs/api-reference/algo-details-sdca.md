@@ -39,11 +39,11 @@ error of the hypothesis. An accurate model with extreme coefficient values would
 be penalized more, but a less accurate model with more conservative values would
 be penalized less. This learner supports [elastic net
 regularization](https://en.wikipedia.org/wiki/Elastic_net_regularization): a
-linear combination of L1-norm (LASSO), $|| \boldsymbol{w} ||_1$, and L2-norm
-(ridge), $|| \boldsymbol{w} ||_2^2$ regularizations. L1-nrom and L2-norm
+linear combination of L1-norm (LASSO), $|| \textbf{w} ||_1$, and L2-norm
+(ridge), $|| \textbf{w} ||_2^2$ regularizations. L1-nrom and L2-norm
 regularizations have different effects and uses that are complementary in
 certain respects. Using L1-norm can increase sparsity of the trained
-$\boldsymbol{w}$. When working with high-dimensional data, it shrinks small
+$\textbf{w}$. When working with high-dimensional data, it shrinks small
 weights of irrevalent features to 0 and therefore no reource will be spent on
 those bad features when making prediction. L2-norm regularization is preferable
 for data that is not sparse and it largely penalizes the existence of large

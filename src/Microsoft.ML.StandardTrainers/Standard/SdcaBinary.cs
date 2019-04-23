@@ -1651,7 +1651,7 @@ namespace Microsoft.ML.Trainers
     /// | Is caching required? | No |
     /// | Required NuGet in addition to Microsoft.ML | None |
     ///
-    /// [!include[algorithm](~/../docs/samples/docs/api-reference/algo-details-sdca.md)].
+    /// [!include[algorithm](~/../docs/samples/docs/api-reference/algo-details-sdca.md)]
     /// ]]>
     /// </format>
     /// </remarks>
