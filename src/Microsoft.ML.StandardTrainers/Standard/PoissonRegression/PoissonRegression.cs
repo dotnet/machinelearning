@@ -61,7 +61,7 @@ namespace Microsoft.ML.Trainers
 
         /// <summary>
         /// Options for the <see cref="LbfgsPoissonRegressionTrainer"/> as used in
-        /// <see cref="StandardTrainersCatalog.LbfgsPoissonRegression(RegressionCatalog.RegressionTrainers, Options)"/>.
+        /// [LbfgsPoissonRegression(Options)](xref:Microsoft.ML.StandardTrainersCatalog.LbfgsPoissonRegression(Microsoft.ML.RegressionCatalog.RegressionTrainers,Microsoft.ML.Trainers.LbfgsPoissonRegressionTrainer.Options)).
         /// </summary>
         public sealed class Options : OptionsBase
         {
