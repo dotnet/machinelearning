@@ -54,7 +54,7 @@ namespace Microsoft.ML.Trainers
     /// It uses various bounding techniques to identify this redundancy and eliminate many distance computations and optimize centroid computations.
     ///
     /// ### Scorning Function
-    /// The output Score column contains the L2-norm distance of the given input vector $\textbf{x}\in \mathbb{R}^n$ to each cluster's centroid.
+    /// The output score column contains the L2-norm distance of the given input vector $\textbf{x}\in \mathbb{R}^n$ to each cluster's centroid.
     /// Assume that the centriod of the $c$-th cluster is $\textbf{m}_c \mathbb{R}^n$.
     /// The $c$-th value at the Score column would be $d_c = || \textbf{x} - \textbf{m}_c ||_2^2$.
     /// The predicted label is the index with the smallest value in a $K$ dimension vector $[d_1, \dots, d_K]$, where $K$ is the number of clusters.
