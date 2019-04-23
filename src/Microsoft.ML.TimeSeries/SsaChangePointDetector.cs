@@ -26,7 +26,7 @@ using Microsoft.ML.Transforms.TimeSeries;
 namespace Microsoft.ML.Transforms.TimeSeries
 {
     /// <summary>
-    /// <see cref="ITransformer"/> produced by fitting the <see cref="IDataView"/> to an <see cref="SsaChangePointEstimator" />.
+    /// <see cref="ITransformer"/> resulting from fitting a <see cref="SsaChangePointEstimator"/>.
     /// </summary>
     public sealed class SsaChangePointDetector : SsaAnomalyDetectionBaseWrapper, IStatefulTransformer
     {
@@ -200,7 +200,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
     }
 
     /// <summary>
-    /// The <see cref="IEstimator{TTransformer}"/> to predict change points in time series using Singular Spectrum Analysis.
+    /// Detect change points in time series using Singular Spectrum Analysis.
     /// </summary>
     /// <remarks>
     /// <format type="text/markdown"><![CDATA[

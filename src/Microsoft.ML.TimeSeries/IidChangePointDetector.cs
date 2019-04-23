@@ -26,7 +26,7 @@ using Microsoft.ML.Transforms.TimeSeries;
 namespace Microsoft.ML.Transforms.TimeSeries
 {
     /// <summary>
-    /// <see cref="ITransformer"/> produced by fitting the <see cref="IDataView"/> to an <see cref="IidChangePointEstimator" />.
+    /// <see cref="ITransformer"/> resulting from fitting a <see cref="IidChangePointEstimator"/>.
     /// </summary>
     public sealed class IidChangePointDetector : IidAnomalyDetectionBaseWrapper, IStatefulTransformer
     {
@@ -191,7 +191,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
     }
 
     /// <summary>
-    /// The <see cref="IEstimator{TTransformer}"/> to detect a signal change on an
+    /// Detect a signal change on an
     /// <a href="https://en.wikipedia.org/wiki/Independent_and_identically_distributed_random_variables"> independent identically distributed (i.i.d.)</a>
     /// time series based on adaptive kernel density estimation and martingales.
     /// </summary>
