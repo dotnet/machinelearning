@@ -901,7 +901,7 @@ namespace Microsoft.ML.Transforms
     ///
     /// The resulting <xref:Microsoft.ML.Transforms.MissingValueReplacingTransformer"/> creates a new column, named as specified in the output column name parameters, and
     /// copies the data from the input column to this new column with exception what missing values in data would be replaced according to chosen strategy.
-    /// See the See Also section for links of examples of the usage.
+    /// Check the See Also section for links of examples of the usage.
     /// ]]>
     /// </format>
     /// </remarks>

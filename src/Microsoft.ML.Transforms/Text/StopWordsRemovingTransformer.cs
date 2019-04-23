@@ -494,7 +494,7 @@ namespace Microsoft.ML.Transforms.Text
     /// The resulting <xref:Microsoft.ML.Transforms.Text.StopWordsRemovingTransformer/> creates a new column, named as specified in the output column name parameter,
     /// and fills it with a vector of words containing all of the words in the input column **except the predefined list of stopwords for the specified language.
     /// All text comparison made by casting predefined text and text from input column to lower case using casing rules of invariant culture.
-    /// See the See Also section for links to examples of the usage.
+    /// Check the See Also section for links to examples of the usage.
     /// ]]>
     /// </format>
     /// </remarks>
@@ -1100,7 +1100,7 @@ namespace Microsoft.ML.Transforms.Text
     /// The resulting <xref:Microsoft.ML.Transforms.Text.CustomStopWordsRemovingTransformer/> creates a new column, named as specified by the output column name parameter, and
     /// fills it with a vector of words containing all of the words in the input column except those given by the stopwords parameter.
     /// All text comparison made by casting provided words and words from input column to lower case using casing rules of invariant culture.
-    /// See the See Also section for links to examples of the usage.
+    /// Check the See Also section for links to examples of the usage.
     /// ]]>
     /// </format>
     /// </remarks>

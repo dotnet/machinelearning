@@ -437,7 +437,7 @@ namespace Microsoft.ML.Transforms.Image
     ///
     /// The resulting <xref:Microsoft.ML.Transforms.Image.VectorToImageConvertingTransformer> creates a new column, named as specified in the output column name parameters, and
     /// creates image from the data in the input column to this new column.
-    /// See the See Also section for links to examples of the usage.
+    /// Check the See Also section for links to examples of the usage.
     /// ]]>
     /// </format>
     /// </remarks>

@@ -875,7 +875,7 @@ namespace Microsoft.ML.Transforms.Text
     ///
     /// <xref:Microsoft.ML.Transforms.Text.NgramHashingEstimator> is different from <xref:Microsoft.ML.Transforms.Text.WordHashBagEstimator>
     /// in a way that The former takes tokenized text as input while the latter tokenizes text internally.
-    /// See the See Also section for links to examples of the usage.
+    /// Check the See Also section for links to examples of the usage.
     /// ]]>
     /// </format>
     /// </remarks>
