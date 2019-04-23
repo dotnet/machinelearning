@@ -12,7 +12,7 @@ namespace Microsoft.ML
     public static class OnnxCatalog
     {
         /// <summary>
-        /// Applies a pre-trained Onnx model.
+        /// Create a <see cref="OnnxScoringEstimator"/>, which applies a pre-trained Onnx model to the input column.
         /// </summary>
         /// <remarks>
         /// All column names are provided, the input data column names/types must exactly match
@@ -37,7 +37,7 @@ namespace Microsoft.ML
         => new OnnxScoringEstimator(CatalogUtils.GetEnvironment(catalog), modelFile, gpuDeviceId, fallbackToCpu);
 
         /// <summary>
-        /// Applies a pre-trained Onnx model.
+        /// Create a <see cref="OnnxScoringEstimator"/>, which applies a pre-trained Onnx model to the <paramref name="inputColumnName"/> column.
         /// </summary>
         /// <param name="catalog">The transform's catalog.</param>
         /// <param name="outputColumnName">The output column resulting from the transformation.</param>
@@ -54,7 +54,7 @@ namespace Microsoft.ML
         => new OnnxScoringEstimator(CatalogUtils.GetEnvironment(catalog), new[] { outputColumnName }, new[] { inputColumnName }, modelFile, gpuDeviceId, fallbackToCpu);
 
         /// <summary>
-        /// Applies a pre-trained Onnx model.
+        /// Create a <see cref="OnnxScoringEstimator"/>, which applies a pre-trained Onnx model to the <paramref name="inputColumnNames"/> columns.
         /// </summary>
         /// <param name="catalog">The transform's catalog.</param>
         /// <param name="outputColumnNames">The output columns resulting from the transformation.</param>
