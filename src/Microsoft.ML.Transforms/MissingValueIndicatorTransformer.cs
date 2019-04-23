@@ -441,7 +441,7 @@ namespace Microsoft.ML.Transforms
     /// | Input column data type | Vector or scalar value of <xref:System.Single> or <xref:System.Double> |
     /// | Output column data type | If input column was scalar then <xref:System.Boolean> otherwise vector of <xref:System.Boolean>. |
     ///
-    /// The resulting <xref:Microsoft.ML.Transfroms.MissingValueIndicatorTransformer/> creates a new column, named as specified in the output column name parameters, and
+    /// The resulting <xref:Microsoft.ML.Transforms.MissingValueIndicatorTransformer> creates a new column, named as specified in the output column name parameters, and
     /// fills it with vector of bools where `true` in the i-th position in array indicates the i-th element in input column has missing value and `false` otherwise.
     /// Check the See Also section for links of examples of the usage.
     /// ]]>
