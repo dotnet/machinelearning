@@ -24,7 +24,7 @@ namespace Microsoft.ML.Trainers
       where TOptions : LbfgsTrainerBase<TOptions, TTransformer, TModel>.OptionsBase, new()
     {
         /// <summary>
-        /// Options for the <see cref="LbfgsTrainerBase{TOptions, TTransformer, TModel}"/>.
+        /// Base options class for trainer estimators deriving from<see cref="LbfgsTrainerBase{TOptions, TTransformer, TModel}"/>.
         /// </summary>
         public abstract class OptionsBase : TrainerInputBaseWithWeight
         {
