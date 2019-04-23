@@ -32,7 +32,9 @@ using Microsoft.ML.Transforms.TensorFlow;
 
 namespace Microsoft.ML.Transforms
 {
-    /// <include file='doc.xml' path='doc/members/member[@name="TensorflowTransformer"]/*' />
+    /// <summary>
+    /// <see cref="ITransformer" /> for the <see cref="TensorFlowEstimator"/>.
+    /// </summary>
     public sealed class TensorFlowTransformer : RowToRowTransformerBase
     {
         private readonly string _savedModelPath;
@@ -1017,9 +1019,7 @@ namespace Microsoft.ML.Transforms
         }
     }
 
-    /// <summary>
-    /// Estimator for the <see cref="TensorFlowTransformer"/>.
-    /// </summary>
+    /// <include file='doc.xml' path='doc/members/member[@name="TensorflowTransformer"]/*' />
     public sealed class TensorFlowEstimator : IEstimator<TensorFlowTransformer>
     {
         /// <summary>
