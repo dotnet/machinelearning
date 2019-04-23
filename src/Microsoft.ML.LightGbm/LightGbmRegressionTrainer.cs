@@ -21,6 +21,9 @@ using Microsoft.ML.Trainers.LightGbm;
 
 namespace Microsoft.ML.Trainers.LightGbm
 {
+    /// <summary>
+    /// Model parameters for <see cref="LightGbmRegressionTrainer"/>.
+    /// </summary>
     public sealed class LightGbmRegressionModelParameters : TreeEnsembleModelParametersBasedOnRegressionTree
     {
         internal const string LoaderSignature = "LightGBMRegressionExec";

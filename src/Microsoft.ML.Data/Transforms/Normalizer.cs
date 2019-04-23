@@ -773,7 +773,7 @@ namespace Microsoft.ML.Transforms
         }
 
         /// <summary>
-        /// Base class for all the NormalizerData classes: <see cref="AffineNormalizerModelParameters{TData}"/>,
+        /// Base class for all the data normalizer models like <see cref="AffineNormalizerModelParameters{TData}"/>,
         /// <see cref="BinNormalizerModelParameters{TData}"/>, <see cref="CdfNormalizerModelParameters{TData}"/>.
         /// </summary>
         public abstract class NormalizerModelParametersBase

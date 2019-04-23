@@ -28,7 +28,7 @@ namespace Microsoft.ML.Trainers
     using TScalarTrainer = ITrainerEstimator<ISingleFeaturePredictionTransformer<IPredictorProducing<float>>, IPredictorProducing<float>>;
     using TTransformer = MulticlassPredictionTransformer<PairwiseCouplingModelParameters>;
     /// <summary>
-    /// The <see cref="IEstimator{TTransformer}"/> for training a pairwise coupling multi-class classifier on top of the specified binary classifier.
+    /// The <see cref="IEstimator{TTransformer}"/> for training a pairwise coupling multi-class classifier that uses the specified binary classifier.
     /// </summary>
     /// <remarks>
     /// <format type="text/markdown"><![CDATA[
@@ -40,8 +40,8 @@ namespace Microsoft.ML.Trainers
     /// |  |  |
     /// | -- | -- |
     /// | Machine learning task | Multiclass classification |
-    /// | Is normalization required? | Depends on underline binary classifier |
-    /// | Is caching required? | Depends on underline binary classifier |
+    /// | Is normalization required? | Depends on the underlying binary classifier |
+    /// | Is caching required? | Yes |
     /// | Required NuGet in addition to Microsoft.ML | None |
     ///
     /// ### Training Algorithm Details
@@ -55,8 +55,9 @@ namespace Microsoft.ML.Trainers
     /// the pair given the data, and the final predictive probabilities out of that
     /// per class are calculated given the probability that an example is in any given
     /// pair.
+    ///
     /// This can allow you to exploit trainers that do not naturally have a
-    /// multiclass option, for example, using the FastTree Binary Classification
+    /// multiclass option, for example, using the <xref:Microsoft.ML.Trainers.FastTree.FastTreeBinaryTrainer>
     /// to solve a multiclass problem.
     /// Alternately, it can allow ML.NET to solve a "simpler" problem even in the cases
     /// where the trainer has a multiclass option, but using it directly is not
@@ -218,7 +219,7 @@ namespace Microsoft.ML.Trainers
     }
 
     /// <summary>
-    /// Contains the model parameters and prediction functions for the PairwiseCouplingTrainer.
+    /// Model parameters for <see cref="PairwiseCouplingTrainer"/>.
     /// </summary>
     public sealed class PairwiseCouplingModelParameters :
         ModelParametersBase<VBuffer<float>>,

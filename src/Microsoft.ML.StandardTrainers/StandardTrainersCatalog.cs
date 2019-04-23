@@ -683,8 +683,8 @@ namespace Microsoft.ML
         }
 
         /// <summary>
-        /// Predicts a target using a linear multiclass classification model trained with the <see cref="NaiveBayesMulticlassTrainer"/>.
-        /// The <see cref="NaiveBayesMulticlassTrainer"/> trains a multiclass Naive Bayes predictor that supports binary feature values.
+        /// Create a <see cref="NaiveBayesMulticlassTrainer"/>, which predicts a multiclass target using a Naive Bayes model
+        /// that supports binary feature values.
         /// </summary>
         /// <param name="catalog">The <see cref="MulticlassClassificationCatalog.MulticlassClassificationTrainers"/>.</param>
         /// <param name="labelColumnName">The name of the label column.</param>
@@ -724,19 +724,20 @@ namespace Microsoft.ML
         }
 
         /// <summary>
-        /// Predicts a target using a linear multiclass classification model trained with the <see cref="OneVersusAllTrainer"/>.
+        /// Create a <see cref="OneVersusAllTrainer"/>, which predicts a multiclass target using one-versus-all strategy with
+        /// the binary classification estimator specified by <paramref name="binaryEstimator"/>.
         /// </summary>
         /// <remarks>
         /// <para>
-        /// In <see cref="OneVersusAllTrainer"/> In this strategy, a binary classification algorithm is used to train one classifier for each class,
+        /// In one-versus-all strategy, a binary classification algorithm is used to train one classifier for each class,
         /// which distinguishes that class from all other classes. Prediction is then performed by running these binary classifiers,
         /// and choosing the prediction with the highest confidence score.
         /// </para>
         /// </remarks>
-        /// <param name="catalog">The <see cref="MulticlassClassificationCatalog.MulticlassClassificationTrainers"/>.</param>
+        /// <param name="catalog">The multiclass classification catalog trainer object.</param>
         /// <param name="binaryEstimator">An instance of a binary <see cref="ITrainerEstimator{TTransformer, TPredictor}"/> used as the base trainer.</param>
-        /// <param name="calibrator">The calibrator. If a calibrator is not explicitely provided, it will default to <see cref="PlattCalibratorTrainer"/></param>
-        /// <param name="labelColumnName">The name of the label colum.</param>
+        /// <param name="calibrator">The calibrator. If a calibrator is not explicitly provided, it will default to <see cref="PlattCalibratorTrainer"/></param>
+        /// <param name="labelColumnName">The name of the label column.</param>
         /// <param name="imputeMissingLabelsAsNegative">Whether to treat missing labels as having negative labels, instead of keeping them missing.</param>
         /// <param name="maximumCalibrationExampleCount">Number of instances to train the calibrator.</param>
         /// <param name="useProbabilities">Use probabilities (vs. raw outputs) to identify top-score category.</param>
@@ -764,7 +765,8 @@ namespace Microsoft.ML
         }
 
         /// <summary>
-        /// Predicts a target using a linear multiclass classification model trained with the <see cref="PairwiseCouplingTrainer"/>.
+        /// Create a <see cref="PairwiseCouplingTrainer"/>, which predicts a multiclass target using pairwise coupling strategy with
+        /// the binary classification estimator specified by <paramref name="binaryEstimator"/>.
         /// </summary>
         /// <remarks>
         /// <para>
@@ -773,10 +775,10 @@ namespace Microsoft.ML
         /// classifiers predicted it. The prediction is the class with the highest score.
         /// </para>
         /// </remarks>
-        /// <param name="catalog">The <see cref="MulticlassClassificationCatalog.MulticlassClassificationTrainers"/>.</param>
+        /// <param name="catalog">The multiclass classification catalog trainer object.</param>
         /// <param name="binaryEstimator">An instance of a binary <see cref="ITrainerEstimator{TTransformer, TPredictor}"/> used as the base trainer.</param>
-        /// <param name="calibrator">The calibrator. If a calibrator is not explicitely provided, it will default to <see cref="PlattCalibratorTrainer"/></param>
-        /// <param name="labelColumnName">The name of the label colum.</param>
+        /// <param name="calibrator">The calibrator. If a calibrator is not explicitly provided, it will default to <see cref="PlattCalibratorTrainer"/></param>
+        /// <param name="labelColumnName">The name of the label column.</param>
         /// <param name="imputeMissingLabelsAsNegative">Whether to treat missing labels as having negative labels, instead of keeping them missing.</param>
         /// <param name="maximumCalibrationExampleCount">Number of instances to train the calibrator.</param>
         /// <typeparam name="TModel">The type of the model. This type parameter will usually be inferred automatically from <paramref name="binaryEstimator"/>.</typeparam>

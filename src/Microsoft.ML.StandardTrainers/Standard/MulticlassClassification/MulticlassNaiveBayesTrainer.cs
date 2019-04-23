@@ -27,7 +27,7 @@ using Microsoft.ML.Trainers;
 namespace Microsoft.ML.Trainers
 {
     /// <summary>
-    /// The <see cref="IEstimator{TTransformer}"/> for training a multiclass Naive Bayes predictor that supports binary feature values.
+    /// The <see cref="IEstimator{TTransformer}"/> for training a multiclass Naive Bayes model that supports binary feature values.
     /// </summary>
     /// <remarks>
     /// <format type="text/markdown"><![CDATA[
@@ -53,8 +53,8 @@ namespace Microsoft.ML.Trainers
     /// It assumes independence among the presence of features in a class even though
     /// they may be dependent on each other.
     /// This multi-class trainer accepts "binary" feature values of type float:
-    /// feature values that are greater than zero are treated as true and feature values
-    /// that are less or equal to 0 are treated as false.
+    /// feature values that are greater than zero are treated as `true` and feature values
+    /// that are less or equal to 0 are treated as `false`.
     /// ]]>
     /// </format>
     /// </remarks>
@@ -214,6 +214,9 @@ namespace Microsoft.ML.Trainers
         }
     }
 
+    /// <summary>
+    /// Model parameters for <see cref="NaiveBayesMulticlassTrainer"/>.
+    /// </summary>
     public sealed class NaiveBayesMulticlassModelParameters :
         ModelParametersBase<VBuffer<float>>,
         IValueMapper

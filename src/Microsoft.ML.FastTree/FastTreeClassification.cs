@@ -38,6 +38,9 @@ using Microsoft.ML.Trainers.FastTree;
 
 namespace Microsoft.ML.Trainers.FastTree
 {
+    /// <summary>
+    /// Model parameters for <see cref="FastTreeBinaryTrainer"/>.
+    /// </summary>
     public sealed class FastTreeBinaryModelParameters :
         TreeEnsembleModelParametersBasedOnRegressionTree
     {

@@ -477,6 +477,9 @@ namespace Microsoft.ML.Trainers.FastTree
         }
     }
 
+    /// <summary>
+    /// Model parameters for <see cref="FastTreeTweedieTrainer"/>.
+    /// </summary>
     public sealed class FastTreeTweedieModelParameters : TreeEnsembleModelParametersBasedOnRegressionTree
     {
         internal const string LoaderSignature = "FastTreeTweedieExec";
