@@ -148,7 +148,7 @@ namespace Microsoft.ML.Transforms.Text
             public int MaximumNumberOfInverts = NgramHashingEstimator.Defaults.MaximumNumberOfInverts;
         }
 
-        internal const string Summary = "Produces a bag of counts of ngrams (sequences of consecutive values of length 1-n) in a given vector of keys. "
+        internal const string Summary = "Produces a bag of counts of n-grams (sequences of consecutive values of length 1-n) in a given vector of keys. "
           + "It does so by hashing each ngram and using the hash value as the index in the bag.";
 
         internal const string LoaderSignature = "NgramHashTransform";
@@ -225,9 +225,9 @@ namespace Microsoft.ML.Transforms.Text
             {
                 var active = new bool[1];
                 string[][] friendlyNames = _columns.Select(c => c.FriendlyNames).ToArray();
-                // We will create invert hash helper class, which would store in itself all original ngrams and their mapping into hash values.
+                // We will create invert hash helper class, which would store in itself all original n-grams and their mapping into hash values.
                 var helper = new InvertHashHelper(this, input.Schema, friendlyNames, sourceColumnsForInvertHash, invertHashMaxCounts);
-                // in order to get all original ngrams we have to go data in same way as we would process it, so let's create mapper with decorate function.
+                // in order to get all original n-grams we have to go data in same way as we would process it, so let's create mapper with decorate function.
                 var mapper = new Mapper(this, input.Schema, helper.Decorate);
                 // Let's create cursor to iterate over input data.
                 using (var rowCursor = input.GetRowCursor(sourceColumnsForInvertHash))
@@ -245,7 +245,7 @@ namespace Microsoft.ML.Transforms.Text
                         for (int i = 0; i < columnWithInvertHash.Count; i++)
                             valueGetters[i](ref value);
                     }
-                    // decorate function of helper object captured all encountered ngrams so, we ask it to give us metadata information for slot names.
+                    // decorate function of helper object captured all encountered n-grams so, we ask it to give us metadata information for slot names.
                     _slotNames = helper.SlotNamesMetadata(out _slotNamesTypes);
                 }
             }
@@ -825,7 +825,7 @@ namespace Microsoft.ML.Transforms.Text
                         Contracts.AssertValue(_srcTextGetters[srcIndices[icol]]);
                         var result = finder(ngram, lim, icol, ref more);
                         // For the hashing NgramIdFinder, a result of -1 indicates that
-                        // a slot does not exist for the given ngram. We do not pass ngrams
+                        // a slot does not exist for the given ngram. We do not pass n-grams
                         // that do not have a slot to the MaximumNumberOfInverts collector.
                         if (result != -1)
                         {
@@ -1094,7 +1094,7 @@ namespace Microsoft.ML.Transforms.Text
         private readonly ColumnOptions[] _columns;
 
         /// <summary>
-        /// Produces a bag of counts of hashed ngrams in <paramref name="inputColumnName"/>
+        /// Produces a bag of counts of hashed n-grams in <paramref name="inputColumnName"/>
         /// and outputs ngram vector as <paramref name="outputColumnName"/>
         ///
         /// <see cref="NgramHashingEstimator"/> is different from <see cref="WordHashBagEstimator"/> in a way that <see cref="NgramHashingEstimator"/>
@@ -1128,7 +1128,7 @@ namespace Microsoft.ML.Transforms.Text
         }
 
         /// <summary>
-        /// Produces a bag of counts of hashed ngrams in <paramref name="inputColumnNames"/>
+        /// Produces a bag of counts of hashed n-grams in <paramref name="inputColumnNames"/>
         /// and outputs ngram vector as <paramref name="outputColumnName"/>
         ///
         /// <see cref="NgramHashingEstimator"/> is different from <see cref="WordHashBagEstimator"/> in a way that <see cref="NgramHashingEstimator"/>
@@ -1162,7 +1162,7 @@ namespace Microsoft.ML.Transforms.Text
         }
 
         /// <summary>
-        /// Produces a bag of counts of hashed ngrams in <paramref name="columns.inputs"/>
+        /// Produces a bag of counts of hashed n-grams in <paramref name="columns.inputs"/>
         /// and outputs ngram vector for each output in <paramref name="columns.output"/>
         ///
         /// <see cref="NgramHashingEstimator"/> is different from <see cref="WordHashBagEstimator"/> in a way that <see cref="NgramHashingEstimator"/>

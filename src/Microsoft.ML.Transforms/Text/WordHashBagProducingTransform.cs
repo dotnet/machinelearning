@@ -80,7 +80,7 @@ namespace Microsoft.ML.Transforms.Text
         }
         private const string RegistrationName = "WordHashBagTransform";
 
-        internal const string Summary = "Produces a bag of counts of ngrams (sequences of consecutive words of length 1-n) in a given text. "
+        internal const string Summary = "Produces a bag of counts of n-grams (sequences of consecutive words of length 1-n) in a given text. "
             + "It does so by hashing each ngram and using the hash value as the index in the bag.";
 
         internal static IDataTransform Create(IHostEnvironment env, Options options, IDataView input)

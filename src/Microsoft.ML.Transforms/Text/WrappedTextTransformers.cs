@@ -24,7 +24,7 @@ namespace Microsoft.ML.Transforms.Text
     ///
     /// The resulting <xref:Microsoft.ML.ITransformer> creates a new column, named as specified in the output column name parameters, and
     /// produces a vector of n-gram counts (sequences of n consecutive words) from a given data.
-    /// It does so by building a dictionary of ngrams and using the id in the dictionary as the index in the bag.
+    /// It does so by building a dictionary of n-grams and using the id in the dictionary as the index in the bag.
     ///
     /// <xref:Microsoft.ML.Transforms.Text.WordBagEstimator> is different from <xref:Microsoft.ML.Transforms.Text.NgramExtractingEstimator>
     /// in that the former takes tokenizes text internally while the latter takes tokenized text as input.
@@ -45,7 +45,7 @@ namespace Microsoft.ML.Transforms.Text
         private readonly NgramExtractingEstimator.WeightingCriteria _weighting;
 
         /// <summary>
-        /// Options for how the ngrams are extracted.
+        /// Options for how the n-grams are extracted.
         /// </summary>
         public class Options
         {
@@ -65,7 +65,7 @@ namespace Microsoft.ML.Transforms.Text
             public bool UseAllLengths;
 
             /// <summary>
-            /// The maximum number of grams to store in the dictionary, for each level of ngrams,
+            /// The maximum number of grams to store in the dictionary, for each level of n-grams,
             /// from 1 (in position 0) up to ngramLength (in position ngramLength-1)
             /// </summary>
             public int[] MaximumNgramsCount;
@@ -86,7 +86,7 @@ namespace Microsoft.ML.Transforms.Text
         }
 
         /// <summary>
-        /// Produces a bag of counts of ngrams (sequences of consecutive words) in <paramref name="inputColumnName"/>
+        /// Produces a bag of counts of n-grams (sequences of consecutive words) in <paramref name="inputColumnName"/>
         /// and outputs bag of word vector as <paramref name="outputColumnName"/>
         /// </summary>
         /// <param name="env">The environment.</param>
@@ -95,7 +95,7 @@ namespace Microsoft.ML.Transforms.Text
         /// <param name="ngramLength">Ngram length.</param>
         /// <param name="skipLength">Maximum number of tokens to skip when constructing an ngram.</param>
         /// <param name="useAllLengths">Whether to include all ngram lengths up to <paramref name="ngramLength"/> or only <paramref name="ngramLength"/>.</param>
-        /// <param name="maximumNgramsCount">Maximum number of ngrams to store in the dictionary.</param>
+        /// <param name="maximumNgramsCount">Maximum number of n-grams to store in the dictionary.</param>
         /// <param name="weighting">Statistical measure used to evaluate how important a word is to a document in a corpus.</param>
         internal WordBagEstimator(IHostEnvironment env,
             string outputColumnName,
@@ -110,7 +110,7 @@ namespace Microsoft.ML.Transforms.Text
         }
 
         /// <summary>
-        /// Produces a bag of counts of ngrams (sequences of consecutive words) in <paramref name="inputColumnNames"/>
+        /// Produces a bag of counts of n-grams (sequences of consecutive words) in <paramref name="inputColumnNames"/>
         /// and outputs bag of word vector as <paramref name="outputColumnName"/>
         /// </summary>
         /// <param name="env">The environment.</param>
@@ -119,7 +119,7 @@ namespace Microsoft.ML.Transforms.Text
         /// <param name="ngramLength">Ngram length.</param>
         /// <param name="skipLength">Maximum number of tokens to skip when constructing an ngram.</param>
         /// <param name="useAllLengths">Whether to include all ngram lengths up to <paramref name="ngramLength"/> or only <paramref name="ngramLength"/>.</param>
-        /// <param name="maximumNgramsCount">Maximum number of ngrams to store in the dictionary.</param>
+        /// <param name="maximumNgramsCount">Maximum number of n-grams to store in the dictionary.</param>
         /// <param name="weighting">Statistical measure used to evaluate how important a word is to a document in a corpus.</param>
         internal WordBagEstimator(IHostEnvironment env,
             string outputColumnName,
@@ -134,7 +134,7 @@ namespace Microsoft.ML.Transforms.Text
         }
 
         /// <summary>
-        /// Produces a bag of counts of ngrams (sequences of consecutive words) in <paramref name="columns.inputs"/>
+        /// Produces a bag of counts of n-grams (sequences of consecutive words) in <paramref name="columns.inputs"/>
         /// and outputs bag of word vector for each output in <paramref name="columns.output"/>
         /// </summary>
         /// <param name="env">The environment.</param>
@@ -142,7 +142,7 @@ namespace Microsoft.ML.Transforms.Text
         /// <param name="ngramLength">Ngram length.</param>
         /// <param name="skipLength">Maximum number of tokens to skip when constructing an ngram.</param>
         /// <param name="useAllLengths">Whether to include all ngram lengths up to <paramref name="ngramLength"/> or only <paramref name="ngramLength"/>.</param>
-        /// <param name="maximumNgramsCount">Maximum number of ngrams to store in the dictionary.</param>
+        /// <param name="maximumNgramsCount">Maximum number of n-grams to store in the dictionary.</param>
         /// <param name="weighting">Statistical measure used to evaluate how important a word is to a document in a corpus.</param>
         internal WordBagEstimator(IHostEnvironment env,
             (string outputColumnName, string[] inputColumnNames)[] columns,
@@ -237,7 +237,7 @@ namespace Microsoft.ML.Transforms.Text
         private readonly int _maximumNumberOfInverts;
 
         /// <summary>
-        /// Produces a bag of counts of hashed ngrams in <paramref name="inputColumnName"/>
+        /// Produces a bag of counts of hashed n-grams in <paramref name="inputColumnName"/>
         /// and outputs bag of word vector as <paramref name="outputColumnName"/>
         /// </summary>
         /// <param name="env">The environment.</param>
@@ -249,8 +249,8 @@ namespace Microsoft.ML.Transforms.Text
         /// <param name="useAllLengths">Whether to include all ngram lengths up to <paramref name="ngramLength"/> or only <paramref name="ngramLength"/>.</param>
         /// <param name="seed">Hashing seed.</param>
         /// <param name="useOrderedHashing">Whether the position of each source column should be included in the hash (when there are multiple source columns).</param>
-        /// <param name="maximumNumberOfInverts">During hashing we constuct mappings between original values and the produced hash values.
-        /// Text representation of original values are stored in the slot names of the  metadata for the new column.Hashing, as such, can map many initial values to one.
+        /// <param name="maximumNumberOfInverts">During hashing we construct mappings between original values and the produced hash values.
+        /// Text representation of original values are stored in the slot names of the  annotations for the new column.Hashing, as such, can map many initial values to one.
         /// <paramref name="maximumNumberOfInverts"/> specifies the upper bound of the number of distinct input values mapping to a hash that should be retained.
         /// <value>0</value> does not retain any input values. <value>-1</value> retains all input values mapping to each hash.</param>
         internal WordHashBagEstimator(IHostEnvironment env,
@@ -270,7 +270,7 @@ namespace Microsoft.ML.Transforms.Text
         }
 
         /// <summary>
-        /// Produces a bag of counts of hashed ngrams in <paramref name="inputColumnNames"/>
+        /// Produces a bag of counts of hashed n-grams in <paramref name="inputColumnNames"/>
         /// and outputs bag of word vector as <paramref name="outputColumnName"/>
         /// </summary>
         /// <param name="env">The environment.</param>
@@ -303,7 +303,7 @@ namespace Microsoft.ML.Transforms.Text
         }
 
         /// <summary>
-        /// Produces a bag of counts of hashed ngrams in <paramref name="columns.inputs"/>
+        /// Produces a bag of counts of hashed n-grams in <paramref name="columns.inputs"/>
         /// and outputs bag of word vector for each output in <paramref name="columns.output"/>
         /// </summary>
         /// <param name="env">The environment.</param>

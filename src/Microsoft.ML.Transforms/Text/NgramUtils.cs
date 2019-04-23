@@ -10,7 +10,7 @@ namespace Microsoft.ML.Data
 {
     /// <summary>
     /// This delegate represents a function that gets an ngram as input, and outputs the id of
-    /// the ngram and whether or not to continue processing ngrams.
+    /// the ngram and whether or not to continue processing n-grams.
     /// </summary>
     /// <param name="ngram">The array containing the ngram</param>
     /// <param name="lim">The ngram is stored in ngram[0],...ngram[lim-1].</param>
@@ -20,14 +20,14 @@ namespace Microsoft.ML.Data
     /// <returns>The ngram slot if it was found, -1 otherwise.</returns>
     internal delegate int NgramIdFinder(uint[] ngram, int lim, int icol, ref bool more);
 
-    // A class that given a VBuffer of keys, finds all the ngrams in it, and maintains a vector of ngram-counts.
+    // A class that given a VBuffer of keys, finds all the n-grams in it, and maintains a vector of ngram-counts.
     // The id of each ngram is found by calling an NgramIdFinder delegate. This class can also be used to build
-    // an ngram dictionary, by defining an NgramIdFinder that adds the ngrams to a dictionary and always return false.
+    // an ngram dictionary, by defining an NgramIdFinder that adds the n-grams to a dictionary and always return false.
     internal sealed class NgramBufferBuilder
     {
         // This buffer builder maintains the vector of ngram-counts.
         private readonly BufferBuilder<float> _bldr;
-        // A queue that holds _ngramLength+_skipLength keys, so that it contains all the ngrams starting with the
+        // A queue that holds _ngramLength+_skipLength keys, so that it contains all the n-grams starting with the
         // first key in the ngram.
         private readonly FixedSizeQueue<uint> _queue;
         // The maximum ngram length.
@@ -135,7 +135,7 @@ namespace Microsoft.ML.Data
             _bldr.GetResult(ref dst);
         }
 
-        // Returns false if there is no need to process more ngrams.
+        // Returns false if there is no need to process more n-grams.
         private bool ProcessNgrams(int icol)
         {
             Contracts.Assert(_queue.Count > 0);

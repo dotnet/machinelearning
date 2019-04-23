@@ -33,7 +33,7 @@ namespace Microsoft.ML.Transforms.Text
 
     /// <summary>
     ///  An estimator that turns a collection of text documents into numerical feature vectors.
-    ///  The feature vectors are normalized counts of word and/or character ngrams (based on the options supplied).
+    ///  The feature vectors are normalized counts of word and/or character n-grams (based on the options supplied).
     /// </summary>
     /// <remarks>
     /// <format type="text/markdown"><![CDATA[
@@ -390,7 +390,7 @@ namespace Microsoft.ML.Transforms.Text
         }
 
         internal const string Summary = "A transform that turns a collection of text documents into numerical feature vectors. " +
-            "The feature vectors are normalized counts of (word and/or character) ngrams in a given tokenized text.";
+            "The feature vectors are normalized counts of (word and/or character) n-grams in a given tokenized text.";
 
         internal const string UserName = "Text Transform";
         internal const string LoaderSignature = "Text";

@@ -56,7 +56,7 @@ namespace Microsoft.ML.Transforms.Text
                 Name = "AllLengths", ShortName = "all")]
             public bool? UseAllLengths;
 
-            [Argument(ArgumentType.Multiple, HelpText = "Maximum number of ngrams to store in the dictionary", ShortName = "max")]
+            [Argument(ArgumentType.Multiple, HelpText = "Maximum number of n-grams to store in the dictionary", ShortName = "max")]
             public int[] MaxNumTerms = null;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Statistical measure used to evaluate how important a word is to a document in a corpus")]
@@ -92,8 +92,8 @@ namespace Microsoft.ML.Transforms.Text
 
         private const string RegistrationName = "WordBagTransform";
 
-        internal const string Summary = "Produces a bag of counts of ngrams (sequences of consecutive words of length 1-n) in a given text. It does so by building "
-            + "a dictionary of ngrams and using the id in the dictionary as the index in the bag.";
+        internal const string Summary = "Produces a bag of counts of n-grams (sequences of consecutive words of length 1-n) in a given text. It does so by building "
+            + "a dictionary of n-grams and using the id in the dictionary as the index in the bag.";
 
         internal static IDataTransform Create(IHostEnvironment env, Options options, IDataView input)
         {
@@ -108,7 +108,7 @@ namespace Microsoft.ML.Transforms.Text
             // Since WordBagTransform is a many-to-one column transform, for each
             // WordBagTransform.Column with multiple sources, we first apply a ConcatTransform.
 
-            // REVIEW: In order to not get ngrams that cross between vector slots, we need to
+            // REVIEW: In order to not get n-grams that cross between vector slots, we need to
             // enable tokenize transforms to insert a special token between slots.
 
             // REVIEW: In order to make it possible to output separate bags for different columns
@@ -158,7 +158,7 @@ namespace Microsoft.ML.Transforms.Text
 
     /// <summary>
     /// A transform that turns a collection of tokenized text (vector of ReadOnlyMemory), or vectors of keys into numerical
-    /// feature vectors. The feature vectors are counts of ngrams (sequences of consecutive *tokens* -words or keys-
+    /// feature vectors. The feature vectors are counts of n-grams (sequences of consecutive *tokens* -words or keys-
     /// of length 1-n).
     /// </summary>
     internal static class NgramExtractorTransform
@@ -178,10 +178,10 @@ namespace Microsoft.ML.Transforms.Text
                 Name = "AllLengths", ShortName = "all")]
             public bool? UseAllLengths;
 
-            // REVIEW: This argument is actually confusing. If you set only one value we will use this value for all ngrams respectfully for example,
-            // if we specify 3 ngrams we will have maxNumTerms * 3. And it also pick first value from this array to run term transform, so if you specify
+            // REVIEW: This argument is actually confusing. If you set only one value we will use this value for all n-grams respectfully for example,
+            // if we specify 3 n-grams we will have maxNumTerms * 3. And it also pick first value from this array to run term transform, so if you specify
             // something like 1,1,10000, term transform would be run with limitation of only one term.
-            [Argument(ArgumentType.Multiple, HelpText = "Maximum number of ngrams to store in the dictionary", ShortName = "max")]
+            [Argument(ArgumentType.Multiple, HelpText = "Maximum number of n-grams to store in the dictionary", ShortName = "max")]
             public int[] MaxNumTerms = null;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "The weighting criteria")]
@@ -228,7 +228,7 @@ namespace Microsoft.ML.Transforms.Text
                 Name = "AllLengths", ShortName = "all")]
             public bool UseAllLengths = NgramExtractingEstimator.Defaults.UseAllLengths;
 
-            [Argument(ArgumentType.Multiple, HelpText = "Maximum number of ngrams to store in the dictionary", ShortName = "max")]
+            [Argument(ArgumentType.Multiple, HelpText = "Maximum number of n-grams to store in the dictionary", ShortName = "max")]
             public int[] MaxNumTerms = new int[] { NgramExtractingEstimator.Defaults.MaximumNgramsCount };
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "The weighting criteria")]
@@ -252,7 +252,7 @@ namespace Microsoft.ML.Transforms.Text
         }
 
         internal const string Summary = "A transform that turns a collection of tokenized text ReadOnlyMemory, or vectors of keys into numerical " +
-            "feature vectors. The feature vectors are counts of ngrams (sequences of consecutive *tokens* -words or keys- of length 1-n).";
+            "feature vectors. The feature vectors are counts of n-grams (sequences of consecutive *tokens* -words or keys- of length 1-n).";
 
         internal const string LoaderSignature = "NgramExtractor";
 

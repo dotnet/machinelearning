@@ -17,7 +17,7 @@ namespace Microsoft.ML
     public static class TextCatalog
     {
         /// <summary>
-        /// Create a <see cref="TextFeaturizingEstimator"/>, which transforms a text column into a featurized vector of <see cref="System.Single"/> that represents normalized counts of ngrams and char-grams.
+        /// Create a <see cref="TextFeaturizingEstimator"/>, which transforms a text column into a featurized vector of <see cref="System.Single"/> that represents normalized counts of n-grams and char-grams.
         /// </summary>
         /// <param name="catalog">The text-related transform's catalog.</param>
         /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.
@@ -39,7 +39,7 @@ namespace Microsoft.ML
                 outputColumnName, inputColumnName);
 
         /// <summary>
-        ///  Create a <see cref="TextFeaturizingEstimator"/>, which transforms a text column into featurized float array that represents normalized counts of ngrams and char-grams.
+        ///  Create a <see cref="TextFeaturizingEstimator"/>, which transforms a text column into featurized float array that represents normalized counts of n-grams and char-grams.
         /// </summary>
         /// <remarks>This transform can operate over several columns.</remarks>
         /// <param name="catalog">The text-related transform's catalog.</param>
@@ -65,16 +65,17 @@ namespace Microsoft.ML
                 outputColumnName, inputColumnNames, options);
 
         /// <summary>
-        /// Create a <see cref="TokenizingByCharactersEstimator"/>, which tokenizes characters by splitting text into sequences of characters
+        /// Create a <see cref="TokenizingByCharactersEstimator"/>, which tokenizes by splitting text into sequences of characters
         /// using a sliding window.
         /// </summary>
         /// <param name="catalog">The text-related transform's catalog.</param>
         /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.
-        /// This column's data type will be a variable-sized vector of keys.</param>
+        /// This column's data type will be a variable-sized vector of <see cref="System.UInt16"/>.</param>
         /// <param name="inputColumnName">Name of the column to transform. If set to <see langword="null"/>, the value of the
         /// <paramref name="outputColumnName"/> will be used as source.
         /// This estimator operates over text data type.</param>
-        /// <param name="useMarkerCharacters">Whether to prepend a marker character, <see langword="0x02"/>, to the beginning,
+        /// <param name="useMarkerCharacters">To be able to distinguish the tokens, for example for debugging purposes,
+        /// you can choose to prepend a marker character, <see langword="0x02"/>, to the beginning,
         /// and append another marker character, <see langword="0x03"/>, to the end of the output vector of characters.</param>
         /// <example>
         /// <format type="text/markdown">
@@ -91,7 +92,7 @@ namespace Microsoft.ML
                 useMarkerCharacters, new[] { (outputColumnName, inputColumnName) });
 
         /// <summary>
-        /// Tokenize incoming text in input columns and output the tokens as output columns.
+        /// Create a <see cref="TokenizingByCharactersEstimator"/>, which tokenizes incoming text in input columns and output the tokens as output columns.
         /// </summary>
         /// <param name="catalog">The text-related transform's catalog.</param>
         /// <param name="useMarkerCharacters">Whether to prepend a marker character, <see langword="0x02"/>, to the beginning,
@@ -240,7 +241,7 @@ namespace Microsoft.ML
           => new WordTokenizingEstimator(Contracts.CheckRef(catalog, nameof(catalog)).GetEnvironment(), columns);
 
         /// <summary>
-        /// Creates a <see cref="NgramExtractingEstimator"/> which produces a vector of counts of ngrams (sequences of consecutive words)
+        /// Creates a <see cref="NgramExtractingEstimator"/> which produces a vector of counts of n-grams (sequences of consecutive words)
         /// encountered in the input text.
         /// </summary>
         /// <param name="catalog">The text-related transform's catalog.</param>
@@ -253,8 +254,8 @@ namespace Microsoft.ML
         /// <param name="useAllLengths">Whether to include all ngram lengths up to <paramref name="ngramLength"/> or only <paramref name="ngramLength"/>.</param>
         /// <param name="maximumNgramsCount">Maximum number of n-grams to store in the dictionary.</param>
         /// <param name="weighting">Statistical measure used to evaluate how important a word or ngram is to a document in a corpus.
-        /// When <paramref name="maximumNgramsCount"/> is smaller than the total number of encountered ngrams this measure is used
-        /// to determine which ngrams to keep.</param>
+        /// When <paramref name="maximumNgramsCount"/> is smaller than the total number of encountered n-grams this measure is used
+        /// to determine which n-grams to keep.</param>
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
@@ -274,7 +275,7 @@ namespace Microsoft.ML
                 ngramLength, skipLength, useAllLengths, maximumNgramsCount, weighting);
 
         /// <summary>
-        /// Produces a bag of counts of ngrams (sequences of consecutive words) in <paramref name="columns.inputs"/>
+        /// Produces a bag of counts of n-grams (sequences of consecutive words) in <paramref name="columns.inputs"/>
         /// and outputs bag of word vector for each output in <paramref name="columns.output"/>
         /// </summary>
         /// <param name="catalog">The text-related transform's catalog.</param>
@@ -315,7 +316,7 @@ namespace Microsoft.ML
         /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.
         /// This column's data type will be variable-sized vector of text.</param>
         /// <param name="inputColumnName">Name of the column to copy the data from.
-        /// This estimator operates over vector of text.</param>
+        /// This estimator operates over a vector of text.</param>
         /// <param name="stopwords">Array of words to remove.</param>
         /// <example>
         /// <format type="text/markdown">
@@ -346,7 +347,7 @@ namespace Microsoft.ML
         /// <param name="ngramLength">Ngram length.</param>
         /// <param name="skipLength">Maximum number of tokens to skip when constructing an ngram.</param>
         /// <param name="useAllLengths">Whether to include all ngram lengths up to <paramref name="ngramLength"/> or only <paramref name="ngramLength"/>.</param>
-        /// <param name="maximumNgramsCount">Maximum number of ngrams to store in the dictionary.</param>
+        /// <param name="maximumNgramsCount">Maximum number of n-grams to store in the dictionary.</param>
         /// <param name="weighting">Statistical measure used to evaluate how important a word is to a document in a corpus.</param>
         public static WordBagEstimator ProduceWordBags(this TransformsCatalog.TextTransforms catalog,
             string outputColumnName,
@@ -375,7 +376,7 @@ namespace Microsoft.ML
         /// <param name="ngramLength">Ngram length.</param>
         /// <param name="skipLength">Maximum number of tokens to skip when constructing an ngram.</param>
         /// <param name="useAllLengths">Whether to include all ngram lengths up to <paramref name="ngramLength"/> or only <paramref name="ngramLength"/>.</param>
-        /// <param name="maximumNgramsCount">Maximum number of ngrams to store in the dictionary.</param>
+        /// <param name="maximumNgramsCount">Maximum number of n-grams to store in the dictionary.</param>
         /// <param name="weighting">Statistical measure used to evaluate how important a word is to a document in a corpus.</param>
         public static WordBagEstimator ProduceWordBags(this TransformsCatalog.TextTransforms catalog,
             string outputColumnName,
@@ -550,7 +551,7 @@ namespace Microsoft.ML
                 useAllLengths: useAllLengths, numberOfBits: numberOfBits, seed: seed, useOrderedHashing: useOrderedHashing, maximumNumberOfInverts: maximumNumberOfInverts, rehashUnigrams) });
 
         /// <summary>
-        /// Produces a bag of counts of hashed ngrams for each <paramref name="columns"/>. For each column,
+        /// Produces a bag of counts of hashed n-grams for each <paramref name="columns"/>. For each column,
         /// <see cref="NgramHashingEstimator.ColumnOptions.InputColumnNames"/> are the input columns of the output column named as <see cref="NgramHashingEstimator.ColumnOptions.Name"/>.
         ///
         /// <see cref="NgramHashingEstimator"/> is different from <see cref="WordHashBagEstimator"/> in a way that <see cref="NgramHashingEstimator"/>

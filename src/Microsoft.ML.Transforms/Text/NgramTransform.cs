@@ -48,7 +48,7 @@ namespace Microsoft.ML.Transforms.Text
                 ShortName = "skips")]
             public int? SkipLength;
 
-            [Argument(ArgumentType.Multiple, HelpText = "Maximum number of ngrams to store in the dictionary", ShortName = "max")]
+            [Argument(ArgumentType.Multiple, HelpText = "Maximum number of n-grams to store in the dictionary", ShortName = "max")]
             public int[] MaxNumTerms = null;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Statistical measure used to evaluate how important a word is to a document in a corpus")]
@@ -90,7 +90,7 @@ namespace Microsoft.ML.Transforms.Text
                 ShortName = "skips")]
             public int SkipLength = NgramExtractingEstimator.Defaults.SkipLength;
 
-            [Argument(ArgumentType.Multiple, HelpText = "Maximum number of ngrams to store in the dictionary", ShortName = "max")]
+            [Argument(ArgumentType.Multiple, HelpText = "Maximum number of n-grams to store in the dictionary", ShortName = "max")]
             public int[] MaxNumTerms = new int[] { NgramExtractingEstimator.Defaults.MaximumNgramsCount };
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "The weighting criteria")]
@@ -100,8 +100,8 @@ namespace Microsoft.ML.Transforms.Text
         private const uint VerTfIdfSupported = 0x00010002;
 
         internal const string LoaderSignature = "NgramTransform";
-        internal const string Summary = "Produces a bag of counts of ngrams (sequences of consecutive values of length 1-n) in a given vector of keys. "
-            + "It does so by building a dictionary of ngrams and using the id in the dictionary as the index in the bag.";
+        internal const string Summary = "Produces a bag of counts of n-grams (sequences of consecutive values of length 1-n) in a given vector of keys. "
+            + "It does so by building a dictionary of n-grams and using the id in the dictionary as the index in the bag.";
 
         internal const string UserName = "NGram Transform";
 
@@ -248,7 +248,7 @@ namespace Microsoft.ML.Transforms.Text
                     counts[iinfo] = new int[ngramLength];
                     ngramMaps[iinfo] = new SequencePool();
 
-                    // Note: GetNgramIdFinderAdd will control how many ngrams of a specific length will
+                    // Note: GetNgramIdFinderAdd will control how many n-grams of a specific length will
                     // be added (using lims[iinfo]), therefore we set slotLim to the maximum
                     helpers[iinfo] = new NgramBufferBuilder(ngramLength, skipLength, Utils.ArrayMaxSize,
                         GetNgramIdFinderAdd(env, counts[iinfo], columns[iinfo].MaximumNgramsCounts, ngramMaps[iinfo], transformInfos[iinfo].RequireIdf));
@@ -354,8 +354,8 @@ namespace Microsoft.ML.Transforms.Text
                         numFull++;
 
                     // Note: 'slot' is either the id of the added ngram or -1. In case it is -1, find its id.
-                    // Note: 'more' controls whether more ngrams/skip-grams should be processed in the current
-                    //       row. For IDF, as we are interested in counting the occurrence of ngrams/skip-
+                    // Note: 'more' controls whether more n-grams/skip-grams should be processed in the current
+                    //       row. For IDF, as we are interested in counting the occurrence of n-grams/skip-
                     //       grams, more should not be updated.
                     if (requireIdf)
                         return slot != -1 ? slot : pool.Get(ngram, 0, lim);
@@ -667,7 +667,7 @@ namespace Microsoft.ML.Transforms.Text
     }
 
     /// <summary>
-    /// Produces a vector of counts of ngrams (sequences of consecutive words) encountered in the input text.
+    /// Produces a vector of counts of n-grams (sequences of consecutive words) encountered in the input text.
     /// </summary>
     /// <remarks>
     /// <format type="text/markdown"><![CDATA[
@@ -681,9 +681,9 @@ namespace Microsoft.ML.Transforms.Text
     ///
     /// The resulting <xref:Microsoft.ML.Transforms.Text.NgramExtractingTransformer>
     /// creates a new column, named as specified in the output column name parameters, where each
-    /// input vector is mapped to a vector of counts of ngrams (sequences of consecutive words) encountered in the input text.
+    /// input vector is mapped to a vector of counts of n-grams (sequences of consecutive words) encountered in the input text.
     ///
-    /// The estimator builds a dictionary of ngrams and the <xref:Microsoft.ML.Transforms.Text.NgramExtractingTransformer>
+    /// The estimator builds a dictionary of n-grams and the <xref:Microsoft.ML.Transforms.Text.NgramExtractingTransformer>
     /// uses the id in the dictionary as the index in the count vector that it produces.
     ///
     /// Check the See Also section for links to examples of the usage.
@@ -727,7 +727,7 @@ namespace Microsoft.ML.Transforms.Text
         private readonly ColumnOptions[] _columns;
 
         /// <summary>
-        /// Produces a bag of counts of ngrams (sequences of consecutive words) in <paramref name="inputColumnName"/>
+        /// Produces a bag of counts of n-grams (sequences of consecutive words) in <paramref name="inputColumnName"/>
         /// and outputs bag of word vector as <paramref name="outputColumnName"/>
         /// </summary>
         /// <param name="env">The environment.</param>
@@ -750,7 +750,7 @@ namespace Microsoft.ML.Transforms.Text
         }
 
         /// <summary>
-        /// Produces a bag of counts of ngrams (sequences of consecutive words) in <paramref name="columns.inputs"/>
+        /// Produces a bag of counts of n-grams (sequences of consecutive words) in <paramref name="columns.inputs"/>
         /// and outputs bag of word vector for each output in <paramref name="columns.output"/>
         /// </summary>
         /// <param name="env">The environment.</param>
@@ -772,7 +772,7 @@ namespace Microsoft.ML.Transforms.Text
         }
 
         /// <summary>
-        /// Produces a bag of counts of ngrams (sequences of consecutive words) in <paramref name="columns.inputs"/>
+        /// Produces a bag of counts of n-grams (sequences of consecutive words) in <paramref name="columns.inputs"/>
         /// and outputs bag of word vector for each output in <paramref name="columns.output"/>
         /// </summary>
         /// <param name="env">The environment.</param>
