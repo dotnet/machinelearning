@@ -114,12 +114,12 @@ namespace Microsoft.ML
         /// Create a <see cref="OneHotHashEncodingEstimator"/>, which converts a text column specified by <paramref name="inputColumnName"/>
         /// into a hash-based one-hot encoded vector column named <paramref name="outputColumnName"/>.
         /// </summary>
-        /// <param name="catalog">The transform catalog</param>
+        /// <param name="catalog">The transform catalog.</param>
         /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.
         /// This column's data type will be a vector of <see cref="System.Single"/> if <paramref name="outputKind"/> is
         /// <see cref="OneHotEncodingEstimator.OutputKind.Bag"/>, <see cref="OneHotEncodingEstimator.OutputKind.Indicator"/>, and <see cref="OneHotEncodingEstimator.OutputKind.Binary"/>.
         /// If <paramref name="outputKind"/> is <see cref="OneHotEncodingEstimator.OutputKind.Key"/>, this column's data type will be a key in the case of a scalar input column
-        /// or a vector of keys in the case of a vector input column.
+        /// or a vector of keys in the case of a vector input column. </param>
         /// <param name="inputColumnName">Name of column to transform. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.
         /// This column's data type can be scalar or vector of numeric, text, boolean, <see cref="System.DateTime"/> or <see cref="System.DateTimeOffset"/>.</param>
         /// <param name="outputKind">The conversion mode.</param>
@@ -127,8 +127,7 @@ namespace Microsoft.ML
         /// <param name="seed">Hashing seed.</param>
         /// <param name="useOrderedHashing">Whether the position of each term should be included in the hash.</param>
         /// <param name="maximumNumberOfInverts">During hashing we constuct mappings between original values and the produced hash values.
-        /// Text representation of original values are stored in the slot names of the  metadata for the new column.Hashing,
-        /// as such, can map many initial values to one.</param>
+        /// Text representation of original values are stored in the slot names of the  metadata for the new column.Hashing, as such, can map many initial values to one.
         /// <paramref name="maximumNumberOfInverts"/> specifies the upper bound of the number of distinct input values mapping to a hash that should be retained.
         /// <value>0</value> does not retain any input values. <value>-1</value> retains all input values mapping to each hash.</param>
         /// <example>
