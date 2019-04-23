@@ -66,9 +66,9 @@ namespace Microsoft.ML.Trainers
     /// Assume that the number of classes is $m$ and number of features is $n$.
     /// Maximum entropy model assigns the $c$-th class a coefficient vector $\textbf{w}_c \in {\mathbb R}^n$ and a bias $b_c \in {\mathbb R}$, for $c=1,\dots,m$.
     /// Given a feature vector $\textbf{x} \in {\mathbb R}^n$, the $c$-th class's score is $\hat{y}^c = \textbf{w}_c^T \textbf{x} + b_c$.
-    /// The probability of $\textbf{x}$ belonging to class $c$ is defined by $\tilde{P}(c|\textbf{x}) = \frac{ e^{\hat{y}^c} }{ \sum_{c' = 1}^m e^{\hat{y}^{c'}} }$.
+    /// The probability of $\textbf{x}$ belonging to class $c$ is defined by $\tilde{P}(c | \textbf{x}) = \frac{ e^{\hat{y}^c} }{ \sum_{c' = 1}^m e^{\hat{y}^{c'}} }$.
     /// Let $P(c, \textbf{x})$ denote the join probability of seeing $c$ and $\textbf{x}$.
-    /// The loss function minimized by this trainer is $-\sum_{c = 1}^m P(c, \textbf{x}) \log \tilde{P}(c|\textbf{x}) $, which is the negative [log-likelihood function](https://en.wikipedia.org/wiki/Likelihood_function#Log-likelihood).
+    /// The loss function minimized by this trainer is $-\sum_{c = 1}^m P(c, \textbf{x}) \log \tilde{P}(c | \textbf{x}) $, which is the negative [log-likelihood function](https://en.wikipedia.org/wiki/Likelihood_function#Log-likelihood).
     ///
     /// ### Training Algorithm Details
     /// The optimization technique implemented is based on [the limited memory Broyden-Fletcher-Goldfarb-Shanno method (L-BFGS)](https://en.wikipedia.org/wiki/Limited-memory_BFGS).
