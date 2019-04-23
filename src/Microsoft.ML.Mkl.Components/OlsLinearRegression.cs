@@ -538,7 +538,7 @@ namespace Microsoft.ML.Trainers
     }
 
     /// <summary>
-    /// A linear predictor for which per parameter significance statistics are available.
+    /// Model parameters for the <see cref="OlsTrainer"/>.
     /// </summary>
     public sealed class OlsModelParameters : RegressionModelParameters
     {

@@ -235,7 +235,7 @@ namespace Microsoft.ML.Trainers
     }
 
     /// <summary>
-    /// Contains the model parameters and prediction functions for <see cref="OneVersusAllTrainer"/>.
+    /// Model parameters for <see cref="OneVersusAllTrainer"/>.
     /// </summary>
     public sealed class OneVersusAllModelParameters :
         ModelParametersBase<VBuffer<float>>,

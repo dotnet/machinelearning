@@ -214,6 +214,9 @@ namespace Microsoft.ML.Trainers
         }
     }
 
+    /// <summary>
+    /// Model parameters for the <see cref="NaiveBayesMulticlassTrainer"/>.
+    /// </summary>
     public sealed class NaiveBayesMulticlassModelParameters :
         ModelParametersBase<VBuffer<float>>,
         IValueMapper
