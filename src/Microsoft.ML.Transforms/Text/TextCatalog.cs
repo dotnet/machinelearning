@@ -114,7 +114,7 @@ namespace Microsoft.ML
         /// </summary>
         /// <param name="catalog">The text-related transform's catalog.</param>
         /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.
-        /// This column's data type will remain scalar of text or a vector of text depending on the input column data type.</param>
+        /// This column's data type is a scalar or a vector of text depending on the input column data type.</param>
         /// <param name="inputColumnName">Name of the column to transform. If set to <see langword="null"/>,
         /// the value of the <paramref name="outputColumnName"/> will be used as source.
         /// This estimator operates on text or vector of text data types.</param>
@@ -148,7 +148,7 @@ namespace Microsoft.ML
         /// This column's data type will be a vector of <see cref="System.Single"/>.</param>
         /// <param name="inputColumnName">Name of the column to transform. If set to <see langword="null"/>,
         /// the value of the <paramref name="outputColumnName"/> will be used as source.
-        /// This estimator operates over known-sized vector of text data type.</param>
+        /// This estimator operates over known-size vector of text data type.</param>
         /// <param name="modelKind">The embeddings <see cref="WordEmbeddingEstimator.PretrainedModelKind"/> to use. </param>
         /// <example>
         /// <format type="text/markdown">
@@ -173,7 +173,7 @@ namespace Microsoft.ML
         /// This column's data type will be a vector of <see cref="System.Single"/>.</param>
         /// <param name="inputColumnName">Name of the column to transform. If set to <see langword="null"/>,
         /// the value of the <paramref name="outputColumnName"/> will be used as source.
-        /// This estimator operates over known-sized vector of text data type.</param>
+        /// This estimator operates over known-size vector of text data type.</param>
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
@@ -213,7 +213,7 @@ namespace Microsoft.ML
         /// </summary>
         /// <param name="catalog">The text-related transform's catalog.</param>
         /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.
-        /// This column's data type will be a variable-sized vector of text.</param>
+        /// This column's data type will be a variable-size vector of text.</param>
         /// <param name="inputColumnName">Name of the column to transform. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.
         /// This estimator operates on scalar of text and vector of text data type.</param>
         /// <param name="separators">The separators to use (uses space character by default).</param>
@@ -291,7 +291,7 @@ namespace Microsoft.ML
         /// </summary>
         /// <param name="catalog">The transform's catalog.</param>
         /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.
-        /// This column's data type will be variable-sized vector of text.</param>
+        /// This column's data type will be variable-size vector of text.</param>
         /// <param name="inputColumnName">Name of the column to copy the data from.
         /// This estimator operates over vector of text.</param>
         /// <param name="language">Langauge of the input text column <paramref name="inputColumnName"/>.</param>
@@ -314,7 +314,7 @@ namespace Microsoft.ML
         /// </summary>
         /// <param name="catalog">The transform's catalog.</param>
         /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.
-        /// This column's data type will be variable-sized vector of text.</param>
+        /// This column's data type will be variable-size vector of text.</param>
         /// <param name="inputColumnName">Name of the column to copy the data from.
         /// This estimator operates over a vector of text.</param>
         /// <param name="stopwords">Array of words to remove.</param>
@@ -408,8 +408,8 @@ namespace Microsoft.ML
         /// <param name="useAllLengths">Whether to include all n-gram lengths up to <paramref name="ngramLength"/> or only <paramref name="ngramLength"/>.</param>
         /// <param name="seed">Hashing seed.</param>
         /// <param name="useOrderedHashing">Whether the position of each source column should be included in the hash (when there are multiple source columns).</param>
-        /// <param name="maximumNumberOfInverts">During hashing we constuct mappings between original values and the produced hash values.
-        /// Text representation of original values are stored in the slot names of the  metadata for the new column.Hashing, as such, can map many initial values to one.
+        /// <param name="maximumNumberOfInverts">During hashing we construct mappings between original values and the produced hash values.
+        /// Text representation of original values are stored in the slot names of the  annotations for the new column. Hashing, as such, can map many initial values to one.
         /// <paramref name="maximumNumberOfInverts"/> specifies the upper bound of the number of distinct input values mapping to a hash that should be retained.
         /// <value>0</value> does not retain any input values. <value>-1</value> retains all input values mapping to each hash.</param>
         public static WordHashBagEstimator ProduceHashedWordBags(this TransformsCatalog.TextTransforms catalog,
@@ -446,8 +446,8 @@ namespace Microsoft.ML
         /// <param name="useAllLengths">Whether to include all n-gram lengths up to <paramref name="ngramLength"/> or only <paramref name="ngramLength"/>.</param>
         /// <param name="seed">Hashing seed.</param>
         /// <param name="useOrderedHashing">Whether the position of each source column should be included in the hash (when there are multiple source columns).</param>
-        /// <param name="maximumNumberOfInverts">During hashing we constuct mappings between original values and the produced hash values.
-        /// Text representation of original values are stored in the slot names of the  metadata for the new column.Hashing, as such, can map many initial values to one.
+        /// <param name="maximumNumberOfInverts">During hashing we construct mappings between original values and the produced hash values.
+        /// Text representation of original values are stored in the slot names of the  annotations for the new column.Hashing, as such, can map many initial values to one.
         /// <paramref name="maximumNumberOfInverts"/> specifies the upper bound of the number of distinct input values mapping to a hash that should be retained.
         /// <value>0</value> does not retain any input values. <value>-1</value> retains all input values mapping to each hash.</param>
         public static WordHashBagEstimator ProduceHashedWordBags(this TransformsCatalog.TextTransforms catalog,
@@ -484,8 +484,8 @@ namespace Microsoft.ML
         /// <param name="useAllLengths">Whether to include all n-gram lengths up to <paramref name="ngramLength"/> or only <paramref name="ngramLength"/>.</param>
         /// <param name="seed">Hashing seed.</param>
         /// <param name="useOrderedHashing">Whether the position of each source column should be included in the hash (when there are multiple source columns).</param>
-        /// <param name="maximumNumberOfInverts">During hashing we constuct mappings between original values and the produced hash values.
-        /// Text representation of original values are stored in the slot names of the  metadata for the new column.Hashing, as such, can map many initial values to one.
+        /// <param name="maximumNumberOfInverts">During hashing we construct mappings between original values and the produced hash values.
+        /// Text representation of original values are stored in the slot names of the  annotations for the new column.Hashing, as such, can map many initial values to one.
         /// <paramref name="maximumNumberOfInverts"/> specifies the upper bound of the number of distinct input values mapping to a hash that should be retained.
         /// <value>0</value> does not retain any input values. <value>-1</value> retains all input values mapping to each hash.</param>
         /// <param name="rehashUnigrams">Whether to rehash unigrams.</param>
@@ -523,8 +523,8 @@ namespace Microsoft.ML
         /// <param name="useAllLengths">Whether to include all n-gram lengths up to <paramref name="ngramLength"/> or only <paramref name="ngramLength"/>.</param>
         /// <param name="seed">Hashing seed.</param>
         /// <param name="useOrderedHashing">Whether the position of each source column should be included in the hash (when there are multiple source columns).</param>
-        /// <param name="maximumNumberOfInverts">During hashing we constuct mappings between original values and the produced hash values.
-        /// Text representation of original values are stored in the slot names of the  metadata for the new column.Hashing, as such, can map many initial values to one.
+        /// <param name="maximumNumberOfInverts">During hashing we construct mappings between original values and the produced hash values.
+        /// Text representation of original values are stored in the slot names of the  annotations for the new column.Hashing, as such, can map many initial values to one.
         /// <paramref name="maximumNumberOfInverts"/> specifies the upper bound of the number of distinct input values mapping to a hash that should be retained.
         /// <value>0</value> does not retain any input values. <value>-1</value> retains all input values mapping to each hash.</param>
         /// <param name="rehashUnigrams">Whether to rehash unigrams.</param>
