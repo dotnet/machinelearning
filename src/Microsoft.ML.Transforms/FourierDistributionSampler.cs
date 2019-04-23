@@ -68,9 +68,15 @@ namespace Microsoft.ML.Transforms
     }
 
     /// <summary>
-    /// The Gaussian kernel is defined as k(x,y)=exp(-gamma*|x-y|_2^2). The distribution that is the Fourier transform of
-    /// this kernel is the Normal distribution with variance 2*gamma.
+    /// The Gaussian kernel.
     /// </summary>
+    /// <remarks>
+    /// <format type="text/markdown"><![CDATA[
+    /// The Gaussian kernel is defined as $k(x,y) = \exp(-\gamma||x-y||^2)$. The distribution that is the Fourier transform of
+    /// this kernel is the Normal distribution with variance $2 \gamma$.
+    /// ]]></format>
+    /// </remarks>
+
     public sealed class GaussianKernel : KernelBase
     {
         internal sealed class Options : IComponentFactory<KernelBase>
@@ -183,9 +189,14 @@ namespace Microsoft.ML.Transforms
     }
 
     /// <summary>
-    /// The Laplacian kernel is defined as k(x,y)=exp(-a*|x-y|_1). The distribution that is the Fourier transform of this
-    /// kernel is the Cauchy distribution with parameters (0, a).
+    /// The Laplacian kernel.
     /// </summary>
+    /// <remarks>
+    /// <format type="text/markdown"><![CDATA[
+    /// The Laplacian kernel is defined as $k(x,y)=\exp(-a||x-y||)$. The distribution that is the Fourier transform of
+    /// this kernel is the Cauchy distribution with parameters $(0, a)$.
+    /// ]]></format>
+    /// </remarks>
     public sealed class LaplacianKernel : KernelBase
     {
         internal sealed class Options : IComponentFactory<KernelBase>
