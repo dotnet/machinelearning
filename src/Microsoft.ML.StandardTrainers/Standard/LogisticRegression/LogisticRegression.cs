@@ -46,9 +46,9 @@ namespace Microsoft.ML.Trainers
     /// | Required NuGet in addition to Microsoft.ML | None |
     ///
     /// ### Scoring Function
-    /// Linear logistic regression is a variant of linear model. It maps feature vector $\textbf{x} \in {\mathbb R}^n$ to a scalar via $\hat{y}\left( \textbf{x} \right) = \textbf{w}^T  \textbf{x} + b = \sum_{j=1}^n w_j x_j + b$,
+    /// Linear logistic regression is a variant of linear model. It maps feature vector $\textbf{x} \in {\mathbb R}^n$ to a scalar via $\hat{y}\left(\textbf{x}\right) = \textbf{w}^T  \textbf{x} + b = \sum_{j=1}^n w_j x_j + b$,
     /// where the $x_j$ is the $j$-th feature's value, the $j$-th element of $\textbf{w}$ is the $j$-th feature's coefficient, and $b$ is a learnable bias.
-    /// The corresponding probability of getting a true label is $\frac{1}{1 + e^{\hat{y}\left( \textbf{x} \right)}}$.
+    /// The corresponding probability of getting a true label is $\frac{1}{1 + e^{\hat{y}\left(\textbf{x}\right)}}$.
     ///
     /// ### Training Algorithm Details
     /// The optimization technique implemented is based on [the limited memory Broyden-Fletcher-Goldfarb-Shanno method (L-BFGS)](https://en.wikipedia.org/wiki/Limited-memory_BFGS).
