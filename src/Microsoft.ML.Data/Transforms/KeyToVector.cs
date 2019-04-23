@@ -723,15 +723,11 @@ namespace Microsoft.ML.Transforms
     }
 
     /// <summary>
-    /// Estimator for <see cref="KeyToVectorMappingTransformer"/>. Converts the key types back to their original vectors.
-    /// </summary>
-    /// <summary>
-    /// Utilizes KeyValues <see cref="AnnotationInfo"/> of the input column, to map keys to a vector representing the original value.
-    /// Maps zero values of the <see cref="KeyDataViewType"/> are mapped to the <see langword="default"/> value of the output type.
+    /// Estimator for <see cref="KeyToVectorMappingTransformer"/>. Maps the value of a key
+    /// into a floating point vector representing the value.
     /// </summary>
     /// <remarks>
     /// <format type="text/markdown"><![CDATA[
-    ///
     /// ###  Estimator Characteristics
     /// |  |  |
     /// | -- | -- |
@@ -741,6 +737,8 @@ namespace Microsoft.ML.Transforms
     ///
     /// ]]></format>
     /// </remarks>
+    /// <seealso cref=" ConversionsExtensionsCatalog.MapKeyToVector(TransformsCatalog.ConversionTransforms, InputOutputColumnPair[], bool)"/>
+    /// <seealso cref=" ConversionsExtensionsCatalog.MapKeyToVector(TransformsCatalog.ConversionTransforms, string, string, bool)"/>
     public sealed class KeyToVectorMappingEstimator : TrivialEstimator<KeyToVectorMappingTransformer>
     {
         internal static class Defaults
