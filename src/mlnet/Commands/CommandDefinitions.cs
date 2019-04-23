@@ -102,7 +102,7 @@ namespace Microsoft.ML.CLI.Commands
                 new Argument<DirectoryInfo>(defaultValue: new DirectoryInfo(".")));
 
             Option HasHeader() =>
-                new Option(new List<string>() { "--has-header", "-h" }, "Specify true/false depending if the dataset file(s) have a header row.",
+                new Option(new List<string>() { "--has-header", "-H" }, "Specify true/false depending if the dataset file(s) have a header row.",
                 new Argument<bool>(defaultValue: true));
 
             Option Cache() =>
