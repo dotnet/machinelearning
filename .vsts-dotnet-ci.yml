@@ -13,31 +13,15 @@ resources:
 phases:
 - template: /build/ci/phase-template.yml
   parameters:
-    name: core30
-    buildScript: build.cmd
-    customMatrixes:
-      Build_Debug_Intrinsics:
-        _configuration: Debug-Intrinsics
-        _config_short: DI
-        _includeBenchmarkData: false
-      Build_Release_Intrinsics:
-        _configuration: Release-Intrinsics
-        _config_short: RI
-        _includeBenchmarkData: true
-    queue:
-      name: Hosted VS2017
-
-- template: /build/ci/phase-template.yml
-  parameters:
-    name: Centos
+    name: Centos_x64_Netcoreapp30
     buildScript: ./build.sh
     customMatrixes:
-      Build_Debug_Intrinsics:
+      Debug_Build:
         _configuration: Debug-Intrinsics
         _config_short: DI
         _includeBenchmarkData: false
-      Build_Release:
-        _configuration: Release
+      Release_Build:
+        _configuration: Release-Intrinsics
         _config_short: R
         _includeBenchmarkData: true
     queue:
@@ -46,38 +30,52 @@ phases:
 
 - template: /build/ci/phase-template.yml
   parameters:
-    name: Ubuntu
+    name: Ubuntu_x64_Netcoreapp21
     buildScript: ./build.sh
-    customMatrixes:
-      Build_Debug:
-        _configuration: Debug
-        _config_short: D
-        _includeBenchmarkData: false
-      Build_Release_Intrinsics:
-        _configuration: Release-Intrinsics
-        _config_short: RI
-        _includeBenchmarkData: true
     queue:
       name: Hosted Ubuntu 1604
       container: UbuntuContainer
 
 - template: /build/ci/phase-template.yml
   parameters:
-    name: MacOS
+    name: MacOS_x64_Netcoreapp21
     buildScript: ./build.sh
     queue:
       name: Hosted macOS
 
 - template: /build/ci/phase-template.yml
   parameters:
-    name: Windows_NetFx
+    name: Windows_x64_Netcoreapp30
     buildScript: build.cmd
     customMatrixes:
-      Build_Debug_netfx:
+      Debug_Build:
+        _configuration: Debug-Intrinsics
+        _config_short: DI
+        _includeBenchmarkData: false
+      Release_Build:
+        _configuration: Release-Intrinsics
+        _config_short: RI
+        _includeBenchmarkData: true
+    queue:
+      name: Hosted VS2017
+
+- template: /build/ci/phase-template.yml
+  parameters:
+    name: Windows_x64_Netcoreapp21
+    buildScript: build.cmd
+    queue:
+      name: Hosted VS2017
+
+- template: /build/ci/phase-template.yml
+  parameters:
+    name: Windows_x64_Netfx
+    buildScript: build.cmd
+    customMatrixes:
+      Debug_Build:
         _configuration: Debug-netfx
         _config_short: DFX
         _includeBenchmarkData: false
-      Build_Release_netfx:
+      Release_Build:
         _configuration: Release-netfx
         _config_short: RFX
         _includeBenchmarkData: false
@@ -86,14 +84,7 @@ phases:
 
 - template: /build/ci/phase-template.yml
   parameters:
-    name: Windows_x64
-    buildScript: build.cmd
-    queue:
-      name: Hosted VS2017
-
-- template: /build/ci/phase-template.yml
-  parameters:
-    name: Windows_x86
+    name: Windows_x86_Netcoreapp21
     architecture: x86
     buildScript: build.cmd
     queue:
