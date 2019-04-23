@@ -14,15 +14,15 @@ phases:
 
 - template: /build/ci/phase-template.yml
   parameters:
-    name: Centos_x64
+    name: Centos_x64_Netcoreapp30
     buildScript: ./build.sh
     customMatrixes:
-      Debug_Netcoreapp30:
+      Debug_Build:
         _configuration: Debug-Intrinsics
         _config_short: DI
         _includeBenchmarkData: false
-      Release_Netcoreapp21:
-        _configuration: Release
+      Release_Build:
+        _configuration: Release-Intrinsics
         _config_short: R
         _includeBenchmarkData: true
     queue:
@@ -31,17 +31,8 @@ phases:
 
 - template: /build/ci/phase-template.yml
   parameters:
-    name: Ubuntu_x64
+    name: Ubuntu_x64_Netcoreapp21
     buildScript: ./build.sh
-    customMatrixes:
-      Debug_Netcoreapp21:
-        _configuration: Debug
-        _config_short: D
-        _includeBenchmarkData: false
-      Release_Netcoreapp30:
-        _configuration: Release-Intrinsics
-        _config_short: RI
-        _includeBenchmarkData: true
     queue:
       name: Hosted Ubuntu 1604
       container: UbuntuContainer
@@ -58,11 +49,11 @@ phases:
     name: Windows_x64_Netcoreapp30
     buildScript: build.cmd
     customMatrixes:
-      Debug:
+      Debug_Build:
         _configuration: Debug-Intrinsics
         _config_short: DI
         _includeBenchmarkData: false
-      Release:
+      Release_Build:
         _configuration: Release-Intrinsics
         _config_short: RI
         _includeBenchmarkData: true
@@ -71,24 +62,24 @@ phases:
 
 - template: /build/ci/phase-template.yml
   parameters:
-    name: Windows_x64_Netfx
+    name: Windows_x64_Netcoreapp21
     buildScript: build.cmd
-    customMatrixes:
-      Debug:
-        _configuration: Debug-netfx
-        _config_short: DFX
-        _includeBenchmarkData: false
-      Release:
-        _configuration: Release-netfx
-        _config_short: RFX
-        _includeBenchmarkData: false
     queue:
       name: Hosted VS2017
 
 - template: /build/ci/phase-template.yml
   parameters:
-    name: Windows_x64_Netcoreapp21
+    name: Windows_x64_Netfx
     buildScript: build.cmd
+    customMatrixes:
+      Debug_Build:
+        _configuration: Debug-netfx
+        _config_short: DFX
+        _includeBenchmarkData: false
+      Release_Build:
+        _configuration: Release-netfx
+        _config_short: RFX
+        _includeBenchmarkData: false
     queue:
       name: Hosted VS2017
 
