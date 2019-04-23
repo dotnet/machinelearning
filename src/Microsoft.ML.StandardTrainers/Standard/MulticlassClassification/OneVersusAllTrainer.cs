@@ -51,7 +51,7 @@ namespace Microsoft.ML.Trainers
     /// | -- | -- |
     /// | Machine learning task | Multiclass classification |
     /// | Is normalization required? | Depends on the underlying binary classifier |
-    /// | Is caching required? | Yes (it makes many passes over training data) |
+    /// | Is caching required? | Yes |
     /// | Required NuGet in addition to Microsoft.ML | None |
     ///
     /// ### Training Algorithm Details

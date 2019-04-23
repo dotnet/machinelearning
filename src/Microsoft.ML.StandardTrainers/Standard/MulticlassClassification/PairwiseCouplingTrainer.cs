@@ -219,7 +219,7 @@ namespace Microsoft.ML.Trainers
     }
 
     /// <summary>
-    /// Model parameters for the <see cref="PairwiseCouplingTrainer"/>.
+    /// Model parameters for <see cref="PairwiseCouplingTrainer"/>.
     /// </summary>
     public sealed class PairwiseCouplingModelParameters :
         ModelParametersBase<VBuffer<float>>,

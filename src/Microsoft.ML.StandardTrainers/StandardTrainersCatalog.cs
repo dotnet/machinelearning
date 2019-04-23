@@ -683,7 +683,7 @@ namespace Microsoft.ML
         }
 
         /// <summary>
-        /// Create <see cref="NaiveBayesMulticlassTrainer"/>, which predicts a multiclass target using a Naive Bayes model
+        /// Create a <see cref="NaiveBayesMulticlassTrainer"/>, which predicts a multiclass target using a Naive Bayes model
         /// that supports binary feature values.
         /// </summary>
         /// <param name="catalog">The <see cref="MulticlassClassificationCatalog.MulticlassClassificationTrainers"/>.</param>
@@ -724,7 +724,7 @@ namespace Microsoft.ML
         }
 
         /// <summary>
-        /// Create <see cref="OneVersusAllTrainer"/>, which predicts a multiclass target using one-versus-all strategy with
+        /// Create a <see cref="OneVersusAllTrainer"/>, which predicts a multiclass target using one-versus-all strategy with
         /// the binary classification estimator specified by <paramref name="binaryEstimator"/>.
         /// </summary>
         /// <remarks>
@@ -765,7 +765,7 @@ namespace Microsoft.ML
         }
 
         /// <summary>
-        /// Create <see cref="PairwiseCouplingTrainer"/>, which predicts a multiclass target using pairwise coupling strategy with
+        /// Create a <see cref="PairwiseCouplingTrainer"/>, which predicts a multiclass target using pairwise coupling strategy with
         /// the binary classification estimator specified by <paramref name="binaryEstimator"/>.
         /// </summary>
         /// <remarks>
