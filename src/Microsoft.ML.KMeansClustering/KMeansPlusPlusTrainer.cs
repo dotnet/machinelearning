@@ -91,7 +91,7 @@ namespace Microsoft.ML.Trainers
 
         /// <summary>
         /// Options for the <see cref="KMeansTrainer"/> as used in
-        /// [KMeansTrainer(Options)](xref:"Microsoft.ML.KMeansClusteringExtensions.KMeans(Microsoft.ML.ClusteringCatalog.ClusteringTrainers,Microsoft.ML.Trainers.KMeansTrainer.Options)".
+        /// <see cref="KMeansClusteringExtensions.KMeans(ClusteringCatalog.ClusteringTrainers, Options)"/>.
         /// </summary>
         public sealed class Options : UnsupervisedTrainerInputBaseWithWeight
         {
