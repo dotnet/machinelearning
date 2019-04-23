@@ -86,7 +86,7 @@ namespace Microsoft.ML.Trainers.LightGbm
     /// | Machine learning task | Ranking |
     /// | Is normalization required? | No |
     /// | Is caching required? | No |
-    /// | Required NuGet in addition to Microsoft.ML | Microsoft.ML.FastTree |
+    /// | Required NuGet in addition to Microsoft.ML | Microsoft.ML.LightGbm |
     ///
     /// [!include[algorithm](~/../docs/samples/docs/api-reference/algo-details-lightgbm.md)]
     /// ]]>
