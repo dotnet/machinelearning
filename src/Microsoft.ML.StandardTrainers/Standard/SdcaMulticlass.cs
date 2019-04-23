@@ -49,13 +49,13 @@ namespace Microsoft.ML.Trainers
     /// ### Scoring Function
     /// This trains linear model to solve multiclass classification problems.
     /// Assume that the number of classes is $m$ and number of features is $n$.
-    /// It assigns the $c$-th class a coefficient vector $\boldsymbol{w}_c \in {\mathbb R}^n$ and a bias $b_c \in {\mathbb R}$, for $c=1,\dots,m$.
-    /// Given a feature vector $\boldsymbol{x} \in {\mathbb R}^n$, the $c$-th class's score would be $\hat{y}^c = \boldsymbol{w}_c^T \boldsymbol{x} + b_c$.
-    /// If $\boldsymbol{x}$ belongs to class $c$, then $\hat{y}^c$ should be much larger than 0.
+    /// It assigns the $c$-th class a coefficient vector $\textbf{w}_c \in {\mathbb R}^n$ and a bias $b_c \in {\mathbb R}$, for $c=1,\dots,m$.
+    /// Given a feature vector $\textbf{x} \in {\mathbb R}^n$, the $c$-th class's score would be $\hat{y}^c = \textbf{w}_c^T \textbf{x} + b_c$.
+    /// If $\textbf{x}$ belongs to class $c$, then $\hat{y}^c$ should be much larger than 0.
     /// In contrast, a $\hat{y}^c$ much smaller than 0 means the desired label should not be $c$.
     ///
     /// If and only if the trained model is a maximum entropy classifier, you can interpret the output score vector as the predicted class probabilities because [softmax function](https://en.wikipedia.org/wiki/Softmax_function) may be applied to post-process all classes' scores.
-    /// More specifically, the probability of $\boldsymbol{x}$ belonging to class $c$ is computed by $\tilde{P}(c|\boldsymbol{x}) = \frac{ e^{\hat{y}^c} }{ \sum_{c' = 1}^m e^{\hat{y}^{c'}} }$ and store at the $c$-th element in the score vector.
+    /// More specifically, the probability of $\textbf{x}$ belonging to class $c$ is computed by $\tilde{P}( c | \textbf{x} ) = \frac{ e^{\hat{y}^c} }{ \sum_{c' = 1}^m e^{\hat{y}^{c'}} }$ and store at the $c$-th element in the score vector.
     /// In other cases, the output score vector is just $[\hat{y}^1, \dots, \hat{y}^m]$.
     ///
     /// ### Training Algorithm Details
@@ -64,12 +64,12 @@ namespace Microsoft.ML.Trainers
     ///
     /// Regularization is a method that can render an ill-posed problem more tractable by imposing constraints that provide information to supplement the data and that prevents overfitting by penalizing model's magnitude usually measured by some norm functions.
     /// This can improve the generalization of the model learned by selecting the optimal complexity in the bias-variance tradeoff.
-    /// Regularization works by adding the penalty on the magnitude of $\boldsymbol{w}_c$, $c=1,\dots,m$ to the error of the hypothesis.
+    /// Regularization works by adding the penalty on the magnitude of $\textbf{w}_c$, $c=1,\dots,m$ to the error of the hypothesis.
     /// An accurate model with extreme coefficient values would be penalized more, but a less accurate model with more conservative values would be penalized less.
     ///
-    /// This trainer supports [elastic net regularization](https://en.wikipedia.org/wiki/Elastic_net_regularization): a linear combination of L1-norm (LASSO), $|| \boldsymbol{w}_c ||_1$, and L2-norm (ridge), $|| \boldsymbol{w}_c ||_2^2$ regularizations.
+    /// This trainer supports [elastic net regularization](https://en.wikipedia.org/wiki/Elastic_net_regularization): a linear combination of L1-norm (LASSO), $|| \textbf{w}_c ||_1$, and L2-norm (ridge), $|| \textbf{w}_c ||_2^2$ regularizations.
     /// L1-norm and L2-norm regularizations have different effects and uses that are complementary in certain respects.
-    /// Using L1-norm can increase sparsity of the trained $\boldsymbol{w}_c$.
+    /// Using L1-norm can increase sparsity of the trained $\textbf{w}_c$.
     /// When working with high-dimensional data, it shrinks small weights of irrelevant features to 0 and therefore no resource will be spent on those bad features when making prediction.
     /// L2-norm regularization is preferable for data that is not sparse and it largely penalizes the existence of large weights.
     ///
@@ -510,9 +510,9 @@ namespace Microsoft.ML.Trainers
     /// ### Scoring Function
     /// This trains a linear model to solve multiclass classification problems.
     /// Assume that the number of classes is $m$ and number of features is $n$.
-    /// It assigns the $c$-th class a coefficient vector $\boldsymbol{w}_c \in {\mathbb R}^n$ and a bias $b_c \in {\mathbb R}$, for $c=1,\dots,m$.
-    /// Given a feature vector $\boldsymbol{x} \in {\mathbb R}^n$, the $c$-th class's score would be $\tilde{P}(c|\boldsymbol{x}) = \frac{ e^{\hat{y}^c} }{ \sum_{c' = 1}^m e^{\hat{y}^{c'}} }$, where $\hat{y}^c = \boldsymbol{w}_c^T \boldsymbol{x} + b_c$.
-    /// Note that $\tilde{P}(c|\boldsymbol{x})$ is the probability of observing class $c$ when the feature vector is $\boldsymbol{x}$.
+    /// It assigns the $c$-th class a coefficient vector $\textbf{w}_c \in {\mathbb R}^n$ and a bias $b_c \in {\mathbb R}$, for $c=1,\dots,m$.
+    /// Given a feature vector $\textbf{x} \in {\mathbb R}^n$, the $c$-th class's score would be $\tilde{P}(c | \textbf{x}) = \frac{ e^{\hat{y}^c} }{ \sum_{c' = 1}^m e^{\hat{y}^{c'}} }$, where $\hat{y}^c = \textbf{w}_c^T \textbf{x} + b_c$.
+    /// Note that $\tilde{P}(c | \textbf{x})$ is the probability of observing class $c$ when the feature vector is $\textbf{x}$.
     ///
     /// ### Training Algorithm Details
     /// See the documentation of [SdcaMulticlassTrainerBase](xref:Microsoft.ML.Trainers.SdcaMulticlassTrainerBase).
@@ -593,8 +593,8 @@ namespace Microsoft.ML.Trainers
     /// ### Scoring Function
     /// This trains a linear model to solve multiclass classification problems.
     /// Assume that the number of classes is $m$ and number of features is $n$.
-    /// It assigns the $c$-th class a coefficient vector $\boldsymbol{w}_c \in {\mathbb R}^n$ and a bias $b_c \in {\mathbb R}$, for $c=1,\dots,m$.
-    /// Given a feature vector $\boldsymbol{x} \in {\mathbb R}^n$, the $c$-th class's score would be $\hat{y}^c = \boldsymbol{w}_c^T \boldsymbol{x} + b_c$.
+    /// It assigns the $c$-th class a coefficient vector $\textbf{w}_c \in {\mathbb R}^n$ and a bias $b_c \in {\mathbb R}$, for $c=1,\dots,m$.
+    /// Given a feature vector $\textbf{x} \in {\mathbb R}^n$, the $c$-th class's score would be $\hat{y}^c = \textbf{w}_c^T \textbf{x} + b_c$.
     /// Note that the $c$-th value in the output score column is just $\hat{y}^c$.
     ///
     /// ### Training Algorithm Details
