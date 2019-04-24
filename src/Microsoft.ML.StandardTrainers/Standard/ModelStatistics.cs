@@ -69,7 +69,7 @@ namespace Microsoft.ML.Trainers
 
     // REVIEW: Reconcile with the stats in OLS learner.
     /// <summary>
-    /// The statistics for linear predictor.
+    /// Statistics for linear model parameters.
     /// </summary>
     public class ModelStatisticsBase : ICanSaveModel
     {
@@ -204,7 +204,7 @@ namespace Microsoft.ML.Trainers
 
     // REVIEW: Reconcile with the stats in OLS learner.
     /// <summary>
-    /// The statistics for linear model.
+    /// Statistics for linear model parameters.
     /// </summary>
     public sealed class LinearModelParameterStatistics : ModelStatisticsBase
     {
