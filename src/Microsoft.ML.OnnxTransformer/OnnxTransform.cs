@@ -58,7 +58,7 @@ namespace Microsoft.ML.Transforms.Onnx
     /// Refer to [ONNX](http://onnx.ai) for more information.
     ///
     /// To create this estimator use the following:
-    /// [ApplyModel](xref:Microsoft.ML.OnnxCatalog.ApplyOnnxModel*)
+    /// [ApplyOnnxModel](xref:Microsoft.ML.OnnxCatalog.ApplyOnnxModel*)
     /// ]]>
     /// </format>
     /// </remarks>
