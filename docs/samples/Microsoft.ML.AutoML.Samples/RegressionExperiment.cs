@@ -35,12 +35,14 @@ namespace Microsoft.ML.AutoML.Samples
             RunDetail<RegressionMetrics> bestRun = experimentResult.BestRun;
             Console.WriteLine($"Total models produced: {experimentResult.RunDetails.Count()}");
             Console.WriteLine($"Best model's trainer: {bestRun.TrainerName}");
-            Console.WriteLine($"RSquared of best model from validation data: {bestRun.ValidationMetrics.RSquared}");
+            Console.WriteLine($"Metrics of best model from validation data --");
+            PrintMetrics(bestRun.ValidationMetrics);
 
             // STEP 5: Evaluate test data
             IDataView testDataViewWithBestScore = bestRun.Model.Transform(testDataView);
             RegressionMetrics testMetrics = mlContext.Regression.Evaluate(testDataViewWithBestScore, labelColumnName: LabelColumnName);
-            Console.WriteLine($"RSquared of best model on test data: {testMetrics.RSquared}");
+            Console.WriteLine($"MicroAccuracy of best model on test data --");
+            PrintMetrics(testMetrics);
 
             // STEP 6: Save the best model for later deployment and inferencing
             using (FileStream fs = File.Create(ModelPath))
@@ -64,6 +66,14 @@ namespace Microsoft.ML.AutoML.Samples
 
             Console.WriteLine("Press any key to continue...");
             Console.ReadKey();
+        }
+
+        private static void PrintMetrics(RegressionMetrics metrics)
+        {
+            Console.WriteLine($"MeanAbsoluteError: {metrics.MeanAbsoluteError}");
+            Console.WriteLine($"MeanSquaredError: {metrics.MeanSquaredError}");
+            Console.WriteLine($"RootMeanSquaredError: {metrics.RootMeanSquaredError}");
+            Console.WriteLine($"RSquared: {metrics.RSquared}");
         }
     }
 }

@@ -32,12 +32,14 @@ namespace Microsoft.ML.AutoML.Samples
             RunDetail<BinaryClassificationMetrics> bestRun = experimentResult.BestRun;
             Console.WriteLine($"Total models produced: {experimentResult.RunDetails.Count()}");
             Console.WriteLine($"Best model's trainer: {bestRun.TrainerName}");
-            Console.WriteLine($"Accuracy of best model from validation data: {bestRun.ValidationMetrics.Accuracy}");
+            Console.WriteLine($"Metrics of best model from validation data --");
+            PrintMetrics(bestRun.ValidationMetrics);
 
             // STEP 4: Evaluate test data
             IDataView testDataViewWithBestScore = bestRun.Model.Transform(testDataView);
             BinaryClassificationMetrics testMetrics = mlContext.BinaryClassification.EvaluateNonCalibrated(testDataViewWithBestScore);
-            Console.WriteLine($"Accuracy of best model on test data: {testMetrics.Accuracy}");
+            Console.WriteLine($"MicroAccuracy of best model on test data --");
+            PrintMetrics(testMetrics);
 
             // STEP 5: Save the best model for later deployment and inferencing
             using (FileStream fs = File.Create(ModelPath))
@@ -56,6 +58,18 @@ namespace Microsoft.ML.AutoML.Samples
 
             Console.WriteLine("Press any key to continue...");
             Console.ReadKey();
+        }
+
+        private static void PrintMetrics(BinaryClassificationMetrics metrics)
+        {
+            Console.WriteLine($"Accuracy: {metrics.Accuracy}");
+            Console.WriteLine($"AreaUnderPrecisionRecallCurve: {metrics.AreaUnderPrecisionRecallCurve}");
+            Console.WriteLine($"AreaUnderRocCurve: {metrics.AreaUnderRocCurve}");
+            Console.WriteLine($"F1Score: {metrics.F1Score}");
+            Console.WriteLine($"NegativePrecision: {metrics.NegativePrecision}");
+            Console.WriteLine($"NegativeRecall: {metrics.NegativeRecall}");
+            Console.WriteLine($"PositivePrecision: {metrics.PositivePrecision}");
+            Console.WriteLine($"PositiveRecall: {metrics.PositiveRecall}");
         }
     }
 }

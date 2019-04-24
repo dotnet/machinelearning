@@ -39,7 +39,7 @@ namespace Microsoft.ML.AutoML.Samples
             // STEP 4: Evaluate test data
             IDataView testDataViewWithBestScore = bestRun.Model.Transform(testDataView);
             MulticlassClassificationMetrics testMetrics = mlContext.MulticlassClassification.Evaluate(testDataViewWithBestScore, labelColumnName: LabelColumnName);
-            Console.WriteLine($"MicroAccuracy of best model on test data");
+            Console.WriteLine($"MicroAccuracy of best model on test data --");
             PrintMetrics(testMetrics);
 
             // STEP 5: Save the best model for later deployment and inferencing
