@@ -20,8 +20,8 @@ namespace Microsoft.ML.AutoML.Samples
             MLContext mlContext = new MLContext();
 
             // STEP 1: Load data
-            IDataView trainDataView = mlContext.Data.LoadFromTextFile<PixelData>(TrainDataPath, hasHeader: true, separatorChar: ',');
-            IDataView testDataView = mlContext.Data.LoadFromTextFile<PixelData>(TestDataPath, hasHeader: true, separatorChar: ',');
+            IDataView trainDataView = mlContext.Data.LoadFromTextFile<PixelData>(TrainDataPath, separatorChar: ',');
+            IDataView testDataView = mlContext.Data.LoadFromTextFile<PixelData>(TestDataPath, separatorChar: ',');
 
             // STEP 2: Run AutoML experiment
             Console.WriteLine($"Running AutoML multiclass classification experiment for {ExperimentTime} seconds...");
