@@ -409,7 +409,7 @@ namespace Microsoft.ML.Trainers
     ///
     /// $L(\hat{y}, y) = e^{-\beta y \hat{y}}$
     ///
-    /// where $\hat{y}$ is the predicted score, $y \in {-1, 1}$ is the true label, and $\beta$ is a scale factor set to 1 by default.
+    /// where $\hat{y}$ is the predicted score, $y \in \{-1, 1\}$ is the true label, and $\beta$ is a scale factor set to 1 by default.
     ///
     /// Note that the labels used in this calculation are -1 and 1, unlike [Log Loss](xref:Microsoft.ML.Trainers.LogLoss), where the labels used are 0 and 1.
     /// Also unlike [Log Loss](xref:Microsoft.ML.Trainers.LogLoss), $\hat{y}$ is the raw predicted score, not the predicted probability (which is calculated by applying a [sigmoid function](https://en.wikipedia.org/wiki/Sigmoid_function) to the predicted score).
