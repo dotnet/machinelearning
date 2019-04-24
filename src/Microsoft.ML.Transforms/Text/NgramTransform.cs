@@ -36,7 +36,7 @@ namespace Microsoft.ML.Transforms.Text
     {
         internal sealed class Column : OneToOneColumn
         {
-            [Argument(ArgumentType.AtMostOnce, HelpText = "Maximum n-gram length", ShortName = "n-gram")]
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Maximum n-gram length", ShortName = "ngram")]
             public int? NgramLength;
 
             [Argument(ArgumentType.AtMostOnce, HelpText =
@@ -78,7 +78,7 @@ namespace Microsoft.ML.Transforms.Text
             [Argument(ArgumentType.Multiple, HelpText = "New column definition(s) (optional form: name:src)", Name = "Column", ShortName = "col", SortOrder = 1)]
             public Column[] Columns;
 
-            [Argument(ArgumentType.AtMostOnce, HelpText = "Maximum n-gram length", ShortName = "n-gram")]
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Maximum n-gram length", ShortName = "ngram")]
             public int NgramLength = NgramExtractingEstimator.Defaults.NgramLength;
 
             [Argument(ArgumentType.AtMostOnce, HelpText =

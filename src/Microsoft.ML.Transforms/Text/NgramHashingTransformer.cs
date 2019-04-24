@@ -34,7 +34,7 @@ namespace Microsoft.ML.Transforms.Text
     {
         internal sealed class Column : ManyToOneColumn
         {
-            [Argument(ArgumentType.AtMostOnce, HelpText = "Maximum n-gram length", ShortName = "n-gram")]
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Maximum n-gram length", ShortName = "ngram")]
             public int? NgramLength;
 
             [Argument(ArgumentType.AtMostOnce, HelpText =
