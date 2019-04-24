@@ -16,16 +16,16 @@ namespace Samples.Dynamic
             var mlContext = new MLContext();
 
             // Create a small dataset as an IEnumerable.
-            var samples = new List<InputData>()
+            var samples = new List<DataPoint>()
             {
-                new InputData(){ Age = 21 },
-                new InputData(){ Age = 40 },
-                new InputData(){ Age = 38 },
-                new InputData(){ Age = 22 },
-                new InputData(){ Age = 40 },
-                new InputData(){ Age = 40 },
-                new InputData(){ Age = 22 },
-                new InputData(){ Age = 21 }
+                new DataPoint(){ Age = 21 },
+                new DataPoint(){ Age = 40 },
+                new DataPoint(){ Age = 38 },
+                new DataPoint(){ Age = 22 },
+                new DataPoint(){ Age = 40 },
+                new DataPoint(){ Age = 40 },
+                new DataPoint(){ Age = 22 },
+                new DataPoint(){ Age = 21 }
             };
 
             // Convert training data to IDataView.
@@ -36,7 +36,7 @@ namespace Samples.Dynamic
             var transformedData = pipeline.Fit(data).Transform(data);
 
             // Before we apply a filter, examine all the records in the dataset.
-            var enumerable = mlContext.Data.CreateEnumerable<InputData>(transformedData, reuseRowObject: true);
+            var enumerable = mlContext.Data.CreateEnumerable<DataPoint>(transformedData, reuseRowObject: true);
             Console.WriteLine($"Age");
             foreach (var row in enumerable)
             {
@@ -55,13 +55,13 @@ namespace Samples.Dynamic
             //  1
 
             // Now filter down to half the keys, choosing the lower half of values. 
-            // For the keys we have the sorted values: 1 1 2 2 2 3 4 4
-            // Normalized in the [0, 1] interval, the values of the keys for our data would be:
+            // For the keys we have the sorted values: 1 1 2 2 2 3 4 4.
+            // Projected in the [0, 1[ interval as per: (key - 0.5)/(Count of Keys) the values of the keys for our data would be:
             // 0.125 0.125 0.375 0.375 0.375 0.625 0.875 0.875
             // so the keys resulting from filtering in the [0, 0.5 [ interval are the ones with normalized values 0.125 and 0.375, respectively keys 
             // with values 1 and 2.
             var filteredHalfData = mlContext.Data.FilterRowsByKeyColumnFraction(transformedData, columnName: "Age", lowerBound: 0, upperBound: 0.5);
-            var filteredHalfEnumerable = mlContext.Data.CreateEnumerable<InputData>(filteredHalfData, reuseRowObject: true);
+            var filteredHalfEnumerable = mlContext.Data.CreateEnumerable<DataPoint>(filteredHalfData, reuseRowObject: true);
             Console.WriteLine($"Age");
             foreach (var row in filteredHalfEnumerable)
             {
@@ -81,7 +81,7 @@ namespace Samples.Dynamic
             // with value = 2.
             var filteredMiddleData = mlContext.Data.FilterRowsByKeyColumnFraction(transformedData, columnName: "Age", lowerBound: 0.3, upperBound: 0.6);
             // Look at the data and observe that values above 2 have been filtered out
-            var filteredMiddleEnumerable = mlContext.Data.CreateEnumerable<InputData>(filteredMiddleData, reuseRowObject: true);
+            var filteredMiddleEnumerable = mlContext.Data.CreateEnumerable<DataPoint>(filteredMiddleData, reuseRowObject: true);
             Console.WriteLine($"Age");
             foreach (var row in filteredMiddleEnumerable)
             {
@@ -95,7 +95,7 @@ namespace Samples.Dynamic
             //  2
         }
 
-        private class InputData
+        private class DataPoint
         {
             public uint Age { get; set; }
         }

@@ -17,11 +17,11 @@ namespace Samples.Dynamic
             var mlContext = new MLContext();
 
             // Create a small dataset as an IEnumerable.
-            var samples = new List<InputData>()
+            var samples = new List<DataPoint>()
             {
-                new InputData(){ Feature1 = 21, Feature2 = new [] { 1, 2, float.NaN} },
-                new InputData(){ Feature1 = 40, Feature2 = new [] { 1f, 2f, 3f}  },
-                new InputData(){ Feature1 = float.NaN, Feature2 = new [] { 1, 2, float.NaN}  }
+                new DataPoint(){ Feature1 = 21, Feature2 = new [] { 1, 2, float.NaN} },
+                new DataPoint(){ Feature1 = 40, Feature2 = new [] { 1f, 2f, 3f}  },
+                new DataPoint(){ Feature1 = float.NaN, Feature2 = new [] { 1, 2, float.NaN}  }
             };
 
             // Convert training data to IDataView.
@@ -32,7 +32,7 @@ namespace Samples.Dynamic
 
             // Take a look at the resulting dataset and note that rows with NaNs are filtered out.
             // Only the second data point is left
-            var enumerable = mlContext.Data.CreateEnumerable<InputData>(filteredData, reuseRowObject: true);
+            var enumerable = mlContext.Data.CreateEnumerable<DataPoint>(filteredData, reuseRowObject: true);
             Console.WriteLine($"Feature1   Feature2");
 
             foreach (var row in enumerable)
@@ -46,7 +46,7 @@ namespace Samples.Dynamic
 
         }
 
-        private class InputData
+        private class DataPoint
         {
             public float Feature1 { get; set; }
 
