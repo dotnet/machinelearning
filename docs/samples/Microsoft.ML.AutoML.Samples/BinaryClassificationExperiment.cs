@@ -8,10 +8,9 @@ namespace Microsoft.ML.AutoML.Samples
 {
     public static class BinaryClassificationExperiment
     {
-        private static string BaseDatasetsLocation = "Data";
-        private static string TrainDataPath = Path.Combine(BaseDatasetsLocation, "wikipedia-detox-250-line-data.tsv");
-        private static string TestDataPath = Path.Combine(BaseDatasetsLocation, "wikipedia-detox-250-line-test.tsv");
-        private static string ModelPath = Path.Combine(BaseDatasetsLocation, "SentimentModel.zip");
+        private static string TrainDataPath = "<Path to your train dataset goes here>";
+        private static string TestDataPath = "<Path to your test dataset goes here>";
+        private static string ModelPath = @"<Desired model output directory goes here>\SentimentModel.zip";
         private static uint ExperimentTime = 60;
 
         public static void Run()

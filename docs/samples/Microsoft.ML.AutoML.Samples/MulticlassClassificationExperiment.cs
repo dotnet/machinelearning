@@ -8,10 +8,9 @@ namespace Microsoft.ML.AutoML.Samples
 {
     public static class MulticlassClassificationExperiment
     {
-        private static string BaseDatasetsLocation = "Data";
-        private static string TrainDataPath = SamplesDatasetUtils.DownloadOptDigitsTrain();
-        private static string TestDataPath = SamplesDatasetUtils.DownloadOptDigitsTest();
-        private static string ModelPath = Path.Combine(BaseDatasetsLocation, "OptDigits.zip");
+        private static string TrainDataPath = "<Path to your train dataset goes here>";
+        private static string TestDataPath = "<Path to your test dataset goes here>";
+        private static string ModelPath = @"<Desired model output directory goes here>\OptDigitsModel.zip";
         private static string LabelColumnName = "Number";
         private static uint ExperimentTime = 60;
 

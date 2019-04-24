@@ -8,10 +8,9 @@ namespace Microsoft.ML.AutoML.Samples
 {
     public static class RegressionExperiment
     {
-        private static string BaseDatasetsLocation = "Data";
-        private static string TrainDataPath = Path.Combine(BaseDatasetsLocation, "taxi-fare-train.csv");
-        private static string TestDataPath = Path.Combine(BaseDatasetsLocation, "taxi-fare-test.csv");
-        private static string ModelPath = Path.Combine(BaseDatasetsLocation, "TaxiFareModel.zip");
+        private static string TrainDataPath = "<Path to your train dataset goes here>";
+        private static string TestDataPath = "<Path to your test dataset goes here>";
+        private static string ModelPath = @"<Desired model output directory goes here>\TaxiFareModel.zip";
         private static string LabelColumnName = "FareAmount";
         private static uint ExperimentTime = 60;
         
