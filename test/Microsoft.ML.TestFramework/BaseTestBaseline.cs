@@ -60,8 +60,8 @@ namespace Microsoft.ML.RunTests
         private static readonly string BinRegUnixExp = @"\/[^\\\t ]+\/bin\/" + Mode;
         private static readonly string Bin64RegUnixExp = @"\/[^\\\t ]+\/bin\/x64\/" + Mode;
         // The Regex matches both positive and negative decimal point numbers present in a string.
-        // The numbers could be a part of a word. They can also be in Exponential form eg. 3E-9
-        private static readonly Regex MatchNumbers = new Regex(@"-?\b[0-9]+\.?[0-9]*(E-[0-9]*)?\b", RegexOptions.IgnoreCase | RegexOptions.Compiled);
+        // The numbers could be a part of a word. They can also be in Exponential form eg. 3E-9 or 4E+07
+        private static readonly Regex MatchNumbers = new Regex(@"-?\b[0-9]+\.?[0-9]*(E[-+][0-9]*)?\b", RegexOptions.IgnoreCase | RegexOptions.Compiled);
 
         /// <summary>
         /// When the progress log is appended to the end of output (in test runs), this line precedes the progress log.

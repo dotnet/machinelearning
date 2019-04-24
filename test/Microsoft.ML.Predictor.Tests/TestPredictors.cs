@@ -399,7 +399,7 @@ namespace Microsoft.ML.RunTests
                     TestLearners.QuantileRegressionScorer,
                 };
                 var regressionDatasets = GetDatasetsForRegressorTest();
-                RunAllTests(regressionPredictors, regressionDatasets);
+                RunAllTests(regressionPredictors, regressionDatasets, digitsOfPrecision: 6);
             });
             Done();
         }
@@ -531,7 +531,7 @@ namespace Microsoft.ML.RunTests
         {
             var regPredictors = new[] { TestLearners.LightGBMReg };
             var regDatasets = new[] { TestDatasets.generatedRegressionDataset };
-            RunAllTests(regPredictors, regDatasets);
+            RunAllTests(regPredictors, regDatasets, digitsOfPrecision: 5);
             Done();
         }
 
@@ -545,7 +545,7 @@ namespace Microsoft.ML.RunTests
         {
             var regPredictors = new[] { TestLearners.LightGBMRegMae };
             var regDatasets = new[] { TestDatasets.generatedRegressionDataset };
-            RunAllTests(regPredictors, regDatasets, extraTag: "MAE");
+            RunAllTests(regPredictors, regDatasets, extraTag: "MAE", digitsOfPrecision: 5);
             Done();
         }
 
@@ -559,7 +559,7 @@ namespace Microsoft.ML.RunTests
         {
             var regPredictors = new[] { TestLearners.LightGBMRegRmse };
             var regDatasets = new[] { TestDatasets.generatedRegressionDataset };
-            RunAllTests(regPredictors, regDatasets, extraTag: "RMSE");
+            RunAllTests(regPredictors, regDatasets, extraTag: "RMSE", digitsOfPrecision: 5);
             Done();
         }
 
