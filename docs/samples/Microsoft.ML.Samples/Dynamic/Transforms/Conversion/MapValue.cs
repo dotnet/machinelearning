@@ -85,7 +85,6 @@ namespace Samples.Dynamic
             public int Score { get; set; }
         }
 
-      
         private class TransformedData : DataPoint
         {
             public string TimeframeCategory { get; set; }

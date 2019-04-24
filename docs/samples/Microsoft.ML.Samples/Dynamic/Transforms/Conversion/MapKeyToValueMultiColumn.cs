@@ -49,7 +49,7 @@ namespace Samples.Dynamic
             transformedData = mlContext.Data.TakeRows(transformedData, 5);
             var values = mlContext.Data.CreateEnumerable<TransformedData>(transformedData, reuseRowObject: false);
 
-            // Printing the columns of the transformed data. 
+            // Printing the column names of the transformed data.
             Console.WriteLine($"Label   LabelOriginalValue   PredictedLabel   PredictedLabelOriginalValue");
             foreach (var row in values)
                 Console.WriteLine($"{row.Label}\t\t{row.LabelOriginalValue}\t\t\t{row.PredictedLabel}\t\t\t{row.PredictedLabelOriginalValue}");

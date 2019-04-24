@@ -17,25 +17,25 @@ namespace Samples.Dynamic
 
             // Get a small dataset as an IEnumerable.
             var rawData = new[] {
-                new DataPoint() { Review = "animals birds cats dogs fish horse"  },
-                new DataPoint() { Review = "horse birds house fish duck cats"  },
-                new DataPoint() { Review = "car truck driver bus pickup"   },
-                new DataPoint() { Review = "car truck driver bus pickup horse"  },
+                new DataPoint() { Review = "animals birds cats dogs fish horse"},
+                new DataPoint() { Review = "horse birds house fish duck cats"},
+                new DataPoint() { Review = "car truck driver bus pickup"},
+                new DataPoint() { Review = "car truck driver bus pickup horse"},
             };
 
             var trainData = mlContext.Data.LoadFromEnumerable(rawData);
 
             // A pipeline to convert the terms of the 'Review' column in 
             // making use of default settings.
-            var defaultPipeline = mlContext.Transforms.Text.TokenizeIntoWords("TokenizedText", "Review")
-                .Append(mlContext.Transforms.Conversion.MapValueToKey("Keys", "TokenizedText"));
+            var defaultPipeline = mlContext.Transforms.Text.TokenizeIntoWords("TokenizedText", nameof(DataPoint.Review))
+                .Append(mlContext.Transforms.Conversion.MapValueToKey(nameof(TransformedData.Keys), "TokenizedText"));
 
             // Another pipeline, that customizes the advanced settings of the ValueToKeyMappingEstimator.
             // We can change the maximumNumberOfKeys to limit how many keys will get generated out of the set of words, 
             // and condition the order in which they get evaluated by changing keyOrdinality from the default ByOccurence (order in which they get encountered) 
             // to value/alphabetically.
-            var customizedPipeline = mlContext.Transforms.Text.TokenizeIntoWords("TokenizedText", "Review")
-                .Append(mlContext.Transforms.Conversion.MapValueToKey("Keys", "TokenizedText", maximumNumberOfKeys: 10,
+            var customizedPipeline = mlContext.Transforms.Text.TokenizeIntoWords("TokenizedText", nameof(DataPoint.Review))
+                .Append(mlContext.Transforms.Conversion.MapValueToKey(nameof(TransformedData.Keys), "TokenizedText", maximumNumberOfKeys: 10,
                 keyOrdinality: ValueToKeyMappingEstimator.KeyOrdinality.ByValue));
 
             // The transformed data.
@@ -67,11 +67,11 @@ namespace Samples.Dynamic
             //  3,10,0,0,0,8
             // Retrieve the original values, by appending the KeyToValue etimator to the existing pipelines
             // to convert the keys back to the strings.
-            var pipeline = defaultPipeline.Append(mlContext.Transforms.Conversion.MapKeyToValue("Keys"));
+            var pipeline = defaultPipeline.Append(mlContext.Transforms.Conversion.MapKeyToValue(nameof(TransformedData.Keys)));
             transformedDataDefault = pipeline.Fit(trainData).Transform(trainData);
 
             // Preview of the DefaultColumnName column obtained.
-            var originalColumnBack = transformedDataDefault.GetColumn<VBuffer<ReadOnlyMemory<char>>>(transformedDataDefault.Schema["Keys"]);
+            var originalColumnBack = transformedDataDefault.GetColumn<VBuffer<string>>(transformedDataDefault.Schema[nameof(TransformedData.Keys)]);
 
             foreach (var row in originalColumnBack)
             {
