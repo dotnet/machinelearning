@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Reflection;
-using Samples.Dynamic;
 
 namespace Microsoft.ML.Samples
 {
@@ -10,11 +9,19 @@ namespace Microsoft.ML.Samples
 
         internal static void RunAll()
         {
-            DataViewEnumerable.Example();
-            FilterRowsByColumn.Example();
-            ShuffleRows.Example();
-            SkipRows.Example();
-            TakeRows.Example();
+            int samples = 0;
+            foreach (var type in Assembly.GetExecutingAssembly().GetTypes())
+            {
+                var sample = type.GetMethod("Example", BindingFlags.Public | BindingFlags.Static | BindingFlags.FlattenHierarchy);
+
+                if (sample != null)
+                {
+                    sample.Invoke(null, null);
+                    samples++;
+                }
+            }
+
+            Console.WriteLine("Number of samples that ran without any exception: " + samples);
         }
     }
 }
