@@ -48,7 +48,8 @@ namespace Microsoft.ML.Trainers
     /// Linear [SVM](https://en.wikipedia.org/wiki/Support-vector_machine#Linear_SVM) implements
     /// an algorithm that finds a hyperplane in the feature space for binary classification, by solving an [SVM problem](https://en.wikipedia.org/wiki/Support-vector_machine#Computing_the_SVM_classifier).
     /// For instance, with feature values $f_0, f_1,..., f_{D-1}$, the prediction is given by determining what side of the hyperplane the point falls into.
-    /// That is the same as the sign of the feautures' weighted sum, i.e. $\sum_{i = 0}^{D-1} \left(w_i * f_i \right) + b$, where $w_0, w_1,..., w_{D-1}$ and $b$ are the weights and bias computed by the algorithm.
+    /// That is the same as the sign of the feautures' weighted sum, i.e. $\sum_{i = 0}^{D-1} \left(w_i * f_i \right) + b$, where $w_0, w_1,..., w_{D-1}$
+    /// are the weights computed by the algorithm, and $b$ is the bias computed by the algorithm.
     ///
     /// This algorithm implemented is the PEGASOS method, which alternates between stochastic gradient descent steps and projection steps,
     /// introduced in [this paper](http://ttic.uchicago.edu/~shai/papers/ShalevSiSr07.pdf) by Shalev-Shwartz, Singer and Srebro.

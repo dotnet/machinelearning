@@ -42,8 +42,9 @@ namespace Microsoft.ML.Trainers
     ///
     /// ### Training Algorithm Details
     /// The perceptron is a classification algorithm that makes its predictions by finding a separating hyperplane.
-    /// For instance, with feature values $f0, f1,..., f_{D-1}$, the prediction is given by determining what side of the hyperplane the point falls into.
-    /// That is the same as the sign of the feautures' weighted sum, i.e. $\sum_{i = 0}^{D-1} (w_i * f_i)$, where $w_0, w_1,..., w_{D-1}$ are the weights computed by the algorithm.
+    /// For instance, with feature values $f_0, f_1,..., f_{D-1}$, the prediction is given by determining what side of the hyperplane the point falls into.
+    /// That is the same as the sign of the feautures' weighted sum, i.e. $\sum_{i = 0}^{D-1} (w_i * f_i) + b$, where $w_0, w_1,..., w_{D-1}$
+    /// are the weights computed by the algorithm, and $b$ is the bias computed by the algorithm.
     ///
     /// The perceptron is an online algorithm, which means it processes the instances in the training set one at a time.
     /// It starts with a set of initial weights (zero, random, or initialized from a previous learner). Then, for each example in the training set, the weighted sum of the features is computed.
