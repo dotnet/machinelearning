@@ -555,8 +555,6 @@ namespace Microsoft.ML.CLI.CodeGenerator.CSharp
             {
                 return binaryTrainerUsings;
             }
-
         }
-
     }
 }

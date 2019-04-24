@@ -59,16 +59,31 @@ namespace Microsoft.ML.CLI.Templates.Console
             
             #line default
             #line hidden
+            
+            #line 19 "E:\src\machinelearning\src\mlnet\Templates\Console\ModelProject.tt"
+ if(IncludeFastTreePackage){ 
+            
+            #line default
+            #line hidden
+            this.Write("    <PackageReference Include=\"Microsoft.ML.FastTree\" Version=\"1.0.0-preview\" />\r" +
+                    "\n");
+            
+            #line 21 "E:\src\machinelearning\src\mlnet\Templates\Console\ModelProject.tt"
+}
+            
+            #line default
+            #line hidden
             this.Write("  </ItemGroup>\r\n\r\n  <ItemGroup>\r\n    <None Update=\"MLModel.zip\">\r\n      <CopyToOu" +
                     "tputDirectory>PreserveNewest</CopyToOutputDirectory>\r\n    </None>\r\n  </ItemGroup" +
                     ">\r\n  \r\n</Project>\r\n");
             return this.GenerationEnvironment.ToString();
         }
         
-        #line 28 "E:\src\machinelearning\src\mlnet\Templates\Console\ModelProject.tt"
+        #line 31 "E:\src\machinelearning\src\mlnet\Templates\Console\ModelProject.tt"
 
 public bool IncludeLightGBMPackage {get;set;}
 public bool IncludeMklComponentsPackage {get;set;}
+public bool IncludeFastTreePackage {get;set;}
 
         
         #line default

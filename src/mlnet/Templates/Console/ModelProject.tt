@@ -16,6 +16,9 @@
 <# if(IncludeMklComponentsPackage){ #>
     <PackageReference Include="Microsoft.ML.Mkl.Components" Version="1.0.0-preview" />
 <#}#>
+<# if(IncludeFastTreePackage){ #>
+    <PackageReference Include="Microsoft.ML.FastTree" Version="1.0.0-preview" />
+<#}#>
   </ItemGroup>
 
   <ItemGroup>
@@ -28,4 +31,5 @@
 <#+
 public bool IncludeLightGBMPackage {get;set;}
 public bool IncludeMklComponentsPackage {get;set;}
+public bool IncludeFastTreePackage {get;set;}
 #>
