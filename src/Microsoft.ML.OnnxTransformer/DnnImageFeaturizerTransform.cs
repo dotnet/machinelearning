@@ -55,6 +55,7 @@ namespace Microsoft.ML.Transforms.Onnx
     /// | Does this estimator need to look at the data to train its parameters? | No |
     /// | Input column data type | Vector of <xref:System.Single> |
     /// | Output column data type | Vector of <xref:System.Single>, the size of the vector depends on the pre-trained DNN |
+    /// | Required NuGet in addition to Microsoft.ML | Microsoft.ML.OnnxTransformer |
     ///
     /// ]]>
     /// </format>
