@@ -477,7 +477,7 @@ namespace Microsoft.ML.Trainers
     /// <summary>
     /// Computes the standard deviation matrix of each of the non-zero training weights, needed to calculate further the standard deviation,
     /// p-value and z-Score.
-    /// If you need fast calculations, use this class' implementation in the Microsoft.ML.Mkl.Components package which uses Intel Math Kernel Library.
+    /// Use this class' implementation in the Microsoft.ML.Mkl.Components package which uses Intel Math Kernel Library.
     /// Due to the existence of regularization, an approximation is used to compute the variances of the trained linear coefficients.
     /// </summary>
     public abstract class ComputeLogisticRegressionStandardDeviation
