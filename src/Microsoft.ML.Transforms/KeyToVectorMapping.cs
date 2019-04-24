@@ -28,7 +28,7 @@ using Microsoft.ML.Transforms;
 namespace Microsoft.ML.Transforms
 {
     /// <summary>
-    ///  Converts the key types back to binary vectors.
+    /// <see cref="ITransformer"/> resulting from fitting a <see cref="KeyToBinaryVectorMappingEstimator"/>.
     /// </summary>
     public sealed class KeyToBinaryVectorMappingTransformer : OneToOneTransformerBase
     {
@@ -426,8 +426,21 @@ namespace Microsoft.ML.Transforms
     }
 
     /// <summary>
-    ///  Converts the key types back to binary vectors.
+    /// Estimator for <see cref="KeyToBinaryVectorMappingTransformer"/>. Converts key types to their corresponding binary representation of the original value.
     /// </summary>
+    /// <remarks>
+    /// <format type="text/markdown"><![CDATA[
+    ///
+    /// ###  Estimator Characteristics
+    /// |  |  |
+    /// | -- | -- |
+    /// | Does this estimator need to look at the data to train its parameters? | No |
+    /// | Input column data type | [key](xref:Microsoft.Ml.Data.KeyDataViewType) or a known-size vector of keys. |
+    /// | Output column data type | A known-size vector of [System.Single](xref:System.Single). |
+    ///
+    /// ]]></format>
+    /// </remarks>
+    /// <seealso cref="ConversionsCatalog.MapKeyToBinaryVector(TransformsCatalog.ConversionTransforms, string, string)"/>
     public sealed class KeyToBinaryVectorMappingEstimator : TrivialEstimator<KeyToBinaryVectorMappingTransformer>
     {
         internal KeyToBinaryVectorMappingEstimator(IHostEnvironment env, params (string outputColumnName, string inputColumnName)[] columns)

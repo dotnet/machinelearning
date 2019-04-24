@@ -30,11 +30,13 @@ namespace Microsoft.ML
         }
 
         /// <summary>
-        ///  Convert the key types back to binary vector.
+        /// Create a <see cref="KeyToBinaryVectorMappingEstimator"/>, which converts key types to their corresponding binary representation of the original value.
         /// </summary>
         /// <param name="catalog">The categorical transform's catalog.</param>
-        /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.</param>
-        /// <param name="inputColumnName">Name of column to transform. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.</param>
+        /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.
+        /// The data type is a known-size vector of <see cref="System.Single"/> representing the input value.</param>
+        /// <param name="inputColumnName">Name of column to transform. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.
+        /// The data type is a key or a known-size vector of keys.</param>
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
