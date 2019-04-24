@@ -13,7 +13,7 @@ namespace Microsoft.ML.Data
     /// the n-gram and whether or not to continue processing n-grams.
     /// </summary>
     /// <param name="ngram">The array containing the n-gram</param>
-    /// <param name="lim">The n-gram is stored in n-gram[0],...n-gram[lim-1].</param>
+    /// <param name="lim">The n-gram is stored in ngram[0],...ngram[lim-1].</param>
     /// <param name="icol">The index of the column the transform is applied to.</param>
     /// <param name="more">True if processing should continue, false if it should stop.
     /// It is true on input, so only needs to be set to false.</param>

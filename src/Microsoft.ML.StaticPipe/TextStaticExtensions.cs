@@ -303,7 +303,7 @@ namespace Microsoft.ML.StaticPipe
         }
 
         /// <summary>
-        /// Produces a bag of counts of n-grams (sequences of consecutive words ) in a given text.
+        /// Produces a bag of counts of n-grams (sequences of consecutive words) in a given text.
         /// It does so by building a dictionary of n-grams and using the id in the dictionary as the index in the bag.
         /// </summary>
         /// <param name="input">The column to apply to.</param>
@@ -568,7 +568,7 @@ namespace Microsoft.ML.StaticPipe
         }
 
         /// <summary>
-        /// Produces a bag of counts of n-grams (sequences of consecutive words of length 1-n) in a given tokenized text.
+        /// Produces a bag of counts of n-grams (sequences of n consecutive words of length 1-n) in a given tokenized text.
         /// It does so by hashing each n-gram and using the hash value as the index in the bag.
         ///
         /// <see cref="ProduceHashedNgrams"/> is different from <see cref="WordHashBagEstimatorStaticExtensions.ProduceHashedWordBags"/>

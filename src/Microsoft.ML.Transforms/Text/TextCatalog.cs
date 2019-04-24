@@ -70,7 +70,7 @@ namespace Microsoft.ML
         /// </summary>
         /// <param name="catalog">The text-related transform's catalog.</param>
         /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.
-        /// This column's data type will be a variable-sized vector of <see cref="System.UInt16"/>.</param>
+        /// This column's data type will be a variable-sized vector of keys.</param>
         /// <param name="inputColumnName">Name of the column to transform. If set to <see langword="null"/>, the value of the
         /// <paramref name="outputColumnName"/> will be used as source.
         /// This estimator operates over text data type.</param>
