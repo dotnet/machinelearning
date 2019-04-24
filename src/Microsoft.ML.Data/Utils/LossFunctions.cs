@@ -291,8 +291,8 @@ namespace Microsoft.ML.Trainers
     /// $
     /// g(L(f(\vec{x}), y)) =
     /// \begin{cases}
-    /// 0                                     & \text{if } L(f(\vec{ x}), y) < 0\\
-    /// \frac{(L(f(\vec{x}), y))^2}{2\alpha}  & \text{if } L(f(\vec{ x}), y) < \alpha\\
+    /// 0                                     & \text{if } L(f(\vec{x}), y) < 0\\
+    /// \frac{(L(f(\vec{x}), y))^2}{2\alpha}  & \text{if } L(f(\vec{x}), y) < \alpha\\
     /// L(f(\vec{x}), y) - \frac{\alpha}{2}   & \text{otherwise}
     /// \end{cases}
     /// $
