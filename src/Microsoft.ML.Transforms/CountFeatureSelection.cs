@@ -27,9 +27,9 @@ namespace Microsoft.ML.Transforms
     /// ###  Estimator Characteristics
     /// |  |  |
     /// | -- | -- |
-    /// | Does this estimator need to look at the data to train its parameters? | Yes. |
-    /// | Input column data type | Vector or primitive of numeric, text or [key](xref:Microsoft.ML.Data.KeyDataViewType) type. |
-    /// | Output column data type | Same as the input column.|
+    /// | Does this estimator need to look at the data to train its parameters? | Yes |
+    /// | Input column data type | Vector or scalar of numeric, [text](xref:Microsoft.ML.Data.TextDataViewType) or [key](xref:Microsoft.ML.Data.KeyDataViewType) data types|
+    /// | Output column data type | Same as the input column|
     ///
     /// This transform uses a set of aggregators to count the number of non-default values for each slot(vector element) and
     /// instantiates a transformer to actually drop the slots that have the default values for the types
@@ -59,6 +59,8 @@ namespace Microsoft.ML.Transforms
     ///
     /// ]]></format>
     /// </remarks>
+    /// <seealso cref="FeatureSelectionCatalog.SelectFeaturesBasedOnCount(TransformsCatalog.FeatureSelectionTransforms, InputOutputColumnPair[], long)"/>
+    /// <seealso cref="FeatureSelectionCatalog.SelectFeaturesBasedOnCount(TransformsCatalog.FeatureSelectionTransforms, string, string, long)"/>
     public sealed class CountFeatureSelectingEstimator : IEstimator<ITransformer>
     {
         internal const string Summary = "Selects the slots for which the count of non-default values is greater than or equal to a threshold.";

@@ -82,8 +82,10 @@ namespace Microsoft.ML
         /// Create a <see cref="CountFeatureSelectingEstimator"/>, which selects the slots for which the count of non-default values is greater than or equal to a threshold.
         /// </summary>
         /// <param name="catalog">The transform's catalog.</param>
-        /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.</param>
-        /// <param name="inputColumnName">Name of column to transform. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.</param>
+        /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.
+        /// This column's data type will be the same as the input column's data type.</param>
+        /// <param name="inputColumnName">Name of column to transform. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.
+        /// This estimator operates over vector or scalar of numeric, text or keys data types.</param>
         /// <param name="count">If the count of non-default values for a slot is greater than or equal to this threshold in the training data, the slot is preserved.</param>
         /// <example>
         /// <format type="text/markdown">
@@ -102,7 +104,9 @@ namespace Microsoft.ML
         /// Create a <see cref="CountFeatureSelectingEstimator"/>, which selects the slots for which the count of non-default values is greater than or equal to a threshold.
         /// </summary>
         /// <param name="catalog">The transform's catalog.</param>
-        /// <param name="columns">Specifies the names of the columns on which to apply the transformation.</param>
+        /// <param name="columns">Specifies the names of the columns on which to apply the transformation.
+        /// This estimator operates over vector or scalar of numeric, text or keys data types.
+        /// The output columns' data types will be the same as the input columns' data types.</param>
         /// <param name="count">If the count of non-default values for a slot is greater than or equal to this threshold in the training data, the slot is preserved.</param>
         /// <example>
         /// <format type="text/markdown">
