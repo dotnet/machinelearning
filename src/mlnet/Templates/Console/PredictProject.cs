@@ -38,6 +38,10 @@ namespace Microsoft.ML.CLI.Templates.Console
             this.Write("    <PackageReference Include=\"Microsoft.ML.Mkl.Components\" Version=\"1.0.0-previe" +
                     "w\" />\r\n");
 }
+ if(IncludeFastTreePackage){ 
+            this.Write("    <PackageReference Include=\"Microsoft.ML.FastTree\" Version=\"1.0.0-preview\" />\r" +
+                    "\n");
+}
             this.Write("  </ItemGroup>\r\n  <ItemGroup>\r\n    <ProjectReference Include=\"..\\");
             this.Write(this.ToStringHelper.ToStringWithCulture(Namespace));
             this.Write(".Model\\");
@@ -49,6 +53,7 @@ namespace Microsoft.ML.CLI.Templates.Console
 public string Namespace {get;set;}
 public bool IncludeLightGBMPackage {get;set;}
 public bool IncludeMklComponentsPackage {get;set;}
+public bool IncludeFastTreePackage {get;set;}
 
     }
     #region Base class
