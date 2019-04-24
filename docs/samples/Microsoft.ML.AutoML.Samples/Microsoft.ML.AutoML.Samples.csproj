@@ -28,13 +28,4 @@
     </None>
   </ItemGroup>
 
-  <ItemGroup>
-    <None Update="Data\optdigits-test.csv">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="Data\optdigits-train.csv">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-  </ItemGroup>
-
 </Project>
