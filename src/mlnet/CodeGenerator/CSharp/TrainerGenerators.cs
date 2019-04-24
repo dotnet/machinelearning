@@ -557,6 +557,5 @@ namespace Microsoft.ML.CLI.CodeGenerator.CSharp
             }
 
         }
-
     }
 }
