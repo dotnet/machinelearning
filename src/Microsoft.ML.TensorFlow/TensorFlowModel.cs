@@ -52,14 +52,14 @@ namespace Microsoft.ML.Transforms
         /// <summary>
         /// Scores a dataset using a pre-trained <a href="https://www.tensorflow.org/">TensorFlow</a> model.
         /// </summary>
-        /// <param name="inputColumnName"> The name of the model input.</param>
-        /// <param name="outputColumnName">The name of the requested model output.</param>
+        /// <param name="inputColumnName"> The name of the model input. The data type is a vector of <see cref="System.Single"/>.</param>
+        /// <param name="outputColumnName">The name of the requested model output. The data type is a vector of <see cref="System.Single"/></param>
         /// <param name="addBatchDimensionInput">Add a batch dimension to the input e.g. input = [224, 224, 3] => [-1, 224, 224, 3].
         /// This parameter is used to deal with models that have unknown shape but the internal operators in the model require data to have batch dimension as well.</param>
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
-        /// [!code-csharp[ScoreTensorFlowModel](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/TensorFlow/TextClassification.cs)]
+        /// [!code-csharp[ScoreTensorFlowModel](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/TensorFlow/ImageClassification.cs)]
         /// ]]>
         /// </format>
         /// </example>
