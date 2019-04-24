@@ -16,7 +16,7 @@ namespace Microsoft.DotNet.Cli.Telemetry
 
         public void SetCommandAndParameters(string command, IEnumerable<string> parameters)
         {
-            if(parameters != null)
+            if (parameters != null)
             {
                 _parameters.AddRange(parameters);
             }
@@ -28,7 +28,7 @@ namespace Microsoft.DotNet.Cli.Telemetry
         {
             CheckFistTimeUse();
 
-            if(!_enabled)
+            if (!_enabled)
             {
                 return;
             }
@@ -71,7 +71,7 @@ namespace Microsoft.DotNet.Cli.Telemetry
 @"Welcome to the ML.NET CLI!
 --------------------------
 Learn more about ML.NET CLI: https://aka.ms/mlnet-cli
-Use 'dotnet ml --help' to see available commands or visit: https://aka.ms/mlnet-cli-docs
+Use 'mlnet --help' to see available commands or visit: https://aka.ms/mlnet-cli-docs
 
 Telemetry
 ---------
