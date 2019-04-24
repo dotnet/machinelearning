@@ -20983,7 +20983,7 @@
                   "Type": "Int",
                   "Desc": "Maximum n-gram length",
                   "Aliases": [
-                    "n-gram"
+                    "ngram"
                   ],
                   "Required": false,
                   "SortOrder": 150.0,
@@ -21094,7 +21094,7 @@
           "Type": "Int",
           "Desc": "Maximum n-gram length",
           "Aliases": [
-            "n-gram"
+            "ngram"
           ],
           "Required": false,
           "SortOrder": 150.0,
