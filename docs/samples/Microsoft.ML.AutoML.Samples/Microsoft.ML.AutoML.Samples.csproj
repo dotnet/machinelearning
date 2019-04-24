@@ -14,12 +14,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Include="..\..\..\test\data\optdigits-test.csv" Link="Data\optdigits-test.csv">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="..\..\..\test\data\optdigits-train.csv" Link="Data\optdigits-train.csv">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
     <None Include="..\..\..\test\data\taxi-fare-test.csv" Link="Data\taxi-fare-test.csv">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>

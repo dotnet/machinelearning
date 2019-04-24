@@ -10,7 +10,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "mlnet", "src\mlnet\mlnet.cs
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "mlnet.Tests", "test\mlnet.Tests\mlnet.Tests.csproj", "{AAC3E4E6-C146-44BB-8873-A1E61D563F2A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.ML.AutoML.Samples", "docs\samples\Microsoft.ML.AutoML.Samples\Microsoft.ML.AutoML.Samples.csproj", "{6E84E7C5-FECE-45A9-AD4C-4B0F39F78904}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.ML.AutoML.Samples", "docs\samples\Microsoft.ML.AutoML.Samples\Microsoft.ML.AutoML.Samples.csproj", "{6E84E7C5-FECE-45A9-AD4C-4B0F39F78904}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

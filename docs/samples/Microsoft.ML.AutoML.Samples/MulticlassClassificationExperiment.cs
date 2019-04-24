@@ -9,8 +9,8 @@ namespace Microsoft.ML.AutoML.Samples
     public static class MulticlassClassificationExperiment
     {
         private static string BaseDatasetsLocation = "Data";
-        private static string TrainDataPath = Path.Combine(BaseDatasetsLocation, "optdigits-train.csv");
-        private static string TestDataPath = Path.Combine(BaseDatasetsLocation, "optdigits-test.csv");
+        private static string TrainDataPath = SamplesDatasetUtils.DownloadOptDigitsTrain();
+        private static string TestDataPath = SamplesDatasetUtils.DownloadOptDigitsTest();
         private static string ModelPath = Path.Combine(BaseDatasetsLocation, "OptDigits.zip");
         private static string LabelColumnName = "Number";
         private static uint ExperimentTime = 60;
@@ -33,12 +33,12 @@ namespace Microsoft.ML.AutoML.Samples
             RunDetail<MulticlassClassificationMetrics> best = experimentResult.BestRun;
             Console.WriteLine($"Total models produced: {experimentResult.RunDetails.Count()}");
             Console.WriteLine($"Best model's trainer: {best.TrainerName}");
-            Console.WriteLine($"AccuracyMacro of best model from validation data: {best.ValidationMetrics.MacroAccuracy}");
+            Console.WriteLine($"MicroAccuracy of best model from validation data: {best.ValidationMetrics.MicroAccuracy}");
 
             // STEP 4: Evaluate test data
             IDataView testDataViewWithBestScore = best.Model.Transform(testDataView);
             MulticlassClassificationMetrics testMetrics = mlContext.MulticlassClassification.Evaluate(testDataViewWithBestScore, labelColumnName: LabelColumnName);
-            Console.WriteLine($"AccuracyMacro of best model on test data: {testMetrics.MacroAccuracy}");
+            Console.WriteLine($"MicroAccuracy of best model on test data: {testMetrics.MicroAccuracy}");
 
             // STEP 5: Save the best model for later deployment and inferencing
             using (FileStream fs = File.Create(ModelPath))
