@@ -71,7 +71,7 @@ namespace Microsoft.ML.Trainers
         /// </summary>
         /// <param name="label">The label of the example.</param>
         /// <param name="dual">The dual variable of the example.</param>
-        double DualLoss(float label, float dual);
+        Double DualLoss(float label, float dual);
     }
 
     public interface ISupportSdcaClassificationLoss : ISupportSdcaLoss, IClassificationLoss
@@ -130,7 +130,7 @@ namespace Microsoft.ML.Trainers
         internal const string Summary = "The log loss function for classification. Supported by SDCA.";
         private const float Threshold = 0.5f;
 
-        public double Loss(float output, float label)
+        public Double Loss(float output, float label)
         {
             float prediction = MathUtils.Sigmoid(output);
             return label > 0 ? -Log(prediction) : -Log(1 - prediction);
@@ -161,7 +161,7 @@ namespace Microsoft.ML.Trainers
             return maxNumThreads >= 2 && Math.Abs(fullUpdate) > Threshold ? fullUpdate / maxNumThreads : fullUpdate;
         }
 
-        public double DualLoss(float label, float dual)
+        public Double DualLoss(float label, float dual)
         {
             // Normalize the dual with label.
             if (label <= 0)
@@ -169,12 +169,12 @@ namespace Microsoft.ML.Trainers
 
             // The dual variable is out of the feasible region [0, 1].
             if (dual < 0 || dual > 1)
-                return double.NegativeInfinity;
+                return Double.NegativeInfinity;
 
             return MathUtils.Entropy(dual, useLnNotLog2: true);
         }
 
-        private static double Log(double x)
+        private static Double Log(Double x)
         {
             return Math.Log(Math.Max(x, 1e-8));
         }
@@ -236,7 +236,7 @@ namespace Microsoft.ML.Trainers
         {
         }
 
-        public double Loss(float output, float label)
+        public Double Loss(float output, float label)
         {
             float truth = label > 0 ? 1 : -1;
             float loss = _margin - truth * output;
@@ -262,14 +262,14 @@ namespace Microsoft.ML.Trainers
             return maxNumThreads >= 2 && Math.Abs(fullUpdate) > Threshold ? fullUpdate / maxNumThreads : fullUpdate;
         }
 
-        public double DualLoss(float label, float dual)
+        public Double DualLoss(float label, float dual)
         {
             if (label <= 0)
                 dual = -dual;
 
             // The dual variable is out of the feasible region [0, 1].
             if (dual < 0 || dual > 1)
-                return double.NegativeInfinity;
+                return Double.NegativeInfinity;
 
             return _margin * dual;
         }
@@ -320,8 +320,8 @@ namespace Microsoft.ML.Trainers
         private const float Threshold = 0.5f;
         // The smoothed Hinge loss is 1/(_SmoothParam) smooth (its definition can be found in http://jmlr.org/papers/volume14/shalev-shwartz13a/shalev-shwartz13a.pdf (page 568 Definition 1)
         private readonly float _smoothConst;
-        private readonly double _halfSmoothConst;
-        private readonly double _doubleSmoothConst;
+        private readonly Double _halfSmoothConst;
+        private readonly Double _doubleSmoothConst;
 
         private static class Defaults
         {
@@ -345,7 +345,7 @@ namespace Microsoft.ML.Trainers
         {
         }
 
-        public double Loss(float output, float label)
+        public Double Loss(float output, float label)
         {
             float truth = label > 0 ? 1 : -1;
             float u = 1 - truth * output;
@@ -386,14 +386,14 @@ namespace Microsoft.ML.Trainers
             return maxNumThreads >= 2 && Math.Abs(fullUpdate) > Threshold ? fullUpdate / maxNumThreads : fullUpdate;
         }
 
-        public double DualLoss(float label, float dual)
+        public Double DualLoss(float label, float dual)
         {
             if (label <= 0)
                 dual = -dual;
 
             // The dual variable is out of the feasible region [0, 1].
             if (dual < 0 || dual > 1)
-                return double.NegativeInfinity;
+                return Double.NegativeInfinity;
 
             return dual * (1 - dual * _halfSmoothConst);
         }
@@ -444,7 +444,7 @@ namespace Microsoft.ML.Trainers
             _beta = beta;
         }
 
-        public double Loss(float output, float label)
+        public Double Loss(float output, float label)
         {
             float truth = label > 0 ? 1 : -1;
             return MathUtils.ExpSlow(-_beta * truth * output);
@@ -486,7 +486,7 @@ namespace Microsoft.ML.Trainers
     {
         internal const string Summary = "The squared loss function for regression.";
 
-        public double Loss(float output, float label)
+        public Double Loss(float output, float label)
         {
             float diff = output - label;
             return diff * diff;
@@ -509,7 +509,7 @@ namespace Microsoft.ML.Trainers
             return maxNumThreads >= 2 ? fullUpdate / maxNumThreads : fullUpdate;
         }
 
-        public double DualLoss(float label, float dual)
+        public Double DualLoss(float label, float dual)
         {
             return -dual * (dual / 4 - label);
         }
@@ -539,7 +539,7 @@ namespace Microsoft.ML.Trainers
     {
         internal const string Summary = "The Poisson loss function for regression.";
 
-        public double Loss(float output, float label)
+        public Double Loss(float output, float label)
         {
             // REVIEW: This is stupid and leads to error whenever this loss is used in an evaluator.
             // The output is in the log-space, while the label is in the original space, while the evaluator
@@ -582,16 +582,16 @@ namespace Microsoft.ML.Trainers
             [Argument(ArgumentType.LastOccurenceWins, HelpText =
                 "Index parameter for the Tweedie distribution, in the range [1, 2]. 1 is Poisson loss, 2 is gamma loss, " +
                 "and intermediate values are compound Poisson loss.")]
-            public double Index = 1.5;
+            public Double Index = 1.5;
 
             public IRegressionLoss CreateComponent(IHostEnvironment env) => new TweedieLoss(this);
         }
 
         internal const string Summary = "The Tweedie loss function for regression.";
 
-        private readonly double _index;  // The index parameter specified by the user.
-        private readonly double _index1; // 1 minus the index parameter.
-        private readonly double _index2; // 2 minus the index parameter.
+        private readonly Double _index;  // The index parameter specified by the user.
+        private readonly Double _index1; // 1 minus the index parameter.
+        private readonly Double _index2; // 2 minus the index parameter.
 
         private TweedieLoss(Options options)
         {
@@ -621,7 +621,7 @@ namespace Microsoft.ML.Trainers
                 val = eps; // I did! I did taw a negwawive wowue!!
         }
 
-        public double Loss(float output, float label)
+        public Double Loss(float output, float label)
         {
             Clamp(ref output);
             Clamp(ref label);

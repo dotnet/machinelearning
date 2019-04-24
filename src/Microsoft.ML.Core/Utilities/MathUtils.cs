@@ -14,14 +14,14 @@ namespace Microsoft.ML.Internal.Utilities
     [BestFriend]
     internal static class MathUtils
     {
-        public static float ToFloat(this double dbl)
+        public static float ToFloat(this Double dbl)
         {
-            return (float)dbl;
+            return (Single)dbl;
         }
 
         // The purpose of this is to catch (at compile time) invocations of ToFloat
         // that are not appropriate. Note that the return type is void.
-        public static void ToFloat(this float dbl)
+        public static void ToFloat(this Single dbl)
         {
             Contracts.Assert(false, "Bad use of ToFloat");
             throw Contracts.Except();
@@ -374,7 +374,7 @@ namespace Microsoft.ML.Internal.Utilities
         /// <param name="t">The t-statistic</param>
         /// <param name="df">The degrees of freedom</param>
         /// <returns>The corresponding two-tailed p-value</returns>
-        public static double TStatisticToPValue(double t, double df)
+        public static Double TStatisticToPValue(Double t, Double df)
         {
             Contracts.CheckParam(df > 0, nameof(df), "Degrees of freedom must be positive");
 
@@ -390,7 +390,7 @@ namespace Microsoft.ML.Internal.Utilities
             return Math.Max(0, Math.Min(result, 1));
         }
 
-        private delegate double Sequence(int i);
+        private delegate Double Sequence(int i);
 
         /// <summary>
         /// Lentz's algorithm for evaluating the continued fraction
@@ -400,23 +400,23 @@ namespace Microsoft.ML.Internal.Utilities
         /// <param name="b">The <c>b</c> function mapping non-negative integers to a sequence term</param>
         /// <param name="tol">Calculate the continued fraction to this tolerance</param>
         /// <returns>The evaluation of the continued fraction</returns>
-        private static double Lentz(Sequence a, Sequence b, double tol = 1e-15)
+        private static Double Lentz(Sequence a, Sequence b, Double tol = 1e-15)
         {
             Contracts.AssertValue(a);
             Contracts.AssertValue(b);
             Contracts.Assert(tol > 0);
 
-            double f = Unclamp(b(0));
-            double c = f;
-            double d = 0;
+            Double f = Unclamp(b(0));
+            Double c = f;
+            Double d = 0;
             const int iterMax = 100000;
             for (int i = 1; i < iterMax; ++i)
             {
-                double bi = b(i);
-                double ai = a(i);
+                Double bi = b(i);
+                Double ai = a(i);
                 d = 1.0 / Unclamp(bi + ai * d);
                 c = Unclamp(bi + ai / c);
-                double ratio = c * d;
+                Double ratio = c * d;
                 f *= ratio;
                 if (Math.Abs(ratio - 1.0) < tol)
                     break;
@@ -424,14 +424,14 @@ namespace Microsoft.ML.Internal.Utilities
             return f;
         }
 
-        private static double Beta(double a, double b)
+        private static Double Beta(Double a, Double b)
         {
             // REVIEW: LogGamma implementation precision is a concern, but
             // is minor, perhaps, compared to the instability of TtoP.
             return Math.Exp(LogGamma(a) + LogGamma(b) - LogGamma(a + b));
         }
 
-        private static double IncompleteBeta(double x, double a, double b)
+        private static Double IncompleteBeta(Double x, Double a, Double b)
         {
             Contracts.Assert(0 <= x && x <= 1);
             Contracts.Assert(0 < a);
@@ -459,7 +459,7 @@ namespace Microsoft.ML.Internal.Utilities
                 if (i == 1)
                     return 1;
                 int m = (i - 1) >> 1;
-                double denom = ((a + i - 2) * (a + i - 1));
+                Double denom = ((a + i - 2) * (a + i - 1));
                 if ((i & 1) == 0)
                     return -(a + m) * (a + b + m) * x / denom;
                 return m * (b - m) * x / denom;
@@ -468,9 +468,9 @@ namespace Microsoft.ML.Internal.Utilities
             return Math.Pow(x, a) * Math.Pow(1 - x, b) / (a * Beta(a, b)) * Lentz(adel, bdel);
         }
 
-        private static double Unclamp(double val)
+        private static Double Unclamp(Double val)
         {
-            const double bound = 1e-30;
+            const Double bound = 1e-30;
             if (!(-bound <= val && val <= bound))
                 return val;
             return val < 0 ? -bound : bound;
@@ -732,25 +732,25 @@ namespace Microsoft.ML.Internal.Utilities
             return (src[iv - 1] + src[iv]) / 2;
         }
 
-        public static double CosineSimilarity(ReadOnlySpan<float> a, ReadOnlySpan<float> b, int aIdx, int bIdx, int len)
+        public static Double CosineSimilarity(ReadOnlySpan<float> a, ReadOnlySpan<float> b, int aIdx, int bIdx, int len)
         {
             const Double epsilon = 1e-12f;
             Contracts.Assert(len > 0);
             Contracts.Assert(aIdx >= 0 & aIdx <= a.Length - len);
             Contracts.Assert(bIdx >= 0 & bIdx <= b.Length - len);
 
-            double ab = 0;
-            double a2 = 0;
-            double b2 = 0;
+            Double ab = 0;
+            Double a2 = 0;
+            Double b2 = 0;
 
             for (int lim = aIdx + len; aIdx < lim; aIdx++, bIdx++)
             {
-                ab += (double)a[aIdx] * b[bIdx];
-                a2 += (double)a[aIdx] * a[aIdx];
-                b2 += (double)b[bIdx] * b[bIdx];
+                ab += (Double)a[aIdx] * b[bIdx];
+                a2 += (Double)a[aIdx] * a[aIdx];
+                b2 += (Double)b[bIdx] * b[bIdx];
             }
 
-            double similarity = ab / (Math.Sqrt(a2 * b2) + epsilon);
+            Double similarity = ab / (Math.Sqrt(a2 * b2) + epsilon);
             Contracts.Assert(-1 - epsilon <= similarity & similarity <= 1 + epsilon);
             if (Math.Abs(similarity) > 1)
                 return similarity > 1 ? 1 : -1;
@@ -761,10 +761,10 @@ namespace Microsoft.ML.Internal.Utilities
         /// <summary>
         /// Entropy of a given probability
         /// </summary>
-        public static double Entropy(double prob, bool useLnNotLog2 = false)
+        public static Double Entropy(Double prob, bool useLnNotLog2 = false)
         {
             if (prob < 0 || prob > 1)
-                return double.NaN;
+                return Double.NaN;
             if (prob == 0.0 || prob == 1.0)
                 return 0.0;
             return
@@ -776,10 +776,10 @@ namespace Microsoft.ML.Internal.Utilities
         /// <summary>
         /// Cross-entropy of two distributions
         /// </summary>
-        public static double CrossEntropy(double probTrue, double probPredicted, bool useLnNotLog2 = false)
+        public static Double CrossEntropy(Double probTrue, Double probPredicted, bool useLnNotLog2 = false)
         {
             if (probTrue < 0 || probTrue > 1 || probPredicted < 0 || probPredicted > 1)
-                return double.NaN;
+                return Double.NaN;
             if ((probPredicted == 0.0 || probPredicted == 1.0) && (probPredicted == probTrue))
                 return 0.0;
             return
@@ -799,7 +799,7 @@ namespace Microsoft.ML.Internal.Utilities
             // Two passes to find the overall max is a *lot* simpler,
             // but potentially more computationally intensive.
             float max = float.NegativeInfinity;
-            double soFar = 0;
+            Double soFar = 0;
 
             foreach (float term in terms)
             {
