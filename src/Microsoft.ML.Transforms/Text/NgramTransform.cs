@@ -676,7 +676,7 @@ namespace Microsoft.ML.Transforms.Text
     /// |  |  |
     /// | -- | -- |
     /// | Does this estimator need to look at the data to train its parameters? | Yes |
-    /// | Input column data type | Vector of [Keys](xref:Microsoft.ML.Data.KeyDataViewType) |
+    /// | Input column data type | Vector of [key](xref:Microsoft.ML.Data.KeyDataViewType) type. |
     /// | Output column data type | Known-sized vector of <xref:System.Single> |
     ///
     /// The resulting <xref:Microsoft.ML.Transforms.Text.NgramExtractingTransformer>

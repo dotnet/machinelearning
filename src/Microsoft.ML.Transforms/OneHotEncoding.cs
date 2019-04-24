@@ -152,8 +152,8 @@ namespace Microsoft.ML.Transforms
     /// |  |  |
     /// | -- | -- |
     /// | Does this estimator need to look at the data to train its parameters? | Yes |
-    /// | Input column data type | Vector or scalar of numeric, boolean, [text](xref:Microsoft.ML.Data.TextDataViewType), <xref:System.DateTime> or [key](xref:Microsoft.ML.Data.KeyDataViewType) |
-    /// | Output column data type | Scalar or vector of [key](xref:Microsoft.ML.Data.KeyDataViewType), or vector of <xref:System.Single> |
+    /// | Input column data type | Vector or scalar of numeric, boolean, [text](xref:Microsoft.ML.Data.TextDataViewType), <xref:System.DateTime> or [key](xref:Microsoft.ML.Data.KeyDataViewType) type. |
+    /// | Output column data type | Scalar or vector of [key](xref:Microsoft.ML.Data.KeyDataViewType), or vector of <xref:System.Single> type. |
     ///
     /// The <xref:Microsoft.ML.Transforms.OneHotEncodingEstimator> builds a dictionary of unique values appearing in the input column.
     /// The resulting <xref:Microsoft.ML.Transforms.OneHotEncodingTransformer> converts one or more input columns into as many output
@@ -176,7 +176,7 @@ namespace Microsoft.ML.Transforms
     /// for Indicator they are concatenated and for Bag they are added. When the source column is a Scalar, the Indicator and Bag options are identical.
     ///
     /// - <xref:Microsoft.ML.Transforms.OneHotEncodingEstimator.OutputKind.Key> produces keys in a <xref:Microsoft.ML.Data.KeyDataViewType> column.
-    /// If the input column is a vector, the output contains a vectory [keys](xref:Microsoft.ML.Data.KeyDataViewType), where each slot of the
+    /// If the input column is a vector, the output contains a vectory [key](xref:Microsoft.ML.Data.KeyDataViewType) type, where each slot of the
     /// vector corresponds to the respective slot of the input vector.
     /// If a category is not found in the bulit dictionary, it is assigned the value zero.
     ///

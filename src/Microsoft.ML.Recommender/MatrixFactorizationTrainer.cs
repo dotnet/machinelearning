@@ -35,7 +35,7 @@ namespace Microsoft.ML.Trainers
     /// values (i.e., labels) in matrix.
     /// They together define a matrix in [COO](https://en.wikipedia.org/wiki/Sparse_matrix#Coordinate_list_(COO)) format.
     /// The type for label column is a vector of <xref:System.Single> while the other two columns are
-    /// [key type](<xref:Microsoft.ML.Data.KeyDataViewType>) scalar.
+    /// [key](xref:Microsoft.ML.Data.KeyDataViewType) type scalar.
     ///
     /// | Output Column Name | Column Type | Description|
     /// | -- | -- | -- |

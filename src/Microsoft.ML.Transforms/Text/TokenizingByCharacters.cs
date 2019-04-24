@@ -557,7 +557,7 @@ namespace Microsoft.ML.Transforms.Text
     /// | -- | -- |
     /// | Does this estimator need to look at the data to train its parameters? | Yes |
     /// | Input column data type | Scalar or Vector of [Text](xref:Microsoft.ML.Data.TextDataViewType)  |
-    /// | Output column data type | Variable-sized vector of [Keys](xref:Microsoft.ML.Data.KeyDataViewType) |
+    /// | Output column data type | Variable-sized vector of [key](xref:Microsoft.ML.Data.KeyDataViewType) type. |
     ///
     /// The estimator tokenizes characters by splitting text into sequences of characters using a sliding window.
     /// During training, the estimator builds a key-value pair dictionary with the encountered sequences of characters.
