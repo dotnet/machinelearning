@@ -13,11 +13,11 @@ namespace Microsoft.ML
     {
         /// <summary>
         /// Create a <see cref="OnnxScoringEstimator"/>, which applies a pre-trained Onnx model to the input column.
+        /// Input/output columns are determined based on the input/output columns of the provided ONNX model.
         /// </summary>
         /// <remarks>
-        /// All column names are provided, the input data column names/types must exactly match
-        /// all model input names. All possible output columns are then generated, with names/types
-        /// specified by the model.
+        /// The name/type of input columns must exactly match name/type of the ONNX model inputs.
+        /// The name/type of the produced output columns will match name/type of the ONNX model outputs.
         /// </remarks>
         /// <param name="catalog">The transform's catalog.</param>
         /// <param name="modelFile">The path of the file containing the ONNX model.</param>

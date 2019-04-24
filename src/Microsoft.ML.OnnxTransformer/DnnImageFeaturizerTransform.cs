@@ -13,7 +13,7 @@ namespace Microsoft.ML.Transforms.Onnx
     // that is used by the DnnImageFeaturizeEstimator.
     // In order to use this, at least one model project with the corresponding extension methods must by included.
     /// <summary>
-    /// Helper class whose extension methods allow to select a pre-trained DNN image featurization model to use in the <see cref="DnnImageFeaturizerEstimator"/>.
+    /// Helper class for selecting a pre-trained DNN image featurization model to use in the <see cref="DnnImageFeaturizerEstimator"/>.
     /// </summary>
     /// <seealso cref="OnnxCatalog.DnnFeaturizeImage(TransformsCatalog, string, Func{DnnImageFeaturizerInput, EstimatorChain{ColumnCopyingTransformer}}, string)"/>
     public sealed class DnnImageModelSelector
@@ -21,7 +21,7 @@ namespace Microsoft.ML.Transforms.Onnx
     }
 
     /// <summary>
-    /// This is a helper class used to store all the inputs to an extension method on a <see cref="DnnImageModelSelector"/> required to return
+    /// Helper class for storing all the inputs to an extension method on a <see cref="DnnImageModelSelector"/> required to return
     /// a chain of two <see cref="OnnxScoringEstimator"/>.
     /// </summary>
     public sealed class DnnImageFeaturizerInput
@@ -42,7 +42,7 @@ namespace Microsoft.ML.Transforms.Onnx
     }
 
     /// <summary>
-    /// Applies a pre-trained deep neural network (DNN) model to featurize image input data.
+    /// Applies a pre-trained deep neural network (DNN) model to featurize input image data.
     /// </summary>
     /// <remarks>
     /// <format type="text/markdown"><![CDATA[
@@ -53,7 +53,16 @@ namespace Microsoft.ML.Transforms.Onnx
     /// | Does this estimator need to look at the data to train its parameters? | No |
     /// | Input column data type | Vector of <xref:System.Single> |
     /// | Output column data type | Vector of <xref:System.Single>, the size of the vector depends on the pre-trained DNN |
-    /// | Required NuGet in addition to Microsoft.ML | Microsoft.ML.OnnxTransformer and Microsoft.ML.OnnxRuntime or Microsoft.ML.OnnxRuntime.Gpu|
+    ///
+    /// NuGet requirements:
+    ///	- Microsoft.ML.OnnxTransformer
+    /// - Microsoft.ML.OnnxRuntime(question: does OnnxTransformer already pull OnnxRuntime as dependency? if so we don't need to add this)
+    /// - Microsoft.ML.OnnxRuntime.Gpu(only if GPU processing is used)
+    /// - Each pre-trained DNN model has a separate NuGet that must be included if that model is used:
+    ///     - Microsoft.ML.DnnImageFeaturizer.AlexNet
+    ///     - Microsoft.ML.DnnImageFeaturizer.ResNet18
+    ///     - Microsoft.ML.DnnImageFeaturizer.ResNet50
+    ///     - Microsoft.ML.DnnImageFeaturizer.ResNet101
     ///
     /// The resulting transformer creates a new column, named as specified in the output column name parameters,
     /// where a pre-trained deep neural network is applied to the input image data.
