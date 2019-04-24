@@ -33,7 +33,7 @@ namespace Microsoft.ML.Trainers
 {
     /// <summary>
     /// The <see cref="IEstimator{TTransformer}"/> for training a linear regression model using
-    /// ordinary least squares (OLS) for estimating the parameters of the linear regression model.
+    /// <a href="https://en.wikipedia.org/wiki/Ordinary_least_squares">ordinary least squares (OLS)</a> for estimating the parameters of the linear regression model.
     /// </summary>
     /// <remarks>
     /// <format type="text/markdown"><![CDATA[
