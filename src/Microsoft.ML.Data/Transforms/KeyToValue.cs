@@ -500,8 +500,7 @@ namespace Microsoft.ML.Transforms
     }
 
     /// <summary>
-    /// Utilizes KeyValues <see cref="AnnotationInfo"/> of the input column, to map keys to the corresponding values.
-    /// Zero values of the <see cref="KeyDataViewType"/> are mapped to the <see langword="default"/> value of the output type.
+    /// Estimator for <see cref="KeyToValueMappingTransformer"/>. Converts the key types back to their original values.
     /// </summary>
     /// <remarks>
     /// <format type="text/markdown"><![CDATA[

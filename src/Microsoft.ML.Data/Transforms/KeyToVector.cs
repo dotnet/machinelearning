@@ -723,24 +723,24 @@ namespace Microsoft.ML.Transforms
     }
 
     /// <summary>
-    /// Estimator for <see cref="KeyToVectorMappingTransformer"/>. Converts the key types back to their original vectors.
-    /// </summary>
-    /// <summary>
-    /// Utilizes KeyValues <see cref="AnnotationInfo"/> of the input column, to map keys to a vector representing the original value.
-    /// Maps zero values of the <see cref="KeyDataViewType"/> are mapped to the <see langword="default"/> value of the output type.
+    /// Estimator for <see cref="KeyToVectorMappingTransformer"/>. Maps the value of a key
+    /// into a known-sized vector of <see cref="System.Single"/>.
     /// </summary>
     /// <remarks>
     /// <format type="text/markdown"><![CDATA[
-    ///
     /// ###  Estimator Characteristics
     /// |  |  |
     /// | -- | -- |
     /// | Does this estimator need to look at the data to train its parameters? | No |
-    /// | Input column data type | [key](xref:Microsoft.Ml.Data.KeyDataViewType) |
-    /// | Output column data type | A vector of [System.Single](xref:System.Single). |
+    /// | Input column data type | Scalar or known-size vector of [key](xref:Microsoft.Ml.Data.KeyDataViewType) |
+    /// | Output column data type | A known-size vector of [System.Single](xref:System.Single). |
     ///
+    /// It iterates over keys in data, and for each key it produces vector of key cardinality filled with zeros except position of key value in which it put's `1.0`.
+    /// For vector of keys it can either produce vector of counts for each key or concatenate them together into one vector.
     /// ]]></format>
     /// </remarks>
+    /// <seealso cref=" ConversionsExtensionsCatalog.MapKeyToVector(TransformsCatalog.ConversionTransforms, InputOutputColumnPair[], bool)"/>
+    /// <seealso cref=" ConversionsExtensionsCatalog.MapKeyToVector(TransformsCatalog.ConversionTransforms, string, string, bool)"/>
     public sealed class KeyToVectorMappingEstimator : TrivialEstimator<KeyToVectorMappingTransformer>
     {
         internal static class Defaults
