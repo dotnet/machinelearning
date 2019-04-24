@@ -71,12 +71,14 @@ namespace Microsoft.ML.Trainers
     /// The corresponding score is $\hat{y}\left(\textbf{x}\right) = \left\langle \textbf{w}, \textbf{x} \right\rangle + \sum_{j = 1}^n \sum_{j' = j + 1}^n \left\langle \textbf{v}_{j, {\mathcal F}(j')} , \textbf{v}_{j', {\mathcal F}(j)} \right\rangle x_j x_{j'}$,
     /// where $\left\langle \cdot, \cdot \right\rangle$ is the inner product operator, $\textbf{w} \in {\mathbb R}^n$ stores the linear coefficients, and $\textbf{v}_{j, f}\in {\mathbb R}^k$ is the $j$-th feature's representation in the $f$-th field's latent space.
     /// Note that $k$ is the latent dimension specified by the user.
+    ///
     /// The predicted label is the sign of $\hat{y}$. If $\hat{y} > 0$, this model predicts true. Otherwise, it predicts false.
+    ///
     /// For a systematic introduction to field-aware factorization machine, please see [this paper](https://www.csie.ntu.edu.tw/~cjlin/papers/ffm.pdf)
     ///
     /// ### Training Algorithm Details
-    /// The implemented algorithm in <see cref="FieldAwareFactorizationMachineTrainer"/> is based on [a stochastic gradient method](http://jmlr.org/papers/volume12/duchi11a/duchi11a.pdf).
-    /// Algorithm details is described in Algorithm 3 in [a online document](https://github.com/wschin/fast-ffm/blob/master/fast-ffm.pdf).
+    /// The algorithm implemented in <xref:Microsoft.ML.Trainers.FieldAwareFactorizationMachineTrainer> is based on [a stochastic gradient method](http://jmlr.org/papers/volume12/duchi11a/duchi11a.pdf).
+    /// Algorithm details is described in Algorithm 3 in [this online document](https://github.com/wschin/fast-ffm/blob/master/fast-ffm.pdf).
     /// The minimized loss function is [logistic loss](https://en.wikipedia.org/wiki/Loss_functions_for_classification), so the trained model can be viewed as a non-linear logistic regression.
     ///
     /// ]]>
