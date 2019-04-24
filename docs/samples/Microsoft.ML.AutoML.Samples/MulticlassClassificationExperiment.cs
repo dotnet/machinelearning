@@ -67,9 +67,6 @@ namespace Microsoft.ML.AutoML.Samples
             Console.WriteLine($"LogLossReduction: {metrics.LogLossReduction}");
             Console.WriteLine($"MacroAccuracy: {metrics.MacroAccuracy}");
             Console.WriteLine($"MicroAccuracy: {metrics.MicroAccuracy}");
-            Console.WriteLine($"PerClassLogLoss: {metrics.PerClassLogLoss}");
-            Console.WriteLine($"TopKAccuracy: {metrics.TopKAccuracy}");
-            Console.WriteLine($"TopKPredictionCount: {metrics.TopKPredictionCount}");
         }
     }
 }
