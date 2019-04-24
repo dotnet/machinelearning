@@ -6,8 +6,9 @@ higher values indicate higher relevance. If the label is a
 relevance value, where the smallest index is the least relevant. If the label is a
 <xref:System.Single>, larger values indicate higher relevance. The feature
 column must be a known-sized vector of <xref:System.Single> and input row group
-column must be [key](xref:Microsoft.ML.Data.KeyDataViewType) type. This trainer
-outputs the following columns:
+column must be [key](xref:Microsoft.ML.Data.KeyDataViewType) type.
+
+This trainer outputs the following columns:
 
 | Output Column Name | Column Type | Description|
 | -- | -- | -- |
