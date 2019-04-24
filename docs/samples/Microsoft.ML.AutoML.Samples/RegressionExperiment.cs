@@ -14,9 +14,7 @@ namespace Microsoft.ML.AutoML.Samples
         private static string ModelPath = Path.Combine(BaseDatasetsLocation, "TaxiFareModel.zip");
         private static string LabelColumnName = "FareAmount";
         private static uint ExperimentTime = 60;
-
-        // STEP 2: Run an AutoML experiment
-
+        
         public static void Run()
         {
             MLContext mlContext = new MLContext();
