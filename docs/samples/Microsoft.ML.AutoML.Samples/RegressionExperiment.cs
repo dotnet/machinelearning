@@ -32,22 +32,22 @@ namespace Microsoft.ML.AutoML.Samples
                 .Execute(trainDataView, LabelColumnName);
 
             // STEP 3: Print metric from best model
-            RunDetail<RegressionMetrics> best = experimentResult.BestRun;
+            RunDetail<RegressionMetrics> bestRun = experimentResult.BestRun;
             Console.WriteLine($"Total models produced: {experimentResult.RunDetails.Count()}");
-            Console.WriteLine($"Best model's trainer: {best.TrainerName}");
-            Console.WriteLine($"RSquared of best model from validation data: {best.ValidationMetrics.RSquared}");
+            Console.WriteLine($"Best model's trainer: {bestRun.TrainerName}");
+            Console.WriteLine($"RSquared of best model from validation data: {bestRun.ValidationMetrics.RSquared}");
 
             // STEP 5: Evaluate test data
-            IDataView testDataViewWithBestScore = best.Model.Transform(testDataView);
+            IDataView testDataViewWithBestScore = bestRun.Model.Transform(testDataView);
             RegressionMetrics testMetrics = mlContext.Regression.Evaluate(testDataViewWithBestScore, labelColumnName: LabelColumnName);
             Console.WriteLine($"RSquared of best model on test data: {testMetrics.RSquared}");
 
             // STEP 6: Save the best model for later deployment and inferencing
             using (FileStream fs = File.Create(ModelPath))
-                mlContext.Model.Save(best.Model, trainDataView.Schema, fs);
+                mlContext.Model.Save(bestRun.Model, trainDataView.Schema, fs);
 
             // STEP 7: Create prediction engine from the best trained model
-            var predictionEngine = mlContext.Model.CreatePredictionEngine<TaxiTrip, TaxiTripFarePrediction>(best.Model);
+            var predictionEngine = mlContext.Model.CreatePredictionEngine<TaxiTrip, TaxiTripFarePrediction>(bestRun.Model);
 
             // STEP 8: Initialize a new test taxi trip, and get the predicted fare
             var testTaxiTrip = new TaxiTrip

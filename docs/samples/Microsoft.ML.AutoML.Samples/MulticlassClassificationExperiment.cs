@@ -30,22 +30,24 @@ namespace Microsoft.ML.AutoML.Samples
                 .Execute(trainDataView, LabelColumnName);
 
             // STEP 3: Print metric from the best model
-            RunDetail<MulticlassClassificationMetrics> best = experimentResult.BestRun;
+            RunDetail<MulticlassClassificationMetrics> bestRun = experimentResult.BestRun;
             Console.WriteLine($"Total models produced: {experimentResult.RunDetails.Count()}");
-            Console.WriteLine($"Best model's trainer: {best.TrainerName}");
-            Console.WriteLine($"MicroAccuracy of best model from validation data: {best.ValidationMetrics.MicroAccuracy}");
+            Console.WriteLine($"Best model's trainer: {bestRun.TrainerName}");
+            Console.WriteLine($"Metrics of best model from validation data --");
+            PrintMetrics(bestRun.ValidationMetrics);
 
             // STEP 4: Evaluate test data
-            IDataView testDataViewWithBestScore = best.Model.Transform(testDataView);
+            IDataView testDataViewWithBestScore = bestRun.Model.Transform(testDataView);
             MulticlassClassificationMetrics testMetrics = mlContext.MulticlassClassification.Evaluate(testDataViewWithBestScore, labelColumnName: LabelColumnName);
-            Console.WriteLine($"MicroAccuracy of best model on test data: {testMetrics.MicroAccuracy}");
+            Console.WriteLine($"MicroAccuracy of best model on test data");
+            PrintMetrics(testMetrics);
 
             // STEP 5: Save the best model for later deployment and inferencing
             using (FileStream fs = File.Create(ModelPath))
-                mlContext.Model.Save(best.Model, trainDataView.Schema, fs);
+                mlContext.Model.Save(bestRun.Model, trainDataView.Schema, fs);
 
             // STEP 6: Create prediction engine from the best trained model
-            var predictionEngine = mlContext.Model.CreatePredictionEngine<PixelData, PixelPrediction>(best.Model);
+            var predictionEngine = mlContext.Model.CreatePredictionEngine<PixelData, PixelPrediction>(bestRun.Model);
 
             // STEP 7: Initialize new pixel data, and get the predicted number
             var testPixelData = new PixelData
@@ -57,6 +59,17 @@ namespace Microsoft.ML.AutoML.Samples
 
             Console.WriteLine("Press any key to continue...");
             Console.ReadKey();
+        }
+        
+        private static void PrintMetrics(MulticlassClassificationMetrics metrics)
+        {
+            Console.WriteLine($"LogLoss: {metrics.LogLoss}");
+            Console.WriteLine($"LogLossReduction: {metrics.LogLossReduction}");
+            Console.WriteLine($"MacroAccuracy: {metrics.MacroAccuracy}");
+            Console.WriteLine($"MicroAccuracy: {metrics.MicroAccuracy}");
+            Console.WriteLine($"PerClassLogLoss: {metrics.PerClassLogLoss}");
+            Console.WriteLine($"TopKAccuracy: {metrics.TopKAccuracy}");
+            Console.WriteLine($"TopKPredictionCount: {metrics.TopKPredictionCount}");
         }
     }
 }
