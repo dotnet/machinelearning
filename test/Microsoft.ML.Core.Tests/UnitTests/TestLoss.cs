@@ -65,8 +65,8 @@ namespace Microsoft.ML.RunTests
         [Fact]
         public void LossExponential()
         {
-            ExponentialLoss.Options options = new ExponentialLoss.Options();
-            ExponentialLoss loss = new ExponentialLoss(options);
+            ExpLoss.Options options = new ExpLoss.Options();
+            ExpLoss loss = new ExpLoss(options);
             TestHelper(loss, 1, 3, Math.Exp(-3), Math.Exp(-3));
             TestHelper(loss, 0, 3, Math.Exp(3), -Math.Exp(3));
             TestHelper(loss, 0, -3, Math.Exp(-3), -Math.Exp(-3));

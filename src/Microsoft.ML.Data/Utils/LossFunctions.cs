@@ -19,7 +19,7 @@ using Microsoft.ML.Trainers;
 [assembly: LoadableClass(SmoothedHingeLoss.Summary, typeof(SmoothedHingeLoss), typeof(SmoothedHingeLoss.Options), typeof(SignatureClassificationLoss),
     "Smoothed Hinge Loss", "SmoothedHingeLoss", "SmoothedHinge")]
 
-[assembly: LoadableClass(ExponentialLoss.Summary, typeof(ExponentialLoss), typeof(ExponentialLoss.Options), typeof(SignatureClassificationLoss),
+[assembly: LoadableClass(ExpLoss.Summary, typeof(ExpLoss), typeof(ExpLoss.Options), typeof(SignatureClassificationLoss),
     "Exponential Loss", "ExpLoss", "Exp")]
 
 [assembly: LoadableClass(SquaredLoss.Summary, typeof(SquaredLoss), null, typeof(SignatureRegressionLoss),
@@ -31,7 +31,7 @@ using Microsoft.ML.Trainers;
 [assembly: LoadableClass(TweedieLoss.Summary, typeof(TweedieLoss), typeof(TweedieLoss.Options), typeof(SignatureRegressionLoss),
     "Tweedie Loss", "TweedieLoss", "Tweedie", "Tw")]
 
-[assembly: EntryPointModule(typeof(ExponentialLoss.Options))]
+[assembly: EntryPointModule(typeof(ExpLoss.Options))]
 [assembly: EntryPointModule(typeof(LogLossFactory))]
 [assembly: EntryPointModule(typeof(HingeLoss.Options))]
 [assembly: EntryPointModule(typeof(PoissonLossFactory))]
@@ -113,11 +113,11 @@ namespace Microsoft.ML.Trainers
     ///
     /// The Log Loss function is defined as:
     ///
-    /// $L(f(\vec{x}), y) = -y ln(f(\vec{x})) - (1 - y) ln(1 - f(\vec{x}))$
+    /// $L(p(\hat{y}), y) = -y ln(\hat{y}) - (1 - y) ln(1 - \hat{y})$
     ///
-    /// where $f(\vec{x})$ is the predicted probability of belonging to the positive class and $y \in \{0, 1\}$ is the true label.
+    /// where $\hat{y}$ is the predicted score, $p(\hat{y})$ is the probability of belonging to the positive class by applying a [sigmoid function](https://en.wikipedia.org/wiki/Sigmoid_function) to the score, and $y \in \{0, 1\}$ is the true label.
     ///
-    /// Note that the labels used in this calculation are 0 and 1, unlike Hinge Loss and Exponential Loss, where the labels used are -1 and 1.
+    /// Note that the labels used in this calculation are 0 and 1, unlike [Hinge Loss](xref:Microsoft.ML.Trainers.HingeLoss) and [Exponential Loss](xref:Microsoft.ML.Trainers.ExpLoss), where the labels used are -1 and 1.
     ///
     /// The Log Loss function provides a measure of how "certain" a classifier's predictions are, instead of just measuring how "correct" they are.
     /// For example, a predicted probability of 0.80 for a true label of 1 gets penalized more than a predicted probability of 0.99.
@@ -188,14 +188,14 @@ namespace Microsoft.ML.Trainers
     ///
     /// The Hinge Loss function is defined as:
     ///
-    /// $L(f(\vec{x}), y) = max(0, m - yf(\vec{x}))$
+    /// $L(\hat{y}, y) = max(0, m - y\hat{y})$
     ///
-    /// where $f(\vec{x})$ is the predicted score, $y \in \{-1, 1\}$ is the true label, and $m$ is the margin parameter set to 1 by default.
+    /// where $\hat{y}$ is the predicted score, $y \in \{-1, 1\}$ is the true label, and $m$ is the margin parameter set to 1 by default.
     ///
-    /// Note that the labels used in this calculation are -1 and 1, unlike Log Loss, where the labels used are 0 and 1.
-    /// Also unlike Log Loss, $f(\vec{x})$ is the raw predicted score, not the predicted probability (which is calculated by applying a [sigmoid function](https://en.wikipedia.org/wiki/Sigmoid_function) to the predicted score).
+    /// Note that the labels used in this calculation are -1 and 1, unlike [Log Loss](xref:Microsoft.ML.Trainers.LogLoss), where the labels used are 0 and 1.
+    /// Also unlike [Log Loss](xref:Microsoft.ML.Trainers.LogLoss), $\hat{y}$ is the raw predicted score, not the predicted probability (which is calculated by applying a [sigmoid function](https://en.wikipedia.org/wiki/Sigmoid_function) to the predicted score).
     ///
-    /// While the hinge loss function is both convex and continuous, it is not smooth (that is not differentiable) at $yf(\vec{x}) = m$.
+    /// While the hinge loss function is both convex and continuous, it is not smooth (that is not differentiable) at $y\hat{y} = m$.
     /// Consequently, it cannot be used with gradient descent methods or stochastic gradient descent methods, which rely on differentiability over the entire domain.
     ///
     /// For more, see [Hinge Loss for classification](https://en.wikipedia.org/wiki/Loss_functions_for_classification#Hinge_loss).
@@ -276,24 +276,24 @@ namespace Microsoft.ML.Trainers
     }
 
     /// <summary>
-    /// A smooth version of the Hinge Loss function, commonly used in classification tasks.
+    /// A smooth version of the <see cref="HingeLoss"/> function, commonly used in classification tasks.
     /// </summary>
     /// <remarks>
     /// <format type="text/markdown"><![CDATA[
     ///
-    /// Let $L(f(\vec{x}), y) = 1 - yf(\vec{x})$, where $f(\vec{x})$ is the predicted score and $y \in \{-1, 1\}$ is the true label.
+    /// Let $f(\hat{y}, y) = 1 - y\hat{y}$, where $\hat{y}$ is the predicted score and $y \in \{-1, 1\}$ is the true label. $f(\hat{y}, y)$ here is the non-zero portion of the [Hinge Loss](xref:Microsoft.ML.Trainers.HingeLoss).
     ///
-    /// Note that the labels used in this calculation are -1 and 1, unlike Log Loss, where the labels used are 0 and 1.
-    /// Also unlike Log Loss, $f(\vec{x})$ is the raw predicted score, not the predicted probability (which is calculated by applying a [sigmoid function](https://en.wikipedia.org/wiki/Sigmoid_function) to the predicted score).
+    /// Note that the labels used in this calculation are -1 and 1, unlike [Log Loss](xref:Microsoft.ML.Trainers.LogLoss), where the labels used are 0 and 1.
+    /// Also unlike [Log Loss](xref:Microsoft.ML.Trainers.LogLoss), $\hat{y}$ is the raw predicted score, not the predicted probability (which is calculated by applying a [sigmoid function](https://en.wikipedia.org/wiki/Sigmoid_function) to the predicted score).
     ///
     /// The Smoothed Hinge Loss function is then defined as:
     ///
     /// $
-    /// g(L(f(\vec{x}), y)) =
+    /// L(f(\hat{y}, y)) =
     /// \begin{cases}
-    /// 0                                     & \text{if } L(f(\vec{x}), y) < 0\\
-    /// \frac{(L(f(\vec{x}), y))^2}{2\alpha}  & \text{if } L(f(\vec{x}), y) < \alpha\\
-    /// L(f(\vec{x}), y) - \frac{\alpha}{2}   & \text{otherwise}
+    /// 0                                  & \text{if } f(\hat{y}, y) < 0\\
+    /// \frac{(f(\hat{y}, y))^2}{2\alpha}  & \text{if } f(\hat{y}, y) < \alpha\\
+    /// f(\hat{y}, y) - \frac{\alpha}{2}   & \text{otherwise}
     /// \end{cases}
     /// $
     ///
@@ -407,19 +407,19 @@ namespace Microsoft.ML.Trainers
     ///
     /// The Exponential Loss function is defined as:
     ///
-    /// $L(f(\vec{x}), y) = e^{-\beta y f(\vec{x})}$
+    /// $L(\hat{y}, y) = e^{-\beta y \hat{y}}$
     ///
-    /// where $f(\vec{x})$ is the predicted score, $y \in {-1, 1}$ is the true label, and $\beta$ is a scale factor set to 1 by default.
+    /// where $\hat{y}$ is the predicted score, $y \in {-1, 1}$ is the true label, and $\beta$ is a scale factor set to 1 by default.
     ///
-    /// Note that the labels used in this calculation are -1 and 1, unlike Log Loss, where the labels used are 0 and 1.
-    /// Also unlike Log Loss, $f(\vec{x})$ is the raw predicted score, not the predicted probability (which is calculated by applying a [sigmoid function](https://en.wikipedia.org/wiki/Sigmoid_function) to the predicted score).
+    /// Note that the labels used in this calculation are -1 and 1, unlike [Log Loss](xref:Microsoft.ML.Trainers.LogLoss), where the labels used are 0 and 1.
+    /// Also unlike [Log Loss](xref:Microsoft.ML.Trainers.LogLoss), $\hat{y}$ is the raw predicted score, not the predicted probability (which is calculated by applying a [sigmoid function](https://en.wikipedia.org/wiki/Sigmoid_function) to the predicted score).
     ///
-    /// The Exponential Loss function penalizes incorrect predictions more than the Hinge loss and has a larger gradient.
+    /// The Exponential Loss function penalizes incorrect predictions more than the [Hinge Loss](xref:Microsoft.ML.Trainers.HingeLoss) and has a larger gradient.
     ///
     /// ]]>
     /// </format>
     /// </remarks>
-    public sealed class ExponentialLoss : IClassificationLoss
+    public sealed class ExpLoss : IClassificationLoss
     {
         [TlcModule.Component(Name = "ExpLoss", FriendlyName = "Exponential Loss", Desc = "Exponential loss.")]
         internal sealed class Options : ISupportClassificationLossFactory
@@ -427,19 +427,19 @@ namespace Microsoft.ML.Trainers
             [Argument(ArgumentType.AtMostOnce, HelpText = "Beta (dilation)", ShortName = "beta")]
             public float Beta = 1;
 
-            public IClassificationLoss CreateComponent(IHostEnvironment env) => new ExponentialLoss(this);
+            public IClassificationLoss CreateComponent(IHostEnvironment env) => new ExpLoss(this);
         }
 
         internal const string Summary = "The exponential loss function for classification.";
 
         private readonly float _beta;
 
-        internal ExponentialLoss(Options options)
+        internal ExpLoss(Options options)
         {
             _beta = options.Beta;
         }
 
-        public ExponentialLoss(float beta = 1)
+        public ExpLoss(float beta = 1)
         {
             _beta = beta;
         }
@@ -475,9 +475,9 @@ namespace Microsoft.ML.Trainers
     ///
     /// The Squared Loss function is defined as:
     ///
-    /// $L(f(\vec{x}), y) = (f(\vec{x}) - y)^2$
+    /// $L(\hat{y}, y) = (\hat{y} - y)^2$
     ///
-    /// where $f(\vec{x})$ is the predicted value and $y$ is the true value.
+    /// where $\hat{y}$ is the predicted value and $y$ is the true value.
     ///
     /// ]]>
     /// </format>
@@ -529,9 +529,9 @@ namespace Microsoft.ML.Trainers
     ///
     /// The Poisson Loss function is defined as:
     ///
-    /// $L(f(\vec{x}), y) = e^{f(\vec{x})} - yf(\vec{x})$
+    /// $L(\hat{y}, y) = e^{\hat{y}} - y\hat{y}$
     ///
-    /// where $f(\vec{x})$ is the predicted value, $y$ is the true label.
+    /// where $\hat{y}$ is the predicted value, $y$ is the true label.
     ///
     /// ]]>
     /// </remarks>
@@ -561,15 +561,15 @@ namespace Microsoft.ML.Trainers
     /// The Tweedie Loss function is defined as:
     ///
     /// $
-    /// L(f(\vec{x}), y, i) =
+    /// L(\hat{y}, y, i) =
     /// \begin{cases}
-    /// f(\vec{x}) - y ln(f(\vec{x})) + ln(\Gamma(y))                                                                                     & \text{if } i = 1\\
-    /// f(\vec x}) + \frac{y}{f(\vec{x})} - \sqrt{y}                                                                                      & \text{if } i = 2\\
-    /// \frac{(f(\vec{x}))^{2 - i}}{2 - i} - y \frac{(f(\vec{x}))^{1 - i}}{1 - i} - (\frac{y^{2 - i}}{2 - i} - y\frac{y^{1 - i}}{1 - i})  & \text{otherwise}
+    /// \hat{y} - y ln(\hat{y}) + ln(\Gamma(y))                                                                                     & \text{if } i = 1\\
+    /// \hat{y} + \frac{y}{\hat{y}} - \sqrt{y}                                                                                      & \text{if } i = 2\\
+    /// \frac{(\hat{y})^{2 - i}}{2 - i} - y \frac{(\hat{y})^{1 - i}}{1 - i} - (\frac{y^{2 - i}}{2 - i} - y\frac{y^{1 - i}}{1 - i})  & \text{otherwise}
     /// \end{cases}
     /// $
     ///
-    /// where $f(\vec{x})$ is the predicted value, $y$ is the true label, $\Gamma$ is the [Gamma function](https://en.wikipedia.org/wiki/Gamma_function), and $i$ is the index parameter for the [Tweedie distribution](https://en.wikipedia.org/wiki/Tweedie_distribution), in the range [1, 2].
+    /// where $\hat{y}$ is the predicted value, $y$ is the true label, $\Gamma$ is the [Gamma function](https://en.wikipedia.org/wiki/Gamma_function), and $i$ is the index parameter for the [Tweedie distribution](https://en.wikipedia.org/wiki/Tweedie_distribution), in the range [1, 2].
     /// $i$ is set to 1.5 by default. $i = 1$ is Poisson loss, $i = 2$ is gamma loss, and intermediate values are compound Poisson-Gamma loss.
     ///
     /// ]]>
