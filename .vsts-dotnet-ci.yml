@@ -13,7 +13,7 @@ resources:
 phases:
 - template: /build/ci/phase-template.yml
   parameters:
-    name: Centos_x64_Netcoreapp30
+    name: Centos_x64_NetCoreApp30
     buildScript: ./build.sh
     customMatrixes:
       Debug_Build:
@@ -30,7 +30,7 @@ phases:
 
 - template: /build/ci/phase-template.yml
   parameters:
-    name: Ubuntu_x64_Netcoreapp21
+    name: Ubuntu_x64_NetCoreApp21
     buildScript: ./build.sh
     queue:
       name: Hosted Ubuntu 1604
@@ -38,14 +38,14 @@ phases:
 
 - template: /build/ci/phase-template.yml
   parameters:
-    name: MacOS_x64_Netcoreapp21
+    name: MacOS_x64_NetCoreApp21
     buildScript: ./build.sh
     queue:
       name: Hosted macOS
 
 - template: /build/ci/phase-template.yml
   parameters:
-    name: Windows_x64_Netcoreapp30
+    name: Windows_x64_NetCoreApp30
     buildScript: build.cmd
     customMatrixes:
       Debug_Build:
@@ -61,14 +61,14 @@ phases:
 
 - template: /build/ci/phase-template.yml
   parameters:
-    name: Windows_x64_Netcoreapp21
+    name: Windows_x64_NetCoreApp21
     buildScript: build.cmd
     queue:
       name: Hosted VS2017
 
 - template: /build/ci/phase-template.yml
   parameters:
-    name: Windows_x64_Netfx
+    name: Windows_x64_NetFx461
     buildScript: build.cmd
     customMatrixes:
       Debug_Build:
@@ -84,7 +84,7 @@ phases:
 
 - template: /build/ci/phase-template.yml
   parameters:
-    name: Windows_x86_Netcoreapp21
+    name: Windows_x86_NetCoreApp21
     architecture: x86
     buildScript: build.cmd
     queue:
