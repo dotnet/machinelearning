@@ -732,7 +732,7 @@ namespace Microsoft.ML.Transforms
     /// |  |  |
     /// | -- | -- |
     /// | Does this estimator need to look at the data to train its parameters? | No |
-    /// | Input column data type | Scalar or known-size vector of [key](xref:Microsoft.Ml.Data.KeyDataViewType) |
+    /// | Input column data type | Scalar or known-size vector of [key](xref:Microsoft.Ml.Data.KeyDataViewType) type. |
     /// | Output column data type | A known-size vector of [System.Single](xref:System.Single). |
     ///
     /// It iterates over keys in data, and for each key it produces vector of key cardinality filled with zeros except position of key value in which it put's `1.0`.

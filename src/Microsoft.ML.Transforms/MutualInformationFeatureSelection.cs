@@ -30,7 +30,7 @@ namespace Microsoft.ML.Transforms
     /// |  |  |
     /// | -- | -- |
     /// | Does this estimator need to look at the data to train its parameters? | Yes. |
-    /// | Input column data type | Vector or primitive of numeric, text or [Key](xref:Microsoft.ML.Data.KeyDataViewType) type.|
+    /// | Input column data type | Vector or primitive of numeric, text or [key](xref:Microsoft.ML.Data.KeyDataViewType) type.|
     /// | Output column data type | Same as the input column.|
     ///
     /// Formally, the mutual information can be written as:
