@@ -28,7 +28,7 @@ using Microsoft.ML.Transforms;
 namespace Microsoft.ML.Transforms
 {
     /// <summary>
-    ///  Converts the key types back to binary vectors.
+    /// <see cref="ITransformer"/> resulting from fitting a <see cref="KeyToBinaryVectorMappingEstimator"/>.
     /// </summary>
     public sealed class KeyToBinaryVectorMappingTransformer : OneToOneTransformerBase
     {
