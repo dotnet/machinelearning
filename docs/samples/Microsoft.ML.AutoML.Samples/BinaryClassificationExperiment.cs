@@ -38,7 +38,7 @@ namespace Microsoft.ML.AutoML.Samples
             // STEP 4: Evaluate test data
             IDataView testDataViewWithBestScore = bestRun.Model.Transform(testDataView);
             BinaryClassificationMetrics testMetrics = mlContext.BinaryClassification.EvaluateNonCalibrated(testDataViewWithBestScore);
-            Console.WriteLine($"MicroAccuracy of best model on test data --");
+            Console.WriteLine($"Metrics of best model on test data --");
             PrintMetrics(testMetrics);
 
             // STEP 5: Save the best model for later deployment and inferencing
