@@ -119,7 +119,7 @@ namespace Microsoft.ML.Trainers
     ///
     /// Note that the labels used in this calculation are 0 and 1, unlike [Hinge Loss](xref:Microsoft.ML.Trainers.HingeLoss) and [Exponential Loss](xref:Microsoft.ML.Trainers.ExpLoss), where the labels used are -1 and 1.
     ///
-    /// The Log Loss function provides a measure of how "certain" a classifier's predictions are, instead of just measuring how "correct" they are.
+    /// The Log Loss function provides a measure of how *certain* a classifier's predictions are, instead of just measuring how *correct* they are.
     /// For example, a predicted probability of 0.80 for a true label of 1 gets penalized more than a predicted probability of 0.99.
     ///
     /// ]]>
