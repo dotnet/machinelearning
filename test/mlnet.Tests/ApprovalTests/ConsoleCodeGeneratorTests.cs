@@ -65,7 +65,7 @@ namespace mlnet.Tests
                 LabelName = "Label",
                 ModelPath = "x:\\models\\model.zip"
             });
-            var result = consoleCodeGen.GenerateConsoleAppProjectContents(namespaceValue, typeof(float), true, true, true);
+            var result = consoleCodeGen.GenerateConsoleAppProjectContents(namespaceValue, typeof(float), true, true, false);
 
             Approvals.Verify(result.modelBuilderCSFileContent);
         }
@@ -111,7 +111,7 @@ namespace mlnet.Tests
                 LabelName = "Label",
                 ModelPath = "x:\\models\\model.zip"
             });
-            var result = consoleCodeGen.GenerateModelProjectContents(namespaceValue, typeof(float), true, true, false);
+            var result = consoleCodeGen.GenerateModelProjectContents(namespaceValue, typeof(float), true, true, true);
 
             Approvals.Verify(result.ModelProjectFileContent);
         }

@@ -7,6 +7,7 @@
     <PackageReference Include="Microsoft.ML" Version="1.0.0-preview" />
     <PackageReference Include="Microsoft.ML.LightGBM" Version="1.0.0-preview" />
     <PackageReference Include="Microsoft.ML.Mkl.Components" Version="1.0.0-preview" />
+    <PackageReference Include="Microsoft.ML.FastTree" Version="1.0.0-preview" />
   </ItemGroup>
 
   <ItemGroup>
