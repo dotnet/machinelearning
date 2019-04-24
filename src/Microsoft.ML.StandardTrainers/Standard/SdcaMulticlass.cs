@@ -515,7 +515,7 @@ namespace Microsoft.ML.Trainers
     /// Note that $\tilde{P}(c | \textbf{x})$ is the probability of observing class $c$ when the feature vector is $\textbf{x}$.
     ///
     /// ### Training Algorithm Details
-    /// See the documentation of [SdcaMulticlassTrainerBase](xref:Microsoft.ML.Trainers.SdcaMulticlassTrainerBase).
+    /// See the documentation of [SdcaMulticlassTrainerBase](xref:Microsoft.ML.Trainers.SdcaMulticlassTrainerBase`1).
     ///
     /// ]]>
     /// </format>

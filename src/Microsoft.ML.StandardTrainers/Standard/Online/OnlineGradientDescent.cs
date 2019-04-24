@@ -25,7 +25,7 @@ namespace Microsoft.ML.Trainers
 {
     /// <summary>
     /// The <see cref="IEstimator{TTransformer}"/> for training a linear regression model using
-    /// Online Gradient Descent (OGD) for estimating the parameters of the linear regression model.
+    /// <a href="https://en.wikipedia.org/wiki/Gradient_descent">Online Gradient Descent (OGD)</a> for estimating the parameters of the linear regression model.
     /// </summary>
     /// <remarks>
     /// <format type="text/markdown"><![CDATA[

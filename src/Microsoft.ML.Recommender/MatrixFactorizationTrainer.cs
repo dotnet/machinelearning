@@ -23,7 +23,7 @@ using Microsoft.ML.Trainers.Recommender;
 namespace Microsoft.ML.Trainers
 {
     /// <summary>
-    /// The <see cref="IEstimator{TTransformer}"/> to predict elements in a matrix using matrix factorization (also known as a type of collaborative filtering).
+    /// The <see cref="IEstimator{TTransformer}"/> to predict elements in a matrix using matrix factorization (also known as a type of <a href="https://en.wikipedia.org/wiki/Collaborative_filtering">collaborative filtering</a>).
     /// </summary>
     /// <remarks>
     /// <format type="text/markdown"><![CDATA[
@@ -35,7 +35,7 @@ namespace Microsoft.ML.Trainers
     /// values (i.e., labels) in matrix.
     /// They together define a matrix in [COO](https://en.wikipedia.org/wiki/Sparse_matrix#Coordinate_list_(COO)) format.
     /// The type for label column is a vector of <xref:System.Single> while the other two columns are
-    /// [key-typed](<xref:Microsoft.ML.Data.KeyDataViewType>) scalar.
+    /// [key type](<xref:Microsoft.ML.Data.KeyDataViewType>) scalar.
     ///
     /// | Output Column Name | Column Type | Description|
     /// | -- | -- | -- |
