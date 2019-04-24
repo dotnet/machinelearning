@@ -115,7 +115,7 @@ namespace Microsoft.ML.Trainers
     ///
     /// $L(p(\hat{y}), y) = -y ln(\hat{y}) - (1 - y) ln(1 - \hat{y})$
     ///
-    /// where $\hat{y}$ is the predicted score, $p(\hat{y})$ is the probability of belonging to the positive class by applying a [sigmoid function](https://en.wikipedia.org/wiki/Sigmoid_function) to the score, and $y \in \{0, 1\}$ is the true label.
+    /// where $\hat{y}$ is the predicted score, $p(\hat{y})$ is the probability of belonging to the positive class by applying a [sigmoid function](https://en.wikipedia.org/wiki/Sigmoid_function) to the score, and $y \in \\{0, 1\\}$ is the true label.
     ///
     /// Note that the labels used in this calculation are 0 and 1, unlike [Hinge Loss](xref:Microsoft.ML.Trainers.HingeLoss) and [Exponential Loss](xref:Microsoft.ML.Trainers.ExpLoss), where the labels used are -1 and 1.
     ///
@@ -190,7 +190,7 @@ namespace Microsoft.ML.Trainers
     ///
     /// $L(\hat{y}, y) = max(0, m - y\hat{y})$
     ///
-    /// where $\hat{y}$ is the predicted score, $y \in \{-1, 1\}$ is the true label, and $m$ is the margin parameter set to 1 by default.
+    /// where $\hat{y}$ is the predicted score, $y \in \\{-1, 1\\}$ is the true label, and $m$ is the margin parameter set to 1 by default.
     ///
     /// Note that the labels used in this calculation are -1 and 1, unlike [Log Loss](xref:Microsoft.ML.Trainers.LogLoss), where the labels used are 0 and 1.
     /// Also unlike [Log Loss](xref:Microsoft.ML.Trainers.LogLoss), $\hat{y}$ is the raw predicted score, not the predicted probability (which is calculated by applying a [sigmoid function](https://en.wikipedia.org/wiki/Sigmoid_function) to the predicted score).
@@ -281,7 +281,7 @@ namespace Microsoft.ML.Trainers
     /// <remarks>
     /// <format type="text/markdown"><![CDATA[
     ///
-    /// Let $f(\hat{y}, y) = 1 - y\hat{y}$, where $\hat{y}$ is the predicted score and $y \in \{-1, 1\}$ is the true label. $f(\hat{y}, y)$ here is the non-zero portion of the [Hinge Loss](xref:Microsoft.ML.Trainers.HingeLoss).
+    /// Let $f(\hat{y}, y) = 1 - y\hat{y}$, where $\hat{y}$ is the predicted score and $y \in \\{-1, 1\\}$ is the true label. $f(\hat{y}, y)$ here is the non-zero portion of the [Hinge Loss](xref:Microsoft.ML.Trainers.HingeLoss).
     ///
     /// Note that the labels used in this calculation are -1 and 1, unlike [Log Loss](xref:Microsoft.ML.Trainers.LogLoss), where the labels used are 0 and 1.
     /// Also unlike [Log Loss](xref:Microsoft.ML.Trainers.LogLoss), $\hat{y}$ is the raw predicted score, not the predicted probability (which is calculated by applying a [sigmoid function](https://en.wikipedia.org/wiki/Sigmoid_function) to the predicted score).
@@ -291,8 +291,8 @@ namespace Microsoft.ML.Trainers
     /// $
     /// L(f(\hat{y}, y)) =
     /// \begin{cases}
-    /// 0                                  & \text{if } f(\hat{y}, y) < 0\\
-    /// \frac{(f(\hat{y}, y))^2}{2\alpha}  & \text{if } f(\hat{y}, y) < \alpha\\
+    /// 0                                  & \text{if } f(\hat{y}, y) < 0 \\\\
+    /// \frac{(f(\hat{y}, y))^2}{2\alpha}  & \text{if } f(\hat{y}, y) < \alpha \\\\
     /// f(\hat{y}, y) - \frac{\alpha}{2}   & \text{otherwise}
     /// \end{cases}
     /// $
@@ -409,7 +409,7 @@ namespace Microsoft.ML.Trainers
     ///
     /// $L(\hat{y}, y) = e^{-\beta y \hat{y}}$
     ///
-    /// where $\hat{y}$ is the predicted score, $y \in \{-1, 1\}$ is the true label, and $\beta$ is a scale factor set to 1 by default.
+    /// where $\hat{y}$ is the predicted score, $y \in \\{-1, 1\\}$ is the true label, and $\beta$ is a scale factor set to 1 by default.
     ///
     /// Note that the labels used in this calculation are -1 and 1, unlike [Log Loss](xref:Microsoft.ML.Trainers.LogLoss), where the labels used are 0 and 1.
     /// Also unlike [Log Loss](xref:Microsoft.ML.Trainers.LogLoss), $\hat{y}$ is the raw predicted score, not the predicted probability (which is calculated by applying a [sigmoid function](https://en.wikipedia.org/wiki/Sigmoid_function) to the predicted score).
@@ -563,8 +563,8 @@ namespace Microsoft.ML.Trainers
     /// $
     /// L(\hat{y}, y, i) =
     /// \begin{cases}
-    /// \hat{y} - y ln(\hat{y}) + ln(\Gamma(y))                                                                                     & \text{if } i = 1\\
-    /// \hat{y} + \frac{y}{\hat{y}} - \sqrt{y}                                                                                      & \text{if } i = 2\\
+    /// \hat{y} - y ln(\hat{y}) + ln(\Gamma(y))                                                                                     & \text{if } i = 1 \\\\
+    /// \hat{y} + \frac{y}{\hat{y}} - \sqrt{y}                                                                                      & \text{if } i = 2 \\\\
     /// \frac{(\hat{y})^{2 - i}}{2 - i} - y \frac{(\hat{y})^{1 - i}}{1 - i} - (\frac{y^{2 - i}}{2 - i} - y\frac{y^{1 - i}}{1 - i})  & \text{otherwise}
     /// \end{cases}
     /// $
