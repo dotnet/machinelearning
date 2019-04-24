@@ -26,24 +26,28 @@ tight enough. In strongly-convex optimization, the optimal solution is unique
 and therefore everyone eventually reaches the same place. Even in
 non-strongly-convex cases, you will get equally-good solutions from run to run.
 For reproducible results, it is recommended that one sets 'Shuffle' to False and
-'NumThreads' to 1. Elastic net regularization can be specified by the 'L2Const'
-and 'L1Threshold' parameters. Note that the 'L2Const' has an effect on the rate
-of convergence. In general, the larger the 'L2Const', the faster SDCA converges.
-Regularization is a method that can render an ill-posed problem more tractable
-by imposing constraints that provide information to supplement the data and that
-prevents overfitting by penalizing model's magnitude usually measured by some
-norm functions. This can improve the generalization of the model learned by
-selecting the optimal complexity in the bias-variance tradeoff. Regularization
-works by adding the penalty that is associated with coefficient values to the
-error of the hypothesis. An accurate model with extreme coefficient values would
-be penalized more, but a less accurate model with more conservative values would
-be penalized less. This learner supports [elastic net
+'NumThreads' to 1.
+
+This learner supports [elastic net
 regularization](https://en.wikipedia.org/wiki/Elastic_net_regularization): a
-linear combination of L1-norm (LASSO), $|| \textbf{w} ||_1$, and L2-norm
-(ridge), $|| \textbf{w} ||_2^2$ regularizations. L1-nrom and L2-norm
-regularizations have different effects and uses that are complementary in
-certain respects. Using L1-norm can increase sparsity of the trained
-$\textbf{w}$. When working with high-dimensional data, it shrinks small
+linear combination of the L1 and L2 penalties of the [lasso and ridge
+methods](https://www.datacamp.com/community/tutorials/tutorial-ridge-lasso-elastic-net).
+It can be specified by the 'L2Const' and 'L1Threshold' parameters. Note that the
+'L2Const' has an effect on the number of needed training iterations. In general,
+the larger the 'L2Const', the less number of iterations is needed to achieve a
+reasonable solution. Regularization is a method that can render an ill-posed
+problem more tractable and prevents overfitting by penalizing model's magnitude
+usually measured by some norm functions. This can improve the generalization of
+the model learned by selecting the optimal complexity in the [bias-variance
+tradeoff](https://en.wikipedia.org/wiki/Bias%E2%80%93variance_tradeoff).
+Regularization works by adding the penalty that is associated with coefficient
+values to the error of the hypothesis. An accurate model with extreme
+coefficient values would be penalized more, but a less accurate model with more
+conservative values would be penalized less.
+
+L1-nrom and L2-norm regularizations have different effects and uses that are
+complementary in certain respects. Using L1-norm can increase sparsity of the
+trained $\textbf{w}$. When working with high-dimensional data, it shrinks small
 weights of irrevalent features to 0 and therefore no reource will be spent on
 those bad features when making prediction. L2-norm regularization is preferable
 for data that is not sparse and it largely penalizes the existence of large
