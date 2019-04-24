@@ -113,7 +113,7 @@ namespace Microsoft.ML.Trainers
     ///
     /// The Log Loss function is defined as:
     ///
-    /// $L(f(\vec{x}, y) = -y ln(f(\vec{x})) - (1 - y) ln(1 - f(\vec{x}))$
+    /// $L(f(\vec{x}), y) = -y ln(f(\vec{x})) - (1 - y) ln(1 - f(\vec{x}))$
     ///
     /// where $f(\vec{x})$ is the predicted probability of belonging to the positive class and $y \in \{0, 1\}$ is the true label.
     ///
@@ -188,7 +188,7 @@ namespace Microsoft.ML.Trainers
     ///
     /// The Hinge Loss function is defined as:
     ///
-    /// $L(f(\vec{x}, y) = max(0, m - yf(\vec{x}))$
+    /// $L(f(\vec{x}), y) = max(0, m - yf(\vec{x}))$
     ///
     /// where $f(\vec{x})$ is the predicted score, $y \in \{-1, 1\}$ is the true label, and $m$ is the margin parameter set to 1 by default.
     ///
@@ -281,21 +281,21 @@ namespace Microsoft.ML.Trainers
     /// <remarks>
     /// <format type="text/markdown"><![CDATA[
     ///
-    /// Let $L(f(\vec{x}, y) = 1 - yf(\vec{x})$, where $f(\vec{x})$ is the predicted score and $y \in \{-1, 1\}$ is the true label.
+    /// Let $L(f(\vec{x}), y) = 1 - yf(\vec{x})$, where $f(\vec{x})$ is the predicted score and $y \in \{-1, 1\}$ is the true label.
     ///
     /// Note that the labels used in this calculation are -1 and 1, unlike Log Loss, where the labels used are 0 and 1.
     /// Also unlike Log Loss, $f(\vec{x})$ is the raw predicted score, not the predicted probability (which is calculated by applying a [sigmoid function](https://en.wikipedia.org/wiki/Sigmoid_function) to the predicted score).
     ///
     /// The Smoothed Hinge Loss function is then defined as:
     ///
-    /// \[
-    /// g(L(f(\vec{ x}, y)) =
+    /// $
+    /// g(L(f(\vec{x}), y)) =
     /// \begin{cases}
-    /// 0                                    & \text{if } L(f(\vec{ x}, y) < 0\\
-    /// \frac{(L(f(\vec{x}, y))^2}{2\alpha}  & \text{if } L(f(\vec{ x}, y) < \alpha\\
-    /// L(f(\vec{ x}, y) - \frac{\alpha}{2}  & \text{otherwise}
+    /// 0                                     & \text{if } L(f(\vec{ x}), y) < 0\\
+    /// \frac{(L(f(\vec{x}), y))^2}{2\alpha}  & \text{if } L(f(\vec{ x}), y) < \alpha\\
+    /// L(f(\vec{x}), y) - \frac{\alpha}{2}   & \text{otherwise}
     /// \end{cases}
-    /// \]
+    /// $
     ///
     /// where $\alpha$ is a smoothing parameter set to 1 by default.
     ///
@@ -407,7 +407,7 @@ namespace Microsoft.ML.Trainers
     ///
     /// The Exponential Loss function is defined as:
     ///
-    /// $L(f(\vec{x}, y) = e^{-\beta y f(\vec{x})}$
+    /// $L(f(\vec{x}), y) = e^{-\beta y f(\vec{x})}$
     ///
     /// where $f(\vec{x})$ is the predicted score, $y \in {-1, 1}$ is the true label, and $\beta$ is a scale factor set to 1 by default.
     ///
@@ -475,7 +475,7 @@ namespace Microsoft.ML.Trainers
     ///
     /// The Squared Loss function is defined as:
     ///
-    /// $L(f(\vec{x}, y) = (f(\vec{x}) - y)^2$
+    /// $L(f(\vec{x}), y) = (f(\vec{x}) - y)^2$
     ///
     /// where $f(\vec{x})$ is the predicted value and $y$ is the true value.
     ///
@@ -560,14 +560,14 @@ namespace Microsoft.ML.Trainers
     ///
     /// The Tweedie Loss function is defined as:
     ///
-    /// \[
-    /// L(f(\vec{ x}, y, i) =
+    /// $
+    /// L(f(\vec{x}), y, i) =
     /// \begin{cases}
-    /// f(\vec{ x}) - y ln(f(\vec{ x})) + ln(\Gamma(y))                                                                                   & \text{if } i = 1\\
-    /// f(\vec{ x}) + \frac{y}{f(\vec{ x})} - \sqrt{y}                                                                                    & \text{if } i = 2\\
+    /// f(\vec{x}) - y ln(f(\vec{x})) + ln(\Gamma(y))                                                                                     & \text{if } i = 1\\
+    /// f(\vec x}) + \frac{y}{f(\vec{x})} - \sqrt{y}                                                                                      & \text{if } i = 2\\
     /// \frac{(f(\vec{x}))^{2 - i}}{2 - i} - y \frac{(f(\vec{x}))^{1 - i}}{1 - i} - (\frac{y^{2 - i}}{2 - i} - y\frac{y^{1 - i}}{1 - i})  & \text{otherwise}
     /// \end{cases}
-    /// \]
+    /// $
     ///
     /// where $f(\vec{x})$ is the predicted value, $y$ is the true label, $\Gamma$ is the [Gamma function](https://en.wikipedia.org/wiki/Gamma_function), and $i$ is the index parameter for the [Tweedie distribution](https://en.wikipedia.org/wiki/Tweedie_distribution), in the range [1, 2].
     /// $i$ is set to 1.5 by default. $i = 1$ is Poisson loss, $i = 2$ is gamma loss, and intermediate values are compound Poisson-Gamma loss.
