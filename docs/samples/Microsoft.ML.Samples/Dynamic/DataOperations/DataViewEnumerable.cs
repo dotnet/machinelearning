@@ -4,11 +4,9 @@ using Microsoft.ML;
 
 namespace Samples.Dynamic
 {
-    /// <summary>
-    /// Sample class showing how to use ShuffleRows.
-    /// </summary>
     public static class DataViewEnumerable
     {
+        // A simple case of creating IDataView from IEnumerable.
         public static void Example()
         {
             // Create a new context for ML.NET operations. It can be used for exception tracking and logging, 
@@ -60,14 +58,14 @@ namespace Samples.Dynamic
             public DateTime Date { get; set; }
             public float Temperature { get; set; }
         }
-
-        private class SampleTemperatureDataWithLatitude
-        {
-            public float Latitude { get; set; }
-            public DateTime Date { get; set; }
-            public float Temperature { get; set; }
-        }
-
+		
+		private class SampleTemperatureDataWithLatitude
+		{
+			public float Latitude { get; set; }
+			public DateTime Date { get; set; }
+			public float Temperature { get; set; }
+		}
+		
         /// <summary>
         /// Get a fake temperature dataset.
         /// </summary>
@@ -88,3 +86,4 @@ namespace Samples.Dynamic
         }
     }
 }
+
