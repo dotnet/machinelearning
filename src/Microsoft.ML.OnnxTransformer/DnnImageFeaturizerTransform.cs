@@ -56,13 +56,12 @@ namespace Microsoft.ML.Transforms.Onnx
     ///
     /// NuGet requirements:
     ///	- Microsoft.ML.OnnxTransformer
-    /// - Microsoft.ML.OnnxRuntime(question: does OnnxTransformer already pull OnnxRuntime as dependency? if so we don't need to add this)
-    /// - Microsoft.ML.OnnxRuntime.Gpu(only if GPU processing is used)
+    /// - Microsoft.ML.OnnxRuntime.Gpu (only if GPU processing is used)
     /// - Each pre-trained DNN model has a separate NuGet that must be included if that model is used:
-    ///     - Microsoft.ML.DnnImageFeaturizer.AlexNet
-    ///     - Microsoft.ML.DnnImageFeaturizer.ResNet18
-    ///     - Microsoft.ML.DnnImageFeaturizer.ResNet50
-    ///     - Microsoft.ML.DnnImageFeaturizer.ResNet101
+    ///   - Microsoft.ML.DnnImageFeaturizer.AlexNet
+    ///   - Microsoft.ML.DnnImageFeaturizer.ResNet18
+    ///   - Microsoft.ML.DnnImageFeaturizer.ResNet50
+    ///   - Microsoft.ML.DnnImageFeaturizer.ResNet101
     ///
     /// The resulting transformer creates a new column, named as specified in the output column name parameters,
     /// where a pre-trained deep neural network is applied to the input image data.
