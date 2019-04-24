@@ -213,7 +213,7 @@ namespace Microsoft.ML.Transforms
     /// | Input column data type | Any |
     /// | Output column data type | Any |
     ///
-    /// The resulting <xref:Microsoft.ML.Transforms.CustomMappingTransformer> applies a user defined mapping
+    /// The resulting <xref:Microsoft.ML.Transforms.CustomMappingTransformer`2> applies a user defined mapping
     /// to one or more input columns and produces one or more output columns. This transformation doesn't change the number of rows,
     /// and can be seen as the result of applying the user's function to every row of the input data.
     ///
