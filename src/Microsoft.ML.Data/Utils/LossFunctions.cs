@@ -19,7 +19,7 @@ using Microsoft.ML.Trainers;
 [assembly: LoadableClass(SmoothedHingeLoss.Summary, typeof(SmoothedHingeLoss), typeof(SmoothedHingeLoss.Options), typeof(SignatureClassificationLoss),
     "Smoothed Hinge Loss", "SmoothedHingeLoss", "SmoothedHinge")]
 
-[assembly: LoadableClass(ExpLoss.Summary, typeof(ExpLoss), typeof(ExpLoss.Options), typeof(SignatureClassificationLoss),
+[assembly: LoadableClass(ExponentialLoss.Summary, typeof(ExponentialLoss), typeof(ExponentialLoss.Options), typeof(SignatureClassificationLoss),
     "Exponential Loss", "ExpLoss", "Exp")]
 
 [assembly: LoadableClass(SquaredLoss.Summary, typeof(SquaredLoss), null, typeof(SignatureRegressionLoss),
@@ -31,7 +31,7 @@ using Microsoft.ML.Trainers;
 [assembly: LoadableClass(TweedieLoss.Summary, typeof(TweedieLoss), typeof(TweedieLoss.Options), typeof(SignatureRegressionLoss),
     "Tweedie Loss", "TweedieLoss", "Tweedie", "Tw")]
 
-[assembly: EntryPointModule(typeof(ExpLoss.Options))]
+[assembly: EntryPointModule(typeof(ExponentialLoss.Options))]
 [assembly: EntryPointModule(typeof(LogLossFactory))]
 [assembly: EntryPointModule(typeof(HingeLoss.Options))]
 [assembly: EntryPointModule(typeof(PoissonLossFactory))]
@@ -71,7 +71,7 @@ namespace Microsoft.ML.Trainers
         /// </summary>
         /// <param name="label">The label of the example.</param>
         /// <param name="dual">The dual variable of the example.</param>
-        Double DualLoss(float label, float dual);
+        double DualLoss(float label, float dual);
     }
 
     public interface ISupportSdcaClassificationLoss : ISupportSdcaLoss, IClassificationLoss
@@ -105,12 +105,32 @@ namespace Microsoft.ML.Trainers
         IClassificationLoss IComponentFactory<IClassificationLoss>.CreateComponent(IHostEnvironment env) => new LogLoss();
     }
 
+    /// <summary>
+    /// The Log Loss, also known as the Cross Entropy Loss. It is commonly used in classification tasks.
+    /// </summary>
+    /// <remarks>
+    /// <format type="text/markdown"><![CDATA[
+    ///
+    /// The Log Loss function is defined as:
+    ///
+    /// $L(f(\vec{x}, y) = -y ln(f(\vec{x})) - (1 - y) ln(1 - f(\vec{x}))$
+    ///
+    /// where $f(\vec{x})$ is the predicted probability of belonging to the positive class and $y \in \{0, 1\}$ is the true label.
+    ///
+    /// Note that the labels used in this calculation are 0 and 1, unlike Hinge Loss and Exponential Loss, where the labels used are -1 and 1.
+    ///
+    /// The Log Loss function provides a measure of how "certain" a classifier's predictions are, instead of just measuring how "correct" they are.
+    /// For example, a predicted probability of 0.80 for a true label of 1 gets penalized more than a predicted probability of 0.99.
+    ///
+    /// ]]>
+    /// </format>
+    /// </remarks>
     public sealed class LogLoss : ISupportSdcaClassificationLoss
     {
         internal const string Summary = "The log loss function for classification. Supported by SDCA.";
         private const float Threshold = 0.5f;
 
-        public Double Loss(float output, float label)
+        public double Loss(float output, float label)
         {
             float prediction = MathUtils.Sigmoid(output);
             return label > 0 ? -Log(prediction) : -Log(1 - prediction);
@@ -141,7 +161,7 @@ namespace Microsoft.ML.Trainers
             return maxNumThreads >= 2 && Math.Abs(fullUpdate) > Threshold ? fullUpdate / maxNumThreads : fullUpdate;
         }
 
-        public Double DualLoss(float label, float dual)
+        public double DualLoss(float label, float dual)
         {
             // Normalize the dual with label.
             if (label <= 0)
@@ -149,20 +169,40 @@ namespace Microsoft.ML.Trainers
 
             // The dual variable is out of the feasible region [0, 1].
             if (dual < 0 || dual > 1)
-                return Double.NegativeInfinity;
+                return double.NegativeInfinity;
 
             return MathUtils.Entropy(dual, useLnNotLog2: true);
         }
 
-        private static Double Log(Double x)
+        private static double Log(double x)
         {
             return Math.Log(Math.Max(x, 1e-8));
         }
     }
 
     /// <summary>
-    /// Hinge Loss
+    /// Hinge Loss, commonly used in classification tasks.
     /// </summary>
+    /// <remarks>
+    /// <format type="text/markdown"><![CDATA[
+    ///
+    /// The Hinge Loss function is defined as:
+    ///
+    /// $L(f(\vec{x}, y) = max(0, m - yf(\vec{x}))$
+    ///
+    /// where $f(\vec{x})$ is the predicted score, $y \in \{-1, 1\}$ is the true label, and $m$ is the margin parameter set to 1 by default.
+    ///
+    /// Note that the labels used in this calculation are -1 and 1, unlike Log Loss, where the labels used are 0 and 1.
+    /// Also unlike Log Loss, $f(\vec{x})$ is the raw predicted score, not the predicted probability (which is calculated by applying a [sigmoid function](https://en.wikipedia.org/wiki/Sigmoid_function) to the predicted score).
+    ///
+    /// While the hinge loss function is both convex and continuous, it is not smooth (that is not differentiable) at $yf(\vec{x}) = m$.
+    /// Consequently, it cannot be used with gradient descent methods or stochastic gradient descent methods, which rely on differentiability over the entire domain.
+    ///
+    /// For more, see [Hinge Loss for classification](https://en.wikipedia.org/wiki/Loss_functions_for_classification#Hinge_loss).
+    ///
+    /// ]]>
+    /// </format>
+    /// </remarks>
     public sealed class HingeLoss : ISupportSdcaClassificationLoss
     {
         [TlcModule.Component(Name = "HingeLoss", FriendlyName = "Hinge loss", Alias = "Hinge", Desc = "Hinge loss.")]
@@ -196,7 +236,7 @@ namespace Microsoft.ML.Trainers
         {
         }
 
-        public Double Loss(float output, float label)
+        public double Loss(float output, float label)
         {
             float truth = label > 0 ? 1 : -1;
             float loss = _margin - truth * output;
@@ -222,19 +262,46 @@ namespace Microsoft.ML.Trainers
             return maxNumThreads >= 2 && Math.Abs(fullUpdate) > Threshold ? fullUpdate / maxNumThreads : fullUpdate;
         }
 
-        public Double DualLoss(float label, float dual)
+        public double DualLoss(float label, float dual)
         {
             if (label <= 0)
                 dual = -dual;
 
             // The dual variable is out of the feasible region [0, 1].
             if (dual < 0 || dual > 1)
-                return Double.NegativeInfinity;
+                return double.NegativeInfinity;
 
             return _margin * dual;
         }
     }
 
+    /// <summary>
+    /// A smooth version of the Hinge Loss function, commonly used in classification tasks.
+    /// </summary>
+    /// <remarks>
+    /// <format type="text/markdown"><![CDATA[
+    ///
+    /// Let $L(f(\vec{x}, y) = 1 - yf(\vec{x})$, where $f(\vec{x})$ is the predicted score and $y \in \{-1, 1\}$ is the true label.
+    ///
+    /// Note that the labels used in this calculation are -1 and 1, unlike Log Loss, where the labels used are 0 and 1.
+    /// Also unlike Log Loss, $f(\vec{x})$ is the raw predicted score, not the predicted probability (which is calculated by applying a [sigmoid function](https://en.wikipedia.org/wiki/Sigmoid_function) to the predicted score).
+    ///
+    /// The Smoothed Hinge Loss function is then defined as:
+    ///
+    /// \[
+    /// g(L(f(\vec{ x}, y)) =
+    /// \begin{cases}
+    /// 0                                    & \text{if } L(f(\vec{ x}, y) < 0\\
+    /// \frac{(L(f(\vec{x}, y))^2}{2\alpha}  & \text{if } L(f(\vec{ x}, y) < \alpha\\
+    /// L(f(\vec{ x}, y) - \frac{\alpha}{2}  & \text{otherwise}
+    /// \end{cases}
+    /// \]
+    ///
+    /// where $\alpha$ is a smoothing parameter set to 1 by default.
+    ///
+    /// ]]>
+    /// </format>
+    /// </remarks>
     public sealed class SmoothedHingeLoss : ISupportSdcaClassificationLoss
     {
         [TlcModule.Component(Name = "SmoothedHingeLoss", FriendlyName = "Smoothed Hinge Loss", Alias = "SmoothedHinge",
@@ -253,8 +320,8 @@ namespace Microsoft.ML.Trainers
         private const float Threshold = 0.5f;
         // The smoothed Hinge loss is 1/(_SmoothParam) smooth (its definition can be found in http://jmlr.org/papers/volume14/shalev-shwartz13a/shalev-shwartz13a.pdf (page 568 Definition 1)
         private readonly float _smoothConst;
-        private readonly Double _halfSmoothConst;
-        private readonly Double _doubleSmoothConst;
+        private readonly double _halfSmoothConst;
+        private readonly double _doubleSmoothConst;
 
         private static class Defaults
         {
@@ -278,7 +345,7 @@ namespace Microsoft.ML.Trainers
         {
         }
 
-        public Double Loss(float output, float label)
+        public double Loss(float output, float label)
         {
             float truth = label > 0 ? 1 : -1;
             float u = 1 - truth * output;
@@ -319,23 +386,40 @@ namespace Microsoft.ML.Trainers
             return maxNumThreads >= 2 && Math.Abs(fullUpdate) > Threshold ? fullUpdate / maxNumThreads : fullUpdate;
         }
 
-        public Double DualLoss(float label, float dual)
+        public double DualLoss(float label, float dual)
         {
             if (label <= 0)
                 dual = -dual;
 
             // The dual variable is out of the feasible region [0, 1].
             if (dual < 0 || dual > 1)
-                return Double.NegativeInfinity;
+                return double.NegativeInfinity;
 
             return dual * (1 - dual * _halfSmoothConst);
         }
     }
 
     /// <summary>
-    /// Exponential Loss
+    /// Exponential Loss, commonly used in classification tasks.
     /// </summary>
-    public sealed class ExpLoss : IClassificationLoss
+    /// <remarks>
+    /// <format type="text/markdown"><![CDATA[
+    ///
+    /// The Exponential Loss function is defined as:
+    ///
+    /// $L(f(\vec{x}, y) = e^{-\beta y f(\vec{x})}$
+    ///
+    /// where $f(\vec{x})$ is the predicted score, $y \in {-1, 1}$ is the true label, and $\beta$ is a scale factor set to 1 by default.
+    ///
+    /// Note that the labels used in this calculation are -1 and 1, unlike Log Loss, where the labels used are 0 and 1.
+    /// Also unlike Log Loss, $f(\vec{x})$ is the raw predicted score, not the predicted probability (which is calculated by applying a [sigmoid function](https://en.wikipedia.org/wiki/Sigmoid_function) to the predicted score).
+    ///
+    /// The Exponential Loss function penalizes incorrect predictions more than the Hinge loss and has a larger gradient.
+    ///
+    /// ]]>
+    /// </format>
+    /// </remarks>
+    public sealed class ExponentialLoss : IClassificationLoss
     {
         [TlcModule.Component(Name = "ExpLoss", FriendlyName = "Exponential Loss", Desc = "Exponential loss.")]
         internal sealed class Options : ISupportClassificationLossFactory
@@ -343,24 +427,24 @@ namespace Microsoft.ML.Trainers
             [Argument(ArgumentType.AtMostOnce, HelpText = "Beta (dilation)", ShortName = "beta")]
             public float Beta = 1;
 
-            public IClassificationLoss CreateComponent(IHostEnvironment env) => new ExpLoss(this);
+            public IClassificationLoss CreateComponent(IHostEnvironment env) => new ExponentialLoss(this);
         }
 
         internal const string Summary = "The exponential loss function for classification.";
 
         private readonly float _beta;
 
-        internal ExpLoss(Options options)
+        internal ExponentialLoss(Options options)
         {
             _beta = options.Beta;
         }
 
-        public ExpLoss(float beta = 1)
+        public ExponentialLoss(float beta = 1)
         {
             _beta = beta;
         }
 
-        public Double Loss(float output, float label)
+        public double Loss(float output, float label)
         {
             float truth = label > 0 ? 1 : -1;
             return MathUtils.ExpSlow(-_beta * truth * output);
@@ -383,11 +467,26 @@ namespace Microsoft.ML.Trainers
         IRegressionLoss IComponentFactory<IRegressionLoss>.CreateComponent(IHostEnvironment env) => new SquaredLoss();
     }
 
+    /// <summary>
+    /// The Squared Loss, commonly used in regression tasks.
+    /// </summary>
+    /// <remarks>
+    /// <format type="text/markdown"><![CDATA[
+    ///
+    /// The Squared Loss function is defined as:
+    ///
+    /// $L(f(\vec{x}, y) = (f(\vec{x}) - y)^2$
+    ///
+    /// where $f(\vec{x})$ is the predicted value and $y$ is the true value.
+    ///
+    /// ]]>
+    /// </format>
+    /// </remarks>
     public sealed class SquaredLoss : ISupportSdcaRegressionLoss
     {
         internal const string Summary = "The squared loss function for regression.";
 
-        public Double Loss(float output, float label)
+        public double Loss(float output, float label)
         {
             float diff = output - label;
             return diff * diff;
@@ -410,7 +509,7 @@ namespace Microsoft.ML.Trainers
             return maxNumThreads >= 2 ? fullUpdate / maxNumThreads : fullUpdate;
         }
 
-        public Double DualLoss(float label, float dual)
+        public double DualLoss(float label, float dual)
         {
             return -dual * (dual / 4 - label);
         }
@@ -424,13 +523,23 @@ namespace Microsoft.ML.Trainers
     }
 
     /// <summary>
-    /// Poisson Loss.
+    /// Poisson Loss function for Poisson Regression.
     /// </summary>
+    /// <remarks type="text/markdown"><![CDATA[
+    ///
+    /// The Poisson Loss function is defined as:
+    ///
+    /// $L(f(\vec{x}), y) = e^{f(\vec{x})} - yf(\vec{x})$
+    ///
+    /// where $f(\vec{x})$ is the predicted value, $y$ is the true label.
+    ///
+    /// ]]>
+    /// </remarks>
     public sealed class PoissonLoss : IRegressionLoss
     {
         internal const string Summary = "The Poisson loss function for regression.";
 
-        public Double Loss(float output, float label)
+        public double Loss(float output, float label)
         {
             // REVIEW: This is stupid and leads to error whenever this loss is used in an evaluator.
             // The output is in the log-space, while the label is in the original space, while the evaluator
@@ -445,8 +554,26 @@ namespace Microsoft.ML.Trainers
     }
 
     /// <summary>
-    /// Tweedie loss, based on the log-likelihood of the Tweedie distribution.
+    /// Tweedie loss, based on the log-likelihood of the Tweedie distribution. This loss function is used in Tweedie regression.
     /// </summary>
+    /// <remarks type="text/markdown"><![CDATA[
+    ///
+    /// The Tweedie Loss function is defined as:
+    ///
+    /// \[
+    /// L(f(\vec{ x}, y, i) =
+    /// \begin{cases}
+    /// f(\vec{ x}) - y ln(f(\vec{ x})) + ln(\Gamma(y))                                                                                   & \text{if } i = 1\\
+    /// f(\vec{ x}) + \frac{y}{f(\vec{ x})} - \sqrt{y}                                                                                    & \text{if } i = 2\\
+    /// \frac{(f(\vec{x}))^{2 - i}}{2 - i} - y \frac{(f(\vec{x}))^{1 - i}}{1 - i} - (\frac{y^{2 - i}}{2 - i} - y\frac{y^{1 - i}}{1 - i})  & \text{otherwise}
+    /// \end{cases}
+    /// \]
+    ///
+    /// where $f(\vec{x})$ is the predicted value, $y$ is the true label, $\Gamma$ is the [Gamma function](https://en.wikipedia.org/wiki/Gamma_function), and $i$ is the index parameter for the [Tweedie distribution](https://en.wikipedia.org/wiki/Tweedie_distribution), in the range [1, 2].
+    /// $i$ is set to 1.5 by default. $i = 1$ is Poisson loss, $i = 2$ is gamma loss, and intermediate values are compound Poisson-Gamma loss.
+    ///
+    /// ]]>
+    /// </remarks>
     public sealed class TweedieLoss : IRegressionLoss
     {
         [TlcModule.Component(Name = "TweedieLoss", FriendlyName = "Tweedie Loss", Alias = "tweedie", Desc = "Tweedie loss.")]
@@ -455,16 +582,16 @@ namespace Microsoft.ML.Trainers
             [Argument(ArgumentType.LastOccurenceWins, HelpText =
                 "Index parameter for the Tweedie distribution, in the range [1, 2]. 1 is Poisson loss, 2 is gamma loss, " +
                 "and intermediate values are compound Poisson loss.")]
-            public Double Index = 1.5;
+            public double Index = 1.5;
 
             public IRegressionLoss CreateComponent(IHostEnvironment env) => new TweedieLoss(this);
         }
 
         internal const string Summary = "The Tweedie loss function for regression.";
 
-        private readonly Double _index;  // The index parameter specified by the user.
-        private readonly Double _index1; // 1 minus the index parameter.
-        private readonly Double _index2; // 2 minus the index parameter.
+        private readonly double _index;  // The index parameter specified by the user.
+        private readonly double _index1; // 1 minus the index parameter.
+        private readonly double _index2; // 2 minus the index parameter.
 
         private TweedieLoss(Options options)
         {
@@ -494,7 +621,7 @@ namespace Microsoft.ML.Trainers
                 val = eps; // I did! I did taw a negwawive wowue!!
         }
 
-        public Double Loss(float output, float label)
+        public double Loss(float output, float label)
         {
             Clamp(ref output);
             Clamp(ref label);

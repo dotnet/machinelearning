@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Runtime;
 
@@ -14,7 +13,7 @@ namespace Microsoft.ML.Trainers
         /// Computes the loss given the output and the ground truth.
         /// Note that the return value has type Double because the loss is usually accumulated over many instances.
         /// </summary>
-        Double Loss(TOutput output, TLabel label);
+        double Loss(TOutput output, TLabel label);
     }
 
     public interface IScalarLoss : ILossFunction<float, float>
