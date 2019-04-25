@@ -91,8 +91,8 @@ namespace Microsoft.ML.Auto
             IEnumerable<SuggestedTrainer> availableTrainers,
             bool isMaximizingMetric)
         {
-            // narrow history to first stage runs
-            history = history.Take(availableTrainers.Count());
+            // narrow history to first stage runs that succeeded
+            history = history.Take(availableTrainers.Count()).Where(x => x.RunSucceded);
 
             history = history.GroupBy(r => r.Pipeline.Trainer.TrainerName).Select(g => g.First());
             IEnumerable<SuggestedPipelineRunDetail> sortedHistory = history.OrderBy(r => r.Score);
