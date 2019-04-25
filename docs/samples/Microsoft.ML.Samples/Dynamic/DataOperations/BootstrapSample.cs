@@ -36,16 +36,16 @@ namespace Samples.Dynamic
             {
                 var resample = mlContext.Data.BootstrapSample(data, seed: i);
 
-                var enumerable = mlContext.Data.CreateEnumerable<Microsoft.ML.SamplesUtils.DatasetUtils.BinaryLabelFloatFeatureVectorFloatWeightSample>(resample, reuseRowObject: false);
-                Console.WriteLine($"Label\tFeatures[0]");
+                var enumerable = mlContext.Data.CreateEnumerable<DataPoint>(resample, reuseRowObject: false);
+                Console.WriteLine($"Label\tFeature");
                 foreach (var row in enumerable)
                 {
-                    Console.WriteLine($"{row.Label}\t{row.Features[0]}");
+                    Console.WriteLine($"{row.Label}\t{row.Feature}");
                 }
                 Console.WriteLine();
             }
             // Expected output:
-            //  Label Features[0]
+            //  Label Feature
             //  True    1.017325
             //  False   0.6326591
             //  False   0.6326591
@@ -55,7 +55,7 @@ namespace Samples.Dynamic
             //  True    0.8426974
             //  True    0.8426974
 
-            //  Label Features[0]
+            //  Label Feature
             //  True    1.017325
             //  True    1.017325
             //  False   0.6326591
@@ -65,7 +65,7 @@ namespace Samples.Dynamic
             //  False   0.0326252
             //  True    0.9947656
 
-            //  Label Features[0]
+            //  Label Feature
             //  False   0.6326591
             //  False   0.0326252
             //  True    0.8426974
