@@ -89,6 +89,12 @@ namespace Microsoft.ML.Auto
                     break;
                 }
 
+                // If after third run, all runs have failed so far, break
+                if (_history.Count() == 3 && _history.All(r => !r.RunSucceded))
+                {
+                    break;
+                }
+
             } while (_history.Count < _experimentSettings.MaxModels &&
                     !_experimentSettings.CancellationToken.IsCancellationRequested &&
                     stopwatch.Elapsed.TotalSeconds < _experimentSettings.MaxExperimentTimeInSeconds);
