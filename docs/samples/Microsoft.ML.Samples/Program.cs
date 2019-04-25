@@ -14,7 +14,7 @@ namespace Microsoft.ML.Samples
             {
                 var sample = type.GetMethod("Example", BindingFlags.Public | BindingFlags.Static | BindingFlags.FlattenHierarchy);
 
-                if(sample != null)
+                if (sample != null)
                 {
                     sample.Invoke(null, null);
                     samples++;

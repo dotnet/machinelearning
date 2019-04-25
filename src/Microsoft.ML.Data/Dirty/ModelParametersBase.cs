@@ -8,10 +8,9 @@ using Microsoft.ML.Runtime;
 namespace Microsoft.ML.Trainers
 {
     /// <summary>
-    /// A base class for predictors producing <typeparamref name="TOutput"/>.
-    /// Note: This provides essentially no value going forward. New predictors should just
-    /// derive from the interfaces they need.
+    /// Generic base class for all model parameters.
     /// </summary>
+    /// <typeparam name="TOutput"> Output type produced by the model.</typeparam>
     public abstract class ModelParametersBase<TOutput> : ICanSaveModel, IPredictorProducing<TOutput>
     {
         private const string NormalizerWarningFormat =

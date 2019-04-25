@@ -141,7 +141,7 @@ namespace Microsoft.ML.Trainers.FastTree
     }
 
     /// <summary>
-    /// The model parameters class for Binary Classification GAMs
+    /// Model parameters for <see cref="GamRegressionTrainer"/>.
     /// </summary>
     public sealed class GamRegressionModelParameters : GamModelParametersBase
     {

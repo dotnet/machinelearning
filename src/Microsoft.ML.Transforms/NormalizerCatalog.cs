@@ -280,8 +280,9 @@ namespace Microsoft.ML
             => new NormalizingEstimator(CatalogUtils.GetEnvironment(catalog), columns);
 
         /// <summary>
-        /// Normalizes (scales) vectors in the input column to the unit norm. The type of norm that is used is defined by <paramref name="norm"/>.
-        /// Setting <paramref name="ensureZeroMean"/> to <see langword="true"/>, will apply a pre-processing step to make the specified column's mean be a zero vector.
+        /// Create a <see cref="LpNormNormalizingEstimator"/>, which normalizes (scales) vectors in the input column to the unit norm.
+        /// The type of norm that is used is defined by <paramref name="norm"/>. Setting <paramref name="ensureZeroMean"/> to <see langword="true"/>,
+        /// will apply a pre-processing step to make the specified column's mean be a zero vector.
         /// </summary>
         /// <param name="catalog">The transform's catalog.</param>
         /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.
@@ -312,8 +313,8 @@ namespace Microsoft.ML
             => new LpNormNormalizingEstimator(CatalogUtils.GetEnvironment(catalog), columns);
 
         /// <summary>
-        /// Normalizes columns individually applying global contrast normalization. Setting <paramref name="ensureZeroMean"/> to <see langword="true"/>,
-        /// will apply a pre-processing step to make the specified column's mean be the zero vector.
+        /// Create a <see cref="GlobalContrastNormalizingEstimator"/>, which normalizes columns individually applying global contrast normalization.
+        /// Setting <paramref name="ensureZeroMean"/> to <see langword="true"/>, will apply a pre-processing step to make the specified column's mean be the zero vector.
         /// </summary>
         /// <param name="catalog">The transform's catalog.</param>
         /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.

@@ -1,7 +1,6 @@
 ### Input and Output Columns
-There is only one input column and its type is <xref:System.Single>.
-This estimator adds the following output columns:
+There is only one input column.
+The input column must be <xref:System.Single> where a <xref:System.Single> value indicates a value at a timestamp in the time series.
 
-| Output Column Name | Column Type | Description|
-| -- | -- | -- |
-| `Prediction` | 4-element vector of <xref:System.Double> | It sequentially contains alert level (non-zero value means a change point), score, p-value, and martingale value. |
+It produces a column that is a vector with 4 elements.
+The output vector sequentially contains alert level (non-zero value means a change point), score, p-value, and martingale value.

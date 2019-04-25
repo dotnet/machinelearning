@@ -2,15 +2,12 @@
 Once the raw score at a timestamp is computed, it is fed to the anomaly scorer component to calculate the final anomaly score at that timestamp.
 There are two statistics involved in this scorer, p-value and martingale score.
 
-#### Spike detection based on p-value
+#### P-value score
 The p-value score indicates the p-value of the current computed raw score according to a distribution of raw scores.
 Here, the distribution is estimated based on the most recent raw score values up to certain depth back in the history.
 More specifically, this distribution is estimated using [kernel density estimation](https://en.wikipedia.org/wiki/Kernel_density_estimation)
 with the Gaussian [kernels](https://en.wikipedia.org/wiki/Kernel_(statistics)#In_non-parametric_statistics) of adaptive bandwidth.
 The p-value score is always in $[0, 1]$, and the lower its value, the more likely the current point is an outlier (also known as a spike).
-If the p-value score exceeds $1 - \frac{\text{confidence}}{100}$, the associated timestamp may get a non-zero alert value in spike detection, which means a spike point is detected.
-Note that $\text{confidence}$ is defined in the signatures of [DetectChangePointBySsa](xref:Microsoft.ML.TimeSeriesCatalog.DetectChangePointBySsa(Microsoft.ML.TransformsCatalog,System.String,System.String,System.Int32,System.Int32,System.Int32,System.Int32,Microsoft.ML.Transforms.TimeSeries.ErrorFunction,Microsoft.ML.Transforms.TimeSeries.MartingaleType,System.Double))
-and [DetectIidChangePoint](xref:Microsoft.ML.TimeSeriesCatalog.DetectIidChangePoint(Microsoft.ML.TransformsCatalog,System.String,System.String,System.Int32,System.Int32,Microsoft.ML.Transforms.TimeSeries.MartingaleType,System.Double)).
 
 
 #### Change point detection based on martingale score

@@ -166,7 +166,7 @@ namespace Microsoft.ML.Data
         /// <param name="copier">For copying input values into a value to actually store. Useful for
         /// types of objects where it is possible to do a comparison relatively quickly on some sort
         /// of "unsafe" object, but for which when we decide to actually store it we need to provide
-        /// a "safe" version of the object. Utilized in the ngram hash transform, for example.</param>
+        /// a "safe" version of the object. Utilized in the n-gram hash transform, for example.</param>
         public InvertHashCollector(int slots, int maxCount, ValueMapper<T, StringBuilder> mapper,
             IEqualityComparer<T> comparer, ValueMapper<T, T> copier = null)
         {

@@ -80,8 +80,8 @@ namespace Microsoft.ML.Transforms.Text
         }
         private const string RegistrationName = "WordHashBagTransform";
 
-        internal const string Summary = "Produces a bag of counts of ngrams (sequences of consecutive words of length 1-n) in a given text. "
-            + "It does so by hashing each ngram and using the hash value as the index in the bag.";
+        internal const string Summary = "Produces a bag of counts of n-grams (sequences of consecutive words of length 1-n) in a given text. "
+            + "It does so by hashing each n-gram and using the hash value as the index in the bag.";
 
         internal static IDataTransform Create(IHostEnvironment env, Options options, IDataView input)
         {
@@ -166,7 +166,7 @@ namespace Microsoft.ML.Transforms.Text
             public int? NgramLength;
 
             [Argument(ArgumentType.AtMostOnce,
-                HelpText = "Maximum number of tokens to skip when constructing an ngram",
+                HelpText = "Maximum number of tokens to skip when constructing an n-gram",
                 ShortName = "skips")]
             public int? SkipLength;
 
@@ -187,7 +187,7 @@ namespace Microsoft.ML.Transforms.Text
             public int? MaximumNumberOfInverts;
 
             [Argument(ArgumentType.AtMostOnce,
-                HelpText = "Whether to include all ngram lengths up to " + nameof(NgramLength) + " or only " + nameof(NgramLength),
+                HelpText = "Whether to include all n-gram lengths up to " + nameof(NgramLength) + " or only " + nameof(NgramLength),
                 Name = "AllLengths", ShortName = "all", SortOrder = 4)]
             public bool? UseAllLengths;
         }
@@ -254,7 +254,7 @@ namespace Microsoft.ML.Transforms.Text
             public int NgramLength = 1;
 
             [Argument(ArgumentType.AtMostOnce,
-                HelpText = "Maximum number of tokens to skip when constructing an ngram",
+                HelpText = "Maximum number of tokens to skip when constructing an n-gram",
                 ShortName = "skips", SortOrder = 4)]
             public int SkipLength = 0;
 
@@ -277,7 +277,7 @@ namespace Microsoft.ML.Transforms.Text
             public int MaximumNumberOfInverts;
 
             [Argument(ArgumentType.AtMostOnce,
-               HelpText = "Whether to include all ngram lengths up to ngramLength or only ngramLength",
+               HelpText = "Whether to include all n-gram lengths up to ngramLength or only ngramLength",
                Name = "AllLengths", ShortName = "all", SortOrder = 4)]
             public bool UseAllLengths = true;
         }

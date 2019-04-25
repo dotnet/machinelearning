@@ -46,7 +46,7 @@ namespace Samples.Dynamic.Trainers.Regression
             var metrics = mlContext.Regression.Evaluate(transformedTestData);
             PrintMetrics(metrics);
 
-            // This trainer is not numerically stable. Please see issue #2425.
+            
         }
 
         private static IEnumerable<DataPoint> GenerateRandomDataPoints(int count, int seed=0)

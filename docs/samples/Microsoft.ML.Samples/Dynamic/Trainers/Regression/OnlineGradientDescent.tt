@@ -8,5 +8,5 @@ string Trainer = "OnlineGradientDescent(labelColumnName: nameof(DataPoint.Label)
 string TrainerOptions = null;
 
 string ExpectedOutputPerInstance= @"// This trainer is not numerically stable. Please see issue #2425.";
-string ExpectedOutput = @"// This trainer is not numerically stable. Please see issue #2425.";
+string ExpectedOutput = @"";
 #>

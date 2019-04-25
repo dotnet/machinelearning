@@ -618,6 +618,8 @@ namespace Microsoft.ML.Transforms
     /// more complex kernel SVM models.
     /// This mapping is based on the paper [Random Features for Large-Scale Kernel Machines](http://pages.cs.wisc.edu/~brecht/papers/07.rah.rec.nips.pdf)
     /// by Rahimi and Recht.
+    ///
+    /// Check the See Also section for links to usage examples.
     /// ]]></format>
     /// </remarks>
     /// <seealso cref="KernelExpansionCatalog.ApproximatedKernelMap(TransformsCatalog, ColumnOptions[])"/>

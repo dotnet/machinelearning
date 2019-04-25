@@ -37,6 +37,9 @@ using Newtonsoft.Json.Linq;
 
 namespace Microsoft.ML.Trainers
 {
+    /// <summary>
+    /// Base class for linear model parameters.
+    /// </summary>
     public abstract class LinearModelParameters : ModelParametersBase<float>,
         IValueMapper,
         ICanSaveInIniFormat,
@@ -555,6 +558,9 @@ namespace Microsoft.ML.Trainers
         }
     }
 
+    /// <summary>
+    /// Model parameters for regression.
+    /// </summary>
     public abstract class RegressionModelParameters : LinearModelParameters
     {
         [BestFriend]
@@ -589,7 +595,7 @@ namespace Microsoft.ML.Trainers
     }
 
     /// <summary>
-    /// The model parameters class for linear regression.
+    /// Model parameters for linear regression.
     /// </summary>
     public sealed class LinearRegressionModelParameters : RegressionModelParameters,
         IParameterMixer<float>,
@@ -677,7 +683,7 @@ namespace Microsoft.ML.Trainers
     }
 
     /// <summary>
-    /// The model parameters class for Poisson Regression.
+    /// Model parameters for Poisson Regression.
     /// </summary>
     public sealed class PoissonRegressionModelParameters : RegressionModelParameters, IParameterMixer<float>
     {
