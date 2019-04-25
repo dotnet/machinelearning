@@ -132,6 +132,12 @@ namespace Microsoft.ML.Auto
     /// <summary>
     /// AutoML experiment on binary classification datasets.
     /// </summary>
+    /// <example>
+    /// <format type="text/markdown">
+    /// <![CDATA[
+    ///  [!code-csharp[BinaryClassificationExperiment](~/../docs/samples/docs/samples/Microsoft.ML.AutoML.Samples/BinaryClassificationExperiment.cs)]
+    /// ]]></format>
+    /// </example>
     public sealed class BinaryClassificationExperiment : ExperimentBase<BinaryClassificationMetrics, BinaryExperimentSettings>
     {
         internal BinaryClassificationExperiment(MLContext context, BinaryExperimentSettings settings)

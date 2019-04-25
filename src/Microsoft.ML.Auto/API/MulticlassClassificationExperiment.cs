@@ -122,6 +122,12 @@ namespace Microsoft.ML.Auto
     /// <summary>
     /// AutoML experiment on multiclass classification datasets.
     /// </summary>
+    /// <example>
+    /// <format type="text/markdown">
+    /// <![CDATA[
+    ///  [!code-csharp[MulticlassClassificationExperiment](~/../docs/samples/docs/samples/Microsoft.ML.AutoML.Samples/MulticlassClassificationExperiment.cs)]
+    /// ]]></format>
+    /// </example>
     public sealed class MulticlassClassificationExperiment : ExperimentBase<MulticlassClassificationMetrics, MulticlassExperimentSettings>
     {
         internal MulticlassClassificationExperiment(MLContext context, MulticlassExperimentSettings settings)

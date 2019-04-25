@@ -24,12 +24,13 @@ namespace Microsoft.ML.Auto
         /// <param name="maxExperimentTimeInSeconds">Maximum number of seconds that experiment will run.</param>
         /// <returns>A new AutoML regression experiment.</returns>
         /// <remarks>
-        /// An experiment may run for longer than <paramref name="maxExperimentTimeInSeconds"/>.
+        /// <para>See <see cref="RegressionExperiment"/> for a more detailed code example of an AutoML regression experiment.</para>
+        /// <para>An experiment may run for longer than <paramref name="maxExperimentTimeInSeconds"/>.
         /// This is because once AutoML starts training an ML.NET model, AutoML lets the
         /// model train to completion. For instance, if the first model 
         /// AutoML trains takes 4 hours, and the second model trained takes 5 hours,
         /// but <paramref name="maxExperimentTimeInSeconds"/> was the number of seconds in 6 hours, 
-        /// the experiment will run for 4 + 5 = 9 hours (not 6 hours).
+        /// the experiment will run for 4 + 5 = 9 hours (not 6 hours).</para>
         /// </remarks>
         public RegressionExperiment CreateRegressionExperiment(uint maxExperimentTimeInSeconds)
         {
@@ -44,6 +45,9 @@ namespace Microsoft.ML.Auto
         /// </summary>
         /// <param name="experimentSettings">Settings for the AutoML experiment.</param>
         /// <returns>A new AutoML regression experiment.</returns>
+        /// <remarks>
+        /// See <see cref="RegressionExperiment"/> for a more detailed code example of an AutoML regression experiment.
+        /// </remarks>
         public RegressionExperiment CreateRegressionExperiment(RegressionExperimentSettings experimentSettings)
         {
             return new RegressionExperiment(_context, experimentSettings);
@@ -55,12 +59,13 @@ namespace Microsoft.ML.Auto
         /// <param name="maxExperimentTimeInSeconds">Maximum number of seconds that experiment will run.</param>
         /// <returns>A new AutoML binary classification experiment.</returns>
         /// <remarks>
-        /// An experiment may run for longer than <paramref name="maxExperimentTimeInSeconds"/>.
+        /// <para>See <see cref="BinaryClassificationExperiment"/> for a more detailed code example of an AutoML binary classification experiment.</para>
+        /// <para>An experiment may run for longer than <paramref name="maxExperimentTimeInSeconds"/>.
         /// This is because once AutoML starts training an ML.NET model, AutoML lets the
         /// model train to completion. For instance, if the first model 
         /// AutoML trains takes 4 hours, and the second model trained takes 5 hours,
         /// but <paramref name="maxExperimentTimeInSeconds"/> was the number of seconds in 6 hours, 
-        /// the experiment will run for 4 + 5 = 9 hours (not 6 hours).
+        /// the experiment will run for 4 + 5 = 9 hours (not 6 hours).</para>
         /// </remarks>
         public BinaryClassificationExperiment CreateBinaryClassificationExperiment(uint maxExperimentTimeInSeconds)
         {
@@ -75,6 +80,9 @@ namespace Microsoft.ML.Auto
         /// </summary>
         /// <param name="experimentSettings">Settings for the AutoML experiment.</param>
         /// <returns>A new AutoML binary classification experiment.</returns>
+        /// <remarks>
+        /// See <see cref="BinaryClassificationExperiment"/> for a more detailed code example of an AutoML binary classification experiment.
+        /// </remarks>
         public BinaryClassificationExperiment CreateBinaryClassificationExperiment(BinaryExperimentSettings experimentSettings)
         {
             return new BinaryClassificationExperiment(_context, experimentSettings);
@@ -86,12 +94,13 @@ namespace Microsoft.ML.Auto
         /// <param name="maxExperimentTimeInSeconds">Maximum number of seconds that experiment will run.</param>
         /// <returns>A new AutoML multiclass classification experiment.</returns>
         /// <remarks>
-        /// An experiment may run for longer than <paramref name="maxExperimentTimeInSeconds"/>.
+        /// <para>See <see cref="MulticlassClassificationExperiment"/> for a more detailed code example of an AutoML multiclass classification experiment.</para>
+        /// <para>An experiment may run for longer than <paramref name="maxExperimentTimeInSeconds"/>.
         /// This is because once AutoML starts training an ML.NET model, AutoML lets the
         /// model train to completion. For instance, if the first model 
         /// AutoML trains takes 4 hours, and the second model trained takes 5 hours,
         /// but <paramref name="maxExperimentTimeInSeconds"/> was the number of seconds in 6 hours, 
-        /// the experiment will run for 4 + 5 = 9 hours (not 6 hours).
+        /// the experiment will run for 4 + 5 = 9 hours (not 6 hours).</para>
         /// </remarks>
         public MulticlassClassificationExperiment CreateMulticlassClassificationExperiment(uint maxExperimentTimeInSeconds)
         {
@@ -106,6 +115,9 @@ namespace Microsoft.ML.Auto
         /// </summary>
         /// <param name="experimentSettings">Settings for the AutoML experiment.</param>
         /// <returns>A new AutoML multiclass classification experiment.</returns>
+        /// <remarks>
+        /// See <see cref="MulticlassClassificationExperiment"/> for a more detailed code example of an AutoML multiclass classification experiment.
+        /// </remarks>
         public MulticlassClassificationExperiment CreateMulticlassClassificationExperiment(MulticlassExperimentSettings experimentSettings)
         {
             return new MulticlassClassificationExperiment(_context, experimentSettings);

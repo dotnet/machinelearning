@@ -108,6 +108,12 @@ namespace Microsoft.ML.Auto
     /// <summary>
     /// AutoML experiment on regression classification datasets.
     /// </summary>
+    /// <example>
+    /// <format type="text/markdown">
+    /// <![CDATA[
+    ///  [!code-csharp[RegressionExperiment](~/../docs/samples/docs/samples/Microsoft.ML.AutoML.Samples/RegressionExperiment.cs)]
+    /// ]]></format>
+    /// </example>
     public sealed class RegressionExperiment : ExperimentBase<RegressionMetrics, RegressionExperimentSettings>
     {
         internal RegressionExperiment(MLContext context, RegressionExperimentSettings settings) 
