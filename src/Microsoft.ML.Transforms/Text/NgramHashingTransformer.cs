@@ -34,15 +34,15 @@ namespace Microsoft.ML.Transforms.Text
     {
         internal sealed class Column : ManyToOneColumn
         {
-            [Argument(ArgumentType.AtMostOnce, HelpText = "Maximum ngram length", ShortName = "ngram")]
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Maximum n-gram length", ShortName = "ngram")]
             public int? NgramLength;
 
             [Argument(ArgumentType.AtMostOnce, HelpText =
-                "Whether to include all ngram lengths up to " + nameof(NgramLength) + " or only " + nameof(NgramLength), Name = "AllLengths", ShortName = "all")]
+                "Whether to include all n-gram lengths up to " + nameof(NgramLength) + " or only " + nameof(NgramLength), Name = "AllLengths", ShortName = "all")]
             public bool? UseAllLengths;
 
             [Argument(ArgumentType.AtMostOnce,
-                HelpText = "Maximum number of tokens to skip when constructing an ngram",
+                HelpText = "Maximum number of tokens to skip when constructing an n-gram",
                 ShortName = "skips")]
             public int? SkipLength;
 
@@ -114,16 +114,16 @@ namespace Microsoft.ML.Transforms.Text
                 SortOrder = 1)]
             public Column[] Column;
 
-            [Argument(ArgumentType.AtMostOnce, HelpText = "Maximum ngram length", ShortName = "ngram", SortOrder = 3)]
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Maximum n-gram length", ShortName = "ngram", SortOrder = 3)]
             public int NgramLength = NgramHashingEstimator.Defaults.NgramLength;
 
             [Argument(ArgumentType.AtMostOnce,
-                HelpText = "Whether to include all ngram lengths up to " + nameof(NgramLength) + " or only " + nameof(NgramLength),
+                HelpText = "Whether to include all n-gram lengths up to " + nameof(NgramLength) + " or only " + nameof(NgramLength),
                 Name = "AllLengths", ShortName = "all", SortOrder = 4)]
             public bool UseAllLengths = NgramHashingEstimator.Defaults.UseAllLengths;
 
             [Argument(ArgumentType.AtMostOnce,
-                HelpText = "Maximum number of tokens to skip when constructing an ngram",
+                HelpText = "Maximum number of tokens to skip when constructing an n-gram",
                 ShortName = "skips", SortOrder = 3)]
             public int SkipLength = NgramHashingEstimator.Defaults.SkipLength;
 
@@ -148,8 +148,8 @@ namespace Microsoft.ML.Transforms.Text
             public int MaximumNumberOfInverts = NgramHashingEstimator.Defaults.MaximumNumberOfInverts;
         }
 
-        internal const string Summary = "Produces a bag of counts of ngrams (sequences of consecutive values of length 1-n) in a given vector of keys. "
-          + "It does so by hashing each ngram and using the hash value as the index in the bag.";
+        internal const string Summary = "Produces a bag of counts of n-grams (sequences of consecutive values of length 1-n) in a given vector of keys. "
+          + "It does so by hashing each n-gram and using the hash value as the index in the bag.";
 
         internal const string LoaderSignature = "NgramHashTransform";
 
@@ -225,9 +225,9 @@ namespace Microsoft.ML.Transforms.Text
             {
                 var active = new bool[1];
                 string[][] friendlyNames = _columns.Select(c => c.FriendlyNames).ToArray();
-                // We will create invert hash helper class, which would store in itself all original ngrams and their mapping into hash values.
+                // We will create invert hash helper class, which would store in itself all original n-grams and their mapping into hash values.
                 var helper = new InvertHashHelper(this, input.Schema, friendlyNames, sourceColumnsForInvertHash, invertHashMaxCounts);
-                // in order to get all original ngrams we have to go data in same way as we would process it, so let's create mapper with decorate function.
+                // in order to get all original n-grams we have to go data in same way as we would process it, so let's create mapper with decorate function.
                 var mapper = new Mapper(this, input.Schema, helper.Decorate);
                 // Let's create cursor to iterate over input data.
                 using (var rowCursor = input.GetRowCursor(sourceColumnsForInvertHash))
@@ -245,7 +245,7 @@ namespace Microsoft.ML.Transforms.Text
                         for (int i = 0; i < columnWithInvertHash.Count; i++)
                             valueGetters[i](ref value);
                     }
-                    // decorate function of helper object captured all encountered ngrams so, we ask it to give us metadata information for slot names.
+                    // decorate function of helper object captured all encountered n-grams so, we ask it to give us metadata information for slot names.
                     _slotNames = helper.SlotNamesMetadata(out _slotNamesTypes);
                 }
             }
@@ -681,7 +681,7 @@ namespace Microsoft.ML.Transforms.Text
 
             private sealed class NGram : IEquatable<NGram>
             {
-                // Items [0,Lim) hold the ngram hashed inputs.
+                // Items [0,Lim) hold the n-gram hashed inputs.
                 public readonly uint[] Grams;
                 // The number of items in Grams that are actually valid.
                 public readonly int Lim;
@@ -751,7 +751,7 @@ namespace Microsoft.ML.Transforms.Text
 
                 var srcIndices = _srcIndices[iinfo];
 
-                // Define the mapper from the ngram, to text.
+                // Define the mapper from the n-gram, to text.
                 ValueMapper<NGram, StringBuilder> stringMapper;
                 StringBuilder temp = null;
                 char[] buffer = null;
@@ -759,7 +759,7 @@ namespace Microsoft.ML.Transforms.Text
                 if (srcIndices.Length == 1)
                 {
                     // No need to include the column name. This will just be "A" or "(A,B,C)" depending
-                    // on the n-arity of the ngram.
+                    // on the n-arity of the n-gram.
                     var srcMap = _srcTextGetters[srcIndices[0]];
                     Contracts.AssertValue(srcMap);
 
@@ -825,11 +825,11 @@ namespace Microsoft.ML.Transforms.Text
                         Contracts.AssertValue(_srcTextGetters[srcIndices[icol]]);
                         var result = finder(ngram, lim, icol, ref more);
                         // For the hashing NgramIdFinder, a result of -1 indicates that
-                        // a slot does not exist for the given ngram. We do not pass ngrams
+                        // a slot does not exist for the given n-gram. We do not pass n-grams
                         // that do not have a slot to the MaximumNumberOfInverts collector.
                         if (result != -1)
                         {
-                            // The following ngram is "unsafe", in that the ngram array is actually
+                            // The following n-gram is "unsafe", in that the n-gram array is actually
                             // re-used. The collector will utilize its copier to make it safe, in
                             // the event that this is a key it needs to keep.
                             var ngramObj = new NGram(ngram, lim, icol);
@@ -874,7 +874,7 @@ namespace Microsoft.ML.Transforms.Text
     /// It does so by hashing each n-gram and using the hash value as the index in the bag.
     ///
     /// <xref:Microsoft.ML.Transforms.Text.NgramHashingEstimator> is different from <xref:Microsoft.ML.Transforms.Text.WordHashBagEstimator>
-    /// in a way that The former takes tokenized text as input while the latter tokenizes text internally.
+    /// in a way that the former takes tokenized text as input while the latter tokenizes text internally.
     /// Check the See Also section for links to examples of the usage.
     /// ]]>
     /// </format>
@@ -893,11 +893,11 @@ namespace Microsoft.ML.Transforms.Text
             /// <summary>Names of the columns to transform.</summary>
             public IReadOnlyList<string> InputColumnNames => InputColumnNamesArray;
             internal readonly string[] InputColumnNamesArray;
-            /// <summary>Maximum ngram length.</summary>
+            /// <summary>Maximum n-gram length.</summary>
             public readonly int NgramLength;
-            /// <summary>Maximum number of tokens to skip when constructing an ngram.</summary>
+            /// <summary>Maximum number of tokens to skip when constructing an n-gram.</summary>
             public readonly int SkipLength;
-            /// <summary>Whether to store all ngram lengths up to <see cref="NgramLength"/>, or only <see cref="NgramLength"/>.</summary>
+            /// <summary>Whether to store all n-gram lengths up to <see cref="NgramLength"/>, or only <see cref="NgramLength"/>.</summary>
             public readonly bool UseAllLengths;
             /// <summary>Number of bits to hash into. Must be between 1 and 31, inclusive.</summary>
             public readonly int NumberOfBits;
@@ -924,9 +924,9 @@ namespace Microsoft.ML.Transforms.Text
             /// </summary>
             /// <param name="name">Name of the column resulting from the transformation of <paramref name="inputColumnNames"/>.</param>
             /// <param name="inputColumnNames">Names of the columns to transform. </param>
-            /// <param name="ngramLength">Maximum ngram length.</param>
-            /// <param name="skipLength">Maximum number of tokens to skip when constructing an ngram.</param>
-            /// <param name="useAllLengths">Whether to store all ngram lengths up to <paramref name="ngramLength"/>, or only <paramref name="ngramLength"/>.</param>
+            /// <param name="ngramLength">Maximum n-gram length.</param>
+            /// <param name="skipLength">Maximum number of tokens to skip when constructing an n-gram.</param>
+            /// <param name="useAllLengths">Whether to store all n-gram lengths up to <paramref name="ngramLength"/>, or only <paramref name="ngramLength"/>.</param>
             /// <param name="numberOfBits">Number of bits to hash into. Must be between 1 and 31, inclusive.</param>
             /// <param name="seed">Hashing seed.</param>
             /// <param name="useOrderedHashing">Whether the position of each term should be included in the hash.</param>
@@ -1094,19 +1094,19 @@ namespace Microsoft.ML.Transforms.Text
         private readonly ColumnOptions[] _columns;
 
         /// <summary>
-        /// Produces a bag of counts of hashed ngrams in <paramref name="inputColumnName"/>
-        /// and outputs ngram vector as <paramref name="outputColumnName"/>
+        /// Produces a bag of counts of hashed n-grams in <paramref name="inputColumnName"/>
+        /// and outputs n-gram vector as <paramref name="outputColumnName"/>
         ///
         /// <see cref="NgramHashingEstimator"/> is different from <see cref="WordHashBagEstimator"/> in a way that <see cref="NgramHashingEstimator"/>
         /// takes tokenized text as input while <see cref="WordHashBagEstimator"/> tokenizes text internally.
         /// </summary>
         /// <param name="env">The environment.</param>
-        /// <param name="outputColumnName">Name of output column, will contain the ngram vector. Null means <paramref name="inputColumnName"/> is replaced.</param>
+        /// <param name="outputColumnName">Name of output column, will contain the n-gram vector. Null means <paramref name="inputColumnName"/> is replaced.</param>
         /// <param name="inputColumnName">Name of input column containing tokenized text.</param>
         /// <param name="numberOfBits">Number of bits to hash into. Must be between 1 and 30, inclusive.</param>
         /// <param name="ngramLength">Ngram length.</param>
-        /// <param name="skipLength">Maximum number of tokens to skip when constructing an ngram.</param>
-        /// <param name="useAllLengths">Whether to include all ngram lengths up to <paramref name="ngramLength"/> or only <paramref name="ngramLength"/>.</param>
+        /// <param name="skipLength">Maximum number of tokens to skip when constructing an n-gram.</param>
+        /// <param name="useAllLengths">Whether to include all n-gram lengths up to <paramref name="ngramLength"/> or only <paramref name="ngramLength"/>.</param>
         /// <param name="seed">Hashing seed.</param>
         /// <param name="useOrderedHashing">Whether the position of each source column should be included in the hash (when there are multiple source columns).</param>
         /// <param name="maximumNumberOfInverts">During hashing we constuct mappings between original values and the produced hash values.
@@ -1128,19 +1128,19 @@ namespace Microsoft.ML.Transforms.Text
         }
 
         /// <summary>
-        /// Produces a bag of counts of hashed ngrams in <paramref name="inputColumnNames"/>
-        /// and outputs ngram vector as <paramref name="outputColumnName"/>
+        /// Produces a bag of counts of hashed n-grams in <paramref name="inputColumnNames"/>
+        /// and outputs n-gram vector as <paramref name="outputColumnName"/>
         ///
         /// <see cref="NgramHashingEstimator"/> is different from <see cref="WordHashBagEstimator"/> in a way that <see cref="NgramHashingEstimator"/>
         /// takes tokenized text as input while <see cref="WordHashBagEstimator"/> tokenizes text internally.
         /// </summary>
         /// <param name="env">The environment.</param>
-        /// <param name="outputColumnName">Name of output column, will contain the ngram vector.</param>
+        /// <param name="outputColumnName">Name of output column, will contain the n-gram vector.</param>
         /// <param name="inputColumnNames">Name of input columns containing tokenized text.</param>
         /// <param name="numberOfBits">Number of bits to hash into. Must be between 1 and 30, inclusive.</param>
         /// <param name="ngramLength">Ngram length.</param>
-        /// <param name="skipLength">Maximum number of tokens to skip when constructing an ngram.</param>
-        /// <param name="useAllLengths">Whether to include all ngram lengths up to <paramref name="ngramLength"/> or only <paramref name="ngramLength"/>.</param>
+        /// <param name="skipLength">Maximum number of tokens to skip when constructing an n-gram.</param>
+        /// <param name="useAllLengths">Whether to include all n-gram lengths up to <paramref name="ngramLength"/> or only <paramref name="ngramLength"/>.</param>
         /// <param name="seed">Hashing seed.</param>
         /// <param name="useOrderedHashing">Whether the position of each source column should be included in the hash (when there are multiple source columns).</param>
         /// <param name="maximumNumberOfInverts">During hashing we constuct mappings between original values and the produced hash values.
@@ -1162,8 +1162,8 @@ namespace Microsoft.ML.Transforms.Text
         }
 
         /// <summary>
-        /// Produces a bag of counts of hashed ngrams in <paramref name="columns.inputs"/>
-        /// and outputs ngram vector for each output in <paramref name="columns.output"/>
+        /// Produces a bag of counts of hashed n-grams in <paramref name="columns.inputs"/>
+        /// and outputs n-gram vector for each output in <paramref name="columns.output"/>
         ///
         /// <see cref="NgramHashingEstimator"/> is different from <see cref="WordHashBagEstimator"/> in a way that <see cref="NgramHashingEstimator"/>
         /// takes tokenized text as input while <see cref="WordHashBagEstimator"/> tokenizes text internally.

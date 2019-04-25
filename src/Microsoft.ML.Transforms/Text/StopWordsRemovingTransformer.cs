@@ -1095,7 +1095,7 @@ namespace Microsoft.ML.Transforms.Text
     /// | -- | -- |
     /// | Does this estimator need to look at the data to train its parameters? | No |
     /// | Input column data type | Vector of [Text](xref:Microsoft.ML.Data.TextDataViewType) |
-    /// | Output column data type | Unknown-sized vector of [Text](xref:Microsoft.ML.Data.TextDataViewType) |
+    /// | Output column data type | Vector of [Text](xref:Microsoft.ML.Data.TextDataViewType) |
     ///
     /// The resulting <xref:Microsoft.ML.Transforms.Text.CustomStopWordsRemovingTransformer> creates a new column, named as specified by the output column name parameter, and
     /// fills it with a vector of words containing all of the words in the input column except those given by the stopwords parameter.

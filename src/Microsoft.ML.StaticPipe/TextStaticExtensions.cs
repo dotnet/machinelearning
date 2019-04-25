@@ -303,14 +303,14 @@ namespace Microsoft.ML.StaticPipe
         }
 
         /// <summary>
-        /// Produces a bag of counts of ngrams (sequences of consecutive words ) in a given text.
-        /// It does so by building a dictionary of ngrams and using the id in the dictionary as the index in the bag.
+        /// Produces a bag of counts of n-grams (sequences of consecutive words) in a given text.
+        /// It does so by building a dictionary of n-grams and using the id in the dictionary as the index in the bag.
         /// </summary>
         /// <param name="input">The column to apply to.</param>
         /// <param name="ngramLength">Ngram length.</param>
-        /// <param name="skipLength">Maximum number of tokens to skip when constructing an ngram.</param>
-        /// <param name="useAllLengths">Whether to include all ngram lengths up to <paramref name="ngramLength"/> or only <paramref name="ngramLength"/>.</param>
-        /// <param name="maximumNgramsCount">Maximum number of ngrams to store in the dictionary.</param>
+        /// <param name="skipLength">Maximum number of tokens to skip when constructing an n-gram.</param>
+        /// <param name="useAllLengths">Whether to include all n-gram lengths up to <paramref name="ngramLength"/> or only <paramref name="ngramLength"/>.</param>
+        /// <param name="maximumNgramsCount">Maximum number of n-grams to store in the dictionary.</param>
         /// <param name="weighting">Statistical measure used to evaluate how important a word is to a document in a corpus.</param>
         public static Vector<float> ProduceWordBags(this Scalar<string> input,
             int ngramLength = 1,
@@ -393,14 +393,14 @@ namespace Microsoft.ML.StaticPipe
         }
 
         /// <summary>
-        /// Produces a bag of counts of ngrams (sequences of consecutive words of length 1-n) in a given text.
-        /// It does so by hashing each ngram and using the hash value as the index in the bag.
+        /// Produces a bag of counts of n-grams (sequences of consecutive words of length 1-n) in a given text.
+        /// It does so by hashing each n-gram and using the hash value as the index in the bag.
         /// </summary>
         /// <param name="input">The column to apply to.</param>
         /// <param name="numberOfBits">Number of bits to hash into. Must be between 1 and 30, inclusive.</param>
         /// <param name="ngramLength">Ngram length.</param>
-        /// <param name="skipLength">Maximum number of tokens to skip when constructing an ngram.</param>
-        /// <param name="useAllLengths">Whether to include all ngram lengths up to <paramref name="ngramLength"/> or only <paramref name="ngramLength"/>.</param>
+        /// <param name="skipLength">Maximum number of tokens to skip when constructing an n-gram.</param>
+        /// <param name="useAllLengths">Whether to include all n-gram lengths up to <paramref name="ngramLength"/> or only <paramref name="ngramLength"/>.</param>
         /// <param name="seed">Hashing seed.</param>
         /// <param name="useOrderedHashing">Whether the position of each source column should be included in the hash (when there are multiple source columns).</param>
         /// <param name="maximumNumberOfInverts">During hashing we constuct mappings between original values and the produced hash values.
@@ -418,7 +418,7 @@ namespace Microsoft.ML.StaticPipe
     }
 
     /// <summary>
-    /// Extensions for statically typed ngram estimator.
+    /// Extensions for statically typed n-gram estimator.
     /// </summary>
     public static class NgramEstimatorStaticExtensions
     {
@@ -482,16 +482,16 @@ namespace Microsoft.ML.StaticPipe
         }
 
         /// <summary>
-        /// Produces a bag of counts of ngrams (sequences of consecutive words ) in a given tokenized text.
-        /// It does so by building a dictionary of ngrams and using the id in the dictionary as the index in the bag.
+        /// Produces a bag of counts of n-grams (sequences of consecutive words ) in a given tokenized text.
+        /// It does so by building a dictionary of n-grams and using the id in the dictionary as the index in the bag.
         ///
         /// /// <see cref="ProduceNgrams"/> is different from <see cref="WordBagEstimatorStaticExtensions.ProduceWordBags"/>
         /// in a way that <see cref="ProduceNgrams"/> takes tokenized text as input while <see cref="WordBagEstimatorStaticExtensions.ProduceWordBags"/> tokenizes text internally.
         /// </summary>
         /// <param name="input">The column to apply to.</param>
         /// <param name="ngramLength">Ngram length.</param>
-        /// <param name="skipLength">Maximum number of tokens to skip when constructing an ngram.</param>
-        /// <param name="useAllLengths">Whether to include all ngram lengths up to <paramref name="ngramLength"/> or only <paramref name="ngramLength"/>.</param>
+        /// <param name="skipLength">Maximum number of tokens to skip when constructing an n-gram.</param>
+        /// <param name="useAllLengths">Whether to include all n-gram lengths up to <paramref name="ngramLength"/> or only <paramref name="ngramLength"/>.</param>
         /// <param name="maximumNgramsCount">Maximum number of n-grams to store in the dictionary.</param>
         /// <param name="weighting">Statistical measure used to evaluate how important a word is to a document in a corpus.</param>
         public static Vector<float> ProduceNgrams<TKey>(this VarVector<Key<TKey, string>> input,
@@ -504,7 +504,7 @@ namespace Microsoft.ML.StaticPipe
     }
 
     /// <summary>
-    /// Extensions for statically typed ngram hash estimator.
+    /// Extensions for statically typed n-gram hash estimator.
     /// </summary>
     public static class NgramHashEstimatorStaticExtensions
     {
@@ -568,8 +568,8 @@ namespace Microsoft.ML.StaticPipe
         }
 
         /// <summary>
-        /// Produces a bag of counts of ngrams (sequences of consecutive words of length 1-n) in a given tokenized text.
-        /// It does so by hashing each ngram and using the hash value as the index in the bag.
+        /// Produces a bag of counts of n-grams (sequences of n consecutive words of length 1-n) in a given tokenized text.
+        /// It does so by hashing each n-gram and using the hash value as the index in the bag.
         ///
         /// <see cref="ProduceHashedNgrams"/> is different from <see cref="WordHashBagEstimatorStaticExtensions.ProduceHashedWordBags"/>
         /// in a way that <see cref="ProduceHashedNgrams"/> takes tokenized text as input while <see cref="WordHashBagEstimatorStaticExtensions.ProduceHashedWordBags"/> tokenizes text internally.
@@ -577,8 +577,8 @@ namespace Microsoft.ML.StaticPipe
         /// <param name="input">The column to apply to.</param>
         /// <param name="numberOfBits">Number of bits to hash into. Must be between 1 and 30, inclusive.</param>
         /// <param name="ngramLength">Ngram length.</param>
-        /// <param name="skipLength">Maximum number of tokens to skip when constructing an ngram.</param>
-        /// <param name="useAllLengths">Whether to include all ngram lengths up to <paramref name="ngramLength"/> or only <paramref name="ngramLength"/>.</param>
+        /// <param name="skipLength">Maximum number of tokens to skip when constructing an n-gram.</param>
+        /// <param name="useAllLengths">Whether to include all n-gram lengths up to <paramref name="ngramLength"/> or only <paramref name="ngramLength"/>.</param>
         /// <param name="seed">Hashing seed.</param>
         /// <param name="useOrderedHashing">Whether the position of each source column should be included in the hash (when there are multiple source columns).</param>
         /// <param name="maximumNumberOfInverts">During hashing we constuct mappings between original values and the produced hash values.
