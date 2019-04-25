@@ -28,30 +28,22 @@ non-strongly-convex cases, you will get equally-good solutions from run to run.
 For reproducible results, it is recommended that one sets 'Shuffle' to False and
 'NumThreads' to 1.
 
-This learner supports [elastic net
-regularization](https://en.wikipedia.org/wiki/Elastic_net_regularization): a
-linear combination of the L1 and L2 penalties of the [lasso and ridge
-methods](https://www.datacamp.com/community/tutorials/tutorial-ridge-lasso-elastic-net).
-It can be specified by the 'L2Const' and 'L1Threshold' parameters. Note that the
-'L2Const' has an effect on the number of needed training iterations. In general,
-the larger the 'L2Const', the less number of iterations is needed to achieve a
-reasonable solution. Regularization is a method that can render an ill-posed
-problem more tractable and prevents overfitting by penalizing model's magnitude
-usually measured by some norm functions. This can improve the generalization of
-the model learned by selecting the optimal complexity in the [bias-variance
-tradeoff](https://en.wikipedia.org/wiki/Bias%E2%80%93variance_tradeoff).
-Regularization works by adding the penalty that is associated with coefficient
-values to the error of the hypothesis. An accurate model with extreme
-coefficient values would be penalized more, but a less accurate model with more
-conservative values would be penalized less.
+This class use [empricial risk minimization](https://en.wikipedia.org/wiki/Empirical_risk_minimization) to formulate the optimized problem built upon collected data.
+If the training data does not contain enough data points (for example, to train a linear model in $n$-dimensional space, we at least need $n$ data points),
+(overfitting)(https://en.wikipedia.org/wiki/Overfitting) may happen so the trained model is good at describing training data but may fail to predict correct results in unseen events.
+[Regularization](https://en.wikipedia.org/wiki/Regularization_(mathematics)) is a common technique to alleviate such a phenomenon by penalizing the magnitude (usually measureed by [norm function](https://en.wikipedia.org/wiki/Norm_(mathematics))) of model parameters.
+This trainer supports [elastic net regularization](https://en.wikipedia.org/wiki/Elastic_net_regularization) which penalizing a linear combination of L1-norm (LASSO), $|| \textbf{w}_c ||_1$, and L2-norm (ridge), $|| \textbf{w}_c ||_2^2$ regularizations.
+L1-norm and L2-norm regularizations have different effects and uses that are complementary in certain respects.
+Togehter with the implemented optimization algorithm, L1-norm regularization can increase the sparsity of the $\textbf{w}_1,\dots,\textbf{w}_m$.
+For high-dimention and sparse data set, if user carefully select the coefficient of L1-norm, it is possible to achieve a good prediction quality with a model with a few of non-zeros (e.g., 1% values) in $\textbf{w}_1,\dots,\textbf{w}_m$ without affecting its .
+In contrast, L2-norm can not increase the sparsity of the trained model but can still prevernt overfitting by avoiding large parameter values.
+Sometimes, using L2-norm leads to a better prediction quality, so user may still want try it and fine tune the coefficints of L1-norm and L2-norm.
+Note that conceptually, using L1-norm implies that the distribution of all model parameters is a [Laplace distribution](https://en.wikipedia.org/wiki/Laplace_distribution) while
+L2-norm means that a [Gaussian distribution](https://en.wikipedia.org/wiki/Normal_distribution) for them.
 
-L1-nrom and L2-norm regularizations have different effects and uses that are
-complementary in certain respects. Using L1-norm can increase sparsity of the
-trained $\textbf{w}$. When working with high-dimensional data, it shrinks small
-weights of irrevalent features to 0 and therefore no reource will be spent on
-those bad features when making prediction. L2-norm regularization is preferable
-for data that is not sparse and it largely penalizes the existence of large
-weights.
+An aggressive regularization (that is, assigning large coefficients to L1-norm or L2-norm regularization terms) can harm predictive capacity by excluding important variables out of the model.
+Therefore, choosing the right regularization coefficients is important in practice.
+For example, a very large L1-norm coefficient may force all parameters to be zeros and lead to a trivial model.
 
 For more information, see:
 * [Scaling Up Stochastic Dual Coordinate
