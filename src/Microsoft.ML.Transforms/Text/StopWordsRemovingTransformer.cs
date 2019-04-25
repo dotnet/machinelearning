@@ -495,7 +495,7 @@ namespace Microsoft.ML.Transforms.Text
     /// and fills it with a vector of words containing all of the words in the input column **except the predefined list of stopwords for the specified language.
     /// All text comparison made by casting predefined text and text from input column to lower case using casing rules of invariant culture.
     ///
-    /// Check the See Also section for links to examples of the usage.
+    /// Check the See Also section for links to usage examples.
     /// ]]>
     /// </format>
     /// </remarks>
@@ -1102,7 +1102,7 @@ namespace Microsoft.ML.Transforms.Text
     /// fills it with a vector of words containing all of the words in the input column except those given by the stopwords parameter.
     /// All text comparison made by casting provided words and words from input column to lower case using casing rules of invariant culture.
     ///
-    /// Check the See Also section for links to examples of the usage.
+    /// Check the See Also section for links to usage examples.
     /// ]]>
     /// </format>
     /// </remarks>

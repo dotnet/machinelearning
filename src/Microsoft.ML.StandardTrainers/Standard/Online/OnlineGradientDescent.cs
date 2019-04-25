@@ -47,7 +47,7 @@ namespace Microsoft.ML.Trainers
     /// Online Gradient Descent (OGD) implements the standard (non-batch) stochastic gradient descent, with a choice of loss functions,
     /// and an option to update the weight vector using the average of the vectors seen over time (averaged argument is set to True by default).
     ///
-    /// Check the See Also section for links to examples of the usage.
+    /// Check the See Also section for links to usage examples.
     /// ]]>
     /// </format>
     /// </remarks>

@@ -61,7 +61,7 @@ namespace Microsoft.ML.Trainers
     ///
     /// For more information see [Parallel Stochastic Gradient Descent with Sound Combiners](https://arxiv.org/abs/1705.08030).
     ///
-    /// Check the See Also section for links to examples of the usage.
+    /// Check the See Also section for links to usage examples.
     /// ]]>
     /// </format>
     /// </remarks>

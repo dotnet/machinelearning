@@ -60,7 +60,7 @@ namespace Microsoft.ML.Transforms.Onnx
     /// To create this estimator use the following:
     /// [ApplyOnnxModel](xref:Microsoft.ML.OnnxCatalog.ApplyOnnxModel*)
     ///
-    /// Check the See Also section for links to examples of the usage.
+    /// Check the See Also section for links to usage examples.
     /// ]]>
     /// </format>
     /// </remarks>
@@ -544,7 +544,7 @@ namespace Microsoft.ML.Transforms.Onnx
     /// To create this estimator use the following:
     /// [ApplyOnnxModel](xref:Microsoft.ML.OnnxCatalog.ApplyOnnxModel*)
     ///
-    /// Check the See Also section for links to examples of the usage.
+    /// Check the See Also section for links to usage examples.
     /// ]]>
     /// </format>
     /// </remarks>

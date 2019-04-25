@@ -70,7 +70,7 @@ namespace Microsoft.ML.Trainers
     /// [K-means](https://en.wikipedia.org/wiki/K-means_clustering)
     /// [K-means++](https://en.wikipedia.org/wiki/K-means%2b%2b)
     ///
-    /// Check the See Also section for links to examples of the usage.
+    /// Check the See Also section for links to usage examples.
     /// ]]>
     /// </format>
     /// </remarks>

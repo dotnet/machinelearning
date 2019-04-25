@@ -29,7 +29,7 @@ namespace Microsoft.ML.Transforms.Text
     /// <xref:Microsoft.ML.Transforms.Text.WordBagEstimator> is different from <xref:Microsoft.ML.Transforms.Text.NgramExtractingEstimator>
     /// in that the former takes tokenizes text internally while the latter takes tokenized text as input.
     ///
-    /// Check the See Also section for links to examples of the usage.
+    /// Check the See Also section for links to usage examples.
     /// ]]>
     /// </format>
     /// </remarks>
@@ -220,7 +220,7 @@ namespace Microsoft.ML.Transforms.Text
     /// <xref:Microsoft.ML.Transforms.Text.WordHashBagEstimator> is different from <xref:Microsoft.ML.Transforms.Text.NgramHashingEstimator>
     /// in that the former takes tokenizes text internally while the latter takes tokenized text as input.
     ///
-    /// Check the See Also section for links to examples of the usage.
+    /// Check the See Also section for links to usage examples.
     /// ]]>
     /// </format>
     /// </remarks>

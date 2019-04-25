@@ -67,7 +67,7 @@ namespace Microsoft.ML.Trainers
     /// L-BFGS history for all classes *simultaneously*, rather than just one-by-one
     /// as would be needed for a pairwise coupling classification model.
     ///
-    /// Check the See Also section for links to examples of the usage.
+    /// Check the See Also section for links to usage examples.
     /// ]]>
     /// </format>
     /// </remarks>

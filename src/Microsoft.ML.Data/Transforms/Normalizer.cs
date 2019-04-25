@@ -61,7 +61,7 @@ namespace Microsoft.ML.Transforms
     /// * [NormalizeBinning](xref:Microsoft.ML.NormalizationCatalog.NormalizeBinning(Microsoft.ML.TransformsCatalog,System.String,System.String,System.Int64,System.Boolean,System.Int32))
     /// * [NormalizeSupervisedBinning](xref:Microsoft.ML.NormalizationCatalog.NormalizeSupervisedBinning(Microsoft.ML.TransformsCatalog,System.String,System.String,System.String,System.Int64,System.Boolean,System.Int32,System.Int32))
     ///
-    /// Check the above links for examples of the usage.
+    /// Check the above links for usage examples.
     /// ]]>
     /// </format>
     /// </remarks>

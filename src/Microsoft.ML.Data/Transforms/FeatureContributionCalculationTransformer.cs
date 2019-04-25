@@ -285,7 +285,7 @@ namespace Microsoft.ML.Transforms
     /// and the score obtained by taking the opposite decision at the node corresponding to feature F1. This algorithm extends naturally to models with
     /// many decision trees.
     ///
-    /// Check the See Also section for links to examples of the usage.
+    /// Check the See Also section for links to usage examples.
     /// ]]></format>
     /// </remarks>
     /// <seealso cref="ExplainabilityCatalog.CalculateFeatureContribution(TransformsCatalog, ISingleFeaturePredictionTransformer{ICalculateFeatureContribution}, int, int, bool)"/>

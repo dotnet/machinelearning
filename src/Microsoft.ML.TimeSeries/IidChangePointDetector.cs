@@ -214,7 +214,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
     ///
     /// [!include[io](~/../docs/samples/docs/api-reference/time-series-scorer.md)]
     ///
-    /// Check the See Also section for links to examples of the usage.
+    /// Check the See Also section for links to usage examples.
     /// ]]>
     /// </format>
     /// </remarks>

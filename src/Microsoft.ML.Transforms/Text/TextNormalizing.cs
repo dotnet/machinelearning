@@ -447,7 +447,7 @@ namespace Microsoft.ML.Transforms.Text
     /// in the output column name parameters, and normalizes the textual input data by changing case, removing diacritical marks,
     /// punctuation marks and/or numbers.
     ///
-    /// Check the See Also section for links to examples of the usage.
+    /// Check the See Also section for links to usage examples.
     /// ]]>
     /// </format>
     /// </remarks>

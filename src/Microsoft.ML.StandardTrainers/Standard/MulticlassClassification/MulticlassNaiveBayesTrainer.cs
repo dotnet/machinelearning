@@ -56,7 +56,7 @@ namespace Microsoft.ML.Trainers
     /// feature values that are greater than zero are treated as `true` and feature values
     /// that are less or equal to 0 are treated as `false`.
     ///
-    /// Check the See Also section for links to examples of the usage.
+    /// Check the See Also section for links to usage examples.
     /// ]]>
     /// </format>
     /// </remarks>

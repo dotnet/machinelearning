@@ -55,7 +55,7 @@ namespace Microsoft.ML.Trainers
     /// It assumes that the conditional mean of the dependent variable follows a linear function of the dependent variables.
     /// The regression parameters can be estimated by minimizing the squares of the difference between observed values and the predictions
     ///
-    /// Check the See Also section for links to examples of the usage.
+    /// Check the See Also section for links to usage examples.
     /// ]]>
     /// </format>
     /// </remarks>
