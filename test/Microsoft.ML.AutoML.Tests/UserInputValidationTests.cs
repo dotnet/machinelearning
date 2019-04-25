@@ -18,7 +18,7 @@ namespace Microsoft.ML.Auto.Test
         [ExpectedException(typeof(ArgumentNullException))]
         public void ValidateExperimentExecuteNullTrainData()
         {
-            UserInputValidationUtil.ValidateExperimentExecuteArgs(null, new ColumnInformation(), null);
+            UserInputValidationUtil.ValidateExperimentExecuteArgs(null, new ColumnInformation(), null, TaskKind.Regression);
         }
 
         [TestMethod]
@@ -26,7 +26,7 @@ namespace Microsoft.ML.Auto.Test
         public void ValidateExperimentExecuteNullLabel()
         {
             UserInputValidationUtil.ValidateExperimentExecuteArgs(Data, 
-                new ColumnInformation() { LabelColumnName = null }, null);
+                new ColumnInformation() { LabelColumnName = null }, null, TaskKind.Regression);
         }
 
         [TestMethod]
@@ -34,7 +34,7 @@ namespace Microsoft.ML.Auto.Test
         public void ValidateExperimentExecuteLabelNotInTrain()
         {
             UserInputValidationUtil.ValidateExperimentExecuteArgs(Data,
-                new ColumnInformation() { LabelColumnName = "L" }, null);
+                new ColumnInformation() { LabelColumnName = "L" }, null, TaskKind.Regression);
         }
 
         [TestMethod]
@@ -44,7 +44,7 @@ namespace Microsoft.ML.Auto.Test
             var columnInfo = new ColumnInformation();
             columnInfo.NumericColumnNames.Add("N");
 
-            UserInputValidationUtil.ValidateExperimentExecuteArgs(Data, columnInfo, null);
+            UserInputValidationUtil.ValidateExperimentExecuteArgs(Data, columnInfo, null, TaskKind.Regression);
         }
 
         [TestMethod]
@@ -53,7 +53,7 @@ namespace Microsoft.ML.Auto.Test
         {
             var columnInfo = new ColumnInformation();
             columnInfo.NumericColumnNames.Add(null);
-            UserInputValidationUtil.ValidateExperimentExecuteArgs(Data, columnInfo, null);
+            UserInputValidationUtil.ValidateExperimentExecuteArgs(Data, columnInfo, null, TaskKind.Regression);
         }
 
         [TestMethod]
@@ -63,7 +63,7 @@ namespace Microsoft.ML.Auto.Test
             var columnInfo = new ColumnInformation();
             columnInfo.NumericColumnNames.Add(DefaultColumnNames.Label);
 
-            UserInputValidationUtil.ValidateExperimentExecuteArgs(Data, columnInfo, null);
+            UserInputValidationUtil.ValidateExperimentExecuteArgs(Data, columnInfo, null, TaskKind.Regression);
         }
 
         [TestMethod]
@@ -82,7 +82,7 @@ namespace Microsoft.ML.Auto.Test
             var validData = validDataBuilder.GetDataView();
 
             UserInputValidationUtil.ValidateExperimentExecuteArgs(trainData, 
-                new ColumnInformation() { LabelColumnName = "0" }, validData);
+                new ColumnInformation() { LabelColumnName = "0" }, validData, TaskKind.Regression);
         }
 
         [TestMethod]
@@ -102,7 +102,7 @@ namespace Microsoft.ML.Auto.Test
             var validData = validDataBuilder.GetDataView();
 
             UserInputValidationUtil.ValidateExperimentExecuteArgs(trainData,
-                new ColumnInformation() { LabelColumnName = "0" }, validData);
+                new ColumnInformation() { LabelColumnName = "0" }, validData, TaskKind.Regression);
         }
 
         [TestMethod]
@@ -122,7 +122,7 @@ namespace Microsoft.ML.Auto.Test
             var validData = validDataBuilder.GetDataView();
 
             UserInputValidationUtil.ValidateExperimentExecuteArgs(trainData,
-                new ColumnInformation() { LabelColumnName = "0" }, validData);
+                new ColumnInformation() { LabelColumnName = "0" }, validData, TaskKind.Regression);
         }
 
         [TestMethod]
@@ -163,7 +163,7 @@ namespace Microsoft.ML.Auto.Test
             schemaBuilder.AddColumn(DefaultColumnNames.Label, NumberDataViewType.Single);
             var schema = schemaBuilder.ToSchema();
             var dataView = new EmptyDataView(new MLContext(), schema);
-            UserInputValidationUtil.ValidateExperimentExecuteArgs(dataView, new ColumnInformation(), null);
+            UserInputValidationUtil.ValidateExperimentExecuteArgs(dataView, new ColumnInformation(), null, TaskKind.Regression);
         }
 
         [TestMethod]
@@ -181,7 +181,78 @@ namespace Microsoft.ML.Auto.Test
             var columnInfo = new ColumnInformation();
             columnInfo.NumericColumnNames.Add(TextPurposeColName);
 
-            UserInputValidationUtil.ValidateExperimentExecuteArgs(dataView, columnInfo, null);
+            UserInputValidationUtil.ValidateExperimentExecuteArgs(dataView, columnInfo, null, TaskKind.Regression);
+        }
+
+        [TestMethod]
+        public void ValidateRegressionLabelTypes()
+        {
+            ValidateLabelTypeTestCore(TaskKind.Regression, NumberDataViewType.Single, true);
+            ValidateLabelTypeTestCore(TaskKind.Regression, BooleanDataViewType.Instance, false);
+            ValidateLabelTypeTestCore(TaskKind.Regression, NumberDataViewType.Double, false);
+            ValidateLabelTypeTestCore(TaskKind.Regression, TextDataViewType.Instance, false);
+        }
+
+        [TestMethod]
+        public void ValidateBinaryClassificationLabelTypes()
+        {
+            ValidateLabelTypeTestCore(TaskKind.BinaryClassification, NumberDataViewType.Single, false);
+            ValidateLabelTypeTestCore(TaskKind.BinaryClassification, BooleanDataViewType.Instance, true);
+        }
+
+        [TestMethod]
+        public void ValidateMulticlassLabelTypes()
+        {
+            ValidateLabelTypeTestCore(TaskKind.MulticlassClassification, NumberDataViewType.Single, true);
+            ValidateLabelTypeTestCore(TaskKind.MulticlassClassification, BooleanDataViewType.Instance, true);
+            ValidateLabelTypeTestCore(TaskKind.MulticlassClassification, NumberDataViewType.Double, true);
+            ValidateLabelTypeTestCore(TaskKind.MulticlassClassification, TextDataViewType.Instance, true);
+        }
+
+        [TestMethod]
+        public void ValidateAllowedFeatureColumnTypes()
+        {
+            var schemaBuilder = new DataViewSchema.Builder();
+            schemaBuilder.AddColumn("Boolean", BooleanDataViewType.Instance);
+            schemaBuilder.AddColumn("Number", NumberDataViewType.Single);
+            schemaBuilder.AddColumn("Text", TextDataViewType.Instance);
+            schemaBuilder.AddColumn(DefaultColumnNames.Label, NumberDataViewType.Single);
+            var schema = schemaBuilder.ToSchema();
+            var dataView = new EmptyDataView(new MLContext(), schema);
+            UserInputValidationUtil.ValidateExperimentExecuteArgs(dataView, new ColumnInformation(),
+                null, TaskKind.Regression);
+        }
+
+        [TestMethod]
+        [ExpectedException(typeof(ArgumentException))]
+        public void ValidateProhibitedFeatureColumnType()
+        {
+            var schemaBuilder = new DataViewSchema.Builder();
+            schemaBuilder.AddColumn("UInt64", NumberDataViewType.UInt64);
+            schemaBuilder.AddColumn(DefaultColumnNames.Label, NumberDataViewType.Single);
+            var schema = schemaBuilder.ToSchema();
+            var dataView = new EmptyDataView(new MLContext(), schema);
+            UserInputValidationUtil.ValidateExperimentExecuteArgs(dataView, new ColumnInformation(),
+                null, TaskKind.Regression);
+        }
+
+        private static void ValidateLabelTypeTestCore(TaskKind task, DataViewType labelType, bool labelTypeShouldBeValid)
+        {
+            var schemaBuilder = new DataViewSchema.Builder();
+            schemaBuilder.AddColumn(DefaultColumnNames.Features, NumberDataViewType.Single);
+            schemaBuilder.AddColumn(DefaultColumnNames.Label, labelType);
+            var schema = schemaBuilder.ToSchema();
+            var dataView = new EmptyDataView(new MLContext(), schema);
+            var validationExceptionThrown = false;
+            try
+            {
+                UserInputValidationUtil.ValidateExperimentExecuteArgs(dataView, new ColumnInformation(), null, task);
+            }
+            catch
+            {
+                validationExceptionThrown = true;
+            }
+            Assert.AreEqual(labelTypeShouldBeValid, !validationExceptionThrown);
         }
     }
 }

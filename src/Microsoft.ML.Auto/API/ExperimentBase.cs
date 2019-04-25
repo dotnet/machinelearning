@@ -239,7 +239,7 @@ namespace Microsoft.ML.Auto
             IProgress<RunDetail<TMetrics>> progressHandler)
         {
             columnInfo = columnInfo ?? new ColumnInformation();
-            UserInputValidationUtil.ValidateExperimentExecuteArgs(trainData, columnInfo, validationData);
+            UserInputValidationUtil.ValidateExperimentExecuteArgs(trainData, columnInfo, validationData, _task);
 
             // Apply pre-featurizer
             ITransformer preprocessorTransform = null;
@@ -263,7 +263,7 @@ namespace Microsoft.ML.Auto
             IProgress<CrossValidationRunDetail<TMetrics>> progressHandler)
         {
             columnInfo = columnInfo ?? new ColumnInformation();
-            UserInputValidationUtil.ValidateExperimentExecuteArgs(trainDatasets[0], columnInfo, validationDatasets[0]);
+            UserInputValidationUtil.ValidateExperimentExecuteArgs(trainDatasets[0], columnInfo, validationDatasets[0], _task);
 
             // Apply pre-featurizer
             ITransformer[] preprocessorTransforms = null;
@@ -290,7 +290,7 @@ namespace Microsoft.ML.Auto
             IProgress<RunDetail<TMetrics>> progressHandler)
         {
             columnInfo = columnInfo ?? new ColumnInformation();
-            UserInputValidationUtil.ValidateExperimentExecuteArgs(trainDatasets[0], columnInfo, validationDatasets[0]);
+            UserInputValidationUtil.ValidateExperimentExecuteArgs(trainDatasets[0], columnInfo, validationDatasets[0], _task);
 
             // Apply pre-featurizer
             ITransformer[] preprocessorTransforms = null;
