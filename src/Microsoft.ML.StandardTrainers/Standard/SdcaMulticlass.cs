@@ -34,7 +34,7 @@ namespace Microsoft.ML.Trainers
     /// [SdcaMaximumEntropy(Options)](xref:Microsoft.ML.StandardTrainersCatalog.SdcaMaximumEntropy(Microsoft.ML.MulticlassClassificationCatalog.MulticlassClassificationTrainers,Microsoft.ML.Trainers.SdcaMaximumEntropyMulticlassTrainer.Options)).
     /// To create this trainer for a [loss function](xref:Microsoft.ML.Trainers.ISupportSdcaClassificationLoss) (such as support vector machine's [hinge loss](xref:Microsoft.ML.Trainers.HingeLoss)) of your choice,
     /// use [SdcaNonCalibrated](xref:Microsoft.ML.StandardTrainersCatalog.SdcaNonCalibrated(Microsoft.ML.MulticlassClassificationCatalog.MulticlassClassificationTrainers,System.String,System.String,System.String,Microsoft.ML.Trainers.ISupportSdcaClassificationLoss,System.Nullable{System.Single},System.Nullable{System.Single},System.Nullable{System.Int32})) or
-    /// [SdcaNonCalibrated(Options)](Microsoft.ML.StandardTrainersCatalog.SdcaNonCalibrated(Microsoft.ML.MulticlassClassificationCatalog.MulticlassClassificationTrainers,Microsoft.ML.Trainers.SdcaNonCalibratedMulticlassTrainer.Options)).
+    /// [SdcaNonCalibrated(Options)](xref:Microsoft.ML.StandardTrainersCatalog.SdcaNonCalibrated(Microsoft.ML.MulticlassClassificationCatalog.MulticlassClassificationTrainers,Microsoft.ML.Trainers.SdcaNonCalibratedMulticlassTrainer.Options)).
     ///
     /// [!include[io](~/../docs/samples/docs/api-reference/io-columns-multiclass-classification.md)]
     ///
