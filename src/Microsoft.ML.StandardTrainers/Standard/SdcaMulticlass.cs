@@ -59,25 +59,38 @@ namespace Microsoft.ML.Trainers
     /// In other cases, the output score vector is just $[\hat{y}^1, \dots, \hat{y}^m]$.
     ///
     /// ### Training Algorithm Details
-    /// The optimization algorithm is an extension of (http://jmlr.org/papers/volume14/shalev-shwartz13a/shalev-shwartz13a.pdf) following a similar path proposed in an earlier [paper](https://www.csie.ntu.edu.tw/~cjlin/papers/maxent_dual.pdf).
-    /// It is usually much faster than [L-BFGS](https://en.wikipedia.org/wiki/Limited-memory_BFGS) and [truncated Newton methods](https://en.wikipedia.org/wiki/Truncated_Newton_method) for large-scale and sparse data set.
+    /// The optimization algorithm is an extension of (http://jmlr.org/papers/volume14/shalev-shwartz13a/shalev-shwartz13a.pdf)
+    /// following a similar path proposed in an earlier [paper](https://www.csie.ntu.edu.tw/~cjlin/papers/maxent_dual.pdf).
+    /// It is usually much faster than [L-BFGS](https://en.wikipedia.org/wiki/Limited-memory_BFGS) and
+    /// [truncated Newton methods](https://en.wikipedia.org/wiki/Truncated_Newton_method) for large-scale and sparse data set.
     ///
-    /// This class use [empricial risk minimization](https://en.wikipedia.org/wiki/Empirical_risk_minimization) to formulate the optimized problem built upon collected data.
-    /// If the training data does not contain enough data points (for example, to train a linear model in $n$-dimensional space, we at least need $n$ data points),
-    /// (overfitting)(https://en.wikipedia.org/wiki/Overfitting) may happen so the trained model is good at describing training data but may fail to predict correct results in unseen events.
-    /// [Regularization](https://en.wikipedia.org/wiki/Regularization_(mathematics)) is a common technique to alleviate such a phenomenon by penalizing the magnitude (usually measureed by [norm function](https://en.wikipedia.org/wiki/Norm_(mathematics))) of model parameters.
-    /// This trainer supports [elastic net regularization](https://en.wikipedia.org/wiki/Elastic_net_regularization) which penalizing a linear combination of L1-norm (LASSO), $|| \textbf{w}_c ||_1$, and L2-norm (ridge), $|| \textbf{w}_c ||_2^2$ regularizations.
+    /// This class use [empricial risk minimization](https://en.wikipedia.org/wiki/Empirical_risk_minimization)
+    /// to formulate the optimization problem built upon collected data.
+    /// If the training data does not contain enough data points
+    /// (for example, to train a linear model in $n$-dimensional space, we at least need $n$ data points),
+    /// (overfitting)(https://en.wikipedia.org/wiki/Overfitting) may happen so that
+    /// the trained model is good at describing training data but may fail to predict correct results in unseen events.
+    /// [Regularization](https://en.wikipedia.org/wiki/Regularization_(mathematics)) is a common technique to alleviate
+    /// such a phenomenon by penalizing the magnitude (usually measured by
+    /// [norm function](https://en.wikipedia.org/wiki/Norm_(mathematics))) of model parameters.
+    /// This trainer supports [elastic net regularization](https://en.wikipedia.org/wiki/Elastic_net_regularization)
+    /// which penalizes a linear combination of L1-norm (LASSO), $|| \textbf{w}_c ||_1$, and L2-norm (ridge), $|| \textbf{w}_c ||_2^2$ regularizations for $c=1,\dots,m$.
     /// L1-norm and L2-norm regularizations have different effects and uses that are complementary in certain respects.
-    /// Togehter with the implemented optimization algorithm, L1-norm regularization can increase the sparsity of the $\textbf{w}_1,\dots,\textbf{w}_m$.
-    /// For high-dimention and sparse data set, if user carefully select the coefficient of L1-norm, it is possible to achieve a good prediction quality with a model with a few of non-zeros (e.g., 1% values) in $\textbf{w}_1,\dots,\textbf{w}_m$ without affecting its .
-    /// In contrast, L2-norm can not increase the sparsity of the trained model but can still prevernt overfitting by avoiding large parameter values.
-    /// Sometimes, using L2-norm leads to a better prediction quality, so user may still want try it and fine tune the coefficints of L1-norm and L2-norm.
-    /// Note that conceptually, using L1-norm implies that the distribution of all model parameters is a [Laplace distribution](https://en.wikipedia.org/wiki/Laplace_distribution) while
+    ///
+    /// Together with the implemented optimization algorithm, L1-norm regularization can increase the sparsity of the model weights, $\textbf{w}_1,\dots,\textbf{w}_m$.
+    /// For high-dimension and sparse data set, if users carefully select the coefficient of L1-norm,
+    /// it is possible to achieve a good prediction quality with a model that has only a few non-zero weights
+    /// (e.g., 1% of total model weights) without affecting its prediction power.
+    /// In contrast, L2-norm can not increase the sparsity of the trained model but can still prevent overfitting by avoiding large parameter values.
+    /// Sometimes, using L2-norm leads to a better prediction quality, so users may still want to try it and fine tune the coefficints of L1-norm and L2-norm.
+    /// Note that conceptually, using L1-norm implies that the distribution of all model parameters is a
+    /// [Laplace distribution](https://en.wikipedia.org/wiki/Laplace_distribution) while
     /// L2-norm means that a [Gaussian distribution](https://en.wikipedia.org/wiki/Normal_distribution) for them.
     ///
-    /// An aggressive regularization (that is, assigning large coefficients to L1-norm or L2-norm regularization terms) can harm predictive capacity by excluding important variables out of the model.
-    /// Therefore, choosing the right regularization coefficients is important in practice.
+    /// An aggressive regularization (that is, assigning large coefficients to L1-norm or L2-norm regularization terms)
+    /// can harm predictive capacity by excluding important variables out of the model.
     /// For example, a very large L1-norm coefficient may force all parameters to be zeros and lead to a trivial model.
+    /// Therefore, choosing the right regularization coefficients is important in practice.
     ///
     /// Check the See Also section for links to usage examples.
     /// ]]>
