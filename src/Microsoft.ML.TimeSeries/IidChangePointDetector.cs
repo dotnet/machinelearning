@@ -201,6 +201,13 @@ namespace Microsoft.ML.Transforms.TimeSeries
     ///
     /// [!include[io](~/../docs/samples/docs/api-reference/io-time-series-change-point.md)]
     ///
+    /// ###  Estimator Characteristics
+    /// |  |  |
+    /// | -- | -- |
+    /// | Does this estimator need to look at the data to train its parameters? | No |
+    /// | Input column data type | <xref:System.Single> |
+    /// | Output column data type | 4-element vector of<xref:System.Double> |
+    ///
     /// [!include[io](~/../docs/samples/docs/api-reference/time-series-props.md)]
     ///
     /// [!include[io](~/../docs/samples/docs/api-reference/time-series-iid.md)]
