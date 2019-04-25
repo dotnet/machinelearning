@@ -25,11 +25,11 @@ string ExpectedOutputPerInstance = @"// Expected output:
             //   Label: False, Prediction: False";
 
 string ExpectedOutput = @"// Expected output:
-			//   Accuracy: 0.85
-			//   AUC: 0.95
-			//   F1 Score: 0.86
-			//   Negative Precision: 0.91
-			//   Negative Recall: 0.80
-			//   Positive Precision: 0.80
-			//   Positive Recall: 0.92";
+            //   Accuracy: 0.85
+            //   AUC: 0.95
+            //   F1 Score: 0.86
+            //   Negative Precision: 0.91
+            //   Negative Recall: 0.80
+            //   Positive Precision: 0.80
+            //   Positive Recall: 0.92";
 #>

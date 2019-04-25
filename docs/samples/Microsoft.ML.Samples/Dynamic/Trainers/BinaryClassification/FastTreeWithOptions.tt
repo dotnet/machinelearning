@@ -33,7 +33,7 @@ string ExpectedOutput = @"// Expected output:
             //   Log Loss: 0.62
             //   Log Loss Reduction: 37.77
             //   Entropy: 1.00";
-			//
+            //
             //   TEST POSITIVE RATIO:    0.4760 (238.0/(238.0+262.0))
             //   Confusion table
             //             ||======================
