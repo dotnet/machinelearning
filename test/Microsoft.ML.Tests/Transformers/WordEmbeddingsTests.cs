@@ -92,7 +92,7 @@ namespace Microsoft.ML.Tests.Transformers
 
             using (var fs = File.Create(outputPath))
                 ML.Data.SaveAsText(savedData, fs, headerRow: true, keepHidden: true);
-            CheckEquality("Text", "customWordEmbeddings.tsv");
+            CheckEquality("Text", "customWordEmbeddings.tsv", parseOption: NumberParseOption.UseSingle);
             Done();
         }
     }

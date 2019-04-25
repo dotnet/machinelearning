@@ -475,7 +475,7 @@ namespace Microsoft.ML.Tests
             var onnxModel = mlContext.Model.ConvertToOnnxProtobuf(model, data);
             SaveOnnxModel(onnxModel, onnxFilePath, onnxTextPath);
 
-            CheckEquality(subDir, onnxTextName);
+            CheckEquality(subDir, onnxTextName, parseOption: NumberParseOption.UseSingle);
             Done();
         }
 
