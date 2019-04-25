@@ -61,13 +61,23 @@ namespace Samples.Dynamic.Trainers.BinaryClassification
             PrintMetrics(metrics);
             
             // Expected output:
-			//   Accuracy: 0.85
-			//   AUC: 0.95
-			//   F1 Score: 0.86
-			//   Negative Precision: 0.91
-			//   Negative Recall: 0.80
-			//   Positive Precision: 0.80
-			//   Positive Recall: 0.92
+            //   Accuracy: 0.85
+            //   AUC: 0.95
+            //   F1 Score: 0.86
+            //   Negative Precision: 0.91
+            //   Negative Recall: 0.80
+            //   Positive Precision: 0.80
+            //   Positive Recall: 0.92
+            //
+            //   TEST POSITIVE RATIO:    0.4760 (238.0/(238.0+262.0))
+            //   Confusion table
+            //             ||======================
+            //   PREDICTED || positive | negative | Recall
+            //   TRUTH     ||======================
+            //    positive ||      218 |       20 | 0.9160
+            //    negative ||       53 |      209 | 0.7977
+            //             ||======================
+            //   Precision ||   0.8044 |   0.9127 |
         }
 
         private static IEnumerable<DataPoint> GenerateRandomDataPoints(int count, int seed=0)
@@ -113,7 +123,8 @@ namespace Samples.Dynamic.Trainers.BinaryClassification
             Console.WriteLine($"Negative Precision: {metrics.NegativePrecision:F2}");
             Console.WriteLine($"Negative Recall: {metrics.NegativeRecall:F2}");
             Console.WriteLine($"Positive Precision: {metrics.PositivePrecision:F2}");
-            Console.WriteLine($"Positive Recall: {metrics.PositiveRecall:F2}");
+            Console.WriteLine($"Positive Recall: {metrics.PositiveRecall:F2}\n");
+            Console.WriteLine(metrics.ConfusionMatrix.GetFormattedConfusionTable());
         }
     }
 }

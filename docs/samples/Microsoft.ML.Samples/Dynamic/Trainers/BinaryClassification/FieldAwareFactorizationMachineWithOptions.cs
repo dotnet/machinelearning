@@ -66,6 +66,16 @@ namespace Samples.Dynamic.Trainers.BinaryClassification
             //   Log Loss: 0.17
             //   Log Loss Reduction: 0.83
             //   Entropy: 1.00
+            //
+            //  TEST POSITIVE RATIO:    0.4760 (238.0/(238.0+262.0))
+            //  Confusion table
+            //            ||======================
+            //  PREDICTED || positive | negative | Recall
+            //  TRUTH     ||======================
+            //   positive ||      199 |       39 | 0.8361
+            //   negative ||       69 |      193 | 0.7366
+            //            ||======================
+            //  Precision ||   0.7425 |   0.8319 |
 
             // Create prediction function from the trained model.
             var engine = mlContext.Model.CreatePredictionEngine<DataPoint, Result>(model);

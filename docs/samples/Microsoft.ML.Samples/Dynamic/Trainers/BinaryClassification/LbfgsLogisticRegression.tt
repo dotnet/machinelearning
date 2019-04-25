@@ -28,5 +28,15 @@ string ExpectedOutput = @"// Expected output:
             //   Positive Recall: 0.89
             //   Log Loss: 0.38
             //   Log Loss Reduction: 0.62
-            //   Entropy: 1.00";
+            //   Entropy: 1.00
+            //
+            //   TEST POSITIVE RATIO:    0.4760 (238.0/(238.0+262.0))
+            //   Confusion table
+            //             ||======================
+            //   PREDICTED || positive | negative | Recall
+            //   TRUTH     ||======================
+            //    positive ||      212 |       26 | 0.8908
+            //    negative ||       35 |      227 | 0.8664
+            //             ||======================
+            //   Precision ||   0.8583 |   0.8972 |";
 #>
