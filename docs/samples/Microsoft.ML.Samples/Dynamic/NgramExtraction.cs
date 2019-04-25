@@ -24,7 +24,7 @@ namespace Samples.Dynamic
             // false        ==RUDE== Dude, 2.
             // true          Until the next game, this is the best Xbox game!
 
-            // A pipeline to tokenize text as characters and then combine them together into ngrams
+            // A pipeline to tokenize text as characters and then combine them together into n-grams
             // The pipeline uses the default settings to featurize.
 
             var charsPipeline = ml.Transforms.Text.TokenizeIntoCharactersAsKeys("Chars", "SentimentText", useMarkerCharacters: false);

@@ -29,3 +29,5 @@ For more see:
   forest](http://jmlr.org/papers/volume7/meinshausen06a/meinshausen06a.pdf)
 * [From Stumps to Trees to
   Forests](https://blogs.technet.microsoft.com/machinelearning/2014/09/10/from-stumps-to-trees-to-forests/)
+
+Check the See Also section for links to examples of the usage.

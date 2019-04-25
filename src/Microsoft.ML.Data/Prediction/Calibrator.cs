@@ -151,6 +151,9 @@ namespace Microsoft.ML.Calibrators
         ICalibrator WeaklyTypedCalibrator { get; }
     }
 
+    /// <summary>
+    /// Base class for calibrated model parameters.
+    /// </summary>
     public abstract class CalibratedModelParametersBase
     {
         public object SubModel { get; }

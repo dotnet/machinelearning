@@ -52,13 +52,16 @@ namespace Microsoft.ML.Trainers
     /// ### Training Algorithm Details
     /// The symbolic stochastic gradient descent is an algorithm that makes its predictions by finding a separating hyperplane.
     /// For instance, with feature values $f0, f1,..., f_{D-1}$, the prediction is given by determining what side of the hyperplane the point falls into.
-    /// That is the same as the sign of the feature's weighted sum, i.e. $\sum_{i = 0}^{D-1} (w_i * f_i)$, where $w_0, w_1,..., w_{D-1}$ are the weights computed by the algorithm.
+    /// That is the same as the sign of the feature's weighted sum, i.e. $\sum_{i = 0}^{D-1} (w_i * f_i) + b$, where $w_0, w_1,..., w_{D-1}$
+    /// are the weights computed by the algorithm, and $b$ is the bias computed by the algorithm.
     ///
     /// While most symbolic stochastic gradient descent algorithms are inherently sequential - at each step, the processing of the current example depends on the parameters learned from previous examples.
     /// This algorithm trains local models in separate threads and probabilistic model cobminer that allows the local models to be combined
     /// to produce the same result as what a sequential symbolic stochastic gradient descent would have produced, in expectation.
     ///
     /// For more information see [Parallel Stochastic Gradient Descent with Sound Combiners](https://arxiv.org/abs/1705.08030).
+    ///
+    /// Check the See Also section for links to usage examples.
     /// ]]>
     /// </format>
     /// </remarks>
@@ -73,7 +76,7 @@ namespace Microsoft.ML.Trainers
 
         /// <summary>
         /// Options for the <see cref="SymbolicSgdLogisticRegressionBinaryTrainer"/> as used in
-        /// [SymbolicStochasticGradientDescent(Options)](xref:Microsoft.ML.MklComponentsCatalog.SymbolicSgdLogisticRegression(Microsoft.ML.BinaryClassificationCatalog.BinaryClassificationTrainers,Microsoft.ML.Trainers.SymbolicSgdLogisticRegressionBinaryTrainer.Options).
+        /// <see cref="Microsoft.ML.MklComponentsCatalog.SymbolicSgdLogisticRegression(BinaryClassificationCatalog.BinaryClassificationTrainers, Options)"/>.
         /// </summary>
         public sealed class Options : TrainerInputBaseWithLabel
         {

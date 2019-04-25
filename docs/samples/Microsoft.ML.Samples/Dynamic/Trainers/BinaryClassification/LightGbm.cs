@@ -8,8 +8,8 @@ namespace Samples.Dynamic.Trainers.BinaryClassification
 {
     public static class LightGbm
     {
-		// This example requires installation of additional nuget package
-		// <a href="https://www.nuget.org/packages/Microsoft.ML.LightGbm/">Microsoft.ML.LightGbm</a>.
+        // This example requires installation of additional nuget package
+        // <a href="https://www.nuget.org/packages/Microsoft.ML.LightGbm/">Microsoft.ML.LightGbm</a>.
         public static void Example()
         {
             // Create a new context for ML.NET operations. It can be used for exception tracking and logging, 
@@ -61,6 +61,16 @@ namespace Samples.Dynamic.Trainers.BinaryClassification
             //   Negative Recall: 0.77
             //   Positive Precision: 0.75
             //   Positive Recall: 0.77
+            //
+            //   TEST POSITIVE RATIO:    0.4760 (238.0/(238.0+262.0))
+            //   Confusion table
+            //             ||======================
+            //   PREDICTED || positive | negative | Recall
+            //   TRUTH     ||======================
+            //    positive ||      183 |       55 | 0.7689
+            //    negative ||       60 |      202 | 0.7710
+            //             ||======================
+            //   Precision ||   0.7531 |   0.7860 |
         }
 
         private static IEnumerable<DataPoint> GenerateRandomDataPoints(int count, int seed=0)
@@ -106,7 +116,8 @@ namespace Samples.Dynamic.Trainers.BinaryClassification
             Console.WriteLine($"Negative Precision: {metrics.NegativePrecision:F2}");
             Console.WriteLine($"Negative Recall: {metrics.NegativeRecall:F2}");
             Console.WriteLine($"Positive Precision: {metrics.PositivePrecision:F2}");
-            Console.WriteLine($"Positive Recall: {metrics.PositiveRecall:F2}");
+            Console.WriteLine($"Positive Recall: {metrics.PositiveRecall:F2}\n");
+            Console.WriteLine(metrics.ConfusionMatrix.GetFormattedConfusionTable());
         }
     }
 }

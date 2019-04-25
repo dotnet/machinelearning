@@ -21,7 +21,7 @@ namespace Microsoft.ML.Transforms
     /// |  |  |
     /// | -- | -- |
     /// | Does this estimator need to look at the data to train its parameters? | No |
-    /// | Input column data type | Any, except [key type](xref:Microsoft.ML.Data.KeyDataViewType). All input columns must have the same type.  |
+    /// | Input column data type | Any, except [key](xref:Microsoft.ML.Data.KeyDataViewType) type. All input columns must have the same type.  |
     /// | Output column data type | A vector of the input columns' data type |
     ///
     /// The resulting <xref:Microsoft.ML.Data.ColumnConcatenatingTransformer> creates a new column,
@@ -31,7 +31,7 @@ namespace Microsoft.ML.Transforms
     /// If the input columns' data type is a vector the output column data type remains the same. However, the size of
     /// the vector will be the sum of the sizes of the input vectors.
     ///
-    /// See the See Also section for links to examples of the usage.
+    /// Check the See Also section for links to usage examples.
     /// ]]></format>
     /// </remarks>
     /// <seealso cref="TransformExtensionsCatalog.Concatenate(TransformsCatalog, string, string[])"/>

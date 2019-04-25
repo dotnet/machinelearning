@@ -60,6 +60,8 @@ namespace Microsoft.ML.Transforms
     /// * [NormalizeLogMeanVariance](xref:Microsoft.ML.NormalizationCatalog.NormalizeLogMeanVariance(Microsoft.ML.TransformsCatalog,System.String,System.String,System.Int64,System.Boolean))
     /// * [NormalizeBinning](xref:Microsoft.ML.NormalizationCatalog.NormalizeBinning(Microsoft.ML.TransformsCatalog,System.String,System.String,System.Int64,System.Boolean,System.Int32))
     /// * [NormalizeSupervisedBinning](xref:Microsoft.ML.NormalizationCatalog.NormalizeSupervisedBinning(Microsoft.ML.TransformsCatalog,System.String,System.String,System.String,System.Int64,System.Boolean,System.Int32,System.Int32))
+    ///
+    /// Check the above links for usage examples.
     /// ]]>
     /// </format>
     /// </remarks>
@@ -773,7 +775,7 @@ namespace Microsoft.ML.Transforms
         }
 
         /// <summary>
-        /// Base class for all the NormalizerData classes: <see cref="AffineNormalizerModelParameters{TData}"/>,
+        /// Base class for all the data normalizer models like <see cref="AffineNormalizerModelParameters{TData}"/>,
         /// <see cref="BinNormalizerModelParameters{TData}"/>, <see cref="CdfNormalizerModelParameters{TData}"/>.
         /// </summary>
         public abstract class NormalizerModelParametersBase
@@ -787,7 +789,7 @@ namespace Microsoft.ML.Transforms
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
-        /// [!code-csharp[Normalize](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Normalizer.cs)]
+        /// [!code-csharp[Normalize](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/NormalizeLogMeanVariance.cs)]
         /// ]]>
         /// </format>
         /// </example>
@@ -823,7 +825,7 @@ namespace Microsoft.ML.Transforms
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
-        /// [!code-csharp[Normalize](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Normalizer.cs)]
+        /// [!code-csharp[Normalize](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/NormalizeLogMeanVariance.cs)]
         /// ]]>
         /// </format>
         /// </example>

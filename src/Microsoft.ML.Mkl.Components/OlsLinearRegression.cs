@@ -33,7 +33,7 @@ namespace Microsoft.ML.Trainers
 {
     /// <summary>
     /// The <see cref="IEstimator{TTransformer}"/> for training a linear regression model using
-    /// ordinary least squares (OLS) for estimating the parameters of the linear regression model.
+    /// <a href="https://en.wikipedia.org/wiki/Ordinary_least_squares">ordinary least squares (OLS)</a> for estimating the parameters of the linear regression model.
     /// </summary>
     /// <remarks>
     /// <format type="text/markdown"><![CDATA[
@@ -54,6 +54,8 @@ namespace Microsoft.ML.Trainers
     /// [Ordinary least squares (OLS)](https://en.wikipedia.org/wiki/Ordinary_least_squares) is a parameterized regression method.
     /// It assumes that the conditional mean of the dependent variable follows a linear function of the dependent variables.
     /// The regression parameters can be estimated by minimizing the squares of the difference between observed values and the predictions
+    ///
+    /// Check the See Also section for links to usage examples.
     /// ]]>
     /// </format>
     /// </remarks>
@@ -538,7 +540,7 @@ namespace Microsoft.ML.Trainers
     }
 
     /// <summary>
-    /// A linear predictor for which per parameter significance statistics are available.
+    /// Model parameters for <see cref="OlsTrainer"/>.
     /// </summary>
     public sealed class OlsModelParameters : RegressionModelParameters
     {

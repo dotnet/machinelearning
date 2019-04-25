@@ -19,8 +19,18 @@ string ExpectedOutputPerInstance= @"// Expected output:
             //   Label: 3, Prediction: 2";
 
 string ExpectedOutput = @"// Expected output:
-            //  Micro Accuracy: 0.90
-            //  Macro Accuracy: 0.90
-            //  Log Loss: 0.36
-            //  Log Loss Reduction: 0.68";
+            //   Micro Accuracy: 0.90
+            //   Macro Accuracy: 0.90
+            //   Log Loss: 0.36
+            //   Log Loss Reduction: 0.68
+            
+            //   Confusion table
+            //             ||========================
+            //   PREDICTED ||     0 |     1 |     2 | Recall
+            //   TRUTH     ||========================
+            //           0 ||   152 |     0 |     8 | 0.9500
+            //           1 ||     0 |   168 |     9 | 0.9492
+            //           2 ||    17 |    15 |   131 | 0.8037
+            //             ||========================
+            //   Precision ||0.8994 |0.9180 |0.8851 |";
 #>

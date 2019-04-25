@@ -105,6 +105,26 @@ namespace Microsoft.ML.Trainers
         IClassificationLoss IComponentFactory<IClassificationLoss>.CreateComponent(IHostEnvironment env) => new LogLoss();
     }
 
+    /// <summary>
+    /// The Log Loss, also known as the Cross Entropy Loss. It is commonly used in classification tasks.
+    /// </summary>
+    /// <remarks>
+    /// <format type="text/markdown"><![CDATA[
+    ///
+    /// The Log Loss function is defined as:
+    ///
+    /// $L(p(\hat{y}), y) = -y ln(\hat{y}) - (1 - y) ln(1 - \hat{y})$
+    ///
+    /// where $\hat{y}$ is the predicted score, $p(\hat{y})$ is the probability of belonging to the positive class by applying a [sigmoid function](https://en.wikipedia.org/wiki/Sigmoid_function) to the score, and $y \in \\{0, 1\\}$ is the true label.
+    ///
+    /// Note that the labels used in this calculation are 0 and 1, unlike [Hinge Loss](xref:Microsoft.ML.Trainers.HingeLoss) and [Exponential Loss](xref:Microsoft.ML.Trainers.ExpLoss), where the labels used are -1 and 1.
+    ///
+    /// The Log Loss function provides a measure of how *certain* a classifier's predictions are, instead of just measuring how *correct* they are.
+    /// For example, a predicted probability of 0.80 for a true label of 1 gets penalized more than a predicted probability of 0.99.
+    ///
+    /// ]]>
+    /// </format>
+    /// </remarks>
     public sealed class LogLoss : ISupportSdcaClassificationLoss
     {
         internal const string Summary = "The log loss function for classification. Supported by SDCA.";
@@ -161,8 +181,28 @@ namespace Microsoft.ML.Trainers
     }
 
     /// <summary>
-    /// Hinge Loss
+    /// Hinge Loss, commonly used in classification tasks.
     /// </summary>
+    /// <remarks>
+    /// <format type="text/markdown"><![CDATA[
+    ///
+    /// The Hinge Loss function is defined as:
+    ///
+    /// $L(\hat{y}, y) = max(0, m - y\hat{y})$
+    ///
+    /// where $\hat{y}$ is the predicted score, $y \in \\{-1, 1\\}$ is the true label, and $m$ is the margin parameter set to 1 by default.
+    ///
+    /// Note that the labels used in this calculation are -1 and 1, unlike [Log Loss](xref:Microsoft.ML.Trainers.LogLoss), where the labels used are 0 and 1.
+    /// Also unlike [Log Loss](xref:Microsoft.ML.Trainers.LogLoss), $\hat{y}$ is the raw predicted score, not the predicted probability (which is calculated by applying a [sigmoid function](https://en.wikipedia.org/wiki/Sigmoid_function) to the predicted score).
+    ///
+    /// While the hinge loss function is both convex and continuous, it is not smooth (that is not differentiable) at $y\hat{y} = m$.
+    /// Consequently, it cannot be used with gradient descent methods or stochastic gradient descent methods, which rely on differentiability over the entire domain.
+    ///
+    /// For more, see [Hinge Loss for classification](https://en.wikipedia.org/wiki/Loss_functions_for_classification#Hinge_loss).
+    ///
+    /// ]]>
+    /// </format>
+    /// </remarks>
     public sealed class HingeLoss : ISupportSdcaClassificationLoss
     {
         [TlcModule.Component(Name = "HingeLoss", FriendlyName = "Hinge loss", Alias = "Hinge", Desc = "Hinge loss.")]
@@ -235,6 +275,33 @@ namespace Microsoft.ML.Trainers
         }
     }
 
+    /// <summary>
+    /// A smooth version of the <see cref="HingeLoss"/> function, commonly used in classification tasks.
+    /// </summary>
+    /// <remarks>
+    /// <format type="text/markdown"><![CDATA[
+    ///
+    /// Let $f(\hat{y}, y) = 1 - y\hat{y}$, where $\hat{y}$ is the predicted score and $y \in \\{-1, 1\\}$ is the true label. $f(\hat{y}, y)$ here is the non-zero portion of the [Hinge Loss](xref:Microsoft.ML.Trainers.HingeLoss).
+    ///
+    /// Note that the labels used in this calculation are -1 and 1, unlike [Log Loss](xref:Microsoft.ML.Trainers.LogLoss), where the labels used are 0 and 1.
+    /// Also unlike [Log Loss](xref:Microsoft.ML.Trainers.LogLoss), $\hat{y}$ is the raw predicted score, not the predicted probability (which is calculated by applying a [sigmoid function](https://en.wikipedia.org/wiki/Sigmoid_function) to the predicted score).
+    ///
+    /// The Smoothed Hinge Loss function is then defined as:
+    ///
+    /// $
+    /// L(f(\hat{y}, y)) =
+    /// \begin{cases}
+    /// 0                                  & \text{if } f(\hat{y}, y) < 0 \\\\
+    /// \frac{(f(\hat{y}, y))^2}{2\alpha}  & \text{if } f(\hat{y}, y) < \alpha \\\\
+    /// f(\hat{y}, y) - \frac{\alpha}{2}   & \text{otherwise}
+    /// \end{cases}
+    /// $
+    ///
+    /// where $\alpha$ is a smoothing parameter set to 1 by default.
+    ///
+    /// ]]>
+    /// </format>
+    /// </remarks>
     public sealed class SmoothedHingeLoss : ISupportSdcaClassificationLoss
     {
         [TlcModule.Component(Name = "SmoothedHingeLoss", FriendlyName = "Smoothed Hinge Loss", Alias = "SmoothedHinge",
@@ -333,8 +400,25 @@ namespace Microsoft.ML.Trainers
     }
 
     /// <summary>
-    /// Exponential Loss
+    /// Exponential Loss, commonly used in classification tasks.
     /// </summary>
+    /// <remarks>
+    /// <format type="text/markdown"><![CDATA[
+    ///
+    /// The Exponential Loss function is defined as:
+    ///
+    /// $L(\hat{y}, y) = e^{-\beta y \hat{y}}$
+    ///
+    /// where $\hat{y}$ is the predicted score, $y \in \\{-1, 1\\}$ is the true label, and $\beta$ is a scale factor set to 1 by default.
+    ///
+    /// Note that the labels used in this calculation are -1 and 1, unlike [Log Loss](xref:Microsoft.ML.Trainers.LogLoss), where the labels used are 0 and 1.
+    /// Also unlike [Log Loss](xref:Microsoft.ML.Trainers.LogLoss), $\hat{y}$ is the raw predicted score, not the predicted probability (which is calculated by applying a [sigmoid function](https://en.wikipedia.org/wiki/Sigmoid_function) to the predicted score).
+    ///
+    /// The Exponential Loss function penalizes incorrect predictions more than the [Hinge Loss](xref:Microsoft.ML.Trainers.HingeLoss) and has a larger gradient.
+    ///
+    /// ]]>
+    /// </format>
+    /// </remarks>
     public sealed class ExpLoss : IClassificationLoss
     {
         [TlcModule.Component(Name = "ExpLoss", FriendlyName = "Exponential Loss", Desc = "Exponential loss.")]
@@ -383,6 +467,21 @@ namespace Microsoft.ML.Trainers
         IRegressionLoss IComponentFactory<IRegressionLoss>.CreateComponent(IHostEnvironment env) => new SquaredLoss();
     }
 
+    /// <summary>
+    /// The Squared Loss, commonly used in regression tasks.
+    /// </summary>
+    /// <remarks>
+    /// <format type="text/markdown"><![CDATA[
+    ///
+    /// The Squared Loss function is defined as:
+    ///
+    /// $L(\hat{y}, y) = (\hat{y} - y)^2$
+    ///
+    /// where $\hat{y}$ is the predicted value and $y$ is the true value.
+    ///
+    /// ]]>
+    /// </format>
+    /// </remarks>
     public sealed class SquaredLoss : ISupportSdcaRegressionLoss
     {
         internal const string Summary = "The squared loss function for regression.";
@@ -424,8 +523,18 @@ namespace Microsoft.ML.Trainers
     }
 
     /// <summary>
-    /// Poisson Loss.
+    /// Poisson Loss function for Poisson Regression.
     /// </summary>
+    /// <remarks type="text/markdown"><![CDATA[
+    ///
+    /// The Poisson Loss function is defined as:
+    ///
+    /// $L(\hat{y}, y) = e^{\hat{y}} - y\hat{y}$
+    ///
+    /// where $\hat{y}$ is the predicted value, $y$ is the true label.
+    ///
+    /// ]]>
+    /// </remarks>
     public sealed class PoissonLoss : IRegressionLoss
     {
         internal const string Summary = "The Poisson loss function for regression.";
@@ -445,8 +554,26 @@ namespace Microsoft.ML.Trainers
     }
 
     /// <summary>
-    /// Tweedie loss, based on the log-likelihood of the Tweedie distribution.
+    /// Tweedie loss, based on the log-likelihood of the Tweedie distribution. This loss function is used in Tweedie regression.
     /// </summary>
+    /// <remarks type="text/markdown"><![CDATA[
+    ///
+    /// The Tweedie Loss function is defined as:
+    ///
+    /// $
+    /// L(\hat{y}, y, i) =
+    /// \begin{cases}
+    /// \hat{y} - y ln(\hat{y}) + ln(\Gamma(y))                                                                                     & \text{if } i = 1 \\\\
+    /// \hat{y} + \frac{y}{\hat{y}} - \sqrt{y}                                                                                      & \text{if } i = 2 \\\\
+    /// \frac{(\hat{y})^{2 - i}}{2 - i} - y \frac{(\hat{y})^{1 - i}}{1 - i} - (\frac{y^{2 - i}}{2 - i} - y\frac{y^{1 - i}}{1 - i})  & \text{otherwise}
+    /// \end{cases}
+    /// $
+    ///
+    /// where $\hat{y}$ is the predicted value, $y$ is the true label, $\Gamma$ is the [Gamma function](https://en.wikipedia.org/wiki/Gamma_function), and $i$ is the index parameter for the [Tweedie distribution](https://en.wikipedia.org/wiki/Tweedie_distribution), in the range [1, 2].
+    /// $i$ is set to 1.5 by default. $i = 1$ is Poisson loss, $i = 2$ is gamma loss, and intermediate values are compound Poisson-Gamma loss.
+    ///
+    /// ]]>
+    /// </remarks>
     public sealed class TweedieLoss : IRegressionLoss
     {
         [TlcModule.Component(Name = "TweedieLoss", FriendlyName = "Tweedie Loss", Alias = "tweedie", Desc = "Tweedie loss.")]

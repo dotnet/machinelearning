@@ -4,6 +4,7 @@ string ClassName="NaiveBayes";
 string Trainer = "NaiveBayes";
 string MetaTrainer = null;
 string TrainerOptions = null;
+bool CacheData = false;
 
 string OptionsInclude = "";
 string Comments= @"
@@ -24,8 +25,18 @@ string ExpectedOutputPerInstance= @"// Expected output:
             //   Label: 3, Prediction: 3";
 
 string ExpectedOutput = @"// Expected output:
-            //  Micro Accuracy: 0.88
-            //  Macro Accuracy: 0.88
-            //  Log Loss: 34.54
-            //  Log Loss Reduction: -30.47";
+            //   Micro Accuracy: 0.88
+            //   Macro Accuracy: 0.88
+            //   Log Loss: 34.54
+            //   Log Loss Reduction: -30.47
+                 
+            //   Confusion table
+            //             ||========================
+            //   PREDICTED ||     0 |     1 |     2 | Recall
+            //   TRUTH     ||========================
+            //           0 ||   160 |     0 |     0 | 1.0000
+            //           1 ||     0 |   145 |    32 | 0.8192
+            //           2 ||     9 |    21 |   133 | 0.8160
+            //             ||========================
+            //   Precision ||0.9467 |0.8735 |0.8061 |";
 #>

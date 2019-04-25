@@ -10,8 +10,8 @@ string LabelThreshold = "0.5f";
 string DataSepValue = "0.03f";
 string OptionsInclude = "";
 string Comments= @"
-		// This example requires installation of additional nuget package
-		// <a href=""https://www.nuget.org/packages/Microsoft.ML.LightGbm/"">Microsoft.ML.LightGbm</a>.";
+        // This example requires installation of additional nuget package
+        // <a href=""https://www.nuget.org/packages/Microsoft.ML.LightGbm/"">Microsoft.ML.LightGbm</a>.";
 
 string ExpectedOutputPerInstance = @"// Expected output:
             //   Label: True, Prediction: True
@@ -27,5 +27,15 @@ string ExpectedOutput = @"// Expected output:
             //   Negative Precision: 0.79
             //   Negative Recall: 0.77
             //   Positive Precision: 0.75
-            //   Positive Recall: 0.77";
+            //   Positive Recall: 0.77
+            //
+            //   TEST POSITIVE RATIO:    0.4760 (238.0/(238.0+262.0))
+            //   Confusion table
+            //             ||======================
+            //   PREDICTED || positive | negative | Recall
+            //   TRUTH     ||======================
+            //    positive ||      183 |       55 | 0.7689
+            //    negative ||       60 |      202 | 0.7710
+            //             ||======================
+            //   Precision ||   0.7531 |   0.7860 |";
 #>
