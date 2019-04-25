@@ -18,10 +18,11 @@ namespace Microsoft.ML
         /// feature space where inner products approximate a shift-invariant kernel function.
         /// </summary>
         /// <param name="catalog">The transform's catalog.</param>
-        /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.</param>
+        /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.
+        ///  The data type on this column will be a known-sized vector of <see cref="System.Single"/>.</param>
         /// <param name="inputColumnName">Name of column to transform. If set to <see langword="null"/>,
         /// the value of the <paramref name="outputColumnName"/> will be used as source.
-        /// The data type on this column should be a known-sized vector of <see cref="System.Single"/>.</param>
+        /// This estimator operates on known-sized vector of <see cref="System.Single"/> data type.</param>
         /// <param name="rank">The dimension of the feature space to map the input to.</param>
         /// <param name="useCosAndSinBases">If <see langword="true"/>, use both of cos and sin basis functions to create
         /// two features for every random Fourier frequency. Otherwise, only cos bases would be used. Note that if set

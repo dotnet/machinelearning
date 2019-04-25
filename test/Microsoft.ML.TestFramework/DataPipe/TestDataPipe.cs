@@ -567,8 +567,8 @@ namespace Microsoft.ML.RunTests
                 },
                 (pipe) =>
                 {
-                    // Column F13 contains the ngram counts of column Two, and column F23 contains the ngram counts
-                    // of columns Two and One. Therefore, make sure that the ngrams in column Two were hashed to the same 
+                    // Column F13 contains the n-gram counts of column Two, and column F23 contains the n-gram counts
+                    // of columns Two and One. Therefore, make sure that the n-grams in column Two were hashed to the same 
                     // slots in F13 as they were in column F23. We do this by checking that for every slot, F23 is >= F13.
                     using (var c = pipe.GetRowCursorForAllColumns())
                     {

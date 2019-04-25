@@ -13,83 +13,65 @@ namespace Samples.Dynamic
         {
             // Create a new ML context, for ML.NET operations. It can be used for exception tracking and logging, 
             // as well as the source of randomness.
-            var ml = new MLContext();
+            var mlContext = new MLContext();
 
-            // Get a small dataset as an IEnumerable and load it into ML.NET data set.
-            IEnumerable<DatasetUtils.SampleTopicsData> data = DatasetUtils.GetTopicsData();
-            var trainData = ml.Data.LoadFromEnumerable(data);
+            // Get a small dataset as an IEnumerable.
+            var rawData = new[] {
+                new DataPoint() { Review = "animals birds cats dogs fish horse"},
+                new DataPoint() { Review = "horse birds house fish duck cats"},
+                new DataPoint() { Review = "car truck driver bus pickup"},
+                new DataPoint() { Review = "car truck driver bus pickup horse"},
+            };
 
-            // Preview of one of the columns of the the topics data. 
-            // The Review column contains the keys associated with a particular body of text.  
-            //
-            // Review                               
-            // "animals birds cats dogs fish horse" 
-            // "horse birds house fish duck cats"   
-            // "car truck driver bus pickup"       
-            // "car truck driver bus pickup horse"
+            var trainData = mlContext.Data.LoadFromEnumerable(rawData);
 
             // A pipeline to convert the terms of the 'Review' column in 
             // making use of default settings.
-            string defaultColumnName = "DefaultKeys";
-            // REVIEW create through the catalog extension
-            var default_pipeline = ml.Transforms.Text.TokenizeIntoWords("Review")
-                .Append(ml.Transforms.Conversion.MapValueToKey(defaultColumnName, "Review"));
+            var defaultPipeline = mlContext.Transforms.Text.TokenizeIntoWords("TokenizedText", nameof(DataPoint.Review))
+                .Append(mlContext.Transforms.Conversion.MapValueToKey(nameof(TransformedData.Keys), "TokenizedText"));
 
             // Another pipeline, that customizes the advanced settings of the ValueToKeyMappingEstimator.
             // We can change the maximumNumberOfKeys to limit how many keys will get generated out of the set of words, 
             // and condition the order in which they get evaluated by changing keyOrdinality from the default ByOccurence (order in which they get encountered) 
             // to value/alphabetically.
-            string customizedColumnName = "CustomizedKeys";
-            var customized_pipeline = ml.Transforms.Text.TokenizeIntoWords("Review")
-                .Append(ml.Transforms.Conversion.MapValueToKey(customizedColumnName, "Review", maximumNumberOfKeys: 10, keyOrdinality: ValueToKeyMappingEstimator.KeyOrdinality.ByValue));
+            var customizedPipeline = mlContext.Transforms.Text.TokenizeIntoWords("TokenizedText", nameof(DataPoint.Review))
+                .Append(mlContext.Transforms.Conversion.MapValueToKey(nameof(TransformedData.Keys), "TokenizedText", maximumNumberOfKeys: 10,
+                keyOrdinality: ValueToKeyMappingEstimator.KeyOrdinality.ByValue));
 
             // The transformed data.
-            var transformedData_default = default_pipeline.Fit(trainData).Transform(trainData);
-            var transformedData_customized = customized_pipeline.Fit(trainData).Transform(trainData);
+            var transformedDataDefault = defaultPipeline.Fit(trainData).Transform(trainData);
+            var transformedDataCustomized = customizedPipeline.Fit(trainData).Transform(trainData);
 
-            // Small helper to print the text inside the columns, in the console. 
-            Action<string, IEnumerable<VBuffer<uint>>> printHelper = (columnName, column) =>
-            {
-                Console.WriteLine($"{columnName} column obtained post-transformation.");
-                foreach (var row in column)
-                {
-                    foreach (var value in row.GetValues())
-                        Console.Write($"{value} ");
-                    Console.WriteLine("");
-                }
+            // Getting the resulting data as an IEnumerable.
+            // This will contain the newly created columns.
+            IEnumerable<TransformedData> defaultData = mlContext.Data.CreateEnumerable<TransformedData>(transformedDataDefault, reuseRowObject: false);
+            IEnumerable<TransformedData> customizedData = mlContext.Data.CreateEnumerable<TransformedData>(transformedDataCustomized, reuseRowObject: false);
+            Console.WriteLine($"Keys");
+            foreach (var dataRow in defaultData)
+                Console.WriteLine($"{string.Join(',', dataRow.Keys)}");
+            // Expected output:
+            //  Keys
+            //  1,2,3,4,5,6
+            //  6,2,7,5,8,3
+            //  9,10,11,12,13
+            //  9,10,11,12,13,6
 
-                Console.WriteLine("===================================================");
-            };
-
-            // Preview of the DefaultKeys column obtained after processing the input.
-            var defaultColumn = transformedData_default.GetColumn<VBuffer<uint>>(transformedData_default.Schema[defaultColumnName]);
-            printHelper(defaultColumnName, defaultColumn);
-
-            // DefaultKeys column obtained post-transformation.
-            //
-            // 1 2 3 4 5 6
-            // 6 2 7 5 8 3
-            // 9 10 11 12 13 3
-            // 9 10 11 12 13 6
-
-            // Previewing the CustomizedKeys column obtained after processing the input.
-            var customizedColumn = transformedData_customized.GetColumn<VBuffer<uint>>(transformedData_customized.Schema[customizedColumnName]);
-            printHelper(customizedColumnName, customizedColumn);
-
-            // CustomizedKeys column obtained post-transformation.
-            //
-            // 1 2 4 5 7 8
-            // 8 2 9 7 6 4
-            // 3 10 0 0 0 4
-            // 3 10 0 0 0 8
-
+            Console.WriteLine($"Keys");
+            foreach (var dataRow in customizedData)
+                Console.WriteLine($"{string.Join(',', dataRow.Keys)}");
+            // Expected output:
+            //  Keys
+            //  1,2,4,5,7,8
+            //  8,2,9,7,6,4
+            //  3,10,0,0,0
+            //  3,10,0,0,0,8
             // Retrieve the original values, by appending the KeyToValue etimator to the existing pipelines
             // to convert the keys back to the strings.
-            var pipeline = default_pipeline.Append(ml.Transforms.Conversion.MapKeyToValue(defaultColumnName));
-            transformedData_default = pipeline.Fit(trainData).Transform(trainData);
+            var pipeline = defaultPipeline.Append(mlContext.Transforms.Conversion.MapKeyToValue(nameof(TransformedData.Keys)));
+            transformedDataDefault = pipeline.Fit(trainData).Transform(trainData);
 
             // Preview of the DefaultColumnName column obtained.
-            var originalColumnBack = transformedData_default.GetColumn<VBuffer<ReadOnlyMemory<char>>>(transformedData_default.Schema[defaultColumnName]);
+            var originalColumnBack = transformedDataDefault.GetColumn<VBuffer<ReadOnlyMemory<char>>>(transformedDataDefault.Schema[nameof(TransformedData.Keys)]);
 
             foreach (var row in originalColumnBack)
             {
@@ -98,12 +80,21 @@ namespace Samples.Dynamic
                 Console.WriteLine("");
             }
 
-            // DefaultKeys column obtained post-transformation.
-            //
-            // animals birds cats dogs fish horse
-            // horse birds house fish duck cats
-            // car truck driver bus pickup cats
-            // car truck driver bus pickup horse
+            // Expected output:
+            //  animals birds cats dogs fish horse
+            //  horse birds house fish duck cats
+            //  car truck driver bus pickup
+            //  car truck driver bus pickup horse
+        }
+
+        private class DataPoint
+        {
+            public string Review { get; set; }
+        }
+
+        private class TransformedData : DataPoint
+        {
+            public uint[] Keys { get; set; }
         }
     }
 }

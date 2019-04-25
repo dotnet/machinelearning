@@ -1,0 +1,49 @@
+﻿using System;
+using System.Collections.Generic;
+using Microsoft.ML;
+
+namespace <#=NameSpace#>
+{
+    public static class <#=ClassName#>
+    {
+        <#=ExampleShortDoc#>
+        public static void Example()
+        {
+            <#=Example#>
+        }
+
+        private class SampleTemperatureData
+        {
+            public DateTime Date { get; set; }
+            public float Temperature { get; set; }
+        }
+		<# if (AddExtraClass != null) { #>
+
+		private class SampleTemperatureDataWithLatitude
+		{
+			public float Latitude { get; set; }
+			public DateTime Date { get; set; }
+			public float Temperature { get; set; }
+		}
+		<# } #>
+
+        /// <summary>
+        /// Get a fake temperature dataset.
+        /// </summary>
+        /// <param name="exampleCount">The number of examples to return.</param>
+        /// <returns>An enumerable of <see cref="SampleTemperatureData"/>.</returns>
+        private static IEnumerable<SampleTemperatureData> GetSampleTemperatureData(int exampleCount)
+        {
+            var rng = new Random(1234321);
+            var date = new DateTime(2012, 1, 1);
+            float temperature = 39.0f;
+
+            for (int i = 0; i < exampleCount; i++)
+            {
+                date = date.AddDays(1);
+                temperature += rng.Next(-5, 5);
+                yield return new SampleTemperatureData { Date = date, Temperature = temperature };
+            }
+        }
+    }
+}

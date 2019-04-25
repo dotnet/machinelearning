@@ -80,6 +80,26 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Update="Dynamic\DataOperations\DataViewEnumerable.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>DataViewEnumerable.cs</LastGenOutput>
+    </None>
+    <None Update="Dynamic\DataOperations\FilterRowsByColumn.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>FilterRowsByColumn.cs</LastGenOutput>
+    </None>
+    <None Update="Dynamic\DataOperations\ShuffleRows.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>ShuffleRows.cs</LastGenOutput>
+    </None>
+    <None Update="Dynamic\DataOperations\SkipRows.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>SkipRows.cs</LastGenOutput>
+    </None>
+    <None Update="Dynamic\DataOperations\TakeRows.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>TakeRows.cs</LastGenOutput>
+    </None>
     <None Update="Dynamic\Trainers\BinaryClassification\AveragedPerceptron.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>AveragedPerceptron.cs</LastGenOutput>
@@ -435,6 +455,31 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Update="Dynamic\DataOperations\DataViewEnumerable.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>DataViewEnumerable.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Dynamic\DataOperations\FilterRowsByColumn.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>FilterRowsByColumn.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Dynamic\DataOperations\ShuffleRows.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>ShuffleRows.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Dynamic\DataOperations\SkipRows.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>SkipRows.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Dynamic\DataOperations\TakeRows.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>TakeRows.tt</DependentUpon>
+    </Compile>
     <Compile Update="Dynamic\Trainers\BinaryClassification\AveragedPerceptron.cs">
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>

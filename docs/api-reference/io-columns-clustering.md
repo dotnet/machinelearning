@@ -3,5 +3,5 @@ The input features column data must be <xref:System.Single>. No label column nee
 
 | Output Column Name | Column Type | Description|
 | -- | -- | -- |
-| `Score` | <xref:System.Single> | The unbounded score that was calculated by the trainer to determine the prediction.|
-| `PredictedLabel` | <xref:System.Int32> | The cluster id predicted by the trainer.|
+| `Score` | vector of <xref:System.Single> | The distances of the given data point to all clusters' centriods. |
+| `PredictedLabel` | [key](xref:Microsoft.ML.Data.KeyDataViewType) type | The closest cluster's index predicted by the model. |

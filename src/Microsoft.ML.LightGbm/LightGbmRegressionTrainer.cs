@@ -21,6 +21,9 @@ using Microsoft.ML.Trainers.LightGbm;
 
 namespace Microsoft.ML.Trainers.LightGbm
 {
+    /// <summary>
+    /// Model parameters for <see cref="LightGbmRegressionTrainer"/>.
+    /// </summary>
     public sealed class LightGbmRegressionModelParameters : TreeEnsembleModelParametersBasedOnRegressionTree
     {
         internal const string LoaderSignature = "LightGBMRegressionExec";
@@ -88,7 +91,7 @@ namespace Microsoft.ML.Trainers.LightGbm
     /// | Machine learning task | Regression |
     /// | Is normalization required? | No |
     /// | Is caching required? | No |
-    /// | Required NuGet in addition to Microsoft.ML | Microsoft.ML.FastTree |
+    /// | Required NuGet in addition to Microsoft.ML | Microsoft.ML.LightGbm |
     ///
     /// [!include[algorithm](~/../docs/samples/docs/api-reference/algo-details-lightgbm.md)]
     /// ]]>

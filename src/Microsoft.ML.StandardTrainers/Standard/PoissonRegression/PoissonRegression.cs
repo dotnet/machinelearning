@@ -46,6 +46,8 @@ namespace Microsoft.ML.Trainers
     /// [Poisson regression](https://en.wikipedia.org/wiki/Poisson_regression) is a parameterized regression method.
     /// It assumes that the log of the conditional mean of the dependent variable follows a linear function of the dependent variables.
     /// Assuming that the dependent variable follows a Poisson distribution, the regression parameters can be estimated by maximizing the likelihood of the obtained observations.
+    ///
+    /// Check the See Also section for links to usage examples.
     /// ]]>
     /// </format>
     /// </remarks>

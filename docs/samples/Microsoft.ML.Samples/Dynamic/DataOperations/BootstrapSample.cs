@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using Microsoft.ML;
 
 namespace Samples.Dynamic
@@ -12,24 +11,17 @@ namespace Samples.Dynamic
             // as a catalog of available operations and as the source of randomness.
             var mlContext = new MLContext();
 
-            // Get a small dataset as an IEnumerable and them read it as ML.NET's data type.
-            IEnumerable<Microsoft.ML.SamplesUtils.DatasetUtils.BinaryLabelFloatFeatureVectorFloatWeightSample> enumerableOfData = Microsoft.ML.SamplesUtils.DatasetUtils.GenerateBinaryLabelFloatFeatureVectorFloatWeightSamples(5);
-            var data = mlContext.Data.LoadFromEnumerable(enumerableOfData);
+            // Get a small dataset as an IEnumerable.
+            var rawData = new[] {
+                new DataPoint() { Label = true, Feature = 1.017325f},
+                new DataPoint() { Label = false, Feature = 0.6326591f},
+                new DataPoint() { Label = false, Feature = 0.0326252f},
+                new DataPoint() { Label = false, Feature = 0.8426974f},
+                new DataPoint() { Label = true, Feature = 0.9947656f},
+                new DataPoint() { Label = true, Feature = 1.017325f},
+            };
 
-            // Look at the original dataset
-            Console.WriteLine($"Label\tFeatures[0]");
-            foreach (var row in enumerableOfData)
-            {
-                Console.WriteLine($"{row.Label}\t{row.Features[0]}");
-            }
-            Console.WriteLine();
-            // Expected output:
-            //  Label Features[0]
-            //  True    1.017325
-            //  False   0.6326591
-            //  False   0.0326252
-            //  True    0.8426974
-            //  True    0.9947656
+            var data = mlContext.Data.LoadFromEnumerable(rawData);
 
             // Now take a bootstrap sample of this dataset to create a new dataset. The bootstrap is a resampling technique that
             // creates a training set of the same size by picking with replacement from the original dataset. With the bootstrap, 
@@ -44,16 +36,16 @@ namespace Samples.Dynamic
             {
                 var resample = mlContext.Data.BootstrapSample(data, seed: i);
 
-                var enumerable = mlContext.Data.CreateEnumerable<Microsoft.ML.SamplesUtils.DatasetUtils.BinaryLabelFloatFeatureVectorFloatWeightSample>(resample, reuseRowObject: false);
-                Console.WriteLine($"Label\tFeatures[0]");
+                var enumerable = mlContext.Data.CreateEnumerable<DataPoint>(resample, reuseRowObject: false);
+                Console.WriteLine($"Label\tFeature");
                 foreach (var row in enumerable)
                 {
-                    Console.WriteLine($"{row.Label}\t{row.Features[0]}");
+                    Console.WriteLine($"{row.Label}\t{row.Feature}");
                 }
                 Console.WriteLine();
             }
             // Expected output:
-            //  Label Features[0]
+            //  Label Feature
             //  True    1.017325
             //  False   0.6326591
             //  False   0.6326591
@@ -63,7 +55,7 @@ namespace Samples.Dynamic
             //  True    0.8426974
             //  True    0.8426974
 
-            //  Label Features[0]
+            //  Label Feature
             //  True    1.017325
             //  True    1.017325
             //  False   0.6326591
@@ -73,12 +65,19 @@ namespace Samples.Dynamic
             //  False   0.0326252
             //  True    0.9947656
 
-            //  Label Features[0]
+            //  Label Feature
             //  False   0.6326591
             //  False   0.0326252
             //  True    0.8426974
             //  True    0.8426974
             //  True    0.8426974
+        }
+
+        private class DataPoint
+        {
+            public bool Label { get; set; }
+
+            public float Feature { get; set; }
         }
     }
 }

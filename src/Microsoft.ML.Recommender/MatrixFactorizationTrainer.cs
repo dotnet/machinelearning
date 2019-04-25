@@ -23,7 +23,7 @@ using Microsoft.ML.Trainers.Recommender;
 namespace Microsoft.ML.Trainers
 {
     /// <summary>
-    /// The <see cref="IEstimator{TTransformer}"/> to predict elements in a matrix using matrix factorization (also known as a type of collaborative filtering).
+    /// The <see cref="IEstimator{TTransformer}"/> to predict elements in a matrix using matrix factorization (also known as a type of <a href="https://en.wikipedia.org/wiki/Collaborative_filtering">collaborative filtering</a>).
     /// </summary>
     /// <remarks>
     /// <format type="text/markdown"><![CDATA[
@@ -35,7 +35,7 @@ namespace Microsoft.ML.Trainers
     /// values (i.e., labels) in matrix.
     /// They together define a matrix in [COO](https://en.wikipedia.org/wiki/Sparse_matrix#Coordinate_list_(COO)) format.
     /// The type for label column is a vector of <xref:System.Single> while the other two columns are
-    /// [key-typed](<xref:Microsoft.ML.Data.KeyDataViewType>) scalar.
+    /// [key](xref:Microsoft.ML.Data.KeyDataViewType) type scalar.
     ///
     /// | Output Column Name | Column Type | Description|
     /// | -- | -- | -- |
@@ -88,8 +88,8 @@ namespace Microsoft.ML.Trainers
     ///
     /// This trainer includes a [stochastic gradient method](https://en.wikipedia.org/wiki/Stochastic_gradient_descent) and a [coordinate descent method](https://en.wikipedia.org/wiki/Coordinate_descent) for finding $P$ and $Q$ via minimizing the distance between (non-missing part of) $R$ and its approximation $P^T Q$.
     /// The coordinate descent method included is specifically for one-class matrix factorization where all observed ratings are positive signals (that is, all rating values are 1).
-    /// Notice that the only way to invoke one-class matrix factorization is to assign [one-class squared loss](xref:"Microsoft.ML.Trainers.MatrixFactorizationTrainer.LossFunctionType.SquareLossOneClass")
-    /// to [loss function](Microsoft.ML.Trainers.MatrixFactorizationTrainer.Options.LossFunction)
+    /// Notice that the only way to invoke one-class matrix factorization is to assign [one-class squared loss](xref:Microsoft.ML.Trainers.MatrixFactorizationTrainer.LossFunctionType.SquareLossOneClass)
+    /// to [loss function](xref:Microsoft.ML.Trainers.MatrixFactorizationTrainer.Options.LossFunction)
     /// when calling [MatrixFactorization(Options)](xref:Microsoft.ML.RecommendationCatalog.RecommendationTrainers.MatrixFactorization(Microsoft.ML.Trainers.MatrixFactorizationTrainer.Options)).
     /// See Page 6 and Page 28 [here](https://www.csie.ntu.edu.tw/~cjlin/talks/facebook.pdf) for a brief introduction to standard matrix factorization and one-class matrix factorization.
     /// The [default setting](xref:Microsoft.ML.Trainers.MatrixFactorizationTrainer.LossFunctionType.SquareLossRegression) induces standard matrix factorization.
@@ -102,6 +102,7 @@ namespace Microsoft.ML.Trainers
     /// * For the parallel coordinate descent method used and one-class matrix factorization formula, see [Selection of Negative Samples for One-class Matrix Factorization](https://www.csie.ntu.edu.tw/~cjlin/papers/one-class-mf/biased-mf-sdm-with-supp.pdf).
     /// * For details in the underlying library used, see [LIBMF: A Library for Parallel Matrix Factorization in Shared-memory Systems](https://www.csie.ntu.edu.tw/~cjlin/papers/libmf/libmf_open_source.pdf).
     ///
+    /// Check the See Also section for links to usage examples.
     /// ]]>
     /// </format>
     /// </remarks>

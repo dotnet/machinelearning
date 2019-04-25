@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Generic;
 using System.Linq;
 using Microsoft.ML.Data;
 using Microsoft.ML.Runtime;
@@ -11,8 +10,7 @@ namespace Microsoft.ML.Transforms
 {
 
     /// <summary>
-    /// Estimator for <see cref="ValueToKeyMappingTransformer"/>. Converts input values (words, numbers, etc.) to index in a dictionary.
-    /// <see cref="PrimitiveDataViewType"/>
+    /// Estimator for <see cref="ValueToKeyMappingTransformer"/>. Converts input values (words, numbers, etc.) <see cref="KeyDataViewType"/>.
     /// </summary>
     /// <remarks>
     /// <format type="text/markdown"><![CDATA[
@@ -21,8 +19,8 @@ namespace Microsoft.ML.Transforms
     /// |  |  |
     /// | -- | -- |
     /// | Does this estimator need to look at the data to train its parameters? | Yes |
-    /// | Input column data type | Scalar or vector of numeric, boolean, [text](xref:Microsoft.ML.Data.TextDataViewType), [System.DateTime](xref:System.DateTime) and [key](xref:Microsoft.ML.Data.KeyDataViewType) data types.|
-    /// | Output column data type | Scalar or vector of [key](xref:Microsoft.ML.Data.KeyDataViewType)|
+    /// | Input column data type | Scalar or vector of numeric, boolean, [text](xref:Microsoft.ML.Data.TextDataViewType), [System.DateTime](xref:System.DateTime) and [key](xref:Microsoft.ML.Data.KeyDataViewType) type. |
+    /// | Output column data type | Scalar or vector of [key](xref:Microsoft.ML.Data.KeyDataViewType) type. |
     ///
     /// The ValueToKeyMappingEstimator builds up term vocabularies(dictionaries) mapping the input values to the keys on the dictionary.
     /// If multiple columns are used, each column builds/uses exactly one vocabulary.
@@ -31,6 +29,8 @@ namespace Microsoft.ML.Transforms
     /// If the key is not found in the dictionary, it is assigned the missing value indicator.
     /// This dictionary mapping values to keys is most commonly learnt from the unique values in input data,
     /// but can be defined through other means: either with the mapping defined, or as loaded from an external file.
+    ///
+    /// Check the See Also section for links to usage examples.
     /// ]]></format>
     /// </remarks>
     /// <seealso cref="ConversionsExtensionsCatalog.MapValueToKey(TransformsCatalog.ConversionTransforms, InputOutputColumnPair[], int, KeyOrdinality, bool, IDataView)"/>
