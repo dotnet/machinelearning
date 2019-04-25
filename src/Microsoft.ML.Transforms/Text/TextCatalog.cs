@@ -17,7 +17,7 @@ namespace Microsoft.ML
     public static class TextCatalog
     {
         /// <summary>
-        /// Create a <see cref="TextFeaturizingEstimator"/>, which transforms a text column into a featurized vector of <see cref="System.Single"/> that represents normalized counts of ngrams and char-grams.
+        /// Create a <see cref="TextFeaturizingEstimator"/>, which transforms a text column into a featurized vector of <see cref="System.Single"/> that represents normalized counts of n-grams and char-grams.
         /// </summary>
         /// <param name="catalog">The text-related transform's catalog.</param>
         /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.
@@ -39,7 +39,7 @@ namespace Microsoft.ML
                 outputColumnName, inputColumnName);
 
         /// <summary>
-        ///  Create a <see cref="TextFeaturizingEstimator"/>, which transforms a text column into featurized float array that represents normalized counts of ngrams and char-grams.
+        ///  Create a <see cref="TextFeaturizingEstimator"/>, which transforms a text column into featurized float array that represents normalized counts of n-grams and char-grams.
         /// </summary>
         /// <remarks>This transform can operate over several columns.</remarks>
         /// <param name="catalog">The text-related transform's catalog.</param>
@@ -65,7 +65,7 @@ namespace Microsoft.ML
                 outputColumnName, inputColumnNames, options);
 
         /// <summary>
-        /// Create a <see cref="TokenizingByCharactersEstimator"/>, which tokenizes characters by splitting text into sequences of characters
+        /// Create a <see cref="TokenizingByCharactersEstimator"/>, which tokenizes by splitting text into sequences of characters
         /// using a sliding window.
         /// </summary>
         /// <param name="catalog">The text-related transform's catalog.</param>
@@ -74,7 +74,8 @@ namespace Microsoft.ML
         /// <param name="inputColumnName">Name of the column to transform. If set to <see langword="null"/>, the value of the
         /// <paramref name="outputColumnName"/> will be used as source.
         /// This estimator operates over text data type.</param>
-        /// <param name="useMarkerCharacters">Whether to prepend a marker character, <see langword="0x02"/>, to the beginning,
+        /// <param name="useMarkerCharacters">To be able to distinguish the tokens, for example for debugging purposes,
+        /// you can choose to prepend a marker character, <see langword="0x02"/>, to the beginning,
         /// and append another marker character, <see langword="0x03"/>, to the end of the output vector of characters.</param>
         /// <example>
         /// <format type="text/markdown">
@@ -91,7 +92,7 @@ namespace Microsoft.ML
                 useMarkerCharacters, new[] { (outputColumnName, inputColumnName) });
 
         /// <summary>
-        /// Tokenize incoming text in input columns and output the tokens as output columns.
+        /// Create a <see cref="TokenizingByCharactersEstimator"/>, which tokenizes incoming text in input columns and output the tokens as output columns.
         /// </summary>
         /// <param name="catalog">The text-related transform's catalog.</param>
         /// <param name="useMarkerCharacters">Whether to prepend a marker character, <see langword="0x02"/>, to the beginning,
@@ -113,7 +114,7 @@ namespace Microsoft.ML
         /// </summary>
         /// <param name="catalog">The text-related transform's catalog.</param>
         /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.
-        /// This column's data type will remain scalar of text or a vector of text depending on the input column data type.</param>
+        /// This column's data type is a scalar or a vector of text depending on the input column data type.</param>
         /// <param name="inputColumnName">Name of the column to transform. If set to <see langword="null"/>,
         /// the value of the <paramref name="outputColumnName"/> will be used as source.
         /// This estimator operates on text or vector of text data types.</param>
@@ -147,7 +148,7 @@ namespace Microsoft.ML
         /// This column's data type will be a vector of <see cref="System.Single"/>.</param>
         /// <param name="inputColumnName">Name of the column to transform. If set to <see langword="null"/>,
         /// the value of the <paramref name="outputColumnName"/> will be used as source.
-        /// This estimator operates over known-sized vector of text data type.</param>
+        /// This estimator operates over known-size vector of text data type.</param>
         /// <param name="modelKind">The embeddings <see cref="WordEmbeddingEstimator.PretrainedModelKind"/> to use. </param>
         /// <example>
         /// <format type="text/markdown">
@@ -172,7 +173,7 @@ namespace Microsoft.ML
         /// This column's data type will be a vector of <see cref="System.Single"/>.</param>
         /// <param name="inputColumnName">Name of the column to transform. If set to <see langword="null"/>,
         /// the value of the <paramref name="outputColumnName"/> will be used as source.
-        /// This estimator operates over known-sized vector of text data type.</param>
+        /// This estimator operates over known-size vector of text data type.</param>
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
@@ -212,7 +213,7 @@ namespace Microsoft.ML
         /// </summary>
         /// <param name="catalog">The text-related transform's catalog.</param>
         /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.
-        /// This column's data type will be a variable-sized vector of text.</param>
+        /// This column's data type will be a variable-size vector of text.</param>
         /// <param name="inputColumnName">Name of the column to transform. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.
         /// This estimator operates on scalar of text and vector of text data type.</param>
         /// <param name="separators">The separators to use (uses space character by default).</param>
@@ -240,7 +241,7 @@ namespace Microsoft.ML
           => new WordTokenizingEstimator(Contracts.CheckRef(catalog, nameof(catalog)).GetEnvironment(), columns);
 
         /// <summary>
-        /// Creates a <see cref="NgramExtractingEstimator"/> which produces a vector of counts of ngrams (sequences of consecutive words)
+        /// Creates a <see cref="NgramExtractingEstimator"/> which produces a vector of counts of n-grams (sequences of consecutive words)
         /// encountered in the input text.
         /// </summary>
         /// <param name="catalog">The text-related transform's catalog.</param>
@@ -249,12 +250,12 @@ namespace Microsoft.ML
         /// <param name="inputColumnName">Name of the column to transform. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.
         /// This estimator operates over vectors of keys data type.</param>
         /// <param name="ngramLength">Ngram length.</param>
-        /// <param name="skipLength">Number of tokens to skip between each ngram. By default no token is skipped.</param>
-        /// <param name="useAllLengths">Whether to include all ngram lengths up to <paramref name="ngramLength"/> or only <paramref name="ngramLength"/>.</param>
+        /// <param name="skipLength">Number of tokens to skip between each n-gram. By default no token is skipped.</param>
+        /// <param name="useAllLengths">Whether to include all n-gram lengths up to <paramref name="ngramLength"/> or only <paramref name="ngramLength"/>.</param>
         /// <param name="maximumNgramsCount">Maximum number of n-grams to store in the dictionary.</param>
-        /// <param name="weighting">Statistical measure used to evaluate how important a word or ngram is to a document in a corpus.
-        /// When <paramref name="maximumNgramsCount"/> is smaller than the total number of encountered ngrams this measure is used
-        /// to determine which ngrams to keep.</param>
+        /// <param name="weighting">Statistical measure used to evaluate how important a word or n-gram is to a document in a corpus.
+        /// When <paramref name="maximumNgramsCount"/> is smaller than the total number of encountered n-grams this measure is used
+        /// to determine which n-grams to keep.</param>
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
@@ -274,11 +275,11 @@ namespace Microsoft.ML
                 ngramLength, skipLength, useAllLengths, maximumNgramsCount, weighting);
 
         /// <summary>
-        /// Produces a bag of counts of ngrams (sequences of consecutive words) in <paramref name="columns.inputs"/>
+        /// Produces a bag of counts of n-grams (sequences of consecutive words) in <paramref name="columns.inputs"/>
         /// and outputs bag of word vector for each output in <paramref name="columns.output"/>
         /// </summary>
         /// <param name="catalog">The text-related transform's catalog.</param>
-        /// <param name="columns">Pairs of columns to run the ngram process on.</param>
+        /// <param name="columns">Pairs of columns to run the n-gram process on.</param>
         [BestFriend]
         internal static NgramExtractingEstimator ProduceNgrams(this TransformsCatalog.TextTransforms catalog,
              params NgramExtractingEstimator.ColumnOptions[] columns)
@@ -290,7 +291,7 @@ namespace Microsoft.ML
         /// </summary>
         /// <param name="catalog">The transform's catalog.</param>
         /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.
-        /// This column's data type will be variable-sized vector of text.</param>
+        /// This column's data type will be variable-size vector of text.</param>
         /// <param name="inputColumnName">Name of the column to copy the data from.
         /// This estimator operates over vector of text.</param>
         /// <param name="language">Langauge of the input text column <paramref name="inputColumnName"/>.</param>
@@ -313,9 +314,9 @@ namespace Microsoft.ML
         /// </summary>
         /// <param name="catalog">The transform's catalog.</param>
         /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.
-        /// This column's data type will be variable-sized vector of text.</param>
+        /// This column's data type will be variable-size vector of text.</param>
         /// <param name="inputColumnName">Name of the column to copy the data from.
-        /// This estimator operates over vector of text.</param>
+        /// This estimator operates over a vector of text.</param>
         /// <param name="stopwords">Array of words to remove.</param>
         /// <example>
         /// <format type="text/markdown">
@@ -344,9 +345,9 @@ namespace Microsoft.ML
         /// <param name="inputColumnName">Name of the column to take the data from.
         /// This estimator operates over vector of text.</param>
         /// <param name="ngramLength">Ngram length.</param>
-        /// <param name="skipLength">Maximum number of tokens to skip when constructing an ngram.</param>
-        /// <param name="useAllLengths">Whether to include all ngram lengths up to <paramref name="ngramLength"/> or only <paramref name="ngramLength"/>.</param>
-        /// <param name="maximumNgramsCount">Maximum number of ngrams to store in the dictionary.</param>
+        /// <param name="skipLength">Maximum number of tokens to skip when constructing an n-gram.</param>
+        /// <param name="useAllLengths">Whether to include all n-gram lengths up to <paramref name="ngramLength"/> or only <paramref name="ngramLength"/>.</param>
+        /// <param name="maximumNgramsCount">Maximum number of n-grams to store in the dictionary.</param>
         /// <param name="weighting">Statistical measure used to evaluate how important a word is to a document in a corpus.</param>
         public static WordBagEstimator ProduceWordBags(this TransformsCatalog.TextTransforms catalog,
             string outputColumnName,
@@ -373,9 +374,9 @@ namespace Microsoft.ML
         /// <param name="inputColumnNames">Names of the multiple columns to take the data from.
         /// This estimator operates over vector of text.</param>
         /// <param name="ngramLength">Ngram length.</param>
-        /// <param name="skipLength">Maximum number of tokens to skip when constructing an ngram.</param>
-        /// <param name="useAllLengths">Whether to include all ngram lengths up to <paramref name="ngramLength"/> or only <paramref name="ngramLength"/>.</param>
-        /// <param name="maximumNgramsCount">Maximum number of ngrams to store in the dictionary.</param>
+        /// <param name="skipLength">Maximum number of tokens to skip when constructing an n-gram.</param>
+        /// <param name="useAllLengths">Whether to include all n-gram lengths up to <paramref name="ngramLength"/> or only <paramref name="ngramLength"/>.</param>
+        /// <param name="maximumNgramsCount">Maximum number of n-grams to store in the dictionary.</param>
         /// <param name="weighting">Statistical measure used to evaluate how important a word is to a document in a corpus.</param>
         public static WordBagEstimator ProduceWordBags(this TransformsCatalog.TextTransforms catalog,
             string outputColumnName,
@@ -403,12 +404,12 @@ namespace Microsoft.ML
         /// This estimator operates over vector of text.</param>
         /// <param name="numberOfBits">Number of bits to hash into. Must be between 1 and 30, inclusive.</param>
         /// <param name="ngramLength">Ngram length.</param>
-        /// <param name="skipLength">Maximum number of tokens to skip when constructing an ngram.</param>
-        /// <param name="useAllLengths">Whether to include all ngram lengths up to <paramref name="ngramLength"/> or only <paramref name="ngramLength"/>.</param>
+        /// <param name="skipLength">Maximum number of tokens to skip when constructing an n-gram.</param>
+        /// <param name="useAllLengths">Whether to include all n-gram lengths up to <paramref name="ngramLength"/> or only <paramref name="ngramLength"/>.</param>
         /// <param name="seed">Hashing seed.</param>
         /// <param name="useOrderedHashing">Whether the position of each source column should be included in the hash (when there are multiple source columns).</param>
-        /// <param name="maximumNumberOfInverts">During hashing we constuct mappings between original values and the produced hash values.
-        /// Text representation of original values are stored in the slot names of the  metadata for the new column.Hashing, as such, can map many initial values to one.
+        /// <param name="maximumNumberOfInverts">During hashing we construct mappings between original values and the produced hash values.
+        /// Text representation of original values are stored in the slot names of the  annotations for the new column. Hashing, as such, can map many initial values to one.
         /// <paramref name="maximumNumberOfInverts"/> specifies the upper bound of the number of distinct input values mapping to a hash that should be retained.
         /// <value>0</value> does not retain any input values. <value>-1</value> retains all input values mapping to each hash.</param>
         public static WordHashBagEstimator ProduceHashedWordBags(this TransformsCatalog.TextTransforms catalog,
@@ -441,12 +442,12 @@ namespace Microsoft.ML
         /// This estimator operates over vector of text.</param>
         /// <param name="numberOfBits">Number of bits to hash into. Must be between 1 and 30, inclusive.</param>
         /// <param name="ngramLength">Ngram length.</param>
-        /// <param name="skipLength">Maximum number of tokens to skip when constructing an ngram.</param>
-        /// <param name="useAllLengths">Whether to include all ngram lengths up to <paramref name="ngramLength"/> or only <paramref name="ngramLength"/>.</param>
+        /// <param name="skipLength">Maximum number of tokens to skip when constructing an n-gram.</param>
+        /// <param name="useAllLengths">Whether to include all n-gram lengths up to <paramref name="ngramLength"/> or only <paramref name="ngramLength"/>.</param>
         /// <param name="seed">Hashing seed.</param>
         /// <param name="useOrderedHashing">Whether the position of each source column should be included in the hash (when there are multiple source columns).</param>
-        /// <param name="maximumNumberOfInverts">During hashing we constuct mappings between original values and the produced hash values.
-        /// Text representation of original values are stored in the slot names of the  metadata for the new column.Hashing, as such, can map many initial values to one.
+        /// <param name="maximumNumberOfInverts">During hashing we construct mappings between original values and the produced hash values.
+        /// Text representation of original values are stored in the slot names of the  annotations for the new column.Hashing, as such, can map many initial values to one.
         /// <paramref name="maximumNumberOfInverts"/> specifies the upper bound of the number of distinct input values mapping to a hash that should be retained.
         /// <value>0</value> does not retain any input values. <value>-1</value> retains all input values mapping to each hash.</param>
         public static WordHashBagEstimator ProduceHashedWordBags(this TransformsCatalog.TextTransforms catalog,
@@ -479,12 +480,12 @@ namespace Microsoft.ML
         /// This estimator operates over vector of key type.</param>
         /// <param name="numberOfBits">Number of bits to hash into. Must be between 1 and 30, inclusive.</param>
         /// <param name="ngramLength">Ngram length.</param>
-        /// <param name="skipLength">Maximum number of tokens to skip when constructing an ngram.</param>
-        /// <param name="useAllLengths">Whether to include all ngram lengths up to <paramref name="ngramLength"/> or only <paramref name="ngramLength"/>.</param>
+        /// <param name="skipLength">Maximum number of tokens to skip when constructing an n-gram.</param>
+        /// <param name="useAllLengths">Whether to include all n-gram lengths up to <paramref name="ngramLength"/> or only <paramref name="ngramLength"/>.</param>
         /// <param name="seed">Hashing seed.</param>
         /// <param name="useOrderedHashing">Whether the position of each source column should be included in the hash (when there are multiple source columns).</param>
-        /// <param name="maximumNumberOfInverts">During hashing we constuct mappings between original values and the produced hash values.
-        /// Text representation of original values are stored in the slot names of the  metadata for the new column.Hashing, as such, can map many initial values to one.
+        /// <param name="maximumNumberOfInverts">During hashing we construct mappings between original values and the produced hash values.
+        /// Text representation of original values are stored in the slot names of the  annotations for the new column.Hashing, as such, can map many initial values to one.
         /// <paramref name="maximumNumberOfInverts"/> specifies the upper bound of the number of distinct input values mapping to a hash that should be retained.
         /// <value>0</value> does not retain any input values. <value>-1</value> retains all input values mapping to each hash.</param>
         /// <param name="rehashUnigrams">Whether to rehash unigrams.</param>
@@ -518,12 +519,12 @@ namespace Microsoft.ML
         /// This estimator operates over vector of key type.</param>
         /// <param name="numberOfBits">Number of bits to hash into. Must be between 1 and 30, inclusive.</param>
         /// <param name="ngramLength">Ngram length.</param>
-        /// <param name="skipLength">Maximum number of tokens to skip when constructing an ngram.</param>
-        /// <param name="useAllLengths">Whether to include all ngram lengths up to <paramref name="ngramLength"/> or only <paramref name="ngramLength"/>.</param>
+        /// <param name="skipLength">Maximum number of tokens to skip when constructing an n-gram.</param>
+        /// <param name="useAllLengths">Whether to include all n-gram lengths up to <paramref name="ngramLength"/> or only <paramref name="ngramLength"/>.</param>
         /// <param name="seed">Hashing seed.</param>
         /// <param name="useOrderedHashing">Whether the position of each source column should be included in the hash (when there are multiple source columns).</param>
-        /// <param name="maximumNumberOfInverts">During hashing we constuct mappings between original values and the produced hash values.
-        /// Text representation of original values are stored in the slot names of the  metadata for the new column.Hashing, as such, can map many initial values to one.
+        /// <param name="maximumNumberOfInverts">During hashing we construct mappings between original values and the produced hash values.
+        /// Text representation of original values are stored in the slot names of the  annotations for the new column.Hashing, as such, can map many initial values to one.
         /// <paramref name="maximumNumberOfInverts"/> specifies the upper bound of the number of distinct input values mapping to a hash that should be retained.
         /// <value>0</value> does not retain any input values. <value>-1</value> retains all input values mapping to each hash.</param>
         /// <param name="rehashUnigrams">Whether to rehash unigrams.</param>
@@ -550,7 +551,7 @@ namespace Microsoft.ML
                 useAllLengths: useAllLengths, numberOfBits: numberOfBits, seed: seed, useOrderedHashing: useOrderedHashing, maximumNumberOfInverts: maximumNumberOfInverts, rehashUnigrams) });
 
         /// <summary>
-        /// Produces a bag of counts of hashed ngrams for each <paramref name="columns"/>. For each column,
+        /// Produces a bag of counts of hashed n-grams for each <paramref name="columns"/>. For each column,
         /// <see cref="NgramHashingEstimator.ColumnOptions.InputColumnNames"/> are the input columns of the output column named as <see cref="NgramHashingEstimator.ColumnOptions.Name"/>.
         ///
         /// <see cref="NgramHashingEstimator"/> is different from <see cref="WordHashBagEstimator"/> in a way that <see cref="NgramHashingEstimator"/>

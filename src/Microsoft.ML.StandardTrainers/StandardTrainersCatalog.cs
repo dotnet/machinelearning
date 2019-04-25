@@ -805,14 +805,20 @@ namespace Microsoft.ML
         }
 
         /// <summary>
-        /// Create a <see cref="LinearSvmTrainer"/>, which predicts a target using a linear binary classification model trained
+        /// Create <see cref="LinearSvmTrainer"/>, which predicts a target using a linear binary classification model trained
         /// over boolean label data.
         /// </summary>
         /// <param name="catalog">The binary classification catalog trainer object.</param>
         /// <param name="labelColumnName">The name of the label column. The column data must be <see cref="System.Boolean"/>.</param>
         /// <param name="featureColumnName">The name of the feature column. The column data must be a known-sized vector of <see cref="System.Single"/>.</param>
         /// <param name="exampleWeightColumnName">The name of the example weight column (optional).</param>
-        /// <param name="numberOfIterations">The number of training iteraitons.</param>
+        /// <param name="numberOfIterations">The number of training iteration.</param>
+        /// <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        ///  [!code-csharp[LinearSvm](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Trainers/BinaryClassification/LinearSvm.cs)]
+        /// ]]></format>
+        /// </example>
         public static LinearSvmTrainer LinearSvm(this BinaryClassificationCatalog.BinaryClassificationTrainers catalog,
             string labelColumnName = DefaultColumnNames.Label,
             string featureColumnName = DefaultColumnNames.Features,
@@ -824,11 +830,17 @@ namespace Microsoft.ML
         }
 
         /// <summary>
-        /// Create a <see cref="LinearSvmTrainer"/> with advanced options, which predicts a target using a linear binary classification model
+        /// Create <see cref="LinearSvmTrainer"/> with advanced options, which predicts a target using a linear binary classification model
         /// trained over boolean label data.
         /// </summary>
         /// <param name="catalog">The binary classification catalog trainer object.</param>
         /// <param name="options">Trainer options.</param>
+        /// <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        ///  [!code-csharp[LinearSvm](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Trainers/BinaryClassification/LinearSvmWithOptions.cs)]
+        /// ]]></format>
+        /// </example>
         public static LinearSvmTrainer LinearSvm(this BinaryClassificationCatalog.BinaryClassificationTrainers catalog,
             LinearSvmTrainer.Options options)
         {

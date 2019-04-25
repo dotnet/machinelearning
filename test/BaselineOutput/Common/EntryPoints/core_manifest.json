@@ -20967,7 +20967,7 @@
     },
     {
       "Name": "Transforms.NGramTranslator",
-      "Desc": "Produces a bag of counts of ngrams (sequences of consecutive values of length 1-n) in a given vector of keys. It does so by building a dictionary of ngrams and using the id in the dictionary as the index in the bag.",
+      "Desc": "Produces a bag of counts of n-grams (sequences of consecutive values of length 1-n) in a given vector of keys. It does so by building a dictionary of n-grams and using the id in the dictionary as the index in the bag.",
       "FriendlyName": "NGram Transform",
       "ShortName": "NgramTransform",
       "Inputs": [
@@ -20981,7 +20981,7 @@
                 {
                   "Name": "NgramLength",
                   "Type": "Int",
-                  "Desc": "Maximum ngram length",
+                  "Desc": "Maximum n-gram length",
                   "Aliases": [
                     "ngram"
                   ],
@@ -20993,7 +20993,7 @@
                 {
                   "Name": "AllLengths",
                   "Type": "Bool",
-                  "Desc": "Whether to include all ngram lengths up to NgramLength or only NgramLength",
+                  "Desc": "Whether to include all n-gram lengths up to NgramLength or only NgramLength",
                   "Aliases": [
                     "all"
                   ],
@@ -21005,7 +21005,7 @@
                 {
                   "Name": "SkipLength",
                   "Type": "Int",
-                  "Desc": "Maximum number of tokens to skip when constructing an ngram",
+                  "Desc": "Maximum number of tokens to skip when constructing an n-gram",
                   "Aliases": [
                     "skips"
                   ],
@@ -21020,7 +21020,7 @@
                     "Kind": "Array",
                     "ItemType": "Int"
                   },
-                  "Desc": "Maximum number of ngrams to store in the dictionary",
+                  "Desc": "Maximum number of n-grams to store in the dictionary",
                   "Aliases": [
                     "max"
                   ],
@@ -21092,7 +21092,7 @@
         {
           "Name": "NgramLength",
           "Type": "Int",
-          "Desc": "Maximum ngram length",
+          "Desc": "Maximum n-gram length",
           "Aliases": [
             "ngram"
           ],
@@ -21104,7 +21104,7 @@
         {
           "Name": "AllLengths",
           "Type": "Bool",
-          "Desc": "Whether to store all ngram lengths up to ngramLength, or only ngramLength",
+          "Desc": "Whether to store all n-gram lengths up to ngramLength, or only ngramLength",
           "Aliases": [
             "all"
           ],
@@ -21116,7 +21116,7 @@
         {
           "Name": "SkipLength",
           "Type": "Int",
-          "Desc": "Maximum number of tokens to skip when constructing an ngram",
+          "Desc": "Maximum number of tokens to skip when constructing an n-gram",
           "Aliases": [
             "skips"
           ],
@@ -21131,7 +21131,7 @@
             "Kind": "Array",
             "ItemType": "Int"
           },
-          "Desc": "Maximum number of ngrams to store in the dictionary",
+          "Desc": "Maximum number of n-grams to store in the dictionary",
           "Aliases": [
             "max"
           ],
@@ -22241,7 +22241,7 @@
     },
     {
       "Name": "Transforms.TextFeaturizer",
-      "Desc": "A transform that turns a collection of text documents into numerical feature vectors. The feature vectors are normalized counts of (word and/or character) ngrams in a given tokenized text.",
+      "Desc": "A transform that turns a collection of text documents into numerical feature vectors. The feature vectors are normalized counts of (word and/or character) n-grams in a given tokenized text.",
       "FriendlyName": "Text Transform",
       "ShortName": "Text",
       "Inputs": [
@@ -28571,7 +28571,7 @@
             {
               "Name": "SkipLength",
               "Type": "Int",
-              "Desc": "Maximum number of tokens to skip when constructing an ngram",
+              "Desc": "Maximum number of tokens to skip when constructing an n-gram",
               "Aliases": [
                 "skips"
               ],
@@ -28583,7 +28583,7 @@
             {
               "Name": "AllLengths",
               "Type": "Bool",
-              "Desc": "Whether to include all ngram lengths up to NgramLength or only NgramLength",
+              "Desc": "Whether to include all n-gram lengths up to NgramLength or only NgramLength",
               "Aliases": [
                 "all"
               ],
@@ -28598,7 +28598,7 @@
                 "Kind": "Array",
                 "ItemType": "Int"
               },
-              "Desc": "Maximum number of ngrams to store in the dictionary",
+              "Desc": "Maximum number of n-grams to store in the dictionary",
               "Aliases": [
                 "max"
               ],
@@ -28663,7 +28663,7 @@
             {
               "Name": "SkipLength",
               "Type": "Int",
-              "Desc": "Maximum number of tokens to skip when constructing an ngram",
+              "Desc": "Maximum number of tokens to skip when constructing an n-gram",
               "Aliases": [
                 "skips"
               ],
@@ -28675,7 +28675,7 @@
             {
               "Name": "AllLengths",
               "Type": "Bool",
-              "Desc": "Whether to include all ngram lengths up to ngramLength or only ngramLength",
+              "Desc": "Whether to include all n-gram lengths up to ngramLength or only ngramLength",
               "Aliases": [
                 "all"
               ],
