@@ -59,12 +59,12 @@ namespace Microsoft.ML.Trainers
     /// In other cases, the output score vector is just $[\hat{y}^1, \dots, \hat{y}^m]$.
     ///
     /// ### Training Algorithm Details
-    /// The optimization algorithm is an extension of (http://jmlr.org/papers/volume14/shalev-shwartz13a/shalev-shwartz13a.pdf)
+    /// The optimization algorithm is an extension of [a coordinate descent method](http://jmlr.org/papers/volume14/shalev-shwartz13a/shalev-shwartz13a.pdf)
     /// following a similar path proposed in an earlier [paper](https://www.csie.ntu.edu.tw/~cjlin/papers/maxent_dual.pdf).
     /// It is usually much faster than [L-BFGS](https://en.wikipedia.org/wiki/Limited-memory_BFGS) and
-    /// [truncated Newton methods](https://en.wikipedia.org/wiki/Truncated_Newton_method) for large-scale and sparse data set.
+    /// [truncated Newton methods](https://en.wikipedia.org/wiki/Truncated_Newton_method) for large-scale and sparse data sets.
     ///
-    /// [!include[io](~/../docs/samples/docs/api-reference/regularization-l1-l2.md)]
+    /// [!include[regularization](~/../docs/samples/docs/api-reference/regularization-l1-l2.md)]
     ///
     /// Check the See Also section for links to usage examples.
     /// ]]>

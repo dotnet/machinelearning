@@ -27,13 +27,3 @@ and therefore everyone eventually reaches the same place. Even in
 non-strongly-convex cases, you will get equally-good solutions from run to run.
 For reproducible results, it is recommended that one sets 'Shuffle' to False and
 'NumThreads' to 1.
-
-[!include[io](~/../docs/samples/docs/api-reference/regularization-l1-l2.md)]
-
-For more information, see:
-* [Scaling Up Stochastic Dual Coordinate
-  Ascent.](https://www.microsoft.com/en-us/research/wp-content/uploads/2016/06/main-3.pdf)
-* [Stochastic Dual Coordinate Ascent Methods for Regularized Loss
-  Minimization.](http://www.jmlr.org/papers/volume14/shalev-shwartz13a/shalev-shwartz13a.pdf)
-
-Check the See Also section for links to examples of the usage.
