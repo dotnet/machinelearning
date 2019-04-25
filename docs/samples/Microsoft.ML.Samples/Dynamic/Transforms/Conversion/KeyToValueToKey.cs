@@ -71,7 +71,7 @@ namespace Samples.Dynamic
             transformedDataDefault = pipeline.Fit(trainData).Transform(trainData);
 
             // Preview of the DefaultColumnName column obtained.
-            var originalColumnBack = transformedDataDefault.GetColumn<VBuffer<string>>(transformedDataDefault.Schema[nameof(TransformedData.Keys)]);
+            var originalColumnBack = transformedDataDefault.GetColumn<VBuffer<ReadOnlyMemory<char>>>(transformedDataDefault.Schema[nameof(TransformedData.Keys)]);
 
             foreach (var row in originalColumnBack)
             {

@@ -36,11 +36,11 @@ namespace Samples.Dynamic
             {
                 var resample = mlContext.Data.BootstrapSample(data, seed: i);
 
-                var enumerable = mlContext.Data.CreateEnumerable<Microsoft.ML.SamplesUtils.DatasetUtils.BinaryLabelFloatFeatureVectorFloatWeightSample>(resample, reuseRowObject: false);
+                var enumerable = mlContext.Data.CreateEnumerable<DataPoint>(resample, reuseRowObject: false);
                 Console.WriteLine($"Label\tFeatures[0]");
                 foreach (var row in enumerable)
                 {
-                    Console.WriteLine($"{row.Label}\t{row.Features[0]}");
+                    Console.WriteLine($"{row.Label}\t{row.Feature}");
                 }
                 Console.WriteLine();
             }
