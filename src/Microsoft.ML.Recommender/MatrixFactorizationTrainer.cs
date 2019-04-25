@@ -88,8 +88,8 @@ namespace Microsoft.ML.Trainers
     ///
     /// This trainer includes a [stochastic gradient method](https://en.wikipedia.org/wiki/Stochastic_gradient_descent) and a [coordinate descent method](https://en.wikipedia.org/wiki/Coordinate_descent) for finding $P$ and $Q$ via minimizing the distance between (non-missing part of) $R$ and its approximation $P^T Q$.
     /// The coordinate descent method included is specifically for one-class matrix factorization where all observed ratings are positive signals (that is, all rating values are 1).
-    /// Notice that the only way to invoke one-class matrix factorization is to assign [one-class squared loss](xref:"Microsoft.ML.Trainers.MatrixFactorizationTrainer.LossFunctionType.SquareLossOneClass")
-    /// to [loss function](Microsoft.ML.Trainers.MatrixFactorizationTrainer.Options.LossFunction)
+    /// Notice that the only way to invoke one-class matrix factorization is to assign [one-class squared loss](xref:Microsoft.ML.Trainers.MatrixFactorizationTrainer.LossFunctionType.SquareLossOneClass)
+    /// to [loss function](xref:Microsoft.ML.Trainers.MatrixFactorizationTrainer.Options.LossFunction)
     /// when calling [MatrixFactorization(Options)](xref:Microsoft.ML.RecommendationCatalog.RecommendationTrainers.MatrixFactorization(Microsoft.ML.Trainers.MatrixFactorizationTrainer.Options)).
     /// See Page 6 and Page 28 [here](https://www.csie.ntu.edu.tw/~cjlin/talks/facebook.pdf) for a brief introduction to standard matrix factorization and one-class matrix factorization.
     /// The [default setting](xref:Microsoft.ML.Trainers.MatrixFactorizationTrainer.LossFunctionType.SquareLossRegression) induces standard matrix factorization.
