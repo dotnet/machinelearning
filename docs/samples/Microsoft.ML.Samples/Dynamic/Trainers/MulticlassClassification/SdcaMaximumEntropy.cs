@@ -62,10 +62,19 @@ namespace Samples.Dynamic.Trainers.MulticlassClassification
             PrintMetrics(metrics);
             
             // Expected output:
-            //  Micro Accuracy: 0.91
-            //  Macro Accuracy: 0.91
-            //  Log Loss: 0.22
-            //  Log Loss Reduction: 0.80
+            //   Micro Accuracy: 0.91
+            //   Macro Accuracy: 0.91
+            //   Log Loss: 0.22
+            //   Log Loss Reduction: 0.80
+            //   Confusion table
+            //             ||========================
+            //   PREDICTED ||     0 |     1 |     2 | Recall
+            //   TRUTH     ||========================
+            //           0 ||   147 |     0 |    13 | 0.9188
+            //           1 ||     0 |   165 |    12 | 0.9322
+            //           2 ||    14 |     8 |   141 | 0.8650
+            //             ||========================
+            //   Precision ||0.9130 |0.9538 |0.8494 |
         }
 
         // Generates random uniform doubles in [-0.5, 0.5) range with labels 1, 2 or 3.
@@ -110,7 +119,8 @@ namespace Samples.Dynamic.Trainers.MulticlassClassification
             Console.WriteLine($"Micro Accuracy: {metrics.MicroAccuracy:F2}");
             Console.WriteLine($"Macro Accuracy: {metrics.MacroAccuracy:F2}");
             Console.WriteLine($"Log Loss: {metrics.LogLoss:F2}");
-            Console.WriteLine($"Log Loss Reduction: {metrics.LogLossReduction:F2}");
+            Console.WriteLine($"Log Loss Reduction: {metrics.LogLossReduction:F2}\n");
+            Console.WriteLine(metrics.ConfusionMatrix.GetFormattedConfusionTable());
         }
     }
 }

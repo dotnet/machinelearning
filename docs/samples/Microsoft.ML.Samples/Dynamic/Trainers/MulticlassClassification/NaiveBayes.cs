@@ -28,7 +28,7 @@ namespace Samples.Dynamic.Trainers.MulticlassClassification
             // Define the trainer.
             var pipeline =
                     // Convert the string labels into key types.
-                    mlContext.Transforms.Conversion.MapValueToKey("Label")
+                    mlContext.Transforms.Conversion.MapValueToKey(nameof(DataPoint.Label))
                     // Apply NaiveBayes multiclass trainer.
                     .Append(mlContext.MulticlassClassification.Trainers.NaiveBayes());
 
@@ -36,7 +36,7 @@ namespace Samples.Dynamic.Trainers.MulticlassClassification
             var model = pipeline.Fit(trainingData);
 
             // Create testing data. Use different random seed to make it different from training data.
-            var testData = mlContext.Data.LoadFromEnumerable(GenerateRandomDataPoints(500, seed:123));
+            var testData = mlContext.Data.LoadFromEnumerable(GenerateRandomDataPoints(500, seed: 123));
 
             // Run the model on test data set.
             var transformedTestData = model.Transform(testData);
@@ -57,17 +57,23 @@ namespace Samples.Dynamic.Trainers.MulticlassClassification
 
             // Evaluate the overall metrics
             var metrics = mlContext.MulticlassClassification.Evaluate(transformedTestData);
-            Console.WriteLine($"Micro Accuracy: {metrics.MicroAccuracy:F2}");
-            Console.WriteLine($"Macro Accuracy: {metrics.MacroAccuracy:F2}");
-            Console.WriteLine($"Log Loss: {metrics.LogLoss:F2}");
-            Console.WriteLine($"Log Loss Reduction: {metrics.LogLossReduction:F2}");
-
+            PrintMetrics(metrics);
             
             // Expected output:
-            //  Micro Accuracy: 0.88
-            //  Macro Accuracy: 0.88
-            //  Log Loss: 34.54
-            //  Log Loss Reduction: -30.47
+            //   Micro Accuracy: 0.88
+            //   Macro Accuracy: 0.88
+            //   Log Loss: 34.54
+            //   Log Loss Reduction: -30.47
+                 
+            //   Confusion table
+            //             ||========================
+            //   PREDICTED ||     0 |     1 |     2 | Recall
+            //   TRUTH     ||========================
+            //           0 ||   160 |     0 |     0 | 1.0000
+            //           1 ||     0 |   145 |    32 | 0.8192
+            //           2 ||     9 |    21 |   133 | 0.8160
+            //             ||========================
+            //   Precision ||0.9467 |0.8735 |0.8061 |
         }
 
         
@@ -106,6 +112,16 @@ namespace Samples.Dynamic.Trainers.MulticlassClassification
             public uint Label { get; set; }
             // Predicted label from the trainer.
             public uint PredictedLabel { get; set; }
+        }
+
+        // Pretty-print MulticlassClassificationMetrics objects.
+        public static void PrintMetrics(MulticlassClassificationMetrics metrics)
+        {
+            Console.WriteLine($"Micro Accuracy: {metrics.MicroAccuracy:F2}");
+            Console.WriteLine($"Macro Accuracy: {metrics.MacroAccuracy:F2}");
+            Console.WriteLine($"Log Loss: {metrics.LogLoss:F2}");
+            Console.WriteLine($"Log Loss Reduction: {metrics.LogLossReduction:F2}\n");
+            Console.WriteLine(metrics.ConfusionMatrix.GetFormattedConfusionTable());
         }
     }
 }
