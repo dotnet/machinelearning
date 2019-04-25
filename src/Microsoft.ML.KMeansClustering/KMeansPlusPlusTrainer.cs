@@ -88,7 +88,8 @@ namespace Microsoft.ML.Trainers
         {
             KMeansPlusPlus = 0,
             Random = 1,
-            KMeansYinyang = 2
+            KMeansYinyang = 2,
+            KMeansBarBar = 2
         }
 
         [BestFriend]
@@ -115,7 +116,7 @@ namespace Microsoft.ML.Trainers
             /// Cluster initialization algorithm.
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Cluster initialization algorithm", ShortName = "init")]
-            public InitializationAlgorithm InitializationAlgorithm = InitializationAlgorithm.KMeansYinyang;
+            public InitializationAlgorithm InitializationAlgorithm = InitializationAlgorithm.KMeansBarBar;
 
             /// <summary>
             /// Tolerance parameter for trainer convergence. Low = slower, more accurate.
