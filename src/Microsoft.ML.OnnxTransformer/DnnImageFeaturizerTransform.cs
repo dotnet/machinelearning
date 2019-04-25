@@ -73,6 +73,8 @@ namespace Microsoft.ML.Transforms.Onnx
     /// the names of the ONNX model nodes.
     ///
     /// Any platform requirement for this estimator will follow the requirements on the <xref:Microsoft.ML.Transforms.Onnx.OnnxScoringEstimator>.
+    ///
+    /// Check the See Also section for links to examples of the usage.
     /// ]]>
     /// </format>
     /// </remarks>

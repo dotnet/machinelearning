@@ -57,6 +57,7 @@ namespace Microsoft.ML.Transforms
     /// |4,6 |
     /// |4,NaN|
     ///
+    /// Check the See Also section for links to examples of the usage.
     /// ]]></format>
     /// </remarks>
     /// <seealso cref="FeatureSelectionCatalog.SelectFeaturesBasedOnCount(TransformsCatalog.FeatureSelectionTransforms, InputOutputColumnPair[], long)"/>
