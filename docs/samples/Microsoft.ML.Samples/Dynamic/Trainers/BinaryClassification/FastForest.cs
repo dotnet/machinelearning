@@ -61,6 +61,16 @@ namespace Samples.Dynamic.Trainers.BinaryClassification
             //   Negative Recall: 0.71
             //   Positive Precision: 0.71
             //   Positive Recall: 0.78
+            //
+            //   TEST POSITIVE RATIO:    0.4760 (238.0/(238.0+262.0))
+            //   Confusion table
+            //             ||======================
+            //   PREDICTED || positive | negative | Recall
+            //   TRUTH     ||======================
+            //    positive ||       34 |      204 | 0.1429
+            //    negative ||       21 |      241 | 0.9198
+            //             ||======================
+            //   Precision ||   0.6182 |   0.5416 |
         }
 
         private static IEnumerable<DataPoint> GenerateRandomDataPoints(int count, int seed=0)
@@ -106,7 +116,8 @@ namespace Samples.Dynamic.Trainers.BinaryClassification
             Console.WriteLine($"Negative Precision: {metrics.NegativePrecision:F2}");
             Console.WriteLine($"Negative Recall: {metrics.NegativeRecall:F2}");
             Console.WriteLine($"Positive Precision: {metrics.PositivePrecision:F2}");
-            Console.WriteLine($"Positive Recall: {metrics.PositiveRecall:F2}");
+            Console.WriteLine($"Positive Recall: {metrics.PositiveRecall:F2}\n");
+            Console.WriteLine(metrics.ConfusionMatrix.GetFormattedConfusionTable());
         }
     }
 }

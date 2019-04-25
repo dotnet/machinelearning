@@ -64,6 +64,16 @@ namespace Samples.Dynamic.Trainers.BinaryClassification
             //   Log Loss: 0.59
             //   Log Loss Reduction: 41.04
             //   Entropy: 1.00
+            //
+            //   TEST POSITIVE RATIO:    0.4760 (238.0/(238.0+262.0))
+            //   Confusion table
+            //             ||======================
+            //   PREDICTED || positive | negative | Recall
+            //   TRUTH     ||======================
+            //    positive ||      185 |       53 | 0.7773
+            //    negative ||       83 |      179 | 0.6832
+            //             ||======================
+            //   Precision ||   0.6903 |   0.7716 |
         }
 
         private static IEnumerable<DataPoint> GenerateRandomDataPoints(int count, int seed=0)
@@ -109,7 +119,8 @@ namespace Samples.Dynamic.Trainers.BinaryClassification
             Console.WriteLine($"Negative Precision: {metrics.NegativePrecision:F2}");
             Console.WriteLine($"Negative Recall: {metrics.NegativeRecall:F2}");
             Console.WriteLine($"Positive Precision: {metrics.PositivePrecision:F2}");
-            Console.WriteLine($"Positive Recall: {metrics.PositiveRecall:F2}");
+            Console.WriteLine($"Positive Recall: {metrics.PositiveRecall:F2}\n");
+            Console.WriteLine(metrics.ConfusionMatrix.GetFormattedConfusionTable());
         }
     }
 }
