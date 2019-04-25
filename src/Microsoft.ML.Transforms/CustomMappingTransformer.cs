@@ -220,7 +220,7 @@ namespace Microsoft.ML.Transforms
     /// The provided custom function must be thread-safe and free from side effects.
     /// The order with which it is applied to the rows of data cannot be guaranteed.
     ///
-    /// Check the See Also section for links to examples of the usage.
+    /// Check the See Also section for links to usage examples.
     /// ]]></format>
     /// </remarks>
     /// <seealso cref="CustomMappingCatalog.CustomMapping{TSrc, TDst}(TransformsCatalog, Action{TSrc, TDst}, string, SchemaDefinition, SchemaDefinition)"/>

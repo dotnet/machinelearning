@@ -737,6 +737,8 @@ namespace Microsoft.ML.Transforms
     ///
     /// It iterates over keys in data, and for each key it produces vector of key cardinality filled with zeros except position of key value in which it put's `1.0`.
     /// For vector of keys it can either produce vector of counts for each key or concatenate them together into one vector.
+    ///
+    /// Check the See Also section for links to usage examples.
     /// ]]></format>
     /// </remarks>
     /// <seealso cref=" ConversionsExtensionsCatalog.MapKeyToVector(TransformsCatalog.ConversionTransforms, InputOutputColumnPair[], bool)"/>

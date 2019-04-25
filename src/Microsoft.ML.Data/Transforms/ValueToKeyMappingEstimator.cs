@@ -29,6 +29,8 @@ namespace Microsoft.ML.Transforms
     /// If the key is not found in the dictionary, it is assigned the missing value indicator.
     /// This dictionary mapping values to keys is most commonly learnt from the unique values in input data,
     /// but can be defined through other means: either with the mapping defined, or as loaded from an external file.
+    ///
+    /// Check the See Also section for links to usage examples.
     /// ]]></format>
     /// </remarks>
     /// <seealso cref="ConversionsExtensionsCatalog.MapValueToKey(TransformsCatalog.ConversionTransforms, InputOutputColumnPair[], int, KeyOrdinality, bool, IDataView)"/>

@@ -220,6 +220,8 @@ namespace Microsoft.ML.Transforms.TimeSeries
     /// [!include[io](~/../docs/samples/docs/api-reference/time-series-ssa.md)]
     ///
     /// [!include[io](~/../docs/samples/docs/api-reference/time-series-scorer.md)]
+    ///
+    /// Check the See Also section for links to usage examples.
     /// ]]>
     /// </format>
     /// </remarks>

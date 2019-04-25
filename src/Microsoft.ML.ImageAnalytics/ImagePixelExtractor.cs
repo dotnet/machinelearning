@@ -488,7 +488,8 @@ namespace Microsoft.ML.Transforms.Image
     /// converts image into vector of known size of floats or bytes. Size and data type depends on specified paramaters.
     /// For end-to-end image processing pipelines, and scenarios in your applications, see the
     /// [examples](https://github.com/dotnet/machinelearning-samples/tree/master/samples/csharp/getting-started) in the machinelearning-samples github repository.
-    /// Check the See Also section for links to examples of the usage.
+    ///
+    /// Check the See Also section for links to usage examples.
     /// ]]>
     /// </format>
     /// </remarks>

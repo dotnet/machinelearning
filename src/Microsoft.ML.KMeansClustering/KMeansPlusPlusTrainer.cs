@@ -69,6 +69,8 @@ namespace Microsoft.ML.Trainers
     /// For more information on K-means, and K-means++ see:
     /// [K-means](https://en.wikipedia.org/wiki/K-means_clustering)
     /// [K-means++](https://en.wikipedia.org/wiki/K-means%2b%2b)
+    ///
+    /// Check the See Also section for links to usage examples.
     /// ]]>
     /// </format>
     /// </remarks>

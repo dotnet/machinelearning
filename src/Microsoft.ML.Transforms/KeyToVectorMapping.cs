@@ -438,6 +438,7 @@ namespace Microsoft.ML.Transforms
     /// | Input column data type | [key](xref:Microsoft.Ml.Data.KeyDataViewType) or a known-size vector of keys. |
     /// | Output column data type | A known-size vector of [System.Single](xref:System.Single). |
     ///
+    /// Check the See Also section for links to usage examples.
     /// ]]></format>
     /// </remarks>
     /// <seealso cref="ConversionsCatalog.MapKeyToBinaryVector(TransformsCatalog.ConversionTransforms, string, string)"/>

@@ -825,6 +825,7 @@ namespace Microsoft.ML.Transforms
     /// - <xref:Microsoft.ML.Transforms.LpNormNormalizingEstimatorBase.NormFunction.StandardDeviation>: $L_\sigma(x)$ is defined as the
     /// standard deviation of the elements of the input vector $x$
     ///
+    /// Check the See Also section for links to usage examples.
     /// ]]>
     /// </format>
     /// </remarks>
@@ -902,6 +903,8 @@ namespace Microsoft.ML.Transforms
     /// Where $s$ is a user provided scaling factor, $\mu(x)$ is the mean of the elements of vector $x$, and $L(x)$ is the $L_2$ norm or the
     /// standard deviation of the elements of vector $x$. These settings can be specified by the user when the
     /// <xref:Microsoft.ML.Transforms.GlobalContrastNormalizingEstimator> is initialized.
+    ///
+    /// Check the See Also section for links to usage examples.
     /// ]]>
     /// </format>
     /// </remarks>

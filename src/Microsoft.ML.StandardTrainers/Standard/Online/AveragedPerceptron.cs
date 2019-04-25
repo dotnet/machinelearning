@@ -58,6 +58,8 @@ namespace Microsoft.ML.Trainers
     ///
     /// For more information see [Wikipedia entry for Perceptron](https://en.wikipedia.org/wiki/Perceptron)
     /// or [Large Margin Classification Using the Perceptron Algorithm](https://citeseer.ist.psu.edu/viewdoc/summary?doi=10.1.1.48.8200).
+    ///
+    /// Check the See Also section for links to usage examples.
     /// ]]>
     /// </format>
     /// </remarks>

@@ -60,6 +60,8 @@ namespace Microsoft.ML.Trainers
     /// to produce the same result as what a sequential symbolic stochastic gradient descent would have produced, in expectation.
     ///
     /// For more information see [Parallel Stochastic Gradient Descent with Sound Combiners](https://arxiv.org/abs/1705.08030).
+    ///
+    /// Check the See Also section for links to usage examples.
     /// ]]>
     /// </format>
     /// </remarks>

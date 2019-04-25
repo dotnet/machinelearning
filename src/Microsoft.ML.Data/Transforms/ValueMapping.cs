@@ -56,6 +56,8 @@ namespace Microsoft.ML.Transforms
     ///
     /// Values can be repeated to allow for multiple keys to map to the same value, however keys can not be repeated. The mapping between keys and values
     /// can be specified either through lists, where the key list and value list must be the same size or can be done through an [System.IDataView](xref:Microsoft.ML.IDataView).
+    ///
+    /// Check the See Also section for links to usage examples.
     /// ]]></format>
     /// </remarks>
     /// <seealso cref="ConversionsExtensionsCatalog.MapValue(TransformsCatalog.ConversionTransforms, string, IDataView, DataViewSchema.Column, DataViewSchema.Column, string)"/>
@@ -152,6 +154,8 @@ namespace Microsoft.ML.Transforms
     ///
     /// Values can be repeated to allow for multiple keys to map to the same value, however keys can not be repeated. The mapping between keys and values
     /// can be specified either through lists, where the key list and value list must be the same size or can be done through an [System.IDataView](xref:Microsoft.ML.IDataView).
+    ///
+    /// Check the See Also section for links to usage examples.
     /// ]]></format>
     /// </remarks>
     /// <typeparam name="TKey">Specifies the key type.</typeparam>

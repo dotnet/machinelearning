@@ -31,7 +31,7 @@ namespace Microsoft.ML.Transforms
     /// If the input columns' data type is a vector the output column data type remains the same. However, the size of
     /// the vector will be the sum of the sizes of the input vectors.
     ///
-    /// Check the See Also section for links to examples of the usage.
+    /// Check the See Also section for links to usage examples.
     /// ]]></format>
     /// </remarks>
     /// <seealso cref="TransformExtensionsCatalog.Concatenate(TransformsCatalog, string, string[])"/>

@@ -414,7 +414,7 @@ namespace Microsoft.ML.Transforms.Text
     ///
     /// Empty strings and strings containing only spaces are dropped.
     ///
-    /// Check the See Also section for links to examples of the usage.
+    /// Check the See Also section for links to usage examples.
     /// ]]></format>
     /// </remarks>
     /// <seealso cref="TextCatalog.TokenizeIntoWords(TransformsCatalog.TextTransforms, string, string, char[])"/>

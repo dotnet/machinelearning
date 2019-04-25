@@ -66,6 +66,8 @@ namespace Microsoft.ML.Trainers
     /// requires that the trainer store a lot more intermediate state in the form of
     /// L-BFGS history for all classes *simultaneously*, rather than just one-by-one
     /// as would be needed for a pairwise coupling classification model.
+    ///
+    /// Check the See Also section for links to usage examples.
     /// ]]>
     /// </format>
     /// </remarks>

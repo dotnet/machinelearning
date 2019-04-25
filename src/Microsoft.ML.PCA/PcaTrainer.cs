@@ -70,6 +70,8 @@ namespace Microsoft.ML.Trainers
     ///
     /// Note that the algorithm can be made into Kernel PCA by applying the <xref:Microsoft.ML.Transforms.ApproximatedKernelTransformer>
     /// to the data before passing it to the trainer.
+    ///
+    /// Check the See Also section for links to usage examples.
     /// ]]>
     /// </format>
     /// </remarks>

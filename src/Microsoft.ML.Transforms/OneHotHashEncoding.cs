@@ -241,7 +241,7 @@ namespace Microsoft.ML.Transforms
     /// The OneHotEncodingTransformer can be applied to one or more columns, in which case it builds and uses a separate dictionary
     /// for each column that it is applied to.
     ///
-    /// Check the See Also section for links to examples of the usage.
+    /// Check the See Also section for links to usage examples.
     /// ]]>
     /// </format>
     /// </remarks>

@@ -54,6 +54,8 @@ namespace Microsoft.ML.Trainers
     /// [Ordinary least squares (OLS)](https://en.wikipedia.org/wiki/Ordinary_least_squares) is a parameterized regression method.
     /// It assumes that the conditional mean of the dependent variable follows a linear function of the dependent variables.
     /// The regression parameters can be estimated by minimizing the squares of the difference between observed values and the predictions
+    ///
+    /// Check the See Also section for links to usage examples.
     /// ]]>
     /// </format>
     /// </remarks>

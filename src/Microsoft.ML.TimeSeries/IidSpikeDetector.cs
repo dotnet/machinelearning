@@ -193,6 +193,8 @@ namespace Microsoft.ML.Transforms.TimeSeries
     /// [!include[io](~/../docs/samples/docs/api-reference/time-series-iid.md)]
     ///
     /// [!include[io](~/../docs/samples/docs/api-reference/time-series-pvalue.md)]
+    ///
+    /// Check the See Also section for links to usage examples.
     /// ]]>
     /// </format>
     /// </remarks>

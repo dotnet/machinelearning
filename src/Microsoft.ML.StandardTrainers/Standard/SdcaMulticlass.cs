@@ -75,6 +75,8 @@ namespace Microsoft.ML.Trainers
     ///
     /// An aggressive regularization (that is, assigning large coefficients to L1-norm or L2-norm regularization terms) can harm predictive capacity by excluding important variables out of the model.
     /// Therefore, choosing the right regularization coefficients is important in practice.
+    ///
+    /// Check the See Also section for links to usage examples.
     /// ]]>
     /// </format>
     /// </remarks>
@@ -517,6 +519,7 @@ namespace Microsoft.ML.Trainers
     /// ### Training Algorithm Details
     /// See the documentation of [SdcaMulticlassTrainerBase](xref:Microsoft.ML.Trainers.SdcaMulticlassTrainerBase`1).
     ///
+    /// Check the See Also section for links to usage examples.
     /// ]]>
     /// </format>
     /// </remarks>
@@ -600,6 +603,7 @@ namespace Microsoft.ML.Trainers
     /// ### Training Algorithm Details
     /// See the documentation of [SdcaMulticlassTrainerBase](xref:Microsoft.ML.Trainers.SdcaMulticlassTrainerBase).
     ///
+    /// Check the See Also section for links to usage examples.
     /// ]]>
     /// </format>
     /// </remarks>

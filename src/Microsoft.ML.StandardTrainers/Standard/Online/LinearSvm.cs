@@ -53,6 +53,8 @@ namespace Microsoft.ML.Trainers
     ///
     /// This algorithm implemented is the PEGASOS method, which alternates between stochastic gradient descent steps and projection steps,
     /// introduced in [this paper](http://ttic.uchicago.edu/~shai/papers/ShalevSiSr07.pdf) by Shalev-Shwartz, Singer and Srebro.
+    ///
+    /// Check the See Also section for links to usage examples.
     /// ]]>
     /// </format>
     /// </remarks>

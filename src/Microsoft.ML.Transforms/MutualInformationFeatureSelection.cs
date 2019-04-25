@@ -63,6 +63,7 @@ namespace Microsoft.ML.Transforms
     /// |True |4,0 |
     /// |False|0,5 |
     ///
+    /// Check the See Also section for links to usage examples.
     /// ]]></format>
     /// </remarks>
     /// <seealso cref="FeatureSelectionCatalog.SelectFeaturesBasedOnMutualInformation(TransformsCatalog.FeatureSelectionTransforms, InputOutputColumnPair[], string, int, int)"/>

@@ -512,6 +512,7 @@ namespace Microsoft.ML.Transforms
     /// | Input column data type | [key](xref:Microsoft.ML.Data.KeyDataViewType) type. |
     /// | Output column data type | Type of the original data, prior to converting to [key](xref:Microsoft.ML.Data.KeyDataViewType) type. |
     ///
+    /// Check the See Also section for links to usage examples.
     /// ]]></format>
     /// </remarks>
     /// <seealso cref="ConversionsExtensionsCatalog.MapKeyToValue(TransformsCatalog.ConversionTransforms, InputOutputColumnPair[])"/>

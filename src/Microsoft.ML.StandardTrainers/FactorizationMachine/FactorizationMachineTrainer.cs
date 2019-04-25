@@ -81,6 +81,7 @@ namespace Microsoft.ML.Trainers
     /// Algorithm details is described in Algorithm 3 in [this online document](https://github.com/wschin/fast-ffm/blob/master/fast-ffm.pdf).
     /// The minimized loss function is [logistic loss](https://en.wikipedia.org/wiki/Loss_functions_for_classification), so the trained model can be viewed as a non-linear logistic regression.
     ///
+    /// Check the See Also section for links to usage examples.
     /// ]]>
     /// </format>
     /// </remarks>
