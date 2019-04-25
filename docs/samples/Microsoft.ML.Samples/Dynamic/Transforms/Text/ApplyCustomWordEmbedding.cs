@@ -41,17 +41,23 @@ namespace Samples.Dynamic
             // The 'ApplyWordEmbedding' API requires vector of text as input.
             // The pipeline first normalizes and tokenizes text then applies word embedding transformation.
             var textPipeline = mlContext.Transforms.Text.NormalizeText("Text")
-                .Append(mlContext.Transforms.Text.TokenizeIntoWords("Tokens", "Text"))
-                .Append(mlContext.Transforms.Text.ApplyWordEmbedding("Features", pathToCustomModel, "Tokens"));
+                .Append(
+                    mlContext.Transforms.Text.TokenizeIntoWords("Tokens", "Text"))
+                .Append(mlContext.Transforms.Text.ApplyWordEmbedding("Features",
+                    pathToCustomModel, "Tokens"));
 
             // Fit to data.
             var textTransformer = textPipeline.Fit(emptyDataView);
 
             // Create the prediction engine to get the embedding vector from the input text/string.
-            var predictionEngine = mlContext.Model.CreatePredictionEngine<TextData, TransformedTextData>(textTransformer);
+            var predictionEngine =
+                mlContext.Model
+                    .CreatePredictionEngine<TextData, TransformedTextData>(
+                        textTransformer);
 
             // Call the prediction API to convert the text into embedding vector.
-            var data = new TextData() { Text = "This is a great product. I would like to buy it again."  };
+            var data = new TextData()
+                {Text = "This is a great product. I would like to buy it again."};
             var prediction = predictionEngine.Predict(data);
 
             // Print the length of the embedding vector.

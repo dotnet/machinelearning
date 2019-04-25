@@ -15,12 +15,22 @@ namespace Samples.Dynamic
             // Create a small dataset as an IEnumerable.
             var samples = new List<InputData>()
             {
-                new InputData(){ Age = 21, Gender = "Male", Education = "BS", ExtraColumn = 1 },
-                new InputData(){ Age = 23, Gender = "Female", Education = "MBA", ExtraColumn = 2 },
-                new InputData(){ Age = 28, Gender = "Male", Education = "PhD", ExtraColumn = 3 },
-                new InputData(){ Age = 22, Gender = "Male", Education = "BS", ExtraColumn = 4 },
-                new InputData(){ Age = 23, Gender = "Female", Education = "MS", ExtraColumn = 5 },
-                new InputData(){ Age = 27, Gender = "Female", Education = "PhD", ExtraColumn = 6 },
+                new InputData()
+                    {Age = 21, Gender = "Male", Education = "BS", ExtraColumn = 1},
+                new InputData()
+                {
+                    Age = 23, Gender = "Female", Education = "MBA", ExtraColumn = 2
+                },
+                new InputData()
+                    {Age = 28, Gender = "Male", Education = "PhD", ExtraColumn = 3},
+                new InputData()
+                    {Age = 22, Gender = "Male", Education = "BS", ExtraColumn = 4},
+                new InputData()
+                    {Age = 23, Gender = "Female", Education = "MS", ExtraColumn = 5},
+                new InputData()
+                {
+                    Age = 27, Gender = "Female", Education = "PhD", ExtraColumn = 6
+                },
             };
 
             // Convert training data to IDataView.
@@ -39,11 +49,14 @@ namespace Samples.Dynamic
             // When we try to pull out the Age, Gender, Education and ExtraColumn columns, ML.NET will raise an exception on the ExtraColumn
             try
             {
-                var failingRowEnumerable = mlContext.Data.CreateEnumerable<InputData>(transformedData, reuseRowObject: false);
+                var failingRowEnumerable =
+                    mlContext.Data.CreateEnumerable<InputData>(transformedData,
+                        reuseRowObject: false);
             }
             catch (ArgumentOutOfRangeException exception)
             {
-                Console.WriteLine($"ExtraColumn is not available, so an exception is thrown: {exception.Message}.");
+                Console.WriteLine(
+                    $"ExtraColumn is not available, so an exception is thrown: {exception.Message}.");
             }
 
             // Expected output:
@@ -51,10 +64,13 @@ namespace Samples.Dynamic
             //  Parameter name: Schema
 
             // And we can write a few columns out to see that the rest of the data is still available.
-            var rowEnumerable = mlContext.Data.CreateEnumerable<TransformedData>(transformedData, reuseRowObject: false);
+            var rowEnumerable =
+                mlContext.Data.CreateEnumerable<TransformedData>(transformedData,
+                    reuseRowObject: false);
             Console.WriteLine($"The columns we didn't drop are still available.");
             foreach (var row in rowEnumerable)
-                Console.WriteLine($"Age: {row.Age} Gender: {row.Gender} Education: {row.Education}");
+                Console.WriteLine(
+                    $"Age: {row.Age} Gender: {row.Gender} Education: {row.Education}");
 
             // Expected output:
             //  The columns we didn't drop are still available.

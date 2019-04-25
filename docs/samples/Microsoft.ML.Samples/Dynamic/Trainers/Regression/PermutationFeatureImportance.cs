@@ -11,7 +11,7 @@ namespace Samples.Dynamic.Trainers.Regression
         {
             // Create a new context for ML.NET operations. It can be used for exception tracking and logging, 
             // as a catalog of available operations and as the source of randomness.
-            var mlContext = new MLContext(seed:1);
+            var mlContext = new MLContext(seed: 1);
 
             // Create sample data.
             var samples = GenerateData();
@@ -21,8 +21,10 @@ namespace Samples.Dynamic.Trainers.Regression
 
             // Define a training pipeline that concatenates features into a vector, normalizes them, and then
             // trains a linear model.
-            var featureColumns = new string[] { nameof(Data.Feature1), nameof(Data.Feature2) };
-            var pipeline = mlContext.Transforms.Concatenate("Features", featureColumns)
+            var featureColumns = new string[]
+                {nameof(Data.Feature1), nameof(Data.Feature2)};
+            var pipeline = mlContext.Transforms
+                .Concatenate("Features", featureColumns)
                 .Append(mlContext.Transforms.NormalizeMinMax("Features"))
                 .Append(mlContext.Regression.Trainers.Ols());
 
@@ -36,17 +38,22 @@ namespace Samples.Dynamic.Trainers.Regression
             var linearPredictor = model.LastTransformer;
 
             // Compute the permutation metrics for the linear model using the normalized data.
-            var permutationMetrics = mlContext.Regression.PermutationFeatureImportance(
-                linearPredictor, transformedData, permutationCount: 30);
+            var permutationMetrics =
+                mlContext.Regression.PermutationFeatureImportance(
+                    linearPredictor, transformedData, permutationCount: 30);
 
             // Now let's look at which features are most important to the model overall.
             // Get the feature indices sorted by their impact on RMSE.
-            var sortedIndices = permutationMetrics.Select((metrics, index) => new { index, metrics.RootMeanSquaredError})
-                .OrderByDescending(feature => Math.Abs(feature.RootMeanSquaredError.Mean))
+            var sortedIndices = permutationMetrics.Select((metrics, index) =>
+                    new {index, metrics.RootMeanSquaredError})
+                .OrderByDescending(feature =>
+                    Math.Abs(feature.RootMeanSquaredError.Mean))
                 .Select(feature => feature.index);
 
-            Console.WriteLine("Feature\tModel Weight\tChange in RMSE\t95% Confidence in the Mean Change in RMSE");
-            var rmse = permutationMetrics.Select(x => x.RootMeanSquaredError).ToArray();
+            Console.WriteLine(
+                "Feature\tModel Weight\tChange in RMSE\t95% Confidence in the Mean Change in RMSE");
+            var rmse = permutationMetrics.Select(x => x.RootMeanSquaredError)
+                .ToArray();
             foreach (int i in sortedIndices)
             {
                 Console.WriteLine("{0}\t{1:0.00}\t{2:G4}\t{3:G4}",
@@ -77,24 +84,35 @@ namespace Samples.Dynamic.Trainers.Regression
         /// </summary>
         /// <param name="nExamples">The number of examples.</param>
         /// <param name="bias">The bias, or offset, in the calculation of the label.</param>
-        /// <param name="weight1">The weight to multiply the first feature with to compute the label.</param>
-        /// <param name="weight2">The weight to multiply the second feature with to compute the label.</param>
+        /// <param name="weight1">
+        /// The weight to multiply the first feature with to compute the
+        /// label.
+        /// </param>
+        /// <param name="weight2">
+        /// The weight to multiply the second feature with to compute the
+        /// label.
+        /// </param>
         /// <param name="seed">The seed for generating feature values and label noise.</param>
         /// <returns>An enumerable of Data objects.</returns>
         private static IEnumerable<Data> GenerateData(int nExamples = 10000,
-            double bias = 0, double weight1 = 1, double weight2 = 2, int seed = 1)
+            double bias = 0,
+            double weight1 = 1,
+            double weight2 = 2,
+            int seed = 1)
         {
             var rng = new Random(seed);
             for (int i = 0; i < nExamples; i++)
             {
                 var data = new Data
                 {
-                    Feature1 = (float)(rng.Next(10) * (rng.NextDouble() - 0.5)),
-                    Feature2 = (float)(rng.Next(10) * (rng.NextDouble() - 0.5)),
+                    Feature1 = (float) (rng.Next(10) * (rng.NextDouble() - 0.5)),
+                    Feature2 = (float) (rng.Next(10) * (rng.NextDouble() - 0.5)),
                 };
 
                 // Create a noisy label.
-                data.Label = (float)(bias + weight1 * data.Feature1 + weight2 * data.Feature2 + rng.NextDouble() - 0.5);
+                data.Label = (float) (bias + weight1 * data.Feature1 +
+                                      weight2 * data.Feature2 + rng.NextDouble() -
+                                      0.5);
                 yield return data;
             }
         }

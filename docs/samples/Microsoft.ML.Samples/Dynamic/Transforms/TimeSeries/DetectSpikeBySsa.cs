@@ -51,10 +51,14 @@ namespace Samples.Dynamic
             var outputColumnName = nameof(SsaSpikePrediction.Prediction);
 
             // Train the change point detector.
-            ITransformer model = ml.Transforms.DetectSpikeBySsa(outputColumnName, inputColumnName, 95, 8, TrainingSize, SeasonalitySize + 1).Fit(dataView);
+            ITransformer model = ml.Transforms.DetectSpikeBySsa(outputColumnName,
+                    inputColumnName, 95, 8, TrainingSize, SeasonalitySize + 1)
+                .Fit(dataView);
 
             // Create a prediction engine from the model for feeding new data.
-            var engine = model.CreateTimeSeriesPredictionFunction<TimeSeriesData, SsaSpikePrediction>(ml);
+            var engine =
+                model.CreateTimeSeriesPredictionFunction<TimeSeriesData,
+                    SsaSpikePrediction>(ml);
 
             // Start streaming new data points with no change point to the prediction engine.
             Console.WriteLine($"Output from spike predictions on new data:");
@@ -64,8 +68,8 @@ namespace Samples.Dynamic
             // Data    Alert   Score   P-Value
 
             for (int j = 0; j < 2; j++)
-                for (int i = 0; i < 5; i++)
-                    PrintPrediction(i, engine.Predict(new TimeSeriesData(i)));
+            for (int i = 0; i < 5; i++)
+                PrintPrediction(i, engine.Predict(new TimeSeriesData(i)));
 
             // 0       0      -1.01    0.50
             // 1       0      -0.24    0.22
@@ -94,12 +98,14 @@ namespace Samples.Dynamic
                 model = ml.Model.Load(file, out DataViewSchema schema);
 
             // We must create a new prediction engine from the persisted model.
-            engine = model.CreateTimeSeriesPredictionFunction<TimeSeriesData, SsaSpikePrediction>(ml);
+            engine = model
+                .CreateTimeSeriesPredictionFunction<TimeSeriesData,
+                    SsaSpikePrediction>(ml);
 
             // Run predictions on the loaded model.
             for (int i = 0; i < 5; i++)
                 PrintPrediction(i, engine.Predict(new TimeSeriesData(i)));
-            
+
             // 0       0      -2.74    0.40   <-- saved to disk, re-loaded, and running new predictions
             // 1       0      -1.47    0.42
             // 2       0     -17.50    0.24
@@ -107,8 +113,10 @@ namespace Samples.Dynamic
             // 4       0     -23.24    0.28
         }
 
-        private static void PrintPrediction(float value, SsaSpikePrediction prediction) => 
-            Console.WriteLine("{0}\t{1}\t{2:0.00}\t{3:0.00}", value, prediction.Prediction[0], 
+        private static void PrintPrediction(float value,
+            SsaSpikePrediction prediction) =>
+            Console.WriteLine("{0}\t{1}\t{2:0.00}\t{3:0.00}", value,
+                prediction.Prediction[0],
                 prediction.Prediction[1], prediction.Prediction[2]);
 
         class TimeSeriesData
@@ -123,8 +131,7 @@ namespace Samples.Dynamic
 
         class SsaSpikePrediction
         {
-            [VectorType(3)]
-            public double[] Prediction { get; set; }
+            [VectorType(3)] public double[] Prediction { get; set; }
         }
     }
 }

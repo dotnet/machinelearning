@@ -24,19 +24,25 @@ namespace Samples.Dynamic.Trainers.Regression
             var trainingData = mlContext.Data.LoadFromEnumerable(dataPoints);
 
             // Define the trainer.
-            var pipeline = mlContext.Regression.Trainers.Gam(labelColumnName: nameof(DataPoint.Label), featureColumnName: nameof(DataPoint.Features));
+            var pipeline = mlContext.Regression.Trainers.Gam(
+                labelColumnName: nameof(DataPoint.Label),
+                featureColumnName: nameof(DataPoint.Features));
 
             // Train the model.
             var model = pipeline.Fit(trainingData);
 
             // Create testing data. Use different random seed to make it different from training data.
-            var testData = mlContext.Data.LoadFromEnumerable(GenerateRandomDataPoints(5, seed: 123));
+            var testData =
+                mlContext.Data.LoadFromEnumerable(
+                    GenerateRandomDataPoints(5, seed: 123));
 
             // Run the model on test data set.
             var transformedTestData = model.Transform(testData);
 
             // Convert IDataView object to a list.
-            var predictions = mlContext.Data.CreateEnumerable<Prediction>(transformedTestData, reuseRowObject: false).ToList();
+            var predictions = mlContext.Data
+                .CreateEnumerable<Prediction>(transformedTestData,
+                    reuseRowObject: false).ToList();
 
             // Look at 5 predictions for the Label, side by side with the actual Label for comparison.
             foreach (var p in predictions)
@@ -60,17 +66,19 @@ namespace Samples.Dynamic.Trainers.Regression
             //   RSquared: 0.99 (closer to 1 is better. The worest case is 0)
         }
 
-        private static IEnumerable<DataPoint> GenerateRandomDataPoints(int count, int seed=0)
+        private static IEnumerable<DataPoint> GenerateRandomDataPoints(int count,
+            int seed = 0)
         {
             var random = new Random(seed);
             for (int i = 0; i < count; i++)
             {
-                float label = (float)random.NextDouble();
+                float label = (float) random.NextDouble();
                 yield return new DataPoint
                 {
                     Label = label,
                     // Create random features that are correlated with the label.
-                    Features = Enumerable.Repeat(label, 50).Select(x => x + (float)random.NextDouble()).ToArray()
+                    Features = Enumerable.Repeat(label, 50)
+                        .Select(x => x + (float) random.NextDouble()).ToArray()
                 };
             }
         }
@@ -79,8 +87,7 @@ namespace Samples.Dynamic.Trainers.Regression
         private class DataPoint
         {
             public float Label { get; set; }
-            [VectorType(50)]
-            public float[] Features { get; set; }
+            [VectorType(50)] public float[] Features { get; set; }
         }
 
         // Class used to capture predictions.
@@ -88,6 +95,7 @@ namespace Samples.Dynamic.Trainers.Regression
         {
             // Original label.
             public float Label { get; set; }
+
             // Predicted score from the trainer.
             public float Score { get; set; }
         }
@@ -95,11 +103,12 @@ namespace Samples.Dynamic.Trainers.Regression
         // Print some evaluation metrics to regression problems.
         private static void PrintMetrics(RegressionMetrics metrics)
         {
-            Console.WriteLine($"Mean Absolute Error: {metrics.MeanAbsoluteError:F2}");
+            Console.WriteLine(
+                $"Mean Absolute Error: {metrics.MeanAbsoluteError:F2}");
             Console.WriteLine($"Mean Squared Error: {metrics.MeanSquaredError:F2}");
-            Console.WriteLine($"Root Mean Squared Error: {metrics.RootMeanSquaredError:F2}");
+            Console.WriteLine(
+                $"Root Mean Squared Error: {metrics.RootMeanSquaredError:F2}");
             Console.WriteLine($"RSquared: {metrics.RSquared:F2}");
         }
     }
 }
-

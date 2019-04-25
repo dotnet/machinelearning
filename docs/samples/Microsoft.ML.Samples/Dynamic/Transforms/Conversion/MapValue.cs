@@ -7,7 +7,7 @@ namespace Samples.Dynamic
     public static class MapValue
     {
         /// This example demonstrates the use of the ValueMappingEstimator by mapping strings to other string values, or floats to strings. 
-        /// This is useful to map types to a category. 
+        /// This is useful to map types to a category.
         public static void Example()
         {
             // Create a new ML context, for ML.NET operations. It can be used for exception tracking and logging, 
@@ -15,13 +15,14 @@ namespace Samples.Dynamic
             var mlContext = new MLContext();
 
             // Get a small dataset as an IEnumerable.
-            var rawData = new[] {
-                new DataPoint() { Timeframe = "0-4yrs" , Score = 1 },
-                new DataPoint() { Timeframe = "6-11yrs" , Score = 2 },
-                new DataPoint() { Timeframe = "12-25yrs" , Score = 3 },
-                new DataPoint() { Timeframe = "0-5yrs" , Score = 4 },
-                new DataPoint() { Timeframe = "12-25yrs" , Score = 5 },
-                new DataPoint() { Timeframe = "25+yrs" , Score = 5 },
+            var rawData = new[]
+            {
+                new DataPoint() {Timeframe = "0-4yrs", Score = 1},
+                new DataPoint() {Timeframe = "6-11yrs", Score = 2},
+                new DataPoint() {Timeframe = "12-25yrs", Score = 3},
+                new DataPoint() {Timeframe = "0-5yrs", Score = 4},
+                new DataPoint() {Timeframe = "12-25yrs", Score = 5},
+                new DataPoint() {Timeframe = "25+yrs", Score = 5},
             };
 
             var data = mlContext.Data.LoadFromEnumerable(rawData);
@@ -51,22 +52,29 @@ namespace Samples.Dynamic
             scoreMap[5] = "High";
 
             // Constructs the ML.net pipeline
-            var pipeline = mlContext.Transforms.Conversion.MapValue("TimeframeCategory", timeframeMap, "Timeframe")
-                           .Append(mlContext.Transforms.Conversion.MapValue("ScoreCategory", scoreMap, "Score"))
-                           // on the MapValue below, the treatValuesAsKeyType is set to true. The type of the Label column will be a KeyDataViewType type, 
-                           // and it can be used as input for trainers performing multiclass classification.
-                           .Append(mlContext.Transforms.Conversion.MapValue("Label", timeframeKeyMap, "Timeframe", treatValuesAsKeyType: true));
+            var pipeline = mlContext.Transforms.Conversion
+                .MapValue("TimeframeCategory", timeframeMap, "Timeframe")
+                .Append(mlContext.Transforms.Conversion.MapValue("ScoreCategory",
+                    scoreMap, "Score"))
+                // on the MapValue below, the treatValuesAsKeyType is set to true. The type of the Label column will be a KeyDataViewType type, 
+                // and it can be used as input for trainers performing multiclass classification.
+                .Append(mlContext.Transforms.Conversion.MapValue("Label",
+                    timeframeKeyMap, "Timeframe", treatValuesAsKeyType: true));
 
             // Fits the pipeline to the data.
             IDataView transformedData = pipeline.Fit(data).Transform(data);
 
             // Getting the resulting data as an IEnumerable.
             // This will contain the newly created columns.
-            IEnumerable<TransformedData> features = mlContext.Data.CreateEnumerable<TransformedData>(transformedData, reuseRowObject: false);
+            IEnumerable<TransformedData> features =
+                mlContext.Data.CreateEnumerable<TransformedData>(transformedData,
+                    reuseRowObject: false);
 
-            Console.WriteLine($" Timeframe   TimeframeCategory   Label    Score   ScoreCategory");
+            Console.WriteLine(
+                $" Timeframe   TimeframeCategory   Label    Score   ScoreCategory");
             foreach (var featureRow in features)
-                Console.WriteLine($"{featureRow.Timeframe}\t\t{featureRow.TimeframeCategory}\t\t\t{featureRow.Label}\t\t{featureRow.Score}\t{featureRow.ScoreCategory}");
+                Console.WriteLine(
+                    $"{featureRow.Timeframe}\t\t{featureRow.TimeframeCategory}\t\t\t{featureRow.Label}\t\t{featureRow.Score}\t{featureRow.ScoreCategory}");
 
             // TransformedData obtained post-transformation.
             //

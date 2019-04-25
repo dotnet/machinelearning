@@ -16,30 +16,36 @@ namespace Samples.Dynamic
             // Get a small dataset as an IEnumerable and convert it to an IDataView.
             var samples = new List<InputData>
             {
-                new InputData { Age = 26 },
-                new InputData { Age = 35 },
-                new InputData { Age = 34 },
-                new InputData { Age = 28 },
+                new InputData {Age = 26},
+                new InputData {Age = 35},
+                new InputData {Age = 34},
+                new InputData {Age = 28},
             };
             var data = mlContext.Data.LoadFromEnumerable(samples);
 
             // Custom transformations can be used to transform data directly, or as part of a pipeline of estimators.
-            var pipeline = mlContext.Transforms.CustomMapping(new IsUnderThirtyCustomAction().GetMapping(), contractName: "IsUnderThirty");
+            var pipeline = mlContext.Transforms.CustomMapping(
+                new IsUnderThirtyCustomAction().GetMapping(),
+                contractName: "IsUnderThirty");
             var transformer = pipeline.Fit(data);
 
             // To save and load the CustomMapping estimator, the assembly in which the custom action is defined needs to be registered in the
             // environment. The following registers the assembly where IsUnderThirtyCustomAction is defined.    
-            mlContext.ComponentCatalog.RegisterAssembly(typeof(IsUnderThirtyCustomAction).Assembly);
+            mlContext.ComponentCatalog.RegisterAssembly(
+                typeof(IsUnderThirtyCustomAction).Assembly);
 
             // Now the transform pipeline can be saved and loaded through the usual MLContext method. 
             mlContext.Model.Save(transformer, data.Schema, "customTransform.zip");
-            var loadedTransform = mlContext.Model.Load("customTransform.zip", out var inputSchema);
+            var loadedTransform =
+                mlContext.Model.Load("customTransform.zip", out var inputSchema);
 
             // Now we can transform the data and look at the output to confirm the behavior of the estimator.
             // This operation doesn't actually evaluate data until we read the data below.
             var transformedData = loadedTransform.Transform(data);
 
-            var dataEnumerable = mlContext.Data.CreateEnumerable<TransformedData>(transformedData, reuseRowObject: true);
+            var dataEnumerable =
+                mlContext.Data.CreateEnumerable<TransformedData>(transformedData,
+                    reuseRowObject: true);
             Console.WriteLine("Age\tIsUnderThirty");
             foreach (var row in dataEnumerable)
                 Console.WriteLine($"{row.Age}\t {row.IsUnderThirty}");
@@ -56,10 +62,13 @@ namespace Samples.Dynamic
         // CustomMappingFactoryAttribute with argument equal to the contractName used to define the CustomMapping estimator
         // which uses the action.
         [CustomMappingFactoryAttribute("IsUnderThirty")]
-        private class IsUnderThirtyCustomAction : CustomMappingFactory<InputData, CustomMappingOutput>
+        private class
+            IsUnderThirtyCustomAction : CustomMappingFactory<InputData,
+                CustomMappingOutput>
         {
             // We define the custom mapping between input and output rows that will be applied by the transformation.
-            public static void CustomAction(InputData input, CustomMappingOutput output)
+            public static void CustomAction(InputData input,
+                CustomMappingOutput output)
                 => output.IsUnderThirty = input.Age < 30;
 
             public override Action<InputData, CustomMappingOutput> GetMapping()

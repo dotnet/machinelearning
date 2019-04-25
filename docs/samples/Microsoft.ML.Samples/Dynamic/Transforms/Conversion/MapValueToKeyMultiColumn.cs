@@ -16,21 +16,24 @@ namespace Samples.Dynamic
             var mlContext = new MLContext();
 
             // Get a small dataset as an IEnumerable.
-            var rawData = new[] {
-                new DataPoint() { StudyTime = "0-4yrs" , Course = "CS" },
-                new DataPoint() { StudyTime = "6-11yrs" , Course = "CS" },
-                new DataPoint() { StudyTime = "12-25yrs" , Course = "LA" },
-                new DataPoint() { StudyTime = "0-5yrs" , Course = "DS" }
+            var rawData = new[]
+            {
+                new DataPoint() {StudyTime = "0-4yrs", Course = "CS"},
+                new DataPoint() {StudyTime = "6-11yrs", Course = "CS"},
+                new DataPoint() {StudyTime = "12-25yrs", Course = "LA"},
+                new DataPoint() {StudyTime = "0-5yrs", Course = "DS"}
             };
 
             var data = mlContext.Data.LoadFromEnumerable(rawData);
 
             // Constructs the ML.net pipeline
-            var pipeline = mlContext.Transforms.Conversion.MapValueToKey(new[] {
-                new  InputOutputColumnPair("StudyTimeCategory", "StudyTime"),
-                new  InputOutputColumnPair("CourseCategory", "Course")
+            var pipeline = mlContext.Transforms.Conversion.MapValueToKey(new[]
+                {
+                    new InputOutputColumnPair("StudyTimeCategory", "StudyTime"),
+                    new InputOutputColumnPair("CourseCategory", "Course")
                 },
-                keyOrdinality: Microsoft.ML.Transforms.ValueToKeyMappingEstimator.KeyOrdinality.ByValue,
+                keyOrdinality: Microsoft.ML.Transforms.ValueToKeyMappingEstimator
+                    .KeyOrdinality.ByValue,
                 addKeyValueAnnotationsAsText: true);
 
             // Fits the pipeline to the data.
@@ -38,11 +41,15 @@ namespace Samples.Dynamic
 
             // Getting the resulting data as an IEnumerable.
             // This will contain the newly created columns.
-            IEnumerable<TransformedData> features = mlContext.Data.CreateEnumerable<TransformedData>(transformedData, reuseRowObject: false);
+            IEnumerable<TransformedData> features =
+                mlContext.Data.CreateEnumerable<TransformedData>(transformedData,
+                    reuseRowObject: false);
 
-            Console.WriteLine($" StudyTime   StudyTimeCategory   Course    CourseCategory");
+            Console.WriteLine(
+                $" StudyTime   StudyTimeCategory   Course    CourseCategory");
             foreach (var featureRow in features)
-                Console.WriteLine($"{featureRow.StudyTime}\t\t{featureRow.StudyTimeCategory}\t\t\t{featureRow.Course}\t\t{featureRow.CourseCategory}");
+                Console.WriteLine(
+                    $"{featureRow.StudyTime}\t\t{featureRow.StudyTimeCategory}\t\t\t{featureRow.Course}\t\t{featureRow.CourseCategory}");
 
             // TransformedData obtained post-transformation.
             //
@@ -57,42 +64,48 @@ namespace Samples.Dynamic
             // If the values in the dataset are not found in the lookup IDataView they will get mapped to the mising value, 0.
             // The keyData are shared among the columns, therefore the keys are not contiguous for the column. 
             // Create the lookup map data IEnumerable.  
-            var lookupData = new[] {
-                new LookupMap { Key = "0-4yrs" },
-                new LookupMap { Key = "6-11yrs" },
-                new LookupMap { Key = "25+yrs"  },
-                new LookupMap { Key = "CS" },
-                new LookupMap { Key = "DS" },
-                new LookupMap { Key = "LA"  }
+            var lookupData = new[]
+            {
+                new LookupMap {Key = "0-4yrs"},
+                new LookupMap {Key = "6-11yrs"},
+                new LookupMap {Key = "25+yrs"},
+                new LookupMap {Key = "CS"},
+                new LookupMap {Key = "DS"},
+                new LookupMap {Key = "LA"}
             };
 
             // Convert to IDataView
             var lookupIdvMap = mlContext.Data.LoadFromEnumerable(lookupData);
 
             // Constructs the ML.net pipeline
-            var pipelineWithLookupMap = mlContext.Transforms.Conversion.MapValueToKey(new[] {
-                new  InputOutputColumnPair("StudyTimeCategory", "StudyTime"),
-                new  InputOutputColumnPair("CourseCategory", "Course")
-                },
-                keyData: lookupIdvMap);
+            var pipelineWithLookupMap =
+                mlContext.Transforms.Conversion.MapValueToKey(new[]
+                    {
+                        new InputOutputColumnPair("StudyTimeCategory", "StudyTime"),
+                        new InputOutputColumnPair("CourseCategory", "Course")
+                    },
+                    keyData: lookupIdvMap);
 
             // Fits the pipeline to the data.
             transformedData = pipelineWithLookupMap.Fit(data).Transform(data);
 
             // Getting the resulting data as an IEnumerable.
             // This will contain the newly created columns.
-            features = mlContext.Data.CreateEnumerable<TransformedData>(transformedData, reuseRowObject: false);
+            features =
+                mlContext.Data.CreateEnumerable<TransformedData>(transformedData,
+                    reuseRowObject: false);
 
-            Console.WriteLine($" StudyTime   StudyTimeCategory  Course CourseCategory");
+            Console.WriteLine(
+                $" StudyTime   StudyTimeCategory  Course CourseCategory");
             foreach (var featureRow in features)
-                Console.WriteLine($"{featureRow.StudyTime}\t\t{featureRow.StudyTimeCategory}\t\t\t{featureRow.Course}\t\t{featureRow.CourseCategory}");
+                Console.WriteLine(
+                    $"{featureRow.StudyTime}\t\t{featureRow.StudyTimeCategory}\t\t\t{featureRow.Course}\t\t{featureRow.CourseCategory}");
 
             // StudyTime    StudyTimeCategory  Course     CourseCategory
             // 0 - 4yrs          1              CS              4
             // 6 - 11yrs         2              CS              4
             // 12 - 25yrs        0              LA              6
             // 0 - 5yrs          0              DS              5
-
         }
 
         private class DataPoint

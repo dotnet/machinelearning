@@ -27,11 +27,16 @@ namespace Samples.Dynamic.Trainers.BinaryClassification
             // This trainer trains field-aware factorization (FFM) for binary classification. See https://www.csie.ntu.edu.tw/~cjlin/papers/ffm.pdf
             // for the theory behind and https://github.com/wschin/fast-ffm/blob/master/fast-ffm.pdf for the training
             // algorithm implemented in ML.NET.
-            var pipeline = mlContext.BinaryClassification.Trainers.FieldAwareFactorizationMachine(
-                // Specify three feature columns!
-                new[] {nameof(DataPoint.Field0), nameof(DataPoint.Field1), nameof(DataPoint.Field2) },
-                // Specify binary label's column name.
-                nameof(DataPoint.Label) );
+            var pipeline = mlContext.BinaryClassification.Trainers
+                .FieldAwareFactorizationMachine(
+                    // Specify three feature columns!
+                    new[]
+                    {
+                        nameof(DataPoint.Field0), nameof(DataPoint.Field1),
+                        nameof(DataPoint.Field2)
+                    },
+                    // Specify binary label's column name.
+                    nameof(DataPoint.Label));
 
             // Train the model.
             var model = pipeline.Fit(trainingData);
@@ -40,7 +45,8 @@ namespace Samples.Dynamic.Trainers.BinaryClassification
             var transformedTrainingData = model.Transform(trainingData);
 
             // Measure the quality of the trained model.
-            var metrics = mlContext.BinaryClassification.Evaluate(transformedTrainingData);
+            var metrics =
+                mlContext.BinaryClassification.Evaluate(transformedTrainingData);
 
             // Show the quality metrics.
             PrintMetrics(metrics);
@@ -58,13 +64,15 @@ namespace Samples.Dynamic.Trainers.BinaryClassification
             //   Entropy: 1.00
 
             // Create prediction function from the trained model.
-            var engine = mlContext.Model.CreatePredictionEngine<DataPoint, Result>(model);
+            var engine =
+                mlContext.Model.CreatePredictionEngine<DataPoint, Result>(model);
 
             // Make some predictions.
-            foreach(var dataPoint in data.Take(5))
+            foreach (var dataPoint in data.Take(5))
             {
                 var result = engine.Predict(dataPoint);
-                Console.WriteLine($"Actual label: {dataPoint.Label}, predicted label: {result.PredictedLabel}, " +
+                Console.WriteLine(
+                    $"Actual label: {dataPoint.Label}, predicted label: {result.PredictedLabel}, " +
                     $"score of being positive class: {result.Score}, and probability of beling positive class: {result.Probability}.");
             }
 
@@ -86,16 +94,13 @@ namespace Samples.Dynamic.Trainers.BinaryClassification
             public bool Label { get; set; }
 
             // Features from the first field. Note that different fields can have different numbers of features.
-            [VectorType(featureLength)]
-            public float[] Field0 { get; set; }
+            [VectorType(featureLength)] public float[] Field0 { get; set; }
 
             // Features from the second field. 
-            [VectorType(featureLength)]
-            public float[] Field1 { get; set; }
+            [VectorType(featureLength)] public float[] Field1 { get; set; }
 
             // Features from the thrid field. 
-            [VectorType(featureLength)]
-            public float[] Field2 { get; set; }
+            [VectorType(featureLength)] public float[] Field2 { get; set; }
         }
 
         // This class defines objects produced by trained model. The trained model maps
@@ -104,16 +109,21 @@ namespace Samples.Dynamic.Trainers.BinaryClassification
         {
             // Label.
             public bool Label { get; set; }
+
             // Predicted label.
             public bool PredictedLabel { get; set; }
+
             // Predicted score.
             public float Score { get; set; }
+
             // Probability of belonging to positive class.
             public float Probability { get; set; }
         }
 
         // Function used to create toy data sets.
-        private static IEnumerable<DataPoint> GenerateRandomDataPoints(int exampleCount, int seed = 0)
+        private static IEnumerable<DataPoint> GenerateRandomDataPoints(
+            int exampleCount,
+            int seed = 0)
         {
             var rnd = new Random(seed);
             var data = new List<DataPoint>();
@@ -134,19 +144,19 @@ namespace Samples.Dynamic.Trainers.BinaryClassification
                 // another field to store features from game profile.
                 for (int j = 0; j < featureLength; ++j)
                 {
-                    var value0 = (float)rnd.NextDouble();
+                    var value0 = (float) rnd.NextDouble();
                     // Positive class gets larger feature value.
                     if (sample.Label)
                         value0 += 0.2f;
                     sample.Field0[j] = value0;
 
-                    var value1 = (float)rnd.NextDouble();
+                    var value1 = (float) rnd.NextDouble();
                     // Positive class gets smaller feature value.
                     if (sample.Label)
                         value1 -= 0.2f;
                     sample.Field1[j] = value1;
 
-                    var value2 = (float)rnd.NextDouble();
+                    var value2 = (float) rnd.NextDouble();
                     // Positive class gets larger feature value.
                     if (sample.Label)
                         value2 += 0.8f;
@@ -155,11 +165,13 @@ namespace Samples.Dynamic.Trainers.BinaryClassification
 
                 data.Add(sample);
             }
+
             return data;
         }
 
         // Function used to show evaluation metrics such as accuracy of predictions.
-        private static void PrintMetrics(CalibratedBinaryClassificationMetrics metrics)
+        private static void PrintMetrics(
+            CalibratedBinaryClassificationMetrics metrics)
         {
             Console.WriteLine($"Accuracy: {metrics.Accuracy:F2}");
             Console.WriteLine($"AUC: {metrics.AreaUnderRocCurve:F2}");
@@ -174,4 +186,3 @@ namespace Samples.Dynamic.Trainers.BinaryClassification
         }
     }
 }
-

@@ -23,6 +23,7 @@ namespace Samples.Dynamic
             {
                 Console.WriteLine($"{row.Date.ToString("d")}\t{row.Temperature}");
             }
+
             Console.WriteLine();
             // Expected output:
             //  Date    Temperature
@@ -41,12 +42,15 @@ namespace Samples.Dynamic
             var filteredData = mlContext.Data.SkipRows(data, 5);
 
             // Look at the filtered data and observe that the first 5 rows have been dropped
-            var enumerable = mlContext.Data.CreateEnumerable<SampleTemperatureData>(filteredData, reuseRowObject: true);
+            var enumerable =
+                mlContext.Data.CreateEnumerable<SampleTemperatureData>(filteredData,
+                    reuseRowObject: true);
             Console.WriteLine($"Date\tTemperature");
             foreach (var row in enumerable)
             {
                 Console.WriteLine($"{row.Date.ToString("d")}\t{row.Temperature}");
             }
+
             // Expected output:
             //  Date    Temperature
             //  1/7/2012        39
@@ -61,13 +65,14 @@ namespace Samples.Dynamic
             public DateTime Date { get; set; }
             public float Temperature { get; set; }
         }
-		
+
         /// <summary>
         /// Get a fake temperature dataset.
         /// </summary>
         /// <param name="exampleCount">The number of examples to return.</param>
-        /// <returns>An enumerable of <see cref="SampleTemperatureData"/>.</returns>
-        private static IEnumerable<SampleTemperatureData> GetSampleTemperatureData(int exampleCount)
+        /// <returns>An enumerable of <see cref="SampleTemperatureData" />.</returns>
+        private static IEnumerable<SampleTemperatureData> GetSampleTemperatureData(
+            int exampleCount)
         {
             var rng = new Random(1234321);
             var date = new DateTime(2012, 1, 1);
@@ -77,9 +82,9 @@ namespace Samples.Dynamic
             {
                 date = date.AddDays(1);
                 temperature += rng.Next(-5, 5);
-                yield return new SampleTemperatureData { Date = date, Temperature = temperature };
+                yield return new SampleTemperatureData
+                    {Date = date, Temperature = temperature};
             }
         }
     }
 }
-

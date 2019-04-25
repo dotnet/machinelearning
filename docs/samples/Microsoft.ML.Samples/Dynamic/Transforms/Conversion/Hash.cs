@@ -14,12 +14,13 @@ namespace Samples.Dynamic
             var mlContext = new MLContext(seed: 1);
 
             // Get a small dataset as an IEnumerable.
-            var rawData = new[] {
-                new DataPoint() { Category = "MLB" , Age = 18 },
-                new DataPoint() { Category = "NFL" , Age = 14 },
-                new DataPoint() { Category = "NFL" , Age = 15 },
-                new DataPoint() { Category = "MLB" , Age = 18 },
-                new DataPoint() { Category = "MLS" , Age = 14 },
+            var rawData = new[]
+            {
+                new DataPoint() {Category = "MLB", Age = 18},
+                new DataPoint() {Category = "NFL", Age = 14},
+                new DataPoint() {Category = "NFL", Age = 15},
+                new DataPoint() {Category = "MLB", Age = 18},
+                new DataPoint() {Category = "MLS", Age = 14},
             };
 
             var data = mlContext.Data.LoadFromEnumerable(rawData);
@@ -35,19 +36,24 @@ namespace Samples.Dynamic
             // 
             // Setting the maximumNumberOfInverts parameters to -1 will preserve the full map. 
             // If that parameter is left to the default 0 value, the mapping is not preserved.
-            var pipeline = mlContext.Transforms.Conversion.Hash("CategoryHashed", "Category", numberOfBits: 16, maximumNumberOfInverts: -1)
-                          .Append(mlContext.Transforms.Conversion.Hash("AgeHashed", "Age", numberOfBits: 8));
+            var pipeline = mlContext.Transforms.Conversion.Hash("CategoryHashed",
+                    "Category", numberOfBits: 16, maximumNumberOfInverts: -1)
+                .Append(mlContext.Transforms.Conversion.Hash("AgeHashed", "Age",
+                    numberOfBits: 8));
 
             // Let's fit our pipeline, and then apply it to the same data.
             var transformer = pipeline.Fit(data);
             var transformedData = transformer.Transform(data);
 
             // Convert the post transformation from the IDataView format to an IEnumerable<TransformedData> for easy consumption.
-            var convertedData = mlContext.Data.CreateEnumerable<TransformedDataPoint>(transformedData, true);
+            var convertedData =
+                mlContext.Data.CreateEnumerable<TransformedDataPoint>(
+                    transformedData, true);
 
             Console.WriteLine("Category CategoryHashed\t Age\t AgeHashed");
             foreach (var item in convertedData)
-                Console.WriteLine($"{item.Category}\t {item.CategoryHashed}\t\t  {item.Age}\t {item.AgeHashed}");
+                Console.WriteLine(
+                    $"{item.Category}\t {item.CategoryHashed}\t\t  {item.Age}\t {item.AgeHashed}");
 
             // Expected data after the transformation.
             //
@@ -65,13 +71,15 @@ namespace Samples.Dynamic
             //
             // See below for an example on how to retrieve the mapping. 
             var slotNames = new VBuffer<ReadOnlyMemory<char>>();
-            transformedData.Schema["CategoryHashed"].Annotations.GetValue("KeyValues", ref slotNames);
+            transformedData.Schema["CategoryHashed"].Annotations
+                .GetValue("KeyValues", ref slotNames);
 
             var indices = slotNames.GetIndices();
             var categoryNames = slotNames.GetValues();
 
             for (int i = 0; i < indices.Length; i++)
-                Console.WriteLine($"The original value of the {indices[i]} category is {categoryNames[i]}");
+                Console.WriteLine(
+                    $"The original value of the {indices[i]} category is {categoryNames[i]}");
 
             // Output Data
             // 
@@ -91,6 +99,5 @@ namespace Samples.Dynamic
             public uint CategoryHashed { get; set; }
             public uint AgeHashed { get; set; }
         }
-
     }
 }

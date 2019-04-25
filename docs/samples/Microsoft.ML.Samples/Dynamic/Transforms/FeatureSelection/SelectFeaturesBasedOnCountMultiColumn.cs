@@ -19,7 +19,9 @@ namespace Samples.Dynamic
             // Printing the columns of the input data. 
             Console.WriteLine($"NumericVector             StringVector");
             foreach (var item in rawData)
-                Console.WriteLine("{0,-25} {1,-25}", string.Join(",", item.NumericVector), string.Join(",", item.StringVector));
+                Console.WriteLine("{0,-25} {1,-25}",
+                    string.Join(",", item.NumericVector),
+                    string.Join(",", item.StringVector));
 
             // NumericVector             StringVector
             // 4,NaN,6                   A,WA,Male
@@ -33,18 +35,27 @@ namespace Samples.Dynamic
             // at least 'count' non-default values per slot.
 
             // Multi column example. This pipeline transform two columns using the provided parameters.
-            var pipeline = mlContext.Transforms.FeatureSelection.SelectFeaturesBasedOnCount(
-                new InputOutputColumnPair[] { new InputOutputColumnPair("NumericVector"), new InputOutputColumnPair("StringVector") },
-                count: 3);
+            var pipeline = mlContext.Transforms.FeatureSelection
+                .SelectFeaturesBasedOnCount(
+                    new InputOutputColumnPair[]
+                    {
+                        new InputOutputColumnPair("NumericVector"),
+                        new InputOutputColumnPair("StringVector")
+                    },
+                    count: 3);
 
             var transformedData = pipeline.Fit(data).Transform(data);
 
-            var convertedData = mlContext.Data.CreateEnumerable<TransformedData>(transformedData, true);
+            var convertedData =
+                mlContext.Data.CreateEnumerable<TransformedData>(transformedData,
+                    true);
 
             // Printing the columns of the transformed data. 
             Console.WriteLine($"NumericVector             StringVector");
             foreach (var item in convertedData)
-                Console.WriteLine("{0,-25} {1,-25}", string.Join(",", item.NumericVector), string.Join(",", item.StringVector));
+                Console.WriteLine("{0,-25} {1,-25}",
+                    string.Join(",", item.NumericVector),
+                    string.Join(",", item.StringVector));
 
             // NumericVector             StringVector
             // 4,6                       A,Male
@@ -62,11 +73,9 @@ namespace Samples.Dynamic
 
         public class InputData
         {
-            [VectorType(3)]
-            public float[] NumericVector { get; set; }
+            [VectorType(3)] public float[] NumericVector { get; set; }
 
-            [VectorType(3)]
-            public string[] StringVector { get; set; }
+            [VectorType(3)] public string[] StringVector { get; set; }
         }
 
         /// <summary>
@@ -78,23 +87,23 @@ namespace Samples.Dynamic
             {
                 new InputData
                 {
-                    NumericVector = new float[] { 4, float.NaN, 6 },
-                    StringVector = new string[] { "A", "WA", "Male"}
+                    NumericVector = new float[] {4, float.NaN, 6},
+                    StringVector = new string[] {"A", "WA", "Male"}
                 },
                 new InputData
                 {
-                    NumericVector = new float[] { 4, 5, 6 },
-                    StringVector = new string[] { "A", "", "Female"}
+                    NumericVector = new float[] {4, 5, 6},
+                    StringVector = new string[] {"A", "", "Female"}
                 },
                 new InputData
                 {
-                    NumericVector = new float[] { 4, 5, 6 },
-                    StringVector = new string[] { "A", "NY", null}
+                    NumericVector = new float[] {4, 5, 6},
+                    StringVector = new string[] {"A", "NY", null}
                 },
                 new InputData
                 {
-                    NumericVector = new float[] { 4, float.NaN, float.NaN },
-                    StringVector = new string[] { "A", null, "Male"}
+                    NumericVector = new float[] {4, float.NaN, float.NaN},
+                    StringVector = new string[] {"A", null, "Male"}
                 }
             };
             return data;

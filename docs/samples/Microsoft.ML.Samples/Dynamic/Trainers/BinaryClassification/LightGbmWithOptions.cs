@@ -9,8 +9,8 @@ namespace Samples.Dynamic.Trainers.BinaryClassification
 {
     public static class LightGbmWithOptions
     {
-		// This example requires installation of additional nuget package
-		// <a href="https://www.nuget.org/packages/Microsoft.ML.LightGbm/">Microsoft.ML.LightGbm</a>.
+        // This example requires installation of additional nuget package
+        // <a href="https://www.nuget.org/packages/Microsoft.ML.LightGbm/">Microsoft.ML.LightGbm</a>.
         public static void Example()
         {
             // Create a new context for ML.NET operations. It can be used for exception tracking and logging, 
@@ -41,17 +41,22 @@ namespace Samples.Dynamic.Trainers.BinaryClassification
             var model = pipeline.Fit(trainingData);
 
             // Create testing data. Use different random seed to make it different from training data.
-            var testData = mlContext.Data.LoadFromEnumerable(GenerateRandomDataPoints(500, seed:123));
+            var testData =
+                mlContext.Data.LoadFromEnumerable(
+                    GenerateRandomDataPoints(500, seed: 123));
 
             // Run the model on test data set.
             var transformedTestData = model.Transform(testData);
 
             // Convert IDataView object to a list.
-            var predictions = mlContext.Data.CreateEnumerable<Prediction>(transformedTestData, reuseRowObject: false).ToList();
+            var predictions = mlContext.Data
+                .CreateEnumerable<Prediction>(transformedTestData,
+                    reuseRowObject: false).ToList();
 
             // Print 5 predictions.
             foreach (var p in predictions.Take(5))
-                Console.WriteLine($"Label: {p.Label}, Prediction: {p.PredictedLabel}");
+                Console.WriteLine(
+                    $"Label: {p.Label}, Prediction: {p.PredictedLabel}");
 
             // Expected output:
             //   Label: True, Prediction: True
@@ -59,11 +64,12 @@ namespace Samples.Dynamic.Trainers.BinaryClassification
             //   Label: True, Prediction: True
             //   Label: True, Prediction: True
             //   Label: False, Prediction: False
-            
+
             // Evaluate the overall metrics.
-            var metrics = mlContext.BinaryClassification.Evaluate(transformedTestData);
+            var metrics =
+                mlContext.BinaryClassification.Evaluate(transformedTestData);
             PrintMetrics(metrics);
-            
+
             // Expected output:
             //   Accuracy: 0.71
             //   AUC: 0.76
@@ -74,10 +80,11 @@ namespace Samples.Dynamic.Trainers.BinaryClassification
             //   Positive Recall: 0.71
         }
 
-        private static IEnumerable<DataPoint> GenerateRandomDataPoints(int count, int seed=0)
+        private static IEnumerable<DataPoint> GenerateRandomDataPoints(int count,
+            int seed = 0)
         {
             var random = new Random(seed);
-            float randomFloat() => (float)random.NextDouble();
+            float randomFloat() => (float) random.NextDouble();
             for (int i = 0; i < count; i++)
             {
                 var label = randomFloat() > 0.5f;
@@ -86,7 +93,9 @@ namespace Samples.Dynamic.Trainers.BinaryClassification
                     Label = label,
                     // Create random features that are correlated with the label.
                     // For data points with false label, the feature values are slightly increased by adding a constant.
-                    Features = Enumerable.Repeat(label, 50).Select(x => x ? randomFloat() : randomFloat() + 0.03f).ToArray()
+                    Features = Enumerable.Repeat(label, 50)
+                        .Select(x => x ? randomFloat() : randomFloat() + 0.03f)
+                        .ToArray()
                 };
             }
         }
@@ -95,8 +104,7 @@ namespace Samples.Dynamic.Trainers.BinaryClassification
         private class DataPoint
         {
             public bool Label { get; set; }
-            [VectorType(50)]
-            public float[] Features { get; set; }
+            [VectorType(50)] public float[] Features { get; set; }
         }
 
         // Class used to capture predictions.
@@ -104,6 +112,7 @@ namespace Samples.Dynamic.Trainers.BinaryClassification
         {
             // Original label.
             public bool Label { get; set; }
+
             // Predicted label from the trainer.
             public bool PredictedLabel { get; set; }
         }

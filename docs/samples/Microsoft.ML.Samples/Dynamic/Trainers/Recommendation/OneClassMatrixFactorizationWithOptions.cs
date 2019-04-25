@@ -24,7 +24,8 @@ namespace Samples.Dynamic.Trainers.Recommendation
             var mlContext = new MLContext(seed: 0);
 
             // Get a small in-memory dataset.
-            GetOneClassMatrix(out List<MatrixElement> data, out List<MatrixElement> testData);
+            GetOneClassMatrix(out List<MatrixElement> data,
+                out List<MatrixElement> testData);
 
             // Convert the in-memory matrix into an IDataView so that ML.NET components can consume it.
             var dataView = mlContext.Data.LoadFromEnumerable(data);
@@ -34,7 +35,8 @@ namespace Samples.Dynamic.Trainers.Recommendation
             // names' in MatrixElement class.
             var options = new MatrixFactorizationTrainer.Options
             {
-                MatrixColumnIndexColumnName = nameof(MatrixElement.MatrixColumnIndex),
+                MatrixColumnIndexColumnName =
+                    nameof(MatrixElement.MatrixColumnIndex),
                 MatrixRowIndexColumnName = nameof(MatrixElement.MatrixRowIndex),
                 LabelColumnName = nameof(MatrixElement.Value),
                 NumberOfIterations = 20,
@@ -47,21 +49,26 @@ namespace Samples.Dynamic.Trainers.Recommendation
                 // the value of all missing matrix elements.
                 C = 0.15,
                 // This argument enables one-class matrix factorization.
-                LossFunction = MatrixFactorizationTrainer.LossFunctionType.SquareLossOneClass
+                LossFunction = MatrixFactorizationTrainer.LossFunctionType
+                    .SquareLossOneClass
             };
 
-            var pipeline = mlContext.Recommendation().Trainers.MatrixFactorization(options);
+            var pipeline = mlContext.Recommendation().Trainers
+                .MatrixFactorization(options);
 
             // Train a matrix factorization model.
             var model = pipeline.Fit(dataView);
 
             // Apply the trained model to the test set. Notice that training is a partial 
-            var prediction = model.Transform(mlContext.Data.LoadFromEnumerable(testData));
+            var prediction =
+                model.Transform(mlContext.Data.LoadFromEnumerable(testData));
 
-            var results = mlContext.Data.CreateEnumerable<MatrixElement>(prediction, false).ToList();
+            var results = mlContext.Data
+                .CreateEnumerable<MatrixElement>(prediction, false).ToList();
             // Feed the test data into the model and then iterate through a few predictions.
             foreach (var pred in results.Take(15))
-                Console.WriteLine($"Predicted value at row {pred.MatrixRowIndex - 1} and column {pred.MatrixColumnIndex - 1} is " +
+                Console.WriteLine(
+                    $"Predicted value at row {pred.MatrixRowIndex - 1} and column {pred.MatrixColumnIndex - 1} is " +
                     $"{pred.Score} and its expected value is {pred.Value}.");
 
             // Expected output similar to:
@@ -87,11 +94,13 @@ namespace Samples.Dynamic.Trainers.Recommendation
             // Note that sometime, you may want to exclude training data from your predicted results because those would represent games that
             // were already purchased.
             // The variable topColumns stores two matrix elements with the highest predicted scores on the 1st row.
-            var topColumns = results.Where(element => element.MatrixRowIndex == 1).OrderByDescending(element => element.Score).Take(2);
+            var topColumns = results.Where(element => element.MatrixRowIndex == 1)
+                .OrderByDescending(element => element.Score).Take(2);
 
             Console.WriteLine("Top 2 predictions on the 1st row:");
             foreach (var top in topColumns)
-                Console.WriteLine($"Predicted value at row {top.MatrixRowIndex - 1} and column {top.MatrixColumnIndex - 1} is {top.Score} and its expected value is {top.Value}.");
+                Console.WriteLine(
+                    $"Predicted value at row {top.MatrixRowIndex - 1} and column {top.MatrixColumnIndex - 1} is {top.Score} and its expected value is {top.Value}.");
 
             // Expected output similar to:
             // Top 2 predictions at the 2nd row:
@@ -113,11 +122,14 @@ namespace Samples.Dynamic.Trainers.Recommendation
             // Matrix column index. Its allowed range is from 0 to _synthesizedMatrixColumnCount - 1.
             [KeyType(_synthesizedMatrixColumnCount)]
             public uint MatrixColumnIndex { get; set; }
+
             // Matrix row index. Its allowed range is from 0 to _synthesizedMatrixRowCount - 1.
             [KeyType(_synthesizedMatrixRowCount)]
             public uint MatrixRowIndex { get; set; }
+
             // The value at the MatrixColumnIndex-th column and the MatrixRowIndex-th row.
             public float Value { get; set; }
+
             // The predicted value at the MatrixColumnIndex-th column and the MatrixRowIndex-th row.
             public float Score { get; set; }
         }
@@ -125,25 +137,38 @@ namespace Samples.Dynamic.Trainers.Recommendation
         // Create an in-memory matrix as a list of tuples (column index, row index, value). Notice that one-class matrix
         // factorization handle scenerios where only positive signals (e.g., on Facebook, only likes are recorded and no dislike before)
         // can be observed so that all values are set to 1.
-        private static void GetOneClassMatrix(out List<MatrixElement> observedMatrix, out List<MatrixElement> fullMatrix)
+        private static void GetOneClassMatrix(out List<MatrixElement> observedMatrix,
+            out List<MatrixElement> fullMatrix)
         {
             // The matrix factorization model will be trained only using observedMatrix but we will see it can learn all information 
             // carried in fullMatrix.
             observedMatrix = new List<MatrixElement>();
             fullMatrix = new List<MatrixElement>();
             for (uint i = 0; i < _synthesizedMatrixColumnCount; ++i)
-                for (uint j = 0; j < _synthesizedMatrixRowCount; ++j)
+            for (uint j = 0; j < _synthesizedMatrixRowCount; ++j)
+            {
+                if ((i + j) % 10 == 0)
                 {
-                    if ((i + j) % 10 == 0)
+                    // Set observed elements' values to 1 (means like).
+                    observedMatrix.Add(new MatrixElement()
                     {
-                        // Set observed elements' values to 1 (means like).
-                        observedMatrix.Add(new MatrixElement() { MatrixColumnIndex = i, MatrixRowIndex = j, Value = 1, Score = 0 });
-                        fullMatrix.Add(new MatrixElement() { MatrixColumnIndex = i, MatrixRowIndex = j, Value = 1, Score = 0 });
-                    }
-                    else
-                        // Set unobserved elements' values to 0.15, a value smaller than observed values (means dislike).
-                        fullMatrix.Add(new MatrixElement() { MatrixColumnIndex = i, MatrixRowIndex = j, Value = 0.15f, Score = 0 });
+                        MatrixColumnIndex = i, MatrixRowIndex = j, Value = 1,
+                        Score = 0
+                    });
+                    fullMatrix.Add(new MatrixElement()
+                    {
+                        MatrixColumnIndex = i, MatrixRowIndex = j, Value = 1,
+                        Score = 0
+                    });
                 }
+                else
+                    // Set unobserved elements' values to 0.15, a value smaller than observed values (means dislike).
+                    fullMatrix.Add(new MatrixElement()
+                    {
+                        MatrixColumnIndex = i, MatrixRowIndex = j, Value = 0.15f,
+                        Score = 0
+                    });
+            }
         }
     }
 }

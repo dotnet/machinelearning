@@ -24,16 +24,17 @@ namespace Samples.Dynamic.Trainers.Regression
             // The data is tab separated with all numeric columns.
             // The first column being the label and rest are numeric features
             // Here only seven numeric columns are used as features
-            var dataView = mlContext.Data.LoadFromTextFile(dataFile, new TextLoader.Options
-            {
-                Separators = new[] { '\t' },
-                HasHeader = true,
-                Columns = new[]
-               {
-                    new TextLoader.Column("Label", DataKind.Single, 0),
-                    new TextLoader.Column("Features", DataKind.Single, 1, 6)
-                }
-            });
+            var dataView = mlContext.Data.LoadFromTextFile(dataFile,
+                new TextLoader.Options
+                {
+                    Separators = new[] {'\t'},
+                    HasHeader = true,
+                    Columns = new[]
+                    {
+                        new TextLoader.Column("Label", DataKind.Single, 0),
+                        new TextLoader.Column("Features", DataKind.Single, 1, 6)
+                    }
+                });
 
             //////////////////// Data Preview ////////////////////
             // MedianHomeValue    CrimesPerCapita    PercentResidental    PercentNonRetail    CharlesRiver    NitricOxides    RoomsPerDwelling    PercentPre40s
@@ -54,13 +55,15 @@ namespace Samples.Dynamic.Trainers.Regression
 
             // Check the weights that the model learned
             var weightsValues = model.Model.Weights;
-            Console.WriteLine($"weight 0 - {weightsValues[0]}"); // CrimesPerCapita  (weight 0) = -0.1783206
-            Console.WriteLine($"weight 3 - {weightsValues[3]}"); // CharlesRiver (weight 1) = 3.118422
+            Console.WriteLine(
+                $"weight 0 - {weightsValues[0]}"); // CrimesPerCapita  (weight 0) = -0.1783206
+            Console.WriteLine(
+                $"weight 3 - {weightsValues[3]}"); // CharlesRiver (weight 1) = 3.118422
             var dataWithPredictions = model.Transform(split.TestSet);
             var metrics = mlContext.Regression.Evaluate(dataWithPredictions);
 
             ConsoleUtils.PrintMetrics(metrics);
-            
+
             // Expected output:
             //   L1: 4.14
             //   L2: 32.35

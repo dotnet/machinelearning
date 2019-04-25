@@ -23,24 +23,36 @@ namespace Samples.Dynamic
             // A pipeline for removing stop words from input text/string.
             // The pipeline first tokenizes text into words then removes stop words.
             // The 'RemoveStopWords' API ignores casing of the text/string e.g. 'tHe' and 'the' are considered the same stop words.
-            var textPipeline = mlContext.Transforms.Text.TokenizeIntoWords("Words", "Text")
-                .Append(mlContext.Transforms.Text.RemoveStopWords("WordsWithoutStopWords", "Words", stopwords: new[] { "a", "the", "from", "by" }));
+            var textPipeline = mlContext.Transforms.Text
+                .TokenizeIntoWords("Words", "Text")
+                .Append(mlContext.Transforms.Text.RemoveStopWords(
+                    "WordsWithoutStopWords", "Words",
+                    stopwords: new[] {"a", "the", "from", "by"}));
 
             // Fit to data.
             var textTransformer = textPipeline.Fit(emptyDataView);
 
             // Create the prediction engine to remove the stop words from the input text/string.
-            var predictionEngine = mlContext.Model.CreatePredictionEngine<TextData, TransformedTextData>(textTransformer);
+            var predictionEngine =
+                mlContext.Model
+                    .CreatePredictionEngine<TextData, TransformedTextData>(
+                        textTransformer);
 
             // Call the prediction API to remove stop words.
-            var data = new TextData() { Text = "ML.NET's RemoveStopWords API removes stop words from tHe text/string using a list of stop words provided by the user." };
+            var data = new TextData()
+            {
+                Text =
+                    "ML.NET's RemoveStopWords API removes stop words from tHe text/string using a list of stop words provided by the user."
+            };
             var prediction = predictionEngine.Predict(data);
 
             // Print the length of the word vector after the stop words removed.
-            Console.WriteLine($"Number of words: {prediction.WordsWithoutStopWords.Length}");
+            Console.WriteLine(
+                $"Number of words: {prediction.WordsWithoutStopWords.Length}");
 
             // Print the word vector without stop words.
-            Console.WriteLine($"\nWords without stop words: {string.Join(",", prediction.WordsWithoutStopWords)}");
+            Console.WriteLine(
+                $"\nWords without stop words: {string.Join(",", prediction.WordsWithoutStopWords)}");
 
             //  Expected output:
             //   Number of words: 14

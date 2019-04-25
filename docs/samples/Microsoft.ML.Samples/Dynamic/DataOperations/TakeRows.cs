@@ -14,7 +14,8 @@ namespace Samples.Dynamic
             var mlContext = new MLContext();
 
             // Get a small dataset as an IEnumerable.
-            var enumerableOfData = Microsoft.ML.SamplesUtils.DatasetUtils.GetSampleTemperatureData(10);
+            var enumerableOfData = Microsoft.ML.SamplesUtils.DatasetUtils
+                .GetSampleTemperatureData(10);
             var data = mlContext.Data.LoadFromEnumerable(enumerableOfData);
 
             // Before we apply a filter, examine all the records in the dataset.
@@ -23,6 +24,7 @@ namespace Samples.Dynamic
             {
                 Console.WriteLine($"{row.Date.ToString("d")}\t{row.Temperature}");
             }
+
             Console.WriteLine();
             // Expected output:
             //  Date    Temperature
@@ -41,12 +43,17 @@ namespace Samples.Dynamic
             var filteredData = mlContext.Data.TakeRows(data, 5);
 
             // Look at the filtered data and observe that only the first 5 rows are in the resulting dataset.
-            var enumerable = mlContext.Data.CreateEnumerable<Microsoft.ML.SamplesUtils.DatasetUtils.SampleTemperatureData>(filteredData, reuseRowObject: true);
+            var enumerable =
+                mlContext.Data
+                    .CreateEnumerable<
+                        Microsoft.ML.SamplesUtils.DatasetUtils.SampleTemperatureData
+                    >(filteredData, reuseRowObject: true);
             Console.WriteLine($"Date\tTemperature");
             foreach (var row in enumerable)
             {
                 Console.WriteLine($"{row.Date.ToString("d")}\t{row.Temperature}");
             }
+
             // Expected output:
             //  Date    Temperature
             //  1/2/2012        36
@@ -61,13 +68,14 @@ namespace Samples.Dynamic
             public DateTime Date { get; set; }
             public float Temperature { get; set; }
         }
-		
+
         /// <summary>
         /// Get a fake temperature dataset.
         /// </summary>
         /// <param name="exampleCount">The number of examples to return.</param>
-        /// <returns>An enumerable of <see cref="SampleTemperatureData"/>.</returns>
-        private static IEnumerable<SampleTemperatureData> GetSampleTemperatureData(int exampleCount)
+        /// <returns>An enumerable of <see cref="SampleTemperatureData" />.</returns>
+        private static IEnumerable<SampleTemperatureData> GetSampleTemperatureData(
+            int exampleCount)
         {
             var rng = new Random(1234321);
             var date = new DateTime(2012, 1, 1);
@@ -77,9 +85,9 @@ namespace Samples.Dynamic
             {
                 date = date.AddDays(1);
                 temperature += rng.Next(-5, 5);
-                yield return new SampleTemperatureData { Date = date, Temperature = temperature };
+                yield return new SampleTemperatureData
+                    {Date = date, Temperature = temperature};
             }
         }
     }
 }
-

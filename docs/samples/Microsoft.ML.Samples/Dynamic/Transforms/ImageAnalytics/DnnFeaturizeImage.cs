@@ -16,7 +16,8 @@ namespace Samples.Dynamic
             // Downloading a few images, and an images.tsv file, which contains a list of the files from the dotnet/machinelearning/test/data/images/.
             // If you inspect the fileSystem, after running this line, an "images" folder will be created, containing 4 images, and a .tsv file
             // enumerating the images. 
-            var imagesDataFile = Microsoft.ML.SamplesUtils.DatasetUtils.DownloadImages();
+            var imagesDataFile =
+                Microsoft.ML.SamplesUtils.DatasetUtils.DownloadImages();
 
             // Preview of the content of the images.tsv file, which lists the images to operate on
             //
@@ -30,8 +31,8 @@ namespace Samples.Dynamic
             {
                 Columns = new[]
                 {
-                        new TextLoader.Column("ImagePath", DataKind.String, 0),
-                        new TextLoader.Column("Name", DataKind.String, 1),
+                    new TextLoader.Column("ImagePath", DataKind.String, 0),
+                    new TextLoader.Column("Name", DataKind.String, 1),
                 }
             }).Load(imagesDataFile);
 
@@ -40,14 +41,19 @@ namespace Samples.Dynamic
             // Installing the Microsoft.ML.DNNImageFeaturizer packages copies the models in the
             // `DnnImageModels` folder. 
             // Image loading pipeline. 
-            var pipeline = mlContext.Transforms.LoadImages("ImageObject", imagesFolder, "ImagePath")
-                          .Append(mlContext.Transforms.ResizeImages("ImageObject", imageWidth: 224, imageHeight: 224))
-                          .Append(mlContext.Transforms.ExtractPixels("Pixels", "ImageObject"))
-                          .Append(mlContext.Transforms.DnnFeaturizeImage("FeaturizedImage", m => m.ModelSelector.ResNet18(mlContext, m.OutputColumn, m.InputColumn), "Pixels"));
+            var pipeline = mlContext.Transforms
+                .LoadImages("ImageObject", imagesFolder, "ImagePath")
+                .Append(mlContext.Transforms.ResizeImages("ImageObject",
+                    imageWidth: 224, imageHeight: 224))
+                .Append(mlContext.Transforms.ExtractPixels("Pixels", "ImageObject"))
+                .Append(mlContext.Transforms.DnnFeaturizeImage("FeaturizedImage",
+                    m => m.ModelSelector.ResNet18(mlContext, m.OutputColumn,
+                        m.InputColumn), "Pixels"));
 
             var transformedData = pipeline.Fit(data).Transform(data);
 
-            var FeaturizedImageColumnsPerRow = transformedData.GetColumn<float[]>("FeaturizedImage").ToArray();
+            var FeaturizedImageColumnsPerRow = transformedData
+                .GetColumn<float[]>("FeaturizedImage").ToArray();
 
             // Preview of FeaturizedImageColumnsPerRow for the first row, FeaturizedImageColumnsPerRow[0]
             //
@@ -60,7 +66,6 @@ namespace Samples.Dynamic
             // 0.0936501548
             // 0.159010679
             // 0.394427955
-
         }
     }
 }

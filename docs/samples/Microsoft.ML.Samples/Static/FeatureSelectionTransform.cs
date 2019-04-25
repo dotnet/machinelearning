@@ -12,7 +12,8 @@ namespace Samples.Static
         {
             // Downloading a classification dataset from github.com/dotnet/machinelearning.
             // It will be stored in the same path as the executable
-            string dataFilePath = Microsoft.ML.SamplesUtils.DatasetUtils.DownloadBreastCancerDataset();
+            string dataFilePath = Microsoft.ML.SamplesUtils.DatasetUtils
+                .DownloadBreastCancerDataset();
 
             // Data Preview
             //    1. Label							0=benign, 1=malignant
@@ -33,9 +34,9 @@ namespace Samples.Static
             // First, we define the loader: specify the data columns and where to find them in the text file. Notice that we combine entries from
             // all the feature columns into entries of a vector of a single column named "Features".
             var loader = TextLoaderStatic.CreateLoader(ml, c => (
-                        Label: c.LoadBool(0),
-                        Features: c.LoadFloat(1, 9)
-                    ),
+                    Label: c.LoadBool(0),
+                    Features: c.LoadFloat(1, 9)
+                ),
                 separator: '\t', hasHeader: true);
 
             // Then, we use the loader to load the data as an IDataView.
@@ -51,41 +52,51 @@ namespace Samples.Static
             // specify the parameter `numBins', which controls the number of bins used in the approximation of the mutual information
             // between features and label.
             var pipeline = loader.MakeNewEstimator()
-                .Append(r =>(
-                    FeaturesCountSelect: r.Features.SelectFeaturesBasedOnCount(count: 695),
+                .Append(r => (
+                    FeaturesCountSelect: r.Features.SelectFeaturesBasedOnCount(
+                        count: 695),
                     Label: r.Label
-                    ))
+                ))
                 .Append(r => (
                     FeaturesCountSelect: r.FeaturesCountSelect,
-                    FeaturesMISelect: r.FeaturesCountSelect.SelectFeaturesBasedOnMutualInformation(r.Label, slotsInOutput: 5),
+                    FeaturesMISelect: r.FeaturesCountSelect
+                        .SelectFeaturesBasedOnMutualInformation(r.Label,
+                            slotsInOutput: 5),
                     Label: r.Label
-                    ));
+                ));
 
 
             // The pipeline can then be trained, using .Fit(), and the resulting transformer can be used to transform data. 
             var transformedData = pipeline.Fit(data).Transform(data);
 
             // Small helper to print the data inside a column, in the console. Only prints the first 10 rows.
-            Action<string, IEnumerable<VBuffer<float>>> printHelper = (columnName, column) =>
-            {
-                Console.WriteLine($"{columnName} column obtained post-transformation.");
-                int count = 0;
-                foreach (var row in column)
+            Action<string, IEnumerable<VBuffer<float>>> printHelper =
+                (columnName, column) =>
                 {
-                    foreach (var value in row.GetValues())
-                        Console.Write($"{value}\t");
-                    Console.WriteLine("");
-                    count++;
-                    if (count >= 10)
-                        break;
-                }
+                    Console.WriteLine(
+                        $"{columnName} column obtained post-transformation.");
+                    int count = 0;
+                    foreach (var row in column)
+                    {
+                        foreach (var value in row.GetValues())
+                            Console.Write($"{value}\t");
+                        Console.WriteLine("");
+                        count++;
+                        if (count >= 10)
+                            break;
+                    }
 
-                Console.WriteLine("===================================================");
-            };
+                    Console.WriteLine(
+                        "===================================================");
+                };
 
             // Print the data that results from the transformations.
-            var countSelectColumn = transformedData.AsDynamic.GetColumn<VBuffer<float>>(transformedData.AsDynamic.Schema["FeaturesCountSelect"]);
-            var MISelectColumn = transformedData.AsDynamic.GetColumn<VBuffer<float>>(transformedData.AsDynamic.Schema["FeaturesMISelect"]);
+            var countSelectColumn =
+                transformedData.AsDynamic.GetColumn<VBuffer<float>>(
+                    transformedData.AsDynamic.Schema["FeaturesCountSelect"]);
+            var MISelectColumn =
+                transformedData.AsDynamic.GetColumn<VBuffer<float>>(
+                    transformedData.AsDynamic.Schema["FeaturesMISelect"]);
             printHelper("FeaturesCountSelect", countSelectColumn);
             printHelper("FeaturesMISelect", MISelectColumn);
 

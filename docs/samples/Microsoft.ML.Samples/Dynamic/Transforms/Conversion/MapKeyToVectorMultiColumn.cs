@@ -18,21 +18,23 @@ namespace Samples.Dynamic
             var mlContext = new MLContext();
 
             // Get a small dataset as an IEnumerable.
-            var rawData = new[] {
-                new DataPoint() { Timeframe = 9, Category = 5 },
-                new DataPoint() { Timeframe = 8, Category = 4 },
-                new DataPoint() { Timeframe = 8, Category = 4 },
-                new DataPoint() { Timeframe = 9, Category = 3 },
-                new DataPoint() { Timeframe = 2, Category = 3 },
-                new DataPoint() { Timeframe = 3, Category = 5 }
+            var rawData = new[]
+            {
+                new DataPoint() {Timeframe = 9, Category = 5},
+                new DataPoint() {Timeframe = 8, Category = 4},
+                new DataPoint() {Timeframe = 8, Category = 4},
+                new DataPoint() {Timeframe = 9, Category = 3},
+                new DataPoint() {Timeframe = 2, Category = 3},
+                new DataPoint() {Timeframe = 3, Category = 5}
             };
 
             var data = mlContext.Data.LoadFromEnumerable(rawData);
 
             // Constructs the ML.net pipeline
-            var pipeline = mlContext.Transforms.Conversion.MapKeyToVector(new[]{
-                    new InputOutputColumnPair ("TimeframeVector", "Timeframe"),
-                    new InputOutputColumnPair ("CategoryVector", "Category")
+            var pipeline = mlContext.Transforms.Conversion.MapKeyToVector(new[]
+            {
+                new InputOutputColumnPair("TimeframeVector", "Timeframe"),
+                new InputOutputColumnPair("CategoryVector", "Category")
             });
 
             // Fits the pipeline to the data.
@@ -40,11 +42,15 @@ namespace Samples.Dynamic
 
             // Getting the resulting data as an IEnumerable.
             // This will contain the newly created columns.
-            IEnumerable<TransformedData> features = mlContext.Data.CreateEnumerable<TransformedData>(transformedData, reuseRowObject: false);
+            IEnumerable<TransformedData> features =
+                mlContext.Data.CreateEnumerable<TransformedData>(transformedData,
+                    reuseRowObject: false);
 
-            Console.WriteLine($" Timeframe           TimeframeVector         Category    CategoryVector");
+            Console.WriteLine(
+                $" Timeframe           TimeframeVector         Category    CategoryVector");
             foreach (var featureRow in features)
-                Console.WriteLine($"{featureRow.Timeframe}     {string.Join(',', featureRow.TimeframeVector)}   {featureRow.Category}      {string.Join(',', featureRow.CategoryVector)}");
+                Console.WriteLine(
+                    $"{featureRow.Timeframe}     {string.Join(',', featureRow.TimeframeVector)}   {featureRow.Category}      {string.Join(',', featureRow.CategoryVector)}");
 
             // TransformedData obtained post-transformation.
             //
@@ -61,12 +67,9 @@ namespace Samples.Dynamic
         {
             // The maximal value used is 9; but since 0 is reserved for missing value,
             // we set the count to 10.
-            [KeyType(10)]
-            public uint Timeframe { get; set; }
+            [KeyType(10)] public uint Timeframe { get; set; }
 
-            [KeyType(6)]
-            public uint Category { get; set; }
-
+            [KeyType(6)] public uint Category { get; set; }
         }
 
         private class TransformedData : DataPoint

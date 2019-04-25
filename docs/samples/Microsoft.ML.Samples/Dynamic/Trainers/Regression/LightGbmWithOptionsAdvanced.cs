@@ -16,7 +16,9 @@ namespace Samples.Dynamic.Trainers.Regression
             var mlContext = new MLContext();
 
             // Download and load the housing dataset into an IDataView.
-            var dataView = Microsoft.ML.SamplesUtils.DatasetUtils.LoadHousingRegressionDataset(mlContext);
+            var dataView =
+                Microsoft.ML.SamplesUtils.DatasetUtils.LoadHousingRegressionDataset(
+                    mlContext);
 
             //////////////////// Data Preview ////////////////////
             /// Only 6 columns are displayed here.
@@ -36,18 +38,19 @@ namespace Samples.Dynamic.Trainers.Regression
                 .Where(name => name != labelName) // Drop the Label
                 .ToArray();
             var pipeline = mlContext.Transforms.Concatenate("Features", featureNames)
-                           .Append(mlContext.Regression.Trainers.LightGbm(new LightGbmRegressionTrainer.Options
-                           {
-                               LabelColumnName = labelName,
-                               NumberOfLeaves = 4,
-                               MinimumExampleCountPerLeaf = 6,
-                               LearningRate = 0.001,
-                               Booster = new GossBooster.Options()
-                               {
-                                   TopRate = 0.3,
-                                   OtherRate = 0.2
-                               }
-                           }));
+                .Append(mlContext.Regression.Trainers.LightGbm(
+                    new LightGbmRegressionTrainer.Options
+                    {
+                        LabelColumnName = labelName,
+                        NumberOfLeaves = 4,
+                        MinimumExampleCountPerLeaf = 6,
+                        LearningRate = 0.001,
+                        Booster = new GossBooster.Options()
+                        {
+                            TopRate = 0.3,
+                            OtherRate = 0.2
+                        }
+                    }));
 
             // Fit this pipeline to the training data.
             var model = pipeline.Fit(split.TrainSet);
@@ -56,12 +59,15 @@ namespace Samples.Dynamic.Trainers.Regression
             VBuffer<float> weights = default;
             model.LastTransformer.Model.GetFeatureWeights(ref weights);
             var weightsValues = weights.DenseValues().ToArray();
-            Console.WriteLine($"weight 0 - {weightsValues[0]}"); // CrimesPerCapita  (weight 0) = 0.1898361
-            Console.WriteLine($"weight 5 - {weightsValues[5]}"); // RoomsPerDwelling (weight 5) = 1
+            Console.WriteLine(
+                $"weight 0 - {weightsValues[0]}"); // CrimesPerCapita  (weight 0) = 0.1898361
+            Console.WriteLine(
+                $"weight 5 - {weightsValues[5]}"); // RoomsPerDwelling (weight 5) = 1
 
             // Evaluate how the model is doing on the test data.
             var dataWithPredictions = model.Transform(split.TestSet);
-            var metrics = mlContext.Regression.Evaluate(dataWithPredictions, labelColumnName: labelName);
+            var metrics = mlContext.Regression.Evaluate(dataWithPredictions,
+                labelColumnName: labelName);
             Microsoft.ML.SamplesUtils.ConsoleUtils.PrintMetrics(metrics);
 
             // Expected output

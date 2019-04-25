@@ -14,7 +14,8 @@ namespace Samples.Static
             // Downloading a regression dataset from github.com/dotnet/machinelearning
             // this will create a housing.txt file in the filsystem this code will run
             // you can open the file to see the data. 
-            string dataFile = Microsoft.ML.SamplesUtils.DatasetUtils.DownloadHousingRegressionDataset();
+            string dataFile = Microsoft.ML.SamplesUtils.DatasetUtils
+                .DownloadHousingRegressionDataset();
 
             // Create a new ML context, for ML.NET operations. It can be used for exception tracking and logging, 
             // as well as the source of randomness.
@@ -22,9 +23,9 @@ namespace Samples.Static
 
             // Creating a data loader, based on the format of the data
             var loader = TextLoaderStatic.CreateLoader(mlContext, c => (
-                        label: c.LoadFloat(0),
-                        features: c.LoadFloat(1, 6)
-                    ),
+                    label: c.LoadFloat(0),
+                    features: c.LoadFloat(1, 6)
+                ),
                 separator: '\t', hasHeader: true);
 
             // Load the data, and leave 10% out, so we can use them for testing
@@ -36,17 +37,18 @@ namespace Samples.Static
             // Create the estimator
             var learningPipeline = loader.MakeNewEstimator()
                 .Append(r => (r.label, score: mlContext.Regression.Trainers.FastTree(
-                                            r.label,
-                                            r.features,
-                                            numberOfTrees: 100, // try: (int) 20-2000
-                                            numberOfLeaves: 20, // try: (int) 2-128
-                                            minimumExampleCountPerLeaf: 10, // try: (int) 1-100
-                                            learningRate: 0.2, // try: (float) 0.025-0.4    
-                                        onFit: p => pred = p)
-                                )
-                        );
+                        r.label,
+                        r.features,
+                        numberOfTrees: 100, // try: (int) 20-2000
+                        numberOfLeaves: 20, // try: (int) 2-128
+                        minimumExampleCountPerLeaf: 10, // try: (int) 1-100
+                        learningRate: 0.2, // try: (float) 0.025-0.4    
+                        onFit: p => pred = p)
+                    )
+                );
 
-            var cvResults = mlContext.Regression.CrossValidate(data, learningPipeline, r => r.label, numFolds: 5);
+            var cvResults = mlContext.Regression.CrossValidate(data,
+                learningPipeline, r => r.label, numFolds: 5);
             var averagedMetrics = (
                 L1: cvResults.Select(r => r.metrics.MeanAbsoluteError).Average(),
                 L2: cvResults.Select(r => r.metrics.MeanSquaredError).Average(),
@@ -54,12 +56,12 @@ namespace Samples.Static
                 Rms: cvResults.Select(r => r.metrics.RootMeanSquaredError).Average(),
                 RSquared: cvResults.Select(r => r.metrics.RSquared).Average()
             );
-            Console.WriteLine($"L1 - {averagedMetrics.L1}");    // 3.091095
-            Console.WriteLine($"L2 - {averagedMetrics.L2}");    // 20.351073
-            Console.WriteLine($"LossFunction - {averagedMetrics.LossFn}");  // 20.351074
-            Console.WriteLine($"RMS - {averagedMetrics.Rms}");              // 4.478358
-            Console.WriteLine($"RSquared - {averagedMetrics.RSquared}");    // 0.754977
+            Console.WriteLine($"L1 - {averagedMetrics.L1}"); // 3.091095
+            Console.WriteLine($"L2 - {averagedMetrics.L2}"); // 20.351073
+            Console.WriteLine(
+                $"LossFunction - {averagedMetrics.LossFn}"); // 20.351074
+            Console.WriteLine($"RMS - {averagedMetrics.Rms}"); // 4.478358
+            Console.WriteLine($"RSquared - {averagedMetrics.RSquared}"); // 0.754977
         }
-
     }
 }

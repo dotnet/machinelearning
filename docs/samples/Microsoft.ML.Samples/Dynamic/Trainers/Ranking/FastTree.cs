@@ -30,16 +30,21 @@ namespace Samples.Dynamic.Trainers.Ranking
             var model = pipeline.Fit(trainingData);
 
             // Create testing data. Use different random seed to make it different from training data.
-            var testData = mlContext.Data.LoadFromEnumerable(GenerateRandomDataPoints(500, seed:123));
+            var testData =
+                mlContext.Data.LoadFromEnumerable(
+                    GenerateRandomDataPoints(500, seed: 123));
 
             // Run the model on test data set.
             var transformedTestData = model.Transform(testData);
 
             // Take the top 5 rows.
-            var topTransformedTestData = mlContext.Data.TakeRows(transformedTestData, 5);
+            var topTransformedTestData =
+                mlContext.Data.TakeRows(transformedTestData, 5);
 
             // Convert IDataView object to a list.
-            var predictions = mlContext.Data.CreateEnumerable<Prediction>(topTransformedTestData, reuseRowObject: false).ToList();
+            var predictions = mlContext.Data
+                .CreateEnumerable<Prediction>(topTransformedTestData,
+                    reuseRowObject: false).ToList();
 
             // Print 5 predictions.
             foreach (var p in predictions)
@@ -55,26 +60,29 @@ namespace Samples.Dynamic.Trainers.Ranking
             // Evaluate the overall metrics.
             var metrics = mlContext.Ranking.Evaluate(transformedTestData);
             PrintMetrics(metrics);
-            
+
             // Expected output:
             //   DCG: @1:41.95, @2:63.33, @3:75.65
             //   NDCG: @1:0.99, @2:0.98, @3:0.99
         }
 
-        private static IEnumerable<DataPoint> GenerateRandomDataPoints(int count, int seed = 0, int groupSize = 10)
+        private static IEnumerable<DataPoint> GenerateRandomDataPoints(int count,
+            int seed = 0,
+            int groupSize = 10)
         {
             var random = new Random(seed);
-            float randomFloat() => (float)random.NextDouble();
+            float randomFloat() => (float) random.NextDouble();
             for (int i = 0; i < count; i++)
             {
                 var label = random.Next(0, 5);
                 yield return new DataPoint
                 {
-                    Label = (uint)label,
-                    GroupId = (uint)(i / groupSize),
+                    Label = (uint) label,
+                    GroupId = (uint) (i / groupSize),
                     // Create random features that are correlated with the label.
                     // For data points with larger labels, the feature values are slightly increased by adding a constant.
-                    Features = Enumerable.Repeat(label, 50).Select(x => randomFloat() + x * 0.1f).ToArray()
+                    Features = Enumerable.Repeat(label, 50)
+                        .Select(x => randomFloat() + x * 0.1f).ToArray()
                 };
             }
         }
@@ -82,12 +90,9 @@ namespace Samples.Dynamic.Trainers.Ranking
         // Example with label, groupId, and 50 feature values. A data set is a collection of such examples.
         private class DataPoint
         {
-            [KeyType(5)]
-            public uint Label { get; set; }
-            [KeyType(100)]
-            public uint GroupId { get; set; }
-            [VectorType(50)]
-            public float[] Features { get; set; }
+            [KeyType(5)] public uint Label { get; set; }
+            [KeyType(100)] public uint GroupId { get; set; }
+            [VectorType(50)] public float[] Features { get; set; }
         }
 
         // Class used to capture predictions.
@@ -95,6 +100,7 @@ namespace Samples.Dynamic.Trainers.Ranking
         {
             // Original label.
             public uint Label { get; set; }
+
             // Score produced from the trainer.
             public float Score { get; set; }
         }
@@ -102,8 +108,10 @@ namespace Samples.Dynamic.Trainers.Ranking
         // Pretty-print RankerMetrics objects.
         public static void PrintMetrics(RankingMetrics metrics)
         {
-            Console.WriteLine($"DCG: {string.Join(", ", metrics.DiscountedCumulativeGains.Select((d, i) => $"@{i + 1}:{d:F2}").ToArray())}");
-            Console.WriteLine($"NDCG: {string.Join(", ", metrics.NormalizedDiscountedCumulativeGains.Select((d, i) => $"@{i + 1}:{d:F2}").ToArray())}");
+            Console.WriteLine(
+                $"DCG: {string.Join(", ", metrics.DiscountedCumulativeGains.Select((d, i) => $"@{i + 1}:{d:F2}").ToArray())}");
+            Console.WriteLine(
+                $"NDCG: {string.Join(", ", metrics.NormalizedDiscountedCumulativeGains.Select((d, i) => $"@{i + 1}:{d:F2}").ToArray())}");
         }
     }
 }

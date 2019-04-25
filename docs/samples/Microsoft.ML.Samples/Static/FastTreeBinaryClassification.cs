@@ -11,7 +11,8 @@ namespace Samples.Static
         {
             // Downloading a classification dataset from github.com/dotnet/machinelearning.
             // It will be stored in the same path as the executable
-            string dataFilePath = Microsoft.ML.SamplesUtils.DatasetUtils.DownloadAdultDataset();
+            string dataFilePath =
+                Microsoft.ML.SamplesUtils.DatasetUtils.DownloadAdultDataset();
 
             // Data Preview
             // 1. Column [Label]: IsOver50K (boolean)
@@ -57,31 +58,33 @@ namespace Samples.Static
 
             // Loader the data, and leave 10% out, so we can use them for testing
             var data = loader.Load(dataFilePath);
-            var (trainData, testData) = mlContext.Data.TrainTestSplit(data, testFraction: 0.1);
+            var (trainData, testData) =
+                mlContext.Data.TrainTestSplit(data, testFraction: 0.1);
 
             // Create the Estimator
             var learningPipeline = loader.MakeNewEstimator()
                 .Append(row => (
-                        Features: row.Age.ConcatWith(
-                            row.EducationNum,
-                            row.MaritalStatus.OneHotEncoding(),
-                            row.Occupation.OneHotEncoding(),
-                            row.Relationship.OneHotEncoding(),
-                            row.Ethnicity.OneHotEncoding(),
-                            row.Sex.OneHotEncoding(),
-                            row.HoursPerWeek,
-                            row.NativeCountry.OneHotEncoding().SelectFeaturesBasedOnCount(count: 10)),
-                        Label: row.IsOver50K))
+                    Features: row.Age.ConcatWith(
+                        row.EducationNum,
+                        row.MaritalStatus.OneHotEncoding(),
+                        row.Occupation.OneHotEncoding(),
+                        row.Relationship.OneHotEncoding(),
+                        row.Ethnicity.OneHotEncoding(),
+                        row.Sex.OneHotEncoding(),
+                        row.HoursPerWeek,
+                        row.NativeCountry.OneHotEncoding()
+                            .SelectFeaturesBasedOnCount(count: 10)),
+                    Label: row.IsOver50K))
                 .Append(row => (
-                        Features: row.Features.Normalize(),
-                        Label: row.Label,
-                        Score: mlContext.BinaryClassification.Trainers.FastTree(
-                            row.Label,
-                            row.Features,
-                            numberOfTrees: 100, // try: (int) 20-2000
-                            numberOfLeaves: 20, // try: (int) 2-128
-                            minimumExampleCountPerLeaf: 10, // try: (int) 1-100
-                            learningRate: 0.2))) // try: (float) 0.025-0.4
+                    Features: row.Features.Normalize(),
+                    Label: row.Label,
+                    Score: mlContext.BinaryClassification.Trainers.FastTree(
+                        row.Label,
+                        row.Features,
+                        numberOfTrees: 100, // try: (int) 20-2000
+                        numberOfLeaves: 20, // try: (int) 2-128
+                        minimumExampleCountPerLeaf: 10, // try: (int) 1-100
+                        learningRate: 0.2))) // try: (float) 0.025-0.4
                 .Append(row => (
                     Label: row.Label,
                     Score: row.Score,
@@ -93,16 +96,21 @@ namespace Samples.Static
             // Evaluate how the model is doing on the test data
             var dataWithPredictions = model.Transform(testData);
 
-            var metrics = mlContext.BinaryClassification.Evaluate(dataWithPredictions, row => row.Label, row => row.Score);
+            var metrics =
+                mlContext.BinaryClassification.Evaluate(dataWithPredictions,
+                    row => row.Label, row => row.Score);
 
             Console.WriteLine($"Accuracy: {metrics.Accuracy}"); // 0.84
             Console.WriteLine($"AUC: {metrics.AreaUnderRocCurve}"); // 0.89
             Console.WriteLine($"F1 Score: {metrics.F1Score}"); // 0.64
 
-            Console.WriteLine($"Negative Precision: {metrics.NegativePrecision}"); // 0.88
+            Console.WriteLine(
+                $"Negative Precision: {metrics.NegativePrecision}"); // 0.88
             Console.WriteLine($"Negative Recall: {metrics.NegativeRecall}"); // 0.91
-            Console.WriteLine($"Positive Precision: {metrics.PositivePrecision}"); // 0.68
-            Console.WriteLine($"Positive Recall: {metrics.PositiveRecall}"); // 0.60       
+            Console.WriteLine(
+                $"Positive Precision: {metrics.PositivePrecision}"); // 0.68
+            Console.WriteLine(
+                $"Positive Recall: {metrics.PositiveRecall}"); // 0.60       
         }
     }
 }

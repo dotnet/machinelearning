@@ -26,7 +26,9 @@ namespace Samples.Dynamic
             // Fit the pipeline and get the transformed values
             var transformedValues = pipeline.Fit(data).Transform(data);
             // Retrieve model scores into Prediction class
-            var predictions = mlContext.Data.CreateEnumerable<Prediction>(transformedValues, reuseRowObject: false);
+            var predictions =
+                mlContext.Data.CreateEnumerable<Prediction>(transformedValues,
+                    reuseRowObject: false);
 
             // Iterate rows
             foreach (var prediction in predictions)
@@ -36,6 +38,7 @@ namespace Samples.Dynamic
                 {
                     Console.WriteLine($"Class #{numClasses++} score = {classScore}");
                 }
+
                 Console.WriteLine(new string('-', 10));
             }
 
@@ -57,25 +60,29 @@ namespace Samples.Dynamic
         // the inputs that the model expects (in this case, data_0)
         public class TensorData
         {
-            [VectorType(inputSize)]
-            public float[] data_0 { get; set; }
+            [VectorType(inputSize)] public float[] data_0 { get; set; }
         }
 
         // Method to generate sample test data. Returns 2 sample rows.
         public static TensorData[] GetTensorData()
         {
             // This can be any numerical data. Assume image pixel values.
-            var image1 = Enumerable.Range(0, inputSize).Select(x => (float)x / inputSize).ToArray();
-            var image2 = Enumerable.Range(0, inputSize).Select(x => (float)(x + 10000) / inputSize).ToArray();
-            return new TensorData[] { new TensorData() { data_0 = image1 }, new TensorData() { data_0 = image2 } };
+            var image1 = Enumerable.Range(0, inputSize)
+                .Select(x => (float) x / inputSize).ToArray();
+            var image2 = Enumerable.Range(0, inputSize)
+                .Select(x => (float) (x + 10000) / inputSize).ToArray();
+            return new TensorData[]
+            {
+                new TensorData() {data_0 = image1},
+                new TensorData() {data_0 = image2}
+            };
         }
 
         // Class to contain the output values from the transformation.
         // This model generates a vector of 1000 floats.
         class Prediction
         {
-            [VectorType(1000)]
-            public float[] softmaxout_1 { get; set; }
+            [VectorType(1000)] public float[] softmaxout_1 { get; set; }
         }
     }
 }

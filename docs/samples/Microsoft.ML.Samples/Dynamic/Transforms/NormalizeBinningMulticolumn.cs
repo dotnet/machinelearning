@@ -17,18 +17,23 @@ namespace Samples.Dynamic
             var mlContext = new MLContext();
             var samples = new List<DataPoint>()
             {
-                new DataPoint(){ Features = new float[4] { 8, 1, 3, 0}, Features2 = 1 },
-                new DataPoint(){ Features = new float[4] { 6, 2, 2, 0}, Features2 = 4 },
-                new DataPoint(){ Features = new float[4] { 4, 0, 1, 0}, Features2 = 1 },
-                new DataPoint(){ Features = new float[4] { 2,-1,-1, 1}, Features2 = 2 }
+                new DataPoint()
+                    {Features = new float[4] {8, 1, 3, 0}, Features2 = 1},
+                new DataPoint()
+                    {Features = new float[4] {6, 2, 2, 0}, Features2 = 4},
+                new DataPoint()
+                    {Features = new float[4] {4, 0, 1, 0}, Features2 = 1},
+                new DataPoint()
+                    {Features = new float[4] {2, -1, -1, 1}, Features2 = 2}
             };
             // Convert training data to IDataView, the general data type used in ML.NET.
             var data = mlContext.Data.LoadFromEnumerable(samples);
             // NormalizeBinning normalizes the data by constructing equidensity bins and produce output based on 
             // to which bin the original value belongs.
-            var normalize = mlContext.Transforms.NormalizeBinning(new[]{
-                new InputOutputColumnPair("Features"),
-                new InputOutputColumnPair("Features2"),
+            var normalize = mlContext.Transforms.NormalizeBinning(new[]
+                {
+                    new InputOutputColumnPair("Features"),
+                    new InputOutputColumnPair("Features2"),
                 },
                 maximumBinCount: 4, fixZero: false);
 
@@ -39,8 +44,10 @@ namespace Samples.Dynamic
             var column = transformedData.GetColumn<float[]>("Features").ToArray();
             var column2 = transformedData.GetColumn<float>("Features2").ToArray();
 
-            for(int i=0; i< column.Length; i++)
-                Console.WriteLine(string.Join(", ", column[i].Select(x => x.ToString("f4")))+"\t\t"+column2[i]);
+            for (int i = 0; i < column.Length; i++)
+                Console.WriteLine(
+                    string.Join(", ", column[i].Select(x => x.ToString("f4"))) +
+                    "\t\t" + column2[i]);
             // Expected output:
             //
             //  Features                            Feature2
@@ -52,8 +59,7 @@ namespace Samples.Dynamic
 
         private class DataPoint
         {
-            [VectorType(4)]
-            public float[] Features { get; set; }
+            [VectorType(4)] public float[] Features { get; set; }
 
             public float Features2 { get; set; }
         }

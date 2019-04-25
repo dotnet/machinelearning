@@ -16,11 +16,25 @@ namespace Samples.Dynamic
             // Create a small dataset as an IEnumerable.
             var samples = new List<TextData>()
             {
-                new TextData(){ Text = "This is an example to compute n-grams using hashing." },
-                new TextData(){ Text = "N-gram is a sequence of 'N' consecutive words/tokens." },
-                new TextData(){ Text = "ML.NET's ProduceHashedNgrams API produces count of n-grams and hashes it as an index into a vector of given bit length." },
-                new TextData(){ Text = "The hashing reduces the size of the output feature vector" },
-                new TextData(){ Text = "which is useful in case when number of n-grams is very large." },
+                new TextData()
+                    {Text = "This is an example to compute n-grams using hashing."},
+                new TextData()
+                    {Text = "N-gram is a sequence of 'N' consecutive words/tokens."},
+                new TextData()
+                {
+                    Text =
+                        "ML.NET's ProduceHashedNgrams API produces count of n-grams and hashes it as an index into a vector of given bit length."
+                },
+                new TextData()
+                {
+                    Text =
+                        "The hashing reduces the size of the output feature vector"
+                },
+                new TextData()
+                {
+                    Text =
+                        "which is useful in case when number of n-grams is very large."
+                },
             };
 
             // Convert training data to IDataView.
@@ -30,33 +44,41 @@ namespace Samples.Dynamic
             // The following call to 'ProduceHashedNgrams' requires the tokenized text/string as input.
             // This is acheived by calling 'TokenizeIntoWords' first followed by 'ProduceHashedNgrams'.
             // Please note that the length of the output feature vector depends on the 'numberOfBits' settings.
-            var textPipeline = mlContext.Transforms.Text.TokenizeIntoWords("Tokens", "Text")
+            var textPipeline = mlContext.Transforms.Text
+                .TokenizeIntoWords("Tokens", "Text")
                 .Append(mlContext.Transforms.Conversion.MapValueToKey("Tokens"))
-                .Append(mlContext.Transforms.Text.ProduceHashedNgrams("NgramFeatures", "Tokens", 
-                        numberOfBits: 5,
-                        ngramLength: 3,
-                        useAllLengths: false,
-                        maximumNumberOfInverts: 1));
-            
+                .Append(mlContext.Transforms.Text.ProduceHashedNgrams(
+                    "NgramFeatures", "Tokens",
+                    numberOfBits: 5,
+                    ngramLength: 3,
+                    useAllLengths: false,
+                    maximumNumberOfInverts: 1));
+
             // Fit to data.
             var textTransformer = textPipeline.Fit(dataview);
             var transformedDataView = textTransformer.Transform(dataview);
 
             // Create the prediction engine to get the features extracted from the text.
-            var predictionEngine = mlContext.Model.CreatePredictionEngine<TextData, TransformedTextData>(textTransformer);
+            var predictionEngine =
+                mlContext.Model
+                    .CreatePredictionEngine<TextData, TransformedTextData>(
+                        textTransformer);
 
             // Convert the text into numeric features.
             var prediction = predictionEngine.Predict(samples[0]);
 
             // Print the length of the feature vector.
-            Console.WriteLine($"Number of Features: {prediction.NgramFeatures.Length}");
+            Console.WriteLine(
+                $"Number of Features: {prediction.NgramFeatures.Length}");
 
             // Preview of the produced n-grams.
             // Get the slot names from the column's metadata.
             // The slot names for a vector column corresponds to the names associated with each position in the vector.
             VBuffer<ReadOnlyMemory<char>> slotNames = default;
             transformedDataView.Schema["NgramFeatures"].GetSlotNames(ref slotNames);
-            var NgramFeaturesColumn = transformedDataView.GetColumn<VBuffer<float>>(transformedDataView.Schema["NgramFeatures"]);
+            var NgramFeaturesColumn =
+                transformedDataView.GetColumn<VBuffer<float>>(
+                    transformedDataView.Schema["NgramFeatures"]);
             var slots = slotNames.GetValues();
             Console.Write("N-grams: ");
             foreach (var featureRow in NgramFeaturesColumn)

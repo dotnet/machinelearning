@@ -15,12 +15,35 @@ namespace Samples.Dynamic
             // Create a small dataset as an IEnumerable.
             var samples = new List<TextData>()
             {
-                new TextData(){ Text = "ML.NET's FeaturizeText API uses a composition of several basic transforms to convert text into numeric features." },
-                new TextData(){ Text = "This API can be used as a featurizer to perform text classification." },
-                new TextData(){ Text = "There are a number of approaches to text classification." },
-                new TextData(){ Text = "One of the simplest and most common approaches is called “Bag of Words”." },
-                new TextData(){ Text = "Text classification can be used for a wide variety of tasks" },
-                new TextData(){ Text = "such as sentiment analysis, topic detection, intent identification etc." },
+                new TextData()
+                {
+                    Text =
+                        "ML.NET's FeaturizeText API uses a composition of several basic transforms to convert text into numeric features."
+                },
+                new TextData()
+                {
+                    Text =
+                        "This API can be used as a featurizer to perform text classification."
+                },
+                new TextData()
+                {
+                    Text = "There are a number of approaches to text classification."
+                },
+                new TextData()
+                {
+                    Text =
+                        "One of the simplest and most common approaches is called “Bag of Words”."
+                },
+                new TextData()
+                {
+                    Text =
+                        "Text classification can be used for a wide variety of tasks"
+                },
+                new TextData()
+                {
+                    Text =
+                        "such as sentiment analysis, topic detection, intent identification etc."
+                },
             };
 
             // Convert training data to IDataView.
@@ -36,13 +59,17 @@ namespace Samples.Dynamic
             //      * WordFeatureExtractor: NgramLength = 1
             //      * CharFeatureExtractor: NgramLength = 3, UseAllLengths = false
             // The length of the output feature vector depends on these settings.
-            var textPipeline = mlContext.Transforms.Text.FeaturizeText("Features", "Text");
-            
+            var textPipeline =
+                mlContext.Transforms.Text.FeaturizeText("Features", "Text");
+
             // Fit to data.
             var textTransformer = textPipeline.Fit(dataview);
 
             // Create the prediction engine to get the features extracted from the text.
-            var predictionEngine = mlContext.Model.CreatePredictionEngine<TextData, TransformedTextData>(textTransformer);
+            var predictionEngine =
+                mlContext.Model
+                    .CreatePredictionEngine<TextData, TransformedTextData>(
+                        textTransformer);
 
             // Convert the text into numeric features.
             var prediction = predictionEngine.Predict(samples[0]);

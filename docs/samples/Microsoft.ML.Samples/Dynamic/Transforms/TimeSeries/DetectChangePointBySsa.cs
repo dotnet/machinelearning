@@ -52,15 +52,19 @@ namespace Samples.Dynamic
             var outputColumnName = nameof(ChangePointPrediction.Prediction);
 
             // Train the change point detector.
-            ITransformer model = ml.Transforms.DetectChangePointBySsa(outputColumnName, inputColumnName, 95, 8, TrainingSize, SeasonalitySize + 1).Fit(dataView);
+            ITransformer model = ml.Transforms
+                .DetectChangePointBySsa(outputColumnName, inputColumnName, 95, 8,
+                    TrainingSize, SeasonalitySize + 1).Fit(dataView);
 
             // Create a prediction engine from the model for feeding new data.
-            var engine = model.CreateTimeSeriesPredictionFunction<TimeSeriesData, ChangePointPrediction>(ml);
+            var engine =
+                model.CreateTimeSeriesPredictionFunction<TimeSeriesData,
+                    ChangePointPrediction>(ml);
 
             // Start streaming new data points with no change point to the prediction engine.
             Console.WriteLine($"Output from ChangePoint predictions on new data:");
             Console.WriteLine("Data\tAlert\tScore\tP-Value\tMartingale value");
-            
+
             // Output from ChangePoint predictions on new data:
             // Data    Alert   Score   P-Value Martingale value
 
@@ -97,7 +101,9 @@ namespace Samples.Dynamic
                 model = ml.Model.Load(file, out DataViewSchema schema);
 
             // We must create a new prediction engine from the persisted model.
-            engine = model.CreateTimeSeriesPredictionFunction<TimeSeriesData, ChangePointPrediction>(ml);
+            engine = model
+                .CreateTimeSeriesPredictionFunction<TimeSeriesData,
+                    ChangePointPrediction>(ml);
 
             // Run predictions on the loaded model.
             for (int i = 0; i < 5; i++)
@@ -111,17 +117,18 @@ namespace Samples.Dynamic
             // 300     0     -30.61    0.24    95319753.87
             // 400     0      58.87    0.38    14.24
             // 500     0     219.28    0.36    0.05
-
         }
 
-        private static void PrintPrediction(float value, ChangePointPrediction prediction) =>
-            Console.WriteLine("{0}\t{1}\t{2:0.00}\t{3:0.00}\t{4:0.00}", value, prediction.Prediction[0],
-                prediction.Prediction[1], prediction.Prediction[2], prediction.Prediction[3]);
+        private static void PrintPrediction(float value,
+            ChangePointPrediction prediction) =>
+            Console.WriteLine("{0}\t{1}\t{2:0.00}\t{3:0.00}\t{4:0.00}", value,
+                prediction.Prediction[0],
+                prediction.Prediction[1], prediction.Prediction[2],
+                prediction.Prediction[3]);
 
         class ChangePointPrediction
         {
-            [VectorType(4)]
-            public double[] Prediction { get; set; }
+            [VectorType(4)] public double[] Prediction { get; set; }
         }
 
         class TimeSeriesData

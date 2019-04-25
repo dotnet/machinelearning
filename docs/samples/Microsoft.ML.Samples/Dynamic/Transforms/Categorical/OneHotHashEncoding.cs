@@ -17,18 +17,20 @@ namespace Samples.Dynamic
             // Get a small dataset as an IEnumerable.
             var samples = new List<DataPoint>()
             {
-                new DataPoint(){ Education = "0-5yrs" },
-                new DataPoint(){ Education = "0-5yrs" },
-                new DataPoint(){ Education = "6-11yrs" },
-                new DataPoint(){ Education = "6-11yrs" },
-                new DataPoint(){ Education = "11-15yrs" },
+                new DataPoint() {Education = "0-5yrs"},
+                new DataPoint() {Education = "0-5yrs"},
+                new DataPoint() {Education = "6-11yrs"},
+                new DataPoint() {Education = "6-11yrs"},
+                new DataPoint() {Education = "11-15yrs"},
             };
 
             // Convert training data to IDataView.
             var data = mlContext.Data.LoadFromEnumerable(samples);
 
             // A pipeline for one hot hash encoding the 'Education' column.
-            var pipeline = mlContext.Transforms.Categorical.OneHotHashEncoding("EducationOneHotHashEncoded", "Education", numberOfBits: 3);
+            var pipeline =
+                mlContext.Transforms.Categorical.OneHotHashEncoding(
+                    "EducationOneHotHashEncoded", "Education", numberOfBits: 3);
 
             // Fit and transform the data.
             var hashEncodedData = pipeline.Fit(data).Transform(data);
@@ -43,7 +45,8 @@ namespace Samples.Dynamic
             // 0 0 0 0 0 0 0 1
 
             // A pipeline for one hot hash encoding the 'Education' column (using keying strategy).
-            var keyPipeline = mlContext.Transforms.Categorical.OneHotHashEncoding("EducationOneHotHashEncoded", "Education", 
+            var keyPipeline = mlContext.Transforms.Categorical.OneHotHashEncoding(
+                "EducationOneHotHashEncoded", "Education",
                 outputKind: OneHotEncodingEstimator.OutputKind.Key,
                 numberOfBits: 3);
 
@@ -51,9 +54,11 @@ namespace Samples.Dynamic
             var hashKeyEncodedData = keyPipeline.Fit(data).Transform(data);
 
             // Getting the data of the newly created column, so we can preview it.
-            var keyEncodedColumn = hashKeyEncodedData.GetColumn<uint>("EducationOneHotHashEncoded");
+            var keyEncodedColumn =
+                hashKeyEncodedData.GetColumn<uint>("EducationOneHotHashEncoded");
 
-            Console.WriteLine("One Hot Hash Encoding of single column 'Education', with key type output.");
+            Console.WriteLine(
+                "One Hot Hash Encoding of single column 'Education', with key type output.");
             foreach (var element in keyEncodedColumn)
                 Console.WriteLine(element);
 
@@ -64,9 +69,12 @@ namespace Samples.Dynamic
             // 8
         }
 
-        private static void PrintDataColumn(IDataView transformedData, string columnName)
+        private static void PrintDataColumn(IDataView transformedData,
+            string columnName)
         {
-            var countSelectColumn = transformedData.GetColumn<float[]>(transformedData.Schema[columnName]);
+            var countSelectColumn =
+                transformedData.GetColumn<float[]>(
+                    transformedData.Schema[columnName]);
 
             foreach (var row in countSelectColumn)
             {

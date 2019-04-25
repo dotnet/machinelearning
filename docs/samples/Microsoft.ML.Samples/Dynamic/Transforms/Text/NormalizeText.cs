@@ -22,7 +22,8 @@ namespace Samples.Dynamic
             var emptyDataView = mlContext.Data.LoadFromEnumerable(emptySamples);
 
             // A pipeline for normalizing text.
-            var normTextPipeline = mlContext.Transforms.Text.NormalizeText("NormalizedText", "Text",
+            var normTextPipeline = mlContext.Transforms.Text.NormalizeText(
+                "NormalizedText", "Text",
                 TextNormalizingEstimator.CaseMode.Lower,
                 keepDiacritics: false,
                 keepPunctuations: false,
@@ -32,10 +33,17 @@ namespace Samples.Dynamic
             var normTextTransformer = normTextPipeline.Fit(emptyDataView);
 
             // Create the prediction engine to get the normalized text from the input text/string.
-            var predictionEngine = mlContext.Model.CreatePredictionEngine<TextData, TransformedTextData>(normTextTransformer);
+            var predictionEngine =
+                mlContext.Model
+                    .CreatePredictionEngine<TextData, TransformedTextData>(
+                        normTextTransformer);
 
             // Call the prediction API.
-            var data = new TextData() { Text = "ML.NET's NormalizeText API changes the case of the TEXT and removes/keeps diâcrîtîcs, punctuations, and/or numbers (123)." };
+            var data = new TextData()
+            {
+                Text =
+                    "ML.NET's NormalizeText API changes the case of the TEXT and removes/keeps diâcrîtîcs, punctuations, and/or numbers (123)."
+            };
             var prediction = predictionEngine.Predict(data);
 
             // Print the normalized text.

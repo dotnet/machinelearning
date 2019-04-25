@@ -15,14 +15,16 @@ namespace Samples.Dynamic
             var mlContext = new MLContext();
             var samples = new List<DataPoint>()
             {
-                new DataPoint(){ Features = new float[4] { 1, 1, 0, 0} },
-                new DataPoint(){ Features = new float[4] { 2, 2, 0, 0} },
-                new DataPoint(){ Features = new float[4] { 1, 0, 1, 0} },
-                new DataPoint(){ Features = new float[4] { 0, 1, 0, 1} }
+                new DataPoint() {Features = new float[4] {1, 1, 0, 0}},
+                new DataPoint() {Features = new float[4] {2, 2, 0, 0}},
+                new DataPoint() {Features = new float[4] {1, 0, 1, 0}},
+                new DataPoint() {Features = new float[4] {0, 1, 0, 1}}
             };
             // Convert training data to IDataView, the general data type used in ML.NET.
             var data = mlContext.Data.LoadFromEnumerable(samples);
-            var approximation = mlContext.Transforms.NormalizeGlobalContrast("Features", ensureZeroMean: false, scale:2, ensureUnitStandardDeviation:true);
+            var approximation = mlContext.Transforms.NormalizeGlobalContrast(
+                "Features", ensureZeroMean: false, scale: 2,
+                ensureUnitStandardDeviation: true);
 
             // Now we can transform the data and look at the output to confirm the behavior of the estimator.
             // This operation doesn't actually evaluate data until we read the data below.
@@ -31,7 +33,8 @@ namespace Samples.Dynamic
 
             var column = transformedData.GetColumn<float[]>("Features").ToArray();
             foreach (var row in column)
-                Console.WriteLine(string.Join(", ", row.Select(x => x.ToString("f4"))));
+                Console.WriteLine(string.Join(", ",
+                    row.Select(x => x.ToString("f4"))));
             // Expected output:
             //  2.0000, 2.0000,-2.0000,-2.0000
             //  2.0000, 2.0000,-2.0000,-2.0000
@@ -41,8 +44,7 @@ namespace Samples.Dynamic
 
         private class DataPoint
         {
-            [VectorType(4)]
-            public float[] Features { get; set; }
+            [VectorType(4)] public float[] Features { get; set; }
         }
     }
 }

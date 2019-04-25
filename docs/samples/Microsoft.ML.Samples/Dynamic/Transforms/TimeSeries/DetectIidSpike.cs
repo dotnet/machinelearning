@@ -45,14 +45,19 @@ namespace Samples.Dynamic
             string inputColumnName = nameof(TimeSeriesData.Value);
 
             // The transformed model.
-            ITransformer model = ml.Transforms.DetectIidSpike(outputColumnName, inputColumnName, 95, Size).Fit(dataView);
+            ITransformer model = ml.Transforms
+                .DetectIidSpike(outputColumnName, inputColumnName, 95, Size)
+                .Fit(dataView);
 
             // Create a time series prediction engine from the model.
-            var engine = model.CreateTimeSeriesPredictionFunction<TimeSeriesData, IidSpikePrediction>(ml);
+            var engine =
+                model.CreateTimeSeriesPredictionFunction<TimeSeriesData,
+                    IidSpikePrediction>(ml);
 
-            Console.WriteLine($"{outputColumnName} column obtained post-transformation.");
+            Console.WriteLine(
+                $"{outputColumnName} column obtained post-transformation.");
             Console.WriteLine("Data\tAlert\tScore\tP-Value");
-            
+
             // Prediction column obtained post-transformation.
             // Data Alert   Score   P-Value
 
@@ -71,7 +76,7 @@ namespace Samples.Dynamic
 
             // Spike.
             PrintPrediction(10, engine.Predict(new TimeSeriesData(10)));
-            
+
             // 10     1      10.00    0.00  <-- alert is on, predicted spike (check-point model)
 
             // Checkpoint the model.
@@ -93,11 +98,12 @@ namespace Samples.Dynamic
             // 5      0       5.00    0.50
             // 5      0       5.00    0.50
             // 5      0       5.00    0.50
-
         }
 
-        private static void PrintPrediction(float value, IidSpikePrediction prediction) => 
-            Console.WriteLine("{0}\t{1}\t{2:0.00}\t{3:0.00}", value, prediction.Prediction[0], 
+        private static void PrintPrediction(float value,
+            IidSpikePrediction prediction) =>
+            Console.WriteLine("{0}\t{1}\t{2:0.00}\t{3:0.00}", value,
+                prediction.Prediction[0],
                 prediction.Prediction[1], prediction.Prediction[2]);
 
         class TimeSeriesData
@@ -112,8 +118,7 @@ namespace Samples.Dynamic
 
         class IidSpikePrediction
         {
-            [VectorType(3)]
-            public double[] Prediction { get; set; }
+            [VectorType(3)] public double[] Prediction { get; set; }
         }
     }
 }

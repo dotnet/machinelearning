@@ -58,12 +58,18 @@ namespace Samples.Dynamic
             var outputColumnName = nameof(SsaSpikePrediction.Prediction);
 
             // The transformed data.
-            var transformedData = ml.Transforms.DetectSpikeBySsa(outputColumnName, inputColumnName, 95, 8, TrainingSize, SeasonalitySize + 1).Fit(dataView).Transform(dataView);
+            var transformedData = ml.Transforms
+                .DetectSpikeBySsa(outputColumnName, inputColumnName, 95, 8,
+                    TrainingSize, SeasonalitySize + 1).Fit(dataView)
+                .Transform(dataView);
 
             // Getting the data of the newly created column as an IEnumerable of SsaSpikePrediction.
-            var predictionColumn = ml.Data.CreateEnumerable<SsaSpikePrediction>(transformedData, reuseRowObject: false);
+            var predictionColumn =
+                ml.Data.CreateEnumerable<SsaSpikePrediction>(transformedData,
+                    reuseRowObject: false);
 
-            Console.WriteLine($"{outputColumnName} column obtained post-transformation.");
+            Console.WriteLine(
+                $"{outputColumnName} column obtained post-transformation.");
             Console.WriteLine("Data\tAlert\tScore\tP-Value");
             int k = 0;
             foreach (var prediction in predictionColumn)
@@ -94,8 +100,10 @@ namespace Samples.Dynamic
             // 4       0     -29.82    0.21
         }
 
-        private static void PrintPrediction(float value, SsaSpikePrediction prediction) => 
-            Console.WriteLine("{0}\t{1}\t{2:0.00}\t{3:0.00}", value, prediction.Prediction[0], 
+        private static void PrintPrediction(float value,
+            SsaSpikePrediction prediction) =>
+            Console.WriteLine("{0}\t{1}\t{2:0.00}\t{3:0.00}", value,
+                prediction.Prediction[0],
                 prediction.Prediction[1], prediction.Prediction[2]);
 
         class TimeSeriesData
@@ -110,8 +118,7 @@ namespace Samples.Dynamic
 
         class SsaSpikePrediction
         {
-            [VectorType(3)]
-            public double[] Prediction { get; set; }
+            [VectorType(3)] public double[] Prediction { get; set; }
         }
     }
 }

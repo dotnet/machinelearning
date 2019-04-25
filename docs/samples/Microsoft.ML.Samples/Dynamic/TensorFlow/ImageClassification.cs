@@ -22,8 +22,12 @@ namespace Samples.Dynamic
             string modelLocation = "resnet_v2_101_299_frozen.pb";
             if (!File.Exists(modelLocation))
             {
-                modelLocation = Download(@"https://storage.googleapis.com/download.tensorflow.org/models/tflite_11_05_08/resnet_v2_101.tgz", @"resnet_v2_101_299_frozen.tgz");
-                Unzip(Path.Join(Directory.GetCurrentDirectory(), modelLocation), Directory.GetCurrentDirectory());
+                modelLocation =
+                    Download(
+                        @"https://storage.googleapis.com/download.tensorflow.org/models/tflite_11_05_08/resnet_v2_101.tgz",
+                        @"resnet_v2_101_299_frozen.tgz");
+                Unzip(Path.Join(Directory.GetCurrentDirectory(), modelLocation),
+                    Directory.GetCurrentDirectory());
                 modelLocation = "resnet_v2_101_299_frozen.pb";
             }
 
@@ -32,16 +36,19 @@ namespace Samples.Dynamic
             var idv = mlContext.Data.LoadFromEnumerable(data);
 
             // Create a ML pipeline.
-            var pipeline = mlContext.Model.LoadTensorFlowModel(modelLocation).ScoreTensorFlowModel(
-                new[] { nameof(OutputScores.output) },
-                new[] { nameof(TensorData.input) }, addBatchDimensionInput: true);
+            var pipeline = mlContext.Model.LoadTensorFlowModel(modelLocation)
+                .ScoreTensorFlowModel(
+                    new[] {nameof(OutputScores.output)},
+                    new[] {nameof(TensorData.input)}, addBatchDimensionInput: true);
 
             // Run the pipeline and get the transformed values.
             var estimator = pipeline.Fit(idv);
             var transformedValues = estimator.Transform(idv);
 
             // Retrieve model scores.
-            var outScores = mlContext.Data.CreateEnumerable<OutputScores>(transformedValues, reuseRowObject: false);
+            var outScores =
+                mlContext.Data.CreateEnumerable<OutputScores>(transformedValues,
+                    reuseRowObject: false);
 
             // Display scores. (for the sake of brevity we display scores of the first 3 classes)
             foreach (var prediction in outScores)
@@ -51,6 +58,7 @@ namespace Samples.Dynamic
                 {
                     Console.WriteLine($"Class #{numClasses++} score = {classScore}");
                 }
+
                 Console.WriteLine(new string('-', 10));
             }
 
@@ -65,13 +73,13 @@ namespace Samples.Dynamic
             //----------
         }
 
-        private const int imageHeight = 224; 
+        private const int imageHeight = 224;
         private const int imageWidth = 224;
         private const int numChannels = 3;
         private const int inputSize = imageHeight * imageWidth * numChannels;
 
         /// <summary>
-        /// A class to hold sample tensor data. 
+        /// A class to hold sample tensor data.
         /// Member name should match the inputs that the model expects (in this case, input).
         /// </summary>
         public class TensorData
@@ -86,9 +94,14 @@ namespace Samples.Dynamic
         public static TensorData[] GetTensorData()
         {
             // This can be any numerical data. Assume image pixel values.
-            var image1 = Enumerable.Range(0, inputSize).Select(x => (float)x / inputSize).ToArray();
-            var image2 = Enumerable.Range(0, inputSize).Select(x => (float)(x + 10000) / inputSize).ToArray();
-            return new TensorData[] { new TensorData() { input = image1 }, new TensorData() { input = image2 } };
+            var image1 = Enumerable.Range(0, inputSize)
+                .Select(x => (float) x / inputSize).ToArray();
+            var image2 = Enumerable.Range(0, inputSize)
+                .Select(x => (float) (x + 10000) / inputSize).ToArray();
+            return new TensorData[]
+            {
+                new TensorData() {input = image1}, new TensorData() {input = image2}
+            };
         }
 
         /// <summary>

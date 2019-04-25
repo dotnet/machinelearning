@@ -12,13 +12,14 @@ namespace Samples.Dynamic
             var mlContext = new MLContext();
 
             // Get a small dataset as an IEnumerable.
-            var rawData = new[] {
-                new DataPoint() { Label = true, Feature = 1.017325f},
-                new DataPoint() { Label = false, Feature = 0.6326591f},
-                new DataPoint() { Label = false, Feature = 0.0326252f},
-                new DataPoint() { Label = false, Feature = 0.8426974f},
-                new DataPoint() { Label = true, Feature = 0.9947656f},
-                new DataPoint() { Label = true, Feature = 1.017325f},
+            var rawData = new[]
+            {
+                new DataPoint() {Label = true, Feature = 1.017325f},
+                new DataPoint() {Label = false, Feature = 0.6326591f},
+                new DataPoint() {Label = false, Feature = 0.0326252f},
+                new DataPoint() {Label = false, Feature = 0.8426974f},
+                new DataPoint() {Label = true, Feature = 0.9947656f},
+                new DataPoint() {Label = true, Feature = 1.017325f},
             };
 
             var data = mlContext.Data.LoadFromEnumerable(rawData);
@@ -36,12 +37,18 @@ namespace Samples.Dynamic
             {
                 var resample = mlContext.Data.BootstrapSample(data, seed: i);
 
-                var enumerable = mlContext.Data.CreateEnumerable<Microsoft.ML.SamplesUtils.DatasetUtils.BinaryLabelFloatFeatureVectorFloatWeightSample>(resample, reuseRowObject: false);
+                var enumerable =
+                    mlContext.Data
+                        .CreateEnumerable<
+                            Microsoft.ML.SamplesUtils.DatasetUtils.
+                            BinaryLabelFloatFeatureVectorFloatWeightSample>(resample,
+                            reuseRowObject: false);
                 Console.WriteLine($"Label\tFeatures[0]");
                 foreach (var row in enumerable)
                 {
                     Console.WriteLine($"{row.Label}\t{row.Features[0]}");
                 }
+
                 Console.WriteLine();
             }
             // Expected output:

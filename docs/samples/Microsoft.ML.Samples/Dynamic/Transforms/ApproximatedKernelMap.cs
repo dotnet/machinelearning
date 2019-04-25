@@ -17,15 +17,17 @@ namespace Samples.Dynamic
             var mlContext = new MLContext();
             var samples = new List<DataPoint>()
             {
-                new DataPoint(){ Features = new float[7] { 1, 1, 0, 0, 1, 0, 1} },
-                new DataPoint(){ Features = new float[7] { 0, 0, 1, 0, 0, 1, 1} },
-                new DataPoint(){ Features = new float[7] {-1, 1, 0,-1,-1, 0,-1} },
-                new DataPoint(){ Features = new float[7] { 0,-1, 0, 1, 0,-1,-1} }
+                new DataPoint() {Features = new float[7] {1, 1, 0, 0, 1, 0, 1}},
+                new DataPoint() {Features = new float[7] {0, 0, 1, 0, 0, 1, 1}},
+                new DataPoint() {Features = new float[7] {-1, 1, 0, -1, -1, 0, -1}},
+                new DataPoint() {Features = new float[7] {0, -1, 0, 1, 0, -1, -1}}
             };
             // Convert training data to IDataView, the general data type used in ML.NET.
             var data = mlContext.Data.LoadFromEnumerable(samples);
             // ApproximatedKernel map takes data and maps it's to a random low-dimensional space.
-            var approximation = mlContext.Transforms.ApproximatedKernelMap("Features", rank: 4, generator: new GaussianKernel(gamma: 0.7f), seed: 1);
+            var approximation = mlContext.Transforms.ApproximatedKernelMap(
+                "Features", rank: 4, generator: new GaussianKernel(gamma: 0.7f),
+                seed: 1);
 
             // Now we can transform the data and look at the output to confirm the behavior of the estimator.
             // This operation doesn't actually evaluate data until we read the data below.
@@ -34,7 +36,8 @@ namespace Samples.Dynamic
 
             var column = transformedData.GetColumn<float[]>("Features").ToArray();
             foreach (var row in column)
-                Console.WriteLine(string.Join(", ", row.Select(x => x.ToString("f4"))));
+                Console.WriteLine(string.Join(", ",
+                    row.Select(x => x.ToString("f4"))));
             // Expected output:
             // -0.0119, 0.5867, 0.4942,  0.7041
             //  0.4720, 0.5639, 0.4346,  0.2671
@@ -44,9 +47,7 @@ namespace Samples.Dynamic
 
         private class DataPoint
         {
-            [VectorType(7)]
-            public float[] Features { get; set; }
+            [VectorType(7)] public float[] Features { get; set; }
         }
-
     }
 }

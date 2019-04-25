@@ -23,6 +23,7 @@ namespace Samples.Dynamic
             {
                 Console.WriteLine($"{row.Date.ToString("d")}\t{row.Temperature}");
             }
+
             Console.WriteLine();
             // Expected output:
             //  Date    Temperature
@@ -38,10 +39,13 @@ namespace Samples.Dynamic
             //  1/11/2012       29
 
             // Filter the data by the values of the temperature. The lower bound is inclusive, the upper exclusive.
-            var filteredData = mlContext.Data.FilterRowsByColumn(data, columnName: "Temperature", lowerBound: 34, upperBound: 37);
+            var filteredData = mlContext.Data.FilterRowsByColumn(data,
+                columnName: "Temperature", lowerBound: 34, upperBound: 37);
 
             // Look at the filtered data and observe that values outside [34,37) have been dropped.
-            var enumerable = mlContext.Data.CreateEnumerable<SampleTemperatureData>(filteredData, reuseRowObject: true);
+            var enumerable =
+                mlContext.Data.CreateEnumerable<SampleTemperatureData>(filteredData,
+                    reuseRowObject: true);
             Console.WriteLine($"Date\tTemperature");
             foreach (var row in enumerable)
             {
@@ -63,13 +67,14 @@ namespace Samples.Dynamic
             public DateTime Date { get; set; }
             public float Temperature { get; set; }
         }
-		
+
         /// <summary>
         /// Get a fake temperature dataset.
         /// </summary>
         /// <param name="exampleCount">The number of examples to return.</param>
-        /// <returns>An enumerable of <see cref="SampleTemperatureData"/>.</returns>
-        private static IEnumerable<SampleTemperatureData> GetSampleTemperatureData(int exampleCount)
+        /// <returns>An enumerable of <see cref="SampleTemperatureData" />.</returns>
+        private static IEnumerable<SampleTemperatureData> GetSampleTemperatureData(
+            int exampleCount)
         {
             var rng = new Random(1234321);
             var date = new DateTime(2012, 1, 1);
@@ -79,9 +84,9 @@ namespace Samples.Dynamic
             {
                 date = date.AddDays(1);
                 temperature += rng.Next(-5, 5);
-                yield return new SampleTemperatureData { Date = date, Temperature = temperature };
+                yield return new SampleTemperatureData
+                    {Date = date, Temperature = temperature};
             }
         }
     }
 }
-

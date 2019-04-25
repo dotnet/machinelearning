@@ -75,7 +75,8 @@ namespace Samples.Dynamic.Trainers.BinaryClassification
                 // function values. You can think of GAMs as building a bar-chart or lookup table for each feature.
                 Console.WriteLine($"Feature{i}");
                 for (int j = 0; j < binUpperBounds.Count; j++)
-                    Console.WriteLine($"x < {binUpperBounds[j]:0.00} => {binEffects[j]:0.000}");
+                    Console.WriteLine(
+                        $"x < {binUpperBounds[j]:0.00} => {binEffects[j]:0.000}");
             }
 
             // Expected output:
@@ -118,30 +119,33 @@ namespace Samples.Dynamic.Trainers.BinaryClassification
         {
             public bool Label { get; set; }
 
-            [VectorType(2)]
-            public float[] Features { get; set; }
+            [VectorType(2)] public float[] Features { get; set; }
         }
 
         /// <summary>
-        /// Creates a dataset, an IEnumerable of Data objects, for a GAM sample. Feature1 is a parabola centered around 0,
+        /// Creates a dataset, an IEnumerable of Data objects, for a GAM sample. Feature1 is a
+        /// parabola centered around 0,
         /// while Feature2 is a simple piecewise function.
         /// </summary>
         /// <param name="numExamples">The number of examples to generate.</param>
         /// <param name="seed">The seed for the random number generator used to produce data.</param>
         /// <returns></returns>
-        private static IEnumerable<Data> GenerateData(int numExamples = 25000, int seed = 1)
+        private static IEnumerable<Data> GenerateData(int numExamples = 25000,
+            int seed = 1)
         {
             var rng = new Random(seed);
-            float centeredFloat() => (float)(rng.NextDouble() - 0.5);
+            float centeredFloat() => (float) (rng.NextDouble() - 0.5);
             for (int i = 0; i < numExamples; i++)
             {
                 // Generate random, uncoupled features.
                 var data = new Data
                 {
-                    Features = new float[2] { centeredFloat(), centeredFloat() }
+                    Features = new float[2] {centeredFloat(), centeredFloat()}
                 };
                 // Compute the label from the shape functions and add noise.
-                data.Label = Sigmoid(Parabola(data.Features[0]) + SimplePiecewise(data.Features[1]) + centeredFloat()) > 0.5;
+                data.Label = Sigmoid(Parabola(data.Features[0]) +
+                                     SimplePiecewise(data.Features[1]) +
+                                     centeredFloat()) > 0.5;
 
                 yield return data;
             }

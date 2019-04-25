@@ -18,30 +18,36 @@ namespace Samples.Dynamic
             var mlContext = new MLContext();
 
             // Get a small dataset as an IEnumerable.
-            var rawData = new[] {
-                new DataPoint() { Timeframe = 9 },
-                new DataPoint() { Timeframe = 8 },
-                new DataPoint() { Timeframe = 8 },
-                new DataPoint() { Timeframe = 9 },
-                new DataPoint() { Timeframe = 2 },
-                new DataPoint() { Timeframe = 3 }
+            var rawData = new[]
+            {
+                new DataPoint() {Timeframe = 9},
+                new DataPoint() {Timeframe = 8},
+                new DataPoint() {Timeframe = 8},
+                new DataPoint() {Timeframe = 9},
+                new DataPoint() {Timeframe = 2},
+                new DataPoint() {Timeframe = 3}
             };
 
             var data = mlContext.Data.LoadFromEnumerable(rawData);
 
             // Constructs the ML.net pipeline
-            var pipeline = mlContext.Transforms.Conversion.MapKeyToBinaryVector("TimeframeVector", "Timeframe");
+            var pipeline =
+                mlContext.Transforms.Conversion.MapKeyToBinaryVector(
+                    "TimeframeVector", "Timeframe");
 
             // Fits the pipeline to the data.
             IDataView transformedData = pipeline.Fit(data).Transform(data);
 
             // Getting the resulting data as an IEnumerable.
             // This will contain the newly created columns.
-            IEnumerable<TransformedData> features = mlContext.Data.CreateEnumerable<TransformedData>(transformedData, reuseRowObject: false);
+            IEnumerable<TransformedData> features =
+                mlContext.Data.CreateEnumerable<TransformedData>(transformedData,
+                    reuseRowObject: false);
 
             Console.WriteLine($" Timeframe           TimeframeVector");
             foreach (var featureRow in features)
-                Console.WriteLine($"{featureRow.Timeframe}\t\t\t{string.Join(',', featureRow.TimeframeVector)}");
+                Console.WriteLine(
+                    $"{featureRow.Timeframe}\t\t\t{string.Join(',', featureRow.TimeframeVector)}");
 
             // Timeframe             TimeframeVector
             // 10                      0,1,0,0,1 //binary representation of 9, the original value
@@ -54,9 +60,7 @@ namespace Samples.Dynamic
 
         private class DataPoint
         {
-            [KeyType(10)]
-            public uint Timeframe { get; set; }
-
+            [KeyType(10)] public uint Timeframe { get; set; }
         }
 
         private class TransformedData : DataPoint

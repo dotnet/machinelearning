@@ -17,18 +17,20 @@ namespace Samples.Dynamic
             // Get a small dataset as an IEnumerable.
             var samples = new List<DataPoint>()
             {
-                new DataPoint(){ Education = "0-5yrs" },
-                new DataPoint(){ Education = "0-5yrs" },
-                new DataPoint(){ Education = "6-11yrs" },
-                new DataPoint(){ Education = "6-11yrs" },
-                new DataPoint(){ Education = "11-15yrs" },
+                new DataPoint() {Education = "0-5yrs"},
+                new DataPoint() {Education = "0-5yrs"},
+                new DataPoint() {Education = "6-11yrs"},
+                new DataPoint() {Education = "6-11yrs"},
+                new DataPoint() {Education = "11-15yrs"},
             };
 
             // Convert training data to IDataView.
             var data = mlContext.Data.LoadFromEnumerable(samples);
 
             // A pipeline for one hot encoding the Education column.
-            var pipeline = mlContext.Transforms.Categorical.OneHotEncoding("EducationOneHotEncoded", "Education");
+            var pipeline =
+                mlContext.Transforms.Categorical.OneHotEncoding(
+                    "EducationOneHotEncoded", "Education");
 
             // Fit and transform the data.
             var oneHotEncodedData = pipeline.Fit(data).Transform(data);
@@ -42,14 +44,18 @@ namespace Samples.Dynamic
             // 0 0 1
 
             // A pipeline for one hot encoding the Education column (using keying).
-            var keyPipeline = mlContext.Transforms.Categorical.OneHotEncoding("EducationOneHotEncoded", "Education", OutputKind.Key);
+            var keyPipeline =
+                mlContext.Transforms.Categorical.OneHotEncoding(
+                    "EducationOneHotEncoded", "Education", OutputKind.Key);
 
             // Fit and Transform data.
             oneHotEncodedData = keyPipeline.Fit(data).Transform(data);
 
-            var keyEncodedColumn = oneHotEncodedData.GetColumn<uint>("EducationOneHotEncoded");
+            var keyEncodedColumn =
+                oneHotEncodedData.GetColumn<uint>("EducationOneHotEncoded");
 
-            Console.WriteLine("One Hot Encoding of single column 'Education', with key type output.");
+            Console.WriteLine(
+                "One Hot Encoding of single column 'Education', with key type output.");
             foreach (var element in keyEncodedColumn)
                 Console.WriteLine(element);
 
@@ -59,9 +65,13 @@ namespace Samples.Dynamic
             // 2
             // 3
         }
-        private static void PrintDataColumn(IDataView transformedData, string columnName)
+
+        private static void PrintDataColumn(IDataView transformedData,
+            string columnName)
         {
-            var countSelectColumn = transformedData.GetColumn<float[]>(transformedData.Schema[columnName]);
+            var countSelectColumn =
+                transformedData.GetColumn<float[]>(
+                    transformedData.Schema[columnName]);
 
             foreach (var row in countSelectColumn)
             {
@@ -70,6 +80,7 @@ namespace Samples.Dynamic
                 Console.WriteLine();
             }
         }
+
         private class DataPoint
         {
             public string Education { get; set; }

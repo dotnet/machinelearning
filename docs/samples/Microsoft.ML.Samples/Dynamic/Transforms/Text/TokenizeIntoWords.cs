@@ -23,16 +23,25 @@ namespace Samples.Dynamic
             // A pipeline for converting text into vector of words.
             // The following call to 'TokenizeIntoWords' tokenizes text/string into words using space as a separator.
             // Space is also a default value for the 'separators' argument if it is not specified.
-            var textPipeline = mlContext.Transforms.Text.TokenizeIntoWords("Words", "Text", separators: new[] { ' ' });
+            var textPipeline =
+                mlContext.Transforms.Text.TokenizeIntoWords("Words", "Text",
+                    separators: new[] {' '});
 
             // Fit to data.
             var textTransformer = textPipeline.Fit(emptyDataView);
 
             // Create the prediction engine to get the word vector from the input text/string.
-            var predictionEngine = mlContext.Model.CreatePredictionEngine<TextData, TransformedTextData>(textTransformer);
+            var predictionEngine =
+                mlContext.Model
+                    .CreatePredictionEngine<TextData, TransformedTextData>(
+                        textTransformer);
 
             // Call the prediction API to convert the text into words.
-            var data = new TextData() { Text = "ML.NET's TokenizeIntoWords API splits text/string into words using the list of characters provided as separators." };
+            var data = new TextData()
+            {
+                Text =
+                    "ML.NET's TokenizeIntoWords API splits text/string into words using the list of characters provided as separators."
+            };
             var prediction = predictionEngine.Predict(data);
 
             // Print the length of the word vector.

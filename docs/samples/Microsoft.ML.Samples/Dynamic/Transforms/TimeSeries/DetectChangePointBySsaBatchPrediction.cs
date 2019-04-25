@@ -56,12 +56,18 @@ namespace Samples.Dynamic
             var outputColumnName = nameof(ChangePointPrediction.Prediction);
 
             // The transformed data.
-            var transformedData = ml.Transforms.DetectChangePointBySsa(outputColumnName, inputColumnName, 95, 8, TrainingSize, SeasonalitySize + 1).Fit(dataView).Transform(dataView);
+            var transformedData = ml.Transforms
+                .DetectChangePointBySsa(outputColumnName, inputColumnName, 95, 8,
+                    TrainingSize, SeasonalitySize + 1).Fit(dataView)
+                .Transform(dataView);
 
             // Getting the data of the newly created column as an IEnumerable of ChangePointPrediction.
-            var predictionColumn = ml.Data.CreateEnumerable<ChangePointPrediction>(transformedData, reuseRowObject: false);
+            var predictionColumn =
+                ml.Data.CreateEnumerable<ChangePointPrediction>(transformedData,
+                    reuseRowObject: false);
 
-            Console.WriteLine($"{outputColumnName} column obtained post-transformation.");
+            Console.WriteLine(
+                $"{outputColumnName} column obtained post-transformation.");
             Console.WriteLine("Data\tAlert\tScore\tP-Value\tMartingale value");
             int k = 0;
             foreach (var prediction in predictionColumn)
@@ -91,14 +97,16 @@ namespace Samples.Dynamic
             // 400     0     357.11    0.03    45298370.86
         }
 
-        private static void PrintPrediction(float value, ChangePointPrediction prediction) => 
-            Console.WriteLine("{0}\t{1}\t{2:0.00}\t{3:0.00}\t{4:0.00}", value, prediction.Prediction[0], 
-                prediction.Prediction[1], prediction.Prediction[2], prediction.Prediction[3]);
+        private static void PrintPrediction(float value,
+            ChangePointPrediction prediction) =>
+            Console.WriteLine("{0}\t{1}\t{2:0.00}\t{3:0.00}\t{4:0.00}", value,
+                prediction.Prediction[0],
+                prediction.Prediction[1], prediction.Prediction[2],
+                prediction.Prediction[3]);
 
         class ChangePointPrediction
         {
-            [VectorType(4)]
-            public double[] Prediction { get; set; }
+            [VectorType(4)] public double[] Prediction { get; set; }
         }
 
         class TimeSeriesData

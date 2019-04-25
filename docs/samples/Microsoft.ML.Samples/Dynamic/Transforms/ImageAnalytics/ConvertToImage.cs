@@ -28,8 +28,9 @@ namespace Samples.Dynamic
             var data = mlContext.Data.LoadFromEnumerable(dataPoints);
 
             // Image loading pipeline. 
-            var pipeline = mlContext.Transforms.ConvertToImage(imageHeight, imageWidth, "Image", "Features")
-                          .Append(mlContext.Transforms.ExtractPixels("Pixels", "Image"));
+            var pipeline = mlContext.Transforms
+                .ConvertToImage(imageHeight, imageWidth, "Image", "Features")
+                .Append(mlContext.Transforms.ExtractPixels("Pixels", "Image"));
 
             var transformedData = pipeline.Fit(data).Transform(data);
 
@@ -45,7 +46,8 @@ namespace Samples.Dynamic
 
         private static void PrintColumns(IDataView transformedData)
         {
-            Console.WriteLine("{0, -25} {1, -25} {2, -25}", "Features", "Image", "Pixels");
+            Console.WriteLine("{0, -25} {1, -25} {2, -25}", "Features", "Image",
+                "Pixels");
 
             using (var cursor = transformedData.GetRowCursor(transformedData.Schema))
             {
@@ -55,18 +57,21 @@ namespace Samples.Dynamic
                 VBuffer<float> pixels = default;
                 Bitmap imageObject = null;
 
-                var featuresGetter = cursor.GetGetter<VBuffer<float>>(cursor.Schema["Features"]);
-                var pixelsGetter = cursor.GetGetter<VBuffer<float>>(cursor.Schema["Pixels"]);
+                var featuresGetter =
+                    cursor.GetGetter<VBuffer<float>>(cursor.Schema["Features"]);
+                var pixelsGetter =
+                    cursor.GetGetter<VBuffer<float>>(cursor.Schema["Pixels"]);
                 var imageGetter = cursor.GetGetter<Bitmap>(cursor.Schema["Image"]);
                 while (cursor.MoveNext())
                 {
-                    
                     featuresGetter(ref features);
                     pixelsGetter(ref pixels);
                     imageGetter(ref imageObject);
 
-                    Console.WriteLine("{0, -25} {1, -25} {2, -25}", string.Join(",", features.DenseValues().Take(5)) + "...",
-                        imageObject.PhysicalDimension, string.Join(",", pixels.DenseValues().Take(5)) + "...");
+                    Console.WriteLine("{0, -25} {1, -25} {2, -25}",
+                        string.Join(",", features.DenseValues().Take(5)) + "...",
+                        imageObject.PhysicalDimension,
+                        string.Join(",", pixels.DenseValues().Take(5)) + "...");
                 }
 
                 // Dispose the image.
@@ -76,16 +81,20 @@ namespace Samples.Dynamic
 
         private class DataPoint
         {
-            [VectorType(inputSize)]
-            public float[] Features { get; set; }
+            [VectorType(inputSize)] public float[] Features { get; set; }
         }
 
-        private static IEnumerable<DataPoint> GenerateRandomDataPoints(int count, int seed = 0)
+        private static IEnumerable<DataPoint> GenerateRandomDataPoints(int count,
+            int seed = 0)
         {
             var random = new Random(seed);
 
             for (int i = 0; i < count; i++)
-                yield return new DataPoint { Features = Enumerable.Repeat(0, inputSize).Select(x => (float)random.Next(0, 256)).ToArray() };
+                yield return new DataPoint
+                {
+                    Features = Enumerable.Repeat(0, inputSize)
+                        .Select(x => (float) random.Next(0, 256)).ToArray()
+                };
         }
     }
 }

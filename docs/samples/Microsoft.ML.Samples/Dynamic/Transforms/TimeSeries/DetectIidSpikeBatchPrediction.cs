@@ -43,12 +43,17 @@ namespace Samples.Dynamic
             string inputColumnName = nameof(TimeSeriesData.Value);
 
             // The transformed data.
-            var transformedData = ml.Transforms.DetectIidSpike(outputColumnName, inputColumnName, 95, Size / 4).Fit(dataView).Transform(dataView);
+            var transformedData = ml.Transforms
+                .DetectIidSpike(outputColumnName, inputColumnName, 95, Size / 4)
+                .Fit(dataView).Transform(dataView);
 
             // Getting the data of the newly created column as an IEnumerable of IidSpikePrediction.
-            var predictionColumn = ml.Data.CreateEnumerable<IidSpikePrediction>(transformedData, reuseRowObject: false);
+            var predictionColumn =
+                ml.Data.CreateEnumerable<IidSpikePrediction>(transformedData,
+                    reuseRowObject: false);
 
-            Console.WriteLine($"{outputColumnName} column obtained post-transformation.");
+            Console.WriteLine(
+                $"{outputColumnName} column obtained post-transformation.");
             Console.WriteLine("Data\tAlert\tScore\tP-Value");
 
             int k = 0;
@@ -70,8 +75,10 @@ namespace Samples.Dynamic
             // 5       0       5.00    0.50
         }
 
-        private static void PrintPrediction(float value, IidSpikePrediction prediction) => 
-            Console.WriteLine("{0}\t{1}\t{2:0.00}\t{3:0.00}", value, prediction.Prediction[0], 
+        private static void PrintPrediction(float value,
+            IidSpikePrediction prediction) =>
+            Console.WriteLine("{0}\t{1}\t{2:0.00}\t{3:0.00}", value,
+                prediction.Prediction[0],
                 prediction.Prediction[1], prediction.Prediction[2]);
 
         class TimeSeriesData
@@ -86,8 +93,7 @@ namespace Samples.Dynamic
 
         class IidSpikePrediction
         {
-            [VectorType(3)]
-            public double[] Prediction { get; set; }
+            [VectorType(3)] public double[] Prediction { get; set; }
         }
     }
 }

@@ -18,12 +18,12 @@ namespace Samples.Dynamic.Trainers.AnomalyDetection
             // Training data.
             var samples = new List<DataPoint>()
             {
-                new DataPoint(){ Features = new float[3] {1, 0, 0} },
-                new DataPoint(){ Features = new float[3] {0, 2, 1} },
-                new DataPoint(){ Features = new float[3] {1, 2, 3} },
-                new DataPoint(){ Features = new float[3] {0, 1, 0} },
-                new DataPoint(){ Features = new float[3] {0, 2, 1} },
-                new DataPoint(){ Features = new float[3] {-100, 50, -100} }
+                new DataPoint() {Features = new float[3] {1, 0, 0}},
+                new DataPoint() {Features = new float[3] {0, 2, 1}},
+                new DataPoint() {Features = new float[3] {1, 2, 3}},
+                new DataPoint() {Features = new float[3] {0, 1, 0}},
+                new DataPoint() {Features = new float[3] {0, 2, 1}},
+                new DataPoint() {Features = new float[3] {-100, 50, -100}}
             };
 
             // Convert the List<DataPoint> to IDataView, a consumble format to ML.NET functions.
@@ -37,7 +37,8 @@ namespace Samples.Dynamic.Trainers.AnomalyDetection
             };
 
             // Create an anomaly detector. Its underlying algorithm is randomized PCA.
-            var pipeline = mlContext.AnomalyDetection.Trainers.RandomizedPca(options);
+            var pipeline =
+                mlContext.AnomalyDetection.Trainers.RandomizedPca(options);
 
             // Train the anomaly detector.
             var model = pipeline.Fit(data);
@@ -46,7 +47,9 @@ namespace Samples.Dynamic.Trainers.AnomalyDetection
             var transformed = model.Transform(data);
 
             // Read ML.NET predictions into IEnumerable<Result>.
-            var results = mlContext.Data.CreateEnumerable<Result>(transformed, reuseRowObject: false).ToList();
+            var results = mlContext.Data
+                .CreateEnumerable<Result>(transformed, reuseRowObject: false)
+                .ToList();
 
             // Let's go through all predictions.
             for (int i = 0; i < samples.Count; ++i)
@@ -59,13 +62,16 @@ namespace Samples.Dynamic.Trainers.AnomalyDetection
 
                 if (result.PredictedLabel)
                     // The i-th sample is predicted as an inlier.
-                    Console.WriteLine("The {0}-th example with features [{1}] is an inlier with a score of being inlier {2}",
+                    Console.WriteLine(
+                        "The {0}-th example with features [{1}] is an inlier with a score of being inlier {2}",
                         i, featuresInText, result.Score);
                 else
                     // The i-th sample is predicted as an outlier.
-                    Console.WriteLine("The {0}-th example with features [{1}] is an outlier with a score of being inlier {2}",
+                    Console.WriteLine(
+                        "The {0}-th example with features [{1}] is an outlier with a score of being inlier {2}",
                         i, featuresInText, result.Score);
             }
+
             // Lines printed out should be
             //   The 0 - th example with features[1, 0, 0] is an inlier with a score of being inlier 0.7453707
             //   The 1 - th example with features[0, 2, 1] is an inlier with a score of being inlier 0.9999999
@@ -78,8 +84,7 @@ namespace Samples.Dynamic.Trainers.AnomalyDetection
         // Example with 3 feature values. A training data set is a collection of such examples.
         private class DataPoint
         {
-            [VectorType(3)]
-            public float[] Features { get; set; }
+            [VectorType(3)] public float[] Features { get; set; }
         }
 
         // Class used to capture prediction of DataPoint.
@@ -87,6 +92,7 @@ namespace Samples.Dynamic.Trainers.AnomalyDetection
         {
             // Outlier gets false while inlier has true.
             public bool PredictedLabel { get; set; }
+
             // Outlier gets smaller score.
             public float Score { get; set; }
         }

@@ -6,7 +6,7 @@ using Microsoft.ML.Data;
 namespace Samples.Dynamic
 {
     /// This example demonstrates the use of the ValueToKeyMappingEstimator, by mapping KeyType values to the original strings. 
-    /// For more on ML.NET KeyTypes see: https://github.com/dotnet/machinelearning/blob/master/docs/code/IDataViewTypeSystem.md#key-types 
+    /// For more on ML.NET KeyTypes see: https://github.com/dotnet/machinelearning/blob/master/docs/code/IDataViewTypeSystem.md#key-types
     public class MapKeyToValueMultiColumn
     {
         public static void Example()
@@ -25,10 +25,11 @@ namespace Samples.Dynamic
 
             // Create a pipeline. 
             var pipeline =
-                    // Convert the string labels into key types.
-                    mlContext.Transforms.Conversion.MapValueToKey("Label")
+                // Convert the string labels into key types.
+                mlContext.Transforms.Conversion.MapValueToKey("Label")
                     // Apply StochasticDualCoordinateAscent multiclass trainer.
-                    .Append(mlContext.MulticlassClassification.Trainers.SdcaMaximumEntropy());
+                    .Append(mlContext.MulticlassClassification.Trainers
+                        .SdcaMaximumEntropy());
 
             // Train the model and do predictions on same data set. 
             // Typically predictions would be in a different, validation set. 
@@ -40,19 +41,25 @@ namespace Samples.Dynamic
             // MapKeyToValue would take columns with DataViewKeyType and convert them back to thier original values.
             var newPipeline = mlContext.Transforms.Conversion.MapKeyToValue(new[]
             {
-                new InputOutputColumnPair("LabelOriginalValue","Label"),
-                new InputOutputColumnPair("PredictedLabelOriginalValue","PredictedLabel")
+                new InputOutputColumnPair("LabelOriginalValue", "Label"),
+                new InputOutputColumnPair("PredictedLabelOriginalValue",
+                    "PredictedLabel")
             });
 
-            var transformedData = newPipeline.Fit(dataWithPredictions).Transform(dataWithPredictions);
+            var transformedData = newPipeline.Fit(dataWithPredictions)
+                .Transform(dataWithPredictions);
             // Let's iterate over first 5 items.
             transformedData = mlContext.Data.TakeRows(transformedData, 5);
-            var values = mlContext.Data.CreateEnumerable<TransformedData>(transformedData, reuseRowObject: false);
+            var values =
+                mlContext.Data.CreateEnumerable<TransformedData>(transformedData,
+                    reuseRowObject: false);
 
             // Printing the column names of the transformed data.
-            Console.WriteLine($"Label   LabelOriginalValue   PredictedLabel   PredictedLabelOriginalValue");
+            Console.WriteLine(
+                $"Label   LabelOriginalValue   PredictedLabel   PredictedLabelOriginalValue");
             foreach (var row in values)
-                Console.WriteLine($"{row.Label}\t\t{row.LabelOriginalValue}\t\t\t{row.PredictedLabel}\t\t\t{row.PredictedLabelOriginalValue}");
+                Console.WriteLine(
+                    $"{row.Label}\t\t{row.LabelOriginalValue}\t\t\t{row.PredictedLabel}\t\t\t{row.PredictedLabelOriginalValue}");
 
             // Expected output:
             //  Label   LabelOriginalValue   PredictedLabel   PredictedLabelOriginalValue
@@ -61,17 +68,16 @@ namespace Samples.Dynamic
             //  3               CC                      4                       DD
             //  4               DD                      4                       DD
             //  1               AA                      1                       AA
-
         }
 
         private class DataPoint
         {
             public string Label { get; set; }
-            [VectorType(10)]
-            public float[] Features { get; set; }
+            [VectorType(10)] public float[] Features { get; set; }
         }
 
-        private static List<DataPoint> GenerateRandomDataPoints(int count, int featureVectorLenght)
+        private static List<DataPoint> GenerateRandomDataPoints(int count,
+            int featureVectorLenght)
         {
             var examples = new List<DataPoint>();
             var rnd = new Random(0);
@@ -83,7 +89,7 @@ namespace Samples.Dynamic
                 // Generate random float feature values.
                 for (int j = 0; j < featureVectorLenght; ++j)
                 {
-                    var value = (float)rnd.NextDouble() + res * 0.2f;
+                    var value = (float) rnd.NextDouble() + res * 0.2f;
                     example.Features[j] = value;
                 }
 
@@ -98,8 +104,10 @@ namespace Samples.Dynamic
                     example.Label = "DD";
                 examples.Add(example);
             }
+
             return examples;
         }
+
         private class TransformedData
         {
             public uint Label { get; set; }

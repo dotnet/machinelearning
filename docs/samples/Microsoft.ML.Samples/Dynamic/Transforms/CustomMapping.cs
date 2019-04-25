@@ -15,28 +15,31 @@ namespace Samples.Dynamic
             // Get a small dataset as an IEnumerable and convert it to an IDataView.
             var samples = new List<InputData>
             {
-                new InputData { Age = 26 },
-                new InputData { Age = 35 },
-                new InputData { Age = 34 },
-                new InputData { Age = 28 },
+                new InputData {Age = 26},
+                new InputData {Age = 35},
+                new InputData {Age = 34},
+                new InputData {Age = 28},
             };
             var data = mlContext.Data.LoadFromEnumerable(samples);
 
             // We define the custom mapping between input and output rows that will be applied by the transformation.
-            Action<InputData, CustomMappingOutput > mapping =
+            Action<InputData, CustomMappingOutput> mapping =
                 (input, output) => output.IsUnderThirty = input.Age < 30;
 
             // Custom transformations can be used to transform data directly, or as part of a pipeline of estimators.
             // Note: If contractName is null in the CustomMapping estimator, any pipeline of estimators containing it,
             // cannot be saved and loaded back. 
-            var pipeline = mlContext.Transforms.CustomMapping(mapping, contractName: null);
+            var pipeline =
+                mlContext.Transforms.CustomMapping(mapping, contractName: null);
 
             // Now we can transform the data and look at the output to confirm the behavior of the estimator.
             // This operation doesn't actually evaluate data until we read the data below.
             var transformer = pipeline.Fit(data);
             var transformedData = transformer.Transform(data);
 
-            var dataEnumerable = mlContext.Data.CreateEnumerable<TransformedData>(transformedData, reuseRowObject: true);
+            var dataEnumerable =
+                mlContext.Data.CreateEnumerable<TransformedData>(transformedData,
+                    reuseRowObject: true);
             Console.WriteLine("Age\t IsUnderThirty");
             foreach (var row in dataEnumerable)
                 Console.WriteLine($"{row.Age}\t {row.IsUnderThirty}");

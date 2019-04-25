@@ -13,7 +13,8 @@ namespace Samples.Dynamic.Trainers.Regression
         public static void Example()
         {
             // Downloading a regression dataset from github.com/dotnet/machinelearning
-            string dataFile = Microsoft.ML.SamplesUtils.DatasetUtils.DownloadHousingRegressionDataset();
+            string dataFile = Microsoft.ML.SamplesUtils.DatasetUtils
+                .DownloadHousingRegressionDataset();
 
             // Create a new ML context, for ML.NET operations. It can be used for exception tracking and logging, 
             // as well as the source of randomness.
@@ -23,16 +24,17 @@ namespace Samples.Dynamic.Trainers.Regression
             // The data is tab separated with all numeric columns.
             // The first column being the label and rest are numeric features
             // Here only seven numeric columns are used as features
-            var dataView = mlContext.Data.LoadFromTextFile(dataFile, new TextLoader.Options
-            {
-                Separators = new[] { '\t' },
-                HasHeader = true,
-                Columns = new[]
-               {
-                    new TextLoader.Column("Label", DataKind.Single, 0),
-                    new TextLoader.Column("Features", DataKind.Single, 1, 6)
-                }
-            });
+            var dataView = mlContext.Data.LoadFromTextFile(dataFile,
+                new TextLoader.Options
+                {
+                    Separators = new[] {'\t'},
+                    HasHeader = true,
+                    Columns = new[]
+                    {
+                        new TextLoader.Column("Label", DataKind.Single, 0),
+                        new TextLoader.Column("Features", DataKind.Single, 1, 6)
+                    }
+                });
 
             //////////////////// Data Preview ////////////////////
             // MedianHomeValue    CrimesPerCapita    PercentResidental    PercentNonRetail    CharlesRiver    NitricOxides    RoomsPerDwelling    PercentPre40s
@@ -50,13 +52,15 @@ namespace Samples.Dynamic.Trainers.Regression
 
             // Check the weights that the model learned
             var weightsValues = model.Model.Weights;
-            Console.WriteLine($"weight 0 - {weightsValues[0]}"); // CrimesPerCapita  (weight 0) = -0.1682112
-            Console.WriteLine($"weight 3 - {weightsValues[3]}"); // CharlesRiver (weight 1) = 3.663493
+            Console.WriteLine(
+                $"weight 0 - {weightsValues[0]}"); // CrimesPerCapita  (weight 0) = -0.1682112
+            Console.WriteLine(
+                $"weight 3 - {weightsValues[3]}"); // CharlesRiver (weight 1) = 3.663493
             var dataWithPredictions = model.Transform(split.TestSet);
             var metrics = mlContext.Regression.Evaluate(dataWithPredictions);
 
             ConsoleUtils.PrintMetrics(metrics);
-            
+
             // Expected output:
             //   L1: 4.15
             //   L2: 31.98

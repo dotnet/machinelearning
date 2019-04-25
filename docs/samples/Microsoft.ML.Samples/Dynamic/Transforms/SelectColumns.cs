@@ -15,12 +15,22 @@ namespace Samples.Dynamic
             // Create a small dataset as an IEnumerable.
             var samples = new List<InputData>()
             {
-                new InputData(){ Age = 21, Gender = "Male", Education = "BS", ExtraColumn = 1 },
-                new InputData(){ Age = 23, Gender = "Female", Education = "MBA", ExtraColumn = 2 },
-                new InputData(){ Age = 28, Gender = "Male", Education = "PhD", ExtraColumn = 3 },
-                new InputData(){ Age = 22, Gender = "Male", Education = "BS", ExtraColumn = 4 },
-                new InputData(){ Age = 23, Gender = "Female", Education = "MS", ExtraColumn = 5 },
-                new InputData(){ Age = 27, Gender = "Female", Education = "PhD", ExtraColumn = 6 },
+                new InputData()
+                    {Age = 21, Gender = "Male", Education = "BS", ExtraColumn = 1},
+                new InputData()
+                {
+                    Age = 23, Gender = "Female", Education = "MBA", ExtraColumn = 2
+                },
+                new InputData()
+                    {Age = 28, Gender = "Male", Education = "PhD", ExtraColumn = 3},
+                new InputData()
+                    {Age = 22, Gender = "Male", Education = "BS", ExtraColumn = 4},
+                new InputData()
+                    {Age = 23, Gender = "Female", Education = "MS", ExtraColumn = 5},
+                new InputData()
+                {
+                    Age = 27, Gender = "Female", Education = "PhD", ExtraColumn = 6
+                },
             };
 
             // Convert training data to IDataView.
@@ -35,16 +45,20 @@ namespace Samples.Dynamic
             var transformedData = pipeline.Fit(dataview).Transform(dataview);
 
             // Print the number of columns in the schema
-            Console.WriteLine($"There are {transformedData.Schema.Count} columns in the dataset.");
+            Console.WriteLine(
+                $"There are {transformedData.Schema.Count} columns in the dataset.");
 
             // Expected output:
             //  There are 2 columns in the dataset.
 
             // We can extract the newly created column as an IEnumerable of TransformedData, the class we define below.
-            var rowEnumerable = mlContext.Data.CreateEnumerable<TransformedData>(transformedData, reuseRowObject: false);
+            var rowEnumerable =
+                mlContext.Data.CreateEnumerable<TransformedData>(transformedData,
+                    reuseRowObject: false);
 
             // And finally, we can write out the rows of the dataset, looking at the columns of interest.
-            Console.WriteLine($"Age and Educations columns obtained post-transformation.");
+            Console.WriteLine(
+                $"Age and Educations columns obtained post-transformation.");
             foreach (var row in rowEnumerable)
                 Console.WriteLine($"Age: {row.Age} Education: {row.Education}");
 
