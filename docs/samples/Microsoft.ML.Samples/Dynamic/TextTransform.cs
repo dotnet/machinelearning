@@ -15,7 +15,7 @@ namespace Samples.Dynamic
             var ml = new MLContext();
 
             // Get a small dataset as an IEnumerable and convert to IDataView.
-            var data = Microsoft.ML.SamplesUtils.DatasetUtils.GetSentimentData();
+            var data = GetSentimentData();
             var trainData = ml.Data.LoadFromEnumerable(data);
 
             // Preview of the data.
@@ -77,6 +77,27 @@ namespace Samples.Dynamic
             // 0.2 0.2 0.2 0.2 0.2 0.2 0.2 0.2 0.2 0.2 0.2 0.2 0.2 0.2 0.2 0.2 0.2 0.2 0.2 0.2 0.2 0.2 0.2 0.2 0.2 0.4472136 0.4472136 0.4472136 0.4472136 0.4472136
             // 0.25 0.25 0.25 0.25 0.5 0.25 0.25 0.25 0.25 0.25 0.25 0.25 0.25 0.7071068 0.7071068 0.2 0.2 0.2 0.2 0.2 0.2 0.2 0.2 0.2 0.2 0.4472136 0.4472136 0.4472136 0.4472136 0.4472136
             // 0 0.125 0.125 0.125 0.125 0.25 0.25 0.25 0.125 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.125 0.125 0.125 0.125 0.125 0.125 0.375 0.25 0.25 0.125 0.125 0.125 0.125 0.125 0.125 0.125 0.125 0.25 0.125 0.125 0.125 0.125 0.125 0.125 0.125 0.125 0.125 0.125 0.125 0.125 0.2672612 0.5345225 0 0 0 0 0 0.2672612 0.5345225 0.2672612 0.2672612 0.2672612 0.2672612        }
+        }
+
+        /// <summary>
+        /// A dataset that contains a tweet and the sentiment assigned to that tweet: 0 - negative and 1 - positive sentiment.
+        /// </summary>
+        public class SampleSentimentData
+        {
+            public bool Sentiment { get; set; }
+            public string SentimentText { get; set; }
+        }
+
+        /// <summary>
+        /// Returns a sample of the sentiment dataset.
+        /// </summary>
+        public static IEnumerable<SampleSentimentData> GetSentimentData()
+        {
+            var data = new List<SampleSentimentData>();
+            data.Add(new SampleSentimentData { Sentiment = true, SentimentText = "Best game I've ever played." });
+            data.Add(new SampleSentimentData { Sentiment = false, SentimentText = "==RUDE== Dude, 2" });
+            data.Add(new SampleSentimentData { Sentiment = true, SentimentText = "Until the next game, this is the best Xbox game!" });
+            return data;
         }
     }
 }

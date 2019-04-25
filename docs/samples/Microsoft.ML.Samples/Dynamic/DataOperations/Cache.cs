@@ -43,7 +43,7 @@ namespace Samples.Dynamic
         {
             int lines = 0;
             double columnAverage = 0.0;
-            var enumerable = mlContext.Data.CreateEnumerable<DatasetUtils.HousingRegression>(data, reuseRowObject: true);
+            var enumerable = mlContext.Data.CreateEnumerable<HousingRegression>(data, reuseRowObject: true);
             var watch = System.Diagnostics.Stopwatch.StartNew();
             foreach (var row in enumerable)
             {
@@ -58,5 +58,25 @@ namespace Samples.Dynamic
 
             return (lines, columnAverage, elapsed.Seconds);
         }       
+
+        /// <summary>
+        /// A class to hold the raw housing regression rows.
+        /// </summary>
+        public sealed class HousingRegression
+        {
+            public float MedianHomeValue { get; set; }
+            public float CrimesPerCapita { get; set; }
+            public float PercentResidental { get; set; }
+            public float PercentNonRetail { get; set; }
+            public float CharlesRiver { get; set; }
+            public float NitricOxides { get; set; }
+            public float RoomsPerDwelling { get; set; }
+            public float PercentPre40s { get; set; }
+            public float EmploymentDistance { get; set; }
+            public float HighwayDistance { get; set; }
+            public float TaxRate { get; set; }
+            public float TeacherRatio { get; set; }
+        }
+
     }
 }
