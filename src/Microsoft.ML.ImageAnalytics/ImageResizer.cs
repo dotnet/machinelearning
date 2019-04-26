@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Drawing.Imaging;
 using System.Linq;
 using System.Text;
 using Microsoft.ML;
@@ -381,7 +382,15 @@ namespace Microsoft.ML.Transforms.Image
                             destHeight = info.ImageHeight;
                         }
 
-                        dst = new Bitmap(info.ImageWidth, info.ImageHeight, src.PixelFormat);
+                        if (src.PixelFormat == PixelFormat.Format1bppIndexed ||
+                            src.PixelFormat == PixelFormat.Format4bppIndexed ||
+                            src.PixelFormat == PixelFormat.Format8bppIndexed)
+                        {
+                            dst = new Bitmap(info.ImageWidth, info.ImageHeight);
+                        }
+                        else
+                            dst = new Bitmap(info.ImageWidth, info.ImageHeight, src.PixelFormat);
+
                         var srcRectangle = new Rectangle(sourceX, sourceY, sourceWidth, sourceHeight);
                         var destRectangle = new Rectangle(destX, destY, destWidth, destHeight);
                         using (var g = Graphics.FromImage(dst))
