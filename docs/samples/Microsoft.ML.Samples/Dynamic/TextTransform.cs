@@ -15,7 +15,13 @@ namespace Samples.Dynamic
             var ml = new MLContext();
 
             // Get a small dataset as an IEnumerable and convert to IDataView.
-            var data = GetSentimentData();
+            // Get a small dataset as an IEnumerable and convert to IDataView.
+            var data = new List<SampleSentimentData>() {
+                new SampleSentimentData { Sentiment = true, SentimentText = "Best game I've ever played." },
+                new SampleSentimentData { Sentiment = false, SentimentText = "==RUDE== Dude, 2" },
+                new SampleSentimentData { Sentiment = true, SentimentText = "Until the next game, this is the best Xbox game!" } };
+
+            // Convert IEnumerable to IDataView.
             var trainData = ml.Data.LoadFromEnumerable(data);
 
             // Preview of the data.
@@ -86,18 +92,6 @@ namespace Samples.Dynamic
         {
             public bool Sentiment { get; set; }
             public string SentimentText { get; set; }
-        }
-
-        /// <summary>
-        /// Returns a sample of the sentiment dataset.
-        /// </summary>
-        public static IEnumerable<SampleSentimentData> GetSentimentData()
-        {
-            var data = new List<SampleSentimentData>();
-            data.Add(new SampleSentimentData { Sentiment = true, SentimentText = "Best game I've ever played." });
-            data.Add(new SampleSentimentData { Sentiment = false, SentimentText = "==RUDE== Dude, 2" });
-            data.Add(new SampleSentimentData { Sentiment = true, SentimentText = "Until the next game, this is the best Xbox game!" });
-            return data;
         }
     }
 }
