@@ -60,7 +60,7 @@ namespace Microsoft.Extensions.ML
                         () => loaderUnderTest.GetReloadToken(),
                         () => changed = true);
 
-            await File.WriteAllTextAsync("testdata.txt", "test");
+            File.WriteAllText("testdata.txt", "test");
 
             await Task.Delay(1000);
 
