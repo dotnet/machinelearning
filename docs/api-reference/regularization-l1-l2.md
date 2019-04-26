@@ -1,9 +1,9 @@
-This class use [empricial risk minimization](https://en.wikipedia.org/wiki/Empirical_risk_minimization)
+This class use [empricial risk minimization](https://en.wikipedia.org/wiki/Empirical_risk_minimization) (i.e., ERM)
 to formulate the optimization problem built upon collected data.
 If the training data does not contain enough data points
 (for example, to train a linear model in $n$-dimensional space, we need at least $n$ data points),
 [overfitting](https://en.wikipedia.org/wiki/Overfitting) may happen so that
-the trained model is good at describing training data but may fail to predict correct results in unseen events.
+the model produced by ERM is good at describing training data but may fail to predict correct results in unseen events.
 [Regularization](https://en.wikipedia.org/wiki/Regularization_(mathematics)) is a common technique to alleviate
 such a phenomenon by penalizing the magnitude (usually measured by
 [norm function](https://en.wikipedia.org/wiki/Norm_(mathematics))) of model parameters.
