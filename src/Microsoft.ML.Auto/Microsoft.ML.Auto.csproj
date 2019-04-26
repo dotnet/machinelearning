@@ -19,5 +19,11 @@
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
   </PropertyGroup>
 
- 
+  <!-- here we place this assembly into CLI package dir so it gets included in CLI nuget -->
+  <Target Name="PrepareMlNetCLIPackageAssets" BeforeTargets="PreparePackageAssets">
+    <ItemGroup>
+      <PackageAsset Include="$(TargetPath)" RelativePath="mlnet\tools\netcoreapp2.1\any\" />
+    </ItemGroup>
+  </Target>
+
 </Project>

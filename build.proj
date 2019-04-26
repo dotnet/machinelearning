@@ -69,6 +69,8 @@
 
     <ItemGroup>
       <PkgProject Include="pkg\Microsoft.ML.Auto\Microsoft.ML.Auto.nupkgproj" />
+      <PkgProject Include="pkg\Microsoft.ML.Auto\Microsoft.ML.Auto.symbols.nupkgproj" />
+      <PkgProject Include="pkg\mlnet\mlnet.nupkgproj" />
     </ItemGroup>
 
     <MSBuild Projects="@(PkgProject)"

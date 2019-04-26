@@ -3,11 +3,8 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>netcoreapp2.1</TargetFramework>
-    <PackAsTool>true</PackAsTool>
     <RootNamespace>Microsoft.ML.CLI</RootNamespace>
-    <ToolCommandName>mlnet</ToolCommandName>
-    <PackageId>mlnet</PackageId>
-    <Authors>mlnet</Authors>
+    <IncludeInPackage>mlnet</IncludeInPackage>
     <!-- TODO: make the code compliant and remove the following two lines: -->
     <UseStyleCopAnalyzer>false</UseStyleCopAnalyzer>
     <UseMLCodeAnalyzer>false</UseMLCodeAnalyzer>
@@ -106,4 +103,13 @@
     </None>
   </ItemGroup>
 
+  <!-- place extra package assets that we need for CLI -->
+  <Target Name="PrepareMlNetCLIPackageAssets" BeforeTargets="PreparePackageAssets">
+    <ItemGroup>
+      <PackageAsset Include="$(TargetPath)" RelativePath="mlnet\tools\netcoreapp2.1\any\" />
+      <PackageAsset Include="$(TargetDir)$(AssemblyName).deps.json" RelativePath="mlnet\tools\netcoreapp2.1\any\" />
+      <PackageAsset Include="$(TargetDir)$(AssemblyName).runtimeconfig.json" RelativePath="mlnet\tools\netcoreapp2.1\any\" />
+      <PackageAsset Include="$(TargetDir)\nlog.config" RelativePath="mlnet\tools\netcoreapp2.1\any\" />
+    </ItemGroup>
+  </Target>
 </Project>
