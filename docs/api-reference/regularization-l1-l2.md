@@ -15,7 +15,7 @@ Together with the implemented optimization algorithm, L1-norm regularization can
 For high-dimensional and sparse data sets, if users carefully select the coefficient of L1-norm,
 it is possible to achieve a good prediction quality with a model that has only a few non-zero weights
 (e.g., 1% of total model weights) without affecting its prediction power.
-In contrast, L2-norm can not increase the sparsity of the trained model but can still prevent overfitting by avoiding large parameter values.
+In contrast, L2-norm cannot increase the sparsity of the trained model but can still prevent overfitting by avoiding large parameter values.
 Sometimes, using L2-norm leads to a better prediction quality, so users may still want to try it and fine tune the coefficients of L1-norm and L2-norm.
 Note that conceptually, using L1-norm implies that the distribution of all model parameters is a
 [Laplace distribution](https://en.wikipedia.org/wiki/Laplace_distribution) while
