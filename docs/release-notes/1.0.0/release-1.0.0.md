@@ -1,6 +1,6 @@
 # ML.NET 1.0.0 Release Notes
 
-[ML.NET](https://aka.ms/mlnet) is now 1. :cake:. After 12 preview releases over the last year and implementing many enhancements and API improvements, this release brings you the version `1.0.0` of [ML.NET](https://aka.ms/mlnet). Thank you wholeheartedly for being an awesome comunity. Please continue to use and provide feedback on what should be improved. We will ensure that going forward no breaking API changes are introduced.
+[ML.NET](https://aka.ms/mlnet) is now 1. :cake:. After 12 preview releases over the last year and implementing many enhancements and API improvements, this release brings you the version `1.0.0` of [ML.NET](https://aka.ms/mlnet). Thank you wholeheartedly for being an awesome community. Please continue to use and provide feedback on what should be improved. We will ensure that going forward no breaking API changes are introduced.
 
 ### Installation
 
