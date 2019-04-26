@@ -109,6 +109,7 @@
       <PackageAsset Include="$(ProjectDepsFilePath)" RelativePath="$(MlNetPackagePath)" />
       <PackageAsset Include="$(ProjectRuntimeConfigFilePath)" RelativePath="$(MlNetPackagePath)" />
       <PackageAsset Include="$(TargetDir)\nlog.config" RelativePath="$(MlNetPackagePath)" />
+      <PackageAsset Include="$(TargetDir)\mlnet.pdb" RelativePath="$(MlNetPackagePath)" />
     </ItemGroup>
   </Target>
 </Project>

@@ -1,0 +1,10 @@
+<Project Sdk="Microsoft.NET.Sdk" DefaultTargets="Pack">
+  <PropertyGroup>
+    <TargetFramework>netcoreapp2.1</TargetFramework>
+  </PropertyGroup>
+  <ItemGroup>
+    <Content Remove="$(PackageAssetsPath)$(PackageIdFolderName)\tools\**\*"/>
+    <Content Include="$(PackageAssetsPath)$(PackageIdFolderName)\tools\**\mlnet.dll" Pack="true" PackagePath="tools" />
+    <Content Include="$(PackageAssetsPath)$(PackageIdFolderName)\tools\**\mlnet.pdb" Pack="true" PackagePath="tools" />
+  </ItemGroup>
+</Project>
