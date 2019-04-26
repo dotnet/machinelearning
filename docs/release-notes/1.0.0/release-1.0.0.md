@@ -18,7 +18,7 @@ Install-Package Microsoft.ML
 
 ### Acknowledgements
 
-Shoutout to all these amazing contributors who have helped us with developing [ML.NET](https://aka.ms/mlnet)
+Shoutout to all these amazing contributors who have helped us along the way,
 
 [amiteshenoy](https://github.com/amiteshenoy),
 [beneyal](https://github.com/beneyal),
