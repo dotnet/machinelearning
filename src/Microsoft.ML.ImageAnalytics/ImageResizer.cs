@@ -382,12 +382,8 @@ namespace Microsoft.ML.Transforms.Image
                             destHeight = info.ImageHeight;
                         }
 
-                        if (src.PixelFormat == PixelFormat.Format1bppIndexed ||
-                            src.PixelFormat == PixelFormat.Format4bppIndexed ||
-                            src.PixelFormat == PixelFormat.Format8bppIndexed)
-                        {
+                        if ((src.PixelFormat & PixelFormat.Indexed) != 0)
                             dst = new Bitmap(info.ImageWidth, info.ImageHeight);
-                        }
                         else
                             dst = new Bitmap(info.ImageWidth, info.ImageHeight, src.PixelFormat);
 
