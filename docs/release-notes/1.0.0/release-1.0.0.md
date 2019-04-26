@@ -20,7 +20,6 @@ Install-Package Microsoft.ML
 
 Shoutout to all these amazing contributors who have helped us with developing [ML.NET](https://aka.ms/mlnet)
 
-[adamsitnik](https://github.com/adamsitnik)
 [amiteshenoy](https://github.com/amiteshenoy),
 [beneyal](https://github.com/beneyal),
 [bojanmisic](https://github.com/bojanmisic),
@@ -65,7 +64,6 @@ Shoutout to all these amazing contributors who have helped us with developing [M
 [rauhs](https://github.com/rauhs),
 [robosek](https://github.com/robosek),
 [ross-p-smith](https://github.com/ross-p-smith),
-[sharwell](https://github.com/sharwell),
 [SolyarA](https://github.com/SolyarA),
 [Sorrien](https://github.com/Sorrien), 
 [suhailsinghbains](https://github.com/suhailsinghbains),
