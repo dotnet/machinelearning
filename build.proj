@@ -67,7 +67,7 @@
     <Message Importance="High" Text="Building packages ..." />
 
     <ItemGroup>
-      <PkgProject Include="pkg\**\*.nupkgproj" />
+      <PkgProject Include="pkg\Microsoft.Extensions.ML\*.nupkgproj" />
     </ItemGroup>
 
     <MSBuild Projects="@(PkgProject)"
