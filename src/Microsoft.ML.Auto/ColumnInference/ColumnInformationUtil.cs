@@ -89,5 +89,38 @@ namespace Microsoft.ML.Auto
         {
             return BuildColumnInfo(columns.Select(c => (c.Name, c.Purpose)));
         }
+
+        /// <summary>
+        /// Get all column names that are in <paramref name="columnInformation"/>.
+        /// </summary>
+        /// <param name="columnInformation">Column information.</param>
+        public static IEnumerable<string> GetColumnNames(ColumnInformation columnInformation)
+        {
+            var columnNames = new List<string>();
+            AddStringToListIfNotNull(columnNames, columnInformation.LabelColumnName);
+            AddStringToListIfNotNull(columnNames, columnInformation.ExampleWeightColumnName);
+            AddStringToListIfNotNull(columnNames, columnInformation.SamplingKeyColumnName);
+            AddStringsToListIfNotNull(columnNames, columnInformation.CategoricalColumnNames);
+            AddStringsToListIfNotNull(columnNames, columnInformation.IgnoredColumnNames);
+            AddStringsToListIfNotNull(columnNames, columnInformation.NumericColumnNames);
+            AddStringsToListIfNotNull(columnNames, columnInformation.TextColumnNames);
+            return columnNames;
+        }
+
+        private static void AddStringsToListIfNotNull(List<string> list, IEnumerable<string> strings)
+        {
+            foreach (var str in strings)
+            {
+                AddStringToListIfNotNull(list, str);
+            }
+        }
+
+        private static void AddStringToListIfNotNull(List<string> list, string str)
+        {
+            if (str != null)
+            {
+                list.Add(str);
+            }
+        }
     }
 }

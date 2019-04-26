@@ -62,6 +62,9 @@ namespace Microsoft.ML.Auto
             var textLoader = context.Data.CreateTextLoader(typedLoaderOptions);
             var dataView = textLoader.Load(path);
 
+            // Validate all columns specified in column info exist in inferred data view
+            ColumnInferenceValidationUtil.ValidateSpecifiedColumnsExist(columnInfo, dataView);
+
             var purposeInferenceResult = PurposeInference.InferPurposes(context, dataView, columnInfo);
 
             // start building result objects
