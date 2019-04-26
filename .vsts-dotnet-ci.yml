@@ -22,7 +22,7 @@ phases:
         _includeBenchmarkData: false
       Release_Build:
         _configuration: Release-Intrinsics
-        _config_short: R
+        _config_short: RI
         _includeBenchmarkData: true
     queue:
       name: Hosted Ubuntu 1604
