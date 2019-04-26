@@ -1,4 +1,4 @@
-This class use [empricial risk minimization](https://en.wikipedia.org/wiki/Empirical_risk_minimization)
+This class use [empirical risk minimization](https://en.wikipedia.org/wiki/Empirical_risk_minimization)
 to formulate the optimization problem built upon collected data.
 If the training data does not contain enough data points
 (for example, to train a linear model in $n$-dimensional space, we need at least $n$ data points),
