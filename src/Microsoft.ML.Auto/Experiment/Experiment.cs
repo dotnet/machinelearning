@@ -89,10 +89,10 @@ namespace Microsoft.ML.Auto
                     break;
                 }
 
-                // If after third run, all runs have failed so far, break
+                // If after third run, all runs have failed so far, throw exception
                 if (_history.Count() == 3 && _history.All(r => !r.RunSucceded))
                 {
-                    break;
+                    throw new InvalidOperationException($"Training failed on the data, with exception: {_history.Last().Exception}");
                 }
 
             } while (_history.Count < _experimentSettings.MaxModels &&

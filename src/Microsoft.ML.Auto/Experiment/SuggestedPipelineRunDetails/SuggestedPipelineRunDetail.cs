@@ -12,6 +12,8 @@ namespace Microsoft.ML.Auto
         public readonly bool RunSucceded;
         public readonly double Score;
 
+        public Exception Exception { get; set; }
+
         public SuggestedPipelineRunDetail(SuggestedPipeline pipeline, double score, bool runSucceeded)
         {
             Pipeline = pipeline;
@@ -34,7 +36,6 @@ namespace Microsoft.ML.Auto
     {
         public readonly TMetrics ValidationMetrics;
         public readonly ModelContainer ModelContainer;
-        public readonly Exception Exception;
 
         internal SuggestedPipelineRunDetail(SuggestedPipeline pipeline,
             double score,

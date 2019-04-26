@@ -42,6 +42,7 @@ namespace Microsoft.ML.Auto
             IEnumerable<SuggestedPipelineTrainResult<TMetrics>> results) : base(pipeline, score, runSucceeded)
         {
             Results = results;
+            Exception = Results.Select(r => r.Exception).FirstOrDefault(e => e != null);
         }
 
         public CrossValidationRunDetail<TMetrics> ToIterationResult(IEstimator<ITransformer> preFeaturizer)
