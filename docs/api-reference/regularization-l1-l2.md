@@ -1,11 +1,11 @@
-This class use [empirical risk minimization](https://en.wikipedia.org/wiki/Empirical_risk_minimization)
+This class uses [empirical risk minimization](https://en.wikipedia.org/wiki/Empirical_risk_minimization)
 to formulate the optimization problem built upon collected data.
 If the training data does not contain enough data points
 (for example, to train a linear model in $n$-dimensional space, we need at least $n$ data points),
 [overfitting](https://en.wikipedia.org/wiki/Overfitting) may happen so that
 the trained model is good at describing training data but may fail to predict correct results in unseen events.
 [Regularization](https://en.wikipedia.org/wiki/Regularization_(mathematics)) is a common technique to alleviate
-such a phenomenon by penalizing the magnitude (usually measured by
+such a phenomenon by penalizing the magnitude (usually measured by the
 [norm function](https://en.wikipedia.org/wiki/Norm_(mathematics))) of model parameters.
 This trainer supports [elastic net regularization](https://en.wikipedia.org/wiki/Elastic_net_regularization),
 which penalizes a linear combination of L1-norm (LASSO), $|| \textbf{w}_c ||_1$, and L2-norm (ridge), $|| \textbf{w}_c ||_2^2$ regularizations for $c=1,\dots,m$.
