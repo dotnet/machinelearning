@@ -102,13 +102,13 @@
     </None>
   </ItemGroup>
 
-  <!-- place extra package assets that we need for CLI -->
+  <Import Project="mlnet.Build.props" />
   <Target Name="PrepareMlNetCLIPackageAssets" BeforeTargets="PreparePackageAssets">
     <ItemGroup>
-      <PackageAsset Include="$(TargetPath)" RelativePath="mlnet\tools\netcoreapp2.1\any\" />
-      <PackageAsset Include="$(TargetDir)$(AssemblyName).deps.json" RelativePath="mlnet\tools\netcoreapp2.1\any\" />
-      <PackageAsset Include="$(TargetDir)$(AssemblyName).runtimeconfig.json" RelativePath="mlnet\tools\netcoreapp2.1\any\" />
-      <PackageAsset Include="$(TargetDir)\nlog.config" RelativePath="mlnet\tools\netcoreapp2.1\any\" />
+      <PackageAsset Include="$(TargetPath)" RelativePath="$(MlNetPackagePath)" />
+      <PackageAsset Include="$(ProjectDepsFilePath)" RelativePath="$(MlNetPackagePath)" />
+      <PackageAsset Include="$(ProjectRuntimeConfigFilePath)" RelativePath="$(MlNetPackagePath)" />
+      <PackageAsset Include="$(TargetDir)\nlog.config" RelativePath="$(MlNetPackagePath)" />
     </ItemGroup>
   </Target>
 </Project>
