@@ -1,0 +1,28 @@
+<Project Sdk="Microsoft.NET.Sdk" DefaultTargets="Pack">
+  <PropertyGroup>
+    <TargetFramework>netcoreapp2.1</TargetFramework>
+    <PackageDescription>ML.NET command line tool.</PackageDescription>
+    <PackageType>DotNetCliTool</PackageType>
+    <ToolCommandName>mlnet</ToolCommandName>
+    <PackAsTool>true</PackAsTool>
+    <CopyBuildOutputToPublishDirectory>false</CopyBuildOutputToPublishDirectory>
+    <GenerateDependencyFile>false</GenerateDependencyFile>
+    <CopyOutputSymbolsToPublishDirectory>false</CopyOutputSymbolsToPublishDirectory>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.CodeAnalysis" Version="2.10.0" />
+    <PackageReference Include="NLog" Version="4.5.11" />
+    <PackageReference Include="System.CodeDom" Version="4.5.0" />
+    <PackageReference Include="System.CommandLine.Experimental" Version="0.2.0-alpha.19174.3" />
+    <PackageReference Include="System.Text.Encoding.CodePages" Version="4.5.1" />
+    <PackageReference Include="Microsoft.ApplicationInsights" Version="2.9.1" />
+    <PackageReference Include="Microsoft.DotNet.PlatformAbstractions" Version="2.1.0" />
+    <!-- references from AutoML -->
+    <PackageReference Include="Microsoft.ML" Version="1.0.0-preview" />
+    <PackageReference Include="Microsoft.ML.LightGBM" Version="1.0.0-preview" />
+    <PackageReference Include="Microsoft.ML.Mkl.Components" Version="1.0.0-preview" />
+  </ItemGroup>
+
+  <Target Name="CreateManifestResourceNames" />
+</Project>

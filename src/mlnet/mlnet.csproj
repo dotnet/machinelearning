@@ -3,11 +3,7 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>netcoreapp2.1</TargetFramework>
-    <PackAsTool>true</PackAsTool>
     <RootNamespace>Microsoft.ML.CLI</RootNamespace>
-    <ToolCommandName>mlnet</ToolCommandName>
-    <PackageId>mlnet</PackageId>
-    <Authors>mlnet</Authors>
     <!-- TODO: make the code compliant and remove the following two lines: -->
     <UseStyleCopAnalyzer>false</UseStyleCopAnalyzer>
     <UseMLCodeAnalyzer>false</UseMLCodeAnalyzer>
@@ -106,4 +102,14 @@
     </None>
   </ItemGroup>
 
+  <Import Project="mlnet.Build.props" />
+  <Target Name="PrepareMlNetCLIPackageAssets" BeforeTargets="PreparePackageAssets">
+    <ItemGroup>
+      <PackageAsset Include="$(TargetPath)" RelativePath="$(MlNetPackagePath)" />
+      <PackageAsset Include="$(ProjectDepsFilePath)" RelativePath="$(MlNetPackagePath)" />
+      <PackageAsset Include="$(ProjectRuntimeConfigFilePath)" RelativePath="$(MlNetPackagePath)" />
+      <PackageAsset Include="$(TargetDir)\NLog.config" RelativePath="$(MlNetPackagePath)" />
+      <PackageAsset Include="$(TargetDir)\mlnet.pdb" RelativePath="$(MlNetPackagePath)" />
+    </ItemGroup>
+  </Target>
 </Project>

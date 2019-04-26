@@ -19,5 +19,13 @@
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
   </PropertyGroup>
 
- 
+  <!-- here we place this assembly into CLI package dir so it gets included in CLI nuget -->
+  <Import Project="..\mlnet\mlnet.Build.props" />
+
+  <Target Name="PrepareMlNetCLIPackageAssets" BeforeTargets="PreparePackageAssets">
+    <ItemGroup>
+      <PackageAsset Include="$(TargetPath)" RelativePath="$(MlNetPackagePath)" />
+    </ItemGroup>
+  </Target>
+
 </Project>

@@ -1,0 +1,5 @@
+<Project>
+  <PropertyGroup>
+    <MlNetPackagePath>mlnet\tools\netcoreapp2.1\any\</MlNetPackagePath>
+  </PropertyGroup>
+</Project>
