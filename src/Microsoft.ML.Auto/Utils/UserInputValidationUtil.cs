@@ -65,7 +65,7 @@ namespace Microsoft.ML.Auto
             {
                 if (column.Name == DefaultColumnNames.Features && column.Type.GetItemType() != NumberDataViewType.Single)
                 {
-                    throw new ArgumentException($"{DefaultColumnNames.Features} column must be of data type Single", nameof(trainData));
+                    throw new ArgumentException($"{DefaultColumnNames.Features} column must be of data type {NumberDataViewType.Single}", nameof(trainData));
                 }
 
                 if (column.Name != columnInformation.LabelColumnName &&
