@@ -92,7 +92,7 @@ namespace Microsoft.ML.Auto
                 // If after third run, all runs have failed so far, throw exception
                 if (_history.Count() == 3 && _history.All(r => !r.RunSucceded))
                 {
-                    throw new InvalidOperationException($"Training failed on the data, with exception: {_history.Last().Exception}");
+                    throw new InvalidOperationException($"Training failed with the exception: {_history.Last().Exception}");
                 }
 
             } while (_history.Count < _experimentSettings.MaxModels &&
