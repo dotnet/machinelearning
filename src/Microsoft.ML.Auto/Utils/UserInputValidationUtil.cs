@@ -22,10 +22,10 @@ namespace Microsoft.ML.Auto
         private const string SamplingKeyColumnPurposeName = "sampling key";
 
         public static void ValidateExperimentExecuteArgs(IDataView trainData, ColumnInformation columnInformation,
-            IDataView validationData)
+            IDataView validationData, TaskKind task)
         {
-            ValidateTrainData(trainData);
-            ValidateColumnInformation(trainData, columnInformation);
+            ValidateTrainData(trainData, columnInformation);
+            ValidateColumnInformation(trainData, columnInformation, task);
             ValidateValidationData(trainData, validationData);
         }
 
@@ -54,24 +54,37 @@ namespace Microsoft.ML.Auto
             }
         }
 
-        private static void ValidateTrainData(IDataView trainData)
+        private static void ValidateTrainData(IDataView trainData, ColumnInformation columnInformation)
         {
             if (trainData == null)
             {
                 throw new ArgumentNullException(nameof(trainData), "Training data cannot be null");
             }
 
-            var type = trainData.Schema.GetColumnOrNull(DefaultColumnNames.Features)?.Type.GetItemType();
-            if (type != null && type != NumberDataViewType.Single)
+            foreach (var column in trainData.Schema)
             {
-                throw new ArgumentException($"{DefaultColumnNames.Features} column must be of data type Single", nameof(trainData));
+                if (column.Name == DefaultColumnNames.Features && column.Type.GetItemType() != NumberDataViewType.Single)
+                {
+                    throw new ArgumentException($"{DefaultColumnNames.Features} column must be of data type {NumberDataViewType.Single}", nameof(trainData));
+                }
+
+                if (column.Name != columnInformation.LabelColumnName &&
+                        column.Type.GetItemType() != BooleanDataViewType.Instance &&
+                        column.Type.GetItemType() != NumberDataViewType.Single &&
+                        column.Type.GetItemType() != TextDataViewType.Instance)
+                {
+                    throw new ArgumentException($"Only supported feature column types are " +
+                        $"{BooleanDataViewType.Instance}, {NumberDataViewType.Single}, and {TextDataViewType.Instance}. " +
+                        $"Please change the feature column {column.Name} of type {column.Type} to one of " +
+                        $"the supported types.", nameof(trainData));
+                }
             }
         }
 
-        private static void ValidateColumnInformation(IDataView trainData, ColumnInformation columnInformation)
+        private static void ValidateColumnInformation(IDataView trainData, ColumnInformation columnInformation,  TaskKind task)
         {
             ValidateColumnInformation(columnInformation);
-            ValidateTrainDataColumn(trainData, columnInformation.LabelColumnName, LabelColumnPurposeName);
+            ValidateTrainDataColumn(trainData, columnInformation.LabelColumnName, LabelColumnPurposeName, GetAllowedLabelTypes(task));
             ValidateTrainDataColumn(trainData, columnInformation.ExampleWeightColumnName, WeightColumnPurposeName);
             ValidateTrainDataColumn(trainData, columnInformation.SamplingKeyColumnName, SamplingKeyColumnPurposeName);
             ValidateTrainDataColumns(trainData, columnInformation.CategoricalColumnNames, CategoricalColumnPurposeName,
@@ -227,6 +240,23 @@ namespace Microsoft.ML.Auto
         {
             var groups = values.GroupBy(v => v);
             return groups.FirstOrDefault(g => g.Count() > 1)?.Key;
+        }
+
+        private static IEnumerable<DataViewType> GetAllowedLabelTypes(TaskKind task)
+        {
+            switch (task)
+            {
+                case TaskKind.BinaryClassification:
+                    return new DataViewType[] { BooleanDataViewType.Instance };
+                // Multiclass label types are flexible, as we convert the label to a key type
+                // (if input label is not already a key) before invoking the trainer.
+                case TaskKind.MulticlassClassification:
+                    return null;
+                case TaskKind.Regression:
+                    return new DataViewType[] { NumberDataViewType.Single };
+                default:
+                    throw new NotSupportedException($"Unsupported task type: {task}");
+            }
         }
     }
 }
