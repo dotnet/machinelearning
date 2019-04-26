@@ -845,7 +845,7 @@ namespace Microsoft.ML.Scenarios
             var imageHeight = type.Dimensions[0];
             var imageWidth = type.Dimensions[1];
 
-            var dataFile = GetDataPath("images/images.tsv");
+            var dataFile = GetDataPath("images/imagesmixedpixelformat.tsv");
             var imageFolder = Path.GetDirectoryName(dataFile);
             var data = mlContext.Data.LoadFromTextFile(dataFile,
                 columns: new[]
@@ -874,7 +874,7 @@ namespace Microsoft.ML.Scenarios
                     Assert.Equal(10, buffer.Length);
                     numRows += 1;
                 }
-                Assert.Equal(4, numRows);
+                Assert.Equal(5, numRows);
             }
         }
 

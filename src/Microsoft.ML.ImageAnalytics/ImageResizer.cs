@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Drawing.Imaging;
 using System.Linq;
 using System.Text;
 using Microsoft.ML;
@@ -381,7 +382,13 @@ namespace Microsoft.ML.Transforms.Image
                             destHeight = info.ImageHeight;
                         }
 
-                        dst = new Bitmap(info.ImageWidth, info.ImageHeight, src.PixelFormat);
+                        // Graphics.DrawImage() does not support PixelFormat.Indexed. Hence convert the
+                        // pixel format to Format32bppArgb as described here https://stackoverflow.com/questions/17313285/graphics-on-indexed-image
+                        if ((src.PixelFormat & PixelFormat.Indexed) != 0)
+                            dst = new Bitmap(info.ImageWidth, info.ImageHeight);
+                        else
+                            dst = new Bitmap(info.ImageWidth, info.ImageHeight, src.PixelFormat);
+
                         var srcRectangle = new Rectangle(sourceX, sourceY, sourceWidth, sourceHeight);
                         var destRectangle = new Rectangle(destX, destY, destWidth, destHeight);
                         using (var g = Graphics.FromImage(dst))
