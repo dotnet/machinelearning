@@ -384,7 +384,7 @@ namespace Microsoft.ML.Transforms.Image
 
                         // Graphics.DrawImage() does not support PixelFormat.Indexed. Hence convert the
                         // pixel format to Format32bppArgb as described here https://stackoverflow.com/questions/17313285/graphics-on-indexed-image
-                        if ((src.PixelFormat & PixelFormat.Indexed) != 0)
+                        if ((src.PixelFormat & PixelFormat.Indexed) != 0 || !Enum.IsDefined(typeof(PixelFormat), src.PixelFormat))
                             dst = new Bitmap(info.ImageWidth, info.ImageHeight);
                         else
                             dst = new Bitmap(info.ImageWidth, info.ImageHeight, src.PixelFormat);
