@@ -384,7 +384,7 @@ namespace Microsoft.ML.Transforms.Image
 
                         // Image resizer transform is often used in conjunction with Pixel Extractor Transform
                         // which only supports Format24bppRgb and Format32bppArgb, hence the resized image
-                        // should also be within one of those formats.
+                        // should also be one of those formats.
                         // REVIEW: Does it make sense to do pixel format conversion in Load Image transform?
                         dst = new Bitmap(info.ImageWidth, info.ImageHeight, PixelFormat.Format32bppArgb);
 
