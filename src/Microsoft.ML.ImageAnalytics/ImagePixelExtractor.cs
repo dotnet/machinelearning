@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Drawing.Imaging;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -346,10 +347,14 @@ namespace Microsoft.ML.Transforms.Image
                             return;
                         }
 
-                        Host.Check(src.PixelFormat == System.Drawing.Imaging.PixelFormat.Format32bppArgb
-                            || src.PixelFormat == System.Drawing.Imaging.PixelFormat.Format24bppRgb,
-                            "Transform only supports pixel formats Format24bppRgb and Format32bppArgb");
                         Host.Check(src.Height == height && src.Width == width);
+
+                        if (src.PixelFormat != PixelFormat.Format32bppArgb && src.PixelFormat != PixelFormat.Format24bppRgb)
+                        {
+                            var clone = src.Clone(new Rectangle(0, 0, src.Width, src.Height), PixelFormat.Format32bppArgb);
+                            src.Dispose();
+                            src = clone;
+                        }
 
                         var editor = VBufferEditor.Create(ref dst, size);
                         var values = editor.Values;

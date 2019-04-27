@@ -382,11 +382,20 @@ namespace Microsoft.ML.Transforms.Image
                             destHeight = info.ImageHeight;
                         }
 
-                        // Image resizer transform is often used in conjunction with Pixel Extractor Transform
-                        // which only supports Format24bppRgb and Format32bppArgb, hence the resized image
-                        // should also be one of those formats.
-                        // REVIEW: Does it make sense to do pixel format conversion in Load Image transform?
-                        dst = new Bitmap(info.ImageWidth, info.ImageHeight, PixelFormat.Format32bppArgb);
+                        // Graphics.DrawImage() does not support PixelFormat.Indexed. Hence convert the
+                        // pixel format to Format32bppArgb as described here https://stackoverflow.com/questions/17313285/graphics-on-indexed-image
+                        // For images with invalid pixel format also use Format32bppArgb to draw the resized image.
+                        // For images with Format16bppGrayScale or Format16bppArgb1555 GDI+ does not
+                        // support these formats, ref: https://bytes.com/topic/c-sharp/answers/278572-out-memory-graphics-fromimage
+                        if ((src.PixelFormat & PixelFormat.Indexed) != 0 ||
+                            src.PixelFormat == PixelFormat.Format16bppGrayScale ||
+                            src.PixelFormat == PixelFormat.Format16bppArgb1555 ||
+                            !Enum.IsDefined(typeof(PixelFormat), src.PixelFormat))
+                        {
+                            dst = new Bitmap(info.ImageWidth, info.ImageHeight);
+                        }
+                        else
+                            dst = new Bitmap(info.ImageWidth, info.ImageHeight, src.PixelFormat);
 
                         var srcRectangle = new Rectangle(sourceX, sourceY, sourceWidth, sourceHeight);
                         var destRectangle = new Rectangle(destX, destY, destWidth, destHeight);
