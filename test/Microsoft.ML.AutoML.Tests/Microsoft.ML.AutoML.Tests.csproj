@@ -7,7 +7,7 @@
     <UseStyleCopAnalyzer>false</UseStyleCopAnalyzer>
     <UseMLCodeAnalyzer>false</UseMLCodeAnalyzer>
 
-    <RootNamespace>Microsoft.ML.Auto.Test</RootNamespace>
+    <RootNamespace>Microsoft.ML.AutoML.Test</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>
@@ -17,7 +17,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\Microsoft.ML.Auto\Microsoft.ML.Auto.csproj" />
+    <ProjectReference Include="..\..\src\Microsoft.ML.AutoML\Microsoft.ML.AutoML.csproj" />
   </ItemGroup>
 
   <ItemGroup>

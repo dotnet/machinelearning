@@ -7,7 +7,7 @@ using System.IO;
 using Microsoft.ML.Data;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace Microsoft.ML.Auto.Test
+namespace Microsoft.ML.AutoML.Test
 {
     [TestClass]
     public class UserInputValidationTests

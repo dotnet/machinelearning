@@ -7,7 +7,7 @@ using System.IO;
 using System.Net;
 using Microsoft.ML.Data;
 
-namespace Microsoft.ML.Auto.Test
+namespace Microsoft.ML.AutoML.Test
 {
     internal static class DatasetUtil
     {

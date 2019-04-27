@@ -1,4 +1,4 @@
-﻿using Microsoft.ML.Auto;
+﻿using Microsoft.ML.AutoML;
 
 namespace Microsoft.ML.CLI.CodeGenerator.CSharp
 {

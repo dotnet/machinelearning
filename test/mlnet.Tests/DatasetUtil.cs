@@ -6,7 +6,7 @@ using System;
 using System.IO;
 using System.Net;
 using Microsoft.ML;
-using Microsoft.ML.Auto;
+using Microsoft.ML.AutoML;
 
 namespace mlnet.Tests
 {

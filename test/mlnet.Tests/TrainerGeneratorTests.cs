@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 using Microsoft.ML;
-using Microsoft.ML.Auto;
+using Microsoft.ML.AutoML;
 using Microsoft.ML.CLI.CodeGenerator.CSharp;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 

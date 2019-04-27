@@ -6,7 +6,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\src\Microsoft.ML.Auto\Microsoft.ML.Auto.csproj" />
+    <ProjectReference Include="..\..\..\src\Microsoft.ML.AutoML\Microsoft.ML.AutoML.csproj" />
   </ItemGroup>
 
 </Project>
