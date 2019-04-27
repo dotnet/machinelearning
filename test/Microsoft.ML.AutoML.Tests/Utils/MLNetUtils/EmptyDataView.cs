@@ -7,7 +7,7 @@ using System.Collections.Generic;
 using Microsoft.ML.Data;
 using Microsoft.ML.Runtime;
 
-namespace Microsoft.ML.Auto.Test
+namespace Microsoft.ML.AutoML.Test
 {
     /// <summary>
     /// This implements a data view that has a schema, but no rows.

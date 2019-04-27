@@ -6,7 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using Microsoft.ML.Auto;
+using Microsoft.ML.AutoML;
 
 namespace Microsoft.ML.CLI.CodeGenerator.CSharp
 {

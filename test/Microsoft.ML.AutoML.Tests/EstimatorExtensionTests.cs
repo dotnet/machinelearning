@@ -6,7 +6,7 @@ using System;
 using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace Microsoft.ML.Auto.Test
+namespace Microsoft.ML.AutoML.Test
 {
     [TestClass]
     public class EstimatorExtensionTests

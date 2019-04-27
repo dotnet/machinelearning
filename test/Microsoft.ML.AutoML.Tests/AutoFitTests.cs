@@ -6,7 +6,7 @@ using Microsoft.ML.Data;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Linq;
 
-namespace Microsoft.ML.Auto.Test
+namespace Microsoft.ML.AutoML.Test
 {
     [TestClass]
     public class AutoFitTests

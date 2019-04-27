@@ -5,7 +5,7 @@
 using System.Reflection;
 using Microsoft.ML.Data;
 
-namespace Microsoft.ML.Auto.Test
+namespace Microsoft.ML.AutoML.Test
 {
     internal static class MetricsUtil
     {

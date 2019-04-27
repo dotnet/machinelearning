@@ -10,7 +10,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 
-namespace Microsoft.ML.Auto.Test
+namespace Microsoft.ML.AutoML.Test
 {
     internal static class Util
     {

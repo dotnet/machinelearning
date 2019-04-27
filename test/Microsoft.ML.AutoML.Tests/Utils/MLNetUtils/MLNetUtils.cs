@@ -4,7 +4,7 @@
 
 using System.Collections.Generic;
 
-namespace Microsoft.ML.Auto.Test
+namespace Microsoft.ML.AutoML.Test
 {
     internal static class MLNetUtils
     {

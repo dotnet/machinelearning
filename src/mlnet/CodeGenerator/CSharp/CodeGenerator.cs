@@ -8,7 +8,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using Microsoft.CodeAnalysis;
-using Microsoft.ML.Auto;
+using Microsoft.ML.AutoML;
 using Microsoft.ML.CLI.Templates.Console;
 using Microsoft.ML.CLI.Utilities;
 

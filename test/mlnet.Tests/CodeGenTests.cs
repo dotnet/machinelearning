@@ -5,7 +5,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.ML;
-using Microsoft.ML.Auto;
+using Microsoft.ML.AutoML;
 using Microsoft.ML.CLI.CodeGenerator.CSharp;
 using Microsoft.ML.Data;
 using Microsoft.VisualStudio.TestTools.UnitTesting;

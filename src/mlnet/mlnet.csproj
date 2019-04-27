@@ -20,7 +20,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Microsoft.ML.Auto\Microsoft.ML.Auto.csproj" />
+    <ProjectReference Include="..\Microsoft.ML.AutoML\Microsoft.ML.AutoML.csproj" />
   </ItemGroup>
 
   <ItemGroup>
