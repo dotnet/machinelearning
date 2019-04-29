@@ -22,11 +22,7 @@ namespace Samples.Dynamic.Trainers.Clustering
 
             // Convert the list of data points to an IDataView object, which is
             // consumable by ML.NET API.
-            IDataView data = mlContext.Data.LoadFromEnumerable(dataPoints);
-
-            // Split the data in training and test data.
-            var trainTestData = mlContext.Data.TrainTestSplit(data,
-                testFraction: 0.1);
+            IDataView trainingData = mlContext.Data.LoadFromEnumerable(dataPoints);
 
             // Define trainer options.
             var options = new KMeansTrainer.Options
@@ -40,10 +36,15 @@ namespace Samples.Dynamic.Trainers.Clustering
             var pipeline = mlContext.Clustering.Trainers.KMeans(options);
 
             // Train the model.
-            var model = pipeline.Fit(trainTestData.TrainSet);
+            var model = pipeline.Fit(trainingData);
+
+            // Create testing data. Use a different random seed to make it different
+            // from the training data.
+            var testData = mlContext.Data.LoadFromEnumerable(
+                GenerateRandomDataPoints(500, seed: 123));
 
             // Run the model on test data set.
-            IDataView transformedTestData = model.Transform(trainTestData.TestSet);
+            var transformedTestData = model.Transform(testData);
 
             // Convert IDataView object to a list.
             var predictions = mlContext.Data.CreateEnumerable<Prediction>(
@@ -74,8 +75,8 @@ namespace Samples.Dynamic.Trainers.Clustering
 
             // Expected output:
             //   Normalized Mutual Information: 0.92
-            //   Average Distance: 4.10
-            //   Davies Bouldin Index: 2.73
+            //   Average Distance: 4.18
+            //   Davies Bouldin Index: 2.87
 
             // Get the cluster centroids and the number of clusters k from
             // KMeansModelParameters.
@@ -92,8 +93,8 @@ namespace Samples.Dynamic.Trainers.Clustering
                 string.Join(", ", centroids[1].GetValues().ToArray().Take(3)));
 
             // Expected output:
-            //   The first 3 coordinates of the first centroid are: (0.5827727, 0.5666577, 0.619685)
-            //   The first 3 coordinates of the second centroid are: (0.3716165, 0.4269451, 0.3954259)
+            //   The first 3 coordinates of the first centroid are: (0.5840713, 0.5678288, 0.6221277)
+            //   The first 3 coordinates of the second centroid are: (0.3705794, 0.4289133, 0.4001645)
         }
 
         private static IEnumerable<DataPoint> GenerateRandomDataPoints(int count,

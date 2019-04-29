@@ -24,11 +24,7 @@ namespace Samples.Dynamic.Trainers.Clustering
 
             // Convert the list of data points to an IDataView object, which is
             // consumable by ML.NET API.
-            IDataView data = mlContext.Data.LoadFromEnumerable(dataPoints);
-
-            // Split the data in training and test data.
-            var trainTestData = mlContext.Data.TrainTestSplit(data,
-                testFraction: 0.1);
+            IDataView trainingData = mlContext.Data.LoadFromEnumerable(dataPoints);
 
 <# if (TrainerOptions == null) { #>
             // Define the trainer.
@@ -43,10 +39,15 @@ namespace Samples.Dynamic.Trainers.Clustering
 <# } #>
 
             // Train the model.
-            var model = pipeline.Fit(trainTestData.TrainSet);
+            var model = pipeline.Fit(trainingData);
+
+            // Create testing data. Use a different random seed to make it different
+            // from the training data.
+            var testData = mlContext.Data.LoadFromEnumerable(
+                GenerateRandomDataPoints(500, seed: 123));
 
             // Run the model on test data set.
-            IDataView transformedTestData = model.Transform(trainTestData.TestSet);
+            var transformedTestData = model.Transform(testData);
 
             // Convert IDataView object to a list.
             var predictions = mlContext.Data.CreateEnumerable<Prediction>(

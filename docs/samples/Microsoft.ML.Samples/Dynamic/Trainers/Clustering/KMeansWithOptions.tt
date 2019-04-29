@@ -23,10 +23,10 @@ string ExpectedOutputPerInstance = @"// Expected output:
 
 string ExpectedOutput = @"// Expected output:
             //   Normalized Mutual Information: 0.92
-            //   Average Distance: 4.10
-            //   Davies Bouldin Index: 2.73";
+            //   Average Distance: 4.18
+            //   Davies Bouldin Index: 2.87";
 
 string ExpectedCentroidsOutput = @"// Expected output:
-            //   The first 3 coordinates of the first centroid are: (0.5827727, 0.5666577, 0.619685)
-            //   The first 3 coordinates of the second centroid are: (0.3716165, 0.4269451, 0.3954259)";
+            //   The first 3 coordinates of the first centroid are: (0.5840713, 0.5678288, 0.6221277)
+            //   The first 3 coordinates of the second centroid are: (0.3705794, 0.4289133, 0.4001645)";
 #>
