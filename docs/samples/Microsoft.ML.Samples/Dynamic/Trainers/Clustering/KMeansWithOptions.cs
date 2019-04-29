@@ -17,13 +17,16 @@ namespace Samples.Dynamic.Trainers.Clustering
             // in this example to make outputs deterministic.
             var mlContext = new MLContext(seed: 0);
 
-            // Convert the list of data points to an IDataView object, which is
-            // consumable by ML.NET API.
+            // Create a list of training data points.
             var dataPoints = GenerateRandomDataPoints(1000, 0);
 
             // Convert the list of data points to an IDataView object, which is
             // consumable by ML.NET API.
-            var trainingData = mlContext.Data.LoadFromEnumerable(dataPoints);
+            IDataView data = mlContext.Data.LoadFromEnumerable(dataPoints);
+
+            // Split the data in training and test data.
+            var trainTestData = mlContext.Data.TrainTestSplit(data,
+                testFraction: 0.1);
 
             // Define trainer options.
             var options = new KMeansTrainer.Options
@@ -37,22 +40,17 @@ namespace Samples.Dynamic.Trainers.Clustering
             var pipeline = mlContext.Clustering.Trainers.KMeans(options);
 
             // Train the model.
-            var model = pipeline.Fit(trainingData);
-
-            // Create testing data. Use different random seed to make it different
-            // from training data.
-            var testData = mlContext.Data.LoadFromEnumerable(
-                GenerateRandomDataPoints(500, seed: 123));
+            var model = pipeline.Fit(trainTestData.TrainSet);
 
             // Run the model on test data set.
-            var transformedTestData = model.Transform(testData);
+            IDataView transformedTestData = model.Transform(trainTestData.TestSet);
 
             // Convert IDataView object to a list.
             var predictions = mlContext.Data.CreateEnumerable<Prediction>(
                 transformedTestData, reuseRowObject: false).ToList();
 
             // Print 5 predictions. Note that the label is only used as a comparison
-            // wiht the predicted label. It is not used during training.
+            // with the predicted label. It is not used during training.
             foreach (var p in predictions.Take(2))
                 Console.WriteLine(
                     $"Label: {p.Label}, Prediction: {p.PredictedLabel}");
@@ -73,13 +71,13 @@ namespace Samples.Dynamic.Trainers.Clustering
                 transformedTestData, "Label", "Score", "Features");
 
             PrintMetrics(metrics);
-            
+
             // Expected output:
             //   Normalized Mutual Information: 0.92
-            //   Average Distance: 4.18
-            //   Davies Bouldin Index: 2.87
+            //   Average Distance: 4.10
+            //   Davies Bouldin Index: 2.73
 
-            // Get cluster centroids and the number of clusters k from 
+            // Get the cluster centroids and the number of clusters k from
             // KMeansModelParameters.
             VBuffer<float>[] centroids = default;
 
@@ -94,11 +92,11 @@ namespace Samples.Dynamic.Trainers.Clustering
                 string.Join(", ", centroids[1].GetValues().ToArray().Take(3)));
 
             // Expected output:
-            //   The first 3 coordinates of the first centroid are: (0.5840713, 0.5678288, 0.6221277)
-            //   The first 3 coordinates of the second centroid are: (0.3705794, 0.4289133, 0.4001645)
+            //   The first 3 coordinates of the first centroid are: (0.5827727, 0.5666577, 0.619685)
+            //   The first 3 coordinates of the second centroid are: (0.3716165, 0.4269451, 0.3954259)
         }
 
-        private static IEnumerable<DataPoint> GenerateRandomDataPoints(int count, 
+        private static IEnumerable<DataPoint> GenerateRandomDataPoints(int count,
             int seed = 0)
         {
             var random = new Random(seed);
@@ -110,10 +108,10 @@ namespace Samples.Dynamic.Trainers.Clustering
                 {
                     Label = (uint)label,
                     // Create random features with two clusters.
-                    // The first half has feature values centered around 0.6 the
-                    // second half has values centered around 0.4.
+                    // The first half has feature values centered around 0.6, while
+                    // the second half has values centered around 0.4.
                     Features = Enumerable.Repeat(label, 50)
-                        .Select(index => label == 0 ? randomFloat() + 0.1f : 
+                        .Select(index => label == 0 ? randomFloat() + 0.1f :
                             randomFloat() - 0.1f).ToArray()
                 };
             }
