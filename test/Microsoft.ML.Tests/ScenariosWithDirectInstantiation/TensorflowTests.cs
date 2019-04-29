@@ -874,7 +874,7 @@ namespace Microsoft.ML.Scenarios
                     Assert.Equal(10, buffer.Length);
                     numRows += 1;
                 }
-                Assert.Equal(5, numRows);
+                Assert.Equal(7, numRows);
             }
         }
 

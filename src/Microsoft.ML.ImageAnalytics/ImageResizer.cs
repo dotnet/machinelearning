@@ -384,8 +384,16 @@ namespace Microsoft.ML.Transforms.Image
 
                         // Graphics.DrawImage() does not support PixelFormat.Indexed. Hence convert the
                         // pixel format to Format32bppArgb as described here https://stackoverflow.com/questions/17313285/graphics-on-indexed-image
-                        if ((src.PixelFormat & PixelFormat.Indexed) != 0)
+                        // For images with invalid pixel format also use Format32bppArgb to draw the resized image.
+                        // For images with Format16bppGrayScale or Format16bppArgb1555 GDI+ does not
+                        // support these formats, ref: https://bytes.com/topic/c-sharp/answers/278572-out-memory-graphics-fromimage
+                        if ((src.PixelFormat & PixelFormat.Indexed) != 0 ||
+                            src.PixelFormat == PixelFormat.Format16bppGrayScale ||
+                            src.PixelFormat == PixelFormat.Format16bppArgb1555 ||
+                            !Enum.IsDefined(typeof(PixelFormat), src.PixelFormat))
+                        {
                             dst = new Bitmap(info.ImageWidth, info.ImageHeight);
+                        }
                         else
                             dst = new Bitmap(info.ImageWidth, info.ImageHeight, src.PixelFormat);
 
