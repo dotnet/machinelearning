@@ -17,12 +17,9 @@ namespace Microsoft.ML.CLI.Templates.Console
     /// <summary>
     /// Class to produce the template output
     /// </summary>
-    
-    #line 1 "E:\src\machinelearning-automl\src\mlnet\Templates\Console\ObservationClass.tt"
     [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.VisualStudio.TextTemplating", "15.0.0.0")]
     public partial class ObservationClass : ObservationClassBase
     {
-#line hidden
         /// <summary>
         /// Create the template output
         /// </summary>
@@ -37,49 +34,21 @@ namespace Microsoft.ML.CLI.Templates.Console
 using Microsoft.ML.Data;
 
 namespace  ");
-            
-            #line 14 "E:\src\machinelearning-automl\src\mlnet\Templates\Console\ObservationClass.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(Namespace));
-            
-            #line default
-            #line hidden
             this.Write(".Model.DataModels\r\n{\r\n    public class SampleObservation\r\n    {\r\n");
-            
-            #line 18 "E:\src\machinelearning-automl\src\mlnet\Templates\Console\ObservationClass.tt"
 foreach(var label in ClassLabels){
-            
-            #line default
-            #line hidden
             this.Write("       ");
-            
-            #line 19 "E:\src\machinelearning-automl\src\mlnet\Templates\Console\ObservationClass.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(label));
-            
-            #line default
-            #line hidden
             this.Write("\r\n");
-            
-            #line 20 "E:\src\machinelearning-automl\src\mlnet\Templates\Console\ObservationClass.tt"
 }
-            
-            #line default
-            #line hidden
             this.Write("}\r\n}\r\n");
             return this.GenerationEnvironment.ToString();
         }
-        
-        #line 23 "E:\src\machinelearning-automl\src\mlnet\Templates\Console\ObservationClass.tt"
 
 public IList<string> ClassLabels {get;set;}
 public string Namespace {get;set;}
 
-        
-        #line default
-        #line hidden
     }
-    
-    #line default
-    #line hidden
     #region Base class
     /// <summary>
     /// Base class for this transformation
