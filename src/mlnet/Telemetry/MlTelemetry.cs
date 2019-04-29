@@ -75,7 +75,7 @@ Use 'mlnet --help' to see available commands or visit: https://aka.ms/mlnet-cli-
 
 Telemetry
 ---------
-The ML.NET CLI tool collect usage data in order to help us improve your experience.
+The ML.NET CLI tool collects usage data in order to help us improve your experience.
 The data is anonymous and doesn't include personal information or data from your datasets.
 You can opt-out of telemetry by setting the MLDOTNET_CLI_TELEMETRY_OPTOUT environment variable to '1' or 'true' using your favorite shell.
 

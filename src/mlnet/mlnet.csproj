@@ -23,6 +23,16 @@
     <ProjectReference Include="..\Microsoft.ML.AutoML\Microsoft.ML.AutoML.csproj" />
   </ItemGroup>
 
+  <PropertyGroup>
+    <MlDotNetPackageVersion>1.0.0-preview-27625-16</MlDotNetPackageVersion>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.ML" Version="$(MlDotNetPackageVersion)" />
+    <PackageReference Include="Microsoft.ML.LightGBM" Version="$(MlDotNetPackageVersion)" />
+    <PackageReference Include="Microsoft.ML.Mkl.Components" Version="$(MlDotNetPackageVersion)" />
+  </ItemGroup>
+  
   <ItemGroup>
     <Service Include="{508349b6-6b84-4df5-91f0-309beebad82d}" />
   </ItemGroup>
