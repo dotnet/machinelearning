@@ -77,7 +77,7 @@ namespace Microsoft.ML.CLI.CodeGenerator
             // i.e there is no common class/interface to handle all three tasks together.
 
             ExperimentResult<BinaryClassificationMetrics> binaryExperimentResult = default;
-            ExperimentResult<MulticlassClassificationMetrics> multiClassExperimentResult = default;
+            ExperimentResult<MulticlassClassificationMetrics> multiclassExperimentResult = default;
             ExperimentResult<RegressionMetrics> regressionExperimentResult = default;
             if (verboseLevel > LogLevel.Trace)
             {
@@ -122,7 +122,7 @@ namespace Microsoft.ML.CLI.CodeGenerator
                                 t = new Thread(() => SafeExecute(() => automlEngine.ExploreRegressionModels(context, trainData, validationData, columnInformation, new RegressionExperimentSettings().OptimizingMetric, pbar), out ex, out regressionExperimentResult, pbar));
                                 break;
                             case TaskKind.MulticlassClassification:
-                                t = new Thread(() => SafeExecute(() => automlEngine.ExploreMultiClassificationModels(context, trainData, validationData, columnInformation, new MulticlassExperimentSettings().OptimizingMetric, pbar), out ex, out multiClassExperimentResult, pbar));
+                                t = new Thread(() => SafeExecute(() => automlEngine.ExploreMultiClassificationModels(context, trainData, validationData, columnInformation, new MulticlassExperimentSettings().OptimizingMetric, pbar), out ex, out multiclassExperimentResult, pbar));
                                 break;
                             default:
                                 logger.Log(LogLevel.Error, Strings.UnsupportedMlTask);
@@ -162,7 +162,7 @@ namespace Microsoft.ML.CLI.CodeGenerator
                             regressionExperimentResult = automlEngine.ExploreRegressionModels(context, trainData, validationData, columnInformation, new RegressionExperimentSettings().OptimizingMetric);
                             break;
                         case TaskKind.MulticlassClassification:
-                            multiClassExperimentResult = automlEngine.ExploreMultiClassificationModels(context, trainData, validationData, columnInformation, new MulticlassExperimentSettings().OptimizingMetric);
+                            multiclassExperimentResult = automlEngine.ExploreMultiClassificationModels(context, trainData, validationData, columnInformation, new MulticlassExperimentSettings().OptimizingMetric);
                             break;
                         default:
                             logger.Log(LogLevel.Error, Strings.UnsupportedMlTask);
@@ -206,11 +206,11 @@ namespace Microsoft.ML.CLI.CodeGenerator
                         ConsolePrinter.PrintIterationSummary(regressionExperimentResult.RunDetails, new RegressionExperimentSettings().OptimizingMetric, 5);
                         break;
                     case TaskKind.MulticlassClassification:
-                        var bestMultiIteration = multiClassExperimentResult.BestRun;
-                        bestPipeline = bestMultiIteration.Pipeline;
-                        bestModel = bestMultiIteration.Model;
-                        ConsolePrinter.ExperimentResultsHeader(LogLevel.Info, settings.MlTask, settings.Dataset.Name, columnInformation.LabelColumnName, elapsedTime.ToString("F2"), multiClassExperimentResult.RunDetails.Count());
-                        ConsolePrinter.PrintIterationSummary(multiClassExperimentResult.RunDetails, new MulticlassExperimentSettings().OptimizingMetric, 5);
+                        var bestMulticlassIteration = multiclassExperimentResult.BestRun;
+                        bestPipeline = bestMulticlassIteration.Pipeline;
+                        bestModel = bestMulticlassIteration.Model;
+                        ConsolePrinter.ExperimentResultsHeader(LogLevel.Info, settings.MlTask, settings.Dataset.Name, columnInformation.LabelColumnName, elapsedTime.ToString("F2"), multiclassExperimentResult.RunDetails.Count());
+                        ConsolePrinter.PrintIterationSummary(multiclassExperimentResult.RunDetails, new MulticlassExperimentSettings().OptimizingMetric, 5);
                         break;
                 }
             }
@@ -322,8 +322,7 @@ namespace Microsoft.ML.CLI.CodeGenerator
             {
                 ex = e;
                 multiClassExperimentResult = null;
-                pbar.Dispose();
-                //((ManualResetEvent)pbar.CompletedHandle).Set();
+                pbar.Dispose(); // or ((ManualResetEvent)pbar.CompletedHandle).Set();
                 return;
             }
         }
