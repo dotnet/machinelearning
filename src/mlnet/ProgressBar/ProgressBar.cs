@@ -356,6 +356,7 @@ namespace Microsoft.ML.CLI.ShellProgressBar
             _timer?.Dispose();
             _timer = null;
             foreach (var c in this.Children) c.Dispose();
+            OnDone();
         }
     }
 }
