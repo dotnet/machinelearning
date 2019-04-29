@@ -17,12 +17,9 @@ namespace Microsoft.ML.CLI.Templates.Console
     /// <summary>
     /// Class to produce the template output
     /// </summary>
-    
-    #line 1 "E:\src\machinelearning\src\mlnet\Templates\Console\ModelProject.tt"
     [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.VisualStudio.TextTemplating", "15.0.0.0")]
     public partial class ModelProject : ModelProjectBase
     {
-#line hidden
         /// <summary>
         /// Create the template output
         /// </summary>
@@ -31,67 +28,29 @@ namespace Microsoft.ML.CLI.Templates.Console
             this.Write("<Project Sdk=\"Microsoft.NET.Sdk\">\r\n\r\n  <PropertyGroup>\r\n    <TargetFramework>netc" +
                     "oreapp2.1</TargetFramework>\r\n  </PropertyGroup>\r\n  <ItemGroup>\r\n    <PackageRefe" +
                     "rence Include=\"Microsoft.ML\" Version=\"1.0.0-preview\" />\r\n");
-            
-            #line 13 "E:\src\machinelearning\src\mlnet\Templates\Console\ModelProject.tt"
  if(IncludeLightGBMPackage){ 
-            
-            #line default
-            #line hidden
             this.Write("    <PackageReference Include=\"Microsoft.ML.LightGBM\" Version=\"1.0.0-preview\" />\r" +
                     "\n");
-            
-            #line 15 "E:\src\machinelearning\src\mlnet\Templates\Console\ModelProject.tt"
 }
-            
-            #line default
-            #line hidden
-            
-            #line 16 "E:\src\machinelearning\src\mlnet\Templates\Console\ModelProject.tt"
  if(IncludeMklComponentsPackage){ 
-            
-            #line default
-            #line hidden
             this.Write("    <PackageReference Include=\"Microsoft.ML.Mkl.Components\" Version=\"1.0.0-previe" +
                     "w\" />\r\n");
-            
-            #line 18 "E:\src\machinelearning\src\mlnet\Templates\Console\ModelProject.tt"
 }
-            
-            #line default
-            #line hidden
-            
-            #line 19 "E:\src\machinelearning\src\mlnet\Templates\Console\ModelProject.tt"
  if(IncludeFastTreePackage){ 
-            
-            #line default
-            #line hidden
             this.Write("    <PackageReference Include=\"Microsoft.ML.FastTree\" Version=\"1.0.0-preview\" />\r" +
                     "\n");
-            
-            #line 21 "E:\src\machinelearning\src\mlnet\Templates\Console\ModelProject.tt"
 }
-            
-            #line default
-            #line hidden
             this.Write("  </ItemGroup>\r\n\r\n  <ItemGroup>\r\n    <None Update=\"MLModel.zip\">\r\n      <CopyToOu" +
                     "tputDirectory>PreserveNewest</CopyToOutputDirectory>\r\n    </None>\r\n  </ItemGroup" +
                     ">\r\n  \r\n</Project>\r\n");
             return this.GenerationEnvironment.ToString();
         }
-        
-        #line 31 "E:\src\machinelearning\src\mlnet\Templates\Console\ModelProject.tt"
 
 public bool IncludeLightGBMPackage {get;set;}
 public bool IncludeMklComponentsPackage {get;set;}
 public bool IncludeFastTreePackage {get;set;}
 
-        
-        #line default
-        #line hidden
     }
-    
-    #line default
-    #line hidden
     #region Base class
     /// <summary>
     /// Base class for this transformation
