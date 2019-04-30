@@ -3,7 +3,6 @@
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
     <IncludeInPackage>Microsoft.ML.ImageAnalytics</IncludeInPackage>
-    <IsStableProject>true</IsStableProject>
   </PropertyGroup>
 
   <ItemGroup>

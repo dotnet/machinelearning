@@ -5,7 +5,6 @@
     <IncludeInPackage>Microsoft.ML</IncludeInPackage>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <DefineConstants>CORECLR</DefineConstants>
-    <IsStableProject>true</IsStableProject>
   </PropertyGroup>
 
   <ItemGroup>
