@@ -19,6 +19,8 @@
     <PackageRid Condition="'$(OS)' != 'Windows_NT'">linux</PackageRid>
     <PackageRid Condition="$([MSBuild]::IsOSPlatform('osx'))">osx</PackageRid>
     <PackageRid>$(PackageRid)-$(TargetArchitecture)</PackageRid>
+
+    <RunApiCompat Condition="'$(RunApiCompat)' == ''">$(IsStableProject)</RunApiCompat>
   </PropertyGroup>
 
   <ItemGroup>
@@ -37,5 +39,5 @@
       <Link>stylecop.json</Link>
     </AdditionalFiles>
   </ItemGroup>
-
+  
 </Project>

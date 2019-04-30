@@ -4,7 +4,7 @@
     <TargetFramework>netstandard2.0</TargetFramework>
     <IncludeInPackage>Microsoft.ML.Mkl.Components</IncludeInPackage>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <RunApiCompat>true</RunApiCompat>
+    <IsStableProject>true</IsStableProject>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\Microsoft.ML.Core\Microsoft.ML.Core.csproj" />

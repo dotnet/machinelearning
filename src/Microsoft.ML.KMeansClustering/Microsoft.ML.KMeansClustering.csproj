@@ -3,7 +3,7 @@
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
     <IncludeInPackage>Microsoft.ML</IncludeInPackage>
-    <RunApiCompat>true</RunApiCompat>
+    <IsStableProject>true</IsStableProject>
   </PropertyGroup>
 
   <ItemGroup>

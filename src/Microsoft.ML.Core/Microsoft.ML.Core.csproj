@@ -6,7 +6,7 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <DefineConstants>CORECLR</DefineConstants>
     <RootNamespace>Microsoft.ML</RootNamespace>
-    <RunApiCompat>true</RunApiCompat>
+    <IsStableProject>true</IsStableProject>
   </PropertyGroup>
 
   <ItemGroup>

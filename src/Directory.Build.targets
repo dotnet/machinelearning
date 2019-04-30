@@ -34,7 +34,7 @@
       ResolveMatchingContract
     </ResolveReferencesDependsOn>
     
-    <StabelApiProject>$(RepoRoot)tools-local\Microsoft.ML.StableApi\Microsoft.ML.StableApi.csproj</StabelApiProject>
+    <StableApiProject>$(RepoRoot)tools-local\Microsoft.ML.StableApi\Microsoft.ML.StableApi.csproj</StableApiProject>
   </PropertyGroup>
 
   <ItemGroup Condition="'$(RunApiCompat)' == 'true'">
@@ -44,7 +44,7 @@
   </ItemGroup>
   
   <Target Name="ResolveMatchingContract">
-    <MSBuild Projects="$(StabelApiProject)"
+    <MSBuild Projects="$(StableApiProject)"
              Targets="GetContract"
              Properties="ContractName=$(AssemblyName);TargetFramework=$(TargetFramework)">
       <Output TaskParameter="TargetOutputs" ItemName="ResolvedMatchingContract"/>
