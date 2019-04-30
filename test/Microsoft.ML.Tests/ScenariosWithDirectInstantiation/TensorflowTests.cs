@@ -836,7 +836,9 @@ namespace Microsoft.ML.Scenarios
         public void TensorFlowTransformCifar()
         {
             var modelLocation = "cifar_model/frozen_model.pb";
-            var mlContext = new MLContext(seed: 1);
+            var mlContext = new MLContext(seed: 1); 
+            List<string> logMessages = new List<string>();
+            mlContext.Log += (sender, e) => logMessages.Add(e.Message);
             var tensorFlowModel = mlContext.Model.LoadTensorFlowModel(modelLocation);
             var schema = tensorFlowModel.GetInputSchema();
             Assert.True(schema.TryGetColumnIndex("Input", out int column));
@@ -886,6 +888,10 @@ namespace Microsoft.ML.Scenarios
                     Assert.Equal(7, numRows);
                 }
             }
+
+            Assert.Contains(@"[Source=Mapper; ImageResizingTransformer, Kind=Warning] Encountered image E:\machinelearning\test\data\images\tomato_indexedpixelformat.gif of unsupported pixel format Format8bppIndexed but converting it to Format32bppArgb.", logMessages);
+            Assert.Contains(@"[Source=Mapper; ImageResizingTransformer, Kind=Warning] Encountered image E:\machinelearning\test\data\images\taco_invalidpixelformat.jpg of unsupported pixel format 8207 but converting it to Format32bppArgb.", logMessages);
+
         }
 
         [TensorFlowFact]
