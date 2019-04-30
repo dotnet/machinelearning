@@ -4,8 +4,8 @@
     <TargetFramework>netstandard2.0</TargetFramework>
     <IncludeInPackage>Microsoft.ML.LightGbm</IncludeInPackage>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <RunApiCompat>true</RunApiCompat>
   </PropertyGroup>
-  
   <ItemGroup>
     <ProjectReference Include="..\Microsoft.ML.Core\Microsoft.ML.Core.csproj" />
     <ProjectReference Include="..\Microsoft.ML.Data\Microsoft.ML.Data.csproj" />

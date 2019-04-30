@@ -5,6 +5,7 @@
     <IncludeInPackage>Microsoft.ML</IncludeInPackage>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <DefineConstants>CORECLR</DefineConstants>
+    <RunApiCompat>true</RunApiCompat>
   </PropertyGroup>
 
   <ItemGroup>

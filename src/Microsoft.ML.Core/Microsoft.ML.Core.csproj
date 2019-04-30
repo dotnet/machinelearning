@@ -6,11 +6,11 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <DefineConstants>CORECLR</DefineConstants>
     <RootNamespace>Microsoft.ML</RootNamespace>
+    <RunApiCompat>true</RunApiCompat>
   </PropertyGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\Microsoft.ML.DataView\Microsoft.ML.DataView.csproj" />
-    
     <PackageReference Include="System.Collections.Immutable" Version="$(SystemCollectionsImmutableVersion)" />
     <PackageReference Include="System.Memory" Version="$(SystemMemoryVersion)" />
   </ItemGroup>

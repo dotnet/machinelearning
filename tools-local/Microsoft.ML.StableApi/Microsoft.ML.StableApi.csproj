@@ -1,0 +1,31 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <!-- needs to contain all frameworks which src projects wish to restore -->
+    <TargetFrameworks>netstandard2.0</TargetFrameworks>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.ML" Version="1.0.0-preview-27625-16"/>
+    <PackageReference Include="Microsoft.ML.DataView" Version="1.0.0-preview-27625-16"/>
+    <PackageReference Include="Microsoft.ML.CpuMath" Version="1.0.0-preview-27625-16"/>
+    <PackageReference Include="Microsoft.ML.FastTree" Version="1.0.0-preview-27625-16"/>
+    <PackageReference Include="Microsoft.ML.LightGbm" Version="1.0.0-preview-27625-16"/>
+    <PackageReference Include="Microsoft.ML.ImageAnalytics" Version="1.0.0-preview-27625-16"/>
+    <PackageReference Include="Microsoft.ML.Mkl.Components" Version="1.0.0-preview-27625-16"/>
+    <PackageReference Include="Microsoft.ML.Mkl.Redist" Version="1.0.0-preview-27625-16"/>
+  </ItemGroup>
+
+  <!-- The purpose of this target is to return a path from a referenced
+       package / project -->
+  <Target Name="GetContract"
+          DependsOnTargets="ResolveReferences"
+          Returns="@(_contractReferencePath)">
+    <Error Condition="'$(ContractName)' == ''" Text="ContractName must be specified" />
+    <ItemGroup>
+      <_contractReferencePath Include="@(ReferencePath)" Condition="'%(FileName)' == '$(ContractName)'" />
+    </ItemGroup>
+    <Error Condition="'$(ContractName)' == ''" Text="Could not locate $(ContractName)" />
+  </Target>
+
+</Project>
