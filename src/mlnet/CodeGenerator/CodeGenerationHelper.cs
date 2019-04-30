@@ -52,13 +52,10 @@ namespace Microsoft.ML.CLI.CodeGenerator
                 }
                 columnInference = automlEngine.InferColumns(context, inputColumnInformation);
             }
-            catch (Exception e)
+            catch (Exception)
             {
                 logger.Log(LogLevel.Error, $"{Strings.InferColumnError}");
-                logger.Log(LogLevel.Error, e.Message);
-                logger.Log(LogLevel.Trace, e.ToString());
-                logger.Log(LogLevel.Error, Strings.Exiting);
-                return;
+                throw;
             }
 
             var textLoaderOptions = columnInference.TextLoaderOptions;
@@ -172,14 +169,10 @@ namespace Microsoft.ML.CLI.CodeGenerator
 
 
             }
-            catch (Exception e)
+            catch (Exception)
             {
                 logger.Log(LogLevel.Error, $"{Strings.ExplorePipelineException}:");
-                logger.Log(LogLevel.Error, e.Message);
-                logger.Log(LogLevel.Debug, e.ToString());
-                logger.Log(LogLevel.Info, Strings.LookIntoLogFile);
-                logger.Log(LogLevel.Error, Strings.Exiting);
-                return;
+                throw;
             }
 
             var elapsedTime = watch.Elapsed.TotalSeconds;
@@ -214,28 +207,50 @@ namespace Microsoft.ML.CLI.CodeGenerator
                         break;
                 }
             }
-            catch (Exception e)
+            catch (Exception)
             {
                 logger.Log(LogLevel.Info, Strings.ErrorBestPipeline);
-                logger.Log(LogLevel.Info, e.Message);
-                logger.Log(LogLevel.Trace, e.ToString());
-                logger.Log(LogLevel.Info, Strings.LookIntoLogFile);
-                logger.Log(LogLevel.Error, Strings.Exiting);
-                return;
+                throw;
             }
 
             // Save the model
             var modelprojectDir = Path.Combine(settings.OutputPath.FullName, $"{settings.Name}.Model");
             var modelPath = new FileInfo(Path.Combine(modelprojectDir, "MLModel.zip"));
-            Utils.SaveModel(bestModel, modelPath, context, trainData.Schema);
-            Console.ForegroundColor = ConsoleColor.Yellow;
-            logger.Log(LogLevel.Info, $"{Strings.SavingBestModel}: {modelPath}");
+
+            try
+            {
+                Utils.SaveModel(bestModel, modelPath, context, trainData.Schema);
+                Console.ForegroundColor = ConsoleColor.Yellow;
+                logger.Log(LogLevel.Info, $"{Strings.SavingBestModel}: {modelPath}");
+            }
+            catch (Exception)
+            {
+                logger.Log(LogLevel.Info, Strings.ErrorSavingModel);
+                throw;
+            }
+            finally
+            {
+                Console.ResetColor();
+            }
 
             // Generate the Project
-            GenerateProject(columnInference, bestPipeline, columnInformation.LabelColumnName, modelPath);
-            logger.Log(LogLevel.Info, $"{Strings.GenerateModelConsumption}: { Path.Combine(settings.OutputPath.FullName, $"{settings.Name}.ConsoleApp")}");
-            logger.Log(LogLevel.Info, $"{Strings.SeeLogFileForMoreInfo}: {settings.LogFilePath}");
-            Console.ResetColor();
+            try
+            {
+                GenerateProject(columnInference, bestPipeline, columnInformation.LabelColumnName, modelPath);
+                Console.ForegroundColor = ConsoleColor.Yellow;
+                logger.Log(LogLevel.Info, $"{Strings.GenerateModelConsumption}: { Path.Combine(settings.OutputPath.FullName, $"{settings.Name}.ConsoleApp")}");
+                logger.Log(LogLevel.Info, $"{Strings.SeeLogFileForMoreInfo}: {settings.LogFilePath}");
+
+            }
+            catch (Exception)
+            {
+                logger.Log(LogLevel.Info, Strings.ErrorGeneratingProject);
+                throw;
+            }
+            finally
+            {
+                Console.ResetColor();
+            }
         }
 
         internal void GenerateProject(ColumnInferenceResults columnInference, Pipeline pipeline, string labelName, FileInfo modelPath)

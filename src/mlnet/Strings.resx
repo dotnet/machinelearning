@@ -192,4 +192,10 @@
   <data name="SeeLogFileForMoreInfo" xml:space="preserve">
     <value>Check out log file for more information</value>
   </data>
+  <data name="ErrorGeneratingProject" xml:space="preserve">
+    <value>Exception occured while generating the project.</value>
+  </data>
+  <data name="ErrorSavingModel" xml:space="preserve">
+    <value>Exception occured while saving the model</value>
+  </data>
 </root>

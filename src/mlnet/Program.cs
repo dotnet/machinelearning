@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.CommandLine.Builder;
 using System.CommandLine.Invocation;
 using System.IO;
@@ -18,6 +19,7 @@ namespace Microsoft.ML.CLI
 {
     class Program
     {
+        private static Logger logger = LogManager.GetCurrentClassLogger();
         public static void Main(string[] args)
         {
             var telemetry = new MlTelemetry();
@@ -26,39 +28,50 @@ namespace Microsoft.ML.CLI
             var handler = CommandHandler.Create<NewCommandSettings>(
                 (options) =>
              {
-                 // Map the verbosity to internal levels
-                 var verbosity = Utils.GetVerbosity(options.Verbosity);
-
-                 // Build the output path
-                 string outputBaseDir = string.Empty;
-                 if (options.Name == null)
+                 try
                  {
+                     // Map the verbosity to internal levels
+                     var verbosity = Utils.GetVerbosity(options.Verbosity);
 
-                     options.Name = "Sample" + Utils.GetTaskKind(options.MlTask).ToString();
-                     outputBaseDir = Path.Combine(options.OutputPath.FullName, options.Name);
+                     // Build the output path
+                     string outputBaseDir = string.Empty;
+                     if (options.Name == null)
+                     {
+
+                         options.Name = "Sample" + Utils.GetTaskKind(options.MlTask).ToString();
+                         outputBaseDir = Path.Combine(options.OutputPath.FullName, options.Name);
+                     }
+                     else
+                     {
+                         outputBaseDir = Path.Combine(options.OutputPath.FullName, options.Name);
+                     }
+
+                     // Override the output path
+                     options.OutputPath = new DirectoryInfo(outputBaseDir);
+
+                     // Instantiate the command
+                     var command = new NewCommand(options, telemetry);
+
+                     // Override the Logger Configuration
+                     var logconsole = LogManager.Configuration.FindTargetByName("logconsole");
+                     var logfile = (FileTarget)LogManager.Configuration.FindTargetByName("logfile");
+                     var logFilePath = Path.Combine(Path.Combine(outputBaseDir, "logs"), "debug_log.txt");
+                     logfile.FileName = logFilePath;
+                     options.LogFilePath = logFilePath;
+                     var config = LogManager.Configuration;
+                     config.AddRule(verbosity, LogLevel.Fatal, logconsole);
+
+                     // Execute the command
+                     command.Execute();
                  }
-                 else
+                 catch (Exception e)
                  {
-                     outputBaseDir = Path.Combine(options.OutputPath.FullName, options.Name);
+                     logger.Log(LogLevel.Error, e.Message);
+                     logger.Log(LogLevel.Debug, e.ToString());
+                     logger.Log(LogLevel.Info, Strings.LookIntoLogFile);
+                     logger.Log(LogLevel.Error, Strings.Exiting);
+                     return;
                  }
-
-                 // Override the output path
-                 options.OutputPath = new DirectoryInfo(outputBaseDir);
-
-                 // Instantiate the command
-                 var command = new NewCommand(options, telemetry);
-
-                 // Override the Logger Configuration
-                 var logconsole = LogManager.Configuration.FindTargetByName("logconsole");
-                 var logfile = (FileTarget)LogManager.Configuration.FindTargetByName("logfile");
-                 var logFilePath = Path.Combine(Path.Combine(outputBaseDir, "logs"), "debug_log.txt");
-                 logfile.FileName = logFilePath;
-                 options.LogFilePath = logFilePath;
-                 var config = LogManager.Configuration;
-                 config.AddRule(verbosity, LogLevel.Fatal, logconsole);
-
-                 // Execute the command
-                 command.Execute();
              });
 
             var parser = new CommandLineBuilder()
