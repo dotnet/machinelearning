@@ -395,8 +395,8 @@ namespace Microsoft.ML.Transforms.Image
                             dst = new Bitmap(info.ImageWidth, info.ImageHeight);
                             using (var ch = Host.Start(nameof(ImageResizingTransformer)))
                             {
-                                ch.Warning($"Encountered image {0} of unsupported pixel format but converting it to {1}",
-                                    src.Tag, nameof(PixelFormat.Format32bppArgb));
+                                ch.Warning($"Encountered image {0} of unsupported pixel format {1} but converting it to {2}",
+                                    src.Tag, src.PixelFormat, nameof(PixelFormat.Format32bppArgb));
                             }
                         }
                         else
