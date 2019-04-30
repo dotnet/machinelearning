@@ -24,20 +24,9 @@ namespace Microsoft.ML.CLI.Commands.New
 
         public void Execute()
         {
-            try
-            {
-                telemetry.LogAutoTrainMlCommand(settings.Dataset.FullName, settings.MlTask.ToString(), settings.Dataset.Length);
-                CodeGenerationHelper codeGenerationHelper = new CodeGenerationHelper(new AutoMLEngine(settings), settings); // Needs to be improved.
-                codeGenerationHelper.GenerateCode();
-            }
-            catch (Exception e)
-            {
-                logger.Log(LogLevel.Error, e.Message);
-                logger.Log(LogLevel.Debug, e.ToString());
-                logger.Log(LogLevel.Info, Strings.LookIntoLogFile);
-                logger.Log(LogLevel.Error, Strings.Exiting);
-                return;
-            }
+            telemetry.LogAutoTrainMlCommand(settings.Dataset.FullName, settings.MlTask.ToString(), settings.Dataset.Length);
+            CodeGenerationHelper codeGenerationHelper = new CodeGenerationHelper(new AutoMLEngine(settings), settings); // Needs to be improved.
+            codeGenerationHelper.GenerateCode();
         }
     }
 }
