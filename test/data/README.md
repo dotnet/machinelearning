@@ -113,3 +113,5 @@ The dataset is distributed under [GPLv2](https://www.gnu.org/licenses/old-licens
 > "[Hot dog with mustard](https://visualsonline.cancer.gov/details.cfm?imageid=2669)" by Renee Comet is in the public domain - this image was released by the [National Cancer Institute](https://visualsonline.cancer.gov/details.cfm?imageid=2669)
 >
 > "[Bright red tomato and cross section02](https://upload.wikimedia.org/wikipedia/commons/8/88/Bright_red_tomato_and_cross_section02.jpg)" by [fir0002](https://en.wikipedia.org/wiki/User:Fir0002) is licensed under the [CC BY-NC](https://creativecommons.org/licenses/by/2.0/)
+>
+> "[Grilled Portabella and Poblano Tacos](https://www.foodista.com/sites/default/files/78307aH.jpg)" by [foodista](https://www.foodista.com) is licensed under the [CC BY-NC](https://creativecommons.org/licenses/by/2.0/) as per [Bing Images search using All Creative Commons license filter](https://www.bing.com/images/search?q=78307aH&qs=n&form=QBIR&qft=%20filterui%3AlicenseType-Any&sp=-1&pq=78307ah&sc=8-7&sk=&cvid=C44379B4A4FA42C09D7629976997390C)
