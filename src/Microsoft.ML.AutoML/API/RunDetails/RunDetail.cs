@@ -36,7 +36,7 @@ namespace Microsoft.ML.AutoML
         /// <remarks>
         /// You can use the trained model to obtain predictions on input data.
         /// </remarks>
-        public ITransformer Model { get { return _modelContainer.GetModel(); } }
+        public ITransformer Model { get { return _modelContainer?.GetModel(); } }
 
         /// <summary>
         /// Exception encountered during the run. This property is <see langword="null"/> if
