@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using Microsoft.ML;
 
 namespace Samples.Dynamic.Transforms.Categorical
@@ -8,12 +7,12 @@ namespace Samples.Dynamic.Transforms.Categorical
     {
         public static void Example()
         {
-            // Create a new ML context, for ML.NET operations. It can be used for
-            // exception tracking and logging, as well as the source of randomness.
+            // Create a new ML context for ML.NET operations. It can be used for
+            // exception tracking and logging as well as the source of randomness.
             var mlContext = new MLContext();
 
-            // Get a small dataset as an IEnumerable.
-            var samples = new List<DataPoint>
+            // Create a small dataset as an IEnumerable.
+            var samples = new[]
             {
                 new DataPoint {Education = "0-5yrs", ZipCode = "98005"},
                 new DataPoint {Education = "0-5yrs", ZipCode = "98052"},
@@ -25,8 +24,8 @@ namespace Samples.Dynamic.Transforms.Categorical
             // Convert training data to IDataView.
             IDataView data = mlContext.Data.LoadFromEnumerable(samples);
 
-            // Multi column example : A pipeline for one hot encoding two columns
-            // 'Education' and 'ZipCode' 
+            // Multi column example: A pipeline for one hot encoding two columns
+            // 'Education' and 'ZipCode'.
             var multiColumnKeyPipeline =
                 mlContext.Transforms.Categorical.OneHotEncoding(
                     new[]
@@ -45,6 +44,8 @@ namespace Samples.Dynamic.Transforms.Categorical
 
             Console.WriteLine(
                 "One Hot Encoding of two columns 'Education' and 'ZipCode'.");
+
+            // One Hot Encoding of two columns 'Education' and 'ZipCode'.
 
             foreach (TransformedData item in convertedData)
                 Console.WriteLine("{0}\t\t\t{1}", string.Join(" ", item.Education),

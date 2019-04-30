@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using Microsoft.ML;
 using Microsoft.ML.Data;
 using Microsoft.ML.Transforms;
@@ -10,12 +9,12 @@ namespace Samples.Dynamic.Transforms.Categorical
     {
         public static void Example()
         {
-            // Create a new ML context, for ML.NET operations. It can be used for
-            // exception tracking and logging, as well as the source of randomness.
+            // Create a new ML context for ML.NET operations. It can be used for
+            // exception tracking and logging as well as the source of randomness.
             var mlContext = new MLContext();
 
-            // Get a small dataset as an IEnumerable.
-            var samples = new List<DataPoint>
+            // Create a small dataset as an IEnumerable.
+            var samples = new[]
             {
                 new DataPoint {Education = "0-5yrs"},
                 new DataPoint {Education = "0-5yrs"},
@@ -47,19 +46,20 @@ namespace Samples.Dynamic.Transforms.Categorical
             // (using keying strategy).
             var keyPipeline = mlContext.Transforms.Categorical.OneHotHashEncoding(
                 "EducationOneHotHashEncoded", "Education",
-                OneHotEncodingEstimator.OutputKind.Key,
-                3);
+                OneHotEncodingEstimator.OutputKind.Key, 3);
 
             // Fit and transform the data.
             IDataView hashKeyEncodedData = keyPipeline.Fit(data).Transform(data);
 
-            // Getting the data of the newly created column, so we can preview it.
-            var keyEncodedColumn = 
+            // Get the data of the newly created column for inspecting.
+            var keyEncodedColumn =
                 hashKeyEncodedData.GetColumn<uint>("EducationOneHotHashEncoded");
 
             Console.WriteLine(
                 "One Hot Hash Encoding of single column 'Education', with key " +
                 "type output.");
+
+            // One Hot Hash Encoding of single column 'Education', with key type output.
 
             foreach (uint element in keyEncodedColumn)
                 Console.WriteLine(element);

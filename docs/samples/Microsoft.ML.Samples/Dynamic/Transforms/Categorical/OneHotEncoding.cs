@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using Microsoft.ML;
 using Microsoft.ML.Data;
 using Microsoft.ML.Transforms;
@@ -10,12 +9,12 @@ namespace Samples.Dynamic.Transforms.Categorical
     {
         public static void Example()
         {
-            // Create a new ML context, for ML.NET operations. It can be used for
-            // exception tracking and logging, as well as the source of randomness.
+            // Create a new ML context for ML.NET operations. It can be used for
+            // exception tracking and logging as well as the source of randomness.
             var mlContext = new MLContext();
 
-            // Get a small dataset as an IEnumerable.
-            var samples = new List<DataPoint>
+            // Create a small dataset as an IEnumerable.
+            var samples = new[]
             {
                 new DataPoint {Education = "0-5yrs"},
                 new DataPoint {Education = "0-5yrs"},
@@ -28,17 +27,17 @@ namespace Samples.Dynamic.Transforms.Categorical
             IDataView data = mlContext.Data.LoadFromEnumerable(samples);
 
             // A pipeline for one hot encoding the Education column.
-            OneHotEncodingEstimator pipeline =
-                mlContext.Transforms.Categorical.OneHotEncoding(
-                    "EducationOneHotEncoded","Education");
+            var pipeline = mlContext.Transforms.Categorical.OneHotEncoding(
+                "EducationOneHotEncoded", "Education");
 
             // Fit and transform the data.
             IDataView oneHotEncodedData = pipeline.Fit(data).Transform(data);
 
             PrintDataColumn(oneHotEncodedData, "EducationOneHotEncoded");
 
-            // We have 3 slots, because there are three categories in the
+            // We have 3 slots because there are three categories in the
             // 'Education' column.
+
             // 1 0 0
             // 1 0 0
             // 0 1 0
@@ -59,6 +58,8 @@ namespace Samples.Dynamic.Transforms.Categorical
             Console.WriteLine(
                 "One Hot Encoding of single column 'Education', with key type " +
                 "output.");
+
+            // One Hot Encoding of single column 'Education', with key type output.
 
             foreach (uint element in keyEncodedColumn)
                 Console.WriteLine(element);
