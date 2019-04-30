@@ -88,6 +88,24 @@ namespace Microsoft.ML.CLI {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Exception occured while generating the project..
+        /// </summary>
+        internal static string ErrorGeneratingProject {
+            get {
+                return ResourceManager.GetString("ErrorGeneratingProject", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Exception occured while saving the model.
+        /// </summary>
+        internal static string ErrorSavingModel {
+            get {
+                return ResourceManager.GetString("ErrorSavingModel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Exiting ....
         /// </summary>
         internal static string Exiting {

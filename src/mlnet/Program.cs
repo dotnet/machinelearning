@@ -18,6 +18,7 @@ namespace Microsoft.ML.CLI
 {
     class Program
     {
+        private static Logger logger = LogManager.GetCurrentClassLogger();
         public static void Main(string[] args)
         {
             var telemetry = new MlTelemetry();
