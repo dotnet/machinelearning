@@ -122,6 +122,7 @@ namespace Microsoft.ML.CLI.Commands
                             if (!string.IsNullOrWhiteSpace(argument))
                             {
                                 var values = argument.Split(",", StringSplitOptions.RemoveEmptyEntries);
+                                values = values.Select(t => t.Trim()).ToArray();
                                 valuesList.AddRange(values);
                             }
                         }
