@@ -77,10 +77,6 @@ namespace Samples.Dynamic
 
                     Console.WriteLine("{0, -25} {1, -25} {2, -25} {3, -25}", imagePath, name, imageObject.PhysicalDimension, grayscaleImageObject.PhysicalDimension);
                 }
-
-                // Dispose the image.
-                imageObject.Dispose();
-                grayscaleImageObject.Dispose();
             }
         }
     }

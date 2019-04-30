@@ -354,6 +354,11 @@ namespace Microsoft.ML.Transforms.Image
                             var clone = src.Clone(new Rectangle(0, 0, src.Width, src.Height), PixelFormat.Format32bppArgb);
                             src.Dispose();
                             src = clone;
+                            using (var ch = Host.Start(nameof(ImagePixelExtractingTransformer)))
+                            {
+                                ch.Warning($"Encountered image {0} of unsupported pixel format but converting it to {1}",
+                                    src.Tag, nameof(PixelFormat.Format32bppArgb));
+                            }
                         }
 
                         var editor = VBufferEditor.Create(ref dst, size);

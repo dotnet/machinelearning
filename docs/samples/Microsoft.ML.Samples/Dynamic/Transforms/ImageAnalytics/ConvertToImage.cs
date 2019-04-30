@@ -68,9 +68,6 @@ namespace Samples.Dynamic
                     Console.WriteLine("{0, -25} {1, -25} {2, -25}", string.Join(",", features.DenseValues().Take(5)) + "...",
                         imageObject.PhysicalDimension, string.Join(",", pixels.DenseValues().Take(5)) + "...");
                 }
-
-                // Dispose the image.
-                imageObject.Dispose();
             }
         }
 

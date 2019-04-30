@@ -196,7 +196,11 @@ namespace Microsoft.ML.Data
                                 string path = src.ToString();
                                 if (!string.IsNullOrWhiteSpace(_parent.ImageFolder))
                                     path = Path.Combine(_parent.ImageFolder, path);
-                                dst = new Bitmap(path);
+
+                                using (var stream = new FileStream(path, FileMode.Open, FileAccess.Read))
+                                {
+                                    dst = new Bitmap(stream) { Tag = path };
+                                }
                             }
                             catch (Exception)
                             {

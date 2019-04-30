@@ -393,6 +393,11 @@ namespace Microsoft.ML.Transforms.Image
                             !Enum.IsDefined(typeof(PixelFormat), src.PixelFormat))
                         {
                             dst = new Bitmap(info.ImageWidth, info.ImageHeight);
+                            using (var ch = Host.Start(nameof(ImageResizingTransformer)))
+                            {
+                                ch.Warning($"Encountered image {0} of unsupported pixel format but converting it to {1}",
+                                    src.Tag, nameof(PixelFormat.Format32bppArgb));
+                            }
                         }
                         else
                             dst = new Bitmap(info.ImageWidth, info.ImageHeight, src.PixelFormat);
