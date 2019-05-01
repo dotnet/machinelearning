@@ -40,7 +40,7 @@ namespace Microsoft.ML.Trainers
     /// [FieldAwareFactorizationMachine](xref:Microsoft.ML.FactorizationMachineExtensions.FieldAwareFactorizationMachine(Microsoft.ML.BinaryClassificationCatalog.BinaryClassificationTrainers,System.String[],System.String,System.String)),
     /// or [FieldAwareFactorizationMachine(Options)](xref:Microsoft.ML.FactorizationMachineExtensions.FieldAwareFactorizationMachine(Microsoft.ML.BinaryClassificationCatalog.BinaryClassificationTrainers,Microsoft.ML.Trainers.FieldAwareFactorizationMachineTrainer.Options)).
     ///
-    /// In contrast to other binary classifiers which can only support one feature column, field-aware factorization machine can consume multiple feature columns.
+    /// In contrast to other binary classifiers, which can only support one feature column, field-aware factorization machine can consume multiple feature columns.
     /// Each column is viewed as a container of some features and such a container is called a field.
     /// Note that all feature columns must be float vectors but their dimensions can be different.
     /// The motivation of splitting features into different fields is to model features from different distributions independently.
@@ -68,8 +68,8 @@ namespace Microsoft.ML.Trainers
     /// ### Scoring Function
     /// Field-aware factorization machine is a scoring function which maps feature vectors from different fields to a scalar score.
     /// Assume that all $m$ feature columns are concatenated into a long feature vector $\textbf{x} \in {\mathbb R}^n$ and ${\mathcal F}(j)$ denotes the $j$-th feature's field indentifier.
-    /// The corresponding score is $\hat{y}\left(\textbf{x}\right) = \left\langle \textbf{w}, \textbf{x} \right\rangle + \sum_{j = 1}^n \sum_{j' = j + 1}^n \left\langle \textbf{v}_{j, {\mathcal F}(j')} , \textbf{v}_{j', {\mathcal F}(j)} \right\rangle x_j x_{j'}$,
-    /// where $\left\langle \cdot, \cdot \right\rangle$ is the inner product operator, $\textbf{w} \in {\mathbb R}^n$ stores the linear coefficients, and $\textbf{v}_{j, f}\in {\mathbb R}^k$ is the $j$-th feature's representation in the $f$-th field's latent space.
+    /// The corresponding score is $\hat{y}(\textbf{x}) = \langle \textbf{w}, \textbf{x} \rangle + \sum_{j = 1}^n \sum_{j' = j + 1}^n \langle \textbf{v}\_{j, {\mathcal F}(j')}, \textbf{v}\_{j', {\mathcal F}(j)} \rangle x_j x_{j'}$,
+    /// where $\langle \cdot, \cdot \rangle$ is the inner product operator, $\textbf{w} \in {\mathbb R}^n$ stores the linear coefficients, and $\textbf{v}_{j, f}\in {\mathbb R}^k$ is the $j$-th feature's representation in the $f$-th field's latent space.
     /// Note that $k$ is the latent dimension specified by the user.
     ///
     /// The predicted label is the sign of $\hat{y}$. If $\hat{y} > 0$, this model predicts true. Otherwise, it predicts false.
