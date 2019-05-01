@@ -272,6 +272,9 @@ namespace Microsoft.ML.SamplesUtils
 
         private static string Download(string baseGitPath, string dataFile)
         {
+            if (File.Exists(dataFile))
+                return dataFile;
+
             using (WebClient client = new WebClient())
             {
                 client.DownloadFile(new Uri($"{baseGitPath}"), dataFile);

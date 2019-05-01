@@ -207,6 +207,8 @@ namespace Microsoft.ML.Transforms.Image
                         {
                             g.DrawImage(src, srcRectangle, 0, 0, src.Width, src.Height, GraphicsUnit.Pixel, attributes);
                         }
+
+                        dst.Tag = src.Tag;
                         Contracts.Assert(dst.Width == src.Width && dst.Height == src.Height);
                     };
 

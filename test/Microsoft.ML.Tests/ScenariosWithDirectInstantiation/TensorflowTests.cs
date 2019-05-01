@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using Microsoft.ML.Data;
 using Microsoft.ML.RunTests;
 using Microsoft.ML.TestFramework.Attributes;
@@ -836,12 +837,13 @@ namespace Microsoft.ML.Scenarios
         public void TensorFlowTransformCifar()
         {
             var modelLocation = "cifar_model/frozen_model.pb";
-
             var mlContext = new MLContext(seed: 1);
+            List<string> logMessages = new List<string>();
+            mlContext.Log += (sender, e) => logMessages.Add(e.Message);
             var tensorFlowModel = mlContext.Model.LoadTensorFlowModel(modelLocation);
             var schema = tensorFlowModel.GetInputSchema();
             Assert.True(schema.TryGetColumnIndex("Input", out int column));
-            var type = (VectorDataViewType)schema[column].Type;
+            var type = (VectorDataViewType) schema[column].Type;
             var imageHeight = type.Dimensions[0];
             var imageWidth = type.Dimensions[1];
 
@@ -849,32 +851,74 @@ namespace Microsoft.ML.Scenarios
             var imageFolder = Path.GetDirectoryName(dataFile);
             var data = mlContext.Data.LoadFromTextFile(dataFile,
                 columns: new[]
-                    {
-                        new TextLoader.Column("ImagePath", DataKind.String, 0),
-                        new TextLoader.Column("Name", DataKind.String, 1),
-                    }
-                );
+                {
+                    new TextLoader.Column("ImagePath", DataKind.String, 0),
+                    new TextLoader.Column("Name", DataKind.String, 1),
+                }
+            );
 
-            var pipeEstimator = new ImageLoadingEstimator(mlContext, imageFolder, ("ImageReal", "ImagePath"))
-                .Append(new ImageResizingEstimator(mlContext, "ImageCropped", imageWidth, imageHeight, "ImageReal"))
-                .Append(new ImagePixelExtractingEstimator(mlContext, "Input", "ImageCropped", interleavePixelColors: true));
+            var pipeEstimator = new ImageLoadingEstimator(mlContext, imageFolder,
+                    ("ImageReal", "ImagePath"))
+                .Append(new ImageResizingEstimator(mlContext, "ImageCropped",
+                    imageWidth, imageHeight, "ImageReal"))
+                .Append(new ImagePixelExtractingEstimator(mlContext, "Input",
+                    "ImageCropped", interleavePixelColors: true));
 
             var pixels = pipeEstimator.Fit(data).Transform(data);
-            IDataView trans = tensorFlowModel.ScoreTensorFlowModel("Output", "Input").Fit(pixels).Transform(pixels);
+            IDataView trans = tensorFlowModel.ScoreTensorFlowModel("Output", "Input")
+                .Fit(pixels).Transform(pixels);
 
             trans.Schema.TryGetColumnIndex("Output", out int output);
             using (var cursor = trans.GetRowCursor(trans.Schema["Output"]))
+            using (var cursor2 = trans.GetRowCursor(trans.Schema["Output"]))
             {
                 var buffer = default(VBuffer<float>);
-                var getter = cursor.GetGetter<VBuffer<float>>(trans.Schema["Output"]);
+                var buffer2 = default(VBuffer<float>);
+                var getter =
+                    cursor.GetGetter<VBuffer<float>>(trans.Schema["Output"]);
+                var getter2 =
+                    cursor2.GetGetter<VBuffer<float>>(trans.Schema["Output"]);
                 var numRows = 0;
-                while (cursor.MoveNext())
+                while (cursor.MoveNext() && cursor2.MoveNext())
                 {
                     getter(ref buffer);
+                    getter2(ref buffer2);
                     Assert.Equal(10, buffer.Length);
+                    Assert.Equal(10, buffer2.Length);
+                    Assert.Equal(buffer.DenseValues().ToArray(),
+                        buffer2.DenseValues().ToArray());
                     numRows += 1;
                 }
+
                 Assert.Equal(7, numRows);
+            }
+
+            Assert.Contains(
+                @"[Source=Mapper; ImageResizingTransformer, Kind=Warning] Encountered image " +
+                GetDataPath("images/tomato_indexedpixelformat.gif") +
+                " of unsupported pixel format Format8bppIndexed but converting it to Format32bppArgb.",
+                logMessages);
+
+            // taco_invalidpixelformat.jpg has '8207' pixel format on Windows but this format translates to Format32bppRgb
+            // on macOS and Linux, hence on Windows this image's pixel format is converted in resize transformer to Format32bppArgb
+            // and on linux and macOS it is not converted in resize transform since pixel format 'Format32bppRgb' can be resized but
+            // in ImagePixelExtractingTransformer it is converted to Format32bppArgb since there we just support two 
+            // pixel formats, i.e Format32bppArgb and Format16bppArgb.
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux) || RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+            {
+                Assert.Contains(
+                    @"[Source=Mapper; ImagePixelExtractingTransformer, Kind=Warning] Encountered image " +
+                    GetDataPath("images/taco_invalidpixelformat.jpg") +
+                    " of unsupported pixel format Format32bppRgb but converting it to Format32bppArgb.",
+                    logMessages);
+            }
+            else
+            {
+                Assert.Contains(
+                    @"[Source=Mapper; ImageResizingTransformer, Kind=Warning] Encountered image " +
+                    GetDataPath("images/taco_invalidpixelformat.jpg") +
+                    " of unsupported pixel format 8207 but converting it to Format32bppArgb.",
+                    logMessages);
             }
         }
 
@@ -999,7 +1043,7 @@ namespace Microsoft.ML.Scenarios
             // Then this integer vector is retrieved from the pipeline and resized to fixed length.
             // The second pipeline 'tfEnginePipe' takes the resized integer vector and passes it to TensoFlow and gets the classification scores.
             var estimator = mlContext.Transforms.Text.TokenizeIntoWords("TokenizedWords", "Sentiment_Text")
-                .Append(mlContext.Transforms.Conversion.MapValue(lookupMap, lookupMap.Schema["Words"], lookupMap.Schema["Ids"], 
+                .Append(mlContext.Transforms.Conversion.MapValue(lookupMap, lookupMap.Schema["Words"], lookupMap.Schema["Ids"],
                     new[] { new InputOutputColumnPair("Features", "TokenizedWords") }));
             var model = estimator.Fit(dataView);
             var dataPipe = mlContext.Model.CreatePredictionEngine<TensorFlowSentiment, TensorFlowSentiment>(model);
