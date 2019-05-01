@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using Microsoft.ML.Data;
 using Microsoft.ML.RunTests;
 using Microsoft.ML.TestFramework.Attributes;
@@ -836,7 +837,7 @@ namespace Microsoft.ML.Scenarios
         public void TensorFlowTransformCifar()
         {
             var modelLocation = "cifar_model/frozen_model.pb";
-            var mlContext = new MLContext(seed: 1); 
+            var mlContext = new MLContext(seed: 1);
             List<string> logMessages = new List<string>();
             mlContext.Log += (sender, e) => logMessages.Add(e.Message);
             var tensorFlowModel = mlContext.Model.LoadTensorFlowModel(modelLocation);
@@ -889,8 +890,12 @@ namespace Microsoft.ML.Scenarios
                 }
             }
 
-            Assert.Contains(@"[Source=Mapper; ImageResizingTransformer, Kind=Warning] Encountered image E:\machinelearning\test\data\images\tomato_indexedpixelformat.gif of unsupported pixel format Format8bppIndexed but converting it to Format32bppArgb.", logMessages);
-            Assert.Contains(@"[Source=Mapper; ImageResizingTransformer, Kind=Warning] Encountered image E:\machinelearning\test\data\images\taco_invalidpixelformat.jpg of unsupported pixel format 8207 but converting it to Format32bppArgb.", logMessages);
+            //Temp.
+            if(RuntimeInformation.IsOSPlatform(OSPlatform.Linux) || RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+                logMessages.ForEach(msg => Console.WriteLine(msg));
+
+            Assert.Contains(@"[Source=Mapper; ImageResizingTransformer, Kind=Warning] Encountered image " + GetDataPath("images/tomato_indexedpixelformat.gif") + " of unsupported pixel format Format8bppIndexed but converting it to Format32bppArgb.", logMessages);
+            Assert.Contains(@"[Source=Mapper; ImageResizingTransformer, Kind=Warning] Encountered image " + GetDataPath("images/taco_invalidpixelformat.jpg") + " of unsupported pixel format 8207 but converting it to Format32bppArgb.", logMessages);
 
         }
 
@@ -1015,7 +1020,7 @@ namespace Microsoft.ML.Scenarios
             // Then this integer vector is retrieved from the pipeline and resized to fixed length.
             // The second pipeline 'tfEnginePipe' takes the resized integer vector and passes it to TensoFlow and gets the classification scores.
             var estimator = mlContext.Transforms.Text.TokenizeIntoWords("TokenizedWords", "Sentiment_Text")
-                .Append(mlContext.Transforms.Conversion.MapValue(lookupMap, lookupMap.Schema["Words"], lookupMap.Schema["Ids"], 
+                .Append(mlContext.Transforms.Conversion.MapValue(lookupMap, lookupMap.Schema["Words"], lookupMap.Schema["Ids"],
                     new[] { new InputOutputColumnPair("Features", "TokenizedWords") }));
             var model = estimator.Fit(dataView);
             var dataPipe = mlContext.Model.CreatePredictionEngine<TensorFlowSentiment, TensorFlowSentiment>(model);
