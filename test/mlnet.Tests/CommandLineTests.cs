@@ -262,6 +262,7 @@ namespace mlnet.Tests
             var testDataset = Path.GetTempFileName();
             var labelName = "Label";
             var ignoreColumns = "a,b,c";
+            var ignoreColumnsWithSpaces = "a, b, c";
 
             // Create handler outside so that commandline and the handler is decoupled and testable.
             var handler = CommandHandler.Create<NewCommandSettings>(
@@ -294,6 +295,12 @@ namespace mlnet.Tests
             args = new[] { "auto-train", "--ml-task", "binary-classification", "--dataset", trainDataset, "--label-column-name", labelName, "--ignore-columns", "a b c" };
             parser.InvokeAsync(args).Wait();
             Assert.IsFalse(parsingSuccessful);
+
+            parsingSuccessful = false;
+
+            args = new[] { "auto-train", "--ml-task", "binary-classification", "--dataset", trainDataset, "--label-column-name", labelName, "--ignore-columns", ignoreColumnsWithSpaces };
+            parser.InvokeAsync(args).Wait();
+            Assert.IsTrue(parsingSuccessful);
 
             File.Delete(trainDataset);
             File.Delete(testDataset);
