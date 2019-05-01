@@ -870,29 +870,27 @@ namespace Microsoft.ML.Scenarios
 
             trans.Schema.TryGetColumnIndex("Output", out int output);
             using (var cursor = trans.GetRowCursor(trans.Schema["Output"]))
+            using (var cursor2 = trans.GetRowCursor(trans.Schema["Output"]))
             {
-                using (var cursor2 = trans.GetRowCursor(trans.Schema["Output"]))
+                var buffer = default(VBuffer<float>);
+                var buffer2 = default(VBuffer<float>);
+                var getter =
+                    cursor.GetGetter<VBuffer<float>>(trans.Schema["Output"]);
+                var getter2 =
+                    cursor2.GetGetter<VBuffer<float>>(trans.Schema["Output"]);
+                var numRows = 0;
+                while (cursor.MoveNext() && cursor2.MoveNext())
                 {
-                    var buffer = default(VBuffer<float>);
-                    var buffer2 = default(VBuffer<float>);
-                    var getter =
-                        cursor.GetGetter<VBuffer<float>>(trans.Schema["Output"]);
-                    var getter2 =
-                        cursor2.GetGetter<VBuffer<float>>(trans.Schema["Output"]);
-                    var numRows = 0;
-                    while (cursor.MoveNext() && cursor2.MoveNext())
-                    {
-                        getter(ref buffer);
-                        getter2(ref buffer2);
-                        Assert.Equal(10, buffer.Length);
-                        Assert.Equal(10, buffer2.Length);
-                        Assert.Equal(buffer.DenseValues().ToArray(),
-                            buffer2.DenseValues().ToArray());
-                        numRows += 1;
-                    }
-
-                    Assert.Equal(7, numRows);
+                    getter(ref buffer);
+                    getter2(ref buffer2);
+                    Assert.Equal(10, buffer.Length);
+                    Assert.Equal(10, buffer2.Length);
+                    Assert.Equal(buffer.DenseValues().ToArray(),
+                        buffer2.DenseValues().ToArray());
+                    numRows += 1;
                 }
+
+                Assert.Equal(7, numRows);
             }
 
             Assert.Contains(

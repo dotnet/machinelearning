@@ -357,8 +357,7 @@ namespace Microsoft.ML.Transforms.Image
                             src = clone;
                             using (var ch = Host.Start(nameof(ImagePixelExtractingTransformer)))
                             {
-                                ch.Warning($"Encountered image {{0}} of unsupported pixel format {{1}} but converting it to {{2}}.",
-                                    src.Tag, src.PixelFormat, nameof(PixelFormat.Format32bppArgb));
+                                ch.Warning($"Encountered image {src.Tag} of unsupported pixel format {src.PixelFormat} but converting it to {nameof(PixelFormat.Format32bppArgb)}.");
                             }
                         }
 
