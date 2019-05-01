@@ -352,6 +352,7 @@ namespace Microsoft.ML.Transforms.Image
                         if (src.PixelFormat != PixelFormat.Format32bppArgb && src.PixelFormat != PixelFormat.Format24bppRgb)
                         {
                             var clone = src.Clone(new Rectangle(0, 0, src.Width, src.Height), PixelFormat.Format32bppArgb);
+                            clone.Tag = src.Tag;
                             src.Dispose();
                             src = clone;
                             using (var ch = Host.Start(nameof(ImagePixelExtractingTransformer)))
