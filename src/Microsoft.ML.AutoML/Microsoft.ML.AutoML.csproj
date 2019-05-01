@@ -10,7 +10,7 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <MlDotNetPackageVersion>1.0.0-preview-27625-16</MlDotNetPackageVersion>
+    <MlDotNetPackageVersion>1.0.0*</MlDotNetPackageVersion>
   </PropertyGroup>
 
   <ItemGroup>
