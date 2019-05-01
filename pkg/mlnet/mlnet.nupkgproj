@@ -19,9 +19,9 @@
     <PackageReference Include="Microsoft.ApplicationInsights" Version="2.9.1" />
     <PackageReference Include="Microsoft.DotNet.PlatformAbstractions" Version="2.1.0" />
     <!-- references from AutoML -->
-    <PackageReference Include="Microsoft.ML" Version="1.0.0-preview" />
-    <PackageReference Include="Microsoft.ML.LightGBM" Version="1.0.0-preview" />
-    <PackageReference Include="Microsoft.ML.Mkl.Components" Version="1.0.0-preview" />
+    <PackageReference Include="Microsoft.ML" Version="1.0.0" />
+    <PackageReference Include="Microsoft.ML.LightGBM" Version="1.0.0" />
+    <PackageReference Include="Microsoft.ML.Mkl.Components" Version="1.0.0" />
   </ItemGroup>
 
   <Target Name="CreateManifestResourceNames" />
