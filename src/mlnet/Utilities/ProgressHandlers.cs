@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using Microsoft.ML.AutoML;
 using Microsoft.ML.CLI.ShellProgressBar;
 using Microsoft.ML.Data;
@@ -23,13 +24,16 @@ namespace Microsoft.ML.CLI.Utilities
             private readonly Func<RunDetail<RegressionMetrics>, double> GetScore;
             private RunDetail<RegressionMetrics> bestResult;
             private int iterationIndex;
+            private List<RunDetail<RegressionMetrics>> completedIterations;
             private ProgressBar progressBar;
             private string optimizationMetric = string.Empty;
+            private bool isStopped;
 
-            public RegressionHandler(RegressionMetric optimizationMetric, ShellProgressBar.ProgressBar progressBar)
+            public RegressionHandler(RegressionMetric optimizationMetric, List<RunDetail<RegressionMetrics>> completedIterations, ShellProgressBar.ProgressBar progressBar)
             {
                 this.isMaximizing = new OptimizingMetricInfo(optimizationMetric).IsMaximizing;
                 this.optimizationMetric = optimizationMetric.ToString();
+                this.completedIterations = completedIterations;
                 this.progressBar = progressBar;
                 GetScore = (RunDetail<RegressionMetrics> result) => new RegressionMetricsAgent(null, optimizationMetric).GetScore(result?.ValidationMetrics);
                 ConsolePrinter.PrintRegressionMetricsHeader(LogLevel.Trace);
@@ -37,14 +41,28 @@ namespace Microsoft.ML.CLI.Utilities
 
             public void Report(RunDetail<RegressionMetrics> iterationResult)
             {
-                iterationIndex++;
-                UpdateBestResult(iterationResult);
-                if (progressBar != null)
-                    progressBar.Message = $"Best quality({this.optimizationMetric}): {GetScore(bestResult):F4}, Best Algorithm: {bestResult?.TrainerName}, Last Algorithm: {iterationResult?.TrainerName}";
-                ConsolePrinter.PrintMetrics(iterationIndex, iterationResult?.TrainerName, iterationResult?.ValidationMetrics, GetScore(bestResult), iterationResult?.RuntimeInSeconds, LogLevel.Trace);
-                if (iterationResult.Exception != null)
+                lock (this)
                 {
-                    ConsolePrinter.PrintException(iterationResult.Exception, LogLevel.Trace);
+                    if (this.isStopped)
+                        return;
+
+                    iterationIndex++;
+                    completedIterations.Add(iterationResult);
+                    UpdateBestResult(iterationResult);
+                    if (progressBar != null)
+                        progressBar.Message = $"Best quality({this.optimizationMetric}): {GetScore(bestResult):F4}, Best Algorithm: {bestResult?.TrainerName}, Last Algorithm: {iterationResult?.TrainerName}";
+                    ConsolePrinter.PrintMetrics(iterationIndex, iterationResult?.TrainerName, iterationResult?.ValidationMetrics, GetScore(bestResult), iterationResult?.RuntimeInSeconds, LogLevel.Trace);
+                    if (iterationResult.Exception != null)
+                    {
+                        ConsolePrinter.PrintException(iterationResult.Exception, LogLevel.Trace);
+                    }
+                }
+            }
+            public void Stop()
+            {
+                lock (this)
+                {
+                    this.isStopped = true;
                 }
             }
 
@@ -65,11 +83,14 @@ namespace Microsoft.ML.CLI.Utilities
             private int iterationIndex;
             private ProgressBar progressBar;
             private BinaryClassificationMetric optimizationMetric;
+            private List<RunDetail<BinaryClassificationMetrics>> completedIterations;
+            private bool isStopped;
 
-            public BinaryClassificationHandler(BinaryClassificationMetric optimizationMetric, ProgressBar progressBar)
+            public BinaryClassificationHandler(BinaryClassificationMetric optimizationMetric, List<RunDetail<BinaryClassificationMetrics>> completedIterations, ProgressBar progressBar)
             {
                 this.isMaximizing = new OptimizingMetricInfo(optimizationMetric).IsMaximizing;
                 this.optimizationMetric = optimizationMetric;
+                this.completedIterations = completedIterations;
                 this.progressBar = progressBar;
                 GetScore = (RunDetail<BinaryClassificationMetrics> result) => new BinaryMetricsAgent(null, optimizationMetric).GetScore(result?.ValidationMetrics);
                 ConsolePrinter.PrintBinaryClassificationMetricsHeader(LogLevel.Trace);
@@ -77,14 +98,20 @@ namespace Microsoft.ML.CLI.Utilities
 
             public void Report(RunDetail<BinaryClassificationMetrics> iterationResult)
             {
-                iterationIndex++;
-                UpdateBestResult(iterationResult);
-                if (progressBar != null)
-                    progressBar.Message = GetProgressBarMessage(iterationResult);
-                ConsolePrinter.PrintMetrics(iterationIndex, iterationResult?.TrainerName, iterationResult?.ValidationMetrics, GetScore(bestResult), iterationResult?.RuntimeInSeconds, LogLevel.Trace);
-                if (iterationResult.Exception != null)
+                lock (this)
                 {
-                    ConsolePrinter.PrintException(iterationResult.Exception, LogLevel.Trace);
+                    if (this.isStopped)
+                        return;
+                    iterationIndex++;
+                    completedIterations.Add(iterationResult);
+                    UpdateBestResult(iterationResult);
+                    if (progressBar != null)
+                        progressBar.Message = GetProgressBarMessage(iterationResult);
+                    ConsolePrinter.PrintMetrics(iterationIndex, iterationResult?.TrainerName, iterationResult?.ValidationMetrics, GetScore(bestResult), iterationResult?.RuntimeInSeconds, LogLevel.Trace);
+                    if (iterationResult.Exception != null)
+                    {
+                        ConsolePrinter.PrintException(iterationResult.Exception, LogLevel.Trace);
+                    }
                 }
             }
 
@@ -96,6 +123,14 @@ namespace Microsoft.ML.CLI.Utilities
                 }
 
                 return $"Best {this.optimizationMetric}: {GetScore(bestResult):F4}, Best Algorithm: {bestResult?.TrainerName}, Last Algorithm: {iterationResult?.TrainerName}";
+            }
+
+            public void Stop()
+            {
+                lock (this)
+                {
+                    this.isStopped = true;
+                }
             }
 
             private void UpdateBestResult(RunDetail<BinaryClassificationMetrics> iterationResult)
@@ -115,11 +150,14 @@ namespace Microsoft.ML.CLI.Utilities
             private int iterationIndex;
             private ProgressBar progressBar;
             private MulticlassClassificationMetric optimizationMetric;
+            private List<RunDetail<MulticlassClassificationMetrics>> completedIterations;
+            private bool isStopped;
 
-            public MulticlassClassificationHandler(MulticlassClassificationMetric optimizationMetric, ProgressBar progressBar)
+            public MulticlassClassificationHandler(MulticlassClassificationMetric optimizationMetric, List<RunDetail<MulticlassClassificationMetrics>> completedIterations, ProgressBar progressBar)
             {
                 this.isMaximizing = new OptimizingMetricInfo(optimizationMetric).IsMaximizing;
                 this.optimizationMetric = optimizationMetric;
+                this.completedIterations = completedIterations;
                 this.progressBar = progressBar;
                 GetScore = (RunDetail<MulticlassClassificationMetrics> result) => new MultiMetricsAgent(null, optimizationMetric).GetScore(result?.ValidationMetrics);
                 ConsolePrinter.PrintMulticlassClassificationMetricsHeader(LogLevel.Trace);
@@ -127,14 +165,31 @@ namespace Microsoft.ML.CLI.Utilities
 
             public void Report(RunDetail<MulticlassClassificationMetrics> iterationResult)
             {
-                iterationIndex++;
-                UpdateBestResult(iterationResult);
-                if (progressBar != null)
-                    progressBar.Message = GetProgressBarMessage(iterationResult);
-                ConsolePrinter.PrintMetrics(iterationIndex, iterationResult?.TrainerName, iterationResult?.ValidationMetrics, GetScore(bestResult), iterationResult?.RuntimeInSeconds, LogLevel.Trace);
-                if (iterationResult.Exception != null)
+                lock (this)
                 {
-                    ConsolePrinter.PrintException(iterationResult.Exception, LogLevel.Trace);
+                    if (this.isStopped)
+                    {
+                        return;
+                    }
+
+                    iterationIndex++;
+                    completedIterations.Add(iterationResult);
+                    UpdateBestResult(iterationResult);
+                    if (progressBar != null)
+                        progressBar.Message = GetProgressBarMessage(iterationResult);
+                    ConsolePrinter.PrintMetrics(iterationIndex, iterationResult?.TrainerName, iterationResult?.ValidationMetrics, GetScore(bestResult), iterationResult?.RuntimeInSeconds, LogLevel.Trace);
+                    if (iterationResult.Exception != null)
+                    {
+                        ConsolePrinter.PrintException(iterationResult.Exception, LogLevel.Trace);
+                    }
+                }
+            }
+
+            public void Stop()
+            {
+                lock (this)
+                {
+                    this.isStopped = true;
                 }
             }
 

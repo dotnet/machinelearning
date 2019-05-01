@@ -70,6 +70,15 @@ namespace Microsoft.ML.CLI {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Training could not finish in the specified exploration time. Please set the exploration time to a higher value..
+        /// </summary>
+        internal static string CouldNotFinshOnTime {
+            get {
+                return ResourceManager.GetString("CouldNotFinshOnTime", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Creating Data loader ....
         /// </summary>
         internal static string CreateDataLoader {

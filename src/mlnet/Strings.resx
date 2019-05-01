@@ -198,4 +198,7 @@
   <data name="ErrorSavingModel" xml:space="preserve">
     <value>Exception occured while saving the model</value>
   </data>
+  <data name="CouldNotFinshOnTime" xml:space="preserve">
+    <value>Training could not finish in the specified exploration time. Please set the exploration time to a higher value.</value>
+  </data>
 </root>

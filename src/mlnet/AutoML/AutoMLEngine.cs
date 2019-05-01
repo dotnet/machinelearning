@@ -2,7 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using Microsoft.ML.AutoML;
 using Microsoft.ML.CLI.Data;
 using Microsoft.ML.CLI.ShellProgressBar;
@@ -44,45 +46,57 @@ namespace Microsoft.ML.CLI.CodeGenerator
             return columnInference;
         }
 
-        ExperimentResult<BinaryClassificationMetrics> IAutoMLEngine.ExploreBinaryClassificationModels(MLContext context, IDataView trainData, IDataView validationData, ColumnInformation columnInformation, BinaryClassificationMetric optimizationMetric, ProgressBar progressBar)
+        ExperimentResult<BinaryClassificationMetrics> IAutoMLEngine.ExploreBinaryClassificationModels(MLContext context, IDataView trainData, IDataView validationData, ColumnInformation columnInformation, BinaryClassificationMetric optimizationMetric, TimeSpan experimentTimeout, out List<RunDetail<BinaryClassificationMetrics>> completedIterations, ProgressBar progressBar)
         {
-            var progressReporter = new ProgressHandlers.BinaryClassificationHandler(optimizationMetric, progressBar);
-            var result = context.Auto()
+            completedIterations = new List<RunDetail<BinaryClassificationMetrics>>();
+            var progressReporter = new ProgressHandlers.BinaryClassificationHandler(optimizationMetric, completedIterations, progressBar);
+            ExperimentResult<BinaryClassificationMetrics> result = null;
+            Task.Run(() => result = context.Auto()
                 .CreateBinaryClassificationExperiment(new BinaryExperimentSettings()
                 {
                     MaxExperimentTimeInSeconds = settings.MaxExplorationTime,
                     CacheBeforeTrainer = this.cacheBeforeTrainer,
                     OptimizingMetric = optimizationMetric
                 })
-                .Execute(trainData, validationData, columnInformation, progressHandler: progressReporter);
+                .Execute(trainData, validationData, columnInformation, progressHandler: progressReporter)).Wait(experimentTimeout);
+
+            progressReporter.Stop();
             logger.Log(LogLevel.Trace, Strings.RetrieveBestPipeline);
             return result;
         }
 
-        ExperimentResult<RegressionMetrics> IAutoMLEngine.ExploreRegressionModels(MLContext context, IDataView trainData, IDataView validationData, ColumnInformation columnInformation, RegressionMetric optimizationMetric, ProgressBar progressBar)
+        ExperimentResult<RegressionMetrics> IAutoMLEngine.ExploreRegressionModels(MLContext context, IDataView trainData, IDataView validationData, ColumnInformation columnInformation, RegressionMetric optimizationMetric, TimeSpan experimentTimeout, out List<RunDetail<RegressionMetrics>> completedIterations, ProgressBar progressBar)
         {
-            var progressReporter = new ProgressHandlers.RegressionHandler(optimizationMetric, progressBar);
-            var result = context.Auto()
+            completedIterations = new List<RunDetail<RegressionMetrics>>();
+            var progressReporter = new ProgressHandlers.RegressionHandler(optimizationMetric, completedIterations, progressBar);
+            ExperimentResult<RegressionMetrics> result = null;
+            Task.Run(() => result = context.Auto()
                 .CreateRegressionExperiment(new RegressionExperimentSettings()
                 {
                     MaxExperimentTimeInSeconds = settings.MaxExplorationTime,
                     OptimizingMetric = optimizationMetric,
                     CacheBeforeTrainer = this.cacheBeforeTrainer
-                }).Execute(trainData, validationData, columnInformation, progressHandler: progressReporter);
+                }).Execute(trainData, validationData, columnInformation, progressHandler: progressReporter)).Wait(experimentTimeout);
+
+            progressReporter.Stop();
             logger.Log(LogLevel.Trace, Strings.RetrieveBestPipeline);
             return result;
         }
 
-        ExperimentResult<MulticlassClassificationMetrics> IAutoMLEngine.ExploreMultiClassificationModels(MLContext context, IDataView trainData, IDataView validationData, ColumnInformation columnInformation, MulticlassClassificationMetric optimizationMetric, ProgressBar progressBar)
+        ExperimentResult<MulticlassClassificationMetrics> IAutoMLEngine.ExploreMultiClassificationModels(MLContext context, IDataView trainData, IDataView validationData, ColumnInformation columnInformation, MulticlassClassificationMetric optimizationMetric, TimeSpan experimentTimeout, out List<RunDetail<MulticlassClassificationMetrics>> completedIterations, ProgressBar progressBar)
         {
-            var progressReporter = new ProgressHandlers.MulticlassClassificationHandler(optimizationMetric, progressBar);
-            var result = context.Auto()
+            completedIterations = new List<RunDetail<MulticlassClassificationMetrics>>();
+            var progressReporter = new ProgressHandlers.MulticlassClassificationHandler(optimizationMetric, completedIterations, progressBar);
+            ExperimentResult<MulticlassClassificationMetrics> result = null;
+            Task.Run(() => result = context.Auto()
                 .CreateMulticlassClassificationExperiment(new MulticlassExperimentSettings()
                 {
                     MaxExperimentTimeInSeconds = settings.MaxExplorationTime,
                     CacheBeforeTrainer = this.cacheBeforeTrainer,
                     OptimizingMetric = optimizationMetric
-                }).Execute(trainData, validationData, columnInformation, progressHandler: progressReporter);
+                }).Execute(trainData, validationData, columnInformation, progressHandler: progressReporter)).Wait(experimentTimeout);
+            // wait for experiment time
+            progressReporter.Stop();
             logger.Log(LogLevel.Trace, Strings.RetrieveBestPipeline);
             return result;
         }
