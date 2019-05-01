@@ -75,7 +75,7 @@ namespace Microsoft.ML.Trainers
     /// </format>
     /// </remarks>
     /// <seealso cref="Microsoft.ML.Trainers.KMeansTrainer" />
-public class KMeansTrainer : TrainerEstimatorBase<ClusteringPredictionTransformer<KMeansModelParameters>, KMeansModelParameters>
+    public class KMeansTrainer : TrainerEstimatorBase<ClusteringPredictionTransformer<KMeansModelParameters>, KMeansModelParameters>
     {
         internal const string LoadNameValue = "KMeansPlusPlus";
         internal const string UserNameValue = "KMeans++ Clustering";
