@@ -87,7 +87,7 @@ namespace Microsoft.ML.CLI.Commands
 
             Option MaxExplorationTime() =>
                 new Option(new List<string>() { "--max-exploration-time", "-x" }, "Maximum time in seconds for exploring models with best configuration.",
-                new Argument<uint>(defaultValue: 10));
+                new Argument<uint>(defaultValue: 60*30));
 
             Option Verbosity() =>
                 new Option(new List<string>() { "--verbosity", "-V" }, "Output verbosity choices: q[uiet], m[inimal] (by default) and diag[nostic].",
