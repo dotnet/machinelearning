@@ -54,8 +54,8 @@ namespace Microsoft.ML.CLI.CodeGenerator.CSharp
             var dataModelsDir = Path.Combine(modelprojectDir, "DataModels");
             var modelProjectName = $"{settings.OutputName}.Model.csproj";
 
-            Utils.WriteOutputToFiles(modelProjectContents.ObservationCSFileContent, "SampleObservation.cs", dataModelsDir);
-            Utils.WriteOutputToFiles(modelProjectContents.PredictionCSFileContent, "SamplePrediction.cs", dataModelsDir);
+            Utils.WriteOutputToFiles(modelProjectContents.ModelInputCSFileContent, "ModelInput.cs", dataModelsDir);
+            Utils.WriteOutputToFiles(modelProjectContents.ModelOutputCSFileContent, "ModelOutput.cs", dataModelsDir);
             Utils.WriteOutputToFiles(modelProjectContents.ModelProjectFileContent, modelProjectName, modelprojectDir);
 
             // Generate ConsoleApp Project
@@ -116,15 +116,15 @@ namespace Microsoft.ML.CLI.CodeGenerator.CSharp
             return (predictProgramCSFileContent, predictProjectFileContent, modelBuilderCSFileContent);
         }
 
-        internal (string ObservationCSFileContent, string PredictionCSFileContent, string ModelProjectFileContent) GenerateModelProjectContents(string namespaceValue, Type labelTypeCsharp, bool includeLightGbmPackage, bool includeMklComponentsPackage, bool includeFastTreePackage)
+        internal (string ModelInputCSFileContent, string ModelOutputCSFileContent, string ModelProjectFileContent) GenerateModelProjectContents(string namespaceValue, Type labelTypeCsharp, bool includeLightGbmPackage, bool includeMklComponentsPackage, bool includeFastTreePackage)
         {
             var classLabels = this.GenerateClassLabels();
-            var observationCSFileContent = GenerateObservationCSFileContent(namespaceValue, classLabels);
-            observationCSFileContent = Utils.FormatCode(observationCSFileContent);
-            var predictionCSFileContent = GeneratePredictionCSFileContent(labelTypeCsharp.Name, namespaceValue);
-            predictionCSFileContent = Utils.FormatCode(predictionCSFileContent);
+            var modelInputCSFileContent = GenerateModelInputCSFileContent(namespaceValue, classLabels);
+            modelInputCSFileContent = Utils.FormatCode(modelInputCSFileContent);
+            var modelOutputCSFileContent = GenerateModelOutputCSFileContent(labelTypeCsharp.Name, namespaceValue);
+            modelOutputCSFileContent = Utils.FormatCode(modelOutputCSFileContent);
             var modelProjectFileContent = GenerateModelProjectFileContent(includeLightGbmPackage, includeMklComponentsPackage, includeFastTreePackage);
-            return (observationCSFileContent, predictionCSFileContent, modelProjectFileContent);
+            return (modelInputCSFileContent, modelOutputCSFileContent, modelProjectFileContent);
         }
 
         internal (string Usings, string TrainerMethod, List<string> PreTrainerTransforms, List<string> PostTrainerTransforms) GenerateTransformsAndTrainers()
@@ -261,16 +261,16 @@ namespace Microsoft.ML.CLI.CodeGenerator.CSharp
             return modelProject.TransformText();
         }
 
-        private string GeneratePredictionCSFileContent(string predictionLabelType, string namespaceValue)
+        private string GenerateModelOutputCSFileContent(string predictionLabelType, string namespaceValue)
         {
-            PredictionClass predictionClass = new PredictionClass() { TaskType = settings.MlTask.ToString(), PredictionLabelType = predictionLabelType, Namespace = namespaceValue };
-            return predictionClass.TransformText();
+            ModelOutputClass modelOutputClass = new ModelOutputClass() { TaskType = settings.MlTask.ToString(), PredictionLabelType = predictionLabelType, Namespace = namespaceValue };
+            return modelOutputClass.TransformText();
         }
 
-        private string GenerateObservationCSFileContent(string namespaceValue, IList<string> classLabels)
+        private string GenerateModelInputCSFileContent(string namespaceValue, IList<string> classLabels)
         {
-            ObservationClass observationClass = new ObservationClass() { Namespace = namespaceValue, ClassLabels = classLabels };
-            return observationClass.TransformText();
+            ModelInputClass modelInputClass = new ModelInputClass() { Namespace = namespaceValue, ClassLabels = classLabels };
+            return modelInputClass.TransformText();
         }
         #endregion
 

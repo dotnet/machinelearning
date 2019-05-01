@@ -14,7 +14,7 @@ using Microsoft.ML.Data;
 
 namespace  <#= Namespace #>.Model.DataModels
 {
-    public class SamplePrediction
+    public class ModelOutput
     {
 <#if("BinaryClassification".Equals(TaskType)){ #>
         // ColumnName attribute is used to change the column name from

@@ -18,7 +18,7 @@ namespace Microsoft.ML.CLI.Templates.Console
     /// Class to produce the template output
     /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.VisualStudio.TextTemplating", "15.0.0.0")]
-    public partial class ObservationClass : ObservationClassBase
+    public partial class ModelInputClass : ModelInputClassBase
     {
         /// <summary>
         /// Create the template output
@@ -35,7 +35,7 @@ using Microsoft.ML.Data;
 
 namespace  ");
             this.Write(this.ToStringHelper.ToStringWithCulture(Namespace));
-            this.Write(".Model.DataModels\r\n{\r\n    public class SampleObservation\r\n    {\r\n");
+            this.Write(".Model.DataModels\r\n{\r\n    public class ModelInput\r\n    {\r\n");
 foreach(var label in ClassLabels){
             this.Write("       ");
             this.Write(this.ToStringHelper.ToStringWithCulture(label));
@@ -54,7 +54,7 @@ public string Namespace {get;set;}
     /// Base class for this transformation
     /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.VisualStudio.TextTemplating", "15.0.0.0")]
-    public class ObservationClassBase
+    public class ModelInputClassBase
     {
         #region Fields
         private global::System.Text.StringBuilder generationEnvironmentField;

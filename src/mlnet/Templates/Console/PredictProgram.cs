@@ -62,13 +62,13 @@ if(string.IsNullOrEmpty(TestDataPath)){
             //ModelBuilder.CreateModel();
 
             ITransformer mlModel = mlContext.Model.Load(GetAbsolutePath(MODEL_FILEPATH), out DataViewSchema inputSchema);
-            var predEngine = mlContext.Model.CreatePredictionEngine<SampleObservation, SamplePrediction>(mlModel);
+            var predEngine = mlContext.Model.CreatePredictionEngine<ModelInput, ModelOutput>(mlModel);
 
             // Create sample data to do a single prediction with it 
-            SampleObservation sampleData = CreateSingleDataSample(mlContext, DATA_FILEPATH);
+            ModelInput sampleData = CreateSingleDataSample(mlContext, DATA_FILEPATH);
 
             // Try a single prediction
-            SamplePrediction predictionResult = predEngine.Predict(sampleData);
+            ModelOutput predictionResult = predEngine.Predict(sampleData);
 
 ");
 if("BinaryClassification".Equals(TaskType)){ 
@@ -92,10 +92,10 @@ if("BinaryClassification".Equals(TaskType)){
 
         // Method to load single row of data to try a single prediction
         // You can change this code and create your own sample data here (Hardcoded or from any source)
-        private static SampleObservation CreateSingleDataSample(MLContext mlContext, string dataFilePath)
+        private static ModelInput CreateSingleDataSample(MLContext mlContext, string dataFilePath)
         {
             // Read dataset to get a single row for trying a prediction          
-            IDataView dataView = mlContext.Data.LoadFromTextFile<SampleObservation>(
+            IDataView dataView = mlContext.Data.LoadFromTextFile<ModelInput>(
                                             path: dataFilePath,
                                             hasHeader : ");
             this.Write(this.ToStringHelper.ToStringWithCulture(HasHeader.ToString().ToLowerInvariant()));
@@ -107,8 +107,8 @@ if("BinaryClassification".Equals(TaskType)){
             this.Write(this.ToStringHelper.ToStringWithCulture(AllowSparse.ToString().ToLowerInvariant()));
             this.Write(@");
 
-            // Here (SampleObservation object) you could provide new test data, hardcoded or from the end-user application, instead of the row from the file.
-            SampleObservation sampleForPrediction = mlContext.Data.CreateEnumerable<SampleObservation>(dataView, false)
+            // Here (ModelInput object) you could provide new test data, hardcoded or from the end-user application, instead of the row from the file.
+            ModelInput sampleForPrediction = mlContext.Data.CreateEnumerable<ModelInput>(dataView, false)
                                                                         .First();
             return sampleForPrediction;
         }

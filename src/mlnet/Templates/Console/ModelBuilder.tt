@@ -36,7 +36,7 @@ namespace <#= Namespace #>.ConsoleApp
         public static void CreateModel()
         {
             // Load Data
-            IDataView trainingDataView = mlContext.Data.LoadFromTextFile<SampleObservation>(
+            IDataView trainingDataView = mlContext.Data.LoadFromTextFile<ModelInput>(
                                             path: TRAIN_DATA_FILEPATH,
                                             hasHeader : <#= HasHeader.ToString().ToLowerInvariant() #>,
                                             separatorChar : '<#= Regex.Escape(Separator.ToString()) #>',
@@ -44,7 +44,7 @@ namespace <#= Namespace #>.ConsoleApp
                                             allowSparse: <#= AllowSparse.ToString().ToLowerInvariant() #>);
 
 <# if(!string.IsNullOrEmpty(TestPath)){ #>
-            IDataView testDataView = mlContext.Data.LoadFromTextFile<SampleObservation>(
+            IDataView testDataView = mlContext.Data.LoadFromTextFile<ModelInput>(
                                             path: TEST_DATA_FILEPATH,
                                             hasHeader : <#= HasHeader.ToString().ToLowerInvariant() #>,
                                             separatorChar : '<#= Regex.Escape(Separator.ToString()) #>',
