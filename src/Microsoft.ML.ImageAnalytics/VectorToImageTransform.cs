@@ -410,6 +410,7 @@ namespace Microsoft.ML.Transforms.Image
                                         (int)Math.Round(blue * scale - offset));
                                 }
                                 dst.SetPixel(x, y, pixel);
+                                dst.Tag = nameof(VectorToImageConvertingTransformer);
                             }
                     };
             }

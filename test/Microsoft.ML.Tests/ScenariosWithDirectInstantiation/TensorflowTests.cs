@@ -843,7 +843,7 @@ namespace Microsoft.ML.Scenarios
             var tensorFlowModel = mlContext.Model.LoadTensorFlowModel(modelLocation);
             var schema = tensorFlowModel.GetInputSchema();
             Assert.True(schema.TryGetColumnIndex("Input", out int column));
-            var type = (VectorDataViewType)schema[column].Type;
+            var type = (VectorDataViewType) schema[column].Type;
             var imageHeight = type.Dimensions[0];
             var imageWidth = type.Dimensions[1];
 
@@ -851,18 +851,22 @@ namespace Microsoft.ML.Scenarios
             var imageFolder = Path.GetDirectoryName(dataFile);
             var data = mlContext.Data.LoadFromTextFile(dataFile,
                 columns: new[]
-                    {
-                        new TextLoader.Column("ImagePath", DataKind.String, 0),
-                        new TextLoader.Column("Name", DataKind.String, 1),
-                    }
-                );
+                {
+                    new TextLoader.Column("ImagePath", DataKind.String, 0),
+                    new TextLoader.Column("Name", DataKind.String, 1),
+                }
+            );
 
-            var pipeEstimator = new ImageLoadingEstimator(mlContext, imageFolder, ("ImageReal", "ImagePath"))
-                .Append(new ImageResizingEstimator(mlContext, "ImageCropped", imageWidth, imageHeight, "ImageReal"))
-                .Append(new ImagePixelExtractingEstimator(mlContext, "Input", "ImageCropped", interleavePixelColors: true));
+            var pipeEstimator = new ImageLoadingEstimator(mlContext, imageFolder,
+                    ("ImageReal", "ImagePath"))
+                .Append(new ImageResizingEstimator(mlContext, "ImageCropped",
+                    imageWidth, imageHeight, "ImageReal"))
+                .Append(new ImagePixelExtractingEstimator(mlContext, "Input",
+                    "ImageCropped", interleavePixelColors: true));
 
             var pixels = pipeEstimator.Fit(data).Transform(data);
-            IDataView trans = tensorFlowModel.ScoreTensorFlowModel("Output", "Input").Fit(pixels).Transform(pixels);
+            IDataView trans = tensorFlowModel.ScoreTensorFlowModel("Output", "Input")
+                .Fit(pixels).Transform(pixels);
 
             trans.Schema.TryGetColumnIndex("Output", out int output);
             using (var cursor = trans.GetRowCursor(trans.Schema["Output"]))
@@ -882,7 +886,8 @@ namespace Microsoft.ML.Scenarios
                         getter2(ref buffer2);
                         Assert.Equal(10, buffer.Length);
                         Assert.Equal(10, buffer2.Length);
-                        Assert.Equal(buffer.DenseValues().ToArray(), buffer2.DenseValues().ToArray());
+                        Assert.Equal(buffer.DenseValues().ToArray(),
+                            buffer2.DenseValues().ToArray());
                         numRows += 1;
                     }
 
@@ -890,13 +895,32 @@ namespace Microsoft.ML.Scenarios
                 }
             }
 
-            //Temp.
-            if(RuntimeInformation.IsOSPlatform(OSPlatform.Linux) || RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+            Assert.Contains(
+                @"[Source=Mapper; ImageResizingTransformer, Kind=Warning] Encountered image " +
+                GetDataPath("images/tomato_indexedpixelformat.gif") +
+                " of unsupported pixel format Format8bppIndexed but converting it to Format32bppArgb.",
+                logMessages);
+
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux) ||
+                RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+            {
+                //temp.
                 logMessages.ForEach(msg => Console.WriteLine(msg));
 
-            Assert.Contains(@"[Source=Mapper; ImageResizingTransformer, Kind=Warning] Encountered image " + GetDataPath("images/tomato_indexedpixelformat.gif") + " of unsupported pixel format Format8bppIndexed but converting it to Format32bppArgb.", logMessages);
-            Assert.Contains(@"[Source=Mapper; ImageResizingTransformer, Kind=Warning] Encountered image " + GetDataPath("images/taco_invalidpixelformat.jpg") + " of unsupported pixel format 8207 but converting it to Format32bppArgb.", logMessages);
-
+                Assert.Contains(
+                    @"[Source=Mapper; ImageResizingTransformer, Kind=Warning] Encountered image " +
+                    GetDataPath("images/taco_invalidpixelformat.jpg") +
+                    " of unsupported pixel format Format32bppRgb but converting it to Format32bppArgb.",
+                    logMessages);
+            }
+            else
+            {
+                Assert.Contains(
+                    @"[Source=Mapper; ImageResizingTransformer, Kind=Warning] Encountered image " +
+                    GetDataPath("images/taco_invalidpixelformat.jpg") +
+                    " of unsupported pixel format 8207 but converting it to Format32bppArgb.",
+                    logMessages);
+            }
         }
 
         [TensorFlowFact]
