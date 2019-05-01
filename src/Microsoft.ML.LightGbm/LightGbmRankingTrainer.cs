@@ -23,6 +23,9 @@ using Microsoft.ML.Trainers.LightGbm;
 
 namespace Microsoft.ML.Trainers.LightGbm
 {
+    /// <summary>
+    /// Model parameters for <see cref="LightGbmRankingTrainer"/>.
+    /// </summary>
     public sealed class LightGbmRankingModelParameters : TreeEnsembleModelParametersBasedOnRegressionTree
     {
         internal const string LoaderSignature = "LightGBMRankerExec";
@@ -86,7 +89,7 @@ namespace Microsoft.ML.Trainers.LightGbm
     /// | Machine learning task | Ranking |
     /// | Is normalization required? | No |
     /// | Is caching required? | No |
-    /// | Required NuGet in addition to Microsoft.ML | Microsoft.ML.FastTree |
+    /// | Required NuGet in addition to Microsoft.ML | Microsoft.ML.LightGbm |
     ///
     /// [!include[algorithm](~/../docs/samples/docs/api-reference/algo-details-lightgbm.md)]
     /// ]]>

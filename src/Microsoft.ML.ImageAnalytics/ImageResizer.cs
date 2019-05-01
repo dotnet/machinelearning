@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Drawing.Imaging;
 using System.Linq;
 using System.Text;
 using Microsoft.ML;
@@ -381,7 +382,21 @@ namespace Microsoft.ML.Transforms.Image
                             destHeight = info.ImageHeight;
                         }
 
-                        dst = new Bitmap(info.ImageWidth, info.ImageHeight, src.PixelFormat);
+                        // Graphics.DrawImage() does not support PixelFormat.Indexed. Hence convert the
+                        // pixel format to Format32bppArgb as described here https://stackoverflow.com/questions/17313285/graphics-on-indexed-image
+                        // For images with invalid pixel format also use Format32bppArgb to draw the resized image.
+                        // For images with Format16bppGrayScale or Format16bppArgb1555 GDI+ does not
+                        // support these formats, ref: https://bytes.com/topic/c-sharp/answers/278572-out-memory-graphics-fromimage
+                        if ((src.PixelFormat & PixelFormat.Indexed) != 0 ||
+                            src.PixelFormat == PixelFormat.Format16bppGrayScale ||
+                            src.PixelFormat == PixelFormat.Format16bppArgb1555 ||
+                            !Enum.IsDefined(typeof(PixelFormat), src.PixelFormat))
+                        {
+                            dst = new Bitmap(info.ImageWidth, info.ImageHeight);
+                        }
+                        else
+                            dst = new Bitmap(info.ImageWidth, info.ImageHeight, src.PixelFormat);
+
                         var srcRectangle = new Rectangle(sourceX, sourceY, sourceWidth, sourceHeight);
                         var destRectangle = new Rectangle(destX, destY, destWidth, destHeight);
                         using (var g = Graphics.FromImage(dst))
@@ -419,7 +434,8 @@ namespace Microsoft.ML.Transforms.Image
     /// further processing.
     /// For end-to-end image processing pipelines, and scenarios in your applications, see the
     /// [examples](https://github.com/dotnet/machinelearning-samples/tree/master/samples/csharp/getting-started) in the machinelearning-samples github repository.
-    /// See the See Also section for links to examples of the usage.
+    ///
+    /// Check the See Also section for links to usage examples.
     /// ]]>
     /// </format>
     /// </remarks>

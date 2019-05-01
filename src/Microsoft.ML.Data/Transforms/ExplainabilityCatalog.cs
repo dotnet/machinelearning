@@ -44,7 +44,7 @@ namespace Microsoft.ML
 
         /// <summary>
         /// Create a <see cref="FeatureContributionCalculatingEstimator"/> that computes model-specific contribution scores for
-        /// each feature of the input vector.
+        /// each feature of the input vector. Supports calibrated models.
         /// </summary>
         /// <param name="catalog">The transforms catalog.</param>
         /// <param name="predictionTransformer">A <see cref="ISingleFeaturePredictionTransformer{TModel}"/> that supports Feature Contribution Calculation,

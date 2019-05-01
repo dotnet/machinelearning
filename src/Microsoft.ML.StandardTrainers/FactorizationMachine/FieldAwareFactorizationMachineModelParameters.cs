@@ -20,6 +20,9 @@ using Microsoft.ML.Trainers;
 
 namespace Microsoft.ML.Trainers
 {
+    /// <summary>
+    /// Model parameters for <see cref="FieldAwareFactorizationMachineTrainer"/>.
+    /// </summary>
     public sealed class FieldAwareFactorizationMachineModelParameters : ModelParametersBase<float>, ISchemaBindableMapper
     {
         internal const string LoaderSignature = "FieldAwareFactMacPredict";

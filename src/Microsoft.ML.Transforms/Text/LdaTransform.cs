@@ -985,6 +985,7 @@ namespace Microsoft.ML.Transforms.Text
     ///  * [LightLDA: Big Topic Models on Modest Computer Clusters](https://arxiv.org/abs/1412.1576)
     ///  * [LightLDA](https://github.com/Microsoft/LightLDA)
     ///
+    /// Check the See Also section for links to usage examples.
     /// ]]></format>
     /// </remarks>
     /// <seealso cref="TextCatalog.LatentDirichletAllocation(TransformsCatalog.TextTransforms, string, string, int, float, float, int, int, int, int, int, int, int, bool)"/>

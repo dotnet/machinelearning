@@ -25,5 +25,15 @@ string ExpectedOutput = @"// Expected output:
             //   Negative Precision: 0.54
             //   Negative Recall: 0.92
             //   Positive Precision: 0.62
-            //   Positive Recall: 0.14";
+            //   Positive Recall: 0.14
+            //
+            //   TEST POSITIVE RATIO:    0.4760 (238.0/(238.0+262.0))
+            //   Confusion table
+            //             ||======================
+            //   PREDICTED || positive | negative | Recall
+            //   TRUTH     ||======================
+            //    positive ||      203 |       35 | 0.8529
+            //    negative ||       21 |      241 | 0.9198
+            //             ||======================
+            //   Precision ||   0.9063 |   0.8732 |";
 #>

@@ -24,7 +24,7 @@ namespace Microsoft.ML
         /// </summary>
         /// <param name="catalog">The conversion transform's catalog.</param>
         /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.
-        /// This column's data type will be a vector of keys, or a scalar keys based on whether the input column data types
+        /// This column's data type will be a vector of keys, or a scalar of key based on whether the input column data types
         /// are vectors or scalars.</param>
         /// <param name="inputColumnName">Name of the column whose data will be hashed.
         /// If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.
@@ -181,7 +181,7 @@ namespace Microsoft.ML
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
-        ///  [!code-csharp[MapKeyToVector](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/Conversions/MapKeyToVector.cs)]
+        ///  [!code-csharp[MapKeyToVector](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/Conversion/MapKeyToVector.cs)]
         /// ]]></format>
         /// </example>
         public static KeyToVectorMappingEstimator MapKeyToVector(this TransformsCatalog.ConversionTransforms catalog,
@@ -200,7 +200,7 @@ namespace Microsoft.ML
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
-        ///  [!code-csharp[MapKeyToVector](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/Conversions/MapKeyToVectorMultiColumn.cs)]
+        ///  [!code-csharp[MapKeyToVector](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/Conversion/MapKeyToVectorMultiColumn.cs)]
         /// ]]></format>
         /// </example>
         public static KeyToVectorMappingEstimator MapKeyToVector(this TransformsCatalog.ConversionTransforms catalog,
@@ -263,7 +263,7 @@ namespace Microsoft.ML
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
-        /// [!code-csharp[MapValueToKey](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/Conversions/MapValueToKeyMultiColumn.cs)]
+        /// [!code-csharp[MapValueToKey](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/Conversion/MapValueToKeyMultiColumn.cs)]
         /// ]]>
         /// </format>
         /// </example>
@@ -419,7 +419,7 @@ namespace Microsoft.ML
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
-        ///  [!code-csharp[MapValue](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/Conversion/MappValueToArray.cs)]
+        ///  [!code-csharp[MapValue](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/Conversion/MapValueToArray.cs)]
         /// ]]></format>
         /// </example>
         public static ValueMappingEstimator<TInputType, TOutputType> MapValue<TInputType, TOutputType>(
@@ -490,7 +490,7 @@ namespace Microsoft.ML
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
-        ///  [!code-csharp[MapValue](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/Conversion/MappValueIdvLookup.cs)]
+        ///  [!code-csharp[MapValue](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/Conversion/MapValueIdvLookup.cs)]
         /// ]]></format>
         /// </example>
         public static ValueMappingEstimator MapValue(

@@ -29,9 +29,9 @@ namespace Microsoft.ML.Transforms
     /// ###  Estimator Characteristics
     /// |  |  |
     /// | -- | -- |
-    /// | Does this estimator need to look at the data to train its parameters? | Yes. |
-    /// | Input column data type | Vector or primitive of numeric, text or [key](xref:Microsoft.ML.Data.KeyDataViewType) data types.|
-    /// | Output column data type | Same as the input column.|
+    /// | Does this estimator need to look at the data to train its parameters? | Yes |
+    /// | Input column data type | Vector or scalar of numeric, [text](xref:Microsoft.ML.Data.TextDataViewType) or [key](xref:Microsoft.ML.Data.KeyDataViewType) data types|
+    /// | Output column data type | Same as the input column|
     ///
     /// Formally, the mutual information can be written as:
     ///
@@ -63,6 +63,7 @@ namespace Microsoft.ML.Transforms
     /// |True |4,0 |
     /// |False|0,5 |
     ///
+    /// Check the See Also section for links to usage examples.
     /// ]]></format>
     /// </remarks>
     /// <seealso cref="FeatureSelectionCatalog.SelectFeaturesBasedOnMutualInformation(TransformsCatalog.FeatureSelectionTransforms, InputOutputColumnPair[], string, int, int)"/>

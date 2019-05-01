@@ -19,11 +19,21 @@ string ExpectedOutputPerInstance = @"// Expected output:
             //   Label: False, Prediction: True";
 
 string ExpectedOutput = @"// Expected output:
-			//   Accuracy: 0.73
-			//   AUC: 0.83
-			//   F1 Score: 0.75
-			//   Negative Precision: 0.84
-			//   Negative Recall: 0.60
-			//   Positive Precision: 0.66
-			//   Positive Recall: 0.87";
+            //   Accuracy: 0.73
+            //   AUC: 0.83
+            //   F1 Score: 0.75
+            //   Negative Precision: 0.84
+            //   Negative Recall: 0.60
+            //   Positive Precision: 0.66
+            //   Positive Recall: 0.87
+            //
+            //   TEST POSITIVE RATIO:    0.4760 (238.0/(238.0+262.0))
+            //   Confusion table
+            //             ||======================
+            //   PREDICTED || positive | negative | Recall
+            //   TRUTH     ||======================
+            //    positive ||      208 |       30 | 0.8739
+            //   negative ||      106 |      156 | 0.5954
+            //             ||======================
+            //   Precision ||   0.6624 |   0.8387 |";
 #>

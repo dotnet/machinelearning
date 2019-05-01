@@ -1535,7 +1535,7 @@ namespace Microsoft.ML.StaticPipe
             }
         }
         /// <summary>
-        /// Accept text data and converts it to array which represent combinations of ngram/skip-gram token counts.
+        /// Accept text data and converts it to array which represent combinations of n-gram/skip-gram token counts.
         /// </summary>
         /// <param name="input">Input data.</param>
         /// <param name="otherInputs">Additional data.</param>

@@ -32,7 +32,9 @@ using Microsoft.ML.Transforms.TensorFlow;
 
 namespace Microsoft.ML.Transforms
 {
-    /// <include file='doc.xml' path='doc/members/member[@name="TensorflowTransformer"]/*' />
+    /// <summary>
+    /// <see cref="ITransformer" /> for the <see cref="TensorFlowEstimator"/>.
+    /// </summary>
     public sealed class TensorFlowTransformer : RowToRowTransformerBase
     {
         private readonly string _savedModelPath;
@@ -993,7 +995,7 @@ namespace Microsoft.ML.Transforms
                 _srcgetter(ref _vBuffer);
 
                 // _denseData.Length can be greater than _vBuffer.Length sometime after
-                // Utils.EnsureSize is exectued. Use _vBuffer.Length to access the elements in _denseData.
+                // Utils.EnsureSize is executed. Use _vBuffer.Length to access the elements in _denseData.
                 // This is done to reduce memory allocation every time tensor is created.
                 Utils.EnsureSize(ref _denseData, _vBuffer.Length, keepOld: false);
                 _vBuffer.CopyTo(_denseData);
@@ -1017,9 +1019,7 @@ namespace Microsoft.ML.Transforms
         }
     }
 
-    /// <summary>
-    /// Estimator for the <see cref="TensorFlowTransformer"/>.
-    /// </summary>
+    /// <include file='doc.xml' path='doc/members/member[@name="TensorflowTransformer"]/*' />
     public sealed class TensorFlowEstimator : IEstimator<TensorFlowTransformer>
     {
         /// <summary>

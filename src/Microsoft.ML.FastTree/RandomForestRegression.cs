@@ -24,6 +24,9 @@ using Microsoft.ML.Trainers.FastTree;
 
 namespace Microsoft.ML.Trainers.FastTree
 {
+    /// <summary>
+    /// Model parameters for <see cref="FastForestRegressionTrainer"/>.
+    /// </summary>
     public sealed class FastForestRegressionModelParameters :
         TreeEnsembleModelParametersBasedOnQuantileRegressionTree,
         IQuantileValueMapper,

@@ -26,7 +26,7 @@ using Microsoft.ML.Transforms.TimeSeries;
 namespace Microsoft.ML.Transforms.TimeSeries
 {
     /// <summary>
-    /// <see cref="ITransformer"/> produced by fitting the <see cref="IDataView"/> to an <see cref="SsaChangePointEstimator" />.
+    /// <see cref="ITransformer"/> resulting from fitting a <see cref="SsaChangePointEstimator"/>.
     /// </summary>
     public sealed class SsaChangePointDetector : SsaAnomalyDetectionBaseWrapper, IStatefulTransformer
     {
@@ -200,7 +200,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
     }
 
     /// <summary>
-    /// The <see cref="IEstimator{TTransformer}"/> to predict change points in time series using Singular Spectrum Analysis.
+    /// Detect change points in time series using Singular Spectrum Analysis.
     /// </summary>
     /// <remarks>
     /// <format type="text/markdown"><![CDATA[
@@ -208,11 +208,20 @@ namespace Microsoft.ML.Transforms.TimeSeries
     ///
     /// [!include[io](~/../docs/samples/docs/api-reference/io-time-series-change-point.md)]
     ///
+    /// ###  Estimator Characteristics
+    /// |  |  |
+    /// | -- | -- |
+    /// | Does this estimator need to look at the data to train its parameters? | Yes |
+    /// | Input column data type | <xref:System.Single> |
+    /// | Output column data type | 4-element vector of<xref:System.Double> |
+    ///
     /// [!include[io](~/../docs/samples/docs/api-reference/time-series-props.md)]
     ///
     /// [!include[io](~/../docs/samples/docs/api-reference/time-series-ssa.md)]
     ///
     /// [!include[io](~/../docs/samples/docs/api-reference/time-series-scorer.md)]
+    ///
+    /// Check the See Also section for links to usage examples.
     /// ]]>
     /// </format>
     /// </remarks>

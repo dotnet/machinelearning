@@ -16,3 +16,5 @@ normalized to represent the deviation from the average prediction. This results
 in models that are easily interpreted simply by inspecting the intercept and the
 shape functions. See the sample below for an example of how to train a GAM model
 and inspect and interpret the results.
+
+Check the See Also section for links to examples of the usage.

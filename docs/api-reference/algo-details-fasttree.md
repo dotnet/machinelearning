@@ -36,3 +36,5 @@ For more information see:
 boosting).](https://en.wikipedia.org/wiki/Gradient_boosting#Gradient_tree_boosting)
 * [Greedy function approximation: A gradient boosting
 machine.](https://projecteuclid.org/DPubS?service=UI&amp;version=1.0&amp;verb=Display&amp;handle=euclid.aos/1013203451)
+
+Check the See Also section for links to examples of the usage.

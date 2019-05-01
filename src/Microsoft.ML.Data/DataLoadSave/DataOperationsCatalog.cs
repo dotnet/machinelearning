@@ -258,7 +258,7 @@ namespace Microsoft.ML
             _env.CheckValue(input, nameof(input));
             _env.CheckNonEmpty(columnName, nameof(columnName));
             _env.CheckParam(0 <= lowerBound && lowerBound <= 1, nameof(lowerBound), "Must be in [0, 1]");
-            _env.CheckParam(0 <= upperBound && upperBound <= 2, nameof(upperBound), "Must be in [0, 2]");
+            _env.CheckParam(0 <= upperBound && upperBound <= 1, nameof(upperBound), "Must be in [0, 1]");
             _env.CheckParam(lowerBound <= upperBound, nameof(upperBound), "Must be no less than lowerBound");
 
             var type = input.Schema[columnName].Type;

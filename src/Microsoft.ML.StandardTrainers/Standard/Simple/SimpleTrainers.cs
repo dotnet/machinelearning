@@ -182,6 +182,8 @@ namespace Microsoft.ML.Trainers
     ///
     /// ### Training Algorithm Details
     /// Learns the prior distribution for 0/1 class labels and outputs that.
+    ///
+    /// Check the See Also section for links to usage examples.
     /// ]]>
     /// </format>
     /// </remarks>
@@ -322,6 +324,9 @@ namespace Microsoft.ML.Trainers
         }
     }
 
+    /// <summary>
+    /// Model parameters for <see cref="PriorTrainer"/>.
+    /// </summary>
     public sealed class PriorModelParameters :
         ModelParametersBase<float>,
         IDistPredictorProducing<float, float>,

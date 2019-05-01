@@ -24,13 +24,13 @@ using Microsoft.ML.Trainers.Recommender;
 namespace Microsoft.ML.Trainers.Recommender
 {
     /// <summary>
-    /// Model parameters for matrix factorization recommender.
+    /// Model parameters for <see cref="MatrixFactorizationTrainer"/>.
     /// </summary>
     /// <remarks>
     /// <see cref="MatrixFactorizationModelParameters"/> stores two factor matrices, P and Q, for approximating the training matrix, R, by P * Q,
     /// where * is a matrix multiplication. This model expects two inputs, row index and column index, and produces the (approximated)
     /// value at the location specified by the two inputs in R. More specifically, if input row and column indices are u and v, respectively.
-    /// The output (a scalar) would be the inner product product of the u-th row in P and the v-th column in Q.
+    /// The output (a scalar) would be the inner product of the u-th row in P and the v-th column in Q.
     /// </remarks>
     public sealed class MatrixFactorizationModelParameters : IPredictor, ICanSaveModel, ICanSaveInTextFormat, ISchemaBindableMapper
     {

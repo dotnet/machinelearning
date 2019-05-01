@@ -25,6 +25,9 @@ using Microsoft.ML.Trainers.LightGbm;
 
 namespace Microsoft.ML.Trainers.LightGbm
 {
+    /// <summary>
+    /// Model parameters for <see cref="LightGbmBinaryTrainer"/>.
+    /// </summary>
     public sealed class LightGbmBinaryModelParameters : TreeEnsembleModelParametersBasedOnRegressionTree
     {
         internal const string LoaderSignature = "LightGBMBinaryExec";
@@ -87,7 +90,7 @@ namespace Microsoft.ML.Trainers.LightGbm
     /// <remarks>
     /// <format type="text/markdown"><![CDATA[
     /// To create this trainer, use [LightGbm](xref:Microsoft.ML.LightGbmExtensions.LightGbm(Microsoft.ML.BinaryClassificationCatalog.BinaryClassificationTrainers,System.String,System.String,System.String,System.Nullable{System.Int32},System.Nullable{System.Int32},System.Nullable{System.Double},System.Int32)) or
-    /// [LightGbm](xref:Microsoft.ML.LightGbmExtensions.LightGbm(Microsoft.ML.BinaryClassificationCatalog.BinaryClassificationTrainers,Microsoft.ML.Trainers.LightGbm.LightGbmBinaryTrainer.Options)).
+    /// [LightGbm(Options)](xref:Microsoft.ML.LightGbmExtensions.LightGbm(Microsoft.ML.BinaryClassificationCatalog.BinaryClassificationTrainers,Microsoft.ML.Trainers.LightGbm.LightGbmBinaryTrainer.Options)).
     ///
     /// [!include[io](~/../docs/samples/docs/api-reference/io-columns-binary-classification.md)]
     ///
@@ -97,7 +100,7 @@ namespace Microsoft.ML.Trainers.LightGbm
     /// | Machine learning task | Binary classification |
     /// | Is normalization required? | No |
     /// | Is caching required? | No |
-    /// | Required NuGet in addition to Microsoft.ML | Microsoft.ML.FastTree |
+    /// | Required NuGet in addition to Microsoft.ML | Microsoft.ML.LightGbm |
     ///
     /// [!include[algorithm](~/../docs/samples/docs/api-reference/algo-details-lightgbm.md)]
     /// ]]>
