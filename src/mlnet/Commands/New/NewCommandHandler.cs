@@ -21,7 +21,7 @@ namespace Microsoft.ML.CLI.Commands.New
 
         public void Execute()
         {
-            telemetry.LogAutoTrainMlCommand(settings.Dataset.FullName, settings.MlTask.ToString(), settings.Dataset.Length);
+            telemetry.LogAutoTrainMlCommand(settings.Dataset.Name, settings.MlTask.ToString(), settings.Dataset.Length);
 
             CodeGenerationHelper codeGenerationHelper = new CodeGenerationHelper(new AutoMLEngine(settings), settings); // Needs to be improved.
             codeGenerationHelper.GenerateCode();
