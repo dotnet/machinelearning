@@ -40,7 +40,7 @@ namespace Microsoft.ML.Trainers
     /// [FieldAwareFactorizationMachine](xref:Microsoft.ML.FactorizationMachineExtensions.FieldAwareFactorizationMachine(Microsoft.ML.BinaryClassificationCatalog.BinaryClassificationTrainers,System.String[],System.String,System.String)),
     /// or [FieldAwareFactorizationMachine(Options)](xref:Microsoft.ML.FactorizationMachineExtensions.FieldAwareFactorizationMachine(Microsoft.ML.BinaryClassificationCatalog.BinaryClassificationTrainers,Microsoft.ML.Trainers.FieldAwareFactorizationMachineTrainer.Options)).
     ///
-    /// In contrast to other binary classifiers which can only support one feature column, field-aware factorization machine can consume multiple feature columns.
+    /// In contrast to other binary classifiers, which can only support one feature column, field-aware factorization machine can consume multiple feature columns.
     /// Each column is viewed as a container of some features and such a container is called a field.
     /// Note that all feature columns must be float vectors but their dimensions can be different.
     /// The motivation of splitting features into different fields is to model features from different distributions independently.
