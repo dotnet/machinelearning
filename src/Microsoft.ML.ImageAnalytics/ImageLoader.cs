@@ -197,10 +197,13 @@ namespace Microsoft.ML.Data
                                 if (!string.IsNullOrWhiteSpace(_parent.ImageFolder))
                                     path = Path.Combine(_parent.ImageFolder, path);
 
-                                using (var stream = new FileStream(path, FileMode.Open, FileAccess.Read))
+                                MemoryStream inMemoryCopy = new MemoryStream();
+                                using (FileStream fs = File.OpenRead(path))
                                 {
-                                    dst = new Bitmap(stream) { Tag = path };
+                                    fs.CopyTo(inMemoryCopy);
                                 }
+
+                                dst = new Bitmap(inMemoryCopy) { Tag = path };
                             }
                             catch (Exception)
                             {
