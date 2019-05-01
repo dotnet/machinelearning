@@ -27,14 +27,14 @@ namespace TestNamespace.ConsoleApp
         public static void CreateModel()
         {
             // Load Data
-            IDataView trainingDataView = mlContext.Data.LoadFromTextFile<SampleObservation>(
+            IDataView trainingDataView = mlContext.Data.LoadFromTextFile<ModelInput>(
                                             path: TRAIN_DATA_FILEPATH,
                                             hasHeader: true,
                                             separatorChar: ',',
                                             allowQuoting: true,
                                             allowSparse: true);
 
-            IDataView testDataView = mlContext.Data.LoadFromTextFile<SampleObservation>(
+            IDataView testDataView = mlContext.Data.LoadFromTextFile<ModelInput>(
                                             path: TEST_DATA_FILEPATH,
                                             hasHeader: true,
                                             separatorChar: ',',

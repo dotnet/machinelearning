@@ -18,7 +18,7 @@ namespace Microsoft.ML.CLI.Templates.Console
     /// Class to produce the template output
     /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.VisualStudio.TextTemplating", "15.0.0.0")]
-    public partial class PredictionClass : PredictionClassBase
+    public partial class ModelOutputClass : ModelOutputClassBase
     {
         /// <summary>
         /// Create the template output
@@ -36,7 +36,7 @@ using Microsoft.ML.Data;
 
 namespace  ");
             this.Write(this.ToStringHelper.ToStringWithCulture(Namespace));
-            this.Write(".Model.DataModels\r\n{\r\n    public class SamplePrediction\r\n    {\r\n");
+            this.Write(".Model.DataModels\r\n{\r\n    public class ModelOutput\r\n    {\r\n");
 if("BinaryClassification".Equals(TaskType)){ 
             this.Write("        // ColumnName attribute is used to change the column name from\r\n        /" +
                     "/ its default value, which is the name of the field.\r\n        [ColumnName(\"Predi" +
@@ -67,7 +67,7 @@ public string Namespace {get;set;}
     /// Base class for this transformation
     /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.VisualStudio.TextTemplating", "15.0.0.0")]
-    public class PredictionClassBase
+    public class ModelOutputClassBase
     {
         #region Fields
         private global::System.Text.StringBuilder generationEnvironmentField;

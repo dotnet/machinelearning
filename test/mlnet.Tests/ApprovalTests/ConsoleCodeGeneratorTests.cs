@@ -136,7 +136,7 @@ namespace mlnet.Tests
             });
             var result = consoleCodeGen.GenerateModelProjectContents(namespaceValue, typeof(float), true, true, false);
 
-            Approvals.Verify(result.ObservationCSFileContent);
+            Approvals.Verify(result.ModelInputCSFileContent);
         }
 
 
@@ -160,7 +160,7 @@ namespace mlnet.Tests
             });
             var result = consoleCodeGen.GenerateModelProjectContents(namespaceValue, typeof(float), true, true, false);
 
-            Approvals.Verify(result.PredictionCSFileContent);
+            Approvals.Verify(result.ModelOutputCSFileContent);
         }
 
         [TestMethod]

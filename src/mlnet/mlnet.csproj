@@ -48,15 +48,15 @@
       <AutoGen>True</AutoGen>
       <DependentUpon>ModelProject.tt</DependentUpon>
     </Compile>
-    <Compile Update="Templates\Console\ObservationClass.cs">
+    <Compile Update="Templates\Console\ModelInputClass.cs">
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
-      <DependentUpon>ObservationClass.tt</DependentUpon>
+      <DependentUpon>ModelInputClass.tt</DependentUpon>
     </Compile>
-    <Compile Update="Templates\Console\PredictionClass.cs">
+    <Compile Update="Templates\Console\ModelOutputClass.cs">
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
-      <DependentUpon>PredictionClass.tt</DependentUpon>
+      <DependentUpon>ModelOutputClass.tt</DependentUpon>
     </Compile>
     <Compile Update="Templates\Console\PredictProgram.cs">
       <DesignTime>True</DesignTime>
@@ -90,13 +90,13 @@
       <Generator>TextTemplatingFilePreprocessor</Generator>
       <LastGenOutput>ModelProject.cs</LastGenOutput>
     </None>
-    <None Update="Templates\Console\ObservationClass.tt">
+    <None Update="Templates\Console\ModelInputClass.tt">
       <Generator>TextTemplatingFilePreprocessor</Generator>
-      <LastGenOutput>ObservationClass.cs</LastGenOutput>
+      <LastGenOutput>ModelInputClass.cs</LastGenOutput>
     </None>
-    <None Update="Templates\Console\PredictionClass.tt">
+    <None Update="Templates\Console\ModelOutputClass.tt">
       <Generator>TextTemplatingFilePreprocessor</Generator>
-      <LastGenOutput>PredictionClass.cs</LastGenOutput>
+      <LastGenOutput>ModelOutputClass.cs</LastGenOutput>
     </None>
     <None Update="Templates\Console\PredictProgram.tt">
       <Generator>TextTemplatingFilePreprocessor</Generator>

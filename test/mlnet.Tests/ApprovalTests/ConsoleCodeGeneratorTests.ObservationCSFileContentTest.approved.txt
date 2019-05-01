@@ -8,7 +8,7 @@ using Microsoft.ML.Data;
 
 namespace TestNamespace.Model.DataModels
 {
-    public class SampleObservation
+    public class ModelInput
     {
         [ColumnName("Label"), LoadColumn(0)]
         public bool Label { get; set; }

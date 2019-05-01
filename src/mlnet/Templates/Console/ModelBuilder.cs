@@ -65,7 +65,7 @@ if(!string.IsNullOrEmpty(TestPath)){
         public static void CreateModel()
         {
             // Load Data
-            IDataView trainingDataView = mlContext.Data.LoadFromTextFile<SampleObservation>(
+            IDataView trainingDataView = mlContext.Data.LoadFromTextFile<ModelInput>(
                                             path: TRAIN_DATA_FILEPATH,
                                             hasHeader : ");
             this.Write(this.ToStringHelper.ToStringWithCulture(HasHeader.ToString().ToLowerInvariant()));
@@ -77,9 +77,9 @@ if(!string.IsNullOrEmpty(TestPath)){
             this.Write(this.ToStringHelper.ToStringWithCulture(AllowSparse.ToString().ToLowerInvariant()));
             this.Write(");\r\n\r\n");
  if(!string.IsNullOrEmpty(TestPath)){ 
-            this.Write("            IDataView testDataView = mlContext.Data.LoadFromTextFile<SampleObserv" +
-                    "ation>(\r\n                                            path: TEST_DATA_FILEPATH,\r\n" +
-                    "                                            hasHeader : ");
+            this.Write("            IDataView testDataView = mlContext.Data.LoadFromTextFile<ModelInput>(" +
+                    "\r\n                                            path: TEST_DATA_FILEPATH,\r\n       " +
+                    "                                     hasHeader : ");
             this.Write(this.ToStringHelper.ToStringWithCulture(HasHeader.ToString().ToLowerInvariant()));
             this.Write(",\r\n                                            separatorChar : \'");
             this.Write(this.ToStringHelper.ToStringWithCulture(Regex.Escape(Separator.ToString())));
