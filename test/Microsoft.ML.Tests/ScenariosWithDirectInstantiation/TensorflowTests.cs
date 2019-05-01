@@ -901,14 +901,13 @@ namespace Microsoft.ML.Scenarios
                 " of unsupported pixel format Format8bppIndexed but converting it to Format32bppArgb.",
                 logMessages);
 
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux) ||
-                RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux) || RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
             {
                 //temp.
                 logMessages.ForEach(msg => Console.WriteLine(msg));
 
                 Assert.Contains(
-                    @"[Source=Mapper; ImageResizingTransformer, Kind=Warning] Encountered image " +
+                    @"[Source=Mapper; ImagePixelExtractingTransformer, Kind=Warning] Encountered image " +
                     GetDataPath("images/taco_invalidpixelformat.jpg") +
                     " of unsupported pixel format Format32bppRgb but converting it to Format32bppArgb.",
                     logMessages);
