@@ -17,9 +17,8 @@ namespace Microsoft.ML.AutoML
             var splitInference = InferSplit(context, sample, separatorChar, allowQuotedStrings, supportSparse);
             var typeInference = InferColumnTypes(context, sample, splitInference, hasHeader, labelColumnIndex, null);
 
-            // if no column is named label,
-            // rename label column to default ML.NET label column name
-            if (!typeInference.Columns.Any(c => c.SuggestedName == DefaultColumnNames.Label))
+            // If no headers, suggest label column name as 'Label'
+            if (!hasHeader)
             {
                 typeInference.Columns[labelColumnIndex].SuggestedName = DefaultColumnNames.Label;
             }
