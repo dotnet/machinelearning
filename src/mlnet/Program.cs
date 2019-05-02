@@ -70,7 +70,7 @@ namespace Microsoft.ML.CLI
                      logger.Log(LogLevel.Debug, e.ToString());
                      logger.Log(LogLevel.Info, Strings.LookIntoLogFile);
                      logger.Log(LogLevel.Error, Strings.Exiting);
-                     exitCode = -1;
+                     exitCode = 1;
                  }
              });
 
