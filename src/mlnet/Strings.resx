@@ -199,6 +199,6 @@
     <value>Exception occured while saving the model</value>
   </data>
   <data name="CouldNotFinshOnTime" xml:space="preserve">
-    <value>{0} seconds was not enough to train at least one model for your dataset. Try with a longer time. Learn about recommended training time at https://aka.ms/cli-trainingtime</value>
+    <value>Time expired before creating a model. Try increasing the exploration time from {0} seconds to a longer duration using the --max-exploration-time option. Learn about recommended training time at https://aka.ms/cli-trainingtime</value>
   </data>
 </root>
