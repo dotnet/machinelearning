@@ -70,6 +70,15 @@ namespace Microsoft.ML.CLI {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to {0} seconds was not enough to train at least one model for your dataset. Try with a longer time. Learn about recommended training time at https://aka.ms/cli-trainingtime.
+        /// </summary>
+        internal static string CouldNotFinshOnTime {
+            get {
+                return ResourceManager.GetString("CouldNotFinshOnTime", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Creating Data loader ....
         /// </summary>
         internal static string CreateDataLoader {

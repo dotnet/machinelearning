@@ -4,11 +4,36 @@
 
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.ML.Data;
 
 namespace Microsoft.ML.AutoML
 {
     internal class BestResultUtil
     {
+        public static RunDetail<BinaryClassificationMetrics> GetBestRun(IEnumerable<RunDetail<BinaryClassificationMetrics>> results,
+            BinaryClassificationMetric metric)
+        {
+            var metricsAgent = new BinaryMetricsAgent(null, metric);
+            var metricInfo = new OptimizingMetricInfo(metric);
+            return GetBestRun(results, metricsAgent, metricInfo.IsMaximizing);
+        }
+
+        public static RunDetail<RegressionMetrics> GetBestRun(IEnumerable<RunDetail<RegressionMetrics>> results,
+            RegressionMetric metric)
+        {
+            var metricsAgent = new RegressionMetricsAgent(null, metric);
+            var metricInfo = new OptimizingMetricInfo(metric);
+            return GetBestRun(results, metricsAgent, metricInfo.IsMaximizing);
+        }
+
+        public static RunDetail<MulticlassClassificationMetrics> GetBestRun(IEnumerable<RunDetail<MulticlassClassificationMetrics>> results,
+            MulticlassClassificationMetric metric)
+        {
+            var metricsAgent = new MultiMetricsAgent(null, metric);
+            var metricInfo = new OptimizingMetricInfo(metric);
+            return GetBestRun(results, metricsAgent, metricInfo.IsMaximizing);
+        }
+
         public static RunDetail<TMetrics> GetBestRun<TMetrics>(IEnumerable<RunDetail<TMetrics>> results,
             IMetricsAgent<TMetrics> metricsAgent, bool isMetricMaximizing)
         {

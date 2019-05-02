@@ -23,7 +23,7 @@ namespace Microsoft.ML.CLI
         public static void Main(string[] args)
         {
             var telemetry = new MlTelemetry();
-
+            int exitCode = 1;
             // Create handler outside so that commandline and the handler is decoupled and testable.
             var handler = CommandHandler.Create<NewCommandSettings>(
                 (options) =>
@@ -63,6 +63,7 @@ namespace Microsoft.ML.CLI
 
                      // Execute the command
                      command.Execute();
+                     exitCode = 0;
                  }
                  catch (Exception e)
                  {
@@ -70,7 +71,6 @@ namespace Microsoft.ML.CLI
                      logger.Log(LogLevel.Debug, e.ToString());
                      logger.Log(LogLevel.Info, Strings.LookIntoLogFile);
                      logger.Log(LogLevel.Error, Strings.Exiting);
-                     return;
                  }
              });
 
@@ -101,6 +101,7 @@ namespace Microsoft.ML.CLI
             }
 
             parser.InvokeAsync(parseResult).Wait();
+            Environment.Exit(exitCode);
         }
     }
 }
