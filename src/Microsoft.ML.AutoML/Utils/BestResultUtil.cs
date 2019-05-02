@@ -54,8 +54,6 @@ namespace Microsoft.ML.AutoML
             return results.ElementAt(indexOfBestScore);
         }
 
-
-
         public static IEnumerable<(RunDetail<T>, int)> GetTopNRunResults<T>(IEnumerable<RunDetail<T>> results,
             IMetricsAgent<T> metricsAgent, int n, bool isMetricMaximizing)
         {

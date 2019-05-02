@@ -96,6 +96,10 @@ namespace Microsoft.ML.CLI.CodeGenerator
 
             logger.Log(LogLevel.Trace, $"{Strings.ExplorePipeline}: {settings.MlTask}");
             logger.Log(LogLevel.Trace, $"{Strings.FurtherLearning}: {Strings.LearningHttpLink}");
+
+            // TODO the below region needs more refactoring to be done especially with so many switch cases.
+
+            #region RunAutoMLEngine
             try
             {
                 var options = new ProgressBarOptions
@@ -286,6 +290,7 @@ namespace Microsoft.ML.CLI.CodeGenerator
                 logger.Log(LogLevel.Info, Strings.ErrorBestPipeline);
                 throw;
             }
+            #endregion
 
             // Save the model
             var modelprojectDir = Path.Combine(settings.OutputPath.FullName, $"{settings.Name}.Model");
@@ -377,7 +382,7 @@ namespace Microsoft.ML.CLI.CodeGenerator
             catch (Exception e)
             {
                 ex = e;
-                pbar.Dispose();
+                pbar?.Dispose();
                 return;
             }
         }
@@ -392,7 +397,7 @@ namespace Microsoft.ML.CLI.CodeGenerator
             catch (Exception e)
             {
                 ex = e;
-                pbar.Dispose();
+                pbar?.Dispose();
                 return;
             }
         }
@@ -407,7 +412,7 @@ namespace Microsoft.ML.CLI.CodeGenerator
             catch (Exception e)
             {
                 ex = e;
-                pbar.Dispose(); // or ((ManualResetEvent)pbar.CompletedHandle).Set();
+                pbar?.Dispose(); // or ((ManualResetEvent)pbar.CompletedHandle).Set();
                 return;
             }
         }
