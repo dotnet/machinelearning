@@ -46,8 +46,7 @@ namespace Microsoft.ML.CLI.CodeGenerator
 
         void IAutoMLEngine.ExploreBinaryClassificationModels(MLContext context, IDataView trainData, IDataView validationData, ColumnInformation columnInformation, BinaryClassificationMetric optimizationMetric, TimeSpan experimentTimeout, ProgressHandlers.BinaryClassificationHandler handler, ProgressBar progressBar)
         {
-            ExperimentResult<BinaryClassificationMetrics> result = null;
-            result = context.Auto()
+            ExperimentResult<BinaryClassificationMetrics> result = context.Auto()
                 .CreateBinaryClassificationExperiment(new BinaryExperimentSettings()
                 {
                     MaxExperimentTimeInSeconds = settings.MaxExplorationTime,
@@ -61,8 +60,7 @@ namespace Microsoft.ML.CLI.CodeGenerator
 
         void IAutoMLEngine.ExploreRegressionModels(MLContext context, IDataView trainData, IDataView validationData, ColumnInformation columnInformation, RegressionMetric optimizationMetric, TimeSpan experimentTimeout, ProgressHandlers.RegressionHandler handler, ProgressBar progressBar)
         {
-            ExperimentResult<RegressionMetrics> result = null;
-            result = context.Auto()
+            ExperimentResult<RegressionMetrics> result = context.Auto()
                 .CreateRegressionExperiment(new RegressionExperimentSettings()
                 {
                     MaxExperimentTimeInSeconds = settings.MaxExplorationTime,
@@ -75,8 +73,7 @@ namespace Microsoft.ML.CLI.CodeGenerator
 
         void IAutoMLEngine.ExploreMultiClassificationModels(MLContext context, IDataView trainData, IDataView validationData, ColumnInformation columnInformation, MulticlassClassificationMetric optimizationMetric, TimeSpan experimentTimeout, ProgressHandlers.MulticlassClassificationHandler handler, ProgressBar progressBar)
         {
-            ExperimentResult<MulticlassClassificationMetrics> result = null;
-            result = context.Auto()
+            ExperimentResult<MulticlassClassificationMetrics> result = context.Auto()
                 .CreateMulticlassClassificationExperiment(new MulticlassExperimentSettings()
                 {
                     MaxExperimentTimeInSeconds = settings.MaxExplorationTime,
