@@ -15,11 +15,11 @@ namespace Microsoft.ML.CLI.CodeGenerator
     {
         ColumnInferenceResults InferColumns(MLContext context, ColumnInformation columnInformation);
 
-        void ExploreBinaryClassificationModels(MLContext context, IDataView trainData, IDataView validationData, ColumnInformation columnInformation, BinaryClassificationMetric optimizationMetric, TimeSpan experimentTimeout, ProgressHandlers.BinaryClassificationHandler handler, ProgressBar progressBar = null);
+        void ExploreBinaryClassificationModels(MLContext context, IDataView trainData, IDataView validationData, ColumnInformation columnInformation, BinaryClassificationMetric optimizationMetric, ProgressHandlers.BinaryClassificationHandler handler, ProgressBar progressBar = null);
 
-        void ExploreMultiClassificationModels(MLContext context, IDataView trainData, IDataView validationData, ColumnInformation columnInformation, MulticlassClassificationMetric optimizationMetric, TimeSpan experimentTimeout, ProgressHandlers.MulticlassClassificationHandler handler, ProgressBar progressBar = null);
+        void ExploreMultiClassificationModels(MLContext context, IDataView trainData, IDataView validationData, ColumnInformation columnInformation, MulticlassClassificationMetric optimizationMetric, ProgressHandlers.MulticlassClassificationHandler handler, ProgressBar progressBar = null);
 
-        void ExploreRegressionModels(MLContext context, IDataView trainData, IDataView validationData, ColumnInformation columnInformation, RegressionMetric optimizationMetric, TimeSpan experimentTimeout, ProgressHandlers.RegressionHandler handler, ProgressBar progressBar = null);
+        void ExploreRegressionModels(MLContext context, IDataView trainData, IDataView validationData, ColumnInformation columnInformation, RegressionMetric optimizationMetric, ProgressHandlers.RegressionHandler handler, ProgressBar progressBar = null);
 
     }
 }

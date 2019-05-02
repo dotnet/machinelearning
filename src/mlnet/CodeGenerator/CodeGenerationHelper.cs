@@ -124,15 +124,15 @@ namespace Microsoft.ML.CLI.CodeGenerator
                             // TODO: It may be a good idea to convert the below Threads to Tasks or get rid of this progress bar all together and use an existing one in opensource.
                             case TaskKind.BinaryClassification:
                                 binaryHandler = new ProgressHandlers.BinaryClassificationHandler(new BinaryExperimentSettings().OptimizingMetric, completedBinaryRuns, pbar);
-                                t = new Thread(() => SafeExecute(() => automlEngine.ExploreBinaryClassificationModels(context, trainData, validationData, columnInformation, new BinaryExperimentSettings().OptimizingMetric, wait, binaryHandler, pbar), out ex, pbar));
+                                t = new Thread(() => SafeExecute(() => automlEngine.ExploreBinaryClassificationModels(context, trainData, validationData, columnInformation, new BinaryExperimentSettings().OptimizingMetric, binaryHandler, pbar), out ex, pbar));
                                 break;
                             case TaskKind.Regression:
                                 regressionHandler = new ProgressHandlers.RegressionHandler(new RegressionExperimentSettings().OptimizingMetric, completedRegressionRuns, pbar);
-                                t = new Thread(() => SafeExecute(() => automlEngine.ExploreRegressionModels(context, trainData, validationData, columnInformation, new RegressionExperimentSettings().OptimizingMetric, wait, regressionHandler, pbar), out ex, pbar));
+                                t = new Thread(() => SafeExecute(() => automlEngine.ExploreRegressionModels(context, trainData, validationData, columnInformation, new RegressionExperimentSettings().OptimizingMetric, regressionHandler, pbar), out ex, pbar));
                                 break;
                             case TaskKind.MulticlassClassification:
                                 multiClassHandler = new ProgressHandlers.MulticlassClassificationHandler(new MulticlassExperimentSettings().OptimizingMetric, completedMulticlassRuns, pbar);
-                                t = new Thread(() => SafeExecute(() => automlEngine.ExploreMultiClassificationModels(context, trainData, validationData, columnInformation, new MulticlassExperimentSettings().OptimizingMetric, wait, multiClassHandler, pbar), out ex, pbar));
+                                t = new Thread(() => SafeExecute(() => automlEngine.ExploreMultiClassificationModels(context, trainData, validationData, columnInformation, new MulticlassExperimentSettings().OptimizingMetric, multiClassHandler, pbar), out ex, pbar));
                                 break;
                             default:
                                 logger.Log(LogLevel.Error, Strings.UnsupportedMlTask);
@@ -174,15 +174,15 @@ namespace Microsoft.ML.CLI.CodeGenerator
                         // TODO: It may be a good idea to convert the below Threads to Tasks or get rid of this progress bar all together and use an existing one in opensource.
                         case TaskKind.BinaryClassification:
                             binaryHandler = new ProgressHandlers.BinaryClassificationHandler(new BinaryExperimentSettings().OptimizingMetric, completedBinaryRuns, null);
-                            t = new Thread(() => SafeExecute(() => automlEngine.ExploreBinaryClassificationModels(context, trainData, validationData, columnInformation, new BinaryExperimentSettings().OptimizingMetric, wait, binaryHandler, null), out ex, null));
+                            t = new Thread(() => SafeExecute(() => automlEngine.ExploreBinaryClassificationModels(context, trainData, validationData, columnInformation, new BinaryExperimentSettings().OptimizingMetric, binaryHandler, null), out ex, null));
                             break;
                         case TaskKind.Regression:
                             regressionHandler = new ProgressHandlers.RegressionHandler(new RegressionExperimentSettings().OptimizingMetric, completedRegressionRuns, null);
-                            t = new Thread(() => SafeExecute(() => automlEngine.ExploreRegressionModels(context, trainData, validationData, columnInformation, new RegressionExperimentSettings().OptimizingMetric, wait, regressionHandler, null), out ex, null));
+                            t = new Thread(() => SafeExecute(() => automlEngine.ExploreRegressionModels(context, trainData, validationData, columnInformation, new RegressionExperimentSettings().OptimizingMetric, regressionHandler, null), out ex, null));
                             break;
                         case TaskKind.MulticlassClassification:
                             multiClassHandler = new ProgressHandlers.MulticlassClassificationHandler(new MulticlassExperimentSettings().OptimizingMetric, completedMulticlassRuns, null);
-                            t = new Thread(() => SafeExecute(() => automlEngine.ExploreMultiClassificationModels(context, trainData, validationData, columnInformation, new MulticlassExperimentSettings().OptimizingMetric, wait, multiClassHandler, null), out ex, null));
+                            t = new Thread(() => SafeExecute(() => automlEngine.ExploreMultiClassificationModels(context, trainData, validationData, columnInformation, new MulticlassExperimentSettings().OptimizingMetric, multiClassHandler, null), out ex, null));
                             break;
                         default:
                             logger.Log(LogLevel.Error, Strings.UnsupportedMlTask);
