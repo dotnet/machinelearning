@@ -30,13 +30,13 @@ namespace Microsoft.ML.CLI.Templates.Console
                     "utType>\r\n    <TargetFramework>netcoreapp2.1</TargetFramework>\r\n  </PropertyGroup" +
                     ">\r\n  <ItemGroup>\r\n    <PackageReference Include=\"Microsoft.ML\" Version=\"1.0.0\" /" +
                     ">\r\n");
- if(IncludeLightGBMPackage){ 
+ if (IncludeLightGBMPackage){ 
             this.Write("    <PackageReference Include=\"Microsoft.ML.LightGBM\" Version=\"1.0.0\" />\r\n");
 }
- if(IncludeMklComponentsPackage){ 
+ if (IncludeMklComponentsPackage){ 
             this.Write("    <PackageReference Include=\"Microsoft.ML.Mkl.Components\" Version=\"1.0.0\" />\r\n");
 }
- if(IncludeFastTreePackage){ 
+ if (IncludeFastTreePackage){ 
             this.Write("    <PackageReference Include=\"Microsoft.ML.FastTree\" Version=\"1.0.0\" />\r\n");
 }
             this.Write("  </ItemGroup>\r\n  <ItemGroup>\r\n    <ProjectReference Include=\"..\\");

@@ -31,10 +31,10 @@ namespace Microsoft.ML.CLI.Templates.Console
  if (IncludeLightGBMPackage) { 
             this.Write("    <PackageReference Include=\"Microsoft.ML.LightGBM\" Version=\"1.0.0\" />\r\n");
 }
- if(IncludeMklComponentsPackage){ 
+ if (IncludeMklComponentsPackage){ 
             this.Write("    <PackageReference Include=\"Microsoft.ML.Mkl.Components\" Version=\"1.0.0\" />\r\n");
 }
- if(IncludeFastTreePackage){ 
+ if (IncludeFastTreePackage){ 
             this.Write("    <PackageReference Include=\"Microsoft.ML.FastTree\" Version=\"1.0.0\" />\r\n");
 }
             this.Write("  </ItemGroup>\r\n\r\n  <ItemGroup>\r\n    <None Update=\"MLModel.zip\">\r\n      <CopyToOu" +

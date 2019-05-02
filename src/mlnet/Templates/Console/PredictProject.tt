@@ -12,13 +12,13 @@
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.ML" Version="1.0.0" />
-<# if(IncludeLightGBMPackage){ #>
+<# if (IncludeLightGBMPackage){ #>
     <PackageReference Include="Microsoft.ML.LightGBM" Version="1.0.0" />
 <#}#>
-<# if(IncludeMklComponentsPackage){ #>
+<# if (IncludeMklComponentsPackage){ #>
     <PackageReference Include="Microsoft.ML.Mkl.Components" Version="1.0.0" />
 <#}#>
-<# if(IncludeFastTreePackage){ #>
+<# if (IncludeFastTreePackage){ #>
     <PackageReference Include="Microsoft.ML.FastTree" Version="1.0.0" />
 <#}#>
   </ItemGroup>
