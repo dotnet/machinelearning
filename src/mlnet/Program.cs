@@ -102,8 +102,6 @@ namespace Microsoft.ML.CLI
             }
 
             parser.InvokeAsync(parseResult).Wait();
-
-            Thread.Sleep(25000);
         }
     }
 }
