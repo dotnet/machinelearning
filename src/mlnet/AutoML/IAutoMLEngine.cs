@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using Microsoft.ML.AutoML;
 using Microsoft.ML.CLI.ShellProgressBar;
+using Microsoft.ML.CLI.Utilities;
 using Microsoft.ML.Data;
 
 namespace Microsoft.ML.CLI.CodeGenerator
@@ -14,11 +15,11 @@ namespace Microsoft.ML.CLI.CodeGenerator
     {
         ColumnInferenceResults InferColumns(MLContext context, ColumnInformation columnInformation);
 
-        ExperimentResult<BinaryClassificationMetrics> ExploreBinaryClassificationModels(MLContext context, IDataView trainData, IDataView validationData, ColumnInformation columnInformation, BinaryClassificationMetric optimizationMetric, TimeSpan experimentTimeout, out List<RunDetail<BinaryClassificationMetrics>> completedIterations, ProgressBar progressBar = null);
+        ExperimentResult<BinaryClassificationMetrics> ExploreBinaryClassificationModels(MLContext context, IDataView trainData, IDataView validationData, ColumnInformation columnInformation, BinaryClassificationMetric optimizationMetric, TimeSpan experimentTimeout, ProgressHandlers.BinaryClassificationHandler handler, ProgressBar progressBar = null);
 
-        ExperimentResult<MulticlassClassificationMetrics> ExploreMultiClassificationModels(MLContext context, IDataView trainData, IDataView validationData, ColumnInformation columnInformation, MulticlassClassificationMetric optimizationMetric, TimeSpan experimentTimeout, out List<RunDetail<MulticlassClassificationMetrics>> completedIterations, ProgressBar progressBar = null);
+        ExperimentResult<MulticlassClassificationMetrics> ExploreMultiClassificationModels(MLContext context, IDataView trainData, IDataView validationData, ColumnInformation columnInformation, MulticlassClassificationMetric optimizationMetric, TimeSpan experimentTimeout, ProgressHandlers.MulticlassClassificationHandler handler, ProgressBar progressBar = null);
 
-        ExperimentResult<RegressionMetrics> ExploreRegressionModels(MLContext context, IDataView trainData, IDataView validationData, ColumnInformation columnInformation, RegressionMetric optimizationMetric, TimeSpan experimentTimeout, out List<RunDetail<RegressionMetrics>> completedIterations, ProgressBar progressBar = null);
+        ExperimentResult<RegressionMetrics> ExploreRegressionModels(MLContext context, IDataView trainData, IDataView validationData, ColumnInformation columnInformation, RegressionMetric optimizationMetric, TimeSpan experimentTimeout, ProgressHandlers.RegressionHandler handler, ProgressBar progressBar = null);
 
     }
 }

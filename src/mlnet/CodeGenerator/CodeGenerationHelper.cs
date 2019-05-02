@@ -74,9 +74,13 @@ namespace Microsoft.ML.CLI.CodeGenerator
             // The reason why we are doing this way of defining 3 different results is because of the AutoML API 
             // i.e there is no common class/interface to handle all three tasks together.
 
-            List<RunDetail<BinaryClassificationMetrics>> completedBinaryRuns = default;
-            List<RunDetail<MulticlassClassificationMetrics>> completedMulticlassRuns = default;
-            List<RunDetail<RegressionMetrics>> completedRegressionRuns = default;
+            List<RunDetail<BinaryClassificationMetrics>> completedBinaryRuns = new List<RunDetail<BinaryClassificationMetrics>>();
+            List<RunDetail<MulticlassClassificationMetrics>> completedMulticlassRuns = new List<RunDetail<MulticlassClassificationMetrics>>();
+            List<RunDetail<RegressionMetrics>> completedRegressionRuns = new List<RunDetail<RegressionMetrics>>();
+
+            ProgressHandlers.BinaryClassificationHandler binaryHandler = default;
+            ProgressHandlers.RegressionHandler regressionHandler = default;
+            ProgressHandlers.MulticlassClassificationHandler multiClassHandler = default;
 
             if (verboseLevel > LogLevel.Trace)
             {
@@ -115,13 +119,16 @@ namespace Microsoft.ML.CLI.CodeGenerator
                         {
                             // TODO: It may be a good idea to convert the below Threads to Tasks or get rid of this progress bar all together and use an existing one in opensource.
                             case TaskKind.BinaryClassification:
-                                t = new Thread(() => SafeExecute(() => automlEngine.ExploreBinaryClassificationModels(context, trainData, validationData, columnInformation, new BinaryExperimentSettings().OptimizingMetric, wait, out completedBinaryRuns, pbar), out ex, pbar));
+                                binaryHandler = new ProgressHandlers.BinaryClassificationHandler(new BinaryExperimentSettings().OptimizingMetric, completedBinaryRuns, pbar);
+                                t = new Thread(() => SafeExecute(() => automlEngine.ExploreBinaryClassificationModels(context, trainData, validationData, columnInformation, new BinaryExperimentSettings().OptimizingMetric, wait, binaryHandler, pbar), out ex, pbar));
                                 break;
                             case TaskKind.Regression:
-                                t = new Thread(() => SafeExecute(() => automlEngine.ExploreRegressionModels(context, trainData, validationData, columnInformation, new RegressionExperimentSettings().OptimizingMetric, wait, out completedRegressionRuns, pbar), out ex, pbar));
+                                regressionHandler = new ProgressHandlers.RegressionHandler(new RegressionExperimentSettings().OptimizingMetric, completedRegressionRuns, pbar);
+                                t = new Thread(() => SafeExecute(() => automlEngine.ExploreRegressionModels(context, trainData, validationData, columnInformation, new RegressionExperimentSettings().OptimizingMetric, wait, regressionHandler, pbar), out ex, pbar));
                                 break;
                             case TaskKind.MulticlassClassification:
-                                t = new Thread(() => SafeExecute(() => automlEngine.ExploreMultiClassificationModels(context, trainData, validationData, columnInformation, new MulticlassExperimentSettings().OptimizingMetric, wait, out completedMulticlassRuns, pbar), out ex, pbar));
+                                multiClassHandler = new ProgressHandlers.MulticlassClassificationHandler(new MulticlassExperimentSettings().OptimizingMetric, completedMulticlassRuns, pbar);
+                                t = new Thread(() => SafeExecute(() => automlEngine.ExploreMultiClassificationModels(context, trainData, validationData, columnInformation, new MulticlassExperimentSettings().OptimizingMetric, wait, multiClassHandler, pbar), out ex, pbar));
                                 break;
                             default:
                                 logger.Log(LogLevel.Error, Strings.UnsupportedMlTask);
@@ -131,8 +138,22 @@ namespace Microsoft.ML.CLI.CodeGenerator
 
                         if (!pbar.CompletedHandle.WaitOne(wait))
                             pbar.Message = $"{nameof(FixedDurationBar)} did not signal {nameof(FixedDurationBar.CompletedHandle)} after {wait}";
-
-                        t.Join();
+                        context.Log -= ConsumeAutoMLSDKLog;
+                        switch (taskKind)
+                        {
+                            case TaskKind.BinaryClassification:
+                                binaryHandler.Stop();
+                                break;
+                            case TaskKind.Regression:
+                                regressionHandler.Stop();
+                                break;
+                            case TaskKind.MulticlassClassification:
+                                multiClassHandler.Stop();
+                                break;
+                            default:
+                                logger.Log(LogLevel.Error, Strings.UnsupportedMlTask);
+                                break;
+                        }
 
                         if (ex != null)
                         {
@@ -142,20 +163,49 @@ namespace Microsoft.ML.CLI.CodeGenerator
                 }
                 else
                 {
+                    Exception ex = null;
+                    Thread t = default;
                     switch (taskKind)
                     {
+                        // TODO: It may be a good idea to convert the below Threads to Tasks or get rid of this progress bar all together and use an existing one in opensource.
                         case TaskKind.BinaryClassification:
-                            automlEngine.ExploreBinaryClassificationModels(context, trainData, validationData, columnInformation, new BinaryExperimentSettings().OptimizingMetric, wait, out completedBinaryRuns);
+                            binaryHandler = new ProgressHandlers.BinaryClassificationHandler(new BinaryExperimentSettings().OptimizingMetric, completedBinaryRuns, null);
+                            t = new Thread(() => SafeExecute(() => automlEngine.ExploreBinaryClassificationModels(context, trainData, validationData, columnInformation, new BinaryExperimentSettings().OptimizingMetric, wait, binaryHandler, null), out ex, null));
                             break;
                         case TaskKind.Regression:
-                            automlEngine.ExploreRegressionModels(context, trainData, validationData, columnInformation, new RegressionExperimentSettings().OptimizingMetric, wait, out completedRegressionRuns);
+                            regressionHandler = new ProgressHandlers.RegressionHandler(new RegressionExperimentSettings().OptimizingMetric, completedRegressionRuns, null);
+                            t = new Thread(() => SafeExecute(() => automlEngine.ExploreRegressionModels(context, trainData, validationData, columnInformation, new RegressionExperimentSettings().OptimizingMetric, wait, regressionHandler, null), out ex, null));
                             break;
                         case TaskKind.MulticlassClassification:
-                            automlEngine.ExploreMultiClassificationModels(context, trainData, validationData, columnInformation, new MulticlassExperimentSettings().OptimizingMetric, wait, out completedMulticlassRuns);
+                            multiClassHandler = new ProgressHandlers.MulticlassClassificationHandler(new MulticlassExperimentSettings().OptimizingMetric, completedMulticlassRuns, null);
+                            t = new Thread(() => SafeExecute(() => automlEngine.ExploreMultiClassificationModels(context, trainData, validationData, columnInformation, new MulticlassExperimentSettings().OptimizingMetric, wait, multiClassHandler, null), out ex, null));
                             break;
                         default:
                             logger.Log(LogLevel.Error, Strings.UnsupportedMlTask);
                             break;
+                    }
+                    t.Start();
+                    Thread.Sleep(wait);
+                    context.Log -= ConsumeAutoMLSDKLog;
+                    switch (taskKind)
+                    {
+                        case TaskKind.BinaryClassification:
+                            binaryHandler.Stop();
+                            break;
+                        case TaskKind.Regression:
+                            regressionHandler.Stop();
+                            break;
+                        case TaskKind.MulticlassClassification:
+                            multiClassHandler.Stop();
+                            break;
+                        default:
+                            logger.Log(LogLevel.Error, Strings.UnsupportedMlTask);
+                            break;
+                    }
+
+                    if (ex != null)
+                    {
+                        throw ex;
                     }
                 }
             }
