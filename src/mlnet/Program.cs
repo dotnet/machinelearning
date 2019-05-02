@@ -7,7 +7,6 @@ using System.CommandLine.Builder;
 using System.CommandLine.Invocation;
 using System.IO;
 using System.Linq;
-using System.Threading;
 using Microsoft.DotNet.Cli.Telemetry;
 using Microsoft.ML.CLI.Commands;
 using Microsoft.ML.CLI.Commands.New;
