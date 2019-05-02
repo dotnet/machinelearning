@@ -27,18 +27,15 @@ namespace Microsoft.ML.CLI.Templates.Console
         {
             this.Write("<Project Sdk=\"Microsoft.NET.Sdk\">\r\n\r\n  <PropertyGroup>\r\n    <TargetFramework>netc" +
                     "oreapp2.1</TargetFramework>\r\n  </PropertyGroup>\r\n  <ItemGroup>\r\n    <PackageRefe" +
-                    "rence Include=\"Microsoft.ML\" Version=\"1.0.0-preview\" />\r\n");
- if(IncludeLightGBMPackage){ 
-            this.Write("    <PackageReference Include=\"Microsoft.ML.LightGBM\" Version=\"1.0.0-preview\" />\r" +
-                    "\n");
+                    "rence Include=\"Microsoft.ML\" Version=\"1.0.0\" />\r\n");
+ if (IncludeLightGBMPackage) { 
+            this.Write("    <PackageReference Include=\"Microsoft.ML.LightGBM\" Version=\"1.0.0\" />\r\n");
 }
- if(IncludeMklComponentsPackage){ 
-            this.Write("    <PackageReference Include=\"Microsoft.ML.Mkl.Components\" Version=\"1.0.0-previe" +
-                    "w\" />\r\n");
+ if (IncludeMklComponentsPackage){ 
+            this.Write("    <PackageReference Include=\"Microsoft.ML.Mkl.Components\" Version=\"1.0.0\" />\r\n");
 }
- if(IncludeFastTreePackage){ 
-            this.Write("    <PackageReference Include=\"Microsoft.ML.FastTree\" Version=\"1.0.0-preview\" />\r" +
-                    "\n");
+ if (IncludeFastTreePackage){ 
+            this.Write("    <PackageReference Include=\"Microsoft.ML.FastTree\" Version=\"1.0.0\" />\r\n");
 }
             this.Write("  </ItemGroup>\r\n\r\n  <ItemGroup>\r\n    <None Update=\"MLModel.zip\">\r\n      <CopyToOu" +
                     "tputDirectory>PreserveNewest</CopyToOutputDirectory>\r\n    </None>\r\n  </ItemGroup" +
