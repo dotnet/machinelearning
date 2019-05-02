@@ -244,7 +244,7 @@ namespace Microsoft.ML.CLI.CodeGenerator
                         }
                         else
                         {
-                            logger.Log(LogLevel.Error, Strings.CouldNotFinshOnTime);
+                            logger.Log(LogLevel.Error, string.Format(Strings.CouldNotFinshOnTime, settings.MaxExplorationTime));
                             logger.Log(LogLevel.Info, Strings.Exiting);
                             return;
                         }
@@ -261,7 +261,7 @@ namespace Microsoft.ML.CLI.CodeGenerator
                         }
                         else
                         {
-                            logger.Log(LogLevel.Error, Strings.CouldNotFinshOnTime);
+                            logger.Log(LogLevel.Error, string.Format(Strings.CouldNotFinshOnTime, settings.MaxExplorationTime));
                             logger.Log(LogLevel.Info, Strings.Exiting);
                             return;
                         }
@@ -278,7 +278,7 @@ namespace Microsoft.ML.CLI.CodeGenerator
                         }
                         else
                         {
-                            logger.Log(LogLevel.Error, Strings.CouldNotFinshOnTime);
+                            logger.Log(LogLevel.Error, string.Format(Strings.CouldNotFinshOnTime, settings.MaxExplorationTime));
                             logger.Log(LogLevel.Info, Strings.Exiting);
                             return;
                         }
@@ -372,7 +372,7 @@ namespace Microsoft.ML.CLI.CodeGenerator
             }
         }
 
-        private void SafeExecute(Func<ExperimentResult<BinaryClassificationMetrics>> p, out Exception ex, FixedDurationBar pbar)
+        private void SafeExecute(Action p, out Exception ex, FixedDurationBar pbar)
         {
             try
             {
@@ -383,36 +383,6 @@ namespace Microsoft.ML.CLI.CodeGenerator
             {
                 ex = e;
                 pbar?.Dispose();
-                return;
-            }
-        }
-
-        private void SafeExecute(Func<ExperimentResult<RegressionMetrics>> p, out Exception ex, FixedDurationBar pbar)
-        {
-            try
-            {
-                p.Invoke();
-                ex = null;
-            }
-            catch (Exception e)
-            {
-                ex = e;
-                pbar?.Dispose();
-                return;
-            }
-        }
-
-        private void SafeExecute(Func<ExperimentResult<MulticlassClassificationMetrics>> p, out Exception ex, FixedDurationBar pbar)
-        {
-            try
-            {
-                p.Invoke();
-                ex = null;
-            }
-            catch (Exception e)
-            {
-                ex = e;
-                pbar?.Dispose(); // or ((ManualResetEvent)pbar.CompletedHandle).Set();
                 return;
             }
         }

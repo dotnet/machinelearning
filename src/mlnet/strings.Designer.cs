@@ -70,7 +70,7 @@ namespace Microsoft.ML.CLI {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Training could not finish in the specified exploration time. Please set the exploration time to a higher value..
+        ///   Looks up a localized string similar to {0} sec was not enough to train at least one model for your dataset. Try with a longer time. Learn about recommended training time at https://aka.ms/cli-trainingtime.
         /// </summary>
         internal static string CouldNotFinshOnTime {
             get {
