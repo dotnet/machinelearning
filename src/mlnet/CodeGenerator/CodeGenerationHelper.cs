@@ -138,6 +138,8 @@ namespace Microsoft.ML.CLI.CodeGenerator
                                 logger.Log(LogLevel.Error, Strings.UnsupportedMlTask);
                                 break;
                         }
+
+                        t.IsBackground = true;
                         t.Start();
 
                         pbar.CompletedHandle.WaitOne(wait);
@@ -187,6 +189,8 @@ namespace Microsoft.ML.CLI.CodeGenerator
                             logger.Log(LogLevel.Error, Strings.UnsupportedMlTask);
                             break;
                     }
+
+                    t.IsBackground = true;
                     t.Start();
                     Thread.Sleep(wait);
                     context.Log -= ConsumeAutoMLSDKLog;

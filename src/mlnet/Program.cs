@@ -20,7 +20,7 @@ namespace Microsoft.ML.CLI
     class Program
     {
         private static Logger logger = LogManager.GetCurrentClassLogger();
-        public static void Main(string[] args)
+        public static int Main(string[] args)
         {
             var telemetry = new MlTelemetry();
             int exitCode = 1;
@@ -101,7 +101,7 @@ namespace Microsoft.ML.CLI
             }
 
             parser.InvokeAsync(parseResult).Wait();
-            Environment.Exit(exitCode);
+            return exitCode;
         }
     }
 }
