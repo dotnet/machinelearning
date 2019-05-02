@@ -28,7 +28,7 @@ namespace Microsoft.ML.CLI.Templates.Console
             this.Write("<Project Sdk=\"Microsoft.NET.Sdk\">\r\n\r\n  <PropertyGroup>\r\n    <TargetFramework>netc" +
                     "oreapp2.1</TargetFramework>\r\n  </PropertyGroup>\r\n  <ItemGroup>\r\n    <PackageRefe" +
                     "rence Include=\"Microsoft.ML\" Version=\"1.0.0\" />\r\n");
- if(IncludeLightGBMPackage){ 
+ if (IncludeLightGBMPackage) { 
             this.Write("    <PackageReference Include=\"Microsoft.ML.LightGBM\" Version=\"1.0.0\" />\r\n");
 }
  if(IncludeMklComponentsPackage){ 
