@@ -101,6 +101,7 @@ namespace Microsoft.ML.CLI
             }
 
             parser.InvokeAsync(parseResult).Wait();
+            Environment.Exit(0);
         }
     }
 }

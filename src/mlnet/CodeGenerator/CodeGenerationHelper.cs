@@ -140,8 +140,7 @@ namespace Microsoft.ML.CLI.CodeGenerator
                         }
                         t.Start();
 
-                        if (!pbar.CompletedHandle.WaitOne(wait))
-                            pbar.Message = $"{nameof(FixedDurationBar)} did not signal {nameof(FixedDurationBar.CompletedHandle)} after {wait}";
+                        pbar.CompletedHandle.WaitOne(wait);
                         context.Log -= ConsumeAutoMLSDKLog;
                         switch (taskKind)
                         {
