@@ -2,7 +2,8 @@
 
   <PropertyGroup>
     <!-- needs to contain all frameworks which src projects wish to restore -->
-    <TargetFrameworks>netstandard2.0</TargetFrameworks>
+    <TargetFramework Condition="'$(UseIntrinsics)' != 'true'">netstandard2.0</TargetFramework>
+    <TargetFrameworks Condition="'$(UseIntrinsics)' == 'true'">netstandard2.0;netcoreapp3.0</TargetFrameworks>
   </PropertyGroup>
 
   <ItemGroup>
@@ -26,6 +27,19 @@
       <_contractReferencePath DependencyPaths="@(_allReferenceDirectories)" />
     </ItemGroup>
     <Error Condition="'@(_contractReferencePath)' == ''" Text="Could not locate $(ContractName)" />
+  </Target>
+
+  <Target Name="Build">
+    <!-- This will override the default Build target. -->
+  </Target>
+  <Target Name="Rebuild">
+    <!-- This will override the default Rebuild target. -->
+  </Target>
+  <Target Name="BuildAndTest">
+    <!-- This will override the default BuildAndTest target. -->
+  </Target>
+  <Target Name="RebuildAndTest">
+    <!-- This will override the default RebuildAndTest target. -->
   </Target>
 
 </Project>
