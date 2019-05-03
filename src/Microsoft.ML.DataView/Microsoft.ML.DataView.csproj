@@ -13,5 +13,5 @@
   <ItemGroup>
     <Compile Include="..\Microsoft.ML.Core\Utilities\ArrayUtils.cs" />
   </ItemGroup>
-
+  
 </Project>

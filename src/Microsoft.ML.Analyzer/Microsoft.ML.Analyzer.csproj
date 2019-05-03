@@ -3,9 +3,6 @@
   <PropertyGroup>
     <TargetFramework>netstandard1.3</TargetFramework>
     <IncludeAnalyzerInPackage>Microsoft.ML</IncludeAnalyzerInPackage>
-
-    <!-- No public surface in this assembly -->
-    <RunApiCompat>false</RunApiCompat>
   </PropertyGroup>
 
   <ItemGroup>
