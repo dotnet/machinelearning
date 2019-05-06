@@ -1,0 +1,42 @@
+﻿<#@ include file="BinaryClassification.ttinclude"#>
+<#+
+string ClassName="LbfgsLogisticRegression";
+string Trainer = "LbfgsLogisticRegression";
+string TrainerOptions = null;
+bool IsCalibrated = true;
+bool CacheData = false;
+
+string LabelThreshold = "0.5f";
+string DataSepValue = "0.1f";
+string OptionsInclude = "";
+string Comments= "";
+
+string ExpectedOutputPerInstance= @"// Expected output:
+            //   Label: True, Prediction: True
+            //   Label: False, Prediction: True
+            //   Label: True, Prediction: True
+            //   Label: True, Prediction: True
+            //   Label: False, Prediction: False";
+
+string ExpectedOutput = @"// Expected output:
+            //   Accuracy: 0.88
+            //   AUC: 0.96
+            //   F1 Score: 0.87
+            //   Negative Precision: 0.90
+            //   Negative Recall: 0.87
+            //   Positive Precision: 0.86
+            //   Positive Recall: 0.89
+            //   Log Loss: 0.38
+            //   Log Loss Reduction: 0.62
+            //   Entropy: 1.00
+            //
+            //   TEST POSITIVE RATIO:    0.4760 (238.0/(238.0+262.0))
+            //   Confusion table
+            //             ||======================
+            //   PREDICTED || positive | negative | Recall
+            //   TRUTH     ||======================
+            //    positive ||      212 |       26 | 0.8908
+            //    negative ||       35 |      227 | 0.8664
+            //             ||======================
+            //   Precision ||   0.8583 |   0.8972 |";
+#>

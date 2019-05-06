@@ -7,7 +7,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading;
-using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.Calibrators;
 using Microsoft.ML.Command;
@@ -15,6 +14,7 @@ using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Model;
+using Microsoft.ML.Runtime;
 using Microsoft.ML.Trainers.FastTree;
 using Microsoft.ML.Transforms;
 
@@ -40,7 +40,7 @@ namespace Microsoft.ML.Trainers.FastTree
 
         private readonly double[][] _binUpperBounds;
         private readonly double[][] _binEffects;
-        private readonly VectorType _inputType;
+        private readonly VectorDataViewType _inputType;
         private readonly DataViewType _outputType;
         // These would be the bins for a totally sparse input.
         private readonly int[] _binsAtAllZero;
@@ -109,7 +109,7 @@ namespace Microsoft.ML.Trainers.FastTree
                 _inputFeatureToShapeFunctionMap[_shapeToInputMap[i]] = i;
             }
 
-            _inputType = new VectorType(NumberDataViewType.Single, _numInputFeatures);
+            _inputType = new VectorDataViewType(NumberDataViewType.Single, _numInputFeatures);
             _outputType = NumberDataViewType.Single;
         }
 
@@ -159,7 +159,7 @@ namespace Microsoft.ML.Trainers.FastTree
                 _shapeToInputMap[val] = key;
             }
 
-            _inputType = new VectorType(NumberDataViewType.Single, _numInputFeatures);
+            _inputType = new VectorDataViewType(NumberDataViewType.Single, _numInputFeatures);
             _outputType = NumberDataViewType.Single;
         }
 
@@ -879,12 +879,12 @@ namespace Microsoft.ML.Trainers.FastTree
                 //  2. RegressionGamModelParameters
                 // For (1), the trained model, GamModelParametersBase, is a field we need to extract. For (2),
                 // we don't need to do anything because RegressionGamModelParameters is derived from GamModelParametersBase.
-                var calibrated = rawPred as CalibratedModelParametersBase<BinaryClassificationGamModelParameters, PlattCalibrator>;
+                var calibrated = rawPred as CalibratedModelParametersBase<GamBinaryModelParameters, PlattCalibrator>;
                 while (calibrated != null)
                 {
                     hadCalibrator = true;
                     rawPred = calibrated.SubModel;
-                    calibrated = rawPred as CalibratedModelParametersBase<BinaryClassificationGamModelParameters, PlattCalibrator>;
+                    calibrated = rawPred as CalibratedModelParametersBase<GamBinaryModelParameters, PlattCalibrator>;
                 }
                 var pred = rawPred as GamModelParametersBase;
                 ch.CheckUserArg(pred != null, nameof(ImplOptions.InputModelFile), "Predictor was not a " + nameof(GamModelParametersBase));

@@ -44,7 +44,7 @@ namespace Microsoft.ML.Tests
         [Fact]
         public void ChangeDetection()
         {
-            var env = new MLContext(conc: 1);
+            var env = new MLContext();
             const int size = 10;
             List<Data> data = new List<Data>(size);
             var dataView = env.Data.LoadFromEnumerable(data);
@@ -85,7 +85,7 @@ namespace Microsoft.ML.Tests
         [LessThanNetCore30OrNotNetCoreFact("netcoreapp3.0 output differs from Baseline")]
         public void ChangePointDetectionWithSeasonality()
         {
-            var env = new MLContext(conc: 1);
+            var env = new MLContext();
             const int ChangeHistorySize = 10;
             const int SeasonalitySize = 10;
             const int NumberOfSeasonsInTraining = 5;
@@ -142,7 +142,7 @@ namespace Microsoft.ML.Tests
 
             List<Data> data = new List<Data>();
 
-            var ml = new MLContext(seed: 1, conc: 1);
+            var ml = new MLContext(seed: 1);
             var dataView = ml.Data.LoadFromEnumerable(data);
 
             for (int j = 0; j < NumberOfSeasonsInTraining; j++)
@@ -179,7 +179,7 @@ namespace Microsoft.ML.Tests
             //with "engine".
             ITransformer model2 = null;
             using (var file = File.OpenRead(modelPath))
-                model2 = TransformerChain.LoadFrom(ml, file);
+                model2 = ml.Model.Load(file, out var schema);
 
             //Raw score after state gets updated with two inputs.
             var engine2 = model2.CreateTimeSeriesPredictionFunction<Data, Prediction>(ml);
@@ -199,7 +199,7 @@ namespace Microsoft.ML.Tests
             engine.CheckPoint(ml, modelPath + 1);
             ITransformer model3 = null;
             using (var file = File.OpenRead(modelPath + 1))
-                model3 = TransformerChain.LoadFrom(ml, file);
+                model3 = ml.Model.Load(file, out var schema);
 
             //Load the model with state updated with just one input, then pass in the second input
             //and raw score should match the raw score obtained by passing the two input in the first model.
@@ -218,7 +218,7 @@ namespace Microsoft.ML.Tests
 
             List<Data> data = new List<Data>();
 
-            var ml = new MLContext(seed: 1, conc: 1);
+            var ml = new MLContext(seed: 1);
             var dataView = ml.Data.LoadFromEnumerable(data);
 
             for (int j = 0; j < NumberOfSeasonsInTraining; j++)
@@ -266,7 +266,7 @@ namespace Microsoft.ML.Tests
             // Load Model 1.
             ITransformer model2 = null;
             using (var file = File.OpenRead(modelPath))
-                model2 = TransformerChain.LoadFrom(ml, file);
+                model2 = ml.Model.Load(file, out var schema);
 
             //Predict and expect the same result after checkpointing(Prediction #2).
             engine = model2.CreateTimeSeriesPredictionFunction<Data, Prediction>(ml);

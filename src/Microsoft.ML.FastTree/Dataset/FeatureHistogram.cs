@@ -4,6 +4,7 @@
 
 using System;
 using System.Linq;
+using Microsoft.ML.Runtime;
 
 namespace Microsoft.ML.Trainers.FastTree
 {
@@ -56,7 +57,7 @@ namespace Microsoft.ML.Trainers.FastTree
         {
             return sizeof(int) // NumberFeatureValues
                 + sizeof(int) // the IsSplittable boolean value. Although sizeof(bool) is 1,
-                // but we just estimate it as 4 for alignment
+                              // but we just estimate it as 4 for alignment
                 + 8 // size of reference to _feature in 64 bit machines.
                 + sizeof(int) * numBins // CountByBin
                 + sizeof(FloatType) * numBins // SumTargetsByBin

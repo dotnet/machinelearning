@@ -5,6 +5,7 @@
 using System;
 using System.Runtime.InteropServices;
 using System.Security;
+using Microsoft.ML.Runtime;
 
 namespace Microsoft.ML.Transforms.TimeSeries
 {

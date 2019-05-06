@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using Microsoft.ML.Data;
 using Microsoft.ML.EntryPoints;
+using Microsoft.ML.Runtime;
 
 namespace Microsoft.ML.Trainers.Ensemble
 {
@@ -39,7 +40,7 @@ namespace Microsoft.ML.Trainers.Ensemble
     }
 
     [TlcModule.ComponentKind("EnsembleBinarySubModelSelector")]
-    internal interface ISupportBinarySubModelSelectorFactory: IComponentFactory<IBinarySubModelSelector>
+    internal interface ISupportBinarySubModelSelectorFactory : IComponentFactory<IBinarySubModelSelector>
     {
 
     }

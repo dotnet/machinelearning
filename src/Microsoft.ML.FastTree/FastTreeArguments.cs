@@ -6,9 +6,10 @@ using System;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Internal.Internallearn;
+using Microsoft.ML.Runtime;
 using Microsoft.ML.Trainers.FastTree;
 
-[assembly: EntryPointModule(typeof(FastTreeBinaryClassificationTrainer.Options))]
+[assembly: EntryPointModule(typeof(FastTreeBinaryTrainer.Options))]
 [assembly: EntryPointModule(typeof(FastTreeRegressionTrainer.Options))]
 [assembly: EntryPointModule(typeof(FastTreeTweedieTrainer.Options))]
 [assembly: EntryPointModule(typeof(FastTreeRankingTrainer.Options))]
@@ -50,15 +51,19 @@ namespace Microsoft.ML.Trainers.FastTree
         NdcgAt3 = 3
     }
 
-    /// <include file='doc.xml' path='doc/members/member[@name="FastTree"]/*' />
-    public sealed partial class FastTreeBinaryClassificationTrainer
+    // XML docs are provided in the other part of this partial class. No need to duplicate the content here.
+    public sealed partial class FastTreeBinaryTrainer
     {
+        /// <summary>
+        /// Options for the <see cref="FastTreeBinaryTrainer"/> as used in
+        /// [FastTree(Options)](xref:"Microsoft.ML.TreeExtensions.FastTree(Microsoft.ML.BinaryClassificationCatalog.BinaryClassificationTrainers,Microsoft.ML.Trainers.FastTree.FastTreeBinaryTrainer.Options)).
+        /// </summary>
         [TlcModule.Component(Name = LoadNameValue, FriendlyName = UserNameValue, Desc = Summary)]
         public sealed class Options : BoostedTreeOptions, IFastTreeTrainerFactory
         {
 
             /// <summary>
-            /// Option for using derivatives optimized for unbalanced sets.
+            /// Whether to use derivatives optimized for unbalanced training data.
             /// </summary>
             [Argument(ArgumentType.LastOccurenceWins, HelpText = "Option for using derivatives optimized for unbalanced sets", ShortName = "us")]
             [TGUI(Label = "Optimize for unbalanced")]
@@ -89,18 +94,26 @@ namespace Microsoft.ML.Trainers.FastTree
                 }
             }
 
+            /// <summary>
+            /// Create a new <see cref="Options"/> object with default values.
+            /// </summary>
             public Options()
             {
                 // Use L1 by default.
                 EarlyStoppingMetric = EarlyStoppingMetric.L1Norm;
             }
 
-            ITrainer IComponentFactory<ITrainer>.CreateComponent(IHostEnvironment env) => new FastTreeBinaryClassificationTrainer(env, this);
+            ITrainer IComponentFactory<ITrainer>.CreateComponent(IHostEnvironment env) => new FastTreeBinaryTrainer(env, this);
         }
     }
 
+    // XML docs are provided in the other part of this partial class. No need to duplicate the content here.
     public sealed partial class FastTreeRegressionTrainer
     {
+        /// <summary>
+        /// Options for the <see cref="FastTreeRegressionTrainer"/> as used in
+        /// [FastTree(Options)](xref:Microsoft.ML.TreeExtensions.FastTree(Microsoft.ML.RegressionCatalog.RegressionTrainers,Microsoft.ML.Trainers.FastTree.FastTreeRegressionTrainer.Options)).
+        /// </summary>
         [TlcModule.Component(Name = LoadNameValue, FriendlyName = UserNameValue, Desc = Summary)]
         public sealed class Options : BoostedTreeOptions, IFastTreeTrainerFactory
         {
@@ -126,6 +139,9 @@ namespace Microsoft.ML.Trainers.FastTree
                 }
             }
 
+            /// <summary>
+            /// Create a new <see cref="Options"/> object with default values.
+            /// </summary>
             public Options()
             {
                 EarlyStoppingMetric = EarlyStoppingMetric.L1Norm; // Use L1 by default.
@@ -135,14 +151,23 @@ namespace Microsoft.ML.Trainers.FastTree
         }
     }
 
+    // XML docs are provided in the other part of this partial class. No need to duplicate the content here.
     public sealed partial class FastTreeTweedieTrainer
     {
+        /// <summary>
+        /// Options for the <see cref="FastTreeTweedieTrainer"/> as used in
+        /// [FastTreeTweedie(Options)](xref:Microsoft.ML.TreeExtensions.FastTreeTweedie(Microsoft.ML.RegressionCatalog.RegressionTrainers,Microsoft.ML.Trainers.FastTree.FastTreeTweedieTrainer.Options)).
+        /// </summary>
         [TlcModule.Component(Name = LoadNameValue, FriendlyName = UserNameValue, Desc = Summary)]
         public sealed class Options : BoostedTreeOptions, IFastTreeTrainerFactory
         {
             // REVIEW: It is possible to estimate this index parameter from the distribution of data, using
             // a combination of univariate optimization and grid search, following section 4.2 of the paper. However
             // it is probably not worth doing unless and until explicitly asked for.
+            /// <summary>
+            /// The index parameter for the Tweedie distribution, in the range [1, 2]. 1 is Poisson loss, 2 is gamma loss,
+            /// and intermediate values are compound Poisson loss.
+            /// </summary>
             [Argument(ArgumentType.LastOccurenceWins, HelpText =
                 "Index parameter for the Tweedie distribution, in the range [1, 2]. 1 is Poisson loss, 2 is gamma loss, " +
                 "and intermediate values are compound Poisson loss.")]
@@ -173,6 +198,9 @@ namespace Microsoft.ML.Trainers.FastTree
                 }
             }
 
+            /// <summary>
+            /// Create a new <see cref="Options"/> object with default values.
+            /// </summary>
             public Options()
             {
                 EarlyStoppingMetric = EarlyStoppingMetric.L1Norm; // Use L1 by default.
@@ -182,15 +210,26 @@ namespace Microsoft.ML.Trainers.FastTree
         }
     }
 
+    // XML docs are provided in the other part of this partial class. No need to duplicate the content here.
     public sealed partial class FastTreeRankingTrainer
     {
+        /// <summary>
+        /// Options for the <see cref="FastTreeRankingTrainer"/> as used in
+        /// [FastTree(Options)](xref:Microsoft.ML.TreeExtensions.FastTree(Microsoft.ML.RankingCatalog.RankingTrainers,Microsoft.ML.Trainers.FastTree.FastTreeRankingTrainer.Options)).
+        /// </summary>
         [TlcModule.Component(Name = LoadNameValue, FriendlyName = UserNameValue, Desc = Summary)]
         public sealed class Options : BoostedTreeOptions, IFastTreeTrainerFactory
         {
-            [Argument(ArgumentType.LastOccurenceWins, HelpText = "Comma seperated list of gains associated to each relevance label.", ShortName = "gains")]
+            /// <summary>
+            /// Comma-separated list of gains associated with each relevance label.
+            /// </summary>
+            [Argument(ArgumentType.LastOccurenceWins, HelpText = "Comma-separated list of gains associated to each relevance label.", ShortName = "gains")]
             [TGUI(NoSweep = true)]
             public double[] CustomGains = new double[] { 0, 3, 7, 15, 31 };
 
+            /// <summary>
+            /// Whether to train using discounted cumulative gain (DCG) instead of normalized DCG (NDCG).
+            /// </summary>
             [Argument(ArgumentType.LastOccurenceWins, HelpText = "Train DCG instead of NDCG", ShortName = "dcg")]
             public bool UseDcg;
 
@@ -203,7 +242,11 @@ namespace Microsoft.ML.Trainers.FastTree
             [TGUI(NotGui = true)]
             internal string SortingAlgorithm = "DescendingStablePessimistic";
 
-            [Argument(ArgumentType.AtMostOnce, HelpText = "max-NDCG truncation to use in the Lambda Mart algorithm", ShortName = "n", Hide = true)]
+            /// <summary>
+            /// The maximum NDCG truncation to use in the
+            /// <a href="https://www.microsoft.com/en-us/research/wp-content/uploads/2016/02/MSR-TR-2010-82.pdf">LambdaMAR algorithm</a>.
+            /// </summary>
+            [Argument(ArgumentType.AtMostOnce, HelpText = "max-NDCG truncation to use in the LambdaMART algorithm", ShortName = "n", Hide = true)]
             [TGUI(NotGui = true)]
             public int NdcgTruncationLevel = 100;
 
@@ -252,6 +295,9 @@ namespace Microsoft.ML.Trainers.FastTree
                 }
             }
 
+            /// <summary>
+            /// Create a new <see cref="Options"/> object with default values.
+            /// </summary>
             public Options()
             {
                 EarlyStoppingMetric = EarlyStoppingRankingMetric.NdcgAt1; // Use L1 by default.
@@ -294,6 +340,9 @@ namespace Microsoft.ML.Trainers.FastTree
         public const double LearningRate = 0.2;
     }
 
+    /// <summary>
+    /// Options for tree trainers.
+    /// </summary>
     public abstract class TreeOptions : TrainerInputBaseWithGroupId
     {
         /// <summary>
@@ -427,11 +476,13 @@ namespace Microsoft.ML.Trainers.FastTree
         [Argument(ArgumentType.LastOccurenceWins, HelpText = "The feature re-use penalty (regularization) coefficient", ShortName = "frup")]
         public Double FeatureReusePenalty;
 
-        /// Only consider a gain if its likelihood versus a random choice gain is above a certain value.
-        /// So 0.95 would mean restricting to gains that have less than a 0.05 change of being generated randomly through choice of a random split.
         /// <summary>
-        /// Tree fitting gain confidence requirement (should be in the range [0,1) ).
+        /// Tree fitting gain confidence requirement. Only consider a gain if its likelihood versus a random choice gain is above this value.
         /// </summary>
+        /// <value>
+        /// Value of 0.95 would mean restricting to gains that have less than a 0.05 chance of being generated randomly through choice of a random split.
+        /// Valid range is [0,1).
+        /// </value>
         [Argument(ArgumentType.LastOccurenceWins, HelpText = "Tree fitting gain confidence requirement (should be in the range [0,1) ).", ShortName = "gainconf")]
         public Double GainConfidenceLevel;
 
@@ -457,7 +508,7 @@ namespace Microsoft.ML.Trainers.FastTree
         public int NumberOfLeaves = Defaults.NumberOfLeaves;
 
         /// <summary>
-        /// The minimal number of examples allowed in a leaf of a regression tree, out of the subsampled data.
+        /// The minimal number of data points required to form a new tree leaf.
         /// </summary>
         // REVIEW: Arrays not supported in GUI
         // REVIEW: Different shortname than FastRank module. Same as the TLC FRWrapper.
@@ -477,6 +528,7 @@ namespace Microsoft.ML.Trainers.FastTree
 
         /// <summary>
         /// The fraction of features (chosen randomly) to use on each iteration. Use 0.9 if only 90% of features is needed.
+        /// Lower numbers help reduce over-fitting.
         /// </summary>
         [Argument(ArgumentType.AtMostOnce, HelpText = "The fraction of features (chosen randomly) to use on each iteration", ShortName = "ff")]
         public Double FeatureFraction = 1;
@@ -581,6 +633,9 @@ namespace Microsoft.ML.Trainers.FastTree
         }
     }
 
+    /// <summary>
+    /// Options for boosting tree trainers.
+    /// </summary>
     public abstract class BoostedTreeOptions : TreeOptions
     {
         // REVIEW: TLC FR likes to call it bestStepRegressionTrees which might be more appropriate.
@@ -593,7 +648,7 @@ namespace Microsoft.ML.Trainers.FastTree
         public bool BestStepRankingRegressionTrees = false;
 
         /// <summary>
-        /// Should we use line search for a step size.
+        /// Determines whether to use line search for a step size.
         /// </summary>
         [Argument(ArgumentType.LastOccurenceWins, HelpText = "Should we use line search for a step size", ShortName = "ls")]
         public bool UseLineSearch;
@@ -610,20 +665,46 @@ namespace Microsoft.ML.Trainers.FastTree
         [Argument(ArgumentType.LastOccurenceWins, HelpText = "Minimum line search step size", ShortName = "minstep")]
         public Double MinimumStepSize;
 
+        /// <summary>
+        /// Types of optimization algorithms.
+        /// </summary>
         public enum OptimizationAlgorithmType { GradientDescent, AcceleratedGradientDescent, ConjugateGradientDescent };
 
         /// <summary>
-        /// Optimization algorithm to be used (GradientDescent, AcceleratedGradientDescent).
+        /// Optimization algorithm to be used.
         /// </summary>
+        /// <value>
+        /// See <see cref="OptimizationAlgorithmType"/> for available optimizers.
+        /// </value>
         [Argument(ArgumentType.LastOccurenceWins, HelpText = "Optimization algorithm to be used (GradientDescent, AcceleratedGradientDescent)", ShortName = "oa")]
         public OptimizationAlgorithmType OptimizationAlgorithm = OptimizationAlgorithmType.GradientDescent;
 
         /// <summary>
         /// Early stopping rule. (Validation set (/valid) is required).
         /// </summary>
-        [Argument(ArgumentType.Multiple, HelpText = "Early stopping rule. (Validation set (/valid) is required.)", ShortName = "esr", NullName = "<Disable>")]
+        [BestFriend]
+        [Argument(ArgumentType.Multiple, HelpText = "Early stopping rule. (Validation set (/valid) is required.)", Name = "EarlyStoppingRule", ShortName = "esr", NullName = "<Disable>")]
         [TGUI(Label = "Early Stopping Rule", Description = "Early stopping rule. (Validation set (/valid) is required.)")]
-        public IEarlyStoppingCriterionFactory EarlyStoppingRule;
+        internal IEarlyStoppingCriterionFactory EarlyStoppingRuleFactory;
+
+        /// <summary>
+        /// The underlying state of <see cref="EarlyStoppingRuleFactory"/> and <see cref="EarlyStoppingRule"/>.
+        /// </summary>
+        private EarlyStoppingRuleBase _earlyStoppingRuleBase;
+
+        /// <summary>
+        /// Early stopping rule used to terminate training process once meeting a specified criterion. Possible choices are
+        /// <see cref="EarlyStoppingRuleBase"/>'s implementations such as <see cref="TolerantEarlyStoppingRule"/> and <see cref="GeneralityLossRule"/>.
+        /// </summary>
+        public EarlyStoppingRuleBase EarlyStoppingRule
+        {
+            get { return _earlyStoppingRuleBase;  }
+            set
+            {
+                _earlyStoppingRuleBase = value;
+                EarlyStoppingRuleFactory = _earlyStoppingRuleBase.BuildFactory();
+            }
+        }
 
         /// <summary>
         /// Early stopping metrics. (For regression, 1: L1, 2:L2; for ranking, 1:NDCG@1, 3:NDCG@3).
@@ -634,7 +715,7 @@ namespace Microsoft.ML.Trainers.FastTree
         internal int EarlyStoppingMetrics;
 
         /// <summary>
-        /// Enable post-training pruning to avoid overfitting. (a validation set is required).
+        /// Enable post-training tree pruning to avoid overfitting. It requires a validation set.
         /// </summary>
         [Argument(ArgumentType.AtMostOnce, HelpText = "Enable post-training pruning to avoid overfitting. (a validation set is required)", ShortName = "pruning")]
         public bool EnablePruning;

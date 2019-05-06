@@ -35,7 +35,7 @@ Precision ||   0.9798 |   0.9652 |
 OVERALL 0/1 ACCURACY: 0.969605
 LOG LOSS/instance:  0.220291
 Test-set entropy (prior Log-Loss/instance): 0.903454
-LOG-LOSS REDUCTION (RIG): 75.616820
+LOG-LOSS REDUCTION (RIG): 0.756168
 AUC:                0.997491
 
 OVERALL RESULTS

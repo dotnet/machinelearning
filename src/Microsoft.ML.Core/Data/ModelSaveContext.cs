@@ -6,15 +6,18 @@ using System;
 using System.IO;
 using System.Text;
 using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Runtime;
 
 namespace Microsoft.ML
 {
     /// <summary>
-    /// This is a convenience context object for saving models to a repository, for
-    /// implementors of <see cref="ICanSaveModel"/>. It is not mandated but designed to reduce the
-    /// amount of boiler plate code. It can also be used when saving to a single stream,
-    /// for implementors of <see cref="ICanSaveInBinaryFormat"/>.
+    /// Convenience context object for saving models to a repository, for
+    /// implementors of <see cref="ICanSaveModel"/>.
     /// </summary>
+    /// <remarks>
+    /// This class reduces the amount of boiler plate code needed to implement <see cref="ICanSaveModel"/>.
+    /// It can also be used when saving to a single stream, for implementors of <see cref="ICanSaveInBinaryFormat"/>.
+    /// </remarks>
     public sealed partial class ModelSaveContext : IDisposable
     {
         /// <summary>

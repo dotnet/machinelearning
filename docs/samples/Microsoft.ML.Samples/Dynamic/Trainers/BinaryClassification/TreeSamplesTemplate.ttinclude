@@ -1,0 +1,9 @@
+﻿<#@ include file="BinaryClassification.ttinclude"#>
+<#+
+string LabelThreshold = "0.5f";
+string DataSepValue = "0.03f";
+string OptionsInclude = "using Microsoft.ML.Trainers.FastTree;";
+string Comments= @"
+        // This example requires installation of additional NuGet package
+        // <a href=""https://www.nuget.org/packages/Microsoft.ML.FastTree/"">Microsoft.ML.FastTree</a>.";
+#>

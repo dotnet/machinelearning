@@ -22,10 +22,10 @@ namespace Microsoft.ML.Analyzer.Tests
         public async Task ReturnTypeIsSchemaShape()
         {
             var expected = new DiagnosticResult[] {
-                VerifyCS.Diagnostic(TypeIsSchemaShapeAnalyzer.ShapeDiagnostic.Rule).WithLocation(23, 13).WithArguments(""),
-                VerifyCS.Diagnostic(TypeIsSchemaShapeAnalyzer.ShapeDiagnostic.Rule).WithLocation(24, 13).WithArguments(" of item bad"),
-                VerifyCS.Diagnostic(TypeIsSchemaShapeAnalyzer.ShapeDiagnostic.Rule).WithLocation(30, 13).WithArguments(" of item c.Item2"),
-                VerifyCS.Diagnostic(TypeIsSchemaShapeAnalyzer.ShapeDiagnostic.Rule).WithLocation(40, 13).WithArguments(" of item listen"),
+                VerifyCS.Diagnostic(TypeIsSchemaShapeAnalyzer.ShapeDiagnostic.Rule).WithLocation(24, 13).WithArguments(""),
+                VerifyCS.Diagnostic(TypeIsSchemaShapeAnalyzer.ShapeDiagnostic.Rule).WithLocation(25, 13).WithArguments(" of item bad"),
+                VerifyCS.Diagnostic(TypeIsSchemaShapeAnalyzer.ShapeDiagnostic.Rule).WithLocation(31, 13).WithArguments(" of item c.Item2"),
+                VerifyCS.Diagnostic(TypeIsSchemaShapeAnalyzer.ShapeDiagnostic.Rule).WithLocation(41, 13).WithArguments(" of item listen"),
             };
 
             var test = new VerifyCS.Test { TestCode = Source };
@@ -45,10 +45,10 @@ namespace Microsoft.ML.Analyzer.Tests
             // function where the shape type is a generic type parameter. In this case, we would ideally like the analysis to get
             // chained out of their function.
             var expected = new DiagnosticResult[] {
-                VerifyCS.Diagnostic(TypeIsSchemaShapeAnalyzer.ShapeParameterDiagnostic.Rule).WithLocation(18, 24).WithArguments("T"),
-                new DiagnosticResult("CS8205", DiagnosticSeverity.Error).WithLocation(21, 52).WithMessage("Attributes are not allowed on local function parameters or type parameters"),
-                VerifyCS.Diagnostic(TypeIsSchemaShapeAnalyzer.ShapeParameterDiagnostic.Rule).WithLocation(41, 24).WithArguments("T"),
-                VerifyCS.Diagnostic(TypeIsSchemaShapeAnalyzer.ShapeDiagnostic.Rule).WithLocation(55, 26).WithArguments(" of item text"),
+                VerifyCS.Diagnostic(TypeIsSchemaShapeAnalyzer.ShapeParameterDiagnostic.Rule).WithLocation(19, 24).WithArguments("T"),
+                new DiagnosticResult("CS8205", DiagnosticSeverity.Error).WithLocation(22, 52).WithMessage("Attributes are not allowed on local function parameters or type parameters"),
+                VerifyCS.Diagnostic(TypeIsSchemaShapeAnalyzer.ShapeParameterDiagnostic.Rule).WithLocation(42, 24).WithArguments("T"),
+                VerifyCS.Diagnostic(TypeIsSchemaShapeAnalyzer.ShapeDiagnostic.Rule).WithLocation(56, 26).WithArguments(" of item text"),
             };
 
             var test = new VerifyCS.Test { TestCode = SourceChained };

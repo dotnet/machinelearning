@@ -6,8 +6,8 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
-using Microsoft.Data.DataView;
 using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Runtime;
 
 namespace Microsoft.ML.Data
 {
@@ -64,13 +64,13 @@ namespace Microsoft.ML.Data
 
         private Action<RowInfo, List<object>> MakeSetter<T>(DataViewRow row, int col)
         {
-            var getter = row.GetGetter<T>(col);
-            string name = row.Schema[col].Name;
+            var column = row.Schema[col];
+            var getter = row.GetGetter<T>(column);
             Action<RowInfo, List<object>> result = (rowInfo, list) =>
             {
                 T value = default;
                 getter(ref value);
-                rowInfo.Values[col] = new KeyValuePair<string, object>(name, value);
+                rowInfo.Values[col] = new KeyValuePair<string, object>(column.Name, value);
 
                 // Call getter again on another buffer, since we store it in two places.
                 value = default;

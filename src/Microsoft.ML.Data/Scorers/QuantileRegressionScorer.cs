@@ -4,11 +4,11 @@
 
 using System;
 using System.Linq;
-using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
 using Microsoft.ML.Model;
+using Microsoft.ML.Runtime;
 
 [assembly: LoadableClass(typeof(IDataScorerTransform), typeof(QuantileRegressionScorerTransform), typeof(QuantileRegressionScorerTransform.Arguments),
     typeof(SignatureDataScorer), "Quantile Regression Scorer", "QuantileRegressionScorer", AnnotationUtils.Const.ScoreColumnKind.QuantileRegression)]

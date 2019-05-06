@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using Microsoft.ML.Runtime;
 using Microsoft.ML.Transforms;
 
 namespace Microsoft.ML.StaticPipe
@@ -38,13 +39,13 @@ namespace Microsoft.ML.StaticPipe
         /// Because the empty string is never entered into the dictionary, it will always map to the missing key.
         /// </summary>
         /// <param name="input">The input column.</param>
-        /// <param name="order">The ordering policy for what order values will appear in the enumerated set.</param>
+        /// <param name="keyOrdinality">The ordering policy for what order values will appear in the enumerated set.</param>
         /// <param name="maxItems">The maximum number of items.</param>
         /// <param name="onFit">Called upon fitting with the learnt enumeration on the dataset.</param>
         /// <returns>The key-valued column.</returns>
         public static Key<uint, string> ToKey(this Scalar<string> input,
-                KeyValueOrder order = DefSort, int maxItems = DefMax, ToKeyFitResult<ReadOnlyMemory<char>>.OnFit onFit = null)
-            => new ImplScalar<string>(Contracts.CheckRef(input, nameof(input)), new Config(order, maxItems, Wrap(onFit)));
+                KeyOrdinality keyOrdinality = DefSort, int maxItems = DefMax, ToKeyFitResult<ReadOnlyMemory<char>>.OnFit onFit = null)
+            => new ImplScalar<string>(Contracts.CheckRef(input, nameof(input)), new Config(keyOrdinality, maxItems, Wrap(onFit)));
 
         /// <summary>
         /// Map values to a key-value representation, where the key type's values are those values observed in the input
@@ -52,13 +53,13 @@ namespace Microsoft.ML.StaticPipe
         /// Because the empty string is never entered into the dictionary, it will always map to the missing key.
         /// </summary>
         /// <param name="input">The input column.</param>
-        /// <param name="order">The ordering policy for what order values will appear in the enumerated set.</param>
+        /// <param name="keyOrdinality">The ordering policy for what order values will appear in the enumerated set.</param>
         /// <param name="maxItems">The maximum number of items.</param>
         /// <param name="onFit">Called upon fitting with the learnt enumeration on the dataset.</param>
         /// <returns>The key-valued column.</returns>
         public static Vector<Key<uint, string>> ToKey(this Vector<string> input,
-                KeyValueOrder order = DefSort, int maxItems = DefMax, ToKeyFitResult<ReadOnlyMemory<char>>.OnFit onFit = null)
-            => new ImplVector<string>(Contracts.CheckRef(input, nameof(input)), new Config(order, maxItems, Wrap(onFit)));
+                KeyOrdinality keyOrdinality = DefSort, int maxItems = DefMax, ToKeyFitResult<ReadOnlyMemory<char>>.OnFit onFit = null)
+            => new ImplVector<string>(Contracts.CheckRef(input, nameof(input)), new Config(keyOrdinality, maxItems, Wrap(onFit)));
 
         /// <summary>
         /// Map values to a key-value representation, where the key type's values are those values observed in the input
@@ -66,13 +67,13 @@ namespace Microsoft.ML.StaticPipe
         /// Because the empty string is never entered into the dictionary, it will always map to the missing key.
         /// </summary>
         /// <param name="input">The input column.</param>
-        /// <param name="order">The ordering policy for what order values will appear in the enumerated set.</param>
+        /// <param name="keyOrdinality">The ordering policy for what order values will appear in the enumerated set.</param>
         /// <param name="maxItems">The maximum number of items.</param>
         /// <param name="onFit">Called upon fitting with the learnt enumeration on the dataset.</param>
         /// <returns>The key-valued column.</returns>
         public static VarVector<Key<uint, string>> ToKey(this VarVector<string> input,
-                KeyValueOrder order = DefSort, int maxItems = DefMax, ToKeyFitResult<ReadOnlyMemory<char>>.OnFit onFit = null)
-            => new ImplVarVector<string>(Contracts.CheckRef(input, nameof(input)), new Config(order, maxItems, Wrap(onFit)));
+                KeyOrdinality keyOrdinality = DefSort, int maxItems = DefMax, ToKeyFitResult<ReadOnlyMemory<char>>.OnFit onFit = null)
+            => new ImplVarVector<string>(Contracts.CheckRef(input, nameof(input)), new Config(keyOrdinality, maxItems, Wrap(onFit)));
 
         /// <summary>
         /// Map values to a key-value representation, where the key type's values are those values observed in the input
@@ -83,13 +84,13 @@ namespace Microsoft.ML.StaticPipe
         /// will be a subset of the key-values in the input.
         /// </summary>
         /// <param name="input">The input column.</param>
-        /// <param name="order">The ordering policy for what order values will appear in the enumerated set.</param>
+        /// <param name="keyOrdinality">The ordering policy for what order values will appear in the enumerated set.</param>
         /// <param name="maxItems">The maximum number of items.</param>
         /// <param name="onFit">Called upon fitting with the learnt enumeration on the dataset.</param>
         /// <returns>The key-valued column.</returns>
         public static Key<uint, string> ToKey<T>(this Key<T, string> input,
-                KeyValueOrder order = DefSort, int maxItems = DefMax, ToKeyFitResult<ReadOnlyMemory<char>>.OnFit onFit = null)
-            => new ImplScalar<string>(Contracts.CheckRef(input, nameof(input)), new Config(order, maxItems, Wrap(onFit)));
+                KeyOrdinality keyOrdinality = DefSort, int maxItems = DefMax, ToKeyFitResult<ReadOnlyMemory<char>>.OnFit onFit = null)
+            => new ImplScalar<string>(Contracts.CheckRef(input, nameof(input)), new Config(keyOrdinality, maxItems, Wrap(onFit)));
 
         /// <summary>
         /// Map values to a key-value representation, where the key type's values are those values observed in the input
@@ -100,13 +101,13 @@ namespace Microsoft.ML.StaticPipe
         /// will be a subset of the key-values in the input.
         /// </summary>
         /// <param name="input">The input column.</param>
-        /// <param name="order">The ordering policy for what order values will appear in the enumerated set.</param>
+        /// <param name="keyOrdinality">The ordering policy for what order values will appear in the enumerated set.</param>
         /// <param name="maxItems">The maximum number of items.</param>
         /// <param name="onFit">Called upon fitting with the learnt enumeration on the dataset.</param>
         /// <returns>The key-valued column.</returns>
         public static Vector<Key<uint, string>> ToKey<T>(this Vector<Key<T, string>> input,
-                KeyValueOrder order = DefSort, int maxItems = DefMax, ToKeyFitResult<ReadOnlyMemory<char>>.OnFit onFit = null)
-            => new ImplVector<string>(Contracts.CheckRef(input, nameof(input)), new Config(order, maxItems, Wrap(onFit)));
+                KeyOrdinality keyOrdinality = DefSort, int maxItems = DefMax, ToKeyFitResult<ReadOnlyMemory<char>>.OnFit onFit = null)
+            => new ImplVector<string>(Contracts.CheckRef(input, nameof(input)), new Config(keyOrdinality, maxItems, Wrap(onFit)));
 
         /// <summary>
         /// Map values to a key-value representation, where the key type's values are those values observed in the input
@@ -117,13 +118,13 @@ namespace Microsoft.ML.StaticPipe
         /// will be a subset of the key-values in the input.
         /// </summary>
         /// <param name="input">The input column.</param>
-        /// <param name="order">The ordering policy for what order values will appear in the enumerated set.</param>
+        /// <param name="keyOrdinality">The ordering policy for what order values will appear in the enumerated set.</param>
         /// <param name="maxItems">The maximum number of items.</param>
         /// <param name="onFit">Called upon fitting with the learnt enumeration on the dataset.</param>
         /// <returns>The key-valued column.</returns>
         public static VarVector<Key<uint, string>> ToKey<T>(this VarVector<Key<T, string>> input,
-                KeyValueOrder order = DefSort, int maxItems = DefMax, ToKeyFitResult<ReadOnlyMemory<char>>.OnFit onFit = null)
-            => new ImplVarVector<string>(Contracts.CheckRef(input, nameof(input)), new Config(order, maxItems, Wrap(onFit)));
+                KeyOrdinality keyOrdinality = DefSort, int maxItems = DefMax, ToKeyFitResult<ReadOnlyMemory<char>>.OnFit onFit = null)
+            => new ImplVarVector<string>(Contracts.CheckRef(input, nameof(input)), new Config(keyOrdinality, maxItems, Wrap(onFit)));
         #endregion
 
         #region For float inputs.
@@ -133,13 +134,13 @@ namespace Microsoft.ML.StaticPipe
         /// Because <c>NaN</c> floating point values are never entered into the dictionary, and they will always map to the missing key.
         /// </summary>
         /// <param name="input">The input column.</param>
-        /// <param name="order">The ordering policy for what order values will appear in the enumerated set.</param>
+        /// <param name="keyOrdinality">The ordering policy for what order values will appear in the enumerated set.</param>
         /// <param name="maxItems">The maximum number of items.</param>
         /// <param name="onFit">Called upon fitting with the learnt enumeration on the dataset.</param>
         /// <returns>The key-valued column.</returns>
         public static Key<uint, float> ToKey(this Scalar<float> input,
-                KeyValueOrder order = DefSort, int maxItems = DefMax, ToKeyFitResult<float>.OnFit onFit = null)
-            => new ImplScalar<float>(Contracts.CheckRef(input, nameof(input)), new Config(order, maxItems, Wrap(onFit)));
+                KeyOrdinality keyOrdinality = DefSort, int maxItems = DefMax, ToKeyFitResult<float>.OnFit onFit = null)
+            => new ImplScalar<float>(Contracts.CheckRef(input, nameof(input)), new Config(keyOrdinality, maxItems, Wrap(onFit)));
 
         /// <summary>
         /// Map values to a key-value representation, where the key type's values are those values observed in the input
@@ -149,13 +150,13 @@ namespace Microsoft.ML.StaticPipe
         /// implication in that case is that sparse input numeric vectors will map to dense output key vectors.
         /// </summary>
         /// <param name="input">The input column.</param>
-        /// <param name="order">The ordering policy for what order values will appear in the enumerated set.</param>
+        /// <param name="keyOrdinality">The ordering policy for what order values will appear in the enumerated set.</param>
         /// <param name="maxItems">The maximum number of items.</param>
         /// <param name="onFit">Called upon fitting with the learnt enumeration on the dataset.</param>
         /// <returns>The key-valued column.</returns>
         public static Vector<Key<uint, float>> ToKey(this Vector<float> input,
-                KeyValueOrder order = DefSort, int maxItems = DefMax, ToKeyFitResult<float>.OnFit onFit = null)
-            => new ImplVector<float>(Contracts.CheckRef(input, nameof(input)), new Config(order, maxItems, Wrap(onFit)));
+                KeyOrdinality keyOrdinality = DefSort, int maxItems = DefMax, ToKeyFitResult<float>.OnFit onFit = null)
+            => new ImplVector<float>(Contracts.CheckRef(input, nameof(input)), new Config(keyOrdinality, maxItems, Wrap(onFit)));
 
         /// <summary>
         /// Map values to a key-value representation, where the key type's values are those values observed in the input
@@ -165,13 +166,13 @@ namespace Microsoft.ML.StaticPipe
         /// implication in that case is that sparse input numeric vectors will map to dense output key vectors.
         /// </summary>
         /// <param name="input">The input column.</param>
-        /// <param name="order">The ordering policy for what order values will appear in the enumerated set.</param>
+        /// <param name="keyOrdinality">The ordering policy for what order values will appear in the enumerated set.</param>
         /// <param name="maxItems">The maximum number of items.</param>
         /// <param name="onFit">Called upon fitting with the learnt enumeration on the dataset.</param>
         /// <returns>The key-valued column.</returns>
         public static VarVector<Key<uint, float>> ToKey(this VarVector<float> input,
-                KeyValueOrder order = DefSort, int maxItems = DefMax, ToKeyFitResult<float>.OnFit onFit = null)
-            => new ImplVarVector<float>(Contracts.CheckRef(input, nameof(input)), new Config(order, maxItems, Wrap(onFit)));
+                KeyOrdinality keyOrdinality = DefSort, int maxItems = DefMax, ToKeyFitResult<float>.OnFit onFit = null)
+            => new ImplVarVector<float>(Contracts.CheckRef(input, nameof(input)), new Config(keyOrdinality, maxItems, Wrap(onFit)));
 
         /// <summary>
         /// Map values to a key-value representation, where the key type's values are those values observed in the input
@@ -182,13 +183,13 @@ namespace Microsoft.ML.StaticPipe
         /// will be a subset of the key-values in the input.
         /// </summary>
         /// <param name="input">The input column.</param>
-        /// <param name="order">The ordering policy for what order values will appear in the enumerated set.</param>
+        /// <param name="keyOrdinality">The ordering policy for what order values will appear in the enumerated set.</param>
         /// <param name="maxItems">The maximum number of items.</param>
         /// <param name="onFit">Called upon fitting with the learnt enumeration on the dataset.</param>
         /// <returns>The key-valued column.</returns>
         public static Key<uint, float> ToKey<T>(this Key<T, float> input,
-                KeyValueOrder order = DefSort, int maxItems = DefMax, ToKeyFitResult<float>.OnFit onFit = null)
-            => new ImplScalar<float>(Contracts.CheckRef(input, nameof(input)), new Config(order, maxItems, Wrap(onFit)));
+                KeyOrdinality keyOrdinality = DefSort, int maxItems = DefMax, ToKeyFitResult<float>.OnFit onFit = null)
+            => new ImplScalar<float>(Contracts.CheckRef(input, nameof(input)), new Config(keyOrdinality, maxItems, Wrap(onFit)));
 
         /// <summary>
         /// Map values to a key-value representation, where the key type's values are those values observed in the input
@@ -199,13 +200,13 @@ namespace Microsoft.ML.StaticPipe
         /// will be a subset of the key-values in the input.
         /// </summary>
         /// <param name="input">The input column.</param>
-        /// <param name="order">The ordering policy for what order values will appear in the enumerated set.</param>
+        /// <param name="keyOrdinality">The ordering policy for what order values will appear in the enumerated set.</param>
         /// <param name="maxItems">The maximum number of items.</param>
         /// <param name="onFit">Called upon fitting with the learnt enumeration on the dataset.</param>
         /// <returns>The key-valued column.</returns>
         public static Vector<Key<uint, float>> ToKey<T>(this Vector<Key<T, float>> input,
-                KeyValueOrder order = DefSort, int maxItems = DefMax, ToKeyFitResult<float>.OnFit onFit = null)
-            => new ImplVector<float>(Contracts.CheckRef(input, nameof(input)), new Config(order, maxItems, Wrap(onFit)));
+                KeyOrdinality keyOrdinality = DefSort, int maxItems = DefMax, ToKeyFitResult<float>.OnFit onFit = null)
+            => new ImplVector<float>(Contracts.CheckRef(input, nameof(input)), new Config(keyOrdinality, maxItems, Wrap(onFit)));
 
         /// <summary>
         /// Map values to a key-value representation, where the key type's values are those values observed in the input
@@ -216,13 +217,13 @@ namespace Microsoft.ML.StaticPipe
         /// will be a subset of the key-values in the input.
         /// </summary>
         /// <param name="input">The input column.</param>
-        /// <param name="order">The ordering policy for what order values will appear in the enumerated set.</param>
+        /// <param name="keyOrdinality">The ordering policy for what order values will appear in the enumerated set.</param>
         /// <param name="maxItems">The maximum number of items.</param>
         /// <param name="onFit">Called upon fitting with the learnt enumeration on the dataset.</param>
         /// <returns>The key-valued column.</returns>
         public static VarVector<Key<uint, float>> ToKey<T>(this VarVector<Key<T, float>> input,
-                KeyValueOrder order = DefSort, int maxItems = DefMax, ToKeyFitResult<float>.OnFit onFit = null)
-            => new ImplVarVector<float>(Contracts.CheckRef(input, nameof(input)), new Config(order, maxItems, Wrap(onFit)));
+                KeyOrdinality keyOrdinality = DefSort, int maxItems = DefMax, ToKeyFitResult<float>.OnFit onFit = null)
+            => new ImplVarVector<float>(Contracts.CheckRef(input, nameof(input)), new Config(keyOrdinality, maxItems, Wrap(onFit)));
         #endregion
 
         #region For double inputs.
@@ -232,13 +233,13 @@ namespace Microsoft.ML.StaticPipe
         /// Because <c>NaN</c> floating point values are never entered into the dictionary, and they will always map to the missing key.
         /// </summary>
         /// <param name="input">The input column.</param>
-        /// <param name="order">The ordering policy for what order values will appear in the enumerated set.</param>
+        /// <param name="keyOrdinality">The ordering policy for what order values will appear in the enumerated set.</param>
         /// <param name="maxItems">The maximum number of items.</param>
         /// <param name="onFit">Called upon fitting with the learnt enumeration on the dataset.</param>
         /// <returns>The key-valued column.</returns>
         public static Key<uint, double> ToKey(this Scalar<double> input,
-                KeyValueOrder order = DefSort, int maxItems = DefMax, ToKeyFitResult<double>.OnFit onFit = null)
-            => new ImplScalar<double>(Contracts.CheckRef(input, nameof(input)), new Config(order, maxItems, Wrap(onFit)));
+                KeyOrdinality keyOrdinality = DefSort, int maxItems = DefMax, ToKeyFitResult<double>.OnFit onFit = null)
+            => new ImplScalar<double>(Contracts.CheckRef(input, nameof(input)), new Config(keyOrdinality, maxItems, Wrap(onFit)));
 
         /// <summary>
         /// Map values to a key-value representation, where the key type's values are those values observed in the input
@@ -248,13 +249,13 @@ namespace Microsoft.ML.StaticPipe
         /// implication in that case is that sparse input numeric vectors will map to dense output key vectors.
         /// </summary>
         /// <param name="input">The input column.</param>
-        /// <param name="order">The ordering policy for what order values will appear in the enumerated set.</param>
+        /// <param name="keyOrdinality">The ordering policy for what order values will appear in the enumerated set.</param>
         /// <param name="maxItems">The maximum number of items.</param>
         /// <param name="onFit">Called upon fitting with the learnt enumeration on the dataset.</param>
         /// <returns>The key-valued column.</returns>
         public static Vector<Key<uint, double>> ToKey(this Vector<double> input,
-                KeyValueOrder order = DefSort, int maxItems = DefMax, ToKeyFitResult<double>.OnFit onFit = null)
-            => new ImplVector<double>(Contracts.CheckRef(input, nameof(input)), new Config(order, maxItems, Wrap(onFit)));
+                KeyOrdinality keyOrdinality = DefSort, int maxItems = DefMax, ToKeyFitResult<double>.OnFit onFit = null)
+            => new ImplVector<double>(Contracts.CheckRef(input, nameof(input)), new Config(keyOrdinality, maxItems, Wrap(onFit)));
 
         /// <summary>
         /// Map values to a key-value representation, where the key type's values are those values observed in the input
@@ -264,13 +265,13 @@ namespace Microsoft.ML.StaticPipe
         /// implication in that case is that sparse input numeric vectors will map to dense output key vectors.
         /// </summary>
         /// <param name="input">The input column.</param>
-        /// <param name="order">The ordering policy for what order values will appear in the enumerated set.</param>
+        /// <param name="keyOrdinality">The ordering policy for what order values will appear in the enumerated set.</param>
         /// <param name="maxItems">The maximum number of items.</param>
         /// <param name="onFit">Called upon fitting with the learnt enumeration on the dataset.</param>
         /// <returns>The key-valued column.</returns>
         public static VarVector<Key<uint, double>> ToKey(this VarVector<double> input,
-                KeyValueOrder order = DefSort, int maxItems = DefMax, ToKeyFitResult<double>.OnFit onFit = null)
-            => new ImplVarVector<double>(Contracts.CheckRef(input, nameof(input)), new Config(order, maxItems, Wrap(onFit)));
+                KeyOrdinality keyOrdinality = DefSort, int maxItems = DefMax, ToKeyFitResult<double>.OnFit onFit = null)
+            => new ImplVarVector<double>(Contracts.CheckRef(input, nameof(input)), new Config(keyOrdinality, maxItems, Wrap(onFit)));
 
         /// <summary>
         /// Map values to a key-value representation, where the key type's values are those values observed in the input
@@ -281,13 +282,13 @@ namespace Microsoft.ML.StaticPipe
         /// will be a subset of the key-values in the input.
         /// </summary>
         /// <param name="input">The input column.</param>
-        /// <param name="order">The ordering policy for what order values will appear in the enumerated set.</param>
+        /// <param name="keyOrdinality">The ordering policy for what order values will appear in the enumerated set.</param>
         /// <param name="maxItems">The maximum number of items.</param>
         /// <param name="onFit">Called upon fitting with the learnt enumeration on the dataset.</param>
         /// <returns>The key-valued column.</returns>
         public static Key<uint, double> ToKey<T>(this Key<T, double> input,
-                KeyValueOrder order = DefSort, int maxItems = DefMax, ToKeyFitResult<double>.OnFit onFit = null)
-            => new ImplScalar<double>(Contracts.CheckRef(input, nameof(input)), new Config(order, maxItems, Wrap(onFit)));
+                KeyOrdinality keyOrdinality = DefSort, int maxItems = DefMax, ToKeyFitResult<double>.OnFit onFit = null)
+            => new ImplScalar<double>(Contracts.CheckRef(input, nameof(input)), new Config(keyOrdinality, maxItems, Wrap(onFit)));
 
         /// <summary>
         /// Map values to a key-value representation, where the key type's values are those values observed in the input
@@ -298,13 +299,13 @@ namespace Microsoft.ML.StaticPipe
         /// will be a subset of the key-values in the input.
         /// </summary>
         /// <param name="input">The input column.</param>
-        /// <param name="order">The ordering policy for what order values will appear in the enumerated set.</param>
+        /// <param name="keyOrdinality">The ordering policy for what order values will appear in the enumerated set.</param>
         /// <param name="maxItems">The maximum number of items.</param>
         /// <param name="onFit">Called upon fitting with the learnt enumeration on the dataset.</param>
         /// <returns>The key-valued column.</returns>
         public static Vector<Key<uint, double>> ToKey<T>(this Vector<Key<T, double>> input,
-                KeyValueOrder order = DefSort, int maxItems = DefMax, ToKeyFitResult<double>.OnFit onFit = null)
-            => new ImplVector<double>(Contracts.CheckRef(input, nameof(input)), new Config(order, maxItems, Wrap(onFit)));
+                KeyOrdinality keyOrdinality = DefSort, int maxItems = DefMax, ToKeyFitResult<double>.OnFit onFit = null)
+            => new ImplVector<double>(Contracts.CheckRef(input, nameof(input)), new Config(keyOrdinality, maxItems, Wrap(onFit)));
 
         /// <summary>
         /// Map values to a key-value representation, where the key type's values are those values observed in the input
@@ -315,13 +316,13 @@ namespace Microsoft.ML.StaticPipe
         /// will be a subset of the key-values in the input.
         /// </summary>
         /// <param name="input">The input column.</param>
-        /// <param name="order">The ordering policy for what order values will appear in the enumerated set.</param>
+        /// <param name="keyOrdinality">The ordering policy for what order values will appear in the enumerated set.</param>
         /// <param name="maxItems">The maximum number of items.</param>
         /// <param name="onFit">Called upon fitting with the learnt enumeration on the dataset.</param>
         /// <returns>The key-valued column.</returns>
         public static VarVector<Key<uint, double>> ToKey<T>(this VarVector<Key<T, double>> input,
-                KeyValueOrder order = DefSort, int maxItems = DefMax, ToKeyFitResult<double>.OnFit onFit = null)
-            => new ImplVarVector<double>(Contracts.CheckRef(input, nameof(input)), new Config(order, maxItems, Wrap(onFit)));
+                KeyOrdinality keyOrdinality = DefSort, int maxItems = DefMax, ToKeyFitResult<double>.OnFit onFit = null)
+            => new ImplVarVector<double>(Contracts.CheckRef(input, nameof(input)), new Config(keyOrdinality, maxItems, Wrap(onFit)));
         #endregion
 
         #region For sbyte inputs.
@@ -330,13 +331,13 @@ namespace Microsoft.ML.StaticPipe
         /// during fitting. During transformation, any values unobserved during fitting will map to the missing key.
         /// </summary>
         /// <param name="input">The input column.</param>
-        /// <param name="order">The ordering policy for what order values will appear in the enumerated set.</param>
+        /// <param name="keyOrdinality">The ordering policy for what order values will appear in the enumerated set.</param>
         /// <param name="maxItems">The maximum number of items.</param>
         /// <param name="onFit">Called upon fitting with the learnt enumeration on the dataset.</param>
         /// <returns>The key-valued column.</returns>
         public static Key<uint, sbyte> ToKey(this Scalar<sbyte> input,
-                KeyValueOrder order = DefSort, int maxItems = DefMax, ToKeyFitResult<sbyte>.OnFit onFit = null)
-            => new ImplScalar<sbyte>(Contracts.CheckRef(input, nameof(input)), new Config(order, maxItems, Wrap(onFit)));
+                KeyOrdinality keyOrdinality = DefSort, int maxItems = DefMax, ToKeyFitResult<sbyte>.OnFit onFit = null)
+            => new ImplScalar<sbyte>(Contracts.CheckRef(input, nameof(input)), new Config(keyOrdinality, maxItems, Wrap(onFit)));
 
         /// <summary>
         /// Map values to a key-value representation, where the key type's values are those values observed in the input
@@ -345,13 +346,13 @@ namespace Microsoft.ML.StaticPipe
         /// implication in that case is that sparse input numeric vectors will map to dense output key vectors.
         /// </summary>
         /// <param name="input">The input column.</param>
-        /// <param name="order">The ordering policy for what order values will appear in the enumerated set.</param>
+        /// <param name="keyOrdinality">The ordering policy for what order values will appear in the enumerated set.</param>
         /// <param name="maxItems">The maximum number of items.</param>
         /// <param name="onFit">Called upon fitting with the learnt enumeration on the dataset.</param>
         /// <returns>The key-valued column.</returns>
         public static Vector<Key<uint, sbyte>> ToKey(this Vector<sbyte> input,
-                KeyValueOrder order = DefSort, int maxItems = DefMax, ToKeyFitResult<sbyte>.OnFit onFit = null)
-            => new ImplVector<sbyte>(Contracts.CheckRef(input, nameof(input)), new Config(order, maxItems, Wrap(onFit)));
+                KeyOrdinality keyOrdinality = DefSort, int maxItems = DefMax, ToKeyFitResult<sbyte>.OnFit onFit = null)
+            => new ImplVector<sbyte>(Contracts.CheckRef(input, nameof(input)), new Config(keyOrdinality, maxItems, Wrap(onFit)));
 
         /// <summary>
         /// Map values to a key-value representation, where the key type's values are those values observed in the input
@@ -360,13 +361,13 @@ namespace Microsoft.ML.StaticPipe
         /// implication in that case is that sparse input numeric vectors will map to dense output key vectors.
         /// </summary>
         /// <param name="input">The input column.</param>
-        /// <param name="order">The ordering policy for what order values will appear in the enumerated set.</param>
+        /// <param name="keyOrdinality">The ordering policy for what order values will appear in the enumerated set.</param>
         /// <param name="maxItems">The maximum number of items.</param>
         /// <param name="onFit">Called upon fitting with the learnt enumeration on the dataset.</param>
         /// <returns>The key-valued column.</returns>
         public static VarVector<Key<uint, sbyte>> ToKey(this VarVector<sbyte> input,
-                KeyValueOrder order = DefSort, int maxItems = DefMax, ToKeyFitResult<sbyte>.OnFit onFit = null)
-            => new ImplVarVector<sbyte>(Contracts.CheckRef(input, nameof(input)), new Config(order, maxItems, Wrap(onFit)));
+                KeyOrdinality keyOrdinality = DefSort, int maxItems = DefMax, ToKeyFitResult<sbyte>.OnFit onFit = null)
+            => new ImplVarVector<sbyte>(Contracts.CheckRef(input, nameof(input)), new Config(keyOrdinality, maxItems, Wrap(onFit)));
 
         /// <summary>
         /// Map values to a key-value representation, where the key type's values are those values observed in the input
@@ -376,13 +377,13 @@ namespace Microsoft.ML.StaticPipe
         /// will be a subset of the key-values in the input.
         /// </summary>
         /// <param name="input">The input column.</param>
-        /// <param name="order">The ordering policy for what order values will appear in the enumerated set.</param>
+        /// <param name="keyOrdinality">The ordering policy for what order values will appear in the enumerated set.</param>
         /// <param name="maxItems">The maximum number of items.</param>
         /// <param name="onFit">Called upon fitting with the learnt enumeration on the dataset.</param>
         /// <returns>The key-valued column.</returns>
         public static Key<uint, sbyte> ToKey<T>(this Key<T, sbyte> input,
-                KeyValueOrder order = DefSort, int maxItems = DefMax, ToKeyFitResult<sbyte>.OnFit onFit = null)
-            => new ImplScalar<sbyte>(Contracts.CheckRef(input, nameof(input)), new Config(order, maxItems, Wrap(onFit)));
+                KeyOrdinality keyOrdinality = DefSort, int maxItems = DefMax, ToKeyFitResult<sbyte>.OnFit onFit = null)
+            => new ImplScalar<sbyte>(Contracts.CheckRef(input, nameof(input)), new Config(keyOrdinality, maxItems, Wrap(onFit)));
 
         /// <summary>
         /// Map values to a key-value representation, where the key type's values are those values observed in the input
@@ -392,13 +393,13 @@ namespace Microsoft.ML.StaticPipe
         /// will be a subset of the key-values in the input.
         /// </summary>
         /// <param name="input">The input column.</param>
-        /// <param name="order">The ordering policy for what order values will appear in the enumerated set.</param>
+        /// <param name="keyOrdinality">The ordering policy for what order values will appear in the enumerated set.</param>
         /// <param name="maxItems">The maximum number of items.</param>
         /// <param name="onFit">Called upon fitting with the learnt enumeration on the dataset.</param>
         /// <returns>The key-valued column.</returns>
         public static Vector<Key<uint, sbyte>> ToKey<T>(this Vector<Key<T, sbyte>> input,
-                KeyValueOrder order = DefSort, int maxItems = DefMax, ToKeyFitResult<sbyte>.OnFit onFit = null)
-            => new ImplVector<sbyte>(Contracts.CheckRef(input, nameof(input)), new Config(order, maxItems, Wrap(onFit)));
+                KeyOrdinality keyOrdinality = DefSort, int maxItems = DefMax, ToKeyFitResult<sbyte>.OnFit onFit = null)
+            => new ImplVector<sbyte>(Contracts.CheckRef(input, nameof(input)), new Config(keyOrdinality, maxItems, Wrap(onFit)));
 
         /// <summary>
         /// Map values to a key-value representation, where the key type's values are those values observed in the input
@@ -408,13 +409,13 @@ namespace Microsoft.ML.StaticPipe
         /// will be a subset of the key-values in the input.
         /// </summary>
         /// <param name="input">The input column.</param>
-        /// <param name="order">The ordering policy for what order values will appear in the enumerated set.</param>
+        /// <param name="keyOrdinality">The ordering policy for what order values will appear in the enumerated set.</param>
         /// <param name="maxItems">The maximum number of items.</param>
         /// <param name="onFit">Called upon fitting with the learnt enumeration on the dataset.</param>
         /// <returns>The key-valued column.</returns>
         public static VarVector<Key<uint, sbyte>> ToKey<T>(this VarVector<Key<T, sbyte>> input,
-                KeyValueOrder order = DefSort, int maxItems = DefMax, ToKeyFitResult<sbyte>.OnFit onFit = null)
-            => new ImplVarVector<sbyte>(Contracts.CheckRef(input, nameof(input)), new Config(order, maxItems, Wrap(onFit)));
+                KeyOrdinality keyOrdinality = DefSort, int maxItems = DefMax, ToKeyFitResult<sbyte>.OnFit onFit = null)
+            => new ImplVarVector<sbyte>(Contracts.CheckRef(input, nameof(input)), new Config(keyOrdinality, maxItems, Wrap(onFit)));
         #endregion
 
         #region For short inputs.
@@ -423,13 +424,13 @@ namespace Microsoft.ML.StaticPipe
         /// during fitting. During transformation, any values unobserved during fitting will map to the missing key.
         /// </summary>
         /// <param name="input">The input column.</param>
-        /// <param name="order">The ordering policy for what order values will appear in the enumerated set.</param>
+        /// <param name="keyOrdinality">The ordering policy for what order values will appear in the enumerated set.</param>
         /// <param name="maxItems">The maximum number of items.</param>
         /// <param name="onFit">Called upon fitting with the learnt enumeration on the dataset.</param>
         /// <returns>The key-valued column.</returns>
         public static Key<uint, short> ToKey(this Scalar<short> input,
-                KeyValueOrder order = DefSort, int maxItems = DefMax, ToKeyFitResult<short>.OnFit onFit = null)
-            => new ImplScalar<short>(Contracts.CheckRef(input, nameof(input)), new Config(order, maxItems, Wrap(onFit)));
+                KeyOrdinality keyOrdinality = DefSort, int maxItems = DefMax, ToKeyFitResult<short>.OnFit onFit = null)
+            => new ImplScalar<short>(Contracts.CheckRef(input, nameof(input)), new Config(keyOrdinality, maxItems, Wrap(onFit)));
 
         /// <summary>
         /// Map values to a key-value representation, where the key type's values are those values observed in the input
@@ -438,13 +439,13 @@ namespace Microsoft.ML.StaticPipe
         /// implication in that case is that sparse input numeric vectors will map to dense output key vectors.
         /// </summary>
         /// <param name="input">The input column.</param>
-        /// <param name="order">The ordering policy for what order values will appear in the enumerated set.</param>
+        /// <param name="keyOrdinality">The ordering policy for what order values will appear in the enumerated set.</param>
         /// <param name="maxItems">The maximum number of items.</param>
         /// <param name="onFit">Called upon fitting with the learnt enumeration on the dataset.</param>
         /// <returns>The key-valued column.</returns>
         public static Vector<Key<uint, short>> ToKey(this Vector<short> input,
-                KeyValueOrder order = DefSort, int maxItems = DefMax, ToKeyFitResult<short>.OnFit onFit = null)
-            => new ImplVector<short>(Contracts.CheckRef(input, nameof(input)), new Config(order, maxItems, Wrap(onFit)));
+                KeyOrdinality keyOrdinality = DefSort, int maxItems = DefMax, ToKeyFitResult<short>.OnFit onFit = null)
+            => new ImplVector<short>(Contracts.CheckRef(input, nameof(input)), new Config(keyOrdinality, maxItems, Wrap(onFit)));
 
         /// <summary>
         /// Map values to a key-value representation, where the key type's values are those values observed in the input
@@ -453,13 +454,13 @@ namespace Microsoft.ML.StaticPipe
         /// implication in that case is that sparse input numeric vectors will map to dense output key vectors.
         /// </summary>
         /// <param name="input">The input column.</param>
-        /// <param name="order">The ordering policy for what order values will appear in the enumerated set.</param>
+        /// <param name="keyOrdinality">The ordering policy for what order values will appear in the enumerated set.</param>
         /// <param name="maxItems">The maximum number of items.</param>
         /// <param name="onFit">Called upon fitting with the learnt enumeration on the dataset.</param>
         /// <returns>The key-valued column.</returns>
         public static VarVector<Key<uint, short>> ToKey(this VarVector<short> input,
-                KeyValueOrder order = DefSort, int maxItems = DefMax, ToKeyFitResult<short>.OnFit onFit = null)
-            => new ImplVarVector<short>(Contracts.CheckRef(input, nameof(input)), new Config(order, maxItems, Wrap(onFit)));
+                KeyOrdinality keyOrdinality = DefSort, int maxItems = DefMax, ToKeyFitResult<short>.OnFit onFit = null)
+            => new ImplVarVector<short>(Contracts.CheckRef(input, nameof(input)), new Config(keyOrdinality, maxItems, Wrap(onFit)));
 
         /// <summary>
         /// Map values to a key-value representation, where the key type's values are those values observed in the input
@@ -469,13 +470,13 @@ namespace Microsoft.ML.StaticPipe
         /// will be a subset of the key-values in the input.
         /// </summary>
         /// <param name="input">The input column.</param>
-        /// <param name="order">The ordering policy for what order values will appear in the enumerated set.</param>
+        /// <param name="keyOrdinality">The ordering policy for what order values will appear in the enumerated set.</param>
         /// <param name="maxItems">The maximum number of items.</param>
         /// <param name="onFit">Called upon fitting with the learnt enumeration on the dataset.</param>
         /// <returns>The key-valued column.</returns>
         public static Key<uint, short> ToKey<T>(this Key<T, short> input,
-                KeyValueOrder order = DefSort, int maxItems = DefMax, ToKeyFitResult<short>.OnFit onFit = null)
-            => new ImplScalar<short>(Contracts.CheckRef(input, nameof(input)), new Config(order, maxItems, Wrap(onFit)));
+                KeyOrdinality keyOrdinality = DefSort, int maxItems = DefMax, ToKeyFitResult<short>.OnFit onFit = null)
+            => new ImplScalar<short>(Contracts.CheckRef(input, nameof(input)), new Config(keyOrdinality, maxItems, Wrap(onFit)));
 
         /// <summary>
         /// Map values to a key-value representation, where the key type's values are those values observed in the input
@@ -485,13 +486,13 @@ namespace Microsoft.ML.StaticPipe
         /// will be a subset of the key-values in the input.
         /// </summary>
         /// <param name="input">The input column.</param>
-        /// <param name="order">The ordering policy for what order values will appear in the enumerated set.</param>
+        /// <param name="keyOrdinality">The ordering policy for what order values will appear in the enumerated set.</param>
         /// <param name="maxItems">The maximum number of items.</param>
         /// <param name="onFit">Called upon fitting with the learnt enumeration on the dataset.</param>
         /// <returns>The key-valued column.</returns>
         public static Vector<Key<uint, short>> ToKey<T>(this Vector<Key<T, short>> input,
-                KeyValueOrder order = DefSort, int maxItems = DefMax, ToKeyFitResult<short>.OnFit onFit = null)
-            => new ImplVector<short>(Contracts.CheckRef(input, nameof(input)), new Config(order, maxItems, Wrap(onFit)));
+                KeyOrdinality keyOrdinality = DefSort, int maxItems = DefMax, ToKeyFitResult<short>.OnFit onFit = null)
+            => new ImplVector<short>(Contracts.CheckRef(input, nameof(input)), new Config(keyOrdinality, maxItems, Wrap(onFit)));
 
         /// <summary>
         /// Map values to a key-value representation, where the key type's values are those values observed in the input
@@ -501,13 +502,13 @@ namespace Microsoft.ML.StaticPipe
         /// will be a subset of the key-values in the input.
         /// </summary>
         /// <param name="input">The input column.</param>
-        /// <param name="order">The ordering policy for what order values will appear in the enumerated set.</param>
+        /// <param name="keyOrdinality">The ordering policy for what order values will appear in the enumerated set.</param>
         /// <param name="maxItems">The maximum number of items.</param>
         /// <param name="onFit">Called upon fitting with the learnt enumeration on the dataset.</param>
         /// <returns>The key-valued column.</returns>
         public static VarVector<Key<uint, short>> ToKey<T>(this VarVector<Key<T, short>> input,
-                KeyValueOrder order = DefSort, int maxItems = DefMax, ToKeyFitResult<short>.OnFit onFit = null)
-            => new ImplVarVector<short>(Contracts.CheckRef(input, nameof(input)), new Config(order, maxItems, Wrap(onFit)));
+                KeyOrdinality keyOrdinality = DefSort, int maxItems = DefMax, ToKeyFitResult<short>.OnFit onFit = null)
+            => new ImplVarVector<short>(Contracts.CheckRef(input, nameof(input)), new Config(keyOrdinality, maxItems, Wrap(onFit)));
         #endregion
 
         #region For int inputs.
@@ -516,13 +517,13 @@ namespace Microsoft.ML.StaticPipe
         /// during fitting. During transformation, any values unobserved during fitting will map to the missing key.
         /// </summary>
         /// <param name="input">The input column.</param>
-        /// <param name="order">The ordering policy for what order values will appear in the enumerated set.</param>
+        /// <param name="keyOrdinality">The ordering policy for what order values will appear in the enumerated set.</param>
         /// <param name="maxItems">The maximum number of items.</param>
         /// <param name="onFit">Called upon fitting with the learnt enumeration on the dataset.</param>
         /// <returns>The key-valued column.</returns>
         public static Key<uint, int> ToKey(this Scalar<int> input,
-                KeyValueOrder order = DefSort, int maxItems = DefMax, ToKeyFitResult<int>.OnFit onFit = null)
-            => new ImplScalar<int>(Contracts.CheckRef(input, nameof(input)), new Config(order, maxItems, Wrap(onFit)));
+                KeyOrdinality keyOrdinality = DefSort, int maxItems = DefMax, ToKeyFitResult<int>.OnFit onFit = null)
+            => new ImplScalar<int>(Contracts.CheckRef(input, nameof(input)), new Config(keyOrdinality, maxItems, Wrap(onFit)));
 
         /// <summary>
         /// Map values to a key-value representation, where the key type's values are those values observed in the input
@@ -531,13 +532,13 @@ namespace Microsoft.ML.StaticPipe
         /// implication in that case is that sparse input numeric vectors will map to dense output key vectors.
         /// </summary>
         /// <param name="input">The input column.</param>
-        /// <param name="order">The ordering policy for what order values will appear in the enumerated set.</param>
+        /// <param name="keyOrdinality">The ordering policy for what order values will appear in the enumerated set.</param>
         /// <param name="maxItems">The maximum number of items.</param>
         /// <param name="onFit">Called upon fitting with the learnt enumeration on the dataset.</param>
         /// <returns>The key-valued column.</returns>
         public static Vector<Key<uint, int>> ToKey(this Vector<int> input,
-                KeyValueOrder order = DefSort, int maxItems = DefMax, ToKeyFitResult<int>.OnFit onFit = null)
-            => new ImplVector<int>(Contracts.CheckRef(input, nameof(input)), new Config(order, maxItems, Wrap(onFit)));
+                KeyOrdinality keyOrdinality = DefSort, int maxItems = DefMax, ToKeyFitResult<int>.OnFit onFit = null)
+            => new ImplVector<int>(Contracts.CheckRef(input, nameof(input)), new Config(keyOrdinality, maxItems, Wrap(onFit)));
 
         /// <summary>
         /// Map values to a key-value representation, where the key type's values are those values observed in the input
@@ -546,13 +547,13 @@ namespace Microsoft.ML.StaticPipe
         /// implication in that case is that sparse input numeric vectors will map to dense output key vectors.
         /// </summary>
         /// <param name="input">The input column.</param>
-        /// <param name="order">The ordering policy for what order values will appear in the enumerated set.</param>
+        /// <param name="keyOrdinality">The ordering policy for what order values will appear in the enumerated set.</param>
         /// <param name="maxItems">The maximum number of items.</param>
         /// <param name="onFit">Called upon fitting with the learnt enumeration on the dataset.</param>
         /// <returns>The key-valued column.</returns>
         public static VarVector<Key<uint, int>> ToKey(this VarVector<int> input,
-                KeyValueOrder order = DefSort, int maxItems = DefMax, ToKeyFitResult<int>.OnFit onFit = null)
-            => new ImplVarVector<int>(Contracts.CheckRef(input, nameof(input)), new Config(order, maxItems, Wrap(onFit)));
+                KeyOrdinality keyOrdinality = DefSort, int maxItems = DefMax, ToKeyFitResult<int>.OnFit onFit = null)
+            => new ImplVarVector<int>(Contracts.CheckRef(input, nameof(input)), new Config(keyOrdinality, maxItems, Wrap(onFit)));
 
         /// <summary>
         /// Map values to a key-value representation, where the key type's values are those values observed in the input
@@ -562,13 +563,13 @@ namespace Microsoft.ML.StaticPipe
         /// will be a subset of the key-values in the input.
         /// </summary>
         /// <param name="input">The input column.</param>
-        /// <param name="order">The ordering policy for what order values will appear in the enumerated set.</param>
+        /// <param name="keyOrdinality">The ordering policy for what order values will appear in the enumerated set.</param>
         /// <param name="maxItems">The maximum number of items.</param>
         /// <param name="onFit">Called upon fitting with the learnt enumeration on the dataset.</param>
         /// <returns>The key-valued column.</returns>
         public static Key<uint, int> ToKey<T>(this Key<T, int> input,
-                KeyValueOrder order = DefSort, int maxItems = DefMax, ToKeyFitResult<int>.OnFit onFit = null)
-            => new ImplScalar<int>(Contracts.CheckRef(input, nameof(input)), new Config(order, maxItems, Wrap(onFit)));
+                KeyOrdinality keyOrdinality = DefSort, int maxItems = DefMax, ToKeyFitResult<int>.OnFit onFit = null)
+            => new ImplScalar<int>(Contracts.CheckRef(input, nameof(input)), new Config(keyOrdinality, maxItems, Wrap(onFit)));
 
         /// <summary>
         /// Map values to a key-value representation, where the key type's values are those values observed in the input
@@ -578,13 +579,13 @@ namespace Microsoft.ML.StaticPipe
         /// will be a subset of the key-values in the input.
         /// </summary>
         /// <param name="input">The input column.</param>
-        /// <param name="order">The ordering policy for what order values will appear in the enumerated set.</param>
+        /// <param name="keyOrdinality">The ordering policy for what order values will appear in the enumerated set.</param>
         /// <param name="maxItems">The maximum number of items.</param>
         /// <param name="onFit">Called upon fitting with the learnt enumeration on the dataset.</param>
         /// <returns>The key-valued column.</returns>
         public static Vector<Key<uint, int>> ToKey<T>(this Vector<Key<T, int>> input,
-                KeyValueOrder order = DefSort, int maxItems = DefMax, ToKeyFitResult<int>.OnFit onFit = null)
-            => new ImplVector<int>(Contracts.CheckRef(input, nameof(input)), new Config(order, maxItems, Wrap(onFit)));
+                KeyOrdinality keyOrdinality = DefSort, int maxItems = DefMax, ToKeyFitResult<int>.OnFit onFit = null)
+            => new ImplVector<int>(Contracts.CheckRef(input, nameof(input)), new Config(keyOrdinality, maxItems, Wrap(onFit)));
 
         /// <summary>
         /// Map values to a key-value representation, where the key type's values are those values observed in the input
@@ -594,13 +595,13 @@ namespace Microsoft.ML.StaticPipe
         /// will be a subset of the key-values in the input.
         /// </summary>
         /// <param name="input">The input column.</param>
-        /// <param name="order">The ordering policy for what order values will appear in the enumerated set.</param>
+        /// <param name="keyOrdinality">The ordering policy for what order values will appear in the enumerated set.</param>
         /// <param name="maxItems">The maximum number of items.</param>
         /// <param name="onFit">Called upon fitting with the learnt enumeration on the dataset.</param>
         /// <returns>The key-valued column.</returns>
         public static VarVector<Key<uint, int>> ToKey<T>(this VarVector<Key<T, int>> input,
-                KeyValueOrder order = DefSort, int maxItems = DefMax, ToKeyFitResult<int>.OnFit onFit = null)
-            => new ImplVarVector<int>(Contracts.CheckRef(input, nameof(input)), new Config(order, maxItems, Wrap(onFit)));
+                KeyOrdinality keyOrdinality = DefSort, int maxItems = DefMax, ToKeyFitResult<int>.OnFit onFit = null)
+            => new ImplVarVector<int>(Contracts.CheckRef(input, nameof(input)), new Config(keyOrdinality, maxItems, Wrap(onFit)));
         #endregion
 
         #region For long inputs.
@@ -609,13 +610,13 @@ namespace Microsoft.ML.StaticPipe
         /// during fitting. During transformation, any values unobserved during fitting will map to the missing key.
         /// </summary>
         /// <param name="input">The input column.</param>
-        /// <param name="order">The ordering policy for what order values will appear in the enumerated set.</param>
+        /// <param name="keyOrdinality">The ordering policy for what order values will appear in the enumerated set.</param>
         /// <param name="maxItems">The maximum number of items.</param>
         /// <param name="onFit">Called upon fitting with the learnt enumeration on the dataset.</param>
         /// <returns>The key-valued column.</returns>
         public static Key<uint, long> ToKey(this Scalar<long> input,
-                KeyValueOrder order = DefSort, int maxItems = DefMax, ToKeyFitResult<long>.OnFit onFit = null)
-            => new ImplScalar<long>(Contracts.CheckRef(input, nameof(input)), new Config(order, maxItems, Wrap(onFit)));
+                KeyOrdinality keyOrdinality = DefSort, int maxItems = DefMax, ToKeyFitResult<long>.OnFit onFit = null)
+            => new ImplScalar<long>(Contracts.CheckRef(input, nameof(input)), new Config(keyOrdinality, maxItems, Wrap(onFit)));
 
         /// <summary>
         /// Map values to a key-value representation, where the key type's values are those values observed in the input
@@ -624,13 +625,13 @@ namespace Microsoft.ML.StaticPipe
         /// implication in that case is that sparse input numeric vectors will map to dense output key vectors.
         /// </summary>
         /// <param name="input">The input column.</param>
-        /// <param name="order">The ordering policy for what order values will appear in the enumerated set.</param>
+        /// <param name="keyOrdinality">The ordering policy for what order values will appear in the enumerated set.</param>
         /// <param name="maxItems">The maximum number of items.</param>
         /// <param name="onFit">Called upon fitting with the learnt enumeration on the dataset.</param>
         /// <returns>The key-valued column.</returns>
         public static Vector<Key<uint, long>> ToKey(this Vector<long> input,
-                KeyValueOrder order = DefSort, int maxItems = DefMax, ToKeyFitResult<long>.OnFit onFit = null)
-            => new ImplVector<long>(Contracts.CheckRef(input, nameof(input)), new Config(order, maxItems, Wrap(onFit)));
+                KeyOrdinality keyOrdinality = DefSort, int maxItems = DefMax, ToKeyFitResult<long>.OnFit onFit = null)
+            => new ImplVector<long>(Contracts.CheckRef(input, nameof(input)), new Config(keyOrdinality, maxItems, Wrap(onFit)));
 
         /// <summary>
         /// Map values to a key-value representation, where the key type's values are those values observed in the input
@@ -639,13 +640,13 @@ namespace Microsoft.ML.StaticPipe
         /// implication in that case is that sparse input numeric vectors will map to dense output key vectors.
         /// </summary>
         /// <param name="input">The input column.</param>
-        /// <param name="order">The ordering policy for what order values will appear in the enumerated set.</param>
+        /// <param name="keyOrdinality">The ordering policy for what order values will appear in the enumerated set.</param>
         /// <param name="maxItems">The maximum number of items.</param>
         /// <param name="onFit">Called upon fitting with the learnt enumeration on the dataset.</param>
         /// <returns>The key-valued column.</returns>
         public static VarVector<Key<uint, long>> ToKey(this VarVector<long> input,
-                KeyValueOrder order = DefSort, int maxItems = DefMax, ToKeyFitResult<long>.OnFit onFit = null)
-            => new ImplVarVector<long>(Contracts.CheckRef(input, nameof(input)), new Config(order, maxItems, Wrap(onFit)));
+                KeyOrdinality keyOrdinality = DefSort, int maxItems = DefMax, ToKeyFitResult<long>.OnFit onFit = null)
+            => new ImplVarVector<long>(Contracts.CheckRef(input, nameof(input)), new Config(keyOrdinality, maxItems, Wrap(onFit)));
 
         /// <summary>
         /// Map values to a key-value representation, where the key type's values are those values observed in the input
@@ -655,13 +656,13 @@ namespace Microsoft.ML.StaticPipe
         /// will be a subset of the key-values in the input.
         /// </summary>
         /// <param name="input">The input column.</param>
-        /// <param name="order">The ordering policy for what order values will appear in the enumerated set.</param>
+        /// <param name="keyOrdinality">The ordering policy for what order values will appear in the enumerated set.</param>
         /// <param name="maxItems">The maximum number of items.</param>
         /// <param name="onFit">Called upon fitting with the learnt enumeration on the dataset.</param>
         /// <returns>The key-valued column.</returns>
         public static Key<uint, long> ToKey<T>(this Key<T, long> input,
-                KeyValueOrder order = DefSort, int maxItems = DefMax, ToKeyFitResult<long>.OnFit onFit = null)
-            => new ImplScalar<long>(Contracts.CheckRef(input, nameof(input)), new Config(order, maxItems, Wrap(onFit)));
+                KeyOrdinality keyOrdinality = DefSort, int maxItems = DefMax, ToKeyFitResult<long>.OnFit onFit = null)
+            => new ImplScalar<long>(Contracts.CheckRef(input, nameof(input)), new Config(keyOrdinality, maxItems, Wrap(onFit)));
 
         /// <summary>
         /// Map values to a key-value representation, where the key type's values are those values observed in the input
@@ -671,13 +672,13 @@ namespace Microsoft.ML.StaticPipe
         /// will be a subset of the key-values in the input.
         /// </summary>
         /// <param name="input">The input column.</param>
-        /// <param name="order">The ordering policy for what order values will appear in the enumerated set.</param>
+        /// <param name="keyOrdinality">The ordering policy for what order values will appear in the enumerated set.</param>
         /// <param name="maxItems">The maximum number of items.</param>
         /// <param name="onFit">Called upon fitting with the learnt enumeration on the dataset.</param>
         /// <returns>The key-valued column.</returns>
         public static Vector<Key<uint, long>> ToKey<T>(this Vector<Key<T, long>> input,
-                KeyValueOrder order = DefSort, int maxItems = DefMax, ToKeyFitResult<long>.OnFit onFit = null)
-            => new ImplVector<long>(Contracts.CheckRef(input, nameof(input)), new Config(order, maxItems, Wrap(onFit)));
+                KeyOrdinality keyOrdinality = DefSort, int maxItems = DefMax, ToKeyFitResult<long>.OnFit onFit = null)
+            => new ImplVector<long>(Contracts.CheckRef(input, nameof(input)), new Config(keyOrdinality, maxItems, Wrap(onFit)));
 
         /// <summary>
         /// Map values to a key-value representation, where the key type's values are those values observed in the input
@@ -687,13 +688,13 @@ namespace Microsoft.ML.StaticPipe
         /// will be a subset of the key-values in the input.
         /// </summary>
         /// <param name="input">The input column.</param>
-        /// <param name="order">The ordering policy for what order values will appear in the enumerated set.</param>
+        /// <param name="keyOrdinality">The ordering policy for what order values will appear in the enumerated set.</param>
         /// <param name="maxItems">The maximum number of items.</param>
         /// <param name="onFit">Called upon fitting with the learnt enumeration on the dataset.</param>
         /// <returns>The key-valued column.</returns>
         public static VarVector<Key<uint, long>> ToKey<T>(this VarVector<Key<T, long>> input,
-                KeyValueOrder order = DefSort, int maxItems = DefMax, ToKeyFitResult<long>.OnFit onFit = null)
-            => new ImplVarVector<long>(Contracts.CheckRef(input, nameof(input)), new Config(order, maxItems, Wrap(onFit)));
+                KeyOrdinality keyOrdinality = DefSort, int maxItems = DefMax, ToKeyFitResult<long>.OnFit onFit = null)
+            => new ImplVarVector<long>(Contracts.CheckRef(input, nameof(input)), new Config(keyOrdinality, maxItems, Wrap(onFit)));
         #endregion
 
         #region For byte inputs.
@@ -702,13 +703,13 @@ namespace Microsoft.ML.StaticPipe
         /// during fitting. During transformation, any values unobserved during fitting will map to the missing key.
         /// </summary>
         /// <param name="input">The input column.</param>
-        /// <param name="order">The ordering policy for what order values will appear in the enumerated set.</param>
+        /// <param name="keyOrdinality">The ordering policy for what order values will appear in the enumerated set.</param>
         /// <param name="maxItems">The maximum number of items.</param>
         /// <param name="onFit">Called upon fitting with the learnt enumeration on the dataset.</param>
         /// <returns>The key-valued column.</returns>
         public static Key<uint, byte> ToKey(this Scalar<byte> input,
-                KeyValueOrder order = DefSort, int maxItems = DefMax, ToKeyFitResult<byte>.OnFit onFit = null)
-            => new ImplScalar<byte>(Contracts.CheckRef(input, nameof(input)), new Config(order, maxItems, Wrap(onFit)));
+                KeyOrdinality keyOrdinality = DefSort, int maxItems = DefMax, ToKeyFitResult<byte>.OnFit onFit = null)
+            => new ImplScalar<byte>(Contracts.CheckRef(input, nameof(input)), new Config(keyOrdinality, maxItems, Wrap(onFit)));
 
         /// <summary>
         /// Map values to a key-value representation, where the key type's values are those values observed in the input
@@ -717,13 +718,13 @@ namespace Microsoft.ML.StaticPipe
         /// implication in that case is that sparse input numeric vectors will map to dense output key vectors.
         /// </summary>
         /// <param name="input">The input column.</param>
-        /// <param name="order">The ordering policy for what order values will appear in the enumerated set.</param>
+        /// <param name="keyOrdinality">The ordering policy for what order values will appear in the enumerated set.</param>
         /// <param name="maxItems">The maximum number of items.</param>
         /// <param name="onFit">Called upon fitting with the learnt enumeration on the dataset.</param>
         /// <returns>The key-valued column.</returns>
         public static Vector<Key<uint, byte>> ToKey(this Vector<byte> input,
-                KeyValueOrder order = DefSort, int maxItems = DefMax, ToKeyFitResult<byte>.OnFit onFit = null)
-            => new ImplVector<byte>(Contracts.CheckRef(input, nameof(input)), new Config(order, maxItems, Wrap(onFit)));
+                KeyOrdinality keyOrdinality = DefSort, int maxItems = DefMax, ToKeyFitResult<byte>.OnFit onFit = null)
+            => new ImplVector<byte>(Contracts.CheckRef(input, nameof(input)), new Config(keyOrdinality, maxItems, Wrap(onFit)));
 
         /// <summary>
         /// Map values to a key-value representation, where the key type's values are those values observed in the input
@@ -732,13 +733,13 @@ namespace Microsoft.ML.StaticPipe
         /// implication in that case is that sparse input numeric vectors will map to dense output key vectors.
         /// </summary>
         /// <param name="input">The input column.</param>
-        /// <param name="order">The ordering policy for what order values will appear in the enumerated set.</param>
+        /// <param name="keyOrdinality">The ordering policy for what order values will appear in the enumerated set.</param>
         /// <param name="maxItems">The maximum number of items.</param>
         /// <param name="onFit">Called upon fitting with the learnt enumeration on the dataset.</param>
         /// <returns>The key-valued column.</returns>
         public static VarVector<Key<uint, byte>> ToKey(this VarVector<byte> input,
-                KeyValueOrder order = DefSort, int maxItems = DefMax, ToKeyFitResult<byte>.OnFit onFit = null)
-            => new ImplVarVector<byte>(Contracts.CheckRef(input, nameof(input)), new Config(order, maxItems, Wrap(onFit)));
+                KeyOrdinality keyOrdinality = DefSort, int maxItems = DefMax, ToKeyFitResult<byte>.OnFit onFit = null)
+            => new ImplVarVector<byte>(Contracts.CheckRef(input, nameof(input)), new Config(keyOrdinality, maxItems, Wrap(onFit)));
 
         /// <summary>
         /// Map values to a key-value representation, where the key type's values are those values observed in the input
@@ -748,13 +749,13 @@ namespace Microsoft.ML.StaticPipe
         /// will be a subset of the key-values in the input.
         /// </summary>
         /// <param name="input">The input column.</param>
-        /// <param name="order">The ordering policy for what order values will appear in the enumerated set.</param>
+        /// <param name="keyOrdinality">The ordering policy for what order values will appear in the enumerated set.</param>
         /// <param name="maxItems">The maximum number of items.</param>
         /// <param name="onFit">Called upon fitting with the learnt enumeration on the dataset.</param>
         /// <returns>The key-valued column.</returns>
         public static Key<uint, byte> ToKey<T>(this Key<T, byte> input,
-                KeyValueOrder order = DefSort, int maxItems = DefMax, ToKeyFitResult<byte>.OnFit onFit = null)
-            => new ImplScalar<byte>(Contracts.CheckRef(input, nameof(input)), new Config(order, maxItems, Wrap(onFit)));
+                KeyOrdinality keyOrdinality = DefSort, int maxItems = DefMax, ToKeyFitResult<byte>.OnFit onFit = null)
+            => new ImplScalar<byte>(Contracts.CheckRef(input, nameof(input)), new Config(keyOrdinality, maxItems, Wrap(onFit)));
 
         /// <summary>
         /// Map values to a key-value representation, where the key type's values are those values observed in the input
@@ -764,13 +765,13 @@ namespace Microsoft.ML.StaticPipe
         /// will be a subset of the key-values in the input.
         /// </summary>
         /// <param name="input">The input column.</param>
-        /// <param name="order">The ordering policy for what order values will appear in the enumerated set.</param>
+        /// <param name="keyOrdinality">The ordering policy for what order values will appear in the enumerated set.</param>
         /// <param name="maxItems">The maximum number of items.</param>
         /// <param name="onFit">Called upon fitting with the learnt enumeration on the dataset.</param>
         /// <returns>The key-valued column.</returns>
         public static Vector<Key<uint, byte>> ToKey<T>(this Vector<Key<T, byte>> input,
-                KeyValueOrder order = DefSort, int maxItems = DefMax, ToKeyFitResult<byte>.OnFit onFit = null)
-            => new ImplVector<byte>(Contracts.CheckRef(input, nameof(input)), new Config(order, maxItems, Wrap(onFit)));
+                KeyOrdinality keyOrdinality = DefSort, int maxItems = DefMax, ToKeyFitResult<byte>.OnFit onFit = null)
+            => new ImplVector<byte>(Contracts.CheckRef(input, nameof(input)), new Config(keyOrdinality, maxItems, Wrap(onFit)));
 
         /// <summary>
         /// Map values to a key-value representation, where the key type's values are those values observed in the input
@@ -780,13 +781,13 @@ namespace Microsoft.ML.StaticPipe
         /// will be a subset of the key-values in the input.
         /// </summary>
         /// <param name="input">The input column.</param>
-        /// <param name="order">The ordering policy for what order values will appear in the enumerated set.</param>
+        /// <param name="keyOrdinality">The ordering policy for what order values will appear in the enumerated set.</param>
         /// <param name="maxItems">The maximum number of items.</param>
         /// <param name="onFit">Called upon fitting with the learnt enumeration on the dataset.</param>
         /// <returns>The key-valued column.</returns>
         public static VarVector<Key<uint, byte>> ToKey<T>(this VarVector<Key<T, byte>> input,
-                KeyValueOrder order = DefSort, int maxItems = DefMax, ToKeyFitResult<byte>.OnFit onFit = null)
-            => new ImplVarVector<byte>(Contracts.CheckRef(input, nameof(input)), new Config(order, maxItems, Wrap(onFit)));
+                KeyOrdinality keyOrdinality = DefSort, int maxItems = DefMax, ToKeyFitResult<byte>.OnFit onFit = null)
+            => new ImplVarVector<byte>(Contracts.CheckRef(input, nameof(input)), new Config(keyOrdinality, maxItems, Wrap(onFit)));
         #endregion
 
         #region For ushort inputs.
@@ -795,13 +796,13 @@ namespace Microsoft.ML.StaticPipe
         /// during fitting. During transformation, any values unobserved during fitting will map to the missing key.
         /// </summary>
         /// <param name="input">The input column.</param>
-        /// <param name="order">The ordering policy for what order values will appear in the enumerated set.</param>
+        /// <param name="keyOrdinality">The ordering policy for what order values will appear in the enumerated set.</param>
         /// <param name="maxItems">The maximum number of items.</param>
         /// <param name="onFit">Called upon fitting with the learnt enumeration on the dataset.</param>
         /// <returns>The key-valued column.</returns>
         public static Key<uint, ushort> ToKey(this Scalar<ushort> input,
-                KeyValueOrder order = DefSort, int maxItems = DefMax, ToKeyFitResult<ushort>.OnFit onFit = null)
-            => new ImplScalar<ushort>(Contracts.CheckRef(input, nameof(input)), new Config(order, maxItems, Wrap(onFit)));
+                KeyOrdinality keyOrdinality = DefSort, int maxItems = DefMax, ToKeyFitResult<ushort>.OnFit onFit = null)
+            => new ImplScalar<ushort>(Contracts.CheckRef(input, nameof(input)), new Config(keyOrdinality, maxItems, Wrap(onFit)));
 
         /// <summary>
         /// Map values to a key-value representation, where the key type's values are those values observed in the input
@@ -810,13 +811,13 @@ namespace Microsoft.ML.StaticPipe
         /// implication in that case is that sparse input numeric vectors will map to dense output key vectors.
         /// </summary>
         /// <param name="input">The input column.</param>
-        /// <param name="order">The ordering policy for what order values will appear in the enumerated set.</param>
+        /// <param name="keyOrdinality">The ordering policy for what order values will appear in the enumerated set.</param>
         /// <param name="maxItems">The maximum number of items.</param>
         /// <param name="onFit">Called upon fitting with the learnt enumeration on the dataset.</param>
         /// <returns>The key-valued column.</returns>
         public static Vector<Key<uint, ushort>> ToKey(this Vector<ushort> input,
-                KeyValueOrder order = DefSort, int maxItems = DefMax, ToKeyFitResult<ushort>.OnFit onFit = null)
-            => new ImplVector<ushort>(Contracts.CheckRef(input, nameof(input)), new Config(order, maxItems, Wrap(onFit)));
+                KeyOrdinality keyOrdinality = DefSort, int maxItems = DefMax, ToKeyFitResult<ushort>.OnFit onFit = null)
+            => new ImplVector<ushort>(Contracts.CheckRef(input, nameof(input)), new Config(keyOrdinality, maxItems, Wrap(onFit)));
 
         /// <summary>
         /// Map values to a key-value representation, where the key type's values are those values observed in the input
@@ -825,13 +826,13 @@ namespace Microsoft.ML.StaticPipe
         /// implication in that case is that sparse input numeric vectors will map to dense output key vectors.
         /// </summary>
         /// <param name="input">The input column.</param>
-        /// <param name="order">The ordering policy for what order values will appear in the enumerated set.</param>
+        /// <param name="keyOrdinality">The ordering policy for what order values will appear in the enumerated set.</param>
         /// <param name="maxItems">The maximum number of items.</param>
         /// <param name="onFit">Called upon fitting with the learnt enumeration on the dataset.</param>
         /// <returns>The key-valued column.</returns>
         public static VarVector<Key<uint, ushort>> ToKey(this VarVector<ushort> input,
-                KeyValueOrder order = DefSort, int maxItems = DefMax, ToKeyFitResult<ushort>.OnFit onFit = null)
-            => new ImplVarVector<ushort>(Contracts.CheckRef(input, nameof(input)), new Config(order, maxItems, Wrap(onFit)));
+                KeyOrdinality keyOrdinality = DefSort, int maxItems = DefMax, ToKeyFitResult<ushort>.OnFit onFit = null)
+            => new ImplVarVector<ushort>(Contracts.CheckRef(input, nameof(input)), new Config(keyOrdinality, maxItems, Wrap(onFit)));
 
         /// <summary>
         /// Map values to a key-value representation, where the key type's values are those values observed in the input
@@ -841,13 +842,13 @@ namespace Microsoft.ML.StaticPipe
         /// will be a subset of the key-values in the input.
         /// </summary>
         /// <param name="input">The input column.</param>
-        /// <param name="order">The ordering policy for what order values will appear in the enumerated set.</param>
+        /// <param name="keyOrdinality">The ordering policy for what order values will appear in the enumerated set.</param>
         /// <param name="maxItems">The maximum number of items.</param>
         /// <param name="onFit">Called upon fitting with the learnt enumeration on the dataset.</param>
         /// <returns>The key-valued column.</returns>
         public static Key<uint, ushort> ToKey<T>(this Key<T, ushort> input,
-                KeyValueOrder order = DefSort, int maxItems = DefMax, ToKeyFitResult<ushort>.OnFit onFit = null)
-            => new ImplScalar<ushort>(Contracts.CheckRef(input, nameof(input)), new Config(order, maxItems, Wrap(onFit)));
+                KeyOrdinality keyOrdinality = DefSort, int maxItems = DefMax, ToKeyFitResult<ushort>.OnFit onFit = null)
+            => new ImplScalar<ushort>(Contracts.CheckRef(input, nameof(input)), new Config(keyOrdinality, maxItems, Wrap(onFit)));
 
         /// <summary>
         /// Map values to a key-value representation, where the key type's values are those values observed in the input
@@ -857,13 +858,13 @@ namespace Microsoft.ML.StaticPipe
         /// will be a subset of the key-values in the input.
         /// </summary>
         /// <param name="input">The input column.</param>
-        /// <param name="order">The ordering policy for what order values will appear in the enumerated set.</param>
+        /// <param name="keyOrdinality">The ordering policy for what order values will appear in the enumerated set.</param>
         /// <param name="maxItems">The maximum number of items.</param>
         /// <param name="onFit">Called upon fitting with the learnt enumeration on the dataset.</param>
         /// <returns>The key-valued column.</returns>
         public static Vector<Key<uint, ushort>> ToKey<T>(this Vector<Key<T, ushort>> input,
-                KeyValueOrder order = DefSort, int maxItems = DefMax, ToKeyFitResult<ushort>.OnFit onFit = null)
-            => new ImplVector<ushort>(Contracts.CheckRef(input, nameof(input)), new Config(order, maxItems, Wrap(onFit)));
+                KeyOrdinality keyOrdinality = DefSort, int maxItems = DefMax, ToKeyFitResult<ushort>.OnFit onFit = null)
+            => new ImplVector<ushort>(Contracts.CheckRef(input, nameof(input)), new Config(keyOrdinality, maxItems, Wrap(onFit)));
 
         /// <summary>
         /// Map values to a key-value representation, where the key type's values are those values observed in the input
@@ -873,13 +874,13 @@ namespace Microsoft.ML.StaticPipe
         /// will be a subset of the key-values in the input.
         /// </summary>
         /// <param name="input">The input column.</param>
-        /// <param name="order">The ordering policy for what order values will appear in the enumerated set.</param>
+        /// <param name="keyOrdinality">The ordering policy for what order values will appear in the enumerated set.</param>
         /// <param name="maxItems">The maximum number of items.</param>
         /// <param name="onFit">Called upon fitting with the learnt enumeration on the dataset.</param>
         /// <returns>The key-valued column.</returns>
         public static VarVector<Key<uint, ushort>> ToKey<T>(this VarVector<Key<T, ushort>> input,
-                KeyValueOrder order = DefSort, int maxItems = DefMax, ToKeyFitResult<ushort>.OnFit onFit = null)
-            => new ImplVarVector<ushort>(Contracts.CheckRef(input, nameof(input)), new Config(order, maxItems, Wrap(onFit)));
+                KeyOrdinality keyOrdinality = DefSort, int maxItems = DefMax, ToKeyFitResult<ushort>.OnFit onFit = null)
+            => new ImplVarVector<ushort>(Contracts.CheckRef(input, nameof(input)), new Config(keyOrdinality, maxItems, Wrap(onFit)));
         #endregion
 
         #region For uint inputs.
@@ -888,13 +889,13 @@ namespace Microsoft.ML.StaticPipe
         /// during fitting. During transformation, any values unobserved during fitting will map to the missing key.
         /// </summary>
         /// <param name="input">The input column.</param>
-        /// <param name="order">The ordering policy for what order values will appear in the enumerated set.</param>
+        /// <param name="keyOrdinality">The ordering policy for what order values will appear in the enumerated set.</param>
         /// <param name="maxItems">The maximum number of items.</param>
         /// <param name="onFit">Called upon fitting with the learnt enumeration on the dataset.</param>
         /// <returns>The key-valued column.</returns>
         public static Key<uint, uint> ToKey(this Scalar<uint> input,
-                KeyValueOrder order = DefSort, int maxItems = DefMax, ToKeyFitResult<uint>.OnFit onFit = null)
-            => new ImplScalar<uint>(Contracts.CheckRef(input, nameof(input)), new Config(order, maxItems, Wrap(onFit)));
+                KeyOrdinality keyOrdinality = DefSort, int maxItems = DefMax, ToKeyFitResult<uint>.OnFit onFit = null)
+            => new ImplScalar<uint>(Contracts.CheckRef(input, nameof(input)), new Config(keyOrdinality, maxItems, Wrap(onFit)));
 
         /// <summary>
         /// Map values to a key-value representation, where the key type's values are those values observed in the input
@@ -903,13 +904,13 @@ namespace Microsoft.ML.StaticPipe
         /// implication in that case is that sparse input numeric vectors will map to dense output key vectors.
         /// </summary>
         /// <param name="input">The input column.</param>
-        /// <param name="order">The ordering policy for what order values will appear in the enumerated set.</param>
+        /// <param name="keyOrdinality">The ordering policy for what order values will appear in the enumerated set.</param>
         /// <param name="maxItems">The maximum number of items.</param>
         /// <param name="onFit">Called upon fitting with the learnt enumeration on the dataset.</param>
         /// <returns>The key-valued column.</returns>
         public static Vector<Key<uint, uint>> ToKey(this Vector<uint> input,
-                KeyValueOrder order = DefSort, int maxItems = DefMax, ToKeyFitResult<uint>.OnFit onFit = null)
-            => new ImplVector<uint>(Contracts.CheckRef(input, nameof(input)), new Config(order, maxItems, Wrap(onFit)));
+                KeyOrdinality keyOrdinality = DefSort, int maxItems = DefMax, ToKeyFitResult<uint>.OnFit onFit = null)
+            => new ImplVector<uint>(Contracts.CheckRef(input, nameof(input)), new Config(keyOrdinality, maxItems, Wrap(onFit)));
 
         /// <summary>
         /// Map values to a key-value representation, where the key type's values are those values observed in the input
@@ -918,13 +919,13 @@ namespace Microsoft.ML.StaticPipe
         /// implication in that case is that sparse input numeric vectors will map to dense output key vectors.
         /// </summary>
         /// <param name="input">The input column.</param>
-        /// <param name="order">The ordering policy for what order values will appear in the enumerated set.</param>
+        /// <param name="keyOrdinality">The ordering policy for what order values will appear in the enumerated set.</param>
         /// <param name="maxItems">The maximum number of items.</param>
         /// <param name="onFit">Called upon fitting with the learnt enumeration on the dataset.</param>
         /// <returns>The key-valued column.</returns>
         public static VarVector<Key<uint, uint>> ToKey(this VarVector<uint> input,
-                KeyValueOrder order = DefSort, int maxItems = DefMax, ToKeyFitResult<uint>.OnFit onFit = null)
-            => new ImplVarVector<uint>(Contracts.CheckRef(input, nameof(input)), new Config(order, maxItems, Wrap(onFit)));
+                KeyOrdinality keyOrdinality = DefSort, int maxItems = DefMax, ToKeyFitResult<uint>.OnFit onFit = null)
+            => new ImplVarVector<uint>(Contracts.CheckRef(input, nameof(input)), new Config(keyOrdinality, maxItems, Wrap(onFit)));
 
         /// <summary>
         /// Map values to a key-value representation, where the key type's values are those values observed in the input
@@ -934,13 +935,13 @@ namespace Microsoft.ML.StaticPipe
         /// will be a subset of the key-values in the input.
         /// </summary>
         /// <param name="input">The input column.</param>
-        /// <param name="order">The ordering policy for what order values will appear in the enumerated set.</param>
+        /// <param name="keyOrdinality">The ordering policy for what order values will appear in the enumerated set.</param>
         /// <param name="maxItems">The maximum number of items.</param>
         /// <param name="onFit">Called upon fitting with the learnt enumeration on the dataset.</param>
         /// <returns>The key-valued column.</returns>
         public static Key<uint, uint> ToKey<T>(this Key<T, uint> input,
-                KeyValueOrder order = DefSort, int maxItems = DefMax, ToKeyFitResult<uint>.OnFit onFit = null)
-            => new ImplScalar<uint>(Contracts.CheckRef(input, nameof(input)), new Config(order, maxItems, Wrap(onFit)));
+                KeyOrdinality keyOrdinality = DefSort, int maxItems = DefMax, ToKeyFitResult<uint>.OnFit onFit = null)
+            => new ImplScalar<uint>(Contracts.CheckRef(input, nameof(input)), new Config(keyOrdinality, maxItems, Wrap(onFit)));
 
         /// <summary>
         /// Map values to a key-value representation, where the key type's values are those values observed in the input
@@ -950,13 +951,13 @@ namespace Microsoft.ML.StaticPipe
         /// will be a subset of the key-values in the input.
         /// </summary>
         /// <param name="input">The input column.</param>
-        /// <param name="order">The ordering policy for what order values will appear in the enumerated set.</param>
+        /// <param name="keyOrdinality">The ordering policy for what order values will appear in the enumerated set.</param>
         /// <param name="maxItems">The maximum number of items.</param>
         /// <param name="onFit">Called upon fitting with the learnt enumeration on the dataset.</param>
         /// <returns>The key-valued column.</returns>
         public static Vector<Key<uint, uint>> ToKey<T>(this Vector<Key<T, uint>> input,
-                KeyValueOrder order = DefSort, int maxItems = DefMax, ToKeyFitResult<uint>.OnFit onFit = null)
-            => new ImplVector<uint>(Contracts.CheckRef(input, nameof(input)), new Config(order, maxItems, Wrap(onFit)));
+                KeyOrdinality keyOrdinality = DefSort, int maxItems = DefMax, ToKeyFitResult<uint>.OnFit onFit = null)
+            => new ImplVector<uint>(Contracts.CheckRef(input, nameof(input)), new Config(keyOrdinality, maxItems, Wrap(onFit)));
 
         /// <summary>
         /// Map values to a key-value representation, where the key type's values are those values observed in the input
@@ -966,13 +967,13 @@ namespace Microsoft.ML.StaticPipe
         /// will be a subset of the key-values in the input.
         /// </summary>
         /// <param name="input">The input column.</param>
-        /// <param name="order">The ordering policy for what order values will appear in the enumerated set.</param>
+        /// <param name="keyOrdinality">The ordering policy for what order values will appear in the enumerated set.</param>
         /// <param name="maxItems">The maximum number of items.</param>
         /// <param name="onFit">Called upon fitting with the learnt enumeration on the dataset.</param>
         /// <returns>The key-valued column.</returns>
         public static VarVector<Key<uint, uint>> ToKey<T>(this VarVector<Key<T, uint>> input,
-                KeyValueOrder order = DefSort, int maxItems = DefMax, ToKeyFitResult<uint>.OnFit onFit = null)
-            => new ImplVarVector<uint>(Contracts.CheckRef(input, nameof(input)), new Config(order, maxItems, Wrap(onFit)));
+                KeyOrdinality keyOrdinality = DefSort, int maxItems = DefMax, ToKeyFitResult<uint>.OnFit onFit = null)
+            => new ImplVarVector<uint>(Contracts.CheckRef(input, nameof(input)), new Config(keyOrdinality, maxItems, Wrap(onFit)));
         #endregion
 
         #region For ulong inputs.
@@ -981,13 +982,13 @@ namespace Microsoft.ML.StaticPipe
         /// during fitting. During transformation, any values unobserved during fitting will map to the missing key.
         /// </summary>
         /// <param name="input">The input column.</param>
-        /// <param name="order">The ordering policy for what order values will appear in the enumerated set.</param>
+        /// <param name="keyOrdinality">The ordering policy for what order values will appear in the enumerated set.</param>
         /// <param name="maxItems">The maximum number of items.</param>
         /// <param name="onFit">Called upon fitting with the learnt enumeration on the dataset.</param>
         /// <returns>The key-valued column.</returns>
         public static Key<uint, ulong> ToKey(this Scalar<ulong> input,
-                KeyValueOrder order = DefSort, int maxItems = DefMax, ToKeyFitResult<ulong>.OnFit onFit = null)
-            => new ImplScalar<ulong>(Contracts.CheckRef(input, nameof(input)), new Config(order, maxItems, Wrap(onFit)));
+                KeyOrdinality keyOrdinality = DefSort, int maxItems = DefMax, ToKeyFitResult<ulong>.OnFit onFit = null)
+            => new ImplScalar<ulong>(Contracts.CheckRef(input, nameof(input)), new Config(keyOrdinality, maxItems, Wrap(onFit)));
 
         /// <summary>
         /// Map values to a key-value representation, where the key type's values are those values observed in the input
@@ -996,13 +997,13 @@ namespace Microsoft.ML.StaticPipe
         /// implication in that case is that sparse input numeric vectors will map to dense output key vectors.
         /// </summary>
         /// <param name="input">The input column.</param>
-        /// <param name="order">The ordering policy for what order values will appear in the enumerated set.</param>
+        /// <param name="keyOrdinality">The ordering policy for what order values will appear in the enumerated set.</param>
         /// <param name="maxItems">The maximum number of items.</param>
         /// <param name="onFit">Called upon fitting with the learnt enumeration on the dataset.</param>
         /// <returns>The key-valued column.</returns>
         public static Vector<Key<uint, ulong>> ToKey(this Vector<ulong> input,
-                KeyValueOrder order = DefSort, int maxItems = DefMax, ToKeyFitResult<ulong>.OnFit onFit = null)
-            => new ImplVector<ulong>(Contracts.CheckRef(input, nameof(input)), new Config(order, maxItems, Wrap(onFit)));
+                KeyOrdinality keyOrdinality = DefSort, int maxItems = DefMax, ToKeyFitResult<ulong>.OnFit onFit = null)
+            => new ImplVector<ulong>(Contracts.CheckRef(input, nameof(input)), new Config(keyOrdinality, maxItems, Wrap(onFit)));
 
         /// <summary>
         /// Map values to a key-value representation, where the key type's values are those values observed in the input
@@ -1011,13 +1012,13 @@ namespace Microsoft.ML.StaticPipe
         /// implication in that case is that sparse input numeric vectors will map to dense output key vectors.
         /// </summary>
         /// <param name="input">The input column.</param>
-        /// <param name="order">The ordering policy for what order values will appear in the enumerated set.</param>
+        /// <param name="keyOrdinality">The ordering policy for what order values will appear in the enumerated set.</param>
         /// <param name="maxItems">The maximum number of items.</param>
         /// <param name="onFit">Called upon fitting with the learnt enumeration on the dataset.</param>
         /// <returns>The key-valued column.</returns>
         public static VarVector<Key<uint, ulong>> ToKey(this VarVector<ulong> input,
-                KeyValueOrder order = DefSort, int maxItems = DefMax, ToKeyFitResult<ulong>.OnFit onFit = null)
-            => new ImplVarVector<ulong>(Contracts.CheckRef(input, nameof(input)), new Config(order, maxItems, Wrap(onFit)));
+                KeyOrdinality keyOrdinality = DefSort, int maxItems = DefMax, ToKeyFitResult<ulong>.OnFit onFit = null)
+            => new ImplVarVector<ulong>(Contracts.CheckRef(input, nameof(input)), new Config(keyOrdinality, maxItems, Wrap(onFit)));
 
         /// <summary>
         /// Map values to a key-value representation, where the key type's values are those values observed in the input
@@ -1027,13 +1028,13 @@ namespace Microsoft.ML.StaticPipe
         /// will be a subset of the key-values in the input.
         /// </summary>
         /// <param name="input">The input column.</param>
-        /// <param name="order">The ordering policy for what order values will appear in the enumerated set.</param>
+        /// <param name="keyOrdinality">The ordering policy for what order values will appear in the enumerated set.</param>
         /// <param name="maxItems">The maximum number of items.</param>
         /// <param name="onFit">Called upon fitting with the learnt enumeration on the dataset.</param>
         /// <returns>The key-valued column.</returns>
         public static Key<uint, ulong> ToKey<T>(this Key<T, ulong> input,
-                KeyValueOrder order = DefSort, int maxItems = DefMax, ToKeyFitResult<ulong>.OnFit onFit = null)
-            => new ImplScalar<ulong>(Contracts.CheckRef(input, nameof(input)), new Config(order, maxItems, Wrap(onFit)));
+                KeyOrdinality keyOrdinality = DefSort, int maxItems = DefMax, ToKeyFitResult<ulong>.OnFit onFit = null)
+            => new ImplScalar<ulong>(Contracts.CheckRef(input, nameof(input)), new Config(keyOrdinality, maxItems, Wrap(onFit)));
 
         /// <summary>
         /// Map values to a key-value representation, where the key type's values are those values observed in the input
@@ -1043,13 +1044,13 @@ namespace Microsoft.ML.StaticPipe
         /// will be a subset of the key-values in the input.
         /// </summary>
         /// <param name="input">The input column.</param>
-        /// <param name="order">The ordering policy for what order values will appear in the enumerated set.</param>
+        /// <param name="keyOrdinality">The ordering policy for what order values will appear in the enumerated set.</param>
         /// <param name="maxItems">The maximum number of items.</param>
         /// <param name="onFit">Called upon fitting with the learnt enumeration on the dataset.</param>
         /// <returns>The key-valued column.</returns>
         public static Vector<Key<uint, ulong>> ToKey<T>(this Vector<Key<T, ulong>> input,
-                KeyValueOrder order = DefSort, int maxItems = DefMax, ToKeyFitResult<ulong>.OnFit onFit = null)
-            => new ImplVector<ulong>(Contracts.CheckRef(input, nameof(input)), new Config(order, maxItems, Wrap(onFit)));
+                KeyOrdinality keyOrdinality = DefSort, int maxItems = DefMax, ToKeyFitResult<ulong>.OnFit onFit = null)
+            => new ImplVector<ulong>(Contracts.CheckRef(input, nameof(input)), new Config(keyOrdinality, maxItems, Wrap(onFit)));
 
         /// <summary>
         /// Map values to a key-value representation, where the key type's values are those values observed in the input
@@ -1059,13 +1060,13 @@ namespace Microsoft.ML.StaticPipe
         /// will be a subset of the key-values in the input.
         /// </summary>
         /// <param name="input">The input column.</param>
-        /// <param name="order">The ordering policy for what order values will appear in the enumerated set.</param>
+        /// <param name="keyOrdinality">The ordering policy for what order values will appear in the enumerated set.</param>
         /// <param name="maxItems">The maximum number of items.</param>
         /// <param name="onFit">Called upon fitting with the learnt enumeration on the dataset.</param>
         /// <returns>The key-valued column.</returns>
         public static VarVector<Key<uint, ulong>> ToKey<T>(this VarVector<Key<T, ulong>> input,
-                KeyValueOrder order = DefSort, int maxItems = DefMax, ToKeyFitResult<ulong>.OnFit onFit = null)
-            => new ImplVarVector<ulong>(Contracts.CheckRef(input, nameof(input)), new Config(order, maxItems, Wrap(onFit)));
+                KeyOrdinality keyOrdinality = DefSort, int maxItems = DefMax, ToKeyFitResult<ulong>.OnFit onFit = null)
+            => new ImplVarVector<ulong>(Contracts.CheckRef(input, nameof(input)), new Config(keyOrdinality, maxItems, Wrap(onFit)));
         #endregion
 
         #region For bool inputs.
@@ -1074,39 +1075,39 @@ namespace Microsoft.ML.StaticPipe
         /// during fitting. During transformation, any values unobserved during fitting will map to the missing key.
         /// </summary>
         /// <param name="input">The input column.</param>
-        /// <param name="order">The ordering policy for what order values will appear in the enumerated set.</param>
+        /// <param name="keyOrdinality">The ordering policy for what order values will appear in the enumerated set.</param>
         /// <param name="maxItems">The maximum number of items.</param>
         /// <param name="onFit">Called upon fitting with the learnt enumeration on the dataset.</param>
         /// <returns>The key-valued column.</returns>
         public static Key<uint, bool> ToKey(this Scalar<bool> input,
-                KeyValueOrder order = DefSort, int maxItems = DefMax, ToKeyFitResult<bool>.OnFit onFit = null)
-            => new ImplScalar<bool>(Contracts.CheckRef(input, nameof(input)), new Config(order, maxItems, Wrap(onFit)));
+                KeyOrdinality keyOrdinality = DefSort, int maxItems = DefMax, ToKeyFitResult<bool>.OnFit onFit = null)
+            => new ImplScalar<bool>(Contracts.CheckRef(input, nameof(input)), new Config(keyOrdinality, maxItems, Wrap(onFit)));
 
         /// <summary>
         /// Map values to a key-value representation, where the key type's values are those values observed in the input
         /// during fitting. During transformation, any values unobserved during fitting will map to the missing key.
         /// </summary>
         /// <param name="input">The input column.</param>
-        /// <param name="order">The ordering policy for what order values will appear in the enumerated set.</param>
+        /// <param name="keyOrdinality">The ordering policy for what order values will appear in the enumerated set.</param>
         /// <param name="maxItems">The maximum number of items.</param>
         /// <param name="onFit">Called upon fitting with the learnt enumeration on the dataset.</param>
         /// <returns>The key-valued column.</returns>
         public static Vector<Key<uint, bool>> ToKey(this Vector<bool> input,
-                KeyValueOrder order = DefSort, int maxItems = DefMax, ToKeyFitResult<bool>.OnFit onFit = null)
-            => new ImplVector<bool>(Contracts.CheckRef(input, nameof(input)), new Config(order, maxItems, Wrap(onFit)));
+                KeyOrdinality keyOrdinality = DefSort, int maxItems = DefMax, ToKeyFitResult<bool>.OnFit onFit = null)
+            => new ImplVector<bool>(Contracts.CheckRef(input, nameof(input)), new Config(keyOrdinality, maxItems, Wrap(onFit)));
 
         /// <summary>
         /// Map values to a key-value representation, where the key type's values are those values observed in the input
         /// during fitting. During transformation, any values unobserved during fitting will map to the missing key.
         /// </summary>
         /// <param name="input">The input column.</param>
-        /// <param name="order">The ordering policy for what order values will appear in the enumerated set.</param>
+        /// <param name="keyOrdinality">The ordering policy for what order values will appear in the enumerated set.</param>
         /// <param name="maxItems">The maximum number of items.</param>
         /// <param name="onFit">Called upon fitting with the learnt enumeration on the dataset.</param>
         /// <returns>The key-valued column.</returns>
         public static VarVector<Key<uint, bool>> ToKey(this VarVector<bool> input,
-                KeyValueOrder order = DefSort, int maxItems = DefMax, ToKeyFitResult<bool>.OnFit onFit = null)
-            => new ImplVarVector<bool>(Contracts.CheckRef(input, nameof(input)), new Config(order, maxItems, Wrap(onFit)));
+                KeyOrdinality keyOrdinality = DefSort, int maxItems = DefMax, ToKeyFitResult<bool>.OnFit onFit = null)
+            => new ImplVarVector<bool>(Contracts.CheckRef(input, nameof(input)), new Config(keyOrdinality, maxItems, Wrap(onFit)));
 
         /// <summary>
         /// Map values to a key-value representation, where the key type's values are those values observed in the input
@@ -1116,13 +1117,13 @@ namespace Microsoft.ML.StaticPipe
         /// will be a subset of the key-values in the input.
         /// </summary>
         /// <param name="input">The input column.</param>
-        /// <param name="order">The ordering policy for what order values will appear in the enumerated set.</param>
+        /// <param name="keyOrdinality">The ordering policy for what order values will appear in the enumerated set.</param>
         /// <param name="maxItems">The maximum number of items.</param>
         /// <param name="onFit">Called upon fitting with the learnt enumeration on the dataset.</param>
         /// <returns>The key-valued column.</returns>
         public static Key<uint, bool> ToKey<T>(this Key<T, bool> input,
-                KeyValueOrder order = DefSort, int maxItems = DefMax, ToKeyFitResult<bool>.OnFit onFit = null)
-            => new ImplScalar<bool>(Contracts.CheckRef(input, nameof(input)), new Config(order, maxItems, Wrap(onFit)));
+                KeyOrdinality keyOrdinality = DefSort, int maxItems = DefMax, ToKeyFitResult<bool>.OnFit onFit = null)
+            => new ImplScalar<bool>(Contracts.CheckRef(input, nameof(input)), new Config(keyOrdinality, maxItems, Wrap(onFit)));
 
         /// <summary>
         /// Map values to a key-value representation, where the key type's values are those values observed in the input
@@ -1132,13 +1133,13 @@ namespace Microsoft.ML.StaticPipe
         /// will be a subset of the key-values in the input.
         /// </summary>
         /// <param name="input">The input column.</param>
-        /// <param name="order">The ordering policy for what order values will appear in the enumerated set.</param>
+        /// <param name="keyOrdinality">The ordering policy for what order values will appear in the enumerated set.</param>
         /// <param name="maxItems">The maximum number of items.</param>
         /// <param name="onFit">Called upon fitting with the learnt enumeration on the dataset.</param>
         /// <returns>The key-valued column.</returns>
         public static Vector<Key<uint, bool>> ToKey<T>(this Vector<Key<T, bool>> input,
-                KeyValueOrder order = DefSort, int maxItems = DefMax, ToKeyFitResult<bool>.OnFit onFit = null)
-            => new ImplVector<bool>(Contracts.CheckRef(input, nameof(input)), new Config(order, maxItems, Wrap(onFit)));
+                KeyOrdinality keyOrdinality = DefSort, int maxItems = DefMax, ToKeyFitResult<bool>.OnFit onFit = null)
+            => new ImplVector<bool>(Contracts.CheckRef(input, nameof(input)), new Config(keyOrdinality, maxItems, Wrap(onFit)));
 
         /// <summary>
         /// Map values to a key-value representation, where the key type's values are those values observed in the input
@@ -1148,13 +1149,26 @@ namespace Microsoft.ML.StaticPipe
         /// will be a subset of the key-values in the input.
         /// </summary>
         /// <param name="input">The input column.</param>
-        /// <param name="order">The ordering policy for what order values will appear in the enumerated set.</param>
+        /// <param name="keyOrdinality">The ordering policy for what order values will appear in the enumerated set.</param>
         /// <param name="maxItems">The maximum number of items.</param>
         /// <param name="onFit">Called upon fitting with the learnt enumeration on the dataset.</param>
         /// <returns>The key-valued column.</returns>
         public static VarVector<Key<uint, bool>> ToKey<T>(this VarVector<Key<T, bool>> input,
-                KeyValueOrder order = DefSort, int maxItems = DefMax, ToKeyFitResult<bool>.OnFit onFit = null)
-            => new ImplVarVector<bool>(Contracts.CheckRef(input, nameof(input)), new Config(order, maxItems, Wrap(onFit)));
+                KeyOrdinality keyOrdinality = DefSort, int maxItems = DefMax, ToKeyFitResult<bool>.OnFit onFit = null)
+            => new ImplVarVector<bool>(Contracts.CheckRef(input, nameof(input)), new Config(keyOrdinality, maxItems, Wrap(onFit)));
         #endregion
+    }
+
+    public enum KeyOrdinality : byte
+    {
+        /// <summary>
+        /// Terms will be assigned ID in the order in which they appear.
+        /// </summary>
+        Occurence = ValueToKeyMappingEstimator.KeyOrdinality.ByOccurrence,
+
+        /// <summary>
+        /// Terms will be assigned ID according to their sort via an ordinal comparison for the type.
+        /// </summary>
+        Value = ValueToKeyMappingEstimator.KeyOrdinality.ByValue
     }
 }

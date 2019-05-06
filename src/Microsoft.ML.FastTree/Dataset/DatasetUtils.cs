@@ -31,10 +31,10 @@ namespace Microsoft.ML.Trainers.FastTree
             // 1 -> 6
             // 0 -> 5
             // invalid -> 0
-            short maxLab = ratings.Length > 0 ? ratings.Max() : (short) 0;
+            short maxLab = ratings.Length > 0 ? ratings.Max() : (short)0;
             IntArray ratingAsFeature = IntArray.New(
-                ratings.Length, IntArrayType.Dense, IntArrayBits.Bits8, ratings.Select(x => (int) x));
-            uint[] valueMap = Enumerable.Range(0, ((int) maxLab) + 1).Select(x => (uint) x + 5).ToArray();
+                ratings.Length, IntArrayType.Dense, IntArrayBits.Bits8, ratings.Select(x => (int)x));
+            uint[] valueMap = Enumerable.Range(0, ((int)maxLab) + 1).Select(x => (uint)x + 5).ToArray();
 
             return new TsvFeature(ratingAsFeature, valueMap, "m:Rating");
         }
@@ -46,14 +46,14 @@ namespace Microsoft.ML.Trainers.FastTree
         public static TsvFeature CreateFeatureFromQueryId(Dataset.DatasetSkeleton skel)
         {
             Dictionary<uint, int> uvalToOrder = new Dictionary<uint, int>();
-            foreach (uint uintQid in skel.QueryIds.Select(qid => (uint) qid).Distinct().OrderBy(x => x))
+            foreach (uint uintQid in skel.QueryIds.Select(qid => (uint)qid).Distinct().OrderBy(x => x))
             {
                 uvalToOrder[uintQid] = uvalToOrder.Count;
             }
             IntArray bins = IntArray.New(
                 skel.NumDocs, IntArrayType.Dense, IntArray.NumBitsNeeded(uvalToOrder.Count),
                 skel.QueryIds.SelectMany((qid, i) =>
-                    Enumerable.Repeat(uvalToOrder[(uint) qid], skel.Boundaries[i + 1] - skel.Boundaries[i])));
+                    Enumerable.Repeat(uvalToOrder[(uint)qid], skel.Boundaries[i + 1] - skel.Boundaries[i])));
             uint[] valueMap = uvalToOrder.Keys.OrderBy(x => x).ToArray(uvalToOrder.Count);
             return new TsvFeature(bins, valueMap, "m:QueryId");
         }

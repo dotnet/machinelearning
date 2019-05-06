@@ -5,7 +5,6 @@
 using System;
 using System.IO;
 using System.Linq;
-using Microsoft.Data.DataView;
 using Microsoft.ML.Data;
 using Microsoft.ML.Model;
 using Microsoft.ML.RunTests;
@@ -63,18 +62,18 @@ namespace Microsoft.ML.Tests.Transformers
 
             var dataView = ML.Data.LoadFromEnumerable(data);
             var pipe = ML.Transforms.Categorical.OneHotEncoding(new[]{
-                    new OneHotEncodingEstimator.ColumnOptions("CatA", "A", OneHotEncodingTransformer.OutputKind.Bag),
-                    new OneHotEncodingEstimator.ColumnOptions("CatB", "A", OneHotEncodingTransformer.OutputKind.Bin),
-                    new OneHotEncodingEstimator.ColumnOptions("CatC", "A", OneHotEncodingTransformer.OutputKind.Ind),
-                    new OneHotEncodingEstimator.ColumnOptions("CatD", "A", OneHotEncodingTransformer.OutputKind.Key),
-                    new OneHotEncodingEstimator.ColumnOptions("CatVA", "B", OneHotEncodingTransformer.OutputKind.Bag),
-                    new OneHotEncodingEstimator.ColumnOptions("CatVB", "B", OneHotEncodingTransformer.OutputKind.Bin),
-                    new OneHotEncodingEstimator.ColumnOptions("CatVC", "B", OneHotEncodingTransformer.OutputKind.Ind),
-                    new OneHotEncodingEstimator.ColumnOptions("CatVD", "B", OneHotEncodingTransformer.OutputKind.Key),
-                    new OneHotEncodingEstimator.ColumnOptions("CatVVA", "C", OneHotEncodingTransformer.OutputKind.Bag),
-                    new OneHotEncodingEstimator.ColumnOptions("CatVVB", "C", OneHotEncodingTransformer.OutputKind.Bin),
-                    new OneHotEncodingEstimator.ColumnOptions("CatVVC", "C", OneHotEncodingTransformer.OutputKind.Ind),
-                    new OneHotEncodingEstimator.ColumnOptions("CatVVD", "C", OneHotEncodingTransformer.OutputKind.Key),
+                    new OneHotEncodingEstimator.ColumnOptions("CatA", "A", OneHotEncodingEstimator.OutputKind.Bag),
+                    new OneHotEncodingEstimator.ColumnOptions("CatB", "A", OneHotEncodingEstimator.OutputKind.Binary),
+                    new OneHotEncodingEstimator.ColumnOptions("CatC", "A", OneHotEncodingEstimator.OutputKind.Indicator),
+                    new OneHotEncodingEstimator.ColumnOptions("CatD", "A", OneHotEncodingEstimator.OutputKind.Key),
+                    new OneHotEncodingEstimator.ColumnOptions("CatVA", "B", OneHotEncodingEstimator.OutputKind.Bag),
+                    new OneHotEncodingEstimator.ColumnOptions("CatVB", "B", OneHotEncodingEstimator.OutputKind.Binary),
+                    new OneHotEncodingEstimator.ColumnOptions("CatVC", "B", OneHotEncodingEstimator.OutputKind.Indicator),
+                    new OneHotEncodingEstimator.ColumnOptions("CatVD", "B", OneHotEncodingEstimator.OutputKind.Key),
+                    new OneHotEncodingEstimator.ColumnOptions("CatVVA", "C", OneHotEncodingEstimator.OutputKind.Bag),
+                    new OneHotEncodingEstimator.ColumnOptions("CatVVB", "C", OneHotEncodingEstimator.OutputKind.Binary),
+                    new OneHotEncodingEstimator.ColumnOptions("CatVVC", "C", OneHotEncodingEstimator.OutputKind.Indicator),
+                    new OneHotEncodingEstimator.ColumnOptions("CatVVD", "C", OneHotEncodingEstimator.OutputKind.Key),
                 });
 
             TestEstimatorCore(pipe, dataView);
@@ -105,7 +104,7 @@ namespace Microsoft.ML.Tests.Transformers
             sideDataBuilder.AddColumn("Hello", "hello", "my", "friend");
             var sideData = sideDataBuilder.GetDataView();
 
-            var ci = new OneHotEncodingEstimator.ColumnOptions("CatA", "A", OneHotEncodingTransformer.OutputKind.Bag);
+            var ci = new OneHotEncodingEstimator.ColumnOptions("CatA", "A", OneHotEncodingEstimator.OutputKind.Bag);
             var pipe = mlContext.Transforms.Categorical.OneHotEncoding(new[] { ci }, sideData);
 
             var output = pipe.Fit(dataView).Transform(dataView);
@@ -164,18 +163,18 @@ namespace Microsoft.ML.Tests.Transformers
 
             var dataView = ML.Data.LoadFromEnumerable(data);
             var pipe = ML.Transforms.Categorical.OneHotEncoding(new[] {
-                new OneHotEncodingEstimator.ColumnOptions("CatA", "A", OneHotEncodingTransformer.OutputKind.Bag),
-                new OneHotEncodingEstimator.ColumnOptions("CatB", "B", OneHotEncodingTransformer.OutputKind.Bag),
-                new OneHotEncodingEstimator.ColumnOptions("CatC", "C", OneHotEncodingTransformer.OutputKind.Bag),
-                new OneHotEncodingEstimator.ColumnOptions("CatD", "D", OneHotEncodingTransformer.OutputKind.Bag),
-                new OneHotEncodingEstimator.ColumnOptions("CatE", "E",OneHotEncodingTransformer.OutputKind.Ind),
-                new OneHotEncodingEstimator.ColumnOptions("CatF", "F", OneHotEncodingTransformer.OutputKind.Ind),
-                new OneHotEncodingEstimator.ColumnOptions("CatG", "G", OneHotEncodingTransformer.OutputKind.Key),
-                new OneHotEncodingEstimator.ColumnOptions("CatH", "H", OneHotEncodingTransformer.OutputKind.Key),
-                new OneHotEncodingEstimator.ColumnOptions("CatI", "A", OneHotEncodingTransformer.OutputKind.Bin),
-                new OneHotEncodingEstimator.ColumnOptions("CatJ", "B", OneHotEncodingTransformer.OutputKind.Bin),
-                new OneHotEncodingEstimator.ColumnOptions("CatK", "C", OneHotEncodingTransformer.OutputKind.Bin),
-                new OneHotEncodingEstimator.ColumnOptions("CatL", "D", OneHotEncodingTransformer.OutputKind.Bin) });
+                new OneHotEncodingEstimator.ColumnOptions("CatA", "A", OneHotEncodingEstimator.OutputKind.Bag),
+                new OneHotEncodingEstimator.ColumnOptions("CatB", "B", OneHotEncodingEstimator.OutputKind.Bag),
+                new OneHotEncodingEstimator.ColumnOptions("CatC", "C", OneHotEncodingEstimator.OutputKind.Bag),
+                new OneHotEncodingEstimator.ColumnOptions("CatD", "D", OneHotEncodingEstimator.OutputKind.Bag),
+                new OneHotEncodingEstimator.ColumnOptions("CatE", "E",OneHotEncodingEstimator.OutputKind.Indicator),
+                new OneHotEncodingEstimator.ColumnOptions("CatF", "F", OneHotEncodingEstimator.OutputKind.Indicator),
+                new OneHotEncodingEstimator.ColumnOptions("CatG", "G", OneHotEncodingEstimator.OutputKind.Key),
+                new OneHotEncodingEstimator.ColumnOptions("CatH", "H", OneHotEncodingEstimator.OutputKind.Key),
+                new OneHotEncodingEstimator.ColumnOptions("CatI", "A", OneHotEncodingEstimator.OutputKind.Binary),
+                new OneHotEncodingEstimator.ColumnOptions("CatJ", "B", OneHotEncodingEstimator.OutputKind.Binary),
+                new OneHotEncodingEstimator.ColumnOptions("CatK", "C", OneHotEncodingEstimator.OutputKind.Binary),
+                new OneHotEncodingEstimator.ColumnOptions("CatL", "D", OneHotEncodingEstimator.OutputKind.Binary) });
 
 
             var result = pipe.Fit(dataView).Transform(dataView);

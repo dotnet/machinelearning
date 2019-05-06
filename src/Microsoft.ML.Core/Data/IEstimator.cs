@@ -5,8 +5,8 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using Microsoft.Data.DataView;
 using Microsoft.ML.Data;
+using Microsoft.ML.Runtime;
 
 namespace Microsoft.ML
 {
@@ -63,9 +63,9 @@ namespace Microsoft.ML
             {
                 Contracts.CheckNonEmpty(name, nameof(name));
                 Contracts.CheckValueOrNull(annotations);
-                Contracts.CheckParam(!(itemType is KeyType), nameof(itemType), "Item type cannot be a key");
-                Contracts.CheckParam(!(itemType is VectorType), nameof(itemType), "Item type cannot be a vector");
-                Contracts.CheckParam(!isKey || KeyType.IsValidDataType(itemType.RawType), nameof(itemType), "The item type must be valid for a key");
+                Contracts.CheckParam(!(itemType is KeyDataViewType), nameof(itemType), "Item type cannot be a key");
+                Contracts.CheckParam(!(itemType is VectorDataViewType), nameof(itemType), "Item type cannot be a vector");
+                Contracts.CheckParam(!isKey || KeyDataViewType.IsValidDataType(itemType.RawType), nameof(itemType), "The item type must be valid for a key");
 
                 Name = name;
                 Kind = vecKind;
@@ -147,7 +147,7 @@ namespace Microsoft.ML
             out DataViewType itemType,
             out bool isKey)
         {
-            if (type is VectorType vectorType)
+            if (type is VectorDataViewType vectorType)
             {
                 if (vectorType.IsKnownSize)
                 {
@@ -166,7 +166,7 @@ namespace Microsoft.ML
                 itemType = type;
             }
 
-            isKey = itemType is KeyType;
+            isKey = itemType is KeyDataViewType;
             if (isKey)
                 itemType = ColumnTypeExtensions.PrimitiveTypeFromType(itemType.RawType);
         }
@@ -224,7 +224,7 @@ namespace Microsoft.ML
     /// The 'data loader' takes a certain kind of input and turns it into an <see cref="IDataView"/>.
     /// </summary>
     /// <typeparam name="TSource">The type of input the loader takes.</typeparam>
-    public interface IDataLoader<in TSource>
+    public interface IDataLoader<in TSource> : ICanSaveModel
     {
         /// <summary>
         /// Produce the data view from the specified input.
@@ -247,6 +247,7 @@ namespace Microsoft.ML
     {
         // REVIEW: you could consider the transformer to take a different <typeparamref name="TSource"/>, but we don't have such components
         // yet, so why complicate matters?
+
         /// <summary>
         /// Train and return a data loader.
         /// </summary>

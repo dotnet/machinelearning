@@ -6,13 +6,13 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
 using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Model.OnnxConverter;
+using Microsoft.ML.Runtime;
 using Microsoft.ML.Transforms;
 
 [assembly: LoadableClass(TypeConvertingTransformer.Summary, typeof(IDataTransform), typeof(TypeConvertingTransformer), typeof(TypeConvertingTransformer.Options), typeof(SignatureDataTransform),
@@ -51,8 +51,7 @@ namespace Microsoft.ML.Transforms
     }
 
     /// <summary>
-    /// <see cref="TypeConvertingTransformer"/> converts underlying column types.
-    /// The source and destination column types need to be compatible.
+    /// <see cref="ITransformer"/> resulting from fitting a <see cref="TypeConvertingEstimator"/>.
     /// </summary>
     public sealed class TypeConvertingTransformer : OneToOneTransformerBase
     {
@@ -172,7 +171,7 @@ namespace Microsoft.ML.Transforms
         /// <summary>
         /// A collection of <see cref="TypeConvertingEstimator.ColumnOptions"/> describing the settings of the transformation.
         /// </summary>
-        public IReadOnlyCollection<TypeConvertingEstimator.ColumnOptions> Columns => _columns.AsReadOnly();
+        internal IReadOnlyCollection<TypeConvertingEstimator.ColumnOptions> Columns => _columns.AsReadOnly();
 
         private readonly TypeConvertingEstimator.ColumnOptions[] _columns;
 
@@ -329,7 +328,7 @@ namespace Microsoft.ML.Transforms
                     else
                     {
                         var srcType = input.Schema[item.Source ?? item.Name].Type;
-                        kind = srcType is KeyType ? srcType.GetRawKind() : InternalDataKind.U8;
+                        kind = srcType is KeyDataViewType ? srcType.GetRawKind() : InternalDataKind.U8;
                     }
                 }
                 else
@@ -357,19 +356,19 @@ namespace Microsoft.ML.Transforms
             {
                 itemType = TypeParsingUtils.ConstructKeyType(kind, keyCount);
                 DataViewType srcItemType = srcType.GetItemType();
-                if (!(srcItemType is KeyType) && !(srcItemType is TextDataViewType))
+                if (!(srcItemType is KeyDataViewType) && !(srcItemType is TextDataViewType))
                     return false;
             }
-            else if (!(srcType.GetItemType() is KeyType key))
+            else if (!(srcType.GetItemType() is KeyDataViewType key))
                 itemType = ColumnTypeExtensions.PrimitiveTypeFromKind(kind);
-            else if (!KeyType.IsValidDataType(kind.ToType()))
+            else if (!KeyDataViewType.IsValidDataType(kind.ToType()))
             {
                 itemType = ColumnTypeExtensions.PrimitiveTypeFromKind(kind);
                 return false;
             }
             else
             {
-                ectx.Assert(KeyType.IsValidDataType(key.RawType));
+                ectx.Assert(KeyDataViewType.IsValidDataType(key.RawType));
                 ulong count = key.Count;
                 // Technically, it's an error for the counts not to match, but we'll let the Conversions
                 // code return false below. There's a possibility we'll change the standard conversions to
@@ -377,7 +376,7 @@ namespace Microsoft.ML.Transforms
                 ulong max = kind.ToMaxInt();
                 if (count > max)
                     count = max;
-                itemType = new KeyType(kind.ToType(), count);
+                itemType = new KeyDataViewType(kind.ToType(), count);
             }
             return true;
         }
@@ -426,8 +425,8 @@ namespace Microsoft.ML.Transforms
                     return false;
 
                 typeDst = itemType;
-                if (srcType is VectorType vectorType)
-                    typeDst = new VectorType(itemType, vectorType);
+                if (srcType is VectorDataViewType vectorType)
+                    typeDst = new VectorDataViewType(itemType, vectorType.Dimensions);
 
                 return true;
             }
@@ -445,8 +444,8 @@ namespace Microsoft.ML.Transforms
                     DataViewType srcItemType = srcType.GetItemType();
                     DataViewType currentItemType = _types[i].GetItemType();
 
-                    KeyType srcItemKeyType = srcItemType as KeyType;
-                    KeyType currentItemKeyType = currentItemType as KeyType;
+                    KeyDataViewType srcItemKeyType = srcItemType as KeyDataViewType;
+                    KeyDataViewType currentItemKeyType = currentItemType as KeyDataViewType;
                     if (srcItemKeyType != null && currentItemKeyType != null &&
                         srcItemKeyType.Count > 0 && srcItemKeyType.Count == currentItemKeyType.Count)
                     {
@@ -470,7 +469,7 @@ namespace Microsoft.ML.Transforms
                 Contracts.AssertValue(input);
                 Contracts.Assert(0 <= iinfo && iinfo < _parent.ColumnPairs.Length);
                 disposer = null;
-                if (!(_types[iinfo] is VectorType vectorType))
+                if (!(_types[iinfo] is VectorDataViewType vectorType))
                     return RowCursorUtils.GetGetterAs(_types[iinfo], input, _srcCols[iinfo]);
                 return RowCursorUtils.GetVecGetterAs(vectorType.ItemType, input, _srcCols[iinfo]);
             }
@@ -504,7 +503,7 @@ namespace Microsoft.ML.Transforms
                 node.AddAttribute("to", (byte)_parent._columns[iinfo].OutputKind);
                 if (_parent._columns[iinfo].OutputKeyCount != null)
                 {
-                    var key = (KeyType)_types[iinfo].GetItemType();
+                    var key = (KeyDataViewType)_types[iinfo].GetItemType();
                     node.AddAttribute("max", key.Count);
                 }
                 return true;
@@ -513,9 +512,25 @@ namespace Microsoft.ML.Transforms
     }
 
     /// <summary>
-    /// <see cref="TypeConvertingEstimator"/> converts underlying column types.
-    /// The source and destination column types need to be compatible.
+    /// Estimator for <see cref="KeyToVectorMappingTransformer"/>. Converts the underlying input column type to a new type.
+    /// The input and output column types need to be compatible.
+    /// <see cref="PrimitiveDataViewType"/>
     /// </summary>
+    /// <remarks>
+    /// <format type="text/markdown"><![CDATA[
+    ///
+    /// ###  Estimator Characteristics
+    /// |  |  |
+    /// | -- | -- |
+    /// | Does this estimator need to look at the data to train its parameters? | No |
+    /// | Input column data type | Vector or primitive numeric, boolean, [text](xref:Microsoft.ML.Data.TextDataViewType), [System.DateTime](xref:System.DateTime) and [key](xref:Microsoft.ML.Data.KeyDataViewType) type. |
+    /// | Output column data type | Vector or primitive numeric, boolean, [text](xref:Microsoft.ML.Data.TextDataViewType), [System.DateTime](xref:System.DateTime) and [key](xref:Microsoft.ML.Data.KeyDataViewType) type. |
+    ///
+    /// Check the See Also section for links to usage examples.
+    /// ]]></format>
+    /// </remarks>
+    /// <seealso cref="ConversionsExtensionsCatalog.ConvertType(TransformsCatalog.ConversionTransforms, InputOutputColumnPair[], DataKind)"/>
+    /// <seealso cref="ConversionsExtensionsCatalog.ConvertType(TransformsCatalog.ConversionTransforms, string, string, DataKind)"/>
     public sealed class TypeConvertingEstimator : TrivialEstimator<TypeConvertingTransformer>
     {
         internal sealed class Defaults
@@ -526,7 +541,8 @@ namespace Microsoft.ML.Transforms
         /// <summary>
         /// Describes how the transformer handles one column pair.
         /// </summary>
-        public sealed class ColumnOptions
+        [BestFriend]
+        internal sealed class ColumnOptions
         {
             /// <summary>
             /// Name of the column resulting from the transformation of <see cref="InputColumnName"/>.
@@ -623,7 +639,7 @@ namespace Microsoft.ML.Transforms
                     if (col.Kind == SchemaShape.Column.VectorKind.Vector)
                         metadata.Add(new SchemaShape.Column(AnnotationUtils.Kinds.SlotNames, SchemaShape.Column.VectorKind.Vector, slotMeta.ItemType, false));
                 if (col.Annotations.TryFindColumn(AnnotationUtils.Kinds.KeyValues, out var keyMeta))
-                    if (col.ItemType is KeyType)
+                    if (col.ItemType is KeyDataViewType)
                         metadata.Add(new SchemaShape.Column(AnnotationUtils.Kinds.KeyValues, SchemaShape.Column.VectorKind.Vector, keyMeta.ItemType, false));
                 if (col.Annotations.TryFindColumn(AnnotationUtils.Kinds.IsNormalized, out var normMeta))
                     if (col.ItemType is NumberDataViewType && newType is NumberDataViewType)

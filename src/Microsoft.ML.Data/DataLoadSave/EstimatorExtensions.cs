@@ -3,14 +3,14 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using Microsoft.Data.DataView;
 using Microsoft.ML.Data;
 using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Runtime;
 
 namespace Microsoft.ML
 {
     /// <summary>
-    /// Extension methods that allow chaining estimator and transformer pipes together.
+    /// Extension methods that allow chaining of estimator and transformer pipelines.
     /// </summary>
     public static class LearningPipelineExtensions
     {

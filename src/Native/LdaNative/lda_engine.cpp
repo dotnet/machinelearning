@@ -377,7 +377,7 @@ namespace lda {
         std::vector<std::pair<int, double>> llcontainer;
         // Set core affinity which helps performance improvement
 #ifdef _MSC_VER
-        long long maskLL = 0;
+        DWORD maskLL = 0;
         maskLL |= (1LL << (thread_id));
         DWORD_PTR mask = maskLL;
         SetThreadAffinityMask(GetCurrentThread(), mask);
@@ -542,7 +542,7 @@ namespace lda {
         if (thread_id == 0)
         {
             //output the ll once
-            for (int i = 0; i < llcontainer.size(); i++)
+            for (size_t i = 0; i < llcontainer.size(); i++)
             {
                 printf("loglikelihood @iter%04d = %f\n", llcontainer[i].first, llcontainer[i].second);
             }
@@ -560,7 +560,7 @@ namespace lda {
 
         // Set core affinity which helps performance improvement
 #ifdef _MSC_VER
-        long long maskLL = 0;
+        DWORD maskLL = 0;
         maskLL |= (1LL << (thread_id));
         DWORD_PTR mask = maskLL;
         SetThreadAffinityMask(GetCurrentThread(), mask);

@@ -8,6 +8,7 @@ using System.Linq;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Numeric;
+using Microsoft.ML.Runtime;
 using Microsoft.ML.Sweeper;
 
 [assembly: LoadableClass(typeof(NelderMeadSweeper), typeof(NelderMeadSweeper.Options), typeof(SignatureSweeper),
@@ -92,7 +93,7 @@ namespace Microsoft.ML.Sweeper
             env.CheckUserArg(options.DeltaReflection > options.DeltaOutsideContraction, nameof(options.DeltaReflection), "Must be greater than " + nameof(options.DeltaOutsideContraction));
             env.CheckUserArg(options.DeltaExpansion > options.DeltaReflection, nameof(options.DeltaExpansion), "Must be greater than " + nameof(options.DeltaReflection));
             env.CheckUserArg(0 < options.GammaShrink && options.GammaShrink < 1, nameof(options.GammaShrink), "Must be between 0 and 1");
-            env.CheckValue(options.FirstBatchSweeper, nameof(options.FirstBatchSweeper) , "First Batch Sweeper Contains Null Value");
+            env.CheckValue(options.FirstBatchSweeper, nameof(options.FirstBatchSweeper), "First Batch Sweeper Contains Null Value");
 
             _args = options;
 
@@ -151,70 +152,104 @@ namespace Microsoft.ML.Sweeper
 
             switch (_stage)
             {
-            case OptimizationStage.NeedReflectionPoint:
-                _pendingSweeps.Clear();
-                var nextPoint = GetNewPoint(_centroid, _worst.Value, _args.DeltaReflection);
-                if (OutOfBounds(nextPoint) && _args.ProjectInbounds)
-                {
-                    // if the reflection point is out of bounds, get the inner contraction point.
-                    nextPoint = GetNewPoint(_centroid, _worst.Value, _args.DeltaInsideContraction);
-                    _stage = OptimizationStage.WaitingForInnerContractionResult;
-                }
-                else
-                    _stage = OptimizationStage.WaitingForReflectionResult;
-                _pendingSweeps.Add(new KeyValuePair<ParameterSet, float[]>(FloatArrayAsParameterSet(nextPoint), nextPoint));
-                if (previousRuns.Any(runResult => runResult.ParameterSet.Equals(_pendingSweeps[0].Key)))
-                {
-                    _stage = OptimizationStage.WaitingForReductionResult;
+                case OptimizationStage.NeedReflectionPoint:
                     _pendingSweeps.Clear();
-                    if (!TryGetReductionPoints(maxSweeps, previousRuns))
-                    {
-                        _stage = OptimizationStage.Done;
-                        return null;
-                    }
-                    return _pendingSweeps.Select(kvp => kvp.Key).ToArray();
-                }
-                return new ParameterSet[] { _pendingSweeps[0].Key };
-
-            case OptimizationStage.WaitingForReflectionResult:
-                Contracts.Assert(_pendingSweeps.Count == 1);
-                _lastReflectionResult = FindRunResult(previousRuns)[0];
-                if (_secondWorst.Key.CompareTo(_lastReflectionResult.Key) < 0 && _lastReflectionResult.Key.CompareTo(_best.Key) <= 0)
-                {
-                    // the reflection result is better than the second worse, but not better than the best
-                    UpdateSimplex(_lastReflectionResult.Key, _lastReflectionResult.Value);
-                    goto case OptimizationStage.NeedReflectionPoint;
-                }
-
-                if (_lastReflectionResult.Key.CompareTo(_best.Key) > 0)
-                {
-                    // the reflection result is the best so far
-                    nextPoint = GetNewPoint(_centroid, _worst.Value, _args.DeltaExpansion);
+                    var nextPoint = GetNewPoint(_centroid, _worst.Value, _args.DeltaReflection);
                     if (OutOfBounds(nextPoint) && _args.ProjectInbounds)
                     {
-                        // if the expansion point is out of bounds, get the inner contraction point.
+                        // if the reflection point is out of bounds, get the inner contraction point.
                         nextPoint = GetNewPoint(_centroid, _worst.Value, _args.DeltaInsideContraction);
                         _stage = OptimizationStage.WaitingForInnerContractionResult;
                     }
                     else
-                        _stage = OptimizationStage.WaitingForExpansionResult;
-                }
-                else if (_lastReflectionResult.Key.CompareTo(_worst.Key) > 0)
-                {
-                    // other wise, get results for the outer contraction point.
-                    nextPoint = GetNewPoint(_centroid, _worst.Value, _args.DeltaOutsideContraction);
-                    _stage = OptimizationStage.WaitingForOuterContractionResult;
-                }
-                else
-                {
-                    // other wise, reflection result is not better than worst, get results for the inner contraction point
-                    nextPoint = GetNewPoint(_centroid, _worst.Value, _args.DeltaInsideContraction);
-                    _stage = OptimizationStage.WaitingForInnerContractionResult;
-                }
-                _pendingSweeps.Clear();
-                _pendingSweeps.Add(new KeyValuePair<ParameterSet, float[]>(FloatArrayAsParameterSet(nextPoint), nextPoint));
-                if (previousRuns.Any(runResult => runResult.ParameterSet.Equals(_pendingSweeps[0].Key)))
-                {
+                        _stage = OptimizationStage.WaitingForReflectionResult;
+                    _pendingSweeps.Add(new KeyValuePair<ParameterSet, float[]>(FloatArrayAsParameterSet(nextPoint), nextPoint));
+                    if (previousRuns.Any(runResult => runResult.ParameterSet.Equals(_pendingSweeps[0].Key)))
+                    {
+                        _stage = OptimizationStage.WaitingForReductionResult;
+                        _pendingSweeps.Clear();
+                        if (!TryGetReductionPoints(maxSweeps, previousRuns))
+                        {
+                            _stage = OptimizationStage.Done;
+                            return null;
+                        }
+                        return _pendingSweeps.Select(kvp => kvp.Key).ToArray();
+                    }
+                    return new ParameterSet[] { _pendingSweeps[0].Key };
+
+                case OptimizationStage.WaitingForReflectionResult:
+                    Contracts.Assert(_pendingSweeps.Count == 1);
+                    _lastReflectionResult = FindRunResult(previousRuns)[0];
+                    if (_secondWorst.Key.CompareTo(_lastReflectionResult.Key) < 0 && _lastReflectionResult.Key.CompareTo(_best.Key) <= 0)
+                    {
+                        // the reflection result is better than the second worse, but not better than the best
+                        UpdateSimplex(_lastReflectionResult.Key, _lastReflectionResult.Value);
+                        goto case OptimizationStage.NeedReflectionPoint;
+                    }
+
+                    if (_lastReflectionResult.Key.CompareTo(_best.Key) > 0)
+                    {
+                        // the reflection result is the best so far
+                        nextPoint = GetNewPoint(_centroid, _worst.Value, _args.DeltaExpansion);
+                        if (OutOfBounds(nextPoint) && _args.ProjectInbounds)
+                        {
+                            // if the expansion point is out of bounds, get the inner contraction point.
+                            nextPoint = GetNewPoint(_centroid, _worst.Value, _args.DeltaInsideContraction);
+                            _stage = OptimizationStage.WaitingForInnerContractionResult;
+                        }
+                        else
+                            _stage = OptimizationStage.WaitingForExpansionResult;
+                    }
+                    else if (_lastReflectionResult.Key.CompareTo(_worst.Key) > 0)
+                    {
+                        // other wise, get results for the outer contraction point.
+                        nextPoint = GetNewPoint(_centroid, _worst.Value, _args.DeltaOutsideContraction);
+                        _stage = OptimizationStage.WaitingForOuterContractionResult;
+                    }
+                    else
+                    {
+                        // other wise, reflection result is not better than worst, get results for the inner contraction point
+                        nextPoint = GetNewPoint(_centroid, _worst.Value, _args.DeltaInsideContraction);
+                        _stage = OptimizationStage.WaitingForInnerContractionResult;
+                    }
+                    _pendingSweeps.Clear();
+                    _pendingSweeps.Add(new KeyValuePair<ParameterSet, float[]>(FloatArrayAsParameterSet(nextPoint), nextPoint));
+                    if (previousRuns.Any(runResult => runResult.ParameterSet.Equals(_pendingSweeps[0].Key)))
+                    {
+                        _stage = OptimizationStage.WaitingForReductionResult;
+                        _pendingSweeps.Clear();
+                        if (!TryGetReductionPoints(maxSweeps, previousRuns))
+                        {
+                            _stage = OptimizationStage.Done;
+                            return null;
+                        }
+                        return _pendingSweeps.Select(kvp => kvp.Key).ToArray();
+                    }
+                    return new ParameterSet[] { _pendingSweeps[0].Key };
+
+                case OptimizationStage.WaitingForExpansionResult:
+                    Contracts.Assert(_pendingSweeps.Count == 1);
+                    var expansionResult = FindRunResult(previousRuns)[0].Key;
+                    if (expansionResult.CompareTo(_lastReflectionResult.Key) > 0)
+                    {
+                        // expansion point is better than reflection point
+                        UpdateSimplex(expansionResult, _pendingSweeps[0].Value);
+                        goto case OptimizationStage.NeedReflectionPoint;
+                    }
+                    // reflection point is better than expansion point
+                    UpdateSimplex(_lastReflectionResult.Key, _lastReflectionResult.Value);
+                    goto case OptimizationStage.NeedReflectionPoint;
+
+                case OptimizationStage.WaitingForOuterContractionResult:
+                    Contracts.Assert(_pendingSweeps.Count == 1);
+                    var outerContractionResult = FindRunResult(previousRuns)[0].Key;
+                    if (outerContractionResult.CompareTo(_lastReflectionResult.Key) > 0)
+                    {
+                        // outer contraction point is better than reflection point
+                        UpdateSimplex(outerContractionResult, _pendingSweeps[0].Value);
+                        goto case OptimizationStage.NeedReflectionPoint;
+                    }
+                    // get the reduction points
                     _stage = OptimizationStage.WaitingForReductionResult;
                     _pendingSweeps.Clear();
                     if (!TryGetReductionPoints(maxSweeps, previousRuns))
@@ -223,74 +258,40 @@ namespace Microsoft.ML.Sweeper
                         return null;
                     }
                     return _pendingSweeps.Select(kvp => kvp.Key).ToArray();
-                }
-                return new ParameterSet[] { _pendingSweeps[0].Key };
 
-            case OptimizationStage.WaitingForExpansionResult:
-                Contracts.Assert(_pendingSweeps.Count == 1);
-                var expansionResult = FindRunResult(previousRuns)[0].Key;
-                if (expansionResult.CompareTo(_lastReflectionResult.Key) > 0)
-                {
-                    // expansion point is better than reflection point
-                    UpdateSimplex(expansionResult, _pendingSweeps[0].Value);
+                case OptimizationStage.WaitingForInnerContractionResult:
+                    Contracts.Assert(_pendingSweeps.Count == 1);
+                    var innerContractionResult = FindRunResult(previousRuns)[0].Key;
+                    if (innerContractionResult.CompareTo(_worst.Key) > 0)
+                    {
+                        // inner contraction point is better than worst point
+                        UpdateSimplex(innerContractionResult, _pendingSweeps[0].Value);
+                        goto case OptimizationStage.NeedReflectionPoint;
+                    }
+                    // get the reduction points
+                    _stage = OptimizationStage.WaitingForReductionResult;
+                    _pendingSweeps.Clear();
+                    if (!TryGetReductionPoints(maxSweeps, previousRuns))
+                    {
+                        _stage = OptimizationStage.Done;
+                        return null;
+                    }
+                    return _pendingSweeps.Select(kvp => kvp.Key).ToArray();
+
+                case OptimizationStage.WaitingForReductionResult:
+                    Contracts.Assert(_pendingSweeps.Count + _pendingSweepsNotSubmitted.Count == _dim);
+                    if (_pendingSweeps.Count < _dim)
+                        return SubmitMoreReductionPoints(maxSweeps);
+                    ReplaceSimplexVertices(previousRuns);
+
+                    // if the diameter of the new simplex has become too small, stop sweeping.
+                    if (SimplexDiameter() < _args.StoppingSimplexDiameter)
+                        return null;
+
                     goto case OptimizationStage.NeedReflectionPoint;
-                }
-                // reflection point is better than expansion point
-                UpdateSimplex(_lastReflectionResult.Key, _lastReflectionResult.Value);
-                goto case OptimizationStage.NeedReflectionPoint;
-
-            case OptimizationStage.WaitingForOuterContractionResult:
-                Contracts.Assert(_pendingSweeps.Count == 1);
-                var outerContractionResult = FindRunResult(previousRuns)[0].Key;
-                if (outerContractionResult.CompareTo(_lastReflectionResult.Key) > 0)
-                {
-                    // outer contraction point is better than reflection point
-                    UpdateSimplex(outerContractionResult, _pendingSweeps[0].Value);
-                    goto case OptimizationStage.NeedReflectionPoint;
-                }
-                // get the reduction points
-                _stage = OptimizationStage.WaitingForReductionResult;
-                _pendingSweeps.Clear();
-                if (!TryGetReductionPoints(maxSweeps, previousRuns))
-                {
-                    _stage = OptimizationStage.Done;
+                case OptimizationStage.Done:
+                default:
                     return null;
-                }
-                return _pendingSweeps.Select(kvp => kvp.Key).ToArray();
-
-            case OptimizationStage.WaitingForInnerContractionResult:
-                Contracts.Assert(_pendingSweeps.Count == 1);
-                var innerContractionResult = FindRunResult(previousRuns)[0].Key;
-                if (innerContractionResult.CompareTo(_worst.Key) > 0)
-                {
-                    // inner contraction point is better than worst point
-                    UpdateSimplex(innerContractionResult, _pendingSweeps[0].Value);
-                    goto case OptimizationStage.NeedReflectionPoint;
-                }
-                // get the reduction points
-                _stage = OptimizationStage.WaitingForReductionResult;
-                _pendingSweeps.Clear();
-                if (!TryGetReductionPoints(maxSweeps, previousRuns))
-                {
-                    _stage = OptimizationStage.Done;
-                    return null;
-                }
-                return _pendingSweeps.Select(kvp => kvp.Key).ToArray();
-
-            case OptimizationStage.WaitingForReductionResult:
-                Contracts.Assert(_pendingSweeps.Count + _pendingSweepsNotSubmitted.Count == _dim);
-                if (_pendingSweeps.Count < _dim)
-                    return SubmitMoreReductionPoints(maxSweeps);
-                ReplaceSimplexVertices(previousRuns);
-
-                // if the diameter of the new simplex has become too small, stop sweeping.
-                if (SimplexDiameter() < _args.StoppingSimplexDiameter)
-                    return null;
-
-                goto case OptimizationStage.NeedReflectionPoint;
-            case OptimizationStage.Done:
-            default:
-                return null;
             }
         }
 

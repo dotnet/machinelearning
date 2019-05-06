@@ -1,0 +1,39 @@
+﻿<#@ include file="BinaryClassification.ttinclude"#>
+<#+
+string ClassName="FactorizationMachine";
+string Trainer = "FieldAwareFactorizationMachine";
+string TrainerOptions = null;
+bool IsCalibrated = true;
+bool CacheData = true;
+
+string LabelThreshold = "0.5f";
+string DataSepValue = "0.1f";
+string OptionsInclude = "";
+string Comments= "";
+
+string ExpectedOutputPerInstance= @"// Expected output:
+            //   Label: True, Prediction: False
+            //   Label: False, Prediction: False
+            //   Label: True, Prediction: False
+            //   Label: True, Prediction: False
+            //   Label: False, Prediction: False";
+
+string ExpectedOutput = @"// Expected output:
+            //   Accuracy: 0.55
+            //   AUC: 0.54
+            //   F1 Score: 0.23
+            //   Negative Precision: 0.54
+            //   Negative Recall: 0.92
+            //   Positive Precision: 0.62
+            //   Positive Recall: 0.14
+            //
+            //   TEST POSITIVE RATIO:    0.4760 (238.0/(238.0+262.0))
+            //   Confusion table
+            //             ||======================
+            //   PREDICTED || positive | negative | Recall
+            //   TRUTH     ||======================
+            //    positive ||      203 |       35 | 0.8529
+            //    negative ||       21 |      241 | 0.9198
+            //             ||======================
+            //   Precision ||   0.9063 |   0.8732 |";
+#>

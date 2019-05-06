@@ -5,6 +5,7 @@
 using System;
 using System.IO;
 using System.Threading;
+using Microsoft.ML.Runtime;
 
 namespace Microsoft.ML.Internal.Utilities
 {

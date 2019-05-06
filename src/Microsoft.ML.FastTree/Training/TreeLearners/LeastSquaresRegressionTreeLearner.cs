@@ -8,6 +8,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.ML.Internal.CpuMath;
 using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Runtime;
 
 namespace Microsoft.ML.Trainers.FastTree
 {
@@ -68,6 +69,8 @@ namespace Microsoft.ML.Trainers.FastTree
         protected readonly bool FilterZeros;
         protected readonly double BsrMaxTreeOutput;
 
+        protected readonly IHost Host;
+
         // size of reserved memory
         private readonly long _sizeOfReservedMemory;
 
@@ -113,12 +116,13 @@ namespace Microsoft.ML.Trainers.FastTree
         /// <param name="bundling"></param>
         /// <param name="minDocsForCategoricalSplit"></param>
         /// <param name="bias"></param>
+        /// <param name="host">Host</param>
         public LeastSquaresRegressionTreeLearner(Dataset trainData, int numLeaves, int minDocsInLeaf, double entropyCoefficient,
             double featureFirstUsePenalty, double featureReusePenalty, double softmaxTemperature, int histogramPoolSize,
             int randomSeed, double splitFraction, bool filterZeros, bool allowEmptyTrees, double gainConfidenceLevel,
             int maxCategoricalGroupsPerNode, int maxCategoricalSplitPointPerNode,
             double bsrMaxTreeOutput, IParallelTraining parallelTraining, double minDocsPercentageForCategoricalSplit,
-            Bundle bundling, int minDocsForCategoricalSplit, double bias)
+            Bundle bundling, int minDocsForCategoricalSplit, double bias, IHost host)
             : base(trainData, numLeaves)
         {
             MinDocsInLeaf = minDocsInLeaf;
@@ -134,6 +138,7 @@ namespace Microsoft.ML.Trainers.FastTree
             MinDocsForCategoricalSplit = minDocsForCategoricalSplit;
             Bundling = bundling;
             Bias = bias;
+            Host = host;
 
             _calculateLeafSplitCandidates = ThreadTaskManager.MakeTask(
                 FindBestThresholdForFlockThreadWorker, TrainData.NumFlocks);
@@ -147,6 +152,7 @@ namespace Microsoft.ML.Trainers.FastTree
                 histogramPool[i] = new SufficientStatsBase[TrainData.NumFlocks];
                 for (int j = 0; j < TrainData.NumFlocks; j++)
                 {
+                    Host.CheckAlive();
                     var ss = histogramPool[i][j] = TrainData.Flocks[j].CreateSufficientStats(HasWeights);
                     _sizeOfReservedMemory += ss.SizeInBytes();
                 }
@@ -497,6 +503,7 @@ namespace Microsoft.ML.Trainers.FastTree
         /// </summary>
         private void FindBestThresholdForFlockThreadWorker(int flock)
         {
+            Host.CheckAlive();
             int featureMin = TrainData.FlockToFirstFeature(flock);
             int featureLim = featureMin + TrainData.Flocks[flock].Count;
             // Check if any feature is active.
@@ -648,6 +655,8 @@ namespace Microsoft.ML.Trainers.FastTree
         protected virtual void FindBestThresholdFromHistogram(SufficientStatsBase histogram,
             LeafSplitCandidates leafSplitCandidates, int flock)
         {
+            Host.CheckAlive();
+
             // Cache histograms for the parallel interface.
             int featureMin = TrainData.FlockToFirstFeature(flock);
             int featureLim = featureMin + TrainData.Flocks[flock].Count;

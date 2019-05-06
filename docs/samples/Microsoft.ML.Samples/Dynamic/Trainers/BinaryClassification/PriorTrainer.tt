@@ -1,0 +1,39 @@
+﻿<#@ include file="BinaryClassification.ttinclude"#>
+<#+
+string ClassName = "Prior";
+string Trainer = "Prior";
+string TrainerOptions = null;
+bool IsCalibrated = true;
+bool CacheData = false;
+
+string LabelThreshold = "0.3f";
+string DataSepValue = "0.3f";
+string OptionsInclude = "";
+string Comments = "";
+
+string ExpectedOutputPerInstance = @"// Expected output:
+            //   Label: True, Prediction: True
+            //   Label: False, Prediction: True
+            //   Label: True, Prediction: True
+            //   Label: True, Prediction: True
+            //   Label: False, Prediction: True";
+
+string ExpectedOutput = @"// Expected output:
+            //   Accuracy: 0.68
+            //   AUC: 0.50  (this is expected for Prior trainer)
+            //   F1 Score: 0.81
+            //   Negative Precision: 0.00
+            //   Negative Recall: 0.00
+            //   Positive Precision: 0.68
+            //   Positive Recall: 1.00
+            //
+            //   TEST POSITIVE RATIO:    0.6840 (342.0/(342.0+158.0))
+            //   Confusion table
+            //             ||======================
+            //   PREDICTED || positive | negative | Recall
+            //   TRUTH     ||======================
+            //    positive ||      342 |        0 | 1.0000
+            //    negative ||      158 |        0 | 0.0000
+            //             ||======================
+            //   Precision ||   0.6840 |   0.0000 |";
+#>

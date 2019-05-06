@@ -1,15 +1,18 @@
 ﻿using System;
+using System.Collections.Generic;
+using Microsoft.ML;
+using Microsoft.ML.Data;
 using Microsoft.ML.StaticPipe;
 
-namespace Microsoft.ML.Samples.Static
+namespace Samples.Static
 {
     public class SdcaBinaryClassificationExample
     {
-        public static void SdcaBinaryClassification()
+        public static void Example()
         {
             // Downloading a classification dataset from github.com/dotnet/machinelearning.
             // It will be stored in the same path as the executable
-            string dataFilePath = SamplesUtils.DatasetUtils.DownloadAdultDataset();
+            string dataFilePath = Microsoft.ML.SamplesUtils.DatasetUtils.DownloadAdultDataset();
 
             // Data Preview
             // 1. Column [Label]: IsOver50K (boolean)
@@ -55,7 +58,7 @@ namespace Microsoft.ML.Samples.Static
 
             // Load the data, and leave 10% out, so we can use them for testing
             var data = loader.Load(dataFilePath);
-            var (trainData, testData) = mlContext.BinaryClassification.TrainTestSplit(data, testFraction: 0.1);
+            var (trainData, testData) = mlContext.Data.TrainTestSplit(data, testFraction: 0.1);
 
             // Create the Estimator
             var learningPipeline = loader.MakeNewEstimator()
@@ -89,7 +92,7 @@ namespace Microsoft.ML.Samples.Static
             // Evaluate how the model is doing on the test data
             var dataWithPredictions = model.Transform(testData);
 
-            var metrics = mlContext.BinaryClassification.Evaluate(dataWithPredictions, row => row.Label, row => row.Score);
+            var metrics = mlContext.BinaryClassification.EvaluateWithPRCurve(dataWithPredictions, row => row.Label, row => row.Score, out List<BinaryPrecisionRecallDataPoint> prCurve);
 
             Console.WriteLine($"Accuracy: {metrics.Accuracy}"); // 0.83
             Console.WriteLine($"AUC: {metrics.AreaUnderRocCurve}"); // 0.88
@@ -98,7 +101,15 @@ namespace Microsoft.ML.Samples.Static
             Console.WriteLine($"Negative Precision: {metrics.NegativePrecision}"); // 0.87
             Console.WriteLine($"Negative Recall: {metrics.NegativeRecall}"); // 0.91
             Console.WriteLine($"Positive Precision: {metrics.PositivePrecision}"); // 0.65
-            Console.WriteLine($"Positive Recall: {metrics.PositiveRecall}"); // 0.55          
+            Console.WriteLine($"Positive Recall: {metrics.PositiveRecall}"); // 0.55
+
+            foreach(var prData in prCurve)
+            {
+                Console.Write($"Threshold: {prData.Threshold} ");
+                Console.Write($"Precision: {prData.Precision} ");
+                Console.Write($"Recall: {prData.Recall} ");
+                Console.WriteLine($"FPR: {prData.FalsePositiveRate}");
+            }
         }
     }
 }

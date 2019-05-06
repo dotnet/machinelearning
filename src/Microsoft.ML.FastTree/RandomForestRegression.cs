@@ -3,20 +3,20 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
 using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Model;
+using Microsoft.ML.Runtime;
 using Microsoft.ML.Trainers.FastTree;
 
-[assembly: LoadableClass(FastForestRegression.Summary, typeof(FastForestRegression), typeof(FastForestRegression.Options),
+[assembly: LoadableClass(FastForestRegressionTrainer.Summary, typeof(FastForestRegressionTrainer), typeof(FastForestRegressionTrainer.Options),
     new[] { typeof(SignatureRegressorTrainer), typeof(SignatureTrainer), typeof(SignatureTreeEnsembleTrainer), typeof(SignatureFeatureScorerTrainer) },
-    FastForestRegression.UserNameValue,
-    FastForestRegression.LoadNameValue,
-    FastForestRegression.ShortName)]
+    FastForestRegressionTrainer.UserNameValue,
+    FastForestRegressionTrainer.LoadNameValue,
+    FastForestRegressionTrainer.ShortName)]
 
 [assembly: LoadableClass(typeof(FastForestRegressionModelParameters), null, typeof(SignatureLoadModel),
     "FastForest Regression Executor",
@@ -24,6 +24,9 @@ using Microsoft.ML.Trainers.FastTree;
 
 namespace Microsoft.ML.Trainers.FastTree
 {
+    /// <summary>
+    /// Model parameters for <see cref="FastForestRegressionTrainer"/>.
+    /// </summary>
     public sealed class FastForestRegressionModelParameters :
         TreeEnsembleModelParametersBasedOnQuantileRegressionTree,
         IQuantileValueMapper,
@@ -241,12 +244,43 @@ namespace Microsoft.ML.Trainers.FastTree
         }
     }
 
-    /// <include file='doc.xml' path='doc/members/member[@name="FastForest"]/*' />
-    public sealed partial class FastForestRegression
-        : RandomForestTrainerBase<FastForestRegression.Options, RegressionPredictionTransformer<FastForestRegressionModelParameters>, FastForestRegressionModelParameters>
+    /// <summary>
+    /// The <see cref="IEstimator{TTransformer}"/> for training a decision tree regression model using Fast Forest.
+    /// </summary>
+    /// <remarks>
+    /// <format type="text/markdown"><![CDATA[
+    /// To create this trainer, use [FastForest](xref:Microsoft.ML.TreeExtensions.FastForest(Microsoft.ML.RegressionCatalog.RegressionTrainers,System.String,System.String,System.String,System.Int32,System.Int32,System.Int32))
+    /// or [FastForest(Options)](xref:Microsoft.ML.TreeExtensions.FastForest(Microsoft.ML.RegressionCatalog.RegressionTrainers,Microsoft.ML.Trainers.FastTree.FastForestRegressionTrainer.Options)).
+    ///
+    /// [!include[io](~/../docs/samples/docs/api-reference/io-columns-regression.md)]
+    ///
+    /// ### Trainer Characteristics
+    /// |  |  |
+    /// | -- | -- |
+    /// | Machine learning task | Regression |
+    /// | Is normalization required? | No |
+    /// | Is caching required? | No |
+    /// | Required NuGet in addition to Microsoft.ML | Microsoft.ML.FastTree |
+    ///
+    /// [!include[algorithm](~/../docs/samples/docs/api-reference/algo-details-fastforest.md)]
+    /// ]]>
+    /// </format>
+    /// </remarks>
+    /// <seealso cref="TreeExtensions.FastForest(RegressionCatalog.RegressionTrainers, string, string, string, int, int, int)"/>
+    /// <seealso cref="TreeExtensions.FastForest(RegressionCatalog.RegressionTrainers, FastForestRegressionTrainer.Options)"/>
+    /// <seealso cref="Options"/>
+    public sealed partial class FastForestRegressionTrainer
+        : RandomForestTrainerBase<FastForestRegressionTrainer.Options, RegressionPredictionTransformer<FastForestRegressionModelParameters>, FastForestRegressionModelParameters>
     {
+        /// <summary>
+        /// Options for the <see cref="FastForestRegressionTrainer"/> as used in
+        /// [FastForest(Options)](xref:Microsoft.ML.TreeExtensions.FastForest(Microsoft.ML.RegressionCatalog.RegressionTrainers,Microsoft.ML.Trainers.FastTree.FastForestRegressionTrainer.Options)).
+        /// </summary>
         public sealed class Options : FastForestOptionsBase
         {
+            /// <summary>
+            /// Whether to shuffle the labels on every iteration.
+            /// </summary>
             [Argument(ArgumentType.LastOccurenceWins, HelpText = "Shuffle the labels on every iteration. " +
                 "Useful probably only if using this tree as a tree leaf featurizer for multiclass.")]
             public bool ShuffleLabels;
@@ -260,7 +294,7 @@ namespace Microsoft.ML.Trainers.FastTree
         internal const string ShortName = "ffr";
 
         /// <summary>
-        /// Initializes a new instance of <see cref="FastForestRegression"/>
+        /// Initializes a new instance of <see cref="FastForestRegressionTrainer"/>
         /// </summary>
         /// <param name="env">The private instance of <see cref="IHostEnvironment"/>.</param>
         /// <param name="labelColumnName">The name of the label column.</param>
@@ -269,7 +303,7 @@ namespace Microsoft.ML.Trainers.FastTree
         /// <param name="numberOfLeaves">The max number of leaves in each regression tree.</param>
         /// <param name="numberOfTrees">Total number of decision trees to create in the ensemble.</param>
         /// <param name="minimumExampleCountPerLeaf">The minimal number of documents allowed in a leaf of a regression tree, out of the subsampled data.</param>
-        internal FastForestRegression(IHostEnvironment env,
+        internal FastForestRegressionTrainer(IHostEnvironment env,
             string labelColumnName = DefaultColumnNames.Label,
             string featureColumnName = DefaultColumnNames.Features,
             string exampleWeightColumnName = null,
@@ -283,11 +317,11 @@ namespace Microsoft.ML.Trainers.FastTree
         }
 
         /// <summary>
-        /// Initializes a new instance of <see cref="FastForestRegression"/> by using the <see cref="Options"/> class.
+        /// Initializes a new instance of <see cref="FastForestRegressionTrainer"/> by using the <see cref="Options"/> class.
         /// </summary>
         /// <param name="env">The instance of <see cref="IHostEnvironment"/>.</param>
         /// <param name="options">Algorithm advanced settings.</param>
-        internal FastForestRegression(IHostEnvironment env, Options options)
+        internal FastForestRegressionTrainer(IHostEnvironment env, Options options)
             : base(env, options, TrainerUtils.MakeR4ScalarColumn(options.LabelColumnName), true)
         {
         }
@@ -330,7 +364,7 @@ namespace Microsoft.ML.Trainers.FastTree
          => new RegressionPredictionTransformer<FastForestRegressionModelParameters>(Host, model, trainSchema, FeatureColumn.Name);
 
         /// <summary>
-        /// Trains a <see cref="FastForestRegression"/> using both training and validation data, returns
+        /// Trains a <see cref="FastForestRegressionTrainer"/> using both training and validation data, returns
         /// a <see cref="RegressionPredictionTransformer{FastForestRegressionModelParameters}"/>.
         /// </summary>
         public RegressionPredictionTransformer<FastForestRegressionModelParameters> Fit(IDataView trainData, IDataView validationData)
@@ -424,18 +458,18 @@ namespace Microsoft.ML.Trainers.FastTree
     internal static partial class FastForest
     {
         [TlcModule.EntryPoint(Name = "Trainers.FastForestRegressor",
-            Desc = FastForestRegression.Summary,
-            UserName = FastForestRegression.LoadNameValue,
-            ShortName = FastForestRegression.ShortName)]
-        public static CommonOutputs.RegressionOutput TrainRegression(IHostEnvironment env, FastForestRegression.Options input)
+            Desc = FastForestRegressionTrainer.Summary,
+            UserName = FastForestRegressionTrainer.LoadNameValue,
+            ShortName = FastForestRegressionTrainer.ShortName)]
+        public static CommonOutputs.RegressionOutput TrainRegression(IHostEnvironment env, FastForestRegressionTrainer.Options input)
         {
             Contracts.CheckValue(env, nameof(env));
             var host = env.Register("TrainFastForest");
             host.CheckValue(input, nameof(input));
             EntryPointUtils.CheckInputArgs(host, input);
 
-            return TrainerEntryPointsUtils.Train<FastForestRegression.Options, CommonOutputs.RegressionOutput>(host, input,
-                () => new FastForestRegression(host, input),
+            return TrainerEntryPointsUtils.Train<FastForestRegressionTrainer.Options, CommonOutputs.RegressionOutput>(host, input,
+                () => new FastForestRegressionTrainer(host, input),
                 () => TrainerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.LabelColumnName),
                 () => TrainerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.ExampleWeightColumnName),
                 () => TrainerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.RowGroupColumnName));

@@ -6,8 +6,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using Microsoft.Data.DataView;
 using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Runtime;
 
 namespace Microsoft.ML.Data
 {
@@ -34,13 +34,11 @@ namespace Microsoft.ML.Data
 
         private readonly IDataView[] _sources;
         private readonly int[] _counts;
-        private readonly DataViewSchema _schema;
         private readonly IHost _host;
-        private readonly bool _canShuffle;
 
-        public bool CanShuffle { get { return _canShuffle; } }
+        public bool CanShuffle { get; }
 
-        public DataViewSchema Schema { get { return _schema; } }
+        public DataViewSchema Schema { get; }
 
         // REVIEW: AppendRowsDataView now only checks schema consistency up to column names and types.
         // A future task will be to ensure that the sources are consistent on the metadata level.
@@ -77,25 +75,25 @@ namespace Microsoft.ML.Data
             _host.Assert(sources.Length >= 2);
 
             _sources = sources;
-            _schema = schema ?? _sources[0].Schema;
+            Schema = schema ?? _sources[0].Schema;
 
             CheckSchemaConsistency();
 
-            _canShuffle = true;
+            CanShuffle = true;
             _counts = new int[_sources.Length];
             for (int i = 0; i < _sources.Length; i++)
             {
                 IDataView dv = _sources[i];
                 if (!dv.CanShuffle)
                 {
-                    _canShuffle = false;
+                    CanShuffle = false;
                     _counts = null;
                     break;
                 }
                 long? count = dv.GetRowCount();
                 if (count == null || count < 0 || count > int.MaxValue)
                 {
-                    _canShuffle = false;
+                    CanShuffle = false;
                     _counts = null;
                     break;
                 }
@@ -108,16 +106,16 @@ namespace Microsoft.ML.Data
             // REVIEW: Allow schema isomorphism.
             const string errMsg = "Inconsistent schema: all source dataviews must have identical column names, sizes, and item types.";
 
-            int startingSchemaIndex = _schema == _sources[0].Schema ? 1 : 0;
-            int colCount = _schema.Count;
+            int startingSchemaIndex = Schema == _sources[0].Schema ? 1 : 0;
+            int colCount = Schema.Count;
 
             // Check if the column counts are identical.
             _host.Check(_sources.All(source => source.Schema.Count == colCount), errMsg);
 
             for (int c = 0; c < colCount; c++)
             {
-                string name = _schema[c].Name;
-                DataViewType type = _schema[c].Type;
+                string name = Schema[c].Name;
+                DataViewType type = Schema[c].Type;
 
                 for (int i = startingSchemaIndex; i < _sources.Length; i++)
                 {
@@ -148,7 +146,7 @@ namespace Microsoft.ML.Data
 
         public DataViewRowCursor GetRowCursor(IEnumerable<DataViewSchema.Column> columnsNeeded, Random rand = null)
         {
-            if (rand == null || !_canShuffle)
+            if (rand == null || !CanShuffle)
                 return new Cursor(this, columnsNeeded);
             return new RandCursor(this, columnsNeeded, rand, _counts);
         }
@@ -172,7 +170,7 @@ namespace Microsoft.ML.Data
             {
                 Sources = parent._sources;
                 Ch.AssertNonEmpty(Sources);
-                Schema = parent._schema;
+                Schema = parent.Schema;
                 Getters = new Delegate[Schema.Count];
             }
 
@@ -187,18 +185,22 @@ namespace Microsoft.ML.Data
 
             protected abstract ValueGetter<TValue> CreateTypedGetter<TValue>(int col);
 
-            public sealed override ValueGetter<TValue> GetGetter<TValue>(int col)
+            public sealed override ValueGetter<TValue> GetGetter<TValue>(DataViewSchema.Column column)
             {
-                Ch.Check(IsColumnActive(col), "The column must be active against the defined predicate.");
-                if (!(Getters[col] is ValueGetter<TValue>))
+                Ch.CheckParam(column.Index <= Getters.Length && IsColumnActive(column), nameof(column), "requested column not active");
+
+                if (!(Getters[column.Index] is ValueGetter<TValue>))
                     throw Ch.Except($"Invalid TValue in GetGetter: '{typeof(TValue)}'");
-                return Getters[col] as ValueGetter<TValue>;
+                return Getters[column.Index] as ValueGetter<TValue>;
             }
 
-            public sealed override bool IsColumnActive(int col)
+            /// <summary>
+            /// Returns whether the given column is active in this row.
+            /// </summary>
+            public sealed override bool IsColumnActive(DataViewSchema.Column column)
             {
-                Ch.Check(0 <= col && col < Schema.Count, "Column index is out of range");
-                return Getters[col] != null;
+                Ch.Check(column.Index < Schema.Count, "Column index is out of range");
+                return Getters[column.Index] != null;
             }
         }
 
@@ -251,7 +253,7 @@ namespace Microsoft.ML.Data
                         {
                             Ch.Assert(0 <= _currentSourceIndex && _currentSourceIndex < Sources.Length);
                             Ch.Assert(_currentCursor != null);
-                            getSrc = _currentCursor.GetGetter<TValue>(col);
+                            getSrc = _currentCursor.GetGetter<TValue>(_currentCursor.Schema[col]);
                             capturedSourceIndex = _currentSourceIndex;
                         }
                         getSrc(ref val);
@@ -269,7 +271,7 @@ namespace Microsoft.ML.Data
                     if (++_currentSourceIndex >= Sources.Length)
                         return false;
 
-                    var columnsNeeded = Schema.Where(col => IsColumnActive(col.Index));
+                    var columnsNeeded = Schema.Where(col => IsColumnActive(col));
                     _currentCursor = Sources[_currentSourceIndex].GetRowCursor(columnsNeeded);
                     _currentIdGetter = _currentCursor.GetIdGetter();
                 }
@@ -347,8 +349,11 @@ namespace Microsoft.ML.Data
                     {
                         Ch.Check(Position >= 0, RowCursorUtils.FetchValueStateError);
                         Ch.Assert(0 <= _currentSourceIndex && _currentSourceIndex < Sources.Length);
+
+                        var rowCursor = _cursorSet[_currentSourceIndex];
+
                         if (getSrc[_currentSourceIndex] == null)
-                            getSrc[_currentSourceIndex] = _cursorSet[_currentSourceIndex].GetGetter<TValue>(col);
+                            getSrc[_currentSourceIndex] = rowCursor.GetGetter<TValue>(rowCursor.Schema[col]);
                         getSrc[_currentSourceIndex](ref val);
                     };
             }

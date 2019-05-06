@@ -6,9 +6,8 @@ using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using System.Security;
-using Microsoft.Data.DataView;
-using Microsoft.ML.Data;
 using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Runtime;
 
 namespace Microsoft.ML.Recommender.Internal
 {
@@ -18,31 +17,50 @@ namespace Microsoft.ML.Recommender.Internal
     /// </summary>
     internal sealed class SafeTrainingAndModelBuffer : IDisposable
     {
-        [StructLayout(LayoutKind.Explicit)]
+        [StructLayout(LayoutKind.Sequential)]
         private struct MFNode
         {
-            [FieldOffset(0)]
+            /// <summary>
+            /// Row index.
+            /// </summary>
             public int U;
-            [FieldOffset(4)]
+
+            /// <summary>
+            /// Column index;
+            /// </summary>
             public int V;
-            [FieldOffset(8)]
+
+            /// <summary>
+            /// Matrix element's value at <see cref="U"/>-th row and <see cref="V"/>-th column.
+            /// </summary>
             public float R;
         }
 
-        [StructLayout(LayoutKind.Explicit)]
+        [StructLayout(LayoutKind.Sequential)]
         private unsafe struct MFProblem
         {
-            [FieldOffset(0)]
+            /// <summary>
+            /// Number of rows.
+            /// </summary>
             public int M;
-            [FieldOffset(4)]
+
+            /// <summary>
+            /// Number of columns.
+            /// </summary>
             public int N;
-            [FieldOffset(8)]
+
+            /// <summary>
+            /// Number of specified matrix elements in <see cref="R"/>.
+            /// </summary>
             public long Nnz;
-            [FieldOffset(16)]
+
+            /// <summary>
+            /// Specified matrix elements.
+            /// </summary>
             public MFNode* R;
         }
 
-        [StructLayout(LayoutKind.Explicit)]
+        [StructLayout(LayoutKind.Sequential)]
         private struct MFParameter
         {
             /// <summary>
@@ -59,19 +77,16 @@ namespace Microsoft.ML.Recommender.Internal
             /// Fun 12 is solved by a coordinate descent method while other functions invoke
             /// a stochastic gradient method.
             /// </summary>
-            [FieldOffset(0)]
             public int Fun;
 
             /// <summary>
             /// Rank of factor matrices.
             /// </summary>
-            [FieldOffset(4)]
             public int K;
 
             /// <summary>
             /// Number of threads which can be used for training.
             /// </summary>
-            [FieldOffset(8)]
             public int NrThreads;
 
             /// <summary>
@@ -79,110 +94,100 @@ namespace Microsoft.ML.Recommender.Internal
             /// method in LIBMF processes assigns each thread a block at one time. The ratings in one block
             /// would be sequentially accessed (not randomaly accessed like standard stochastic gradient methods).
             /// </summary>
-            [FieldOffset(12)]
             public int NrBins;
 
             /// <summary>
             /// Number of training iteration. At one iteration, all values in the training matrix are roughly accessed once.
             /// </summary>
-            [FieldOffset(16)]
             public int NrIters;
 
             /// <summary>
             /// L1-norm regularization coefficient of left factor matrix.
             /// </summary>
-            [FieldOffset(20)]
             public float LambdaP1;
 
             /// <summary>
             /// L2-norm regularization coefficient of left factor matrix.
             /// </summary>
-            [FieldOffset(24)]
             public float LambdaP2;
 
             /// <summary>
             /// L1-norm regularization coefficient of right factor matrix.
             /// </summary>
-            [FieldOffset(28)]
             public float LambdaQ1;
 
             /// <summary>
             /// L2-norm regularization coefficient of right factor matrix.
             /// </summary>
-            [FieldOffset(32)]
             public float LambdaQ2;
 
             /// <summary>
             /// Learning rate of LIBMF's stochastic gradient method.
             /// </summary>
-            [FieldOffset(36)]
             public float Eta;
 
             /// <summary>
             /// Coefficient of loss function on unobserved entries in the training matrix. It's used only with fun=12.
             /// </summary>
-            [FieldOffset(40)]
             public float Alpha;
 
             /// <summary>
             /// Desired value of unobserved entries in the training matrix. It's used only with fun=12.
             /// </summary>
-            [FieldOffset(44)]
             public float C;
 
             /// <summary>
             /// Specify if the factor matrices should be non-negative.
             /// </summary>
-            [FieldOffset(48)]
-            public int DoNmf;
+            public byte DoNmf;
 
             /// <summary>
             /// Set to true so that LIBMF may produce less information to STDOUT.
             /// </summary>
-            [FieldOffset(52)]
-            public int Quiet;
+            public byte Quiet;
 
             /// <summary>
             /// Set to false so that LIBMF may reuse and modifiy the data passed in.
             /// </summary>
-            [FieldOffset(56)]
-            public int CopyData;
+            public byte CopyData;
         }
 
-        [StructLayout(LayoutKind.Explicit)]
+        [StructLayout(LayoutKind.Sequential)]
         private unsafe struct MFModel
         {
-            [FieldOffset(0)]
+            /// <summary>
+            /// See <see cref="MFParameter.Fun"/>.
+            /// </summary>
             public int Fun;
+
             /// <summary>
             /// Number of rows in the training matrix.
             /// </summary>
-            [FieldOffset(4)]
             public int M;
+
             /// <summary>
             /// Number of columns in the training matrix.
             /// </summary>
-            [FieldOffset(8)]
             public int N;
+
             /// <summary>
             /// Rank of factor matrices.
             /// </summary>
-            [FieldOffset(12)]
             public int K;
+
             /// <summary>
             /// Average value in the training matrix.
             /// </summary>
-            [FieldOffset(16)]
             public float B;
+
             /// <summary>
             /// Left factor matrix. Its shape is M-by-K stored in row-major format.
             /// </summary>
-            [FieldOffset(24)] // pointer is 8-byte on 64-bit machine.
             public float* P;
+
             /// <summary>
             /// Right factor matrix. Its shape is N-by-K stored in row-major format.
             /// </summary>
-            [FieldOffset(32)] // pointer is 8-byte on 64-bit machine.
             public float* Q;
         }
 
@@ -224,9 +229,9 @@ namespace Microsoft.ML.Recommender.Internal
             _mfParam.Eta = (float)eta;
             _mfParam.Alpha = (float)alpha;
             _mfParam.C = (float)c;
-            _mfParam.DoNmf = doNmf ? 1 : 0;
-            _mfParam.Quiet = quiet ? 1 : 0;
-            _mfParam.CopyData = copyData ? 1 : 0;
+            _mfParam.DoNmf = doNmf ? (byte)1 : (byte)0;
+            _mfParam.Quiet = quiet ? (byte)1 : (byte)0;
+            _mfParam.CopyData = copyData ? (byte)1 : (byte)0;
         }
 
         ~SafeTrainingAndModelBuffer()
@@ -276,6 +281,9 @@ namespace Microsoft.ML.Recommender.Internal
                     }
                     rowGetter(ref row);
                     // REVIEW: Instead of ignoring, should I throw in the row > rowCount case?
+                    // The index system in the LIBMF (the underlying library trains the model) is 0-based, so we need
+                    // to deduct one from 1-based indexes returned by ML.NET's key-valued getters. We also skip 0 returned
+                    // by key-valued getter becuase missing value is not meaningful to the trained model.
                     if (row == 0 || row > (uint)rowCount)
                     {
                         numSkipped++;

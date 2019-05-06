@@ -9,4 +9,8 @@
     <ProjectReference Include="../Microsoft.ML/Microsoft.ML.nupkgproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Content Include="..\common\CommonPackage.props" Pack="true" PackagePath="build\netstandard2.0\$(MSBuildProjectName).props" />
+  </ItemGroup>
+
 </Project>

@@ -6,9 +6,9 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
-
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
+using Microsoft.ML.Runtime;
 using Microsoft.ML.Sweeper;
 
 [assembly: LoadableClass(typeof(SynthConfigRunner), typeof(SynthConfigRunner.Options), typeof(SignatureConfigRunner),

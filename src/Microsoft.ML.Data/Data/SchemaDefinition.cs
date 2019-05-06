@@ -6,13 +6,13 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using Microsoft.Data.DataView;
 using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Runtime;
 
 namespace Microsoft.ML.Data
 {
     /// <summary>
-    /// Allow member to be marked as a <see cref="KeyType"/>.
+    /// Allow member to be marked as a <see cref="KeyDataViewType"/>.
     /// </summary>
     /// <remarks>
     /// Can be applied only for member of following types: <see cref="byte"/>, <see cref="ushort"/>, <see cref="uint"/>, <see cref="ulong"/>
@@ -21,10 +21,10 @@ namespace Microsoft.ML.Data
     public sealed class KeyTypeAttribute : Attribute
     {
         /// <summary>
-        /// Marks member as <see cref="KeyType"/>.
+        /// Marks member as <see cref="KeyDataViewType"/>.
         /// </summary>
         /// <remarks>
-        /// Cardinality of <see cref="KeyType"/> would be maximum legal value of member type.
+        /// Cardinality of <see cref="KeyDataViewType"/> would be maximum legal value of member type.
         /// </remarks>
         public KeyTypeAttribute()
         {
@@ -32,9 +32,13 @@ namespace Microsoft.ML.Data
         }
 
         /// <summary>
-        /// Marks member as <see cref="KeyType"/> and specifies <see cref="KeyType"/> cardinality.
+        /// Marks member as <see cref="KeyDataViewType"/> and specifies <see cref="KeyDataViewType"/> cardinality.
+        /// In case of the attribute being used with int types, the <paramref name="count"/> should be set to one more than
+        /// the maximum value to account for counting starting at 1 (0 is reserved for the missing KeyType). E.g the cardinality of the
+        /// 0-9 range is 10.
+        /// If the values are outside of the specified cardinality they will be mapped to the missing value representation: 0.
         /// </summary>
-        /// <param name="count">Cardinality of <see cref="KeyType"/>.</param>
+        /// <param name="count">Cardinality of <see cref="KeyDataViewType"/>.</param>
         public KeyTypeAttribute(ulong count)
         {
             KeyCount = new KeyCount(count);
@@ -47,7 +51,7 @@ namespace Microsoft.ML.Data
     }
 
     /// <summary>
-    /// Allows a member to be marked as a <see cref="VectorType"/>, primarily allowing one to set
+    /// Allows a member to be marked as a <see cref="VectorDataViewType"/>, primarily allowing one to set
     /// the dimensionality of the resulting array.
     /// </summary>
     [AttributeUsage(AttributeTargets.Field | AttributeTargets.Property, AllowMultiple = false, Inherited = true)]
@@ -203,15 +207,14 @@ namespace Microsoft.ML.Data
         /// </summary>
         public sealed class Column
         {
-            private readonly Dictionary<string, AnnotationInfo> _annotations;
-            internal Dictionary<string, AnnotationInfo> Annotations { get { return _annotations; } }
+            internal Dictionary<string, AnnotationInfo> AnnotationInfos { get; }
 
             /// <summary>
             /// The name of the member the column is taken from. The API
             /// requires this to not be null, and a valid name of a member of
             /// the type for which we are creating a schema.
             /// </summary>
-            public string MemberName { get; set; }
+            public string MemberName { get; }
             /// <summary>
             /// The name of the column that's created in the data view. If this
             /// is null, the API uses the <see cref="MemberName"/>.
@@ -224,33 +227,20 @@ namespace Microsoft.ML.Data
             public DataViewType ColumnType { get; set; }
 
             /// <summary>
-            /// Whether the column is a computed type.
-            /// </summary>
-            public bool IsComputed { get { return Generator != null; } }
-
-            /// <summary>
             /// The generator function. if the column is computed.
             /// </summary>
-            public Delegate Generator { get; set; }
+            internal Delegate Generator { get; set; }
 
-            public Type ReturnType => Generator?.GetMethodInfo().GetParameters().LastOrDefault().ParameterType.GetElementType();
+            internal Type ReturnType => Generator?.GetMethodInfo().GetParameters().LastOrDefault().ParameterType.GetElementType();
 
-            public Column(IExceptionContext ectx, string memberName, DataViewType columnType,
-                string columnName = null, IEnumerable<AnnotationInfo> annotationInfos = null, Delegate generator = null)
+            internal Column(string memberName, DataViewType columnType,
+                string columnName = null)
             {
-                ectx.CheckNonEmpty(memberName, nameof(memberName));
+                Contracts.CheckNonEmpty(memberName, nameof(memberName));
                 MemberName = memberName;
                 ColumnName = columnName ?? memberName;
                 ColumnType = columnType;
-                Generator = generator;
-                _annotations = annotationInfos != null ?
-                    annotationInfos.ToDictionary(m => m.Kind, m => m)
-                    : new Dictionary<string, AnnotationInfo>();
-            }
-
-            public Column()
-            {
-                _annotations = _annotations ?? new Dictionary<string, AnnotationInfo>();
+                AnnotationInfos = new Dictionary<string, AnnotationInfo>();
             }
 
             /// <summary>
@@ -262,22 +252,19 @@ namespace Microsoft.ML.Data
             /// <param name="kind">The string identifier of the annotation.</param>
             /// <param name="value">Value of annotation.</param>
             /// <param name="annotationType">Type of value.</param>
-            public void AddAnnotation<T>(string kind, T value, DataViewType annotationType = null)
+            public void AddAnnotation<T>(string kind, T value, DataViewType annotationType)
             {
-                if (_annotations.ContainsKey(kind))
+                Contracts.CheckValue(kind, nameof(kind));
+                Contracts.CheckValue(annotationType, nameof(annotationType));
+
+                if (AnnotationInfos.ContainsKey(kind))
                     throw Contracts.Except("Column already contains an annotation of this kind.");
-                _annotations[kind] = new AnnotationInfo<T>(kind, value, annotationType);
+                AnnotationInfos[kind] = new AnnotationInfo<T>(kind, value, annotationType);
             }
 
-            /// <summary>
-            /// Remove annotation from the column if it exists.
-            /// </summary>
-            /// <param name="kind">The string identifier of the annotation.</param>
-            public void RemoveAnnotation(string kind)
+            internal void AddAnnotation(string kind, AnnotationInfo info)
             {
-                if (_annotations.ContainsKey(kind))
-                    _annotations.Remove(kind);
-                throw Contracts.Except("Column does not contain an annotation of kind: " + kind);
+                AnnotationInfos[kind] = info;
             }
 
             /// <summary>
@@ -285,13 +272,20 @@ namespace Microsoft.ML.Data
             /// </summary>
             /// <returns>A dictionary with the kind of the annotation as the key, and the
             /// annotation type as the associated value.</returns>
-            public IEnumerable<KeyValuePair<string, DataViewType>> GetAnnotationTypes
+            public DataViewSchema.Annotations Annotations
             {
                 get
                 {
-                    return Annotations.Select(x => new KeyValuePair<string, DataViewType>(x.Key, x.Value.AnnotationType));
+                    var builder = new DataViewSchema.Annotations.Builder();
+                    foreach (var kvp in AnnotationInfos)
+                        builder.Add(kvp.Key, kvp.Value.AnnotationType, kvp.Value.GetGetterDelegate());
+                    return builder.ToAnnotations();
                 }
             }
+        }
+
+        private SchemaDefinition()
+        {
         }
 
         /// <summary>
@@ -402,12 +396,12 @@ namespace Microsoft.ML.Data
                 var keyAttr = memberInfo.GetCustomAttribute<KeyTypeAttribute>();
                 if (keyAttr != null)
                 {
-                    if (!KeyType.IsValidDataType(dataType))
+                    if (!KeyDataViewType.IsValidDataType(dataType))
                         throw Contracts.ExceptParam(nameof(userType), "Member {0} marked with KeyType attribute, but does not appear to be a valid kind of data for a key type", memberInfo.Name);
                     if (keyAttr.KeyCount == null)
-                        itemType = new KeyType(dataType, dataType.ToMaxInt());
+                        itemType = new KeyDataViewType(dataType, dataType.ToMaxInt());
                     else
-                        itemType = new KeyType(dataType, keyAttr.KeyCount.Count.GetValueOrDefault());
+                        itemType = new KeyDataViewType(dataType, keyAttr.KeyCount.Count.GetValueOrDefault());
                 }
                 else
                     itemType = ColumnTypeExtensions.PrimitiveTypeFromType(dataType);
@@ -423,14 +417,14 @@ namespace Microsoft.ML.Data
                     if (dims != null && dims.Any(d => d < 0))
                         throw Contracts.ExceptParam(nameof(userType), "Some of member {0}'s dimension lengths are negative");
                     if (Utils.Size(dims) == 0)
-                        columnType = new VectorType(itemType, 0);
+                        columnType = new VectorDataViewType(itemType, 0);
                     else
-                        columnType = new VectorType(itemType, dims);
+                        columnType = new VectorDataViewType(itemType, dims);
                 }
                 else
                     columnType = itemType;
 
-                cols.Add(new Column() { MemberName = memberInfo.Name, ColumnName = name, ColumnType = columnType });
+                cols.Add(new Column(memberInfo.Name, columnType, name));
             }
             return cols;
         }

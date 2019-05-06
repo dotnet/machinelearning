@@ -1,10 +1,9 @@
-﻿using System;
-using System.IO;
+﻿using System.IO;
 using System.Linq;
+using Microsoft.ML;
 using Microsoft.ML.Data;
-using Microsoft.ML.Transforms;
 
-namespace Microsoft.ML.Samples.Dynamic
+namespace Samples.Dynamic
 {
     public static class DnnFeaturizeImage
     {
@@ -17,7 +16,7 @@ namespace Microsoft.ML.Samples.Dynamic
             // Downloading a few images, and an images.tsv file, which contains a list of the files from the dotnet/machinelearning/test/data/images/.
             // If you inspect the fileSystem, after running this line, an "images" folder will be created, containing 4 images, and a .tsv file
             // enumerating the images. 
-            var imagesDataFile = SamplesUtils.DatasetUtils.DownloadImages();
+            var imagesDataFile = Microsoft.ML.SamplesUtils.DatasetUtils.DownloadImages();
 
             // Preview of the content of the images.tsv file, which lists the images to operate on
             //
@@ -41,7 +40,7 @@ namespace Microsoft.ML.Samples.Dynamic
             // Installing the Microsoft.ML.DNNImageFeaturizer packages copies the models in the
             // `DnnImageModels` folder. 
             // Image loading pipeline. 
-            var pipeline = mlContext.Transforms.LoadImages(imagesFolder, ("ImageObject", "ImagePath"))
+            var pipeline = mlContext.Transforms.LoadImages("ImageObject", imagesFolder, "ImagePath")
                           .Append(mlContext.Transforms.ResizeImages("ImageObject", imageWidth: 224, imageHeight: 224))
                           .Append(mlContext.Transforms.ExtractPixels("Pixels", "ImageObject"))
                           .Append(mlContext.Transforms.DnnFeaturizeImage("FeaturizedImage", m => m.ModelSelector.ResNet18(mlContext, m.OutputColumn, m.InputColumn), "Pixels"));

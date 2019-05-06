@@ -5,10 +5,10 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using Microsoft.Data.DataView;
 using Microsoft.ML.Data;
 using Microsoft.ML.Model;
 using Microsoft.ML.RunTests;
+using Microsoft.ML.Runtime;
 using Microsoft.ML.TestFramework;
 using Newtonsoft.Json.Linq;
 using Xunit;
@@ -40,10 +40,10 @@ namespace Microsoft.ML.EntryPoints.Tests
 
             using (var cursor = data.GetRowCursorForAllColumns())
             {
-                var col1 = cursor.GetGetter<sbyte>(0);
-                var col2 = cursor.GetGetter<short>(1);
-                var col3 = cursor.GetGetter<int>(2);
-                var col4 = cursor.GetGetter<long>(3);
+                var col1 = cursor.GetGetter<sbyte>(cursor.Schema[0]);
+                var col2 = cursor.GetGetter<short>(cursor.Schema[1]);
+                var col3 = cursor.GetGetter<int>(cursor.Schema[2]);
+                var col4 = cursor.GetGetter<long>(cursor.Schema[3]);
 
                 Assert.True(cursor.MoveNext());
 
@@ -99,7 +99,7 @@ namespace Microsoft.ML.EntryPoints.Tests
             }
             catch (Exception ex)
             {
-                Assert.Equal("Could not parse value -9223372036854775809 in line 1, column DvInt8", ex.Message);
+                Assert.Contains("Could not parse value -9223372036854775809 in line 1, column DvInt8", ex.Message);
                 return;
             }
 
@@ -123,7 +123,7 @@ namespace Microsoft.ML.EntryPoints.Tests
             }
             catch (Exception ex)
             {
-                Assert.Equal("Could not parse value 9223372036854775808 in line 1, column DvInt8", ex.Message);
+                Assert.Contains("Could not parse value 9223372036854775808 in line 1, column DvInt8", ex.Message);
                 return;
             }
 
@@ -143,7 +143,7 @@ namespace Microsoft.ML.EntryPoints.Tests
         [Fact]
         public void ConstructorDoesntThrow()
         {
-            var mlContext = new MLContext(seed: 1, conc: 1);
+            var mlContext = new MLContext(seed: 1);
 
             Assert.NotNull(mlContext.Data.LoadFromTextFile<Input>("fakeFile.txt"));
             Assert.NotNull(mlContext.Data.LoadFromTextFile<Input>("fakeFile.txt", hasHeader: true));
@@ -297,8 +297,8 @@ namespace Microsoft.ML.EntryPoints.Tests
 
             using (var cursor = data.GetRowCursorForAllColumns())
             {
-                var IDGetter = cursor.GetGetter<float>(0);
-                var TextGetter = cursor.GetGetter<ReadOnlyMemory<char>>(1);
+                var IDGetter = cursor.GetGetter<float>(cursor.Schema[0]);
+                var TextGetter = cursor.GetGetter<ReadOnlyMemory<char>>(cursor.Schema[1]);
 
                 Assert.True(cursor.MoveNext());
 
@@ -445,11 +445,11 @@ namespace Microsoft.ML.EntryPoints.Tests
             using (var cursor = data.GetRowCursorForAllColumns())
             {
                 var getters = new ValueGetter<float>[]{
-                        cursor.GetGetter<float>(0),
-                        cursor.GetGetter<float>(1),
-                        cursor.GetGetter<float>(2),
-                        cursor.GetGetter<float>(3),
-                        cursor.GetGetter<float>(4)
+                        cursor.GetGetter<float>(cursor.Schema[0]),
+                        cursor.GetGetter<float>(cursor.Schema[1]),
+                        cursor.GetGetter<float>(cursor.Schema[2]),
+                        cursor.GetGetter<float>(cursor.Schema[3]),
+                        cursor.GetGetter<float>(cursor.Schema[4])
                     };
 
 
@@ -558,8 +558,8 @@ namespace Microsoft.ML.EntryPoints.Tests
 
             using (var cursor = data.GetRowCursorForAllColumns())
             {
-                var IDGetter = cursor.GetGetter<float>(0);
-                var TextGetter = cursor.GetGetter<ReadOnlyMemory<char>>(1);
+                var IDGetter = cursor.GetGetter<float>(cursor.Schema[0]);
+                var TextGetter = cursor.GetGetter<ReadOnlyMemory<char>>(cursor.Schema[1]);
 
                 Assert.True(cursor.MoveNext());
 
@@ -588,14 +588,22 @@ namespace Microsoft.ML.EntryPoints.Tests
         [Fact]
         public void ThrowsExceptionWithPropertyName()
         {
-            var mlContext = new MLContext(seed: 1, conc: 1);
-            try
-            {
-                mlContext.Data.LoadFromTextFile<ModelWithoutColumnAttribute>("fakefile.txt");
-            }
-            // REVIEW: the issue of different exceptions being thrown is tracked under #2037.
-            catch (Xunit.Sdk.TrueException) { }
-            catch (NullReferenceException) { };
+            var mlContext = new MLContext(seed: 1);
+            var ex = Assert.Throws<InvalidOperationException>(() => mlContext.Data.LoadFromTextFile<ModelWithoutColumnAttribute>("fakefile.txt"));
+            Assert.StartsWith($"Field 'String1' is missing the {nameof(LoadColumnAttribute)} attribute", ex.Message);
+        }
+
+        [Fact]
+        public void ParseSchemaFromTextFile()
+        {
+            var mlContext = new MLContext(seed: 1);
+            var fileName = GetDataPath(TestDatasets.adult.trainFilename);
+            var loader = mlContext.Data.CreateTextLoader(new TextLoader.Options(), new MultiFileSource(fileName));
+            var data = loader.Load(new MultiFileSource(fileName));
+            Assert.NotNull(data.Schema.GetColumnOrNull("Label"));
+            Assert.NotNull(data.Schema.GetColumnOrNull("Workclass"));
+            Assert.NotNull(data.Schema.GetColumnOrNull("Categories"));
+            Assert.NotNull(data.Schema.GetColumnOrNull("NumericFeatures"));
         }
 
         public class QuoteInput
@@ -784,7 +792,7 @@ namespace Microsoft.ML.EntryPoints.Tests
             {
                 var result = ModelFileUtils.LoadLoader(mlContext, rep, new MultiFileSource(breastCancerPath), false);
                 Assert.True(result.Schema.TryGetColumnIndex("key", out int featureIdx));
-                Assert.True(result.Schema[featureIdx].Type is KeyType keyType && keyType.Count == typeof(uint).ToMaxInt());
+                Assert.True(result.Schema[featureIdx].Type is KeyDataViewType keyType && keyType.Count == typeof(uint).ToMaxInt());
             }
         }
     }

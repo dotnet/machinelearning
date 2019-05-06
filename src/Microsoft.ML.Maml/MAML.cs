@@ -11,7 +11,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.ML.Command;
 using Microsoft.ML.CommandLine;
-using Microsoft.ML.Data;
+using Microsoft.ML.Runtime;
 
 #if CORECLR
 #endif

@@ -19,7 +19,7 @@ namespace Microsoft.ML
     [BestFriend]
     internal delegate void SignatureBinaryClassifierTrainer();
     [BestFriend]
-    internal delegate void SignatureMultiClassClassifierTrainer();
+    internal delegate void SignatureMulticlassClassifierTrainer();
     [BestFriend]
     internal delegate void SignatureRegressorTrainer();
     [BestFriend]

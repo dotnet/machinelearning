@@ -7,14 +7,13 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Text;
-using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
 using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Internal.Internallearn;
 using Microsoft.ML.Internal.Utilities;
-using Microsoft.ML.Model;
+using Microsoft.ML.Runtime;
 using Microsoft.ML.TextAnalytics;
 using Microsoft.ML.Transforms.Text;
 
@@ -47,7 +46,9 @@ namespace Microsoft.ML.Transforms.Text
     //
     // See <a href="https://github.com/dotnet/machinelearning/blob/master/test/Microsoft.ML.TestFramework/DataPipe/TestDataPipe.cs"/>
     // for an example on how to use LatentDirichletAllocationTransformer.
-    /// <include file='doc.xml' path='doc/members/member[@name="LightLDA"]/*' />
+    /// <summary>
+    /// <see cref="ITransformer"/> resulting from fitting a <see cref="LatentDirichletAllocationEstimator"/>.
+    /// </summary>
     public sealed class LatentDirichletAllocationTransformer : OneToOneTransformerBase
     {
         internal sealed class Options : TransformInputBase
@@ -58,7 +59,7 @@ namespace Microsoft.ML.Transforms.Text
             [Argument(ArgumentType.AtMostOnce, HelpText = "The number of topics", SortOrder = 50)]
             [TGUI(SuggestedSweeps = "20,40,100,200")]
             [TlcModule.SweepableDiscreteParam("NumTopic", new object[] { 20, 40, 100, 200 })]
-            public int NumTopic = LatentDirichletAllocationEstimator.Defaults.NumTopic;
+            public int NumTopic = LatentDirichletAllocationEstimator.Defaults.NumberOfTopics;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Dirichlet prior on document-topic vectors")]
             [TGUI(SuggestedSweeps = "1,10,100,200")]
@@ -73,30 +74,30 @@ namespace Microsoft.ML.Transforms.Text
             [Argument(ArgumentType.Multiple, HelpText = "Number of Metropolis Hasting step")]
             [TGUI(SuggestedSweeps = "2,4,8,16")]
             [TlcModule.SweepableDiscreteParam("Mhstep", new object[] { 2, 4, 8, 16 })]
-            public int Mhstep = LatentDirichletAllocationEstimator.Defaults.Mhstep;
+            public int Mhstep = LatentDirichletAllocationEstimator.Defaults.SamplingStepCount;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Number of iterations", ShortName = "iter")]
             [TGUI(SuggestedSweeps = "100,200,300,400")]
             [TlcModule.SweepableDiscreteParam("NumIterations", new object[] { 100, 200, 300, 400 })]
-            public int NumIterations = LatentDirichletAllocationEstimator.Defaults.NumIterations;
+            public int NumIterations = LatentDirichletAllocationEstimator.Defaults.MaximumNumberOfIterations;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Compute log likelihood over local dataset on this iteration interval", ShortName = "llInterval")]
             public int LikelihoodInterval = LatentDirichletAllocationEstimator.Defaults.LikelihoodInterval;
 
             // REVIEW: Should change the default when multi-threading support is optimized.
             [Argument(ArgumentType.AtMostOnce, HelpText = "The number of training threads. Default value depends on number of logical processors.", ShortName = "t", SortOrder = 50)]
-            public int NumThreads = LatentDirichletAllocationEstimator.Defaults.NumThreads;
+            public int NumThreads = LatentDirichletAllocationEstimator.Defaults.NumberOfThreads;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "The threshold of maximum count of tokens per doc", ShortName = "maxNumToken", SortOrder = 50)]
-            public int NumMaxDocToken = LatentDirichletAllocationEstimator.Defaults.NumMaxDocToken;
+            public int NumMaxDocToken = LatentDirichletAllocationEstimator.Defaults.MaximumTokenCountPerDocument;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "The number of words to summarize the topic", ShortName = "ns")]
-            public int NumSummaryTermPerTopic = LatentDirichletAllocationEstimator.Defaults.NumSummaryTermPerTopic;
+            public int NumSummaryTermPerTopic = LatentDirichletAllocationEstimator.Defaults.NumberOfSummaryTermsPerTopic;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "The number of burn-in iterations", ShortName = "burninIter")]
             [TGUI(SuggestedSweeps = "10,20,30,40")]
             [TlcModule.SweepableDiscreteParam("NumBurninIterations", new object[] { 10, 20, 30, 40 })]
-            public int NumBurninIterations = LatentDirichletAllocationEstimator.Defaults.NumBurninIterations;
+            public int NumBurninIterations = LatentDirichletAllocationEstimator.Defaults.NumberOfBurninIterations;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Reset the random number generator for each document", ShortName = "reset")]
             public bool ResetRandomGenerator = LatentDirichletAllocationEstimator.Defaults.ResetRandomGenerator;
@@ -163,27 +164,50 @@ namespace Microsoft.ML.Transforms.Text
         /// <summary>
         /// Provide details about the topics discovered by <a href="https://arxiv.org/abs/1412.1576">LightLDA.</a>
         /// </summary>
-        public sealed class LdaSummary
+        public sealed class ModelParameters
         {
+            public struct ItemScore
+            {
+                public readonly int Item;
+                public readonly float Score;
+                public ItemScore(int item, float score)
+                {
+                    Item = item;
+                    Score = score;
+                }
+            }
+            public struct WordItemScore
+            {
+                public readonly int Item;
+                public readonly string Word;
+                public readonly float Score;
+                public WordItemScore(int item, string word, float score)
+                {
+                    Item = item;
+                    Word = word;
+                    Score = score;
+                }
+            }
+
             // For each topic, provide information about the (item, score) pairs.
-            public readonly ImmutableArray<List<(int Item, float Score)>> ItemScoresPerTopic;
+            public readonly IReadOnlyList<IReadOnlyList<ItemScore>> ItemScoresPerTopic;
 
             // For each topic, provide information about the (item, word, score) tuple.
-            public readonly ImmutableArray<List<(int Item, string Word, float Score)>> WordScoresPerTopic;
+            public readonly IReadOnlyList<IReadOnlyList<WordItemScore>> WordScoresPerTopic;
 
-            internal LdaSummary(ImmutableArray<List<(int Item, float Score)>> itemScoresPerTopic)
+            internal ModelParameters(IReadOnlyList<IReadOnlyList<ItemScore>> itemScoresPerTopic)
             {
                 ItemScoresPerTopic = itemScoresPerTopic;
             }
 
-            internal LdaSummary(ImmutableArray<List<(int Item, string Word, float Score)>> wordScoresPerTopic)
+            internal ModelParameters(IReadOnlyList<IReadOnlyList<WordItemScore>> wordScoresPerTopic)
             {
                 WordScoresPerTopic = wordScoresPerTopic;
             }
         }
 
         [BestFriend]
-        internal LdaSummary GetLdaDetails(int iinfo)
+        internal ModelParameters GetLdaDetails(int iinfo)
         {
             Contracts.Assert(0 <= iinfo && iinfo < _ldas.Length);
 
@@ -219,17 +243,17 @@ namespace Microsoft.ML.Transforms.Text
                 _numVocab = numVocab;
 
                 _ldaTrainer = new LdaSingleBox(
-                    InfoEx.NumTopic,
+                    InfoEx.NumberOfTopics,
                     numVocab, /* Need to set number of vocabulary here */
                     InfoEx.AlphaSum,
                     InfoEx.Beta,
-                    InfoEx.NumIter,
+                    InfoEx.NumberOfIterations,
                     InfoEx.LikelihoodInterval,
-                    InfoEx.NumThread,
-                    InfoEx.MHStep,
-                    InfoEx.NumSummaryTermPerTopic,
+                    InfoEx.NumberOfThreads,
+                    InfoEx.SamplingStepCount,
+                    InfoEx.NumberOfSummaryTermsPerTopic,
                     false,
-                    InfoEx.NumMaxDocToken);
+                    InfoEx.MaximumTokenCountPerDocument);
             }
 
             internal LdaState(IExceptionContext ectx, ModelLoadContext ctx)
@@ -257,19 +281,19 @@ namespace Microsoft.ML.Transforms.Text
                 ectx.CheckDecode(aliasMemBlockSize > 0);
 
                 _ldaTrainer = new LdaSingleBox(
-                    InfoEx.NumTopic,
+                    InfoEx.NumberOfTopics,
                     _numVocab, /* Need to set number of vocabulary here */
                     InfoEx.AlphaSum,
                     InfoEx.Beta,
-                    InfoEx.NumIter,
+                    InfoEx.NumberOfIterations,
                     InfoEx.LikelihoodInterval,
-                    InfoEx.NumThread,
-                    InfoEx.MHStep,
-                    InfoEx.NumSummaryTermPerTopic,
+                    InfoEx.NumberOfThreads,
+                    InfoEx.SamplingStepCount,
+                    InfoEx.NumberOfSummaryTermsPerTopic,
                     false,
-                    InfoEx.NumMaxDocToken);
+                    InfoEx.MaximumTokenCountPerDocument);
 
-                _ldaTrainer.AllocateModelMemory(_numVocab, InfoEx.NumTopic, memBlockSize, aliasMemBlockSize);
+                _ldaTrainer.AllocateModelMemory(_numVocab, InfoEx.NumberOfTopics, memBlockSize, aliasMemBlockSize);
 
                 for (int i = 0; i < _numVocab; i++)
                 {
@@ -302,40 +326,40 @@ namespace Microsoft.ML.Transforms.Text
                 }
             }
 
-            internal LdaSummary GetLdaSummary(VBuffer<ReadOnlyMemory<char>> mapping)
+            internal ModelParameters GetLdaSummary(VBuffer<ReadOnlyMemory<char>> mapping)
             {
                 if (mapping.Length == 0)
                 {
-                    var itemScoresPerTopicBuilder = ImmutableArray.CreateBuilder<List<(int Item, float Score)>>();
+                    var itemScoresPerTopicBuilder = ImmutableArray.CreateBuilder<List<ModelParameters.ItemScore>>();
                     for (int i = 0; i < _ldaTrainer.NumTopic; i++)
                     {
                         var scores = _ldaTrainer.GetTopicSummary(i);
-                        var itemScores = new List<(int, float)>();
+                        var itemScores = new List<ModelParameters.ItemScore>();
                         foreach (KeyValuePair<int, float> p in scores)
                         {
-                            itemScores.Add((p.Key, p.Value));
+                            itemScores.Add(new ModelParameters.ItemScore(p.Key, p.Value));
                         }
 
                         itemScoresPerTopicBuilder.Add(itemScores);
                     }
-                    return new LdaSummary(itemScoresPerTopicBuilder.ToImmutable());
+                    return new ModelParameters(itemScoresPerTopicBuilder.ToImmutable());
                 }
                 else
                 {
                     ReadOnlyMemory<char> slotName = default;
-                    var wordScoresPerTopicBuilder = ImmutableArray.CreateBuilder<List<(int Item, string Word, float Score)>>();
+                    var wordScoresPerTopicBuilder = ImmutableArray.CreateBuilder<List<ModelParameters.WordItemScore>>();
                     for (int i = 0; i < _ldaTrainer.NumTopic; i++)
                     {
                         var scores = _ldaTrainer.GetTopicSummary(i);
-                        var wordScores = new List<(int, string, float)>();
+                        var wordScores = new List<ModelParameters.WordItemScore>();
                         foreach (KeyValuePair<int, float> p in scores)
                         {
                             mapping.GetItemOrDefault(p.Key, ref slotName);
-                            wordScores.Add((p.Key, slotName.ToString(), p.Value));
+                            wordScores.Add(new ModelParameters.WordItemScore(p.Key, slotName.ToString(), p.Value));
                         }
                         wordScoresPerTopicBuilder.Add(wordScores);
                     }
-                    return new LdaSummary(wordScoresPerTopicBuilder.ToImmutable());
+                    return new ModelParameters(wordScoresPerTopicBuilder.ToImmutable());
                 }
             }
 
@@ -400,7 +424,7 @@ namespace Microsoft.ML.Transforms.Text
                         // Ignore this row.
                         return 0;
                     }
-                    if (docSize >= InfoEx.NumMaxDocToken - termFreq)
+                    if (docSize >= InfoEx.MaximumTokenCountPerDocument - termFreq)
                         break;
 
                     // If legal then add the term.
@@ -448,7 +472,7 @@ namespace Microsoft.ML.Transforms.Text
                     }
                 }
 
-                int len = InfoEx.NumTopic;
+                int len = InfoEx.NumberOfTopics;
                 var srcValues = src.GetValues();
                 if (srcValues.Length == 0)
                 {
@@ -476,7 +500,7 @@ namespace Microsoft.ML.Transforms.Text
                         return;
                     }
 
-                    if (docSize >= InfoEx.NumMaxDocToken - termFreq)
+                    if (docSize >= InfoEx.MaximumTokenCountPerDocument - termFreq)
                         break;
 
                     docSize += termFreq;
@@ -545,9 +569,9 @@ namespace Microsoft.ML.Transforms.Text
                         throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", _parent.ColumnPairs[i].inputColumnName);
 
                     var srcCol = inputSchema[_srcCols[i]];
-                    var srcType = srcCol.Type as VectorType;
+                    var srcType = srcCol.Type as VectorDataViewType;
                     if (srcType == null || !srcType.IsKnownSize || !(srcType.ItemType is NumberDataViewType))
-                        throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", _parent.ColumnPairs[i].inputColumnName, "known-size vector of float", srcCol.Type.ToString());
+                        throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", _parent.ColumnPairs[i].inputColumnName, "known-size vector of Single", srcCol.Type.ToString());
                 }
             }
 
@@ -557,7 +581,7 @@ namespace Microsoft.ML.Transforms.Text
                 for (int i = 0; i < _parent.ColumnPairs.Length; i++)
                 {
                     var info = _parent._columns[i];
-                    result[i] = new DataViewSchema.DetachedColumn(_parent.ColumnPairs[i].outputColumnName, new VectorType(NumberDataViewType.Single, info.NumTopic), null);
+                    result[i] = new DataViewSchema.DetachedColumn(_parent.ColumnPairs[i].outputColumnName, new VectorDataViewType(NumberDataViewType.Single, info.NumberOfTopics), null);
                 }
                 return result;
             }
@@ -576,7 +600,7 @@ namespace Microsoft.ML.Transforms.Text
                 var getSrc = RowCursorUtils.GetVecGetterAs<Double>(NumberDataViewType.Double, input, _srcCols[iinfo]);
                 var src = default(VBuffer<Double>);
                 var lda = _parent._ldas[iinfo];
-                int numBurninIter = lda.InfoEx.NumBurninIter;
+                int numBurninIter = lda.InfoEx.NumberOfBurninIterations;
                 bool reset = lda.InfoEx.ResetRandomGenerator;
                 return
                     (ref VBuffer<float> dst) =>
@@ -778,9 +802,9 @@ namespace Microsoft.ML.Transforms.Text
                 if (!inputData.Schema.TryGetColumnIndex(columns[i].InputColumnName, out int srcCol))
                     throw env.ExceptSchemaMismatch(nameof(inputData), "input", columns[i].InputColumnName);
 
-                var srcColType = inputSchema[srcCol].Type as VectorType;
+                var srcColType = inputSchema[srcCol].Type as VectorDataViewType;
                 if (srcColType == null || !srcColType.IsKnownSize || !(srcColType.ItemType is NumberDataViewType))
-                    throw env.ExceptSchemaMismatch(nameof(inputSchema), "input", columns[i].InputColumnName, "known-size vector of float", srcColType.ToString());
+                    throw env.ExceptSchemaMismatch(nameof(inputSchema), "input", columns[i].InputColumnName, "known-size vector of Single", srcColType.ToString());
 
                 srcCols[i] = srcCol;
                 activeColumns.Add(inputData.Schema[srcCol]);
@@ -831,7 +855,7 @@ namespace Microsoft.ML.Transforms.Text
                                 break;
                             }
 
-                            if (docSize >= columns[i].NumMaxDocToken - termFreq)
+                            if (docSize >= columns[i].MaximumTokenCountPerDocument - termFreq)
                                 break; //control the document length
 
                             //if legal then add the term
@@ -914,22 +938,72 @@ namespace Microsoft.ML.Transforms.Text
             => new Mapper(this, schema);
     }
 
-    /// <include file='doc.xml' path='doc/members/member[@name="LightLDA"]/*' />
+    /// <summary>
+    /// The LDA transform implements <a href="https://arxiv.org/abs/1412.1576">LightLDA</a>, a state-of-the-art implementation of Latent Dirichlet Allocation.
+    /// </summary>
+    /// <remarks>
+    /// <format type="text/markdown"><![CDATA[
+    ///
+    /// ###  Estimator Characteristics
+    /// |  |  |
+    /// | -- | -- |
+    /// | Does this estimator need to look at the data to train its parameters? | Yes |
+    /// | Input column data type | Vector of <xref:System.Single> |
+    /// | Output column data type | Vector of <xref:System.Single>|
+    ///
+    ///  Latent Dirichlet Allocation is a well-known [topic modeling](https://en.wikipedia.org/wiki/Topic_model) algorithm that infers semantic structure from text data,
+    ///  and ultimately helps answer the question on "what is this document about?".
+    ///  It can be used to featurize any text fields as low-dimensional topical vectors.
+    ///  LightLDA is an extremely efficient implementation of LDA that incorporates a number of
+    ///  optimization techniques.
+    ///  With the LDA transform, ML.NET users can train a topic model to produce 1 million topics with 1 million words vocabulary
+    ///  on a 1-billion-token document set one a single machine in a few hours(typically, LDA at this scale takes days and requires large clusters).
+    ///  The most significant innovation is a super-efficient $O(1)$. [Metropolis-Hastings sampling algorithm](https://en.wikipedia.org/wiki/Metropolis–Hastings_algorithm),
+    ///  whose running cost is agnostic of model size, allowing it to converges nearly an order of magnitude faster than other [Gibbs samplers](https://en.wikipedia.org/wiki/Gibbs_sampling).
+    ///
+    ///  In an ML.NET pipeline, this estimator requires the output of some preprocessing, as its input.
+    ///  A typical pipeline operating on text would require text normalization, tokenization and producing n-grams to supply to the LDA estimator.
+    ///  See the example usage in the See Also section for usage suggestions.
+    ///
+    ///  If we have the following three examples of text, as data points, and use the LDA transform with the number of topics set to 3,
+    ///  we would get the results displayed in the table below. Example documents:
+    ///  * I like to eat bananas.
+    ///  * I eat bananas everyday.
+    ///  * First celebrated in 1970, Earth Day now includes events in more than 193 countries,
+    ///    which are now coordinated globally by the Earth Day Network.
+    ///
+    ///  Notice the similarity in values of the first and second row, compared to the third,
+    ///  and see how those values are indicative of similarities between those two (small) bodies of text.
+    ///
+    ///  | Topic1  | Topic2  | Topic 3 |
+    ///  | ------- | ------- | ------- |
+    ///  |  0.5714 | 0.0000  | 0.4286  |
+    ///  |  0.5714 | 0.0000  | 0.4286  |
+    ///  |  0.2400 | 0.3200  | 0.4400  |
+    ///
+    ///  For more technical details you can consult the following papers.
+    ///  * [LightLDA: Big Topic Models on Modest Computer Clusters](https://arxiv.org/abs/1412.1576)
+    ///  * [LightLDA](https://github.com/Microsoft/LightLDA)
+    ///
+    /// Check the See Also section for links to usage examples.
+    /// ]]></format>
+    /// </remarks>
+    /// <seealso cref="TextCatalog.LatentDirichletAllocation(TransformsCatalog.TextTransforms, string, string, int, float, float, int, int, int, int, int, int, int, bool)"/>
     public sealed class LatentDirichletAllocationEstimator : IEstimator<LatentDirichletAllocationTransformer>
     {
         [BestFriend]
         internal static class Defaults
         {
-            public const int NumTopic = 100;
+            public const int NumberOfTopics = 100;
             public const float AlphaSum = 100;
             public const float Beta = 0.01f;
-            public const int Mhstep = 4;
-            public const int NumIterations = 200;
+            public const int SamplingStepCount = 4;
+            public const int MaximumNumberOfIterations = 200;
             public const int LikelihoodInterval = 5;
-            public const int NumThreads = 0;
-            public const int NumMaxDocToken = 512;
-            public const int NumSummaryTermPerTopic = 10;
-            public const int NumBurninIterations = 10;
+            public const int NumberOfThreads = 0;
+            public const int MaximumTokenCountPerDocument = 512;
+            public const int NumberOfSummaryTermsPerTopic = 10;
+            public const int NumberOfBurninIterations = 10;
             public const bool ResetRandomGenerator = false;
         }
 
@@ -940,33 +1014,33 @@ namespace Microsoft.ML.Transforms.Text
         /// <param name="env">The environment.</param>
         /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.</param>
         /// <param name="inputColumnName">Name of the column to transform. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.</param>
-        /// <param name="numTopic">The number of topics.</param>
+        /// <param name="numberOfTopics">The number of topics.</param>
         /// <param name="alphaSum">Dirichlet prior on document-topic vectors.</param>
         /// <param name="beta">Dirichlet prior on vocab-topic vectors.</param>
-        /// <param name="mhstep">Number of Metropolis Hasting step.</param>
-        /// <param name="numIterations">Number of iterations.</param>
+        /// <param name="samplingStepCount">Number of Metropolis Hasting step.</param>
+        /// <param name="maximumNumberOfIterations">Number of iterations.</param>
+        /// <param name="numberOfThreads">The number of training threads. Default value depends on number of logical processors.</param>
+        /// <param name="maximumTokenCountPerDocument">The threshold of maximum count of tokens per doc.</param>
+        /// <param name="numberOfSummaryTermsPerTopic">The number of words to summarize the topic.</param>
         /// <param name="likelihoodInterval">Compute log likelihood over local dataset on this iteration interval.</param>
-        /// <param name="numThreads">The number of training threads. Default value depends on number of logical processors.</param>
-        /// <param name="numMaxDocToken">The threshold of maximum count of tokens per doc.</param>
-        /// <param name="numSummaryTermPerTopic">The number of words to summarize the topic.</param>
-        /// <param name="numBurninIterations">The number of burn-in iterations.</param>
+        /// <param name="numberOfBurninIterations">The number of burn-in iterations.</param>
         /// <param name="resetRandomGenerator">Reset the random number generator for each document.</param>
         internal LatentDirichletAllocationEstimator(IHostEnvironment env,
             string outputColumnName, string inputColumnName = null,
-            int numTopic = Defaults.NumTopic,
+            int numberOfTopics = Defaults.NumberOfTopics,
             float alphaSum = Defaults.AlphaSum,
             float beta = Defaults.Beta,
-            int mhstep = Defaults.Mhstep,
-            int numIterations = Defaults.NumIterations,
+            int samplingStepCount = Defaults.SamplingStepCount,
+            int maximumNumberOfIterations = Defaults.MaximumNumberOfIterations,
+            int numberOfThreads = Defaults.NumberOfThreads,
+            int maximumTokenCountPerDocument = Defaults.MaximumTokenCountPerDocument,
+            int numberOfSummaryTermsPerTopic = Defaults.NumberOfSummaryTermsPerTopic,
             int likelihoodInterval = Defaults.LikelihoodInterval,
-            int numThreads = Defaults.NumThreads,
-            int numMaxDocToken = Defaults.NumMaxDocToken,
-            int numSummaryTermPerTopic = Defaults.NumSummaryTermPerTopic,
-            int numBurninIterations = Defaults.NumBurninIterations,
+            int numberOfBurninIterations = Defaults.NumberOfBurninIterations,
             bool resetRandomGenerator = Defaults.ResetRandomGenerator)
             : this(env, new[] { new ColumnOptions(outputColumnName, inputColumnName ?? outputColumnName,
-                numTopic, alphaSum, beta, mhstep, numIterations, likelihoodInterval, numThreads, numMaxDocToken,
-                numSummaryTermPerTopic, numBurninIterations, resetRandomGenerator) })
+                numberOfTopics, alphaSum, beta, samplingStepCount, maximumNumberOfIterations, likelihoodInterval, numberOfThreads, maximumTokenCountPerDocument,
+                numberOfSummaryTermsPerTopic, numberOfBurninIterations, resetRandomGenerator) })
         { }
 
         /// <include file='doc.xml' path='doc/members/member[@name="LightLDA"]/*' />
@@ -982,7 +1056,8 @@ namespace Microsoft.ML.Transforms.Text
         /// <summary>
         /// Describes how the transformer handles one column pair.
         /// </summary>
-        public sealed class ColumnOptions
+        [BestFriend]
+        internal sealed class ColumnOptions
         {
             /// <summary>
             /// Name of the column resulting from the transformation of <cref see="InputColumnName"/>.
@@ -995,7 +1070,7 @@ namespace Microsoft.ML.Transforms.Text
             /// <summary>
             /// The number of topics.
             /// </summary>
-            public readonly int NumTopic;
+            public readonly int NumberOfTopics;
             /// <summary>
             /// Dirichlet prior on document-topic vectors.
             /// </summary>
@@ -1007,11 +1082,11 @@ namespace Microsoft.ML.Transforms.Text
             /// <summary>
             /// Number of Metropolis Hasting step.
             /// </summary>
-            public readonly int MHStep;
+            public readonly int SamplingStepCount;
             /// <summary>
             /// Number of iterations.
             /// </summary>
-            public readonly int NumIter;
+            public readonly int NumberOfIterations;
             /// <summary>
             /// Compute log likelihood over local dataset on this iteration interval.
             /// </summary>
@@ -1019,19 +1094,19 @@ namespace Microsoft.ML.Transforms.Text
             /// <summary>
             /// The number of training threads.
             /// </summary>
-            public readonly int NumThread;
+            public readonly int NumberOfThreads;
             /// <summary>
             /// The threshold of maximum count of tokens per doc.
             /// </summary>
-            public readonly int NumMaxDocToken;
+            public readonly int MaximumTokenCountPerDocument;
             /// <summary>
             /// The number of words to summarize the topic.
             /// </summary>
-            public readonly int NumSummaryTermPerTopic;
+            public readonly int NumberOfSummaryTermsPerTopic;
             /// <summary>
             /// The number of burn-in iterations.
             /// </summary>
-            public readonly int NumBurninIter;
+            public readonly int NumberOfBurninIterations;
             /// <summary>
             /// Reset the random number generator for each document.
             /// </summary>
@@ -1042,54 +1117,54 @@ namespace Microsoft.ML.Transforms.Text
             /// </summary>
             /// <param name="name">The column containing the output scores over a set of topics, represented as a vector of floats. </param>
             /// <param name="inputColumnName">The column representing the document as a vector of floats.A null value for the column means <paramref name="inputColumnName"/> is replaced. </param>
-            /// <param name="numTopic">The number of topics.</param>
+            /// <param name="numberOfTopics">The number of topics.</param>
             /// <param name="alphaSum">Dirichlet prior on document-topic vectors.</param>
             /// <param name="beta">Dirichlet prior on vocab-topic vectors.</param>
-            /// <param name="mhStep">Number of Metropolis Hasting step.</param>
-            /// <param name="numIter">Number of iterations.</param>
+            /// <param name="samplingStepCount">Number of Metropolis Hasting step.</param>
+            /// <param name="maximumNumberOfIterations">Number of iterations.</param>
             /// <param name="likelihoodInterval">Compute log likelihood over local dataset on this iteration interval.</param>
-            /// <param name="numThread">The number of training threads. Default value depends on number of logical processors.</param>
-            /// <param name="numMaxDocToken">The threshold of maximum count of tokens per doc.</param>
-            /// <param name="numSummaryTermPerTopic">The number of words to summarize the topic.</param>
-            /// <param name="numBurninIter">The number of burn-in iterations.</param>
+            /// <param name="numberOfThreads">The number of training threads. Default value depends on number of logical processors.</param>
+            /// <param name="maximumTokenCountPerDocument">The threshold of maximum count of tokens per doc.</param>
+            /// <param name="numberOfSummaryTermsPerTopic">The number of words to summarize the topic.</param>
+            /// <param name="numberOfBurninIterations">The number of burn-in iterations.</param>
             /// <param name="resetRandomGenerator">Reset the random number generator for each document.</param>
             public ColumnOptions(string name,
                 string inputColumnName = null,
-                int numTopic = LatentDirichletAllocationEstimator.Defaults.NumTopic,
+                int numberOfTopics = LatentDirichletAllocationEstimator.Defaults.NumberOfTopics,
                 float alphaSum = LatentDirichletAllocationEstimator.Defaults.AlphaSum,
                 float beta = LatentDirichletAllocationEstimator.Defaults.Beta,
-                int mhStep = LatentDirichletAllocationEstimator.Defaults.Mhstep,
-                int numIter = LatentDirichletAllocationEstimator.Defaults.NumIterations,
+                int samplingStepCount = LatentDirichletAllocationEstimator.Defaults.SamplingStepCount,
+                int maximumNumberOfIterations = LatentDirichletAllocationEstimator.Defaults.MaximumNumberOfIterations,
                 int likelihoodInterval = LatentDirichletAllocationEstimator.Defaults.LikelihoodInterval,
-                int numThread = LatentDirichletAllocationEstimator.Defaults.NumThreads,
-                int numMaxDocToken = LatentDirichletAllocationEstimator.Defaults.NumMaxDocToken,
-                int numSummaryTermPerTopic = LatentDirichletAllocationEstimator.Defaults.NumSummaryTermPerTopic,
-                int numBurninIter = LatentDirichletAllocationEstimator.Defaults.NumBurninIterations,
+                int numberOfThreads = LatentDirichletAllocationEstimator.Defaults.NumberOfThreads,
+                int maximumTokenCountPerDocument = LatentDirichletAllocationEstimator.Defaults.MaximumTokenCountPerDocument,
+                int numberOfSummaryTermsPerTopic = LatentDirichletAllocationEstimator.Defaults.NumberOfSummaryTermsPerTopic,
+                int numberOfBurninIterations = LatentDirichletAllocationEstimator.Defaults.NumberOfBurninIterations,
                 bool resetRandomGenerator = LatentDirichletAllocationEstimator.Defaults.ResetRandomGenerator)
             {
                 Contracts.CheckValue(name, nameof(name));
                 Contracts.CheckValueOrNull(inputColumnName);
-                Contracts.CheckParam(numTopic > 0, nameof(numTopic), "Must be positive.");
-                Contracts.CheckParam(mhStep > 0, nameof(mhStep), "Must be positive.");
-                Contracts.CheckParam(numIter > 0, nameof(numIter), "Must be positive.");
+                Contracts.CheckParam(numberOfTopics > 0, nameof(numberOfTopics), "Must be positive.");
+                Contracts.CheckParam(samplingStepCount > 0, nameof(samplingStepCount), "Must be positive.");
+                Contracts.CheckParam(maximumNumberOfIterations > 0, nameof(maximumNumberOfIterations), "Must be positive.");
                 Contracts.CheckParam(likelihoodInterval > 0, nameof(likelihoodInterval), "Must be positive.");
-                Contracts.CheckParam(numThread >= 0, nameof(numThread), "Must be positive or zero.");
-                Contracts.CheckParam(numMaxDocToken > 0, nameof(numMaxDocToken), "Must be positive.");
-                Contracts.CheckParam(numSummaryTermPerTopic > 0, nameof(numSummaryTermPerTopic), "Must be positive");
-                Contracts.CheckParam(numBurninIter >= 0, nameof(numBurninIter), "Must be non-negative.");
+                Contracts.CheckParam(numberOfThreads >= 0, nameof(numberOfThreads), "Must be positive or zero.");
+                Contracts.CheckParam(maximumTokenCountPerDocument > 0, nameof(maximumTokenCountPerDocument), "Must be positive.");
+                Contracts.CheckParam(numberOfSummaryTermsPerTopic > 0, nameof(numberOfSummaryTermsPerTopic), "Must be positive");
+                Contracts.CheckParam(numberOfBurninIterations >= 0, nameof(numberOfBurninIterations), "Must be non-negative.");
 
                 Name = name;
                 InputColumnName = inputColumnName ?? name;
-                NumTopic = numTopic;
+                NumberOfTopics = numberOfTopics;
                 AlphaSum = alphaSum;
                 Beta = beta;
-                MHStep = mhStep;
-                NumIter = numIter;
+                SamplingStepCount = samplingStepCount;
+                NumberOfIterations = maximumNumberOfIterations;
                 LikelihoodInterval = likelihoodInterval;
-                NumThread = numThread;
-                NumMaxDocToken = numMaxDocToken;
-                NumSummaryTermPerTopic = numSummaryTermPerTopic;
-                NumBurninIter = numBurninIter;
+                NumberOfThreads = numberOfThreads;
+                MaximumTokenCountPerDocument = maximumTokenCountPerDocument;
+                NumberOfSummaryTermsPerTopic = numberOfSummaryTermsPerTopic;
+                NumberOfBurninIterations = numberOfBurninIterations;
                 ResetRandomGenerator = resetRandomGenerator;
             }
 
@@ -1128,33 +1203,33 @@ namespace Microsoft.ML.Transforms.Text
                 // int NumBurninIter;
                 // byte ResetRandomGenerator;
 
-                NumTopic = ctx.Reader.ReadInt32();
-                ectx.CheckDecode(NumTopic > 0);
+                NumberOfTopics = ctx.Reader.ReadInt32();
+                ectx.CheckDecode(NumberOfTopics > 0);
 
                 AlphaSum = ctx.Reader.ReadSingle();
 
                 Beta = ctx.Reader.ReadSingle();
 
-                MHStep = ctx.Reader.ReadInt32();
-                ectx.CheckDecode(MHStep > 0);
+                SamplingStepCount = ctx.Reader.ReadInt32();
+                ectx.CheckDecode(SamplingStepCount > 0);
 
-                NumIter = ctx.Reader.ReadInt32();
-                ectx.CheckDecode(NumIter > 0);
+                NumberOfIterations = ctx.Reader.ReadInt32();
+                ectx.CheckDecode(NumberOfIterations > 0);
 
                 LikelihoodInterval = ctx.Reader.ReadInt32();
                 ectx.CheckDecode(LikelihoodInterval > 0);
 
-                NumThread = ctx.Reader.ReadInt32();
-                ectx.CheckDecode(NumThread >= 0);
+                NumberOfThreads = ctx.Reader.ReadInt32();
+                ectx.CheckDecode(NumberOfThreads >= 0);
 
-                NumMaxDocToken = ctx.Reader.ReadInt32();
-                ectx.CheckDecode(NumMaxDocToken > 0);
+                MaximumTokenCountPerDocument = ctx.Reader.ReadInt32();
+                ectx.CheckDecode(MaximumTokenCountPerDocument > 0);
 
-                NumSummaryTermPerTopic = ctx.Reader.ReadInt32();
-                ectx.CheckDecode(NumSummaryTermPerTopic > 0);
+                NumberOfSummaryTermsPerTopic = ctx.Reader.ReadInt32();
+                ectx.CheckDecode(NumberOfSummaryTermsPerTopic > 0);
 
-                NumBurninIter = ctx.Reader.ReadInt32();
-                ectx.CheckDecode(NumBurninIter >= 0);
+                NumberOfBurninIterations = ctx.Reader.ReadInt32();
+                ectx.CheckDecode(NumberOfBurninIterations >= 0);
 
                 ResetRandomGenerator = ctx.Reader.ReadBoolByte();
             }
@@ -1176,16 +1251,16 @@ namespace Microsoft.ML.Transforms.Text
                 // int NumBurninIter;
                 // byte ResetRandomGenerator;
 
-                ctx.Writer.Write(NumTopic);
+                ctx.Writer.Write(NumberOfTopics);
                 ctx.Writer.Write(AlphaSum);
                 ctx.Writer.Write(Beta);
-                ctx.Writer.Write(MHStep);
-                ctx.Writer.Write(NumIter);
+                ctx.Writer.Write(SamplingStepCount);
+                ctx.Writer.Write(NumberOfIterations);
                 ctx.Writer.Write(LikelihoodInterval);
-                ctx.Writer.Write(NumThread);
-                ctx.Writer.Write(NumMaxDocToken);
-                ctx.Writer.Write(NumSummaryTermPerTopic);
-                ctx.Writer.Write(NumBurninIter);
+                ctx.Writer.Write(NumberOfThreads);
+                ctx.Writer.Write(MaximumTokenCountPerDocument);
+                ctx.Writer.Write(NumberOfSummaryTermsPerTopic);
+                ctx.Writer.Write(NumberOfBurninIterations);
                 ctx.Writer.WriteBoolByte(ResetRandomGenerator);
             }
         }
@@ -1203,7 +1278,7 @@ namespace Microsoft.ML.Transforms.Text
                 if (!inputSchema.TryFindColumn(colInfo.InputColumnName, out var col))
                     throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.InputColumnName);
                 if (col.ItemType.RawType != typeof(float) || col.Kind == SchemaShape.Column.VectorKind.Scalar)
-                    throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.InputColumnName, "vector of float", col.GetTypeString());
+                    throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.InputColumnName, "vector of Single", col.GetTypeString());
 
                 result[colInfo.Name] = new SchemaShape.Column(colInfo.Name, SchemaShape.Column.VectorKind.Vector, NumberDataViewType.Single, false);
             }

@@ -4,6 +4,7 @@
 
 using System;
 using Microsoft.ML.Calibrators;
+using Microsoft.ML.Runtime;
 using Microsoft.ML.Trainers;
 
 namespace Microsoft.ML.StaticPipe
@@ -23,7 +24,7 @@ namespace Microsoft.ML.StaticPipe
         /// <param name="l2Regularization">The L2 regularization hyperparameter.</param>
         /// <param name="l1Threshold">The L1 regularization hyperparameter. Higher values will tend to lead to more sparse model.</param>
         /// <param name="numberOfIterations">The maximum number of passes to perform over the data.</param>
-        /// <param name="loss">The custom loss, if unspecified will be <see cref="SquaredLoss"/>.</param>
+        /// <param name="lossFunction">The custom loss, if unspecified will be <see cref="SquaredLoss"/>.</param>
         /// <param name="onFit">A delegate that is called every time the
         /// <see cref="Estimator{TInShape, TShape, TTransformer}.Fit(DataView{TInShape})"/> method is called on the
         /// <see cref="Estimator{TInShape, TOutShape, TTransformer}"/> instance created out of this. This delegate will receive
@@ -41,7 +42,7 @@ namespace Microsoft.ML.StaticPipe
             float? l2Regularization = null,
             float? l1Threshold = null,
             int? numberOfIterations = null,
-            ISupportSdcaRegressionLoss loss = null,
+            ISupportSdcaRegressionLoss lossFunction = null,
             Action<LinearRegressionModelParameters> onFit = null)
         {
             Contracts.CheckValue(label, nameof(label));
@@ -50,13 +51,13 @@ namespace Microsoft.ML.StaticPipe
             Contracts.CheckParam(!(l2Regularization < 0), nameof(l2Regularization), "Must not be negative, if specified.");
             Contracts.CheckParam(!(l1Threshold < 0), nameof(l1Threshold), "Must not be negative, if specified.");
             Contracts.CheckParam(!(numberOfIterations < 1), nameof(numberOfIterations), "Must be positive if specified");
-            Contracts.CheckValueOrNull(loss);
+            Contracts.CheckValueOrNull(lossFunction);
             Contracts.CheckValueOrNull(onFit);
 
             var rec = new TrainerEstimatorReconciler.Regression(
                 (env, labelName, featuresName, weightsName) =>
                 {
-                    var trainer = new SdcaRegressionTrainer(env, labelName, featuresName, weightsName, loss, l2Regularization, l1Threshold, numberOfIterations);
+                    var trainer = new SdcaRegressionTrainer(env, labelName, featuresName, weightsName, lossFunction, l2Regularization, l1Threshold, numberOfIterations);
                     if (onFit != null)
                         return trainer.WithOnFitDelegate(trans => onFit(trans.Model));
                     return trainer;
@@ -101,6 +102,7 @@ namespace Microsoft.ML.StaticPipe
                 {
                     options.LabelColumnName = labelName;
                     options.FeatureColumnName = featuresName;
+                    options.ExampleWeightColumnName = weightsName;
 
                     var trainer = new SdcaRegressionTrainer(env, options);
                     if (onFit != null)
@@ -153,7 +155,7 @@ namespace Microsoft.ML.StaticPipe
             var rec = new TrainerEstimatorReconciler.BinaryClassifier(
                 (env, labelName, featuresName, weightsName) =>
                 {
-                    var trainer = new SdcaBinaryTrainer(env, labelName, featuresName, weightsName, l2Regularization, l1Threshold, numberOfIterations);
+                    var trainer = new SdcaLogisticRegressionBinaryTrainer(env, labelName, featuresName, weightsName, l2Regularization, l1Threshold, numberOfIterations);
                     if (onFit != null)
                     {
                         return trainer.WithOnFitDelegate(trans =>
@@ -191,7 +193,7 @@ namespace Microsoft.ML.StaticPipe
         public static (Scalar<float> score, Scalar<float> probability, Scalar<bool> predictedLabel) Sdca(
             this BinaryClassificationCatalog.BinaryClassificationTrainers catalog,
             Scalar<bool> label, Vector<float> features, Scalar<float> weights,
-            SdcaBinaryTrainer.Options options,
+            SdcaLogisticRegressionBinaryTrainer.Options options,
             Action<CalibratedModelParametersBase<LinearBinaryModelParameters, PlattCalibrator>> onFit = null)
         {
             Contracts.CheckValue(label, nameof(label));
@@ -205,8 +207,9 @@ namespace Microsoft.ML.StaticPipe
                 {
                     options.LabelColumnName = labelName;
                     options.FeatureColumnName = featuresName;
+                    options.ExampleWeightColumnName = weightsName;
 
-                    var trainer = new SdcaBinaryTrainer(env, options);
+                    var trainer = new SdcaLogisticRegressionBinaryTrainer(env, options);
                     if (onFit != null)
                     {
                         return trainer.WithOnFitDelegate(trans =>
@@ -228,7 +231,7 @@ namespace Microsoft.ML.StaticPipe
         /// <param name="catalog">The binary classification catalog trainer object.</param>
         /// <param name="label">The label, or dependent variable.</param>
         /// <param name="features">The features, or independent variables.</param>
-        /// <param name="loss">The custom loss.</param>
+        /// <param name="lossFunction">The custom loss.</param>
         /// <param name="weights">The optional example weights.</param>
         /// <param name="l2Regularization">The L2 regularization hyperparameter.</param>
         /// <param name="l1Threshold">The L1 regularization hyperparameter. Higher values will tend to lead to more sparse model.</param>
@@ -243,7 +246,7 @@ namespace Microsoft.ML.StaticPipe
         public static (Scalar<float> score, Scalar<bool> predictedLabel) SdcaNonCalibrated(
             this BinaryClassificationCatalog.BinaryClassificationTrainers catalog,
             Scalar<bool> label, Vector<float> features,
-            ISupportSdcaClassificationLoss loss,
+            ISupportSdcaClassificationLoss lossFunction,
             Scalar<float> weights = null,
             float? l2Regularization = null,
             float? l1Threshold = null,
@@ -252,7 +255,7 @@ namespace Microsoft.ML.StaticPipe
         {
             Contracts.CheckValue(label, nameof(label));
             Contracts.CheckValue(features, nameof(features));
-            Contracts.CheckValue(loss, nameof(loss));
+            Contracts.CheckValue(lossFunction, nameof(lossFunction));
             Contracts.CheckValueOrNull(weights);
             Contracts.CheckParam(!(l2Regularization < 0), nameof(l2Regularization), "Must not be negative, if specified.");
             Contracts.CheckParam(!(l1Threshold < 0), nameof(l1Threshold), "Must not be negative, if specified.");
@@ -262,7 +265,7 @@ namespace Microsoft.ML.StaticPipe
             var rec = new TrainerEstimatorReconciler.BinaryClassifierNoCalibration(
                 (env, labelName, featuresName, weightsName) =>
                 {
-                    var trainer = new SdcaNonCalibratedBinaryTrainer(env, labelName, featuresName, weightsName, loss, l2Regularization, l1Threshold, numberOfIterations);
+                    var trainer = new SdcaNonCalibratedBinaryTrainer(env, labelName, featuresName, weightsName, lossFunction, l2Regularization, l1Threshold, numberOfIterations);
                     if (onFit != null)
                     {
                         return trainer.WithOnFitDelegate(trans =>
@@ -284,7 +287,7 @@ namespace Microsoft.ML.StaticPipe
         /// <param name="catalog">The binary classification catalog trainer object.</param>
         /// <param name="label">The label, or dependent variable.</param>
         /// <param name="features">The features, or independent variables.</param>
-        /// <param name="loss">The custom loss.</param>
+        /// <param name="lossFunction">The custom loss.</param>
         /// <param name="weights">The optional example weights.</param>
         /// <param name="options">Advanced arguments to the algorithm.</param>
         /// <param name="onFit">A delegate that is called every time the
@@ -297,7 +300,7 @@ namespace Microsoft.ML.StaticPipe
         public static (Scalar<float> score, Scalar<bool> predictedLabel) SdcaNonCalibrated(
             this BinaryClassificationCatalog.BinaryClassificationTrainers catalog,
             Scalar<bool> label, Vector<float> features, Scalar<float> weights,
-            ISupportSdcaClassificationLoss loss,
+            ISupportSdcaClassificationLoss lossFunction,
             SdcaNonCalibratedBinaryTrainer.Options options,
             Action<LinearBinaryModelParameters> onFit = null)
         {
@@ -312,6 +315,7 @@ namespace Microsoft.ML.StaticPipe
                 {
                     options.FeatureColumnName = featuresName;
                     options.LabelColumnName = labelName;
+                    options.ExampleWeightColumnName = weightsName;
 
                     var trainer = new SdcaNonCalibratedBinaryTrainer(env, options);
                     if (onFit != null)
@@ -328,12 +332,11 @@ namespace Microsoft.ML.StaticPipe
         }
 
         /// <summary>
-        /// Predict a target using a linear multiclass classification model trained with the SDCA trainer.
+        /// Predict a target using a maximum entropy classification model trained with the SDCA trainer.
         /// </summary>
         /// <param name="catalog">The multiclass classification catalog trainer object.</param>
         /// <param name="label">The label, or dependent variable.</param>
         /// <param name="features">The features, or independent variables.</param>
-        /// <param name="loss">The custom loss.</param>
         /// <param name="weights">The optional example weights.</param>
         /// <param name="l2Regularization">The L2 regularization hyperparameter.</param>
         /// <param name="l1Threshold">The L1 regularization hyperparameter. Higher values will tend to lead to more sparse model.</param>
@@ -348,26 +351,117 @@ namespace Microsoft.ML.StaticPipe
             this MulticlassClassificationCatalog.MulticlassClassificationTrainers catalog,
             Key<uint, TVal> label,
             Vector<float> features,
-            ISupportSdcaClassificationLoss loss = null,
             Scalar<float> weights = null,
             float? l2Regularization = null,
             float? l1Threshold = null,
             int? numberOfIterations = null,
-            Action<MulticlassLogisticRegressionModelParameters> onFit = null)
+            Action<MaximumEntropyModelParameters> onFit = null)
         {
             Contracts.CheckValue(label, nameof(label));
             Contracts.CheckValue(features, nameof(features));
-            Contracts.CheckValueOrNull(loss);
             Contracts.CheckValueOrNull(weights);
             Contracts.CheckParam(!(l2Regularization < 0), nameof(l2Regularization), "Must not be negative, if specified.");
             Contracts.CheckParam(!(l1Threshold < 0), nameof(l1Threshold), "Must not be negative, if specified.");
             Contracts.CheckParam(!(numberOfIterations < 1), nameof(numberOfIterations), "Must be positive if specified");
             Contracts.CheckValueOrNull(onFit);
 
-            var rec = new TrainerEstimatorReconciler.MulticlassClassifier<TVal>(
+            var rec = new TrainerEstimatorReconciler.MulticlassClassificationReconciler<TVal>(
                 (env, labelName, featuresName, weightsName) =>
                 {
-                    var trainer = new SdcaMultiClassTrainer(env, labelName, featuresName, weightsName, loss, l2Regularization, l1Threshold, numberOfIterations);
+                    var trainer = new SdcaMaximumEntropyMulticlassTrainer(env, labelName, featuresName, weightsName, l2Regularization, l1Threshold, numberOfIterations);
+                    if (onFit != null)
+                        return trainer.WithOnFitDelegate(trans => onFit(trans.Model));
+                    return trainer;
+                }, label, features, weights);
+
+            return rec.Output;
+        }
+
+        /// <summary>
+        /// Predict a target using a maximum entropy classification model trained with the SDCA trainer.
+        /// </summary>
+        /// <param name="catalog">The multiclass classification catalog trainer object.</param>
+        /// <param name="label">The label, or dependent variable.</param>
+        /// <param name="features">The features, or independent variables.</param>
+        /// <param name="weights">The optional example weights.</param>
+        /// <param name="options">Advanced arguments to the algorithm.</param>
+        /// <param name="onFit">A delegate that is called every time the
+        /// <see cref="Estimator{TInShape, TOutShape, TTransformer}.Fit(DataView{TInShape})"/> method is called on the
+        /// <see cref="Estimator{TInShape, TOutShape, TTransformer}"/> instance created out of this. This delegate will receive
+        /// the linear model that was trained. Note that this action cannot change the
+        /// result in any way; it is only a way for the caller to be informed about what was learnt.</param>
+        /// <returns>The set of output columns including in order the predicted per-class likelihoods (between 0 and 1, and summing up to 1), and the predicted label.</returns>
+        public static (Vector<float> score, Key<uint, TVal> predictedLabel) Sdca<TVal>(
+            this MulticlassClassificationCatalog.MulticlassClassificationTrainers catalog,
+            Key<uint, TVal> label,
+            Vector<float> features,
+            Scalar<float> weights,
+            SdcaMaximumEntropyMulticlassTrainer.Options options,
+            Action<MaximumEntropyModelParameters> onFit = null)
+        {
+            Contracts.CheckValue(label, nameof(label));
+            Contracts.CheckValue(features, nameof(features));
+            Contracts.CheckValueOrNull(weights);
+            Contracts.CheckValueOrNull(options);
+            Contracts.CheckValueOrNull(onFit);
+
+            var rec = new TrainerEstimatorReconciler.MulticlassClassificationReconciler<TVal>(
+                (env, labelName, featuresName, weightsName) =>
+                {
+                    options.LabelColumnName = labelName;
+                    options.FeatureColumnName = featuresName;
+                    options.ExampleWeightColumnName = weightsName;
+
+                    var trainer = new SdcaMaximumEntropyMulticlassTrainer(env, options);
+                    if (onFit != null)
+                        return trainer.WithOnFitDelegate(trans => onFit(trans.Model));
+                    return trainer;
+                }, label, features, weights);
+
+            return rec.Output;
+        }
+
+        /// <summary>
+        /// Predict a target using a linear multiclass classification model trained with the SDCA trainer.
+        /// </summary>
+        /// <param name="catalog">The multiclass classification catalog trainer object.</param>
+        /// <param name="label">The label, or dependent variable.</param>
+        /// <param name="features">The features, or independent variables.</param>
+        /// <param name="lossFunction">The custom loss, for example, <see cref="HingeLoss"/>.</param>
+        /// <param name="weights">The optional example weights.</param>
+        /// <param name="l2Regularization">The L2 regularization hyperparameter.</param>
+        /// <param name="l1Threshold">The L1 regularization hyperparameter. Higher values will tend to lead to more sparse model.</param>
+        /// <param name="numberOfIterations">The maximum number of passes to perform over the data.</param>
+        /// <param name="onFit">A delegate that is called every time the
+        /// <see cref="Estimator{TInShape, TOutShape, TTransformer}.Fit(DataView{TInShape})"/> method is called on the
+        /// <see cref="Estimator{TInShape, TOutShape, TTransformer}"/> instance created out of this. This delegate will receive
+        /// the linear model that was trained. Note that this action cannot change the
+        /// result in any way; it is only a way for the caller to be informed about what was learnt.</param>
+        /// <returns>The set of output columns including in order the predicted per-class likelihoods (between 0 and 1, and summing up to 1), and the predicted label.</returns>
+        public static (Vector<float> score, Key<uint, TVal> predictedLabel) SdcaNonCalibrated<TVal>(
+            this MulticlassClassificationCatalog.MulticlassClassificationTrainers catalog,
+            Key<uint, TVal> label,
+            Vector<float> features,
+            ISupportSdcaClassificationLoss lossFunction,
+            Scalar<float> weights = null,
+            float? l2Regularization = null,
+            float? l1Threshold = null,
+            int? numberOfIterations = null,
+            Action<LinearMulticlassModelParameters> onFit = null)
+        {
+            Contracts.CheckValue(label, nameof(label));
+            Contracts.CheckValue(features, nameof(features));
+            Contracts.CheckValueOrNull(lossFunction);
+            Contracts.CheckValueOrNull(weights);
+            Contracts.CheckParam(!(l2Regularization < 0), nameof(l2Regularization), "Must not be negative, if specified.");
+            Contracts.CheckParam(!(l1Threshold < 0), nameof(l1Threshold), "Must not be negative, if specified.");
+            Contracts.CheckParam(!(numberOfIterations < 1), nameof(numberOfIterations), "Must be positive if specified");
+            Contracts.CheckValueOrNull(onFit);
+
+            var rec = new TrainerEstimatorReconciler.MulticlassClassificationReconciler<TVal>(
+                (env, labelName, featuresName, weightsName) =>
+                {
+                    var trainer = new SdcaNonCalibratedMulticlassTrainer(env, labelName, featuresName, weightsName, lossFunction, l2Regularization, l1Threshold, numberOfIterations);
                     if (onFit != null)
                         return trainer.WithOnFitDelegate(trans => onFit(trans.Model));
                     return trainer;
@@ -390,13 +484,13 @@ namespace Microsoft.ML.StaticPipe
         /// the linear model that was trained. Note that this action cannot change the
         /// result in any way; it is only a way for the caller to be informed about what was learnt.</param>
         /// <returns>The set of output columns including in order the predicted per-class likelihoods (between 0 and 1, and summing up to 1), and the predicted label.</returns>
-        public static (Vector<float> score, Key<uint, TVal> predictedLabel) Sdca<TVal>(
+        public static (Vector<float> score, Key<uint, TVal> predictedLabel) SdcaNonCalibrated<TVal>(
             this MulticlassClassificationCatalog.MulticlassClassificationTrainers catalog,
             Key<uint, TVal> label,
             Vector<float> features,
             Scalar<float> weights,
-            SdcaMultiClassTrainer.Options options,
-            Action<MulticlassLogisticRegressionModelParameters> onFit = null)
+            SdcaNonCalibratedMulticlassTrainer.Options options,
+            Action<LinearMulticlassModelParameters> onFit = null)
         {
             Contracts.CheckValue(label, nameof(label));
             Contracts.CheckValue(features, nameof(features));
@@ -404,13 +498,14 @@ namespace Microsoft.ML.StaticPipe
             Contracts.CheckValueOrNull(options);
             Contracts.CheckValueOrNull(onFit);
 
-            var rec = new TrainerEstimatorReconciler.MulticlassClassifier<TVal>(
+            var rec = new TrainerEstimatorReconciler.MulticlassClassificationReconciler<TVal>(
                 (env, labelName, featuresName, weightsName) =>
                 {
                     options.LabelColumnName = labelName;
                     options.FeatureColumnName = featuresName;
+                    options.ExampleWeightColumnName = weightsName;
 
-                    var trainer = new SdcaMultiClassTrainer(env, options);
+                    var trainer = new SdcaNonCalibratedMulticlassTrainer(env, options);
                     if (onFit != null)
                         return trainer.WithOnFitDelegate(trans => onFit(trans.Model));
                     return trainer;

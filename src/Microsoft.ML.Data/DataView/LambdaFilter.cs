@@ -6,9 +6,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using Microsoft.Data.DataView;
 using Microsoft.ML.Data.Conversion;
-using Microsoft.ML.Model;
+using Microsoft.ML.Runtime;
 
 namespace Microsoft.ML.Data
 {
@@ -162,7 +161,7 @@ namespace Microsoft.ML.Data
                 public Cursor(Impl<T1, T2> parent, DataViewRowCursor input, bool[] active)
                     : base(parent.Host, input, parent.OutputSchema, active)
                 {
-                    _getSrc = Input.GetGetter<T1>(parent._colSrc);
+                    _getSrc = Input.GetGetter<T1>(Input.Schema[parent._colSrc]);
                     if (parent._conv == null)
                     {
                         Ch.Assert(typeof(T1) == typeof(T2));

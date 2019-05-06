@@ -13,82 +13,6 @@
         it will keep only the rows that have missing values.
       </remarks>
     </member>
-    <example name="NAFilter">
-      <example>
-        <code language="csharp">
-          pipeline.Add(new MissingValuesRowDropper(&quot;Column1&quot;));
-        </code>
-      </example>
-    </example>
-
-    <member name="TextToKey">
-      <summary>
-        Converts input values (words, numbers, etc.) to index in a dictionary.
-      </summary>
-      <remarks>
-        The TextToKeyConverter transform builds up term vocabularies (dictionaries).
-        The TextToKeyConverter and the <see cref="T:Microsoft.ML.Transforms.HashConverter"/> are the two one primary mechanisms by which raw input is transformed into keys.
-        If multiple columns are used, each column builds/uses exactly one vocabulary.
-        The output columns are KeyType-valued.
-        The Key value is the one-based index of the item in the dictionary.
-        If the key is not found in the dictionary, it is assigned the missing value indicator.
-        This dictionary mapping values to keys is most commonly learnt from the unique values in input data,
-        but can be defined through other means: either with the mapping defined directly on the command line, or as loaded from an external file.
-      </remarks>
-      <seealso cref="T:Microsoft.ML.Transforms.HashConverter"/>
-      <seealso cref="T:Microsoft.ML.Transforms.KeyToTextConverter"/>
-    </member>
-    <example name="TextToKey">
-      <example>
-        <code language="csharp">
-          pipeline.Add(new TextToKeyConverter((&quot;Column&quot;, &quot;OutColumn&quot;))
-          { 
-              Sort = TermTransformSortOrder.Occurrence 
-          });
-        </code>
-      </example>
-    </example>
-
-    <member name="ValueToKeyMappingEstimator">
-      <summary>
-        Converts input values (words, numbers, etc.) to index in a dictionary.
-      </summary>
-      <remarks>
-        The ValueToKeyMappingEstimator builds up term vocabularies (dictionaries).
-        If multiple columns are used, each column builds/uses exactly one vocabulary.
-        The output columns are KeyType-valued.
-        The Key value is the one-based index of the item in the dictionary.
-        If the key is not found in the dictionary, it is assigned the missing value indicator.
-        This dictionary mapping values to keys is most commonly learnt from the unique values in input data,
-        but can be defined through other means: either with the mapping defined directly on the command line, or as loaded from an external file.
-      </remarks>
-    </member>
-    <member name="ValueMappingEstimator">
-      <summary>
-        The ValueMappingEstimator is a 1-1 mapping from a key to value. 
-      </summary>
-      <remarks>
-        Given a set of keys and values, the ValueMappingEstimator builds up a dictionary so that when given a specific key it will return a 
-        specific value. The ValueMappingEstimator supports keys and values of different <see cref="System.Type"/> to support different data types.
-        Examples for using a ValueMappingEstimator are:
-        <list type='bullet'>
-          <item>
-            <description>Converting a string value to a string value, this can be useful for grouping (i.e. 'cat', 'dog', 'horse' maps to 'mammals')</description>
-          </item>
-          <item>
-            <description>Converting a string value to a integer value (i.e. converting the text description like quality to an numeric where 'good' maps to 1, 'poor' maps to 0</description>
-          </item>
-          <item>
-            <description>
-              Converting a integer value to a string value and have the string value represented as a <see cref="KeyType"/>
-              (i.e. convert zip codes to a state string value, which will generate a unique integer value that can be used as a label.
-            </description>
-          </item>
-        </list>
-        Values can be repeated to allow for multiple keys to map to the same value, however keys can not be repeated. The mapping between keys and values
-        can be specified either through lists, where the key list and value list must be the same size or can be done through an <see cref="IDataView"/>.
-      </remarks>
-    </member>
 
     <member name="NAHandle">
       <summary>
@@ -124,16 +48,6 @@
       </remarks>
       <seealso cref="T:Microsoft.ML.Data.DataKind"/>
     </member>
-    <example name="NAHandle">
-      <example>
-        <code language="csharp">
-          pipeline.Add(new MissingValueHandler(&quot;FeatureCol&quot;, &quot;CleanFeatureCol&quot;)
-          {
-              ReplaceWith  = NAHandleTransformReplacementKind.Mean
-          });
-        </code>
-      </example>
-    </example>
     
   </members>
 </doc>

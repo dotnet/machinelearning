@@ -7,7 +7,6 @@ using Microsoft.ML.Functional.Tests.Datasets;
 using Microsoft.ML.RunTests;
 using Microsoft.ML.TestFramework;
 using Microsoft.ML.Trainers;
-using Microsoft.ML.Transforms;
 using Microsoft.ML.Transforms.Text;
 using Xunit;
 using Xunit.Abstractions;
@@ -27,7 +26,7 @@ namespace Microsoft.ML.Functional.Tests
         void ExtensibilityAddAColumnAsAFunctionOfMultipleColumns()
         {
             // Concurrency must be 1 to assure that the mapping is done sequentially.
-            var mlContext = new MLContext(seed: 1, conc: 1);
+            var mlContext = new MLContext(seed: 1);
 
             // Load the Iris dataset
             var data = mlContext.Data.LoadFromTextFile<Iris>(
@@ -80,7 +79,7 @@ namespace Microsoft.ML.Functional.Tests
         void ExtensibilityAddingTwoColumns()
         {
             // Concurrency must be 1 to assure that the mapping is done sequentially.
-            var mlContext = new MLContext(seed: 1, conc: 1);
+            var mlContext = new MLContext(seed: 1);
 
             // Load the Iris dataset
             var data = mlContext.Data.LoadFromTextFile<Iris>(
@@ -128,24 +127,23 @@ namespace Microsoft.ML.Functional.Tests
         void ExtensibilityModifyTextFeaturization()
         {
             // Concurrency must be 1 to assure that the mapping is done sequentially.
-            var mlContext = new MLContext(seed: 1, conc: 1);
+            var mlContext = new MLContext(seed: 1);
 
             var data = mlContext.Data.LoadFromTextFile<TweetSentiment>(GetDataPath(TestDatasets.Sentiment.trainFilename),
                 hasHeader: TestDatasets.Sentiment.fileHasHeader,
                 separatorChar: TestDatasets.Sentiment.fileSeparator);
 
             // Create a training pipeline.
-            // TODO #2802: Update FeaturizeText to allow specifications of word-grams and char-grams.
             var pipeline = mlContext.Transforms.Text.FeaturizeText("Features",
                     new TextFeaturizingEstimator.Options
                     {
-                        UseCharExtractor = true,
-                        UseWordExtractor = true,
-                        VectorNormalizer = TextFeaturizingEstimator.TextNormKind.L1
+                        CharFeatureExtractor = new WordBagEstimator.Options() { NgramLength = 3, UseAllLengths = false },
+                        WordFeatureExtractor = new WordBagEstimator.Options(),
+                        Norm = TextFeaturizingEstimator.NormFunction.L1
                     }, "SentimentText")
                 .AppendCacheCheckpoint(mlContext)
-                .Append(mlContext.BinaryClassification.Trainers.StochasticDualCoordinateAscent(
-                    new SdcaBinaryTrainer.Options { NumberOfThreads = 1 }));
+                .Append(mlContext.BinaryClassification.Trainers.SdcaLogisticRegression(
+                    new SdcaLogisticRegressionBinaryTrainer.Options { NumberOfThreads = 1 }));
 
             // Train the model.
             var model = pipeline.Fit(data);
@@ -165,7 +163,7 @@ namespace Microsoft.ML.Functional.Tests
         void ExtensibilityNormalizeColumns()
         {
             // Concurrency must be 1 to assure that the mapping is done sequentially.
-            var mlContext = new MLContext(seed: 1, conc: 1);
+            var mlContext = new MLContext(seed: 1);
 
             // Load the Iris dataset.
             var data = mlContext.Data.LoadFromTextFile<Iris>(
@@ -175,7 +173,7 @@ namespace Microsoft.ML.Functional.Tests
 
             // Compose the transformation.
             var pipeline = mlContext.Transforms.Concatenate("Features", Iris.Features)
-                .Append(mlContext.Transforms.Normalize("Features", mode: NormalizingEstimator.NormalizerMode.MinMax));
+                .Append(mlContext.Transforms.NormalizeMinMax("Features"));
             
             // Transform the data.
             var transformedData = pipeline.Fit(data).Transform(data);

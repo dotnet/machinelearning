@@ -4,11 +4,11 @@
 
 using System;
 using System.Collections.Generic;
-using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
 using Microsoft.ML.EntryPoints;
+using Microsoft.ML.Runtime;
 using Microsoft.ML.Trainers;
 using Microsoft.ML.Transforms;
 using Newtonsoft.Json.Linq;
@@ -129,7 +129,7 @@ namespace Microsoft.ML.EntryPoints
 
                 // Get number of classes
                 var data = new RoleMappedData(input.TrainingData, label, feature, null, weight);
-                data.CheckMultiClassLabel(out var numClasses);
+                data.CheckMulticlassLabel(out var numClasses);
                 return numClasses;
             }
         }

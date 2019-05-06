@@ -5,13 +5,11 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
-using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Internal.Utilities;
-using Microsoft.ML.Model;
+using Microsoft.ML.Runtime;
 using Microsoft.ML.Transforms;
 
 [assembly: LoadableClass(ColumnSelectingTransformer.Summary, typeof(IDataTransform), typeof(ColumnSelectingTransformer),
@@ -35,8 +33,32 @@ using Microsoft.ML.Transforms;
 namespace Microsoft.ML.Transforms
 {
     /// <summary>
-    /// The ColumnSelectingEstimator supports selection of specified columns to keep from a given input.
+    /// Keeps or drops selected columns from an <see cref="IDataView"/>.
     /// </summary>
+    /// <remarks>
+    /// <format type="text/markdown"><![CDATA[
+    ///
+    /// ###  Estimator Characteristics
+    /// |  |  |
+    /// | -- | -- |
+    /// | Does this estimator need to look at the data to train its parameters? | No |
+    /// | Input columns data type | Any |
+    ///
+    /// The resulting <xref:Microsoft.ML.Transforms.ColumnSelectingTransformer>
+    /// operates on the schema of a given <xref:Microsoft.ML.IDataView> by dropping or keeping selected columns from the schema.
+    ///
+    /// It is commonly used to remove unwanted columns before serializing a dataset or writing it to a file.
+    /// It is not necessary to drop unused columns before training or performing transforms,
+    /// as the <xref:Microsoft.ML.IDataView> is lazily evaluated and will not actually materialize the columns until needed.
+    /// In the case of serialization, every column in the schema will be written out. If there are columns
+    /// that should not be saved, this estimator can be used to remove them.
+    ///
+    /// Check the See Also section for links to usage examples.
+    /// ]]></format>
+    /// </remarks>
+    /// <seealso cref="TransformExtensionsCatalog.DropColumns(TransformsCatalog, string[])"/>
+    /// <seealso cref="TransformExtensionsCatalog.SelectColumns(TransformsCatalog, string[])"/>
+    /// <seealso cref="TransformExtensionsCatalog.SelectColumns(TransformsCatalog, string[], bool)"/>
     public sealed class ColumnSelectingEstimator : TrivialEstimator<ColumnSelectingTransformer>
     {
         [BestFriend]
@@ -121,7 +143,7 @@ namespace Microsoft.ML.Transforms
     }
 
     /// <summary>
-    /// The <see cref="ColumnSelectingTransformer"/> allows the user to specify columns to drop or keep from a given input.
+    /// <see cref="ITransformer"/> resulting from fitting an <see cref="ColumnSelectingEstimator"/>.
     /// </summary>
     public sealed class ColumnSelectingTransformer : ITransformer
     {
@@ -140,12 +162,12 @@ namespace Microsoft.ML.Transforms
 
         bool ITransformer.IsRowToRowMapper => true;
 
-        public IEnumerable<string> SelectColumns => _selectedColumns.AsReadOnly();
+        internal IEnumerable<string> SelectColumns => _selectedColumns.AsReadOnly();
 
-        public bool KeepColumns { get; }
+        internal bool KeepColumns { get; }
 
-        public bool KeepHidden { get; }
-        public bool IgnoreMissing { get; }
+        internal bool KeepHidden { get; }
+        internal bool IgnoreMissing { get; }
 
         private static VersionInfo GetVersionInfo()
         {
@@ -607,13 +629,23 @@ namespace Microsoft.ML.Transforms
 
             public override DataViewSchema Schema => _mapper.OutputSchema;
 
-            public override ValueGetter<TValue> GetGetter<TValue>(int col)
+            /// <summary>
+            /// Returns a value getter delegate to fetch the value of column with the given columnIndex, from the row.
+            /// This throws if the column is not active in this row, or if the type
+            /// <typeparamref name="TValue"/> differs from this column's type.
+            /// </summary>
+            /// <typeparam name="TValue"> is the column's content type.</typeparam>
+            /// <param name="column"> is the output column whose getter should be returned.</param>
+            public override ValueGetter<TValue> GetGetter<TValue>(DataViewSchema.Column column)
             {
-                int index = _mapper.GetInputIndex(col);
-                return Input.GetGetter<TValue>(index);
+                int index = _mapper.GetInputIndex(column.Index);
+                return Input.GetGetter<TValue>(Input.Schema[index]);
             }
 
-            public override bool IsColumnActive(int col) => true;
+            /// <summary>
+            /// Returns whether the given column is active in this row.
+            /// </summary>
+            public override bool IsColumnActive(DataViewSchema.Column column) => true;
         }
 
         private sealed class SelectColumnsDataTransform : IDataTransform, IRowToRowMapper, ITransformTemplate
@@ -683,15 +715,13 @@ namespace Microsoft.ML.Transforms
             {
                 var active = new bool[_mapper.InputSchema.Count];
                 foreach (var column in columns)
-                        active[_mapper.GetInputIndex(column.Index)] = true;
+                    active[_mapper.GetInputIndex(column.Index)] = true;
 
                 return _mapper.InputSchema.Where(col => col.Index < active.Length && active[col.Index]);
             }
 
-            public DataViewRow GetRow(DataViewRow input, Func<int, bool> active)
-            {
-                return new RowImpl(input, _mapper);
-            }
+            DataViewRow IRowToRowMapper.GetRow(DataViewRow input, IEnumerable<DataViewSchema.Column> activeColumns)
+                => new RowImpl(input, _mapper);
 
             IDataTransform ITransformTemplate.ApplyToData(IHostEnvironment env, IDataView newSource)
                 => new SelectColumnsDataTransform(env, _transform, new Mapper(_transform, newSource.Schema), newSource);
@@ -712,13 +742,23 @@ namespace Microsoft.ML.Transforms
 
             public override DataViewSchema Schema => _mapper.OutputSchema;
 
-            public override ValueGetter<TValue> GetGetter<TValue>(int col)
+            /// <summary>
+            /// Returns a value getter delegate to fetch the value of column with the given columnIndex, from the row.
+            /// This throws if the column is not active in this row, or if the type
+            /// <typeparamref name="TValue"/> differs from this column's type.
+            /// </summary>
+            /// <typeparam name="TValue"> is the column's content type.</typeparam>
+            /// <param name="column"> is the output column whose getter should be returned.</param>
+            public override ValueGetter<TValue> GetGetter<TValue>(DataViewSchema.Column column)
             {
-                int index = _mapper.GetInputIndex(col);
-                return _inputCursor.GetGetter<TValue>(index);
+                int index = _mapper.GetInputIndex(column.Index);
+                return _inputCursor.GetGetter<TValue>(_inputCursor.Schema[index]);
             }
 
-            public override bool IsColumnActive(int col) => _active[col];
+            /// <summary>
+            /// Returns whether the given column is active in this row.
+            /// </summary>
+            public override bool IsColumnActive(DataViewSchema.Column column) => _active[column.Index];
         }
     }
 }

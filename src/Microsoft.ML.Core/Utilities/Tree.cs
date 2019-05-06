@@ -4,6 +4,7 @@
 
 using System.Collections;
 using System.Collections.Generic;
+using Microsoft.ML.Runtime;
 
 namespace Microsoft.ML.Internal.Utilities
 {

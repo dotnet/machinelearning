@@ -3,16 +3,17 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Drawing;
-using Microsoft.Data.DataView;
+using Microsoft.ML.Data;
 using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Runtime;
 
-namespace Microsoft.ML.ImageAnalytics
+namespace Microsoft.ML.Transforms.Image
 {
-    public sealed class ImageType : StructuredDataViewType
+    public sealed class ImageDataViewType : StructuredDataViewType
     {
         public readonly int Height;
         public readonly int Width;
-        public ImageType(int height, int width)
+        public ImageDataViewType(int height, int width)
            : base(typeof(Bitmap))
         {
             Contracts.CheckParam(height > 0, nameof(height), "Must be positive.");
@@ -22,7 +23,7 @@ namespace Microsoft.ML.ImageAnalytics
             Width = width;
         }
 
-        public ImageType() : base(typeof(Bitmap))
+        public ImageDataViewType() : base(typeof(Bitmap))
         {
         }
 
@@ -30,7 +31,7 @@ namespace Microsoft.ML.ImageAnalytics
         {
             if (other == this)
                 return true;
-            if (!(other is ImageType tmp))
+            if (!(other is ImageDataViewType tmp))
                 return false;
             if (Height != tmp.Height)
                 return false;

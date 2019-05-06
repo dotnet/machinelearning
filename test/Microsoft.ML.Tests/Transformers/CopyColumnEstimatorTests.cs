@@ -4,9 +4,9 @@
 
 using System;
 using System.IO;
-using Microsoft.Data.DataView;
 using Microsoft.ML.Data;
 using Microsoft.ML.Model;
+using Microsoft.ML.Runtime;
 using Microsoft.ML.Tools;
 using Microsoft.ML.Transforms;
 using Xunit;
@@ -93,9 +93,9 @@ namespace Microsoft.ML.Tests
             var transformer = est.Fit(dataView);
             using (var ms = new MemoryStream())
             {
-                transformer.SaveTo(env, ms);
+                env.Model.Save(transformer, null, ms);
                 ms.Position = 0;
-                var loadedTransformer = TransformerChain.LoadFrom(env, ms);
+                var loadedTransformer = env.Model.Load(ms, out var schema);
                 var result = loadedTransformer.Transform(dataView);
                 ValidateCopyColumnTransformer(result);
             }
@@ -138,8 +138,8 @@ namespace Microsoft.ML.Tests
             var names1 = default(VBuffer<ReadOnlyMemory<char>>);
             var names2 = default(VBuffer<ReadOnlyMemory<char>>);
             var type1 = result.Schema[termIndex].Type;
-            var itemType1 = (type1 as VectorType)?.ItemType ?? type1;
-            var key = itemType1 as KeyType;
+            var itemType1 = (type1 as VectorDataViewType)?.ItemType ?? type1;
+            var key = itemType1 as KeyDataViewType;
             Assert.NotNull(key);
             Assert.InRange<ulong>(key.Count, 0, int.MaxValue);
             int size = (int)key.Count;
@@ -164,11 +164,11 @@ namespace Microsoft.ML.Tests
                 int dvalue = 0;
                 int evalue = 0;
                 int fvalue = 0;
-                var aGetter = cursor.GetGetter<int>(0);
-                var bGetter = cursor.GetGetter<int>(1);
-                var dGetter = cursor.GetGetter<int>(3);
-                var eGetter = cursor.GetGetter<int>(4);
-                var fGetter = cursor.GetGetter<int>(5);
+                var aGetter = cursor.GetGetter<int>(cursor.Schema[0]);
+                var bGetter = cursor.GetGetter<int>(cursor.Schema[1]);
+                var dGetter = cursor.GetGetter<int>(cursor.Schema[3]);
+                var eGetter = cursor.GetGetter<int>(cursor.Schema[4]);
+                var fGetter = cursor.GetGetter<int>(cursor.Schema[5]);
                 while (cursor.MoveNext())
                 {
                     aGetter(ref avalue);

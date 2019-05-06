@@ -1,4 +1,4 @@
-maml.exe TrainTest test=F:\data\MNIST\Train-28x28.txt tr=MultiClassLogisticRegression{l2=0.1 l1=0 ot=0.0001 initwts=1} loader=TextLoader{col=Label:R4:0 col=Features:R4:1-784} data=F:\data\MNIST\Test-28x28.txt
+maml.exe TrainTest test=F:\data\MNIST\Train-28x28.txt tr=MulticlassLogisticRegression{l2=0.1 l1=0 ot=0.0001 initwts=1} loader=TextLoader{col=Label:R4:0 col=Features:R4:1-784} data=F:\data\MNIST\Test-28x28.txt
 Automatically adding a MinMax normalization transform, use 'norm=Warn' or 'norm=No' to turn this behavior off.
 Beginning optimization
    num vars: 7850

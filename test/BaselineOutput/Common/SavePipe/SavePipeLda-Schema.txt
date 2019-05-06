@@ -1,7 +1,7 @@
 ---- BoundLoader ----
 1 columns:
-  F1V: Vec<R4, 3>
+  F1V: Vector<Single, 3>
 ---- RowToRowMapperTransform ----
 2 columns:
-  F1V: Vec<R4, 3>
-  Result: Vec<R4, 3>
+  F1V: Vector<Single, 3>
+  Result: Vector<Single, 3>

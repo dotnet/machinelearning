@@ -5,7 +5,7 @@
 namespace Microsoft.ML
 {
     /// <summary>
-    /// Instances of this class posses information about trainers, in terms of their requirements and capabilities.
+    /// Characteristics of a trainer. Exposed via the Info property of each trainer.
     /// </summary>
     public sealed class TrainerInfo
     {

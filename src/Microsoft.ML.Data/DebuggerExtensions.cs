@@ -2,14 +2,15 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.Data.DataView;
 using Microsoft.ML.Data;
+using Microsoft.ML.Runtime;
 using Microsoft.ML.Transforms;
 
 namespace Microsoft.ML
 {
     /// <summary>
-    /// Static extensions for data preview.
+    /// Class used to create instances of preview objects for debugging.
+    /// Note: this class and all methods should only be used for debugging and not in production code.
     /// </summary>
     public static class DebuggerExtensions
     {
@@ -45,7 +46,7 @@ namespace Microsoft.ML
             Contracts.CheckParam(maxRows >= 0, nameof(maxRows));
             Contracts.CheckParam(maxTrainingRows >= 0, nameof(maxTrainingRows));
 
-            var env = new LocalEnvironment(conc: 1);
+            var env = new LocalEnvironment();
             var trainData = SkipTakeFilter.Create(env, new SkipTakeFilter.TakeOptions { Count = maxTrainingRows }, data);
             return new DataDebuggerPreview(estimator.Fit(trainData).Transform(data), maxRows);
         }

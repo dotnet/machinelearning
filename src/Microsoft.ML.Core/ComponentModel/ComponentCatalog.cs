@@ -11,8 +11,7 @@ using Microsoft.ML.CommandLine;
 using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Internal.Utilities;
 
-// REVIEW: Determine ideal namespace.
-namespace Microsoft.ML
+namespace Microsoft.ML.Runtime
 {
     /// <summary>
     /// This catalogs instantiatable components (aka, loadable classes). Components are registered via

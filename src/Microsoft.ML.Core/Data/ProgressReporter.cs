@@ -9,7 +9,7 @@ using System.Linq;
 using System.Threading;
 using Microsoft.ML.Internal.Utilities;
 
-namespace Microsoft.ML.Data
+namespace Microsoft.ML.Runtime
 {
     /// <summary>
     /// The progress reporting classes used by <see cref="HostEnvironmentBase{THostEnvironmentBase}"/> descendants.
@@ -25,8 +25,6 @@ namespace Microsoft.ML.Data
         {
             private readonly IExceptionContext _ectx;
 
-            private readonly string _name;
-
             /// <summary>
             /// The pair of (header, fill action) is updated atomically.
             /// </summary>
@@ -41,7 +39,7 @@ namespace Microsoft.ML.Data
             private volatile int _maxSubId;
             private bool _isDisposed;
 
-            public string Name { get { return _name; } }
+            public string Name { get; }
 
             /// <summary>
             /// Initialize a <see cref="ProgressChannel"/> for the process identified by <paramref name="computationName"/>.
@@ -56,7 +54,7 @@ namespace Microsoft.ML.Data
                 _ectx.CheckValue(tracker, nameof(tracker));
                 _ectx.CheckNonEmpty(computationName, nameof(computationName));
 
-                _name = computationName;
+                Name = computationName;
                 _tracker = tracker;
                 _subChannels = new ConcurrentDictionary<int, SubChannel>();
                 _maxSubId = 0;
@@ -132,7 +130,7 @@ namespace Microsoft.ML.Data
                 var entry = new ProgressEntry(false, cache.Item1);
 
                 if (fillAction == null)
-                    Contracts.Assert(entry.Header.MetricNames.Length == 0 && entry.Header.UnitNames.Length == 0);
+                    Contracts.Assert(entry.Header.MetricNames.Count == 0 && entry.Header.UnitNames.Count == 0);
                 else
                     fillAction(entry);
 
@@ -232,7 +230,7 @@ namespace Microsoft.ML.Data
                     var entry = new ProgressEntry(false, cache.Item1);
 
                     if (fillAction == null)
-                        Contracts.Assert(entry.Header.MetricNames.Length == 0 && entry.Header.UnitNames.Length == 0);
+                        Contracts.Assert(entry.Header.MetricNames.Count == 0 && entry.Header.UnitNames.Count == 0);
                     else
                         fillAction(entry);
                     return entry;
@@ -558,9 +556,9 @@ namespace Microsoft.ML.Data
                 Contracts.CheckValue(header, nameof(header));
                 Header = header;
                 IsCheckpoint = isCheckpoint;
-                Progress = new Double?[header.UnitNames.Length];
-                ProgressLim = new Double?[header.UnitNames.Length];
-                Metrics = new Double?[header.MetricNames.Length];
+                Progress = new Double?[header.UnitNames.Count];
+                ProgressLim = new Double?[header.UnitNames.Count];
+                Metrics = new Double?[header.MetricNames.Count];
             }
         }
 

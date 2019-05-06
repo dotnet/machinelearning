@@ -1,9 +1,8 @@
 ﻿using System;
-using Microsoft.Data.DataView;
-using Microsoft.ML.Data;
+using Microsoft.ML;
 using Microsoft.ML.SamplesUtils;
 
-namespace Microsoft.ML.Samples.Dynamic
+namespace Samples.Dynamic
 {
     public static class Cache
     {

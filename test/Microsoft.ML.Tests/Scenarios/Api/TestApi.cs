@@ -6,10 +6,10 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using Microsoft.Data.DataView;
 using Microsoft.ML.Data;
 using Microsoft.ML.Data.IO;
 using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Runtime;
 using Microsoft.ML.TestFramework;
 using Microsoft.ML.Trainers;
 using Microsoft.ML.Transforms;
@@ -173,10 +173,10 @@ namespace Microsoft.ML.Tests.Scenarios.Api
             var dataFile = GetDataPath("breast-cancer.txt");
             var loader = TextLoader.Create(mlContext, new TextLoader.Options(), new MultiFileSource(dataFile));
             var globalCounter = 0;
-            var xf = LambdaTransform.CreateFilter<object, object>(mlContext, loader,
+            IDataView xf = LambdaTransform.CreateFilter<object, object>(mlContext, loader,
                 (i, s) => true,
                 s => { globalCounter++; });
-
+            xf = mlContext.Transforms.Conversion.ConvertType("Label", outputKind: DataKind.Boolean).Fit(xf).Transform(xf);
             // The baseline result of this was generated with everything cached in memory. As auto-cache is removed,
             // an explicit step of caching is required to make this test ok.
             var cached = mlContext.Data.Cache(xf);
@@ -200,32 +200,32 @@ namespace Microsoft.ML.Tests.Scenarios.Api
 
             // Create Metadata.
             var kindFloat = "Testing float as metadata.";
-            var valueFloat = 10;
+            float valueFloat = 10;
             var coltypeFloat = NumberDataViewType.Single;
             var kindString = "Testing string as metadata.";
             var valueString = "Strings have value.";
+            var coltypeString = TextDataViewType.Instance;
             var kindStringArray = "Testing string array as metadata.";
             var valueStringArray = "I really have no idea what these features entail.".Split(' ');
+            var coltypeStringArray = new VectorDataViewType(coltypeString, valueStringArray.Length);
             var kindFloatArray = "Testing float array as metadata.";
             var valueFloatArray = new float[] { 1, 17, 7, 19, 25, 0 };
+            var coltypeFloatArray = new VectorDataViewType(coltypeFloat, valueFloatArray.Length);
             var kindVBuffer = "Testing VBuffer as metadata.";
             var valueVBuffer = new VBuffer<float>(4, new float[] { 4, 6, 89, 5 });
-
-            var metaFloat = new AnnotationInfo<float>(kindFloat, valueFloat, coltypeFloat);
-            var metaString = new AnnotationInfo<string>(kindString, valueString);
+            var coltypeVBuffer = new VectorDataViewType(coltypeFloat, valueVBuffer.Length);
 
             // Add Metadata.
             var labelColumn = autoSchema[0];
-            var labelColumnWithMetadata = new SchemaDefinition.Column(mlContext, labelColumn.MemberName, labelColumn.ColumnType,
-                annotationInfos: new AnnotationInfo[] { metaFloat, metaString });
+            labelColumn.AddAnnotation(kindFloat, valueFloat, coltypeFloat);
+            labelColumn.AddAnnotation(kindString, valueString, coltypeString);
 
-            var featureColumnWithMetadata = autoSchema[1];
-            featureColumnWithMetadata.AddAnnotation(kindStringArray, valueStringArray);
-            featureColumnWithMetadata.AddAnnotation(kindFloatArray, valueFloatArray);
-            featureColumnWithMetadata.AddAnnotation(kindVBuffer, valueVBuffer);
+            var featureColumn = autoSchema[1];
+            featureColumn.AddAnnotation(kindStringArray, valueStringArray, coltypeStringArray);
+            featureColumn.AddAnnotation(kindFloatArray, valueFloatArray, coltypeFloatArray);
+            featureColumn.AddAnnotation(kindVBuffer, valueVBuffer, coltypeVBuffer);
 
-            var mySchema = new SchemaDefinition { labelColumnWithMetadata, featureColumnWithMetadata };
-            var idv = mlContext.Data.LoadFromEnumerable(data, mySchema);
+            var idv = mlContext.Data.LoadFromEnumerable(data, autoSchema);
 
             Assert.True(idv.Schema[0].Annotations.Schema.Count == 2);
             Assert.True(idv.Schema[0].Annotations.Schema[0].Name == kindFloat);
@@ -235,7 +235,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
 
             Assert.True(idv.Schema[1].Annotations.Schema.Count == 3);
             Assert.True(idv.Schema[1].Annotations.Schema[0].Name == kindStringArray);
-            Assert.True(idv.Schema[1].Annotations.Schema[0].Type is VectorType vectorType && vectorType.ItemType is TextDataViewType);
+            Assert.True(idv.Schema[1].Annotations.Schema[0].Type is VectorDataViewType vectorType && vectorType.ItemType is TextDataViewType);
             Assert.Throws<ArgumentOutOfRangeException>(() => idv.Schema[1].Annotations.Schema[kindFloat]);
 
             float retrievedFloat = 0;
@@ -294,7 +294,6 @@ namespace Microsoft.ML.Tests.Scenarios.Api
         public void TestTrainTestSplit()
         {
             var mlContext = new MLContext(0);
-            
             var dataPath = GetDataPath("adult.tiny.with-schema.txt");
             // Create the reader: define the data columns and where to find them in the text file.
             var input = mlContext.Data.LoadFromTextFile(dataPath, new[] {
@@ -312,8 +311,8 @@ namespace Microsoft.ML.Tests.Scenarios.Api
             // Let's test what train test properly works with seed.
             // In order to do that, let's split same dataset, but in one case we will use default seed value,
             // and in other case we set seed to be specific value.
-            var simpleSplit = mlContext.BinaryClassification.TrainTestSplit(input);
-            var splitWithSeed = mlContext.BinaryClassification.TrainTestSplit(input, seed: 10);
+            var simpleSplit = mlContext.Data.TrainTestSplit(input);
+            var splitWithSeed = mlContext.Data.TrainTestSplit(input, seed: 10);
 
             // Since test fraction is 0.1, it's much faster to compare test subsets of split.
             var simpleTestWorkClass = getWorkclass(simpleSplit.TestSet);
@@ -325,7 +324,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
             // Now let's do same thing but with presence of stratificationColumn.
             // Rows with same values in this stratificationColumn should end up in same subset (train or test).
             // So let's break dataset by "Workclass" column.
-            var stratSplit = mlContext.BinaryClassification.TrainTestSplit(input, samplingKeyColumn: "Workclass");
+            var stratSplit = mlContext.Data.TrainTestSplit(input, samplingKeyColumnName: "Workclass");
             var stratTrainWorkclass = getWorkclass(stratSplit.TrainSet);
             var stratTestWorkClass = getWorkclass(stratSplit.TestSet);
             // Let's get unique values for "Workclass" column from train subset.
@@ -337,7 +336,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
 
             // Let's do same thing, but this time we will choose different seed.
             // Stratification column should still break dataset properly without same values in both subsets.
-            var stratSeed = mlContext.BinaryClassification.TrainTestSplit(input, samplingKeyColumn:"Workclass", seed: 1000000);
+            var stratSeed = mlContext.Data.TrainTestSplit(input, samplingKeyColumnName: "Workclass", seed: 1000000);
             var stratTrainWithSeedWorkclass = getWorkclass(stratSeed.TrainSet);
             var stratTestWithSeedWorkClass = getWorkclass(stratSeed.TestSet);
             // Let's get unique values for "Workclass" column from train subset.

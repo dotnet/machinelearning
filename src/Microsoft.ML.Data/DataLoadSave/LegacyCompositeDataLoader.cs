@@ -6,12 +6,11 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
 using Microsoft.ML.Internal.Utilities;
-using Microsoft.ML.Model;
+using Microsoft.ML.Runtime;
 
 [assembly: LoadableClass(typeof(ILegacyDataLoader), typeof(LegacyCompositeDataLoader), typeof(LegacyCompositeDataLoader.Arguments), typeof(SignatureDataLoader),
     "Composite Data Loader", "CompositeDataLoader", "Composite", "PipeData", "Pipe", "PipeDataLoader")]
@@ -599,7 +598,7 @@ namespace Microsoft.ML.Data
             return View.GetRowCursorSet(columnsNeeded, n, rand);
         }
 
-        VectorType ITransposeDataView.GetSlotType(int col) => _tview?.GetSlotType(col);
+        VectorDataViewType ITransposeDataView.GetSlotType(int col) => _tview?.GetSlotType(col);
 
         SlotCursor ITransposeDataView.GetSlotCursor(int col)
         {

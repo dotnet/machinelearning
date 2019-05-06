@@ -11,12 +11,12 @@ namespace Microsoft.ML.RunTests
 {
     using System.Linq;
     using System.Runtime.InteropServices;
-    using Microsoft.Data.DataView;
-    using Microsoft.ML;
+        using Microsoft.ML;
     using Microsoft.ML.Data;
     using Microsoft.ML.EntryPoints;
     using Microsoft.ML.Internal.Utilities;
-    using Microsoft.ML.LightGBM;
+    using Microsoft.ML.Trainers.LightGbm;
+    using Microsoft.ML.Runtime;
     using Microsoft.ML.TestFramework;
     using Microsoft.ML.Trainers;
     using Microsoft.ML.Trainers.FastTree;
@@ -40,7 +40,7 @@ namespace Microsoft.ML.RunTests
             base.InitializeEnvironment(environment);
 
             environment.ComponentCatalog.RegisterAssembly(typeof(LightGbmBinaryModelParameters).Assembly);
-            environment.ComponentCatalog.RegisterAssembly(typeof(SymbolicStochasticGradientDescentClassificationTrainer).Assembly);
+            environment.ComponentCatalog.RegisterAssembly(typeof(SymbolicSgdLogisticRegressionBinaryTrainer).Assembly);
         }
 
         /// <summary>
@@ -55,7 +55,7 @@ namespace Microsoft.ML.RunTests
             };
         }
 
-        public IList<TestDataset> GetDatasetsForMulticlassClassifierTest()
+        public IList<TestDataset> GetDatasetsForMulticlassClassificationTest()
         {
             return new[] {
                 TestDatasets.breastCancer,
@@ -120,8 +120,7 @@ namespace Microsoft.ML.RunTests
         {
             var predictors = new[] {
                 TestLearners.binaryPrior};
-            var datasets = GetDatasetsForBinaryClassifierBaseTest();
-            RunAllTests(predictors, datasets);
+            RunAllTests(predictors, new[] { TestDatasets.breastCancerBoolLabel });
             Done();
         }
 
@@ -173,7 +172,7 @@ namespace Microsoft.ML.RunTests
         {
             var predictors = new[] {
                 TestLearners.multiclassSdca, TestLearners.multiclassSdcaL1, TestLearners.multiclassSdcaSmoothedHinge };
-            var datasets = GetDatasetsForMulticlassClassifierTest();
+            var datasets = GetDatasetsForMulticlassClassificationTest();
             RunAllTests(predictors, datasets);
             Done();
         }
@@ -198,7 +197,7 @@ namespace Microsoft.ML.RunTests
         [Fact(Skip = "Need CoreTLC specific baseline update")]
         [TestCategory("Multiclass")]
         [TestCategory("Evaluators")]
-        public void MultiClassCVTest()
+        public void MulticlassCVTest()
         {
             var predictor = new PredictorAndArgs
             {
@@ -400,7 +399,7 @@ namespace Microsoft.ML.RunTests
                     TestLearners.QuantileRegressionScorer,
                 };
                 var regressionDatasets = GetDatasetsForRegressorTest();
-                RunAllTests(regressionPredictors, regressionDatasets);
+                RunAllTests(regressionPredictors, regressionDatasets, parseOption: NumberParseOption.UseSingle);
             });
             Done();
         }
@@ -500,7 +499,7 @@ namespace Microsoft.ML.RunTests
         [LightGBMFact]
         [TestCategory("Multiclass")]
         [TestCategory("LightGBM")]
-        public void MultiClassifierLightGBMKeyLabelTest()
+        public void MulticlassifierLightGBMKeyLabelTest()
         {
             var multiPredictors = new[] { TestLearners.LightGBMMC };
             var multiClassificationDatasets = new[] { TestDatasets.irisLoader };
@@ -514,7 +513,7 @@ namespace Microsoft.ML.RunTests
         [LightGBMFact]
         [TestCategory("Multiclass")]
         [TestCategory("LightGBM")]
-        public void MultiClassifierLightGBMKeyLabelU404Test()
+        public void MulticlassifierLightGBMKeyLabelU404Test()
         {
             var multiPredictors = new[] { TestLearners.LightGBMMC };
             var multiClassificationDatasets = new[] { TestDatasets.irisLoaderU404 };
@@ -532,7 +531,7 @@ namespace Microsoft.ML.RunTests
         {
             var regPredictors = new[] { TestLearners.LightGBMReg };
             var regDatasets = new[] { TestDatasets.generatedRegressionDataset };
-            RunAllTests(regPredictors, regDatasets);
+            RunAllTests(regPredictors, regDatasets, parseOption: NumberParseOption.UseSingle);
             Done();
         }
 
@@ -546,7 +545,7 @@ namespace Microsoft.ML.RunTests
         {
             var regPredictors = new[] { TestLearners.LightGBMRegMae };
             var regDatasets = new[] { TestDatasets.generatedRegressionDataset };
-            RunAllTests(regPredictors, regDatasets, extraTag: "MAE");
+            RunAllTests(regPredictors, regDatasets, extraTag: "MAE", parseOption: NumberParseOption.UseSingle);
             Done();
         }
 
@@ -560,7 +559,7 @@ namespace Microsoft.ML.RunTests
         {
             var regPredictors = new[] { TestLearners.LightGBMRegRmse };
             var regDatasets = new[] { TestDatasets.generatedRegressionDataset };
-            RunAllTests(regPredictors, regDatasets, extraTag: "RMSE");
+            RunAllTests(regPredictors, regDatasets, extraTag: "RMSE", parseOption: NumberParseOption.UseSingle);
             Done();
         }
 
@@ -594,7 +593,7 @@ namespace Microsoft.ML.RunTests
             var fastTrees = new PredictorModel[3];
             for (int i = 0; i < 3; i++)
             {
-                fastTrees[i] = FastTree.TrainBinary(ML, new FastTreeBinaryClassificationTrainer.Options
+                fastTrees[i] = FastTree.TrainBinary(ML, new FastTreeBinaryTrainer.Options
                 {
                     FeatureColumnName = "Features",
                     NumberOfTrees = 5,
@@ -616,7 +615,7 @@ namespace Microsoft.ML.RunTests
             var fastTrees = new PredictorModel[3];
             for (int i = 0; i < 3; i++)
             {
-                fastTrees[i] = FastTree.TrainBinary(ML, new FastTreeBinaryClassificationTrainer.Options
+                fastTrees[i] = FastTree.TrainBinary(ML, new FastTreeBinaryTrainer.Options
                 {
                     FeatureColumnName = "Features",
                     NumberOfTrees = 5,
@@ -637,21 +636,28 @@ namespace Microsoft.ML.RunTests
 
             var data = new RoleMappedData(idv, label: null, feature: "Features");
             var scored = ScoreModel.Score(Env, new ScoreModel.Input() { Data = idv, PredictorModel = new PredictorModelImpl(Env, data, idv, fastTree) }).ScoredData;
-            Assert.True(scored.Schema.TryGetColumnIndex("Score", out int scoreCol));
-            Assert.True(scored.Schema.TryGetColumnIndex("Probability", out int probCol));
-            Assert.True(scored.Schema.TryGetColumnIndex("PredictedLabel", out int predCol));
+            var scoreColumn = scored.Schema.GetColumnOrNull("Score");
+            Assert.True(scoreColumn.HasValue);
+            var probabilityColumn = scored.Schema.GetColumnOrNull("Probability");
+            Assert.True(probabilityColumn.HasValue);
+            var predictedLabelColumn = scored.Schema.GetColumnOrNull("PredictedLabel");
+            Assert.True(predictedLabelColumn.HasValue);
 
             int predCount = Utils.Size(fastTrees);
             var scoredArray = new IDataView[predCount];
-            var scoreColArray = new int[predCount];
-            var probColArray = new int[predCount];
-            var predColArray = new int[predCount];
+            var scoreColArray = new DataViewSchema.Column?[predCount];
+            var probColArray = new DataViewSchema.Column?[predCount];
+            var predColArray = new DataViewSchema.Column?[predCount];
             for (int i = 0; i < predCount; i++)
             {
                 scoredArray[i] = ScoreModel.Score(Env, new ScoreModel.Input() { Data = idv, PredictorModel = fastTrees[i] }).ScoredData;
-                Assert.True(scoredArray[i].Schema.TryGetColumnIndex("Score", out scoreColArray[i]));
-                Assert.True(scoredArray[i].Schema.TryGetColumnIndex("Probability", out probColArray[i]));
-                Assert.True(scoredArray[i].Schema.TryGetColumnIndex("PredictedLabel", out predColArray[i]));
+
+                scoreColArray[i] = scoredArray[i].Schema.GetColumnOrNull("Score");
+                Assert.True(scoreColArray[i].HasValue);
+                probColArray[i] = scoredArray[i].Schema.GetColumnOrNull("Probability");
+                Assert.True(probColArray[i].HasValue);
+                predColArray[i] = scoredArray[i].Schema.GetColumnOrNull("PredictedLabel");
+                Assert.True(predColArray[i].HasValue);
             }
 
             var cursors = new DataViewRowCursor[predCount];
@@ -664,17 +670,17 @@ namespace Microsoft.ML.RunTests
             {
                 using (var curs = scored.GetRowCursor(cols))
                 {
-                    var scoreGetter = curs.GetGetter<float>(scoreCol);
-                    var probGetter = curs.GetGetter<float>(probCol);
-                    var predGetter = curs.GetGetter<bool>(predCol);
+                    var scoreGetter = curs.GetGetter<float>(scoreColumn.Value);
+                    var probGetter = curs.GetGetter<float>(probabilityColumn.Value);
+                    var predGetter = curs.GetGetter<bool>(predictedLabelColumn.Value);
                     var scoreGetters = new ValueGetter<float>[predCount];
                     var probGetters = new ValueGetter<float>[predCount];
                     var predGetters = new ValueGetter<bool>[predCount];
                     for (int i = 0; i < predCount; i++)
                     {
-                        scoreGetters[i] = cursors[i].GetGetter<float>(scoreColArray[i]);
-                        probGetters[i] = cursors[i].GetGetter<float>(probColArray[i]);
-                        predGetters[i] = cursors[i].GetGetter<bool>(predColArray[i]);
+                        scoreGetters[i] = cursors[i].GetGetter<float>(scoreColArray[i].Value);
+                        probGetters[i] = cursors[i].GetGetter<float>(probColArray[i].Value);
+                        predGetters[i] = cursors[i].GetGetter<bool>(predColArray[i].Value);
                     }
 
                     float score = 0;
@@ -716,7 +722,7 @@ namespace Microsoft.ML.RunTests
 
             var predictors = new PredictorModel[]
             {
-                FastTree.TrainBinary(ML, new FastTreeBinaryClassificationTrainer.Options
+                FastTree.TrainBinary(ML, new FastTreeBinaryTrainer.Options
                 {
                     FeatureColumnName = "Features",
                     NumberOfTrees = 5,
@@ -732,19 +738,19 @@ namespace Microsoft.ML.RunTests
                     TrainingData = dataView,
                     NormalizeFeatures = NormalizeOption.No
                 }).PredictorModel,
-                LogisticRegression.TrainBinary(ML, new LogisticRegression.Options()
+                LbfgsLogisticRegressionBinaryTrainer.TrainBinary(ML, new LbfgsLogisticRegressionBinaryTrainer.Options()
                 {
                     FeatureColumnName = "Features",
                     LabelColumnName = DefaultColumnNames.Label,
-                    OptmizationTolerance = 10e-4F,
+                    OptimizationTolerance = 10e-4F,
                     TrainingData = dataView,
                     NormalizeFeatures = NormalizeOption.No
                 }).PredictorModel,
-                LogisticRegression.TrainBinary(ML, new LogisticRegression.Options()
+                LbfgsLogisticRegressionBinaryTrainer.TrainBinary(ML, new LbfgsLogisticRegressionBinaryTrainer.Options()
                 {
                     FeatureColumnName = "Features",
                     LabelColumnName = DefaultColumnNames.Label,
-                    OptmizationTolerance = 10e-3F,
+                    OptimizationTolerance = 10e-3F,
                     TrainingData = dataView,
                     NormalizeFeatures = NormalizeOption.No
                 }).PredictorModel
@@ -754,14 +760,14 @@ namespace Microsoft.ML.RunTests
         }
 
         [X64Fact("x86 fails. Associated GitHubIssue: https://github.com/dotnet/machinelearning/issues/1216")]
-        public void TestMultiClassEnsembleCombiner()
+        public void TestMulticlassEnsembleCombiner()
         {
             var dataPath = GetDataPath("breast-cancer.txt");
             var dataView = ML.Data.LoadFromTextFile(dataPath);
 
             var predictors = new PredictorModel[]
             {
-                LightGbm.TrainMultiClass(Env, new Options
+                LightGbm.TrainMulticlass(Env, new LightGbmMulticlassTrainer.Options
                 {
                     FeatureColumnName = "Features",
                     NumberOfIterations = 5,
@@ -769,24 +775,24 @@ namespace Microsoft.ML.RunTests
                     LabelColumnName = DefaultColumnNames.Label,
                     TrainingData = dataView
                 }).PredictorModel,
-                LogisticRegression.TrainMultiClass(Env, new MulticlassLogisticRegression.Options()
+                LbfgsMaximumEntropyMulticlassTrainer.TrainMulticlass(Env, new LbfgsMaximumEntropyMulticlassTrainer.Options()
                 {
                     FeatureColumnName = "Features",
                     LabelColumnName = DefaultColumnNames.Label,
-                    OptmizationTolerance = 10e-4F,
+                    OptimizationTolerance = 10e-4F,
                     TrainingData = dataView,
                     NormalizeFeatures = NormalizeOption.No
                 }).PredictorModel,
-                LogisticRegression.TrainMultiClass(Env, new MulticlassLogisticRegression.Options()
+                LbfgsMaximumEntropyMulticlassTrainer.TrainMulticlass(Env, new LbfgsMaximumEntropyMulticlassTrainer.Options()
                 {
                     FeatureColumnName = "Features",
                     LabelColumnName = DefaultColumnNames.Label,
-                    OptmizationTolerance = 10e-3F,
+                    OptimizationTolerance = 10e-3F,
                     TrainingData = dataView,
                     NormalizeFeatures = NormalizeOption.No
                 }).PredictorModel
             };
-            CombineAndTestEnsembles(dataView, "weightedensemblemulticlass", "oc=multiaverage", PredictionKind.MultiClassClassification, predictors);
+            CombineAndTestEnsembles(dataView, "weightedensemblemulticlass", "oc=multiaverage", PredictionKind.MulticlassClassification, predictors);
         }
 
         private void CombineAndTestEnsembles(IDataView idv, string name, string options, PredictionKind predictionKind,
@@ -802,33 +808,35 @@ namespace Microsoft.ML.RunTests
 
             var predCount = Utils.Size(predictors);
 
-            Assert.True(scored.Schema.TryGetColumnIndex("Score", out int scoreCol));
-            int probCol = -1;
-            int predCol = -1;
+            var scoreCol = scored.Schema["Score"];
+
+            DataViewSchema.Column? probCol = null;
+            DataViewSchema.Column? predCol = null;
             if (predictionKind == PredictionKind.BinaryClassification)
             {
-                Assert.True(scored.Schema.TryGetColumnIndex("Probability", out probCol));
-                Assert.True(scored.Schema.TryGetColumnIndex("PredictedLabel", out predCol));
+                probCol = scored.Schema["Probability"];
+                predCol = scored.Schema["PredictedLabel"];
             }
 
             var scoredArray = new IDataView[predCount];
-            int[] scoreColArray = new int[predCount];
-            int[] probColArray = new int[predCount];
-            int[] predColArray = new int[predCount];
+            var scoreColArray = new DataViewSchema.Column?[predCount];
+            var probColArray = new DataViewSchema.Column?[predCount];
+            var predColArray = new DataViewSchema.Column?[predCount];
 
             for (int i = 0; i < predCount; i++)
             {
                 scoredArray[i] = ScoreModel.Score(Env, new ScoreModel.Input() { Data = idv, PredictorModel = predictors[i] }).ScoredData;
-                Assert.True(scoredArray[i].Schema.TryGetColumnIndex("Score", out scoreColArray[i]));
+                scoreColArray[i] = scoredArray[i].Schema["Score"];
+
                 if (predictionKind == PredictionKind.BinaryClassification)
                 {
-                    Assert.True(scoredArray[i].Schema.TryGetColumnIndex("Probability", out probColArray[i]));
-                    Assert.True(scoredArray[i].Schema.TryGetColumnIndex("PredictedLabel", out predColArray[i]));
+                    probColArray[i] = scoredArray[i].Schema["Probability"];
+                    predColArray[i] = scoredArray[i].Schema["PredictedLabel"];
                 }
                 else
                 {
-                    probColArray[i] = -1;
-                    predColArray[i] = -1;
+                    probColArray[i] = null;
+                    predColArray[i] = null;
                 }
             }
 
@@ -842,17 +850,17 @@ namespace Microsoft.ML.RunTests
             {
                 using (var curs = scored.GetRowCursor(cols))
                 {
-                    var scoreGetter = predictionKind == PredictionKind.MultiClassClassification ?
+                    var scoreGetter = predictionKind == PredictionKind.MulticlassClassification ?
                         (ref float dst) => dst = 0 :
                         curs.GetGetter<float>(scoreCol);
-                    var vectorScoreGetter = predictionKind == PredictionKind.MultiClassClassification ?
+                    var vectorScoreGetter = predictionKind == PredictionKind.MulticlassClassification ?
                         curs.GetGetter<VBuffer<float>>(scoreCol) :
                         (ref VBuffer<float> dst) => dst = default;
                     var probGetter = predictionKind == PredictionKind.BinaryClassification ?
-                        curs.GetGetter<float>(probCol) :
+                        curs.GetGetter<float>(probCol.Value) :
                         (ref float dst) => dst = 0;
                     var predGetter = predictionKind == PredictionKind.BinaryClassification ?
-                        curs.GetGetter<bool>(predCol) :
+                        curs.GetGetter<bool>(predCol.Value) :
                         (ref bool dst) => dst = false;
 
                     var scoreGetters = new ValueGetter<float>[predCount];
@@ -861,17 +869,17 @@ namespace Microsoft.ML.RunTests
                     var predGetters = new ValueGetter<bool>[predCount];
                     for (int i = 0; i < predCount; i++)
                     {
-                        scoreGetters[i] = predictionKind == PredictionKind.MultiClassClassification ?
+                        scoreGetters[i] = predictionKind == PredictionKind.MulticlassClassification ?
                             (ref float dst) => dst = 0 :
-                            cursors[i].GetGetter<float>(scoreColArray[i]);
-                        vectorScoreGetters[i] = predictionKind == PredictionKind.MultiClassClassification ?
-                            cursors[i].GetGetter<VBuffer<float>>(scoreColArray[i]) :
+                            cursors[i].GetGetter<float>(scoreColArray[i].Value);
+                        vectorScoreGetters[i] = predictionKind == PredictionKind.MulticlassClassification ?
+                            cursors[i].GetGetter<VBuffer<float>>(scoreColArray[i].Value) :
                             (ref VBuffer<float> dst) => dst = default;
                         probGetters[i] = predictionKind == PredictionKind.BinaryClassification ?
-                            cursors[i].GetGetter<float>(probColArray[i]) :
+                            cursors[i].GetGetter<float>(probColArray[i].Value) :
                             (ref float dst) => dst = 0;
                         predGetters[i] = predictionKind == PredictionKind.BinaryClassification ?
-                            cursors[i].GetGetter<bool>(predColArray[i]) :
+                            cursors[i].GetGetter<bool>(predColArray[i].Value) :
                             (ref bool dst) => dst = false;
                     }
 
@@ -2006,9 +2014,9 @@ output Out [3] from H all;
         [Fact(Skip = "Need CoreTLC specific baseline update")]
         [TestCategory("MultiClass")]
         [TestCategory("TrembleDecisionTree")]
-        public void MultiClassClassifierTrembleTest()
+        public void MulticlassClassificationTrembleTest()
         {
-            var multiClassPredictors = new[] { TestLearners.MultiClassTrembleDecisionTreeLR };
+            var multiClassPredictors = new[] { TestLearners.MulticlassTrembleDecisionTreeLR };
             var multiClassClassificationDatasets = new List<TestDataset>();
             multiClassClassificationDatasets.Add(TestDatasets.iris);
             multiClassClassificationDatasets.Add(TestDatasets.adultCatAsAtt);
@@ -2057,10 +2065,10 @@ output Out [3] from H all;
         [Fact(Skip = "Need CoreTLC specific baseline update")]
         [TestCategory("MultiClass")]
         [TestCategory("TrembleDecisionTree"), Priority(2)]
-        public void MultiClassClassifierDecisionTreeTest()
+        public void MulticlassClassificationDecisionTreeTest()
         {
-            var multiClassPredictors = new[] { TestLearners.MultiClassDecisionTreeDefault, TestLearners.MultiClassDecisionTreeGini, 
-                TestLearners.MultiClassDecisionTreePruning, TestLearners.MultiClassDecisionTreeModified };
+            var multiClassPredictors = new[] { TestLearners.MulticlassDecisionTreeDefault, TestLearners.MulticlassDecisionTreeGini, 
+                TestLearners.MulticlassDecisionTreePruning, TestLearners.MulticlassDecisionTreeModified };
             var multiClassClassificationDatasets = new List<TestDataset>();
             multiClassClassificationDatasets.Add(TestDatasets.iris);
             multiClassClassificationDatasets.Add(TestDatasets.adultCatAsAtt);
@@ -2076,10 +2084,10 @@ output Out [3] from H all;
         [TestCategory("MultiClass")]
         [TestCategory("Weighting Predictors")]
         [TestCategory("TrembleDecisionTree"), Priority(2)]
-        public void MultiClassifierDecisionTreeWeightingTest()
+        public void MulticlassifierDecisionTreeWeightingTest()
         {
-            var multiClassPredictors = new[] { TestLearners.MultiClassDecisionTreeDefault, TestLearners.MultiClassDecisionTreeGini, 
-                TestLearners.MultiClassDecisionTreePruning, TestLearners.MultiClassDecisionTreeModified };
+            var multiClassPredictors = new[] { TestLearners.MulticlassDecisionTreeDefault, TestLearners.MulticlassDecisionTreeGini, 
+                TestLearners.MulticlassDecisionTreePruning, TestLearners.MulticlassDecisionTreeModified };
             var binaryClassificationDatasets = new List<TestDataset>(GetDatasetsForClassificationWeightingPredictorsTest());
             RunAllTests(multiClassPredictors, binaryClassificationDatasets);
             Done();
@@ -2165,12 +2173,12 @@ output Out [3] from H all;
         /// <summary>
         /// Multiclass Naive Bayes test.
         /// </summary>
-        [Fact(Skip = "Need CoreTLC specific baseline update")]
+        [Fact]
         [TestCategory("Multiclass")]
         [TestCategory("Multi Class Naive Bayes Classifier")]
         public void MulticlassNaiveBayes()
         {
-            RunOneAllTests(TestLearners.MulticlassNaiveBayesClassifier, TestDatasets.breastCancerSparseBinaryFeatures);
+            RunOneAllTests(TestLearners.MulticlassNaiveBayesClassifier, TestDatasets.breastCancerPipe);
             Done();
         }
     }

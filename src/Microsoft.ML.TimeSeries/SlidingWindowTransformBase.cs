@@ -3,12 +3,10 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using Microsoft.Data.DataView;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
-using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Internal.Utilities;
-using Microsoft.ML.Model;
+using Microsoft.ML.Runtime;
 
 namespace Microsoft.ML.Transforms.TimeSeries
 {
@@ -79,8 +77,8 @@ namespace Microsoft.ML.Transforms.TimeSeries
             _nanValue = GetNaValue();
         }
 
-        protected SlidingWindowTransformBase(IHostEnvironment env, ModelLoadContext ctx, string loaderSignature,  IDataView input)
-            : base(env, ctx, loaderSignature,  input)
+        protected SlidingWindowTransformBase(IHostEnvironment env, ModelLoadContext ctx, string loaderSignature, IDataView input)
+            : base(env, ctx, loaderSignature, input)
         {
             // *** Binary format ***
             // <base>
@@ -139,13 +137,13 @@ namespace Microsoft.ML.Transforms.TimeSeries
                 TInput value = _parentSliding._nanValue;
                 switch (_parentSliding._begin)
                 {
-                case BeginOptions.NaNValues:
-                    value = _parentSliding._nanValue;
-                    break;
-                case BeginOptions.FirstValue:
-                    // REVIEW: will complete the implementation
-                    // if the design looks good
-                    throw new NotImplementedException();
+                    case BeginOptions.NaNValues:
+                        value = _parentSliding._nanValue;
+                        break;
+                    case BeginOptions.FirstValue:
+                        // REVIEW: will complete the implementation
+                        // if the design looks good
+                        throw new NotImplementedException();
                 }
 
                 for (int i = 0; i < size; ++i)

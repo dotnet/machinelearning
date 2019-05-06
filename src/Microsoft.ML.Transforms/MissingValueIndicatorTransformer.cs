@@ -6,13 +6,11 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
-using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Internal.Utilities;
-using Microsoft.ML.Model;
+using Microsoft.ML.Runtime;
 using Microsoft.ML.Transforms;
 
 [assembly: LoadableClass(MissingValueIndicatorTransformer.Summary, typeof(IDataTransform), typeof(MissingValueIndicatorTransformer), typeof(MissingValueIndicatorTransformer.Options), typeof(SignatureDataTransform),
@@ -29,7 +27,9 @@ using Microsoft.ML.Transforms;
 
 namespace Microsoft.ML.Transforms
 {
-    /// <include file='doc.xml' path='doc/members/member[@name="NAIndicator"]'/>
+    /// <summary>
+    /// <see cref="ITransformer"/> resulting from fitting a <see cref="MissingValueIndicatorEstimator"/>.
+    /// </summary>
     public sealed class MissingValueIndicatorTransformer : OneToOneTransformerBase
     {
         internal sealed class Column : OneToOneColumn
@@ -80,7 +80,7 @@ namespace Microsoft.ML.Transforms
         /// <summary>
         /// The names of the output and input column pairs for the transformation.
         /// </summary>
-        public IReadOnlyList<(string outputColumnName, string inputColumnName)> Columns => ColumnPairs.AsReadOnly();
+        internal IReadOnlyList<(string outputColumnName, string inputColumnName)> Columns => ColumnPairs.AsReadOnly();
 
         /// <summary>
         /// Initializes a new instance of <see cref="MissingValueIndicatorTransformer"/>
@@ -181,10 +181,10 @@ namespace Microsoft.ML.Transforms
                     _parent.CheckInputColumn(inputSchema, i, colSrc);
                     var inType = inputSchema[colSrc].Type;
                     DataViewType outType;
-                    if (!(inType is VectorType vectorType))
+                    if (!(inType is VectorDataViewType vectorType))
                         outType = BooleanDataViewType.Instance;
                     else
-                        outType = new VectorType(BooleanDataViewType.Instance, vectorType);
+                        outType = new VectorDataViewType(BooleanDataViewType.Instance, vectorType.Dimensions);
                     infos[i] = new ColInfo(_parent.ColumnPairs[i].outputColumnName, _parent.ColumnPairs[i].inputColumnName, inType, outType);
                 }
                 return infos;
@@ -229,7 +229,7 @@ namespace Microsoft.ML.Transforms
                 Host.Assert(0 <= iinfo && iinfo < _infos.Length);
                 disposer = null;
 
-                if (!(_infos[iinfo].InputType is VectorType))
+                if (!(_infos[iinfo].InputType is VectorDataViewType))
                     return ComposeGetterOne(input, iinfo);
                 return ComposeGetterVec(input, iinfo);
             }
@@ -242,7 +242,7 @@ namespace Microsoft.ML.Transforms
 
             private ValueGetter<bool> ComposeGetterOne<T>(DataViewRow input, int iinfo)
             {
-                var getSrc = input.GetGetter<T>(ColMapNewToOld[iinfo]);
+                var getSrc = input.GetGetter<T>(input.Schema[ColMapNewToOld[iinfo]]);
                 var src = default(T);
                 var isNA = (InPredicate<T>)_infos[iinfo].InputIsNA;
 
@@ -264,7 +264,7 @@ namespace Microsoft.ML.Transforms
 
             private ValueGetter<VBuffer<bool>> ComposeGetterVec<T>(DataViewRow input, int iinfo)
             {
-                var getSrc = input.GetGetter<VBuffer<T>>(ColMapNewToOld[iinfo]);
+                var getSrc = input.GetGetter<VBuffer<T>>(input.Schema[ColMapNewToOld[iinfo]]);
                 var isNA = (InPredicate<T>)_infos[iinfo].InputIsNA;
                 var val = default(T);
                 var defaultIsNA = isNA(in val);
@@ -429,6 +429,27 @@ namespace Microsoft.ML.Transforms
         }
     }
 
+    /// <summary>
+    /// <see cref="IEstimator{TTransformer}"/> for the <see cref="MissingValueIndicatorTransformer"/>.
+    /// </summary>
+    /// <remarks>
+    /// <format type="text/markdown"><![CDATA[
+    /// ###  Estimator Characteristics
+    /// |  |  |
+    /// | -- | -- |
+    /// | Does this estimator need to look at the data to train its parameters? | No |
+    /// | Input column data type | Vector or scalar value of <xref:System.Single> or <xref:System.Double> |
+    /// | Output column data type | If input column was scalar then <xref:System.Boolean> otherwise vector of <xref:System.Boolean>. |
+    ///
+    /// The resulting <xref:Microsoft.ML.Transforms.MissingValueIndicatorTransformer> creates a new column, named as specified in the output column name parameters, and
+    /// fills it with vector of bools where `true` in the i-th position in array indicates the i-th element in input column has missing value and `false` otherwise.
+    ///
+    /// Check the See Also section for links to usage examples.
+    /// ]]>
+    /// </format>
+    /// </remarks>
+    /// <seealso cref="ExtensionsCatalog.IndicateMissingValues(TransformsCatalog, string, string)" />
+    /// <seealso cref="ExtensionsCatalog.IndicateMissingValues(TransformsCatalog, InputOutputColumnPair[])" />
     public sealed class MissingValueIndicatorEstimator : TrivialEstimator<MissingValueIndicatorTransformer>
     {
         /// <summary>
@@ -469,9 +490,9 @@ namespace Microsoft.ML.Transforms
                 if (col.Annotations.TryFindColumn(AnnotationUtils.Kinds.SlotNames, out var slotMeta))
                     metadata.Add(slotMeta);
                 metadata.Add(new SchemaShape.Column(AnnotationUtils.Kinds.IsNormalized, SchemaShape.Column.VectorKind.Scalar, BooleanDataViewType.Instance, false));
-                DataViewType type = !(col.ItemType is VectorType vectorType) ?
+                DataViewType type = !(col.ItemType is VectorDataViewType vectorType) ?
                     (DataViewType)BooleanDataViewType.Instance :
-                    new VectorType(BooleanDataViewType.Instance, vectorType);
+                    new VectorDataViewType(BooleanDataViewType.Instance, vectorType.Dimensions);
                 result[colPair.outputColumnName] = new SchemaShape.Column(colPair.outputColumnName, col.Kind, type, false, new SchemaShape(metadata.ToArray()));
             }
             return new SchemaShape(result.Values);

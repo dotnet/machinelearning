@@ -8,6 +8,7 @@ using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using Microsoft.ML.Data;
+using Microsoft.ML.Internal.CpuMath;
 using Microsoft.ML.RunTests;
 using Microsoft.ML.TestFramework.Attributes;
 using Microsoft.ML.Trainers;
@@ -53,7 +54,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         [MatrixFactorizationFact]
         public void MatrixFactorizationSimpleTrainAndPredict()
         {
-            var mlContext = new MLContext(seed: 1, conc: 1);
+            var mlContext = new MLContext(seed: 1);
 
             // Specific column names of the considered data set
             string labelColumnName = "Label";
@@ -92,10 +93,10 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             // MF produce different matrixes on different platforms, so at least test thier content on windows.
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
-                Assert.Equal(leftMatrix[0], (double)0.3091519, 5);
-                Assert.Equal(leftMatrix[leftMatrix.Count - 1], (double)0.5639161, 5);
-                Assert.Equal(rightMatrix[0], (double)0.243584976, 5);
-                Assert.Equal(rightMatrix[rightMatrix.Count - 1], (double)0.380032182, 5);
+                Assert.Equal(0.33491, leftMatrix[0], 5);
+                Assert.Equal(0.571346991, leftMatrix[leftMatrix.Count - 1], 5);
+                Assert.Equal(0.2433036714792256, rightMatrix[0], 5);
+                Assert.Equal(0.381277978420258, rightMatrix[rightMatrix.Count - 1], 5);
             }
             // Read the test data set as an IDataView
             var testData = reader.Load(new MultiFileSource(GetDataPath(TestDatasets.trivialMatrixFactorization.testFilename)));
@@ -116,14 +117,14 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             prediction.Schema.TryGetColumnIndex(scoreColumnName, out int scoreColumnId);
 
             // Compute prediction errors
-            var metrices = mlContext.Recommendation().Evaluate(prediction, label: labelColumnName, score: scoreColumnName);
+            var metrices = mlContext.Recommendation().Evaluate(prediction, labelColumnName: labelColumnName, scoreColumnName: scoreColumnName);
 
             // Determine if the selected metric is reasonable for different platforms
             double tolerance = Math.Pow(10, -7);
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
             {
                 // Linux case
-                var expectedUnixL2Error = 0.616821448679879; // Linux baseline
+                var expectedUnixL2Error = 0.614457914950479; // Linux baseline
                 Assert.InRange(metrices.MeanSquaredError, expectedUnixL2Error - tolerance, expectedUnixL2Error + tolerance);
             }
             else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
@@ -136,7 +137,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             else if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
                 // Windows case
-                var expectedWindowsL2Error = 0.61528733643754685; // Windows baseline
+                var expectedWindowsL2Error = 0.6098110249191965; // Windows baseline
                 Assert.InRange(metrices.MeanSquaredError, expectedWindowsL2Error - tolerance, expectedWindowsL2Error + tolerance);
             }
 
@@ -203,7 +204,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
 
             // Create a matrix factorization trainer which may consume "Value" as the training label, "MatrixColumnIndex" as the
             // matrix's column index, and "MatrixRowIndex" as the matrix's row index.
-            var mlContext = new MLContext(seed: 1, conc: 1);
+            var mlContext = new MLContext(seed: 1);
 
             var options = new MatrixFactorizationTrainer.Options
             {
@@ -223,19 +224,19 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             // Check if the expected types in the trained model are expected.
             Assert.True(model.MatrixColumnIndexColumnName == "MatrixColumnIndex");
             Assert.True(model.MatrixRowIndexColumnName == "MatrixRowIndex");
-            Assert.True(model.MatrixColumnIndexColumnType is KeyType);
-            Assert.True(model.MatrixRowIndexColumnType is KeyType);
-            var matColKeyType = (KeyType)model.MatrixColumnIndexColumnType;
+            Assert.True(model.MatrixColumnIndexColumnType is KeyDataViewType);
+            Assert.True(model.MatrixRowIndexColumnType is KeyDataViewType);
+            var matColKeyType = (KeyDataViewType)model.MatrixColumnIndexColumnType;
             Assert.True(matColKeyType.Count == _synthesizedMatrixColumnCount + _synthesizedMatrixFirstColumnIndex);
-            var matRowKeyType = (KeyType)model.MatrixRowIndexColumnType;
+            var matRowKeyType = (KeyDataViewType)model.MatrixRowIndexColumnType;
             Assert.True(matRowKeyType.Count == _synthesizedMatrixRowCount + _synthesizedMatrixRowCount);
 
             // Apply the trained model to the training set
             var prediction = model.Transform(dataView);
 
             // Calculate regression matrices for the prediction result
-            var metrics = mlContext.Recommendation().Evaluate(prediction, label: nameof(MatrixElement.Value),
-                score: nameof(MatrixElementForScore.Score));
+            var metrics = mlContext.Recommendation().Evaluate(prediction, labelColumnName: nameof(MatrixElement.Value),
+                scoreColumnName: nameof(MatrixElementForScore.Score));
 
             // Native test. Just check the pipeline runs.
             Assert.True(metrics.MeanSquaredError < 0.1);
@@ -253,6 +254,29 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                 Assert.True(pred.Score != 0);
         }
 
+        internal class MatrixElementZeroBased256By256
+        {
+            // Matrix column index starts from 0 and is at most _synthesizedMatrixColumnCount.
+            [KeyType(_matrixColumnCount)]
+            public uint MatrixColumnIndex;
+            // Matrix row index starts from 0 and is at most _synthesizedMatrixRowCount.
+            [KeyType(_matrixRowCount)]
+            public uint MatrixRowIndex;
+            // The value at the MatrixColumnIndex-th column and the MatrixRowIndex-th row in the considered matrix.
+            public float Value;
+        }
+
+        internal class MatrixElementZeroBasedForScore256By256
+        {
+            // Matrix column index starts from 0 and is at most _synthesizedMatrixColumnCount.
+            [KeyType(_matrixColumnCount)]
+            public uint MatrixColumnIndex;
+            // Matrix row index starts from 0 and is at most _synthesizedMatrixRowCount.
+            [KeyType(_matrixRowCount)]
+            public uint MatrixRowIndex;
+            public float Score;
+        }
+
         internal class MatrixElementZeroBased
         {
             // Matrix column index starts from 0 and is at most _synthesizedMatrixColumnCount.
@@ -268,11 +292,9 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         internal class MatrixElementZeroBasedForScore
         {
             // Matrix column index starts from 0 and is at most _synthesizedMatrixColumnCount.
-            // Contieuous=true means that all values from 0 to _synthesizedMatrixColumnCount are allowed keys.
             [KeyType(_synthesizedMatrixColumnCount)]
             public uint MatrixColumnIndex;
             // Matrix row index starts from 0 and is at most _synthesizedMatrixRowCount.
-            // Contieuous=true means that all values from 0 to _synthesizedMatrixRowCount are allowed keys.
             [KeyType(_synthesizedMatrixRowCount)]
             public uint MatrixRowIndex;
             public float Score;
@@ -293,7 +315,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
 
             // Create a matrix factorization trainer which may consume "Value" as the training label, "MatrixColumnIndex" as the
             // matrix's column index, and "MatrixRowIndex" as the matrix's row index.
-            var mlContext = new MLContext(seed: 1, conc: 1);
+            var mlContext = new MLContext(seed: 1);
 
             var options = new MatrixFactorizationTrainer.Options
             {
@@ -314,9 +336,9 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             // Check if the expected types in the trained model are expected.
             Assert.True(model.MatrixColumnIndexColumnName == nameof(MatrixElementZeroBased.MatrixColumnIndex));
             Assert.True(model.MatrixRowIndexColumnName == nameof(MatrixElementZeroBased.MatrixRowIndex));
-            var matColKeyType = model.MatrixColumnIndexColumnType as KeyType;
+            var matColKeyType = model.MatrixColumnIndexColumnType as KeyDataViewType;
             Assert.NotNull(matColKeyType);
-            var matRowKeyType = model.MatrixRowIndexColumnType as KeyType;
+            var matRowKeyType = model.MatrixRowIndexColumnType as KeyDataViewType;
             Assert.NotNull(matRowKeyType);
             Assert.True(matColKeyType.Count == _synthesizedMatrixColumnCount);
             Assert.True(matRowKeyType.Count == _synthesizedMatrixRowCount);
@@ -325,7 +347,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             var prediction = model.Transform(dataView);
 
             // Calculate regression matrices for the prediction result. It's a global
-            var metrics = mlContext.Recommendation().Evaluate(prediction, label: "Value", score: "Score");
+            var metrics = mlContext.Recommendation().Evaluate(prediction, labelColumnName: "Value", scoreColumnName: "Score");
 
             // Make sure the prediction error is not too large.
             Assert.InRange(metrics.MeanSquaredError, 0, 0.1);
@@ -413,7 +435,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
 
             // Create a matrix factorization trainer which may consume "Value" as the training label, "MatrixColumnIndex" as the
             // matrix's column index, and "MatrixRowIndex" as the matrix's row index.
-            var mlContext = new MLContext(seed: 1, conc: 1);
+            var mlContext = new MLContext(seed: 1);
 
             var options = new MatrixFactorizationTrainer.Options
             {
@@ -438,7 +460,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             var prediction = model.Transform(dataView);
 
             // Calculate regression matrices for the prediction result.
-            var metrics = mlContext.Recommendation().Evaluate(prediction, label: "Value", score: "Score");
+            var metrics = mlContext.Recommendation().Evaluate(prediction, labelColumnName: "Value", scoreColumnName: "Score");
 
             // Make sure the prediction error is not too large.
             Assert.InRange(metrics.MeanSquaredError, 0, 0.0016);
@@ -496,7 +518,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             // Train a matrix factorization model.
             //var model = pipeline.Fit(dataView);
 
-            var mlContext = new MLContext(seed: 1, conc: 1);
+            var mlContext = new MLContext(seed: 1);
 
             // Test that we can load model after KeyType change (removed Min and Contiguous).            
             var modelPath = GetDataPath("backcompat", "matrix-factorization-model.zip");
@@ -504,7 +526,11 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             using (var ch = Env.Start("load"))
             {
                 using (var fs = File.OpenRead(modelPath))
-                    model = ML.Model.Load(fs);
+                {
+                    model = ML.Model.Load(fs, out var schema);
+                    // This model was saved without the input schema.
+                    Assert.Null(schema);
+                }
             }
 
             // Create data for testing. Note that the 2nd element is not specified in the training data so it should
@@ -549,7 +575,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
 
             // Create a matrix factorization trainer which may consume "Value" as the training label, "MatrixColumnIndex" as the
             // matrix's column index, and "MatrixRowIndex" as the matrix's row index.
-            var mlContext = new MLContext(seed: 1, conc: 1);
+            var mlContext = new MLContext(seed: 1);
 
             var options = new MatrixFactorizationTrainer.Options
             {
@@ -574,7 +600,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             var prediction = model.Transform(dataView);
 
             // Calculate regression matrices for the prediction result.
-            var metrics = mlContext.Recommendation().Evaluate(prediction, label: "Value", score: "Score");
+            var metrics = mlContext.Recommendation().Evaluate(prediction, labelColumnName: "Value", scoreColumnName: "Score");
 
             // Make sure the prediction error is not too large.
             Assert.InRange(metrics.MeanSquaredError, 0, 0.0016);
@@ -598,6 +624,212 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             // to 0.15 (specified by s.C = 0.15 in the trainer) than positive example's score.
             CompareNumbersWithTolerance(0.05511549, testResults[1].Score, digitsOfPrecision: 5);
             CompareNumbersWithTolerance(0.00316973357, testResults[2].Score, digitsOfPrecision: 5);
+        }
+
+        [MatrixFactorizationFact]
+        public void OneClassMatrixFactorizationSample()
+        {
+            // Create a new context for ML.NET operations. It can be used for exception tracking and logging,
+            // as a catalog of available operations and as the source of randomness.
+            var mlContext = new MLContext(seed: 0);
+
+            // Get a small in-memory dataset.
+            GetOneClassMatrix(out List<OneClassMatrixElement> data, out List<OneClassMatrixElement> testData);
+
+            // Convert the in-memory matrix into an IDataView so that ML.NET components can consume it.
+            var dataView = mlContext.Data.LoadFromEnumerable(data);
+
+            // Create a matrix factorization trainer which may consume "Value" as the training label, "MatrixColumnIndex" as the
+            // matrix's column index, and "MatrixRowIndex" as the matrix's row index. Here nameof(...) is used to extract field
+            // names' in MatrixElement class.
+            var options = new MatrixFactorizationTrainer.Options
+            {
+                MatrixColumnIndexColumnName = nameof(OneClassMatrixElement.MatrixColumnIndex),
+                MatrixRowIndexColumnName = nameof(OneClassMatrixElement.MatrixRowIndex),
+                LabelColumnName = nameof(OneClassMatrixElement.Value),
+                NumberOfIterations = 20,
+                NumberOfThreads = 8,
+                ApproximationRank = 32,
+                Alpha = 1,
+                // The desired of unobserved values.
+                C = 0.15,
+                // To enable one-class matrix factorization, the following line is required.
+                LossFunction = MatrixFactorizationTrainer.LossFunctionType.SquareLossOneClass
+            };
+
+            var pipeline = mlContext.Recommendation().Trainers.MatrixFactorization(options);
+
+            // Train a matrix factorization model.
+            var model = pipeline.Fit(dataView);
+
+            // Apply the trained model to the test set. Notice that training is a partial 
+            var prediction = model.Transform(mlContext.Data.LoadFromEnumerable(testData));
+
+            var results = mlContext.Data.CreateEnumerable<OneClassMatrixElement>(prediction, false).ToList();
+
+            Assert.Equal(6000, results.Count);
+
+            var firstElement = results.First();
+            var lastElement = results.Last();
+
+            Assert.Equal(1u, firstElement.MatrixColumnIndex);
+            Assert.Equal(1u, firstElement.MatrixRowIndex);
+            Assert.Equal(0.987113833, firstElement.Score, 3);
+            Assert.Equal(1, firstElement.Value, 3);
+
+            Assert.Equal(60u, lastElement.MatrixColumnIndex);
+            Assert.Equal(100u, lastElement.MatrixRowIndex);
+            Assert.Equal(0.149993762, lastElement.Score, 3);
+            Assert.Equal(0.15, lastElement.Value, 3);
+
+            // Two columns with highest predicted score to the 2nd row (indexed by 1). If we view row index as user ID and column as game ID,
+            // the following list contains the games recommended by the trained model. Note that sometime, you may want to exclude training
+            // data from your predicted results because those games were already purchased.
+            var topColumns = results.Where(element => element.MatrixRowIndex == 1).OrderByDescending(element => element.Score).Take(2);
+
+            firstElement = topColumns.First();
+            lastElement = topColumns.Last();
+
+            Assert.Equal(1u, firstElement.MatrixColumnIndex);
+            Assert.Equal(1u, firstElement.MatrixRowIndex);
+            Assert.Equal(0.987113833, firstElement.Score, 3);
+            Assert.Equal(1, firstElement.Value, 3);
+
+            Assert.Equal(11u, lastElement.MatrixColumnIndex);
+            Assert.Equal(1u, lastElement.MatrixRowIndex);
+            Assert.Equal(0.987113833, lastElement.Score, 3);
+            Assert.Equal(1, lastElement.Value, 3);
+        }
+
+        // A data structure used to encode a single value in matrix
+        private class OneClassMatrixElement
+        {
+            // Matrix column index. Its allowed range is from 0 to _synthesizedMatrixColumnCount - 1.
+            [KeyType(_synthesizedMatrixColumnCount)]
+            public uint MatrixColumnIndex { get; set; }
+            // Matrix row index. Its allowed range is from 0 to _synthesizedMatrixRowCount - 1.
+            [KeyType(_synthesizedMatrixRowCount)]
+            public uint MatrixRowIndex { get; set; }
+            // The value at the MatrixColumnIndex-th column and the MatrixRowIndex-th row.
+            public float Value { get; set; }
+            // The predicted value at the MatrixColumnIndex-th column and the MatrixRowIndex-th row.
+            public float Score { get; set; }
+        }
+
+        // Create an in-memory matrix as a list of tuples (column index, row index, value). Notice that one-class matrix
+        // factorization handle scenerios where only positive signals (e.g., on Facebook, only likes are recorded and no dislike before)
+        // can be observed so that all values are set to 1.
+        private static void GetOneClassMatrix(out List<OneClassMatrixElement> observedMatrix, out List<OneClassMatrixElement> fullMatrix)
+        {
+            // The matrix factorization model will be trained only using observedMatrix but we will see it can learn all information 
+            // carried in fullMatrix.
+            observedMatrix = new List<OneClassMatrixElement>();
+            fullMatrix = new List<OneClassMatrixElement>();
+            for (uint i = 0; i < _synthesizedMatrixColumnCount; ++i)
+                for (uint j = 0; j < _synthesizedMatrixRowCount; ++j)
+                {
+                    if ((i + j) % 10 == 0)
+                    {
+                        // Set observed elements' values to 1 (means like).
+                        observedMatrix.Add(new OneClassMatrixElement() { MatrixColumnIndex = i, MatrixRowIndex = j, Value = 1, Score = 0 });
+                        fullMatrix.Add(new OneClassMatrixElement() { MatrixColumnIndex = i, MatrixRowIndex = j, Value = 1, Score = 0 });
+                    }
+                    else
+                        // Set unobserved elements' values to 0.15, a value smaller than observed values (means dislike).
+                        fullMatrix.Add(new OneClassMatrixElement() { MatrixColumnIndex = i, MatrixRowIndex = j, Value = 0.15f, Score = 0 });
+                }
+        }
+
+        const int _matrixColumnCount = 256;
+        const int _matrixRowCount = 256;
+
+        [MatrixFactorizationFact]
+        public void InspectMatrixFactorizationModel()
+        {
+            // Create an in-memory matrix as a list of tuples (column index, row index, value).
+            // Iterators i and j are column and row indexes, respectively.
+            var dataMatrix = new List<MatrixElementZeroBased256By256>();
+            for (uint i = 0; i < _matrixColumnCount; ++i)
+                for (uint j = 0; j < _matrixRowCount; ++j)
+                    dataMatrix.Add(new MatrixElementZeroBased256By256() { MatrixColumnIndex = i, MatrixRowIndex = j, Value = (i + j) % 5 });
+
+            // Convert the in-memory matrix into an IDataView so that ML.NET components can consume it.
+            var dataView = ML.Data.LoadFromEnumerable(dataMatrix);
+
+            // Create a matrix factorization trainer which may consume "Value" as the training label, "MatrixColumnIndex" as the
+            // matrix's column index, and "MatrixRowIndex" as the matrix's row index.
+            var mlContext = new MLContext(seed: 1);
+
+            var options = new MatrixFactorizationTrainer.Options
+            {
+                MatrixColumnIndexColumnName = nameof(MatrixElement.MatrixColumnIndex),
+                MatrixRowIndexColumnName = nameof(MatrixElement.MatrixRowIndex),
+                LabelColumnName = nameof(MatrixElement.Value),
+                NumberOfIterations = 100,
+                NumberOfThreads = 1, // To eliminate randomness, # of threads must be 1.
+                ApproximationRank = 64,
+                LearningRate = 0.5,
+            };
+
+            var pipeline = mlContext.Recommendation().Trainers.MatrixFactorization(options);
+
+            // Train a matrix factorization model.
+            var model = pipeline.Fit(dataView);
+
+            // Check if the expected types in the trained model are expected.
+            Assert.True(model.MatrixColumnIndexColumnName == nameof(MatrixElementZeroBased256By256.MatrixColumnIndex));
+            Assert.True(model.MatrixRowIndexColumnName == nameof(MatrixElementZeroBased256By256.MatrixRowIndex));
+            var matColKeyType = model.MatrixColumnIndexColumnType as KeyDataViewType;
+            Assert.NotNull(matColKeyType);
+            var matRowKeyType = model.MatrixRowIndexColumnType as KeyDataViewType;
+            Assert.NotNull(matRowKeyType);
+            Assert.True(matColKeyType.Count == _matrixColumnCount);
+            Assert.True(matRowKeyType.Count == _matrixRowCount);
+
+            // Create a test set with assigning scores. It stands for the 2nd column of the training matrix.
+            var testMatrix = new List<MatrixElementZeroBasedForScore256By256>();
+            for (/* column index */ uint i = 1; i < 2; ++i)
+                for (/* row index */ uint j = 0; j < _matrixRowCount; ++j)
+                    testMatrix.Add(new MatrixElementZeroBasedForScore256By256() { MatrixColumnIndex = i, MatrixRowIndex = j, Score = 0 });
+
+            // Load test set as IDataView.
+            var testData = ML.Data.LoadFromEnumerable(testMatrix);
+
+            // Apply the trained model to the training set
+            var transformedTestData = model.Transform(testData);
+
+            // Load back predictions on the 2nd column as IEnumerable<MatrixElementZeroBasedForScore>.
+            var predictions = mlContext.Data.CreateEnumerable<MatrixElementZeroBasedForScore256By256>(transformedTestData, false).ToList();
+
+            // Inspect the trained model.
+            int m = model.Model.NumberOfRows;
+            int n = model.Model.NumberOfColumns;
+            int k = model.Model.ApproximationRank;
+
+            // The training matrix is approximated by leftFactorMatrix * rightFactorMatrix^T, where "^T" means matrix transpose.
+            // Thus, to compute the approximation of the 2nd column, we only need the whole leftFactorMatrix and the 2nd row in rightFactorMatrix.
+
+            // First copy the trained left factor matrix to an aligned for applying SSE code.
+            var leftFactorMatrix = model.Model.LeftFactorMatrix;
+            var leftFactorMatrixAligned = new AlignedArray(m * k, 64);
+            for (int i = 0; i < leftFactorMatrix.Count; ++i)
+                leftFactorMatrixAligned[i] = leftFactorMatrix[i];
+
+            // Second copy the trained right factor row to a k-by-1 aligned vector for applying SSE code.
+            var rightFactorVectorAligned = new AlignedArray(k, 64);
+            for (int i = 0; i < k; ++i)
+                rightFactorVectorAligned[i] = model.Model.RightFactorMatrix[1 * k + i]; // value at the i-th row and j-th column is indexed by i * k + j.
+
+            // Prepare buffer to store result. The result will be a matrix-vector product, where the matrix is leftFactorMatrix
+            // and the vector is the 2nd row of rightFactorMatrix.
+            var valuesAtSecondColumn = new AlignedArray(m, 64);
+
+            // Compute leftFactorMatrixAligned (m-by-k) * rightFactorVectorAligned (k-by-1).
+            CpuMathUtils.MatrixTimesSource(false, leftFactorMatrixAligned, rightFactorVectorAligned, valuesAtSecondColumn, m);
+
+            // Check if results computed by SSE code and MF predictor are the same.
+            for (int i = 0; i < predictions.Count(); ++i)
+                Assert.Equal(predictions[i].Score, valuesAtSecondColumn[i], 3);
         }
     }
 }

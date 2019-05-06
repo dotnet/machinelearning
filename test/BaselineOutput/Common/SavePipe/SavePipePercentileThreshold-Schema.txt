@@ -1,0 +1,7 @@
+---- BoundLoader ----
+1 columns:
+  Input: Single
+---- PercentileThresholdTransform ----
+2 columns:
+  Input: Single
+  Output: Boolean

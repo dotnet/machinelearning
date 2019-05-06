@@ -8,14 +8,12 @@ using System.Drawing;
 using System.Drawing.Imaging;
 using System.Linq;
 using System.Text;
-using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
-using Microsoft.ML.ImageAnalytics;
 using Microsoft.ML.Internal.Utilities;
-using Microsoft.ML.Model;
-using Microsoft.ML.Transforms;
+using Microsoft.ML.Runtime;
+using Microsoft.ML.Transforms.Image;
 
 [assembly: LoadableClass(ImageGrayscalingTransformer.Summary, typeof(IDataTransform), typeof(ImageGrayscalingTransformer), typeof(ImageGrayscalingTransformer.Options), typeof(SignatureDataTransform),
     ImageGrayscalingTransformer.UserName, "ImageGrayscaleTransform", "ImageGrayscale")]
@@ -29,23 +27,13 @@ using Microsoft.ML.Transforms;
 [assembly: LoadableClass(typeof(IRowMapper), typeof(ImageGrayscalingTransformer), null, typeof(SignatureLoadRowMapper),
     ImageGrayscalingTransformer.UserName, ImageGrayscalingTransformer.LoaderSignature)]
 
-namespace Microsoft.ML.ImageAnalytics
+namespace Microsoft.ML.Transforms.Image
 {
     // REVIEW: Rewrite as LambdaTransform to simplify.
     // REVIEW: Should it be separate transform or part of ImageResizerTransform?
     /// <summary>
-    /// <see cref="ITransformer"/> produced by fitting the <see cref="IDataView"/> to an <see cref="ImageGrayscalingEstimator" />.
+    /// <see cref="ITransformer"/> resulting from fitting an <see cref="ImageGrayscalingTransformer"/>.
     /// </summary>
-    /// <remarks>
-    /// Calling <see cref="ITransformer.Transform(IDataView)"/> converts the image to grayscale.
-    /// The images might be converted to grayscale to reduce the complexity of the model.
-    /// The grayed out images contain less information to process than the colored images.
-    /// Another use case for converting to grayscale is to generate new images out of the existing ones, so you can have a larger dataset,
-    /// a technique known as <a href = "http://www.stat.harvard.edu/Faculty_Content/meng/JCGS01.pdf"> data augmentation</a>.
-    /// For end-to-end image processing pipelines, and scenarios in your applications, see the
-    /// <a href="https://github.com/dotnet/machinelearning-samples/tree/master/samples/csharp/getting-started"> examples in the machinelearning-samples github repository.</a>
-    /// <seealso cref = "ImageEstimatorsCatalog" />
-    /// </remarks>
     public sealed class ImageGrayscalingTransformer : OneToOneTransformerBase
     {
         internal sealed class Column : OneToOneColumn
@@ -92,7 +80,7 @@ namespace Microsoft.ML.ImageAnalytics
         /// <summary>
         /// The input and output column pairs passed to this <see cref="ITransformer"/>.
         /// </summary>
-        public IReadOnlyCollection<(string outputColumnName, string inputColumnName)> Columns => ColumnPairs.AsReadOnly();
+        internal IReadOnlyCollection<(string outputColumnName, string inputColumnName)> Columns => ColumnPairs.AsReadOnly();
 
         /// <summary>
         /// Converts the images to grayscale.
@@ -166,7 +154,7 @@ namespace Microsoft.ML.ImageAnalytics
 
         private protected override void CheckInputColumn(DataViewSchema inputSchema, int col, int srcCol)
         {
-            if (!(inputSchema[srcCol].Type is ImageType))
+            if (!(inputSchema[srcCol].Type is ImageDataViewType))
                 throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", ColumnPairs[col].inputColumnName, "image", inputSchema[srcCol].Type.ToString());
         }
 
@@ -189,7 +177,7 @@ namespace Microsoft.ML.ImageAnalytics
                 Contracts.Assert(0 <= iinfo && iinfo < _parent.ColumnPairs.Length);
 
                 var src = default(Bitmap);
-                var getSrc = input.GetGetter<Bitmap>(ColMapNewToOld[iinfo]);
+                var getSrc = input.GetGetter<Bitmap>(input.Schema[ColMapNewToOld[iinfo]]);
 
                 disposer =
                     () =>
@@ -219,6 +207,8 @@ namespace Microsoft.ML.ImageAnalytics
                         {
                             g.DrawImage(src, srcRectangle, 0, 0, src.Width, src.Height, GraphicsUnit.Pixel, attributes);
                         }
+
+                        dst.Tag = src.Tag;
                         Contracts.Assert(dst.Width == src.Width && dst.Height == src.Height);
                     };
 
@@ -228,21 +218,34 @@ namespace Microsoft.ML.ImageAnalytics
     }
 
     /// <summary>
-    /// <see cref="IEstimator{TTransformer}"/> that converts the image to grayscale.
+    /// <see cref="IEstimator{TTransformer}"/> for the <see cref="ImageGrayscalingTransformer"/>.
     /// </summary>
     /// <remarks>
-    /// Calling <see cref="IEstimator{TTransformer}.Fit(IDataView)"/> in this estimator, produces an <see cref="ImageGrayscalingEstimator"/>.
+    /// <format type="text/markdown"><![CDATA[
+    /// ###  Estimator Characteristics
+    /// |  |  |
+    /// | -- | -- |
+    /// | Does this estimator need to look at the data to train its parameters? | No |
+    /// | Input column data type | <xref:System.Drawing.Bitmap> |
+    /// | Output column data type | <xref:System.Drawing.Bitmap> |
+    /// | Required NuGet in addition to Microsoft.ML | Microsoft.ML.ImageAnalytics |
+    ///
+    /// The resulting <xref:Microsoft.ML.Transforms.Image.ImageGrayscalingTransformer> creates a new column, named as specified in the output column name parameters, and
+    /// converts the image from the input column into a grayscale image.
     /// The images might be converted to grayscale to reduce the complexity of the model.
     /// The grayed out images contain less information to process than the colored images.
     /// Another use case for converting to grayscale is to generate new images out of the existing ones, so you can have a larger dataset,
-    /// a technique known as <a href = "http://www.stat.harvard.edu/Faculty_Content/meng/JCGS01.pdf"> data augmentation</a>.
+    /// a technique known as [data augmentation](http://www.stat.harvard.edu/Faculty_Content/meng/JCGS01.pdf).
     /// For end-to-end image processing pipelines, and scenarios in your applications, see the
-    /// <a href="https://github.com/dotnet/machinelearning-samples/tree/master/samples/csharp/getting-started"> examples in the machinelearning-samples github repository.</a>
-    /// <seealso cref = "ImageEstimatorsCatalog" />
-    /// </remarks >
+    /// [examples](https://github.com/dotnet/machinelearning-samples/tree/master/samples/csharp/getting-started) in the machinelearning-samples github repository.
+    ///
+    /// Check the See Also section for links to usage examples.
+    /// ]]>
+    /// </format>
+    /// </remarks>
+    /// <seealso cref="ImageEstimatorsCatalog.ConvertToGrayscale(TransformsCatalog, string, string)" />
     public sealed class ImageGrayscalingEstimator : TrivialEstimator<ImageGrayscalingTransformer>
     {
-
         /// <summary>
         /// Converts the images to grayscale.
         /// </summary>
@@ -266,8 +269,8 @@ namespace Microsoft.ML.ImageAnalytics
             {
                 if (!inputSchema.TryFindColumn(colInfo.inputColumnName, out var col))
                     throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.inputColumnName);
-                if (!(col.ItemType is ImageType) || col.Kind != SchemaShape.Column.VectorKind.Scalar)
-                    throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.inputColumnName, new ImageType().ToString(), col.GetTypeString());
+                if (!(col.ItemType is ImageDataViewType) || col.Kind != SchemaShape.Column.VectorKind.Scalar)
+                    throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.inputColumnName, new ImageDataViewType().ToString(), col.GetTypeString());
 
                 result[colInfo.outputColumnName] = new SchemaShape.Column(colInfo.outputColumnName, col.Kind, col.ItemType, col.IsKey, col.Annotations);
             }

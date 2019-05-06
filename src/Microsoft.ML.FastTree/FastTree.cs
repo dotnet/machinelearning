@@ -10,7 +10,6 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
-using Microsoft.Data.DataView;
 using Microsoft.ML.Calibrators;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
@@ -20,6 +19,7 @@ using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Model;
 using Microsoft.ML.Model.OnnxConverter;
 using Microsoft.ML.Model.Pfa;
+using Microsoft.ML.Runtime;
 using Microsoft.ML.Transforms;
 using Microsoft.ML.TreePredictor;
 using Newtonsoft.Json.Linq;
@@ -176,22 +176,12 @@ namespace Microsoft.ML.Trainers.FastTree
 
         private void Initialize(IHostEnvironment env)
         {
-            int numThreads = FastTreeTrainerOptions.NumberOfThreads ?? Environment.ProcessorCount;
-            if (Host.ConcurrencyFactor > 0 && numThreads > Host.ConcurrencyFactor)
-            {
-                using (var ch = Host.Start("FastTreeTrainerBase"))
-                {
-                    numThreads = Host.ConcurrencyFactor;
-                    ch.Warning("The number of threads specified in trainer arguments is larger than the concurrency factor "
-                        + "setting of the environment. Using {0} training threads instead.", numThreads);
-                }
-            }
             ParallelTraining = FastTreeTrainerOptions.ParallelTrainer != null ? FastTreeTrainerOptions.ParallelTrainer.CreateComponent(env) : new SingleTrainer();
             ParallelTraining.InitEnvironment();
 
             Tests = new List<Test>();
 
-            InitializeThreads(numThreads);
+            InitializeThreads(FastTreeTrainerOptions.NumberOfThreads ?? Environment.ProcessorCount);
         }
 
         private protected void ConvertData(RoleMappedData trainData)
@@ -245,7 +235,7 @@ namespace Microsoft.ML.Trainers.FastTree
             }
         }
 
-        private protected virtual bool ShouldStop(IChannel ch, ref IEarlyStoppingCriterion earlyStopping, ref int bestIteration)
+        private protected virtual bool ShouldStop(IChannel ch, ref EarlyStoppingRuleBase earlyStopping, ref int bestIteration)
         {
             bestIteration = Ensemble.NumTrees;
             return false;
@@ -650,7 +640,7 @@ namespace Microsoft.ML.Trainers.FastTree
 #endif
 #endif
 
-            IEarlyStoppingCriterion earlyStoppingRule = null;
+            EarlyStoppingRuleBase earlyStoppingRule = null;
             int bestIteration = 0;
             int emptyTrees = 0;
             using (var pch = Host.StartProgressChannel("FastTree training"))
@@ -1344,6 +1334,7 @@ namespace Microsoft.ML.Trainers.FastTree
 
             private Dataset Construct(RoleMappedData examples, ref int numExamples, int maxBins, IParallelTraining parallelTraining)
             {
+                Host.CheckAlive();
                 Host.AssertValue(examples);
                 Host.Assert(examples.Schema.Feature.HasValue);
 
@@ -1424,6 +1415,7 @@ namespace Microsoft.ML.Trainers.FastTree
                                     pch.SetHeader(new ProgressHeader("features"), e => e.SetProgress(0, iFeature, features.Length));
                                     while (cursor.MoveNext())
                                     {
+                                        Host.CheckAlive();
                                         iFeature = cursor.SlotIndex;
                                         if (!localConstructBinFeatures[iFeature])
                                             continue;
@@ -1499,6 +1491,8 @@ namespace Microsoft.ML.Trainers.FastTree
                                     int catRangeIndex = 0;
                                     for (iFeature = 0; iFeature < NumFeatures;)
                                     {
+                                        Host.CheckAlive();
+
                                         if (catRangeIndex < CategoricalFeatureIndices.Length &&
                                             CategoricalFeatureIndices[catRangeIndex] == iFeature)
                                         {
@@ -1575,6 +1569,7 @@ namespace Microsoft.ML.Trainers.FastTree
                                 {
                                     for (int i = 0; i < NumFeatures; i++)
                                     {
+                                        Host.CheckAlive();
                                         GetFeatureValues(cursor, i, getter, ref temp, ref doubleTemp, copier);
                                         double[] upperBounds = BinUpperBounds[i];
                                         Host.AssertValue(upperBounds);
@@ -1929,6 +1924,7 @@ namespace Microsoft.ML.Trainers.FastTree
                     List<int> trivialFeatures = new List<int>();
                     for (iFeature = 0; iFeature < NumFeatures; iFeature++)
                     {
+                        Host.CheckAlive();
                         if (!localConstructBinFeatures[iFeature])
                             continue;
                         // The following strange call will actually sparsify.
@@ -2240,6 +2236,7 @@ namespace Microsoft.ML.Trainers.FastTree
 
                 for (; iFeature < featureLim; ++iFeature)
                 {
+                    Host.CheckAlive();
                     double[] bup = BinUpperBounds[iFeature];
                     Contracts.Assert(Utils.Size(bup) > 0);
                     if (bup.Length == 1)
@@ -2864,7 +2861,7 @@ namespace Microsoft.ML.Trainers.FastTree
             MaxSplitFeatIdx = trainedEnsemble.GetMaxFeatureIndex();
             Contracts.Assert(NumFeatures > MaxSplitFeatIdx);
 
-            InputType = new VectorType(NumberDataViewType.Single, NumFeatures);
+            InputType = new VectorDataViewType(NumberDataViewType.Single, NumFeatures);
             OutputType = NumberDataViewType.Single;
         }
 
@@ -2902,7 +2899,7 @@ namespace Microsoft.ML.Trainers.FastTree
             // TLC >= 3.0 supposed to be independent of any predictor specific
             // tricks.
 
-            InputType = new VectorType(NumberDataViewType.Single, NumFeatures);
+            InputType = new VectorDataViewType(NumberDataViewType.Single, NumFeatures);
             OutputType = NumberDataViewType.Single;
         }
 
@@ -3232,10 +3229,10 @@ namespace Microsoft.ML.Trainers.FastTree
         }
 
         /// <summary>
-        /// Copy the weights of all training features to <paramref name="weights"/>.
+        /// Get the cumulative split gains for each feature across all trees.
         /// </summary>
-        /// <param name="weights">a <see cref="VBuffer{T}"/> where feature weights would be assigned to.
-        /// The i-th element in <paramref name="weights"/> stores the weight of the i-th feature.</param>
+        /// <param name="weights">A <see cref="VBuffer{T}"/> to hold the cumulative split gain value for each feature.
+        /// The i-th element in <paramref name="weights"/> stores the cumulative split gain of the i-th feature.</param>
         public void GetFeatureWeights(ref VBuffer<float> weights)
         {
             var numFeatures = Math.Max(NumFeatures, MaxSplitFeatIdx + 1);
@@ -3289,7 +3286,7 @@ namespace Microsoft.ML.Trainers.FastTree
             var weights = default(VBuffer<Single>);
             ((IHaveFeatureWeights)this).GetFeatureWeights(ref weights);
             var builder = new DataViewSchema.Annotations.Builder();
-            builder.Add<VBuffer<float>>("Gains", new VectorType(NumberDataViewType.Single, NumFeatures), weights.CopyTo, metaBuilder.ToAnnotations());
+            builder.Add<VBuffer<float>>("Gains", new VectorDataViewType(NumberDataViewType.Single, NumFeatures), weights.CopyTo, metaBuilder.ToAnnotations());
 
             return AnnotationUtils.AnnotationsAsRow(builder.ToAnnotations());
         }

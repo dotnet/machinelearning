@@ -1,19 +1,20 @@
 using System;
 using Microsoft.ML.Data;
-using Microsoft.ML.LightGBM;
-using Microsoft.ML.LightGBM.StaticPipe;
+using Microsoft.ML.Trainers.LightGbm;
+using Microsoft.ML.Trainers.LightGbm.StaticPipe;
 using Microsoft.ML.StaticPipe;
+using Microsoft.ML;
 
-namespace Microsoft.ML.Samples.Static
+namespace Samples.Static
 {
     public class LightGbmRegressionExample
     {
-        public static void LightGbmRegression()
+        public static void Example()
         {
             // Downloading a regression dataset from github.com/dotnet/machinelearning
             // this will create a housing.txt file in the filsystem.
             // You can open the file to see the data. 
-            string dataFile = SamplesUtils.DatasetUtils.DownloadHousingRegressionDataset();
+            string dataFile = Microsoft.ML.SamplesUtils.DatasetUtils.DownloadHousingRegressionDataset();
 
             // Create a new ML context, for ML.NET operations. It can be used for exception tracking and logging, 
             // as well as the source of randomness.
@@ -28,7 +29,7 @@ namespace Microsoft.ML.Samples.Static
 
             // Load the data, and leave 10% out, so we can use them for testing
             var data = loader.Load(new MultiFileSource(dataFile));
-            var (trainData, testData) = mlContext.Regression.TrainTestSplit(data, testFraction: 0.1);
+            var (trainData, testData) = mlContext.Data.TrainTestSplit(data, testFraction: 0.1);
 
             // The predictor that gets produced out of training
             LightGbmRegressionModelParameters pred = null;

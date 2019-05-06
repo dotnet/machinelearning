@@ -7,10 +7,9 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
-using Microsoft.Data.DataView;
 using Microsoft.ML.Data;
 using Microsoft.ML.Internal.Utilities;
-using Microsoft.ML.Model;
+using Microsoft.ML.Runtime;
 
 namespace Microsoft.ML.Internal.Internallearn
 {
@@ -19,8 +18,8 @@ namespace Microsoft.ML.Internal.Internallearn
     {
         private sealed class FeatureNameCollectionBinding
         {
-            private readonly VectorType _colType;
-            private readonly VectorType _slotNamesType;
+            private readonly VectorDataViewType _colType;
+            private readonly VectorDataViewType _slotNamesType;
 
             private readonly FeatureNameCollection _collection;
 
@@ -31,8 +30,8 @@ namespace Microsoft.ML.Internal.Internallearn
                 Contracts.CheckValue(collection, nameof(collection));
 
                 _collection = collection;
-                _colType = new VectorType(NumberDataViewType.Single, collection.Count);
-                _slotNamesType = new VectorType(TextDataViewType.Instance, collection.Count);
+                _colType = new VectorDataViewType(NumberDataViewType.Single, collection.Count);
+                _slotNamesType = new VectorDataViewType(TextDataViewType.Instance, collection.Count);
 
                 var metadataBuilder = new DataViewSchema.Annotations.Builder();
                 metadataBuilder.Add(AnnotationUtils.Kinds.SlotNames, _slotNamesType,

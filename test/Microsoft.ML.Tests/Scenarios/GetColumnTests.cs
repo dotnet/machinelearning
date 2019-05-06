@@ -7,6 +7,7 @@ using System.Linq;
 using System.Reflection;
 using Microsoft.ML.Data;
 using Microsoft.ML.RunTests;
+using Microsoft.ML.Runtime;
 using Microsoft.ML.StaticPipe;
 using Microsoft.ML.TestFramework;
 using Xunit;

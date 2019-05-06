@@ -6,7 +6,7 @@ using System;
 using Microsoft.ML;
 using Microsoft.ML.Data;
 using Microsoft.ML.EntryPoints;
-using Microsoft.ML.Model;
+using Microsoft.ML.Runtime;
 using Microsoft.ML.Trainers.Ensemble;
 
 [assembly: LoadableClass(typeof(MultiAverage), typeof(MultiAverage.Options), typeof(SignatureCombiner),
@@ -35,7 +35,7 @@ namespace Microsoft.ML.Trainers.Ensemble
         [TlcModule.Component(Name = LoadName, FriendlyName = Average.UserName)]
         public sealed class Options : OptionsBase, ISupportMulticlassOutputCombinerFactory
         {
-            public IMultiClassOutputCombiner CreateComponent(IHostEnvironment env) => new MultiAverage(env, this);
+            public IMulticlassOutputCombiner CreateComponent(IHostEnvironment env) => new MultiAverage(env, this);
         }
 
         public MultiAverage(IHostEnvironment env, Options options)

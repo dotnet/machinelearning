@@ -44,7 +44,7 @@ namespace Microsoft.ML.Tests
         [Fact]
         public void ChangeDetection()
         {
-            var env = new MLContext(conc: 1);
+            var env = new MLContext();
             const int Size = 10;
             var data = new List<Data>(Size);
             var dataView = env.Data.LoadFromEnumerable(data);
@@ -58,7 +58,7 @@ namespace Microsoft.ML.Tests
             var staticData = dataView.AssertStatic(env, c => new { Value = c.R4.Scalar });
             // Build the pipeline
             var staticLearningPipeline = staticData.MakeNewEstimator()
-                .Append(r => r.Value.IidChangePointDetect(80, Size));
+                .Append(r => r.Value.DetectIidChangePoint(80, Size));
             // Train
             var detector = staticLearningPipeline.Fit(staticData);
             // Transform
@@ -84,7 +84,7 @@ namespace Microsoft.ML.Tests
         [Fact]
         public void ChangePointDetectionWithSeasonality()
         {
-            var env = new MLContext(conc: 1);
+            var env = new MLContext();
             const int ChangeHistorySize = 10;
             const int SeasonalitySize = 10;
             const int NumberOfSeasonsInTraining = 5;
@@ -104,7 +104,7 @@ namespace Microsoft.ML.Tests
             var staticData = dataView.AssertStatic(env, c => new { Value = c.R4.Scalar });
             // Build the pipeline
             var staticLearningPipeline = staticData.MakeNewEstimator()
-                .Append(r => r.Value.SsaChangePointDetect(95, ChangeHistorySize, MaxTrainingSize, SeasonalitySize));
+                .Append(r => r.Value.DetectChangePointBySsa(95, ChangeHistorySize, MaxTrainingSize, SeasonalitySize));
             // Train
             var detector = staticLearningPipeline.Fit(staticData);
             // Transform
@@ -131,7 +131,7 @@ namespace Microsoft.ML.Tests
         [Fact]
         public void SpikeDetection()
         {
-            var env = new MLContext(conc: 1);
+            var env = new MLContext();
             const int Size = 10;
             const int PvalHistoryLength = Size / 4;
 
@@ -148,7 +148,7 @@ namespace Microsoft.ML.Tests
             var staticData = dataView.AssertStatic(env, c => new { Value = c.R4.Scalar });
             // Build the pipeline
             var staticLearningPipeline = staticData.MakeNewEstimator()
-                .Append(r => r.Value.IidSpikeDetect(80, PvalHistoryLength));
+                .Append(r => r.Value.DetectIidSpike(80, PvalHistoryLength));
             // Train
             var detector = staticLearningPipeline.Fit(staticData);
             // Transform
@@ -184,7 +184,7 @@ namespace Microsoft.ML.Tests
         [Fact]
         public void SsaSpikeDetection()
         {
-            var env = new MLContext(conc: 1);
+            var env = new MLContext();
             const int Size = 16;
             const int ChangeHistoryLength = Size / 4;
             const int TrainingWindowSize = Size / 2;
@@ -203,7 +203,7 @@ namespace Microsoft.ML.Tests
             var staticData = dataView.AssertStatic(env, c => new { Value = c.R4.Scalar });
             // Build the pipeline
             var staticLearningPipeline = staticData.MakeNewEstimator()
-                .Append(r => r.Value.SsaSpikeDetect(80, ChangeHistoryLength, TrainingWindowSize, SeasonalityWindowSize));
+                .Append(r => r.Value.DetectSpikeBySsa(80, ChangeHistoryLength, TrainingWindowSize, SeasonalityWindowSize));
             // Train
             var detector = staticLearningPipeline.Fit(staticData);
             // Transform

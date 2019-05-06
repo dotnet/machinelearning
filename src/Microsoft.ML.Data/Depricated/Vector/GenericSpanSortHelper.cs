@@ -19,6 +19,7 @@
 ===========================================================*/
 
 using System;
+using Microsoft.ML.Runtime;
 
 namespace Microsoft.ML.Numeric
 {

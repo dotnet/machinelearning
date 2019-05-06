@@ -1,20 +1,20 @@
 ﻿using System;
 using System.Linq;
-using Microsoft.ML.Data;
+using Microsoft.ML;
 using Microsoft.ML.StaticPipe;
 using Microsoft.ML.Trainers.FastTree;
 
-namespace Microsoft.ML.Samples.Static
+namespace Samples.Static
 {
     public class FastTreeRegressionExample
     {
         // This example requires installation of additional nuget package <a href="https://www.nuget.org/packages/Microsoft.ML.FastTree/">Microsoft.ML.FastTree</a>.
-        public static void FastTreeRegression()
+        public static void Example()
         {
             // Downloading a regression dataset from github.com/dotnet/machinelearning
             // this will create a housing.txt file in the filsystem this code will run
             // you can open the file to see the data. 
-            string dataFile = SamplesUtils.DatasetUtils.DownloadHousingRegressionDataset();
+            string dataFile = Microsoft.ML.SamplesUtils.DatasetUtils.DownloadHousingRegressionDataset();
 
             // Create a new ML context, for ML.NET operations. It can be used for exception tracking and logging, 
             // as well as the source of randomness.

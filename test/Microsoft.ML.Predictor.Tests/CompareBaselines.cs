@@ -7,6 +7,7 @@ using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Runtime;
 using Xunit;
 using Xunit.Abstractions;
 

@@ -6,7 +6,7 @@ using System;
 using System.Collections.Generic;
 using Microsoft.ML.EntryPoints;
 
-namespace Microsoft.ML
+namespace Microsoft.ML.Runtime
 {
     /// <summary>
     /// Instances of this class are used to set up a bundle of named delegates. These

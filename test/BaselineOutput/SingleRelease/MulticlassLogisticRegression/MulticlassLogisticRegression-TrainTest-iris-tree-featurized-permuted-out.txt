@@ -3,7 +3,7 @@ Making per-feature arrays
 Changing data from row-wise to column-wise
 Processed 150 instances
 Binning and forming Feature objects
-Reserved memory for tree learner: 20436 bytes
+Reserved memory for tree learner: %Number% bytes
 Starting to train ...
 Not training a calibrator because it is not needed.
 Not adding a normalizer.
@@ -25,14 +25,14 @@ Precision ||1.0000 |0.9423 |0.9792 |
 Accuracy(micro-avg): 0.973333
 Accuracy(macro-avg): 0.973333
 Log-loss:           0.052580
-Log-loss reduction: 95.213998
+Log-loss reduction: 0.952140
 
 OVERALL RESULTS
 ---------------------------------------
 Accuracy(micro-avg): 0.973333 (0.0000)
 Accuracy(macro-avg): 0.973333 (0.0000)
 Log-loss:           0.052580 (0.0000)
-Log-loss reduction: 95.213998 (0.0000)
+Log-loss reduction: 0.952140 (0.0000)
 
 ---------------------------------------
 Physical memory usage(MB): %Number%

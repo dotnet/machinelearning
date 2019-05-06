@@ -6,37 +6,32 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
 using Microsoft.ML.Internal.CpuMath;
 using Microsoft.ML.Internal.Utilities;
-using Microsoft.ML.Model;
+using Microsoft.ML.Runtime;
 using Microsoft.ML.Transforms;
 
-[assembly: LoadableClass(RandomFourierFeaturizingTransformer.Summary, typeof(IDataTransform), typeof(RandomFourierFeaturizingTransformer), typeof(RandomFourierFeaturizingTransformer.Options), typeof(SignatureDataTransform),
+[assembly: LoadableClass(ApproximatedKernelTransformer.Summary, typeof(IDataTransform), typeof(ApproximatedKernelTransformer), typeof(ApproximatedKernelTransformer.Options), typeof(SignatureDataTransform),
     "Random Fourier Features Transform", "RffTransform", "Rff")]
 
-[assembly: LoadableClass(RandomFourierFeaturizingTransformer.Summary, typeof(IDataTransform), typeof(RandomFourierFeaturizingTransformer), null, typeof(SignatureLoadDataTransform),
-    "Random Fourier Features Transform", RandomFourierFeaturizingTransformer.LoaderSignature)]
+[assembly: LoadableClass(ApproximatedKernelTransformer.Summary, typeof(IDataTransform), typeof(ApproximatedKernelTransformer), null, typeof(SignatureLoadDataTransform),
+    "Random Fourier Features Transform", ApproximatedKernelTransformer.LoaderSignature)]
 
-[assembly: LoadableClass(RandomFourierFeaturizingTransformer.Summary, typeof(RandomFourierFeaturizingTransformer), null, typeof(SignatureLoadModel),
-    "Random Fourier Features Transform", RandomFourierFeaturizingTransformer.LoaderSignature)]
+[assembly: LoadableClass(ApproximatedKernelTransformer.Summary, typeof(ApproximatedKernelTransformer), null, typeof(SignatureLoadModel),
+    "Random Fourier Features Transform", ApproximatedKernelTransformer.LoaderSignature)]
 
-[assembly: LoadableClass(typeof(IRowMapper), typeof(RandomFourierFeaturizingTransformer), null, typeof(SignatureLoadRowMapper),
-    "Random Fourier Features Transform", RandomFourierFeaturizingTransformer.LoaderSignature)]
+[assembly: LoadableClass(typeof(IRowMapper), typeof(ApproximatedKernelTransformer), null, typeof(SignatureLoadRowMapper),
+    "Random Fourier Features Transform", ApproximatedKernelTransformer.LoaderSignature)]
 
 namespace Microsoft.ML.Transforms
 {
     /// <summary>
-    /// Maps vector columns to a feature space where the inner products approximate a user specified shift-invariant kernel.
-    /// The kernel is indicated by specifying a <see cref="KernelBase"/> instance. The available implementations
-    /// are <see cref="GaussianKernel"/> and <see cref="LaplacianKernel"/>.
-    /// This transformation is based on this paper by
-    /// <a href="http://pages.cs.wisc.edu/~brecht/papers/07.rah.rec.nips.pdf">Rahimi and Recht</a>.
+    /// <see cref="ITransformer"/> resulting from fitting an <see cref="ApproximatedKernelMappingEstimator"/>.
     /// </summary>
-    public sealed class RandomFourierFeaturizingTransformer : OneToOneTransformerBase
+    public sealed class ApproximatedKernelTransformer : OneToOneTransformerBase
     {
         internal sealed class Options
         {
@@ -44,13 +39,13 @@ namespace Microsoft.ML.Transforms
             public Column[] Columns;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "The number of random Fourier features to create", ShortName = "dim")]
-            public int NewDim = RandomFourierFeaturizingEstimator.Defaults.NewDim;
+            public int NewDim = ApproximatedKernelMappingEstimator.Defaults.Rank;
 
             [Argument(ArgumentType.Multiple, HelpText = "Which kernel to use?", ShortName = "kernel", SignatureType = typeof(SignatureKernelBase))]
             public IComponentFactory<KernelBase> MatrixGenerator = new GaussianKernel.Options();
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Create two features for every random Fourier frequency? (one for cos and one for sin)")]
-            public bool UseSin = RandomFourierFeaturizingEstimator.Defaults.UseSin;
+            public bool UseSin = ApproximatedKernelMappingEstimator.Defaults.UseCosAndSinBases;
 
             [Argument(ArgumentType.LastOccurenceWins,
                 HelpText = "The seed of the random number generator for generating the new features (if unspecified, " +
@@ -109,14 +104,14 @@ namespace Microsoft.ML.Transforms
             private readonly TauswortheHybrid _rand;
             private readonly TauswortheHybrid.State _state;
 
-            public TransformInfo(IHost host, RandomFourierFeaturizingEstimator.ColumnOptions column, int d, float avgDist)
+            public TransformInfo(IHost host, ApproximatedKernelMappingEstimator.ColumnOptions column, int d, float avgDist)
             {
                 Contracts.AssertValue(host);
 
                 SrcDim = d;
-                NewDim = column.NewDim;
-                host.CheckUserArg(NewDim > 0, nameof(column.NewDim));
-                _useSin = column.UseSin;
+                NewDim = column.Rank;
+                host.CheckUserArg(NewDim > 0, nameof(column.Rank));
+                _useSin = column.UseCosAndSinBases;
                 var seed = column.Seed;
                 _rand = seed.HasValue ? RandomUtils.Create(seed) : RandomUtils.Create(host.Rand);
                 _state = _rand.GetState();
@@ -224,7 +219,7 @@ namespace Microsoft.ML.Transforms
                 verReadableCur: 0x00010002,
                 verWeCanReadBack: 0x00010001,
                 loaderSignature: LoaderSignature,
-                loaderAssemblyName: typeof(RandomFourierFeaturizingTransformer).Assembly.FullName);
+                loaderAssemblyName: typeof(ApproximatedKernelTransformer).Assembly.FullName);
         }
 
         private readonly TransformInfo[] _transformInfos;
@@ -233,12 +228,12 @@ namespace Microsoft.ML.Transforms
 
         private static string TestColumnType(DataViewType type)
         {
-            if (type is VectorType vectorType && vectorType.IsKnownSize && vectorType.ItemType == NumberDataViewType.Single)
+            if (type is VectorDataViewType vectorType && vectorType.IsKnownSize && vectorType.ItemType == NumberDataViewType.Single)
                 return null;
-            return "Expected vector of floats with known size";
+            return "Expected known-size vector of Single";
         }
 
-        private static (string outputColumnName, string inputColumnName)[] GetColumnPairs(RandomFourierFeaturizingEstimator.ColumnOptions[] columns)
+        private static (string outputColumnName, string inputColumnName)[] GetColumnPairs(ApproximatedKernelMappingEstimator.ColumnOptions[] columns)
         {
             Contracts.CheckValue(columns, nameof(columns));
             return columns.Select(x => (x.Name, x.InputColumnName)).ToArray();
@@ -252,11 +247,11 @@ namespace Microsoft.ML.Transforms
                 throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", ColumnPairs[col].inputColumnName, reason, type.ToString());
             if (_transformInfos[col].SrcDim != type.GetVectorSize())
                 throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", ColumnPairs[col].inputColumnName,
-                    new VectorType(NumberDataViewType.Single, _transformInfos[col].SrcDim).ToString(), type.ToString());
+                    new VectorDataViewType(NumberDataViewType.Single, _transformInfos[col].SrcDim).ToString(), type.ToString());
         }
 
-        internal RandomFourierFeaturizingTransformer(IHostEnvironment env, IDataView input, RandomFourierFeaturizingEstimator.ColumnOptions[] columns)
-            : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(RandomFourierFeaturizingTransformer)), GetColumnPairs(columns))
+        internal ApproximatedKernelTransformer(IHostEnvironment env, IDataView input, ApproximatedKernelMappingEstimator.ColumnOptions[] columns)
+            : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(ApproximatedKernelTransformer)), GetColumnPairs(columns))
         {
             var avgDistances = GetAvgDistances(columns, input);
             _transformInfos = new TransformInfo[columns.Length];
@@ -281,7 +276,7 @@ namespace Microsoft.ML.Transforms
             return cblob * cfltAlign;
         }
 
-        private float[] GetAvgDistances(RandomFourierFeaturizingEstimator.ColumnOptions[] columns, IDataView input)
+        private float[] GetAvgDistances(ApproximatedKernelMappingEstimator.ColumnOptions[] columns, IDataView input)
         {
             var avgDistances = new float[columns.Length];
             const int reservoirSize = 5000;
@@ -305,14 +300,14 @@ namespace Microsoft.ML.Transforms
                 {
                     var rng = columns[i].Seed.HasValue ? RandomUtils.Create(columns[i].Seed.Value) : Host.Rand;
                     var srcType = input.Schema[srcCols[i]].Type;
-                    if (srcType is VectorType)
+                    if (srcType is VectorDataViewType)
                     {
-                        var get = cursor.GetGetter<VBuffer<float>>(srcCols[i]);
+                        var get = cursor.GetGetter<VBuffer<float>>(cursor.Schema[srcCols[i]]);
                         reservoirSamplers[i] = new ReservoirSamplerWithReplacement<VBuffer<float>>(rng, reservoirSize, get);
                     }
                     else
                     {
-                        var getOne = cursor.GetGetter<float>(srcCols[i]);
+                        var getOne = cursor.GetGetter<float>(cursor.Schema[srcCols[i]]);
                         float val = 0;
                         ValueGetter<VBuffer<float>> get =
                             (ref VBuffer<float> dst) =>
@@ -395,7 +390,7 @@ namespace Microsoft.ML.Transforms
         private static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, DataViewSchema inputSchema)
             => Create(env, ctx).MakeRowMapper(inputSchema);
 
-        private RandomFourierFeaturizingTransformer(IHost host, ModelLoadContext ctx)
+        private ApproximatedKernelTransformer(IHost host, ModelLoadContext ctx)
          : base(host, ctx)
         {
             // *** Binary format ***
@@ -420,14 +415,14 @@ namespace Microsoft.ML.Transforms
             env.CheckValue(input, nameof(input));
 
             env.CheckValue(options.Columns, nameof(options.Columns));
-            var cols = new RandomFourierFeaturizingEstimator.ColumnOptions[options.Columns.Length];
+            var cols = new ApproximatedKernelMappingEstimator.ColumnOptions[options.Columns.Length];
             using (var ch = env.Start("ValidateArgs"))
             {
 
                 for (int i = 0; i < cols.Length; i++)
                 {
                     var item = options.Columns[i];
-                    cols[i] = new RandomFourierFeaturizingEstimator.ColumnOptions(
+                    cols[i] = new ApproximatedKernelMappingEstimator.ColumnOptions(
                         item.Name,
                         item.NewDim ?? options.NewDim,
                         item.UseSin ?? options.UseSin,
@@ -436,14 +431,14 @@ namespace Microsoft.ML.Transforms
                         item.Seed ?? options.Seed);
                 };
             }
-            return new RandomFourierFeaturizingTransformer(env, input, cols).MakeDataTransform(input);
+            return new ApproximatedKernelTransformer(env, input, cols).MakeDataTransform(input);
         }
 
         // Factory method for SignatureLoadModel.
-        private static RandomFourierFeaturizingTransformer Create(IHostEnvironment env, ModelLoadContext ctx)
+        private static ApproximatedKernelTransformer Create(IHostEnvironment env, ModelLoadContext ctx)
         {
             Contracts.CheckValue(env, nameof(env));
-            var host = env.Register(nameof(RandomFourierFeaturizingTransformer));
+            var host = env.Register(nameof(ApproximatedKernelTransformer));
 
             host.CheckValue(ctx, nameof(ctx));
             ctx.CheckAtModel(GetVersionInfo());
@@ -452,7 +447,7 @@ namespace Microsoft.ML.Transforms
                 int cbFloat = ctx.Reader.ReadInt32();
                 env.CheckDecode(cbFloat == sizeof(float));
             }
-            return new RandomFourierFeaturizingTransformer(host, ctx);
+            return new ApproximatedKernelTransformer(host, ctx);
         }
 
         private protected override void SaveModel(ModelSaveContext ctx)
@@ -476,9 +471,9 @@ namespace Microsoft.ML.Transforms
             private readonly DataViewType[] _srcTypes;
             private readonly int[] _srcCols;
             private readonly DataViewType[] _types;
-            private readonly RandomFourierFeaturizingTransformer _parent;
+            private readonly ApproximatedKernelTransformer _parent;
 
-            public Mapper(RandomFourierFeaturizingTransformer parent, DataViewSchema inputSchema)
+            public Mapper(ApproximatedKernelTransformer parent, DataViewSchema inputSchema)
                : base(parent.Host.Register(nameof(Mapper)), parent, inputSchema)
             {
                 _parent = parent;
@@ -491,7 +486,7 @@ namespace Microsoft.ML.Transforms
                     var srcCol = inputSchema[_srcCols[i]];
                     _srcTypes[i] = srcCol.Type;
                     //validate typeSrc.ValueCount and transformInfo.SrcDim
-                    _types[i] = new VectorType(NumberDataViewType.Single, _parent._transformInfos[i].RotationTerms == null ?
+                    _types[i] = new VectorDataViewType(NumberDataViewType.Single, _parent._transformInfos[i].RotationTerms == null ?
                     _parent._transformInfos[i].NewDim * 2 : _parent._transformInfos[i].NewDim);
                 }
             }
@@ -509,14 +504,14 @@ namespace Microsoft.ML.Transforms
                 Contracts.AssertValue(input);
                 Contracts.Assert(0 <= iinfo && iinfo < _parent.ColumnPairs.Length);
                 disposer = null;
-                if (_srcTypes[iinfo] is VectorType)
+                if (_srcTypes[iinfo] is VectorDataViewType)
                     return GetterFromVectorType(input, iinfo);
                 return GetterFromFloatType(input, iinfo);
             }
 
             private ValueGetter<VBuffer<float>> GetterFromVectorType(DataViewRow input, int iinfo)
             {
-                var getSrc = input.GetGetter<VBuffer<float>>(_srcCols[iinfo]);
+                var getSrc = input.GetGetter<VBuffer<float>>(input.Schema[_srcCols[iinfo]]);
                 var src = default(VBuffer<float>);
 
                 var featuresAligned = new AlignedArray(RoundUp(_srcTypes[iinfo].GetValueCount(), _cfltAlign), CpuMathUtils.GetVectorAlignment());
@@ -533,7 +528,7 @@ namespace Microsoft.ML.Transforms
 
             private ValueGetter<VBuffer<float>> GetterFromFloatType(DataViewRow input, int iinfo)
             {
-                var getSrc = input.GetGetter<float>(_srcCols[iinfo]);
+                var getSrc = input.GetGetter<float>(input.Schema[_srcCols[iinfo]]);
                 var src = default(float);
 
                 var featuresAligned = new AlignedArray(RoundUp(1, _cfltAlign), CpuMathUtils.GetVectorAlignment());
@@ -606,19 +601,43 @@ namespace Microsoft.ML.Transforms
     /// <summary>
     /// Maps vector columns to a low -dimensional feature space.
     /// </summary>
-    public sealed class RandomFourierFeaturizingEstimator : IEstimator<RandomFourierFeaturizingTransformer>
+    /// <remarks>
+    /// <format type="text/markdown"><![CDATA[
+    ///
+    /// ###  Estimator Characteristics
+    /// |  |  |
+    /// | -- | -- |
+    /// | Does this estimator need to look at the data to train its parameters? | Yes |
+    /// | Input column data type | Known-sized vector of <xref:System.Single> |
+    /// | Output column data type | Known-sized vector of <xref:System.Single> |
+    ///
+    /// The resulting <xref:Microsoft.ML.Transforms.ApproximatedKernelTransformer> creates a new column, named as specified in
+    /// the output column name parameters, where each input vector is mapped to a feature space where inner products
+    /// approximate one of two shift-invariant kernel functions: The Gaussian kernel, or the Laplacian kernel.
+    /// By mapping features to a space that approximate non-linear kernels, linear methods can be used to approximate
+    /// more complex kernel SVM models.
+    /// This mapping is based on the paper [Random Features for Large-Scale Kernel Machines](http://pages.cs.wisc.edu/~brecht/papers/07.rah.rec.nips.pdf)
+    /// by Rahimi and Recht.
+    ///
+    /// Check the See Also section for links to usage examples.
+    /// ]]></format>
+    /// </remarks>
+    /// <seealso cref="KernelExpansionCatalog.ApproximatedKernelMap(TransformsCatalog, ColumnOptions[])"/>
+    /// <seealso cref="KernelExpansionCatalog.ApproximatedKernelMap(TransformsCatalog, string, string, int, bool, KernelBase, int?)"/>
+    public sealed class ApproximatedKernelMappingEstimator : IEstimator<ApproximatedKernelTransformer>
     {
         [BestFriend]
         internal static class Defaults
         {
-            public const int NewDim = 1000;
-            public const bool UseSin = false;
+            public const int Rank = 1000;
+            public const bool UseCosAndSinBases = false;
         }
 
         /// <summary>
         /// Describes how the transformer handles one Gcn column pair.
         /// </summary>
-        public sealed class ColumnOptions
+        [BestFriend]
+        internal sealed class ColumnOptions
         {
             /// <summary>
             /// Name of the column resulting from the transformation of <see cref="InputColumnName"/>.
@@ -635,11 +654,12 @@ namespace Microsoft.ML.Transforms
             /// <summary>
             /// The number of random Fourier features to create.
             /// </summary>
-            public readonly int NewDim;
+            public readonly int Rank;
             /// <summary>
-            /// Create two features for every random Fourier frequency? (one for cos and one for sin).
+            /// If <see langword="true"/>, use both of cos and sin basis functions to create two features for every random Fourier frequency.
+            /// Otherwise, only cos bases would be used.
             /// </summary>
-            public readonly bool UseSin;
+            public readonly bool UseCosAndSinBases;
             /// <summary>
             /// The seed of the random number generator for generating the new features (if unspecified, the global random is used).
             /// </summary>
@@ -649,19 +669,20 @@ namespace Microsoft.ML.Transforms
             /// Describes how the transformer handles one column pair.
             /// </summary>
             /// <param name="name">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.</param>
-            /// <param name="newDim">The number of random Fourier features to create.</param>
-            /// <param name="useSin">Create two features for every random Fourier frequency? (one for cos and one for sin).</param>
+            /// <param name="rank">The number of random Fourier features to create.</param>
+            /// <param name="useCosAndSinBases">If <see langword="true"/>, use both of cos and sin basis functions to create two features for
+            /// every random Fourier frequency. Otherwise, only cos bases would be used.</param>
             /// <param name="inputColumnName">Name of column to transform. </param>
             /// <param name="generator">Which fourier generator to use.</param>
             /// <param name="seed">The seed of the random number generator for generating the new features (if unspecified, the global random is used).</param>
-            public ColumnOptions(string name, int newDim, bool useSin, string inputColumnName = null, KernelBase generator = null, int? seed = null)
+            public ColumnOptions(string name, int rank, bool useCosAndSinBases, string inputColumnName = null, KernelBase generator = null, int? seed = null)
             {
-                Contracts.CheckUserArg(newDim > 0, nameof(newDim), "must be positive.");
+                Contracts.CheckUserArg(rank > 0, nameof(rank), "must be positive.");
                 InputColumnName = inputColumnName ?? name;
                 Name = name;
                 Generator = generator ?? new GaussianKernel();
-                NewDim = newDim;
-                UseSin = useSin;
+                Rank = rank;
+                UseCosAndSinBases = useCosAndSinBases;
                 Seed = seed;
             }
         }
@@ -675,24 +696,24 @@ namespace Microsoft.ML.Transforms
         /// <param name="env">Host Environment.</param>
         /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.</param>
         /// <param name="inputColumnName">Name of the column to transform. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.</param>
-        /// <param name="newDim">The number of random Fourier features to create.</param>
-        /// <param name="useSin">Create two features for every random Fourier frequency? (one for cos and one for sin).</param>
-        internal RandomFourierFeaturizingEstimator(IHostEnvironment env, string outputColumnName, string inputColumnName = null, int newDim = Defaults.NewDim, bool useSin = Defaults.UseSin)
-            : this(env, new ColumnOptions(outputColumnName, newDim, useSin, inputColumnName ?? outputColumnName))
+        /// <param name="rank">The number of random Fourier features to create.</param>
+        /// <param name="useCosAndSinBases">Create two features for every random Fourier frequency? (one for cos and one for sin).</param>
+        internal ApproximatedKernelMappingEstimator(IHostEnvironment env, string outputColumnName, string inputColumnName = null, int rank = Defaults.Rank, bool useCosAndSinBases = Defaults.UseCosAndSinBases)
+            : this(env, new ColumnOptions(outputColumnName, rank, useCosAndSinBases, inputColumnName ?? outputColumnName))
         {
         }
 
-        internal RandomFourierFeaturizingEstimator(IHostEnvironment env, params ColumnOptions[] columns)
+        internal ApproximatedKernelMappingEstimator(IHostEnvironment env, params ColumnOptions[] columns)
         {
             Contracts.CheckValue(env, nameof(env));
-            _host = env.Register(nameof(RandomFourierFeaturizingEstimator));
+            _host = env.Register(nameof(ApproximatedKernelMappingEstimator));
             _columns = columns;
         }
 
         /// <summary>
-        /// Trains and returns a <see cref="RandomFourierFeaturizingTransformer"/>.
+        /// Trains and returns a <see cref="ApproximatedKernelTransformer"/>.
         /// </summary>
-        public RandomFourierFeaturizingTransformer Fit(IDataView input) => new RandomFourierFeaturizingTransformer(_host, input, _columns);
+        public ApproximatedKernelTransformer Fit(IDataView input) => new ApproximatedKernelTransformer(_host, input, _columns);
 
         /// <summary>
         /// Returns the <see cref="SchemaShape"/> of the schema which will be produced by the transformer.

@@ -2,63 +2,122 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Linq;
 using Microsoft.ML.Data;
+using Microsoft.ML.Runtime;
 using Microsoft.ML.Transforms;
 
 namespace Microsoft.ML
 {
+    /// <summary>
+    /// Collection of extension methods for <see cref="TransformsCatalog"/> to create instances of
+    /// missing value transformer components.
+    /// </summary>
     public static class ExtensionsCatalog
     {
         /// <summary>
-        /// Creates a new output column, of boolean type, with the same number of slots as the input column. The value in the output column
-        /// is true if the value in the input column is missing.
+        /// Create a <see cref="MissingValueIndicatorEstimator"/>, which scans the data from the column specified in <paramref name="inputColumnName"/>
+        /// and fills new column specified in <paramref name="outputColumnName"/> with vector of bools where i-th bool has value of <see langword="true"/>
+        /// if i-th element in column data has missing value and <see langword="false"/> otherwise.
         /// </summary>
-        /// <param name="catalog">The transform extensions' catalog.</param>
-        /// <param name="columns">The names of the input columns of the transformation and the corresponding names for the output columns.</param>
-        public static MissingValueIndicatorEstimator IndicateMissingValues(this TransformsCatalog catalog,
-            params ColumnOptions[] columns)
-            => new MissingValueIndicatorEstimator(CatalogUtils.GetEnvironment(catalog), ColumnOptions.ConvertToValueTuples(columns));
-
-        /// <summary>
-        /// Creates a new output column, or replaces the source with a new column
-        /// (depending on whether the <paramref name="inputColumnName"/> is given a value, or left to null)
-        /// of boolean type, with the same number of slots as the input column. The value in the output column
-        /// is true if the value in the input column is missing.
-        /// </summary>
-        /// <param name="catalog">The transform extensions' catalog.</param>
-        /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.</param>
-        /// <param name="inputColumnName">Name of column to transform. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.
-        /// If left to <value>null</value> the <paramref name="inputColumnName"/> will get replaced.</param>
+        /// <param name="catalog">The transform's catalog.</param>
+        /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.
+        /// This column's data type will be a vector of <see cref="System.Boolean"/>.</param>
+        /// <param name="inputColumnName">Name of the column to copy the data from.
+        /// This estimator operates over scalar or vector of <see cref="System.Single"/> or <see cref="System.Double"/>.</param>
+        /// <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        ///  [!code-csharp[MissingValueIndicator](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/IndicateMissingValues.cs)]
+        /// ]]></format>
+        /// </example>
         public static MissingValueIndicatorEstimator IndicateMissingValues(this TransformsCatalog catalog,
             string outputColumnName,
             string inputColumnName = null)
             => new MissingValueIndicatorEstimator(CatalogUtils.GetEnvironment(catalog), outputColumnName, inputColumnName);
 
         /// <summary>
-        /// Creates a new output column, or replaces the source with a new column
-        /// (depending on whether the <paramref name="outputColumnName"/> is given a value, or left to null)
-        /// identical to the input column for everything but the missing values. The missing values of the input column, in this new column are replaced with
-        /// one of the values specifid in the <paramref name="replacementKind"/>. The default for the <paramref name="replacementKind"/> is
-        /// <see cref="MissingValueReplacingEstimator.ColumnOptions.ReplacementMode.DefaultValue"/>.
+        /// Create a <see cref="MissingValueIndicatorEstimator"/>, which copies the data from the column specified in <see cref="InputOutputColumnPair.InputColumnName" />
+        /// to a new column: <see cref="InputOutputColumnPair.OutputColumnName" />.
         /// </summary>
-        /// <param name="catalog">The transform extensions' catalog.</param>
-        /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.</param>
-        /// <param name="inputColumnName">Name of column to transform. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.
-        /// If not provided, the <paramref name="inputColumnName"/> will be replaced with the results of the transforms.</param>
-        /// <param name="replacementKind">The type of replacement to use as specified in <see cref="MissingValueReplacingEstimator.ColumnOptions.ReplacementMode"/></param>
+        /// <remarks>This transform can operate over several columns.</remarks>
+        /// <param name="catalog">The transform's catalog.</param>
+        /// <param name="columns">The pairs of input and output columns. This estimator operates over data which is either scalar or vector of <see cref="System.Single"/> or <see cref="System.Double"/>.</param>
+        /// <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        ///  [!code-csharp[MissingValueIndicator](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/IndicateMissingValuesMultiColumn.cs)]
+        /// ]]></format>
+        /// </example>
+        public static MissingValueIndicatorEstimator IndicateMissingValues(this TransformsCatalog catalog, InputOutputColumnPair[] columns)
+        {
+            var env = CatalogUtils.GetEnvironment(catalog);
+            env.CheckValue(columns, nameof(columns));
+            return new MissingValueIndicatorEstimator(env, columns.Select(x => (x.OutputColumnName, x.InputColumnName)).ToArray());
+        }
+
+        /// <summary>
+        /// Create a <see cref="MissingValueReplacingEstimator"/>, which copies the data from the column specified in <paramref name="inputColumnName"/>
+        /// to a new column: <paramref name="outputColumnName"/> and replaces missing values in it according to <paramref name="replacementMode"/>.
+        /// </summary>
+        /// <param name="catalog">The transform's catalog.</param>
+        /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.
+        /// This column's data type will be the same as that of the input column.</param>
+        /// <param name="inputColumnName">Name of the column to copy the data from.
+        /// This estimator operates over scalar or vector of <see cref="System.Single"/> or <see cref="System.Double"/>.</param>
+        /// <param name="replacementMode">The type of replacement to use as specified in <see cref="MissingValueReplacingEstimator.ReplacementMode"/></param>
+        /// <param name="imputeBySlot">If true, per-slot imputation of replacement is performed.
+        /// Otherwise, replacement value is imputed for the entire vector column. This setting is ignored for scalars and variable vectors,
+        /// where imputation is always for the entire column.</param>
+        /// <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        ///  [!code-csharp[MissingValuesReplace](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/ReplaceMissingValues.cs)]
+        /// ]]></format>
+        /// </example>
         public static MissingValueReplacingEstimator ReplaceMissingValues(this TransformsCatalog catalog,
             string outputColumnName,
             string inputColumnName = null,
-            MissingValueReplacingEstimator.ColumnOptions.ReplacementMode replacementKind = MissingValueReplacingEstimator.Defaults.ReplacementMode)
-        => new MissingValueReplacingEstimator(CatalogUtils.GetEnvironment(catalog), outputColumnName, inputColumnName, replacementKind);
+            MissingValueReplacingEstimator.ReplacementMode replacementMode = MissingValueReplacingEstimator.Defaults.Mode,
+            bool imputeBySlot = MissingValueReplacingEstimator.Defaults.ImputeBySlot)
+        => new MissingValueReplacingEstimator(CatalogUtils.GetEnvironment(catalog), new[] { new MissingValueReplacingEstimator.ColumnOptions(outputColumnName, inputColumnName, replacementMode, imputeBySlot) });
+
+        /// <summary>
+        /// Create a <see cref="ColumnCopyingEstimator"/>, which copies the data from the column specified in <see cref="InputOutputColumnPair.InputColumnName" />
+        /// to a new column: <see cref="InputOutputColumnPair.OutputColumnName" /> and replaces missing values in it according to <paramref name="replacementMode"/>.
+        /// </summary>
+        /// <remarks>This transform can operate over several columns.</remarks>
+        /// <param name="catalog">The transform's catalog.</param>
+        /// <param name="columns">The pairs of input and output columns. This estimator operates over scalar or vector of floats or doubles.</param>
+        /// <param name="replacementMode">The type of replacement to use as specified in <see cref="MissingValueReplacingEstimator.ReplacementMode"/></param>
+        /// <param name="imputeBySlot">If <see langword="true"/>, per-slot imputation of replacement is performed.
+        /// Otherwise, replacement value is imputed for the entire vector column. This setting is ignored for scalars and variable vectors,
+        /// where imputation is always for the entire column.</param>
+        /// <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        ///  [!code-csharp[MissingValuesReplace](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/ReplaceMissingValuesMultiColumn.cs)]
+        /// ]]></format>
+        /// </example>
+        public static MissingValueReplacingEstimator ReplaceMissingValues(this TransformsCatalog catalog,
+            InputOutputColumnPair[] columns,
+            MissingValueReplacingEstimator.ReplacementMode replacementMode = MissingValueReplacingEstimator.Defaults.Mode,
+            bool imputeBySlot = MissingValueReplacingEstimator.Defaults.ImputeBySlot)
+        {
+            var env = CatalogUtils.GetEnvironment(catalog);
+            env.CheckValue(columns, nameof(columns));
+            var columnOptions = columns.Select(x => new MissingValueReplacingEstimator.ColumnOptions(x.OutputColumnName, x.InputColumnName, replacementMode, imputeBySlot)).ToArray();
+            return new MissingValueReplacingEstimator(env, columnOptions);
+        }
 
         /// <summary>
         /// Creates a new output column, identical to the input column for everything but the missing values.
-        /// The missing values of the input column, in this new column are replaced with <see cref="MissingValueReplacingEstimator.ColumnOptions.ReplacementMode.DefaultValue"/>.
+        /// The missing values of the input column, in this new column are replaced with <see cref="MissingValueReplacingEstimator.ReplacementMode.DefaultValue"/>.
         /// </summary>
         /// <param name="catalog">The transform extensions' catalog.</param>
         /// <param name="columns">The name of the columns to use, and per-column transformation configuraiton.</param>
-        public static MissingValueReplacingEstimator ReplaceMissingValues(this TransformsCatalog catalog, params MissingValueReplacingEstimator.ColumnOptions[] columns)
+        [BestFriend]
+        internal static MissingValueReplacingEstimator ReplaceMissingValues(this TransformsCatalog catalog, params MissingValueReplacingEstimator.ColumnOptions[] columns)
             => new MissingValueReplacingEstimator(CatalogUtils.GetEnvironment(catalog), columns);
     }
 }

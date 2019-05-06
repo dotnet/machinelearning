@@ -1,0 +1,34 @@
+﻿<#@ include file="TreeSamplesTemplate.ttinclude"#>
+<#+
+string ClassName="FastForest";
+string Trainer = "FastForest";
+string TrainerOptions = null;
+bool IsCalibrated = false;
+bool CacheData = false;
+
+string ExpectedOutputPerInstance= @"// Expected output:
+            //   Label: True, Prediction: True
+            //   Label: False, Prediction: False
+            //   Label: True, Prediction: True
+            //   Label: True, Prediction: True
+            //   Label: False, Prediction: False";
+
+string ExpectedOutput = @"// Expected output:
+            //   Accuracy: 0.74
+            //   AUC: 0.83
+            //   F1 Score: 0.74
+            //   Negative Precision: 0.78
+            //   Negative Recall: 0.71
+            //   Positive Precision: 0.71
+            //   Positive Recall: 0.78
+            //
+            //   TEST POSITIVE RATIO:    0.4760 (238.0/(238.0+262.0))
+            //   Confusion table
+            //             ||======================
+            //   PREDICTED || positive | negative | Recall
+            //   TRUTH     ||======================
+            //    positive ||       34 |      204 | 0.1429
+            //    negative ||       21 |      241 | 0.9198
+            //             ||======================
+            //   Precision ||   0.6182 |   0.5416 |";
+#>

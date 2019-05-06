@@ -6,6 +6,8 @@
 #include <fstream>
 #include <iostream>
 #include <vector>
+#include <stdexcept>
+#include <limits>
 #include "utils.hpp"
 #include <stdlib.h>
 #include "model_block.h"
@@ -13,6 +15,8 @@
 
 namespace lda
 {
+    using namespace std;
+
     int64_t upper_bound(int64_t x)
     {
         if (x == 0)
@@ -92,14 +96,21 @@ namespace lda
         dict_ = new WordEntry[num_vocabs_];
         for (int i = 0; i < num_vocabs_; ++i)
         {
-            // This warning is a false positive. Supressing it similar to the existing one on Line 140 below.
-#pragma warning(suppress: 6386)
             dict_[i].is_dense_ = 0;
             dict_[i].is_alias_dense_ = 0;
         }
 
-        mem_block_size_ = 2 * upper_bound(load_factor_ * nonzero_num);
-        alias_mem_block_size_ = nonzero_num * 3; 
+        uint64_t size = 2 * upper_bound(load_factor_ * nonzero_num);
+        if (nonzero_num < 0 || size > numeric_limits<size_t>::max())
+            throw bad_alloc();
+
+        mem_block_size_ = static_cast<size_t>(size);
+
+        size = nonzero_num * 3;
+        if (static_cast<uint64_t>(nonzero_num) > numeric_limits<size_t>::max() / 3)
+            throw bad_alloc();
+
+        alias_mem_block_size_ = static_cast<size_t>(size);
 
         mem_block_ = new int32_t[mem_block_size_]();                // NOTE: force to initialize the values to be zero
         alias_mem_block_ = new int32_t[alias_mem_block_size_]();    // NOTE: force to initialize the values to be zero
@@ -113,20 +124,22 @@ namespace lda
         dict_ = new WordEntry[num_vocabs_];
         for (int i = 0; i < num_vocabs_; ++i)
         {
-            // This warning is a false positive. Supressing it similar to the existing one on Line 140 below.
-#pragma warning(suppress: 6386)
             dict_[i].is_dense_ = 0;
             dict_[i].is_alias_dense_ = 0;
         }
 
-        mem_block_size_ = mem_block_size;
+        if (mem_block_size < 0 || static_cast<uint64_t>(mem_block_size) > numeric_limits<size_t>::max())
+            throw bad_alloc();
+        mem_block_size_ = static_cast<size_t>(mem_block_size);
         mem_block_ = new int32_t[mem_block_size_]();   // NOTE : force to initialize the values to be zero
 
-        alias_mem_block_size_ = alias_mem_block_size;
+        if (mem_block_size < 0 || static_cast<uint64_t>(alias_mem_block_size) > numeric_limits<size_t>::max())
+            throw bad_alloc();
+        alias_mem_block_size_ = static_cast<size_t>(alias_mem_block_size);
         alias_mem_block_ = new int32_t[alias_mem_block_size_]();    //NOTE: force to initialize the values to be zero
 
-        std::cout << "mem_block_size = " << mem_block_size_ * 4 << std::endl;
-        std::cout << "alias_mem_block_size = " << alias_mem_block_size_ * 4 << std::endl;
+        cout << "mem_block_size = " << sizeof(mem_block_size_) << endl;
+        cout << "alias_mem_block_size = " << sizeof(alias_mem_block_size_)<< endl;
 
         offset_ = 0;
         alias_offset_ = 0;
@@ -157,7 +170,7 @@ namespace lda
         if (fullSparse)
         {
             // use a very large threshold to ensure every row of word-topic-table using a sparse representation
-            hot_thresh = std::numeric_limits<int>::max();
+            hot_thresh = numeric_limits<int32_t>::max();
         }
         else
         {
@@ -167,7 +180,7 @@ namespace lda
         if (fullSparse)
         {
             // use a very large threshold to ensure every row of alias table using a sparse representation
-            alias_hot_thresh = std::numeric_limits<int>::max();
+            alias_hot_thresh = numeric_limits<int32_t>::max();
         }
         else
         {
@@ -234,13 +247,13 @@ namespace lda
     // in other times, we use hybrid structure (in training phase), fullSparse == false
     void LDAModelBlock::InitModelBlockByTFS(bool fullSparse)
     {
-        const int32_t max_tf_thresh = std::numeric_limits<int32_t>::max();
+        const int32_t max_tf_thresh = numeric_limits<int32_t>::max();
         int32_t hot_thresh;
         if (fullSparse)
         {
             // totally sparse
             // use a very large threshold to ensure every row of word-topic-table using a sparse representation
-            hot_thresh = std::numeric_limits<int>::max();
+            hot_thresh = numeric_limits<int32_t>::max();
         }
         else
         {
@@ -251,7 +264,7 @@ namespace lda
         if (fullSparse)
         {
             // use a very large threshold to ensure every row of alias table using a sparse representation
-            alias_hot_thresh = std::numeric_limits<int>::max();
+            alias_hot_thresh = numeric_limits<int32_t>::max();
         }
         else
         {
@@ -324,14 +337,20 @@ namespace lda
             alias_offset += alias_row_size;
         }
 
-        mem_block_size_ = dict_[num_vocabs_ - 1].end_offset_;
+        uint64_t size = dict_[num_vocabs_ - 1].end_offset_;
+        if (size > numeric_limits<size_t>::max())
+            throw bad_alloc();
+        mem_block_size_ = static_cast<size_t>(size);
         mem_block_ = new int32_t[mem_block_size_]();                // NOTE: force to initialize the values to be zero
 
-        alias_mem_block_size_ = dict_[num_vocabs_ - 1].alias_end_offset_;
+        size = dict_[num_vocabs_ - 1].alias_end_offset_;
+        if (size > numeric_limits<size_t>::max())
+            throw bad_alloc();
+        alias_mem_block_size_ = static_cast<size_t>(size);
         alias_mem_block_ = new int32_t[alias_mem_block_size_]();    //NOTE: force to initialize the values to be zero
 
-        std::cout << "mem_block_size = " << mem_block_size_ * 4 << std::endl;
-        std::cout << "alias_mem_block_size = " << alias_mem_block_size_ * 4 << std::endl;
+        cout << "mem_block_size = " << sizeof(mem_block_size_) << endl;
+        cout << "alias_mem_block_size = " << sizeof(alias_mem_block_size_) << endl;
     }
 
     void LDAModelBlock::InitFromDataBlock(const LDADataBlock *data_block, int32_t num_vocabs, int32_t num_topics)
@@ -348,7 +367,7 @@ namespace lda
 
         for (int i = 0; i < doc_num; ++i)
         {
-            std::shared_ptr<LDADocument> doc = data_block->GetOneDoc(i);
+            shared_ptr<LDADocument> doc = data_block->GetOneDoc(i);
             int32_t doc_size = doc->size();
             for (int j = 0; j < doc_size; ++j)
             {
@@ -360,7 +379,7 @@ namespace lda
         InitModelBlockByTFS(false);
     }
     // Count the number of nonzero values in each row
-    void LDAModelBlock::CountNonZero(std::vector<int32_t> &tfs)
+    void LDAModelBlock::CountNonZero(vector<int32_t> &tfs)
     {
         for (int i = 0; i < num_vocabs_; ++i)
         {
@@ -373,15 +392,15 @@ namespace lda
         }
     }
 
-    void LDAModelBlock::GetModelSizeByTFS(bool fullSparse, std::vector<int32_t> &tfs, int64_t &mem_block_size, int64_t &alias_mem_block_size)
+    void LDAModelBlock::GetModelSizeByTFS(bool fullSparse, vector<int32_t> &tfs, int64_t &mem_block_size, int64_t &alias_mem_block_size)
     {
-        const int32_t max_tf_thresh = std::numeric_limits<int32_t>::max();
+        const int32_t max_tf_thresh = numeric_limits<int32_t>::max();
         int32_t hot_thresh;
         if (fullSparse)
         {
             // totally sparse
             // use a very large threshold to ensure every row of word-topic-table using a sparse representation
-            hot_thresh = std::numeric_limits<int>::max();
+            hot_thresh = numeric_limits<int32_t>::max();
         }
         else
         {
@@ -393,7 +412,7 @@ namespace lda
         if (fullSparse)
         {
             // use a very large threshold to ensure every row of alias table using a sparse representation
-            alias_hot_thresh = std::numeric_limits<int>::max();
+            alias_hot_thresh = numeric_limits<int32_t>::max();
         }
         else
         {
@@ -425,7 +444,7 @@ namespace lda
                 row_size = capacity * 2;
             }
             else
-            {    
+            {
                 capacity = 0;
                 row_size = 0;
             }
@@ -454,7 +473,7 @@ namespace lda
     // This function should not change the internal state of model_block_
     void LDAModelBlock::GetModelStat(int64_t &mem_block_size, int64_t &alias_mem_block_size)
     {
-        std::vector<int32_t> tfs(num_vocabs_, 0);
+        vector<int32_t> tfs(num_vocabs_, 0);
         CountNonZero(tfs);
 
         // calculate the mem_block_size, alias_mem_block_size

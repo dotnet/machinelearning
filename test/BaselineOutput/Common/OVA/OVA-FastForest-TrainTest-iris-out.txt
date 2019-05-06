@@ -1,4 +1,4 @@
-maml.exe TrainTest test=%Data% tr=OVA{p=FastForest{ }} norm=No dout=%Output% data=%Data% out=%Output% seed=1
+maml.exe TrainTest test=%Data% tr=OVA{p=FastForest{ }} norm=No dout=%Output% data=%Data% out=%Output% seed=1 xf=Term{col=Label}
 Not adding a normalizer.
 Training learner 0
 Making per-feature arrays
@@ -41,14 +41,14 @@ Precision ||1.0000 |0.9600 |0.9600 |
 Accuracy(micro-avg): 0.973333
 Accuracy(macro-avg): 0.973333
 Log-loss:           0.088201
-Log-loss reduction: 91.971614
+Log-loss reduction: 0.919716
 
 OVERALL RESULTS
 ---------------------------------------
 Accuracy(micro-avg): 0.973333 (0.0000)
 Accuracy(macro-avg): 0.973333 (0.0000)
 Log-loss:           0.088201 (0.0000)
-Log-loss reduction: 91.971614 (0.0000)
+Log-loss reduction: 0.919716 (0.0000)
 
 ---------------------------------------
 Physical memory usage(MB): %Number%

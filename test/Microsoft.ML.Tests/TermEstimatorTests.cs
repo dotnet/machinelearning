@@ -4,7 +4,6 @@
 
 using System;
 using System.IO;
-using Microsoft.Data.DataView;
 using Microsoft.ML.Data;
 using Microsoft.ML.Data.IO;
 using Microsoft.ML.Model;
@@ -145,7 +144,7 @@ namespace Microsoft.ML.Tests
             result.Schema.TryGetColumnIndex("T", out int termIndex);
             var names1 = default(VBuffer<ReadOnlyMemory<char>>);
             var type1 = result.Schema[termIndex].Type;
-            var itemType1 = (type1 as VectorType)?.ItemType ?? type1;
+            var itemType1 = (type1 as VectorDataViewType)?.ItemType ?? type1;
             result.Schema[termIndex].GetKeyValues(ref names1);
             Assert.True(names1.GetValues().Length > 0);
         }
@@ -158,18 +157,15 @@ namespace Microsoft.ML.Tests
 
         private void ValidateTermTransformer(IDataView result)
         {
-            result.Schema.TryGetColumnIndex("TermA", out int ColA);
-            result.Schema.TryGetColumnIndex("TermB", out int ColB);
-            result.Schema.TryGetColumnIndex("TermC", out int ColC);
             using (var cursor = result.GetRowCursorForAllColumns())
             {
                 uint avalue = 0;
                 uint bvalue = 0;
                 uint cvalue = 0;
 
-                var aGetter = cursor.GetGetter<uint>(ColA);
-                var bGetter = cursor.GetGetter<uint>(ColB);
-                var cGetter = cursor.GetGetter<uint>(ColC);
+                var aGetter = cursor.GetGetter<uint>(result.Schema["TermA"]);
+                var bGetter = cursor.GetGetter<uint>(result.Schema["TermB"]);
+                var cGetter = cursor.GetGetter<uint>(result.Schema["TermC"]);
                 uint i = 1;
                 while (cursor.MoveNext())
                 {

@@ -5,6 +5,7 @@
 using System.Text;
 using System.Text.RegularExpressions;
 using Microsoft.ML.Calibrators;
+using Microsoft.ML.Runtime;
 
 namespace Microsoft.ML.Internal.Utilities
 {

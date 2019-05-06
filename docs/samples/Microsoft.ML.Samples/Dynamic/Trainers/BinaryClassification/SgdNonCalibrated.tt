@@ -1,0 +1,39 @@
+﻿<#@ include file="BinaryClassification.ttinclude"#>
+<#+
+string ClassName = "SgdNonCalibrated";
+string Trainer = "SgdNonCalibrated";
+string TrainerOptions = null;
+bool IsCalibrated = false;
+bool CacheData = false;
+
+string LabelThreshold = "0.5f";
+string DataSepValue = "0.03f";
+string OptionsInclude = "";
+string Comments = "";
+
+string ExpectedOutputPerInstance = @"// Expected output:
+            //   Label: True, Prediction: False
+            //   Label: False, Prediction: False
+            //   Label: True, Prediction: True
+            //   Label: True, Prediction: True
+            //   Label: False, Prediction: False";
+
+string ExpectedOutput = @"// Expected output:
+            //   Accuracy: 0.60
+            //   AUC: 0.63
+            //   F1 Score: 0.43
+            //   Negative Precision: 0.58
+            //   Negative Recall: 0.85
+            //   Positive Precision: 0.66
+            //   Positive Recall: 0.32
+            //   
+            //   TEST POSITIVE RATIO:    0.4760 (238.0/(238.0+262.0))
+            //   Confusion table
+            //             ||======================
+            //   PREDICTED || positive | negative | Recall
+            //   TRUTH     ||======================
+            //    positive ||       76 |      162 | 0.3193
+            //    negative ||       42 |      220 | 0.8397
+            //             ||======================
+            //   Precision ||   0.6441 |   0.5759 |";
+#>

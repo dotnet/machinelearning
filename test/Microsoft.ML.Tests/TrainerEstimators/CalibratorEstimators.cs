@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.Data.DataView;
 using Microsoft.ML.Calibrators;
 using Microsoft.ML.Data;
 using Microsoft.ML.Trainers;
@@ -48,7 +47,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             CheckValidCalibratedData(calibratorTestData.ScoredData, fixedPlattCalibratorTransformer);
 
             //test estimator
-            TestEstimatorCore(calibratorTestData.Pipeline, calibratorTestData.Data);
+            TestEstimatorCore(fixedPlattCalibratorEstimator, calibratorTestData.ScoredData);
 
             Done();
         }
@@ -69,7 +68,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             CheckValidCalibratedData(calibratorTestData.ScoredData, naiveCalibratorTransformer);
 
             //test estimator
-            TestEstimatorCore(calibratorTestData.Pipeline, calibratorTestData.Data);
+            TestEstimatorCore(naiveCalibratorEstimator, calibratorTestData.ScoredData);
 
             Done();
         }
@@ -89,7 +88,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             CheckValidCalibratedData(calibratorTestData.ScoredData, pavCalibratorTransformer);
 
             //test estimator
-            TestEstimatorCore(calibratorTestData.Pipeline, calibratorTestData.Data);
+            TestEstimatorCore(pavCalibratorEstimator, calibratorTestData.ScoredData);
 
             Done();
         }

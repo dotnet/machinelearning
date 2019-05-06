@@ -5,6 +5,7 @@
 //#define DUMP_STATS
 
 using System;
+using Microsoft.ML.Runtime;
 
 namespace Microsoft.ML.Internal.Utilities
 {

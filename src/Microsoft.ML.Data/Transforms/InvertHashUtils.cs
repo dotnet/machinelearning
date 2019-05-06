@@ -6,9 +6,9 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
-using Microsoft.Data.DataView;
 using Microsoft.ML.Data.IO;
 using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Runtime;
 
 namespace Microsoft.ML.Data
 {
@@ -41,7 +41,7 @@ namespace Microsoft.ML.Data
             var conv = Conversion.Conversions.Instance;
 
             // First: if not key, then get the standard string converison.
-            if (!(type is KeyType keyType))
+            if (!(type is KeyDataViewType keyType))
                 return conv.GetStringConversion<T>(type);
 
             bool identity;
@@ -166,7 +166,7 @@ namespace Microsoft.ML.Data
         /// <param name="copier">For copying input values into a value to actually store. Useful for
         /// types of objects where it is possible to do a comparison relatively quickly on some sort
         /// of "unsafe" object, but for which when we decide to actually store it we need to provide
-        /// a "safe" version of the object. Utilized in the ngram hash transform, for example.</param>
+        /// a "safe" version of the object. Utilized in the n-gram hash transform, for example.</param>
         public InvertHashCollector(int slots, int maxCount, ValueMapper<T, StringBuilder> mapper,
             IEqualityComparer<T> comparer, ValueMapper<T, T> copier = null)
         {
@@ -357,7 +357,7 @@ namespace Microsoft.ML.Data
             if (!factory.TryReadCodec(ctx.Reader.BaseStream, out codec))
                 throw ch.ExceptDecode();
             ch.AssertValue(codec);
-            if (!(codec.Type is VectorType vectorType))
+            if (!(codec.Type is VectorDataViewType vectorType))
                 throw ch.ExceptDecode();
             ch.CheckDecode(vectorType.ItemType is TextDataViewType);
             var textCodec = (IValueCodec<VBuffer<ReadOnlyMemory<char>>>)codec;
@@ -390,9 +390,9 @@ namespace Microsoft.ML.Data
 
             // Get the codec from the factory
             IValueCodec codec;
-            var result = factory.TryGetCodec(new VectorType(TextDataViewType.Instance), out codec);
+            var result = factory.TryGetCodec(new VectorDataViewType(TextDataViewType.Instance), out codec);
             ch.Assert(result);
-            VectorType vectorType = (VectorType)codec.Type;
+            VectorDataViewType vectorType = (VectorDataViewType)codec.Type;
             ch.Assert(vectorType.Size == 0);
             ch.Assert(vectorType.ItemType == TextDataViewType.Instance);
             IValueCodec<VBuffer<ReadOnlyMemory<char>>> textCodec = (IValueCodec<VBuffer<ReadOnlyMemory<char>>>)codec;
@@ -441,7 +441,7 @@ namespace Microsoft.ML.Data
                 });
         }
 
-        public static void LoadAll(IHost host, ModelLoadContext ctx, int infoLim, out VBuffer<ReadOnlyMemory<char>>[] keyValues, out VectorType[] kvTypes)
+        public static void LoadAll(IHost host, ModelLoadContext ctx, int infoLim, out VBuffer<ReadOnlyMemory<char>>[] keyValues, out VectorDataViewType[] kvTypes)
         {
             Contracts.AssertValue(host);
             host.AssertValue(ctx);
@@ -450,7 +450,7 @@ namespace Microsoft.ML.Data
             {
                 // Try to find the key names.
                 VBuffer<ReadOnlyMemory<char>>[] keyValuesLocal = null;
-                VectorType[] kvTypesLocal = null;
+                VectorDataViewType[] kvTypesLocal = null;
                 CodecFactory factory = null;
                 const string dirFormat = "Vocabulary_{0:000}";
                 for (int iinfo = 0; iinfo < infoLim; iinfo++)
@@ -462,11 +462,11 @@ namespace Microsoft.ML.Data
                             if (keyValuesLocal == null)
                             {
                                 keyValuesLocal = new VBuffer<ReadOnlyMemory<char>>[infoLim];
-                                kvTypesLocal = new VectorType[infoLim];
+                                kvTypesLocal = new VectorDataViewType[infoLim];
                                 factory = new CodecFactory(host);
                             }
                             Load(ch, c, factory, ref keyValuesLocal[iinfo]);
-                            kvTypesLocal[iinfo] = new VectorType(TextDataViewType.Instance, keyValuesLocal[iinfo].Length);
+                            kvTypesLocal[iinfo] = new VectorDataViewType(TextDataViewType.Instance, keyValuesLocal[iinfo].Length);
                         });
                 }
 

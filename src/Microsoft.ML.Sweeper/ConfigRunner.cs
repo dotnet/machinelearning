@@ -10,8 +10,8 @@ using System.Threading.Tasks;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Runtime;
 using Microsoft.ML.Sweeper;
-
 using ResultProcessorInternal = Microsoft.ML.ResultProcessor;
 
 [assembly: LoadableClass(typeof(LocalExeConfigRunner), typeof(LocalExeConfigRunner.Options), typeof(SignatureConfigRunner),
@@ -166,7 +166,7 @@ namespace Microsoft.ML.Sweeper
                 for (int i = 0; i < sweeps.Length; i++)
                     ch.Info("Parameter set: {0}", string.Join(", ", sweeps[i].Select(p => string.Format("{0}:{1}", p.Name, p.ValueText))));
 
-               return RunConfigsCore(sweeps, ch, min);
+                return RunConfigsCore(sweeps, ch, min);
             }
         }
 

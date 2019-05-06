@@ -19,7 +19,7 @@ Precision ||   0.9275 |   0.9732 |
 OVERALL 0/1 ACCURACY: 0.955801
 LOG LOSS/instance:  0.301908
 Test-set entropy (prior Log-Loss/instance): 0.950799
-LOG-LOSS REDUCTION (RIG): 68.246963
+LOG-LOSS REDUCTION (RIG): 0.682470
 AUC:                0.982473
 TEST POSITIVE RATIO:	0.3175 (107.0/(107.0+230.0))
 Confusion table
@@ -33,7 +33,7 @@ Precision ||   0.9259 |   0.9694 |
 OVERALL 0/1 ACCURACY: 0.955490
 LOG LOSS/instance:  0.290926
 Test-set entropy (prior Log-Loss/instance): 0.901650
-LOG-LOSS REDUCTION (RIG): 67.734017
+LOG-LOSS REDUCTION (RIG): 0.677340
 AUC:                0.992076
 
 OVERALL RESULTS
@@ -45,7 +45,7 @@ Positive recall:    0.944902 (0.0103)
 Negative precision: 0.971323 (0.0019)
 Negative recall:    0.960679 (0.0045)
 Log-loss:           0.296417 (0.0055)
-Log-loss reduction: 67.990490 (0.2565)
+Log-loss reduction: 0.679905 (0.0026)
 F1 Score:           0.935705 (0.0055)
 AUPRC:              0.969894 (0.0121)
 

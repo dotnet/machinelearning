@@ -28,11 +28,12 @@ namespace Microsoft.ML.Scenarios
                         }
             });
 
-            // Data
-            var data = reader.Load(GetDataPath(dataPath));
+            var textData = reader.Load(GetDataPath(dataPath));
+            var data = mlContext.Data.Cache(mlContext.Transforms.Conversion.MapValueToKey("Label")
+                .Fit(textData).Transform(textData));
 
             // Pipeline
-            var logReg = mlContext.BinaryClassification.Trainers.LogisticRegression();
+            var logReg = mlContext.BinaryClassification.Trainers.LbfgsLogisticRegression();
             var pipeline = mlContext.MulticlassClassification.Trainers.OneVersusAll(logReg, useProbabilities: false);
 
             var model = pipeline.Fit(data);
@@ -61,11 +62,14 @@ namespace Microsoft.ML.Scenarios
             });
 
             // Data
-            var data = mlContext.Data.Cache(reader.Load(GetDataPath(dataPath)));
+            var textData = reader.Load(GetDataPath(dataPath));
+            var data = mlContext.Data.Cache(mlContext.Transforms.Conversion.MapValueToKey("Label")
+                .Fit(textData).Transform(textData));
 
             // Pipeline
             var ap = mlContext.BinaryClassification.Trainers.AveragedPerceptron(
                     new AveragedPerceptronTrainer.Options { Shuffle = true });
+
             var pipeline = mlContext.MulticlassClassification.Trainers.OneVersusAll(ap, useProbabilities: false);
 
             var model = pipeline.Fit(data);
@@ -73,7 +77,7 @@ namespace Microsoft.ML.Scenarios
 
             // Metrics
             var metrics = mlContext.MulticlassClassification.Evaluate(predictions);
-            Assert.True(metrics.MicroAccuracy > 0.71);
+            Assert.True(metrics.MicroAccuracy > 0.66);
         }
 
         [Fact]
@@ -94,11 +98,13 @@ namespace Microsoft.ML.Scenarios
             });
 
             // Data
-            var data = reader.Load(GetDataPath(dataPath));
+            var textData = reader.Load(GetDataPath(dataPath));
+            var data = mlContext.Data.Cache(mlContext.Transforms.Conversion.MapValueToKey("Label")
+                .Fit(textData).Transform(textData));
 
             // Pipeline
             var pipeline = mlContext.MulticlassClassification.Trainers.OneVersusAll(
-                mlContext.BinaryClassification.Trainers.FastTree(new FastTreeBinaryClassificationTrainer.Options { NumberOfThreads = 1 }),
+                mlContext.BinaryClassification.Trainers.FastTree(new FastTreeBinaryTrainer.Options { NumberOfThreads = 1 }),
                 useProbabilities: false);
 
             var model = pipeline.Fit(data);
@@ -125,13 +131,14 @@ namespace Microsoft.ML.Scenarios
                             new TextLoader.Column("Features", DataKind.Single, new [] { new TextLoader.Range(1, 4) }),
                         }
             });
-
             // Data
-            var data = mlContext.Data.Cache(reader.Load(GetDataPath(dataPath)));
+            var textData = reader.Load(GetDataPath(dataPath));
+            var data = mlContext.Data.Cache(mlContext.Transforms.Conversion.MapValueToKey("Label")
+                .Fit(textData).Transform(textData));
 
             // Pipeline
             var pipeline = mlContext.MulticlassClassification.Trainers.OneVersusAll(
-                mlContext.BinaryClassification.Trainers.LinearSupportVectorMachines(new LinearSvmTrainer.Options { NumberOfIterations = 100 }),
+                mlContext.BinaryClassification.Trainers.LinearSvm(new LinearSvmTrainer.Options { NumberOfIterations = 100 }),
                 useProbabilities: false);
 
             var model = pipeline.Fit(data);

@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Linq;
+using Microsoft.ML.Runtime;
 
 namespace Microsoft.ML.Trainers.FastTree
 {
@@ -78,14 +79,14 @@ namespace Microsoft.ML.Trainers.FastTree
 
                 switch (type)
                 {
-                case FeatureType.Raw:
-                    TsvFeature tf = new TsvFeature(buffer, ref position);
+                    case FeatureType.Raw:
+                        TsvFeature tf = new TsvFeature(buffer, ref position);
 #if !NO_STORE
                     tf.BinsCache = FileObjectStore<IntArrayFormatter>.GetDefaultInstance();
 #endif
-                    return tf;
-                default:
-                    throw Contracts.Except("Impossible!");
+                        return tf;
+                    default:
+                        throw Contracts.Except("Impossible!");
                 }
             }
         }

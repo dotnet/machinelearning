@@ -6,6 +6,7 @@ using System;
 using System.CodeDom.Compiler;
 using System.IO;
 using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Runtime;
 using Xunit;
 using Xunit.Abstractions;
 

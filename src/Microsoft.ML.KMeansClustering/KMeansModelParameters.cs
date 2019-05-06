@@ -5,13 +5,13 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.Data;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Model;
 using Microsoft.ML.Model.OnnxConverter;
 using Microsoft.ML.Numeric;
+using Microsoft.ML.Runtime;
 using Microsoft.ML.Trainers;
 
 [assembly: LoadableClass(typeof(KMeansModelParameters), null, typeof(SignatureLoadModel),
@@ -22,7 +22,7 @@ namespace Microsoft.ML.Trainers
     /// <example>
     /// <format type="text/markdown">
     /// <![CDATA[
-    ///  [!code-csharp[KMeans](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/KMeans.cs)]
+    ///  [!code-csharp[KMeans](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Trainers/Clustering/KMeans.cs)]
     /// ]]></format>
     /// </example>
     public sealed class KMeansModelParameters :
@@ -98,8 +98,8 @@ namespace Microsoft.ML.Trainers
 
             InitPredictor();
 
-            _inputType = new VectorType(NumberDataViewType.Single, _dimensionality);
-            _outputType = new VectorType(NumberDataViewType.Single, _k);
+            _inputType = new VectorDataViewType(NumberDataViewType.Single, _dimensionality);
+            _outputType = new VectorDataViewType(NumberDataViewType.Single, _k);
         }
 
         /// <summary>
@@ -140,8 +140,8 @@ namespace Microsoft.ML.Trainers
 
             InitPredictor();
 
-            _inputType = new VectorType(NumberDataViewType.Single, _dimensionality);
-            _outputType = new VectorType(NumberDataViewType.Single, _k);
+            _inputType = new VectorDataViewType(NumberDataViewType.Single, _dimensionality);
+            _outputType = new VectorDataViewType(NumberDataViewType.Single, _k);
         }
 
         ValueMapper<TIn, TOut> IValueMapper.GetMapper<TIn, TOut>()
@@ -331,14 +331,14 @@ namespace Microsoft.ML.Trainers
             var nameX = featureColumn;
 
             // Compute X^2 from X
-            var nameX2 = ctx.AddIntermediateVariable(null , "X2", true);
+            var nameX2 = ctx.AddIntermediateVariable(null, "X2", true);
             var reduceNodeX2 = ctx.CreateNode("ReduceSumSquare", nameX, nameX2, ctx.GetNodeName("ReduceSumSquare"), "");
 
             // Compute -2XC^T. Note that Gemm always takes three inputs. Since we only have two here,
             // a dummy one, named zero, is created.
             var zeroName = ctx.AddInitializer(new float[] { 0f }, null, "zero");
             var nameXC2 = ctx.AddIntermediateVariable(null, "XC2", true);
-            var gemmNodeXC2 = ctx.CreateNode("Gemm", new[] { nameX, nameC, zeroName}, new[] { nameXC2 }, ctx.GetNodeName("Gemm"), "");
+            var gemmNodeXC2 = ctx.CreateNode("Gemm", new[] { nameX, nameC, zeroName }, new[] { nameXC2 }, ctx.GetNodeName("Gemm"), "");
             gemmNodeXC2.AddAttribute("alpha", -2f);
             gemmNodeXC2.AddAttribute("transB", 1);
 

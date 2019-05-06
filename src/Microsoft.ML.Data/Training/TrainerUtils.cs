@@ -5,10 +5,9 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Microsoft.Data.DataView;
 using Microsoft.ML.Data;
-using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Runtime;
 using Microsoft.ML.Transforms;
 
 namespace Microsoft.ML.Trainers
@@ -55,7 +54,7 @@ namespace Microsoft.ML.Trainers
                 throw Contracts.ExceptParam(nameof(data), "Training data must specify a feature column.");
             var col = data.Schema.Feature.Value;
             Contracts.Assert(!col.IsHidden);
-            if (!(col.Type is VectorType vecType && vecType.Size > 0 && vecType.ItemType == NumberDataViewType.Single))
+            if (!(col.Type is VectorDataViewType vecType && vecType.Size > 0 && vecType.ItemType == NumberDataViewType.Single))
                 throw Contracts.ExceptParam(nameof(data), "Training feature column '{0}' must be a known-size vector of R4, but has type: {1}.", col.Name, col.Type);
         }
 
@@ -71,7 +70,7 @@ namespace Microsoft.ML.Trainers
             Contracts.Assert(data.Schema.Feature.HasValue);
             var col = data.Schema.Feature.Value;
             Contracts.Assert(!col.IsHidden);
-            var colType = col.Type as VectorType;
+            var colType = col.Type as VectorDataViewType;
             Contracts.Assert(colType != null && colType.IsKnownSize);
             Contracts.Assert(colType.ItemType == NumberDataViewType.Single);
             length = colType.Size;
@@ -88,9 +87,9 @@ namespace Microsoft.ML.Trainers
                 throw Contracts.ExceptParam(nameof(data), "Training data must specify a label column.");
             var col = data.Schema.Label.Value;
             Contracts.Assert(!col.IsHidden);
-            if (col.Type != BooleanDataViewType.Instance && col.Type != NumberDataViewType.Single && col.Type != NumberDataViewType.Double && !(col.Type is KeyType keyType && keyType.Count == 2))
+            if (col.Type != BooleanDataViewType.Instance && col.Type != NumberDataViewType.Single && col.Type != NumberDataViewType.Double && !(col.Type is KeyDataViewType keyType && keyType.Count == 2))
             {
-                KeyType colKeyType = col.Type as KeyType;
+                KeyDataViewType colKeyType = col.Type as KeyDataViewType;
                 if (colKeyType != null)
                 {
                     if (colKeyType.Count == 1)
@@ -107,7 +106,7 @@ namespace Microsoft.ML.Trainers
                     }
                 }
                 throw Contracts.ExceptParam(nameof(data),
-                    "The label column '{0}' of the training data has a data type not suitable for binary classification: {1}. Type must be Bool, R4, R8 or Key with two classes.",
+                    "The label column '{0}' of the training data has a data type not suitable for binary classification: {1}. Type must be Boolean, Single, Double or Key with two classes.",
                     col.Name, col.Type);
             }
         }
@@ -126,7 +125,7 @@ namespace Microsoft.ML.Trainers
             if (col.Type != NumberDataViewType.Single && col.Type != NumberDataViewType.Double)
             {
                 throw Contracts.ExceptParam(nameof(data),
-                    "Training label column '{0}' type isn't suitable for regression: {1}. Type must be R4 or R8.", col.Name, col.Type);
+                    "Training label column '{0}' type isn't suitable for regression: {1}. Type must be Single or Double.", col.Name, col.Type);
             }
         }
 
@@ -135,7 +134,7 @@ namespace Microsoft.ML.Trainers
         /// key type, it must have known cardinality. For other numeric types, this scans the data
         /// to determine the cardinality.
         /// </summary>
-        public static void CheckMultiClassLabel(this RoleMappedData data, out int count)
+        public static void CheckMulticlassLabel(this RoleMappedData data, out int count)
         {
             Contracts.CheckValue(data, nameof(data));
 
@@ -143,7 +142,7 @@ namespace Microsoft.ML.Trainers
                 throw Contracts.ExceptParam(nameof(data), "Training data must specify a label column.");
             var col = data.Schema.Label.Value;
             Contracts.Assert(!col.IsHidden);
-            if (col.Type is KeyType keyType && keyType.Count > 0)
+            if (col.Type is KeyDataViewType keyType && keyType.Count > 0)
             {
                 if (keyType.Count >= Utils.ArrayMaxSize)
                     throw Contracts.ExceptParam(nameof(data), "Maximum label is too large for multi-class: {0}.", keyType.Count);
@@ -153,7 +152,7 @@ namespace Microsoft.ML.Trainers
 
             // REVIEW: Support other numeric types.
             if (col.Type != NumberDataViewType.Single && col.Type != NumberDataViewType.Double)
-                throw Contracts.ExceptParam(nameof(data), "Training label column '{0}' type is not valid for multi-class: {1}. Type must be R4 or R8.", col.Name, col.Type);
+                throw Contracts.ExceptParam(nameof(data), "Training label column '{0}' type is not valid for multi-class: {1}. Type must be Single or Double.", col.Name, col.Type);
 
             int max = -1;
             using (var cursor = new FloatLabelCursor(data))
@@ -191,10 +190,10 @@ namespace Microsoft.ML.Trainers
                 throw Contracts.ExceptParam(nameof(data), "Training data must specify a label column.");
             var col = data.Schema.Label.Value;
             Contracts.Assert(!col.IsHidden);
-            if (!(col.Type is VectorType vectorType
+            if (!(col.Type is VectorDataViewType vectorType
                 && vectorType.IsKnownSize
                 && vectorType.ItemType == NumberDataViewType.Single))
-                throw Contracts.ExceptParam(nameof(data), "Training label column '{0}' must be a known-size vector of R4, but has type: {1}.", col.Name, col.Type);
+                throw Contracts.ExceptParam(nameof(data), "Training label column '{0}' must be a known-size vector of Single, but has type: {1}.", col.Name, col.Type);
         }
 
         public static void CheckOptFloatWeight(this RoleMappedData data)
@@ -217,7 +216,7 @@ namespace Microsoft.ML.Trainers
                 return;
             var col = data.Schema.Group.Value;
             Contracts.Assert(!col.IsHidden);
-            if (col.Type is KeyType)
+            if (col.Type is KeyDataViewType)
                 return;
             throw Contracts.ExceptParam(nameof(data), "Training group column '{0}' type is invalid: {1}. Must be Key type.", col.Name, col.Type);
         }
@@ -267,7 +266,7 @@ namespace Microsoft.ML.Trainers
             Contracts.CheckParam(schema.Schema == row.Schema, nameof(schema), "schemas don't match!");
             Contracts.CheckParam(schema.Feature.HasValue, nameof(schema), "Missing feature column");
 
-            return row.GetGetter<VBuffer<float>>(schema.Feature.Value.Index);
+            return row.GetGetter<VBuffer<float>>(schema.Feature.Value);
         }
 
         /// <summary>
@@ -948,7 +947,7 @@ namespace Microsoft.ML.Trainers
     /// enforcing multi-class semantics.
     /// </summary>
     [BestFriend]
-    internal class MultiClassLabelCursor : FeatureFloatVectorCursor
+    internal class MulticlassLabelCursor : FeatureFloatVectorCursor
     {
         private readonly int _classCount;
         private readonly ValueGetter<float> _get;
@@ -959,13 +958,13 @@ namespace Microsoft.ML.Trainers
         private float _raw;
         public int Label;
 
-        public MultiClassLabelCursor(int classCount, RoleMappedData data, CursOpt opt = CursOpt.Label,
+        public MulticlassLabelCursor(int classCount, RoleMappedData data, CursOpt opt = CursOpt.Label,
             Random rand = null, params int[] extraCols)
             : this(classCount, CreateCursor(data, opt, rand, extraCols), data, opt)
         {
         }
 
-        protected MultiClassLabelCursor(int classCount, DataViewRowCursor input, RoleMappedData data, CursOpt opt, Action<CursOpt> signal = null)
+        protected MulticlassLabelCursor(int classCount, DataViewRowCursor input, RoleMappedData data, CursOpt opt, Action<CursOpt> signal = null)
             : base(input, data, opt, signal)
         {
             Contracts.Assert(classCount >= 0);
@@ -1002,7 +1001,7 @@ namespace Microsoft.ML.Trainers
             return base.Accept();
         }
 
-        public new sealed class Factory : FactoryBase<MultiClassLabelCursor>
+        public new sealed class Factory : FactoryBase<MulticlassLabelCursor>
         {
             private readonly int _classCount;
 
@@ -1014,9 +1013,9 @@ namespace Microsoft.ML.Trainers
                 _classCount = classCount;
             }
 
-            protected override MultiClassLabelCursor CreateCursorCore(DataViewRowCursor input, RoleMappedData data, CursOpt opt, Action<CursOpt> signal)
+            protected override MulticlassLabelCursor CreateCursorCore(DataViewRowCursor input, RoleMappedData data, CursOpt opt, Action<CursOpt> signal)
             {
-                return new MultiClassLabelCursor(_classCount, input, data, opt, signal);
+                return new MulticlassLabelCursor(_classCount, input, data, opt, signal);
             }
         }
     }

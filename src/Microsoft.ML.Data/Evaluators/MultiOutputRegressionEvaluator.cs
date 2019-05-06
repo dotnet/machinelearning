@@ -6,13 +6,14 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Text.RegularExpressions;
-using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
 using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Numeric;
+using Microsoft.ML.Runtime;
+using Microsoft.ML.Trainers;
 
 [assembly: LoadableClass(typeof(MultiOutputRegressionEvaluator), typeof(MultiOutputRegressionEvaluator), typeof(MultiOutputRegressionEvaluator.Arguments), typeof(SignatureEvaluator),
     "Multi Output Regression Evaluator", MultiOutputRegressionEvaluator.LoadName, "MultiOutputRegression", "MRE")]
@@ -57,13 +58,13 @@ namespace Microsoft.ML.Data
         private protected override void CheckScoreAndLabelTypes(RoleMappedSchema schema)
         {
             var score = schema.GetUniqueColumn(AnnotationUtils.Const.ScoreValueKind.Score);
-            var t = score.Type as VectorType;
+            var t = score.Type as VectorDataViewType;
             if (t == null || !t.IsKnownSize || t.ItemType != NumberDataViewType.Single)
-                throw Host.ExceptSchemaMismatch(nameof(schema), "score", score.Name, "known-size vector of float", t.ToString());
+                throw Host.ExceptSchemaMismatch(nameof(schema), "score", score.Name, "known-size vector of Single", t.ToString());
             Host.Check(schema.Label.HasValue, "Could not find the label column");
-            t = schema.Label.Value.Type as VectorType;
+            t = schema.Label.Value.Type as VectorDataViewType;
             if (t == null || !t.IsKnownSize || (t.ItemType != NumberDataViewType.Single && t.ItemType != NumberDataViewType.Double))
-                throw Host.ExceptSchemaMismatch(nameof(schema), "label", schema.Label.Value.Name, "known-size vector of float or double", t.ToString());
+                throw Host.ExceptSchemaMismatch(nameof(schema), "label", schema.Label.Value.Name, "known-size vector of Single or Double", t.ToString());
         }
 
         private protected override Aggregator GetAggregatorCore(RoleMappedSchema schema, string stratName)
@@ -176,11 +177,11 @@ namespace Microsoft.ML.Data
 
                 private readonly IRegressionLoss _lossFunction;
 
-                public Double L1 { get { return _sumWeights > 0 ? _sumL1 / _sumWeights : 0; } }
+                public Double L1 => _sumWeights > 0 ? _sumL1 / _sumWeights : 0;
 
-                public Double L2 { get { return _sumWeights > 0 ? _sumL2 / _sumWeights : 0; } }
+                public Double L2 => _sumWeights > 0 ? _sumL2 / _sumWeights : 0;
 
-                public Double Dist { get { return _sumWeights > 0 ? _sumEuclidean / _sumWeights : 0; } }
+                public Double Dist => _sumWeights > 0 ? _sumEuclidean / _sumWeights : 0;
 
                 public Double[] PerLabelL1
                 {
@@ -306,12 +307,12 @@ namespace Microsoft.ML.Data
                 var score = schema.GetUniqueColumn(AnnotationUtils.Const.ScoreValueKind.Score);
 
                 _labelGetter = RowCursorUtils.GetVecGetterAs<float>(NumberDataViewType.Single, row, schema.Label.Value.Index);
-                _scoreGetter = row.GetGetter<VBuffer<float>>(score.Index);
+                _scoreGetter = row.GetGetter<VBuffer<float>>(score);
                 Contracts.AssertValue(_labelGetter);
                 Contracts.AssertValue(_scoreGetter);
 
                 if (schema.Weight.HasValue)
-                    _weightGetter = row.GetGetter<float>(schema.Weight.Value.Index);
+                    _weightGetter = row.GetGetter<float>(schema.Weight.Value);
             }
 
             public override void ProcessRow()
@@ -394,8 +395,8 @@ namespace Microsoft.ML.Data
         public const string L2 = "L2-loss";
         public const string Dist = "Euclidean-Distance";
 
-        private readonly VectorType _labelType;
-        private readonly VectorType _scoreType;
+        private readonly VectorDataViewType _labelType;
+        private readonly VectorDataViewType _scoreType;
         private readonly DataViewSchema.Annotations _labelMetadata;
         private readonly DataViewSchema.Annotations _scoreMetadata;
 
@@ -472,7 +473,7 @@ namespace Microsoft.ML.Data
                 ? RowCursorUtils.GetVecGetterAs<float>(NumberDataViewType.Single, input, LabelIndex)
                 : nullGetter;
             var scoreGetter = activeCols(ScoreOutput) || activeCols(L1Output) || activeCols(L2Output) || activeCols(DistCol)
-                ? input.GetGetter<VBuffer<float>>(ScoreIndex)
+                ? input.GetGetter<VBuffer<float>>(input.Schema[ScoreIndex])
                 : nullGetter;
             Action updateCacheIfNeeded =
                 () =>
@@ -539,25 +540,25 @@ namespace Microsoft.ML.Data
             return getters;
         }
 
-        private void CheckInputColumnTypes(DataViewSchema schema, out VectorType labelType, out VectorType scoreType,
+        private void CheckInputColumnTypes(DataViewSchema schema, out VectorDataViewType labelType, out VectorDataViewType scoreType,
             out DataViewSchema.Annotations labelMetadata, out DataViewSchema.Annotations scoreMetadata)
         {
             Host.AssertNonEmpty(ScoreCol);
             Host.AssertNonEmpty(LabelCol);
 
-            var t = schema[LabelIndex].Type as VectorType;
+            var t = schema[LabelIndex].Type as VectorDataViewType;
             if (t == null || !t.IsKnownSize || (t.ItemType != NumberDataViewType.Single && t.ItemType != NumberDataViewType.Double))
-                throw Host.ExceptSchemaMismatch(nameof(schema), "label", LabelCol, "known-size vector of float or double", t.ToString());
-            labelType = new VectorType((PrimitiveDataViewType)t.ItemType, t.Size);
-            var slotNamesType = new VectorType(TextDataViewType.Instance, t.Size);
+                throw Host.ExceptSchemaMismatch(nameof(schema), "label", LabelCol, "known-size vector of Single or Double", t.ToString());
+            labelType = new VectorDataViewType((PrimitiveDataViewType)t.ItemType, t.Size);
+            var slotNamesType = new VectorDataViewType(TextDataViewType.Instance, t.Size);
             var builder = new DataViewSchema.Annotations.Builder();
             builder.AddSlotNames(t.Size, CreateSlotNamesGetter(schema, LabelIndex, labelType.Size, "True"));
             labelMetadata = builder.ToAnnotations();
 
-            t = schema[ScoreIndex].Type as VectorType;
+            t = schema[ScoreIndex].Type as VectorDataViewType;
             if (t == null || !t.IsKnownSize || t.ItemType != NumberDataViewType.Single)
-                throw Host.ExceptSchemaMismatch(nameof(schema), "score", ScoreCol, "known-size vector of float", t.ToString());
-            scoreType = new VectorType((PrimitiveDataViewType)t.ItemType, t.Size);
+                throw Host.ExceptSchemaMismatch(nameof(schema), "score", ScoreCol, "known-size vector of Single", t.ToString());
+            scoreType = new VectorDataViewType((PrimitiveDataViewType)t.ItemType, t.Size);
             builder = new DataViewSchema.Annotations.Builder();
             builder.AddSlotNames(t.Size, CreateSlotNamesGetter(schema, ScoreIndex, scoreType.Size, "Predicted"));
 
@@ -664,8 +665,7 @@ namespace Microsoft.ML.Data
             if (!metrics.TryGetValue(MetricKinds.OverallMetrics, out fold))
                 throw ch.Except("No overall metrics found");
 
-            int isWeightedCol;
-            bool needWeighted = fold.Schema.TryGetColumnIndex(MetricKinds.ColumnNames.IsWeighted, out isWeightedCol);
+            var isWeightedCol = fold.Schema.GetColumnOrNull(MetricKinds.ColumnNames.IsWeighted);
 
             int stratCol;
             bool hasStrats = fold.Schema.TryGetColumnIndex(MetricKinds.ColumnNames.StratCol, out stratCol);
@@ -680,8 +680,8 @@ namespace Microsoft.ML.Data
             {
                 bool isWeighted = false;
                 ValueGetter<bool> isWeightedGetter;
-                if (needWeighted)
-                    isWeightedGetter = cursor.GetGetter<bool>(isWeightedCol);
+                if (isWeightedCol.HasValue)
+                    isWeightedGetter = cursor.GetGetter<bool>(isWeightedCol.Value);
                 else
                     isWeightedGetter = (ref bool dst) => dst = false;
 
@@ -697,16 +697,17 @@ namespace Microsoft.ML.Data
                 int labelCount = 0;
                 for (int i = 0; i < fold.Schema.Count; i++)
                 {
-                    if (fold.Schema[i].IsHidden || (needWeighted && i == isWeightedCol) ||
+                    var currentColumn = fold.Schema[i];
+                    if (currentColumn.IsHidden || (isWeightedCol.HasValue && i == isWeightedCol.Value.Index) ||
                         (hasStrats && (i == stratCol || i == stratVal)))
                     {
                         continue;
                     }
 
-                    var type = fold.Schema[i].Type as VectorType;
+                    var type = fold.Schema[i].Type as VectorDataViewType;
                     if (type != null && type.IsKnownSize && type.ItemType == NumberDataViewType.Double)
                     {
-                        vBufferGetters[i] = cursor.GetGetter<VBuffer<double>>(i);
+                        vBufferGetters[i] = cursor.GetGetter<VBuffer<double>>(currentColumn);
                         if (labelCount == 0)
                             labelCount = type.Size;
                         else
@@ -725,7 +726,7 @@ namespace Microsoft.ML.Data
                 sb.AppendLine();
 
                 VBuffer<Double> metricVals = default(VBuffer<Double>);
-                bool foundWeighted = !needWeighted;
+                bool foundWeighted = !isWeightedCol.HasValue;
                 bool foundUnweighted = false;
                 uint strat = 0;
                 while (cursor.MoveNext())

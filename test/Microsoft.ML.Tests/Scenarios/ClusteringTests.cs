@@ -54,7 +54,7 @@ namespace Microsoft.ML.Scenarios
                 };
             }
 
-            var mlContext = new MLContext(seed: 1, conc: 1);
+            var mlContext = new MLContext(seed: 1);
 
             // Turn the data into the ML.NET data view.
             // We can use CreateDataView or ReadFromEnumerable, depending on whether 'churnData' is an IList, 
@@ -63,14 +63,14 @@ namespace Microsoft.ML.Scenarios
             var testData = mlContext.Data.LoadFromEnumerable(clusters);
 
             // Create Estimator
-            var pipe = mlContext.Clustering.Trainers.KMeans("Features", clustersCount: k);
+            var pipe = mlContext.Clustering.Trainers.KMeans("Features", numberOfClusters: k);
 
             // Train the pipeline
             var trainedModel = pipe.Fit(trainData);
 
             // Validate that initial points we pick up as centers of cluster during data generation belong to different clusters.
             var labels = new HashSet<uint>();
-            var predictFunction = trainedModel.CreatePredictionEngine<ClusteringData, ClusteringPrediction>(mlContext);
+            var predictFunction = mlContext.Model.CreatePredictionEngine<ClusteringData, ClusteringPrediction>(trainedModel);
 
             for (int i = 0; i < k; i++)
             {

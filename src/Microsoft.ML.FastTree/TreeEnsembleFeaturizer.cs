@@ -6,7 +6,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.Calibrators;
 using Microsoft.ML.CommandLine;
@@ -15,6 +14,7 @@ using Microsoft.ML.Data.Conversion;
 using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Model;
+using Microsoft.ML.Runtime;
 using Microsoft.ML.Trainers.FastTree;
 using Microsoft.ML.Transforms;
 using Microsoft.ML.TreePredictor;
@@ -95,10 +95,10 @@ namespace Microsoft.ML.Data
                 InputRoleMappedSchema = schema;
 
                 // A vector containing the output of each tree on a given example.
-                var treeValueType = new VectorType(NumberDataViewType.Single, owner._ensemble.TrainedEnsemble.NumTrees);
+                var treeValueType = new VectorDataViewType(NumberDataViewType.Single, owner._ensemble.TrainedEnsemble.NumTrees);
                 // An indicator vector with length = the total number of leaves in the ensemble, indicating which leaf the example
                 // ends up in all the trees in the ensemble.
-                var leafIdType = new VectorType(NumberDataViewType.Single, owner._totalLeafCount);
+                var leafIdType = new VectorDataViewType(NumberDataViewType.Single, owner._totalLeafCount);
                 // An indicator vector with length = the total number of nodes in the ensemble, indicating the nodes on
                 // the paths of the example in all the trees in the ensemble.
                 // The total number of nodes in a binary tree is equal to the number of internal nodes + the number of leaf nodes,
@@ -106,7 +106,7 @@ namespace Microsoft.ML.Data
                 // plus one (since the root node is not a child of any node). So we have #internal + #leaf = 2*(#internal) + 1,
                 // which means that #internal = #leaf - 1.
                 // Therefore, the number of internal nodes in the ensemble is #leaf - #trees.
-                var pathIdType = new VectorType(NumberDataViewType.Single, owner._totalLeafCount - owner._ensemble.TrainedEnsemble.NumTrees);
+                var pathIdType = new VectorDataViewType(NumberDataViewType.Single, owner._totalLeafCount - owner._ensemble.TrainedEnsemble.NumTrees);
 
                 // Start creating output schema with types derived above.
                 var schemaBuilder = new DataViewSchema.Builder();
@@ -144,23 +144,24 @@ namespace Microsoft.ML.Data
                 Contracts.Assert(OutputSchema[OutputColumnNames.Paths].Index == PathIdsColumnId);
             }
 
-            public DataViewRow GetRow(DataViewRow input, Func<int, bool> predicate)
+            DataViewRow ISchemaBoundRowMapper.GetRow(DataViewRow input, IEnumerable<DataViewSchema.Column> activeColumns)
             {
                 _ectx.CheckValue(input, nameof(input));
-                _ectx.CheckValue(predicate, nameof(predicate));
-                return new SimpleRow(OutputSchema, input, CreateGetters(input, predicate));
+                _ectx.CheckValue(activeColumns, nameof(activeColumns));
+                return new SimpleRow(OutputSchema, input, CreateGetters(input, activeColumns));
             }
 
-            private Delegate[] CreateGetters(DataViewRow input, Func<int, bool> predicate)
+            private Delegate[] CreateGetters(DataViewRow input, IEnumerable<DataViewSchema.Column> activeColumns)
             {
                 _ectx.AssertValue(input);
-                _ectx.AssertValue(predicate);
+                _ectx.AssertValue(activeColumns);
 
                 var delegates = new Delegate[3];
 
-                var treeValueActive = predicate(TreeValuesColumnId);
-                var leafIdActive = predicate(LeafIdsColumnId);
-                var pathIdActive = predicate(PathIdsColumnId);
+                var activeIndices = activeColumns.Select(c => c.Index);
+                var treeValueActive = activeIndices.Contains(TreeValuesColumnId);
+                var leafIdActive = activeIndices.Contains(LeafIdsColumnId);
+                var pathIdActive = activeIndices.Contains(PathIdsColumnId);
 
                 if (!treeValueActive && !leafIdActive && !pathIdActive)
                     return delegates;
@@ -201,7 +202,6 @@ namespace Microsoft.ML.Data
 
                 private VBuffer<float> _src;
                 private ValueGetter<VBuffer<float>> _featureGetter;
-
                 private long _cachedPosition;
                 private readonly int[] _leafIds;
                 private readonly List<int>[] _pathIds;
@@ -224,7 +224,7 @@ namespace Microsoft.ML.Data
                     _numLeaves = numLeaves;
 
                     _src = default(VBuffer<float>);
-                    _featureGetter = input.GetGetter<VBuffer<float>>(featureIndex);
+                    _featureGetter = input.GetGetter<VBuffer<float>>(input.Schema[featureIndex]);
 
                     _cachedPosition = -1;
                     _leafIds = new int[_numTrees];
@@ -590,7 +590,7 @@ namespace Microsoft.ML.Data
 
                     // Make sure that the given predictor has the correct number of input features.
                     if (predictor is IWeaklyTypedCalibratedModelParameters calibrated)
-                        predictor = calibrated.WeeklyTypedSubModel;
+                        predictor = calibrated.WeaklyTypedSubModel;
                     // Predictor should be a TreeEnsembleModelParameters, which implements IValueMapper, so this should
                     // be non-null.
                     var vm = predictor as IValueMapper;
@@ -674,11 +674,11 @@ namespace Microsoft.ML.Data
         }
 
         private static IDataView AppendFloatMapper<TInput>(IHostEnvironment env, IChannel ch, IDataView input,
-            string col, KeyType type, int seed)
+            string col, KeyDataViewType type, int seed)
         {
             // Any key is convertible to ulong, so rather than add special case handling for all possible
             // key-types we just upfront convert it to the most general type (ulong) and work from there.
-            KeyType dstType = new KeyType(typeof(ulong), type.Count);
+            KeyDataViewType dstType = new KeyDataViewType(typeof(ulong), type.Count);
             bool identity;
             var converter = Conversions.Instance.GetStandardConversion<TInput, ulong>(type, dstType, out identity);
             var isNa = Conversions.Instance.GetIsNAPredicate<TInput>(type);
@@ -696,7 +696,7 @@ namespace Microsoft.ML.Data
                             return;
                         }
                         converter(in src, ref temp);
-                        dst = (Single)(temp - 1);
+                        dst = (Single)temp - 1;
                     };
             }
             else
@@ -731,14 +731,14 @@ namespace Microsoft.ML.Data
                 throw ch.ExceptSchemaMismatch(nameof(input), "label", labelName);
 
             DataViewType labelType = col.Value.Type;
-            if (!(labelType is KeyType))
+            if (!(labelType is KeyDataViewType))
             {
                 if (labelPermutationSeed != 0)
                     ch.Warning(
                         "labelPermutationSeed != 0 only applies on a multi-class learning problem when the label type is a key.");
                 return input;
             }
-            return Utils.MarshalInvoke(AppendFloatMapper<int>, labelType.RawType, env, ch, input, labelName, (KeyType)labelType,
+            return Utils.MarshalInvoke(AppendFloatMapper<int>, labelType.RawType, env, ch, input, labelName, (KeyDataViewType)labelType,
                 labelPermutationSeed);
         }
     }

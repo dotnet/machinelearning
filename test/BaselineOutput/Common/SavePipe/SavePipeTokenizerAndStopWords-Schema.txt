@@ -1,15 +1,15 @@
 ---- BoundLoader ----
 2 columns:
-  Source: Text
-  Lang: Text
+  Source: String
+  Lang: String
 ---- RowToRowMapperTransform ----
 3 columns:
-  Source: Text
-  Lang: Text
-  SourceTokens: Vec<Text>
+  Source: String
+  Lang: String
+  SourceTokens: Vector<String>
 ---- RowToRowMapperTransform ----
 4 columns:
-  Source: Text
-  Lang: Text
-  SourceTokens: Vec<Text>
-  Output: Vec<Text>
+  Source: String
+  Lang: String
+  SourceTokens: Vector<String>
+  Output: Vector<String>

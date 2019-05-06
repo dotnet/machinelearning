@@ -5,6 +5,7 @@
 using System;
 using System.Collections.ObjectModel;
 using System.Reflection;
+using Microsoft.ML.Runtime;
 
 namespace Microsoft.ML.Internal.Utilities
 {

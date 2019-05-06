@@ -4,11 +4,11 @@
 
 using System;
 using System.Collections.Generic;
-using Microsoft.Data.DataView;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Model.OnnxConverter;
 using Microsoft.ML.Model.Pfa;
+using Microsoft.ML.Runtime;
 using Newtonsoft.Json.Linq;
 
 namespace Microsoft.ML.Data
@@ -58,26 +58,16 @@ namespace Microsoft.ML.Data
                 // REVIEW: This logic is very specific to multiclass, which is deeply
                 // regrettable, but the class structure as designed and the status of this schema
                 // bearing object makes pushing the logic into the multiclass scorer almost impossible.
-                if (predColType is KeyType predColKeyType && predColKeyType.Count > 0)
+                if (predColType is KeyDataViewType predColKeyType && predColKeyType.Count > 0)
                 {
                     var scoreColMetadata = mapper.OutputSchema[scoreColIndex].Annotations;
 
-                    var slotColumn = scoreColMetadata.Schema.GetColumnOrNull(AnnotationUtils.Kinds.SlotNames);
-                    if (slotColumn?.Type is VectorType slotColVecType && (ulong)slotColVecType.Size == predColKeyType.Count)
+                    var trainLabelColumn = scoreColMetadata.Schema.GetColumnOrNull(AnnotationUtils.Kinds.TrainingLabelValues);
+                    if (trainLabelColumn?.Type is VectorDataViewType trainLabelColVecType && (ulong)trainLabelColVecType.Size == predColKeyType.Count)
                     {
-                        Contracts.Assert(slotColVecType.Size > 0);
-                        _predColMetadata = Utils.MarshalInvoke(KeyValueMetadataFromMetadata<int>, slotColVecType.RawType,
-                            scoreColMetadata, slotColumn.Value);
-                    }
-                    else
-                    {
-                        var trainLabelColumn = scoreColMetadata.Schema.GetColumnOrNull(AnnotationUtils.Kinds.TrainingLabelValues);
-                        if (trainLabelColumn?.Type is VectorType trainLabelColVecType && (ulong)trainLabelColVecType.Size == predColKeyType.Count)
-                        {
-                            Contracts.Assert(trainLabelColVecType.Size > 0);
-                            _predColMetadata = Utils.MarshalInvoke(KeyValueMetadataFromMetadata<int>, trainLabelColVecType.RawType,
-                                scoreColMetadata, trainLabelColumn.Value);
-                        }
+                        Contracts.Assert(trainLabelColVecType.Size > 0);
+                        _predColMetadata = Utils.MarshalInvoke(KeyValueMetadataFromMetadata<int>, trainLabelColVecType.RawType,
+                            scoreColMetadata, trainLabelColumn.Value);
                     }
                 }
             }
@@ -85,11 +75,9 @@ namespace Microsoft.ML.Data
             private static DataViewSchema.Annotations KeyValueMetadataFromMetadata<T>(DataViewSchema.Annotations meta, DataViewSchema.Column metaCol)
             {
                 Contracts.AssertValue(meta);
-                Contracts.Assert(0 <= metaCol.Index && metaCol.Index < meta.Schema.Count);
                 Contracts.Assert(metaCol.Type.RawType == typeof(T));
-                var getter = meta.GetGetter<T>(metaCol.Index);
                 var builder = new DataViewSchema.Annotations.Builder();
-                builder.Add(AnnotationUtils.Kinds.KeyValues, metaCol.Type, meta.GetGetter<T>(metaCol.Index));
+                builder.Add(AnnotationUtils.Kinds.KeyValues, metaCol.Type, meta.GetGetter<T>(metaCol));
                 return builder.ToAnnotations();
             }
 
@@ -233,13 +221,13 @@ namespace Microsoft.ML.Data
                 }
                 if (iinfo < DerivedColumnCount && _predColMetadata != null)
                 {
-                    int mcol;
-                    if (_predColMetadata.Schema.TryGetColumnIndex(kind, out mcol))
+                    var mcol = _predColMetadata.Schema.GetColumnOrNull(kind);
+                    if (mcol.HasValue)
                     {
                         // REVIEW: In the event that TValue is not the right type, it won't really be
                         // the "right" type of exception. However considering that I consider the metadata
                         // schema as it stands right now to be temporary, let's suppose we don't really care.
-                        _predColMetadata.GetGetter<TValue>(mcol)(ref value);
+                        _predColMetadata.GetGetter<TValue>(mcol.Value)(ref value);
                         return;
                     }
                 }
@@ -419,7 +407,7 @@ namespace Microsoft.ML.Data
             Delegate delScore = null;
             if (predicate(0))
             {
-                Host.Assert(output.IsColumnActive(Bindings.ScoreColumnIndex));
+                Host.Assert(output.IsColumnActive(output.Schema[Bindings.ScoreColumnIndex]));
                 getters[0] = GetPredictedLabelGetter(output, out delScore);
             }
 

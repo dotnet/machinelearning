@@ -31,7 +31,7 @@ namespace Microsoft.ML.RunTests
                 new double[] { 2, 1, 0 }
             };
 
-            var gam = new RegressionGamModelParameters(mlContext, binUpperBounds, binEffects, intercept);
+            var gam = new GamRegressionModelParameters(mlContext, binUpperBounds, binEffects, intercept);
 
             // Check that the model has the right number of shape functions
             Assert.Equal(binUpperBounds.Length, gam.NumberOfShapeFunctions);
@@ -50,15 +50,15 @@ namespace Microsoft.ML.RunTests
                 Utils.AreEqual(binEffects[i], gam.GetBinEffects(i).ToArray());
 
             // Check that the constructor handles null inputs properly
-            Assert.Throws<System.ArgumentNullException>(() => new RegressionGamModelParameters(mlContext, binUpperBounds, null, intercept));
-            Assert.Throws<System.ArgumentNullException>(() => new RegressionGamModelParameters(mlContext, null, binEffects, intercept));
-            Assert.Throws<System.ArgumentNullException>(() => new RegressionGamModelParameters(mlContext, null, null, intercept));
+            Assert.Throws<System.ArgumentNullException>(() => new GamRegressionModelParameters(mlContext, binUpperBounds, null, intercept));
+            Assert.Throws<System.ArgumentNullException>(() => new GamRegressionModelParameters(mlContext, null, binEffects, intercept));
+            Assert.Throws<System.ArgumentNullException>(() => new GamRegressionModelParameters(mlContext, null, null, intercept));
 
             // Check that the constructor handles mismatches in length between bin upper bounds and bin effects
             var misMatchArray = new double[1][];
             misMatchArray[0] = new double[] { 0 };
-            Assert.Throws<System.ArgumentOutOfRangeException>(() => new RegressionGamModelParameters(mlContext, binUpperBounds, misMatchArray, intercept));
-            Assert.Throws<System.ArgumentOutOfRangeException>(() => new RegressionGamModelParameters(mlContext, misMatchArray, binEffects, intercept));
+            Assert.Throws<System.ArgumentOutOfRangeException>(() => new GamRegressionModelParameters(mlContext, binUpperBounds, misMatchArray, intercept));
+            Assert.Throws<System.ArgumentOutOfRangeException>(() => new GamRegressionModelParameters(mlContext, misMatchArray, binEffects, intercept));
 
             // Check that the constructor handles a mismatch in bin upper bounds and bin effects for a feature
             var fewerBinEffects = new double[2][]
@@ -66,13 +66,13 @@ namespace Microsoft.ML.RunTests
                 new double[] { 0, 1 },
                 new double[] { 2, 1, 0 }
             };
-            Assert.Throws<System.ArgumentOutOfRangeException>(() => new RegressionGamModelParameters(mlContext, binUpperBounds, fewerBinEffects, intercept));
+            Assert.Throws<System.ArgumentOutOfRangeException>(() => new GamRegressionModelParameters(mlContext, binUpperBounds, fewerBinEffects, intercept));
             var moreBinEffects = new double[2][]
             {
                 new double[] { 0, 1, 2, 3 },
                 new double[] { 2, 1, 0 }
             };
-            Assert.Throws<System.ArgumentOutOfRangeException>(() => new RegressionGamModelParameters(mlContext, binUpperBounds, moreBinEffects, intercept));
+            Assert.Throws<System.ArgumentOutOfRangeException>(() => new GamRegressionModelParameters(mlContext, binUpperBounds, moreBinEffects, intercept));
 
             // Check that the constructor handles bin upper bounds that are not sorted
             var unsortedUpperBounds = new double[2][]
@@ -80,7 +80,7 @@ namespace Microsoft.ML.RunTests
                 new double[] { 1, 3, 2 },
                 new double[] { 4, 5, 6 }
             };
-            Assert.Throws<System.ArgumentOutOfRangeException>(() => new RegressionGamModelParameters(mlContext, unsortedUpperBounds, binEffects, intercept));
+            Assert.Throws<System.ArgumentOutOfRangeException>(() => new GamRegressionModelParameters(mlContext, unsortedUpperBounds, binEffects, intercept));
         }
 
         private void CheckArrayOfArrayEquality(double[][] array1, double[][] array2)

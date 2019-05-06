@@ -5,7 +5,6 @@
 using System;
 using System.IO;
 using System.Linq;
-using Microsoft.Data.DataView;
 using Microsoft.ML.Data;
 using Microsoft.ML.Model;
 using Microsoft.ML.RunTests;
@@ -48,6 +47,60 @@ namespace Microsoft.ML.Tests.Transformers
             public float[] AM;
             [VectorType(2)]
             public double[] AN;
+        }
+
+        private sealed class TestPrimitiveClassConverted
+        {
+            [VectorType(2)]
+            public string[] AA;
+            [VectorType(2)]
+            public bool[] AB;
+            [VectorType(2)]
+            public int[] AC;
+            [VectorType(2)]
+            public uint[] AD;
+            [VectorType(2)]
+            public byte[] AE;
+            [VectorType(2)]
+            public sbyte[] AF;
+            [VectorType(2)]
+            public short[] AG;
+            [VectorType(2)]
+            public ushort[] AH;
+            [VectorType(2)]
+            public long[] AK;
+            [VectorType(2)]
+            public ulong[] AL;
+            [VectorType(2)]
+            public float[] AM;
+            [VectorType(2)]
+            public double[] AN;
+            [VectorType(2)]
+            public float[] ConvA;
+            [VectorType(2)]
+            public float[] ConvB;
+            [VectorType(2)]
+            public float[] ConvC;
+            [VectorType(2)]
+            public float[] ConvD;
+            [VectorType(2)]
+            public float[] ConvE;
+            [VectorType(2)]
+            public float[] ConvF;
+            [VectorType(2)]
+            public float[] ConvG;
+            [VectorType(2)]
+            public float[] ConvH;
+            [VectorType(2)]
+            public float[] ConvK;
+            [VectorType(2)]
+            public float[] ConvL;
+            [VectorType(2)]
+            public float[] ConvM;
+            [VectorType(2)]
+            public float[] ConvN;
+            [VectorType(2)]
+            public int[] ConvBI;
         }
 
         private sealed class TestClass
@@ -131,12 +184,70 @@ namespace Microsoft.ML.Tests.Transformers
             );
             TestEstimatorCore(allTypesPipe, allTypesDataView);
 
-            var outputPath = GetOutputPath("Convert", "Types.tsv");
-            var savedData = ML.Data.TakeRows(allTypesPipe.Fit(allTypesDataView).Transform(allTypesDataView), 2);
-            using (var fs = File.Create(outputPath))
-                ML.Data.SaveAsText(savedData, fs, headerRow: true, keepHidden: true);
+            var actualConvertedValues = allTypesPipe.Fit(allTypesDataView).Transform(allTypesDataView);
 
-            CheckEquality("Convert", "Types.tsv");
+            var allTypesDataConverted = new[]
+            {
+                new TestPrimitiveClassConverted()
+                {
+                    AA = new []{"a", "b"},
+                    AB = new []{false, true},
+                    AC = new []{ -1,1},
+                    AD = new uint[]{ 0,1},
+                    AE = new byte[]{ 0,1},
+                    AF = new sbyte[]{ -1,1},
+                    AG = new short[]{ -1,1},
+                    AH = new ushort[]{0, 1},
+                    AK = new long[]{ -1,1},
+                    AL = new ulong[]{ 0,1},
+                    AM = new float[]{ 1.0f,1.0f,},
+                    AN = new double[]{ 1.0d,1.0d,},
+                    ConvA = new float[] { float.NaN, float.NaN },
+                    ConvB = new float[] { 0, 1 },
+                    ConvC = new float[] { -1, 1 },
+                    ConvD = new float[] { 0, 1 },
+                    ConvE = new float[] { 0, 1 },
+                    ConvF = new float[] { -1, 1 },
+                    ConvG = new float[] { -1, 1 },
+                    ConvH = new float[] { 0, 1},
+                    ConvK = new float[] { -1, 1 },
+                    ConvL = new float[] { 0, 1 },
+                    ConvM = new float[] { 1, 1 },
+                    ConvN = new float[] { 1, 1 },
+                    ConvBI = new int[] { 0, 1 },
+                },
+                new TestPrimitiveClassConverted()
+                {
+                    AA = new []{"0", "1"},
+                    AB = new []{true, false},
+                    AC = new []{ int.MinValue, int.MaxValue},
+                    AD = new uint[]{ uint.MinValue, uint.MaxValue},
+                    AE = new byte[]{ byte.MinValue, byte.MaxValue},
+                    AF = new sbyte[]{ sbyte.MinValue, sbyte.MaxValue},
+                    AG = new short[]{ short.MinValue, short.MaxValue},
+                    AH = new ushort[]{ ushort.MinValue, ushort.MaxValue},
+                    AK = new long[]{ long.MinValue, long.MaxValue},
+                    AL = new ulong[]{ ulong.MinValue, ulong.MaxValue},
+                    AM = new float[]{ float.MinValue, float.MaxValue,},
+                    AN = new double[]{ double.MinValue, double.MaxValue,},
+                    ConvA = new float[] { 0, 1 },
+                    ConvB = new float[] { 1, 0 },
+                    ConvC = new float[] { int.MinValue, int.MaxValue },
+                    ConvD = new float[] { uint.MinValue, uint.MaxValue },
+                    ConvE = new float[] { byte.MinValue, byte.MaxValue },
+                    ConvF = new float[] { sbyte.MinValue, sbyte.MaxValue },
+                    ConvG = new float[] { short.MinValue, short.MaxValue },
+                    ConvH = new float[] { ushort.MinValue, ushort.MaxValue },
+                    ConvK = new float[] { long.MinValue, long.MaxValue },
+                    ConvL = new float[] { ulong.MinValue, ulong.MaxValue },
+                    ConvM = new float[] { float.MinValue, float.MaxValue },
+                    ConvN = new float[] { float.NegativeInfinity, float.PositiveInfinity },
+                    ConvBI = new int[] { 1, 0 },
+                }
+            };
+            var expectedConvertedValues = ML.Data.LoadFromEnumerable(allTypesDataConverted);
+
+            CheckSameValues(expectedConvertedValues, actualConvertedValues);
             Done();
         }
 
@@ -205,8 +316,8 @@ namespace Microsoft.ML.Tests.Transformers
             var data = new[] { new MetaClass() { A = 1, B = "A" },
                                new MetaClass() { A = 2, B = "B" }};
             var pipe = ML.Transforms.Categorical.OneHotEncoding(new[] {
-                new OneHotEncodingEstimator.ColumnOptions("CatA", "A", OneHotEncodingTransformer.OutputKind.Ind),
-                new OneHotEncodingEstimator.ColumnOptions("CatB", "B", OneHotEncodingTransformer.OutputKind.Key)
+                new OneHotEncodingEstimator.ColumnOptions("CatA", "A", OneHotEncodingEstimator.OutputKind.Indicator),
+                new OneHotEncodingEstimator.ColumnOptions("CatB", "B", OneHotEncodingEstimator.OutputKind.Key)
             }).Append(ML.Transforms.Conversion.ConvertType(new[] {
                 new TypeConvertingEstimator.ColumnOptions("ConvA", DataKind.Double, "CatA"),
                 new TypeConvertingEstimator.ColumnOptions("ConvB", DataKind.UInt16, "CatB")
@@ -262,7 +373,7 @@ namespace Microsoft.ML.Tests.Transformers
             using (var ch = Env.Start("load"))
             {
                 using (var fs = File.OpenRead(modelPath))
-                    modelOld = ML.Model.Load(fs);
+                    modelOld = ML.Model.Load(fs, out var schema);
             }
             var outDataOld = modelOld.Transform(dataView);
 

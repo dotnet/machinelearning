@@ -1,53 +1,53 @@
 ---- BoundLoader ----
 5 columns:
-  A: Text
-  K: Vec<Key<U4, 0-10>, 2>
-  KS: Key<U4, 0-10>
-  B: Text
-  E: Text
+  A: String
+  K: Vector<Key<UInt32, 0-10>, 2>
+  KS: Key<UInt32, 0-10>
+  B: String
+  E: String
 ---- RowToRowMapperTransform ----
 7 columns:
-  A: Text
-  K: Vec<Key<U4, 0-10>, 2>
-  KS: Key<U4, 0-10>
-  B: Text
-  E: Text
-  AH: Key<U4, 0-7>
-    Metadata 'KeyValues': Vec<Text, 8>: Length=8, Count=8
+  A: String
+  K: Vector<Key<UInt32, 0-10>, 2>
+  KS: Key<UInt32, 0-10>
+  B: String
+  E: String
+  AH: Key<UInt32, 0-7>
+    Metadata 'KeyValues': Vector<String, 8>: Length=8, Count=8
       [1] 'an angry ant', [4] 'annie ate an ant'
-  KH: Key<U4, 0-7>
-    Metadata 'KeyValues': Vec<Text, 8>: Length=8, Count=8
+  KH: Key<UInt32, 0-7>
+    Metadata 'KeyValues': Vector<String, 8>: Length=8, Count=8
       [0] '4', [1] '3'
 ---- RowToRowMapperTransform ----
 9 columns:
-  A: Text
-  K: Vec<Key<U4, 0-10>, 2>
-  KS: Key<U4, 0-10>
-  B: Text
-  E: Text
-  AH: Key<U4, 0-7>
-    Metadata 'KeyValues': Vec<Text, 8>: Length=8, Count=8
+  A: String
+  K: Vector<Key<UInt32, 0-10>, 2>
+  KS: Key<UInt32, 0-10>
+  B: String
+  E: String
+  AH: Key<UInt32, 0-7>
+    Metadata 'KeyValues': Vector<String, 8>: Length=8, Count=8
       [1] 'an angry ant', [4] 'annie ate an ant'
-  AH: Vec<R4, 8>
-    Metadata 'IsNormalized': Bool: '1'
-    Metadata 'SlotNames': Vec<Text, 8>: Length=8, Count=8
+  AH: Vector<Single, 8>
+    Metadata 'IsNormalized': Boolean: '1'
+    Metadata 'SlotNames': Vector<String, 8>: Length=8, Count=8
       [1] 'an angry ant', [4] 'annie ate an ant'
-  KH: Key<U4, 0-7>
-    Metadata 'KeyValues': Vec<Text, 8>: Length=8, Count=8
+  KH: Key<UInt32, 0-7>
+    Metadata 'KeyValues': Vector<String, 8>: Length=8, Count=8
       [0] '4', [1] '3'
-  KH: Vec<R4, 8>
-    Metadata 'IsNormalized': Bool: '1'
-    Metadata 'SlotNames': Vec<Text, 8>: Length=8, Count=8
+  KH: Vector<Single, 8>
+    Metadata 'IsNormalized': Boolean: '1'
+    Metadata 'SlotNames': Vector<String, 8>: Length=8, Count=8
       [0] '4', [1] '3'
 ---- SelectColumnsDataTransform ----
 4 columns:
-  A: Text
-  KS: Key<U4, 0-10>
-  AH: Vec<R4, 8>
-    Metadata 'IsNormalized': Bool: '1'
-    Metadata 'SlotNames': Vec<Text, 8>: Length=8, Count=8
+  A: String
+  KS: Key<UInt32, 0-10>
+  AH: Vector<Single, 8>
+    Metadata 'IsNormalized': Boolean: '1'
+    Metadata 'SlotNames': Vector<String, 8>: Length=8, Count=8
       [1] 'an angry ant', [4] 'annie ate an ant'
-  KH: Vec<R4, 8>
-    Metadata 'IsNormalized': Bool: '1'
-    Metadata 'SlotNames': Vec<Text, 8>: Length=8, Count=8
+  KH: Vector<Single, 8>
+    Metadata 'IsNormalized': Boolean: '1'
+    Metadata 'SlotNames': Vector<String, 8>: Length=8, Count=8
       [0] '4', [1] '3'

@@ -4,7 +4,6 @@
 
 using System;
 using System.Linq;
-using Microsoft.Data.DataView;
 using Microsoft.ML.Data;
 using Microsoft.ML.Trainers.FastTree;
 using Xunit;
@@ -17,12 +16,12 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         public void TreeEnsembleFeaturizerOutputSchemaTest()
         {
             // Create data set
-            var data = SamplesUtils.DatasetUtils.GenerateBinaryLabelFloatFeatureVectorSamples(1000).ToList();
+            var data = SamplesUtils.DatasetUtils.GenerateBinaryLabelFloatFeatureVectorFloatWeightSamples(1000).ToList();
             var dataView = ML.Data.LoadFromEnumerable(data);
 
             // Define a tree model whose trees will be extracted to construct a tree featurizer.
             var trainer = ML.BinaryClassification.Trainers.FastTree(
-                new FastTreeBinaryClassificationTrainer.Options
+                new FastTreeBinaryTrainer.Options
                 {
                     NumberOfThreads = 1,
                     NumberOfTrees = 10,
@@ -37,8 +36,8 @@ namespace Microsoft.ML.Tests.TrainerEstimators
 
             // To get output schema, we need to create RoleMappedSchema for calling Bind(...).
             var roleMappedSchema = new RoleMappedSchema(dataView.Schema,
-                label: nameof(SamplesUtils.DatasetUtils.BinaryLabelFloatFeatureVectorSample.Label),
-                feature: nameof(SamplesUtils.DatasetUtils.BinaryLabelFloatFeatureVectorSample.Features));
+                label: nameof(SamplesUtils.DatasetUtils.BinaryLabelFloatFeatureVectorFloatWeightSample.Label),
+                feature: nameof(SamplesUtils.DatasetUtils.BinaryLabelFloatFeatureVectorFloatWeightSample.Features));
 
             // Retrieve output schema. 
             var boundMapper = (treeFeaturizer as ISchemaBindableMapper).Bind(Env, roleMappedSchema);
@@ -48,7 +47,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                 // Check if output schema is correct.
                 var treeValuesColumn = outputSchema[0];
                 Assert.Equal("Trees", treeValuesColumn.Name);
-                VectorType treeValuesType = treeValuesColumn.Type as VectorType;
+                VectorDataViewType treeValuesType = treeValuesColumn.Type as VectorDataViewType;
                 Assert.NotNull(treeValuesType);
                 Assert.Equal(NumberDataViewType.Single, treeValuesType.ItemType);
                 Assert.Equal(10, treeValuesType.Size);
@@ -66,7 +65,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                 var treeLeafIdsColumn = outputSchema[1];
                 // Check column of tree leaf IDs.
                 Assert.Equal("Leaves", treeLeafIdsColumn.Name);
-                VectorType treeLeafIdsType = treeLeafIdsColumn.Type as VectorType;
+                VectorDataViewType treeLeafIdsType = treeLeafIdsColumn.Type as VectorDataViewType;
                 Assert.NotNull(treeLeafIdsType);
                 Assert.Equal(NumberDataViewType.Single, treeLeafIdsType.ItemType);
                 Assert.Equal(50, treeLeafIdsType.Size);
@@ -89,7 +88,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                 var treePathIdsColumn = outputSchema[2];
                 // Check column of path IDs.
                 Assert.Equal("Paths", treePathIdsColumn.Name);
-                VectorType treePathIdsType = treePathIdsColumn.Type as VectorType;
+                VectorDataViewType treePathIdsType = treePathIdsColumn.Type as VectorDataViewType;
                 Assert.NotNull(treePathIdsType);
                 Assert.Equal(NumberDataViewType.Single, treePathIdsType.ItemType);
                 Assert.Equal(40, treePathIdsType.Size);

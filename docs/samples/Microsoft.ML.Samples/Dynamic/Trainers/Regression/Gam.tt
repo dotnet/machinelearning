@@ -1,0 +1,24 @@
+﻿<#@ include file="RegressionSamplesTemplate.ttinclude"#>
+
+<#+
+string ClassHeader = @"// This example requires installation of additional NuGet package
+        // <a href=""https://www.nuget.org/packages/Microsoft.ML.FastTree/"">Microsoft.ML.FastTree</a>. ";
+
+string ClassName="Gam";
+string ExtraUsing = null;
+string Trainer = @"Gam(labelColumnName: nameof(DataPoint.Label), featureColumnName: nameof(DataPoint.Features))";
+string TrainerOptions = null;
+
+string ExpectedOutputPerInstance= @"// Expected output:
+            //   Label: 0.985, Prediction: 0.948
+            //   Label: 0.155, Prediction: 0.089
+            //   Label: 0.515, Prediction: 0.463
+            //   Label: 0.566, Prediction: 0.509
+            //   Label: 0.096, Prediction: 0.106";
+
+string ExpectedOutput = @"// Expected output:
+            //   Mean Absolute Error: 0.03
+            //   Mean Squared Error: 0.00
+            //   Root Mean Squared Error: 0.03
+            //   RSquared: 0.99 (closer to 1 is better. The worest case is 0)";
+#>

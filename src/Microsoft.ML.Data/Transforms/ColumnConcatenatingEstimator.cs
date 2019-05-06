@@ -5,14 +5,36 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Microsoft.Data.DataView;
 using Microsoft.ML.Data;
+using Microsoft.ML.Runtime;
 
 namespace Microsoft.ML.Transforms
 {
+
     /// <summary>
-    /// Concatenates columns in an <see cref="IDataView"/> into one single column. Estimator for the <see cref="ColumnConcatenatingTransformer"/>.
+    /// Concatenates one or more input columns into a new output column.
     /// </summary>
+    /// <remarks>
+    /// <format type="text/markdown"><![CDATA[
+    ///
+    /// ###  Estimator Characteristics
+    /// |  |  |
+    /// | -- | -- |
+    /// | Does this estimator need to look at the data to train its parameters? | No |
+    /// | Input column data type | Any, except [key](xref:Microsoft.ML.Data.KeyDataViewType) type. All input columns must have the same type.  |
+    /// | Output column data type | A vector of the input columns' data type |
+    ///
+    /// The resulting <xref:Microsoft.ML.Data.ColumnConcatenatingTransformer> creates a new column,
+    /// named as specified in the output column name parameters, where the input values are concatenated in a vector.
+    /// The order of the concatenation follows the order in which the input columns are specified.
+    ///
+    /// If the input columns' data type is a vector the output column data type remains the same. However, the size of
+    /// the vector will be the sum of the sizes of the input vectors.
+    ///
+    /// Check the See Also section for links to usage examples.
+    /// ]]></format>
+    /// </remarks>
+    /// <seealso cref="TransformExtensionsCatalog.Concatenate(TransformsCatalog, string, string[])"/>
     public sealed class ColumnConcatenatingEstimator : IEstimator<ColumnConcatenatingTransformer>
     {
         private readonly IHost _host;
@@ -28,7 +50,7 @@ namespace Microsoft.ML.Transforms
         internal ColumnConcatenatingEstimator(IHostEnvironment env, string outputColumnName, params string[] inputColumnNames)
         {
             Contracts.CheckValue(env, nameof(env));
-            _host = env.Register("ColumnConcatenatingEstimator ");
+            _host = env.Register(nameof(ColumnConcatenatingEstimator));
 
             _host.CheckNonEmpty(outputColumnName, nameof(outputColumnName));
             _host.CheckValue(inputColumnNames, nameof(inputColumnNames));
@@ -87,12 +109,12 @@ namespace Microsoft.ML.Transforms
                 // Appending keys makes no real sense anyway.
                 if (col.IsKey)
                 {
-                    throw _host.Except($"Column '{sources[i]}' is key." +
+                    throw _host.Except($"Column '{sources[i]}' is key. " +
                         $"Concatenation of keys is unsupported.");
                 }
                 if (!col.ItemType.Equals(itemType))
                 {
-                    throw _host.Except($"Column '{sources[i]}' has values of {col.ItemType}" +
+                    throw _host.Except($"Column '{sources[i]}' has values of {col.ItemType}, " +
                         $"which is not the same as earlier observed type of {itemType}.");
                 }
                 varVector |= col.Kind == SchemaShape.Column.VectorKind.VariableVector;

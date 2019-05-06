@@ -9,7 +9,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Microsoft.Data.DataView\Microsoft.Data.DataView.csproj" />
+    <ProjectReference Include="..\Microsoft.ML.DataView\Microsoft.ML.DataView.csproj" />
     
     <PackageReference Include="System.Collections.Immutable" Version="$(SystemCollectionsImmutableVersion)" />
     <PackageReference Include="System.Memory" Version="$(SystemMemoryVersion)" />

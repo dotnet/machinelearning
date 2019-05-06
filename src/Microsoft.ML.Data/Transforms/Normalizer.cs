@@ -7,11 +7,11 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
-using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.Data;
 using Microsoft.ML.Model.OnnxConverter;
 using Microsoft.ML.Model.Pfa;
+using Microsoft.ML.Runtime;
 using Microsoft.ML.Transforms;
 using Newtonsoft.Json.Linq;
 
@@ -26,20 +26,60 @@ using Newtonsoft.Json.Linq;
 
 namespace Microsoft.ML.Transforms
 {
+    /// <summary>
+    /// <see cref="IEstimator{TTransformer}"/> for the <see cref="NormalizingTransformer"/>.
+    /// </summary>
+    /// <remarks>
+    /// <format type="text/markdown"><![CDATA[
+    ///
+    /// ###  Estimator Characteristics
+    /// |  |  |
+    /// | -- | -- |
+    /// | Does this estimator need to look at the data to train its parameters? | Yes |
+    /// | Input column data type | <xref:System.Single> or <xref:System.Double> or a known-sized vector of those types. |
+    /// | Output column data type | The same data type as the input column |
+    ///
+    /// The resulting NormalizingEstimator will normalize the data in one of the following ways based upon how it was created:
+    /// * Min Max - A linear rescale that is based upon the minimum and maximum values for each row.
+    /// * Mean Variance - Rescale each row to unit variance and, optionally, zero mean.
+    /// * Log Mean Variance - Rescale each row to unit variance based on a log scale.
+    /// * Binning - Bucketizes the data in each row and performs a linear rescale based on the calculated bins.
+    /// * Supervised Binning - Bucketize the data in each row and performas a linear rescale based on the calculated bins. The bin calculation is based on correlation of the Label column.
+    ///
+    /// ### Estimator Details
+    /// The interval of the normalized data depends on whether fixZero is specified or not. fixZero defaults to true.
+    /// When fixZero is false, the normalized interval is $[0,1]$ and the distribution of the normalized values depends on the normalization mode. For example, with Min Max, the minimum
+    /// and maximum values are mapped to 0 and 1 respectively and remaining values fall in between.
+    /// When fixZero is set, the normalized interval is $[-1,1]$ with the distribution of the normalized values depending on the normalization mode, but the behavior is different.
+    /// With Min Max, the distribution depends on how far away the number is from 0, resulting in the number with the largest distance being mapped to 1 if its a positive number
+    /// or -1 if its a negative number. The distance from 0 will affect the distribution with a majority of numbers that are closer together normalizing towards 0.
+    ///
+    /// To create this estimator use one of the following:
+    /// * [NormalizeMinMax](xref:Microsoft.ML.NormalizationCatalog.NormalizeMinMax(Microsoft.ML.TransformsCatalog, System.String, System.String, System.Int64, System.Boolean))
+    /// * [NormalizeMeanVariance](xref:Microsoft.ML.NormalizationCatalog.NormalizeMeanVariance(Microsoft.ML.TransformsCatalog,System.String,System.String,System.Int64,System.Boolean,System.Boolean))
+    /// * [NormalizeLogMeanVariance](xref:Microsoft.ML.NormalizationCatalog.NormalizeLogMeanVariance(Microsoft.ML.TransformsCatalog,System.String,System.String,System.Int64,System.Boolean))
+    /// * [NormalizeBinning](xref:Microsoft.ML.NormalizationCatalog.NormalizeBinning(Microsoft.ML.TransformsCatalog,System.String,System.String,System.Int64,System.Boolean,System.Int32))
+    /// * [NormalizeSupervisedBinning](xref:Microsoft.ML.NormalizationCatalog.NormalizeSupervisedBinning(Microsoft.ML.TransformsCatalog,System.String,System.String,System.String,System.Int64,System.Boolean,System.Int32,System.Int32))
+    ///
+    /// Check the above links for usage examples.
+    /// ]]>
+    /// </format>
+    /// </remarks>
     public sealed class NormalizingEstimator : IEstimator<NormalizingTransformer>
     {
         [BestFriend]
         internal static class Defaults
         {
-            public const bool FixZero = true;
+            public const bool EnsureZeroUntouched = true;
             public const bool MeanVarCdf = false;
             public const bool LogMeanVarCdf = true;
-            public const int NumBins = 1024;
-            public const int MinBinSize = 10;
-            public const long MaxTrainingExamples = 1000000000;
+            public const int MaximumBinCount = 1024;
+            public const int MininimumBinSize = 10;
+            public const long MaximumExampleCount = 1000000000;
         }
 
-        public enum NormalizerMode
+        [BestFriend]
+        internal enum NormalizationMode
         {
             /// <summary>
             /// Linear rescale such that minimum and maximum values are mapped between -1 and 1.
@@ -63,38 +103,39 @@ namespace Microsoft.ML.Transforms
             SupervisedBinning = 4
         }
 
-        public abstract class ColumnOptionsBase
+        [BestFriend]
+        internal abstract class ColumnOptionsBase
         {
             public readonly string Name;
             public readonly string InputColumnName;
-            public readonly long MaxTrainingExamples;
+            public readonly long MaximumExampleCount;
 
-            private protected ColumnOptionsBase(string name, string inputColumnName, long maxTrainingExamples)
+            private protected ColumnOptionsBase(string name, string inputColumnName, long maximumExampleCount)
             {
                 Contracts.CheckNonEmpty(name, nameof(name));
                 Contracts.CheckNonEmpty(inputColumnName, nameof(inputColumnName));
-                Contracts.CheckParam(maxTrainingExamples > 1, nameof(maxTrainingExamples), "Must be greater than 1");
+                Contracts.CheckParam(maximumExampleCount > 1, nameof(maximumExampleCount), "Must be greater than 1");
 
                 Name = name;
                 InputColumnName = inputColumnName;
-                MaxTrainingExamples = maxTrainingExamples;
+                MaximumExampleCount = maximumExampleCount;
             }
 
             internal abstract IColumnFunctionBuilder MakeBuilder(IHost host, int srcIndex, DataViewType srcType, DataViewRowCursor cursor);
 
-            internal static ColumnOptionsBase Create(string outputColumnName, string inputColumnName, NormalizerMode mode)
+            internal static ColumnOptionsBase Create(string outputColumnName, string inputColumnName, NormalizationMode mode)
             {
                 switch (mode)
                 {
-                    case NormalizerMode.MinMax:
+                    case NormalizationMode.MinMax:
                         return new MinMaxColumnOptions(outputColumnName, inputColumnName);
-                    case NormalizerMode.MeanVariance:
-                        return new MeanVarColumnOptions(outputColumnName, inputColumnName);
-                    case NormalizerMode.LogMeanVariance:
-                        return new LogMeanVarColumnOptions(outputColumnName, inputColumnName);
-                    case NormalizerMode.Binning:
+                    case NormalizationMode.MeanVariance:
+                        return new MeanVarianceColumnOptions(outputColumnName, inputColumnName);
+                    case NormalizationMode.LogMeanVariance:
+                        return new LogMeanVarianceColumnOptions(outputColumnName, inputColumnName);
+                    case NormalizationMode.Binning:
                         return new BinningColumnOptions(outputColumnName, inputColumnName);
-                    case NormalizerMode.SupervisedBinning:
+                    case NormalizationMode.SupervisedBinning:
                         return new SupervisedBinningColumOptions(outputColumnName, inputColumnName);
                     default:
                         throw Contracts.ExceptParam(nameof(mode), "Unknown normalizer mode");
@@ -102,21 +143,22 @@ namespace Microsoft.ML.Transforms
             }
         }
 
-        public abstract class FixZeroColumnOptionsBase : ColumnOptionsBase
+        internal abstract class ControlZeroColumnOptionsBase : ColumnOptionsBase
         {
-            public readonly bool FixZero;
+            public readonly bool EnsureZeroUntouched;
 
-            private protected FixZeroColumnOptionsBase(string outputColumnName, string inputColumnName, long maxTrainingExamples, bool fixZero)
-                : base(outputColumnName, inputColumnName, maxTrainingExamples)
+            private protected ControlZeroColumnOptionsBase(string outputColumnName, string inputColumnName, long maximumExampleCount, bool ensureZeroUntouched)
+                : base(outputColumnName, inputColumnName, maximumExampleCount)
             {
-                FixZero = fixZero;
+                EnsureZeroUntouched = ensureZeroUntouched;
             }
         }
 
-        public sealed class MinMaxColumnOptions : FixZeroColumnOptionsBase
+        [BestFriend]
+        internal sealed class MinMaxColumnOptions : ControlZeroColumnOptionsBase
         {
-            public MinMaxColumnOptions(string outputColumnName, string inputColumnName = null, long maxTrainingExamples = Defaults.MaxTrainingExamples, bool fixZero = Defaults.FixZero)
-                : base(outputColumnName, inputColumnName ?? outputColumnName, maxTrainingExamples, fixZero)
+            public MinMaxColumnOptions(string outputColumnName, string inputColumnName = null, long maximumExampleCount = Defaults.MaximumExampleCount, bool ensureZeroUntouched = Defaults.EnsureZeroUntouched)
+                : base(outputColumnName, inputColumnName ?? outputColumnName, maximumExampleCount, ensureZeroUntouched)
             {
             }
 
@@ -124,13 +166,14 @@ namespace Microsoft.ML.Transforms
                 => NormalizeTransform.MinMaxUtils.CreateBuilder(this, host, srcIndex, srcType, cursor);
         }
 
-        public sealed class MeanVarColumnOptions : FixZeroColumnOptionsBase
+        [BestFriend]
+        internal sealed class MeanVarianceColumnOptions : ControlZeroColumnOptionsBase
         {
             public readonly bool UseCdf;
 
-            public MeanVarColumnOptions(string outputColumnName, string inputColumnName = null,
-                long maxTrainingExamples = Defaults.MaxTrainingExamples, bool fixZero = Defaults.FixZero, bool useCdf = Defaults.MeanVarCdf)
-                : base(outputColumnName, inputColumnName ?? outputColumnName, maxTrainingExamples, fixZero)
+            public MeanVarianceColumnOptions(string outputColumnName, string inputColumnName = null,
+                long maximumExampleCount = Defaults.MaximumExampleCount, bool fixZero = Defaults.EnsureZeroUntouched, bool useCdf = Defaults.MeanVarCdf)
+                : base(outputColumnName, inputColumnName ?? outputColumnName, maximumExampleCount, fixZero)
             {
                 UseCdf = useCdf;
             }
@@ -139,13 +182,14 @@ namespace Microsoft.ML.Transforms
                 => NormalizeTransform.MeanVarUtils.CreateBuilder(this, host, srcIndex, srcType, cursor);
         }
 
-        public sealed class LogMeanVarColumnOptions : ColumnOptionsBase
+        [BestFriend]
+        internal sealed class LogMeanVarianceColumnOptions : ColumnOptionsBase
         {
             public readonly bool UseCdf;
 
-            public LogMeanVarColumnOptions(string outputColumnName, string inputColumnName = null,
-                long maxTrainingExamples = Defaults.MaxTrainingExamples, bool useCdf = Defaults.LogMeanVarCdf)
-                : base(outputColumnName, inputColumnName ?? outputColumnName, maxTrainingExamples)
+            public LogMeanVarianceColumnOptions(string outputColumnName, string inputColumnName = null,
+                long maximumExampleCount = Defaults.MaximumExampleCount, bool useCdf = Defaults.LogMeanVarCdf)
+                : base(outputColumnName, inputColumnName ?? outputColumnName, maximumExampleCount)
             {
                 UseCdf = useCdf;
             }
@@ -154,42 +198,44 @@ namespace Microsoft.ML.Transforms
                 => NormalizeTransform.LogMeanVarUtils.CreateBuilder(this, host, srcIndex, srcType, cursor);
         }
 
-        public sealed class BinningColumnOptions : FixZeroColumnOptionsBase
+        [BestFriend]
+        internal sealed class BinningColumnOptions : ControlZeroColumnOptionsBase
         {
-            public readonly int NumBins;
+            public readonly int MaximumBinCount;
 
             public BinningColumnOptions(string outputColumnName, string inputColumnName = null,
-                long maxTrainingExamples = Defaults.MaxTrainingExamples, bool fixZero = true, int numBins = Defaults.NumBins)
-                : base(outputColumnName, inputColumnName ?? outputColumnName, maxTrainingExamples, fixZero)
+                long maximumExampleCount = Defaults.MaximumExampleCount, bool fixZero = true, int maximumBinCount = Defaults.MaximumBinCount)
+                : base(outputColumnName, inputColumnName ?? outputColumnName, maximumExampleCount, fixZero)
             {
-                NumBins = numBins;
+                MaximumBinCount = maximumBinCount;
             }
 
             internal override IColumnFunctionBuilder MakeBuilder(IHost host, int srcIndex, DataViewType srcType, DataViewRowCursor cursor)
                 => NormalizeTransform.BinUtils.CreateBuilder(this, host, srcIndex, srcType, cursor);
         }
 
-        public sealed class SupervisedBinningColumOptions : FixZeroColumnOptionsBase
+        [BestFriend]
+        internal sealed class SupervisedBinningColumOptions : ControlZeroColumnOptionsBase
         {
-            public readonly int NumBins;
-            public readonly string LabelColumn;
-            public readonly int MinBinSize;
+            public readonly int MaximumBinCount;
+            public readonly string LabelColumnName;
+            public readonly int MininimumBinSize;
 
             public SupervisedBinningColumOptions(string outputColumnName, string inputColumnName = null,
-                string labelColumn = DefaultColumnNames.Label,
-                long maxTrainingExamples = Defaults.MaxTrainingExamples,
+                string labelColumnName = DefaultColumnNames.Label,
+                long maximumExampleCount = Defaults.MaximumExampleCount,
                 bool fixZero = true,
-                int numBins = Defaults.NumBins,
-                int minBinSize = Defaults.MinBinSize)
-                : base(outputColumnName, inputColumnName ?? outputColumnName, maxTrainingExamples, fixZero)
+                int maximumBinCount = Defaults.MaximumBinCount,
+                int mininimumBinSize = Defaults.MininimumBinSize)
+                : base(outputColumnName, inputColumnName ?? outputColumnName, maximumExampleCount, fixZero)
             {
-                NumBins = numBins;
-                LabelColumn = labelColumn;
-                MinBinSize = minBinSize;
+                MaximumBinCount = maximumBinCount;
+                LabelColumnName = labelColumnName;
+                MininimumBinSize = mininimumBinSize;
             }
 
             internal override IColumnFunctionBuilder MakeBuilder(IHost host, int srcIndex, DataViewType srcType, DataViewRowCursor cursor)
-                => NormalizeTransform.SupervisedBinUtils.CreateBuilder(this, host, LabelColumn, srcIndex, srcType, cursor);
+                => NormalizeTransform.SupervisedBinUtils.CreateBuilder(this, host, LabelColumnName, srcIndex, srcType, cursor);
         }
 
         private readonly IHost _host;
@@ -202,8 +248,8 @@ namespace Microsoft.ML.Transforms
         /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.</param>
         /// <param name="inputColumnName">Name of the column to transform.
         /// If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.</param>
-        /// <param name="mode">The <see cref="NormalizerMode"/> indicating how to the old values are mapped to the new values.</param>
-        internal NormalizingEstimator(IHostEnvironment env, string outputColumnName, string inputColumnName = null, NormalizerMode mode = NormalizerMode.MinMax)
+        /// <param name="mode">The <see cref="NormalizationMode"/> indicating how to the old values are mapped to the new values.</param>
+        internal NormalizingEstimator(IHostEnvironment env, string outputColumnName, string inputColumnName = null, NormalizationMode mode = NormalizationMode.MinMax)
             : this(env, mode, (outputColumnName, inputColumnName ?? outputColumnName))
         {
         }
@@ -212,9 +258,9 @@ namespace Microsoft.ML.Transforms
         /// Initializes a new instance of <see cref="NormalizingEstimator"/>.
         /// </summary>
         /// <param name="env">The private instance of <see cref="IHostEnvironment"/>.</param>
-        /// <param name="mode">The <see cref="NormalizerMode"/> indicating how to the old values are mapped to the new values.</param>
+        /// <param name="mode">The <see cref="NormalizationMode"/> indicating how to the old values are mapped to the new values.</param>
         /// <param name="columns">An array of (outputColumnName, inputColumnName) tuples.</param>
-        internal NormalizingEstimator(IHostEnvironment env, NormalizerMode mode, params (string outputColumnName, string inputColumnName)[] columns)
+        internal NormalizingEstimator(IHostEnvironment env, NormalizationMode mode, params (string outputColumnName, string inputColumnName)[] columns)
         {
             Contracts.CheckValue(env, nameof(env));
             _host = env.Register(nameof(NormalizingEstimator));
@@ -262,7 +308,7 @@ namespace Microsoft.ML.Transforms
                     throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.InputColumnName, "known-size vector or scalar", col.GetTypeString());
 
                 if (!col.ItemType.Equals(NumberDataViewType.Single) && !col.ItemType.Equals(NumberDataViewType.Double))
-                    throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.InputColumnName, "vector or scalar of float or double", col.GetTypeString());
+                    throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.InputColumnName, "vector or scalar of Single or Double", col.GetTypeString());
 
                 var isNormalizedMeta = new SchemaShape.Column(AnnotationUtils.Kinds.IsNormalized, SchemaShape.Column.VectorKind.Scalar,
                     BooleanDataViewType.Instance, false);
@@ -277,6 +323,9 @@ namespace Microsoft.ML.Transforms
         }
     }
 
+    /// <summary>
+    /// <see cref="ITransformer"/> resulting from fitting an <see cref="NormalizingEstimator"/>.
+    /// </summary>
     public sealed partial class NormalizingTransformer : OneToOneTransformerBase
     {
         internal const string LoaderSignature = "Normalizer";
@@ -308,7 +357,8 @@ namespace Microsoft.ML.Transforms
                 loaderAssemblyName: typeof(NormalizingTransformer).Assembly.FullName);
         }
 
-        public sealed class ColumnOptions
+        [BestFriend]
+        internal sealed class ColumnOptions
         {
             public readonly string Name;
             public readonly string InputColumnName;
@@ -341,7 +391,7 @@ namespace Microsoft.ML.Transforms
                 Contracts.CheckDecode(itemKind == InternalDataKind.R4 || itemKind == InternalDataKind.R8);
 
                 var itemType = ColumnTypeExtensions.PrimitiveTypeFromKind(itemKind);
-                return isVector ? (DataViewType)(new VectorType(itemType, vectorSize)) : itemType;
+                return isVector ? (DataViewType)(new VectorDataViewType(itemType, vectorSize)) : itemType;
             }
 
             internal static void SaveType(ModelSaveContext ctx, DataViewType type)
@@ -351,7 +401,7 @@ namespace Microsoft.ML.Transforms
                 //   - bool: is vector
                 //   - int: vector size
                 //   - byte: ItemKind of input column (only R4 and R8 are valid)
-                VectorType vectorType = type as VectorType;
+                VectorDataViewType vectorType = type as VectorDataViewType;
                 ctx.Writer.Write(vectorType != null);
 
                 Contracts.Assert(vectorType == null || vectorType.IsKnownSize);
@@ -383,7 +433,25 @@ namespace Microsoft.ML.Transforms
         [BestFriend]
         internal readonly IReadOnlyList<IColumnFunction> ColumnFunctions;
 
-        public readonly ImmutableArray<ColumnOptions> Columns;
+        /// <summary>
+        /// The configuration of the normalizer. The i-th element describes the i-th input-output column pair.
+        /// </summary>
+        [BestFriend]
+        internal readonly ImmutableArray<ColumnOptions> Columns;
+
+        /// <summary>
+        /// The normalization configurations of input columns. It returns the normalization parameters applied to the <paramref name="index"/>-th input column.
+        /// </summary>
+        /// <param name="index">column index.</param>
+        /// <returns>the normalization parameters applied to the <paramref name="index"/>-th input column.</returns>
+        public NormalizerModelParametersBase GetNormalizerModelParameters(int index)
+        {
+            string errMsg = "Not valid. Valid range is from 0 (inclusive) to " + Columns.Length + " (exclusive) but got " + index + ".";
+            Contracts.CheckUserArg(index >= 0 && index < Columns.Length, nameof(index), errMsg);
+
+            return Columns[index].ModelParameters;
+        }
+
         private NormalizingTransformer(IHostEnvironment env, ColumnOptions[] columns)
             : base(env.Register(nameof(NormalizingTransformer)), columns.Select(x => (x.Name, x.InputColumnName)).ToArray())
         {
@@ -412,7 +480,7 @@ namespace Microsoft.ML.Transforms
 
                 var supervisedBinColumn = info as NormalizingEstimator.SupervisedBinningColumOptions;
                 if(supervisedBinColumn != null)
-                    activeCols.Add(data.Schema[supervisedBinColumn.LabelColumn]);
+                    activeCols.Add(data.Schema[supervisedBinColumn.LabelColumnName]);
             }
 
             var functionBuilders = new IColumnFunctionBuilder[columns.Length];
@@ -437,6 +505,7 @@ namespace Microsoft.ML.Transforms
 
                     while (cursor.MoveNext())
                     {
+                        env.CheckAlive();
                         // If the row has bad values, the good values are still being used for training.
                         // The comparisons in the code below are arranged so that NaNs in the input are not recorded.
                         // REVIEW: Should infinities and/or NaNs be filtered before the normalization? Should we not record infinities for min/max?
@@ -447,7 +516,7 @@ namespace Microsoft.ML.Transforms
                             if (!needMoreData[i])
                                 continue;
                             var info = columns[i];
-                            env.Assert(!(srcTypes[i] is VectorType vectorType) || vectorType.IsKnownSize);
+                            env.Assert(!(srcTypes[i] is VectorDataViewType vectorType) || vectorType.IsKnownSize);
                             env.Assert(functionBuilders[i] != null);
                             any |= needMoreData[i] = functionBuilders[i].ProcessValue();
                         }
@@ -562,10 +631,10 @@ namespace Microsoft.ML.Transforms
 
         private protected override void CheckInputColumn(DataViewSchema inputSchema, int col, int srcCol)
         {
-            const string expectedType = "scalar or known-size vector of R4";
+            const string expectedType = "scalar or known-size vector of Single";
 
             var colType = inputSchema[srcCol].Type;
-            VectorType vectorType = colType as VectorType;
+            VectorDataViewType vectorType = colType as VectorDataViewType;
             if (vectorType != null && !vectorType.IsKnownSize)
                 throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", ColumnPairs[col].inputColumnName, expectedType, "variable-size vector");
             DataViewType itemType = vectorType?.ItemType ?? colType;
@@ -706,7 +775,7 @@ namespace Microsoft.ML.Transforms
         }
 
         /// <summary>
-        /// Base class for all the NormalizerData classes: <see cref="AffineNormalizerModelParameters{TData}"/>,
+        /// Base class for all the data normalizer models like <see cref="AffineNormalizerModelParameters{TData}"/>,
         /// <see cref="BinNormalizerModelParameters{TData}"/>, <see cref="CdfNormalizerModelParameters{TData}"/>.
         /// </summary>
         public abstract class NormalizerModelParametersBase
@@ -720,7 +789,7 @@ namespace Microsoft.ML.Transforms
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
-        /// [!code-csharp[Normalize](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Normalizer.cs)]
+        /// [!code-csharp[Normalize](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/NormalizeLogMeanVariance.cs)]
         /// ]]>
         /// </format>
         /// </example>
@@ -751,12 +820,12 @@ namespace Microsoft.ML.Transforms
         /// <summary>
         /// The model parameters generated by cumulative distribution normalization transformations.
         /// The cumulative density function is parameterized by <see cref="CdfNormalizerModelParameters{TData}.Mean"/> and
-        /// the <see cref="CdfNormalizerModelParameters{TData}.Stddev"/> as observed during fitting.
+        /// the <see cref="CdfNormalizerModelParameters{TData}.StandardDeviation"/> as observed during fitting.
         /// </summary>
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
-        /// [!code-csharp[Normalize](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Normalizer.cs)]
+        /// [!code-csharp[Normalize](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/NormalizeLogMeanVariance.cs)]
         /// ]]>
         /// </format>
         /// </example>
@@ -772,7 +841,7 @@ namespace Microsoft.ML.Transforms
             /// The standard deviation(s). In the scalar case, this is a single value. In the vector case this is of
             /// length equal to the number of slots.
             /// </summary>
-            public TData Stddev { get; }
+            public TData StandardDeviation { get; }
 
             /// <summary>
             /// Whether the we ought to apply a logarithm to the input first.
@@ -785,7 +854,7 @@ namespace Microsoft.ML.Transforms
             internal CdfNormalizerModelParameters(TData mean, TData stddev, bool useLog)
             {
                 Mean = mean;
-                Stddev = stddev;
+                StandardDeviation = stddev;
                 UseLog = useLog;
             }
         }
@@ -809,7 +878,7 @@ namespace Microsoft.ML.Transforms
             public TData Density { get; }
 
             /// <summary>
-            /// If normalization is performed with <see cref="NormalizeTransform.FixZeroArgumentsBase.FixZero"/> set to <value>true</value>,
+            /// If normalization is performed with <see cref="NormalizeTransform.ControlZeroArgumentsBase.EnsureZeroUntouched"/> set to <value>true</value>,
             /// the offset indicates the displacement of zero, if any.
             /// </summary>
             public TData Offset { get; }

@@ -1,17 +1,17 @@
 ﻿using System;
-using Microsoft.ML.Data;
+using Microsoft.ML;
 using Microsoft.ML.StaticPipe;
 
-namespace Microsoft.ML.Samples.Static
+namespace Samples.Static
 {
     public class FastTreeBinaryClassificationExample
     {
         // This example requires installation of additional nuget package <a href="https://www.nuget.org/packages/Microsoft.ML.FastTree/">Microsoft.ML.FastTree</a>.
-        public static void FastTreeBinaryClassification()
+        public static void Example()
         {
             // Downloading a classification dataset from github.com/dotnet/machinelearning.
             // It will be stored in the same path as the executable
-            string dataFilePath = SamplesUtils.DatasetUtils.DownloadAdultDataset();
+            string dataFilePath = Microsoft.ML.SamplesUtils.DatasetUtils.DownloadAdultDataset();
 
             // Data Preview
             // 1. Column [Label]: IsOver50K (boolean)
@@ -57,7 +57,7 @@ namespace Microsoft.ML.Samples.Static
 
             // Loader the data, and leave 10% out, so we can use them for testing
             var data = loader.Load(dataFilePath);
-            var (trainData, testData) = mlContext.BinaryClassification.TrainTestSplit(data, testFraction: 0.1);
+            var (trainData, testData) = mlContext.Data.TrainTestSplit(data, testFraction: 0.1);
 
             // Create the Estimator
             var learningPipeline = loader.MakeNewEstimator()

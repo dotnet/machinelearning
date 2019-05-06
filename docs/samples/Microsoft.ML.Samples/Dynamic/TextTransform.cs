@@ -1,9 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using Microsoft.ML;
 using Microsoft.ML.Data;
 using Microsoft.ML.Transforms.Text;
 
-namespace Microsoft.ML.Samples.Dynamic
+namespace Samples.Dynamic
 {
     public static class TextTransform
     {
@@ -14,7 +15,7 @@ namespace Microsoft.ML.Samples.Dynamic
             var ml = new MLContext();
 
             // Get a small dataset as an IEnumerable and convert to IDataView.
-            var data = SamplesUtils.DatasetUtils.GetSentimentData();
+            var data = Microsoft.ML.SamplesUtils.DatasetUtils.GetSentimentData();
             var trainData = ml.Data.LoadFromEnumerable(data);
 
             // Preview of the data.
@@ -35,8 +36,8 @@ namespace Microsoft.ML.Samples.Dynamic
             {
                 KeepPunctuations = false,
                 KeepNumbers = false,
-                OutputTokens = true,
-                TextLanguage = TextFeaturizingEstimator.Language.English, // supports  English, French, German, Dutch, Italian, Spanish, Japanese
+                OutputTokensColumnName = "OutputTokens",
+                StopWordsRemoverOptions = new StopWordsRemovingEstimator.Options() { Language = TextFeaturizingEstimator.Language.English }, // supports  English, French, German, Dutch, Italian, Spanish, Japanese
             }, "SentimentText");
 
             // The transformed data for both pipelines.

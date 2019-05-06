@@ -5,6 +5,7 @@
 using System;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Internal.Internallearn;
+using Microsoft.ML.Runtime;
 
 namespace Microsoft.ML.Trainers.Ensemble
 {

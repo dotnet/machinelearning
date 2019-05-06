@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.Data.DataView;
-
 namespace Microsoft.ML.Data
 {
     // REVIEW: There are a couple problems. Firstly, what to do about cases where
@@ -36,10 +34,10 @@ namespace Microsoft.ML.Data
         /// <summary>
         /// <see cref="GetSlotType"/> (input argument is named col) specifies the type of all values at the col-th column of
         /// <see cref="IDataView"/>.  For example, if <see cref="IDataView.Schema"/>[i] is a scalar float column, then
-        /// <see cref="GetSlotType"/> with col=i may return a <see cref="VectorType"/> whose <see cref="VectorType.ItemType"/>
+        /// <see cref="GetSlotType"/> with col=i may return a <see cref="VectorDataViewType"/> whose <see cref="VectorDataViewType.ItemType"/>
         /// field is <see cref="NumberDataViewType.Single"/>. If the i-th column can't be iterated column-wisely, this function may
         /// return <see langword="null"/>.
         /// </summary>
-        VectorType GetSlotType(int col);
+        VectorDataViewType GetSlotType(int col);
     }
 }

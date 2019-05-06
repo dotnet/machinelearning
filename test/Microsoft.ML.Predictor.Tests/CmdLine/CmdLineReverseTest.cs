@@ -4,6 +4,7 @@
 
 using System.Reflection;
 using Microsoft.ML.CommandLine;
+using Microsoft.ML.Runtime;
 using Xunit;
 
 namespace Microsoft.ML.RunTests

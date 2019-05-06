@@ -3,7 +3,7 @@ Making per-feature arrays
 Changing data from row-wise to column-wise
 Processed 71 instances
 Binning and forming Feature objects
-Reserved memory for tree learner: 16380 bytes
+Reserved memory for tree learner: %Number% bytes
 Starting to train ...
 Not training a calibrator because it is not needed.
 Not adding a normalizer.
@@ -16,7 +16,7 @@ Making per-feature arrays
 Changing data from row-wise to column-wise
 Processed 79 instances
 Binning and forming Feature objects
-Reserved memory for tree learner: 17472 bytes
+Reserved memory for tree learner: %Number% bytes
 Starting to train ...
 Not training a calibrator because it is not needed.
 Not adding a normalizer.
@@ -38,7 +38,7 @@ Precision ||1.0000 |0.9615 |0.8438 |
 Accuracy(micro-avg): 0.924051
 Accuracy(macro-avg): 0.932540
 Log-loss:           0.330649
-Log-loss reduction: 69.595935
+Log-loss reduction: 0.695959
 
 Confusion table
           ||========================
@@ -52,14 +52,14 @@ Precision ||1.0000 |0.9048 |0.9524 |
 Accuracy(micro-avg): 0.957746
 Accuracy(macro-avg): 0.953030
 Log-loss:           0.157832
-Log-loss reduction: 85.461953
+Log-loss reduction: 0.854620
 
 OVERALL RESULTS
 ---------------------------------------
 Accuracy(micro-avg): 0.940899 (0.0168)
 Accuracy(macro-avg): 0.942785 (0.0102)
 Log-loss:           0.244241 (0.0864)
-Log-loss reduction: 77.528944 (7.9330)
+Log-loss reduction: 0.775289 (0.0793)
 
 ---------------------------------------
 Physical memory usage(MB): %Number%

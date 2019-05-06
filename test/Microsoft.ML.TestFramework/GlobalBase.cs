@@ -12,6 +12,7 @@
 
 using System;
 using System.Runtime.InteropServices;
+using Microsoft.ML.Runtime;
 using Xunit;
 
 namespace Microsoft.ML.Internal.Internallearn.Test

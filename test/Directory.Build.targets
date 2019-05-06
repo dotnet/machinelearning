@@ -8,18 +8,4 @@
     <AllowedReferenceRelatedFileExtensions>$(AllowedReferenceRelatedFileExtensions);.runtimeconfig.json;.runtimeconfig.dev.json;.deps.json</AllowedReferenceRelatedFileExtensions>  
   </PropertyGroup>
 
-  <!-- Workaround for https://github.com/tonerdo/coverlet/pull/318 -->
-  <Target Name="UpdateTargetPathForCoverage" BeforeTargets="InstrumentModulesNoBuild;InstrumentModulesAfterBuild">
-    <PropertyGroup>
-      <_CoverletOriginalTargetPath>$(TargetPath)</_CoverletOriginalTargetPath>
-      <TargetPath>$([System.IO.Path]::GetDirectoryName($(TargetPath)))\NonExistent.dll</TargetPath>
-    </PropertyGroup>
-  </Target>
-
-  <Target Name="UpdateTargetPathAfterCoverage" AfterTargets="InstrumentModulesNoBuild;InstrumentModulesAfterBuild">
-    <PropertyGroup>
-      <TargetPath>$(_CoverletOriginalTargetPath)</TargetPath>
-    </PropertyGroup>
-  </Target>
-
 </Project>

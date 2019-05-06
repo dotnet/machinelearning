@@ -5,12 +5,12 @@
 using System;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
-using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.Command;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
 using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Runtime;
 
 [assembly: LoadableClass(EvaluateTransform.Summary, typeof(IDataTransform), typeof(EvaluateTransform), typeof(EvaluateTransform.Arguments), typeof(SignatureDataTransform),
     "Evaluate Predictor", "Evaluate")]
@@ -26,7 +26,8 @@ namespace Microsoft.ML.Data
     /// This class contains information about an overall metric, namely its name and whether it is a vector
     /// metric or not.
     /// </summary>
-    public sealed class MetricColumn
+    [BestFriend]
+    internal sealed class MetricColumn
     {
         /// <summary>
         /// An enum specifying whether the metric should be maximized or minimized while sweeping. 'Info' should be
@@ -185,7 +186,7 @@ namespace Microsoft.ML.Data
             public string NameColumn = DefaultColumnNames.Name;
 
             [Argument(ArgumentType.LastOccurenceWins, HelpText = "Columns with custom kinds declared through key assignments, for example, col[Kind]=Name to assign column named 'Name' kind 'Kind'",
-                Name ="CustomColumn", ShortName = "col", SortOrder = 10)]
+                Name = "CustomColumn", ShortName = "col", SortOrder = 10)]
             public KeyValuePair<string, string>[] CustomColumns;
 
             [Argument(ArgumentType.Multiple, HelpText = "Evaluator to use", ShortName = "eval", SignatureType = typeof(SignatureMamlEvaluator))]

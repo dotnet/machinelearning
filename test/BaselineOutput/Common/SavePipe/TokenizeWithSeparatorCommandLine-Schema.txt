@@ -1,0 +1,10 @@
+---- BoundLoader ----
+1 columns:
+  T: String
+---- SkipTakeFilter ----
+1 columns:
+  T: String
+---- RowToRowMapperTransform ----
+2 columns:
+  T: String
+  T: Vector<String>

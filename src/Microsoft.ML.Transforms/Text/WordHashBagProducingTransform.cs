@@ -5,12 +5,12 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
 using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Runtime;
 using Microsoft.ML.Transforms.Text;
 
 [assembly: LoadableClass(WordHashBagProducingTransformer.Summary, typeof(IDataTransform), typeof(WordHashBagProducingTransformer), typeof(WordHashBagProducingTransformer.Options), typeof(SignatureDataTransform),
@@ -52,7 +52,7 @@ namespace Microsoft.ML.Transforms.Text
                 int bits;
                 if (!int.TryParse(extra, out bits))
                     return false;
-                HashBits = bits;
+                NumberOfBits = bits;
                 return true;
             }
 
@@ -60,28 +60,28 @@ namespace Microsoft.ML.Transforms.Text
             {
                 Contracts.AssertValue(sb);
                 if (NgramLength != null || SkipLength != null || Seed != null ||
-                    Ordered != null || InvertHash != null)
+                    Ordered != null || MaximumNumberOfInverts != null)
                 {
                     return false;
                 }
-                if (HashBits == null)
+                if (NumberOfBits == null)
                     return TryUnparseCore(sb);
 
-                string extra = HashBits.Value.ToString();
+                string extra = NumberOfBits.Value.ToString();
                 return TryUnparseCore(sb, extra);
             }
         }
 
         internal sealed class Options : NgramHashExtractingTransformer.ArgumentsBase
         {
-            [Argument(ArgumentType.Multiple | ArgumentType.Required, HelpText = "New column definition(s) (optional form: name:hashBits:srcs)",
+            [Argument(ArgumentType.Multiple | ArgumentType.Required, HelpText = "New column definition(s) (optional form: name:numberOfBits:srcs)",
                 Name = "Column", ShortName = "col", SortOrder = 1)]
             public Column[] Columns;
         }
         private const string RegistrationName = "WordHashBagTransform";
 
-        internal const string Summary = "Produces a bag of counts of ngrams (sequences of consecutive words of length 1-n) in a given text. "
-            + "It does so by hashing each ngram and using the hash value as the index in the bag.";
+        internal const string Summary = "Produces a bag of counts of n-grams (sequences of consecutive words of length 1-n) in a given text. "
+            + "It does so by hashing each n-gram and using the hash value as the index in the bag.";
 
         internal static IDataTransform Create(IHostEnvironment env, Options options, IDataView input)
         {
@@ -121,14 +121,14 @@ namespace Microsoft.ML.Transforms.Text
                     {
                         Name = column.Name,
                         Source = curTmpNames,
-                        HashBits = column.HashBits,
+                        NumberOfBits = column.NumberOfBits,
                         NgramLength = column.NgramLength,
                         Seed = column.Seed,
                         SkipLength = column.SkipLength,
                         Ordered = column.Ordered,
-                        InvertHash = column.InvertHash,
+                        MaximumNumberOfInverts = column.MaximumNumberOfInverts,
                         FriendlyNames = options.Columns[iinfo].Source,
-                        AllLengths = column.AllLengths
+                        UseAllLengths = column.UseAllLengths
                     };
             }
 
@@ -137,17 +137,17 @@ namespace Microsoft.ML.Transforms.Text
             var featurizeArgs =
                 new NgramHashExtractingTransformer.Options
                 {
-                    AllLengths = options.AllLengths,
-                    HashBits = options.HashBits,
+                    UseAllLengths = options.UseAllLengths,
+                    NumberOfBits = options.NumberOfBits,
                     NgramLength = options.NgramLength,
                     SkipLength = options.SkipLength,
                     Ordered = options.Ordered,
                     Seed = options.Seed,
                     Columns = extractorCols.ToArray(),
-                    InvertHash = options.InvertHash
+                    MaximumNumberOfInverts = options.MaximumNumberOfInverts
                 };
 
-            view = NgramHashExtractingTransformer.Create(h, featurizeArgs, view);
+            view = NgramHashExtractingTransformer.Create(h, featurizeArgs, view).Transform(view);
 
             // Since we added columns with new names, we need to explicitly drop them before we return the IDataTransform.
             return ColumnSelectingTransformer.CreateDrop(h, view, tmpColNames.ToArray()) as IDataTransform;
@@ -166,14 +166,14 @@ namespace Microsoft.ML.Transforms.Text
             public int? NgramLength;
 
             [Argument(ArgumentType.AtMostOnce,
-                HelpText = "Maximum number of tokens to skip when constructing an ngram",
+                HelpText = "Maximum number of tokens to skip when constructing an n-gram",
                 ShortName = "skips")]
             public int? SkipLength;
 
             [Argument(ArgumentType.AtMostOnce,
                 HelpText = "Number of bits to hash into. Must be between 1 and 30, inclusive.",
                 ShortName = "bits")]
-            public int? HashBits;
+            public int? NumberOfBits;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Hashing seed")]
             public uint? Seed;
@@ -184,12 +184,12 @@ namespace Microsoft.ML.Transforms.Text
             [Argument(ArgumentType.AtMostOnce,
                 HelpText = "Limit the number of keys used to generate the slot name to this many. 0 means no invert hashing, -1 means no limit.",
                 ShortName = "ih")]
-            public int? InvertHash;
+            public int? MaximumNumberOfInverts;
 
             [Argument(ArgumentType.AtMostOnce,
-                HelpText = "Whether to include all ngram lengths up to " + nameof(NgramLength) + " or only " + nameof(NgramLength),
-                ShortName = "all", SortOrder = 4)]
-            public bool? AllLengths;
+                HelpText = "Whether to include all n-gram lengths up to " + nameof(NgramLength) + " or only " + nameof(NgramLength),
+                Name = "AllLengths", ShortName = "all", SortOrder = 4)]
+            public bool? UseAllLengths;
         }
 
         internal sealed class Column : ColumnBase
@@ -223,7 +223,7 @@ namespace Microsoft.ML.Transforms.Text
                 int bits;
                 if (!int.TryParse(extra, out bits))
                     return false;
-                HashBits = bits;
+                NumberOfBits = bits;
                 return true;
             }
 
@@ -231,14 +231,14 @@ namespace Microsoft.ML.Transforms.Text
             {
                 Contracts.AssertValue(sb);
                 if (NgramLength != null || SkipLength != null || Seed != null ||
-                    Ordered != null || InvertHash != null)
+                    Ordered != null || MaximumNumberOfInverts != null)
                 {
                     return false;
                 }
-                if (HashBits == null)
+                if (NumberOfBits == null)
                     return TryUnparseCore(sb);
 
-                string extra = HashBits.Value.ToString();
+                string extra = NumberOfBits.Value.ToString();
                 return TryUnparseCore(sb, extra);
             }
         }
@@ -254,14 +254,14 @@ namespace Microsoft.ML.Transforms.Text
             public int NgramLength = 1;
 
             [Argument(ArgumentType.AtMostOnce,
-                HelpText = "Maximum number of tokens to skip when constructing an ngram",
+                HelpText = "Maximum number of tokens to skip when constructing an n-gram",
                 ShortName = "skips", SortOrder = 4)]
             public int SkipLength = 0;
 
             [Argument(ArgumentType.AtMostOnce,
                 HelpText = "Number of bits to hash into. Must be between 1 and 30, inclusive.",
                 ShortName = "bits", SortOrder = 2)]
-            public int HashBits = 16;
+            public int NumberOfBits = 16;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Hashing seed")]
             public uint Seed = 314489979;
@@ -274,23 +274,23 @@ namespace Microsoft.ML.Transforms.Text
             [Argument(ArgumentType.AtMostOnce,
                 HelpText = "Limit the number of keys used to generate the slot name to this many. 0 means no invert hashing, -1 means no limit.",
                 ShortName = "ih")]
-            public int InvertHash;
+            public int MaximumNumberOfInverts;
 
             [Argument(ArgumentType.AtMostOnce,
-               HelpText = "Whether to include all ngram lengths up to ngramLength or only ngramLength",
-               ShortName = "all", SortOrder = 4)]
-            public bool AllLengths = true;
+               HelpText = "Whether to include all n-gram lengths up to ngramLength or only ngramLength",
+               Name = "AllLengths", ShortName = "all", SortOrder = 4)]
+            public bool UseAllLengths = true;
         }
 
         internal static class DefaultArguments
         {
             public const int NgramLength = 1;
             public const int SkipLength = 0;
-            public const int HashBits = 16;
+            public const int NumberOfBits = 16;
             public const uint Seed = 314489979;
             public const bool Ordered = true;
-            public const int InvertHash = 0;
-            public const bool AllLengths = true;
+            public const int MaximumNumberOfInverts = 0;
+            public const bool UseAllLengths = true;
         }
 
         [TlcModule.Component(Name = "NGramHash", FriendlyName = "NGram Hash Extractor Transform", Alias = "NGramHashExtractorTransform,NGramHashExtractor",
@@ -313,8 +313,7 @@ namespace Microsoft.ML.Transforms.Text
 
         internal const string LoaderSignature = "NgramHashExtractor";
 
-        internal static IDataTransform Create(IHostEnvironment env, Options options, IDataView input,
-            TermLoaderArguments termLoaderArgs = null)
+        internal static ITransformer Create(IHostEnvironment env, Options options, IDataView input)
         {
             Contracts.CheckValue(env, nameof(env));
             var h = env.Register(LoaderSignature);
@@ -322,15 +321,12 @@ namespace Microsoft.ML.Transforms.Text
             h.CheckValue(input, nameof(input));
             h.CheckUserArg(Utils.Size(options.Columns) > 0, nameof(options.Columns), "Columns must be specified");
 
+            var chain = new TransformerChain<ITransformer>();
+
             // To each input column to the NgramHashExtractorArguments, a HashTransform using 31
             // bits (to minimize collisions) is applied first, followed by an NgramHashTransform.
-            IDataView view = input;
 
-            List<ValueToKeyMappingTransformer.Column> termCols = null;
-            if (termLoaderArgs != null)
-                termCols = new List<ValueToKeyMappingTransformer.Column>();
-
-	    var hashColumns = new List<HashingEstimator.ColumnOptions>();
+            var hashColumns = new List<HashingEstimator.ColumnOptions>();
             var ngramHashColumns = new NgramHashingEstimator.ColumnOptions[options.Columns.Length];
 
             var colCount = options.Columns.Length;
@@ -350,64 +346,31 @@ namespace Microsoft.ML.Transforms.Text
                 {
                     var tmpName = input.Schema.GetTempColumnName(column.Source[isrc]);
                     tmpColNames[iinfo][isrc] = tmpName;
-                    if (termLoaderArgs != null)
-                    {
-                        termCols.Add(
-                            new ValueToKeyMappingTransformer.Column
-                            {
-                                Name = tmpName,
-                                Source = column.Source[isrc]
-                            });
-                    }
 
-                    hashColumns.Add(new HashingEstimator.ColumnOptions(tmpName, termLoaderArgs == null ? column.Source[isrc] : tmpName,
-                        30, column.Seed ?? options.Seed, false, column.InvertHash ?? options.InvertHash));
+                    hashColumns.Add(new HashingEstimator.ColumnOptions(tmpName, column.Source[isrc],
+                        30, column.Seed ?? options.Seed, false, column.MaximumNumberOfInverts ?? options.MaximumNumberOfInverts));
                 }
 
                 ngramHashColumns[iinfo] =
                     new NgramHashingEstimator.ColumnOptions(column.Name, tmpColNames[iinfo],
                     column.NgramLength ?? options.NgramLength,
                     column.SkipLength ?? options.SkipLength,
-                    column.AllLengths ?? options.AllLengths,
-                    column.HashBits ?? options.HashBits,
+                    column.UseAllLengths ?? options.UseAllLengths,
+                    column.NumberOfBits ?? options.NumberOfBits,
                     column.Seed ?? options.Seed,
                     column.Ordered ?? options.Ordered,
-                    column.InvertHash ?? options.InvertHash);
+                    column.MaximumNumberOfInverts ?? options.MaximumNumberOfInverts);
                 ngramHashColumns[iinfo].FriendlyNames = column.FriendlyNames;
             }
 
-            if (termLoaderArgs != null)
-            {
-                h.Assert(Utils.Size(termCols) == hashColumns.Count);
-                var termArgs =
-                    new ValueToKeyMappingTransformer.Options()
-                    {
-                        MaxNumTerms = int.MaxValue,
-                        Term = termLoaderArgs.Term,
-                        Terms = termLoaderArgs.Terms,
-                        DataFile = termLoaderArgs.DataFile,
-                        Loader = termLoaderArgs.Loader,
-                        TermsColumn = termLoaderArgs.TermsColumn,
-                        Sort = termLoaderArgs.Sort,
-                        Columns = termCols.ToArray()
-                    };
-                view = ValueToKeyMappingTransformer.Create(h, termArgs, view);
-
-                if (termLoaderArgs.DropUnknowns)
-                {
-                    var missingDropColumns = new (string outputColumnName, string inputColumnName)[termCols.Count];
-                    for (int iinfo = 0; iinfo < termCols.Count; iinfo++)
-                        missingDropColumns[iinfo] = (termCols[iinfo].Name, termCols[iinfo].Name);
-                    view = new MissingValueDroppingTransformer(h, missingDropColumns).Transform(view);
-                }
-            }
-            view = new HashingEstimator(h, hashColumns.ToArray()).Fit(view).Transform(view);
-            view = new NgramHashingEstimator(h, ngramHashColumns).Fit(view).Transform(view);
-            return ColumnSelectingTransformer.CreateDrop(h, view, tmpColNames.SelectMany(cols => cols).ToArray()) as IDataTransform;
+            var hashing = new HashingEstimator(h, hashColumns.ToArray()).Fit(input);
+            return chain.Append(hashing)
+                .Append(new NgramHashingEstimator(h, ngramHashColumns).Fit(hashing.Transform(input)))
+                .Append(new ColumnSelectingTransformer(h, null, tmpColNames.SelectMany(cols => cols).ToArray()));
         }
 
-        internal static IDataTransform Create(NgramHashExtractorArguments extractorArgs, IHostEnvironment env, IDataView input,
-            ExtractorColumn[] cols, TermLoaderArguments termLoaderArgs = null)
+        internal static ITransformer Create(NgramHashExtractorArguments extractorArgs, IHostEnvironment env, IDataView input,
+            ExtractorColumn[] cols)
         {
             Contracts.CheckValue(env, nameof(env));
             var h = env.Register(LoaderSignature);
@@ -415,7 +378,6 @@ namespace Microsoft.ML.Transforms.Text
             h.CheckValue(input, nameof(input));
             h.CheckUserArg(extractorArgs.SkipLength < extractorArgs.NgramLength, nameof(extractorArgs.SkipLength), "Should be less than " + nameof(extractorArgs.NgramLength));
             h.CheckUserArg(Utils.Size(cols) > 0, nameof(Options.Columns), "Must be specified");
-            h.AssertValueOrNull(termLoaderArgs);
 
             var extractorCols = new Column[cols.Length];
             for (int i = 0; i < cols.Length; i++)
@@ -434,14 +396,14 @@ namespace Microsoft.ML.Transforms.Text
                 Columns = extractorCols,
                 NgramLength = extractorArgs.NgramLength,
                 SkipLength = extractorArgs.SkipLength,
-                HashBits = extractorArgs.HashBits,
-                InvertHash = extractorArgs.InvertHash,
+                NumberOfBits = extractorArgs.NumberOfBits,
+                MaximumNumberOfInverts = extractorArgs.MaximumNumberOfInverts,
                 Ordered = extractorArgs.Ordered,
                 Seed = extractorArgs.Seed,
-                AllLengths = extractorArgs.AllLengths
+                UseAllLengths = extractorArgs.UseAllLengths
             };
 
-            return Create(h, options, input, termLoaderArgs);
+            return Create(h, options, input);
         }
 
         internal static INgramExtractorFactory Create(IHostEnvironment env, NgramHashExtractorArguments extractorArgs,
@@ -450,9 +412,9 @@ namespace Microsoft.ML.Transforms.Text
             Contracts.CheckValue(env, nameof(env));
             var h = env.Register(LoaderSignature);
             h.CheckValue(extractorArgs, nameof(extractorArgs));
-            h.CheckValueOrNull(termLoaderArgs);
+            h.CheckParam(termLoaderArgs == null, nameof(termLoaderArgs), "Argument cannot be used with NgramHashExtractor, use NgramExtractor instead");
 
-            return new NgramHashExtractorFactory(extractorArgs, termLoaderArgs);
+            return new NgramHashExtractorFactory(extractorArgs);
         }
     }
 }

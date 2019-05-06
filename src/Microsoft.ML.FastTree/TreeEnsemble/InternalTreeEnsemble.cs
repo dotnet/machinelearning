@@ -10,8 +10,8 @@ using System.Text;
 using System.Threading.Tasks;
 using Microsoft.ML.Data;
 using Microsoft.ML.Internal.Utilities;
-using Microsoft.ML.Model;
 using Microsoft.ML.Model.Pfa;
+using Microsoft.ML.Runtime;
 using Newtonsoft.Json.Linq;
 
 namespace Microsoft.ML.Trainers.FastTree
@@ -383,12 +383,15 @@ namespace Microsoft.ML.Trainers.FastTree
     {
         public FeatureToGainMap() { }
         // Override default Dictionary to return 0.0 for non-eisting keys
-        public new double this[int key] {
-            get {
+        public new double this[int key]
+        {
+            get
+            {
                 TryGetValue(key, out double retval);
                 return retval;
             }
-            set {
+            set
+            {
                 base[key] = value;
             }
         }

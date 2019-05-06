@@ -1,0 +1,39 @@
+﻿<#@ include file="BinaryClassification.ttinclude"#>
+<#+
+string ClassName = "AveragedPerceptron";
+string Trainer = "AveragedPerceptron";
+string TrainerOptions = null;
+bool IsCalibrated = false;
+bool CacheData = false;
+
+string LabelThreshold = "0.5f";
+string DataSepValue = "0.1f";
+string OptionsInclude = "";
+string Comments= "";
+
+string ExpectedOutputPerInstance = @"// Expected output:
+            //   Label: True, Prediction: True
+            //   Label: False, Prediction: False
+            //   Label: True, Prediction: True
+            //   Label: True, Prediction: False
+            //   Label: False, Prediction: False";
+
+string ExpectedOutput = @"// Expected output:
+            //   Accuracy: 0.72
+            //   AUC: 0.79
+            //   F1 Score: 0.68
+            //   Negative Precision: 0.71
+            //   Negative Recall: 0.80
+            //   Positive Precision: 0.74
+            //   Positive Recall: 0.63
+            //
+            //   TEST POSITIVE RATIO:    0.4760 (238.0/(238.0+262.0))
+            //   Confusion table
+            //             ||======================
+            //   PREDICTED || positive | negative | Recall
+            //   TRUTH     ||======================
+            //    positive ||      151 |       87 | 0.6345
+            //    negative ||       53 |      209 | 0.7977
+            //             ||======================
+            //   Precision ||   0.7402 |   0.7061 |";
+#>

@@ -2,7 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.Data.DataView;
+using Microsoft.ML.Runtime;
 using Microsoft.ML.Transforms.TensorFlow;
 
 namespace Microsoft.ML.Transforms
@@ -50,25 +50,12 @@ namespace Microsoft.ML.Transforms
         }
 
         /// <summary>
-        /// Scores a dataset using a pre-traiend <a href="https://www.tensorflow.org/">TensorFlow</a> model.
+        /// Scores a dataset using a pre-trained <a href="https://www.tensorflow.org/">TensorFlow</a> model.
         /// </summary>
-        /// <param name="inputColumnName"> The name of the model input.</param>
-        /// <param name="outputColumnName">The name of the requested model output.</param>
-        /// <example>
-        /// <format type="text/markdown">
-        /// <![CDATA[
-        /// [!code-csharp[ScoreTensorFlowModel](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/TensorFlowTransform.cs)]
-        /// ]]>
-        /// </format>
-        /// </example>
-        public TensorFlowEstimator ScoreTensorFlowModel(string outputColumnName, string inputColumnName)
-            => new TensorFlowEstimator(_env, new[] { outputColumnName }, new[] { inputColumnName }, ModelPath);
-
-        /// <summary>
-        /// Scores a dataset using a pre-traiend TensorFlow model.
-        /// </summary>
-        /// <param name="inputColumnNames"> The names of the model inputs.</param>
-        /// <param name="outputColumnNames">The names of the requested model outputs.</param>
+        /// <param name="inputColumnName"> The name of the model input. The data type is a vector of <see cref="System.Single"/>.</param>
+        /// <param name="outputColumnName">The name of the requested model output. The data type is a vector of <see cref="System.Single"/></param>
+        /// <param name="addBatchDimensionInput">Add a batch dimension to the input e.g. input = [224, 224, 3] => [-1, 224, 224, 3].
+        /// This parameter is used to deal with models that have unknown shape but the internal operators in the model require data to have batch dimension as well.</param>
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
@@ -76,8 +63,25 @@ namespace Microsoft.ML.Transforms
         /// ]]>
         /// </format>
         /// </example>
-        public TensorFlowEstimator ScoreTensorFlowModel(string[] outputColumnNames, string[] inputColumnNames)
-            => new TensorFlowEstimator(_env, outputColumnNames, inputColumnNames, ModelPath);
+        public TensorFlowEstimator ScoreTensorFlowModel(string outputColumnName, string inputColumnName, bool addBatchDimensionInput = false)
+            => new TensorFlowEstimator(_env, new[] { outputColumnName }, new[] { inputColumnName }, this, addBatchDimensionInput);
+
+        /// <summary>
+        /// Scores a dataset using a pre-trained TensorFlow model.
+        /// </summary>
+        /// <param name="inputColumnNames"> The names of the model inputs.</param>
+        /// <param name="outputColumnNames">The names of the requested model outputs.</param>
+        /// <param name="addBatchDimensionInput">Add a batch dimension to the input e.g. input = [224, 224, 3] => [-1, 224, 224, 3].
+        /// This parameter is used to deal with models that have unknown shape but the internal operators in the model require data to have batch dimension as well.</param>
+        /// <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        /// [!code-csharp[ScoreTensorFlowModel](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/TensorFlow/ImageClassification.cs)]
+        /// ]]>
+        /// </format>
+        /// </example>
+        public TensorFlowEstimator ScoreTensorFlowModel(string[] outputColumnNames, string[] inputColumnNames, bool addBatchDimensionInput = false)
+            => new TensorFlowEstimator(_env, outputColumnNames, inputColumnNames, this, addBatchDimensionInput);
 
         /// <summary>
         /// Retrain the TensorFlow model on new data.
@@ -96,6 +100,8 @@ namespace Microsoft.ML.Transforms
         /// <param name="metricOperation">The name of the operation in the TensorFlow graph to compute performance metric during training (Optional).</param>
         /// <param name="learningRateOperation">The name of the operation in the TensorFlow graph which sets optimizer learning rate (Optional).</param>
         /// <param name="learningRate">Learning rate to use during optimization (Optional).</param>
+        /// <param name="addBatchDimensionInput">Add a batch dimension to the input e.g. input = [224, 224, 3] => [-1, 224, 224, 3].
+        /// This parameter is used to deal with models that have unknown shape but the internal operators in the model require data to have batch dimension as well.</param>
         /// <remarks>
         /// The support for retraining is experimental.
         /// </remarks>
@@ -107,10 +113,11 @@ namespace Microsoft.ML.Transforms
             string optimizationOperation,
             int epoch = 10,
             int batchSize = 20,
-            string lossOperation= null,
+            string lossOperation = null,
             string metricOperation = null,
             string learningRateOperation = null,
-            float learningRate = 0.01f)
+            float learningRate = 0.01f,
+            bool addBatchDimensionInput = false)
         {
             var options = new TensorFlowEstimator.Options()
             {
@@ -126,7 +133,8 @@ namespace Microsoft.ML.Transforms
                 LearningRateOperation = learningRateOperation,
                 LearningRate = learningRate,
                 BatchSize = batchSize,
-                ReTrain = true
+                ReTrain = true,
+                AddBatchDimensionInputs = addBatchDimensionInput
             };
             return new TensorFlowEstimator(_env, options, this);
         }

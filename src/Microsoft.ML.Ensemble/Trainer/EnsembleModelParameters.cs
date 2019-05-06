@@ -4,11 +4,10 @@
 
 using System;
 using System.Threading.Tasks;
-using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.Data;
 using Microsoft.ML.EntryPoints;
-using Microsoft.ML.Model;
+using Microsoft.ML.Runtime;
 using Microsoft.ML.Trainers.Ensemble;
 
 [assembly: LoadableClass(typeof(EnsembleModelParameters), null, typeof(SignatureLoadModel), EnsembleModelParameters.UserName,
@@ -42,7 +41,7 @@ namespace Microsoft.ML.Trainers.Ensemble
 
         private readonly IValueMapper[] _mappers;
 
-        private readonly VectorType _inputType;
+        private readonly VectorDataViewType _inputType;
         DataViewType IValueMapper.InputType => _inputType;
         DataViewType IValueMapper.OutputType => NumberDataViewType.Single;
         private protected override PredictionKind PredictionKind { get; }
@@ -70,16 +69,16 @@ namespace Microsoft.ML.Trainers.Ensemble
             _inputType = InitializeMappers(out _mappers);
         }
 
-        private VectorType InitializeMappers(out IValueMapper[] mappers)
+        private VectorDataViewType InitializeMappers(out IValueMapper[] mappers)
         {
             Host.AssertNonEmpty(Models);
 
             mappers = new IValueMapper[Models.Length];
-            VectorType inputType = null;
+            VectorDataViewType inputType = null;
             for (int i = 0; i < Models.Length; i++)
             {
                 var vm = Models[i].Predictor as IValueMapper;
-                if (!IsValid(vm, out VectorType vmInputType))
+                if (!IsValid(vm, out VectorDataViewType vmInputType))
                     throw Host.Except("Predictor does not implement expected interface");
                 if (vmInputType.Size > 0)
                 {
@@ -91,13 +90,13 @@ namespace Microsoft.ML.Trainers.Ensemble
                 mappers[i] = vm;
             }
 
-            return inputType ?? new VectorType(NumberDataViewType.Single);
+            return inputType ?? new VectorDataViewType(NumberDataViewType.Single);
         }
 
-        private bool IsValid(IValueMapper mapper, out VectorType inputType)
+        private bool IsValid(IValueMapper mapper, out VectorDataViewType inputType)
         {
             if (mapper != null
-                && mapper.InputType is VectorType inputVectorType && inputVectorType.ItemType == NumberDataViewType.Single
+                && mapper.InputType is VectorDataViewType inputVectorType && inputVectorType.ItemType == NumberDataViewType.Single
                 && mapper.OutputType == NumberDataViewType.Single)
             {
                 inputType = inputVectorType;

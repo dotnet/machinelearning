@@ -14,7 +14,7 @@ namespace Microsoft.ML.Scenarios
         [Fact]
         public void TrainAndPredictIrisModelUsingDirectInstantiationTest()
         {
-            var mlContext = new MLContext(seed: 1, conc: 1);
+            var mlContext = new MLContext(seed: 1);
 
             var reader = mlContext.Data.CreateTextLoader(columns: new[]
                 {
@@ -27,10 +27,11 @@ namespace Microsoft.ML.Scenarios
             );
 
             var pipe = mlContext.Transforms.Concatenate("Features", "SepalLength", "SepalWidth", "PetalLength", "PetalWidth")
-                .Append(mlContext.Transforms.Normalize("Features"))
+                .Append(mlContext.Transforms.NormalizeMinMax("Features"))
+                .Append(mlContext.Transforms.Conversion.MapValueToKey("Label"))
                 .AppendCacheCheckpoint(mlContext)
-                .Append(mlContext.MulticlassClassification.Trainers.StochasticDualCoordinateAscent(
-                    new SdcaMultiClassTrainer.Options { NumberOfThreads = 1 }));
+                .Append(mlContext.MulticlassClassification.Trainers.SdcaMaximumEntropy(
+                    new SdcaMaximumEntropyMulticlassTrainer.Options { NumberOfThreads = 1 }));
 
             // Read training and test data sets
             string dataPath = GetDataPath(TestDatasets.iris.trainFilename);
@@ -45,7 +46,7 @@ namespace Microsoft.ML.Scenarios
             var predicted = trainedModel.Transform(testData);
             var metrics = mlContext.MulticlassClassification.Evaluate(predicted);
             CompareMetrics(metrics);
-            var predictFunction = trainedModel.CreatePredictionEngine<IrisData, IrisPrediction>(mlContext);
+            var predictFunction = mlContext.Model.CreatePredictionEngine<IrisData, IrisPrediction>(trainedModel);
             ComparePredictions(predictFunction);
         }
 
@@ -88,14 +89,14 @@ namespace Microsoft.ML.Scenarios
             Assert.Equal(0, prediction.PredictedLabels[2], 2);
         }
 
-        private void CompareMetrics(MultiClassClassifierMetrics metrics)
+        private void CompareMetrics(MulticlassClassificationMetrics metrics)
         {
             Assert.Equal(.98, metrics.MacroAccuracy);
             Assert.Equal(.98, metrics.MicroAccuracy, 2);
             Assert.InRange(metrics.LogLoss, .05, .06);
-            Assert.InRange(metrics.LogLossReduction, 94, 96);
+            Assert.InRange(metrics.LogLossReduction, 0.94, 0.96);
 
-            Assert.Equal(3, metrics.PerClassLogLoss.Length);
+            Assert.Equal(3, metrics.PerClassLogLoss.Count);
             Assert.Equal(0, metrics.PerClassLogLoss[0], 1);
             Assert.Equal(.1, metrics.PerClassLogLoss[1], 1);
             Assert.Equal(.1, metrics.PerClassLogLoss[2], 1);

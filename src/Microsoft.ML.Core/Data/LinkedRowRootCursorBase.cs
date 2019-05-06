@@ -2,14 +2,14 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.Data.DataView;
+using Microsoft.ML.Runtime;
 
 namespace Microsoft.ML.Data
 {
     /// <summary>
     /// A base class for a <see cref="DataViewRowCursor"/> that has an input cursor, but still needs to do work on
     /// <see cref="DataViewRowCursor.MoveNext"/>. Note that the default
-    /// <see cref="LinkedRowRootCursorBase.GetGetter{TValue}(int)"/> assumes that each input column is exposed as an
+    /// <see cref="LinkedRowRootCursorBase.GetGetter{TValue}(DataViewSchema.Column)"/> assumes that each input column is exposed as an
     /// output column with the same column index.
     /// </summary>
     [BestFriend]
@@ -29,15 +29,25 @@ namespace Microsoft.ML.Data
             Schema = schema;
         }
 
-        public sealed override bool IsColumnActive(int col)
+        /// <summary>
+        /// Returns whether the given column is active in this row.
+        /// </summary>
+        public sealed override bool IsColumnActive(DataViewSchema.Column column)
         {
-            Ch.Check(0 <= col && col < Schema.Count);
-            return _active == null || _active[col];
+            Ch.Check(column.Index < Schema.Count);
+            return _active == null || _active[column.Index];
         }
 
-        public override ValueGetter<TValue> GetGetter<TValue>(int col)
+        /// <summary>
+        /// Returns a value getter delegate to fetch the value of column with the given columnIndex, from the row.
+        /// This throws if the column is not active in this row, or if the type
+        /// <typeparamref name="TValue"/> differs from this column's type.
+        /// </summary>
+        /// <typeparam name="TValue"> is the column's content type.</typeparam>
+        /// <param name="column"> is the output column whose getter should be returned.</param>
+        public override ValueGetter<TValue> GetGetter<TValue>(DataViewSchema.Column column)
         {
-            return Input.GetGetter<TValue>(col);
+            return Input.GetGetter<TValue>(column);
         }
     }
 }

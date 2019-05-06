@@ -1,4 +1,4 @@
-maml.exe CV tr=PriorPredictor threads=- dout=%Output% data=%Data% seed=1
+maml.exe CV tr=PriorPredictor threads=- dout=%Output% loader=Text{col=Label:BL:0 col=Features:~} data=%Data% seed=1
 Not adding a normalizer.
 Not training a calibrator because it is not needed.
 Not adding a normalizer.
@@ -15,7 +15,7 @@ Precision ||   0.0000 |   0.6298 |
 OVERALL 0/1 ACCURACY: 0.629834
 LOG LOSS/instance:  0.959786
 Test-set entropy (prior Log-Loss/instance): 0.950799
-LOG-LOSS REDUCTION (RIG): -0.945203
+LOG-LOSS REDUCTION (RIG): -0.009452
 AUC:                0.500000
 TEST POSITIVE RATIO:	0.3175 (107.0/(107.0+230.0))
 Confusion table
@@ -29,7 +29,7 @@ Precision ||   0.0000 |   0.6825 |
 OVERALL 0/1 ACCURACY: 0.682493
 LOG LOSS/instance:  0.910421
 Test-set entropy (prior Log-Loss/instance): 0.901650
-LOG-LOSS REDUCTION (RIG): -0.972725
+LOG-LOSS REDUCTION (RIG): -0.009727
 AUC:                0.500000
 
 OVERALL RESULTS
@@ -41,7 +41,7 @@ Positive recall:    0.000000 (0.0000)
 Negative precision: 0.656163 (0.0263)
 Negative recall:    1.000000 (0.0000)
 Log-loss:           0.935104 (0.0247)
-Log-loss reduction: -0.958964 (0.0138)
+Log-loss reduction: -0.009590 (0.0001)
 F1 Score:               NaN (NaN)
 AUPRC:              0.418968 (0.0212)
 

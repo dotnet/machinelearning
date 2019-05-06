@@ -7,20 +7,20 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Text;
-using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
-using Microsoft.ML.Internal.Internallearn;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Model;
 using Microsoft.ML.Numeric;
+using Microsoft.ML.Runtime;
+using Microsoft.ML.Trainers;
 
 [assembly: LoadableClass(typeof(IDataScorerTransform), typeof(FeatureContributionScorer), typeof(FeatureContributionScorer.Arguments),
-    typeof(SignatureDataScorer), "Feature Contribution Scorer", "fcc", "wtf", "fct", "FeatureContributionCalculationScorer", AnnotationUtils.Const.ScoreColumnKind.FeatureContribution)]
+    typeof(SignatureDataScorer), "Feature Contribution Scorer", "fcc", "fct", "FeatureContributionCalculationScorer", AnnotationUtils.Const.ScoreColumnKind.FeatureContribution)]
 
 [assembly: LoadableClass(typeof(ISchemaBindableMapper), typeof(FeatureContributionScorer), typeof(FeatureContributionScorer.Arguments),
-    typeof(SignatureBindableMapper), "Feature Contribution Mapper", "fcc", "wtf", "fct", AnnotationUtils.Const.ScoreColumnKind.FeatureContribution)]
+    typeof(SignatureBindableMapper), "Feature Contribution Mapper", "fcc", "fct", AnnotationUtils.Const.ScoreColumnKind.FeatureContribution)]
 
 [assembly: LoadableClass(typeof(ISchemaBindableMapper), typeof(FeatureContributionScorer), null, typeof(SignatureLoadModel),
     "Feature Contribution Mapper", FeatureContributionScorer.MapperLoaderSignature)]
@@ -33,7 +33,7 @@ namespace Microsoft.ML.Data
     internal sealed class FeatureContributionScorer
     {
         // Apparently, loader signature is limited in length to 24 characters.
-        internal const string MapperLoaderSignature = "WTFBindable";
+        internal const string MapperLoaderSignature = "FCCBindable";
 
         internal sealed class Arguments : ScorerArgumentsBase
         {
@@ -103,7 +103,7 @@ namespace Microsoft.ML.Data
             private static VersionInfo GetVersionInfo()
             {
                 return new VersionInfo(
-                    modelSignature: "WTF SCBI",
+                    modelSignature: "FCC SCBI",
                     verWrittenCur: 0x00010001, // Initial
                     verReadableCur: 0x00010001,
                     verWeCanReadBack: 0x00010001,
@@ -224,7 +224,7 @@ namespace Microsoft.ML.Data
                 Contracts.AssertValue(input);
                 Contracts.AssertValue(Predictor);
 
-                var featureGetter = input.GetGetter<TSrc>(colSrc);
+                var featureGetter = input.GetGetter<TSrc>(input.Schema[colSrc]);
                 var map = Predictor.GetFeatureContributionMapper<TSrc, VBuffer<float>>(_topContributionsCount, _bottomContributionsCount, _normalize);
 
                 var features = default(TSrc);
@@ -263,7 +263,7 @@ namespace Microsoft.ML.Data
                 Contracts.AssertValue(input);
                 Contracts.AssertValue(Predictor);
 
-                var featureGetter = input.GetGetter<TSrc>(colSrc);
+                var featureGetter = input.GetGetter<TSrc>(input.Schema[colSrc]);
 
                 // REVIEW: Scorer can call Sparsification\Norm routine.
 
@@ -340,7 +340,7 @@ namespace Microsoft.ML.Data
                             FeatureColumn.Annotations.GetValue(AnnotationUtils.Kinds.SlotNames, ref value));
 
                     var schemaBuilder = new DataViewSchema.Builder();
-                    var featureContributionType = new VectorType(NumberDataViewType.Single, FeatureColumn.Type as VectorType);
+                    var featureContributionType = new VectorDataViewType(NumberDataViewType.Single, ((VectorDataViewType)FeatureColumn.Type).Dimensions);
                     schemaBuilder.AddColumn(DefaultColumnNames.FeatureContributions, featureContributionType, metadataBuilder.ToAnnotations());
                     _outputSchema = schemaBuilder.ToSchema();
                 }
@@ -360,33 +360,28 @@ namespace Microsoft.ML.Data
                 return Enumerable.Repeat(FeatureColumn, 1);
             }
 
-            public DataViewRow GetRow(DataViewRow input, Func<int, bool> active)
+            DataViewRow ISchemaBoundRowMapper.GetRow(DataViewRow input, IEnumerable<DataViewSchema.Column> activeColumns)
             {
                 Contracts.AssertValue(input);
-                Contracts.AssertValue(active);
+                Contracts.AssertValue(activeColumns);
                 var totalColumnsCount = 1 + _outputGenericSchema.Count;
                 var getters = new Delegate[totalColumnsCount];
 
-                if (active(totalColumnsCount - 1))
+                if (activeColumns.Select(c => c.Index).Contains(_outputGenericSchema.Count))
                 {
                     getters[totalColumnsCount - 1] = _parent.Stringify
                         ? _parent.GetTextContributionGetter(input, FeatureColumn.Index, _slotNames)
                         : _parent.GetContributionGetter(input, FeatureColumn.Index);
                 }
 
-                var genericRow = _genericRowMapper.GetRow(input, GetGenericPredicate(active));
+                var genericRow = _genericRowMapper.GetRow(input, activeColumns);
                 for (var i = 0; i < _outputGenericSchema.Count; i++)
                 {
-                    if (genericRow.IsColumnActive(i))
+                    if (genericRow.IsColumnActive(genericRow.Schema[i]))
                         getters[i] = RowCursorUtils.GetGetterAsDelegate(genericRow, i);
                 }
 
                 return new SimpleRow(OutputSchema, genericRow, getters);
-            }
-
-            public Func<int, bool> GetGenericPredicate(Func<int, bool> predicate)
-            {
-                return col => predicate(col);
             }
 
             public IEnumerable<KeyValuePair<RoleMappedSchema.ColumnRole, string>> GetInputColumnRoles()

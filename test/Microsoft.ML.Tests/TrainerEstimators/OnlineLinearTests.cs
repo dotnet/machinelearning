@@ -3,8 +3,8 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.ML;
-using Microsoft.ML.StaticPipe;
 using Microsoft.ML.Trainers;
+using Microsoft.ML.StaticPipe;
 using Xunit;
 
 namespace Microsoft.ML.Tests.TrainerEstimators
@@ -43,7 +43,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             var apModel = apTrainer.Fit(binaryTrainData);
             apTrainer.Fit(binaryTrainData, apModel.Model);
 
-            var svmTrainer = ML.BinaryClassification.Trainers.LinearSupportVectorMachines();
+            var svmTrainer = ML.BinaryClassification.Trainers.LinearSvm();
             TestEstimatorCore(svmTrainer, binaryTrainData);
 
             var svmModel = svmTrainer.Fit(binaryTrainData);

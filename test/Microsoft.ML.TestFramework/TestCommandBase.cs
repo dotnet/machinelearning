@@ -9,11 +9,11 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.Data.DataView;
 using Microsoft.ML.Command;
 using Microsoft.ML.Data;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Model;
+using Microsoft.ML.Runtime;
 using Microsoft.ML.TestFramework;
 using Microsoft.ML.TestFramework.Attributes;
 using Microsoft.ML.Tools;
@@ -66,16 +66,16 @@ namespace Microsoft.ML.RunTests
                 Path = _testCmd.DeleteOutputPath(_dir, _name);
             }
 
-            public bool CheckEquality(int digitsOfPrecision = DigitsOfPrecision)
+            public bool CheckEquality(int digitsOfPrecision = DigitsOfPrecision, NumberParseOption parseOption = NumberParseOption.Default)
             {
                 Contracts.Assert(CanBeBaselined);
-                return _testCmd.CheckEquality(_dir, _name, digitsOfPrecision: digitsOfPrecision);
+                return _testCmd.CheckEquality(_dir, _name, digitsOfPrecision: digitsOfPrecision, parseOption: parseOption);
             }
 
-            public bool CheckEqualityNormalized(int digitsOfPrecision = DigitsOfPrecision)
+            public bool CheckEqualityNormalized(int digitsOfPrecision = DigitsOfPrecision, NumberParseOption parseOption = NumberParseOption.Default)
             {
                 Contracts.Assert(CanBeBaselined);
-                return _testCmd.CheckEqualityNormalized(_dir, _name, digitsOfPrecision: digitsOfPrecision);
+                return _testCmd.CheckEqualityNormalized(_dir, _name, digitsOfPrecision: digitsOfPrecision, parseOption: parseOption);
             }
 
             public string ArgStr(string name)
@@ -212,11 +212,11 @@ namespace Microsoft.ML.RunTests
                 _names = names;
             }
 
-            public bool CheckEquality(int digitsOfPrecision = DigitsOfPrecision)
+            public bool CheckEquality(int digitsOfPrecision = DigitsOfPrecision, NumberParseOption parseOption = NumberParseOption.Default)
             {
                 if (Normalized)
-                    return Path.CheckEqualityNormalized(digitsOfPrecision);
-                return Path.CheckEquality(digitsOfPrecision);
+                    return Path.CheckEqualityNormalized(digitsOfPrecision, parseOption);
+                return Path.CheckEquality(digitsOfPrecision, parseOption);
             }
         }
 
@@ -280,7 +280,7 @@ namespace Microsoft.ML.RunTests
 
         protected bool TestCore(RunContextBase ctx, string cmdName, string args, params PathArgument[] toCompare)
         {
-            return TestCore(ctx, cmdName, args, DigitsOfPrecision, toCompare);
+            return TestCore(ctx, cmdName, args, DigitsOfPrecision, NumberParseOption.Default, toCompare);
         }
 
         /// <summary>
@@ -288,7 +288,7 @@ namespace Microsoft.ML.RunTests
         /// <paramref name="toCompare"/> objects are used for comparison only.
         /// </summary>
         /// <returns>Whether this test succeeded.</returns>
-        protected bool TestCore(RunContextBase ctx, string cmdName, string args, int digitsOfPrecision, params PathArgument[] toCompare)
+        protected bool TestCore(RunContextBase ctx, string cmdName, string args, int digitsOfPrecision, NumberParseOption parseOption, params PathArgument[] toCompare)
         {
             Contracts.AssertValue(cmdName);
             Contracts.AssertValueOrNull(args);
@@ -305,10 +305,10 @@ namespace Microsoft.ML.RunTests
             bool all = true;
             if (!ctx.NoComparisons)
             {
-                all &= outputPath.CheckEqualityNormalized(digitsOfPrecision);
+                all &= outputPath.CheckEqualityNormalized(digitsOfPrecision, parseOption);
                 if (toCompare != null)
                     foreach (var c in toCompare)
-                        all &= c.CheckEquality(digitsOfPrecision);
+                        all &= c.CheckEquality(digitsOfPrecision, parseOption);
             }
             return all;
         }
@@ -363,11 +363,12 @@ namespace Microsoft.ML.RunTests
         private bool TestCoreCore(RunContextBase ctx, string cmdName, string dataPath, PathArgument.Usage situation,
             OutputPath inModelPath, OutputPath outModelPath, string loaderArgs, string extraArgs, params PathArgument[] toCompare)
         {
-            return TestCoreCore(ctx, cmdName, dataPath, situation, inModelPath, outModelPath, loaderArgs, extraArgs, DigitsOfPrecision, toCompare);
+            return TestCoreCore(ctx, cmdName, dataPath, situation, inModelPath, outModelPath, loaderArgs, extraArgs, DigitsOfPrecision, NumberParseOption.Default, toCompare);
         }
 
         private bool TestCoreCore(RunContextBase ctx, string cmdName, string dataPath, PathArgument.Usage situation,
-            OutputPath inModelPath, OutputPath outModelPath, string loaderArgs, string extraArgs, int digitsOfPrecision, params PathArgument[] toCompare)
+            OutputPath inModelPath, OutputPath outModelPath, string loaderArgs, string extraArgs, int digitsOfPrecision,
+            NumberParseOption parseOption, params PathArgument[] toCompare)
         {
             Contracts.AssertNonEmpty(cmdName);
             Contracts.AssertValueOrNull(dataPath);
@@ -397,7 +398,7 @@ namespace Microsoft.ML.RunTests
                 args.Add(extraArgs);
             var argString = string.Join(" ", args);
             var paths = toCompare.Where(pa => (pa.CmpUsage & situation) != PathArgument.Usage.None).ToArray();
-            return TestCore(ctx, cmdName, argString, digitsOfPrecision: digitsOfPrecision, toCompare: paths);
+            return TestCore(ctx, cmdName, argString, digitsOfPrecision: digitsOfPrecision, parseOption: parseOption, toCompare: paths);
         }
 
         /// <summary>
@@ -419,9 +420,9 @@ namespace Microsoft.ML.RunTests
             return TestCoreCore(ctx, cmdName, dataPath, PathArgument.Usage.DataModel, null, ctx.ModelPath(), loaderArgs, extraArgs, toCompare);
         }
 
-        protected bool TestCore(RunContextBase ctx, string cmdName, string dataPath, string loaderArgs, string extraArgs, int digitsOfPrecision, params PathArgument[] toCompare)
+        protected bool TestCore(RunContextBase ctx, string cmdName, string dataPath, string loaderArgs, string extraArgs, int digitsOfPrecision, NumberParseOption parseOption, params PathArgument[] toCompare)
         {
-            return TestCoreCore(ctx, cmdName, dataPath, PathArgument.Usage.DataModel, null, ctx.ModelPath(), loaderArgs, extraArgs, digitsOfPrecision, toCompare);
+            return TestCoreCore(ctx, cmdName, dataPath, PathArgument.Usage.DataModel, null, ctx.ModelPath(), loaderArgs, extraArgs, digitsOfPrecision, parseOption, toCompare);
         }
 
         /// <summary>
@@ -441,9 +442,9 @@ namespace Microsoft.ML.RunTests
             return TestCoreCore(ctx, cmdName, dataPath, PathArgument.Usage.Loader, modelPath, null, null, extraArgs, toCompare);
         }
 
-        protected bool TestInCore(RunContextBase ctx, string cmdName, string dataPath, OutputPath modelPath, string extraArgs, int digitsOfPrecision = DigitsOfPrecision, params PathArgument[] toCompare)
+        protected bool TestInCore(RunContextBase ctx, string cmdName, string dataPath, OutputPath modelPath, string extraArgs, int digitsOfPrecision = DigitsOfPrecision, NumberParseOption parseOption = NumberParseOption.Default, params PathArgument[] toCompare)
         {
-            return TestCoreCore(ctx, cmdName, dataPath, PathArgument.Usage.Loader, modelPath, null, null, extraArgs, digitsOfPrecision, toCompare);
+            return TestCoreCore(ctx, cmdName, dataPath, PathArgument.Usage.Loader, modelPath, null, null, extraArgs, digitsOfPrecision, parseOption, toCompare);
         }
 
         /// <summary>
@@ -632,12 +633,12 @@ namespace Microsoft.ML.RunTests
 
         protected bool TestCore(string cmdName, string dataPath, string loaderArgs, string extraArgs, params PathArgument[] toCompare)
         {
-            return TestCore(Params, cmdName, dataPath, loaderArgs, extraArgs, DigitsOfPrecision, toCompare);
+            return TestCore(Params, cmdName, dataPath, loaderArgs, extraArgs, DigitsOfPrecision, NumberParseOption.Default, toCompare);
         }
 
         protected bool TestCore(string cmdName, string dataPath, string loaderArgs, string extraArgs, int digitsOfPrecision, params PathArgument[] toCompare)
         {
-            return TestCore(Params, cmdName, dataPath, loaderArgs, extraArgs, digitsOfPrecision, toCompare);
+            return TestCore(Params, cmdName, dataPath, loaderArgs, extraArgs, digitsOfPrecision, NumberParseOption.Default, toCompare);
         }
 
         protected bool TestCore(string cmdName, string args, params PathArgument[] toCompare)
@@ -658,7 +659,7 @@ namespace Microsoft.ML.RunTests
 
         protected bool TestInCore(string cmdName, string dataPath, OutputPath modelPath, string extraArgs, int digitsOfPrecision = DigitsOfPrecision, params PathArgument[] toCompare)
         {
-            return TestInCore(Params, cmdName, dataPath, modelPath, extraArgs, digitsOfPrecision, toCompare);
+            return TestInCore(Params, cmdName, dataPath, modelPath, extraArgs, digitsOfPrecision, NumberParseOption.Default, toCompare);
         }
 
         protected bool TestInOutCore(string cmdName, string dataPath, OutputPath modelPath, string extraArgs, params PathArgument[] toCompare)
@@ -817,7 +818,7 @@ namespace Microsoft.ML.RunTests
 
         [TestCategory(Cat)]
         [Fact(Skip = "Need CoreTLC specific baseline update")]
-        public void SaveMultiClassLrPredictorAsSummary()
+        public void SaveMulticlassLrPredictorAsSummary()
         {
             // First run a training.
             string pathData = GetDataPath("iris.txt");
@@ -917,7 +918,7 @@ namespace Microsoft.ML.RunTests
 
             string extraArgs = string.Format("{0} {1} {2} {3} k={4}", "prexf=Term{col=Label:Cat} prexf=CategoricalTransform{col=Cat01}",
                                                 "xf=TextTransform{col=Text} xf=Concat{col=Features:Cat01,Text}",
-                                                "threads- tr=MultiClassLogisticRegression{numThreads=1}", "norm=No", numFolds);
+                                                "threads- tr=MulticlassLogisticRegression{numThreads=1}", "norm=No", numFolds);
             const string loaderArgs = "loader=TextLoader{col=Label:R4:0 col=Cat:TX:1 col=Cat01:TX:2 col=Text:TX:3 header=+}";
             TestCore("cv", pathData, loaderArgs, extraArgs);
 
@@ -1165,7 +1166,7 @@ namespace Microsoft.ML.RunTests
             const string loaderCmdline = @"loader=TextLoader{col=Label:TX:0 col=Features:R4:1-4 header=+}";
             string pathTrain = GetDataPath("iris-label-name.txt");
             OutputPath trainModel = ModelPath();
-            const string trainArgs = "tr=MultiClassLogisticRegression{maxiter=100 t=-} xf=Term{col=Label} seed=1";
+            const string trainArgs = "tr=MulticlassLogisticRegression{maxiter=100 t=-} xf=Term{col=Label} seed=1";
             TestCore("train", pathTrain, loaderCmdline, trainArgs);
 
             _step++;
@@ -1447,13 +1448,13 @@ namespace Microsoft.ML.RunTests
 
         [TestCategory(Cat), TestCategory("Multiclass")]
         [Fact(Skip = "Need CoreTLC specific baseline update")]
-        public void CommandTrainScoreEvaluateMultiClass()
+        public void CommandTrainScoreEvaluateMulticlass()
         {
             // First run a training.
             string pathData = GetDataPath("iris-label-name.txt");
             OutputPath trainModel = ModelPath();
             TestCore("train", pathData, "loader=TextLoader{header+ col=Label:TX:0 col=Features:1-4} xf=Term{col=Label}",
-                "lab=Label feat=Features seed=42 tr=MultiClassNeuralNetwork{output=3 accel=sse lr=0.1 iter=70} norm=Warn");
+                "lab=Label feat=Features seed=42 tr=MulticlassNeuralNetwork{output=3 accel=sse lr=0.1 iter=70} norm=Warn");
 
             // Then, run the score.
             _step++;
@@ -1477,7 +1478,7 @@ namespace Microsoft.ML.RunTests
             _step++;
             var outputFile2 = StdoutPath();
             var metricsPath = MetricsPath();
-            const string evalLoaderArgs = "loader=Text{header+ col=Label:TX:0 col=PredictedLabel:5 col=Score:6-8} xf=Term{col=Label} evaluator=MultiClass{score=Score}";
+            const string evalLoaderArgs = "loader=Text{header+ col=Label:TX:0 col=PredictedLabel:5 col=Score:6-8} xf=Term{col=Label} evaluator=Multiclass{score=Score}";
             TestCore("evaluate", scorePathTxt.Path, evalLoaderArgs, null, metricsPath.Arg("dout"));
 
             // Check that the evaluations produced the same result.
@@ -1487,7 +1488,7 @@ namespace Microsoft.ML.RunTests
             //CheckEqualityFromPathsCore(TestContext.TestName, outputFile1.Path, outputFile2.Path);
 
             _step++;
-            const string evalLoaderArgs2 = "loader=Text{header+ col=Label:0 col=PredictedLabel:5 col=Score:6-8} evaluator=MultiClass{score=Score opcs+}";
+            const string evalLoaderArgs2 = "loader=Text{header+ col=Label:0 col=PredictedLabel:5 col=Score:6-8} evaluator=Multiclass{score=Score opcs+}";
             TestCore("evaluate", scorePathTxt.Path, evalLoaderArgs2, null, metricsPath.Arg("dout"));
 
             Done();

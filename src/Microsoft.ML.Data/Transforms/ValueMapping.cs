@@ -7,12 +7,12 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
-using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
 using Microsoft.ML.Data.IO;
 using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Runtime;
 using Microsoft.ML.Transforms;
 
 [assembly: LoadableClass(ValueMappingTransformer.Summary, typeof(IDataTransform), typeof(ValueMappingTransformer),
@@ -31,7 +31,36 @@ using Microsoft.ML.Transforms;
 
 namespace Microsoft.ML.Transforms
 {
-    /// <include file='doc.xml' path='doc/members/member[@name="ValueMappingEstimator"]/*' />
+
+    /// <summary>
+    /// Estimator for <see cref="ValueMappingTransformer"/> creating a key-value map using the pairs of values in the input data
+    /// <see cref="PrimitiveDataViewType"/>
+    /// </summary>
+    /// <remarks>
+    /// <format type="text/markdown"><![CDATA[
+    ///
+    /// ###  Estimator Characteristics
+    /// |  |  |
+    /// | -- | -- |
+    /// | Does this estimator need to look at the data to train its parameters? | No |
+    /// | Input column data type | Vector or primitive numeric, boolean, text, [System.DateTime](xref:System.DateTime) and [key](xref:Microsoft.ML.Data.KeyDataViewType) type. |
+    /// | Output column data type | Vector or primitive numeric, boolean, text, [System.DateTime](xref:System.DateTime) and [key](xref:Microsoft.ML.Data.KeyDataViewType) type. |
+    ///
+    /// Given two sets of values, one serving as the key, and the other as the value of a Dictionary, the ValueMappingEstimator builds up this dictionary so that when given a specific key it will return a
+    /// specific value.The ValueMappingEstimator supports keys and values of different [System.Type](xref:System.Type) to support different data types.
+    /// Examples for using a ValueMappingEstimator are:
+    /// * Converting a string value to a string value, this can be useful for grouping (i.e. 'cat', 'dog', 'horse' maps to 'mammals').
+    /// * Converting a string value to a integer value (i.e. converting the text description like quality to an numeric where 'good' maps to 1, 'poor' maps to 0.
+    /// * Converting a integer value to a string value and have the string value represented as a [key](xref:Microsoft.ML.Data.KeyDataViewType) type.
+    /// (i.e. convert zip codes to a state string value, which will generate a unique integer value that can be used as a label.
+    ///
+    /// Values can be repeated to allow for multiple keys to map to the same value, however keys can not be repeated. The mapping between keys and values
+    /// can be specified either through lists, where the key list and value list must be the same size or can be done through an [System.IDataView](xref:Microsoft.ML.IDataView).
+    ///
+    /// Check the See Also section for links to usage examples.
+    /// ]]></format>
+    /// </remarks>
+    /// <seealso cref="ConversionsExtensionsCatalog.MapValue(TransformsCatalog.ConversionTransforms, string, IDataView, DataViewSchema.Column, DataViewSchema.Column, string)"/>
     public class ValueMappingEstimator : TrivialEstimator<ValueMappingTransformer>
     {
         private readonly (string outputColumnName, string inputColumnName)[] _columns;
@@ -44,9 +73,9 @@ namespace Microsoft.ML.Transforms
         /// <param name="keyColumn">Name of the key column in <paramref name="lookupMap"/>.</param>
         /// <param name="valueColumn">Name of the value column in <paramref name="lookupMap"/>.</param>
         /// <param name="columns">The list of names of the input columns to apply the transformation, and the name of the resulting column.</param>
-        internal ValueMappingEstimator(IHostEnvironment env, IDataView lookupMap, string keyColumn, string valueColumn, params (string outputColumnName, string inputColumnName)[] columns)
+        internal ValueMappingEstimator(IHostEnvironment env, IDataView lookupMap, DataViewSchema.Column keyColumn, DataViewSchema.Column valueColumn, params (string outputColumnName, string inputColumnName)[] columns)
             : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(ValueMappingEstimator)),
-                    new ValueMappingTransformer(env, lookupMap, keyColumn, valueColumn, columns))
+                  new ValueMappingTransformer(env, lookupMap, keyColumn, valueColumn, columns))
         {
             _columns = columns;
         }
@@ -64,17 +93,17 @@ namespace Microsoft.ML.Transforms
             // Decide the output VectorKind for the columns
             // based on the value type of the dictionary
             var vectorKind = SchemaShape.Column.VectorKind.Scalar;
-            if (Transformer.ValueColumnType is VectorType)
+            if (Transformer.ValueColumnType is VectorDataViewType)
             {
                 vectorKind = SchemaShape.Column.VectorKind.Vector;
-                if(Transformer.ValueColumnType.GetVectorSize() == 0)
+                if (Transformer.ValueColumnType.GetVectorSize() == 0)
                     vectorKind = SchemaShape.Column.VectorKind.VariableVector;
             }
 
             // Set the data type of the output column
             // if the output VectorKind is a vector or variable vector then
             // this is the data type of items stored in the vector.
-            var isKey = Transformer.ValueColumnType is KeyType;
+            var isKey = Transformer.ValueColumnType is KeyDataViewType;
             var columnType = (isKey) ? NumberDataViewType.UInt32 :
                                     Transformer.ValueColumnType.GetItemType();
             var metadataShape = SchemaShape.Create(Transformer.ValueColumnMetadata.Schema);
@@ -86,7 +115,7 @@ namespace Microsoft.ML.Transforms
                 if (originalColumn.Kind == SchemaShape.Column.VectorKind.VariableVector ||
                    originalColumn.Kind == SchemaShape.Column.VectorKind.Vector)
                 {
-                    if (Transformer.ValueColumnType is VectorType)
+                    if (Transformer.ValueColumnType is VectorDataViewType)
                         throw Host.ExceptNotSupp("Column '{0}' cannot be mapped to values when the column and the map values are both vector type.", inputColumnName);
                     // if input to the estimator is of vector type then output should always be vector.
                     // The transformer maps each item in input vector to the values in the dictionary
@@ -101,51 +130,52 @@ namespace Microsoft.ML.Transforms
         }
     }
 
-    /// <include file='doc.xml' path='doc/members/member[@name="ValueMappingEstimator"]/*' />
+    /// <summary>
+    /// Estimator for <see cref="ValueMappingTransformer"/> creating a key-value map using the pairs of values in the input data
+    /// <see cref="PrimitiveDataViewType"/>
+    /// </summary>
+    /// <remarks>
+    /// <format type="text/markdown"><![CDATA[
+    ///
+    /// ###  Estimator Characteristics
+    /// |  |  |
+    /// | -- | -- |
+    /// | Does this estimator need to look at the data to train its parameters? | No |
+    /// | Input column data type | Vector or primitive numeric, boolean, text, [System.DateTime](xref:System.DateTime) and [key](xref:Microsoft.ML.Data.KeyDataViewType) type.|
+    /// | Output column data type | Vector or primitive numeric, boolean, text, [System.DateTime](xref:System.DateTime) and [key](xref:Microsoft.ML.Data.KeyDataViewType) type.|
+    ///
+    /// Given two sets of values, one serving as the key, and the other as the value of a Dictionary, the ValueMappingEstimator builds up this dictionary so that when given a specific key it will return a
+    /// specific value.The ValueMappingEstimator supports keys and values of different [System.Type](xref:System.Type) to support different data types.
+    /// Examples for using a ValueMappingEstimator are:
+    /// * Converting a string value to a string value, this can be useful for grouping (i.e. 'cat', 'dog', 'horse' maps to 'mammals').
+    /// * Converting a string value to a integer value (i.e. converting the text description like quality to an numeric where 'good' maps to 1, 'poor' maps to 0.
+    /// * Converting a integer value to a string value and have the string value represented as a [key](xref:Microsoft.ML.Data.KeyDataViewType) type.
+    /// (i.e. convert zip codes to a state string value, which will generate a unique integer value that can be used as a label.
+    ///
+    /// Values can be repeated to allow for multiple keys to map to the same value, however keys can not be repeated. The mapping between keys and values
+    /// can be specified either through lists, where the key list and value list must be the same size or can be done through an [System.IDataView](xref:Microsoft.ML.IDataView).
+    ///
+    /// Check the See Also section for links to usage examples.
+    /// ]]></format>
+    /// </remarks>
     /// <typeparam name="TKey">Specifies the key type.</typeparam>
     /// <typeparam name="TValue">Specifies the value type.</typeparam>
+    /// <seealso cref="ConversionsExtensionsCatalog.MapValue{TInputType, TOutputType}(TransformsCatalog.ConversionTransforms, IEnumerable{KeyValuePair{TInputType, TOutputType}}, InputOutputColumnPair[])"/>
+    /// <seealso cref="ConversionsExtensionsCatalog.MapValue{TInputType, TOutputType}(TransformsCatalog.ConversionTransforms, IEnumerable{KeyValuePair{TInputType, TOutputType[]}}, InputOutputColumnPair[])"/>
+    /// <seealso cref="ConversionsExtensionsCatalog.MapValue{TInputType, TOutputType}(TransformsCatalog.ConversionTransforms, string, IEnumerable{KeyValuePair{TInputType, TOutputType}}, string, bool)"/>
     public sealed class ValueMappingEstimator<TKey, TValue> : ValueMappingEstimator
     {
-        private (string outputColumnName, string inputColumnName)[] _columns;
-
-        /// <summary>
-        /// Constructs the ValueMappingEstimator, key type -> value type mapping
-        /// </summary>
-        /// <param name="env">The environment to use.</param>
-        /// <param name="keys">The list of keys of TKey.</param>
-        /// <param name="values">The list of values of TValue.</param>
-        /// <param name="columns">The list of columns to apply.</param>
-        internal ValueMappingEstimator(IHostEnvironment env, IEnumerable<TKey> keys, IEnumerable<TValue> values, params (string outputColumnName, string inputColumnName)[] columns)
-            : base(env, DataViewHelper.CreateDataView(env, keys, values, ValueMappingTransformer.KeyColumnName, ValueMappingTransformer.ValueColumnName, false), ValueMappingTransformer.KeyColumnName, ValueMappingTransformer.ValueColumnName, columns)
-        {
-            _columns = columns;
-        }
-
-        /// <summary>
-        /// Constructs the ValueMappingEstimator, key type -> value type mapping
-        /// </summary>
-        /// <param name="env">The environment to use.</param>
-        /// <param name="keys">The list of keys of TKey.</param>
-        /// <param name="values">The list of values of TValue.</param>
-        /// <param name="treatValuesAsKeyType">Specifies to treat the values as a <see cref="KeyType"/>.</param>
-        /// <param name="columns">The list of columns to apply.</param>
-        internal ValueMappingEstimator(IHostEnvironment env, IEnumerable<TKey> keys, IEnumerable<TValue> values, bool treatValuesAsKeyType, params (string outputColumnName, string inputColumnName)[] columns)
-            : base(env, DataViewHelper.CreateDataView(env, keys, values, ValueMappingTransformer.KeyColumnName, ValueMappingTransformer.ValueColumnName, treatValuesAsKeyType), ValueMappingTransformer.KeyColumnName, ValueMappingTransformer.ValueColumnName, columns)
-        {
-            _columns = columns;
-        }
-
         /// <summary>
         /// Constructs the ValueMappingEstimator, key type -> value array type mapping
         /// </summary>
         /// <param name="env">The environment to use.</param>
-        /// <param name="keys">The list of keys of TKey.</param>
-        /// <param name="values">The list of values of TValue[].</param>
+        /// <param name="lookupMap">A <see cref="IDataView"/> containing key column and value column.</param>
+        /// <param name="keyColumn">The key column in <paramref name="lookupMap"/>.</param>
+        /// <param name="valueColumn">The value column in <paramref name="lookupMap"/>.</param>
         /// <param name="columns">The list of columns to apply.</param>
-        internal ValueMappingEstimator(IHostEnvironment env, IEnumerable<TKey> keys, IEnumerable<TValue[]> values, params (string outputColumnName, string inputColumnName)[] columns)
-            : base(env, DataViewHelper.CreateDataView(env, keys, values, ValueMappingTransformer.KeyColumnName, ValueMappingTransformer.ValueColumnName), ValueMappingTransformer.KeyColumnName, ValueMappingTransformer.ValueColumnName, columns)
+        internal ValueMappingEstimator(IHostEnvironment env, IDataView lookupMap, DataViewSchema.Column keyColumn, DataViewSchema.Column valueColumn, params (string outputColumnName, string inputColumnName)[] columns)
+            : base(env, lookupMap, keyColumn, valueColumn, columns)
         {
-            _columns = columns;
         }
     }
 
@@ -195,7 +225,7 @@ namespace Microsoft.ML.Transforms
         internal static void AddColumnWrapper<T>(ArrayDataViewBuilder builder, string columnName, PrimitiveDataViewType primitiveType, T[] values)
         {
             if (typeof(T) == typeof(string))
-                builder.AddColumn(columnName, values.Select(x=>x.ToString()).ToArray());
+                builder.AddColumn(columnName, values.Select(x => x.ToString()).ToArray());
             else
                 builder.AddColumn(columnName, primitiveType, values);
         }
@@ -208,7 +238,7 @@ namespace Microsoft.ML.Transforms
             if (typeof(T) == typeof(string))
             {
                 var convertedValues = new List<ReadOnlyMemory<char>[]>();
-                foreach(var value in values)
+                foreach (var value in values)
                 {
                     var converted = value.Select(x => x.ToString().AsMemory());
                     convertedValues.Add(converted.ToArray());
@@ -312,7 +342,9 @@ namespace Microsoft.ML.Transforms
         }
     }
 
-    /// <include file='doc.xml' path='doc/members/member[@name="ValueMappingEstimator"]/*' />
+    /// <summary>
+    /// <see cref="ITransformer"/> resulting from fitting a <see cref="ValueMappingEstimator"/>.
+    /// </summary>
     public class ValueMappingTransformer : OneToOneTransformerBase
     {
         internal const string Summary = "Maps text values columns to new columns using a map dataset.";
@@ -324,13 +356,13 @@ namespace Microsoft.ML.Transforms
 
         // Stream names for the binary idv streams.
         private const string DefaultMapName = "DefaultMap.idv";
-        internal static string KeyColumnName = "Key";
-        internal static string ValueColumnName = "Value";
+        internal static string DefaultKeyColumnName = "Key";
+        internal static string DefaultValueColumnName = "Value";
         private ValueMap _valueMap;
-        private byte[] _dataView;
+        private readonly byte[] _dataView;
 
-        internal DataViewType ValueColumnType => _valueMap.ValueType;
-        internal DataViewSchema.Annotations ValueColumnMetadata { get; }
+        internal DataViewType ValueColumnType => _valueMap.ValueColumn.Type;
+        internal DataViewSchema.Annotations ValueColumnMetadata => _valueMap.ValueColumn.Annotations;
 
         private static VersionInfo GetVersionInfo()
         {
@@ -396,29 +428,38 @@ namespace Microsoft.ML.Transforms
         }
 
         internal ValueMappingTransformer(IHostEnvironment env, IDataView lookupMap,
-            string keyColumn, string valueColumn, (string outputColumnName, string inputColumnName)[] columns)
+            DataViewSchema.Column lookupKeyColumn, DataViewSchema.Column lookupValueColumn, (string outputColumnName, string inputColumnName)[] columns)
             : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(ValueMappingTransformer)), columns)
         {
-            Host.CheckNonEmpty(keyColumn, nameof(keyColumn), "A key column must be specified when passing in an IDataView for the value mapping");
-            Host.CheckNonEmpty(valueColumn, nameof(valueColumn), "A value column must be specified when passing in an IDataView for the value mapping");
-            _valueMap = CreateValueMapFromDataView(lookupMap, keyColumn, valueColumn);
-            int valueColumnIdx = 0;
-            Host.Check(lookupMap.Schema.TryGetColumnIndex(valueColumn, out valueColumnIdx));
-            ValueColumnMetadata = lookupMap.Schema[valueColumnIdx].Annotations;
+            _valueMap = CreateValueMapFromDataView(lookupMap, lookupKeyColumn, lookupValueColumn);
 
             // Create the byte array of the original IDataView, this is used for saving out the data.
-            _dataView = GetBytesFromDataView(Host, lookupMap, keyColumn, valueColumn);
+            _dataView = GetBytesFromDataView(Host, lookupMap, lookupKeyColumn.Name, lookupValueColumn.Name);
         }
 
-        private ValueMap CreateValueMapFromDataView(IDataView dataView, string keyColumn, string valueColumn)
+        private ValueMap CreateValueMapFromDataView(IDataView dataView, DataViewSchema.Column keyColumn, DataViewSchema.Column valueColumn)
         {
-            // Confirm that the key and value columns exist in the dataView
-            Host.Check(dataView.Schema.TryGetColumnIndex(keyColumn, out int keyIdx), "Key column " + keyColumn + " does not exist in the given dataview");
-            Host.Check(dataView.Schema.TryGetColumnIndex(valueColumn, out int valueIdx), "Value column " + valueColumn + " does not exist in the given dataview");
-            var keyType = dataView.Schema[keyIdx].Type;
-            var valueType = dataView.Schema[valueIdx].Type;
-            var valueMap = ValueMap.Create(keyType, valueType, ValueColumnMetadata);
-            using (var cursor = dataView.GetRowCursor(dataView.Schema[keyIdx], dataView.Schema[valueIdx]))
+            DataViewSchema.Column? column = null;
+
+            // Check if key column is valid to the used IDataView.
+            column = dataView.Schema.GetColumnOrNull(keyColumn.Name);
+            Host.Check(column.HasValue, "The selected column " + nameof(keyColumn) + " is not included in the targeted IDataView " + nameof(dataView));
+            var retrievedKeyColumn = column.Value;
+            Host.Check(retrievedKeyColumn.Index == keyColumn.Index, nameof(keyColumn) + "'s column index doesn't match that of the associated column in " + nameof(dataView));
+            Host.Check(retrievedKeyColumn.Type == keyColumn.Type, nameof(keyColumn) + "'s column type doesn't match that of the associated column in " + nameof(dataView));
+            Host.Check(retrievedKeyColumn.Annotations == keyColumn.Annotations, nameof(keyColumn) + "'s column annotations don't match those of the associated column in " + nameof(dataView));
+
+            // Check if value column is valid to the used IDataView.
+            column = dataView.Schema.GetColumnOrNull(valueColumn.Name);
+            Host.Check(column.HasValue, "The selected column " + nameof(valueColumn) + " is not included in the targeted IDataView " + nameof(dataView));
+            var retrievedValueColumn = column.Value;
+            Host.Check(retrievedValueColumn.Index == valueColumn.Index, nameof(valueColumn) + "'s column index doesn't match that of the associated column in " + nameof(dataView));
+            Host.Check(retrievedValueColumn.Type == valueColumn.Type, nameof(valueColumn) + "'s column type doesn't match that of the associated column in " + nameof(dataView));
+            Host.Check(retrievedValueColumn.Annotations == valueColumn.Annotations, nameof(valueColumn) + "'s column annotations don't match those of the associated column in " + nameof(dataView));
+
+            // Extract key-column pairs to form dictionary from the used IDataView.
+            var valueMap = ValueMap.Create(keyColumn, valueColumn);
+            using (var cursor = dataView.GetRowCursor(dataView.Schema[keyColumn.Index], dataView.Schema[valueColumn.Index]))
                 valueMap.Train(Host, cursor);
             return valueMap;
         }
@@ -439,8 +480,8 @@ namespace Microsoft.ML.Transforms
             {
                 using (var ch = env.Start($"Processing key values from file {fileName}"))
                 {
-                    var getKey = cursor.GetGetter<ReadOnlyMemory<char>>(keyIdx);
-                    var getValue = cursor.GetGetter<ReadOnlyMemory<char>>(valueIdx);
+                    var getKey = cursor.GetGetter<ReadOnlyMemory<char>>(cursor.Schema[keyIdx]);
+                    var getValue = cursor.GetGetter<ReadOnlyMemory<char>>(cursor.Schema[valueIdx]);
                     int countNonKeys = 0;
 
                     ReadOnlyMemory<char> key = default;
@@ -515,16 +556,16 @@ namespace Microsoft.ML.Transforms
             List<TKey> keys = new List<TKey>();
             List<TValue> values = new List<TValue>();
 
-            idv.Schema.TryGetColumnIndex(keyColumnName, out int keyIdx);
-            idv.Schema.TryGetColumnIndex(valueColumnName, out int valueIdx);
+            var keyColumn = idv.Schema[keyColumnName];
+            var valueColumn = idv.Schema[valueColumnName];
             using (var cursor = idv.GetRowCursorForAllColumns())
             {
                 using (var ch = env.Start("Processing key values"))
                 {
                     TKey key = default;
                     TValue value = default;
-                    var getKey = cursor.GetGetter<TKey>(keyIdx);
-                    var getValue = cursor.GetGetter<TValue>(valueIdx);
+                    var getKey = cursor.GetGetter<TKey>(keyColumn);
+                    var getValue = cursor.GetGetter<TValue>(valueColumn);
                     while (cursor.MoveNext())
                     {
                         try
@@ -554,7 +595,7 @@ namespace Microsoft.ML.Transforms
             }
 
             var lookupMap = DataViewHelper.CreateDataView(env, keys, values, keyColumnName, valueColumnName, treatValuesAsKeyTypes);
-            return new ValueMappingTransformer(env, lookupMap, keyColumnName, valueColumnName, columns);
+            return new ValueMappingTransformer(env, lookupMap, lookupMap.Schema[keyColumnName], lookupMap.Schema[valueColumnName], columns);
         }
 
         private static IDataTransform Create(IHostEnvironment env, Options options, IDataView input)
@@ -565,8 +606,8 @@ namespace Microsoft.ML.Transforms
             env.CheckValueOrNull(options.KeyColumn);
             env.CheckValueOrNull(options.ValueColumn);
 
-            var keyColumnName = (string.IsNullOrEmpty(options.KeyColumn)) ? KeyColumnName : options.KeyColumn;
-            var valueColumnName = (string.IsNullOrEmpty(options.ValueColumn)) ? ValueColumnName : options.ValueColumn;
+            var keyColumnName = (string.IsNullOrEmpty(options.KeyColumn)) ? DefaultKeyColumnName : options.KeyColumn;
+            var valueColumnName = (string.IsNullOrEmpty(options.ValueColumn)) ? DefaultValueColumnName : options.ValueColumn;
 
             IMultiStreamSource fileSource = new MultiFileSource(options.DataFile);
             IDataView loader;
@@ -588,8 +629,8 @@ namespace Microsoft.ML.Transforms
                     // this will default to the key column as a text column and the value column as a uint column
 
                     // Set the keyColumnName and valueColumnName to the default values.
-                    keyColumnName = KeyColumnName;
-                    valueColumnName = ValueColumnName;
+                    keyColumnName = DefaultKeyColumnName;
+                    valueColumnName = DefaultValueColumnName;
                     TextLoader.Column keyColumn = default;
                     TextLoader.Column valueColumn = default;
 
@@ -644,7 +685,7 @@ namespace Microsoft.ML.Transforms
 
             ValueMappingTransformer transformer = null;
             (string outputColumnName, string inputColumnName)[] columns = options.Columns.Select(x => (x.Name, x.Source)).ToArray();
-            transformer = new ValueMappingTransformer(env, loader, keyColumnName, valueColumnName, columns);
+            transformer = new ValueMappingTransformer(env, loader, loader.Schema[keyColumnName], loader.Schema[valueColumnName], columns);
             return transformer.MakeDataTransform(input);
         }
 
@@ -696,8 +737,8 @@ namespace Microsoft.ML.Transforms
                 throw env.ExceptDecode();
 
             var binaryLoader = GetLoader(env, rgb);
-            var keyColumnName = (termLookupModel) ? "Term" : KeyColumnName;
-            return new ValueMappingTransformer(env, binaryLoader, keyColumnName, ValueColumnName, columns);
+            var keyColumnName = (termLookupModel) ? "Term" : DefaultKeyColumnName;
+            return new ValueMappingTransformer(env, binaryLoader, binaryLoader.Schema[keyColumnName], binaryLoader.Schema[DefaultValueColumnName], columns);
         }
 
         private static byte[] ReadAllBytes(IExceptionContext ectx, BinaryReader rdr)
@@ -753,26 +794,24 @@ namespace Microsoft.ML.Transforms
         /// </summary>
         private abstract class ValueMap
         {
-            public readonly DataViewType KeyType;
-            public readonly DataViewType ValueType;
+            public DataViewSchema.Column KeyColumn { get; }
+            public DataViewSchema.Column ValueColumn { get; }
 
-            public ValueMap(DataViewType keyType, DataViewType valueType)
+            public ValueMap(DataViewSchema.Column keyColumn, DataViewSchema.Column valueColumn)
             {
-                KeyType = keyType;
-                ValueType = valueType;
+                KeyColumn = keyColumn;
+                ValueColumn = valueColumn;
             }
 
-            public static ValueMap Create(DataViewType keyType, DataViewType valueType, DataViewSchema.Annotations valueMetadata)
+            internal static ValueMap Create(DataViewSchema.Column keyColumn, DataViewSchema.Column valueColumn)
             {
-                Func<DataViewType, DataViewType, DataViewSchema.Annotations, ValueMap> del = CreateValueMapInvoke<int, int>;
-                var meth = del.Method.GetGenericMethodDefinition().MakeGenericMethod(keyType.RawType, valueType.RawType);
-                return (ValueMap)meth.Invoke(null, new object[] { keyType, valueType, valueMetadata });
+                Func<DataViewSchema.Column, DataViewSchema.Column, ValueMap> del = CreateValueMapInvoke<int, int>;
+                var method = del.Method.GetGenericMethodDefinition().MakeGenericMethod(keyColumn.Type.RawType, valueColumn.Type.RawType);
+                return (ValueMap)method.Invoke(null, new object[] { keyColumn, valueColumn });
             }
 
-            private static ValueMap CreateValueMapInvoke<TKey, TValue>(DataViewType keyType,
-                                                                                DataViewType valueType,
-                                                                                DataViewSchema.Annotations valueMetadata)
-                => new ValueMap<TKey, TValue>(keyType, valueType, valueMetadata);
+            private static ValueMap CreateValueMapInvoke<TKey, TValue>(DataViewSchema.Column keyColumn, DataViewSchema.Column valueColumn) =>
+                new ValueMap<TKey, TValue>(keyColumn, valueColumn);
 
             public abstract void Train(IHostEnvironment env, DataViewRowCursor cursor);
 
@@ -788,7 +827,6 @@ namespace Microsoft.ML.Transforms
         {
             private Dictionary<TKey, TValue> _mapping;
             private TValue _missingValue;
-            private DataViewSchema.Annotations _valueMetadata;
 
             private Dictionary<TKey, TValue> CreateDictionary()
             {
@@ -797,11 +835,9 @@ namespace Microsoft.ML.Transforms
                 return new Dictionary<TKey, TValue>();
             }
 
-            public ValueMap(DataViewType keyType, DataViewType valueType, DataViewSchema.Annotations valueMetadata)
-                : base(keyType, valueType)
+            public ValueMap(DataViewSchema.Column keyColumn, DataViewSchema.Column valueColumn) : base(keyColumn, valueColumn)
             {
                 _mapping = CreateDictionary();
-                _valueMetadata = valueMetadata;
             }
 
             /// <summary>
@@ -815,15 +851,15 @@ namespace Microsoft.ML.Transforms
 
                 // For keys that are not in the mapping, the missingValue will be returned.
                 _missingValue = default;
-                if (!(ValueType is VectorType))
+                if (!(ValueColumn.Type is VectorDataViewType))
                 {
                     // For handling missing values, this follows how a missing value is handled when loading from a text source.
                     // First check if there is a String->ValueType conversion method. If so, call the conversion method with an
                     // empty string, the returned value will be the new missing value.
                     // NOTE this will return NA for R4 and R8 types.
-                    if (Microsoft.ML.Data.Conversion.Conversions.Instance.TryGetStandardConversion<ReadOnlyMemory<char>, TValue>(
+                    if (Data.Conversion.Conversions.Instance.TryGetStandardConversion<ReadOnlyMemory<char>, TValue>(
                                                                         TextDataViewType.Instance,
-                                                                        ValueType,
+                                                                        ValueColumn.Type,
                                                                         out conv,
                                                                         out identity))
                     {
@@ -833,8 +869,8 @@ namespace Microsoft.ML.Transforms
                     }
                 }
 
-                var keyGetter = cursor.GetGetter<TKey>(0);
-                var valueGetter = cursor.GetGetter<TValue>(1);
+                var keyGetter = cursor.GetGetter<TKey>(KeyColumn);
+                var valueGetter = cursor.GetGetter<TValue>(ValueColumn);
                 while (cursor.MoveNext())
                 {
                     TKey key = default;
@@ -852,10 +888,10 @@ namespace Microsoft.ML.Transforms
             {
                 if (_mapping.ContainsKey(key))
                 {
-                    if (ValueType is VectorType vectorType)
+                    if (ValueColumn.Type is VectorDataViewType vectorType)
                         return Utils.MarshalInvoke(GetVector<int>, vectorType.ItemType.RawType, _mapping[key]);
                     else
-                        return Utils.MarshalInvoke(GetValue<int>, ValueType.RawType, _mapping[key]);
+                        return Utils.MarshalInvoke(GetValue<int>, ValueColumn.Type.RawType, _mapping[key]);
                 }
                 else
                     return _missingValue;
@@ -863,10 +899,11 @@ namespace Microsoft.ML.Transforms
 
             public override Delegate GetGetter(DataViewRow input, int index)
             {
-                if (input.Schema[index].Type is VectorType)
+                var column = input.Schema[index];
+                if (column.Type is VectorDataViewType)
                 {
                     var src = default(VBuffer<TKey>);
-                    var getSrc = input.GetGetter<VBuffer<TKey>>(index);
+                    var getSrc = input.GetGetter<VBuffer<TKey>>(column);
 
                     ValueGetter<VBuffer<TValue>> retVal =
                         (ref VBuffer<TValue> dst) =>
@@ -886,7 +923,7 @@ namespace Microsoft.ML.Transforms
                 else
                 {
                     var src = default(TKey);
-                    var getSrc = input.GetGetter<TKey>(index);
+                    var getSrc = input.GetGetter<TKey>(column);
                     ValueGetter<TValue> retVal =
                         (ref TValue dst) =>
                         {
@@ -901,9 +938,9 @@ namespace Microsoft.ML.Transforms
                 => DataViewHelper.CreateDataView(env,
                                                  _mapping.Keys,
                                                  _mapping.Values,
-                                                 ValueMappingTransformer.KeyColumnName,
-                                                 ValueMappingTransformer.ValueColumnName,
-                                                 ValueType is KeyType);
+                                                 ValueMappingTransformer.DefaultKeyColumnName,
+                                                 ValueMappingTransformer.DefaultValueColumnName,
+                                                 ValueColumn.Type is KeyDataViewType);
 
             private static TValue GetVector<T>(TValue value)
             {
@@ -940,8 +977,8 @@ namespace Microsoft.ML.Transforms
 
             var cols = new List<(string outputColumnName, string inputColumnName)>()
             {
-                (KeyColumnName, keyColumn),
-                (ValueColumnName, valueColumn)
+                (DefaultKeyColumnName, keyColumn),
+                (DefaultValueColumnName, valueColumn)
             };
 
             var view = new ColumnCopyingTransformer(host, cols.ToArray()).Transform(lookup);
@@ -966,26 +1003,23 @@ namespace Microsoft.ML.Transforms
 
         private protected override IRowMapper MakeRowMapper(DataViewSchema schema)
         {
-            return new Mapper(this, schema, _valueMap, ValueColumnMetadata, ColumnPairs);
+            return new Mapper(this, schema, _valueMap, ColumnPairs);
         }
 
         private sealed class Mapper : OneToOneMapperBase
         {
             private readonly DataViewSchema _inputSchema;
             private readonly ValueMap _valueMap;
-            private readonly DataViewSchema.Annotations _valueMetadata;
             private readonly (string outputColumnName, string inputColumnName)[] _columns;
             private readonly ValueMappingTransformer _parent;
 
             internal Mapper(ValueMappingTransformer transform,
                             DataViewSchema inputSchema,
                             ValueMap valueMap,
-                            DataViewSchema.Annotations valueMetadata,
                             (string outputColumnName, string inputColumnName)[] columns)
                 : base(transform.Host.Register(nameof(Mapper)), transform, inputSchema)
             {
                 _inputSchema = inputSchema;
-                _valueMetadata = valueMetadata;
                 _valueMap = valueMap;
                 _columns = columns;
                 _parent = transform;
@@ -1005,12 +1039,12 @@ namespace Microsoft.ML.Transforms
                 var result = new DataViewSchema.DetachedColumn[_columns.Length];
                 for (int i = 0; i < _columns.Length; i++)
                 {
-                    if (_inputSchema[_columns[i].inputColumnName].Type is VectorType && _valueMap.ValueType is VectorType)
+                    if (_inputSchema[_columns[i].inputColumnName].Type is VectorDataViewType && _valueMap.ValueColumn.Type is VectorDataViewType)
                         throw _parent.Host.ExceptNotSupp("Column '{0}' cannot be mapped to values when the column and the map values are both vector type.", _columns[i].inputColumnName);
-                    var colType = _valueMap.ValueType;
-                    if (_inputSchema[_columns[i].inputColumnName].Type is VectorType)
-                        colType = new VectorType(ColumnTypeExtensions.PrimitiveTypeFromType(_valueMap.ValueType.GetItemType().RawType));
-                    result[i] = new DataViewSchema.DetachedColumn(_columns[i].outputColumnName, colType, _valueMetadata);
+                    var colType = _valueMap.ValueColumn.Type;
+                    if (_inputSchema[_columns[i].inputColumnName].Type is VectorDataViewType)
+                        colType = new VectorDataViewType(ColumnTypeExtensions.PrimitiveTypeFromType(_valueMap.ValueColumn.Type.GetItemType().RawType));
+                    result[i] = new DataViewSchema.DetachedColumn(_columns[i].outputColumnName, colType, _valueMap.ValueColumn.Annotations);
                 }
                 return result;
             }

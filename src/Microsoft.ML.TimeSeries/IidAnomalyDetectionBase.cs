@@ -4,10 +4,9 @@
 
 using System;
 using System.IO;
-using Microsoft.Data.DataView;
 using Microsoft.ML.Data;
 using Microsoft.ML.Internal.Utilities;
-using Microsoft.ML.Model;
+using Microsoft.ML.Runtime;
 
 namespace Microsoft.ML.Transforms.TimeSeries
 {
@@ -24,7 +23,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
         bool ITransformer.IsRowToRowMapper => ((ITransformer)InternalTransform).IsRowToRowMapper;
 
         /// <summary>
-        /// Creates a clone of the transfomer. Used for taking the snapshot of the state.
+        /// Create a clone of the transformer. Used for taking the snapshot of the state.
         /// </summary>
         /// <returns></returns>
         IStatefulTransformer IStatefulTransformer.Clone() => InternalTransform.Clone();

@@ -3,8 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
-using Microsoft.Data.DataView;
-using Microsoft.ML.Data;
 
 namespace Microsoft.ML.EntryPoints
 {

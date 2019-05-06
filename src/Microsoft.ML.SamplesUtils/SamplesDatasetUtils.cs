@@ -6,7 +6,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Net;
-using Microsoft.Data.DataView;
 using Microsoft.ML.Data;
 
 namespace Microsoft.ML.SamplesUtils
@@ -172,7 +171,7 @@ namespace Microsoft.ML.SamplesUtils
                     "occupation", "relationship", "ethnicity", "native-country", "age", "education-num",
                     "capital-gain", "capital-loss", "hours-per-week"))
                 // Min-max normalize all the features
-                .Append(mlContext.Transforms.Normalize("Features"));
+                .Append(mlContext.Transforms.NormalizeMinMax("Features"));
 
             var data = loader.Load(dataFile);
             var featurizedData = pipeline.Fit(data).Transform(data);
@@ -273,6 +272,9 @@ namespace Microsoft.ML.SamplesUtils
 
         private static string Download(string baseGitPath, string dataFile)
         {
+            if (File.Exists(dataFile))
+                return dataFile;
+
             using (WebClient client = new WebClient())
             {
                 client.DownloadFile(new Uri($"{baseGitPath}"), dataFile);
@@ -509,18 +511,20 @@ namespace Microsoft.ML.SamplesUtils
         private const int _simpleBinaryClassSampleFeatureLength = 10;
 
         /// <summary>
-        /// Example with one binary label and 10 feature values.
+        /// Example with one binary label, 10 feature values and a weight (float).
         /// </summary>
-        public class BinaryLabelFloatFeatureVectorSample
+        public class BinaryLabelFloatFeatureVectorFloatWeightSample
         {
             public bool Label;
 
             [VectorType(_simpleBinaryClassSampleFeatureLength)]
             public float[] Features;
+
+            public float Weight;
         }
 
         /// <summary>
-        /// Class used to capture prediction of <see cref="BinaryLabelFloatFeatureVectorSample"/> when
+        /// Class used to capture prediction of <see cref="BinaryLabelFloatFeatureVectorFloatWeightSample"/> when
         /// calling <see cref="DataOperationsCatalog.CreateEnumerable{TRow}(IDataView, bool, bool, SchemaDefinition)"/> via on <see cref="MLContext"/>.
         /// </summary>
         public class CalibratedBinaryClassifierOutput
@@ -531,7 +535,7 @@ namespace Microsoft.ML.SamplesUtils
         }
 
         /// <summary>
-        /// Class used to capture prediction of <see cref="BinaryLabelFloatFeatureVectorSample"/> when
+        /// Class used to capture prediction of <see cref="BinaryLabelFloatFeatureVectorFloatWeightSample"/> when
         /// calling <see cref="DataOperationsCatalog.CreateEnumerable{TRow}(IDataView, bool, bool, SchemaDefinition)"/> via on <see cref="MLContext"/>.
         /// </summary>
         public class NonCalibratedBinaryClassifierOutput
@@ -540,14 +544,19 @@ namespace Microsoft.ML.SamplesUtils
             public float Score;
         }
 
-        public static IEnumerable<BinaryLabelFloatFeatureVectorSample> GenerateBinaryLabelFloatFeatureVectorSamples(int exampleCount)
+        public static IEnumerable<BinaryLabelFloatFeatureVectorFloatWeightSample> GenerateBinaryLabelFloatFeatureVectorFloatWeightSamples(int exampleCount)
         {
             var rnd = new Random(0);
-            var data = new List<BinaryLabelFloatFeatureVectorSample>();
+            var data = new List<BinaryLabelFloatFeatureVectorFloatWeightSample>();
             for (int i = 0; i < exampleCount; ++i)
             {
                 // Initialize an example with a random label and an empty feature vector.
-                var sample = new BinaryLabelFloatFeatureVectorSample() { Label = rnd.Next() % 2 == 0, Features = new float[_simpleBinaryClassSampleFeatureLength] };
+                var sample = new BinaryLabelFloatFeatureVectorFloatWeightSample() {
+                    Label = rnd.Next() % 2 == 0,
+                    Features = new float[_simpleBinaryClassSampleFeatureLength],
+                    Weight = (float)rnd.NextDouble()
+                };
+
                 // Fill feature vector according the assigned label.
                 for (int j = 0; j < _simpleBinaryClassSampleFeatureLength; ++j)
                 {

@@ -137,7 +137,7 @@ namespace Microsoft.ML.Internal.CpuMath
             Vector256<float> signMask = Vector256.Create(-0.0f); // 0x8000 0000
             Vector256<float> xSign = Avx.And(xDst1, signMask); // result = 0x8000 0000 if xDst1 is negative or 0x0000 0000 otherwise
             Vector256<float> xDst1Abs = Avx.Xor(xDst1, xSign);
-            Vector256<float> xCond = Avx.Compare(xDst1Abs, xThreshold, FloatComparisonMode.GreaterThanOrderedNonSignaling); // result = 0xFFFF FFFF if true
+            Vector256<float> xCond = Avx.Compare(xDst1Abs, xThreshold, FloatComparisonMode.OrderedGreaterThanNonSignaling); // result = 0xFFFF FFFF if true
             Vector256<float> x2 = Avx.Xor(xSign, xThreshold); // -xThreshold if xDst1 is negative and +xThreshold otherwise
             return Avx.And(Avx.Subtract(xDst1, x2), xCond);
         }

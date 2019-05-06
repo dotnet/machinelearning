@@ -5,6 +5,7 @@
 #undef COMPARE_BCL
 
 using System;
+using Microsoft.ML.Runtime;
 
 namespace Microsoft.ML.Internal.Utilities
 {
@@ -468,50 +469,50 @@ namespace Microsoft.ML.Internal.Utilities
             {
                 switch (span[ich])
                 {
-                case '?':
-                    // We also interpret ? to mean NaN.
-                    value = Single.NaN;
-                    ich += 1;
-                    return true;
-
-                case 'N':
-                    if (ich + 3 <= span.Length && span[ich + 1] == 'a' && span[ich + 2] == 'N')
-                    {
+                    case '?':
+                        // We also interpret ? to mean NaN.
                         value = Single.NaN;
-                        ich += 3;
+                        ich += 1;
                         return true;
-                    }
-                    break;
 
-                case 'I':
-                    if (ich + 8 <= span.Length && span[ich + 1] == 'n' && span[ich + 2] == 'f' && span[ich + 3] == 'i' && span[ich + 4] == 'n' && span[ich + 5] == 'i' && span[ich + 6] == 't' && span[ich + 7] == 'y')
-                    {
+                    case 'N':
+                        if (ich + 3 <= span.Length && span[ich + 1] == 'a' && span[ich + 2] == 'N')
+                        {
+                            value = Single.NaN;
+                            ich += 3;
+                            return true;
+                        }
+                        break;
+
+                    case 'I':
+                        if (ich + 8 <= span.Length && span[ich + 1] == 'n' && span[ich + 2] == 'f' && span[ich + 3] == 'i' && span[ich + 4] == 'n' && span[ich + 5] == 'i' && span[ich + 6] == 't' && span[ich + 7] == 'y')
+                        {
+                            value = Single.PositiveInfinity;
+                            ich += 8;
+                            return true;
+                        }
+                        break;
+
+                    case '-':
+                        if (ich + 2 <= span.Length && span[ich + 1] == InfinitySymbol)
+                        {
+                            value = Single.NegativeInfinity;
+                            ich += 2;
+                            return true;
+                        }
+
+                        if (ich + 9 <= span.Length && span[ich + 1] == 'I' && span[ich + 2] == 'n' && span[ich + 3] == 'f' && span[ich + 4] == 'i' && span[ich + 5] == 'n' && span[ich + 6] == 'i' && span[ich + 7] == 't' && span[ich + 8] == 'y')
+                        {
+                            value = Single.NegativeInfinity;
+                            ich += 9;
+                            return true;
+                        }
+                        break;
+
+                    case InfinitySymbol:
                         value = Single.PositiveInfinity;
-                        ich += 8;
+                        ich += 1;
                         return true;
-                    }
-                    break;
-
-                case '-':
-                    if (ich + 2 <= span.Length && span[ich + 1] == InfinitySymbol)
-                    {
-                        value = Single.NegativeInfinity;
-                        ich += 2;
-                        return true;
-                    }
-
-                    if (ich + 9 <= span.Length && span[ich + 1] == 'I' && span[ich + 2] == 'n' && span[ich + 3] == 'f' && span[ich + 4] == 'i' && span[ich + 5] == 'n' && span[ich + 6] == 'i' && span[ich + 7] == 't' && span[ich + 8] == 'y')
-                    {
-                        value = Single.NegativeInfinity;
-                        ich += 9;
-                        return true;
-                    }
-                    break;
-
-                case InfinitySymbol:
-                    value = Single.PositiveInfinity;
-                    ich += 1;
-                    return true;
                 }
             }
 
@@ -539,35 +540,35 @@ namespace Microsoft.ML.Internal.Utilities
             int i = ich;
             switch (span[i])
             {
-            default:
-                return false;
-
-            case '-':
-                if (++i >= span.Length)
+                default:
                     return false;
-                neg = true;
-                break;
 
-            case '+':
-                if (++i >= span.Length)
-                    return false;
-                break;
+                case '-':
+                    if (++i >= span.Length)
+                        return false;
+                    neg = true;
+                    break;
 
-            case '.':
-                goto LPoint;
+                case '+':
+                    if (++i >= span.Length)
+                        return false;
+                    break;
 
-            // The common cases.
-            case '0':
-            case '1':
-            case '2':
-            case '3':
-            case '4':
-            case '5':
-            case '6':
-            case '7':
-            case '8':
-            case '9':
-                break;
+                case '.':
+                    goto LPoint;
+
+                // The common cases.
+                case '0':
+                case '1':
+                case '2':
+                case '3':
+                case '4':
+                case '5':
+                case '6':
+                case '7':
+                case '8':
+                case '9':
+                    break;
             }
 
             // Get digits before '.'
@@ -595,7 +596,7 @@ namespace Microsoft.ML.Internal.Utilities
             if (span[i] != '.')
                 goto LAfterDigits;
 
-        LPoint:
+            LPoint:
             Contracts.Assert(i < span.Length);
             Contracts.Assert(span[i] == '.');
 
@@ -632,14 +633,14 @@ namespace Microsoft.ML.Internal.Utilities
             // Check for an exponent.
             switch (span[i])
             {
-            default:
-                return true;
-
-            case 'e':
-            case 'E':
-                if (++i >= span.Length)
+                default:
                     return true;
-                break;
+
+                case 'e':
+                case 'E':
+                    if (++i >= span.Length)
+                        return true;
+                    break;
             }
 
             // Handle the exponent sign.
@@ -647,15 +648,15 @@ namespace Microsoft.ML.Internal.Utilities
             Contracts.Assert(i < span.Length);
             switch (span[i])
             {
-            case '-':
-                if (++i >= span.Length)
-                    return true;
-                expNeg = true;
-                break;
-            case '+':
-                if (++i >= span.Length)
-                    return true;
-                break;
+                case '-':
+                    if (++i >= span.Length)
+                        return true;
+                    expNeg = true;
+                    break;
+                case '+':
+                    if (++i >= span.Length)
+                        return true;
+                    break;
             }
 
             // If the exponent exceeds this, the result will be infinite or zero

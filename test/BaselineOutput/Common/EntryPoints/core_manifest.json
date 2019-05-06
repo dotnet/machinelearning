@@ -1311,7 +1311,7 @@
             "Kind": "Enum",
             "Values": [
               "SignatureBinaryClassifierTrainer",
-              "SignatureMultiClassClassifierTrainer",
+              "SignatureMulticlassClassificationTrainer",
               "SignatureRankerTrainer",
               "SignatureRegressorTrainer",
               "SignatureMultiOutputRegressorTrainer",
@@ -1502,7 +1502,7 @@
             "Kind": "Enum",
             "Values": [
               "SignatureBinaryClassifierTrainer",
-              "SignatureMultiClassClassifierTrainer",
+              "SignatureMulticlassClassificationTrainer",
               "SignatureRankerTrainer",
               "SignatureRegressorTrainer",
               "SignatureMultiOutputRegressorTrainer",
@@ -2171,7 +2171,7 @@
               "None"
             ]
           },
-          "Desc": "Whether learner should cache input training data",
+          "Desc": "Whether trainer should cache input training data",
           "Aliases": [
             "cache"
           ],
@@ -2401,7 +2401,7 @@
               "None"
             ]
           },
-          "Desc": "Whether learner should cache input training data",
+          "Desc": "Whether trainer should cache input training data",
           "Aliases": [
             "cache"
           ],
@@ -3177,7 +3177,7 @@
             "Kind": "Enum",
             "Values": [
               "SignatureBinaryClassifierTrainer",
-              "SignatureMultiClassClassifierTrainer",
+              "SignatureMulticlassClassificationTrainer",
               "SignatureRankerTrainer",
               "SignatureRegressorTrainer",
               "SignatureMultiOutputRegressorTrainer",
@@ -4219,7 +4219,7 @@
               "None"
             ]
           },
-          "Desc": "Whether learner should cache input training data",
+          "Desc": "Whether trainer should cache input training data",
           "Aliases": [
             "cache"
           ],
@@ -4286,11 +4286,12 @@
           }
         },
         {
-          "Name": "L2RegularizerWeight",
+          "Name": "L2Regularization",
           "Type": "Float",
           "Desc": "L2 Regularization Weight",
           "Aliases": [
-            "reg"
+            "reg",
+            "L2RegularizerWeight"
           ],
           "Required": false,
           "SortOrder": 50.0,
@@ -4377,11 +4378,12 @@
           "Default": null
         },
         {
-          "Name": "DoLazyUpdates",
+          "Name": "LazyUpdate",
           "Type": "Bool",
           "Desc": "Instead of updating averaged weights on every example, only update when loss is nonzero",
           "Aliases": [
-            "lazy"
+            "lazy",
+            "DoLazyUpdates"
           ],
           "Required": false,
           "SortOrder": 150.0,
@@ -4401,11 +4403,12 @@
           "Default": 0.0
         },
         {
-          "Name": "RecencyGainMulti",
+          "Name": "RecencyGainMultiplicative",
           "Type": "Bool",
           "Desc": "Whether Recency Gain is multiplicative (vs. additive)",
           "Aliases": [
-            "rgm"
+            "rgm",
+            "RecencyGainMulti"
           ],
           "Required": false,
           "SortOrder": 150.0,
@@ -4623,7 +4626,7 @@
               "None"
             ]
           },
-          "Desc": "Whether learner should cache input training data",
+          "Desc": "Whether trainer should cache input training data",
           "Aliases": [
             "cache"
           ],
@@ -4824,7 +4827,7 @@
               "None"
             ]
           },
-          "Desc": "Whether learner should cache input training data",
+          "Desc": "Whether trainer should cache input training data",
           "Aliases": [
             "cache"
           ],
@@ -5025,7 +5028,7 @@
               "None"
             ]
           },
-          "Desc": "Whether learner should cache input training data",
+          "Desc": "Whether trainer should cache input training data",
           "Aliases": [
             "cache"
           ],
@@ -5241,7 +5244,7 @@
               "None"
             ]
           },
-          "Desc": "Whether learner should cache input training data",
+          "Desc": "Whether trainer should cache input training data",
           "Aliases": [
             "cache"
           ],
@@ -5288,7 +5291,7 @@
         {
           "Name": "NumberOfQuantileSamples",
           "Type": "Int",
-          "Desc": "Number of labels to be sampled from each leaf to make the distribtuion",
+          "Desc": "Number of labels to be sampled from each leaf to make the distribution",
           "Aliases": [
             "qsc"
           ],
@@ -5879,7 +5882,7 @@
               "None"
             ]
           },
-          "Desc": "Whether learner should cache input training data",
+          "Desc": "Whether trainer should cache input training data",
           "Aliases": [
             "cache"
           ],
@@ -5900,7 +5903,7 @@
         {
           "Name": "NumberOfQuantileSamples",
           "Type": "Int",
-          "Desc": "Number of labels to be sampled from each leaf to make the distribtuion",
+          "Desc": "Number of labels to be sampled from each leaf to make the distribution",
           "Aliases": [
             "qsc"
           ],
@@ -6509,7 +6512,7 @@
               "None"
             ]
           },
-          "Desc": "Whether learner should cache input training data",
+          "Desc": "Whether trainer should cache input training data",
           "Aliases": [
             "cache"
           ],
@@ -7408,7 +7411,7 @@
               "None"
             ]
           },
-          "Desc": "Whether learner should cache input training data",
+          "Desc": "Whether trainer should cache input training data",
           "Aliases": [
             "cache"
           ],
@@ -7423,7 +7426,7 @@
             "Kind": "Array",
             "ItemType": "Float"
           },
-          "Desc": "Comma seperated list of gains associated to each relevance label.",
+          "Desc": "Comma-separated list of gains associated to each relevance label.",
           "Aliases": [
             "gains"
           ],
@@ -7465,7 +7468,7 @@
         {
           "Name": "NdcgTruncationLevel",
           "Type": "Int",
-          "Desc": "max-NDCG truncation to use in the Lambda Mart algorithm",
+          "Desc": "max-NDCG truncation to use in the LambdaMART algorithm",
           "Aliases": [
             "n"
           ],
@@ -8397,7 +8400,7 @@
               "None"
             ]
           },
-          "Desc": "Whether learner should cache input training data",
+          "Desc": "Whether trainer should cache input training data",
           "Aliases": [
             "cache"
           ],
@@ -9284,7 +9287,7 @@
               "None"
             ]
           },
-          "Desc": "Whether learner should cache input training data",
+          "Desc": "Whether trainer should cache input training data",
           "Aliases": [
             "cache"
           ],
@@ -10152,26 +10155,6 @@
         },
         {
           "Name": "NormalizeFeatures",
-          "Type": {
-            "Kind": "Enum",
-            "Values": [
-              "No",
-              "Warn",
-              "Auto",
-              "Yes"
-            ]
-          },
-          "Desc": "Normalize option for the feature column",
-          "Aliases": [
-            "norm"
-          ],
-          "Required": false,
-          "SortOrder": 5.0,
-          "IsNullable": false,
-          "Default": "Auto"
-        },
-        {
-          "Name": "Normalize",
           "Type": "Bool",
           "Desc": "Whether to normalize the input vectors so that the concatenation of all fields' feature vectors is unit-length",
           "Aliases": [
@@ -10192,7 +10175,7 @@
               "None"
             ]
           },
-          "Desc": "Whether learner should cache input training data",
+          "Desc": "Whether trainer should cache input training data",
           "Aliases": [
             "cache"
           ],
@@ -10416,7 +10399,7 @@
               "None"
             ]
           },
-          "Desc": "Whether learner should cache input training data",
+          "Desc": "Whether trainer should cache input training data",
           "Aliases": [
             "cache"
           ],
@@ -10716,7 +10699,7 @@
               "None"
             ]
           },
-          "Desc": "Whether learner should cache input training data",
+          "Desc": "Whether trainer should cache input training data",
           "Aliases": [
             "cache"
           ],
@@ -10946,7 +10929,7 @@
               "None"
             ]
           },
-          "Desc": "Whether learner should cache input training data",
+          "Desc": "Whether trainer should cache input training data",
           "Aliases": [
             "cache"
           ],
@@ -11019,11 +11002,12 @@
           "Default": 1E-07
         },
         {
-          "Name": "NumberOfIterations",
+          "Name": "MaximumNumberOfIterations",
           "Type": "Int",
           "Desc": "Maximum number of iterations.",
           "Aliases": [
-            "maxiter"
+            "maxiter",
+            "NumberOfIterations"
           ],
           "Required": false,
           "SortOrder": 150.0,
@@ -11249,7 +11233,7 @@
               "None"
             ]
           },
-          "Desc": "Whether learner should cache input training data",
+          "Desc": "Whether trainer should cache input training data",
           "Aliases": [
             "cache"
           ],
@@ -11257,6 +11241,63 @@
           "SortOrder": 6.0,
           "IsNullable": false,
           "Default": "Auto"
+        },
+        {
+          "Name": "UnbalancedSets",
+          "Type": "Bool",
+          "Desc": "Use for binary classification when training data is not balanced.",
+          "Aliases": [
+            "us"
+          ],
+          "Required": false,
+          "SortOrder": 150.0,
+          "IsNullable": false,
+          "Default": false
+        },
+        {
+          "Name": "WeightOfPositiveExamples",
+          "Type": "Float",
+          "Desc": "Control the balance of positive and negative weights, useful for unbalanced classes. A typical value to consider: sum(negative cases) / sum(positive cases).",
+          "Aliases": [
+            "ScalePosWeight"
+          ],
+          "Required": false,
+          "SortOrder": 150.0,
+          "IsNullable": false,
+          "Default": 1.0
+        },
+        {
+          "Name": "Sigmoid",
+          "Type": "Float",
+          "Desc": "Parameter for the sigmoid function.",
+          "Aliases": [
+            "sigmoid"
+          ],
+          "Required": false,
+          "SortOrder": 150.0,
+          "IsNullable": false,
+          "Default": 0.5
+        },
+        {
+          "Name": "EvaluationMetric",
+          "Type": {
+            "Kind": "Enum",
+            "Values": [
+              "None",
+              "Default",
+              "Logloss",
+              "Error",
+              "AreaUnderCurve"
+            ]
+          },
+          "Desc": "Evaluation metrics.",
+          "Aliases": [
+            "em"
+          ],
+          "Required": false,
+          "SortOrder": 150.0,
+          "IsNullable": false,
+          "Default": "Logloss"
         },
         {
           "Name": "MaximumBinCountPerFeature",
@@ -11304,48 +11345,6 @@
           "Default": null
         },
         {
-          "Name": "EvaluationMetric",
-          "Type": {
-            "Kind": "Enum",
-            "Values": [
-              "DefaultMetric",
-              "Rmse",
-              "Mae",
-              "Logloss",
-              "Error",
-              "Merror",
-              "Mlogloss",
-              "Auc",
-              "Ndcg",
-              "Map"
-            ]
-          },
-          "Desc": "Evaluation metrics.",
-          "Aliases": [
-            "em"
-          ],
-          "Required": false,
-          "SortOrder": 150.0,
-          "IsNullable": false,
-          "Default": "DefaultMetric"
-        },
-        {
-          "Name": "UseSoftmax",
-          "Type": "Bool",
-          "Desc": "Use softmax loss for the multi classification.",
-          "Required": false,
-          "SortOrder": 150.0,
-          "IsNullable": true,
-          "Default": null,
-          "SweepRange": {
-            "RangeType": "Discrete",
-            "Values": [
-              true,
-              false
-            ]
-          }
-        },
-        {
           "Name": "EarlyStoppingRound",
           "Type": "Int",
           "Desc": "Rounds of early stopping, 0 will disable it.",
@@ -11356,30 +11355,6 @@
           "SortOrder": 150.0,
           "IsNullable": false,
           "Default": 0
-        },
-        {
-          "Name": "CustomGains",
-          "Type": "String",
-          "Desc": "Comma seperated list of gains associated to each relevance label.",
-          "Aliases": [
-            "gains"
-          ],
-          "Required": false,
-          "SortOrder": 150.0,
-          "IsNullable": false,
-          "Default": "0,3,7,15,31,63,127,255,511,1023,2047,4095"
-        },
-        {
-          "Name": "Sigmoid",
-          "Type": "Float",
-          "Desc": "Parameter for the sigmoid function. Used only in LightGbmBinaryTrainer, LightGbmMulticlassTrainer and in LightGbmRankingTrainer.",
-          "Aliases": [
-            "sigmoid"
-          ],
-          "Required": false,
-          "SortOrder": 150.0,
-          "IsNullable": false,
-          "Default": 0.5
         },
         {
           "Name": "BatchSize",
@@ -11416,7 +11391,7 @@
           "Required": false,
           "SortOrder": 150.0,
           "IsNullable": false,
-          "Default": false,
+          "Default": true,
           "SweepRange": {
             "RangeType": "Discrete",
             "Values": [
@@ -11752,7 +11727,7 @@
               "None"
             ]
           },
-          "Desc": "Whether learner should cache input training data",
+          "Desc": "Whether trainer should cache input training data",
           "Aliases": [
             "cache"
           ],
@@ -11760,6 +11735,54 @@
           "SortOrder": 6.0,
           "IsNullable": false,
           "Default": "Auto"
+        },
+        {
+          "Name": "UseSoftmax",
+          "Type": "Bool",
+          "Desc": "Use softmax loss for the multi classification.",
+          "Required": false,
+          "SortOrder": 150.0,
+          "IsNullable": true,
+          "Default": null,
+          "SweepRange": {
+            "RangeType": "Discrete",
+            "Values": [
+              true,
+              false
+            ]
+          }
+        },
+        {
+          "Name": "Sigmoid",
+          "Type": "Float",
+          "Desc": "Parameter for the sigmoid function.",
+          "Aliases": [
+            "sigmoid"
+          ],
+          "Required": false,
+          "SortOrder": 150.0,
+          "IsNullable": false,
+          "Default": 0.5
+        },
+        {
+          "Name": "EvaluationMetric",
+          "Type": {
+            "Kind": "Enum",
+            "Values": [
+              "None",
+              "Default",
+              "Error",
+              "LogLoss"
+            ]
+          },
+          "Desc": "Evaluation metrics.",
+          "Aliases": [
+            "em"
+          ],
+          "Required": false,
+          "SortOrder": 150.0,
+          "IsNullable": false,
+          "Default": "Error"
         },
         {
           "Name": "MaximumBinCountPerFeature",
@@ -11807,48 +11830,6 @@
           "Default": null
         },
         {
-          "Name": "EvaluationMetric",
-          "Type": {
-            "Kind": "Enum",
-            "Values": [
-              "DefaultMetric",
-              "Rmse",
-              "Mae",
-              "Logloss",
-              "Error",
-              "Merror",
-              "Mlogloss",
-              "Auc",
-              "Ndcg",
-              "Map"
-            ]
-          },
-          "Desc": "Evaluation metrics.",
-          "Aliases": [
-            "em"
-          ],
-          "Required": false,
-          "SortOrder": 150.0,
-          "IsNullable": false,
-          "Default": "DefaultMetric"
-        },
-        {
-          "Name": "UseSoftmax",
-          "Type": "Bool",
-          "Desc": "Use softmax loss for the multi classification.",
-          "Required": false,
-          "SortOrder": 150.0,
-          "IsNullable": true,
-          "Default": null,
-          "SweepRange": {
-            "RangeType": "Discrete",
-            "Values": [
-              true,
-              false
-            ]
-          }
-        },
-        {
           "Name": "EarlyStoppingRound",
           "Type": "Int",
           "Desc": "Rounds of early stopping, 0 will disable it.",
@@ -11859,30 +11840,6 @@
           "SortOrder": 150.0,
           "IsNullable": false,
           "Default": 0
-        },
-        {
-          "Name": "CustomGains",
-          "Type": "String",
-          "Desc": "Comma seperated list of gains associated to each relevance label.",
-          "Aliases": [
-            "gains"
-          ],
-          "Required": false,
-          "SortOrder": 150.0,
-          "IsNullable": false,
-          "Default": "0,3,7,15,31,63,127,255,511,1023,2047,4095"
-        },
-        {
-          "Name": "Sigmoid",
-          "Type": "Float",
-          "Desc": "Parameter for the sigmoid function. Used only in LightGbmBinaryTrainer, LightGbmMulticlassTrainer and in LightGbmRankingTrainer.",
-          "Aliases": [
-            "sigmoid"
-          ],
-          "Required": false,
-          "SortOrder": 150.0,
-          "IsNullable": false,
-          "Default": 0.5
         },
         {
           "Name": "BatchSize",
@@ -11919,7 +11876,7 @@
           "Required": false,
           "SortOrder": 150.0,
           "IsNullable": false,
-          "Default": false,
+          "Default": true,
           "SweepRange": {
             "RangeType": "Discrete",
             "Values": [
@@ -12255,7 +12212,7 @@
               "None"
             ]
           },
-          "Desc": "Whether learner should cache input training data",
+          "Desc": "Whether trainer should cache input training data",
           "Aliases": [
             "cache"
           ],
@@ -12263,6 +12220,66 @@
           "SortOrder": 6.0,
           "IsNullable": false,
           "Default": "Auto"
+        },
+        {
+          "Name": "CustomGains",
+          "Type": {
+            "Kind": "Array",
+            "ItemType": "Int"
+          },
+          "Desc": "An array of gains associated to each relevance label.",
+          "Aliases": [
+            "gains"
+          ],
+          "Required": false,
+          "SortOrder": 150.0,
+          "IsNullable": false,
+          "Default": [
+            0,
+            3,
+            7,
+            15,
+            31,
+            63,
+            127,
+            255,
+            511,
+            1023,
+            2047,
+            4095
+          ]
+        },
+        {
+          "Name": "Sigmoid",
+          "Type": "Float",
+          "Desc": "Parameter for the sigmoid function.",
+          "Aliases": [
+            "sigmoid"
+          ],
+          "Required": false,
+          "SortOrder": 150.0,
+          "IsNullable": false,
+          "Default": 0.5
+        },
+        {
+          "Name": "EvaluationMetric",
+          "Type": {
+            "Kind": "Enum",
+            "Values": [
+              "None",
+              "Default",
+              "MeanAveragedPrecision",
+              "NormalizedDiscountedCumulativeGain"
+            ]
+          },
+          "Desc": "Evaluation metrics.",
+          "Aliases": [
+            "em"
+          ],
+          "Required": false,
+          "SortOrder": 150.0,
+          "IsNullable": false,
+          "Default": "NormalizedDiscountedCumulativeGain"
         },
         {
           "Name": "MaximumBinCountPerFeature",
@@ -12310,48 +12327,6 @@
           "Default": null
         },
         {
-          "Name": "EvaluationMetric",
-          "Type": {
-            "Kind": "Enum",
-            "Values": [
-              "DefaultMetric",
-              "Rmse",
-              "Mae",
-              "Logloss",
-              "Error",
-              "Merror",
-              "Mlogloss",
-              "Auc",
-              "Ndcg",
-              "Map"
-            ]
-          },
-          "Desc": "Evaluation metrics.",
-          "Aliases": [
-            "em"
-          ],
-          "Required": false,
-          "SortOrder": 150.0,
-          "IsNullable": false,
-          "Default": "DefaultMetric"
-        },
-        {
-          "Name": "UseSoftmax",
-          "Type": "Bool",
-          "Desc": "Use softmax loss for the multi classification.",
-          "Required": false,
-          "SortOrder": 150.0,
-          "IsNullable": true,
-          "Default": null,
-          "SweepRange": {
-            "RangeType": "Discrete",
-            "Values": [
-              true,
-              false
-            ]
-          }
-        },
-        {
           "Name": "EarlyStoppingRound",
           "Type": "Int",
           "Desc": "Rounds of early stopping, 0 will disable it.",
@@ -12362,30 +12337,6 @@
           "SortOrder": 150.0,
           "IsNullable": false,
           "Default": 0
-        },
-        {
-          "Name": "CustomGains",
-          "Type": "String",
-          "Desc": "Comma seperated list of gains associated to each relevance label.",
-          "Aliases": [
-            "gains"
-          ],
-          "Required": false,
-          "SortOrder": 150.0,
-          "IsNullable": false,
-          "Default": "0,3,7,15,31,63,127,255,511,1023,2047,4095"
-        },
-        {
-          "Name": "Sigmoid",
-          "Type": "Float",
-          "Desc": "Parameter for the sigmoid function. Used only in LightGbmBinaryTrainer, LightGbmMulticlassTrainer and in LightGbmRankingTrainer.",
-          "Aliases": [
-            "sigmoid"
-          ],
-          "Required": false,
-          "SortOrder": 150.0,
-          "IsNullable": false,
-          "Default": 0.5
         },
         {
           "Name": "BatchSize",
@@ -12422,7 +12373,7 @@
           "Required": false,
           "SortOrder": 150.0,
           "IsNullable": false,
-          "Default": false,
+          "Default": true,
           "SweepRange": {
             "RangeType": "Discrete",
             "Values": [
@@ -12758,7 +12709,7 @@
               "None"
             ]
           },
-          "Desc": "Whether learner should cache input training data",
+          "Desc": "Whether trainer should cache input training data",
           "Aliases": [
             "cache"
           ],
@@ -12766,6 +12717,27 @@
           "SortOrder": 6.0,
           "IsNullable": false,
           "Default": "Auto"
+        },
+        {
+          "Name": "EvaluationMetric",
+          "Type": {
+            "Kind": "Enum",
+            "Values": [
+              "None",
+              "Default",
+              "MeanAbsoluteError",
+              "RootMeanSquaredError",
+              "MeanSquaredError"
+            ]
+          },
+          "Desc": "Evaluation metrics.",
+          "Aliases": [
+            "em"
+          ],
+          "Required": false,
+          "SortOrder": 150.0,
+          "IsNullable": false,
+          "Default": "RootMeanSquaredError"
         },
         {
           "Name": "MaximumBinCountPerFeature",
@@ -12813,48 +12785,6 @@
           "Default": null
         },
         {
-          "Name": "EvaluationMetric",
-          "Type": {
-            "Kind": "Enum",
-            "Values": [
-              "DefaultMetric",
-              "Rmse",
-              "Mae",
-              "Logloss",
-              "Error",
-              "Merror",
-              "Mlogloss",
-              "Auc",
-              "Ndcg",
-              "Map"
-            ]
-          },
-          "Desc": "Evaluation metrics.",
-          "Aliases": [
-            "em"
-          ],
-          "Required": false,
-          "SortOrder": 150.0,
-          "IsNullable": false,
-          "Default": "DefaultMetric"
-        },
-        {
-          "Name": "UseSoftmax",
-          "Type": "Bool",
-          "Desc": "Use softmax loss for the multi classification.",
-          "Required": false,
-          "SortOrder": 150.0,
-          "IsNullable": true,
-          "Default": null,
-          "SweepRange": {
-            "RangeType": "Discrete",
-            "Values": [
-              true,
-              false
-            ]
-          }
-        },
-        {
           "Name": "EarlyStoppingRound",
           "Type": "Int",
           "Desc": "Rounds of early stopping, 0 will disable it.",
@@ -12865,30 +12795,6 @@
           "SortOrder": 150.0,
           "IsNullable": false,
           "Default": 0
-        },
-        {
-          "Name": "CustomGains",
-          "Type": "String",
-          "Desc": "Comma seperated list of gains associated to each relevance label.",
-          "Aliases": [
-            "gains"
-          ],
-          "Required": false,
-          "SortOrder": 150.0,
-          "IsNullable": false,
-          "Default": "0,3,7,15,31,63,127,255,511,1023,2047,4095"
-        },
-        {
-          "Name": "Sigmoid",
-          "Type": "Float",
-          "Desc": "Parameter for the sigmoid function. Used only in LightGbmBinaryTrainer, LightGbmMulticlassTrainer and in LightGbmRankingTrainer.",
-          "Aliases": [
-            "sigmoid"
-          ],
-          "Required": false,
-          "SortOrder": 150.0,
-          "IsNullable": false,
-          "Default": 0.5
         },
         {
           "Name": "BatchSize",
@@ -12925,7 +12831,7 @@
           "Required": false,
           "SortOrder": 150.0,
           "IsNullable": false,
-          "Default": false,
+          "Default": true,
           "SweepRange": {
             "RangeType": "Discrete",
             "Values": [
@@ -13113,11 +13019,12 @@
           "Default": "Label"
         },
         {
-          "Name": "WeightColumn",
+          "Name": "ExampleWeightColumnName",
           "Type": "String",
           "Desc": "Column to use for example weight",
           "Aliases": [
-            "weight"
+            "weight",
+            "WeightColumn"
           ],
           "Required": false,
           "SortOrder": 4.0,
@@ -13154,7 +13061,7 @@
               "None"
             ]
           },
-          "Desc": "Whether learner should cache input training data",
+          "Desc": "Whether trainer should cache input training data",
           "Aliases": [
             "cache"
           ],
@@ -13422,7 +13329,7 @@
               "None"
             ]
           },
-          "Desc": "Whether learner should cache input training data",
+          "Desc": "Whether trainer should cache input training data",
           "Aliases": [
             "cache"
           ],
@@ -13483,7 +13390,7 @@
           }
         },
         {
-          "Name": "OptmizationTolerance",
+          "Name": "OptimizationTolerance",
           "Type": "Float",
           "Desc": "Tolerance parameter for optimization convergence. Low = slower, more accurate",
           "Aliases": [
@@ -13503,7 +13410,7 @@
           }
         },
         {
-          "Name": "IterationsToRemember",
+          "Name": "HistorySize",
           "Type": "Int",
           "Desc": "Memory size for L-BFGS. Low=faster, less accurate",
           "Aliases": [
@@ -13555,12 +13462,13 @@
           }
         },
         {
-          "Name": "NumberOfIterations",
+          "Name": "MaximumNumberOfIterations",
           "Type": "Int",
           "Desc": "Maximum iterations.",
           "Aliases": [
             "maxiter",
-            "MaxIterations"
+            "MaxIterations",
+            "NumberOfIterations"
           ],
           "Required": false,
           "SortOrder": 150.0,
@@ -13661,7 +13569,7 @@
     },
     {
       "Name": "Trainers.LogisticRegressionClassifier",
-      "Desc": "Logistic Regression is a method in statistics used to predict the probability of occurrence of an event and can be used as a classification algorithm. The algorithm predicts the probability of occurrence of an event by fitting data to a logistical function.",
+      "Desc": "Maximum entrypy classification is a method in statistics used to predict the probabilities of parallel events. The model predicts the probabilities of parallel events by fitting data to a softmax function.",
       "FriendlyName": "Multi-class Logistic Regression",
       "ShortName": "mlr",
       "Inputs": [
@@ -13742,7 +13650,7 @@
               "None"
             ]
           },
-          "Desc": "Whether learner should cache input training data",
+          "Desc": "Whether trainer should cache input training data",
           "Aliases": [
             "cache"
           ],
@@ -13803,7 +13711,7 @@
           }
         },
         {
-          "Name": "OptmizationTolerance",
+          "Name": "OptimizationTolerance",
           "Type": "Float",
           "Desc": "Tolerance parameter for optimization convergence. Low = slower, more accurate",
           "Aliases": [
@@ -13823,7 +13731,7 @@
           }
         },
         {
-          "Name": "IterationsToRemember",
+          "Name": "HistorySize",
           "Type": "Int",
           "Desc": "Memory size for L-BFGS. Low=faster, less accurate",
           "Aliases": [
@@ -13875,12 +13783,13 @@
           }
         },
         {
-          "Name": "NumberOfIterations",
+          "Name": "MaximumNumberOfIterations",
           "Type": "Int",
           "Desc": "Maximum iterations.",
           "Aliases": [
             "maxiter",
-            "MaxIterations"
+            "MaxIterations",
+            "NumberOfIterations"
           ],
           "Required": false,
           "SortOrder": 150.0,
@@ -13981,7 +13890,7 @@
     },
     {
       "Name": "Trainers.NaiveBayesClassifier",
-      "Desc": "Train a MultiClassNaiveBayesTrainer.",
+      "Desc": "Train a MulticlassNaiveBayesTrainer.",
       "FriendlyName": "Multiclass Naive Bayes",
       "ShortName": "MNB",
       "Inputs": [
@@ -14050,7 +13959,7 @@
               "None"
             ]
           },
-          "Desc": "Whether learner should cache input training data",
+          "Desc": "Whether trainer should cache input training data",
           "Aliases": [
             "cache"
           ],
@@ -14147,7 +14056,7 @@
               "None"
             ]
           },
-          "Desc": "Whether learner should cache input training data",
+          "Desc": "Whether trainer should cache input training data",
           "Aliases": [
             "cache"
           ],
@@ -14214,11 +14123,12 @@
           }
         },
         {
-          "Name": "L2RegularizerWeight",
+          "Name": "L2Regularization",
           "Type": "Float",
           "Desc": "L2 Regularization Weight",
           "Aliases": [
-            "reg"
+            "reg",
+            "L2RegularizerWeight"
           ],
           "Required": false,
           "SortOrder": 50.0,
@@ -14282,11 +14192,12 @@
           "Default": null
         },
         {
-          "Name": "DoLazyUpdates",
+          "Name": "LazyUpdate",
           "Type": "Bool",
           "Desc": "Instead of updating averaged weights on every example, only update when loss is nonzero",
           "Aliases": [
-            "lazy"
+            "lazy",
+            "DoLazyUpdates"
           ],
           "Required": false,
           "SortOrder": 150.0,
@@ -14306,11 +14217,12 @@
           "Default": 0.0
         },
         {
-          "Name": "RecencyGainMulti",
+          "Name": "RecencyGainMultiplicative",
           "Type": "Bool",
           "Desc": "Whether Recency Gain is multiplicative (vs. additive)",
           "Aliases": [
-            "rgm"
+            "rgm",
+            "RecencyGainMulti"
           ],
           "Required": false,
           "SortOrder": 150.0,
@@ -14472,7 +14384,7 @@
               "None"
             ]
           },
-          "Desc": "Whether learner should cache input training data",
+          "Desc": "Whether trainer should cache input training data",
           "Aliases": [
             "cache"
           ],
@@ -14602,7 +14514,7 @@
               "None"
             ]
           },
-          "Desc": "Whether learner should cache input training data",
+          "Desc": "Whether trainer should cache input training data",
           "Aliases": [
             "cache"
           ],
@@ -14780,7 +14692,7 @@
               "None"
             ]
           },
-          "Desc": "Whether learner should cache input training data",
+          "Desc": "Whether trainer should cache input training data",
           "Aliases": [
             "cache"
           ],
@@ -14828,7 +14740,7 @@
           }
         },
         {
-          "Name": "OptmizationTolerance",
+          "Name": "OptimizationTolerance",
           "Type": "Float",
           "Desc": "Tolerance parameter for optimization convergence. Low = slower, more accurate",
           "Aliases": [
@@ -14848,7 +14760,7 @@
           }
         },
         {
-          "Name": "IterationsToRemember",
+          "Name": "HistorySize",
           "Type": "Int",
           "Desc": "Memory size for L-BFGS. Low=faster, less accurate",
           "Aliases": [
@@ -14900,12 +14812,13 @@
           }
         },
         {
-          "Name": "NumberOfIterations",
+          "Name": "MaximumNumberOfIterations",
           "Type": "Int",
           "Desc": "Maximum iterations.",
           "Aliases": [
             "maxiter",
-            "MaxIterations"
+            "MaxIterations",
+            "NumberOfIterations"
           ],
           "Required": false,
           "SortOrder": 150.0,
@@ -15094,6 +15007,18 @@
           "Default": "Label"
         },
         {
+          "Name": "ExampleWeightColumnName",
+          "Type": "String",
+          "Desc": "Column to use for example weight",
+          "Aliases": [
+            "weight"
+          ],
+          "Required": false,
+          "SortOrder": 4.0,
+          "IsNullable": false,
+          "Default": null
+        },
+        {
           "Name": "NormalizeFeatures",
           "Type": {
             "Kind": "Enum",
@@ -15123,7 +15048,7 @@
               "None"
             ]
           },
-          "Desc": "Whether learner should cache input training data",
+          "Desc": "Whether trainer should cache input training data",
           "Aliases": [
             "cache"
           ],
@@ -15221,12 +15146,13 @@
           }
         },
         {
-          "Name": "NumberOfIterations",
+          "Name": "MaximumNumberOfIterations",
           "Type": "Int",
           "Desc": "Maximum number of iterations; set to 1 to simulate online learning. Defaults to automatic.",
           "Aliases": [
             "iter",
-            "MaxIterations"
+            "MaxIterations",
+            "NumberOfIterations"
           ],
           "Required": false,
           "SortOrder": 150.0,
@@ -15304,6 +15230,7 @@
         }
       ],
       "InputKind": [
+        "ITrainerInputWithWeight",
         "ITrainerInputWithLabel",
         "ITrainerInput"
       ],
@@ -15402,6 +15329,18 @@
           "Default": "Label"
         },
         {
+          "Name": "ExampleWeightColumnName",
+          "Type": "String",
+          "Desc": "Column to use for example weight",
+          "Aliases": [
+            "weight"
+          ],
+          "Required": false,
+          "SortOrder": 4.0,
+          "IsNullable": false,
+          "Default": null
+        },
+        {
           "Name": "NormalizeFeatures",
           "Type": {
             "Kind": "Enum",
@@ -15431,7 +15370,7 @@
               "None"
             ]
           },
-          "Desc": "Whether learner should cache input training data",
+          "Desc": "Whether trainer should cache input training data",
           "Aliases": [
             "cache"
           ],
@@ -15494,12 +15433,13 @@
           }
         },
         {
-          "Name": "NumberOfIterations",
+          "Name": "MaximumNumberOfIterations",
           "Type": "Int",
           "Desc": "Maximum number of iterations; set to 1 to simulate online learning. Defaults to automatic.",
           "Aliases": [
             "iter",
-            "MaxIterations"
+            "MaxIterations",
+            "NumberOfIterations"
           ],
           "Required": false,
           "SortOrder": 150.0,
@@ -15577,6 +15517,7 @@
         }
       ],
       "InputKind": [
+        "ITrainerInputWithWeight",
         "ITrainerInputWithLabel",
         "ITrainerInput"
       ],
@@ -15675,6 +15616,18 @@
           "Default": "Label"
         },
         {
+          "Name": "ExampleWeightColumnName",
+          "Type": "String",
+          "Desc": "Column to use for example weight",
+          "Aliases": [
+            "weight"
+          ],
+          "Required": false,
+          "SortOrder": 4.0,
+          "IsNullable": false,
+          "Default": null
+        },
+        {
           "Name": "NormalizeFeatures",
           "Type": {
             "Kind": "Enum",
@@ -15704,7 +15657,7 @@
               "None"
             ]
           },
-          "Desc": "Whether learner should cache input training data",
+          "Desc": "Whether trainer should cache input training data",
           "Aliases": [
             "cache"
           ],
@@ -15767,12 +15720,13 @@
           }
         },
         {
-          "Name": "NumberOfIterations",
+          "Name": "MaximumNumberOfIterations",
           "Type": "Int",
           "Desc": "Maximum number of iterations; set to 1 to simulate online learning. Defaults to automatic.",
           "Aliases": [
             "iter",
-            "MaxIterations"
+            "MaxIterations",
+            "NumberOfIterations"
           ],
           "Required": false,
           "SortOrder": 150.0,
@@ -15850,6 +15804,7 @@
         }
       ],
       "InputKind": [
+        "ITrainerInputWithWeight",
         "ITrainerInputWithLabel",
         "ITrainerInput"
       ],
@@ -15941,7 +15896,7 @@
               "None"
             ]
           },
-          "Desc": "Whether learner should cache input training data",
+          "Desc": "Whether trainer should cache input training data",
           "Aliases": [
             "cache"
           ],
@@ -16217,7 +16172,7 @@
               "None"
             ]
           },
-          "Desc": "Whether learner should cache input training data",
+          "Desc": "Whether trainer should cache input training data",
           "Aliases": [
             "cache"
           ],
@@ -16681,9 +16636,9 @@
                     "Kind": "Enum",
                     "Values": [
                       "Bag",
-                      "Ind",
+                      "Indicator",
                       "Key",
-                      "Bin"
+                      "Binary"
                     ]
                   },
                   "Desc": "Output kind: Bag (multi-set vector), Ind (indicator vector), or Key (index)",
@@ -16696,7 +16651,7 @@
                   "Default": null
                 },
                 {
-                  "Name": "HashBits",
+                  "Name": "NumberOfBits",
                   "Type": "Int",
                   "Desc": "The number of bits to hash into. Must be between 1 and 30, inclusive.",
                   "Aliases": [
@@ -16729,7 +16684,7 @@
                   "Default": null
                 },
                 {
-                  "Name": "InvertHash",
+                  "Name": "MaximumNumberOfInverts",
                   "Type": "Int",
                   "Desc": "Limit the number of keys used to generate the slot name to this many. 0 means no invert hashing, -1 means no limit.",
                   "Aliases": [
@@ -16767,7 +16722,7 @@
               ]
             }
           },
-          "Desc": "New column definition(s) (optional form: name:hashBits:src)",
+          "Desc": "New column definition(s) (optional form: name:numberOfBits:src)",
           "Aliases": [
             "col"
           ],
@@ -16784,7 +16739,7 @@
           "IsNullable": false
         },
         {
-          "Name": "HashBits",
+          "Name": "NumberOfBits",
           "Type": "Int",
           "Desc": "Number of bits to hash into. Must be between 1 and 30, inclusive.",
           "Aliases": [
@@ -16801,9 +16756,9 @@
             "Kind": "Enum",
             "Values": [
               "Bag",
-              "Ind",
+              "Indicator",
               "Key",
-              "Bin"
+              "Binary"
             ]
           },
           "Desc": "Output kind: Bag (multi-set vector), Ind (indicator vector), or Key (index)",
@@ -16837,7 +16792,7 @@
           "Default": true
         },
         {
-          "Name": "InvertHash",
+          "Name": "MaximumNumberOfInverts",
           "Type": "Int",
           "Desc": "Limit the number of keys used to generate the slot name to this many. 0 means no invert hashing, -1 means no limit.",
           "Aliases": [
@@ -16887,9 +16842,9 @@
                     "Kind": "Enum",
                     "Values": [
                       "Bag",
-                      "Ind",
+                      "Indicator",
                       "Key",
-                      "Bin"
+                      "Binary"
                     ]
                   },
                   "Desc": "Output kind: Bag (multi-set vector), Ind (indicator vector), Key (index), or Binary encoded indicator vector",
@@ -16930,8 +16885,8 @@
                   "Type": {
                     "Kind": "Enum",
                     "Values": [
-                      "Occurrence",
-                      "Value"
+                      "ByOccurrence",
+                      "ByValue"
                     ]
                   },
                   "Desc": "How items should be ordered when vectorized. By default, they will be in the order encountered. If by value items are sorted according to their default comparison, for example, text sorting will be case sensitive (for example, 'A' then 'Z' then 'a').",
@@ -16998,7 +16953,7 @@
         {
           "Name": "MaxNumTerms",
           "Type": "Int",
-          "Desc": "Maximum number of terms to keep per column when auto-training",
+          "Desc": "Maximum number of keys to keep per column when auto-training",
           "Aliases": [
             "max"
           ],
@@ -17013,9 +16968,9 @@
             "Kind": "Enum",
             "Values": [
               "Bag",
-              "Ind",
+              "Indicator",
               "Key",
-              "Bin"
+              "Binary"
             ]
           },
           "Desc": "Output kind: Bag (multi-set vector), Ind (indicator vector), or Key (index)",
@@ -17025,7 +16980,7 @@
           "Required": false,
           "SortOrder": 102.0,
           "IsNullable": false,
-          "Default": "Ind"
+          "Default": "Indicator"
         },
         {
           "Name": "Term",
@@ -17044,15 +16999,15 @@
           "Type": {
             "Kind": "Enum",
             "Values": [
-              "Occurrence",
-              "Value"
+              "ByOccurrence",
+              "ByValue"
             ]
           },
           "Desc": "How items should be ordered when vectorized. By default, they will be in the order encountered. If by value items are sorted according to their default comparison, for example, text sorting will be case sensitive (for example, 'A' then 'Z' then 'a').",
           "Required": false,
           "SortOrder": 113.0,
           "IsNullable": false,
-          "Default": "Occurrence"
+          "Default": "ByOccurrence"
         },
         {
           "Name": "TextKeyValues",
@@ -17904,8 +17859,8 @@
                   "Type": {
                     "Kind": "Enum",
                     "Values": [
-                      "Occurrence",
-                      "Value"
+                      "ByOccurrence",
+                      "ByValue"
                     ]
                   },
                   "Desc": "How items should be ordered when vectorized. By default, they will be in the order encountered. If by value items are sorted according to their default comparison, for example, text sorting will be case sensitive (for example, 'A' then 'Z' then 'a').",
@@ -17973,7 +17928,7 @@
         {
           "Name": "MaxNumTerms",
           "Type": "Int",
-          "Desc": "Maximum number of terms to keep per column when auto-training",
+          "Desc": "Maximum number of keys to keep per column when auto-training",
           "Aliases": [
             "max"
           ],
@@ -17999,15 +17954,15 @@
           "Type": {
             "Kind": "Enum",
             "Values": [
-              "Occurrence",
-              "Value"
+              "ByOccurrence",
+              "ByValue"
             ]
           },
           "Desc": "How items should be ordered when vectorized. By default, they will be in the order encountered. If by value items are sorted according to their default comparison, for example, text sorting will be case sensitive (for example, 'A' then 'Z' then 'a').",
           "Required": false,
           "SortOrder": 113.0,
           "IsNullable": false,
-          "Default": "Occurrence"
+          "Default": "ByOccurrence"
         },
         {
           "Name": "TextKeyValues",
@@ -18479,7 +18434,7 @@
                   "Default": null
                 },
                 {
-                  "Name": "HashBits",
+                  "Name": "NumberOfBits",
                   "Type": "Int",
                   "Desc": "Number of bits to hash into. Must be between 1 and 31, inclusive.",
                   "Aliases": [
@@ -18555,7 +18510,7 @@
           "IsNullable": false
         },
         {
-          "Name": "HashBits",
+          "Name": "NumberOfBits",
           "Type": "Int",
           "Desc": "Number of bits to hash into. Must be between 1 and 31, inclusive.",
           "Aliases": [
@@ -20051,14 +20006,14 @@
               "Kind": "Struct",
               "Fields": [
                 {
-                  "Name": "NormKind",
+                  "Name": "Norm",
                   "Type": {
                     "Kind": "Enum",
                     "Values": [
-                      "L2Norm",
-                      "StdDev",
-                      "L1Norm",
-                      "LInf"
+                      "L2",
+                      "StandardDeviation",
+                      "L1",
+                      "Infinity"
                     ]
                   },
                   "Desc": "The norm to use to normalize each sample",
@@ -20115,14 +20070,14 @@
           "IsNullable": false
         },
         {
-          "Name": "NormKind",
+          "Name": "Norm",
           "Type": {
             "Kind": "Enum",
             "Values": [
-              "L2Norm",
-              "StdDev",
-              "L1Norm",
-              "LInf"
+              "L2",
+              "StandardDeviation",
+              "L1",
+              "Infinity"
             ]
           },
           "Desc": "The norm to use to normalize each sample",
@@ -20132,7 +20087,7 @@
           "Required": false,
           "SortOrder": 1.0,
           "IsNullable": false,
-          "Default": "L2Norm"
+          "Default": "L2"
         },
         {
           "Name": "Data",
@@ -21012,7 +20967,7 @@
     },
     {
       "Name": "Transforms.NGramTranslator",
-      "Desc": "Produces a bag of counts of ngrams (sequences of consecutive values of length 1-n) in a given vector of keys. It does so by building a dictionary of ngrams and using the id in the dictionary as the index in the bag.",
+      "Desc": "Produces a bag of counts of n-grams (sequences of consecutive values of length 1-n) in a given vector of keys. It does so by building a dictionary of n-grams and using the id in the dictionary as the index in the bag.",
       "FriendlyName": "NGram Transform",
       "ShortName": "NgramTransform",
       "Inputs": [
@@ -21026,7 +20981,7 @@
                 {
                   "Name": "NgramLength",
                   "Type": "Int",
-                  "Desc": "Maximum ngram length",
+                  "Desc": "Maximum n-gram length",
                   "Aliases": [
                     "ngram"
                   ],
@@ -21038,7 +20993,7 @@
                 {
                   "Name": "AllLengths",
                   "Type": "Bool",
-                  "Desc": "Whether to include all ngram lengths up to NgramLength or only NgramLength",
+                  "Desc": "Whether to include all n-gram lengths up to NgramLength or only NgramLength",
                   "Aliases": [
                     "all"
                   ],
@@ -21050,7 +21005,7 @@
                 {
                   "Name": "SkipLength",
                   "Type": "Int",
-                  "Desc": "Maximum number of tokens to skip when constructing an ngram",
+                  "Desc": "Maximum number of tokens to skip when constructing an n-gram",
                   "Aliases": [
                     "skips"
                   ],
@@ -21065,7 +21020,7 @@
                     "Kind": "Array",
                     "ItemType": "Int"
                   },
-                  "Desc": "Maximum number of ngrams to store in the dictionary",
+                  "Desc": "Maximum number of n-grams to store in the dictionary",
                   "Aliases": [
                     "max"
                   ],
@@ -21137,7 +21092,7 @@
         {
           "Name": "NgramLength",
           "Type": "Int",
-          "Desc": "Maximum ngram length",
+          "Desc": "Maximum n-gram length",
           "Aliases": [
             "ngram"
           ],
@@ -21149,7 +21104,7 @@
         {
           "Name": "AllLengths",
           "Type": "Bool",
-          "Desc": "Whether to store all ngram lengths up to ngramLength, or only ngramLength",
+          "Desc": "Whether to store all n-gram lengths up to ngramLength, or only ngramLength",
           "Aliases": [
             "all"
           ],
@@ -21161,7 +21116,7 @@
         {
           "Name": "SkipLength",
           "Type": "Int",
-          "Desc": "Maximum number of tokens to skip when constructing an ngram",
+          "Desc": "Maximum number of tokens to skip when constructing an n-gram",
           "Aliases": [
             "skips"
           ],
@@ -21176,7 +21131,7 @@
             "Kind": "Array",
             "ItemType": "Int"
           },
-          "Desc": "Maximum number of ngrams to store in the dictionary",
+          "Desc": "Maximum number of n-grams to store in the dictionary",
           "Aliases": [
             "max"
           ],
@@ -21422,7 +21377,7 @@
           "IsNullable": false
         },
         {
-          "Name": "WeightColumn",
+          "Name": "ExampleWeightColumnName",
           "Type": "String",
           "Desc": "The name of the weight column",
           "Aliases": [
@@ -22254,6 +22209,15 @@
           "SortOrder": 15.0,
           "IsNullable": false,
           "Default": false
+        },
+        {
+          "Name": "AddBatchDimensionInputs",
+          "Type": "Bool",
+          "Desc": "Add a batch dimension to the input e.g. input = [224, 224, 3] => [-1, 224, 224, 3].",
+          "Required": false,
+          "SortOrder": 16.0,
+          "IsNullable": false,
+          "Default": false
         }
       ],
       "Outputs": [
@@ -22277,7 +22241,7 @@
     },
     {
       "Name": "Transforms.TextFeaturizer",
-      "Desc": "A transform that turns a collection of text documents into numerical feature vectors. The feature vectors are normalized counts of (word and/or character) ngrams in a given tokenized text.",
+      "Desc": "A transform that turns a collection of text documents into numerical feature vectors. The feature vectors are normalized counts of (word and/or character) n-grams in a given tokenized text.",
       "FriendlyName": "Text Transform",
       "ShortName": "Text",
       "Inputs": [
@@ -22355,16 +22319,19 @@
           "Default": "English"
         },
         {
-          "Name": "UsePredefinedStopWordRemover",
-          "Type": "Bool",
-          "Desc": "Use stop remover or not.",
+          "Name": "StopWordsRemover",
+          "Type": {
+            "Kind": "Component",
+            "ComponentKind": "StopWordsRemover"
+          },
+          "Desc": "Stopwords remover.",
           "Aliases": [
             "remover"
           ],
           "Required": false,
           "SortOrder": 4.0,
           "IsNullable": false,
-          "Default": false
+          "Default": null
         },
         {
           "Name": "TextCase",
@@ -22422,9 +22389,9 @@
           "Default": true
         },
         {
-          "Name": "OutputTokens",
-          "Type": "Bool",
-          "Desc": "Whether to output the transformed text tokens as an additional column.",
+          "Name": "OutputTokensColumnName",
+          "Type": "String",
+          "Desc": "Column containing the transformed text tokens.",
           "Aliases": [
             "tokens",
             "showtext",
@@ -22433,7 +22400,7 @@
           "Required": false,
           "SortOrder": 9.0,
           "IsNullable": false,
-          "Default": false
+          "Default": null
         },
         {
           "Name": "Dictionary",
@@ -22457,15 +22424,15 @@
                 "Type": {
                   "Kind": "Enum",
                   "Values": [
-                    "Occurrence",
-                    "Value"
+                    "ByOccurrence",
+                    "ByValue"
                   ]
                 },
                 "Desc": "How items should be ordered when vectorized. By default, they will be in the order encountered. If by value, items are sorted according to their default comparison, for example, text sorting will be case sensitive (for example, 'A' then 'Z' then 'a').",
                 "Required": false,
                 "SortOrder": 5.0,
                 "IsNullable": false,
-                "Default": "Occurrence"
+                "Default": "ByOccurrence"
               },
               {
                 "Name": "DropUnknowns",
@@ -22544,7 +22511,7 @@
               "None",
               "L1",
               "L2",
-              "LInf"
+              "Infinity"
             ]
           },
           "Desc": "Normalize vectors (rows) individually by rescaling them to unit norm.",
@@ -22618,8 +22585,8 @@
                   "Type": {
                     "Kind": "Enum",
                     "Values": [
-                      "Occurrence",
-                      "Value"
+                      "ByOccurrence",
+                      "ByValue"
                     ]
                   },
                   "Desc": "How items should be ordered when vectorized. By default, they will be in the order encountered. If by value items are sorted according to their default comparison, for example, text sorting will be case sensitive (for example, 'A' then 'Z' then 'a').",
@@ -22687,7 +22654,7 @@
         {
           "Name": "MaxNumTerms",
           "Type": "Int",
-          "Desc": "Maximum number of terms to keep per column when auto-training",
+          "Desc": "Maximum number of keys to keep per column when auto-training",
           "Aliases": [
             "max"
           ],
@@ -22713,15 +22680,15 @@
           "Type": {
             "Kind": "Enum",
             "Values": [
-              "Occurrence",
-              "Value"
+              "ByOccurrence",
+              "ByValue"
             ]
           },
           "Desc": "How items should be ordered when vectorized. By default, they will be in the order encountered. If by value items are sorted according to their default comparison, for example, text sorting will be case sensitive (for example, 'A' then 'Z' then 'a').",
           "Required": false,
           "SortOrder": 113.0,
           "IsNullable": false,
-          "Default": "Occurrence"
+          "Default": "ByOccurrence"
         },
         {
           "Name": "TextKeyValues",
@@ -23348,7 +23315,7 @@
               "GloVeTwitter100D",
               "GloVeTwitter200D",
               "FastTextWikipedia300D",
-              "Sswe"
+              "SentimentSpecificWordEmbedding"
             ]
           },
           "Desc": "Pre-trained model used to create the vocabulary",
@@ -23358,7 +23325,7 @@
           "Required": false,
           "SortOrder": 1.0,
           "IsNullable": true,
-          "Default": "Sswe"
+          "Default": "SentimentSpecificWordEmbedding"
         },
         {
           "Name": "Data",
@@ -23572,18 +23539,6 @@
               "Default": false
             },
             {
-              "Name": "UnbalancedSets",
-              "Type": "Bool",
-              "Desc": "Use for binary classification when training data is not balanced.",
-              "Aliases": [
-                "us"
-              ],
-              "Required": false,
-              "SortOrder": 150.0,
-              "IsNullable": false,
-              "Default": false
-            },
-            {
               "Name": "MinimumSplitGain",
               "Type": "Float",
               "Desc": "Minimum loss reduction required to make a further partition on a leaf node of the tree. the larger, the more conservative the algorithm will be.",
@@ -23707,18 +23662,6 @@
                   1.0
                 ]
               }
-            },
-            {
-              "Name": "WeightOfPositiveExamples",
-              "Type": "Float",
-              "Desc": "Control the balance of positive and negative weights, useful for unbalanced classes. A typical value to consider: sum(negative cases) / sum(positive cases).",
-              "Aliases": [
-                "ScalePosWeight"
-              ],
-              "Required": false,
-              "SortOrder": 150.0,
-              "IsNullable": false,
-              "Default": 1.0
             }
           ]
         },
@@ -23728,18 +23671,6 @@
           "FriendlyName": "Tree Booster",
           "Settings": [
             {
-              "Name": "UnbalancedSets",
-              "Type": "Bool",
-              "Desc": "Use for binary classification when training data is not balanced.",
-              "Aliases": [
-                "us"
-              ],
-              "Required": false,
-              "SortOrder": 150.0,
-              "IsNullable": false,
-              "Default": false
-            },
-            {
               "Name": "MinimumSplitGain",
               "Type": "Float",
               "Desc": "Minimum loss reduction required to make a further partition on a leaf node of the tree. the larger, the more conservative the algorithm will be.",
@@ -23863,18 +23794,6 @@
                   1.0
                 ]
               }
-            },
-            {
-              "Name": "WeightOfPositiveExamples",
-              "Type": "Float",
-              "Desc": "Control the balance of positive and negative weights, useful for unbalanced classes. A typical value to consider: sum(negative cases) / sum(positive cases).",
-              "Aliases": [
-                "ScalePosWeight"
-              ],
-              "Required": false,
-              "SortOrder": 150.0,
-              "IsNullable": false,
-              "Default": 1.0
             }
           ]
         },
@@ -23910,18 +23829,6 @@
               }
             },
             {
-              "Name": "UnbalancedSets",
-              "Type": "Bool",
-              "Desc": "Use for binary classification when training data is not balanced.",
-              "Aliases": [
-                "us"
-              ],
-              "Required": false,
-              "SortOrder": 150.0,
-              "IsNullable": false,
-              "Default": false
-            },
-            {
               "Name": "MinimumSplitGain",
               "Type": "Float",
               "Desc": "Minimum loss reduction required to make a further partition on a leaf node of the tree. the larger, the more conservative the algorithm will be.",
@@ -24045,18 +23952,6 @@
                   1.0
                 ]
               }
-            },
-            {
-              "Name": "WeightOfPositiveExamples",
-              "Type": "Float",
-              "Desc": "Control the balance of positive and negative weights, useful for unbalanced classes. A typical value to consider: sum(negative cases) / sum(positive cases).",
-              "Aliases": [
-                "ScalePosWeight"
-              ],
-              "Required": false,
-              "SortOrder": 150.0,
-              "IsNullable": false,
-              "Default": 1.0
             }
           ]
         }
@@ -25219,7 +25114,7 @@
                   "None"
                 ]
               },
-              "Desc": "Whether learner should cache input training data",
+              "Desc": "Whether trainer should cache input training data",
               "Aliases": [
                 "cache"
               ],
@@ -26100,7 +25995,7 @@
                   "None"
                 ]
               },
-              "Desc": "Whether learner should cache input training data",
+              "Desc": "Whether trainer should cache input training data",
               "Aliases": [
                 "cache"
               ],
@@ -26115,7 +26010,7 @@
                 "Kind": "Array",
                 "ItemType": "Float"
               },
-              "Desc": "Comma seperated list of gains associated to each relevance label.",
+              "Desc": "Comma-separated list of gains associated to each relevance label.",
               "Aliases": [
                 "gains"
               ],
@@ -26157,7 +26052,7 @@
             {
               "Name": "NdcgTruncationLevel",
               "Type": "Int",
-              "Desc": "max-NDCG truncation to use in the Lambda Mart algorithm",
+              "Desc": "max-NDCG truncation to use in the LambdaMART algorithm",
               "Aliases": [
                 "n"
               ],
@@ -27071,7 +26966,7 @@
                   "None"
                 ]
               },
-              "Desc": "Whether learner should cache input training data",
+              "Desc": "Whether trainer should cache input training data",
               "Aliases": [
                 "cache"
               ],
@@ -27940,7 +27835,7 @@
                   "None"
                 ]
               },
-              "Desc": "Whether learner should cache input training data",
+              "Desc": "Whether trainer should cache input training data",
               "Aliases": [
                 "cache"
               ],
@@ -28676,7 +28571,7 @@
             {
               "Name": "SkipLength",
               "Type": "Int",
-              "Desc": "Maximum number of tokens to skip when constructing an ngram",
+              "Desc": "Maximum number of tokens to skip when constructing an n-gram",
               "Aliases": [
                 "skips"
               ],
@@ -28688,7 +28583,7 @@
             {
               "Name": "AllLengths",
               "Type": "Bool",
-              "Desc": "Whether to include all ngram lengths up to NgramLength or only NgramLength",
+              "Desc": "Whether to include all n-gram lengths up to NgramLength or only NgramLength",
               "Aliases": [
                 "all"
               ],
@@ -28703,7 +28598,7 @@
                 "Kind": "Array",
                 "ItemType": "Int"
               },
-              "Desc": "Maximum number of ngrams to store in the dictionary",
+              "Desc": "Maximum number of n-grams to store in the dictionary",
               "Aliases": [
                 "max"
               ],
@@ -28742,7 +28637,7 @@
           ],
           "Settings": [
             {
-              "Name": "HashBits",
+              "Name": "NumberOfBits",
               "Type": "Int",
               "Desc": "Number of bits to hash into. Must be between 1 and 30, inclusive.",
               "Aliases": [
@@ -28768,7 +28663,7 @@
             {
               "Name": "SkipLength",
               "Type": "Int",
-              "Desc": "Maximum number of tokens to skip when constructing an ngram",
+              "Desc": "Maximum number of tokens to skip when constructing an n-gram",
               "Aliases": [
                 "skips"
               ],
@@ -28780,7 +28675,7 @@
             {
               "Name": "AllLengths",
               "Type": "Bool",
-              "Desc": "Whether to include all ngram lengths up to ngramLength or only ngramLength",
+              "Desc": "Whether to include all n-gram lengths up to ngramLength or only ngramLength",
               "Aliases": [
                 "all"
               ],
@@ -28811,7 +28706,7 @@
               "Default": true
             },
             {
-              "Name": "InvertHash",
+              "Name": "MaximumNumberOfInverts",
               "Type": "Int",
               "Desc": "Limit the number of keys used to generate the slot name to this many. 0 means no invert hashing, -1 means no limit.",
               "Aliases": [

@@ -8,7 +8,7 @@ using System.IO.Compression;
 using System.Reflection;
 using Microsoft.ML.Internal.Utilities;
 
-namespace Microsoft.ML
+namespace Microsoft.ML.Runtime
 {
     [Obsolete("The usage for this is intended for the internal command line utilities and is not intended for anything related to the API. " +
         "Please consider another way of doing whatever it is you're attempting to accomplish.")]

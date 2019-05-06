@@ -7,14 +7,13 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.Data;
-using Microsoft.ML.Internal.Internallearn;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Model;
 using Microsoft.ML.Model.OnnxConverter;
 using Microsoft.ML.Model.Pfa;
+using Microsoft.ML.Runtime;
 using Newtonsoft.Json.Linq;
 
 [assembly: LoadableClass(typeof(SchemaBindablePredictorWrapper), null, typeof(SignatureLoadModel),
@@ -125,11 +124,11 @@ namespace Microsoft.ML.Data
                 if (schema.Feature?.Type is DataViewType type)
                 {
                     // Ensure that the feature column type is compatible with the needed input type.
-                    var typeIn = ValueMapper != null ? ValueMapper.InputType : new VectorType(NumberDataViewType.Single);
+                    var typeIn = ValueMapper != null ? ValueMapper.InputType : new VectorDataViewType(NumberDataViewType.Single);
                     if (type != typeIn)
                     {
-                        VectorType typeVectorType = type as VectorType;
-                        VectorType typeInVectorType = typeIn as VectorType;
+                        VectorDataViewType typeVectorType = type as VectorDataViewType;
+                        VectorDataViewType typeInVectorType = typeIn as VectorDataViewType;
 
                         DataViewType typeItemType = typeVectorType?.ItemType ?? type;
                         DataViewType typeInItemType = typeInVectorType?.ItemType ?? typeIn;
@@ -168,7 +167,7 @@ namespace Microsoft.ML.Data
             Contracts.AssertValue(input);
             Contracts.Assert(ValueMapper != null);
 
-            var featureGetter = input.GetGetter<TSrc>(colSrc);
+            var featureGetter = input.GetGetter<TSrc>(input.Schema[colSrc]);
             var map = ValueMapper.GetMapper<TSrc, TDst>();
             var features = default(TSrc);
             return
@@ -232,13 +231,13 @@ namespace Microsoft.ML.Data
 
             public DataViewSchema InputSchema => InputRoleMappedSchema.Schema;
 
-            public DataViewRow GetRow(DataViewRow input, Func<int, bool> predicate)
+            DataViewRow ISchemaBoundRowMapper.GetRow(DataViewRow input, IEnumerable<DataViewSchema.Column> activeColumns)
             {
                 Contracts.AssertValue(input);
-                Contracts.AssertValue(predicate);
+                Contracts.AssertValue(activeColumns);
 
                 var getters = new Delegate[1];
-                if (predicate(0))
+                if (activeColumns.Select(c => c.Index).Contains(0))
                     getters[0] = _parent.GetPredictionGetter(input, InputRoleMappedSchema.Feature.Value.Index);
                 return new SimpleRow(OutputSchema, input, getters);
             }
@@ -335,8 +334,8 @@ namespace Microsoft.ML.Data
             {
                 case PredictionKind.BinaryClassification:
                     return AnnotationUtils.Const.ScoreColumnKind.BinaryClassification;
-                case PredictionKind.MultiClassClassification:
-                    return AnnotationUtils.Const.ScoreColumnKind.MultiClassClassification;
+                case PredictionKind.MulticlassClassification:
+                    return AnnotationUtils.Const.ScoreColumnKind.MulticlassClassification;
                 case PredictionKind.Regression:
                     return AnnotationUtils.Const.ScoreColumnKind.Regression;
                 case PredictionKind.MultiOutputRegression:
@@ -448,7 +447,7 @@ namespace Microsoft.ML.Data
             // REVIEW: In theory the restriction on input type could be relaxed at the expense
             // of more complicated code in CalibratedRowMapper.GetGetters. Not worth it at this point
             // and no good way to test it.
-            Contracts.Check(distMapper.InputType is VectorType vectorType && vectorType.ItemType == NumberDataViewType.Single,
+            Contracts.Check(distMapper.InputType is VectorDataViewType vectorType && vectorType.ItemType == NumberDataViewType.Single,
                 "Invalid input type for the IValueMapperDist");
             Contracts.Check(distMapper.DistType == NumberDataViewType.Single,
                 "Invalid probability type for the IValueMapperDist");
@@ -491,7 +490,7 @@ namespace Microsoft.ML.Data
 
                 if (schema.Feature?.Type is DataViewType typeSrc)
                 {
-                    Contracts.Check(typeSrc is VectorType vectorType
+                    Contracts.Check(typeSrc is VectorDataViewType vectorType
                         && vectorType.IsKnownSize
                         && vectorType.ItemType == NumberDataViewType.Single,
                         "Invalid feature column type");
@@ -524,7 +523,7 @@ namespace Microsoft.ML.Data
                 if (active[0] || active[1])
                 {
                     // Put all captured locals at this scope.
-                    var featureGetter = InputRoleMappedSchema.Feature?.Index is int idx ? input.GetGetter<VBuffer<float>>(idx) : null;
+                    var featureGetter = InputRoleMappedSchema.Feature.HasValue ? input.GetGetter<VBuffer<float>>(InputRoleMappedSchema.Feature.Value) : null;
                     float prob = 0;
                     float score = 0;
                     long cachedPosition = -1;
@@ -571,10 +570,10 @@ namespace Microsoft.ML.Data
                 }
             }
 
-            public DataViewRow GetRow(DataViewRow input, Func<int, bool> predicate)
+            DataViewRow ISchemaBoundRowMapper.GetRow(DataViewRow input, IEnumerable<DataViewSchema.Column> activeColumns)
             {
                 Contracts.AssertValue(input);
-                var active = Utils.BuildArray(OutputSchema.Count, predicate);
+                var active = Utils.BuildArray(OutputSchema.Count, activeColumns);
                 var getters = CreateGetters(input, active);
                 return new SimpleRow(OutputSchema, input, getters);
             }
@@ -611,7 +610,7 @@ namespace Microsoft.ML.Data
             Contracts.CheckParam(qpred != null, nameof(predictor), "Predictor doesn't implement " + nameof(IQuantileValueMapper));
             _qpred = qpred;
             Contracts.CheckParam(ScoreType == NumberDataViewType.Single, nameof(predictor), "Unexpected predictor output type");
-            Contracts.CheckParam(ValueMapper != null && ValueMapper.InputType is VectorType vectorType
+            Contracts.CheckParam(ValueMapper != null && ValueMapper.InputType is VectorDataViewType vectorType
                 && vectorType.ItemType == NumberDataViewType.Single,
                 nameof(predictor), "Unexpected predictor input type");
             Contracts.CheckNonEmpty(quantiles, nameof(quantiles), "Quantiles must not be empty");
@@ -630,7 +629,7 @@ namespace Microsoft.ML.Data
             Contracts.CheckDecode(qpred != null);
             _qpred = qpred;
             Contracts.CheckDecode(ScoreType == NumberDataViewType.Single);
-            Contracts.CheckDecode(ValueMapper != null && ValueMapper.InputType is VectorType vectorType
+            Contracts.CheckDecode(ValueMapper != null && ValueMapper.InputType is VectorDataViewType vectorType
                 && vectorType.ItemType == NumberDataViewType.Single);
             _quantiles = ctx.Reader.ReadDoubleArray();
             Contracts.CheckDecode(Utils.Size(_quantiles) > 0);
@@ -665,13 +664,14 @@ namespace Microsoft.ML.Data
             Contracts.AssertValue(input);
             Contracts.Assert(0 <= colSrc && colSrc < input.Schema.Count);
 
-            var typeSrc = input.Schema[colSrc].Type as VectorType;
+            var column = input.Schema[colSrc];
+            var typeSrc = column.Type as VectorDataViewType;
             Contracts.Assert(typeSrc != null && typeSrc.ItemType == NumberDataViewType.Single);
             Contracts.Assert(ValueMapper == null ||
                 typeSrc.Size == ValueMapper.InputType.GetVectorSize() || ValueMapper.InputType.GetVectorSize() == 0);
             Contracts.Assert(Utils.Size(_quantiles) > 0);
 
-            var featureGetter = input.GetGetter<VBuffer<float>>(colSrc);
+            var featureGetter = input.GetGetter<VBuffer<float>>(column);
             var featureCount = ValueMapper != null ? ValueMapper.InputType.GetVectorSize() : 0;
 
             var quantiles = new float[_quantiles.Length];

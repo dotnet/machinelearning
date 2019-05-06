@@ -5,7 +5,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Microsoft.Data.DataView;
 using Microsoft.ML.Data;
 using Microsoft.ML.RunTests;
 using Xunit;
@@ -31,10 +30,10 @@ namespace Microsoft.ML.Tests
             var transformedData = DetectAnomalyInMnistOneClass(trainPath, testPath);
 
             // Evaluate
-            var metrics = ML.AnomalyDetection.Evaluate(transformedData, k: 5);
+            var metrics = ML.AnomalyDetection.Evaluate(transformedData, falsePositiveCount: 5);
 
             Assert.Equal(0.98667, metrics.AreaUnderRocCurve, 5);
-            Assert.Equal(0.90000, metrics.DetectionRateAtKFalsePositives, 5);
+            Assert.Equal(0.90000, metrics.DetectionRateAtFalsePositiveCount, 5);
         }
 
         /// <summary>
@@ -59,7 +58,7 @@ namespace Microsoft.ML.Tests
             var mlContext = new MLContext(seed: 0);
 
             // Create an anomaly detector. Its underlying algorithm is randomized PCA.
-            var trainer1 = mlContext.AnomalyDetection.Trainers.RandomizedPca(featureColumnName: nameof(DataPoint.Features), rank: 1, center: false);
+            var trainer1 = mlContext.AnomalyDetection.Trainers.RandomizedPca(featureColumnName: nameof(DataPoint.Features), rank: 1, ensureZeroMean: false);
 
             // Test the first detector.
             ExecutePipelineWithGivenRandomizedPcaTrainer(mlContext, trainer1);
@@ -69,7 +68,7 @@ namespace Microsoft.ML.Tests
             {
                 FeatureColumnName = nameof(DataPoint.Features),
                 Rank = 1,
-                Center = false
+                EnsureZeroMean = false
             };
 
             // Create anther anomaly detector. Its underlying algorithm is randomized PCA.

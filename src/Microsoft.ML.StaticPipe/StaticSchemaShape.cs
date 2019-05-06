@@ -5,8 +5,8 @@
 using System;
 using System.Collections.Generic;
 using System.Reflection;
-using Microsoft.Data.DataView;
 using Microsoft.ML.Data;
+using Microsoft.ML.Runtime;
 
 namespace Microsoft.ML.StaticPipe
 {
@@ -238,7 +238,7 @@ namespace Microsoft.ML.StaticPipe
             var t = col.Type;
 
             Type vecType = null;
-            if (t is VectorType vt)
+            if (t is VectorDataViewType vt)
             {
                 vecType = vt.Size > 0 ? typeof(Vector<>) : typeof(VarVector<>);
                 // Check normalized subtype of vectors.
@@ -247,13 +247,13 @@ namespace Microsoft.ML.StaticPipe
                     // Check to see if the column is normalized.
                     // Once we shift to metadata being a row globally we can also make this a bit more efficient:
                     var meta = col.Annotations;
-                    if (meta.Schema.TryGetColumnIndex(AnnotationUtils.Kinds.IsNormalized, out int normcol))
+                    var normalizedColumn = meta.Schema.GetColumnOrNull(AnnotationUtils.Kinds.IsNormalized);
+                    if (normalizedColumn.HasValue)
                     {
-                        var normtype = meta.Schema[normcol].Type;
-                        if (normtype == BooleanDataViewType.Instance)
+                        if (normalizedColumn.Value.Type == BooleanDataViewType.Instance)
                         {
                             bool val = default;
-                            meta.GetGetter<bool>(normcol)(ref val);
+                            meta.GetGetter<bool>(normalizedColumn.Value)(ref val);
                             if (val)
                                 vecType = typeof(NormVector<>);
                         }
@@ -262,9 +262,9 @@ namespace Microsoft.ML.StaticPipe
                 t = vt.ItemType;
                 // Fall through to the non-vector case to handle subtypes.
             }
-            Contracts.Assert(!(t is VectorType));
+            Contracts.Assert(!(t is VectorDataViewType));
 
-            if (t is KeyType kt)
+            if (t is KeyDataViewType kt)
             {
                 Type physType = GetPhysicalType(kt);
                 Contracts.Assert(physType == typeof(byte) || physType == typeof(ushort)
@@ -281,7 +281,7 @@ namespace Microsoft.ML.StaticPipe
                         var kvcol = meta.Schema[kvcolIndex];
                         var kvType = kvcol.Type;
                         Contracts.Assert(kt.Count <= int.MaxValue);
-                        if (kvType is VectorType kvVecType && kvVecType.Size == (int)kt.Count)
+                        if (kvType is VectorDataViewType kvVecType && kvVecType.Size == (int)kt.Count)
                         {
                             Contracts.Assert(kt.Count > 0);
                             var subtype = GetTypeOrNull(kvcol);
@@ -333,7 +333,7 @@ namespace Microsoft.ML.StaticPipe
             switch (columnType)
             {
                 case NumberDataViewType numberType:
-                case KeyType keyType:
+                case KeyDataViewType keyType:
                 case TimeSpanDataViewType timeSpanType:
                 case DateTimeDataViewType dateTimeType:
                 case DateTimeOffsetDataViewType dateTimeOffsetType:

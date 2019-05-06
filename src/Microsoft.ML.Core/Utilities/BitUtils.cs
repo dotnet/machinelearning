@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Runtime.CompilerServices;
+using Microsoft.ML.Runtime;
 
 namespace Microsoft.ML.Internal.Utilities
 {
@@ -21,7 +22,7 @@ namespace Microsoft.ML.Internal.Utilities
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static uint GetLo(ulong uu)
         {
-             return (uint)uu;
+            return (uint)uu;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

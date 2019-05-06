@@ -5,10 +5,10 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Microsoft.Data.DataView;
 using Microsoft.ML.Data;
 using Microsoft.ML.Functional.Tests.Datasets;
 using Xunit;
+using Xunit.Sdk;
 
 namespace Microsoft.ML.Functional.Tests
 {
@@ -83,14 +83,14 @@ namespace Microsoft.ML.Functional.Tests
         /// </summary>
         /// <param name="array1">An array of floats.</param>
         /// <param name="array2">An array of floats.</param>
-        public static void AssertEqual(float[] array1, float[] array2)
+        public static void AssertEqual(float[] array1, float[] array2, int precision = 6)
         {
             Assert.NotNull(array1);
             Assert.NotNull(array2);
             Assert.Equal(array1.Length, array2.Length);
 
             for (int i = 0; i < array1.Length; i++)
-                Assert.Equal(array1[i], array2[i]);
+                Assert.Equal(array1[i], array2[i], precision: precision);
         }
 
         /// <summary>
@@ -166,7 +166,7 @@ namespace Microsoft.ML.Functional.Tests
         public static void AssertMetrics(AnomalyDetectionMetrics metrics)
         {
             Assert.InRange(metrics.AreaUnderRocCurve, 0, 1);
-            Assert.InRange(metrics.DetectionRateAtKFalsePositives, 0, 1);
+            Assert.InRange(metrics.DetectionRateAtFalsePositiveCount, 0, 1);
         }
 
         /// <summary>
@@ -183,6 +183,10 @@ namespace Microsoft.ML.Functional.Tests
             Assert.InRange(metrics.NegativeRecall, 0, 1);
             Assert.InRange(metrics.PositivePrecision, 0, 1);
             Assert.InRange(metrics.PositiveRecall, 0, 1);
+
+            // Confusion matrix validations
+            Assert.NotNull(metrics.ConfusionMatrix);
+            AssertConfusionMatrix(metrics.ConfusionMatrix);
         }
 
         /// <summary>
@@ -195,6 +199,10 @@ namespace Microsoft.ML.Functional.Tests
             Assert.InRange(metrics.LogLoss, double.NegativeInfinity, 1);
             Assert.InRange(metrics.LogLossReduction, double.NegativeInfinity, 100);
             AssertMetrics(metrics as BinaryClassificationMetrics);
+
+            // Confusion matrix validations
+            Assert.NotNull(metrics.ConfusionMatrix);
+            AssertConfusionMatrix(metrics.ConfusionMatrix);
         }
 
         /// <summary>
@@ -210,15 +218,36 @@ namespace Microsoft.ML.Functional.Tests
         }
 
         /// <summary>
-        /// Check that a <see cref="MultiClassClassifierMetrics"/> object is valid.
+        /// Check that a <see cref="MulticlassClassificationMetrics"/> object is valid.
         /// </summary>
         /// <param name="metrics">The metrics object.</param>
-        public static void AssertMetrics(MultiClassClassifierMetrics metrics)
+        public static void AssertMetrics(MulticlassClassificationMetrics metrics)
         {
             Assert.InRange(metrics.MacroAccuracy, 0, 1);
             Assert.InRange(metrics.MicroAccuracy, 0, 1);
             Assert.True(metrics.LogLoss >= 0);
             Assert.InRange(metrics.TopKAccuracy, 0, 1);
+
+            // Confusion matrix validations
+            Assert.NotNull(metrics.ConfusionMatrix);
+            AssertConfusionMatrix(metrics.ConfusionMatrix);
+
+        }
+
+        internal static void AssertConfusionMatrix(ConfusionMatrix confusionMatrix)
+        {
+            // Confusion matrix validations
+            Assert.NotNull(confusionMatrix);
+            Assert.NotEmpty(confusionMatrix.Counts);
+            Assert.NotEmpty(confusionMatrix.PerClassPrecision);
+            Assert.NotEmpty(confusionMatrix.PerClassRecall);
+
+            foreach (var precision in confusionMatrix.PerClassPrecision)
+                Assert.InRange(precision, 0, 1);
+
+            foreach (var recall in confusionMatrix.PerClassRecall)
+                Assert.InRange(recall, 0, 1);
+
         }
 
         /// <summary>
@@ -261,11 +290,68 @@ namespace Microsoft.ML.Functional.Tests
         /// <param name="metrics">The metrics object.</param>
         public static void AssertMetricsStatistics(RegressionMetricsStatistics metrics)
         {
-            AssertMetricStatistics(metrics.Rms);
-            AssertMetricStatistics(metrics.L1);
-            AssertMetricStatistics(metrics.L2);
+            AssertMetricStatistics(metrics.RootMeanSquaredError);
+            AssertMetricStatistics(metrics.MeanAbsoluteError);
+            AssertMetricStatistics(metrics.MeanSquaredError);
             AssertMetricStatistics(metrics.RSquared);
-            AssertMetricStatistics(metrics.LossFn);
+            AssertMetricStatistics(metrics.LossFunction);
+        }
+
+        /// <summary>
+        /// Assert that two float arrays are not equal.
+        /// </summary>
+        /// <param name="array1">An array of floats.</param>
+        /// <param name="array2">An array of floats.</param>
+        public static void AssertNotEqual(float[] array1, float[] array2)
+        {
+            Assert.NotNull(array1);
+            Assert.NotNull(array2);
+            Assert.Equal(array1.Length, array2.Length);
+
+            bool mismatch = false;
+            for (int i = 0; i < array1.Length; i++)
+                try
+                {
+                    // Use Assert to test for equality rather than
+                    // to roll our own float equality checker.
+                    Assert.Equal(array1[i], array2[i]);
+                }
+                catch(EqualException)
+                {
+                    mismatch = true;
+                    break;
+                }
+            Assert.True(mismatch);
+        }
+
+        /// <summary>
+        /// Verify that a float array has no NaNs or infinities.
+        /// </summary>
+        /// <param name="array">An array of doubles.</param>
+        public static void AssertFiniteNumbers(IList<float> array, int ignoreElementAt = -1)
+        {
+            for (int i = 0; i < array.Count; i++)
+            {
+                if (i == ignoreElementAt)
+                    continue;
+                Assert.False(float.IsNaN(array[i]));
+                Assert.False(float.IsInfinity(array[i]));
+            }
+        }
+
+        /// <summary>
+        /// Verify that a double array has no NaNs or infinities.
+        /// </summary>
+        /// <param name="array">An array of doubles.</param>
+        public static void AssertFiniteNumbers(IList<double> array, int ignoreElementAt = -1)
+        {
+            for (int i = 0; i < array.Count; i++)
+            {
+                if (i == ignoreElementAt)
+                    continue;
+                Assert.False(double.IsNaN(array[i]));
+                Assert.False(double.IsInfinity(array[i]));
+            }
         }
     }
 }

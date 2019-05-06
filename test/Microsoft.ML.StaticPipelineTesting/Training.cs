@@ -3,13 +3,13 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
-using Microsoft.Data.DataView;
 using Microsoft.ML;
 using Microsoft.ML.Calibrators;
 using Microsoft.ML.Data;
-using Microsoft.ML.LightGBM;
-using Microsoft.ML.LightGBM.StaticPipe;
+using Microsoft.ML.Trainers.LightGbm;
+using Microsoft.ML.Trainers.LightGbm.StaticPipe;
 using Microsoft.ML.Model;
 using Microsoft.ML.RunTests;
 using Microsoft.ML.StaticPipe;
@@ -31,7 +31,7 @@ namespace Microsoft.ML.StaticPipelineTesting
         [Fact]
         public void SdcaRegression()
         {
-            var env = new MLContext(seed: 0, conc: 1);
+            var env = new MLContext(seed: 0);
             var dataPath = GetDataPath(TestDatasets.generatedRegressionDataset.trainFilename);
             var dataSource = new MultiFileSource(dataPath);
 
@@ -45,7 +45,7 @@ namespace Microsoft.ML.StaticPipelineTesting
 
             var est = reader.MakeNewEstimator()
                 .Append(r => (r.label, score: catalog.Trainers.Sdca(r.label, r.features, null,
-                new SdcaRegressionTrainer.Options() { NumberOfIterations = 2, NumberOfThreads = 1 },
+                new SdcaRegressionTrainer.Options() { MaximumNumberOfIterations = 2, NumberOfThreads = 1 },
                 onFit: p => pred = p)));
 
             var pipe = reader.Append(est);
@@ -87,7 +87,7 @@ namespace Microsoft.ML.StaticPipelineTesting
 
             var est = reader.MakeNewEstimator()
                 .Append(r => (r.label, r.Score, score: catalog.Trainers.Sdca(r.label, r.features, null,
-                new SdcaRegressionTrainer.Options() { NumberOfIterations = 2, NumberOfThreads = 1 })));
+                new SdcaRegressionTrainer.Options() { MaximumNumberOfIterations = 2, NumberOfThreads = 1 })));
 
             var pipe = reader.Append(est);
 
@@ -118,7 +118,7 @@ namespace Microsoft.ML.StaticPipelineTesting
 
             var est = reader.MakeNewEstimator()
                 .Append(r => (r.label, preds: catalog.Trainers.Sdca(r.label, r.features, null,
-                    new SdcaBinaryTrainer.Options { NumberOfIterations = 2, NumberOfThreads = 1 },
+                    new SdcaLogisticRegressionBinaryTrainer.Options { MaximumNumberOfIterations = 2, NumberOfThreads = 1 },
                     onFit: (p) => { pred = p; })));
 
             var pipe = reader.Append(est);
@@ -198,7 +198,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             // With a custom loss function we no longer get calibrated predictions.
             var est = reader.MakeNewEstimator()
                 .Append(r => (r.label, preds: catalog.Trainers.SdcaNonCalibrated(r.label, r.features, null, loss,
-                new SdcaNonCalibratedBinaryTrainer.Options { NumberOfIterations = 2, NumberOfThreads = 1 },
+                new SdcaNonCalibratedBinaryTrainer.Options { MaximumNumberOfIterations = 2, NumberOfThreads = 1 },
                 onFit: p => pred = p)));
 
             var pipe = reader.Append(est);
@@ -259,6 +259,44 @@ namespace Microsoft.ML.StaticPipelineTesting
             Assert.InRange(metrics.AreaUnderPrecisionRecallCurve, 0.95, 1);
         }
 
+        [Fact]
+        public void SdcaBinaryClassificationNoCalibrationSimpleWithPRCurve()
+        {
+            var env = new MLContext(seed: 0);
+            var dataPath = GetDataPath(TestDatasets.breastCancer.trainFilename);
+            var dataSource = new MultiFileSource(dataPath);
+            var catalog = new BinaryClassificationCatalog(env);
+
+            var reader = TextLoaderStatic.CreateLoader(env,
+                c => (label: c.LoadBool(0), features: c.LoadFloat(1, 9)));
+
+            LinearBinaryModelParameters pred = null;
+
+            var loss = new HingeLoss(1);
+
+            // With a custom loss function we no longer get calibrated predictions.
+            var est = reader.MakeNewEstimator()
+                .Append(r => (r.label, preds: catalog.Trainers.SdcaNonCalibrated(r.label, r.features, loss, onFit: p => pred = p)));
+
+            var pipe = reader.Append(est);
+
+            Assert.Null(pred);
+            var model = pipe.Fit(dataSource);
+            Assert.NotNull(pred);
+            // 9 input features, so we ought to have 9 weights.
+            Assert.Equal(9, pred.Weights.Count);
+
+            var data = model.Load(dataSource);
+
+            var metrics = catalog.EvaluateWithPRCurve(data, r => r.label, r => r.preds, out List<BinaryPrecisionRecallDataPoint> prCurve);
+            // Run a sanity check against a few of the metrics.
+            Assert.InRange(metrics.Accuracy, 0.95, 1);
+            Assert.InRange(metrics.AreaUnderRocCurve, 0.95, 1);
+            Assert.InRange(metrics.AreaUnderPrecisionRecallCurve, 0.95, 1);
+
+            Assert.NotNull(prCurve);
+            Assert.InRange(prCurve.Count, 400, 500);
+        }
 
         [Fact]
         public void AveragePerceptronNoCalibration()
@@ -375,7 +413,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             var reader = TextLoaderStatic.CreateLoader(env,
                 c => (label: c.LoadText(0), features: c.LoadFloat(1, 4)));
 
-            MulticlassLogisticRegressionModelParameters pred = null;
+            MaximumEntropyModelParameters pred = null;
 
             var loss = new HingeLoss(1);
 
@@ -386,7 +424,7 @@ namespace Microsoft.ML.StaticPipelineTesting
                     r.label,
                     r.features,
                     numberOfIterations: 2,
-                    loss: loss, onFit: p => pred = p)));
+                    onFit: p => pred = p)));
 
             var pipe = reader.Append(est);
 
@@ -412,6 +450,57 @@ namespace Microsoft.ML.StaticPipelineTesting
             var metrics = catalog.Evaluate(data, r => r.label, r => r.preds, 2);
             Assert.True(metrics.LogLoss > 0);
             Assert.True(metrics.TopKAccuracy > 0);
+        }
+
+        [Fact]
+        public void SdcaMulticlassSvm()
+        {
+            var env = new MLContext(seed: 0);
+            var dataPath = GetDataPath(TestDatasets.iris.trainFilename);
+            var dataSource = new MultiFileSource(dataPath);
+
+            var catalog = new MulticlassClassificationCatalog(env);
+            var reader = TextLoaderStatic.CreateLoader(env,
+                c => (label: c.LoadText(0), features: c.LoadFloat(1, 4)));
+
+            LinearMulticlassModelParameters pred = null;
+
+            var loss = new HingeLoss(1);
+
+            // With a custom loss function we no longer get calibrated predictions.
+            var est = reader.MakeNewEstimator()
+                .Append(r => (label: r.label.ToKey(), r.features))
+                .Append(r => (r.label, preds: catalog.Trainers.SdcaNonCalibrated(
+                    r.label,
+                    r.features,
+                    lossFunction: new HingeLoss(),
+                    numberOfIterations: 2,
+                    onFit: p => pred = p)));
+
+            var pipe = reader.Append(est);
+
+            Assert.Null(pred);
+            var model = pipe.Fit(dataSource);
+            Assert.NotNull(pred);
+            VBuffer<float>[] weights = default;
+            pred.GetWeights(ref weights, out int n);
+            Assert.True(n == 3 && n == weights.Length);
+            foreach (var w in weights)
+                Assert.True(w.Length == 4);
+
+            var biases = pred.GetBiases();
+            Assert.True(biases.Count() == 3);
+
+            var data = model.Load(dataSource);
+
+            // Just output some data on the schema for fun.
+            var schema = data.AsDynamic.Schema;
+            for (int c = 0; c < schema.Count; ++c)
+                Console.WriteLine($"{schema[c].Name}, {schema[c].Type}");
+
+            var metrics = catalog.Evaluate(data, r => r.label, r => r.preds, 2);
+            Assert.InRange(metrics.MacroAccuracy, 0.6, 1);
+            Assert.InRange(metrics.TopKAccuracy, 0.8, 1);
         }
 
         [Fact]
@@ -617,8 +706,8 @@ namespace Microsoft.ML.StaticPipelineTesting
             PoissonRegressionModelParameters pred = null;
 
             var est = reader.MakeNewEstimator()
-                .Append(r => (r.label, score: catalog.Trainers.PoissonRegression(r.label, r.features, null,
-                                new PoissonRegression.Options { L2Regularization = 2, EnforceNonNegativity = true, NumberOfThreads = 1 },
+                .Append(r => (r.label, score: catalog.Trainers.LbfgsPoissonRegression(r.label, r.features, null,
+                                new LbfgsPoissonRegressionTrainer.Options { L2Regularization = 2, EnforceNonNegativity = true, NumberOfThreads = 1 },
                                 onFit: (p) => { pred = p; })));
 
             var pipe = reader.Append(est);
@@ -654,8 +743,8 @@ namespace Microsoft.ML.StaticPipelineTesting
             CalibratedModelParametersBase<LinearBinaryModelParameters, PlattCalibrator> pred = null;
 
             var est = reader.MakeNewEstimator()
-                .Append(r => (r.label, preds: catalog.Trainers.LogisticRegressionBinaryClassifier(r.label, r.features, null,
-                                    new LogisticRegression.Options { L1Regularization = 10, NumberOfThreads = 1 }, onFit: (p) => { pred = p; })));
+                .Append(r => (r.label, preds: catalog.Trainers.LbfgsLogisticRegression(r.label, r.features, null,
+                                    new LbfgsLogisticRegressionBinaryTrainer.Options { L1Regularization = 10, NumberOfThreads = 1 }, onFit: (p) => { pred = p; })));
 
             var pipe = reader.Append(est);
 
@@ -686,16 +775,16 @@ namespace Microsoft.ML.StaticPipelineTesting
             var reader = TextLoaderStatic.CreateLoader(env,
                 c => (label: c.LoadText(0), features: c.LoadFloat(1, 4)));
 
-            MulticlassLogisticRegressionModelParameters pred = null;
+            MaximumEntropyModelParameters pred = null;
 
             // With a custom loss function we no longer get calibrated predictions.
             var est = reader.MakeNewEstimator()
                 .Append(r => (label: r.label.ToKey(), r.features))
-                .Append(r => (r.label, preds: catalog.Trainers.MultiClassLogisticRegression(
+                .Append(r => (r.label, preds: catalog.Trainers.LbfgsMaximumEntropy(
                     r.label,
                     r.features,
                     null,
-                    new MulticlassLogisticRegression.Options { NumberOfThreads = 1 },
+                    new LbfgsMaximumEntropyMulticlassTrainer.Options { NumberOfThreads = 1 },
                     onFit: p => pred = p)));
 
             var pipe = reader.Append(est);
@@ -765,7 +854,7 @@ namespace Microsoft.ML.StaticPipelineTesting
         [Fact]
         public void KMeans()
         {
-            var env = new MLContext(seed: 0, conc: 1);
+            var env = new MLContext(seed: 0);
             var dataPath = GetDataPath(TestDatasets.iris.trainFilename);
             var dataSource = new MultiFileSource(dataPath);
 
@@ -784,7 +873,7 @@ namespace Microsoft.ML.StaticPipelineTesting
                                 (
                                     r.features,
                                     null,
-                                    options: new KMeansPlusPlusTrainer.Options
+                                    options: new KMeansTrainer.Options
                                     {
                                         NumberOfClusters = 3,
                                         NumberOfThreads = 1
@@ -860,15 +949,15 @@ namespace Microsoft.ML.StaticPipelineTesting
             var metrics = catalog.Evaluate(data, r => r.label, r => r.groupId, r => r.score);
             Assert.NotNull(metrics);
 
-            Assert.True(metrics.NormalizedDiscountedCumulativeGains.Length == metrics.DiscountedCumulativeGains.Length && metrics.DiscountedCumulativeGains.Length == 3);
+            Assert.True(metrics.NormalizedDiscountedCumulativeGains.Count == metrics.DiscountedCumulativeGains.Count && metrics.DiscountedCumulativeGains.Count == 3);
 
             Assert.InRange(metrics.DiscountedCumulativeGains[0], 1.4, 1.6);
             Assert.InRange(metrics.DiscountedCumulativeGains[1], 1.4, 1.8);
             Assert.InRange(metrics.DiscountedCumulativeGains[2], 1.4, 1.8);
 
-            Assert.InRange(metrics.NormalizedDiscountedCumulativeGains[0], 36.5, 37);
-            Assert.InRange(metrics.NormalizedDiscountedCumulativeGains[1], 36.5, 37);
-            Assert.InRange(metrics.NormalizedDiscountedCumulativeGains[2], 36.5, 37);
+            Assert.InRange(metrics.NormalizedDiscountedCumulativeGains[0], 0.365, 0.37);
+            Assert.InRange(metrics.NormalizedDiscountedCumulativeGains[1], 0.365, 0.37);
+            Assert.InRange(metrics.NormalizedDiscountedCumulativeGains[2], 0.365, 0.37);
         }
 
         [LightGBMFact]
@@ -901,19 +990,19 @@ namespace Microsoft.ML.StaticPipelineTesting
             var metrics = catalog.Evaluate(data, r => r.label, r => r.groupId, r => r.score);
             Assert.NotNull(metrics);
 
-            Assert.True(metrics.NormalizedDiscountedCumulativeGains.Length == metrics.DiscountedCumulativeGains.Length && metrics.DiscountedCumulativeGains.Length == 3);
+            Assert.True(metrics.NormalizedDiscountedCumulativeGains.Count == metrics.DiscountedCumulativeGains.Count && metrics.DiscountedCumulativeGains.Count == 3);
 
             Assert.InRange(metrics.DiscountedCumulativeGains[0], 1.4, 1.6);
             Assert.InRange(metrics.DiscountedCumulativeGains[1], 1.4, 1.8);
             Assert.InRange(metrics.DiscountedCumulativeGains[2], 1.4, 1.8);
 
-            Assert.InRange(metrics.NormalizedDiscountedCumulativeGains[0], 36.5, 37);
-            Assert.InRange(metrics.NormalizedDiscountedCumulativeGains[1], 36.5, 37);
-            Assert.InRange(metrics.NormalizedDiscountedCumulativeGains[2], 36.5, 37);
+            Assert.InRange(metrics.NormalizedDiscountedCumulativeGains[0], 0.365, 0.37);
+            Assert.InRange(metrics.NormalizedDiscountedCumulativeGains[1], 0.365, 0.37);
+            Assert.InRange(metrics.NormalizedDiscountedCumulativeGains[2], 0.365, 0.37);
         }
 
         [LightGBMFact]
-        public void MultiClassLightGBM()
+        public void MulticlassLightGBM()
         {
             var env = new MLContext(seed: 0);
             var dataPath = GetDataPath(TestDatasets.iris.trainFilename);
@@ -951,7 +1040,7 @@ namespace Microsoft.ML.StaticPipelineTesting
         }
 
         [Fact]
-        public void MultiClassNaiveBayesTrainer()
+        public void MulticlassNaiveBayesTrainer()
         {
             var env = new MLContext(seed: 0);
             var dataPath = GetDataPath(TestDatasets.iris.trainFilename);
@@ -961,12 +1050,12 @@ namespace Microsoft.ML.StaticPipelineTesting
             var reader = TextLoaderStatic.CreateLoader(env,
                 c => (label: c.LoadText(0), features: c.LoadFloat(1, 4)));
 
-            MultiClassNaiveBayesModelParameters pred = null;
+            NaiveBayesMulticlassModelParameters pred = null;
 
             // With a custom loss function we no longer get calibrated predictions.
             var est = reader.MakeNewEstimator()
                 .Append(r => (label: r.label.ToKey(), r.features))
-                .Append(r => (r.label, preds: catalog.Trainers.MultiClassNaiveBayesTrainer(
+                .Append(r => (r.label, preds: catalog.Trainers.MulticlassNaiveBayesTrainer(
                     r.label,
                     r.features, onFit: p => pred = p)));
 
@@ -1009,7 +1098,7 @@ namespace Microsoft.ML.StaticPipelineTesting
 
             var est = reader.MakeNewEstimator()
                 .Append(r => (r.label, preds: catalog.Trainers.StochasticGradientDescentClassificationTrainer(r.label, r.features, null,
-                    new SgdBinaryTrainer.Options { L2Regularization = 0, NumberOfThreads = 1 },
+                    new SgdCalibratedTrainer.Options { L2Regularization = 0, NumberOfThreads = 1 },
                     onFit: (p) => { pred = p; })));
 
             var pipe = reader.Append(est);
@@ -1082,7 +1171,7 @@ namespace Microsoft.ML.StaticPipelineTesting
 
             var est = reader.MakeNewEstimator()
                 .Append(r => (r.label, preds: catalog.Trainers.StochasticGradientDescentNonCalibratedClassificationTrainer(r.label, r.features, null,
-                    new SgdNonCalibratedBinaryTrainer.Options { L2Regularization = 0, NumberOfThreads = 1, Loss = new HingeLoss()},
+                    new SgdNonCalibratedTrainer.Options { L2Regularization = 0, NumberOfThreads = 1, LossFunction = new HingeLoss()},
                     onFit: (p) => { pred = p; })));
 
             var pipe = reader.Append(est);
@@ -1117,7 +1206,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             LinearBinaryModelParameters pred = null;
 
             var est = reader.MakeNewEstimator()
-                .Append(r => (r.label, preds: catalog.Trainers.StochasticGradientDescentNonCalibratedClassificationTrainer(r.label, r.features, loss: new HingeLoss(), onFit: (p) => { pred = p; })));
+                .Append(r => (r.label, preds: catalog.Trainers.StochasticGradientDescentNonCalibratedClassificationTrainer(r.label, r.features, lossFunction: new HingeLoss(), onFit: (p) => { pred = p; })));
 
             var pipe = reader.Append(est);
 
@@ -1142,7 +1231,7 @@ namespace Microsoft.ML.StaticPipelineTesting
         {
             // Create a new context for ML.NET operations. It can be used for exception tracking and logging,
             // as a catalog of available operations and as the source of randomness.
-            var mlContext = new MLContext(seed: 1, conc: 1);
+            var mlContext = new MLContext(seed: 1);
 
             // Specify where to find data file
             var dataPath = GetDataPath(TestDatasets.trivialMatrixFactorization.trainFilename);
@@ -1189,11 +1278,11 @@ namespace Microsoft.ML.StaticPipelineTesting
         }
 
         [LightGBMFact]
-        public void MultiClassLightGbmStaticPipelineWithInMemoryData()
+        public void MulticlassLightGbmStaticPipelineWithInMemoryData()
         {
             // Create a general context for ML.NET operations. It can be used for exception tracking and logging,
             // as a catalog of available operations and as the source of randomness.
-            var mlContext = new MLContext(seed: 1, conc: 1);
+            var mlContext = new MLContext(seed: 1);
 
             // Create in-memory examples as C# native class.
             var examples = SamplesUtils.DatasetUtils.GenerateRandomMulticlassClassificationExamples(1000);
@@ -1232,7 +1321,7 @@ namespace Microsoft.ML.StaticPipelineTesting
 
             // Split the static-typed data into training and test sets. Only training set is used in fitting
             // the created pipeline. Metrics are computed on the test.
-            var (trainingData, testingData) = mlContext.MulticlassClassification.TrainTestSplit(staticDataView, testFraction: 0.5);
+            var (trainingData, testingData) = mlContext.Data.TrainTestSplit(staticDataView, testFraction: 0.5);
 
             // Train the model.
             var model = pipe.Fit(trainingData);

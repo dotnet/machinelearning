@@ -4,6 +4,7 @@
 
 using System;
 using System.IO;
+using Microsoft.ML.Runtime;
 
 namespace Microsoft.ML.Internal.Utilities
 {
@@ -29,7 +30,8 @@ namespace Microsoft.ML.Internal.Utilities
 
         private bool IsMemory => _memStream != null;
 
-        public override long Position {
+        public override long Position
+        {
             get => MyStream.Position;
             set => Seek(value, SeekOrigin.Begin);
         }

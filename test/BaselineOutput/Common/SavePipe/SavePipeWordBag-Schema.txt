@@ -1,97 +1,97 @@
 ---- BoundLoader ----
 3 columns:
-  Label: Text
-  One: Text
-  Vec: Vec<Text, 2>
-    Metadata 'SlotNames': Vec<Text, 2>: Length=2, Count=2
+  Label: String
+  One: String
+  Vec: Vector<String, 2>
+    Metadata 'SlotNames': Vector<String, 2>: Length=2, Count=2
       [0] 'weg fuer milliardenhilfe frei', [1] 'vor dem parlamentsgebaeude toben strassenkaempfe zwischen demonstranten drinnen haben die griechischen abgeordneten das drastische sparpaket am abend endgueltig beschlossen die entscheidung ist eine wichtige voraussetzung fuer die auszahlung von weiteren acht milliarden euro hilfsgeldern athen das griechische parlament hat einem umfassenden sparpaket endgueltig zugestimmt'
 ---- RowToRowMapperTransform ----
 4 columns:
-  Label: Text
-  Label: Key<U4, 0-6>
-    Metadata 'KeyValues': Vec<Text, 7>: Length=7, Count=7
+  Label: String
+  Label: Key<UInt32, 0-6>
+    Metadata 'KeyValues': Vector<String, 7>: Length=7, Count=7
       [0] 'Wirtschaft', [1] 'Gesundheit', [2] 'Deutschland', [3] 'Ausland', [4] 'Unterhaltung', [5] 'Sport', [6] 'Technik & Wissen'
-  One: Text
-  Vec: Vec<Text, 2>
-    Metadata 'SlotNames': Vec<Text, 2>: Length=2, Count=2
+  One: String
+  Vec: Vector<String, 2>
+    Metadata 'SlotNames': Vector<String, 2>: Length=2, Count=2
       [0] 'weg fuer milliardenhilfe frei', [1] 'vor dem parlamentsgebaeude toben strassenkaempfe zwischen demonstranten drinnen haben die griechischen abgeordneten das drastische sparpaket am abend endgueltig beschlossen die entscheidung ist eine wichtige voraussetzung fuer die auszahlung von weiteren acht milliarden euro hilfsgeldern athen das griechische parlament hat einem umfassenden sparpaket endgueltig zugestimmt'
 ---- RowToRowMapperTransform ----
 9 columns:
-  Label: Text
-  Label: Key<U4, 0-6>
-    Metadata 'KeyValues': Vec<Text, 7>: Length=7, Count=7
+  Label: String
+  Label: Key<UInt32, 0-6>
+    Metadata 'KeyValues': Vector<String, 7>: Length=7, Count=7
       [0] 'Wirtschaft', [1] 'Gesundheit', [2] 'Deutschland', [3] 'Ausland', [4] 'Unterhaltung', [5] 'Sport', [6] 'Technik & Wissen'
-  One: Text
-  Vec: Vec<Text, 2>
-    Metadata 'SlotNames': Vec<Text, 2>: Length=2, Count=2
+  One: String
+  Vec: Vector<String, 2>
+    Metadata 'SlotNames': Vector<String, 2>: Length=2, Count=2
       [0] 'weg fuer milliardenhilfe frei', [1] 'vor dem parlamentsgebaeude toben strassenkaempfe zwischen demonstranten drinnen haben die griechischen abgeordneten das drastische sparpaket am abend endgueltig beschlossen die entscheidung ist eine wichtige voraussetzung fuer die auszahlung von weiteren acht milliarden euro hilfsgeldern athen das griechische parlament hat einem umfassenden sparpaket endgueltig zugestimmt'
-  F11: Vec<Text>
-  F12: Vec<Text>
-  F13: Vec<Text>
-  F21: Vec<Text>
-  F22: Vec<Text>
+  F11: Vector<String>
+  F12: Vector<String>
+  F13: Vector<String>
+  F21: Vector<String>
+  F22: Vector<String>
 ---- RowToRowMapperTransform ----
 14 columns:
-  Label: Text
-  Label: Key<U4, 0-6>
-    Metadata 'KeyValues': Vec<Text, 7>: Length=7, Count=7
+  Label: String
+  Label: Key<UInt32, 0-6>
+    Metadata 'KeyValues': Vector<String, 7>: Length=7, Count=7
       [0] 'Wirtschaft', [1] 'Gesundheit', [2] 'Deutschland', [3] 'Ausland', [4] 'Unterhaltung', [5] 'Sport', [6] 'Technik & Wissen'
-  One: Text
-  Vec: Vec<Text, 2>
-    Metadata 'SlotNames': Vec<Text, 2>: Length=2, Count=2
+  One: String
+  Vec: Vector<String, 2>
+    Metadata 'SlotNames': Vector<String, 2>: Length=2, Count=2
       [0] 'weg fuer milliardenhilfe frei', [1] 'vor dem parlamentsgebaeude toben strassenkaempfe zwischen demonstranten drinnen haben die griechischen abgeordneten das drastische sparpaket am abend endgueltig beschlossen die entscheidung ist eine wichtige voraussetzung fuer die auszahlung von weiteren acht milliarden euro hilfsgeldern athen das griechische parlament hat einem umfassenden sparpaket endgueltig zugestimmt'
-  F11: Vec<Text>
-  F11: Vec<Key<U4, 0-9>>
-    Metadata 'KeyValues': Vec<Text, 10>: Length=10, Count=10
+  F11: Vector<String>
+  F11: Vector<Key<UInt32, 0-9>>
+    Metadata 'KeyValues': Vector<String, 10>: Length=10, Count=10
       [0] 'lediglich', [1] 'air', [2] 'worldwide', [3] 'ein', [4] 'spezialist', [5] 'fuer', [6] 'risikomodelle', [7] 'wagte', [8] 'sich', [9] 'schnell'
-  F12: Vec<Text>
-  F12: Vec<Key<U4, 0-2>>
-    Metadata 'KeyValues': Vec<Text, 3>: Length=3, Count=3
+  F12: Vector<String>
+  F12: Vector<Key<UInt32, 0-2>>
+    Metadata 'KeyValues': Vector<String, 3>: Length=3, Count=3
       [0] 'lediglich', [1] 'air', [2] 'worldwide'
-  F13: Vec<Text>
-  F13: Vec<Key<U4, 0-9>>
-    Metadata 'KeyValues': Vec<Text, 10>: Length=10, Count=10
+  F13: Vector<String>
+  F13: Vector<Key<UInt32, 0-9>>
+    Metadata 'KeyValues': Vector<String, 10>: Length=10, Count=10
       [0] 'lediglich', [1] 'air', [2] 'worldwide', [3] 'ein', [4] 'spezialist', [5] 'fuer', [6] 'risikomodelle', [7] 'wagte', [8] 'sich', [9] 'schnell'
-  F21: Vec<Text>
-  F21: Vec<Key<U4, 0-9>>
-    Metadata 'KeyValues': Vec<Text, 10>: Length=10, Count=10
+  F21: Vector<String>
+  F21: Vector<Key<UInt32, 0-9>>
+    Metadata 'KeyValues': Vector<String, 10>: Length=10, Count=10
       [0] 'versicherer', [1] 'lediglich', [2] 'air', [3] 'worldwide', [4] 'ein', [5] 'spezialist', [6] 'fuer', [7] 'risikomodelle', [8] 'wagte', [9] 'sich'
-  F22: Vec<Text>
-  F22: Vec<Key<U4, 0-19>>
-    Metadata 'KeyValues': Vec<Text, 20>: Length=20, Count=20
+  F22: Vector<String>
+  F22: Vector<Key<UInt32, 0-19>>
+    Metadata 'KeyValues': Vector<String, 20>: Length=20, Count=20
       [0] 'versicherer', [1] 'lediglich', [2] 'air', [3] 'worldwide', [4] 'ein', [5] 'spezialist', [6] 'fuer', [7] 'risikomodelle', [8] 'wagte', [9] 'sich'
       [10] 'schnell', [11] 'mit', [12] 'einer', [13] 'ersten', [14] 'schaetzung', [15] 'vor', [16] 'neue', [17] 'todesfaelle', [18] 'durch', [19] 'ehec'
 ---- RowToRowMapperTransform ----
 19 columns:
-  Label: Text
-  Label: Key<U4, 0-6>
-    Metadata 'KeyValues': Vec<Text, 7>: Length=7, Count=7
+  Label: String
+  Label: Key<UInt32, 0-6>
+    Metadata 'KeyValues': Vector<String, 7>: Length=7, Count=7
       [0] 'Wirtschaft', [1] 'Gesundheit', [2] 'Deutschland', [3] 'Ausland', [4] 'Unterhaltung', [5] 'Sport', [6] 'Technik & Wissen'
-  One: Text
-  Vec: Vec<Text, 2>
-    Metadata 'SlotNames': Vec<Text, 2>: Length=2, Count=2
+  One: String
+  Vec: Vector<String, 2>
+    Metadata 'SlotNames': Vector<String, 2>: Length=2, Count=2
       [0] 'weg fuer milliardenhilfe frei', [1] 'vor dem parlamentsgebaeude toben strassenkaempfe zwischen demonstranten drinnen haben die griechischen abgeordneten das drastische sparpaket am abend endgueltig beschlossen die entscheidung ist eine wichtige voraussetzung fuer die auszahlung von weiteren acht milliarden euro hilfsgeldern athen das griechische parlament hat einem umfassenden sparpaket endgueltig zugestimmt'
-  F11: Vec<Text>
-  F11: Vec<Key<U4, 0-9>>
-    Metadata 'KeyValues': Vec<Text, 10>: Length=10, Count=10
+  F11: Vector<String>
+  F11: Vector<Key<UInt32, 0-9>>
+    Metadata 'KeyValues': Vector<String, 10>: Length=10, Count=10
       [0] 'lediglich', [1] 'air', [2] 'worldwide', [3] 'ein', [4] 'spezialist', [5] 'fuer', [6] 'risikomodelle', [7] 'wagte', [8] 'sich', [9] 'schnell'
-  F11: Vec<R4, 10>
-    Metadata 'SlotNames': Vec<Text, 10>: Length=10, Count=10
+  F11: Vector<Single, 10>
+    Metadata 'SlotNames': Vector<String, 10>: Length=10, Count=10
       [0] 'lediglich', [1] 'air', [2] 'worldwide', [3] 'ein', [4] 'spezialist', [5] 'fuer', [6] 'risikomodelle', [7] 'wagte', [8] 'sich', [9] 'schnell'
-  F12: Vec<Text>
-  F12: Vec<Key<U4, 0-2>>
-    Metadata 'KeyValues': Vec<Text, 3>: Length=3, Count=3
+  F12: Vector<String>
+  F12: Vector<Key<UInt32, 0-2>>
+    Metadata 'KeyValues': Vector<String, 3>: Length=3, Count=3
       [0] 'lediglich', [1] 'air', [2] 'worldwide'
-  F12: Vec<R4, 17>
-    Metadata 'SlotNames': Vec<Text, 17>: Length=17, Count=17
+  F12: Vector<Single, 17>
+    Metadata 'SlotNames': Vector<String, 17>: Length=17, Count=17
       [0] 'lediglich', [1] 'lediglich|air', [2] 'lediglich|air|worldwide', [3] 'lediglich|air|worldwide|*', [4] 'air', [5] 'air|worldwide', [6] 'air|worldwide|*', [7] 'air|worldwide|*|*', [8] 'worldwide', [9] 'worldwide|*'
       [10] 'worldwide|*|*', [11] 'worldwide|*|*|*', [12] '*|*', [13] '*|*|*', [14] '*|*|*|*', [15] '*|*|*|air', [16] '*|*|air'
-  F13: Vec<Text>
-  F13: Vec<Key<U4, 0-9>>
-    Metadata 'KeyValues': Vec<Text, 10>: Length=10, Count=10
+  F13: Vector<String>
+  F13: Vector<Key<UInt32, 0-9>>
+    Metadata 'KeyValues': Vector<String, 10>: Length=10, Count=10
       [0] 'lediglich', [1] 'air', [2] 'worldwide', [3] 'ein', [4] 'spezialist', [5] 'fuer', [6] 'risikomodelle', [7] 'wagte', [8] 'sich', [9] 'schnell'
-  F13: Vec<R4, 143>
-    Metadata 'SlotNames': Vec<Text, 143>: Length=143, Count=143
+  F13: Vector<Single, 143>
+    Metadata 'SlotNames': Vector<String, 143>: Length=143, Count=143
       [0] 'lediglich', [1] 'lediglich|air', [2] 'lediglich|air|worldwide', [3] 'lediglich|air|ein', [4] 'lediglich|air|spezialist', [5] 'lediglich|worldwide', [6] 'lediglich|worldwide|ein', [7] 'lediglich|worldwide|spezialist', [8] 'lediglich|ein', [9] 'lediglich|ein|spezialist'
       [10] 'air', [11] 'air|worldwide', [12] 'air|worldwide|ein', [13] 'air|worldwide|spezialist', [14] 'air|worldwide|fuer', [15] 'air|ein', [16] 'air|ein|spezialist', [17] 'air|ein|fuer', [18] 'air|spezialist', [19] 'air|spezialist|fuer'
       [20] 'worldwide', [21] 'worldwide|ein', [22] 'worldwide|ein|spezialist', [23] 'worldwide|ein|fuer', [24] 'worldwide|ein|risikomodelle', [25] 'worldwide|spezialist', [26] 'worldwide|spezialist|fuer', [27] 'worldwide|spezialist|risikomodelle', [28] 'worldwide|fuer', [29] 'worldwide|fuer|risikomodelle'
@@ -107,20 +107,20 @@
       [120] '*|wagte|*', [121] '*|sich|ein', [122] 'sich|ein', [123] 'sich|ein|*', [124] '*|ein|ein', [125] 'ein|*|ein', [126] 'ein|ein', [127] 'ein|ein|*', [128] '*|*|schnell', [129] '*|schnell'
       [130] '*|schnell|*', [131] 'sich|*|ein', [132] '*|*|lediglich', [133] '*|lediglich', [134] '*|lediglich|*', [135] 'lediglich|*', [136] 'lediglich|*|*', [137] 'sich|*|fuer', [138] '*|sich|schnell', [139] 'sich|*|schnell'
       [140] '*|sich|fuer', [141] 'sich|fuer', [142] 'sich|fuer|*'
-  F21: Vec<Text>
-  F21: Vec<Key<U4, 0-9>>
-    Metadata 'KeyValues': Vec<Text, 10>: Length=10, Count=10
+  F21: Vector<String>
+  F21: Vector<Key<UInt32, 0-9>>
+    Metadata 'KeyValues': Vector<String, 10>: Length=10, Count=10
       [0] 'versicherer', [1] 'lediglich', [2] 'air', [3] 'worldwide', [4] 'ein', [5] 'spezialist', [6] 'fuer', [7] 'risikomodelle', [8] 'wagte', [9] 'sich'
-  F21: Vec<R4, 10>
-    Metadata 'SlotNames': Vec<Text, 10>: Length=10, Count=10
+  F21: Vector<Single, 10>
+    Metadata 'SlotNames': Vector<String, 10>: Length=10, Count=10
       [0] 'versicherer', [1] 'lediglich', [2] 'air', [3] 'worldwide', [4] 'ein', [5] 'spezialist', [6] 'fuer', [7] 'risikomodelle', [8] 'wagte', [9] 'sich'
-  F22: Vec<Text>
-  F22: Vec<Key<U4, 0-19>>
-    Metadata 'KeyValues': Vec<Text, 20>: Length=20, Count=20
+  F22: Vector<String>
+  F22: Vector<Key<UInt32, 0-19>>
+    Metadata 'KeyValues': Vector<String, 20>: Length=20, Count=20
       [0] 'versicherer', [1] 'lediglich', [2] 'air', [3] 'worldwide', [4] 'ein', [5] 'spezialist', [6] 'fuer', [7] 'risikomodelle', [8] 'wagte', [9] 'sich'
       [10] 'schnell', [11] 'mit', [12] 'einer', [13] 'ersten', [14] 'schaetzung', [15] 'vor', [16] 'neue', [17] 'todesfaelle', [18] 'durch', [19] 'ehec'
-  F22: Vec<R4, 80>
-    Metadata 'SlotNames': Vec<Text, 80>: Length=80, Count=80
+  F22: Vector<Single, 80>
+    Metadata 'SlotNames': Vector<String, 80>: Length=80, Count=80
       [0] 'versicherer', [1] 'versicherer|lediglich', [2] 'versicherer|lediglich|air', [3] 'versicherer|lediglich|air|worldwide', [4] 'lediglich', [5] 'lediglich|air', [6] 'lediglich|air|worldwide', [7] 'lediglich|air|worldwide|ein', [8] 'air', [9] 'air|worldwide'
       [10] 'air|worldwide|ein', [11] 'air|worldwide|ein|spezialist', [12] 'worldwide', [13] 'worldwide|ein', [14] 'worldwide|ein|spezialist', [15] 'worldwide|ein|spezialist|fuer', [16] 'ein', [17] 'ein|spezialist', [18] 'ein|spezialist|fuer', [19] 'ein|spezialist|fuer|risikomodelle'
       [20] 'spezialist', [21] 'spezialist|fuer', [22] 'spezialist|fuer|risikomodelle', [23] 'spezialist|fuer|risikomodelle|wagte', [24] 'fuer', [25] 'fuer|risikomodelle', [26] 'fuer|risikomodelle|wagte', [27] 'fuer|risikomodelle|wagte|sich', [28] 'risikomodelle', [29] 'risikomodelle|wagte'
@@ -131,35 +131,35 @@
       [70] 'ehec', [71] 'ehec|*', [72] 'ehec|*|*', [73] 'ehec|*|*|*', [74] '*|*', [75] '*|*|*', [76] '*|*|*|*', [77] '*|*|*|ehec', [78] '*|*|ehec', [79] '*|*|ehec|*'
 ---- RowToRowMapperTransform ----
 20 columns:
-  Label: Text
-  Label: Key<U4, 0-6>
-    Metadata 'KeyValues': Vec<Text, 7>: Length=7, Count=7
+  Label: String
+  Label: Key<UInt32, 0-6>
+    Metadata 'KeyValues': Vector<String, 7>: Length=7, Count=7
       [0] 'Wirtschaft', [1] 'Gesundheit', [2] 'Deutschland', [3] 'Ausland', [4] 'Unterhaltung', [5] 'Sport', [6] 'Technik & Wissen'
-  One: Text
-  Vec: Vec<Text, 2>
-    Metadata 'SlotNames': Vec<Text, 2>: Length=2, Count=2
+  One: String
+  Vec: Vector<String, 2>
+    Metadata 'SlotNames': Vector<String, 2>: Length=2, Count=2
       [0] 'weg fuer milliardenhilfe frei', [1] 'vor dem parlamentsgebaeude toben strassenkaempfe zwischen demonstranten drinnen haben die griechischen abgeordneten das drastische sparpaket am abend endgueltig beschlossen die entscheidung ist eine wichtige voraussetzung fuer die auszahlung von weiteren acht milliarden euro hilfsgeldern athen das griechische parlament hat einem umfassenden sparpaket endgueltig zugestimmt'
-  F11: Vec<Text>
-  F11: Vec<Key<U4, 0-9>>
-    Metadata 'KeyValues': Vec<Text, 10>: Length=10, Count=10
+  F11: Vector<String>
+  F11: Vector<Key<UInt32, 0-9>>
+    Metadata 'KeyValues': Vector<String, 10>: Length=10, Count=10
       [0] 'lediglich', [1] 'air', [2] 'worldwide', [3] 'ein', [4] 'spezialist', [5] 'fuer', [6] 'risikomodelle', [7] 'wagte', [8] 'sich', [9] 'schnell'
-  F11: Vec<R4, 10>
-    Metadata 'SlotNames': Vec<Text, 10>: Length=10, Count=10
+  F11: Vector<Single, 10>
+    Metadata 'SlotNames': Vector<String, 10>: Length=10, Count=10
       [0] 'lediglich', [1] 'air', [2] 'worldwide', [3] 'ein', [4] 'spezialist', [5] 'fuer', [6] 'risikomodelle', [7] 'wagte', [8] 'sich', [9] 'schnell'
-  F12: Vec<Text>
-  F12: Vec<Key<U4, 0-2>>
-    Metadata 'KeyValues': Vec<Text, 3>: Length=3, Count=3
+  F12: Vector<String>
+  F12: Vector<Key<UInt32, 0-2>>
+    Metadata 'KeyValues': Vector<String, 3>: Length=3, Count=3
       [0] 'lediglich', [1] 'air', [2] 'worldwide'
-  F12: Vec<R4, 17>
-    Metadata 'SlotNames': Vec<Text, 17>: Length=17, Count=17
+  F12: Vector<Single, 17>
+    Metadata 'SlotNames': Vector<String, 17>: Length=17, Count=17
       [0] 'lediglich', [1] 'lediglich|air', [2] 'lediglich|air|worldwide', [3] 'lediglich|air|worldwide|*', [4] 'air', [5] 'air|worldwide', [6] 'air|worldwide|*', [7] 'air|worldwide|*|*', [8] 'worldwide', [9] 'worldwide|*'
       [10] 'worldwide|*|*', [11] 'worldwide|*|*|*', [12] '*|*', [13] '*|*|*', [14] '*|*|*|*', [15] '*|*|*|air', [16] '*|*|air'
-  F13: Vec<Text>
-  F13: Vec<Key<U4, 0-9>>
-    Metadata 'KeyValues': Vec<Text, 10>: Length=10, Count=10
+  F13: Vector<String>
+  F13: Vector<Key<UInt32, 0-9>>
+    Metadata 'KeyValues': Vector<String, 10>: Length=10, Count=10
       [0] 'lediglich', [1] 'air', [2] 'worldwide', [3] 'ein', [4] 'spezialist', [5] 'fuer', [6] 'risikomodelle', [7] 'wagte', [8] 'sich', [9] 'schnell'
-  F13: Vec<R4, 143>
-    Metadata 'SlotNames': Vec<Text, 143>: Length=143, Count=143
+  F13: Vector<Single, 143>
+    Metadata 'SlotNames': Vector<String, 143>: Length=143, Count=143
       [0] 'lediglich', [1] 'lediglich|air', [2] 'lediglich|air|worldwide', [3] 'lediglich|air|ein', [4] 'lediglich|air|spezialist', [5] 'lediglich|worldwide', [6] 'lediglich|worldwide|ein', [7] 'lediglich|worldwide|spezialist', [8] 'lediglich|ein', [9] 'lediglich|ein|spezialist'
       [10] 'air', [11] 'air|worldwide', [12] 'air|worldwide|ein', [13] 'air|worldwide|spezialist', [14] 'air|worldwide|fuer', [15] 'air|ein', [16] 'air|ein|spezialist', [17] 'air|ein|fuer', [18] 'air|spezialist', [19] 'air|spezialist|fuer'
       [20] 'worldwide', [21] 'worldwide|ein', [22] 'worldwide|ein|spezialist', [23] 'worldwide|ein|fuer', [24] 'worldwide|ein|risikomodelle', [25] 'worldwide|spezialist', [26] 'worldwide|spezialist|fuer', [27] 'worldwide|spezialist|risikomodelle', [28] 'worldwide|fuer', [29] 'worldwide|fuer|risikomodelle'
@@ -175,20 +175,20 @@
       [120] '*|wagte|*', [121] '*|sich|ein', [122] 'sich|ein', [123] 'sich|ein|*', [124] '*|ein|ein', [125] 'ein|*|ein', [126] 'ein|ein', [127] 'ein|ein|*', [128] '*|*|schnell', [129] '*|schnell'
       [130] '*|schnell|*', [131] 'sich|*|ein', [132] '*|*|lediglich', [133] '*|lediglich', [134] '*|lediglich|*', [135] 'lediglich|*', [136] 'lediglich|*|*', [137] 'sich|*|fuer', [138] '*|sich|schnell', [139] 'sich|*|schnell'
       [140] '*|sich|fuer', [141] 'sich|fuer', [142] 'sich|fuer|*'
-  F21: Vec<Text>
-  F21: Vec<Key<U4, 0-9>>
-    Metadata 'KeyValues': Vec<Text, 10>: Length=10, Count=10
+  F21: Vector<String>
+  F21: Vector<Key<UInt32, 0-9>>
+    Metadata 'KeyValues': Vector<String, 10>: Length=10, Count=10
       [0] 'versicherer', [1] 'lediglich', [2] 'air', [3] 'worldwide', [4] 'ein', [5] 'spezialist', [6] 'fuer', [7] 'risikomodelle', [8] 'wagte', [9] 'sich'
-  F21: Vec<R4, 10>
-    Metadata 'SlotNames': Vec<Text, 10>: Length=10, Count=10
+  F21: Vector<Single, 10>
+    Metadata 'SlotNames': Vector<String, 10>: Length=10, Count=10
       [0] 'versicherer', [1] 'lediglich', [2] 'air', [3] 'worldwide', [4] 'ein', [5] 'spezialist', [6] 'fuer', [7] 'risikomodelle', [8] 'wagte', [9] 'sich'
-  F22: Vec<Text>
-  F22: Vec<Key<U4, 0-19>>
-    Metadata 'KeyValues': Vec<Text, 20>: Length=20, Count=20
+  F22: Vector<String>
+  F22: Vector<Key<UInt32, 0-19>>
+    Metadata 'KeyValues': Vector<String, 20>: Length=20, Count=20
       [0] 'versicherer', [1] 'lediglich', [2] 'air', [3] 'worldwide', [4] 'ein', [5] 'spezialist', [6] 'fuer', [7] 'risikomodelle', [8] 'wagte', [9] 'sich'
       [10] 'schnell', [11] 'mit', [12] 'einer', [13] 'ersten', [14] 'schaetzung', [15] 'vor', [16] 'neue', [17] 'todesfaelle', [18] 'durch', [19] 'ehec'
-  F22: Vec<R4, 80>
-    Metadata 'SlotNames': Vec<Text, 80>: Length=80, Count=80
+  F22: Vector<Single, 80>
+    Metadata 'SlotNames': Vector<String, 80>: Length=80, Count=80
       [0] 'versicherer', [1] 'versicherer|lediglich', [2] 'versicherer|lediglich|air', [3] 'versicherer|lediglich|air|worldwide', [4] 'lediglich', [5] 'lediglich|air', [6] 'lediglich|air|worldwide', [7] 'lediglich|air|worldwide|ein', [8] 'air', [9] 'air|worldwide'
       [10] 'air|worldwide|ein', [11] 'air|worldwide|ein|spezialist', [12] 'worldwide', [13] 'worldwide|ein', [14] 'worldwide|ein|spezialist', [15] 'worldwide|ein|spezialist|fuer', [16] 'ein', [17] 'ein|spezialist', [18] 'ein|spezialist|fuer', [19] 'ein|spezialist|fuer|risikomodelle'
       [20] 'spezialist', [21] 'spezialist|fuer', [22] 'spezialist|fuer|risikomodelle', [23] 'spezialist|fuer|risikomodelle|wagte', [24] 'fuer', [25] 'fuer|risikomodelle', [26] 'fuer|risikomodelle|wagte', [27] 'fuer|risikomodelle|wagte|sich', [28] 'risikomodelle', [29] 'risikomodelle|wagte'
@@ -197,38 +197,38 @@
       [50] 'einer|ersten|schaetzung', [51] 'einer|ersten|schaetzung|vor', [52] 'ersten', [53] 'ersten|schaetzung', [54] 'ersten|schaetzung|vor', [55] 'schaetzung', [56] 'schaetzung|vor', [57] 'vor', [58] 'neue', [59] 'neue|todesfaelle'
       [60] 'neue|todesfaelle|durch', [61] 'neue|todesfaelle|durch|ehec', [62] 'todesfaelle', [63] 'todesfaelle|durch', [64] 'todesfaelle|durch|ehec', [65] 'todesfaelle|durch|ehec|*', [66] 'durch', [67] 'durch|ehec', [68] 'durch|ehec|*', [69] 'durch|ehec|*|*'
       [70] 'ehec', [71] 'ehec|*', [72] 'ehec|*|*', [73] 'ehec|*|*|*', [74] '*|*', [75] '*|*|*', [76] '*|*|*|*', [77] '*|*|*|ehec', [78] '*|*|ehec', [79] '*|*|ehec|*'
-  F23: Vec<Text>
+  F23: Vector<String>
 ---- RowToRowMapperTransform ----
 21 columns:
-  Label: Text
-  Label: Key<U4, 0-6>
-    Metadata 'KeyValues': Vec<Text, 7>: Length=7, Count=7
+  Label: String
+  Label: Key<UInt32, 0-6>
+    Metadata 'KeyValues': Vector<String, 7>: Length=7, Count=7
       [0] 'Wirtschaft', [1] 'Gesundheit', [2] 'Deutschland', [3] 'Ausland', [4] 'Unterhaltung', [5] 'Sport', [6] 'Technik & Wissen'
-  One: Text
-  Vec: Vec<Text, 2>
-    Metadata 'SlotNames': Vec<Text, 2>: Length=2, Count=2
+  One: String
+  Vec: Vector<String, 2>
+    Metadata 'SlotNames': Vector<String, 2>: Length=2, Count=2
       [0] 'weg fuer milliardenhilfe frei', [1] 'vor dem parlamentsgebaeude toben strassenkaempfe zwischen demonstranten drinnen haben die griechischen abgeordneten das drastische sparpaket am abend endgueltig beschlossen die entscheidung ist eine wichtige voraussetzung fuer die auszahlung von weiteren acht milliarden euro hilfsgeldern athen das griechische parlament hat einem umfassenden sparpaket endgueltig zugestimmt'
-  F11: Vec<Text>
-  F11: Vec<Key<U4, 0-9>>
-    Metadata 'KeyValues': Vec<Text, 10>: Length=10, Count=10
+  F11: Vector<String>
+  F11: Vector<Key<UInt32, 0-9>>
+    Metadata 'KeyValues': Vector<String, 10>: Length=10, Count=10
       [0] 'lediglich', [1] 'air', [2] 'worldwide', [3] 'ein', [4] 'spezialist', [5] 'fuer', [6] 'risikomodelle', [7] 'wagte', [8] 'sich', [9] 'schnell'
-  F11: Vec<R4, 10>
-    Metadata 'SlotNames': Vec<Text, 10>: Length=10, Count=10
+  F11: Vector<Single, 10>
+    Metadata 'SlotNames': Vector<String, 10>: Length=10, Count=10
       [0] 'lediglich', [1] 'air', [2] 'worldwide', [3] 'ein', [4] 'spezialist', [5] 'fuer', [6] 'risikomodelle', [7] 'wagte', [8] 'sich', [9] 'schnell'
-  F12: Vec<Text>
-  F12: Vec<Key<U4, 0-2>>
-    Metadata 'KeyValues': Vec<Text, 3>: Length=3, Count=3
+  F12: Vector<String>
+  F12: Vector<Key<UInt32, 0-2>>
+    Metadata 'KeyValues': Vector<String, 3>: Length=3, Count=3
       [0] 'lediglich', [1] 'air', [2] 'worldwide'
-  F12: Vec<R4, 17>
-    Metadata 'SlotNames': Vec<Text, 17>: Length=17, Count=17
+  F12: Vector<Single, 17>
+    Metadata 'SlotNames': Vector<String, 17>: Length=17, Count=17
       [0] 'lediglich', [1] 'lediglich|air', [2] 'lediglich|air|worldwide', [3] 'lediglich|air|worldwide|*', [4] 'air', [5] 'air|worldwide', [6] 'air|worldwide|*', [7] 'air|worldwide|*|*', [8] 'worldwide', [9] 'worldwide|*'
       [10] 'worldwide|*|*', [11] 'worldwide|*|*|*', [12] '*|*', [13] '*|*|*', [14] '*|*|*|*', [15] '*|*|*|air', [16] '*|*|air'
-  F13: Vec<Text>
-  F13: Vec<Key<U4, 0-9>>
-    Metadata 'KeyValues': Vec<Text, 10>: Length=10, Count=10
+  F13: Vector<String>
+  F13: Vector<Key<UInt32, 0-9>>
+    Metadata 'KeyValues': Vector<String, 10>: Length=10, Count=10
       [0] 'lediglich', [1] 'air', [2] 'worldwide', [3] 'ein', [4] 'spezialist', [5] 'fuer', [6] 'risikomodelle', [7] 'wagte', [8] 'sich', [9] 'schnell'
-  F13: Vec<R4, 143>
-    Metadata 'SlotNames': Vec<Text, 143>: Length=143, Count=143
+  F13: Vector<Single, 143>
+    Metadata 'SlotNames': Vector<String, 143>: Length=143, Count=143
       [0] 'lediglich', [1] 'lediglich|air', [2] 'lediglich|air|worldwide', [3] 'lediglich|air|ein', [4] 'lediglich|air|spezialist', [5] 'lediglich|worldwide', [6] 'lediglich|worldwide|ein', [7] 'lediglich|worldwide|spezialist', [8] 'lediglich|ein', [9] 'lediglich|ein|spezialist'
       [10] 'air', [11] 'air|worldwide', [12] 'air|worldwide|ein', [13] 'air|worldwide|spezialist', [14] 'air|worldwide|fuer', [15] 'air|ein', [16] 'air|ein|spezialist', [17] 'air|ein|fuer', [18] 'air|spezialist', [19] 'air|spezialist|fuer'
       [20] 'worldwide', [21] 'worldwide|ein', [22] 'worldwide|ein|spezialist', [23] 'worldwide|ein|fuer', [24] 'worldwide|ein|risikomodelle', [25] 'worldwide|spezialist', [26] 'worldwide|spezialist|fuer', [27] 'worldwide|spezialist|risikomodelle', [28] 'worldwide|fuer', [29] 'worldwide|fuer|risikomodelle'
@@ -244,20 +244,20 @@
       [120] '*|wagte|*', [121] '*|sich|ein', [122] 'sich|ein', [123] 'sich|ein|*', [124] '*|ein|ein', [125] 'ein|*|ein', [126] 'ein|ein', [127] 'ein|ein|*', [128] '*|*|schnell', [129] '*|schnell'
       [130] '*|schnell|*', [131] 'sich|*|ein', [132] '*|*|lediglich', [133] '*|lediglich', [134] '*|lediglich|*', [135] 'lediglich|*', [136] 'lediglich|*|*', [137] 'sich|*|fuer', [138] '*|sich|schnell', [139] 'sich|*|schnell'
       [140] '*|sich|fuer', [141] 'sich|fuer', [142] 'sich|fuer|*'
-  F21: Vec<Text>
-  F21: Vec<Key<U4, 0-9>>
-    Metadata 'KeyValues': Vec<Text, 10>: Length=10, Count=10
+  F21: Vector<String>
+  F21: Vector<Key<UInt32, 0-9>>
+    Metadata 'KeyValues': Vector<String, 10>: Length=10, Count=10
       [0] 'versicherer', [1] 'lediglich', [2] 'air', [3] 'worldwide', [4] 'ein', [5] 'spezialist', [6] 'fuer', [7] 'risikomodelle', [8] 'wagte', [9] 'sich'
-  F21: Vec<R4, 10>
-    Metadata 'SlotNames': Vec<Text, 10>: Length=10, Count=10
+  F21: Vector<Single, 10>
+    Metadata 'SlotNames': Vector<String, 10>: Length=10, Count=10
       [0] 'versicherer', [1] 'lediglich', [2] 'air', [3] 'worldwide', [4] 'ein', [5] 'spezialist', [6] 'fuer', [7] 'risikomodelle', [8] 'wagte', [9] 'sich'
-  F22: Vec<Text>
-  F22: Vec<Key<U4, 0-19>>
-    Metadata 'KeyValues': Vec<Text, 20>: Length=20, Count=20
+  F22: Vector<String>
+  F22: Vector<Key<UInt32, 0-19>>
+    Metadata 'KeyValues': Vector<String, 20>: Length=20, Count=20
       [0] 'versicherer', [1] 'lediglich', [2] 'air', [3] 'worldwide', [4] 'ein', [5] 'spezialist', [6] 'fuer', [7] 'risikomodelle', [8] 'wagte', [9] 'sich'
       [10] 'schnell', [11] 'mit', [12] 'einer', [13] 'ersten', [14] 'schaetzung', [15] 'vor', [16] 'neue', [17] 'todesfaelle', [18] 'durch', [19] 'ehec'
-  F22: Vec<R4, 80>
-    Metadata 'SlotNames': Vec<Text, 80>: Length=80, Count=80
+  F22: Vector<Single, 80>
+    Metadata 'SlotNames': Vector<String, 80>: Length=80, Count=80
       [0] 'versicherer', [1] 'versicherer|lediglich', [2] 'versicherer|lediglich|air', [3] 'versicherer|lediglich|air|worldwide', [4] 'lediglich', [5] 'lediglich|air', [6] 'lediglich|air|worldwide', [7] 'lediglich|air|worldwide|ein', [8] 'air', [9] 'air|worldwide'
       [10] 'air|worldwide|ein', [11] 'air|worldwide|ein|spezialist', [12] 'worldwide', [13] 'worldwide|ein', [14] 'worldwide|ein|spezialist', [15] 'worldwide|ein|spezialist|fuer', [16] 'ein', [17] 'ein|spezialist', [18] 'ein|spezialist|fuer', [19] 'ein|spezialist|fuer|risikomodelle'
       [20] 'spezialist', [21] 'spezialist|fuer', [22] 'spezialist|fuer|risikomodelle', [23] 'spezialist|fuer|risikomodelle|wagte', [24] 'fuer', [25] 'fuer|risikomodelle', [26] 'fuer|risikomodelle|wagte', [27] 'fuer|risikomodelle|wagte|sich', [28] 'risikomodelle', [29] 'risikomodelle|wagte'
@@ -266,41 +266,41 @@
       [50] 'einer|ersten|schaetzung', [51] 'einer|ersten|schaetzung|vor', [52] 'ersten', [53] 'ersten|schaetzung', [54] 'ersten|schaetzung|vor', [55] 'schaetzung', [56] 'schaetzung|vor', [57] 'vor', [58] 'neue', [59] 'neue|todesfaelle'
       [60] 'neue|todesfaelle|durch', [61] 'neue|todesfaelle|durch|ehec', [62] 'todesfaelle', [63] 'todesfaelle|durch', [64] 'todesfaelle|durch|ehec', [65] 'todesfaelle|durch|ehec|*', [66] 'durch', [67] 'durch|ehec', [68] 'durch|ehec|*', [69] 'durch|ehec|*|*'
       [70] 'ehec', [71] 'ehec|*', [72] 'ehec|*|*', [73] 'ehec|*|*|*', [74] '*|*', [75] '*|*|*', [76] '*|*|*|*', [77] '*|*|*|ehec', [78] '*|*|ehec', [79] '*|*|ehec|*'
-  F23: Vec<Text>
-  F23: Vec<Key<U4, 0-9>>
-    Metadata 'KeyValues': Vec<Text, 10>: Length=10, Count=10
+  F23: Vector<String>
+  F23: Vector<Key<UInt32, 0-9>>
+    Metadata 'KeyValues': Vector<String, 10>: Length=10, Count=10
       [0] 'versicherer', [1] 'lediglich', [2] 'air', [3] 'worldwide', [4] 'ein', [5] 'spezialist', [6] 'fuer', [7] 'risikomodelle', [8] 'wagte', [9] 'sich'
 ---- RowToRowMapperTransform ----
 22 columns:
-  Label: Text
-  Label: Key<U4, 0-6>
-    Metadata 'KeyValues': Vec<Text, 7>: Length=7, Count=7
+  Label: String
+  Label: Key<UInt32, 0-6>
+    Metadata 'KeyValues': Vector<String, 7>: Length=7, Count=7
       [0] 'Wirtschaft', [1] 'Gesundheit', [2] 'Deutschland', [3] 'Ausland', [4] 'Unterhaltung', [5] 'Sport', [6] 'Technik & Wissen'
-  One: Text
-  Vec: Vec<Text, 2>
-    Metadata 'SlotNames': Vec<Text, 2>: Length=2, Count=2
+  One: String
+  Vec: Vector<String, 2>
+    Metadata 'SlotNames': Vector<String, 2>: Length=2, Count=2
       [0] 'weg fuer milliardenhilfe frei', [1] 'vor dem parlamentsgebaeude toben strassenkaempfe zwischen demonstranten drinnen haben die griechischen abgeordneten das drastische sparpaket am abend endgueltig beschlossen die entscheidung ist eine wichtige voraussetzung fuer die auszahlung von weiteren acht milliarden euro hilfsgeldern athen das griechische parlament hat einem umfassenden sparpaket endgueltig zugestimmt'
-  F11: Vec<Text>
-  F11: Vec<Key<U4, 0-9>>
-    Metadata 'KeyValues': Vec<Text, 10>: Length=10, Count=10
+  F11: Vector<String>
+  F11: Vector<Key<UInt32, 0-9>>
+    Metadata 'KeyValues': Vector<String, 10>: Length=10, Count=10
       [0] 'lediglich', [1] 'air', [2] 'worldwide', [3] 'ein', [4] 'spezialist', [5] 'fuer', [6] 'risikomodelle', [7] 'wagte', [8] 'sich', [9] 'schnell'
-  F11: Vec<R4, 10>
-    Metadata 'SlotNames': Vec<Text, 10>: Length=10, Count=10
+  F11: Vector<Single, 10>
+    Metadata 'SlotNames': Vector<String, 10>: Length=10, Count=10
       [0] 'lediglich', [1] 'air', [2] 'worldwide', [3] 'ein', [4] 'spezialist', [5] 'fuer', [6] 'risikomodelle', [7] 'wagte', [8] 'sich', [9] 'schnell'
-  F12: Vec<Text>
-  F12: Vec<Key<U4, 0-2>>
-    Metadata 'KeyValues': Vec<Text, 3>: Length=3, Count=3
+  F12: Vector<String>
+  F12: Vector<Key<UInt32, 0-2>>
+    Metadata 'KeyValues': Vector<String, 3>: Length=3, Count=3
       [0] 'lediglich', [1] 'air', [2] 'worldwide'
-  F12: Vec<R4, 17>
-    Metadata 'SlotNames': Vec<Text, 17>: Length=17, Count=17
+  F12: Vector<Single, 17>
+    Metadata 'SlotNames': Vector<String, 17>: Length=17, Count=17
       [0] 'lediglich', [1] 'lediglich|air', [2] 'lediglich|air|worldwide', [3] 'lediglich|air|worldwide|*', [4] 'air', [5] 'air|worldwide', [6] 'air|worldwide|*', [7] 'air|worldwide|*|*', [8] 'worldwide', [9] 'worldwide|*'
       [10] 'worldwide|*|*', [11] 'worldwide|*|*|*', [12] '*|*', [13] '*|*|*', [14] '*|*|*|*', [15] '*|*|*|air', [16] '*|*|air'
-  F13: Vec<Text>
-  F13: Vec<Key<U4, 0-9>>
-    Metadata 'KeyValues': Vec<Text, 10>: Length=10, Count=10
+  F13: Vector<String>
+  F13: Vector<Key<UInt32, 0-9>>
+    Metadata 'KeyValues': Vector<String, 10>: Length=10, Count=10
       [0] 'lediglich', [1] 'air', [2] 'worldwide', [3] 'ein', [4] 'spezialist', [5] 'fuer', [6] 'risikomodelle', [7] 'wagte', [8] 'sich', [9] 'schnell'
-  F13: Vec<R4, 143>
-    Metadata 'SlotNames': Vec<Text, 143>: Length=143, Count=143
+  F13: Vector<Single, 143>
+    Metadata 'SlotNames': Vector<String, 143>: Length=143, Count=143
       [0] 'lediglich', [1] 'lediglich|air', [2] 'lediglich|air|worldwide', [3] 'lediglich|air|ein', [4] 'lediglich|air|spezialist', [5] 'lediglich|worldwide', [6] 'lediglich|worldwide|ein', [7] 'lediglich|worldwide|spezialist', [8] 'lediglich|ein', [9] 'lediglich|ein|spezialist'
       [10] 'air', [11] 'air|worldwide', [12] 'air|worldwide|ein', [13] 'air|worldwide|spezialist', [14] 'air|worldwide|fuer', [15] 'air|ein', [16] 'air|ein|spezialist', [17] 'air|ein|fuer', [18] 'air|spezialist', [19] 'air|spezialist|fuer'
       [20] 'worldwide', [21] 'worldwide|ein', [22] 'worldwide|ein|spezialist', [23] 'worldwide|ein|fuer', [24] 'worldwide|ein|risikomodelle', [25] 'worldwide|spezialist', [26] 'worldwide|spezialist|fuer', [27] 'worldwide|spezialist|risikomodelle', [28] 'worldwide|fuer', [29] 'worldwide|fuer|risikomodelle'
@@ -316,20 +316,20 @@
       [120] '*|wagte|*', [121] '*|sich|ein', [122] 'sich|ein', [123] 'sich|ein|*', [124] '*|ein|ein', [125] 'ein|*|ein', [126] 'ein|ein', [127] 'ein|ein|*', [128] '*|*|schnell', [129] '*|schnell'
       [130] '*|schnell|*', [131] 'sich|*|ein', [132] '*|*|lediglich', [133] '*|lediglich', [134] '*|lediglich|*', [135] 'lediglich|*', [136] 'lediglich|*|*', [137] 'sich|*|fuer', [138] '*|sich|schnell', [139] 'sich|*|schnell'
       [140] '*|sich|fuer', [141] 'sich|fuer', [142] 'sich|fuer|*'
-  F21: Vec<Text>
-  F21: Vec<Key<U4, 0-9>>
-    Metadata 'KeyValues': Vec<Text, 10>: Length=10, Count=10
+  F21: Vector<String>
+  F21: Vector<Key<UInt32, 0-9>>
+    Metadata 'KeyValues': Vector<String, 10>: Length=10, Count=10
       [0] 'versicherer', [1] 'lediglich', [2] 'air', [3] 'worldwide', [4] 'ein', [5] 'spezialist', [6] 'fuer', [7] 'risikomodelle', [8] 'wagte', [9] 'sich'
-  F21: Vec<R4, 10>
-    Metadata 'SlotNames': Vec<Text, 10>: Length=10, Count=10
+  F21: Vector<Single, 10>
+    Metadata 'SlotNames': Vector<String, 10>: Length=10, Count=10
       [0] 'versicherer', [1] 'lediglich', [2] 'air', [3] 'worldwide', [4] 'ein', [5] 'spezialist', [6] 'fuer', [7] 'risikomodelle', [8] 'wagte', [9] 'sich'
-  F22: Vec<Text>
-  F22: Vec<Key<U4, 0-19>>
-    Metadata 'KeyValues': Vec<Text, 20>: Length=20, Count=20
+  F22: Vector<String>
+  F22: Vector<Key<UInt32, 0-19>>
+    Metadata 'KeyValues': Vector<String, 20>: Length=20, Count=20
       [0] 'versicherer', [1] 'lediglich', [2] 'air', [3] 'worldwide', [4] 'ein', [5] 'spezialist', [6] 'fuer', [7] 'risikomodelle', [8] 'wagte', [9] 'sich'
       [10] 'schnell', [11] 'mit', [12] 'einer', [13] 'ersten', [14] 'schaetzung', [15] 'vor', [16] 'neue', [17] 'todesfaelle', [18] 'durch', [19] 'ehec'
-  F22: Vec<R4, 80>
-    Metadata 'SlotNames': Vec<Text, 80>: Length=80, Count=80
+  F22: Vector<Single, 80>
+    Metadata 'SlotNames': Vector<String, 80>: Length=80, Count=80
       [0] 'versicherer', [1] 'versicherer|lediglich', [2] 'versicherer|lediglich|air', [3] 'versicherer|lediglich|air|worldwide', [4] 'lediglich', [5] 'lediglich|air', [6] 'lediglich|air|worldwide', [7] 'lediglich|air|worldwide|ein', [8] 'air', [9] 'air|worldwide'
       [10] 'air|worldwide|ein', [11] 'air|worldwide|ein|spezialist', [12] 'worldwide', [13] 'worldwide|ein', [14] 'worldwide|ein|spezialist', [15] 'worldwide|ein|spezialist|fuer', [16] 'ein', [17] 'ein|spezialist', [18] 'ein|spezialist|fuer', [19] 'ein|spezialist|fuer|risikomodelle'
       [20] 'spezialist', [21] 'spezialist|fuer', [22] 'spezialist|fuer|risikomodelle', [23] 'spezialist|fuer|risikomodelle|wagte', [24] 'fuer', [25] 'fuer|risikomodelle', [26] 'fuer|risikomodelle|wagte', [27] 'fuer|risikomodelle|wagte|sich', [28] 'risikomodelle', [29] 'risikomodelle|wagte'
@@ -338,25 +338,25 @@
       [50] 'einer|ersten|schaetzung', [51] 'einer|ersten|schaetzung|vor', [52] 'ersten', [53] 'ersten|schaetzung', [54] 'ersten|schaetzung|vor', [55] 'schaetzung', [56] 'schaetzung|vor', [57] 'vor', [58] 'neue', [59] 'neue|todesfaelle'
       [60] 'neue|todesfaelle|durch', [61] 'neue|todesfaelle|durch|ehec', [62] 'todesfaelle', [63] 'todesfaelle|durch', [64] 'todesfaelle|durch|ehec', [65] 'todesfaelle|durch|ehec|*', [66] 'durch', [67] 'durch|ehec', [68] 'durch|ehec|*', [69] 'durch|ehec|*|*'
       [70] 'ehec', [71] 'ehec|*', [72] 'ehec|*|*', [73] 'ehec|*|*|*', [74] '*|*', [75] '*|*|*', [76] '*|*|*|*', [77] '*|*|*|ehec', [78] '*|*|ehec', [79] '*|*|ehec|*'
-  F23: Vec<Text>
-  F23: Vec<Key<U4, 0-9>>
-    Metadata 'KeyValues': Vec<Text, 10>: Length=10, Count=10
+  F23: Vector<String>
+  F23: Vector<Key<UInt32, 0-9>>
+    Metadata 'KeyValues': Vector<String, 10>: Length=10, Count=10
       [0] 'versicherer', [1] 'lediglich', [2] 'air', [3] 'worldwide', [4] 'ein', [5] 'spezialist', [6] 'fuer', [7] 'risikomodelle', [8] 'wagte', [9] 'sich'
-  F23: Vec<R4, 30>
-    Metadata 'SlotNames': Vec<Text, 30>: Length=30, Count=30
+  F23: Vector<Single, 30>
+    Metadata 'SlotNames': Vector<String, 30>: Length=30, Count=30
       [0] 'versicherer', [1] 'versicherer|lediglich', [2] 'versicherer|lediglich|air', [3] 'versicherer|lediglich|worldwide', [4] 'versicherer|lediglich|ein', [5] 'versicherer|air', [6] 'versicherer|air|worldwide', [7] 'versicherer|air|ein', [8] 'versicherer|worldwide', [9] 'versicherer|worldwide|ein'
       [10] 'lediglich', [11] 'lediglich|air', [12] 'lediglich|air|worldwide', [13] 'lediglich|air|ein', [14] 'lediglich|air|spezialist', [15] 'lediglich|worldwide', [16] 'lediglich|worldwide|ein', [17] 'lediglich|ein', [18] 'air', [19] 'air|worldwide'
       [20] 'air|ein', [21] 'air|spezialist', [22] 'worldwide', [23] 'worldwide|ein', [24] 'ein', [25] 'spezialist', [26] 'fuer', [27] 'risikomodelle', [28] 'wagte', [29] 'sich'
 ---- SelectColumnsDataTransform ----
 7 columns:
-  Label: Key<U4, 0-6>
-    Metadata 'KeyValues': Vec<Text, 7>: Length=7, Count=7
+  Label: Key<UInt32, 0-6>
+    Metadata 'KeyValues': Vector<String, 7>: Length=7, Count=7
       [0] 'Wirtschaft', [1] 'Gesundheit', [2] 'Deutschland', [3] 'Ausland', [4] 'Unterhaltung', [5] 'Sport', [6] 'Technik & Wissen'
-  F21: Vec<R4, 10>
-    Metadata 'SlotNames': Vec<Text, 10>: Length=10, Count=10
+  F21: Vector<Single, 10>
+    Metadata 'SlotNames': Vector<String, 10>: Length=10, Count=10
       [0] 'versicherer', [1] 'lediglich', [2] 'air', [3] 'worldwide', [4] 'ein', [5] 'spezialist', [6] 'fuer', [7] 'risikomodelle', [8] 'wagte', [9] 'sich'
-  F22: Vec<R4, 80>
-    Metadata 'SlotNames': Vec<Text, 80>: Length=80, Count=80
+  F22: Vector<Single, 80>
+    Metadata 'SlotNames': Vector<String, 80>: Length=80, Count=80
       [0] 'versicherer', [1] 'versicherer|lediglich', [2] 'versicherer|lediglich|air', [3] 'versicherer|lediglich|air|worldwide', [4] 'lediglich', [5] 'lediglich|air', [6] 'lediglich|air|worldwide', [7] 'lediglich|air|worldwide|ein', [8] 'air', [9] 'air|worldwide'
       [10] 'air|worldwide|ein', [11] 'air|worldwide|ein|spezialist', [12] 'worldwide', [13] 'worldwide|ein', [14] 'worldwide|ein|spezialist', [15] 'worldwide|ein|spezialist|fuer', [16] 'ein', [17] 'ein|spezialist', [18] 'ein|spezialist|fuer', [19] 'ein|spezialist|fuer|risikomodelle'
       [20] 'spezialist', [21] 'spezialist|fuer', [22] 'spezialist|fuer|risikomodelle', [23] 'spezialist|fuer|risikomodelle|wagte', [24] 'fuer', [25] 'fuer|risikomodelle', [26] 'fuer|risikomodelle|wagte', [27] 'fuer|risikomodelle|wagte|sich', [28] 'risikomodelle', [29] 'risikomodelle|wagte'
@@ -365,20 +365,20 @@
       [50] 'einer|ersten|schaetzung', [51] 'einer|ersten|schaetzung|vor', [52] 'ersten', [53] 'ersten|schaetzung', [54] 'ersten|schaetzung|vor', [55] 'schaetzung', [56] 'schaetzung|vor', [57] 'vor', [58] 'neue', [59] 'neue|todesfaelle'
       [60] 'neue|todesfaelle|durch', [61] 'neue|todesfaelle|durch|ehec', [62] 'todesfaelle', [63] 'todesfaelle|durch', [64] 'todesfaelle|durch|ehec', [65] 'todesfaelle|durch|ehec|*', [66] 'durch', [67] 'durch|ehec', [68] 'durch|ehec|*', [69] 'durch|ehec|*|*'
       [70] 'ehec', [71] 'ehec|*', [72] 'ehec|*|*', [73] 'ehec|*|*|*', [74] '*|*', [75] '*|*|*', [76] '*|*|*|*', [77] '*|*|*|ehec', [78] '*|*|ehec', [79] '*|*|ehec|*'
-  F23: Vec<R4, 30>
-    Metadata 'SlotNames': Vec<Text, 30>: Length=30, Count=30
+  F23: Vector<Single, 30>
+    Metadata 'SlotNames': Vector<String, 30>: Length=30, Count=30
       [0] 'versicherer', [1] 'versicherer|lediglich', [2] 'versicherer|lediglich|air', [3] 'versicherer|lediglich|worldwide', [4] 'versicherer|lediglich|ein', [5] 'versicherer|air', [6] 'versicherer|air|worldwide', [7] 'versicherer|air|ein', [8] 'versicherer|worldwide', [9] 'versicherer|worldwide|ein'
       [10] 'lediglich', [11] 'lediglich|air', [12] 'lediglich|air|worldwide', [13] 'lediglich|air|ein', [14] 'lediglich|air|spezialist', [15] 'lediglich|worldwide', [16] 'lediglich|worldwide|ein', [17] 'lediglich|ein', [18] 'air', [19] 'air|worldwide'
       [20] 'air|ein', [21] 'air|spezialist', [22] 'worldwide', [23] 'worldwide|ein', [24] 'ein', [25] 'spezialist', [26] 'fuer', [27] 'risikomodelle', [28] 'wagte', [29] 'sich'
-  F11: Vec<R4, 10>
-    Metadata 'SlotNames': Vec<Text, 10>: Length=10, Count=10
+  F11: Vector<Single, 10>
+    Metadata 'SlotNames': Vector<String, 10>: Length=10, Count=10
       [0] 'lediglich', [1] 'air', [2] 'worldwide', [3] 'ein', [4] 'spezialist', [5] 'fuer', [6] 'risikomodelle', [7] 'wagte', [8] 'sich', [9] 'schnell'
-  F12: Vec<R4, 17>
-    Metadata 'SlotNames': Vec<Text, 17>: Length=17, Count=17
+  F12: Vector<Single, 17>
+    Metadata 'SlotNames': Vector<String, 17>: Length=17, Count=17
       [0] 'lediglich', [1] 'lediglich|air', [2] 'lediglich|air|worldwide', [3] 'lediglich|air|worldwide|*', [4] 'air', [5] 'air|worldwide', [6] 'air|worldwide|*', [7] 'air|worldwide|*|*', [8] 'worldwide', [9] 'worldwide|*'
       [10] 'worldwide|*|*', [11] 'worldwide|*|*|*', [12] '*|*', [13] '*|*|*', [14] '*|*|*|*', [15] '*|*|*|air', [16] '*|*|air'
-  F13: Vec<R4, 143>
-    Metadata 'SlotNames': Vec<Text, 143>: Length=143, Count=143
+  F13: Vector<Single, 143>
+    Metadata 'SlotNames': Vector<String, 143>: Length=143, Count=143
       [0] 'lediglich', [1] 'lediglich|air', [2] 'lediglich|air|worldwide', [3] 'lediglich|air|ein', [4] 'lediglich|air|spezialist', [5] 'lediglich|worldwide', [6] 'lediglich|worldwide|ein', [7] 'lediglich|worldwide|spezialist', [8] 'lediglich|ein', [9] 'lediglich|ein|spezialist'
       [10] 'air', [11] 'air|worldwide', [12] 'air|worldwide|ein', [13] 'air|worldwide|spezialist', [14] 'air|worldwide|fuer', [15] 'air|ein', [16] 'air|ein|spezialist', [17] 'air|ein|fuer', [18] 'air|spezialist', [19] 'air|spezialist|fuer'
       [20] 'worldwide', [21] 'worldwide|ein', [22] 'worldwide|ein|spezialist', [23] 'worldwide|ein|fuer', [24] 'worldwide|ein|risikomodelle', [25] 'worldwide|spezialist', [26] 'worldwide|spezialist|fuer', [27] 'worldwide|spezialist|risikomodelle', [28] 'worldwide|fuer', [29] 'worldwide|fuer|risikomodelle'

@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-
 namespace Microsoft.ML.TestFramework.Attributes
 {
     /// <summary>
@@ -11,14 +10,14 @@ namespace Microsoft.ML.TestFramework.Attributes
     /// </summary>
     public sealed class MatrixFactorizationFactAttribute : EnvironmentSpecificFactAttribute
     {
-        public MatrixFactorizationFactAttribute() : base("Disabled - this test is being fixed as part of https://github.com/dotnet/machinelearning/issues/1441")
+        public MatrixFactorizationFactAttribute() : base("")
         {
         }
 
         /// <inheritdoc />
         protected override bool IsEnvironmentSupported()
         {
-            return Environment.Is64BitProcess;
+            return true;
         }
     }
 }
