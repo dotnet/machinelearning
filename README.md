@@ -10,7 +10,11 @@ ML.NET was originally developed in Microsoft Research, and evolved into a signif
 
 ML.NET enables machine learning tasks like classification (for example: support text classification, sentiment analysis) and regression (for example, price-prediction).
 
-Along with these ML capabilities, this first release of ML.NET also brings the first draft of .NET APIs for training models, using models for predictions, as well as the core components of this framework such as learning algorithms, transforms, and ML data structures. 
+Along with these ML capabilities, this first release of ML.NET also brings the first draft of .NET APIs for training models, using models for predictions, as well as the core components of this framework such as learning algorithms, transforms, and ML data structures.
+
+## Documentation
+
+Please check our documentation [here](https://docs.microsoft.com/en-us/dotnet/machine-learning/). See the [ML.NET API Reference Documentation](https://docs.microsoft.com/en-us/dotnet/api/?view=ml-dotnet).
 
 ## Installation
 
@@ -96,10 +100,6 @@ var prediction = predictionEngine.Predict(new SentimentData
 Console.WriteLine("prediction: " + prediction.Prediction);
 ```
 A cookbook that shows how to use these APIs for a variety of existing and new scenarios can be found [here](docs/code/MlNetCookBook.md).
-
-## API Documentation
-
-See the [ML.NET API Reference Documentation](https://docs.microsoft.com/en-us/dotnet/api/?view=ml-dotnet).
 
 ## Samples
 
