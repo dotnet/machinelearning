@@ -187,8 +187,7 @@ namespace Microsoft.ML.Trainers.LightGbm
             public int MinimumExampleCountPerGroup = 100;
 
             /// <summary>
-            /// When the number of categories of one feature is smaller than or equal to <see cref="MaximumCategoricalSplitPointCount"/>,
-            /// one-vs-other split algorithm will be used.
+            /// Maximum categorical split points to consider when splitting on a categorical feature.
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Max number of categorical thresholds.", ShortName = "maxcat")]
             [TlcModule.Range(Inf = 0, Max = int.MaxValue)]
