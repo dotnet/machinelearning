@@ -193,7 +193,7 @@ int numberOfFeatures = 4;
 var schemaDef = SchemaDefinition.Create(typeof(IrisVectorData));
 
 // Specify the right vector size.
-schemaDef["Features"].ColumnType = new VectorType(NumberType.R4, numberOfFeatures);
+schemaDef["Features"].ColumnType = new VectorDataViewType(NumberType.R4, numberOfFeatures);
 
 // Create a data view.
 var dataView = env.CreateDataView<IrisVectorData>(arr, schemaDef);
