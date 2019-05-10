@@ -403,6 +403,7 @@ namespace Microsoft.ML.Data
         internal TransformerChain<ITransformer> GetTransformer()
         {
             var result = new TransformerChain<ITransformer>();
+            IDataTransform lastTransformer = null;
             foreach (var transform in _transforms)
             {
                 if (transform.Transform is RowToRowMapperTransform mapper)
@@ -412,9 +413,11 @@ namespace Microsoft.ML.Data
                 }
                 else
                 {
-                    ITransformer transformer = new TransformWrapper(_host, transform.Transform);
+                    ITransformer transformer = new TransformWrapper(_host, transform.Transform, false, lastTransformer is RowToRowMapperTransform);
                     result = result.Append(transformer);
                 }
+
+                lastTransformer = transform.Transform;
             }
             return result;
         }

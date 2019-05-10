@@ -29,8 +29,9 @@ namespace Microsoft.ML.Data
         private readonly IDataView _xf;
         private readonly bool _allowSave;
         private readonly bool _isRowToRowMapper;
+        private readonly bool _useLastTransformOnly;
 
-        public TransformWrapper(IHostEnvironment env, IDataView xf, bool allowSave = false)
+        public TransformWrapper(IHostEnvironment env, IDataView xf, bool allowSave = false, bool useLastTransformOnly = false)
         {
             Contracts.CheckValue(env, nameof(env));
             _host = env.Register(nameof(TransformWrapper));
@@ -38,6 +39,7 @@ namespace Microsoft.ML.Data
             _xf = xf;
             _allowSave = allowSave;
             _isRowToRowMapper = IsChainRowToRowMapper(_xf);
+            _useLastTransformOnly = useLastTransformOnly;
         }
 
         public DataViewSchema GetOutputSchema(DataViewSchema inputSchema)
@@ -45,7 +47,9 @@ namespace Microsoft.ML.Data
             _host.CheckValue(inputSchema, nameof(inputSchema));
 
             var dv = new EmptyDataView(_host, inputSchema);
-            var output = ApplyTransformUtils.ApplyAllTransformsToData(_host, _xf, dv);
+            var output = _useLastTransformOnly ? ApplyTransformUtils.ApplyTransformToData(_host, (IDataTransform)_xf, dv) :
+                ApplyTransformUtils.ApplyAllTransformsToData(_host, _xf, dv);
+
             return output.Schema;
         }
 
@@ -115,7 +119,8 @@ namespace Microsoft.ML.Data
             _isRowToRowMapper = IsChainRowToRowMapper(_xf);
         }
 
-        public IDataView Transform(IDataView input) => ApplyTransformUtils.ApplyAllTransformsToData(_host, _xf, input);
+        public IDataView Transform(IDataView input) => _useLastTransformOnly ? ApplyTransformUtils.ApplyTransformToData(_host, (IDataTransform)_xf, input) :
+            ApplyTransformUtils.ApplyAllTransformsToData(_host, _xf, input);
 
         private static bool IsChainRowToRowMapper(IDataView view)
         {
@@ -133,18 +138,29 @@ namespace Microsoft.ML.Data
         {
             _host.CheckValue(inputSchema, nameof(inputSchema));
             var input = new EmptyDataView(_host, inputSchema);
-            var revMaps = new List<IRowToRowMapper>();
             IDataView chain;
-            for (chain = ApplyTransformUtils.ApplyAllTransformsToData(_host, _xf, input); chain is IDataTransform xf; chain = xf.Source)
+            if (_useLastTransformOnly)
             {
-                // Everything in the chain ought to be a row mapper.
-                _host.Assert(xf is IRowToRowMapper);
-                revMaps.Add((IRowToRowMapper)xf);
+                chain = ApplyTransformUtils.ApplyTransformToData(_host, (IDataTransform)_xf, input);
+                return new CompositeRowToRowMapper(inputSchema, new[] { (IRowToRowMapper)chain });
             }
-            // The walkback should have ended at the input.
-            Contracts.Assert(chain == input);
-            revMaps.Reverse();
-            return new CompositeRowToRowMapper(inputSchema, revMaps.ToArray());
+            else
+            {
+                var revMaps = new List<IRowToRowMapper>();
+                for (chain = ApplyTransformUtils.ApplyAllTransformsToData(_host, _xf, input);
+                    chain is IDataTransform xf;
+                    chain = xf.Source)
+                {
+                    // Everything in the chain ought to be a row mapper.
+                    _host.Assert(xf is IRowToRowMapper);
+                    revMaps.Add((IRowToRowMapper)xf);
+                }
+
+                // The walkback should have ended at the input.
+                Contracts.Assert(chain == input);
+                revMaps.Reverse();
+                return new CompositeRowToRowMapper(inputSchema, revMaps.ToArray());
+            }
         }
     }
 
