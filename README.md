@@ -4,13 +4,13 @@
 
 [ML.NET](https://www.microsoft.com/net/learn/apps/machine-learning-and-ai/ml-dotnet) is a cross-platform open-source machine learning framework which makes machine learning accessible to .NET developers.
 
-ML.NET allows .NET developers to develop their own models and infuse custom machine learning into their applications, using .NET, even without prior expertise in developing or tuning machine learning models.
+ML.NET allows .NET developers to develop their own models and infuse custom machine learning into their applications using .NET, even without prior expertise in developing or tuning machine learning models.
 
 ML.NET was originally developed in Microsoft Research, and evolved into a significant framework over the last decade and is used across many product groups in Microsoft like Windows, Bing, PowerPoint, Excel and more.
 
-ML.NET enables machine learning tasks like classification (for example: support text classification, sentiment analysis) and regression (for example, price-prediction).
+ML.NET enables machine learning tasks like classification (eg. support text classification, sentiment analysis) and regression (eg. price-prediction).
 
-Along with these ML capabilities, this first release of ML.NET also brings the first draft of .NET APIs for training models, using models for predictions, as well as the core components of this framework such as learning algorithms, transforms, and ML data structures.
+Along with these ML capabilities, this first release of ML.NET also brings the first draft of .NET APIs for training models using the most-up-to-date models for predictions. The core components of this framework include learning algorithms, transforms, and ML data structures.
 
 ## Documentation
 
@@ -89,7 +89,7 @@ var learningPipeline = mlContext.Transforms.Text.FeaturizeText("Features", "Sent
 var model = learningPipeline.Fit(data);
 ```
 
-Now from the model we can make inferences (predictions):
+We can now make inferences (ie. predictions) from the model:
 
 ```C#
 var predictionEngine = mlContext.Model.CreatePredictionEngine<SentimentData, SentimentPrediction>(model);
