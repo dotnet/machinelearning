@@ -10,7 +10,7 @@ namespace Microsoft.ML.Samples
 
         internal static void RunAll()
         {
-            /*int samples = 0;
+            int samples = 0;
             foreach (var type in Assembly.GetExecutingAssembly().GetTypes())
             {
                 var sample = type.GetMethod("Example", BindingFlags.Public | BindingFlags.Static | BindingFlags.FlattenHierarchy);
@@ -23,8 +23,7 @@ namespace Microsoft.ML.Samples
                 }
             }
 
-            Console.WriteLine("Number of samples that ran without any exception: " + samples);*/
-            ProduceWordBags.Example();
+            Console.WriteLine("Number of samples that ran without any exception: " + samples);
         }
     }
 }
