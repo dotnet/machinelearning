@@ -184,7 +184,7 @@ namespace Microsoft.ML.Transforms.Text
                 Weighting = _weighting
             };
 
-            return new TransformWrapper(_host, WordBagBuildingTransformer.Create(_host, options, input), true);
+            return WordBagBuildingTransformer.CreateTransfomer(_host, options, input);
         }
 
         /// <summary>
@@ -365,7 +365,7 @@ namespace Microsoft.ML.Transforms.Text
                 MaximumNumberOfInverts = _maximumNumberOfInverts
             };
 
-            return new TransformWrapper(_host, WordHashBagProducingTransformer.Create(_host, options, input), true);
+            return WordHashBagProducingTransformer.CreateTransformer(_host, options, input);
         }
 
         /// <summary>

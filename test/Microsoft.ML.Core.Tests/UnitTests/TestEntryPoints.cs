@@ -981,7 +981,11 @@ namespace Microsoft.ML.RunTests
                         new WordHashBagProducingTransformer.Options()
                         {
                             Columns =
-                                new[] { new WordHashBagProducingTransformer.Column() { Name = "Features", Source = new[] { "Text" } }, }
+                                new[]
+                                {
+                                    new WordHashBagProducingTransformer.Column()
+                                        {Name = "Features", Source = new[] {"Text"}},
+                                }
                         },
                         data);
                 }
