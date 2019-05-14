@@ -50,5 +50,5 @@ On macOS a few components are needed which are not provided by a default develop
 
 One way of obtaining CMake and other required libraries is via [Homebrew](https://brew.sh):
 ```sh
-$ brew install cmake libomp@7 mono-libgdiplus gettext && brew link gettext --force
+$ brew install cmake https://raw.githubusercontent.com/Homebrew/homebrew-core/f5b1ac99a7fba27c19cee0bc4f036775c889b359/Formula/libomp.rb mono-libgdiplus gettext && brew link gettext --force
 ```
