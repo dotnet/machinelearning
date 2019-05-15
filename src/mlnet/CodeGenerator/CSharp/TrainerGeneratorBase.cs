@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 using Microsoft.ML.AutoML;
@@ -12,7 +13,6 @@ namespace Microsoft.ML.CLI.CodeGenerator.CSharp
 {
     /// <summary>
     /// Supports generation of code for trainers (Binary,Multi,Regression)
-    /// Ova is an exception though. Need to figure out how to tackle that.
     /// </summary>
     internal abstract class TrainerGeneratorBase : ITrainerGenerator
     {
@@ -61,17 +61,27 @@ namespace Microsoft.ML.CLI.CodeGenerator.CSharp
                 if (type == typeof(bool))
                 {
                     //True to true
-                    value = ((bool)kv.Value).ToString().ToLowerInvariant();
+                    value = ((bool)kv.Value).ToString(CultureInfo.InvariantCulture).ToLowerInvariant();
                 }
                 if (type == typeof(float))
                 {
                     //0.0 to 0.0f
-                    value = ((float)kv.Value).ToString() + "f";
+                    value = ((float)kv.Value).ToString(CultureInfo.InvariantCulture) + "f";
                 }
 
-                if (type == typeof(int) || type == typeof(double) || type == typeof(long))
+                if (type == typeof(int))
                 {
-                    value = (kv.Value).ToString();
+                    value = ((int)kv.Value).ToString(CultureInfo.InvariantCulture);
+                }
+
+                if (type == typeof(double))
+                {
+                    value = ((double)kv.Value).ToString(CultureInfo.InvariantCulture);
+                }
+
+                if (type == typeof(long))
+                {
+                    value = ((long)kv.Value).ToString(CultureInfo.InvariantCulture);
                 }
 
                 if (type == typeof(string))
