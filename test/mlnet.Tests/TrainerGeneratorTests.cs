@@ -26,10 +26,13 @@ namespace mlnet.Tests
             Pipeline pipeline = new Pipeline(new PipelineNode[] { node });
 
             //Set culture to deutsch.
+            var currentCulture = Thread.CurrentThread.CurrentCulture;
             Thread.CurrentThread.CurrentCulture = new CultureInfo("de-DE");
 
             CodeGenerator codeGenerator = new CodeGenerator(pipeline, null, null);
             var actual = codeGenerator.GenerateTrainerAndUsings();
+
+            Thread.CurrentThread.CurrentCulture = currentCulture;
             string expectedTrainerString = "LightGbm(learningRate:0.1f,numberOfLeaves:1,labelColumnName:\"Label\",featureColumnName:\"Features\")";
             Assert.AreEqual(expectedTrainerString, actual.Item1);
             Assert.IsNull(actual.Item2);
