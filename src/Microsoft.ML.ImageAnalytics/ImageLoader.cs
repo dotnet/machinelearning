@@ -190,22 +190,11 @@ namespace Microsoft.ML.Data
 
                         if (src.Length > 0)
                         {
-                            // Catch exceptions and pass null through. Should also log failures...
-                            try
-                            {
-                                string path = src.ToString();
-                                if (!string.IsNullOrWhiteSpace(_parent.ImageFolder))
-                                    path = Path.Combine(_parent.ImageFolder, path);
-                                dst = new Bitmap(path);
-                            }
-                            catch (Exception)
-                            {
-                                // REVIEW: We catch everything since the documentation for new Bitmap(string)
-                                // appears to be incorrect. When the file isn't found, it throws an ArgumentException,
-                                // while the documentation says FileNotFoundException. Not sure what it will throw
-                                // in other cases, like corrupted file, etc.
-                                throw Host.Except($"Image {src.ToString()} was not found.");
-                            }
+                            string path = src.ToString();
+                            if (!string.IsNullOrWhiteSpace(_parent.ImageFolder))
+                                path = Path.Combine(_parent.ImageFolder, path);
+
+                            dst = new Bitmap(path) { Tag = path };
 
                             // Check for an incorrect pixel format which indicates the loading failed
                             if (dst.PixelFormat == System.Drawing.Imaging.PixelFormat.DontCare)

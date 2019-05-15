@@ -36,6 +36,7 @@
     <CodecovVersion>1.1.1</CodecovVersion>
     <CoverletVersion>2.6.0</CoverletVersion>
     <ReportGeneratorVersion>4.0.9</ReportGeneratorVersion>
+    <MicrosoftDotNetApiCompatPackageVersion>1.0.0-beta.19225.5</MicrosoftDotNetApiCompatPackageVersion>
   </PropertyGroup>
 
   <!-- Test-only Dependencies -->
