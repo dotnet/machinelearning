@@ -24,6 +24,8 @@ namespace Microsoft.ML.Data
         public TransformWrapper(IHostEnvironment env, IDataView xf)
         {
             Contracts.CheckValue(env, nameof(env));
+            Contracts.Check(xf is IDataTransform);
+
             _host = env.Register(nameof(TransformWrapper));
             _host.CheckValue(xf, nameof(xf));
             _xf = xf;
