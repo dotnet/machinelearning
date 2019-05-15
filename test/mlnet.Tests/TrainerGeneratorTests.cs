@@ -1,4 +1,6 @@
 ﻿using System.Collections.Generic;
+using System.Globalization;
+using System.Threading;
 using Microsoft.ML;
 using Microsoft.ML.AutoML;
 using Microsoft.ML.CLI.CodeGenerator.CSharp;
@@ -6,12 +8,34 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace mlnet.Tests
 {
-    /****************************
-     * TODO : Add all trainer tests :
-     * **************************/
     [TestClass]
     public class TrainerGeneratorTests
     {
+        [TestMethod]
+        public void CultureInvariantTest()
+        {
+
+            var context = new MLContext();
+
+            var elementProperties = new Dictionary<string, object>()
+            {
+                {"LearningRate", 0.1f },
+                {"NumberOfLeaves", 1 },
+            };
+            PipelineNode node = new PipelineNode("LightGbmBinary", PipelineNodeType.Trainer, default(string[]), default(string), elementProperties);
+            Pipeline pipeline = new Pipeline(new PipelineNode[] { node });
+
+            //Set culture to deutsch.
+            Thread.CurrentThread.CurrentCulture = new CultureInfo("de-DE");
+
+            CodeGenerator codeGenerator = new CodeGenerator(pipeline, null, null);
+            var actual = codeGenerator.GenerateTrainerAndUsings();
+            string expectedTrainerString = "LightGbm(learningRate:0.1f,numberOfLeaves:1,labelColumnName:\"Label\",featureColumnName:\"Features\")";
+            Assert.AreEqual(expectedTrainerString, actual.Item1);
+            Assert.IsNull(actual.Item2);
+
+        }
+
         [TestMethod]
         public void LightGbmBinaryBasicTest()
         {
