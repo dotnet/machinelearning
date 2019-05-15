@@ -27,7 +27,6 @@ namespace Microsoft.ML.Data
 
             _host = env.Register(nameof(TransformWrapper));
             _host.CheckValue(xf, nameof(xf));
-            _host.Check(IsChainRowToRowMapper(_xf));
             _xf = xf;
         }
 
@@ -45,17 +44,7 @@ namespace Microsoft.ML.Data
 
         public IDataView Transform(IDataView input) => ApplyTransformUtils.ApplyTransformToData(_host, (IDataTransform)_xf, input);
 
-        private static bool IsChainRowToRowMapper(IDataView view)
-        {
-            for (; view is IDataTransform xf; view = xf.Source)
-            {
-                if (!(xf is IRowToRowMapper))
-                    return false;
-            }
-            return true;
-        }
-
-        bool ITransformer.IsRowToRowMapper => true;
+        bool ITransformer.IsRowToRowMapper => _xf is IRowToRowMapper;
 
         IRowToRowMapper ITransformer.GetRowToRowMapper(DataViewSchema inputSchema)
         {
