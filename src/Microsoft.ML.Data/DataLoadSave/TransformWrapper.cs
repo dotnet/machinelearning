@@ -19,7 +19,6 @@ namespace Microsoft.ML.Data
 
         private readonly IHost _host;
         private readonly IDataView _xf;
-        private readonly bool _isRowToRowMapper;
 
         public TransformWrapper(IHostEnvironment env, IDataView xf)
         {
@@ -28,8 +27,8 @@ namespace Microsoft.ML.Data
 
             _host = env.Register(nameof(TransformWrapper));
             _host.CheckValue(xf, nameof(xf));
+            _host.Check(IsChainRowToRowMapper(_xf));
             _xf = xf;
-            _isRowToRowMapper = IsChainRowToRowMapper(_xf);
         }
 
         public DataViewSchema GetOutputSchema(DataViewSchema inputSchema)
@@ -44,17 +43,6 @@ namespace Microsoft.ML.Data
 
         void ICanSaveModel.Save(ModelSaveContext ctx) => throw _host.Except("Saving is not permitted.");
 
-        private static VersionInfo GetVersionInfo()
-        {
-            return new VersionInfo(
-                modelSignature: "XF  WRPR",
-                verWrittenCur: 0x00010001, // Initial
-                verReadableCur: 0x00010001,
-                verWeCanReadBack: 0x00010001,
-                loaderSignature: LoaderSignature,
-                loaderAssemblyName: typeof(TransformWrapper).Assembly.FullName);
-        }
-
         public IDataView Transform(IDataView input) => ApplyTransformUtils.ApplyTransformToData(_host, (IDataTransform)_xf, input);
 
         private static bool IsChainRowToRowMapper(IDataView view)
@@ -67,13 +55,15 @@ namespace Microsoft.ML.Data
             return true;
         }
 
-        bool ITransformer.IsRowToRowMapper => _isRowToRowMapper;
+        bool ITransformer.IsRowToRowMapper => true;
 
         IRowToRowMapper ITransformer.GetRowToRowMapper(DataViewSchema inputSchema)
         {
             _host.CheckValue(inputSchema, nameof(inputSchema));
-            return new CompositeRowToRowMapper(inputSchema,
-                new[] { (IRowToRowMapper)ApplyTransformUtils.ApplyTransformToData(_host, (IDataTransform)_xf, new EmptyDataView(_host, inputSchema)) });
+            var transform = ApplyTransformUtils.ApplyTransformToData(_host, (IDataTransform)_xf, new EmptyDataView(_host, inputSchema)) as IRowToRowMapper;
+            _host.Check(transform is IRowToRowMapper);
+
+            return new CompositeRowToRowMapper(inputSchema, new[] { transform});
         }
     }
 

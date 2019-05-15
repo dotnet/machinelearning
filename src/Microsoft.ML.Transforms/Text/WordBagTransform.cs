@@ -154,7 +154,7 @@ namespace Microsoft.ML.Transforms.Text
             view = t0.Transform(view);
             ITransformer t1 = new WordTokenizingEstimator(env, tokenizeColumns).Fit(view);
             view = t1.Transform(view);
-            ITransformer t2 = NgramExtractorTransform.Create(h, extractorArgs, t1.Transform(view));
+            ITransformer t2 = NgramExtractorTransform.Create(h, extractorArgs, view);
             return new TransformerChain<ITransformer>(new[] { t0, t1, t2 });
         }
 

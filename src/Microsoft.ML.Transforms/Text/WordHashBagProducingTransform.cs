@@ -148,7 +148,7 @@ namespace Microsoft.ML.Transforms.Text
                 };
 
             view = t1.Transform(view);
-            ITransformer t2 = NgramHashExtractingTransformer.Create(h, featurizeArgs, t1.Transform(view));
+            ITransformer t2 = NgramHashExtractingTransformer.Create(h, featurizeArgs, view);
 
             // Since we added columns with new names, we need to explicitly drop them before we return the IDataTransform.
             ITransformer t3 = new ColumnSelectingTransformer(env, null, tmpColNames.ToArray());

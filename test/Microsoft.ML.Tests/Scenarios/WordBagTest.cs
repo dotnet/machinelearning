@@ -43,6 +43,8 @@ namespace Microsoft.ML.Scenarios
                 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
                 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
                 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 });
+
+            Assert.Equal(prediction.Text2, new float[] {2, 2, 2, 2, 2, 2, 1, 1});
         }
 
         [Fact]
@@ -78,13 +80,14 @@ namespace Microsoft.ML.Scenarios
         {
             public string Text { get; set; }
 #pragma warning disable 414
-            public string Text2 = "ABC";
+            public string Text2 = "This is an example to compute bag-of-word features.";
 #pragma warning restore 414
         }
 
         private class TransformedTextData
         {
             public float[] Text { get; set; }
+            public float[] Text2 { get; set; }
         }
     }
 
