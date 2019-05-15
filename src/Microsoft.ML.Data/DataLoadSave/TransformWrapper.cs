@@ -2,15 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Generic;
-using Microsoft.ML;
-using Microsoft.ML.Data;
 using Microsoft.ML.Data.DataLoadSave;
-using Microsoft.ML.Data.IO;
 using Microsoft.ML.Runtime;
-
-[assembly: LoadableClass(typeof(TransformWrapper), null, typeof(SignatureLoadModel),
-    "Transform wrapper", TransformWrapper.LoaderSignature)]
 
 namespace Microsoft.ML.Data
 {
@@ -59,30 +52,6 @@ namespace Microsoft.ML.Data
                 verWeCanReadBack: 0x00010001,
                 loaderSignature: LoaderSignature,
                 loaderAssemblyName: typeof(TransformWrapper).Assembly.FullName);
-        }
-
-        // Factory for SignatureLoadModel.
-        private TransformWrapper(IHostEnvironment env, ModelLoadContext ctx)
-        {
-            Contracts.CheckValue(env, nameof(env));
-            _host = env.Register(nameof(TransformWrapper));
-            _host.CheckValue(ctx, nameof(ctx));
-            ctx.CheckAtModel(GetVersionInfo());
-            int n = ctx.Reader.ReadInt32();
-            _host.CheckDecode(n >= 0);
-
-            ctx.LoadModel<ILegacyDataLoader, SignatureLoadDataLoader>(env, out var loader, "Loader", new MultiFileSource(null));
-
-            IDataView data = loader;
-            for (int i = 0; i < n; i++)
-            {
-                var dirName = string.Format(TransformDirTemplate, i);
-                ctx.LoadModel<IDataTransform, SignatureLoadDataTransform>(env, out var xf, dirName, data);
-                data = xf;
-            }
-
-            _xf = data;
-            _isRowToRowMapper = IsChainRowToRowMapper(_xf);
         }
 
         public IDataView Transform(IDataView input) => ApplyTransformUtils.ApplyTransformToData(_host, (IDataTransform)_xf, input);
