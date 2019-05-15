@@ -238,7 +238,7 @@ namespace Microsoft.ML.Functional.Tests
             var mlContext = new MLContext();
             ITransformer trainedModel;
             DataViewSchema dataViewSchema;
-            using (var stream = new FileStream(Path.Join(Directory.GetCurrentDirectory(), @"..\..\..\..\test\data\backcompat\modelwithoptionalcolumntransform.zip"),
+            using (var stream = new FileStream(Path.Combine(Directory.GetCurrentDirectory(), @"..\..\..\..\test\data\backcompat\modelwithoptionalcolumntransform.zip"),
                 FileMode.Open, FileAccess.Read, FileShare.Read))
             {
                 trainedModel = mlContext.Model.Load(stream, out dataViewSchema);
