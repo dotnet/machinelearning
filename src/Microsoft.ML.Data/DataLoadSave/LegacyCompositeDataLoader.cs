@@ -412,7 +412,7 @@ namespace Microsoft.ML.Data
                 }
                 else
                 {
-                    ITransformer transformer = new TransformWrapper(_host, transform.Transform, false, true);
+                    ITransformer transformer = new TransformWrapper(_host, transform.Transform);
                     result = result.Append(transformer);
                 }
             }

@@ -27,19 +27,15 @@ namespace Microsoft.ML.Data
 
         private readonly IHost _host;
         private readonly IDataView _xf;
-        private readonly bool _allowSave;
         private readonly bool _isRowToRowMapper;
-        private readonly bool _useLastTransformOnly;
 
-        public TransformWrapper(IHostEnvironment env, IDataView xf, bool allowSave = false, bool useLastTransformOnly = false)
+        public TransformWrapper(IHostEnvironment env, IDataView xf)
         {
             Contracts.CheckValue(env, nameof(env));
             _host = env.Register(nameof(TransformWrapper));
             _host.CheckValue(xf, nameof(xf));
             _xf = xf;
-            _allowSave = allowSave;
             _isRowToRowMapper = IsChainRowToRowMapper(_xf);
-            _useLastTransformOnly = useLastTransformOnly;
         }
 
         public DataViewSchema GetOutputSchema(DataViewSchema inputSchema)
@@ -47,41 +43,12 @@ namespace Microsoft.ML.Data
             _host.CheckValue(inputSchema, nameof(inputSchema));
 
             var dv = new EmptyDataView(_host, inputSchema);
-            var output = _useLastTransformOnly ? ApplyTransformUtils.ApplyTransformToData(_host, (IDataTransform)_xf, dv) :
-                ApplyTransformUtils.ApplyAllTransformsToData(_host, _xf, dv);
+            var output = ApplyTransformUtils.ApplyTransformToData(_host, (IDataTransform)_xf, dv);
 
             return output.Schema;
         }
 
-        void ICanSaveModel.Save(ModelSaveContext ctx)
-        {
-            if (!_allowSave)
-                throw _host.Except("Saving is not permitted.");
-            ctx.CheckAtModel();
-            ctx.SetVersionInfo(GetVersionInfo());
-
-            var dataPipe = _xf;
-            var transforms = new List<IDataTransform>();
-            while (dataPipe is IDataTransform xf)
-            {
-                // REVIEW: a malicious user could construct a loop in the Source chain, that would
-                // cause this method to iterate forever (and throw something when the list overflows). There's
-                // no way to insulate from ALL malicious behavior.
-                transforms.Add(xf);
-                dataPipe = xf.Source;
-                Contracts.AssertValue(dataPipe);
-            }
-            transforms.Reverse();
-
-            ctx.SaveSubModel("Loader", c => BinaryLoader.SaveInstance(_host, c, dataPipe.Schema));
-
-            ctx.Writer.Write(transforms.Count);
-            for (int i = 0; i < transforms.Count; i++)
-            {
-                var dirName = string.Format(TransformDirTemplate, i);
-                ctx.SaveModel(transforms[i], dirName);
-            }
-        }
+        void ICanSaveModel.Save(ModelSaveContext ctx) => throw _host.Except("Saving is not permitted.");
 
         private static VersionInfo GetVersionInfo()
         {
@@ -100,7 +67,6 @@ namespace Microsoft.ML.Data
             Contracts.CheckValue(env, nameof(env));
             _host = env.Register(nameof(TransformWrapper));
             _host.CheckValue(ctx, nameof(ctx));
-            _allowSave = true;
             ctx.CheckAtModel(GetVersionInfo());
             int n = ctx.Reader.ReadInt32();
             _host.CheckDecode(n >= 0);
@@ -119,8 +85,7 @@ namespace Microsoft.ML.Data
             _isRowToRowMapper = IsChainRowToRowMapper(_xf);
         }
 
-        public IDataView Transform(IDataView input) => _useLastTransformOnly ? ApplyTransformUtils.ApplyTransformToData(_host, (IDataTransform)_xf, input) :
-            ApplyTransformUtils.ApplyAllTransformsToData(_host, _xf, input);
+        public IDataView Transform(IDataView input) => ApplyTransformUtils.ApplyTransformToData(_host, (IDataTransform)_xf, input);
 
         private static bool IsChainRowToRowMapper(IDataView view)
         {
@@ -137,30 +102,8 @@ namespace Microsoft.ML.Data
         IRowToRowMapper ITransformer.GetRowToRowMapper(DataViewSchema inputSchema)
         {
             _host.CheckValue(inputSchema, nameof(inputSchema));
-            var input = new EmptyDataView(_host, inputSchema);
-            IDataView chain;
-            if (_useLastTransformOnly)
-            {
-                chain = ApplyTransformUtils.ApplyTransformToData(_host, (IDataTransform)_xf, input);
-                return new CompositeRowToRowMapper(inputSchema, new[] { (IRowToRowMapper)chain });
-            }
-            else
-            {
-                var revMaps = new List<IRowToRowMapper>();
-                for (chain = ApplyTransformUtils.ApplyAllTransformsToData(_host, _xf, input);
-                    chain is IDataTransform xf;
-                    chain = xf.Source)
-                {
-                    // Everything in the chain ought to be a row mapper.
-                    _host.Assert(xf is IRowToRowMapper);
-                    revMaps.Add((IRowToRowMapper)xf);
-                }
-
-                // The walkback should have ended at the input.
-                Contracts.Assert(chain == input);
-                revMaps.Reverse();
-                return new CompositeRowToRowMapper(inputSchema, revMaps.ToArray());
-            }
+            return new CompositeRowToRowMapper(inputSchema,
+                new[] { (IRowToRowMapper)ApplyTransformUtils.ApplyTransformToData(_host, (IDataTransform)_xf, new EmptyDataView(_host, inputSchema)) });
         }
     }
 
