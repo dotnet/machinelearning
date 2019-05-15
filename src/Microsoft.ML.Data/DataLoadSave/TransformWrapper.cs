@@ -16,7 +16,6 @@ namespace Microsoft.ML.Data
     internal sealed class TransformWrapper : ITransformer
     {
         internal const string LoaderSignature = "TransformWrapper";
-        private const string TransformDirTemplate = "Step_{0:000}";
 
         private readonly IHost _host;
         private readonly IDataView _xf;
