@@ -238,7 +238,7 @@ namespace Microsoft.ML.Functional.Tests
             var mlContext = new MLContext();
             ITransformer trainedModel;
             DataViewSchema dataViewSchema;
-            trainedModel = mlContext.Model.Load(Path.Combine(Directory.GetCurrentDirectory(), @"..\..\..\..\test\data\backcompat\modelwithoptionalcolumntransform.zip"), out dataViewSchema);
+            trainedModel = mlContext.Model.Load(Path.Combine(Directory.GetCurrentDirectory(), @"../../../../test/data/backcompat/modelwithoptionalcolumntransform.zip"), out dataViewSchema);
             var model = mlContext.Model.CreatePredictionEngine<ModelInput, ModelOutput>(trainedModel, inputSchemaDefinition: inputSchemaDefinition);
             var prediction = model.Predict(new ModelInput() { CategoricalFeatures = new[] { "ABC", "ABC", "ABC", "ABC", "ABC" }, NumericalFeatures = new float [] { 1, 1, 1 } });
 
