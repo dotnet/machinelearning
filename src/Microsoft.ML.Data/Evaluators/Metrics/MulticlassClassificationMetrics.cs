@@ -74,12 +74,17 @@ namespace Microsoft.ML.Data
         /// Gets the log-loss of the classifier for each class.
         /// </summary>
         /// <remarks>
-        /// The log-loss metric, is computed as follows:
-        /// LL = - (1/m) * sum( log(p[i]))
-        /// where m is the number of instances in the test set.
-        /// p[i] is the probability returned by the classifier if the instance belongs to the class,
+        /// The log-loss metric is computed as $-\frac{1}{m} \sum_{i=1}^m \log(p_i)$,
+        /// where $m$ is the number of instances in the test set.
+        /// $p_i$ is the probability returned by the classifier if the instance belongs to the class,
         /// and 1 minus the probability returned by the classifier if the instance does not belong to the class.
         /// </remarks>
+        /// <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        ///  [!code-csharp[LogLoss](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Trainers/MulticlassClassification/LogLossPerClass.cs)]
+        /// ]]></format>
+        /// </example>
         public IReadOnlyList<double> PerClassLogLoss { get; }
 
         /// <summary>
