@@ -2,7 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
+using System.Collections.Generic;
+using System.Linq;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
@@ -45,15 +46,23 @@ namespace Microsoft.ML.Transforms.TimeSeries
             public int WindowSize = 24;
 
             [Argument(ArgumentType.Required, HelpText = "The number of points to the back of training window.",
-                ShortName = "bwnd", SortOrder = 102)]
+                ShortName = "backwnd", SortOrder = 102)]
             public int BackAddWindowSize = 5;
 
             [Argument(ArgumentType.Required, HelpText = "The number of pervious points used in prediction.",
-                ShortName = "awnd", SortOrder = 103)]
+                ShortName = "aheadwnd", SortOrder = 103)]
             public int LookaheadWindowSize = 5;
 
+            [Argument(ArgumentType.Required, HelpText = "The size of sliding window to generate a saliency map for the series.",
+                ShortName = "avgwnd", SortOrder = 104)]
+            public int AvergingWindowSize = 3;
+
+            [Argument(ArgumentType.Required, HelpText = "The size of sliding window to generate a saliency map for the series.",
+                ShortName = "jdgwnd", SortOrder = 105)]
+            public int JudgementWindowSize = 21;
+
             [Argument(ArgumentType.Required, HelpText = "The threshold to determine anomaly, score larger than the threshold is considered as anomaly.",
-                ShortName = "thre", SortOrder = 104)]
+                ShortName = "thre", SortOrder = 106)]
             public double Threshold = 0.3;
         }
 
@@ -67,6 +76,8 @@ namespace Microsoft.ML.Transforms.TimeSeries
                 InitialWindowSize = 0;
                 BackAddWindowSize = options.BackAddWindowSize;
                 LookaheadWindowSize = options.LookaheadWindowSize;
+                AvergingWindowSize = options.AvergingWindowSize;
+                JudgementWindowSize = options.JudgementWindowSize;
                 Threshold = options.Threshold;
             }
 
@@ -78,6 +89,8 @@ namespace Microsoft.ML.Transforms.TimeSeries
                 InitialWindowSize = 0;
                 BackAddWindowSize = transform.InternalTransform.BackAddWindowSize;
                 LookaheadWindowSize = transform.InternalTransform.LookaheadWindowSize;
+                AvergingWindowSize = transform.InternalTransform.AvergingWindowSize;
+                JudgementWindowSize = transform.InternalTransform.JudgementWindowSize;
                 Threshold = transform.InternalTransform.AlertThreshold;
             }
         }
@@ -132,14 +145,14 @@ namespace Microsoft.ML.Transforms.TimeSeries
         }
 
         internal SrCnnAnomalyDetector(IHostEnvironment env, Options options)
-            :base(new SrCnnArgument(options), LoaderSignature, env)
+            : base(new SrCnnArgument(options), LoaderSignature, env)
         {
         }
 
         internal SrCnnAnomalyDetector(IHostEnvironment env, ModelLoadContext ctx)
             : base(env, ctx, LoaderSignature)
         {
-            //TODO:
+            //TODO: Some data check here
         }
 
         private SrCnnAnomalyDetector(IHostEnvironment env, SrCnnAnomalyDetector transform)
@@ -149,7 +162,13 @@ namespace Microsoft.ML.Transforms.TimeSeries
 
         private protected override void SaveModel(ModelSaveContext ctx)
         {
-            //TODO:
+            InternalTransform.Host.CheckValue(ctx, nameof(ctx));
+            ctx.CheckAtModel();
+            ctx.SetVersionInfo(GetVersionInfo());
+
+            // *** Binary format ***
+            // <base>
+            base.SaveModel(ctx);
         }
     }
 
@@ -158,14 +177,13 @@ namespace Microsoft.ML.Transforms.TimeSeries
     /// </summary>
     public sealed class SrCnnAnomalyEstimator : TrivialEstimator<SrCnnAnomalyDetector>
     {
-        /// <summary>
-        /// Create a new instance of <see cref="SrCnnAnomalyDetector"/>
-        /// </summary>
         /// <param name="env"></param>
         /// <param name="outputColumnName"></param>
         /// <param name="windowSize"></param>
         /// <param name="backAddWindowSize"></param>
         /// <param name="lookaheadWindowSize"></param>
+        /// <param name="averagingWindowSize"></param>
+        /// <param name="judgementWindowSize"></param>
         /// <param name="threshold"></param>
         /// <param name="inputColumnName"></param>
         internal SrCnnAnomalyEstimator(IHostEnvironment env,
@@ -173,6 +191,8 @@ namespace Microsoft.ML.Transforms.TimeSeries
             int windowSize,
             int backAddWindowSize,
             int lookaheadWindowSize,
+            int averagingWindowSize,
+            int judgementWindowSize,
             double threshold = 0.3,
             string inputColumnName = null)
             : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(SrCnnAnomalyEstimator)),
@@ -183,6 +203,8 @@ namespace Microsoft.ML.Transforms.TimeSeries
                       WindowSize = windowSize,
                       BackAddWindowSize = backAddWindowSize,
                       LookaheadWindowSize = lookaheadWindowSize,
+                      AvergingWindowSize = averagingWindowSize,
+                      JudgementWindowSize = judgementWindowSize,
                       Threshold = threshold
                   }))
         {
@@ -195,8 +217,21 @@ namespace Microsoft.ML.Transforms.TimeSeries
 
         public override SchemaShape GetOutputSchema(SchemaShape inputSchema)
         {
-            //TODO:
-            throw new NotImplementedException();
+            Host.CheckValue(inputSchema, nameof(inputSchema));
+
+            if (!inputSchema.TryFindColumn(Transformer.InternalTransform.InputColumnName, out var col))
+                throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", Transformer.InternalTransform.InputColumnName);
+            if (col.ItemType != NumberDataViewType.Single)
+                throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", Transformer.InternalTransform.InputColumnName, "Single", col.GetTypeString());
+
+            var metadata = new List<SchemaShape.Column>() {
+                new SchemaShape.Column(AnnotationUtils.Kinds.SlotNames, SchemaShape.Column.VectorKind.Vector, TextDataViewType.Instance, false)
+            };
+            var resultDic = inputSchema.ToDictionary(x => x.Name);
+            resultDic[Transformer.InternalTransform.OutputColumnName] = new SchemaShape.Column(
+                Transformer.InternalTransform.OutputColumnName, SchemaShape.Column.VectorKind.Vector, NumberDataViewType.Double, false, new SchemaShape(metadata));
+
+            return new SchemaShape(resultDic.Values);
         }
 
     }

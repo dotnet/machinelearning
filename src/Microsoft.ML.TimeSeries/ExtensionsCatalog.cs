@@ -123,7 +123,7 @@ namespace Microsoft.ML
             => new SsaSpikeEstimator(CatalogUtils.GetEnvironment(catalog), outputColumnName, confidence, pvalueHistoryLength, trainingWindowSize, seasonalityWindowSize, inputColumnName, side, errorFunction);
 
         public static SrCnnAnomalyEstimator DetectAnomalyBySrCnn(this TransformsCatalog catalog, string outputColumnName, string inputColumnName,
-            int windowSize, int backAddWindowSize, int lookaheadWindowSize, double threshold)
-            => new SrCnnAnomalyEstimator(CatalogUtils.GetEnvironment(catalog), outputColumnName, windowSize, backAddWindowSize, lookaheadWindowSize, threshold, inputColumnName);
+            int windowSize, int backAddWindowSize, int lookaheadWindowSize, int averageingWindowSize, int judgementWindowSize, double threshold)
+            => new SrCnnAnomalyEstimator(CatalogUtils.GetEnvironment(catalog), outputColumnName, windowSize, backAddWindowSize, lookaheadWindowSize, averageingWindowSize, judgementWindowSize, threshold, inputColumnName);
     }
 }

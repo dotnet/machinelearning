@@ -4,6 +4,7 @@
 
 using System;
 using System.IO;
+using System.Threading;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
 using Microsoft.ML.Internal.Utilities;
@@ -30,15 +31,23 @@ namespace Microsoft.ML.Transforms.TimeSeries
         public int InitialWindowSize = 0;
 
         [Argument(ArgumentType.AtMostOnce, HelpText = "The number of points to the back of training window.",
-            ShortName = "bwnd", SortOrder = 5)]
+            ShortName = "backwnd", SortOrder = 5)]
         public int BackAddWindowSize = 5;
 
         [Argument(ArgumentType.AtMostOnce, HelpText = "The number of pervious points used in prediction.",
-            ShortName = "awnd", SortOrder = 6)]
+            ShortName = "aheadwnd", SortOrder = 6)]
         public int LookaheadWindowSize = 5;
 
+        [Argument(ArgumentType.Required, HelpText = "The size of sliding window to generate a saliency map for the series.",
+            ShortName = "avgwnd", SortOrder = 7)]
+        public int AvergingWindowSize = 3;
+
+        [Argument(ArgumentType.Required, HelpText = "The size of sliding window to generate a saliency map for the series.",
+            ShortName = "jdgwnd", SortOrder = 8)]
+        public int JudgementWindowSize = 21;
+
         [Argument(ArgumentType.AtMostOnce, HelpText = "The threshold to determine anomaly, score larger than the threshold is considered as anomaly.",
-            ShortName = "thre", SortOrder = 7)]
+            ShortName = "thre", SortOrder = 9)]
         public double Threshold = 0.3;
     }
 
@@ -49,36 +58,44 @@ namespace Microsoft.ML.Transforms.TimeSeries
 
         internal int LookaheadWindowSize;
 
+        internal int AvergingWindowSize;
+
+        internal int JudgementWindowSize;
+
         internal Double AlertThreshold;
 
         internal int OutputLength;
 
         private protected SrCnnTransformBase(int windowSize, int initialWindowSize, string inputColumnName, string outputColumnName, string name, IHostEnvironment env,
-            int backAddWindowSize, int lookaheadWindowSize, Double alertThreshold)
+            int backAddWindowSize, int lookaheadWindowSize, int averagingWindowSize, int judgementWindowSize, Double alertThreshold)
             : base(Contracts.CheckRef(env, nameof(env)).Register(name), windowSize, initialWindowSize, outputColumnName, inputColumnName, new VectorDataViewType(NumberDataViewType.Double, 3))
         {
-            //TODO:
+            //TODO: Check argument
 
             BackAddWindowSize = backAddWindowSize;
             LookaheadWindowSize = lookaheadWindowSize;
+            AvergingWindowSize = averagingWindowSize;
+            JudgementWindowSize = judgementWindowSize;
             AlertThreshold = alertThreshold;
+
+            OutputLength = 3;
         }
 
         private protected SrCnnTransformBase(IHostEnvironment env, ModelLoadContext ctx, string name)
             : base(Contracts.CheckRef(env, nameof(env)).Register(name), ctx)
         {
-            //TODO:
+            //TODO: Read from binary format
         }
 
         private protected SrCnnTransformBase(SrCnnArgumentBase args, string name, IHostEnvironment env)
             : this(args.WindowSize, args.InitialWindowSize, args.Source, args.Name,
-                  name, env, args.BackAddWindowSize, args.LookaheadWindowSize, args.Threshold)
+                  name, env, args.BackAddWindowSize, args.LookaheadWindowSize, args.AvergingWindowSize, args.JudgementWindowSize, args.Threshold)
         {
         }
 
         private protected override void SaveModel(ModelSaveContext ctx)
         {
-            //TODO:
+            //TODO: save to ctx and write to file
         }
 
         internal override IStatefulRowMapper MakeRowMapper(DataViewSchema schema) => new Mapper(Host, this, schema);
@@ -116,59 +133,87 @@ namespace Microsoft.ML.Transforms.TimeSeries
 
             public DataViewSchema.DetachedColumn[] GetOutputColumns()
             {
-                //TODO:
-                throw new NotImplementedException();
+                var meta = new DataViewSchema.Annotations.Builder();
+                meta.AddSlotNames(_parent.OutputLength, GetSlotNames);
+                var info = new DataViewSchema.DetachedColumn[1];
+                info[0] = new DataViewSchema.DetachedColumn(_parent.OutputColumnName, new VectorDataViewType(NumberDataViewType.Double, _parent.OutputLength), meta.ToAnnotations());
+                return info;
             }
 
-            public void GetSlotNames(ref VBuffer<ReadOnlyMemory<char>> dst)
-            {
-                //TODO:
-                throw new NotImplementedException();
-            }
+            public void GetSlotNames(ref VBuffer<ReadOnlyMemory<char>> dst) => _slotNames.CopyTo(ref dst, 0, _parent.OutputLength);
 
             public Func<int, bool> GetDependencies(Func<int, bool> activeOutput)
             {
-                //TODO:
-                throw new NotImplementedException();
+                if (activeOutput(0))
+                    return col => col == _inputColumnIndex;
+                else
+                    return col => false;
             }
 
             void ICanSaveModel.Save(ModelSaveContext ctx) => _parent.SaveModel(ctx);
 
             public Delegate[] CreateGetters(DataViewRow input, Func<int, bool> activeOutput, out Action disposer)
             {
-                //TODO:
-                throw new NotImplementedException();
+                disposer = null;
+                var getters = new Delegate[1];
+                if (activeOutput(0))
+                    getters[0] = MakeGetter(input, State);
+
+                return getters;
             }
 
             private delegate void ProcessData(ref TInput src, ref VBuffer<double> dst);
 
             private Delegate MakeGetter(DataViewRow input, SrCnnStateBase state)
             {
-                //TODO:
-                throw new NotImplementedException();
+                _host.AssertValue(input);
+                var srcGetter = input.GetGetter<TInput>(input.Schema[_inputColumnIndex]);
+                ProcessData processData = _parent.WindowSize > 0 ?
+                    (ProcessData)state.Process : state.ProcessWithoutBuffer;
+
+                ValueGetter<VBuffer<double>> valueGetter = (ref VBuffer<double> dst) =>
+                {
+                    TInput src = default;
+                    srcGetter(ref src);
+                    processData(ref src, ref dst);
+                };
+                return valueGetter;
             }
 
             public Action<long> CreatePinger(DataViewRow input, Func<int, bool> activeOutput, out Action disposer)
             {
-                //TODO:
-                throw new NotImplementedException();
+                disposer = null;
+                Action<long> pinger = null;
+                if (activeOutput(0))
+                    pinger = MakePinger(input, State);
+
+                return pinger;
             }
 
             private Action<long> MakePinger(DataViewRow input, SrCnnStateBase state)
             {
-                //TODO:
-                throw new NotImplementedException();
+                _host.AssertValue(input);
+                var srcGetter = input.GetGetter<TInput>(input.Schema[_inputColumnIndex]);
+                Action<long> pinger = (long rowPosition) =>
+                {
+                    TInput src = default;
+                    srcGetter(ref src);
+                    state.UpdateState(ref src, rowPosition, _parent.WindowSize > 0);
+                };
+                return pinger;
             }
 
             public void CloneState()
             {
-                //TODO:
+                if (Interlocked.Increment(ref _parent.StateRefCount) > 1)
+                {
+                    State = (SrCnnStateBase)_parent.StateRef.Clone();
+                }
             }
 
             public ITransformer GetTransformer()
             {
-                //TODO:
-                throw new NotImplementedException();
+                return _parent;
             }
         }
 
@@ -195,17 +240,41 @@ namespace Microsoft.ML.Transforms.TimeSeries
 
             private protected override void SetNaOutput(ref VBuffer<double> dst)
             {
-                //TODO:
+                var outputLength = Parent.OutputLength;
+                var editor = VBufferEditor.Create(ref dst, outputLength);
+
+                for (int i = 0; i < outputLength; ++i)
+                    editor.Values[i] = Double.NaN;
+
+                dst = editor.Commit();
             }
 
             private protected sealed override void TransformCore(ref TInput input, FixedSizeQueue<TInput> windowedBuffer, long iteration, ref VBuffer<double> dst)
             {
-                //TODO:
+                var outputLength = Parent.OutputLength;
+                Host.Assert(outputLength >= 2);
+
+                var result = VBufferEditor.Create(ref dst, outputLength);
+                for (int i = 0; i < outputLength; ++i)
+                    result.Values[i] = Double.NaN;
+
+                SpectralResidual(input, windowedBuffer, ref result);
+
+                dst = result.Commit();
             }
 
             private protected sealed override void InitializeStateCore(bool disk = false)
             {
                 //TODO:
+            }
+
+            private protected override void LearnStateFromDataCore(FixedSizeQueue<TInput> data)
+            {
+                //TODO:
+            }
+
+            private protected virtual void SpectralResidual(TInput input, FixedSizeQueue<TInput> data, ref VBufferEditor<double> result)
+            {
             }
         }
     }
