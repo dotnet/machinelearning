@@ -52,7 +52,7 @@ namespace Microsoft.ML.Data
             var transform = ApplyTransformUtils.ApplyTransformToData(_host, (IDataTransform)_xf, new EmptyDataView(_host, inputSchema)) as IRowToRowMapper;
             _host.Check(transform is IRowToRowMapper);
 
-            return new CompositeRowToRowMapper(inputSchema, new[] { transform});
+            return new CompositeRowToRowMapper(inputSchema, new[] { transform });
         }
     }
 
