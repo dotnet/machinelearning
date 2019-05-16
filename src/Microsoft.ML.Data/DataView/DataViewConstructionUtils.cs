@@ -269,6 +269,10 @@ namespace Microsoft.ML.Data
                         return Utils.MarshalInvoke(delForKey, keyRawType, peek, colType);
                     }
                 }
+                else if (TypeManager.GetRawTypeOrNull(colType) != null)
+                {
+                    del = CreateDirectGetterDelegate<int>;
+                }
                 else
                 {
                     // REVIEW: Is this even possible?

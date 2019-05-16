@@ -203,21 +203,46 @@ namespace Microsoft.ML.Tests
             var pipeline = ML.Transforms.LoadImages("ImageObject", imagesFolder, "ImagePath")
                            .Append(ML.Transforms.ConvertToGrayscale("Grayscale", "ImageObject"));
 
+            // Test path: image files -> IDataView -> Enumerable of Bitmaps.
             var transformedData = pipeline.Fit(data).Transform(data);
-
             var transformedDataPoints = ML.Data.CreateEnumerable<TransformedImageDataPoint>(transformedData, true).ToList();
 
             foreach (var datapoint in transformedDataPoints)
             {
                 var image = datapoint.Grayscale;
                 Assert.NotNull(image);
-                for (int x = 0; x < image.Width; x++)
+                for (int x = 0; x < image.Width; ++x)
                 {
-                    for (int y = 0; y < image.Height; y++)
+                    for (int y = 0; y < image.Height; ++y)
                     {
                         var pixel = image.GetPixel(x, y);
                         // greyscale image has same values for R, G and B.
                         Assert.True(pixel.R == pixel.G && pixel.G == pixel.B);
+                    }
+                }
+            }
+
+            // Test path: Enumerable of Bitmaps -> IDataView -> Enumerable of Bitmaps.
+            var imagesInDataView = ML.Data.LoadFromEnumerable(transformedDataPoints);
+            var imagesObtainedFromDataView = ML.Data.CreateEnumerable<TransformedImageDataPoint>(imagesInDataView, true).ToList();
+
+            for (int i = 0; i < transformedDataPoints.Count; ++i)
+            {
+                var expectedImage = transformedDataPoints[i].Grayscale;
+                var obtainedImage = imagesObtainedFromDataView[i].Grayscale;
+
+                Assert.Equal(expectedImage.Width, obtainedImage.Width);
+                Assert.Equal(expectedImage.Height, obtainedImage.Height);
+                for (int x = 0; x < expectedImage.Width; ++x)
+                {
+                    for (int y = 0; y < expectedImage.Height; ++y)
+                    {
+                        var expectedPixel = expectedImage.GetPixel(x, y);
+                        var obtainedPixel = obtainedImage.GetPixel(x, y);
+
+                        Assert.Equal(expectedPixel.R, obtainedPixel.R);
+                        Assert.Equal(expectedPixel.G, obtainedPixel.G);
+                        Assert.Equal(expectedPixel.B, obtainedPixel.B);
                     }
                 }
             }
