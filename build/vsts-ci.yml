@@ -48,7 +48,7 @@ phases:
     demands:
     - agent.os -equals Darwin
   steps:
-  - script: brew update && brew install libomp && brew link libomp --force
+  - script: brew update && brew install https://raw.githubusercontent.com/Homebrew/homebrew-core/f5b1ac99a7fba27c19cee0bc4f036775c889b359/Formula/libomp.rb && brew link libomp --force
     displayName: Install build dependencies
   # Only build native assets to avoid conflicts.
   - script: ./build.sh -buildNative -$(BuildConfig) -skipRIDAgnosticAssets

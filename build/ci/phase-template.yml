@@ -34,7 +34,7 @@ phases:
       ${{ insert }}: ${{ parameters.queue }}
     steps:
     - ${{ if eq(parameters.queue.name, 'Hosted macOS') }}:
-      - script: brew update && brew install libomp && brew install mono-libgdiplus gettext && brew link gettext --force && brew link libomp --force
+      - script: brew update && brew install https://raw.githubusercontent.com/Homebrew/homebrew-core/f5b1ac99a7fba27c19cee0bc4f036775c889b359/Formula/libomp.rb && brew install mono-libgdiplus gettext && brew link gettext --force && brew link libomp --force
         displayName: Install build dependencies
     - script: $(_buildScript) -$(_configuration) -buildArch=$(_arch)
       displayName: Build
