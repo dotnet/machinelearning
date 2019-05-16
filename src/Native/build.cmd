@@ -64,7 +64,7 @@ exit /b 1
 :VS2019
 :: Setup vars for VS2019
 set __PlatformToolset=v142
-set __VSVersion=15 2017
+set __VSVersion=16 2019
 if NOT "%__BuildArch%" == "arm64" (
     :: Set the environment for the native build
     call "%VS160COMNTOOLS%..\..\VC\Auxiliary\Build\vcvarsall.bat" %__VCBuildArch%
