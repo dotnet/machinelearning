@@ -1,8 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
-// The .NET Foundation licenses this file to you under the MIT license.
-// See the LICENSE file in the project root for more information.
-
-using System;
+﻿using System;
 using System.Collections.Generic;
 using Microsoft.ML;
 using Microsoft.ML.Data;
@@ -11,7 +7,11 @@ namespace Samples.Dynamic
 {
     public static class LoadFromEnumerable
     {
-        // A simple case of creating IDataView from IEnumerable.
+        // Creating IDataView from IEnumerable, and setting the size of the vector at runtime. 
+        // When the data model is defined through types, setting the size of the vector is done through the VectorType 
+        // annotation. When the size of the data is not known at compile time, the Schema can be directly modified at runtime
+        // and the size of the vector set there. 
+        // This is important, because most of the ML.NET trainers require the Features vector to be of known size. 
         public static void Example()
         {
             // Create a new context for ML.NET operations. It can be used for exception tracking and logging, 
@@ -45,7 +45,8 @@ namespace Samples.Dynamic
                new DataPoint{ Features = new float[]{ 1.6f, 3.5f, 4.5f } },
             };
 
-            // The feature dimension retrievable at runtime.
+            // The feature dimension (typically this will be the Count of the array of the features vector
+            // known at runtime).
             int featureDimension = 3;
             var definedSchema = SchemaDefinition.Create(typeof(DataPoint));
             featureColumn = definedSchema["Features"].ColumnType as VectorDataViewType;
@@ -54,7 +55,7 @@ namespace Samples.Dynamic
             // Preview
             //
             // Is the size of the Features column known? False.
-            //Size: 0.
+            // Size: 0.
 
             // Set the column type to be a known-size vector.
             var vectorItemType = ((VectorDataViewType)definedSchema[0].ColumnType).ItemType;
