@@ -135,6 +135,13 @@ namespace Microsoft.ML
         /// <see cref="IEstimator{TTransformer}.Fit(IDataView)"/> is called. Because <see cref="IEstimator{TTransformer}.Fit(IDataView)"/>
         /// may be called multiple times, this delegate may also be called multiple times.</param>
         /// <returns>A wrapping estimator that calls the indicated delegate whenever fit is called</returns>
+        /// <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        /// [!code-csharp[OnFit](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/WithOnFitDelegate.cs)]
+        /// ]]>
+        /// </format>
+        /// </example>
         public static IEstimator<TTransformer> WithOnFitDelegate<TTransformer>(this IEstimator<TTransformer> estimator, Action<TTransformer> onFit)
             where TTransformer : class, ITransformer
         {
