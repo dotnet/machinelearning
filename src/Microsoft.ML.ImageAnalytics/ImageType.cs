@@ -16,7 +16,7 @@ namespace Microsoft.ML.Transforms.Image
 
         static ImageDataViewType()
         {
-            TypeManager.Register(typeof(Bitmap), new ImageDataViewType());
+            DataViewTypeManager.Register(typeof(Bitmap), new ImageDataViewType());
         }
 
         public ImageDataViewType(int height, int width)

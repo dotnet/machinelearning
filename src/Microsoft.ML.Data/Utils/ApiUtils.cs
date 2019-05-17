@@ -24,7 +24,7 @@ namespace Microsoft.ML
                 (t.IsGenericType && t.GetGenericTypeDefinition() == typeof(VBuffer<>)) ||
                 (t.IsGenericType && t.GetGenericTypeDefinition() == typeof(Nullable<>)) ||
                 t == typeof(DateTime) || t == typeof(DateTimeOffset) || t == typeof(TimeSpan) ||
-                t == typeof(DataViewRowId) || TypeManager.GetDataViewTypeOrNull(t) != null)
+                t == typeof(DataViewRowId) || DataViewTypeManager.Knows(t))
             {
                 return OpCodes.Stobj;
             }

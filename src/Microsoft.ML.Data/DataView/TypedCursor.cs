@@ -319,7 +319,7 @@ namespace Microsoft.ML.Data
 
                     del = CreateDirectSetter<int>;
                 }
-                else if (TypeManager.GetRawTypeOrNull(colType) != null)
+                else if (DataViewTypeManager.Knows(colType))
                 {
                     del = CreateDirectSetter<int>;
                 }

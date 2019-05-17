@@ -187,7 +187,7 @@ namespace Microsoft.ML.Data
 
             if (itemType == typeof(string))
                 itemType = typeof(ReadOnlyMemory<char>);
-            else if (!itemType.TryGetDataKind(out _) && TypeManager.GetDataViewTypeOrNull(itemType) == null)
+            else if (!itemType.TryGetDataKind(out _) && !DataViewTypeManager.Knows(itemType))
                 throw Contracts.ExceptParam(nameof(rawType), "Could not determine an IDataView type for member {0}", name);
         }
 
