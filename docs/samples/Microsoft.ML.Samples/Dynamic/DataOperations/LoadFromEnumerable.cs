@@ -61,7 +61,7 @@ namespace Samples.Dynamic
             var vectorItemType = ((VectorDataViewType)definedSchema[0].ColumnType).ItemType;
             definedSchema[0].ColumnType = new VectorDataViewType(vectorItemType, featureDimension);
 
-            // Read the data into an IDataView with the schema supplied in
+            // Read the data into an IDataView with the modified schema supplied in
             IDataView data2 = mlContext.Data.LoadFromEnumerable(enumerableUnknownSize, definedSchema);
 
             featureColumn = data2.Schema["Features"].Type as VectorDataViewType;
