@@ -11,6 +11,8 @@ if %1=="/?" GOTO :USAGE
 setlocal
 set __sourceDir=%~dp0
 
+set __ExtraCmakeParams=
+
 set __VSString=%2
  :: Remove quotes
 set __VSString=%__VSString:"=%
@@ -24,9 +26,8 @@ for /f "delims=" %%a in ('powershell -NoProfile -ExecutionPolicy ByPass "& .\pro
 popd
 
 :DoGen
-
-if /i "%3" == "x86"     ("%CMakePath%" "-DCMAKE_BUILD_TYPE=%CMAKE_BUILD_TYPE%" "-DCMAKE_INSTALL_PREFIX=%__CMakeBinDir%" "-DMKL_LIB_PATH=%MKL_LIB_PATH%" -G "Visual Studio %__VSString%" -B. -H%1)
-if /i "%3" == "x64"     ("%CMakePath%" "-DCMAKE_BUILD_TYPE=%CMAKE_BUILD_TYPE%" "-DCMAKE_INSTALL_PREFIX=%__CMakeBinDir%" "-DMKL_LIB_PATH=%MKL_LIB_PATH%" -G "Visual Studio %__VSString%" -A "x64" -B. -H%1)
+if /i "%3" == "x64"     (set __ExtraCmakeParams=%__ExtraCmakeParams% -A x64)
+"%CMakePath%" "-DCMAKE_BUILD_TYPE=%CMAKE_BUILD_TYPE%" "-DCMAKE_INSTALL_PREFIX=%__CMakeBinDir%" "-DMKL_LIB_PATH=%MKL_LIB_PATH%" -G "Visual Studio %__VSString%" %__ExtraCmakeParams% -B. -H%1
 endlocal
 GOTO :DONE
 

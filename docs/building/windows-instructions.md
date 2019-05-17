@@ -5,13 +5,13 @@ You can build ML.NET either via the command line or by using Visual Studio.
 
 ## Required Software
 
-1. **[Visual Studio 2019 or Visual Studio 2017](https://www.visualstudio.com/downloads/) (Community, Professional, Enterprise)** The Community version is completely free. The below build instructions were verified for VS 15.8.0 and higher.
+1. **[Visual Studio 2019 / Visual Studio 2017](https://www.visualstudio.com/downloads/) (Community, Professional, Enterprise)** The Community version is completely free. The below build instructions were verified for VS 15.8.0 and higher.
 2. **[CMake](https://cmake.org/)** must be installed from [the CMake download page](https://cmake.org/download/#latest) and added to your path.
 
-### Visual Studio 2019 Visual Studio 2017 Installation
+### Visual Studio 2019 / Visual Studio 2017 Installation
 We have successfully verified the below build instructions for Visual Studio version 15.8.0 and higher. 
 
-#### Visual Studio 2019 Visual Studio 2017 - 'Workloads' based install
+#### Visual Studio 2019 / Visual Studio 2017 - 'Workloads' based install
 
 The following are the minimum requirements:
   * .NET desktop development
@@ -26,7 +26,7 @@ The following are the minimum requirements:
 
 Note: If you have both VS 2017 and 2015 installed, you need to copy DIA SDK directory from VS 2015 installation into VS 2017 (VS installer bug).
 
-#### Visual Studio 2019 or Visual Studio 2017 - 'Individual components' based install
+#### Visual Studio 2019 / Visual Studio 2017 - 'Individual components' based install
 
 The following are the minimum requirements:
   * C# and Visual Basic Roslyn Compilers
@@ -42,7 +42,7 @@ The following are the minimum requirements:
 
 In order to fetch dependencies which come through Git submodules the following command needs to be run before building: `git submodule update --init`.
 
-### Building From Visual Studio 2019 or Visual Studio 2017
+### Building From Visual Studio 2019 / Visual Studio 2017
 
 First, set up the required tools, from a (non-admin) Command Prompt window:
 
