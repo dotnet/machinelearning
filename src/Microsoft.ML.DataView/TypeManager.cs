@@ -41,9 +41,9 @@ namespace Microsoft.ML.Data
             try
             {
                 _lock.Enter(ref ownLock);
-                if (!_rawTypeToDataViewTypeMap.ContainsKey(type))
+
+                if (!_rawTypeToDataViewTypeMap.TryGetValue(type, out dataViewType))
                     throw Contracts.ExceptParam(nameof(type), $"The raw type {type} is not registered with a DataView type.");
-                dataViewType = _rawTypeToDataViewTypeMap[type];
             }
             finally
             {
