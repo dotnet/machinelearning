@@ -15,67 +15,36 @@ namespace Samples.Dynamic
             var mlContext = new MLContext(seed: 0);
 
             // Create a list of training data points.
-            IEnumerable<DataPoint> dataPoints = GenerateRandomDataPoints(10);
+            var dataPoints = new List<DataPoint>()
+            {
+                new DataPoint(){ Label = 0, Features = 4},
+                new DataPoint(){ Label = 0, Features = 5},
+                new DataPoint(){ Label = 0, Features = 6},
+                new DataPoint(){ Label = 1, Features = 8},
+                new DataPoint(){ Label = 1, Features = 9},
+            };
 
             // Convert the list of data points to an IDataView object, which is consumable by ML.NET API.
             IDataView data = mlContext.Data.LoadFromEnumerable(dataPoints);
 
-            // Inspect the data before saving to a binary file.
-            PrintPreviewRows(dataPoints);
-
-            // The rows in the data.
-            // 0, 0.7262433
-            // 1, 0.8173254
-            // 0, 0.7680227
-            // 1, 0.5581612
-            // 0, 0.2060332
-            // 1, 0.5588848
-            // 0, 0.9060271
-            // 1, 0.4421779
-            // 0, 0.9775497
-            // 1, 0.2737045
-
             // Create a FileStream object and write the IDataView to it as a binary IDV file. 
             using (FileStream stream = new FileStream("data.tsv", FileMode.Create))
-            {
                 mlContext.Data.SaveAsText(data, stream);
-            }
 
             // Create an IDataView object by loading the binary IDV file.
             IDataView loadedData = mlContext.Data.LoadFromTextFile("data.tsv");
 
             // Inspect the data that is loaded from the previously saved binary file.
             var loadedDataEnumerable = mlContext.Data.CreateEnumerable<DataPoint>(loadedData, reuseRowObject: false);
-            PrintPreviewRows(loadedDataEnumerable);
+            foreach (DataPoint row in loadedDataEnumerable)
+                Console.WriteLine($"{row.Label}, {row.Features}");
 
-            // The rows in the data.
-            // 0, 0.7262433
-            // 1, 0.8173254
-            // 0, 0.7680227
-            // 1, 0.5581612
-            // 0, 0.2060332
-            // 1, 0.5588848
-            // 0, 0.9060271
-            // 1, 0.4421779
-            // 0, 0.9775497
-            // 1, 0.2737045
-
-            File.Delete("data.tsv");
-        }
-
-        private static IEnumerable<DataPoint> GenerateRandomDataPoints(int count, int seed = 0)
-        {
-            var random = new Random(seed);
-            for (int i = 0; i < count; i++)
-            {
-                yield return new DataPoint
-                {
-                    Label = i % 2,
-
-                    // Create random features that are correlated with label.
-                    Features = (float)random.NextDouble()
-                };
-            }
+            // Preview of the loaded data.
+            // 0, 4
+            // 0, 5
+            // 0, 6
+            // 1, 8
+            // 1, 9
         }
 
         // Example with label and feature values. A data set is a collection of such examples.
@@ -84,14 +53,6 @@ namespace Samples.Dynamic
             public float Label { get; set; }
 
             public float Features { get; set; }
-        }
-
-        // Print helper.
-        private static void PrintPreviewRows(IEnumerable<DataPoint> data)
-        {
-            Console.WriteLine($"The rows in the data.");
-            foreach (var row in data)
-                Console.WriteLine($"{row.Label}, {row.Features}");
         }
     }
 }
