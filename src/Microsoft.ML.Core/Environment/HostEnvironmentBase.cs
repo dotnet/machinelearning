@@ -133,7 +133,7 @@ namespace Microsoft.ML.Runtime
                 IHost host;
                 lock (_cancelLock)
                 {
-                    Random rand = (seed.HasValue) ? RandomUtils.Create(seed.Value) : RandomUtils.Create(_rand);
+                    Random rand = (seed.HasValue) ? RandomUtils.Create(seed.GetValueOrDefault()) : RandomUtils.Create(_rand);
                     host = RegisterCore(this, name, Master?.FullName, rand, verbose ?? Verbose);
                     if (!IsCanceled)
                         _children.Add(new WeakReference<IHost>(host));
@@ -388,7 +388,7 @@ namespace Microsoft.ML.Runtime
             IHost host;
             lock (_cancelLock)
             {
-                Random rand = (seed.HasValue) ? RandomUtils.Create(seed.Value) : RandomUtils.Create(_rand);
+                Random rand = (seed.HasValue) ? RandomUtils.Create(seed.GetValueOrDefault()) : RandomUtils.Create(_rand);
                 host = RegisterCore(this, name, Master?.FullName, rand, verbose ?? Verbose);
                 _children.Add(new WeakReference<IHost>(host));
             }

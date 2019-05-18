@@ -224,7 +224,7 @@ namespace Microsoft.ML.Data
                     continue;
                 var info = schema.GetColumnOrNull(kvp.Value);
                 if (info.HasValue)
-                    Add(map, kvp.Key.Value, info.Value);
+                    Add(map, kvp.Key.Value, info.GetValueOrDefault());
                 else if (!opt)
                     throw Contracts.ExceptParam(nameof(schema), $"{kvp.Value} column '{kvp.Key.Value}' not found");
             }
