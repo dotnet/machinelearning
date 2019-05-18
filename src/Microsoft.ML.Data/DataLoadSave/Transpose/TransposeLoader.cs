@@ -244,7 +244,7 @@ namespace Microsoft.ML.Data.IO
                     var rowCountNull = view.GetRowCount();
                     // This came from a binary IDV, so it must have an actual row count.
                     Host.Assert(rowCountNull.HasValue);
-                    long rowCount = rowCountNull.Value;
+                    long rowCount = rowCountNull.GetValueOrDefault();
                     // Either we are holding only the schema information and have no rows,
                     // or we have the double-stored hybrid dataview with data stored both
                     // row-wise and column wise.
@@ -306,7 +306,7 @@ namespace Microsoft.ML.Data.IO
                     // though this row count for this is more like a "slot" count.
                     var rowCountNull = view.GetRowCount();
                     Host.Assert(rowCountNull.HasValue);
-                    long rowCount = rowCountNull.Value;
+                    long rowCount = rowCountNull.GetValueOrDefault();
                     // There must be one "row" per "slot" on the column this is a transpose of.
                     // Check that.
                     var type = _parent.Schema[_col].Type;

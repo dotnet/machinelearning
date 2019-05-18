@@ -179,7 +179,7 @@ namespace Microsoft.ML.Data
         {
             _host.CheckValue(additionalColumnsPredicate, nameof(additionalColumnsPredicate));
 
-            Random rand = randomSeed.HasValue ? RandomUtils.Create(randomSeed.Value) : null;
+            Random rand = randomSeed.HasValue ? RandomUtils.Create(randomSeed.GetValueOrDefault()) : null;
 
             var deps = GetDependencies(additionalColumnsPredicate);
 

@@ -1422,7 +1422,7 @@ namespace Microsoft.ML.Data.Conversion
         {
             TryParseSigned(I8.MaxValue, in src, out long? res);
             Contracts.Check(res.HasValue, "Value could not be parsed from text to long.");
-            return res.Value;
+            return res.GetValueOrDefault();
         }
 
         // These map unparsable and overflow values to zero. The unsigned integer types do not have an NA value.

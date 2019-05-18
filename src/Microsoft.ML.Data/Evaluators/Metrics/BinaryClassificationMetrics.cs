@@ -86,7 +86,7 @@ namespace Microsoft.ML.Data
             if (!column.HasValue)
                 throw ectx.Except($"Could not find column '{name}'");
             T val = default;
-            row.GetGetter<T>(column.Value)(ref val);
+            row.GetGetter<T>(column.GetValueOrDefault())(ref val);
             return val;
         }
 

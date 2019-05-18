@@ -728,10 +728,10 @@ namespace Microsoft.ML.Data.IO
             // If we did not set a size bound, return the old bound.
             if (!_maxBytesPerBlock.HasValue)
             {
-                _host.Assert(_maxRowsPerBlock.HasValue && _maxRowsPerBlock.Value > 0); // argument validation should have ensured this
-                return _maxRowsPerBlock.Value;
+                _host.Assert(_maxRowsPerBlock.HasValue && _maxRowsPerBlock.GetValueOrDefault() > 0); // argument validation should have ensured this
+                return _maxRowsPerBlock.GetValueOrDefault();
             }
-            long maxBytes = _maxBytesPerBlock.Value;
+            long maxBytes = _maxBytesPerBlock.GetValueOrDefault();
 
             // First get the cursor.
             HashSet<int> active = new HashSet<int>(actives.Select(cc => cc.SourceIndex));

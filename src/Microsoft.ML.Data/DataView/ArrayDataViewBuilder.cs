@@ -185,11 +185,11 @@ namespace Microsoft.ML.Data
         {
             if (rowCount.HasValue)
             {
-                _host.Check(!RowCount.HasValue || RowCount.Value == rowCount.Value, "Specified row count incompatible with existing columns");
-                return new DataView(_host, this, rowCount.Value);
+                _host.Check(!RowCount.HasValue || RowCount.GetValueOrDefault() == rowCount.GetValueOrDefault(), "Specified row count incompatible with existing columns");
+                return new DataView(_host, this, rowCount.GetValueOrDefault());
             }
             _host.Check(_columns.Count > 0, "Cannot construct data-view with neither any columns nor a specified row count");
-            return new DataView(_host, this, RowCount.Value);
+            return new DataView(_host, this, RowCount.GetValueOrDefault());
         }
 
         private sealed class DataView : IDataView

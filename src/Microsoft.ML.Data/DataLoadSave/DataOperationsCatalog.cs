@@ -519,7 +519,7 @@ namespace Microsoft.ML
                     samplingKeyColumn = data.Schema.GetTempColumnName(samplingKeyColumn);
                     HashingEstimator.ColumnOptions columnOptions;
                     if (seed.HasValue)
-                        columnOptions = new HashingEstimator.ColumnOptions(samplingKeyColumn, origStratCol, 30, (uint)seed.Value);
+                        columnOptions = new HashingEstimator.ColumnOptions(samplingKeyColumn, origStratCol, 30, (uint)seed.GetValueOrDefault());
                     else
                         columnOptions = new HashingEstimator.ColumnOptions(samplingKeyColumn, origStratCol, 30);
                     data = new HashingEstimator(env, columnOptions).Fit(data).Transform(data);
