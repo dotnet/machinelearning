@@ -902,7 +902,7 @@ namespace Microsoft.ML.Calibrators
             ch.Info("Training calibrator.");
 
             var cols = weightCol.HasValue ?
-                new DataViewSchema.Column[] { labelCol, scoreCol, weightCol.Value } :
+                new DataViewSchema.Column[] { labelCol, scoreCol, weightCol.GetValueOrDefault() } :
                 new DataViewSchema.Column[] { labelCol, scoreCol };
 
             using (var cursor = scored.GetRowCursor(cols))
@@ -910,7 +910,7 @@ namespace Microsoft.ML.Calibrators
                 var labelGetter = RowCursorUtils.GetLabelGetter(cursor, labelCol.Index);
                 var scoreGetter = RowCursorUtils.GetGetterAs<Single>(NumberDataViewType.Single, cursor, scoreCol.Index);
                 ValueGetter<Single> weightGetter = !weightCol.HasValue ? (ref float dst) => dst = 1 :
-                    RowCursorUtils.GetGetterAs<Single>(NumberDataViewType.Single, cursor, weightCol.Value.Index);
+                    RowCursorUtils.GetGetterAs<Single>(NumberDataViewType.Single, cursor, weightCol.GetValueOrDefault().Index);
 
                 int num = 0;
                 while (cursor.MoveNext())
@@ -959,7 +959,7 @@ namespace Microsoft.ML.Calibrators
 
             var scored = ScoreUtils.GetScorer(predictor, data, env, null);
             var scoreColumn = scored.Schema[DefaultColumnNames.Score];
-            return TrainCalibrator(env, ch, caliTrainer, scored, data.Schema.Label.Value.Name, DefaultColumnNames.Score, data.Schema.Weight?.Name, maxRows);
+            return TrainCalibrator(env, ch, caliTrainer, scored, data.Schema.Label.GetValueOrDefault().Name, DefaultColumnNames.Score, data.Schema.Weight?.Name, maxRows);
         }
 
         public static IPredictorProducing<float> CreateCalibratedPredictor<TSubPredictor, TCalibrator>(IHostEnvironment env, TSubPredictor predictor, TCalibrator cali)

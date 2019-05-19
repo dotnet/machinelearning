@@ -221,7 +221,7 @@ namespace Microsoft.ML.Data
                 if (!InputRoleMappedSchema.Feature.HasValue || dependingColumns.Count() == 0)
                     return Enumerable.Empty<DataViewSchema.Column>();
 
-                return Enumerable.Repeat(InputRoleMappedSchema.Feature.Value, 1); ;
+                return Enumerable.Repeat(InputRoleMappedSchema.Feature.GetValueOrDefault(), 1); ;
             }
 
             public IEnumerable<KeyValuePair<RoleMappedSchema.ColumnRole, string>> GetInputColumnRoles()
@@ -301,7 +301,7 @@ namespace Microsoft.ML.Data
             Contracts.Assert(Utils.Size(outputNames) == 1); // Score.
             var mapper = (ISingleCanSavePfa)ValueMapper;
             // If the features column was not produced, we must hide the outputs.
-            var featureToken = ctx.TokenOrNullForName(schema.Feature.Value.Name);
+            var featureToken = ctx.TokenOrNullForName(schema.Feature.GetValueOrDefault().Name);
             if (featureToken == null)
                 ctx.Hide(outputNames);
             var scoreToken = mapper.SaveAsPfa(ctx, featureToken);
@@ -316,7 +316,7 @@ namespace Microsoft.ML.Data
             Contracts.Assert(schema.Feature.HasValue);
             Contracts.Assert(Utils.Size(outputNames) <= 2); // PredictedLabel and/or Score.
             var mapper = (ISingleCanSaveOnnx)ValueMapper;
-            string featName = schema.Feature.Value.Name;
+            string featName = schema.Feature.GetValueOrDefault().Name;
             if (!ctx.ContainsColumn(featName))
                 return false;
             Contracts.Assert(ctx.ContainsColumn(featName));
@@ -408,7 +408,7 @@ namespace Microsoft.ML.Data
             Contracts.Assert(Utils.Size(outputNames) == 2); // Score and prob.
             var mapper = (IDistCanSavePfa)ValueMapper;
             // If the features column was not produced, we must hide the outputs.
-            string featureToken = ctx.TokenOrNullForName(schema.Feature.Value.Name);
+            string featureToken = ctx.TokenOrNullForName(schema.Feature.GetValueOrDefault().Name);
             if (featureToken == null)
                 ctx.Hide(outputNames);
 
@@ -429,7 +429,7 @@ namespace Microsoft.ML.Data
             Contracts.Assert(schema.Feature.HasValue);
             Contracts.Assert(Utils.Size(outputNames) == 3); // Predicted Label, Score and Probablity.
 
-            var featName = schema.Feature.Value.Name;
+            var featName = schema.Feature.GetValueOrDefault().Name;
             if (!ctx.ContainsColumn(featName))
                 return false;
             Contracts.Assert(ctx.ContainsColumn(featName));
@@ -506,7 +506,7 @@ namespace Microsoft.ML.Data
                 if (dependingColumns.Count() == 0 || !InputRoleMappedSchema.Feature.HasValue)
                     return Enumerable.Empty<DataViewSchema.Column>();
 
-                return Enumerable.Repeat(InputRoleMappedSchema.Feature.Value, 1);
+                return Enumerable.Repeat(InputRoleMappedSchema.Feature.GetValueOrDefault(), 1);
             }
 
             public IEnumerable<KeyValuePair<RoleMappedSchema.ColumnRole, string>> GetInputColumnRoles()
@@ -523,7 +523,7 @@ namespace Microsoft.ML.Data
                 if (active[0] || active[1])
                 {
                     // Put all captured locals at this scope.
-                    var featureGetter = InputRoleMappedSchema.Feature.HasValue ? input.GetGetter<VBuffer<float>>(InputRoleMappedSchema.Feature.Value) : null;
+                    var featureGetter = InputRoleMappedSchema.Feature.HasValue ? input.GetGetter<VBuffer<float>>(InputRoleMappedSchema.Feature.GetValueOrDefault()) : null;
                     float prob = 0;
                     float score = 0;
                     long cachedPosition = -1;

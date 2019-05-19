@@ -52,7 +52,7 @@ namespace Microsoft.ML.Data
             Host.CheckParam(schema.Label.HasValue, nameof(schema), "Could not find the label column");
             var scoreCol = schema.GetUniqueColumn(AnnotationUtils.Const.ScoreValueKind.Score);
 
-            return new MultiOutputRegressionPerInstanceEvaluator(Host, schema.Schema, scoreCol.Name, schema.Label.Value.Name);
+            return new MultiOutputRegressionPerInstanceEvaluator(Host, schema.Schema, scoreCol.Name, schema.Label.GetValueOrDefault().Name);
         }
 
         private protected override void CheckScoreAndLabelTypes(RoleMappedSchema schema)
@@ -62,9 +62,9 @@ namespace Microsoft.ML.Data
             if (t == null || !t.IsKnownSize || t.ItemType != NumberDataViewType.Single)
                 throw Host.ExceptSchemaMismatch(nameof(schema), "score", score.Name, "known-size vector of Single", t.ToString());
             Host.Check(schema.Label.HasValue, "Could not find the label column");
-            t = schema.Label.Value.Type as VectorDataViewType;
+            t = schema.Label.GetValueOrDefault().Type as VectorDataViewType;
             if (t == null || !t.IsKnownSize || (t.ItemType != NumberDataViewType.Single && t.ItemType != NumberDataViewType.Double))
-                throw Host.ExceptSchemaMismatch(nameof(schema), "label", schema.Label.Value.Name, "known-size vector of Single or Double", t.ToString());
+                throw Host.ExceptSchemaMismatch(nameof(schema), "label", schema.Label.GetValueOrDefault().Name, "known-size vector of Single or Double", t.ToString());
         }
 
         private protected override Aggregator GetAggregatorCore(RoleMappedSchema schema, string stratName)
@@ -306,13 +306,13 @@ namespace Microsoft.ML.Data
 
                 var score = schema.GetUniqueColumn(AnnotationUtils.Const.ScoreValueKind.Score);
 
-                _labelGetter = RowCursorUtils.GetVecGetterAs<float>(NumberDataViewType.Single, row, schema.Label.Value.Index);
+                _labelGetter = RowCursorUtils.GetVecGetterAs<float>(NumberDataViewType.Single, row, schema.Label.GetValueOrDefault().Index);
                 _scoreGetter = row.GetGetter<VBuffer<float>>(score);
                 Contracts.AssertValue(_labelGetter);
                 Contracts.AssertValue(_scoreGetter);
 
                 if (schema.Weight.HasValue)
-                    _weightGetter = row.GetGetter<float>(schema.Weight.Value);
+                    _weightGetter = row.GetGetter<float>(schema.Weight.GetValueOrDefault());
             }
 
             public override void ProcessRow()
@@ -681,7 +681,7 @@ namespace Microsoft.ML.Data
                 bool isWeighted = false;
                 ValueGetter<bool> isWeightedGetter;
                 if (isWeightedCol.HasValue)
-                    isWeightedGetter = cursor.GetGetter<bool>(isWeightedCol.Value);
+                    isWeightedGetter = cursor.GetGetter<bool>(isWeightedCol.GetValueOrDefault());
                 else
                     isWeightedGetter = (ref bool dst) => dst = false;
 
@@ -698,7 +698,7 @@ namespace Microsoft.ML.Data
                 for (int i = 0; i < fold.Schema.Count; i++)
                 {
                     var currentColumn = fold.Schema[i];
-                    if (currentColumn.IsHidden || (isWeightedCol.HasValue && i == isWeightedCol.Value.Index) ||
+                    if (currentColumn.IsHidden || (isWeightedCol.HasValue && i == isWeightedCol.GetValueOrDefault().Index) ||
                         (hasStrats && (i == stratCol || i == stratVal)))
                     {
                         continue;

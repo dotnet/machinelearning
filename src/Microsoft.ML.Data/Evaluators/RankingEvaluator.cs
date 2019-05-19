@@ -129,7 +129,7 @@ namespace Microsoft.ML.Data
             Host.CheckParam(data.Schema.Group.HasValue, nameof(data), "Schema must contain a group column");
 
             return new RankingPerInstanceTransform(Host, data.Data,
-                data.Schema.Label.Value.Name, scoreInfo.Name, data.Schema.Group.Value.Name, _truncationLevel, _labelGains);
+                data.Schema.Label.GetValueOrDefault().Name, scoreInfo.Name, data.Schema.Group.GetValueOrDefault().Name, _truncationLevel, _labelGains);
         }
 
         public override IEnumerable<MetricColumn> GetOverallMetricColumns()
@@ -446,15 +446,15 @@ namespace Microsoft.ML.Data
 
                 var score = schema.GetUniqueColumn(AnnotationUtils.Const.ScoreValueKind.Score);
 
-                _labelGetter = RowCursorUtils.GetLabelGetter(row, schema.Label.Value.Index);
+                _labelGetter = RowCursorUtils.GetLabelGetter(row, schema.Label.GetValueOrDefault().Index);
                 _scoreGetter = row.GetGetter<Single>(score);
-                _newGroupDel = RowCursorUtils.GetIsNewGroupDelegate(row, schema.Group.Value.Index);
+                _newGroupDel = RowCursorUtils.GetIsNewGroupDelegate(row, schema.Group.GetValueOrDefault().Index);
                 if (schema.Weight.HasValue)
-                    _weightGetter = row.GetGetter<Single>(schema.Weight.Value);
+                    _weightGetter = row.GetGetter<Single>(schema.Weight.GetValueOrDefault());
 
                 if (UnweightedCounters.GroupSummary)
                 {
-                    ValueGetter<StringBuilder> groupIdBuilder = RowCursorUtils.GetGetterAsStringBuilder(row, schema.Group.Value.Index);
+                    ValueGetter<StringBuilder> groupIdBuilder = RowCursorUtils.GetGetterAsStringBuilder(row, schema.Group.GetValueOrDefault().Index);
                     _groupSbUpdate = () => groupIdBuilder(ref _groupSb);
                 }
                 else
@@ -931,8 +931,8 @@ namespace Microsoft.ML.Data
             Host.CheckParam(schema.Group.HasValue, nameof(schema), "Data must contain a group column");
 
             // The ranking evaluator outputs the label, group key and score columns.
-            yield return schema.Group.Value.Name;
-            yield return schema.Label.Value.Name;
+            yield return schema.Group.GetValueOrDefault().Name;
+            yield return schema.Label.GetValueOrDefault().Name;
             var scoreCol = EvaluateUtils.GetScoreColumn(Host, schema.Schema, ScoreCol, nameof(Arguments.ScoreColumn),
                 AnnotationUtils.Const.ScoreColumnKind.Ranking);
             yield return scoreCol.Name;

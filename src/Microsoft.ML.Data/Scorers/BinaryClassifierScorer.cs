@@ -108,7 +108,7 @@ namespace Microsoft.ML.Data
             env.AssertValue(trainSchema);
             env.Assert(mapper is ISchemaBoundRowMapper);
             env.Assert(trainSchema.Label.HasValue);
-            var labelColumn = trainSchema.Label.Value;
+            var labelColumn = trainSchema.Label.GetValueOrDefault();
 
             // Key values from the training schema label, will map to slot names of the score output.
             var type = labelColumn.Annotations.Schema.GetColumnOrNull(AnnotationUtils.Kinds.KeyValues)?.Type as VectorDataViewType;

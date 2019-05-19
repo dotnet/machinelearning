@@ -52,7 +52,7 @@ namespace Microsoft.ML.Trainers
 
             if (!data.Schema.Feature.HasValue)
                 throw Contracts.ExceptParam(nameof(data), "Training data must specify a feature column.");
-            var col = data.Schema.Feature.Value;
+            var col = data.Schema.Feature.GetValueOrDefault();
             Contracts.Assert(!col.IsHidden);
             if (!(col.Type is VectorDataViewType vecType && vecType.Size > 0 && vecType.ItemType == NumberDataViewType.Single))
                 throw Contracts.ExceptParam(nameof(data), "Training feature column '{0}' must be a known-size vector of R4, but has type: {1}.", col.Name, col.Type);

@@ -50,7 +50,7 @@ namespace Microsoft.ML.Data
             schema.Schema[scoreInfo.Index].Annotations.GetValue(AnnotationUtils.Kinds.SlotNames, ref quantiles);
             Host.Assert(quantiles.IsDense && quantiles.Length == scoreSize);
 
-            return new QuantileRegressionPerInstanceEvaluator(Host, schema.Schema, scoreInfo.Name, schema.Label.Value.Name, scoreSize, quantiles);
+            return new QuantileRegressionPerInstanceEvaluator(Host, schema.Schema, scoreInfo.Name, schema.Label.GetValueOrDefault().Name, scoreSize, quantiles);
         }
 
         private protected override void CheckScoreAndLabelTypes(RoleMappedSchema schema)
@@ -60,9 +60,9 @@ namespace Microsoft.ML.Data
             if (t == null || t.Size == 0 || (t.ItemType != NumberDataViewType.Single && t.ItemType != NumberDataViewType.Double))
                 throw Host.ExceptSchemaMismatch(nameof(schema), "score", score.Name, "Vector of Single or Double", t.ToString());
             Host.CheckParam(schema.Label.HasValue, nameof(schema), "Must contain a label column");
-            var labelType = schema.Label.Value.Type;
+            var labelType = schema.Label.GetValueOrDefault().Type;
             if (labelType != NumberDataViewType.Single)
-                throw Host.ExceptSchemaMismatch(nameof(schema), "label", schema.Label.Value.Name, "Single", t.ToString());
+                throw Host.ExceptSchemaMismatch(nameof(schema), "label", schema.Label.GetValueOrDefault().Name, "Single", t.ToString());
         }
 
         private protected override Aggregator GetAggregatorCore(RoleMappedSchema schema, string stratName)
@@ -542,7 +542,7 @@ namespace Microsoft.ML.Data
             Host.CheckParam(schema.Label.HasValue, nameof(schema), "Must contain a label column");
 
             // The quantile regression evaluator outputs the label and score columns.
-            yield return schema.Label.Value.Name;
+            yield return schema.Label.GetValueOrDefault().Name;
             var scoreCol = EvaluateUtils.GetScoreColumn(Host, schema.Schema, ScoreCol, nameof(Arguments.ScoreColumn),
                 AnnotationUtils.Const.ScoreColumnKind.QuantileRegression);
             yield return scoreCol.Name;

@@ -59,9 +59,9 @@ namespace Microsoft.ML.Data
             if (t != NumberDataViewType.Single)
                 throw Host.ExceptSchemaMismatch(nameof(schema), "score", score.Name, "Single", t.ToString());
             Host.CheckParam(schema.Label.HasValue, nameof(schema), "Could not find the label column");
-            t = schema.Label.Value.Type;
+            t = schema.Label.GetValueOrDefault().Type;
             if (t != NumberDataViewType.Single)
-                throw Host.ExceptSchemaMismatch(nameof(schema), "label", schema.Label.Value.Name, "Single", t.ToString());
+                throw Host.ExceptSchemaMismatch(nameof(schema), "label", schema.Label.GetValueOrDefault().Name, "Single", t.ToString());
         }
 
         private protected override Aggregator GetAggregatorCore(RoleMappedSchema schema, string stratName)
@@ -74,7 +74,7 @@ namespace Microsoft.ML.Data
             Contracts.CheckParam(schema.Label.HasValue, nameof(schema), "Could not find the label column");
             var scoreInfo = schema.GetUniqueColumn(AnnotationUtils.Const.ScoreValueKind.Score);
 
-            return new RegressionPerInstanceEvaluator(Host, schema.Schema, scoreInfo.Name, schema.Label.Value.Name);
+            return new RegressionPerInstanceEvaluator(Host, schema.Schema, scoreInfo.Name, schema.Label.GetValueOrDefault().Name);
         }
 
         public override IEnumerable<MetricColumn> GetOverallMetricColumns()
@@ -356,7 +356,7 @@ namespace Microsoft.ML.Data
             Host.CheckParam(schema.Label.HasValue, nameof(schema), "Schema must contain a label column");
 
             // The regression evaluator outputs the label and score columns.
-            yield return schema.Label.Value.Name;
+            yield return schema.Label.GetValueOrDefault().Name;
             var scoreCol = EvaluateUtils.GetScoreColumn(Host, schema.Schema, ScoreCol, nameof(Arguments.ScoreColumn),
                 AnnotationUtils.Const.ScoreColumnKind.Regression);
             yield return scoreCol.Name;

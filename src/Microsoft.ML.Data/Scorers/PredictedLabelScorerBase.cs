@@ -227,7 +227,7 @@ namespace Microsoft.ML.Data
                         // REVIEW: In the event that TValue is not the right type, it won't really be
                         // the "right" type of exception. However considering that I consider the metadata
                         // schema as it stands right now to be temporary, let's suppose we don't really care.
-                        _predColMetadata.GetGetter<TValue>(mcol.Value)(ref value);
+                        _predColMetadata.GetGetter<TValue>(mcol.GetValueOrDefault())(ref value);
                         return;
                     }
                 }
