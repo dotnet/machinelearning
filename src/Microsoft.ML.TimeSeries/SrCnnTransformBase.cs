@@ -265,7 +265,8 @@ namespace Microsoft.ML.Transforms.TimeSeries
 
             private protected sealed override void InitializeStateCore(bool disk = false)
             {
-                //TODO:
+                Parent = (SrCnnTransformBase<TInput, TState>)ParentTransform;
+                //TODO: assert for value threshold
             }
 
             private protected override void LearnStateFromDataCore(FixedSizeQueue<TInput> data)

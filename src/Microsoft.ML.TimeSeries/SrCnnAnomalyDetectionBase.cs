@@ -197,7 +197,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
                     List<Single> spectralList = new List<Single>();
                     for (int i = 0; i < magLogList.Count; ++i)
                     {
-                        spectralList.Add(magLogList[i] - filteredLogList[i]);
+                        spectralList.Add(MathUtils.ExpSlow(magLogList[i] - filteredLogList[i]));
                     }
 
                     // Step 5: IFFT transformation
@@ -227,10 +227,13 @@ namespace Microsoft.ML.Transforms.TimeSeries
                     {
                         ifftMagList.Add(MathUtils.Sqrt((ifftRe[i] * ifftRe[i] + ifftIm[i] * ifftIm[i])));
                     }
-                    List<Single> filteredIfftMagList = AverageFilter(ifftMagList, Parent.AvergingWindowSize);
+                    List<Single> filteredIfftMagList = AverageFilter(ifftMagList, Parent.JudgementWindowSize);
 
                     // Step 7: Calculate score
                     var score = CalculateSocre(ifftMagList[data.Count-1], filteredIfftMagList[data.Count-1]);
+                    score = (score < 1) ? 0 : score;
+                    score = (score > 10) ? 10 : score;
+                    score /= 10.0f;
                     var detres = score > Parent.AlertThreshold ? 1 : 0;
                     var mag = ifftMagList[data.Count-1];
 
@@ -272,9 +275,10 @@ namespace Microsoft.ML.Transforms.TimeSeries
                 {
                     Single cumsum = 0.0f;
                     List<Single> cumSumList = data.Select(x => cumsum += x).ToList();
+                    List<Single> cumSumShift = new List<Single>(cumSumList);
                     for (int i = n; i < cumSumList.Count; ++i)
                     {
-                        cumSumList[i] -= cumSumList[i - n];
+                        cumSumList[i] = (cumSumList[i] - cumSumShift[i - n]) / n;
                     }
                     for (int i = 1; i < n; ++i)
                     {

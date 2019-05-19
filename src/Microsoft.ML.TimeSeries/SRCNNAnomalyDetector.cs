@@ -98,7 +98,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
         private static VersionInfo GetVersionInfo()
         {
             return new VersionInfo(
-                modelSignature: "SRCNNTRNS",
+                modelSignature: "SRCNTRNS",
                 verWrittenCur: 0x00010001, // Initial
                 verReadableCur: 0x00010001,
                 verWeCanReadBack: 0x00010001,
