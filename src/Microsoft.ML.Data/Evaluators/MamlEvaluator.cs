@@ -120,7 +120,7 @@ namespace Microsoft.ML.Data
                 : StratCols.Select(col => RoleMappedSchema.CreatePair(Strat, col));
 
             if (needName && schema.Name.HasValue)
-                roles = AnnotationUtils.Prepend(roles, RoleMappedSchema.ColumnRole.Name.Bind(schema.Name.Value.Name));
+                roles = AnnotationUtils.Prepend(roles, RoleMappedSchema.ColumnRole.Name.Bind(schema.Name.GetValueOrDefault().Name));
 
             return roles.Concat(GetInputColumnRolesCore(schema));
         }

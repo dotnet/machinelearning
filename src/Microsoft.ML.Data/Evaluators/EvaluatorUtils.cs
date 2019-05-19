@@ -122,7 +122,7 @@ namespace Microsoft.ML.Data
                 if (!col.HasValue)
                     throw ectx.ExceptUserArg(argName, "Score column is missing");
 #pragma warning restore MSML_ContractsNameUsesNameof
-                return col.Value;
+                return col.GetValueOrDefault();
             }
 
             var maxSetNum = schema.GetMaxAnnotationKind(out int colTmp, AnnotationUtils.Kinds.ScoreColumnSetId,
@@ -176,10 +176,10 @@ namespace Microsoft.ML.Data
                 var col = schema.GetColumnOrNull(name);
                 if (!col.HasValue)
                     throw ectx.ExceptUserArg(argName, "{0} column is missing", valueKind);
-                if (!testType(col.Value.Type))
+                if (!testType(col.GetValueOrDefault().Type))
                     throw ectx.ExceptUserArg(argName, "{0} column has incompatible type", valueKind);
 #pragma warning restore MSML_ContractsNameUsesNameof
-                return col.Value;
+                return col.GetValueOrDefault();
             }
 
             // Get the score column set id from colScore.
@@ -1082,7 +1082,7 @@ namespace Microsoft.ML.Data
             env.Assert(hasStrats == hasStratVals);
             var hasFoldCol = data.Schema.TryGetColumnIndex(MetricKinds.ColumnNames.FoldIndex, out int fcol);
 
-            isWeightedCol = hasWeighted ? isWeightedColumn.Value.Index : -1;
+            isWeightedCol = hasWeighted ? isWeightedColumn.GetValueOrDefault().Index : -1;
             stratCol = hasStrats ? scol : -1;
             stratVal = hasStratVals ? svalcol : -1;
             foldCol = hasFoldCol ? fcol : -1;
@@ -1099,7 +1099,7 @@ namespace Microsoft.ML.Data
                 bool isWeighted = false;
                 ValueGetter<bool> isWeightedGetter;
                 if (hasWeighted)
-                    isWeightedGetter = cursor.GetGetter<bool>(isWeightedColumn.Value);
+                    isWeightedGetter = cursor.GetGetter<bool>(isWeightedColumn.GetValueOrDefault());
                 else
                     isWeightedGetter = (ref bool dst) => dst = false;
 
@@ -1118,7 +1118,7 @@ namespace Microsoft.ML.Data
                 using (var ch = env.Register("GetMetricsAsString").Start("Get Metric Names"))
                 {
                     metricNames = GetMetricNames(ch, data.Schema, cursor,
-                        i => hasWeighted && i == isWeightedColumn.Value.Index || hasStrats && (i == scol || i == svalcol) ||
+                        i => hasWeighted && i == isWeightedColumn.GetValueOrDefault().Index || hasStrats && (i == scol || i == svalcol) ||
                             hasFoldCol && i == fcol, getters, vBufferGetters);
                 }
                 agg = new AggregatedMetric[metricNames.Count];
@@ -1728,12 +1728,12 @@ namespace Microsoft.ML.Data
             if (metrics.TryGetValue(MetricKinds.Warnings, out warnings))
             {
                 var warningTextColumn = warnings.Schema.GetColumnOrNull(MetricKinds.ColumnNames.WarningText);
-                if (warningTextColumn != null && warningTextColumn.HasValue && warningTextColumn.Value.Type is TextDataViewType)
+                if (warningTextColumn != null && warningTextColumn.HasValue && warningTextColumn.GetValueOrDefault().Type is TextDataViewType)
                 {
                     using (var cursor = warnings.GetRowCursor(warnings.Schema[MetricKinds.ColumnNames.WarningText]))
                     {
                         var warning = default(ReadOnlyMemory<char>);
-                        var getter = cursor.GetGetter<ReadOnlyMemory<char>>(warningTextColumn.Value);
+                        var getter = cursor.GetGetter<ReadOnlyMemory<char>>(warningTextColumn.GetValueOrDefault());
                         while (cursor.MoveNext())
                         {
                             getter(ref warning);

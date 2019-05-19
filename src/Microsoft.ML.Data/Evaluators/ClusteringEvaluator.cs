@@ -114,10 +114,10 @@ namespace Microsoft.ML.Data
             if (_calculateDbi)
             {
                 Host.Assert(schema.Feature.HasValue);
-                var t = schema.Feature.Value.Type;
+                var t = schema.Feature.GetValueOrDefault().Type;
                 if (!(t is VectorDataViewType vectorType) || !vectorType.IsKnownSize || vectorType.ItemType != NumberDataViewType.Single)
                 {
-                    throw Host.ExceptSchemaMismatch(nameof(schema), "features", schema.Feature.Value.Name,
+                    throw Host.ExceptSchemaMismatch(nameof(schema), "features", schema.Feature.GetValueOrDefault().Name,
                         "R4 vector of known size", t.ToString());
                 }
             }
@@ -329,7 +329,7 @@ namespace Microsoft.ML.Data
                         Contracts.Assert(features.HasValue);
                         _clusterCentroids = new VBuffer<Single>[_numClusters];
                         for (int i = 0; i < _numClusters; i++)
-                            _clusterCentroids[i] = VBufferUtils.CreateEmpty<Single>(features.Value.Type.GetVectorSize());
+                            _clusterCentroids[i] = VBufferUtils.CreateEmpty<Single>(features.GetValueOrDefault().Type.GetVectorSize());
                         _distancesToCentroids = new Double[_numClusters];
                     }
                 }
@@ -410,7 +410,7 @@ namespace Microsoft.ML.Data
                     Host.Assert(features.HasValue);
                     _clusterCentroids = new VBuffer<Single>[scoreVectorSize];
                     for (int i = 0; i < scoreVectorSize; i++)
-                        _clusterCentroids[i] = VBufferUtils.CreateEmpty<Single>(features.Value.Type.GetVectorSize());
+                        _clusterCentroids[i] = VBufferUtils.CreateEmpty<Single>(features.GetValueOrDefault().Type.GetVectorSize());
                 }
             }
 
@@ -494,7 +494,7 @@ namespace Microsoft.ML.Data
                 if (_calculateDbi)
                 {
                     Host.Assert(schema.Feature.HasValue);
-                    _featGetter = row.GetGetter<VBuffer<Single>>(schema.Feature.Value);
+                    _featGetter = row.GetGetter<VBuffer<Single>>(schema.Feature.GetValueOrDefault());
                 }
                 var score = schema.GetUniqueColumn(AnnotationUtils.Const.ScoreValueKind.Score);
                 Host.Assert(score.Type.GetVectorSize() == _scoresArr.Length);
@@ -503,11 +503,11 @@ namespace Microsoft.ML.Data
                 if (PassNum == 0)
                 {
                     if (schema.Label.HasValue)
-                        _labelGetter = RowCursorUtils.GetLabelGetter(row, schema.Label.Value.Index);
+                        _labelGetter = RowCursorUtils.GetLabelGetter(row, schema.Label.GetValueOrDefault().Index);
                     else
                         _labelGetter = (ref Single value) => value = Single.NaN;
                     if (schema.Weight.HasValue)
-                        _weightGetter = row.GetGetter<Single>(schema.Weight.Value);
+                        _weightGetter = row.GetGetter<Single>(schema.Weight.GetValueOrDefault());
                 }
                 else
                 {
@@ -824,7 +824,7 @@ namespace Microsoft.ML.Data
 
             // Output the label column if it exists.
             if (schema.Label.HasValue)
-                yield return schema.Label.Value.Name;
+                yield return schema.Label.GetValueOrDefault().Name;
 
             // Return the output columns.
             yield return ClusteringPerInstanceEvaluator.ClusterId;

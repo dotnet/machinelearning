@@ -49,7 +49,7 @@ namespace Microsoft.ML.Data
         {
             // Check the weight column type.
             if (schema.Weight.HasValue)
-                EvaluateUtils.CheckWeightType(Host, schema.Weight.Value.Type);
+                EvaluateUtils.CheckWeightType(Host, schema.Weight.GetValueOrDefault().Type);
             CheckScoreAndLabelTypes(schema);
             // Check the other column types.
             CheckCustomColumnTypesCore(schema);
@@ -415,7 +415,7 @@ namespace Microsoft.ML.Data
                     Row = row;
                     var col = row.Schema.GetColumnOrNull(ColName);
                     Contracts.Assert(col.HasValue);
-                    _stratGetter = row.GetGetter<TStrat>(col.Value);
+                    _stratGetter = row.GetGetter<TStrat>(col.GetValueOrDefault());
                     Contracts.AssertValue(_stratGetter);
                 }
 
