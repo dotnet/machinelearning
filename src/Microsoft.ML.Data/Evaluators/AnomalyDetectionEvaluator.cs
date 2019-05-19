@@ -99,9 +99,9 @@ namespace Microsoft.ML.Data
             if (t != NumberDataViewType.Single)
                 throw Host.ExceptSchemaMismatch(nameof(schema), "score", score.Name, "Single", t.ToString());
             Host.Check(schema.Label.HasValue, "Could not find the label column");
-            t = schema.Label.Value.Type;
+            t = schema.Label.GetValueOrDefault().Type;
             if (t != NumberDataViewType.Single && t.GetKeyCount() != 2)
-                throw Host.ExceptSchemaMismatch(nameof(schema), "label", schema.Label.Value.Name, "Single or a Key with cardinality 2", t.ToString());
+                throw Host.ExceptSchemaMismatch(nameof(schema), "label", schema.Label.GetValueOrDefault().Name, "Single or a Key with cardinality 2", t.ToString());
         }
 
         private protected override Aggregator GetAggregatorCore(RoleMappedSchema schema, string stratName)
@@ -506,7 +506,7 @@ namespace Microsoft.ML.Data
 
                 var score = schema.GetUniqueColumn(AnnotationUtils.Const.ScoreValueKind.Score);
 
-                _labelGetter = RowCursorUtils.GetLabelGetter(row, schema.Label.Value.Index);
+                _labelGetter = RowCursorUtils.GetLabelGetter(row, schema.Label.GetValueOrDefault().Index);
                 _scoreGetter = row.GetGetter<float>(score);
                 Host.AssertValue(_labelGetter);
                 Host.AssertValue(_scoreGetter);
@@ -672,17 +672,17 @@ namespace Microsoft.ML.Data
                 DataViewSchema.Column? column = top.Schema.GetColumnOrNull(AnomalyDetectionEvaluator.TopKResultsColumns.Instance);
                 if (!column.HasValue)
                     throw Host.ExceptSchemaMismatch(nameof(top.Schema), "instance", AnomalyDetectionEvaluator.TopKResultsColumns.Instance);
-                var instanceGetter = cursor.GetGetter<ReadOnlyMemory<char>>(column.Value);
+                var instanceGetter = cursor.GetGetter<ReadOnlyMemory<char>>(column.GetValueOrDefault());
 
                 column = top.Schema.GetColumnOrNull(AnomalyDetectionEvaluator.TopKResultsColumns.AnomalyScore);
                 if (!column.HasValue)
                     throw Host.ExceptSchemaMismatch(nameof(top.Schema), "anomaly score", AnomalyDetectionEvaluator.TopKResultsColumns.AnomalyScore);
-                var scoreGetter = cursor.GetGetter<Single>(column.Value);
+                var scoreGetter = cursor.GetGetter<Single>(column.GetValueOrDefault());
 
                 column = top.Schema.GetColumnOrNull(AnomalyDetectionEvaluator.TopKResultsColumns.Label);
                 if (!column.HasValue)
                     throw Host.ExceptSchemaMismatch(nameof(top.Schema), "label", AnomalyDetectionEvaluator.TopKResultsColumns.Label);
-                var labelGetter = cursor.GetGetter<Single>(column.Value);
+                var labelGetter = cursor.GetGetter<Single>(column.GetValueOrDefault());
 
                 bool hasRows = false;
                 while (cursor.MoveNext())
@@ -726,7 +726,7 @@ namespace Microsoft.ML.Data
             using (var cursor = overall.GetRowCursor(overall.Schema.Where(col => col.Name.Equals(AnomalyDetectionEvaluator.OverallMetrics.NumAnomalies)||
                 (hasStrat && col.Name.Equals(MetricKinds.ColumnNames.StratCol)))))
             {
-                var numAnomGetter = cursor.GetGetter<long>(numAnom.Value);
+                var numAnomGetter = cursor.GetGetter<long>(numAnom.GetValueOrDefault());
                 ValueGetter<uint> stratGetter = null;
                 if (hasStrat)
                 {
@@ -792,7 +792,7 @@ namespace Microsoft.ML.Data
             Host.CheckParam(schema.Label.HasValue, nameof(schema), "Data must contain a label column");
 
             // The anomaly detection evaluator outputs the label and the score.
-            yield return schema.Label.Value.Name;
+            yield return schema.Label.GetValueOrDefault().Name;
             var scoreCol = EvaluateUtils.GetScoreColumn(Host, schema.Schema, ScoreCol, nameof(Arguments.ScoreColumn),
                 AnnotationUtils.Const.ScoreColumnKind.AnomalyDetection);
             yield return scoreCol.Name;

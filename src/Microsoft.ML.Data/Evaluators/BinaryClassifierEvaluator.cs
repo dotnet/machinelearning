@@ -131,9 +131,9 @@ namespace Microsoft.ML.Data
             if (t != NumberDataViewType.Single)
                 throw host.ExceptSchemaMismatch(nameof(schema), "score", score.Name, "Single", t.ToString());
             host.Check(schema.Label.HasValue, "Could not find the label column");
-            t = schema.Label.Value.Type;
+            t = schema.Label.GetValueOrDefault().Type;
             if (t != NumberDataViewType.Single && t != NumberDataViewType.Double && t != BooleanDataViewType.Instance && t.GetKeyCount() != 2)
-                throw host.ExceptSchemaMismatch(nameof(schema), "label", schema.Label.Value.Name, "Single, Double, Boolean, or a Key with cardinality 2", t.ToString());
+                throw host.ExceptSchemaMismatch(nameof(schema), "label", schema.Label.GetValueOrDefault().Name, "Single, Double, Boolean, or a Key with cardinality 2", t.ToString());
         }
 
         private protected override void CheckCustomColumnTypesCore(RoleMappedSchema schema)
@@ -615,7 +615,7 @@ namespace Microsoft.ML.Data
 
                 var score = schema.GetUniqueColumn(AnnotationUtils.Const.ScoreValueKind.Score);
 
-                _labelGetter = RowCursorUtils.GetLabelGetter(row, schema.Label.Value.Index);
+                _labelGetter = RowCursorUtils.GetLabelGetter(row, schema.Label.GetValueOrDefault().Index);
                 _scoreGetter = row.GetGetter<Single>(score);
                 Host.AssertValue(_labelGetter);
                 Host.AssertValue(_scoreGetter);
@@ -1339,7 +1339,7 @@ namespace Microsoft.ML.Data
             var probCol = EvaluateUtils.GetOptAuxScoreColumn(Host, schema.Schema, _probCol, nameof(Arguments.ProbabilityColumn),
                 scoreCol.Index, AnnotationUtils.Const.ScoreValueKind.Probability, NumberDataViewType.Single.Equals);
             if (probCol.HasValue)
-                cols = AnnotationUtils.Prepend(cols, RoleMappedSchema.CreatePair(AnnotationUtils.Const.ScoreValueKind.Probability, probCol.Value.Name));
+                cols = AnnotationUtils.Prepend(cols, RoleMappedSchema.CreatePair(AnnotationUtils.Const.ScoreValueKind.Probability, probCol.GetValueOrDefault().Name));
             return cols;
         }
 
@@ -1641,7 +1641,7 @@ namespace Microsoft.ML.Data
             Host.CheckParam(schema.Label.HasValue, nameof(schema), "Schema must contain a label column");
 
             // The binary classifier evaluator outputs the label, score and probability columns.
-            yield return schema.Label.Value.Name;
+            yield return schema.Label.GetValueOrDefault().Name;
             var scoreCol = EvaluateUtils.GetScoreColumn(Host, schema.Schema, ScoreCol, nameof(Arguments.ScoreColumn),
                 AnnotationUtils.Const.ScoreColumnKind.BinaryClassification);
             yield return scoreCol.Name;
@@ -1650,7 +1650,7 @@ namespace Microsoft.ML.Data
             // Return the output columns. The LogLoss column is returned only if the probability column exists.
             if (probCol.HasValue)
             {
-                yield return probCol.Value.Name;
+                yield return probCol.GetValueOrDefault().Name;
                 yield return BinaryPerInstanceEvaluator.LogLoss;
             }
 
