@@ -104,7 +104,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
             public SrCnnAnomalyDetectionBase(IHostEnvironment env, ModelLoadContext ctx, string name, SrCnnAnomalyDetectionBaseWrapper parent)
                 : base(env, ctx, name)
             {
-                Host.CheckDecode(InitialWindowSize == 0);
+                //Host.CheckDecode(InitialWindowSize == 0);
                 StateRef = new State(ctx.Reader);
                 StateRef.InitState(this, Host);
                 Parent = parent;
@@ -132,7 +132,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
             internal void SaveThis(ModelSaveContext ctx)
             {
                 ctx.CheckAtModel();
-                Host.Assert(InitialWindowSize == 0);
+                //Host.Assert(InitialWindowSize == 0);
                 base.SaveModel(ctx);
 
                 // *** Binary format ***
@@ -147,7 +147,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
                 {
                 }
 
-                internal State(BinaryReader reader)
+                internal State(BinaryReader reader) : base(reader)
                 {
                     WindowedBuffer = TimeSeriesUtils.DeserializeFixedSizeQueueSingle(reader, Host);
                     InitialWindowedBuffer = TimeSeriesUtils.DeserializeFixedSizeQueueSingle(reader, Host);
@@ -229,17 +229,17 @@ namespace Microsoft.ML.Transforms.TimeSeries
                     }
                     List<Single> filteredIfftMagList = AverageFilter(ifftMagList, Parent.JudgementWindowSize);
 
-                    // Step 7: Calculate score
+                    // Step 7: Calculate score and set result
                     var score = CalculateSocre(ifftMagList[data.Count-1], filteredIfftMagList[data.Count-1]);
-                    score = (score < 1) ? 0 : score;
-                    score = (score > 10) ? 10 : score;
                     score /= 10.0f;
-                    var detres = score > Parent.AlertThreshold ? 1 : 0;
-                    var mag = ifftMagList[data.Count-1];
-
-                    //Step 8: Set result
-                    result.Values[0] = detres;
                     result.Values[1] = score;
+
+                    score = Math.Min(score, 1);
+                    score = Math.Max(score, 0);
+                    var detres = score > Parent.AlertThreshold ? 1 : 0;
+                    result.Values[0] = detres;
+
+                    var mag = ifftMagList[data.Count-1];
                     result.Values[2] = mag;
                 }
 

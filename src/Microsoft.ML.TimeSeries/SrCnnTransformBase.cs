@@ -84,7 +84,28 @@ namespace Microsoft.ML.Transforms.TimeSeries
         private protected SrCnnTransformBase(IHostEnvironment env, ModelLoadContext ctx, string name)
             : base(Contracts.CheckRef(env, nameof(env)).Register(name), ctx)
         {
-            //TODO: Read from binary format
+            OutputLength = 3;
+
+            byte temp;
+            temp = ctx.Reader.ReadByte();
+            BackAddWindowSize = (int)temp;
+            Host.CheckDecode(BackAddWindowSize > 0);
+
+            temp = ctx.Reader.ReadByte();
+            LookaheadWindowSize = (int)temp;
+            Host.CheckDecode(LookaheadWindowSize > 0);
+
+            temp = ctx.Reader.ReadByte();
+            AvergingWindowSize = (int)temp;
+            Host.CheckDecode(AvergingWindowSize > 0);
+
+            temp = ctx.Reader.ReadByte();
+            JudgementWindowSize = (int)temp;
+            Host.CheckDecode(JudgementWindowSize > 0);
+
+            temp = ctx.Reader.ReadByte();
+            AlertThreshold = (double)temp;
+            Host.CheckDecode(AlertThreshold >= 0 && AlertThreshold <= 1);
         }
 
         private protected SrCnnTransformBase(SrCnnArgumentBase args, string name, IHostEnvironment env)
@@ -95,7 +116,23 @@ namespace Microsoft.ML.Transforms.TimeSeries
 
         private protected override void SaveModel(ModelSaveContext ctx)
         {
-            //TODO: save to ctx and write to file
+            Host.CheckValue(ctx, nameof(ctx));
+            ctx.CheckAtModel();
+
+            Host.Assert(WindowSize > 0);
+            Host.Assert(InitialWindowSize == WindowSize);
+            Host.Assert(BackAddWindowSize > 0);
+            Host.Assert(LookaheadWindowSize > 0);
+            Host.Assert(AvergingWindowSize > 0);
+            Host.Assert(JudgementWindowSize > 0);
+            Host.Assert(AlertThreshold >= 0 && AlertThreshold <= 1);
+
+            base.SaveModel(ctx);
+            ctx.Writer.Write((byte)BackAddWindowSize);
+            ctx.Writer.Write((byte)LookaheadWindowSize);
+            ctx.Writer.Write((byte)AvergingWindowSize);
+            ctx.Writer.Write((byte)JudgementWindowSize);
+            ctx.Writer.Write((byte)AlertThreshold);
         }
 
         internal override IStatefulRowMapper MakeRowMapper(DataViewSchema schema) => new Mapper(Host, this, schema);
@@ -225,17 +262,17 @@ namespace Microsoft.ML.Transforms.TimeSeries
 
             private protected override void CloneCore(TState state)
             {
-                //TODO:
+                base.CloneCore(state);
+                Contracts.Assert(state is SrCnnStateBase);
             }
 
             private protected SrCnnStateBase(BinaryReader reader) : base(reader)
             {
-                //TODO:
             }
 
             internal override void Save(BinaryWriter writer)
             {
-                //TODO:
+                base.Save(writer);
             }
 
             private protected override void SetNaOutput(ref VBuffer<double> dst)
@@ -244,7 +281,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
                 var editor = VBufferEditor.Create(ref dst, outputLength);
 
                 for (int i = 0; i < outputLength; ++i)
-                    editor.Values[i] = Double.NaN;
+                    editor.Values[i] = 0;
 
                 dst = editor.Commit();
             }

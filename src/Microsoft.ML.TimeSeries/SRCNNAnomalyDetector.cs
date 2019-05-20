@@ -152,7 +152,6 @@ namespace Microsoft.ML.Transforms.TimeSeries
         internal SrCnnAnomalyDetector(IHostEnvironment env, ModelLoadContext ctx)
             : base(env, ctx, LoaderSignature)
         {
-            //TODO: Some data check here
         }
 
         private SrCnnAnomalyDetector(IHostEnvironment env, SrCnnAnomalyDetector transform)

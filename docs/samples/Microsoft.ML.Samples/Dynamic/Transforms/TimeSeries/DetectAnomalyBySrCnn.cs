@@ -45,32 +45,25 @@ namespace Samples.Dynamic
             string inputColumnName = nameof(TimeSeriesData.Value);
 
             // The transformed model.
-            //ITransformer model = ml.Transforms.DetectIidSpike(outputColumnName, inputColumnName, 95, Size).Fit(dataView);
-            ITransformer model = ml.Transforms.DetectAnomalyBySrCnn(outputColumnName, inputColumnName, 8, 5, 5, 3, 6, 0.3).Fit(dataView);
+            ITransformer model = ml.Transforms.DetectAnomalyBySrCnn(outputColumnName, inputColumnName, 64, 5, 5, 3, 21, 0.25).Fit(dataView);
 
             // Create a time series prediction engine from the model.
             var engine = model.CreateTimeSeriesPredictionFunction<TimeSeriesData, SrCnnAnomalyDetection>(ml);
 
             Console.WriteLine($"{outputColumnName} column obtained post-transformation.");
 
-
             // Create non-anomalous data and check for anomaly.
-            for (int index = 0; index < 5; index++)
+            for (int index = 0; index < 100; index++)
             {
                 // Anomaly spike detection.
                 PrintPrediction(5, engine.Predict(new TimeSeriesData(5)));
             }
 
-            // 5      0       5.00    0.50
-            // 5      0       5.00    0.50
-            // 5      0       5.00    0.50
-            // 5      0       5.00    0.50
-            // 5      0       5.00    0.50
-
             // Spike.
-            PrintPrediction(10, engine.Predict(new TimeSeriesData(10)));
-
-            // 10     1      10.00    0.00  <-- alert is on, predicted spike (check-point model)
+            for (int index = 0; index < 5; index++)
+            {
+                PrintPrediction(15, engine.Predict(new TimeSeriesData(10)));
+            }
 
             // Checkpoint the model.
             var modelPath = "temp.zip";
@@ -85,13 +78,6 @@ namespace Samples.Dynamic
                 // Anomaly spike detection.
                 PrintPrediction(5, engine.Predict(new TimeSeriesData(5)));
             }
-
-            // 5      0       5.00    0.26  <-- load model from disk.
-            // 5      0       5.00    0.26
-            // 5      0       5.00    0.50
-            // 5      0       5.00    0.50
-            // 5      0       5.00    0.50
-
         }
 
         private static void PrintPrediction(float value, SrCnnAnomalyDetection prediction) =>
