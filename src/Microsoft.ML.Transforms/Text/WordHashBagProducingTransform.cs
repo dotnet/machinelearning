@@ -83,7 +83,7 @@ namespace Microsoft.ML.Transforms.Text
         internal const string Summary = "Produces a bag of counts of n-grams (sequences of consecutive words of length 1-n) in a given text. "
             + "It does so by hashing each n-gram and using the hash value as the index in the bag.";
 
-        internal static IDataTransform Create(IHostEnvironment env, Options options, IDataView input)
+        internal static ITransformer CreateTransformer(IHostEnvironment env, Options options, IDataView input)
         {
             Contracts.CheckValue(env, nameof(env));
             var h = env.Register(RegistrationName);
@@ -132,7 +132,7 @@ namespace Microsoft.ML.Transforms.Text
                     };
             }
 
-            view = new WordTokenizingEstimator(env, tokenizeColumns.ToArray()).Fit(view).Transform(view);
+            ITransformer t1 = new WordTokenizingEstimator(env, tokenizeColumns.ToArray()).Fit(view);
 
             var featurizeArgs =
                 new NgramHashExtractingTransformer.Options
@@ -147,11 +147,17 @@ namespace Microsoft.ML.Transforms.Text
                     MaximumNumberOfInverts = options.MaximumNumberOfInverts
                 };
 
-            view = NgramHashExtractingTransformer.Create(h, featurizeArgs, view).Transform(view);
+            view = t1.Transform(view);
+            ITransformer t2 = NgramHashExtractingTransformer.Create(h, featurizeArgs, view);
 
             // Since we added columns with new names, we need to explicitly drop them before we return the IDataTransform.
-            return ColumnSelectingTransformer.CreateDrop(h, view, tmpColNames.ToArray()) as IDataTransform;
+            ITransformer t3 = new ColumnSelectingTransformer(env, null, tmpColNames.ToArray());
+
+            return new TransformerChain<ITransformer>(new[] { t1, t2, t3 });
         }
+
+        internal static IDataTransform Create(IHostEnvironment env, Options options, IDataView input) =>
+            (IDataTransform)CreateTransformer(env, options, input).Transform(input);
     }
 
     /// <summary>

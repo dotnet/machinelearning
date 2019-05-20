@@ -740,15 +740,17 @@ namespace Microsoft.ML.Trainers
 
             private void NormalizeSoftmax(float[] scores, int count)
             {
-                float sum = 0;
+                double sum = 0;
+                var score = new double[count];
+
                 for (int i = 0; i < count; i++)
                 {
-                    scores[i] = (float)Math.Exp(scores[i]);
-                    sum += scores[i];
+                    score[i] = Math.Exp(scores[i]);
+                    sum += score[i];
                 }
 
                 for (int i = 0; i < count; i++)
-                    scores[i] = scores[i] / sum;
+                    scores[i] = (float)(score[i] / sum);
             }
 
             public override JToken SaveAsPfa(BoundPfaContext ctx, JToken input)
