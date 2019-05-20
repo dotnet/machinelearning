@@ -27,14 +27,14 @@ namespace Samples.Dynamic
             // Convert the list of data points to an IDataView object, which is consumable by ML.NET API.
             IDataView data = mlContext.Data.LoadFromEnumerable(dataPoints);
 
-            // Create a FileStream object and write the IDataView to it as a binary IDV file. 
+            // Create a FileStream object and write the IDataView to it as a text file.
             using (FileStream stream = new FileStream("data.tsv", FileMode.Create))
                 mlContext.Data.SaveAsText(data, stream);
 
-            // Create an IDataView object by loading the binary IDV file.
+            // Create an IDataView object by loading the text file.
             IDataView loadedData = mlContext.Data.LoadFromTextFile("data.tsv");
 
-            // Inspect the data that is loaded from the previously saved binary file.
+            // Inspect the data that is loaded from the previously saved text file.
             var loadedDataEnumerable = mlContext.Data.CreateEnumerable<DataPoint>(loadedData, reuseRowObject: false);
             foreach (DataPoint row in loadedDataEnumerable)
                 Console.WriteLine($"{row.Label}, {row.Features}");
