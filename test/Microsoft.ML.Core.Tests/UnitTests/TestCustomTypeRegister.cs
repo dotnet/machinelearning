@@ -159,7 +159,9 @@ namespace Microsoft.ML.RunTests
 
             var heroEstimator = new CustomMappingEstimator<AlienHero, SuperAlienHero>(ML, AlienLambda.MergeBody, "LambdaAlienHero");
 
-            var tribeTransformed = heroEstimator.Fit(tribeDataView).Transform(tribeDataView);
+            var model = heroEstimator.Fit(tribeDataView);
+
+            var tribeTransformed = model.Transform(tribeDataView);
 
             var tribeEnumerable = ML.Data.CreateEnumerable<SuperAlienHero>(tribeTransformed, false).ToList();
 
@@ -168,6 +170,16 @@ namespace Microsoft.ML.RunTests
             Assert.Equal(tribeEnumerable[0].Merged.Height, tribe[0].One.Height + tribe[0].Two.Height);
             Assert.Equal(tribeEnumerable[0].Merged.Weight, tribe[0].One.Weight + tribe[0].Two.Weight);
             Assert.Equal(tribeEnumerable[0].Merged.HandCount, tribe[0].One.HandCount + tribe[0].Two.HandCount);
+
+            var engine = ML.Model.CreatePredictionEngine<AlienHero, SuperAlienHero>(model);
+            var alien = new AlienHero("TEN.LM", 1, 2, 3, 4, 5, 6, 7, 8);
+            var superAlien = engine.Predict(alien);
+
+            Assert.Equal(superAlien.Name, "Super " + alien.Name);
+            Assert.Equal(superAlien.Merged.Age, alien.One.Age + alien.Two.Age);
+            Assert.Equal(superAlien.Merged.Height, alien.One.Height + alien.Two.Height);
+            Assert.Equal(superAlien.Merged.Weight, alien.One.Weight + alien.Two.Weight);
+            Assert.Equal(superAlien.Merged.HandCount, alien.One.HandCount + alien.Two.HandCount);
         }
     }
 }

@@ -196,8 +196,11 @@ namespace Microsoft.ML.Tests
             // Convert image to gray scale.
             var pipeline = ML.Transforms.ConvertToGrayscale("GrayImage", "Image");
 
+            // Fit the model.
+            var model = pipeline.Fit(data);
+
             // Test path: image files -> IDataView -> Enumerable of Bitmaps.
-            var transformedData = pipeline.Fit(data).Transform(data);
+            var transformedData = model.Transform(data);
 
             // Load images in DataView back to Enumerable.
             var transformedDataPoints = ML.Data.CreateEnumerable<ImageDataPoint>(transformedData, false);
@@ -220,6 +223,23 @@ namespace Microsoft.ML.Tests
                         // greyscale image has same values for R, G and B.
                         Assert.True(pixel.R == pixel.G && pixel.G == pixel.B);
                     }
+                }
+            }
+
+            var engine = ML.Model.CreatePredictionEngine<ImageDataPoint, ImageDataPoint>(model);
+            var singleImage = new ImageDataPoint(17, 36, Color.Pink);
+            var transformedSingleImage = engine.Predict(singleImage);
+
+            Assert.Equal(singleImage.Image.Height, transformedSingleImage.GrayImage.Height);
+            Assert.Equal(singleImage.Image.Width, transformedSingleImage.GrayImage.Width);
+
+            for (int x = 0; x < transformedSingleImage.GrayImage.Width; ++x)
+            {
+                for (int y = 0; y < transformedSingleImage.GrayImage.Height; ++y)
+                {
+                    var pixel = transformedSingleImage.GrayImage.GetPixel(x, y);
+                    // greyscale image has same values for R, G and B.
+                    Assert.True(pixel.R == pixel.G && pixel.G == pixel.B);
                 }
             }
         }
