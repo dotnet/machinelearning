@@ -57,11 +57,14 @@ namespace Microsoft.ML.Data
         /// <see cref="MemberInfo.GetCustomAttributes(bool)"/>.
         /// </summary>
         /// <returns></returns>
-        private static int ComputeHashCode(Type rawType, params Attribute[] rawTypeAttributes)
+        private static int ComputeHashCode(Type rawType, IEnumerable<Attribute> rawTypeAttributes)
         {
+            if (rawTypeAttributes == null)
+                return rawType.GetHashCode();
+
             var code = rawType.GetHashCode();
-            for (int i = 0; i < rawTypeAttributes.Length; ++i)
-                code = Hashing.CombineHash(code, rawTypeAttributes[i].GetHashCode());
+            foreach (var attr in rawTypeAttributes)
+                code = Hashing.CombineHash(code, attr.GetHashCode());
             return code;
         }
 
@@ -73,7 +76,7 @@ namespace Microsoft.ML.Data
         /// <summary>
         /// Returns the <see cref="DataViewType"/> registered for <paramref name="rawType"/> and its <paramref name="rawTypeAttributes"/>.
         /// </summary>
-        public static DataViewType GetDataViewType(Type rawType, params Attribute[] rawTypeAttributes)
+        public static DataViewType GetDataViewType(Type rawType, IEnumerable<Attribute> rawTypeAttributes)
         {
             // Overall flow:
             //   type (Type) + attrs ----> type ID ----------------> associated DataViewType's ID ----------------> DataViewType
@@ -96,7 +99,7 @@ namespace Microsoft.ML.Data
         /// If <paramref name="rawType"/> has been registered with a <see cref="DataViewType"/>, this function returns <see langword="true"/>.
         /// Otherwise, this function returns <see langword="false"/>.
         /// </summary>
-        public static bool Knows(Type rawType, params Attribute[] rawTypeAttributes)
+        public static bool Knows(Type rawType, IEnumerable<Attribute> rawTypeAttributes)
         {
             lock (_lock)
             {
@@ -139,7 +142,7 @@ namespace Microsoft.ML.Data
         /// <param name="rawType">Native type in C#.</param>
         /// <param name="dataViewType">The corresponding type of <paramref name="rawType"/> in ML.NET's type system.</param>
         /// <param name="rawTypeAttributes">The <see cref="Attribute"/>s attached to <paramref name="rawType"/>.</param>
-        public static void Register(DataViewType dataViewType, Type rawType, params Attribute[] rawTypeAttributes)
+        public static void Register(DataViewType dataViewType, Type rawType, IEnumerable<Attribute> rawTypeAttributes = null)
         {
             lock (_lock)
             {

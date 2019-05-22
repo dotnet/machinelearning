@@ -254,7 +254,7 @@ namespace Microsoft.ML.Tests
 
             static ImageDataPoint()
             {
-                DataViewTypeManager.Register(new ImageDataViewType(10, 10), typeof(Bitmap), new ImageTypeAttribute(10, 10));
+                DataViewTypeManager.Register(new ImageDataViewType(10, 10), typeof(Bitmap), new[] { new ImageTypeAttribute(10, 10) });
             }
 
             public ImageDataPoint()

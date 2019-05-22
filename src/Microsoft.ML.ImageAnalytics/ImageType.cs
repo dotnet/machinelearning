@@ -11,8 +11,8 @@ using Microsoft.ML.Runtime;
 namespace Microsoft.ML.Transforms.Image
 {
     /// <summary>
-    /// Allows a member to be marked as a <see cref="VectorDataViewType"/>, primarily allowing one to set
-    /// the dimensionality of the resulting array.
+    /// Allows a member to be marked as a <see cref="ImageDataViewType"/>, primarily allowing one to set
+    /// the shape of an image field.
     /// </summary>
     [AttributeUsage(AttributeTargets.Field | AttributeTargets.Property, AllowMultiple = false, Inherited = true)]
     public sealed class ImageTypeAttribute : Attribute
@@ -45,9 +45,23 @@ namespace Microsoft.ML.Transforms.Image
             Width = width;
         }
 
+        /// <summary>
+        /// Images with the same width and height should produce the same hash code.
+        /// </summary>
         public override int GetHashCode()
         {
             return Hashing.CombineHash(Height.GetHashCode(), Width.GetHashCode());
+        }
+
+        /// <summary>
+        /// Images with the same width and height should equal.
+        /// </summary>
+        public override bool Equals(object other)
+        {
+            if (other is ImageDataViewType)
+                return Height == ((ImageDataViewType)other).Height && Width == ((ImageDataViewType)other).Width;
+            else
+                return false;
         }
     }
 
