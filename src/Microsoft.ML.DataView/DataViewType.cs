@@ -21,7 +21,7 @@ namespace Microsoft.ML.Data
         /// <summary>
         /// Constructor for extension types, which must be either <see cref="PrimitiveDataViewType"/> or <see cref="StructuredDataViewType"/>.
         /// </summary>
-        protected DataViewType(Type rawType)
+        private protected DataViewType(Type rawType)
         {
             RawType = rawType ?? throw new ArgumentNullException(nameof(rawType));
         }

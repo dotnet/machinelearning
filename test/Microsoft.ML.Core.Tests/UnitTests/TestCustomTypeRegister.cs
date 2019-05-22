@@ -35,7 +35,7 @@ namespace Microsoft.ML.RunTests
             /// </summary>
             static Body()
             {
-                DataViewTypeManager.Register(typeof(Body), DataViewBodyType.Instance);
+                DataViewTypeManager.Register(DataViewBodyType.Instance, typeof(Body));
             }
 
             public Body()
@@ -77,7 +77,7 @@ namespace Microsoft.ML.RunTests
         /// <summary>
         /// Type of <see cref="Body"/> in ML.NET.
         /// </summary>
-        private class DataViewBodyType : DataViewType
+        private class DataViewBodyType : StructuredDataViewType
         {
             private static volatile DataViewBodyType _instance;
 

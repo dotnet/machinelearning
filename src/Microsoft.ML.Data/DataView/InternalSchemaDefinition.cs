@@ -185,9 +185,13 @@ namespace Microsoft.ML.Data
                 isVector = false;
             }
 
+            // The internal type of string is ReadOnlyMemory<char>. That is, string will be stored as ReadOnlyMemory<char> in IDataView.
             if (itemType == typeof(string))
                 itemType = typeof(ReadOnlyMemory<char>);
-            else if (!itemType.TryGetDataKind(out _) && !DataViewTypeManager.Knows(itemType))
+
+            // Check if the itemType extracted from rawType is supported by ML.NET's type system.
+            // It must be one of either ML.NET's pre-defined types or custom types registered by the user.
+            if (!itemType.TryGetDataKind(out _) && !DataViewTypeManager.Knows(itemType))
                 throw Contracts.ExceptParam(nameof(rawType), "Could not determine an IDataView type for member {0}", name);
         }
 

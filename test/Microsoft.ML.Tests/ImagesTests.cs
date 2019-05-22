@@ -205,7 +205,7 @@ namespace Microsoft.ML.Tests
 
             // Test path: image files -> IDataView -> Enumerable of Bitmaps.
             var transformedData = pipeline.Fit(data).Transform(data);
-            var transformedDataPoints = ML.Data.CreateEnumerable<TransformedImageDataPoint>(transformedData, true).ToList();
+            var transformedDataPoints = ML.Data.CreateEnumerable<TransformedImageDataPoint>(transformedData, false);
 
             foreach (var datapoint in transformedDataPoints)
             {
@@ -224,12 +224,15 @@ namespace Microsoft.ML.Tests
 
             // Test path: Enumerable of Bitmaps -> IDataView -> Enumerable of Bitmaps.
             var imagesInDataView = ML.Data.LoadFromEnumerable(transformedDataPoints);
-            var imagesObtainedFromDataView = ML.Data.CreateEnumerable<TransformedImageDataPoint>(imagesInDataView, true).ToList();
+            var imagesObtainedFromDataView = ML.Data.CreateEnumerable<TransformedImageDataPoint>(imagesInDataView, false);
 
-            for (int i = 0; i < transformedDataPoints.Count; ++i)
+            var expectedImages = new[] { transformedDataPoints.First().Grayscale, transformedDataPoints.Last().Grayscale } ;
+            var obtainedImages = new[] { imagesObtainedFromDataView.First().Grayscale, imagesObtainedFromDataView.Last().Grayscale };
+
+            for (int i = 0; i < expectedImages.Length; ++i)
             {
-                var expectedImage = transformedDataPoints[i].Grayscale;
-                var obtainedImage = imagesObtainedFromDataView[i].Grayscale;
+                var expectedImage = expectedImages[i];
+                var obtainedImage = obtainedImages[i];
 
                 Assert.Equal(expectedImage.Width, obtainedImage.Width);
                 Assert.Equal(expectedImage.Height, obtainedImage.Height);
