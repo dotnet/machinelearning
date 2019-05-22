@@ -560,7 +560,7 @@ namespace Microsoft.ML.Transforms
                         int lenDst = checked(size * lenSrc);
                         var values = src.GetValues();
                         int cntSrc = values.Length;
-                        var editor = VBufferEditor.Create(ref dst, lenDst, cntSrc);
+                        var editor = VBufferEditor.Create(ref dst, lenDst, cntSrc, keepOldOnResize: false, requireIndicesOnDense: true);
 
                         int count = 0;
                         if (src.IsDense)
@@ -573,14 +573,8 @@ namespace Microsoft.ML.Transforms
                                 if (key >= (uint)size)
                                     continue;
                                 editor.Values[count] = 1;
-                                // Indices is only created when the vector is deemed to be dense.
-                                // Alternatively we can force VBufferEditor to create an Indices array
-                                // even in the case of dense vectors but this will result in increased
-                                // memory footprint.
-                                if (lenDst != cntSrc)
-                                    editor.Indices[count++] = slot * size + (int)key;
-                                else
-                                    count++;
+                                editor.Indices[count++] = slot * size + (int)key;
+
                             }
                         }
                         else
@@ -593,14 +587,7 @@ namespace Microsoft.ML.Transforms
                                 if (key >= (uint)size)
                                     continue;
                                 editor.Values[count] = 1;
-                                // Indices is only created when the vector is deemed to be dense.
-                                // Alternatively we can force VBufferEditor to create an Indices array
-                                // even in the case of dense vectors but this will result in increased
-                                // memory footprint.
-                                if (lenDst != cntSrc)
-                                    editor.Indices[count++] = indices[islot] * size + (int)key;
-                                else
-                                    count++;
+                                editor.Indices[count++] = indices[islot] * size + (int)key;
                             }
                         }
                         dst = editor.CommitTruncated(count);
