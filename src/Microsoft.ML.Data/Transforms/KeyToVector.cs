@@ -814,14 +814,16 @@ namespace Microsoft.ML.Transforms
 
                 var metadata = new List<SchemaShape.Column>();
                 if (col.Annotations.TryFindColumn(AnnotationUtils.Kinds.KeyValues, out var keyMeta))
-                    if (col.Kind != SchemaShape.Column.VectorKind.VariableVector && keyMeta.ItemType is TextDataViewType)
+                    if (((colInfo.OutputCountVector && col.IsKey) || col.Kind != SchemaShape.Column.VectorKind.VariableVector) && keyMeta.ItemType is TextDataViewType)
                         metadata.Add(new SchemaShape.Column(AnnotationUtils.Kinds.SlotNames, SchemaShape.Column.VectorKind.Vector, keyMeta.ItemType, false));
                 if (!colInfo.OutputCountVector && (col.Kind == SchemaShape.Column.VectorKind.Scalar || col.Kind == SchemaShape.Column.VectorKind.Vector))
                     metadata.Add(new SchemaShape.Column(AnnotationUtils.Kinds.CategoricalSlotRanges, SchemaShape.Column.VectorKind.Vector, NumberDataViewType.Int32, false));
                 if (!colInfo.OutputCountVector || (col.Kind == SchemaShape.Column.VectorKind.Scalar))
                     metadata.Add(new SchemaShape.Column(AnnotationUtils.Kinds.IsNormalized, SchemaShape.Column.VectorKind.Scalar, BooleanDataViewType.Instance, false));
 
-                result[colInfo.Name] = new SchemaShape.Column(colInfo.Name, SchemaShape.Column.VectorKind.Vector, NumberDataViewType.Single, false, new SchemaShape(metadata));
+                result[colInfo.Name] = new SchemaShape.Column(colInfo.Name,
+                    col.Kind == SchemaShape.Column.VectorKind.VariableVector && !colInfo.OutputCountVector ? SchemaShape.Column.VectorKind.VariableVector : SchemaShape.Column.VectorKind.Vector,
+                    NumberDataViewType.Single, false, new SchemaShape(metadata));
             }
 
             return new SchemaShape(result.Values);
