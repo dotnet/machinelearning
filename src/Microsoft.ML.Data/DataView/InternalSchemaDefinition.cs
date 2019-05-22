@@ -147,11 +147,11 @@ namespace Microsoft.ML.Data
             switch (memberInfo)
             {
                 case FieldInfo fieldInfo:
-                    GetVectorAndItemType(fieldInfo.FieldType, fieldInfo.Name, out isVector, out itemType);
+                    GetVectorAndItemType(fieldInfo.FieldType, fieldInfo.Name, out isVector, out itemType, fieldInfo.GetCustomAttributes().ToArray());
                     break;
 
                 case PropertyInfo propertyInfo:
-                    GetVectorAndItemType(propertyInfo.PropertyType, propertyInfo.Name, out isVector, out itemType);
+                    GetVectorAndItemType(propertyInfo.PropertyType, propertyInfo.Name, out isVector, out itemType, propertyInfo.GetCustomAttributes().ToArray());
                     break;
 
                 default:
@@ -171,7 +171,8 @@ namespace Microsoft.ML.Data
         /// <param name="itemType">
         /// The corresponding <see cref="PrimitiveDataViewType"/> RawType of the type, or items of this type if vector.
         /// </param>
-        public static void GetVectorAndItemType(Type rawType, string name, out bool isVector, out Type itemType)
+        /// <param name="attributes">Attribute of <paramref name="rawType"/>.</param>
+        public static void GetVectorAndItemType(Type rawType, string name, out bool isVector, out Type itemType, params Attribute[] attributes)
         {
             // Determine whether this is a vector, and also determine the raw item type.
             isVector = true;
@@ -191,7 +192,7 @@ namespace Microsoft.ML.Data
 
             // Check if the itemType extracted from rawType is supported by ML.NET's type system.
             // It must be one of either ML.NET's pre-defined types or custom types registered by the user.
-            if (!itemType.TryGetDataKind(out _) && !DataViewTypeManager.Knows(itemType))
+            if (!itemType.TryGetDataKind(out _) && !DataViewTypeManager.Knows(itemType, attributes))
                 throw Contracts.ExceptParam(nameof(rawType), "Could not determine an IDataView type for member {0}", name);
         }
 

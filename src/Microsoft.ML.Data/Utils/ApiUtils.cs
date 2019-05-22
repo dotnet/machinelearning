@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
 using Microsoft.ML.Data;
@@ -16,7 +17,7 @@ namespace Microsoft.ML
 
     internal static class ApiUtils
     {
-        private static OpCode GetAssignmentOpCode(Type t)
+        private static OpCode GetAssignmentOpCode(Type t, params Attribute[] attributes)
         {
             // REVIEW: This should be a Dictionary<Type, OpCode> based solution.
             // DvTypes, strings, arrays, all nullable types, VBuffers and RowId.
@@ -24,7 +25,7 @@ namespace Microsoft.ML
                 (t.IsGenericType && t.GetGenericTypeDefinition() == typeof(VBuffer<>)) ||
                 (t.IsGenericType && t.GetGenericTypeDefinition() == typeof(Nullable<>)) ||
                 t == typeof(DateTime) || t == typeof(DateTimeOffset) || t == typeof(TimeSpan) ||
-                t == typeof(DataViewRowId) || DataViewTypeManager.Knows(t))
+                t == typeof(DataViewRowId) || DataViewTypeManager.Knows(t, attributes))
             {
                 return OpCodes.Stobj;
             }
@@ -57,7 +58,7 @@ namespace Microsoft.ML
                 case FieldInfo fieldInfo:
                     Type fieldType = fieldInfo.FieldType;
 
-                    var assignmentOpCode = GetAssignmentOpCode(fieldType);
+                    var assignmentOpCode = GetAssignmentOpCode(fieldType, fieldInfo.GetCustomAttributes().ToArray());
                     Func<FieldInfo, OpCode, Delegate> func = GeneratePeek<TOwn, TRow, int>;
                     var methInfo = func.GetMethodInfo().GetGenericMethodDefinition()
                         .MakeGenericMethod(typeof(TOwn), typeof(TRow), fieldType);
@@ -66,7 +67,7 @@ namespace Microsoft.ML
                 case PropertyInfo propertyInfo:
                     Type propertyType = propertyInfo.PropertyType;
 
-                    var assignmentOpCodeProp = GetAssignmentOpCode(propertyType);
+                    var assignmentOpCodeProp = GetAssignmentOpCode(propertyType, propertyInfo.GetCustomAttributes().ToArray());
                     Func<PropertyInfo, OpCode, Delegate> funcProp = GeneratePeek<TOwn, TRow, int>;
                     var methInfoProp = funcProp.GetMethodInfo().GetGenericMethodDefinition()
                         .MakeGenericMethod(typeof(TOwn), typeof(TRow), propertyType);
@@ -133,7 +134,7 @@ namespace Microsoft.ML
                 case FieldInfo fieldInfo:
                     Type fieldType = fieldInfo.FieldType;
 
-                    var assignmentOpCode = GetAssignmentOpCode(fieldType);
+                    var assignmentOpCode = GetAssignmentOpCode(fieldType, fieldInfo.GetCustomAttributes().ToArray());
                     Func<FieldInfo, OpCode, Delegate> func = GeneratePoke<TOwn, TRow, int>;
                     var methInfo = func.GetMethodInfo().GetGenericMethodDefinition()
                         .MakeGenericMethod(typeof(TOwn), typeof(TRow), fieldType);
@@ -142,7 +143,7 @@ namespace Microsoft.ML
                 case PropertyInfo propertyInfo:
                     Type propertyType = propertyInfo.PropertyType;
 
-                    var assignmentOpCodeProp = GetAssignmentOpCode(propertyType);
+                    var assignmentOpCodeProp = GetAssignmentOpCode(propertyType, propertyInfo.GetCustomAttributes().ToArray());
                     Func<PropertyInfo, Delegate> funcProp = GeneratePoke<TOwn, TRow, int>;
                     var methInfoProp = funcProp.GetMethodInfo().GetGenericMethodDefinition()
                         .MakeGenericMethod(typeof(TOwn), typeof(TRow), propertyType);

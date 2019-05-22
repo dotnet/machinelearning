@@ -112,7 +112,7 @@ namespace Microsoft.ML.RunTests
         [Fact]
         public void RegisterCustomType()
         {
-            var tribe = new List<Hero>(){ new Hero("Earth", 10, 5.8f, 100.0f), new Hero("Mars", 20, 6.8f, 120.8f) };
+            var tribe = new List<Hero>() { new Hero("Earth", 10, 5.8f, 100.0f), new Hero("Mars", 20, 6.8f, 120.8f) };
 
             var tribeDataView = ML.Data.LoadFromEnumerable(tribe);
             var tribeEnumerable = ML.Data.CreateEnumerable<Hero>(tribeDataView, false).ToList();
@@ -158,7 +158,7 @@ namespace Microsoft.ML.RunTests
         [Fact]
         public void ModifyCustomType()
         {
-            var tribe = new List<Hero>(){ new Hero("Earth", 10, 5.8f, 100.0f) };
+            var tribe = new List<Hero>() { new Hero("Earth", 10, 5.8f, 100.0f) };
 
             var tribeDataView = ML.Data.LoadFromEnumerable(tribe);
 
@@ -175,6 +175,154 @@ namespace Microsoft.ML.RunTests
                 Assert.Equal(tribe[i].One.Height * 10, tribeEnumerable[i].SuperOne.Height);
                 Assert.Equal(tribe[i].One.Weight * 10, tribeEnumerable[i].SuperOne.Weight);
             }
+        }
+
+        /// <summary>
+        /// A custom type which ML.NET doesn't know yet. Its value will be loaded as a DataView column in this test.
+        /// </summary>
+        private class AlienBody
+        {
+            public int Age { get; set; }
+            public float Height { get; set; }
+            public float Weight { get; set; }
+            public int HandCount { get; set; }
+
+            /// <summary>
+            /// Type register should happen before the creation of the first <see cref="Body"/>. Otherwise, ML.NET might not recognize
+            /// that <see cref="Body"/> is typed to <see cref="DataViewBodyType"/> in ML.NET's internal type system.
+            /// </summary>
+            static AlienBody()
+            {
+            }
+
+            public AlienBody()
+            {
+                Age = 0;
+                Height = 0;
+                Weight = 0;
+                HandCount = 0;
+            }
+
+            public AlienBody(int age, float height, float weight, int handCount)
+            {
+                Age = age;
+                Height = height;
+                Weight = weight;
+                HandCount = handCount;
+            }
+        }
+
+        [AttributeUsage(AttributeTargets.Field | AttributeTargets.Property, AllowMultiple = false, Inherited = true)]
+        private sealed class AlienTypeAttributeAttribute : Attribute
+        {
+            public int Id { get; }
+
+            /// <summary>
+            /// Create an image type with known height and width.
+            /// </summary>
+            public AlienTypeAttributeAttribute(int id)
+            {
+                Id = id;
+            }
+        }
+
+        /// <summary>
+        /// A custom class with a type which ML.NET doesn't know yet. Its value will be loaded as a DataView row in this test.
+        /// </summary>
+        private class AlienHero
+        {
+            public string Name { get; set; }
+
+            [AlienTypeAttribute(100)]
+            public AlienBody One { get; set; }
+
+            [AlienTypeAttribute(200)]
+            public AlienBody Two { get; set; }
+
+            public AlienHero()
+            {
+                Name = "Earth";
+                One = new AlienBody(10000000, 500000, 800000, 100);
+                Two = new AlienBody(10, 9, 8, 7);
+            }
+        }
+
+        /// <summary>
+        /// Type of <see cref="AlienBody"/> in ML.NET.
+        /// </summary>
+        private class DataViewAlienBodyType : StructuredDataViewType
+        {
+            public int Id { get; }
+
+            public DataViewAlienBodyType(int id) : base(typeof(AlienBody))
+            {
+                Id = id;
+            }
+
+            public override bool Equals(DataViewType other)
+            {
+                if (other is DataViewAlienBodyType)
+                    return ((DataViewAlienBodyType)other).Id == Id;
+                else
+                    return false;
+            }
+        }
+
+        /// <summary>
+        /// The output type of processing <see cref="AlienHero"/>.
+        /// </summary>
+        private class SuperAlienHero
+        {
+            public string Name { get; set; }
+
+            [AlienTypeAttribute(007)]
+            public AlienBody Merged { get; set; }
+
+            public SuperAlienHero()
+            {
+                Name = "Earth";
+                Merged = new AlienBody(0, 0, 0, 0);
+            }
+        }
+
+        [CustomMappingFactoryAttribute("LambdaAlienHero")]
+        private class AlienLambda : CustomMappingFactory<AlienHero, SuperAlienHero>
+        {
+            public static void MergeBody(AlienHero input, SuperAlienHero output)
+            {
+                output.Name = "Super " + input.Name;
+                output.Merged.Age = input.One.Age + input.Two.Age;
+                output.Merged.Height = input.One.Height + input.Two.Height;
+                output.Merged.Weight = input.One.Weight + input.Two.Weight;
+            }
+
+            public override Action<AlienHero, SuperAlienHero> GetMapping()
+            {
+                return MergeBody;
+            }
+        }
+
+        [Fact]
+        public void RegisterTypeWithAttribute()
+        {
+            var tribe = new List<AlienHero>() { new AlienHero() };
+
+            DataViewTypeManager.Register(new DataViewAlienBodyType(100), typeof(AlienBody), new AlienTypeAttributeAttribute(100));
+            DataViewTypeManager.Register(new DataViewAlienBodyType(200), typeof(AlienBody), new AlienTypeAttributeAttribute(200));
+            DataViewTypeManager.Register(new DataViewAlienBodyType(007), typeof(AlienBody), new AlienTypeAttributeAttribute(007));
+
+            var tribeDataView = ML.Data.LoadFromEnumerable(tribe);
+
+            var heroEstimator = new CustomMappingEstimator<AlienHero, SuperAlienHero>(ML, AlienLambda.MergeBody, "LambdaAlienHero");
+
+            var tribeTransformed = heroEstimator.Fit(tribeDataView).Transform(tribeDataView);
+
+            var tribeEnumerable = ML.Data.CreateEnumerable<SuperAlienHero>(tribeTransformed, false).ToList();
+
+            Assert.Equal(tribeEnumerable[0].Name, "Super " + tribe[0].Name);
+            Assert.Equal(tribeEnumerable[0].Merged.Age, tribe[0].One.Age + tribe[0].Two.Age);
+            Assert.Equal(tribeEnumerable[0].Merged.Height, tribe[0].One.Height + tribe[0].Two.Height);
+            Assert.Equal(tribeEnumerable[0].Merged.Weight, tribe[0].One.Weight + tribe[0].Two.Weight);
         }
     }
 }
