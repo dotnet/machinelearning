@@ -122,11 +122,11 @@ namespace Microsoft.ML.Tests.Transformers
             var mlContext = new MLContext();
             var dataView = mlContext.Data.LoadFromEnumerable(data);
             var pipe = mlContext.Transforms.Conversion.ConvertType("A", outputKind: DataKind.Single)
-        .Append(mlContext.Transforms.Conversion.ConvertType("B", outputKind: DataKind.Single))
-        .Append(mlContext.Transforms.Concatenate("Features", new string[] { "A", "B" }))
-        .Append(mlContext.Transforms.Conversion.MapValueToKey("Label"))
-        .Append(mlContext.Transforms.NormalizeSupervisedBinning("Features", fixZero: false, maximumBinCount: 5, labelColumnName: "Label"))
-        .Append(mlContext.Transforms.Categorical.OneHotEncoding("Features", outputKind: OneHotEncodingEstimator.OutputKind.Indicator));
+                .Append(mlContext.Transforms.Conversion.ConvertType("B", outputKind: DataKind.Single))
+                .Append(mlContext.Transforms.Concatenate("Features", new string[] { "A", "B" }))
+                .Append(mlContext.Transforms.Conversion.MapValueToKey("Label"))
+                .Append(mlContext.Transforms.NormalizeSupervisedBinning("Features", fixZero: false, maximumBinCount: 5, labelColumnName: "Label"))
+                .Append(mlContext.Transforms.Categorical.OneHotEncoding("Features", outputKind: OneHotEncodingEstimator.OutputKind.Indicator));
 
             TestEstimatorCore(pipe, dataView);
             Done();
