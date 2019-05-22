@@ -24,7 +24,9 @@ namespace Microsoft.ML.Data
             typeof(Boolean), typeof(SByte), typeof(Byte),
             typeof(Int16), typeof(UInt16), typeof(Int32), typeof(UInt32),
             typeof(Int64), typeof(UInt64), typeof(Single), typeof(Double),
-            typeof(string), typeof(ReadOnlySpan<char>)
+            typeof(string), typeof(ReadOnlySpan<char>), typeof(ReadOnlyMemory<char>),
+            typeof(VBuffer<>), typeof(Nullable<>), typeof(DateTime), typeof(DateTimeOffset),
+            typeof(TimeSpan), typeof(DataViewRowId)
         };
 
         /// <summary>
@@ -176,8 +178,8 @@ namespace Microsoft.ML.Data
                 _typeIdToDataViewTypeIdMap.Add(rawTypeId, dataViewTypeId);
                 _dataViewTypeIdToTypeIdMap.Add(dataViewTypeId, rawTypeId);
 
-                _idToDataViewTypeMap[dataViewTypeId] = dataViewType;
-                _idToTypeMap[rawTypeId] = rawType;
+                _idToDataViewTypeMap.Add(dataViewTypeId, dataViewType);
+                _idToTypeMap.Add(rawTypeId, rawType);
             }
         }
     }

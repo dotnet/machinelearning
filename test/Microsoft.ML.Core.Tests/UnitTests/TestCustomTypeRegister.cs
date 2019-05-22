@@ -5,7 +5,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading;
 using Microsoft.ML.Data;
 using Microsoft.ML.Transforms;
 using Xunit;
@@ -29,22 +28,6 @@ namespace Microsoft.ML.RunTests
             public float Height { get; set; }
             public float Weight { get; set; }
             public int HandCount { get; set; }
-
-            /// <summary>
-            /// Type register should happen before the creation of the first <see cref="Body"/>. Otherwise, ML.NET might not recognize
-            /// that <see cref="Body"/> is typed to <see cref="DataViewBodyType"/> in ML.NET's internal type system.
-            /// </summary>
-            static AlienBody()
-            {
-            }
-
-            public AlienBody()
-            {
-                Age = 0;
-                Height = 0;
-                Weight = 0;
-                HandCount = 0;
-            }
 
             public AlienBody(int age, float height, float weight, int handCount)
             {
@@ -72,6 +55,9 @@ namespace Microsoft.ML.RunTests
         /// <summary>
         /// A custom class with a type which ML.NET doesn't know yet. Its value will be loaded as a DataView row in this test.
         /// It will be the input of <see cref="AlienLambda.MergeBody(AlienHero, SuperAlienHero)"/>.
+        ///
+        /// <see cref="One"/> and <see cref="Two"/> would be mapped to different types inside ML.NET type system because they
+        /// have different <see cref="AlienTypeAttributeAttribute"/>s.
         /// </summary>
         private class AlienHero
         {
@@ -85,9 +71,18 @@ namespace Microsoft.ML.RunTests
 
             public AlienHero()
             {
-                Name = "Earth";
-                One = new AlienBody(10000000, 500000, 800000, 100);
-                Two = new AlienBody(10, 9, 8, 7);
+                Name = "Unknown";
+                One = new AlienBody(0, 0, 0, 0);
+                Two = new AlienBody(0, 0, 0, 0);
+            }
+
+            public AlienHero(string name,
+                int age, float height, float weight, int handCount,
+                int anotherAge, float anotherHeight, float anotherWeight, int anotherHandCount)
+            {
+                Name = "Unknown";
+                One = new AlienBody(age, height, weight, handCount);
+                Two = new AlienBody(anotherAge, anotherHeight, anotherWeight, anotherHandCount);
             }
         }
 
@@ -124,7 +119,7 @@ namespace Microsoft.ML.RunTests
 
             public SuperAlienHero()
             {
-                Name = "Earth";
+                Name = "Unknown";
                 Merged = new AlienBody(0, 0, 0, 0);
             }
         }
@@ -142,6 +137,7 @@ namespace Microsoft.ML.RunTests
                 output.Merged.Age = input.One.Age + input.Two.Age;
                 output.Merged.Height = input.One.Height + input.Two.Height;
                 output.Merged.Weight = input.One.Weight + input.Two.Weight;
+                output.Merged.HandCount = input.One.HandCount + input.Two.HandCount;
             }
 
             public override Action<AlienHero, SuperAlienHero> GetMapping()
@@ -153,7 +149,7 @@ namespace Microsoft.ML.RunTests
         [Fact]
         public void RegisterTypeWithAttribute()
         {
-            var tribe = new List<AlienHero>() { new AlienHero() };
+            var tribe = new List<AlienHero>() { new AlienHero("ML.NET", 2, 1000, 2000, 3000, 4000, 5000, 6000, 7000) };
 
             DataViewTypeManager.Register(new DataViewAlienBodyType(100), typeof(AlienBody), new AlienTypeAttributeAttribute(100));
             DataViewTypeManager.Register(new DataViewAlienBodyType(200), typeof(AlienBody), new AlienTypeAttributeAttribute(200));
@@ -171,6 +167,7 @@ namespace Microsoft.ML.RunTests
             Assert.Equal(tribeEnumerable[0].Merged.Age, tribe[0].One.Age + tribe[0].Two.Age);
             Assert.Equal(tribeEnumerable[0].Merged.Height, tribe[0].One.Height + tribe[0].Two.Height);
             Assert.Equal(tribeEnumerable[0].Merged.Weight, tribe[0].One.Weight + tribe[0].Two.Weight);
+            Assert.Equal(tribeEnumerable[0].Merged.HandCount, tribe[0].One.HandCount + tribe[0].Two.HandCount);
         }
     }
 }
