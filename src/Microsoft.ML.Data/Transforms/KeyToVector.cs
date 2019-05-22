@@ -574,7 +574,6 @@ namespace Microsoft.ML.Transforms
                                     continue;
                                 editor.Values[count] = 1;
                                 editor.Indices[count++] = slot * size + (int)key;
-
                             }
                         }
                         else
