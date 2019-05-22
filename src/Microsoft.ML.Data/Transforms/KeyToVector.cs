@@ -573,7 +573,14 @@ namespace Microsoft.ML.Transforms
                                 if (key >= (uint)size)
                                     continue;
                                 editor.Values[count] = 1;
-                                editor.Indices[count++] = slot * size + (int)key;
+                                // Indices is only created when the vector is deemed to be dense.
+                                // Alternatively we can force VBufferEditor to create an Indices array
+                                // even in the case of dense vectors but this will result in increased
+                                // memory footprint.
+                                if (lenDst != cntSrc)
+                                    editor.Indices[count++] = slot * size + (int)key;
+                                else
+                                    count++;
                             }
                         }
                         else
@@ -586,7 +593,14 @@ namespace Microsoft.ML.Transforms
                                 if (key >= (uint)size)
                                     continue;
                                 editor.Values[count] = 1;
-                                editor.Indices[count++] = indices[islot] * size + (int)key;
+                                // Indices is only created when the vector is deemed to be dense.
+                                // Alternatively we can force VBufferEditor to create an Indices array
+                                // even in the case of dense vectors but this will result in increased
+                                // memory footprint.
+                                if (lenDst != cntSrc)
+                                    editor.Indices[count++] = indices[islot] * size + (int)key;
+                                else
+                                    count++;
                             }
                         }
                         dst = editor.CommitTruncated(count);

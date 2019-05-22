@@ -29,6 +29,13 @@ namespace Microsoft.ML.Tests.Transformers
             public int C;
         }
 
+        private sealed class TestClassWithLabel
+        {
+            public int A;
+            public int B;
+            public bool Label;
+        }
+
         private sealed class TestMeta
         {
             [VectorType(2)]
@@ -96,6 +103,30 @@ namespace Microsoft.ML.Tests.Transformers
                 .Append(mlContext.Transforms.Categorical.OneHotEncoding("CatB", "A", OneHotEncodingEstimator.OutputKind.Key))
                 .Append(mlContext.Transforms.Categorical.OneHotEncoding("CatC", "A", OneHotEncodingEstimator.OutputKind.Indicator))
                 .Append(mlContext.Transforms.Categorical.OneHotEncoding("CatD", "A", OneHotEncodingEstimator.OutputKind.Binary));
+
+            TestEstimatorCore(pipe, dataView);
+            Done();
+        }
+
+        [Fact]
+        public void CategoricalOneHotEncodingVector()
+        {
+            var data = new[] {
+                new TestClassWithLabel() { A = 301, B = 2000, Label = true },
+                new TestClassWithLabel() { A = 450, B = 3000, Label = true },
+                new TestClassWithLabel() { A = -300, B = 4000, Label = true },
+                new TestClassWithLabel() { A = 300, B = 2000, Label = false },
+                new TestClassWithLabel() { A = 115, B = 2000, Label = false },
+                new TestClassWithLabel() { A = 115, B = 2000, Label = false }};
+
+            var mlContext = new MLContext();
+            var dataView = mlContext.Data.LoadFromEnumerable(data);
+            var pipe = mlContext.Transforms.Conversion.ConvertType("A", outputKind: DataKind.Single)
+        .Append(mlContext.Transforms.Conversion.ConvertType("B", outputKind: DataKind.Single))
+        .Append(mlContext.Transforms.Concatenate("Features", new string[] { "A", "B" }))
+        .Append(mlContext.Transforms.Conversion.MapValueToKey("Label"))
+        .Append(mlContext.Transforms.NormalizeSupervisedBinning("Features", fixZero: false, maximumBinCount: 5, labelColumnName: "Label"))
+        .Append(mlContext.Transforms.Categorical.OneHotEncoding("Features", outputKind: OneHotEncodingEstimator.OutputKind.Indicator));
 
             TestEstimatorCore(pipe, dataView);
             Done();
