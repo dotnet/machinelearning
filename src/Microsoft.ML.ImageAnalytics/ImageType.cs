@@ -56,6 +56,11 @@ namespace Microsoft.ML.Transforms.Image
         public readonly int Height;
         public readonly int Width;
 
+        static ImageDataViewType()
+        {
+            DataViewTypeManager.Register(new ImageDataViewType(), typeof(Bitmap));
+        }
+
         public ImageDataViewType(int height, int width)
            : base(typeof(Bitmap))
         {
@@ -65,13 +70,10 @@ namespace Microsoft.ML.Transforms.Image
 
             Height = height;
             Width = width;
-
-            DataViewTypeManager.Register(this, typeof(Bitmap), new ImageTypeAttribute(height, width));
         }
 
         public ImageDataViewType() : base(typeof(Bitmap))
         {
-            DataViewTypeManager.Register(this, typeof(Bitmap));
         }
 
         public override bool Equals(DataViewType other)
