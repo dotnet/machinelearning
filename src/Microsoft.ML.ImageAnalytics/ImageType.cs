@@ -46,22 +46,18 @@ namespace Microsoft.ML.Transforms.Image
         }
 
         /// <summary>
-        /// Images with the same width and height should produce the same hash code.
-        /// </summary>
-        public override int GetHashCode()
-        {
-            return Hashing.CombineHash(Height.GetHashCode(), Width.GetHashCode());
-        }
-
-        /// <summary>
         /// Images with the same width and height should equal.
         /// </summary>
-        public override bool Equals(object other)
+        public override bool Equals(DataViewTypeAttribute other)
         {
-            if (other is ImageDataViewType)
-                return Height == ((ImageDataViewType)other).Height && Width == ((ImageDataViewType)other).Width;
-            else
-                return false;
+            if (other is ImageTypeAttribute)
+                return Height == ((ImageTypeAttribute)other).Height && Width == ((ImageTypeAttribute)other).Width;
+            return false;
+        }
+
+        public override int GetDataViewTypeAttributeHashCode()
+        {
+            return Hashing.CombineHash(Height.GetHashCode(), Width.GetHashCode());
         }
 
         public override void Register()
@@ -74,10 +70,6 @@ namespace Microsoft.ML.Transforms.Image
     {
         public readonly int Height;
         public readonly int Width;
-
-        static ImageDataViewType()
-        {
-        }
 
         public ImageDataViewType(int height, int width)
            : base(typeof(Bitmap))

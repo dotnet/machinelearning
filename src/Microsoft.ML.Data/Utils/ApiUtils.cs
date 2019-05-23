@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
@@ -17,7 +18,7 @@ namespace Microsoft.ML
 
     internal static class ApiUtils
     {
-        private static OpCode GetAssignmentOpCode(Type t, params Attribute[] attributes)
+        private static OpCode GetAssignmentOpCode(Type t, IEnumerable<Attribute> attributes)
         {
             // REVIEW: This should be a Dictionary<Type, OpCode> based solution.
             // DvTypes, strings, arrays, all nullable types, VBuffers and RowId.

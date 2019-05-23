@@ -41,14 +41,14 @@ namespace Microsoft.ML.RunTests
         [AttributeUsage(AttributeTargets.Field | AttributeTargets.Property, AllowMultiple = false, Inherited = true)]
         private sealed class AlienTypeAttributeAttribute : DataViewTypeAttribute
         {
-            public int Id { get; }
+            public int RaceId { get; }
 
             /// <summary>
             /// Create an image type with known height and width.
             /// </summary>
             public AlienTypeAttributeAttribute(int id)
             {
-                Id = id;
+                RaceId = id;
             }
 
             /// <summary>
@@ -56,8 +56,17 @@ namespace Microsoft.ML.RunTests
             /// </summary>
             public override void Register()
             {
-                DataViewTypeManager.Register(new DataViewAlienBodyType(Id), typeof(AlienBody), new[] { this });
+                DataViewTypeManager.Register(new DataViewAlienBodyType(RaceId), typeof(AlienBody), new[] { this });
             }
+
+            public override bool Equals(DataViewTypeAttribute other)
+            {
+                if (other is AlienTypeAttributeAttribute)
+                    return RaceId == ((AlienTypeAttributeAttribute)other).RaceId;
+                return false;
+            }
+
+            public override int GetDataViewTypeAttributeHashCode() => RaceId.GetHashCode();
         }
 
         /// <summary>
@@ -99,24 +108,24 @@ namespace Microsoft.ML.RunTests
         /// </summary>
         private class DataViewAlienBodyType : StructuredDataViewType
         {
-            public int Id { get; }
+            public int RaceId { get; }
 
             public DataViewAlienBodyType(int id) : base(typeof(AlienBody))
             {
-                Id = id;
+                RaceId = id;
             }
 
             public override bool Equals(DataViewType other)
             {
                 if (other is DataViewAlienBodyType)
-                    return ((DataViewAlienBodyType)other).Id == Id;
+                    return ((DataViewAlienBodyType)other).RaceId == RaceId;
                 else
                     return false;
             }
 
             public override int GetDataViewTypeHashCode()
             {
-                return Id.GetHashCode();
+                return RaceId.GetHashCode();
             }
         }
 

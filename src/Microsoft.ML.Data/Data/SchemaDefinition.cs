@@ -382,7 +382,8 @@ namespace Microsoft.ML.Data
                 if (memberInfo.GetCustomAttribute<NoColumnAttribute>() != null)
                     continue;
 
-                var customTypeAttributes = memberInfo.GetCustomAttributes().Where(x => x is DataViewTypeAttribute);
+                var customAttributes = memberInfo.GetCustomAttributes();
+                var customTypeAttributes = customAttributes.Where(x => x is DataViewTypeAttribute);
                 if (customTypeAttributes.Count() > 1)
                     throw Contracts.ExceptParam(nameof(userType), "Member {0} cannot be marked with multiple attributes, {1}, derived from {2}.",
                         memberInfo.Name, customTypeAttributes, typeof(DataViewTypeAttribute));
@@ -404,7 +405,7 @@ namespace Microsoft.ML.Data
 
                 // Get the column type.
                 DataViewType columnType;
-                if (!DataViewTypeManager.Knows(dataType, memberInfo.GetCustomAttributes()))
+                if (!DataViewTypeManager.Knows(dataType, customAttributes))
                 {
                     PrimitiveDataViewType itemType;
                     var keyAttr = memberInfo.GetCustomAttribute<KeyTypeAttribute>();
@@ -437,7 +438,7 @@ namespace Microsoft.ML.Data
                         columnType = itemType;
                 }
                 else
-                    columnType = DataViewTypeManager.GetDataViewType(dataType, memberInfo.GetCustomAttributes());
+                    columnType = DataViewTypeManager.GetDataViewType(dataType, customAttributes);
 
                 cols.Add(new Column(memberInfo.Name, columnType, name));
             }

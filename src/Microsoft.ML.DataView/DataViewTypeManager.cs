@@ -85,8 +85,6 @@ namespace Microsoft.ML.Data
                 if (!_typeIdToDataViewTypeIdMap.TryGetValue(typeId, out DataViewTypeId dataViewTypeId))
                     throw Contracts.ExceptParam(nameof(rawType), $"The raw type {rawType} with attributes {rawTypeAttributes} is not registered with a DataView type.");
 
-                var x = _idToDataViewTypeMap.Keys.First();
-                var y = x.Equals(dataViewTypeId);
                 // Retrieve the actual DataViewType identified by dataViewTypeId.
                 return _idToDataViewTypeMap[dataViewTypeId];
             }
