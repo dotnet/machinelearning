@@ -39,7 +39,7 @@ namespace Microsoft.ML.RunTests
         }
 
         [AttributeUsage(AttributeTargets.Field | AttributeTargets.Property, AllowMultiple = false, Inherited = true)]
-        private sealed class AlienTypeAttributeAttribute : Attribute
+        private sealed class AlienTypeAttributeAttribute : DataViewTypeAttribute
         {
             public int Id { get; }
 
@@ -49,6 +49,14 @@ namespace Microsoft.ML.RunTests
             public AlienTypeAttributeAttribute(int id)
             {
                 Id = id;
+            }
+
+            /// <summary>
+            /// A function implicitly invoked by ML.NET when processing a custom type. It binds a DataViewType to a custome type plus its attributes.
+            /// </summary>
+            public override void Register()
+            {
+                DataViewTypeManager.Register(new DataViewAlienBodyType(Id), typeof(AlienBody), new[] { this });
             }
         }
 
@@ -154,46 +162,14 @@ namespace Microsoft.ML.RunTests
         [Fact]
         public void RegisterTypeWithAttribute()
         {
+            // Build in-memory data.
             var tribe = new List<AlienHero>() { new AlienHero("ML.NET", 2, 1000, 2000, 3000, 4000, 5000, 6000, 7000) };
-
-            // Type manager doesn't know any of those custom types, so all calls to it should return false.
-            Assert.False(DataViewTypeManager.Knows(new DataViewAlienBodyType(100)));
-            Assert.False(DataViewTypeManager.Knows(new DataViewAlienBodyType(200)));
-            Assert.False(DataViewTypeManager.Knows(new DataViewAlienBodyType(007)));
-            Assert.False(DataViewTypeManager.Knows(typeof(AlienBody), new[] { new AlienTypeAttributeAttribute(100) }));
-            Assert.False(DataViewTypeManager.Knows(typeof(AlienBody), new[] { new AlienTypeAttributeAttribute(200) }));
-            Assert.False(DataViewTypeManager.Knows(typeof(AlienBody), new[] { new AlienTypeAttributeAttribute(007) }));
-
-            // Register those custom types.
-            DataViewTypeManager.Register(new DataViewAlienBodyType(100), typeof(AlienBody), new[] { new AlienTypeAttributeAttribute(100) });
-            DataViewTypeManager.Register(new DataViewAlienBodyType(200), typeof(AlienBody), new[] { new AlienTypeAttributeAttribute(200) });
-            DataViewTypeManager.Register(new DataViewAlienBodyType(007), typeof(AlienBody), new[] { new AlienTypeAttributeAttribute(007) });
-
-            // Type manager now knows those custom types, so all calls to it should return true.
-            Assert.True(DataViewTypeManager.Knows(new DataViewAlienBodyType(100)));
-            Assert.True(DataViewTypeManager.Knows(new DataViewAlienBodyType(200)));
-            Assert.True(DataViewTypeManager.Knows(new DataViewAlienBodyType(007)));
-            Assert.True(DataViewTypeManager.Knows(typeof(AlienBody), new[] { new AlienTypeAttributeAttribute(100) }));
-            Assert.True(DataViewTypeManager.Knows(typeof(AlienBody), new[] { new AlienTypeAttributeAttribute(200) }));
-            Assert.True(DataViewTypeManager.Knows(typeof(AlienBody), new[] { new AlienTypeAttributeAttribute(007) }));
-
-            // Check if the custom type (AlienBody with its attributes) is registered correctly with a DataView type (DataViewAlienBodyType).
-            Assert.Equal(new DataViewAlienBodyType(100),
-                DataViewTypeManager.GetDataViewType(typeof(AlienBody), new[] { new AlienTypeAttributeAttribute(100) }));
-            Assert.Equal(new DataViewAlienBodyType(200),
-                DataViewTypeManager.GetDataViewType(typeof(AlienBody), new[] { new AlienTypeAttributeAttribute(200) }));
-            Assert.Equal(new DataViewAlienBodyType(007),
-                DataViewTypeManager.GetDataViewType(typeof(AlienBody), new[] { new AlienTypeAttributeAttribute(007) }));
 
             // Build a ML.NET pipeline and make prediction.
             var tribeDataView = ML.Data.LoadFromEnumerable(tribe);
-
             var heroEstimator = new CustomMappingEstimator<AlienHero, SuperAlienHero>(ML, AlienLambda.MergeBody, "LambdaAlienHero");
-
             var model = heroEstimator.Fit(tribeDataView);
-
             var tribeTransformed = model.Transform(tribeDataView);
-
             var tribeEnumerable = ML.Data.CreateEnumerable<SuperAlienHero>(tribeTransformed, false).ToList();
 
             // Make sure the pipeline output is correct.
@@ -236,8 +212,18 @@ namespace Microsoft.ML.RunTests
             Assert.Equal(cCode, dCode);
 
             // Check registering the same type pair is OK.
+            // Note that "a" and "b" should be identical.
             DataViewTypeManager.Register(a, typeof(AlienBody));
             DataViewTypeManager.Register(a, typeof(AlienBody));
+            DataViewTypeManager.Register(b, typeof(AlienBody));
+            DataViewTypeManager.Register(b, typeof(AlienBody));
+
+            // Check if register of (a, typeof(AlienBody)) successes.
+            Assert.True(DataViewTypeManager.Knows(a));
+            Assert.True(DataViewTypeManager.Knows(b));
+            Assert.True(DataViewTypeManager.Knows(typeof(AlienBody)));
+            Assert.Equal(a, DataViewTypeManager.GetDataViewType(typeof(AlienBody)));
+            Assert.Equal(b, DataViewTypeManager.GetDataViewType(typeof(AlienBody)));
 
             // Make sure registering the same type twice throws.
             bool isWrong = false;
@@ -254,7 +240,7 @@ namespace Microsoft.ML.RunTests
             Assert.True(isWrong);
 
             // Make sure registering the same type twice throws.
-            bool isWrongAgain = false;
+            isWrong = false;
             try
             {
                 // AlienBody has been registered with "a," so user can't register it with
@@ -263,9 +249,21 @@ namespace Microsoft.ML.RunTests
             }
             catch
             {
-                isWrongAgain = true;
+                isWrong = true;
             }
-            Assert.True(isWrongAgain);
+            Assert.True(isWrong);
+
+            // Register a type with attribute.
+            var e = new DataViewAlienBodyType(7788);
+            var f = new AlienTypeAttributeAttribute(8877);
+            DataViewTypeManager.Register(e, typeof(AlienBody), new[] { f });
+            Assert.True(DataViewTypeManager.Knows(e));
+            Assert.True(DataViewTypeManager.Knows(typeof(AlienBody), new[] { f }));
+            Assert.True(DataViewTypeManager.Knows(typeof(AlienBody), new[] { f }));
+            // "e" is associated with typeof(AlienBody) with "f," so the call below should return true.
+            Assert.Equal(e, DataViewTypeManager.GetDataViewType(typeof(AlienBody), new[] { f }));
+            // "a" is associated with typeof(AlienBody) without any attribute, so the call below should return false.
+            Assert.NotEqual(a, DataViewTypeManager.GetDataViewType(typeof(AlienBody), new[] { f }));
         }
     }
 }

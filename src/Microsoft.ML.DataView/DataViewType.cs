@@ -461,4 +461,16 @@ namespace Microsoft.ML.Data
 
         public override string ToString() => "TimeSpan";
     }
+
+    public abstract class DataViewTypeAttribute : Attribute
+    {
+        protected DataViewTypeAttribute() : base()
+        {
+        }
+
+        /// <summary>
+        /// A function implicitly invoked by ML.NET when processing a custom type. It binds a DataViewType to a custome type plus its attributes.
+        /// </summary>
+        public abstract void Register();
+    }
 }

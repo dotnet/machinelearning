@@ -76,7 +76,7 @@ namespace Microsoft.ML.Data
         /// <summary>
         /// Returns the <see cref="DataViewType"/> registered for <paramref name="rawType"/> and its <paramref name="rawTypeAttributes"/>.
         /// </summary>
-        public static DataViewType GetDataViewType(Type rawType, IEnumerable<Attribute> rawTypeAttributes)
+        public static DataViewType GetDataViewType(Type rawType, IEnumerable<Attribute> rawTypeAttributes = null)
         {
             // Overall flow:
             //   type (Type) + attrs ----> type ID ----------------> associated DataViewType's ID ----------------> DataViewType
@@ -99,7 +99,7 @@ namespace Microsoft.ML.Data
         /// If <paramref name="rawType"/> has been registered with a <see cref="DataViewType"/>, this function returns <see langword="true"/>.
         /// Otherwise, this function returns <see langword="false"/>.
         /// </summary>
-        public static bool Knows(Type rawType, IEnumerable<Attribute> rawTypeAttributes)
+        public static bool Knows(Type rawType, IEnumerable<Attribute> rawTypeAttributes = null)
         {
             lock (_lock)
             {

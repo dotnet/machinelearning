@@ -252,11 +252,6 @@ namespace Microsoft.ML.Tests
             [ImageType(10, 10)]
             public Bitmap GrayImage { get; set; }
 
-            static ImageDataPoint()
-            {
-                DataViewTypeManager.Register(new ImageDataViewType(10, 10), typeof(Bitmap), new[] { new ImageTypeAttribute(10, 10) });
-            }
-
             public ImageDataPoint()
             {
                 Image = null;

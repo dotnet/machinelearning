@@ -382,6 +382,16 @@ namespace Microsoft.ML.Data
                 if (memberInfo.GetCustomAttribute<NoColumnAttribute>() != null)
                     continue;
 
+                var customTypeAttributes = memberInfo.GetCustomAttributes().Where(x => x is DataViewTypeAttribute);
+                if (customTypeAttributes.Count() > 1)
+                    throw Contracts.ExceptParam(nameof(userType), "Member {0} cannot be marked with multiple attributes, {1}, derived from {2}.",
+                        memberInfo.Name, customTypeAttributes, typeof(DataViewTypeAttribute));
+                else if (customTypeAttributes.Count() == 1)
+                {
+                    var customTypeAttribute = (DataViewTypeAttribute)customTypeAttributes.First();
+                    customTypeAttribute.Register();
+                }
+
                 var mappingNameAttr = memberInfo.GetCustomAttribute<ColumnNameAttribute>();
                 string name = mappingNameAttr?.Name ?? memberInfo.Name;
                 // Disallow duplicate names, because the field enumeration order is not actually

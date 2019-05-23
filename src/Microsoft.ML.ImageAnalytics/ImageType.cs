@@ -15,7 +15,7 @@ namespace Microsoft.ML.Transforms.Image
     /// the shape of an image field.
     /// </summary>
     [AttributeUsage(AttributeTargets.Field | AttributeTargets.Property, AllowMultiple = false, Inherited = true)]
-    public sealed class ImageTypeAttribute : Attribute
+    public sealed class ImageTypeAttribute : DataViewTypeAttribute
     {
         /// <summary>
         /// The height of the image type.
@@ -63,6 +63,11 @@ namespace Microsoft.ML.Transforms.Image
             else
                 return false;
         }
+
+        public override void Register()
+        {
+            DataViewTypeManager.Register(new ImageDataViewType(Height, Width), typeof(Bitmap), new[] { this });
+        }
     }
 
     public sealed class ImageDataViewType : StructuredDataViewType
@@ -72,7 +77,6 @@ namespace Microsoft.ML.Transforms.Image
 
         static ImageDataViewType()
         {
-            DataViewTypeManager.Register(new ImageDataViewType(), typeof(Bitmap));
         }
 
         public ImageDataViewType(int height, int width)
