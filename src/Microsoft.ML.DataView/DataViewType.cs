@@ -42,20 +42,6 @@ namespace Microsoft.ML.Data
         /// </summary>
         /// <param name="other">Another <see cref="DataViewType"/> to be compared with <see langword="this"/>.</param>
         public abstract bool Equals(DataViewType other);
-
-        /// <summary>
-        /// Produce the hashing code of <see langword="this"/>. It's the implementation of <see cref="GetHashCode()"/>.
-        /// </summary>
-        public abstract int GetDataViewTypeHashCode();
-
-        public override bool Equals(object obj)
-        {
-            if (obj is DataViewType)
-                return Equals((DataViewType)obj);
-            return false;
-        }
-
-        public override int GetHashCode() => GetDataViewTypeHashCode();
     }
 
     /// <summary>
@@ -90,11 +76,6 @@ namespace Microsoft.ML.Data
             if (typeof(IDisposable).GetTypeInfo().IsAssignableFrom(RawType.GetTypeInfo()))
                 throw new ArgumentException("A " + nameof(PrimitiveDataViewType) + " cannot have a disposable " + nameof(RawType), nameof(rawType));
         }
-
-        /// <summary>
-        /// All primitive <see cref="DataViewType"/>s are singltons, so we only need one hash code for each of them.
-        /// </summary>
-        public override int GetDataViewTypeHashCode() => 0;
     }
 
     /// <summary>
@@ -484,10 +465,10 @@ namespace Microsoft.ML.Data
     /// <summary>
     /// <see cref="DataViewTypeAttribute"/> should be used to decorated class properties and fields, if that class' instances will be loaded as ML.NET <see cref="IDataView"/>.
     /// The function <see cref="Register"/> will be called to register a <see cref="DataViewType"/> for a <see cref="Type"/> with its <see cref="Attribute"/>s.
-    /// Whenever a value typed to the registered <see cref="Type"/> and its <see cref="Attribute"/>s, its <see cref="DataViewSchema.Column.Type"/> would be the
-    /// associated <see cref="DataViewType"/>.
+    /// Whenever a value typed to the registered <see cref="Type"/> and its <see cref="Attribute"/>s, that value's type (i.e., a <see cref="DataViewSchema.Column.Type"/>)
+    /// in <see cref="IDataView"/> would be the associated <see cref="DataViewType"/>.
     /// </summary>
-    public abstract class DataViewTypeAttribute : Attribute
+    public abstract class DataViewTypeAttribute : Attribute, IEquatable<DataViewTypeAttribute>
     {
         /// <summary>
         /// A function implicitly invoked by ML.NET when processing a custom type. It binds a DataViewType to a custom type plus its attributes.
@@ -497,31 +478,7 @@ namespace Microsoft.ML.Data
         /// <summary>
         /// Return <see langword="true"/> if <see langword="this"/> is equivalent to <paramref name="other"/> and <see langword="false"/> otherwise.
         /// </summary>
-        /// <param name="other">Another <see cref="DataViewType"/> to be compared with <see langword="this"/>.</param>
+        /// <param name="other">Another <see cref="DataViewTypeAttribute"/> to be compared with <see langword="this"/>.</param>
         public abstract bool Equals(DataViewTypeAttribute other);
-
-        /// <summary>
-        /// Produce the hashing code of <see langword="this"/>. It's the implementation of <see cref="GetHashCode"/>.
-        /// </summary>
-        public abstract int GetDataViewTypeAttributeHashCode();
-
-        /// <summary>
-        /// Return <see langword="true"/> if <see langword="this"/> is equivalent to <paramref name="obj"/> and <see langword="false"/> otherwise.
-        /// Derived classes should implement their comparison logics by overriding <see cref="Equals(DataViewTypeAttribute)"/>.
-        /// </summary>
-        /// <param name="obj">An <see langword="object"/> to be compared with <see langword="this"/>.</param>
-        public sealed override bool Equals(object obj)
-        {
-            if (obj is DataViewTypeAttribute)
-                return Equals((DataViewTypeAttribute)obj);
-            return false;
-        }
-
-        /// <summary>
-        /// Returns hash code of <see langword="this"/>.
-        /// Derived classes override <see cref="GetDataViewTypeAttributeHashCode"/> to implement their own hashing algorithm. Notice that equivalent attributes should
-        /// produce the same hash code.
-        /// </summary>
-        public sealed override int GetHashCode() => GetDataViewTypeAttributeHashCode();
     }
 }

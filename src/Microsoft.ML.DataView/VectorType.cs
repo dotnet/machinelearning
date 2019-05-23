@@ -138,7 +138,7 @@ namespace Microsoft.ML.Data
             return true;
         }
 
-        public override int GetDataViewTypeHashCode()
+        public override int GetHashCode()
         {
             int hash = Hashing.CombineHash(ItemType.GetHashCode(), Size);
             hash = Hashing.CombineHash(hash, Dimensions.Length);

@@ -50,12 +50,15 @@ namespace Microsoft.ML.Transforms.Image
         /// </summary>
         public override bool Equals(DataViewTypeAttribute other)
         {
-            if (other is ImageTypeAttribute)
-                return Height == ((ImageTypeAttribute)other).Height && Width == ((ImageTypeAttribute)other).Width;
+            if (other is ImageTypeAttribute otherImage)
+                return Height == otherImage.Height && Width == otherImage.Width;
             return false;
         }
 
-        public override int GetDataViewTypeAttributeHashCode()
+        /// <summary>
+        /// Produce the same hash code for all images with the same height and the same width.
+        /// </summary>
+        public override int GetHashCode()
         {
             return Hashing.CombineHash(Height.GetHashCode(), Width.GetHashCode());
         }
@@ -97,7 +100,7 @@ namespace Microsoft.ML.Transforms.Image
             return Width == tmp.Width;
         }
 
-        public override int GetDataViewTypeHashCode()
+        public override int GetHashCode()
         {
             return Hashing.CombineHash(Height.GetHashCode(), Width.GetHashCode());
         }

@@ -59,7 +59,7 @@ namespace Microsoft.ML
                 case FieldInfo fieldInfo:
                     Type fieldType = fieldInfo.FieldType;
 
-                    var assignmentOpCode = GetAssignmentOpCode(fieldType, fieldInfo.GetCustomAttributes().ToArray());
+                    var assignmentOpCode = GetAssignmentOpCode(fieldType, fieldInfo.GetCustomAttributes());
                     Func<FieldInfo, OpCode, Delegate> func = GeneratePeek<TOwn, TRow, int>;
                     var methInfo = func.GetMethodInfo().GetGenericMethodDefinition()
                         .MakeGenericMethod(typeof(TOwn), typeof(TRow), fieldType);
@@ -68,7 +68,7 @@ namespace Microsoft.ML
                 case PropertyInfo propertyInfo:
                     Type propertyType = propertyInfo.PropertyType;
 
-                    var assignmentOpCodeProp = GetAssignmentOpCode(propertyType, propertyInfo.GetCustomAttributes().ToArray());
+                    var assignmentOpCodeProp = GetAssignmentOpCode(propertyType, propertyInfo.GetCustomAttributes());
                     Func<PropertyInfo, OpCode, Delegate> funcProp = GeneratePeek<TOwn, TRow, int>;
                     var methInfoProp = funcProp.GetMethodInfo().GetGenericMethodDefinition()
                         .MakeGenericMethod(typeof(TOwn), typeof(TRow), propertyType);
@@ -135,7 +135,7 @@ namespace Microsoft.ML
                 case FieldInfo fieldInfo:
                     Type fieldType = fieldInfo.FieldType;
 
-                    var assignmentOpCode = GetAssignmentOpCode(fieldType, fieldInfo.GetCustomAttributes().ToArray());
+                    var assignmentOpCode = GetAssignmentOpCode(fieldType, fieldInfo.GetCustomAttributes());
                     Func<FieldInfo, OpCode, Delegate> func = GeneratePoke<TOwn, TRow, int>;
                     var methInfo = func.GetMethodInfo().GetGenericMethodDefinition()
                         .MakeGenericMethod(typeof(TOwn), typeof(TRow), fieldType);
@@ -144,7 +144,7 @@ namespace Microsoft.ML
                 case PropertyInfo propertyInfo:
                     Type propertyType = propertyInfo.PropertyType;
 
-                    var assignmentOpCodeProp = GetAssignmentOpCode(propertyType, propertyInfo.GetCustomAttributes().ToArray());
+                    var assignmentOpCodeProp = GetAssignmentOpCode(propertyType, propertyInfo.GetCustomAttributes());
                     Func<PropertyInfo, Delegate> funcProp = GeneratePoke<TOwn, TRow, int>;
                     var methInfoProp = funcProp.GetMethodInfo().GetGenericMethodDefinition()
                         .MakeGenericMethod(typeof(TOwn), typeof(TRow), propertyType);

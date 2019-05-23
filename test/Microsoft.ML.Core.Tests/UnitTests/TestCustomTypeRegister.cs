@@ -66,7 +66,7 @@ namespace Microsoft.ML.RunTests
                 return false;
             }
 
-            public override int GetDataViewTypeAttributeHashCode() => RaceId.GetHashCode();
+            public override int GetHashCode() => RaceId.GetHashCode();
         }
 
         /// <summary>
@@ -123,7 +123,7 @@ namespace Microsoft.ML.RunTests
                     return false;
             }
 
-            public override int GetDataViewTypeHashCode()
+            public override int GetHashCode()
             {
                 return RaceId.GetHashCode();
             }

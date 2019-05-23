@@ -17,9 +17,11 @@ namespace Microsoft.ML.Data
     /// </summary>
     public static class DataViewTypeManager
     {
-        // Types have been used in ML.NET type systems. They can have multiple-to-one type mapping.
-        // For example, UInt32 and Key can be mapped to uint. This class enforces one-to-one mapping for all
-        // user-registered types.
+        /// <summary>
+        /// Types have been used in ML.NET type systems. They can have multiple-to-one type mapping.
+        /// For example, UInt32 and Key can be mapped to uint. This class enforces one-to-one mapping for all
+        /// user-registered types.
+        /// </summary>
         private static HashSet<Type> _bannedRawTypes = new HashSet<Type>()
         {
             typeof(Boolean), typeof(SByte), typeof(Byte),
@@ -50,23 +52,10 @@ namespace Microsoft.ML.Data
         /// </summary>
         private static Dictionary<DataViewTypeId, TypeWithAttributesId> _dataViewTypeIdToTypeIdMap = new Dictionary<DataViewTypeId, TypeWithAttributesId>();
 
-        private static object _lock = new object();
-
-        private static int ComputeHashCode(Type rawType, IEnumerable<Attribute> rawTypeAttributes)
-        {
-            if (rawTypeAttributes == null)
-                return rawType.GetHashCode();
-
-            var code = rawType.GetHashCode();
-            foreach (var attr in rawTypeAttributes)
-                code = Hashing.CombineHash(code, attr.GetHashCode());
-            return code;
-        }
-
         /// <summary>
-        /// This function hashes a <see cref="DataViewType"/> and its own hashing code together.
+        /// The lock that one should acquire if the state of <see cref="DataViewTypeManager"/> will be accessed or modified.
         /// </summary>
-        private static int ComputeHashCode(DataViewType dataViewType) => Hashing.CombineHash(dataViewType.GetType().GetHashCode(), dataViewType.GetHashCode());
+        private static object _lock = new object();
 
         /// <summary>
         /// Returns the <see cref="DataViewType"/> registered for <paramref name="rawType"/> and its <paramref name="rawTypeAttributes"/>.
@@ -182,53 +171,39 @@ namespace Microsoft.ML.Data
         }
 
         /// <summary>
-        /// An instance of <see cref="TypeWithAttributesId"/> represents an unique key of its <see cref="TargetType"/> and <see cref="AssociatedAttributes"/>.
+        /// An instance of <see cref="TypeWithAttributesId"/> represents an unique key of its <see cref="_targetType"/> and <see cref="_associatedAttributes"/>.
         /// </summary>
         private class TypeWithAttributesId
         {
-            public Type TargetType { get; }
-            public IEnumerable<Attribute> AssociatedAttributes { get; }
+            private Type _targetType;
+            private IEnumerable<Attribute> _associatedAttributes;
 
             public TypeWithAttributesId(Type rawType, IEnumerable<Attribute> attributes)
             {
-                TargetType = rawType;
-                AssociatedAttributes = attributes;
-            }
-
-            /// <summary>
-            /// This function computes a hashing ID from <see name="TargetType"/> and attributes attached to it.
-            /// If a type is defined as a member in a <see langword="class"/>, <see name="Attributes"/> can be obtained by calling
-            /// <see cref="MemberInfo.GetCustomAttributes(bool)"/>.
-            /// </summary>
-            public override int GetHashCode()
-            {
-                if (AssociatedAttributes == null)
-                    return TargetType.GetHashCode();
-
-                var code = TargetType.GetHashCode();
-                foreach (var attr in AssociatedAttributes)
-                    code = Hashing.CombineHash(code, attr.GetHashCode());
-                return code;
+                _targetType = rawType;
+                _associatedAttributes = attributes;
             }
 
             public override bool Equals(object obj)
             {
-                if (obj is TypeWithAttributesId)
+                if (obj is TypeWithAttributesId other)
                 {
-                    var other = (TypeWithAttributesId)obj;
-                    var sameType = TargetType.Equals(other.TargetType);
-
+                    // Flag of having the same type.
+                    var sameType = _targetType.Equals(other._targetType);
+                    // Flag of having the attribute configurations.
                     var sameAttributeConfig = true;
 
-                    if (AssociatedAttributes == null && other.AssociatedAttributes == null)
+                    if (_associatedAttributes == null && other._associatedAttributes == null)
                         sameAttributeConfig = true;
-                    else if (AssociatedAttributes == null && other.AssociatedAttributes != null)
+                    else if (_associatedAttributes == null && other._associatedAttributes != null)
                         sameAttributeConfig = false;
-                    else if (AssociatedAttributes != null && other.AssociatedAttributes == null)
+                    else if (_associatedAttributes != null && other._associatedAttributes == null)
+                        sameAttributeConfig = false;
+                    else if (_associatedAttributes.Count() != other._associatedAttributes.Count())
                         sameAttributeConfig = false;
                     else
                     {
-                        var zipped = AssociatedAttributes.Zip(other.AssociatedAttributes, (attr, otherAttr) => (attr, otherAttr));
+                        var zipped = _associatedAttributes.Zip(other._associatedAttributes, (attr, otherAttr) => (attr, otherAttr));
                         foreach (var (attr, otherAttr) in zipped)
                         {
                             if (!attr.Equals(otherAttr))
@@ -240,34 +215,48 @@ namespace Microsoft.ML.Data
                 }
                 return false;
             }
+
+            /// <summary>
+            /// This function computes a hashing ID from <see name="TargetType"/> and attributes attached to it.
+            /// If a type is defined as a member in a <see langword="class"/>, <see name="Attributes"/> can be obtained by calling
+            /// <see cref="MemberInfo.GetCustomAttributes(bool)"/>.
+            /// </summary>
+            public override int GetHashCode()
+            {
+                if (_associatedAttributes == null)
+                    return _targetType.GetHashCode();
+
+                var code = _targetType.GetHashCode();
+                foreach (var attr in _associatedAttributes)
+                    code = Hashing.CombineHash(code, attr.GetHashCode());
+                return code;
+            }
+
         }
 
         /// <summary>
-        /// An instance of <see cref="DataViewTypeId"/> represents an unique key of its <see cref="TargetType"/>.
+        /// An instance of <see cref="DataViewTypeId"/> represents an unique key of its <see cref="_targetType"/>.
         /// </summary>
         private class DataViewTypeId
         {
-            public DataViewType TargetType { get; }
+            private DataViewType _targetType;
 
             public DataViewTypeId(DataViewType type)
             {
-                TargetType = type;
+                _targetType = type;
             }
 
             public override bool Equals(object obj)
             {
-                if (obj is DataViewTypeId)
-                {
-                    var other = (DataViewTypeId)obj;
-                    return TargetType.Equals(other.TargetType);
-                }
+                if (obj is DataViewTypeId other)
+                    return _targetType.Equals(other._targetType);
 
                 return false;
             }
 
             public override int GetHashCode()
             {
-                return TargetType.GetHashCode();
+                return _targetType.GetHashCode();
             }
         }
     }
