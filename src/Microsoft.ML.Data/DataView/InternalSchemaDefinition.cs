@@ -147,11 +147,11 @@ namespace Microsoft.ML.Data
             switch (memberInfo)
             {
                 case FieldInfo fieldInfo:
-                    GetVectorAndItemType(fieldInfo.FieldType, fieldInfo.Name, out isVector, out itemType, fieldInfo.GetCustomAttributes().ToArray());
+                    GetVectorAndItemType(fieldInfo.FieldType, fieldInfo.Name, out isVector, out itemType, fieldInfo.GetCustomAttributes());
                     break;
 
                 case PropertyInfo propertyInfo:
-                    GetVectorAndItemType(propertyInfo.PropertyType, propertyInfo.Name, out isVector, out itemType, propertyInfo.GetCustomAttributes().ToArray());
+                    GetVectorAndItemType(propertyInfo.PropertyType, propertyInfo.Name, out isVector, out itemType, propertyInfo.GetCustomAttributes());
                     break;
 
                 default:
@@ -172,7 +172,7 @@ namespace Microsoft.ML.Data
         /// The corresponding <see cref="PrimitiveDataViewType"/> RawType of the type, or items of this type if vector.
         /// </param>
         /// <param name="attributes">Attribute of <paramref name="rawType"/>.</param>
-        public static void GetVectorAndItemType(Type rawType, string name, out bool isVector, out Type itemType, params Attribute[] attributes)
+        public static void GetVectorAndItemType(Type rawType, string name, out bool isVector, out Type itemType, IEnumerable<Attribute> attributes=null)
         {
             // Determine whether this is a vector, and also determine the raw item type.
             isVector = true;

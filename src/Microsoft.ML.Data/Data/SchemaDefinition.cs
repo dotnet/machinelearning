@@ -394,7 +394,7 @@ namespace Microsoft.ML.Data
 
                 // Get the column type.
                 DataViewType columnType;
-                if (!DataViewTypeManager.Knows(dataType, memberInfo.GetCustomAttributes().ToArray()))
+                if (!DataViewTypeManager.Knows(dataType, memberInfo.GetCustomAttributes()))
                 {
                     PrimitiveDataViewType itemType;
                     var keyAttr = memberInfo.GetCustomAttribute<KeyTypeAttribute>();
@@ -427,7 +427,7 @@ namespace Microsoft.ML.Data
                         columnType = itemType;
                 }
                 else
-                    columnType = DataViewTypeManager.GetDataViewType(dataType, memberInfo.GetCustomAttributes().ToArray());
+                    columnType = DataViewTypeManager.GetDataViewType(dataType, memberInfo.GetCustomAttributes());
 
                 cols.Add(new Column(memberInfo.Name, columnType, name));
             }
