@@ -105,12 +105,7 @@ namespace Microsoft.ML.Transforms.Image
             return Width == tmp.Width;
         }
 
-        public override bool Equals(object other)
-        {
-            return other is DataViewType tmp && Equals(tmp);
-        }
-
-        public override int GetHashCode()
+        public override int GetDataViewTypeHashCode()
         {
             return Hashing.CombineHash(Height.GetHashCode(), Width.GetHashCode());
         }

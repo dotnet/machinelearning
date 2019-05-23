@@ -138,12 +138,7 @@ namespace Microsoft.ML.Data
             return true;
         }
 
-        public override bool Equals(object other)
-        {
-            return other is DataViewType tmp && Equals(tmp);
-        }
-
-        public override int GetHashCode()
+        public override int GetDataViewTypeHashCode()
         {
             int hash = Hashing.CombineHash(ItemType.GetHashCode(), Size);
             hash = Hashing.CombineHash(hash, Dimensions.Length);

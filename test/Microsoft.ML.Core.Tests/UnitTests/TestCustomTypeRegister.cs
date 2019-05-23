@@ -114,7 +114,7 @@ namespace Microsoft.ML.RunTests
                     return false;
             }
 
-            public override int GetHashCode()
+            public override int GetDataViewTypeHashCode()
             {
                 return Id.GetHashCode();
             }

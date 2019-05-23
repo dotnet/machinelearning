@@ -37,11 +37,25 @@ namespace Microsoft.ML.Data
         /// </remarks>
         public Type RawType { get; }
 
-        // IEquatable<T> interface recommends also to override base class implementations of
-        // Object.Equals(Object) and GetHashCode. In classes below where Equals(ColumnType other)
-        // is effectively a referencial comparison, there is no need to override base class implementations
-        // of Object.Equals(Object) (and GetHashCode) since its also a referencial comparison.
+        /// <summary>
+        /// Return <see langword="true"/> if <see langword="this"/> is equivalent to <paramref name="other"/> and <see langword="false"/> otherwise.
+        /// </summary>
+        /// <param name="other">Another <see cref="DataViewType"/> to be compared with <see langword="this"/>.</param>
         public abstract bool Equals(DataViewType other);
+
+        /// <summary>
+        /// Produce the hashing code of <see langword="this"/>. It's the implementation of <see cref="GetHashCode()"/>.
+        /// </summary>
+        public abstract int GetDataViewTypeHashCode();
+
+        public override bool Equals(object obj)
+        {
+            if (obj is DataViewType)
+                return Equals((DataViewType)obj);
+            return false;
+        }
+
+        public override int GetHashCode() => GetDataViewTypeHashCode();
     }
 
     /// <summary>
@@ -76,6 +90,11 @@ namespace Microsoft.ML.Data
             if (typeof(IDisposable).GetTypeInfo().IsAssignableFrom(RawType.GetTypeInfo()))
                 throw new ArgumentException("A " + nameof(PrimitiveDataViewType) + " cannot have a disposable " + nameof(RawType), nameof(rawType));
         }
+
+        /// <summary>
+        /// All primitive <see cref="DataViewType"/>s are singltons, so we only need one hash code for each of them.
+        /// </summary>
+        public override int GetDataViewTypeHashCode() => 0;
     }
 
     /// <summary>
@@ -469,7 +488,7 @@ namespace Microsoft.ML.Data
         }
 
         /// <summary>
-        /// A function implicitly invoked by ML.NET when processing a custom type. It binds a DataViewType to a custome type plus its attributes.
+        /// A function implicitly invoked by ML.NET when processing a custom type. It binds a DataViewType to a custom type plus its attributes.
         /// </summary>
         public abstract void Register();
     }
