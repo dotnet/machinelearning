@@ -14,7 +14,6 @@ namespace Microsoft.ML.Transforms.Image
     /// Allows a member to be marked as a <see cref="ImageDataViewType"/>, primarily allowing one to set
     /// the shape of an image field.
     /// </summary>
-    [AttributeUsage(AttributeTargets.Field | AttributeTargets.Property, AllowMultiple = false, Inherited = true)]
     public sealed class ImageTypeAttribute : DataViewTypeAttribute
     {
         /// <summary>

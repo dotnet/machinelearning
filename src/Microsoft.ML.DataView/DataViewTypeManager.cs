@@ -33,16 +33,6 @@ namespace Microsoft.ML.Data
         };
 
         /// <summary>
-        /// Mapping from ID to a <see cref="Type"/>. The ID is the ID of <see cref="Type"/> in ML.NET's type system.
-        /// </summary>
-        private static Dictionary<TypeWithAttributesId, Type> _idToTypeMap = new Dictionary<TypeWithAttributesId, Type>();
-
-        /// <summary>
-        /// Mapping from ID to a <see cref="DataViewType"/> instance. The ID is the ID of <see cref="DataViewType"/> instance in ML.NET's type system.
-        /// </summary>
-        private static Dictionary<DataViewTypeId, DataViewType> _idToDataViewTypeMap = new Dictionary<DataViewTypeId, DataViewType>();
-
-        /// <summary>
         /// Mapping from hashing ID of a <see cref="Type"/> and its <see cref="Attribute"/>s to hashing ID of a <see cref="DataViewType"/>.
         /// </summary>
         private static Dictionary<TypeWithAttributesId, DataViewTypeId> _typeIdToDataViewTypeIdMap = new Dictionary<TypeWithAttributesId, DataViewTypeId>();
@@ -75,7 +65,7 @@ namespace Microsoft.ML.Data
                     throw Contracts.ExceptParam(nameof(rawType), $"The raw type {rawType} with attributes {rawTypeAttributes} is not registered with a DataView type.");
 
                 // Retrieve the actual DataViewType identified by dataViewTypeId.
-                return _idToDataViewTypeMap[dataViewTypeId];
+                return dataViewTypeId.TargetType;
             }
         }
 
@@ -92,7 +82,7 @@ namespace Microsoft.ML.Data
 
                 // Check if this ID has been associated with a DataViewType.
                 // Note that the dictionary below contains (typeId, type) pairs (key is typeId, and value is type).
-                if (_idToTypeMap.ContainsKey(typeId))
+                if (_typeIdToDataViewTypeIdMap.ContainsKey(typeId))
                     return true;
                 else
                     return false;
@@ -112,7 +102,7 @@ namespace Microsoft.ML.Data
 
                 // Check if this the ID has been associated with a DataViewType.
                 // Note that the dictionary below contains (dataViewTypeId, type) pairs (key is dataViewTypeId, and value is type).
-                if (_idToDataViewTypeMap.ContainsKey(dataViewTypeId))
+                if (_dataViewTypeIdToTypeIdMap.ContainsKey(dataViewTypeId))
                     return true;
                 else
                     return false;
@@ -147,7 +137,7 @@ namespace Microsoft.ML.Data
                     // There is a pair of (rawTypeId, anotherDataViewTypeId) in _typeIdToDataViewTypeId so we cannot register
                     // (rawTypeId, dataViewTypeId) again. The assumption here is that one rawTypeId can only be associated
                     // with one dataViewTypeId.
-                    var associatedDataViewType = _idToDataViewTypeMap[_typeIdToDataViewTypeIdMap[rawTypeId]];
+                    var associatedDataViewType = _typeIdToDataViewTypeIdMap[rawTypeId].TargetType;
                     throw Contracts.ExceptParam(nameof(rawType), $"Repeated type register. The raw type {rawType} " +
                         $"has been associated with {associatedDataViewType} so it cannot be associated with {dataViewType}.");
                 }
@@ -157,30 +147,27 @@ namespace Microsoft.ML.Data
                     // There is a pair of (dataViewTypeId, anotherRawTypeId) in _dataViewTypeIdToTypeId so we cannot register
                     // (dataViewTypeId, rawTypeId) again. The assumption here is that one dataViewTypeId can only be associated
                     // with one rawTypeId.
-                    var associatedRawType = _idToTypeMap[_dataViewTypeIdToTypeIdMap[dataViewTypeId]];
+                    var associatedRawType = _dataViewTypeIdToTypeIdMap[dataViewTypeId].TargetType;
                     throw Contracts.ExceptParam(nameof(dataViewType), $"Repeated type register. The DataView type {dataViewType} " +
                         $"has been associated with {associatedRawType} so it cannot be associated with {rawType}.");
                 }
 
                 _typeIdToDataViewTypeIdMap.Add(rawTypeId, dataViewTypeId);
                 _dataViewTypeIdToTypeIdMap.Add(dataViewTypeId, rawTypeId);
-
-                _idToDataViewTypeMap.Add(dataViewTypeId, dataViewType);
-                _idToTypeMap.Add(rawTypeId, rawType);
             }
         }
 
         /// <summary>
-        /// An instance of <see cref="TypeWithAttributesId"/> represents an unique key of its <see cref="_targetType"/> and <see cref="_associatedAttributes"/>.
+        /// An instance of <see cref="TypeWithAttributesId"/> represents an unique key of its <see cref="TargetType"/> and <see cref="_associatedAttributes"/>.
         /// </summary>
         private class TypeWithAttributesId
         {
-            private Type _targetType;
+            public Type TargetType { get; }
             private IEnumerable<Attribute> _associatedAttributes;
 
             public TypeWithAttributesId(Type rawType, IEnumerable<Attribute> attributes)
             {
-                _targetType = rawType;
+                TargetType = rawType;
                 _associatedAttributes = attributes;
             }
 
@@ -189,7 +176,7 @@ namespace Microsoft.ML.Data
                 if (obj is TypeWithAttributesId other)
                 {
                     // Flag of having the same type.
-                    var sameType = _targetType.Equals(other._targetType);
+                    var sameType = TargetType.Equals(other.TargetType);
                     // Flag of having the attribute configurations.
                     var sameAttributeConfig = true;
 
@@ -224,9 +211,9 @@ namespace Microsoft.ML.Data
             public override int GetHashCode()
             {
                 if (_associatedAttributes == null)
-                    return _targetType.GetHashCode();
+                    return TargetType.GetHashCode();
 
-                var code = _targetType.GetHashCode();
+                var code = TargetType.GetHashCode();
                 foreach (var attr in _associatedAttributes)
                     code = Hashing.CombineHash(code, attr.GetHashCode());
                 return code;
@@ -235,28 +222,28 @@ namespace Microsoft.ML.Data
         }
 
         /// <summary>
-        /// An instance of <see cref="DataViewTypeId"/> represents an unique key of its <see cref="_targetType"/>.
+        /// An instance of <see cref="DataViewTypeId"/> represents an unique key of its <see cref="TargetType"/>.
         /// </summary>
         private class DataViewTypeId
         {
-            private DataViewType _targetType;
+            public DataViewType TargetType { get; }
 
             public DataViewTypeId(DataViewType type)
             {
-                _targetType = type;
+                TargetType = type;
             }
 
             public override bool Equals(object obj)
             {
                 if (obj is DataViewTypeId other)
-                    return _targetType.Equals(other._targetType);
+                    return TargetType.Equals(other.TargetType);
 
                 return false;
             }
 
             public override int GetHashCode()
             {
-                return _targetType.GetHashCode();
+                return TargetType.GetHashCode();
             }
         }
     }

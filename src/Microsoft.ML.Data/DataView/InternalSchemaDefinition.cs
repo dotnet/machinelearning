@@ -119,7 +119,7 @@ namespace Microsoft.ML.Data
                 Contracts.Assert(Generator.GetMethodInfo().ReturnType == typeof(void));
 
                 // Checks that the return type of the generator is compatible with ColumnType.
-                GetVectorAndItemType(ComputedReturnType, "return type", out bool isVector, out Type itemType);
+                GetVectorAndItemType("return type", ComputedReturnType, null, out bool isVector, out Type itemType);
                 Contracts.Assert(isVector == ColumnType is VectorDataViewType);
                 Contracts.Assert(itemType == ColumnType.GetItemType().RawType);
             }
@@ -147,11 +147,11 @@ namespace Microsoft.ML.Data
             switch (memberInfo)
             {
                 case FieldInfo fieldInfo:
-                    GetVectorAndItemType(fieldInfo.FieldType, fieldInfo.Name, out isVector, out itemType, fieldInfo.GetCustomAttributes());
+                    GetVectorAndItemType(fieldInfo.Name, fieldInfo.FieldType, fieldInfo.GetCustomAttributes(), out isVector, out itemType);
                     break;
 
                 case PropertyInfo propertyInfo:
-                    GetVectorAndItemType(propertyInfo.PropertyType, propertyInfo.Name, out isVector, out itemType, propertyInfo.GetCustomAttributes());
+                    GetVectorAndItemType(propertyInfo.Name, propertyInfo.PropertyType, propertyInfo.GetCustomAttributes(), out isVector, out itemType);
                     break;
 
                 default:
@@ -165,14 +165,14 @@ namespace Microsoft.ML.Data
         /// and also the associated data type for this type. If a valid data type could not
         /// be determined, this will throw.
         /// </summary>
-        /// <param name="rawType">The type of the variable to inspect.</param>
         /// <param name="name">The name of the variable to inspect.</param>
+        /// <param name="rawType">The type of the variable to inspect.</param>
+        /// <param name="attributes">Attribute of <paramref name="rawType"/>. It can be <see langword="null"/> if attributes don't exist.</param>
         /// <param name="isVector">Whether this appears to be a vector type.</param>
         /// <param name="itemType">
         /// The corresponding <see cref="PrimitiveDataViewType"/> RawType of the type, or items of this type if vector.
         /// </param>
-        /// <param name="attributes">Attribute of <paramref name="rawType"/>.</param>
-        public static void GetVectorAndItemType(Type rawType, string name, out bool isVector, out Type itemType, IEnumerable<Attribute> attributes=null)
+        public static void GetVectorAndItemType(string name, Type rawType, IEnumerable<Attribute> attributes, out bool isVector, out Type itemType)
         {
             // Determine whether this is a vector, and also determine the raw item type.
             isVector = true;
@@ -246,7 +246,7 @@ namespace Microsoft.ML.Data
                     var parameterType = col.ReturnType;
                     if (parameterType == null)
                         throw Contracts.ExceptParam(nameof(userSchemaDefinition), "No return parameter found in computed column.");
-                    GetVectorAndItemType(parameterType, "returnType", out isVector, out dataItemType);
+                    GetVectorAndItemType("returnType", parameterType, null, out isVector, out dataItemType);
                 }
                 // Infer the column name.
                 var colName = string.IsNullOrEmpty(col.ColumnName) ? col.MemberName : col.ColumnName;

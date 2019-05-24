@@ -37,6 +37,10 @@ namespace Microsoft.ML.Data
         /// </remarks>
         public Type RawType { get; }
 
+        // IEquatable<T> interface recommends also to override base class implementations of
+        // Object.Equals(Object) and GetHashCode. In classes below where Equals(ColumnType other)
+        // is effectively a referencial comparison, there is no need to override base class implementations
+        // of Object.Equals(Object) (and GetHashCode) since its also a referencial comparison.
         /// <summary>
         /// Return <see langword="true"/> if <see langword="this"/> is equivalent to <paramref name="other"/> and <see langword="false"/> otherwise.
         /// </summary>
@@ -468,6 +472,7 @@ namespace Microsoft.ML.Data
     /// Whenever a value typed to the registered <see cref="Type"/> and its <see cref="Attribute"/>s, that value's type (i.e., a <see cref="DataViewSchema.Column.Type"/>)
     /// in <see cref="IDataView"/> would be the associated <see cref="DataViewType"/>.
     /// </summary>
+    [AttributeUsage(AttributeTargets.Field | AttributeTargets.Property, AllowMultiple = false, Inherited = true)]
     public abstract class DataViewTypeAttribute : Attribute, IEquatable<DataViewTypeAttribute>
     {
         /// <summary>

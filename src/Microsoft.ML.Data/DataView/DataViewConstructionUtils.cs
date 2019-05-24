@@ -847,7 +847,7 @@ namespace Microsoft.ML.Data
             Contracts.Assert(value != null);
             bool isVector;
             Type itemType;
-            InternalSchemaDefinition.GetVectorAndItemType(typeof(T), "annotation value", out isVector, out itemType);
+            InternalSchemaDefinition.GetVectorAndItemType("annotation value", typeof(T), null, out isVector, out itemType);
 
             if (annotationType == null)
             {
