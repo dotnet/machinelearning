@@ -59,7 +59,7 @@ namespace Samples.Dynamic.Trainers.Regression
             var dataWithPredictions = model.Transform(split.TestSet);
             var metrics = mlContext.Regression.Evaluate(dataWithPredictions);
 
-            ConsoleUtils.PrintMetrics(metrics);
+            PrintMetrics(metrics);
             
             // Expected output:
             //   L1: 4.14
@@ -67,6 +67,14 @@ namespace Samples.Dynamic.Trainers.Regression
             //   LossFunction: 32.35
             //   RMS: 5.69
             //   RSquared: 0.56
+        }
+
+        public static void PrintMetrics(RegressionMetrics metrics)
+        {
+            Console.WriteLine($"Mean Absolute Error: {metrics.MeanAbsoluteError:F2}");
+            Console.WriteLine($"Mean Squared Error: {metrics.MeanSquaredError:F2}");
+            Console.WriteLine($"Root Mean Squared Error: {metrics.RootMeanSquaredError:F2}");
+            Console.WriteLine($"RSquared: {metrics.RSquared:F2}");
         }
     }
 }
