@@ -19,7 +19,7 @@ namespace Microsoft.ML.Data
     {
         /// <summary>
         /// Types have been used in ML.NET type systems. They can have multiple-to-one type mapping.
-        /// For example, UInt32 and Key can be mapped to uint. This class enforces one-to-one mapping for all
+        /// For example, UInt32 and Key can be mapped to <see langword="uint"/>. This class enforces one-to-one mapping for all
         /// user-registered types.
         /// </summary>
         private static HashSet<Type> _bannedRawTypes = new HashSet<Type>()
@@ -52,9 +52,6 @@ namespace Microsoft.ML.Data
         /// </summary>
         public static DataViewType GetDataViewType(Type rawType, IEnumerable<Attribute> rawTypeAttributes = null)
         {
-            // Overall flow:
-            //   type (Type) + attrs ----> type ID ----------------> associated DataViewType's ID ----------------> DataViewType
-            //                     (hashing)      (dictionary look-up)                           (dictionary look-up)
             lock (_lock)
             {
                 // Compute the ID of type with extra attributes.

@@ -38,7 +38,6 @@ namespace Microsoft.ML.RunTests
             }
         }
 
-        [AttributeUsage(AttributeTargets.Field | AttributeTargets.Property, AllowMultiple = false, Inherited = true)]
         private sealed class AlienTypeAttributeAttribute : DataViewTypeAttribute
         {
             public int RaceId { get; }
@@ -52,7 +51,7 @@ namespace Microsoft.ML.RunTests
             }
 
             /// <summary>
-            /// A function implicitly invoked by ML.NET when processing a custom type. It binds a DataViewType to a custome type plus its attributes.
+            /// A function implicitly invoked by ML.NET when processing a custom type. It binds a DataViewType to a custom type plus its attributes.
             /// </summary>
             public override void Register()
             {
@@ -117,10 +116,9 @@ namespace Microsoft.ML.RunTests
 
             public override bool Equals(DataViewType other)
             {
-                if (other is DataViewAlienBodyType)
-                    return ((DataViewAlienBodyType)other).RaceId == RaceId;
-                else
-                    return false;
+                if (other is DataViewAlienBodyType otherAlien)
+                    return otherAlien.RaceId == RaceId;
+                return false;
             }
 
             public override int GetHashCode()
