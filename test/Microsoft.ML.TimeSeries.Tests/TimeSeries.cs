@@ -34,7 +34,8 @@ namespace Microsoft.ML.RunTests
                     "xf=Convert{col=fAnomaly:R4:Anomaly}",
                     "xf=IidSpikeDetector{src=Features name=Anomaly2 cnf=99.5 wnd=200 side=Negative}",
                     "xf=Convert{col=fAnomaly2:R4:Anomaly2}",
-                    "xf=Select{keepcol=Features keepcol=fAnomaly keepcol=fAnomaly2}" });
+                    "xf=Select{keepcol=Features keepcol=fAnomaly keepcol=fAnomaly2}" },
+                    parseOption: NumberParseOption.UseSingle);
 
             Done();
         }
@@ -49,7 +50,8 @@ namespace Microsoft.ML.RunTests
                     "xf=Convert{col=fAnomaly:R4:Anomaly}",
                     "xf=IidChangePointDetector{src=Features name=Anomaly2 cnf=83 wnd=100 mart=Mixture}",
                     "xf=Convert{col=fAnomaly2:R4:Anomaly2}",
-                    "xf=Select{keepcol=Features keepcol=fAnomaly keepcol=fAnomaly2}" });
+                    "xf=Select{keepcol=Features keepcol=fAnomaly keepcol=fAnomaly2}" },
+                    parseOption: NumberParseOption.UseSingle);
 
             Done();
         }

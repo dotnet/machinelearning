@@ -56,15 +56,15 @@ namespace Microsoft.ML.Trainers
     /// - The K-means|| method. This method was introduced [here](https://theory.stanford.edu/~sergei/papers/vldb12-kmpar.pdf) by Bahmani et al., and uses
     /// a parallel method that drastically reduces the number of passes needed to obtain a good initialization.
     ///
-    /// The latter is the default initialization method. The other methods can be specified in the [Options](xref:Microsoft.ML.Trainers.KMeansTrainer.Options)
+    /// K-means|| is the default initialization method. The other methods can be specified in the [Options](xref:Microsoft.ML.Trainers.KMeansTrainer.Options)
     /// when creating the trainer using
     /// [KMeansTrainer(Options)](xref:Microsoft.ML.KMeansClusteringExtensions.KMeans(Microsoft.ML.ClusteringCatalog.ClusteringTrainers,Microsoft.ML.Trainers.KMeansTrainer.Options)).
     ///
     /// ### Scoring Function
     /// The output Score column contains the $L_2$-norm distance (i.e., [Euclidean distance](https://en.wikipedia.org/wiki/Euclidean_distance)) of the given input vector $\textbf{x}\in \mathbb{R}^n$ to each cluster's centroid.
     /// Assume that the centriod of the $c$-th cluster is $\textbf{m}_c \in \mathbb{R}^n$.
-    /// The $c$-th value at the Score column would be $d_c = || \textbf{x} - \textbf{m}_c ||_2^2$.
-    /// The predicted label is the index with the smallest value in a $K$ dimension vector $[d_{0}, \dots, d_{K-1}]$, where $K$ is the number of clusters.
+    /// The $c$-th value at the Score column would be $d_c = || \textbf{x} - \textbf{m}\_c ||\_2^2$.
+    /// The predicted label is the index with the smallest value in a $K$ dimensional vector $[d\_{0}, \dots, d\_{K-1}]$, where $K$ is the number of clusters.
     ///
     /// For more information on K-means, and K-means++ see:
     /// [K-means](https://en.wikipedia.org/wiki/K-means_clustering)

@@ -16,6 +16,7 @@ namespace Microsoft.ML.Samples
 
                 if (sample != null)
                 {
+                    Console.WriteLine(type.Name);
                     sample.Invoke(null, null);
                     samples++;
                 }

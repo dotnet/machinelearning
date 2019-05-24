@@ -59,25 +59,24 @@ namespace Microsoft.ML.Trainers
     ///
     /// ### Scoring Function
     /// [Maximum entropy model](https://en.wikipedia.org/wiki/Multinomial_logistic_regression) is a generalization of linear [logistic regression](https://en.wikipedia.org/wiki/Logistic_regression).
-    /// The major difference between maximum entropy model and logistic regression is that the number of classes supported in considered classification problem.
+    /// The major difference between maximum entropy model and logistic regression is the number of classes supported in the considered classification problem.
     /// Logistic regression is only for binary classification while maximum entropy model handles multiple classes.
     /// See Section 1 in [this paper](https://www.csie.ntu.edu.tw/~cjlin/papers/maxent_dual.pdf) for a detailed introduction.
     ///
     /// Assume that the number of classes is $m$ and number of features is $n$.
-    /// Maximum entropy model assigns the $c$-th class a coefficient vector $\textbf{w}_c \in {\mathbb R}^n$ and a bias $b_c \in {\mathbb R}$, for $c=1,\dots,m$.
-    /// Given a feature vector $\textbf{x} \in {\mathbb R}^n$, the $c$-th class's score is $\hat{y}^c = \textbf{w}_c^T \textbf{x} + b_c$.
-    /// The probability of $\textbf{x}$ belonging to class $c$ is defined by $\tilde{P}(c | \textbf{x}) = \frac{ e^{\hat{y}^c} }{ \sum_{c' = 1}^m e^{\hat{y}^{c'}} }$.
-    /// Let $P(c, \textbf{x})$ denote the join probability of seeing $c$ and $\textbf{x}$.
-    /// The loss function minimized by this trainer is $-\sum_{c = 1}^m P(c, \textbf{x}) \log \tilde{P}(c | \textbf{x}) $, which is the negative [log-likelihood function](https://en.wikipedia.org/wiki/Likelihood_function#Log-likelihood).
+    /// Maximum entropy model assigns the $c$-th class a coefficient vector $\textbf{w}\_c \in {\mathbb R}^n$ and a bias $b_c \in {\mathbb R}$, for $c=1,\dots,m$.
+    /// Given a feature vector $\textbf{x} \in {\mathbb R}^n$, the $c$-th class's score is $\hat{y}^c = \textbf{w}\_c^T \textbf{x} + b_c$.
+    /// The probability of $\textbf{x}$ belonging to class $c$ is defined by $\tilde{P}(c | \textbf{x}) = \frac{ e^{\hat{y}^c} }{ \sum\_{c' = 1}^m e^{\hat{y}^{c'}} }$.
+    /// Let $P(c, \textbf{ x})$ denote the joint probability of seeing $c$ and $\textbf{x}$.
+    /// The loss function minimized by this trainer is $-\sum\_{c = 1}^m P(c, \textbf{ x}) \log \tilde{P}(c | \textbf{x}) $, which is the negative [log-likelihood function](https://en.wikipedia.org/wiki/Likelihood_function#Log-likelihood).
     ///
     /// ### Training Algorithm Details
     /// The optimization technique implemented is based on [the limited memory Broyden-Fletcher-Goldfarb-Shanno method (L-BFGS)](https://en.wikipedia.org/wiki/Limited-memory_BFGS).
-    /// L-BFGS is a [quasi-Newtonian method](https://en.wikipedia.org/wiki/Quasi-Newton_method) which replaces the expensive computation cost of Hessian matrix with an approximation but still enjoys a fast convergence rate like [Newton method](https://en.wikipedia.org/wiki/Newton%27s_method_in_optimization) where the full Hessian matrix is computed.
-    /// Since L-BFGS approximation uses only a limited amount of historical states to compute the next step direction, it is especially suited for problems with high-dimensional feature vector.
-    /// The number of historical states is a user-specified parameter, using a larger number may lead to a better approximation to the Hessian matrix but also a higher computation cost per step.
+    /// L-BFGS is a [quasi-Newtonian method](https://en.wikipedia.org/wiki/Quasi-Newton_method), which replaces the expensive computation of the Hessian matrix with an approximation but still enjoys a fast convergence rate like [Newton's method](https://en.wikipedia.org/wiki/Newton%27s_method_in_optimization) where the full Hessian matrix is computed.
+    /// Since L-BFGS approximation uses only a limited amount of historical states to compute the next step direction, it is especially suited for problems with a high-dimensional feature vector.
+    /// The number of historical states is a user-specified parameter, using a larger number may lead to a better approximation of the Hessian matrix but also a higher computation cost per step.
     ///
     /// [!include[io](~/../docs/samples/docs/api-reference/regularization-l1-l2.md)]
-    ///
     ///
     /// Check the See Also section for links to usage examples.
     /// ]]>

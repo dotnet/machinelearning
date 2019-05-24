@@ -20,7 +20,7 @@
     <SystemDrawingCommonPackageVersion>4.5.0</SystemDrawingCommonPackageVersion>
     <SystemIOFileSystemAccessControl>4.5.0</SystemIOFileSystemAccessControl>
     <SystemSecurityPrincipalWindows>4.5.0</SystemSecurityPrincipalWindows>
-    <TensorFlowVersion>1.12.0</TensorFlowVersion>
+    <TensorFlowVersion>1.13.1</TensorFlowVersion>
   </PropertyGroup>
 
   <!-- Code Analyzer Dependencies -->
@@ -36,6 +36,7 @@
     <CodecovVersion>1.1.1</CodecovVersion>
     <CoverletVersion>2.6.0</CoverletVersion>
     <ReportGeneratorVersion>4.0.9</ReportGeneratorVersion>
+    <MicrosoftDotNetApiCompatPackageVersion>1.0.0-beta.19225.5</MicrosoftDotNetApiCompatPackageVersion>
   </PropertyGroup>
 
   <!-- Test-only Dependencies -->

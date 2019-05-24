@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Drawing.Imaging;
 using System.Linq;
 using System.Text;
 using Microsoft.ML;
@@ -381,13 +382,33 @@ namespace Microsoft.ML.Transforms.Image
                             destHeight = info.ImageHeight;
                         }
 
-                        dst = new Bitmap(info.ImageWidth, info.ImageHeight, src.PixelFormat);
+                        // Graphics.DrawImage() does not support PixelFormat.Indexed. Hence convert the
+                        // pixel format to Format32bppArgb as described here https://stackoverflow.com/questions/17313285/graphics-on-indexed-image
+                        // For images with invalid pixel format also use Format32bppArgb to draw the resized image.
+                        // For images with Format16bppGrayScale or Format16bppArgb1555 GDI+ does not
+                        // support these formats, ref: https://bytes.com/topic/c-sharp/answers/278572-out-memory-graphics-fromimage
+                        if ((src.PixelFormat & PixelFormat.Indexed) != 0 ||
+                            src.PixelFormat == PixelFormat.Format16bppGrayScale ||
+                            src.PixelFormat == PixelFormat.Format16bppArgb1555 ||
+                            !Enum.IsDefined(typeof(PixelFormat), src.PixelFormat))
+                        {
+                            dst = new Bitmap(info.ImageWidth, info.ImageHeight);
+                            using (var ch = Host.Start(nameof(ImageResizingTransformer)))
+                            {
+                                ch.Warning($"Encountered image {src.Tag} of unsupported pixel format {src.PixelFormat} but converting it to {nameof(PixelFormat.Format32bppArgb)}.");
+                            }
+                        }
+                        else
+                            dst = new Bitmap(info.ImageWidth, info.ImageHeight, src.PixelFormat);
+
                         var srcRectangle = new Rectangle(sourceX, sourceY, sourceWidth, sourceHeight);
                         var destRectangle = new Rectangle(destX, destY, destWidth, destHeight);
                         using (var g = Graphics.FromImage(dst))
                         {
                             g.DrawImage(src, destRectangle, srcRectangle, GraphicsUnit.Pixel);
                         }
+
+                        dst.Tag = src.Tag;
                         Contracts.Assert(dst.Width == info.ImageWidth && dst.Height == info.ImageHeight);
                     };
 

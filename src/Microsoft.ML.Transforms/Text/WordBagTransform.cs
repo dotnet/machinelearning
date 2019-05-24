@@ -95,7 +95,7 @@ namespace Microsoft.ML.Transforms.Text
         internal const string Summary = "Produces a bag of counts of n-grams (sequences of consecutive words of length 1-n) in a given text. It does so by building "
             + "a dictionary of n-grams and using the id in the dictionary as the index in the bag.";
 
-        internal static IDataTransform Create(IHostEnvironment env, Options options, IDataView input)
+        internal static ITransformer CreateTransfomer(IHostEnvironment env, Options options, IDataView input)
         {
             Contracts.CheckValue(env, nameof(env));
             var h = env.Register(RegistrationName);
@@ -150,10 +150,16 @@ namespace Microsoft.ML.Transforms.Text
             }
 
             IDataView view = input;
-            view = NgramExtractionUtils.ApplyConcatOnSources(h, options.Columns, view);
-            view = new WordTokenizingEstimator(env, tokenizeColumns).Fit(view).Transform(view);
-            return NgramExtractorTransform.CreateDataTransform(h, extractorArgs, view);
+            ITransformer t0 = NgramExtractionUtils.ApplyConcatOnSources(h, options.Columns);
+            view = t0.Transform(view);
+            ITransformer t1 = new WordTokenizingEstimator(env, tokenizeColumns).Fit(view);
+            view = t1.Transform(view);
+            ITransformer t2 = NgramExtractorTransform.Create(h, extractorArgs, view);
+            return new TransformerChain<ITransformer>(new[] { t0, t1, t2 });
         }
+
+        internal static IDataTransform Create(IHostEnvironment env, Options options, IDataView input) =>
+            (IDataTransform)CreateTransfomer(env, options, input).Transform(input);
     }
 
     /// <summary>
@@ -489,13 +495,11 @@ namespace Microsoft.ML.Transforms.Text
 
     internal static class NgramExtractionUtils
     {
-        public static IDataView ApplyConcatOnSources(IHostEnvironment env, ManyToOneColumn[] columns, IDataView input)
+        public static ITransformer ApplyConcatOnSources(IHostEnvironment env, ManyToOneColumn[] columns)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(columns, nameof(columns));
-            env.CheckValue(input, nameof(input));
 
-            IDataView view = input;
             var concatColumns = new List<ColumnConcatenatingTransformer.ColumnOptions>();
             foreach (var col in columns)
             {
@@ -506,10 +510,11 @@ namespace Microsoft.ML.Transforms.Text
                 if (col.Source.Length > 1)
                     concatColumns.Add(new ColumnConcatenatingTransformer.ColumnOptions(col.Name, col.Source));
             }
-            if (concatColumns.Count > 0)
-                return new ColumnConcatenatingTransformer(env, concatColumns.ToArray()).Transform(view);
 
-            return view;
+            if (concatColumns.Count > 0)
+                return new ColumnConcatenatingTransformer(env, concatColumns.ToArray());
+
+            return new TransformerChain<ITransformer>();
         }
 
         /// <summary>
