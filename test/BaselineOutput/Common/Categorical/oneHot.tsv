@@ -1,0 +1,31 @@
+#@ TextLoader{
+#@   header+
+#@   sep=tab
+#@   col=A:I4:0
+#@   col=B:I4:1-2
+#@   col=C:I4:3-**
+#@   col={name=CatA type=U4 src={ min=-1} key=2}
+#@   col={name=CatA src={ min=-1 max=0 vector=+}}
+#@   col={name=CatB type=U4 src={ min=-1} key=2}
+#@   col={name=CatB src={ min=-1 max=1 vector=+}}
+#@   col={name=CatC type=U4 src={ min=-1} key=2}
+#@   col={name=CatC src={ min=-1 max=0 vector=+}}
+#@   col={name=CatD type=U4 src={ min=-1} key=2}
+#@   col={name=CatVA type=U4 src={ min=-1 max=0 vector=+} key=3}
+#@   col={name=CatVA src={ min=-1 max=1 vector=+}}
+#@   col={name=CatVB type=U4 src={ min=-1 max=0 vector=+} key=3}
+#@   col={name=CatVB src={ min=-1 max=4 vector=+}}
+#@   col={name=CatVC type=U4 src={ min=-1 max=0 vector=+} key=3}
+#@   col={name=CatVC src={ min=-1 max=4 vector=+}}
+#@   col={name=CatVD type=U4 src={ min=-1 max=0 vector=+} key=3}
+#@   col={name=CatVVA type=U4 src={ min=-1 var=+} key=3}
+#@   col={name=CatVVA src={ min=-1 max=1 vector=+}}
+#@   col={name=CatVVB type=U4 src={ min=-1 var=+} key=3}
+#@   col={name=CatVVB src={ min=-1 var=+}}
+#@   col={name=CatVVC type=U4 src={ min=-1 var=+} key=3}
+#@   col={name=CatVVC src={ min=-1 var=+}}
+#@   col={name=CatVVD type=U4 src={ min=-1 var=+} key=3}
+#@ }
+A	""	""	CatA	1	4	CatB	Bit2	Bit1	Bit0	CatC	1	4	CatD	""	""	2	3	4	""	""	[0].Bit2	[0].Bit1	[0].Bit0	[1].Bit2	[1].Bit1	[1].Bit0	""	""	[0].2	[0].3	[0].4	[1].2	[1].3	[1].4	""	""	3	4	2
+1	2	3	3	4	0	1	0	0	0	0	0	0	1	0	0	0	1	1	1	0	0	1	0	0	0	0	0	1	0	1	1	0	0	0	1	0	0	1	0	1	1	1	0	0	1	0	0	0	0	0	1	0	1	1	0	0	0	1	0	0	1
+4	2	4	2	4	3	1	0	1	1	0	0	1	1	0	1	1	0	2	1	0	1	0	2	0	0	0	0	1	0	0	2	1	0	0	0	0	1	0	2	2	1	0	1	1	1	2	1	0	0	1	0	0	0	1	0	0	0	2	1	0	0	0	1	0	1	0	1	0	0	2	1	0
