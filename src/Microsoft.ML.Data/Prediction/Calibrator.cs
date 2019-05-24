@@ -25,7 +25,7 @@ using Newtonsoft.Json.Linq;
 [assembly: LoadableClass(PlattCalibratorTrainer.Summary, typeof(PlattCalibratorTrainer), null, typeof(SignatureCalibrator),
     PlattCalibratorTrainer.UserName,
     PlattCalibratorTrainer.LoadName,
-    "SigmoidCalibration")]
+    "SigmoidCalibration", "Platt", "Sigmoid")]
 
 [assembly: LoadableClass(FixedPlattCalibratorTrainer.Summary, typeof(FixedPlattCalibratorTrainer), typeof(FixedPlattCalibratorTrainer.Arguments), typeof(SignatureCalibrator),
     FixedPlattCalibratorTrainer.UserName,
