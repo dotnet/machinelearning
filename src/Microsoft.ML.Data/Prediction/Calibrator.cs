@@ -30,7 +30,7 @@ using Newtonsoft.Json.Linq;
 [assembly: LoadableClass(FixedPlattCalibratorTrainer.Summary, typeof(FixedPlattCalibratorTrainer), typeof(FixedPlattCalibratorTrainer.Arguments), typeof(SignatureCalibrator),
     FixedPlattCalibratorTrainer.UserName,
     FixedPlattCalibratorTrainer.LoadName,
-    "FixedSigmoidCalibration")]
+    "FixedSigmoidCalibration", "FixedPlatt")]
 
 [assembly: LoadableClass(PavCalibratorTrainer.Summary, typeof(PavCalibratorTrainer), null, typeof(SignatureCalibrator),
     PavCalibratorTrainer.UserName,
