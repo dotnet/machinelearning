@@ -38,16 +38,19 @@ namespace Microsoft.ML.RunTests
             }
         }
 
+        /// <summary>
+        /// <see cref="DataViewTypeAttribute"/> applied to class <see cref="AlienBody"/> members.
+        /// </summary>
         private sealed class AlienTypeAttributeAttribute : DataViewTypeAttribute
         {
             public int RaceId { get; }
 
             /// <summary>
-            /// Create an image type with known height and width.
+            /// Create an <see cref="DataViewTypeAttribute"/> from <paramref name="raceId"/> to a <see cref="AlienBody"/>.
             /// </summary>
-            public AlienTypeAttributeAttribute(int id)
+            public AlienTypeAttributeAttribute(int raceId)
             {
-                RaceId = id;
+                RaceId = raceId;
             }
 
             /// <summary>
@@ -73,7 +76,8 @@ namespace Microsoft.ML.RunTests
         /// It will be the input of <see cref="AlienLambda.MergeBody(AlienHero, SuperAlienHero)"/>.
         ///
         /// <see cref="One"/> and <see cref="Two"/> would be mapped to different types inside ML.NET type system because they
-        /// have different <see cref="AlienTypeAttributeAttribute"/>s.
+        /// have different <see cref="AlienTypeAttributeAttribute"/>s. For example, the column type of <see cref="One"/> would
+        /// be <see cref="DataViewAlienBodyType"/>.
         /// </summary>
         private class AlienHero
         {
@@ -104,6 +108,7 @@ namespace Microsoft.ML.RunTests
 
         /// <summary>
         /// Type of <see cref="AlienBody"/> in ML.NET's type system.
+        /// It usually shows up as <see cref="DataViewSchema.Column.Type"/> among <see cref="IDataView.Schema"/>.
         /// </summary>
         private class DataViewAlienBodyType : StructuredDataViewType
         {

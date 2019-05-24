@@ -35,12 +35,12 @@ namespace Microsoft.ML.Data
         /// <summary>
         /// Mapping from hashing ID of a <see cref="Type"/> and its <see cref="Attribute"/>s to hashing ID of a <see cref="DataViewType"/>.
         /// </summary>
-        private static Dictionary<TypeWithAttributesId, DataViewTypeId> _typeIdToDataViewTypeIdMap = new Dictionary<TypeWithAttributesId, DataViewTypeId>();
+        private static Dictionary<TypeWithAttributes, DataViewType> _rawTypeToDataViewTypeMap = new Dictionary<TypeWithAttributes, DataViewType>();
 
         /// <summary>
         /// Mapping from hashing ID of a <see cref="DataViewType"/> to hashing ID of a <see cref="Type"/> and its <see cref="Attribute"/>s.
         /// </summary>
-        private static Dictionary<DataViewTypeId, TypeWithAttributesId> _dataViewTypeIdToTypeIdMap = new Dictionary<DataViewTypeId, TypeWithAttributesId>();
+        private static Dictionary<DataViewType, TypeWithAttributes> _dataViewTypeToRawTypeMap = new Dictionary<DataViewType, TypeWithAttributes>();
 
         /// <summary>
         /// The lock that one should acquire if the state of <see cref="DataViewTypeManager"/> will be accessed or modified.
@@ -48,38 +48,38 @@ namespace Microsoft.ML.Data
         private static object _lock = new object();
 
         /// <summary>
-        /// Returns the <see cref="DataViewType"/> registered for <paramref name="rawType"/> and its <paramref name="rawTypeAttributes"/>.
+        /// Returns the <see cref="DataViewType"/> registered for <paramref name="type"/> and its <paramref name="typeAttributes"/>.
         /// </summary>
-        public static DataViewType GetDataViewType(Type rawType, IEnumerable<Attribute> rawTypeAttributes = null)
+        public static DataViewType GetDataViewType(Type type, IEnumerable<Attribute> typeAttributes = null)
         {
             lock (_lock)
             {
                 // Compute the ID of type with extra attributes.
-                var typeId = new TypeWithAttributesId(rawType, rawTypeAttributes);
+                var rawType = new TypeWithAttributes(type, typeAttributes);
 
                 // Get the DataViewType's ID which typeID is mapped into.
-                if (!_typeIdToDataViewTypeIdMap.TryGetValue(typeId, out DataViewTypeId dataViewTypeId))
-                    throw Contracts.ExceptParam(nameof(rawType), $"The raw type {rawType} with attributes {rawTypeAttributes} is not registered with a DataView type.");
+                if (!_rawTypeToDataViewTypeMap.TryGetValue(rawType, out DataViewType dataViewType))
+                    throw Contracts.ExceptParam(nameof(type), $"The raw type {type} with attributes {typeAttributes} is not registered with a DataView type.");
 
-                // Retrieve the actual DataViewType identified by dataViewTypeId.
-                return dataViewTypeId.TargetType;
+                // Retrieve the actual DataViewType identified by dataViewType.
+                return dataViewType;
             }
         }
 
         /// <summary>
-        /// If <paramref name="rawType"/> has been registered with a <see cref="DataViewType"/>, this function returns <see langword="true"/>.
+        /// If <paramref name="type"/> has been registered with a <see cref="DataViewType"/>, this function returns <see langword="true"/>.
         /// Otherwise, this function returns <see langword="false"/>.
         /// </summary>
-        public static bool Knows(Type rawType, IEnumerable<Attribute> rawTypeAttributes = null)
+        public static bool Knows(Type type, IEnumerable<Attribute> typeAttributes = null)
         {
             lock (_lock)
             {
                 // Compute the ID of type with extra attributes.
-                var typeId = new TypeWithAttributesId(rawType, rawTypeAttributes);
+                var rawType = new TypeWithAttributes(type, typeAttributes);
 
                 // Check if this ID has been associated with a DataViewType.
-                // Note that the dictionary below contains (typeId, type) pairs (key is typeId, and value is type).
-                if (_typeIdToDataViewTypeIdMap.ContainsKey(typeId))
+                // Note that the dictionary below contains (rawType, dataViewType) pairs (key type is TypeWithAttributes, and value type is DataViewType).
+                if (_rawTypeToDataViewTypeMap.ContainsKey(rawType))
                     return true;
                 else
                     return false;
@@ -94,12 +94,9 @@ namespace Microsoft.ML.Data
         {
             lock (_lock)
             {
-                // Compute the ID of the input DataViewType.
-                var dataViewTypeId = new DataViewTypeId(dataViewType);
-
                 // Check if this the ID has been associated with a DataViewType.
-                // Note that the dictionary below contains (dataViewTypeId, type) pairs (key is dataViewTypeId, and value is type).
-                if (_dataViewTypeIdToTypeIdMap.ContainsKey(dataViewTypeId))
+                // Note that the dictionary below contains (dataViewType, rawType) pairs (key type is DataViewType, and value type is TypeWithAttributes).
+                if (_dataViewTypeToRawTypeMap.ContainsKey(dataViewType))
                     return true;
                 else
                     return false;
@@ -107,70 +104,78 @@ namespace Microsoft.ML.Data
         }
 
         /// <summary>
-        /// This function tells that <paramref name="dataViewType"/> should be representation of data in <paramref name="rawType"/> in
-        /// ML.NET's type system. The registered <paramref name="rawType"/> must be a standard C# object's type.
+        /// This function tells that <paramref name="dataViewType"/> should be representation of data in <paramref name="type"/> in
+        /// ML.NET's type system. The registered <paramref name="type"/> must be a standard C# object's type.
         /// </summary>
-        /// <param name="rawType">Native type in C#.</param>
-        /// <param name="dataViewType">The corresponding type of <paramref name="rawType"/> in ML.NET's type system.</param>
-        /// <param name="rawTypeAttributes">The <see cref="Attribute"/>s attached to <paramref name="rawType"/>.</param>
-        public static void Register(DataViewType dataViewType, Type rawType, IEnumerable<Attribute> rawTypeAttributes = null)
+        /// <param name="type">Native type in C#.</param>
+        /// <param name="dataViewType">The corresponding type of <paramref name="type"/> in ML.NET's type system.</param>
+        /// <param name="typeAttributes">The <see cref="Attribute"/>s attached to <paramref name="type"/>.</param>
+        public static void Register(DataViewType dataViewType, Type type, IEnumerable<Attribute> typeAttributes = null)
         {
             lock (_lock)
             {
-                if (_bannedRawTypes.Contains(rawType))
-                    throw Contracts.ExceptParam(nameof(rawType), $"Type {rawType} has been registered as ML.NET's default supported type, " +
+                if (_bannedRawTypes.Contains(type))
+                    throw Contracts.ExceptParam(nameof(type), $"Type {type} has been registered as ML.NET's default supported type, " +
                         $"so it can't not be registered again.");
 
-                var rawTypeId = new TypeWithAttributesId(rawType, rawTypeAttributes);
-                var dataViewTypeId = new DataViewTypeId(dataViewType);
+                var rawType = new TypeWithAttributes(type, typeAttributes);
 
-                if (_typeIdToDataViewTypeIdMap.ContainsKey(rawTypeId) && _typeIdToDataViewTypeIdMap[rawTypeId].Equals(dataViewTypeId) &&
-                    _dataViewTypeIdToTypeIdMap.ContainsKey(dataViewTypeId) && _dataViewTypeIdToTypeIdMap[dataViewTypeId].Equals(rawTypeId))
+                if (_rawTypeToDataViewTypeMap.ContainsKey(rawType) && _rawTypeToDataViewTypeMap[rawType].Equals(dataViewType) &&
+                    _dataViewTypeToRawTypeMap.ContainsKey(dataViewType) && _dataViewTypeToRawTypeMap[dataViewType].Equals(rawType))
                     // This type pair has been registered. Note that registering one data type pair multiple times is allowed.
                     return;
 
-                if (_typeIdToDataViewTypeIdMap.ContainsKey(rawTypeId) && !_typeIdToDataViewTypeIdMap[rawTypeId].Equals(dataViewTypeId))
+                if (_rawTypeToDataViewTypeMap.ContainsKey(rawType) && !_rawTypeToDataViewTypeMap[rawType].Equals(dataViewType))
                 {
-                    // There is a pair of (rawTypeId, anotherDataViewTypeId) in _typeIdToDataViewTypeId so we cannot register
-                    // (rawTypeId, dataViewTypeId) again. The assumption here is that one rawTypeId can only be associated
-                    // with one dataViewTypeId.
-                    var associatedDataViewType = _typeIdToDataViewTypeIdMap[rawTypeId].TargetType;
-                    throw Contracts.ExceptParam(nameof(rawType), $"Repeated type register. The raw type {rawType} " +
+                    // There is a pair of (rawType, anotherDataViewType) in _typeToDataViewType so we cannot register
+                    // (rawType, dataViewType) again. The assumption here is that one rawType can only be associated
+                    // with one dataViewType.
+                    var associatedDataViewType = _rawTypeToDataViewTypeMap[rawType];
+                    throw Contracts.ExceptParam(nameof(type), $"Repeated type register. The raw type {type} " +
                         $"has been associated with {associatedDataViewType} so it cannot be associated with {dataViewType}.");
                 }
 
-                if (_dataViewTypeIdToTypeIdMap.ContainsKey(dataViewTypeId) && !_dataViewTypeIdToTypeIdMap[dataViewTypeId].Equals(rawTypeId))
+                if (_dataViewTypeToRawTypeMap.ContainsKey(dataViewType) && !_dataViewTypeToRawTypeMap[dataViewType].Equals(rawType))
                 {
-                    // There is a pair of (dataViewTypeId, anotherRawTypeId) in _dataViewTypeIdToTypeId so we cannot register
-                    // (dataViewTypeId, rawTypeId) again. The assumption here is that one dataViewTypeId can only be associated
-                    // with one rawTypeId.
-                    var associatedRawType = _dataViewTypeIdToTypeIdMap[dataViewTypeId].TargetType;
+                    // There is a pair of (dataViewType, anotherRawType) in _dataViewTypeToType so we cannot register
+                    // (dataViewType, rawType) again. The assumption here is that one dataViewType can only be associated
+                    // with one rawType.
+                    var associatedRawType = _dataViewTypeToRawTypeMap[dataViewType].TargetType;
                     throw Contracts.ExceptParam(nameof(dataViewType), $"Repeated type register. The DataView type {dataViewType} " +
-                        $"has been associated with {associatedRawType} so it cannot be associated with {rawType}.");
+                        $"has been associated with {associatedRawType} so it cannot be associated with {type}.");
                 }
 
-                _typeIdToDataViewTypeIdMap.Add(rawTypeId, dataViewTypeId);
-                _dataViewTypeIdToTypeIdMap.Add(dataViewTypeId, rawTypeId);
+                _rawTypeToDataViewTypeMap.Add(rawType, dataViewType);
+                _dataViewTypeToRawTypeMap.Add(dataViewType, rawType);
             }
         }
 
         /// <summary>
-        /// An instance of <see cref="TypeWithAttributesId"/> represents an unique key of its <see cref="TargetType"/> and <see cref="_associatedAttributes"/>.
+        /// An instance of <see cref="TypeWithAttributes"/> represents an unique key of its <see cref="TargetType"/> and <see cref="_associatedAttributes"/>.
         /// </summary>
-        private class TypeWithAttributesId
+        private class TypeWithAttributes
         {
+            /// <summary>
+            /// The underlying type.
+            /// </summary>
             public Type TargetType { get; }
+
+            /// <summary>
+            /// The underlying type's attributes. Together with <see cref="TargetType"/>, <see cref="_associatedAttributes"/> uniquely defines
+            /// a key when using <see cref="TypeWithAttributes"/> as the key type in <see cref="Dictionary{TKey, TValue}"/>. Note that the
+            /// uniqueness is determined by <see cref="Equals(object)"/> and <see cref="GetHashCode"/> below.
+            /// </summary>
             private IEnumerable<Attribute> _associatedAttributes;
 
-            public TypeWithAttributesId(Type rawType, IEnumerable<Attribute> attributes)
+            public TypeWithAttributes(Type type, IEnumerable<Attribute> attributes)
             {
-                TargetType = rawType;
+                TargetType = type;
                 _associatedAttributes = attributes;
             }
 
             public override bool Equals(object obj)
             {
-                if (obj is TypeWithAttributesId other)
+                if (obj is TypeWithAttributes other)
                 {
                     // Flag of having the same type.
                     var sameType = TargetType.Equals(other.TargetType);
@@ -216,32 +221,6 @@ namespace Microsoft.ML.Data
                 return code;
             }
 
-        }
-
-        /// <summary>
-        /// An instance of <see cref="DataViewTypeId"/> represents an unique key of its <see cref="TargetType"/>.
-        /// </summary>
-        private class DataViewTypeId
-        {
-            public DataViewType TargetType { get; }
-
-            public DataViewTypeId(DataViewType type)
-            {
-                TargetType = type;
-            }
-
-            public override bool Equals(object obj)
-            {
-                if (obj is DataViewTypeId other)
-                    return TargetType.Equals(other.TargetType);
-
-                return false;
-            }
-
-            public override int GetHashCode()
-            {
-                return TargetType.GetHashCode();
-            }
         }
     }
 }
