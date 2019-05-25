@@ -188,11 +188,7 @@ namespace Microsoft.ML.AutoML
 
             public override bool MoveNext()
             {
-                if (++_position == _rowCount)
-                {
-                    return false;
-                }
-                return true;
+                return ++_position != _rowCount;
             }
         }
 
