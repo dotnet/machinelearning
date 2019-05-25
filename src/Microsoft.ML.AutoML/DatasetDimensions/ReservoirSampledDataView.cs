@@ -23,7 +23,7 @@ namespace Microsoft.ML.AutoML
         private bool _initialized = false;
         private long _originalDataRowCount;
 
-        public ReservoirSampledDataView(IDataView data, int sampleSize)
+        public ReservoirSampledDataView(IDataView data, long sampleSize)
         {
             _originalData = data;
             _random = new Random();

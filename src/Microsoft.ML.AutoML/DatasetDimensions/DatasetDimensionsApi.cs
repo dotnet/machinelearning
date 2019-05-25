@@ -12,7 +12,7 @@ namespace Microsoft.ML.AutoML
 
         public static ColumnDimensions[] CalcColumnDimensions(MLContext context, IDataView data, PurposeInference.Column[] purposes)
         {
-            var sampledData = new ReservoirSampledDataView(data, 1000);
+            var sampledData = new ReservoirSampledDataView(data, MaxRowsToRead);
 
             var colDimensions = new ColumnDimensions[sampledData.Schema.Count];
 
