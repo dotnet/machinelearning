@@ -18,7 +18,7 @@ namespace Microsoft.ML.AutoML
         private readonly IDataView _originalData;
         private readonly Random _random;
         private readonly object[] _sampledColumns;
-        private readonly int _sampleSize;
+        private readonly long _sampleSize;
 
         private bool _initialized = false;
         private long _originalDataRowCount;
@@ -61,13 +61,7 @@ namespace Microsoft.ML.AutoML
                 Initialize();
             }
 
-            // note about parallelism
-            var cursors = new DataViewRowCursor[n];
-            for (var i = 0; i < n; i++)
-            {
-                cursors[i] = new Cursor(Schema, _sampledColumns, GetRowCount().Value);
-            }
-            return cursors;
+            return new DataViewRowCursor[] { new Cursor(Schema, _sampledColumns, GetRowCount().Value) };
         }
 
         /// <summary>
