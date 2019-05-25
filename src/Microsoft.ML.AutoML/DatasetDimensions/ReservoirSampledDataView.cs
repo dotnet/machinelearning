@@ -226,7 +226,7 @@ namespace Microsoft.ML.AutoML
         /// </summary>
         private class SingleSlotSampledColumn<T> : SampledColumn<T>
         {
-            public SingleSlotSampledColumn(int size) : base(size)
+            public SingleSlotSampledColumn(long size) : base(size)
             {
             }
 
@@ -241,7 +241,7 @@ namespace Microsoft.ML.AutoML
         /// </summary>
         private class VectorSampledColumn<T> : SampledColumn<VBuffer<T>>
         {
-            public VectorSampledColumn(int size) : base(size)
+            public VectorSampledColumn(long size) : base(size)
             {
             }
 
