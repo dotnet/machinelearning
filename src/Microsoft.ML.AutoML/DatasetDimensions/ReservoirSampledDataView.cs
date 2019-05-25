@@ -50,7 +50,6 @@ namespace Microsoft.ML.AutoML
             {
                 Initialize();
             }
-
             return new Cursor(Schema, _sampledColumns, GetRowCount().Value);
         }
 
@@ -60,13 +59,12 @@ namespace Microsoft.ML.AutoML
             {
                 Initialize();
             }
-
             return new DataViewRowCursor[] { new Cursor(Schema, _sampledColumns, GetRowCount().Value) };
         }
 
         /// <summary>
         /// Initializes the data view.
-        /// Iterates through every record in the data view to build the reservoir sample.
+        /// Iterates through every row to build the reservoir sample.
         /// </summary>
         private void Initialize()
         {
@@ -100,7 +98,7 @@ namespace Microsoft.ML.AutoML
 
             var sampleBuilder = new SampleBuilder(columnSampleBuilders);
 
-            // Reservoir sample over the entire dataset
+            // Reservoir sample over every row
             long rowIdx = 0;
             while (cursor.MoveNext())
             {
@@ -224,7 +222,7 @@ namespace Microsoft.ML.AutoML
         }
 
         /// <summary>
-        /// Sampled column for non-vector columns.
+        /// Sampled non-vector column.
         /// </summary>
         private class SingleSlotSampledColumn<T> : SampledColumn<T>
         {
@@ -239,7 +237,7 @@ namespace Microsoft.ML.AutoML
         }
 
         /// <summary>
-        /// Sampled column for vector columns.
+        /// Sampled vector column.
         /// </summary>
         private class VectorSampledColumn<T> : SampledColumn<VBuffer<T>>
         {
@@ -255,7 +253,7 @@ namespace Microsoft.ML.AutoML
 
         /// <summary>
         /// This class pulls from an original / parent data view column
-        /// to populate its corresponding sampled column.
+        /// to populate the corresponding sampled column.
         /// </summary>
         private class ColumnSampleBuilder<T> : ColumnSampleBuilder
         {
