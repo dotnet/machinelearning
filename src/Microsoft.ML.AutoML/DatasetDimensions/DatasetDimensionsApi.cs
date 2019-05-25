@@ -12,13 +12,13 @@ namespace Microsoft.ML.AutoML
 
         public static ColumnDimensions[] CalcColumnDimensions(MLContext context, IDataView data, PurposeInference.Column[] purposes)
         {
-            data = context.Data.TakeRows(data, MaxRowsToRead);
+            var sampledData = new ReservoirSampledDataView(data, 1000);
 
-            var colDimensions = new ColumnDimensions[data.Schema.Count];
+            var colDimensions = new ColumnDimensions[sampledData.Schema.Count];
 
-            for (var i = 0; i < data.Schema.Count; i++)
+            for (var i = 0; i < sampledData.Schema.Count; i++)
             {
-                var column = data.Schema[i];
+                var column = sampledData.Schema[i];
                 var purpose = purposes[i];
 
                 // default column dimensions
@@ -30,15 +30,15 @@ namespace Microsoft.ML.AutoML
                 // If categorical text feature, calculate cardinality
                 if (itemType.IsText() && purpose.Purpose == ColumnPurpose.CategoricalFeature)
                 {
-                    cardinality = DatasetDimensionsUtil.GetTextColumnCardinality(data, column);
+                    cardinality = DatasetDimensionsUtil.GetTextColumnCardinality(sampledData, column);
                 }
 
                 // If numeric feature, discover missing values
                 if (itemType == NumberDataViewType.Single)
                 {
                     hasMissing = column.Type.IsVector() ? 
-                        DatasetDimensionsUtil.HasMissingNumericVector(data, column) : 
-                        DatasetDimensionsUtil.HasMissingNumericSingleValue(data, column);
+                        DatasetDimensionsUtil.HasMissingNumericVector(sampledData, column) : 
+                        DatasetDimensionsUtil.HasMissingNumericSingleValue(sampledData, column);
                 }
 
                 colDimensions[i] = new ColumnDimensions(cardinality, hasMissing);
