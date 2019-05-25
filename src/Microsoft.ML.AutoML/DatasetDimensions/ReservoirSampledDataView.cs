@@ -248,7 +248,7 @@ namespace Microsoft.ML.AutoML
         }
 
         /// <summary>
-        /// This class pulls from an original / parent data view column
+        /// Pulls from an original / parent data view column
         /// to populate the corresponding sampled column.
         /// </summary>
         private class ColumnSampleBuilder<T> : ColumnSampleBuilder
