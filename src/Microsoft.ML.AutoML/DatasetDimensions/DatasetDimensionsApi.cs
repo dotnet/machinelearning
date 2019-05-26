@@ -10,38 +10,35 @@ namespace Microsoft.ML.AutoML
     {
         private const long MaxRowsToRead = 1000;
 
-        public static ColumnDimensions[] CalcColumnDimensions(MLContext context, IDataView data, PurposeInference.Column[] purposes)
+        public static ColumnDimensions[] CalcColumnDimensions(MLContext context, IDataView data)
         {
             data = context.Data.TakeRows(data, MaxRowsToRead);
 
+            // Init array of all column dimensions to return.
             var colDimensions = new ColumnDimensions[data.Schema.Count];
 
+            // Loop through each column & calculate dimensions.
             for (var i = 0; i < data.Schema.Count; i++)
             {
-                var column = data.Schema[i];
-                var purpose = purposes[i];
+                var columnSchema = data.Schema[i];
+                var itemType = columnSchema.Type.GetItemType();
+                var isVectorColumn = columnSchema.Type.IsVector();
 
-                // default column dimensions
-                int? cardinality = null;
-                bool? hasMissing = null;
-
-                var itemType = column.Type.GetItemType();
-
-                // If categorical text feature, calculate cardinality
-                if (itemType.IsText() && purpose.Purpose == ColumnPurpose.CategoricalFeature)
+                // Non-vector text column
+                if (itemType.IsText() && !isVectorColumn)
                 {
-                    cardinality = DatasetDimensionsUtil.GetTextColumnCardinality(data, column);
+                    colDimensions[i] = DatasetDimensionsUtil.CalcStringColumnDimensions(data, columnSchema);
                 }
-
-                // If numeric feature, discover missing values
-                if (itemType == NumberDataViewType.Single)
+                // Non-vector numeric column
+                else if (itemType == NumberDataViewType.Single && !isVectorColumn)
                 {
-                    hasMissing = column.Type.IsVector() ? 
-                        DatasetDimensionsUtil.HasMissingNumericVector(data, column) : 
-                        DatasetDimensionsUtil.HasMissingNumericSingleValue(data, column);
+                    colDimensions[i] = DatasetDimensionsUtil.CalcNumericColumnDimensions(data, columnSchema);
                 }
-
-                colDimensions[i] = new ColumnDimensions(cardinality, hasMissing);
+                // Vector numeric column
+                else if (itemType == NumberDataViewType.Single)
+                {
+                    colDimensions[i] = DatasetDimensionsUtil.CalcNumericVectorColumnDimensions(data, columnSchema);
+                }
             }
 
             return colDimensions;

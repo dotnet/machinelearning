@@ -297,7 +297,7 @@ namespace Microsoft.ML.AutoML
                     {
                         if (column.Type.GetItemType() == NumberDataViewType.Single
                             && column.Purpose == ColumnPurpose.NumericFeature
-                            && column.Dimensions.HasMissing == true)
+                            && column.Dimensions.HasMissingValues())
                         {
                             columnsWithMissing.Add(column.ColumnName);  
                         }

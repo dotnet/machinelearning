@@ -6,13 +6,21 @@ namespace Microsoft.ML.AutoML
 {
     internal class ColumnDimensions
     {
-        public int? Cardinality;
-        public bool? HasMissing;
+        public readonly int? Cardinality;
+        public readonly int? MissingValueCount;
+        public readonly SummaryStatistics SummaryStatistics;
 
-        public ColumnDimensions(int? cardinality, bool? hasMissing)
+        public ColumnDimensions(int? cardinality, int? missingValueCount,
+            SummaryStatistics summaryStatistics = null)
         {
             Cardinality = cardinality;
-            HasMissing = hasMissing;
+            MissingValueCount = missingValueCount;
+            SummaryStatistics = summaryStatistics;
+        }
+
+        public bool HasMissingValues()
+        {
+            return MissingValueCount != null && MissingValueCount.Value > 0;
         }
     }
 }

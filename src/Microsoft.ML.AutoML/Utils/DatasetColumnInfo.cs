@@ -24,15 +24,18 @@ namespace Microsoft.ML.AutoML
 
     internal static class DatasetColumnInfoUtil
     {
-        public static DatasetColumnInfo[] GetDatasetColumnInfo(MLContext context, IDataView data, ColumnInformation columnInfo)
+        public static DatasetColumnInfo[] GetDatasetColumnInfo(MLContext context,
+            IDataView data, 
+            ColumnInformation columnInfo,
+            ColumnDimensions[] datasetDimensions = null)
         {
             var purposes = PurposeInference.InferPurposes(context, data, columnInfo);
-            var colDimensions = DatasetDimensionsApi.CalcColumnDimensions(context, data, purposes);
+            datasetDimensions = datasetDimensions ?? DatasetDimensionsApi.CalcColumnDimensions(context, data);
             var cols = new DatasetColumnInfo[data.Schema.Count];
             for (var i = 0; i < cols.Length; i++)
             {
                 var schemaCol = data.Schema[i];
-                var col = new DatasetColumnInfo(schemaCol.Name, schemaCol.Type, purposes[i].Purpose, colDimensions[i]);
+                var col = new DatasetColumnInfo(schemaCol.Name, schemaCol.Type, purposes[i].Purpose, datasetDimensions[i]);
                 cols[i] = col;
             }
             return cols;

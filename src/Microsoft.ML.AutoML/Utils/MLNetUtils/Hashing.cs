@@ -29,5 +29,20 @@ namespace Microsoft.ML.AutoML
                 startHash = CombineHash(startHash, o == null ? 0 : o.GetHashCode());
             return startHash;
         }
+
+        /// <summary>
+        /// Creates a combined hash of multiple homogenously typed non-null values.
+        /// </summary>
+        /// <typeparam name="T">The type of items to hash</typeparam>
+        /// <param name="startHash">The leading hash, incorporated into the final hash</param>
+        /// <param name="os">A variable list of non-null values</param>
+        /// <returns>The combined hash incorpoating a starting hash, and the hash codes
+        /// of all input values</returns>
+        public static int CombinedHash<T>(int startHash, params T[] os)
+        {
+            foreach (T o in os)
+                startHash = CombineHash(startHash, o.GetHashCode());
+            return startHash;
+        }
     }
 }

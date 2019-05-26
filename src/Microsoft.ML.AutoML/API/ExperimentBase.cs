@@ -160,13 +160,7 @@ namespace Microsoft.ML.AutoML
         /// </remarks>
         public ExperimentResult<TMetrics> Execute(IDataView trainData, IDataView validationData, ColumnInformation columnInformation, IEstimator<ITransformer> preFeaturizer = null, IProgress<RunDetail<TMetrics>> progressHandler = null)
         {
-            if (validationData == null)
-            {
-                var splitResult = SplitUtil.TrainValidateSplit(Context, trainData, columnInformation?.SamplingKeyColumnName);
-                trainData = splitResult.trainData;
-                validationData = splitResult.validationData;
-            }
-            return ExecuteTrainValidate(trainData, columnInformation, validationData, preFeaturizer, progressHandler);
+            return Execute(trainData, validationData, columnInformation, null, preFeaturizer, progressHandler);
         }
 
         /// <summary>
@@ -228,6 +222,17 @@ namespace Microsoft.ML.AutoML
             return Execute(trainData, numberOfCVFolds, columnInformation, preFeaturizer, progressHandler);
         }
 
+        internal ExperimentResult<TMetrics> Execute(IDataView trainData, IDataView validationData, ColumnInformation columnInformation, ColumnDimensions[] datasetDimensions, IEstimator<ITransformer> preFeaturizer = null, IProgress<RunDetail<TMetrics>> progressHandler = null)
+        {
+            if (validationData == null)
+            {
+                var splitResult = SplitUtil.TrainValidateSplit(Context, trainData, columnInformation?.SamplingKeyColumnName);
+                trainData = splitResult.trainData;
+                validationData = splitResult.validationData;
+            }
+            return ExecuteTrainValidate(trainData, columnInformation, validationData, preFeaturizer, progressHandler, datasetDimensions);
+        }
+
         private protected abstract CrossValidationRunDetail<TMetrics> GetBestCrossValRun(IEnumerable<CrossValidationRunDetail<TMetrics>> results);
 
         private protected abstract RunDetail<TMetrics> GetBestRun(IEnumerable<RunDetail<TMetrics>> results);
@@ -236,7 +241,8 @@ namespace Microsoft.ML.AutoML
             ColumnInformation columnInfo,
             IDataView validationData,
             IEstimator<ITransformer> preFeaturizer,
-            IProgress<RunDetail<TMetrics>> progressHandler)
+            IProgress<RunDetail<TMetrics>> progressHandler,
+            ColumnDimensions[] datasetDimensions = null)
         {
             columnInfo = columnInfo ?? new ColumnInformation();
             UserInputValidationUtil.ValidateExperimentExecuteArgs(trainData, columnInfo, validationData, _task);
@@ -252,7 +258,7 @@ namespace Microsoft.ML.AutoML
 
             var runner = new TrainValidateRunner<TMetrics>(Context, trainData, validationData, columnInfo.LabelColumnName, MetricsAgent,
                 preFeaturizer, preprocessorTransform, _logger);
-            var columns = DatasetColumnInfoUtil.GetDatasetColumnInfo(Context, trainData, columnInfo);
+            var columns = DatasetColumnInfoUtil.GetDatasetColumnInfo(Context, trainData, columnInfo, datasetDimensions);
             return Execute(columnInfo, columns, preFeaturizer, progressHandler, runner);
         }
 

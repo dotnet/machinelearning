@@ -13,23 +13,19 @@ namespace Microsoft.ML.AutoML.Test
         public object DatasetDimensionUtil { get; private set; }
 
         [TestMethod]
-        public void TextColumnDimensionsTest()
+        public void StringColumnDimensionsTest()
         {
             var context = new MLContext();
             var dataBuilder = new ArrayDataViewBuilder(context);
-            dataBuilder.AddColumn("categorical", new string[] { "0", "1", "0", "1", "0", "1", "2", "2", "0", "1" });
-            dataBuilder.AddColumn("text", new string[] { "0", "1", "0", "1", "0", "1", "2", "2", "0", "1" });
+            dataBuilder.AddColumn("String", new string[] { "0", "1", "0", "1", "0", "1", "2", "2", "0", "1", "two words", "" });
             var data = dataBuilder.GetDataView();
-            var dimensions = DatasetDimensionsApi.CalcColumnDimensions(context, data, new[] {
-                new PurposeInference.Column(0, ColumnPurpose.CategoricalFeature),
-                new PurposeInference.Column(0, ColumnPurpose.TextFeature),
-            });
+            var dimensions = DatasetDimensionsApi.CalcColumnDimensions(context, data);
             Assert.IsNotNull(dimensions);
-            Assert.AreEqual(2, dimensions.Length);
-            Assert.AreEqual(3, dimensions[0].Cardinality);
-            Assert.AreEqual(null, dimensions[1].Cardinality);
-            Assert.IsNull(dimensions[0].HasMissing);
-            Assert.IsNull(dimensions[1].HasMissing);
+            Assert.AreEqual(1, dimensions.Length);
+            Assert.AreEqual(5, dimensions[0].Cardinality);
+            Assert.IsTrue(dimensions[0].HasMissingValues());
+            Assert.AreEqual(1, dimensions[0].MissingValueCount);
+            Assert.IsTrue(dimensions[0].SummaryStatistics.Mean > 0);
         }
 
         [TestMethod]
@@ -37,23 +33,22 @@ namespace Microsoft.ML.AutoML.Test
         {
             var context = new MLContext();
             var dataBuilder = new ArrayDataViewBuilder(context);
-            dataBuilder.AddColumn("NoNan", NumberDataViewType.Single, new float[] { 0, 1, 0, 1, 0 });
-            dataBuilder.AddColumn("Nan", NumberDataViewType.Single, new float[] { 0, 1, 0, 1, float.NaN });
+            dataBuilder.AddColumn("Float", NumberDataViewType.Single, new float[] { 0, 1, 0, 1, 0 });
+            dataBuilder.AddColumn("NaN", NumberDataViewType.Single, new float[] { 0, 1, 0, 1, float.NaN });
             var data = dataBuilder.GetDataView();
-            var dimensions = DatasetDimensionsApi.CalcColumnDimensions(context, data, new[] {
-                new PurposeInference.Column(0, ColumnPurpose.NumericFeature),
-                new PurposeInference.Column(1, ColumnPurpose.NumericFeature),
-            });
+            var dimensions = DatasetDimensionsApi.CalcColumnDimensions(context, data);
             Assert.IsNotNull(dimensions);
             Assert.AreEqual(2, dimensions.Length);
-            Assert.AreEqual(null, dimensions[0].Cardinality);
-            Assert.AreEqual(null, dimensions[1].Cardinality);
-            Assert.AreEqual(false, dimensions[0].HasMissing);
-            Assert.AreEqual(true, dimensions[1].HasMissing);
+            Assert.AreEqual(2, dimensions[0].Cardinality);
+            Assert.AreEqual(3, dimensions[1].Cardinality);
+            Assert.AreEqual(false, dimensions[0].HasMissingValues());
+            Assert.AreEqual(true, dimensions[1].HasMissingValues());
+            Assert.AreEqual(0.4, dimensions[0].SummaryStatistics.Mean);
+            Assert.AreEqual(0.5, dimensions[1].SummaryStatistics.Mean);
         }
 
         [TestMethod]
-        public void FloatVectorColumnHasNanTest()
+        public void FloatVectorColumnHasNaNTest()
         {
             var context = new MLContext();
             var dataBuilder = new ArrayDataViewBuilder(context);
@@ -63,24 +58,21 @@ namespace Microsoft.ML.AutoML.Test
                 new float[] { 0, 0 },
                 new float[] { 1, 1 },
             };
-            dataBuilder.AddColumn("NoNan", Util.GetKeyValueGetter(slotNames), NumberDataViewType.Single, colValues);
+            dataBuilder.AddColumn("Vector", Util.GetKeyValueGetter(slotNames), NumberDataViewType.Single, colValues);
             colValues = new float[][]
             {
                 new float[] { 0, 0 },
                 new float[] { 1, float.NaN },
             };
-            dataBuilder.AddColumn("Nan", Util.GetKeyValueGetter(slotNames), NumberDataViewType.Single, colValues);
+            dataBuilder.AddColumn("NaN", Util.GetKeyValueGetter(slotNames), NumberDataViewType.Single, colValues);
             var data = dataBuilder.GetDataView();
-            var dimensions = DatasetDimensionsApi.CalcColumnDimensions(context, data, new[] {
-                new PurposeInference.Column(0, ColumnPurpose.NumericFeature),
-                new PurposeInference.Column(1, ColumnPurpose.NumericFeature),
-            });
+            var dimensions = DatasetDimensionsApi.CalcColumnDimensions(context, data);
             Assert.IsNotNull(dimensions);
             Assert.AreEqual(2, dimensions.Length);
             Assert.AreEqual(null, dimensions[0].Cardinality);
             Assert.AreEqual(null, dimensions[1].Cardinality);
-            Assert.AreEqual(false, dimensions[0].HasMissing);
-            Assert.AreEqual(true, dimensions[1].HasMissing);
+            Assert.AreEqual(false, dimensions[0].HasMissingValues());
+            Assert.AreEqual(true, dimensions[1].HasMissingValues());
         }
     }
 }

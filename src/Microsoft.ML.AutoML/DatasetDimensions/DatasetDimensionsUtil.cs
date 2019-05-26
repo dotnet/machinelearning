@@ -4,63 +4,71 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Microsoft.ML.Data;
 
 namespace Microsoft.ML.AutoML
 {
     internal static class DatasetDimensionsUtil
     {
-        public static int GetTextColumnCardinality(IDataView data, DataViewSchema.Column column)
+        public static ColumnDimensions CalcStringColumnDimensions(IDataView data, DataViewSchema.Column column)
         {
-            var seen = new HashSet<string>();
-            using (var cursor = data.GetRowCursor(new[] { column }))
+            var numMissingValues = 0;
+            var summaryStats = new SummaryStatistics();
+
+            var columnValues = GetStringColumnValues(data, column);
+            foreach (var columnValue in columnValues)
             {
-                var getter = cursor.GetGetter<ReadOnlyMemory<char>>(column);
-                while (cursor.MoveNext())
+                // Count empty strings as missing values
+                if (string.IsNullOrEmpty(columnValue))
                 {
-                    var value = default(ReadOnlyMemory<char>);
-                    getter(ref value);
-                    var valueStr = value.ToString();
-                    seen.Add(valueStr);
+                    numMissingValues++;
                 }
+
+                // Calculate summary stats by # of spaces string contains
+                var numSpaces = columnValue.Count(c => c == ' ');
+                summaryStats.Add(numSpaces);
             }
-            return seen.Count;
+
+            return new ColumnDimensions(columnValues.Distinct().Count(), numMissingValues, summaryStats);
         }
 
-        public static bool HasMissingNumericSingleValue(IDataView data, DataViewSchema.Column column)
+        public static ColumnDimensions CalcNumericColumnDimensions(IDataView data, DataViewSchema.Column column)
         {
-            using (var cursor = data.GetRowCursor(new[] { column }))
+            var numMissingValues = 0;
+            var summaryStats = new SummaryStatistics();
+
+            var columnValues = GetColumnValues<float>(data, column);
+            foreach (var columnValue in columnValues)
             {
-                var getter = cursor.GetGetter<Single>(column);
-                var value = default(Single);
-                while (cursor.MoveNext())
+                if (float.IsNaN(columnValue))
                 {
-                    getter(ref value);
-                    if (Single.IsNaN(value))
-                    {
-                        return true;
-                    }
+                    numMissingValues++;
                 }
-                return false;
+                else // Note: Do not add NaNs to summary stats -- makes column mean / other stats NaN as well
+                {
+                    summaryStats.Add(columnValue);
+                }
             }
+
+            return new ColumnDimensions(columnValues.Distinct().Count(), numMissingValues, summaryStats);
         }
 
-        public static bool HasMissingNumericVector(IDataView data, DataViewSchema.Column column)
+        public static ColumnDimensions CalcNumericVectorColumnDimensions(IDataView data, DataViewSchema.Column column)
         {
-            using (var cursor = data.GetRowCursor(new[] { column }))
+            var numMissingValues = 0;
+
+            var columnVectors = GetColumnValues<VBuffer<float>>(data, column);
+            foreach (var columnVector in columnVectors)
             {
-                var getter = cursor.GetGetter<VBuffer<Single>>(column);
-                var value = default(VBuffer<Single>);
-                while (cursor.MoveNext())
+                if (VBufferUtils.HasNaNs(columnVector))
                 {
-                    getter(ref value);
-                    if (VBufferUtils.HasNaNs(value))
-                    {
-                        return true;
-                    }
+                    numMissingValues++;
                 }
-                return false;
             }
+
+            // Note: In future, potentially calculate per-slot stats for vector columns.
+            return new ColumnDimensions(null, numMissingValues, null);
         }
 
         public static ulong CountRows(IDataView data, ulong maxRows)
@@ -80,6 +88,28 @@ namespace Microsoft.ML.AutoML
         public static bool IsDataViewEmpty(IDataView data)
         {
             return CountRows(data, 1) == 0;
+        }
+        
+        private static IEnumerable<T> GetColumnValues<T>(IDataView data, DataViewSchema.Column column)
+        {
+            var values = new List<T>();
+            using (var cursor = data.GetRowCursor(new[] { column }))
+            {
+                var getter = cursor.GetGetter<T>(column);
+                while (cursor.MoveNext())
+                {
+                    var value = default(T);
+                    getter(ref value);
+                    values.Add(value);
+                }
+            }
+            return values;
+        }
+        
+        private static IEnumerable<string> GetStringColumnValues(IDataView data, DataViewSchema.Column column)
+        {
+            return GetColumnValues<ReadOnlyMemory<char>>(data, column)
+                .Select(x => x.ToString());
         }
     }
 }

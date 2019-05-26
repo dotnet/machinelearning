@@ -46,6 +46,7 @@ namespace Microsoft.ML.CLI.CodeGenerator
 
         void IAutoMLEngine.ExploreBinaryClassificationModels(MLContext context, IDataView trainData, IDataView validationData, ColumnInformation columnInformation, BinaryClassificationMetric optimizationMetric, ProgressHandlers.BinaryClassificationHandler handler, ProgressBar progressBar)
         {
+            var datasetDimensions = DatasetDimensionsApi.CalcColumnDimensions(context, trainData);
             ExperimentResult<BinaryClassificationMetrics> result = context.Auto()
                 .CreateBinaryClassificationExperiment(new BinaryExperimentSettings()
                 {
@@ -53,33 +54,35 @@ namespace Microsoft.ML.CLI.CodeGenerator
                     CacheBeforeTrainer = this.cacheBeforeTrainer,
                     OptimizingMetric = optimizationMetric
                 })
-                .Execute(trainData, validationData, columnInformation, progressHandler: handler);
+                .Execute(trainData, validationData, columnInformation, datasetDimensions, progressHandler: handler);
 
             logger.Log(LogLevel.Trace, Strings.RetrieveBestPipeline);
         }
 
         void IAutoMLEngine.ExploreRegressionModels(MLContext context, IDataView trainData, IDataView validationData, ColumnInformation columnInformation, RegressionMetric optimizationMetric, ProgressHandlers.RegressionHandler handler, ProgressBar progressBar)
         {
+            var datasetDimensions = DatasetDimensionsApi.CalcColumnDimensions(context, trainData);
             ExperimentResult<RegressionMetrics> result = context.Auto()
                 .CreateRegressionExperiment(new RegressionExperimentSettings()
                 {
                     MaxExperimentTimeInSeconds = settings.MaxExplorationTime,
                     OptimizingMetric = optimizationMetric,
                     CacheBeforeTrainer = this.cacheBeforeTrainer
-                }).Execute(trainData, validationData, columnInformation, progressHandler: handler);
+                }).Execute(trainData, validationData, columnInformation, datasetDimensions, progressHandler: handler);
 
             logger.Log(LogLevel.Trace, Strings.RetrieveBestPipeline);
         }
 
         void IAutoMLEngine.ExploreMultiClassificationModels(MLContext context, IDataView trainData, IDataView validationData, ColumnInformation columnInformation, MulticlassClassificationMetric optimizationMetric, ProgressHandlers.MulticlassClassificationHandler handler, ProgressBar progressBar)
         {
+            var datasetDimensions = DatasetDimensionsApi.CalcColumnDimensions(context, trainData);
             ExperimentResult<MulticlassClassificationMetrics> result = context.Auto()
                 .CreateMulticlassClassificationExperiment(new MulticlassExperimentSettings()
                 {
                     MaxExperimentTimeInSeconds = settings.MaxExplorationTime,
                     CacheBeforeTrainer = this.cacheBeforeTrainer,
                     OptimizingMetric = optimizationMetric
-                }).Execute(trainData, validationData, columnInformation, progressHandler: handler);
+                }).Execute(trainData, validationData, columnInformation, datasetDimensions, progressHandler: handler);
 
             logger.Log(LogLevel.Trace, Strings.RetrieveBestPipeline);
         }
