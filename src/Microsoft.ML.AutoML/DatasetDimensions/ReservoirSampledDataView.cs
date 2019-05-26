@@ -23,12 +23,19 @@ namespace Microsoft.ML.AutoML
         private bool _initialized = false;
         private long _originalDataRowCount;
 
-        public ReservoirSampledDataView(IDataView data, long sampleSize)
+        public ReservoirSampledDataView(IDataView data, long sampleSize, int? seed = null)
         {
             _originalData = data;
-            _random = new Random();
             _sampledColumns = new object[Schema.Count];
             _sampleSize = sampleSize;
+            if (seed == null)
+            {
+                _random = new Random();
+            }
+            else
+            {
+                _random = new Random(seed.Value);
+            }
         }
 
         public bool CanShuffle => false;
