@@ -8,11 +8,10 @@ namespace Microsoft.ML.AutoML
 {
     internal class DatasetDimensionsApi
     {
-        private const long MaxRowsToRead = 1000;
-
         public static ColumnDimensions[] CalcColumnDimensions(MLContext context, IDataView data, PurposeInference.Column[] purposes)
         {
-            var sampledData = new ReservoirSampledDataView(data, MaxRowsToRead);
+            // Use a random sample of the data to calculate statistics
+            var sampledData = new ReservoirSampledDataView(data, 1000);
 
             var colDimensions = new ColumnDimensions[sampledData.Schema.Count];
 
