@@ -24,7 +24,7 @@ using Microsoft.ML.Transforms.TimeSeries;
 
 namespace Microsoft.ML.Transforms.TimeSeries
 {
-    public sealed class SrCnnAnomalyDetector : SrCnnAnomalyDetectionBaseWrapper, IStatefulTransformer
+    public sealed class SrCnnAnomalyDetector : SrCnnAnomalyDetectionBase, IStatefulTransformer
     {
         internal const string Summary = "This transform detects the anomalies in a time-series using SRCNN.";
         internal const string LoaderSignature = "SrCnnAnomalyDetector";
@@ -57,7 +57,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
                 ShortName = "avgwnd", SortOrder = 104)]
             public int AvergingWindowSize = 3;
 
-            [Argument(ArgumentType.Required, HelpText = "The size of sliding window to generate a saliency map for the series.",
+            [Argument(ArgumentType.Required, HelpText = "The size of sliding window to calculate the anomaly score for each data point.",
                 ShortName = "jdgwnd", SortOrder = 105)]
             public int JudgementWindowSize = 21;
 
@@ -139,7 +139,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
         IStatefulTransformer IStatefulTransformer.Clone()
         {
             var clone = (SrCnnAnomalyDetector)MemberwiseClone();
-            clone.InternalTransform.StateRef = (SrCnnAnomalyDetectionBase.State)clone.InternalTransform.StateRef.Clone();
+            clone.InternalTransform.StateRef = (SrCnnAnomalyDetectionBaseCore.State)clone.InternalTransform.StateRef.Clone();
             clone.InternalTransform.StateRef.InitState(clone.InternalTransform, InternalTransform.Host);
             return clone;
         }
@@ -176,15 +176,15 @@ namespace Microsoft.ML.Transforms.TimeSeries
     /// </summary>
     public sealed class SrCnnAnomalyEstimator : TrivialEstimator<SrCnnAnomalyDetector>
     {
-        /// <param name="env"></param>
-        /// <param name="outputColumnName"></param>
-        /// <param name="windowSize"></param>
-        /// <param name="backAddWindowSize"></param>
-        /// <param name="lookaheadWindowSize"></param>
-        /// <param name="averagingWindowSize"></param>
-        /// <param name="judgementWindowSize"></param>
-        /// <param name="threshold"></param>
-        /// <param name="inputColumnName"></param>
+        /// <param name="env">Host environment.</param>
+        /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.</param>
+        /// <param name="windowSize">The size of the sliding window for computing spectral residual.</param>
+        /// <param name="backAddWindowSize">The size of the sliding window for computing spectral residual.</param>
+        /// <param name="lookaheadWindowSize">The number of pervious points used in prediction.</param>
+        /// <param name="averagingWindowSize">The size of sliding window to generate a saliency map for the series.</param>
+        /// <param name="judgementWindowSize">The size of sliding window to calculate the anomaly score for each data point.</param>
+        /// <param name="threshold">The threshold to determine anomaly, score larger than the threshold is considered as anomaly.</param>
+        /// <param name="inputColumnName">Name of column to transform. The column data must be <see cref="System.Single"/>.</param>
         internal SrCnnAnomalyEstimator(IHostEnvironment env,
             string outputColumnName,
             int windowSize,

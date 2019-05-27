@@ -12,7 +12,7 @@ using Microsoft.ML.Runtime;
 
 namespace Microsoft.ML.Transforms.TimeSeries
 {
-    public class SrCnnAnomalyDetectionBaseWrapper : IStatefulTransformer, ICanSaveModel
+    public class SrCnnAnomalyDetectionBase : IStatefulTransformer, ICanSaveModel
     {
         /// <summary>
         /// Whether a call to <see cref="ITransformer.GetRowToRowMapper(DataViewSchema)"/> should succeed, on an
@@ -76,23 +76,23 @@ namespace Microsoft.ML.Transforms.TimeSeries
         /// </summary>
         internal IDataTransform MakeDataTransform(IDataView input) => InternalTransform.MakeDataTransform(input);
 
-        internal SrCnnAnomalyDetectionBase InternalTransform;
+        internal SrCnnAnomalyDetectionBaseCore InternalTransform;
 
-        internal SrCnnAnomalyDetectionBaseWrapper(SrCnnArgumentBase args, string name, IHostEnvironment env)
+        internal SrCnnAnomalyDetectionBase(SrCnnArgumentBase args, string name, IHostEnvironment env)
         {
-            InternalTransform = new SrCnnAnomalyDetectionBase(args, name, env, this);
+            InternalTransform = new SrCnnAnomalyDetectionBaseCore(args, name, env, this);
         }
 
-        internal SrCnnAnomalyDetectionBaseWrapper(IHostEnvironment env, ModelLoadContext ctx, string name)
+        internal SrCnnAnomalyDetectionBase(IHostEnvironment env, ModelLoadContext ctx, string name)
         {
-            InternalTransform = new SrCnnAnomalyDetectionBase(env, ctx, name, this);
+            InternalTransform = new SrCnnAnomalyDetectionBaseCore(env, ctx, name, this);
         }
 
-        internal sealed class SrCnnAnomalyDetectionBase : SrCnnTransformBase<Single, SrCnnAnomalyDetectionBase.State>
+        internal sealed class SrCnnAnomalyDetectionBaseCore : SrCnnTransformBase<Single, SrCnnAnomalyDetectionBaseCore.State>
         {
-            internal SrCnnAnomalyDetectionBaseWrapper Parent;
+            internal SrCnnAnomalyDetectionBase Parent;
 
-            public SrCnnAnomalyDetectionBase(SrCnnArgumentBase args, string name, IHostEnvironment env, SrCnnAnomalyDetectionBaseWrapper parent)
+            public SrCnnAnomalyDetectionBaseCore(SrCnnArgumentBase args, string name, IHostEnvironment env, SrCnnAnomalyDetectionBase parent)
                 : base(args, name, env)
             {
                 InitialWindowSize = WindowSize;
@@ -101,10 +101,9 @@ namespace Microsoft.ML.Transforms.TimeSeries
                 Parent = parent;
             }
 
-            public SrCnnAnomalyDetectionBase(IHostEnvironment env, ModelLoadContext ctx, string name, SrCnnAnomalyDetectionBaseWrapper parent)
+            public SrCnnAnomalyDetectionBaseCore(IHostEnvironment env, ModelLoadContext ctx, string name, SrCnnAnomalyDetectionBase parent)
                 : base(env, ctx, name)
             {
-                //Host.CheckDecode(InitialWindowSize == 0);
                 StateRef = new State(ctx.Reader);
                 StateRef.InitState(this, Host);
                 Parent = parent;
@@ -132,7 +131,6 @@ namespace Microsoft.ML.Transforms.TimeSeries
             internal void SaveThis(ModelSaveContext ctx)
             {
                 ctx.CheckAtModel();
-                //Host.Assert(InitialWindowSize == 0);
                 base.SaveModel(ctx);
 
                 // *** Binary format ***
@@ -230,7 +228,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
                     List<Single> filteredIfftMagList = AverageFilter(ifftMagList, Parent.JudgementWindowSize);
 
                     // Step 7: Calculate score and set result
-                    var score = CalculateSocre(ifftMagList[data.Count-1], filteredIfftMagList[data.Count-1]);
+                    var score = CalculateSocre(ifftMagList[data.Count - 1], filteredIfftMagList[data.Count - 1]);
                     score /= 10.0f;
                     result.Values[1] = score;
 
@@ -239,14 +237,14 @@ namespace Microsoft.ML.Transforms.TimeSeries
                     var detres = score > Parent.AlertThreshold ? 1 : 0;
                     result.Values[0] = detres;
 
-                    var mag = ifftMagList[data.Count-1];
+                    var mag = ifftMagList[data.Count - 1];
                     result.Values[2] = mag;
                 }
 
                 private List<Single> BackAdd(Single input, FixedSizeQueue<Single> data)
                 {
                     List<Single> predictArray = new List<Single>();
-                    for (int i = data.Count-Parent.LookaheadWindowSize-2; i < data.Count-1; ++i)
+                    for (int i = data.Count - Parent.LookaheadWindowSize - 2; i < data.Count - 1; ++i)
                     {
                         predictArray.Add(data[i]);
                     }
@@ -264,7 +262,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
                 {
                     var n = data.Count;
                     Single slopeSum = 0.0f;
-                    for (int i = 0; i < n-1; ++i)
+                    for (int i = 0; i < n - 1; ++i)
                     {
                         slopeSum += (input - data[i]) / (n - 1 - i);
                     }

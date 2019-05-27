@@ -122,8 +122,22 @@ namespace Microsoft.ML
             int trainingWindowSize, int seasonalityWindowSize, AnomalySide side = AnomalySide.TwoSided, ErrorFunction errorFunction = ErrorFunction.SignedDifference)
             => new SsaSpikeEstimator(CatalogUtils.GetEnvironment(catalog), outputColumnName, confidence, pvalueHistoryLength, trainingWindowSize, seasonalityWindowSize, inputColumnName, side, errorFunction);
 
+        /// <summary>
+        /// Create <see cref="SrCnnAnomalyEstimator"/>, which detects timeseries anomalies using SRCNN algorithm.
+        /// </summary>
+        /// <param name="catalog">The transform's catalog.</param>
+        /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.
+        /// The column data is a vector of <see cref="System.Double"/>. The vector contains 3 elements: alert (1 means anomaly while 0 means normal), raw score, and magnitude of spectual residual.</param>
+        /// <param name="inputColumnName">Name of column to transform. The column data must be <see cref="System.Single"/>.</param>
+        /// <param name="windowSize">The size of the sliding window for computing spectral residual.</param>
+        /// <param name="backAddWindowSize">The number of points to add back of training window.</param>
+        /// <param name="lookaheadWindowSize">The number of pervious points used in prediction.</param>
+        /// <param name="averageingWindowSize">The size of sliding window to generate a saliency map for the series.</param>
+        /// <param name="judgementWindowSize">The size of sliding window to calculate the anomaly score for each data point.</param>
+        /// <param name="threshold">The threshold to determine anomaly, score larger than the threshold is considered as anomaly.</param>
+        /// <returns></returns>
         public static SrCnnAnomalyEstimator DetectAnomalyBySrCnn(this TransformsCatalog catalog, string outputColumnName, string inputColumnName,
-            int windowSize, int backAddWindowSize, int lookaheadWindowSize, int averageingWindowSize, int judgementWindowSize, double threshold)
+            int windowSize=64, int backAddWindowSize=5, int lookaheadWindowSize=5, int averageingWindowSize=3, int judgementWindowSize=21, double threshold=0.3)
             => new SrCnnAnomalyEstimator(CatalogUtils.GetEnvironment(catalog), outputColumnName, windowSize, backAddWindowSize, lookaheadWindowSize, averageingWindowSize, judgementWindowSize, threshold, inputColumnName);
     }
 }

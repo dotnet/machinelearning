@@ -70,7 +70,11 @@ namespace Microsoft.ML.Transforms.TimeSeries
             int backAddWindowSize, int lookaheadWindowSize, int averagingWindowSize, int judgementWindowSize, Double alertThreshold)
             : base(Contracts.CheckRef(env, nameof(env)).Register(name), windowSize, initialWindowSize, outputColumnName, inputColumnName, new VectorDataViewType(NumberDataViewType.Double, 3))
         {
-            //TODO: Check argument
+            Host.CheckUserArg(backAddWindowSize > 0, nameof(SrCnnArgumentBase.BackAddWindowSize), "Must be non-negative");
+            Host.CheckUserArg(lookaheadWindowSize > 0 && lookaheadWindowSize < windowSize, nameof(SrCnnArgumentBase.LookaheadWindowSize), "Must be non-negative and not larger than window size");
+            Host.CheckUserArg(averagingWindowSize > 0 && averagingWindowSize < windowSize, nameof(SrCnnArgumentBase.AvergingWindowSize), "Must be non-negative and not larger than window size");
+            Host.CheckUserArg(judgementWindowSize > 0 && judgementWindowSize < windowSize, nameof(SrCnnArgumentBase.JudgementWindowSize), "Must be non-negative and not larger than window size");
+            Host.CheckUserArg(alertThreshold > 0 && alertThreshold < 1, nameof(SrCnnArgumentBase.Threshold), "Must be in (0,1)");
 
             BackAddWindowSize = backAddWindowSize;
             LookaheadWindowSize = lookaheadWindowSize;
@@ -103,8 +107,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
             JudgementWindowSize = (int)temp;
             Host.CheckDecode(JudgementWindowSize > 0);
 
-            temp = ctx.Reader.ReadByte();
-            AlertThreshold = (double)temp;
+            AlertThreshold = ctx.Reader.ReadDouble();
             Host.CheckDecode(AlertThreshold >= 0 && AlertThreshold <= 1);
         }
 
@@ -132,7 +135,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
             ctx.Writer.Write((byte)LookaheadWindowSize);
             ctx.Writer.Write((byte)AvergingWindowSize);
             ctx.Writer.Write((byte)JudgementWindowSize);
-            ctx.Writer.Write((byte)AlertThreshold);
+            ctx.Writer.Write(AlertThreshold);
         }
 
         internal override IStatefulRowMapper MakeRowMapper(DataViewSchema schema) => new Mapper(Host, this, schema);
@@ -162,7 +165,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
 
                 _parent = parent;
                 _parentSchema = inputSchema;
-                _slotNames = new VBuffer<ReadOnlyMemory<char>>(2, new[] { "Alert".AsMemory(), "Raw Score".AsMemory(),
+                _slotNames = new VBuffer<ReadOnlyMemory<char>>(_parent.OutputLength, new[] { "Alert".AsMemory(), "Raw Score".AsMemory(),
                     "Mag".AsMemory()});
 
                 State = (SrCnnStateBase)_parent.StateRef;
@@ -292,8 +295,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
                 Host.Assert(outputLength >= 2);
 
                 var result = VBufferEditor.Create(ref dst, outputLength);
-                for (int i = 0; i < outputLength; ++i)
-                    result.Values[i] = Double.NaN;
+                result.Values.Fill(Double.NaN);
 
                 SpectralResidual(input, windowedBuffer, ref result);
 
@@ -303,12 +305,10 @@ namespace Microsoft.ML.Transforms.TimeSeries
             private protected sealed override void InitializeStateCore(bool disk = false)
             {
                 Parent = (SrCnnTransformBase<TInput, TState>)ParentTransform;
-                //TODO: assert for value threshold
             }
 
             private protected override void LearnStateFromDataCore(FixedSizeQueue<TInput> data)
             {
-                //TODO:
             }
 
             private protected virtual void SpectralResidual(TInput input, FixedSizeQueue<TInput> data, ref VBufferEditor<double> result)
