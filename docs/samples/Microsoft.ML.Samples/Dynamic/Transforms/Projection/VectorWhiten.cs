@@ -17,7 +17,7 @@ namespace Samples.Dynamic
             var ml = new MLContext();
 
             // Get a small dataset as an IEnumerable and convert it to an IDataView.
-            var data = Microsoft.ML.SamplesUtils.DatasetUtils.GetVectorOfNumbersData();
+            var data = GetVectorOfNumbersData();
             var trainData = ml.Data.LoadFromEnumerable(data);
 
             // Preview of the data.
@@ -40,14 +40,14 @@ namespace Samples.Dynamic
             };
 
             // A pipeline to project Features column into white noise vector.
-            var whiteningPipeline = ml.Transforms.VectorWhiten(nameof(Microsoft.ML.SamplesUtils.DatasetUtils.SampleVectorOfNumbersData.Features),
+            var whiteningPipeline = ml.Transforms.VectorWhiten(nameof(SampleVectorOfNumbersData.Features),
                 kind: Microsoft.ML.Transforms.WhiteningKind.ZeroPhaseComponentAnalysis);
             // The transformed (projected) data.
             var transformedData = whiteningPipeline.Fit(trainData).Transform(trainData);
             // Getting the data of the newly created column, so we can preview it.
-            var whitening = transformedData.GetColumn<VBuffer<float>>(transformedData.Schema[nameof(Microsoft.ML.SamplesUtils.DatasetUtils.SampleVectorOfNumbersData.Features)]);
+            var whitening = transformedData.GetColumn<VBuffer<float>>(transformedData.Schema[nameof(SampleVectorOfNumbersData.Features)]);
 
-            printHelper(nameof(Microsoft.ML.SamplesUtils.DatasetUtils.SampleVectorOfNumbersData.Features), whitening);
+            printHelper(nameof(SampleVectorOfNumbersData.Features), whitening);
 
             // Features column obtained post-transformation.
             //
@@ -57,6 +57,39 @@ namespace Samples.Dynamic
             // 0.211  0.277  0.344  0.410  0.606  1.267  1.333 -1.340 -0.205  0.065
             // 0.454  0.523  0.593  0.664  1.886 -0.757 -0.687 -0.022  0.176  0.310
             // 0.863  0.938  1.016  1.093 -1.326 -0.096 -0.019  0.189  0.330  0.483
+        }
+
+        private class SampleVectorOfNumbersData
+        {
+            [VectorType(10)]
+            public float[] Features { get; set; }
+        }
+
+        /// <summary>
+        /// Returns a few rows of the infertility dataset.
+        /// </summary>
+        private static IEnumerable<SampleVectorOfNumbersData> GetVectorOfNumbersData()
+        {
+            var data = new List<SampleVectorOfNumbersData>();
+            data.Add(new SampleVectorOfNumbersData { Features = new float[10] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 } });
+            data.Add(new SampleVectorOfNumbersData { Features = new float[10] { 1, 2, 3, 4, 5, 6, 7, 8, 9, 0 } });
+            data.Add(new SampleVectorOfNumbersData
+            {
+                Features = new float[10] { 2, 3, 4, 5, 6, 7, 8, 9, 0, 1 }
+            });
+            data.Add(new SampleVectorOfNumbersData
+            {
+                Features = new float[10] { 3, 4, 5, 6, 7, 8, 9, 0, 1, 2, }
+            });
+            data.Add(new SampleVectorOfNumbersData
+            {
+                Features = new float[10] { 5, 6, 7, 8, 9, 0, 1, 2, 3, 4 }
+            });
+            data.Add(new SampleVectorOfNumbersData
+            {
+                Features = new float[10] { 6, 7, 8, 9, 0, 1, 2, 3, 4, 5 }
+            });
+            return data;
         }
     }
 }
