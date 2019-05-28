@@ -41,6 +41,10 @@ namespace Microsoft.ML.Data
         // Object.Equals(Object) and GetHashCode. In classes below where Equals(ColumnType other)
         // is effectively a referencial comparison, there is no need to override base class implementations
         // of Object.Equals(Object) (and GetHashCode) since its also a referencial comparison.
+        /// <summary>
+        /// Return <see langword="true"/> if <see langword="this"/> is equivalent to <paramref name="other"/> and <see langword="false"/> otherwise.
+        /// </summary>
+        /// <param name="other">Another <see cref="DataViewType"/> to be compared with <see langword="this"/>.</param>
         public abstract bool Equals(DataViewType other);
     }
 
@@ -460,5 +464,26 @@ namespace Microsoft.ML.Data
         }
 
         public override string ToString() => "TimeSpan";
+    }
+
+    /// <summary>
+    /// <see cref="DataViewTypeAttribute"/> should be used to decorated class properties and fields, if that class' instances will be loaded as ML.NET <see cref="IDataView"/>.
+    /// The function <see cref="Register"/> will be called to register a <see cref="DataViewType"/> for a <see cref="Type"/> with its <see cref="Attribute"/>s.
+    /// Whenever a value typed to the registered <see cref="Type"/> and its <see cref="Attribute"/>s, that value's type (i.e., a <see cref="DataViewSchema.Column.Type"/>)
+    /// in <see cref="IDataView"/> would be the associated <see cref="DataViewType"/>.
+    /// </summary>
+    [AttributeUsage(AttributeTargets.Field | AttributeTargets.Property, AllowMultiple = false, Inherited = true)]
+    public abstract class DataViewTypeAttribute : Attribute, IEquatable<DataViewTypeAttribute>
+    {
+        /// <summary>
+        /// A function implicitly invoked by ML.NET when processing a custom type. It binds a DataViewType to a custom type plus its attributes.
+        /// </summary>
+        public abstract void Register();
+
+        /// <summary>
+        /// Return <see langword="true"/> if <see langword="this"/> is equivalent to <paramref name="other"/> and <see langword="false"/> otherwise.
+        /// </summary>
+        /// <param name="other">Another <see cref="DataViewTypeAttribute"/> to be compared with <see langword="this"/>.</param>
+        public abstract bool Equals(DataViewTypeAttribute other);
     }
 }
