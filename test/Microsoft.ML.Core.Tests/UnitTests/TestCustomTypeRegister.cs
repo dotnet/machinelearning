@@ -73,7 +73,7 @@ namespace Microsoft.ML.RunTests
 
         /// <summary>
         /// A custom class with a type which ML.NET doesn't know yet. Its value will be loaded as a DataView row in this test.
-        /// It will be the input of <see cref="AlienLambda.MergeBody(AlienHero, SuperAlienHero)"/>.
+        /// It will be the input of <see cref="AlienFusionProcess.MergeBody(AlienHero, SuperAlienHero)"/>.
         ///
         /// <see cref="One"/> and <see cref="Two"/> would be mapped to different types inside ML.NET type system because they
         /// have different <see cref="AlienTypeAttributeAttribute"/>s. For example, the column type of <see cref="One"/> would
@@ -133,7 +133,7 @@ namespace Microsoft.ML.RunTests
         }
 
         /// <summary>
-        /// The output type of processing <see cref="AlienHero"/> using <see cref="AlienLambda.MergeBody(AlienHero, SuperAlienHero)"/>.
+        /// The output type of processing <see cref="AlienHero"/> using <see cref="AlienFusionProcess.MergeBody(AlienHero, SuperAlienHero)"/>.
         /// </summary>
         private class SuperAlienHero
         {
@@ -154,7 +154,7 @@ namespace Microsoft.ML.RunTests
         /// <see cref="CustomMappingEstimator{TSrc, TDst}"/> in <see cref="RegisterTypeWithAttribute()"/>.
         /// </summary>
         [CustomMappingFactoryAttribute("LambdaAlienHero")]
-        private class AlienLambda : CustomMappingFactory<AlienHero, SuperAlienHero>
+        private class AlienFusionProcess : CustomMappingFactory<AlienHero, SuperAlienHero>
         {
             public static void MergeBody(AlienHero input, SuperAlienHero output)
             {
@@ -179,7 +179,7 @@ namespace Microsoft.ML.RunTests
 
             // Build a ML.NET pipeline and make prediction.
             var tribeDataView = ML.Data.LoadFromEnumerable(tribe);
-            var heroEstimator = new CustomMappingEstimator<AlienHero, SuperAlienHero>(ML, AlienLambda.MergeBody, "LambdaAlienHero");
+            var heroEstimator = new CustomMappingEstimator<AlienHero, SuperAlienHero>(ML, AlienFusionProcess.MergeBody, "LambdaAlienHero");
             var model = heroEstimator.Fit(tribeDataView);
             var tribeTransformed = model.Transform(tribeDataView);
             var tribeEnumerable = ML.Data.CreateEnumerable<SuperAlienHero>(tribeTransformed, false).ToList();
