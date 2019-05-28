@@ -6,7 +6,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using Microsoft.ML.Internal.DataView;
+using Microsoft.ML.Internal.CpuMath.Core;
+using Microsoft.ML.Internal.Utilities;
 
 namespace Microsoft.ML.Data
 {
@@ -50,7 +51,7 @@ namespace Microsoft.ML.Data
         /// <summary>
         /// Returns the <see cref="DataViewType"/> registered for <paramref name="type"/> and its <paramref name="typeAttributes"/>.
         /// </summary>
-        public static DataViewType GetDataViewType(Type type, IEnumerable<Attribute> typeAttributes = null)
+        internal static DataViewType GetDataViewType(Type type, IEnumerable<Attribute> typeAttributes = null)
         {
             lock (_lock)
             {
@@ -70,7 +71,7 @@ namespace Microsoft.ML.Data
         /// If <paramref name="type"/> has been registered with a <see cref="DataViewType"/>, this function returns <see langword="true"/>.
         /// Otherwise, this function returns <see langword="false"/>.
         /// </summary>
-        public static bool Knows(Type type, IEnumerable<Attribute> typeAttributes = null)
+        internal static bool Knows(Type type, IEnumerable<Attribute> typeAttributes = null)
         {
             lock (_lock)
             {
@@ -90,7 +91,7 @@ namespace Microsoft.ML.Data
         /// If <paramref name="dataViewType"/> has been registered with a <see cref="Type"/>, this function returns <see langword="true"/>.
         /// Otherwise, this function returns <see langword="false"/>.
         /// </summary>
-        public static bool Knows(DataViewType dataViewType)
+        internal static bool Knows(DataViewType dataViewType)
         {
             lock (_lock)
             {
