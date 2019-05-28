@@ -3,8 +3,11 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Reflection;
+using Microsoft.ML.Calibrators;
 using Microsoft.ML.CommandLine;
+using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Runtime;
+using Microsoft.ML.TestFramework;
 using Xunit;
 
 namespace Microsoft.ML.RunTests
@@ -73,6 +76,26 @@ namespace Microsoft.ML.RunTests
             Assert.Equal(innerArg3, testArg);
         }
 
+        [Fact]
+        [TestCategory("Cmd Parsing")]
+        public void NewTest()
+        {
+            var ml = new MLContext();
+            ml.AddStandardComponents();
+            var classes = Utils.MarshalInvoke(ml.ComponentCatalog.FindLoadableClasses<int>, typeof(SignatureCalibrator));
+            foreach (var cls in classes)
+            {
+                var factory = CmdParser.CreateComponentFactory(typeof(IComponentFactory<ICalibratorTrainer>), typeof(SignatureCalibrator), cls.LoadNames[0]);
+                var calibrator = ((IComponentFactory<ICalibratorTrainer>)factory).CreateComponent(ml);
+            }
+            var components = ml.ComponentCatalog.GetAllComponents(typeof(ICalibratorTrainerFactory));
+            foreach (var component in components)
+            {
+                var factory = CmdParser.CreateComponentFactory(typeof(IComponentFactory<ICalibratorTrainer>), typeof(SignatureCalibrator), component.Aliases[0]);
+                var calibrator = ((IComponentFactory<ICalibratorTrainer>)factory).CreateComponent(ml);
+            }
+        }
+    
         private delegate void SignatureSimpleComponent();
 
         private class SimpleArg
