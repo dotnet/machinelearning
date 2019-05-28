@@ -33,12 +33,12 @@ namespace Microsoft.ML.Data
         };
 
         /// <summary>
-        /// Mapping from hashing ID of a <see cref="Type"/> and its <see cref="Attribute"/>s to hashing ID of a <see cref="DataViewType"/>.
+        /// Mapping from a <see cref="Type"/> plus its <see cref="Attribute"/>s to a <see cref="DataViewType"/>.
         /// </summary>
         private static Dictionary<TypeWithAttributes, DataViewType> _rawTypeToDataViewTypeMap = new Dictionary<TypeWithAttributes, DataViewType>();
 
         /// <summary>
-        /// Mapping from hashing ID of a <see cref="DataViewType"/> to hashing ID of a <see cref="Type"/> and its <see cref="Attribute"/>s.
+        /// Mapping from a <see cref="DataViewType"/> to a <see cref="Type"/> plus its <see cref="Attribute"/>s.
         /// </summary>
         private static Dictionary<DataViewType, TypeWithAttributes> _dataViewTypeToRawTypeMap = new Dictionary<DataViewType, TypeWithAttributes>();
 
