@@ -30,11 +30,11 @@ namespace Microsoft.ML.Trainers
         }
 
         [DllImport(NativePath), SuppressUnmanagedCodeSecurity]
-        public static extern void CalculateIntermediateVariablesNative(int fieldCount, int latentDim, int count, int* /*const*/ fieldIndices, int* /*const*/ featureIndices,
+        public static extern void CalculateIntermediateVariablesNativeSSE(int fieldCount, int latentDim, int count, int* /*const*/ fieldIndices, int* /*const*/ featureIndices,
             float* /*const*/ featureValues, float* /*const*/ linearWeights, float* /*const*/ latentWeights, float* latentSum, float* response);
 
         [DllImport(NativePath), SuppressUnmanagedCodeSecurity]
-        public static extern void CalculateGradientAndUpdateNative(float lambdaLinear, float lambdaLatent, float learningRate, int fieldCount, int latentDim, float weight,
+        public static extern void CalculateGradientAndUpdateNativeSSE(float lambdaLinear, float lambdaLatent, float learningRate, int fieldCount, int latentDim, float weight,
             int count, int* /*const*/ fieldIndices, int* /*const*/ featureIndices, float* /*const*/ featureValues, float* /*const*/ latentSum, float slope,
             float* linearWeights, float* latentWeights, float* linearAccumulatedSquaredGrads, float* latentAccumulatedSquaredGrads);
 
@@ -57,7 +57,7 @@ namespace Microsoft.ML.Trainers
                 fixed (float* pv = &latentWeights.Items[0])
                 fixed (float* pq = &latentSum.Items[0])
                 fixed (float* pr = &response)
-                    CalculateIntermediateVariablesNative(fieldCount, latentDim, count, pf, pi, px, pw, Ptr(latentWeights, pv), Ptr(latentSum, pq), pr);
+                    CalculateIntermediateVariablesNativeSSE(fieldCount, latentDim, count, pf, pi, px, pw, Ptr(latentWeights, pv), Ptr(latentSum, pq), pr);
             }
         }
 
@@ -84,7 +84,7 @@ namespace Microsoft.ML.Trainers
                 fixed (float* pv = &latentWeights.Items[0])
                 fixed (float* phw = &linearAccumulatedSquaredGrads[0])
                 fixed (float* phv = &latentAccumulatedSquaredGrads.Items[0])
-                    CalculateGradientAndUpdateNative(lambdaLinear, lambdaLatent, learningRate, fieldCount, latentDim, weight, count, pf, pi, px,
+                    CalculateGradientAndUpdateNativeSSE(lambdaLinear, lambdaLatent, learningRate, fieldCount, latentDim, weight, count, pf, pi, px,
                         Ptr(latentSum, pq), slope, pw, Ptr(latentWeights, pv), phw, Ptr(latentAccumulatedSquaredGrads, phv));
             }
 

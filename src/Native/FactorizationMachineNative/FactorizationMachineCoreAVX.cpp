@@ -6,12 +6,9 @@
 #include <cmath>
 #include <cstring>
 #include <limits>
-#include <pmmintrin.h>
-
-// Compute the output value of the field-aware factorization, as the sum of the linear part and the latent part. 
-// The linear part is the inner product of linearWeights and featureValues.
-// The latent part is the sum of all intra-field interactions in one field f, for all fields possible. 
-EXPORT_API(void) CalculateIntermediateVariablesNative(int fieldCount, int latentDim, int count, _In_ int * fieldIndices, _In_ int * featureIndices, _In_ float * featureValues,
+#include <immintrin.h>
+//check loads
+EXPORT_API(void) CalculateIntermediateVariablesNativeAVX(int fieldCount, int latentDim, int count, _In_ int * fieldIndices, _In_ int * featureIndices, _In_ float * featureValues,
     _In_ float * linearWeights, _In_ float * latentWeights, _Inout_ float * latentSum, _Out_ float * response)
 {
     // The number of all possible fields.
@@ -28,8 +25,8 @@ EXPORT_API(void) CalculateIntermediateVariablesNative(int fieldCount, int latent
     float latentResponse = 0;
 
     memset(pq, 0, sizeof(float) * m * m * d);
-    __m128 _y = _mm_setzero_ps();
-    __m128 _tmp = _mm_setzero_ps();
+    __m256 _y = _mm256_setzero_ps();
+    __m256 _tmp = _mm256_setzero_ps();
 
     for (int i = 0; i < c; i++)
     {
@@ -37,19 +34,19 @@ EXPORT_API(void) CalculateIntermediateVariablesNative(int fieldCount, int latent
         const int j = pi[i];
         linearResponse += pw[j] * px[i];
 
-        const __m128 _x = _mm_load1_ps(px + i);
-        const __m128 _xx = _mm_mul_ps(_x, _x);
+        const __m256 _x = _mm256_broadcast_ss(px + i);
+        const __m256 _xx = _mm256_mul_ps (_x, _x);
 
-        // tmp -= <v_j,f, v_j,f> * x * x
+         // tmp -= <v_j,f, v_j,f> * x * x
         const int vBias = j * m * d + f * d;
 
         // j-th feature's latent vector in the f-th field hidden space.
         const float * vjf = pv + vBias;
 
-        for (int k = 0; k + 4 <= d; k += 4)
+        for (int k = 0; k + 8 <= d; k += 8)
         {
-            const __m128 _v = _mm_load_ps(vjf + k);
-            _tmp = _mm_sub_ps(_tmp, _mm_mul_ps(_mm_mul_ps(_v, _v), _xx));
+            const __m256 _v = _mm256_load_ps(vjf + k);
+            _tmp = _mm256_sub_ps(_tmp, _mm256_mul_ps(_mm256_mul_ps(_v, _v), _xx));
         }
 
         for (int fprime = 0; fprime < m; fprime++)
@@ -60,12 +57,12 @@ EXPORT_API(void) CalculateIntermediateVariablesNative(int fieldCount, int latent
             float * qffprime = pq + qBias;
 
             // q_f,f' += v_j,f' * x
-            for (int k = 0; k + 4 <= d; k += 4)
+            for (int k = 0; k + 8 <= d; k += 8)
             {
-                const __m128 _v = _mm_load_ps(vjfprime + k);
-                __m128 _q = _mm_load_ps(qffprime + k);
-                _q = _mm_add_ps(_q, _mm_mul_ps(_v, _x));
-                _mm_store_ps(qffprime + k, _q);
+                const __m256 _v = _mm256_load_ps(vjfprime + k);
+                __m256 _q = _mm256_load_ps(qffprime + k);
+                _q = _mm256_add_ps(_q, _mm256_mul_ps(_v, _x));
+                _mm256_store_ps(qffprime + k, _q);
             }
         }
     }
@@ -74,12 +71,12 @@ EXPORT_API(void) CalculateIntermediateVariablesNative(int fieldCount, int latent
     {
         // tmp += <q_f,f, q_f,f>
         const float * qff = pq + f * m * d + f * d;
-        for (int k = 0; k + 4 <= d; k += 4)
+        for (int k = 0; k + 8 <= d; k += 8)
         {
-            __m128 _qff = _mm_load_ps(qff + k);
+            __m256 _qff = _mm256_load_ps(qff + k);
 
-            // Intra-field interactions. 
-            _tmp = _mm_add_ps(_tmp, _mm_mul_ps(_qff, _qff));
+            // Intra-field interactions.
+            _tmp = _mm256_add_ps(_tmp, _mm256_mul_ps(_qff, _qff));
         }
 
         // y += <q_f,f', q_f',f>, f != f'
@@ -88,26 +85,28 @@ EXPORT_API(void) CalculateIntermediateVariablesNative(int fieldCount, int latent
         {
             const float * qffprime = pq + f * m * d + fprime * d;
             const float * qfprimef = pq + fprime * m * d + f * d;
-            for (int k = 0; k + 4 <= d; k += 4)
+            for (int k = 0; k + 8 <= d; k += 8)
             {
                 // Inter-field interaction.
-                __m128 _qffprime = _mm_load_ps(qffprime + k);
-                __m128 _qfprimef = _mm_load_ps(qfprimef + k);
-                _y = _mm_add_ps(_y, _mm_mul_ps(_qffprime, _qfprimef));
+                __m256 _qffprime = _mm256_load_ps(qffprime + k);
+                __m256 _qfprimef = _mm256_load_ps(qfprimef + k);
+                _y = _mm256_add_ps(_y, _mm256_mul_ps(_qffprime, _qfprimef));
             }
         }
     }
 
-    _y = _mm_add_ps(_y, _mm_mul_ps(_mm_set_ps1(0.5f), _tmp));
-    _tmp = _mm_add_ps(_y, _mm_movehl_ps(_y, _y));
-    _y = _mm_add_ps(_tmp, _mm_shuffle_ps(_tmp, _tmp, 1)); // The lowest slot is the response value.
-    _mm_store_ss(&latentResponse, _y);
+    _y = _mm256_add_ps(_y, _mm256_mul_ps(_mm256_set1_ps(0.5f), _tmp));
+    _tmp = _mm256_add_ps(_y, _mm256_permute2f128_ps(_y, _y, 1));
+    _tmp = _mm256_hadd_ps(_tmp, _tmp);
+    _y = _mm256_hadd_ps(_tmp, _tmp);
+    _mm_store_ss(&latentResponse, _mm256_castps256_ps128(_y));
     *response = linearResponse + latentResponse;
+
 }
 
-// Calculate the stochastic gradient and update the model. 
+// Calculate the stochastic gradient and update the model.
 // The /*const*/ comment on the parameters of the function means that their values should not get altered by this function.
-EXPORT_API(void) CalculateGradientAndUpdateNative(float lambdaLinear, float lambdaLatent, float learningRate, int fieldCount, int latentDim, float weight, int count,
+EXPORT_API(void) CalculateGradientAndUpdateNativeAVX(float lambdaLinear, float lambdaLatent, float learningRate, int fieldCount, int latentDim, float weight, int count,
     _In_ int* /*const*/ fieldIndices, _In_ int* /*const*/ featureIndices, _In_ float* /*const*/ featureValues, _In_ float* /*const*/ latentSum, float slope,
     _Inout_ float* linearWeights, _Inout_ float* latentWeights, _Inout_ float* linearAccumulatedSquaredGrads, _Inout_ float* latentAccumulatedSquaredGrads)
 {
@@ -123,10 +122,10 @@ EXPORT_API(void) CalculateGradientAndUpdateNative(float lambdaLinear, float lamb
     float * phw = linearAccumulatedSquaredGrads;
     float * phv = latentAccumulatedSquaredGrads;
 
-    const __m128 _wei = _mm_set_ps1(weight);
-    const __m128 _s = _mm_set_ps1(slope);
-    const __m128 _lr = _mm_set_ps1(learningRate);
-    const __m128 _lambdav = _mm_set_ps1(lambdaLatent);
+    const __m256 _wei = _mm256_set1_ps(weight);
+    const __m256 _s = _mm256_set1_ps(slope);
+    const __m256 _lr = _mm256_set1_ps(learningRate);
+    const __m256 _lambdav = _mm256_set1_ps(lambdaLatent);
 
     for (int i = 0; i < count; i++)
     {
@@ -143,36 +142,36 @@ EXPORT_API(void) CalculateGradientAndUpdateNative(float lambdaLinear, float lamb
         pw[j] -= learningRate / sqrt(phw[j]) * g;
 
         // Update latent term, v_j,f', f'=1,...,m.
-        const __m128 _x = _mm_load1_ps(px + i);
+        const __m256 _x = _mm256_broadcast_ss(px + i);
         for (int fprime = 0; fprime < m; fprime++)
         {
             float * vjfprime = pv + j * m * d + fprime * d;
             float * hvjfprime = phv + j * m * d + fprime * d;
             const float * qfprimef = pq + fprime * m * d + f * d;
-            const __m128 _sx = _mm_mul_ps(_s, _x);
+            const __m256 _sx = _mm256_mul_ps(_s, _x);
 
-            for (int k = 0; k + 4 <= d; k += 4)
+            for (int k = 0; k + 8 <= d; k += 8)
             {
-                __m128 _v = _mm_load_ps(vjfprime + k);
-                __m128 _q = _mm_load_ps(qfprimef + k);
+                __m256 _v = _mm256_load_ps(vjfprime + k);
+                __m256 _q = _mm256_load_ps(qfprimef + k);
 
                 // Calculate L2-norm regularization's gradient.
-                __m128 _g = _mm_mul_ps(_lambdav, _v);
+                __m256 _g = _mm256_mul_ps(_lambdav, _v);
 
                 // Calculate loss function's gradient.
                 if (fprime != f)
-                    _g = _mm_add_ps(_g, _mm_mul_ps(_sx, _q));
+                    _g = _mm256_add_ps(_g, _mm256_mul_ps(_sx, _q));
                 else
-                    _g = _mm_add_ps(_g, _mm_mul_ps(_sx, _mm_sub_ps(_q, _mm_mul_ps(_v, _x))));
-                _g = _mm_mul_ps(_wei, _g);
+                    _g = _mm256_add_ps(_g, _mm256_mul_ps(_sx, _mm256_sub_ps(_q, _mm256_mul_ps(_v, _x))));
+                _g = _mm256_mul_ps(_wei, _g);
 
                 // Accumulate the gradient of latent vectors.
-                const __m128 _h = _mm_add_ps(_mm_load_ps(hvjfprime + k), _mm_mul_ps(_g, _g));
+                const __m256 _h = _mm256_add_ps(_mm256_load_ps(hvjfprime + k), _mm256_mul_ps(_g, _g));
 
                 // Perform ADAGRAD update rule to adjust latent vector.
-                _v = _mm_sub_ps(_v, _mm_mul_ps(_lr, _mm_mul_ps(_mm_rsqrt_ps(_h), _g)));
-                _mm_store_ps(vjfprime + k, _v);
-                _mm_store_ps(hvjfprime + k, _h);
+                _v = _mm256_sub_ps(_v, _mm256_mul_ps(_lr, _mm256_mul_ps(_mm256_rsqrt_ps(_h), _g)));
+                _mm256_store_ps(vjfprime + k, _v);
+                _mm256_store_ps(hvjfprime + k, _h);
             }
         }
     }

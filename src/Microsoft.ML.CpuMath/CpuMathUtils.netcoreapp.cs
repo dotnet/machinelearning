@@ -9,6 +9,7 @@ using Microsoft.ML.Internal.CpuMath.Core;
 
 namespace Microsoft.ML.Internal.CpuMath
 {
+    [BestFriend]
     internal static partial class CpuMathUtils
     {
         // The count of bytes in Vector128<T>, corresponding to _cbAlign in AlignedArray

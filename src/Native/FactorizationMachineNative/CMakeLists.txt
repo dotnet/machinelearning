@@ -1,7 +1,9 @@
 project (FactorizationMachineNative)
 
 set(SOURCES
-    FactorizationMachineCore.cpp
+    FactorizationMachineCoreSSE.cpp
+    FactorizationMachineCoreAVX.cpp
+    FactorizationMachineCoreFMA.cpp
 )
 
 if(WIN32)
