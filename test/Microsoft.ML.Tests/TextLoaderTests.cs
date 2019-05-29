@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using Microsoft.ML.Data;
 using Microsoft.ML.Model;
 using Microsoft.ML.RunTests;
@@ -793,6 +794,78 @@ namespace Microsoft.ML.EntryPoints.Tests
                 var result = ModelFileUtils.LoadLoader(mlContext, rep, new MultiFileSource(breastCancerPath), false);
                 Assert.True(result.Schema.TryGetColumnIndex("key", out int featureIdx));
                 Assert.True(result.Schema[featureIdx].Type is KeyDataViewType keyType && keyType.Count == typeof(uint).ToMaxInt());
+            }
+        }
+
+        public class IrisNoFields
+        {
+        }
+
+        public class IrisPrivateFields
+        {
+            [LoadColumn(0)]
+            private float SepalLength;
+
+            [LoadColumn(1)]
+            private float SepalWidth { get; }
+
+            public float GetSepalLenght()
+                => SepalLength;
+
+            public void SetSepalLength(float sepalLength)
+            {
+                SepalLength = sepalLength;
+            }
+        }
+        public class IrisPublicGetProperties
+        {
+            [LoadColumn(0)]
+            public float SepalLength { get; }
+
+            [LoadColumn(1)]
+            public float SepalWidth { get; }
+        }
+
+        public class IrisPublicProperties
+        {
+            [LoadColumn(0)]
+            public float SepalLength { get; set; }
+
+            [LoadColumn(1)]
+            public float SepalWidth { get; set; }
+        }
+
+        [Fact]
+        public void TestTextLoaderNoFields()
+        {
+            var dataPath = GetDataPath(TestDatasets.irisData.trainFilename);
+            var mlContext = new MLContext();
+
+            // Class with get property only.
+            var dataIris = mlContext.Data.CreateTextLoader<IrisPublicGetProperties>(separatorChar: ',').Load(dataPath);
+            var oneIrisData = mlContext.Data.CreateEnumerable<IrisPublicProperties>(dataIris, false).First();
+            Assert.True(oneIrisData.SepalLength != 0 && oneIrisData.SepalWidth != 0);
+
+            // Class with no fields.
+            try
+            {
+                dataIris = mlContext.Data.CreateTextLoader<IrisNoFields>(separatorChar: ',').Load(dataPath);
+                Assert.False(true);
+            }
+            catch (Exception ex)
+            {
+                Assert.True(ex.Message == "Should define at least one public, readable field or property in TInput or provide a dataSample.\r\nParameter name: TInput");
+            }
+
+            // Class with no public readable fields.
+            try
+            {
+                dataIris = mlContext.Data.CreateTextLoader<IrisPrivateFields>(separatorChar: ',').Load(dataPath);
+                Assert.False(true);
+            }
+            catch (Exception ex)
+            {
+                Assert.True(ex.Message == "Should define at least one public, readable field or property in TInput or provide a dataSample.\r\nParameter name: TInput");
             }
         }
     }
