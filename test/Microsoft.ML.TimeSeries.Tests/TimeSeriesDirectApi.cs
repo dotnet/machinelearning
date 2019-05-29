@@ -343,16 +343,16 @@ namespace Microsoft.ML.Tests
 
             List<Data> data = new List<Data>();
 
-            var ml = new MLContext(seed: 1, conc: 1);
-            var dataView = ml.CreateStreamingDataView(data);
+            var ml = new MLContext(seed: 1);
+            var dataView = ml.Data.LoadFromEnumerable<Data>(data);
 
             for (int j = 0; j < NumberOfSeasonsInTraining; j++)
                 for (int i = 0; i < SeasonalitySize; i++)
                     data.Add(new Data(i));
 
             // Create forecasting model.
-            var model = new AdaptiveSingularSpectrumSequenceModeler(ml, data.Count, SeasonalitySize + 1, SeasonalitySize,
-                1, AdaptiveSingularSpectrumSequenceModeler.RankSelectionMethod.Exact, null, SeasonalitySize / 2, false, false);
+            var model = new AdaptiveSingularSpectrumSequenceForecastingModeler(ml, data.Count, SeasonalitySize + 1, SeasonalitySize,
+                1, AdaptiveSingularSpectrumSequenceForecastingModeler.RankSelectionMethod.Exact, null, SeasonalitySize / 2, false, false);
 
             // Train.
             model.Train(dataView, "Value");
