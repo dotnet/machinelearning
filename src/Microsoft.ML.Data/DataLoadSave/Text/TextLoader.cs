@@ -1432,6 +1432,13 @@ namespace Microsoft.ML.Data
         /// Loads data from <paramref name="source"/> into an <see cref="IDataView"/>.
         /// </summary>
         /// <param name="source">The source from which to load data.</param>
+        /// <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        /// [!code-csharp[Load](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/DataOperations/LoadingText.cs)]
+        /// ]]>
+        /// </format>
+        /// </example>
         public IDataView Load(IMultiStreamSource source) => new BoundLoader(this, source);
 
         internal static TextLoader CreateTextLoader<TInput>(IHostEnvironment host,
