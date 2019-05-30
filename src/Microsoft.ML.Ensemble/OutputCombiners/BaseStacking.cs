@@ -22,10 +22,10 @@ namespace Microsoft.ML.Trainers.Ensemble
             [TGUI(Label = "Validation Dataset Proportion")]
             public Single ValidationDatasetProportion = 0.3f;
 
-            internal abstract IComponentFactory<ITrainer<IPredictorProducing<TOutput>>> GetPredictorFactory();
+            internal abstract IComponentFactory<ITrainerEstimator<ISingleFeaturePredictionTransformer<IPredictorProducing<TOutput>>, IPredictorProducing<TOutput>>> GetPredictorFactory();
         }
 
-        private protected readonly IComponentFactory<ITrainer<IPredictorProducing<TOutput>>> BasePredictorType;
+        private protected readonly IComponentFactory<ITrainerEstimator<ISingleFeaturePredictionTransformer<IPredictorProducing<TOutput>>, IPredictorProducing<TOutput>>> BasePredictorType;
         private protected readonly IHost Host;
         private protected IPredictorProducing<TOutput> Meta;
 
@@ -140,54 +140,75 @@ namespace Microsoft.ML.Trainers.Ensemble
                     maps[i] = m.GetMapper<VBuffer<Single>, TOutput>();
                 }
 
-                // REVIEW: Should implement this better....
-                var labels = new Single[100];
-                var features = new VBuffer<Single>[100];
-                int count = 0;
-                // REVIEW: Should this include bad values or filter them?
-                using (var cursor = new FloatLabelCursor(data, CursOpt.AllFeatures | CursOpt.AllLabels))
-                {
-                    TOutput[] predictions = new TOutput[maps.Length];
-                    var vBuffers = new VBuffer<Single>[maps.Length];
-                    while (cursor.MoveNext())
-                    {
-                        Parallel.For(0, maps.Length, i =>
-                        {
-                            var model = models[i];
-                            if (model.SelectedFeatures != null)
-                            {
-                                EnsembleUtils.SelectFeatures(in cursor.Features, model.SelectedFeatures, model.Cardinality, ref vBuffers[i]);
-                                maps[i](in vBuffers[i], ref predictions[i]);
-                            }
-                            else
-                                maps[i](in cursor.Features, ref predictions[i]);
-                        });
-
-                        Utils.EnsureSize(ref labels, count + 1);
-                        Utils.EnsureSize(ref features, count + 1);
-                        labels[count] = cursor.Label;
-                        FillFeatureBuffer(predictions, ref features[count]);
-                        count++;
-                    }
-                }
-
-                ch.Info("The number of instances used for stacking trainer is {0}", count);
-
-                var bldr = new ArrayDataViewBuilder(host);
-                Array.Resize(ref labels, count);
-                Array.Resize(ref features, count);
-                bldr.AddColumn(DefaultColumnNames.Label, NumberDataViewType.Single, labels);
-                bldr.AddColumn(DefaultColumnNames.Features, NumberDataViewType.Single, features);
-
-                var view = bldr.GetDataView();
-                var rmd = new RoleMappedData(view, DefaultColumnNames.Label, DefaultColumnNames.Features);
-
+                var view = CreateDataView(host, ch, data, maps, models);
                 var trainer = BasePredictorType.CreateComponent(host);
                 if (trainer.Info.NeedNormalization)
                     ch.Warning("The trainer specified for stacking wants normalization, but we do not currently allow this.");
-                Meta = trainer.Train(rmd);
+                Meta = trainer.Fit(view).Model;
                 CheckMeta();
             }
+        }
+
+        private IDataView CreateDataView(IHostEnvironment env, IChannel ch, RoleMappedData data, ValueMapper<VBuffer<Single>,
+            TOutput>[] maps, List<FeatureSubsetModel<TOutput>> models)
+        {
+            switch (data.Schema.Label.Value.Type.GetRawKind())
+            {
+            case InternalDataKind.BL:
+                return CreateDataView<bool>(env, ch, data, maps, models, x => x > 0);
+            case InternalDataKind.R4:
+                return CreateDataView<float>(env, ch, data, maps, models, x => x);
+            case InternalDataKind.U4:
+                ch.Check(data.Schema.Label.Value.Type is KeyDataViewType);
+                return CreateDataView(env, ch, data, maps, models, x => float.IsNaN(x) ? 0 : (uint)(x + 1));
+            default:
+                throw ch.Except("Unsupported label type");
+            }
+        }
+
+        private IDataView CreateDataView<T>(IHostEnvironment env, IChannel ch, RoleMappedData data, ValueMapper<VBuffer<Single>, TOutput>[] maps,
+            List<FeatureSubsetModel<TOutput>> models, Func<float, T> labelConvert)
+        {
+            // REVIEW: Should implement this better....
+            var labels = new T[100];
+            var features = new VBuffer<Single>[100];
+            int count = 0;
+            // REVIEW: Should this include bad values or filter them?
+            using (var cursor = new FloatLabelCursor(data, CursOpt.AllFeatures | CursOpt.AllLabels))
+            {
+                TOutput[] predictions = new TOutput[maps.Length];
+                var vBuffers = new VBuffer<Single>[maps.Length];
+                while (cursor.MoveNext())
+                {
+                    Parallel.For(0, maps.Length, i =>
+                    {
+                        var model = models[i];
+                        if (model.SelectedFeatures != null)
+                        {
+                            EnsembleUtils.SelectFeatures(in cursor.Features, model.SelectedFeatures, model.Cardinality, ref vBuffers[i]);
+                            maps[i](in vBuffers[i], ref predictions[i]);
+                        }
+                        else
+                            maps[i](in cursor.Features, ref predictions[i]);
+                    });
+
+                    Utils.EnsureSize(ref labels, count + 1);
+                    Utils.EnsureSize(ref features, count + 1);
+                    labels[count] = labelConvert(cursor.Label);
+                    FillFeatureBuffer(predictions, ref features[count]);
+                    count++;
+                }
+            }
+
+            ch.Info("The number of instances used for stacking trainer is {0}", count);
+
+            var bldr = new ArrayDataViewBuilder(env);
+            Array.Resize(ref labels, count);
+            Array.Resize(ref features, count);
+            bldr.AddColumn(DefaultColumnNames.Label, data.Schema.Label.Value.Type as PrimitiveDataViewType, labels);
+            bldr.AddColumn(DefaultColumnNames.Features, NumberDataViewType.Single, features);
+
+            return bldr.GetDataView();
         }
     }
 }
