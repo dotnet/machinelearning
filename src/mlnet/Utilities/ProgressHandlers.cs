@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using Microsoft.ML.AutoML;
 using Microsoft.ML.CLI.ShellProgressBar;
+using Microsoft.ML.CLI.Telemetry.Events;
 using Microsoft.ML.Data;
 using NLog;
 
@@ -47,6 +48,7 @@ namespace Microsoft.ML.CLI.Utilities
                         return;
 
                     iterationIndex++;
+                    ExperimentIterationCompletedEvent.TrackEvent(iterationIndex, iterationResult, GetScore(iterationResult));
                     completedIterations.Add(iterationResult);
                     UpdateBestResult(iterationResult);
                     if (progressBar != null)
@@ -103,6 +105,7 @@ namespace Microsoft.ML.CLI.Utilities
                     if (this.isStopped)
                         return;
                     iterationIndex++;
+                    ExperimentIterationCompletedEvent.TrackEvent(iterationIndex, iterationResult, GetScore(iterationResult));
                     completedIterations.Add(iterationResult);
                     UpdateBestResult(iterationResult);
                     if (progressBar != null)
@@ -173,6 +176,7 @@ namespace Microsoft.ML.CLI.Utilities
                     }
 
                     iterationIndex++;
+                    ExperimentIterationCompletedEvent.TrackEvent(iterationIndex, iterationResult, GetScore(iterationResult));
                     completedIterations.Add(iterationResult);
                     UpdateBestResult(iterationResult);
                     if (progressBar != null)

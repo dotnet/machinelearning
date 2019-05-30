@@ -3,9 +3,9 @@
 
 using System;
 using System.Collections.Generic;
-using Microsoft.DotNet.AutoML;
 using System.IO;
 using Microsoft.DotNet.Configurer;
+using Microsoft.ML.CLI.Telemetry;
 using RuntimeEnvironment = Microsoft.DotNet.PlatformAbstractions.RuntimeEnvironment;
 using RuntimeInformation = System.Runtime.InteropServices.RuntimeInformation;
 

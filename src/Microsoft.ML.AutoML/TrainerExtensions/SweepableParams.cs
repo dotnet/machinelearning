@@ -61,6 +61,11 @@ namespace Microsoft.ML.AutoML
             };
         }
 
+        /// <summary>
+        /// The names of every hyperparameter swept across all trainers.
+        /// </summary>
+        public static ISet<string> AllHyperparameterNames = GetAllSweepableParameterNames();
+
         public static IEnumerable<SweepableParam> BuildAveragePerceptronParams()
         {
             return BuildAveragedLinearArgsParams().Concat(BuildOnlineLinearArgsParams());
@@ -171,6 +176,30 @@ namespace Microsoft.ML.AutoML
                 new SweepableDiscreteParam("L2Regularization", new object[] { 0.0f, 1e-5f, 1e-5f, 1e-6f, 1e-7f }),
                 new SweepableDiscreteParam("UpdateFrequency", new object[] { "<Auto>", 5, 20 })
             };
+        }
+
+        /// <summary>
+        /// Gets the name of every hyperparameter swept across all trainers.
+        /// </summary>
+        public static ISet<string> GetAllSweepableParameterNames()
+        {
+            var sweepableParams = new List<SweepableParam>();
+            sweepableParams.AddRange(BuildAveragePerceptronParams());
+            sweepableParams.AddRange(BuildAveragePerceptronParams());
+            sweepableParams.AddRange(BuildFastForestParams());
+            sweepableParams.AddRange(BuildFastTreeParams());
+            sweepableParams.AddRange(BuildFastTreeTweedieParams());
+            sweepableParams.AddRange(BuildLightGbmParamsMulticlass());
+            sweepableParams.AddRange(BuildLightGbmParams());
+            sweepableParams.AddRange(BuildLinearSvmParams());
+            sweepableParams.AddRange(BuildLbfgsLogisticRegressionParams());
+            sweepableParams.AddRange(BuildOnlineGradientDescentParams());
+            sweepableParams.AddRange(BuildLbfgsPoissonRegressionParams());
+            sweepableParams.AddRange(BuildSdcaParams());
+            sweepableParams.AddRange(BuildOlsParams());
+            sweepableParams.AddRange(BuildSgdParams());
+            sweepableParams.AddRange(BuildSymSgdLogisticRegressionParams());
+            return new HashSet<string>(sweepableParams.Select(p => p.Name));
         }
     }
 }
