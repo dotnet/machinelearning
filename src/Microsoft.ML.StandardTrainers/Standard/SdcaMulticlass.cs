@@ -59,22 +59,12 @@ namespace Microsoft.ML.Trainers
     /// In other cases, the output score vector is just $[\hat{y}^1, \dots, \hat{y}^m]$.
     ///
     /// ### Training Algorithm Details
-    /// The optimization algorithm is an extension of (http://jmlr.org/papers/volume14/shalev-shwartz13a/shalev-shwartz13a.pdf) following a similar path proposed in an earlier [paper](https://www.csie.ntu.edu.tw/~cjlin/papers/maxent_dual.pdf).
-    /// It is usually much faster than [L-BFGS](https://en.wikipedia.org/wiki/Limited-memory_BFGS) and [truncated Newton methods](https://en.wikipedia.org/wiki/Truncated_Newton_method) for large-scale and sparse data set.
+    /// The optimization algorithm is an extension of [a coordinate descent method](http://jmlr.org/papers/volume14/shalev-shwartz13a/shalev-shwartz13a.pdf)
+    /// following a similar path proposed in an earlier [paper](https://www.csie.ntu.edu.tw/~cjlin/papers/maxent_dual.pdf).
+    /// It is usually much faster than [L-BFGS](https://en.wikipedia.org/wiki/Limited-memory_BFGS) and
+    /// [truncated Newton methods](https://en.wikipedia.org/wiki/Truncated_Newton_method) for large-scale and sparse data sets.
     ///
-    /// Regularization is a method that can render an ill-posed problem more tractable by imposing constraints that provide information to supplement the data and that prevents overfitting by penalizing model's magnitude usually measured by some norm functions.
-    /// This can improve the generalization of the model learned by selecting the optimal complexity in the bias-variance tradeoff.
-    /// Regularization works by adding the penalty on the magnitude of $\textbf{w}_c$, $c=1,\dots,m$ to the error of the hypothesis.
-    /// An accurate model with extreme coefficient values would be penalized more, but a less accurate model with more conservative values would be penalized less.
-    ///
-    /// This trainer supports [elastic net regularization](https://en.wikipedia.org/wiki/Elastic_net_regularization): a linear combination of L1-norm (LASSO), $|| \textbf{w}_c ||_1$, and L2-norm (ridge), $|| \textbf{w}_c ||_2^2$ regularizations.
-    /// L1-norm and L2-norm regularizations have different effects and uses that are complementary in certain respects.
-    /// Using L1-norm can increase sparsity of the trained $\textbf{w}_c$.
-    /// When working with high-dimensional data, it shrinks small weights of irrelevant features to 0 and therefore no resource will be spent on those bad features when making prediction.
-    /// L2-norm regularization is preferable for data that is not sparse and it largely penalizes the existence of large weights.
-    ///
-    /// An aggressive regularization (that is, assigning large coefficients to L1-norm or L2-norm regularization terms) can harm predictive capacity by excluding important variables out of the model.
-    /// Therefore, choosing the right regularization coefficients is important in practice.
+    /// [!include[regularization](~/../docs/samples/docs/api-reference/regularization-l1-l2.md)]
     ///
     /// Check the See Also section for links to usage examples.
     /// ]]>

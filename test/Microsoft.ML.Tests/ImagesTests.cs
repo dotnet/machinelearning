@@ -185,6 +185,89 @@ namespace Microsoft.ML.Tests
         }
 
         [Fact]
+        public void TestGrayScaleInMemory()
+        {
+            // Create an image list.
+            var images = new List<ImageDataPoint>(){ new ImageDataPoint(10, 10, Color.Blue), new ImageDataPoint(10, 10, Color.Red) };
+
+            // Convert the list of data points to an IDataView object, which is consumable by ML.NET API.
+            var data = ML.Data.LoadFromEnumerable(images);
+
+            // Convert image to gray scale.
+            var pipeline = ML.Transforms.ConvertToGrayscale("GrayImage", "Image");
+
+            // Fit the model.
+            var model = pipeline.Fit(data);
+
+            // Test path: image files -> IDataView -> Enumerable of Bitmaps.
+            var transformedData = model.Transform(data);
+
+            // Load images in DataView back to Enumerable.
+            var transformedDataPoints = ML.Data.CreateEnumerable<ImageDataPoint>(transformedData, false);
+
+            foreach (var dataPoint in transformedDataPoints)
+            {
+                var image = dataPoint.Image;
+                var grayImage = dataPoint.GrayImage;
+
+                Assert.NotNull(grayImage);
+
+                Assert.Equal(image.Width, grayImage.Width);
+                Assert.Equal(image.Height, grayImage.Height);
+
+                for (int x = 0; x < grayImage.Width; ++x)
+                {
+                    for (int y = 0; y < grayImage.Height; ++y)
+                    {
+                        var pixel = grayImage.GetPixel(x, y);
+                        // greyscale image has same values for R, G and B.
+                        Assert.True(pixel.R == pixel.G && pixel.G == pixel.B);
+                    }
+                }
+            }
+
+            var engine = ML.Model.CreatePredictionEngine<ImageDataPoint, ImageDataPoint>(model);
+            var singleImage = new ImageDataPoint(17, 36, Color.Pink);
+            var transformedSingleImage = engine.Predict(singleImage);
+
+            Assert.Equal(singleImage.Image.Height, transformedSingleImage.GrayImage.Height);
+            Assert.Equal(singleImage.Image.Width, transformedSingleImage.GrayImage.Width);
+
+            for (int x = 0; x < transformedSingleImage.GrayImage.Width; ++x)
+            {
+                for (int y = 0; y < transformedSingleImage.GrayImage.Height; ++y)
+                {
+                    var pixel = transformedSingleImage.GrayImage.GetPixel(x, y);
+                    // greyscale image has same values for R, G and B.
+                    Assert.True(pixel.R == pixel.G && pixel.G == pixel.B);
+                }
+            }
+        }
+
+        private class ImageDataPoint
+        {
+            [ImageType(10, 10)]
+            public Bitmap Image { get; set; }
+
+            [ImageType(10, 10)]
+            public Bitmap GrayImage { get; set; }
+
+            public ImageDataPoint()
+            {
+                Image = null;
+                GrayImage = null;
+            }
+
+            public ImageDataPoint(int width, int height, Color color)
+            {
+                Image = new Bitmap(width, height);
+                for (int i = 0; i < width; ++i)
+                    for (int j = 0; j < height; ++j)
+                        Image.SetPixel(i, j, color);
+            }
+        }
+
+        [Fact]
         public void TestBackAndForthConversionWithAlphaInterleave()
         {
             IHostEnvironment env = new MLContext();

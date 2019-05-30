@@ -38,6 +38,7 @@ namespace Microsoft.ML
         /// <![CDATA[
         ///  [!code-csharp[CustomMapping](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/CustomMapping.cs)]
         ///  [!code-csharp[CustomMapping](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/CustomMappingSaveAndLoad.cs)]
+        ///  [!code-csharp[CustomMapping](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/CustomMappingWithInMemoryCustomType.cs)]
         /// ]]></format>
         /// </example>
         public static CustomMappingEstimator<TSrc, TDst> CustomMapping<TSrc, TDst>(this TransformsCatalog catalog, Action<TSrc, TDst> mapAction, string contractName,

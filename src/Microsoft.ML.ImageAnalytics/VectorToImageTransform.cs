@@ -15,7 +15,7 @@ using Microsoft.ML.Runtime;
 using Microsoft.ML.Transforms.Image;
 
 [assembly: LoadableClass(VectorToImageConvertingTransformer.Summary, typeof(IDataTransform), typeof(VectorToImageConvertingTransformer), typeof(VectorToImageConvertingTransformer.Options), typeof(SignatureDataTransform),
-    ImagePixelExtractingTransformer.UserName, "VectorToImageTransform", "VectorToImage")]
+    VectorToImageConvertingTransformer.UserName, "VectorToImageTransform", "VectorToImage")]
 
 [assembly: LoadableClass(VectorToImageConvertingTransformer.Summary, typeof(IDataTransform), typeof(VectorToImageConvertingTransformer), null, typeof(SignatureLoadDataTransform),
     VectorToImageConvertingTransformer.UserName, VectorToImageConvertingTransformer.LoaderSignature)]
