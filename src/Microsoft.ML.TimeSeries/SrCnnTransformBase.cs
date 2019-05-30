@@ -292,7 +292,6 @@ namespace Microsoft.ML.Transforms.TimeSeries
             private protected sealed override void TransformCore(ref TInput input, FixedSizeQueue<TInput> windowedBuffer, long iteration, ref VBuffer<double> dst)
             {
                 var outputLength = Parent.OutputLength;
-                Host.Assert(outputLength >= 2);
 
                 var result = VBufferEditor.Create(ref dst, outputLength);
                 result.Values.Fill(Double.NaN);

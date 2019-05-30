@@ -174,7 +174,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
                 private protected override sealed void SpectralResidual(Single input, FixedSizeQueue<Single> data, ref VBufferEditor<double> result)
                 {
                     // Step 1: Get backadd wave
-                    List<Single> backAddList = BackAdd(input, data);
+                    List<Single> backAddList = BackAdd(data);
 
                     // Step 2: FFT transformation
                     int length = backAddList.Count;
@@ -241,14 +241,14 @@ namespace Microsoft.ML.Transforms.TimeSeries
                     result.Values[2] = mag;
                 }
 
-                private List<Single> BackAdd(Single input, FixedSizeQueue<Single> data)
+                private List<Single> BackAdd(FixedSizeQueue<Single> data)
                 {
                     List<Single> predictArray = new List<Single>();
                     for (int i = data.Count - Parent.LookaheadWindowSize - 2; i < data.Count - 1; ++i)
                     {
                         predictArray.Add(data[i]);
                     }
-                    var predictedValue = PredictNext(input, predictArray);
+                    var predictedValue = PredictNext(predictArray);
                     List<Single> backAddArray = new List<Single>();
                     for (int i = 0; i < data.Count; ++i)
                     {
@@ -258,15 +258,15 @@ namespace Microsoft.ML.Transforms.TimeSeries
                     return backAddArray;
                 }
 
-                private Single PredictNext(Single input, List<Single> data)
+                private Single PredictNext(List<Single> data)
                 {
                     var n = data.Count;
                     Single slopeSum = 0.0f;
                     for (int i = 0; i < n - 1; ++i)
                     {
-                        slopeSum += (input - data[i]) / (n - 1 - i);
+                        slopeSum += (data[n-1] - data[i]) / (n - 1 - i);
                     }
-                    return (input + slopeSum);
+                    return (data[1] + slopeSum);
                 }
 
                 private List<Single> AverageFilter(List<Single> data, int n)
