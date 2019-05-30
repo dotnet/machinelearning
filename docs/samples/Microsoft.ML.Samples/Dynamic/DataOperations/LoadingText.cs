@@ -22,11 +22,9 @@ namespace Samples.Dynamic.DataOperations
                 var fileName = Path.Combine(dataDirectoryName, $"Data_{i}.csv");
                 dataFiles.Add(fileName);
                 using (var fs = File.CreateText(fileName))
-                {
                     // Write random lines without header
                     for (int line = 0; line < 10; line++)
                         fs.WriteLine(random.NextDouble().ToString());
-                }
             }
 
             // Create a TextLoader.
