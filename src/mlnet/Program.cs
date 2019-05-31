@@ -83,6 +83,8 @@ namespace Microsoft.ML.CLI
                      logger.Log(LogLevel.Info, Strings.LookIntoLogFile);
                      logger.Log(LogLevel.Error, Strings.Exiting);
                  }
+
+                 MLNetCommandEndEvent.TrackEvent(stopwatch.Elapsed, ex);
              });
 
             var parser = new CommandLineBuilder()
@@ -93,7 +95,8 @@ namespace Microsoft.ML.CLI
 
             var parseResult = parser.Parse(args);
 
-            if (parseResult.Errors.Count == 0)
+            var commandParseSucceeded = !parseResult.Errors.Any();
+            if (commandParseSucceeded)
             {
                 if (parseResult.RootCommandResult.Children.Count > 0)
                 {
@@ -116,7 +119,7 @@ namespace Microsoft.ML.CLI
             
             parser.InvokeAsync(parseResult).Wait();
             // Send exit telemetry
-            MLNetCommandEndEvent.TrackEvent(exitCode, !parseResult.Errors.Any(), stopwatch.Elapsed, ex);
+            ApplicationExitEvent.TrackEvent(exitCode, commandParseSucceeded, stopwatch.Elapsed, ex);
             // Flush pending telemetry logs
             Telemetry.Telemetry.Flush(TimeSpan.FromSeconds(5));
             Environment.Exit(exitCode);

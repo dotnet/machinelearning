@@ -9,15 +9,17 @@ using System.Diagnostics;
 namespace Microsoft.ML.CLI.Telemetry.Events
 {
     /// <summary>
-    /// Telemetry event for end of the ML.NET command issued.
+    /// Telemetry event for CLI application exit.
     /// </summary>
-    internal class MLNetCommandEndEvent
+    internal class ApplicationExitEvent
     {
-        public static void TrackEvent(TimeSpan duration, Exception ex)
+        public static void TrackEvent(int exitCode, bool commandParseSucceeded, TimeSpan duration, Exception ex)
         {
-            Telemetry.TrackEvent("mlnet-command-end",
+            Telemetry.TrackEvent("application-exit",
                 new Dictionary<string, string>
                 {
+                    { "CommandParseSucceeded", commandParseSucceeded.ToString() },
+                    { "ExitCode", exitCode.ToString() },
                     { "PeakMemory", Process.GetCurrentProcess().PeakWorkingSet64.ToString() },
                 },
                 duration, ex);
