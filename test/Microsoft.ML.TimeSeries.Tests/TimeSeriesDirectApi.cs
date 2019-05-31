@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.IO;
 using Microsoft.ML.Data;
 using Microsoft.ML.TestFramework.Attributes;
+using Microsoft.ML.TimeSeries;
 using Microsoft.ML.Transforms.TimeSeries;
 using Xunit;
 
@@ -351,11 +352,11 @@ namespace Microsoft.ML.Tests
                     data.Add(new Data(i));
 
             // Create forecasting model.
-            var model = new AdaptiveSingularSpectrumSequenceForecastingModeler(ml, data.Count, SeasonalitySize + 1, SeasonalitySize,
+            var model = new AdaptiveSingularSpectrumSequenceForecastingModeler(ml, "Value", data.Count, SeasonalitySize + 1, SeasonalitySize,
                 1, AdaptiveSingularSpectrumSequenceForecastingModeler.RankSelectionMethod.Exact, null, SeasonalitySize / 2, false, false);
 
             // Train.
-            model.Train(dataView, "Value");
+            model.Train(dataView);
 
             // Forecast.
             var forecast = model.Forecast(5);
@@ -364,10 +365,10 @@ namespace Microsoft.ML.Tests
             model.Update(dataView, "Value");
 
             // Checkpoint.
-            model.Checkpoint(ml, "model.zip");
+            ml.Model.SaveForecastingModel(model, "model.zip");
 
             // Load the checkpointed model from disk.
-            var modelCopy = model.LoadFrom(ml, "model.zip");
+            var modelCopy = ml.Model.LoadForecastingModel<float>("model.zip");
 
             // Forecast with the checkpointed model loaded from disk.
             var forecastCopy = modelCopy.Forecast(5);

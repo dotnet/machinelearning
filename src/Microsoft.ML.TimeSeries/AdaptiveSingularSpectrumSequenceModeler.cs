@@ -5,7 +5,6 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Numerics;
 using Microsoft.ML;
 using Microsoft.ML.Data;
@@ -20,6 +19,11 @@ using Microsoft.ML.Transforms.TimeSeries;
     "SSA Sequence Modeler",
     AdaptiveSingularSpectrumSequenceForecastingModeler.AdaptiveSingularSpectrumSequenceModeler.LoaderSignature)]
 
+[assembly: LoadableClass(typeof(AdaptiveSingularSpectrumSequenceForecastingModeler),
+    typeof(AdaptiveSingularSpectrumSequenceForecastingModeler), null, typeof(SignatureLoadModel),
+    "SSA Sequence Modeler Wrapper",
+    AdaptiveSingularSpectrumSequenceForecastingModeler.LoaderSignature)]
+
 namespace Microsoft.ML.Transforms.TimeSeries
 {
     /// <summary>
@@ -28,6 +32,9 @@ namespace Microsoft.ML.Transforms.TimeSeries
     /// </summary>
     public sealed class AdaptiveSingularSpectrumSequenceForecastingModeler : ICanForecast<float>
     {
+        /// <summary>
+        /// Ranking selection method.
+        /// </summary>
         public enum RankSelectionMethod
         {
             Fixed,
@@ -35,6 +42,9 @@ namespace Microsoft.ML.Transforms.TimeSeries
             Fast
         }
 
+        /// <summary>
+        /// Growth ratio.
+        /// </summary>
         public struct GrowthRatio
         {
             private int _timeSpan;
@@ -80,19 +90,49 @@ namespace Microsoft.ML.Transforms.TimeSeries
 
         private AdaptiveSingularSpectrumSequenceModeler _modeler;
 
-        public AdaptiveSingularSpectrumSequenceForecastingModeler(IHostEnvironment env, int trainSize, int seriesLength, int windowSize, Single discountFactor = 1,
+        private readonly string _inputColumnName;
+
+        internal const string LoaderSignature = "ForecastModel";
+
+        private readonly IHost _host;
+
+        private static VersionInfo GetVersionInfo()
+        {
+            return new VersionInfo(
+                modelSignature: "SSAMODLW",
+                verWrittenCur: 0x00010001, // Initial
+                verReadableCur: 0x00010001,
+                verWeCanReadBack: 0x00010001,
+                loaderSignature: LoaderSignature,
+                loaderAssemblyName: typeof(AdaptiveSingularSpectrumSequenceForecastingModeler).Assembly.FullName);
+        }
+
+        public AdaptiveSingularSpectrumSequenceForecastingModeler(IHostEnvironment env, string inputColumnName, int trainSize, int seriesLength, int windowSize, Single discountFactor = 1,
             RankSelectionMethod rankSelectionMethod = RankSelectionMethod.Exact, int? rank = null, int? maxRank = null,
             bool shouldComputeForecastIntervals = true, bool shouldstablize = true, bool shouldMaintainInfo = false, GrowthRatio? maxGrowth = null)
         {
+            Contracts.CheckValue(env, nameof(env));
+            _host = env.Register(LoaderSignature);
+            _host.CheckParam(!string.IsNullOrEmpty(inputColumnName), nameof(inputColumnName));
+
+            _inputColumnName = inputColumnName;
             _modeler = new AdaptiveSingularSpectrumSequenceModeler(env, trainSize, seriesLength, windowSize, discountFactor,
                 rankSelectionMethod, rank, maxRank, shouldComputeForecastIntervals, shouldstablize, shouldMaintainInfo, maxGrowth);
+        }
+
+        internal AdaptiveSingularSpectrumSequenceForecastingModeler(IHostEnvironment env, ModelLoadContext ctx)
+        {
+            Contracts.CheckValue(env, nameof(env));
+            _host = env.Register(LoaderSignature);
+            _inputColumnName = ctx.Reader.ReadString();
+            ctx.LoadModel<AdaptiveSingularSpectrumSequenceModeler, SignatureLoadModel>(_host, out _modeler, "ForecastWrapper");
         }
 
         /// <summary>
         /// This class implements basic Singular Spectrum Analysis (SSA) model for modeling univariate time-series.
         /// For the details of the model, refer to http://arxiv.org/pdf/1206.6910.pdf.
         /// </summary>
-        internal sealed class AdaptiveSingularSpectrumSequenceModeler : SequenceModelerBase<Single, Single>, ICanForecast<float>
+        internal sealed class AdaptiveSingularSpectrumSequenceModeler : SequenceModelerBase<Single, Single>
         {
             internal const string LoaderSignature = "SSAModel";
 
@@ -1569,11 +1609,13 @@ namespace Microsoft.ML.Transforms.TimeSeries
 
             public void Train(IDataView dataView, string inputColumnName) => Train(new RoleMappedData(dataView, null, inputColumnName));
 
-            public float[] Forecast(int horizon)
+            public IEnumerable<float> Forecast(int horizon)
             {
                 ForecastResultBase<float> result = null;
                 Forecast(ref result, horizon);
-                return result.PointForecast.GetValues().ToArray();
+                var values = result.PointForecast.GetValues().ToArray();
+                foreach(var value in values)
+                    yield return value;
             }
 
             public void Update(IDataView dataView, string inputColumnName)
@@ -1598,68 +1640,38 @@ namespace Microsoft.ML.Transforms.TimeSeries
                     }
                 }
             }
-
-            public void Checkpoint(IHostEnvironment env, string filePath)
-            {
-                using (var file = File.Create(filePath))
-                {
-                    using (var ch = env.Start("Saving SSA forecasting model."))
-                    {
-                        using (var rep = RepositoryWriter.CreateNew(file, ch))
-                        {
-                            ModelSaveContext.SaveModel(rep, this, LoaderSignature);
-                            rep.Commit();
-                        }
-                    }
-                }
-            }
-
-            public ICanForecast<float> LoadFrom(IHostEnvironment env, string filePath)
-            {
-                using (var file = File.OpenRead(filePath))
-                {
-                    using (var rep = RepositoryReader.Open(file, env))
-                    {
-                        ModelLoadContext.LoadModel<AdaptiveSingularSpectrumSequenceModeler, SignatureLoadModel>(env, out var model, rep, LoaderSignature);
-                        return model;
-                    }
-                }
-            }
         }
 
         /// <summary>
         /// Train a forecasting model from an <see cref="IDataView"/>.
         /// </summary>
         /// <param name="dataView">Reference to the <see cref="IDataView"/></param>
-        /// <param name="inputColumnName">Name of the input column to train the forecasing model.</param>
-        public void Train(IDataView dataView, string inputColumnName) => _modeler.Train(dataView, inputColumnName);
+        public void Train(IDataView dataView) => _modeler.Train(dataView, _inputColumnName);
 
         /// <summary>
         /// Update a forecasting model with the new observations in the form of an <see cref="IDataView"/>.
         /// </summary>
         /// <param name="dataView">Reference to the observations as an <see cref="IDataView"/></param>
         /// <param name="inputColumnName">Name of the input column to update from.</param>
-        public void Update(IDataView dataView, string inputColumnName) => _modeler.Update(dataView, inputColumnName);
+        public void Update(IDataView dataView, string inputColumnName = null) => _modeler.Update(dataView, inputColumnName ?? _inputColumnName);
 
         /// <summary>
         /// Perform forecasting until a particular <paramref name="horizon"/>.
         /// </summary>
         /// <param name="horizon">Number of values to forecast.</param>
         /// <returns>Forecasted values.</returns>
-        public float[] Forecast(int horizon) => _modeler.Forecast(horizon);
+        public IEnumerable<float> Forecast(int horizon) => _modeler.Forecast(horizon);
 
         /// <summary>
-        /// Serialize the forecasting model to disk to preserve the state of forecasting model.
+        /// For saving a model into a repository.
         /// </summary>
-        /// <param name="env">Reference to <see cref="IHostEnvironment"/>, typically <see cref="MLContext"/></param>
-        /// <param name="filePath">Name of the filepath to serialize the model to.</param>
-        public void Checkpoint(IHostEnvironment env, string filePath) => _modeler.Checkpoint(env, filePath);
-
-        /// <summary>
-        /// Deserialize the forecasting model from disk.
-        /// </summary>
-        /// <param name="env">Reference to <see cref="IHostEnvironment"/>, typically <see cref="MLContext"/></param>
-        /// <param name="filePath">Name of the filepath to deserialize the model from.</param>
-        public ICanForecast<float> LoadFrom(IHostEnvironment env, string filePath) => _modeler.LoadFrom(env, filePath);
+        public void Save(ModelSaveContext ctx)
+        {
+            _host.CheckValue(ctx, nameof(ctx));
+            ctx.CheckAtModel();
+            ctx.SetVersionInfo(GetVersionInfo());
+            ctx.Writer.Write(_inputColumnName);
+            ctx.SaveModel(_modeler, "ForecastWrapper");
+        }
     }
 }

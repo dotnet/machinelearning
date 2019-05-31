@@ -2,7 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.Runtime;
+using System.Collections.Generic;
+using System.IO;
+using Microsoft.ML.Data;
+using static Microsoft.ML.Transforms.TimeSeries.AdaptiveSingularSpectrumSequenceForecastingModeler;
 
 namespace Microsoft.ML.TimeSeries
 {
@@ -10,41 +13,72 @@ namespace Microsoft.ML.TimeSeries
     /// Interface for forecasting models.
     /// </summary>
     /// <typeparam name="T">The type of values that are forecasted.</typeparam>
-    public interface ICanForecast<out T>
+    public interface ICanForecast<out T> : ICanSaveModel
     {
         /// <summary>
         /// Train a forecasting model from an <see cref="IDataView"/>.
         /// </summary>
         /// <param name="dataView">Reference to the <see cref="IDataView"/></param>
-        /// <param name="inputColumnName">Name of the input column to train the forecasing model.</param>
-        void Train(IDataView dataView, string inputColumnName);
+        void Train(IDataView dataView);
 
         /// <summary>
         /// Update a forecasting model with the new observations in the form of an <see cref="IDataView"/>.
         /// </summary>
         /// <param name="dataView">Reference to the observations as an <see cref="IDataView"/></param>
         /// <param name="inputColumnName">Name of the input column to update from.</param>
-        void Update(IDataView dataView, string inputColumnName);
+        void Update(IDataView dataView, string inputColumnName = null);
 
         /// <summary>
         /// Perform forecasting until a particular <paramref name="horizon"/>.
         /// </summary>
         /// <param name="horizon">Number of values to forecast.</param>
+        /// <returns>Forecasted values.</returns>
+        IEnumerable<T> Forecast(int horizon);
+    }
+
+    public static class ForecastExtensions
+    {
+        /// <summary>
+        /// Load a forecasting model.
+        /// </summary>
+        /// <typeparam name="T">The type of <see cref="ICanForecast{T}"/>, usually float. </typeparam>
+        /// <param name="catalog"><see cref="ModelOperationsCatalog"/></param>
+        /// <param name="filePath">File path to save the model to.</param>
         /// <returns></returns>
-        T[] Forecast(int horizon);
+        public static ICanForecast<T> LoadForecastingModel<T>(this ModelOperationsCatalog catalog, string filePath)
+        {
+            var env = CatalogUtils.GetEnvironment(catalog);
+            using (var file = File.OpenRead(filePath))
+            {
+                using (var rep = RepositoryReader.Open(file, env))
+                {
+                    ModelLoadContext.LoadModel<ICanForecast<T>, SignatureLoadModel>(env, out var model, rep, LoaderSignature);
+                    return model;
+                }
+            }
+        }
 
         /// <summary>
-        /// Serialize the forecasting model to disk to preserve the state of forecasting model.
+        /// Save a forecasting model.
         /// </summary>
-        /// <param name="env">Reference to <see cref="IHostEnvironment"/>, typically <see cref="MLContext"/></param>
-        /// <param name="filePath">Name of the filepath to serialize the model to.</param>
-        void Checkpoint(IHostEnvironment env, string filePath);
-
-        /// <summary>
-        /// Deserialize the forecasting model from disk.
-        /// </summary>
-        /// <param name="env">Reference to <see cref="IHostEnvironment"/>, typically <see cref="MLContext"/></param>
-        /// <param name="filePath">Name of the filepath to deserialize the model from.</param>
-        ICanForecast<T> LoadFrom(IHostEnvironment env, string filePath);
+        /// <typeparam name="T"></typeparam>
+        /// <param name="catalog"><see cref="ModelOperationsCatalog"/></param>
+        /// <param name="model">Model to save.</param>
+        /// <param name="filePath">File path to load the model from.</param>
+        public static void SaveForecastingModel<T>(this ModelOperationsCatalog catalog, ICanForecast<T> model, string filePath)
+        {
+            var env = CatalogUtils.GetEnvironment(catalog);
+            using (var file = File.Create(filePath))
+            {
+                using (var ch = env.Start("Saving forecasting model."))
+                {
+                    using (var rep = RepositoryWriter.CreateNew(file, ch))
+                    {
+                        ModelSaveContext.SaveModel(rep, model, LoaderSignature);
+                        rep.Commit();
+                    }
+                }
+            }
+        }
     }
 }
