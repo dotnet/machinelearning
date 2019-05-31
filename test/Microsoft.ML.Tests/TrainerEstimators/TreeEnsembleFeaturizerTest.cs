@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using Microsoft.ML.Data;
 using Microsoft.ML.Trainers.FastTree;
@@ -107,6 +108,101 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                 Assert.Equal("Tree009Node003", pathIdsSlotNames.GetItemOrDefault(39).ToString());
             }
 
+        }
+
+        [Fact]
+        public void TreeEnsembleFeaturizerTransformerFastTreeBinary()
+        {
+            // Create data set
+            int dataPointCount = 20;
+            var data = SamplesUtils.DatasetUtils.GenerateBinaryLabelFloatFeatureVectorFloatWeightSamples(dataPointCount).ToList();
+            var dataView = ML.Data.LoadFromEnumerable(data);
+
+            // Define a tree model whose trees will be extracted to construct a tree featurizer.
+            var trainer = ML.BinaryClassification.Trainers.FastTree(
+                new FastTreeBinaryTrainer.Options
+                {
+                    NumberOfThreads = 1,
+                    NumberOfTrees = 1,
+                    NumberOfLeaves = 4,
+                    MinimumExampleCountPerLeaf = 1
+                });
+
+            // Train the defined tree model.
+            var model = trainer.Fit(dataView);
+            var predicted = model.Transform(dataView);
+
+            // From the trained tree model, a mapper of tree featurizer is created.
+            var treeFeaturizer = new TreeEnsembleFeaturizationTransformer(ML, dataView.Schema, dataView.Schema["Features"], model.Model.SubModel);
+
+            // Apply TreeEnsembleFeaturizer to the input data.
+            var transformed = treeFeaturizer.Transform(dataView);
+
+            // Extract the outputs of TreeEnsembleFeaturizer.
+            var features = transformed.GetColumn<float[]>("Features").ToArray();
+            var leafValues = transformed.GetColumn<float[]>("Trees").ToArray();
+            var leafIds = transformed.GetColumn<float[]>("Leaves").ToArray();
+            var paths = transformed.GetColumn<float[]>("Paths").ToArray();
+
+            // Check if the TreeEnsembleFeaturizer produce expected values.
+            List<int> path = null;
+            for (int dataPointIndex = 0; dataPointIndex < dataPointCount; ++dataPointIndex)
+            {
+                int treeIndex = 0;
+                var leafId = model.Model.SubModel.GetLeaf(treeIndex, new VBuffer<float>(10, features[dataPointIndex]), ref path);
+                var leafValue = model.Model.SubModel.GetLeafValue(0, leafId);
+                Assert.Equal(leafValues[dataPointIndex][treeIndex], leafValue);
+                Assert.Equal(1.0, leafIds[dataPointIndex][leafId]);
+                foreach (var nodeId in path)
+                    Assert.Equal(1.0, paths[dataPointIndex][nodeId]);
+            }
+        }
+
+        [Fact]
+        public void TreeEnsembleFeaturizerTransformerFastForestBinary()
+        {
+            // Create data set
+            int dataPointCount = 20;
+            var data = SamplesUtils.DatasetUtils.GenerateBinaryLabelFloatFeatureVectorFloatWeightSamples(dataPointCount).ToList();
+            var dataView = ML.Data.LoadFromEnumerable(data);
+
+            // Define a tree model whose trees will be extracted to construct a tree featurizer.
+            var trainer = ML.BinaryClassification.Trainers.FastForest(
+                new FastForestBinaryTrainer.Options
+                {
+                    NumberOfThreads = 1,
+                    NumberOfTrees = 1,
+                    NumberOfLeaves = 4,
+                    MinimumExampleCountPerLeaf = 1
+                });
+
+            // Train the defined tree model.
+            var model = trainer.Fit(dataView);
+
+            // From the trained tree model, a mapper of tree featurizer is created.
+            var treeFeaturizer = new TreeEnsembleFeaturizationTransformer(ML, dataView.Schema, dataView.Schema["Features"], model.Model);
+
+            // Apply TreeEnsembleFeaturizer to the input data.
+            var transformed = treeFeaturizer.Transform(dataView);
+
+            // Extract the outputs of TreeEnsembleFeaturizer.
+            var features = transformed.GetColumn<float[]>("Features").ToArray();
+            var leafValues = transformed.GetColumn<float[]>("Trees").ToArray();
+            var leafIds = transformed.GetColumn<float[]>("Leaves").ToArray();
+            var paths = transformed.GetColumn<float[]>("Paths").ToArray();
+
+            // Check if the TreeEnsembleFeaturizer produce expected values.
+            List<int> path = null;
+            for (int dataPointIndex = 0; dataPointIndex < dataPointCount; ++dataPointIndex)
+            {
+                int treeIndex = 0;
+                var leafId = model.Model.GetLeaf(treeIndex, new VBuffer<float>(10, features[dataPointIndex]), ref path);
+                var leafValue = model.Model.GetLeafValue(0, leafId);
+                Assert.Equal(leafValues[dataPointIndex][treeIndex], leafValue);
+                Assert.Equal(1.0, leafIds[dataPointIndex][leafId]);
+                foreach (var nodeId in path)
+                    Assert.Equal(1.0, paths[dataPointIndex][nodeId]);
+            }
         }
     }
 }
