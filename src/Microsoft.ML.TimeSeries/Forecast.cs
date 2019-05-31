@@ -4,7 +4,7 @@
 
 using System.IO;
 using Microsoft.ML.Data;
-using static Microsoft.ML.Transforms.TimeSeries.AdaptiveSingularSpectrumSequenceForecastingModeler;
+using static Microsoft.ML.Transforms.TimeSeries.AdaptiveSingularSpectrumSequenceModeler;
 
 namespace Microsoft.ML.TimeSeries
 {
@@ -36,7 +36,7 @@ namespace Microsoft.ML.TimeSeries
 
         /// <summary>
         /// Perform forecasting until a particular <paramref name="horizon"/> and also computes confidence intervals.
-        /// For confidence intervals to be computed the model must be trained with <see cref="AdaptiveSingularSpectrumSequenceModeler.ShouldComputeForecastIntervals"/>
+        /// For confidence intervals to be computed the model must be trained with <see cref="AdaptiveSingularSpectrumSequenceModelerInternal.ShouldComputeForecastIntervals"/>
         /// set to true.
         /// </summary>
         /// <param name="horizon">Number of values to forecast.</param>

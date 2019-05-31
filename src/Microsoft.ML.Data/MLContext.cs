@@ -47,6 +47,11 @@ namespace Microsoft.ML
         public AnomalyDetectionCatalog AnomalyDetection { get; }
 
         /// <summary>
+        /// Trainers and tasks specific to forecasting problems.
+        /// </summary>
+        public ForecastingCatalog Forecasting { get; }
+
+        /// <summary>
         /// Data processing operations.
         /// </summary>
         public TransformsCatalog Transforms { get; }
@@ -89,6 +94,7 @@ namespace Microsoft.ML
             Clustering = new ClusteringCatalog(_env);
             Ranking = new RankingCatalog(_env);
             AnomalyDetection = new AnomalyDetectionCatalog(_env);
+            Forecasting = new ForecastingCatalog(_env);
             Transforms = new TransformsCatalog(_env);
             Model = new ModelOperationsCatalog(_env);
             Data = new DataOperationsCatalog(_env);

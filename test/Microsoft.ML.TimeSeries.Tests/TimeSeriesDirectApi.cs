@@ -352,8 +352,8 @@ namespace Microsoft.ML.Tests
                     data.Add(new Data(i));
 
             // Create forecasting model.
-            var model = new AdaptiveSingularSpectrumSequenceForecastingModeler(ml, "Value", data.Count, SeasonalitySize + 1, SeasonalitySize,
-                1, AdaptiveSingularSpectrumSequenceForecastingModeler.RankSelectionMethod.Exact, null, SeasonalitySize / 2, false, false);
+            var model = ml.Forecasting.AdaptiveSingularSpectrumSequenceModeler("Value", data.Count, SeasonalitySize + 1, SeasonalitySize,
+                1, AdaptiveSingularSpectrumSequenceModeler.RankSelectionMethod.Exact, null, SeasonalitySize / 2, false, false);
 
             // Train.
             model.Train(dataView);
@@ -397,8 +397,8 @@ namespace Microsoft.ML.Tests
                     data.Add(new Data(i));
 
             // Create forecasting model.
-            var model = new AdaptiveSingularSpectrumSequenceForecastingModeler(ml, "Value", data.Count, SeasonalitySize + 1, SeasonalitySize,
-                1, AdaptiveSingularSpectrumSequenceForecastingModeler.RankSelectionMethod.Exact, null, SeasonalitySize / 2, shouldComputeForecastIntervals: true, false);
+            var model = ml.Forecasting.AdaptiveSingularSpectrumSequenceModeler("Value", data.Count, SeasonalitySize + 1, SeasonalitySize,
+                1, AdaptiveSingularSpectrumSequenceModeler.RankSelectionMethod.Exact, null, SeasonalitySize / 2, shouldComputeForecastIntervals: true, false);
 
             // Train.
             model.Train(dataView);

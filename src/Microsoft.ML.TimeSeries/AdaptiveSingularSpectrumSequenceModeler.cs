@@ -13,16 +13,17 @@ using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.TimeSeries;
 using Microsoft.ML.Transforms.TimeSeries;
+using static Microsoft.ML.Transforms.TimeSeries.AdaptiveSingularSpectrumSequenceModeler;
 
-[assembly: LoadableClass(typeof(AdaptiveSingularSpectrumSequenceForecastingModeler.AdaptiveSingularSpectrumSequenceModeler),
-    typeof(AdaptiveSingularSpectrumSequenceForecastingModeler.AdaptiveSingularSpectrumSequenceModeler), null, typeof(SignatureLoadModel),
+[assembly: LoadableClass(typeof(AdaptiveSingularSpectrumSequenceModeler.AdaptiveSingularSpectrumSequenceModelerInternal),
+    typeof(AdaptiveSingularSpectrumSequenceModeler.AdaptiveSingularSpectrumSequenceModelerInternal), null, typeof(SignatureLoadModel),
     "SSA Sequence Modeler",
-    AdaptiveSingularSpectrumSequenceForecastingModeler.AdaptiveSingularSpectrumSequenceModeler.LoaderSignature)]
+    AdaptiveSingularSpectrumSequenceModeler.AdaptiveSingularSpectrumSequenceModelerInternal.LoaderSignature)]
 
-[assembly: LoadableClass(typeof(AdaptiveSingularSpectrumSequenceForecastingModeler),
-    typeof(AdaptiveSingularSpectrumSequenceForecastingModeler), null, typeof(SignatureLoadModel),
+[assembly: LoadableClass(typeof(AdaptiveSingularSpectrumSequenceModeler),
+    typeof(AdaptiveSingularSpectrumSequenceModeler), null, typeof(SignatureLoadModel),
     "SSA Sequence Modeler Wrapper",
-    AdaptiveSingularSpectrumSequenceForecastingModeler.LoaderSignature)]
+    AdaptiveSingularSpectrumSequenceModeler.LoaderSignature)]
 
 namespace Microsoft.ML.Transforms.TimeSeries
 {
@@ -30,7 +31,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
     /// This class implements basic Singular Spectrum Analysis (SSA) model for modeling univariate time-series.
     /// For the details of the model, refer to http://arxiv.org/pdf/1206.6910.pdf.
     /// </summary>
-    public sealed class AdaptiveSingularSpectrumSequenceForecastingModeler : ICanForecast<float>
+    public sealed class AdaptiveSingularSpectrumSequenceModeler : ICanForecast<float>
     {
         /// <summary>
         /// Ranking selection method.
@@ -88,7 +89,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
             public Double Ratio { get { return Math.Pow(_growth, 1d / _timeSpan); } }
         }
 
-        private AdaptiveSingularSpectrumSequenceModeler _modeler;
+        private AdaptiveSingularSpectrumSequenceModelerInternal _modeler;
 
         private readonly string _inputColumnName;
 
@@ -104,10 +105,10 @@ namespace Microsoft.ML.Transforms.TimeSeries
                 verReadableCur: 0x00010001,
                 verWeCanReadBack: 0x00010001,
                 loaderSignature: LoaderSignature,
-                loaderAssemblyName: typeof(AdaptiveSingularSpectrumSequenceForecastingModeler).Assembly.FullName);
+                loaderAssemblyName: typeof(AdaptiveSingularSpectrumSequenceModeler).Assembly.FullName);
         }
 
-        public AdaptiveSingularSpectrumSequenceForecastingModeler(IHostEnvironment env, string inputColumnName, int trainSize, int seriesLength, int windowSize, Single discountFactor = 1,
+        internal AdaptiveSingularSpectrumSequenceModeler(IHostEnvironment env, string inputColumnName, int trainSize, int seriesLength, int windowSize, Single discountFactor = 1,
             RankSelectionMethod rankSelectionMethod = RankSelectionMethod.Exact, int? rank = null, int? maxRank = null,
             bool shouldComputeForecastIntervals = true, bool shouldstablize = true, bool shouldMaintainInfo = false, GrowthRatio? maxGrowth = null)
         {
@@ -116,23 +117,23 @@ namespace Microsoft.ML.Transforms.TimeSeries
             _host.CheckParam(!string.IsNullOrEmpty(inputColumnName), nameof(inputColumnName));
 
             _inputColumnName = inputColumnName;
-            _modeler = new AdaptiveSingularSpectrumSequenceModeler(env, trainSize, seriesLength, windowSize, discountFactor,
+            _modeler = new AdaptiveSingularSpectrumSequenceModelerInternal(env, trainSize, seriesLength, windowSize, discountFactor,
                 rankSelectionMethod, rank, maxRank, shouldComputeForecastIntervals, shouldstablize, shouldMaintainInfo, maxGrowth);
         }
 
-        internal AdaptiveSingularSpectrumSequenceForecastingModeler(IHostEnvironment env, ModelLoadContext ctx)
+        internal AdaptiveSingularSpectrumSequenceModeler(IHostEnvironment env, ModelLoadContext ctx)
         {
             Contracts.CheckValue(env, nameof(env));
             _host = env.Register(LoaderSignature);
             _inputColumnName = ctx.Reader.ReadString();
-            ctx.LoadModel<AdaptiveSingularSpectrumSequenceModeler, SignatureLoadModel>(_host, out _modeler, "ForecastWrapper");
+            ctx.LoadModel<AdaptiveSingularSpectrumSequenceModelerInternal, SignatureLoadModel>(_host, out _modeler, "ForecastWrapper");
         }
 
         /// <summary>
         /// This class implements basic Singular Spectrum Analysis (SSA) model for modeling univariate time-series.
         /// For the details of the model, refer to http://arxiv.org/pdf/1206.6910.pdf.
         /// </summary>
-        internal sealed class AdaptiveSingularSpectrumSequenceModeler : SequenceModelerBase<Single, Single>
+        internal sealed class AdaptiveSingularSpectrumSequenceModelerInternal : SequenceModelerBase<Single, Single>
         {
             internal const string LoaderSignature = "SSAModel";
 
@@ -284,7 +285,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
                     verReadableCur: 0x00010002,
                     verWeCanReadBack: 0x00010001,
                     loaderSignature: LoaderSignature,
-                    loaderAssemblyName: typeof(AdaptiveSingularSpectrumSequenceModeler).Assembly.FullName);
+                    loaderAssemblyName: typeof(AdaptiveSingularSpectrumSequenceModelerInternal).Assembly.FullName);
             }
 
             private const int VersionSavingStateAndPrediction = 0x00010002;
@@ -305,7 +306,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
             /// <param name="shouldstablize">The flag determining whether the model should be stabilized.</param>
             /// <param name="shouldMaintainInfo">The flag determining whether the meta information for the model needs to be maintained.</param>
             /// <param name="maxGrowth">The maximum growth on the exponential trend</param>
-            public AdaptiveSingularSpectrumSequenceModeler(IHostEnvironment env, int trainSize, int seriesLength, int windowSize, Single discountFactor = 1,
+            public AdaptiveSingularSpectrumSequenceModelerInternal(IHostEnvironment env, int trainSize, int seriesLength, int windowSize, Single discountFactor = 1,
                 RankSelectionMethod rankSelectionMethod = RankSelectionMethod.Exact, int? rank = null, int? maxRank = null,
                 bool shouldComputeForecastIntervals = true, bool shouldstablize = true, bool shouldMaintainInfo = false, GrowthRatio? maxGrowth = null)
                 : base()
@@ -370,7 +371,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
             /// The copy constructor.
             /// </summary>
             /// <param name="model">An object whose contents are copied to the current object.</param>
-            private AdaptiveSingularSpectrumSequenceModeler(AdaptiveSingularSpectrumSequenceModeler model)
+            private AdaptiveSingularSpectrumSequenceModelerInternal(AdaptiveSingularSpectrumSequenceModelerInternal model)
             {
                 _host = model._host.Register(LoaderSignature);
                 _host.Assert(model._windowSize >= 2);
@@ -413,7 +414,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
                 }
             }
 
-            public AdaptiveSingularSpectrumSequenceModeler(IHostEnvironment env, ModelLoadContext ctx)
+            public AdaptiveSingularSpectrumSequenceModelerInternal(IHostEnvironment env, ModelLoadContext ctx)
             {
                 Contracts.CheckValue(env, nameof(env));
                 _host = env.Register(LoaderSignature);
@@ -1567,7 +1568,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
 
             internal override SequenceModelerBase<Single, Single> Clone()
             {
-                return new AdaptiveSingularSpectrumSequenceModeler(this);
+                return new AdaptiveSingularSpectrumSequenceModelerInternal(this);
             }
 
             /// <summary>
@@ -1683,7 +1684,26 @@ namespace Microsoft.ML.Transforms.TimeSeries
             ctx.SaveModel(_modeler, "ForecastWrapper");
         }
 
+        /// <summary>
+        /// Perform forecasting until a particular <paramref name="horizon"/> and also computes confidence intervals.
+        /// For confidence intervals to be computed the model must be trained with <see cref="AdaptiveSingularSpectrumSequenceModelerInternal.ShouldComputeForecastIntervals"/>
+        /// set to true.
+        /// </summary>
+        /// <param name="horizon">Number of values to forecast.</param>
+        /// <param name="forecast">Forecasted values</param>
+        /// <param name="confidenceIntervalLowerBounds">Lower bound confidence intervals of forecasted values.</param>
+        /// <param name="confidenceIntervalUpperBounds">Upper bound confidence intervals of forecasted values.</param>
+        /// <param name="confidenceLevel">Confidence level.</param>
         public void ForecastWithConfidenceIntervals(int horizon, out float[] forecast, out float[] confidenceIntervalLowerBounds, out float[] confidenceIntervalUpperBounds, float confidenceLevel = 0.95f) =>
             _modeler.ForecastWithConfidenceIntervals(horizon, out forecast, out confidenceIntervalLowerBounds, out confidenceIntervalUpperBounds, confidenceLevel);
+    }
+
+    public static class ForecastingCatalogExtension
+    {
+        public static AdaptiveSingularSpectrumSequenceModeler AdaptiveSingularSpectrumSequenceModeler(this ForecastingCatalog catalog,
+            string inputColumnName, int trainSize, int seriesLength, int windowSize, Single discountFactor = 1, RankSelectionMethod rankSelectionMethod = RankSelectionMethod.Exact,
+            int? rank = null, int? maxRank = null, bool shouldComputeForecastIntervals = true, bool shouldstablize = true, bool shouldMaintainInfo = false, GrowthRatio? maxGrowth = null) =>
+            new AdaptiveSingularSpectrumSequenceModeler(CatalogUtils.GetEnvironment(catalog), inputColumnName, trainSize, seriesLength, windowSize, discountFactor,
+            rankSelectionMethod, rank, maxRank, shouldComputeForecastIntervals, shouldstablize, shouldMaintainInfo, maxGrowth);
     }
 }
