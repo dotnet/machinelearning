@@ -17,12 +17,14 @@ namespace Microsoft.ML.CLI.Telemetry.Events
     {
         public static void TrackEvent<TMetrics>(int iterationNum,
             RunDetail<TMetrics> runDetail,
-            double score)
+            double score,
+            TaskKind machineLearningTask)
         {
             Telemetry.TrackEvent("experiment-iteration-completed",
                 new Dictionary<string, string>()
                 {
                     { "IterationNum", iterationNum.ToString() },
+                    { "MachineLearningTask", machineLearningTask.ToString() },
                     { "Metrics", GetMetricsStr(runDetail.ValidationMetrics) },
                     { "PeakMemory", Process.GetCurrentProcess().PeakWorkingSet64.ToString() },
                     { "Pipeline", Telemetry.GetSanitizedPipelineStr(runDetail.Pipeline) },

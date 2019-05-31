@@ -17,6 +17,7 @@ namespace Microsoft.ML.CLI.Telemetry.Events
     {
         public static void TrackEvent<TMetrics>(RunDetail<TMetrics> bestRun,
             List<RunDetail<TMetrics>> allRuns,
+            TaskKind machineLearningTask,
             TimeSpan duration)
         {
             Telemetry.TrackEvent("experiment-completed",
@@ -25,6 +26,8 @@ namespace Microsoft.ML.CLI.Telemetry.Events
                     { "BestIterationNum", (allRuns.IndexOf(bestRun) + 1).ToString() },
                     { "BestPipeline", Telemetry.GetSanitizedPipelineStr(bestRun.Pipeline) },
                     { "BestTrainer", bestRun.TrainerName },
+                    { "BestTrainer", bestRun.TrainerName },
+                    { "MachineLearningTask", machineLearningTask.ToString() },
                     { "NumIterations", allRuns.Count().ToString() },
                     { "PeakMemory", Process.GetCurrentProcess().PeakWorkingSet64.ToString() },
                 },

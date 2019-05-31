@@ -48,7 +48,7 @@ namespace Microsoft.ML.CLI.Utilities
                         return;
 
                     iterationIndex++;
-                    ExperimentIterationCompletedEvent.TrackEvent(iterationIndex, iterationResult, GetScore(iterationResult));
+                    ExperimentIterationCompletedEvent.TrackEvent(iterationIndex, iterationResult, GetScore(iterationResult), TaskKind.Regression);
                     completedIterations.Add(iterationResult);
                     UpdateBestResult(iterationResult);
                     if (progressBar != null)
@@ -105,7 +105,7 @@ namespace Microsoft.ML.CLI.Utilities
                     if (this.isStopped)
                         return;
                     iterationIndex++;
-                    ExperimentIterationCompletedEvent.TrackEvent(iterationIndex, iterationResult, GetScore(iterationResult));
+                    ExperimentIterationCompletedEvent.TrackEvent(iterationIndex, iterationResult, GetScore(iterationResult), TaskKind.BinaryClassification);
                     completedIterations.Add(iterationResult);
                     UpdateBestResult(iterationResult);
                     if (progressBar != null)
@@ -176,7 +176,7 @@ namespace Microsoft.ML.CLI.Utilities
                     }
 
                     iterationIndex++;
-                    ExperimentIterationCompletedEvent.TrackEvent(iterationIndex, iterationResult, GetScore(iterationResult));
+                    ExperimentIterationCompletedEvent.TrackEvent(iterationIndex, iterationResult, GetScore(iterationResult), TaskKind.MulticlassClassification);
                     completedIterations.Add(iterationResult);
                     UpdateBestResult(iterationResult);
                     if (progressBar != null)
