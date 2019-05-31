@@ -74,7 +74,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
         /// </summary>
         internal IDataTransform MakeDataTransform(IDataView input) => InternalTransform.MakeDataTransform(input);
 
-        internal SrCnnAnomalyDetectionBaseCore InternalTransform;
+        internal SrCnnAnomalyDetectionBaseCore InternalTransform { get; }
 
         internal SrCnnAnomalyDetectionBase(SrCnnArgumentBase args, string name, IHostEnvironment env)
         {

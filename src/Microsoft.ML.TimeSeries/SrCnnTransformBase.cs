@@ -62,7 +62,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
 
         internal int JudgementWindowSize { get; }
 
-        internal Double AlertThreshold { get; }
+        internal double AlertThreshold { get; }
 
         internal int OutputLength { get; }
 
