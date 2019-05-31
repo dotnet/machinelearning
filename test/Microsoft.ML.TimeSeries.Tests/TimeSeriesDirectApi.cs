@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.IO;
 using Microsoft.ML.Data;
@@ -39,6 +40,22 @@ namespace Microsoft.ML.Tests
                 Random = -1;
                 Value = value;
             }
+        }
+
+        private sealed class TimeSeriesData
+        {
+            public float Value;
+
+            public TimeSeriesData(float value)
+            {
+                Value = value;
+            }
+        }
+
+        private sealed class SrCnnAnomalyDetection
+        {
+            [VectorType(3)]
+            public double[] Prediction { get; set; }
         }
 
         [Fact]
@@ -275,6 +292,47 @@ namespace Microsoft.ML.Tests
             Assert.Equal(0.12216401100158691, prediction.Change[1], precision: 5); // Raw score
             Assert.Equal(0.14823824685192111, prediction.Change[2], precision: 5); // P-Value score
             Assert.Equal(1.5292508189989167E-07, prediction.Change[3], precision: 5); // Martingale score
+        }
+
+        [Fact]
+        public void AnomalyDetectionWithSrCnn()
+        {
+            var ml = new MLContext();
+
+            // Generate sample series data with an anomaly
+            var data = new List<TimeSeriesData>();
+            for (int index = 0; index < 20; index++)
+            {
+                data.Add(new TimeSeriesData(5));
+            }
+            data.Add(new TimeSeriesData(10));
+            for (int index = 0; index < 5; index++)
+            {
+                data.Add(new TimeSeriesData(5));
+            }
+
+            // Convert data to IDataView.
+            var dataView = ml.Data.LoadFromEnumerable(data);
+
+            // Setup the estimator arguments
+            string outputColumnName = nameof(SrCnnAnomalyDetection.Prediction);
+            string inputColumnName = nameof(TimeSeriesData.Value);
+
+            // The transformed data.
+            var transformedData = ml.Transforms.DetectAnomalyBySrCnn(outputColumnName, inputColumnName, 16, 5, 5, 3, 8, 0.35).Fit(dataView).Transform(dataView);
+
+            // Getting the data of the newly created column as an IEnumerable of SrCnnAnomalyDetection.
+            var predictionColumn = ml.Data.CreateEnumerable<SrCnnAnomalyDetection>(transformedData, reuseRowObject: false);
+
+            int k = 0;
+            foreach (var prediction in predictionColumn)
+            {
+                if (k == 20)
+                    Assert.Equal(1, prediction.Prediction[0]);
+                else
+                    Assert.Equal(0, prediction.Prediction[0]);
+                k += 1;
+            }
         }
     }
 }
