@@ -24,6 +24,9 @@ using Microsoft.ML.Transforms.TimeSeries;
 
 namespace Microsoft.ML.Transforms.TimeSeries
 {
+    /// <summary>
+    /// <see cref="ITransformer"/> resulting from fitting a <see cref="SrCnnAnomalyEstimator"/>.
+    /// </summary>
     public sealed class SrCnnAnomalyDetector : SrCnnAnomalyDetectionBase, IStatefulTransformer
     {
         internal const string Summary = "This transform detects the anomalies in a time-series using SRCNN.";
@@ -172,8 +175,37 @@ namespace Microsoft.ML.Transforms.TimeSeries
     }
 
     /// <summary>
-    /// Detect anomalies in time series using Spectral Residual
+    /// Detect anomalies in time series using Spectral Residual(SR) algorithm
     /// </summary>
+    /// <remarks>
+    /// <format type="text/markdown"><![CDATA[
+    ///To create this estimator, use [DetectAnomalyBySrCnn](xref:Microsoft.ML.TimeSeriesCatalog.DetectAnomalyBySrCnn(Microsoft.ML.TransformsCatalog,System.String,System.String,System.Int32,System.Int32,System.Int32,System.Int32,System.Int32,System.Double))
+    ///###  Estimator Characteristics
+    ///|  |  |
+    ///| -- | -- |
+    ///| Does this estimator need to look at the data to train its parameters? | No |
+    ///| Input column data type | <xref:System.Single> |
+    ///| Output column data type | 3-element vector of<xref:System.Double> |
+    ///### Background
+    ///At Microsoft, we develop a time-series anomaly detection service
+    ///which helps customers to monitor the time-series continuously
+    ///and alert for potential incidents on time. To tackle the problem
+    ///of time-series anomaly detection, we propose a novel algorithm
+    ///based on Spectral Residual (SR) and Convolutional Neural Network
+    ///(CNN). The SR model is borrowed from visual saliency detection domain to time-series anomaly detection. And here we onboarded this SR algorithm firstly.
+    ///
+    ///The Spectral Residual (SR) algorithm is unsupervised, which means training step is not needed while using SR. It consists of three major steps:
+    ///(1) Fourier Transform to get the log amplitude spectrum;
+    ///(2) calculation of spectral residual;
+    ///(3) Inverse Fourier Transform that transforms the sequence back to spatial domain.
+    ///
+    ///There are several parameters for SR algorithm. To obtain a model with good performance, we suggest to tune <strong>windowSize</strong> and <strong>threshold</strong> at first, these are the most important parameters to SR. Then you could search for an appropriate <strong>judgementWindowSize</strong> which is no larger than <strong>windowSize</strong>. And for the remaining parameters, you could use the default value directly.
+    ///
+    ///* Link to the KDD 2019 paper will be updated after it goes public.
+    /// ]]>
+    /// </format>
+    /// </remarks>
+    /// <seealso cref="Microsoft.ML.TimeSeriesCatalog.DetectAnomalyBySrCnn(TransformsCatalog, string, string, int, int, int, int, int, double)"/>
     public sealed class SrCnnAnomalyEstimator : TrivialEstimator<SrCnnAnomalyDetector>
     {
         /// <param name="env">Host environment.</param>

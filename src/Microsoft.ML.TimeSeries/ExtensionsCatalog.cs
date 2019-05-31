@@ -130,11 +130,11 @@ namespace Microsoft.ML
         /// The column data is a vector of <see cref="System.Double"/>. The vector contains 3 elements: alert (1 means anomaly while 0 means normal), raw score, and magnitude of spectual residual.</param>
         /// <param name="inputColumnName">Name of column to transform. The column data must be <see cref="System.Single"/>.</param>
         /// <param name="windowSize">The size of the sliding window for computing spectral residual.</param>
-        /// <param name="backAddWindowSize">The number of points to add back of training window.</param>
-        /// <param name="lookaheadWindowSize">The number of pervious points used in prediction.</param>
-        /// <param name="averageingWindowSize">The size of sliding window to generate a saliency map for the series.</param>
-        /// <param name="judgementWindowSize">The size of sliding window to calculate the anomaly score for each data point.</param>
-        /// <param name="threshold">The threshold to determine anomaly, score larger than the threshold is considered as anomaly.</param>
+        /// <param name="backAddWindowSize">The number of points to add back of training window. No more than windowSize, usually keep default value.</param>
+        /// <param name="lookaheadWindowSize">The number of pervious points used in prediction. No more than windowSize, usually keep default value.</param>
+        /// <param name="averageingWindowSize">The size of sliding window to generate a saliency map for the series. No more than windowSize, usually keep default value.</param>
+        /// <param name="judgementWindowSize">The size of sliding window to calculate the anomaly score for each data point. No more than windowSize.</param>
+        /// <param name="threshold">The threshold to determine anomaly, score larger than the threshold is considered as anomaly. Should be in (0,1)</param>
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
