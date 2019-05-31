@@ -1609,13 +1609,22 @@ namespace Microsoft.ML.Transforms.TimeSeries
 
             public void Train(IDataView dataView, string inputColumnName) => Train(new RoleMappedData(dataView, null, inputColumnName));
 
-            public IEnumerable<float> Forecast(int horizon)
+            public float[] Forecast(int horizon)
             {
                 ForecastResultBase<float> result = null;
                 Forecast(ref result, horizon);
-                var values = result.PointForecast.GetValues().ToArray();
-                foreach(var value in values)
-                    yield return value;
+                return result.PointForecast.GetValues().ToArray();
+            }
+
+            public void ForecastWithConfidenceIntervals(int horizon, out float[] forecast, out float[] confidenceIntervalLowerBounds, out float[] confidenceIntervalUpperBounds, float confidenceLevel = 0.95f)
+            {
+                ForecastResultBase<float> result = null;
+                Forecast(ref result, horizon);
+                SsaForecastResult ssaResult = (SsaForecastResult)result;
+                ComputeForecastIntervals(ref ssaResult, confidenceLevel);
+                forecast = result.PointForecast.GetValues().ToArray();
+                confidenceIntervalLowerBounds = ssaResult.LowerBound.GetValues().ToArray();
+                confidenceIntervalUpperBounds = ssaResult.UpperBound.GetValues().ToArray();
             }
 
             public void Update(IDataView dataView, string inputColumnName)
@@ -1660,7 +1669,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
         /// </summary>
         /// <param name="horizon">Number of values to forecast.</param>
         /// <returns>Forecasted values.</returns>
-        public IEnumerable<float> Forecast(int horizon) => _modeler.Forecast(horizon);
+        public float[] Forecast(int horizon) => _modeler.Forecast(horizon);
 
         /// <summary>
         /// For saving a model into a repository.
@@ -1673,5 +1682,8 @@ namespace Microsoft.ML.Transforms.TimeSeries
             ctx.Writer.Write(_inputColumnName);
             ctx.SaveModel(_modeler, "ForecastWrapper");
         }
+
+        public void ForecastWithConfidenceIntervals(int horizon, out float[] forecast, out float[] confidenceIntervalLowerBounds, out float[] confidenceIntervalUpperBounds, float confidenceLevel = 0.95f) =>
+            _modeler.ForecastWithConfidenceIntervals(horizon, out forecast, out confidenceIntervalLowerBounds, out confidenceIntervalUpperBounds, confidenceLevel);
     }
 }

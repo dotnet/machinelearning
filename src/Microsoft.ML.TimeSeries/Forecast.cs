@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Generic;
 using System.IO;
 using Microsoft.ML.Data;
 using static Microsoft.ML.Transforms.TimeSeries.AdaptiveSingularSpectrumSequenceForecastingModeler;
@@ -13,7 +12,7 @@ namespace Microsoft.ML.TimeSeries
     /// Interface for forecasting models.
     /// </summary>
     /// <typeparam name="T">The type of values that are forecasted.</typeparam>
-    public interface ICanForecast<out T> : ICanSaveModel
+    public interface ICanForecast<T> : ICanSaveModel
     {
         /// <summary>
         /// Train a forecasting model from an <see cref="IDataView"/>.
@@ -33,7 +32,19 @@ namespace Microsoft.ML.TimeSeries
         /// </summary>
         /// <param name="horizon">Number of values to forecast.</param>
         /// <returns>Forecasted values.</returns>
-        IEnumerable<T> Forecast(int horizon);
+        T[] Forecast(int horizon);
+
+        /// <summary>
+        /// Perform forecasting until a particular <paramref name="horizon"/> and also computes confidence intervals.
+        /// For confidence intervals to be computed the model must be trained with <see cref="AdaptiveSingularSpectrumSequenceModeler.ShouldComputeForecastIntervals"/>
+        /// set to true.
+        /// </summary>
+        /// <param name="horizon">Number of values to forecast.</param>
+        /// <param name="forecast">Forecasted values</param>
+        /// <param name="confidenceIntervalLowerBounds">Lower bound confidence intervals of forecasted values.</param>
+        /// <param name="confidenceIntervalUpperBounds">Upper bound confidence intervals of forecasted values.</param>
+        /// <param name="confidenceLevel">Confidence level.</param>
+        void ForecastWithConfidenceIntervals(int horizon, out T[] forecast, out float[] confidenceIntervalLowerBounds, out float[] confidenceIntervalUpperBounds, float confidenceLevel = 0.95f);
     }
 
     public static class ForecastExtensions
