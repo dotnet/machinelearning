@@ -299,16 +299,13 @@ namespace Microsoft.ML.Tests
         {
             var ml = new MLContext();
 
-            // Generate sample series data with a spike
+            // Generate sample series data with an anomaly
             var data = new List<TimeSeriesData>();
-            for (int index = 0; index < 100; index++)
+            for (int index = 0; index < 20; index++)
             {
                 data.Add(new TimeSeriesData(5));
             }
-            for (int index = 0; index < 5; index++)
-            {
-                data.Add(new TimeSeriesData(15));
-            }
+            data.Add(new TimeSeriesData(10));
             for (int index = 0; index < 5; index++)
             {
                 data.Add(new TimeSeriesData(5));
@@ -322,7 +319,7 @@ namespace Microsoft.ML.Tests
             string inputColumnName = nameof(TimeSeriesData.Value);
 
             // The transformed data.
-            var transformedData = ml.Transforms.DetectAnomalyBySrCnn(outputColumnName, inputColumnName, 64, 5, 5, 3, 21, 0.25).Fit(dataView).Transform(dataView);
+            var transformedData = ml.Transforms.DetectAnomalyBySrCnn(outputColumnName, inputColumnName, 16, 5, 5, 3, 8, 0.35).Fit(dataView).Transform(dataView);
 
             // Getting the data of the newly created column as an IEnumerable of SrCnnAnomalyDetection.
             var predictionColumn = ml.Data.CreateEnumerable<SrCnnAnomalyDetection>(transformedData, reuseRowObject: false);
@@ -330,7 +327,7 @@ namespace Microsoft.ML.Tests
             int k = 0;
             foreach (var prediction in predictionColumn)
             {
-                if (k == 101 || k == 106)
+                if (k == 20)
                     Assert.Equal(1, prediction.Prediction[0]);
                 else
                     Assert.Equal(0, prediction.Prediction[0]);

@@ -54,17 +54,17 @@ namespace Microsoft.ML.Transforms.TimeSeries
     internal abstract class SrCnnTransformBase<TInput, TState> : SequentialTransformerBase<TInput, VBuffer<Double>, TState>
         where TState : SrCnnTransformBase<TInput, TState>.SrCnnStateBase, new()
     {
-        internal int BackAddWindowSize;
+        internal int BackAddWindowSize { get; }
 
-        internal int LookaheadWindowSize;
+        internal int LookaheadWindowSize { get; }
 
-        internal int AvergingWindowSize;
+        internal int AvergingWindowSize { get; }
 
-        internal int JudgementWindowSize;
+        internal int JudgementWindowSize { get; }
 
-        internal Double AlertThreshold;
+        internal Double AlertThreshold { get; }
 
-        internal int OutputLength;
+        internal int OutputLength { get; }
 
         private protected SrCnnTransformBase(int windowSize, int initialWindowSize, string inputColumnName, string outputColumnName, string name, IHostEnvironment env,
             int backAddWindowSize, int lookaheadWindowSize, int averagingWindowSize, int judgementWindowSize, Double alertThreshold)

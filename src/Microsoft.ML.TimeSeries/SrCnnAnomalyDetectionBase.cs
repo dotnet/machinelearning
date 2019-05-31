@@ -23,7 +23,6 @@ namespace Microsoft.ML.Transforms.TimeSeries
         /// <summary>
         /// Create a clone of the transformer. Used for taking the snapshot of the state.
         /// </summary>
-        /// <returns></returns>
         IStatefulTransformer IStatefulTransformer.Clone() => InternalTransform.Clone();
 
         /// <summary>
@@ -51,8 +50,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
             => ((IStatefulTransformer)InternalTransform).GetStatefulRowToRowMapper(inputSchema);
 
         /// <summary>
-        /// Take the data in, make transformations, output the data.
-        /// Note that <see cref="IDataView"/>'s are lazy, so no actual transformations happen here, just schema validation.
+        /// Initialize a transformer which will do lambda transfrom on input data in prediction engine. No actual transformations happen here, just schema validation.
         /// </summary>
         public IDataView Transform(IDataView input) => InternalTransform.Transform(input);
 

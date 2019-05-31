@@ -135,7 +135,13 @@ namespace Microsoft.ML
         /// <param name="averageingWindowSize">The size of sliding window to generate a saliency map for the series.</param>
         /// <param name="judgementWindowSize">The size of sliding window to calculate the anomaly score for each data point.</param>
         /// <param name="threshold">The threshold to determine anomaly, score larger than the threshold is considered as anomaly.</param>
-        /// <returns></returns>
+        /// <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        /// [!code-csharp[DetectAnomalyBySrCnn](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/TimeSeries/DetectAnomalyBySrCnn.cs)]
+        /// ]]>
+        /// </format>
+        /// </example>
         public static SrCnnAnomalyEstimator DetectAnomalyBySrCnn(this TransformsCatalog catalog, string outputColumnName, string inputColumnName,
             int windowSize=64, int backAddWindowSize=5, int lookaheadWindowSize=5, int averageingWindowSize=3, int judgementWindowSize=21, double threshold=0.3)
             => new SrCnnAnomalyEstimator(CatalogUtils.GetEnvironment(catalog), outputColumnName, windowSize, backAddWindowSize, lookaheadWindowSize, averageingWindowSize, judgementWindowSize, threshold, inputColumnName);
