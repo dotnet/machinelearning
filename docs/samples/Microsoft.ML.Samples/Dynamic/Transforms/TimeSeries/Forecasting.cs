@@ -45,7 +45,7 @@ namespace Samples.Dynamic
             // Setup arguments.
             var inputColumnName = nameof(TimeSeriesData.Value);
 
-            // Train the forecasting model.
+            // Instantiate the forecasting model.
             var model = ml.Forecasting.AdaptiveSingularSpectrumSequenceModeler(inputColumnName, data.Count, SeasonalitySize + 1, SeasonalitySize,
                 1, AdaptiveSingularSpectrumSequenceModeler.RankSelectionMethod.Exact, null, SeasonalitySize / 2, false, false);
 
