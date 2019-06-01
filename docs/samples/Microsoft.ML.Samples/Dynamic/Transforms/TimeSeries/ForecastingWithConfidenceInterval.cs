@@ -61,12 +61,12 @@ namespace Samples.Dynamic
             Console.WriteLine("[{0}]", string.Join(", ", forecast));
             Console.WriteLine($"Confidence intervals:");
             for(int index = 0; index < 5; index++)
-                Console.Write($"[{0} - {1}] ", confidenceIntervalLowerBounds[index], confidenceIntervalUpperBounds[index]);
+                Console.Write($"[{confidenceIntervalLowerBounds[index]} - {confidenceIntervalUpperBounds[index]}] ");
 
             // Forecasted values:
             // [2.452744, 2.589339, 2.729183, 2.873005, 3.028931]
             // Confidence intervals:
-            // [0 - 1] [0 - 1] [0 - 1] [0 - 1] [0 - 1]
+            // [-0.2235315 - 5.12902] [-0.08777174 - 5.266451] [0.05076938 - 5.407597] [0.1925406 - 5.553469] [0.3469928 - 5.71087]
 
             // Update with new observations.
             dataView = ml.Data.LoadFromEnumerable(new List<TimeSeriesData>() { new TimeSeriesData(0), new TimeSeriesData(0), new TimeSeriesData(0), new TimeSeriesData(0) });
@@ -83,29 +83,29 @@ namespace Samples.Dynamic
             float[] confidenceIntervalLowerBoundsCopy;
             float[] confidenceIntervalUpperBoundsCopy;
             modelCopy.ForecastWithConfidenceIntervals(5, out forecastCopy, out confidenceIntervalLowerBoundsCopy, out confidenceIntervalUpperBoundsCopy);
-            Console.WriteLine($"Forecasted values:");
+            Console.WriteLine($"\n\nForecasted values:");
             Console.WriteLine("[{0}]", string.Join(", ", forecastCopy));
             Console.WriteLine($"Confidence intervals:");
             for (int index = 0; index < 5; index++)
-                Console.Write($"[{0} - {1}] ", confidenceIntervalLowerBoundsCopy[index], confidenceIntervalUpperBoundsCopy[index]);
+                Console.Write($"[{confidenceIntervalLowerBoundsCopy[index]} - {confidenceIntervalUpperBoundsCopy[index]}] ");
 
             // Forecasted values:
             // [0.8681176, 0.8185108, 0.8069275, 0.84405, 0.9455081]
             // Confidence intervals:
-            // [0 - 1] [0 - 1] [0 - 1] [0 - 1] [0 - 1]
+            // [-1.808158 - 3.544394] [-1.8586 - 3.495622] [-1.871486 - 3.485341] [-1.836414 - 3.524514] [-1.736431 - 3.627447]
 
             // Forecast with the original model(that was checkpointed to disk).
             model.ForecastWithConfidenceIntervals(5, out forecast, out confidenceIntervalLowerBounds, out confidenceIntervalUpperBounds);
-            Console.WriteLine($"Forecasted values:");
+            Console.WriteLine($"\n\nForecasted values:");
             Console.WriteLine("[{0}]", string.Join(", ", forecast));
             Console.WriteLine($"Confidence intervals:");
             for (int index = 0; index < 5; index++)
-                Console.Write($"[{0} - {1}] ", confidenceIntervalLowerBounds[index], confidenceIntervalUpperBounds[index]);
+                Console.Write($"[{confidenceIntervalLowerBounds[index]} - {confidenceIntervalUpperBounds[index]}] ");
 
             // Forecasted values:
             // [0.8681176, 0.8185108, 0.8069275, 0.84405, 0.9455081]
             // Confidence intervals:
-            // [0 - 1] [0 - 1] [0 - 1] [0 - 1] [0 - 1]
+            // [-1.808158 - 3.544394] [-1.8586 - 3.495622] [-1.871486 - 3.485341] [-1.836414 - 3.524514] [-1.736431 - 3.627447]
         }
 
         class TimeSeriesData
