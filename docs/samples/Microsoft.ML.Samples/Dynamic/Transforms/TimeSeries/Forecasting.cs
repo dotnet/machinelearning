@@ -70,8 +70,8 @@ namespace Samples.Dynamic
             var modelCopy = ml.Model.LoadForecastingModel<float>("model.zip");
 
             // Forecast with the checkpointed model loaded from disk.
-            var forecastCopy = modelCopy.Forecast(5);
-            Console.WriteLine("[{0}]", string.Join(", ", forecastCopy));
+            forecast = modelCopy.Forecast(5);
+            Console.WriteLine("[{0}]", string.Join(", ", forecast));
             // [0.8681176, 0.8185108, 0.8069275, 0.84405, 0.9455081]
 
             // Forecast with the original model(that was checkpointed to disk).
