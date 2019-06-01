@@ -721,7 +721,7 @@ namespace Microsoft.ML
         }
 
         /// <summary>
-        /// Class used by <see cref="MLContext"/> to create instances of binary classification trainers.
+        /// Class used by <see cref="MLContext"/> to create instances of forecasting trainers.
         /// </summary>
         public sealed class Forecasters : CatalogInstantiatorBase
         {
