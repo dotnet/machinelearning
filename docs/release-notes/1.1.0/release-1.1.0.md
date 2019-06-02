@@ -46,3 +46,6 @@ None
 - Sample for LoadFromEnumerable with a SchemaDefinition by [PR#3696](https://github.com/dotnet/machinelearning/pull/3696)
 - Sample for LogLossPerClass metric for multiclass trainers by [PR#3724](https://github.com/dotnet/machinelearning/pull/3724)
 - Sample for WithOnFitDelegate by [PR#3738](https://github.com/dotnet/machinelearning/pull/3738)
+
+## **Remarks**
+- [Microsoft.ML.TensorFlow](https://www.nuget.org/packages/Microsoft.ML.TensorFlow/) has been upgraded from preview to 1.0(Release).
