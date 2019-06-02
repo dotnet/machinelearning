@@ -1,13 +1,13 @@
 # [ML.NET](http://dot.net/ml) 1.1.0 
 ## **New Features**
-- **`Image type support in IDataView`**  
+- **Image type support in IDataView**  
    [PR#3263](https://github.com/dotnet/machinelearning/pull/3263) added support
   for in-memory image as a type in IDataView. Previously to consume image it was
   impossible to directly use it in IDataView rather a user would have to specify
   the file path as a string in IDataView and then the image would be loaded use a
   transform. This resulted in the closure of the following github issues:  [3162](https://github.com/dotnet/machinelearning/issues/3162), [3723](https://github.com/dotnet/machinelearning/issues/3723), [3369](https://github.com/dotnet/machinelearning/issues/3369), [3274](https://github.com/dotnet/machinelearning/issues/3274), [445](https://github.com/dotnet/machinelearning/issues/445), [3460](https://github.com/dotnet/machinelearning/issues/3460), [2121](https://github.com/dotnet/machinelearning/issues/2121), [2495](https://github.com/dotnet/machinelearning/issues/2495), [3784](https://github.com/dotnet/machinelearning/issues/3784) and was a much requested feature by the users.  
 
-- **`Super-Resolution based Anomaly Detector`**  
+- **Super-Resolution based Anomaly Detector**  
    [PR#3693](https://github.com/dotnet/machinelearning/pull/3693) adds a new anomaly detection algorithm to the time series nuget. This algorithm is based on Super-Resolution using Deep Convolutional Networks and also got accepted in KDD'2019 conference as oral presentation. One of the advantages of this algorithm is that it does not require any prior training and based on benchmarks using grid parameter search to find upper bounds it out performs the IID and SSA based anomaly detection algorithms in accuracy. This contribution comes from the [Azure Anomaly Detector](https://azure.microsoft.com/en-us/services/cognitive-services/anomaly-detector/) team.
 
     Algo | Precision | Recall | F1 | #TruePositive | #Positives | #Anomalies | Fine tuned   parameters
@@ -16,7 +16,7 @@
     IID | 0.668 | 0.491 | 0.566 | 1924 | 2579 | 3915 | Confidence=99,   PValueHistoryLength=56
     SR | 0.601 | 0.670 | 0.634 | 2625 | 4370 | 3915 | WindowSize=64,   BackAddWindowSize=5, LookaheadWindowSize=5, AveragingWindowSize=3,   JudgementWindowSize=64, Threshold=0.45
 
-- **`Time Series Forecasting`**  
+- **Time Series Forecasting**  
    [PR#1900](https://github.com/dotnet/machinelearning/pull/1900) introduces a framework for time series forecasting models and exposes an API for Singular Spectrum Analysis(SSA) based forecasting model. This framework allows to forecast w/o confidence intervals, update model with new observations and save the model to persistent storage. This closes [issue#929](https://github.com/dotnet/machinelearning/issues/929) and was a much requested feature by the github community. With this change time series nuget is feature complete for RTM.
 
 ## **Bug Fixes**
