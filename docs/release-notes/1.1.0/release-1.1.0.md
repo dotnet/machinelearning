@@ -29,7 +29,7 @@
 
 ### Other
 - Download images only when not present on disk and print warning messages when converting unsupported pixel format by [PR#3625](https://github.com/dotnet/machinelearning/pull/3625)
-- [ML.NET](http://dot.net/ml) source code to be built by VS2019 by [PR#3742](https://github.com/dotnet/machinelearning/pull/3742)
+- [ML.NET](http://dot.net/ml) source code does not build in VS2019 by [PR#3742](https://github.com/dotnet/machinelearning/pull/3742)
 - Fix SoftMax precision by utilizing double in the internal calculations by [PR#3676](https://github.com/dotnet/machinelearning/pull/3676)
 - Fix to the official build due to API Compat tool change by [PR#3667](https://github.com/dotnet/machinelearning/pull/3667)
 
