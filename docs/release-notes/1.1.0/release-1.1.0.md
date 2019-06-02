@@ -48,4 +48,4 @@ None
 - Sample for WithOnFitDelegate by [PR#3738](https://github.com/dotnet/machinelearning/pull/3738)
 
 ## **Remarks**
-- [Microsoft.ML.TensorFlow](https://www.nuget.org/packages/Microsoft.ML.TensorFlow/) has been upgraded from 0.12(preview) to 1.0(Release).
+- [Microsoft.ML.TensorFlow](https://www.nuget.org/packages/Microsoft.ML.TensorFlow/) has been upgraded from 0.12(preview) to 1.0(release).
