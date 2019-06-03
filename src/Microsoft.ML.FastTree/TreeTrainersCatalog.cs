@@ -427,7 +427,6 @@ namespace Microsoft.ML
         /// ]]>
         /// </format>
         /// </example>
-
         public static FastForestBinaryTrainer FastForest(this BinaryClassificationCatalog.BinaryClassificationTrainers catalog,
             FastForestBinaryTrainer.Options options)
         {
@@ -436,6 +435,46 @@ namespace Microsoft.ML
 
             var env = CatalogUtils.GetEnvironment(catalog);
             return new FastForestBinaryTrainer(env, options);
+        }
+
+        public static PretrainedTreeFeaturizationEstimator PretrainTreeEnsembleFeaturizing(this TransformsCatalog catalog,
+            PretrainedTreeFeaturizationEstimator.Options options)
+        {
+            Contracts.CheckValue(catalog, nameof(catalog));
+            var env = CatalogUtils.GetEnvironment(catalog);
+            return new PretrainedTreeFeaturizationEstimator(env, options);
+        }
+
+        public static FastForestRegressionFeaturizationEstimator FastForestRegressionFeaturizing(this TransformsCatalog catalog,
+            FastForestRegressionFeaturizationEstimator.Options options)
+        {
+            Contracts.CheckValue(catalog, nameof(catalog));
+            var env = CatalogUtils.GetEnvironment(catalog);
+            return new FastForestRegressionFeaturizationEstimator(env, options);
+        }
+
+        public static FastTreeRegressionFeaturizationEstimator FastTreeRegressionFeaturizing(this TransformsCatalog catalog,
+            FastTreeRegressionFeaturizationEstimator.Options options)
+        {
+            Contracts.CheckValue(catalog, nameof(catalog));
+            var env = CatalogUtils.GetEnvironment(catalog);
+            return new FastTreeRegressionFeaturizationEstimator(env, options);
+        }
+
+        public static FastForestBinaryFeaturizationEstimator FastForestBinaryFeaturizing(this TransformsCatalog catalog,
+            FastForestBinaryFeaturizationEstimator.Options options)
+        {
+            Contracts.CheckValue(catalog, nameof(catalog));
+            var env = CatalogUtils.GetEnvironment(catalog);
+            return new FastForestBinaryFeaturizationEstimator(env, options);
+        }
+
+        public static FastTreeBinaryFeaturizationEstimator FastTreeBinaryFeaturizing(this TransformsCatalog catalog,
+            FastTreeBinaryFeaturizationEstimator.Options options)
+        {
+            Contracts.CheckValue(catalog, nameof(catalog));
+            var env = CatalogUtils.GetEnvironment(catalog);
+            return new FastTreeBinaryFeaturizationEstimator(env, options);
         }
     }
 }

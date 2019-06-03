@@ -204,5 +204,246 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                     Assert.Equal(1.0, paths[dataPointIndex][nodeId]);
             }
         }
+
+        /// <summary>
+        /// A test of <see cref="PretrainedTreeFeaturizationEstimator"/>.
+        /// </summary>
+        [Fact]
+        public void TestPretrainedTreeFeaturizationEstimator()
+        {
+            // Create data set
+            int dataPointCount = 20;
+            var data = SamplesUtils.DatasetUtils.GenerateBinaryLabelFloatFeatureVectorFloatWeightSamples(dataPointCount).ToList();
+            var dataView = ML.Data.LoadFromEnumerable(data);
+
+            // Define a tree model whose trees will be extracted to construct a tree featurizer.
+            var trainer = ML.BinaryClassification.Trainers.FastTree(
+                new FastTreeBinaryTrainer.Options
+                {
+                    NumberOfThreads = 1,
+                    NumberOfTrees = 1,
+                    NumberOfLeaves = 4,
+                    MinimumExampleCountPerLeaf = 1
+                });
+
+            // Train the defined tree model.
+            var model = trainer.Fit(dataView);
+            var predicted = model.Transform(dataView);
+
+            // From the trained tree model, a mapper of tree featurizer is created.
+            var options = new PretrainedTreeFeaturizationEstimator.Options() { InputColumnName = "Features", ModelParameters = model.Model.SubModel };
+            var treeFeaturizer = ML.Transforms.PretrainTreeEnsembleFeaturizing(options).Fit(dataView);
+
+            // Apply TreeEnsembleFeaturizer to the input data.
+            var transformed = treeFeaturizer.Transform(dataView);
+
+            // Extract the outputs of TreeEnsembleFeaturizer.
+            var features = transformed.GetColumn<float[]>("Features").ToArray();
+            var leafValues = transformed.GetColumn<float[]>("Trees").ToArray();
+            var leafIds = transformed.GetColumn<float[]>("Leaves").ToArray();
+            var paths = transformed.GetColumn<float[]>("Paths").ToArray();
+
+            // Check if the TreeEnsembleFeaturizer produce expected values.
+            List<int> path = null;
+            for (int dataPointIndex = 0; dataPointIndex < dataPointCount; ++dataPointIndex)
+            {
+                int treeIndex = 0;
+                var leafId = model.Model.SubModel.GetLeaf(treeIndex, new VBuffer<float>(10, features[dataPointIndex]), ref path);
+                var leafValue = model.Model.SubModel.GetLeafValue(0, leafId);
+                Assert.Equal(leafValues[dataPointIndex][treeIndex], leafValue);
+                Assert.Equal(1.0, leafIds[dataPointIndex][leafId]);
+                foreach (var nodeId in path)
+                    Assert.Equal(1.0, paths[dataPointIndex][nodeId]);
+            }
+        }
+
+        /// <summary>
+        /// This test contains several steps.
+        ///   1. It first trains a <see cref="FastTreeBinaryModelParameters"/> using <see cref="FastTreeBinaryTrainer"/>.
+        ///   2. Then, it creates the a <see cref="PretrainedTreeFeaturizationEstimator"/> from the trained <see cref="FastTreeBinaryModelParameters"/>.
+        ///   3. The feature produced in step 2 would be fed into <see cref="SdcaLogisticRegression"/> to enhance the training accuracy of that linear model.
+        ///   4. We train another <see cref="SdcaLogisticRegression"/> without features from trees and finally compare their scores.
+        /// </summary>
+        [Fact]
+        public void TreeEnsembleFeaturizingPipeline()
+        {
+            // Create data set
+            int dataPointCount = 200;
+            var data = SamplesUtils.DatasetUtils.GenerateBinaryLabelFloatFeatureVectorFloatWeightSamples(dataPointCount).ToList();
+            var dataView = ML.Data.LoadFromEnumerable(data);
+
+            // Define a tree model whose trees will be extracted to construct a tree featurizer.
+            var trainer = ML.BinaryClassification.Trainers.FastTree(
+                new FastTreeBinaryTrainer.Options
+                {
+                    NumberOfThreads = 1,
+                    NumberOfTrees = 10,
+                    NumberOfLeaves = 4,
+                    MinimumExampleCountPerLeaf = 10
+                });
+
+            // Train the defined tree model. This trained model will be used to construct TreeEnsembleFeaturizationEstimator.
+            var treeModel = trainer.Fit(dataView);
+            var predicted = treeModel.Transform(dataView);
+
+            // Combine the output of TreeEnsembleFeaturizationTransformer and the original features as the final training features.
+            // Then train a linear model.
+            var options = new PretrainedTreeFeaturizationEstimator.Options() { InputColumnName = "Features", ModelParameters = treeModel.Model.SubModel };
+            var pipeline = ML.Transforms.PretrainTreeEnsembleFeaturizing(options).
+                Append(ML.Transforms.Concatenate("CombinedFeatures", "Features", "Trees", "Leaves", "Paths")).
+                Append(ML.BinaryClassification.Trainers.SdcaLogisticRegression("Label", "CombinedFeatures"));
+            var model = pipeline.Fit(dataView);
+            var prediction = model.Transform(dataView);
+            var metrics = ML.BinaryClassification.Evaluate(prediction);
+
+            // Then train the same linear model without tree features.
+            var naivePipeline = ML.BinaryClassification.Trainers.SdcaLogisticRegression("Label", "Features");
+            var naiveModel = naivePipeline.Fit(dataView);
+            var naivePrediction = naiveModel.Transform(dataView);
+            var naiveMetrics = ML.BinaryClassification.Evaluate(naivePrediction);
+
+            // The linear model trained with tree features should perform better than that without tree features.
+            Assert.True(metrics.Accuracy > naiveMetrics.Accuracy);
+            Assert.True(metrics.LogLoss < naiveMetrics.LogLoss);
+            Assert.True(metrics.AreaUnderPrecisionRecallCurve > naiveMetrics.AreaUnderPrecisionRecallCurve);
+        }
+
+        [Fact]
+        public void TestFastTreeBinaryFeaturizationInPipeline()
+        {
+            int dataPointCount = 200;
+            var data = SamplesUtils.DatasetUtils.GenerateBinaryLabelFloatFeatureVectorFloatWeightSamples(dataPointCount).ToList();
+            var dataView = ML.Data.LoadFromEnumerable(data);
+
+            var trainerOptions = new FastTreeBinaryTrainer.Options
+            {
+                    NumberOfThreads = 1,
+                    NumberOfTrees = 10,
+                    NumberOfLeaves = 4,
+                    MinimumExampleCountPerLeaf = 10,
+                    FeatureColumnName = "Features",
+                    LabelColumnName = "Label"
+            };
+
+            var options = new FastTreeBinaryFeaturizationEstimator.Options()
+            {
+                InputColumnName = "Features",
+                TrainerOptions = trainerOptions
+            };
+
+            var pipeline = ML.Transforms.FastTreeBinaryFeaturizing(options).
+                Append(ML.Transforms.Concatenate("CombinedFeatures", "Features", "Trees", "Leaves", "Paths")).
+                Append(ML.BinaryClassification.Trainers.SdcaLogisticRegression("Label", "CombinedFeatures"));
+            var model = pipeline.Fit(dataView);
+            var prediction = model.Transform(dataView);
+            var metrics = ML.BinaryClassification.Evaluate(prediction);
+
+            Assert.True(metrics.Accuracy > 0.98);
+            Assert.True(metrics.LogLoss < 0.05);
+            Assert.True(metrics.AreaUnderPrecisionRecallCurve > 0.98);
+        }
+
+        [Fact]
+        public void TestFastForestBinaryFeaturizationInPipeline()
+        {
+            int dataPointCount = 200;
+            var data = SamplesUtils.DatasetUtils.GenerateBinaryLabelFloatFeatureVectorFloatWeightSamples(dataPointCount).ToList();
+            var dataView = ML.Data.LoadFromEnumerable(data);
+
+            var trainerOptions = new FastForestBinaryTrainer.Options
+            {
+                    NumberOfThreads = 1,
+                    NumberOfTrees = 10,
+                    NumberOfLeaves = 4,
+                    MinimumExampleCountPerLeaf = 10,
+                    FeatureColumnName = "Features",
+                    LabelColumnName = "Label"
+            };
+
+            var options = new FastForestBinaryFeaturizationEstimator.Options()
+            {
+                InputColumnName = "Features",
+                TrainerOptions = trainerOptions
+            };
+
+            var pipeline = ML.Transforms.FastForestBinaryFeaturizing(options).
+                Append(ML.Transforms.Concatenate("CombinedFeatures", "Features", "Trees", "Leaves", "Paths")).
+                Append(ML.BinaryClassification.Trainers.SdcaLogisticRegression("Label", "CombinedFeatures"));
+            var model = pipeline.Fit(dataView);
+            var prediction = model.Transform(dataView);
+            var metrics = ML.BinaryClassification.Evaluate(prediction);
+
+            Assert.True(metrics.Accuracy > 0.97);
+            Assert.True(metrics.LogLoss < 0.07);
+            Assert.True(metrics.AreaUnderPrecisionRecallCurve > 0.98);
+        }
+
+        [Fact]
+        public void TestFastTreeRegressionFeaturizationInPipeline()
+        {
+            int dataPointCount = 200;
+            var data = SamplesUtils.DatasetUtils.GenerateFloatLabelFloatFeatureVectorSamples(dataPointCount).ToList();
+            var dataView = ML.Data.LoadFromEnumerable(data);
+
+            var trainerOptions = new FastTreeRegressionTrainer.Options
+            {
+                    NumberOfThreads = 1,
+                    NumberOfTrees = 10,
+                    NumberOfLeaves = 4,
+                    MinimumExampleCountPerLeaf = 10,
+                    FeatureColumnName = "Features",
+                    LabelColumnName = "Label"
+            };
+
+            var options = new FastTreeRegressionFeaturizationEstimator.Options()
+            {
+                InputColumnName = "Features",
+                TrainerOptions = trainerOptions
+            };
+
+            var pipeline = ML.Transforms.FastTreeRegressionFeaturizing(options).
+                Append(ML.Transforms.Concatenate("CombinedFeatures", "Features", "Trees", "Leaves", "Paths")).
+                Append(ML.Regression.Trainers.Sdca("Label", "CombinedFeatures"));
+            var model = pipeline.Fit(dataView);
+            var prediction = model.Transform(dataView);
+            var metrics = ML.Regression.Evaluate(prediction);
+
+            Assert.True(metrics.MeanAbsoluteError < 0.2);
+            Assert.True(metrics.MeanSquaredError < 0.05);
+        }
+
+        [Fact]
+        public void TestFastForestRegressionFeaturizationInPipeline()
+        {
+            int dataPointCount = 200;
+            var data = SamplesUtils.DatasetUtils.GenerateFloatLabelFloatFeatureVectorSamples(dataPointCount).ToList();
+            var dataView = ML.Data.LoadFromEnumerable(data);
+
+            var trainerOptions = new FastForestRegressionTrainer.Options
+            {
+                    NumberOfThreads = 1,
+                    NumberOfTrees = 10,
+                    NumberOfLeaves = 4,
+                    MinimumExampleCountPerLeaf = 10,
+                    FeatureColumnName = "Features",
+                    LabelColumnName = "Label"
+            };
+
+            var options = new FastForestRegressionFeaturizationEstimator.Options()
+            {
+                InputColumnName = "Features",
+                TrainerOptions = trainerOptions
+            };
+
+            var pipeline = ML.Transforms.FastForestRegressionFeaturizing(options).
+                Append(ML.Transforms.Concatenate("CombinedFeatures", "Features", "Trees", "Leaves", "Paths")).
+                Append(ML.Regression.Trainers.Sdca("Label", "CombinedFeatures"));
+            var model = pipeline.Fit(dataView);
+            var prediction = model.Transform(dataView);
+            var metrics = ML.Regression.Evaluate(prediction);
+
+            Assert.True(metrics.MeanAbsoluteError < 0.25);
+            Assert.True(metrics.MeanSquaredError < 0.1);
+        }
     }
 }
