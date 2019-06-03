@@ -51,7 +51,7 @@ namespace Microsoft.ML.Trainers.FastTree
             return new RoleMappedSchema(schema, roles);
         }
 
-        public TreeEnsembleFeaturizationTransformer(IHostEnvironment env, DataViewSchema inputSchema,
+        internal TreeEnsembleFeaturizationTransformer(IHostEnvironment env, DataViewSchema inputSchema,
             DataViewSchema.Column featureColumn, TreeEnsembleModelParameters modelParameters, string outputColumnNameSuffix=null) :
             base(Contracts.CheckRef(env, nameof(env)).Register(nameof(TreeEnsembleFeaturizationTransformer)), modelParameters, inputSchema)
         {

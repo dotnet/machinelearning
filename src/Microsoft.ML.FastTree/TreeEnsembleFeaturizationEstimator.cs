@@ -127,7 +127,7 @@ namespace Microsoft.ML.Trainers.FastTree
 
         private TreeEnsembleModelParameters _modelParameters;
 
-        public PretrainedTreeFeaturizationEstimator(IHostEnvironment env, Options options) : base(env, options)
+        internal PretrainedTreeFeaturizationEstimator(IHostEnvironment env, Options options) : base(env, options)
         {
             _modelParameters = options.ModelParameters;
         }
@@ -148,7 +148,7 @@ namespace Microsoft.ML.Trainers.FastTree
             public FastTreeBinaryTrainer.Options TrainerOptions;
         }
 
-        public FastTreeBinaryFeaturizationEstimator(IHostEnvironment env, Options options)
+        internal FastTreeBinaryFeaturizationEstimator(IHostEnvironment env, Options options)
             : base(env, options)
         {
             _trainerOptions = options.TrainerOptions;
@@ -171,7 +171,7 @@ namespace Microsoft.ML.Trainers.FastTree
             public FastTreeRegressionTrainer.Options TrainerOptions;
         }
 
-        public FastTreeRegressionFeaturizationEstimator(IHostEnvironment env, Options options)
+        internal FastTreeRegressionFeaturizationEstimator(IHostEnvironment env, Options options)
             : base(env, options)
         {
             _trainerOptions = options.TrainerOptions;
@@ -194,7 +194,7 @@ namespace Microsoft.ML.Trainers.FastTree
             public FastForestBinaryTrainer.Options TrainerOptions;
         }
 
-        public FastForestBinaryFeaturizationEstimator(IHostEnvironment env, Options options)
+        internal FastForestBinaryFeaturizationEstimator(IHostEnvironment env, Options options)
             : base(env, options)
         {
             _trainerOptions = options.TrainerOptions;
@@ -217,7 +217,7 @@ namespace Microsoft.ML.Trainers.FastTree
             public FastForestRegressionTrainer.Options TrainerOptions;
         }
 
-        public FastForestRegressionFeaturizationEstimator(IHostEnvironment env, Options options)
+        internal FastForestRegressionFeaturizationEstimator(IHostEnvironment env, Options options)
             : base(env, options)
         {
             _trainerOptions = options.TrainerOptions;
