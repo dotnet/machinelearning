@@ -76,15 +76,34 @@ namespace Microsoft.ML.Transforms.TimeSeries
         public void CheckPoint(IHostEnvironment env, string modelPath)
         {
             using (var file = File.Create(modelPath))
+                CheckPoint(env, file);
+        }
+
+        /// <summary>
+        /// Checkpoints <see cref="TimeSeriesPredictionFunction{TSrc, TDst}"/> to a <see cref="Stream"/> with the updated
+        /// state.
+        /// </summary>
+        /// <param name="env">Usually <see cref="MLContext"/>.</param>
+        /// <param name="stream">Stream where the updated model needs to be saved.</param>
+        /// <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        /// This is an example for checkpointing time series that detects change point using Singular Spectrum Analysis (SSA) model.
+        /// [!code-csharp[MF](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/TimeSeries/DetectChangePointBySsaStream.cs)]
+        /// ]]>
+        /// </format>
+        /// </example>
+        public void CheckPoint(IHostEnvironment env, Stream stream)
+        {
                 if (Transformer is ITransformerChainAccessor)
                 {
 
                     new TransformerChain<ITransformer>
                     (((ITransformerChainAccessor)Transformer).Transformers,
-                    ((ITransformerChainAccessor)Transformer).Scopes).SaveTo(env, file);
+                    ((ITransformerChainAccessor)Transformer).Scopes).SaveTo(env, stream);
                 }
                 else
-                    Transformer.SaveTo(env, file);
+                    Transformer.SaveTo(env, stream);
         }
 
         private static ITransformer CloneTransformers(ITransformer transformer)
