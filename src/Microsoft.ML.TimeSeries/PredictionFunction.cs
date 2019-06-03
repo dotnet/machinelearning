@@ -69,12 +69,15 @@ namespace Microsoft.ML.Transforms.TimeSeries
         /// <format type="text/markdown">
         /// <![CDATA[
         /// This is an example for checkpointing time series that detects change point using Singular Spectrum Analysis (SSA) model.
-        /// [!code-csharp[MF](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/TimeSeries/DetectChangePointBySsa.cs)]
+        /// [!code-csharp[Checkpoint](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/TimeSeries/DetectChangePointBySsa.cs)]
         /// ]]>
         /// </format>
         /// </example>
         public void CheckPoint(IHostEnvironment env, string modelPath)
         {
+            Contracts.CheckValue(env, nameof(env));
+            env.CheckParam(!string.IsNullOrEmpty(modelPath), nameof(modelPath));
+
             using (var file = File.Create(modelPath))
                 CheckPoint(env, file);
         }
@@ -89,13 +92,16 @@ namespace Microsoft.ML.Transforms.TimeSeries
         /// <format type="text/markdown">
         /// <![CDATA[
         /// This is an example for checkpointing time series that detects change point using Singular Spectrum Analysis (SSA) model.
-        /// [!code-csharp[MF](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/TimeSeries/DetectChangePointBySsaStream.cs)]
+        /// [!code-csharp[Checkpoint](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/TimeSeries/DetectChangePointBySsaStream.cs)]
         /// ]]>
         /// </format>
         /// </example>
         public void CheckPoint(IHostEnvironment env, Stream stream)
         {
-                if (Transformer is ITransformerChainAccessor)
+            Contracts.CheckValue(env, nameof(env));
+            env.CheckParam(stream != null, nameof(stream));
+
+            if (Transformer is ITransformerChainAccessor)
                 {
 
                     new TransformerChain<ITransformer>
