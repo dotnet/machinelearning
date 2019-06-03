@@ -445,5 +445,73 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             Assert.True(metrics.MeanAbsoluteError < 0.25);
             Assert.True(metrics.MeanSquaredError < 0.1);
         }
+
+        [Fact]
+        public void TestFastTreeTweedieFeaturizationInPipeline()
+        {
+            int dataPointCount = 200;
+            var data = SamplesUtils.DatasetUtils.GenerateFloatLabelFloatFeatureVectorSamples(dataPointCount).ToList();
+            var dataView = ML.Data.LoadFromEnumerable(data);
+
+            var trainerOptions = new FastTreeTweedieTrainer.Options
+            {
+                    NumberOfThreads = 1,
+                    NumberOfTrees = 10,
+                    NumberOfLeaves = 4,
+                    MinimumExampleCountPerLeaf = 10,
+                    FeatureColumnName = "Features",
+                    LabelColumnName = "Label"
+            };
+
+            var options = new FastTreeTweedieFeaturizationEstimator.Options()
+            {
+                InputColumnName = "Features",
+                TrainerOptions = trainerOptions
+            };
+
+            var pipeline = ML.Transforms.FastTreeTweedieFeaturizing(options).
+                Append(ML.Transforms.Concatenate("CombinedFeatures", "Features", "Trees", "Leaves", "Paths")).
+                Append(ML.Regression.Trainers.Sdca("Label", "CombinedFeatures"));
+            var model = pipeline.Fit(dataView);
+            var prediction = model.Transform(dataView);
+            var metrics = ML.Regression.Evaluate(prediction);
+
+            Assert.True(metrics.MeanAbsoluteError < 0.25);
+            Assert.True(metrics.MeanSquaredError < 0.1);
+        }
+
+        [Fact]
+        public void TestFastTreeRankingFeaturizationInPipeline()
+        {
+            int dataPointCount = 200;
+            var data = SamplesUtils.DatasetUtils.GenerateFloatLabelFloatFeatureVectorSamples(dataPointCount).ToList();
+            var dataView = ML.Data.LoadFromEnumerable(data);
+
+            var trainerOptions = new FastTreeRankingTrainer.Options
+            {
+                    NumberOfThreads = 1,
+                    NumberOfTrees = 10,
+                    NumberOfLeaves = 4,
+                    MinimumExampleCountPerLeaf = 10,
+                    FeatureColumnName = "Features",
+                    LabelColumnName = "Label"
+            };
+
+            var options = new FastTreeRankingFeaturizationEstimator.Options()
+            {
+                InputColumnName = "Features",
+                TrainerOptions = trainerOptions
+            };
+
+            var pipeline = ML.Transforms.FastTreeRankingFeaturizing(options).
+                Append(ML.Transforms.Concatenate("CombinedFeatures", "Features", "Trees", "Leaves", "Paths")).
+                Append(ML.Regression.Trainers.Sdca("Label", "CombinedFeatures"));
+            var model = pipeline.Fit(dataView);
+            var prediction = model.Transform(dataView);
+            var metrics = ML.Regression.Evaluate(prediction);
+
+            Assert.True(metrics.MeanAbsoluteError < 0.25);
+            Assert.True(metrics.MeanSquaredError < 0.1);
+        }
     }
 }

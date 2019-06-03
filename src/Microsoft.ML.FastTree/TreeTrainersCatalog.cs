@@ -9,9 +9,9 @@ using Microsoft.ML.Trainers.FastTree;
 namespace Microsoft.ML
 {
     /// <summary>
-    /// Collection of extension methods used by <see cref="RegressionCatalog"/>,
-    ///  <see cref="BinaryClassificationCatalog"/>, <see cref="MulticlassClassificationCatalog"/>,
-    ///  and <see cref="RankingCatalog"/> to create instances of decision tree trainers.
+    /// Collection of extension methods used by <see cref="RegressionCatalog"/>, <see cref="BinaryClassificationCatalog"/>,
+    /// <see cref="MulticlassClassificationCatalog"/>, <see cref="RankingCatalog"/>, and <see cref="TransformsCatalog"/>
+    /// to create instances of decision tree trainers and featurizers.
     /// </summary>
     public static class TreeExtensions
     {
@@ -475,6 +475,22 @@ namespace Microsoft.ML
             Contracts.CheckValue(catalog, nameof(catalog));
             var env = CatalogUtils.GetEnvironment(catalog);
             return new FastTreeBinaryFeaturizationEstimator(env, options);
+        }
+
+        public static FastTreeRankingFeaturizationEstimator FastTreeRankingFeaturizing(this TransformsCatalog catalog,
+            FastTreeRankingFeaturizationEstimator.Options options)
+        {
+            Contracts.CheckValue(catalog, nameof(catalog));
+            var env = CatalogUtils.GetEnvironment(catalog);
+            return new FastTreeRankingFeaturizationEstimator(env, options);
+        }
+
+        public static FastTreeTweedieFeaturizationEstimator FastTreeTweedieFeaturizing(this TransformsCatalog catalog,
+            FastTreeTweedieFeaturizationEstimator.Options options)
+        {
+            Contracts.CheckValue(catalog, nameof(catalog));
+            var env = CatalogUtils.GetEnvironment(catalog);
+            return new FastTreeTweedieFeaturizationEstimator(env, options);
         }
     }
 }

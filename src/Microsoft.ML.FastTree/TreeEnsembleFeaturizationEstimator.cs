@@ -230,4 +230,50 @@ namespace Microsoft.ML.Trainers.FastTree
             return trained.Model;
         }
     }
+
+    public sealed class FastTreeRankingFeaturizationEstimator : FeaturizationEstimatorBase
+    {
+        private readonly FastTreeRankingTrainer.Options _trainerOptions;
+
+        public sealed class Options : CommonOptions
+        {
+            public FastTreeRankingTrainer.Options TrainerOptions;
+        }
+
+        internal FastTreeRankingFeaturizationEstimator(IHostEnvironment env, Options options)
+            : base(env, options)
+        {
+            _trainerOptions = options.TrainerOptions;
+        }
+
+        private protected override TreeEnsembleModelParameters PrepareModel(IDataView input)
+        {
+            var trainer = new FastTreeRankingTrainer(Env, _trainerOptions);
+            var trained = trainer.Fit(input);
+            return trained.Model;
+        }
+    }
+
+    public sealed class FastTreeTweedieFeaturizationEstimator : FeaturizationEstimatorBase
+    {
+        private readonly FastTreeTweedieTrainer.Options _trainerOptions;
+
+        public sealed class Options : CommonOptions
+        {
+            public FastTreeTweedieTrainer.Options TrainerOptions;
+        }
+
+        internal FastTreeTweedieFeaturizationEstimator(IHostEnvironment env, Options options)
+            : base(env, options)
+        {
+            _trainerOptions = options.TrainerOptions;
+        }
+
+        private protected override TreeEnsembleModelParameters PrepareModel(IDataView input)
+        {
+            var trainer = new FastTreeTweedieTrainer(Env, _trainerOptions);
+            var trained = trainer.Fit(input);
+            return trained.Model;
+        }
+    }
 }
