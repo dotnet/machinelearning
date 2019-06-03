@@ -704,4 +704,31 @@ namespace Microsoft.ML
             return eval.Evaluate(data, labelColumnName, scoreColumnName, predictedLabelColumnName);
         }
     }
+
+    /// <summary>
+    /// Class used by <see cref="MLContext"/> to create instances of forecasting components.
+    /// </summary>
+    public sealed class ForecastingCatalog : TrainCatalogBase
+    {
+        /// <summary>
+        /// The list of trainers for performing forecasting.
+        /// </summary>
+        public Forecasters Trainers { get; }
+
+        internal ForecastingCatalog(IHostEnvironment env) : base(env, nameof(ForecastingCatalog))
+        {
+            Trainers = new Forecasters(this);
+        }
+
+        /// <summary>
+        /// Class used by <see cref="MLContext"/> to create instances of forecasting trainers.
+        /// </summary>
+        public sealed class Forecasters : CatalogInstantiatorBase
+        {
+            internal Forecasters(ForecastingCatalog catalog)
+                : base(catalog)
+            {
+            }
+        }
+    }
 }

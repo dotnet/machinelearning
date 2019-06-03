@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.IO;
 using Microsoft.ML.Data;
 using Microsoft.ML.TestFramework.Attributes;
+using Microsoft.ML.TimeSeries;
 using Microsoft.ML.Transforms.TimeSeries;
 using Xunit;
 
@@ -333,6 +334,104 @@ namespace Microsoft.ML.Tests
                     Assert.Equal(0, prediction.Prediction[0]);
                 k += 1;
             }
+        }
+
+        [Fact]
+        public void Forecasting()
+        {
+            const int SeasonalitySize = 10;
+            const int NumberOfSeasonsInTraining = 5;
+
+            List<Data> data = new List<Data>();
+
+            var ml = new MLContext(seed: 1);
+            var dataView = ml.Data.LoadFromEnumerable<Data>(data);
+
+            for (int j = 0; j < NumberOfSeasonsInTraining; j++)
+                for (int i = 0; i < SeasonalitySize; i++)
+                    data.Add(new Data(i));
+
+            // Create forecasting model.
+            var model = ml.Forecasting.AdaptiveSingularSpectrumSequenceModeler("Value", data.Count, SeasonalitySize + 1, SeasonalitySize,
+                1, AdaptiveSingularSpectrumSequenceModeler.RankSelectionMethod.Exact, null, SeasonalitySize / 2, false, false);
+
+            // Train.
+            model.Train(dataView);
+
+            // Forecast.
+            var forecast = model.Forecast(5);
+
+            // Update with new observations.
+            model.Update(dataView);
+
+            // Checkpoint.
+            ml.Model.SaveForecastingModel(model, "model.zip");
+
+            // Load the checkpointed model from disk.
+            var modelCopy = ml.Model.LoadForecastingModel<float>("model.zip");
+
+            // Forecast with the checkpointed model loaded from disk.
+            var forecastCopy = modelCopy.Forecast(5);
+
+            // Forecast with the original model(that was checkpointed to disk).
+            forecast = model.Forecast(5);
+
+            // Both the forecasted values from model loaded from disk and 
+            // already in memory model should be the same.
+            Assert.Equal(forecast, forecastCopy);
+        }
+
+        [Fact]
+        public void ForecastingWithConfidenceInterval()
+        {
+            const int SeasonalitySize = 10;
+            const int NumberOfSeasonsInTraining = 5;
+
+            List<Data> data = new List<Data>();
+
+            var ml = new MLContext(seed: 1);
+            var dataView = ml.Data.LoadFromEnumerable<Data>(data);
+
+            for (int j = 0; j < NumberOfSeasonsInTraining; j++)
+                for (int i = 0; i < SeasonalitySize; i++)
+                    data.Add(new Data(i));
+
+            // Create forecasting model.
+            var model = ml.Forecasting.AdaptiveSingularSpectrumSequenceModeler("Value", data.Count, SeasonalitySize + 1, SeasonalitySize,
+                1, AdaptiveSingularSpectrumSequenceModeler.RankSelectionMethod.Exact, null, SeasonalitySize / 2, shouldComputeForecastIntervals: true, false);
+
+            // Train.
+            model.Train(dataView);
+
+            // Forecast.
+            float[] forecast;
+            float[] lowConfInterval;
+            float[] upperConfInterval;
+            model.ForecastWithConfidenceIntervals(5, out forecast, out lowConfInterval, out upperConfInterval);
+
+            // Update with new observations.
+            model.Update(dataView);
+
+            // Checkpoint.
+            ml.Model.SaveForecastingModel(model, "model.zip");
+
+            // Load the checkpointed model from disk.
+            var modelCopy = ml.Model.LoadForecastingModel<float>("model.zip");
+
+            // Forecast with the checkpointed model loaded from disk.
+            float[] forecastCopy;
+            float[] lowConfIntervalCopy;
+            float[] upperConfIntervalCopy;
+            modelCopy.ForecastWithConfidenceIntervals(5, out forecastCopy, out lowConfIntervalCopy, out upperConfIntervalCopy);
+
+            // Forecast with the original model(that was checkpointed to disk).
+            model.ForecastWithConfidenceIntervals(5, out forecast, out lowConfInterval, out upperConfInterval);
+
+            // Both the forecasted values from model loaded from disk and 
+            // already in memory model should be the same.
+            Assert.Equal(forecast, forecastCopy);
+            Assert.Equal(lowConfInterval, lowConfIntervalCopy);
+            Assert.Equal(upperConfInterval, upperConfIntervalCopy);
         }
     }
 }
