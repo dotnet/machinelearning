@@ -50,7 +50,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
             private Double _growth;
 
             /// <summary>
-            /// Time span of growth ratio. Must be strictly positibe.
+            /// Time span of growth ratio. Must be strictly positive.
             /// </summary>
             public int TimeSpan
             {
