@@ -7,7 +7,7 @@ using Microsoft.ML.Transforms.TimeSeries;
 
 namespace Samples.Dynamic
 {
-    public static class DetectChangePointBySsa
+    public static class DetectChangePointBySsaStream
     {
         // This example creates a time series (list of Data with the i-th element corresponding to the i-th time slot). 
         // It demonstrates stateful prediction engine that updates the state of the model and allows for saving/reloading.
@@ -62,7 +62,7 @@ namespace Samples.Dynamic
             // Start streaming new data points with no change point to the prediction engine.
             Console.WriteLine($"Output from ChangePoint predictions on new data:");
             Console.WriteLine("Data\tAlert\tScore\tP-Value\tMartingale value");
-            
+
             // Output from ChangePoint predictions on new data:
             // Data    Alert   Score   P-Value Martingale value
 
@@ -91,12 +91,16 @@ namespace Samples.Dynamic
 
             // Save the model that exists within the prediction engine.
             // The engine has been updating this model with every new data point.
-            var modelPath = "model.zip";
-            engine.CheckPoint(ml, modelPath);
+            byte[] modelBytes;
+            using (var stream = new MemoryStream())
+            {
+                engine.CheckPoint(ml, stream);
+                modelBytes = stream.ToArray();
+            }
 
             // Load the model.
-            using (var file = File.OpenRead(modelPath))
-                model = ml.Model.Load(file, out DataViewSchema schema);
+            using (var stream = new MemoryStream(modelBytes))
+                model = ml.Model.Load(stream, out DataViewSchema schema);
 
             // We must create a new prediction engine from the persisted model.
             engine = model.CreateTimeSeriesPredictionFunction<TimeSeriesData, ChangePointPrediction>(ml);
