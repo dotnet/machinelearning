@@ -20,7 +20,6 @@ namespace Microsoft.ML.AutoML.Test
         public void SmallDataViewTest()
         {
             var dataView = BuildTestDataView(5);
-            var preview = dataView.Preview();
             var sampledDataView = new ReservoirSampledDataView(dataView, 10);
 
             var cursor = sampledDataView.GetRowCursor(sampledDataView.Schema);
@@ -55,7 +54,6 @@ namespace Microsoft.ML.AutoML.Test
         public void Test()
         {
             var dataView = BuildTestDataView(1000);
-            var preview = dataView.Preview();
             var sampledDataView = new ReservoirSampledDataView(dataView, 100);
 
             var cursor = sampledDataView.GetRowCursor(sampledDataView.Schema);

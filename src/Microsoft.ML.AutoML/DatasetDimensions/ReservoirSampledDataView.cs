@@ -117,9 +117,9 @@ namespace Microsoft.ML.AutoML
                 else
                 {
                     // Reservoir sample row
-                    var idx = GetRandomLong(rowIdx + 1);
-                    if (idx < _sampleSize)
+                    if (_random.NextDouble() * (rowIdx + 1) < _sampleSize)
                     {
+                        var idx = (long)(_random.NextDouble() * _sampleSize);
                         sampleBuilder.StoreNextRow(idx);
                     }
                     else
@@ -138,14 +138,6 @@ namespace Microsoft.ML.AutoML
         private Delegate GetGetter<T>(DataViewRowCursor cursor, int i)
         {
             return cursor.GetGetter<T>(Schema[i]);
-        }
-
-        private long GetRandomLong(long max)
-        {
-            var bytes = new byte[8];
-            _random.NextBytes(bytes);
-            var longRand = BitConverter.ToInt64(bytes, 0);
-            return Math.Abs(longRand % max);
         }
 
         /// <summary>
