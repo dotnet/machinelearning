@@ -37,7 +37,7 @@ namespace Microsoft.ML
 
         /// <summary>
         /// Create <see cref="IidSpikeEstimator"/>, which predicts spikes in
-        /// <a href="https://en.wikipedia.org/wiki/Independent_and_identically_distributed_random_variables">independent identically distributed (i.i.d.)</a>
+        /// <a href="https://en.wikipedia.org/wiki/Independent_and_identically_distributed_random_variables"> independent identically distributed (i.i.d.)</a>
         /// time series based on adaptive kernel density estimations and martingale scores.
         /// </summary>
         /// <param name="catalog">The transform's catalog.</param>
@@ -132,10 +132,10 @@ namespace Microsoft.ML
         /// The column data is a vector of <see cref="System.Double"/>. The vector contains 3 elements: alert (1 means anomaly while 0 means normal), raw score, and magnitude of spectual residual.</param>
         /// <param name="inputColumnName">Name of column to transform. The column data must be <see cref="System.Single"/>.</param>
         /// <param name="windowSize">The size of the sliding window for computing spectral residual.</param>
-        /// <param name="backAddWindowSize">The number of points to add back of training window. No more than windowSize, usually keep default value.</param>
-        /// <param name="lookaheadWindowSize">The number of pervious points used in prediction. No more than windowSize, usually keep default value.</param>
-        /// <param name="averageingWindowSize">The size of sliding window to generate a saliency map for the series. No more than windowSize, usually keep default value.</param>
-        /// <param name="judgementWindowSize">The size of sliding window to calculate the anomaly score for each data point. No more than windowSize.</param>
+        /// <param name="backAddWindowSize">The number of points to add back of training window. No more than <paramref name="windowSize"/>, usually keep default value.</param>
+        /// <param name="lookaheadWindowSize">The number of pervious points used in prediction. No more than <paramref name="windowSize"/>, usually keep default value.</param>
+        /// <param name="averageingWindowSize">The size of sliding window to generate a saliency map for the series. No more than <paramref name="windowSize"/>, usually keep default value.</param>
+        /// <param name="judgementWindowSize">The size of sliding window to calculate the anomaly score for each data point. No more than <paramref name="windowSize"/>.</param>
         /// <param name="threshold">The threshold to determine anomaly, score larger than the threshold is considered as anomaly. Should be in (0,1)</param>
         /// <example>
         /// <format type="text/markdown">
@@ -155,14 +155,14 @@ namespace Microsoft.ML
         /// <param name="catalog">Catalog.</param>
         /// <param name="inputColumnName">The name of the column on which forecasting needs to be performed.</param>
         /// <param name="trainSize">The length of series from the begining used for training.</param>
-        /// <param name="seriesLength">The length of series that is kept in buffer for modeling (parameter N).</param>
-        /// <param name="windowSize">The length of the window on the series for building the trajectory matrix (parameter L).</param>
+        /// <param name="seriesLength">The length of series that is kept in buffer for modeling (parameter N from reference papar).</param>
+        /// <param name="windowSize">The length of the window on the series for building the trajectory matrix (parameter L from reference papar).</param>
         /// <param name="discountFactor">The discount factor in [0,1] used for online updates (default = 1).</param>
         /// <param name="rankSelectionMethod">The rank selection method (default = Exact).</param>
-        /// <param name="rank">The desired rank of the subspace used for SSA projection (parameter r). This parameter should be in the range in [1, windowSize].
+        /// <param name="rank">The desired rank of the subspace used for SSA projection (parameter r from reference papar). This parameter should be in the range in [1, <paramref name="windowSize"/>].
         /// If set to null, the rank is automatically determined based on prediction error minimization. (default = null)</param>
-        /// <param name="maxRank">The maximum rank considered during the rank selection process. If not provided (i.e. set to null), it is set to windowSize - 1.</param>
-        /// <param name="shouldComputeForecastIntervals">The flag determining whether the confidence bounds for the point forecasts should be computed. (default = true)</param>
+        /// <param name="maxRank">The maximum rank considered during the rank selection process. If not provided (i.e. set to null), it is set to <paramref name="windowSize"/> - 1.</param>
+        /// <param name="shouldComputeForecastIntervals">The flag determining whether the confidence bounds for the point forecasts should be computed. (default = <see langword="true"/>)</param>
         /// <param name="shouldstablize">The flag determining whether the model should be stabilized.</param>
         /// <param name="shouldMaintainInfo">The flag determining whether the meta information for the model needs to be maintained.</param>
         /// <param name="maxGrowth">The maximum growth on the exponential trend</param>

@@ -17,7 +17,7 @@ namespace Microsoft.ML.TimeSeries
         /// <summary>
         /// Train a forecasting model from an <see cref="IDataView"/>.
         /// </summary>
-        /// <param name="dataView">Reference to the <see cref="IDataView"/></param>
+        /// <param name="dataView">Training data.</param>
         void Train(IDataView dataView);
 
         /// <summary>
@@ -41,19 +41,19 @@ namespace Microsoft.ML.TimeSeries
         /// <param name="forecast">Forecasted values</param>
         /// <param name="confidenceIntervalLowerBounds">Lower bound confidence intervals of forecasted values.</param>
         /// <param name="confidenceIntervalUpperBounds">Upper bound confidence intervals of forecasted values.</param>
-        /// <param name="confidenceLevel">Confidence level.</param>
+        /// <param name="confidenceLevel">Forecast confidence level.</param>
         void ForecastWithConfidenceIntervals(int horizon, out T[] forecast, out float[] confidenceIntervalLowerBounds, out float[] confidenceIntervalUpperBounds, float confidenceLevel = 0.95f);
     }
 
     public static class ForecastExtensions
     {
         /// <summary>
-        /// Load a forecasting model.
+        /// Load a <see cref="ICanForecast{T}"/> model.
         /// </summary>
-        /// <typeparam name="T">The type of <see cref="ICanForecast{T}"/>, usually float. </typeparam>
+        /// <typeparam name="T">The type of <see cref="ICanForecast{T}"/>, usually float.</typeparam>
         /// <param name="catalog"><see cref="ModelOperationsCatalog"/></param>
-        /// <param name="filePath">File path to save the model to.</param>
-        /// <returns></returns>
+        /// <param name="filePath">File path to load the model from.</param>
+        /// <returns><see cref="ICanForecast{T}"/> model.</returns>
         public static ICanForecast<T> LoadForecastingModel<T>(this ModelOperationsCatalog catalog, string filePath)
         {
             var env = CatalogUtils.GetEnvironment(catalog);
@@ -68,12 +68,12 @@ namespace Microsoft.ML.TimeSeries
         }
 
         /// <summary>
-        /// Save a forecasting model.
+        /// Save a <see cref="ICanForecast{T}"/> model to a file specified by <paramref name="filePath"/>
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="catalog"><see cref="ModelOperationsCatalog"/></param>
-        /// <param name="model">Model to save.</param>
-        /// <param name="filePath">File path to load the model from.</param>
+        /// <param name="model"><see cref="ICanForecast{T}"/> model to save.</param>
+        /// <param name="filePath">File path to save the model to.</param>
         public static void SaveForecastingModel<T>(this ModelOperationsCatalog catalog, ICanForecast<T> model, string filePath)
         {
             var env = CatalogUtils.GetEnvironment(catalog);

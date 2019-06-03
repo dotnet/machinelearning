@@ -32,7 +32,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
     public sealed class AdaptiveSingularSpectrumSequenceModeler : ICanForecast<float>
     {
         /// <summary>
-        /// Ranking selection method.
+        /// Ranking selection method for the signal.
         /// </summary>
         public enum RankSelectionMethod
         {
@@ -1697,7 +1697,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
         /// <param name="forecast">Forecasted values</param>
         /// <param name="confidenceIntervalLowerBounds">Lower bound confidence intervals of forecasted values.</param>
         /// <param name="confidenceIntervalUpperBounds">Upper bound confidence intervals of forecasted values.</param>
-        /// <param name="confidenceLevel">Confidence level.</param>
+        /// <param name="confidenceLevel">Forecast confidence level.</param>
         public void ForecastWithConfidenceIntervals(int horizon, out float[] forecast, out float[] confidenceIntervalLowerBounds, out float[] confidenceIntervalUpperBounds, float confidenceLevel = 0.95f) =>
             _modeler.ForecastWithConfidenceIntervals(horizon, out forecast, out confidenceIntervalLowerBounds, out confidenceIntervalUpperBounds, confidenceLevel);
     }
