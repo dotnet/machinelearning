@@ -26,8 +26,7 @@ namespace Microsoft.ML
         /// binary classifier predictors that also do not have a natural probabilistic interpretation should have a
         /// <see langword="true"/> value here.
         /// </summary>
-        [BestFriend]
-        internal bool NeedCalibration { get; }
+        public bool NeedCalibration { get; }
 
         /// <summary>
         /// Whether this trainer could benefit from a cached view of the data. Trainers that have few passes over the
