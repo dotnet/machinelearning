@@ -102,4 +102,8 @@ None
 
 ## **Remarks**
 - [Microsoft.ML.TensorFlow](https://www.nuget.org/packages/Microsoft.ML.TensorFlow/)
-  has been upgraded from 0.12(preview) to 1.0(release).
+  and
+  [Microsoft.ML.TimeSeries](https://www.nuget.org/packages/Microsoft.ML.TimeSeries/)
+  nugets are expected to be upgraded to release(v1.0) in
+  [ML.NET](http://dot.net/ml) 1.2 release. Please give them a try and provide
+  any feedback.
