@@ -35,8 +35,8 @@ namespace Microsoft.ML.AutoML
 
             if (!trainDatasets.Any())
             {
-                throw new InvalidOperationException("All cross validation folds have empty train or test data. Perhaps " +
-                    "try increasing the number of rows provided in training data, or lowering specified number of " +
+                throw new InvalidOperationException("All cross validation folds have empty train or test data. " +
+                    "Try increasing the number of rows provided in training data, or lowering specified number of " +
                     "cross validation folds.");
             }
 
