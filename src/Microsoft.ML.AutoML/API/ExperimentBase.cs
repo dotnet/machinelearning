@@ -162,9 +162,7 @@ namespace Microsoft.ML.AutoML
         {
             if (validationData == null)
             {
-                var splitResult = SplitUtil.TrainValidateSplit(Context, trainData, columnInformation?.SamplingKeyColumnName);
-                trainData = splitResult.trainData;
-                validationData = splitResult.validationData;
+                return Execute(trainData, columnInformation, preFeaturizer, progressHandler);
             }
             return ExecuteTrainValidate(trainData, columnInformation, validationData, preFeaturizer, progressHandler);
         }
