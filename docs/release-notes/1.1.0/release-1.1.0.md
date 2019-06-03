@@ -75,6 +75,7 @@
   [PR#3676](https://github.com/dotnet/machinelearning/pull/3676)
 - Fix to the official build due to API Compat tool change by
   [PR#3667](https://github.com/dotnet/machinelearning/pull/3667)
+- Check for number of input columns in concat transform by [PR#3809](https://github.com/dotnet/machinelearning/pull/3809)
 
 ## **Breaking Changes**
 None
