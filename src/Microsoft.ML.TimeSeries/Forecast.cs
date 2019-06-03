@@ -36,8 +36,6 @@ namespace Microsoft.ML.TimeSeries
 
         /// <summary>
         /// Perform forecasting until a particular <paramref name="horizon"/> and also computes confidence intervals.
-        /// For confidence intervals to be computed the model must be trained with <see cref="AdaptiveSingularSpectrumSequenceModelerInternal.ShouldComputeForecastIntervals"/>
-        /// set to true.
         /// </summary>
         /// <param name="horizon">Number of values to forecast.</param>
         /// <param name="forecast">Forecasted values</param>

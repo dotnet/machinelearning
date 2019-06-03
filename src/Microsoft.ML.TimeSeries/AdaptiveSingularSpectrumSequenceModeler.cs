@@ -4,7 +4,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Numerics;
 using Microsoft.ML;
 using Microsoft.ML.Data;
@@ -13,7 +12,6 @@ using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.TimeSeries;
 using Microsoft.ML.Transforms.TimeSeries;
-using static Microsoft.ML.Transforms.TimeSeries.AdaptiveSingularSpectrumSequenceModeler;
 
 [assembly: LoadableClass(typeof(AdaptiveSingularSpectrumSequenceModeler.AdaptiveSingularSpectrumSequenceModelerInternal),
     typeof(AdaptiveSingularSpectrumSequenceModeler.AdaptiveSingularSpectrumSequenceModelerInternal), null, typeof(SignatureLoadModel),
@@ -44,13 +42,16 @@ namespace Microsoft.ML.Transforms.TimeSeries
         }
 
         /// <summary>
-        /// Growth ratio.
+        /// Growth ratio. Defined as Growth^(1/TimeSpan).
         /// </summary>
         public struct GrowthRatio
         {
             private int _timeSpan;
             private Double _growth;
 
+            /// <summary>
+            /// Time span of growth ratio. Must be strictly positibe.
+            /// </summary>
             public int TimeSpan
             {
                 get
@@ -64,6 +65,9 @@ namespace Microsoft.ML.Transforms.TimeSeries
                 }
             }
 
+            /// <summary>
+            /// Growth. Must be non-negative.
+            /// </summary>
             public Double Growth
             {
                 get
@@ -1662,7 +1666,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
         /// Update a forecasting model with the new observations in the form of an <see cref="IDataView"/>.
         /// </summary>
         /// <param name="dataView">Reference to the observations as an <see cref="IDataView"/></param>
-        /// <param name="inputColumnName">Name of the input column to update from.</param>
+        /// <param name="inputColumnName">Name of the input column to update from. If null then input column name specified at model initiation is taken as default.</param>
         public void Update(IDataView dataView, string inputColumnName = null) => _modeler.Update(dataView, inputColumnName ?? _inputColumnName);
 
         /// <summary>
@@ -1696,32 +1700,5 @@ namespace Microsoft.ML.Transforms.TimeSeries
         /// <param name="confidenceLevel">Confidence level.</param>
         public void ForecastWithConfidenceIntervals(int horizon, out float[] forecast, out float[] confidenceIntervalLowerBounds, out float[] confidenceIntervalUpperBounds, float confidenceLevel = 0.95f) =>
             _modeler.ForecastWithConfidenceIntervals(horizon, out forecast, out confidenceIntervalLowerBounds, out confidenceIntervalUpperBounds, confidenceLevel);
-    }
-
-    public static class ForecastingCatalogExtension
-    {
-        /// <summary>
-        /// Singular Spectrum Analysis (SSA) model for modeling univariate time-series.
-        /// For the details of the model, refer to http://arxiv.org/pdf/1206.6910.pdf.
-        /// </summary>
-        /// <param name="catalog">Catalog.</param>
-        /// <param name="inputColumnName">The name of the column on which forecasting needs to be performed.</param>
-        /// <param name="trainSize">The length of series from the begining used for training.</param>
-        /// <param name="seriesLength">The length of series that is kept in buffer for modeling (parameter N).</param>
-        /// <param name="windowSize">The length of the window on the series for building the trajectory matrix (parameter L).</param>
-        /// <param name="discountFactor">The discount factor in [0,1] used for online updates (default = 1).</param>
-        /// <param name="rankSelectionMethod">The rank selection method (default = Exact).</param>
-        /// <param name="rank">The desired rank of the subspace used for SSA projection (parameter r). This parameter should be in the range in [1, windowSize].
-        /// If set to null, the rank is automatically determined based on prediction error minimization. (default = null)</param>
-        /// <param name="maxRank">The maximum rank considered during the rank selection process. If not provided (i.e. set to null), it is set to windowSize - 1.</param>
-        /// <param name="shouldComputeForecastIntervals">The flag determining whether the confidence bounds for the point forecasts should be computed. (default = true)</param>
-        /// <param name="shouldstablize">The flag determining whether the model should be stabilized.</param>
-        /// <param name="shouldMaintainInfo">The flag determining whether the meta information for the model needs to be maintained.</param>
-        /// <param name="maxGrowth">The maximum growth on the exponential trend</param>
-        public static AdaptiveSingularSpectrumSequenceModeler AdaptiveSingularSpectrumSequenceModeler(this ForecastingCatalog catalog,
-            string inputColumnName, int trainSize, int seriesLength, int windowSize, Single discountFactor = 1, RankSelectionMethod rankSelectionMethod = RankSelectionMethod.Exact,
-            int? rank = null, int? maxRank = null, bool shouldComputeForecastIntervals = true, bool shouldstablize = true, bool shouldMaintainInfo = false, GrowthRatio? maxGrowth = null) =>
-            new AdaptiveSingularSpectrumSequenceModeler(CatalogUtils.GetEnvironment(catalog), inputColumnName, trainSize, seriesLength, windowSize, discountFactor,
-            rankSelectionMethod, rank, maxRank, shouldComputeForecastIntervals, shouldstablize, shouldMaintainInfo, maxGrowth);
     }
 }
