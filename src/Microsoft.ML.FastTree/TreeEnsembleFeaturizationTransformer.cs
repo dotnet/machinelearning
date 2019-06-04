@@ -74,19 +74,24 @@ namespace Microsoft.ML.Trainers.FastTree
             // Store featureColumn as a detached column because a fitted transformer can be applied to different IDataViews and different
             // IDataView may have different schemas.
             _featureDetachedColumn = new DataViewSchema.DetachedColumn(featureColumn);
+
             // Check if featureColumn matches a column in inputSchema. The answer is yes if they have the same name and type.
             // The indexed column, inputSchema[featureColumn.Index], should match the detached column, _featureDetachedColumn.
             CheckFeatureColumnCompatibility(inputSchema[featureColumn.Index]);
+
             // Store output column names so that this transformer can be saved into a file later.
             _treesColumnName = treesColumnName;
             _leavesColumnName = leavesColumnName;
             _pathsColumnName = pathsColumnName;
+
             // Create an argument, _scorerArgs, to pass the output column names to the underlying scorer.
             _scorerArgs = new TreeEnsembleFeaturizerBindableMapper.Arguments {
                 TreesColumnName = _treesColumnName, LeavesColumnName = _leavesColumnName, PathsColumnName = _pathsColumnName };
+
             // Create a bindable mapper. It provides the core computation and can be attached to any IDataView and produce
             // a transformed IDataView.
             BindableMapper = new TreeEnsembleFeaturizerBindableMapper(env, _scorerArgs, modelParameters);
+
             // Create a scorer.
             var roleMappedSchema = MakeFeatureRoleMappedSchema(inputSchema);
             Scorer = new GenericScorer(Host, _scorerArgs, new EmptyDataView(Host, inputSchema), BindableMapper.Bind(Host, roleMappedSchema), roleMappedSchema);
@@ -98,19 +103,28 @@ namespace Microsoft.ML.Trainers.FastTree
             // *** Binary format ***
             // <base info>
             // string: feature column's name.
-            // string: output columns' suffix.
+            // string: the name of the columns where tree prediction values are stored.
+            // string: the name of the columns where trees' leave are stored.
+            // string: the name of the columns where trees' paths are stored.
 
+            // Load stored fields.
             string featureColumnName = ctx.LoadString();
             _featureDetachedColumn = new DataViewSchema.DetachedColumn(TrainSchema[featureColumnName]);
             _treesColumnName = ctx.LoadString();
             _leavesColumnName = ctx.LoadString();
             _pathsColumnName = ctx.LoadString();
 
-            BindableMapper = ScoreUtils.GetSchemaBindableMapper(Host, Model);
+            // Create an argument to specify output columns' names of this transformer.
+            _scorerArgs = new TreeEnsembleFeaturizerBindableMapper.Arguments {
+                TreesColumnName = _treesColumnName, LeavesColumnName = _leavesColumnName, PathsColumnName = _pathsColumnName };
 
-            var args = new GenericScorer.Arguments { Suffix = "" };
-            var schema = MakeFeatureRoleMappedSchema(TrainSchema);
-            Scorer = new GenericScorer(Host, args, new EmptyDataView(Host, TrainSchema), BindableMapper.Bind(Host, schema), schema);
+            // Create a bindable mapper. It provides the core computation and can be attached to any IDataView and produce
+            // a transformed IDataView.
+            BindableMapper = new TreeEnsembleFeaturizerBindableMapper(host, _scorerArgs, Model);
+
+            // Create a scorer.
+            var roleMappedSchema = MakeFeatureRoleMappedSchema(TrainSchema);
+            Scorer = new GenericScorer(Host, _scorerArgs, new EmptyDataView(Host, TrainSchema), BindableMapper.Bind(Host, roleMappedSchema), roleMappedSchema);
         }
 
         /// <summary>
@@ -132,9 +146,10 @@ namespace Microsoft.ML.Trainers.FastTree
             // *** Binary format ***
             // model: prediction model.
             // stream: empty data view that contains train schema.
-            // ids of strings: feature columns.
-            // float: scorer threshold
-            // id of string: scorer threshold column
+            // string: feature column name.
+            // string: the name of the columns where tree prediction values are stored.
+            // string: the name of the columns where trees' leave are stored.
+            // string: the name of the columns where trees' paths are stored.
 
             ctx.SaveModel(Model, DirModel);
             ctx.SaveBinaryStream(DirTransSchema, writer =>

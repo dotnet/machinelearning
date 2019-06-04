@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using Microsoft.ML.Data;
 using Microsoft.ML.Trainers.FastTree;
@@ -525,6 +526,130 @@ namespace Microsoft.ML.Tests.TrainerEstimators
 
             Assert.True(metrics.MeanAbsoluteError < 0.25);
             Assert.True(metrics.MeanSquaredError < 0.1);
+        }
+
+        [Fact]
+        public void TestSaveAndLoadTreeFeaturizer()
+        {
+            int dataPointCount = 200;
+            var data = SamplesUtils.DatasetUtils.GenerateFloatLabelFloatFeatureVectorSamples(dataPointCount).ToList();
+            var dataView = ML.Data.LoadFromEnumerable(data);
+
+            var trainerOptions = new FastForestRegressionTrainer.Options
+            {
+                    NumberOfThreads = 1,
+                    NumberOfTrees = 10,
+                    NumberOfLeaves = 4,
+                    MinimumExampleCountPerLeaf = 10,
+                    FeatureColumnName = "Features",
+                    LabelColumnName = "Label"
+            };
+
+            var options = new FastForestRegressionFeaturizationEstimator.Options()
+            {
+                InputColumnName = "Features",
+                TrainerOptions = trainerOptions
+            };
+
+            var pipeline = ML.Transforms.FastForestRegressionFeaturizing(options).
+                Append(ML.Transforms.Concatenate("CombinedFeatures", "Features", "Trees", "Leaves", "Paths")).
+                Append(ML.Regression.Trainers.Sdca("Label", "CombinedFeatures"));
+            var model = pipeline.Fit(dataView);
+            var prediction = model.Transform(dataView);
+            var metrics = ML.Regression.Evaluate(prediction);
+
+            Assert.True(metrics.MeanAbsoluteError < 0.25);
+            Assert.True(metrics.MeanSquaredError < 0.1);
+
+            // Save the trained model into file.
+            ITransformer loadedModel = null;
+            var tempPath = Path.GetTempFileName();
+            using (var file = new SimpleFileHandle(Env, tempPath, true, true))
+            {
+                using (var fs = file.CreateWriteStream())
+                    ML.Model.Save(model, null, fs);
+
+                using (var fs = file.OpenReadStream())
+                    loadedModel = ML.Model.Load(fs, out var schema);
+            }
+            var loadedPrediction = loadedModel.Transform(dataView);
+            var loadedMetrics = ML.Regression.Evaluate(loadedPrediction);
+
+            Assert.Equal(metrics.MeanAbsoluteError, loadedMetrics.MeanAbsoluteError);
+            Assert.Equal(metrics.MeanSquaredError, loadedMetrics.MeanSquaredError);
+        }
+
+        [Fact]
+        public void TestSaveAndLoadDoubleTreeFeaturizer()
+        {
+            int dataPointCount = 200;
+            var data = SamplesUtils.DatasetUtils.GenerateFloatLabelFloatFeatureVectorSamples(dataPointCount).ToList();
+            var dataView = ML.Data.LoadFromEnumerable(data);
+
+            var trainerOptions = new FastForestRegressionTrainer.Options
+            {
+                    NumberOfThreads = 1,
+                    NumberOfTrees = 10,
+                    NumberOfLeaves = 4,
+                    MinimumExampleCountPerLeaf = 10,
+                    FeatureColumnName = "Features",
+                    LabelColumnName = "Label"
+            };
+
+            // Trains tree featurization on "Features" and applies on "CopiedFeatures".
+            var options = new FastForestRegressionFeaturizationEstimator.Options()
+            {
+                InputColumnName = "CopiedFeatures",
+                TrainerOptions = trainerOptions,
+                TreesColumnName = "OhMyTrees",
+                LeavesColumnName = "OhMyLeaves",
+                PathsColumnName = "OhMyPaths"
+            };
+
+            var pipeline = ML.Transforms.CopyColumns("CopiedFeatures", "Features").
+                Append(ML.Transforms.FastForestRegressionFeaturizing(options)).
+                Append(ML.Transforms.Concatenate("CombinedFeatures", "Features", "OhMyTrees", "OhMyLeaves", "OhMyPaths")).
+                Append(ML.Regression.Trainers.Sdca("Label", "CombinedFeatures"));
+            var model = pipeline.Fit(dataView);
+            var prediction = model.Transform(dataView);
+            var metrics = ML.Regression.Evaluate(prediction);
+
+            Assert.True(metrics.MeanAbsoluteError < 0.25);
+            Assert.True(metrics.MeanSquaredError < 0.1);
+
+            // Save the trained model into file and then load it back.
+            ITransformer loadedModel = null;
+            var tempPath = Path.GetTempFileName();
+            using (var file = new SimpleFileHandle(Env, tempPath, true, true))
+            {
+                using (var fs = file.CreateWriteStream())
+                    ML.Model.Save(model, null, fs);
+
+                using (var fs = file.OpenReadStream())
+                    loadedModel = ML.Model.Load(fs, out var schema);
+            }
+
+            // Compute prediction using the loaded model.
+            var loadedPrediction = loadedModel.Transform(dataView);
+            var loadedMetrics = ML.Regression.Evaluate(loadedPrediction);
+
+            // Check if the loaded model produces the same result as the trained model.
+            Assert.Equal(metrics.MeanAbsoluteError, loadedMetrics.MeanAbsoluteError);
+            Assert.Equal(metrics.MeanSquaredError, loadedMetrics.MeanSquaredError);
+
+            var secondPipeline = ML.Transforms.CopyColumns("CopiedFeatures", "Features").
+                Append(ML.Transforms.NormalizeBinning("CopiedFeatures")).
+                Append(ML.Transforms.FastForestRegressionFeaturizing(options)).
+                Append(ML.Transforms.Concatenate("CombinedFeatures", "Features", "OhMyTrees", "OhMyLeaves", "OhMyPaths")).
+                Append(ML.Regression.Trainers.Sdca("Label", "CombinedFeatures"));
+            var secondModel = secondPipeline.Fit(dataView);
+            var secondPrediction = secondModel.Transform(dataView);
+            var secondMetrics = ML.Regression.Evaluate(secondPrediction);
+
+            // The second pipeline trains a tree featurizer on a bin-based normalized feature, so the second pipeline
+            // is different from the first pipeline.
+            Assert.NotEqual(metrics.MeanAbsoluteError, secondMetrics.MeanAbsoluteError);
+            Assert.NotEqual(metrics.MeanSquaredError, secondMetrics.MeanSquaredError);
         }
     }
 }
