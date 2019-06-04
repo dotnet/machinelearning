@@ -826,6 +826,15 @@ namespace Microsoft.ML.EntryPoints.Tests
             public float SepalWidth { get; }
         }
 
+        public class IrisPublicFields
+        {
+            [LoadColumn(0)]
+            public readonly float SepalLength;
+
+            [LoadColumn(1)]
+            public float SepalWidth;
+        }
+
         public class IrisPublicProperties
         {
             [LoadColumn(0)]
@@ -846,6 +855,11 @@ namespace Microsoft.ML.EntryPoints.Tests
             var oneIrisData = mlContext.Data.CreateEnumerable<IrisPublicProperties>(dataIris, false).First();
             Assert.True(oneIrisData.SepalLength != 0 && oneIrisData.SepalWidth != 0);
 
+            // Class with read only fields.
+            dataIris = mlContext.Data.CreateTextLoader<IrisPublicFields>(separatorChar: ',').Load(dataPath);
+            oneIrisData = mlContext.Data.CreateEnumerable<IrisPublicProperties>(dataIris, false).First();
+            Assert.True(oneIrisData.SepalLength != 0 && oneIrisData.SepalWidth != 0);
+
             // Class with no fields.
             try
             {
@@ -854,7 +868,7 @@ namespace Microsoft.ML.EntryPoints.Tests
             }
             catch (Exception ex)
             {
-                Assert.True(ex.Message == "Should define at least one public, readable field or property in TInput or provide a dataSample.\r\nParameter name: TInput");
+                Assert.StartsWith("Should define at least one public, readable field or property in TInput or provide a dataSample.", ex.Message);
             }
 
             // Class with no public readable fields.
@@ -865,7 +879,7 @@ namespace Microsoft.ML.EntryPoints.Tests
             }
             catch (Exception ex)
             {
-                Assert.True(ex.Message == "Should define at least one public, readable field or property in TInput or provide a dataSample.\r\nParameter name: TInput");
+                Assert.StartsWith("Should define at least one public, readable field or property in TInput or provide a dataSample.", ex.Message);
             }
         }
     }
