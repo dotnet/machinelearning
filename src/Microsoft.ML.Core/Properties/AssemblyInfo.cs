@@ -99,4 +99,6 @@ using Microsoft.ML;
 [assembly: InternalsVisibleTo(assemblyName: "TLC" + InternalPublicKey.Value)]
 [assembly: InternalsVisibleTo(assemblyName: "DotNetBridge" + InternalPublicKey.Value)]
 
+[assembly: InternalsVisibleTo(assemblyName: "Microsoft.ML.AutoML" + PublicKey.Value)]
+
 [assembly: WantsToBeBestFriends]
