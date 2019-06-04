@@ -10,20 +10,20 @@ namespace Microsoft.ML.CLI.Commands.New
 {
     internal class NewCommand : ICommand
     {
-        private readonly NewCommandSettings settings;
-        private readonly MlTelemetry telemetry;
+        private readonly NewCommandSettings _settings;
+        private readonly MlTelemetry _telemetry;
 
         internal NewCommand(NewCommandSettings settings, MlTelemetry telemetry)
         {
-            this.settings = settings;
-            this.telemetry = telemetry;
+            _settings = settings;
+            _telemetry = telemetry;
         }
 
         public void Execute()
         {
-            telemetry.LogAutoTrainMlCommand(settings.Dataset.Name, settings.MlTask.ToString(), settings.Dataset.Length);
+            _telemetry.LogAutoTrainMlCommand(_settings.Dataset.Name, _settings.MlTask.ToString(), _settings.Dataset.Length);
 
-            CodeGenerationHelper codeGenerationHelper = new CodeGenerationHelper(new AutoMLEngine(settings), settings); // Needs to be improved.
+            CodeGenerationHelper codeGenerationHelper = new CodeGenerationHelper(new AutoMLEngine(_settings), _settings); // Needs to be improved.
             codeGenerationHelper.GenerateCode();
         }
     }

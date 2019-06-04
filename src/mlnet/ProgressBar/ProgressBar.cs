@@ -13,7 +13,7 @@ namespace Microsoft.ML.CLI.ShellProgressBar
 {
     public class ProgressBar : ProgressBarBase, IProgressBar
     {
-        private static readonly bool IsWindows = RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
+        private static readonly bool _isWindows = RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
 
         private readonly ConsoleColor _originalColor;
         private readonly int _originalCursorTop;
@@ -21,7 +21,7 @@ namespace Microsoft.ML.CLI.ShellProgressBar
         private int _isDisposed;
 
         private Timer _timer;
-        private int _visibleDescendants = 0;
+        private int _visibleDescendants;
         private readonly AutoResetEvent _displayProgressEvent;
         private readonly Task _displayProgress;
 
@@ -41,10 +41,10 @@ namespace Microsoft.ML.CLI.ShellProgressBar
 
             Console.CursorVisible = false;
 
-            if (this.Options.EnableTaskBarProgress)
+            if (Options.EnableTaskBarProgress)
                 TaskbarProgress.SetState(TaskbarProgress.TaskbarStates.Normal);
 
-            if (this.Options.DisplayTimeInRealTime)
+            if (Options.DisplayTimeInRealTime)
                 _timer = new Timer((s) => OnTimerTick(), null, 500, 500);
             else //draw once
                 _timer = new Timer((s) =>
@@ -94,8 +94,8 @@ namespace Microsoft.ML.CLI.ShellProgressBar
         {
             public Indentation(ConsoleColor color, bool lastChild)
             {
-                this.ConsoleColor = color;
-                this.LastChild = lastChild;
+                ConsoleColor = color;
+                LastChild = lastChild;
             }
 
             public string Glyph => !LastChild ? "├─" : "└─";
@@ -198,26 +198,26 @@ namespace Microsoft.ML.CLI.ShellProgressBar
         private void UpdateProgress()
         {
             Console.CursorVisible = false;
-            var indentation = new[] { new Indentation(this.ForeGroundColor, true) };
-            var mainPercentage = this.Percentage;
+            var indentation = new[] { new Indentation(ForeGroundColor, true) };
+            var mainPercentage = Percentage;
             var cursorTop = _originalCursorTop;
 
-            Console.ForegroundColor = this.ForeGroundColor;
+            Console.ForegroundColor = ForeGroundColor;
 
             void TopHalf()
             {
                 ProgressBarTopHalf(mainPercentage,
-                    this.Options.ProgressCharacter,
-                    this.Options.BackgroundCharacter,
-                    this.Options.BackgroundColor,
+                    Options.ProgressCharacter,
+                    Options.BackgroundCharacter,
+                    Options.BackgroundColor,
                     indentation,
-                    this.Options.ProgressBarOnBottom
+                    Options.ProgressBarOnBottom
                 );
             }
 
-            if (this.Options.ProgressBarOnBottom)
+            if (Options.ProgressBarOnBottom)
             {
-                ProgressBarBottomHalf(mainPercentage, this._startDate, null, this.Message, indentation, this.Options.ProgressBarOnBottom);
+                ProgressBarBottomHalf(mainPercentage, StartDate, null, Message, indentation, Options.ProgressBarOnBottom);
                 Console.SetCursorPosition(0, ++cursorTop);
                 TopHalf();
             }
@@ -225,13 +225,13 @@ namespace Microsoft.ML.CLI.ShellProgressBar
             {
                 TopHalf();
                 Console.SetCursorPosition(0, ++cursorTop);
-                ProgressBarBottomHalf(mainPercentage, this._startDate, null, this.Message, indentation, this.Options.ProgressBarOnBottom);
+                ProgressBarBottomHalf(mainPercentage, StartDate, null, Message, indentation, Options.ProgressBarOnBottom);
             }
 
-            if (this.Options.EnableTaskBarProgress)
+            if (Options.EnableTaskBarProgress)
                 TaskbarProgress.SetValue(mainPercentage, 100);
 
-            DrawChildren(this.Children, indentation, ref cursorTop);
+            DrawChildren(Children, indentation, ref cursorTop);
 
             ResetToBottom(ref cursorTop);
 
@@ -327,10 +327,10 @@ namespace Microsoft.ML.CLI.ShellProgressBar
             // of System.Console
             UpdateProgress();
 
-            if (this.EndTime == null) this.EndTime = DateTime.Now;
+            if (EndTime == null) EndTime = DateTime.Now;
             var openDescendantsPadding = (_visibleDescendants * 2);
 
-            if (this.Options.EnableTaskBarProgress)
+            if (Options.EnableTaskBarProgress)
                 TaskbarProgress.SetState(TaskbarProgress.TaskbarStates.NoProgress);
 
             try
@@ -355,7 +355,7 @@ namespace Microsoft.ML.CLI.ShellProgressBar
             Console.WriteLine();
             _timer?.Dispose();
             _timer = null;
-            foreach (var c in this.Children) c.Dispose();
+            foreach (var c in Children) c.Dispose();
             OnDone();
         }
     }

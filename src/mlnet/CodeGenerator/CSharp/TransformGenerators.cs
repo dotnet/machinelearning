@@ -20,8 +20,8 @@ namespace Microsoft.ML.CLI.CodeGenerator.CSharp
         public override string GenerateTransformer()
         {
             StringBuilder sb = new StringBuilder();
-            string inputColumn = inputColumns.Count() > 0 ? inputColumns[0] : "\"Features\"";
-            string outputColumn = outputColumns.Count() > 0 ? outputColumns[0] : throw new Exception($"output columns for the suggested transform: {MethodName} are null");
+            string inputColumn = InputColumns.Count() > 0 ? InputColumns[0] : "\"Features\"";
+            string outputColumn = OutputColumns.Count() > 0 ? OutputColumns[0] : throw new Exception($"output columns for the suggested transform: {MethodName} are null");
             sb.Append(MethodName);
             sb.Append("(");
             sb.Append(outputColumn);
@@ -40,7 +40,7 @@ namespace Microsoft.ML.CLI.CodeGenerator.CSharp
 
         internal override string MethodName => "Categorical.OneHotEncoding";
 
-        private string ArgumentsName = "InputOutputColumnPair";
+        private const string ArgumentsName = "InputOutputColumnPair";
 
         public override string GenerateTransformer()
         {
@@ -48,14 +48,14 @@ namespace Microsoft.ML.CLI.CodeGenerator.CSharp
             sb.Append(MethodName);
             sb.Append("(");
             sb.Append("new []{");
-            for (int i = 0; i < inputColumns.Length; i++)
+            for (int i = 0; i < InputColumns.Length; i++)
             {
                 sb.Append("new ");
                 sb.Append(ArgumentsName);
                 sb.Append("(");
-                sb.Append(outputColumns[i]);
+                sb.Append(OutputColumns[i]);
                 sb.Append(",");
-                sb.Append(inputColumns[i]);
+                sb.Append(InputColumns[i]);
                 sb.Append(")");
                 sb.Append(",");
             }
@@ -78,14 +78,14 @@ namespace Microsoft.ML.CLI.CodeGenerator.CSharp
         public override string GenerateTransformer()
         {
             StringBuilder sb = new StringBuilder();
-            string inputColumn = inputColumns.Count() > 0 ? inputColumns[0] : "\"Features\"";
-            string outputColumn = outputColumns.Count() > 0 ? outputColumns[0] : throw new Exception($"output columns for the suggested transform: {MethodName} are null");
+            string inputColumn = InputColumns.Count() > 0 ? InputColumns[0] : "\"Features\"";
+            string outputColumn = OutputColumns.Count() > 0 ? OutputColumns[0] : throw new Exception($"output columns for the suggested transform: {MethodName} are null");
             sb.Append(MethodName);
             sb.Append("(");
             sb.Append(outputColumn);
             sb.Append(",");
             sb.Append("new []{");
-            foreach (var col in inputColumns)
+            foreach (var col in InputColumns)
             {
                 sb.Append(col);
                 sb.Append(",");
@@ -108,8 +108,8 @@ namespace Microsoft.ML.CLI.CodeGenerator.CSharp
         public override string GenerateTransformer()
         {
             StringBuilder sb = new StringBuilder();
-            string inputColumn = inputColumns.Count() > 0 ? inputColumns[0] : "\"Features\"";
-            string outputColumn = outputColumns.Count() > 0 ? outputColumns[0] : throw new Exception($"output columns for the suggested transform: {MethodName} are null");
+            string inputColumn = InputColumns.Count() > 0 ? InputColumns[0] : "\"Features\"";
+            string outputColumn = OutputColumns.Count() > 0 ? OutputColumns[0] : throw new Exception($"output columns for the suggested transform: {MethodName} are null");
             sb.Append(MethodName);
             sb.Append("(");
             sb.Append(outputColumn);
@@ -131,8 +131,8 @@ namespace Microsoft.ML.CLI.CodeGenerator.CSharp
         public override string GenerateTransformer()
         {
             StringBuilder sb = new StringBuilder();
-            string inputColumn = inputColumns.Count() > 0 ? inputColumns[0] : "\"Features\"";
-            string outputColumn = outputColumns.Count() > 0 ? outputColumns[0] : throw new Exception($"output columns for the suggested transform: {MethodName} are null");
+            string inputColumn = InputColumns.Count() > 0 ? InputColumns[0] : "\"Features\"";
+            string outputColumn = OutputColumns.Count() > 0 ? OutputColumns[0] : throw new Exception($"output columns for the suggested transform: {MethodName} are null");
             sb.Append(MethodName);
             sb.Append("(");
             sb.Append(outputColumn);
@@ -151,24 +151,24 @@ namespace Microsoft.ML.CLI.CodeGenerator.CSharp
 
         internal override string MethodName => "IndicateMissingValues";
 
-        private string ArgumentsName = "InputOutputColumnPair";
+        private const string ArgumentsName = "InputOutputColumnPair";
 
         public override string GenerateTransformer()
         {
             StringBuilder sb = new StringBuilder();
-            string inputColumn = inputColumns.Count() > 0 ? inputColumns[0] : "\"Features\"";
-            string outputColumn = outputColumns.Count() > 0 ? outputColumns[0] : throw new Exception($"output columns for the suggested transform: {MethodName} are null");
+            string inputColumn = InputColumns.Count() > 0 ? InputColumns[0] : "\"Features\"";
+            string outputColumn = OutputColumns.Count() > 0 ? OutputColumns[0] : throw new Exception($"output columns for the suggested transform: {MethodName} are null");
             sb.Append(MethodName);
             sb.Append("(");
             sb.Append("new []{");
-            for (int i = 0; i < inputColumns.Length; i++)
+            for (int i = 0; i < InputColumns.Length; i++)
             {
                 sb.Append("new ");
                 sb.Append(ArgumentsName);
                 sb.Append("(");
-                sb.Append(outputColumns[i]);
+                sb.Append(OutputColumns[i]);
                 sb.Append(",");
-                sb.Append(inputColumns[i]);
+                sb.Append(InputColumns[i]);
                 sb.Append(")");
                 sb.Append(",");
             }
@@ -187,7 +187,7 @@ namespace Microsoft.ML.CLI.CodeGenerator.CSharp
 
         internal override string MethodName => "ReplaceMissingValues";
 
-        private string ArgumentsName = "InputOutputColumnPair";
+        private const string ArgumentsName = "InputOutputColumnPair";
 
         public override string GenerateTransformer()
         {
@@ -195,14 +195,14 @@ namespace Microsoft.ML.CLI.CodeGenerator.CSharp
             sb.Append(MethodName);
             sb.Append("(");
             sb.Append("new []{");
-            for (int i = 0; i < inputColumns.Length; i++)
+            for (int i = 0; i < InputColumns.Length; i++)
             {
                 sb.Append("new ");
                 sb.Append(ArgumentsName);
                 sb.Append("(");
-                sb.Append(outputColumns[i]);
+                sb.Append(OutputColumns[i]);
                 sb.Append(",");
-                sb.Append(inputColumns[i]);
+                sb.Append(InputColumns[i]);
                 sb.Append(")");
                 sb.Append(",");
             }
@@ -222,7 +222,7 @@ namespace Microsoft.ML.CLI.CodeGenerator.CSharp
 
         internal override string MethodName => "Categorical.OneHotHashEncoding";
 
-        private string ArgumentsName = "InputOutputColumnPair";
+        private const string ArgumentsName = "InputOutputColumnPair";
 
         public override string GenerateTransformer()
         {
@@ -230,14 +230,14 @@ namespace Microsoft.ML.CLI.CodeGenerator.CSharp
             sb.Append(MethodName);
             sb.Append("(");
             sb.Append("new []{");
-            for (int i = 0; i < inputColumns.Length; i++)
+            for (int i = 0; i < InputColumns.Length; i++)
             {
                 sb.Append("new ");
                 sb.Append(ArgumentsName);
                 sb.Append("(");
-                sb.Append(outputColumns[i]);
+                sb.Append(OutputColumns[i]);
                 sb.Append(",");
-                sb.Append(inputColumns[i]);
+                sb.Append(InputColumns[i]);
                 sb.Append(")");
                 sb.Append(",");
             }
@@ -260,8 +260,8 @@ namespace Microsoft.ML.CLI.CodeGenerator.CSharp
         public override string GenerateTransformer()
         {
             StringBuilder sb = new StringBuilder();
-            string inputColumn = inputColumns.Count() > 0 ? inputColumns[0] : "\"Features\"";
-            string outputColumn = outputColumns.Count() > 0 ? outputColumns[0] : throw new Exception($"output columns for the suggested transform: {MethodName} are null");
+            string inputColumn = InputColumns.Count() > 0 ? InputColumns[0] : "\"Features\"";
+            string outputColumn = OutputColumns.Count() > 0 ? OutputColumns[0] : throw new Exception($"output columns for the suggested transform: {MethodName} are null");
             sb.Append(MethodName);
             sb.Append("(");
             sb.Append(outputColumn);
@@ -280,7 +280,7 @@ namespace Microsoft.ML.CLI.CodeGenerator.CSharp
 
         internal override string MethodName => "Conversion.ConvertType";
 
-        private string ArgumentsName = "InputOutputColumnPair";
+        private const string ArgumentsName = "InputOutputColumnPair";
 
         public override string GenerateTransformer()
         {
@@ -288,14 +288,14 @@ namespace Microsoft.ML.CLI.CodeGenerator.CSharp
             sb.Append(MethodName);
             sb.Append("(");
             sb.Append("new []{");
-            for (int i = 0; i < inputColumns.Length; i++)
+            for (int i = 0; i < InputColumns.Length; i++)
             {
                 sb.Append("new ");
                 sb.Append(ArgumentsName);
                 sb.Append("(");
-                sb.Append(outputColumns[i]);
+                sb.Append(OutputColumns[i]);
                 sb.Append(",");
-                sb.Append(inputColumns[i]);
+                sb.Append(InputColumns[i]);
                 sb.Append(")");
                 sb.Append(",");
             }
@@ -318,8 +318,8 @@ namespace Microsoft.ML.CLI.CodeGenerator.CSharp
         public override string GenerateTransformer()
         {
             StringBuilder sb = new StringBuilder();
-            string inputColumn = inputColumns.Count() > 0 ? inputColumns[0] : "\"Features\"";
-            string outputColumn = outputColumns.Count() > 0 ? outputColumns[0] : throw new Exception($"output columns for the suggested transform: {MethodName} are null");
+            string inputColumn = InputColumns.Count() > 0 ? InputColumns[0] : "\"Features\"";
+            string outputColumn = OutputColumns.Count() > 0 ? OutputColumns[0] : throw new Exception($"output columns for the suggested transform: {MethodName} are null");
             sb.Append(MethodName);
             sb.Append("(");
             sb.Append(outputColumn);

@@ -11,8 +11,8 @@ namespace Microsoft.DotNet.Cli.Utils
 {
     public sealed class StreamForwarder
     {
-        private static readonly char[] s_ignoreCharacters = new char[] { '\r' };
-        private static readonly char s_flushBuilderCharacter = '\n';
+        private static readonly char[] _sIgnoreCharacters = new char[] { '\r' };
+        private static readonly char _sFlushBuilderCharacter = '\n';
 
         private StringBuilder _builder;
         private StringWriter _capture;
@@ -67,11 +67,11 @@ namespace Microsoft.DotNet.Cli.Utils
             {
                 currentCharacter = buffer[0];
 
-                if (currentCharacter == s_flushBuilderCharacter)
+                if (currentCharacter == _sFlushBuilderCharacter)
                 {
                     WriteBuilder();
                 }
-                else if (!s_ignoreCharacters.Contains(currentCharacter))
+                else if (!_sIgnoreCharacters.Contains(currentCharacter))
                 {
                     _builder.Append(currentCharacter);
                 }

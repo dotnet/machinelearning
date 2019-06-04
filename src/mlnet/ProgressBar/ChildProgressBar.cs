@@ -11,20 +11,19 @@ namespace Microsoft.ML.CLI.ShellProgressBar
         private readonly Action _scheduleDraw;
         private readonly Action<ProgressBarHeight> _growth;
 
-        public DateTime StartDate { get; } = DateTime.Now;
-
         protected override void DisplayProgress() => _scheduleDraw?.Invoke();
 
         internal ChildProgressBar(int maxTicks, string message, Action scheduleDraw, ProgressBarOptions options = null, Action<ProgressBarHeight> growth = null)
             : base(maxTicks, message, options)
         {
+            _callOnce = new object();
             _scheduleDraw = scheduleDraw;
             _growth = growth;
             _growth?.Invoke(ProgressBarHeight.Increment);
         }
 
         private bool _calledDone;
-        private readonly object _callOnce = new object();
+        private readonly object _callOnce;
 
         protected override void OnDone()
         {
@@ -33,10 +32,10 @@ namespace Microsoft.ML.CLI.ShellProgressBar
             {
                 if (_calledDone) return;
 
-                if (this.EndTime == null)
-                    this.EndTime = DateTime.Now;
+                if (EndTime == null)
+                    EndTime = DateTime.Now;
 
-                if (this.Collapse)
+                if (Collapse)
                     _growth?.Invoke(ProgressBarHeight.Decrement);
 
                 _calledDone = true;
@@ -46,7 +45,7 @@ namespace Microsoft.ML.CLI.ShellProgressBar
         public void Dispose()
         {
             OnDone();
-            foreach (var c in this.Children) c.Dispose();
+            foreach (var c in Children) c.Dispose();
         }
     }
 }

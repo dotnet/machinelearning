@@ -3,8 +3,8 @@
 
 using System;
 using System.Collections.Generic;
-using Microsoft.DotNet.AutoML;
 using System.IO;
+using Microsoft.DotNet.AutoML;
 using Microsoft.DotNet.Configurer;
 using RuntimeEnvironment = Microsoft.DotNet.PlatformAbstractions.RuntimeEnvironment;
 using RuntimeInformation = System.Runtime.InteropServices.RuntimeInformation;
@@ -16,18 +16,18 @@ namespace Microsoft.DotNet.Cli.Telemetry
         public TelemetryCommonProperties(
             Func<string> getCurrentDirectory = null,
             Func<string, string> hasher = null,
-            Func<string> getMACAddress = null,
+            Func<string> getMacAddress = null,
             IUserLevelCacheWriter userLevelCacheWriter = null)
         {
             _getCurrentDirectory = getCurrentDirectory ?? Directory.GetCurrentDirectory;
             _hasher = hasher ?? Sha256Hasher.Hash;
-            _getMACAddress = getMACAddress ?? MacAddressGetter.GetMacAddress;
+            _getMacAddress = getMacAddress ?? MacAddressGetter.GetMacAddress;
             _userLevelCacheWriter = userLevelCacheWriter ?? new UserLevelCacheWriter();
         }
 
         private Func<string> _getCurrentDirectory;
         private Func<string, string> _hasher;
-        private Func<string> _getMACAddress;
+        private Func<string> _getMacAddress;
         private IUserLevelCacheWriter _userLevelCacheWriter;
         private const string OSPlatform = "OS Platform";
         private const string ProductVersion = "Product Version";
@@ -53,7 +53,7 @@ namespace Microsoft.DotNet.Cli.Telemetry
 
         private string GetMachineId()
         {
-            var macAddress = _getMACAddress();
+            var macAddress = _getMacAddress();
             if (macAddress != null)
             {
                 return _hasher(macAddress);

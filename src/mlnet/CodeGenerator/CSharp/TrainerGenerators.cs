@@ -514,8 +514,8 @@ namespace Microsoft.ML.CLI.CodeGenerator.CSharp
 
         internal class OneVersusAll : TrainerGeneratorBase
         {
-            private PipelineNode node;
-            private string[] binaryTrainerUsings = null;
+            private PipelineNode _node;
+            private string[] _binaryTrainerUsings;
 
             //ClassName of the trainer
             internal override string MethodName => "OneVersusAll";
@@ -530,7 +530,7 @@ namespace Microsoft.ML.CLI.CodeGenerator.CSharp
 
             public OneVersusAll(PipelineNode node) : base(node)
             {
-                this.node = node;
+                _node = node;
             }
 
             public override string GenerateTrainer()
@@ -539,13 +539,13 @@ namespace Microsoft.ML.CLI.CodeGenerator.CSharp
                 sb.Append(MethodName);
                 sb.Append("(");
                 sb.Append("mlContext.BinaryClassification.Trainers."); // This is dependent on the name of the MLContext object in template.
-                var trainerGenerator = TrainerGeneratorFactory.GetInstance((PipelineNode)this.node.Properties["BinaryTrainer"]);
-                binaryTrainerUsings = trainerGenerator.GenerateUsings();
+                var trainerGenerator = TrainerGeneratorFactory.GetInstance((PipelineNode)_node.Properties["BinaryTrainer"]);
+                _binaryTrainerUsings = trainerGenerator.GenerateUsings();
                 sb.Append(trainerGenerator.GenerateTrainer());
                 sb.Append(",");
                 sb.Append("labelColumnName:");
                 sb.Append("\"");
-                sb.Append(node.Properties["LabelColumnName"]);
+                sb.Append(_node.Properties["LabelColumnName"]);
                 sb.Append("\"");
                 sb.Append(")");
                 return sb.ToString();
@@ -553,7 +553,7 @@ namespace Microsoft.ML.CLI.CodeGenerator.CSharp
 
             public override string[] GenerateUsings()
             {
-                return binaryTrainerUsings;
+                return _binaryTrainerUsings;
             }
         }
     }

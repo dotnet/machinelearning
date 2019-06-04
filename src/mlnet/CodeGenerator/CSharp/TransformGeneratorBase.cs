@@ -17,9 +17,9 @@ namespace Microsoft.ML.CLI.CodeGenerator.CSharp
 
         internal virtual string[] Usings => null;
 
-        protected string[] inputColumns;
+        protected string[] InputColumns;
 
-        protected string[] outputColumns;
+        protected string[] OutputColumns;
 
         /// <summary>
         /// Generates an instance of TrainerGenerator
@@ -32,17 +32,17 @@ namespace Microsoft.ML.CLI.CodeGenerator.CSharp
 
         private void Initialize(PipelineNode node)
         {
-            inputColumns = new string[node.InColumns.Length];
-            outputColumns = new string[node.OutColumns.Length];
+            InputColumns = new string[node.InColumns.Length];
+            OutputColumns = new string[node.OutColumns.Length];
             int i = 0;
             foreach (var column in node.InColumns)
             {
-                inputColumns[i++] = "\"" + column + "\"";
+                InputColumns[i++] = "\"" + column + "\"";
             }
             i = 0;
             foreach (var column in node.OutColumns)
             {
-                outputColumns[i++] = "\"" + column + "\"";
+                OutputColumns[i++] = "\"" + column + "\"";
             }
 
         }
