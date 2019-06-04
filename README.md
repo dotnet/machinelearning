@@ -22,7 +22,7 @@ Please check our documentation [here](https://docs.microsoft.com/en-us/dotnet/ma
 
 ML.NET runs on Windows, Linux, and macOS using [.NET Core](https://github.com/dotnet/core), or Windows using .NET Framework. 64 bit is supported on all platforms. 32 bit is supported on Windows, except for TensorFlow, LightGBM, and ONNX related functionality.
 
-Check out the [release notes](https://github.com/dotnet/machinelearning/tree/master/docs/release-notes) to see what's new.
+Check out the [release notes](docs/release-notes) to see what's new.
 
 First, ensure you have installed [.NET Core 2.1](https://www.microsoft.com/net/learn/get-started) or later. ML.NET also works on the .NET Framework 4.6.1 or later, but 4.7.2 or later is recommended.
 
