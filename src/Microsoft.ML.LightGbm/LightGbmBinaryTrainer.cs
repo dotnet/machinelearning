@@ -162,7 +162,7 @@ namespace Microsoft.ML.Trainers.LightGbm
             [Argument(ArgumentType.AtMostOnce,
                 HelpText = "Evaluation metrics.",
                 ShortName = "em")]
-            public EvaluateMetricType EvaluationMetric = EvaluateMetricType.Default;
+            public EvaluateMetricType EvaluationMetric = EvaluateMetricType.Logloss;
 
             static Options()
             {
