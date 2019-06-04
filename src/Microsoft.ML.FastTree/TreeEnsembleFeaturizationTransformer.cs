@@ -14,6 +14,11 @@ using Microsoft.ML.Trainers.FastTree;
 
 namespace Microsoft.ML.Trainers.FastTree
 {
+    /// <summary>
+    /// <see cref="ITransformer"/> resulting from fitting any derived class of <see cref="FeaturizationEstimatorBase"/>.
+    /// The derived classes include, for example, <see cref="FastTreeBinaryFeaturizationEstimator"/> and
+    /// <see cref="FastForestRegressionFeaturizationEstimator"/>.
+    /// </summary>
     public sealed class TreeEnsembleFeaturizationTransformer : PredictionTransformerBase<TreeEnsembleModelParameters>
     {
         internal const string LoaderSignature = "TreeEnseFeat";
@@ -92,6 +97,14 @@ namespace Microsoft.ML.Trainers.FastTree
             Scorer = new GenericScorer(Host, args, new EmptyDataView(Host, TrainSchema), BindableMapper.Bind(Host, schema), schema);
         }
 
+        /// <summary>
+        /// <see cref="TreeEnsembleFeaturizationTransformer"/> appends three columns to the <paramref name="inputSchema"/>.
+        /// The three columns are all <see cref="System.Single"/> vectors. The fist column stores the prediction values of all trees and
+        /// its default name is "Trees". The second column (default name: "Leaves") contains leaf IDs where the given feature vector falls into.
+        /// The third column (default name: "Paths") encodes the paths to those leaves via a 0-1 vector.
+        /// </summary>
+        /// <param name="inputSchema"><see cref="DataViewSchema"/> of the data to be transformed.</param>
+        /// <returns><see cref="DataViewSchema"/> of the transformed data if the input schema is <paramref name="inputSchema"/>.</returns>
         public override DataViewSchema GetOutputSchema(DataViewSchema inputSchema) => Transform(new EmptyDataView(Host, inputSchema)).Schema;
 
         private protected override void SaveModel(ModelSaveContext ctx)

@@ -113,11 +113,29 @@ namespace Microsoft.ML.Trainers.FastTree
             return new SchemaShape(result.Values);
         }
     }
-
     /// <summary>
-    /// A <see cref="IEstimator{TTransformer}"/> which takes a trained <see cref="TreeEnsembleModelParameters"/> and calling its
-    /// <see cref="IEstimator{TTransformer}.Fit(IDataView)"/> produces a featurizer based on the trained model.
+    /// A <see cref="IEstimator{TTransformer}"/> which contains a pre-trained <see cref="TreeEnsembleModelParameters"/> and calling its
+    /// <see cref="IEstimator{TTransformer}.Fit(IDataView)"/> produces a featurizer based on the pre-trained model.
     /// </summary>
+    /// <remarks>
+    /// <format type="text/markdown"><![CDATA[
+    ///
+    /// ### Input and Output Columns
+    /// The input column must be a known-sized vector of<xref:System.Single>.
+    ///
+    /// This estimator outputs the following columns:
+    ///
+    /// | Output Column Name | Column Type | Description|
+    /// | -- | -- | -- |
+    /// | `Trees` | Vector of<xref:System.Single> | The output values of all trees. |
+    /// | `Leaves` | Vector of<xref:System.Single> | The IDs of all leaves where the input feature vector falls into. |
+    /// | `Paths` | Vector of<xref:System.Single> | The paths the input feature vector passed through to reach the leaves. |
+    ///
+    /// Check the See Also section for links to usage examples.
+    /// ]]>
+    /// </format>
+    /// </remarks>
+    /// <seealso cref="TreeExtensions.PretrainTreeEnsembleFeaturizing(TransformsCatalog, PretrainedTreeFeaturizationEstimator.Options)"/>
     public sealed class PretrainedTreeFeaturizationEstimator : FeaturizationEstimatorBase
     {
         public sealed class Options : FeaturizationEstimatorBase.CommonOptions
