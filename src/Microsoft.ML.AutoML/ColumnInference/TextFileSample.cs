@@ -97,7 +97,7 @@ namespace Microsoft.ML.AutoML
                 return CreateFromHead(stream);
             }
             var fileSize = stream.Length;
-            
+
             if (fileSize <= 2 * BufferSizeMb * (1 << 20))
             {
                 return CreateFromHead(stream);
@@ -139,7 +139,7 @@ namespace Microsoft.ML.AutoML
             long fileSizeRemaining = fileSize - firstChunk.Length - ((long)chunkSize) * chunkCount;
 
             var chunkStartIndices = Enumerable.Range(0, chunkCount)
-                .Select(x => AutoMlUtils.random.Value.NextDouble() * fileSizeRemaining)
+                .Select(x => AutoMlUtils.Random.Value.NextDouble() * fileSizeRemaining)
                 .OrderBy(x => x)
                 .Select((spot, i) => (long)(spot + firstChunk.Length + i * chunkSize))
                 .ToArray();

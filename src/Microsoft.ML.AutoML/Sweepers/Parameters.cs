@@ -9,44 +9,51 @@ namespace Microsoft.ML.AutoML
 {
     internal abstract class BaseParamArguments
     {
-        //[Argument(ArgumentType.Required, HelpText = "Parameter name", ShortName = "n")]
+        // Parameter name
         public string Name;
     }
 
     internal abstract class NumericParamArguments : BaseParamArguments
     {
-        //[Argument(ArgumentType.LastOccurenceWins, HelpText = "Number of steps for grid runthrough.", ShortName = "steps")]
-        public int NumSteps = 100;
+        // Number of steps for grid runthrough.
+        public int NumSteps;
 
-        //[Argument(ArgumentType.LastOccurenceWins, HelpText = "Amount of increment between steps (multiplicative if log).", ShortName = "inc")]
-        public Double? StepSize = null;
+        // Amount of increment between steps (multiplicative if log).
+        public Double? StepSize;
 
-        //[Argument(ArgumentType.LastOccurenceWins, HelpText = "Log scale.", ShortName = "log")]
-        public bool LogBase = false;
+        // Log scale.
+        public bool LogBase;
+
+        public NumericParamArguments()
+        {
+            NumSteps = 100;
+            StepSize = null;
+            LogBase = false;
+        }
     }
 
     internal class FloatParamArguments : NumericParamArguments
     {
-        //[Argument(ArgumentType.Required, HelpText = "Minimum value")]
+        // Minimum value
         public float Min;
 
-        //[Argument(ArgumentType.Required, HelpText = "Maximum value")]
+        // Maximum value
         public float Max;
     }
 
     internal class LongParamArguments : NumericParamArguments
     {
-        //[Argument(ArgumentType.Required, HelpText = "Minimum value")]
+        // Minimum value
         public long Min;
 
-        //[Argument(ArgumentType.Required, HelpText = "Maximum value")]
+        // Maximum value
         public long Max;
     }
 
     internal class DiscreteParamArguments : BaseParamArguments
     {
-        //[Argument(ArgumentType.Multiple, HelpText = "Values", ShortName = "v")]
-        public string[] Values = null;
+        // Values
+        public string[] Values;
     }
 
     internal sealed class LongParameterValue : IParameterValue<long>

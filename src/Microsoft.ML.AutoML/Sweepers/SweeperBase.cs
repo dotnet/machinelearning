@@ -19,11 +19,14 @@ namespace Microsoft.ML.AutoML
     {
         internal class ArgumentsBase
         {
-            //[Argument(ArgumentType.Multiple, HelpText = "Swept parameters", ShortName = "p", SignatureType = typeof(SignatureSweeperParameter))]
             public IValueGenerator[] SweptParameters;
 
-            //[Argument(ArgumentType.LastOccurenceWins, HelpText = "Number of tries to generate distinct parameter sets.", ShortName = "r")]
-            public int Retries = 10;
+            public int Retries;
+
+            public ArgumentsBase()
+            {
+                Retries = 10;
+            }
         }
 
         private readonly ArgumentsBase _args;

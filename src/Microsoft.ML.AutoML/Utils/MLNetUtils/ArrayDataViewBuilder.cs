@@ -182,7 +182,7 @@ namespace Microsoft.ML.AutoML
             public DataView(IHostEnvironment env, ArrayDataViewBuilder builder, int rowCount)
             {
                 _host = env.Register("ArrayDataView");
-                
+
                 _columns = builder._columns.ToArray();
 
                 var schemaBuilder = new DataViewSchema.Builder();
@@ -205,14 +205,14 @@ namespace Microsoft.ML.AutoML
             public DataViewRowCursor GetRowCursor(IEnumerable<DataViewSchema.Column> columnsNeeded, Random rand = null)
             {
                 var predicate = RowCursorUtils.FromColumnsToPredicate(columnsNeeded, Schema);
-                
+
                 return new Cursor(_host, this, predicate, rand);
             }
 
             public DataViewRowCursor[] GetRowCursorSet(IEnumerable<DataViewSchema.Column> columnsNeeded, int n, Random rand = null)
             {
                 var predicate = RowCursorUtils.FromColumnsToPredicate(columnsNeeded, Schema);
-                
+
                 return new DataViewRowCursor[] { new Cursor(_host, this, predicate, rand) };
             }
 

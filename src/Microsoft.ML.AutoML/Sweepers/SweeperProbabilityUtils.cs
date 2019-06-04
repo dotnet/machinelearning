@@ -34,8 +34,8 @@ namespace Microsoft.ML.AutoML
 
             for (int i = 0; i < numRVs; i++)
             {
-                u1 = AutoMlUtils.random.Value.NextDouble();
-                u2 = AutoMlUtils.random.Value.NextDouble();
+                u1 = AutoMlUtils.Random.Value.NextDouble();
+                u2 = AutoMlUtils.Random.Value.NextDouble();
                 rvs.Add(mu + sigma * Math.Sqrt(-2.0 * Math.Log(u1)) * Math.Sin(2.0 * Math.PI * u2));
             }
 

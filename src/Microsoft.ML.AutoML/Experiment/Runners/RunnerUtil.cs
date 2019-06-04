@@ -9,9 +9,9 @@ namespace Microsoft.ML.AutoML
 {
     internal static class RunnerUtil
     {
-        public static (ModelContainer model, TMetrics metrics, Exception exception, double score) 
+        public static (ModelContainer model, TMetrics metrics, Exception exception, double score)
             TrainAndScorePipeline<TMetrics>(MLContext context,
-            SuggestedPipeline pipeline, 
+            SuggestedPipeline pipeline,
             IDataView trainData,
             IDataView validData,
             string labelColumn,
@@ -29,7 +29,7 @@ namespace Microsoft.ML.AutoML
                 var scoredData = model.Transform(validData);
                 var metrics = metricsAgent.EvaluateMetrics(scoredData, labelColumn);
                 var score = metricsAgent.GetScore(metrics);
-                
+
                 if (preprocessorTransform != null)
                 {
                     model = preprocessorTransform.Append(model);

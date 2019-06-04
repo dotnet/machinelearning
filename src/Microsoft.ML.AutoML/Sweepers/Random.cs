@@ -23,7 +23,7 @@ namespace Microsoft.ML.AutoML
 
         protected override ParameterSet CreateParamSet()
         {
-            return new ParameterSet(SweepParameters.Select(sweepParameter => sweepParameter.CreateFromNormalized(AutoMlUtils.random.Value.NextDouble())));
+            return new ParameterSet(SweepParameters.Select(sweepParameter => sweepParameter.CreateFromNormalized(AutoMlUtils.Random.Value.NextDouble())));
         }
     }
 }

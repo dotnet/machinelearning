@@ -87,7 +87,7 @@ namespace Microsoft.ML.AutoML
 
                 var results = new List<ReadOnlyMemory<char>>();
                 var column = _data.Schema[_columnId];
-                
+
                 using (var cursor = _data.GetRowCursor(new[] { column }))
                 {
                     var getter = cursor.GetGetter<ReadOnlyMemory<char>>(column);

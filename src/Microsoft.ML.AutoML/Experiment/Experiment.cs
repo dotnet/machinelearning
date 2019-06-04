@@ -22,9 +22,8 @@ namespace Microsoft.ML.AutoML
         private readonly DirectoryInfo _modelDirectory;
         private readonly DatasetColumnInfo[] _datasetColumnInfo;
         private readonly IRunner<TRunDetail> _runner;
-        private readonly IList<SuggestedPipelineRunDetail> _history = new List<SuggestedPipelineRunDetail>();
+        private readonly IList<SuggestedPipelineRunDetail> _history;
         private readonly AutoMLLogger _logger;
-
 
         public Experiment(MLContext context,
             TaskKind task,
@@ -38,6 +37,7 @@ namespace Microsoft.ML.AutoML
             AutoMLLogger logger)
         {
             _context = context;
+            _history = new List<SuggestedPipelineRunDetail>();
             _optimizingMetricInfo = metricInfo;
             _task = task;
             _progressCallback = progressCallback;

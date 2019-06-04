@@ -20,16 +20,22 @@ namespace Microsoft.ML.AutoML
         /// <summary>
         /// Metric that AutoML will try to optimize over the course of the experiment.
         /// </summary>
-        public RegressionMetric OptimizingMetric { get; set; } = RegressionMetric.RSquared;
+        /// <value>The default value is <see cref="RegressionMetric.RSquared" />.</value>
+        public RegressionMetric OptimizingMetric { get; set; }
 
         /// <summary>
         /// Collection of trainers the AutoML experiment can leverage.
         /// </summary>
-        /// <remarks>
-        /// The collection is auto-populated with all possible trainers (all values of <see cref="RegressionTrainer" />).
-        /// </remarks>
-        public ICollection<RegressionTrainer> Trainers { get; } =
-                     Enum.GetValues(typeof(RegressionTrainer)).OfType<RegressionTrainer>().ToList();
+        /// <value>
+        /// The default value is a collection auto-populated with all possible trainers (all values of <see cref="RegressionTrainer" />).
+        /// </value>
+        public ICollection<RegressionTrainer> Trainers { get; }
+
+        public RegressionExperimentSettings()
+        {
+            OptimizingMetric = RegressionMetric.RSquared;
+            Trainers = Enum.GetValues(typeof(RegressionTrainer)).OfType<RegressionTrainer>().ToList();
+        }
     }
 
     /// <summary>
@@ -57,7 +63,6 @@ namespace Microsoft.ML.AutoML
         /// </summary>
         RSquared
     }
-
 
     /// <summary>
     /// Enumeration of ML.NET multiclass classification trainers used by AutoML.
@@ -116,7 +121,7 @@ namespace Microsoft.ML.AutoML
     /// </example>
     public sealed class RegressionExperiment : ExperimentBase<RegressionMetrics, RegressionExperimentSettings>
     {
-        internal RegressionExperiment(MLContext context, RegressionExperimentSettings settings) 
+        internal RegressionExperiment(MLContext context, RegressionExperimentSettings settings)
             : base(context,
                   new RegressionMetricsAgent(context, settings.OptimizingMetric),
                   new OptimizingMetricInfo(settings.OptimizingMetric),

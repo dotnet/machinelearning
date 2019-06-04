@@ -299,7 +299,7 @@ namespace Microsoft.ML.AutoML
                             && column.Purpose == ColumnPurpose.NumericFeature
                             && column.Dimensions.HasMissing == true)
                         {
-                            columnsWithMissing.Add(column.ColumnName);  
+                            columnsWithMissing.Add(column.ColumnName);
                         }
                     }
                     if (columnsWithMissing.Any())
@@ -338,7 +338,7 @@ namespace Microsoft.ML.AutoML
 
             return suggestedTransforms.ToArray();
         }
-        
+
         /// <summary>
         /// Build final features concat transform, using output of all suggested experts.
         /// Take the output columns from all suggested experts (except for 'Label'), and concatenate them

@@ -20,16 +20,25 @@ namespace Microsoft.ML.AutoML
         /// <summary>
         /// Metric that AutoML will try to optimize over the course of the experiment.
         /// </summary>
-        public MulticlassClassificationMetric OptimizingMetric { get; set; } = MulticlassClassificationMetric.MicroAccuracy;
+        /// <value>The default value is <see cref="MulticlassClassificationMetric.MicroAccuracy"/>.</value>
+        public MulticlassClassificationMetric OptimizingMetric { get; set; }
 
         /// <summary>
         /// Collection of trainers the AutoML experiment can leverage.
         /// </summary>
-        /// <remarks>
-        /// The collection is auto-populated with all possible trainers (all values of <see cref="MulticlassClassificationTrainer" />).
-        /// </remarks>
-        public ICollection<MulticlassClassificationTrainer> Trainers { get; } =
-            Enum.GetValues(typeof(MulticlassClassificationTrainer)).OfType<MulticlassClassificationTrainer>().ToList();
+        /// <value>
+        /// The default value is a collection auto-populated with all possible trainers (all values of <see cref="MulticlassClassificationTrainer" />).
+        /// </value>
+        public ICollection<MulticlassClassificationTrainer> Trainers { get; }
+
+        /// <summary>
+        /// Initializes a new instances of <see cref="MulticlassExperimentSettings"/>.
+        /// </summary>
+        public MulticlassExperimentSettings()
+        {
+            OptimizingMetric = MulticlassClassificationMetric.MicroAccuracy;
+            Trainers = Enum.GetValues(typeof(MulticlassClassificationTrainer)).OfType<MulticlassClassificationTrainer>().ToList();
+        }
     }
 
     /// <summary>
@@ -71,17 +80,17 @@ namespace Microsoft.ML.AutoML
         /// <summary>
         /// <see cref="OneVersusAllTrainer"/> using <see cref="AveragedPerceptronTrainer"/>.
         /// </summary>
-        AveragedPerceptronOVA,
+        AveragedPerceptronOva,
 
         /// <summary>
         /// <see cref="OneVersusAllTrainer"/> using <see cref="FastForestBinaryTrainer"/>.
         /// </summary>
-        FastForestOVA,
+        FastForestOva,
 
         /// <summary>
         /// <see cref="OneVersusAllTrainer"/> using <see cref="FastTreeBinaryTrainer"/>.
         /// </summary>
-        FastTreeOVA,
+        FastTreeOva,
 
         /// <summary>
         /// See <see cref="LightGbmMulticlassTrainer"/>.
@@ -91,7 +100,7 @@ namespace Microsoft.ML.AutoML
         /// <summary>
         /// <see cref="OneVersusAllTrainer"/> using <see cref="LinearSvmTrainer"/>.
         /// </summary>
-        LinearSupportVectorMachinesOVA,
+        LinearSupportVectorMachinesOva,
 
         /// <summary>
         /// See <see cref="LbfgsMaximumEntropyMulticlassTrainer"/>.
@@ -101,7 +110,7 @@ namespace Microsoft.ML.AutoML
         /// <summary>
         /// <see cref="OneVersusAllTrainer"/> using <see cref="LbfgsLogisticRegressionBinaryTrainer"/>.
         /// </summary>
-        LbfgsLogisticRegressionOVA,
+        LbfgsLogisticRegressionOva,
 
         /// <summary>
         /// See <see cref="SdcaMaximumEntropyMulticlassTrainer"/>.
@@ -111,12 +120,12 @@ namespace Microsoft.ML.AutoML
         /// <summary>
         /// <see cref="OneVersusAllTrainer"/> using <see cref="LbfgsLogisticRegressionBinaryTrainer"/>.
         /// </summary>
-        SgdCalibratedOVA,
+        SgdCalibratedOva,
 
         /// <summary>
         /// <see cref="OneVersusAllTrainer"/> using <see cref="SymbolicSgdLogisticRegressionBinaryTrainer"/>.
         /// </summary>
-        SymbolicSgdLogisticRegressionOVA,
+        SymbolicSgdLogisticRegressionOva,
     }
 
     /// <summary>

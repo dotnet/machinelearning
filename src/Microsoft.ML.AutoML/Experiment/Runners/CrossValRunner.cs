@@ -41,7 +41,7 @@ namespace Microsoft.ML.AutoML
             _modelInputSchema = trainDatasets[0].Schema;
         }
 
-        public (SuggestedPipelineRunDetail suggestedPipelineRunDetail, CrossValidationRunDetail<TMetrics> runDetail) 
+        public (SuggestedPipelineRunDetail suggestedPipelineRunDetail, CrossValidationRunDetail<TMetrics> runDetail)
             Run(SuggestedPipeline pipeline, DirectoryInfo modelDirectory, int iterationNum)
         {
             var trainResults = new List<SuggestedPipelineTrainResult<TMetrics>>();

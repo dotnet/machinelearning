@@ -311,25 +311,25 @@ namespace Microsoft.ML.AutoML
         {
             switch (multiTrainer)
             {
-                case MulticlassClassificationTrainer.AveragedPerceptronOVA:
+                case MulticlassClassificationTrainer.AveragedPerceptronOva:
                     return TrainerName.AveragedPerceptronOva;
-                case MulticlassClassificationTrainer.FastForestOVA:
+                case MulticlassClassificationTrainer.FastForestOva:
                     return TrainerName.FastForestOva;
-                case MulticlassClassificationTrainer.FastTreeOVA:
+                case MulticlassClassificationTrainer.FastTreeOva:
                     return TrainerName.FastTreeOva;
                 case MulticlassClassificationTrainer.LightGbm:
                     return TrainerName.LightGbmMulti;
-                case MulticlassClassificationTrainer.LinearSupportVectorMachinesOVA:
+                case MulticlassClassificationTrainer.LinearSupportVectorMachinesOva:
                     return TrainerName.LinearSvmOva;
                 case MulticlassClassificationTrainer.LbfgsMaximumEntropy:
                     return TrainerName.LbfgsMaximumEntropyMulti;
-                case MulticlassClassificationTrainer.LbfgsLogisticRegressionOVA:
+                case MulticlassClassificationTrainer.LbfgsLogisticRegressionOva:
                     return TrainerName.LbfgsLogisticRegressionOva;
                 case MulticlassClassificationTrainer.SdcaMaximumEntropy:
                     return TrainerName.SdcaMaximumEntropyMulti;
-                case MulticlassClassificationTrainer.SgdCalibratedOVA:
+                case MulticlassClassificationTrainer.SgdCalibratedOva:
                     return TrainerName.SgdCalibratedOva;
-                case MulticlassClassificationTrainer.SymbolicSgdLogisticRegressionOVA:
+                case MulticlassClassificationTrainer.SymbolicSgdLogisticRegressionOva:
                     return TrainerName.SymbolicSgdLogisticRegressionOva;
             }
 
