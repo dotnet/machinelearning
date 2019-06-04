@@ -63,7 +63,7 @@ namespace Microsoft.ML.AutoML
             {
                 // Discard splits where either train or test set is empty
                 if (DatasetDimensionsUtil.IsDataViewEmpty(split.TrainSet) ||
-                DatasetDimensionsUtil.IsDataViewEmpty(split.TestSet))
+                    DatasetDimensionsUtil.IsDataViewEmpty(split.TestSet))
                 {
                     continue;
                 }
