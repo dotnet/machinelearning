@@ -26,7 +26,7 @@ namespace Microsoft.ML.AutoML.Test
             dataViewBuilder.AddColumn("Number", NumberDataViewType.Single, 0f);
             dataViewBuilder.AddColumn("Label", NumberDataViewType.Single, 0f);
             var dataView = dataViewBuilder.GetDataView();
-            SplitUtil.CrossValSplit(mlContext, dataView, 10, null);
+            SplitUtil.CrossValSplit(mlContext, dataView, 10, null, TaskKind.Regression, "Label");
         }
 
         /// <summary>
@@ -43,7 +43,7 @@ namespace Microsoft.ML.AutoML.Test
             dataViewBuilder.AddColumn("Label", NumberDataViewType.Single, new float[9]);
             var dataView = dataViewBuilder.GetDataView();
             const int requestedNumSplits = 10;
-            var splits = SplitUtil.CrossValSplit(mlContext, dataView, requestedNumSplits, null);
+            var splits = SplitUtil.CrossValSplit(mlContext, dataView, requestedNumSplits, null, TaskKind.Regression, "Label");
             Assert.IsTrue(splits.trainDatasets.Any());
             Assert.IsTrue(splits.trainDatasets.Count() < requestedNumSplits);
             Assert.AreEqual(splits.trainDatasets.Count(), splits.validationDatasets.Count());
@@ -62,8 +62,41 @@ namespace Microsoft.ML.AutoML.Test
             dataViewBuilder.AddColumn("Label", NumberDataViewType.Single, new float[10000]);
             var dataView = dataViewBuilder.GetDataView();
             const int requestedNumSplits = 10;
-            var splits = SplitUtil.CrossValSplit(mlContext, dataView, requestedNumSplits, null);
-            Assert.IsTrue(splits.trainDatasets.Any());
+            var splits = SplitUtil.CrossValSplit(mlContext, dataView, requestedNumSplits, null, TaskKind.Regression, "Label");
+            Assert.AreEqual(requestedNumSplits, splits.trainDatasets.Count());
+            Assert.AreEqual(requestedNumSplits, splits.validationDatasets.Count());
+        }
+
+        /// <summary>
+        /// Test that an exception is thrown for a binary classification problem with a single-valued label column.
+        /// </summary>
+        [TestMethod]
+        [ExpectedException(typeof(InvalidOperationException))]
+        public void BinaryClassificationSplitSingleValuedLabel()
+        {
+            var mlContext = new MLContext(seed: 0);
+            var dataViewBuilder = new ArrayDataViewBuilder(mlContext);
+            dataViewBuilder.AddColumn("Number", NumberDataViewType.Single, new float[10000]);
+            dataViewBuilder.AddColumn("Label", BooleanDataViewType.Instance, new bool[10000]);
+            var dataView = dataViewBuilder.GetDataView();
+            SplitUtil.CrossValSplit(mlContext, dataView, 10, null, TaskKind.BinaryClassification, "Label");
+        }
+
+        /// <summary>
+        /// Test a valid split for binary classification.
+        /// </summary>
+        [TestMethod]
+        public void BinaryClassificationSplit()
+        {
+            var mlContext = new MLContext(seed: 0);
+            var dataViewBuilder = new ArrayDataViewBuilder(mlContext);
+            dataViewBuilder.AddColumn("Number", NumberDataViewType.Single, new float[10000]);
+            var labelValues = new bool[10000];
+            for (var i = 0; i < labelValues.Length / 2; i++) { labelValues[i] = true; }
+            dataViewBuilder.AddColumn("Label", BooleanDataViewType.Instance, labelValues);
+            var dataView = dataViewBuilder.GetDataView();
+            const int requestedNumSplits = 10;
+            var splits = SplitUtil.CrossValSplit(mlContext, dataView, requestedNumSplits, null, TaskKind.BinaryClassification, "Label");
             Assert.AreEqual(requestedNumSplits, splits.trainDatasets.Count());
             Assert.AreEqual(requestedNumSplits, splits.validationDatasets.Count());
         }

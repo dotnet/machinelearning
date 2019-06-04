@@ -94,6 +94,9 @@ namespace Microsoft.ML.AutoML
         public ExperimentResult<TMetrics> Execute(IDataView trainData, ColumnInformation columnInformation, 
             IEstimator<ITransformer> preFeaturizer = null, IProgress<RunDetail<TMetrics>> progressHandler = null)
         {
+            columnInformation = columnInformation ?? new ColumnInformation();
+            UserInputValidationUtil.ValidateExperimentExecuteArgs(trainData, columnInformation, null, _task);
+
             // Cross val threshold for # of dataset rows --
             // If dataset has < threshold # of rows, use cross val.
             // Else, run experiment using train-validate split.
@@ -104,12 +107,12 @@ namespace Microsoft.ML.AutoML
             if (rowCount < crossValRowCountThreshold)
             {
                 const int numCrossValFolds = 10;
-                var splitResult = SplitUtil.CrossValSplit(Context, trainData, numCrossValFolds, columnInformation?.SamplingKeyColumnName);
+                var splitResult = SplitUtil.CrossValSplit(Context, trainData, numCrossValFolds, columnInformation.SamplingKeyColumnName, _task, columnInformation.LabelColumnName);
                 return ExecuteCrossValSummary(splitResult.trainDatasets, columnInformation, splitResult.validationDatasets, preFeaturizer, progressHandler);
             }
             else
             {
-                var splitResult = SplitUtil.TrainValidateSplit(Context, trainData, columnInformation?.SamplingKeyColumnName);
+                var splitResult = SplitUtil.TrainValidateSplit(Context, trainData, columnInformation.SamplingKeyColumnName);
                 return ExecuteTrainValidate(splitResult.trainData, columnInformation, splitResult.validationData, preFeaturizer, progressHandler);
             }
         }
@@ -188,8 +191,10 @@ namespace Microsoft.ML.AutoML
         /// </remarks>
         public CrossValidationExperimentResult<TMetrics> Execute(IDataView trainData, uint numberOfCVFolds, ColumnInformation columnInformation = null, IEstimator<ITransformer> preFeaturizer = null, IProgress<CrossValidationRunDetail<TMetrics>> progressHandler = null)
         {
+            columnInformation = columnInformation ?? new ColumnInformation();
             UserInputValidationUtil.ValidateNumberOfCVFoldsArg(numberOfCVFolds);
-            var splitResult = SplitUtil.CrossValSplit(Context, trainData, numberOfCVFolds, columnInformation?.SamplingKeyColumnName);
+            UserInputValidationUtil.ValidateExperimentExecuteArgs(trainData, columnInformation, null, _task);
+            var splitResult = SplitUtil.CrossValSplit(Context, trainData, numberOfCVFolds, columnInformation.SamplingKeyColumnName, _task, columnInformation.LabelColumnName);
             return ExecuteCrossVal(splitResult.trainDatasets, columnInformation, splitResult.validationDatasets, preFeaturizer, progressHandler);
         }
 
@@ -260,9 +265,6 @@ namespace Microsoft.ML.AutoML
             IEstimator<ITransformer> preFeaturizer,
             IProgress<CrossValidationRunDetail<TMetrics>> progressHandler)
         {
-            columnInfo = columnInfo ?? new ColumnInformation();
-            UserInputValidationUtil.ValidateExperimentExecuteArgs(trainDatasets[0], columnInfo, validationDatasets[0], _task);
-
             // Apply pre-featurizer
             ITransformer[] preprocessorTransforms = null;
             (trainDatasets, validationDatasets, preprocessorTransforms) = ApplyPreFeaturizerCrossVal(trainDatasets, validationDatasets, preFeaturizer);
@@ -287,9 +289,6 @@ namespace Microsoft.ML.AutoML
             IEstimator<ITransformer> preFeaturizer,
             IProgress<RunDetail<TMetrics>> progressHandler)
         {
-            columnInfo = columnInfo ?? new ColumnInformation();
-            UserInputValidationUtil.ValidateExperimentExecuteArgs(trainDatasets[0], columnInfo, validationDatasets[0], _task);
-
             // Apply pre-featurizer
             ITransformer[] preprocessorTransforms = null;
             (trainDatasets, validationDatasets, preprocessorTransforms) = ApplyPreFeaturizerCrossVal(trainDatasets, validationDatasets, preFeaturizer);

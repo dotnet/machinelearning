@@ -81,5 +81,30 @@ namespace Microsoft.ML.AutoML
         {
             return CountRows(data, 1) == 0;
         }
+
+        /// <summary>
+        /// Compute the cardinality of each column. Stop computing when <paramref name="maxCardinality"/> unique
+        /// elements have been found.
+        /// </summary>
+        public static int ComputeCardinality<T>(IDataView data, DataViewSchema.Column column, int maxCardinality)
+        {
+            var seen = new HashSet<T>();
+            using (var cursor = data.GetRowCursor(new[] { column }))
+            {
+                var getter = cursor.GetGetter<T>(column);
+                while (cursor.MoveNext())
+                {
+                    var value = default(T);
+                    getter(ref value);
+                    seen.Add(value);
+
+                    if (seen.Count == maxCardinality)
+                    {
+                        return maxCardinality;
+                    }
+                }
+            }
+            return seen.Count;
+        }
     }
 }
