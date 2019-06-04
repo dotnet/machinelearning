@@ -73,8 +73,8 @@ namespace Microsoft.DotNet.Cli.Utils
             [DllImport("libc", SetLastError = true)]
             internal static extern int kill(int pid, int sig);
 
-            internal const int Sigint = 2;
-            internal const int Sigterm = 15;
+            internal const int SigInt = 2;
+            internal const int SigTerm = 15;
         }
     }
 }
