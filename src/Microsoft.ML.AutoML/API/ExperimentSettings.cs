@@ -47,7 +47,7 @@ namespace Microsoft.ML.AutoML
         /// (Please note: for an experiment with high runtime operating on a large dataset, opting to keep models in
         /// memory could cause a system to run out of memory.)
         /// </summary>
-        /// <value>The default value is a directory Microsoft.ML.AutoML in the current user's temporary folder.</value>
+        /// <value>The default value is the directory named "Microsoft.ML.AutoML" in the current user's temporary folder.</value>
         public DirectoryInfo CacheDirectory { get; set; }
 
         /// <summary>
