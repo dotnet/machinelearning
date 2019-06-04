@@ -29,7 +29,7 @@ namespace Microsoft.ML.AutoML
             for (var i = 0; i < trainDatasets.Count(); i++)
             {
                 var validationDataset = validationDatasets.ElementAt(i);
-                var labelColumn = validationDataset.Schema.First(c => c.Name == labelColumnName);
+                var labelColumn = validationDataset.Schema.First(c => !c.IsHidden && c.Name == labelColumnName);
                 if (DatasetDimensionsUtil.ComputeCardinality<bool>(validationDataset, labelColumn, 2) < 2)
                 {
                     continue;
