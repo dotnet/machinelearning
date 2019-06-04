@@ -2,11 +2,11 @@
 ## **New Features**
 - **Image type support in IDataView**  
    [PR#3263](https://github.com/dotnet/machinelearning/pull/3263) added support
-  for in-memory image as a type in IDataView. Previously to consume image it was
-  impossible to directly use it in IDataView rather a user would have to specify
-  the file path as a string in IDataView and then the image would be loaded
-  using a transform. This resulted in the closure of the following github
-  issues:  [3162](https://github.com/dotnet/machinelearning/issues/3162),
+  for in-memory image as a type in IDataView. Previously it was not possible to
+  use an image directly in IDataView, and the user had to specify the file path
+  as a string and load the image using a transform. The feature resolved the
+  following issues:
+  [3162](https://github.com/dotnet/machinelearning/issues/3162),
   [3723](https://github.com/dotnet/machinelearning/issues/3723),
   [3369](https://github.com/dotnet/machinelearning/issues/3369),
   [3274](https://github.com/dotnet/machinelearning/issues/3274),
@@ -17,7 +17,10 @@
   [3784](https://github.com/dotnet/machinelearning/issues/3784) and was a much
   requested feature by the users.  
 
-    [Sample 1](https://github.com/dotnet/machinelearning/blob/02a857a7646188fec2d1cba5e187a6c9d0838e23/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/ImageAnalytics/ConvertToGrayScaleInMemory.cs) | [Sample 2](https://github.com/dotnet/machinelearning/blob/02a857a7646188fec2d1cba5e187a6c9d0838e23/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/CustomMappingWithInMemoryCustomType.cs)
+    [Sample
+    1](https://github.com/dotnet/machinelearning/blob/02a857a7646188fec2d1cba5e187a6c9d0838e23/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/ImageAnalytics/ConvertToGrayScaleInMemory.cs)
+    | [Sample
+    2](https://github.com/dotnet/machinelearning/blob/02a857a7646188fec2d1cba5e187a6c9d0838e23/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/CustomMappingWithInMemoryCustomType.cs)
 
 - **Super-Resolution based Anomaly Detector**  
    [PR#3693](https://github.com/dotnet/machinelearning/pull/3693) adds a new
@@ -37,7 +40,10 @@
     IID | 0.668 | 0.491 | 0.566 | 1924 | 2579 | 3915 | Confidence=99,   PValueHistoryLength=56
     SR | 0.601 | 0.670 | 0.634 | 2625 | 4370 | 3915 | WindowSize=64,   BackAddWindowSize=5, LookaheadWindowSize=5, AveragingWindowSize=3,   JudgementWindowSize=64, Threshold=0.45
 
-    [Sample 1](https://github.com/dotnet/machinelearning/blob/master/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/TimeSeries/DetectAnomalyBySrCnn.cs) | [Sample 2](https://github.com/dotnet/machinelearning/blob/master/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/TimeSeries/DetectAnomalyBySrCnnBatchPrediction.cs)
+    [Sample
+    1](https://github.com/dotnet/machinelearning/blob/master/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/TimeSeries/DetectAnomalyBySrCnn.cs)
+    | [Sample
+    2](https://github.com/dotnet/machinelearning/blob/master/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/TimeSeries/DetectAnomalyBySrCnnBatchPrediction.cs)
 
 - **Time Series Forecasting**  
    [PR#1900](https://github.com/dotnet/machinelearning/pull/1900) introduces a
@@ -45,11 +51,15 @@
    Spectrum Analysis(SSA) based forecasting model. This framework allows to
    forecast w/o confidence intervals, update model with new observations and
    save the model to persistent storage. This closes following issues
-   [929](https://github.com/dotnet/machinelearning/issues/929) and [3151](https://github.com/dotnet/machinelearning/issues/3151) and was a
-   much requested feature by the github community. With this change time series
-   nuget is feature complete for RTM.  
+   [929](https://github.com/dotnet/machinelearning/issues/929) and
+   [3151](https://github.com/dotnet/machinelearning/issues/3151) and was a much
+   requested feature by the github community. With this change time series nuget
+   is feature complete for RTM.  
 
-    [Sample 1](https://github.com/dotnet/machinelearning/blob/master/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/TimeSeries/Forecasting.cs) | [Sample 2](https://github.com/dotnet/machinelearning/blob/master/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/TimeSeries/ForecastingWithConfidenceInterval.cs)
+    [Sample
+    1](https://github.com/dotnet/machinelearning/blob/master/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/TimeSeries/Forecasting.cs)
+    | [Sample
+    2](https://github.com/dotnet/machinelearning/blob/master/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/TimeSeries/ForecastingWithConfidenceInterval.cs)
 
 ## **Bug Fixes**
 ### Serious
@@ -60,7 +70,7 @@
 
 - **Transform Wrapper fails at deserialization:** Fixed by
   [PR#3700](https://github.com/dotnet/machinelearning/pull/3700) this bug
-  affected first party(1P) customer. A model trained models using
+  affected first party(1P) customer. A model trained using
   [NimbusML](https://github.com/microsoft/NimbusML)(Python bindings for
   [ML.NET](http://dot.net/ml)) and then loaded for scoring/inferencing using
   ML.NET will hit this bug. 
@@ -81,7 +91,8 @@
   [PR#3676](https://github.com/dotnet/machinelearning/pull/3676)
 - Fix to the official build due to API Compat tool change by
   [PR#3667](https://github.com/dotnet/machinelearning/pull/3667)
-- Check for number of input columns in concat transform by [PR#3809](https://github.com/dotnet/machinelearning/pull/3809)
+- Check for number of input columns in concat transform by
+  [PR#3809](https://github.com/dotnet/machinelearning/pull/3809)
 
 ## **Breaking Changes**
 None
@@ -106,11 +117,14 @@ None
   [PR#3724](https://github.com/dotnet/machinelearning/pull/3724)
 - Sample for WithOnFitDelegate by
   [PR#3738](https://github.com/dotnet/machinelearning/pull/3738)
+- Sample for loading data using text loader using various techniques by
+  [PR#3793](https://github.com/dotnet/machinelearning/pull/3793)  
 
-## **Remarks**
-- [Microsoft.ML.TensorFlow](https://www.nuget.org/packages/Microsoft.ML.TensorFlow/)
-  and
-  [Microsoft.ML.TimeSeries](https://www.nuget.org/packages/Microsoft.ML.TimeSeries/)
+  ## **Remarks**
+- [Microsoft.ML.TensorFlow](https://www.nuget.org/packages/Microsoft.ML.TensorFlow/),
+  [Microsoft.ML.TimeSeries](https://www.nuget.org/packages/Microsoft.ML.TimeSeries/),
+  [Microsoft.ML.OnnxConverter](https://www.nuget.org/packages/Microsoft.ML.OnnxConverter/),
+  [Microsoft.ML.OnnxTransformer](https://www.nuget.org/packages/Microsoft.ML.OnnxTransformer)
   nugets are expected to be upgraded to release(v1.0) in
   [ML.NET](http://dot.net/ml) 1.2 release. Please give them a try and provide
   any feedback.
