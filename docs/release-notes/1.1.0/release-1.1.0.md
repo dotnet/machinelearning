@@ -127,11 +127,11 @@ None
 - Sample for loading data using text loader using various techniques by
   [PR#3793](https://github.com/dotnet/machinelearning/pull/3793)  
 
-  ## **Remarks**
+## **Remarks**
 - [Microsoft.ML.TensorFlow](https://www.nuget.org/packages/Microsoft.ML.TensorFlow/),
   [Microsoft.ML.TimeSeries](https://www.nuget.org/packages/Microsoft.ML.TimeSeries/),
   [Microsoft.ML.OnnxConverter](https://www.nuget.org/packages/Microsoft.ML.OnnxConverter/),
   [Microsoft.ML.OnnxTransformer](https://www.nuget.org/packages/Microsoft.ML.OnnxTransformer)
-  nugets are expected to be upgraded to release(v1.0) in
+  nugets are expected to be upgraded to release in
   [ML.NET](http://dot.net/ml) 1.2 release. Please give them a try and provide
   feedback.
