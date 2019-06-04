@@ -21,6 +21,7 @@ namespace Microsoft.ML.AutoML
         {
             public IValueGenerator[] SweptParameters;
 
+            // Number of tries to generate distinct parameter sets.
             public int Retries;
 
             public ArgumentsBase()
