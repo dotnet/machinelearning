@@ -17,6 +17,8 @@
   [3784](https://github.com/dotnet/machinelearning/issues/3784) and was a much
   requested feature by the users.  
 
+    [Sample 1](https://github.com/dotnet/machinelearning/blob/02a857a7646188fec2d1cba5e187a6c9d0838e23/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/ImageAnalytics/ConvertToGrayScaleInMemory.cs) | [Sample 2](https://github.com/dotnet/machinelearning/blob/02a857a7646188fec2d1cba5e187a6c9d0838e23/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/CustomMappingWithInMemoryCustomType.cs)
+
 - **Super-Resolution based Anomaly Detector**  
    [PR#3693](https://github.com/dotnet/machinelearning/pull/3693) adds a new
    anomaly detection algorithm to the time series nuget. This algorithm is based
@@ -35,15 +37,19 @@
     IID | 0.668 | 0.491 | 0.566 | 1924 | 2579 | 3915 | Confidence=99,   PValueHistoryLength=56
     SR | 0.601 | 0.670 | 0.634 | 2625 | 4370 | 3915 | WindowSize=64,   BackAddWindowSize=5, LookaheadWindowSize=5, AveragingWindowSize=3,   JudgementWindowSize=64, Threshold=0.45
 
+    [Sample 1](https://github.com/dotnet/machinelearning/blob/master/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/TimeSeries/DetectAnomalyBySrCnn.cs) | [Sample 2](https://github.com/dotnet/machinelearning/blob/master/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/TimeSeries/DetectAnomalyBySrCnnBatchPrediction.cs)
+
 - **Time Series Forecasting**  
    [PR#1900](https://github.com/dotnet/machinelearning/pull/1900) introduces a
    framework for time series forecasting models and exposes an API for Singular
    Spectrum Analysis(SSA) based forecasting model. This framework allows to
    forecast w/o confidence intervals, update model with new observations and
-   save the model to persistent storage. This closes
-   [issue#929](https://github.com/dotnet/machinelearning/issues/929) and was a
+   save the model to persistent storage. This closes following issues
+   [929](https://github.com/dotnet/machinelearning/issues/929) and [3151](https://github.com/dotnet/machinelearning/issues/3151) and was a
    much requested feature by the github community. With this change time series
-   nuget is feature complete for RTM.
+   nuget is feature complete for RTM.  
+
+    [Sample 1](https://github.com/dotnet/machinelearning/blob/master/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/TimeSeries/Forecasting.cs) | [Sample 2](https://github.com/dotnet/machinelearning/blob/master/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/TimeSeries/ForecastingWithConfidenceInterval.cs)
 
 ## **Bug Fixes**
 ### Serious
