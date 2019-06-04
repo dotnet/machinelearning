@@ -24,8 +24,18 @@ namespace Microsoft.ML.Trainers.FastTree
         internal const string LoaderSignature = "TreeEnseFeat";
         private readonly TreeEnsembleFeaturizerBindableMapper.Arguments _scorerArgs;
         private readonly DataViewSchema.DetachedColumn _featureDetachedColumn;
-        private readonly string _outputColumnSuffix;
-
+        /// <summary>
+        /// See <see cref="FeaturizationEstimatorBase.CommonOptions.TreesColumnName"/>.
+        /// </summary>
+        private readonly string _treesColumnName;
+        /// <summary>
+        /// See <see cref="FeaturizationEstimatorBase.CommonOptions.LeavesColumnName"/>.
+        /// </summary>
+        private readonly string _leavesColumnName;
+        /// <summary>
+        /// See <see cref="FeaturizationEstimatorBase.CommonOptions.PathsColumnName"/>.
+        /// </summary>
+        private readonly string _pathsColumnName;
         /// <summary>
         /// Check if <see cref="_featureDetachedColumn"/> is compatible with <paramref name="inspectedFeatureColumn"/>.
         /// </summary>
@@ -57,7 +67,8 @@ namespace Microsoft.ML.Trainers.FastTree
         }
 
         internal TreeEnsembleFeaturizationTransformer(IHostEnvironment env, DataViewSchema inputSchema,
-            DataViewSchema.Column featureColumn, TreeEnsembleModelParameters modelParameters, string outputColumnNameSuffix=null) :
+            DataViewSchema.Column featureColumn, TreeEnsembleModelParameters modelParameters,
+            string treesColumnName, string leavesColumnName, string pathsColumnName) :
             base(Contracts.CheckRef(env, nameof(env)).Register(nameof(TreeEnsembleFeaturizationTransformer)), modelParameters, inputSchema)
         {
             // Store featureColumn as a detached column because a fitted transformer can be applied to different IDataViews and different
@@ -66,10 +77,13 @@ namespace Microsoft.ML.Trainers.FastTree
             // Check if featureColumn matches a column in inputSchema. The answer is yes if they have the same name and type.
             // The indexed column, inputSchema[featureColumn.Index], should match the detached column, _featureDetachedColumn.
             CheckFeatureColumnCompatibility(inputSchema[featureColumn.Index]);
-            // Store outputColumnNameSuffix so that this transformer can be saved into a file later.
-            _outputColumnSuffix = outputColumnNameSuffix;
-            // Create an argument, _scorerArgs, to pass the suffix of output column names to the underlying scorer.
-            _scorerArgs = new TreeEnsembleFeaturizerBindableMapper.Arguments { Suffix = _outputColumnSuffix };
+            // Store output column names so that this transformer can be saved into a file later.
+            _treesColumnName = treesColumnName;
+            _leavesColumnName = leavesColumnName;
+            _pathsColumnName = pathsColumnName;
+            // Create an argument, _scorerArgs, to pass the output column names to the underlying scorer.
+            _scorerArgs = new TreeEnsembleFeaturizerBindableMapper.Arguments {
+                TreesColumnName = _treesColumnName, LeavesColumnName = _leavesColumnName, PathsColumnName = _pathsColumnName };
             // Create a bindable mapper. It provides the core computation and can be attached to any IDataView and produce
             // a transformed IDataView.
             BindableMapper = new TreeEnsembleFeaturizerBindableMapper(env, _scorerArgs, modelParameters);
@@ -88,7 +102,9 @@ namespace Microsoft.ML.Trainers.FastTree
 
             string featureColumnName = ctx.LoadString();
             _featureDetachedColumn = new DataViewSchema.DetachedColumn(TrainSchema[featureColumnName]);
-            _outputColumnSuffix = ctx.LoadStringOrNull();
+            _treesColumnName = ctx.LoadString();
+            _leavesColumnName = ctx.LoadString();
+            _pathsColumnName = ctx.LoadString();
 
             BindableMapper = ScoreUtils.GetSchemaBindableMapper(Host, Model);
 
@@ -131,7 +147,9 @@ namespace Microsoft.ML.Trainers.FastTree
             });
 
             ctx.SaveString(_featureDetachedColumn.Name);
-            ctx.SaveStringOrNull(_outputColumnSuffix);
+            ctx.SaveString(_treesColumnName);
+            ctx.SaveString(_leavesColumnName);
+            ctx.SaveString(_pathsColumnName);
         }
 
         private static VersionInfo GetVersionInfo()

@@ -33,7 +33,12 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             var model = trainer.Fit(dataView);
 
             // From the trained tree model, a mapper of tree featurizer is created.
-            var treeFeaturizer = new TreeEnsembleFeaturizerBindableMapper(Env, new TreeEnsembleFeaturizerBindableMapper.Arguments(), model.Model);
+            const string treesColumnName = "MyTrees";
+            const string leavesColumnName = "MyLeaves";
+            const string pathsColumnName = "MyPaths";
+            var args = new TreeEnsembleFeaturizerBindableMapper.Arguments() {
+                TreesColumnName = treesColumnName, LeavesColumnName = leavesColumnName, PathsColumnName = pathsColumnName };
+            var treeFeaturizer = new TreeEnsembleFeaturizerBindableMapper(Env, args, model.Model);
 
             // To get output schema, we need to create RoleMappedSchema for calling Bind(...).
             var roleMappedSchema = new RoleMappedSchema(dataView.Schema,
@@ -47,7 +52,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             {
                 // Check if output schema is correct.
                 var treeValuesColumn = outputSchema[0];
-                Assert.Equal("Trees", treeValuesColumn.Name);
+                Assert.Equal(treesColumnName, treeValuesColumn.Name);
                 VectorDataViewType treeValuesType = treeValuesColumn.Type as VectorDataViewType;
                 Assert.NotNull(treeValuesType);
                 Assert.Equal(NumberDataViewType.Single, treeValuesType.ItemType);
@@ -65,7 +70,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             {
                 var treeLeafIdsColumn = outputSchema[1];
                 // Check column of tree leaf IDs.
-                Assert.Equal("Leaves", treeLeafIdsColumn.Name);
+                Assert.Equal(leavesColumnName, treeLeafIdsColumn.Name);
                 VectorDataViewType treeLeafIdsType = treeLeafIdsColumn.Type as VectorDataViewType;
                 Assert.NotNull(treeLeafIdsType);
                 Assert.Equal(NumberDataViewType.Single, treeLeafIdsType.ItemType);
@@ -88,7 +93,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             {
                 var treePathIdsColumn = outputSchema[2];
                 // Check column of path IDs.
-                Assert.Equal("Paths", treePathIdsColumn.Name);
+                Assert.Equal(pathsColumnName, treePathIdsColumn.Name);
                 VectorDataViewType treePathIdsType = treePathIdsColumn.Type as VectorDataViewType;
                 Assert.NotNull(treePathIdsType);
                 Assert.Equal(NumberDataViewType.Single, treePathIdsType.ItemType);
@@ -133,16 +138,20 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             var predicted = model.Transform(dataView);
 
             // From the trained tree model, a mapper of tree featurizer is created.
-            var treeFeaturizer = new TreeEnsembleFeaturizationTransformer(ML, dataView.Schema, dataView.Schema["Features"], model.Model.SubModel);
+            const string treesColumnName = "MyTrees";
+            const string leavesColumnName = "MyLeaves";
+            const string pathsColumnName = "MyPaths";
+            var treeFeaturizer = new TreeEnsembleFeaturizationTransformer(ML, dataView.Schema, dataView.Schema["Features"], model.Model.SubModel,
+                treesColumnName: treesColumnName, leavesColumnName: leavesColumnName, pathsColumnName: pathsColumnName);
 
             // Apply TreeEnsembleFeaturizer to the input data.
             var transformed = treeFeaturizer.Transform(dataView);
 
             // Extract the outputs of TreeEnsembleFeaturizer.
             var features = transformed.GetColumn<float[]>("Features").ToArray();
-            var leafValues = transformed.GetColumn<float[]>("Trees").ToArray();
-            var leafIds = transformed.GetColumn<float[]>("Leaves").ToArray();
-            var paths = transformed.GetColumn<float[]>("Paths").ToArray();
+            var leafValues = transformed.GetColumn<float[]>(treesColumnName).ToArray();
+            var leafIds = transformed.GetColumn<float[]>(leavesColumnName).ToArray();
+            var paths = transformed.GetColumn<float[]>(pathsColumnName).ToArray();
 
             // Check if the TreeEnsembleFeaturizer produce expected values.
             List<int> path = null;
@@ -180,16 +189,20 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             var model = trainer.Fit(dataView);
 
             // From the trained tree model, a mapper of tree featurizer is created.
-            var treeFeaturizer = new TreeEnsembleFeaturizationTransformer(ML, dataView.Schema, dataView.Schema["Features"], model.Model);
+            const string treesColumnName = "MyTrees";
+            const string leavesColumnName = "MyLeaves";
+            const string pathsColumnName = "MyPaths";
+            var treeFeaturizer = new TreeEnsembleFeaturizationTransformer(ML, dataView.Schema, dataView.Schema["Features"], model.Model,
+                treesColumnName: treesColumnName, leavesColumnName: leavesColumnName, pathsColumnName: pathsColumnName);
 
             // Apply TreeEnsembleFeaturizer to the input data.
             var transformed = treeFeaturizer.Transform(dataView);
 
             // Extract the outputs of TreeEnsembleFeaturizer.
             var features = transformed.GetColumn<float[]>("Features").ToArray();
-            var leafValues = transformed.GetColumn<float[]>("Trees").ToArray();
-            var leafIds = transformed.GetColumn<float[]>("Leaves").ToArray();
-            var paths = transformed.GetColumn<float[]>("Paths").ToArray();
+            var leafValues = transformed.GetColumn<float[]>(treesColumnName).ToArray();
+            var leafIds = transformed.GetColumn<float[]>(leavesColumnName).ToArray();
+            var paths = transformed.GetColumn<float[]>(pathsColumnName).ToArray();
 
             // Check if the TreeEnsembleFeaturizer produce expected values.
             List<int> path = null;

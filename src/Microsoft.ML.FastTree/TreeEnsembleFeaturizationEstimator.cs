@@ -20,6 +20,16 @@ namespace Microsoft.ML.Trainers.FastTree
     public abstract class FeaturizationEstimatorBase : IEstimator<TreeEnsembleFeaturizationTransformer>
     {
         /// <summary>
+        /// Default values of <see cref="CommonOptions"/>.
+        /// </summary>
+        private static class DefaultCommonOptions
+        {
+            public static string TreesColumnName = "Trees";
+            public static string LeavesColumnName = "Leaves";
+            public static string PathsColumnName = "Paths";
+        }
+
+        /// <summary>
         /// The common options of tree-based featurizations such as <see cref="FastTreeBinaryFeaturizationEstimator"/>, <see cref="FastForestBinaryFeaturizationEstimator"/>,
         /// <see cref="FastTreeRegressionFeaturizationEstimator"/>, <see cref="FastForestRegressionFeaturizationEstimator"/>, and <see cref="PretrainedTreeFeaturizationEstimator"/>.
         /// </summary>
@@ -32,11 +42,23 @@ namespace Microsoft.ML.Trainers.FastTree
             public string InputColumnName;
 
             /// <summary>
-            /// The estimator has three output columns. Their names would be "Trees" + <see cref="OutputColumnsSuffix"/>,
-            /// "Leaves" + <see cref="OutputColumnsSuffix"/>, and "Paths" + <see cref="OutputColumnsSuffix"/>. If <see cref="OutputColumnsSuffix"/>
-            /// is <see langword="null"/>, the output names would be "Trees", "Leaves", and "Paths".
+            /// The name of the column that stores the prediction values of all trees. Its type is a vector of <see cref="System.Single"/>
+            /// and the i-th vector element is the prediction value predicted by the i-th tree.
             /// </summary>
-            public string OutputColumnsSuffix;
+            public string TreesColumnName;
+
+            /// <summary>
+            /// The 0-1 encoding of all leaf nodes' IDs. Its type is a vector of <see cref="System.Single"/>. If the given feature
+            /// vector falls into the first leaf of the first tree, the first element in the 0-1 encoding would be 1.
+            /// </summary>
+            public string LeavesColumnName;
+
+            /// <summary>
+            /// The 0-1 encoding of the paths to the leaves. If the path to the first tree's leaf is node 1 (2nd node in the first tree),
+            /// node 3 (4th node in the first tree), and node 5 (6th node in the first tree), the 2nd, 4th, and 6th element in that encoding
+            /// would be 1.
+            /// </summary>
+            public string PathsColumnName;
         };
 
         /// <summary>
@@ -46,9 +68,19 @@ namespace Microsoft.ML.Trainers.FastTree
         private protected readonly string FeatureColumnName;
 
         /// <summary>
-        /// See <see cref="CommonOptions.OutputColumnsSuffix"/>.
+        /// See <see cref="CommonOptions.TreesColumnName"/>.
         /// </summary>
-        private protected readonly string OutputColumnSuffix;
+        private protected readonly string TreesColumnName;
+
+        /// <summary>
+        /// See <see cref="CommonOptions.LeavesColumnName"/>.
+        /// </summary>
+        private protected readonly string LeavesColumnName;
+
+        /// <summary>
+        /// See <see cref="CommonOptions.PathsColumnName"/>.
+        /// </summary>
+        private protected readonly string PathsColumnName;
 
         /// <summary>
         /// Environment of this instance. It controls error throwing and other enviroment settings.
@@ -59,7 +91,9 @@ namespace Microsoft.ML.Trainers.FastTree
         {
             Env = env;
             FeatureColumnName = options.InputColumnName;
-            OutputColumnSuffix = options.OutputColumnsSuffix;
+            TreesColumnName = options.TreesColumnName  ?? DefaultCommonOptions.TreesColumnName;
+            LeavesColumnName = options.LeavesColumnName ?? DefaultCommonOptions.LeavesColumnName;
+            PathsColumnName = options.PathsColumnName ?? DefaultCommonOptions.PathsColumnName;
         }
 
         /// <summary>
@@ -77,8 +111,8 @@ namespace Microsoft.ML.Trainers.FastTree
         public TreeEnsembleFeaturizationTransformer Fit(IDataView input)
         {
             var model = PrepareModel(input);
-            return new TreeEnsembleFeaturizationTransformer(Env, input.Schema,
-                input.Schema[FeatureColumnName], model, OutputColumnSuffix);
+            return new TreeEnsembleFeaturizationTransformer(Env, input.Schema, input.Schema[FeatureColumnName], model,
+                TreesColumnName, LeavesColumnName, PathsColumnName);
         }
 
         /// <summary>
@@ -98,16 +132,13 @@ namespace Microsoft.ML.Trainers.FastTree
 
             var result = inputSchema.ToDictionary(x => x.Name);
 
-            var treeColumnName = OutputColumnSuffix != null ? OutputColumnSuffix + "Trees" : "Trees";
-            result[treeColumnName] = new SchemaShape.Column(treeColumnName,
+            result[TreesColumnName] = new SchemaShape.Column(TreesColumnName,
                 SchemaShape.Column.VectorKind.Vector, NumberDataViewType.Single, false);
 
-            var leafColumnName = OutputColumnSuffix != null ? OutputColumnSuffix + "Leaves" : "Leaves";
-            result[leafColumnName] = new SchemaShape.Column(leafColumnName,
+            result[LeavesColumnName] = new SchemaShape.Column(LeavesColumnName,
                 SchemaShape.Column.VectorKind.Vector, NumberDataViewType.Single, false);
 
-            var pathColumnName = OutputColumnSuffix != null ? OutputColumnSuffix + "Paths" : "Paths";
-            result[pathColumnName] = new SchemaShape.Column(pathColumnName,
+            result[PathsColumnName] = new SchemaShape.Column(PathsColumnName,
                 SchemaShape.Column.VectorKind.Vector, NumberDataViewType.Single, false);
 
             return new SchemaShape(result.Values);
