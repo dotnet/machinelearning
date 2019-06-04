@@ -24,13 +24,15 @@
 
 - **Super-Resolution based Anomaly Detector**  
    [PR#3693](https://github.com/dotnet/machinelearning/pull/3693) adds a new
-   anomaly detection algorithm to the time series nuget. This algorithm is based
-   on Super-Resolution using Deep Convolutional Networks and also got accepted
-   in KDD'2019 conference as oral presentation. One of the advantages of this
-   algorithm is that it does not require any prior training and based on
-   benchmarks using grid parameter search to find upper bounds it out performs
-   the IID and SSA based anomaly detection algorithms in accuracy. This
-   contribution comes from the [Azure Anomaly
+   anomaly detection algorithm to the
+   [Microsoft.ML.TimeSeries](https://www.nuget.org/packages/Microsoft.ML.TimeSeries/)
+   nuget. This algorithm is based on Super-Resolution using Deep Convolutional
+   Networks and also got accepted in KDD'2019 conference as an oral
+   presentation. One of the advantages of this algorithm is that it does not
+   require any prior training and based on benchmarks using grid parameter
+   search to find upper bounds it out performs the Independent and identically
+   distributed(IID) and Singular Spectrum Analysis(SSA) based anomaly detection
+   algorithms in accuracy. This contribution comes from the [Azure Anomaly
    Detector](https://azure.microsoft.com/en-us/services/cognitive-services/anomaly-detector/)
    team.
 
@@ -48,13 +50,17 @@
 - **Time Series Forecasting**  
    [PR#1900](https://github.com/dotnet/machinelearning/pull/1900) introduces a
    framework for time series forecasting models and exposes an API for Singular
-   Spectrum Analysis(SSA) based forecasting model. This framework allows to
-   forecast w/o confidence intervals, update model with new observations and
-   save the model to persistent storage. This closes following issues
+   Spectrum Analysis(SSA) based forecasting model in the
+   [Microsoft.ML.TimeSeries](https://www.nuget.org/packages/Microsoft.ML.TimeSeries/)
+   nuget. This framework allows to forecast w/o confidence intervals, update
+   model with new observations and save/load the model to/from persistent
+   storage. This closes following issues
    [929](https://github.com/dotnet/machinelearning/issues/929) and
    [3151](https://github.com/dotnet/machinelearning/issues/3151) and was a much
-   requested feature by the github community. With this change time series nuget
-   is feature complete for RTM.  
+   requested feature by the github community since September 2018. With this
+   change
+   [Microsoft.ML.TimeSeries](https://www.nuget.org/packages/Microsoft.ML.TimeSeries/)
+   nuget is feature complete for RTM.  
 
     [Sample
     1](https://github.com/dotnet/machinelearning/blob/master/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/TimeSeries/Forecasting.cs)
@@ -127,4 +133,4 @@ None
   [Microsoft.ML.OnnxTransformer](https://www.nuget.org/packages/Microsoft.ML.OnnxTransformer)
   nugets are expected to be upgraded to release(v1.0) in
   [ML.NET](http://dot.net/ml) 1.2 release. Please give them a try and provide
-  any feedback.
+  feedback.
