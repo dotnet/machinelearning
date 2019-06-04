@@ -14,15 +14,16 @@
   [3460](https://github.com/dotnet/machinelearning/issues/3460),
   [2121](https://github.com/dotnet/machinelearning/issues/2121),
   [2495](https://github.com/dotnet/machinelearning/issues/2495),
-  [3784](https://github.com/dotnet/machinelearning/issues/3784) and was a much
-  requested feature by the users.  
+  [3784](https://github.com/dotnet/machinelearning/issues/3784).  
 
-    [Sample
-    1](https://github.com/dotnet/machinelearning/blob/02a857a7646188fec2d1cba5e187a6c9d0838e23/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/ImageAnalytics/ConvertToGrayScaleInMemory.cs)
-    | [Sample
-    2](https://github.com/dotnet/machinelearning/blob/02a857a7646188fec2d1cba5e187a6c9d0838e23/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/CustomMappingWithInMemoryCustomType.cs)
+  Image type support in IDataView was a much requested feature by the users.  
 
-- **Super-Resolution based Anomaly Detector**  
+    [Sample to convert gray scale image
+    in-Memory](https://github.com/dotnet/machinelearning/blob/02a857a7646188fec2d1cba5e187a6c9d0838e23/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/ImageAnalytics/ConvertToGrayScaleInMemory.cs)
+    | [Sample for custom mapping with in-memory using custom
+    type](https://github.com/dotnet/machinelearning/blob/02a857a7646188fec2d1cba5e187a6c9d0838e23/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/CustomMappingWithInMemoryCustomType.cs)
+
+- **Super-Resolution based Anomaly Detector (preview, please provide feedback)**  
    [PR#3693](https://github.com/dotnet/machinelearning/pull/3693) adds a new
    anomaly detection algorithm to the
    [Microsoft.ML.TimeSeries](https://www.nuget.org/packages/Microsoft.ML.TimeSeries/)
@@ -42,12 +43,12 @@
     IID | 0.668 | 0.491 | 0.566 | 1924 | 2579 | 3915 | Confidence=99,   PValueHistoryLength=56
     SR | 0.601 | 0.670 | 0.634 | 2625 | 4370 | 3915 | WindowSize=64,   BackAddWindowSize=5, LookaheadWindowSize=5, AveragingWindowSize=3,   JudgementWindowSize=64, Threshold=0.45
 
-    [Sample
-    1](https://github.com/dotnet/machinelearning/blob/master/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/TimeSeries/DetectAnomalyBySrCnn.cs)
-    | [Sample
-    2](https://github.com/dotnet/machinelearning/blob/master/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/TimeSeries/DetectAnomalyBySrCnnBatchPrediction.cs)
+    [Sample for anomaly detection by
+    SRCNN](https://github.com/dotnet/machinelearning/blob/master/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/TimeSeries/DetectAnomalyBySrCnn.cs)
+    | [Sample for anomaly detection by SRCNN using batch
+    prediction](https://github.com/dotnet/machinelearning/blob/master/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/TimeSeries/DetectAnomalyBySrCnnBatchPrediction.cs)
 
-- **Time Series Forecasting**  
+- **Time Series Forecasting (preview, please provide feedback)**  
    [PR#1900](https://github.com/dotnet/machinelearning/pull/1900) introduces a
    framework for time series forecasting models and exposes an API for Singular
    Spectrum Analysis(SSA) based forecasting model in the
@@ -62,10 +63,10 @@
    [Microsoft.ML.TimeSeries](https://www.nuget.org/packages/Microsoft.ML.TimeSeries/)
    nuget is feature complete for RTM.  
 
-    [Sample
-    1](https://github.com/dotnet/machinelearning/blob/master/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/TimeSeries/Forecasting.cs)
-    | [Sample
-    2](https://github.com/dotnet/machinelearning/blob/master/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/TimeSeries/ForecastingWithConfidenceInterval.cs)
+    [Sample for
+    forecasting](https://github.com/dotnet/machinelearning/blob/master/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/TimeSeries/Forecasting.cs)
+    | [Sample for forecasting using confidence
+    intervals](https://github.com/dotnet/machinelearning/blob/master/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/TimeSeries/ForecastingWithConfidenceInterval.cs)
 
 ## **Bug Fixes**
 ### Serious
