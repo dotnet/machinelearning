@@ -9,9 +9,13 @@ using Microsoft.ML;
 
 namespace Microsoft.Extensions.ML
 {
+    /// <summary>
+    /// Provides a pool of <see cref="PredictionEngine{TSrc, TDst}"/> objects
+    /// that can be used to make predictions.
+    /// </summary>
     public class PredictionEnginePool<TData, TPrediction>
-                        where TData : class
-                        where TPrediction : class, new()
+        where TData : class
+        where TPrediction : class, new()
     {
         private readonly MLContextOptions _mlContextOptions;
         private readonly IOptionsFactory<PredictionEnginePoolOptions<TData, TPrediction>> _predictionEngineOptions;
@@ -56,11 +60,23 @@ namespace Microsoft.Extensions.ML
             return _defaultEnginePool.Loader.GetModel();
         }
 
+        /// <summary>
+        /// Gets a PredictionEngine that can be used to make predictions using
+        /// <typeparamref name="TData"/> and <typeparamref name="TPrediction"/>.
+        /// </summary>
         public PredictionEngine<TData, TPrediction> GetPredictionEngine()
         {
             return GetPredictionEngine(string.Empty);
         }
 
+        /// <summary>
+        /// Gets a PredictionEngine for a named model.
+        /// </summary>
+        /// <param name="modelName">
+        /// The name of the model which allows for uniquely identifying the model when
+        /// multiple models have the same <typeparamref name="TData"/> and
+        /// <typeparamref name="TPrediction"/> types.
+        /// </param>
         public PredictionEngine<TData, TPrediction> GetPredictionEngine(string modelName)
         {
             if (_namedPools.ContainsKey(modelName))
@@ -88,11 +104,24 @@ namespace Microsoft.Extensions.ML
             return pool.PredictionEnginePool.Get();
         }
 
+        /// <summary>
+        /// Returns a rented PredictionEngine to the pool.
+        /// </summary>
+        /// <param name="engine">The rented PredictionEngine.</param>
         public void ReturnPredictionEngine(PredictionEngine<TData, TPrediction> engine)
         {
             ReturnPredictionEngine(string.Empty, engine);
         }
 
+        /// <summary>
+        /// Returns a rented PredictionEngine to the pool.
+        /// </summary>
+        /// <param name="modelName">
+        /// The name of the model which allows for uniquely identifying the model when
+        /// multiple models have the same <typeparamref name="TData"/> and
+        /// <typeparamref name="TPrediction"/> types.
+        /// </param>
+        /// <param name="engine">The rented PredictionEngine.</param>
         public void ReturnPredictionEngine(string modelName, PredictionEngine<TData, TPrediction> engine)
         {
             if (engine == null)

@@ -10,14 +10,25 @@ using Microsoft.ML;
 
 namespace Microsoft.Extensions.ML
 {
-    public class PredictionEnginePoolPolicy<TData, TPrediction> : IPooledObjectPolicy<PredictionEngine<TData, TPrediction>>
-                    where TData : class
-                    where TPrediction : class, new()
+    /// <summary>
+    /// <see cref="IPooledObjectPolicy{T}"/> for <see cref="PredictionEngine{TData, TPrediction}"/>.
+    /// </summary>
+    public class PredictionEnginePoolPolicy<TData, TPrediction>
+        : IPooledObjectPolicy<PredictionEngine<TData, TPrediction>>
+        where TData : class
+        where TPrediction : class, new()
     {
         private readonly MLContext _mlContext;
         private readonly ITransformer _model;
         private readonly List<WeakReference> _references;
 
+        /// <summary>
+        /// Initializes a new instance of <see cref="PredictionEnginePoolPolicy{TData, TPrediction}"/>.
+        /// </summary>
+        /// <param name="mlContext">
+        /// <see cref="MLContext"/> used to load the model.
+        /// </param>
+        /// <param name="model">The transformer to use for prediction.</param>
         public PredictionEnginePoolPolicy(MLContext mlContext, ITransformer model)
         {
             _mlContext = mlContext;
@@ -25,6 +36,7 @@ namespace Microsoft.Extensions.ML
             _references = new List<WeakReference>();
         }
 
+        /// <inheritdoc />
         public PredictionEngine<TData, TPrediction> Create()
         {
             var engine = _mlContext.Model.CreatePredictionEngine<TData, TPrediction>(_model);
@@ -32,6 +44,7 @@ namespace Microsoft.Extensions.ML
             return engine;
         }
 
+        /// <inheritdoc />
         public bool Return(PredictionEngine<TData, TPrediction> obj)
         {
             return _references.Any(x => x.Target == obj);

@@ -8,15 +8,33 @@ using Microsoft.Extensions.Options;
 
 namespace Microsoft.Extensions.ML
 {
+    /// <summary>
+    /// Extension methods for <see cref="IServiceCollection"/>.
+    /// </summary>
     public static class ServiceCollectionExtensions
     {
-        public static IPredictionEnginePoolBuilder<TData, TPrediction> AddPredictionEnginePool<TData, TPrediction>(this IServiceCollection services) where TData : class where TPrediction : class, new()
+        /// <summary>
+        /// Adds a <see cref="PredictionEnginePoolBuilder{TData, TPrediction}"/> to the service collection.
+        /// </summary>
+        /// <param name="services">
+        /// The <see cref="IServiceCollection "/> to add services to.
+        /// </param>
+        /// <returns>
+        /// The <see cref="PredictionEnginePoolBuilder{TData, TPrediction}"/> that was added to the collection.
+        /// </returns>
+        public static PredictionEnginePoolBuilder<TData, TPrediction> AddPredictionEnginePool<TData, TPrediction>(
+            this IServiceCollection services)
+            where TData : class
+            where TPrediction : class, new()
         {
             services.AddPredictionEngineServices<TData, TPrediction>();
-            return new DefaultPredictionEnginePoolBuilder<TData, TPrediction>(services, string.Empty);
+            return new PredictionEnginePoolBuilder<TData, TPrediction>(services);
         }
 
-        internal static IServiceCollection AddPredictionEngineServices<TData, TPrediction>(this IServiceCollection services) where TData : class where TPrediction : class, new()
+        internal static IServiceCollection AddPredictionEngineServices<TData, TPrediction>(
+            this IServiceCollection services)
+            where TData : class
+            where TPrediction : class, new()
         {
             services.AddLogging();
             services.AddOptions();
