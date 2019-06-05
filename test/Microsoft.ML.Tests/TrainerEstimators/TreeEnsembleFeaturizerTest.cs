@@ -302,7 +302,14 @@ namespace Microsoft.ML.Tests.TrainerEstimators
 
             // Combine the output of TreeEnsembleFeaturizationTransformer and the original features as the final training features.
             // Then train a linear model.
-            var options = new PretrainedTreeFeaturizationEstimator.Options() { InputColumnName = "Features", ModelParameters = treeModel.Model.SubModel };
+            var options = new PretrainedTreeFeaturizationEstimator.Options()
+            {
+                InputColumnName = "Features",
+                TreesColumnName = "Trees",
+                LeavesColumnName = "Leaves",
+                PathsColumnName = "Paths",
+                ModelParameters = treeModel.Model.SubModel
+            };
             var pipeline = ML.Transforms.PretrainTreeEnsembleFeaturizing(options).
                 Append(ML.Transforms.Concatenate("CombinedFeatures", "Features", "Trees", "Leaves", "Paths")).
                 Append(ML.BinaryClassification.Trainers.SdcaLogisticRegression("Label", "CombinedFeatures"));
@@ -342,6 +349,9 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             var options = new FastTreeBinaryFeaturizationEstimator.Options()
             {
                 InputColumnName = "Features",
+                TreesColumnName = "Trees",
+                LeavesColumnName = "Leaves",
+                PathsColumnName = "Paths",
                 TrainerOptions = trainerOptions
             };
 
@@ -377,6 +387,9 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             var options = new FastForestBinaryFeaturizationEstimator.Options()
             {
                 InputColumnName = "Features",
+                TreesColumnName = "Trees",
+                LeavesColumnName = "Leaves",
+                PathsColumnName = "Paths",
                 TrainerOptions = trainerOptions
             };
 
@@ -412,6 +425,9 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             var options = new FastTreeRegressionFeaturizationEstimator.Options()
             {
                 InputColumnName = "Features",
+                TreesColumnName = "Trees",
+                LeavesColumnName = "Leaves",
+                PathsColumnName = "Paths",
                 TrainerOptions = trainerOptions
             };
 
@@ -446,6 +462,9 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             var options = new FastForestRegressionFeaturizationEstimator.Options()
             {
                 InputColumnName = "Features",
+                TreesColumnName = "Trees",
+                LeavesColumnName = "Leaves",
+                PathsColumnName = "Paths",
                 TrainerOptions = trainerOptions
             };
 
@@ -480,6 +499,9 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             var options = new FastTreeTweedieFeaturizationEstimator.Options()
             {
                 InputColumnName = "Features",
+                TreesColumnName = "Trees",
+                LeavesColumnName = "Leaves",
+                PathsColumnName = "Paths",
                 TrainerOptions = trainerOptions
             };
 
@@ -514,6 +536,9 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             var options = new FastTreeRankingFeaturizationEstimator.Options()
             {
                 InputColumnName = "Features",
+                TreesColumnName = "Trees",
+                LeavesColumnName = "Leaves",
+                PathsColumnName = "Paths",
                 TrainerOptions = trainerOptions
             };
 
@@ -548,6 +573,9 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             var options = new FastForestRegressionFeaturizationEstimator.Options()
             {
                 InputColumnName = "Features",
+                TreesColumnName = "Trees",
+                LeavesColumnName = "Leaves",
+                PathsColumnName = "Paths",
                 TrainerOptions = trainerOptions
             };
 
@@ -650,6 +678,59 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             // is different from the first pipeline.
             Assert.NotEqual(metrics.MeanAbsoluteError, secondMetrics.MeanAbsoluteError);
             Assert.NotEqual(metrics.MeanSquaredError, secondMetrics.MeanSquaredError);
+        }
+
+        [Fact]
+        public void TestFastTreeBinaryFeaturizationInPipelineWithOptionalOutputs()
+        {
+            int dataPointCount = 200;
+            var data = SamplesUtils.DatasetUtils.GenerateBinaryLabelFloatFeatureVectorFloatWeightSamples(dataPointCount).ToList();
+            var dataView = ML.Data.LoadFromEnumerable(data);
+
+            var trainerOptions = new FastTreeBinaryTrainer.Options
+            {
+                    NumberOfThreads = 1,
+                    NumberOfTrees = 10,
+                    NumberOfLeaves = 4,
+                    MinimumExampleCountPerLeaf = 10,
+                    FeatureColumnName = "Features",
+                    LabelColumnName = "Label"
+            };
+
+            var options = new FastTreeBinaryFeaturizationEstimator.Options()
+            {
+                InputColumnName = "Features",
+                TrainerOptions = trainerOptions,
+                TreesColumnName = null,
+                PathsColumnName = null,
+                LeavesColumnName = "Leaves"
+            };
+
+
+            bool isWrong = false;
+            try
+            {
+                var wrongPipeline = ML.Transforms.FastTreeBinaryFeaturizing(options).
+                    Append(ML.Transforms.Concatenate("CombinedFeatures", "Features", "Trees", "Leaves", "Paths")).
+                    Append(ML.BinaryClassification.Trainers.SdcaLogisticRegression("Label", "CombinedFeatures"));
+                var wrongModel = wrongPipeline.Fit(dataView);
+            }
+            catch
+            {
+                isWrong = true; // Only "Leaves" is produced by tree featurizer, so accessing "Trees" and "Paths" may lead to an error.
+            }
+            Assert.True(isWrong);
+
+            var pipeline = ML.Transforms.FastTreeBinaryFeaturizing(options).
+                Append(ML.Transforms.Concatenate("CombinedFeatures", "Features", "Leaves")).
+                Append(ML.BinaryClassification.Trainers.SdcaLogisticRegression("Label", "CombinedFeatures"));
+            var model = pipeline.Fit(dataView);
+            var prediction = model.Transform(dataView);
+            var metrics = ML.BinaryClassification.Evaluate(prediction);
+
+            Assert.True(metrics.Accuracy > 0.98);
+            Assert.True(metrics.LogLoss < 0.05);
+            Assert.True(metrics.AreaUnderPrecisionRecallCurve > 0.98);
         }
     }
 }

@@ -110,9 +110,9 @@ namespace Microsoft.ML.Trainers.FastTree
             // Load stored fields.
             string featureColumnName = ctx.LoadString();
             _featureDetachedColumn = new DataViewSchema.DetachedColumn(TrainSchema[featureColumnName]);
-            _treesColumnName = ctx.LoadString();
-            _leavesColumnName = ctx.LoadString();
-            _pathsColumnName = ctx.LoadString();
+            _treesColumnName = ctx.LoadStringOrNull();
+            _leavesColumnName = ctx.LoadStringOrNull();
+            _pathsColumnName = ctx.LoadStringOrNull();
 
             // Create an argument to specify output columns' names of this transformer.
             _scorerArgs = new TreeEnsembleFeaturizerBindableMapper.Arguments {
@@ -162,9 +162,9 @@ namespace Microsoft.ML.Trainers.FastTree
             });
 
             ctx.SaveString(_featureDetachedColumn.Name);
-            ctx.SaveString(_treesColumnName);
-            ctx.SaveString(_leavesColumnName);
-            ctx.SaveString(_pathsColumnName);
+            ctx.SaveStringOrNull(_treesColumnName);
+            ctx.SaveStringOrNull(_leavesColumnName);
+            ctx.SaveStringOrNull(_pathsColumnName);
         }
 
         private static VersionInfo GetVersionInfo()

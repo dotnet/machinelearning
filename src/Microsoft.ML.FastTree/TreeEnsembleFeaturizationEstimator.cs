@@ -44,12 +44,14 @@ namespace Microsoft.ML.Trainers.FastTree
             /// <summary>
             /// The name of the column that stores the prediction values of all trees. Its type is a vector of <see cref="System.Single"/>
             /// and the i-th vector element is the prediction value predicted by the i-th tree.
+            /// If <see cref="TreesColumnName"/> is <see langword="null"/>, this output column may not be generated.
             /// </summary>
             public string TreesColumnName;
 
             /// <summary>
             /// The 0-1 encoding of all leaf nodes' IDs. Its type is a vector of <see cref="System.Single"/>. If the given feature
             /// vector falls into the first leaf of the first tree, the first element in the 0-1 encoding would be 1.
+            /// If <see cref="LeavesColumnName"/> is <see langword="null"/>, this output column may not be generated.
             /// </summary>
             public string LeavesColumnName;
 
@@ -57,6 +59,7 @@ namespace Microsoft.ML.Trainers.FastTree
             /// The 0-1 encoding of the paths to the leaves. If the path to the first tree's leaf is node 1 (2nd node in the first tree),
             /// node 3 (4th node in the first tree), and node 5 (6th node in the first tree), the 2nd, 4th, and 6th element in that encoding
             /// would be 1.
+            /// If <see cref="PathsColumnName"/> is <see langword="null"/>, this output column may not be generated.
             /// </summary>
             public string PathsColumnName;
         };
@@ -83,17 +86,23 @@ namespace Microsoft.ML.Trainers.FastTree
         private protected readonly string PathsColumnName;
 
         /// <summary>
-        /// Environment of this instance. It controls error throwing and other enviroment settings.
+        /// Environment of this instance. It controls error throwing and other environment settings.
         /// </summary>
         private protected readonly IHostEnvironment Env;
 
         private protected FeaturizationEstimatorBase(IHostEnvironment env, CommonOptions options)
         {
             Env = env;
+            if (options.InputColumnName == null)
+                throw Env.Except(nameof(options), "The " + nameof(options.InputColumnName) + " cannot be null.");
+            if (options.TreesColumnName == null && options.LeavesColumnName == null && options.PathsColumnName == null)
+                throw Env.Except($"{nameof(CommonOptions.TreesColumnName)}, {nameof(CommonOptions.LeavesColumnName)}, and {nameof(CommonOptions.PathsColumnName)} cannot be all null at the same time. " +
+                    $"At least one output column name should be provided so that at least one output column may be generated.");
+
             FeatureColumnName = options.InputColumnName;
-            TreesColumnName = options.TreesColumnName  ?? DefaultCommonOptions.TreesColumnName;
-            LeavesColumnName = options.LeavesColumnName ?? DefaultCommonOptions.LeavesColumnName;
-            PathsColumnName = options.PathsColumnName ?? DefaultCommonOptions.PathsColumnName;
+            TreesColumnName = options.TreesColumnName;
+            LeavesColumnName = options.LeavesColumnName;
+            PathsColumnName = options.PathsColumnName;
         }
 
         /// <summary>
@@ -132,14 +141,17 @@ namespace Microsoft.ML.Trainers.FastTree
 
             var result = inputSchema.ToDictionary(x => x.Name);
 
-            result[TreesColumnName] = new SchemaShape.Column(TreesColumnName,
-                SchemaShape.Column.VectorKind.Vector, NumberDataViewType.Single, false);
+            if (TreesColumnName != null)
+                result[TreesColumnName] = new SchemaShape.Column(TreesColumnName,
+                    SchemaShape.Column.VectorKind.Vector, NumberDataViewType.Single, false);
 
-            result[LeavesColumnName] = new SchemaShape.Column(LeavesColumnName,
-                SchemaShape.Column.VectorKind.Vector, NumberDataViewType.Single, false);
+            if (LeavesColumnName != null)
+                result[LeavesColumnName] = new SchemaShape.Column(LeavesColumnName,
+                    SchemaShape.Column.VectorKind.Vector, NumberDataViewType.Single, false);
 
-            result[PathsColumnName] = new SchemaShape.Column(PathsColumnName,
-                SchemaShape.Column.VectorKind.Vector, NumberDataViewType.Single, false);
+            if (PathsColumnName != null)
+                result[PathsColumnName] = new SchemaShape.Column(PathsColumnName,
+                    SchemaShape.Column.VectorKind.Vector, NumberDataViewType.Single, false);
 
             return new SchemaShape(result.Values);
         }
