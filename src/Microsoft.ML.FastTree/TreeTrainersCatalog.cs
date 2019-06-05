@@ -437,7 +437,13 @@ namespace Microsoft.ML
             return new FastForestBinaryTrainer(env, options);
         }
 
-        public static PretrainedTreeFeaturizationEstimator PretrainTreeEnsembleFeaturizing(this TransformsCatalog catalog,
+        /// <summary>
+        /// Create <see cref="PretrainedTreeFeaturizationEstimator"/>, which produces tree-based features given a <see cref="TreeEnsembleModelParameters"/>.
+        /// </summary>
+        /// <param name="catalog">The context <see cref="TransformsCatalog"/> to create <see cref="PretrainedTreeFeaturizationEstimator"/>.</param>
+        /// <param name="options">The options to configure <see cref="PretrainedTreeFeaturizationEstimator"/>. See <see cref="PretrainedTreeFeaturizationEstimator.Options"/> and
+        /// <see cref="TreeEnsembleFeaturizationEstimatorBase.CommonOptions"/> for available settings.</param>
+        public static PretrainedTreeFeaturizationEstimator FeaturizeByPretrainTreeEnsemble(this TransformsCatalog catalog,
             PretrainedTreeFeaturizationEstimator.Options options)
         {
             Contracts.CheckValue(catalog, nameof(catalog));
@@ -445,7 +451,13 @@ namespace Microsoft.ML
             return new PretrainedTreeFeaturizationEstimator(env, options);
         }
 
-        public static FastForestRegressionFeaturizationEstimator FastForestRegressionFeaturizing(this TransformsCatalog catalog,
+        /// <summary>
+        /// Create <see cref="FastForestRegressionFeaturizationEstimator"/>, which uses <see cref="FastForestRegressionTrainer"/> to train <see cref="TreeEnsembleModelParameters"/> to create tree-based features.
+        /// </summary>
+        /// <param name="catalog">The context <see cref="TransformsCatalog"/> to create <see cref="PretrainedTreeFeaturizationEstimator"/>.</param>
+        /// <param name="options">The options to configure <see cref="FastForestRegressionFeaturizationEstimator"/>. See <see cref="FastForestRegressionFeaturizationEstimator.Options"/> and
+        /// <see cref="TreeEnsembleFeaturizationEstimatorBase.CommonOptions"/> for available settings.</param>
+        public static FastForestRegressionFeaturizationEstimator FeaturizeByFastForestRegression(this TransformsCatalog catalog,
             FastForestRegressionFeaturizationEstimator.Options options)
         {
             Contracts.CheckValue(catalog, nameof(catalog));
@@ -453,7 +465,13 @@ namespace Microsoft.ML
             return new FastForestRegressionFeaturizationEstimator(env, options);
         }
 
-        public static FastTreeRegressionFeaturizationEstimator FastTreeRegressionFeaturizing(this TransformsCatalog catalog,
+        /// <summary>
+        /// Create <see cref="FastTreeRegressionFeaturizationEstimator"/>, which uses <see cref="FastTreeRegressionTrainer"/> to train <see cref="TreeEnsembleModelParameters"/> to create tree-based features.
+        /// </summary>
+        /// <param name="catalog">The context <see cref="TransformsCatalog"/> to create <see cref="FastTreeRegressionFeaturizationEstimator"/>.</param>
+        /// <param name="options">The options to configure <see cref="FastTreeRegressionFeaturizationEstimator"/>. See <see cref="FastTreeRegressionFeaturizationEstimator.Options"/> and
+        /// <see cref="TreeEnsembleFeaturizationEstimatorBase.CommonOptions"/> for available settings.</param>
+        public static FastTreeRegressionFeaturizationEstimator FeaturizeByFastTreeRegression(this TransformsCatalog catalog,
             FastTreeRegressionFeaturizationEstimator.Options options)
         {
             Contracts.CheckValue(catalog, nameof(catalog));
@@ -461,7 +479,13 @@ namespace Microsoft.ML
             return new FastTreeRegressionFeaturizationEstimator(env, options);
         }
 
-        public static FastForestBinaryFeaturizationEstimator FastForestBinaryFeaturizing(this TransformsCatalog catalog,
+        /// <summary>
+        /// Create <see cref="FastForestBinaryFeaturizationEstimator"/>, which uses <see cref="FastForestBinaryTrainer"/> to train <see cref="TreeEnsembleModelParameters"/> to create tree-based features.
+        /// </summary>
+        /// <param name="catalog">The context <see cref="TransformsCatalog"/> to create <see cref="FastForestBinaryFeaturizationEstimator"/>.</param>
+        /// <param name="options">The options to configure <see cref="FastForestBinaryFeaturizationEstimator"/>. See <see cref="FastForestBinaryFeaturizationEstimator.Options"/> and
+        /// <see cref="TreeEnsembleFeaturizationEstimatorBase.CommonOptions"/> for available settings.</param>
+        public static FastForestBinaryFeaturizationEstimator FeaturizeByFastForestBinary(this TransformsCatalog catalog,
             FastForestBinaryFeaturizationEstimator.Options options)
         {
             Contracts.CheckValue(catalog, nameof(catalog));
@@ -469,7 +493,13 @@ namespace Microsoft.ML
             return new FastForestBinaryFeaturizationEstimator(env, options);
         }
 
-        public static FastTreeBinaryFeaturizationEstimator FastTreeBinaryFeaturizing(this TransformsCatalog catalog,
+        /// <summary>
+        /// Create <see cref="FastTreeBinaryFeaturizationEstimator"/>, which uses <see cref="FastTreeBinaryTrainer"/> to train <see cref="TreeEnsembleModelParameters"/> to create tree-based features.
+        /// </summary>
+        /// <param name="catalog">The context <see cref="TransformsCatalog"/> to create <see cref="FastTreeBinaryFeaturizationEstimator"/>.</param>
+        /// <param name="options">The options to configure <see cref="FastTreeBinaryFeaturizationEstimator"/>. See <see cref="FastTreeBinaryFeaturizationEstimator.Options"/> and
+        /// <see cref="TreeEnsembleFeaturizationEstimatorBase.CommonOptions"/> for available settings.</param>
+        public static FastTreeBinaryFeaturizationEstimator FeaturizeByFastTreeBinary(this TransformsCatalog catalog,
             FastTreeBinaryFeaturizationEstimator.Options options)
         {
             Contracts.CheckValue(catalog, nameof(catalog));
@@ -477,7 +507,13 @@ namespace Microsoft.ML
             return new FastTreeBinaryFeaturizationEstimator(env, options);
         }
 
-        public static FastTreeRankingFeaturizationEstimator FastTreeRankingFeaturizing(this TransformsCatalog catalog,
+        /// <summary>
+        /// Create <see cref="FastTreeRankingFeaturizationEstimator"/>, which uses <see cref="FastTreeRankingTrainer"/> to train <see cref="TreeEnsembleModelParameters"/> to create tree-based features.
+        /// </summary>
+        /// <param name="catalog">The context <see cref="TransformsCatalog"/> to create <see cref="FastTreeRankingFeaturizationEstimator"/>.</param>
+        /// <param name="options">The options to configure <see cref="FastTreeRankingFeaturizationEstimator"/>. See <see cref="FastTreeRankingFeaturizationEstimator.Options"/> and
+        /// <see cref="TreeEnsembleFeaturizationEstimatorBase.CommonOptions"/> for available settings.</param>
+        public static FastTreeRankingFeaturizationEstimator FeaturizeByFastTreeRanking(this TransformsCatalog catalog,
             FastTreeRankingFeaturizationEstimator.Options options)
         {
             Contracts.CheckValue(catalog, nameof(catalog));
@@ -485,7 +521,13 @@ namespace Microsoft.ML
             return new FastTreeRankingFeaturizationEstimator(env, options);
         }
 
-        public static FastTreeTweedieFeaturizationEstimator FastTreeTweedieFeaturizing(this TransformsCatalog catalog,
+        /// <summary>
+        /// Create <see cref="FastTreeTweedieFeaturizationEstimator"/>, which uses <see cref="FastTreeTweedieTrainer"/> to train <see cref="TreeEnsembleModelParameters"/> to create tree-based features.
+        /// </summary>
+        /// <param name="catalog">The context <see cref="TransformsCatalog"/> to create <see cref="FastTreeTweedieFeaturizationEstimator"/>.</param>
+        /// <param name="options">The options to configure <see cref="FastTreeTweedieFeaturizationEstimator"/>. See <see cref="FastTreeTweedieFeaturizationEstimator.Options"/> and
+        /// <see cref="TreeEnsembleFeaturizationEstimatorBase.CommonOptions"/> for available settings.</param>
+        public static FastTreeTweedieFeaturizationEstimator FeaturizeByFastTreeTweedie(this TransformsCatalog catalog,
             FastTreeTweedieFeaturizationEstimator.Options options)
         {
             Contracts.CheckValue(catalog, nameof(catalog));

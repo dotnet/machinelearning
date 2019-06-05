@@ -15,7 +15,7 @@ using Microsoft.ML.Trainers.FastTree;
 namespace Microsoft.ML.Trainers.FastTree
 {
     /// <summary>
-    /// <see cref="ITransformer"/> resulting from fitting any derived class of <see cref="FeaturizationEstimatorBase"/>.
+    /// <see cref="ITransformer"/> resulting from fitting any derived class of <see cref="TreeEnsembleFeaturizationEstimatorBase"/>.
     /// The derived classes include, for example, <see cref="FastTreeBinaryFeaturizationEstimator"/> and
     /// <see cref="FastForestRegressionFeaturizationEstimator"/>.
     /// </summary>
@@ -25,15 +25,15 @@ namespace Microsoft.ML.Trainers.FastTree
         private readonly TreeEnsembleFeaturizerBindableMapper.Arguments _scorerArgs;
         private readonly DataViewSchema.DetachedColumn _featureDetachedColumn;
         /// <summary>
-        /// See <see cref="FeaturizationEstimatorBase.CommonOptions.TreesColumnName"/>.
+        /// See <see cref="TreeEnsembleFeaturizationEstimatorBase.CommonOptions.TreesColumnName"/>.
         /// </summary>
         private readonly string _treesColumnName;
         /// <summary>
-        /// See <see cref="FeaturizationEstimatorBase.CommonOptions.LeavesColumnName"/>.
+        /// See <see cref="TreeEnsembleFeaturizationEstimatorBase.CommonOptions.LeavesColumnName"/>.
         /// </summary>
         private readonly string _leavesColumnName;
         /// <summary>
-        /// See <see cref="FeaturizationEstimatorBase.CommonOptions.PathsColumnName"/>.
+        /// See <see cref="TreeEnsembleFeaturizationEstimatorBase.CommonOptions.PathsColumnName"/>.
         /// </summary>
         private readonly string _pathsColumnName;
         /// <summary>

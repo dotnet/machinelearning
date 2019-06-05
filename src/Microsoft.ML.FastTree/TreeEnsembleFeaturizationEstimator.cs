@@ -17,18 +17,8 @@ namespace Microsoft.ML.Trainers.FastTree
     /// produces three columns: (1) the prediction values of all trees, (2) the IDs of leaves the input feature vector falling into, and (3)
     /// the binary vector which encodes the paths to those destination leaves.
     /// </summary>
-    public abstract class FeaturizationEstimatorBase : IEstimator<TreeEnsembleFeaturizationTransformer>
+    public abstract class TreeEnsembleFeaturizationEstimatorBase : IEstimator<TreeEnsembleFeaturizationTransformer>
     {
-        /// <summary>
-        /// Default values of <see cref="CommonOptions"/>.
-        /// </summary>
-        private static class DefaultCommonOptions
-        {
-            public static string TreesColumnName = "Trees";
-            public static string LeavesColumnName = "Leaves";
-            public static string PathsColumnName = "Paths";
-        }
-
         /// <summary>
         /// The common options of tree-based featurizations such as <see cref="FastTreeBinaryFeaturizationEstimator"/>, <see cref="FastForestBinaryFeaturizationEstimator"/>,
         /// <see cref="FastTreeRegressionFeaturizationEstimator"/>, <see cref="FastForestRegressionFeaturizationEstimator"/>, and <see cref="PretrainedTreeFeaturizationEstimator"/>.
@@ -37,7 +27,10 @@ namespace Microsoft.ML.Trainers.FastTree
         {
             /// <summary>
             /// The name of feature column in the <see cref="IDataView"/> when calling <see cref="Fit(IDataView)"/>.
-            /// The column type must be a vector of <see cref="System.Single"/>.
+            /// The column type must be a vector of <see cref="System.Single"/>. The column called <see cref="InputColumnName"/> would be mapped
+            /// to columns called <see cref="TreesColumnName"/>, <see cref="LeavesColumnName"/>, and <see cref="PathsColumnName"/> in the output
+            /// of <see cref="TreeEnsembleFeaturizationEstimatorBase"/> and its derived classes. Note that <see cref="FeatureColumnName"/> is not
+            /// necessary to be the same as the feature column used to train the underlying tree model.
             /// </summary>
             public string InputColumnName;
 
@@ -65,8 +58,7 @@ namespace Microsoft.ML.Trainers.FastTree
         };
 
         /// <summary>
-        /// Feature column to apply tree-based featurization. Note that <see cref="FeatureColumnName"/> is not necessary to be the same as
-        /// the feature column used to train the tree model.
+        /// See <see cref="CommonOptions.InputColumnName"/>.
         /// </summary>
         private protected readonly string FeatureColumnName;
 
@@ -90,7 +82,7 @@ namespace Microsoft.ML.Trainers.FastTree
         /// </summary>
         private protected readonly IHostEnvironment Env;
 
-        private protected FeaturizationEstimatorBase(IHostEnvironment env, CommonOptions options)
+        private protected TreeEnsembleFeaturizationEstimatorBase(IHostEnvironment env, CommonOptions options)
         {
             Env = env;
             if (options.InputColumnName == null)
@@ -174,15 +166,24 @@ namespace Microsoft.ML.Trainers.FastTree
     /// | `Leaves` | Vector of<xref:System.Single> | The IDs of all leaves where the input feature vector falls into. |
     /// | `Paths` | Vector of<xref:System.Single> | The paths the input feature vector passed through to reach the leaves. |
     ///
+    /// Those output columns are all optional. Please see the names of skipped columns to null so that they would not be produced.
+    ///
     /// Check the See Also section for links to usage examples.
     /// ]]>
     /// </format>
     /// </remarks>
-    /// <seealso cref="TreeExtensions.PretrainTreeEnsembleFeaturizing(TransformsCatalog, PretrainedTreeFeaturizationEstimator.Options)"/>
-    public sealed class PretrainedTreeFeaturizationEstimator : FeaturizationEstimatorBase
+    /// <seealso cref="TreeExtensions.FeaturizeByPretrainTreeEnsemble(TransformsCatalog, PretrainedTreeFeaturizationEstimator.Options)"/>
+    public sealed class PretrainedTreeFeaturizationEstimator : TreeEnsembleFeaturizationEstimatorBase
     {
-        public sealed class Options : FeaturizationEstimatorBase.CommonOptions
+        /// <summary>
+        /// <see cref="Options"/> of <see cref="PretrainedTreeFeaturizationEstimator"/> as
+        /// used when calling <see cref="TreeExtensions.FeaturizeByPretrainTreeEnsemble(TransformsCatalog, Options)"/>.
+        /// </summary>
+        public sealed class Options : TreeEnsembleFeaturizationEstimatorBase.CommonOptions
         {
+            /// <summary>
+            /// The pretrained tree model used to do tree-based featurization. Note that <see cref="TreeEnsembleModelParameters"/> contains a collection of decision trees.
+            /// </summary>
             public TreeEnsembleModelParameters ModelParameters;
         };
 
@@ -200,12 +201,18 @@ namespace Microsoft.ML.Trainers.FastTree
         private protected override TreeEnsembleModelParameters PrepareModel(IDataView input) => _modelParameters;
     }
 
-    public sealed class FastTreeBinaryFeaturizationEstimator : FeaturizationEstimatorBase
+    public sealed class FastTreeBinaryFeaturizationEstimator : TreeEnsembleFeaturizationEstimatorBase
     {
         private readonly FastTreeBinaryTrainer.Options _trainerOptions;
 
+        /// <summary>
+        /// Options for the <see cref="FastTreeBinaryFeaturizationEstimator"/>.
+        /// </summary>
         public sealed class Options : CommonOptions
         {
+            /// <summary>
+            /// The configuration of <see cref="FastTreeBinaryTrainer"/> used to train the underlying <see cref="TreeEnsembleModelParameters"/>.
+            /// </summary>
             public FastTreeBinaryTrainer.Options TrainerOptions;
         }
 
@@ -223,12 +230,18 @@ namespace Microsoft.ML.Trainers.FastTree
         }
     }
 
-    public sealed class FastTreeRegressionFeaturizationEstimator : FeaturizationEstimatorBase
+    public sealed class FastTreeRegressionFeaturizationEstimator : TreeEnsembleFeaturizationEstimatorBase
     {
         private readonly FastTreeRegressionTrainer.Options _trainerOptions;
 
+        /// <summary>
+        /// Options for the <see cref="FastTreeRegressionFeaturizationEstimator"/>.
+        /// </summary>
         public sealed class Options : CommonOptions
         {
+            /// <summary>
+            /// The configuration of <see cref="FastTreeRegressionTrainer"/> used to train the underlying <see cref="TreeEnsembleModelParameters"/>.
+            /// </summary>
             public FastTreeRegressionTrainer.Options TrainerOptions;
         }
 
@@ -246,12 +259,18 @@ namespace Microsoft.ML.Trainers.FastTree
         }
     }
 
-    public sealed class FastForestBinaryFeaturizationEstimator : FeaturizationEstimatorBase
+    public sealed class FastForestBinaryFeaturizationEstimator : TreeEnsembleFeaturizationEstimatorBase
     {
         private readonly FastForestBinaryTrainer.Options _trainerOptions;
 
+        /// <summary>
+        /// Options for the <see cref="FastForestBinaryFeaturizationEstimator"/>.
+        /// </summary>
         public sealed class Options : CommonOptions
         {
+            /// <summary>
+            /// The configuration of <see cref="FastForestBinaryTrainer"/> used to train the underlying <see cref="TreeEnsembleModelParameters"/>.
+            /// </summary>
             public FastForestBinaryTrainer.Options TrainerOptions;
         }
 
@@ -269,12 +288,18 @@ namespace Microsoft.ML.Trainers.FastTree
         }
     }
 
-    public sealed class FastForestRegressionFeaturizationEstimator : FeaturizationEstimatorBase
+    public sealed class FastForestRegressionFeaturizationEstimator : TreeEnsembleFeaturizationEstimatorBase
     {
         private readonly FastForestRegressionTrainer.Options _trainerOptions;
 
+        /// <summary>
+        /// Options for the <see cref="FastForestRegressionFeaturizationEstimator"/>.
+        /// </summary>
         public sealed class Options : CommonOptions
         {
+            /// <summary>
+            /// The configuration of <see cref="FastForestRegressionTrainer"/> used to train the underlying <see cref="TreeEnsembleModelParameters"/>.
+            /// </summary>
             public FastForestRegressionTrainer.Options TrainerOptions;
         }
 
@@ -292,12 +317,18 @@ namespace Microsoft.ML.Trainers.FastTree
         }
     }
 
-    public sealed class FastTreeRankingFeaturizationEstimator : FeaturizationEstimatorBase
+    public sealed class FastTreeRankingFeaturizationEstimator : TreeEnsembleFeaturizationEstimatorBase
     {
         private readonly FastTreeRankingTrainer.Options _trainerOptions;
 
+        /// <summary>
+        /// Options for the <see cref="FastTreeRankingFeaturizationEstimator"/>.
+        /// </summary>
         public sealed class Options : CommonOptions
         {
+            /// <summary>
+            /// The configuration of <see cref="FastTreeRankingTrainer"/> used to train the underlying <see cref="TreeEnsembleModelParameters"/>.
+            /// </summary>
             public FastTreeRankingTrainer.Options TrainerOptions;
         }
 
@@ -315,12 +346,18 @@ namespace Microsoft.ML.Trainers.FastTree
         }
     }
 
-    public sealed class FastTreeTweedieFeaturizationEstimator : FeaturizationEstimatorBase
+    public sealed class FastTreeTweedieFeaturizationEstimator : TreeEnsembleFeaturizationEstimatorBase
     {
         private readonly FastTreeTweedieTrainer.Options _trainerOptions;
 
+        /// <summary>
+        /// Options for the <see cref="FastTreeTweedieFeaturizationEstimator"/>.
+        /// </summary>
         public sealed class Options : CommonOptions
         {
+            /// <summary>
+            /// The configuration of <see cref="FastTreeTweedieTrainer"/> used to train the underlying <see cref="TreeEnsembleModelParameters"/>.
+            /// </summary>
             public FastTreeTweedieTrainer.Options TrainerOptions;
         }
 
