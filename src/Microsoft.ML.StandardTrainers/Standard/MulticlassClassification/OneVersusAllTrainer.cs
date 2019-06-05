@@ -262,12 +262,12 @@ namespace Microsoft.ML.Trainers
 
         private const string SubPredictorFmt = "SubPredictor_{0:000}";
 
-        private readonly ImplBase _impl;
+        internal readonly ImplBase Impl;
 
         /// <summary>
         /// Retrieves the model parameters.
         /// </summary>
-        private ImmutableArray<object> SubModelParameters => _impl.Predictors.Cast<object>().ToImmutableArray();
+        private ImmutableArray<object> SubModelParameters => Impl.Predictors.Cast<object>().ToImmutableArray();
 
         /// <summary>
         /// The type of the prediction task.
@@ -289,7 +289,7 @@ namespace Microsoft.ML.Trainers
 
         private DataViewType DistType { get; }
 
-        bool ICanSavePfa.CanSavePfa => _impl.CanSavePfa;
+        bool ICanSavePfa.CanSavePfa => Impl.CanSavePfa;
 
         [BestFriend]
         internal static OneVersusAllModelParameters Create(IHost host, OutputFormula outputFormula, TScalarPredictor[] predictors)
@@ -356,8 +356,8 @@ namespace Microsoft.ML.Trainers
             Host.AssertValue(impl, nameof(impl));
             Host.Assert(Utils.Size(impl.Predictors) > 0);
 
-            _impl = impl;
-            DistType = new VectorDataViewType(NumberDataViewType.Single, _impl.Predictors.Length);
+            Impl = impl;
+            DistType = new VectorDataViewType(NumberDataViewType.Single, Impl.Predictors.Length);
         }
 
         private OneVersusAllModelParameters(IHostEnvironment env, ModelLoadContext ctx)
@@ -374,16 +374,16 @@ namespace Microsoft.ML.Trainers
             {
                 var predictors = new IValueMapperDist[len];
                 LoadPredictors(Host, predictors, ctx);
-                _impl = new ImplDist(predictors);
+                Impl = new ImplDist(predictors);
             }
             else
             {
                 var predictors = new TScalarPredictor[len];
                 LoadPredictors(Host, predictors, ctx);
-                _impl = new ImplRaw(predictors);
+                Impl = new ImplRaw(predictors);
             }
 
-            DistType = new VectorDataViewType(NumberDataViewType.Single, _impl.Predictors.Length);
+            DistType = new VectorDataViewType(NumberDataViewType.Single, Impl.Predictors.Length);
         }
 
         private static OneVersusAllModelParameters Create(IHostEnvironment env, ModelLoadContext ctx)
@@ -406,12 +406,12 @@ namespace Microsoft.ML.Trainers
             base.SaveCore(ctx);
             ctx.SetVersionInfo(GetVersionInfo());
 
-            var preds = _impl.Predictors;
+            var preds = Impl.Predictors;
 
             // *** Binary format ***
             // bool: useDist
             // int: predictor count
-            ctx.Writer.WriteBoolByte(_impl is ImplDist);
+            ctx.Writer.WriteBoolByte(Impl is ImplDist);
             ctx.Writer.Write(preds.Length);
 
             // Save other streams.
@@ -423,12 +423,12 @@ namespace Microsoft.ML.Trainers
         {
             Host.CheckValue(ctx, nameof(ctx));
             Host.CheckValue(input, nameof(input));
-            return _impl.SaveAsPfa(ctx, input);
+            return Impl.SaveAsPfa(ctx, input);
         }
 
         DataViewType IValueMapper.InputType
         {
-            get { return _impl.InputType; }
+            get { return Impl.InputType; }
         }
 
         DataViewType IValueMapper.OutputType
@@ -440,7 +440,7 @@ namespace Microsoft.ML.Trainers
             Host.Check(typeof(TIn) == typeof(VBuffer<float>));
             Host.Check(typeof(TOut) == typeof(VBuffer<float>));
 
-            return (ValueMapper<TIn, TOut>)(Delegate)_impl.GetMapper();
+            return (ValueMapper<TIn, TOut>)(Delegate)Impl.GetMapper();
         }
 
         void ICanSaveInSourceCode.SaveAsCode(TextWriter writer, RoleMappedSchema schema)
@@ -448,7 +448,7 @@ namespace Microsoft.ML.Trainers
             Host.CheckValue(writer, nameof(writer));
             Host.CheckValue(schema, nameof(schema));
 
-            var preds = _impl.Predictors;
+            var preds = Impl.Predictors;
             writer.WriteLine("double[] outputs = new double[{0}];", preds.Length);
 
             for (int i = 0; i < preds.Length; i++)
@@ -468,7 +468,7 @@ namespace Microsoft.ML.Trainers
             Host.CheckValue(writer, nameof(writer));
             Host.CheckValue(schema, nameof(schema));
 
-            var preds = _impl.Predictors;
+            var preds = Impl.Predictors;
 
             for (int i = 0; i < preds.Length; i++)
             {
@@ -483,7 +483,7 @@ namespace Microsoft.ML.Trainers
             }
         }
 
-        private abstract class ImplBase : ISingleCanSavePfa
+        internal abstract class ImplBase : ISingleCanSavePfa
         {
             public abstract DataViewType InputType { get; }
             public abstract IValueMapper[] Predictors { get; }

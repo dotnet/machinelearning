@@ -15,6 +15,7 @@ using Microsoft.ML.TestFramework.Attributes;
 using Microsoft.ML.Trainers.FastTree;
 using Microsoft.ML.Transforms;
 using Xunit;
+using Microsoft.ML.Calibrators;
 
 namespace Microsoft.ML.Tests.TrainerEstimators
 {
@@ -61,6 +62,31 @@ namespace Microsoft.ML.Tests.TrainerEstimators
 
             var transformedDataView = pipe.Fit(dataView).Transform(dataView);
             var model = trainer.Fit(transformedDataView, transformedDataView);
+            Done();
+        }
+
+        /// <summary>
+        /// LightGBMBinaryTrainer CorrectSigmoid test 
+        /// </summary>
+        [LightGBMFact]
+        public void LightGBMBinaryEstimatorCorrectSigmoid()
+        {
+            var (pipe, dataView) = GetBinaryClassificationPipeline();
+            var sigmoid = .789;
+
+            var trainer = ML.BinaryClassification.Trainers.LightGbm(new LightGbmBinaryTrainer.Options
+            {
+                NumberOfLeaves = 10,
+                NumberOfThreads = 1,
+                MinimumExampleCountPerLeaf = 2,
+                Sigmoid = sigmoid
+            });
+
+            var transformedDataView = pipe.Fit(dataView).Transform(dataView);
+            var model = trainer.Fit(transformedDataView, transformedDataView);
+
+            //the slope in the model calibrator should be equal to the negative of the sigmoid passed into the trainer
+            Assert.Equal(sigmoid, -model.Model.Calibrator.Slope);
             Done();
         }
 
@@ -248,6 +274,33 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             var pipe = pipeline.Append(trainer)
                     .Append(new KeyToValueMappingEstimator(Env, "PredictedLabel"));
             TestEstimatorCore(pipe, dataView);
+            Done();
+        }
+
+        /// <summary>
+        /// LightGbmMulticlass CorrectSigmoid test 
+        /// </summary>
+        [LightGBMFact]
+        public void LightGbmMulticlassEstimatorCorrectSigmoid()
+        {
+            var (pipeline, dataView) = GetMulticlassPipeline();
+            var sigmoid = .789;
+
+            var trainer = ML.MulticlassClassification.Trainers.LightGbm(new LightGbmMulticlassTrainer.Options
+            {
+                Sigmoid = sigmoid
+            });
+
+            var pipe = pipeline.Append(trainer)
+                    .Append(new KeyToValueMappingEstimator(Env, "PredictedLabel"));
+
+            var transformedDataView = pipe.Fit(dataView).Transform(dataView);
+            var model = trainer.Fit(transformedDataView, transformedDataView);
+
+            //the slope in the all the calibrators should be equal to the negative of the sigmoid passed into the trainer
+
+            Assert.True(model.Model.Impl.Predictors.All(predictor =>
+            ((FeatureWeightsCalibratedModelParameters<LightGbmBinaryModelParameters, PlattCalibrator>)predictor).Calibrator.Slope == -sigmoid));
             Done();
         }
 

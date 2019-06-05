@@ -232,7 +232,7 @@ namespace Microsoft.ML.Trainers.LightGbm
             Host.Check(TrainedEnsemble != null, "The predictor cannot be created before training is complete");
             var innerArgs = LightGbmInterfaceUtils.JoinParameters(base.GbmOptions);
             var pred = new LightGbmBinaryModelParameters(Host, TrainedEnsemble, FeatureCount, innerArgs);
-            var cali = new PlattCalibrator(Host, -0.5, 0);
+            var cali = new PlattCalibrator(Host, -LightGbmTrainerOptions.Sigmoid, 0);
             return new FeatureWeightsCalibratedModelParameters<LightGbmBinaryModelParameters, PlattCalibrator>(Host, pred, cali);
         }
 
