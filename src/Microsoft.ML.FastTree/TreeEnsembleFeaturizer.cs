@@ -379,9 +379,10 @@ namespace Microsoft.ML.Data
             return new VersionInfo(
                 modelSignature: "TREEMAPR",
                 // verWrittenCur: 0x00010001, // Initial
-                verWrittenCur: 0x00010002, // Add _defaultValueForMissing
-                verReadableCur: 0x00010002,
-                verWeCanReadBack: 0x00010001,
+                // verWrittenCur: 0x00010002, // Add _defaultValueForMissing
+                verWrittenCur: 0x00010003, // Add output column names (_treesColumnName, _leavesColumnName, _pathsColumnName)
+                verReadableCur: 0x00010003,
+                verWeCanReadBack: 0x00010002,
                 loaderSignature: LoaderSignature,
                 loaderAssemblyName: typeof(TreeEnsembleFeaturizerBindableMapper).Assembly.FullName);
         }
