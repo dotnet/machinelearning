@@ -743,5 +743,44 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             Assert.True(metrics.LogLoss < 0.05);
             Assert.True(metrics.AreaUnderPrecisionRecallCurve > 0.98);
         }
+
+        [Fact]
+        public void TreeEnsembleFeaturizingPipelineMulticlass()
+        {
+            int dataPointCount = 200;
+            var data = SamplesUtils.DatasetUtils.GenerateFloatLabelFloatFeatureVectorSamples(dataPointCount).ToList();
+            var dataView = ML.Data.LoadFromEnumerable(data);
+
+            var trainerOptions = new FastForestRegressionTrainer.Options
+            {
+                NumberOfThreads = 1,
+                NumberOfTrees = 10,
+                NumberOfLeaves = 4,
+                MinimumExampleCountPerLeaf = 10,
+                FeatureColumnName = "Features",
+                LabelColumnName = "Label",
+                ShuffleLabels = true
+            };
+
+            var options = new FastForestRegressionFeaturizationEstimator.Options()
+            {
+                InputColumnName = "Features",
+                TreesColumnName = "Trees",
+                LeavesColumnName = "Leaves",
+                PathsColumnName = "Paths",
+                TrainerOptions = trainerOptions
+            };
+
+            var pipeline = ML.Transforms.Conversion.Hash("HashedLabel", "Label", numberOfBits: 3).
+                Append(ML.Transforms.FeaturizeByFastForestRegression(options)).
+                Append(ML.Transforms.Concatenate("CombinedFeatures", "Features", "Trees", "Leaves", "Paths")).
+                Append(ML.MulticlassClassification.Trainers.SdcaMaximumEntropy("HashedLabel", "CombinedFeatures"));
+            var model = pipeline.Fit(dataView);
+            var prediction = model.Transform(dataView);
+            var metrics = ML.MulticlassClassification.Evaluate(prediction, labelColumnName: "HashedLabel");
+
+            Assert.True(metrics.MacroAccuracy > 0.9);
+            Assert.True(metrics.MicroAccuracy > 0.9);
+        }
     }
 }
