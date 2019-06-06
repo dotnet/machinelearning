@@ -18,13 +18,13 @@ string TrainerOptions = @"FastTreeRegressionTrainer.Options
                 NumberOfTrees = 3,
                 // Number of leaves per tree.
                 NumberOfLeaves = 6,
-				LabelColumnName = labelColumnName,
-				FeatureColumnName = featureColumnName
+                LabelColumnName = labelColumnName,
+                FeatureColumnName = featureColumnName
             }";
 
 string Options = @"FastTreeRegressionFeaturizationEstimator.Options
             {
-				InputColumnName = featureColumnName,
+                InputColumnName = featureColumnName,
                 TreesColumnName = treesColumnName,
                 LeavesColumnName = leavesColumnName,
                 PathsColumnName = pathsColumnName,

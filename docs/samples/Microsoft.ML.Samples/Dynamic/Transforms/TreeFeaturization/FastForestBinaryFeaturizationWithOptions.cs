@@ -37,7 +37,7 @@ namespace Samples.Dynamic.Transforms.TreeFeaturization
             string leavesColumnName = nameof(TransformedDataPoint.Leaves);
             string pathsColumnName = nameof(TransformedDataPoint.Paths);
 
-			// Define the configuration of the trainer used to train a tree-based model.
+            // Define the configuration of the trainer used to train a tree-based model.
             var trainerOptions = new FastForestBinaryTrainer.Options
             {
                 // Create a simpler model by penalizing usage of new features.
@@ -46,16 +46,16 @@ namespace Samples.Dynamic.Transforms.TreeFeaturization
                 NumberOfTrees = 3,
                 // Number of leaves per tree.
                 NumberOfLeaves = 6,
-				// Feature column name.
-				FeatureColumnName = featureColumnName,
-				// Label column name.
-				LabelColumnName = labelColumnName
+                // Feature column name.
+                FeatureColumnName = featureColumnName,
+                // Label column name.
+                LabelColumnName = labelColumnName
             };
 
-			// Define the tree-based featurizer's configuration.
+            // Define the tree-based featurizer's configuration.
             var options = new FastForestBinaryFeaturizationEstimator.Options
             {
-				InputColumnName = featureColumnName,
+                InputColumnName = featureColumnName,
                 TreesColumnName = treesColumnName,
                 LeavesColumnName = leavesColumnName,
                 PathsColumnName = pathsColumnName,
@@ -68,10 +68,10 @@ namespace Samples.Dynamic.Transforms.TreeFeaturization
             // Train the model.
             var model = pipeline.Fit(dataView);
 
-			// Apply the trained transformer to the considered data set.
-			var transformed = model.Transform(dataView);
+            // Apply the trained transformer to the considered data set.
+            var transformed = model.Transform(dataView);
 
-			// Convert IDataView object to a list. Each element in the resulted list corresponds to a row in the IDataView.
+            // Convert IDataView object to a list. Each element in the resulted list corresponds to a row in the IDataView.
             var transformedDataPoints = mlContext.Data.CreateEnumerable<TransformedDataPoint>(transformed, false).ToList();
 
             // Print out the transformation of the first 3 data points.
@@ -128,11 +128,11 @@ namespace Samples.Dynamic.Transforms.TreeFeaturization
         // Class used to capture the output of tree-base featurization.
         private class TransformedDataPoint : DataPoint
         {
-		    // The i-th value is the output value of the i-th decision tree.
+            // The i-th value is the output value of the i-th decision tree.
             public float[] Trees { get; set; }
-		    // The 0-1 encoding of leaves the input feature vector falls into.
+            // The 0-1 encoding of leaves the input feature vector falls into.
             public float[] Leaves { get; set; }
-		    // The 0-1 encoding of paths the input feature vector reaches the leaves.
+            // The 0-1 encoding of paths the input feature vector reaches the leaves.
             public float[] Paths { get; set; }
         }
     }

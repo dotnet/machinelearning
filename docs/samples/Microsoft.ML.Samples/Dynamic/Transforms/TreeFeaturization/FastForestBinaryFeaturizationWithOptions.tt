@@ -18,15 +18,15 @@ string TrainerOptions = @"FastForestBinaryTrainer.Options
                 NumberOfTrees = 3,
                 // Number of leaves per tree.
                 NumberOfLeaves = 6,
-				// Feature column name.
-				FeatureColumnName = featureColumnName,
-				// Label column name.
-				LabelColumnName = labelColumnName
+                // Feature column name.
+                FeatureColumnName = featureColumnName,
+                // Label column name.
+                LabelColumnName = labelColumnName
             }";
 
 string Options = @"FastForestBinaryFeaturizationEstimator.Options
             {
-				InputColumnName = featureColumnName,
+                InputColumnName = featureColumnName,
                 TreesColumnName = treesColumnName,
                 LeavesColumnName = leavesColumnName,
                 PathsColumnName = pathsColumnName,
