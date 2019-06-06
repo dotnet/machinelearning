@@ -425,6 +425,7 @@ namespace Microsoft.ML.Data
             Contracts.CheckValue(env, nameof(env));
             _host = env.Register(LoaderSignature);
             _host.AssertValue(ctx);
+            ctx.CheckAtModel(GetVersionInfo());
 
             // *** Binary format ***
             // ensemble
