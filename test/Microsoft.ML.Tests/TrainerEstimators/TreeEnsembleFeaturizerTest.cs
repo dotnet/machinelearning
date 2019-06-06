@@ -748,7 +748,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         public void TreeEnsembleFeaturizingPipelineMulticlass()
         {
             int dataPointCount = 200;
-            var data = SamplesUtils.DatasetUtils.GenerateFloatLabelFloatFeatureVectorSamples(dataPointCount).ToList();
+            var data = SamplesUtils.DatasetUtils.GenerateRandomMulticlassClassificationExamples(dataPointCount).ToList();
             var dataView = ML.Data.LoadFromEnumerable(data);
 
             var trainerOptions = new FastForestRegressionTrainer.Options
@@ -758,7 +758,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                 NumberOfLeaves = 4,
                 MinimumExampleCountPerLeaf = 10,
                 FeatureColumnName = "Features",
-                LabelColumnName = "Label",
+                LabelColumnName = "NumericalLabel",
                 ShuffleLabels = true
             };
 
@@ -771,16 +771,32 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                 TrainerOptions = trainerOptions
             };
 
-            var pipeline = ML.Transforms.Conversion.Hash("HashedLabel", "Label", numberOfBits: 3).
+            var lookupData = new[] {
+                new LookupMap { Category = "AA", Value = 1.0f },
+                new LookupMap { Category = "BB", Value = 2.0f },
+                new LookupMap { Category = "CC", Value = 3.0f },
+                new LookupMap { Category = "DD", Value = 4.0f }
+            };
+
+            var lookupIdvMap = ML.Data.LoadFromEnumerable(lookupData);
+
+            var pipeline = ML.Transforms.Conversion.MapValueToKey("KeyLabel", "Label").
+                Append(ML.Transforms.Conversion.MapValue("NumericalLabel", lookupIdvMap, lookupIdvMap.Schema["Category"], lookupIdvMap.Schema["Value"], "Label")).
                 Append(ML.Transforms.FeaturizeByFastForestRegression(options)).
                 Append(ML.Transforms.Concatenate("CombinedFeatures", "Features", "Trees", "Leaves", "Paths")).
-                Append(ML.MulticlassClassification.Trainers.SdcaMaximumEntropy("HashedLabel", "CombinedFeatures"));
+                Append(ML.MulticlassClassification.Trainers.SdcaMaximumEntropy("KeyLabel", "CombinedFeatures"));
             var model = pipeline.Fit(dataView);
             var prediction = model.Transform(dataView);
-            var metrics = ML.MulticlassClassification.Evaluate(prediction, labelColumnName: "HashedLabel");
+            var metrics = ML.MulticlassClassification.Evaluate(prediction, labelColumnName: "KeyLabel");
 
             Assert.True(metrics.MacroAccuracy > 0.9);
             Assert.True(metrics.MicroAccuracy > 0.9);
+        }
+
+        private class LookupMap
+        {
+            public float Value { get; set; }
+            public string Category { get; set; }
         }
     }
 }
