@@ -179,7 +179,7 @@ namespace Microsoft.ML.Trainers.FastTree
         /// <see cref="Options"/> of <see cref="PretrainedTreeFeaturizationEstimator"/> as
         /// used when calling <see cref="TreeExtensions.FeaturizeByPretrainTreeEnsemble(TransformsCatalog, Options)"/>.
         /// </summary>
-        public sealed class Options : TreeEnsembleFeaturizationEstimatorBase.CommonOptions
+        public sealed class Options : CommonOptions
         {
             /// <summary>
             /// The pretrained tree model used to do tree-based featurization. Note that <see cref="TreeEnsembleModelParameters"/> contains a collection of decision trees.

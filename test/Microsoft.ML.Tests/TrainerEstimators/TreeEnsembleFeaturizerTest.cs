@@ -349,12 +349,12 @@ namespace Microsoft.ML.Tests.TrainerEstimators
 
             var trainerOptions = new FastTreeBinaryTrainer.Options
             {
-                    NumberOfThreads = 1,
-                    NumberOfTrees = 10,
-                    NumberOfLeaves = 4,
-                    MinimumExampleCountPerLeaf = 10,
-                    FeatureColumnName = "Features",
-                    LabelColumnName = "Label"
+                NumberOfThreads = 1,
+                NumberOfTrees = 10,
+                NumberOfLeaves = 4,
+                MinimumExampleCountPerLeaf = 10,
+                FeatureColumnName = "Features",
+                LabelColumnName = "Label"
             };
 
             var options = new FastTreeBinaryFeaturizationEstimator.Options()
@@ -387,12 +387,12 @@ namespace Microsoft.ML.Tests.TrainerEstimators
 
             var trainerOptions = new FastForestBinaryTrainer.Options
             {
-                    NumberOfThreads = 1,
-                    NumberOfTrees = 10,
-                    NumberOfLeaves = 4,
-                    MinimumExampleCountPerLeaf = 10,
-                    FeatureColumnName = "Features",
-                    LabelColumnName = "Label"
+                NumberOfThreads = 1,
+                NumberOfTrees = 10,
+                NumberOfLeaves = 4,
+                MinimumExampleCountPerLeaf = 10,
+                FeatureColumnName = "Features",
+                LabelColumnName = "Label"
             };
 
             var options = new FastForestBinaryFeaturizationEstimator.Options()
@@ -425,12 +425,12 @@ namespace Microsoft.ML.Tests.TrainerEstimators
 
             var trainerOptions = new FastTreeRegressionTrainer.Options
             {
-                    NumberOfThreads = 1,
-                    NumberOfTrees = 10,
-                    NumberOfLeaves = 4,
-                    MinimumExampleCountPerLeaf = 10,
-                    FeatureColumnName = "Features",
-                    LabelColumnName = "Label"
+                NumberOfThreads = 1,
+                NumberOfTrees = 10,
+                NumberOfLeaves = 4,
+                MinimumExampleCountPerLeaf = 10,
+                FeatureColumnName = "Features",
+                LabelColumnName = "Label"
             };
 
             var options = new FastTreeRegressionFeaturizationEstimator.Options()
@@ -462,12 +462,12 @@ namespace Microsoft.ML.Tests.TrainerEstimators
 
             var trainerOptions = new FastForestRegressionTrainer.Options
             {
-                    NumberOfThreads = 1,
-                    NumberOfTrees = 10,
-                    NumberOfLeaves = 4,
-                    MinimumExampleCountPerLeaf = 10,
-                    FeatureColumnName = "Features",
-                    LabelColumnName = "Label"
+                NumberOfThreads = 1,
+                NumberOfTrees = 10,
+                NumberOfLeaves = 4,
+                MinimumExampleCountPerLeaf = 10,
+                FeatureColumnName = "Features",
+                LabelColumnName = "Label"
             };
 
             var options = new FastForestRegressionFeaturizationEstimator.Options()
@@ -499,12 +499,12 @@ namespace Microsoft.ML.Tests.TrainerEstimators
 
             var trainerOptions = new FastTreeTweedieTrainer.Options
             {
-                    NumberOfThreads = 1,
-                    NumberOfTrees = 10,
-                    NumberOfLeaves = 4,
-                    MinimumExampleCountPerLeaf = 10,
-                    FeatureColumnName = "Features",
-                    LabelColumnName = "Label"
+                NumberOfThreads = 1,
+                NumberOfTrees = 10,
+                NumberOfLeaves = 4,
+                MinimumExampleCountPerLeaf = 10,
+                FeatureColumnName = "Features",
+                LabelColumnName = "Label"
             };
 
             var options = new FastTreeTweedieFeaturizationEstimator.Options()
@@ -536,12 +536,12 @@ namespace Microsoft.ML.Tests.TrainerEstimators
 
             var trainerOptions = new FastTreeRankingTrainer.Options
             {
-                    NumberOfThreads = 1,
-                    NumberOfTrees = 10,
-                    NumberOfLeaves = 4,
-                    MinimumExampleCountPerLeaf = 10,
-                    FeatureColumnName = "Features",
-                    LabelColumnName = "Label"
+                NumberOfThreads = 1,
+                NumberOfTrees = 10,
+                NumberOfLeaves = 4,
+                MinimumExampleCountPerLeaf = 10,
+                FeatureColumnName = "Features",
+                LabelColumnName = "Label"
             };
 
             var options = new FastTreeRankingFeaturizationEstimator.Options()
@@ -573,12 +573,12 @@ namespace Microsoft.ML.Tests.TrainerEstimators
 
             var trainerOptions = new FastForestRegressionTrainer.Options
             {
-                    NumberOfThreads = 1,
-                    NumberOfTrees = 10,
-                    NumberOfLeaves = 4,
-                    MinimumExampleCountPerLeaf = 10,
-                    FeatureColumnName = "Features",
-                    LabelColumnName = "Label"
+                NumberOfThreads = 1,
+                NumberOfTrees = 10,
+                NumberOfLeaves = 4,
+                MinimumExampleCountPerLeaf = 10,
+                FeatureColumnName = "Features",
+                LabelColumnName = "Label"
             };
 
             var options = new FastForestRegressionFeaturizationEstimator.Options()
@@ -627,12 +627,12 @@ namespace Microsoft.ML.Tests.TrainerEstimators
 
             var trainerOptions = new FastForestRegressionTrainer.Options
             {
-                    NumberOfThreads = 1,
-                    NumberOfTrees = 10,
-                    NumberOfLeaves = 4,
-                    MinimumExampleCountPerLeaf = 10,
-                    FeatureColumnName = "Features",
-                    LabelColumnName = "Label"
+                NumberOfThreads = 1,
+                NumberOfTrees = 10,
+                NumberOfLeaves = 4,
+                MinimumExampleCountPerLeaf = 10,
+                FeatureColumnName = "Features",
+                LabelColumnName = "Label"
             };
 
             // Trains tree featurization on "Features" and applies on "CopiedFeatures".
@@ -700,12 +700,12 @@ namespace Microsoft.ML.Tests.TrainerEstimators
 
             var trainerOptions = new FastTreeBinaryTrainer.Options
             {
-                    NumberOfThreads = 1,
-                    NumberOfTrees = 10,
-                    NumberOfLeaves = 4,
-                    MinimumExampleCountPerLeaf = 10,
-                    FeatureColumnName = "Features",
-                    LabelColumnName = "Label"
+                NumberOfThreads = 1,
+                NumberOfTrees = 10,
+                NumberOfLeaves = 4,
+                MinimumExampleCountPerLeaf = 10,
+                FeatureColumnName = "Features",
+                LabelColumnName = "Label"
             };
 
             var options = new FastTreeBinaryFeaturizationEstimator.Options()
