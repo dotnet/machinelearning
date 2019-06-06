@@ -23,7 +23,7 @@ namespace Microsoft.ML.Trainers.FastTree
         /// The common options of tree-based featurizations such as <see cref="FastTreeBinaryFeaturizationEstimator"/>, <see cref="FastForestBinaryFeaturizationEstimator"/>,
         /// <see cref="FastTreeRegressionFeaturizationEstimator"/>, <see cref="FastForestRegressionFeaturizationEstimator"/>, and <see cref="PretrainedTreeFeaturizationEstimator"/>.
         /// </summary>
-        public class CommonOptions
+        public abstract class OptionsBase
         {
             /// <summary>
             /// The name of feature column in the <see cref="IDataView"/> when calling <see cref="Fit(IDataView)"/>.
@@ -58,22 +58,22 @@ namespace Microsoft.ML.Trainers.FastTree
         };
 
         /// <summary>
-        /// See <see cref="CommonOptions.InputColumnName"/>.
+        /// See <see cref="OptionsBase.InputColumnName"/>.
         /// </summary>
         private protected readonly string FeatureColumnName;
 
         /// <summary>
-        /// See <see cref="CommonOptions.TreesColumnName"/>.
+        /// See <see cref="OptionsBase.TreesColumnName"/>.
         /// </summary>
         private protected readonly string TreesColumnName;
 
         /// <summary>
-        /// See <see cref="CommonOptions.LeavesColumnName"/>.
+        /// See <see cref="OptionsBase.LeavesColumnName"/>.
         /// </summary>
         private protected readonly string LeavesColumnName;
 
         /// <summary>
-        /// See <see cref="CommonOptions.PathsColumnName"/>.
+        /// See <see cref="OptionsBase.PathsColumnName"/>.
         /// </summary>
         private protected readonly string PathsColumnName;
 
@@ -82,14 +82,14 @@ namespace Microsoft.ML.Trainers.FastTree
         /// </summary>
         private protected readonly IHostEnvironment Env;
 
-        private protected TreeEnsembleFeaturizationEstimatorBase(IHostEnvironment env, CommonOptions options)
+        private protected TreeEnsembleFeaturizationEstimatorBase(IHostEnvironment env, OptionsBase options)
         {
             Env = env;
             if (options.InputColumnName == null)
                 throw Env.Except(nameof(options), "The " + nameof(options.InputColumnName) + " cannot be null.");
             if (options.TreesColumnName == null && options.LeavesColumnName == null && options.PathsColumnName == null)
-                throw Env.Except($"{nameof(CommonOptions.TreesColumnName)}, {nameof(CommonOptions.LeavesColumnName)}, and {nameof(CommonOptions.PathsColumnName)} cannot be all null at the same time. " +
-                    $"At least one output column name should be provided so that at least one output column may be generated.");
+                throw Env.Except($"{nameof(OptionsBase.TreesColumnName)}, {nameof(OptionsBase.LeavesColumnName)}, and {nameof(OptionsBase.PathsColumnName)} cannot be all null at the same time. " +
+                    $"At least one output column name should be provided so at least one output column may be generated.");
 
             FeatureColumnName = options.InputColumnName;
             TreesColumnName = options.TreesColumnName;
@@ -106,7 +106,7 @@ namespace Microsoft.ML.Trainers.FastTree
         private protected abstract TreeEnsembleModelParameters PrepareModel(IDataView input);
 
         /// <summary>
-        /// Produce a <see cref="TreeEnsembleModelParameters"/> which maps the column called <see cref="CommonOptions.InputColumnName"/> in <paramref name="input"/>
+        /// Produce a <see cref="TreeEnsembleModelParameters"/> which maps the column called <see cref="OptionsBase.InputColumnName"/> in <paramref name="input"/>
         /// to three output columns.
         /// </summary>
         public TreeEnsembleFeaturizationTransformer Fit(IDataView input)
@@ -122,7 +122,7 @@ namespace Microsoft.ML.Trainers.FastTree
         /// vector falls into, and the paths to those leaves.
         /// </summary>
         /// <param name="inputSchema">A schema which contains a feature column. Note that feature column name can be specified
-        /// by <see cref="CommonOptions.InputColumnName"/>.</param>
+        /// by <see cref="OptionsBase.InputColumnName"/>.</param>
         /// <returns>Output <see cref="SchemaShape"/> produced by <see cref="PretrainedTreeFeaturizationEstimator"/>.</returns>
         public SchemaShape GetOutputSchema(SchemaShape inputSchema)
         {
@@ -182,7 +182,7 @@ namespace Microsoft.ML.Trainers.FastTree
         /// <see cref="Options"/> of <see cref="PretrainedTreeFeaturizationEstimator"/> as
         /// used when calling <see cref="TreeExtensions.FeaturizeByPretrainTreeEnsemble(TransformsCatalog, Options)"/>.
         /// </summary>
-        public sealed class Options : CommonOptions
+        public sealed class Options : OptionsBase
         {
             /// <summary>
             /// The pretrained tree model used to do tree-based featurization. Note that <see cref="TreeEnsembleModelParameters"/> contains a collection of decision trees.
@@ -225,7 +225,7 @@ namespace Microsoft.ML.Trainers.FastTree
         /// <summary>
         /// Options for the <see cref="FastTreeBinaryFeaturizationEstimator"/>.
         /// </summary>
-        public sealed class Options : CommonOptions
+        public sealed class Options : OptionsBase
         {
             /// <summary>
             /// The configuration of <see cref="FastTreeBinaryTrainer"/> used to train the underlying <see cref="TreeEnsembleModelParameters"/>.
@@ -268,7 +268,7 @@ namespace Microsoft.ML.Trainers.FastTree
         /// <summary>
         /// Options for the <see cref="FastTreeRegressionFeaturizationEstimator"/>.
         /// </summary>
-        public sealed class Options : CommonOptions
+        public sealed class Options : OptionsBase
         {
             /// <summary>
             /// The configuration of <see cref="FastTreeRegressionTrainer"/> used to train the underlying <see cref="TreeEnsembleModelParameters"/>.
@@ -311,7 +311,7 @@ namespace Microsoft.ML.Trainers.FastTree
         /// <summary>
         /// Options for the <see cref="FastForestBinaryFeaturizationEstimator"/>.
         /// </summary>
-        public sealed class Options : CommonOptions
+        public sealed class Options : OptionsBase
         {
             /// <summary>
             /// The configuration of <see cref="FastForestBinaryTrainer"/> used to train the underlying <see cref="TreeEnsembleModelParameters"/>.
@@ -354,7 +354,7 @@ namespace Microsoft.ML.Trainers.FastTree
         /// <summary>
         /// Options for the <see cref="FastForestRegressionFeaturizationEstimator"/>.
         /// </summary>
-        public sealed class Options : CommonOptions
+        public sealed class Options : OptionsBase
         {
             /// <summary>
             /// The configuration of <see cref="FastForestRegressionTrainer"/> used to train the underlying <see cref="TreeEnsembleModelParameters"/>.
@@ -397,7 +397,7 @@ namespace Microsoft.ML.Trainers.FastTree
         /// <summary>
         /// Options for the <see cref="FastTreeRankingFeaturizationEstimator"/>.
         /// </summary>
-        public sealed class Options : CommonOptions
+        public sealed class Options : OptionsBase
         {
             /// <summary>
             /// The configuration of <see cref="FastTreeRankingTrainer"/> used to train the underlying <see cref="TreeEnsembleModelParameters"/>.
@@ -440,7 +440,7 @@ namespace Microsoft.ML.Trainers.FastTree
         /// <summary>
         /// Options for the <see cref="FastTreeTweedieFeaturizationEstimator"/>.
         /// </summary>
-        public sealed class Options : CommonOptions
+        public sealed class Options : OptionsBase
         {
             /// <summary>
             /// The configuration of <see cref="FastTreeTweedieTrainer"/> used to train the underlying <see cref="TreeEnsembleModelParameters"/>.

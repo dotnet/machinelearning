@@ -25,15 +25,15 @@ namespace Microsoft.ML.Trainers.FastTree
         private readonly TreeEnsembleFeaturizerBindableMapper.Arguments _scorerArgs;
         private readonly DataViewSchema.DetachedColumn _featureDetachedColumn;
         /// <summary>
-        /// See <see cref="TreeEnsembleFeaturizationEstimatorBase.CommonOptions.TreesColumnName"/>.
+        /// See <see cref="TreeEnsembleFeaturizationEstimatorBase.OptionsBase.TreesColumnName"/>.
         /// </summary>
         private readonly string _treesColumnName;
         /// <summary>
-        /// See <see cref="TreeEnsembleFeaturizationEstimatorBase.CommonOptions.LeavesColumnName"/>.
+        /// See <see cref="TreeEnsembleFeaturizationEstimatorBase.OptionsBase.LeavesColumnName"/>.
         /// </summary>
         private readonly string _leavesColumnName;
         /// <summary>
-        /// See <see cref="TreeEnsembleFeaturizationEstimatorBase.CommonOptions.PathsColumnName"/>.
+        /// See <see cref="TreeEnsembleFeaturizationEstimatorBase.OptionsBase.PathsColumnName"/>.
         /// </summary>
         private readonly string _pathsColumnName;
         /// <summary>

@@ -442,7 +442,7 @@ namespace Microsoft.ML
         /// </summary>
         /// <param name="catalog">The context <see cref="TransformsCatalog"/> to create <see cref="PretrainedTreeFeaturizationEstimator"/>.</param>
         /// <param name="options">The options to configure <see cref="PretrainedTreeFeaturizationEstimator"/>. See <see cref="PretrainedTreeFeaturizationEstimator.Options"/> and
-        /// <see cref="TreeEnsembleFeaturizationEstimatorBase.CommonOptions"/> for available settings.</param>
+        /// <see cref="TreeEnsembleFeaturizationEstimatorBase.OptionsBase"/> for available settings.</param>
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
@@ -463,7 +463,7 @@ namespace Microsoft.ML
         /// </summary>
         /// <param name="catalog">The context <see cref="TransformsCatalog"/> to create <see cref="PretrainedTreeFeaturizationEstimator"/>.</param>
         /// <param name="options">The options to configure <see cref="FastForestRegressionFeaturizationEstimator"/>. See <see cref="FastForestRegressionFeaturizationEstimator.Options"/> and
-        /// <see cref="TreeEnsembleFeaturizationEstimatorBase.CommonOptions"/> for available settings.</param>
+        /// <see cref="TreeEnsembleFeaturizationEstimatorBase.OptionsBase"/> for available settings.</param>
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
@@ -484,7 +484,7 @@ namespace Microsoft.ML
         /// </summary>
         /// <param name="catalog">The context <see cref="TransformsCatalog"/> to create <see cref="FastTreeRegressionFeaturizationEstimator"/>.</param>
         /// <param name="options">The options to configure <see cref="FastTreeRegressionFeaturizationEstimator"/>. See <see cref="FastTreeRegressionFeaturizationEstimator.Options"/> and
-        /// <see cref="TreeEnsembleFeaturizationEstimatorBase.CommonOptions"/> for available settings.</param>
+        /// <see cref="TreeEnsembleFeaturizationEstimatorBase.OptionsBase"/> for available settings.</param>
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
@@ -505,7 +505,7 @@ namespace Microsoft.ML
         /// </summary>
         /// <param name="catalog">The context <see cref="TransformsCatalog"/> to create <see cref="FastForestBinaryFeaturizationEstimator"/>.</param>
         /// <param name="options">The options to configure <see cref="FastForestBinaryFeaturizationEstimator"/>. See <see cref="FastForestBinaryFeaturizationEstimator.Options"/> and
-        /// <see cref="TreeEnsembleFeaturizationEstimatorBase.CommonOptions"/> for available settings.</param>
+        /// <see cref="TreeEnsembleFeaturizationEstimatorBase.OptionsBase"/> for available settings.</param>
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
@@ -526,7 +526,7 @@ namespace Microsoft.ML
         /// </summary>
         /// <param name="catalog">The context <see cref="TransformsCatalog"/> to create <see cref="FastTreeBinaryFeaturizationEstimator"/>.</param>
         /// <param name="options">The options to configure <see cref="FastTreeBinaryFeaturizationEstimator"/>. See <see cref="FastTreeBinaryFeaturizationEstimator.Options"/> and
-        /// <see cref="TreeEnsembleFeaturizationEstimatorBase.CommonOptions"/> for available settings.</param>
+        /// <see cref="TreeEnsembleFeaturizationEstimatorBase.OptionsBase"/> for available settings.</param>
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
@@ -547,7 +547,7 @@ namespace Microsoft.ML
         /// </summary>
         /// <param name="catalog">The context <see cref="TransformsCatalog"/> to create <see cref="FastTreeRankingFeaturizationEstimator"/>.</param>
         /// <param name="options">The options to configure <see cref="FastTreeRankingFeaturizationEstimator"/>. See <see cref="FastTreeRankingFeaturizationEstimator.Options"/> and
-        /// <see cref="TreeEnsembleFeaturizationEstimatorBase.CommonOptions"/> for available settings.</param>
+        /// <see cref="TreeEnsembleFeaturizationEstimatorBase.OptionsBase"/> for available settings.</param>
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
@@ -568,7 +568,7 @@ namespace Microsoft.ML
         /// </summary>
         /// <param name="catalog">The context <see cref="TransformsCatalog"/> to create <see cref="FastTreeTweedieFeaturizationEstimator"/>.</param>
         /// <param name="options">The options to configure <see cref="FastTreeTweedieFeaturizationEstimator"/>. See <see cref="FastTreeTweedieFeaturizationEstimator.Options"/> and
-        /// <see cref="TreeEnsembleFeaturizationEstimatorBase.CommonOptions"/> for available settings.</param>
+        /// <see cref="TreeEnsembleFeaturizationEstimatorBase.OptionsBase"/> for available settings.</param>
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[

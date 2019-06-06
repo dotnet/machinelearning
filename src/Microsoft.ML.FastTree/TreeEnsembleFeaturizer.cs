@@ -51,15 +51,15 @@ namespace Microsoft.ML.Data
         public sealed class Arguments : ScorerArgumentsBase
         {
             /// <summary>
-            /// See <see cref="TreeEnsembleFeaturizationEstimatorBase.CommonOptions.TreesColumnName"/>.
+            /// See <see cref="TreeEnsembleFeaturizationEstimatorBase.OptionsBase.TreesColumnName"/>.
             /// </summary>
             public string TreesColumnName;
             /// <summary>
-            /// See <see cref="TreeEnsembleFeaturizationEstimatorBase.CommonOptions.LeavesColumnName"/>.
+            /// See <see cref="TreeEnsembleFeaturizationEstimatorBase.OptionsBase.LeavesColumnName"/>.
             /// </summary>
             public string LeavesColumnName;
             /// <summary>
-            /// See <see cref="TreeEnsembleFeaturizationEstimatorBase.CommonOptions.PathsColumnName"/>.
+            /// See <see cref="TreeEnsembleFeaturizationEstimatorBase.OptionsBase.PathsColumnName"/>.
             /// </summary>
             public string PathsColumnName;
         }
