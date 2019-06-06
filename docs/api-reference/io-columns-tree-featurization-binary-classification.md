@@ -1,5 +1,6 @@
 ### Input and Output Columns
-The input column must be a known-sized vector of <xref:System.Single>.
+The input label column data must be <xref:System.Boolean>.
+The input features column data must be a known-sized vector of <xref:System.Single>.
 
 This estimator outputs the following columns:
 
