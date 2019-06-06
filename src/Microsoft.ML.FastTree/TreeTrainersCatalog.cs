@@ -443,6 +443,13 @@ namespace Microsoft.ML
         /// <param name="catalog">The context <see cref="TransformsCatalog"/> to create <see cref="PretrainedTreeFeaturizationEstimator"/>.</param>
         /// <param name="options">The options to configure <see cref="PretrainedTreeFeaturizationEstimator"/>. See <see cref="PretrainedTreeFeaturizationEstimator.Options"/> and
         /// <see cref="TreeEnsembleFeaturizationEstimatorBase.CommonOptions"/> for available settings.</param>
+        /// <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        /// [!code-csharp[FeaturizeByPretrainTreeEnsemble](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/TreeFeaturization/PretrainedTreeEnsembleFeaturizationWithOptions.cs)]
+        /// ]]>
+        /// </format>
+        /// </example>
         public static PretrainedTreeFeaturizationEstimator FeaturizeByPretrainTreeEnsemble(this TransformsCatalog catalog,
             PretrainedTreeFeaturizationEstimator.Options options)
         {
@@ -457,6 +464,13 @@ namespace Microsoft.ML
         /// <param name="catalog">The context <see cref="TransformsCatalog"/> to create <see cref="PretrainedTreeFeaturizationEstimator"/>.</param>
         /// <param name="options">The options to configure <see cref="FastForestRegressionFeaturizationEstimator"/>. See <see cref="FastForestRegressionFeaturizationEstimator.Options"/> and
         /// <see cref="TreeEnsembleFeaturizationEstimatorBase.CommonOptions"/> for available settings.</param>
+        /// <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        /// [!code-csharp[FeaturizeByFastTreeRegression](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/TreeFeaturization/FastForestRegressionFeaturizationWithOptions.cs)]
+        /// ]]>
+        /// </format>
+        /// </example>
         public static FastForestRegressionFeaturizationEstimator FeaturizeByFastForestRegression(this TransformsCatalog catalog,
             FastForestRegressionFeaturizationEstimator.Options options)
         {
@@ -471,6 +485,13 @@ namespace Microsoft.ML
         /// <param name="catalog">The context <see cref="TransformsCatalog"/> to create <see cref="FastTreeRegressionFeaturizationEstimator"/>.</param>
         /// <param name="options">The options to configure <see cref="FastTreeRegressionFeaturizationEstimator"/>. See <see cref="FastTreeRegressionFeaturizationEstimator.Options"/> and
         /// <see cref="TreeEnsembleFeaturizationEstimatorBase.CommonOptions"/> for available settings.</param>
+        /// <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        /// [!code-csharp[FeaturizeByFastTreeRegression](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/TreeFeaturization/FastTreeRegressionFeaturizationWithOptions.cs)]
+        /// ]]>
+        /// </format>
+        /// </example>
         public static FastTreeRegressionFeaturizationEstimator FeaturizeByFastTreeRegression(this TransformsCatalog catalog,
             FastTreeRegressionFeaturizationEstimator.Options options)
         {
@@ -485,6 +506,13 @@ namespace Microsoft.ML
         /// <param name="catalog">The context <see cref="TransformsCatalog"/> to create <see cref="FastForestBinaryFeaturizationEstimator"/>.</param>
         /// <param name="options">The options to configure <see cref="FastForestBinaryFeaturizationEstimator"/>. See <see cref="FastForestBinaryFeaturizationEstimator.Options"/> and
         /// <see cref="TreeEnsembleFeaturizationEstimatorBase.CommonOptions"/> for available settings.</param>
+        /// <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        /// [!code-csharp[FeaturizeByFastForestBinary](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/TreeFeaturization/FastForestBinaryFeaturizationWithOptions.cs)]
+        /// ]]>
+        /// </format>
+        /// </example>
         public static FastForestBinaryFeaturizationEstimator FeaturizeByFastForestBinary(this TransformsCatalog catalog,
             FastForestBinaryFeaturizationEstimator.Options options)
         {
@@ -499,6 +527,13 @@ namespace Microsoft.ML
         /// <param name="catalog">The context <see cref="TransformsCatalog"/> to create <see cref="FastTreeBinaryFeaturizationEstimator"/>.</param>
         /// <param name="options">The options to configure <see cref="FastTreeBinaryFeaturizationEstimator"/>. See <see cref="FastTreeBinaryFeaturizationEstimator.Options"/> and
         /// <see cref="TreeEnsembleFeaturizationEstimatorBase.CommonOptions"/> for available settings.</param>
+        /// <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        /// [!code-csharp[FeaturizeByFastTreeBinary](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/TreeFeaturization/FastTreeBinaryFeaturizationWithOptions.cs)]
+        /// ]]>
+        /// </format>
+        /// </example>
         public static FastTreeBinaryFeaturizationEstimator FeaturizeByFastTreeBinary(this TransformsCatalog catalog,
             FastTreeBinaryFeaturizationEstimator.Options options)
         {
@@ -513,6 +548,13 @@ namespace Microsoft.ML
         /// <param name="catalog">The context <see cref="TransformsCatalog"/> to create <see cref="FastTreeRankingFeaturizationEstimator"/>.</param>
         /// <param name="options">The options to configure <see cref="FastTreeRankingFeaturizationEstimator"/>. See <see cref="FastTreeRankingFeaturizationEstimator.Options"/> and
         /// <see cref="TreeEnsembleFeaturizationEstimatorBase.CommonOptions"/> for available settings.</param>
+        /// <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        /// [!code-csharp[FeaturizeByFastTreeRanking](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/TreeFeaturization/FastTreeRankingFeaturizationWithOptions.cs)]
+        /// ]]>
+        /// </format>
+        /// </example>
         public static FastTreeRankingFeaturizationEstimator FeaturizeByFastTreeRanking(this TransformsCatalog catalog,
             FastTreeRankingFeaturizationEstimator.Options options)
         {
@@ -527,6 +569,13 @@ namespace Microsoft.ML
         /// <param name="catalog">The context <see cref="TransformsCatalog"/> to create <see cref="FastTreeTweedieFeaturizationEstimator"/>.</param>
         /// <param name="options">The options to configure <see cref="FastTreeTweedieFeaturizationEstimator"/>. See <see cref="FastTreeTweedieFeaturizationEstimator.Options"/> and
         /// <see cref="TreeEnsembleFeaturizationEstimatorBase.CommonOptions"/> for available settings.</param>
+        /// <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        /// [!code-csharp[FeaturizeByFastTreeTweedie](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/TreeFeaturization/FastTreeTweedieFeaturizationWithOptions.cs)]
+        /// ]]>
+        /// </format>
+        /// </example>
         public static FastTreeTweedieFeaturizationEstimator FeaturizeByFastTreeTweedie(this TransformsCatalog catalog,
             FastTreeTweedieFeaturizationEstimator.Options options)
         {
