@@ -105,7 +105,7 @@ namespace Microsoft.ML
         /// The behavior of those operations are deterministic regardless of the seed value.
         ///
         /// Also ML.NET trainers don't use randomness *after* the training is finished.
-        /// So, predictions from a loaded model doesn't depend on the seed value.
+        /// So, the predictions from a loaded model don't depend on the seed value.
         /// </remarks>
         public MLContext(int? seed = null)
         {
