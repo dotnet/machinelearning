@@ -21,7 +21,7 @@ namespace Microsoft.ML.AutoML
         internal Pipeline()
         {
         }
-        
+
         public IEstimator<ITransformer> ToEstimator(MLContext context)
         {
             var inferredPipeline = SuggestedPipeline.FromPipeline(context, this);
@@ -48,7 +48,7 @@ namespace Microsoft.ML.AutoML
             Properties = properties ?? new Dictionary<string, object>();
         }
 
-        public PipelineNode(string name, PipelineNodeType nodeType, 
+        public PipelineNode(string name, PipelineNodeType nodeType,
             string inColumn, string outColumn, IDictionary<string, object> properties = null) :
             this(name, nodeType, new string[] { inColumn }, new string[] { outColumn }, properties)
         {

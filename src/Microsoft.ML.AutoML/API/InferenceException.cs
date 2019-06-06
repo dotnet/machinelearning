@@ -31,7 +31,7 @@ namespace Microsoft.ML.AutoML
         /// Type of AutoML exception that occurred.
         /// </summary>
         public InferenceExceptionType InferenceExceptionType;
-        
+
         internal InferenceException(InferenceExceptionType inferenceType, string message)
         : base(message)
         {

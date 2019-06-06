@@ -32,7 +32,7 @@ namespace Microsoft.ML.AutoML
             CacheBeforeTrainer cacheBeforeTrainer,
             IEnumerable<TrainerName> trainerWhitelist = null)
         {
-            var availableTrainers = RecipeInference.AllowedTrainers(context, task, 
+            var availableTrainers = RecipeInference.AllowedTrainers(context, task,
                 ColumnInformationUtil.BuildColumnInfo(columns), trainerWhitelist);
             var transforms = TransformInferenceApi.InferTransforms(context, task, columns).ToList();
             var transformsPostTrainer = TransformInferenceApi.InferTransformsPostTrainer(context, task, columns).ToList();
@@ -83,11 +83,11 @@ namespace Microsoft.ML.AutoML
 
             return null;
         }
-        
+
         /// <summary>
         /// Get top trainers from first stage
         /// </summary>
-        private static IEnumerable<SuggestedTrainer> GetTopTrainers(IEnumerable<SuggestedPipelineRunDetail> history, 
+        private static IEnumerable<SuggestedTrainer> GetTopTrainers(IEnumerable<SuggestedPipelineRunDetail> history,
             IEnumerable<SuggestedTrainer> availableTrainers,
             bool isMaximizingMetric)
         {

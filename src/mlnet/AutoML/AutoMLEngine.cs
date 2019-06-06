@@ -14,31 +14,31 @@ namespace Microsoft.ML.CLI.CodeGenerator
 {
     internal class AutoMLEngine : IAutoMLEngine
     {
-        private NewCommandSettings settings;
-        private TaskKind taskKind;
-        private CacheBeforeTrainer cacheBeforeTrainer;
-        private static Logger logger = LogManager.GetCurrentClassLogger();
+        private NewCommandSettings _settings;
+        private TaskKind _taskKind;
+        private CacheBeforeTrainer _cacheBeforeTrainer;
+        private static Logger _logger = LogManager.GetCurrentClassLogger();
 
         public AutoMLEngine(NewCommandSettings settings)
         {
-            this.settings = settings;
-            this.taskKind = Utils.GetTaskKind(settings.MlTask);
-            this.cacheBeforeTrainer = Utils.GetCacheSettings(settings.Cache);
+            _settings = settings;
+            _taskKind = Utils.GetTaskKind(settings.MlTask);
+            _cacheBeforeTrainer = Utils.GetCacheSettings(settings.Cache);
         }
 
         public ColumnInferenceResults InferColumns(MLContext context, ColumnInformation columnInformation)
         {
             // Check what overload method of InferColumns needs to be called.
-            logger.Log(LogLevel.Trace, Strings.InferColumns);
+            _logger.Log(LogLevel.Trace, Strings.InferColumns);
             ColumnInferenceResults columnInference = null;
-            var dataset = settings.Dataset.FullName;
+            var dataset = _settings.Dataset.FullName;
             if (columnInformation.LabelColumnName != null)
             {
                 columnInference = context.Auto().InferColumns(dataset, columnInformation, groupColumns: false);
             }
             else
             {
-                columnInference = context.Auto().InferColumns(dataset, settings.LabelColumnIndex, hasHeader: settings.HasHeader, groupColumns: false);
+                columnInference = context.Auto().InferColumns(dataset, _settings.LabelColumnIndex, hasHeader: _settings.HasHeader, groupColumns: false);
             }
 
             return columnInference;
@@ -49,13 +49,13 @@ namespace Microsoft.ML.CLI.CodeGenerator
             ExperimentResult<BinaryClassificationMetrics> result = context.Auto()
                 .CreateBinaryClassificationExperiment(new BinaryExperimentSettings()
                 {
-                    MaxExperimentTimeInSeconds = settings.MaxExplorationTime,
-                    CacheBeforeTrainer = this.cacheBeforeTrainer,
+                    MaxExperimentTimeInSeconds = _settings.MaxExplorationTime,
+                    CacheBeforeTrainer = _cacheBeforeTrainer,
                     OptimizingMetric = optimizationMetric
                 })
                 .Execute(trainData, validationData, columnInformation, progressHandler: handler);
 
-            logger.Log(LogLevel.Trace, Strings.RetrieveBestPipeline);
+            _logger.Log(LogLevel.Trace, Strings.RetrieveBestPipeline);
         }
 
         void IAutoMLEngine.ExploreRegressionModels(MLContext context, IDataView trainData, IDataView validationData, ColumnInformation columnInformation, RegressionMetric optimizationMetric, ProgressHandlers.RegressionHandler handler, ProgressBar progressBar)
@@ -63,12 +63,12 @@ namespace Microsoft.ML.CLI.CodeGenerator
             ExperimentResult<RegressionMetrics> result = context.Auto()
                 .CreateRegressionExperiment(new RegressionExperimentSettings()
                 {
-                    MaxExperimentTimeInSeconds = settings.MaxExplorationTime,
+                    MaxExperimentTimeInSeconds = _settings.MaxExplorationTime,
                     OptimizingMetric = optimizationMetric,
-                    CacheBeforeTrainer = this.cacheBeforeTrainer
+                    CacheBeforeTrainer = _cacheBeforeTrainer
                 }).Execute(trainData, validationData, columnInformation, progressHandler: handler);
 
-            logger.Log(LogLevel.Trace, Strings.RetrieveBestPipeline);
+            _logger.Log(LogLevel.Trace, Strings.RetrieveBestPipeline);
         }
 
         void IAutoMLEngine.ExploreMultiClassificationModels(MLContext context, IDataView trainData, IDataView validationData, ColumnInformation columnInformation, MulticlassClassificationMetric optimizationMetric, ProgressHandlers.MulticlassClassificationHandler handler, ProgressBar progressBar)
@@ -76,12 +76,12 @@ namespace Microsoft.ML.CLI.CodeGenerator
             ExperimentResult<MulticlassClassificationMetrics> result = context.Auto()
                 .CreateMulticlassClassificationExperiment(new MulticlassExperimentSettings()
                 {
-                    MaxExperimentTimeInSeconds = settings.MaxExplorationTime,
-                    CacheBeforeTrainer = this.cacheBeforeTrainer,
+                    MaxExperimentTimeInSeconds = _settings.MaxExplorationTime,
+                    CacheBeforeTrainer = _cacheBeforeTrainer,
                     OptimizingMetric = optimizationMetric
                 }).Execute(trainData, validationData, columnInformation, progressHandler: handler);
 
-            logger.Log(LogLevel.Trace, Strings.RetrieveBestPipeline);
+            _logger.Log(LogLevel.Trace, Strings.RetrieveBestPipeline);
         }
 
     }

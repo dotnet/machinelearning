@@ -16,25 +16,24 @@ namespace Microsoft.ML.CLI.CodeGenerator.CSharp
 {
     internal class CodeGenerator : IProjectGenerator
     {
-        private readonly Pipeline pipeline;
-        private readonly CodeGeneratorSettings settings;
-        private readonly ColumnInferenceResults columnInferenceResult;
-        private readonly HashSet<string> LightGBMTrainers = new HashSet<string>() { TrainerName.LightGbmBinary.ToString(), TrainerName.LightGbmMulti.ToString(), TrainerName.LightGbmRegression.ToString() };
-        private readonly HashSet<string> mklComponentsTrainers = new HashSet<string>() { TrainerName.OlsRegression.ToString(), TrainerName.SymbolicSgdLogisticRegressionBinary.ToString() };
-        private readonly HashSet<string> FastTreeTrainers = new HashSet<string>() { TrainerName.FastForestBinary.ToString(), TrainerName.FastForestRegression.ToString(), TrainerName.FastTreeBinary.ToString(), TrainerName.FastTreeRegression.ToString(), TrainerName.FastTreeTweedieRegression.ToString() };
-
+        private readonly Pipeline _pipeline;
+        private readonly CodeGeneratorSettings _settings;
+        private readonly ColumnInferenceResults _columnInferenceResult;
+        private static readonly HashSet<string> _lightGbmTrainers = new HashSet<string>() { TrainerName.LightGbmBinary.ToString(), TrainerName.LightGbmMulti.ToString(), TrainerName.LightGbmRegression.ToString() };
+        private static readonly HashSet<string> _mklComponentsTrainers = new HashSet<string>() { TrainerName.OlsRegression.ToString(), TrainerName.SymbolicSgdLogisticRegressionBinary.ToString() };
+        private static readonly HashSet<string> _fastTreeTrainers = new HashSet<string>() { TrainerName.FastForestBinary.ToString(), TrainerName.FastForestRegression.ToString(), TrainerName.FastTreeBinary.ToString(), TrainerName.FastTreeRegression.ToString(), TrainerName.FastTreeTweedieRegression.ToString() };
 
         internal CodeGenerator(Pipeline pipeline, ColumnInferenceResults columnInferenceResult, CodeGeneratorSettings settings)
         {
-            this.pipeline = pipeline;
-            this.columnInferenceResult = columnInferenceResult;
-            this.settings = settings;
+            _pipeline = pipeline;
+            _columnInferenceResult = columnInferenceResult;
+            _settings = settings;
         }
 
         public void GenerateOutput()
         {
             // Get the extra nuget packages to be included in the generated project.
-            var trainerNodes = pipeline.Nodes.Where(t => t.NodeType == PipelineNodeType.Trainer);
+            var trainerNodes = _pipeline.Nodes.Where(t => t.NodeType == PipelineNodeType.Trainer);
 
             bool includeLightGbmPackage = false;
             bool includeMklComponentsPackage = false;
@@ -42,17 +41,17 @@ namespace Microsoft.ML.CLI.CodeGenerator.CSharp
             SetRequiredNugetPackages(trainerNodes, ref includeLightGbmPackage, ref includeMklComponentsPackage, ref includeFastTreeePackage);
 
             // Get Namespace
-            var namespaceValue = Utils.Normalize(settings.OutputName);
-            var labelType = columnInferenceResult.TextLoaderOptions.Columns.Where(t => t.Name == settings.LabelName).First().DataKind;
+            var namespaceValue = Utils.Normalize(_settings.OutputName);
+            var labelType = _columnInferenceResult.TextLoaderOptions.Columns.Where(t => t.Name == _settings.LabelName).First().DataKind;
             Type labelTypeCsharp = Utils.GetCSharpType(labelType);
 
             // Generate Model Project
             var modelProjectContents = GenerateModelProjectContents(namespaceValue, labelTypeCsharp, includeLightGbmPackage, includeMklComponentsPackage, includeFastTreeePackage);
 
-            // Write files to disk. 
-            var modelprojectDir = Path.Combine(settings.OutputBaseDir, $"{settings.OutputName}.Model");
+            // Write files to disk.
+            var modelprojectDir = Path.Combine(_settings.OutputBaseDir, $"{_settings.OutputName}.Model");
             var dataModelsDir = Path.Combine(modelprojectDir, "DataModels");
-            var modelProjectName = $"{settings.OutputName}.Model.csproj";
+            var modelProjectName = $"{_settings.OutputName}.Model.csproj";
 
             Utils.WriteOutputToFiles(modelProjectContents.ModelInputCSFileContent, "ModelInput.cs", dataModelsDir);
             Utils.WriteOutputToFiles(modelProjectContents.ModelOutputCSFileContent, "ModelOutput.cs", dataModelsDir);
@@ -61,19 +60,19 @@ namespace Microsoft.ML.CLI.CodeGenerator.CSharp
             // Generate ConsoleApp Project
             var consoleAppProjectContents = GenerateConsoleAppProjectContents(namespaceValue, labelTypeCsharp, includeLightGbmPackage, includeMklComponentsPackage, includeFastTreeePackage);
 
-            // Write files to disk. 
-            var consoleAppProjectDir = Path.Combine(settings.OutputBaseDir, $"{settings.OutputName}.ConsoleApp");
-            var consoleAppProjectName = $"{settings.OutputName}.ConsoleApp.csproj";
+            // Write files to disk.
+            var consoleAppProjectDir = Path.Combine(_settings.OutputBaseDir, $"{_settings.OutputName}.ConsoleApp");
+            var consoleAppProjectName = $"{_settings.OutputName}.ConsoleApp.csproj";
 
             Utils.WriteOutputToFiles(consoleAppProjectContents.ConsoleAppProgramCSFileContent, "Program.cs", consoleAppProjectDir);
             Utils.WriteOutputToFiles(consoleAppProjectContents.modelBuilderCSFileContent, "ModelBuilder.cs", consoleAppProjectDir);
             Utils.WriteOutputToFiles(consoleAppProjectContents.ConsoleAppProjectFileContent, consoleAppProjectName, consoleAppProjectDir);
 
             // New solution file.
-            Utils.CreateSolutionFile(settings.OutputName, settings.OutputBaseDir);
+            Utils.CreateSolutionFile(_settings.OutputName, _settings.OutputBaseDir);
 
             // Add projects to solution
-            var solutionPath = Path.Combine(settings.OutputBaseDir, $"{settings.OutputName}.sln");
+            var solutionPath = Path.Combine(_settings.OutputBaseDir, $"{_settings.OutputName}.sln");
             Utils.AddProjectsToSolution(modelprojectDir, modelProjectName, consoleAppProjectDir, consoleAppProjectName, solutionPath);
         }
 
@@ -87,15 +86,15 @@ namespace Microsoft.ML.CLI.CodeGenerator.CSharp
                     currentNode = (PipelineNode)currentNode.Properties["BinaryTrainer"];
                 }
 
-                if (LightGBMTrainers.Contains(currentNode.Name))
+                if (_lightGbmTrainers.Contains(currentNode.Name))
                 {
                     includeLightGbmPackage = true;
                 }
-                else if (mklComponentsTrainers.Contains(currentNode.Name))
+                else if (_mklComponentsTrainers.Contains(currentNode.Name))
                 {
                     includeMklComponentsPackage = true;
                 }
-                else if (FastTreeTrainers.Contains(currentNode.Name))
+                else if (_fastTreeTrainers.Contains(currentNode.Name))
                 {
                     includeFastTreePackage = true;
                 }
@@ -110,7 +109,7 @@ namespace Microsoft.ML.CLI.CodeGenerator.CSharp
             var predictProjectFileContent = GeneratPredictProjectFileContent(namespaceValue, includeLightGbmPackage, includeMklComponentsPackage, includeFastTreePackage);
 
             var transformsAndTrainers = GenerateTransformsAndTrainers();
-            var modelBuilderCSFileContent = GenerateModelBuilderCSFileContent(transformsAndTrainers.Usings, transformsAndTrainers.TrainerMethod, transformsAndTrainers.PreTrainerTransforms, transformsAndTrainers.PostTrainerTransforms, namespaceValue, pipeline.CacheBeforeTrainer, labelTypeCsharp.Name);
+            var modelBuilderCSFileContent = GenerateModelBuilderCSFileContent(transformsAndTrainers.Usings, transformsAndTrainers.TrainerMethod, transformsAndTrainers.PreTrainerTransforms, transformsAndTrainers.PostTrainerTransforms, namespaceValue, _pipeline.CacheBeforeTrainer, labelTypeCsharp.Name);
             modelBuilderCSFileContent = Utils.FormatCode(modelBuilderCSFileContent);
 
             return (predictProgramCSFileContent, predictProjectFileContent, modelBuilderCSFileContent);
@@ -118,7 +117,7 @@ namespace Microsoft.ML.CLI.CodeGenerator.CSharp
 
         internal (string ModelInputCSFileContent, string ModelOutputCSFileContent, string ModelProjectFileContent) GenerateModelProjectContents(string namespaceValue, Type labelTypeCsharp, bool includeLightGbmPackage, bool includeMklComponentsPackage, bool includeFastTreePackage)
         {
-            var classLabels = this.GenerateClassLabels();
+            var classLabels = GenerateClassLabels();
             var modelInputCSFileContent = GenerateModelInputCSFileContent(namespaceValue, classLabels);
             modelInputCSFileContent = Utils.FormatCode(modelInputCSFileContent);
             var modelOutputCSFileContent = GenerateModelOutputCSFileContent(labelTypeCsharp.Name, namespaceValue);
@@ -133,17 +132,17 @@ namespace Microsoft.ML.CLI.CodeGenerator.CSharp
             var usings = new List<string>();
 
             // Get pre-trainer transforms
-            var nodes = pipeline.Nodes.TakeWhile(t => t.NodeType == PipelineNodeType.Transform);
-            var preTrainerTransformsAndUsings = this.GenerateTransformsAndUsings(nodes);
+            var nodes = _pipeline.Nodes.TakeWhile(t => t.NodeType == PipelineNodeType.Transform);
+            var preTrainerTransformsAndUsings = GenerateTransformsAndUsings(nodes);
 
             // Get post trainer transforms
-            nodes = pipeline.Nodes.SkipWhile(t => t.NodeType == PipelineNodeType.Transform)
+            nodes = _pipeline.Nodes.SkipWhile(t => t.NodeType == PipelineNodeType.Transform)
                 .SkipWhile(t => t.NodeType == PipelineNodeType.Trainer) //skip the trainer
                 .TakeWhile(t => t.NodeType == PipelineNodeType.Transform); //post trainer transforms
-            var postTrainerTransformsAndUsings = this.GenerateTransformsAndUsings(nodes);
+            var postTrainerTransformsAndUsings = GenerateTransformsAndUsings(nodes);
 
             //Get trainer code and its associated usings.
-            (string trainerMethod, string[] trainerUsings) = this.GenerateTrainerAndUsings();
+            (string trainerMethod, string[] trainerUsings) = GenerateTrainerAndUsings();
             if (trainerUsings != null)
             {
                 usings.AddRange(trainerUsings);
@@ -183,9 +182,9 @@ namespace Microsoft.ML.CLI.CodeGenerator.CSharp
 
         internal (string, string[]) GenerateTrainerAndUsings()
         {
-            if (pipeline == null)
-                throw new ArgumentNullException(nameof(pipeline));
-            var node = pipeline.Nodes.Where(t => t.NodeType == PipelineNodeType.Trainer).First();
+            if (_pipeline == null)
+                throw new ArgumentNullException(nameof(_pipeline));
+            var node = _pipeline.Nodes.Where(t => t.NodeType == PipelineNodeType.Trainer).First();
             if (node == null)
                 throw new ArgumentException($"The trainer was not found.");
 
@@ -198,7 +197,7 @@ namespace Microsoft.ML.CLI.CodeGenerator.CSharp
         internal IList<string> GenerateClassLabels()
         {
             IList<string> result = new List<string>();
-            foreach (var column in columnInferenceResult.TextLoaderOptions.Columns)
+            foreach (var column in _columnInferenceResult.TextLoaderOptions.Columns)
             {
                 StringBuilder sb = new StringBuilder();
                 int range = (column.Source[0].Max - column.Source[0].Min).Value;
@@ -263,7 +262,7 @@ namespace Microsoft.ML.CLI.CodeGenerator.CSharp
 
         private string GenerateModelOutputCSFileContent(string predictionLabelType, string namespaceValue)
         {
-            ModelOutputClass modelOutputClass = new ModelOutputClass() { TaskType = settings.MlTask.ToString(), PredictionLabelType = predictionLabelType, Namespace = namespaceValue };
+            ModelOutputClass modelOutputClass = new ModelOutputClass() { TaskType = _settings.MlTask.ToString(), PredictionLabelType = predictionLabelType, Namespace = namespaceValue };
             return modelOutputClass.TransformText();
         }
 
@@ -285,15 +284,15 @@ namespace Microsoft.ML.CLI.CodeGenerator.CSharp
         {
             PredictProgram predictProgram = new PredictProgram()
             {
-                TaskType = settings.MlTask.ToString(),
-                LabelName = settings.LabelName,
+                TaskType = _settings.MlTask.ToString(),
+                LabelName = _settings.LabelName,
                 Namespace = namespaceValue,
-                TestDataPath = settings.TestDataset,
-                TrainDataPath = settings.TrainDataset,
-                HasHeader = columnInferenceResult.TextLoaderOptions.HasHeader,
-                Separator = columnInferenceResult.TextLoaderOptions.Separators.FirstOrDefault(),
-                AllowQuoting = columnInferenceResult.TextLoaderOptions.AllowQuoting,
-                AllowSparse = columnInferenceResult.TextLoaderOptions.AllowSparse,
+                TestDataPath = _settings.TestDataset,
+                TrainDataPath = _settings.TrainDataset,
+                HasHeader = _columnInferenceResult.TextLoaderOptions.HasHeader,
+                Separator = _columnInferenceResult.TextLoaderOptions.Separators.FirstOrDefault(),
+                AllowQuoting = _columnInferenceResult.TextLoaderOptions.AllowQuoting,
+                AllowSparse = _columnInferenceResult.TextLoaderOptions.AllowSparse,
             };
             return predictProgram.TransformText();
         }
@@ -310,17 +309,17 @@ namespace Microsoft.ML.CLI.CodeGenerator.CSharp
             {
                 PreTrainerTransforms = preTrainerTransforms,
                 PostTrainerTransforms = postTrainerTransforms,
-                HasHeader = columnInferenceResult.TextLoaderOptions.HasHeader,
-                Separator = columnInferenceResult.TextLoaderOptions.Separators.FirstOrDefault(),
-                AllowQuoting = columnInferenceResult.TextLoaderOptions.AllowQuoting,
-                AllowSparse = columnInferenceResult.TextLoaderOptions.AllowSparse,
+                HasHeader = _columnInferenceResult.TextLoaderOptions.HasHeader,
+                Separator = _columnInferenceResult.TextLoaderOptions.Separators.FirstOrDefault(),
+                AllowQuoting = _columnInferenceResult.TextLoaderOptions.AllowQuoting,
+                AllowSparse = _columnInferenceResult.TextLoaderOptions.AllowSparse,
                 Trainer = trainerMethod,
                 GeneratedUsings = usings,
-                Path = settings.TrainDataset,
-                TestPath = settings.TestDataset,
-                TaskType = settings.MlTask.ToString(),
+                Path = _settings.TrainDataset,
+                TestPath = _settings.TestDataset,
+                TaskType = _settings.MlTask.ToString(),
                 Namespace = namespaceValue,
-                LabelName = settings.LabelName,
+                LabelName = _settings.LabelName,
                 CacheBeforeTrainer = cacheBeforeTrainer,
             };
 

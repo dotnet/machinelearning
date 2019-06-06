@@ -1,6 +1,6 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.	
-// The .NET Foundation licenses this file to you under the MIT license.	
-// See the LICENSE file in the project root for more information.	
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -10,14 +10,14 @@ namespace Microsoft.ML.AutoML
 {
     internal static class SplitUtil
     {
-        public static (IDataView[] trainDatasets, IDataView[] validationDatasets) CrossValSplit(MLContext context, 
+        public static (IDataView[] trainDatasets, IDataView[] validationDatasets) CrossValSplit(MLContext context,
             IDataView trainData, uint numFolds, string samplingKeyColumn)
         {
             var originalColumnNames = trainData.Schema.Select(c => c.Name);
             var splits = context.Data.CrossValidationSplit(trainData, (int)numFolds, samplingKeyColumnName: samplingKeyColumn);
             var trainDatasets = new List<IDataView>();
             var validationDatasets = new List<IDataView>();
-            
+
             foreach (var split in splits)
             {
                 if (DatasetDimensionsUtil.IsDataViewEmpty(split.TrainSet) ||
@@ -46,7 +46,7 @@ namespace Microsoft.ML.AutoML
         /// <summary>
         /// Split the data into a single train/test split.
         /// </summary>
-        public static (IDataView trainData, IDataView validationData) TrainValidateSplit(MLContext context, IDataView trainData, 
+        public static (IDataView trainData, IDataView validationData) TrainValidateSplit(MLContext context, IDataView trainData,
             string samplingKeyColumn)
         {
             var originalColumnNames = trainData.Schema.Select(c => c.Name);

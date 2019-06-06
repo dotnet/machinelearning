@@ -13,23 +13,30 @@ using Microsoft.ML.Trainers.LightGbm;
 namespace Microsoft.ML.AutoML
 {
     /// <summary>
-    /// Settings for AutoML experiments on binary classification datasets. 
+    /// Settings for AutoML experiments on binary classification datasets.
     /// </summary>
     public sealed class BinaryExperimentSettings : ExperimentSettings
     {
         /// <summary>
         /// Metric that AutoML will try to optimize over the course of the experiment.
         /// </summary>
-        public BinaryClassificationMetric OptimizingMetric { get; set; } = BinaryClassificationMetric.Accuracy;
+        /// <value>The default value is <see cref="BinaryClassificationMetric.Accuracy"/>.</value>
+        public BinaryClassificationMetric OptimizingMetric { get; set; }
 
         /// <summary>
         /// Collection of trainers the AutoML experiment can leverage.
         /// </summary>
-        /// <remarks>
-        /// The collection is auto-populated with all possible trainers (all values of <see cref="BinaryClassificationTrainer" />).
-        /// </remarks>
-        public ICollection<BinaryClassificationTrainer> Trainers { get; } =
-                    Enum.GetValues(typeof(BinaryClassificationTrainer)).OfType<BinaryClassificationTrainer>().ToList();
+        /// <value>The default value is a collection auto-populated with all possible trainers (all values of <see cref="BinaryClassificationTrainer" />).</value>
+        public ICollection<BinaryClassificationTrainer> Trainers { get; }
+
+        /// <summary>
+        /// Initializes a new instance of <see cref="BinaryExperimentSettings"/>.
+        /// </summary>
+        public BinaryExperimentSettings()
+        {
+            OptimizingMetric = BinaryClassificationMetric.Accuracy;
+            Trainers = Enum.GetValues(typeof(BinaryClassificationTrainer)).OfType<BinaryClassificationTrainer>().ToList();
+        }
     }
 
     /// <summary>

@@ -13,18 +13,19 @@ namespace Microsoft.DotNet.Cli.Telemetry
 {
     public class Telemetry : ITelemetry
     {
-        private TelemetryClient _client = null;
-        private Dictionary<string, string> _commonProperties = new Dictionary<string, string>();
-        private Task _trackEventTask = null;
+        private TelemetryClient _client;
+        private Dictionary<string, string> _commonProperties;
+        private Task _trackEventTask;
 
         private const string InstrumentationKey = "c059917c-818d-489a-bfcb-351eaab73f2a";
         private const string MlTelemetryOptout = "MLDOTNET_CLI_TELEMETRY_OPTOUT";
         private const string MachineId = "MachineId";
 
         public bool Enabled { get; }
-        
+
         public Telemetry()
         {
+             _commonProperties = new Dictionary<string, string>();
             var optedOut = Env.GetEnvironmentVariableAsBool(MlTelemetryOptout, false);
 
             Enabled = !optedOut;
@@ -33,13 +34,13 @@ namespace Microsoft.DotNet.Cli.Telemetry
             {
                 return;
             }
-          
+
             //initialize in task to offload to parallel thread
             _trackEventTask = Task.Factory.StartNew(() => InitializeTelemetry());
         }
 
         public void TrackEvent(
-            string eventName, 
+            string eventName,
             IDictionary<string, string> properties,
             IDictionary<string, double> measurements)
         {
@@ -72,9 +73,9 @@ namespace Microsoft.DotNet.Cli.Telemetry
                 _client.InstrumentationKey = InstrumentationKey;
                 _client.Context.Device.OperatingSystem = RuntimeEnvironment.OperatingSystem;
 
-                // we don't want hostname etc to be sent in plain text.  
+                // we don't want hostname etc to be sent in plain text.
                 // these need to be set to some non-empty values to override default behavior.
-                _client.Context.Cloud.RoleInstance = "-"; 
+                _client.Context.Cloud.RoleInstance = "-";
                 _client.Context.Cloud.RoleName = "-";
 
                 _commonProperties = new TelemetryCommonProperties().GetTelemetryCommonProperties();
@@ -101,7 +102,7 @@ namespace Microsoft.DotNet.Cli.Telemetry
             {
                 var eventProperties = GetEventProperties(properties);
                 var eventMeasurements = GetEventMeasures(measurements);
-                
+
                 _client.TrackEvent(eventName, eventProperties, eventMeasurements);
                 _client.Flush();
             }

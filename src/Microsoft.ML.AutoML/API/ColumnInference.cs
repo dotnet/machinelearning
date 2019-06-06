@@ -20,18 +20,18 @@ namespace Microsoft.ML.AutoML
         /// Can be used to instantiate a new <see cref="TextLoader" /> to load
         /// data into an <see cref="IDataView" />.
         /// </remarks>
-        public TextLoader.Options TextLoaderOptions { get; internal set; } = new TextLoader.Options();
+        public TextLoader.Options TextLoaderOptions { get; internal set; }
 
         /// <summary>
         /// Information about the inferred columns in the dataset.
         /// </summary>
         /// <remarks>
         /// <para>Contains the inferred purposes of each column. See <see cref="AutoML.ColumnInformation"/> for more details.</para>
-        /// <para>This can be fed to the AutoML API when running an experiment. 
+        /// <para>This can be fed to the AutoML API when running an experiment.
         /// See <typeref cref="ExperimentBase{TMetrics, TExperimentSettings}.Execute(IDataView, ColumnInformation, IEstimator{ITransformer}, System.IProgress{RunDetail{TMetrics}})" />
         /// for example.</para>
         /// </remarks>
-        public ColumnInformation ColumnInformation { get; internal set; } = new ColumnInformation();
+        public ColumnInformation ColumnInformation { get; internal set; }
     }
 
     /// <summary>
@@ -39,7 +39,7 @@ namespace Microsoft.ML.AutoML
     /// </summary>
     /// <remarks>
     /// <para>Contains information about the purpose of each column in the dataset. For instance,
-    /// it enumerates the dataset columns that AutoML should treat as categorical, 
+    /// it enumerates the dataset columns that AutoML should treat as categorical,
     /// the columns AutoML should ignore, which column is the label, etc.</para>
     /// <para><see cref="ColumnInformation"/> can be fed to the AutoML API when running an experiment.
     /// See <typeref cref="ExperimentBase{TMetrics, TExperimentSettings}.Execute(IDataView, ColumnInformation, IEstimator{ITransformer}, System.IProgress{RunDetail{TMetrics}})" />
@@ -50,7 +50,8 @@ namespace Microsoft.ML.AutoML
         /// <summary>
         /// The dataset column to use as the label.
         /// </summary>
-        public string LabelColumnName { get; set; } = DefaultColumnNames.Label;
+        /// <value>The default value is "Label".</value>
+        public string LabelColumnName { get; set; }
 
         /// <summary>
         /// The dataset column to use for example weight.
@@ -58,9 +59,9 @@ namespace Microsoft.ML.AutoML
         public string ExampleWeightColumnName { get; set; }
 
         /// <summary>
-        /// The dataset column to use for grouping rows. 
+        /// The dataset column to use for grouping rows.
         /// If two examples share the same sampling key column name,
-        /// they are guaranteed to appear in the same subset (train or test). 
+        /// they are guaranteed to appear in the same subset (train or test).
         /// This can be used to ensure no label leakage from the train to the test set.
         /// If <see langword="null"/>, no row grouping will be performed.
         /// </summary>
@@ -69,24 +70,37 @@ namespace Microsoft.ML.AutoML
         /// <summary>
         /// The dataset columns that are categorical.
         /// </summary>
+        /// <value>The default value is a new, empty <see cref="Collection{String}"/>.</value>
         /// <remarks>
         /// Categorical data columns should generally be columns that contain a small number of unique values.
         /// </remarks>
-        public ICollection<string> CategoricalColumnNames { get; } = new Collection<string>();
+        public ICollection<string> CategoricalColumnNames { get; }
 
         /// <summary>
         /// The dataset columns that are numeric.
         /// </summary>
-        public ICollection<string> NumericColumnNames { get; } = new Collection<string>();
+        /// <value>The default value is a new, empty <see cref="Collection{String}"/>.</value>
+        public ICollection<string> NumericColumnNames { get; }
 
         /// <summary>
         /// The dataset columns that are text.
         /// </summary>
-        public ICollection<string> TextColumnNames { get; } = new Collection<string>();
+        /// <value>The default value is a new, empty <see cref="Collection{String}"/>.</value>
+        public ICollection<string> TextColumnNames { get; }
 
         /// <summary>
         /// The dataset columns that AutoML should ignore.
         /// </summary>
-        public ICollection<string> IgnoredColumnNames { get; } = new Collection<string>();
+        /// <value>The default value is a new, empty <see cref="Collection{String}"/>.</value>
+        public ICollection<string> IgnoredColumnNames { get; }
+
+        public ColumnInformation()
+        {
+            LabelColumnName = DefaultColumnNames.Label;
+            CategoricalColumnNames = new Collection<string>();
+            NumericColumnNames = new Collection<string>();
+            TextColumnNames = new Collection<string>();
+            IgnoredColumnNames = new Collection<string>();
+        }
     }
 }

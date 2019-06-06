@@ -65,7 +65,7 @@ namespace Microsoft.ML.AutoML
                     throw MetricsAgentUtil.BuildMetricNotSupportedException(_optimizingMetric);
             }
         }
-        
+
         public MulticlassClassificationMetrics EvaluateMetrics(IDataView data, string labelColumn)
         {
             return _mlContext.MulticlassClassification.Evaluate(data, labelColumn);

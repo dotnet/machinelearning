@@ -16,20 +16,22 @@ namespace Microsoft.ML.CLI.ShellProgressBar
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
         }
 
-        protected readonly DateTime _startDate = DateTime.Now;
+        public readonly DateTime StartDate;
         private int _maxTicks;
         private int _currentTick;
         private string _message;
 
         protected ProgressBarBase(int maxTicks, string message, ProgressBarOptions options)
         {
-            this._maxTicks = Math.Max(0, maxTicks);
-            this._message = message;
-            this.Options = options ?? ProgressBarOptions.Default;
+            _maxTicks = Math.Max(0, maxTicks);
+            _message = message;
+            Options = options ?? ProgressBarOptions.Default;
+            StartDate = DateTime.Now;
+            Children = new ConcurrentBag<ChildProgressBar>();
         }
 
         internal ProgressBarOptions Options { get; }
-        internal ConcurrentBag<ChildProgressBar> Children { get; } = new ConcurrentBag<ChildProgressBar>();
+        internal ConcurrentBag<ChildProgressBar> Children { get; }
 
         protected abstract void DisplayProgress();
 
@@ -44,7 +46,7 @@ namespace Microsoft.ML.CLI.ShellProgressBar
         public DateTime? EndTime { get; protected set; }
 
         public ConsoleColor ForeGroundColor =>
-            EndTime.HasValue ? this.Options.ForegroundColorDone ?? this.Options.ForegroundColor : this.Options.ForegroundColor;
+            EndTime.HasValue ? Options.ForegroundColorDone ?? Options.ForegroundColor : Options.ForegroundColor;
 
         public int CurrentTick => _currentTick;
 
@@ -72,19 +74,19 @@ namespace Microsoft.ML.CLI.ShellProgressBar
         {
             get
             {
-                var percentage = Math.Max(0, Math.Min(100, (100.0 / this._maxTicks) * this._currentTick));
+                var percentage = Math.Max(0, Math.Min(100, (100.0 / _maxTicks) * _currentTick));
                 // Gracefully handle if the percentage is NaN due to division by 0
                 if (double.IsNaN(percentage) || percentage < 0) percentage = 100;
                 return percentage;
             }
         }
 
-        public bool Collapse => this.EndTime.HasValue && this.Options.CollapseWhenFinished;
+        public bool Collapse => EndTime.HasValue && Options.CollapseWhenFinished;
 
         public ChildProgressBar Spawn(int maxTicks, string message, ProgressBarOptions options = null)
         {
-            var pbar = new ChildProgressBar(maxTicks, message, DisplayProgress, options, this.Grow);
-            this.Children.Add(pbar);
+            var pbar = new ChildProgressBar(maxTicks, message, DisplayProgress, options, Grow);
+            Children.Add(pbar);
             DisplayProgress();
             return pbar;
         }
@@ -110,8 +112,8 @@ namespace Microsoft.ML.CLI.ShellProgressBar
 
             if (_currentTick >= _maxTicks)
             {
-                this.EndTime = DateTime.Now;
-                this.OnDone();
+                EndTime = DateTime.Now;
+                OnDone();
             }
             DisplayProgress();
         }

@@ -74,7 +74,7 @@ namespace Microsoft.ML.AutoML
 
             public bool HasAllBooleanValues()
             {
-                if (this.RawData.Skip(1)
+                if (RawData.Skip(1)
                     .All(x =>
                     {
                         bool value;

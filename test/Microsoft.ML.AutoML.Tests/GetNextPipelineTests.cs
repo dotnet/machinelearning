@@ -57,7 +57,7 @@ namespace Microsoft.ML.AutoML.Test
                     break;
                 }
 
-                var result = new PipelineScore(pipeline, AutoMlUtils.random.Value.NextDouble(), true);
+                var result = new PipelineScore(pipeline, AutoMlUtils.Random.Value.NextDouble(), true);
                 history.Add(result);
             }
 

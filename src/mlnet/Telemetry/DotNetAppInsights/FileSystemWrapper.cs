@@ -7,8 +7,14 @@ namespace Microsoft.Extensions.EnvironmentAbstractions
     {
         public static IFileSystem Default { get; } = new FileSystemWrapper();
 
-        public IFile File { get; } = new FileWrapper();
+        public IFile File { get; }
 
-        public IDirectory Directory { get; } = new DirectoryWrapper();
+        public IDirectory Directory { get; }
+
+        public FileSystemWrapper()
+        {
+            File = new FileWrapper();
+            Directory = new DirectoryWrapper();
+        }
     }
 }

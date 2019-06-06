@@ -16,10 +16,9 @@ namespace Microsoft.ML.CLI.CodeGenerator.CSharp
     /// </summary>
     internal abstract class TrainerGeneratorBase : ITrainerGenerator
     {
-        private PipelineNode node;
-        private Dictionary<string, object> arguments = new Dictionary<string, object>();
-        private bool hasAdvancedSettings = false;
-        private string seperator = null;
+        private Dictionary<string, object> _arguments;
+        private bool _hasAdvancedSettings;
+        private string _seperator;
 
         //abstract properties
         internal abstract string OptionsName { get; }
@@ -38,12 +37,12 @@ namespace Microsoft.ML.CLI.CodeGenerator.CSharp
 
         private void Initialize(PipelineNode node)
         {
-            this.node = node;
+            _arguments = new Dictionary<string, object>();
             if (NamedParameters != null)
             {
-                hasAdvancedSettings = node.Properties.Keys.Any(t => !NamedParameters.ContainsKey(t));
+                _hasAdvancedSettings = node.Properties.Keys.Any(t => !NamedParameters.ContainsKey(t));
             }
-            seperator = hasAdvancedSettings ? "=" : ":";
+            _seperator = _hasAdvancedSettings ? "=" : ":";
             if (!node.Properties.ContainsKey("LabelColumnName"))
             {
                 node.Properties.Add("LabelColumnName", "Label");
@@ -102,11 +101,11 @@ namespace Microsoft.ML.CLI.CodeGenerator.CSharp
 
                 if (NamedParameters != null)
                 {
-                    arguments.Add(hasAdvancedSettings ? kv.Key : NamedParameters[kv.Key], value);
+                    _arguments.Add(_hasAdvancedSettings ? kv.Key : NamedParameters[kv.Key], value);
                 }
                 else
                 {
-                    arguments.Add(kv.Key, value);
+                    _arguments.Add(kv.Key, value);
                 }
 
             }
@@ -148,14 +147,14 @@ namespace Microsoft.ML.CLI.CodeGenerator.CSharp
             StringBuilder sb = new StringBuilder();
             sb.Append(MethodName);
             sb.Append("(");
-            if (hasAdvancedSettings)
+            if (_hasAdvancedSettings)
             {
-                var paramString = BuildComplexParameter(OptionsName, arguments, "=");
+                var paramString = BuildComplexParameter(OptionsName, _arguments, "=");
                 sb.Append(paramString);
             }
             else
             {
-                sb.Append(AppendArguments(arguments, ":"));
+                sb.Append(AppendArguments(_arguments, ":"));
             }
             sb.Append(")");
             return sb.ToString();
@@ -163,7 +162,7 @@ namespace Microsoft.ML.CLI.CodeGenerator.CSharp
 
         public virtual string[] GenerateUsings()
         {
-            if (hasAdvancedSettings)
+            if (_hasAdvancedSettings)
                 return Usings;
 
             return null;

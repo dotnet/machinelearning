@@ -16,7 +16,7 @@ namespace Microsoft.ML.CLI.ShellProgressBar
         public static readonly ProgressBarOptions Default = new ProgressBarOptions();
 
         /// <summary> The foreground color of the progress bar, message and time</summary>
-        public ConsoleColor ForegroundColor { get; set; } = ConsoleColor.Green;
+        public ConsoleColor ForegroundColor { get; set; }
 
         /// <summary> The foreground color the progressbar has reached a 100 percent</summary>
         public ConsoleColor? ForegroundColorDone { get; set; }
@@ -25,7 +25,7 @@ namespace Microsoft.ML.CLI.ShellProgressBar
         public ConsoleColor? BackgroundColor { get; set; }
 
         /// <summary> The character to use to draw the progressbar</summary>
-        public char ProgressCharacter { get; set; } = '\u2588';
+        public char ProgressCharacter { get; set; }
 
         /// <summary>
         /// The character to use for the background of the progress defaults to <see cref="ProgressCharacter"/>
@@ -37,13 +37,13 @@ namespace Microsoft.ML.CLI.ShellProgressBar
         /// <see cref="ProgressBarBase.Tick(string)"/> is called.
         /// Defaults to true
         ///  </summary>
-        public bool DisplayTimeInRealTime { get; set; } = true;
+        public bool DisplayTimeInRealTime { get; set; }
 
         /// <summary>
         /// Collapse the progressbar when done, very useful for child progressbars
         /// Defaults to true
         /// </summary>
-        public bool CollapseWhenFinished { get; set; } = true;
+        public bool CollapseWhenFinished { get; set; }
 
         /// <summary>
         /// By default the text and time information is displayed at the bottom and the progress bar at the top.
@@ -67,6 +67,14 @@ namespace Microsoft.ML.CLI.ShellProgressBar
 
                 _enableTaskBarProgress = value;
             }
+        }
+
+        public ProgressBarOptions()
+        {
+            ForegroundColor = ConsoleColor.Green;
+            ProgressCharacter = '\u2588';
+            DisplayTimeInRealTime = true;
+            CollapseWhenFinished = true;
         }
     }
 }

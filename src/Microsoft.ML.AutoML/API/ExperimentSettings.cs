@@ -16,15 +16,16 @@ namespace Microsoft.ML.AutoML
         /// <summary>
         /// Maximum time in seconds the experiment is allowed to run.
         /// </summary>
+        /// <value>The default value is 86,400, the number of seconds in one day.</value>
         /// <remarks>
         /// An experiment may run for longer than <see name="MaxExperimentTimeInSeconds"/>.
         /// This is because once AutoML starts training an ML.NET model, AutoML lets the
-        /// model train to completion. For instance, if the first model 
+        /// model train to completion. For instance, if the first model
         /// AutoML trains takes 4 hours, and the second model trained takes 5 hours,
-        /// but <see name="MaxExperimentTimeInSeconds"/> was the number of seconds in 6 hours, 
+        /// but <see name="MaxExperimentTimeInSeconds"/> was the number of seconds in 6 hours,
         /// the experiment will run for 4 + 5 = 9 hours (not 6 hours).
         /// </remarks>
-        public uint MaxExperimentTimeInSeconds { get; set; } = 24 * 60 * 60;
+        public uint MaxExperimentTimeInSeconds { get; set; }
 
         /// <summary>
         /// Cancellation token for the AutoML experiment. It propagates the notification
@@ -33,28 +34,42 @@ namespace Microsoft.ML.AutoML
         /// <remarks>
         /// An experiment may not immediately stop after cancellation.
         /// This is because once AutoML starts training an ML.NET model, AutoML lets the
-        /// model train to completion. For instance, if the first model 
+        /// model train to completion. For instance, if the first model
         /// AutoML trains takes 4 hours, and the second model trained takes 5 hours,
-        /// but cancellation is requested after 6 hours, 
+        /// but cancellation is requested after 6 hours,
         /// the experiment will stop after 4 + 5 = 9 hours (not 6 hours).
         /// </remarks>
-        public CancellationToken CancellationToken { get; set; } = default;
+        public CancellationToken CancellationToken { get; set; }
 
         /// <summary>
         /// This is a pointer to a directory where all models trained during the AutoML experiment will be saved.
         /// If <see langword="null"/>, models will be kept in memory instead of written to disk.
-        /// (Please note: for an experiment with high runtime operating on a large dataset, opting to keep models in 
+        /// (Please note: for an experiment with high runtime operating on a large dataset, opting to keep models in
         /// memory could cause a system to run out of memory.)
         /// </summary>
-        public DirectoryInfo CacheDirectory { get; set; } = new DirectoryInfo(Path.Combine(Path.GetTempPath(), "Microsoft.ML.AutoML"));
+        /// <value>The default value is the directory named "Microsoft.ML.AutoML" in the current user's temporary folder.</value>
+        public DirectoryInfo CacheDirectory { get; set; }
 
         /// <summary>
         /// Whether AutoML should cache before ML.NET trainers.
         /// See <see cref="TrainerInfo.WantCaching"/> for more information on caching.
         /// </summary>
-        public CacheBeforeTrainer CacheBeforeTrainer = CacheBeforeTrainer.Auto;
-        
-        internal int MaxModels = int.MaxValue;
+        /// <value>The default value is <see cref="CacheBeforeTrainer.Auto"/>.</value>
+        public CacheBeforeTrainer CacheBeforeTrainer { get; set; }
+
+        internal int MaxModels;
+
+        /// <summary>
+        /// Initializes a new instance of <see cref="ExperimentSettings"/>.
+        /// </summary>
+        public ExperimentSettings()
+        {
+            MaxExperimentTimeInSeconds = 24 * 60 * 60;
+            CancellationToken = default;
+            CacheDirectory = new DirectoryInfo(Path.Combine(Path.GetTempPath(), "Microsoft.ML.AutoML"));
+            CacheBeforeTrainer = CacheBeforeTrainer.Auto;
+            MaxModels = int.MaxValue;
+        }
     }
 
     /// <summary>

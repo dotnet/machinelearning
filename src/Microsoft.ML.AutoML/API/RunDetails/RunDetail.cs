@@ -29,7 +29,6 @@ namespace Microsoft.ML.AutoML
         /// </remarks>
         public TMetrics ValidationMetrics { get; private set; }
 
-
         /// <summary>
         /// Model trained during the run.
         /// </summary>
@@ -81,7 +80,7 @@ namespace Microsoft.ML.AutoML
         /// Runtime in seconds.
         /// </summary>
         /// <remarks>
-        /// Runtime includes model training time. Depending on the size of the data, 
+        /// Runtime includes model training time. Depending on the size of the data,
         /// the runtime may be quite long.
         /// </remarks>
         public double RuntimeInSeconds { get; internal set; }
@@ -90,7 +89,7 @@ namespace Microsoft.ML.AutoML
         /// An ML.NET <see cref="IEstimator{TTransformer}"/> that represents the pipeline in this run.
         /// </summary>
         /// <remarks>
-        /// You can call <see cref="IEstimator{TTransformer}.Fit(IDataView)" /> on 
+        /// You can call <see cref="IEstimator{TTransformer}.Fit(IDataView)" /> on
         /// this estimator to re-train your pipeline on any <see cref="IEstimator{TTransformer}" />.
         /// </remarks>
         public IEstimator<ITransformer> Estimator { get; private set; }

@@ -9,10 +9,15 @@ namespace Microsoft.DotNet.Cli.Telemetry
 {
     public class MlTelemetry
     {
-        private bool _firstTimeUse = false;
-        private bool _enabled = false;
-        private List<string> _parameters = new List<string>();
+        private bool _firstTimeUse;
+        private bool _enabled;
+        private List<string> _parameters;
         private string _command;
+
+        public MlTelemetry()
+        {
+            _parameters = new List<string>();
+        }
 
         public void SetCommandAndParameters(string command, IEnumerable<string> parameters)
         {

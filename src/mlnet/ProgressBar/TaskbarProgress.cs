@@ -58,7 +58,7 @@ namespace Microsoft.ML.CLI.ShellProgressBar
         { }
 
         [DllImport("kernel32.dll")]
-        static extern IntPtr GetConsoleWindow();
+        private static extern IntPtr GetConsoleWindow();
 
         private static readonly ITaskbarList3 _taskbarInstance = (ITaskbarList3)new TaskbarInstance();
         private static readonly bool _taskbarSupported = RuntimeInformation.IsOSPlatform(OSPlatform.Windows);

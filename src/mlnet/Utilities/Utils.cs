@@ -171,7 +171,6 @@ namespace Microsoft.ML.CLI.Utilities
             return trainProgramCSFileContent;
         }
 
-
         internal static int AddProjectsToSolution(string modelprojectDir,
             string modelProjectName,
             string consoleAppProjectDir,

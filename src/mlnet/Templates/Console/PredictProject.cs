@@ -26,25 +26,25 @@ namespace Microsoft.ML.CLI.Templates.Console
         /// </summary>
         public virtual string TransformText()
         {
-            this.Write("<Project Sdk=\"Microsoft.NET.Sdk\">\r\n\r\n  <PropertyGroup>\r\n    <OutputType>Exe</Outp" +
+            Write("<Project Sdk=\"Microsoft.NET.Sdk\">\r\n\r\n  <PropertyGroup>\r\n    <OutputType>Exe</Outp" +
                     "utType>\r\n    <TargetFramework>netcoreapp2.1</TargetFramework>\r\n  </PropertyGroup" +
                     ">\r\n  <ItemGroup>\r\n    <PackageReference Include=\"Microsoft.ML\" Version=\"1.0.0\" /" +
                     ">\r\n");
  if (IncludeLightGBMPackage){ 
-            this.Write("    <PackageReference Include=\"Microsoft.ML.LightGBM\" Version=\"1.0.0\" />\r\n");
+            Write("    <PackageReference Include=\"Microsoft.ML.LightGBM\" Version=\"1.0.0\" />\r\n");
 }
  if (IncludeMklComponentsPackage){ 
-            this.Write("    <PackageReference Include=\"Microsoft.ML.Mkl.Components\" Version=\"1.0.0\" />\r\n");
+            Write("    <PackageReference Include=\"Microsoft.ML.Mkl.Components\" Version=\"1.0.0\" />\r\n");
 }
  if (IncludeFastTreePackage){ 
-            this.Write("    <PackageReference Include=\"Microsoft.ML.FastTree\" Version=\"1.0.0\" />\r\n");
+            Write("    <PackageReference Include=\"Microsoft.ML.FastTree\" Version=\"1.0.0\" />\r\n");
 }
-            this.Write("  </ItemGroup>\r\n  <ItemGroup>\r\n    <ProjectReference Include=\"..\\");
-            this.Write(this.ToStringHelper.ToStringWithCulture(Namespace));
-            this.Write(".Model\\");
-            this.Write(this.ToStringHelper.ToStringWithCulture(Namespace));
-            this.Write(".Model.csproj\" />\r\n  </ItemGroup>\r\n</Project>\r\n");
-            return this.GenerationEnvironment.ToString();
+            Write("  </ItemGroup>\r\n  <ItemGroup>\r\n    <ProjectReference Include=\"..\\");
+            Write(ToStringHelper.ToStringWithCulture(Namespace));
+            Write(".Model\\");
+            Write(ToStringHelper.ToStringWithCulture(Namespace));
+            Write(".Model.csproj\" />\r\n  </ItemGroup>\r\n</Project>\r\n");
+            return GenerationEnvironment.ToString();
         }
 
 public string Namespace {get;set;}
@@ -76,15 +76,15 @@ public bool IncludeFastTreePackage {get;set;}
         {
             get
             {
-                if ((this.generationEnvironmentField == null))
+                if ((generationEnvironmentField == null))
                 {
-                    this.generationEnvironmentField = new global::System.Text.StringBuilder();
+                    generationEnvironmentField = new global::System.Text.StringBuilder();
                 }
-                return this.generationEnvironmentField;
+                return generationEnvironmentField;
             }
             set
             {
-                this.generationEnvironmentField = value;
+                generationEnvironmentField = value;
             }
         }
         /// <summary>
@@ -94,11 +94,11 @@ public bool IncludeFastTreePackage {get;set;}
         {
             get
             {
-                if ((this.errorsField == null))
+                if ((errorsField == null))
                 {
-                    this.errorsField = new global::System.CodeDom.Compiler.CompilerErrorCollection();
+                    errorsField = new global::System.CodeDom.Compiler.CompilerErrorCollection();
                 }
-                return this.errorsField;
+                return errorsField;
             }
         }
         /// <summary>
@@ -108,11 +108,11 @@ public bool IncludeFastTreePackage {get;set;}
         {
             get
             {
-                if ((this.indentLengthsField == null))
+                if ((indentLengthsField == null))
                 {
-                    this.indentLengthsField = new global::System.Collections.Generic.List<int>();
+                    indentLengthsField = new global::System.Collections.Generic.List<int>();
                 }
-                return this.indentLengthsField;
+                return indentLengthsField;
             }
         }
         /// <summary>
@@ -122,7 +122,7 @@ public bool IncludeFastTreePackage {get;set;}
         {
             get
             {
-                return this.currentIndentField;
+                return currentIndentField;
             }
         }
         /// <summary>
@@ -132,11 +132,11 @@ public bool IncludeFastTreePackage {get;set;}
         {
             get
             {
-                return this.sessionField;
+                return sessionField;
             }
             set
             {
-                this.sessionField = value;
+                sessionField = value;
             }
         }
         #endregion
@@ -152,35 +152,35 @@ public bool IncludeFastTreePackage {get;set;}
             }
             // If we're starting off, or if the previous text ended with a newline,
             // we have to append the current indent first.
-            if (((this.GenerationEnvironment.Length == 0) 
-                        || this.endsWithNewline))
+            if (((GenerationEnvironment.Length == 0) 
+                        || endsWithNewline))
             {
-                this.GenerationEnvironment.Append(this.currentIndentField);
-                this.endsWithNewline = false;
+                GenerationEnvironment.Append(currentIndentField);
+                endsWithNewline = false;
             }
             // Check if the current text ends with a newline
             if (textToAppend.EndsWith(global::System.Environment.NewLine, global::System.StringComparison.CurrentCulture))
             {
-                this.endsWithNewline = true;
+                endsWithNewline = true;
             }
             // This is an optimization. If the current indent is "", then we don't have to do any
             // of the more complex stuff further down.
-            if ((this.currentIndentField.Length == 0))
+            if ((currentIndentField.Length == 0))
             {
-                this.GenerationEnvironment.Append(textToAppend);
+                GenerationEnvironment.Append(textToAppend);
                 return;
             }
             // Everywhere there is a newline in the text, add an indent after it
-            textToAppend = textToAppend.Replace(global::System.Environment.NewLine, (global::System.Environment.NewLine + this.currentIndentField));
+            textToAppend = textToAppend.Replace(global::System.Environment.NewLine, (global::System.Environment.NewLine + currentIndentField));
             // If the text ends with a newline, then we should strip off the indent added at the very end
             // because the appropriate indent will be added when the next time Write() is called
-            if (this.endsWithNewline)
+            if (endsWithNewline)
             {
-                this.GenerationEnvironment.Append(textToAppend, 0, (textToAppend.Length - this.currentIndentField.Length));
+                GenerationEnvironment.Append(textToAppend, 0, (textToAppend.Length - currentIndentField.Length));
             }
             else
             {
-                this.GenerationEnvironment.Append(textToAppend);
+                GenerationEnvironment.Append(textToAppend);
             }
         }
         /// <summary>
@@ -188,23 +188,23 @@ public bool IncludeFastTreePackage {get;set;}
         /// </summary>
         public void WriteLine(string textToAppend)
         {
-            this.Write(textToAppend);
-            this.GenerationEnvironment.AppendLine();
-            this.endsWithNewline = true;
+            Write(textToAppend);
+            GenerationEnvironment.AppendLine();
+            endsWithNewline = true;
         }
         /// <summary>
         /// Write formatted text directly into the generated output
         /// </summary>
         public void Write(string format, params object[] args)
         {
-            this.Write(string.Format(global::System.Globalization.CultureInfo.CurrentCulture, format, args));
+            Write(string.Format(global::System.Globalization.CultureInfo.CurrentCulture, format, args));
         }
         /// <summary>
         /// Write formatted text directly into the generated output
         /// </summary>
         public void WriteLine(string format, params object[] args)
         {
-            this.WriteLine(string.Format(global::System.Globalization.CultureInfo.CurrentCulture, format, args));
+            WriteLine(string.Format(global::System.Globalization.CultureInfo.CurrentCulture, format, args));
         }
         /// <summary>
         /// Raise an error
@@ -213,7 +213,7 @@ public bool IncludeFastTreePackage {get;set;}
         {
             System.CodeDom.Compiler.CompilerError error = new global::System.CodeDom.Compiler.CompilerError();
             error.ErrorText = message;
-            this.Errors.Add(error);
+            Errors.Add(error);
         }
         /// <summary>
         /// Raise a warning
@@ -223,7 +223,7 @@ public bool IncludeFastTreePackage {get;set;}
             System.CodeDom.Compiler.CompilerError error = new global::System.CodeDom.Compiler.CompilerError();
             error.ErrorText = message;
             error.IsWarning = true;
-            this.Errors.Add(error);
+            Errors.Add(error);
         }
         /// <summary>
         /// Increase the indent
@@ -234,8 +234,8 @@ public bool IncludeFastTreePackage {get;set;}
             {
                 throw new global::System.ArgumentNullException("indent");
             }
-            this.currentIndentField = (this.currentIndentField + indent);
-            this.indentLengths.Add(indent.Length);
+            currentIndentField = (currentIndentField + indent);
+            indentLengths.Add(indent.Length);
         }
         /// <summary>
         /// Remove the last indent that was added with PushIndent
@@ -243,14 +243,14 @@ public bool IncludeFastTreePackage {get;set;}
         public string PopIndent()
         {
             string returnValue = "";
-            if ((this.indentLengths.Count > 0))
+            if ((indentLengths.Count > 0))
             {
-                int indentLength = this.indentLengths[(this.indentLengths.Count - 1)];
-                this.indentLengths.RemoveAt((this.indentLengths.Count - 1));
+                int indentLength = indentLengths[(indentLengths.Count - 1)];
+                indentLengths.RemoveAt((indentLengths.Count - 1));
                 if ((indentLength > 0))
                 {
-                    returnValue = this.currentIndentField.Substring((this.currentIndentField.Length - indentLength));
-                    this.currentIndentField = this.currentIndentField.Remove((this.currentIndentField.Length - indentLength));
+                    returnValue = currentIndentField.Substring((currentIndentField.Length - indentLength));
+                    currentIndentField = currentIndentField.Remove((currentIndentField.Length - indentLength));
                 }
             }
             return returnValue;
@@ -260,8 +260,8 @@ public bool IncludeFastTreePackage {get;set;}
         /// </summary>
         public void ClearIndent()
         {
-            this.indentLengths.Clear();
-            this.currentIndentField = "";
+            indentLengths.Clear();
+            currentIndentField = "";
         }
         #endregion
         #region ToString Helpers
@@ -278,13 +278,13 @@ public bool IncludeFastTreePackage {get;set;}
             {
                 get
                 {
-                    return this.formatProviderField ;
+                    return formatProviderField ;
                 }
                 set
                 {
                     if ((value != null))
                     {
-                        this.formatProviderField  = value;
+                        formatProviderField  = value;
                     }
                 }
             }
@@ -307,7 +307,7 @@ public bool IncludeFastTreePackage {get;set;}
                 else
                 {
                     return ((string)(method.Invoke(objectToConvert, new object[] {
-                                this.formatProviderField })));
+                                formatProviderField })));
                 }
             }
         }
@@ -319,7 +319,7 @@ public bool IncludeFastTreePackage {get;set;}
         {
             get
             {
-                return this.toStringHelperField;
+                return toStringHelperField;
             }
         }
         #endregion

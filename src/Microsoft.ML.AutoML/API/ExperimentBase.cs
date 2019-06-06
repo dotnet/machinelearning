@@ -13,7 +13,7 @@ namespace Microsoft.ML.AutoML
     /// </summary>
     /// <typeparam name="TMetrics">Metrics type used by task-specific AutoML experiments.</typeparam>
     /// <typeparam name="TExperimentSettings">Experiment settings type.</typeparam>
-    public abstract class ExperimentBase<TMetrics, TExperimentSettings> 
+    public abstract class ExperimentBase<TMetrics, TExperimentSettings>
         where TMetrics : class
         where TExperimentSettings : ExperimentSettings
     {
@@ -47,15 +47,15 @@ namespace Microsoft.ML.AutoML
         /// </summary>
         /// <param name="trainData">The training data used by the AutoML experiment.</param>
         /// <param name="labelColumnName">The dataset column used as the label.</param>
-        /// <param name="samplingKeyColumn">The dataset column used as the sampling key column. 
+        /// <param name="samplingKeyColumn">The dataset column used as the sampling key column.
         /// See <see cref="ColumnInformation.SamplingKeyColumnName"/> for more information.</param>
         /// <param name="preFeaturizer">Pre-featurizer that AutoML will apply to the data during an
-        /// experiment. (The pre-featurizer will be fit only on the training data split to produce a 
-        /// trained transform. Then, the trained transform will be applied to both the training 
+        /// experiment. (The pre-featurizer will be fit only on the training data split to produce a
+        /// trained transform. Then, the trained transform will be applied to both the training
         /// data split and corresponding validation data split.)</param>
-        /// <param name="progressHandler">A user-defined object that implements 
+        /// <param name="progressHandler">A user-defined object that implements
         /// the <see cref="IProgress{T}"/> interface. AutoML will invoke the method
-        /// <see cref="IProgress{T}.Report(T)"/> after each model it produces during the 
+        /// <see cref="IProgress{T}.Report(T)"/> after each model it produces during the
         /// course of the experiment.
         /// </param>
         /// <returns>The experiment result.</returns>
@@ -79,19 +79,19 @@ namespace Microsoft.ML.AutoML
         /// <param name="trainData">The training data to be used by the AutoML experiment.</param>
         /// <param name="columnInformation">Column information for the dataset.</param>
         /// <param name="preFeaturizer">Pre-featurizer that AutoML will apply to the data during an
-        /// experiment. (The pre-featurizer will be fit only on the training data split to produce a 
-        /// trained transform. Then, the trained transform will be applied to both the training 
+        /// experiment. (The pre-featurizer will be fit only on the training data split to produce a
+        /// trained transform. Then, the trained transform will be applied to both the training
         /// data split and corresponding validation data split.)</param>
-        /// <param name="progressHandler">A user-defined object that implements 
+        /// <param name="progressHandler">A user-defined object that implements
         /// the <see cref="IProgress{T}"/> interface. AutoML will invoke the method
-        /// <see cref="IProgress{T}.Report(T)"/> after each model it produces during the 
+        /// <see cref="IProgress{T}.Report(T)"/> after each model it produces during the
         /// course of the experiment.
         /// </param>
         /// <returns>The experiment result.</returns>
         /// <remarks>
         /// Depending on the size of your data, the AutoML experiment could take a long time to execute.
         /// </remarks>
-        public ExperimentResult<TMetrics> Execute(IDataView trainData, ColumnInformation columnInformation, 
+        public ExperimentResult<TMetrics> Execute(IDataView trainData, ColumnInformation columnInformation,
             IEstimator<ITransformer> preFeaturizer = null, IProgress<RunDetail<TMetrics>> progressHandler = null)
         {
             // Cross val threshold for # of dataset rows --
@@ -121,12 +121,12 @@ namespace Microsoft.ML.AutoML
         /// <param name="validationData">The validation data to be used by the AutoML experiment.</param>
         /// <param name="labelColumnName">The name of the label column.</param>
         /// <param name="preFeaturizer">Pre-featurizer that AutoML will apply to the data during an
-        /// experiment. (The pre-featurizer will be fit only on the training data split to produce a 
-        /// trained transform. Then, the trained transform will be applied to both the training 
+        /// experiment. (The pre-featurizer will be fit only on the training data split to produce a
+        /// trained transform. Then, the trained transform will be applied to both the training
         /// data split and corresponding validation data split.)</param>
-        /// <param name="progressHandler">A user-defined object that implements 
+        /// <param name="progressHandler">A user-defined object that implements
         /// the <see cref="IProgress{T}"/> interface. AutoML will invoke the method
-        /// <see cref="IProgress{T}.Report(T)"/> after each model it produces during the 
+        /// <see cref="IProgress{T}.Report(T)"/> after each model it produces during the
         /// course of the experiment.
         /// </param>
         /// <returns>The experiment result.</returns>
@@ -146,12 +146,12 @@ namespace Microsoft.ML.AutoML
         /// <param name="validationData">The validation data to be used by the AutoML experiment.</param>
         /// <param name="columnInformation">Column information for the dataset.</param>
         /// <param name="preFeaturizer">Pre-featurizer that AutoML will apply to the data during an
-        /// experiment. (The pre-featurizer will be fit only on the training data split to produce a 
-        /// trained transform. Then, the trained transform will be applied to both the training 
+        /// experiment. (The pre-featurizer will be fit only on the training data split to produce a
+        /// trained transform. Then, the trained transform will be applied to both the training
         /// data split and corresponding validation data split.)</param>
-        /// <param name="progressHandler">A user-defined object that implements 
+        /// <param name="progressHandler">A user-defined object that implements
         /// the <see cref="IProgress{T}"/> interface. AutoML will invoke the method
-        /// <see cref="IProgress{T}.Report(T)"/> after each model it produces during the 
+        /// <see cref="IProgress{T}.Report(T)"/> after each model it produces during the
         /// course of the experiment.
         /// </param>
         /// <returns>The experiment result.</returns>
@@ -174,12 +174,12 @@ namespace Microsoft.ML.AutoML
         /// <param name="numberOfCVFolds">The number of cross validation folds into which the training data should be divided when fitting a model.</param>
         /// <param name="columnInformation">Column information for the dataset.</param>
         /// <param name="preFeaturizer">Pre-featurizer that AutoML will apply to the data during an
-        /// experiment. (The pre-featurizer will be fit only on the training data split to produce a 
-        /// trained transform. Then, the trained transform will be applied to both the training 
+        /// experiment. (The pre-featurizer will be fit only on the training data split to produce a
+        /// trained transform. Then, the trained transform will be applied to both the training
         /// data split and corresponding validation data split.)</param>
-        /// <param name="progressHandler">A user-defined object that implements 
+        /// <param name="progressHandler">A user-defined object that implements
         /// the <see cref="IProgress{T}"/> interface. AutoML will invoke the method
-        /// <see cref="IProgress{T}.Report(T)"/> after each model it produces during the 
+        /// <see cref="IProgress{T}.Report(T)"/> after each model it produces during the
         /// course of the experiment.
         /// </param>
         /// <returns>The cross validation experiment result.</returns>
@@ -201,21 +201,21 @@ namespace Microsoft.ML.AutoML
         /// <param name="labelColumnName">The name of the label column.</param>
         /// <param name="samplingKeyColumn">The name of the sampling key column.</param>
         /// <param name="preFeaturizer">Pre-featurizer that AutoML will apply to the data during an
-        /// experiment. (The pre-featurizer will be fit only on the training data split to produce a 
-        /// trained transform. Then, the trained transform will be applied to both the training 
+        /// experiment. (The pre-featurizer will be fit only on the training data split to produce a
+        /// trained transform. Then, the trained transform will be applied to both the training
         /// data split and corresponding validation data split.)</param>
-        /// <param name="progressHandler">A user-defined object that implements 
+        /// <param name="progressHandler">A user-defined object that implements
         /// the <see cref="IProgress{T}"/> interface. AutoML will invoke the method
-        /// <see cref="IProgress{T}.Report(T)"/> after each model it produces during the 
+        /// <see cref="IProgress{T}.Report(T)"/> after each model it produces during the
         /// course of the experiment.
         /// </param>
         /// <returns>The cross validation experiment result.</returns>
         /// <remarks>
         /// Depending on the size of your data, the AutoML experiment could take a long time to execute.
         /// </remarks>
-        public CrossValidationExperimentResult<TMetrics> Execute(IDataView trainData, 
+        public CrossValidationExperimentResult<TMetrics> Execute(IDataView trainData,
             uint numberOfCVFolds, string labelColumnName = DefaultColumnNames.Label,
-            string samplingKeyColumn = null, IEstimator<ITransformer> preFeaturizer = null, 
+            string samplingKeyColumn = null, IEstimator<ITransformer> preFeaturizer = null,
             Progress<CrossValidationRunDetail<TMetrics>> progressHandler = null)
         {
             var columnInformation = new ColumnInformation()

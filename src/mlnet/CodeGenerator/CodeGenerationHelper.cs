@@ -21,41 +21,41 @@ namespace Microsoft.ML.CLI.CodeGenerator
     internal class CodeGenerationHelper
     {
 
-        private IAutoMLEngine automlEngine;
-        private NewCommandSettings settings;
-        private static Logger logger = LogManager.GetCurrentClassLogger();
-        private TaskKind taskKind;
+        private IAutoMLEngine _automlEngine;
+        private NewCommandSettings _settings;
+        private static Logger _logger = LogManager.GetCurrentClassLogger();
+        private TaskKind _taskKind;
 
         public CodeGenerationHelper(IAutoMLEngine automlEngine, NewCommandSettings settings)
         {
-            this.automlEngine = automlEngine;
-            this.settings = settings;
-            this.taskKind = Utils.GetTaskKind(settings.MlTask);
+            _automlEngine = automlEngine;
+            _settings = settings;
+            _taskKind = Utils.GetTaskKind(settings.MlTask);
         }
 
         public void GenerateCode()
         {
             Stopwatch watch = Stopwatch.StartNew();
             var context = new MLContext();
-            context.Log += ConsumeAutoMLSDKLog;
+            context.Log += ConsumeAutoMLSdkLog;
 
-            var verboseLevel = Utils.GetVerbosity(settings.Verbosity);
+            var verboseLevel = Utils.GetVerbosity(_settings.Verbosity);
 
             // Infer columns
             ColumnInferenceResults columnInference = null;
             try
             {
                 var inputColumnInformation = new ColumnInformation();
-                inputColumnInformation.LabelColumnName = settings.LabelColumnName;
-                foreach (var value in settings.IgnoreColumns)
+                inputColumnInformation.LabelColumnName = _settings.LabelColumnName;
+                foreach (var value in _settings.IgnoreColumns)
                 {
                     inputColumnInformation.IgnoredColumnNames.Add(value);
                 }
-                columnInference = automlEngine.InferColumns(context, inputColumnInformation);
+                columnInference = _automlEngine.InferColumns(context, inputColumnInformation);
             }
             catch (Exception)
             {
-                logger.Log(LogLevel.Error, $"{Strings.InferColumnError}");
+                _logger.Log(LogLevel.Error, $"{Strings.InferColumnError}");
                 throw;
             }
 
@@ -71,7 +71,7 @@ namespace Microsoft.ML.CLI.CodeGenerator
 
             // Explore the models
 
-            // The reason why we are doing this way of defining 3 different results is because of the AutoML API 
+            // The reason why we are doing this way of defining 3 different results is because of the AutoML API
             // i.e there is no common class/interface to handle all three tasks together.
 
             List<RunDetail<BinaryClassificationMetrics>> completedBinaryRuns = new List<RunDetail<BinaryClassificationMetrics>>();
@@ -86,7 +86,7 @@ namespace Microsoft.ML.CLI.CodeGenerator
             {
                 Console.Write($"{Strings.ExplorePipeline}: ");
                 Console.ForegroundColor = ConsoleColor.Yellow;
-                Console.WriteLine($"{settings.MlTask}");
+                Console.WriteLine($"{_settings.MlTask}");
                 Console.ResetColor();
                 Console.Write($"{Strings.FurtherLearning}: ");
                 Console.ForegroundColor = ConsoleColor.Yellow;
@@ -94,8 +94,8 @@ namespace Microsoft.ML.CLI.CodeGenerator
                 Console.ResetColor();
             }
 
-            logger.Log(LogLevel.Trace, $"{Strings.ExplorePipeline}: {settings.MlTask}");
-            logger.Log(LogLevel.Trace, $"{Strings.FurtherLearning}: {Strings.LearningHttpLink}");
+            _logger.Log(LogLevel.Trace, $"{Strings.ExplorePipeline}: {_settings.MlTask}");
+            _logger.Log(LogLevel.Trace, $"{Strings.FurtherLearning}: {Strings.LearningHttpLink}");
 
             // TODO the below region needs more refactoring to be done especially with so many switch cases.
 
@@ -110,7 +110,7 @@ namespace Microsoft.ML.CLI.CodeGenerator
                     ProgressCharacter = '\u2593',
                     BackgroundCharacter = '─',
                 };
-                var wait = TimeSpan.FromSeconds(settings.MaxExplorationTime);
+                var wait = TimeSpan.FromSeconds(_settings.MaxExplorationTime);
 
                 if (verboseLevel > LogLevel.Trace && !Console.IsOutputRedirected)
                 {
@@ -119,30 +119,30 @@ namespace Microsoft.ML.CLI.CodeGenerator
                     {
                         pbar.Message = Strings.WaitingForFirstIteration;
                         Thread t = default;
-                        switch (taskKind)
+                        switch (_taskKind)
                         {
                             // TODO: It may be a good idea to convert the below Threads to Tasks or get rid of this progress bar all together and use an existing one in opensource.
                             case TaskKind.BinaryClassification:
                                 binaryHandler = new ProgressHandlers.BinaryClassificationHandler(new BinaryExperimentSettings().OptimizingMetric, completedBinaryRuns, pbar);
-                                t = new Thread(() => SafeExecute(() => automlEngine.ExploreBinaryClassificationModels(context, trainData, validationData, columnInformation, new BinaryExperimentSettings().OptimizingMetric, binaryHandler, pbar), out ex, pbar));
+                                t = new Thread(() => SafeExecute(() => _automlEngine.ExploreBinaryClassificationModels(context, trainData, validationData, columnInformation, new BinaryExperimentSettings().OptimizingMetric, binaryHandler, pbar), out ex, pbar));
                                 break;
                             case TaskKind.Regression:
                                 regressionHandler = new ProgressHandlers.RegressionHandler(new RegressionExperimentSettings().OptimizingMetric, completedRegressionRuns, pbar);
-                                t = new Thread(() => SafeExecute(() => automlEngine.ExploreRegressionModels(context, trainData, validationData, columnInformation, new RegressionExperimentSettings().OptimizingMetric, regressionHandler, pbar), out ex, pbar));
+                                t = new Thread(() => SafeExecute(() => _automlEngine.ExploreRegressionModels(context, trainData, validationData, columnInformation, new RegressionExperimentSettings().OptimizingMetric, regressionHandler, pbar), out ex, pbar));
                                 break;
                             case TaskKind.MulticlassClassification:
                                 multiClassHandler = new ProgressHandlers.MulticlassClassificationHandler(new MulticlassExperimentSettings().OptimizingMetric, completedMulticlassRuns, pbar);
-                                t = new Thread(() => SafeExecute(() => automlEngine.ExploreMultiClassificationModels(context, trainData, validationData, columnInformation, new MulticlassExperimentSettings().OptimizingMetric, multiClassHandler, pbar), out ex, pbar));
+                                t = new Thread(() => SafeExecute(() => _automlEngine.ExploreMultiClassificationModels(context, trainData, validationData, columnInformation, new MulticlassExperimentSettings().OptimizingMetric, multiClassHandler, pbar), out ex, pbar));
                                 break;
                             default:
-                                logger.Log(LogLevel.Error, Strings.UnsupportedMlTask);
+                                _logger.Log(LogLevel.Error, Strings.UnsupportedMlTask);
                                 break;
                         }
                         t.Start();
 
                         pbar.CompletedHandle.WaitOne(wait);
-                        context.Log -= ConsumeAutoMLSDKLog;
-                        switch (taskKind)
+                        context.Log -= ConsumeAutoMLSdkLog;
+                        switch (_taskKind)
                         {
                             case TaskKind.BinaryClassification:
                                 binaryHandler.Stop();
@@ -154,7 +154,7 @@ namespace Microsoft.ML.CLI.CodeGenerator
                                 multiClassHandler.Stop();
                                 break;
                             default:
-                                logger.Log(LogLevel.Error, Strings.UnsupportedMlTask);
+                                _logger.Log(LogLevel.Error, Strings.UnsupportedMlTask);
                                 break;
                         }
 
@@ -168,29 +168,29 @@ namespace Microsoft.ML.CLI.CodeGenerator
                 {
                     Exception ex = null;
                     Thread t = default;
-                    switch (taskKind)
+                    switch (_taskKind)
                     {
                         // TODO: It may be a good idea to convert the below Threads to Tasks or get rid of this progress bar all together and use an existing one in opensource.
                         case TaskKind.BinaryClassification:
                             binaryHandler = new ProgressHandlers.BinaryClassificationHandler(new BinaryExperimentSettings().OptimizingMetric, completedBinaryRuns, null);
-                            t = new Thread(() => SafeExecute(() => automlEngine.ExploreBinaryClassificationModels(context, trainData, validationData, columnInformation, new BinaryExperimentSettings().OptimizingMetric, binaryHandler, null), out ex, null));
+                            t = new Thread(() => SafeExecute(() => _automlEngine.ExploreBinaryClassificationModels(context, trainData, validationData, columnInformation, new BinaryExperimentSettings().OptimizingMetric, binaryHandler, null), out ex, null));
                             break;
                         case TaskKind.Regression:
                             regressionHandler = new ProgressHandlers.RegressionHandler(new RegressionExperimentSettings().OptimizingMetric, completedRegressionRuns, null);
-                            t = new Thread(() => SafeExecute(() => automlEngine.ExploreRegressionModels(context, trainData, validationData, columnInformation, new RegressionExperimentSettings().OptimizingMetric, regressionHandler, null), out ex, null));
+                            t = new Thread(() => SafeExecute(() => _automlEngine.ExploreRegressionModels(context, trainData, validationData, columnInformation, new RegressionExperimentSettings().OptimizingMetric, regressionHandler, null), out ex, null));
                             break;
                         case TaskKind.MulticlassClassification:
                             multiClassHandler = new ProgressHandlers.MulticlassClassificationHandler(new MulticlassExperimentSettings().OptimizingMetric, completedMulticlassRuns, null);
-                            t = new Thread(() => SafeExecute(() => automlEngine.ExploreMultiClassificationModels(context, trainData, validationData, columnInformation, new MulticlassExperimentSettings().OptimizingMetric, multiClassHandler, null), out ex, null));
+                            t = new Thread(() => SafeExecute(() => _automlEngine.ExploreMultiClassificationModels(context, trainData, validationData, columnInformation, new MulticlassExperimentSettings().OptimizingMetric, multiClassHandler, null), out ex, null));
                             break;
                         default:
-                            logger.Log(LogLevel.Error, Strings.UnsupportedMlTask);
+                            _logger.Log(LogLevel.Error, Strings.UnsupportedMlTask);
                             break;
                     }
                     t.Start();
                     Thread.Sleep(wait);
-                    context.Log -= ConsumeAutoMLSDKLog;
-                    switch (taskKind)
+                    context.Log -= ConsumeAutoMLSdkLog;
+                    switch (_taskKind)
                     {
                         case TaskKind.BinaryClassification:
                             binaryHandler.Stop();
@@ -202,7 +202,7 @@ namespace Microsoft.ML.CLI.CodeGenerator
                             multiClassHandler.Stop();
                             break;
                         default:
-                            logger.Log(LogLevel.Error, Strings.UnsupportedMlTask);
+                            _logger.Log(LogLevel.Error, Strings.UnsupportedMlTask);
                             break;
                     }
 
@@ -214,12 +214,12 @@ namespace Microsoft.ML.CLI.CodeGenerator
             }
             catch (Exception)
             {
-                logger.Log(LogLevel.Error, $"{Strings.ExplorePipelineException}:");
+                _logger.Log(LogLevel.Error, $"{Strings.ExplorePipelineException}:");
                 throw;
             }
             finally
             {
-                context.Log -= ConsumeAutoMLSDKLog;
+                context.Log -= ConsumeAutoMLSdkLog;
             }
 
             var elapsedTime = watch.Elapsed.TotalSeconds;
@@ -229,7 +229,7 @@ namespace Microsoft.ML.CLI.CodeGenerator
             ITransformer bestModel = null;
             try
             {
-                switch (taskKind)
+                switch (_taskKind)
                 {
                     case TaskKind.BinaryClassification:
                         if (completedBinaryRuns.Count > 0)
@@ -238,13 +238,13 @@ namespace Microsoft.ML.CLI.CodeGenerator
                             var bestBinaryIteration = BestResultUtil.GetBestRun(completedBinaryRuns, binaryMetric);
                             bestPipeline = bestBinaryIteration.Pipeline;
                             bestModel = bestBinaryIteration.Model;
-                            ConsolePrinter.ExperimentResultsHeader(LogLevel.Info, settings.MlTask, settings.Dataset.Name, columnInformation.LabelColumnName, elapsedTime.ToString("F2"), completedBinaryRuns.Count());
+                            ConsolePrinter.ExperimentResultsHeader(LogLevel.Info, _settings.MlTask, _settings.Dataset.Name, columnInformation.LabelColumnName, elapsedTime.ToString("F2"), completedBinaryRuns.Count());
                             ConsolePrinter.PrintIterationSummary(completedBinaryRuns, binaryMetric, 5);
                         }
                         else
                         {
-                            logger.Log(LogLevel.Error, string.Format(Strings.CouldNotFinshOnTime, settings.MaxExplorationTime));
-                            logger.Log(LogLevel.Info, Strings.Exiting);
+                            _logger.Log(LogLevel.Error, string.Format(Strings.CouldNotFinshOnTime, _settings.MaxExplorationTime));
+                            _logger.Log(LogLevel.Info, Strings.Exiting);
                             return;
                         }
                         break;
@@ -255,13 +255,13 @@ namespace Microsoft.ML.CLI.CodeGenerator
                             var bestRegressionIteration = BestResultUtil.GetBestRun(completedRegressionRuns, regressionMetric);
                             bestPipeline = bestRegressionIteration.Pipeline;
                             bestModel = bestRegressionIteration.Model;
-                            ConsolePrinter.ExperimentResultsHeader(LogLevel.Info, settings.MlTask, settings.Dataset.Name, columnInformation.LabelColumnName, elapsedTime.ToString("F2"), completedRegressionRuns.Count());
+                            ConsolePrinter.ExperimentResultsHeader(LogLevel.Info, _settings.MlTask, _settings.Dataset.Name, columnInformation.LabelColumnName, elapsedTime.ToString("F2"), completedRegressionRuns.Count());
                             ConsolePrinter.PrintIterationSummary(completedRegressionRuns, regressionMetric, 5);
                         }
                         else
                         {
-                            logger.Log(LogLevel.Error, string.Format(Strings.CouldNotFinshOnTime, settings.MaxExplorationTime));
-                            logger.Log(LogLevel.Info, Strings.Exiting);
+                            _logger.Log(LogLevel.Error, string.Format(Strings.CouldNotFinshOnTime, _settings.MaxExplorationTime));
+                            _logger.Log(LogLevel.Info, Strings.Exiting);
                             return;
                         }
                         break;
@@ -272,13 +272,13 @@ namespace Microsoft.ML.CLI.CodeGenerator
                             var bestMulticlassIteration = BestResultUtil.GetBestRun(completedMulticlassRuns, muliclassMetric);
                             bestPipeline = bestMulticlassIteration.Pipeline;
                             bestModel = bestMulticlassIteration.Model;
-                            ConsolePrinter.ExperimentResultsHeader(LogLevel.Info, settings.MlTask, settings.Dataset.Name, columnInformation.LabelColumnName, elapsedTime.ToString("F2"), completedMulticlassRuns.Count());
+                            ConsolePrinter.ExperimentResultsHeader(LogLevel.Info, _settings.MlTask, _settings.Dataset.Name, columnInformation.LabelColumnName, elapsedTime.ToString("F2"), completedMulticlassRuns.Count());
                             ConsolePrinter.PrintIterationSummary(completedMulticlassRuns, muliclassMetric, 5);
                         }
                         else
                         {
-                            logger.Log(LogLevel.Error, string.Format(Strings.CouldNotFinshOnTime, settings.MaxExplorationTime));
-                            logger.Log(LogLevel.Info, Strings.Exiting);
+                            _logger.Log(LogLevel.Error, string.Format(Strings.CouldNotFinshOnTime, _settings.MaxExplorationTime));
+                            _logger.Log(LogLevel.Info, Strings.Exiting);
                             return;
                         }
                         break;
@@ -286,24 +286,24 @@ namespace Microsoft.ML.CLI.CodeGenerator
             }
             catch (Exception)
             {
-                logger.Log(LogLevel.Info, Strings.ErrorBestPipeline);
+                _logger.Log(LogLevel.Info, Strings.ErrorBestPipeline);
                 throw;
             }
             #endregion
 
             // Save the model
-            var modelprojectDir = Path.Combine(settings.OutputPath.FullName, $"{settings.Name}.Model");
+            var modelprojectDir = Path.Combine(_settings.OutputPath.FullName, $"{_settings.Name}.Model");
             var modelPath = new FileInfo(Path.Combine(modelprojectDir, "MLModel.zip"));
 
             try
             {
                 Utils.SaveModel(bestModel, modelPath, context, trainData.Schema);
                 Console.ForegroundColor = ConsoleColor.Yellow;
-                logger.Log(LogLevel.Info, $"{Strings.SavingBestModel}: {modelPath}");
+                _logger.Log(LogLevel.Info, $"{Strings.SavingBestModel}: {modelPath}");
             }
             catch (Exception)
             {
-                logger.Log(LogLevel.Info, Strings.ErrorSavingModel);
+                _logger.Log(LogLevel.Info, Strings.ErrorSavingModel);
                 throw;
             }
             finally
@@ -316,13 +316,13 @@ namespace Microsoft.ML.CLI.CodeGenerator
             {
                 GenerateProject(columnInference, bestPipeline, columnInformation.LabelColumnName, modelPath);
                 Console.ForegroundColor = ConsoleColor.Yellow;
-                logger.Log(LogLevel.Info, $"{Strings.GenerateModelConsumption}: { Path.Combine(settings.OutputPath.FullName, $"{settings.Name}.ConsoleApp")}");
-                logger.Log(LogLevel.Info, $"{Strings.SeeLogFileForMoreInfo}: {settings.LogFilePath}");
+                _logger.Log(LogLevel.Info, $"{Strings.GenerateModelConsumption}: { Path.Combine(_settings.OutputPath.FullName, $"{_settings.Name}.ConsoleApp")}");
+                _logger.Log(LogLevel.Info, $"{Strings.SeeLogFileForMoreInfo}: {_settings.LogFilePath}");
 
             }
             catch (Exception)
             {
-                logger.Log(LogLevel.Info, Strings.ErrorGeneratingProject);
+                _logger.Log(LogLevel.Info, Strings.ErrorGeneratingProject);
                 throw;
             }
             finally
@@ -339,11 +339,11 @@ namespace Microsoft.ML.CLI.CodeGenerator
                 columnInference,
                 new CodeGeneratorSettings()
                 {
-                    TrainDataset = settings.Dataset.FullName,
-                    MlTask = taskKind,
-                    TestDataset = settings.TestDataset?.FullName,
-                    OutputName = settings.Name,
-                    OutputBaseDir = settings.OutputPath.FullName,
+                    TrainDataset = _settings.Dataset.FullName,
+                    MlTask = _taskKind,
+                    TestDataset = _settings.TestDataset?.FullName,
+                    OutputName = _settings.Name,
+                    OutputBaseDir = _settings.OutputPath.FullName,
                     LabelName = labelName,
                     ModelPath = modelPath.FullName
                 });
@@ -352,22 +352,22 @@ namespace Microsoft.ML.CLI.CodeGenerator
 
         internal (IDataView, IDataView) LoadData(MLContext context, TextLoader.Options textLoaderOptions)
         {
-            logger.Log(LogLevel.Trace, Strings.CreateDataLoader);
+            _logger.Log(LogLevel.Trace, Strings.CreateDataLoader);
             var textLoader = context.Data.CreateTextLoader(textLoaderOptions);
 
-            logger.Log(LogLevel.Trace, Strings.LoadData);
-            var trainData = textLoader.Load(settings.Dataset.FullName);
-            var validationData = settings.ValidationDataset == null ? null : textLoader.Load(settings.ValidationDataset.FullName);
+            _logger.Log(LogLevel.Trace, Strings.LoadData);
+            var trainData = textLoader.Load(_settings.Dataset.FullName);
+            var validationData = _settings.ValidationDataset == null ? null : textLoader.Load(_settings.ValidationDataset.FullName);
 
             return (trainData, validationData);
         }
 
-        private static void ConsumeAutoMLSDKLog(object sender, LoggingEventArgs args)
+        private static void ConsumeAutoMLSdkLog(object sender, LoggingEventArgs args)
         {
             var logMessage = args.Message;
             if (logMessage.Contains(AutoMLLogger.ChannelName))
             {
-                logger.Trace(args.Message);
+                _logger.Trace(args.Message);
             }
         }
 

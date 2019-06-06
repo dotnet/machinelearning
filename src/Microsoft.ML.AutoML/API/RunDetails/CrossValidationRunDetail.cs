@@ -13,7 +13,7 @@ namespace Microsoft.ML.AutoML
     /// <typeparam name="TMetrics">Metrics type for the run.</typeparam>
     /// <remarks>
     /// Over the course of an experiment, many models are evaluated on a dataset
-    /// using cross validation. This object contains information about each model 
+    /// using cross validation. This object contains information about each model
     /// evaluated during the AutoML experiment.
     /// </remarks>
     public sealed class CrossValidationRunDetail<TMetrics> : RunDetail
@@ -54,7 +54,7 @@ namespace Microsoft.ML.AutoML
         public ITransformer Model { get { return _modelContainer.GetModel(); } }
 
         /// <summary>
-        /// Exception encountered while training the fold. This property is 
+        /// Exception encountered while training the fold. This property is
         /// <see langword="null"/> if no exception was encountered.
         /// </summary>
         /// <remarks>
