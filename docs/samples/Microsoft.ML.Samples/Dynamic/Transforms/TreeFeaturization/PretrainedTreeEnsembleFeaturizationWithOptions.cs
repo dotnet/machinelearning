@@ -90,6 +90,23 @@ namespace Samples.Dynamic.Transforms.TreeFeaturization
             //    Trees' output values: [0.4172185].
             //    Leave IDs' 0-1 representation: [1,0,0,0].
             //    Paths IDs' 0-1 representation: [1,1,1].
+            //
+            //   Note that the trained model contains only one tree.
+            //
+            //            Node 0
+            //            /    \
+            //           /    Leaf -2
+            //         Node 1
+            //         /    \
+            //        /    Leaf -3
+            //      Node 2
+            //      /    \
+            //     /    Leaf -4
+            //   Leaf -1
+            //
+            //   Thus, if a data point reaches Leaf indexed by -1, its 0-1 path representation may be [1,1,1] because that data point
+            //   went through all Node 0, Node 1, and Node 2.
+
         }
 
         private static IEnumerable<DataPoint> GenerateRandomDataPoints(int count, int seed=0)

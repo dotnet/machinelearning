@@ -44,10 +44,23 @@ namespace Microsoft.ML.Data
     /// </summary>
     internal sealed class TreeEnsembleFeaturizerBindableMapper : ISchemaBindableMapper, ICanSaveModel
     {
+        /// <summary>
+        /// In addition to options inherited from <see cref="ScorerArgumentsBase"/>,
+        /// <see cref="Arguments"/> adds output columns' names of tree-based featurizer.
+        /// </summary>
         public sealed class Arguments : ScorerArgumentsBase
         {
+            /// <summary>
+            /// See <see cref="TreeEnsembleFeaturizationEstimatorBase.CommonOptions.TreesColumnName"/>.
+            /// </summary>
             public string TreesColumnName;
+            /// <summary>
+            /// See <see cref="TreeEnsembleFeaturizationEstimatorBase.CommonOptions.LeavesColumnName"/>.
+            /// </summary>
             public string LeavesColumnName;
+            /// <summary>
+            /// See <see cref="TreeEnsembleFeaturizationEstimatorBase.CommonOptions.PathsColumnName"/>.
+            /// </summary>
             public string PathsColumnName;
         }
 

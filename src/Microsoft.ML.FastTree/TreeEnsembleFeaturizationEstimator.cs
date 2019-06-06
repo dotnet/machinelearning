@@ -156,19 +156,22 @@ namespace Microsoft.ML.Trainers.FastTree
     /// <format type="text/markdown"><![CDATA[
     ///
     /// ### Input and Output Columns
-    /// The input column must be a known-sized vector of<xref:System.Single>.
+    ///
+    /// The input label column data must be<xref:System.Single>.
+    /// The input features column data must be a known-sized vector of<xref:System.Single>.
     ///
     /// This estimator outputs the following columns:
     ///
     /// | Output Column Name | Column Type | Description|
     /// | -- | -- | -- |
     /// | `Trees` | Vector of<xref:System.Single> | The output values of all trees. |
-    /// | `Leaves` | Vector of<xref:System.Single> | The IDs of all leaves where the input feature vector falls into. |
-    /// | `Paths` | Vector of<xref:System.Single> | The paths the input feature vector passed through to reach the leaves. |
+    /// | `Leaves` | Vector of <xref:System.Single> | The IDs of all leaves where the input feature vector falls into. |
+    /// | `Paths` | Vector of <xref:System.Single> | The paths the input feature vector passed through to reach the leaves. |
     ///
-    /// Those output columns are all optional. Please see the names of skipped columns to null so that they would not be produced.
+    /// Those output columns are all optional and user can change their names.
+    /// Please set the names of skipped columns to null so that they would not be produced.
     ///
-    /// Check the See Also section for links to usage examples.
+    /// [!include[algorithm](~/../docs/samples/docs/api-reference/tree-featurization-prediction.md)]
     /// ]]>
     /// </format>
     /// </remarks>
@@ -201,6 +204,20 @@ namespace Microsoft.ML.Trainers.FastTree
         private protected override TreeEnsembleModelParameters PrepareModel(IDataView input) => _modelParameters;
     }
 
+    /// <summary>
+    /// A <see cref="IEstimator{TTransformer}"/> to transform input feature vector to tree-based features.
+    /// </summary>
+    /// <remarks>
+    /// <format type="text/markdown"><![CDATA[
+    ///
+    /// [!include[algorithm](~/../docs/samples/docs/api-reference/io-columns-tree-featurization-binary-classification.md)]
+    ///
+    /// [!include[algorithm](~/../docs/samples/docs/api-reference/tree-featurization-prediction.md)]
+    ///
+    /// ]]>
+    /// </format>
+    /// </remarks>
+    /// <seealso cref="TreeExtensions.FeaturizeByFastTreeBinary(TransformsCatalog, FastTreeBinaryFeaturizationEstimator.Options)"/>
     public sealed class FastTreeBinaryFeaturizationEstimator : TreeEnsembleFeaturizationEstimatorBase
     {
         private readonly FastTreeBinaryTrainer.Options _trainerOptions;
@@ -230,6 +247,20 @@ namespace Microsoft.ML.Trainers.FastTree
         }
     }
 
+    /// <summary>
+    /// A <see cref="IEstimator{TTransformer}"/> to transform input feature vector to tree-based features.
+    /// </summary>
+    /// <remarks>
+    /// <format type="text/markdown"><![CDATA[
+    ///
+    /// [!include[algorithm](~/../docs/samples/docs/api-reference/io-columns-tree-featurization-regression.md)]
+    ///
+    /// [!include[algorithm](~/../docs/samples/docs/api-reference/tree-featurization-prediction.md)]
+    ///
+    /// ]]>
+    /// </format>
+    /// </remarks>
+    /// <seealso cref="TreeExtensions.FeaturizeByFastTreeRegression(TransformsCatalog, FastTreeRegressionFeaturizationEstimator.Options)"/>
     public sealed class FastTreeRegressionFeaturizationEstimator : TreeEnsembleFeaturizationEstimatorBase
     {
         private readonly FastTreeRegressionTrainer.Options _trainerOptions;
@@ -259,6 +290,20 @@ namespace Microsoft.ML.Trainers.FastTree
         }
     }
 
+    /// <summary>
+    /// A <see cref="IEstimator{TTransformer}"/> to transform input feature vector to tree-based features.
+    /// </summary>
+    /// <remarks>
+    /// <format type="text/markdown"><![CDATA[
+    ///
+    /// [!include[algorithm](~/../docs/samples/docs/api-reference/io-columns-tree-featurization-binary-classification.md)]
+    ///
+    /// [!include[algorithm](~/../docs/samples/docs/api-reference/tree-featurization-prediction.md)]
+    ///
+    /// ]]>
+    /// </format>
+    /// </remarks>
+    /// <seealso cref="TreeExtensions.FeaturizeByFastForestBinary(TransformsCatalog, FastForestBinaryFeaturizationEstimator.Options)"/>
     public sealed class FastForestBinaryFeaturizationEstimator : TreeEnsembleFeaturizationEstimatorBase
     {
         private readonly FastForestBinaryTrainer.Options _trainerOptions;
@@ -288,6 +333,20 @@ namespace Microsoft.ML.Trainers.FastTree
         }
     }
 
+    /// <summary>
+    /// A <see cref="IEstimator{TTransformer}"/> to transform input feature vector to tree-based features.
+    /// </summary>
+    /// <remarks>
+    /// <format type="text/markdown"><![CDATA[
+    ///
+    /// [!include[algorithm](~/../docs/samples/docs/api-reference/io-columns-tree-featurization-regression.md)]
+    ///
+    /// [!include[algorithm](~/../docs/samples/docs/api-reference/tree-featurization-prediction.md)]
+    ///
+    /// ]]>
+    /// </format>
+    /// </remarks>
+    /// <seealso cref="TreeExtensions.FeaturizeByFastForestRegression(TransformsCatalog, FastForestRegressionFeaturizationEstimator.Options)"/>
     public sealed class FastForestRegressionFeaturizationEstimator : TreeEnsembleFeaturizationEstimatorBase
     {
         private readonly FastForestRegressionTrainer.Options _trainerOptions;
@@ -317,6 +376,20 @@ namespace Microsoft.ML.Trainers.FastTree
         }
     }
 
+    /// <summary>
+    /// A <see cref="IEstimator{TTransformer}"/> to transform input feature vector to tree-based features.
+    /// </summary>
+    /// <remarks>
+    /// <format type="text/markdown"><![CDATA[
+    ///
+    /// [!include[algorithm](~/../docs/samples/docs/api-reference/io-columns-tree-featurization-ranking.md)]
+    ///
+    /// [!include[algorithm](~/../docs/samples/docs/api-reference/tree-featurization-prediction.md)]
+    ///
+    /// ]]>
+    /// </format>
+    /// </remarks>
+    /// <seealso cref="TreeExtensions.FeaturizeByFastTreeRanking(TransformsCatalog, FastTreeRankingFeaturizationEstimator.Options)"/>
     public sealed class FastTreeRankingFeaturizationEstimator : TreeEnsembleFeaturizationEstimatorBase
     {
         private readonly FastTreeRankingTrainer.Options _trainerOptions;
@@ -346,6 +419,20 @@ namespace Microsoft.ML.Trainers.FastTree
         }
     }
 
+    /// <summary>
+    /// A <see cref="IEstimator{TTransformer}"/> to transform input feature vector to tree-based features.
+    /// </summary>
+    /// <remarks>
+    /// <format type="text/markdown"><![CDATA[
+    ///
+    /// [!include[algorithm](~/../docs/samples/docs/api-reference/io-columns-tree-featurization-regression.md)]
+    ///
+    /// [!include[algorithm](~/../docs/samples/docs/api-reference/tree-featurization-prediction.md)]
+    ///
+    /// ]]>
+    /// </format>
+    /// </remarks>
+    /// <seealso cref="TreeExtensions.FeaturizeByFastTreeTweedie(TransformsCatalog, FastTreeTweedieFeaturizationEstimator.Options)"/>
     public sealed class FastTreeTweedieFeaturizationEstimator : TreeEnsembleFeaturizationEstimatorBase
     {
         private readonly FastTreeTweedieTrainer.Options _trainerOptions;
