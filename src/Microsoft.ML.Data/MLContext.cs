@@ -90,7 +90,7 @@ namespace Microsoft.ML
         /// MLContext's random number generator is the global source of randomness for
         /// all of such random operations.
         ///
-        /// If a seed is provided by <paramref name="seed"/>, MLContext environment becomes
+        /// If a fixed seed is provided by <paramref name="seed"/>, MLContext environment becomes
         /// deterministic, meaning that the results are repeatable and will remain the same across multiple runs.
         /// For instance in many of ML.NET's API reference example code snippets, a seed is provided.
         /// That's because we want the users to get the same output as what's included in example comments,
