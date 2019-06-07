@@ -229,6 +229,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             int dataPointCount = 20;
             var data = SamplesUtils.DatasetUtils.GenerateBinaryLabelFloatFeatureVectorFloatWeightSamples(dataPointCount).ToList();
             var dataView = ML.Data.LoadFromEnumerable(data);
+            dataView = ML.Data.Cache(dataView);
 
             // Define a tree model whose trees will be extracted to construct a tree featurizer.
             var trainer = ML.BinaryClassification.Trainers.FastTree(
@@ -296,6 +297,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             int dataPointCount = 200;
             var data = SamplesUtils.DatasetUtils.GenerateBinaryLabelFloatFeatureVectorFloatWeightSamples(dataPointCount).ToList();
             var dataView = ML.Data.LoadFromEnumerable(data);
+            dataView = ML.Data.Cache(dataView);
 
             // Define a tree model whose trees will be extracted to construct a tree featurizer.
             var trainer = ML.BinaryClassification.Trainers.FastTree(
@@ -346,6 +348,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             int dataPointCount = 200;
             var data = SamplesUtils.DatasetUtils.GenerateBinaryLabelFloatFeatureVectorFloatWeightSamples(dataPointCount).ToList();
             var dataView = ML.Data.LoadFromEnumerable(data);
+            dataView = ML.Data.Cache(dataView);
 
             var trainerOptions = new FastTreeBinaryTrainer.Options
             {
@@ -384,6 +387,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             int dataPointCount = 200;
             var data = SamplesUtils.DatasetUtils.GenerateBinaryLabelFloatFeatureVectorFloatWeightSamples(dataPointCount).ToList();
             var dataView = ML.Data.LoadFromEnumerable(data);
+            dataView = ML.Data.Cache(dataView);
 
             var trainerOptions = new FastForestBinaryTrainer.Options
             {
@@ -422,6 +426,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             int dataPointCount = 200;
             var data = SamplesUtils.DatasetUtils.GenerateFloatLabelFloatFeatureVectorSamples(dataPointCount).ToList();
             var dataView = ML.Data.LoadFromEnumerable(data);
+            dataView = ML.Data.Cache(dataView);
 
             var trainerOptions = new FastTreeRegressionTrainer.Options
             {
@@ -459,6 +464,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             int dataPointCount = 200;
             var data = SamplesUtils.DatasetUtils.GenerateFloatLabelFloatFeatureVectorSamples(dataPointCount).ToList();
             var dataView = ML.Data.LoadFromEnumerable(data);
+            dataView = ML.Data.Cache(dataView);
 
             var trainerOptions = new FastForestRegressionTrainer.Options
             {
@@ -496,6 +502,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             int dataPointCount = 200;
             var data = SamplesUtils.DatasetUtils.GenerateFloatLabelFloatFeatureVectorSamples(dataPointCount).ToList();
             var dataView = ML.Data.LoadFromEnumerable(data);
+            dataView = ML.Data.Cache(dataView);
 
             var trainerOptions = new FastTreeTweedieTrainer.Options
             {
@@ -533,6 +540,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             int dataPointCount = 200;
             var data = SamplesUtils.DatasetUtils.GenerateFloatLabelFloatFeatureVectorSamples(dataPointCount).ToList();
             var dataView = ML.Data.LoadFromEnumerable(data);
+            dataView = ML.Data.Cache(dataView);
 
             var trainerOptions = new FastTreeRankingTrainer.Options
             {
@@ -570,6 +578,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             int dataPointCount = 200;
             var data = SamplesUtils.DatasetUtils.GenerateFloatLabelFloatFeatureVectorSamples(dataPointCount).ToList();
             var dataView = ML.Data.LoadFromEnumerable(data);
+            dataView = ML.Data.Cache(dataView);
 
             var trainerOptions = new FastForestRegressionTrainer.Options
             {
@@ -624,6 +633,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             int dataPointCount = 200;
             var data = SamplesUtils.DatasetUtils.GenerateFloatLabelFloatFeatureVectorSamples(dataPointCount).ToList();
             var dataView = ML.Data.LoadFromEnumerable(data);
+            dataView = ML.Data.Cache(dataView);
 
             var trainerOptions = new FastForestRegressionTrainer.Options
             {
@@ -697,6 +707,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             int dataPointCount = 200;
             var data = SamplesUtils.DatasetUtils.GenerateBinaryLabelFloatFeatureVectorFloatWeightSamples(dataPointCount).ToList();
             var dataView = ML.Data.LoadFromEnumerable(data);
+            dataView = ML.Data.Cache(dataView);
 
             var trainerOptions = new FastTreeBinaryTrainer.Options
             {
@@ -750,6 +761,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             int dataPointCount = 200;
             var data = SamplesUtils.DatasetUtils.GenerateRandomMulticlassClassificationExamples(dataPointCount).ToList();
             var dataView = ML.Data.LoadFromEnumerable(data);
+            dataView = ML.Data.Cache(dataView);
 
             var trainerOptions = new FastForestRegressionTrainer.Options
             {
