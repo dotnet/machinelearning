@@ -4,7 +4,6 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using Microsoft.DotNet.AutoML;
 using Microsoft.DotNet.Configurer;
 using Microsoft.ML.CLI.Telemetry;
 using RuntimeEnvironment = Microsoft.DotNet.PlatformAbstractions.RuntimeEnvironment;

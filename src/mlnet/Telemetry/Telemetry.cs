@@ -32,7 +32,7 @@ namespace Microsoft.ML.CLI.Telemetry
         private const string InstrumentationKey = "c059917c-818d-489a-bfcb-351eaab73f2a";
         private const string MlTelemetryOptout = "MLDOTNET_CLI_TELEMETRY_OPTOUT";
         private const string MachineId = "MachineId";
-        
+
         public static void Initialize()
         {
             var optedOut = Env.GetEnvironmentVariableAsBool(MlTelemetryOptout, false);
@@ -126,9 +126,9 @@ namespace Microsoft.ML.CLI.Telemetry
                 _client.InstrumentationKey = InstrumentationKey;
                 _client.Context.Device.OperatingSystem = RuntimeEnvironment.OperatingSystem;
 
-                // We don't want hostname etc to be sent in plaintext.  
+                // We don't want hostname etc to be sent in plaintext.
                 // These need to be set to some non-empty values to override default behavior.
-                _client.Context.Cloud.RoleInstance = "-"; 
+                _client.Context.Cloud.RoleInstance = "-";
                 _client.Context.Cloud.RoleName = "-";
 
                 _commonProperties = new TelemetryCommonProperties().GetTelemetryCommonProperties();

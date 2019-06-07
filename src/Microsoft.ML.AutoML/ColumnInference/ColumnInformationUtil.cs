@@ -106,7 +106,7 @@ namespace Microsoft.ML.AutoML
             AddStringsToListIfNotNull(columnNames, columnInformation.TextColumnNames);
             return columnNames;
         }
-        
+
         public static IDictionary<ColumnPurpose, int> CountColumnsByPurpose(ColumnInformation columnInformation)
         {
             var result = new Dictionary<ColumnPurpose, int>();
@@ -118,7 +118,7 @@ namespace Microsoft.ML.AutoML
                 {
                     continue;
                 }
-                
+
                 result.TryGetValue(purpose.Value, out int count);
                 result[purpose.Value] = ++count;
             }

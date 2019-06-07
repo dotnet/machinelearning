@@ -116,7 +116,7 @@ namespace Microsoft.ML.CLI
 
             // Send system info telemetry
             SystemInfoEvent.TrackEvent();
-            
+
             parser.InvokeAsync(parseResult).Wait();
             // Send exit telemetry
             ApplicationExitEvent.TrackEvent(exitCode, commandParseSucceeded, stopwatch.Elapsed, ex);
