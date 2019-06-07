@@ -739,7 +739,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             }
             catch
             {
-                isWrong = true; // Only "Leaves" is produced by tree featurizer, so accessing "Trees" and "Paths" may lead to an error.
+                isWrong = true; // Only "Leaves" is produced by the tree featurizer, so accessing "Trees" and "Paths" will lead to an error.
             }
             Assert.True(isWrong);
 
