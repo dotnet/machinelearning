@@ -36,8 +36,8 @@ namespace Microsoft.ML.AutoML
                 // If numeric feature, discover missing values
                 if (itemType == NumberDataViewType.Single)
                 {
-                    hasMissing = column.Type.IsVector() ? 
-                        DatasetDimensionsUtil.HasMissingNumericVector(data, column) : 
+                    hasMissing = column.Type.IsVector() ?
+                        DatasetDimensionsUtil.HasMissingNumericVector(data, column) :
                         DatasetDimensionsUtil.HasMissingNumericSingleValue(data, column);
                 }
 

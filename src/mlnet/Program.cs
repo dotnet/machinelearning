@@ -18,9 +18,9 @@ using NLog.Targets;
 
 namespace Microsoft.ML.CLI
 {
-    class Program
+    public class Program
     {
-        private static Logger logger = LogManager.GetCurrentClassLogger();
+        private static Logger _logger = LogManager.GetCurrentClassLogger();
 
         public static void Main(string[] args)
         {
@@ -78,10 +78,10 @@ namespace Microsoft.ML.CLI
                  catch (Exception e)
                  {
                      ex = e;
-                     logger.Log(LogLevel.Error, e.Message);
-                     logger.Log(LogLevel.Debug, e.ToString());
-                     logger.Log(LogLevel.Info, Strings.LookIntoLogFile);
-                     logger.Log(LogLevel.Error, Strings.Exiting);
+                     _logger.Log(LogLevel.Error, e.Message);
+                     _logger.Log(LogLevel.Debug, e.ToString());
+                     _logger.Log(LogLevel.Info, Strings.LookIntoLogFile);
+                     _logger.Log(LogLevel.Error, Strings.Exiting);
                  }
 
                  MLNetCommandEndEvent.TrackEvent(stopwatch.Elapsed, ex);

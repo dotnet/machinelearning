@@ -1,6 +1,6 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.	
-// The .NET Foundation licenses this file to you under the MIT license.	
-// See the LICENSE file in the project root for more information.	
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -10,34 +10,43 @@ namespace Microsoft.ML.AutoML
 {
     internal static class SplitUtil
     {
-        private const string CrossValEmptyFoldErrorMsg = @"Cross validation split has 0 rows. Perhaps " +
-            "try increasing number of rows provided in training data, or lowering specified number of " +
-            "cross validation folds.";
-
-        public static (IDataView[] trainDatasets, IDataView[] validationDatasets) CrossValSplit(MLContext context, 
+        public static (IDataView[] trainDatasets, IDataView[] validationDatasets) CrossValSplit(MLContext context,
             IDataView trainData, uint numFolds, string samplingKeyColumn)
         {
             var originalColumnNames = trainData.Schema.Select(c => c.Name);
             var splits = context.Data.CrossValidationSplit(trainData, (int)numFolds, samplingKeyColumnName: samplingKeyColumn);
-            var trainDatasets = new IDataView[numFolds];
-            var validationDatasets = new IDataView[numFolds];
-            for (var i = 0; i < numFolds; i++)
+            var trainDatasets = new List<IDataView>();
+            var validationDatasets = new List<IDataView>();
+
+            foreach (var split in splits)
             {
-                var split = splits[i];
-                trainDatasets[i] = DropAllColumnsExcept(context, split.TrainSet, originalColumnNames);
-                validationDatasets[i] = DropAllColumnsExcept(context, split.TestSet, originalColumnNames);
-                if (DatasetDimensionsUtil.IsDataViewEmpty(trainDatasets[i]) || DatasetDimensionsUtil.IsDataViewEmpty(validationDatasets[i]))
+                if (DatasetDimensionsUtil.IsDataViewEmpty(split.TrainSet) ||
+                    DatasetDimensionsUtil.IsDataViewEmpty(split.TestSet))
                 {
-                    throw new InvalidOperationException(CrossValEmptyFoldErrorMsg);
+                    continue;
                 }
+
+                var trainDataset = DropAllColumnsExcept(context, split.TrainSet, originalColumnNames);
+                var validationDataset = DropAllColumnsExcept(context, split.TestSet, originalColumnNames);
+
+                trainDatasets.Add(trainDataset);
+                validationDatasets.Add(validationDataset);
             }
-            return (trainDatasets, validationDatasets);
+
+            if (!trainDatasets.Any())
+            {
+                throw new InvalidOperationException("All cross validation folds have empty train or test data. " +
+                    "Try increasing the number of rows provided in training data, or lowering specified number of " +
+                    "cross validation folds.");
+            }
+
+            return (trainDatasets.ToArray(), validationDatasets.ToArray());
         }
 
         /// <summary>
         /// Split the data into a single train/test split.
         /// </summary>
-        public static (IDataView trainData, IDataView validationData) TrainValidateSplit(MLContext context, IDataView trainData, 
+        public static (IDataView trainData, IDataView validationData) TrainValidateSplit(MLContext context, IDataView trainData,
             string samplingKeyColumn)
         {
             var originalColumnNames = trainData.Schema.Select(c => c.Name);

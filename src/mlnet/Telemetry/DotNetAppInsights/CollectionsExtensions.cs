@@ -10,7 +10,7 @@ namespace Microsoft.DotNet.Cli.Utils
     {
         public static IEnumerable<T> OrEmptyIfNull<T>(this IEnumerable<T> enumerable)
         {
-            return enumerable == null 
+            return enumerable == null
                 ? Enumerable.Empty<T>()
                 : enumerable;
         }

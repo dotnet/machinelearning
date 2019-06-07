@@ -11,10 +11,10 @@ namespace Microsoft.DotNet.Cli.Utils
 {
     public class EnvironmentProvider : IEnvironmentProvider
     {
-        private static char[] s_pathSeparator = new char[] { Path.PathSeparator };
-        private static char[] s_quote = new char[] { '"' };
+        private static char[] _sPathSeparator = new char[] { Path.PathSeparator };
+        private static char[] _sQuote = new char[] { '"' };
         private IEnumerable<string> _searchPaths;
-        private readonly Lazy<string> _userHomeDirectory = new Lazy<string>(() => Environment.GetEnvironmentVariable("HOME") ?? string.Empty);
+        private readonly Lazy<string> _userHomeDirectory;
         private IEnumerable<string> _executableExtensions;
 
         public IEnumerable<string> ExecutableExtensions
@@ -45,8 +45,8 @@ namespace Microsoft.DotNet.Cli.Utils
 
                     searchPaths.AddRange(Environment
                         .GetEnvironmentVariable("PATH")
-                        .Split(s_pathSeparator)
-                        .Select(p => p.Trim(s_quote))
+                        .Split(_sPathSeparator)
+                        .Select(p => p.Trim(_sQuote))
                         .Where(p => !string.IsNullOrWhiteSpace(p))
                         .Select(p => ExpandTildeSlash(p)));
 
@@ -76,6 +76,7 @@ namespace Microsoft.DotNet.Cli.Utils
         {
             _executableExtensions = extensionsOverride;
             _searchPaths = searchPathsOverride;
+            _userHomeDirectory = new Lazy<string>(() => Environment.GetEnvironmentVariable("HOME") ?? string.Empty);
         }
 
         public string GetCommandPath(string commandName, params string[] extensions)

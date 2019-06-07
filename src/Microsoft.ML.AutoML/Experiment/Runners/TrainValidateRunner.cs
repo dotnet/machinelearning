@@ -39,7 +39,7 @@ namespace Microsoft.ML.AutoML
             _modelInputSchema = trainData.Schema;
         }
 
-        public (SuggestedPipelineRunDetail suggestedPipelineRunDetail, RunDetail<TMetrics> runDetail) 
+        public (SuggestedPipelineRunDetail suggestedPipelineRunDetail, RunDetail<TMetrics> runDetail)
             Run(SuggestedPipeline pipeline, DirectoryInfo modelDirectory, int iterationNum)
         {
             var modelFileInfo = GetModelFileInfo(modelDirectory, iterationNum);
@@ -57,7 +57,7 @@ namespace Microsoft.ML.AutoML
 
         private static FileInfo GetModelFileInfo(DirectoryInfo modelDirectory, int iterationNum)
         {
-            return modelDirectory == null ? 
+            return modelDirectory == null ?
                 null :
                 new FileInfo(Path.Combine(modelDirectory.FullName, $"Model{iterationNum}.zip"));
         }

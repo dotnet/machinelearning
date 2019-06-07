@@ -61,6 +61,11 @@ namespace Microsoft.ML.AutoML
                 throw new ArgumentNullException(nameof(trainData), "Training data cannot be null");
             }
 
+            if (DatasetDimensionsUtil.IsDataViewEmpty(trainData))
+            {
+                throw new ArgumentException("Training data has 0 rows", nameof(trainData));
+            }
+
             foreach (var column in trainData.Schema)
             {
                 if (column.Name == DefaultColumnNames.Features && column.Type.GetItemType() != NumberDataViewType.Single)
@@ -162,6 +167,11 @@ namespace Microsoft.ML.AutoML
             if (validationData == null)
             {
                 return;
+            }
+
+            if (DatasetDimensionsUtil.IsDataViewEmpty(validationData))
+            {
+                throw new ArgumentException("Validation data has 0 rows", nameof(validationData));
             }
 
             const string schemaMismatchError = "Training data and validation data schemas do not match.";

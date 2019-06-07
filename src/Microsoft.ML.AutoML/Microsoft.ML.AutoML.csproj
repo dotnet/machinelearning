@@ -3,9 +3,6 @@
     <TargetFramework>netstandard2.0</TargetFramework>
     <LangVersion>7.3</LangVersion>
     <RootNamespace>Microsoft.ML.AutoML</RootNamespace>
-    <!-- TODO: make the code compliant and remove the following two lines: -->
-    <UseStyleCopAnalyzer>false</UseStyleCopAnalyzer>
-    <UseMLCodeAnalyzer>false</UseMLCodeAnalyzer>
     <IncludeInPackage>Microsoft.ML.AutoML</IncludeInPackage>
   </PropertyGroup>
 

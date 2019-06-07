@@ -33,9 +33,13 @@ namespace Microsoft.ML.CLI.Data
 
         public string Cache { get; set; }
 
-        public List<string> IgnoreColumns { get; set; } = new List<string>();
+        public List<string> IgnoreColumns { get; set; }
 
         public string LogFilePath { get; set; }
 
+        public NewCommandSettings()
+        {
+            IgnoreColumns = new List<string>();
+        }
     }
 }

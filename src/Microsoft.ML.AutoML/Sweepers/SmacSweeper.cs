@@ -18,38 +18,51 @@ namespace Microsoft.ML.AutoML
     {
         public sealed class Arguments
         {
-            //[Argument(ArgumentType.Multiple | ArgumentType.Required, HelpText = "Swept parameters", ShortName = "p", SignatureType = typeof(SignatureSweeperParameter))]
+            // Swept parameters
             public IValueGenerator[] SweptParameters;
 
-            //[Argument(ArgumentType.AtMostOnce, HelpText = "Seed for the random number generator for the first batch sweeper", ShortName = "seed")]
+            // Seed for the random number generator for the first batch sweeper
             public int RandomSeed;
 
-            //[Argument(ArgumentType.LastOccurenceWins, HelpText = "If iteration point is outside parameter definitions, should it be projected?", ShortName = "project")]
-            public bool ProjectInBounds = true;
+            // If iteration point is outside parameter definitions, should it be projected?
+            public bool ProjectInBounds;
 
-            //[Argument(ArgumentType.LastOccurenceWins, HelpText = "Number of regression trees in forest", ShortName = "numtrees")]
-            public int NumOfTrees = 10;
+            // Number of regression trees in forest
+            public int NumOfTrees;
 
-            //[Argument(ArgumentType.LastOccurenceWins, HelpText = "Minimum number of data points required to be in a node if it is to be split further", ShortName = "nmin")]
-            public int NMinForSplit = 2;
+            // Minimum number of data points required to be in a node if it is to be split further
+            public int NMinForSplit;
 
-            //[Argument(ArgumentType.LastOccurenceWins, HelpText = "Number of points to use for random initialization", ShortName = "nip")]
-            public int NumberInitialPopulation = 20;
+            // Number of points to use for random initialization
+            public int NumberInitialPopulation;
 
-            //[Argument(ArgumentType.LastOccurenceWins, HelpText = "Number of search parents to use for local search in maximizing EI acquisition function", ShortName = "lsp")]
-            public int LocalSearchParentCount = 10;
+            // Number of search parents to use for local search in maximizing EI acquisition function
+            public int LocalSearchParentCount;
 
-            //[Argument(ArgumentType.LastOccurenceWins, HelpText = "Number of random configurations when maximizing EI acquisition function", ShortName = "nrcan")]
-            public int NumRandomEISearchConfigurations = 10000;
+            // Number of random configurations when maximizing EI acquisition function
+            public int NumRandomEISearchConfigurations;
 
-            //[Argument(ArgumentType.LastOccurenceWins, HelpText = "Fraction of eligible dimensions to split on (i.e., split ratio)", ShortName = "sr")]
-            public Float SplitRatio = (Float)0.8;
+            // Fraction of eligible dimensions to split on (i.e., split ratio)
+            public Float SplitRatio;
 
-            //[Argument(ArgumentType.LastOccurenceWins, HelpText = "Epsilon threshold for ending local searches", ShortName = "eps")]
-            public Float Epsilon = (Float)0.00001;
+            // Epsilon threshold for ending local searches
+            public Float Epsilon;
 
-            //[Argument(ArgumentType.LastOccurenceWins, HelpText = "Number of neighbors to sample for locally searching each numerical parameter", ShortName = "nnnp")]
-            public int NumNeighborsForNumericalParams = 4;
+            // Number of neighbors to sample for locally searching each numerical parameter
+            public int NumNeighborsForNumericalParams;
+
+            public Arguments()
+            {
+                ProjectInBounds = true;
+                NumOfTrees = 10;
+                NMinForSplit = 2;
+                NumberInitialPopulation = 20;
+                LocalSearchParentCount = 10;
+                NumRandomEISearchConfigurations = 10000;
+                SplitRatio = 0.8f;
+                Epsilon = 0.00001f;
+                NumNeighborsForNumericalParams = 4;
+            }
         }
 
         private readonly ISweeper _randomSweeper;
@@ -328,21 +341,21 @@ namespace Microsoft.ML.AutoML
             return datasetLeafValues.ToArray();
         }
 
-        // Todo: Remove the reflection below for TreeTreeEnsembleModelParameters methods GetLeaf and GetLeafValue. 
+        // Todo: Remove the reflection below for TreeTreeEnsembleModelParameters methods GetLeaf and GetLeafValue.
         // Long-term, replace with tree featurizer once it becomes available
         // Tracking issue -- https://github.com/dotnet/machinelearning-automl/issues/342
-        private static MethodInfo GetLeafMethod = typeof(TreeEnsembleModelParameters).GetMethod("GetLeaf", BindingFlags.NonPublic | BindingFlags.Instance);
-        private static MethodInfo GetLeafValueMethod = typeof(TreeEnsembleModelParameters).GetMethod("GetLeafValue", BindingFlags.NonPublic | BindingFlags.Instance);
+        private static MethodInfo _getLeafMethod = typeof(TreeEnsembleModelParameters).GetMethod("GetLeaf", BindingFlags.NonPublic | BindingFlags.Instance);
+        private static MethodInfo _getLeafValueMethod = typeof(TreeEnsembleModelParameters).GetMethod("GetLeafValue", BindingFlags.NonPublic | BindingFlags.Instance);
 
         private static int GetLeaf(TreeEnsembleModelParameters model, int treeId, VBuffer<Float> features)
         {
             List<int> path = null;
-            return (int)GetLeafMethod.Invoke(model, new object[] { treeId, features, path });
+            return (int)_getLeafMethod.Invoke(model, new object[] { treeId, features, path });
         }
 
         private static float GetLeafValue(TreeEnsembleModelParameters model, int treeId, int leafId)
         {
-            return (float)GetLeafValueMethod.Invoke(model, new object[] { treeId, leafId });
+            return (float)_getLeafValueMethod.Invoke(model, new object[] { treeId, leafId });
         }
 
         /// <summary>

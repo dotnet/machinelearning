@@ -144,7 +144,7 @@ namespace Microsoft.DotNet.Cli.Utils
             // this one does.
             _shutdownMutex.WaitOne();
 
-            if (!_process.WaitForExit(0) && NativeMethods.Posix.kill(processId, NativeMethods.Posix.SIGTERM) != 0)
+            if (!_process.WaitForExit(0) && NativeMethods.Posix.kill(processId, NativeMethods.Posix.SigTerm) != 0)
             {
                 // Couldn't send the signal, don't wait
                 return;

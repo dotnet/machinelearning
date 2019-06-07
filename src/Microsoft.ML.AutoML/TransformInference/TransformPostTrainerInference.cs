@@ -17,7 +17,7 @@ namespace Microsoft.ML.AutoML
             return suggestedTransforms;
         }
 
-        private static IEnumerable<SuggestedTransform> InferLabelTransforms(MLContext context, TaskKind task, 
+        private static IEnumerable<SuggestedTransform> InferLabelTransforms(MLContext context, TaskKind task,
             DatasetColumnInfo[] columns)
         {
             var inferredTransforms = new List<SuggestedTransform>();
@@ -29,7 +29,7 @@ namespace Microsoft.ML.AutoML
 
             // If label column type wasn't originally key type,
             // convert predicted label column back from key to value.
-            // (Non-key label column was converted to key, b/c multiclass trainers only 
+            // (Non-key label column was converted to key, b/c multiclass trainers only
             // accept label columns that are key type)
             var labelColumn = columns.First(c => c.Purpose == ColumnPurpose.Label);
             if (!labelColumn.Type.IsKey())

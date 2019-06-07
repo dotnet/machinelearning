@@ -12,6 +12,10 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "mlnet.Tests", "test\mlnet.T
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.ML.AutoML.Samples", "docs\samples\Microsoft.ML.AutoML.Samples\Microsoft.ML.AutoML.Samples.csproj", "{6E84E7C5-FECE-45A9-AD4C-4B0F39F78904}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.ML.InternalCodeAnalyzer", "tools-local\Microsoft.ML.InternalCodeAnalyzer\Microsoft.ML.InternalCodeAnalyzer.csproj", "{954F14B0-BBDF-4A30-811E-2D86FDB5B399}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tools-local", "tools-local", "{2DEB692B-D982-4301-A074-DAA095658230}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -82,9 +86,24 @@ Global
 		{6E84E7C5-FECE-45A9-AD4C-4B0F39F78904}.Release-Intrinsics|Any CPU.Build.0 = Release-Intrinsics|Any CPU
 		{6E84E7C5-FECE-45A9-AD4C-4B0F39F78904}.Release-netfx|Any CPU.ActiveCfg = Release-netfx|Any CPU
 		{6E84E7C5-FECE-45A9-AD4C-4B0F39F78904}.Release-netfx|Any CPU.Build.0 = Release-netfx|Any CPU
+		{954F14B0-BBDF-4A30-811E-2D86FDB5B399}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{954F14B0-BBDF-4A30-811E-2D86FDB5B399}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{954F14B0-BBDF-4A30-811E-2D86FDB5B399}.Debug-Intrinsics|Any CPU.ActiveCfg = Debug-Intrinsics|Any CPU
+		{954F14B0-BBDF-4A30-811E-2D86FDB5B399}.Debug-Intrinsics|Any CPU.Build.0 = Debug-Intrinsics|Any CPU
+		{954F14B0-BBDF-4A30-811E-2D86FDB5B399}.Debug-netfx|Any CPU.ActiveCfg = Debug-netfx|Any CPU
+		{954F14B0-BBDF-4A30-811E-2D86FDB5B399}.Debug-netfx|Any CPU.Build.0 = Debug-netfx|Any CPU
+		{954F14B0-BBDF-4A30-811E-2D86FDB5B399}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{954F14B0-BBDF-4A30-811E-2D86FDB5B399}.Release|Any CPU.Build.0 = Release|Any CPU
+		{954F14B0-BBDF-4A30-811E-2D86FDB5B399}.Release-Intrinsics|Any CPU.ActiveCfg = Release-Intrinsics|Any CPU
+		{954F14B0-BBDF-4A30-811E-2D86FDB5B399}.Release-Intrinsics|Any CPU.Build.0 = Release-Intrinsics|Any CPU
+		{954F14B0-BBDF-4A30-811E-2D86FDB5B399}.Release-netfx|Any CPU.ActiveCfg = Release-netfx|Any CPU
+		{954F14B0-BBDF-4A30-811E-2D86FDB5B399}.Release-netfx|Any CPU.Build.0 = Release-netfx|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{954F14B0-BBDF-4A30-811E-2D86FDB5B399} = {2DEB692B-D982-4301-A074-DAA095658230}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {8C1BC26C-B87E-47CD-928E-00EFE4353B40}	

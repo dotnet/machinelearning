@@ -34,8 +34,8 @@ namespace Microsoft.ML.AutoML
             _context = context;
             _cacheBeforeTrainer = cacheBeforeTrainer;
         }
-        
-        public override string ToString() => $"{string.Join(" ", Transforms.Select(t => $"xf={t}"))} tr={this.Trainer} {string.Join(" ", TransformsPostTrainer.Select(t => $"xf={t}"))} cache={(_cacheBeforeTrainer ? "+" : "-")}";
+
+        public override string ToString() => $"{string.Join(" ", Transforms.Select(t => $"xf={t}"))} tr={Trainer} {string.Join(" ", TransformsPostTrainer.Select(t => $"xf={t}"))} cache={(_cacheBeforeTrainer ? "+" : "-")}";
 
         public override bool Equals(object obj)
         {
@@ -44,7 +44,7 @@ namespace Microsoft.ML.AutoML
             {
                 return false;
             }
-            return pipeline.ToString() == this.ToString();
+            return pipeline.ToString() == ToString();
         }
 
         public override int GetHashCode()

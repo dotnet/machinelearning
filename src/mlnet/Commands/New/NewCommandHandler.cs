@@ -9,16 +9,16 @@ namespace Microsoft.ML.CLI.Commands.New
 {
     internal class NewCommand : ICommand
     {
-        private readonly NewCommandSettings settings;
+        private readonly NewCommandSettings _settings;
 
         internal NewCommand(NewCommandSettings settings)
         {
-            this.settings = settings;
+            _settings = settings;
         }
 
         public void Execute()
         {
-            CodeGenerationHelper codeGenerationHelper = new CodeGenerationHelper(new AutoMLEngine(settings), settings); // Needs to be improved.
+            CodeGenerationHelper codeGenerationHelper = new CodeGenerationHelper(new AutoMLEngine(_settings), _settings); // Needs to be improved.
             codeGenerationHelper.GenerateCode();
         }
     }

@@ -78,7 +78,7 @@ namespace Microsoft.ML.AutoML
             return foundAny ? result : new ColumnSplitResult(false, null, true, true, 0);
         }
 
-        private static bool TryParseFile(MLContext context, TextLoader.Options options, IMultiStreamSource source, 
+        private static bool TryParseFile(MLContext context, TextLoader.Options options, IMultiStreamSource source,
             out ColumnSplitResult result)
         {
             result = null;

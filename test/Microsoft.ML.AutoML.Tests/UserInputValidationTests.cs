@@ -187,38 +187,37 @@ namespace Microsoft.ML.AutoML.Test
         [TestMethod]
         public void ValidateRegressionLabelTypes()
         {
-            ValidateLabelTypeTestCore(TaskKind.Regression, NumberDataViewType.Single, true);
-            ValidateLabelTypeTestCore(TaskKind.Regression, BooleanDataViewType.Instance, false);
-            ValidateLabelTypeTestCore(TaskKind.Regression, NumberDataViewType.Double, false);
-            ValidateLabelTypeTestCore(TaskKind.Regression, TextDataViewType.Instance, false);
+            ValidateLabelTypeTestCore<float>(TaskKind.Regression, NumberDataViewType.Single, true);
+            ValidateLabelTypeTestCore<bool>(TaskKind.Regression, BooleanDataViewType.Instance, false);
+            ValidateLabelTypeTestCore<double>(TaskKind.Regression, NumberDataViewType.Double, false);
+            ValidateLabelTypeTestCore<string>(TaskKind.Regression, TextDataViewType.Instance, false);
         }
 
         [TestMethod]
         public void ValidateBinaryClassificationLabelTypes()
         {
-            ValidateLabelTypeTestCore(TaskKind.BinaryClassification, NumberDataViewType.Single, false);
-            ValidateLabelTypeTestCore(TaskKind.BinaryClassification, BooleanDataViewType.Instance, true);
+            ValidateLabelTypeTestCore<float>(TaskKind.BinaryClassification, NumberDataViewType.Single, false);
+            ValidateLabelTypeTestCore<bool>(TaskKind.BinaryClassification, BooleanDataViewType.Instance, true);
         }
 
         [TestMethod]
         public void ValidateMulticlassLabelTypes()
         {
-            ValidateLabelTypeTestCore(TaskKind.MulticlassClassification, NumberDataViewType.Single, true);
-            ValidateLabelTypeTestCore(TaskKind.MulticlassClassification, BooleanDataViewType.Instance, true);
-            ValidateLabelTypeTestCore(TaskKind.MulticlassClassification, NumberDataViewType.Double, true);
-            ValidateLabelTypeTestCore(TaskKind.MulticlassClassification, TextDataViewType.Instance, true);
+            ValidateLabelTypeTestCore<float>(TaskKind.MulticlassClassification, NumberDataViewType.Single, true);
+            ValidateLabelTypeTestCore<bool>(TaskKind.MulticlassClassification, BooleanDataViewType.Instance, true);
+            ValidateLabelTypeTestCore<double>(TaskKind.MulticlassClassification, NumberDataViewType.Double, true);
+            ValidateLabelTypeTestCore<string>(TaskKind.MulticlassClassification, TextDataViewType.Instance, true);
         }
 
         [TestMethod]
         public void ValidateAllowedFeatureColumnTypes()
         {
-            var schemaBuilder = new DataViewSchema.Builder();
-            schemaBuilder.AddColumn("Boolean", BooleanDataViewType.Instance);
-            schemaBuilder.AddColumn("Number", NumberDataViewType.Single);
-            schemaBuilder.AddColumn("Text", TextDataViewType.Instance);
-            schemaBuilder.AddColumn(DefaultColumnNames.Label, NumberDataViewType.Single);
-            var schema = schemaBuilder.ToSchema();
-            var dataView = new EmptyDataView(new MLContext(), schema);
+            var dataViewBuilder = new ArrayDataViewBuilder(new MLContext());
+            dataViewBuilder.AddColumn("Boolean", BooleanDataViewType.Instance, false);
+            dataViewBuilder.AddColumn("Number", NumberDataViewType.Single, 0f);
+            dataViewBuilder.AddColumn("Text", "a");
+            dataViewBuilder.AddColumn(DefaultColumnNames.Label, NumberDataViewType.Single, 0f);
+            var dataView = dataViewBuilder.GetDataView();
             UserInputValidationUtil.ValidateExperimentExecuteArgs(dataView, new ColumnInformation(),
                 null, TaskKind.Regression);
         }
@@ -236,13 +235,53 @@ namespace Microsoft.ML.AutoML.Test
                 null, TaskKind.Regression);
         }
 
-        private static void ValidateLabelTypeTestCore(TaskKind task, DataViewType labelType, bool labelTypeShouldBeValid)
+        [TestMethod]
+        [ExpectedException(typeof(ArgumentException))]
+        public void ValidateEmptyTrainingDataThrows()
         {
             var schemaBuilder = new DataViewSchema.Builder();
-            schemaBuilder.AddColumn(DefaultColumnNames.Features, NumberDataViewType.Single);
-            schemaBuilder.AddColumn(DefaultColumnNames.Label, labelType);
+            schemaBuilder.AddColumn("Number", NumberDataViewType.Single);
+            schemaBuilder.AddColumn(DefaultColumnNames.Label, NumberDataViewType.Single);
             var schema = schemaBuilder.ToSchema();
             var dataView = new EmptyDataView(new MLContext(), schema);
+            UserInputValidationUtil.ValidateExperimentExecuteArgs(dataView, new ColumnInformation(),
+                null, TaskKind.Regression);
+        }
+
+        [TestMethod]
+        [ExpectedException(typeof(ArgumentException))]
+        public void ValidateEmptyValidationDataThrows()
+        {
+            // Training data
+            var dataViewBuilder = new ArrayDataViewBuilder(new MLContext());
+            dataViewBuilder.AddColumn("Number", NumberDataViewType.Single, 0f);
+            dataViewBuilder.AddColumn(DefaultColumnNames.Label, NumberDataViewType.Single, 0f);
+            var trainingData = dataViewBuilder.GetDataView();
+
+            // Validation data
+            var schemaBuilder = new DataViewSchema.Builder();
+            schemaBuilder.AddColumn("Number", NumberDataViewType.Single);
+            schemaBuilder.AddColumn(DefaultColumnNames.Label, NumberDataViewType.Single);
+            var schema = schemaBuilder.ToSchema();
+            var validationData = new EmptyDataView(new MLContext(), schema);
+
+            UserInputValidationUtil.ValidateExperimentExecuteArgs(trainingData, new ColumnInformation(),
+                validationData, TaskKind.Regression);
+        }
+
+        private static void ValidateLabelTypeTestCore<LabelRawType>(TaskKind task, PrimitiveDataViewType labelType, bool labelTypeShouldBeValid)
+        {
+            var dataViewBuilder = new ArrayDataViewBuilder(new MLContext());
+            dataViewBuilder.AddColumn(DefaultColumnNames.Features, NumberDataViewType.Single, 0f);
+            if (labelType == TextDataViewType.Instance)
+            {
+                dataViewBuilder.AddColumn(DefaultColumnNames.Label, string.Empty);
+            }
+            else
+            {
+                dataViewBuilder.AddColumn(DefaultColumnNames.Label, labelType, Activator.CreateInstance<LabelRawType>());
+            }
+            var dataView = dataViewBuilder.GetDataView();
             var validationExceptionThrown = false;
             try
             {
