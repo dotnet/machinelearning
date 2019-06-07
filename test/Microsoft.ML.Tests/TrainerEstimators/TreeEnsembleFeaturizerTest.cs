@@ -323,9 +323,9 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                 PathsColumnName = "Paths",
                 ModelParameters = treeModel.Model.SubModel
             };
-            var pipeline = ML.Transforms.FeaturizeByPretrainTreeEnsemble(options).
-                Append(ML.Transforms.Concatenate("CombinedFeatures", "Features", "Trees", "Leaves", "Paths")).
-                Append(ML.BinaryClassification.Trainers.SdcaLogisticRegression("Label", "CombinedFeatures"));
+            var pipeline = ML.Transforms.FeaturizeByPretrainTreeEnsemble(options)
+                .Append(ML.Transforms.Concatenate("CombinedFeatures", "Features", "Trees", "Leaves", "Paths"))
+                .Append(ML.BinaryClassification.Trainers.SdcaLogisticRegression("Label", "CombinedFeatures"));
             var model = pipeline.Fit(dataView);
             var prediction = model.Transform(dataView);
             var metrics = ML.BinaryClassification.Evaluate(prediction);
@@ -369,9 +369,9 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                 TrainerOptions = trainerOptions
             };
 
-            var pipeline = ML.Transforms.FeaturizeByFastTreeBinary(options).
-                Append(ML.Transforms.Concatenate("CombinedFeatures", "Features", "Trees", "Leaves", "Paths")).
-                Append(ML.BinaryClassification.Trainers.SdcaLogisticRegression("Label", "CombinedFeatures"));
+            var pipeline = ML.Transforms.FeaturizeByFastTreeBinary(options)
+                .Append(ML.Transforms.Concatenate("CombinedFeatures", "Features", "Trees", "Leaves", "Paths"))
+                .Append(ML.BinaryClassification.Trainers.SdcaLogisticRegression("Label", "CombinedFeatures"));
             var model = pipeline.Fit(dataView);
             var prediction = model.Transform(dataView);
             var metrics = ML.BinaryClassification.Evaluate(prediction);
@@ -408,9 +408,9 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                 TrainerOptions = trainerOptions
             };
 
-            var pipeline = ML.Transforms.FeaturizeByFastForestBinary(options).
-                Append(ML.Transforms.Concatenate("CombinedFeatures", "Features", "Trees", "Leaves", "Paths")).
-                Append(ML.BinaryClassification.Trainers.SdcaLogisticRegression("Label", "CombinedFeatures"));
+            var pipeline = ML.Transforms.FeaturizeByFastForestBinary(options)
+                .Append(ML.Transforms.Concatenate("CombinedFeatures", "Features", "Trees", "Leaves", "Paths"))
+                .Append(ML.BinaryClassification.Trainers.SdcaLogisticRegression("Label", "CombinedFeatures"));
             var model = pipeline.Fit(dataView);
             var prediction = model.Transform(dataView);
             var metrics = ML.BinaryClassification.Evaluate(prediction);
@@ -447,9 +447,9 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                 TrainerOptions = trainerOptions
             };
 
-            var pipeline = ML.Transforms.FeaturizeByFastTreeRegression(options).
-                Append(ML.Transforms.Concatenate("CombinedFeatures", "Features", "Trees", "Leaves", "Paths")).
-                Append(ML.Regression.Trainers.Sdca("Label", "CombinedFeatures"));
+            var pipeline = ML.Transforms.FeaturizeByFastTreeRegression(options)
+                .Append(ML.Transforms.Concatenate("CombinedFeatures", "Features", "Trees", "Leaves", "Paths"))
+                .Append(ML.Regression.Trainers.Sdca("Label", "CombinedFeatures"));
             var model = pipeline.Fit(dataView);
             var prediction = model.Transform(dataView);
             var metrics = ML.Regression.Evaluate(prediction);
@@ -485,9 +485,9 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                 TrainerOptions = trainerOptions
             };
 
-            var pipeline = ML.Transforms.FeaturizeByFastForestRegression(options).
-                Append(ML.Transforms.Concatenate("CombinedFeatures", "Features", "Trees", "Leaves", "Paths")).
-                Append(ML.Regression.Trainers.Sdca("Label", "CombinedFeatures"));
+            var pipeline = ML.Transforms.FeaturizeByFastForestRegression(options)
+                .Append(ML.Transforms.Concatenate("CombinedFeatures", "Features", "Trees", "Leaves", "Paths"))
+                .Append(ML.Regression.Trainers.Sdca("Label", "CombinedFeatures"));
             var model = pipeline.Fit(dataView);
             var prediction = model.Transform(dataView);
             var metrics = ML.Regression.Evaluate(prediction);
@@ -523,9 +523,9 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                 TrainerOptions = trainerOptions
             };
 
-            var pipeline = ML.Transforms.FeaturizeByFastTreeTweedie(options).
-                Append(ML.Transforms.Concatenate("CombinedFeatures", "Features", "Trees", "Leaves", "Paths")).
-                Append(ML.Regression.Trainers.Sdca("Label", "CombinedFeatures"));
+            var pipeline = ML.Transforms.FeaturizeByFastTreeTweedie(options)
+                .Append(ML.Transforms.Concatenate("CombinedFeatures", "Features", "Trees", "Leaves", "Paths"))
+                .Append(ML.Regression.Trainers.Sdca("Label", "CombinedFeatures"));
             var model = pipeline.Fit(dataView);
             var prediction = model.Transform(dataView);
             var metrics = ML.Regression.Evaluate(prediction);
@@ -561,9 +561,9 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                 TrainerOptions = trainerOptions
             };
 
-            var pipeline = ML.Transforms.FeaturizeByFastTreeRanking(options).
-                Append(ML.Transforms.Concatenate("CombinedFeatures", "Features", "Trees", "Leaves", "Paths")).
-                Append(ML.Regression.Trainers.Sdca("Label", "CombinedFeatures"));
+            var pipeline = ML.Transforms.FeaturizeByFastTreeRanking(options)
+                .Append(ML.Transforms.Concatenate("CombinedFeatures", "Features", "Trees", "Leaves", "Paths"))
+                .Append(ML.Regression.Trainers.Sdca("Label", "CombinedFeatures"));
             var model = pipeline.Fit(dataView);
             var prediction = model.Transform(dataView);
             var metrics = ML.Regression.Evaluate(prediction);
@@ -599,9 +599,9 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                 TrainerOptions = trainerOptions
             };
 
-            var pipeline = ML.Transforms.FeaturizeByFastForestRegression(options).
-                Append(ML.Transforms.Concatenate("CombinedFeatures", "Features", "Trees", "Leaves", "Paths")).
-                Append(ML.Regression.Trainers.Sdca("Label", "CombinedFeatures"));
+            var pipeline = ML.Transforms.FeaturizeByFastForestRegression(options)
+                .Append(ML.Transforms.Concatenate("CombinedFeatures", "Features", "Trees", "Leaves", "Paths"))
+                .Append(ML.Regression.Trainers.Sdca("Label", "CombinedFeatures"));
             var model = pipeline.Fit(dataView);
             var prediction = model.Transform(dataView);
             var metrics = ML.Regression.Evaluate(prediction);
@@ -655,10 +655,10 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                 PathsColumnName = "OhMyPaths"
             };
 
-            var pipeline = ML.Transforms.CopyColumns("CopiedFeatures", "Features").
-                Append(ML.Transforms.FeaturizeByFastForestRegression(options)).
-                Append(ML.Transforms.Concatenate("CombinedFeatures", "Features", "OhMyTrees", "OhMyLeaves", "OhMyPaths")).
-                Append(ML.Regression.Trainers.Sdca("Label", "CombinedFeatures"));
+            var pipeline = ML.Transforms.CopyColumns("CopiedFeatures", "Features")
+                .Append(ML.Transforms.FeaturizeByFastForestRegression(options))
+                .Append(ML.Transforms.Concatenate("CombinedFeatures", "Features", "OhMyTrees", "OhMyLeaves", "OhMyPaths"))
+                .Append(ML.Regression.Trainers.Sdca("Label", "CombinedFeatures"));
             var model = pipeline.Fit(dataView);
             var prediction = model.Transform(dataView);
             var metrics = ML.Regression.Evaluate(prediction);
@@ -686,11 +686,11 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             Assert.Equal(metrics.MeanAbsoluteError, loadedMetrics.MeanAbsoluteError);
             Assert.Equal(metrics.MeanSquaredError, loadedMetrics.MeanSquaredError);
 
-            var secondPipeline = ML.Transforms.CopyColumns("CopiedFeatures", "Features").
-                Append(ML.Transforms.NormalizeBinning("CopiedFeatures")).
-                Append(ML.Transforms.FeaturizeByFastForestRegression(options)).
-                Append(ML.Transforms.Concatenate("CombinedFeatures", "Features", "OhMyTrees", "OhMyLeaves", "OhMyPaths")).
-                Append(ML.Regression.Trainers.Sdca("Label", "CombinedFeatures"));
+            var secondPipeline = ML.Transforms.CopyColumns("CopiedFeatures", "Features")
+                .Append(ML.Transforms.NormalizeBinning("CopiedFeatures"))
+                .Append(ML.Transforms.FeaturizeByFastForestRegression(options))
+                .Append(ML.Transforms.Concatenate("CombinedFeatures", "Features", "OhMyTrees", "OhMyLeaves", "OhMyPaths"))
+                .Append(ML.Regression.Trainers.Sdca("Label", "CombinedFeatures"));
             var secondModel = secondPipeline.Fit(dataView);
             var secondPrediction = secondModel.Transform(dataView);
             var secondMetrics = ML.Regression.Evaluate(secondPrediction);
@@ -732,9 +732,9 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             bool isWrong = false;
             try
             {
-                var wrongPipeline = ML.Transforms.FeaturizeByFastTreeBinary(options).
-                    Append(ML.Transforms.Concatenate("CombinedFeatures", "Features", "Trees", "Leaves", "Paths")).
-                    Append(ML.BinaryClassification.Trainers.SdcaLogisticRegression("Label", "CombinedFeatures"));
+                var wrongPipeline = ML.Transforms.FeaturizeByFastTreeBinary(options)
+                    .Append(ML.Transforms.Concatenate("CombinedFeatures", "Features", "Trees", "Leaves", "Paths"))
+                    .Append(ML.BinaryClassification.Trainers.SdcaLogisticRegression("Label", "CombinedFeatures"));
                 var wrongModel = wrongPipeline.Fit(dataView);
             }
             catch
@@ -743,9 +743,9 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             }
             Assert.True(isWrong);
 
-            var pipeline = ML.Transforms.FeaturizeByFastTreeBinary(options).
-                Append(ML.Transforms.Concatenate("CombinedFeatures", "Features", "Leaves")).
-                Append(ML.BinaryClassification.Trainers.SdcaLogisticRegression("Label", "CombinedFeatures"));
+            var pipeline = ML.Transforms.FeaturizeByFastTreeBinary(options)
+                .Append(ML.Transforms.Concatenate("CombinedFeatures", "Features", "Leaves"))
+                .Append(ML.BinaryClassification.Trainers.SdcaLogisticRegression("Label", "CombinedFeatures"));
             var model = pipeline.Fit(dataView);
             var prediction = model.Transform(dataView);
             var metrics = ML.BinaryClassification.Evaluate(prediction);
@@ -792,11 +792,11 @@ namespace Microsoft.ML.Tests.TrainerEstimators
 
             var lookupIdvMap = ML.Data.LoadFromEnumerable(lookupData);
 
-            var pipeline = ML.Transforms.Conversion.MapValueToKey("KeyLabel", "Label").
-                Append(ML.Transforms.Conversion.MapValue("NumericalLabel", lookupIdvMap, lookupIdvMap.Schema["Category"], lookupIdvMap.Schema["Value"], "Label")).
-                Append(ML.Transforms.FeaturizeByFastForestRegression(options)).
-                Append(ML.Transforms.Concatenate("CombinedFeatures", "Features", "Trees", "Leaves", "Paths")).
-                Append(ML.MulticlassClassification.Trainers.SdcaMaximumEntropy("KeyLabel", "CombinedFeatures"));
+            var pipeline = ML.Transforms.Conversion.MapValueToKey("KeyLabel", "Label")
+                .Append(ML.Transforms.Conversion.MapValue("NumericalLabel", lookupIdvMap, lookupIdvMap.Schema["Category"], lookupIdvMap.Schema["Value"], "Label"))
+                .Append(ML.Transforms.FeaturizeByFastForestRegression(options))
+                .Append(ML.Transforms.Concatenate("CombinedFeatures", "Features", "Trees", "Leaves", "Paths"))
+                .Append(ML.MulticlassClassification.Trainers.SdcaMaximumEntropy("KeyLabel", "CombinedFeatures"));
             var model = pipeline.Fit(dataView);
             var prediction = model.Transform(dataView);
             var metrics = ML.MulticlassClassification.Evaluate(prediction, labelColumnName: "KeyLabel");
