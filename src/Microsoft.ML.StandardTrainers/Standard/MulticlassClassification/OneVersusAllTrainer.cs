@@ -483,7 +483,7 @@ namespace Microsoft.ML.Trainers
             }
         }
 
-        internal abstract class ImplBase : ISingleCanSavePfa
+        private abstract class ImplBase : ISingleCanSavePfa
         {
             public abstract DataViewType InputType { get; }
             public abstract IValueMapper[] Predictors { get; }
