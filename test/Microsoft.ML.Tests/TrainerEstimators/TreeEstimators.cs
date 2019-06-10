@@ -9,11 +9,11 @@ using System.Threading;
 using Microsoft.ML.Calibrators;
 using Microsoft.ML.Data;
 using Microsoft.ML.Internal.Utilities;
-using Microsoft.ML.Trainers.LightGbm;
 using Microsoft.ML.RunTests;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.TestFramework.Attributes;
 using Microsoft.ML.Trainers.FastTree;
+using Microsoft.ML.Trainers.LightGbm;
 using Microsoft.ML.Transforms;
 using Xunit;
 
@@ -319,7 +319,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             public float[] Score;
         }
 
-        private void LightGbmHelper(bool useSoftmax, out string modelString, out List<GbmExample> mlnetPredictions, out double[] lgbmRawScores, out double[] lgbmProbabilities)
+        private void LightGbmHelper(bool useSoftmax, out string modelString, out List<GbmExample> mlnetPredictions, out double[] lgbmRawScores, out double[] lgbmProbabilities, double sigmoid = .5)
         {
             // Prepare data and train LightGBM model via ML.NET
             // Training matrix. It contains all feature vectors.
@@ -352,7 +352,8 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                     NumberOfIterations = numberOfTrainingIterations,
                     MinimumExampleCountPerGroup = 1,
                     MinimumExampleCountPerLeaf = 1,
-                    UseSoftmax = useSoftmax
+                    UseSoftmax = useSoftmax,
+                    Sigmoid = sigmoid
                 });
 
             var gbm = gbmTrainer.Fit(dataView);
@@ -452,6 +453,82 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                     double prob = MathUtils.SigmoidSlow(sigmoidScale * (float)nativeResult1[j + i * _classNumber]);
                     Assert.Equal(prob / sum, mlnetPredictions[i].Score[j], 6);
                 }
+            }
+
+            Done();
+        }
+
+        /// <summary>
+        /// LightGbmMulticlass UsingSigmoids test 
+        /// </summary>
+        [LightGBMFact]
+        public void LightGbmMulticlassEstimatorCompareOvaUsingSigmoids()
+        {
+            var sigmoid = .790;
+            // Train ML.NET LightGBM and native LightGBM and apply the trained models to the training set.
+            LightGbmHelper(useSoftmax: false, out string modelString, out List<GbmExample> mlnetPredictions, out double[] nativeResult1, out double[] nativeResult0, sigmoid: sigmoid);
+
+            // The i-th predictor returned by LightGBM produces the raw score, denoted by z_i, of the i-th class.
+            // Assume that we have n classes in total. The i-th class probability can be computed via
+            // p_i = sigmoid(sigmoidScale * z_i) / (sigmoid(sigmoidScale * z_1) + ... + sigmoid(sigmoidScale * z_n)).
+            Assert.True(modelString != null);
+
+            // Compare native LightGBM's and ML.NET's LightGBM results example by example
+            for (int i = 0; i < _rowNumber; ++i)
+            {
+                double sum = 0;
+                for (int j = 0; j < _classNumber; ++j)
+                {
+                    Assert.Equal(nativeResult0[j + i * _classNumber], mlnetPredictions[i].Score[j], 6);
+                    if (float.IsNaN((float)nativeResult1[j + i * _classNumber]))
+                        continue;
+                    sum += MathUtils.SigmoidSlow((float)sigmoid * (float)nativeResult1[j + i * _classNumber]);
+                }
+                for (int j = 0; j < _classNumber; ++j)
+                {
+                    double prob = MathUtils.SigmoidSlow((float)sigmoid * (float)nativeResult1[j + i * _classNumber]);
+                    Assert.Equal(prob / sum, mlnetPredictions[i].Score[j], 6);
+                }
+            }
+
+            Done();
+        }
+
+        /// <summary>
+        /// LightGbmMulticlass UsingDifferentSigmoids test 
+        /// </summary>
+        [LightGBMFact]
+        public void LightGbmMulticlassEstimatorCompareOvaUsingDifferentSigmoids()
+        {
+            // Run native implemenation twice, see that results are different with different sigmoid values.
+            var firstSigmoid = .790;
+            var secondSigmoid = .2;
+
+            // Train native LightGBM with both sigmoid values and apply the trained models to the training set.
+            LightGbmHelper(useSoftmax: false, out string firstModelString, out List<GbmExample> firstMlnetPredictions, out double[] firstNativeResult1, out double[] firstNativeResult0, sigmoid: firstSigmoid);
+            LightGbmHelper(useSoftmax: false, out string secondModelString, out List<GbmExample> secondMlnetPredictions, out double[] secondNativeResult1, out double[] secondNativeResult0, sigmoid: secondSigmoid);
+
+            // Compare native LightGBM's results when 2 different sigmoid values are used.
+            for (int i = 0; i < _rowNumber; ++i)
+            {
+                var areEqual = true;
+                for (int j = 0; j < _classNumber; ++j)
+                {
+                    if (float.IsNaN((float)firstNativeResult1[j + i * _classNumber]))
+                        continue;
+                    if (float.IsNaN((float)secondNativeResult1[j + i * _classNumber]))
+                        continue;
+
+                    // Testing to make sure that at least 1 value is different. This avoids false positives when values are 0
+                    // even for the same sigmoid value.
+                    areEqual &= firstMlnetPredictions[i].Score[j].Equals(secondMlnetPredictions[i].Score[j]);
+
+                    // Testing that the native result is different before we apply the sigmoid.
+                    Assert.NotEqual((float)firstNativeResult1[j + i * _classNumber], (float)secondNativeResult1[j + i * _classNumber], 6);
+                }
+
+                // There should be at least 1 value that is different in the row.
+                Assert.False(areEqual);
             }
 
             Done();
