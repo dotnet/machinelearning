@@ -50,8 +50,16 @@ namespace Samples.Dynamic
             foreach (var dataPoint in transformedDataPoints)
             {
                 var firstClassProb = dataPoint.Scores.First();
-                Console.WriteLine($"The probability of being the 1st class is {0}", firstClassProb);
+                var lastClassProb = dataPoint.Scores.Last();
+                Console.WriteLine($"The probability of being the first class is {firstClassProb * 100}%.");
+                Console.WriteLine($"The probability of being the last class is {lastClassProb * 100}%.");
             }
+
+            // Expected output:
+            //  The probability of being the first class is 0.002542659%.
+            //  The probability of being the last class is 0.0292684%.
+            //  The probability of being the first class is 0.02258059%.
+            //  The probability of being the last class is 0.394428%.
         }
 
         // This class is used in Example() to describe data points which will be consumed by ML.NET pipeline.
