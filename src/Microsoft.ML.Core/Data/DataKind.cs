@@ -9,6 +9,30 @@ namespace Microsoft.ML.Data
     /// <summary>
     /// Specifies a simple data type.
     /// </summary>
+    /// <remarks>
+    /// <format type="text/markdown"><![CDATA[
+    /// Some transforms use the default value and/or missing value of the data types.
+    /// The table below shows the default value definition for each of the data types.
+    ///
+    /// | Type | Default Value | IsDefault Indicator |
+    /// | -- | -- | -- |
+    /// | <xref:Microsoft.ML.Data.DataKind.String> or [text](xref:Microsoft.ML.Data.TextDataViewType) | Empty or `null` string (both result in empty `System.ReadOnlyMemory<char>` | <xref:"System.ReadOnlyMemory`1.IsEmpty*> |
+    /// | [Key](xref:Microsoft.ML.Data.KeyDataViewType) type (supported by the unsigned integer types in `DataKind`) | Not defined | Always `false` |
+    /// | All other types | Default value of the corresponding system type as defined by .NET standard. In C#, default value expression `default(T)` provides that value. | Equality test with the default value |
+    ///
+    /// The table below shows the missing value definition for each of the data types.
+    ///
+    /// | Type | Missing Value | IsMissing Indicator |
+    /// | -- | -- | -- |
+    /// | <xref:Microsoft.ML.Data.DataKind.String> or [text](xref:Microsoft.ML.Data.TextDataViewType) | Not defined | Always `false` |
+    /// | [Key](xref:Microsoft.ML.Data.KeyDataViewType) type (supported by the unsigned integer types in `DataKind`) | `0` | Equality test with `0` |
+    /// | <xref:Microsoft.ML.Data.DataKind.Single> | <xref:System.Single.NaN> | <xref:System.Single.IsNaN(System.Single)> |
+    /// | <xref:Microsoft.ML.Data.DataKind.Double> | <xref:System.Double.NaN> | <xref:System.Double.IsNaN(System.Double)> |
+    /// | All other types | Not defined | Always `false` |
+    ///
+    /// ]]>
+    /// </format>
+    /// </remarks>
     // Data type specifiers mainly used in creating text loader and type converter.
     public enum DataKind : byte
     {
@@ -18,21 +42,24 @@ namespace Microsoft.ML.Data
         Byte = 2,
         /// <summary>2-byte integer, type of <see cref="System.Int16"/>.</summary>
         Int16 = 3,
-        /// <summary>2-byte usigned integer, type of <see cref="System.UInt16"/>.</summary>
+        /// <summary>2-byte unsigned integer, type of <see cref="System.UInt16"/>.</summary>
         UInt16 = 4,
         /// <summary>4-byte integer, type of <see cref="System.Int32"/>.</summary>
         Int32 = 5,
-        /// <summary>4-byte usigned integer, type of <see cref="System.UInt32"/>.</summary>
+        /// <summary>4-byte unsigned integer, type of <see cref="System.UInt32"/>.</summary>
         UInt32 = 6,
         /// <summary>8-byte integer, type of <see cref="System.Int64"/>.</summary>
         Int64 = 7,
-        /// <summary>8-byte usigned integer, type of <see cref="System.UInt64"/>.</summary>
+        /// <summary>8-byte unsigned integer, type of <see cref="System.UInt64"/>.</summary>
         UInt64 = 8,
         /// <summary>4-byte floating-point number, type of <see cref="System.Single"/>.</summary>
         Single = 9,
         /// <summary>8-byte floating-point number, type of <see cref="System.Double"/>.</summary>
         Double = 10,
-        /// <summary>string, type of <see cref="System.String"/>.</summary>
+        /// <summary>
+        /// string, type of <see cref="System.ReadOnlyMemory{T}"/>, where T is <see cref="char"/>.
+        /// Also compatible with <see cref="System.String"/>.
+        /// </summary>
         String = 11,
         /// <summary>boolean variable type, type of <see cref="System.Boolean"/>.</summary>
         Boolean = 12,
