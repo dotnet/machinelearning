@@ -11,9 +11,10 @@ using Microsoft.ML;
 namespace Microsoft.Extensions.ML
 {
     /// <summary>
-    /// <see cref="IPooledObjectPolicy{T}"/> for <see cref="PredictionEngine{TData, TPrediction}"/>.
+    /// <see cref="IPooledObjectPolicy{T}"/> for <see cref="PredictionEngine{TData, TPrediction}"/>
+    /// which is responsible for creating pooled objects, and when to return objects to the pool.
     /// </summary>
-    public class PredictionEnginePoolPolicy<TData, TPrediction>
+    internal class PredictionEnginePoolPolicy<TData, TPrediction>
         : IPooledObjectPolicy<PredictionEngine<TData, TPrediction>>
         where TData : class
         where TPrediction : class, new()

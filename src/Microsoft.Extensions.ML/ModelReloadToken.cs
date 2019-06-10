@@ -36,7 +36,9 @@ namespace Microsoft.Extensions.ML
         /// </summary>
         /// <param name="callback">The callback to invoke.</param>
         /// <param name="state">State to be passed into the callback.</param>
-        /// <returns></returns>
+        /// <returns>
+        /// An System.IDisposable that is used to unregister the callback.
+        /// </returns>
         public IDisposable RegisterChangeCallback(Action<object> callback, object state) => _cts.Token.Register(callback, state);
 
         /// <summary>

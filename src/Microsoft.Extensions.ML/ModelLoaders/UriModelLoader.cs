@@ -153,7 +153,7 @@ namespace Microsoft.Extensions.ML
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error loading {uri}", _uri);
+                Logger.UriLoadError(_logger, _uri, ex);
                 throw;
             }
         }
@@ -182,7 +182,7 @@ namespace Microsoft.Extensions.ML
             public static readonly EventId UriReloadBegin = new EventId(100, "UriReloadBegin");
             public static readonly EventId UriReloadEnd = new EventId(101, "UriReloadEnd");
             public static readonly EventId UriReloadError = new EventId(102, "UriReloadError");
-            public static readonly EventId UriReloadTimeout = new EventId(103, "UriReloadTimeout");
+            public static readonly EventId UriLoadError = new EventId(103, "UriLoadError");
         }
 
         private static class Logger
@@ -202,10 +202,10 @@ namespace Microsoft.Extensions.ML
                 EventIds.UriReloadError,
                 "URI reload for {uri} threw an unhandled exception after {ElapsedMilliseconds}ms");
 
-            private static readonly Action<ILogger, Uri, double, Exception> _uriReloadTimeout = LoggerMessage.Define<Uri, double>(
+            private static readonly Action<ILogger, Uri, Exception> _uriLoadError = LoggerMessage.Define<Uri>(
                 LogLevel.Error,
-                EventIds.UriReloadTimeout,
-                "URI reload for {uri} was canceled after {ElapsedMilliseconds}ms");
+                EventIds.UriLoadError,
+                "Error loading {uri}");
 
             public static void UriReloadBegin(ILogger logger, Uri uri)
             {
@@ -222,9 +222,9 @@ namespace Microsoft.Extensions.ML
                 _uriReloadError(logger, uri, duration.TotalMilliseconds, exception);
             }
 
-            public static void UriReloadTimeout(ILogger logger, Uri uri, TimeSpan duration)
+            public static void UriLoadError(ILogger logger, Uri uri, Exception exception)
             {
-                _uriReloadTimeout(logger, uri, duration.TotalMilliseconds, null);
+                _uriLoadError(logger, uri, exception);
             }
         }
     }

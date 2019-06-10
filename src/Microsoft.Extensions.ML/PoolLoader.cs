@@ -12,9 +12,12 @@ using Microsoft.ML;
 
 namespace Microsoft.Extensions.ML
 {
+    /// <summary>
+    /// Encapsulates the data and logic required for loading and reloading PredictionEngine object pools.
+    /// </summary>
     internal class PoolLoader<TData, TPrediction>: IDisposable
-                        where TData : class
-                        where TPrediction : class, new()
+        where TData : class
+        where TPrediction : class, new()
     {
         private DefaultObjectPool<PredictionEngine<TData, TPrediction>> _pool;
         private readonly IDisposable _changeTokenRegistration;
@@ -32,11 +35,11 @@ namespace Microsoft.Extensions.ML
                 () => LoadPool());
         }
 
-        public ModelLoader Loader { get; private set; }
-        public MLContext Context { get; private set; }
+        public ModelLoader Loader { get; }
+        private MLContext Context { get; }
         public ObjectPool<PredictionEngine<TData, TPrediction>> PredictionEnginePool { get { return _pool; } }
 
-        public void LoadPool()
+        private void LoadPool()
         {
             var predictionEnginePolicy = new PredictionEnginePoolPolicy<TData, TPrediction>(Context, Loader.GetModel());
             Interlocked.Exchange(ref _pool, new DefaultObjectPool<PredictionEngine<TData, TPrediction>>(predictionEnginePolicy));
