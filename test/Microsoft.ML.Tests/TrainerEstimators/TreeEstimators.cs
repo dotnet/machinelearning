@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using Microsoft.ML.Calibrators;
 using Microsoft.ML.Data;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Trainers.LightGbm;
@@ -15,7 +16,6 @@ using Microsoft.ML.TestFramework.Attributes;
 using Microsoft.ML.Trainers.FastTree;
 using Microsoft.ML.Transforms;
 using Xunit;
-using Microsoft.ML.Calibrators;
 
 namespace Microsoft.ML.Tests.TrainerEstimators
 {
@@ -85,7 +85,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             var transformedDataView = pipe.Fit(dataView).Transform(dataView);
             var model = trainer.Fit(transformedDataView, transformedDataView);
 
-            //the slope in the model calibrator should be equal to the negative of the sigmoid passed into the trainer
+            // The slope in the model calibrator should be equal to the negative of the sigmoid passed into the trainer.
             Assert.Equal(sigmoid, -model.Model.Calibrator.Slope);
             Done();
         }
@@ -297,7 +297,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             var transformedDataView = pipe.Fit(dataView).Transform(dataView);
             var model = trainer.Fit(transformedDataView, transformedDataView);
 
-            //the slope in the all the calibrators should be equal to the negative of the sigmoid passed into the trainer
+            // The slope in the all the calibrators should be equal to the negative of the sigmoid passed into the trainer.
             Assert.True(model.Model.SubModelParameters.All(predictor =>
             ((FeatureWeightsCalibratedModelParameters<LightGbmBinaryModelParameters, PlattCalibrator>)predictor).Calibrator.Slope == -sigmoid));
             Done();
