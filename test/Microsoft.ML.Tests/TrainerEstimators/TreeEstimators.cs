@@ -353,7 +353,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                     MinimumExampleCountPerGroup = 1,
                     MinimumExampleCountPerLeaf = 1,
                     UseSoftmax = useSoftmax,
-                    Sigmoid = sigmoid
+                    Sigmoid = sigmoid // Custom sigmoid value.
                 });
 
             var gbm = gbmTrainer.Fit(dataView);
