@@ -453,12 +453,12 @@
       <LastGenOutput>FastForestBinaryFeaturizationWithOptions.cs</LastGenOutput>
     </None>
     <None Update="Dynamic\Transforms\TreeFeaturization\FastForestRegressionFeaturizationWithOptions.tt">
-      <LastGenOutput>FastForestRegressionFeaturizationWithOptions.cs</LastGenOutput>
       <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>FastForestRegressionFeaturizationWithOptions.cs</LastGenOutput>
     </None>
     <None Update="Dynamic\Transforms\TreeFeaturization\FastTreeBinaryFeaturizationWithOptions.tt">
-      <LastGenOutput>FastTreeBinaryFeaturizationWithOptions.cs</LastGenOutput>
       <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>FastTreeBinaryFeaturizationWithOptions.cs</LastGenOutput>
     </None>
     <None Update="Dynamic\Transforms\TreeFeaturization\FastTreeRankingFeaturizationWithOptions.tt">
       <Generator>TextTemplatingFileGenerator</Generator>

@@ -19,7 +19,7 @@ namespace Samples.Dynamic.Transforms.TreeFeaturization
             var mlContext = new MLContext(seed: 0);
 
             // Create a list of data points to be transformed.
-            var dataPoints = GenerateRandomDataPoints(1000).ToList();
+            var dataPoints = GenerateRandomDataPoints(100).ToList();
 
             // Convert the list of data points to an IDataView object, which is consumable by ML.NET API.
             var dataView = mlContext.Data.LoadFromEnumerable(dataPoints);
