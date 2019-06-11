@@ -88,18 +88,18 @@ namespace Samples.Dynamic.Transforms.TreeFeaturization
             }
 
             // Expected output:
-            //  The original feature vector [0.8173254,0.7680227,0.5581612] is transformed to three different tree-based feature vectors:
-            //    Trees' output values: [-0.02519168,0.0004318157,-0.0002457525].
-            //    Leave IDs' 0-1 representation: [0,0,0,0,0,1,0,0,0,0,0,1,0,0,0,0,0,1].
-            //    Paths IDs' 0-1 representation: [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1].
-            //  The original feature vector [0.5888848,0.9360271,0.4721779] is transformed to three different tree-based feature vectors:
-            //    Trees' output values: [-0.02519168,0.0004318157,-0.0002457525].
-            //    Leave IDs' 0-1 representation: [0,0,0,0,0,1,0,0,0,0,0,1,0,0,0,0,0,1].
-            //    Paths IDs' 0-1 representation: [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1].
-            //  The original feature vector [0.2737045,0.2919063,0.4673147] is transformed to three different tree-based feature vectors:
-            //    Trees' output values: [-0.02519168,0.0004318157,-0.0002457525].
-            //    Leave IDs' 0-1 representation: [0,0,0,0,0,1,0,0,0,0,0,1,0,0,0,0,0,1].
-            //    Paths IDs' 0-1 representation: [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1].
+            //   The original feature vector [0.8173254,0.7680227,0.5581612] is transformed to three different tree-based feature vectors:
+            //     Trees' output values: [0.5714286,0.4636412,0.535588].
+            //     Leave IDs' 0-1 representation: [0,0,0,0,0,1,0,0,0,0,0,1,0,0,0,0,0,1].
+            //     Paths IDs' 0-1 representation: [1,0,0,1,1,1,0,1,0,1,1,1,1,1,1].
+            //   The original feature vector [0.5888848,0.9360271,0.4721779] is transformed to three different tree-based feature vectors:
+            //     Trees' output values: [0.2352941,-0.1382389,0.535588].
+            //     Leave IDs' 0-1 representation: [0,0,0,0,1,0,0,0,0,1,0,0,0,0,0,0,0,1].
+            //     Paths IDs' 0-1 representation: [1,0,0,1,1,1,0,1,0,1,1,1,1,1,1].
+            //   The original feature vector [0.2737045,0.2919063,0.4673147] is transformed to three different tree-based feature vectors:
+            //     Trees' output values: [0.2352941,-0.1382389,-0.2184284].
+            //     Leave IDs' 0-1 representation: [0,0,0,0,1,0,0,0,0,1,0,0,0,1,0,0,0,0].
+            //     Paths IDs' 0-1 representation: [1,0,0,1,1,1,0,1,0,1,1,1,0,0,0].
         }
 
         private static IEnumerable<DataPoint> GenerateRandomDataPoints(int count, int seed=0)

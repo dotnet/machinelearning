@@ -40,15 +40,15 @@ string ExpectedOutputPerInstance= @"// Expected output:
 
 string ExpectedOutput = @"// Expected output:
             //   The original feature vector [1.543569,1.494266,1.284405] is transformed to three different tree-based feature vectors:
-            //     Trees' output values: [-0.09180452,-0.04118096,-0.01008826].
-            //     Leave IDs' 0-1 representation: [0,0,0,0,1,0,0,0,1,0,0,0,0,0,0,1,0,0].
-            //     Paths IDs' 0-1 representation: [1,1,0,1,0,1,1,0,0,0,1,0,1,0,0].
+            //     Trees' output values: [-0.05652997,-0.02312196,-0.01179363].
+            //     Leave IDs' 0-1 representation: [0,1,0,0,0,0,0,0,0,0,1,0,0,0,1,0,0,0].
+            //     Paths IDs' 0-1 representation: [1,0,0,0,0,1,1,0,1,0,1,1,0,0,0].
             //   The original feature vector [0.764918,1.11206,0.648211] is transformed to three different tree-based feature vectors:
-            //     Trees' output values: [-0.220913,-0.1675234,-0.1447738].
-            //     Leave IDs' 0-1 representation: [0,0,0,1,0,0,0,1,0,0,0,0,0,0,1,0,0,0].
-            //     Paths IDs' 0-1 representation: [1,0,1,0,0,1,1,0,1,0,1,1,0,1,0].
+            //     Trees' output values: [-0.1933938,-0.1042738,-0.2312837].
+            //     Leave IDs' 0-1 representation: [0,0,1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,0].
+            //     Paths IDs' 0-1 representation: [1,1,1,0,0,1,1,0,0,0,1,0,0,0,0].
             //   The original feature vector [1.251254,1.269456,1.444864] is transformed to three different tree-based feature vectors:
-            //     Trees' output values: [-0.05595072,-0.04118096,-0.04182037].
-            //     Leave IDs' 0-1 representation: [0,0,1,0,0,0,0,0,1,0,0,0,0,0,0,0,0,1].
-            //     Paths IDs' 0-1 representation: [1,1,0,0,1,1,1,0,0,0,1,0,1,0,1].";
+            //     Trees' output values: [-0.05652997,-0.06082304,-0.04528879].
+            //     Leave IDs' 0-1 representation: [0,1,0,0,0,0,0,0,1,0,0,0,0,0,0,1,0,0].
+            //     Paths IDs' 0-1 representation: [1,0,0,0,0,1,1,0,1,0,1,1,1,0,1].";
 #>
