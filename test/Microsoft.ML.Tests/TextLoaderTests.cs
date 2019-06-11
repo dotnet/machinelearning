@@ -797,11 +797,11 @@ namespace Microsoft.ML.EntryPoints.Tests
             }
         }
 
-        public class IrisNoFields
+        private class IrisNoFields
         {
         }
 
-        public class IrisPrivateFields
+        private class IrisPrivateFields
         {
             [LoadColumn(0)]
             private float SepalLength;
@@ -817,7 +817,7 @@ namespace Microsoft.ML.EntryPoints.Tests
                 SepalLength = sepalLength;
             }
         }
-        public class IrisPublicGetProperties
+        private class IrisPublicGetProperties
         {
             [LoadColumn(0)]
             public float SepalLength { get; }
@@ -826,8 +826,14 @@ namespace Microsoft.ML.EntryPoints.Tests
             public float SepalWidth { get; }
         }
 
-        public class IrisPublicFields
+        private class IrisPublicFields
         {
+            public IrisPublicFields(float sepalLength, float sepalWidth)
+            {
+                SepalLength = sepalLength;
+                SepalWidth = sepalWidth;
+            }
+
             [LoadColumn(0)]
             public readonly float SepalLength;
 
@@ -835,7 +841,7 @@ namespace Microsoft.ML.EntryPoints.Tests
             public float SepalWidth;
         }
 
-        public class IrisPublicProperties
+        private class IrisPublicProperties
         {
             [LoadColumn(0)]
             public float SepalLength { get; set; }
@@ -868,7 +874,7 @@ namespace Microsoft.ML.EntryPoints.Tests
             }
             catch (Exception ex)
             {
-                Assert.StartsWith("Should define at least one public, readable field or property in TInput or provide a dataSample.", ex.Message);
+                Assert.StartsWith("Should define at least one public, readable field or property in TInput.", ex.Message);
             }
 
             // Class with no public readable fields.
@@ -879,7 +885,7 @@ namespace Microsoft.ML.EntryPoints.Tests
             }
             catch (Exception ex)
             {
-                Assert.StartsWith("Should define at least one public, readable field or property in TInput or provide a dataSample.", ex.Message);
+                Assert.StartsWith("Should define at least one public, readable field or property in TInput.", ex.Message);
             }
         }
     }

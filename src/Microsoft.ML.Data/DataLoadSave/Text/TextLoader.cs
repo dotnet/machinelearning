@@ -1460,8 +1460,8 @@ namespace Microsoft.ML.Data
 
             var memberInfos = (fieldInfos as IEnumerable<MemberInfo>).Concat(propertyInfos).ToArray();
 
-            if (memberInfos.Length == 0 && dataSample == null)
-                throw host.ExceptParam(nameof(TInput), $"Should define at least one public, readable field or property in {nameof(TInput)} or provide a {nameof(dataSample)}.");
+            if (memberInfos.Length == 0)
+                throw host.ExceptParam(nameof(TInput), $"Should define at least one public, readable field or property in {nameof(TInput)}.");
 
             var columns = new List<Column>();
 

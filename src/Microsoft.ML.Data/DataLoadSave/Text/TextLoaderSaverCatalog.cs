@@ -68,11 +68,8 @@ namespace Microsoft.ML
         /// <param name="catalog">The <see cref="DataOperationsCatalog"/> catalog.</param>
         /// <param name="separatorChar">Column separator character. Default is '\t'</param>
         /// <param name="hasHeader">Does the file contains header?</param>
-        /// <param name="dataSample">The optional location of a data sample. The sample can be used to infer column
-        /// names and number of slots in each column. If <typeparamref name="TInput"/> does not contain any public
-        /// fields, we assume that the first column in the <paramref name="dataSample"/> is the Label column and
-        /// the second is the Features column. If there are more than two columns, the Features column is taken
-        /// to be a vector column.</param>
+        /// <param name="dataSample">The optional location of a data sample. The sample can be used to infer information
+        /// about the columns, such as slot names.</param>
         /// <param name="allowQuoting">Whether the input may include quoted values,
         /// which can contain separator characters, colons,
         /// and distinguish empty values from missing values. When true, consecutive separators
