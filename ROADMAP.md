@@ -9,59 +9,30 @@ In the meanwhile, we are looking for contributions.  An easy place to start is t
 
 ## Short Term
 ### Training Improvements
-* Improved public API for training and inference
-* Enhanced tests and scenarios
-* Additional Learners
-    * [LibSVM](https://www.csie.ntu.edu.tw/~cjlin/libsvm/) for anomaly detection  (*)
-	* [LightGBM](https://github.com/Microsoft/LightGBM) - a high-performance boosted decision tree  (*)
-* Additional Learning Tasks  (*)
-	* _Ranking_ - problem where the goal is to automatically sort (rank) instances within a group based on ranked examples in training data
-	* _Anomaly Detection_ - is also known as _outlier detection_. It is a task to identify items, events or observations which do not conform to an expected pattern in the dataset.
-	* _Quantile Regression_ is a type of regression analysis. Whereas regression results in estimates that approximate the conditional mean of the response variable given certain values of the predictor variables, quantile regression aims at estimating either the conditional median or other quantiles of the response variable
-* Additional Data Source support  (*)
-	* Apache Parquet
-	* Native Binary high-performance format
-
-### Featurization Improvements
-We already provide text/NLP and image processing functionalities that will be expanded
-* Text  (*)
-  * Natural language text preprocessing such as improving tokenization features, adding part-of-speech tagging, and sentence boundary disambiguation
-  * Pre-trained text models (beyond current n-gram and pre-trained WordEmbedding text handling) that can further improve the extraction of semantic or sentiment features from text
-* Image  (*)
-  * Image preprocessing such as loading, resizing, and normalization of images
-  * Image featurization, including industry-standard pre-trained ImageNet neural models, such as ResNet and AlexNet
+* Deep Learning Training Support
+  * Integrate with leading DNN package(s)
+  * Support for transfer learning.
+  * Hybrid training of pipelines containing both DNN and non-DNN predictors.
+  * Fast.ai like APIs.
 
 ### Trained Model Management
 * Export models to [ONNX](https://github.com/onnx/models)  (*)
-
-### GUI
-* Release the Model Builder tool to ease model development  (*)
-* Design improvements to make the design adhere better to Fluent principles
-* Add a view for an easier comparison of several experiments
-* Ability to select the best performing pipeline, by sweeping transforms, the same way learners are swept.
 
 ## Longer Term
 
 ### Training Improvements
 * Add more learners, perhaps, including:  (*)
-  * Generative Additive Models
-  * [SymSGD](https://arxiv.org/pdf/1705.08030.pdf) -a fast linear SGD learner
-  * Factorization Machines
-  * [ProtoNN and Bonsaii](https://www.microsoft.com/en-us/research/project/resource-efficient-ml-for-the-edge-and-endpoint-iot-devices/) for compact and efficient models
+  * [ProtoNN and Bonsaii](https://www.microsoft.com/en-us/research/project/resource-efficient-ml-for-the-edge-and-endpoint-iot-devices/) for compact and efficient models.
 * Integration with other ML packages
   * Accord.NET
   * etc.
-* Deep Learning Support
-  * Integrate with leading DNN package(s)
-  * Support for transfer learning
-  * Hybrid training of pipelines containing both DNN and non-DNN predictors
 * Additional ML tasks  (*)
-  * _Recommendation_ - Is a problem that can be phrased a: "For a given user, predict the ratings this user would give to the items that they have not explicitly rated yet"
-  * _Anomaly Detection_, also known as _outlier detection_. It is a task to identify items, events or observations which do not conform to an expected pattern in the dataset. Typical examples are: detecting credit card fraud, medical problems or errors in text. Anomalies are also referred to as outliers, novelties, noise, deviations and exceptions
   * _Sequence Classification_ - learns from a series of examples in a sequence, and each item is assigned a distinct label, akin to a multiclass classification task
 * Additional Data source support
   * Data from SQL Databases, such as SQL Server
   * Data located on the cloud
+  * Apache Parquet
+  * Native Binary high-performance format
 * Distributed Training
   * Easily train models on the cloud
 * Whole-pipeline optimizations for both training and inference
