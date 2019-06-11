@@ -744,12 +744,17 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             Assert.True(metrics.AreaUnderPrecisionRecallCurve > 0.98);
         }
 
+        /// <summary>
+        /// Apply tree-based featurization on multiclass classification by converting key-typed labels to floats and training
+        /// a regression tree model for featurization.
+        /// </summary>
         [Fact]
         public void TreeEnsembleFeaturizingPipelineMulticlass()
         {
-            int dataPointCount = 200;
+            int dataPointCount = 1000;
             var data = SamplesUtils.DatasetUtils.GenerateRandomMulticlassClassificationExamples(dataPointCount).ToList();
             var dataView = ML.Data.LoadFromEnumerable(data);
+            dataView = ML.Data.Cache(dataView);
 
             var trainerOptions = new FastForestRegressionTrainer.Options
             {
@@ -758,7 +763,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                 NumberOfLeaves = 4,
                 MinimumExampleCountPerLeaf = 10,
                 FeatureColumnName = "Features",
-                LabelColumnName = "NumericalLabel",
+                LabelColumnName = "FloatLabel",
                 ShuffleLabels = true
             };
 
@@ -771,32 +776,38 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                 TrainerOptions = trainerOptions
             };
 
-            var lookupData = new[] {
-                new LookupMap { Category = "AA", Value = 1.0f },
-                new LookupMap { Category = "BB", Value = 2.0f },
-                new LookupMap { Category = "CC", Value = 3.0f },
-                new LookupMap { Category = "DD", Value = 4.0f }
+            Action<RowWithKey, RowWithFloat> actionConvertKeyToFloat = (RowWithKey rowWithKey, RowWithFloat rowWithFloat) =>
+            {
+                rowWithFloat.FloatLabel = rowWithKey.KeyLabel == 0 ? float.NaN : rowWithKey.KeyLabel - 1;
             };
 
-            var lookupIdvMap = ML.Data.LoadFromEnumerable(lookupData);
+            var split = ML.Data.TrainTestSplit(dataView, 0.5);
+            var trainData = split.TrainSet;
+            var testData = split.TestSet;
 
-            var pipeline = ML.Transforms.Conversion.MapValueToKey("KeyLabel", "Label").
-                Append(ML.Transforms.Conversion.MapValue("NumericalLabel", lookupIdvMap, lookupIdvMap.Schema["Category"], lookupIdvMap.Schema["Value"], "Label")).
-                Append(ML.Transforms.FeaturizeByFastForestRegression(options)).
-                Append(ML.Transforms.Concatenate("CombinedFeatures", "Features", "Trees", "Leaves", "Paths")).
-                Append(ML.MulticlassClassification.Trainers.SdcaMaximumEntropy("KeyLabel", "CombinedFeatures"));
-            var model = pipeline.Fit(dataView);
-            var prediction = model.Transform(dataView);
+            var pipeline = ML.Transforms.Conversion.MapValueToKey("KeyLabel", "Label")
+                .Append(ML.Transforms.CustomMapping(actionConvertKeyToFloat, "KeyLabel"))
+                .Append(ML.Transforms.FeaturizeByFastForestRegression(options))
+                .Append(ML.Transforms.Concatenate("CombinedFeatures", "Trees", "Leaves", "Paths"))
+                .Append(ML.MulticlassClassification.Trainers.SdcaMaximumEntropy("KeyLabel", "CombinedFeatures"));
+
+            var model = pipeline.Fit(trainData);
+            var prediction = model.Transform(testData);
             var metrics = ML.MulticlassClassification.Evaluate(prediction, labelColumnName: "KeyLabel");
 
-            Assert.True(metrics.MacroAccuracy > 0.9);
-            Assert.True(metrics.MicroAccuracy > 0.9);
+            Assert.True(metrics.MacroAccuracy > 0.6);
+            Assert.True(metrics.MicroAccuracy > 0.6);
         }
 
-        private class LookupMap
+        private class RowWithKey
         {
-            public float Value { get; set; }
-            public string Category { get; set; }
+            [KeyType()]
+            public uint KeyLabel { get; set; }
+        }
+
+        private class RowWithFloat
+        {
+            public float FloatLabel { get; set; }
         }
     }
 }
