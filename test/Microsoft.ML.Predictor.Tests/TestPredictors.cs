@@ -2186,7 +2186,7 @@ output Out [3] from H all;
         public void EnsemblesMultiClassBootstrapSelectorTest()
         {
             var pa = new PredictorAndArgs(new SubComponent("WeightedEnsembleMulticlass", "bp=mlr{t-} nm=20 st=BootstrapSelector{} tp=-"), "WE-Bootstrap");
-            Run_TrainTest(pa, TestDatasets.iris);
+            Run_TrainTest(pa, TestDatasets.iris, parseOption: NumberParseOption.UseSingle);
             Done();
         }
 
@@ -2195,7 +2195,7 @@ output Out [3] from H all;
         {
             // This one does CV as well as TrainTest.
             var pa = new PredictorAndArgs(new SubComponent("WeightedEnsemble", "nm=20  tp=-"), "WE-Default");
-            RunOneAllTests(pa, TestDatasets.breastCancer, new[] { "loader=Text{col=Label:BL:0 col=Features:R4:1-9}" });
+            RunOneAllTests(pa, TestDatasets.breastCancer, new[] { "loader=Text{col=Label:BL:0 col=Features:R4:1-9}" }, parseOption: NumberParseOption.UseSingle);
             Done();
         }
 
@@ -2203,7 +2203,7 @@ output Out [3] from H all;
         public void EnsemblesBaseLearnerTest()
         {
             var pa = new PredictorAndArgs(new SubComponent("WeightedEnsemble", "bp=AvgPer nm=3 tp=-"), "WE-AvgPer");
-            Run_TrainTest(pa, TestDatasets.breastCancer, new[] { "loader=Text{col=Label:BL:0 col=Features:R4:1-9}" });
+            Run_TrainTest(pa, TestDatasets.breastCancer, new[] { "loader=Text{col=Label:BL:0 col=Features:R4:1-9}" }, parseOption: NumberParseOption.UseSingle);
             Done();
         }
 
@@ -2211,7 +2211,7 @@ output Out [3] from H all;
         public void EnsemblesHeterogeneousTest()
         {
             var pa = new PredictorAndArgs(new SubComponent("WeightedEnsemble", "bp=svm bp=ap nm=20 tp=-"), "WE-Hetero");
-            Run_TrainTest(pa, TestDatasets.breastCancer, new[] { "loader=Text{col=Label:BL:0 col=Features:R4:1-9}" });
+            Run_TrainTest(pa, TestDatasets.breastCancer, new[] { "loader=Text{col=Label:BL:0 col=Features:R4:1-9}" }, parseOption: NumberParseOption.UseSingle);
             Done();
         }
 
@@ -2219,7 +2219,7 @@ output Out [3] from H all;
         public void EnsemblesVotingCombinerTest()
         {
             var pa = new PredictorAndArgs(new SubComponent("WeightedEnsemble", "nm=20 oc=Voting tp=-"), "WE-Voting");
-            Run_TrainTest(pa, TestDatasets.breastCancer, new[] { "loader=Text{col=Label:BL:0 col=Features:R4:1-9}" });
+            Run_TrainTest(pa, TestDatasets.breastCancer, new[] { "loader=Text{col=Label:BL:0 col=Features:R4:1-9}" }, parseOption: NumberParseOption.UseSingle);
             Done();
         }
 
@@ -2227,7 +2227,7 @@ output Out [3] from H all;
         public void EnsemblesStackingCombinerTest()
         {
             var pa = new PredictorAndArgs(new SubComponent("WeightedEnsemble", "nm=5 oc=Stacking{bp=ap} tp=-"), "WE-StackingAP");
-            Run_TrainTest(pa, TestDatasets.breastCancer, new[] { "loader=Text{col=Label:BL:0 col=Features:R4:1-9}" });
+            Run_TrainTest(pa, TestDatasets.breastCancer, new[] { "loader=Text{col=Label:BL:0 col=Features:R4:1-9}" }, parseOption: NumberParseOption.UseSingle);
             Done();
         }
 
@@ -2235,7 +2235,7 @@ output Out [3] from H all;
         public void EnsemblesAveragerCombinerTest()
         {
             var pa = new PredictorAndArgs(new SubComponent("WeightedEnsemble", "nm=20 oc=Average tp=-"), "WE-Average");
-            Run_TrainTest(pa, TestDatasets.breastCancer, new[] { "loader=Text{col=Label:BL:0 col=Features:R4:1-9}" });
+            Run_TrainTest(pa, TestDatasets.breastCancer, new[] { "loader=Text{col=Label:BL:0 col=Features:R4:1-9}" }, parseOption: NumberParseOption.UseSingle);
             Done();
         }
 
@@ -2243,7 +2243,7 @@ output Out [3] from H all;
         public void EnsemblesBestPerformanceSelectorTest()
         {
             var pa = new PredictorAndArgs(new SubComponent("WeightedEnsemble", "nm=20 pt=BestPerformanceSelector tp=-"), "WE-BestPerf");
-            Run_TrainTest(pa, TestDatasets.breastCancer, new[] { "loader=Text{col=Label:BL:0 col=Features:R4:1-9}" });
+            Run_TrainTest(pa, TestDatasets.breastCancer, new[] { "loader=Text{col=Label:BL:0 col=Features:R4:1-9}" }, parseOption: NumberParseOption.UseSingle);
             Done();
         }
 
@@ -2251,7 +2251,7 @@ output Out [3] from H all;
         public void EnsemblesBestDiverseSelectorTest()
         {
             var pa = new PredictorAndArgs(new SubComponent("WeightedEnsemble", "nm=20 pt=BestDiverseSelector tp=-"), "WE-Diverse");
-            Run_TrainTest(pa, TestDatasets.breastCancer, new[] { "loader=Text{col=Label:BL:0 col=Features:R4:1-9}" });
+            Run_TrainTest(pa, TestDatasets.breastCancer, new[] { "loader=Text{col=Label:BL:0 col=Features:R4:1-9}" }, parseOption: NumberParseOption.UseSingle);
             Done();
         }
 
@@ -2259,7 +2259,7 @@ output Out [3] from H all;
         public void EnsemblesRandomPartitionInstanceSelectorTest()
         {
             var pa = new PredictorAndArgs(new SubComponent("WeightedEnsemble", "nm=5 st=RandomPartitionSelector tp=-"), "WE-RandomPartition");
-            Run_TrainTest(pa, TestDatasets.breastCancer, new[] { "loader=Text{col=Label:BL:0 col=Features:R4:1-9}" });
+            Run_TrainTest(pa, TestDatasets.breastCancer, new[] { "loader=Text{col=Label:BL:0 col=Features:R4:1-9}" }, parseOption: NumberParseOption.UseSingle);
             Done();
         }
 
@@ -2267,7 +2267,7 @@ output Out [3] from H all;
         public void EnsemblesAllDataSetSelectorTest()
         {
             var pa = new PredictorAndArgs(new SubComponent("WeightedEnsemble", "nm=20 st=AllInstanceSelector tp=-"), "WE-All");
-            Run_TrainTest(pa, TestDatasets.breastCancer, new[] { "loader=Text{col=Label:BL:0 col=Features:R4:1-9}" });
+            Run_TrainTest(pa, TestDatasets.breastCancer, new[] { "loader=Text{col=Label:BL:0 col=Features:R4:1-9}" }, parseOption: NumberParseOption.UseSingle);
             Done();
         }
 
@@ -2275,7 +2275,7 @@ output Out [3] from H all;
         public void EnsemblesRandomSubSpaceSelectorTest()
         {
             var pa = new PredictorAndArgs(new SubComponent("WeightedEnsemble", "nm=20 st=AllInstanceSelector{fs=RandomFeatureSelector} tp=-"), "WE-RandomFeature");
-            Run_TrainTest(pa, TestDatasets.breastCancer, new[] { "loader=Text{col=Label:BL:0 col=Features:R4:1-9}" });
+            Run_TrainTest(pa, TestDatasets.breastCancer, new[] { "loader=Text{col=Label:BL:0 col=Features:R4:1-9}" }, parseOption: NumberParseOption.UseSingle);
             Done();
         }
 
@@ -2283,7 +2283,7 @@ output Out [3] from H all;
         public void EnsemblesMultiAveragerTest()
         {
             var pa = new PredictorAndArgs(new SubComponent("WeightedEnsembleMulticlass", "bp=mlr{t-} nm=5 oc=MultiAverage tp=-"), "WE-Average");
-            Run_TrainTest(pa, TestDatasets.iris);
+            Run_TrainTest(pa, TestDatasets.iris, parseOption: NumberParseOption.UseSingle);
             Done();
         }
 
@@ -2291,7 +2291,7 @@ output Out [3] from H all;
         public void EnsemblesMultiVotingCombinerTest()
         {
             var pa = new PredictorAndArgs(new SubComponent("WeightedEnsembleMulticlass", "bp=mlr{t-} nm=5 oc=MultiVoting tp=-"), "WE-Voting");
-            Run_TrainTest(pa, TestDatasets.iris);
+            Run_TrainTest(pa, TestDatasets.iris, parseOption: NumberParseOption.UseSingle);
             Done();
         }
 
@@ -2299,7 +2299,7 @@ output Out [3] from H all;
         public void EnsemblesMultiStackCombinerTest()
         {
             var pa = new PredictorAndArgs(new SubComponent("WeightedEnsembleMulticlass", "bp=mlr{t-} nm=5 oc=MultiStacking{bp=mlr{t-}} tp=-"), "WE-Stacking");
-            Run_TrainTest(pa, TestDatasets.iris);
+            Run_TrainTest(pa, TestDatasets.iris, parseOption: NumberParseOption.UseSingle);
             Done();
         }
 
@@ -2307,7 +2307,7 @@ output Out [3] from H all;
         public void EnsemblesMultiAveragerSDCATest()
         {
             var pa = new PredictorAndArgs(new SubComponent("WeightedEnsembleMulticlass", "bp=SDCAMC{nt=1} nm=5 oc=MultiAverage tp=-"), "WE-SDCA-Average");
-            Run_TrainTest(pa, TestDatasets.iris);
+            Run_TrainTest(pa, TestDatasets.iris, parseOption: NumberParseOption.UseSingle);
             Done();
         }
     }
