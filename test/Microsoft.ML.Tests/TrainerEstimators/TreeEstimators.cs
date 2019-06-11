@@ -459,7 +459,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         }
 
         /// <summary>
-        /// LightGbmMulticlass UsingSigmoids test 
+        /// Test LightGBM's sigmoid parameter with a custom value. This test checks if ML.NET and LightGBM produce the same result.
         /// </summary>
         [LightGBMFact]
         public void LightGbmMulticlassEstimatorCompareOvaUsingSigmoids()
