@@ -29,10 +29,10 @@ namespace Microsoft.ML.Transforms.Onnx
         /// </summary>
         public sealed class OnnxModelInfo
         {
-            public readonly OnnxVariableInfo[] InputsInfo;
-            public readonly OnnxVariableInfo[] OutputsInfo;
+            public readonly OnnxNodeInfo[] InputsInfo;
+            public readonly OnnxNodeInfo[] OutputsInfo;
 
-            public OnnxModelInfo(IEnumerable<OnnxVariableInfo> inputsInfo, IEnumerable<OnnxVariableInfo> outputsInfo)
+            public OnnxModelInfo(IEnumerable<OnnxNodeInfo> inputsInfo, IEnumerable<OnnxNodeInfo> outputsInfo)
             {
                 InputsInfo = inputsInfo.ToArray();
                 OutputsInfo = outputsInfo.ToArray();
@@ -43,7 +43,7 @@ namespace Microsoft.ML.Transforms.Onnx
         /// OnnxNodeInfo contains all the information for a given node (e.g. inputs/outputs)
         /// of an Onnx model.
         /// </summary>
-        public class OnnxVariableInfo
+        public class OnnxNodeInfo
         {
             /// <summary>
             /// The Name of the node
@@ -58,7 +58,7 @@ namespace Microsoft.ML.Transforms.Onnx
             /// </summary>
             public readonly System.Type Type;
 
-            public OnnxVariableInfo(string name, OnnxShape shape, System.Type type)
+            public OnnxNodeInfo(string name, OnnxShape shape, System.Type type)
             {
                 Name = name;
                 Shape = shape;
@@ -163,18 +163,18 @@ namespace Microsoft.ML.Transforms.Onnx
         /// Returns input metadata of the ONNX model.
         /// </summary>
         /// <returns>OnnxNodeInfo[]</returns>
-        private IEnumerable<OnnxVariableInfo> GetInputsInfo()
+        private IEnumerable<OnnxNodeInfo> GetInputsInfo()
         {
-            return _session.InputMetadata.Select(kv => new OnnxVariableInfo(kv.Key, kv.Value.Dimensions.ToList(), kv.Value.ElementType));
+            return _session.InputMetadata.Select(kv => new OnnxNodeInfo(kv.Key, kv.Value.Dimensions.ToList(), kv.Value.ElementType));
         }
 
         /// <summary>
         /// Returns output metadata of the ONNX model.
         /// </summary>
         /// <returns></returns>
-        private IEnumerable<OnnxVariableInfo> GetOutputsInfo()
+        private IEnumerable<OnnxNodeInfo> GetOutputsInfo()
         {
-            return _session.OutputMetadata.Select(kv => new OnnxVariableInfo(kv.Key, kv.Value.Dimensions.ToList(), kv.Value.ElementType));
+            return _session.OutputMetadata.Select(kv => new OnnxNodeInfo(kv.Key, kv.Value.Dimensions.ToList(), kv.Value.ElementType));
         }
     }
 
