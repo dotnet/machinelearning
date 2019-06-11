@@ -2195,7 +2195,7 @@ output Out [3] from H all;
         {
             // This one does CV as well as TrainTest.
             var pa = new PredictorAndArgs(new SubComponent("WeightedEnsemble", "nm=20  tp=-"), "WE-Default");
-            RunOneAllTests(pa, TestDatasets.breastCancer, new[] { "loader=Text{col=Label:BL:0 col=Features:R4:1-9}" }, digitsOfPrecision: 6, parseOption: NumberParseOption.UseSingle);
+            RunOneAllTests(pa, TestDatasets.breastCancer, new[] { "loader=Text{col=Label:BL:0 col=Features:R4:1-9}" }, digitsOfPrecision: 5, parseOption: NumberParseOption.UseSingle);
             Done();
         }
 
@@ -2203,7 +2203,7 @@ output Out [3] from H all;
         public void EnsemblesBaseLearnerTest()
         {
             var pa = new PredictorAndArgs(new SubComponent("WeightedEnsemble", "bp=AvgPer nm=3 tp=-"), "WE-AvgPer");
-            Run_TrainTest(pa, TestDatasets.breastCancer, new[] { "loader=Text{col=Label:BL:0 col=Features:R4:1-9}" }, digitsOfPrecision: 6, parseOption: NumberParseOption.UseSingle);
+            Run_TrainTest(pa, TestDatasets.breastCancer, new[] { "loader=Text{col=Label:BL:0 col=Features:R4:1-9}" }, digitsOfPrecision: 5, parseOption: NumberParseOption.UseSingle);
             Done();
         }
 
@@ -2211,7 +2211,7 @@ output Out [3] from H all;
         public void EnsemblesHeterogeneousTest()
         {
             var pa = new PredictorAndArgs(new SubComponent("WeightedEnsemble", "bp=svm bp=ap nm=20 tp=-"), "WE-Hetero");
-            Run_TrainTest(pa, TestDatasets.breastCancer, new[] { "loader=Text{col=Label:BL:0 col=Features:R4:1-9}" }, digitsOfPrecision: 6, parseOption: NumberParseOption.UseSingle);
+            Run_TrainTest(pa, TestDatasets.breastCancer, new[] { "loader=Text{col=Label:BL:0 col=Features:R4:1-9}" }, digitsOfPrecision: 5, parseOption: NumberParseOption.UseSingle);
             Done();
         }
 
@@ -2243,7 +2243,7 @@ output Out [3] from H all;
         public void EnsemblesBestPerformanceSelectorTest()
         {
             var pa = new PredictorAndArgs(new SubComponent("WeightedEnsemble", "nm=20 pt=BestPerformanceSelector tp=-"), "WE-BestPerf");
-            Run_TrainTest(pa, TestDatasets.breastCancer, new[] { "loader=Text{col=Label:BL:0 col=Features:R4:1-9}" }, digitsOfPrecision: 5, parseOption: NumberParseOption.UseSingle);
+            Run_TrainTest(pa, TestDatasets.breastCancer, new[] { "loader=Text{col=Label:BL:0 col=Features:R4:1-9}" }, digitsOfPrecision: 4, parseOption: NumberParseOption.UseSingle);
             Done();
         }
 
@@ -2259,7 +2259,7 @@ output Out [3] from H all;
         public void EnsemblesRandomPartitionInstanceSelectorTest()
         {
             var pa = new PredictorAndArgs(new SubComponent("WeightedEnsemble", "nm=5 st=RandomPartitionSelector tp=-"), "WE-RandomPartition");
-            Run_TrainTest(pa, TestDatasets.breastCancer, new[] { "loader=Text{col=Label:BL:0 col=Features:R4:1-9}" }, digitsOfPrecision: 5, parseOption: NumberParseOption.UseSingle);
+            Run_TrainTest(pa, TestDatasets.breastCancer, new[] { "loader=Text{col=Label:BL:0 col=Features:R4:1-9}" }, digitsOfPrecision: 4, parseOption: NumberParseOption.UseSingle);
             Done();
         }
 
@@ -2275,7 +2275,7 @@ output Out [3] from H all;
         public void EnsemblesRandomSubSpaceSelectorTest()
         {
             var pa = new PredictorAndArgs(new SubComponent("WeightedEnsemble", "nm=20 st=AllInstanceSelector{fs=RandomFeatureSelector} tp=-"), "WE-RandomFeature");
-            Run_TrainTest(pa, TestDatasets.breastCancer, new[] { "loader=Text{col=Label:BL:0 col=Features:R4:1-9}" }, digitsOfPrecision: 6, parseOption: NumberParseOption.UseSingle);
+            Run_TrainTest(pa, TestDatasets.breastCancer, new[] { "loader=Text{col=Label:BL:0 col=Features:R4:1-9}" }, digitsOfPrecision: 5, parseOption: NumberParseOption.UseSingle);
             Done();
         }
 
