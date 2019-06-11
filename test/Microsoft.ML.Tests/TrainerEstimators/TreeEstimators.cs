@@ -495,7 +495,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         }
 
         /// <summary>
-        /// LightGbmMulticlass UsingDifferentSigmoids test 
+        /// Make sure different sigmoid parameters produce different scores. In this test, two LightGBM models are trained with two different sigmoid values.
         /// </summary>
         [LightGBMFact]
         public void LightGbmMulticlassEstimatorCompareOvaUsingDifferentSigmoids()
