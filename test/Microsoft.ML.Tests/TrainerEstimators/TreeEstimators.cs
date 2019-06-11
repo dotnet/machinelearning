@@ -319,7 +319,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             public float[] Score;
         }
 
-        private void LightGbmHelper(bool useSoftmax, out string modelString, out List<GbmExample> mlnetPredictions, out double[] lgbmRawScores, out double[] lgbmProbabilities, double sigmoid = .5)
+        private void LightGbmHelper(bool useSoftmax, double sigmoid, out string modelString, out List<GbmExample> mlnetPredictions, out double[] lgbmRawScores, out double[] lgbmProbabilities)
         {
             // Prepare data and train LightGBM model via ML.NET
             // Training matrix. It contains all feature vectors.
@@ -429,14 +429,15 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         [LightGBMFact]
         public void LightGbmMulticlassEstimatorCompareOva()
         {
+            float sigmoidScale = 0.5f; // Constant used train LightGBM. See gbmParams["sigmoid"] in the helper function.
+
             // Train ML.NET LightGBM and native LightGBM and apply the trained models to the training set.
-            LightGbmHelper(useSoftmax: false, out string modelString, out List<GbmExample> mlnetPredictions, out double[] nativeResult1, out double[] nativeResult0);
+            LightGbmHelper(useSoftmax: false, sigmoid: sigmoidScale, out string modelString, out List<GbmExample> mlnetPredictions, out double[] nativeResult1, out double[] nativeResult0);
 
             // The i-th predictor returned by LightGBM produces the raw score, denoted by z_i, of the i-th class.
             // Assume that we have n classes in total. The i-th class probability can be computed via
             // p_i = sigmoid(sigmoidScale * z_i) / (sigmoid(sigmoidScale * z_1) + ... + sigmoid(sigmoidScale * z_n)).
             Assert.True(modelString != null);
-            float sigmoidScale = 0.5f; // Constant used train LightGBM. See gbmParams["sigmoid"] in the helper function.
             // Compare native LightGBM's and ML.NET's LightGBM results example by example
             for (int i = 0; i < _rowNumber; ++i)
             {
@@ -466,7 +467,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         {
             var sigmoidScale = .790;
             // Train ML.NET LightGBM and native LightGBM and apply the trained models to the training set.
-            LightGbmHelper(useSoftmax: false, out string modelString, out List<GbmExample> mlnetPredictions, out double[] nativeResult1, out double[] nativeResult0, sigmoid: sigmoidScale);
+            LightGbmHelper(useSoftmax: false, sigmoid: sigmoidScale, out string modelString, out List<GbmExample> mlnetPredictions, out double[] nativeResult1, out double[] nativeResult0);
 
             // The i-th predictor returned by LightGBM produces the raw score, denoted by z_i, of the i-th class.
             // Assume that we have n classes in total. The i-th class probability can be computed via
@@ -505,8 +506,8 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             var secondSigmoidScale = .2;
 
             // Train native LightGBM with both sigmoid values and apply the trained models to the training set.
-            LightGbmHelper(useSoftmax: false, out string firstModelString, out List<GbmExample> firstMlnetPredictions, out double[] firstNativeResult1, out double[] firstNativeResult0, sigmoid: firstSigmoidScale);
-            LightGbmHelper(useSoftmax: false, out string secondModelString, out List<GbmExample> secondMlnetPredictions, out double[] secondNativeResult1, out double[] secondNativeResult0, sigmoid: secondSigmoidScale);
+            LightGbmHelper(useSoftmax: false, sigmoid: firstSigmoidScale, out string firstModelString, out List<GbmExample> firstMlnetPredictions, out double[] firstNativeResult1, out double[] firstNativeResult0);
+            LightGbmHelper(useSoftmax: false, sigmoid: secondSigmoidScale, out string secondModelString, out List<GbmExample> secondMlnetPredictions, out double[] secondNativeResult1, out double[] secondNativeResult0);
 
             // Compare native LightGBM's results when 2 different sigmoid values are used.
             for (int i = 0; i < _rowNumber; ++i)
@@ -538,7 +539,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         public void LightGbmMulticlassEstimatorCompareSoftMax()
         {
             // Train ML.NET LightGBM and native LightGBM and apply the trained models to the training set.
-            LightGbmHelper(useSoftmax: true, out string modelString, out List<GbmExample> mlnetPredictions, out double[] nativeResult1, out double[] nativeResult0);
+            LightGbmHelper(useSoftmax: true, sigmoid: .5, out string modelString, out List<GbmExample> mlnetPredictions, out double[] nativeResult1, out double[] nativeResult0);
 
             // The i-th predictor returned by LightGBM produces the raw score, denoted by z_i, of the i-th class.
             // Assume that we have n classes in total. The i-th class probability can be computed via
