@@ -167,7 +167,8 @@ namespace Microsoft.ML.Trainers.LightGbm
             static Options()
             {
                 NameMapping.Add(nameof(EvaluateMetricType), "metric");
-                NameMapping.Add(nameof(EvaluateMetricType.None), "");
+                NameMapping.Add(nameof(EvaluateMetricType.None), "None");
+                NameMapping.Add(nameof(EvaluateMetricType.Default), "");
                 NameMapping.Add(nameof(EvaluateMetricType.Logloss), "binary_logloss");
                 NameMapping.Add(nameof(EvaluateMetricType.Error), "binary_error");
                 NameMapping.Add(nameof(EvaluateMetricType.AreaUnderCurve), "auc");
@@ -180,8 +181,7 @@ namespace Microsoft.ML.Trainers.LightGbm
                 res[GetOptionName(nameof(UnbalancedSets))] = UnbalancedSets;
                 res[GetOptionName(nameof(WeightOfPositiveExamples))] = WeightOfPositiveExamples;
                 res[GetOptionName(nameof(Sigmoid))] = Sigmoid;
-                if (EvaluationMetric != EvaluateMetricType.Default)
-                    res[GetOptionName(nameof(EvaluateMetricType))] = GetOptionName(EvaluationMetric.ToString());
+                res[GetOptionName(nameof(EvaluateMetricType))] = GetOptionName(EvaluationMetric.ToString());
 
                 return res;
             }
