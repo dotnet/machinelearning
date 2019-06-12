@@ -22,7 +22,6 @@ namespace Microsoft.ML.CLI.Telemetry.Events
                 new Dictionary<string, string>
                 {
                     { "Cache", Utils.GetCacheSettings(AutoTrainCommandSettings.Cache).ToString() },
-                    { "Command", "auto-train" },
                     { "CommandLineParametersUsed", string.Join(",", CommandLineParametersUsed) },
                     { "FilenameHash", HashFilename(AutoTrainCommandSettings.Dataset.Name) },
                     { "FileSizeBucket", GetFileSizeBucketStr(AutoTrainCommandSettings.Dataset) },
