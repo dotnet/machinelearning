@@ -126,7 +126,7 @@ namespace Microsoft.ML.Trainers.LightGbm
             /// <summary>
             /// Comma-separated list of gains associated with each relevance label.
             /// </summary>
-            [Argument(ArgumentType.AtMostOnce, HelpText = "An array of gains associated to each relevance label.", ShortName = "gains")]
+            [Argument(ArgumentType.Multiple, HelpText = "An array of gains associated to each relevance label.", ShortName = "gains")]
             [TGUI(Label = "Ranking Label Gain")]
             public int[] CustomGains = { 0, 3, 7, 15, 31, 63, 127, 255, 511, 1023, 2047, 4095 };
 
