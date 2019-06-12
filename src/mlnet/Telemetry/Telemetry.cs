@@ -14,6 +14,7 @@ using Microsoft.DotNet.Cli.Utils;
 using Microsoft.DotNet.Configurer;
 using Microsoft.DotNet.PlatformAbstractions;
 using Microsoft.ML.AutoML;
+using Microsoft.ML.CLI.Commands;
 
 namespace Microsoft.ML.CLI.Telemetry
 {
@@ -182,6 +183,8 @@ namespace Microsoft.ML.CLI.Telemetry
                     }
                 }
             }
+
+            eventProperties["Command"] = CommandDefinitions.AutoTrainCommandName;
 
             return eventProperties;
         }

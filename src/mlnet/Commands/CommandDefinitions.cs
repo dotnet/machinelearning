@@ -14,9 +14,11 @@ namespace Microsoft.ML.CLI.Commands
 {
     internal static class CommandDefinitions
     {
+        public const string AutoTrainCommandName = "auto-train";
+
         internal static System.CommandLine.Command AutoTrain(ICommandHandler handler)
         {
-            var newCommand = new System.CommandLine.Command("auto-train", "Create a new .NET project using ML.NET to train and run a model", handler: handler)
+            var newCommand = new System.CommandLine.Command(AutoTrainCommandName, "Create a new .NET project using ML.NET to train and run a model", handler: handler)
             {
                 MlTask(),
                 Dataset(),
