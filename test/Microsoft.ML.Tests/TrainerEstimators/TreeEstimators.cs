@@ -293,7 +293,10 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             var pipe = pipeline.Append(trainer)
                     .Append(new KeyToValueMappingEstimator(Env, "PredictedLabel"));
             TestEstimatorCore(pipe, dataView);
+            Done();
+        }
 
+        /// <summary>
         /// LightGbmMulticlass CorrectSigmoid test 
         /// </summary>
         [LightGBMFact]
@@ -316,7 +319,6 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             // The slope in the all the calibrators should be equal to the negative of the sigmoid passed into the trainer.
             Assert.True(model.Model.SubModelParameters.All(predictor =>
             ((FeatureWeightsCalibratedModelParameters<LightGbmBinaryModelParameters, PlattCalibrator>)predictor).Calibrator.Slope == -sigmoid));
-
             Done();
         }
 
