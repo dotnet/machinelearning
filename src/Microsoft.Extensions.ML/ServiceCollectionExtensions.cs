@@ -38,7 +38,7 @@ namespace Microsoft.Extensions.ML
         {
             services.AddLogging();
             services.AddOptions();
-            services.TryAddEnumerable(ServiceDescriptor.Singleton<IPostConfigureOptions<MLContextOptions>, PostMLContextOptionsConfiguration>());
+            services.TryAddEnumerable(ServiceDescriptor.Singleton<IPostConfigureOptions<MLOptions>, PostMLContextOptionsConfiguration>());
             services.AddSingleton<PredictionEnginePool<TData, TPrediction>, PredictionEnginePool<TData, TPrediction>>();
             return services;
         }

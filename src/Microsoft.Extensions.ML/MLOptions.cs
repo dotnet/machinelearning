@@ -9,31 +9,36 @@ using Microsoft.ML;
 namespace Microsoft.Extensions.ML
 {
     /// <summary>
-    /// Provides an options class for MLContext objects.
+    /// Provides options for ML.NET objects.
     /// </summary>
-    public class MLContextOptions
+    public class MLOptions
     {
+        private MLContext _context;
+
         /// <summary>
-        /// Initializes a new instance of <see cref="MLContextOptions"/>.
+        /// Initializes a new instance of <see cref="MLOptions"/>.
         /// </summary>
-        public MLContextOptions()
+        public MLOptions()
         {
-            MLContext = new MLContext();
         }
 
         /// <summary>
         /// The <see cref="MLContext "/> which all the ML.NET operations happen.
         /// </summary>
-        public MLContext MLContext { get; set; }
+        public MLContext MLContext
+        {
+            get { return _context ?? (_context = new MLContext()); }
+            set { _context = value; }
+        }
     }
 
     /// <summary>
-    /// Configures the <see cref="MLContextOptions"/> type.
+    /// Configures the <see cref="MLOptions"/> type.
     /// </summary>
     /// <remarks>
     /// Note: This is run after all <see cref="IConfigureOptions{MLContextOptions}"/>.
     /// </remarks>
-    public class PostMLContextOptionsConfiguration : IPostConfigureOptions<MLContextOptions>
+    internal class PostMLContextOptionsConfiguration : IPostConfigureOptions<MLOptions>
     {
         private readonly ILogger<MLContext> _logger;
 
@@ -47,7 +52,7 @@ namespace Microsoft.Extensions.ML
         }
 
         /// <inheritdoc />
-        public void PostConfigure(string name, MLContextOptions options)
+        public void PostConfigure(string name, MLOptions options)
         {
             options.MLContext.Log += Log;
         }

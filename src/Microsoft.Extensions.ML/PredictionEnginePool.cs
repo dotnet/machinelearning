@@ -17,14 +17,14 @@ namespace Microsoft.Extensions.ML
         where TData : class
         where TPrediction : class, new()
     {
-        private readonly MLContextOptions _mlContextOptions;
+        private readonly MLOptions _mlContextOptions;
         private readonly IOptionsFactory<PredictionEnginePoolOptions<TData, TPrediction>> _predictionEngineOptions;
         private readonly IServiceProvider _serviceProvider;
         private readonly PoolLoader<TData,TPrediction> _defaultEnginePool;
         private readonly Dictionary<string, PoolLoader<TData, TPrediction>> _namedPools;
 
         public PredictionEnginePool(IServiceProvider serviceProvider,
-                                    IOptions<MLContextOptions> mlContextOptions,
+                                    IOptions<MLOptions> mlContextOptions,
                                     IOptionsFactory<PredictionEnginePoolOptions<TData, TPrediction>> predictionEngineOptions)
         {
             _mlContextOptions = mlContextOptions.Value;

@@ -9,6 +9,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Primitives;
+using Microsoft.ML.Data;
 using Xunit;
 
 namespace Microsoft.Extensions.ML
@@ -40,6 +41,11 @@ namespace Microsoft.Extensions.ML
             loaderUnderTest.Start(Path.Combine("TestModels", "SentimentModel.zip"), false);
 
             var model = loaderUnderTest.GetModel();
+            var context = sp.GetRequiredService<IOptions<MLOptions>>().Value.MLContext;
+            var engine = context.Model.CreatePredictionEngine<SentimentData, SentimentPrediction>(model);
+
+            var prediction = engine.Predict(new SentimentData() { SentimentText = "This is great" });
+            Assert.True(prediction.Sentiment);
         }
 
         //TODO: This is a quick test to give coverage of the main scenarios. Refactoring and re-implementing of tests should happen.
@@ -52,7 +58,7 @@ namespace Microsoft.Extensions.ML
                 .AddLogging();
             var sp = services.BuildServiceProvider();
 
-            var loaderUnderTest = ActivatorUtilities.CreateInstance<FileLoaderDouble>(sp);
+            var loaderUnderTest = ActivatorUtilities.CreateInstance<FileLoaderMock>(sp);
             loaderUnderTest.Start("testdata.txt", true);
 
             var changed = false;
@@ -68,15 +74,33 @@ namespace Microsoft.Extensions.ML
         }
 
 
-        private class FileLoaderDouble : FileModelLoader
+        private class FileLoaderMock : FileModelLoader
         {
-            public FileLoaderDouble(IOptions<MLContextOptions> contextOptions, ILogger<FileModelLoader> logger) : base(contextOptions, logger)
+            public FileLoaderMock(IOptions<MLOptions> contextOptions, ILogger<FileModelLoader> logger)
+                : base(contextOptions, logger)
             {
             }
 
             internal override void LoadModel()
             {
             }
+        }
+
+        public class SentimentData
+        {
+            [ColumnName("Label"), LoadColumn(0)]
+            public bool Sentiment;
+
+            [LoadColumn(1)]
+            public string SentimentText;
+        }
+
+        public class SentimentPrediction
+        {
+            [ColumnName("PredictedLabel")]
+            public bool Sentiment;
+
+            public float Score;
         }
     }
 }

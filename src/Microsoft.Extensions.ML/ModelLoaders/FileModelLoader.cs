@@ -25,7 +25,7 @@ namespace Microsoft.Extensions.ML
 
         private readonly object _lock;
 
-        public FileModelLoader(IOptions<MLContextOptions> contextOptions, ILogger<FileModelLoader> logger)
+        public FileModelLoader(IOptions<MLOptions> contextOptions, ILogger<FileModelLoader> logger)
         {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _context = contextOptions.Value?.MLContext ?? throw new ArgumentNullException(nameof(contextOptions));

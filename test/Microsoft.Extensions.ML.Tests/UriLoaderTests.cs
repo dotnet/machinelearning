@@ -37,7 +37,7 @@ namespace Microsoft.Extensions.ML
                 .AddLogging();
             var sp = services.BuildServiceProvider();
 
-            var loaderUnderTest = ActivatorUtilities.CreateInstance<UriDouble>(sp);
+            var loaderUnderTest = ActivatorUtilities.CreateInstance<UriLoaderMock>(sp);
             loaderUnderTest.Start(new Uri("http://microsoft.com"), TimeSpan.FromMilliseconds(1));
 
             var changed = false;
@@ -56,7 +56,7 @@ namespace Microsoft.Extensions.ML
                 .AddLogging();
             var sp = services.BuildServiceProvider();
 
-            var loaderUnderTest = ActivatorUtilities.CreateInstance<UriDouble>(sp);
+            var loaderUnderTest = ActivatorUtilities.CreateInstance<UriLoaderMock>(sp);
 
             loaderUnderTest.ETagMatches = (a,b) => true;
 
@@ -71,11 +71,11 @@ namespace Microsoft.Extensions.ML
         }
     }
 
-    class UriDouble : UriModelLoader
+    class UriLoaderMock : UriModelLoader
     {
         public Func<Uri, string, bool> ETagMatches { get; set; } = (_, __) => false;
 
-        public UriDouble(IOptions<MLContextOptions> contextOptions,
+        public UriLoaderMock(IOptions<MLOptions> contextOptions,
                          ILogger<UriModelLoader> logger) : base(contextOptions, logger)
         {
         }

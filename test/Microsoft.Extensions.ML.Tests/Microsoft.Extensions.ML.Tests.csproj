@@ -12,6 +12,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <NativeAssemblyReference Include="CpuMathNative" />
+  </ItemGroup>
+  
+  <ItemGroup>
     <None Update="testdata.txt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>

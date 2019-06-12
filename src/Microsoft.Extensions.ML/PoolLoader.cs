@@ -24,7 +24,7 @@ namespace Microsoft.Extensions.ML
 
         public PoolLoader(IServiceProvider sp, PredictionEnginePoolOptions<TData, TPrediction> poolOptions)
         {
-            var contextOptions = sp.GetRequiredService<IOptions<MLContextOptions>>();
+            var contextOptions = sp.GetRequiredService<IOptions<MLOptions>>();
             Context = contextOptions.Value.MLContext ?? throw new ArgumentNullException(nameof(contextOptions));
             Loader = poolOptions.ModelLoader ?? throw new ArgumentNullException(nameof(poolOptions));
 

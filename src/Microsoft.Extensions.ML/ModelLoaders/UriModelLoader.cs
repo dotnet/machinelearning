@@ -32,7 +32,7 @@ namespace Microsoft.Extensions.ML
         private readonly CancellationTokenSource _stopping;
         private bool _started;
 
-        public UriModelLoader(IOptions<MLContextOptions> contextOptions, ILogger<UriModelLoader> logger)
+        public UriModelLoader(IOptions<MLOptions> contextOptions, ILogger<UriModelLoader> logger)
         {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _context = contextOptions.Value?.MLContext;
