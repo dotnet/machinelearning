@@ -30,6 +30,7 @@
     <NativeAssemblyReference Include="FactorizationMachineNative" />
     <NativeAssemblyReference Include="LdaNative" />
     <NativeAssemblyReference Include="SymSgdNative" />
+    <NativeAssemblyReference Include="MklProxyNative" />
     <None Include="Dynamic\Trainers\BinaryClassification\FastForest.cs">
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>

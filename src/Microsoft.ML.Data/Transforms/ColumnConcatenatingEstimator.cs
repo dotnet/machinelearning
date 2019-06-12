@@ -54,6 +54,7 @@ namespace Microsoft.ML.Transforms
 
             _host.CheckNonEmpty(outputColumnName, nameof(outputColumnName));
             _host.CheckValue(inputColumnNames, nameof(inputColumnNames));
+            _host.CheckParam(inputColumnNames.Length > 0, nameof(inputColumnNames), "Input columns not specified");
             _host.CheckParam(!inputColumnNames.Any(r => string.IsNullOrEmpty(r)), nameof(inputColumnNames),
                 "Contained some null or empty items");
 
