@@ -185,7 +185,7 @@ namespace Microsoft.ML.Trainers.LightGbm
             for (int i = 0; i < _tlcNumClass; ++i)
             {
                 var pred = CreateBinaryPredictor(i, innerArgs);
-                var cali = new PlattCalibrator(Host, -0.5, 0);
+                var cali = new PlattCalibrator(Host, -LightGbmTrainerOptions.Sigmoid, 0);
                 predictors[i] = new FeatureWeightsCalibratedModelParameters<LightGbmBinaryModelParameters, PlattCalibrator>(Host, pred, cali);
             }
             string obj = (string)GetGbmParameters()["objective"];
