@@ -121,7 +121,7 @@ namespace Microsoft.ML.CLI
             // Send exit telemetry
             ApplicationExitEvent.TrackEvent(exitCode, commandParseSucceeded, stopwatch.Elapsed, ex);
             // Flush pending telemetry logs
-            Telemetry.Telemetry.Flush(TimeSpan.FromSeconds(1));
+            Telemetry.Telemetry.Flush(TimeSpan.FromSeconds(3));
             Environment.Exit(exitCode);
         }
     }
