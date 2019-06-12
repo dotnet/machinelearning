@@ -7,7 +7,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.ApplicationInsights;
 using Microsoft.DotNet.Cli.Telemetry;
@@ -27,7 +26,6 @@ namespace Microsoft.ML.CLI.Telemetry
         private static Dictionary<string, string> _commonProperties;
         private static bool _enabled;
         private static Task _initializationTask;
-        private static int _outstandingTelemetryEventCount;
 
         private const string InstrumentationKey = "c059917c-818d-489a-bfcb-351eaab73f2a";
         private const string MlTelemetryOptout = "MLDOTNET_CLI_TELEMETRY_OPTOUT";
@@ -59,25 +57,19 @@ namespace Microsoft.ML.CLI.Telemetry
             {
                 return;
             }
-            // Increment count of outstanding telemetry events.
-            Interlocked.Increment(ref _outstandingTelemetryEventCount);
             _initializationTask.ContinueWith(x => TrackEventTask(eventName, properties, duration, ex));
         }
 
         /// <summary>
-        /// Wait for all outstanding telemetry tasks to complete.
+        /// Flush outstanding telemetry, and wait for the specified timeout for this to complete.
         /// </summary>
         public static void Flush(TimeSpan timeout)
         {
-            var sw = Stopwatch.StartNew();
-            while (sw.Elapsed < timeout)
+            if (!_enabled || _client == null)
             {
-                if (_outstandingTelemetryEventCount == 0)
-                {
-                    break;
-                }
-                Task.Delay(200).Wait();
+                return;
             }
+            Task.Run(() => _client.Flush()).Wait(timeout);
         }
 
         /// <summary>
@@ -149,20 +141,20 @@ namespace Microsoft.ML.CLI.Telemetry
             TimeSpan? duration,
             Exception ex)
         {
-            if (_client != null)
+            if (_client == null)
             {
-                try
-                {
-                    var eventProperties = GetEventProperties(properties, duration, ex);
-                    _client.TrackEvent(eventName, eventProperties);
-                    _client.Flush();
-                }
-                catch (Exception e)
-                {
-                    Debug.Fail(e.ToString());
-                }
+                return;
             }
-            Interlocked.Decrement(ref _outstandingTelemetryEventCount);
+
+            try
+            {
+                var eventProperties = GetEventProperties(properties, duration, ex);
+                _client.TrackEvent(eventName, eventProperties);
+            }
+            catch (Exception e)
+            {
+                Debug.Fail(e.ToString());
+            }
         }
 
         private static Dictionary<string, string> GetEventProperties(IDictionary<string, string> properties,
