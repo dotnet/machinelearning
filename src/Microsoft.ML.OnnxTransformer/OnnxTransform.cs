@@ -195,7 +195,8 @@ namespace Microsoft.ML.Transforms.Onnx
                 var outputNodeInfo = Model.ModelInfo.OutputsInfo[idx];
                 var shape = outputNodeInfo.Shape;
                 var dims = AdjustDimensions(shape);
-                OutputTypes[i] = new VectorDataViewType(OnnxUtils.OnnxToMlNetType(outputNodeInfo.Type), dims.ToArray());
+                // OutputTypes[i] = new VectorDataViewType(OnnxUtils.OnnxToMlNetType(outputNodeInfo.Type), dims.ToArray());
+                OutputTypes[i] = Model.OutputTypes[i];
             }
             _options = options;
         }
@@ -420,13 +421,24 @@ namespace Microsoft.ML.Transforms.Onnx
 
                 var outputCache = new OutputCache();
                 var activeOutputColNames = _parent.Outputs.Where((x, i) => activeOutput(i)).ToArray();
-                var type = OnnxUtils.OnnxToMlNetType(_parent.Model.ModelInfo.OutputsInfo[iinfo].Type).RawType;
-                Host.Assert(type == _parent.OutputTypes[iinfo].GetItemType().RawType);
-                var srcNamedValueGetters = GetNamedOnnxValueGetters(input, _parent.Inputs, _inputColIndices, _isInputVector, _inputOnnxTypes, _inputTensorShapes);
-                return Utils.MarshalInvoke(MakeGetter<int>, type, input, iinfo, srcNamedValueGetters, activeOutputColNames, outputCache);
+
+                if (_parent.Model.OutputTypes[iinfo] is VectorDataViewType)
+                {
+                    //var type = _parent.OutputTypes[iinfo].RawType;
+                    var type = OnnxUtils.OnnxToMlNetType(_parent.Model.ModelInfo.OutputsInfo[iinfo].Type).RawType;
+                    //Host.Assert(type == _parent.OutputTypes[iinfo].GetItemType().RawType);
+                    var srcNamedValueGetters = GetNamedOnnxValueGetters(input, _parent.Inputs, _inputColIndices, _isInputVector, _inputOnnxTypes, _inputTensorShapes);
+                    return Utils.MarshalInvoke(MakeTensorGetter<int>, type, input, iinfo, srcNamedValueGetters, activeOutputColNames, outputCache);
+                }
+                else
+                {
+                    var type = _parent.Model.OutputTypes[iinfo].RawType;
+                    var srcNamedValueGetters = GetNamedOnnxValueGetters(input, _parent.Inputs, _inputColIndices, _isInputVector, _inputOnnxTypes, _inputTensorShapes);
+                    return Utils.MarshalInvoke(MakeObjectGetter<int>, type, input, iinfo, srcNamedValueGetters, activeOutputColNames, outputCache);
+                }
             }
 
-            private Delegate MakeGetter<T>(DataViewRow input, int iinfo, INamedOnnxValueGetter[] srcNamedValueGetters, string[] activeOutputColNames, OutputCache outputCache)
+            private Delegate MakeTensorGetter<T>(DataViewRow input, int iinfo, INamedOnnxValueGetter[] srcNamedValueGetters, string[] activeOutputColNames, OutputCache outputCache)
             {
                 Host.AssertValue(input);
                 ValueGetter<VBuffer<T>> valuegetter = (ref VBuffer<T> dst) =>
@@ -439,6 +451,19 @@ namespace Microsoft.ML.Transforms.Onnx
                     var editor = VBufferEditor.Create(ref dst, (int)denseTensor.Length);
                     denseTensor.Buffer.Span.CopyTo(editor.Values);
                     dst = editor.Commit();
+                };
+                return valuegetter;
+            }
+
+            private Delegate MakeObjectGetter<T>(DataViewRow input, int iinfo, INamedOnnxValueGetter[] srcNamedValueGetters, string[] activeOutputColNames, OutputCache outputCache)
+            {
+                Host.AssertValue(input);
+                ValueGetter<T> valuegetter = (ref T dst) =>
+                {
+                    UpdateCacheIfNeeded(input.Position, srcNamedValueGetters, activeOutputColNames, outputCache);
+                    var namedOnnxValue = outputCache.Outputs[_parent.Outputs[iinfo]];
+                    var trueValue = namedOnnxValue.AsEnumerable<NamedOnnxValue>().Select(value => value.AsDictionary<string, float>());
+                    dst = (T)trueValue;
                 };
                 return valuegetter;
             }

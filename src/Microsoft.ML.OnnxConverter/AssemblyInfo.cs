@@ -7,3 +7,4 @@ using Microsoft.ML;
 
 [assembly: InternalsVisibleTo("Microsoft.ML.Core.Tests" + PublicKey.TestValue)]
 [assembly: InternalsVisibleTo("Microsoft.ML.Tests" + PublicKey.TestValue)]
+[assembly: InternalsVisibleTo("Microsoft.ML.OnnxTransformer" + PublicKey.Value)]

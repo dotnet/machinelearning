@@ -10,7 +10,7 @@ using pbc = global::Google.Protobuf.Collections;
 using pbr = global::Google.Protobuf.Reflection;
 namespace Microsoft.ML.Model.OnnxConverter
 {
-    internal class OnnxCSharpToProtoWrapper
+    public class OnnxCSharpToProtoWrapper
     {
         /// <summary>Holder for reflection information generated from onnx-ml.proto3</summary>
         public static partial class OnnxMlReflection

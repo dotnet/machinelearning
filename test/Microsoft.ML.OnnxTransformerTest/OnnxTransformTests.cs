@@ -316,5 +316,42 @@ namespace Microsoft.ML.Tests
             Assert.Equal(0, predictions[1].argmax[0]);
             Assert.Equal(2, predictions[2].argmax[0]);
         }
+
+        private class ZipMapInput
+        {
+            [ColumnName("input")]
+            [VectorType(3)]
+            public float[] Input { get; set; }
+        }
+
+        private class ZipMapOutput
+        {
+            [ColumnName("output")]
+            public IEnumerable<Dictionary<string, float>> Output { get; set; }
+        }
+
+        [OnnxFact]
+        public void TestOnnxZipMap()
+        {
+            var modelFile = Path.Combine(Directory.GetCurrentDirectory(), "nodes", "TestZipMap.onnx");
+
+            var dataView = ML.Data.LoadFromEnumerable(
+                new ZipMapInput[] {
+                    new ZipMapInput() { Input = new float[] {1,2,3}, }
+                });
+            var onnx = ML.Transforms.ApplyOnnxModel(new[] { "output" }, new[] { "input" }, modelFile).Fit(dataView).Transform(dataView);
+
+            var outputColumn = onnx.Schema["output"];
+            using (var curs = onnx.GetRowCursor(outputColumn, onnx.Schema["output"]))
+            {
+                IEnumerable<IDictionary<string, float>> buffer = null;
+                var getMapSequence = curs.GetGetter<IEnumerable<IDictionary<string, float>>>(outputColumn);
+
+                while (curs.MoveNext())
+                {
+                    getMapSequence(ref buffer);
+                }
+            }
+        }
     }
 }

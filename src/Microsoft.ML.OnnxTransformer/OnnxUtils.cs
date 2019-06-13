@@ -7,7 +7,9 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Numerics.Tensors;
+using Microsoft.ML;
 using Microsoft.ML.Data;
+using Microsoft.ML.Model.OnnxConverter;
 using Microsoft.ML.OnnxRuntime;
 using Microsoft.ML.Runtime;
 using OnnxShape = System.Collections.Generic.List<int>;
@@ -22,6 +24,263 @@ namespace Microsoft.ML.Transforms.Onnx
     /// </summary>
     internal sealed class OnnxModel
     {
+        private static Type GetScalarType(OnnxCSharpToProtoWrapper.TensorProto.Types.DataType dataType)
+        {
+            Type scalarType = null;
+            switch (dataType)
+            {
+                case OnnxCSharpToProtoWrapper.TensorProto.Types.DataType.Bool:
+                    scalarType = typeof(System.Boolean);
+                    break;
+                case OnnxCSharpToProtoWrapper.TensorProto.Types.DataType.Int8:
+                    scalarType = typeof(System.SByte);
+                    break;
+                case OnnxCSharpToProtoWrapper.TensorProto.Types.DataType.Uint8:
+                    scalarType = typeof(System.Byte);
+                    break;
+                case OnnxCSharpToProtoWrapper.TensorProto.Types.DataType.Int16:
+                    scalarType = typeof(System.Int16);
+                    break;
+                case OnnxCSharpToProtoWrapper.TensorProto.Types.DataType.Uint16:
+                    scalarType = typeof(System.UInt16);
+                    break;
+                case OnnxCSharpToProtoWrapper.TensorProto.Types.DataType.Int32:
+                    scalarType = typeof(System.Int32);
+                    break;
+                case OnnxCSharpToProtoWrapper.TensorProto.Types.DataType.Uint32:
+                    scalarType = typeof(System.UInt32);
+                    break;
+                case OnnxCSharpToProtoWrapper.TensorProto.Types.DataType.Int64:
+                    scalarType = typeof(System.Int64);
+                    break;
+                case OnnxCSharpToProtoWrapper.TensorProto.Types.DataType.Uint64:
+                    scalarType = typeof(System.UInt64);
+                    break;
+                case OnnxCSharpToProtoWrapper.TensorProto.Types.DataType.Double:
+                    scalarType = typeof(System.Double);
+                    break;
+                case OnnxCSharpToProtoWrapper.TensorProto.Types.DataType.Float:
+                    scalarType = typeof(System.Single);
+                    break;
+                case OnnxCSharpToProtoWrapper.TensorProto.Types.DataType.String:
+                    scalarType = typeof(string);
+                    break;
+                default:
+                    throw Contracts.Except("Unsupported ONNX scalar type: " + dataType.ToString());
+            }
+            return scalarType;
+        }
+
+        private static Type GetNativeType(OnnxCSharpToProtoWrapper.TypeProto typeProto)
+        {
+            var oneOfFieldName = typeProto.ValueCase.ToString();
+            if (oneOfFieldName == "TensorType")
+            {
+                if (typeProto.TensorType.Shape == null || typeProto.TensorType.Shape.Dim.Count == 0)
+                {
+                    return GetScalarType(typeProto.TensorType.ElemType);
+                }
+                else
+                {
+                    Type tensorType = typeof(VBuffer<>);
+                    Type elementType = GetScalarType(typeProto.TensorType.ElemType);
+                    return tensorType.MakeGenericType(elementType);
+                }
+            }
+            else if (oneOfFieldName == "SequenceType")
+            {
+                var enumerableType = typeof(IEnumerable<>);
+                var elementType = GetNativeType(typeProto.SequenceType.ElemType);
+                return enumerableType.MakeGenericType(elementType);
+            }
+            else if (oneOfFieldName == "MapType")
+            {
+                var dictionaryType = typeof(IDictionary<,>);
+                Type keyType = GetScalarType(typeProto.MapType.KeyType);
+                Type valueType = GetNativeType(typeProto.MapType.ValueType);
+                return dictionaryType.MakeGenericType(keyType, valueType);
+            }
+            return null;
+        }
+
+        private static DataViewType GetScalarDataViewType(OnnxCSharpToProtoWrapper.TensorProto.Types.DataType dataType)
+        {
+            DataViewType scalarType = null;
+            switch (dataType)
+            {
+                case OnnxCSharpToProtoWrapper.TensorProto.Types.DataType.Bool:
+                    scalarType = BooleanDataViewType.Instance;
+                    break;
+                case OnnxCSharpToProtoWrapper.TensorProto.Types.DataType.Int8:
+                    scalarType = NumberDataViewType.SByte;
+                    break;
+                case OnnxCSharpToProtoWrapper.TensorProto.Types.DataType.Uint8:
+                    scalarType = NumberDataViewType.Byte;
+                    break;
+                case OnnxCSharpToProtoWrapper.TensorProto.Types.DataType.Int16:
+                    scalarType = NumberDataViewType.Int16;
+                    break;
+                case OnnxCSharpToProtoWrapper.TensorProto.Types.DataType.Uint16:
+                    scalarType = NumberDataViewType.UInt16;
+                    break;
+                case OnnxCSharpToProtoWrapper.TensorProto.Types.DataType.Int32:
+                    scalarType = NumberDataViewType.Int32;
+                    break;
+                case OnnxCSharpToProtoWrapper.TensorProto.Types.DataType.Uint32:
+                    scalarType = NumberDataViewType.UInt32;
+                    break;
+                case OnnxCSharpToProtoWrapper.TensorProto.Types.DataType.Int64:
+                    scalarType = NumberDataViewType.Int64;
+                    break;
+                case OnnxCSharpToProtoWrapper.TensorProto.Types.DataType.Uint64:
+                    scalarType = NumberDataViewType.UInt64;
+                    break;
+                case OnnxCSharpToProtoWrapper.TensorProto.Types.DataType.Float:
+                    scalarType = NumberDataViewType.Single;
+                    break;
+                case OnnxCSharpToProtoWrapper.TensorProto.Types.DataType.Double:
+                    scalarType = NumberDataViewType.Double;
+                    break;
+                case OnnxCSharpToProtoWrapper.TensorProto.Types.DataType.String:
+                    scalarType = TextDataViewType.Instance;
+                    break;
+                default:
+                    throw Contracts.Except("Unsupported ONNX scalar type: " + dataType.ToString());
+            }
+            return scalarType;
+        }
+
+        private static IEnumerable<int> GetTensorDims(Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.TensorShapeProto tensorShapeProto)
+        {
+            var dims = new List<int>();
+            if (tensorShapeProto == null)
+                return dims;
+            foreach(var d in tensorShapeProto.Dim)
+            {
+                switch (d.ValueCase)
+                {
+                    case OnnxCSharpToProtoWrapper.TensorShapeProto.Types.Dimension.ValueOneofCase.DimValue:
+                        if (d.DimValue <= 0)
+                            return new List<int>();
+                        dims.Add((int)d.DimValue);
+                        break;
+                    case OnnxCSharpToProtoWrapper.TensorShapeProto.Types.Dimension.ValueOneofCase.DimParam:
+                        return new List<int>();
+                }
+            }
+            return dims;
+        }
+
+        private static DataViewType GetDataViewType(OnnxCSharpToProtoWrapper.TypeProto typeProto)
+        {
+            var oneOfFieldName = typeProto.ValueCase.ToString();
+            if (typeProto.ValueCase == OnnxCSharpToProtoWrapper.TypeProto.ValueOneofCase.TensorType)
+            {
+                if (typeProto.TensorType.Shape.Dim.Count == 0)
+                    return GetScalarDataViewType(typeProto.TensorType.ElemType);
+                else
+                {
+                    var shape = GetTensorDims(typeProto.TensorType.Shape).ToArray();
+                    if (shape.Length > 0)
+                        return new VectorDataViewType((PrimitiveDataViewType)GetScalarDataViewType(typeProto.TensorType.ElemType), shape);
+                    else
+                        return new VectorDataViewType((PrimitiveDataViewType)GetScalarDataViewType(typeProto.TensorType.ElemType), 0);
+                }
+            }
+            else if (typeProto.ValueCase == OnnxCSharpToProtoWrapper.TypeProto.ValueOneofCase.SequenceType)
+            {
+                if (typeProto.SequenceType.ElemType.ValueCase != OnnxCSharpToProtoWrapper.TypeProto.ValueOneofCase.MapType)
+                    throw new NotImplementedException($"Element type {typeProto.SequenceType.ElemType} is not allowed.");
+                var mapType = typeProto.SequenceType.ElemType.MapType;
+                var keyType = GetScalarType(mapType.KeyType);
+                var valueType = GetNativeType(mapType.ValueType);
+                return new OnnxSequenceMapType(keyType, valueType);
+            }
+            else if (typeProto.ValueCase == OnnxCSharpToProtoWrapper.TypeProto.ValueOneofCase.MapType)
+            {
+                var dictionaryType = typeof(IDictionary<,>);
+                Type keyType = GetScalarType(typeProto.MapType.KeyType);
+                Type valueType = GetNativeType(typeProto.MapType.ValueType);
+                return new OnnxDictionaryType(keyType, valueType);
+            }
+            return null;
+        }
+
+        public static class OnnxCaster
+        {
+            public static T GetValue<T>(OnnxSequenceMapType dataViewType, NamedOnnxValue namedOnnxValue)
+            {
+                var dictionaryMethodInfo = typeof(NamedOnnxValue).GetMethod(nameof(NamedOnnxValue.AsDictionary));
+                var dictionaryMethod = dictionaryMethodInfo.MakeGenericMethod(dataViewType.KeyType, dataViewType.ValueType);
+                var enumerable = namedOnnxValue.AsEnumerable<NamedOnnxValue>().Select(value => (T)dictionaryMethod.Invoke(value, null));
+                return default;
+            }
+        }
+
+        public sealed class OnnxSequenceType : StructuredDataViewType
+        {
+            private static Type MakeNativeType(Type elementType)
+            {
+                var enumerableTypeInfo = typeof(IEnumerable<>);
+                var enumerableType = enumerableTypeInfo.MakeGenericType(elementType);
+                return enumerableType;
+            }
+
+            public OnnxSequenceType(Type elementType) : base(MakeNativeType(elementType))
+            {
+                DataViewTypeManager.Register(this, RawType);
+            }
+
+            public override bool Equals(DataViewType other)
+            {
+                if (other is OnnxSequenceType)
+                    return RawType == other.RawType;
+                else
+                    return false;
+            }
+        }
+
+        public sealed class OnnxSequenceMapType : StructuredDataViewType
+        {
+            private static Type MakeNativeType(Type keyType, Type valueType)
+            {
+                var enumerableTypeInfo = typeof(IEnumerable<>);
+                var dictionaryTypeInfo = typeof(IDictionary<,>);
+
+                var dictionaryType = dictionaryTypeInfo.MakeGenericType(keyType, valueType);
+                var enumerableType = enumerableTypeInfo.MakeGenericType(dictionaryType);
+
+                return enumerableType;
+            }
+
+            public Type KeyType { get; }
+            public Type ValueType { get; }
+
+            public OnnxSequenceMapType(Type keyType, Type valueType) : base(MakeNativeType(keyType, valueType))
+            {
+                KeyType = keyType;
+                ValueType = valueType;
+                DataViewTypeManager.Register(this, RawType);
+            }
+
+            public override bool Equals(DataViewType other)
+            {
+                return RawType == other.RawType;
+            }
+        }
+
+        public sealed class OnnxDictionaryType : StructuredDataViewType
+        {
+            public OnnxDictionaryType(Type keyType, Type elementType) : base(typeof(IDictionary<,>).MakeGenericType(keyType, elementType))
+            {
+                DataViewTypeManager.Register(this, RawType);
+            }
+
+            public override bool Equals(DataViewType other)
+            {
+                return RawType == other.RawType;
+            }
+        }
 
         /// <summary>
         /// OnnxModelInfo contains the data that we should get from
@@ -71,6 +330,8 @@ namespace Microsoft.ML.Transforms.Onnx
         private readonly string _modelFile;
         public readonly List<string> InputNames;
         public readonly List<string> OutputNames;
+        public readonly List<DataViewType> InputTypes;
+        public readonly List<DataViewType> OutputTypes;
 
         /// <summary>
         /// Constructs OnnxModel object from file.
@@ -80,8 +341,6 @@ namespace Microsoft.ML.Transforms.Onnx
         /// <param name="fallbackToCpu">If true, resumes CPU execution quitely upon GPU error.</param>
         public OnnxModel(string modelFile, int? gpuDeviceId = null, bool fallbackToCpu = false)
         {
-            _modelFile = modelFile;
-
             if (gpuDeviceId != null)
             {
                 try
@@ -102,6 +361,13 @@ namespace Microsoft.ML.Transforms.Onnx
             {
                 _session = new InferenceSession(modelFile);
             }
+
+            _modelFile = modelFile;
+            var model = new OnnxCSharpToProtoWrapper.ModelProto();
+            using (var modelStream = File.OpenRead(modelFile))
+                model = OnnxCSharpToProtoWrapper.ModelProto.Parser.ParseFrom(modelStream);
+            InputTypes = model.Graph.Input.Select(valueInfo => GetDataViewType(valueInfo.Type)).ToList();
+            OutputTypes = model.Graph.Output.Select(valueInfo => GetDataViewType(valueInfo.Type)).ToList();
 
             ModelInfo = new OnnxModelInfo(GetInputsInfo(), GetOutputsInfo());
             InputNames = ModelInfo.InputsInfo.Select(i => i.Name).ToList();
