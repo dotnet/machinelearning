@@ -117,6 +117,12 @@ We'll need to come up with a reasonably general pattern (probably something that
 
     See [related issue](https://github.com/dotnet/machinelearning-samples/issues/507)
 
+- **Support for remote/network connection and internal connection within the RDBMS server**: The Database loader should not only support remote/network connection to the RDBMS server but also support from C# running within the RDBMS server such as [SQL Server CLR integration](https://docs.microsoft.com/en-us/sql/relational-databases/clr-integration/clr-integration-overview?view=sql-server-2017), [Oracle Database Extensions for .NET](https://docs.oracle.com/cd/B19306_01/win.102/b14306/intro.htm), etc.  Scenarios:
+
+    1. Training-machine-ML.NET-code <--network--> Remote database-in-RDBMS-server
+
+    2. RDBMS-server running database and .NET code using ML.NET code
+
 - **Implementation as a separate NuGet package**: Since the implementation of this feature uses the primitives in System.Data, therefore this feature should be available as a separate NuGet package so that ML.NET core packages don't depend on System.Data.
 
 - **Support for sparse data**: The database loader should support sparse data, at least up to the maximum number of columns in SQL Server (1,024 columns per nonwide table, 30,000 columns per wide table or 4,096 columns per SELECT statement).
@@ -154,7 +160,58 @@ Whenever in the samples below it is using a `SqlConnection` type, it could also 
 
 The specific type (`SqlConnection`, `NpgsqlConnection`, `OracleConnection`, etc.) is specified as a generic parameter so references to the needed NuGet packages will be provided by the user when trying to compile.
 
-**1. Data loading from a database table (Simplest approach):**
+**1. (Convenient 'must-have' method) Data loading from a database by specifying a SQL query sentence:**
+
+The signature of the `DataOperationsCatalog.LoadFromDatabaseSqlQuery` method looks like:
+
+```C#
+public IDataView LoadFromDatabaseSqlQuery<TRow, DbConnection>(string connString, string sqlQuerySentence) where T : class;
+```
+
+`TRow` is the model's input data class (Observation class) to be used by IDataView and ML.NET API.
+
+Example code using it:
+
+```C#
+MLContext mlContext = new MLContext();
+
+//Example loading from a SQL Server or SQL Azure database with a SQL query sentence
+IDataView trainingDataView = mlContext.Data.LoadFromDatabaseSqlQuery<ModelInputData, SqlConnection>(connString: myConnString,
+                                                                                                    sqlQuerySentence: "Select * from InputMLModelDataset where InputMLModelDataset.CompanyName = 'MSFT'"); 
+```
+
+**2. (Foundational method) Data loading from a database with an IDataReader object:**
+
+This is the foundational or pillar method which will be used by the rest of the higher level or convenient methods:
+
+The signature of the `DataOperationsCatalog.LoadFromDataReader` method looks like:
+
+```C#
+public IDataView LoadFromDataReader<TRow>(Func<IDataReader> executeReader) where TRow : class;
+```
+
+`TRow` is the model's input data class (Observation class) to be used by IDataView and ML.NET API.
+
+The following code is how the mlContext.Data.LoadFromDbDataReader() method is used:
+
+```C#
+MLContext mlContext = new MLContext();
+
+string conString = YOUR_CONNECTION_STRING;
+using (SqlConnection connection = new SqlConnection(conString))
+{
+    connection.Open();
+    using (SqlCommand command = new SqlCommand("Select * from InputMLModelDataset", connection))
+    {
+        mlContext.Data.LoadFromDbDataReader<ModelInputData>(() => command.ExecuteReader());
+    }
+}
+```
+
+**IMPORTANT - Lambda with command.ExecuteReader() as parameter instead of a IDataReader as paramater:** It is important to highlight that because we want to enforce that each query will use a different data reader object (in order to avoid multi-threading issues), the `mlContext.Data.LoadFromDbDataReader<TRow>()` method is accepting a lambda expression with the `command.ExecuteReader()` line of code. That means the method only accepts a `Func<IDataReader>` delegate because the lambda expression has no input parameters and returns an IDataReader object (such as `SqlDataReader`).
+
+
+**3. (Nice to have) Data loading from a database table (Simplest approach):**
 
 The signature of the `DataOperationsCatalog.LoadFromDatabaseTable` method looks like:
 
@@ -172,7 +229,7 @@ IDataView trainingDataView = mlContext.Data.LoadFromDatabaseTable<ModelInputData
                                                                                                  tableName: "TrainingDataTable"); 
 ```
 
-**2. Data loading from a database view:**
+**4. (Nice to have) Data loading from a database view:**
 
 The signature of the `DataOperationsCatalog.LoadFromDatabaseView` method looks like:
 
@@ -190,47 +247,30 @@ IDataView trainingDataView = mlContext.Data.LoadFromDatabaseView<ModelInputData,
                                                                                                 viewName: "TrainingDatabaseView"); 
 ```
 
-**3. Data loading from a database with a SQL query sentence:**
+## Support to connect from .NET assemblies embeded into the RDBMS server
 
-The signature of the `DataOperationsCatalog.LoadFromDatabaseSqlQuery` method looks like:
+As introduced, the database loader should not only support remote/network connection to the RDBMS server but also support from C# running within the RDBMS server such as [SQL Server CLR integration](https://docs.microsoft.com/en-us/sql/relational-databases/clr-integration/clr-integration-overview?view=sql-server-2017), [Oracle Database Extensions for .NET](https://docs.oracle.com/cd/B19306_01/win.102/b14306/intro.htm), etc.
 
-```C#
-public IDataView LoadFromDatabaseSqlQuery<TRow, DbConnection>(string connString, string sqlQuerySentence) where T : class;
+The only difference is the way you define the connection string, which simply provides 'context' (instead of server name, user, etc. when using the network), such as:
+
+Code example running on [SQL Server CLR integration](https://docs.microsoft.com/en-us/sql/relational-databases/clr-integration/clr-integration-overview?view=sql-server-2017)  
+```
+//SQL Server
+SqlConnection conn   = new SqlConnection("context connection=true")
 ```
 
-Example code using it:
-
-```C#
-MLContext mlContext = new MLContext();
-
-//Example loading from a SQL Server or SQL Azure database with a SQL query sentence
-IDataView trainingDataView = mlContext.Data.LoadFromDatabaseSqlQuery<ModelInputData, SqlConnection>(connString: myConnString,
-                                                                                                    sqlQuerySentence: "Select * from InputMLModelDataset where InputMLModelDataset.CompanyName = 'MSFT'"); 
+Code example running on [Oracle Database Extensions for .NET](https://docs.oracle.com/cd/B19306_01/win.102/b14306/intro.htm)
+```
+//Oracle
+OracleConnection con = new OracleConnection();
+con.ConnectionString = "context connection=true"; 
 ```
 
-**4. Data loading from a database with an IDataReader object:**
+The code should be similar on every RDBMS supporting .NET assemblies running within the database engine.
 
-```C#
-MLContext mlContext = new MLContext();
+Out of scope:
 
-string conString = YOUR_CONNECTION_STRING;
-using (SqlConnection connection = new SqlConnection(conString))
-{
-    connection.Open();
-    using (SqlCommand command = new SqlCommand("Select * from InputMLModelDataset", connection))
-    {
-        mlContext.Data.LoadFromDbDataReader<ModelInputData>(() => command.ExecuteReader());
-    }
-}
-```
-
-The signature of the `DataOperationsCatalog.LoadFromDataReader` method looks like:
-
-```C#
-public IDataView LoadFromDataReader<TRow>(Func<IDataReader> executeReader) where TRow : class;
-```
-
-**IMPORTANT - Lambda with command.ExecuteReader() as parameter instead of a IDataReader as paramater:** It is important to highlight that because we want to enforce that each query will use a different data reader object (in order to avoid multi-threading issues), the `mlContext.Data.LoadFromDbDataReader<TRow>()` method is accepting a lambda expression with the `command.ExecuteReader()` line of code. That means the method only accepts a `Func<IDataReader>` delegate because the lambda expression has no input parameters and returns an IDataReader object (such as `SqlDataReader`).
+ML.NET won't implement components creating concrete database objects such as **CLR Scalar-Valued Functions** or **CLR/C# stored procedures** (which have different implementation for SQL Server, Oracle, etc.). Those components should be created by the user/developer using ML.NET.
 
 # Input data classes/types design
 
