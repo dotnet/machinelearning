@@ -213,6 +213,7 @@ using (SqlConnection connection = new SqlConnection(conString))
 
 **3. (Nice to have) Data loading from a database table (Simplest approach):**
 
+This is mostly a 'sugar method', but can be a 'nice to have feature' for users.
 The signature of the `DataOperationsCatalog.LoadFromDatabaseTable` method looks like:
 
 ```C#
@@ -231,6 +232,7 @@ IDataView trainingDataView = mlContext.Data.LoadFromDatabaseTable<ModelInputData
 
 **4. (Nice to have) Data loading from a database view:**
 
+This is mostly a 'sugar method', but can be a 'nice to have feature' for users.
 The signature of the `DataOperationsCatalog.LoadFromDatabaseView` method looks like:
 
 ```C#
@@ -259,6 +261,8 @@ Code example running on [SQL Server CLR integration](https://docs.microsoft.com/
 SqlConnection conn   = new SqlConnection("context connection=true")
 ```
 
+See here an [example of a CLR Scalar-Valued Function](https://docs.microsoft.com/en-us/sql/relational-databases/clr-integration-database-objects-user-defined-functions/clr-scalar-valued-functions?view=sql-server-2017#example-of-a-clr-scalar-valued-function)
+
 Code example running on [Oracle Database Extensions for .NET](https://docs.oracle.com/cd/B19306_01/win.102/b14306/intro.htm)
 ```
 //Oracle
@@ -266,11 +270,13 @@ OracleConnection con = new OracleConnection();
 con.ConnectionString = "context connection=true"; 
 ```
 
-The code should be similar on every RDBMS supporting .NET assemblies running within the database engine.
+See here an [exampleof a C# stored procedure in Oracle ](https://www.oracle.com/technetwork/articles/dotnet/williams-sps-089817.html?printOnly=1)
 
-Out of scope:
+The code should be similar on any other RDBMS supporting .NET assemblies running within the database engine. The only change should be provided within the connection string.
 
-ML.NET won't implement components creating concrete database objects such as **CLR Scalar-Valued Functions** or **CLR/C# stored procedures** (which have different implementation for SQL Server, Oracle, etc.). Those components should be created by the user/developer using ML.NET.
+**Out of scope:**
+
+ML.NET won't implement components creating concrete database objects such as **CLR Scalar-Valued Functions** or **CLR/C# stored procedures** (which have different implementation for SQL Server, Oracle, etc.). Those components should be created by the user/developer using C# then adding ML.NET API code in order to train a model.
 
 # Input data classes/types design
 
