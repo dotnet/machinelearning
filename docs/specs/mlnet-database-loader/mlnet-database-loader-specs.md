@@ -80,10 +80,12 @@ TBD - Include diagram with blocks of AutoML, CLI and Model Buidler using this co
 
 ## Design criteria
 
-- **Supported frameworks in .NET**: The DatabaseLoader component should be supported for the [frameworks supported by ML.NET](https://github.com/dotnet/machinelearning#installation) which include:
+- **Supported frameworks in .NET**: The DatabaseLoader component should be supported for the [frameworks supported by ML.NET](https://github.com/dotnet/machinelearning#installation) which include applications running on:
 
     - .NET Core 2.1 and higher
     - .NET Framework 4.6.1 and higher
+
+The way to support those frameworks would be by creating a **.NET Standard 2.0 library** as the base for this package since .NET Standard is supported by both frameworks.
 
 - **Supported RDBMS**: The DatabaseLoader component should be supported for most of the [data providers supported by System.Data.Common in .NET Standard 2.0](https://docs.microsoft.com/en-us/dotnet/framework/data/adonet/data-providers) which special focus/support on:
 
