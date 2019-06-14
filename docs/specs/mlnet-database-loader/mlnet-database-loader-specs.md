@@ -278,6 +278,12 @@ The code should be similar on any other RDBMS supporting .NET assemblies running
 
 ML.NET won't implement components creating concrete database objects such as **CLR Scalar-Valued Functions** or **CLR/C# stored procedures** (which have different implementation for SQL Server, Oracle, etc.). Those components should be created by the user/developer using C# then adding ML.NET API code in order to train a model.
 
+Also, note that  the fact that ML.NET will be supported to be used within user components using CLR integration, that doesn't mean that the user can do it on any RDBMS. There are RDBMS such as Azure SQL Database with single databases and elastic pools and other RDBMS that don't support that feature. Other RDBMS suchas SQL Server on-premises or Azure SQL Database Managed Instances, Oracle, etc. do support it.
+
+For instance: 
+
+- [Feature comparison: Azure SQL Database versus SQL Server](https://docs.microsoft.com/en-us/azure/sql-database/sql-database-features)
+
 # Input data classes/types design
 
 There can be two different approaches here:
