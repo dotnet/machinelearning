@@ -253,15 +253,18 @@ IDataView trainingDataView = mlContext.Data.LoadFromDatabaseView<ModelInputData,
 
 As introduced, the database loader should not only support remote/network connection to the RDBMS server but also support from C# running within the RDBMS server such as [SQL Server CLR integration](https://docs.microsoft.com/en-us/sql/relational-databases/clr-integration/clr-integration-overview?view=sql-server-2017) (aka [SQL CLR](https://en.wikipedia.org/wiki/SQL_CLR)), [Oracle Database Extensions for .NET](https://docs.oracle.com/cd/B19306_01/win.102/b14306/intro.htm), etc.
 
-The only difference is the way you define the connection string, which simply provides 'context' (instead of server name, user, etc. when using the network), such as:
+The only difference is the way you define the connection string, which simply provides **'context' string** (instead of server name, user, etc. when using the network), such as:
 
 - Code example running on [SQL Server CLR integration](https://docs.microsoft.com/en-us/sql/relational-databases/clr-integration/clr-integration-overview?view=sql-server-2017)  
+
     ```
     //SQL Server
     SqlConnection conn   = new SqlConnection("context connection=true")
     ```
 
-    See here an [example of a CLR Scalar-Valued Function](https://docs.microsoft.com/en-us/sql/relational-databases/clr-integration-database-objects-user-defined-functions/clr-scalar-valued-functions?view=sql-server-2017#example-of-a-clr-scalar-valued-function)
+    - See here an [example of a CLR Scalar-Valued Function](https://docs.microsoft.com/en-us/sql/relational-databases/clr-integration-database-objects-user-defined-functions/clr-scalar-valued-functions?view=sql-server-2017#example-of-a-clr-scalar-valued-function)
+
+    - [Introduction to SQL Server CLR Integration](https://docs.microsoft.com/en-us/dotnet/framework/data/adonet/sql/introduction-to-sql-server-clr-integration)
 
 - Code example running on [Oracle Database Extensions for .NET](https://docs.oracle.com/cd/B19306_01/win.102/b14306/intro.htm)
     ```
@@ -270,7 +273,7 @@ The only difference is the way you define the connection string, which simply pr
     con.ConnectionString = "context connection=true"; 
     ```
 
-    See here an [exampleof a C# stored procedure in Oracle ](https://www.oracle.com/technetwork/articles/dotnet/williams-sps-089817.html?printOnly=1)
+    - See here an [exampleof a C# stored procedure in Oracle ](https://www.oracle.com/technetwork/articles/dotnet/williams-sps-089817.html?printOnly=1)
 
 The code should be similar on any other RDBMS supporting .NET assemblies running within the database engine. The only change should be provided within the connection string.
 
