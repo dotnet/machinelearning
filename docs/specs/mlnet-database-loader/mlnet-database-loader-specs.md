@@ -162,10 +162,10 @@ The specific type (`SqlConnection`, `NpgsqlConnection`, `OracleConnection`, etc.
 
 **1. (Convenient 'must-have' method) Data loading from a database by specifying a SQL query sentence:**
 
-The signature of the `DataOperationsCatalog.LoadFromDatabaseSqlQuery` method looks like:
+The signature of the `DataOperationsCatalog.LoadFromDbSqlQuery` method looks like:
 
 ```C#
-public IDataView LoadFromDatabaseSqlQuery<TRow, DbConnection>(string connString, string sqlQuerySentence) where T : class;
+public IDataView LoadFromDbSqlQuery<TRow, DbConnection>(string connString, string sqlQuerySentence) where T : class;
 ```
 
 `TRow` is the model's input data class (Observation class) to be used by IDataView and ML.NET API.
@@ -176,18 +176,17 @@ Example code using it:
 MLContext mlContext = new MLContext();
 
 //Example loading from a SQL Server or SQL Azure database with a SQL query sentence
-IDataView trainingDataView = mlContext.Data.LoadFromDatabaseSqlQuery<ModelInputData, SqlConnection>(connString: myConnString,
-                                                                                                    sqlQuerySentence: "Select * from InputMLModelDataset where InputMLModelDataset.CompanyName = 'MSFT'"); 
+IDataView trainingDataView = mlContext.Data.LoadFromDbSqlQuery<ModelInputData, SqlConnection>(connString: myConnString, sqlQuerySentence: "Select * from InputMLModelDataset where InputMLModelDataset.CompanyName = 'MSFT'"); 
 ```
 
 **2. (Foundational method) Data loading from a database with an IDataReader object:**
 
 This is the foundational or pillar method which will be used by the rest of the higher level or convenient methods:
 
-The signature of the `DataOperationsCatalog.LoadFromDataReader` method looks like:
+The signature of the `DataOperationsCatalog.LoadFromDbDataReader` method looks like:
 
 ```C#
-public IDataView LoadFromDataReader<TRow>(Func<IDataReader> executeReader) where TRow : class;
+public IDataView LoadFromDbDataReader<TRow>(Func<IDataReader> executeReader) where TRow : class;
 ```
 
 `TRow` is the model's input data class (Observation class) to be used by IDataView and ML.NET API.
@@ -211,13 +210,13 @@ using (SqlConnection connection = new SqlConnection(conString))
 **IMPORTANT - Lambda with command.ExecuteReader() as parameter instead of a IDataReader as paramater:** It is important to highlight that because we want to enforce that each query will use a different data reader object (in order to avoid multi-threading issues), the `mlContext.Data.LoadFromDbDataReader<TRow>()` method is accepting a lambda expression with the `command.ExecuteReader()` line of code. That means the method only accepts a `Func<IDataReader>` delegate because the lambda expression has no input parameters and returns an IDataReader object (such as `SqlDataReader`).
 
 
-**3. (Nice to have) Data loading from a database table (Simplest approach):**
+**3. ('Nice to have') Data loading from a database table (Simplest approach):**
 
 This is mostly a 'sugar method', but can be a 'nice to have feature' for users.
-The signature of the `DataOperationsCatalog.LoadFromDatabaseTable` method looks like:
+The signature of the `DataOperationsCatalog.LoadFromDbTable` method looks like:
 
 ```C#
-public IDataView LoadFromDatabaseTable<TRow, DbConnection>(string connString, string tableName)  where T : class;
+public IDataView LoadFromDbTable<TRow, DbConnection>(string connString, string tableName)  where T : class;
 ```
 
 Example code using it:
@@ -226,17 +225,17 @@ Example code using it:
 MLContext mlContext = new MLContext();
 
 //Example loading from a SQL Server or SQL Azure database table
-IDataView trainingDataView = mlContext.Data.LoadFromDatabaseTable<ModelInputData, SqlConnection>(connString: myConnString, 
+IDataView trainingDataView = mlContext.Data.LoadFromDbTable<ModelInputData, SqlConnection>(connString: myConnString, 
                                                                                                  tableName: "TrainingDataTable"); 
 ```
 
-**4. (Nice to have) Data loading from a database view:**
+**4. ('Nice to have') Data loading from a database view:**
 
 This is mostly a 'sugar method', but can be a 'nice to have feature' for users.
-The signature of the `DataOperationsCatalog.LoadFromDatabaseView` method looks like:
+The signature of the `DataOperationsCatalog.LoadFromDbView` method looks like:
 
 ```C#
-public IDataView LoadFromDatabaseView<TRow, DbConnection>(string connString, string viewName) where T : class;
+public IDataView LoadFromDbView<TRow, DbConnection>(string connString, string viewName) where T : class;
 ```
 
 Example code using it:
@@ -245,13 +244,13 @@ Example code using it:
 MLContext mlContext = new MLContext();
 
 //Example loading from a SQL Server or SQL Azure database view
-IDataView trainingDataView = mlContext.Data.LoadFromDatabaseView<ModelInputData, SqlConnection>(connString: myConnString, 
+IDataView trainingDataView = mlContext.Data.LoadFromDbView<ModelInputData, SqlConnection>(connString: myConnString, 
                                                                                                 viewName: "TrainingDatabaseView"); 
 ```
 
-## Support to connect from .NET assemblies embeded into the RDBMS server
+## Support connectivity from .NET assemblies embedded into the RDBMS server
 
-As introduced, the database loader should not only support remote/network connection to the RDBMS server but also support from C# running within the RDBMS server such as [SQL Server CLR integration](https://docs.microsoft.com/en-us/sql/relational-databases/clr-integration/clr-integration-overview?view=sql-server-2017) (aka [SQL CLR](https://en.wikipedia.org/wiki/SQL_CLR)), [Oracle Database Extensions for .NET](https://docs.oracle.com/cd/B19306_01/win.102/b14306/intro.htm), etc.
+As introduced, the database loader should not only support remote/network connection to the RDBMS server but also support connectivity from C# running within the RDBMS server such as [SQL Server CLR integration](https://docs.microsoft.com/en-us/sql/relational-databases/clr-integration/clr-integration-overview?view=sql-server-2017) (aka [SQL CLR](https://en.wikipedia.org/wiki/SQL_CLR)), [Oracle Database Extensions for .NET](https://docs.oracle.com/cd/B19306_01/win.102/b14306/intro.htm), etc.
 
 The only difference is the way you define the connection string, which simply provides **'context' string** (instead of server name, user, etc. when using the network), such as:
 
