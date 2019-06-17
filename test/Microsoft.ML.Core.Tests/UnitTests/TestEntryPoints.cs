@@ -2364,6 +2364,53 @@ namespace Microsoft.ML.RunTests
             cmd.Run();
         }
 
+        [Fact]
+        public void TestTimeSeries()
+        {
+            string inputGraph =
+                $@"
+                {{
+                  'Nodes': [
+                    {{
+                      'Name': 'Data.CustomTextLoader',
+                      'Inputs': {{
+                        'InputFile': '$file1',
+                        'CustomSchema': 'col=ts:R4:0 col=t2:R4:1 col=t3:R4:2 quote+ header=+ sep=,'
+                      }},
+                      'Outputs': {{
+                        'Data': '$data1'
+                      }}
+                    }},";
+
+            inputGraph =
+                $@"{inputGraph}
+                    {{
+                      'Name': 'TimeSeries.Prediction1',
+                      'Inputs': {{
+                         'Data': '$data1',
+                         'TransformModelPath': 'C:\\Temp\\test.model.bin'
+                      }},
+                      'Outputs': {{
+                        'OutputData': '$output'
+                      }}
+                    }}
+                  ],
+                  'Inputs' : {{
+                    'file1' : 'C:\\Temp\\timeseries.csv',
+                  }},
+                  'Outputs' : {{
+                    'output': 'C:\\Temp\\output.csv'
+                  }}
+                }}";
+
+            var jsonPath = DeleteOutputPath("graph.json");
+            File.WriteAllLines(jsonPath, new[] { inputGraph });
+
+            var args = new ExecuteGraphCommand.Arguments() { GraphPath = jsonPath };
+            var cmd = new ExecuteGraphCommand(Env, args);
+            cmd.Run();
+        }
+
         internal void TestEntryPointRoutine(string dataFile, string trainerName, string loader = null, string trainerArgs = null, string[] xfNames = null, string[] xfArgs = null)
         {
             var dataPath = GetDataPath(dataFile);

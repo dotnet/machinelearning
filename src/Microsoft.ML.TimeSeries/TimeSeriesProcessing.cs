@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Generic;
+using Microsoft.ML.CommandLine;
 using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Transforms.TimeSeries;
@@ -11,7 +13,7 @@ using Microsoft.ML.Transforms.TimeSeries;
 namespace Microsoft.ML.Transforms.TimeSeries
 {
     /// <summary>
-    /// Entry points for text anylytics transforms.
+    /// Entry points for time series transforms.
     /// </summary>
     internal static class TimeSeriesProcessingEntryPoints
     {
@@ -53,6 +55,58 @@ namespace Microsoft.ML.Transforms.TimeSeries
                 Model = new TransformModelImpl(h, view, options.Data),
                 OutputData = view
             };
+        }
+
+#pragma warning disable MSML_GeneralName
+        public class TimeSeriesData
+        {
+            public float ts;
+        }
+
+#pragma warning disable MSML_GeneralName
+        public class TimeSeriesPrediction
+        {
+            public float ts;
+            public double[] result { get; set; }
+        }
+
+        public sealed class TimeSeriesPredictionInput : TransformInputBase
+        {
+            [Argument(ArgumentType.Required, HelpText = "Input dataset", Visibility = ArgumentAttribute.VisibilityType.EntryPointsOnly, SortOrder = 10)]
+            public string TransformModelPath;
+
+            public bool DoCheckPoint;
+        }
+
+        [TlcModule.EntryPoint(Name = "TimeSeries.Prediction1", Desc = TimeSeries.IidSpikeDetector.Summary,
+            UserName = TimeSeries.IidSpikeDetector.UserName,
+            ShortName = TimeSeries.IidSpikeDetector.ShortName)]
+        public static CommonOutputs.TransformOutput TimeSeriesPredictionEngine(IHostEnvironment env, TimeSeriesPredictionInput input)
+        {
+            Contracts.CheckValue(env, nameof(env));
+            var host = env.Register("TimeSeriesPrediction");
+            host.CheckValue(input, nameof(input));
+            EntryPointUtils.CheckInputArgs(host, input);
+
+            var ml = new MLContext();
+            var model = ml.Model.Load(input.TransformModelPath, out DataViewSchema inputSchema);
+
+            // Create a time series prediction engine from the loaded model.
+            var engine = model.CreateTimeSeriesPredictionFunction<TimeSeriesData, TimeSeriesPrediction>(host, true);
+
+            var predictions = new List<TimeSeriesPrediction>();
+            var rowEnumerable = ml.Data.CreateEnumerable<TimeSeriesData>(input.Data, reuseRowObject: true);
+            foreach (var data in rowEnumerable)
+                predictions.Add(engine.Predict(data));
+
+            if (input.DoCheckPoint)
+                engine.CheckPoint(host, input.TransformModelPath);
+
+            return new CommonOutputs.TransformOutput()
+                    {
+                        OutputData = ml.Data.LoadFromEnumerable(predictions),
+                        Model = null
+                    };
         }
 
         [TlcModule.EntryPoint(Desc = TimeSeries.PercentileThresholdTransform.Summary,
