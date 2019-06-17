@@ -83,8 +83,6 @@ namespace Microsoft.ML.CLI
                      _logger.Log(LogLevel.Info, Strings.LookIntoLogFile);
                      _logger.Log(LogLevel.Error, Strings.Exiting);
                  }
-
-                 MLNetCommandEndEvent.TrackEvent(stopwatch.Elapsed, ex);
              });
 
             var parser = new CommandLineBuilder()
