@@ -3,8 +3,8 @@
 
 using System;
 using System.IO;
-using Microsoft.DotNet.AutoML;
 using Microsoft.Extensions.EnvironmentAbstractions;
+using Microsoft.ML.CLI.Telemetry;
 
 namespace Microsoft.DotNet.Configurer
 {

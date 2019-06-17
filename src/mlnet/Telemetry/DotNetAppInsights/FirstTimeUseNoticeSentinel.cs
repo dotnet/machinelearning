@@ -2,8 +2,8 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System.IO;
-using Microsoft.DotNet.AutoML;
 using Microsoft.Extensions.EnvironmentAbstractions;
+using Microsoft.ML.CLI.Telemetry;
 
 namespace Microsoft.DotNet.Configurer
 {

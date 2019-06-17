@@ -107,6 +107,24 @@ namespace Microsoft.ML.AutoML
             return columnNames;
         }
 
+        public static IDictionary<ColumnPurpose, int> CountColumnsByPurpose(ColumnInformation columnInformation)
+        {
+            var result = new Dictionary<ColumnPurpose, int>();
+            var columnNames = GetColumnNames(columnInformation);
+            foreach (var columnName in columnNames)
+            {
+                var purpose = columnInformation.GetColumnPurpose(columnName);
+                if (purpose == null)
+                {
+                    continue;
+                }
+
+                result.TryGetValue(purpose.Value, out int count);
+                result[purpose.Value] = ++count;
+            }
+            return result;
+        }
+
         private static void AddStringsToListIfNotNull(List<string> list, IEnumerable<string> strings)
         {
             foreach (var str in strings)

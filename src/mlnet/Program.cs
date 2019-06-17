@@ -5,12 +5,13 @@
 using System;
 using System.CommandLine.Builder;
 using System.CommandLine.Invocation;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using Microsoft.DotNet.Cli.Telemetry;
 using Microsoft.ML.CLI.Commands;
 using Microsoft.ML.CLI.Commands.New;
 using Microsoft.ML.CLI.Data;
+using Microsoft.ML.CLI.Telemetry.Events;
 using Microsoft.ML.CLI.Utilities;
 using NLog;
 using NLog.Targets;
@@ -20,16 +21,26 @@ namespace Microsoft.ML.CLI
     public class Program
     {
         private static Logger _logger = LogManager.GetCurrentClassLogger();
+
         public static void Main(string[] args)
         {
-            var telemetry = new MlTelemetry();
+            Telemetry.Telemetry.Initialize();
             int exitCode = 1;
+            Exception ex = null;
+            var stopwatch = Stopwatch.StartNew();
+
+            var mlNetCommandEvent = new MLNetCommandEvent();
+
             // Create handler outside so that commandline and the handler is decoupled and testable.
             var handler = CommandHandler.Create<NewCommandSettings>(
                 (options) =>
              {
                  try
                  {
+                     // Send telemetry event for command issued
+                     mlNetCommandEvent.AutoTrainCommandSettings = options;
+                     mlNetCommandEvent.TrackEvent();
+
                      // Map the verbosity to internal levels
                      var verbosity = Utils.GetVerbosity(options.Verbosity);
 
@@ -37,7 +48,6 @@ namespace Microsoft.ML.CLI
                      string outputBaseDir = string.Empty;
                      if (options.Name == null)
                      {
-
                          options.Name = "Sample" + Utils.GetTaskKind(options.MlTask).ToString();
                          outputBaseDir = Path.Combine(options.OutputPath.FullName, options.Name);
                      }
@@ -50,7 +60,7 @@ namespace Microsoft.ML.CLI
                      options.OutputPath = new DirectoryInfo(outputBaseDir);
 
                      // Instantiate the command
-                     var command = new NewCommand(options, telemetry);
+                     var command = new NewCommand(options);
 
                      // Override the Logger Configuration
                      var logconsole = LogManager.Configuration.FindTargetByName("logconsole");
@@ -67,6 +77,7 @@ namespace Microsoft.ML.CLI
                  }
                  catch (Exception e)
                  {
+                     ex = e;
                      _logger.Log(LogLevel.Error, e.Message);
                      _logger.Log(LogLevel.Debug, e.ToString());
                      _logger.Log(LogLevel.Info, Strings.LookIntoLogFile);
@@ -82,7 +93,8 @@ namespace Microsoft.ML.CLI
 
             var parseResult = parser.Parse(args);
 
-            if (parseResult.Errors.Count == 0)
+            var commandParseSucceeded = !parseResult.Errors.Any();
+            if (commandParseSucceeded)
             {
                 if (parseResult.RootCommandResult.Children.Count > 0)
                 {
@@ -95,12 +107,19 @@ namespace Microsoft.ML.CLI
 
                         var explicitlySpecifiedOptions = options.Where(opt => !opt.IsImplicit).Select(opt => opt.Name);
 
-                        telemetry.SetCommandAndParameters(command.Name, explicitlySpecifiedOptions);
+                        mlNetCommandEvent.CommandLineParametersUsed = explicitlySpecifiedOptions;
                     }
                 }
             }
 
+            // Send system info telemetry
+            SystemInfoEvent.TrackEvent();
+
             parser.InvokeAsync(parseResult).Wait();
+            // Send exit telemetry
+            ApplicationExitEvent.TrackEvent(exitCode, commandParseSucceeded, stopwatch.Elapsed, ex);
+            // Flush pending telemetry logs
+            Telemetry.Telemetry.Flush(TimeSpan.FromSeconds(3));
             Environment.Exit(exitCode);
         }
     }

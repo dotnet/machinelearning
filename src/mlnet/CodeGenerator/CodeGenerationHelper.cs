@@ -12,6 +12,7 @@ using Microsoft.ML.AutoML;
 using Microsoft.ML.CLI.CodeGenerator.CSharp;
 using Microsoft.ML.CLI.Data;
 using Microsoft.ML.CLI.ShellProgressBar;
+using Microsoft.ML.CLI.Telemetry.Events;
 using Microsoft.ML.CLI.Utilities;
 using Microsoft.ML.Data;
 using NLog;
@@ -51,7 +52,9 @@ namespace Microsoft.ML.CLI.CodeGenerator
                 {
                     inputColumnInformation.IgnoredColumnNames.Add(value);
                 }
+                var inferColumnsStopwatch = Stopwatch.StartNew();
                 columnInference = _automlEngine.InferColumns(context, inputColumnInformation);
+                InferColumnsEvent.TrackEvent(columnInference.ColumnInformation, inferColumnsStopwatch.Elapsed);
             }
             catch (Exception)
             {
@@ -73,6 +76,9 @@ namespace Microsoft.ML.CLI.CodeGenerator
 
             // The reason why we are doing this way of defining 3 different results is because of the AutoML API
             // i.e there is no common class/interface to handle all three tasks together.
+
+            // Start a timer for the experiment
+            var stopwatch = Stopwatch.StartNew();
 
             List<RunDetail<BinaryClassificationMetrics>> completedBinaryRuns = new List<RunDetail<BinaryClassificationMetrics>>();
             List<RunDetail<MulticlassClassificationMetrics>> completedMulticlassRuns = new List<RunDetail<MulticlassClassificationMetrics>>();
@@ -236,6 +242,7 @@ namespace Microsoft.ML.CLI.CodeGenerator
                         {
                             var binaryMetric = new BinaryExperimentSettings().OptimizingMetric;
                             var bestBinaryIteration = BestResultUtil.GetBestRun(completedBinaryRuns, binaryMetric);
+                            ExperimentCompletedEvent.TrackEvent(bestBinaryIteration, completedBinaryRuns, TaskKind.BinaryClassification, stopwatch.Elapsed);
                             bestPipeline = bestBinaryIteration.Pipeline;
                             bestModel = bestBinaryIteration.Model;
                             ConsolePrinter.ExperimentResultsHeader(LogLevel.Info, _settings.MlTask, _settings.Dataset.Name, columnInformation.LabelColumnName, elapsedTime.ToString("F2"), completedBinaryRuns.Count());
@@ -253,6 +260,7 @@ namespace Microsoft.ML.CLI.CodeGenerator
                         {
                             var regressionMetric = new RegressionExperimentSettings().OptimizingMetric;
                             var bestRegressionIteration = BestResultUtil.GetBestRun(completedRegressionRuns, regressionMetric);
+                            ExperimentCompletedEvent.TrackEvent(bestRegressionIteration, completedRegressionRuns, TaskKind.Regression, stopwatch.Elapsed);
                             bestPipeline = bestRegressionIteration.Pipeline;
                             bestModel = bestRegressionIteration.Model;
                             ConsolePrinter.ExperimentResultsHeader(LogLevel.Info, _settings.MlTask, _settings.Dataset.Name, columnInformation.LabelColumnName, elapsedTime.ToString("F2"), completedRegressionRuns.Count());
@@ -270,6 +278,7 @@ namespace Microsoft.ML.CLI.CodeGenerator
                         {
                             var muliclassMetric = new MulticlassExperimentSettings().OptimizingMetric;
                             var bestMulticlassIteration = BestResultUtil.GetBestRun(completedMulticlassRuns, muliclassMetric);
+                            ExperimentCompletedEvent.TrackEvent(bestMulticlassIteration, completedMulticlassRuns, TaskKind.MulticlassClassification, stopwatch.Elapsed);
                             bestPipeline = bestMulticlassIteration.Pipeline;
                             bestModel = bestMulticlassIteration.Model;
                             ConsolePrinter.ExperimentResultsHeader(LogLevel.Info, _settings.MlTask, _settings.Dataset.Name, columnInformation.LabelColumnName, elapsedTime.ToString("F2"), completedMulticlassRuns.Count());
