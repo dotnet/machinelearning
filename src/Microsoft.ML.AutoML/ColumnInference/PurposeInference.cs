@@ -123,15 +123,19 @@ namespace Microsoft.ML.AutoML
                         var data = column.GetColumnData();
 
                         long sumLength = 0;
-                        int sumSpaces = 0;
+                        long sumSpaces = 0;
+                        long numMissing = 0;
                         var seen = new HashSet<string>();
-                        int imagePathCount = 0;
+                        long imagePathCount = 0;
                         foreach (var span in data)
                         {
                             sumLength += span.Length;
-                            seen.Add(span.ToString());
                             string spanStr = span.ToString();
+                            seen.Add(spanStr);
                             sumSpaces += spanStr.Count(x => x == ' ');
+
+                            if (string.IsNullOrEmpty(spanStr))
+                                numMissing += 1;
 
                             foreach (var ext in commonImageExtensions)
                             {
@@ -145,9 +149,9 @@ namespace Microsoft.ML.AutoML
 
                         if (imagePathCount < data.Count - 1)
                         {
-                            Double avgLength = 1.0 * sumLength / data.Count;
-                            Double cardinalityRatio = 1.0 * seen.Count / data.Count;
-                            Double avgSpaces = 1.0 * sumSpaces / data.Count;
+                            Double avgLength = 1.0 * sumLength / Math.Max(data.Count - numMissing, 1);
+                            Double cardinalityRatio = 1.0 * seen.Count / Math.Max(data.Count - numMissing, 1);
+                            Double avgSpaces = 1.0 * sumSpaces / Math.Max(data.Count - numMissing, 1);
                             if (cardinalityRatio < 0.7)
                                 column.SuggestedPurpose = ColumnPurpose.CategoricalFeature;
                             // (note: the columns.Count() == 1 condition below, in case a dataset has only
