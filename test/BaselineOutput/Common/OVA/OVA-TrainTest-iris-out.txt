@@ -1,4 +1,4 @@
-maml.exe TrainTest test=%Data% tr=OVA{p=AvgPer{ lr=0.8 }} norm=No dout=%Output% data=%Data% out=%Output% seed=1 xf=Term{col=Label}
+maml.exe TrainTest test=%Data% tr=OVA{p=AvgPer{ lr=0.8 } useprob=-} norm=No dout=%Output% data=%Data% out=%Output% seed=1 xf=Term{col=Label}
 Not adding a normalizer.
 Training learner 0
 Training calibrator.
@@ -13,21 +13,21 @@ Confusion table
 PREDICTED ||     0 |     1 |     2 | Recall
 TRUTH     ||========================
         0 ||    50 |     0 |     0 | 1.0000
-        1 ||     0 |    46 |     4 | 0.9200
+        1 ||    30 |     0 |    20 | 0.0000
         2 ||     0 |     0 |    50 | 1.0000
           ||========================
-Precision ||1.0000 |1.0000 |0.9259 |
-Accuracy(micro-avg): 0.973333
-Accuracy(macro-avg): 0.973333
-Log-loss:           0.291849
-Log-loss reduction: 0.734347
+Precision ||0.6250 |0.0000 |0.7143 |
+Accuracy(micro-avg): 0.666667
+Accuracy(macro-avg): 0.666667
+Log-loss:           17.052120
+Log-loss reduction: -14.521509
 
 OVERALL RESULTS
 ---------------------------------------
-Accuracy(micro-avg): 0.973333 (0.0000)
-Accuracy(macro-avg): 0.973333 (0.0000)
-Log-loss:           0.291849 (0.0000)
-Log-loss reduction: 0.734347 (0.0000)
+Accuracy(micro-avg): 0.666667 (0.0000)
+Accuracy(macro-avg): 0.666667 (0.0000)
+Log-loss:           17.052120 (0.0000)
+Log-loss reduction: -14.521509 (0.0000)
 
 ---------------------------------------
 Physical memory usage(MB): %Number%

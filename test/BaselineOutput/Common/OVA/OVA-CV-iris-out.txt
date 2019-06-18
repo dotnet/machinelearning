@@ -1,4 +1,4 @@
-maml.exe CV tr=OVA{p=AvgPer{ lr=0.8 }} threads=- norm=No dout=%Output% data=%Data% seed=1 xf=Term{col=Label}
+maml.exe CV tr=OVA{p=AvgPer{ lr=0.8 } useprob=-} threads=- norm=No dout=%Output% data=%Data% seed=1 xf=Term{col=Label}
 Not adding a normalizer.
 Training learner 0
 Training calibrator.
@@ -21,35 +21,35 @@ Confusion table
 PREDICTED ||     0 |     1 |     2 | Recall
 TRUTH     ||========================
         0 ||    21 |     0 |     0 | 1.0000
-        1 ||     0 |    20 |    10 | 0.6667
+        1 ||     3 |     0 |    27 | 0.0000
         2 ||     0 |     0 |    28 | 1.0000
           ||========================
-Precision ||1.0000 |1.0000 |0.7368 |
-Accuracy(micro-avg): 0.873418
-Accuracy(macro-avg): 0.888889
-Log-loss:           0.393949
-Log-loss reduction: 0.637753
+Precision ||0.8750 |0.0000 |0.5091 |
+Accuracy(micro-avg): 0.620253
+Accuracy(macro-avg): 0.666667
+Log-loss:           14.450986
+Log-loss reduction: -12.288068
 
 Confusion table
           ||========================
 PREDICTED ||     0 |     1 |     2 | Recall
 TRUTH     ||========================
         0 ||    29 |     0 |     0 | 1.0000
-        1 ||     0 |    19 |     1 | 0.9500
+        1 ||     0 |     0 |    20 | 0.0000
         2 ||     0 |     0 |    22 | 1.0000
           ||========================
-Precision ||1.0000 |1.0000 |0.9565 |
-Accuracy(micro-avg): 0.985915
-Accuracy(macro-avg): 0.983333
-Log-loss:           0.299620
-Log-loss reduction: 0.724018
+Precision ||1.0000 |0.0000 |0.5238 |
+Accuracy(micro-avg): 0.718310
+Accuracy(macro-avg): 0.666667
+Log-loss:           9.729233
+Log-loss reduction: -7.961670
 
 OVERALL RESULTS
 ---------------------------------------
-Accuracy(micro-avg): 0.929667 (0.0562)
-Accuracy(macro-avg): 0.936111 (0.0472)
-Log-loss:           0.346785 (0.0472)
-Log-loss reduction: 0.680886 (0.0431)
+Accuracy(micro-avg): 0.669282 (0.0490)
+Accuracy(macro-avg): 0.666667 (0.0000)
+Log-loss:           12.090110 (2.3609)
+Log-loss reduction: -10.124869 (2.1632)
 
 ---------------------------------------
 Physical memory usage(MB): %Number%

@@ -21,14 +21,15 @@ using Microsoft.ML.Runtime;
 using Microsoft.ML.Trainers;
 using Newtonsoft.Json.Linq;
 
-[assembly: LoadableClass(OneVersusAllTrainer.Summary, typeof(OneVersusAllTrainer<>), typeof(OneVersusAllTrainer<>.Options),
+// TODO: FIX typeof(StandardTrainersCatalog)
+[assembly: LoadableClass(OneVersusAllTrainer<object>.Summary, typeof(OneVersusAllTrainer<object>), typeof(OneVersusAllTrainer<object>.Options),
     new[] { typeof(SignatureMulticlassClassifierTrainer), typeof(SignatureTrainer) },
-    OneVersusAllTrainer.UserNameValue,
-    OneVersusAllTrainer.LoadNameValue)]
+    OneVersusAllTrainer<object>.UserNameValue,
+    OneVersusAllTrainer<object>.LoadNameValue)]
 
-[assembly: LoadableClass(typeof(OneVersusAllModelParameters<>), null, typeof(SignatureLoadModel),
+[assembly: LoadableClass(typeof(OneVersusAllModelParameters<object>), null, typeof(SignatureLoadModel),
     "OVA Executor",
-    OneVersusAllModelParameters<IValueMapper>.LoaderSignature)]
+    OneVersusAllModelParameters<Object>.LoaderSignature)]
 
 [assembly: EntryPointModule(typeof(OneVersusAllModelParameters<>))]
 namespace Microsoft.ML.Trainers
@@ -81,8 +82,8 @@ namespace Microsoft.ML.Trainers
     /// ]]>
     /// </format>
     /// </remarks>
-    /// <seealso cref="StandardTrainersCatalog.OneVersusAll{TModel}(MulticlassClassificationCatalog.MulticlassClassificationTrainers, ITrainerEstimator{BinaryPredictionTransformer{TModel}, TModel}, string, bool, IEstimator{ISingleFeaturePredictionTransformer{ICalibrator}}, int, bool)" />
-    public sealed class OneVersusAllTrainer<T> : MetaMulticlassTrainer<MulticlassPredictionTransformer<OneVersusAllModelParameters<T>>, OneVersusAllModelParameters<T>> where T : class, IValueMapper
+    // <seealso cref="StandardTrainersCatalog.OneVersusAll{TModel}(MulticlassClassificationCatalog.MulticlassClassificationTrainers, ITrainerEstimator{BinaryPredictionTransformer{TModel}, TModel}, string, bool, IEstimator{ISingleFeaturePredictionTransformer{ICalibrator}}, int, bool)" />
+    public sealed class OneVersusAllTrainer<T> : MetaMulticlassTrainer<MulticlassPredictionTransformer<OneVersusAllModelParameters<T>>, OneVersusAllModelParameters<T>> where T : class
     {
         internal const string LoadNameValue = "OVA";
         internal const string UserNameValue = "One-vs-All";
@@ -121,25 +122,20 @@ namespace Microsoft.ML.Trainers
         /// </summary>
         /// <param name="env">The <see cref="IHostEnvironment"/> instance.</param>
         /// <param name="binaryEstimator">An instance of a binary <see cref="ITrainerEstimator{TTransformer, TPredictor}"/> used as the base trainer.</param>
-        /// <param name="calibrator">The calibrator. If a calibrator is not provided, it will default to <see cref="PlattCalibratorTrainer"/></param>
         /// <param name="labelColumnName">The name of the label colum.</param>
         /// <param name="imputeMissingLabelsAsNegative">If true will treat missing labels as negative labels.</param>
-        /// <param name="maximumCalibrationExampleCount">Number of instances to train the calibrator.</param>
         /// <param name="useProbabilities">Use probabilities (vs. raw outputs) to identify top-score category.</param>
         internal OneVersusAllTrainer(IHostEnvironment env,
             TScalarTrainer binaryEstimator,
             string labelColumnName = DefaultColumnNames.Label,
             bool imputeMissingLabelsAsNegative = false,
-            ICalibratorTrainer calibrator = null,
-            int maximumCalibrationExampleCount = 1000000000,
             bool useProbabilities = true)
          : base(env,
                new Options
                {
-                   ImputeMissingLabelsAsNegative = imputeMissingLabelsAsNegative,
-                   MaxCalibrationExamples = maximumCalibrationExampleCount,
+                   ImputeMissingLabelsAsNegative = imputeMissingLabelsAsNegative
                },
-               LoadNameValue, labelColumnName, binaryEstimator, calibrator)
+               LoadNameValue, labelColumnName, binaryEstimator)
         {
             Host.CheckValue(labelColumnName, nameof(labelColumnName), "Label column should not be null.");
             _options = (Options)Args;
@@ -149,11 +145,11 @@ namespace Microsoft.ML.Trainers
         private protected override OneVersusAllModelParameters<T> TrainCore(IChannel ch, RoleMappedData data, int count)
         {
             // Train one-vs-all models.
-            var predictors = new TScalarPredictor[count];
+            var predictors = new T[count];
             for (int i = 0; i < predictors.Length; i++)
             {
                 ch.Info($"Training learner {i}");
-                predictors[i] = TrainOne(ch, Trainer, data, i).Model;
+                predictors[i] = TrainOne(ch, Trainer, data, i).Model as T;
             }
             return OneVersusAllModelParameters<T>.Create(Host, _options.UseProbabilities, predictors);
         }
@@ -172,14 +168,13 @@ namespace Microsoft.ML.Trainers
             {
                 var calibratedModel = transformer.Model as TDistPredictor;
 
+                // If probabilities are requested and the Predictor is not calibrated or if it doesn't implement the right interface then throw.
+                Host.Check(calibratedModel != null, "Predictor is either not calibrated or does not implement the expected interface");
+
                 // REVIEW: restoring the RoleMappedData, as much as we can.
                 // not having the weight column on the data passed to the TrainCalibrator should be addressed.
                 var trainedData = new RoleMappedData(view, label: trainerLabel, feature: transformer.FeatureColumnName);
 
-                if (calibratedModel == null)
-                    calibratedModel = CalibratorUtils.GetCalibratedPredictor(Host, ch, Calibrator, transformer.Model, trainedData, Args.MaxCalibrationExamples) as TDistPredictor;
-
-                Host.Check(calibratedModel != null, "Calibrated predictor does not implement the expected interface");
                 return new BinaryPredictionTransformer<TScalarPredictor>(Host, calibratedModel, trainedData.Data.Schema, transformer.FeatureColumnName);
             }
 
@@ -213,7 +208,7 @@ namespace Microsoft.ML.Trainers
 
             td.CheckMulticlassLabel(out var numClasses);
 
-            var predictors = new TScalarPredictor[numClasses];
+            var predictors = new T[numClasses];
             string featureColumn = null;
 
             using (var ch = Host.Start("Fitting"))
@@ -227,8 +222,8 @@ namespace Microsoft.ML.Trainers
                         var transformer = TrainOne(ch, Trainer, td, i);
                         featureColumn = transformer.FeatureColumnName;
                     }
+                    predictors[i] = TrainOne(ch, Trainer, td, i).Model as T;
 
-                    predictors[i] = TrainOne(ch, Trainer, td, i).Model;
                 }
             }
 
@@ -245,7 +240,7 @@ namespace Microsoft.ML.Trainers
         ICanSaveInSourceCode,
         ICanSaveInTextFormat,
         ISingleCanSavePfa
-        where T : class, IValueMapper
+        where T: class
     {
         internal const string LoaderSignature = "OVAExec";
         internal const string RegistrationName = "OVAPredictor";
@@ -258,7 +253,7 @@ namespace Microsoft.ML.Trainers
                 verReadableCur: 0x00010001,
                 verWeCanReadBack: 0x00010001,
                 loaderSignature: LoaderSignature,
-                loaderAssemblyName: typeof(OneVersusAllModelParameters<>).Assembly.FullName);
+                loaderAssemblyName: typeof(OneVersusAllModelParameters<T>).Assembly.FullName);
         }
 
         private const string SubPredictorFmt = "SubPredictor_{0:000}";
@@ -268,7 +263,7 @@ namespace Microsoft.ML.Trainers
         /// <summary>
         /// Retrieves the model parameters.
         /// </summary>
-        internal ImmutableArray<T> SubModelParameters => _impl.Predictors.ToImmutableArray();
+        internal ImmutableArray<T> SubModelParameters => _impl.Predictors.Cast<T>().ToImmutableArray();
 
         /// <summary>
         /// The type of the prediction task.
@@ -293,7 +288,7 @@ namespace Microsoft.ML.Trainers
         bool ICanSavePfa.CanSavePfa => _impl.CanSavePfa;
 
         [BestFriend]
-        internal static OneVersusAllModelParameters<T> Create(IHost host, OutputFormula outputFormula, TScalarPredictor[] predictors)
+        internal static OneVersusAllModelParameters<T> Create(IHost host, OutputFormula outputFormula, T[] predictors)
         {
             ImplBase impl;
 
@@ -320,10 +315,7 @@ namespace Microsoft.ML.Trainers
                 // If ivmd is null, either the user didn't ask for probability or the provided predictors can't produce probability.
                 if (ivmd != null)
                 {
-                    var dists = new IValueMapperDist[predictors.Length];
-                    for (int i = 0; i < predictors.Length; ++i)
-                        dists[i] = (IValueMapperDist)predictors[i];
-                    impl = new ImplDist(dists);
+                    impl = new ImplDist(predictors);
                 }
                 else
                     impl = new ImplRaw(predictors);
@@ -333,7 +325,7 @@ namespace Microsoft.ML.Trainers
         }
 
         [BestFriend]
-        internal static OneVersusAllModelParameters<T> Create(IHost host, bool useProbability, TScalarPredictor[] predictors)
+        internal static OneVersusAllModelParameters<T> Create(IHost host, bool useProbability, T[] predictors)
         {
             var outputFormula = useProbability ? OutputFormula.ProbabilityNormalization : OutputFormula.Raw;
 
@@ -344,7 +336,7 @@ namespace Microsoft.ML.Trainers
         /// Create a <see cref="OneVersusAllModelParameters{T}"/> from an array of predictors.
         /// </summary>
         [BestFriend]
-        internal static OneVersusAllModelParameters<T> Create(IHost host, TScalarPredictor[] predictors)
+        internal static OneVersusAllModelParameters<T> Create(IHost host, T[] predictors)
         {
             Contracts.CheckValue(host, nameof(host));
             host.CheckNonEmpty(predictors, nameof(predictors));
@@ -373,13 +365,13 @@ namespace Microsoft.ML.Trainers
 
             if (useDist)
             {
-                var predictors = new IValueMapperDist[len];
+                var predictors = new T[len];
                 LoadPredictors(Host, predictors, ctx);
                 _impl = new ImplDist(predictors);
             }
             else
             {
-                var predictors = new TScalarPredictor[len];
+                var predictors = new T[len];
                 LoadPredictors(Host, predictors, ctx);
                 _impl = new ImplRaw(predictors);
             }
@@ -487,7 +479,7 @@ namespace Microsoft.ML.Trainers
         private abstract class ImplBase : ISingleCanSavePfa
         {
             public abstract DataViewType InputType { get; }
-            public abstract T[] Predictors { get; }
+            public abstract IValueMapper[] Predictors { get; }
             public abstract bool CanSavePfa { get; }
             public abstract ValueMapper<VBuffer<float>, VBuffer<float>> GetMapper();
             public abstract JToken SaveAsPfa(BoundPfaContext ctx, JToken input);
@@ -519,18 +511,18 @@ namespace Microsoft.ML.Trainers
         private sealed class ImplRaw : ImplBase
         {
             public override DataViewType InputType { get; }
-            public override T[] Predictors { get; }
+            public override IValueMapper[] Predictors { get; }
             public override bool CanSavePfa { get; }
 
-            internal ImplRaw(TScalarPredictor[] predictors)
+            internal ImplRaw(T[] predictors)
             {
                 Contracts.CheckNonEmpty(predictors, nameof(predictors));
 
-                Predictors = new T[predictors.Length];
+                Predictors = new IValueMapper[predictors.Length];
                 VectorDataViewType inputType = null;
                 for (int i = 0; i < predictors.Length; i++)
                 {
-                    var vm = predictors[i] as T;
+                    var vm = predictors[i] as IValueMapper;
                     Contracts.Check(IsValid(vm, ref inputType), "Predictor doesn't implement the expected interface");
                     Predictors[i] = vm;
                 }
@@ -584,10 +576,10 @@ namespace Microsoft.ML.Trainers
         {
             private readonly IValueMapperDist[] _mappers;
             public override DataViewType InputType { get; }
-            public override T[] Predictors => _mappers as T[];
+            public override IValueMapper[] Predictors => _mappers;
             public override bool CanSavePfa { get; }
 
-            internal ImplDist(IValueMapperDist[] predictors)
+            internal ImplDist(T[] predictors)
             {
                 Contracts.Check(Utils.Size(predictors) > 0);
 
@@ -595,9 +587,9 @@ namespace Microsoft.ML.Trainers
                 VectorDataViewType inputType = null;
                 for (int i = 0; i < predictors.Length; i++)
                 {
-                    var vm = predictors[i];
+                    var vm = predictors[i] as IValueMapperDist;
                     Contracts.Check(IsValid(vm, ref inputType), "Predictor doesn't implement the expected interface");
-                    _mappers[i] = vm;
+                    _mappers[i] = vm as IValueMapperDist;
                 }
                 CanSavePfa = Predictors.All(m => (m as IDistCanSavePfa)?.CanSavePfa == true);
                 Contracts.AssertValue(inputType);
@@ -695,17 +687,18 @@ namespace Microsoft.ML.Trainers
         private sealed class ImplSoftmax : ImplBase
         {
             public override DataViewType InputType { get; }
-            public override T[] Predictors { get; }
+            public override IValueMapper[] Predictors { get; }
             public override bool CanSavePfa { get; }
 
-            internal ImplSoftmax(TScalarPredictor[] predictors)
+            internal ImplSoftmax(T[] predictors)
             {
                 Contracts.CheckNonEmpty(predictors, nameof(predictors));
-                Predictors = new T[predictors.Length];
+
+                Predictors = new IValueMapper[predictors.Length];
                 VectorDataViewType inputType = null;
                 for (int i = 0; i < predictors.Length; i++)
                 {
-                    var vm = predictors[i] as T;
+                    var vm = predictors[i] as IValueMapper;
                     Contracts.Check(IsValid(vm, ref inputType), "Predictor doesn't implement the expected interface");
                     Predictors[i] = vm;
                 }

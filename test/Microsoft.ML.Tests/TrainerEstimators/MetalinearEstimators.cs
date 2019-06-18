@@ -21,12 +21,11 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         public void OVAWithAllConstructorArgs()
         {
             var (pipeline, data) = GetMulticlassPipeline();
-            var calibrator = new PlattCalibratorEstimator(Env);
             var averagePerceptron = ML.BinaryClassification.Trainers.AveragedPerceptron(
                 new AveragedPerceptronTrainer.Options { Shuffle = true });
 
             var ova = ML.MulticlassClassification.Trainers.OneVersusAll(averagePerceptron, imputeMissingLabelsAsNegative: true,
-                calibrator: calibrator, maximumCalibrationExampleCount: 10000, useProbabilities: true);
+               useProbabilities: false);
 
             pipeline = pipeline.Append(ova)
                     .Append(new KeyToValueMappingEstimator(Env, "PredictedLabel"));
@@ -95,7 +94,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
 
             var pipeline = new ColumnConcatenatingEstimator(Env, "Vars", "SepalLength", "SepalWidth", "PetalLength", "PetalWidth")
                 .Append(new ValueToKeyMappingEstimator(Env, "Label"), TransformerScope.TrainTest)
-                .Append(ML.MulticlassClassification.Trainers.OneVersusAll(sdcaTrainer))
+                .Append(ML.MulticlassClassification.Trainers.OneVersusAll(sdcaTrainer, useProbabilities: false))
                 .Append(new KeyToValueMappingEstimator(Env, "PredictedLabel"));
 
             var model = pipeline.Fit(data);

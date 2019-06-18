@@ -1,0 +1,4 @@
+Compat issues with assembly Microsoft.ML.LightGbm:
+CannotRemoveBaseTypeOrInterface : Type 'Microsoft.ML.Trainers.LightGbm.LightGbmMulticlassTrainer' does not inherit from base type 'Microsoft.ML.Trainers.LightGbm.LightGbmTrainerBase<Microsoft.ML.Trainers.LightGbm.LightGbmMulticlassTrainer.Options, Microsoft.ML.Data.VBuffer<System.Single>, Microsoft.ML.Data.MulticlassPredictionTransformer<Microsoft.ML.Trainers.OneVersusAllModelParameters>, Microsoft.ML.Trainers.OneVersusAllModelParameters>' in the implementation but it does in the contract.
+MembersMustExist : Member 'Microsoft.ML.Trainers.LightGbm.LightGbmMulticlassTrainer.Fit(Microsoft.ML.IDataView, Microsoft.ML.IDataView)' does not exist in the implementation but it does exist in the contract.
+Total Issues: 2

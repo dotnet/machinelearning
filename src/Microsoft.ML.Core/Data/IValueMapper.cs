@@ -7,7 +7,8 @@ namespace Microsoft.ML.Data
     /// <summary>
     /// Delegate type to map/convert a value.
     /// </summary>
-    public delegate void ValueMapper<TSrc, TDst>(in TSrc src, ref TDst dst);
+    [BestFriend]
+    internal delegate void ValueMapper<TSrc, TDst>(in TSrc src, ref TDst dst);
 
     /// <summary>
     /// Delegate type to map/convert among three values, for example, one input with two
@@ -23,7 +24,8 @@ namespace Microsoft.ML.Data
     /// type arguments for GetMapper, but typically contain additional information like
     /// vector lengths.
     /// </summary>
-    public interface IValueMapper
+    [BestFriend]
+    internal interface IValueMapper
     {
         DataViewType InputType { get; }
         DataViewType OutputType { get; }

@@ -313,7 +313,7 @@ namespace Microsoft.ML.Trainers.LightGbm.StaticPipe
             int? minimumExampleCountPerLeaf = null,
             double? learningRate = null,
             int numberOfIterations = Defaults.NumberOfIterations,
-            Action<OneVersusAllModelParameters> onFit = null)
+            Action<OneVersusAllModelParameters<FeatureWeightsCalibratedModelParameters<LightGbmBinaryModelParameters, PlattCalibrator>>> onFit = null)
         {
             CheckUserValues(label, features, weights, numberOfLeaves, minimumExampleCountPerLeaf, learningRate, numberOfIterations, onFit);
 
@@ -351,7 +351,7 @@ namespace Microsoft.ML.Trainers.LightGbm.StaticPipe
             Vector<float> features,
             Scalar<float> weights,
             LightGbmMulticlassTrainer.Options options,
-            Action<OneVersusAllModelParameters> onFit = null)
+            Action<OneVersusAllModelParameters<FeatureWeightsCalibratedModelParameters<LightGbmBinaryModelParameters, PlattCalibrator>>> onFit = null)
         {
             Contracts.CheckValue(options, nameof(options));
             CheckUserValues(label, features, weights, onFit);

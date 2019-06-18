@@ -126,13 +126,13 @@ namespace Microsoft.ML.RunTests
 
         public static PredictorAndArgs Ova = new PredictorAndArgs
         {
-            Trainer = new SubComponent("OVA", "p=AvgPer{ lr=0.8 }"),
+            Trainer = new SubComponent("OVA", "p=AvgPer{ lr=0.8 } useprob=-"),
             MamlArgs = new[] { "norm=no" },
         };
 
         public static PredictorAndArgs OvaWithFastForest = new PredictorAndArgs
         {
-            Trainer = new SubComponent("OVA", "p=FastForest{ }"),
+            Trainer = new SubComponent("OVA", "p=FastForest{ } useprob=-"),
             MamlArgs = new[] { "norm=no" },
             Tag = "OVA-FastForest",
         };

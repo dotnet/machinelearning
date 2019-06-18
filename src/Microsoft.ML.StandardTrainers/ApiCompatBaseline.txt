@@ -1,0 +1,5 @@
+Compat issues with assembly Microsoft.ML.StandardTrainers:
+MembersMustExist : Member 'Microsoft.ML.StandardTrainersCatalog.OneVersusAll<TModel>(Microsoft.ML.MulticlassClassificationCatalog.MulticlassClassificationTrainers, Microsoft.ML.Trainers.ITrainerEstimator<Microsoft.ML.Data.BinaryPredictionTransformer<TModel>, TModel>, System.String, System.Boolean, Microsoft.ML.IEstimator<Microsoft.ML.ISingleFeaturePredictionTransformer<Microsoft.ML.Calibrators.ICalibrator>>, System.Int32, System.Boolean)' does not exist in the implementation but it does exist in the contract.
+TypesMustExist : Type 'Microsoft.ML.Trainers.OneVersusAllModelParameters' does not exist in the implementation but it does exist in the contract.
+TypesMustExist : Type 'Microsoft.ML.Trainers.OneVersusAllTrainer' does not exist in the implementation but it does exist in the contract.
+Total Issues: 3

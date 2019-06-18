@@ -340,8 +340,9 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             var model = trainer.Fit(transformedDataView, transformedDataView);
 
             // The slope in the all the calibrators should be equal to the negative of the sigmoid passed into the trainer.
-            Assert.True(model.Model.SubModelParameters.All(predictor =>
-            ((FeatureWeightsCalibratedModelParameters<LightGbmBinaryModelParameters, PlattCalibrator>)predictor).Calibrator.Slope == -sigmoid));
+            // Since the Model/SubModelParameters are strongly typed, no cast is needed.
+            Assert.True(model.Model.SubModelParameters.All(predictor => predictor.Calibrator.Slope == -sigmoid));
+
             Done();
         }
 
