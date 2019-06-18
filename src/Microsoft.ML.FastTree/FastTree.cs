@@ -3378,7 +3378,7 @@ namespace Microsoft.ML.Trainers.FastTree
     /// and <see cref="TreeEnsembleModelParametersBasedOnRegressionTree"/> is the type of
     /// <see cref="TrainedTreeEnsemble"/>.
     /// </summary>
-    public abstract class TreeEnsembleModelParametersBasedOnRegressionTree : TreeEnsembleModelParameters
+    public abstract class TreeEnsembleModelParametersBasedOnRegressionTree : TreeEnsembleModelParameters, ICanGetSummaryAsIDataView
     {
         /// <summary>
         /// An ensemble of trees exposed to users. It is a wrapper on the <see langword="internal"/>
@@ -3405,6 +3405,72 @@ namespace Microsoft.ML.Trainers.FastTree
             var trees = TrainedEnsemble.Trees.Select(tree => new RegressionTree(tree));
             var treeWeights = TrainedEnsemble.Trees.Select(tree => tree.Weight);
             return new RegressionTreeEnsemble(trees, treeWeights, TrainedEnsemble.Bias);
+        }
+
+        /// <summary>
+        /// Builds an IDataView that represents the TreeEnsemble. The suffix of the column name indicates which
+        /// tree the column is referring to.
+        /// </summary>
+        IDataView ICanGetSummaryAsIDataView.GetSummaryDataView(RoleMappedSchema schema)
+        {
+            var builder = new ArrayDataViewBuilder(Host);
+
+            var trees = TrainedTreeEnsemble.Trees;
+
+            // Bias column. It will be repeated for every tree.
+            builder.AddColumn(nameof(RegressionTreeEnsemble.Bias), NumberDataViewType.Double,
+                new[] { TrainedTreeEnsemble.Bias });
+
+            // TreeWeights column.
+            builder.AddColumn(nameof(RegressionTreeEnsemble.TreeWeights), NumberDataViewType.Double,
+                new[] { TrainedTreeEnsemble.TreeWeights.ToArray() });
+
+            for (int i = 0; i < trees.Count; i++)
+            {
+                string currentTree = $"_Tree_{i}";
+
+                // LeftChild column.
+                builder.AddColumn(nameof(RegressionTree.LeftChild) + currentTree, NumberDataViewType.Int32,
+                new[] { trees[i].LeftChild.ToArray() });
+
+                // RightChild column.
+                builder.AddColumn(nameof(RegressionTree.RightChild) + currentTree, NumberDataViewType.Int32,
+                    trees[i].RightChild.ToArray());
+
+                // NumericalSplitFeatureIndexes column.
+                builder.AddColumn(nameof(RegressionTree.NumericalSplitFeatureIndexes) + currentTree, NumberDataViewType.Int32,
+                    new[] { trees[i].NumericalSplitFeatureIndexes.ToArray() });
+
+                // NumericalSplitThresholds column.
+                builder.AddColumn(nameof(RegressionTree.NumericalSplitThresholds) + currentTree, NumberDataViewType.Single,
+                    new[] { trees[i].NumericalSplitThresholds.ToArray() });
+
+                // CategoricalSplitFlags column.
+                builder.AddColumn(nameof(RegressionTree.CategoricalSplitFlags) + currentTree, BooleanDataViewType.Instance,
+                    new[] { trees[i].CategoricalSplitFlags.ToArray() });
+
+                // LeafValues column.
+                builder.AddColumn(nameof(RegressionTree.LeafValues) + currentTree, NumberDataViewType.Double,
+                    new[] { trees[i].LeafValues.ToArray() });
+
+                // SplitGains column.
+                builder.AddColumn(nameof(RegressionTree.SplitGains) + currentTree, NumberDataViewType.Double,
+                    new[] { trees[i].SplitGains.ToArray() });
+
+                // NumberOfLeaves column.
+                builder.AddColumn(nameof(RegressionTree.NumberOfLeaves) + currentTree, NumberDataViewType.Int32,
+                    new[] { trees[i].NumberOfLeaves });
+
+                // NumberOfNodes column.
+                builder.AddColumn(nameof(RegressionTree.NumberOfNodes) + currentTree, NumberDataViewType.Int32,
+                    new[] { trees[i].NumberOfNodes });
+            }
+
+            // REVIEW: Should these two be exposed, if so how?
+            // public IReadOnlyList<int> GetCategoricalSplitFeaturesAt(int nodeIndex)
+            // public IReadOnlyList<int> GetCategoricalCategoricalSplitFeatureRangeAt(int nodeIndex)
+
+            return builder.GetDataView();
         }
     }
 
