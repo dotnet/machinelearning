@@ -515,6 +515,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
             {
                 Contracts.CheckValue(bindings, nameof(bindings));
                 Contracts.CheckValue(input, nameof(input));
+                Contracts.Check(Utils.Size(getters) == bindings.GetActiveInput((i) => true).Length);
                 _schema = bindings.Schema;
                 _input = input;
                 _getters = getters ?? new Delegate[0];
