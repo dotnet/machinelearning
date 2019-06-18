@@ -17,6 +17,7 @@ using Microsoft.ML.Tools;
 using Microsoft.ML.Transforms.StaticPipe;
 using Xunit;
 using Xunit.Abstractions;
+using Microsoft.ML.Transforms.Onnx;
 
 namespace Microsoft.ML.Tests
 {
@@ -326,8 +327,8 @@ namespace Microsoft.ML.Tests
 
         private class ZipMapOutput
         {
-            [ColumnName("output")]
-            public IEnumerable<Dictionary<string, float>> Output { get; set; }
+            [OnnxSequenceType(typeof(IDictionary<string, float>))]
+            public IEnumerable<IDictionary<string, float>> output { get; set; }
         }
 
         [OnnxFact]
@@ -335,22 +336,45 @@ namespace Microsoft.ML.Tests
         {
             var modelFile = Path.Combine(Directory.GetCurrentDirectory(), "nodes", "TestZipMap.onnx");
 
-            var dataView = ML.Data.LoadFromEnumerable(
-                new ZipMapInput[] {
-                    new ZipMapInput() { Input = new float[] {1,2,3}, }
-                });
-            var onnx = ML.Transforms.ApplyOnnxModel(new[] { "output" }, new[] { "input" }, modelFile).Fit(dataView).Transform(dataView);
+            var dataPoints = new ZipMapInput[] {
+                new ZipMapInput() { Input = new float[] {1,2,3}, },
+                new ZipMapInput() { Input = new float[] {8,7,6}, },
+            };
 
-            var outputColumn = onnx.Schema["output"];
-            using (var curs = onnx.GetRowCursor(outputColumn, onnx.Schema["output"]))
+            var dataView = ML.Data.LoadFromEnumerable(dataPoints);
+            var transformedDataView = ML.Transforms.ApplyOnnxModel(new[] { "output" }, new[] { "input" }, modelFile).Fit(dataView).Transform(dataView);
+
+            // Verify output column carried by an IDataView.
+            var outputColumn = transformedDataView.Schema["output"];
+            using (var curs = transformedDataView.GetRowCursor(outputColumn, transformedDataView.Schema["output"]))
             {
                 IEnumerable<IDictionary<string, float>> buffer = null;
                 var getMapSequence = curs.GetGetter<IEnumerable<IDictionary<string, float>>>(outputColumn);
-
+                int i = 0;
                 while (curs.MoveNext())
                 {
                     getMapSequence(ref buffer);
+                    Assert.Single(buffer);
+                    var dictionary = buffer.First();
+                    Assert.Equal(3, dictionary.Count());
+                    Assert.Equal(dataPoints[i].Input[0], dictionary["A"]);
+                    Assert.Equal(dataPoints[i].Input[1], dictionary["B"]);
+                    Assert.Equal(dataPoints[i].Input[2], dictionary["C"]);
+                    ++i;
                 }
+            }
+
+            // Convert IDataView to IEnumerable<ZipMapOutput> and then inspect the values.
+            var transformedDataPoints = ML.Data.CreateEnumerable<ZipMapOutput>(transformedDataView, false).ToList();
+
+            for (int i = 0; i < transformedDataPoints.Count; ++i)
+            {
+                Assert.Single(transformedDataPoints[i].output);
+                var dictionary = transformedDataPoints[i].output.First();
+                Assert.Equal(3, dictionary.Count());
+                Assert.Equal(dataPoints[i].Input[0], dictionary["A"]);
+                Assert.Equal(dataPoints[i].Input[1], dictionary["B"]);
+                Assert.Equal(dataPoints[i].Input[2], dictionary["C"]);
             }
         }
     }

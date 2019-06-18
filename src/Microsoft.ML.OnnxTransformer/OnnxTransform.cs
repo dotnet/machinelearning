@@ -92,9 +92,17 @@ namespace Microsoft.ML.Transforms.Onnx
         internal const string ShortName = "Onnx";
         internal const string LoaderSignature = "OnnxTransform";
 
-        internal readonly string[] Inputs;
-        internal readonly string[] Outputs;
-        internal readonly DataViewType[] OutputTypes;
+        /// <summary>
+        /// Input column names from ML.NET's perspective. It can be ordered differently than ONNX model's input list.
+        /// It's also possible that the <see cref="Inputs"/> contains less variables than ONNX model's input list.
+        /// </summary>
+        internal string[] Inputs { get; }
+        /// <summary>
+        /// Output column names from ML.NET's perspective. It can be ordered differently than ONNX model's output list.
+        /// It's also possible that the <see cref="Outputs"/> contains less variables than ONNX model's output list.
+        /// </summary>
+        internal string[] Outputs { get; }
+        internal DataViewType[] OutputTypes { get; }
 
         private static VersionInfo GetVersionInfo()
         {
@@ -196,7 +204,7 @@ namespace Microsoft.ML.Transforms.Onnx
                 var shape = outputNodeInfo.Shape;
                 var dims = AdjustDimensions(shape);
                 // OutputTypes[i] = new VectorDataViewType(OnnxUtils.OnnxToMlNetType(outputNodeInfo.Type), dims.ToArray());
-                OutputTypes[i] = Model.OutputTypes[i];
+                OutputTypes[i] = Model.ModelInfo.OutputsInfo[idx].MlnetType;
             }
             _options = options;
         }
@@ -302,9 +310,22 @@ namespace Microsoft.ML.Transforms.Onnx
         private sealed class Mapper : MapperBase
         {
             private readonly OnnxTransformer _parent;
+            /// <summary>
+            /// <see cref="_inputColIndices"/>'s i-th element value tells the <see cref="IDataView"/> column index to
+            /// find the i-th ONNX input.
+            /// </summary>
             private readonly int[] _inputColIndices;
+            /// <summary>
+            /// <see cref="_isInputVector"/>'s i-th element value tells if the i-th ONNX input is a tensor.
+            /// </summary>
             private readonly bool[] _isInputVector;
+            /// <summary>
+            /// <see cref="_inputTensorShapes"/>'s i-th element value tells if the i-th ONNX input's shape if it's a tensor.
+            /// </summary>
             private readonly OnnxShape[] _inputTensorShapes;
+            /// <summary>
+            /// <see cref="_inputOnnxTypes"/>'s i-th element value tells if the <see cref="Type"/> of the i-th ONNX input.
+            /// </summary>
             private readonly System.Type[] _inputOnnxTypes;
 
             public Mapper(OnnxTransformer parent, DataViewSchema inputSchema) :
@@ -327,11 +348,11 @@ namespace Microsoft.ML.Transforms.Onnx
                     var inputNodeInfo = model.ModelInfo.InputsInfo[idx];
 
                     var shape = inputNodeInfo.Shape;
-                    var inputType = OnnxUtils.OnnxToMlNetType(inputNodeInfo.Type);
+                    var inputType = OnnxUtils.OnnxToMlNetType(inputNodeInfo.OrtType);
 
                     var inputShape = AdjustDimensions(inputNodeInfo.Shape);
                     _inputTensorShapes[i] = inputShape.ToList();
-                    _inputOnnxTypes[i] = inputNodeInfo.Type;
+                    _inputOnnxTypes[i] = inputNodeInfo.OrtType;
 
                     var col = inputSchema.GetColumnOrNull(_parent.Inputs[i]);
                     if (!col.HasValue)
@@ -417,22 +438,21 @@ namespace Microsoft.ML.Transforms.Onnx
             {
                 disposer = null;
                 Host.AssertValue(input);
-                //Host.Assert(typeof(T) == _outputItemRawType);
 
                 var outputCache = new OutputCache();
                 var activeOutputColNames = _parent.Outputs.Where((x, i) => activeOutput(i)).ToArray();
 
-                if (_parent.Model.OutputTypes[iinfo] is VectorDataViewType)
+                if (_parent.Model.ModelInfo.OutputsInfo[iinfo].MlnetType is VectorDataViewType vectorType)
                 {
                     //var type = _parent.OutputTypes[iinfo].RawType;
-                    var type = OnnxUtils.OnnxToMlNetType(_parent.Model.ModelInfo.OutputsInfo[iinfo].Type).RawType;
+                    var elemRawType = vectorType.ItemType.RawType;
                     //Host.Assert(type == _parent.OutputTypes[iinfo].GetItemType().RawType);
                     var srcNamedValueGetters = GetNamedOnnxValueGetters(input, _parent.Inputs, _inputColIndices, _isInputVector, _inputOnnxTypes, _inputTensorShapes);
-                    return Utils.MarshalInvoke(MakeTensorGetter<int>, type, input, iinfo, srcNamedValueGetters, activeOutputColNames, outputCache);
+                    return Utils.MarshalInvoke(MakeTensorGetter<int>, elemRawType, input, iinfo, srcNamedValueGetters, activeOutputColNames, outputCache);
                 }
                 else
                 {
-                    var type = _parent.Model.OutputTypes[iinfo].RawType;
+                    var type = _parent.Model.ModelInfo.OutputsInfo[iinfo].MlnetType.RawType;
                     var srcNamedValueGetters = GetNamedOnnxValueGetters(input, _parent.Inputs, _inputColIndices, _isInputVector, _inputOnnxTypes, _inputTensorShapes);
                     return Utils.MarshalInvoke(MakeObjectGetter<int>, type, input, iinfo, srcNamedValueGetters, activeOutputColNames, outputCache);
                 }
@@ -441,7 +461,7 @@ namespace Microsoft.ML.Transforms.Onnx
             private Delegate MakeTensorGetter<T>(DataViewRow input, int iinfo, INamedOnnxValueGetter[] srcNamedValueGetters, string[] activeOutputColNames, OutputCache outputCache)
             {
                 Host.AssertValue(input);
-                ValueGetter<VBuffer<T>> valuegetter = (ref VBuffer<T> dst) =>
+                ValueGetter<VBuffer<T>> valueGetter = (ref VBuffer<T> dst) =>
                 {
                     UpdateCacheIfNeeded(input.Position, srcNamedValueGetters, activeOutputColNames, outputCache);
                     var namedOnnxValue = outputCache.Outputs[_parent.Outputs[iinfo]];
@@ -452,20 +472,20 @@ namespace Microsoft.ML.Transforms.Onnx
                     denseTensor.Buffer.Span.CopyTo(editor.Values);
                     dst = editor.Commit();
                 };
-                return valuegetter;
+                return valueGetter;
             }
 
             private Delegate MakeObjectGetter<T>(DataViewRow input, int iinfo, INamedOnnxValueGetter[] srcNamedValueGetters, string[] activeOutputColNames, OutputCache outputCache)
             {
                 Host.AssertValue(input);
-                ValueGetter<T> valuegetter = (ref T dst) =>
+                ValueGetter<T> valueGetter = (ref T dst) =>
                 {
                     UpdateCacheIfNeeded(input.Position, srcNamedValueGetters, activeOutputColNames, outputCache);
                     var namedOnnxValue = outputCache.Outputs[_parent.Outputs[iinfo]];
                     var trueValue = namedOnnxValue.AsEnumerable<NamedOnnxValue>().Select(value => value.AsDictionary<string, float>());
                     dst = (T)trueValue;
                 };
-                return valuegetter;
+                return valueGetter;
             }
 
             private static INamedOnnxValueGetter[] GetNamedOnnxValueGetters(DataViewRow input,
@@ -634,7 +654,7 @@ namespace Microsoft.ML.Transforms.Onnx
                     throw Host.Except($"Column {input} doesn't match input node names of model.");
 
                 var inputNodeInfo = inputsInfo[idx];
-                var expectedType = OnnxUtils.OnnxToMlNetType(inputNodeInfo.Type);
+                var expectedType = OnnxUtils.OnnxToMlNetType(inputNodeInfo.OrtType);
                 if (col.ItemType != expectedType)
                     throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", input, expectedType.ToString(), col.ItemType.ToString());
             }
