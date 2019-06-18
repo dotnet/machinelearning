@@ -21,16 +21,16 @@ using Microsoft.ML.Runtime;
 using Microsoft.ML.Trainers;
 using Newtonsoft.Json.Linq;
 
-[assembly: LoadableClass(OneVersusAllTrainer.Summary, typeof(OneVersusAllTrainer), typeof(OneVersusAllTrainer.Options),
+[assembly: LoadableClass(OneVersusAllTrainer.Summary, typeof(OneVersusAllTrainer<>), typeof(OneVersusAllTrainer<>.Options),
     new[] { typeof(SignatureMulticlassClassifierTrainer), typeof(SignatureTrainer) },
     OneVersusAllTrainer.UserNameValue,
     OneVersusAllTrainer.LoadNameValue)]
 
-[assembly: LoadableClass(typeof(OneVersusAllModelParameters), null, typeof(SignatureLoadModel),
+[assembly: LoadableClass(typeof(OneVersusAllModelParameters<>), null, typeof(SignatureLoadModel),
     "OVA Executor",
-    OneVersusAllModelParameters.LoaderSignature)]
+    OneVersusAllModelParameters<IValueMapper>.LoaderSignature)]
 
-[assembly: EntryPointModule(typeof(OneVersusAllModelParameters))]
+[assembly: EntryPointModule(typeof(OneVersusAllModelParameters<>))]
 namespace Microsoft.ML.Trainers
 {
     using CR = RoleMappedSchema.ColumnRole;
@@ -82,7 +82,7 @@ namespace Microsoft.ML.Trainers
     /// </format>
     /// </remarks>
     /// <seealso cref="StandardTrainersCatalog.OneVersusAll{TModel}(MulticlassClassificationCatalog.MulticlassClassificationTrainers, ITrainerEstimator{BinaryPredictionTransformer{TModel}, TModel}, string, bool, IEstimator{ISingleFeaturePredictionTransformer{ICalibrator}}, int, bool)" />
-    public sealed class OneVersusAllTrainer : MetaMulticlassTrainer<MulticlassPredictionTransformer<OneVersusAllModelParameters>, OneVersusAllModelParameters>
+    public sealed class OneVersusAllTrainer<T> : MetaMulticlassTrainer<MulticlassPredictionTransformer<OneVersusAllModelParameters<T>>, OneVersusAllModelParameters<T>> where T : class, IValueMapper
     {
         internal const string LoadNameValue = "OVA";
         internal const string UserNameValue = "One-vs-All";
@@ -93,7 +93,7 @@ namespace Microsoft.ML.Trainers
         private readonly Options _options;
 
         /// <summary>
-        /// Options passed to <see cref="OneVersusAllTrainer"/>
+        /// Options passed to <see cref="OneVersusAllTrainer{T}"/>
         /// </summary>
         internal sealed class Options : OptionsBase
         {
@@ -106,7 +106,7 @@ namespace Microsoft.ML.Trainers
         }
 
         /// <summary>
-        /// Constructs a <see cref="OneVersusAllTrainer"/> trainer supplying a <see cref="Options"/>.
+        /// Constructs a <see cref="OneVersusAllTrainer{T}"/> trainer supplying a <see cref="Options"/>.
         /// </summary>
         /// <param name="env">The private <see cref="IHostEnvironment"/> for this estimator.</param>
         /// <param name="options">The legacy <see cref="Options"/></param>
@@ -117,7 +117,7 @@ namespace Microsoft.ML.Trainers
         }
 
         /// <summary>
-        /// Initializes a new instance of <see cref="OneVersusAllTrainer"/>.
+        /// Initializes a new instance of <see cref="OneVersusAllTrainer{T}"/>.
         /// </summary>
         /// <param name="env">The <see cref="IHostEnvironment"/> instance.</param>
         /// <param name="binaryEstimator">An instance of a binary <see cref="ITrainerEstimator{TTransformer, TPredictor}"/> used as the base trainer.</param>
@@ -146,7 +146,7 @@ namespace Microsoft.ML.Trainers
             _options.UseProbabilities = useProbabilities;
         }
 
-        private protected override OneVersusAllModelParameters TrainCore(IChannel ch, RoleMappedData data, int count)
+        private protected override OneVersusAllModelParameters<T> TrainCore(IChannel ch, RoleMappedData data, int count)
         {
             // Train one-vs-all models.
             var predictors = new TScalarPredictor[count];
@@ -155,7 +155,7 @@ namespace Microsoft.ML.Trainers
                 ch.Info($"Training learner {i}");
                 predictors[i] = TrainOne(ch, Trainer, data, i).Model;
             }
-            return OneVersusAllModelParameters.Create(Host, _options.UseProbabilities, predictors);
+            return OneVersusAllModelParameters<T>.Create(Host, _options.UseProbabilities, predictors);
         }
 
         private ISingleFeaturePredictionTransformer<TScalarPredictor> TrainOne(IChannel ch, TScalarTrainer trainer, RoleMappedData data, int cls)
@@ -205,7 +205,7 @@ namespace Microsoft.ML.Trainers
         /// <summary> Trains a <see cref="MulticlassPredictionTransformer{OneVersusAllModelParameters}"/> model.</summary>
         /// <param name="input">The input data.</param>
         /// <returns>A <see cref="MulticlassPredictionTransformer{OneVersusAllModelParameters}"/> model./></returns>
-        public override MulticlassPredictionTransformer<OneVersusAllModelParameters> Fit(IDataView input)
+        public override MulticlassPredictionTransformer<OneVersusAllModelParameters<T>> Fit(IDataView input)
         {
             var roles = new KeyValuePair<CR, string>[1];
             roles[0] = new KeyValuePair<CR, string>(new CR(DefaultColumnNames.Label), LabelColumn.Name);
@@ -232,19 +232,20 @@ namespace Microsoft.ML.Trainers
                 }
             }
 
-            return new MulticlassPredictionTransformer<OneVersusAllModelParameters>(Host, OneVersusAllModelParameters.Create(Host, _options.UseProbabilities, predictors), input.Schema, featureColumn, LabelColumn.Name);
+            return new MulticlassPredictionTransformer<OneVersusAllModelParameters<T>>(Host, OneVersusAllModelParameters<T>.Create(Host, _options.UseProbabilities, predictors), input.Schema, featureColumn, LabelColumn.Name);
         }
     }
 
     /// <summary>
-    /// Model parameters for <see cref="OneVersusAllTrainer"/>.
+    /// Model parameters for <see cref="OneVersusAllTrainer{T}"/>.
     /// </summary>
-    public sealed class OneVersusAllModelParameters :
+    public sealed class OneVersusAllModelParameters<T> :
         ModelParametersBase<VBuffer<float>>,
         IValueMapper,
         ICanSaveInSourceCode,
         ICanSaveInTextFormat,
         ISingleCanSavePfa
+        where T : class, IValueMapper
     {
         internal const string LoaderSignature = "OVAExec";
         internal const string RegistrationName = "OVAPredictor";
@@ -257,7 +258,7 @@ namespace Microsoft.ML.Trainers
                 verReadableCur: 0x00010001,
                 verWeCanReadBack: 0x00010001,
                 loaderSignature: LoaderSignature,
-                loaderAssemblyName: typeof(OneVersusAllModelParameters).Assembly.FullName);
+                loaderAssemblyName: typeof(OneVersusAllModelParameters<>).Assembly.FullName);
         }
 
         private const string SubPredictorFmt = "SubPredictor_{0:000}";
@@ -267,7 +268,7 @@ namespace Microsoft.ML.Trainers
         /// <summary>
         /// Retrieves the model parameters.
         /// </summary>
-        internal ImmutableArray<object> SubModelParameters => _impl.Predictors.Cast<object>().ToImmutableArray();
+        internal ImmutableArray<T> SubModelParameters => _impl.Predictors.ToImmutableArray();
 
         /// <summary>
         /// The type of the prediction task.
@@ -292,7 +293,7 @@ namespace Microsoft.ML.Trainers
         bool ICanSavePfa.CanSavePfa => _impl.CanSavePfa;
 
         [BestFriend]
-        internal static OneVersusAllModelParameters Create(IHost host, OutputFormula outputFormula, TScalarPredictor[] predictors)
+        internal static OneVersusAllModelParameters<T> Create(IHost host, OutputFormula outputFormula, TScalarPredictor[] predictors)
         {
             ImplBase impl;
 
@@ -301,7 +302,7 @@ namespace Microsoft.ML.Trainers
                 if (outputFormula == OutputFormula.Softmax)
                 {
                     impl = new ImplSoftmax(predictors);
-                    return new OneVersusAllModelParameters(host, impl);
+                    return new OneVersusAllModelParameters<T>(host, impl);
                 }
 
                 // Caller of this function asks for probability output. We check if input predictor can produce probability.
@@ -312,7 +313,7 @@ namespace Microsoft.ML.Trainers
                         ivmd.OutputType != NumberDataViewType.Single ||
                         ivmd.DistType != NumberDataViewType.Single))
                 {
-                    ch.Warning($"{nameof(OneVersusAllTrainer.Options.UseProbabilities)} specified with {nameof(OneVersusAllTrainer.Options.PredictorType)} that can't produce probabilities.");
+                    ch.Warning($"{nameof(OneVersusAllTrainer<T>.Options.UseProbabilities)} specified with {nameof(OneVersusAllTrainer<T>.Options.PredictorType)} that can't produce probabilities.");
                     ivmd = null;
                 }
 
@@ -328,11 +329,11 @@ namespace Microsoft.ML.Trainers
                     impl = new ImplRaw(predictors);
             }
 
-            return new OneVersusAllModelParameters(host, impl);
+            return new OneVersusAllModelParameters<T>(host, impl);
         }
 
         [BestFriend]
-        internal static OneVersusAllModelParameters Create(IHost host, bool useProbability, TScalarPredictor[] predictors)
+        internal static OneVersusAllModelParameters<T> Create(IHost host, bool useProbability, TScalarPredictor[] predictors)
         {
             var outputFormula = useProbability ? OutputFormula.ProbabilityNormalization : OutputFormula.Raw;
 
@@ -340,10 +341,10 @@ namespace Microsoft.ML.Trainers
         }
 
         /// <summary>
-        /// Create a <see cref="OneVersusAllModelParameters"/> from an array of predictors.
+        /// Create a <see cref="OneVersusAllModelParameters{T}"/> from an array of predictors.
         /// </summary>
         [BestFriend]
-        internal static OneVersusAllModelParameters Create(IHost host, TScalarPredictor[] predictors)
+        internal static OneVersusAllModelParameters<T> Create(IHost host, TScalarPredictor[] predictors)
         {
             Contracts.CheckValue(host, nameof(host));
             host.CheckNonEmpty(predictors, nameof(predictors));
@@ -386,12 +387,12 @@ namespace Microsoft.ML.Trainers
             DistType = new VectorDataViewType(NumberDataViewType.Single, _impl.Predictors.Length);
         }
 
-        private static OneVersusAllModelParameters Create(IHostEnvironment env, ModelLoadContext ctx)
+        private static OneVersusAllModelParameters<T> Create(IHostEnvironment env, ModelLoadContext ctx)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(ctx, nameof(ctx));
             ctx.CheckAtModel(GetVersionInfo());
-            return new OneVersusAllModelParameters(env, ctx);
+            return new OneVersusAllModelParameters<T>(env, ctx);
         }
 
         private static void LoadPredictors<TPredictor>(IHostEnvironment env, TPredictor[] predictors, ModelLoadContext ctx)
@@ -486,7 +487,7 @@ namespace Microsoft.ML.Trainers
         private abstract class ImplBase : ISingleCanSavePfa
         {
             public abstract DataViewType InputType { get; }
-            public abstract IValueMapper[] Predictors { get; }
+            public abstract T[] Predictors { get; }
             public abstract bool CanSavePfa { get; }
             public abstract ValueMapper<VBuffer<float>, VBuffer<float>> GetMapper();
             public abstract JToken SaveAsPfa(BoundPfaContext ctx, JToken input);
@@ -518,18 +519,18 @@ namespace Microsoft.ML.Trainers
         private sealed class ImplRaw : ImplBase
         {
             public override DataViewType InputType { get; }
-            public override IValueMapper[] Predictors { get; }
+            public override T[] Predictors { get; }
             public override bool CanSavePfa { get; }
 
             internal ImplRaw(TScalarPredictor[] predictors)
             {
                 Contracts.CheckNonEmpty(predictors, nameof(predictors));
 
-                Predictors = new IValueMapper[predictors.Length];
+                Predictors = new T[predictors.Length];
                 VectorDataViewType inputType = null;
                 for (int i = 0; i < predictors.Length; i++)
                 {
-                    var vm = predictors[i] as IValueMapper;
+                    var vm = predictors[i] as T;
                     Contracts.Check(IsValid(vm, ref inputType), "Predictor doesn't implement the expected interface");
                     Predictors[i] = vm;
                 }
@@ -583,7 +584,7 @@ namespace Microsoft.ML.Trainers
         {
             private readonly IValueMapperDist[] _mappers;
             public override DataViewType InputType { get; }
-            public override IValueMapper[] Predictors => _mappers;
+            public override T[] Predictors => _mappers as T[];
             public override bool CanSavePfa { get; }
 
             internal ImplDist(IValueMapperDist[] predictors)
@@ -694,18 +695,17 @@ namespace Microsoft.ML.Trainers
         private sealed class ImplSoftmax : ImplBase
         {
             public override DataViewType InputType { get; }
-            public override IValueMapper[] Predictors { get; }
+            public override T[] Predictors { get; }
             public override bool CanSavePfa { get; }
 
             internal ImplSoftmax(TScalarPredictor[] predictors)
             {
                 Contracts.CheckNonEmpty(predictors, nameof(predictors));
-
-                Predictors = new IValueMapper[predictors.Length];
+                Predictors = new T[predictors.Length];
                 VectorDataViewType inputType = null;
                 for (int i = 0; i < predictors.Length; i++)
                 {
-                    var vm = predictors[i] as IValueMapper;
+                    var vm = predictors[i] as T;
                     Contracts.Check(IsValid(vm, ref inputType), "Predictor doesn't implement the expected interface");
                     Predictors[i] = vm;
                 }
