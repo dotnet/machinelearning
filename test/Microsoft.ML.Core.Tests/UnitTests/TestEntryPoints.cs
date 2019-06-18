@@ -970,8 +970,8 @@ namespace Microsoft.ML.RunTests
                 var data = splitOutput.TrainData[i];
                 if (i % 2 == 0)
                 {
-                    data = new TextFeaturizingEstimator(Env, "Features", new List<string> { "Text" }, 
-                        new TextFeaturizingEstimator.Options { 
+                    data = new TextFeaturizingEstimator(Env, "Features", new List<string> { "Text" },
+                        new TextFeaturizingEstimator.Options {
                             StopWordsRemoverOptions = new StopWordsRemovingEstimator.Options(),
                         }).Fit(data).Transform(data);
                 }
@@ -5652,6 +5652,32 @@ namespace Microsoft.ML.RunTests
                     loadedModel = ml.Model.Load(stream, out var inputSchema);
                 }
             }
+        }
+
+        [Fact]
+        public void TestSummary()
+        {
+            string inputGraph =
+                $@"
+                {{
+                  'Nodes': [
+                   {{
+                    'Inputs': {{ 'PredictorModel': '$predictor_model' }},
+                    'Name': 'Models.Summarizer',
+                    'Outputs': {{ 'Summary': '$output_data' }}
+                   }}],
+                  'Inputs' : {{
+                    'predictor_model': 'E:\\tmp\\modelmml.bin'
+                  }},
+                  'Outputs' : {{
+                    'output_data': 'E:\\tmp\\output.csv'
+                  }}
+                }}";
+            var jsonPath = DeleteOutputPath("graph.json");
+            File.WriteAllLines(jsonPath, new[] { inputGraph });
+            var args = new ExecuteGraphCommand.Arguments() { GraphPath = jsonPath };
+            var cmd = new ExecuteGraphCommand(Env, args);
+            cmd.Run();
         }
     }
 }

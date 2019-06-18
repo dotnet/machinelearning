@@ -2791,7 +2791,6 @@ namespace Microsoft.ML.Trainers.FastTree
         IPredictorWithFeatureWeights<float>,
         IFeatureContributionMapper,
         ICalculateFeatureContribution,
-        ICanGetSummaryAsIRow,
         ISingleCanSavePfa,
         ISingleCanSaveOnnx
     {
@@ -3276,22 +3275,22 @@ namespace Microsoft.ML.Trainers.FastTree
             return TrainedEnsemble.GetTreeAt(treeId).GetLeaf(in features, ref path);
         }
 
-        DataViewRow ICanGetSummaryAsIRow.GetSummaryIRowOrNull(RoleMappedSchema schema)
-        {
-            var names = default(VBuffer<ReadOnlyMemory<char>>);
-            AnnotationUtils.GetSlotNames(schema, RoleMappedSchema.ColumnRole.Feature, NumFeatures, ref names);
-            var metaBuilder = new DataViewSchema.Annotations.Builder();
-            metaBuilder.AddSlotNames(NumFeatures, names.CopyTo);
+        //DataViewRow ICanGetSummaryAsIRow.GetSummaryIRowOrNull(RoleMappedSchema schema)
+        //{
+        //    var names = default(VBuffer<ReadOnlyMemory<char>>);
+        //    AnnotationUtils.GetSlotNames(schema, RoleMappedSchema.ColumnRole.Feature, NumFeatures, ref names);
+        //    var metaBuilder = new DataViewSchema.Annotations.Builder();
+        //    metaBuilder.AddSlotNames(NumFeatures, names.CopyTo);
 
-            var weights = default(VBuffer<Single>);
-            ((IHaveFeatureWeights)this).GetFeatureWeights(ref weights);
-            var builder = new DataViewSchema.Annotations.Builder();
-            builder.Add<VBuffer<float>>("Gains", new VectorDataViewType(NumberDataViewType.Single, NumFeatures), weights.CopyTo, metaBuilder.ToAnnotations());
+        //    var weights = default(VBuffer<Single>);
+        //    ((IHaveFeatureWeights)this).GetFeatureWeights(ref weights);
+        //    var builder = new DataViewSchema.Annotations.Builder();
+        //    builder.Add<VBuffer<float>>("Gains", new VectorDataViewType(NumberDataViewType.Single, NumFeatures), weights.CopyTo, metaBuilder.ToAnnotations());
 
-            return AnnotationUtils.AnnotationsAsRow(builder.ToAnnotations());
-        }
+        //    return AnnotationUtils.AnnotationsAsRow(builder.ToAnnotations());
+        //}
 
-        DataViewRow ICanGetSummaryAsIRow.GetStatsIRowOrNull(RoleMappedSchema schema) => null;
+        //DataViewRow ICanGetSummaryAsIRow.GetStatsIRowOrNull(RoleMappedSchema schema) => null;
 
         private sealed class Tree : ITree<VBuffer<float>>
         {
@@ -3435,7 +3434,7 @@ namespace Microsoft.ML.Trainers.FastTree
 
                 // RightChild column.
                 builder.AddColumn(nameof(RegressionTree.RightChild) + currentTree, NumberDataViewType.Int32,
-                    trees[i].RightChild.ToArray());
+                   new[] { trees[i].RightChild.ToArray() });
 
                 // NumericalSplitFeatureIndexes column.
                 builder.AddColumn(nameof(RegressionTree.NumericalSplitFeatureIndexes) + currentTree, NumberDataViewType.Int32,
