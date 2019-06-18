@@ -51,8 +51,7 @@ namespace Microsoft.ML.Transforms
     }
 
     /// <summary>
-    /// <see cref="TypeConvertingTransformer"/> converts underlying column types.
-    /// The source and destination column types need to be compatible.
+    /// <see cref="ITransformer"/> resulting from fitting a <see cref="TypeConvertingEstimator"/>.
     /// </summary>
     public sealed class TypeConvertingTransformer : OneToOneTransformerBase
     {
@@ -513,9 +512,25 @@ namespace Microsoft.ML.Transforms
     }
 
     /// <summary>
-    /// <see cref="TypeConvertingEstimator"/> converts underlying column types.
-    /// The source and destination column types need to be compatible.
+    /// Estimator for <see cref="KeyToVectorMappingTransformer"/>. Converts the underlying input column type to a new type.
+    /// The input and output column types need to be compatible.
+    /// <see cref="PrimitiveDataViewType"/>
     /// </summary>
+    /// <remarks>
+    /// <format type="text/markdown"><![CDATA[
+    ///
+    /// ###  Estimator Characteristics
+    /// |  |  |
+    /// | -- | -- |
+    /// | Does this estimator need to look at the data to train its parameters? | No |
+    /// | Input column data type | Vector or primitive numeric, boolean, [text](xref:Microsoft.ML.Data.TextDataViewType), [System.DateTime](xref:System.DateTime) and [key](xref:Microsoft.ML.Data.KeyDataViewType) type. |
+    /// | Output column data type | Vector or primitive numeric, boolean, [text](xref:Microsoft.ML.Data.TextDataViewType), [System.DateTime](xref:System.DateTime) and [key](xref:Microsoft.ML.Data.KeyDataViewType) type. |
+    ///
+    /// Check the See Also section for links to usage examples.
+    /// ]]></format>
+    /// </remarks>
+    /// <seealso cref="ConversionsExtensionsCatalog.ConvertType(TransformsCatalog.ConversionTransforms, InputOutputColumnPair[], DataKind)"/>
+    /// <seealso cref="ConversionsExtensionsCatalog.ConvertType(TransformsCatalog.ConversionTransforms, string, string, DataKind)"/>
     public sealed class TypeConvertingEstimator : TrivialEstimator<TypeConvertingTransformer>
     {
         internal sealed class Defaults

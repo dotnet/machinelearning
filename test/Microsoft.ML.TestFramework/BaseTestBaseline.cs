@@ -60,8 +60,8 @@ namespace Microsoft.ML.RunTests
         private static readonly string BinRegUnixExp = @"\/[^\\\t ]+\/bin\/" + Mode;
         private static readonly string Bin64RegUnixExp = @"\/[^\\\t ]+\/bin\/x64\/" + Mode;
         // The Regex matches both positive and negative decimal point numbers present in a string.
-        // The numbers could be a part of a word. They can also be in Exponential form eg. 3E-9
-        private static readonly Regex MatchNumbers = new Regex(@"-?\b[0-9]+\.?[0-9]*(E-[0-9]*)?\b", RegexOptions.IgnoreCase | RegexOptions.Compiled);
+        // The numbers could be a part of a word. They can also be in Exponential form eg. 3E-9 or 4E+07
+        private static readonly Regex MatchNumbers = new Regex(@"-?\b[0-9]+\.?[0-9]*(E[-+][0-9]*)?\b", RegexOptions.IgnoreCase | RegexOptions.Compiled);
 
         /// <summary>
         /// When the progress log is appended to the end of output (in test runs), this line precedes the progress log.
@@ -330,21 +330,24 @@ namespace Microsoft.ML.RunTests
         /// <summary>
         /// Compare the contents of an output file with its baseline.
         /// </summary>
-        protected bool CheckEquality(string dir, string name, string nameBase = null, int digitsOfPrecision = DigitsOfPrecision)
+        protected bool CheckEquality(string dir, string name, string nameBase = null,
+            int digitsOfPrecision = DigitsOfPrecision, NumberParseOption parseOption = NumberParseOption.Default)
         {
-            return CheckEqualityCore(dir, name, nameBase ?? name, false, digitsOfPrecision);
+            return CheckEqualityCore(dir, name, nameBase ?? name, false, digitsOfPrecision, parseOption);
         }
 
         /// <summary>
         /// Check whether two files are same ignoring volatile differences (path, dates, times, etc).
         /// Returns true if the check passes.
         /// </summary>
-        protected bool CheckEqualityNormalized(string dir, string name, string nameBase = null, int digitsOfPrecision = DigitsOfPrecision)
+        protected bool CheckEqualityNormalized(string dir, string name, string nameBase = null,
+            int digitsOfPrecision = DigitsOfPrecision, NumberParseOption parseOption = NumberParseOption.Default)
         {
-            return CheckEqualityCore(dir, name, nameBase ?? name, true, digitsOfPrecision);
+            return CheckEqualityCore(dir, name, nameBase ?? name, true, digitsOfPrecision, parseOption);
         }
 
-        protected bool CheckEqualityCore(string dir, string name, string nameBase, bool normalize, int digitsOfPrecision = DigitsOfPrecision)
+        protected bool CheckEqualityCore(string dir, string name, string nameBase, bool normalize,
+            int digitsOfPrecision = DigitsOfPrecision, NumberParseOption parseOption = NumberParseOption.Default)
         {
             Contracts.Assert(IsActive);
             Contracts.AssertValue(dir); // Can be empty.
@@ -371,7 +374,7 @@ namespace Microsoft.ML.RunTests
             if (!CheckBaseFile(basePath))
                 return false;
 
-            bool res = CheckEqualityFromPathsCore(relPath, basePath, outPath, digitsOfPrecision: digitsOfPrecision);
+            bool res = CheckEqualityFromPathsCore(relPath, basePath, outPath, digitsOfPrecision: digitsOfPrecision, parseOption: parseOption);
 
             // No need to keep the raw (unnormalized) output file.
             if (normalize && res)
@@ -448,7 +451,8 @@ namespace Microsoft.ML.RunTests
             }
         }
 
-        protected bool CheckEqualityFromPathsCore(string relPath, string basePath, string outPath, int skip = 0, int digitsOfPrecision = DigitsOfPrecision)
+        protected bool CheckEqualityFromPathsCore(string relPath, string basePath, string outPath, int skip = 0,
+            int digitsOfPrecision = DigitsOfPrecision, NumberParseOption parseOption = NumberParseOption.Default)
         {
             Contracts.Assert(skip >= 0);
 
@@ -495,7 +499,7 @@ namespace Microsoft.ML.RunTests
                     }
 
                     count++;
-                    var inRange = GetNumbersFromFile(ref line1, ref line2, digitsOfPrecision);
+                    var inRange = GetNumbersFromFile(ref line1, ref line2, digitsOfPrecision, parseOption);
 
                     if (!inRange || line1 != line2)
                     {
@@ -509,15 +513,15 @@ namespace Microsoft.ML.RunTests
             }
         }
 
-        private bool GetNumbersFromFile(ref string firstString, ref string secondString, int digitsOfPrecision)
+        private bool GetNumbersFromFile(ref string firstString, ref string secondString,
+            int digitsOfPrecision, NumberParseOption parseOption)
         {
-
             MatchCollection firstCollection = MatchNumbers.Matches(firstString);
             MatchCollection secondCollection = MatchNumbers.Matches(secondString);
 
             if (firstCollection.Count == secondCollection.Count)
             {
-                if (!MatchNumberWithTolerance(firstCollection, secondCollection, digitsOfPrecision))
+                if (!MatchNumberWithTolerance(firstCollection, secondCollection, digitsOfPrecision, parseOption))
                 {
                     return false;
                 }
@@ -528,17 +532,38 @@ namespace Microsoft.ML.RunTests
             return true;
         }
 
-        private bool MatchNumberWithTolerance(MatchCollection firstCollection, MatchCollection secondCollection, int digitsOfPrecision)
+        private bool MatchNumberWithTolerance(MatchCollection firstCollection, MatchCollection secondCollection,
+            int digitsOfPrecision, NumberParseOption parseOption)
         {
-            for (int i = 0; i < firstCollection.Count; i++)
+            if (parseOption == NumberParseOption.UseSingle)
             {
-                double f1 = double.Parse(firstCollection[i].ToString());
-                double f2 = double.Parse(secondCollection[i].ToString());
-
-                if (!CompareNumbersWithTolerance(f1, f2, i, digitsOfPrecision))
+                for (int i = 0; i < firstCollection.Count; i++)
                 {
-                    return false;
+                    float f1 = float.Parse(firstCollection[i].ToString());
+                    float f2 = float.Parse(secondCollection[i].ToString());
+
+                    if (!CompareNumbersWithTolerance(f1, f2, i, digitsOfPrecision))
+                    {
+                        return false;
+                    }
                 }
+            }
+            else if (parseOption == NumberParseOption.UseDouble)
+            {
+                for (int i = 0; i < firstCollection.Count; i++)
+                {
+                    double f1 = double.Parse(firstCollection[i].ToString());
+                    double f2 = double.Parse(secondCollection[i].ToString());
+
+                    if (!CompareNumbersWithTolerance(f1, f2, i, digitsOfPrecision))
+                    {
+                        return false;
+                    }
+                }
+            }
+            else
+            {
+                throw new ArgumentException($"Invalid {nameof(NumberParseOption)}", nameof(parseOption));
             }
 
             return true;
@@ -810,6 +835,13 @@ namespace Microsoft.ML.RunTests
         protected int MainForTest(string args)
         {
             return Maml.MainCore(ML, args, false);
+        }
+
+        public enum NumberParseOption
+        {
+            Default = UseDouble,
+            UseSingle = 1,
+            UseDouble = 2,
         }
     }
 

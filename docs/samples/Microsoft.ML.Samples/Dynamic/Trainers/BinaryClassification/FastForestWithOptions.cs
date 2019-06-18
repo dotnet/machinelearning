@@ -50,7 +50,7 @@ namespace Samples.Dynamic.Trainers.BinaryClassification
             // Convert IDataView object to a list.
             var predictions = mlContext.Data.CreateEnumerable<Prediction>(transformedTestData, reuseRowObject: false).ToList();
 
-            // Look at 5 predictions
+            // Print 5 predictions.
             foreach (var p in predictions.Take(5))
                 Console.WriteLine($"Label: {p.Label}, Prediction: {p.PredictedLabel}");
 
@@ -61,9 +61,9 @@ namespace Samples.Dynamic.Trainers.BinaryClassification
             //   Label: True, Prediction: True
             //   Label: False, Prediction: True
             
-            // Evaluate the overall metrics
+            // Evaluate the overall metrics.
             var metrics = mlContext.BinaryClassification.EvaluateNonCalibrated(transformedTestData);
-            Microsoft.ML.SamplesUtils.ConsoleUtils.PrintMetrics(metrics);
+            PrintMetrics(metrics);
             
             // Expected output:
             //   Accuracy: 0.73
@@ -73,6 +73,16 @@ namespace Samples.Dynamic.Trainers.BinaryClassification
             //   Negative Recall: 0.68
             //   Positive Precision: 0.69
             //   Positive Recall: 0.78
+            //
+            //   TEST POSITIVE RATIO:    0.4760 (238.0/(238.0+262.0))
+            //   Confusion table
+            //             ||======================
+            //   PREDICTED || positive | negative | Recall
+            //   TRUTH     ||======================
+            //    positive ||      186 |       52 | 0.7815
+            //    negative ||       77 |      185 | 0.7061
+            //             ||======================
+            //   Precision ||   0.7072 |   0.7806 |
         }
 
         private static IEnumerable<DataPoint> GenerateRandomDataPoints(int count, int seed=0)
@@ -107,6 +117,19 @@ namespace Samples.Dynamic.Trainers.BinaryClassification
             public bool Label { get; set; }
             // Predicted label from the trainer.
             public bool PredictedLabel { get; set; }
+        }
+
+        // Pretty-print BinaryClassificationMetrics objects.
+        private static void PrintMetrics(BinaryClassificationMetrics metrics)
+        {
+            Console.WriteLine($"Accuracy: {metrics.Accuracy:F2}");
+            Console.WriteLine($"AUC: {metrics.AreaUnderRocCurve:F2}");
+            Console.WriteLine($"F1 Score: {metrics.F1Score:F2}");
+            Console.WriteLine($"Negative Precision: {metrics.NegativePrecision:F2}");
+            Console.WriteLine($"Negative Recall: {metrics.NegativeRecall:F2}");
+            Console.WriteLine($"Positive Precision: {metrics.PositivePrecision:F2}");
+            Console.WriteLine($"Positive Recall: {metrics.PositiveRecall:F2}\n");
+            Console.WriteLine(metrics.ConfusionMatrix.GetFormattedConfusionTable());
         }
     }
 }

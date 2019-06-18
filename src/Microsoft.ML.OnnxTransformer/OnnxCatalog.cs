@@ -12,17 +12,24 @@ namespace Microsoft.ML
     public static class OnnxCatalog
     {
         /// <summary>
-        /// Applies a pre-trained Onnx model.
+        /// Create a <see cref="OnnxScoringEstimator"/>, which applies a pre-trained Onnx model to the input column.
+        /// Input/output columns are determined based on the input/output columns of the provided ONNX model.
         /// </summary>
         /// <remarks>
-        /// All column names are provided, the input data column names/types must exactly match
-        /// all model input names. All possible output columns are then generated, with names/types
-        /// specified by the model.
+        /// The name/type of input columns must exactly match name/type of the ONNX model inputs.
+        /// The name/type of the produced output columns will match name/type of the ONNX model outputs.
         /// </remarks>
         /// <param name="catalog">The transform's catalog.</param>
         /// <param name="modelFile">The path of the file containing the ONNX model.</param>
         /// <param name="gpuDeviceId">Optional GPU device ID to run execution on, <see langword="null" /> to run on CPU.</param>
         /// <param name="fallbackToCpu">If GPU error, raise exception or fallback to CPU.</param>
+        /// <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        /// [!code-csharp[ApplyOnnxModel](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/ApplyOnnxModel.cs)]
+        /// ]]>
+        /// </format>
+        /// </example>
         public static OnnxScoringEstimator ApplyOnnxModel(this TransformsCatalog catalog,
             string modelFile,
             int? gpuDeviceId = null,
@@ -30,7 +37,7 @@ namespace Microsoft.ML
         => new OnnxScoringEstimator(CatalogUtils.GetEnvironment(catalog), modelFile, gpuDeviceId, fallbackToCpu);
 
         /// <summary>
-        /// Applies a pre-trained Onnx model.
+        /// Create a <see cref="OnnxScoringEstimator"/>, which applies a pre-trained Onnx model to the <paramref name="inputColumnName"/> column.
         /// </summary>
         /// <param name="catalog">The transform's catalog.</param>
         /// <param name="outputColumnName">The output column resulting from the transformation.</param>
@@ -47,7 +54,7 @@ namespace Microsoft.ML
         => new OnnxScoringEstimator(CatalogUtils.GetEnvironment(catalog), new[] { outputColumnName }, new[] { inputColumnName }, modelFile, gpuDeviceId, fallbackToCpu);
 
         /// <summary>
-        /// Applies a pre-trained Onnx model.
+        /// Create a <see cref="OnnxScoringEstimator"/>, which applies a pre-trained Onnx model to the <paramref name="inputColumnNames"/> columns.
         /// </summary>
         /// <param name="catalog">The transform's catalog.</param>
         /// <param name="outputColumnNames">The output columns resulting from the transformation.</param>
@@ -64,8 +71,8 @@ namespace Microsoft.ML
         => new OnnxScoringEstimator(CatalogUtils.GetEnvironment(catalog), outputColumnNames, inputColumnNames, modelFile, gpuDeviceId, fallbackToCpu);
 
         /// <summary>
-        /// Creates a new instance of <see cref="DnnImageFeaturizerEstimator"/> which applies one of the pre-trained DNN models in
-        /// <see cref="DnnImageModelSelector"/>to featurize an image.
+        /// Create <see cref="DnnImageFeaturizerEstimator"/>, which applies one of the pre-trained DNN models in
+        /// <see cref="DnnImageModelSelector"/> to featurize an image.
         /// </summary>
         /// <param name="catalog">The transform's catalog.</param>
         /// <param name="outputColumnName">The name of the column resulting from the transformation of <paramref name="inputColumnName"/>.</param>

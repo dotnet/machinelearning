@@ -7,6 +7,8 @@ string TrainerOptions = null;
 
 string OptionsInclude = "";
 string Comments= "";
+string DataGenerationComments= "// Generates random uniform doubles in [-0.5, 0.5) range with labels 1, 2 or 3.";
+bool CacheData = false;
 
 string ExpectedOutputPerInstance= @"// Expected output:
             //   Label: 1, Prediction: 1
@@ -16,8 +18,18 @@ string ExpectedOutputPerInstance= @"// Expected output:
             //   Label: 3, Prediction: 2";
 
 string ExpectedOutput = @"// Expected output:
-            //  Micro Accuracy: 0.90
-            //  Macro Accuracy: 0.90
-            //  Log Loss: 0.37
-            //  Log Loss Reduction: 0.67";
+            //   Micro Accuracy: 0.90
+            //   Macro Accuracy: 0.90
+            //   Log Loss: 0.36
+            //   Log Loss Reduction: 0.67
+
+            //   Confusion table
+            //             ||========================
+            //   PREDICTED ||     0 |     1 |     2 | Recall
+            //   TRUTH     ||========================
+            //           0 ||   150 |     0 |    10 | 0.9375
+            //           1 ||     0 |   166 |    11 | 0.9379
+            //           2 ||    15 |    15 |   133 | 0.8160
+            //             ||========================
+            //   Precision ||0.9091 |0.9171 |0.8636 |";
 #>

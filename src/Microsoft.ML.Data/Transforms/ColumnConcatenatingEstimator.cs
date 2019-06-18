@@ -10,9 +10,31 @@ using Microsoft.ML.Runtime;
 
 namespace Microsoft.ML.Transforms
 {
+
     /// <summary>
-    /// Concatenates columns in an <see cref="IDataView"/> into one single column. Estimator for the <see cref="ColumnConcatenatingTransformer"/>.
+    /// Concatenates one or more input columns into a new output column.
     /// </summary>
+    /// <remarks>
+    /// <format type="text/markdown"><![CDATA[
+    ///
+    /// ###  Estimator Characteristics
+    /// |  |  |
+    /// | -- | -- |
+    /// | Does this estimator need to look at the data to train its parameters? | No |
+    /// | Input column data type | Any, except [key](xref:Microsoft.ML.Data.KeyDataViewType) type. All input columns must have the same type.  |
+    /// | Output column data type | A vector of the input columns' data type |
+    ///
+    /// The resulting <xref:Microsoft.ML.Data.ColumnConcatenatingTransformer> creates a new column,
+    /// named as specified in the output column name parameters, where the input values are concatenated in a vector.
+    /// The order of the concatenation follows the order in which the input columns are specified.
+    ///
+    /// If the input columns' data type is a vector the output column data type remains the same. However, the size of
+    /// the vector will be the sum of the sizes of the input vectors.
+    ///
+    /// Check the See Also section for links to usage examples.
+    /// ]]></format>
+    /// </remarks>
+    /// <seealso cref="TransformExtensionsCatalog.Concatenate(TransformsCatalog, string, string[])"/>
     public sealed class ColumnConcatenatingEstimator : IEstimator<ColumnConcatenatingTransformer>
     {
         private readonly IHost _host;
@@ -32,6 +54,7 @@ namespace Microsoft.ML.Transforms
 
             _host.CheckNonEmpty(outputColumnName, nameof(outputColumnName));
             _host.CheckValue(inputColumnNames, nameof(inputColumnNames));
+            _host.CheckParam(inputColumnNames.Length > 0, nameof(inputColumnNames), "Input columns not specified");
             _host.CheckParam(!inputColumnNames.Any(r => string.IsNullOrEmpty(r)), nameof(inputColumnNames),
                 "Contained some null or empty items");
 

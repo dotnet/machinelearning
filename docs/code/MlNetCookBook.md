@@ -578,6 +578,60 @@ var biases = modelParameters.GetBiases();
 
 ```
 
+## How do I get a model's weights to look at the global feature importance?
+The below snippet shows how to get a model's weights to help determine the feature importance of the model for a linear model.
+
+```csharp
+var linearModel = model.LastTransformer.Model;
+
+var weights = linearModel.Weights;
+```
+
+The below snipper shows how to get the weights for a fast tree model.
+
+```csharp
+var treeModel = model.LastTransformer.Model;
+
+var weights = new VBuffer<float>();
+treeModel.GetFeatureWeights(ref weights);
+```
+
+## How do I look at the global feature importance?
+The below snippet shows how to get a glimpse of the the feature importance. Permutation Feature Importance works by computing the change in the evaluation metrics when each feature is replaced by a random value. In this case, we are investigating the change in the root mean squared error. For more information on permutation feature importance, review the [documentation](https://docs.microsoft.com/en-us/dotnet/machine-learning/how-to-guides/determine-global-feature-importance-in-model).
+
+```csharp
+var transformedData = model.Transform(data);
+
+var featureImportance = context.Regression.PermutationFeatureImportance(model.LastTransformer, transformedData);
+
+for (int i = 0; i < featureImportance.Count(); i++)
+{
+    Console.WriteLine($"Feature {i}: Difference in RMS - {featureImportance[i].RootMeanSquaredError.Mean}");
+}
+```
+
+## How do I look at the local feature importance per example?
+The below snippet shows how to get feature importance for each example of data.
+
+```csharp
+var model = pipeline.Fit(data);
+var transformedData = model.Transform(data);
+
+var linearModel = model.LastTransformer;
+
+var featureContributionCalculation = context.Transforms.CalculateFeatureContribution(linearModel, normalize: false);
+
+var featureContributionData = featureContributionCalculation.Fit(transformedData).Transform(transformedData);
+
+var shuffledSubset = context.Data.TakeRows(context.Data.ShuffleRows(featureContributionData), 10);
+var scoringEnumerator = context.Data.CreateEnumerable<HousingData>(shuffledSubset, true);
+
+foreach (var row in scoringEnumerator)
+{
+    Console.WriteLine(row);
+}
+```
+
 ## What is normalization and why do I need to care?
 
 In ML.NET we expose a number of [parametric and non-parametric algorithms](https://machinelearningmastery.com/parametric-and-nonparametric-machine-learning-algorithms/).
@@ -788,6 +842,7 @@ var transformedData = pipeline.Fit(data).Transform(data);
 var embeddings = transformedData.GetColumn<float[]>(mlContext, "Embeddings").Take(10).ToArray();
 var unigrams = transformedData.GetColumn<float[]>(mlContext, "BagOfWords").Take(10).ToArray();
 ```
+
 ## How do I train using cross-validation?
 
 [Cross-validation](https://en.wikipedia.org/wiki/Cross-validation_(statistics)) is a useful technique for ML applications. It helps estimate the variance of the model quality from one run to another and also eliminates the need to extract a separate test set for evaluation.
@@ -838,6 +893,7 @@ var microAccuracies = cvResults.Select(r => r.Metrics.AccuracyMicro);
 Console.WriteLine(microAccuracies.Average());
 
 ```
+
 ## Can I mix and match static and dynamic pipelines?
 
 Yes, we can have both of them in our codebase. The static pipelines are just a statically-typed way to build dynamic pipelines.

@@ -43,18 +43,20 @@ namespace Microsoft.ML
             }
 
             /// <summary>
-            /// Train a matrix factorization model. It factorizes the training matrix into the product of two low-rank matrices.
+            /// Create <see cref="MatrixFactorizationTrainer"/>, which predicts element values in a matrix using matrix factorization.
             /// </summary>
             /// <remarks>
-            /// <para>The basic idea of matrix factorization is finding two low-rank factor matrices to apporimate the training matrix.</para>
+            /// <para>The basic idea of matrix factorization is finding two low-rank factor matrices to approximate the training matrix.</para>
             /// <para>In this module, the expected training data is a list of tuples. Every tuple consists of a column index, a row index,
             /// and the value at the location specified by the two indexes.
             /// </para>
             /// </remarks>
-            /// <param name="labelColumnName">The name of the label column.</param>
-            /// <param name="matrixColumnIndexColumnName">The name of the column hosting the matrix's column IDs.</param>
-            /// <param name="matrixRowIndexColumnName">The name of the column hosting the matrix's row IDs.</param>
-            /// <param name="approximationRank">Rank of approximation matrixes.</param>
+            /// <param name="labelColumnName">The name of the label column. The column data must be <see cref="System.Single"/>.</param>
+            /// <param name="matrixColumnIndexColumnName">The name of the column hosting the matrix's column IDs.
+            /// The column data must be <see cref="Microsoft.ML.Data.KeyDataViewType"/>.</param>
+            /// <param name="matrixRowIndexColumnName">The name of the column hosting the matrix's row IDs.
+            /// The column data must be <see cref="Microsoft.ML.Data.KeyDataViewType"/>.</param>
+            /// <param name="approximationRank">Rank of approximation matrices.</param>
             /// <param name="learningRate">Initial learning rate. It specifies the speed of the training algorithm.</param>
             /// <param name="numberOfIterations">Number of training iterations.</param>
             /// <example>
@@ -74,15 +76,17 @@ namespace Microsoft.ML
                         approximationRank, learningRate, numberOfIterations);
 
             /// <summary>
-            /// Train a matrix factorization model. It factorizes the training matrix into the product of two low-rank matrices.
+            /// Create <see cref="MatrixFactorizationTrainer"/> with advanced options, which predicts element values in a matrix using matrix factorization.
             /// </summary>
             /// <remarks>
-            /// <para>The basic idea of matrix factorization is finding two low-rank factor matrices to apporimate the training matrix.</para>
+            /// <para>The basic idea of matrix factorization is finding two low-rank factor matrices to approximate the training matrix.</para>
             /// <para>In this module, the expected training data is a list of tuples. Every tuple consists of a column index, a row index,
             /// and the value at the location specified by the two indexes. The training configuration is encoded in <see cref="MatrixFactorizationTrainer.Options"/>.
+            /// To invoke one-class matrix factorization, user needs to specify <see cref="MatrixFactorizationTrainer.LossFunctionType.SquareLossOneClass"/>.
+            /// The default setting <see cref="MatrixFactorizationTrainer.LossFunctionType.SquareLossRegression"/> is for standard matrix factorization problem.
             /// </para>
             /// </remarks>
-            /// <param name="options">Advanced arguments to the algorithm.</param>
+            /// <param name="options">Trainer options.</param>
             /// <example>
             /// <format type="text/markdown">
             /// <![CDATA[

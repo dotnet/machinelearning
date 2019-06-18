@@ -137,7 +137,7 @@ namespace Microsoft.ML.Trainers
         }
 
         private protected virtual int ComputeNumThreads(FloatLabelCursor.Factory cursorFactory)
-            =>  Math.Min(8, Math.Max(1, Environment.ProcessorCount / 2));
+            => Math.Min(8, Math.Max(1, Environment.ProcessorCount / 2));
     }
 
     public abstract class SdcaTrainerBase<TOptions, TTransformer, TModel> : StochasticTrainerBase<TTransformer, TModel>
@@ -157,7 +157,7 @@ namespace Microsoft.ML.Trainers
         public abstract class OptionsBase : TrainerInputBaseWithWeight
         {
             /// <summary>
-            /// The L2 <a href='tmpurl_regularization'>regularization</a> hyperparameter.
+            /// The L2 <a href='https://en.wikipedia.org/wiki/Regularization_(mathematics)'>regularization</a> hyperparameter.
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "L2 regularizer constant. By default the l2 constant is automatically inferred based on data set.", NullName = "<Auto>", ShortName = "l2, L2Const", SortOrder = 1)]
             [TGUI(Label = "L2 Regularizer Constant", SuggestedSweeps = "<Auto>,1e-7,1e-6,1e-5,1e-4,1e-3,1e-2")]
@@ -166,7 +166,7 @@ namespace Microsoft.ML.Trainers
 
             // REVIEW: make the default positive when we know how to consume a sparse model
             /// <summary>
-            /// The L1 <a href='tmpurl_regularization'>regularization</a> hyperparameter.
+            /// The L1 <a href='https://en.wikipedia.org/wiki/Regularization_(mathematics)'>regularization</a> hyperparameter.
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "L1 soft threshold (L1/L2). Note that it is easier to control and sweep using the threshold parameter than the raw L1-regularizer constant. By default the l1 threshold is automatically inferred based on data set.",
                 NullName = "<Auto>", Name = "L1Threshold", ShortName = "l1", SortOrder = 2)]
@@ -1453,7 +1453,7 @@ namespace Microsoft.ML.Trainers
         public override TrainerInfo Info { get; }
 
         /// <summary>
-        /// Options base class for binary SDCA trainers.
+        /// Options for <see cref="SdcaBinaryTrainerBase{TModelParameters}"/>.
         /// </summary>
         public class BinaryOptionsBase : OptionsBase
         {
@@ -1547,15 +1547,41 @@ namespace Microsoft.ML.Trainers
 
     /// <summary>
     /// The <see cref="IEstimator{TTransformer}"/> for training a binary logistic regression classification model using the stochastic dual coordinate ascent method.
-    /// The trained model is <a href='tmpurl_calib'>calibrated</a> and can produce probability by feeding the output value of the
+    /// The trained model is <a href='https://en.wikipedia.org/wiki/Calibration_(statistics)'>calibrated</a> and can produce probability by feeding the output value of the
     /// linear function to a <see cref="PlattCalibrator"/>.
     /// </summary>
-    /// <include file='doc.xml' path='doc/members/member[@name="SDCA_remarks"]/*' />
+    /// <remarks>
+    /// <format type="text/markdown"><![CDATA[
+    /// To create this trainer, use [SdcaLogisticRegression](xref:Microsoft.ML.StandardTrainersCatalog.SdcaLogisticRegression(Microsoft.ML.BinaryClassificationCatalog.BinaryClassificationTrainers,System.String,System.String,System.String,System.Nullable{System.Single},System.Nullable{System.Single},System.Nullable{System.Int32}))
+    /// or [SdcaLogisticRegression(Options)](xref:Microsoft.ML.StandardTrainersCatalog.SdcaLogisticRegression(Microsoft.ML.BinaryClassificationCatalog.BinaryClassificationTrainers,Microsoft.ML.Trainers.SdcaLogisticRegressionBinaryTrainer.Options)).
+    ///
+    /// [!include[io](~/../docs/samples/docs/api-reference/io-columns-binary-classification.md)]
+    ///
+    /// ### Trainer Characteristics
+    /// |  |  |
+    /// | -- | -- |
+    /// | Machine learning task | Binary classification |
+    /// | Is normalization required? | Yes |
+    /// | Is caching required? | No |
+    /// | Required NuGet in addition to Microsoft.ML | None |
+    ///
+    /// [!include[algorithm](~/../docs/samples/docs/api-reference/algo-details-sdca.md)]
+    ///
+    /// [!include[regularization](~/../docs/samples/docs/api-reference/regularization-l1-l2.md)]
+    ///
+    /// [!include[references](~/../docs/samples/docs/api-reference/algo-details-sdca-refs.md)]
+    /// ]]>
+    /// </format>
+    /// </remarks>
+    /// <seealso cref="StandardTrainersCatalog.SdcaLogisticRegression(BinaryClassificationCatalog.BinaryClassificationTrainers, string, string, string, float?, float?, int?)"/>
+    /// <seealso cref="StandardTrainersCatalog.SdcaLogisticRegression(BinaryClassificationCatalog.BinaryClassificationTrainers, SdcaLogisticRegressionBinaryTrainer.Options)"/>
+    /// <seealso cref="Options"/>
     public sealed class SdcaLogisticRegressionBinaryTrainer :
         SdcaBinaryTrainerBase<CalibratedModelParametersBase<LinearBinaryModelParameters, PlattCalibrator>>
     {
         /// <summary>
-        /// Options for the <see cref="SdcaLogisticRegressionBinaryTrainer"/>.
+        /// Options for the <see cref="SdcaLogisticRegressionBinaryTrainer"/> as used in
+        /// [SdcaLogisticRegression(Options)](xref:Microsoft.ML.StandardTrainersCatalog.SdcaLogisticRegression(Microsoft.ML.BinaryClassificationCatalog.BinaryClassificationTrainers,Microsoft.ML.Trainers.SdcaLogisticRegressionBinaryTrainer.Options)).
         /// </summary>
         public sealed class Options : BinaryOptionsBase
         {
@@ -1614,7 +1640,32 @@ namespace Microsoft.ML.Trainers
     /// <summary>
     /// The <see cref="IEstimator{TTransformer}"/> for training a binary logistic regression classification model using the stochastic dual coordinate ascent method.
     /// </summary>
-    /// <include file='doc.xml' path='doc/members/member[@name="SDCA_remarks"]/*' />
+    /// <remarks>
+    /// <format type="text/markdown"><![CDATA[
+    /// To create this trainer, use [SdcaNonCalibrated](xref:Microsoft.ML.StandardTrainersCatalog.SdcaNonCalibrated(Microsoft.ML.BinaryClassificationCatalog.BinaryClassificationTrainers,System.String,System.String,System.String,Microsoft.ML.Trainers.ISupportSdcaClassificationLoss,System.Nullable{System.Single},System.Nullable{System.Single},System.Nullable{System.Int32}))
+    /// or [SdcaNonCalibrated(Options)](xref:Microsoft.ML.StandardTrainersCatalog.SdcaNonCalibrated(Microsoft.ML.BinaryClassificationCatalog.BinaryClassificationTrainers,Microsoft.ML.Trainers.SdcaNonCalibratedBinaryTrainer.Options)).
+    ///
+    /// [!include[io](~/../docs/samples/docs/api-reference/io-columns-binary-classification-no-prob.md)]
+    ///
+    /// ### Trainer Characteristics
+    /// |  |  |
+    /// | -- | -- |
+    /// | Machine learning task | Binary classification |
+    /// | Is normalization required? | Yes |
+    /// | Is caching required? | No |
+    /// | Required NuGet in addition to Microsoft.ML | None |
+    ///
+    /// [!include[algorithm](~/../docs/samples/docs/api-reference/algo-details-sdca.md)]
+    ///
+    /// [!include[regularization](~/../docs/samples/docs/api-reference/regularization-l1-l2.md)]
+    ///
+    /// [!include[references](~/../docs/samples/docs/api-reference/algo-details-sdca-refs.md)]
+    /// ]]>
+    /// </format>
+    /// </remarks>
+    /// <seealso cref="Microsoft.ML.StandardTrainersCatalog.SdcaNonCalibrated(Microsoft.ML.BinaryClassificationCatalog.BinaryClassificationTrainers,System.String,System.String,System.String,Microsoft.ML.Trainers.ISupportSdcaClassificationLoss,System.Nullable{System.Single},System.Nullable{System.Single},System.Nullable{System.Int32})"/>
+    /// <seealso cref="Microsoft.ML.StandardTrainersCatalog.SdcaNonCalibrated(Microsoft.ML.BinaryClassificationCatalog.BinaryClassificationTrainers,Microsoft.ML.Trainers.SdcaNonCalibratedBinaryTrainer.Options)"/>
+    /// <seealso cref="Options"/>
     public sealed class SdcaNonCalibratedBinaryTrainer : SdcaBinaryTrainerBase<LinearBinaryModelParameters>
     {
         /// <summary>
@@ -1623,7 +1674,7 @@ namespace Microsoft.ML.Trainers
         public sealed class Options : BinaryOptionsBase
         {
             /// <summary>
-            /// The custom <a href="tmpurl_loss">loss</a>.
+            /// The custom <a href="https://en.wikipedia.org/wiki/Loss_function">loss</a>.
             /// </summary>
             /// <value>
             /// If unspecified, <see cref="LogLoss"/> will be used.
@@ -1632,7 +1683,7 @@ namespace Microsoft.ML.Trainers
             internal ISupportSdcaClassificationLossFactory LossFunctionFactory = new LogLossFactory();
 
             /// <summary>
-            /// The custom <a href="tmpurl_loss">loss</a>.
+            /// The custom <a href="https://en.wikipedia.org/wiki/Loss_function">loss</a>.
             /// </summary>
             /// <value>
             /// If unspecified, <see cref="LogLoss"/> will be used.
@@ -1776,7 +1827,7 @@ namespace Microsoft.ML.Trainers
         public class OptionsBase : TrainerInputBaseWithWeight
         {
             /// <summary>
-            /// The L2 weight for <a href='tmpurl_regularization'>regularization</a>.
+            /// The L2 weight for <a href='https://en.wikipedia.org/wiki/Regularization_(mathematics)'>regularization</a>.
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "L2 Regularization constant", ShortName = "l2, L2Weight", SortOrder = 50)]
             [TGUI(Label = "L2 Regularization Constant", SuggestedSweeps = "1e-7,5e-7,1e-6,5e-6,1e-5")]
@@ -1814,7 +1865,7 @@ namespace Microsoft.ML.Trainers
             public int NumberOfIterations = Defaults.NumberOfIterations;
 
             /// <summary>
-            /// The initial <a href="tmpurl_lr">learning rate</a> used by SGD.
+            /// The initial learning rate used by SGD.
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Initial learning rate (only used by SGD)", Name = "InitialLearningRate", ShortName = "ilr,lr,InitLearningRate")]
             [TGUI(Label = "Initial Learning Rate (for SGD)")]
@@ -2171,20 +2222,38 @@ namespace Microsoft.ML.Trainers
 
     /// <summary>
     /// The <see cref="IEstimator{TTransformer}"/> for training logistic regression using a parallel stochastic gradient method.
-    /// The trained model is <a href='tmpurl_calib'>calibrated</a> and can produce probability by feeding the output value of the
+    /// The trained model is <a href='https://en.wikipedia.org/wiki/Calibration_(statistics)'>calibrated</a> and can produce probability by feeding the output value of the
     /// linear function to a <see cref="PlattCalibrator"/>.
     /// </summary>
     /// <remarks>
-    /// The Stochastic Gradient Descent (SGD) is one of the popular stochastic optimization procedures that can be integrated
-    /// into several machine learning tasks to achieve state-of-the-art performance. This trainer implements the Hogwild SGD for binary classification
-    /// that supports multi-threading without any locking. If the associated optimization problem is sparse, Hogwild SGD achieves a nearly optimal
-    /// rate of convergence. For more details about Hogwild SGD, please refer to http://arxiv.org/pdf/1106.5730v2.pdf.
+    /// <format type="text/markdown"><![CDATA[
+    /// To create this trainer, use [SgdCalibrated](xref:Microsoft.ML.StandardTrainersCatalog.SgdCalibrated(Microsoft.ML.BinaryClassificationCatalog.BinaryClassificationTrainers,System.String,System.String,System.String,System.Int32,System.Double,System.Single))
+    /// or [SgdCalibrated(Options)](xref:Microsoft.ML.StandardTrainersCatalog.SgdCalibrated(Microsoft.ML.BinaryClassificationCatalog.BinaryClassificationTrainers,Microsoft.ML.Trainers.SgdCalibratedTrainer.Options)).
+    ///
+    /// [!include[io](~/../docs/samples/docs/api-reference/io-columns-binary-classification.md)]
+    ///
+    /// ### Trainer Characteristics
+    /// |  |  |
+    /// | -- | -- |
+    /// | Machine learning task | Binary classification |
+    /// | Is normalization required? | Yes |
+    /// | Is caching required? | No |
+    /// | Required NuGet in addition to Microsoft.ML | None |
+    ///
+    /// [!include[io](~/../docs/samples/docs/api-reference/algo-details-sgd.md)]
+    /// ]]>
+    /// </format>
     /// </remarks>
+    /// <seealso cref="StandardTrainersCatalog.SgdCalibrated(BinaryClassificationCatalog.BinaryClassificationTrainers, string, string, string, int, double, float)"/>
+    /// <seealso cref="StandardTrainersCatalog.SgdCalibrated(BinaryClassificationCatalog.BinaryClassificationTrainers, SgdCalibratedTrainer.Options)"/>
+    /// <seealso cref="Options"/>
     public sealed class SgdCalibratedTrainer :
         SgdBinaryTrainerBase<CalibratedModelParametersBase<LinearBinaryModelParameters, PlattCalibrator>>
     {
+
         /// <summary>
-        /// Options for the <see cref="SgdCalibratedTrainer"/>.
+        /// Options for the <see cref="SgdCalibratedTrainer"/> as used in
+        /// [SgdCalibrated(Options)](xref:Microsoft.ML.StandardTrainersCatalog.SgdCalibrated(Microsoft.ML.BinaryClassificationCatalog.BinaryClassificationTrainers,Microsoft.ML.Trainers.SgdCalibratedTrainer.Options)).
         /// </summary>
         public sealed class Options : OptionsBase
         {
@@ -2240,12 +2309,37 @@ namespace Microsoft.ML.Trainers
     }
 
     /// <summary>
-    /// <see cref="SgdNonCalibratedTrainer"/> can train a linear classification model by minimizing any loss function
-    /// which implements <see cref="IClassificationLoss"/>.
+    /// The <see cref="IEstimator{TTransformer}"/> for training logistic regression using a parallel stochastic gradient method.
     /// </summary>
+    /// <remarks>
+    /// <format type="text/markdown"><![CDATA[
+    /// To create this trainer, use [SgdNonCalibrated](xref:Microsoft.ML.StandardTrainersCatalog.SgdNonCalibrated(Microsoft.ML.BinaryClassificationCatalog.BinaryClassificationTrainers,System.String,System.String,System.String,Microsoft.ML.Trainers.IClassificationLoss,System.Int32,System.Double,System.Single))
+    /// or [SgdNonCalibrated(Options)](xref:Microsoft.ML.StandardTrainersCatalog.SgdNonCalibrated(Microsoft.ML.BinaryClassificationCatalog.BinaryClassificationTrainers,Microsoft.ML.Trainers.SgdNonCalibratedTrainer.Options)).
+    ///
+    /// [!include[io](~/../docs/samples/docs/api-reference/io-columns-binary-classification-no-prob.md)]
+    ///
+    /// ### Trainer Characteristics
+    /// |  |  |
+    /// | -- | -- |
+    /// | Machine learning task | Binary classification |
+    /// | Is normalization required? | Yes |
+    /// | Is caching required? | No |
+    /// | Required NuGet in addition to Microsoft.ML | None |
+    ///
+    /// [!include[io](~/../docs/samples/docs/api-reference/algo-details-sgd.md)]
+    /// ]]>
+    /// </format>
+    /// </remarks>
+    /// <seealso cref="StandardTrainersCatalog.SgdNonCalibrated(BinaryClassificationCatalog.BinaryClassificationTrainers, string, string, string, IClassificationLoss, int, double, float)"/>
+    /// <seealso cref="StandardTrainersCatalog.SgdNonCalibrated(BinaryClassificationCatalog.BinaryClassificationTrainers, SgdNonCalibratedTrainer.Options)"/>
+    /// <seealso cref="Options"/>
     public sealed class SgdNonCalibratedTrainer :
         SgdBinaryTrainerBase<LinearBinaryModelParameters>
     {
+        /// <summary>
+        /// Options for the <see cref="SgdNonCalibratedTrainer"/> as used in
+        /// [SgdNonCalibrated(Options)](xref:Microsoft.ML.StandardTrainersCatalog.SgdNonCalibrated(Microsoft.ML.BinaryClassificationCatalog.BinaryClassificationTrainers,Microsoft.ML.Trainers.SgdNonCalibratedTrainer.Options)).
+        /// </summary>
         public sealed class Options : OptionsBase
         {
             /// <summary>

@@ -24,7 +24,32 @@ namespace Microsoft.ML.Trainers
     /// <summary>
     /// The <see cref="IEstimator{TTransformer}"/> for training a regression model using the stochastic dual coordinate ascent method.
     /// </summary>
-    /// <include file='doc.xml' path='doc/members/member[@name="SDCA_remarks"]/*' />
+    /// <remarks>
+    /// <format type="text/markdown"><![CDATA[
+    /// To create this trainer, use [Sdca](xref:Microsoft.ML.StandardTrainersCatalog.Sdca(Microsoft.ML.RegressionCatalog.RegressionTrainers,System.String,System.String,System.String,Microsoft.ML.Trainers.ISupportSdcaRegressionLoss,System.Nullable{System.Single},System.Nullable{System.Single},System.Nullable{System.Int32}))
+    /// or [Sdca(Options)](xref:Microsoft.ML.StandardTrainersCatalog.Sdca(Microsoft.ML.RegressionCatalog.RegressionTrainers,Microsoft.ML.Trainers.SdcaRegressionTrainer.Options)).
+    ///
+    /// [!include[io](~/../docs/samples/docs/api-reference/io-columns-regression.md)]
+    ///
+    /// ### Trainer Characteristics
+    /// |  |  |
+    /// | -- | -- |
+    /// | Machine learning task | Regression |
+    /// | Is normalization required? | Yes |
+    /// | Is caching required? | No |
+    /// | Required NuGet in addition to Microsoft.ML | None |
+    ///
+    /// [!include[algorithm](~/../docs/samples/docs/api-reference/algo-details-sdca.md)]
+    ///
+    /// [!include[regularization](~/../docs/samples/docs/api-reference/regularization-l1-l2.md)]
+    ///
+    /// [!include[references](~/../docs/samples/docs/api-reference/algo-details-sdca-refs.md)]
+    /// ]]>
+    /// </format>
+    /// </remarks>
+    /// <seealso cref="StandardTrainersCatalog.Sdca(RegressionCatalog.RegressionTrainers, string, string, string, ISupportSdcaRegressionLoss, float?, float?, int?)"/>
+    /// <seealso cref="StandardTrainersCatalog.Sdca(RegressionCatalog.RegressionTrainers, SdcaRegressionTrainer.Options)"/>
+    /// <seealso cref="Options"/>
     public sealed class SdcaRegressionTrainer : SdcaTrainerBase<SdcaRegressionTrainer.Options, RegressionPredictionTransformer<LinearRegressionModelParameters>, LinearRegressionModelParameters>
     {
         internal const string LoadNameValue = "SDCAR";
@@ -38,7 +63,7 @@ namespace Microsoft.ML.Trainers
         public sealed class Options : OptionsBase
         {
             /// <summary>
-            /// A custom <a href="tmpurl_loss">loss</a>.
+            /// A custom <a href="https://en.wikipedia.org/wiki/Loss_function">loss</a>.
             /// </summary>
             /// <value>
             /// Defaults to <see cref="SquaredLoss"/>
@@ -47,7 +72,7 @@ namespace Microsoft.ML.Trainers
             internal ISupportSdcaRegressionLossFactory LossFunctionFactory = new SquaredLossFactory();
 
             /// <summary>
-            /// A custom <a href="tmpurl_loss">loss</a>.
+            /// A custom <a href="https://en.wikipedia.org/wiki/Loss_function">loss</a>.
             /// </summary>
             /// <value>
             /// Defaults to <see cref="SquaredLoss"/>

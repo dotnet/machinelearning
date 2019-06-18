@@ -1,0 +1,45 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <!-- needs to contain all frameworks which src projects wish to restore -->
+    <TargetFramework Condition="'$(UseIntrinsics)' != 'true'">netstandard2.0</TargetFramework>
+    <TargetFrameworks Condition="'$(UseIntrinsics)' == 'true'">netstandard2.0;netcoreapp3.0</TargetFrameworks>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.ML" Version="1.1.0" />
+    <PackageReference Include="Microsoft.ML.DataView" Version="1.1.0" />
+    <PackageReference Include="Microsoft.ML.CpuMath" Version="1.1.0" />
+    <PackageReference Include="Microsoft.ML.FastTree" Version="1.1.0" />
+    <PackageReference Include="Microsoft.ML.LightGbm" Version="1.1.0" />
+    <PackageReference Include="Microsoft.ML.ImageAnalytics" Version="1.1.0" />
+    <PackageReference Include="Microsoft.ML.Mkl.Components" Version="1.1.0" />
+  </ItemGroup>
+
+  <!-- The purpose of this target is to return a path from a referenced
+       package / project -->
+  <Target Name="GetContract" DependsOnTargets="ResolveReferences" Returns="@(_contractReferencePath)">
+    <Error Condition="'$(ContractName)' == ''" Text="ContractName must be specified" />
+    <ItemGroup>
+      <_contractReferencePath Include="@(ReferencePath)" Condition="'%(FileName)' == '$(ContractName)'" />
+      <_allReferenceDirectories Include="%(ReferencePath.RootDir)%(ReferencePath.Directory)" />
+      <_contractReferencePath Include="@(ReferencePath)" Condition="'%(FileName)' == '$(ContractName)'" />
+      <_contractReferencePath DependencyPaths="@(_allReferenceDirectories)" />
+    </ItemGroup>
+    <Error Condition="'@(_contractReferencePath)' == ''" Text="Could not locate $(ContractName)" />
+  </Target>
+
+  <Target Name="Build">
+    <!-- This will override the default Build target. -->
+  </Target>
+  <Target Name="Rebuild">
+    <!-- This will override the default Rebuild target. -->
+  </Target>
+  <Target Name="BuildAndTest">
+    <!-- This will override the default BuildAndTest target. -->
+  </Target>
+  <Target Name="RebuildAndTest">
+    <!-- This will override the default RebuildAndTest target. -->
+  </Target>
+
+</Project>

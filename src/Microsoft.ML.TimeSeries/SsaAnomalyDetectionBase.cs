@@ -92,7 +92,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
         bool ITransformer.IsRowToRowMapper => ((ITransformer)InternalTransform).IsRowToRowMapper;
 
         /// <summary>
-        /// Creates a clone of the transfomer. Used for taking the snapshot of the state.
+        /// Creates a clone of the transformer. Used for taking the snapshot of the state.
         /// </summary>
         /// <returns></returns>
         IStatefulTransformer IStatefulTransformer.Clone() => InternalTransform.Clone();
@@ -201,7 +201,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
                 ErrorFunc = ErrorFunctionUtils.GetErrorFunction(ErrorFunction);
                 IsAdaptive = options.IsAdaptive;
                 // Creating the master SSA model
-                Model = new AdaptiveSingularSpectrumSequenceModeler(Host, options.InitialWindowSize, SeasonalWindowSize + 1, SeasonalWindowSize,
+                Model = new AdaptiveSingularSpectrumSequenceModeler.AdaptiveSingularSpectrumSequenceModelerInternal(Host, options.InitialWindowSize, SeasonalWindowSize + 1, SeasonalWindowSize,
                     DiscountFactor, AdaptiveSingularSpectrumSequenceModeler.RankSelectionMethod.Exact, null, SeasonalWindowSize / 2, false, false);
 
                 StateRef = new State();
@@ -340,7 +340,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
 
                 private protected override double ComputeRawAnomalyScore(ref Single input, FixedSizeQueue<Single> windowedBuffer, long iteration)
                 {
-                    // Get the prediction for the next point opn the series
+                    // Get the prediction for the next point in the series
                     Single expectedValue = 0;
                     _model.PredictNext(ref expectedValue);
 

@@ -1,14 +1,12 @@
 ﻿using System;
+using System.Collections.Generic;
 using Microsoft.ML;
-using Microsoft.ML.SamplesUtils;
 
 namespace Samples.Dynamic
 {
-    /// <summary>
-    /// Sample class showing how to use ShuffleRows.
-    /// </summary>
     public static class ShuffleRows
     {
+        // Sample class showing how to shuffle rows in IDataView.
         public static void Example()
         {
             // Create a new context for ML.NET operations. It can be used for exception tracking and logging, 
@@ -16,7 +14,7 @@ namespace Samples.Dynamic
             var mlContext = new MLContext();
 
             // Get a small dataset as an IEnumerable.
-            var enumerableOfData = DatasetUtils.GetSampleTemperatureData(5);
+            var enumerableOfData = GetSampleTemperatureData(5);
             var data = mlContext.Data.LoadFromEnumerable(enumerableOfData);
 
             // Before we apply a filter, examine all the records in the dataset.
@@ -38,7 +36,7 @@ namespace Samples.Dynamic
             var shuffledData = mlContext.Data.ShuffleRows(data, seed: 123);
 
             // Look at the shuffled data and observe that the rows are in a randomized order.
-            var enumerable = mlContext.Data.CreateEnumerable<DatasetUtils.SampleTemperatureData>(shuffledData, reuseRowObject: true);
+            var enumerable = mlContext.Data.CreateEnumerable<SampleTemperatureData>(shuffledData, reuseRowObject: true);
             Console.WriteLine($"Date\tTemperature");
             foreach (var row in enumerable)
             {
@@ -52,5 +50,31 @@ namespace Samples.Dynamic
             //  1/3/2012        36
             //  1/6/2012        35
         }
+
+        private class SampleTemperatureData
+        {
+            public DateTime Date { get; set; }
+            public float Temperature { get; set; }
+        }
+		
+        /// <summary>
+        /// Get a fake temperature dataset.
+        /// </summary>
+        /// <param name="exampleCount">The number of examples to return.</param>
+        /// <returns>An enumerable of <see cref="SampleTemperatureData"/>.</returns>
+        private static IEnumerable<SampleTemperatureData> GetSampleTemperatureData(int exampleCount)
+        {
+            var rng = new Random(1234321);
+            var date = new DateTime(2012, 1, 1);
+            float temperature = 39.0f;
+
+            for (int i = 0; i < exampleCount; i++)
+            {
+                date = date.AddDays(1);
+                temperature += rng.Next(-5, 5);
+                yield return new SampleTemperatureData { Date = date, Temperature = temperature };
+            }
+        }
     }
 }
+

@@ -10,8 +10,9 @@ using Microsoft.ML.Runtime;
 namespace Microsoft.ML
 {
     /// <summary>
-    /// The <see cref="MLContext"/> is a starting point for all ML.NET operations. It is instantiated by user,
-    /// provides mechanisms for logging and entry points for training, prediction, model operations etc.
+    /// The common context for all ML.NET operations. Once instantiated by the user, it provides a way to
+    /// create components for data preparation, feature enginering, training, prediction, model evaluation.
+    /// It also allows logging, execution control, and the ability set repeatable random numbers.
     /// </summary>
     public sealed class MLContext : IHostEnvironment
     {
@@ -46,6 +47,11 @@ namespace Microsoft.ML
         public AnomalyDetectionCatalog AnomalyDetection { get; }
 
         /// <summary>
+        /// Trainers and tasks specific to forecasting problems.
+        /// </summary>
+        public ForecastingCatalog Forecasting { get; }
+
+        /// <summary>
         /// Data processing operations.
         /// </summary>
         public TransformsCatalog Transforms { get; }
@@ -76,7 +82,31 @@ namespace Microsoft.ML
         /// <summary>
         /// Create the ML context.
         /// </summary>
-        /// <param name="seed">Random seed. Set to <c>null</c> for a non-deterministic environment.</param>
+        /// <param name="seed">Seed for MLContext's random number generator. See the remarks for more details.</param>
+        /// <remarks>
+        /// Many operations in ML.NET require randomness, such as
+        /// random data shuffling, random sampling, random parameter initialization,
+        /// random permutation, random feature selection, and many more.
+        /// MLContext's random number generator is the global source of randomness for
+        /// all of such random operations.
+        ///
+        /// If a fixed seed is provided by <paramref name="seed"/>, MLContext environment becomes
+        /// deterministic, meaning that the results are repeatable and will remain the same across multiple runs.
+        /// For instance in many of ML.NET's API reference example code snippets, a seed is provided.
+        /// That's because we want the users to get the same output as what's included in example comments,
+        /// when they run the example on their own machine.
+        ///
+        /// Generally though, repeatability is not a requirement and that's the default behavior.
+        /// If a seed is not provided by <paramref name="seed"/>, i.e. it's set to <see langword="null"/>,
+        /// MLContext environment becomes non-deterministic and outputs change across multiple runs.
+        ///
+        /// There are many operations in ML.NET that don't use any randomness, such as
+        /// min-max normalization, concatenating columns, missing value indication, etc.
+        /// The behavior of those operations are deterministic regardless of the seed value.
+        ///
+        /// Also ML.NET trainers don't use randomness *after* the training is finished.
+        /// So, the predictions from a loaded model don't depend on the seed value.
+        /// </remarks>
         public MLContext(int? seed = null)
         {
             _env = new LocalEnvironment(seed);
@@ -88,6 +118,7 @@ namespace Microsoft.ML
             Clustering = new ClusteringCatalog(_env);
             Ranking = new RankingCatalog(_env);
             AnomalyDetection = new AnomalyDetectionCatalog(_env);
+            Forecasting = new ForecastingCatalog(_env);
             Transforms = new TransformsCatalog(_env);
             Model = new ModelOperationsCatalog(_env);
             Data = new DataOperationsCatalog(_env);

@@ -26,7 +26,7 @@ using Microsoft.ML.Transforms.TimeSeries;
 namespace Microsoft.ML.Transforms.TimeSeries
 {
     /// <summary>
-    /// <see cref="ITransformer"/> produced by fitting the <see cref="IDataView"/> to an <see cref="IidChangePointEstimator" />.
+    /// <see cref="ITransformer"/> resulting from fitting a <see cref="IidChangePointEstimator"/>.
     /// </summary>
     public sealed class IidChangePointDetector : IidAnomalyDetectionBaseWrapper, IStatefulTransformer
     {
@@ -191,10 +191,34 @@ namespace Microsoft.ML.Transforms.TimeSeries
     }
 
     /// <summary>
-    /// The <see cref="IEstimator{ITransformer}"/> for detecting a signal change on an
-    /// <a href="https://en.wikipedia.org/wiki/Independent_and_identically_distributed_random_variables"> independent identically distributed (i.i.d.)</a> time series.
-    /// Detection is based on adaptive kernel density estimation and martingales.
+    /// Detect a signal change on an
+    /// <a href="https://en.wikipedia.org/wiki/Independent_and_identically_distributed_random_variables"> independent identically distributed (i.i.d.)</a>
+    /// time series based on adaptive kernel density estimation and martingales.
     /// </summary>
+    /// <remarks>
+    /// <format type="text/markdown"><![CDATA[
+    /// To create this estimator, use [DetectIidChangePoint](xref:Microsoft.ML.TimeSeriesCatalog.DetectIidChangePoint(Microsoft.ML.TransformsCatalog,System.String,System.String,System.Int32,System.Int32,Microsoft.ML.Transforms.TimeSeries.MartingaleType,System.Double)).
+    ///
+    /// [!include[io](~/../docs/samples/docs/api-reference/io-time-series-change-point.md)]
+    ///
+    /// ###  Estimator Characteristics
+    /// |  |  |
+    /// | -- | -- |
+    /// | Does this estimator need to look at the data to train its parameters? | No |
+    /// | Input column data type | <xref:System.Single> |
+    /// | Output column data type | 4-element vector of<xref:System.Double> |
+    ///
+    /// [!include[io](~/../docs/samples/docs/api-reference/time-series-props.md)]
+    ///
+    /// [!include[io](~/../docs/samples/docs/api-reference/time-series-iid.md)]
+    ///
+    /// [!include[io](~/../docs/samples/docs/api-reference/time-series-scorer.md)]
+    ///
+    /// Check the See Also section for links to usage examples.
+    /// ]]>
+    /// </format>
+    /// </remarks>
+    /// <seealso cref="Microsoft.ML.TimeSeriesCatalog.DetectIidChangePoint(Microsoft.ML.TransformsCatalog,System.String,System.String,System.Int32,System.Int32,Microsoft.ML.Transforms.TimeSeries.MartingaleType,System.Double)" />
     public sealed class IidChangePointEstimator : TrivialEstimator<IidChangePointDetector>
     {
         /// <summary>

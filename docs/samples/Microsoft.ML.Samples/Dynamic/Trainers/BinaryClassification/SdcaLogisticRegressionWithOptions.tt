@@ -1,0 +1,48 @@
+﻿<#@ include file="BinaryClassification.ttinclude"#>
+<#+
+string ClassName = "SdcaLogisticRegressionWithOptions";
+string Trainer = "SdcaLogisticRegression";
+bool IsCalibrated = true;
+bool CacheData = true;
+
+string LabelThreshold = "0.5f";
+string DataSepValue = "0.03f";
+string OptionsInclude = "using Microsoft.ML.Trainers;";
+string Comments = "";
+
+string TrainerOptions = @"SdcaLogisticRegressionBinaryTrainer.Options()
+            {
+                // Make the convergence tolerance tighter.
+                ConvergenceTolerance = 0.05f,
+                // Increase the maximum number of passes over training data.
+                MaximumNumberOfIterations = 30,
+                // Give the instances of the positive class slightly more weight.
+                PositiveInstanceWeight = 1.2f,
+            }";
+
+string ExpectedOutputPerInstance = @"// Expected output:
+            //   Label: True, Prediction: True
+            //   Label: False, Prediction: False
+            //   Label: True, Prediction: True
+            //   Label: True, Prediction: True
+            //   Label: False, Prediction: True";
+
+string ExpectedOutput = @"// Expected output:
+            //   Accuracy: 0.60
+            //   AUC: 0.67
+            //   F1 Score: 0.65
+            //   Negative Precision: 0.69
+            //   Negative Recall: 0.45
+            //   Positive Precision: 0.56
+            //   Positive Recall: 0.77
+            //   TEST POSITIVE RATIO:    0.4760 (238.0/(238.0+262.0))
+            //
+            //   Confusion table
+            //             ||======================
+            //   PREDICTED || positive | negative | Recall
+            //   TRUTH     ||======================
+            //    positive ||      165 |       73 | 0.6933
+            //    negative ||      112 |      150 | 0.5725
+            //             ||======================
+            //   Precision ||   0.5957 |   0.6726 |";
+#>

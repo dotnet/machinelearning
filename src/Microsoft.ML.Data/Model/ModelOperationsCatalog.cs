@@ -13,7 +13,7 @@ using Microsoft.ML.Runtime;
 namespace Microsoft.ML
 {
     /// <summary>
-    /// An object serving as a 'catalog' of available model operations.
+    /// Class used by <see cref="MLContext"/> to save and load trained models.
     /// </summary>
     public sealed class ModelOperationsCatalog : IInternalCatalog
     {
@@ -102,6 +102,13 @@ namespace Microsoft.ML
         /// be an empty <see cref="TransformerChain{TLastTransformer}"/>.</param>
         /// <param name="inputSchema">The schema of the input to the transformer. This can be <see langword="null"/>.</param>
         /// <param name="filePath">Path where model should be saved.</param>
+        /// <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        /// [!code-csharp[Save](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/ModelOperations/SaveLoadModel.cs)]
+        /// ]]>
+        /// </format>
+        /// </example>
         public void Save(ITransformer model, DataViewSchema inputSchema, string filePath)
         {
             _env.CheckValueOrNull(model);
@@ -135,6 +142,13 @@ namespace Microsoft.ML
         /// <param name="inputSchema">Will contain the input schema for the model. If the model was saved without
         /// any description of the input, there will be no input schema. In this case this can be <see langword="null"/>.</param>
         /// <returns>The loaded model.</returns>
+        /// <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        /// [!code-csharp[Save](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/ModelOperations/SaveLoadModel.cs)]
+        /// ]]>
+        /// </format>
+        /// </example>
         public ITransformer Load(Stream stream, out DataViewSchema inputSchema)
         {
             _env.CheckValue(stream, nameof(stream));
@@ -187,6 +201,13 @@ namespace Microsoft.ML
         /// <param name="inputSchema">Will contain the input schema for the model. If the model was saved without
         /// any description of the input, there will be no input schema. In this case this can be <see langword="null"/>.</param>
         /// <returns>The loaded model.</returns>
+        /// <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        /// [!code-csharp[Save](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/ModelOperations/SaveLoadModelFile.cs)]
+        /// ]]>
+        /// </format>
+        /// </example>
         public ITransformer Load(string filePath, out DataViewSchema inputSchema)
         {
             _env.CheckNonEmpty(filePath, nameof(filePath));
@@ -271,7 +292,7 @@ namespace Microsoft.ML
         }
 
         /// <summary>
-        /// Create a prediction engine for one-time prediction.
+        /// Create a prediction engine for one-time prediction (default usage).
         /// </summary>
         /// <typeparam name="TSrc">The class that defines the input data.</typeparam>
         /// <typeparam name="TDst">The class that defines the output data.</typeparam>
@@ -281,6 +302,13 @@ namespace Microsoft.ML
         /// <typeparamref name="TDst"/>.</param>
         /// <param name="inputSchemaDefinition">Additional settings of the input schema.</param>
         /// <param name="outputSchemaDefinition">Additional settings of the output schema.</param>
+        /// <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        /// [!code-csharp[Save](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/ModelOperations/SaveLoadModel.cs)]
+        /// ]]>
+        /// </format>
+        /// </example>
         public PredictionEngine<TSrc, TDst> CreatePredictionEngine<TSrc, TDst>(ITransformer transformer,
             bool ignoreMissingColumns = true, SchemaDefinition inputSchemaDefinition = null, SchemaDefinition outputSchemaDefinition = null)
             where TSrc : class
@@ -289,6 +317,15 @@ namespace Microsoft.ML
             return transformer.CreatePredictionEngine<TSrc, TDst>(_env, ignoreMissingColumns, inputSchemaDefinition, outputSchemaDefinition);
         }
 
+        /// <summary>
+        /// Create a prediction engine for one-time prediction.
+        /// It's mainly used in conjunction with <see cref="Load(Stream, out DataViewSchema)"/>,
+        /// where input schema is extracted during loading the model.
+        /// </summary>
+        /// <typeparam name="TSrc">The class that defines the input data.</typeparam>
+        /// <typeparam name="TDst">The class that defines the output data.</typeparam>
+        /// <param name="transformer">The transformer to use for prediction.</param>
+        /// <param name="inputSchema">Input schema.</param>
         public PredictionEngine<TSrc, TDst> CreatePredictionEngine<TSrc, TDst>(ITransformer transformer, DataViewSchema inputSchema)
             where TSrc : class
             where TDst : class, new()

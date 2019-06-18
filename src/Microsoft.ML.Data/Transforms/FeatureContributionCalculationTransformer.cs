@@ -26,47 +26,8 @@ using Microsoft.ML.Transforms;
 namespace Microsoft.ML.Transforms
 {
     /// <summary>
-    /// The FeatureContributionCalculationTransformer computes model-specific per-feature contributions to the score of each example.
-    /// See the list of currently supported models below.
+    /// <see cref="ITransformer"/> resulting from fitting a <see cref="FeatureContributionCalculatingEstimator"/>.
     /// </summary>
-    /// <remarks>
-    /// <para>
-    /// Scoring a dataset with a trained model produces a score, or prediction, for each example. To understand and explain these predictions
-    /// it can be useful to inspect which features influenced them most significantly. FeatureContributionCalculationTransformer computes a model-specific
-    /// list of per-feature contributions to the score for each example. These contributions can be positive (they make the score higher) or negative
-    /// (they make the score lower).
-    /// </para>
-    /// <para>
-    /// Feature Contribution Calculation is currently supported for the following models:
-    ///     Regression:
-    ///         OrdinaryLeastSquares, StochasticDualCoordinateAscent (SDCA), OnlineGradientDescent, PoissonRegression,
-    ///         GeneralizedAdditiveModels (GAM), LightGbm, FastTree, FastForest, FastTreeTweedie
-    ///     Binary Classification:
-    ///         AveragedPerceptron, LinearSupportVectorMachines, LogisticRegression, StochasticDualCoordinateAscent (SDCA),
-    ///         StochasticGradientDescent (SGD), SymbolicStochasticGradientDescent, GeneralizedAdditiveModels (GAM),
-    ///         FastForest, FastTree, LightGbm
-    ///     Ranking:
-    ///         FastTree, LightGbm
-    /// </para>
-    /// <para>
-    /// For linear models, the contribution of a given feature is equal to the product of feature value times the corresponding weight. Similarly,
-    /// for Generalized Additive Models (GAM), the contribution of a feature is equal to the shape function for the given feature evaluated at
-    /// the feature value.
-    /// </para>
-    /// <para>
-    /// For tree-based models, the calculation of feature contribution essentially consists in determining which splits in the tree have the most impact
-    /// on the final score and assigning the value of the impact to the features determining the split. More precisely, the contribution of a feature
-    /// is equal to the change in score produced by exploring the opposite sub-tree every time a decision node for the given feature is encountered.
-    /// Consider a simple case with a single decision tree that has a decision node for the binary feature F1. Given an example that has feature F1
-    /// equal to true, we can calculate the score it would have obtained if we chose the subtree corresponding to the feature F1 being equal to false
-    /// while keeping the other features constant. The contribution of feature F1 for the given example is the difference between the original score
-    /// and the score obtained by taking the opposite decision at the node corresponding to feature F1. This algorithm extends naturally to models with
-    /// many decision trees.
-    /// </para>
-    /// <para>
-    /// See the sample below for an example of how to compute feature importance using the FeatureContributionCalculatingTransformer.
-    /// </para>
-    /// </remarks>
     public sealed class FeatureContributionCalculatingTransformer : OneToOneTransformerBase
     {
         internal sealed class Options : TransformInputBase
@@ -266,9 +227,69 @@ namespace Microsoft.ML.Transforms
     }
 
     /// <summary>
-    /// Estimator producing a FeatureContributionCalculatingTransformer which scores the model on an input dataset and
-    /// computes model-specific contribution scores for each feature.
+    /// Estimator for <see cref="FeatureContributionCalculatingTransformer"/>. Computes model-specific per-feature contributions to the score of each input vector.
     /// </summary>
+    /// <remarks>
+    /// <format type="text/markdown"><![CDATA[
+    ///
+    /// ###  Estimator Characteristics
+    /// |  |  |
+    /// | -- | -- |
+    /// | Does this estimator need to look at the data to train its parameters? | No |
+    /// | Input column data type | Known-sized vector of <xref:System.Single> |
+    /// | Output column data type | Known-sized vector of <xref:System.Single> |
+    ///
+    /// Scoring a dataset with a trained model produces a score, or prediction, for each example. To understand and explain these predictions
+    /// it can be useful to inspect which features influenced them most significantly. This transformer computes a model-specific
+    /// list of per-feature contributions to the score for each example. These contributions can be positive (they make the score higher) or negative
+    /// (they make the score lower).
+    ///
+    /// Feature Contribution Calculation is currently supported for the following models:
+    /// - Regression:
+    ///   - <xref:Microsoft.ML.Trainers.OlsTrainer>
+    ///   - <xref:Microsoft.ML.Trainers.SdcaRegressionTrainer>
+    ///   - <xref:Microsoft.ML.Trainers.OnlineGradientDescentTrainer>
+    ///   - <xref:Microsoft.ML.Trainers.LbfgsPoissonRegressionTrainer>
+    ///   - <xref:Microsoft.ML.Trainers.FastTree.GamRegressionTrainer>
+    ///   - <xref:Microsoft.ML.Trainers.LightGbm.LightGbmRegressionTrainer>
+    ///   - <xref:Microsoft.ML.Trainers.FastTree.FastTreeRegressionTrainer>
+    ///   - <xref:Microsoft.ML.Trainers.FastTree.FastForestRegressionTrainer>
+    ///   - <xref:Microsoft.ML.Trainers.FastTree.FastTreeTweedieTrainer>
+    /// - Binary Classification:
+    ///   - <xref:Microsoft.ML.Trainers.AveragedPerceptronTrainer>
+    ///   - <xref:Microsoft.ML.Trainers.LinearSvmTrainer>
+    ///   - <xref:Microsoft.ML.Trainers.LbfgsLogisticRegressionBinaryTrainer>
+    ///   - <xref:Microsoft.ML.Trainers.SdcaNonCalibratedBinaryTrainer>
+    ///   - <xref:Microsoft.ML.Trainers.SdcaLogisticRegressionBinaryTrainer>
+    ///   - <xref:Microsoft.ML.Trainers.SgdCalibratedTrainer>
+    ///   - <xref:Microsoft.ML.Trainers.SgdNonCalibratedTrainer>
+    ///   - <xref:Microsoft.ML.Trainers.SymbolicSgdLogisticRegressionBinaryTrainer>
+    ///   - <xref:Microsoft.ML.Trainers.FastTree.GamBinaryTrainer>
+    ///   - <xref:Microsoft.ML.Trainers.FastTree.FastForestBinaryTrainer>
+    ///   - <xref:Microsoft.ML.Trainers.FastTree.FastTreeBinaryTrainer>
+    ///   - <xref:Microsoft.ML.Trainers.LightGbm.LightGbmBinaryTrainer>
+    /// - Ranking:
+    ///   - <xref:Microsoft.ML.Trainers.FastTree.FastTreeRankingTrainer>
+    ///   - <xref:Microsoft.ML.Trainers.LightGbm.LightGbmRankingTrainer>
+    ///
+    /// For linear models, the contribution of a given feature is equal to the product of feature value times the corresponding weight. Similarly,
+    /// for Generalized Additive Models (GAM), the contribution of a feature is equal to the shape function for the given feature evaluated at
+    /// the feature value.
+    ///
+    /// For tree-based models, the calculation of feature contribution essentially consists in determining which splits in the tree have the most impact
+    /// on the final score and assigning the value of the impact to the features determining the split. More precisely, the contribution of a feature
+    /// is equal to the change in score produced by exploring the opposite sub-tree every time a decision node for the given feature is encountered.
+    /// Consider a simple case with a single decision tree that has a decision node for the binary feature F1. Given an example that has feature F1
+    /// equal to true, we can calculate the score it would have obtained if we chose the subtree corresponding to the feature F1 being equal to false
+    /// while keeping the other features constant. The contribution of feature F1 for the given example is the difference between the original score
+    /// and the score obtained by taking the opposite decision at the node corresponding to feature F1. This algorithm extends naturally to models with
+    /// many decision trees.
+    ///
+    /// Check the See Also section for links to usage examples.
+    /// ]]></format>
+    /// </remarks>
+    /// <seealso cref="ExplainabilityCatalog.CalculateFeatureContribution(TransformsCatalog, ISingleFeaturePredictionTransformer{ICalculateFeatureContribution}, int, int, bool)"/>
+    /// <seealso cref="ExplainabilityCatalog.CalculateFeatureContribution{TModelParameters, TCalibrator}(TransformsCatalog, ISingleFeaturePredictionTransformer{Calibrators.CalibratedModelParametersBase{TModelParameters, TCalibrator}}, int, int, bool)"/>
     public sealed class FeatureContributionCalculatingEstimator : TrivialEstimator<FeatureContributionCalculatingTransformer>
     {
         private readonly string _featureColumn;

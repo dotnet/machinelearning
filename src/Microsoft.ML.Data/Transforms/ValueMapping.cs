@@ -31,7 +31,36 @@ using Microsoft.ML.Transforms;
 
 namespace Microsoft.ML.Transforms
 {
-    /// <include file='doc.xml' path='doc/members/member[@name="ValueMappingEstimator"]/*' />
+
+    /// <summary>
+    /// Estimator for <see cref="ValueMappingTransformer"/> creating a key-value map using the pairs of values in the input data
+    /// <see cref="PrimitiveDataViewType"/>
+    /// </summary>
+    /// <remarks>
+    /// <format type="text/markdown"><![CDATA[
+    ///
+    /// ###  Estimator Characteristics
+    /// |  |  |
+    /// | -- | -- |
+    /// | Does this estimator need to look at the data to train its parameters? | No |
+    /// | Input column data type | Vector or primitive numeric, boolean, text, [System.DateTime](xref:System.DateTime) and [key](xref:Microsoft.ML.Data.KeyDataViewType) type. |
+    /// | Output column data type | Vector or primitive numeric, boolean, text, [System.DateTime](xref:System.DateTime) and [key](xref:Microsoft.ML.Data.KeyDataViewType) type. |
+    ///
+    /// Given two sets of values, one serving as the key, and the other as the value of a Dictionary, the ValueMappingEstimator builds up this dictionary so that when given a specific key it will return a
+    /// specific value.The ValueMappingEstimator supports keys and values of different [System.Type](xref:System.Type) to support different data types.
+    /// Examples for using a ValueMappingEstimator are:
+    /// * Converting a string value to a string value, this can be useful for grouping (i.e. 'cat', 'dog', 'horse' maps to 'mammals').
+    /// * Converting a string value to a integer value (i.e. converting the text description like quality to an numeric where 'good' maps to 1, 'poor' maps to 0.
+    /// * Converting a integer value to a string value and have the string value represented as a [key](xref:Microsoft.ML.Data.KeyDataViewType) type.
+    /// (i.e. convert zip codes to a state string value, which will generate a unique integer value that can be used as a label.
+    ///
+    /// Values can be repeated to allow for multiple keys to map to the same value, however keys can not be repeated. The mapping between keys and values
+    /// can be specified either through lists, where the key list and value list must be the same size or can be done through an [System.IDataView](xref:Microsoft.ML.IDataView).
+    ///
+    /// Check the See Also section for links to usage examples.
+    /// ]]></format>
+    /// </remarks>
+    /// <seealso cref="ConversionsExtensionsCatalog.MapValue(TransformsCatalog.ConversionTransforms, string, IDataView, DataViewSchema.Column, DataViewSchema.Column, string)"/>
     public class ValueMappingEstimator : TrivialEstimator<ValueMappingTransformer>
     {
         private readonly (string outputColumnName, string inputColumnName)[] _columns;
@@ -101,9 +130,39 @@ namespace Microsoft.ML.Transforms
         }
     }
 
-    /// <include file='doc.xml' path='doc/members/member[@name="ValueMappingEstimator"]/*' />
+    /// <summary>
+    /// Estimator for <see cref="ValueMappingTransformer"/> creating a key-value map using the pairs of values in the input data
+    /// <see cref="PrimitiveDataViewType"/>
+    /// </summary>
+    /// <remarks>
+    /// <format type="text/markdown"><![CDATA[
+    ///
+    /// ###  Estimator Characteristics
+    /// |  |  |
+    /// | -- | -- |
+    /// | Does this estimator need to look at the data to train its parameters? | No |
+    /// | Input column data type | Vector or primitive numeric, boolean, text, [System.DateTime](xref:System.DateTime) and [key](xref:Microsoft.ML.Data.KeyDataViewType) type.|
+    /// | Output column data type | Vector or primitive numeric, boolean, text, [System.DateTime](xref:System.DateTime) and [key](xref:Microsoft.ML.Data.KeyDataViewType) type.|
+    ///
+    /// Given two sets of values, one serving as the key, and the other as the value of a Dictionary, the ValueMappingEstimator builds up this dictionary so that when given a specific key it will return a
+    /// specific value.The ValueMappingEstimator supports keys and values of different [System.Type](xref:System.Type) to support different data types.
+    /// Examples for using a ValueMappingEstimator are:
+    /// * Converting a string value to a string value, this can be useful for grouping (i.e. 'cat', 'dog', 'horse' maps to 'mammals').
+    /// * Converting a string value to a integer value (i.e. converting the text description like quality to an numeric where 'good' maps to 1, 'poor' maps to 0.
+    /// * Converting a integer value to a string value and have the string value represented as a [key](xref:Microsoft.ML.Data.KeyDataViewType) type.
+    /// (i.e. convert zip codes to a state string value, which will generate a unique integer value that can be used as a label.
+    ///
+    /// Values can be repeated to allow for multiple keys to map to the same value, however keys can not be repeated. The mapping between keys and values
+    /// can be specified either through lists, where the key list and value list must be the same size or can be done through an [System.IDataView](xref:Microsoft.ML.IDataView).
+    ///
+    /// Check the See Also section for links to usage examples.
+    /// ]]></format>
+    /// </remarks>
     /// <typeparam name="TKey">Specifies the key type.</typeparam>
     /// <typeparam name="TValue">Specifies the value type.</typeparam>
+    /// <seealso cref="ConversionsExtensionsCatalog.MapValue{TInputType, TOutputType}(TransformsCatalog.ConversionTransforms, IEnumerable{KeyValuePair{TInputType, TOutputType}}, InputOutputColumnPair[])"/>
+    /// <seealso cref="ConversionsExtensionsCatalog.MapValue{TInputType, TOutputType}(TransformsCatalog.ConversionTransforms, IEnumerable{KeyValuePair{TInputType, TOutputType[]}}, InputOutputColumnPair[])"/>
+    /// <seealso cref="ConversionsExtensionsCatalog.MapValue{TInputType, TOutputType}(TransformsCatalog.ConversionTransforms, string, IEnumerable{KeyValuePair{TInputType, TOutputType}}, string, bool)"/>
     public sealed class ValueMappingEstimator<TKey, TValue> : ValueMappingEstimator
     {
         /// <summary>
@@ -283,7 +342,9 @@ namespace Microsoft.ML.Transforms
         }
     }
 
-    /// <include file='doc.xml' path='doc/members/member[@name="ValueMappingEstimator"]/*' />
+    /// <summary>
+    /// <see cref="ITransformer"/> resulting from fitting a <see cref="ValueMappingEstimator"/>.
+    /// </summary>
     public class ValueMappingTransformer : OneToOneTransformerBase
     {
         internal const string Summary = "Maps text values columns to new columns using a map dataset.";

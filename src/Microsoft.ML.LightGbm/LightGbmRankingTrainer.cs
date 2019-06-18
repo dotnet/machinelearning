@@ -23,6 +23,9 @@ using Microsoft.ML.Trainers.LightGbm;
 
 namespace Microsoft.ML.Trainers.LightGbm
 {
+    /// <summary>
+    /// Model parameters for <see cref="LightGbmRankingTrainer"/>.
+    /// </summary>
     public sealed class LightGbmRankingModelParameters : TreeEnsembleModelParametersBasedOnRegressionTree
     {
         internal const string LoaderSignature = "LightGBMRankerExec";
@@ -73,7 +76,28 @@ namespace Microsoft.ML.Trainers.LightGbm
     /// <summary>
     /// The <see cref="IEstimator{TTransformer}"/> for training a boosted decision tree ranking model using LightGBM.
     /// </summary>
-    /// <include file='doc.xml' path='doc/members/member[@name="LightGBM_remarks"]/*' />
+    /// <remarks>
+    /// <format type="text/markdown"><![CDATA[
+    /// To create this trainer, use [LightGbm](xref:Microsoft.ML.LightGbmExtensions.LightGbm(Microsoft.ML.RankingCatalog.RankingTrainers,System.String,System.String,System.String,System.String,System.Nullable{System.Int32},System.Nullable{System.Int32},System.Nullable{System.Double},System.Int32))
+    /// or [LightGbm(Options)](xref:Microsoft.ML.LightGbmExtensions.LightGbm(Microsoft.ML.RankingCatalog.RankingTrainers,Microsoft.ML.Trainers.LightGbm.LightGbmRankingTrainer.Options)).
+    ///
+    /// [!include[io](~/../docs/samples/docs/api-reference/io-columns-ranking.md)]
+    ///
+    /// ### Trainer Characteristics
+    /// |  |  |
+    /// | -- | -- |
+    /// | Machine learning task | Ranking |
+    /// | Is normalization required? | No |
+    /// | Is caching required? | No |
+    /// | Required NuGet in addition to Microsoft.ML | Microsoft.ML.LightGbm |
+    ///
+    /// [!include[algorithm](~/../docs/samples/docs/api-reference/algo-details-lightgbm.md)]
+    /// ]]>
+    /// </format>
+    /// </remarks>
+    /// <seealso cref="LightGbmExtensions.LightGbm(RankingCatalog.RankingTrainers, string, string, string, string, int?, int?, double?, int)"/>
+    /// <seealso cref="LightGbmExtensions.LightGbm(RankingCatalog.RankingTrainers, LightGbmRankingTrainer.Options)"/>
+    /// <seealso cref="Options"/>
     public sealed class LightGbmRankingTrainer : LightGbmTrainerBase<LightGbmRankingTrainer.Options,
                                                                         float,
                                                                         RankingPredictionTransformer<LightGbmRankingModelParameters>,
@@ -85,6 +109,10 @@ namespace Microsoft.ML.Trainers.LightGbm
 
         private protected override PredictionKind PredictionKind => PredictionKind.Ranking;
 
+        /// <summary>
+        /// Options for the <see cref="LightGbmRankingTrainer"/> as used in
+        /// [LightGbm(Options)](xref:Microsoft.ML.LightGbmExtensions.LightGbm(Microsoft.ML.RankingCatalog.RankingTrainers,Microsoft.ML.Trainers.LightGbm.LightGbmRankingTrainer.Options)).
+        /// </summary>
         public sealed class Options : OptionsBase
         {
             public enum EvaluateMetricType
@@ -98,9 +126,9 @@ namespace Microsoft.ML.Trainers.LightGbm
             /// <summary>
             /// Comma-separated list of gains associated with each relevance label.
             /// </summary>
-            [Argument(ArgumentType.AtMostOnce, HelpText = "An array of gains associated to each relevance label.", ShortName = "gains")]
+            [Argument(ArgumentType.Multiple, HelpText = "An array of gains associated to each relevance label.", ShortName = "gains")]
             [TGUI(Label = "Ranking Label Gain")]
-            public int[] CustomGains = { 0,3,7,15,31,63,127,255,511,1023,2047,4095 };
+            public int[] CustomGains = { 0, 3, 7, 15, 31, 63, 127, 255, 511, 1023, 2047, 4095 };
 
             /// <summary>
             /// Parameter for the sigmoid function.
@@ -121,7 +149,8 @@ namespace Microsoft.ML.Trainers.LightGbm
             {
                 NameMapping.Add(nameof(CustomGains), "label_gain");
                 NameMapping.Add(nameof(EvaluateMetricType), "metric");
-                NameMapping.Add(nameof(EvaluateMetricType.None), "");
+                NameMapping.Add(nameof(EvaluateMetricType.None), "None");
+                NameMapping.Add(nameof(EvaluateMetricType.Default), "");
                 NameMapping.Add(nameof(EvaluateMetricType.MeanAveragedPrecision), "map");
                 NameMapping.Add(nameof(EvaluateMetricType.NormalizedDiscountedCumulativeGain), "ndcg");
             }
@@ -130,9 +159,8 @@ namespace Microsoft.ML.Trainers.LightGbm
             {
                 var res = base.ToDictionary(host);
                 res[GetOptionName(nameof(Sigmoid))] = Sigmoid;
-                res[GetOptionName(nameof(CustomGains))] = string.Join(",",CustomGains);
-                if(EvaluationMetric != EvaluateMetricType.Default)
-                    res[GetOptionName(nameof(EvaluateMetricType))] = GetOptionName(EvaluationMetric.ToString());
+                res[GetOptionName(nameof(CustomGains))] = string.Join(",", CustomGains);
+                res[GetOptionName(nameof(EvaluateMetricType))] = GetOptionName(EvaluationMetric.ToString());
 
                 return res;
             }
@@ -168,14 +196,14 @@ namespace Microsoft.ML.Trainers.LightGbm
             : this(env,
                   new Options()
                   {
-                    LabelColumnName = labelColumnName,
-                    FeatureColumnName = featureColumnName,
-                    ExampleWeightColumnName = weightsColumnName,
-                    RowGroupColumnName = rowGroupdColumnName,
-                    NumberOfLeaves = numberOfLeaves,
-                    MinimumExampleCountPerLeaf = minimumExampleCountPerLeaf,
-                    LearningRate = learningRate,
-                    NumberOfIterations = numberOfIterations
+                      LabelColumnName = labelColumnName,
+                      FeatureColumnName = featureColumnName,
+                      ExampleWeightColumnName = weightsColumnName,
+                      RowGroupColumnName = rowGroupdColumnName,
+                      NumberOfLeaves = numberOfLeaves,
+                      MinimumExampleCountPerLeaf = minimumExampleCountPerLeaf,
+                      LearningRate = learningRate,
+                      NumberOfIterations = numberOfIterations
                   })
         {
             Host.CheckNonEmpty(rowGroupdColumnName, nameof(rowGroupdColumnName));

@@ -24,7 +24,7 @@ using Newtonsoft.Json.Linq;
 [assembly: LoadableClass(OneVersusAllTrainer.Summary, typeof(OneVersusAllTrainer), typeof(OneVersusAllTrainer.Options),
     new[] { typeof(SignatureMulticlassClassifierTrainer), typeof(SignatureTrainer) },
     OneVersusAllTrainer.UserNameValue,
-    OneVersusAllTrainer.LoadNameValue, DocName = "trainer/OvaPkpd.md")]
+    OneVersusAllTrainer.LoadNameValue)]
 
 [assembly: LoadableClass(typeof(OneVersusAllModelParameters), null, typeof(SignatureLoadModel),
     "OVA Executor",
@@ -37,7 +37,51 @@ namespace Microsoft.ML.Trainers
     using TDistPredictor = IDistPredictorProducing<float, float>;
     using TScalarPredictor = IPredictorProducing<float>;
     using TScalarTrainer = ITrainerEstimator<ISingleFeaturePredictionTransformer<IPredictorProducing<float>>, IPredictorProducing<float>>;
-
+    /// <summary>
+    /// The <see cref="IEstimator{TTransformer}"/> for training a one-versus-all multi-class classifier that uses the specified binary classifier.
+    /// </summary>
+    /// <remarks>
+    /// <format type="text/markdown"><![CDATA[
+    /// To create this trainer, use [OneVersusAll](xref:Microsoft.ML.StandardTrainersCatalog.OneVersusAll``1(Microsoft.ML.MulticlassClassificationCatalog.MulticlassClassificationTrainers,Microsoft.ML.Trainers.ITrainerEstimator{Microsoft.ML.Data.BinaryPredictionTransformer{``0},``0},System.String,System.Boolean,Microsoft.ML.IEstimator{Microsoft.ML.ISingleFeaturePredictionTransformer{Microsoft.ML.Calibrators.ICalibrator}},System.Int32,System.Boolean)).
+    ///
+    /// [!include[io](~/../docs/samples/docs/api-reference/io-columns-multiclass-classification.md)]
+    ///
+    /// ### Trainer Characteristics
+    /// |  |  |
+    /// | -- | -- |
+    /// | Machine learning task | Multiclass classification |
+    /// | Is normalization required? | Depends on the underlying binary classifier |
+    /// | Is caching required? | Yes |
+    /// | Required NuGet in addition to Microsoft.ML | None |
+    ///
+    /// ### Training Algorithm Details
+    /// In one-versus-all (OVA) strategy, a binary classification algorithm is used to train one classifier for each class,
+    /// which distinguishes that class from all other classes. Prediction is then performed by running
+    /// these binary classifiers and choosing the prediction with the highest confidence score.
+    /// This algorithm can be used with any of the binary classifiers in ML.NET. A few binary classifiers
+    /// already have implementation for multi-class problems, thus users can choose either one depending on the context.
+    /// The OVA version of a binary classifier, such as wrapping a <xref:Microsoft.ML.Trainers.LightGbm.LightGbmBinaryTrainer>,
+    /// can be different from <xref:Microsoft.ML.Trainers.LightGbm.LightGbmMulticlassTrainer>, which develops a multi-class classifier directly.
+    /// Note that even if the classifier indicates that it does not need caching, OneVersusAll will always
+    /// request caching, as it will be performing multiple passes over the data set.
+    /// This trainer will request normalization from the data pipeline if the classifier indicates it would benefit from it.
+    ///
+    /// This can allow you to exploit trainers that do not naturally have a
+    /// multiclass option, for example, using the <xref:Microsoft.ML.Trainers.FastTree.FastTreeBinaryTrainer>
+    /// to solve a multiclass problem.
+    /// Alternately, it can allow ML.NET to solve a "simpler" problem even in the cases
+    /// where the trainer has a multiclass option, but using it directly is not
+    /// practical due to, usually, memory constraints. For example, while a multiclass
+    /// logistic regression is a more principled way to solve a multiclass problem, it
+    /// requires that the trainer store a lot more intermediate state in the form of
+    /// L-BFGS history for all classes *simultaneously*, rather than just one-by-one
+    /// as would be needed for a one-versus-all classification model.
+    ///
+    /// Check the See Also section for links to usage examples.
+    /// ]]>
+    /// </format>
+    /// </remarks>
+    /// <seealso cref="StandardTrainersCatalog.OneVersusAll{TModel}(MulticlassClassificationCatalog.MulticlassClassificationTrainers, ITrainerEstimator{BinaryPredictionTransformer{TModel}, TModel}, string, bool, IEstimator{ISingleFeaturePredictionTransformer{ICalibrator}}, int, bool)" />
     public sealed class OneVersusAllTrainer : MetaMulticlassTrainer<MulticlassPredictionTransformer<OneVersusAllModelParameters>, OneVersusAllModelParameters>
     {
         internal const string LoadNameValue = "OVA";
@@ -193,7 +237,7 @@ namespace Microsoft.ML.Trainers
     }
 
     /// <summary>
-    /// Contains the model parameters and prediction functions for <see cref="OneVersusAllTrainer"/>.
+    /// Model parameters for <see cref="OneVersusAllTrainer"/>.
     /// </summary>
     public sealed class OneVersusAllModelParameters :
         ModelParametersBase<VBuffer<float>>,
@@ -223,7 +267,7 @@ namespace Microsoft.ML.Trainers
         /// <summary>
         /// Retrieves the model parameters.
         /// </summary>
-        private ImmutableArray<object> SubModelParameters => _impl.Predictors.Cast<object>().ToImmutableArray();
+        internal ImmutableArray<object> SubModelParameters => _impl.Predictors.Cast<object>().ToImmutableArray();
 
         /// <summary>
         /// The type of the prediction task.
@@ -696,15 +740,17 @@ namespace Microsoft.ML.Trainers
 
             private void NormalizeSoftmax(float[] scores, int count)
             {
-                float sum = 0;
+                double sum = 0;
+                var score = new double[count];
+
                 for (int i = 0; i < count; i++)
                 {
-                    scores[i] = (float)Math.Exp(scores[i]);
-                    sum += scores[i];
+                    score[i] = Math.Exp(scores[i]);
+                    sum += score[i];
                 }
 
                 for (int i = 0; i < count; i++)
-                    scores[i] = scores[i] / sum;
+                    scores[i] = (float)(score[i] / sum);
             }
 
             public override JToken SaveAsPfa(BoundPfaContext ctx, JToken input)

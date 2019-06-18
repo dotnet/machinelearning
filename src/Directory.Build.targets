@@ -26,4 +26,32 @@
 
   </Target>
 
+  <!-- API Compat -->
+  <PropertyGroup Condition="'$(RunApiCompat)' == 'true'">
+    <!-- resolve contract for APICompat as part of resolve references -->
+    <ResolveReferencesDependsOn>
+      $(ResolveReferencesDependsOn);
+      ResolveMatchingContract
+    </ResolveReferencesDependsOn>
+
+    <StableApiProject>$(RepoRoot)tools-local\Microsoft.ML.StableApi\Microsoft.ML.StableApi.csproj</StableApiProject>
+  </PropertyGroup>
+
+  <ItemGroup Condition="'$(RunApiCompat)' == 'true'">
+    <PackageReference Include="Microsoft.DotNet.ApiCompat"
+                      Version="$(MicrosoftDotNetApiCompatPackageVersion)"
+                      PrivateAssets="All" />
+  </ItemGroup>
+
+  <Target Name="ResolveMatchingContract">
+    <MSBuild Projects="$(StableApiProject)"
+             Targets="GetContract"
+             Properties="ContractName=$(AssemblyName);TargetFramework=$(TargetFramework)">
+      <Output TaskParameter="TargetOutputs" ItemName="ResolvedMatchingContract"/>
+    </MSBuild>
+    <PropertyGroup>
+      <ContractOutputPath>%(ResolvedMatchingContract.DependencyPaths)</ContractOutputPath>
+    </PropertyGroup>
+  </Target>
+
 </Project>

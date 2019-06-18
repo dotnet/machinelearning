@@ -1,0 +1,38 @@
+﻿<#@ include file="BinaryClassification.ttinclude"#>
+<#+
+string ClassName = "SdcaNonCalibrated";
+string Trainer = "SdcaNonCalibrated";
+string TrainerOptions = null;
+bool IsCalibrated = false;
+bool CacheData = true;
+
+string LabelThreshold = "0.5f";
+string DataSepValue = "0.03f";
+string OptionsInclude = "";
+string Comments = "";
+
+string ExpectedOutputPerInstance = @"// Expected output:
+            //   Label: True, Prediction: True
+            //   Label: False, Prediction: True
+            //   Label: True, Prediction: True
+            //   Label: True, Prediction: True
+            //   Label: False, Prediction: True";
+
+string ExpectedOutput = @"// Expected output:
+            //   Accuracy: 0.65
+            //   AUC: 0.69
+            //   F1 Score: 0.64
+            //   Negative Precision: 0.68
+            //   Negative Recall: 0.65
+            //   Positive Precision: 0.63
+            //   Positive Recall: 0.66
+            //   TEST POSITIVE RATIO:    0.4760 (238.0/(238.0+262.0))
+            //   Confusion table
+            //             ||======================
+            //   PREDICTED || positive | negative | Recall
+            //   TRUTH     ||======================
+            //    positive ||      154 |       84 | 0.6471
+            //    negative ||       95 |      167 | 0.6374
+            //             ||======================
+            //   Precision ||   0.6185 |   0.6653 |";
+#>

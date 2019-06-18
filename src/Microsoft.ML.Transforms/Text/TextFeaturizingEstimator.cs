@@ -4,12 +4,12 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
-using Microsoft.ML.Data.IO;
 using Microsoft.ML.Internal.Internallearn;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Runtime;
@@ -31,10 +31,38 @@ namespace Microsoft.ML.Transforms.Text
     /// </summary>
     public interface IStopWordsRemoverOptions { }
 
-    // A transform that turns a collection of text documents into numerical feature vectors. The feature vectors are counts
-    // of (word or character) ngrams in a given text. It offers ngram hashing (finding the ngram token string name to feature
-    // integer index mapping through hashing) as an option.
-    /// <include file='doc.xml' path='doc/members/member[@name="TextFeaturizingEstimator "]/*' />
+    /// <summary>
+    ///  An estimator that turns a collection of text documents into numerical feature vectors.
+    ///  The feature vectors are normalized counts of word and/or character n-grams (based on the options supplied).
+    /// </summary>
+    /// <remarks>
+    /// <format type="text/markdown"><![CDATA[
+    ///
+    /// ###  Estimator Characteristics
+    /// |  |  |
+    /// | -- | -- |
+    /// | Does this estimator need to look at the data to train its parameters? | Yes. |
+    /// | Input column data type | [text](xref:Microsoft.ML.Data.TextDataViewType) |
+    /// | Output column data type | Vector of <xref:System.Single> |
+    ///
+    /// This estimator gives the user one-stop solution for doing:
+    /// * Language Detection
+    /// * [Tokenization](https://en.wikipedia.org/wiki/Lexical_analysis#Tokenization)
+    /// * [Text normalization](https://en.wikipedia.org/wiki/Text_normalization)
+    /// * [Predefined and custom stopwords removal](https://en.wikipedia.org/wiki/Stop_words)
+    /// * [Word-based or character-based Ngram extraction and SkipGram extraction (through the advanced [options](xref:Microsoft.ML.Transforms.TextFeaturizingEstimator.Options.WordFeatureExtractor))](https://en.wikipedia.org/wiki/N-gram)
+    /// * [TF, IDF or TF-IDF](https://en.wikipedia.org/wiki/Tf%E2%80%93idf)
+    /// * [L-p vector normalization](xref: Microsoft.ML.Transforms.LpNormNormalizingTransformer)
+    ///
+    /// By default the features are made of (word/character) n-grams/skip-grams​ and the number of features are equal to the vocabulary size found by analyzing the data.
+    /// To output an additional column with the tokens generated, use [OutputTokensColumnName](xref:Microsoft.ML.Transforms.Text.TextFeaturizingEstimator.Options.OutputTokensColumnName).
+    /// The number of features can also be specified by selecting the maximum number of n-gram to keep in the <xref:Microsoft.ML.Transforms.Text.TextFeaturizingEstimator.Options>, where the estimator can be further tuned.
+    ///
+    /// Check the See Also section for links to usage examples.
+    /// ]]></format>
+    /// </remarks>
+    /// <seealso cref="TextCatalog.FeaturizeText(TransformsCatalog.TextTransforms, string, Options, string[])"/>
+    /// <seealso cref="TextCatalog.FeaturizeText(TransformsCatalog.TextTransforms, string, string)"/>
     public sealed class TextFeaturizingEstimator : IEstimator<ITransformer>
     {
         /// <summary>
@@ -151,7 +179,7 @@ namespace Microsoft.ML.Transforms.Text
                 }
             }
 
-            [Argument(ArgumentType.AtMostOnce, HelpText = "Casing text using the rules of the invariant culture.", Name="TextCase", ShortName = "case", SortOrder = 5)]
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Casing text using the rules of the invariant culture.", Name = "TextCase", ShortName = "case", SortOrder = 5)]
             public CaseMode CaseMode = TextNormalizingEstimator.Defaults.Mode;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Whether to keep diacritical marks or remove them.", ShortName = "diac", SortOrder = 6)]
@@ -290,15 +318,15 @@ namespace Microsoft.ML.Transforms.Text
                 {
                     switch (Norm)
                     {
-                        case NormFunction.L1:
-                            return LpNormNormalizingEstimatorBase.NormFunction.L1;
-                        case NormFunction.L2:
-                            return LpNormNormalizingEstimatorBase.NormFunction.L2;
-                        case NormFunction.Infinity:
-                            return LpNormNormalizingEstimatorBase.NormFunction.Infinity;
-                        default:
-                            Contracts.Assert(false, "Unexpected normalizer type");
-                            return LpNormNormalizingEstimatorBase.NormFunction.L2;
+                    case NormFunction.L1:
+                        return LpNormNormalizingEstimatorBase.NormFunction.L1;
+                    case NormFunction.L2:
+                        return LpNormNormalizingEstimatorBase.NormFunction.L2;
+                    case NormFunction.Infinity:
+                        return LpNormNormalizingEstimatorBase.NormFunction.Infinity;
+                    default:
+                        Contracts.Assert(false, "Unexpected normalizer type");
+                        return LpNormNormalizingEstimatorBase.NormFunction.L2;
                     }
                 }
             }
@@ -364,7 +392,7 @@ namespace Microsoft.ML.Transforms.Text
         }
 
         internal const string Summary = "A transform that turns a collection of text documents into numerical feature vectors. " +
-            "The feature vectors are normalized counts of (word and/or character) ngrams in a given tokenized text.";
+            "The feature vectors are normalized counts of (word and/or character) n-grams in a given tokenized text.";
 
         internal const string UserName = "Text Transform";
         internal const string LoaderSignature = "Text";
@@ -416,13 +444,14 @@ namespace Microsoft.ML.Transforms.Text
             string charFeatureCol = null;
             List<string> tempCols = new List<string>();
             IDataView view = input;
+            TransformerChain<ITransformer> chain = new TransformerChain<ITransformer>();
 
             if (tparams.NeedInitialSourceColumnConcatTransform && textCols.Length > 1)
             {
                 var srcCols = textCols;
                 textCols = new[] { GenerateColumnName(input.Schema, OutputColumn, "InitialConcat") };
                 tempCols.Add(textCols[0]);
-                view = new ColumnConcatenatingTransformer(h, textCols[0], srcCols).Transform(view);
+                chain = AddToChainAndTransform(chain, new ColumnConcatenatingTransformer(h, textCols[0], srcCols), ref view);
             }
 
             if (tparams.NeedsNormalizeTransform)
@@ -435,8 +464,9 @@ namespace Microsoft.ML.Transforms.Text
                     tempCols.Add(dstCols[i]);
                     xfCols[i] = (dstCols[i], textCols[i]);
                 }
-
-                view = new TextNormalizingEstimator(h, tparams.TextCase, tparams.KeepDiacritics, tparams.KeepPunctuations, tparams.KeepNumbers, xfCols).Fit(view).Transform(view);
+                chain = AddToChainAndTransform(chain,
+                    new TextNormalizingEstimator(h, tparams.TextCase, tparams.KeepDiacritics, tparams.KeepPunctuations,
+                    tparams.KeepNumbers, xfCols).Fit(view), ref view);
 
                 textCols = dstCols;
             }
@@ -453,7 +483,7 @@ namespace Microsoft.ML.Transforms.Text
                     tempCols.Add(col.Name);
                 }
 
-                view = new WordTokenizingEstimator(h, xfCols).Fit(view).Transform(view);
+                chain = AddToChainAndTransform(chain, new WordTokenizingEstimator(h, xfCols).Fit(view), ref view);
             }
 
             if (tparams.NeedsRemoveStopwordsTransform)
@@ -472,7 +502,7 @@ namespace Microsoft.ML.Transforms.Text
 
                     xfCols[i] = col;
                 }
-                view = tparams.StopWordsRemover.CreateComponent(h, view, xfCols);
+                chain = AddToChainAndTransform(chain, tparams.StopWordsRemover.CreateComponent(h, view, xfCols), ref view);
                 wordTokCols = dstCols;
             }
 
@@ -480,48 +510,44 @@ namespace Microsoft.ML.Transforms.Text
             {
                 var dstCol = GenerateColumnName(view.Schema, OutputColumn, "WordExtractor");
                 tempCols.Add(dstCol);
-                view = tparams.WordExtractorFactory.Create(h, view, new[] {
+                chain = AddToChainAndTransform(chain, tparams.WordExtractorFactory.Create(h, view, new[] {
                     new ExtractorColumn()
                     {
                         Name = dstCol,
                         Source = wordTokCols,
                         FriendlyNames = _inputColumns
-                    }});
+                    }}), ref view);
                 wordFeatureCol = dstCol;
             }
 
             if (!string.IsNullOrEmpty(tparams.OutputTextTokensColumnName))
             {
                 string[] srcCols = wordTokCols ?? textCols;
-                view = new ColumnConcatenatingTransformer(h, tparams.OutputTextTokensColumnName, srcCols).Transform(view);
+                chain = AddToChainAndTransform(chain, new ColumnConcatenatingTransformer(h, tparams.OutputTextTokensColumnName, srcCols), ref view);
             }
 
             if (tparams.CharExtractorFactory != null)
             {
+                var srcCols = tparams.NeedsRemoveStopwordsTransform ? wordTokCols : textCols;
+                charTokCols = new string[srcCols.Length];
+                var xfCols = new (string outputColumnName, string inputColumnName)[srcCols.Length];
+                for (int i = 0; i < srcCols.Length; i++)
                 {
-                    var srcCols = tparams.NeedsRemoveStopwordsTransform ? wordTokCols : textCols;
-                    charTokCols = new string[srcCols.Length];
-                    var xfCols = new (string outputColumnName, string inputColumnName)[srcCols.Length];
-                    for (int i = 0; i < srcCols.Length; i++)
-                    {
-                        xfCols[i] = (GenerateColumnName(view.Schema, srcCols[i], "CharTokenizer"), srcCols[i]);
-                        tempCols.Add(xfCols[i].outputColumnName);
-                        charTokCols[i] = xfCols[i].outputColumnName;
-                    }
-                    view = new TokenizingByCharactersTransformer(h, columns: xfCols).Transform(view);
+                    xfCols[i] = (GenerateColumnName(view.Schema, srcCols[i], "CharTokenizer"), srcCols[i]);
+                    tempCols.Add(xfCols[i].outputColumnName);
+                    charTokCols[i] = xfCols[i].outputColumnName;
                 }
+                chain = AddToChainAndTransform(chain, new TokenizingByCharactersTransformer(h, columns: xfCols), ref view);
 
-                {
-                    charFeatureCol = GenerateColumnName(view.Schema, OutputColumn, "CharExtractor");
-                    tempCols.Add(charFeatureCol);
-                    view = tparams.CharExtractorFactory.Create(h, view, new[] {
-                        new ExtractorColumn()
-                        {
-                            Source = charTokCols,
-                            FriendlyNames = _inputColumns,
-                            Name = charFeatureCol
-                        }});
-                }
+                charFeatureCol = GenerateColumnName(view.Schema, OutputColumn, "CharExtractor");
+                tempCols.Add(charFeatureCol);
+                chain = AddToChainAndTransform(chain, tparams.CharExtractorFactory.Create(h, view, new[] {
+                    new ExtractorColumn()
+                    {
+                        Source = charTokCols,
+                        FriendlyNames = _inputColumns,
+                        Name = charFeatureCol
+                    } }), ref view);
             }
 
             if (tparams.Norm != NormFunction.None)
@@ -545,7 +571,7 @@ namespace Microsoft.ML.Transforms.Text
                 }
 
                 if (xfCols.Count > 0)
-                    view = new LpNormNormalizingTransformer(h, xfCols.ToArray()).Transform(view);
+                    chain = AddToChainAndTransform(chain, new LpNormNormalizingTransformer(h, xfCols.ToArray()), ref view);
             }
 
             {
@@ -570,14 +596,23 @@ namespace Microsoft.ML.Transforms.Text
                 }
                 if (srcTaggedCols.Count > 0)
                 {
-                    view = new ColumnConcatenatingTransformer(h, new ColumnConcatenatingTransformer.ColumnOptions(OutputColumn,
-                        srcTaggedCols.Select(kvp => (kvp.Value, kvp.Key))))
-                        .Transform(view);
+                    chain = AddToChainAndTransform(chain, new ColumnConcatenatingTransformer(h, new ColumnConcatenatingTransformer.ColumnOptions(OutputColumn,
+                        srcTaggedCols.Select(kvp => (kvp.Value, kvp.Key)))), ref view);
                 }
             }
 
-            view = ColumnSelectingTransformer.CreateDrop(h, view, tempCols.ToArray());
-            return new Transformer(_host, input, view);
+            chain = AddToChainAndTransform(chain, new ColumnSelectingTransformer(h, null, tempCols.ToArray()), ref view);
+            return new Transformer(_host, chain);
+        }
+
+        private static TransformerChain<ITransformer> AddToChainAndTransform(TransformerChain<ITransformer> chain, ITransformer transformer, ref IDataView view)
+        {
+            Contracts.AssertValue(chain);
+            Contracts.AssertValue(transformer);
+            Contracts.AssertValue(view);
+
+            view = transformer.Transform(view);
+            return chain.Append(transformer);
         }
 
         private static ITransformer Create(IHostEnvironment env, ModelLoadContext ctx)
@@ -636,26 +671,29 @@ namespace Microsoft.ML.Transforms.Text
         private sealed class Transformer : ITransformer
         {
             private const string TransformDirTemplate = "Step_{0:000}";
+            private const uint VerIDataTransform = 0x00010001;
 
             private readonly IHost _host;
-            private readonly IDataView _xf;
+            private readonly TransformerChain<ITransformer> _chain;
 
-            internal Transformer(IHostEnvironment env, IDataView input, IDataView view)
+            internal Transformer(IHostEnvironment env, TransformerChain<ITransformer> chain)
             {
+                Contracts.AssertValue(env);
+                env.AssertValue(chain);
                 _host = env.Register(nameof(Transformer));
-                _xf = ApplyTransformUtils.ApplyAllTransformsToData(_host, view, new EmptyDataView(_host, input.Schema), input);
+                _chain = chain;
             }
 
             public DataViewSchema GetOutputSchema(DataViewSchema inputSchema)
             {
                 _host.CheckValue(inputSchema, nameof(inputSchema));
-                return Transform(new EmptyDataView(_host, inputSchema)).Schema;
+                return _chain.GetOutputSchema(inputSchema);
             }
 
             public IDataView Transform(IDataView input)
             {
                 _host.CheckValue(input, nameof(input));
-                return ApplyTransformUtils.ApplyAllTransformsToData(_host, _xf, input);
+                return _chain.Transform(input);
             }
 
             bool ITransformer.IsRowToRowMapper => true;
@@ -663,19 +701,7 @@ namespace Microsoft.ML.Transforms.Text
             IRowToRowMapper ITransformer.GetRowToRowMapper(DataViewSchema inputSchema)
             {
                 _host.CheckValue(inputSchema, nameof(inputSchema));
-                var input = new EmptyDataView(_host, inputSchema);
-                var revMaps = new List<IRowToRowMapper>();
-                IDataView chain;
-                for (chain = ApplyTransformUtils.ApplyAllTransformsToData(_host, _xf, input); chain is IDataTransform xf; chain = xf.Source)
-                {
-                    // Everything in the chain ought to be a row mapper.
-                    _host.Assert(xf is IRowToRowMapper);
-                    revMaps.Add((IRowToRowMapper)xf);
-                }
-                // The walkback should have ended at the input.
-                Contracts.Assert(chain == input);
-                revMaps.Reverse();
-                return new CompositeRowToRowMapper(inputSchema, revMaps.ToArray());
+                return (_chain as ITransformer).GetRowToRowMapper(inputSchema);
             }
 
             void ICanSaveModel.Save(ModelSaveContext ctx)
@@ -684,24 +710,7 @@ namespace Microsoft.ML.Transforms.Text
                 ctx.CheckAtModel();
                 ctx.SetVersionInfo(GetVersionInfo());
 
-                var dataPipe = _xf;
-                var transforms = new List<IDataTransform>();
-                while (dataPipe is IDataTransform xf)
-                {
-                    transforms.Add(xf);
-                    dataPipe = xf.Source;
-                    Contracts.AssertValue(dataPipe);
-                }
-                transforms.Reverse();
-
-                ctx.SaveSubModel("Loader", c => BinaryLoader.SaveInstance(_host, c, dataPipe.Schema));
-
-                ctx.Writer.Write(transforms.Count);
-                for (int i = 0; i < transforms.Count; i++)
-                {
-                    var dirName = string.Format(TransformDirTemplate, i);
-                    ctx.SaveModel(transforms[i], dirName);
-                }
+                ctx.SaveModel(_chain, "Chain");
             }
 
             public Transformer(IHostEnvironment env, ModelLoadContext ctx)
@@ -711,27 +720,54 @@ namespace Microsoft.ML.Transforms.Text
                 _host.CheckValue(ctx, nameof(ctx));
 
                 ctx.CheckAtModel(GetVersionInfo());
-                int n = ctx.Reader.ReadInt32();
 
-                ctx.LoadModel<ILegacyDataLoader, SignatureLoadDataLoader>(env, out var loader, "Loader", new MultiFileSource(null));
-
-                IDataView data = loader;
-                for (int i = 0; i < n; i++)
+                if (ctx.Header.ModelVerReadable == VerIDataTransform)
                 {
-                    var dirName = string.Format(TransformDirTemplate, i);
-                    ctx.LoadModel<IDataTransform, SignatureLoadDataTransform>(env, out var xf, dirName, data);
-                    data = xf;
-                }
+                    int n = ctx.Reader.ReadInt32();
+                    _chain = new TransformerChain<ITransformer>();
+                    ctx.LoadModel<ILegacyDataLoader, SignatureLoadDataLoader>(env, out var loader, "Loader", new MultiFileSource(null));
+                    IDataView data = loader;
+                    for (int i = 0; i < n; i++)
+                    {
+                        var dirName = string.Format(TransformDirTemplate, i);
+                        ITransformer transformer;
+                        // Try to load as an ITransformer.
+                        try
+                        {
+                            ctx.LoadModelOrNull<ITransformer, SignatureLoadModel>(env, out transformer, dirName);
+                        }
+                        catch (FormatException)
+                        {
+                            transformer = null;
+                        }
 
-                _xf = data;
+                        // If that didn't work, this should be a RowToRowMapperTransform with a "Mapper" folder in it containing an ITransformer.
+                        var mapperDirName = Path.Combine(dirName, "Mapper");
+                        if (transformer == null && ctx.ContainsModel(mapperDirName))
+                            ctx.LoadModelOrNull<ITransformer, SignatureLoadModel>(env, out transformer, mapperDirName);
+
+                        if (transformer != null)
+                            data = transformer.Transform(data);
+                        else
+                        {
+                            ctx.LoadModel<IDataTransform, SignatureLoadDataTransform>(env, out var xf, dirName, data);
+                            data = xf;
+                            transformer = new TransformWrapper(_host, xf);
+                        }
+                        _chain = _chain.Append(transformer);
+                    }
+                }
+                else
+                    ctx.LoadModel<TransformerChain<ITransformer>, SignatureLoadModel>(env, out _chain, "Chain");
             }
 
             private static VersionInfo GetVersionInfo()
             {
                 return new VersionInfo(
                     modelSignature: "TEXT XFR",
-                    verWrittenCur: 0x00010001, // Initial
-                    verReadableCur: 0x00010001,
+                    //verWrittenCur: 0x00010001, // Initial
+                    verWrittenCur: 0x00010002, // Save as TransformerChain instead of an array of IDataTransform
+                    verReadableCur: 0x00010002,
                     verWeCanReadBack: 0x00010001,
                     loaderSignature: LoaderSignature,
                 loaderAssemblyName: typeof(Transformer).Assembly.FullName);

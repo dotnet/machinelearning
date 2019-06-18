@@ -74,6 +74,12 @@ namespace Microsoft.ML.Data
         /// </remarks>
         public double AreaUnderPrecisionRecallCurve { get; }
 
+        /// <summary>
+        /// The <a href="https://en.wikipedia.org/wiki/Confusion_matrix">confusion matrix</a> giving the counts of the
+        /// true positives, true negatives, false positives and false negatives for the two classes of data.
+        /// </summary>
+        public ConfusionMatrix ConfusionMatrix { get; }
+
         private protected static T Fetch<T>(IExceptionContext ectx, DataViewRow row, string name)
         {
             var column = row.Schema.GetColumnOrNull(name);
@@ -84,9 +90,9 @@ namespace Microsoft.ML.Data
             return val;
         }
 
-        internal BinaryClassificationMetrics(IExceptionContext ectx, DataViewRow overallResult)
+        internal BinaryClassificationMetrics(IHost host, DataViewRow overallResult, IDataView confusionMatrix)
         {
-            double Fetch(string name) => Fetch<double>(ectx, overallResult, name);
+            double Fetch(string name) => Fetch<double>(host, overallResult, name);
             AreaUnderRocCurve = Fetch(BinaryClassifierEvaluator.Auc);
             Accuracy = Fetch(BinaryClassifierEvaluator.Accuracy);
             PositivePrecision = Fetch(BinaryClassifierEvaluator.PosPrecName);
@@ -95,6 +101,7 @@ namespace Microsoft.ML.Data
             NegativeRecall = Fetch(BinaryClassifierEvaluator.NegRecallName);
             F1Score = Fetch(BinaryClassifierEvaluator.F1);
             AreaUnderPrecisionRecallCurve = Fetch(BinaryClassifierEvaluator.AuPrc);
+            ConfusionMatrix = MetricWriter.GetConfusionMatrix(host, confusionMatrix);
         }
 
         [BestFriend]

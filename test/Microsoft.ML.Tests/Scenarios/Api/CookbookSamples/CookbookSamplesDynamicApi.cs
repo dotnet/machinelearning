@@ -249,6 +249,164 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
         public void Normalization()
             => NormalizationWorkout(GetDataPath("iris.data"));
 
+        [Fact]
+        public void GlobalFeatureImportance()
+        {
+            var dataPath = GetDataPath("housing.txt");
+
+            var context = new MLContext();
+
+            IDataView data = context.Data.LoadFromTextFile(dataPath, new[]
+            {
+                new TextLoader.Column("Label", DataKind.Single, 0),
+                new TextLoader.Column("CrimesPerCapita", DataKind.Single, 1),
+                new TextLoader.Column("PercentResidental", DataKind.Single, 2),
+                new TextLoader.Column("PercentNonRetail", DataKind.Single, 3),
+                new TextLoader.Column("CharlesRiver", DataKind.Single, 4),
+                new TextLoader.Column("NitricOxides", DataKind.Single, 5),
+                new TextLoader.Column("RoomsPerDwelling", DataKind.Single, 6),
+                new TextLoader.Column("PercentPre40s", DataKind.Single, 7),
+                new TextLoader.Column("EmploymentDistance", DataKind.Single, 8),
+                new TextLoader.Column("HighwayDistance", DataKind.Single, 9),
+                new TextLoader.Column("TaxRate", DataKind.Single, 10),
+                new TextLoader.Column("TeacherRatio", DataKind.Single, 11)
+            },
+            hasHeader: true);
+
+            var pipeline = context.Transforms.Concatenate("Features", "CrimesPerCapita", "PercentResidental", "PercentNonRetail", "CharlesRiver", "NitricOxides",
+                "RoomsPerDwelling", "PercentPre40s", "EmploymentDistance", "HighwayDistance", "TaxRate", "TeacherRatio")
+                .Append(context.Regression.Trainers.FastTree());
+
+            var model = pipeline.Fit(data);
+
+            var transformedData = model.Transform(data);
+
+            var featureImportance = context.Regression.PermutationFeatureImportance(model.LastTransformer, transformedData);
+
+            for (int i = 0; i < featureImportance.Count(); i++)
+            {
+                Console.WriteLine($"Feature {i}: Difference in RMS - {featureImportance[i].RootMeanSquaredError.Mean}");
+            }
+        }
+
+        [Fact]
+        public void GetLinearModelWeights()
+        {
+            var dataPath = GetDataPath("housing.txt");
+
+            var context = new MLContext();
+
+            IDataView data = context.Data.LoadFromTextFile(dataPath, new[]
+            {
+                new TextLoader.Column("Label", DataKind.Single, 0),
+                new TextLoader.Column("CrimesPerCapita", DataKind.Single, 1),
+                new TextLoader.Column("PercentResidental", DataKind.Single, 2),
+                new TextLoader.Column("PercentNonRetail", DataKind.Single, 3),
+                new TextLoader.Column("CharlesRiver", DataKind.Single, 4),
+                new TextLoader.Column("NitricOxides", DataKind.Single, 5),
+                new TextLoader.Column("RoomsPerDwelling", DataKind.Single, 6),
+                new TextLoader.Column("PercentPre40s", DataKind.Single, 7),
+                new TextLoader.Column("EmploymentDistance", DataKind.Single, 8),
+                new TextLoader.Column("HighwayDistance", DataKind.Single, 9),
+                new TextLoader.Column("TaxRate", DataKind.Single, 10),
+                new TextLoader.Column("TeacherRatio", DataKind.Single, 11)
+            },
+            hasHeader: true);
+
+            var pipeline = context.Transforms.Concatenate("Features", "CrimesPerCapita", "PercentResidental", "PercentNonRetail", "CharlesRiver", "NitricOxides",
+                "RoomsPerDwelling", "PercentPre40s", "EmploymentDistance", "HighwayDistance", "TaxRate", "TeacherRatio")
+                .Append(context.Regression.Trainers.Sdca());
+
+            var model = pipeline.Fit(data);
+
+            var linearModel = model.LastTransformer.Model;
+
+            var weights = linearModel.Weights; 
+        }
+
+        [Fact]
+        public void GetFastTreeModelWeights()
+        {
+            var dataPath = GetDataPath("housing.txt");
+
+            var context = new MLContext();
+
+            IDataView data = context.Data.LoadFromTextFile(dataPath, new[]
+            {
+                new TextLoader.Column("Label", DataKind.Single, 0),
+                new TextLoader.Column("CrimesPerCapita", DataKind.Single, 1),
+                new TextLoader.Column("PercentResidental", DataKind.Single, 2),
+                new TextLoader.Column("PercentNonRetail", DataKind.Single, 3),
+                new TextLoader.Column("CharlesRiver", DataKind.Single, 4),
+                new TextLoader.Column("NitricOxides", DataKind.Single, 5),
+                new TextLoader.Column("RoomsPerDwelling", DataKind.Single, 6),
+                new TextLoader.Column("PercentPre40s", DataKind.Single, 7),
+                new TextLoader.Column("EmploymentDistance", DataKind.Single, 8),
+                new TextLoader.Column("HighwayDistance", DataKind.Single, 9),
+                new TextLoader.Column("TaxRate", DataKind.Single, 10),
+                new TextLoader.Column("TeacherRatio", DataKind.Single, 11)
+            },
+            hasHeader: true);
+
+            var pipeline = context.Transforms.Concatenate("Features", "CrimesPerCapita", "PercentResidental", "PercentNonRetail", "CharlesRiver", "NitricOxides",
+                "RoomsPerDwelling", "PercentPre40s", "EmploymentDistance", "HighwayDistance", "TaxRate", "TeacherRatio")
+                .Append(context.Regression.Trainers.FastTree());
+
+            var model = pipeline.Fit(data);
+
+            var linearModel = model.LastTransformer.Model;
+
+            var weights = new VBuffer<float>();
+            linearModel.GetFeatureWeights(ref weights);
+        }
+
+        [Fact]
+        public void FeatureImportanceForEachRow()
+        {
+            var dataPath = GetDataPath("housing.txt");
+
+            var context = new MLContext();
+
+            IDataView data = context.Data.LoadFromTextFile(dataPath, new[]
+            {
+                new TextLoader.Column("MedianHomeValue", DataKind.Single, 0),
+                new TextLoader.Column("CrimesPerCapita", DataKind.Single, 1),
+                new TextLoader.Column("PercentResidental", DataKind.Single, 2),
+                new TextLoader.Column("PercentNonRetail", DataKind.Single, 3),
+                new TextLoader.Column("CharlesRiver", DataKind.Single, 4),
+                new TextLoader.Column("NitricOxides", DataKind.Single, 5),
+                new TextLoader.Column("RoomsPerDwelling", DataKind.Single, 6),
+                new TextLoader.Column("PercentPre40s", DataKind.Single, 7),
+                new TextLoader.Column("EmploymentDistance", DataKind.Single, 8),
+                new TextLoader.Column("HighwayDistance", DataKind.Single, 9),
+                new TextLoader.Column("TaxRate", DataKind.Single, 10),
+                new TextLoader.Column("TeacherRatio", DataKind.Single, 11)
+            },
+            hasHeader: true);
+
+            var pipeline = context.Transforms.Concatenate("Features", "CrimesPerCapita", "PercentResidental", "PercentNonRetail", "CharlesRiver", "NitricOxides",
+                "RoomsPerDwelling", "PercentPre40s", "EmploymentDistance", "HighwayDistance", "TaxRate", "TeacherRatio")
+                .Append(context.Regression.Trainers.FastTree(labelColumnName: "MedianHomeValue"));
+
+            var model = pipeline.Fit(data);
+
+            var transfomedData = model.Transform(data);
+
+            var linearModel = model.LastTransformer;
+
+            var featureContributionCalculation = context.Transforms.CalculateFeatureContribution(linearModel, normalize: false);
+
+            var featureContributionData = featureContributionCalculation.Fit(transfomedData).Transform(transfomedData);
+
+            var shuffledSubset = context.Data.TakeRows(context.Data.ShuffleRows(featureContributionData), 10);
+            var scoringEnumerator = context.Data.CreateEnumerable<HousingData>(shuffledSubset, true);
+
+            foreach (var row in scoringEnumerator)
+            {
+                Console.WriteLine(row);
+            }
+        }
+
         private IEnumerable<CustomerChurnInfo> GetChurnInfo()
         {
             var r = new Random(454);
@@ -625,5 +783,20 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
             public float Target { get; set; }
         }
 
+        private class HousingData
+        {
+            public float MedianHomeValue { get; set; }
+            public float CrimesPerCapita { get; set; }
+            public float PercentResidental { get; set; }
+            public float PercentNonRetail { get; set; }
+            public float CharlesRiver { get; set; }
+            public float NitricOxides { get; set; }
+            public float RoomsPerDwelling { get; set; }
+            public float PercentPre40s { get; set; }
+            public float EmploymentDistance { get; set; }
+            public float HighwayDistance { get; set; }
+            public float TaxRate { get; set; }
+            public float TeacherRatio { get; set; }
+        }
     }
 }

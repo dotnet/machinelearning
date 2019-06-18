@@ -48,23 +48,20 @@ using Microsoft.ML.Transforms.Text;
 namespace Microsoft.ML.Transforms.Text
 {
     [TlcModule.ComponentKind("StopWordsRemover")]
-    internal interface IStopWordsRemoverFactory : IComponentFactory<IDataView, OneToOneColumn[], IDataTransform> { }
+    internal interface IStopWordsRemoverFactory : IComponentFactory<IDataView, OneToOneColumn[], ITransformer> { }
 
     [TlcModule.Component(Name = "Predefined", FriendlyName = "Predefined Stopwords List Remover", Alias = "PredefinedStopWordsRemover,PredefinedStopWords",
         Desc = "Remover with predefined list of stop words.")]
     internal sealed class PredefinedStopWordsRemoverFactory : IStopWordsRemoverFactory
     {
-        public IDataTransform CreateComponent(IHostEnvironment env, IDataView input, OneToOneColumn[] columns)
+        public ITransformer CreateComponent(IHostEnvironment env, IDataView input, OneToOneColumn[] columns)
         {
-            return new StopWordsRemovingEstimator(env, columns.Select(x => new StopWordsRemovingEstimator.ColumnOptions(x.Name, x.Source)).ToArray()).Fit(input).Transform(input) as IDataTransform;
+            return new StopWordsRemovingTransformer(env, columns.Select(x => new StopWordsRemovingEstimator.ColumnOptions(x.Name, x.Source)).ToArray());
         }
     }
 
     /// <summary>
-    /// A Stopword remover transform based on language-specific lists of stop words (most common words)
-    /// from Office Named Entity Recognition project.
-    /// The transform is usually applied after tokenizing text, so it compares individual tokens
-    /// (case-insensitive comparison) to the stopwords.
+    /// <see cref="ITransformer"/> resulting from fitting a <see cref="StopWordsRemovingEstimator"/>.
     /// </summary>
     public sealed class StopWordsRemovingTransformer : OneToOneTransformerBase
     {
@@ -483,10 +480,26 @@ namespace Microsoft.ML.Transforms.Text
     }
 
     /// <summary>
-    /// Stopword remover removes language-specific list of stop words (most common words)
-    /// This is usually applied after tokenizing text, so it compares individual tokens
-    /// (case-insensitive comparison) to the stopwords.
+    /// <see cref="IEstimator{TTransformer}"/> for the <see cref="CustomStopWordsRemovingTransformer"/>.
     /// </summary>
+    /// <remarks>
+    /// <format type="text/markdown"><![CDATA[
+    /// ###  Estimator Characteristics
+    /// |  |  |
+    /// | -- | -- |
+    /// | Does this estimator need to look at the data to train its parameters? | No |
+    /// | Input column data type | Vector of [Text](xref:Microsoft.ML.Data.TextDataViewType) |
+    /// | Output column data type | Variable-sized vector of [Text](xref:Microsoft.ML.Data.TextDataViewType) |
+    ///
+    /// The resulting <xref:Microsoft.ML.Transforms.Text.StopWordsRemovingTransformer> creates a new column, named as specified in the output column name parameter,
+    /// and fills it with a vector of words containing all of the words in the input column **except the predefined list of stopwords for the specified language.
+    /// All text comparison made by casting predefined text and text from input column to lower case using casing rules of invariant culture.
+    ///
+    /// Check the See Also section for links to usage examples.
+    /// ]]>
+    /// </format>
+    /// </remarks>
+    /// <seealso cref="TextCatalog.RemoveDefaultStopWords(TransformsCatalog.TextTransforms, string, string, Language)" />
     public sealed class StopWordsRemovingEstimator : TrivialEstimator<StopWordsRemovingTransformer>
     {
         /// <summary>
@@ -627,9 +640,7 @@ namespace Microsoft.ML.Transforms.Text
     }
 
     /// <summary>
-    /// Custom stopword remover removes specified list of stop words.
-    /// This is usually applied after tokenizing text, so it compares individual tokens
-    /// (case-insensitive comparison) to the stopwords.
+    /// <see cref="ITransformer"/> resulting from fitting a <see cref="CustomStopWordsRemovingEstimator"/>.
     /// </summary>
     public sealed class CustomStopWordsRemovingTransformer : OneToOneTransformerBase
     {
@@ -678,12 +689,12 @@ namespace Microsoft.ML.Transforms.Text
             Desc = "Remover with list of stopwords specified by the user.")]
         internal sealed class LoaderArguments : ArgumentsBase, IStopWordsRemoverFactory
         {
-            public IDataTransform CreateComponent(IHostEnvironment env, IDataView input, OneToOneColumn[] column)
+            public ITransformer CreateComponent(IHostEnvironment env, IDataView input, OneToOneColumn[] column)
             {
                 if (Utils.Size(Stopword) > 0)
-                    return new CustomStopWordsRemovingTransformer(env, Stopwords, column.Select(x => (x.Name, x.Source)).ToArray()).Transform(input) as IDataTransform;
+                    return new CustomStopWordsRemovingTransformer(env, Stopwords, column.Select(x => (x.Name, x.Source)).ToArray());
                 else
-                    return new CustomStopWordsRemovingTransformer(env, Stopword, DataFile, StopwordsColumn, Loader, column.Select(x => (x.Name, x.Source)).ToArray()).Transform(input) as IDataTransform;
+                    return new CustomStopWordsRemovingTransformer(env, Stopword, DataFile, StopwordsColumn, Loader, column.Select(x => (x.Name, x.Source)).ToArray());
             }
         }
 
@@ -1076,10 +1087,26 @@ namespace Microsoft.ML.Transforms.Text
     }
 
     /// <summary>
-    /// Custom stopword remover removes specified list of stop words.
-    /// This is usually applied after tokenizing text, so it compares individual tokens
-    /// (case-insensitive comparison) to the stopwords.
+    /// <see cref="IEstimator{TTransformer}"/> for the <see cref="CustomStopWordsRemovingTransformer"/>.
     /// </summary>
+    /// <remarks>
+    /// <format type="text/markdown"><![CDATA[
+    /// ###  Estimator Characteristics
+    /// |  |  |
+    /// | -- | -- |
+    /// | Does this estimator need to look at the data to train its parameters? | No |
+    /// | Input column data type | Vector of [Text](xref:Microsoft.ML.Data.TextDataViewType) |
+    /// | Output column data type | Vector of [Text](xref:Microsoft.ML.Data.TextDataViewType) |
+    ///
+    /// The resulting <xref:Microsoft.ML.Transforms.Text.CustomStopWordsRemovingTransformer> creates a new column, named as specified by the output column name parameter, and
+    /// fills it with a vector of words containing all of the words in the input column except those given by the stopwords parameter.
+    /// All text comparison made by casting provided words and words from input column to lower case using casing rules of invariant culture.
+    ///
+    /// Check the See Also section for links to usage examples.
+    /// ]]>
+    /// </format>
+    /// </remarks>
+    /// <seealso cref="TextCatalog.RemoveStopWords(TransformsCatalog.TextTransforms, string, string, string[])" />
     public sealed class CustomStopWordsRemovingEstimator : TrivialEstimator<CustomStopWordsRemovingTransformer>
     {
         /// <summary>

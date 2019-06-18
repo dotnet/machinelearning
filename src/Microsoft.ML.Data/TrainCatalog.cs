@@ -13,9 +13,7 @@ using Microsoft.ML.Transforms;
 namespace Microsoft.ML
 {
     /// <summary>
-    /// A training catalog is an object instantiable by a user to do various tasks relating to a particular
-    /// "area" of machine learning. A subclass would represent a particular task in machine learning. The idea
-    /// is that a user can instantiate that particular area, and get trainers and evaluators.
+    /// Base class for the trainer catalogs.
     /// </summary>
     public abstract class TrainCatalogBase : IInternalCatalog
     {
@@ -143,7 +141,8 @@ namespace Microsoft.ML
     }
 
     /// <summary>
-    /// The central catalog for binary classification tasks and trainers.
+    /// Class used by <see cref="MLContext"/> to create instances of binary classification components,
+    /// such as trainers and calibrators.
     /// </summary>
     public sealed class BinaryClassificationCatalog : TrainCatalogBase
     {
@@ -159,6 +158,9 @@ namespace Microsoft.ML
             Trainers = new BinaryClassificationTrainers(this);
         }
 
+        /// <summary>
+        /// Class used by <see cref="MLContext"/> to create instances of binary classification trainers.
+        /// </summary>
         public sealed class BinaryClassificationTrainers : CatalogInstantiatorBase
         {
             internal BinaryClassificationTrainers(BinaryClassificationCatalog catalog)
@@ -270,7 +272,7 @@ namespace Microsoft.ML
         public CalibratorsCatalog Calibrators { get; }
 
         /// <summary>
-        /// Catalog which contains different methods to produce calibrators.
+        /// Class used by <see cref="MLContext"/> to create instances of binary classification calibrators.
         /// </summary>
         public sealed class CalibratorsCatalog : CatalogInstantiatorBase
         {
@@ -286,7 +288,7 @@ namespace Microsoft.ML
             /// <example>
             /// <format type="text/markdown">
             /// <![CDATA[
-            /// [!code-csharp[NaiveCalibrator](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/BinaryClassification/Calibrators/Naive.cs)]
+            /// [!code-csharp[NaiveCalibrator](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Trainers/BinaryClassification/Calibrators/Naive.cs)]
             /// ]]>
             /// </format>
             /// </example>
@@ -305,7 +307,7 @@ namespace Microsoft.ML
             /// <example>
             /// <format type="text/markdown">
             /// <![CDATA[
-            /// [!code-csharp[PlattCalibrator](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/BinaryClassification/Calibrators/Platt.cs)]
+            /// [!code-csharp[PlattCalibrator](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Trainers/BinaryClassification/Calibrators/Platt.cs)]
             /// ]]>
             /// </format>
             /// </example>
@@ -326,7 +328,7 @@ namespace Microsoft.ML
             /// <example>
             /// <format type="text/markdown">
             /// <![CDATA[
-            /// [!code-csharp[FixedPlattCalibrator](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/BinaryClassification/Calibrators/FixedPlatt.cs)]
+            /// [!code-csharp[FixedPlattCalibrator](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Trainers/BinaryClassification/Calibrators/FixedPlatt.cs)]
             /// ]]>
             /// </format>
             /// </example>
@@ -351,7 +353,7 @@ namespace Microsoft.ML
             /// <example>
             /// <format type="text/markdown">
             /// <![CDATA[
-            /// [!code-csharp[PairAdjacentViolators](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/BinaryClassification/Calibrators/Isotonic.cs)]
+            /// [!code-csharp[PairAdjacentViolators](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Trainers/BinaryClassification/Calibrators/Isotonic.cs)]
             /// ]]>
             /// </format>
             /// </example>
@@ -366,7 +368,8 @@ namespace Microsoft.ML
     }
 
     /// <summary>
-    /// The central catalog for clustering tasks and trainers.
+    /// Class used by <see cref="MLContext"/> to create instances of clustering components,
+    /// such as trainers.
     /// </summary>
     public sealed class ClusteringCatalog : TrainCatalogBase
     {
@@ -384,6 +387,9 @@ namespace Microsoft.ML
             Trainers = new ClusteringTrainers(this);
         }
 
+        /// <summary>
+        /// Class used by <see cref="MLContext"/> to create instances of clustering trainers.
+        /// </summary>
         public sealed class ClusteringTrainers : CatalogInstantiatorBase
         {
             internal ClusteringTrainers(ClusteringCatalog catalog)
@@ -445,7 +451,8 @@ namespace Microsoft.ML
     }
 
     /// <summary>
-    /// The central catalog for multiclass classification tasks and trainers.
+    /// Class used by <see cref="MLContext"/> to create instances of multiclass classification components,
+    /// such as trainers.
     /// </summary>
     public sealed class MulticlassClassificationCatalog : TrainCatalogBase
     {
@@ -460,6 +467,9 @@ namespace Microsoft.ML
             Trainers = new MulticlassClassificationTrainers(this);
         }
 
+        /// <summary>
+        /// Class used by <see cref="MLContext"/> to create instances of multiclass classification trainers.
+        /// </summary>
         public sealed class MulticlassClassificationTrainers : CatalogInstantiatorBase
         {
             internal MulticlassClassificationTrainers(MulticlassClassificationCatalog catalog)
@@ -522,7 +532,8 @@ namespace Microsoft.ML
     }
 
     /// <summary>
-    /// The central catalog for regression tasks and trainers.
+    /// Class used by <see cref="MLContext"/> to create instances of regression components,
+    /// such as trainers and evaluators.
     /// </summary>
     public sealed class RegressionCatalog : TrainCatalogBase
     {
@@ -537,6 +548,9 @@ namespace Microsoft.ML
             Trainers = new RegressionTrainers(this);
         }
 
+        /// <summary>
+        /// Class used by <see cref="MLContext"/> to create instances of regression trainers.
+        /// </summary>
         public sealed class RegressionTrainers : CatalogInstantiatorBase
         {
             internal RegressionTrainers(RegressionCatalog catalog)
@@ -588,7 +602,8 @@ namespace Microsoft.ML
     }
 
     /// <summary>
-    /// The central catalog for ranking tasks and trainers.
+    /// Class used by <see cref="MLContext"/> to create instances of ranking components,
+    /// such as trainers and evaluators.
     /// </summary>
     public sealed class RankingCatalog : TrainCatalogBase
     {
@@ -603,6 +618,9 @@ namespace Microsoft.ML
             Trainers = new RankingTrainers(this);
         }
 
+        /// <summary>
+        /// Class used by <see cref="MLContext"/> to create instances of ranking trainers.
+        /// </summary>
         public sealed class RankingTrainers : CatalogInstantiatorBase
         {
             internal RankingTrainers(RankingCatalog catalog)
@@ -635,7 +653,8 @@ namespace Microsoft.ML
     }
 
     /// <summary>
-    /// The central catalog for anomaly detection tasks and trainers.
+    /// Class used by <see cref="MLContext"/> to create instances of anomaly detection components,
+    /// such as trainers and evaluators.
     /// </summary>
     public sealed class AnomalyDetectionCatalog : TrainCatalogBase
     {
@@ -650,6 +669,9 @@ namespace Microsoft.ML
             Trainers = new AnomalyDetectionTrainers(this);
         }
 
+        /// <summary>
+        /// Class used by <see cref="MLContext"/> to create instances of anomaly detection trainers.
+        /// </summary>
         public sealed class AnomalyDetectionTrainers : CatalogInstantiatorBase
         {
             internal AnomalyDetectionTrainers(AnomalyDetectionCatalog catalog)
@@ -680,6 +702,33 @@ namespace Microsoft.ML
 
             var eval = new AnomalyDetectionEvaluator(Environment, args);
             return eval.Evaluate(data, labelColumnName, scoreColumnName, predictedLabelColumnName);
+        }
+    }
+
+    /// <summary>
+    /// Class used by <see cref="MLContext"/> to create instances of forecasting components.
+    /// </summary>
+    public sealed class ForecastingCatalog : TrainCatalogBase
+    {
+        /// <summary>
+        /// The list of trainers for performing forecasting.
+        /// </summary>
+        public Forecasters Trainers { get; }
+
+        internal ForecastingCatalog(IHostEnvironment env) : base(env, nameof(ForecastingCatalog))
+        {
+            Trainers = new Forecasters(this);
+        }
+
+        /// <summary>
+        /// Class used by <see cref="MLContext"/> to create instances of forecasting trainers.
+        /// </summary>
+        public sealed class Forecasters : CatalogInstantiatorBase
+        {
+            internal Forecasters(ForecastingCatalog catalog)
+                : base(catalog)
+            {
+            }
         }
     }
 }

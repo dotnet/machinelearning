@@ -3,6 +3,7 @@
 string ClassName="FastForestWithOptions";
 string Trainer = "FastForest";
 bool IsCalibrated = false;
+bool CacheData = false;
 
 string TrainerOptions = @"FastForestBinaryTrainer.Options
             {
@@ -28,5 +29,15 @@ string ExpectedOutput = @"// Expected output:
             //   Negative Precision: 0.77
             //   Negative Recall: 0.68
             //   Positive Precision: 0.69
-            //   Positive Recall: 0.78";
+            //   Positive Recall: 0.78
+            //
+            //   TEST POSITIVE RATIO:    0.4760 (238.0/(238.0+262.0))
+            //   Confusion table
+            //             ||======================
+            //   PREDICTED || positive | negative | Recall
+            //   TRUTH     ||======================
+            //    positive ||      186 |       52 | 0.7815
+            //    negative ||       77 |      185 | 0.7061
+            //             ||======================
+            //   Precision ||   0.7072 |   0.7806 |";
 #>

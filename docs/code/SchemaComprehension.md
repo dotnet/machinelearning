@@ -144,7 +144,7 @@ If you ever see the error message that says: `An attempt was made to keep iterat
 `IDataView` [type system](IDataViewTypeSystem.md) differs slightly from the C# type system, so a 1-1 mapping between column types and C# types is not always feasible. 
 Below are the most notable examples of the differences:
 
-* `IDataView` vector columns often have a fixed (and known) size. The C# array type best corresponds to a 'variable size' vector: the one that can have different number of slots on every row. You can use `[VectorType(N)]` attribute to an array field to specify that the column is a vector of fixed size N. This is often necessary: most ML components don't work with variable-size vectors, they require fixed-size ones.
+* `IDataView` vector columns often have a fixed (and known) size. The C# array type best corresponds to a 'variable size' vector: the one that can have different number of slots on every row. You can use `[VectorDataViewType(N)]` attribute to an array field to specify that the column is a vector of fixed size N. This is often necessary: most ML components don't work with variable-size vectors, they require fixed-size ones.
 * `IDataView`'s [key types](IDataViewTypeSystem.md#key-types)  don't have a natural underlying C# type either. To declare a key-type column, you need to make your field an `uint`, and decorate it with `[KeyType]` to denote that the field is a key, and not a regular unsigned integer.
 
 ### Full list of type mappings
@@ -169,7 +169,7 @@ The below table illustrates what C# types are mapped to what `IDataView` types:
 | `DT`             | `DvDateTime`       |                         |
 | `DZ`             | `DvDateTimeZone`   |                         |
 | Variable-size vector | `VBuffer<T>`   | `T[]`, and the vector is always dense |
-| Fixed-size vector    | `VBuffer<T>` with `[VectorType(N)]` | `T[]` with `VectorType(N)`, and the vector is always dense |
+| Fixed-size vector    | `VBuffer<T>` with `[VectorDataViewType(N)]` | `T[]` with `VectorDataViewType(N)`, and the vector is always dense |
 | Key type             | `uint` with `[KeyType]`             |                                                            |
 
 ### Additional attributes to affect type mapping
@@ -193,7 +193,7 @@ int numberOfFeatures = 4;
 var schemaDef = SchemaDefinition.Create(typeof(IrisVectorData));
 
 // Specify the right vector size.
-schemaDef["Features"].ColumnType = new VectorType(NumberType.R4, numberOfFeatures);
+schemaDef["Features"].ColumnType = new VectorDataViewType(NumberType.R4, numberOfFeatures);
 
 // Create a data view.
 var dataView = env.CreateDataView<IrisVectorData>(arr, schemaDef);

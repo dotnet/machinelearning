@@ -83,8 +83,7 @@ namespace Microsoft.ML
     public delegate void ValueGetter<TValue>(ref TValue value);
 
     /// <summary>
-    /// A logical row. May be a row of an <see cref="IDataView"/> or a stand-alone row. If/when its contents
-    /// change, its <see cref="Position"/> value is changed.
+    /// A logical row of data. May be a row of an <see cref="IDataView"/> or a stand-alone row.
     /// </summary>
     public abstract class DataViewRow : IDisposable
     {
@@ -181,12 +180,14 @@ namespace Microsoft.ML
     }
 
     /// <summary>
-    /// The basic cursor base class to cursor through rows of an <see cref="IDataView"/>. Note that
-    /// this is also an <see cref="DataViewRow"/>. The <see cref="DataViewRow.Position"/> is incremented by <see cref="MoveNext"/>.
-    /// Prior to the first call to <see cref="MoveNext"/>, or after the first call to <see cref="MoveNext"/> that
-    /// returns <see langword="false"/>, <see cref="DataViewRow.Position"/> is <c>-1</c>. Otherwise, in a situation where the
-    /// last call to <see cref="MoveNext"/> returned <see langword="true"/>, <see cref="DataViewRow.Position"/> >= 0.
+    /// Class used to cursor through rows of an <see cref="IDataView"/>.
     /// </summary>
+    /// <remarks>
+    /// Note that this is also an <see cref="DataViewRow"/>. The <see cref="DataViewRow.Position"/> is
+    /// incremented by <see cref="MoveNext"/>. Prior to the first call to <see cref="MoveNext"/>, or after
+    /// <see cref="MoveNext"/> returns <see langword="false"/>, <see cref="DataViewRow.Position"/> is <c>-1</c>.
+    /// Otherwise, when <see cref="MoveNext"/> returns <see langword="true"/>, <see cref="DataViewRow.Position"/> >= 0.
+    /// </remarks>
     public abstract class DataViewRowCursor : DataViewRow
     {
         /// <summary>

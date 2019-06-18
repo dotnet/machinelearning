@@ -74,17 +74,28 @@ namespace Microsoft.ML.Data
         /// Gets the log-loss of the classifier for each class.
         /// </summary>
         /// <remarks>
-        /// The log-loss metric, is computed as follows:
-        /// LL = - (1/m) * sum( log(p[i]))
-        /// where m is the number of instances in the test set.
-        /// p[i] is the probability returned by the classifier if the instance belongs to the class,
+        /// The log-loss metric is computed as $-\frac{1}{m} \sum_{i=1}^m \log(p_i)$,
+        /// where $m$ is the number of instances in the test set.
+        /// $p_i$ is the probability returned by the classifier if the instance belongs to the class,
         /// and 1 minus the probability returned by the classifier if the instance does not belong to the class.
         /// </remarks>
+        /// <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        ///  [!code-csharp[LogLoss](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Trainers/MulticlassClassification/LogLossPerClass.cs)]
+        /// ]]></format>
+        /// </example>
         public IReadOnlyList<double> PerClassLogLoss { get; }
 
-        internal MulticlassClassificationMetrics(IExceptionContext ectx, DataViewRow overallResult, int topKPredictionCount)
+        /// <summary>
+        /// The <a href="https://en.wikipedia.org/wiki/Confusion_matrix">confusion matrix</a> giving the counts of the
+        /// predicted classes versus the actual classes.
+        /// </summary>
+        public ConfusionMatrix ConfusionMatrix { get; }
+
+        internal MulticlassClassificationMetrics(IHost host, DataViewRow overallResult, int topKPredictionCount, IDataView confusionMatrix)
         {
-            double FetchDouble(string name) => RowCursorUtils.Fetch<double>(ectx, overallResult, name);
+            double FetchDouble(string name) => RowCursorUtils.Fetch<double>(host, overallResult, name);
             MicroAccuracy = FetchDouble(MulticlassClassificationEvaluator.AccuracyMicro);
             MacroAccuracy = FetchDouble(MulticlassClassificationEvaluator.AccuracyMacro);
             LogLoss = FetchDouble(MulticlassClassificationEvaluator.LogLoss);
@@ -93,8 +104,9 @@ namespace Microsoft.ML.Data
             if (topKPredictionCount > 0)
                 TopKAccuracy = FetchDouble(MulticlassClassificationEvaluator.TopKAccuracy);
 
-            var perClassLogLoss = RowCursorUtils.Fetch<VBuffer<double>>(ectx, overallResult, MulticlassClassificationEvaluator.PerClassLogLoss);
+            var perClassLogLoss = RowCursorUtils.Fetch<VBuffer<double>>(host, overallResult, MulticlassClassificationEvaluator.PerClassLogLoss);
             PerClassLogLoss = perClassLogLoss.DenseValues().ToImmutableArray();
+            ConfusionMatrix = MetricWriter.GetConfusionMatrix(host, confusionMatrix, binary: false, perClassLogLoss.Length);
         }
 
         internal MulticlassClassificationMetrics(double accuracyMicro, double accuracyMacro, double logLoss, double logLossReduction,

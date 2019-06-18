@@ -9,6 +9,10 @@ using Microsoft.ML.Runtime;
 
 namespace Microsoft.ML
 {
+    /// <summary>
+    /// Collection of extension methods for the <see cref="DataOperationsCatalog"/> to create instances of
+    /// components to save and read <see cref="IDataView"/> objects to and from a high-performance binary format.
+    /// </summary>
     public static class BinaryLoaderSaverCatalog
     {
         /// <summary>
@@ -33,6 +37,13 @@ namespace Microsoft.ML
         /// </summary>
         /// <param name="catalog">The catalog.</param>
         /// <param name="path">The path to the file to load from.</param>
+        /// <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        /// [!code-csharp[LoadFromBinary](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/DataOperations/SaveAndLoadFromBinary.cs)]
+        /// ]]>
+        /// </format>
+        /// </example>
         public static IDataView LoadFromBinary(this DataOperationsCatalog catalog, string path)
         {
             Contracts.CheckNonEmpty(path, nameof(path));
@@ -50,6 +61,13 @@ namespace Microsoft.ML
         /// <param name="data">The data view to save.</param>
         /// <param name="stream">The stream to write to.</param>
         /// <param name="keepHidden">Whether to keep hidden columns in the dataset.</param>
+        /// <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        /// [!code-csharp[SaveAsBinary](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/DataOperations/SaveAndLoadFromBinary.cs)]
+        /// ]]>
+        /// </format>
+        /// </example>
         public static void SaveAsBinary(this DataOperationsCatalog catalog, IDataView data, Stream stream,
             bool keepHidden = false)
         {

@@ -151,14 +151,18 @@ namespace Microsoft.ML.RunTests
         private void CheckSameSchemaShape(SchemaShape promised, SchemaShape delivered)
         {
             Assert.True(promised.Count == delivered.Count);
-            var sortedCols1 = promised.OrderBy(x => x.Name);
-            var sortedCols2 = delivered.OrderBy(x => x.Name);
+            var promisedCols = promised.OrderBy(x => x.Name);
+            var deliveredCols = delivered.OrderBy(x => x.Name);
 
-            foreach (var (x, y) in sortedCols1.Zip(sortedCols2, (x, y) => (x, y)))
+            foreach (var (p, d) in promisedCols.Zip(deliveredCols, (p, d) => (p, d)))
             {
-                Assert.Equal(x.Name, y.Name);
+                Assert.Equal(p.Name, d.Name);
                 // We want the 'promised' metadata to be a superset of 'delivered'.
-                Assert.True(y.IsCompatibleWith(x), $"Mismatch on {x.Name}");
+                Assert.True(d.IsCompatibleWith(p), $"Mismatch on {p.Name}, there was a mismatch, or some unexpected annotations was present.");
+                // We also want the 'delivered' to be a superset of 'promised'. Since the above
+                // test must have worked if we got this far, I believe the only plausible reason
+                // this could happen is if there was something promised but not delivered.
+                Assert.True(p.IsCompatibleWith(d), $"Mismatch on {p.Name}, something was promised in the annotations but not delivered.");
             }
         }
 
@@ -172,7 +176,8 @@ namespace Microsoft.ML.RunTests
         internal ILegacyDataLoader TestCore(string pathData, bool keepHidden, string[] argsPipe,
             Action<ILegacyDataLoader> actLoader = null, string suffix = "", string suffixBase = null, bool checkBaseline = true,
             bool forceDense = false, bool logCurs = false, bool roundTripText = true,
-            bool checkTranspose = false, bool checkId = true, bool baselineSchema = true, int digitsOfPrecision = DigitsOfPrecision)
+            bool checkTranspose = false, bool checkId = true, bool baselineSchema = true, int digitsOfPrecision = DigitsOfPrecision,
+            NumberParseOption parseOption = NumberParseOption.Default)
         {
             Contracts.AssertValue(Env);
 
@@ -219,7 +224,7 @@ namespace Microsoft.ML.RunTests
                     writer.WriteLine("Cursored through {0} rows", count);
                 }
 
-                CheckEqualityNormalized("SavePipe", name, digitsOfPrecision: digitsOfPrecision);
+                CheckEqualityNormalized("SavePipe", name, digitsOfPrecision: digitsOfPrecision, parseOption: parseOption);
             }
 
             var pathModel = SavePipe(pipe1, suffix);
@@ -235,8 +240,11 @@ namespace Microsoft.ML.RunTests
             if (pipe1.Schema.Count > 0)
             {
                 // The text saver fails if there are no columns, so we cannot check in that case.
-                if (!SaveLoadText(pipe1, _env, keepHidden, suffix, suffixBase, checkBaseline, forceDense, roundTripText, digitsOfPrecision: digitsOfPrecision))
+                if (!SaveLoadText(pipe1, _env, keepHidden, suffix, suffixBase, checkBaseline, forceDense,
+                        roundTripText, digitsOfPrecision: digitsOfPrecision, parseOption: parseOption))
+                {
                     Failed();
+                }
                 // The transpose saver likewise fails for the same reason.
                 if (checkTranspose && !SaveLoadTransposed(pipe1, _env, suffix))
                     Failed();
@@ -276,7 +284,7 @@ namespace Microsoft.ML.RunTests
                         new ShowSchemaCommand.Arguments() { ShowMetadataValues = true, ShowSteps = true },
                         pipe1);
                 }
-                if (!CheckEquality("SavePipe", name, digitsOfPrecision: digitsOfPrecision))
+                if (!CheckEquality("SavePipe", name, digitsOfPrecision: digitsOfPrecision, parseOption: parseOption))
                     Log("*** ShowSchema failed on pipe1");
                 else
                 {
@@ -287,7 +295,7 @@ namespace Microsoft.ML.RunTests
                             new ShowSchemaCommand.Arguments() { ShowMetadataValues = true, ShowSteps = true },
                             pipe2);
                     }
-                    if (!CheckEquality("SavePipe", name, digitsOfPrecision: digitsOfPrecision))
+                    if (!CheckEquality("SavePipe", name, digitsOfPrecision: digitsOfPrecision, parseOption: parseOption))
                         Log("*** ShowSchema failed on pipe2");
                 }
             }
@@ -364,7 +372,8 @@ namespace Microsoft.ML.RunTests
         protected bool SaveLoadText(IDataView view, IHostEnvironment env,
             bool hidden = true, string suffix = "", string suffixBase = null,
             bool checkBaseline = true, bool forceDense = false, bool roundTrip = true,
-            bool outputSchema = true, bool outputHeader = true, int digitsOfPrecision = DigitsOfPrecision)
+            bool outputSchema = true, bool outputHeader = true, int digitsOfPrecision = DigitsOfPrecision,
+            NumberParseOption parseOption = NumberParseOption.Default)
         {
             TextSaver saver = new TextSaver(env, new TextSaver.Arguments() { Dense = forceDense, OutputSchema = outputSchema, OutputHeader = outputHeader });
             var schema = view.Schema;
@@ -386,7 +395,7 @@ namespace Microsoft.ML.RunTests
             if (checkBaseline)
             {
                 string nameBase = suffixBase != null ? TestName + suffixBase + "-Data" + ".txt" : name;
-                CheckEquality("SavePipe", name, nameBase, digitsOfPrecision: digitsOfPrecision);
+                CheckEquality("SavePipe", name, nameBase, digitsOfPrecision: digitsOfPrecision, parseOption: parseOption);
             }
 
             if (!roundTrip)

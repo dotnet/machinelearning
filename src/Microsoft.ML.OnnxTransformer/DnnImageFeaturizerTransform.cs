@@ -8,11 +8,12 @@ using Microsoft.ML.Runtime;
 
 namespace Microsoft.ML.Transforms.Onnx
 {
+    // This is a helper class that is required to use the <see cref="DnnImageFeaturizerEstimator"/>.
+    // Note that by default, it is not usable as it does not have any valid methods that return an <see cref="EstimatorChain{TLastTransformer}"/>
+    // that is used by the DnnImageFeaturizeEstimator.
+    // In order to use this, at least one model project with the corresponding extension methods must by included.
     /// <summary>
-    /// This is a helper class that is required to use the <see cref="DnnImageFeaturizerEstimator"/>.
-    /// Note that by default, it is not usable as it does not have any valid methods that return an <see cref="EstimatorChain{TLastTransformer}"/>
-    /// that is used by the DnnImageFeaturizeEstimator.
-    /// In order to use this, at least one model project with the corresponding extension methods must by included.
+    /// Helper class for selecting a pre-trained DNN image featurization model to use in the <see cref="DnnImageFeaturizerEstimator"/>.
     /// </summary>
     /// <seealso cref="OnnxCatalog.DnnFeaturizeImage(TransformsCatalog, string, Func{DnnImageFeaturizerInput, EstimatorChain{ColumnCopyingTransformer}}, string)"/>
     public sealed class DnnImageModelSelector
@@ -20,8 +21,8 @@ namespace Microsoft.ML.Transforms.Onnx
     }
 
     /// <summary>
-    /// This is a helper class used to store all the inputs to an extension method on a DnnImageModelSelector required to return
-    /// a chain of two <see cref="OnnxScoringEstimator"/>s.
+    /// Helper class for storing all the inputs to an extension method on a <see cref="DnnImageModelSelector"/> required to return
+    /// a chain of two <see cref="OnnxScoringEstimator"/>.
     /// </summary>
     public sealed class DnnImageFeaturizerInput
     {
@@ -41,11 +42,43 @@ namespace Microsoft.ML.Transforms.Onnx
     }
 
     /// <summary>
-    /// The Dnn Image Featurizer is just a wrapper around two <see cref="OnnxScoringEstimator"/>s and three <see cref="ColumnCopyingEstimator"/>
-    /// with present pretrained DNN models. The ColumnsCopying are there to allow arbitrary column input and output names, as by default
-    /// the ONNXTransformer requires the names of the columns to be identical to the names of the ONNX model nodes.
-    /// Note that because of this, it only works on Windows machines as that is a constraint of the OnnxTransformer.
+    /// Applies a pre-trained deep neural network (DNN) model to featurize input image data.
     /// </summary>
+    /// <remarks>
+    /// <format type="text/markdown"><![CDATA[
+    ///
+    /// ###  Estimator Characteristics
+    /// |  |  |
+    /// | -- | -- |
+    /// | Does this estimator need to look at the data to train its parameters? | No |
+    /// | Input column data type | Vector of <xref:System.Single> |
+    /// | Output column data type | Vector of <xref:System.Single>, the size of the vector depends on the pre-trained DNN |
+    ///
+    /// NuGet requirements:
+    ///	- Microsoft.ML.OnnxTransformer
+    /// - Microsoft.ML.OnnxRuntime.Gpu (only if GPU processing is used)
+    /// - Each pre-trained DNN model has a separate NuGet that must be included if that model is used:
+    ///   - Microsoft.ML.DnnImageFeaturizer.AlexNet
+    ///   - Microsoft.ML.DnnImageFeaturizer.ResNet18
+    ///   - Microsoft.ML.DnnImageFeaturizer.ResNet50
+    ///   - Microsoft.ML.DnnImageFeaturizer.ResNet101
+    ///
+    /// The resulting transformer creates a new column, named as specified in the output column name parameters,
+    /// where a pre-trained deep neural network is applied to the input image data.
+    ///
+    /// This estimator is a wrapper around a <xref:Microsoft.ML.Transforms.Onnx.OnnxScoringEstimator> with the current
+    /// available DNN pre-trained models and several <xref:Microsoft.ML.Transforms.ColumnCopyingEstimator>.
+    /// The <xref:Microsoft.ML.Transforms.ColumnCopyingEstimator> are needed to allow arbitrary column input and output
+    /// names, since otherwise the <xref:Microsoft.ML.Transforms.Onnx.OnnxScoringEstimator> would require the column names to match
+    /// the names of the ONNX model nodes.
+    ///
+    /// Any platform requirement for this estimator will follow the requirements on the <xref:Microsoft.ML.Transforms.Onnx.OnnxScoringEstimator>.
+    ///
+    /// Check the See Also section for links to usage examples.
+    /// ]]>
+    /// </format>
+    /// </remarks>
+    /// <seealso cref="OnnxCatalog.DnnFeaturizeImage(TransformsCatalog, string, Func{DnnImageFeaturizerInput, EstimatorChain{ColumnCopyingTransformer}}, string)"/>
     public sealed class DnnImageFeaturizerEstimator : IEstimator<TransformerChain<ColumnCopyingTransformer>>
     {
         private readonly EstimatorChain<ColumnCopyingTransformer> _modelChain;
@@ -59,8 +92,8 @@ namespace Microsoft.ML.Transforms.Onnx
         /// included in a package together with that extension method. It also contains three <see cref="ColumnCopyingEstimator"/>s
         /// to allow arbitrary column naming, as the ONNXEstimators require very specific naming based on the models.
         /// For an example, see Microsoft.ML.DnnImageFeaturizer.ResNet18 </param>
-        /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.</param>
-        /// <param name="inputColumnName">Name of column to transform. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.</param>
+        /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>. The column data is a known-sized vector of <see cref="System.Single"/>.</param>
+        /// <param name="inputColumnName">Name of column to transform. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source. The column data must be a known-sized vector of <see cref="System.Single"/>.</param>
         internal DnnImageFeaturizerEstimator(IHostEnvironment env, string outputColumnName, Func<DnnImageFeaturizerInput, EstimatorChain<ColumnCopyingTransformer>> modelFactory, string inputColumnName = null)
         {
             _modelChain = modelFactory(new DnnImageFeaturizerInput(outputColumnName, inputColumnName ?? outputColumnName, env, new DnnImageModelSelector()));

@@ -12,9 +12,15 @@ namespace Microsoft.ML
     using CountSelectDefaults = CountFeatureSelectingEstimator.Defaults;
     using MutualInfoSelectDefaults = MutualInformationFeatureSelectingEstimator.Defaults;
 
+    /// <summary>
+    /// Collection of extension methods for <see cref="TransformsCatalog"/> to create instances of feature
+    /// selection transformer components.
+    /// </summary>
     public static class FeatureSelectionCatalog
     {
-        /// <include file='doc.xml' path='doc/members/member[@name="MutualInformationFeatureSelection"]/*' />
+        /// <summary>
+        /// Create a <see cref="MutualInformationFeatureSelectingEstimator"/>, which selects the top k slots across all specified columns ordered by their mutual information with the label column.
+        /// </summary>
         /// <param name="catalog">The transform's catalog.</param>
         /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.</param>
         /// <param name="inputColumnName">Name of column to transform. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.</param>
@@ -35,7 +41,9 @@ namespace Microsoft.ML
             int numberOfBins = MutualInfoSelectDefaults.NumBins)
             => new MutualInformationFeatureSelectingEstimator(CatalogUtils.GetEnvironment(catalog), outputColumnName, inputColumnName, labelColumnName, slotsInOutput, numberOfBins);
 
-        /// <include file='doc.xml' path='doc/members/member[@name="MutualInformationFeatureSelection"]/*' />
+        /// <summary>
+        /// Create a <see cref="MutualInformationFeatureSelectingEstimator"/>, which selects the top k slots across all specified columns ordered by their mutual information with the label column.
+        /// </summary>
         /// <param name="catalog">The transform's catalog.</param>
         /// <param name="columns">Specifies the names of the input columns for the transformation, and their respective output column names.</param>
         /// <param name="labelColumnName">The name of the label column.</param>
@@ -60,7 +68,9 @@ namespace Microsoft.ML
                 columns.Select(x => (x.OutputColumnName, x.InputColumnName)).ToArray());
         }
 
-        /// <include file='doc.xml' path='doc/members/member[@name="CountFeatureSelection"]' />
+        /// <summary>
+        /// Create a <see cref="CountFeatureSelectingEstimator"/>, which selects the slots for which the count of non-default values is greater than or equal to a threshold.
+        /// </summary>
         /// <param name="catalog">The transform's catalog.</param>
         /// <param name="columns">Describes the parameters of the feature selection process for each column pair.</param>
         [BestFriend]
@@ -68,10 +78,14 @@ namespace Microsoft.ML
             params CountFeatureSelectingEstimator.ColumnOptions[] columns)
             => new CountFeatureSelectingEstimator(CatalogUtils.GetEnvironment(catalog), columns);
 
-        /// <include file='doc.xml' path='doc/members/member[@name="CountFeatureSelection"]' />
+        /// <summary>
+        /// Create a <see cref="CountFeatureSelectingEstimator"/>, which selects the slots for which the count of non-default values is greater than or equal to a threshold.
+        /// </summary>
         /// <param name="catalog">The transform's catalog.</param>
-        /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.</param>
-        /// <param name="inputColumnName">Name of column to transform. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.</param>
+        /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.
+        /// This column's data type will be the same as the input column's data type.</param>
+        /// <param name="inputColumnName">Name of column to transform. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.
+        /// This estimator operates over vector or scalar of numeric, text or keys data types.</param>
         /// <param name="count">If the count of non-default values for a slot is greater than or equal to this threshold in the training data, the slot is preserved.</param>
         /// <example>
         /// <format type="text/markdown">
@@ -86,9 +100,13 @@ namespace Microsoft.ML
             long count = CountSelectDefaults.Count)
             => new CountFeatureSelectingEstimator(CatalogUtils.GetEnvironment(catalog), outputColumnName, inputColumnName, count);
 
-        /// <include file='doc.xml' path='doc/members/member[@name="CountFeatureSelection"]' />
+        /// <summary>
+        /// Create a <see cref="CountFeatureSelectingEstimator"/>, which selects the slots for which the count of non-default values is greater than or equal to a threshold.
+        /// </summary>
         /// <param name="catalog">The transform's catalog.</param>
-        /// <param name="columns">Specifies the names of the columns on which to apply the transformation.</param>
+        /// <param name="columns">Specifies the names of the columns on which to apply the transformation.
+        /// This estimator operates over vector or scalar of numeric, text or keys data types.
+        /// The output columns' data types will be the same as the input columns' data types.</param>
         /// <param name="count">If the count of non-default values for a slot is greater than or equal to this threshold in the training data, the slot is preserved.</param>
         /// <example>
         /// <format type="text/markdown">

@@ -29,8 +29,7 @@ using Microsoft.ML.Transforms.Text;
 namespace Microsoft.ML.Transforms.Text
 {
     /// <summary>
-    /// A text normalization transform that allows normalizing text case, removing diacritical marks, punctuation marks and/or numbers.
-    /// The transform operates on text input as well as vector of tokens/text (vector of ReadOnlyMemory).
+    /// <see cref="ITransformer"/> resulting from fitting a <see cref="TextNormalizingEstimator"/>.
     /// </summary>
     public sealed class TextNormalizingTransformer : OneToOneTransformerBase
     {
@@ -431,6 +430,28 @@ namespace Microsoft.ML.Transforms.Text
         }
     }
 
+    /// <summary>
+    /// <see cref="IEstimator{TTransformer}"/> for the <see cref="TextNormalizingTransformer"/>.
+    /// </summary>
+    /// <remarks>
+    /// <format type="text/markdown"><![CDATA[
+    ///
+    /// ###  Estimator Characteristics
+    /// |  |  |
+    /// | -- | -- |
+    /// | Does this estimator need to look at the data to train its parameters? | No |
+    /// | Input column data type | Scalar or Vector of [Text](xref:Microsoft.ML.Data.TextDataViewType)|
+    /// | Output column data type | Scalar or variable-sized Vector of [Text](xref:Microsoft.ML.Data.TextDataViewType)|
+    ///
+    /// The resulting <xref:Microsoft.ML.Transforms.Text.TextNormalizingTransformer> creates a new column, named as specified
+    /// in the output column name parameters, and normalizes the textual input data by changing case, removing diacritical marks,
+    /// punctuation marks and/or numbers.
+    ///
+    /// Check the See Also section for links to usage examples.
+    /// ]]>
+    /// </format>
+    /// </remarks>
+    /// <seealso cref="TextCatalog.NormalizeText" />
     public sealed class TextNormalizingEstimator : TrivialEstimator<TextNormalizingTransformer>
     {
         /// <summary>
@@ -521,7 +542,7 @@ namespace Microsoft.ML.Transforms.Text
                     throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.inputColumnName);
                 if (!IsColumnTypeValid(col.ItemType))
                     throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.inputColumnName, TextNormalizingEstimator.ExpectedColumnType, col.ItemType.ToString());
-                result[colInfo.outputColumnName] = new SchemaShape.Column(colInfo.outputColumnName, col.Kind == SchemaShape.Column.VectorKind.Vector ? SchemaShape.Column.VectorKind.VariableVector : SchemaShape.Column.VectorKind.Scalar, col.ItemType, false);
+                result[colInfo.outputColumnName] = new SchemaShape.Column(colInfo.outputColumnName, col.Kind == SchemaShape.Column.VectorKind.Scalar ? SchemaShape.Column.VectorKind.Scalar : SchemaShape.Column.VectorKind.VariableVector, col.ItemType, false);
             }
             return new SchemaShape(result.Values);
         }

@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.ML;
 using Microsoft.ML.Data;
-using Microsoft.ML.SamplesUtils;
 
 namespace Samples.Dynamic.Trainers.MulticlassClassification
 {
@@ -33,7 +32,7 @@ namespace Samples.Dynamic.Trainers.MulticlassClassification
             var model = pipeline.Fit(trainingData);
 
             // Create testing data. Use different random seed to make it different from training data.
-            var testData = mlContext.Data.LoadFromEnumerable(GenerateRandomDataPoints(500, seed:123));
+            var testData = mlContext.Data.LoadFromEnumerable(GenerateRandomDataPoints(500, seed: 123));
 
             // Run the model on test data set.
             var transformedTestData = model.Transform(testData);
@@ -54,19 +53,30 @@ namespace Samples.Dynamic.Trainers.MulticlassClassification
 
             // Evaluate the overall metrics
             var metrics = mlContext.MulticlassClassification.Evaluate(transformedTestData);
-            ConsoleUtils.PrintMetrics(metrics);
+            PrintMetrics(metrics);
             
             // Expected output:
-            //  Micro Accuracy: 0.90
-            //  Macro Accuracy: 0.90
-            //  Log Loss: 0.37
-            //  Log Loss Reduction: 0.67
+            //   Micro Accuracy: 0.90
+            //   Macro Accuracy: 0.90
+            //   Log Loss: 0.36
+            //   Log Loss Reduction: 0.67
+
+            //   Confusion table
+            //             ||========================
+            //   PREDICTED ||     0 |     1 |     2 | Recall
+            //   TRUTH     ||========================
+            //           0 ||   150 |     0 |    10 | 0.9375
+            //           1 ||     0 |   166 |    11 | 0.9379
+            //           2 ||    15 |    15 |   133 | 0.8160
+            //             ||========================
+            //   Precision ||0.9091 |0.9171 |0.8636 |
         }
 
+        // Generates random uniform doubles in [-0.5, 0.5) range with labels 1, 2 or 3.
         private static IEnumerable<DataPoint> GenerateRandomDataPoints(int count, int seed=0)
         {
             var random = new Random(seed);
-            float randomFloat() => (float)random.NextDouble();
+            float randomFloat() => (float)(random.NextDouble() - 0.5);
             for (int i = 0; i < count; i++)
             {
                 // Generate Labels that are integers 1, 2 or 3
@@ -76,7 +86,7 @@ namespace Samples.Dynamic.Trainers.MulticlassClassification
                     Label = (uint)label,
                     // Create random features that are correlated with the label.
                     // The feature values are slightly increased by adding a constant multiple of label.
-                    Features = Enumerable.Repeat(label, 20).Select(x => randomFloat() + label * 0.1f).ToArray()
+                    Features = Enumerable.Repeat(label, 20).Select(x => randomFloat() + label * 0.2f).ToArray()
                 };
             }
         }
@@ -96,6 +106,16 @@ namespace Samples.Dynamic.Trainers.MulticlassClassification
             public uint Label { get; set; }
             // Predicted label from the trainer.
             public uint PredictedLabel { get; set; }
+        }
+
+        // Pretty-print MulticlassClassificationMetrics objects.
+        public static void PrintMetrics(MulticlassClassificationMetrics metrics)
+        {
+            Console.WriteLine($"Micro Accuracy: {metrics.MicroAccuracy:F2}");
+            Console.WriteLine($"Macro Accuracy: {metrics.MacroAccuracy:F2}");
+            Console.WriteLine($"Log Loss: {metrics.LogLoss:F2}");
+            Console.WriteLine($"Log Loss Reduction: {metrics.LogLossReduction:F2}\n");
+            Console.WriteLine(metrics.ConfusionMatrix.GetFormattedConfusionTable());
         }
     }
 }

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.IO;
 using Microsoft.ML;
 using Microsoft.ML.Data;
@@ -7,7 +7,7 @@ namespace Samples.Dynamic
 {
     public static class TextClassification
     {
-        public const int MaxSentenceLenth = 600;
+        public const int MaxSentenceLength = 600;
         /// <summary>
         /// Example use of the TensorFlow sentiment classification model.
         /// </summary>
@@ -64,16 +64,16 @@ namespace Samples.Dynamic
             Action<IMDBSentiment, IntermediateFeatures> ResizeFeaturesAction = (i, j) =>
             {
                 j.Sentiment_Text = i.Sentiment_Text;
-                var features = i.VariableLenghtFeatures;
-                Array.Resize(ref features, MaxSentenceLenth);
+                var features = i.VariableLengthFeatures;
+                Array.Resize(ref features, MaxSentenceLength);
                 j.Features = features;
             };
 
             var model = mlContext.Transforms.Text.TokenizeIntoWords("TokenizedWords", "Sentiment_Text")
-                .Append(mlContext.Transforms.Conversion.MapValue("VariableLenghtFeatures", lookupMap,
+                .Append(mlContext.Transforms.Conversion.MapValue("VariableLengthFeatures", lookupMap,
                     lookupMap.Schema["Words"], lookupMap.Schema["Ids"], "TokenizedWords"))
                 .Append(mlContext.Transforms.CustomMapping(ResizeFeaturesAction, "Resize"))
-                .Append(tensorFlowModel.ScoreTensorFlowModel(new[] { "Prediction/Softmax" }, new[] { "Features" }))
+                .Append(tensorFlowModel.ScoreTensorFlowModel("Prediction/Softmax", "Features"))
                 .Append(mlContext.Transforms.CopyColumns("Prediction", "Prediction/Softmax"))
                 .Fit(dataView);
             var engine = mlContext.Model.CreatePredictionEngine<IMDBSentiment, OutputScores>(model);
@@ -109,7 +109,7 @@ namespace Samples.Dynamic
             /// resulting in vectors of tokens of variable lengths.
             /// </summary>
             [VectorType]
-            public int[] VariableLenghtFeatures { get; set; }
+            public int[] VariableLengthFeatures { get; set; }
         }
 
         /// <summary>
@@ -119,7 +119,7 @@ namespace Samples.Dynamic
         {
             public string Sentiment_Text { get; set; }
 
-            [VectorType(MaxSentenceLenth)]
+            [VectorType(MaxSentenceLength)]
             public int[] Features { get; set; }
         }
 

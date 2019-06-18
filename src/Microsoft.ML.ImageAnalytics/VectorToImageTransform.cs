@@ -15,7 +15,7 @@ using Microsoft.ML.Runtime;
 using Microsoft.ML.Transforms.Image;
 
 [assembly: LoadableClass(VectorToImageConvertingTransformer.Summary, typeof(IDataTransform), typeof(VectorToImageConvertingTransformer), typeof(VectorToImageConvertingTransformer.Options), typeof(SignatureDataTransform),
-    ImagePixelExtractingTransformer.UserName, "VectorToImageTransform", "VectorToImage")]
+    VectorToImageConvertingTransformer.UserName, "VectorToImageTransform", "VectorToImage")]
 
 [assembly: LoadableClass(VectorToImageConvertingTransformer.Summary, typeof(IDataTransform), typeof(VectorToImageConvertingTransformer), null, typeof(SignatureLoadDataTransform),
     VectorToImageConvertingTransformer.UserName, VectorToImageConvertingTransformer.LoaderSignature)]
@@ -29,13 +29,8 @@ using Microsoft.ML.Transforms.Image;
 namespace Microsoft.ML.Transforms.Image
 {
     /// <summary>
-    /// <see cref="ITransformer"/> produced by fitting the <see cref="IDataView"/> to an <see cref="VectorToImageConvertingEstimator" /> .
+    /// <see cref="ITransformer"/> resulting from fitting a <see cref="VectorToImageConvertingEstimator"/>.
     /// </summary>
-    /// <remarks>
-    /// <seealso cref="ImageEstimatorsCatalog.ConvertToImage(TransformsCatalog, VectorToImageConvertingEstimator.ColumnOptions[])" />
-    /// <seealso cref="ImageEstimatorsCatalog.ConvertToImage(TransformsCatalog, int, int, string, string, ImagePixelExtractingEstimator.ColorBits, ImagePixelExtractingEstimator.ColorsOrder, bool, float, float, int, int, int, int)"/>
-    /// <seealso cref="ImageEstimatorsCatalog"/>
-    /// </remarks>
     public sealed class VectorToImageConvertingTransformer : OneToOneTransformerBase
     {
         internal class Column : OneToOneColumn
@@ -415,6 +410,7 @@ namespace Microsoft.ML.Transforms.Image
                                         (int)Math.Round(blue * scale - offset));
                                 }
                                 dst.SetPixel(x, y, pixel);
+                                dst.Tag = nameof(VectorToImageConvertingTransformer);
                             }
                     };
             }
@@ -427,14 +423,27 @@ namespace Microsoft.ML.Transforms.Image
     }
 
     /// <summary>
-    /// <see cref="IEstimator{TTransformer}"/> that converts vectors containing pixel representations of images in to<see cref="ImageDataViewType"/> representation.
+    /// <see cref="IEstimator{TTransformer}"/> for the <see cref="VectorToImageConvertingTransformer"/>.
     /// </summary>
     /// <remarks>
-    /// Calling <see cref="IEstimator{TTransformer}.Fit(IDataView)"/> in this estimator, produces an <see cref="VectorToImageConvertingTransformer"/>.
-    /// <seealso cref="ImageEstimatorsCatalog.ConvertToImage(TransformsCatalog, ColumnOptions[])" />
-    /// <seealso cref="ImageEstimatorsCatalog.ConvertToImage(TransformsCatalog, int, int, string, string, ImagePixelExtractingEstimator.ColorBits, ImagePixelExtractingEstimator.ColorsOrder, bool, float, float, int, int, int, int)"/>
-    /// <seealso cref="ImageEstimatorsCatalog"/>
+    /// <format type="text/markdown"><![CDATA[
+    ///
+    /// ###  Estimator Characteristics
+    /// |  |  |
+    /// | -- | -- |
+    /// | Does this estimator need to look at the data to train its parameters? | No |
+    /// | Input column data type | Known-sized vector of <xref:System.Single>, <xref:System.Double> or <xref:System.Byte>. |
+    /// | Output column data type | <xref:System.Drawing.Bitmap> |
+    /// | Required NuGet in addition to Microsoft.ML | Microsoft.ML.ImageAnalytics |
+    ///
+    /// The resulting <xref:Microsoft.ML.Transforms.Image.VectorToImageConvertingTransformer> creates a new column, named as specified in the output column name parameters, and
+    /// creates image from the data in the input column to this new column.
+    ///
+    /// Check the See Also section for links to usage examples.
+    /// ]]>
+    /// </format>
     /// </remarks>
+    /// <seealso cref="ImageEstimatorsCatalog.ConvertToImage(TransformsCatalog, int, int, string, string, ImagePixelExtractingEstimator.ColorBits, ImagePixelExtractingEstimator.ColorsOrder, bool, float, float, int, int, int, int)" />
     public sealed class VectorToImageConvertingEstimator : TrivialEstimator<VectorToImageConvertingTransformer>
     {
         internal static class Defaults

@@ -1,0 +1,45 @@
+﻿<#@ include file="BinaryClassification.ttinclude"#>
+<#+
+string ClassName = "LinearSvmWithOptions";
+string Trainer = "LinearSvm";
+bool IsCalibrated = false;
+
+string LabelThreshold = "0.5f";
+string DataSepValue = "0.1f";
+string OptionsInclude = "using Microsoft.ML.Trainers;";
+string Comments = "";
+bool CacheData = false;
+
+string TrainerOptions = @"LinearSvmTrainer.Options
+            {
+                BatchSize = 10,
+                PerformProjection = true,
+                NumberOfIterations = 10
+            }";
+
+string ExpectedOutputPerInstance = @"// Expected output:
+            //   Label: True, Prediction: True
+            //   Label: False, Prediction: True
+            //   Label: True, Prediction: True
+            //   Label: True, Prediction: True
+            //   Label: False, Prediction: False";
+
+string ExpectedOutput = @"// Expected output:
+            //   Accuracy: 0.85
+            //   AUC: 0.95
+            //   F1 Score: 0.86
+            //   Negative Precision: 0.91
+            //   Negative Recall: 0.80
+            //   Positive Precision: 0.80
+            //   Positive Recall: 0.92
+            //
+            //   TEST POSITIVE RATIO:    0.4760 (238.0/(238.0+262.0))
+            //   Confusion table
+            //             ||======================
+            //   PREDICTED || positive | negative | Recall
+            //   TRUTH     ||======================
+            //    positive ||      218 |       20 | 0.9160
+            //    negative ||       53 |      209 | 0.7977
+            //             ||======================
+            //   Precision ||   0.8044 |   0.9127 |";
+#>

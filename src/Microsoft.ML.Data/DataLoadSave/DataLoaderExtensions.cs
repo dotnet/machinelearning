@@ -6,6 +6,9 @@ using Microsoft.ML.Data;
 
 namespace Microsoft.ML
 {
+    /// <summary>
+    /// Class used to load data from one or more files.
+    /// </summary>
     public static class DataLoaderExtensions
     {
         /// <summary>
@@ -14,6 +17,13 @@ namespace Microsoft.ML
         /// </summary>
         /// <param name="loader">The loader to use.</param>
         /// <param name="path">One or more paths from which to load data.</param>
+        /// <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        /// [!code-csharp[Load](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/DataOperations/LoadingText.cs)]
+        /// ]]>
+        /// </format>
+        /// </example>
         public static IDataView Load(this IDataLoader<IMultiStreamSource> loader, params string[] path)
             => loader.Load(new MultiFileSource(path));
     }

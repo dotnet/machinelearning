@@ -1,96 +1,135 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using Microsoft.ML;
 using Microsoft.ML.Data;
-using Microsoft.ML.SamplesUtils;
 using Microsoft.ML.Trainers.LightGbm;
 
 namespace Samples.Dynamic.Trainers.MulticlassClassification
 {
     public static class LightGbmWithOptions
     {
-        // This example requires installation of additional nuget package <a href="https://www.nuget.org/packages/Microsoft.ML.LightGbm/">Microsoft.ML.LightGbm</a>.
+        // This example requires installation of additional NuGet package
+        // <a href="https://www.nuget.org/packages/Microsoft.ML.FastTree/">Microsoft.ML.FastTree</a>.
         public static void Example()
         {
-            // Create a general context for ML.NET operations. It can be used for exception tracking and logging,
+            // Create a new context for ML.NET operations. It can be used for exception tracking and logging, 
             // as a catalog of available operations and as the source of randomness.
+            // Setting the seed to a fixed number in this example to make outputs deterministic.
             var mlContext = new MLContext(seed: 0);
 
-            // Create a list of data examples.
-            var examples = DatasetUtils.GenerateRandomMulticlassClassificationExamples(1000);
+            // Create a list of training data points.
+            var dataPoints = GenerateRandomDataPoints(1000);
 
-            // Convert the examples list to an IDataView object, which is consumable by ML.NET API.
-            var dataView = mlContext.Data.LoadFromEnumerable(examples);
+            // Convert the list of data points to an IDataView object, which is consumable by ML.NET API.
+            var trainingData = mlContext.Data.LoadFromEnumerable(dataPoints);
 
-            //////////////////// Data Preview ////////////////////
-            // Label    Features
-            // AA       0.7262433,0.8173254,0.7680227,0.5581612,0.2060332,0.5588848,0.9060271,0.4421779,0.9775497,0.2737045
-            // BB       0.4919063,0.6673147,0.8326591,0.6695119,1.182151,0.230367,1.06237,1.195347,0.8771811,0.5145918
-            // CC       1.216908,1.248052,1.391902,0.4326252,1.099942,0.9262842,1.334019,1.08762,0.9468155,0.4811099
-            // DD       0.7871246,1.053327,0.8971719,1.588544,1.242697,1.362964,0.6303943,0.9810045,0.9431419,1.557455
-
-            // Create a pipeline. 
-            //  - Convert the string labels into key types.
-            //  - Apply LightGbm multiclass trainer with advanced options.
-            var pipeline = mlContext.Transforms.Conversion.MapValueToKey("LabelIndex", "Label")
-                        .Append(mlContext.MulticlassClassification.Trainers.LightGbm(new LightGbmMulticlassTrainer.Options
+            // Define trainer options.
+            var options = new LightGbmMulticlassTrainer.Options
                         {
-                            LabelColumnName = "LabelIndex",
-                            FeatureColumnName = "Features",
                             Booster = new DartBooster.Options()
                             {
                                 TreeDropFraction = 0.15,
                                 XgboostDartMode = false
                             }
-                        }))
-                        .Append(mlContext.Transforms.Conversion.MapValueToKey("PredictedLabelIndex", "PredictedLabel"))
-                        .Append(mlContext.Transforms.CopyColumns("Scores", "Score"));
+                        };
 
-            // Split the static-typed data into training and test sets. Only training set is used in fitting
-            // the created pipeline. Metrics are computed on the test.
-            var split = mlContext.Data.TrainTestSplit(dataView, testFraction: 0.5);
+            // Define the trainer.
+            var pipeline = 
+			        // Convert the string labels into key types.
+                    mlContext.Transforms.Conversion.MapValueToKey("Label")
+                    // Apply LightGbm multiclass trainer.
+                    .Append(mlContext.MulticlassClassification.Trainers.LightGbm(options));
+			
 
             // Train the model.
-            var model = pipeline.Fit(split.TrainSet);
+            var model = pipeline.Fit(trainingData);
 
-            // Do prediction on the test set.
-            var dataWithPredictions = model.Transform(split.TestSet);
+            // Create testing data. Use different random seed to make it different from training data.
+            var testData = mlContext.Data.LoadFromEnumerable(GenerateRandomDataPoints(500, seed: 123));
 
-            // Evaluate the trained model using the test set.
-            var metrics = mlContext.MulticlassClassification.Evaluate(dataWithPredictions, labelColumnName: "LabelIndex");
+            // Run the model on test data set.
+            var transformedTestData = model.Transform(testData);
 
-            // Check if metrics are reasonable.
-            Console.WriteLine($"Macro accuracy: {metrics.MacroAccuracy:F4}, Micro accuracy: {metrics.MicroAccuracy:F4}.");
-            // Console output:
-            //   Macro accuracy: 0.8619, Micro accuracy: 0.8611.
+            // Convert IDataView object to a list.
+            var predictions = mlContext.Data.CreateEnumerable<Prediction>(transformedTestData, reuseRowObject: false).ToList();
 
-            // IDataView with predictions, to an IEnumerable<DatasetUtils.MulticlassClassificationExample>.
-            var nativePredictions = mlContext.Data.CreateEnumerable<DatasetUtils.MulticlassClassificationExample>(dataWithPredictions, false).ToList();
+            // Look at 5 predictions
+            foreach (var p in predictions.Take(5))
+                Console.WriteLine($"Label: {p.Label}, Prediction: {p.PredictedLabel}");
 
-            // Get schema object out of the prediction. It contains metadata such as the mapping from predicted label index
-            // (e.g., 1) to its actual label (e.g., "AA").
-            // The metadata can be used to get all the unique labels used during training.
-            var labelBuffer = new VBuffer<ReadOnlyMemory<char>>();
-            dataWithPredictions.Schema["PredictedLabelIndex"].GetKeyValues(ref labelBuffer);
-            // nativeLabels is { "AA" , "BB", "CC", "DD" }
-            var nativeLabels = labelBuffer.DenseValues().ToArray(); // nativeLabels[nativePrediction.PredictedLabelIndex - 1] is the original label indexed by nativePrediction.PredictedLabelIndex.
+            // Expected output:
+            //   Label: 1, Prediction: 1
+            //   Label: 2, Prediction: 2
+            //   Label: 3, Prediction: 3
+            //   Label: 2, Prediction: 2
+            //   Label: 3, Prediction: 3
 
+            // Evaluate the overall metrics
+            var metrics = mlContext.MulticlassClassification.Evaluate(transformedTestData);
+            PrintMetrics(metrics);
+            
+            // Expected output:
+            //   Micro Accuracy: 0.98
+            //   Macro Accuracy: 0.98
+            //   Log Loss: 0.07
+            //   Log Loss Reduction: 0.94
+                 
+            //   Confusion table
+            //             ||========================
+            //   PREDICTED ||     0 |     1 |     2 | Recall
+            //   TRUTH     ||========================
+            //           0 ||   156 |     0 |     4 | 0.9750
+            //           1 ||     0 |   171 |     6 | 0.9661
+            //           2 ||     1 |     0 |   162 | 0.9939
+            //             ||========================
+            //   Precision ||0.9936 |1.0000 |0.9419 |
+        }
 
-            // Show prediction result for the 3rd example.
-            var nativePrediction = nativePredictions[2];
-            // Console output:
-            //   Our predicted label to this example is AA with probability 0.8986.
-            Console.WriteLine($"Our predicted label to this example is {nativeLabels[(int)nativePrediction.PredictedLabelIndex - 1]} " +
-                $"with probability {nativePrediction.Scores[(int)nativePrediction.PredictedLabelIndex - 1]:F4}.");
+        // Generates random uniform doubles in [-0.5, 0.5) range with labels 1, 2 or 3.
+        private static IEnumerable<DataPoint> GenerateRandomDataPoints(int count, int seed=0)
+        {
+            var random = new Random(seed);
+            float randomFloat() => (float)(random.NextDouble() - 0.5);
+            for (int i = 0; i < count; i++)
+            {
+                // Generate Labels that are integers 1, 2 or 3
+                var label = random.Next(1, 4);
+                yield return new DataPoint
+                {
+                    Label = (uint)label,
+                    // Create random features that are correlated with the label.
+                    // The feature values are slightly increased by adding a constant multiple of label.
+                    Features = Enumerable.Repeat(label, 20).Select(x => randomFloat() + label * 0.2f).ToArray()
+                };
+            }
+        }
 
-            // Scores and nativeLabels are two parallel attributes; that is, Scores[i] is the probability of being nativeLabels[i].
-            // Console output:
-            //  The probability of being class AA is 0.8986.
-            //  The probability of being class BB is 0.0961.
-            //  The probability of being class CC is 0.0050.
-            //  The probability of being class DD is 0.0003.
-            for (int i = 0; i < nativeLabels.Length; ++i)
-                Console.WriteLine($"The probability of being class {nativeLabels[i]} is {nativePrediction.Scores[i]:F4}.");
+        // Example with label and 20 feature values. A data set is a collection of such examples.
+        private class DataPoint
+        {
+            public uint Label { get; set; }
+            [VectorType(20)]
+            public float[] Features { get; set; }
+        }
+
+        // Class used to capture predictions.
+        private class Prediction
+        {
+            // Original label.
+            public uint Label { get; set; }
+            // Predicted label from the trainer.
+            public uint PredictedLabel { get; set; }
+        }
+
+        // Pretty-print MulticlassClassificationMetrics objects.
+        public static void PrintMetrics(MulticlassClassificationMetrics metrics)
+        {
+            Console.WriteLine($"Micro Accuracy: {metrics.MicroAccuracy:F2}");
+            Console.WriteLine($"Macro Accuracy: {metrics.MacroAccuracy:F2}");
+            Console.WriteLine($"Log Loss: {metrics.LogLoss:F2}");
+            Console.WriteLine($"Log Loss Reduction: {metrics.LogLossReduction:F2}\n");
+            Console.WriteLine(metrics.ConfusionMatrix.GetFormattedConfusionTable());
         }
     }
 }

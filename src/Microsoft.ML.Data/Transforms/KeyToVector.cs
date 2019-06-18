@@ -31,7 +31,7 @@ using Newtonsoft.Json.Linq;
 namespace Microsoft.ML.Transforms
 {
     /// <summary>
-    /// Converts the key types back to their original vectors.
+    /// <see cref="ITransformer"/> resulting from fitting a <see cref="KeyToVectorMappingEstimator"/>.
     /// </summary>
     public sealed class KeyToVectorMappingTransformer : OneToOneTransformerBase
     {
@@ -305,7 +305,7 @@ namespace Microsoft.ML.Transforms
                     typeNames = null;
                 }
 
-                if (_parent._columns[iinfo].OutputCountVector || srcValueCount == 1)
+                if (_parent._columns[iinfo].OutputCountVector || srcType is PrimitiveDataViewType)
                 {
                     if (typeNames != null)
                     {
@@ -336,7 +336,7 @@ namespace Microsoft.ML.Transforms
                     builder.Add(AnnotationUtils.Kinds.CategoricalSlotRanges, AnnotationUtils.GetCategoricalType(srcValueCount), getter);
                 }
 
-                if (!_parent._columns[iinfo].OutputCountVector || srcValueCount == 1)
+                if (!_parent._columns[iinfo].OutputCountVector || srcType is PrimitiveDataViewType)
                 {
                     ValueGetter<bool> getter = (ref bool dst) =>
                     {
@@ -560,7 +560,7 @@ namespace Microsoft.ML.Transforms
                         int lenDst = checked(size * lenSrc);
                         var values = src.GetValues();
                         int cntSrc = values.Length;
-                        var editor = VBufferEditor.Create(ref dst, lenDst, cntSrc);
+                        var editor = VBufferEditor.Create(ref dst, lenDst, cntSrc, keepOldOnResize: false, requireIndicesOnDense: true);
 
                         int count = 0;
                         if (src.IsDense)
@@ -723,8 +723,26 @@ namespace Microsoft.ML.Transforms
     }
 
     /// <summary>
-    /// Estimator for <see cref="KeyToVectorMappingTransformer"/>. Converts the key types back to their original vectors.
+    /// Estimator for <see cref="KeyToVectorMappingTransformer"/>. Maps the value of a key
+    /// into a known-sized vector of <see cref="System.Single"/>.
     /// </summary>
+    /// <remarks>
+    /// <format type="text/markdown"><![CDATA[
+    /// ###  Estimator Characteristics
+    /// |  |  |
+    /// | -- | -- |
+    /// | Does this estimator need to look at the data to train its parameters? | No |
+    /// | Input column data type | Scalar or known-size vector of [key](xref:Microsoft.Ml.Data.KeyDataViewType) type. |
+    /// | Output column data type | A known-size vector of [System.Single](xref:System.Single). |
+    ///
+    /// It iterates over keys in data, and for each key it produces vector of key cardinality filled with zeros except position of key value in which it put's `1.0`.
+    /// For vector of keys it can either produce vector of counts for each key or concatenate them together into one vector.
+    ///
+    /// Check the See Also section for links to usage examples.
+    /// ]]></format>
+    /// </remarks>
+    /// <seealso cref=" ConversionsExtensionsCatalog.MapKeyToVector(TransformsCatalog.ConversionTransforms, InputOutputColumnPair[], bool)"/>
+    /// <seealso cref=" ConversionsExtensionsCatalog.MapKeyToVector(TransformsCatalog.ConversionTransforms, string, string, bool)"/>
     public sealed class KeyToVectorMappingEstimator : TrivialEstimator<KeyToVectorMappingTransformer>
     {
         internal static class Defaults
@@ -796,14 +814,16 @@ namespace Microsoft.ML.Transforms
 
                 var metadata = new List<SchemaShape.Column>();
                 if (col.Annotations.TryFindColumn(AnnotationUtils.Kinds.KeyValues, out var keyMeta))
-                    if (col.Kind != SchemaShape.Column.VectorKind.VariableVector && keyMeta.ItemType is TextDataViewType)
+                    if (((colInfo.OutputCountVector && col.IsKey) || col.Kind != SchemaShape.Column.VectorKind.VariableVector) && keyMeta.ItemType is TextDataViewType)
                         metadata.Add(new SchemaShape.Column(AnnotationUtils.Kinds.SlotNames, SchemaShape.Column.VectorKind.Vector, keyMeta.ItemType, false));
                 if (!colInfo.OutputCountVector && (col.Kind == SchemaShape.Column.VectorKind.Scalar || col.Kind == SchemaShape.Column.VectorKind.Vector))
                     metadata.Add(new SchemaShape.Column(AnnotationUtils.Kinds.CategoricalSlotRanges, SchemaShape.Column.VectorKind.Vector, NumberDataViewType.Int32, false));
                 if (!colInfo.OutputCountVector || (col.Kind == SchemaShape.Column.VectorKind.Scalar))
                     metadata.Add(new SchemaShape.Column(AnnotationUtils.Kinds.IsNormalized, SchemaShape.Column.VectorKind.Scalar, BooleanDataViewType.Instance, false));
 
-                result[colInfo.Name] = new SchemaShape.Column(colInfo.Name, SchemaShape.Column.VectorKind.Vector, NumberDataViewType.Single, false, new SchemaShape(metadata));
+                result[colInfo.Name] = new SchemaShape.Column(colInfo.Name,
+                    col.Kind == SchemaShape.Column.VectorKind.VariableVector && !colInfo.OutputCountVector ? SchemaShape.Column.VectorKind.VariableVector : SchemaShape.Column.VectorKind.Vector,
+                    NumberDataViewType.Single, false, new SchemaShape(metadata));
             }
 
             return new SchemaShape(result.Values);

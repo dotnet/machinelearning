@@ -1,0 +1,22 @@
+﻿<#@ include file="RegressionSamplesTemplate.ttinclude"#>
+
+<#+
+string ClassHeader = null;
+string ClassName="Sdca";
+string ExtraUsing = null;
+string Trainer = "Sdca(labelColumnName: nameof(DataPoint.Label), featureColumnName: nameof(DataPoint.Features))";
+string TrainerOptions = null;
+
+string ExpectedOutputPerInstance= @"// Expected output:
+            //   Label: 0.985, Prediction: 0.960
+            //   Label: 0.155, Prediction: 0.072
+            //   Label: 0.515, Prediction: 0.455
+            //   Label: 0.566, Prediction: 0.500
+            //   Label: 0.096, Prediction: 0.079";
+
+string ExpectedOutput = @"// Expected output:
+            //   Mean Absolute Error: 0.05
+            //   Mean Squared Error: 0.00
+            //   Root Mean Squared Error: 0.06
+            //   RSquared: 0.97 (closer to 1 is better. The worest case is 0)";
+#>

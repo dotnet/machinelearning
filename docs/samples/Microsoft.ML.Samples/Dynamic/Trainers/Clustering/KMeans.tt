@@ -1,0 +1,27 @@
+﻿<#@ include file="Clustering.ttinclude"#>
+<#+
+string ClassName = "KMeans";
+string Trainer = "KMeans";
+string TrainerOptions = null;
+string InlineTrainerOptions = "numberOfClusters: 2";
+int DataSeed = 123;
+
+string OptionsInclude = "";
+string Comments = "";
+
+string ExpectedOutputPerInstance = @"// Expected output:
+            //   Label: 1, Prediction: 1
+            //   Label: 1, Prediction: 1
+            //   Label: 2, Prediction: 2
+            //   Label: 2, Prediction: 2
+            //   Label: 2, Prediction: 2";
+
+string ExpectedOutput = @"// Expected output:
+            //   Normalized Mutual Information: 0.95
+            //   Average Distance: 4.17
+            //   Davies Bouldin Index: 2.87";
+
+string ExpectedCentroidsOutput = @"// Expected output similar to:
+            //   The first 3 coordinates of the first centroid are: (0.6035213, 0.6017533, 0.5964218)
+            //   The first 3 coordinates of the second centroid are: (0.4031044, 0.4175443, 0.4082336)";
+#>

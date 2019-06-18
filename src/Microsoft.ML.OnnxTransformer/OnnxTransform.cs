@@ -33,30 +33,36 @@ using OnnxShape = System.Collections.Generic.List<int>;
 namespace Microsoft.ML.Transforms.Onnx
 {
     /// <summary>
-    /// <p>A transform for scoring ONNX models in the ML.NET framework.</p>
-    /// <format type="text/markdown">
-    /// <![CDATA[
-    /// [!code-csharp[MF](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/OnnxTransform.cs)]
-    /// ]]>
-    /// </format>
+    /// <see cref="ITransformer"/> resulting from fitting an <see cref="OnnxScoringEstimator"/>.
     /// </summary>
     /// <remarks>
-    /// <p>Supports inferencing of models in ONNX 1.2 and 1.3 format (opset 7, 8 and 9), using the
-    /// <a href='https://www.nuget.org/packages/Microsoft.ML.OnnxRuntime/'>Microsoft.ML.OnnxRuntime</a> library.
-    /// </p>
-    /// <p>Models are scored on CPU by default. If GPU execution is needed (optional), use the
-    /// NuGet package available at
-    /// <a href='https://www.nuget.org/packages/Microsoft.ML.OnnxRuntime.Gpu/'>Microsoft.ML.OnnxRuntime.Gpu</a>
-    /// and download
-    /// <a href='https://developer.nvidia.com/cuda-downloads'>CUDA 9.1 Toolkit</a>
-    /// and
-    /// <a href='https://developer.nvidia.com/cudnn'>cuDNN</a>.
-    ///  Set parameter 'gpuDeviceId' to a valid non-negative integer. Typical device ID values are 0 or 1.
-    /// </p>
-    /// <p>The inputs and outputs of the ONNX models must be Tensor type. Sequence and Maps are not yet supported.</p>
-    /// <p>OnnxRuntime currently works on Windows and Ubuntu 16.04 Linux 64-bit platforms. Mac OS to be supported soon.</p>
-    /// <p>Visit https://github.com/onnx/models to see a list of readily available models to get started with.</p>
-    /// <p>Refer to http://onnx.ai' for more information about ONNX.</p>
+    /// <format type="text/markdown"><![CDATA[
+    ///
+    /// ###  Estimator Characteristics
+    /// |  |  |
+    /// | -- | -- |
+    /// | Does this estimator need to look at the data to train its parameters? | No |
+    /// | Input column data type | Known-sized vector of <xref:System.Single> or <xref:System.Double> types. |
+    /// | Output column data type | The same data type as the input column |
+    /// | Required NuGet in addition to Microsoft.ML | Microsoft.ML.OnnxTransformer |
+    ///
+    /// Supports inferencing of models in ONNX 1.2 and 1.3 format (opset 7, 8 and 9), using the
+    /// [Microsoft.ML.OnnxRuntime](https://www.nuget.org/packages/Microsoft.ML.OnnxRuntime/) library.
+    /// Models are scored on CPU by default. If GPU execution is needed (optional), use the
+    /// NuGet package available at [Microsoft.ML.OnnxRuntime.Gpu](https://www.nuget.org/packages/Microsoft.ML.OnnxRuntime.Gpu/)
+    /// and download [CUDA 9.1 Toolkit](https://developer.nvidia.com/cuda-downloads) and [cuDNN](https://developer.nvidia.com/cudnn).
+    /// Set parameter 'gpuDeviceId' to a valid non-negative integer. Typical device ID values are 0 or 1.
+    /// The inputs and outputs of the ONNX models must be Tensor type. Sequence and Maps are not yet supported.
+    /// OnnxRuntime currently works on Windows and Ubuntu 16.04 Linux 64-bit platforms. Mac OS to be supported soon.
+    /// Visit [ONNX Models](https://github.com/onnx/models) to see a list of readily available models to get started with.
+    /// Refer to [ONNX](http://onnx.ai) for more information.
+    ///
+    /// To create this estimator use the following:
+    /// [ApplyOnnxModel](xref:Microsoft.ML.OnnxCatalog.ApplyOnnxModel*)
+    ///
+    /// Check the See Also section for links to usage examples.
+    /// ]]>
+    /// </format>
     /// </remarks>
     public sealed class OnnxTransformer : RowToRowTransformerBase
     {
@@ -329,6 +335,7 @@ namespace Microsoft.ML.Transforms.Onnx
                     var col = inputSchema.GetColumnOrNull(_parent.Inputs[i]);
                     if (!col.HasValue)
                         throw Host.ExceptSchemaMismatch( nameof(inputSchema),"input", _parent.Inputs[i]);
+
                     _inputColIndices[i] = col.Value.Index;
 
                     var type = inputSchema[_inputColIndices[i]].Type;
@@ -510,8 +517,37 @@ namespace Microsoft.ML.Transforms.Onnx
     }
 
     /// <summary>
-    /// A class implementing the estimator interface of the <see cref="OnnxTransformer"/>.
+    /// <see cref="IEstimator{TTransformer}"/> for scoring ONNX models in the ML.NET framework.
     /// </summary>
+    /// <remarks>
+    /// <format type="text/markdown"><![CDATA[
+    ///
+    /// ###  Estimator Characteristics
+    /// |  |  |
+    /// | -- | -- |
+    /// | Does this estimator need to look at the data to train its parameters? | No |
+    /// | Input column data type | Known-sized vector of <xref:System.Single> or <xref:System.Double> types |
+    /// | Output column data type | As specified by the ONNX model |
+    /// | Required NuGet in addition to Microsoft.ML | Microsoft.ML.OnnxTransformer (always),  Microsoft.ML.OnnxRuntime.Gpu (only if GPU processing is used) |
+    ///
+    /// Supports inferencing of models in ONNX 1.2 and 1.3 format (opset 7, 8 and 9), using the
+    /// [Microsoft.ML.OnnxRuntime](https://www.nuget.org/packages/Microsoft.ML.OnnxRuntime/) library.
+    /// Models are scored on CPU by default. If GPU execution is needed (optional), use the
+    /// NuGet package available at [Microsoft.ML.OnnxRuntime.Gpu](https://www.nuget.org/packages/Microsoft.ML.OnnxRuntime.Gpu/)
+    /// and download [CUDA 9.1 Toolkit](https://developer.nvidia.com/cuda-downloads) and [cuDNN](https://developer.nvidia.com/cudnn).
+    /// Set parameter 'gpuDeviceId' to a valid non-negative integer. Typical device ID values are 0 or 1.
+    /// The inputs and outputs of the ONNX models must be Tensor type. Sequence and Maps are not yet supported.
+    /// OnnxRuntime currently works on Windows and Ubuntu 16.04 Linux 64-bit platforms. Mac OS to be supported soon.
+    /// Visit [ONNX Models](https://github.com/onnx/models) to see a list of readily available models to get started with.
+    /// Refer to [ONNX](http://onnx.ai) for more information.
+    ///
+    /// To create this estimator use the following:
+    /// [ApplyOnnxModel](xref:Microsoft.ML.OnnxCatalog.ApplyOnnxModel*)
+    ///
+    /// Check the See Also section for links to usage examples.
+    /// ]]>
+    /// </format>
+    /// </remarks>
     public sealed class OnnxScoringEstimator : TrivialEstimator<OnnxTransformer>
     {
         /// <summary>
@@ -564,7 +600,7 @@ namespace Microsoft.ML.Transforms.Onnx
                 var input = Transformer.Inputs[i];
                 if (!inputSchema.TryFindColumn(input, out var col))
                     throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", input);
-                if (!(col.Kind == SchemaShape.Column.VectorKind.VariableVector || col.Kind == SchemaShape.Column.VectorKind.Vector))
+                if (col.Kind == SchemaShape.Column.VectorKind.VariableVector)
                     throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", input, "vector", col.GetTypeString());
 
                 var inputsInfo = Transformer.Model.ModelInfo.InputsInfo;

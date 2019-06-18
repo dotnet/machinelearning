@@ -17,10 +17,10 @@ namespace lda
     public:
         explicit LDADataBlock(int32_t num_threads);
         ~LDADataBlock();
-        
+
         void Clear();
         //in data feedin scenario
-        void Allocate(const int32_t num_document, const int64_t corpus_size);        
+        void Allocate(const int32_t num_document, const int64_t corpus_size);
         //port the data from external process, for example, c#
         int AddDense(int32_t* term_freq, int32_t term_num);
         int Add(int32_t* term_id, int32_t* term_freq, int32_t term_num);
@@ -28,7 +28,7 @@ namespace lda
 
         inline int32_t num_documents() const;
         // Return the first document for thread thread_id
-        inline int32_t Begin(int32_t thread_id) const;        
+        inline int32_t Begin(int32_t thread_id) const;
         // Return the next to last document for thread thread_i
         inline int32_t End(int32_t thread_id) const;
 
@@ -43,8 +43,8 @@ namespace lda
         int32_t index_document_;
         int64_t used_size_;
 
-        int32_t num_documents_; 
-        int64_t corpus_size_;
+        int32_t num_documents_;
+        size_t corpus_size_;
 
         int64_t* offset_buffer_;    // offset_buffer_ size = num_document_ + 1
         int32_t* documents_buffer_; // documents_buffer_ size = corpus_size_;

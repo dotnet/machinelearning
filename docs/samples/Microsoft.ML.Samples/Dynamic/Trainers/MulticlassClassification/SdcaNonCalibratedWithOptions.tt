@@ -1,0 +1,41 @@
+﻿<#@ include file="MulticlassClassification.ttinclude"#>
+<#+
+string ClassName = "SdcaNonCalibratedWithOptions";
+string Trainer = "SdcaNonCalibrated";
+string MetaTrainer = null;
+string TrainerOptions = @"SdcaNonCalibratedMulticlassTrainer.Options
+            {
+                Loss = new HingeLoss(),
+                L1Regularization = 0.1f,
+                BiasLearningRate = 0.01f,
+                NumberOfThreads = 1
+            }";
+
+string OptionsInclude = "using Microsoft.ML.Trainers;";
+string Comments = "";
+bool CacheData = true;
+string DataGenerationComments= "// Generates random uniform doubles in [-0.5, 0.5) range with labels 1, 2 or 3.";
+
+string ExpectedOutputPerInstance = @"// Expected output:
+            //   Label: 1, Prediction: 1
+            //   Label: 2, Prediction: 2
+            //   Label: 3, Prediction: 2
+            //   Label: 2, Prediction: 2
+            //   Label: 3, Prediction: 3";
+
+string ExpectedOutput = @"// Expected output:
+            //   Micro Accuracy: 0.91
+            //   Macro Accuracy: 0.91
+            //   Log Loss: 0.22
+            //   Log Loss Reduction: 0.80
+
+            //   Confusion table
+            //             ||========================
+            //   PREDICTED ||     0 |     1 |     2 | Recall
+            //   TRUTH     ||========================
+            //           0 ||   145 |     0 |    15 | 0.9063
+            //           1 ||     0 |   164 |    13 | 0.9266
+            //           2 ||    12 |     7 |   144 | 0.8834
+            //             ||========================
+            //   Precision ||0.9236 |0.9591 |0.8372 |";
+#>

@@ -31,14 +31,53 @@ namespace Microsoft.ML.Trainers
 {
     using TPredictor = CalibratedModelParametersBase<LinearBinaryModelParameters, PlattCalibrator>;
 
-    /// <include file='doc.xml' path='doc/members/member[@name="SymSGD"]/*' />
+    /// <summary>
+    /// The <see cref="IEstimator{TTransformer}"/> to predict a target using a linear binary classification model trained with the symbolic stochastic gradient descent.
+    /// </summary>
+    /// <remarks>
+    /// <format type="text/markdown"><![CDATA[
+    /// To create this trainer, use [SymbolicStochasticGradientDescent](xref:Microsoft.ML.MklComponentsCatalog.SymbolicSgdLogisticRegression(Microsoft.ML.BinaryClassificationCatalog.BinaryClassificationTrainers,System.String,System.String,System.Int32))
+    /// or [SymbolicStochasticGradientDescent(Options)](xref:Microsoft.ML.MklComponentsCatalog.SymbolicSgdLogisticRegression(Microsoft.ML.BinaryClassificationCatalog.BinaryClassificationTrainers,Microsoft.ML.Trainers.SymbolicSgdLogisticRegressionBinaryTrainer.Options)).
+    ///
+    /// [!include[io](~/../docs/samples/docs/api-reference/io-columns-binary-classification.md)]
+    ///
+    /// ### Trainer Characteristics
+    /// |  |  |
+    /// | -- | -- |
+    /// | Machine learning task | Binary classification |
+    /// | Is normalization required? | Yes |
+    /// | Is caching required? | No |
+    /// | Required NuGet in addition to Microsoft.ML |Microsoft.ML.Mkl.Components |
+    ///
+    /// ### Training Algorithm Details
+    /// The symbolic stochastic gradient descent is an algorithm that makes its predictions by finding a separating hyperplane.
+    /// For instance, with feature values $f0, f1,..., f_{D-1}$, the prediction is given by determining what side of the hyperplane the point falls into.
+    /// That is the same as the sign of the feature's weighted sum, i.e. $\sum_{i = 0}^{D-1} (w_i * f_i) + b$, where $w_0, w_1,..., w_{D-1}$
+    /// are the weights computed by the algorithm, and $b$ is the bias computed by the algorithm.
+    ///
+    /// While most symbolic stochastic gradient descent algorithms are inherently sequential - at each step, the processing of the current example depends on the parameters learned from previous examples.
+    /// This algorithm trains local models in separate threads and probabilistic model cobminer that allows the local models to be combined
+    /// to produce the same result as what a sequential symbolic stochastic gradient descent would have produced, in expectation.
+    ///
+    /// For more information see [Parallel Stochastic Gradient Descent with Sound Combiners](https://arxiv.org/abs/1705.08030).
+    ///
+    /// Check the See Also section for links to usage examples.
+    /// ]]>
+    /// </format>
+    /// </remarks>
+    /// <seealso cref="Microsoft.ML.MklComponentsCatalog.SymbolicSgdLogisticRegression(Microsoft.ML.BinaryClassificationCatalog.BinaryClassificationTrainers,System.String,System.String,System.Int32)" />
+    /// <seealso cref="Microsoft.ML.MklComponentsCatalog.SymbolicSgdLogisticRegression(Microsoft.ML.BinaryClassificationCatalog.BinaryClassificationTrainers,Microsoft.ML.Trainers.SymbolicSgdLogisticRegressionBinaryTrainer.Options)"/>
+    /// <seealso cref="Options"/>
     public sealed class SymbolicSgdLogisticRegressionBinaryTrainer : TrainerEstimatorBase<BinaryPredictionTransformer<TPredictor>, TPredictor>
     {
         internal const string LoadNameValue = "SymbolicSGD";
         internal const string UserNameValue = "Symbolic SGD (binary)";
         internal const string ShortName = "SymSGD";
 
-        ///<summary> Advanced options for trainer.</summary>
+        /// <summary>
+        /// Options for the <see cref="SymbolicSgdLogisticRegressionBinaryTrainer"/> as used in
+        /// <see cref="Microsoft.ML.MklComponentsCatalog.SymbolicSgdLogisticRegression(BinaryClassificationCatalog.BinaryClassificationTrainers, Options)"/>.
+        /// </summary>
         public sealed class Options : TrainerInputBaseWithLabel
         {
             /// <summary>

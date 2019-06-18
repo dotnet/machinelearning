@@ -21,11 +21,11 @@ phases:
       parallel: 99
       matrix:
         ${{ if eq(parameters.customMatrixes, '') }}:
-          Build_Debug:
+          Debug_Build:
             _configuration: Debug
             _config_short: D
             _includeBenchmarkData: false
-          Build_Release:
+          Release_Build:
             _configuration: Release
             _config_short: R
             _includeBenchmarkData: true
@@ -33,8 +33,8 @@ phases:
           ${{ insert }}: ${{ parameters.customMatrixes }}
       ${{ insert }}: ${{ parameters.queue }}
     steps:
-    - ${{ if eq(parameters.name, 'MacOS') }}:
-      - script: brew update && brew install libomp && brew install mono-libgdiplus gettext && brew link gettext --force && brew link libomp --force
+    - ${{ if eq(parameters.queue.name, 'Hosted macOS') }}:
+      - script: brew update && brew install https://raw.githubusercontent.com/Homebrew/homebrew-core/f5b1ac99a7fba27c19cee0bc4f036775c889b359/Formula/libomp.rb && brew install mono-libgdiplus gettext && brew link gettext --force && brew link libomp --force
         displayName: Install build dependencies
     - script: $(_buildScript) -$(_configuration) -buildArch=$(_arch)
       displayName: Build

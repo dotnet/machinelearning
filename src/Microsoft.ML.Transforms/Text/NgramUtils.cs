@@ -9,34 +9,34 @@ using Microsoft.ML.Runtime;
 namespace Microsoft.ML.Data
 {
     /// <summary>
-    /// This delegate represents a function that gets an ngram as input, and outputs the id of
-    /// the ngram and whether or not to continue processing ngrams.
+    /// This delegate represents a function that gets an n-gram as input, and outputs the id of
+    /// the n-gram and whether or not to continue processing n-grams.
     /// </summary>
-    /// <param name="ngram">The array containing the ngram</param>
-    /// <param name="lim">The ngram is stored in ngram[0],...ngram[lim-1].</param>
+    /// <param name="ngram">The array containing the n-gram</param>
+    /// <param name="lim">The n-gram is stored in ngram[0],...ngram[lim-1].</param>
     /// <param name="icol">The index of the column the transform is applied to.</param>
     /// <param name="more">True if processing should continue, false if it should stop.
     /// It is true on input, so only needs to be set to false.</param>
-    /// <returns>The ngram slot if it was found, -1 otherwise.</returns>
+    /// <returns>The n-gram slot if it was found, -1 otherwise.</returns>
     internal delegate int NgramIdFinder(uint[] ngram, int lim, int icol, ref bool more);
 
-    // A class that given a VBuffer of keys, finds all the ngrams in it, and maintains a vector of ngram-counts.
-    // The id of each ngram is found by calling an NgramIdFinder delegate. This class can also be used to build
-    // an ngram dictionary, by defining an NgramIdFinder that adds the ngrams to a dictionary and always return false.
+    // A class that given a VBuffer of keys, finds all the n-grams in it, and maintains a vector of n-gram-counts.
+    // The id of each n-gram is found by calling an NgramIdFinder delegate. This class can also be used to build
+    // an n-gram dictionary, by defining an NgramIdFinder that adds the n-grams to a dictionary and always return false.
     internal sealed class NgramBufferBuilder
     {
-        // This buffer builder maintains the vector of ngram-counts.
+        // This buffer builder maintains the vector of n-gram-counts.
         private readonly BufferBuilder<float> _bldr;
-        // A queue that holds _ngramLength+_skipLength keys, so that it contains all the ngrams starting with the
-        // first key in the ngram.
+        // A queue that holds _ngramLength+_skipLength keys, so that it contains all the n-grams starting with the
+        // first key in the n-gram.
         private readonly FixedSizeQueue<uint> _queue;
-        // The maximum ngram length.
+        // The maximum n-gram length.
         private readonly int _ngramLength;
-        // The maximum number of skips contained in an ngram.
+        // The maximum number of skips contained in an n-gram.
         private readonly int _skipLength;
-        // An array of length _ngramLength, containing the current ngram.
+        // An array of length _ngramLength, containing the current n-gram.
         private readonly uint[] _ngram;
-        // The maximum ngram id.
+        // The maximum n-gram id.
         private readonly int _slotLim;
         private readonly NgramIdFinder _finder;
 
@@ -84,7 +84,7 @@ namespace Microsoft.ML.Data
 
                     _queue.AddLast(curKey);
 
-                    // Add the ngram counts
+                    // Add the n-gram counts
                     if (_queue.IsFull && !ProcessNgrams(icol))
                         return false;
                 }
@@ -111,7 +111,7 @@ namespace Microsoft.ML.Data
                     if (!_queue.IsFull)
                         continue;
 
-                    // Add the ngram counts
+                    // Add the n-gram counts
                     if (!ProcessNgrams(icol))
                         return false;
                 }
@@ -135,7 +135,7 @@ namespace Microsoft.ML.Data
             _bldr.GetResult(ref dst);
         }
 
-        // Returns false if there is no need to process more ngrams.
+        // Returns false if there is no need to process more n-grams.
         private bool ProcessNgrams(int icol)
         {
             Contracts.Assert(_queue.Count > 0);
@@ -206,7 +206,7 @@ namespace Microsoft.ML.Data
     {
         public static bool IsValidNgramRawType(Type rawType)
         {
-            // Can only accept key types that can be converted to U4 (uint).
+            // Can only accept key types that can be converted to U8 (ulong).
             return rawType != typeof(ulong);
         }
     }

@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Drawing.Imaging;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -30,15 +31,8 @@ using Microsoft.ML.Transforms.Image;
 namespace Microsoft.ML.Transforms.Image
 {
     /// <summary>
-    /// <see cref="ITransformer"/> produced by fitting the <see cref="IDataView"/> to an <see cref="ImagePixelExtractingEstimator" /> .
+    /// <see cref="ITransformer"/> resulting from fitting an <see cref="ImagePixelExtractingEstimator"/>.
     /// </summary>
-    /// <remarks>
-    ///  During the transformation, the columns of <see cref="ImageDataViewType"/> are converted them into a vector representing the image pixels
-    ///  than can be further used as features by the algorithms added to the pipeline.
-    /// <seealso cref="ImageEstimatorsCatalog.ExtractPixels(TransformsCatalog, ImagePixelExtractingEstimator.ColumnOptions[])" />
-    /// <seealso cref="ImageEstimatorsCatalog.ExtractPixels(TransformsCatalog, string, string, ImagePixelExtractingEstimator.ColorBits, ImagePixelExtractingEstimator.ColorsOrder, bool, float, float, bool)" />
-    /// <seealso cref="ImageEstimatorsCatalog"/>
-    /// </remarks>
     public sealed class ImagePixelExtractingTransformer : OneToOneTransformerBase
     {
         [BestFriend]
@@ -353,10 +347,19 @@ namespace Microsoft.ML.Transforms.Image
                             return;
                         }
 
-                        Host.Check(src.PixelFormat == System.Drawing.Imaging.PixelFormat.Format32bppArgb
-                            || src.PixelFormat == System.Drawing.Imaging.PixelFormat.Format24bppRgb,
-                            "Transform only supports pixel formats Format24bppRgb and Format32bppArgb");
                         Host.Check(src.Height == height && src.Width == width);
+
+                        if (src.PixelFormat != PixelFormat.Format32bppArgb && src.PixelFormat != PixelFormat.Format24bppRgb)
+                        {
+                            var clone = src.Clone(new Rectangle(0, 0, src.Width, src.Height), PixelFormat.Format32bppArgb);
+                            clone.Tag = src.Tag;
+                            src.Dispose();
+                            src = clone;
+                            using (var ch = Host.Start(nameof(ImagePixelExtractingTransformer)))
+                            {
+                                ch.Warning($"Encountered image {src.Tag} of unsupported pixel format {src.PixelFormat} but converting it to {nameof(PixelFormat.Format32bppArgb)}.");
+                            }
+                        }
 
                         var editor = VBufferEditor.Create(ref dst, size);
                         var values = editor.Values;
@@ -478,15 +481,29 @@ namespace Microsoft.ML.Transforms.Image
     }
 
     /// <summary>
-    /// <see cref="IEstimator{TTransformer}"/> that extracts the pixels of the image into a vector.
-    /// This vector can further be used as a feature to the algorithms.
+    /// <see cref="IEstimator{TTransformer}"/> for the <see cref="ImagePixelExtractingTransformer"/>.
     /// </summary>
     /// <remarks>
-    /// Calling <see cref="IEstimator{TTransformer}.Fit(IDataView)"/> in this estimator, produces an <see cref="ImagePixelExtractingTransformer"/>.
-    /// <seealso cref="ImageEstimatorsCatalog.ExtractPixels(TransformsCatalog, ImagePixelExtractingEstimator.ColumnOptions[])" />
-    /// <seealso cref="ImageEstimatorsCatalog.ExtractPixels(TransformsCatalog, string, string, ColorBits, ColorsOrder, bool, float, float, bool)" />
-    /// <seealso cref="ImageEstimatorsCatalog"/>
+    /// <format type="text/markdown"><![CDATA[
+    ///
+    /// ###  Estimator Characteristics
+    /// |  |  |
+    /// | -- | -- |
+    /// | Does this estimator need to look at the data to train its parameters? | No |
+    /// | Input column data type | <xref:System.Drawing.Bitmap> |
+    /// | Output column data type | Known-sized vector of <xref:System.Single> or <xref:System.Byte> |
+    /// | Required NuGet in addition to Microsoft.ML | Microsoft.ML.ImageAnalytics |
+    ///
+    /// The resulting <xref:Microsoft.ML.Transforms.Image.ImagePixelExtractingTransformer> creates a new column, named as specified in the output column name parameters, and
+    /// converts image into vector of known size of floats or bytes. Size and data type depends on specified paramaters.
+    /// For end-to-end image processing pipelines, and scenarios in your applications, see the
+    /// [examples](https://github.com/dotnet/machinelearning-samples/tree/master/samples/csharp/getting-started) in the machinelearning-samples github repository.
+    ///
+    /// Check the See Also section for links to usage examples.
+    /// ]]>
+    /// </format>
     /// </remarks>
+    /// <seealso cref="ImageEstimatorsCatalog.ExtractPixels(TransformsCatalog, string, string, ColorBits, ColorsOrder, bool, float, float, bool)" />
     public sealed class ImagePixelExtractingEstimator : TrivialEstimator<ImagePixelExtractingTransformer>
     {
         [BestFriend]

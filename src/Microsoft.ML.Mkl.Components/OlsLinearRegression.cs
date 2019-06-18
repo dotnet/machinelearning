@@ -33,19 +33,40 @@ namespace Microsoft.ML.Trainers
 {
     /// <summary>
     /// The <see cref="IEstimator{TTransformer}"/> for training a linear regression model using
-    /// ordinary least squares (OLS) for estimating the parameters of the linear regression model.
+    /// <a href="https://en.wikipedia.org/wiki/Ordinary_least_squares">ordinary least squares (OLS)</a> for estimating the parameters of the linear regression model.
     /// </summary>
     /// <remarks>
-    /// <a href='https://en.wikipedia.org/wiki/Ordinary_least_squares'>Ordinary least squares (OLS)</a> is a parameterized regression method.
+    /// <format type="text/markdown"><![CDATA[
+    /// To create this trainer, use [Ols](xref:Microsoft.ML.MklComponentsCatalog.Ols(Microsoft.ML.RegressionCatalog.RegressionTrainers,System.String,System.String,System.String))
+    /// or [Ols(Options)](xref:Microsoft.ML.MklComponentsCatalog.Ols(Microsoft.ML.RegressionCatalog.RegressionTrainers,Microsoft.ML.Trainers.OlsTrainer.Options)).
+    ///
+    /// [!include[io](~/../docs/samples/docs/api-reference/io-columns-regression.md)]
+    ///
+    /// ### Trainer Characteristics
+    /// |  |  |
+    /// | -- | -- |
+    /// | Machine learning task | Regression |
+    /// | Is normalization required? | Yes |
+    /// | Is caching required? | No |
+    /// | Required NuGet in addition to Microsoft.ML | Microsoft.ML.Mkl.Components |
+    ///
+    /// ### Training Algorithm Details
+    /// [Ordinary least squares (OLS)](https://en.wikipedia.org/wiki/Ordinary_least_squares) is a parameterized regression method.
     /// It assumes that the conditional mean of the dependent variable follows a linear function of the dependent variables.
-    /// The regression parameters can be estimated by minimizing the squares of the difference between observed values and the predictions.
+    /// The regression parameters can be estimated by minimizing the squares of the difference between observed values and the predictions
+    ///
+    /// Check the See Also section for links to usage examples.
+    /// ]]>
+    /// </format>
     /// </remarks>
     /// <seealso cref="MklComponentsCatalog.Ols(RegressionCatalog.RegressionTrainers, string, string, string)"/>
     /// <seealso cref="MklComponentsCatalog.Ols(RegressionCatalog.RegressionTrainers, OlsTrainer.Options)"/>
+    /// <seealso cref="Options"/>
     public sealed class OlsTrainer : TrainerEstimatorBase<RegressionPredictionTransformer<OlsModelParameters>, OlsModelParameters>
     {
         /// <summary>
-        /// Options for the <see cref="OlsTrainer"/>.
+        /// Options for the <see cref="OlsTrainer"/> as used in
+        /// [Ols(Options)](xref:Microsoft.ML.MklComponentsCatalog.Ols(Microsoft.ML.RegressionCatalog.RegressionTrainers,Microsoft.ML.Trainers.OlsTrainer.Options))
         /// </summary>
         public sealed class Options : TrainerInputBaseWithWeight
         {
@@ -519,7 +540,7 @@ namespace Microsoft.ML.Trainers
     }
 
     /// <summary>
-    /// A linear predictor for which per parameter significance statistics are available.
+    /// Model parameters for <see cref="OlsTrainer"/>.
     /// </summary>
     public sealed class OlsModelParameters : RegressionModelParameters
     {

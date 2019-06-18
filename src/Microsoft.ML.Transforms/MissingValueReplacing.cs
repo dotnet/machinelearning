@@ -32,12 +32,10 @@ using Microsoft.ML.Transforms;
 
 namespace Microsoft.ML.Transforms
 {
-    // This transform can transform either scalars or vectors (both fixed and variable size),
-    // creating output columns that are identical to the input columns except for replacing NA values
-    // with either the default value, user input, or imputed values (min/max/mean are currently supported).
-    // Imputation modes are supported for vectors both by slot and across all slots.
+    /// <summary>
+    /// <see cref="ITransformer"/> resulting from fitting a <see cref="MissingValueReplacingEstimator"/>.
+    /// </summary>
     // REVIEW: May make sense to implement the transform template interface.
-    /// <include file='doc.xml' path='doc/members/member[@name="NAReplace"]/*' />
     public sealed partial class MissingValueReplacingTransformer : OneToOneTransformerBase
     {
         internal enum ReplacementKind : byte
@@ -888,6 +886,28 @@ namespace Microsoft.ML.Transforms
         }
     }
 
+    /// <summary>
+    /// <see cref="IEstimator{TTransformer}"/> for the <see cref="MissingValueReplacingTransformer"/>.
+    /// </summary>
+    /// <remarks>
+    /// <format type="text/markdown"><![CDATA[
+    ///
+    /// ###  Estimator Characteristics
+    /// |  |  |
+    /// | -- | -- |
+    /// | Does this estimator need to look at the data to train its parameters? | Yes |
+    /// | Input column data type | Vector or scalar of <xref:System.Single> or <xref:System.Double> |
+    /// | Output column data type | The same as the data type in the input column |
+    ///
+    /// The resulting <xref:Microsoft.ML.Transforms.MissingValueReplacingTransformer"/> creates a new column, named as specified in the output column name parameters, and
+    /// copies the data from the input column to this new column with exception what missing values in data would be replaced according to chosen strategy.
+    ///
+    /// Check the See Also section for links of usage examples.
+    /// ]]>
+    /// </format>
+    /// </remarks>
+    /// <seealso cref="ExtensionsCatalog.ReplaceMissingValues(TransformsCatalog, string, string, ReplacementMode, bool)" />
+    /// <seealso cref="ExtensionsCatalog.ReplaceMissingValues(TransformsCatalog, InputOutputColumnPair[], ReplacementMode, bool)" />
     public sealed class MissingValueReplacingEstimator : IEstimator<MissingValueReplacingTransformer>
     {
         /// <summary>
@@ -896,19 +916,19 @@ namespace Microsoft.ML.Transforms
         public enum ReplacementMode : byte
         {
             /// <summary>
-            /// Replace with the default value of the column based on its type. For example, 'zero' for numeric and 'empty' for string/text columns.
+            /// Replace with the default value of the column based on its type.
             /// </summary>
             DefaultValue = 0,
             /// <summary>
-            /// Replace with the mean value of the column. Supports only numeric/time span/ DateTime columns.
+            /// Replace with the mean value of the column.
             /// </summary>
             Mean = 1,
             /// <summary>
-            /// Replace with the minimum value of the column. Supports only numeric/time span/ DateTime columns.
+            /// Replace with the minimum value of the column.
             /// </summary>
             Minimum = 2,
             /// <summary>
-            /// Replace with the maximum value of the column. Supports only numeric/time span/ DateTime columns.
+            /// Replace with the maximum value of the column.
             /// </summary>
             Maximum = 3,
         }

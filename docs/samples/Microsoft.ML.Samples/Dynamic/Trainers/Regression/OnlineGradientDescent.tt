@@ -1,10 +1,12 @@
 ﻿<#@ include file="RegressionSamplesTemplate.ttinclude"#>
 
 <#+
+string ClassHeader = null;
 string ClassName="OnlineGradientDescent";
-string Trainer = "OnlineGradientDescent";
+string ExtraUsing = null;
+string Trainer = "OnlineGradientDescent(labelColumnName: nameof(DataPoint.Label), featureColumnName: nameof(DataPoint.Features))";
 string TrainerOptions = null;
 
-string ExpectedOutputPerInstance= @"// TODO #2425: OGD is missing baseline tests and seems numerically unstable";
-string ExpectedOutput = @"// TODO #2425: OGD is missing baseline tests and seems numerically unstable";
+string ExpectedOutputPerInstance= @"// This trainer is not numerically stable. Please see issue #2425.";
+string ExpectedOutput = @"";
 #>

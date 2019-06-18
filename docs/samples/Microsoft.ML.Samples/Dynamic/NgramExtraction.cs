@@ -14,7 +14,12 @@ namespace Samples.Dynamic
             var ml = new MLContext();
 
             // Get a small dataset as an IEnumerable and convert to IDataView.
-            IEnumerable<Microsoft.ML.SamplesUtils.DatasetUtils.SampleSentimentData> data = Microsoft.ML.SamplesUtils.DatasetUtils.GetSentimentData();
+            var data = new List<SampleSentimentData>() {
+                new SampleSentimentData { Sentiment = true, SentimentText = "Best game I've ever played." },
+                new SampleSentimentData { Sentiment = false, SentimentText = "==RUDE== Dude, 2" },
+                new SampleSentimentData { Sentiment = true, SentimentText = "Until the next game, this is the best Xbox game!" } };
+
+            // Convert IEnumerable to IDataView.
             var trainData = ml.Data.LoadFromEnumerable(data);
 
             // Preview of the data.
@@ -24,7 +29,7 @@ namespace Samples.Dynamic
             // false        ==RUDE== Dude, 2.
             // true          Until the next game, this is the best Xbox game!
 
-            // A pipeline to tokenize text as characters and then combine them together into ngrams
+            // A pipeline to tokenize text as characters and then combine them together into n-grams
             // The pipeline uses the default settings to featurize.
 
             var charsPipeline = ml.Transforms.Text.TokenizeIntoCharactersAsKeys("Chars", "SentimentText", useMarkerCharacters: false);
@@ -70,6 +75,15 @@ namespace Samples.Dynamic
             // 'B' - 1 'B|e' - 1 'e' - 6 'e|s' - 1 's' - 1 's|t' - 1 't' - 1 't|<?>' - 1 '<?>' - 4 '<?>|g' - 1 ...
             // 'e' - 1 '<?>' - 2 'd' - 1 '=' - 4 '=|=' - 2 '=|R' - 1 'R' - 1 'R|U' - 1 'U' - 1 'U|D' - 1 'D' - 2 ...
             // 'B' - 0 'B|e' - 0 'e' - 6 'e|s' - 1 's' - 3 's|t' - 1 't' - 6 't|<?>' - 2 '<?>' - 9 '<?>|g' - 2 ...
+        }
+
+        /// <summary>
+        /// A dataset that contains a tweet and the sentiment assigned to that tweet: 0 - negative and 1 - positive sentiment.
+        /// </summary>
+        public class SampleSentimentData
+        {
+            public bool Sentiment { get; set; }
+            public string SentimentText { get; set; }
         }
     }
 }

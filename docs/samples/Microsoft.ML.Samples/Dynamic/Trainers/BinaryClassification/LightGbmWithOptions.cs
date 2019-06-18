@@ -1,50 +1,134 @@
-﻿using Microsoft.ML;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using Microsoft.ML;
+using Microsoft.ML.Data;
 using Microsoft.ML.Trainers.LightGbm;
 
 namespace Samples.Dynamic.Trainers.BinaryClassification
 {
-    class LightGbmWithOptions
+    public static class LightGbmWithOptions
     {
-        // This example requires installation of additional nuget package <a href="https://www.nuget.org/packages/Microsoft.ML.LightGbm/">Microsoft.ML.LightGbm</a>.
+        // This example requires installation of additional nuget package
+        // <a href="https://www.nuget.org/packages/Microsoft.ML.LightGbm/">Microsoft.ML.LightGbm</a>.
         public static void Example()
         {
-            // Creating the ML.Net IHostEnvironment object, needed for the pipeline
-            var mlContext = new MLContext();
+            // Create a new context for ML.NET operations. It can be used for exception tracking and logging, 
+            // as a catalog of available operations and as the source of randomness.
+            // Setting the seed to a fixed number in this example to make outputs deterministic.
+            var mlContext = new MLContext(seed: 0);
 
-            // Download and featurize the dataset.
-            var dataview = Microsoft.ML.SamplesUtils.DatasetUtils.LoadFeaturizedAdultDataset(mlContext);
+            // Create a list of training data points.
+            var dataPoints = GenerateRandomDataPoints(1000);
 
-            // Leave out 10% of data for testing.
-            var split = mlContext.Data.TrainTestSplit(dataview, testFraction: 0.1);
+            // Convert the list of data points to an IDataView object, which is consumable by ML.NET API.
+            var trainingData = mlContext.Data.LoadFromEnumerable(dataPoints);
 
-            // Create the pipeline with LightGbm Estimator using advanced options.
-            var pipeline = mlContext.BinaryClassification.Trainers.LightGbm(
-                                new LightGbmBinaryTrainer.Options
-                                {
-                                    Booster = new GossBooster.Options
-                                    {
-                                        TopRate = 0.3,
-                                        OtherRate = 0.2
-                                    }
-                                });
+            // Define trainer options.
+            var options = new LightGbmBinaryTrainer.Options
+            {
+                Booster = new GossBooster.Options
+                {
+                    TopRate = 0.3,
+                    OtherRate = 0.2
+                }
+            };
 
-            // Fit this Pipeline to the Training Data.
-            var model = pipeline.Fit(split.TrainSet);
+            // Define the trainer.
+            var pipeline = mlContext.BinaryClassification.Trainers.LightGbm(options);
 
-            // Evaluate how the model is doing on the test data.
-            var dataWithPredictions = model.Transform(split.TestSet);
+            // Train the model.
+            var model = pipeline.Fit(trainingData);
 
-            var metrics = mlContext.BinaryClassification.Evaluate(dataWithPredictions);
-            Microsoft.ML.SamplesUtils.ConsoleUtils.PrintMetrics(metrics);
+            // Create testing data. Use different random seed to make it different from training data.
+            var testData = mlContext.Data.LoadFromEnumerable(GenerateRandomDataPoints(500, seed:123));
+
+            // Run the model on test data set.
+            var transformedTestData = model.Transform(testData);
+
+            // Convert IDataView object to a list.
+            var predictions = mlContext.Data.CreateEnumerable<Prediction>(transformedTestData, reuseRowObject: false).ToList();
+
+            // Print 5 predictions.
+            foreach (var p in predictions.Take(5))
+                Console.WriteLine($"Label: {p.Label}, Prediction: {p.PredictedLabel}");
 
             // Expected output:
-            //   Accuracy: 0.88
-            //   AUC: 0.93
-            //   F1 Score: 0.71
-            //   Negative Precision: 0.90
-            //   Negative Recall: 0.94
-            //   Positive Precision: 0.76
-            //   Positive Recall: 0.67
+            //   Label: True, Prediction: True
+            //   Label: False, Prediction: True
+            //   Label: True, Prediction: True
+            //   Label: True, Prediction: True
+            //   Label: False, Prediction: False
+            
+            // Evaluate the overall metrics.
+            var metrics = mlContext.BinaryClassification.Evaluate(transformedTestData);
+            PrintMetrics(metrics);
+            
+            // Expected output:
+            //   Accuracy: 0.71
+            //   AUC: 0.76
+            //   F1 Score: 0.70
+            //   Negative Precision: 0.73
+            //   Negative Recall: 0.71
+            //   Positive Precision: 0.69
+            //   Positive Recall: 0.71
+            //
+            //   TEST POSITIVE RATIO:    0.4760 (238.0/(238.0+262.0))
+            //   Confusion table
+            //             ||======================
+            //   PREDICTED || positive | negative | Recall
+            //   TRUTH     ||======================
+            //    positive ||      168 |       70 | 0.7059
+            //    negative ||       88 |      174 | 0.6641
+            //             ||======================
+            //   Precision ||   0.6563 |   0.7131 |
+        }
+
+        private static IEnumerable<DataPoint> GenerateRandomDataPoints(int count, int seed=0)
+        {
+            var random = new Random(seed);
+            float randomFloat() => (float)random.NextDouble();
+            for (int i = 0; i < count; i++)
+            {
+                var label = randomFloat() > 0.5f;
+                yield return new DataPoint
+                {
+                    Label = label,
+                    // Create random features that are correlated with the label.
+                    // For data points with false label, the feature values are slightly increased by adding a constant.
+                    Features = Enumerable.Repeat(label, 50).Select(x => x ? randomFloat() : randomFloat() + 0.03f).ToArray()
+                };
+            }
+        }
+
+        // Example with label and 50 feature values. A data set is a collection of such examples.
+        private class DataPoint
+        {
+            public bool Label { get; set; }
+            [VectorType(50)]
+            public float[] Features { get; set; }
+        }
+
+        // Class used to capture predictions.
+        private class Prediction
+        {
+            // Original label.
+            public bool Label { get; set; }
+            // Predicted label from the trainer.
+            public bool PredictedLabel { get; set; }
+        }
+
+        // Pretty-print BinaryClassificationMetrics objects.
+        private static void PrintMetrics(BinaryClassificationMetrics metrics)
+        {
+            Console.WriteLine($"Accuracy: {metrics.Accuracy:F2}");
+            Console.WriteLine($"AUC: {metrics.AreaUnderRocCurve:F2}");
+            Console.WriteLine($"F1 Score: {metrics.F1Score:F2}");
+            Console.WriteLine($"Negative Precision: {metrics.NegativePrecision:F2}");
+            Console.WriteLine($"Negative Recall: {metrics.NegativeRecall:F2}");
+            Console.WriteLine($"Positive Precision: {metrics.PositivePrecision:F2}");
+            Console.WriteLine($"Positive Recall: {metrics.PositiveRecall:F2}\n");
+            Console.WriteLine(metrics.ConfusionMatrix.GetFormattedConfusionTable());
         }
     }
 }

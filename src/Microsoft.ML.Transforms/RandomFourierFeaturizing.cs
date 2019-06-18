@@ -29,11 +29,7 @@ using Microsoft.ML.Transforms;
 namespace Microsoft.ML.Transforms
 {
     /// <summary>
-    /// Maps vector columns to a feature space where the inner products approximate a user specified shift-invariant kernel.
-    /// The kernel is indicated by specifying a <see cref="KernelBase"/> instance. The available implementations
-    /// are <see cref="GaussianKernel"/> and <see cref="LaplacianKernel"/>.
-    /// This transformation is based on this paper by
-    /// <a href="http://pages.cs.wisc.edu/~brecht/papers/07.rah.rec.nips.pdf">Rahimi and Recht</a>.
+    /// <see cref="ITransformer"/> resulting from fitting an <see cref="ApproximatedKernelMappingEstimator"/>.
     /// </summary>
     public sealed class ApproximatedKernelTransformer : OneToOneTransformerBase
     {
@@ -605,6 +601,29 @@ namespace Microsoft.ML.Transforms
     /// <summary>
     /// Maps vector columns to a low -dimensional feature space.
     /// </summary>
+    /// <remarks>
+    /// <format type="text/markdown"><![CDATA[
+    ///
+    /// ###  Estimator Characteristics
+    /// |  |  |
+    /// | -- | -- |
+    /// | Does this estimator need to look at the data to train its parameters? | Yes |
+    /// | Input column data type | Known-sized vector of <xref:System.Single> |
+    /// | Output column data type | Known-sized vector of <xref:System.Single> |
+    ///
+    /// The resulting <xref:Microsoft.ML.Transforms.ApproximatedKernelTransformer> creates a new column, named as specified in
+    /// the output column name parameters, where each input vector is mapped to a feature space where inner products
+    /// approximate one of two shift-invariant kernel functions: The Gaussian kernel, or the Laplacian kernel.
+    /// By mapping features to a space that approximate non-linear kernels, linear methods can be used to approximate
+    /// more complex kernel SVM models.
+    /// This mapping is based on the paper [Random Features for Large-Scale Kernel Machines](http://pages.cs.wisc.edu/~brecht/papers/07.rah.rec.nips.pdf)
+    /// by Rahimi and Recht.
+    ///
+    /// Check the See Also section for links to usage examples.
+    /// ]]></format>
+    /// </remarks>
+    /// <seealso cref="KernelExpansionCatalog.ApproximatedKernelMap(TransformsCatalog, ColumnOptions[])"/>
+    /// <seealso cref="KernelExpansionCatalog.ApproximatedKernelMap(TransformsCatalog, string, string, int, bool, KernelBase, int?)"/>
     public sealed class ApproximatedKernelMappingEstimator : IEstimator<ApproximatedKernelTransformer>
     {
         [BestFriend]

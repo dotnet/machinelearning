@@ -25,7 +25,7 @@ using Microsoft.ML.Transforms.TimeSeries;
 namespace Microsoft.ML.Transforms.TimeSeries
 {
     /// <summary>
-    /// <see cref="ITransformer"/> produced by fitting the <see cref="IDataView"/> to an <see cref="IidSpikeEstimator" />.
+    /// <see cref="ITransformer"/> resulting from fitting a <see cref="IidSpikeEstimator"/>.
     /// </summary>
     public sealed class IidSpikeDetector : IidAnomalyDetectionBaseWrapper, IStatefulTransformer
     {
@@ -171,10 +171,34 @@ namespace Microsoft.ML.Transforms.TimeSeries
     }
 
     /// <summary>
-    /// The <see cref="IEstimator{ITransformer}"/> for detecting a signal spike on an
-    /// <a href="https://en.wikipedia.org/wiki/Independent_and_identically_distributed_random_variables"> independent identically distributed (i.i.d.)</a> time series.
-    /// Detection is based on adaptive kernel density estimation.
+    /// Detect a signal spike on an
+    /// <a href="https://en.wikipedia.org/wiki/Independent_and_identically_distributed_random_variables"> independent identically distributed (i.i.d.)</a>
+    /// time series based on adaptive kernel density estimation.
     /// </summary>
+    /// <remarks>
+    /// <format type="text/markdown"><![CDATA[
+    /// To create this estimator, use [DetectIidSpike](xref:Microsoft.ML.TimeSeriesCatalog.DetectIidSpike(Microsoft.ML.TransformsCatalog,System.String,System.String,System.Int32,System.Int32,Microsoft.ML.Transforms.TimeSeries.AnomalySide)).
+    ///
+    /// [!include[io](~/../docs/samples/docs/api-reference/io-time-series-spike.md)]
+    ///
+    /// ###  Estimator Characteristics
+    /// |  |  |
+    /// | -- | -- |
+    /// | Does this estimator need to look at the data to train its parameters? | No |
+    /// | Input column data type | <xref:System.Single> |
+    /// | Output column data type | 3-element vector of<xref:System.Double> |
+    ///
+    /// [!include[io](~/../docs/samples/docs/api-reference/time-series-props.md)]
+    ///
+    /// [!include[io](~/../docs/samples/docs/api-reference/time-series-iid.md)]
+    ///
+    /// [!include[io](~/../docs/samples/docs/api-reference/time-series-pvalue.md)]
+    ///
+    /// Check the See Also section for links to usage examples.
+    /// ]]>
+    /// </format>
+    /// </remarks>
+    /// <seealso cref="Microsoft.ML.TimeSeriesCatalog.DetectIidSpike(Microsoft.ML.TransformsCatalog,System.String,System.String,System.Int32,System.Int32,Microsoft.ML.Transforms.TimeSeries.AnomalySide)" />
     public sealed class IidSpikeEstimator : TrivialEstimator<IidSpikeDetector>
     {
         /// <summary>

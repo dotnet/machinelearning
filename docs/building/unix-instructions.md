@@ -26,6 +26,7 @@ The following components are needed:
 * clang-3.9
 * cmake 2.8.12
 * libunwind8
+* libomp-dev
 * curl
 * All the requirements necessary to run .NET Core 2.0 applications: libssl1.0.0 (1.0.2 for Debian 9) and libicu5x (libicu52 for ubuntu 14.x, libicu55 for ubuntu 16.x, and libicu57 for ubuntu 17.x). For more information on prerequisites in different linux distributions click [here](https://docs.microsoft.com/en-us/dotnet/core/linux-prerequisites?tabs=netcore2x).
 
@@ -35,6 +36,7 @@ For example, for Ubuntu 16.x:
 sudo apt-get update
 sudo apt-get install git clang-3.9 cmake libunwind8 curl
 sudo apt-get install libssl1.0.0 libicu55
+sudo apt-get install libomp-dev
 ```
 
 ### macOS
@@ -43,12 +45,12 @@ macOS 10.12 (Sierra) or higher is needed to build dotnet/machinelearning.
 
 On macOS a few components are needed which are not provided by a default developer setup:
 * cmake 3.10.3
-* libomp
+* libomp 7
 * libgdiplus
 * gettext
 * All the requirements necessary to run .NET Core 2.0 applications. To view macOS prerequisites click [here](https://docs.microsoft.com/en-us/dotnet/core/macos-prerequisites?tabs=netcore2x).
 
 One way of obtaining CMake and other required libraries is via [Homebrew](https://brew.sh):
 ```sh
-$ brew install cmake libomp mono-libgdiplus gettext && brew link gettext --force
+$ brew install cmake https://raw.githubusercontent.com/Homebrew/homebrew-core/f5b1ac99a7fba27c19cee0bc4f036775c889b359/Formula/libomp.rb mono-libgdiplus gettext && brew link gettext --force
 ```
