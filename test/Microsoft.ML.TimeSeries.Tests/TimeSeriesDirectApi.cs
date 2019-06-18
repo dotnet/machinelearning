@@ -249,6 +249,7 @@ namespace Microsoft.ML.Tests
 
             // Pipeline.
             var pipeline = ml.Transforms.Text.FeaturizeText("Text_Featurized", "Text")
+                .Append(ml.Transforms.Conversion.ConvertType("Value", "Value", DataKind.Single))
                 .Append(new SsaChangePointEstimator(ml, new SsaChangePointDetector.Options()
                 {
                     Confidence = 95,

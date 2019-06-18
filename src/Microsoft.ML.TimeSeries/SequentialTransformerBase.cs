@@ -273,7 +273,6 @@ namespace Microsoft.ML.Transforms.TimeSeries
         internal TState StateRef { get; set; }
 
         public int StateRefCount;
-
         /// <summary>
         /// The main constructor for the sequential transform
         /// </summary>
@@ -492,7 +491,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
                 var active = RowCursorUtils.FromColumnsToPredicate(activeColumns, OutputSchema);
                 var getters = _mapper.CreateGetters(input, active, out Action disposer);
                 var pingers = _mapper.CreatePinger(input, active, out Action pingerDisposer);
-                return new RowImpl(_bindings.Schema, input, getters, pingers, disposer + pingerDisposer);
+                return new RowImpl(_bindings, input, getters, pingers, disposer + pingerDisposer);
             }
         }
 
@@ -504,6 +503,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
             private readonly Action<long> _pinger;
             private readonly Action _disposer;
             private bool _disposed;
+            private readonly ColumnBindings _bindings;
 
             public override DataViewSchema Schema => _schema;
 
@@ -511,16 +511,16 @@ namespace Microsoft.ML.Transforms.TimeSeries
 
             public override long Batch => _input.Batch;
 
-            public RowImpl(DataViewSchema schema, DataViewRow input, Delegate[] getters, Action<long> pinger, Action disposer)
+            public RowImpl(ColumnBindings bindings, DataViewRow input, Delegate[] getters, Action<long> pinger, Action disposer)
             {
-                Contracts.CheckValue(schema, nameof(schema));
+                Contracts.CheckValue(bindings, nameof(bindings));
                 Contracts.CheckValue(input, nameof(input));
-                Contracts.Check(Utils.Size(getters) == schema.Count);
-                _schema = schema;
+                _schema = bindings.Schema;
                 _input = input;
                 _getters = getters ?? new Delegate[0];
                 _pinger = pinger;
                 _disposer = disposer;
+                _bindings = bindings;
             }
 
             protected override void Dispose(bool disposing)
@@ -538,9 +538,13 @@ namespace Microsoft.ML.Transforms.TimeSeries
 
             public override ValueGetter<T> GetGetter<T>(DataViewSchema.Column column)
             {
-                Contracts.CheckParam(column.Index < _getters.Length, nameof(column), "Invalid col value in GetGetter");
+                bool isSrc;
+                int index = _bindings.MapColumnIndex(out isSrc, column.Index);
+                if (isSrc)
+                    return _input.GetGetter<T>(_input.Schema[index]);
+                Contracts.CheckParam(index < _getters.Length, nameof(column), "Invalid col value in GetGetter");
                 Contracts.Check(IsColumnActive(column));
-                var fn = _getters[column.Index] as ValueGetter<T>;
+                var fn = _getters[index] as ValueGetter<T>;
                 if (fn == null)
                     throw Contracts.Except("Unexpected TValue in GetGetter");
                 return fn;
@@ -554,8 +558,9 @@ namespace Microsoft.ML.Transforms.TimeSeries
             /// </summary>
             public override bool IsColumnActive(DataViewSchema.Column column)
             {
-                Contracts.Check(column.Index < _getters.Length);
-                return _getters[column.Index] != null;
+                int index = _bindings.MapColumnIndex(out bool isSrc, column.Index);
+                Contracts.Check(index < _getters.Length);
+                return _getters[index] != null;
             }
         }
 
