@@ -135,7 +135,7 @@ namespace Microsoft.ML.AutoML
                             sumSpaces += spanStr.Count(x => x == ' ');
 
                             if (string.IsNullOrEmpty(spanStr))
-                                numMissing += 1;
+                                numMissing++;
 
                             foreach (var ext in commonImageExtensions)
                             {
