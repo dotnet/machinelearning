@@ -14,6 +14,7 @@ using Microsoft.ML.Calibrators;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
 using Microsoft.ML.Data.Conversion;
+using Microsoft.ML.FastTree.Utils;
 using Microsoft.ML.Internal.Internallearn;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Model;
@@ -3407,88 +3408,10 @@ namespace Microsoft.ML.Trainers.FastTree
         }
 
         /// <summary>
-        /// Builds an IDataView that represents the TreeEnsemble. The suffix of the column name indicates which
-        /// tree the column is referring to.
+        /// Used for the Summarize entrypoint.
         /// </summary>
         IDataView ICanGetSummaryAsIDataView.GetSummaryDataView(RoleMappedSchema schema)
-        {
-            var builder = new ArrayDataViewBuilder(Host);
-
-            var trees = TrainedTreeEnsemble.Trees;
-            var numberOfRows = trees.Select(tree => tree.NumberOfNodes).Sum();
-
-            // Tree id indicates which tree the node belongs to.
-            var treeId = new List<int>();
-            for (int i = 0; i < trees.Count; i++)
-                treeId.AddRange(Enumerable.Repeat(i, trees[i].NumberOfNodes));
-
-            builder.AddColumn(nameof(RegressionTreeEnsemble.Bias), NumberDataViewType.Double, treeId);
-
-            // Bias column. This is a repeated value for all trees.
-            builder.AddColumn(nameof(RegressionTreeEnsemble.Bias), NumberDataViewType.Double,
-                Enumerable.Repeat(TrainedTreeEnsemble.Bias, numberOfRows));
-
-            // TreeWeights column.
-            var treeWeights = new List<double>();
-            for (int i = 0; i < trees.Count; i ++)
-                treeWeights.AddRange(Enumerable.Repeat(TrainedTreeEnsemble.TreeWeights[i], trees[i].NumberOfNodes));
-
-            builder.AddColumn(nameof(RegressionTreeEnsemble.TreeWeights), NumberDataViewType.Double, treeWeights);
-
-            // LeftChild column.
-            var leftChild = new List<int>();
-            for (int i = 0; i < trees.Count; i++)
-                leftChild.AddRange(trees[i].LeftChild.AsEnumerable());
-
-            builder.AddColumn(nameof(RegressionTree.LeftChild), NumberDataViewType.Int32, leftChild);
-
-            // RightChild column.
-            var rightChild = new List<int>();
-            for (int i = 0; i < trees.Count; i++)
-                rightChild.AddRange(trees[i].RightChild.AsEnumerable());
-
-            builder.AddColumn(nameof(RegressionTree.RightChild), NumberDataViewType.Int32, rightChild);
-
-            // NumericalSplitFeatureIndexes column.
-            var numericalSplitFeatureIndexes = new List<int>();
-            for (int i = 0; i < trees.Count; i++)
-                numericalSplitFeatureIndexes.AddRange(trees[i].NumericalSplitFeatureIndexes.AsEnumerable());
-
-            builder.AddColumn(nameof(RegressionTree.NumericalSplitFeatureIndexes), NumberDataViewType.Int32, numericalSplitFeatureIndexes);
-
-            // NumericalSplitThresholds column.
-            var numericalSplitThresholds = new List<float>();
-            for (int i = 0; i < trees.Count; i++)
-                numericalSplitThresholds.AddRange(trees[i].NumericalSplitThresholds.AsEnumerable());
-
-            builder.AddColumn(nameof(RegressionTree.NumericalSplitThresholds), NumberDataViewType.Single, numericalSplitThresholds);
-
-            // CategoricalSplitFlags column.
-            builder.AddColumn(nameof(RegressionTree.CategoricalSplitFlags), BooleanDataViewType.Instance,
-                new[] { trees[i].CategoricalSplitFlags.ToArray() });
-
-            // LeafValues column.
-            builder.AddColumn(nameof(RegressionTree.LeafValues), NumberDataViewType.Double,
-                new[] { trees[i].LeafValues.ToArray() });
-
-            // SplitGains column.
-            builder.AddColumn(nameof(RegressionTree.SplitGains), NumberDataViewType.Double,
-                new[] { trees[i].SplitGains.ToArray() });
-
-            // NumberOfLeaves column.
-            builder.AddColumn(nameof(RegressionTree.NumberOfLeaves), NumberDataViewType.Int32,
-                new[] { trees[i].NumberOfLeaves });
-
-            // NumberOfNodes column.
-            builder.AddColumn(nameof(RegressionTree.NumberOfNodes), NumberDataViewType.Int32,
-                new[] { trees[i].NumberOfNodes });
-
-            // REVIEW: Should these two be exposed, if so how?
-            // public IReadOnlyList<int> GetCategoricalSplitFeaturesAt(int nodeIndex)
-            // public IReadOnlyList<int> GetCategoricalCategoricalSplitFeatureRangeAt(int nodeIndex)
-
-            return builder.GetDataView();
-        }
+        => RegressionTreeBaseUtils.RegressionTreeEnsembleAsIDataView(Host, TrainedTreeEnsemble.Bias, TrainedTreeEnsemble.TreeWeights, TrainedTreeEnsemble.Trees);
     }
 
     /// <summary>
@@ -3501,7 +3424,7 @@ namespace Microsoft.ML.Trainers.FastTree
     /// and <see cref="TreeEnsembleModelParametersBasedOnRegressionTree"/> is the type of
     /// <see cref="TrainedTreeEnsemble"/>.
     /// </summary>
-    public abstract class TreeEnsembleModelParametersBasedOnQuantileRegressionTree : TreeEnsembleModelParameters
+    public abstract class TreeEnsembleModelParametersBasedOnQuantileRegressionTree : TreeEnsembleModelParameters, ICanGetSummaryAsIDataView
     {
         /// <summary>
         /// An ensemble of trees exposed to users. It is a wrapper on the <see langword="internal"/>
@@ -3529,5 +3452,11 @@ namespace Microsoft.ML.Trainers.FastTree
             var treeWeights = TrainedEnsemble.Trees.Select(tree => tree.Weight);
             return new QuantileRegressionTreeEnsemble(trees, treeWeights, TrainedEnsemble.Bias);
         }
+
+        /// <summary>
+        /// Used for the Summarize entrypoint.
+        /// </summary>
+        IDataView ICanGetSummaryAsIDataView.GetSummaryDataView(RoleMappedSchema schema)
+            => RegressionTreeBaseUtils.RegressionTreeEnsembleAsIDataView(Host, TrainedTreeEnsemble.Bias, TrainedTreeEnsemble.TreeWeights, TrainedTreeEnsemble.Trees);
     }
 }

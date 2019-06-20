@@ -5653,31 +5653,5 @@ namespace Microsoft.ML.RunTests
                 }
             }
         }
-
-        [Fact]
-        public void TestSummary()
-        {
-            string inputGraph =
-                $@"
-                {{
-                  'Nodes': [
-                   {{
-                    'Inputs': {{ 'PredictorModel': '$predictor_model' }},
-                    'Name': 'Models.Summarizer',
-                    'Outputs': {{ 'Summary': '$output_data' }}
-                   }}],
-                  'Inputs' : {{
-                    'predictor_model': 'E:\\tmp\\modelmml.bin'
-                  }},
-                  'Outputs' : {{
-                    'output_data': 'E:\\tmp\\output.csv'
-                  }}
-                }}";
-            var jsonPath = DeleteOutputPath("graph.json");
-            File.WriteAllLines(jsonPath, new[] { inputGraph });
-            var args = new ExecuteGraphCommand.Arguments() { GraphPath = jsonPath };
-            var cmd = new ExecuteGraphCommand(Env, args);
-            cmd.Run();
-        }
     }
 }
