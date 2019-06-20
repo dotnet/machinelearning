@@ -1,9 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
-using System.Security.Cryptography;
-using System.Security.Cryptography.X509Certificates;
 using Microsoft.ML;
 using Microsoft.ML.Data;
 
@@ -12,10 +9,10 @@ namespace Samples.Dynamic.Trainers.Regression
     public static class FastTreeRegression
     {
         // This example requires installation of additional NuGet package
-        // <a href="https://www.nuget.org/packages/Microsoft.ML.FastTree/">Microsoft.ML.FastTree</a>.
+        // <a href="https://www.nuget.org/packages/Microsoft.ML.FastTree/">Microsoft.ML.FastTree</a>. 
         public static void Example()
         {
-            // Create a new context for ML.NET operations. It can be used for exception tracking and logging,
+            // Create a new context for ML.NET operations. It can be used for exception tracking and logging, 
             // as a catalog of available operations and as the source of randomness.
             // Setting the seed to a fixed number in this example to make outputs deterministic.
             var mlContext = new MLContext(seed: 0);
@@ -26,25 +23,17 @@ namespace Samples.Dynamic.Trainers.Regression
             // Convert the list of data points to an IDataView object, which is consumable by ML.NET API.
             var trainingData = mlContext.Data.LoadFromEnumerable(dataPoints);
 
-            using (var f = File.OpenWrite("E:\\tmp\\data.txt"))
-                mlContext.Data.SaveAsText(trainingData, f);
-
             // Define the trainer.
-
-            var pipeline = mlContext.Data.CreateTextLoader<DataPoint>(hasHeader: true)
-                .Append(mlContext.Regression.Trainers.FastTree(labelColumnName: nameof(DataPoint.Label),
-                featureColumnName: nameof(DataPoint.Features)));
+            var pipeline = mlContext.Regression.Trainers.FastTree(labelColumnName: nameof(DataPoint.Label), featureColumnName: nameof(DataPoint.Features));
 
             // Train the model.
-            var model = pipeline.Fit(new MultiFileSource(new[] { "E:\\tmp\\data.txt" }));
-
-            mlContext.Model.Save(model.Transformer, model.Loader, "E:\\tmp\\model.bin");
+            var model = pipeline.Fit(trainingData);
 
             // Create testing data. Use different random seed to make it different from training data.
             var testData = mlContext.Data.LoadFromEnumerable(GenerateRandomDataPoints(5, seed: 123));
 
             // Run the model on test data set.
-            var transformedTestData = model.Transformer.Transform(testData);
+            var transformedTestData = model.Transform(testData);
 
             // Convert IDataView object to a list.
             var predictions = mlContext.Data.CreateEnumerable<Prediction>(transformedTestData, reuseRowObject: false).ToList();
@@ -89,10 +78,7 @@ namespace Samples.Dynamic.Trainers.Regression
         // Example with label and 50 feature values. A data set is a collection of such examples.
         private class DataPoint
         {
-            [LoadColumn(0)]
             public float Label { get; set; }
-
-            [LoadColumn(1, 50)]
             [VectorType(50)]
             public float[] Features { get; set; }
         }
