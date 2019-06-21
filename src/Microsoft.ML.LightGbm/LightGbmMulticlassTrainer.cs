@@ -100,6 +100,8 @@ namespace Microsoft.ML.Trainers.LightGbm
             static Options()
             {
                 NameMapping.Add(nameof(EvaluateMetricType), "metric");
+                NameMapping.Add(nameof(EvaluateMetricType.None), "None");
+                NameMapping.Add(nameof(EvaluateMetricType.Default), "");
                 NameMapping.Add(nameof(EvaluateMetricType.Error), "multi_error");
                 NameMapping.Add(nameof(EvaluateMetricType.LogLoss), "multi_logloss");
             }
@@ -109,8 +111,7 @@ namespace Microsoft.ML.Trainers.LightGbm
                 var res = base.ToDictionary(host);
 
                 res[GetOptionName(nameof(Sigmoid))] = Sigmoid;
-                if(EvaluationMetric != EvaluateMetricType.Default)
-                    res[GetOptionName(nameof(EvaluateMetricType))] = GetOptionName(EvaluationMetric.ToString());
+                res[GetOptionName(nameof(EvaluateMetricType))] = GetOptionName(EvaluationMetric.ToString());
 
                 return res;
             }
@@ -185,7 +186,7 @@ namespace Microsoft.ML.Trainers.LightGbm
             for (int i = 0; i < _tlcNumClass; ++i)
             {
                 var pred = CreateBinaryPredictor(i, innerArgs);
-                var cali = new PlattCalibrator(Host, -0.5, 0);
+                var cali = new PlattCalibrator(Host, -LightGbmTrainerOptions.Sigmoid, 0);
                 predictors[i] = new FeatureWeightsCalibratedModelParameters<LightGbmBinaryModelParameters, PlattCalibrator>(Host, pred, cali);
             }
             string obj = (string)GetGbmParameters()["objective"];
