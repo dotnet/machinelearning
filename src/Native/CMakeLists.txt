@@ -8,6 +8,14 @@ set(RESOURCES)
 include_directories("${CMAKE_BINARY_DIR}/../../")
 
 if(WIN32)
+    # Clobber and reset the default C and CXX flags because
+    # CMake uses /ZI (Edit and Continue) for generating pdbs
+    # which is incompatible with the /guard:cf flag we set below
+    # for security. So we use the default flags set by CMake 
+    # and reset /ZI with /Zi
+    set(CMAKE_C_FLAGS_DEBUG "/MDd /Zi /Ob0 /Od /RTC1 /JMC")
+    set(CMAKE_CXX_FLAGS_DEBUG "/MDd /Zi /Ob0 /Od /RTC1 /JMC")
+
     add_definitions(-DWIN32)
     add_definitions(-D_WIN32=1)
     add_definitions(-DUNICODE -D_UNICODE)
@@ -22,7 +30,7 @@ if(WIN32)
     add_compile_options($<$<CONFIG:Release>:/MT>)
     add_compile_options($<$<CONFIG:RelWithDebInfo>:/MT>)
     add_compile_options(/guard:cf) 
-    add_compile_options(/d2Zi+) # make optimized builds debugging easier
+    add_compile_options(/Zo) # make optimized builds debugging easier. /Zo is the newer documented flag.
     add_compile_options(/nologo) # Suppress Startup Banner
     add_compile_options(/W3) # set warning level to 3
     add_compile_options(/WX) # treat warnings as errors
