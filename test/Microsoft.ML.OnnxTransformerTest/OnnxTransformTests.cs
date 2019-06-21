@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.IO;
 using System.Linq;
 using Microsoft.ML;
@@ -14,6 +15,7 @@ using Microsoft.ML.Runtime;
 using Microsoft.ML.StaticPipe;
 using Microsoft.ML.TestFramework.Attributes;
 using Microsoft.ML.Tools;
+using Microsoft.ML.Transforms.Image;
 using Microsoft.ML.Transforms.StaticPipe;
 using Xunit;
 using Xunit.Abstractions;
@@ -315,6 +317,86 @@ namespace Microsoft.ML.Tests
             Assert.Equal(1, predictions[0].argmax[0]);
             Assert.Equal(0, predictions[1].argmax[0]);
             Assert.Equal(2, predictions[2].argmax[0]);
+        }
+
+        /// <summary>
+        /// This class is used in <see cref="OnnxModelInMemoryImage"/> to describe data points which will be consumed by ML.NET pipeline.
+        /// </summary>
+        private class ImageDataPoint
+        {
+            /// <summary>
+            /// Height of <see cref="Image"/>.
+            /// </summary>
+            private const int height = 224;
+
+            /// <summary>
+            /// Width of <see cref="Image"/>.
+            /// </summary>
+            private const int width = 224;
+
+            /// <summary>
+            /// Image will be consumed by ONNX image multiclass classification model.
+            /// </summary>
+            [ImageType(height, width)]
+            public Bitmap Image { get; set; }
+
+            /// <summary>
+            /// Output of ONNX model. It contains probabilities of all classes.
+            /// </summary>
+            [ColumnName("softmaxout_1")]
+            public float[] Scores { get; set; }
+
+            public ImageDataPoint()
+            {
+                Image = null;
+            }
+
+            public ImageDataPoint(Color color)
+            {
+                Image = new Bitmap(width, height);
+                for (int i = 0; i < width; ++i)
+                    for (int j = 0; j < height; ++j)
+                        Image.SetPixel(i, j, color);
+            }
+        }
+
+        /// <summary>
+        /// Test applying ONNX transform on in-memory image.
+        /// </summary>
+        [OnnxFact]
+        public void OnnxModelInMemoryImage()
+        {
+            // Path of ONNX model. It's a multiclass classifier. It consumes an input "data_0" and produces an output "softmaxout_1".
+            var modelFile = "squeezenet/00000001/model.onnx";
+
+            // Create in-memory data points. Its Image/Scores field is the input/output of the used ONNX model.
+            var dataPoints = new ImageDataPoint[]
+            {
+                new ImageDataPoint(Color.Red),
+                new ImageDataPoint(Color.Green)
+            };
+
+            // Convert training data to IDataView, the general data type used in ML.NET.
+            var dataView = ML.Data.LoadFromEnumerable(dataPoints);
+
+            // Create a ML.NET pipeline which contains two steps. First, ExtractPixle is used to convert the 224x224 image to a 3x224x224 float tensor.
+            // Then the float tensor is fed into a ONNX model with an input called "data_0" and an output called "softmaxout_1". Note that "data_0" and
+            // "softmaxout_1" are model input and output names stored in the used ONNX model file. Users may need to inspect their own models to
+            // get the right input and output column names.
+            var pipeline = ML.Transforms.ExtractPixels("data_0", "Image")                   // Map column "Image" to column "data_0"
+                .Append(ML.Transforms.ApplyOnnxModel("softmaxout_1", "data_0", modelFile)); // Map column "data_0" to column "softmaxout_1"
+            var model = pipeline.Fit(dataView);
+            var onnx = model.Transform(dataView);
+
+            // Convert IDataView back to IEnumerable<ImageDataPoint> so that user can inspect the output, column "softmaxout_1", of the ONNX transform.
+            // Note that Column "softmaxout_1" would be stored in ImageDataPont.Scores because the added attributed [ColumnName("softmaxout_1")]
+            // tells that ImageDataPont.Scores is equivalent to column "softmaxout_1".
+            var transformedDataPoints = ML.Data.CreateEnumerable<ImageDataPoint>(onnx, false).ToList();
+
+            // The scores are probabilities of all possible classes, so they should all be positive.
+            foreach (var dataPoint in transformedDataPoints)
+                foreach (var score in dataPoint.Scores)
+                    Assert.True(score > 0);
         }
     }
 }
