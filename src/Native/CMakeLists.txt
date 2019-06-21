@@ -11,7 +11,7 @@ if(WIN32)
     # There seems to be a bug in the latest VS2019 
     # which is adding /ZI (which conflicts with /guard:cf) instead of /Zi. 
 	message("CMAKE_C_FLAGS_DEBUG is ${CMAKE_C_FLAGS_DEBUG}")
-	message("In a future version, if the default compiler flags no longer contain the /ZI flag, delete this message block and the line below.")
+	message("In a future version, if the CMake that ships with VS2019 no longer contains the /ZI flag, delete this message block and the two lines below.")
     string(REPLACE "/ZI" "/Zi" CMAKE_C_FLAGS_DEBUG  ${CMAKE_C_FLAGS_DEBUG})
     string(REPLACE "/ZI" "/Zi" CMAKE_CXX_FLAGS_DEBUG  ${CMAKE_CXX_FLAGS_DEBUG})
 
