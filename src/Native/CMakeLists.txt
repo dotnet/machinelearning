@@ -13,6 +13,9 @@ if(WIN32)
     # which is incompatible with the /guard:cf flag we set below
     # for security. So we use the default flags set by CMake 
     # and reset /ZI with /Zi
+	message("CMAKE_C_FLAGS_DEBUG is ${CMAKE_C_FLAGS_DEBUG}")
+	message("CMAKE_CXX_FLAGS_DEBUG is ${CMAKE_CXX_FLAGS_DEBUG}")
+	message("In a future version, If the default compiler flags no longer contain the /ZI flag, delete this message block and the two lines below.")
     set(CMAKE_C_FLAGS_DEBUG "/MDd /Zi /Ob0 /Od /RTC1 /JMC")
     set(CMAKE_CXX_FLAGS_DEBUG "/MDd /Zi /Ob0 /Od /RTC1 /JMC")
 
