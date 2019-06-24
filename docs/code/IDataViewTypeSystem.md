@@ -190,12 +190,11 @@ text value to the value zero.
 
 ### Missing Value
 
-Most of the standard primitive types support the notion of a missing value. In
-particular, the text type, floating-point types, signed integer types, and key
-types all have an internal representation of missing. We follow R's lead and
-denote such values as `NA`.
+Only floating-point types and key types have an internal representation of missing.
+Other types don't support missing value. We follow R's lead and
+denote the missing values as `NA`.
 
-Unlike R, the standard primitive types do not distinguish between missing and
+Unlike R, the floating-point types do not distinguish between missing and
 invalid. For example, in floating-point arithmetic, computing zero divided by
 zero, or infinity minus infinity, produces an invalid value known as a `NaN`
 (for Not-a-Number). R uses a specific `NaN` value to represent its `NA` value,
@@ -207,7 +206,7 @@ A standard conversion from a source type with `NA` to a destination type with
 `NA` maps `NA` to `NA`. A standard conversion from a source type with `NA` to
 a destination type without `NA` maps `NA` to the default value of the
 destination type. For example, converting a `R4` to `R8` produces a `NaN`, but
-converting a an `R4` `NA` to `U4` results in zero. Note that this
+converting an `R4` `NA` to `U4` results in zero. Note that this
 specification does not address diagnostic user messages, so, in certain
 environments, the latter situation may generate a warning to the user, or even
 an exception.

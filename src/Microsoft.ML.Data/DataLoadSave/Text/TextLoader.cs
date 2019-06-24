@@ -1432,6 +1432,13 @@ namespace Microsoft.ML.Data
         /// Loads data from <paramref name="source"/> into an <see cref="IDataView"/>.
         /// </summary>
         /// <param name="source">The source from which to load data.</param>
+        /// <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        /// [!code-csharp[Load](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/DataOperations/LoadingText.cs)]
+        /// ]]>
+        /// </format>
+        /// </example>
         public IDataView Load(IMultiStreamSource source) => new BoundLoader(this, source);
 
         internal static TextLoader CreateTextLoader<TInput>(IHostEnvironment host,
@@ -1449,9 +1456,12 @@ namespace Microsoft.ML.Data
             var propertyInfos =
                 userType
                 .GetProperties(BindingFlags.Public | BindingFlags.Instance)
-                .Where(x => x.CanRead && x.CanWrite && x.GetGetMethod() != null && x.GetSetMethod() != null && x.GetIndexParameters().Length == 0);
+                .Where(x => x.CanRead && x.GetGetMethod() != null && x.GetIndexParameters().Length == 0);
 
             var memberInfos = (fieldInfos as IEnumerable<MemberInfo>).Concat(propertyInfos).ToArray();
+
+            if (memberInfos.Length == 0)
+                throw host.ExceptParam(nameof(TInput), $"Should define at least one public, readable field or property in {nameof(TInput)}.");
 
             var columns = new List<Column>();
 

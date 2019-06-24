@@ -40,6 +40,10 @@ namespace Microsoft.ML.Trainers
     /// | Required NuGet in addition to Microsoft.ML | None |
     ///
     /// [!include[algorithm](~/../docs/samples/docs/api-reference/algo-details-sdca.md)]
+    ///
+    /// [!include[regularization](~/../docs/samples/docs/api-reference/regularization-l1-l2.md)]
+    ///
+    /// [!include[references](~/../docs/samples/docs/api-reference/algo-details-sdca-refs.md)]
     /// ]]>
     /// </format>
     /// </remarks>

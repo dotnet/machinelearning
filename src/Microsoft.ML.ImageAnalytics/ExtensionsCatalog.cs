@@ -26,6 +26,7 @@ namespace Microsoft.ML
         /// <format type="text/markdown">
         /// <![CDATA[
         ///  [!code-csharp[ConvertToGrayscale](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/ImageAnalytics/ConvertToGrayscale.cs)]
+        ///  [!code-csharp[ConvertToGrayscale](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/ImageAnalytics/ConvertToGrayScaleInMemory.cs)]
         /// ]]></format>
         /// </example>
         public static ImageGrayscalingEstimator ConvertToGrayscale(this TransformsCatalog catalog, string outputColumnName, string inputColumnName = null)
@@ -117,6 +118,7 @@ namespace Microsoft.ML
         /// <format type="text/markdown">
         /// <![CDATA[
         ///  [!code-csharp[ExtractPixels](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/ImageAnalytics/ExtractPixels.cs)]
+        ///  [!code-csharp[ApplyOnnxModel](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/ApplyONNXModelWithInMemoryImages.cs)]
         /// ]]></format>
         /// </example>
         public static ImagePixelExtractingEstimator ExtractPixels(this TransformsCatalog catalog,
