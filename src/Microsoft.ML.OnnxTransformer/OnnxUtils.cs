@@ -30,13 +30,53 @@ namespace Microsoft.ML.Transforms.Onnx
         /// </summary>
         public sealed class OnnxModelInfo
         {
-            public readonly OnnxVariableInfo[] InputsInfo;
-            public readonly OnnxVariableInfo[] OutputsInfo;
+            /// <summary>
+            /// InputNames[i] is the name of the i-th element in <see cref="InputsInfo"/>.
+            /// </summary>
+            public List<string> InputNames { get; }
+            /// <summary>
+            /// OutputNames[i] is the name of the i-th element in <see cref="OutputsInfo"/>.
+            /// </summary>
+            public List<string> OutputNames { get; }
+            /// <summary>
+            /// Inputs of the containing <see cref="OnnxModel"/>.
+            /// </summary>
+            public OnnxVariableInfo[] InputsInfo { get; }
+            /// <summary>
+            /// Outputs of the containing <see cref="OnnxModel"/>.
+            /// </summary>
+            public OnnxVariableInfo[] OutputsInfo { get; }
 
             public OnnxModelInfo(IEnumerable<OnnxVariableInfo> inputsInfo, IEnumerable<OnnxVariableInfo> outputsInfo)
             {
+                InputNames = inputsInfo.Select(val => val.Name).ToList();
                 InputsInfo = inputsInfo.ToArray();
+                OutputNames = outputsInfo.Select(val => val.Name).ToList();
                 OutputsInfo = outputsInfo.ToArray();
+            }
+
+            /// <summary>
+            /// Return the ONNX value for a <see cref="IDataView"/> input column called <paramref name="name"/>.
+            /// </summary>
+            public OnnxVariableInfo GetInput(string name)
+            {
+                var index = InputNames.IndexOf(name);
+                if (index < 0)
+                    throw Contracts.ExceptParamValue(name, nameof(name), $"Input tensor, {name}, does not exist in the ONNX model. " +
+                        $"Available input names are [{string.Join(",", InputNames)}].");
+                return InputsInfo[index];
+            }
+
+            /// <summary>
+            /// Return the ONNX value for a <see cref="IDataView"/> output column called <paramref name="name"/>.
+            /// </summary>
+            public OnnxVariableInfo GetOutput(string name)
+            {
+                var index = OutputNames.IndexOf(name);
+                if (index < 0)
+                    throw Contracts.ExceptParamValue(name, nameof(name), $"Onput tensor, {name}, does not exist in the ONNX model. " +
+                        $"Available output names are [{string.Join(",", OutputNames)}].");
+                return OutputsInfo[index];
             }
         }
 
@@ -61,20 +101,21 @@ namespace Microsoft.ML.Transforms.Onnx
 
             public DataViewType MlnetType { get; }
 
-            public OnnxVariableInfo(string name, OnnxShape shape, System.Type ortType, DataViewType mlnetType)
+            public Func<NamedOnnxValue, object> Caster { get; }
+
+            public OnnxVariableInfo(string name, OnnxShape shape, System.Type ortType, DataViewType mlnetType, Func<NamedOnnxValue, object> caster)
             {
                 Name = name;
                 Shape = shape;
                 OrtType = ortType;
                 MlnetType = mlnetType;
+                Caster = caster;
             }
         }
 
         public readonly OnnxModelInfo ModelInfo;
         private readonly InferenceSession _session;
         private readonly string _modelFile;
-        public readonly List<string> InputNames;
-        public readonly List<string> OutputNames;
 
         /// <summary>
         /// Constructs OnnxModel object from file.
@@ -112,37 +153,42 @@ namespace Microsoft.ML.Transforms.Onnx
             using (var modelStream = File.OpenRead(modelFile))
                 model = OnnxCSharpToProtoWrapper.ModelProto.Parser.ParseFrom(modelStream);
 
-            // Parse actual input and output types stored in the loaded ONNX model.
+            // Parse actual input and output types stored in the loaded ONNX model to get their DataViewType's.
             var inputTypePool = new Dictionary<string, DataViewType>();
             foreach (var valueInfo in model.Graph.Input)
                 inputTypePool[valueInfo.Name] = OnnxTypeHelper.GetDataViewType(valueInfo.Type);
             var outputTypePool = new Dictionary<string, DataViewType>();
-            foreach (var valueInfo in model.Graph.Output)
-                outputTypePool[valueInfo.Name] = OnnxTypeHelper.GetDataViewType(valueInfo.Type);
 
-            var inputInfos = new List<OnnxVariableInfo>();
+            // Build casters which maps NamedOnnxValue to .NET objects.
+            var casterPool = new Dictionary<string, Func<NamedOnnxValue, object>>();
+            foreach (var valueInfo in model.Graph.Output)
+            {
+                outputTypePool[valueInfo.Name] = OnnxTypeHelper.GetDataViewType(valueInfo.Type);
+                casterPool[valueInfo.Name] = OnnxTypeHelper.GetDataViewValueCasterAndResultedType(valueInfo.Type, out Type actualType);
+            }
+
+            var onnxRuntimeInputInfos = new List<OnnxVariableInfo>();
             foreach (var pair in _session.InputMetadata)
             {
                 var name = pair.Key;
                 var meta = pair.Value;
                 var dataViewType = inputTypePool[name];
-                var info = new OnnxVariableInfo(name, meta.Dimensions.ToList(), meta.ElementType, dataViewType);
-                inputInfos.Add(info);
+                var info = new OnnxVariableInfo(name, meta.Dimensions.ToList(), meta.ElementType, dataViewType, null);
+                onnxRuntimeInputInfos.Add(info);
             }
 
-            var outputInfos = new List<OnnxVariableInfo>();
+            var onnxRuntimeOutputInfos = new List<OnnxVariableInfo>();
             foreach (var pair in _session.OutputMetadata)
             {
                 var name = pair.Key;
                 var meta = pair.Value;
                 var dataViewType = outputTypePool[name];
-                var info = new OnnxVariableInfo(name, meta.Dimensions.ToList(), meta.ElementType, dataViewType);
-                outputInfos.Add(info);
+                var caster = casterPool[name];
+                var info = new OnnxVariableInfo(name, meta.Dimensions.ToList(), meta.ElementType, dataViewType, caster);
+                onnxRuntimeOutputInfos.Add(info);
             }
 
-            ModelInfo = new OnnxModelInfo(inputInfos, outputInfos);
-            InputNames = ModelInfo.InputsInfo.Select(j => j.Name).ToList();
-            OutputNames = ModelInfo.OutputsInfo.Select(j => j.Name).ToList();
+            ModelInfo = new OnnxModelInfo(onnxRuntimeInputInfos, onnxRuntimeOutputInfos);
         }
 
         /// <summary>

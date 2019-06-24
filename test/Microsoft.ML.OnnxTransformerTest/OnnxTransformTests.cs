@@ -325,14 +325,23 @@ namespace Microsoft.ML.Tests
             public float[] Input { get; set; }
         }
 
-        private class ZipMapOutput
+        private class ZipMapStringOutput
         {
             [OnnxSequenceType(typeof(IDictionary<string, float>))]
             public IEnumerable<IDictionary<string, float>> output { get; set; }
         }
 
+        private class ZipMapInt64Output
+        {
+            [OnnxSequenceType(typeof(IDictionary<long, float>))]
+            public IEnumerable<IDictionary<long, float>> output { get; set; }
+        }
+
+        /// <summary>
+        /// A test to check if sequence output works.
+        /// </summary>
         [OnnxFact]
-        public void TestOnnxZipMap()
+        public void TestOnnxZipMapWithStringKeys()
         {
             var modelFile = Path.Combine(Directory.GetCurrentDirectory(), "nodes", "TestZipMap.onnx");
 
@@ -365,7 +374,7 @@ namespace Microsoft.ML.Tests
             }
 
             // Convert IDataView to IEnumerable<ZipMapOutput> and then inspect the values.
-            var transformedDataPoints = ML.Data.CreateEnumerable<ZipMapOutput>(transformedDataView, false).ToList();
+            var transformedDataPoints = ML.Data.CreateEnumerable<ZipMapStringOutput>(transformedDataView, false).ToList();
 
             for (int i = 0; i < transformedDataPoints.Count; ++i)
             {
@@ -375,6 +384,56 @@ namespace Microsoft.ML.Tests
                 Assert.Equal(dataPoints[i].Input[0], dictionary["A"]);
                 Assert.Equal(dataPoints[i].Input[1], dictionary["B"]);
                 Assert.Equal(dataPoints[i].Input[2], dictionary["C"]);
+            }
+        }
+
+        /// <summary>
+        /// A test to check if sequence output works.
+        /// </summary>
+        [OnnxFact]
+        public void TestOnnxZipMapWithInt64Keys()
+        {
+            var modelFile = Path.Combine(Directory.GetCurrentDirectory(), "nodes", "TestZipMapInt64.onnx");
+
+            var dataPoints = new ZipMapInput[] {
+                new ZipMapInput() { Input = new float[] {1,2,3}, },
+                new ZipMapInput() { Input = new float[] {8,7,6}, },
+            };
+
+            var dataView = ML.Data.LoadFromEnumerable(dataPoints);
+            var transformedDataView = ML.Transforms.ApplyOnnxModel(new[] { "output" }, new[] { "input" }, modelFile).Fit(dataView).Transform(dataView);
+
+            // Verify output column carried by an IDataView.
+            var outputColumn = transformedDataView.Schema["output"];
+            using (var curs = transformedDataView.GetRowCursor(outputColumn, transformedDataView.Schema["output"]))
+            {
+                IEnumerable<IDictionary<long, float>> buffer = null;
+                var getMapSequence = curs.GetGetter<IEnumerable<IDictionary<long, float>>>(outputColumn);
+                int i = 0;
+                while (curs.MoveNext())
+                {
+                    getMapSequence(ref buffer);
+                    Assert.Single(buffer);
+                    var dictionary = buffer.First();
+                    Assert.Equal(3, dictionary.Count());
+                    Assert.Equal(dataPoints[i].Input[0], dictionary[94]);
+                    Assert.Equal(dataPoints[i].Input[1], dictionary[17]);
+                    Assert.Equal(dataPoints[i].Input[2], dictionary[36]);
+                    ++i;
+                }
+            }
+
+            // Convert IDataView to IEnumerable<ZipMapOutput> and then inspect the values.
+            var transformedDataPoints = ML.Data.CreateEnumerable<ZipMapInt64Output>(transformedDataView, false).ToList();
+
+            for (int i = 0; i < transformedDataPoints.Count; ++i)
+            {
+                Assert.Single(transformedDataPoints[i].output);
+                var dictionary = transformedDataPoints[i].output.First();
+                Assert.Equal(3, dictionary.Count());
+                Assert.Equal(dataPoints[i].Input[0], dictionary[94]);
+                Assert.Equal(dataPoints[i].Input[1], dictionary[17]);
+                Assert.Equal(dataPoints[i].Input[2], dictionary[36]);
             }
         }
     }

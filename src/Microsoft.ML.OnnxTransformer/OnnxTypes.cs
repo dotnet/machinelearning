@@ -5,15 +5,23 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Numerics.Tensors;
 using Microsoft.ML.Data;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Model.OnnxConverter;
+using Microsoft.ML.OnnxRuntime;
 using Microsoft.ML.Runtime;
 
 namespace Microsoft.ML.Transforms.Onnx
 {
     internal class OnnxTypeHelper
     {
+        /// <summary>
+        /// Derive the corresponding <see cref="Type"/> for ONNX tensor's element type specified by <paramref name="dataType"/>.
+        /// The corresponding <see cref="Type"/> should match the type system in ONNXRuntime's C# APIs.
+        /// This function is used when determining the corresponding <see cref="Type"/> of <see cref="OnnxCSharpToProtoWrapper.TypeProto"/>.
+        /// </summary>
+        /// <param name="dataType">ONNX's tensor element type.</param>
         public static Type GetNativeScalarType(OnnxCSharpToProtoWrapper.TensorProto.Types.DataType dataType)
         {
             Type scalarType = null;
@@ -61,10 +69,14 @@ namespace Microsoft.ML.Transforms.Onnx
             return scalarType;
         }
 
+        /// <summary>
+        /// Derive the corresponding <see cref="Type"/> for ONNX variable typed to <paramref name="typeProto"/>.
+        /// The corresponding <see cref="Type"/> should match the type system in ONNXRuntime's C# APIs.
+        /// </summary>
+        /// <param name="typeProto">ONNX variable's type.</param>
         public static Type GetNativeType(OnnxCSharpToProtoWrapper.TypeProto typeProto)
         {
-            var oneOfFieldName = typeProto.ValueCase.ToString();
-            if (oneOfFieldName == "TensorType")
+            if (typeProto.ValueCase == OnnxCSharpToProtoWrapper.TypeProto.ValueOneofCase.TensorType)
             {
                 if (typeProto.TensorType.Shape == null || typeProto.TensorType.Shape.Dim.Count == 0)
                 {
@@ -77,13 +89,13 @@ namespace Microsoft.ML.Transforms.Onnx
                     return tensorType.MakeGenericType(elementType);
                 }
             }
-            else if (oneOfFieldName == "SequenceType")
+            else if (typeProto.ValueCase == OnnxCSharpToProtoWrapper.TypeProto.ValueOneofCase.SequenceType)
             {
                 var enumerableType = typeof(IEnumerable<>);
                 var elementType = GetNativeType(typeProto.SequenceType.ElemType);
                 return enumerableType.MakeGenericType(elementType);
             }
-            else if (oneOfFieldName == "MapType")
+            else if (typeProto.ValueCase == OnnxCSharpToProtoWrapper.TypeProto.ValueOneofCase.MapType)
             {
                 var dictionaryType = typeof(IDictionary<,>);
                 Type keyType = GetNativeScalarType(typeProto.MapType.KeyType);
@@ -93,6 +105,10 @@ namespace Microsoft.ML.Transforms.Onnx
             return null;
         }
 
+        /// <summary>
+        /// Derive the corresponding <see cref="DataViewType"/> for ONNX tensor's element type specified by <paramref name="dataType"/>.
+        /// </summary>
+        /// <param name="dataType">ONNX's tensor element type.</param>
         public static DataViewType GetScalarDataViewType(OnnxCSharpToProtoWrapper.TensorProto.Types.DataType dataType)
         {
             DataViewType scalarType = null;
@@ -140,6 +156,10 @@ namespace Microsoft.ML.Transforms.Onnx
             return scalarType;
         }
 
+        /// <summary>
+        /// Parse the dimension information of a single tensor axis. Note that 2-D ONNX tensors have two axes.
+        /// </summary>
+        /// <param name="dim">ONNX's tensor dimension.</param>
         public static int GetDimValue(OnnxCSharpToProtoWrapper.TensorShapeProto.Types.Dimension dim)
         {
             int value = 0;
@@ -162,6 +182,10 @@ namespace Microsoft.ML.Transforms.Onnx
             return value;
         }
 
+        /// <summary>
+        /// Parse the shape information of a tensor.
+        /// </summary>
+        /// <param name="tensorShapeProto">ONNX's tensor shape.</param>
         public static IEnumerable<int> GetTensorDims(Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.TensorShapeProto tensorShapeProto)
         {
             if (tensorShapeProto == null)
@@ -177,6 +201,11 @@ namespace Microsoft.ML.Transforms.Onnx
             return dims;
         }
 
+        /// <summary>
+        /// Derive the corresponding <see cref="DataViewType"/> for ONNX variable typed to <paramref name="typeProto"/>.
+        /// The returned <see cref="DataViewType.RawType"/> should match the type system in ONNXRuntime's C# APIs.
+        /// </summary>
+        /// <param name="typeProto">ONNX variable's type.</param>
         public static DataViewType GetDataViewType(OnnxCSharpToProtoWrapper.TypeProto typeProto)
         {
             var oneOfFieldName = typeProto.ValueCase.ToString();
@@ -211,6 +240,128 @@ namespace Microsoft.ML.Transforms.Onnx
                 var keyType = GetNativeScalarType(typeProto.MapType.KeyType);
                 var valueType = GetNativeType(typeProto.MapType.ValueType);
                 return new OnnxMapType(keyType, valueType);
+            }
+            else
+                throw Contracts.ExceptParamValue(typeProto, nameof(typeProto), $"Unsupported ONNX variable type {typeProto}");
+        }
+
+        /// <summary>
+        /// Class which store casting functions used in <see cref="GetDataViewValueCasterAndResultedType(OnnxCSharpToProtoWrapper.TypeProto, out Type)"/>.
+        /// </summary>
+        private class CastHelper
+        {
+            public static T CastTo<T>(object o) => (T) o;
+
+            public static IEnumerable<TDst> CastOnnxSequenceToIEnumerable<TSrc, TDst>(IEnumerable<TSrc> o, Func<TSrc, object> caster)
+            {
+                return o.Select(v => (TDst)caster(v));
+            }
+        }
+
+        /// <summary>
+        /// Create a <see cref="Func{T, TResult}"/> to map a <see cref="NamedOnnxValue"/> to the associated .NET <see langword="object"/>.
+        /// The resulted .NET object's actual type is <paramref name="resultedType"/>.
+        /// The returned <see cref="DataViewType.RawType"/> should match the type system in ONNXRuntime's C# APIs.
+        /// </summary>
+        /// <param name="typeProto">ONNX variable's type.</param>
+        /// <param name="resultedType">C# type of <paramref name="typeProto"/>.</param>
+        public static Func<NamedOnnxValue, object> GetDataViewValueCasterAndResultedType(OnnxCSharpToProtoWrapper.TypeProto typeProto, out Type resultedType)
+        {
+            var oneOfFieldName = typeProto.ValueCase.ToString();
+            if (typeProto.ValueCase == OnnxCSharpToProtoWrapper.TypeProto.ValueOneofCase.TensorType)
+            {
+                var shape = GetTensorDims(typeProto.TensorType.Shape);
+
+                if (shape == null)
+                {
+                    // Entering this scope means that a ONNX scalar is found. Note that ONNX scalar is typed to tensor without a shape.
+
+                    // Get tensor element type.
+                    var type = GetScalarDataViewType(typeProto.TensorType.ElemType).RawType;
+
+                    // Create a method to cast NamedOnnxValue to Tensor.
+                    var methodInfo = typeof(NamedOnnxValue).GetMethod(nameof(NamedOnnxValue.AsTensor));
+                    var methodSpecialized = methodInfo.MakeGenericMethod(type);
+
+                    // Access the first element as a scalar.
+                    var accessInfo = typeof(Tensor<>).GetMethod(nameof(Tensor<int>.GetValue));
+                    var accessSpecialized = accessInfo.MakeGenericMethod(type);
+
+                    // NamedOnnxValue to scalar.
+                    Func<NamedOnnxValue, object> caster = (NamedOnnxValue value) => {
+                        var tensor = methodSpecialized.Invoke(value, new object[] { });
+                        var scalar = accessSpecialized.Invoke(value, new object[] { 0 });
+                        return scalar;
+                    };
+
+                    resultedType = type;
+
+                    return caster;
+                }
+                else
+                {
+                    // Entering this scope means a ONNX tensor is found.
+
+                    var type = GetScalarDataViewType(typeProto.TensorType.ElemType).RawType;
+                    var methodInfo = typeof(NamedOnnxValue).GetMethod(nameof(NamedOnnxValue.AsTensor));
+                    var methodSpecialized = methodInfo.MakeGenericMethod(type);
+
+                    // NamedOnnxValue to Tensor.
+                    Func<NamedOnnxValue, object> caster = (NamedOnnxValue value) => methodSpecialized.Invoke(value, new object[] { });
+
+                    resultedType = typeof(Tensor<>).MakeGenericType(type);
+
+                    return caster;
+                }
+            }
+            else if (typeProto.ValueCase == OnnxCSharpToProtoWrapper.TypeProto.ValueOneofCase.SequenceType)
+            {
+                // Now, we see a Sequence in ONNX. If its element type is T, the variable produced by
+                // ONNXRuntime would be typed to IEnumerable<T>.
+
+                // Find a proper caster (a function which maps NamedOnnxValue to a .NET object) for the element in
+                // the ONNX sequence. Note that ONNX sequence is typed to IEnumerable<NamedOnnxValue>, so we need
+                // to convert NamedOnnxValue to a proper type such as IDictionary<>.
+                var elementCaster = GetDataViewValueCasterAndResultedType(typeProto.SequenceType.ElemType, out Type elementType);
+
+                // Set the .NET type which corresponds to the first input argument, typeProto.
+                resultedType = typeof(IEnumerable<>).MakeGenericType(elementType);
+
+                // Create the element's caster to map IEnumerable<NamedOnnxValue> produced by ONNXRuntime to
+                // IEnumerable<elementType>.
+                var methodInfo = typeof(CastHelper).GetMethod(nameof(CastHelper.CastOnnxSequenceToIEnumerable));
+                var methodSpecialized = methodInfo.MakeGenericMethod(typeof(NamedOnnxValue), elementType);
+
+                // Use element-level caster to create sequence caster.
+                Func<NamedOnnxValue, object> caster = (NamedOnnxValue value) =>
+                {
+                    var enumerable = value.AsEnumerable<NamedOnnxValue>();
+                    return methodSpecialized.Invoke(null, new object[] { enumerable, elementCaster });
+                };
+
+                return caster;
+            }
+            else if (typeProto.ValueCase == OnnxCSharpToProtoWrapper.TypeProto.ValueOneofCase.MapType)
+            {
+                // Entering this scope means a ONNX Map (equivalent to IDictionary<>) will be produced.
+
+                var keyType = GetNativeScalarType(typeProto.MapType.KeyType);
+                var valueType = GetNativeType(typeProto.MapType.ValueType);
+
+                // The resulted type of the object returned by the caster below.
+                resultedType = typeof(IDictionary<,>).MakeGenericType(keyType, valueType);
+
+                // Create a method to convert NamedOnnxValue to IDictionary<keyValue, valueType>.
+                var asDictionaryMethodInfo = typeof(NamedOnnxValue).GetMethod(nameof(NamedOnnxValue.AsDictionary));
+                var asDictionaryMethod = asDictionaryMethodInfo.MakeGenericMethod(keyType, valueType);
+
+                // Create a caster to convert NamedOnnxValue to IDictionary<keyValue, valueType>.
+                Func<NamedOnnxValue, object> caster = (NamedOnnxValue value) =>
+                {
+                    return asDictionaryMethod.Invoke(value, new object[] { });
+                };
+
+                return caster;
             }
             else
                 throw Contracts.ExceptParamValue(typeProto, nameof(typeProto), $"Unsupported ONNX variable type {typeProto}");
@@ -255,8 +406,19 @@ namespace Microsoft.ML.Transforms.Onnx
         }
     }
 
+    /// <summary>
+    /// The corresponding <see cref="DataViewSchema.Column.Type"/> of ONNX's map type in <see cref="IDataView"/>'s type system.
+    /// In other words, if an ONNX model produces a map, a column in <see cref="IDataView"/> may be typed to <see cref="OnnxMapType"/>.
+    /// Its underlying type is <see cref="IDictionary{TKey, TValue}"/>, where the generic type "TKey" and "TValue" are the input arguments of
+    /// <see cref="OnnxMapType.OnnxMapType(Type,Type)"/>.
+    /// </summary>
     public sealed class OnnxMapType : StructuredDataViewType
     {
+        /// <summary>
+        /// Create the corresponding <see cref="DataViewType"/> for ONNX map.
+        /// </summary>
+        /// <param name="keyType">Key type of the associated ONNX map.</param>
+        /// <param name="valueType">Value type of the associated ONNX map.</param>
         public OnnxMapType(Type keyType, Type valueType) : base(typeof(IDictionary<,>).MakeGenericType(keyType, valueType))
         {
             DataViewTypeManager.Register(this, RawType, new[] { new OnnxMapTypeAttribute(keyType, valueType) });
@@ -264,13 +426,24 @@ namespace Microsoft.ML.Transforms.Onnx
 
         public override bool Equals(DataViewType other)
         {
-            if (other is OnnxSequenceType)
+            if (other is OnnxMapType)
                 return RawType == other.RawType;
             else
                 return false;
         }
+
+        public override int GetHashCode()
+        {
+            return RawType.GetHashCode();
+        }
     }
 
+    /// <summary>
+    /// To declare <see cref="OnnxSequenceType"/> column in <see cref="IDataView"/> as a field
+    /// in a <see langword="class"/>, the associated field should be marked with <see cref="OnnxSequenceTypeAttribute"/>.
+    /// Its uses are similar to those of <see cref="VectorTypeAttribute"/> and other <see langword="class"/>es derived
+    /// from <see cref="DataViewTypeAttribute"/>.
+    /// </summary>
     public sealed class OnnxSequenceTypeAttribute : DataViewTypeAttribute
     {
         private Type _elemType;
@@ -307,6 +480,9 @@ namespace Microsoft.ML.Transforms.Onnx
             return _elemType.GetHashCode();
         }
 
+        /// <summary>
+        /// An implementation of <see cref="DataViewTypeAttribute.Register"/>.
+        /// </summary>
         public override void Register()
         {
             var enumerableType = typeof(IEnumerable<>);
@@ -315,6 +491,12 @@ namespace Microsoft.ML.Transforms.Onnx
         }
     }
 
+    /// <summary>
+    /// To declare <see cref="OnnxMapType"/> column in <see cref="IDataView"/> as a field
+    /// in a <see langword="class"/>, the associated field should be marked with <see cref="OnnxMapTypeAttribute"/>.
+    /// Its uses are similar to those of <see cref="VectorTypeAttribute"/> and other <see langword="class"/>es derived
+    /// from <see cref="DataViewTypeAttribute"/>.
+    /// </summary>
     public sealed class OnnxMapTypeAttribute : DataViewTypeAttribute
     {
         private Type _keyType;
@@ -353,6 +535,9 @@ namespace Microsoft.ML.Transforms.Onnx
             return Hashing.CombineHash(_keyType.GetHashCode(), _valueType.GetHashCode());
         }
 
+        /// <summary>
+        /// An implementation of <see cref="DataViewTypeAttribute.Register"/>.
+        /// </summary>
         public override void Register()
         {
             var enumerableType = typeof(IDictionary<,>);
