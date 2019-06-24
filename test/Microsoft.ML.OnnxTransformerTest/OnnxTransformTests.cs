@@ -425,7 +425,7 @@ namespace Microsoft.ML.Tests
         [OnnxFact]
         public void TestOnnxZipMapWithInt64Keys()
         {
-            var modelFile = Path.Combine(Directory.GetCurrentDirectory(), "nodes", "TestZipMapInt64.onnx");
+            var modelFile = Path.Combine(Directory.GetCurrentDirectory(), "zipmap", "TestZipMapInt64.onnx");
 
             var dataPoints = new ZipMapInput[] {
                 new ZipMapInput() { Input = new float[] {1,2,3}, },
@@ -475,7 +475,7 @@ namespace Microsoft.ML.Tests
         [OnnxFact]
         public void TestOnnxZipMapWithStringKeys()
         {
-            var modelFile = Path.Combine(Directory.GetCurrentDirectory(), "nodes", "TestZipMap.onnx");
+            var modelFile = Path.Combine(Directory.GetCurrentDirectory(), "zipmap", "TestZipMapString.onnx");
 
             var dataPoints = new ZipMapInput[] {
                 new ZipMapInput() { Input = new float[] {1,2,3}, },
