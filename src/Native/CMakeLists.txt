@@ -8,16 +8,12 @@ set(RESOURCES)
 include_directories("${CMAKE_BINARY_DIR}/../../")
 
 if(WIN32)
-    # Clobber and reset the default C and CXX flags because
-    # CMake uses /ZI (Edit and Continue) for generating pdbs
-    # which is incompatible with the /guard:cf flag we set below
-    # for security. So we use the default flags set by CMake 
-    # and reset /ZI with /Zi
+    # There seems to be a bug in the latest VS2019 
+    # which is adding /ZI (which conflicts with /guard:cf) instead of /Zi. 
 	message("CMAKE_C_FLAGS_DEBUG is ${CMAKE_C_FLAGS_DEBUG}")
-	message("CMAKE_CXX_FLAGS_DEBUG is ${CMAKE_CXX_FLAGS_DEBUG}")
-	message("In a future version, If the default compiler flags no longer contain the /ZI flag, delete this message block and the two lines below.")
-    set(CMAKE_C_FLAGS_DEBUG "/MDd /Zi /Ob0 /Od /RTC1 /JMC")
-    set(CMAKE_CXX_FLAGS_DEBUG "/MDd /Zi /Ob0 /Od /RTC1 /JMC")
+	message("In a future version, if the CMake that ships with VS2019 no longer contains the /ZI flag, delete this message block and the two lines below.")
+    string(REPLACE "/ZI" "/Zi" CMAKE_C_FLAGS_DEBUG  ${CMAKE_C_FLAGS_DEBUG})
+    string(REPLACE "/ZI" "/Zi" CMAKE_CXX_FLAGS_DEBUG  ${CMAKE_CXX_FLAGS_DEBUG})
 
     add_definitions(-DWIN32)
     add_definitions(-D_WIN32=1)
