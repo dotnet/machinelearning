@@ -9,7 +9,7 @@ using Microsoft.ML.Data;
 
 namespace Samples.Dynamic
 {
-    public static class ImageClassification
+    public static class ImageClassifications
     {
         /// <summary>
         /// Example use of the TensorFlow image model in a ML.NET pipeline.

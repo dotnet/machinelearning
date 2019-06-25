@@ -10,6 +10,7 @@
   <ItemGroup>
     <PackageReference Include="System.IO.FileSystem.AccessControl" Version="$(SystemIOFileSystemAccessControl)" />
     <PackageReference Include="System.Security.Principal.Windows" Version="$(SystemSecurityPrincipalWindows)" />
+    <PackageReference Include="TensorFlow.NET" Version="0.8.2" />
   </ItemGroup>
 
   <ItemGroup>

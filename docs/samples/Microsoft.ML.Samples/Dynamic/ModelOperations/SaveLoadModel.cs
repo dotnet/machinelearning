@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using Microsoft.ML;
 
-namespace Samples.Dynamic.ModelOperations
+namespace Samples.Dynamic.ImageClassification
 {
     public class SaveLoadModel
     {
