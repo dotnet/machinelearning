@@ -398,7 +398,10 @@ namespace Microsoft.ML.Transforms.Onnx
                 {
                     var elemRawType = vectorType.ItemType.RawType;
                     var srcNamedValueGetters = GetNamedOnnxValueGetters(input, _inputColIndices, _inputOnnxTypes, _inputTensorShapes);
-                    return Utils.MarshalInvoke(MakeTensorGetter<int>, elemRawType, input, iinfo, srcNamedValueGetters, activeOutputColNames);
+                    if (vectorType.ItemType is TextDataViewType)
+                        return MakeStringTensorGetter(input, iinfo, srcNamedValueGetters, activeOutputColNames);
+                    else
+                        return Utils.MarshalInvoke(MakeTensorGetter<int>, elemRawType, input, iinfo, srcNamedValueGetters, activeOutputColNames);
                 }
                 else
                 {
@@ -454,6 +457,32 @@ namespace Microsoft.ML.Transforms.Onnx
                         throw Host.Except($"Output column {namedOnnxValue.Name} doesn't contain a DenseTensor of expected type {typeof(T)}");
                     var editor = VBufferEditor.Create(ref dst, (int)denseTensor.Length);
                     denseTensor.Buffer.Span.CopyTo(editor.Values);
+                    dst = editor.Commit();
+                };
+                return valueGetter;
+            }
+
+            private Delegate MakeStringTensorGetter(DataViewRow input, int iinfo, INamedOnnxValueGetter[] srcNamedValueGetters, string[] activeOutputColNames)
+            {
+                Host.AssertValue(input);
+                var outputCacher = new OnnxRuntimeOutputCacher();
+                ValueGetter<VBuffer<ReadOnlyMemory<char>>> valueGetter = (ref VBuffer<ReadOnlyMemory<char>> dst) =>
+                {
+                    UpdateCacheIfNeeded(input.Position, srcNamedValueGetters, activeOutputColNames, outputCacher);
+                    var namedOnnxValue = outputCacher.Outputs[_parent.Outputs[iinfo]];
+                    var denseTensor = namedOnnxValue.AsTensor<string>();
+                    if (denseTensor == null)
+                        throw Host.Except($"Output column {namedOnnxValue.Name} doesn't contain a DenseTensor of expected type {typeof(string)}");
+
+                    // Tensor<string> to Tensor<ReadOnlyMemory<char>>.
+                    var casted = denseTensor.Select(value => value.AsMemory());
+                    // Tensor<ReadOnlyMemory<char>> to Span<ReadOnlyMemory<char>>.
+                    // Note that string vector in ML.NET is typed to Span<ReadOnlyMemory<char>>.
+                    var buffer = new Span<ReadOnlyMemory<char>>(casted.ToArray());
+
+                    // Create VBufferEditor to fill "dst" with the values in "buffer".
+                    var editor = VBufferEditor.Create(ref dst, (int)denseTensor.Length);
+                    buffer.CopyTo(editor.Values);
                     dst = editor.Commit();
                 };
                 return valueGetter;
