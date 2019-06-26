@@ -9,6 +9,7 @@ namespace Microsoft.ML.Samples
 
         internal static void RunAll()
         {
+            // Samples counter.
             int samples = 0;
             foreach (var type in Assembly.GetExecutingAssembly().GetTypes())
             {
