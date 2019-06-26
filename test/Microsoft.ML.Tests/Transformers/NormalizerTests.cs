@@ -785,21 +785,67 @@ namespace Microsoft.ML.Tests.Transformers
             }
         }
 
-        private sealed class DataPoint
+        private sealed class DataPointVec
         {
             [VectorType(5)]
             public float[] Features { get; set; }
         }
 
-        [Fact]
-        void TestNormalizeLogMeanVarianceFixZero()
+        private sealed class DataPointOne
         {
-            var samples = new List<DataPoint>()
+            public float Features { get; set; }
+        }
+
+        [Fact]
+        void TestNormalizeLogMeanVarianceFixZeroOne()
+        {
+            var samples = new List<DataPointOne>()
             {
-                new DataPoint(){ Features = new float[5] { 1, 1, 3, 0, float.MaxValue } },
-                new DataPoint(){ Features = new float[5] { 2, 2, 2, 0, float.MinValue } },
-                new DataPoint(){ Features = new float[5] { 0, 0, 1, 0.5f, 0} },
-                new DataPoint(){ Features = new float[5] {-1,-1,-1, 1, 1} }
+                new DataPointOne(){ Features = 1f },
+                new DataPointOne(){ Features = 2f },
+                new DataPointOne(){ Features = 0f },
+                new DataPointOne(){ Features = -1 }
+            };
+            // Convert training data to IDataView, the general data type used in ML.NET.
+            var data = ML.Data.LoadFromEnumerable(samples);
+            // NormalizeLogMeanVariance normalizes the data based on the computed mean and variance of the logarithm of the data.
+            // Uses Cumulative distribution function as output.
+            var normalize = ML.Transforms.NormalizeLogMeanVariance(true, "Features", useCdf: true);
+
+            // NormalizeLogMeanVariance normalizes the data based on the computed mean and variance of the logarithm of the data.
+            var normalizeNoCdf = ML.Transforms.NormalizeLogMeanVariance(true, "Features", useCdf: false);
+
+            // Now we can transform the data and look at the output to confirm the behavior of the estimator.
+            var normalizeTransform = normalize.Fit(data);
+            var transformedData = normalizeTransform.Transform(data);
+            var normalizeNoCdfTransform = normalizeNoCdf.Fit(data);
+            var noCdfData = normalizeNoCdfTransform.Transform(data);
+
+            var transformParams = normalizeTransform.GetNormalizerModelParameters(0) as CdfNormalizerModelParameters<float>;
+            var noCdfParams = normalizeNoCdfTransform.GetNormalizerModelParameters(0) as AffineNormalizerModelParameters<float>;
+
+            // Standard deviation and offset should not be zero for the given data even when FixZero is set to true.
+            Assert.NotEqual(0f, transformParams.Mean);
+            Assert.NotEqual(0f, transformParams.StandardDeviation);
+
+            // Offset should be zero when FixZero is set to true but not the scale (on this data).
+            Assert.Equal(0f, noCdfParams.Offset);
+            Assert.NotEqual(0f, noCdfParams.Scale);
+
+            var transformedDataArray = ML.Data.CreateEnumerable<DataPointOne>(noCdfData, false).ToImmutableArray();
+            // Without the Cdf and fixing zero, any 0 should stay 0.
+            Assert.Equal(0f, transformedDataArray[2].Features);
+        }
+
+        [Fact]
+        void TestNormalizeLogMeanVarianceFixZeroVec()
+        {
+            var samples = new List<DataPointVec>()
+            {
+                new DataPointVec(){ Features = new float[5] { 1, 1, 3, 0, float.MaxValue } },
+                new DataPointVec(){ Features = new float[5] { 2, 2, 2, 0, float.MinValue } },
+                new DataPointVec(){ Features = new float[5] { 0, 0, 1, 0.5f, 0} },
+                new DataPointVec(){ Features = new float[5] {-1,-1,-1, 1, 1} }
             };
             // Convert training data to IDataView, the general data type used in ML.NET.
             var data = ML.Data.LoadFromEnumerable(samples);
@@ -830,7 +876,7 @@ namespace Microsoft.ML.Tests.Transformers
                 Assert.NotEqual(0f, noCdfParams.Scale[i]);
             }
 
-            var transformedDataArray = ML.Data.CreateEnumerable<DataPoint>(noCdfData, false).ToImmutableArray();
+            var transformedDataArray = ML.Data.CreateEnumerable<DataPointVec>(noCdfData, false).ToImmutableArray();
             // Without the Cdf and fixing zero, any 0 should stay 0.
             Assert.Equal(0f, transformedDataArray[0].Features[3]);
             Assert.Equal(0f, transformedDataArray[1].Features[3]);

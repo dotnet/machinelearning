@@ -175,7 +175,7 @@ namespace Microsoft.ML
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
-        /// [!code-csharp[NormalizeLogMeanVariance](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/NormalizeLogMeanVariance.cs)]
+        /// [!code-csharp[NormalizeLogMeanVariance](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/NormalizeLogMeanVarianceFixZero.cs)]
         /// ]]>
         /// </format>
         /// </example>
