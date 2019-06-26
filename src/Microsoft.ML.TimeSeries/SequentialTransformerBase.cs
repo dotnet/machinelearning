@@ -26,6 +26,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
     internal abstract class SequentialTransformerBase<TInput, TOutput, TState> : IStatefulTransformer
         where TState : SequentialTransformerBase<TInput, TOutput, TState>.StateBase, new()
     {
+        public SequentialTransformerBase() { }
 
         /// <summary>
         /// The base class for encapsulating the State object for sequential processing. This class implements a windowed buffer.
@@ -393,7 +394,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
                 IDataView input, IStatefulRowMapper mapper)
                 : base(parent.Host, input)
             {
-                Metadata = new MetadataDispatcher(1);
+                Metadata = new MetadataDispatcher(3);
                 _parent = parent;
                 _transform = CreateLambdaTransform(_parent.Host, input, _parent.InputColumnName,
                     _parent.OutputColumnName, InitFunction, _parent.WindowSize > 0, _parent.OutputColumnType);
@@ -409,24 +410,29 @@ namespace Microsoft.ML.Transforms.TimeSeries
                 var inputSchema = SchemaDefinition.Create(typeof(DataBox<TInput>));
                 inputSchema[0].ColumnName = inputColumnName;
 
-                var outputSchema = SchemaDefinition.Create(typeof(DataBox<TOutput>));
+                var outputSchema = SchemaDefinition.Create(typeof(DataBoxMultiple<TOutput>));
                 outputSchema[0].ColumnName = outputColumnName;
 
                 if (outputColTypeOverride != null)
                     outputSchema[0].ColumnType = outputColTypeOverride;
 
-                Action<DataBox<TInput>, DataBox<TOutput>, TState> lambda;
+                outputSchema[1].ColumnName = "Min";
+                outputSchema[2].ColumnName = "Max";
+
+                Action<DataBox<TInput>, DataBoxMultiple<TOutput>, TState> lambda;
                 if (hasBuffer)
                     lambda = MapFunction;
                 else
-                    lambda = MapFunctionWithoutBuffer;
+                    lambda = MapFunction;
 
                 return LambdaTransform.CreateMap(host, input, lambda, initFunction, inputSchema, outputSchema);
             }
 
-            private static void MapFunction(DataBox<TInput> input, DataBox<TOutput> output, TState state)
+            private static void MapFunction(DataBox<TInput> input, DataBoxMultiple<TOutput> output, TState state)
             {
                 state.Process(ref input.Value, ref output.Value);
+                state.Process(ref input.Value, ref output.Value2);
+                state.Process(ref input.Value, ref output.Value3);
             }
 
             private static void MapFunctionWithoutBuffer(DataBox<TInput> input, DataBox<TOutput> output, TState state)

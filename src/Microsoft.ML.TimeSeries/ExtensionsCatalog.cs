@@ -5,7 +5,7 @@
 using System;
 using Microsoft.ML.Data;
 using Microsoft.ML.Transforms.TimeSeries;
-using static Microsoft.ML.Transforms.TimeSeries.AdaptiveSingularSpectrumSequenceModeler;
+//using static Microsoft.ML.Transforms.TimeSeries.AdaptiveSingularSpectrumSequenceForecasting;
 
 namespace Microsoft.ML
 {
@@ -148,7 +148,7 @@ namespace Microsoft.ML
             int windowSize=64, int backAddWindowSize=5, int lookaheadWindowSize=5, int averageingWindowSize=3, int judgementWindowSize=21, double threshold=0.3)
             => new SrCnnAnomalyEstimator(CatalogUtils.GetEnvironment(catalog), outputColumnName, windowSize, backAddWindowSize, lookaheadWindowSize, averageingWindowSize, judgementWindowSize, threshold, inputColumnName);
 
-        /// <summary>
+        /*/// <summary>
         /// Singular Spectrum Analysis (SSA) model for modeling univariate time-series.
         /// For the details of the model, refer to http://arxiv.org/pdf/1206.6910.pdf.
         /// </summary>
@@ -174,10 +174,10 @@ namespace Microsoft.ML
         /// ]]>
         /// </format>
         /// </example>
-        public static AdaptiveSingularSpectrumSequenceModeler AdaptiveSingularSpectrumSequenceModeler(this ForecastingCatalog catalog,
+        public static AdaptiveSingularSpectrumSequenceForecasting AdaptiveSingularSpectrumSequenceModeler(this ForecastingCatalog catalog,
             string inputColumnName, int trainSize, int seriesLength, int windowSize, Single discountFactor = 1, RankSelectionMethod rankSelectionMethod = RankSelectionMethod.Exact,
             int? rank = null, int? maxRank = null, bool shouldComputeForecastIntervals = true, bool shouldstablize = true, bool shouldMaintainInfo = false, GrowthRatio? maxGrowth = null) =>
-            new AdaptiveSingularSpectrumSequenceModeler(CatalogUtils.GetEnvironment(catalog), inputColumnName, trainSize, seriesLength, windowSize, discountFactor,
-            rankSelectionMethod, rank, maxRank, shouldComputeForecastIntervals, shouldstablize, shouldMaintainInfo, maxGrowth);
+            new AdaptiveSingularSpectrumSequenceForecasting(CatalogUtils.GetEnvironment(catalog), inputColumnName, trainSize, seriesLength, windowSize, discountFactor,
+            rankSelectionMethod, rank, maxRank, shouldComputeForecastIntervals, shouldstablize, shouldMaintainInfo, maxGrowth);*/
     }
 }

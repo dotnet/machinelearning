@@ -12,7 +12,7 @@ namespace Samples.Dynamic
         // does forecasting.
         public static void Example()
         {
-            // Create a new ML context, for ML.NET operations. It can be used for exception tracking and logging, 
+            /*// Create a new ML context, for ML.NET operations. It can be used for exception tracking and logging, 
             // as well as the source of randomness.
             var ml = new MLContext();
 
@@ -47,7 +47,7 @@ namespace Samples.Dynamic
 
             // Instantiate the forecasting model.
             var model = ml.Forecasting.AdaptiveSingularSpectrumSequenceModeler(inputColumnName, data.Count, SeasonalitySize + 1, SeasonalitySize,
-                1, AdaptiveSingularSpectrumSequenceModeler.RankSelectionMethod.Exact, null, SeasonalitySize / 2, false, false);
+                1, AdaptiveSingularSpectrumSequenceForecasting.RankSelectionMethod.Exact, null, SeasonalitySize / 2, false, false);
 
             // Train.
             model.Train(dataView);
@@ -77,7 +77,7 @@ namespace Samples.Dynamic
             // Forecast with the original model(that was checkpointed to disk).
             forecast = model.Forecast(5);
             Console.WriteLine("[{0}]", string.Join(", ", forecast));
-            // [0.8681176, 0.8185108, 0.8069275, 0.84405, 0.9455081]
+            // [0.8681176, 0.8185108, 0.8069275, 0.84405, 0.9455081]*/
 
         }
 

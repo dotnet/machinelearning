@@ -4,7 +4,7 @@
 
 using System.IO;
 using Microsoft.ML.Data;
-using static Microsoft.ML.Transforms.TimeSeries.AdaptiveSingularSpectrumSequenceModeler;
+//using static Microsoft.ML.Transforms.TimeSeries.AdaptiveSingularSpectrumSequenceForecasting;
 
 namespace Microsoft.ML.TimeSeries
 {
@@ -45,7 +45,7 @@ namespace Microsoft.ML.TimeSeries
         void ForecastWithConfidenceIntervals(int horizon, out T[] forecast, out float[] confidenceIntervalLowerBounds, out float[] confidenceIntervalUpperBounds, float confidenceLevel = 0.95f);
     }
 
-    public static class ForecastExtensions
+   /* public static class ForecastExtensions
     {
         /// <summary>
         /// Load a <see cref="ICanForecast{T}"/> model.
@@ -89,5 +89,5 @@ namespace Microsoft.ML.TimeSeries
                 }
             }
         }
-    }
+    }*/
 }

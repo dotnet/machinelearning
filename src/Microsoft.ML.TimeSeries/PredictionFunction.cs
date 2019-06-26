@@ -15,6 +15,11 @@ namespace Microsoft.ML.Transforms.TimeSeries
     {
     }
 
+    internal interface IForecastTransformer : IStatefulTransformer
+    {
+        IDataView Forecast(int horizon, bool includeConfidenceInterval = false, float confidenceLevel = 0.95f);
+    }
+
     internal interface IStatefulTransformer : ITransformer
     {
         /// <summary>
@@ -51,13 +56,13 @@ namespace Microsoft.ML.Transforms.TimeSeries
     /// </summary>
     /// <typeparam name="TSrc">The user-defined type that holds the example.</typeparam>
     /// <typeparam name="TDst">The user-defined type that holds the prediction.</typeparam>
-    public sealed class TimeSeriesPredictionFunction<TSrc, TDst> : PredictionEngineBase<TSrc, TDst>
+    public class TimeSeriesPredictionFunction<TSrc, TDst> : PredictionEngineBase<TSrc, TDst>
         where TSrc : class
         where TDst : class, new()
     {
-        private Action<long> _pinger;
-        private long _rowPosition;
-        private ITransformer InputTransformer { get; set; }
+        protected Action<long> Pinger;
+        protected long RowPosition;
+        protected ITransformer InputTransformer { get; set; }
 
         /// <summary>
         /// Checkpoints <see cref="TimeSeriesPredictionFunction{TSrc, TDst}"/> to disk with the updated
@@ -188,7 +193,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
             return result;
         }
 
-        private Action<long> CreatePinger(List<StatefulRow> rows)
+        internal Action<long> CreatePinger(List<StatefulRow> rows)
         {
             if (rows.Count == 0)
                 return position => { };
@@ -204,7 +209,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
             List<StatefulRow> rows = new List<StatefulRow>();
             DataViewRow outputRowLocal = outputRowLocal = GetStatefulRows(inputRow, mapper, mapper.OutputSchema, rows);
             var cursorable = TypedCursorable<TDst>.Create(env, new EmptyDataView(env, mapper.OutputSchema), ignoreMissingColumns, outputSchemaDefinition);
-            _pinger = CreatePinger(rows);
+            Pinger = CreatePinger(rows);
             disposer = outputRowLocal.Dispose;
             outputRow = cursorable.GetRow(outputRowLocal);
         }
@@ -268,13 +273,51 @@ namespace Microsoft.ML.Transforms.TimeSeries
                 prediction = new TDst();
 
             // Update state.
-            _pinger(_rowPosition);
+            Pinger(RowPosition);
 
             // Predict.
             FillValues(prediction);
 
-            _rowPosition++;
+            RowPosition++;
         }
+    }
+
+    public sealed class TimeSeriesForecasting<TSrc> : TimeSeriesPredictionFunction<TSrc, object>
+    where TSrc : class
+    {
+        public TimeSeriesForecasting(IHostEnvironment env, ITransformer transformer, bool ignoreMissingColumns,
+            SchemaDefinition inputSchemaDefinition = null, SchemaDefinition outputSchemaDefinition = null) :
+            base(env, transformer, ignoreMissingColumns, inputSchemaDefinition, outputSchemaDefinition)
+        {
+        }
+
+        private protected override void PredictionEngineCore(IHostEnvironment env, DataViewConstructionUtils.InputRow<TSrc> inputRow,
+            IRowToRowMapper mapper, bool ignoreMissingColumns, SchemaDefinition outputSchemaDefinition, out Action disposer, out IRowReadableAs<object> outputRow)
+        {
+            List<StatefulRow> rows = new List<StatefulRow>();
+            DataViewRow outputRowLocal = outputRowLocal = GetStatefulRows(inputRow, mapper, mapper.OutputSchema, rows);
+            Pinger = CreatePinger(rows);
+            disposer = outputRowLocal.Dispose;
+            outputRow = null;
+        }
+
+        /// <summary>
+        /// Run prediction pipeline on one example.
+        /// </summary>
+        /// <param name="example">The example to run on.</param>
+        public void Update(TSrc example)
+        {
+            Contracts.CheckValue(example, nameof(example));
+            ExtractValues(example);
+            // Update state.
+            Pinger(RowPosition);
+            RowPosition++;
+        }
+
+        public IDataView Forecast(int horizon, bool includeConfidenceInterval = false, float confidenceLevel = 0.95f) =>
+            ((IForecastTransformer)InputTransformer).Forecast(horizon, includeConfidenceInterval, confidenceLevel);
+
+        public override void Predict(TSrc example, ref object prediction) => throw new NotSupportedException();
     }
 
     public static class PredictionFunctionExtensions
@@ -309,6 +352,17 @@ namespace Microsoft.ML.Transforms.TimeSeries
             env.CheckValueOrNull(inputSchemaDefinition);
             env.CheckValueOrNull(outputSchemaDefinition);
             return new TimeSeriesPredictionFunction<TSrc, TDst>(env, transformer, ignoreMissingColumns, inputSchemaDefinition, outputSchemaDefinition);
+        }
+
+        public static TimeSeriesForecasting<TSrc> CreateTimeSeriesForecastingEngine<TSrc>(this ITransformer transformer, IHostEnvironment env,
+            bool ignoreMissingColumns = false, SchemaDefinition inputSchemaDefinition = null, SchemaDefinition outputSchemaDefinition = null)
+            where TSrc : class
+        {
+            Contracts.CheckValue(env, nameof(env));
+            env.CheckValue(transformer, nameof(transformer));
+            env.CheckValueOrNull(inputSchemaDefinition);
+            env.CheckValueOrNull(outputSchemaDefinition);
+            return new TimeSeriesForecasting<TSrc>(env, transformer, ignoreMissingColumns, inputSchemaDefinition, outputSchemaDefinition);
         }
     }
 }

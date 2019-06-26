@@ -29,6 +29,24 @@ namespace Microsoft.ML.Transforms.TimeSeries
         }
     }
 
+    internal sealed class DataBoxMultiple<T>
+    {
+        public T Value;
+        public T Value2;
+        public T Value3;
+
+        public DataBoxMultiple()
+        {
+        }
+
+        public DataBoxMultiple(T value, T value1, T value2)
+        {
+            Value = value;
+            Value2 = value1;
+            Value3 = value2;
+        }
+    }
+
     /// <summary>
     /// The base class for sequential processing transforms. This class implements the basic sliding window buffering. The derived classes need to specify the transform logic,
     /// the initialization logic and the learning logic via implementing the abstract methods TransformCore(), InitializeStateCore() and LearnStateFromDataCore(), respectively
