@@ -841,7 +841,7 @@ namespace Microsoft.ML.Internal.Utilities
 
             // REVIEW: Better names?
             List<int> mapList = new List<int>();
-            invMap = invMap = Enumerable.Repeat(-1, lim).ToArray<int>();
+            invMap = Enumerable.Repeat(-1, lim).ToArray<int>();
 
             foreach (var col in columnsNeeded)
             {
