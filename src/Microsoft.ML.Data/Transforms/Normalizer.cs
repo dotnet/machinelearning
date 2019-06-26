@@ -183,13 +183,13 @@ namespace Microsoft.ML.Transforms
         }
 
         [BestFriend]
-        internal sealed class LogMeanVarianceColumnOptions : ColumnOptionsBase
+        internal sealed class LogMeanVarianceColumnOptions : ControlZeroColumnOptionsBase
         {
             public readonly bool UseCdf;
 
             public LogMeanVarianceColumnOptions(string outputColumnName, string inputColumnName = null,
-                long maximumExampleCount = Defaults.MaximumExampleCount, bool useCdf = Defaults.LogMeanVarCdf)
-                : base(outputColumnName, inputColumnName ?? outputColumnName, maximumExampleCount)
+                long maximumExampleCount = Defaults.MaximumExampleCount, bool useCdf = Defaults.LogMeanVarCdf, bool fixZero = Defaults.EnsureZeroUntouched)
+                : base(outputColumnName, inputColumnName ?? outputColumnName, maximumExampleCount, fixZero)
             {
                 UseCdf = useCdf;
             }
