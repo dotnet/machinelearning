@@ -193,7 +193,6 @@ namespace Microsoft.ML.Transforms
                             long actualRead = br.BaseStream.CopyRange(fs, fileLength);
                             env.Assert(actualRead == fileLength);
                         }
-                        n = n + 5;
                     }
                 });
 
