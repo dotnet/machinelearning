@@ -10,7 +10,7 @@ parameters:
 jobs:
   - job: ${{ parameters.name }}
     ${{ if eq(parameters.codeCoverage, 'false') }}:
-      timeoutInMinutes: 30
+      timeoutInMinutes: 40
     ${{ if eq(parameters.codeCoverage, 'true') }}:
       timeoutInMinutes: 60
     strategy:
