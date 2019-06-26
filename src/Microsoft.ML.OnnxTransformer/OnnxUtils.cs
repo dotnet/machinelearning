@@ -21,7 +21,7 @@ namespace Microsoft.ML.Transforms.Onnx
     /// It provides API to open a session, score tensors (NamedOnnxValues) and return
     /// the results.
     /// </summary>
-    internal sealed class OnnxModel
+    internal sealed class OnnxModel : IDisposable
     {
         /// <summary>
         /// OnnxModelInfo contains the data that we should get from
@@ -112,9 +112,23 @@ namespace Microsoft.ML.Transforms.Onnx
             }
         }
 
-        public readonly OnnxModelInfo ModelInfo;
+        /// <summary>
+        /// The ONNXRuntime facility to execute the loaded ONNX model.
+        /// </summary>
         private readonly InferenceSession _session;
-        private readonly string _modelFile;
+        /// <summary>
+        /// Indicates if <see cref="ModelFile"/> is a temporal file created by <see cref="CreateFromBytes(byte[], int?, bool)"/>
+        /// or <see cref="CreateFromBytes(byte[])"/>. If <see langword="true"/>, <see cref="Dispose(bool)"/> should delete <see cref="ModelFile"/>.
+        /// </summary>
+        private bool _ownModelFile;
+        /// <summary>
+        /// The ONNX model file that <see cref="OnnxModel"/> built upon.
+        /// </summary>
+        internal OnnxModelInfo ModelInfo { get; }
+        /// <summary>
+        /// The location where the used ONNX model loaded from.
+        /// </summary>
+        internal string ModelFile { get; }
 
         /// <summary>
         /// Constructs OnnxModel object from file.
@@ -122,8 +136,15 @@ namespace Microsoft.ML.Transforms.Onnx
         /// <param name="modelFile">Model file path.</param>
         /// <param name="gpuDeviceId">GPU device ID to execute on. Null for CPU.</param>
         /// <param name="fallbackToCpu">If true, resumes CPU execution quitely upon GPU error.</param>
-        public OnnxModel(string modelFile, int? gpuDeviceId = null, bool fallbackToCpu = false)
+        /// <param name="ownModelFile">If true, the <paramref name="modelFile"/> will be deleted when <see cref="OnnxModel"/> is
+        /// no longer needed.</param>
+        public OnnxModel(string modelFile, int? gpuDeviceId = null, bool fallbackToCpu = false, bool ownModelFile=false)
         {
+            ModelFile = modelFile;
+            // If we don't own the model file, _disposed should be false to prevent deleting user's file.
+            _ownModelFile = ownModelFile;
+            _disposed = false;
+
             if (gpuDeviceId != null)
             {
                 try
@@ -147,7 +168,7 @@ namespace Microsoft.ML.Transforms.Onnx
 
             // Load ONNX model file and parse its input and output schema. The reason of doing so is that ONNXRuntime
             // doesn't expose full type information via its C# APIs.
-            _modelFile = modelFile;
+            ModelFile = modelFile;
             var model = new OnnxCSharpToProtoWrapper.ModelProto();
             using (var modelStream = File.OpenRead(modelFile))
                 model = OnnxCSharpToProtoWrapper.ModelProto.Parser.ParseFrom(modelStream);
@@ -191,7 +212,9 @@ namespace Microsoft.ML.Transforms.Onnx
         }
 
         /// <summary>
-        /// Create an OnnxModel from a byte[]
+        /// Create an OnnxModel from a byte[]. Usually, a ONNX model is consumed by <see cref="OnnxModel"/> as a file.
+        /// With <see cref="CreateFromBytes(byte[])"/> and <see cref="CreateFromBytes(byte[], int?, bool)"/>, it's possible
+        /// to use in-memory model (type: byte[]) to create <see cref="OnnxModel"/>.
         /// </summary>
         /// <param name="modelBytes">Bytes of the serialized model</param>
         /// <returns>OnnxModel</returns>
@@ -202,6 +225,9 @@ namespace Microsoft.ML.Transforms.Onnx
 
         /// <summary>
         /// Create an OnnxModel from a byte[]. Set execution to GPU if required.
+        /// Usually, a ONNX model is consumed by <see cref="OnnxModel"/> as a file.
+        /// With <see cref="CreateFromBytes(byte[])"/> and <see cref="CreateFromBytes(byte[], int?, bool)"/>,
+        /// it's possible to use in-memory model (type: byte[]) to create <see cref="OnnxModel"/>.
         /// </summary>
         /// <param name="modelBytes">Bytes of the serialized model.</param>
         /// <param name="gpuDeviceId">GPU device ID to execute on. Null for CPU.</param>
@@ -214,12 +240,7 @@ namespace Microsoft.ML.Transforms.Onnx
 
             var tempModelFile = Path.Combine(tempModelDir, "model.onnx");
             File.WriteAllBytes(tempModelFile, modelBytes);
-            return new OnnxModel(tempModelFile, gpuDeviceId, fallbackToCpu);
-
-            // TODO:
-            // tempModelFile is needed in case the model needs to be saved
-            // Either have to save the modelbytes and delete the temp dir/file,
-            // or keep the dir/file and write proper cleanup when application closes
+            return new OnnxModel(tempModelFile, gpuDeviceId, fallbackToCpu, ownModelFile: true);
         }
 
         /// <summary>
@@ -233,12 +254,42 @@ namespace Microsoft.ML.Transforms.Onnx
         }
 
         /// <summary>
-        /// Convert the model to a byte array.
+        /// Flag used to indicate if the unmanaged resources (aka the model file <see cref="ModelFile"/>
+        /// and <see cref="_session"/>) have been deleted.
         /// </summary>
-        /// <returns>byte[]</returns>
-        public byte[] ToByteArray()
+        private bool _disposed;
+
+        public void Dispose()
         {
-            return File.ReadAllBytes(_modelFile);
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        /// <summary>
+        /// There are two unmanaged resources we can dispose, <see cref="_session"/> and <see cref="ModelFile"/>
+        /// if <see cref="_ownModelFile"/> is <see langword="true"/>.
+        /// </summary>
+        /// <param name="disposing"></param>
+        private void Dispose(bool disposing)
+        {
+            if (!_disposed)
+            {
+                // There are two things to be disposed.
+                if (disposing)
+                {
+                    // First, we release the resource token by ONNXRuntime.
+                    _session.Dispose();
+                    // Second, we delete the model file if that file is not created by the user.
+                    if (_ownModelFile && File.Exists(ModelFile))
+                        File.Delete(ModelFile);
+                }
+                _disposed = true;
+            }
+        }
+
+        ~OnnxModel()
+        {
+            Dispose(false);
         }
     }
 

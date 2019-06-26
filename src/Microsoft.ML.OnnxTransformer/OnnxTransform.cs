@@ -179,19 +179,25 @@ namespace Microsoft.ML.Transforms.Onnx
             foreach (var col in options.OutputColumns)
                 Host.CheckNonWhiteSpace(col, nameof(options.OutputColumns));
 
-            // Use ONNXRuntime to figure out the right input ane output configuration.
+            // Use ONNXRuntime to figure out the right input and output configuration.
             // However, ONNXRuntime doesn't provide strongly-typed method to access the produced
             // variables, we will inspect the ONNX model file to get information regarding types.
             try
             {
                 if (modelBytes == null)
                 {
+                    // Entering this region means that the model file is passed in by the user.
                     Host.CheckNonWhiteSpace(options.ModelFile, nameof(options.ModelFile));
                     Host.CheckIO(File.Exists(options.ModelFile), "Model file {0} does not exists.", options.ModelFile);
-                    Model = new OnnxModel(options.ModelFile, options.GpuDeviceId, options.FallbackToCpu);
+                    // Because we cannot delete the user file, ownModelFile should be false.
+                    Model = new OnnxModel(options.ModelFile, options.GpuDeviceId, options.FallbackToCpu, ownModelFile: false);
                 }
                 else
+                {
+                    // Entering this region means that the byte[] is passed as the model. To feed that byte[] to ONNXRuntime, we need
+                    // to create a temporal file to store it and then call ONNXRuntime's API to load that file.
                     Model = OnnxModel.CreateFromBytes(modelBytes, options.GpuDeviceId, options.FallbackToCpu);
+                }
             }
             catch (OnnxRuntimeException e)
             {
@@ -283,7 +289,7 @@ namespace Microsoft.ML.Transforms.Onnx
             ctx.CheckAtModel();
             ctx.SetVersionInfo(GetVersionInfo());
 
-            ctx.SaveBinaryStream("OnnxModel", w => { w.WriteByteArray(Model.ToByteArray()); });
+            ctx.SaveBinaryStream("OnnxModel", w => { w.WriteByteArray(File.ReadAllBytes(Model.ModelFile)); });
 
             Host.CheckNonEmpty(Inputs, nameof(Inputs));
             ctx.Writer.Write(Inputs.Length);

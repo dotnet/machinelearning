@@ -518,5 +518,44 @@ namespace Microsoft.ML.Tests
                 Assert.Equal(dataPoints[i].Input[2], dictionary["C"]);
             }
         }
+
+        [Fact]
+        public void TestOnnxModelDisposal()
+        {
+            // Create a ONNX model as a byte[].
+            var modelFile = Path.Combine(Directory.GetCurrentDirectory(), "zipmap", "TestZipMapInt64.onnx");
+            var modelInBytes = File.ReadAllBytes(modelFile);
+
+            // Create ONNX model from the byte[].
+            var onnxModel = OnnxModel.CreateFromBytes(modelInBytes);
+
+            // Check if a temporal file is crated for storing the byte[].
+            Assert.True(File.Exists(onnxModel.ModelFile));
+
+            // Delete the temporal file.
+            onnxModel.Dispose();
+
+            // Make sure the temporal file is deleted.
+            Assert.False(File.Exists(onnxModel.ModelFile));
+        }
+
+        [Fact]
+        public void TestOnnxModelNotDisposal()
+        {
+            // Declare the path the tested ONNX model file.
+            var modelFile = Path.Combine(Directory.GetCurrentDirectory(), "zipmap", "TestZipMapInt64.onnx");
+
+            // Create ONNX model from the model file.
+            var onnxModel = new OnnxModel(modelFile);
+
+            // Check if a temporal file is crated for storing the byte[].
+            Assert.True(File.Exists(onnxModel.ModelFile));
+
+            // Don't delete the temporal file!
+            onnxModel.Dispose();
+
+            // Make sure the temporal file still exists.
+            Assert.True(File.Exists(onnxModel.ModelFile));
+        }
     }
 }
