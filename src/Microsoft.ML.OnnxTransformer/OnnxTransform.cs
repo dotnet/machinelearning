@@ -212,7 +212,7 @@ namespace Microsoft.ML.Transforms.Onnx
             for (int i = 0; i < Outputs.Length; i++)
             {
                 var outputInfo = Model.ModelInfo.GetOutput(Outputs[i]);
-                OutputTypes[i] = outputInfo.MlnetType;
+                OutputTypes[i] = outputInfo.DataViewType;
             }
             _options = options;
         }
@@ -351,7 +351,7 @@ namespace Microsoft.ML.Transforms.Onnx
 
                     var inputShape = AdjustDimensions(inputNodeInfo.Shape);
                     _inputTensorShapes[i] = inputShape.ToList();
-                    _inputOnnxTypes[i] = inputNodeInfo.OrtType;
+                    _inputOnnxTypes[i] = inputNodeInfo.TypeInOnnxRuntime;
 
                     var col = inputSchema.GetColumnOrNull(_parent.Inputs[i]);
                     if (!col.HasValue)
@@ -365,8 +365,8 @@ namespace Microsoft.ML.Transforms.Onnx
                     if (vectorType != null && vectorType.Size == 0)
                         throw Host.Except($"Variable length input columns not supported");
 
-                    if (type.GetItemType() != inputNodeInfo.MlnetType.GetItemType())
-                        throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", _parent.Inputs[i], inputNodeInfo.MlnetType.GetItemType().ToString(), type.ToString());
+                    if (type.GetItemType() != inputNodeInfo.DataViewType.GetItemType())
+                        throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", _parent.Inputs[i], inputNodeInfo.DataViewType.GetItemType().ToString(), type.ToString());
 
                     // If the column is one dimension we make sure that the total size of the Onnx shape matches.
                     // Compute the total size of the known dimensions of the shape.
@@ -400,7 +400,7 @@ namespace Microsoft.ML.Transforms.Onnx
 
                 var activeOutputColNames = _parent.Outputs.Where((x, i) => activeOutput(i)).ToArray();
 
-                if (_parent.Model.ModelInfo.OutputsInfo[iinfo].MlnetType is VectorDataViewType vectorType)
+                if (_parent.Model.ModelInfo.OutputsInfo[iinfo].DataViewType is VectorDataViewType vectorType)
                 {
                     var elemRawType = vectorType.ItemType.RawType;
                     var srcNamedValueGetters = GetNamedOnnxValueGetters(input, _inputColIndices, _inputOnnxTypes, _inputTensorShapes);
@@ -411,7 +411,7 @@ namespace Microsoft.ML.Transforms.Onnx
                 }
                 else
                 {
-                    var type = _parent.Model.ModelInfo.OutputsInfo[iinfo].MlnetType.RawType;
+                    var type = _parent.Model.ModelInfo.OutputsInfo[iinfo].DataViewType.RawType;
                     var srcNamedValueGetters = GetNamedOnnxValueGetters(input, _inputColIndices, _inputOnnxTypes, _inputTensorShapes);
                     return Utils.MarshalInvoke(MakeObjectGetter<int>, type, input, iinfo, srcNamedValueGetters, activeOutputColNames);
                 }
@@ -731,18 +731,18 @@ namespace Microsoft.ML.Transforms.Onnx
                     throw Host.Except($"Column {input} doesn't match input node names of model.");
 
                 var inputNodeInfo = inputsInfo[idx];
-                var expectedType = ((VectorDataViewType)inputNodeInfo.MlnetType).ItemType;
+                var expectedType = ((VectorDataViewType)inputNodeInfo.DataViewType).ItemType;
                 if (col.ItemType != expectedType)
                     throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", input, expectedType.ToString(), col.ItemType.ToString());
             }
 
             for (var i = 0; i < Transformer.Outputs.Length; i++)
             {
-                var outputName = Transformer.Outputs[i];
                 resultDic[Transformer.Outputs[i]] = new SchemaShape.Column(Transformer.Outputs[i],
                     Transformer.OutputTypes[i].IsKnownSizeVector() ? SchemaShape.Column.VectorKind.Vector
                     : SchemaShape.Column.VectorKind.VariableVector, Transformer.OutputTypes[i].GetItemType(), false);
             }
+
             return new SchemaShape(resultDic.Values);
         }
     }

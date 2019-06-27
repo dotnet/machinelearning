@@ -86,34 +86,36 @@ namespace Microsoft.ML.Transforms.Onnx
         public class OnnxVariableInfo
         {
             /// <summary>
-            /// The Name of the node
+            /// The Name of the variable. Note that ONNX variable are named.
             /// </summary>
             public string Name { get; }
             /// <summary>
-            /// The shape of the node
+            /// The shape of the variable if the variable is a tensor. For other
+            /// types such sequence and dictionary, <see cref="Shape"/> would be
+            /// <see langword="null"/>.
             /// </summary>
             public OnnxShape Shape { get; }
             /// <summary>
-            /// The type of the node
+            /// The type of the variable produced by ONNXRuntime.
             /// </summary>
-            public System.Type OrtType { get; }
+            public Type TypeInOnnxRuntime { get; }
             /// <summary>
-            /// The <see cref="DataViewType"/> that this ONNX variable corresponds
+            /// The <see cref="Data.DataViewType"/> that this ONNX variable corresponds
             /// to in <see cref="IDataView"/>'s type system.
             /// </summary>
-            public DataViewType MlnetType { get; }
+            public DataViewType DataViewType { get; }
             /// <summary>
             /// A method to case <see cref="NamedOnnxValue"/> produced by
-            /// ONNXRuntime to the type specified in <see cref="MlnetType"/>.
+            /// ONNXRuntime to the type specified in <see cref="DataViewType"/>.
             /// </summary>
             public Func<NamedOnnxValue, object> Caster { get; }
 
-            public OnnxVariableInfo(string name, OnnxShape shape, System.Type ortType, DataViewType mlnetType, Func<NamedOnnxValue, object> caster)
+            public OnnxVariableInfo(string name, OnnxShape shape, Type typeInOnnxRuntime, DataViewType mlnetType, Func<NamedOnnxValue, object> caster)
             {
                 Name = name;
                 Shape = shape;
-                OrtType = ortType;
-                MlnetType = mlnetType;
+                TypeInOnnxRuntime = typeInOnnxRuntime;
+                DataViewType = mlnetType;
                 Caster = caster;
             }
         }
@@ -301,8 +303,8 @@ namespace Microsoft.ML.Transforms.Onnx
 
     internal sealed class OnnxUtils
     {
-        private static HashSet<System.Type> _onnxTypeMap =
-            new HashSet<System.Type>
+        private static HashSet<Type> _onnxTypeMap =
+            new HashSet<Type>
                 {
                      typeof(Double),
                      typeof(Single),
@@ -313,8 +315,8 @@ namespace Microsoft.ML.Transforms.Onnx
                      typeof(UInt32),
                      typeof(UInt64)
                 };
-        private static Dictionary<System.Type, InternalDataKind> _typeToKindMap=
-            new Dictionary<System.Type, InternalDataKind>
+        private static Dictionary<Type, InternalDataKind> _typeToKindMap=
+            new Dictionary<Type, InternalDataKind>
                 {
                     { typeof(Single) , InternalDataKind.R4},
                     { typeof(Double) , InternalDataKind.R8},
@@ -364,7 +366,7 @@ namespace Microsoft.ML.Transforms.Onnx
         /// </summary>
         /// <param name="type"></param>
         /// <returns></returns>
-        public static PrimitiveDataViewType OnnxToMlNetType(System.Type type)
+        public static PrimitiveDataViewType OnnxToMlNetType(Type type)
         {
             if (!_typeToKindMap.ContainsKey(type))
                throw Contracts.ExceptNotSupp("Onnx type not supported", type);

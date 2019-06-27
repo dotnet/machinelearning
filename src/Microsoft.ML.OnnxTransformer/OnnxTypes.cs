@@ -289,7 +289,6 @@ namespace Microsoft.ML.Transforms.Onnx
 
                     // NamedOnnxValue to scalar.
                     Func<NamedOnnxValue, object> caster = (NamedOnnxValue value) => {
-                        var tensor = methodSpecialized.Invoke(value, new object[] { });
                         var scalar = accessSpecialized.Invoke(value, new object[] { 0 });
                         return scalar;
                     };
@@ -447,15 +446,16 @@ namespace Microsoft.ML.Transforms.Onnx
     public sealed class OnnxSequenceTypeAttribute : DataViewTypeAttribute
     {
         private Type _elemType;
+
         /// <summary>
-        /// Create an image type without knowing its height and width.
+        /// Create a sequence type.
         /// </summary>
         public OnnxSequenceTypeAttribute()
         {
         }
 
         /// <summary>
-        /// Create an image type with known height and width.
+        /// Create a <paramref name="elemType"/>-sequence type.
         /// </summary>
         public OnnxSequenceTypeAttribute(Type elemType)
         {
@@ -463,7 +463,7 @@ namespace Microsoft.ML.Transforms.Onnx
         }
 
         /// <summary>
-        /// Images with the same width and height should equal.
+        /// Sequence types with the same element type should be equal.
         /// </summary>
         public override bool Equals(DataViewTypeAttribute other)
         {
@@ -473,7 +473,7 @@ namespace Microsoft.ML.Transforms.Onnx
         }
 
         /// <summary>
-        /// Produce the same hash code for all images with the same height and the same width.
+        /// Produce the same hash code for sequence types with the same element type.
         /// </summary>
         public override int GetHashCode()
         {
@@ -501,15 +501,18 @@ namespace Microsoft.ML.Transforms.Onnx
     {
         private Type _keyType;
         private Type _valueType;
+
         /// <summary>
-        /// Create an image type without knowing its height and width.
+        /// Create a map (aka dictionary) type.
         /// </summary>
         public OnnxMapTypeAttribute()
         {
         }
 
         /// <summary>
-        /// Create an image type with known height and width.
+        /// Create a map (aka dictionary) type. A map is a collection of key-value
+        /// pairs. <paramref name="keyType"/> specifies the type of keys and <paramref name="valueType"/>
+        /// is the type of values.
         /// </summary>
         public OnnxMapTypeAttribute(Type keyType, Type valueType)
         {
@@ -518,7 +521,7 @@ namespace Microsoft.ML.Transforms.Onnx
         }
 
         /// <summary>
-        /// Images with the same width and height should equal.
+        /// Map types with the same key type and the same value type should be equal.
         /// </summary>
         public override bool Equals(DataViewTypeAttribute other)
         {
@@ -528,7 +531,7 @@ namespace Microsoft.ML.Transforms.Onnx
         }
 
         /// <summary>
-        /// Produce the same hash code for all images with the same height and the same width.
+        /// Produce the same hash code for map types with the same key type and the same value type.
         /// </summary>
         public override int GetHashCode()
         {
