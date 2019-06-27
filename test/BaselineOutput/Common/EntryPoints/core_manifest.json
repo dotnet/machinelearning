@@ -11737,6 +11737,18 @@
           "Default": "Auto"
         },
         {
+          "Name": "UnbalancedSets",
+          "Type": "Bool",
+          "Desc": "Use for binary classification when training data is not balanced.",
+          "Aliases": [
+            "us"
+          ],
+          "Required": false,
+          "SortOrder": 150.0,
+          "IsNullable": false,
+          "Default": false
+        },
+        {
           "Name": "UseSoftmax",
           "Type": "Bool",
           "Desc": "Use softmax loss for the multi classification.",
@@ -23539,6 +23551,18 @@
               "Default": false
             },
             {
+              "Name": "UnbalancedSets",
+              "Type": "Bool",
+              "Desc": "Use for binary classification when training data is not balanced.",
+              "Aliases": [
+                "us"
+              ],
+              "Required": false,
+              "SortOrder": 150.0,
+              "IsNullable": false,
+              "Default": false
+            },
+            {
               "Name": "MinimumSplitGain",
               "Type": "Float",
               "Desc": "Minimum loss reduction required to make a further partition on a leaf node of the tree. the larger, the more conservative the algorithm will be.",
@@ -23670,6 +23694,18 @@
           "Desc": "Traditional Gradient Boosting Decision Tree.",
           "FriendlyName": "Tree Booster",
           "Settings": [
+            {
+              "Name": "UnbalancedSets",
+              "Type": "Bool",
+              "Desc": "Use for binary classification when training data is not balanced.",
+              "Aliases": [
+                "us"
+              ],
+              "Required": false,
+              "SortOrder": 150.0,
+              "IsNullable": false,
+              "Default": false
+            },
             {
               "Name": "MinimumSplitGain",
               "Type": "Float",
@@ -23827,6 +23863,18 @@
                 "Inf": 0.0,
                 "Max": 1.0
               }
+            },
+            {
+              "Name": "UnbalancedSets",
+              "Type": "Bool",
+              "Desc": "Use for binary classification when training data is not balanced.",
+              "Aliases": [
+                "us"
+              ],
+              "Required": false,
+              "SortOrder": 150.0,
+              "IsNullable": false,
+              "Default": false
             },
             {
               "Name": "MinimumSplitGain",
