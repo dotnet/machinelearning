@@ -134,7 +134,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
                 }
                 else
                 {
-                    info = new DetachedColumn[3];
+                    info = new DetachedColumn[1];
                     info[0] = new DetachedColumn(_parent.OutputColumnName, new VectorDataViewType(NumberDataViewType.Single, _parent._outputLength));
                 }
 
