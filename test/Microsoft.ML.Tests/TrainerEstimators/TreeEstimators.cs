@@ -55,26 +55,6 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                 NumberOfLeaves = 10,
                 NumberOfThreads = 1,
                 MinimumExampleCountPerLeaf = 2,
-            });
-
-            var pipeWithTrainer = pipe.Append(trainer);
-            TestEstimatorCore(pipeWithTrainer, dataView);
-
-            var transformedDataView = pipe.Fit(dataView).Transform(dataView);
-            var model = trainer.Fit(transformedDataView, transformedDataView);
-            Done();
-        }
-
-        [LightGBMFact]
-        public void LightGBMBinaryEstimatorUnbalancedArgument()
-        {
-            var (pipe, dataView) = GetBinaryClassificationPipeline();
-
-            var trainer = ML.BinaryClassification.Trainers.LightGbm(new LightGbmBinaryTrainer.Options
-            {
-                NumberOfLeaves = 10,
-                NumberOfThreads = 1,
-                MinimumExampleCountPerLeaf = 2,
                 UnbalancedSets = true,
             });
 
