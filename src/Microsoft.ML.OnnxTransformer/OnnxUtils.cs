@@ -97,9 +97,15 @@ namespace Microsoft.ML.Transforms.Onnx
             /// The type of the node
             /// </summary>
             public System.Type OrtType { get; }
-
+            /// <summary>
+            /// The <see cref="DataViewType"/> that this ONNX variable corresponds
+            /// to in <see cref="IDataView"/>'s type system.
+            /// </summary>
             public DataViewType MlnetType { get; }
-
+            /// <summary>
+            /// A method to case <see cref="NamedOnnxValue"/> produced by
+            /// ONNXRuntime to the type specified in <see cref="MlnetType"/>.
+            /// </summary>
             public Func<NamedOnnxValue, object> Caster { get; }
 
             public OnnxVariableInfo(string name, OnnxShape shape, System.Type ortType, DataViewType mlnetType, Func<NamedOnnxValue, object> caster)
@@ -122,13 +128,13 @@ namespace Microsoft.ML.Transforms.Onnx
         /// </summary>
         private bool _ownModelFile;
         /// <summary>
-        /// The ONNX model file that <see cref="OnnxModel"/> built upon.
-        /// </summary>
-        internal OnnxModelInfo ModelInfo { get; }
-        /// <summary>
         /// The location where the used ONNX model loaded from.
         /// </summary>
         internal string ModelFile { get; }
+        /// <summary>
+        /// The ONNX model file that <see cref="OnnxModel"/> built upon.
+        /// </summary>
+        internal OnnxModelInfo ModelInfo { get; }
 
         /// <summary>
         /// Constructs OnnxModel object from file.

@@ -738,6 +738,7 @@ namespace Microsoft.ML.Transforms.Onnx
 
             for (var i = 0; i < Transformer.Outputs.Length; i++)
             {
+                var outputName = Transformer.Outputs[i];
                 resultDic[Transformer.Outputs[i]] = new SchemaShape.Column(Transformer.Outputs[i],
                     Transformer.OutputTypes[i].IsKnownSizeVector() ? SchemaShape.Column.VectorKind.Vector
                     : SchemaShape.Column.VectorKind.VariableVector, Transformer.OutputTypes[i].GetItemType(), false);
