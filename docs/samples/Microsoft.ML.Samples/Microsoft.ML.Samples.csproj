@@ -449,6 +449,30 @@
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>SdcaWithOptions.cs</LastGenOutput>
     </None>
+    <None Update="Dynamic\Transforms\TreeFeaturization\FastForestBinaryFeaturizationWithOptions.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>FastForestBinaryFeaturizationWithOptions.cs</LastGenOutput>
+    </None>
+    <None Update="Dynamic\Transforms\TreeFeaturization\FastForestRegressionFeaturizationWithOptions.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>FastForestRegressionFeaturizationWithOptions.cs</LastGenOutput>
+    </None>
+    <None Update="Dynamic\Transforms\TreeFeaturization\FastTreeBinaryFeaturizationWithOptions.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>FastTreeBinaryFeaturizationWithOptions.cs</LastGenOutput>
+    </None>
+    <None Update="Dynamic\Transforms\TreeFeaturization\FastTreeRankingFeaturizationWithOptions.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>FastTreeRankingFeaturizationWithOptions.cs</LastGenOutput>
+    </None>
+    <None Update="Dynamic\Transforms\TreeFeaturization\FastTreeRegressionFeaturizationWithOptions.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>FastTreeRegressionFeaturizationWithOptions.cs</LastGenOutput>
+    </None>
+    <None Update="Dynamic\Transforms\TreeFeaturization\FastTreeTweedieFeaturizationWithOptions.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>FastTreeTweedieFeaturizationWithOptions.cs</LastGenOutput>
+    </None>
   </ItemGroup>
 
   <ItemGroup>
@@ -895,6 +919,36 @@
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
       <DependentUpon>SdcaWithOptions.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Dynamic\Transforms\TreeFeaturization\FastForestBinaryFeaturizationWithOptions.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>FastForestBinaryFeaturizationWithOptions.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Dynamic\Transforms\TreeFeaturization\FastForestRegressionFeaturizationWithOptions.cs">
+      <DependentUpon>FastForestRegressionFeaturizationWithOptions.tt</DependentUpon>
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+    </Compile>
+    <Compile Update="Dynamic\Transforms\TreeFeaturization\FastTreeBinaryFeaturizationWithOptions.cs">
+      <DependentUpon>FastTreeBinaryFeaturizationWithOptions.tt</DependentUpon>
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+    </Compile>
+    <Compile Update="Dynamic\Transforms\TreeFeaturization\FastTreeRankingFeaturizationWithOptions.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>FastTreeRankingFeaturizationWithOptions.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Dynamic\Transforms\TreeFeaturization\FastTreeRegressionFeaturizationWithOptions.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>FastTreeRegressionFeaturizationWithOptions.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Dynamic\Transforms\TreeFeaturization\FastTreeTweedieFeaturizationWithOptions.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>FastTreeTweedieFeaturizationWithOptions.tt</DependentUpon>
     </Compile>
   </ItemGroup>
 
