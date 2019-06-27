@@ -10,11 +10,12 @@ resources:
   - container: UbuntuContainer
     image: mcr.microsoft.com/dotnet-buildtools/prereqs:ubuntu-16.04-mlnet-207e097-20190312152303
 
-phases:
-- template: /build/ci/phase-template.yml
+jobs:
+- template: /build/ci/job-template.yml
   parameters:
     name: Centos_x64_NetCoreApp30
     buildScript: ./build.sh
+    container: CentosContainer
     customMatrixes:
       Debug_Build:
         _configuration: Debug-Intrinsics
@@ -24,26 +25,25 @@ phases:
         _configuration: Release-Intrinsics
         _config_short: RI
         _includeBenchmarkData: true
-    queue:
+    pool:
       name: Hosted Ubuntu 1604
-      container: CentosContainer
 
-- template: /build/ci/phase-template.yml
+- template: /build/ci/job-template.yml
   parameters:
     name: Ubuntu_x64_NetCoreApp21
     buildScript: ./build.sh
-    queue:
+    container: UbuntuContainer
+    pool:
       name: Hosted Ubuntu 1604
-      container: UbuntuContainer
 
-- template: /build/ci/phase-template.yml
+- template: /build/ci/job-template.yml
   parameters:
     name: MacOS_x64_NetCoreApp21
     buildScript: ./build.sh
-    queue:
+    pool:
       name: Hosted macOS
 
-- template: /build/ci/phase-template.yml
+- template: /build/ci/job-template.yml
   parameters:
     name: Windows_x64_NetCoreApp30
     buildScript: build.cmd
@@ -56,17 +56,18 @@ phases:
         _configuration: Release-Intrinsics
         _config_short: RI
         _includeBenchmarkData: true
-    queue:
-      name: Hosted VS2017
+    pool:
+      name: NetCorePublic-Pool
+      queue: buildpool.windows.10.amd64.vs2017.open
 
-- template: /build/ci/phase-template.yml
+- template: /build/ci/job-template.yml
   parameters:
     name: Windows_x64_NetCoreApp21
     buildScript: build.cmd
-    queue:
+    pool:
       name: Hosted VS2017
 
-- template: /build/ci/phase-template.yml
+- template: /build/ci/job-template.yml
   parameters:
     name: Windows_x64_NetFx461
     buildScript: build.cmd
@@ -79,13 +80,13 @@ phases:
         _configuration: Release-netfx
         _config_short: RFX
         _includeBenchmarkData: false
-    queue:
+    pool:
       name: Hosted VS2017
 
-- template: /build/ci/phase-template.yml
+- template: /build/ci/job-template.yml
   parameters:
     name: Windows_x86_NetCoreApp21
     architecture: x86
     buildScript: build.cmd
-    queue:
+    pool:
       name: Hosted VS2017
