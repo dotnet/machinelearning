@@ -1,19 +1,13 @@
 maml.exe CV tr=OVA{p=AvgPer{ lr=0.8 } useprob=-} threads=- norm=No dout=%Output% data=%Data% seed=1 xf=Term{col=Label}
 Not adding a normalizer.
 Training learner 0
-Training calibrator.
 Training learner 1
-Training calibrator.
 Training learner 2
-Training calibrator.
 Not training a calibrator because it is not needed.
 Not adding a normalizer.
 Training learner 0
-Training calibrator.
 Training learner 1
-Training calibrator.
 Training learner 2
-Training calibrator.
 Not training a calibrator because it is not needed.
 
 Confusion table

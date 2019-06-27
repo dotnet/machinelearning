@@ -8,7 +8,6 @@ Binning and forming Feature objects
 Reserved memory for tree learner: %Number% bytes
 Starting to train ...
 Warning: 2 of the boosting iterations failed to grow a tree. This is commonly because the minimum documents in leaf hyperparameter was set too high for this dataset.
-Training calibrator.
 Training learner 1
 Making per-feature arrays
 Changing data from row-wise to column-wise
@@ -17,7 +16,6 @@ Binning and forming Feature objects
 Reserved memory for tree learner: %Number% bytes
 Starting to train ...
 Warning: 3 of the boosting iterations failed to grow a tree. This is commonly because the minimum documents in leaf hyperparameter was set too high for this dataset.
-Training calibrator.
 Training learner 2
 Making per-feature arrays
 Changing data from row-wise to column-wise
@@ -26,7 +24,6 @@ Binning and forming Feature objects
 Reserved memory for tree learner: %Number% bytes
 Starting to train ...
 Warning: 1 of the boosting iterations failed to grow a tree. This is commonly because the minimum documents in leaf hyperparameter was set too high for this dataset.
-Training calibrator.
 Not training a calibrator because it is not needed.
 
 Confusion table
