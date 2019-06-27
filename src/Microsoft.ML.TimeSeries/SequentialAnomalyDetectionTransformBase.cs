@@ -387,18 +387,18 @@ namespace Microsoft.ML.Transforms.TimeSeries
                 return pinger;
             }
 
-                private Action<long> MakePinger(DataViewRow input, AnomalyDetectionStateBase state)
+            private Action<long> MakePinger(DataViewRow input, AnomalyDetectionStateBase state)
+            {
+                _host.AssertValue(input);
+                var srcGetter = input.GetGetter<TInput>(input.Schema[_inputColumnIndex]);
+                Action<long> pinger = (long rowPosition) =>
                 {
-                    _host.AssertValue(input);
-                    var srcGetter = input.GetGetter<TInput>(input.Schema[_inputColumnIndex]);
-                    Action<long> pinger = (long rowPosition) =>
-                    {
-                        TInput src = default;
-                        srcGetter(ref src);
-                        state.UpdateState(ref src, rowPosition, _parent.WindowSize > 0);
-                    };
-                    return pinger;
-                }
+                    TInput src = default;
+                    srcGetter(ref src);
+                    state.UpdateState(ref src, rowPosition, _parent.WindowSize > 0);
+                };
+                return pinger;
+            }
 
             public void CloneState()
             {

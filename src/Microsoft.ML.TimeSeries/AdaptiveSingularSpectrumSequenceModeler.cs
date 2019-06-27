@@ -257,7 +257,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
         /// <param name="shouldComputeForecastIntervals">The flag determining whether the confidence bounds for the point forecasts should be computed. (default = true)</param>
         /// <param name="shouldstablize">The flag determining whether the model should be stabilized.</param>
         /// <param name="shouldMaintainInfo">The flag determining whether the meta information for the model needs to be maintained.</param>
-        /// <param name="maxGrowth">The maximum growth on the exponential trend</param>
+        /// <param name="maxGrowth">The maximum growth on the exponential trend.</param>
         public AdaptiveSingularSpectrumSequenceModelerInternal(IHostEnvironment env, int trainSize, int seriesLength, int windowSize, Single discountFactor = 1,
             RankSelectionMethod rankSelectionMethod = RankSelectionMethod.Exact, int? rank = null, int? maxRank = null,
             bool shouldComputeForecastIntervals = true, bool shouldstablize = true, bool shouldMaintainInfo = false, GrowthRatio? maxGrowth = null)
