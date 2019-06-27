@@ -31,8 +31,8 @@ namespace Microsoft.ML.Transforms.TimeSeries
     {
         internal const string Summary = "This transform forecasts using Singular Spectrum Analysis (SSA).";
         internal const string LoaderSignature = "SsaForecasting";
-        internal const string UserName = "SSA Spike Detection";
-        internal const string ShortName = "spike";
+        internal const string UserName = "SSA Forecasting";
+        internal const string ShortName = "ssafcst";
 
         internal sealed class Options : TransformInputBase
         {

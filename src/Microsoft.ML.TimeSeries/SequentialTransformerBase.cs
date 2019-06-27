@@ -412,8 +412,8 @@ namespace Microsoft.ML.Transforms.TimeSeries
             ctx.Writer.Write(InitialWindowSize);
             ctx.SaveNonEmptyString(InputColumnName);
             ctx.SaveNonEmptyString(OutputColumnName);
-            ctx.Writer.Write(ForecastingConfidenceIntervalMinOutputColumnName);
-            ctx.Writer.Write(ForecastingConfidenceIntervalMaxOutputColumnName);
+            ctx.Writer.Write(ForecastingConfidenceIntervalMinOutputColumnName ?? string.Empty);
+            ctx.Writer.Write(ForecastingConfidenceIntervalMaxOutputColumnName ?? string.Empty);
             var bs = new BinarySaver(Host, new BinarySaver.Arguments());
             bs.TryWriteTypeDescription(ctx.Writer.BaseStream, OutputColumnType, out int byteWritten);
         }
@@ -479,7 +479,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
 
                 SchemaDefinition outputSchema;
 
-                if (forecastingConfidenceIntervalMinOutputColumnName != null)
+                if (!string.IsNullOrEmpty(forecastingConfidenceIntervalMinOutputColumnName))
                 {
                     outputSchema = SchemaDefinition.Create(typeof(DataBoxForecastingWithConfidenceIntervals<TOutput>));
                     outputSchema[0].ColumnName = outputColumnName;

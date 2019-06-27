@@ -5,10 +5,17 @@
 using System;
 using System.Collections.Generic;
 using System.Numerics;
+using Microsoft.ML;
 using Microsoft.ML.Data;
 using Microsoft.ML.Internal.CpuMath;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Runtime;
+using Microsoft.ML.Transforms.TimeSeries;
+
+[assembly: LoadableClass(typeof(AdaptiveSingularSpectrumSequenceModelerInternal),
+    typeof(AdaptiveSingularSpectrumSequenceModelerInternal), null, typeof(SignatureLoadModel),
+    "SSA Sequence Modeler",
+    AdaptiveSingularSpectrumSequenceModelerInternal.LoaderSignature)]
 
 namespace Microsoft.ML.Transforms.TimeSeries
 {
