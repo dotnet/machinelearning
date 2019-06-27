@@ -71,7 +71,7 @@ namespace Samples.Dynamic.Trainers.AnomalyDetection
                     // The i-th sample is predicted as an outlier.
                     Console.WriteLine("The {0}-th example with features [{1}] is" +
                         "an outlier with a score of being inlier {2}",
-                            i, featuresInText, result.Score);
+                        i, featuresInText, result.Score);
             }
             // Lines printed out should be
             //   The 0 - th example with features[1, 0, 0] is an inlier with a score of being inlier 0.7453707
