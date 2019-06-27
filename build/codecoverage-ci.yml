@@ -3,7 +3,7 @@
 ################################################################################
 
 phases:
-- template: /build/ci/phase-template.yml
+- template: /build/ci/job-template.yml
   parameters:
     name: Windows_x64
     buildScript: build.cmd
