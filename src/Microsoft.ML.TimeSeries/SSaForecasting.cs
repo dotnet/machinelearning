@@ -307,7 +307,18 @@ namespace Microsoft.ML.Transforms.TimeSeries
             };
             var resultDic = inputSchema.ToDictionary(x => x.Name);
             resultDic[_options.Name] = new SchemaShape.Column(
-                _options.Name, SchemaShape.Column.VectorKind.Vector, NumberDataViewType.Double, false, new SchemaShape(metadata));
+                _options.Name, SchemaShape.Column.VectorKind.Vector, NumberDataViewType.Single, false, new SchemaShape(metadata));
+
+            if (!string.IsNullOrEmpty(_options.ForecastingConfidenceIntervalMaxOutputColumnName))
+            {
+                resultDic[_options.ForecastingConfidenceIntervalMinOutputColumnName] = new SchemaShape.Column(
+                    _options.ForecastingConfidenceIntervalMinOutputColumnName, SchemaShape.Column.VectorKind.Vector,
+                    NumberDataViewType.Single, false, new SchemaShape(metadata));
+
+                resultDic[_options.ForecastingConfidenceIntervalMaxOutputColumnName] = new SchemaShape.Column(
+                    _options.ForecastingConfidenceIntervalMaxOutputColumnName, SchemaShape.Column.VectorKind.Vector,
+                    NumberDataViewType.Single, false, new SchemaShape(metadata));
+            }
 
             return new SchemaShape(resultDic.Values);
         }
