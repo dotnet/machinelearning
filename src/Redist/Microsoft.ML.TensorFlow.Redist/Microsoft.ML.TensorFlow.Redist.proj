@@ -94,7 +94,8 @@
       <_fileFromArchive Include="%(TensorFlowArchive.FilesFromArchive)" ExtractDirectory="%(TensorFlowArchive.ExtractDirectory)" Runtime="%(TensorFlowArchive.Runtime)" />
       <_fileFromArchive DestinationFile="%(FileName)%(Extension)"/>
       <!-- rename the .so to .dylib since CORECLR's DLLImport convention requires dylib -->
-      <_fileFromArchive Condition="'%(Runtime)' == 'osx-x64' AND '%(Extension)' == '.so'" DestinationFile="%(FileName).dylib" />
+      <!-- This doesn't seem to be needed in v1.14. Will delete the lines if this succeeds. -->
+      <!-- _fileFromArchive Condition="'%(Runtime)' == 'osx-x64' AND '%(Extension)' == '.so'" DestinationFile="%(FileName).dylib" / -->
       <_fileFromArchive PackagePath="runtimes\%(_fileFromArchive.Runtime)\native\%(_fileFromArchive.DestinationFile)" />
 
       <!-- LICENSE from the package is actually THIRD_PARTY_NOTICES-->
@@ -121,8 +122,9 @@
           DestinationFiles="@(FilesFromArchive->'%(TargetPath)')" />
 
     <!-- fix up the renamed libtensorflow, this can only run on mac -->
-    <Exec Condition="'%(FilesFromArchive.Runtime)' == 'osx-x64' AND '%(FilesFromArchive.FileName)' == 'libtensorflow'"
-          Command="install_name_tool -change @rpath/libtensorflow_framework.so @rpath/libtensorflow_framework.dylib &quot;%(FilesFromArchive.TargetPath)&quot;" />
+    <!-- This doesn't seem to be needed in v1.14. Will delete the lines if this succeeds. -->
+    <!-- Exec Condition="'%(FilesFromArchive.Runtime)' == 'osx-x64' AND '%(FilesFromArchive.FileName)' == 'libtensorflow'"
+          Command="install_name_tool -change @rpath/libtensorflow_framework.so @rpath/libtensorflow_framework.dylib &quot;%(FilesFromArchive.TargetPath)&quot;" / -->
   </Target>
 
   <!-- Define Build to do the work of downloading and copying assets -->
