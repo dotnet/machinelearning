@@ -1012,7 +1012,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             var reader = TextLoaderStatic.CreateLoader(env,
                 c => (label: c.LoadText(0), features: c.LoadFloat(1, 4)));
 
-            OneVersusAllModelParameters<FeatureWeightsCalibratedModelParameters<LightGbmBinaryModelParameters, PlattCalibrator>> pred = null;
+            OneVersusAllModelParameters<CalibratedModelParametersBase<LightGbmBinaryModelParameters, PlattCalibrator>> pred = null;
 
             // With a custom loss function we no longer get calibrated predictions.
             var est = reader.MakeNewEstimator()

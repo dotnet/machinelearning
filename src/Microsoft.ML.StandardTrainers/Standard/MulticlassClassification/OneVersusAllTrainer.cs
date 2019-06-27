@@ -149,7 +149,7 @@ namespace Microsoft.ML.Trainers
             for (int i = 0; i < predictors.Length; i++)
             {
                 ch.Info($"Training learner {i}");
-                predictors[i] = TrainOne(ch, Trainer, data, i).Model as T;
+                predictors[i] = (T)TrainOne(ch, Trainer, data, i).Model;
             }
             return OneVersusAllModelParameters<T>.Create(Host, _options.UseProbabilities, predictors);
         }
@@ -222,7 +222,7 @@ namespace Microsoft.ML.Trainers
                         var transformer = TrainOne(ch, Trainer, td, i);
                         featureColumn = transformer.FeatureColumnName;
                     }
-                    predictors[i] = TrainOne(ch, Trainer, td, i).Model as T;
+                    predictors[i] = (T)TrainOne(ch, Trainer, td, i).Model;
 
                 }
             }
@@ -589,7 +589,7 @@ namespace Microsoft.ML.Trainers
                 {
                     var vm = predictors[i] as IValueMapperDist;
                     Contracts.Check(IsValid(vm, ref inputType), "Predictor doesn't implement the expected interface");
-                    _mappers[i] = vm as IValueMapperDist;
+                    _mappers[i] = vm;
                 }
                 CanSavePfa = Predictors.All(m => (m as IDistCanSavePfa)?.CanSavePfa == true);
                 Contracts.AssertValue(inputType);

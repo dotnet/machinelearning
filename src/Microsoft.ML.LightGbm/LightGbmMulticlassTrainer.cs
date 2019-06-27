@@ -48,8 +48,8 @@ namespace Microsoft.ML.Trainers.LightGbm
     /// <seealso cref="Options"/>
     public sealed class LightGbmMulticlassTrainer : LightGbmTrainerBase<LightGbmMulticlassTrainer.Options,
                                                                         VBuffer<float>,
-                                                                        MulticlassPredictionTransformer<OneVersusAllModelParameters<FeatureWeightsCalibratedModelParameters<LightGbmBinaryModelParameters, PlattCalibrator>>>,
-                                                                        OneVersusAllModelParameters<FeatureWeightsCalibratedModelParameters<LightGbmBinaryModelParameters, PlattCalibrator>>>
+                                                                        MulticlassPredictionTransformer<OneVersusAllModelParameters<CalibratedModelParametersBase<LightGbmBinaryModelParameters, PlattCalibrator>>>,
+                                                                        OneVersusAllModelParameters<CalibratedModelParametersBase<LightGbmBinaryModelParameters, PlattCalibrator>>>
     {
         internal const string Summary = "LightGBM Multi Class Classifier";
         internal const string LoadNameValue = "LightGBMMulticlass";
@@ -181,7 +181,7 @@ namespace Microsoft.ML.Trainers.LightGbm
             return new LightGbmBinaryModelParameters(Host, GetBinaryEnsemble(classID), FeatureCount, innerArgs);
         }
 
-        private protected override OneVersusAllModelParameters<FeatureWeightsCalibratedModelParameters<LightGbmBinaryModelParameters, PlattCalibrator>> CreatePredictor()
+        private protected override OneVersusAllModelParameters<CalibratedModelParametersBase<LightGbmBinaryModelParameters, PlattCalibrator>> CreatePredictor()
         {
             Host.Check(TrainedEnsemble != null, "The predictor cannot be created before training is complete.");
 
@@ -198,9 +198,9 @@ namespace Microsoft.ML.Trainers.LightGbm
             }
             string obj = (string)GetGbmParameters()["objective"];
             if (obj == "multiclass")
-                return OneVersusAllModelParameters<FeatureWeightsCalibratedModelParameters<LightGbmBinaryModelParameters, PlattCalibrator>>.Create(Host, OneVersusAllModelParameters<FeatureWeightsCalibratedModelParameters<LightGbmBinaryModelParameters, PlattCalibrator>>.OutputFormula.Softmax, predictors);
+                return OneVersusAllModelParameters<CalibratedModelParametersBase<LightGbmBinaryModelParameters, PlattCalibrator>>.Create(Host, OneVersusAllModelParameters<CalibratedModelParametersBase<LightGbmBinaryModelParameters, PlattCalibrator>>.OutputFormula.Softmax, predictors);
             else
-                return OneVersusAllModelParameters<FeatureWeightsCalibratedModelParameters<LightGbmBinaryModelParameters, PlattCalibrator>>.Create(Host, predictors);
+                return OneVersusAllModelParameters<CalibratedModelParametersBase<LightGbmBinaryModelParameters, PlattCalibrator>>.Create(Host, predictors);
         }
 
         private protected override void CheckDataValid(IChannel ch, RoleMappedData data)
@@ -315,14 +315,14 @@ namespace Microsoft.ML.Trainers.LightGbm
             };
         }
 
-        private protected override MulticlassPredictionTransformer<OneVersusAllModelParameters<FeatureWeightsCalibratedModelParameters<LightGbmBinaryModelParameters, PlattCalibrator>>> MakeTransformer(OneVersusAllModelParameters<FeatureWeightsCalibratedModelParameters<LightGbmBinaryModelParameters, PlattCalibrator>> model, DataViewSchema trainSchema)
-            => new MulticlassPredictionTransformer<OneVersusAllModelParameters<FeatureWeightsCalibratedModelParameters<LightGbmBinaryModelParameters, PlattCalibrator>>>(Host, model, trainSchema, FeatureColumn.Name, LabelColumn.Name);
+        private protected override MulticlassPredictionTransformer<OneVersusAllModelParameters<CalibratedModelParametersBase<LightGbmBinaryModelParameters, PlattCalibrator>>> MakeTransformer(OneVersusAllModelParameters<CalibratedModelParametersBase<LightGbmBinaryModelParameters, PlattCalibrator>> model, DataViewSchema trainSchema)
+            => new MulticlassPredictionTransformer<OneVersusAllModelParameters<CalibratedModelParametersBase<LightGbmBinaryModelParameters, PlattCalibrator>>>(Host, model, trainSchema, FeatureColumn.Name, LabelColumn.Name);
 
         /// <summary>
         /// Trains a <see cref="LightGbmMulticlassTrainer"/> using both training and validation data, returns
         /// a <see cref="MulticlassPredictionTransformer{OneVsAllModelParameters}"/>.
         /// </summary>
-        public MulticlassPredictionTransformer<OneVersusAllModelParameters<FeatureWeightsCalibratedModelParameters<LightGbmBinaryModelParameters, PlattCalibrator>>> Fit(IDataView trainData, IDataView validationData)
+        public MulticlassPredictionTransformer<OneVersusAllModelParameters<CalibratedModelParametersBase<LightGbmBinaryModelParameters, PlattCalibrator>>> Fit(IDataView trainData, IDataView validationData)
             => TrainTransformer(trainData, validationData);
     }
 

@@ -284,7 +284,7 @@ namespace Microsoft.ML.Calibrators
         }
     }
 
-    public abstract class ValueMapperCalibratedModelParametersBase<TSubModel, TCalibrator> :
+    internal abstract class ValueMapperCalibratedModelParametersBase<TSubModel, TCalibrator> :
         CalibratedModelParametersBase<TSubModel, TCalibrator>,
         IValueMapperDist, IFeatureContributionMapper, ICalculateFeatureContribution,
         IDistCanSavePfa, IDistCanSaveOnnx
@@ -395,7 +395,8 @@ namespace Microsoft.ML.Calibrators
 
     }
 
-    public sealed class ValueMapperCalibratedModelParameters<TSubModel, TCalibrator> :
+    [BestFriend]
+    internal sealed class ValueMapperCalibratedModelParameters<TSubModel, TCalibrator> :
         ValueMapperCalibratedModelParametersBase<TSubModel, TCalibrator>, ICanSaveModel
         where TSubModel : class
         where TCalibrator : class, ICalibrator
@@ -454,7 +455,8 @@ namespace Microsoft.ML.Calibrators
         }
     }
 
-    public sealed class FeatureWeightsCalibratedModelParameters<TSubModel, TCalibrator> :
+    [BestFriend]
+    internal sealed class FeatureWeightsCalibratedModelParameters<TSubModel, TCalibrator> :
         ValueMapperCalibratedModelParametersBase<TSubModel, TCalibrator>,
         IPredictorWithFeatureWeights<float>,
         ICanSaveModel
@@ -518,7 +520,7 @@ namespace Microsoft.ML.Calibrators
     /// Encapsulates a predictor and a calibrator that implement <see cref="IParameterMixer"/>.
     /// Its implementation of <see cref="IParameterMixer.CombineParameters"/> combines both the predictors and the calibrators.
     /// </summary>
-    public sealed class ParameterMixingCalibratedModelParameters<TSubModel, TCalibrator> :
+    internal sealed class ParameterMixingCalibratedModelParameters<TSubModel, TCalibrator> :
         ValueMapperCalibratedModelParametersBase<TSubModel, TCalibrator>,
         IParameterMixer<float>,
         IPredictorWithFeatureWeights<float>,
