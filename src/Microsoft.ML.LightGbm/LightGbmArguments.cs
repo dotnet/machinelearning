@@ -36,6 +36,7 @@ namespace Microsoft.ML.Trainers.LightGbm
     {
         private protected static Dictionary<string, string> NameMapping = new Dictionary<string, string>()
         {
+           {nameof(OptionsBase.UnbalancedSets),                 "is_unbalance"},
            {nameof(OptionsBase.MinimumSplitGain),               "min_split_gain" },
            {nameof(OptionsBase.MaximumTreeDepth),               "max_depth"},
            {nameof(OptionsBase.MinimumChildWeight),             "min_child_weight"},
@@ -58,6 +59,11 @@ namespace Microsoft.ML.Trainers.LightGbm
         public abstract class OptionsBase : IBoosterParameterFactory
         {
             internal BoosterParameterBase GetBooster() { return null; }
+            /// <summary>
+            /// Whether training data is unbalanced. Used by <see cref="LightGbmBinaryTrainer"/>.
+            /// </summary>
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Use for binary classification when training data is not balanced.", ShortName = "us")]
+            public bool UnbalancedSets = false;
 
             /// <summary>
             /// The minimum loss reduction required to make a further partition on a leaf node of the tree.
