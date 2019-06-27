@@ -46,7 +46,7 @@ namespace Microsoft.ML.Transforms.Onnx
     /// | Output column data type | The same data type as the input column |
     /// | Required NuGet in addition to Microsoft.ML | Microsoft.ML.OnnxTransformer |
     ///
-    /// Supports inferencing of models in ONNX 1.2 and 1.3 format (opset 7, 8 and 9), using the
+    /// Supports inferencing of models in ONNX 1.2, 1.3, 1.4, and 1.5 format (opset 7, 8, 9, and 10), using the
     /// [Microsoft.ML.OnnxRuntime](https://www.nuget.org/packages/Microsoft.ML.OnnxRuntime/) library.
     /// Models are scored on CPU by default. If GPU execution is needed (optional), use the
     /// NuGet package available at [Microsoft.ML.OnnxRuntime.Gpu](https://www.nuget.org/packages/Microsoft.ML.OnnxRuntime.Gpu/)
