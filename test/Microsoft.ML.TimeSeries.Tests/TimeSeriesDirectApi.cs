@@ -19,10 +19,18 @@ namespace Microsoft.ML.Tests
 #pragma warning disable CS0649
             [VectorType(4)]
             public double[] Change;
+#pragma warning restore CS0649
+        }
+
+        private sealed class ForecastPrediction
+        {
+#pragma warning disable CS0649
             [VectorType(4)]
-            public double[] Min;
+            public float[] Change;
             [VectorType(4)]
-            public double[] Max;
+            public float[] Min;
+            [VectorType(4)]
+            public float[] Max;
 #pragma warning restore CS0649
         }
 
@@ -175,6 +183,8 @@ namespace Microsoft.ML.Tests
                 ConfidenceLevel = 0.95f,
                 Source = "Value",
                 Name = "Change",
+                ForecastingConfidenceIntervalMinOutputColumnName = "Min",
+                ForecastingConfidenceIntervalMaxOutputColumnName = "Max",
                 WindowSize = 10,
                 SeriesLength = 11,
                 TrainSize = 22,
@@ -193,8 +203,8 @@ namespace Microsoft.ML.Tests
             // Transform
             var output = detector.Transform(dataView);
             // Get predictions
-            var enumerator = env.Data.CreateEnumerable<Prediction>(output, true).GetEnumerator();
-            Prediction row = null;
+            var enumerator = env.Data.CreateEnumerable<ForecastPrediction>(output, true).GetEnumerator();
+            ForecastPrediction row = null;
             List<double> expectedValues = new List<double>() { 0, -3.31410598754883, 0.5, 5.12000000000001E-08, 0, 1.5700820684432983, 5.2001145245395008E-07,
                     0.012414560443710681, 0, 1.2854313254356384, 0.28810801662678009, 0.02038940454467935, 0, -1.0950627326965332, 0.36663890634019225, 0.026956459625565483};
 

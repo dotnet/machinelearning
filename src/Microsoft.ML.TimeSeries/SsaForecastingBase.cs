@@ -174,8 +174,8 @@ namespace Microsoft.ML.Transforms.TimeSeries
                 ConfidenceLevel = options.ConfidenceLevel;
                 // Creating the master SSA model
                 Model = new AdaptiveSingularSpectrumSequenceModelerInternal(Host, options.TrainSize, options.SeriesLength, options.WindowSize,
-                    options.DiscountFactor, options.RankSelectionMethod, options.Rank, options.MaxRank, options.ShouldStablize, options.ShouldMaintainInfo,
-                    !string.IsNullOrEmpty(options.ForecastingConfidenceIntervalMinOutputColumnName), options.MaxGrowth);
+                    options.DiscountFactor, options.RankSelectionMethod, options.Rank, options.MaxRank, !string.IsNullOrEmpty(options.ForecastingConfidenceIntervalMinOutputColumnName),
+                    options.ShouldStablize, options.ShouldMaintainInfo, options.MaxGrowth);
 
                 StateRef = new State();
                 StateRef.InitState(WindowSize, InitialWindowSize, this, Host);
