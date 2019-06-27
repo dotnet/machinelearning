@@ -54,8 +54,8 @@ namespace Samples.Dynamic
             //      - Use it for quering the schema for input and output in the
             //            model
             //      - Use it for prediction in the pipeline.
-            var tensorFlowModel = mlContext.Model.LoadTensorFlowModel
-                (modelLocation);
+            var tensorFlowModel = mlContext.Model.LoadTensorFlowModel(
+                modelLocation);
             var schema = tensorFlowModel.GetModelSchema();
             var featuresType = (VectorDataViewType)schema["Features"].Type;
             Console.WriteLine("Name: {0}, Type: {1}, Shape: (-1, {2})", "Features",
@@ -133,8 +133,8 @@ namespace Samples.Dynamic
             /// <summary>
             /// This is a variable length vector designated by VectorType attribute.
             /// Variable length vectors are produced by applying operations such as
-            /// 'TokenizeWords' on strings
-            /// resulting in vectors of tokens of variable lengths.
+            /// 'TokenizeWords' on strings resulting in vectors of tokens of
+            /// variable lengths.
             /// </summary>
             [VectorType]
             public int[] VariableLengthFeatures { get; set; }
