@@ -133,7 +133,7 @@ namespace Microsoft.ML.CLI.Commands
                     }
                     catch (Exception)
                     {
-                        return ArgumentResult.Failure($"Unknown exception occured while parsing argument for --ignore-columns :{string.Join(' ', symbolResult.Arguments.ToArray())}");
+                        return ArgumentResult.Failure($"Unknown exception occurred while parsing argument for --ignore-columns :{string.Join(' ', symbolResult.Arguments.ToArray())}");
                     }
 
                     //This shouldn't be hit.

@@ -130,13 +130,13 @@
     <value>Exploring multiple ML algorithms and settings to find you the best model for ML task</value>
   </data>
   <data name="ExplorePipelineException" xml:space="preserve">
-    <value>Exception occured while exploring pipelines</value>
+    <value>Exception occurred while exploring pipelines</value>
   </data>
   <data name="GenerateProject" xml:space="preserve">
     <value>Generating a console project for the best pipeline at location </value>
   </data>
   <data name="InferColumnError" xml:space="preserve">
-    <value>An Error occured during inferring columns</value>
+    <value>An error occurred during inferring columns</value>
   </data>
   <data name="InferColumns" xml:space="preserve">
     <value>Inferring Columns ...</value>
@@ -184,7 +184,7 @@
     <value>Waiting for the last iteration to complete ...</value>
   </data>
   <data name="ErrorBestPipeline" xml:space="preserve">
-    <value>Error occured while retreiving best pipeline.</value>
+    <value>Error occurred while retreiving best pipeline.</value>
   </data>
   <data name="LookIntoLogFile" xml:space="preserve">
     <value>Please see the log file for more info.</value>
@@ -193,10 +193,10 @@
     <value>Check out log file for more information</value>
   </data>
   <data name="ErrorGeneratingProject" xml:space="preserve">
-    <value>Exception occured while generating the project.</value>
+    <value>Exception occurred while generating the project.</value>
   </data>
   <data name="ErrorSavingModel" xml:space="preserve">
-    <value>Exception occured while saving the model</value>
+    <value>Exception occurred while saving the model</value>
   </data>
   <data name="CouldNotFinshOnTime" xml:space="preserve">
     <value>Time expired before creating a model. Try increasing the exploration time from {0} seconds to a longer duration using the --max-exploration-time option. Learn about recommended training time at https://aka.ms/cli-trainingtime</value>
