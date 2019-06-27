@@ -519,7 +519,7 @@ namespace Microsoft.ML.Tests
             }
         }
 
-        [Fact]
+        [OnnxFact]
         public void TestOnnxModelDisposal()
         {
             // Create a ONNX model as a byte[].
@@ -539,7 +539,7 @@ namespace Microsoft.ML.Tests
             Assert.False(File.Exists(onnxModel.ModelFile));
         }
 
-        [Fact]
+        [OnnxFact]
         public void TestOnnxModelNotDisposal()
         {
             // Declare the path the tested ONNX model file.
