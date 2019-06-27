@@ -17,16 +17,26 @@ namespace Samples.Dynamic
             // Generate some data points.
             var examples = GenerateRandomDataPoints(10);
 
-            // Convert the examples list to an IDataView object, which is consumable by ML.NET API.
+            // Convert the examples list to an IDataView object, which is consumable
+            // by ML.NET API.
             var dataview = mlContext.Data.LoadFromEnumerable(examples);
 
-            // Leave out 10% of the dataset for testing.For some types of problems, for example for ranking or anomaly detection,
-            // we must ensure that the split leaves the rows with the same value in a particular column, in one of the splits. 
-            // So below, we specify Group column as the column containing the sampling keys.
-            // Notice how keeping the rows with the same value in the Group column overrides the testFraction definition. 
-            var split = mlContext.Data.TrainTestSplit(dataview, testFraction: 0.1, samplingKeyColumnName: "Group");
-            var trainSet = mlContext.Data.CreateEnumerable<DataPoint>(split.TrainSet, reuseRowObject: false);
-            var testSet = mlContext.Data.CreateEnumerable<DataPoint>(split.TestSet, reuseRowObject: false);
+            // Leave out 10% of the dataset for testing.For some types of problems,
+            // for example for ranking or anomaly detection, we must ensure that the
+            // split leaves the rows with the same value in a particular column, in
+            // one of the splits. So below, we specify Group column as the column
+            // containing the sampling keys. Notice how keeping the rows with the
+            // same value in the Group column overrides the testFraction definition. 
+            var split = mlContext.Data
+                .TrainTestSplit(dataview, testFraction: 0.1,
+                samplingKeyColumnName: "Group");
+
+            var trainSet = mlContext.Data
+                .CreateEnumerable<DataPoint>(split.TrainSet, reuseRowObject: false);
+
+            var testSet = mlContext.Data
+                .CreateEnumerable<DataPoint>(split.TestSet,reuseRowObject: false);
+
             PrintPreviewRows(trainSet, testSet);
 
             //  The data in the Train split.
@@ -45,8 +55,12 @@ namespace Samples.Dynamic
 
             // Example of a split without specifying a sampling key column.
             split = mlContext.Data.TrainTestSplit(dataview, testFraction: 0.2);
-            trainSet = mlContext.Data.CreateEnumerable<DataPoint>(split.TrainSet, reuseRowObject: false);
-            testSet = mlContext.Data.CreateEnumerable<DataPoint>(split.TestSet, reuseRowObject: false);
+            trainSet = mlContext.Data
+                .CreateEnumerable<DataPoint>(split.TrainSet,reuseRowObject: false);
+
+            testSet = mlContext.Data
+                .CreateEnumerable<DataPoint>(split.TestSet,reuseRowObject: false);
+
             PrintPreviewRows(trainSet, testSet);
 
             // The data in the Train split.
@@ -65,7 +79,9 @@ namespace Samples.Dynamic
 
         }
 
-        private static IEnumerable<DataPoint> GenerateRandomDataPoints(int count, int seed = 0)
+        private static IEnumerable<DataPoint> GenerateRandomDataPoints(int count,
+            int seed = 0)
+
         {
             var random = new Random(seed);
             for (int i = 0; i < count; i++)
@@ -80,7 +96,8 @@ namespace Samples.Dynamic
             }
         }
 
-        // Example with label and group column. A data set is a collection of such examples.
+        // Example with label and group column. A data set is a collection of such
+        // examples.
         private class DataPoint
         {
             public float Group { get; set; }
@@ -89,7 +106,9 @@ namespace Samples.Dynamic
         }
 
         // print helper
-        private static void PrintPreviewRows(IEnumerable<DataPoint> trainSet, IEnumerable<DataPoint> testSet)
+        private static void PrintPreviewRows(IEnumerable<DataPoint> trainSet,
+            IEnumerable<DataPoint> testSet)
+
         {
 
             Console.WriteLine($"The data in the Train split.");

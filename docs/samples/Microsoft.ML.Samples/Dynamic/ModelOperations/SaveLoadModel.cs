@@ -25,8 +25,8 @@ namespace Samples.Dynamic.ModelOperations
             var outputColumnName = nameof(Transformation.Key);
 
             // Transform.
-            ITransformer model = mlContext.Transforms.Conversion.MapValueToKey(
-                outputColumnName, inputColumnName).Fit(dataView);
+            ITransformer model = mlContext.Transforms.Conversion
+                .MapValueToKey(outputColumnName, inputColumnName).Fit(dataView);
 
             // Save model.
             mlContext.Model.Save(model, dataView.Schema, "model.zip");
@@ -36,8 +36,8 @@ namespace Samples.Dynamic.ModelOperations
                 model = mlContext.Model.Load(file, out DataViewSchema schema);
 
             // Create a prediction engine from the model for feeding new data.
-            var engine = mlContext.Model.CreatePredictionEngine<Data,
-                Transformation>(model);
+            var engine = mlContext.Model
+                .CreatePredictionEngine<Data, Transformation>(model);
 
             var transformation = engine.Predict(new Data() { Value = "abc" });
 
