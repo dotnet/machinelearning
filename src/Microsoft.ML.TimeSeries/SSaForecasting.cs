@@ -205,7 +205,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
     /// </summary>
     /// <remarks>
     /// <format type="text/markdown"><![CDATA[
-    /// To create this estimator, use [ForecastBySsa](xref:Microsoft.ML.TimeSeriesCatalog.ForecastBySsa(Microsoft.ML.TransformsCatalog,System.String,System.String,System.Int32,System.Int32,System.Int32,System.Int32,Microsoft.ML.Transforms.TimeSeries.AnomalySide,Microsoft.ML.Transforms.TimeSeries.ErrorFunction))
+    /// To create this estimator, use [ForecastBySsa](xref:Microsoft.ML.TimeSeriesCatalog.ForecastBySsa(Microsoft.ML.TransformsCatalog,System.String,System.String,System.Int32,System.Int32,System.Int32,System.Int32,System.Boolean, System.Single, Microsoft.ML.Transforms.TimeSeries.AnomalySide,Microsoft.ML.Transforms.TimeSeries.ErrorFunction))
     ///
     /// [!include[io](~/../docs/samples/docs/api-reference/io-time-series-spike.md)]
     ///
@@ -224,7 +224,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
     /// ]]>
     /// </format>
     /// </remarks>
-    /// <seealso cref="Microsoft.ML.TimeSeriesCatalog.DetectSpikeBySsa(Microsoft.ML.TransformsCatalog,System.String,System.String,System.Int32,System.Int32,System.Int32,System.Int32,Microsoft.ML.Transforms.TimeSeries.AnomalySide,Microsoft.ML.Transforms.TimeSeries.ErrorFunction)" />
+    /// <seealso cref="Microsoft.ML.TimeSeriesCatalog.ForecastBySsa(TransformsCatalog, string, string, int, int, int, int, bool, float, RankSelectionMethod, int?, int?, bool, bool, GrowthRatio?, string, string, float)" />
     public sealed class SsaForecastingEstimator : IEstimator<SsaForecasting>
     {
         private readonly IHost _host;
