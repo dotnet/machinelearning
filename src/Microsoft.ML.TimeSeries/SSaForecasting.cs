@@ -44,9 +44,13 @@ namespace Microsoft.ML.Transforms.TimeSeries
                 SortOrder = 2)]
             public string Name;
 
-            [Argument(ArgumentType.Required, HelpText = "The confidence for spike detection in the range [0, 100].",
-                ShortName = "cnf", SortOrder = 4)]
-            public double Confidence = 99;
+            [Argument(ArgumentType.Required, HelpText = "The name of the new column", ShortName = "cnfminname",
+                SortOrder = 2)]
+            public string ForecastingConfidenceIntervalMinOutputColumnName;
+
+            [Argument(ArgumentType.Required, HelpText = "The name of the new column", ShortName = "cnfmaxnname",
+                SortOrder = 2)]
+            public string ForecastingConfidenceIntervalMaxOutputColumnName;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "The discount factor in [0, 1]", ShortName = "disc", SortOrder = 12)]
             public float DiscountFactor = 1;
@@ -57,13 +61,13 @@ namespace Microsoft.ML.Transforms.TimeSeries
             public RankSelectionMethod RankSelectionMethod;
             public int? Rank;
             public int? MaxRank;
-            public bool ShouldComputeForecastIntervals;
             public bool ShouldStablize;
             public bool ShouldMaintainInfo;
             public GrowthRatio? MaxGrowth;
             public int SeriesLength;
             public int TrainSize;
             public int Horizon;
+            public float ConfidenceLevel;
         }
 
         private sealed class BaseArguments : SsaForecastingOptions
@@ -72,17 +76,19 @@ namespace Microsoft.ML.Transforms.TimeSeries
             {
                 Source = options.Source;
                 Name = options.Name;
+                ForecastingConfidenceIntervalMinOutputColumnName = options.ForecastingConfidenceIntervalMinOutputColumnName;
+                ForecastingConfidenceIntervalMaxOutputColumnName = options.ForecastingConfidenceIntervalMaxOutputColumnName;
                 WindowSize = options.WindowSize;
                 DiscountFactor = options.DiscountFactor;
                 IsAdaptive = options.IsAdaptive;
                 RankSelectionMethod = options.RankSelectionMethod;
                 Rank = options.Rank;
-                ShouldComputeForecastIntervals = options.ShouldComputeForecastIntervals;
                 ShouldStablize = options.ShouldStablize;
                 MaxGrowth = options.MaxGrowth;
                 SeriesLength = options.SeriesLength;
                 TrainSize = options.TrainSize;
                 Horizon = options.Horizon;
+                ConfidenceLevel = options.ConfidenceLevel;
             }
         }
 
@@ -212,7 +218,6 @@ namespace Microsoft.ML.Transforms.TimeSeries
         /// </summary>
         /// <param name="env">Host Environment.</param>
         /// <param name="outputColumnName">Name of the column resulting from the transformation of <paramref name="inputColumnName"/>.</param>
-        /// <param name="confidence">The confidence for spike detection in the range [0, 100].</param>
         /// <param name="discountFactor"></param>
         /// <param name="isAdaptive"></param>
         /// <param name="windowSize"></param>
@@ -225,9 +230,11 @@ namespace Microsoft.ML.Transforms.TimeSeries
         /// <param name="maxGrowth"></param>
         /// <param name="inputColumnName">Name of column to transform. If set to <see langword="null"/>, the value of the <paramref name="outputColumnName"/> will be used as source.
         /// The vector contains Alert, Raw Score, P-Value as first three values.</param>
+        /// <param name="forecastingConfidenceIntervalMinOutputColumnName"></param>
+        /// <param name="forecastingConfidenceIntervalMaxOutputColumnName"></param>
+        /// <param name="confidenceLevel"></param>
         internal SsaForecastingEstimator(IHostEnvironment env,
             string outputColumnName,
-            int confidence,
             float discountFactor,
             bool isAdaptive,
             int windowSize,
@@ -238,23 +245,27 @@ namespace Microsoft.ML.Transforms.TimeSeries
             bool shouldStablize,
             bool shouldMaintainInfo,
             GrowthRatio? maxGrowth,
-            string inputColumnName = null)
+            string inputColumnName = null,
+            string forecastingConfidenceIntervalMinOutputColumnName = null,
+            string forecastingConfidenceIntervalMaxOutputColumnName = null,
+            float confidenceLevel = 0.95f)
             : this(env, new SsaForecasting.Options
-                {
-                    Source = inputColumnName ?? outputColumnName,
-                    Name = outputColumnName,
-                    Confidence = confidence,
-                    DiscountFactor = discountFactor,
-                    IsAdaptive = isAdaptive,
-                    WindowSize = windowSize,
-                    RankSelectionMethod = rankSelectionMethod,
-                    Rank = rank,
-                    MaxRank = maxRank,
-                    ShouldComputeForecastIntervals = shouldComputeForecastIntervals,
-                    ShouldStablize = shouldStablize,
-                    ShouldMaintainInfo = shouldMaintainInfo,
-                    MaxGrowth = maxGrowth,
-                })
+            {
+                Source = inputColumnName ?? outputColumnName,
+                Name = outputColumnName,
+                DiscountFactor = discountFactor,
+                IsAdaptive = isAdaptive,
+                WindowSize = windowSize,
+                RankSelectionMethod = rankSelectionMethod,
+                Rank = rank,
+                MaxRank = maxRank,
+                ShouldStablize = shouldStablize,
+                ShouldMaintainInfo = shouldMaintainInfo,
+                MaxGrowth = maxGrowth,
+                ConfidenceLevel = confidenceLevel,
+                ForecastingConfidenceIntervalMinOutputColumnName = forecastingConfidenceIntervalMinOutputColumnName,
+                ForecastingConfidenceIntervalMaxOutputColumnName = forecastingConfidenceIntervalMaxOutputColumnName
+            })
         {
         }
 

@@ -29,20 +29,20 @@ namespace Microsoft.ML.Transforms.TimeSeries
         }
     }
 
-    internal sealed class DataBoxMultiple<T>
+    internal sealed class DataBoxForecastingWithConfidenceIntervals<T>
     {
-        public T Value;
+        public T Value1;
         public T Value2;
         public T Value3;
 
-        public DataBoxMultiple()
+        public DataBoxForecastingWithConfidenceIntervals()
         {
         }
 
-        public DataBoxMultiple(T value, T value1, T value2)
+        public DataBoxForecastingWithConfidenceIntervals(T value1, T value2, T value3)
         {
-            Value = value;
-            Value2 = value1;
+            Value1 = value1;
+            Value2 = value2;
             Value3 = value2;
         }
     }

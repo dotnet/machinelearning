@@ -2,12 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Generic;
 using System.IO;
 using Microsoft.ML.Data;
 using Microsoft.ML.TestFramework.Attributes;
-using Microsoft.ML.TimeSeries;
 using Microsoft.ML.Transforms.TimeSeries;
 using Xunit;
 
@@ -174,7 +172,7 @@ namespace Microsoft.ML.Tests
 
             var args = new SsaForecasting.Options()
             {
-                Confidence = 95,
+                ConfidenceLevel = 0.95f,
                 Source = "Value",
                 Name = "Change",
                 WindowSize = 10,
@@ -371,7 +369,7 @@ namespace Microsoft.ML.Tests
 
             var args = new SsaForecasting.Options()
             {
-                Confidence = 95,
+                ConfidenceLevel = 0.95f,
                 Source = "Value",
                 Name = "Change",
                 WindowSize = 10,

@@ -166,6 +166,40 @@ namespace Microsoft.ML.Transforms.TimeSeries
                 }
             }
 
+            public void Process(ref TInput input, ref TOutput output1, ref TOutput output2, ref TOutput output3)
+            {
+                if (PreviousPosition == -1)
+                    UpdateStateCore(ref input);
+
+                if (InitialWindowedBuffer.Count < InitialWindowSize)
+                {
+                    SetNaOutput(ref output1);
+
+                    if (InitialWindowedBuffer.Count == InitialWindowSize)
+                        LearnStateFromDataCore(InitialWindowedBuffer);
+                }
+                else
+                {
+                    TransformCore(ref input, WindowedBuffer, RowCounter - InitialWindowSize, ref output1, ref output2, ref output3);
+                }
+            }
+
+            public void ProcessWithoutBuffer(ref TInput input, ref TOutput output1, ref TOutput output2, ref TOutput output3)
+            {
+                if (PreviousPosition == -1)
+                    UpdateStateCore(ref input, false);
+
+                if (InitialWindowedBuffer.Count < InitialWindowSize)
+                {
+                    SetNaOutput(ref output1);
+
+                    if (InitialWindowedBuffer.Count == InitialWindowSize)
+                        LearnStateFromDataCore(InitialWindowedBuffer);
+                }
+                else
+                    TransformCore(ref input, WindowedBuffer, RowCounter - InitialWindowSize, ref output1, ref output2, ref output3);
+            }
+
             public void Process(ref TInput input, ref TOutput output)
             {
                 if (PreviousPosition == -1)
@@ -219,6 +253,21 @@ namespace Microsoft.ML.Transforms.TimeSeries
             }
 
             /// <summary>
+            /// The abstract method that realizes the main logic for the transform.
+            /// </summary>
+            /// <param name="input">A reference to the input object.</param>
+            /// <param name="dst1">A reference to the dst object.</param>
+            /// <param name="dst2"></param>
+            /// <param name="dst3"></param>
+            /// <param name="windowedBuffer">A reference to the windowed buffer.</param>
+            /// <param name="iteration">A long number that indicates the number of times TransformCore has been called so far (starting value = 0).</param>
+            private protected virtual void TransformCore(ref TInput input, FixedSizeQueue<TInput> windowedBuffer, long iteration,
+                ref TOutput dst1, ref TOutput dst2, ref TOutput dst3)
+            {
+
+            }
+
+            /// <summary>
             /// The abstract method that realizes the logic for initializing the state object.
             /// </summary>
             private protected virtual void InitializeStateCore(bool disk = false)
@@ -267,6 +316,8 @@ namespace Microsoft.ML.Transforms.TimeSeries
 
         internal readonly string InputColumnName;
         internal readonly string OutputColumnName;
+        internal readonly string ForecastingConfidenceIntervalMinOutputColumnName;
+        internal readonly string ForecastingConfidenceIntervalMaxOutputColumnName;
         private protected DataViewType OutputColumnType;
 
         bool ITransformer.IsRowToRowMapper => false;
@@ -283,7 +334,8 @@ namespace Microsoft.ML.Transforms.TimeSeries
         /// <param name="outputColumnName">The name of the dst column.</param>
         /// <param name="inputColumnName">The name of the input column.</param>
         /// <param name="outputColType"></param>
-        private protected SequentialTransformerBase(IHost host, int windowSize, int initialWindowSize, string outputColumnName, string inputColumnName, DataViewType outputColType)
+        private protected SequentialTransformerBase(IHost host, int windowSize, int initialWindowSize,
+            string outputColumnName, string inputColumnName, DataViewType outputColType)
         {
             Host = host;
             Host.CheckParam(initialWindowSize >= 0, nameof(initialWindowSize), "Must be non-negative.");
@@ -298,6 +350,15 @@ namespace Microsoft.ML.Transforms.TimeSeries
             OutputColumnType = outputColType;
             InitialWindowSize = initialWindowSize;
             WindowSize = windowSize;
+        }
+
+        private protected SequentialTransformerBase(IHost host, int windowSize, int initialWindowSize,
+            string outputColumnName, string forecastingConfidenceIntervalMinOutputColumnName,
+            string forecastingConfidenceIntervalMaxOutputColumnName, string inputColumnName, DataViewType outputColType) :
+            this(host, windowSize, initialWindowSize, outputColumnName, inputColumnName, outputColType)
+        {
+            ForecastingConfidenceIntervalMinOutputColumnName = forecastingConfidenceIntervalMinOutputColumnName;
+            ForecastingConfidenceIntervalMaxOutputColumnName = forecastingConfidenceIntervalMaxOutputColumnName;
         }
 
         private protected SequentialTransformerBase(IHost host, ModelLoadContext ctx)
@@ -323,6 +384,8 @@ namespace Microsoft.ML.Transforms.TimeSeries
 
             InputColumnName = inputColumnName;
             OutputColumnName = outputColumnName;
+            ForecastingConfidenceIntervalMinOutputColumnName = ctx.Reader.ReadString();
+            ForecastingConfidenceIntervalMaxOutputColumnName = ctx.Reader.ReadString();
             InitialWindowSize = initialWindowSize;
             WindowSize = windowSize;
 
@@ -349,7 +412,8 @@ namespace Microsoft.ML.Transforms.TimeSeries
             ctx.Writer.Write(InitialWindowSize);
             ctx.SaveNonEmptyString(InputColumnName);
             ctx.SaveNonEmptyString(OutputColumnName);
-
+            ctx.Writer.Write(ForecastingConfidenceIntervalMinOutputColumnName);
+            ctx.Writer.Write(ForecastingConfidenceIntervalMaxOutputColumnName);
             var bs = new BinarySaver(Host, new BinarySaver.Arguments());
             bs.TryWriteTypeDescription(ctx.Writer.BaseStream, OutputColumnType, out int byteWritten);
         }
@@ -397,7 +461,9 @@ namespace Microsoft.ML.Transforms.TimeSeries
                 Metadata = new MetadataDispatcher(3);
                 _parent = parent;
                 _transform = CreateLambdaTransform(_parent.Host, input, _parent.InputColumnName,
-                    _parent.OutputColumnName, InitFunction, _parent.WindowSize > 0, _parent.OutputColumnType);
+                    _parent.OutputColumnName, _parent.ForecastingConfidenceIntervalMinOutputColumnName,
+                    _parent.ForecastingConfidenceIntervalMaxOutputColumnName, InitFunction, _parent.WindowSize > 0, _parent.OutputColumnType);
+
                 _mapper = mapper;
                 _bindings = new ColumnBindings(input.Schema, _mapper.GetOutputColumns());
             }
@@ -405,39 +471,69 @@ namespace Microsoft.ML.Transforms.TimeSeries
             public void CloneStateInMapper() => _mapper.CloneState();
 
             private static IDataTransform CreateLambdaTransform(IHost host, IDataView input, string inputColumnName,
-                string outputColumnName, Action<TState> initFunction, bool hasBuffer, DataViewType outputColTypeOverride)
+                string outputColumnName, string forecastingConfidenceIntervalMinOutputColumnName,
+                string forecastingConfidenceIntervalMaxOutputColumnName, Action<TState> initFunction, bool hasBuffer, DataViewType outputColTypeOverride)
             {
                 var inputSchema = SchemaDefinition.Create(typeof(DataBox<TInput>));
                 inputSchema[0].ColumnName = inputColumnName;
 
-                var outputSchema = SchemaDefinition.Create(typeof(DataBoxMultiple<TOutput>));
-                outputSchema[0].ColumnName = outputColumnName;
+                SchemaDefinition outputSchema;
 
-                if (outputColTypeOverride != null)
-                    outputSchema[0].ColumnType = outputColTypeOverride;
+                if (forecastingConfidenceIntervalMinOutputColumnName != null)
+                {
+                    outputSchema = SchemaDefinition.Create(typeof(DataBoxForecastingWithConfidenceIntervals<TOutput>));
+                    outputSchema[0].ColumnName = outputColumnName;
 
-                outputSchema[1].ColumnName = "Min";
-                outputSchema[2].ColumnName = "Max";
+                    if (outputColTypeOverride != null)
+                        outputSchema[0].ColumnType = outputSchema[1].ColumnType = outputSchema[2].ColumnType = outputColTypeOverride;
 
-                Action<DataBox<TInput>, DataBoxMultiple<TOutput>, TState> lambda;
-                if (hasBuffer)
-                    lambda = MapFunction;
+                    outputSchema[1].ColumnName = forecastingConfidenceIntervalMinOutputColumnName;
+                    outputSchema[2].ColumnName = forecastingConfidenceIntervalMaxOutputColumnName;
+
+                    Action<DataBox<TInput>, DataBoxForecastingWithConfidenceIntervals<TOutput>, TState> lambda;
+                    if (hasBuffer)
+                        lambda = MapFunction;
+                    else
+                        lambda = MapFunctionWithoutBuffer;
+
+                    return LambdaTransform.CreateMap(host, input, lambda, initFunction, inputSchema, outputSchema);
+                }
                 else
-                    lambda = MapFunction;
+                {
+                    outputSchema = SchemaDefinition.Create(typeof(DataBox<TOutput>));
+                    outputSchema[0].ColumnName = outputColumnName;
 
-                return LambdaTransform.CreateMap(host, input, lambda, initFunction, inputSchema, outputSchema);
+                    if (outputColTypeOverride != null)
+                        outputSchema[0].ColumnType = outputColTypeOverride;
+
+                    Action<DataBox<TInput>, DataBox<TOutput>, TState> lambda;
+                    if (hasBuffer)
+                        lambda = MapFunction;
+                    else
+                        lambda = MapFunctionWithoutBuffer;
+
+                    return LambdaTransform.CreateMap(host, input, lambda, initFunction, inputSchema, outputSchema);
+                }
             }
 
-            private static void MapFunction(DataBox<TInput> input, DataBoxMultiple<TOutput> output, TState state)
+            private static void MapFunction(DataBox<TInput> input, DataBox<TOutput> output, TState state)
             {
                 state.Process(ref input.Value, ref output.Value);
-                state.Process(ref input.Value, ref output.Value2);
-                state.Process(ref input.Value, ref output.Value3);
+            }
+
+            private static void MapFunction(DataBox<TInput> input, DataBoxForecastingWithConfidenceIntervals<TOutput> output, TState state)
+            {
+                state.Process(ref input.Value, ref output.Value1, ref output.Value2, ref output.Value3);
             }
 
             private static void MapFunctionWithoutBuffer(DataBox<TInput> input, DataBox<TOutput> output, TState state)
             {
                 state.ProcessWithoutBuffer(ref input.Value, ref output.Value);
+            }
+
+            private static void MapFunctionWithoutBuffer(DataBox<TInput> input, DataBoxForecastingWithConfidenceIntervals<TOutput> output, TState state)
+            {
+                state.ProcessWithoutBuffer(ref input.Value, ref output.Value1, ref output.Value2, ref output.Value3);
             }
 
             private void InitFunction(TState state)

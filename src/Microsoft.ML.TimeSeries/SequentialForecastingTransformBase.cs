@@ -7,9 +7,8 @@ using System.IO;
 using System.Threading;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
-using Microsoft.ML.Internal.CpuMath;
-using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Runtime;
+using static Microsoft.ML.DataViewSchema;
 
 namespace Microsoft.ML.Transforms.TimeSeries
 {
@@ -27,47 +26,56 @@ namespace Microsoft.ML.Transforms.TimeSeries
             SortOrder = 2)]
         public string Name;
 
-        [Argument(ArgumentType.AtMostOnce, HelpText = "The size of the sliding window for computing the p-value.", ShortName = "wnd",
+        [Argument(ArgumentType.Required, HelpText = "The name of the new column", ShortName = "cnfminname",
+            SortOrder = 2)]
+        public string ForecastingConfidenceIntervalMinOutputColumnName;
+
+        [Argument(ArgumentType.Required, HelpText = "The name of the new column", ShortName = "cnfmaxnname",
+            SortOrder = 2)]
+        public string ForecastingConfidenceIntervalMaxOutputColumnName;
+
+        [Argument(ArgumentType.AtMostOnce, HelpText = "The size of the sliding window.", ShortName = "wnd",
             SortOrder = 3)]
         public int TrainSize = 1;
 
-        [Argument(ArgumentType.AtMostOnce, HelpText = "The size of the initial window for computing the p-value as well as" +
-            " training if needed. The default value is set to 0, which means there is no initial window considered.",
-            ShortName = "initwnd", SortOrder = 5)]
+        [Argument(ArgumentType.AtMostOnce, HelpText = "The size of the initial window. The default value " +
+            "is set to 0, which means there is no initial window considered.", ShortName = "initwnd", SortOrder = 5)]
         public int SeriesLength = 0;
     }
 
-    // REVIEW: This base class and its children classes generate one output column of type VBuffer<Double> to output 3 different anomaly scores as well as
-    // the alert flag. Ideally these 4 output information should be put in four seaparate columns instead of one VBuffer<> column. However, this is not currently
-    // possible due to our design restriction. This must be fixed in the next version and will potentially affect the children classes.
     /// <summary>
-    /// The base class for sequential anomaly detection transforms that supports the p-value as well as the martingales scores computation from the sequence of
-    /// raw anomaly scores whose calculation is specified by the children classes. This class also provides mechanism for the threshold-based alerting on
-    /// the raw anomaly score, the p-value score or the martingale score. Currently, this class supports Power and Mixture martingales.
+    /// The base class for forecasting transforms that also supports confidence intervals for each forecasted value.
     /// For more details, please refer to http://arxiv.org/pdf/1204.3251.pdf
     /// </summary>
     /// <typeparam name="TInput">The type of the input sequence</typeparam>
     /// <typeparam name="TState">The type of the input sequence</typeparam>
-    internal abstract class SequentialForecastingTransformBase<TInput, TState> : SequentialTransformerBase<TInput, VBuffer<Double>, TState>
+    internal abstract class SequentialForecastingTransformBase<TInput, TState> : SequentialTransformerBase<TInput, VBuffer<float>, TState>
     where TState : SequentialForecastingTransformBase<TInput, TState>.ForecastingStateBase, new()
     {
 
         // The size of the VBuffer in the dst column.
-        internal int OutputLength;
+        private readonly int _outputLength;
 
-        private protected SequentialForecastingTransformBase(int windowSize, int initialWindowSize, string inputColumnName, string outputColumnName, string name, IHostEnvironment env)
-            : base(Contracts.CheckRef(env, nameof(env)).Register(name), windowSize, initialWindowSize, outputColumnName, inputColumnName, new VectorDataViewType(NumberDataViewType.Double, 0))
+        private protected SequentialForecastingTransformBase(int windowSize, int initialWindowSize,
+            string inputColumnName, string outputColumnName, string forecastingConfidenceIntervalMinOutputColumnName,
+                string forecastingConfidenceIntervalMaxOutputColumnName, string name, int outputLength, IHostEnvironment env)
+            : base(Contracts.CheckRef(env, nameof(env)).Register(name), windowSize, initialWindowSize,
+                  outputColumnName, forecastingConfidenceIntervalMinOutputColumnName,
+                  forecastingConfidenceIntervalMaxOutputColumnName, inputColumnName, new VectorDataViewType(NumberDataViewType.Single, outputLength))
         {
+            _outputLength = outputLength;
         }
 
-        private protected SequentialForecastingTransformBase(ForecastingArgumentsBase args, string name, IHostEnvironment env)
-            : this(args.TrainSize, args.SeriesLength, args.Source, args.Name, name, env)
+        private protected SequentialForecastingTransformBase(ForecastingArgumentsBase args, string name, int outputLength, IHostEnvironment env)
+            : this(args.TrainSize, args.SeriesLength, args.Source, args.ForecastingConfidenceIntervalMinOutputColumnName,
+                  args.ForecastingConfidenceIntervalMaxOutputColumnName, args.Name, name, outputLength, env)
         {
         }
 
         private protected SequentialForecastingTransformBase(IHostEnvironment env, ModelLoadContext ctx, string name)
             : base(Contracts.CheckRef(env, nameof(env)).Register(name), ctx)
         {
+            _outputLength = ctx.Reader.ReadInt32();
             // *** Binary format ***
             // <base>
         }
@@ -81,6 +89,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
             // <base>
 
             base.SaveModel(ctx);
+            ctx.Writer.Write(_outputLength);
         }
 
         internal override IStatefulRowMapper MakeRowMapper(DataViewSchema schema) => new Mapper(Host, this, schema);
@@ -91,7 +100,6 @@ namespace Microsoft.ML.Transforms.TimeSeries
             private readonly SequentialForecastingTransformBase<TInput, TState> _parent;
             private readonly DataViewSchema _parentSchema;
             private readonly int _inputColumnIndex;
-            private readonly VBuffer<ReadOnlyMemory<Char>> _slotNames;
             private ForecastingStateBase State { get; set; }
 
             public Mapper(IHostEnvironment env, SequentialForecastingTransformBase<TInput, TState> parent, DataViewSchema inputSchema)
@@ -110,23 +118,28 @@ namespace Microsoft.ML.Transforms.TimeSeries
 
                 _parent = parent;
                 _parentSchema = inputSchema;
-                _slotNames = new VBuffer<ReadOnlyMemory<char>>(_parent.OutputLength, new[] {"".AsMemory()});
-
                 State = (ForecastingStateBase)_parent.StateRef;
             }
 
             public DataViewSchema.DetachedColumn[] GetOutputColumns()
             {
-                var meta = new DataViewSchema.Annotations.Builder();
-                meta.AddSlotNames(_parent.OutputLength, GetSlotNames);
-                var info = new DataViewSchema.DetachedColumn[3];
-                info[0] = new DataViewSchema.DetachedColumn(_parent.OutputColumnName, new VectorDataViewType(NumberDataViewType.Double, 0), meta.ToAnnotations());
-                info[1] = new DataViewSchema.DetachedColumn("Min", new VectorDataViewType(NumberDataViewType.Double, 0), meta.ToAnnotations());
-                info[2] = new DataViewSchema.DetachedColumn("Max", new VectorDataViewType(NumberDataViewType.Double, 0), meta.ToAnnotations());
+                DetachedColumn[] info;
+
+                if (!string.IsNullOrEmpty(_parent.ForecastingConfidenceIntervalMaxOutputColumnName))
+                {
+                    info = new DetachedColumn[3];
+                    info[0] = new DetachedColumn(_parent.OutputColumnName, new VectorDataViewType(NumberDataViewType.Single, _parent._outputLength));
+                    info[1] = new DetachedColumn(_parent.ForecastingConfidenceIntervalMinOutputColumnName, new VectorDataViewType(NumberDataViewType.Single, _parent._outputLength));
+                    info[2] = new DetachedColumn(_parent.ForecastingConfidenceIntervalMaxOutputColumnName, new VectorDataViewType(NumberDataViewType.Single, _parent._outputLength));
+                }
+                else
+                {
+                    info = new DetachedColumn[3];
+                    info[0] = new DetachedColumn(_parent.OutputColumnName, new VectorDataViewType(NumberDataViewType.Single, _parent._outputLength));
+                }
+
                 return info;
             }
-
-            public void GetSlotNames(ref VBuffer<ReadOnlyMemory<char>> dst) => _slotNames.CopyTo(ref dst, 0, _parent.OutputLength);
 
             public Func<int, bool> GetDependencies(Func<int, bool> activeOutput)
             {
@@ -149,7 +162,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
                 return getters;
             }
 
-            private delegate void ProcessData(ref TInput src, ref VBuffer<double> dst);
+            private delegate void ProcessData(ref TInput src, ref VBuffer<float> dst);
 
             private Delegate MakeGetter(DataViewRow input, ForecastingStateBase state)
             {
@@ -158,7 +171,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
                 ProcessData processData = _parent.WindowSize > 0 ?
                     (ProcessData)state.Process : state.ProcessWithoutBuffer;
 
-                ValueGetter<VBuffer<double>> valueGetter = (ref VBuffer<double> dst) =>
+                ValueGetter<VBuffer<float>> valueGetter = (ref VBuffer<float> dst) =>
                 {
                     TInput src = default;
                     srcGetter(ref src);
@@ -207,7 +220,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
         /// The base state class for sequential anomaly detection: this class implements the p-values and martinagle calculations for anomaly detection
         /// given that the raw anomaly score calculation is specified by the derived classes.
         /// </summary>
-        internal abstract class ForecastingStateBase : SequentialTransformerBase<TInput, VBuffer<Double>, TState>.StateBase
+        internal abstract class ForecastingStateBase : SequentialTransformerBase<TInput, VBuffer<float>, TState>.StateBase
         {
             // A reference to the parent transform.
             protected SequentialForecastingTransformBase<TInput, TState> Parent;
@@ -228,13 +241,13 @@ namespace Microsoft.ML.Transforms.TimeSeries
                 base.Save(writer);
             }
 
-            private protected override void SetNaOutput(ref VBuffer<Double> dst)
+            private protected override void SetNaOutput(ref VBuffer<float> dst)
             {
-                var outputLength = Parent.OutputLength;
+                var outputLength = Parent._outputLength;
                 var editor = VBufferEditor.Create(ref dst, outputLength);
 
                 for (int i = 0; i < outputLength; ++i)
-                    editor.Values[i] = Double.NaN;
+                    editor.Values[i] = float.NaN;
 
                 dst = editor.Commit();
             }
