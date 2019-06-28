@@ -43,7 +43,7 @@ namespace Samples.Dynamic
             var filteredData = mlContext.Data.SkipRows(data, 5);
 
             // Look at the filtered data and observe that the first 5 rows have been
-			// dropped
+	    // dropped
             var enumerable = mlContext.Data
 			    .CreateEnumerable<SampleTemperatureData>(filteredData,
 			    reuseRowObject: true);
