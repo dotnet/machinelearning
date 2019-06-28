@@ -168,60 +168,6 @@ namespace Microsoft.ML.Tests
         }
 
         [LessThanNetCore30OrNotNetCoreFact("netcoreapp3.0 output differs from Baseline")]
-        public void Forecast()
-        {
-            var env = new MLContext();
-            const int ChangeHistorySize = 10;
-            const int SeasonalitySize = 10;
-            const int NumberOfSeasonsInTraining = 5;
-
-            List<Data> data = new List<Data>();
-            var dataView = env.Data.LoadFromEnumerable(data);
-
-            var args = new SsaForecasting.Options()
-            {
-                ConfidenceLevel = 0.95f,
-                Source = "Value",
-                Name = "Forecast",
-                ForecastingConfidenceIntervalMinOutputColumnName = "MinCnf",
-                ForecastingConfidenceIntervalMaxOutputColumnName = "MaxCnf",
-                WindowSize = 10,
-                SeriesLength = 11,
-                TrainSize = 22,
-                Horizon = 4,
-                IsAdaptive = true
-            };
-
-            for (int j = 0; j < NumberOfSeasonsInTraining; j++)
-                for (int i = 0; i < SeasonalitySize; i++)
-                    data.Add(new Data(i));
-
-            for (int i = 0; i < ChangeHistorySize; i++)
-                data.Add(new Data(i * 100));
-
-            // Train
-            var detector = new SsaForecastingEstimator(env, args).Fit(dataView);
-            // Transform
-            var output = detector.Transform(dataView);
-            // Get predictions
-            var enumerator = env.Data.CreateEnumerable<ForecastPrediction>(output, true).GetEnumerator();
-            ForecastPrediction row = null;
-            List<float> expectedForecast = new List<float>() { 0.191491723f, 2.53994083f, 5.26454258f, 7.37313938f };
-            List<float> minCnf = new List<float>() { -3.9741993f, -2.36872721f, 0.09407653f, 2.18899345f };
-            List<float> maxCnf = new List<float>() { 4.3571825f, 7.448609f, 10.435009f, 12.5572853f };
-            enumerator.MoveNext();
-            row = enumerator.Current;
-
-            for (int localIndex = 0; localIndex < 4; localIndex++)
-            {
-                Assert.Equal(expectedForecast[localIndex], row.Forecast[localIndex], precision: 7);
-                Assert.Equal(minCnf[localIndex], row.MinCnf[localIndex], precision: 7);
-                Assert.Equal(maxCnf[localIndex], row.MaxCnf[localIndex], precision: 7);
-            }
-
-        }
-
-        [LessThanNetCore30OrNotNetCoreFact("netcoreapp3.0 output differs from Baseline")]
         public void ChangePointDetectionWithSeasonalityPredictionEngineNoColumn()
         {
             const int ChangeHistorySize = 10;
@@ -368,7 +314,61 @@ namespace Microsoft.ML.Tests
         }
 
         [LessThanNetCore30OrNotNetCoreFact("netcoreapp3.0 output differs from Baseline")]
-        public void ForecastingPredictionEngine()
+        public void SsaForecast()
+        {
+            var env = new MLContext();
+            const int ChangeHistorySize = 10;
+            const int SeasonalitySize = 10;
+            const int NumberOfSeasonsInTraining = 5;
+
+            List<Data> data = new List<Data>();
+            var dataView = env.Data.LoadFromEnumerable(data);
+
+            var args = new SsaForecasting.Options()
+            {
+                ConfidenceLevel = 0.95f,
+                Source = "Value",
+                Name = "Forecast",
+                ForecastingConfidenceIntervalMinOutputColumnName = "MinCnf",
+                ForecastingConfidenceIntervalMaxOutputColumnName = "MaxCnf",
+                WindowSize = 10,
+                SeriesLength = 11,
+                TrainSize = 22,
+                Horizon = 4,
+                IsAdaptive = true
+            };
+
+            for (int j = 0; j < NumberOfSeasonsInTraining; j++)
+                for (int i = 0; i < SeasonalitySize; i++)
+                    data.Add(new Data(i));
+
+            for (int i = 0; i < ChangeHistorySize; i++)
+                data.Add(new Data(i * 100));
+
+            // Train
+            var detector = new SsaForecastingEstimator(env, args).Fit(dataView);
+            // Transform
+            var output = detector.Transform(dataView);
+            // Get predictions
+            var enumerator = env.Data.CreateEnumerable<ForecastPrediction>(output, true).GetEnumerator();
+            ForecastPrediction row = null;
+            List<float> expectedForecast = new List<float>() { 0.191491723f, 2.53994083f, 5.26454258f, 7.37313938f };
+            List<float> minCnf = new List<float>() { -3.9741993f, -2.36872721f, 0.09407653f, 2.18899345f };
+            List<float> maxCnf = new List<float>() { 4.3571825f, 7.448609f, 10.435009f, 12.5572853f };
+            enumerator.MoveNext();
+            row = enumerator.Current;
+
+            for (int localIndex = 0; localIndex < 4; localIndex++)
+            {
+                Assert.Equal(expectedForecast[localIndex], row.Forecast[localIndex], precision: 7);
+                Assert.Equal(minCnf[localIndex], row.MinCnf[localIndex], precision: 7);
+                Assert.Equal(maxCnf[localIndex], row.MaxCnf[localIndex], precision: 7);
+            }
+
+        }
+
+        [LessThanNetCore30OrNotNetCoreFact("netcoreapp3.0 output differs from Baseline")]
+        public void SsaForecastPredictionEngine()
         {
             const int ChangeHistorySize = 10;
             const int SeasonalitySize = 10;
@@ -457,104 +457,5 @@ namespace Microsoft.ML.Tests
                 k += 1;
             }
         }
-
-        /*
-        [Fact]
-        public void Forecasting()
-        {
-            const int SeasonalitySize = 10;
-            const int NumberOfSeasonsInTraining = 5;
-
-            List<Data> data = new List<Data>();
-
-            var ml = new MLContext(seed: 1);
-            var dataView = ml.Data.LoadFromEnumerable<Data>(data);
-
-            for (int j = 0; j < NumberOfSeasonsInTraining; j++)
-                for (int i = 0; i < SeasonalitySize; i++)
-                    data.Add(new Data(i));
-
-            // Create forecasting model.
-            var model = ml.Forecasting.AdaptiveSingularSpectrumSequenceModeler("Value", data.Count, SeasonalitySize + 1, SeasonalitySize,
-                1, AdaptiveSingularSpectrumSequenceForecasting.RankSelectionMethod.Exact, null, SeasonalitySize / 2, false, false);
-
-            // Train.
-            model.Train(dataView);
-
-            // Forecast.
-            var forecast = model.Forecast(5);
-
-            // Update with new observations.
-            model.Update(dataView);
-
-            // Checkpoint.
-            ml.Model.SaveForecastingModel(model, "model.zip");
-
-            // Load the checkpointed model from disk.
-            var modelCopy = ml.Model.LoadForecastingModel<float>("model.zip");
-
-            // Forecast with the checkpointed model loaded from disk.
-            var forecastCopy = modelCopy.Forecast(5);
-
-            // Forecast with the original model(that was checkpointed to disk).
-            forecast = model.Forecast(5);
-
-            // Both the forecasted values from model loaded from disk and 
-            // already in memory model should be the same.
-            Assert.Equal(forecast, forecastCopy);
-        }
-
-        [Fact]
-        public void ForecastingWithConfidenceInterval()
-        {
-            const int SeasonalitySize = 10;
-            const int NumberOfSeasonsInTraining = 5;
-
-            List<Data> data = new List<Data>();
-
-            var ml = new MLContext(seed: 1);
-            var dataView = ml.Data.LoadFromEnumerable<Data>(data);
-
-            for (int j = 0; j < NumberOfSeasonsInTraining; j++)
-                for (int i = 0; i < SeasonalitySize; i++)
-                    data.Add(new Data(i));
-
-            // Create forecasting model.
-            var model = ml.Forecasting.AdaptiveSingularSpectrumSequenceModeler("Value", data.Count, SeasonalitySize + 1, SeasonalitySize,
-                1, AdaptiveSingularSpectrumSequenceForecasting.RankSelectionMethod.Exact, null, SeasonalitySize / 2, shouldComputeForecastIntervals: true, false);
-
-            // Train.
-            model.Train(dataView);
-
-            // Forecast.
-            float[] forecast;
-            float[] lowConfInterval;
-            float[] upperConfInterval;
-            model.ForecastWithConfidenceIntervals(5, out forecast, out lowConfInterval, out upperConfInterval);
-
-            // Update with new observations.
-            model.Update(dataView);
-
-            // Checkpoint.
-            ml.Model.SaveForecastingModel(model, "model.zip");
-
-            // Load the checkpointed model from disk.
-            var modelCopy = ml.Model.LoadForecastingModel<float>("model.zip");
-
-            // Forecast with the checkpointed model loaded from disk.
-            float[] forecastCopy;
-            float[] lowConfIntervalCopy;
-            float[] upperConfIntervalCopy;
-            modelCopy.ForecastWithConfidenceIntervals(5, out forecastCopy, out lowConfIntervalCopy, out upperConfIntervalCopy);
-
-            // Forecast with the original model(that was checkpointed to disk).
-            model.ForecastWithConfidenceIntervals(5, out forecast, out lowConfInterval, out upperConfInterval);
-
-            // Both the forecasted values from model loaded from disk and 
-            // already in memory model should be the same.
-            Assert.Equal(forecast, forecastCopy);
-            Assert.Equal(lowConfInterval, lowConfIntervalCopy);
-            Assert.Equal(upperConfInterval, upperConfIntervalCopy);
-        }*/
     }
 }
