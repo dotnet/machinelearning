@@ -42,13 +42,13 @@ namespace Samples.Dynamic
             //  1/11/2012       29
 
             // Filter the data by the values of the temperature. The lower bound is
-			// inclusive, the upper exclusive.
+	    // inclusive, the upper exclusive.
             var filteredData = mlContext.Data
 			    .FilterRowsByColumn(data, columnName: "Temperature",
 				lowerBound: 34, upperBound: 37);
 
             // Look at the filtered data and observe that values outside [34,37)
-			// have been dropped.
+	    // have been dropped.
             var enumerable = mlContext.Data
 			    .CreateEnumerable<SampleTemperatureData>(filteredData,
 			    reuseRowObject: true);
