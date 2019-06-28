@@ -23,7 +23,8 @@ namespace Samples.Dynamic
             Console.WriteLine($"Date\tTemperature");
             foreach (var row in enumerableOfData)
             {
-                Console.WriteLine($"{row.Date.ToString("d")}\t{row.Temperature}");
+                Console.WriteLine(
+		    $"{row.Date.ToString("d")}\t{row.Temperature}");
 
             }
             Console.WriteLine();
@@ -55,7 +56,8 @@ namespace Samples.Dynamic
             Console.WriteLine($"Date\tTemperature");
             foreach (var row in enumerable)
             {
-                Console.WriteLine($"{row.Date.ToString("d")}\t{row.Temperature}");
+                Console.WriteLine(
+		    $"{row.Date.ToString("d")}\t{row.Temperature}");
 
             }
 
