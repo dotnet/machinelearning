@@ -42,11 +42,11 @@ namespace Microsoft.ML.Transforms.TimeSeries
             [Argument(ArgumentType.Required, HelpText = "The name of the new column.", SortOrder = 2)]
             public string Name;
 
-            [Argument(ArgumentType.AtMostOnce, HelpText = "The name of the minimum confidence interval column.", ShortName = "cnfminname", SortOrder = 3)]
-            public string ForecastingConfidenceIntervalMinOutputColumnName;
+            [Argument(ArgumentType.AtMostOnce, HelpText = "The name of the confidence interval lower bound column.", ShortName = "cnfminname", SortOrder = 3)]
+            public string ForcastingConfidentLowerBoundColumnName;
 
-            [Argument(ArgumentType.AtMostOnce, HelpText = "The name of the maximum confidence interval column.", ShortName = "cnfmaxnname", SortOrder = 3)]
-            public string ForecastingConfidenceIntervalMaxOutputColumnName;
+            [Argument(ArgumentType.AtMostOnce, HelpText = "The name of the confidence interval upper bound column.", ShortName = "cnfmaxnname", SortOrder = 3)]
+            public string ForcastingConfidentUpperBoundColumnName;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "The discount factor in [0,1] used for online updates.", ShortName = "disc", SortOrder = 5)]
             public float DiscountFactor = 1;
@@ -95,8 +95,8 @@ namespace Microsoft.ML.Transforms.TimeSeries
             {
                 Source = options.Source;
                 Name = options.Name;
-                ForecastingConfidenceIntervalMinOutputColumnName = options.ForecastingConfidenceIntervalMinOutputColumnName;
-                ForecastingConfidenceIntervalMaxOutputColumnName = options.ForecastingConfidenceIntervalMaxOutputColumnName;
+                ForcastingConfidentLowerBoundColumnName = options.ForcastingConfidentLowerBoundColumnName;
+                ForcastingConfidentUpperBoundColumnName = options.ForcastingConfidentUpperBoundColumnName;
                 WindowSize = options.WindowSize;
                 DiscountFactor = options.DiscountFactor;
                 IsAdaptive = options.IsAdaptive;
@@ -249,8 +249,8 @@ namespace Microsoft.ML.Transforms.TimeSeries
         /// <param name="shouldStablize">The flag determining whether the model should be stabilized.</param>
         /// <param name="shouldMaintainInfo">The flag determining whether the meta information for the model needs to be maintained.</param>
         /// <param name="maxGrowth">The maximum growth on the exponential trend.</param>
-        /// <param name="forecastingConfidenceIntervalMinOutputColumnName">The name of the minimum confidence interval column. If not specified then confidence intervals will not be calculated.</param>
-        /// <param name="forecastingConfidenceIntervalMaxOutputColumnName">The name of the maximum confidence interval column. If not specified then confidence intervals will not be calculated.</param>
+        /// <param name="forcastingConfidentLowerBoundColumnName">The name of the confidence interval lower bound column. If not specified then confidence intervals will not be calculated.</param>
+        /// <param name="forcastingConfidentUpperBoundColumnName">The name of the confidence interval upper bound column. If not specified then confidence intervals will not be calculated.</param>
         /// <param name="confidenceLevel"></param>
         internal SsaForecastingEstimator(IHostEnvironment env,
             string outputColumnName,
@@ -267,8 +267,8 @@ namespace Microsoft.ML.Transforms.TimeSeries
             bool shouldStablize = true,
             bool shouldMaintainInfo = false,
             GrowthRatio? maxGrowth = null,
-            string forecastingConfidenceIntervalMinOutputColumnName = null,
-            string forecastingConfidenceIntervalMaxOutputColumnName = null,
+            string forcastingConfidentLowerBoundColumnName = null,
+            string forcastingConfidentUpperBoundColumnName = null,
             float confidenceLevel = 0.95f)
             : this(env, new SsaForecasting.Options
             {
@@ -284,8 +284,8 @@ namespace Microsoft.ML.Transforms.TimeSeries
                 ShouldMaintainInfo = shouldMaintainInfo,
                 MaxGrowth = maxGrowth,
                 ConfidenceLevel = confidenceLevel,
-                ForecastingConfidenceIntervalMinOutputColumnName = forecastingConfidenceIntervalMinOutputColumnName,
-                ForecastingConfidenceIntervalMaxOutputColumnName = forecastingConfidenceIntervalMaxOutputColumnName
+                ForcastingConfidentLowerBoundColumnName = forcastingConfidentLowerBoundColumnName,
+                ForcastingConfidentUpperBoundColumnName = forcastingConfidentUpperBoundColumnName
             })
         {
         }
@@ -313,6 +313,8 @@ namespace Microsoft.ML.Transforms.TimeSeries
         /// <summary>
         /// Schema propagation for transformers.
         /// Returns the output schema of the data, if the input schema is like the one provided.
+        /// Creates three output columns if confidence intervals are requested otherwise
+        /// just one.
         /// </summary>
         public SchemaShape GetOutputSchema(SchemaShape inputSchema)
         {
@@ -331,14 +333,14 @@ namespace Microsoft.ML.Transforms.TimeSeries
             resultDic[_options.Name] = new SchemaShape.Column(
                 _options.Name, SchemaShape.Column.VectorKind.Vector, NumberDataViewType.Single, false, new SchemaShape(metadata));
 
-            if (!string.IsNullOrEmpty(_options.ForecastingConfidenceIntervalMaxOutputColumnName))
+            if (!string.IsNullOrEmpty(_options.ForcastingConfidentUpperBoundColumnName))
             {
-                resultDic[_options.ForecastingConfidenceIntervalMinOutputColumnName] = new SchemaShape.Column(
-                    _options.ForecastingConfidenceIntervalMinOutputColumnName, SchemaShape.Column.VectorKind.Vector,
+                resultDic[_options.ForcastingConfidentLowerBoundColumnName] = new SchemaShape.Column(
+                    _options.ForcastingConfidentLowerBoundColumnName, SchemaShape.Column.VectorKind.Vector,
                     NumberDataViewType.Single, false, new SchemaShape(metadata));
 
-                resultDic[_options.ForecastingConfidenceIntervalMaxOutputColumnName] = new SchemaShape.Column(
-                    _options.ForecastingConfidenceIntervalMaxOutputColumnName, SchemaShape.Column.VectorKind.Vector,
+                resultDic[_options.ForcastingConfidentUpperBoundColumnName] = new SchemaShape.Column(
+                    _options.ForcastingConfidentUpperBoundColumnName, SchemaShape.Column.VectorKind.Vector,
                     NumberDataViewType.Single, false, new SchemaShape(metadata));
             }
 

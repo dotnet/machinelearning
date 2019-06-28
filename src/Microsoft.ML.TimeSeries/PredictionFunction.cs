@@ -15,6 +15,10 @@ namespace Microsoft.ML.Transforms.TimeSeries
     {
     }
 
+    /// <summary>
+    /// Used to expose standalone <see cref="Forecast(int, bool, float)"/> that allows
+    /// modifying transformer parameters such as horizon, confidence intervals.
+    /// </summary>
     internal interface IForecastTransformer : IStatefulTransformer
     {
         IDataView Forecast(int horizon, bool includeConfidenceInterval = false, float confidenceLevel = 0.95f);
@@ -31,6 +35,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
 
         /// <summary>
         /// Creates a clone of the transfomer. Used for taking the snapshot of the state.
+        /// This is used to create multiple time series with their own state.
         /// </summary>
         /// <returns></returns>
         IStatefulTransformer Clone();
@@ -56,7 +61,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
     /// </summary>
     /// <typeparam name="TSrc">The user-defined type that holds the example.</typeparam>
     /// <typeparam name="TDst">The user-defined type that holds the prediction.</typeparam>
-    public class TimeSeriesPredictionFunction<TSrc, TDst> : PredictionEngineBase<TSrc, TDst>
+    public abstract class TimeSeriesPredictionEngine<TSrc, TDst> : PredictionEngineBase<TSrc, TDst>
         where TSrc : class
         where TDst : class, new()
     {
@@ -65,7 +70,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
         protected ITransformer InputTransformer { get; set; }
 
         /// <summary>
-        /// Checkpoints <see cref="TimeSeriesPredictionFunction{TSrc, TDst}"/> to disk with the updated
+        /// Checkpoints <see cref="TimeSeriesPredictionEngine{TSrc, TDst}"/> to disk with the updated
         /// state.
         /// </summary>
         /// <param name="env">Usually <see cref="MLContext"/>.</param>
@@ -88,7 +93,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
         }
 
         /// <summary>
-        /// Checkpoints <see cref="TimeSeriesPredictionFunction{TSrc, TDst}"/> to a <see cref="Stream"/> with the updated
+        /// Checkpoints <see cref="TimeSeriesPredictionEngine{TSrc, TDst}"/> to a <see cref="Stream"/> with the updated
         /// state.
         /// </summary>
         /// <param name="env">Usually <see cref="MLContext"/>.</param>
@@ -107,14 +112,14 @@ namespace Microsoft.ML.Transforms.TimeSeries
             env.CheckParam(stream != null, nameof(stream));
 
             if (Transformer is ITransformerChainAccessor)
-                {
+            {
 
-                    new TransformerChain<ITransformer>
-                    (((ITransformerChainAccessor)Transformer).Transformers,
-                    ((ITransformerChainAccessor)Transformer).Scopes).SaveTo(env, stream);
-                }
-                else
-                    Transformer.SaveTo(env, stream);
+                new TransformerChain<ITransformer>
+                (((ITransformerChainAccessor)Transformer).Transformers,
+                ((ITransformerChainAccessor)Transformer).Scopes).SaveTo(env, stream);
+            }
+            else
+                Transformer.SaveTo(env, stream);
         }
 
         private static ITransformer CloneTransformers(ITransformer transformer)
@@ -140,7 +145,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
         /// Contructor for creating time series specific prediction engine. It allows update the time series model to be updated with the observations
         /// seen at prediction time via <see cref="CheckPoint(IHostEnvironment, string)"/>
         /// </summary>
-        public TimeSeriesPredictionFunction(IHostEnvironment env, ITransformer transformer, bool ignoreMissingColumns,
+        public TimeSeriesPredictionEngine(IHostEnvironment env, ITransformer transformer, bool ignoreMissingColumns,
             SchemaDefinition inputSchemaDefinition = null, SchemaDefinition outputSchemaDefinition = null) :
             base(env, CloneTransformers(transformer), ignoreMissingColumns, inputSchemaDefinition, outputSchemaDefinition)
         {
@@ -282,8 +287,35 @@ namespace Microsoft.ML.Transforms.TimeSeries
         }
     }
 
-    public sealed class TimeSeriesForecasting<TSrc> : TimeSeriesPredictionFunction<TSrc, object>
-    where TSrc : class
+    /// <summary>
+    /// A class that runs the previously trained model (and the preceding transform pipeline) on the
+    /// in-memory data, one example at a time.
+    /// This can also be used with trained pipelines that do not end with a predictor: in this case, the
+    /// 'prediction' will be just the outcome of all the transformations.
+    /// Creates an anomaly detection engine for a time series pipeline
+    /// It updates the state of time series model with observations seen at prediction phase and allows checkpointing the model.
+    /// </summary>
+    /// <typeparam name="TSrc">The user-defined type that holds the example.</typeparam>
+    /// <typeparam name="TDst">The user-defined type that holds the prediction.</typeparam>
+    public sealed class TimeSeriesAnomalyDetection<TSrc, TDst> : TimeSeriesPredictionEngine<TSrc, TDst>
+        where TSrc : class
+        where TDst : class, new()
+    {
+        public TimeSeriesAnomalyDetection(IHostEnvironment env, ITransformer transformer, bool ignoreMissingColumns,
+            SchemaDefinition inputSchemaDefinition = null, SchemaDefinition outputSchemaDefinition = null) :
+            base(env, transformer, ignoreMissingColumns, inputSchemaDefinition, outputSchemaDefinition)
+        {
+        }
+    }
+
+    /// <summary>
+    /// Creates forecasting engine for a time series pipeline that allows updating the state of time series forecasting model
+    /// with new observations and checkpointing the model. It also allows forecasting values without passing any input values and
+    /// dynamically configuring paramaters such as horizon and confidence interval.
+    /// </summary>
+    /// <typeparam name="TSrc">The user-defined type that holds the example.</typeparam>
+    public sealed class TimeSeriesForecasting<TSrc> : TimeSeriesPredictionEngine<TSrc, object>
+        where TSrc : class
     {
         public TimeSeriesForecasting(IHostEnvironment env, ITransformer transformer, bool ignoreMissingColumns,
             SchemaDefinition inputSchemaDefinition = null, SchemaDefinition outputSchemaDefinition = null) :
@@ -302,9 +334,9 @@ namespace Microsoft.ML.Transforms.TimeSeries
         }
 
         /// <summary>
-        /// Run prediction pipeline on one example.
+        /// Update the time series model with one observation.
         /// </summary>
-        /// <param name="example">The example to run on.</param>
+        /// <param name="example">The observation to update the forecasting model with.</param>
         public void Update(TSrc example)
         {
             Contracts.CheckValue(example, nameof(example));
@@ -314,16 +346,27 @@ namespace Microsoft.ML.Transforms.TimeSeries
             RowPosition++;
         }
 
+        /// <summary>
+        /// Standalone forecasting method. Allows dynamic configuration of forecasting parameters such as horizon
+        /// and confidence level.
+        /// </summary>
+        /// <param name="horizon">The number of values to forecast.</param>
+        /// <param name="includeConfidenceInterval">Whether to include confidence intervals for each forecasted value.</param>
+        /// <param name="confidenceLevel">The confidence level for forecasting.</param>
+        /// <returns></returns>
         public IDataView Forecast(int horizon, bool includeConfidenceInterval = false, float confidenceLevel = 0.95f) =>
             ((IForecastTransformer)InputTransformer).Forecast(horizon, includeConfidenceInterval, confidenceLevel);
 
+        /// <summary>
+        /// This method should not be used.
+        /// </summary>
         public override void Predict(TSrc example, ref object prediction) => throw new NotSupportedException();
     }
 
     public static class PredictionFunctionExtensions
     {
         /// <summary>
-        /// <see cref="TimeSeriesPredictionFunction{TSrc, TDst}"/> creates a prediction function/engine for a time series pipeline
+        /// <see cref="TimeSeriesAnomalyDetection{TSrc, TDst}"/> creates an anomaly detection engine for a time series pipeline
         /// It updates the state of time series model with observations seen at prediction phase and allows checkpointing the model.
         /// </summary>
         /// <typeparam name="TSrc">Class describing input schema to the model.</typeparam>
@@ -342,7 +385,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
         /// ]]>
         /// </format>
         /// </example>
-        public static TimeSeriesPredictionFunction<TSrc, TDst> CreateTimeSeriesPredictionFunction<TSrc, TDst>(this ITransformer transformer, IHostEnvironment env,
+        public static TimeSeriesAnomalyDetection<TSrc, TDst> CreateTimeSeriesPredictionFunction<TSrc, TDst>(this ITransformer transformer, IHostEnvironment env,
             bool ignoreMissingColumns = false, SchemaDefinition inputSchemaDefinition = null, SchemaDefinition outputSchemaDefinition = null)
             where TSrc : class
             where TDst : class, new()
@@ -351,9 +394,28 @@ namespace Microsoft.ML.Transforms.TimeSeries
             env.CheckValue(transformer, nameof(transformer));
             env.CheckValueOrNull(inputSchemaDefinition);
             env.CheckValueOrNull(outputSchemaDefinition);
-            return new TimeSeriesPredictionFunction<TSrc, TDst>(env, transformer, ignoreMissingColumns, inputSchemaDefinition, outputSchemaDefinition);
+            return new TimeSeriesAnomalyDetection<TSrc, TDst>(env, transformer, ignoreMissingColumns, inputSchemaDefinition, outputSchemaDefinition);
         }
 
+        /// <summary>
+        /// <see cref="TimeSeriesForecasting{TSrc}"/> creates a forecasting engine for a time series pipeline
+        /// It allows updating the state of time series forecasting model with new observations and allows checkpointing the model.
+        /// </summary>
+        /// <typeparam name="TSrc">Class describing input schema to the model.</typeparam>
+        /// <param name="transformer">The time series pipeline in the form of a <see cref="ITransformer"/>.</param>
+        /// <param name="env">Usually <see cref="MLContext"/></param>
+        /// <param name="ignoreMissingColumns">To ignore missing columns. Default is false.</param>
+        /// <param name="inputSchemaDefinition">Input schema definition. Default is null.</param>
+        /// <param name="outputSchemaDefinition">Output schema definition. Default is null.</param>
+        /// <p>Example code can be found by searching for <i>TimeSeriesPredictionFunction</i> in <a href='https://github.com/dotnet/machinelearning'>ML.NET.</a></p>
+        /// <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        /// This is an example for detecting change point using Singular Spectrum Analysis (SSA) model.
+        /// [!code-csharp[MF](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Transforms/TimeSeries/Forecast.cs)]
+        /// ]]>
+        /// </format>
+        /// </example>
         public static TimeSeriesForecasting<TSrc> CreateTimeSeriesForecastingEngine<TSrc>(this ITransformer transformer, IHostEnvironment env,
             bool ignoreMissingColumns = false, SchemaDefinition inputSchemaDefinition = null, SchemaDefinition outputSchemaDefinition = null)
             where TSrc : class

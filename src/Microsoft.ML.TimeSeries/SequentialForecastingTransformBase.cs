@@ -26,15 +26,15 @@ namespace Microsoft.ML.Transforms.TimeSeries
             SortOrder = 2)]
         public string Name;
 
-        [Argument(ArgumentType.Required, HelpText = "The name of the new column", ShortName = "cnfminname",
+        [Argument(ArgumentType.Required, HelpText = "The name of the confidence interval lower bound column.", ShortName = "cnfminname",
             SortOrder = 2)]
-        public string ForecastingConfidenceIntervalMinOutputColumnName;
+        public string ForcastingConfidentLowerBoundColumnName;
 
-        [Argument(ArgumentType.Required, HelpText = "The name of the new column", ShortName = "cnfmaxnname",
+        [Argument(ArgumentType.Required, HelpText = "The name of the confidence interval upper bound column.", ShortName = "cnfmaxnname",
             SortOrder = 2)]
-        public string ForecastingConfidenceIntervalMaxOutputColumnName;
+        public string ForcastingConfidentUpperBoundColumnName;
 
-        [Argument(ArgumentType.AtMostOnce, HelpText = "The size of the sliding window.", ShortName = "wnd",
+        [Argument(ArgumentType.AtMostOnce, HelpText = "The length of series from the begining used for training.", ShortName = "wnd",
             SortOrder = 3)]
         public int TrainSize = 1;
 
@@ -67,8 +67,8 @@ namespace Microsoft.ML.Transforms.TimeSeries
         }
 
         private protected SequentialForecastingTransformBase(ForecastingArgumentsBase args, string name, int outputLength, IHostEnvironment env)
-            : this(args.TrainSize, args.SeriesLength, args.Source, args.ForecastingConfidenceIntervalMinOutputColumnName,
-                  args.ForecastingConfidenceIntervalMaxOutputColumnName, args.Name, name, outputLength, env)
+            : this(args.TrainSize, args.SeriesLength, args.Source, args.ForcastingConfidentLowerBoundColumnName,
+                  args.ForcastingConfidentUpperBoundColumnName, args.Name, name, outputLength, env)
         {
         }
 

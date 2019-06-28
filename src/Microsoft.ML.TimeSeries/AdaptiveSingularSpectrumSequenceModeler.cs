@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Numerics;
 using Microsoft.ML;
+using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
 using Microsoft.ML.Internal.CpuMath;
 using Microsoft.ML.Internal.Utilities;
@@ -34,51 +35,22 @@ namespace Microsoft.ML.Transforms.TimeSeries
     /// </summary>
     public struct GrowthRatio
     {
-        private int _timeSpan;
-        private Double _growth;
+        [Argument(ArgumentType.AtMostOnce, HelpText = "The confidence level in [0, 1) for forecasting.", SortOrder = 2)]
+        public readonly int TimeSpan;
 
-        /// <summary>
-        /// Time span of growth ratio. Must be strictly positive.
-        /// </summary>
-        public int TimeSpan
-        {
-            get
-            {
-                return _timeSpan;
-            }
-            set
-            {
-                Contracts.CheckParam(value > 0, nameof(TimeSpan), "The time span must be strictly positive.");
-                _timeSpan = value;
-            }
-        }
-
-        /// <summary>
-        /// Growth. Must be non-negative.
-        /// </summary>
-        public Double Growth
-        {
-            get
-            {
-                return _growth;
-            }
-            set
-            {
-                Contracts.CheckParam(value >= 0, nameof(Growth), "The growth must be non-negative.");
-                _growth = value;
-            }
-        }
+        [Argument(ArgumentType.AtMostOnce, HelpText = "The confidence level in [0, 1) for forecasting.", SortOrder = 2)]
+        public readonly Double Growth;
 
         public GrowthRatio(int timeSpan = 1, double growth = Double.PositiveInfinity)
         {
             Contracts.CheckParam(timeSpan > 0, nameof(TimeSpan), "The time span must be strictly positive.");
             Contracts.CheckParam(growth >= 0, nameof(Growth), "The growth must be non-negative.");
 
-            _growth = growth;
-            _timeSpan = timeSpan;
+            Growth = growth;
+            TimeSpan = timeSpan;
         }
 
-        public Double Ratio { get { return Math.Pow(_growth, 1d / _timeSpan); } }
+        public Double Ratio { get { return Math.Pow(Growth, 1d / TimeSpan); } }
     }
 
     /// <summary>

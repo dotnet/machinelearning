@@ -29,6 +29,11 @@ namespace Microsoft.ML.Transforms.TimeSeries
         }
     }
 
+    /// <summary>
+    /// The box class that is used to box the TInput and TOutput for the LambdaTransform.
+    /// This is for the case where there are three output columns.
+    /// </summary>
+    /// <typeparam name="T">The type to be boxed, e.g. TInput or TOutput</typeparam>
     internal sealed class DataBoxForecastingWithConfidenceIntervals<T>
     {
         public T Value1;
