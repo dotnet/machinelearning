@@ -256,13 +256,13 @@ namespace Microsoft.ML.Transforms.TimeSeries
             {
                 Parent = (SequentialForecastingTransformBase<TInput, TState>)ParentTransform;
                 Host.Assert(WindowSize >= 0);
-                InitializeAnomalyDetector();
+                InitializeForecaster();
             }
 
             /// <summary>
-            /// The abstract method that realizes the initialization functionality for the anomaly detector.
+            /// The abstract method that realizes the initialization functionality for the forecaster.
             /// </summary>
-            private protected abstract void InitializeAnomalyDetector();
+            private protected abstract void InitializeForecaster();
         }
     }
 }

@@ -168,6 +168,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
 
             public void Process(ref TInput input, ref TOutput output1, ref TOutput output2, ref TOutput output3)
             {
+                //Using prediction engine will not evaluate the below condition to true.
                 if (PreviousPosition == -1)
                     UpdateStateCore(ref input);
 
@@ -186,8 +187,9 @@ namespace Microsoft.ML.Transforms.TimeSeries
 
             public void ProcessWithoutBuffer(ref TInput input, ref TOutput output1, ref TOutput output2, ref TOutput output3)
             {
+                //Using prediction engine will not evaluate the below condition to true.
                 if (PreviousPosition == -1)
-                    UpdateStateCore(ref input, false);
+                    UpdateStateCore(ref input);
 
                 if (InitialWindowedBuffer.Count < InitialWindowSize)
                 {
@@ -202,6 +204,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
 
             public void Process(ref TInput input, ref TOutput output)
             {
+                //Using prediction engine will not evaluate the below condition to true.
                 if (PreviousPosition == -1)
                     UpdateStateCore(ref input);
 
@@ -220,8 +223,9 @@ namespace Microsoft.ML.Transforms.TimeSeries
 
             public void ProcessWithoutBuffer(ref TInput input, ref TOutput output)
             {
+                //Using prediction engine will not evaluate the below condition to true.
                 if (PreviousPosition == -1)
-                    UpdateStateCore(ref input, false);
+                    UpdateStateCore(ref input);
 
                 if (InitialWindowedBuffer.Count < InitialWindowSize)
                 {

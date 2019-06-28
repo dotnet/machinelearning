@@ -250,7 +250,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
             internal sealed class State : ForecastingStateBase
             {
                 private SequenceModelerBase<Single, Single> _model;
-                private SsaForecastingBase _parentAnomalyDetector;
+                private SsaForecastingBase _parentForecaster;
 
                 public State()
                 {
@@ -278,8 +278,8 @@ namespace Microsoft.ML.Transforms.TimeSeries
                     stateLocal.InitialWindowedBuffer = InitialWindowedBuffer.Clone();
                     if (_model != null)
                     {
-                        _parentAnomalyDetector.Model = _parentAnomalyDetector.Model.Clone();
-                        _model = _parentAnomalyDetector.Model;
+                        _parentForecaster.Model = _parentForecaster.Model.Clone();
+                        _model = _parentForecaster.Model;
                     }
                 }
 
@@ -288,30 +288,40 @@ namespace Microsoft.ML.Transforms.TimeSeries
                     // This method is empty because there is no need to implement a training logic here.
                 }
 
-                private protected override void InitializeAnomalyDetector()
+                private protected override void InitializeForecaster()
                 {
-                    _parentAnomalyDetector = (SsaForecastingBase)Parent;
-                    _model = _parentAnomalyDetector.Model;
+                    _parentForecaster = (SsaForecastingBase)Parent;
+                    _model = _parentForecaster.Model;
                 }
 
                 private protected override void TransformCore(ref float input, FixedSizeQueue<float> windowedBuffer, long iteration, ref VBuffer<float> dst)
                 {
-                    dst = new VBuffer<float>(_parentAnomalyDetector.Horizon,
-                        ((AdaptiveSingularSpectrumSequenceModelerInternal)_model).Forecast(_parentAnomalyDetector.Horizon));
+                    // Forecasting is being done without prediction engine. Update the model
+                    // with the observation.
+                    if (PreviousPosition == -1)
+                        Consume(input);
+
+                    dst = new VBuffer<float>(_parentForecaster.Horizon,
+                        ((AdaptiveSingularSpectrumSequenceModelerInternal)_model).Forecast(_parentForecaster.Horizon));
                 }
 
                 private protected override void TransformCore(ref float input, FixedSizeQueue<float> windowedBuffer, long iteration,
                     ref VBuffer<float> dst1, ref VBuffer<float> dst2, ref VBuffer<float> dst3)
                 {
-                    ((AdaptiveSingularSpectrumSequenceModelerInternal)_model).ForecastWithConfidenceIntervals(_parentAnomalyDetector.Horizon,
-                        out float[] forecast, out float[] min, out float[] max, _parentAnomalyDetector.ConfidenceLevel);
+                    // Forecasting is being done without prediction engine. Update the model
+                    // with the observation.
+                    if (PreviousPosition == -1)
+                        Consume(input);
 
-                    dst1 = new VBuffer<float>(_parentAnomalyDetector.Horizon, forecast);
-                    dst2 = new VBuffer<float>(_parentAnomalyDetector.Horizon, min);
-                    dst3 = new VBuffer<float>(_parentAnomalyDetector.Horizon, max);
+                    ((AdaptiveSingularSpectrumSequenceModelerInternal)_model).ForecastWithConfidenceIntervals(_parentForecaster.Horizon,
+                        out float[] forecast, out float[] min, out float[] max, _parentForecaster.ConfidenceLevel);
+
+                    dst1 = new VBuffer<float>(_parentForecaster.Horizon, forecast);
+                    dst2 = new VBuffer<float>(_parentForecaster.Horizon, min);
+                    dst3 = new VBuffer<float>(_parentForecaster.Horizon, max);
                 }
 
-                public override void Consume(Single input) => _model.Consume(ref input, _parentAnomalyDetector.IsAdaptive);
+                public override void Consume(Single input) => _model.Consume(ref input, _parentForecaster.IsAdaptive);
             }
         }
     }

@@ -179,7 +179,7 @@ namespace Microsoft.ML
         /// </format>
         /// </example>
         public static SsaForecastingEstimator ForecastBySsa(
-            this TransformsCatalog catalog, string outputColumnName, string inputColumnName, int windowSize, int seriesLength, int trainSize, int horizon,
+            this ForecastingCatalog catalog, string outputColumnName, string inputColumnName, int windowSize, int seriesLength, int trainSize, int horizon,
             bool isAdaptive = false, float discountFactor = 1, RankSelectionMethod rankSelectionMethod = RankSelectionMethod.Exact, int? rank = null,
             int? maxRank = null, bool shouldStablize = true, bool shouldMaintainInfo = false, GrowthRatio? maxGrowth = null, string forecastingConfidenceIntervalMinOutputColumnName = null,
             string forecastingConfidenceIntervalMaxOutputColumnName = null, float confidenceLevel = 0.95f) =>

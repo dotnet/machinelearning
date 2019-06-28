@@ -26,11 +26,11 @@ namespace Microsoft.ML.Tests
         {
 #pragma warning disable CS0649
             [VectorType(4)]
-            public float[] Change;
+            public float[] Forecast;
             [VectorType(4)]
-            public float[] Min;
+            public float[] MinCnf;
             [VectorType(4)]
-            public float[] Max;
+            public float[] MaxCnf;
 #pragma warning restore CS0649
         }
 
@@ -182,13 +182,14 @@ namespace Microsoft.ML.Tests
             {
                 ConfidenceLevel = 0.95f,
                 Source = "Value",
-                Name = "Change",
-                ForecastingConfidenceIntervalMinOutputColumnName = "Min",
-                ForecastingConfidenceIntervalMaxOutputColumnName = "Max",
+                Name = "Forecast",
+                ForecastingConfidenceIntervalMinOutputColumnName = "MinCnf",
+                ForecastingConfidenceIntervalMaxOutputColumnName = "MaxCnf",
                 WindowSize = 10,
                 SeriesLength = 11,
                 TrainSize = 22,
-                Horizon = 4
+                Horizon = 4,
+                IsAdaptive = true
             };
 
             for (int j = 0; j < NumberOfSeasonsInTraining; j++)
@@ -205,18 +206,19 @@ namespace Microsoft.ML.Tests
             // Get predictions
             var enumerator = env.Data.CreateEnumerable<ForecastPrediction>(output, true).GetEnumerator();
             ForecastPrediction row = null;
-            List<double> expectedValues = new List<double>() { 0, -3.31410598754883, 0.5, 5.12000000000001E-08, 0, 1.5700820684432983, 5.2001145245395008E-07,
-                    0.012414560443710681, 0, 1.2854313254356384, 0.28810801662678009, 0.02038940454467935, 0, -1.0950627326965332, 0.36663890634019225, 0.026956459625565483};
+            List<float> expectedForecast = new List<float>() { 0.191491723f, 2.53994083f, 5.26454258f, 7.37313938f };
+            List<float> minCnf = new List<float>() { -3.9741993f, -2.36872721f, 0.09407653f, 2.18899345f };
+            List<float> maxCnf = new List<float>() { 4.3571825f, 7.448609f, 10.435009f, 12.5572853f };
+            enumerator.MoveNext();
+            row = enumerator.Current;
 
-            int index = 0;
-            while (enumerator.MoveNext() && index < expectedValues.Count)
+            for (int localIndex = 0; localIndex < 4; localIndex++)
             {
-                row = enumerator.Current;
-                /*Assert.Equal(expectedValues[index++], row.Change[0], precision: 7);  // Alert
-                Assert.Equal(expectedValues[index++], row.Change[1], precision: 7);  // Raw score
-                Assert.Equal(expectedValues[index++], row.Change[2], precision: 7);  // P-Value score
-                Assert.Equal(expectedValues[index++], row.Change[3], precision: 7);  // Martingale score*/
+                Assert.Equal(expectedForecast[localIndex], row.Forecast[localIndex], precision: 7);
+                Assert.Equal(minCnf[localIndex], row.MinCnf[localIndex], precision: 7);
+                Assert.Equal(maxCnf[localIndex], row.MaxCnf[localIndex], precision: 7);
             }
+
         }
 
         [LessThanNetCore30OrNotNetCoreFact("netcoreapp3.0 output differs from Baseline")]
@@ -385,7 +387,7 @@ namespace Microsoft.ML.Tests
                 WindowSize = 10,
                 SeriesLength = 11,
                 TrainSize = 22,
-                Horizon = 4
+                Horizon = 4,
             };
 
             for (int j = 0; j < NumberOfSeasonsInTraining; j++)
@@ -403,37 +405,16 @@ namespace Microsoft.ML.Tests
             engine.Update(new Data(1));
             engine.Update(new Data(2));
             var forecast = engine.Forecast(horizon: 5);
-            var prediction = ml.Data.CreateEnumerable<ForecastResult>(forecast, reuseRowObject: false);
+            var prediction = ml.Data.CreateEnumerable<ForecastResult>(forecast, reuseRowObject: false).GetEnumerator();
 
+            int index = 0;
+            List<float> expectedForecast = new List<float>() { 3.9516573f, 6.212672f, 7.732854f, 8.125769f, 7.22453928f };
+            while (prediction.MoveNext())
+            {
+                Assert.Equal(prediction.Current.Forecast, expectedForecast[index++]);
+            }
 
-            /*Assert.Equal(0, prediction.Change[0], precision: 7); // Alert
-            Assert.Equal(1.1661833524703979, prediction.Change[1], precision: 5); // Raw score
-            Assert.Equal(0.5, prediction.Change[2], precision: 7); // P-Value score
-            Assert.Equal(5.1200000000000114E-08, prediction.Change[3], precision: 7); // Martingale score
-
-            //Model 1: Checkpoint.
-            var modelPath = "temp.zip";
-            engine.CheckPoint(ml, modelPath);
-
-            //Model 1: Prediction #2
-            prediction = engine.Predict(new Data(1));
-            Assert.Equal(0, prediction.Change[0], precision: 7); // Alert
-            Assert.Equal(0.12216401100158691, prediction.Change[1], precision: 5); // Raw score
-            Assert.Equal(0.14823824685192111, prediction.Change[2], precision: 5); // P-Value score
-            Assert.Equal(1.5292508189989167E-07, prediction.Change[3], precision: 7); // Martingale score
-
-            // Load Model 1.
-            ITransformer model2 = null;
-            using (var file = File.OpenRead(modelPath))
-                model2 = ml.Model.Load(file, out var schema);
-
-            //Predict and expect the same result after checkpointing(Prediction #2).
-            engine = model2.CreateTimeSeriesPredictionFunction<Data, Prediction>(ml);
-            prediction = engine.Predict(new Data(1));
-            Assert.Equal(0, prediction.Change[0], precision: 7); // Alert
-            Assert.Equal(0.12216401100158691, prediction.Change[1], precision: 5); // Raw score
-            Assert.Equal(0.14823824685192111, prediction.Change[2], precision: 5); // P-Value score
-            Assert.Equal(1.5292508189989167E-07, prediction.Change[3], precision: 5); // Martingale score*/
+            Assert.Equal(5, index);
         }
 
         [Fact]

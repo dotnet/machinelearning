@@ -224,7 +224,6 @@ namespace Microsoft.ML.Transforms.TimeSeries
     /// ]]>
     /// </format>
     /// </remarks>
-    /// <seealso cref="Microsoft.ML.TimeSeriesCatalog.ForecastBySsa(TransformsCatalog, string, string, int, int, int, int, bool, float, RankSelectionMethod, int?, int?, bool, bool, GrowthRatio?, string, string, float)" />
     public sealed class SsaForecastingEstimator : IEstimator<SsaForecasting>
     {
         private readonly IHost _host;
