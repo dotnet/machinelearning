@@ -11,7 +11,7 @@ namespace Samples.Dynamic
         public static void Example()
         {
             // Create a new context for ML.NET operations. It can be used for
-		    // exception tracking and logging,
+            // exception tracking and logging,
             // as a catalog of available operations and as the source of randomness.
             var mlContext = new MLContext();
 
@@ -29,10 +29,10 @@ namespace Samples.Dynamic
 				reuseRowObject: true);
 
             // SampleTemperatureDataWithLatitude has the definition of a Latitude
-			// column of type float. We can use the parameter ignoreMissingColumns
-			// to true to ignore any missing columns in the IDataView. The produced
-			// enumerable will have the Latitude field set to the default for the
-			// data type, in this case 0. 
+	    // column of type float. We can use the parameter ignoreMissingColumns
+	    // to true to ignore any missing columns in the IDataView. The produced
+	    // enumerable will have the Latitude field set to the default for the
+	    // data type, in this case 0. 
             var rowEnumerableIgnoreMissing = mlContext.Data
 			    .CreateEnumerable<SampleTemperatureDataWithLatitude>(data, 
 				reuseRowObject: true, ignoreMissingColumns: true);
