@@ -23,8 +23,7 @@ namespace Samples.Dynamic
             Console.WriteLine($"Date\tTemperature");
             foreach (var row in enumerableOfData)
             {
-                Console.WriteLine(
-				    $"{row.Date.ToString("d")}\t{row.Temperature}");
+                Console.WriteLine($"{row.Date.ToString("d")}\t{row.Temperature}");
 
             }
             Console.WriteLine();
@@ -45,7 +44,7 @@ namespace Samples.Dynamic
 	    // inclusive, the upper exclusive.
             var filteredData = mlContext.Data
 			    .FilterRowsByColumn(data, columnName: "Temperature",
-				lowerBound: 34, upperBound: 37);
+			    lowerBound: 34, upperBound: 37);
 
             // Look at the filtered data and observe that values outside [34,37)
 	    // have been dropped.
@@ -56,8 +55,7 @@ namespace Samples.Dynamic
             Console.WriteLine($"Date\tTemperature");
             foreach (var row in enumerable)
             {
-                Console.WriteLine(
-				    $"{row.Date.ToString("d")}\t{row.Temperature}");
+                Console.WriteLine($"{row.Date.ToString("d")}\t{row.Temperature}");
 
             }
 
