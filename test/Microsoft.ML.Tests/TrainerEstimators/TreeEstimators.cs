@@ -23,7 +23,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
     public partial class TrainerEstimators : TestDataPipeBase
     {
         /// <summary>
-        /// FastTreeBinaryClassification TrainerEstimator test 
+        /// FastTreeBinaryClassification TrainerEstimator test
         /// </summary>
         [Fact]
         public void FastTreeBinaryEstimator()
@@ -89,7 +89,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         }
 
         /// <summary>
-        /// LightGBMBinaryTrainer CorrectSigmoid test 
+        /// LightGBMBinaryTrainer CorrectSigmoid test
         /// </summary>
         [LightGBMFact]
         public void LightGBMBinaryEstimatorCorrectSigmoid()
@@ -154,7 +154,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         }
 
         /// <summary>
-        /// FastTreeRankingTrainer TrainerEstimator test 
+        /// FastTreeRankingTrainer TrainerEstimator test
         /// </summary>
         [Fact]
         public void FastTreeRankerEstimator()
@@ -178,7 +178,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         }
 
         /// <summary>
-        /// LightGbmRankingTrainer TrainerEstimator test 
+        /// LightGbmRankingTrainer TrainerEstimator test
         /// </summary>
         [LightGBMFact]
         public void LightGBMRankerEstimator()
@@ -196,7 +196,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         }
 
         /// <summary>
-        /// FastTreeRegressor TrainerEstimator test 
+        /// FastTreeRegressor TrainerEstimator test
         /// </summary>
         [Fact]
         public void FastTreeRegressorEstimator()
@@ -211,7 +211,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         }
 
         /// <summary>
-        /// LightGbmRegressionTrainer TrainerEstimator test 
+        /// LightGbmRegressionTrainer TrainerEstimator test
         /// </summary>
         [LightGBMFact]
         public void LightGBMRegressorEstimator()
@@ -231,7 +231,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
 
 
         /// <summary>
-        /// RegressionGamTrainer TrainerEstimator test 
+        /// RegressionGamTrainer TrainerEstimator test
         /// </summary>
         [Fact]
         public void GAMRegressorEstimator()
@@ -249,7 +249,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         }
 
         /// <summary>
-        /// FastTreeTweedieTrainer TrainerEstimator test 
+        /// FastTreeTweedieTrainer TrainerEstimator test
         /// </summary>
         [Fact]
         public void TweedieRegressorEstimator()
@@ -268,7 +268,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         }
 
         /// <summary>
-        /// FastForestRegression TrainerEstimator test 
+        /// FastForestRegression TrainerEstimator test
         /// </summary>
         [Fact]
         public void FastForestRegressorEstimator()
@@ -287,7 +287,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         }
 
         /// <summary>
-        /// LightGbmMulticlass TrainerEstimator test 
+        /// LightGbmMulticlass TrainerEstimator test
         /// </summary>
         [LightGBMFact]
         public void LightGbmMulticlassEstimator()
@@ -320,7 +320,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         }
 
         /// <summary>
-        /// LightGbmMulticlass CorrectSigmoid test 
+        /// LightGbmMulticlass CorrectSigmoid test
         /// </summary>
         [LightGBMFact]
         public void LightGbmMulticlassEstimatorCorrectSigmoid()
@@ -426,7 +426,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             var mlContext = new MLContext(seed: 0);
             var dataView = mlContext.Data.LoadFromEnumerable(dataList);
             int numberOfTrainingIterations = 3;
-            var gbmTrainer = new LightGbmMulticlassTrainer(mlContext, 
+            var gbmTrainer = new LightGbmMulticlassTrainer(mlContext,
                 new LightGbmMulticlassTrainer.Options
                 {
                     NumberOfIterations = numberOfTrainingIterations,
@@ -773,7 +773,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             var quantileTrees = trees as IReadOnlyList<QuantileRegressionTree>;
             var summaryDataView = modelParameters.GetSummaryDataView(null);
             IEnumerable<SummaryDataRow> summaryDataEnumerable;
-            
+
             if (quantileTrees == null)
                 summaryDataEnumerable = ML.Data.CreateEnumerable<SummaryDataRow>(summaryDataView, true);
             else
@@ -859,7 +859,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             Done();
         }
 
-        [Fact]
+        [LightGBMFact]
         public void LightGbmRegressorTestSummary()
         {
             var dataView = GetRegressionPipeline();
@@ -913,7 +913,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             Done();
         }
 
-        [Fact]
+        [LightGBMFact]
         public void LightGbmBinaryClassificationTestSummary()
         {
             var (pipeline, dataView) = GetBinaryClassificationPipeline();
