@@ -385,7 +385,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
         /// ]]>
         /// </format>
         /// </example>
-        public static TimeSeriesAnomalyDetection<TSrc, TDst> CreateTimeSeriesPredictionFunction<TSrc, TDst>(this ITransformer transformer, IHostEnvironment env,
+        public static TimeSeriesAnomalyDetection<TSrc, TDst> CreateAnomalyDetectionEngine<TSrc, TDst>(this ITransformer transformer, IHostEnvironment env,
             bool ignoreMissingColumns = false, SchemaDefinition inputSchemaDefinition = null, SchemaDefinition outputSchemaDefinition = null)
             where TSrc : class
             where TDst : class, new()
@@ -416,7 +416,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
         /// ]]>
         /// </format>
         /// </example>
-        public static TimeSeriesForecasting<TSrc> CreateTimeSeriesForecastingEngine<TSrc>(this ITransformer transformer, IHostEnvironment env,
+        public static TimeSeriesForecasting<TSrc> CreateForecastingEngine<TSrc>(this ITransformer transformer, IHostEnvironment env,
             bool ignoreMissingColumns = false, SchemaDefinition inputSchemaDefinition = null, SchemaDefinition outputSchemaDefinition = null)
             where TSrc : class
         {

@@ -285,7 +285,9 @@ namespace Microsoft.ML.Transforms.TimeSeries
                 MaxGrowth = maxGrowth,
                 ConfidenceLevel = confidenceLevel,
                 ForcastingConfidentLowerBoundColumnName = forcastingConfidentLowerBoundColumnName,
-                ForcastingConfidentUpperBoundColumnName = forcastingConfidentUpperBoundColumnName
+                ForcastingConfidentUpperBoundColumnName = forcastingConfidentUpperBoundColumnName,
+                SeriesLength = seriesLength,
+                TrainSize = trainSize
             })
         {
         }

@@ -204,7 +204,7 @@ namespace Microsoft.ML.Tests
             var model = pipeline.Fit(dataView);
 
             //Create prediction function.
-            var engine = model.CreateTimeSeriesPredictionFunction<Data, Prediction1>(ml);
+            var engine = model.CreateAnomalyDetectionEngine<Data, Prediction1>(ml);
 
             //Checkpoint with no inputs passed at prediction.
             var modelPath = "temp.zip";
@@ -217,7 +217,7 @@ namespace Microsoft.ML.Tests
                 model2 = ml.Model.Load(file, out var schema);
 
             //Raw score after state gets updated with two inputs.
-            var engine2 = model2.CreateTimeSeriesPredictionFunction<Data, Prediction>(ml);
+            var engine2 = model2.CreateAnomalyDetectionEngine<Data, Prediction>(ml);
             var prediction2 = engine2.Predict(new Data(1));
             //Raw score after first input.
             Assert.Equal(1.1661833524703979, prediction2.Change[1], precision: 5); // Raw score
@@ -238,7 +238,7 @@ namespace Microsoft.ML.Tests
 
             //Load the model with state updated with just one input, then pass in the second input
             //and raw score should match the raw score obtained by passing the two input in the first model.
-            var engine3 = model3.CreateTimeSeriesPredictionFunction<Data, Prediction>(ml);
+            var engine3 = model3.CreateAnomalyDetectionEngine<Data, Prediction>(ml);
             var prediction3 = engine3.Predict(new Data(1));
             Assert.Equal(0.12216401100158691, prediction2.Change[1], precision: 5); // Raw score
         }
@@ -281,7 +281,7 @@ namespace Microsoft.ML.Tests
             var model = pipeline.Fit(dataView);
             
             //Model 1: Prediction #1.
-            var engine = model.CreateTimeSeriesPredictionFunction<Data, Prediction>(ml);
+            var engine = model.CreateAnomalyDetectionEngine<Data, Prediction>(ml);
             var prediction = engine.Predict(new Data(1));
             Assert.Equal(0, prediction.Change[0], precision: 7); // Alert
             Assert.Equal(1.1661833524703979, prediction.Change[1], precision: 5); // Raw score
@@ -305,7 +305,7 @@ namespace Microsoft.ML.Tests
                 model2 = ml.Model.Load(file, out var schema);
 
             //Predict and expect the same result after checkpointing(Prediction #2).
-            engine = model2.CreateTimeSeriesPredictionFunction<Data, Prediction>(ml);
+            engine = model2.CreateAnomalyDetectionEngine<Data, Prediction>(ml);
             prediction = engine.Predict(new Data(1));
             Assert.Equal(0, prediction.Change[0], precision: 7); // Alert
             Assert.Equal(0.12216401100158691, prediction.Change[1], precision: 5); // Raw score
@@ -401,7 +401,7 @@ namespace Microsoft.ML.Tests
             var model = new SsaForecastingEstimator(ml, args).Fit(dataView);
 
             //Model 1: Prediction #1.
-            var engine = model.CreateTimeSeriesForecastingEngine<Data>(ml);
+            var engine = model.CreateForecastingEngine<Data>(ml);
             engine.Update(new Data(1));
             engine.Update(new Data(2));
             var forecast = engine.Forecast(horizon: 5);

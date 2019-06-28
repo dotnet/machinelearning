@@ -230,7 +230,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
             _host = env.Register(LoaderSignature);
             _host.CheckParam(windowSize >= 2, nameof(windowSize), "The window size should be at least 2."); // ...because otherwise we have nothing to autoregress on
             _host.CheckParam(seriesLength > windowSize, nameof(seriesLength), "The series length should be greater than the window size.");
-            _host.Check(trainSize > 2 * windowSize, "The input series length for training should be greater than twice the window size.");
+            _host.Check(trainSize > 2 * windowSize, "The input size for training should be greater than twice the window size.");
             _host.CheckParam(0 <= discountFactor && discountFactor <= 1, nameof(discountFactor), "The discount factor should be in [0,1].");
             _host.CheckParam(maxGrowth == null || maxGrowth.Value.TimeSpan > 0, nameof(GrowthRatio.TimeSpan), "The time span must be strictly positive.");
             _host.CheckParam(maxGrowth == null || maxGrowth.Value.Growth >= 0, nameof(GrowthRatio.Growth), "The growth must be non-negative.");
