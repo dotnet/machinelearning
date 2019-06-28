@@ -4169,16 +4169,16 @@
               {
                 "Name": "TimeSpan",
                 "Type": "Int",
-                "Desc": "The confidence level in [0, 1) for forecasting.",
+                "Desc": "Time span of growth ratio. Must be strictly positive.",
                 "Required": false,
-                "SortOrder": 2.0,
+                "SortOrder": 1.0,
                 "IsNullable": false,
                 "Default": 0
               },
               {
                 "Name": "Growth",
                 "Type": "Float",
-                "Desc": "The confidence level in [0, 1) for forecasting.",
+                "Desc": "Growth. Must be non-negative.",
                 "Required": false,
                 "SortOrder": 2.0,
                 "IsNullable": false,

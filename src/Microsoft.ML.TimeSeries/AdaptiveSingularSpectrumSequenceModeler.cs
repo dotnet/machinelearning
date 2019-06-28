@@ -35,10 +35,10 @@ namespace Microsoft.ML.Transforms.TimeSeries
     /// </summary>
     public struct GrowthRatio
     {
-        [Argument(ArgumentType.AtMostOnce, HelpText = "The confidence level in [0, 1) for forecasting.", SortOrder = 2)]
+        [Argument(ArgumentType.AtMostOnce, HelpText = "Time span of growth ratio. Must be strictly positive.", SortOrder = 1)]
         public int TimeSpan;
 
-        [Argument(ArgumentType.AtMostOnce, HelpText = "The confidence level in [0, 1) for forecasting.", SortOrder = 2)]
+        [Argument(ArgumentType.AtMostOnce, HelpText = "Growth. Must be non-negative.", SortOrder = 2)]
         public Double Growth;
 
         public Double Ratio { get { return Math.Pow(Growth, 1d / TimeSpan); } }
