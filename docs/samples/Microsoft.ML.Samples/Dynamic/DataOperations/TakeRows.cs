@@ -44,7 +44,7 @@ namespace Samples.Dynamic
             var filteredData = mlContext.Data.TakeRows(data, 5);
 
             // Look at the filtered data and observe that only the first 5 rows are
-			// in the resulting dataset.
+	    // in the resulting dataset.
             var enumerable = mlContext.Data
 			    .CreateEnumerable<SampleTemperatureData>(filteredData,
 			    reuseRowObject: true);
