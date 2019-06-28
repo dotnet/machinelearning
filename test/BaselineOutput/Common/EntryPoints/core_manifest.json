@@ -11739,7 +11739,7 @@
         {
           "Name": "UnbalancedSets",
           "Type": "Bool",
-          "Desc": "Use for binary classification when training data is not balanced.",
+          "Desc": "Use for multi-class classification when training data is not balanced",
           "Aliases": [
             "us"
           ],
