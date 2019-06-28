@@ -7,7 +7,7 @@ string ExampleShortDoc = @"// Sample class showing how to shuffle rows in
         //IDataView.";
 string Example = @"// Create a new context for ML.NET operations. It can be used for
             // exception tracking and logging, as a catalog of available operations
-			// and as the source of randomness.
+	    // and as the source of randomness.
             var mlContext = new MLContext();
 
             // Get a small dataset as an IEnumerable.
@@ -34,7 +34,7 @@ string Example = @"// Create a new context for ML.NET operations. It can be used
             var shuffledData = mlContext.Data.ShuffleRows(data, seed: 123);
 
             // Look at the shuffled data and observe that the rows are in a
-			// randomized order.
+	    // randomized order.
             var enumerable = mlContext.Data
 			    .CreateEnumerable<SampleTemperatureData>(shuffledData,
 			    reuseRowObject: true);
