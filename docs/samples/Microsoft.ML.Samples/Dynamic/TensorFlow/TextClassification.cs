@@ -81,8 +81,8 @@ namespace Samples.Dynamic
             //      5. Retreives the 'Prediction' from TensorFlow and put it into
             //         ML.NET Pipeline 
 
-            Action<IMDBSentiment, IntermediateFeatures> ResizeFeaturesAction = (i,
-                j) =>
+            Action<IMDBSentiment, IntermediateFeatures> ResizeFeaturesAction = 
+                (i, j) =>
             {
                 j.Sentiment_Text = i.Sentiment_Text;
                 var features = i.VariableLengthFeatures;
@@ -90,15 +90,26 @@ namespace Samples.Dynamic
                 j.Features = features;
             };
 
-            var model = mlContext.Transforms.Text.TokenizeIntoWords(
-                "TokenizedWords", "Sentiment_Text")
+            var model =
+                mlContext.Transforms.Text.TokenizeIntoWords(
+                "TokenizedWords",
+                "Sentiment_Text")
                 .Append(mlContext.Transforms.Conversion.MapValue(
-                    "VariableLengthFeatures", lookupMap, lookupMap.Schema["Words"],
-                    lookupMap.Schema["Ids"], "TokenizedWords")).Append(mlContext.
-                    Transforms.CustomMapping(ResizeFeaturesAction,"Resize"))
-                .Append(tensorFlowModel.ScoreTensorFlowModel("Prediction/Softmax",
-                "Features")).Append(mlContext.Transforms
-                .CopyColumns("Prediction", "Prediction/Softmax")).Fit(dataView);
+                    "VariableLengthFeatures",
+                    lookupMap,
+                    lookupMap.Schema["Words"],
+                    lookupMap.Schema["Ids"],
+                    "TokenizedWords"))
+                .Append(mlContext.Transforms.CustomMapping(
+                    ResizeFeaturesAction,
+                    "Resize"))
+                .Append(tensorFlowModel.ScoreTensorFlowModel(
+                    "Prediction/Softmax",
+                    "Features"))
+                .Append(mlContext.Transforms.CopyColumns(
+                    "Prediction",
+                    "Prediction/Softmax"))
+                .Fit(dataView);
             var engine = mlContext.Model.CreatePredictionEngine<IMDBSentiment,
                 OutputScores>(model);
 
