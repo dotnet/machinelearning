@@ -8,7 +8,6 @@ using System.Linq;
 using System.Numerics.Tensors;
 using Microsoft.ML.Data;
 using Microsoft.ML.Internal.Utilities;
-using Microsoft.ML.Model.OnnxConverter;
 using Microsoft.ML.OnnxRuntime;
 using Microsoft.ML.Runtime;
 
@@ -19,48 +18,48 @@ namespace Microsoft.ML.Transforms.Onnx
         /// <summary>
         /// Derive the corresponding <see cref="Type"/> for ONNX tensor's element type specified by <paramref name="dataType"/>.
         /// The corresponding <see cref="Type"/> should match the type system in ONNXRuntime's C# APIs.
-        /// This function is used when determining the corresponding <see cref="Type"/> of <see cref="OnnxCSharpToProtoWrapper.TypeProto"/>.
+        /// This function is used when determining the corresponding <see cref="Type"/> of <see cref="OnnxProto.TypeProto"/>.
         /// </summary>
         /// <param name="dataType">ONNX's tensor element type.</param>
-        public static Type GetNativeScalarType(OnnxCSharpToProtoWrapper.TensorProto.Types.DataType dataType)
+        public static Type GetNativeScalarType(OnnxProto.TensorProto.Types.DataType dataType)
         {
             Type scalarType = null;
             switch (dataType)
             {
-                case OnnxCSharpToProtoWrapper.TensorProto.Types.DataType.Bool:
+                case OnnxProto.TensorProto.Types.DataType.Bool:
                     scalarType = typeof(System.Boolean);
                     break;
-                case OnnxCSharpToProtoWrapper.TensorProto.Types.DataType.Int8:
+                case OnnxProto.TensorProto.Types.DataType.Int8:
                     scalarType = typeof(System.SByte);
                     break;
-                case OnnxCSharpToProtoWrapper.TensorProto.Types.DataType.Uint8:
+                case OnnxProto.TensorProto.Types.DataType.Uint8:
                     scalarType = typeof(System.Byte);
                     break;
-                case OnnxCSharpToProtoWrapper.TensorProto.Types.DataType.Int16:
+                case OnnxProto.TensorProto.Types.DataType.Int16:
                     scalarType = typeof(System.Int16);
                     break;
-                case OnnxCSharpToProtoWrapper.TensorProto.Types.DataType.Uint16:
+                case OnnxProto.TensorProto.Types.DataType.Uint16:
                     scalarType = typeof(System.UInt16);
                     break;
-                case OnnxCSharpToProtoWrapper.TensorProto.Types.DataType.Int32:
+                case OnnxProto.TensorProto.Types.DataType.Int32:
                     scalarType = typeof(System.Int32);
                     break;
-                case OnnxCSharpToProtoWrapper.TensorProto.Types.DataType.Uint32:
+                case OnnxProto.TensorProto.Types.DataType.Uint32:
                     scalarType = typeof(System.UInt32);
                     break;
-                case OnnxCSharpToProtoWrapper.TensorProto.Types.DataType.Int64:
+                case OnnxProto.TensorProto.Types.DataType.Int64:
                     scalarType = typeof(System.Int64);
                     break;
-                case OnnxCSharpToProtoWrapper.TensorProto.Types.DataType.Uint64:
+                case OnnxProto.TensorProto.Types.DataType.Uint64:
                     scalarType = typeof(System.UInt64);
                     break;
-                case OnnxCSharpToProtoWrapper.TensorProto.Types.DataType.Double:
+                case OnnxProto.TensorProto.Types.DataType.Double:
                     scalarType = typeof(System.Double);
                     break;
-                case OnnxCSharpToProtoWrapper.TensorProto.Types.DataType.Float:
+                case OnnxProto.TensorProto.Types.DataType.Float:
                     scalarType = typeof(System.Single);
                     break;
-                case OnnxCSharpToProtoWrapper.TensorProto.Types.DataType.String:
+                case OnnxProto.TensorProto.Types.DataType.String:
                     scalarType = typeof(string);
                     break;
                 default:
@@ -74,9 +73,9 @@ namespace Microsoft.ML.Transforms.Onnx
         /// The corresponding <see cref="Type"/> should match the type system in ONNXRuntime's C# APIs.
         /// </summary>
         /// <param name="typeProto">ONNX variable's type.</param>
-        public static Type GetNativeType(OnnxCSharpToProtoWrapper.TypeProto typeProto)
+        public static Type GetNativeType(OnnxProto.TypeProto typeProto)
         {
-            if (typeProto.ValueCase == OnnxCSharpToProtoWrapper.TypeProto.ValueOneofCase.TensorType)
+            if (typeProto.ValueCase == OnnxProto.TypeProto.ValueOneofCase.TensorType)
             {
                 if (typeProto.TensorType.Shape == null || typeProto.TensorType.Shape.Dim.Count == 0)
                 {
@@ -89,13 +88,13 @@ namespace Microsoft.ML.Transforms.Onnx
                     return tensorType.MakeGenericType(elementType);
                 }
             }
-            else if (typeProto.ValueCase == OnnxCSharpToProtoWrapper.TypeProto.ValueOneofCase.SequenceType)
+            else if (typeProto.ValueCase == OnnxProto.TypeProto.ValueOneofCase.SequenceType)
             {
                 var enumerableType = typeof(IEnumerable<>);
                 var elementType = GetNativeType(typeProto.SequenceType.ElemType);
                 return enumerableType.MakeGenericType(elementType);
             }
-            else if (typeProto.ValueCase == OnnxCSharpToProtoWrapper.TypeProto.ValueOneofCase.MapType)
+            else if (typeProto.ValueCase == OnnxProto.TypeProto.ValueOneofCase.MapType)
             {
                 var dictionaryType = typeof(IDictionary<,>);
                 Type keyType = GetNativeScalarType(typeProto.MapType.KeyType);
@@ -109,45 +108,45 @@ namespace Microsoft.ML.Transforms.Onnx
         /// Derive the corresponding <see cref="DataViewType"/> for ONNX tensor's element type specified by <paramref name="dataType"/>.
         /// </summary>
         /// <param name="dataType">ONNX's tensor element type.</param>
-        public static DataViewType GetScalarDataViewType(OnnxCSharpToProtoWrapper.TensorProto.Types.DataType dataType)
+        public static DataViewType GetScalarDataViewType(OnnxProto.TensorProto.Types.DataType dataType)
         {
             DataViewType scalarType = null;
             switch (dataType)
             {
-                case OnnxCSharpToProtoWrapper.TensorProto.Types.DataType.Bool:
+                case OnnxProto.TensorProto.Types.DataType.Bool:
                     scalarType = BooleanDataViewType.Instance;
                     break;
-                case OnnxCSharpToProtoWrapper.TensorProto.Types.DataType.Int8:
+                case OnnxProto.TensorProto.Types.DataType.Int8:
                     scalarType = NumberDataViewType.SByte;
                     break;
-                case OnnxCSharpToProtoWrapper.TensorProto.Types.DataType.Uint8:
+                case OnnxProto.TensorProto.Types.DataType.Uint8:
                     scalarType = NumberDataViewType.Byte;
                     break;
-                case OnnxCSharpToProtoWrapper.TensorProto.Types.DataType.Int16:
+                case OnnxProto.TensorProto.Types.DataType.Int16:
                     scalarType = NumberDataViewType.Int16;
                     break;
-                case OnnxCSharpToProtoWrapper.TensorProto.Types.DataType.Uint16:
+                case OnnxProto.TensorProto.Types.DataType.Uint16:
                     scalarType = NumberDataViewType.UInt16;
                     break;
-                case OnnxCSharpToProtoWrapper.TensorProto.Types.DataType.Int32:
+                case OnnxProto.TensorProto.Types.DataType.Int32:
                     scalarType = NumberDataViewType.Int32;
                     break;
-                case OnnxCSharpToProtoWrapper.TensorProto.Types.DataType.Uint32:
+                case OnnxProto.TensorProto.Types.DataType.Uint32:
                     scalarType = NumberDataViewType.UInt32;
                     break;
-                case OnnxCSharpToProtoWrapper.TensorProto.Types.DataType.Int64:
+                case OnnxProto.TensorProto.Types.DataType.Int64:
                     scalarType = NumberDataViewType.Int64;
                     break;
-                case OnnxCSharpToProtoWrapper.TensorProto.Types.DataType.Uint64:
+                case OnnxProto.TensorProto.Types.DataType.Uint64:
                     scalarType = NumberDataViewType.UInt64;
                     break;
-                case OnnxCSharpToProtoWrapper.TensorProto.Types.DataType.Float:
+                case OnnxProto.TensorProto.Types.DataType.Float:
                     scalarType = NumberDataViewType.Single;
                     break;
-                case OnnxCSharpToProtoWrapper.TensorProto.Types.DataType.Double:
+                case OnnxProto.TensorProto.Types.DataType.Double:
                     scalarType = NumberDataViewType.Double;
                     break;
-                case OnnxCSharpToProtoWrapper.TensorProto.Types.DataType.String:
+                case OnnxProto.TensorProto.Types.DataType.String:
                     scalarType = TextDataViewType.Instance;
                     break;
                 default:
@@ -160,19 +159,19 @@ namespace Microsoft.ML.Transforms.Onnx
         /// Parse the dimension information of a single tensor axis. Note that 2-D ONNX tensors have two axes.
         /// </summary>
         /// <param name="dim">ONNX's tensor dimension.</param>
-        public static int GetDimValue(OnnxCSharpToProtoWrapper.TensorShapeProto.Types.Dimension dim)
+        public static int GetDimValue(OnnxProto.TensorShapeProto.Types.Dimension dim)
         {
             int value = 0;
             switch (dim.ValueCase)
             {
-                case OnnxCSharpToProtoWrapper.TensorShapeProto.Types.Dimension.ValueOneofCase.DimValue:
+                case OnnxProto.TensorShapeProto.Types.Dimension.ValueOneofCase.DimValue:
                     // The vector length in ML.NET is typed to 32-bit integer, so the check below is added for perverting overflowing.
                     if (dim.DimValue > int.MaxValue)
                         throw Contracts.ExceptParamValue(dim.DimValue, nameof(dim), $"Dimension {dim} in ONNX tensor cannot exceed the maximum of 32-bit signed integer.");
                     // Variable-length dimension is translated to 0.
                     value = dim.DimValue > 0 ? (int)dim.DimValue : 0;
                     break;
-                case OnnxCSharpToProtoWrapper.TensorShapeProto.Types.Dimension.ValueOneofCase.DimParam:
+                case OnnxProto.TensorShapeProto.Types.Dimension.ValueOneofCase.DimParam:
                     // Variable-length dimension is translated to 0.
                     value = 0;
                     break;
@@ -186,7 +185,7 @@ namespace Microsoft.ML.Transforms.Onnx
         /// Parse the shape information of a tensor.
         /// </summary>
         /// <param name="tensorShapeProto">ONNX's tensor shape.</param>
-        public static IEnumerable<int> GetTensorDims(Microsoft.ML.Model.OnnxConverter.OnnxCSharpToProtoWrapper.TensorShapeProto tensorShapeProto)
+        public static IEnumerable<int> GetTensorDims(Microsoft.ML.Model.OnnxConverter.OnnxProto.TensorShapeProto tensorShapeProto)
         {
             if (tensorShapeProto == null)
                 // Scalar has null dimensionality.
@@ -206,10 +205,10 @@ namespace Microsoft.ML.Transforms.Onnx
         /// The returned <see cref="DataViewType.RawType"/> should match the type system in ONNXRuntime's C# APIs.
         /// </summary>
         /// <param name="typeProto">ONNX variable's type.</param>
-        public static DataViewType GetDataViewType(OnnxCSharpToProtoWrapper.TypeProto typeProto)
+        public static DataViewType GetDataViewType(OnnxProto.TypeProto typeProto)
         {
             var oneOfFieldName = typeProto.ValueCase.ToString();
-            if (typeProto.ValueCase == OnnxCSharpToProtoWrapper.TypeProto.ValueOneofCase.TensorType)
+            if (typeProto.ValueCase == OnnxProto.TypeProto.ValueOneofCase.TensorType)
             {
                 if (typeProto.TensorType.Shape.Dim.Count == 0)
                     // ONNX scalar is a tensor without shape information; that is,
@@ -229,13 +228,13 @@ namespace Microsoft.ML.Transforms.Onnx
                         return new VectorDataViewType((PrimitiveDataViewType)GetScalarDataViewType(typeProto.TensorType.ElemType), 0);
                 }
             }
-            else if (typeProto.ValueCase == OnnxCSharpToProtoWrapper.TypeProto.ValueOneofCase.SequenceType)
+            else if (typeProto.ValueCase == OnnxProto.TypeProto.ValueOneofCase.SequenceType)
             {
                 var elemTypeProto = typeProto.SequenceType.ElemType;
                 var elemType = GetNativeType(elemTypeProto);
                 return new OnnxSequenceType(elemType);
             }
-            else if (typeProto.ValueCase == OnnxCSharpToProtoWrapper.TypeProto.ValueOneofCase.MapType)
+            else if (typeProto.ValueCase == OnnxProto.TypeProto.ValueOneofCase.MapType)
             {
                 var keyType = GetNativeScalarType(typeProto.MapType.KeyType);
                 var valueType = GetNativeType(typeProto.MapType.ValueType);
@@ -246,7 +245,7 @@ namespace Microsoft.ML.Transforms.Onnx
         }
 
         /// <summary>
-        /// Class which store casting functions used in <see cref="GetDataViewValueCasterAndResultedType(OnnxCSharpToProtoWrapper.TypeProto, out Type)"/>.
+        /// Class which store casting functions used in <see cref="GetDataViewValueCasterAndResultedType(OnnxProto.TypeProto, out Type)"/>.
         /// </summary>
         private class CastHelper
         {
@@ -265,10 +264,10 @@ namespace Microsoft.ML.Transforms.Onnx
         /// </summary>
         /// <param name="typeProto">ONNX variable's type.</param>
         /// <param name="resultedType">C# type of <paramref name="typeProto"/>.</param>
-        public static Func<NamedOnnxValue, object> GetDataViewValueCasterAndResultedType(OnnxCSharpToProtoWrapper.TypeProto typeProto, out Type resultedType)
+        public static Func<NamedOnnxValue, object> GetDataViewValueCasterAndResultedType(OnnxProto.TypeProto typeProto, out Type resultedType)
         {
             var oneOfFieldName = typeProto.ValueCase.ToString();
-            if (typeProto.ValueCase == OnnxCSharpToProtoWrapper.TypeProto.ValueOneofCase.TensorType)
+            if (typeProto.ValueCase == OnnxProto.TypeProto.ValueOneofCase.TensorType)
             {
                 var shape = GetTensorDims(typeProto.TensorType.Shape);
 
@@ -309,7 +308,7 @@ namespace Microsoft.ML.Transforms.Onnx
                     return caster;
                 }
             }
-            else if (typeProto.ValueCase == OnnxCSharpToProtoWrapper.TypeProto.ValueOneofCase.SequenceType)
+            else if (typeProto.ValueCase == OnnxProto.TypeProto.ValueOneofCase.SequenceType)
             {
                 // Now, we see a Sequence in ONNX. If its element type is T, the variable produced by
                 // ONNXRuntime would be typed to IEnumerable<T>.
@@ -336,7 +335,7 @@ namespace Microsoft.ML.Transforms.Onnx
 
                 return caster;
             }
-            else if (typeProto.ValueCase == OnnxCSharpToProtoWrapper.TypeProto.ValueOneofCase.MapType)
+            else if (typeProto.ValueCase == OnnxProto.TypeProto.ValueOneofCase.MapType)
             {
                 // Entering this scope means a ONNX Map (equivalent to IDictionary<>) will be produced.
 
