@@ -5653,5 +5653,43 @@ namespace Microsoft.ML.RunTests
                 }
             }
         }
+        /// <summary>
+        /// The model that is loaded was generated with the command line.
+        /// The below graph loads the model and calls the summarizer entrypoint.
+        /// We verify in this test that the output looks as expected.
+        /// </summary>
+        [Fact]
+        public void SummarizeTreeEntryPointTest()
+        {
+            var modelPath = GetDataPath("EntryPointModels/FastTreeModelSummaryTest.bin");
+            var outputPath = GetOutputPath("EntryPoints", "Summarize.txt");
+            string inputGraph =
+                $@"
+                {{
+                  'Nodes': [
+                   {{
+                    'Inputs': {{ 'PredictorModel': '$predictor_model' }},
+                    'Name': 'Models.Summarizer',
+                    'Outputs': {{ 'Summary': '$output_data' }}
+                   }}],
+                  'Inputs' : {{
+                    'predictor_model': '{modelPath.Replace(@"\", @"\\")}'
+                  }},
+                  'Outputs' : {{
+                    'output_data': '{outputPath.Replace(@"\", @"\\")}'
+                  }}
+                }}";
+
+            var jsonPath = DeleteOutputPath("graph.json");
+            File.WriteAllLines(jsonPath, new[] { inputGraph });
+
+            var args = new ExecuteGraphCommand.Arguments() { GraphPath = jsonPath };
+            var cmd = new ExecuteGraphCommand(Env, args);
+
+            CheckEquality("EntryPoints", "Summarize.txt");
+            cmd.Run();
+
+            Done();
+        }
     }
 }
