@@ -97,7 +97,7 @@ namespace Samples.Dynamic.Trainers.Ranking
                     GroupId = (uint)(i / groupSize),
                     // Create random features that are correlated with the label.
                     // For data points with larger labels, the feature values are
-					   slightly increased by adding a constant.
+					// slightly increased by adding a constant.
                     Features = Enumerable.Repeat(label, 50).Select(
 					    x => randomFloat() + x * 0.1f).ToArray()
                 };
