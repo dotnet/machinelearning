@@ -23,7 +23,7 @@ namespace Samples.Dynamic
             IDataView data = mlContext.Data.LoadFromEnumerable(enumerableOfData);
 
             // We can now examine the records in the IDataView. We first create an
-			// enumerable of rows in the IDataView.
+	    // enumerable of rows in the IDataView.
             var rowEnumerable = mlContext.Data
 			    .CreateEnumerable<SampleTemperatureData>(data,
 				reuseRowObject: true);
