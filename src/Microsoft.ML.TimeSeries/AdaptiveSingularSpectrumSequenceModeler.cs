@@ -36,19 +36,10 @@ namespace Microsoft.ML.Transforms.TimeSeries
     public struct GrowthRatio
     {
         [Argument(ArgumentType.AtMostOnce, HelpText = "The confidence level in [0, 1) for forecasting.", SortOrder = 2)]
-        public readonly int TimeSpan;
+        public int TimeSpan;
 
         [Argument(ArgumentType.AtMostOnce, HelpText = "The confidence level in [0, 1) for forecasting.", SortOrder = 2)]
-        public readonly Double Growth;
-
-        public GrowthRatio(int timeSpan = 1, double growth = Double.PositiveInfinity)
-        {
-            Contracts.CheckParam(timeSpan > 0, nameof(TimeSpan), "The time span must be strictly positive.");
-            Contracts.CheckParam(growth >= 0, nameof(Growth), "The growth must be non-negative.");
-
-            Growth = growth;
-            TimeSpan = timeSpan;
-        }
+        public Double Growth;
 
         public Double Ratio { get { return Math.Pow(Growth, 1d / TimeSpan); } }
     }
@@ -241,6 +232,8 @@ namespace Microsoft.ML.Transforms.TimeSeries
             _host.CheckParam(seriesLength > windowSize, nameof(seriesLength), "The series length should be greater than the window size.");
             _host.Check(trainSize > 2 * windowSize, "The input series length for training should be greater than twice the window size.");
             _host.CheckParam(0 <= discountFactor && discountFactor <= 1, nameof(discountFactor), "The discount factor should be in [0,1].");
+            _host.CheckParam(maxGrowth == null || maxGrowth.Value.TimeSpan > 0, nameof(GrowthRatio.TimeSpan), "The time span must be strictly positive.");
+            _host.CheckParam(maxGrowth == null || maxGrowth.Value.Growth >= 0, nameof(GrowthRatio.Growth), "The growth must be non-negative.");
 
             if (maxRank != null)
             {
