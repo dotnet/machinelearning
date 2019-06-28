@@ -7,7 +7,7 @@ namespace Samples.Dynamic
     public static class ShuffleRows
     {
         // Sample class showing how to shuffle rows in 
-        //IDataView.
+        // IDataView.
         public static void Example()
         {
             // Create a new context for ML.NET operations. It can be used for
