@@ -810,10 +810,10 @@ namespace Microsoft.ML.Tests.Transformers
             var data = ML.Data.LoadFromEnumerable(samples);
             // NormalizeLogMeanVariance normalizes the data based on the computed mean and variance of the logarithm of the data.
             // Uses Cumulative distribution function as output.
-            var normalize = ML.Transforms.NormalizeLogMeanVariance(true, "Features", useCdf: true);
+            var normalize = ML.Transforms.NormalizeLogMeanVariance("Features", true, useCdf: true);
 
             // NormalizeLogMeanVariance normalizes the data based on the computed mean and variance of the logarithm of the data.
-            var normalizeNoCdf = ML.Transforms.NormalizeLogMeanVariance(true, "Features", useCdf: false);
+            var normalizeNoCdf = ML.Transforms.NormalizeLogMeanVariance("Features", true, useCdf: false);
 
             // Now we can transform the data and look at the output to confirm the behavior of the estimator.
             var normalizeTransform = normalize.Fit(data);
@@ -851,10 +851,10 @@ namespace Microsoft.ML.Tests.Transformers
             var data = ML.Data.LoadFromEnumerable(samples);
             // NormalizeLogMeanVariance normalizes the data based on the computed mean and variance of the logarithm of the data.
             // Uses Cumulative distribution function as output.
-            var normalize = ML.Transforms.NormalizeLogMeanVariance(true, "Features", useCdf: true);
+            var normalize = ML.Transforms.NormalizeLogMeanVariance("Features", true, useCdf: true);
 
             // NormalizeLogMeanVariance normalizes the data based on the computed mean and variance of the logarithm of the data.
-            var normalizeNoCdf = ML.Transforms.NormalizeLogMeanVariance(true, "Features", useCdf: false);
+            var normalizeNoCdf = ML.Transforms.NormalizeLogMeanVariance("Features", true, useCdf: false);
 
             // Now we can transform the data and look at the output to confirm the behavior of the estimator.
             var normalizeTransform = normalize.Fit(data);

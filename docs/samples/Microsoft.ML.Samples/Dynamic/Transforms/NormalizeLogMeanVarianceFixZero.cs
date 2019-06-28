@@ -26,10 +26,10 @@ namespace Samples.Dynamic
             var data = mlContext.Data.LoadFromEnumerable(samples);
             // NormalizeLogMeanVariance normalizes the data based on the computed mean and variance of the logarithm of the data.
             // Uses Cumulative distribution function as output.
-            var normalize = mlContext.Transforms.NormalizeLogMeanVariance(true, "Features", useCdf: true);
+            var normalize = mlContext.Transforms.NormalizeLogMeanVariance("Features", true, useCdf: true);
 
             // NormalizeLogMeanVariance normalizes the data based on the computed mean and variance of the logarithm of the data.
-            var normalizeNoCdf = mlContext.Transforms.NormalizeLogMeanVariance(true, "Features", useCdf: false);
+            var normalizeNoCdf = mlContext.Transforms.NormalizeLogMeanVariance("Features", true, useCdf: false);
 
             // Now we can transform the data and look at the output to confirm the behavior of the estimator.
             // This operation doesn't actually evaluate data until we read the data below.
@@ -58,19 +58,19 @@ namespace Samples.Dynamic
             // Let's get transformation parameters. Since we work with only one column we need to pass 0 as parameter for GetNormalizerModelParameters.
             // If we have multiple columns transformations we need to pass index of InputOutputColumnPair.
             var transformParams = normalizeTransform.GetNormalizerModelParameters(0) as CdfNormalizerModelParameters<ImmutableArray<float>>;
-            Console.WriteLine("The 1-index value in resulting array would be produce by:");
+            Console.WriteLine("The values in the column with index 1 in the resulting array would be produced by:");
             Console.WriteLine($"y = 0.5* (1 + ERF((Math.Log(x)- {transformParams.Mean[1]}) / ({transformParams.StandardDeviation[1]} * sqrt(2)))");
 
             // ERF is https://en.wikipedia.org/wiki/Error_function.
             // Expected output:
-            // The 1 - index value in resulting array would be produce by:
+            // The values in the column with index 1 in the resulting array would be produced by:
             // y = 0.5 * (1 + ERF((Math.Log(x) - 0.3465736) / (0.3465736 * sqrt(2)))
             var noCdfParams = normalizeNoCdfTransform.GetNormalizerModelParameters(0) as AffineNormalizerModelParameters<ImmutableArray<float>>;
             var offset = noCdfParams.Offset.Length == 0 ? 0 : noCdfParams.Offset[1];
             var scale = noCdfParams.Scale[1];
-            Console.WriteLine($"The 1-index value in resulting array would be produce by: y = (x - ({offset})) * {scale}");
+            Console.WriteLine($"The values in the column with index 1 in the resulting array would be produced by: y = (x - ({offset})) * {scale}");
             // Expected output:
-            // The 1-index value in resulting array would be produce by: y = (x - (0)) * 2.040279
+            // The values in the column with index 1 in the resulting array would be produced by: y = (x - (0)) * 2.040279
         }
 
         private class DataPoint
