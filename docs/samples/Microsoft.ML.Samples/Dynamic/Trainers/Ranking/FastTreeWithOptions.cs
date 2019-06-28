@@ -47,7 +47,7 @@ namespace Samples.Dynamic.Trainers.Ranking
             var model = pipeline.Fit(trainingData);
 
             // Create testing data. Use different random seed to make it different
-			// from training data.
+            // from training data.
             var testData = mlContext.Data.LoadFromEnumerable(
                 GenerateRandomDataPoints(500, seed:123));
 
@@ -98,7 +98,7 @@ namespace Samples.Dynamic.Trainers.Ranking
                     // For data points with larger labels, the feature values are
                     // slightly increased by adding a constant.
                     Features = Enumerable.Repeat(label, 50).Select(
-					    x => randomFloat() + x * 0.1f).ToArray()
+                        x => randomFloat() + x * 0.1f).ToArray()
                 };
             }
         }
