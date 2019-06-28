@@ -458,11 +458,11 @@ namespace Microsoft.ML.Transforms.Onnx
                 {
                     UpdateCacheIfNeeded(input.Position, srcNamedValueGetters, activeOutputColNames, outputCacher);
                     var namedOnnxValue = outputCacher.Outputs[_parent.Outputs[iinfo]];
-                    var denseTensor = namedOnnxValue.AsTensor<T>() as System.Numerics.Tensors.DenseTensor<T>;
-                    if (denseTensor == null)
+                    var tensor = namedOnnxValue.AsTensor<T>() as System.Numerics.Tensors.DenseTensor<T>;
+                    if (tensor == null)
                         throw Host.Except($"Output column {namedOnnxValue.Name} doesn't contain a DenseTensor of expected type {typeof(T)}");
-                    var editor = VBufferEditor.Create(ref dst, (int)denseTensor.Length);
-                    denseTensor.Buffer.Span.CopyTo(editor.Values);
+                    var editor = VBufferEditor.Create(ref dst, (int)tensor.Length);
+                    tensor.Buffer.Span.CopyTo(editor.Values);
                     dst = editor.Commit();
                 };
                 return valueGetter;
@@ -476,19 +476,15 @@ namespace Microsoft.ML.Transforms.Onnx
                 {
                     UpdateCacheIfNeeded(input.Position, srcNamedValueGetters, activeOutputColNames, outputCacher);
                     var namedOnnxValue = outputCacher.Outputs[_parent.Outputs[iinfo]];
-                    var denseTensor = namedOnnxValue.AsTensor<string>();
-                    if (denseTensor == null)
+                    var tensor = namedOnnxValue.AsTensor<string>() as System.Numerics.Tensors.DenseTensor<string>;
+                    if (tensor == null)
                         throw Host.Except($"Output column {namedOnnxValue.Name} doesn't contain a DenseTensor of expected type {typeof(string)}");
 
-                    // Tensor<string> to Tensor<ReadOnlyMemory<char>>.
-                    var casted = denseTensor.Select(value => value.AsMemory());
-                    // Tensor<ReadOnlyMemory<char>> to Span<ReadOnlyMemory<char>>.
-                    // Note that string vector in ML.NET is typed to Span<ReadOnlyMemory<char>>.
-                    var buffer = new Span<ReadOnlyMemory<char>>(casted.ToArray());
-
-                    // Create VBufferEditor to fill "dst" with the values in "buffer".
-                    var editor = VBufferEditor.Create(ref dst, (int)denseTensor.Length);
-                    buffer.CopyTo(editor.Values);
+                    // Create VBufferEditor to fill "dst" with the values in "denseTensor".
+                    var editor = VBufferEditor.Create(ref dst, (int)tensor.Length);
+                    for (int i = 0; i < tensor.Length; ++i)
+                        // Cast because string in ML.NET is typed to ReadOnlyMemory<char>.
+                        editor.Values[i] = tensor.GetValue(i).AsMemory();
                     dst = editor.Commit();
                 };
                 return valueGetter;

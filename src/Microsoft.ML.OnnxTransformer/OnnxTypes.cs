@@ -274,14 +274,10 @@ namespace Microsoft.ML.Transforms.Onnx
 
                 if (shape == null)
                 {
-                    // Entering this scope means that a ONNX scalar is found. Note that ONNX scalar is typed to tensor without a shape.
+                    // Entering this scope means that an ONNX scalar is found. Note that ONNX scalar is typed to tensor without a shape.
 
                     // Get tensor element type.
                     var type = GetScalarDataViewType(typeProto.TensorType.ElemType).RawType;
-
-                    // Create a method to cast NamedOnnxValue to Tensor.
-                    var methodInfo = typeof(NamedOnnxValue).GetMethod(nameof(NamedOnnxValue.AsTensor));
-                    var methodSpecialized = methodInfo.MakeGenericMethod(type);
 
                     // Access the first element as a scalar.
                     var accessInfo = typeof(Tensor<>).GetMethod(nameof(Tensor<int>.GetValue));
@@ -299,7 +295,7 @@ namespace Microsoft.ML.Transforms.Onnx
                 }
                 else
                 {
-                    // Entering this scope means a ONNX tensor is found.
+                    // Entering this scope means an ONNX tensor is found.
 
                     var type = GetScalarDataViewType(typeProto.TensorType.ElemType).RawType;
                     var methodInfo = typeof(NamedOnnxValue).GetMethod(nameof(NamedOnnxValue.AsTensor));
