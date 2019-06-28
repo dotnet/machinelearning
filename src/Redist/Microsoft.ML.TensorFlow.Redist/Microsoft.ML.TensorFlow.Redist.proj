@@ -120,7 +120,7 @@
 
     <!-- fix up the renamed libtensorflow, this can only run on mac -->
     <Exec Condition="'%(FilesFromArchive.Runtime)' == 'osx-x64' AND '%(FilesFromArchive.FileName)' == 'libtensorflow'"
-          Command="install_name_tool -change @rpath/libtensorflow_framework.so @rpath/libtensorflow_framework.dylib &quot;%(FilesFromArchive.TargetPath)&quot;" />
+          Command="install_name_tool -add_rpath @rpath/libtensorflow_framework.dylib &quot;%(FilesFromArchive.TargetPath)&quot;" />
   </Target>
 
   <!-- Define Build to do the work of downloading and copying assets -->
