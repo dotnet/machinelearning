@@ -4,8 +4,9 @@ string NameSpace = "Samples.Dynamic";
 string ClassName="SkipRows";
 string AddExtraClass = null;
 string ExampleShortDoc = @"// Sample class showing how to skip rows in IDataView.";
-string Example = @"// Create a new context for ML.NET operations. It can be used for exception tracking and logging, 
-            // as a catalog of available operations and as the source of randomness.
+string Example = @"// Create a new context for ML.NET operations. It can be used for
+            // exception tracking and logging, as a catalog of available operations
+	    // and as the source of randomness.
             var mlContext = new MLContext();
 
             // Get a small dataset as an IEnumerable.
@@ -16,7 +17,8 @@ string Example = @"// Create a new context for ML.NET operations. It can be used
             Console.WriteLine($""Date\tTemperature"");
             foreach (var row in enumerableOfData)
             {
-                Console.WriteLine($""{row.Date.ToString(""d"")}\t{row.Temperature}"");
+                Console.WriteLine($""{row.Date.ToString(""d"")}"" +
+				$""\t{row.Temperature}"");
             }
             Console.WriteLine();
             // Expected output:
@@ -35,12 +37,17 @@ string Example = @"// Create a new context for ML.NET operations. It can be used
             // Skip the first 5 rows in the dataset
             var filteredData = mlContext.Data.SkipRows(data, 5);
 
-            // Look at the filtered data and observe that the first 5 rows have been dropped
-            var enumerable = mlContext.Data.CreateEnumerable<SampleTemperatureData>(filteredData, reuseRowObject: true);
+            // Look at the filtered data and observe that the first 5 rows have been
+	    // dropped
+            var enumerable = mlContext.Data
+			    .CreateEnumerable<SampleTemperatureData>(filteredData,
+			    reuseRowObject: true);
+
             Console.WriteLine($""Date\tTemperature"");
             foreach (var row in enumerable)
             {
-                Console.WriteLine($""{row.Date.ToString(""d"")}\t{row.Temperature}"");
+                Console.WriteLine($""{row.Date.ToString(""d"")}"" +
+				    $""\t{row.Temperature}"");
             }
             // Expected output:
             //  Date    Temperature
