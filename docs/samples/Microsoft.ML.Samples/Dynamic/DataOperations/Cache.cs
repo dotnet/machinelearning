@@ -20,7 +20,7 @@ namespace Samples.Dynamic
                 TimeToScanIDataView(mlContext, data);
 
             Console.WriteLine($"Lines={lines}," +
-                $"averageOfColumn0={columnAverage:0.00}and took {elapsedSeconds}" +
+                $"averageOfColumn0={columnAverage:0.00} and took {elapsedSeconds}" +
                 $"seconds.");
             // Expected output (time is approximate):
             // Lines=506, averageOfColumn0=564.17 and took 0.314 seconds.
