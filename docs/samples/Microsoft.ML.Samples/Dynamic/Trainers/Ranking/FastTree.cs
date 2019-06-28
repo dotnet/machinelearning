@@ -84,7 +84,7 @@ namespace Samples.Dynamic.Trainers.Ranking
                     // For data points with larger labels, the feature values are
                     // slightly increased by adding a constant.
                     Features = Enumerable.Repeat(label, 50).Select(
-					    x => randomFloat() + x * 0.1f).ToArray()
+       	                x => randomFloat() + x * 0.1f).ToArray()
                 };
             }
         }
