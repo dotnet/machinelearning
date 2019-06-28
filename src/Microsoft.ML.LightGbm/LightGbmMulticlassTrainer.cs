@@ -78,7 +78,7 @@ namespace Microsoft.ML.Trainers.LightGbm
             /// <summary>
             /// Whether training data is unbalanced.
             /// </summary>
-            [Argument(ArgumentType.AtMostOnce, HelpText = "Use for binary classification when training data is not balanced.", ShortName = "us")]
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Use for multi-class classification when training data is not balanced", ShortName = "us")]
             public bool UnbalancedSets = false;
 
             /// <summary>
