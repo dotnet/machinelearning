@@ -25,66 +25,48 @@ namespace Microsoft.ML.FastTree.Utils
             var builder = new ArrayDataViewBuilder(host);
             var numberOfRows = trees.Select(tree => tree.NumberOfNodes).Sum() + trees.Select(tree => tree.NumberOfLeaves).Sum();
 
-            // Bias column. This will be a repeated value for all rows in the resulting IDataView.
-            builder.AddColumn("Bias", NumberDataViewType.Double, Enumerable.Repeat(bias, numberOfRows).ToArray());
 
-            // TreeWeights column. The TreeWeight value will be repeated for all the notes in the same tree in the IDataView.
+            // Bias can be added directly, it is the same across trees, so we don't need a list for that.
             var treeWeightsList = new List<double>();
+            var treeId = new List<int>();
+            var isLeaf = new List<ReadOnlyMemory<char>>();
+            var leftChild = new List<int>();
+            var rightChild = new List<int>();
+            var numericalSplitFeatureIndexes = new List<int>();
+            var numericalSplitThresholds = new List<float>();
+            var categoricalSplitFlags = new List<bool>();
+            var leafValues = new List<double>();
+            var splitGains = new List<double>();
+            var categoricalSplitFeatures = new List<VBuffer<int>>();
+            var categoricalCategoricalSplitFeatureRange = new List<VBuffer<int>>();
+
             for (int i = 0; i < trees.Count; i++)
+            {
+                // TreeWeights column. The TreeWeight value will be repeated for all the notes in the same tree in the IDataView.
                 treeWeightsList.AddRange(Enumerable.Repeat(treeWeights[i], trees[i].NumberOfNodes + trees[i].NumberOfLeaves));
 
-            builder.AddColumn("TreeWeights", NumberDataViewType.Double, treeWeightsList.ToArray());
-
-            // Tree id indicates which tree the node belongs to.
-            var treeId = new List<int>();
-            for (int i = 0; i < trees.Count; i++)
+                // Tree id indicates which tree the node belongs to.
                 treeId.AddRange(Enumerable.Repeat(i, trees[i].NumberOfNodes + trees[i].NumberOfLeaves));
 
-            builder.AddColumn("TreeID", NumberDataViewType.Int32, treeId.ToArray());
-
-            // IsLeaf column indicates if node is a leaf node.
-            var isLeaf = new List<ReadOnlyMemory<char>>();
-            for (int i = 0; i < trees.Count; i++)
-            {
+                // IsLeaf column indicates if node is a leaf node.
                 isLeaf.AddRange(Enumerable.Repeat(new ReadOnlyMemory<char>("Tree node".ToCharArray()), trees[i].NumberOfNodes));
                 isLeaf.AddRange(Enumerable.Repeat(new ReadOnlyMemory<char>("Leaf node".ToCharArray()), trees[i].NumberOfLeaves));
-            }
 
-            // Bias column. This is a repeated value for all trees.
-            builder.AddColumn("IsLeaf", TextDataViewType.Instance, isLeaf.ToArray());
-
-            // LeftChild column.
-            var leftChild = new List<int>();
-            for (int i = 0; i < trees.Count; i++)
-            {
+                // LeftChild column.
                 leftChild.AddRange(trees[i].LeftChild.AsEnumerable());
                 leftChild.AddRange(Enumerable.Repeat(0, trees[i].NumberOfLeaves));
-            }
 
-            builder.AddColumn(nameof(RegressionTreeBase.LeftChild), NumberDataViewType.Int32, leftChild.ToArray());
-
-            // RightChild column.
-            var rightChild = new List<int>();
-            for (int i = 0; i < trees.Count; i++)
-            {
+                // RightChild column.
                 rightChild.AddRange(trees[i].RightChild.AsEnumerable());
                 rightChild.AddRange(Enumerable.Repeat(0, trees[i].NumberOfLeaves));
-            }
 
-            builder.AddColumn(nameof(RegressionTreeBase.RightChild), NumberDataViewType.Int32, rightChild.ToArray());
-
-            // NumericalSplitFeatureIndexes column.
-            var numericalSplitFeatureIndexes = new List<int>();
-            for (int i = 0; i < trees.Count; i++)
-            {
+                // NumericalSplitFeatureIndexes column.
                 numericalSplitFeatureIndexes.AddRange(trees[i].NumericalSplitFeatureIndexes.AsEnumerable());
                 numericalSplitFeatureIndexes.AddRange(Enumerable.Repeat(0, trees[i].NumberOfLeaves));
             }
 
-            builder.AddColumn(nameof(RegressionTreeBase.NumericalSplitFeatureIndexes), NumberDataViewType.Int32, numericalSplitFeatureIndexes.ToArray());
 
             // NumericalSplitThresholds column.
-            var numericalSplitThresholds = new List<float>();
             for (int i = 0; i < trees.Count; i++)
             {
                 numericalSplitThresholds.AddRange(trees[i].NumericalSplitThresholds.AsEnumerable());
@@ -94,7 +76,6 @@ namespace Microsoft.ML.FastTree.Utils
             builder.AddColumn(nameof(RegressionTreeBase.NumericalSplitThresholds), NumberDataViewType.Single, numericalSplitThresholds.ToArray());
 
             // CategoricalSplitFlags column.
-            var categoricalSplitFlags = new List<bool>();
             for (int i = 0; i < trees.Count; i++)
             {
                 categoricalSplitFlags.AddRange(trees[i].CategoricalSplitFlags.AsEnumerable());
@@ -104,7 +85,6 @@ namespace Microsoft.ML.FastTree.Utils
             builder.AddColumn(nameof(RegressionTreeBase.CategoricalSplitFlags), BooleanDataViewType.Instance, categoricalSplitFlags.ToArray());
 
             // LeafValues column.
-            var leafValues = new List<double>();
             for (int i = 0; i < trees.Count; i++)
             {
                 leafValues.AddRange(Enumerable.Repeat(0d, trees[i].NumberOfNodes));
@@ -114,7 +94,6 @@ namespace Microsoft.ML.FastTree.Utils
             builder.AddColumn(nameof(RegressionTreeBase.LeafValues), NumberDataViewType.Double, leafValues.ToArray());
 
             // SplitGains column.
-            var splitGains = new List<double>();
             for (int i = 0; i < trees.Count; i++)
             {
                 splitGains.AddRange(trees[i].SplitGains.AsEnumerable());
@@ -124,7 +103,6 @@ namespace Microsoft.ML.FastTree.Utils
             builder.AddColumn(nameof(RegressionTreeBase.SplitGains), NumberDataViewType.Double, splitGains.ToArray());
 
             // CategoricalSplitFeatures column.
-            var categoricalSplitFeatures = new List<VBuffer<int>>();
             for (int i = 0; i < trees.Count; i++)
             {
                 for (int j = 0; j < trees[i].NumberOfNodes; j++)
@@ -140,7 +118,6 @@ namespace Microsoft.ML.FastTree.Utils
             builder.AddColumn("CategoricalSplitFeatures", NumberDataViewType.Int32, categoricalSplitFeatures.ToArray());
 
             // CategoricalCategoricalSplitFeatureRange column.
-            var categoricalCategoricalSplitFeatureRange = new List<VBuffer<int>>();
             for (int i = 0; i < trees.Count; i++)
             {
                 for (int j = 0; j < trees[i].NumberOfNodes; j++)
@@ -188,6 +165,16 @@ namespace Microsoft.ML.FastTree.Utils
 
                 builder.AddColumn("LeafSampleWeights", NumberDataViewType.Double, leafSampleWeights.ToArray());
             }
+            // Bias column. This will be a repeated value for all rows in the resulting IDataView.
+            builder.AddColumn("Bias", NumberDataViewType.Double, Enumerable.Repeat(bias, numberOfRows).ToArray());
+            builder.AddColumn("TreeWeights", NumberDataViewType.Double, treeWeightsList.ToArray());
+            builder.AddColumn("TreeID", NumberDataViewType.Int32, treeId.ToArray());
+            builder.AddColumn("IsLeaf", TextDataViewType.Instance, isLeaf.ToArray());
+            builder.AddColumn(nameof(RegressionTreeBase.LeftChild), NumberDataViewType.Int32, leftChild.ToArray());
+            builder.AddColumn(nameof(RegressionTreeBase.RightChild), NumberDataViewType.Int32, rightChild.ToArray());
+            builder.AddColumn(nameof(RegressionTreeBase.NumericalSplitFeatureIndexes), NumberDataViewType.Int32, numericalSplitFeatureIndexes.ToArray());
+
+
 
             var data = builder.GetDataView();
             return data;
