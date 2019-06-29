@@ -6,7 +6,8 @@ string ClassHeader = @"// This example requires installation of additional NuGet
 
 string ClassName="FastForestRegression";
 string ExtraUsing = null;
-string Trainer = @"FastForest(labelColumnName: nameof(DataPoint.Label), featureColumnName: nameof(DataPoint.Features))";
+string Trainer = @"FastForest(labelColumnName: nameof(DataPoint.Label),
+    featureColumnName: nameof(DataPoint.Features))";
 string TrainerOptions = null;
 
 string ExpectedOutputPerInstance= @"// Expected output:
