@@ -14,7 +14,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Include="D:\Repos\machinelearning2\src\Microsoft.ML.OnnxConverter\OnnxMl.cs">
+    <Compile Include="..\Microsoft.ML.OnnxConverter\OnnxMl.cs">
       <Link>OnnxMl.cs</Link>
     </Compile>
   </ItemGroup>
