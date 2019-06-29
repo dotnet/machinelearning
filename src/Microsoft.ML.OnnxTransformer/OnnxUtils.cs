@@ -8,6 +8,7 @@ using System.IO;
 using System.Linq;
 using System.Numerics.Tensors;
 using Microsoft.ML.Data;
+using Microsoft.ML.Model.OnnxConverter;
 using Microsoft.ML.OnnxRuntime;
 using Microsoft.ML.Runtime;
 using OnnxShape = System.Collections.Generic.List<int>;
@@ -176,9 +177,9 @@ namespace Microsoft.ML.Transforms.Onnx
             // Load ONNX model file and parse its input and output schema. The reason of doing so is that ONNXRuntime
             // doesn't expose full type information via its C# APIs.
             ModelFile = modelFile;
-            var model = new OnnxProto.ModelProto();
+            var model = new OnnxCSharpToProtoWrapper.ModelProto();
             using (var modelStream = File.OpenRead(modelFile))
-                model = OnnxProto.ModelProto.Parser.ParseFrom(modelStream);
+                model = OnnxCSharpToProtoWrapper.ModelProto.Parser.ParseFrom(modelStream);
 
             // Parse actual input and output types stored in the loaded ONNX model to get their DataViewType's.
             var inputTypePool = new Dictionary<string, DataViewType>();
