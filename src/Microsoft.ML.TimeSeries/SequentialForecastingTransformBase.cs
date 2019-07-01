@@ -168,26 +168,28 @@ namespace Microsoft.ML.Transforms.TimeSeries
                     getters[0] = valueGetter;
                 }
 
-                if (activeOutput(1))
+                if (!string.IsNullOrEmpty(_parent.ForecastingConfidenceIntervalMaxOutputColumnName))
                 {
-                    ValueGetter<VBuffer<float>> valueGetter = (ref VBuffer<float> dst) =>
+                    if (activeOutput(1))
                     {
-                        State.ConfidenceIntervalLowerBound(ref dst);
-                    };
+                        ValueGetter<VBuffer<float>> valueGetter = (ref VBuffer<float> dst) =>
+                        {
+                            State.ConfidenceIntervalLowerBound(ref dst);
+                        };
 
-                    getters[1] = valueGetter;
-                }
+                        getters[1] = valueGetter;
+                    }
 
-                if (activeOutput(2))
-                {
-                    ValueGetter<VBuffer<float>> valueGetter = (ref VBuffer<float> dst) =>
+                    if (activeOutput(2))
                     {
-                        State.ConfidenceIntervalUpperBound(ref dst);
-                    };
+                        ValueGetter<VBuffer<float>> valueGetter = (ref VBuffer<float> dst) =>
+                        {
+                            State.ConfidenceIntervalUpperBound(ref dst);
+                        };
 
-                    getters[2] = valueGetter;
+                        getters[2] = valueGetter;
+                    }
                 }
-
                 return getters;
             }
 

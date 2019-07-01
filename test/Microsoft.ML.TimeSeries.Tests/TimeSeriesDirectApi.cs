@@ -333,7 +333,7 @@ namespace Microsoft.ML.Tests
             List<Data> data = new List<Data>();
             var dataView = env.Data.LoadFromEnumerable(data);
 
-            var args = new SsaForecasting.Options()
+            var args = new SsaForecastingTransformer.Options()
             {
                 ConfidenceLevel = 0.95f,
                 Source = "Value",
@@ -388,7 +388,7 @@ namespace Microsoft.ML.Tests
             var ml = new MLContext(seed: 1);
             var dataView = ml.Data.LoadFromEnumerable(data);
 
-            var args = new SsaForecasting.Options()
+            var args = new SsaForecastingTransformer.Options()
             {
                 ConfidenceLevel = 0.95f,
                 Source = "Value",

@@ -42,27 +42,30 @@ namespace Samples.Dynamic
             var dataView = ml.Data.LoadFromEnumerable(data);
 
             // Setup arguments.
-            /*var inputColumnName = nameof(TimeSeriesData.Value);
+            var inputColumnName = nameof(TimeSeriesData.Value);
+            var outputColumnName = nameof(ForecastResult.Forecast);
 
             // Instantiate the forecasting model.
-            var model = ml.Forecasting.ForecastBySsa(inputColumnName, inputColumnName, 5, 11, data.Count, 5);
+            var model = ml.Forecasting.ForecastBySsa(outputColumnName, inputColumnName, 5, 11, data.Count, 5);
 
             // Train.
             var transformer = model.Fit(dataView);
 
             // Forecast next five values.
-            var forecastEngine = transformer.CreateForecastingEngine<TimeSeriesData>(ml);
-            var forecast = ml.Data.CreateEnumerable<ForecastResult>(forecastEngine.Forecast(5), false);
+            var forecastEngine = transformer.CreateTimeSeriesEngine<TimeSeriesData, ForecastResult>(ml);
+            var forecast = new ForecastResult();
+            forecastEngine.Predict(null, ref forecast);
+
             Console.WriteLine($"Forecasted values:");
-            Console.WriteLine("[{0}]", string.Join(", ", forecast));
+            Console.WriteLine("[{0}]", string.Join(", ", forecast.Forecast));
             // Forecasted values:
-            // [2.452744, 2.589339, 2.729183, 2.873005, 3.028931]
+            // [1.977226, 1.020494, 1.760543, 3.437509, 4.266461]
 
             // Update with new observations.
-            forecastEngine.Update(new TimeSeriesData(0));
-            forecastEngine.Update(new TimeSeriesData(0));
-            forecastEngine.Update(new TimeSeriesData(0));
-            forecastEngine.Update(new TimeSeriesData(0));
+            forecastEngine.Predict(new TimeSeriesData(0));
+            forecastEngine.Predict(new TimeSeriesData(0));
+            forecastEngine.Predict(new TimeSeriesData(0));
+            forecastEngine.Predict(new TimeSeriesData(0));
 
             // Checkpoint.
             forecastEngine.CheckPoint(ml, "model.zip");
@@ -74,25 +77,23 @@ namespace Samples.Dynamic
                 modelCopy = ml.Model.Load(file, out DataViewSchema schema);
 
             // We must create a new prediction engine from the persisted model.
-            /*var forecastEngineCopy = modelCopy.CreateForecastingEngine<TimeSeriesData>(ml);
+            var forecastEngineCopy = modelCopy.CreateTimeSeriesEngine<TimeSeriesData, ForecastResult>(ml);
 
             // Forecast with the checkpointed model loaded from disk.
-            forecast = ml.Data.CreateEnumerable<ForecastResult>(forecastEngineCopy.Forecast(5), false);
-            Console.WriteLine("[{0}]", string.Join(", ", forecast));
-            // [0.8681176, 0.8185108, 0.8069275, 0.84405, 0.9455081]
+            forecastEngineCopy.Predict(null, ref forecast);
+            Console.WriteLine("[{0}]", string.Join(", ", forecast.Forecast));
+            // [1.791331, 1.255525, 0.3060154, -0.200446, 0.5657795]
 
             // Forecast with the original model(that was checkpointed to disk).
-            forecast = ml.Data.CreateEnumerable<ForecastResult>(forecastEngine.Forecast(5), false);
-            Console.WriteLine("[{0}]", string.Join(", ", forecast));
-            // [0.8681176, 0.8185108, 0.8069275, 0.84405, 0.9455081]*/
+            forecastEngine.Predict(null, ref forecast);
+            Console.WriteLine("[{0}]", string.Join(", ", forecast.Forecast));
+            // [1.791331, 1.255525, 0.3060154, -0.200446, 0.5657795]
 
         }
 
         class ForecastResult
         {
-#pragma warning disable CS0649
-            public float Forecast;
-#pragma warning restore CS0649
+            public float[] Forecast { get; set; }
         }
 
         class TimeSeriesData

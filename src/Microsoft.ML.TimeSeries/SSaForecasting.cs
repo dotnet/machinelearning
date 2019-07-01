@@ -10,24 +10,24 @@ using Microsoft.ML.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Transforms.TimeSeries;
 
-[assembly: LoadableClass(SsaForecasting.Summary, typeof(IDataTransform), typeof(SsaForecasting), typeof(SsaForecasting.Options), typeof(SignatureDataTransform),
-    SsaForecasting.UserName, SsaForecasting.LoaderSignature, SsaForecasting.ShortName)]
+[assembly: LoadableClass(SsaForecastingTransformer.Summary, typeof(IDataTransform), typeof(SsaForecastingTransformer), typeof(SsaForecastingTransformer.Options), typeof(SignatureDataTransform),
+    SsaForecastingTransformer.UserName, SsaForecastingTransformer.LoaderSignature, SsaForecastingTransformer.ShortName)]
 
-[assembly: LoadableClass(SsaForecasting.Summary, typeof(IDataTransform), typeof(SsaForecasting), null, typeof(SignatureLoadDataTransform),
-    SsaForecasting.UserName, SsaForecasting.LoaderSignature)]
+[assembly: LoadableClass(SsaForecastingTransformer.Summary, typeof(IDataTransform), typeof(SsaForecastingTransformer), null, typeof(SignatureLoadDataTransform),
+    SsaForecastingTransformer.UserName, SsaForecastingTransformer.LoaderSignature)]
 
-[assembly: LoadableClass(SsaForecasting.Summary, typeof(SsaForecasting), null, typeof(SignatureLoadModel),
-    SsaForecasting.UserName, SsaForecasting.LoaderSignature)]
+[assembly: LoadableClass(SsaForecastingTransformer.Summary, typeof(SsaForecastingTransformer), null, typeof(SignatureLoadModel),
+    SsaForecastingTransformer.UserName, SsaForecastingTransformer.LoaderSignature)]
 
-[assembly: LoadableClass(typeof(IRowMapper), typeof(SsaForecasting), null, typeof(SignatureLoadRowMapper),
-   SsaForecasting.UserName, SsaForecasting.LoaderSignature)]
+[assembly: LoadableClass(typeof(IRowMapper), typeof(SsaForecastingTransformer), null, typeof(SignatureLoadRowMapper),
+   SsaForecastingTransformer.UserName, SsaForecastingTransformer.LoaderSignature)]
 
 namespace Microsoft.ML.Transforms.TimeSeries
 {
     /// <summary>
     /// <see cref="ITransformer"/> resulting from fitting a <see cref="SsaForecastingEstimator"/>.
     /// </summary>
-    public sealed class SsaForecasting : SsaForecastingBaseWrapper, IStatefulTransformer
+    public sealed class SsaForecastingTransformer : SsaForecastingBaseWrapper, IStatefulTransformer
     {
         internal const string Summary = "This transform forecasts using Singular Spectrum Analysis (SSA).";
         internal const string LoaderSignature = "SsaForecasting";
@@ -123,10 +123,10 @@ namespace Microsoft.ML.Transforms.TimeSeries
                 verReadableCur: 0x00010001,
                 verWeCanReadBack: 0x00010001,
                 loaderSignature: LoaderSignature,
-                loaderAssemblyName: typeof(SsaForecasting).Assembly.FullName);
+                loaderAssemblyName: typeof(SsaForecastingTransformer).Assembly.FullName);
         }
 
-        internal SsaForecasting(IHostEnvironment env, Options options, IDataView input)
+        internal SsaForecastingTransformer(IHostEnvironment env, Options options, IDataView input)
             : base(new BaseArguments(options), LoaderSignature, env)
         {
             InternalTransform.Model.Train(new RoleMappedData(input, null, InternalTransform.InputColumnName));
@@ -139,10 +139,10 @@ namespace Microsoft.ML.Transforms.TimeSeries
             env.CheckValue(options, nameof(options));
             env.CheckValue(input, nameof(input));
 
-            return new SsaForecasting(env, options, input).MakeDataTransform(input);
+            return new SsaForecastingTransformer(env, options, input).MakeDataTransform(input);
         }
 
-        internal SsaForecasting(IHostEnvironment env, Options options)
+        internal SsaForecastingTransformer(IHostEnvironment env, Options options)
             : base(new BaseArguments(options), LoaderSignature, env)
         {
             // This constructor is empty.
@@ -155,12 +155,12 @@ namespace Microsoft.ML.Transforms.TimeSeries
             env.CheckValue(ctx, nameof(ctx));
             env.CheckValue(input, nameof(input));
 
-            return new SsaForecasting(env, ctx).MakeDataTransform(input);
+            return new SsaForecastingTransformer(env, ctx).MakeDataTransform(input);
         }
 
         IStatefulTransformer IStatefulTransformer.Clone()
         {
-            var clone = (SsaForecasting)MemberwiseClone();
+            var clone = (SsaForecastingTransformer)MemberwiseClone();
             clone.InternalTransform.Model = clone.InternalTransform.Model.Clone();
             clone.InternalTransform.StateRef = (SsaForecastingBase.State)clone.InternalTransform.StateRef.Clone();
             clone.InternalTransform.StateRef.InitState(clone.InternalTransform, InternalTransform.Host);
@@ -168,16 +168,16 @@ namespace Microsoft.ML.Transforms.TimeSeries
         }
 
         // Factory method for SignatureLoadModel.
-        private static SsaForecasting Create(IHostEnvironment env, ModelLoadContext ctx)
+        private static SsaForecastingTransformer Create(IHostEnvironment env, ModelLoadContext ctx)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(ctx, nameof(ctx));
             ctx.CheckAtModel(GetVersionInfo());
 
-            return new SsaForecasting(env, ctx);
+            return new SsaForecastingTransformer(env, ctx);
         }
 
-        internal SsaForecasting(IHostEnvironment env, ModelLoadContext ctx)
+        internal SsaForecastingTransformer(IHostEnvironment env, ModelLoadContext ctx)
             : base(env, ctx, LoaderSignature)
         {
             // *** Binary format ***
@@ -205,7 +205,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
     }
 
     /// <summary>
-    /// Detect spikes in time series using Singular Spectrum Analysis.
+    /// Forecasts using Singular Spectrum Analysis.
     /// </summary>
     /// <remarks>
     /// <format type="text/markdown"><![CDATA[
@@ -228,10 +228,10 @@ namespace Microsoft.ML.Transforms.TimeSeries
     /// ]]>
     /// </format>
     /// </remarks>
-    public sealed class SsaForecastingEstimator : IEstimator<SsaForecasting>
+    public sealed class SsaForecastingEstimator : IEstimator<SsaForecastingTransformer>
     {
         private readonly IHost _host;
-        private readonly SsaForecasting.Options _options;
+        private readonly SsaForecastingTransformer.Options _options;
 
         /// <summary>
         /// Create a new instance of <see cref="SsaForecastingEstimator"/>
@@ -276,7 +276,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
             string forcastingConfidentUpperBoundColumnName = null,
             float confidenceLevel = 0.95f,
             bool variableHorizon = false)
-            : this(env, new SsaForecasting.Options
+            : this(env, new SsaForecastingTransformer.Options
             {
                 Source = inputColumnName ?? outputColumnName,
                 Name = outputColumnName,
@@ -300,7 +300,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
         {
         }
 
-        internal SsaForecastingEstimator(IHostEnvironment env, SsaForecasting.Options options)
+        internal SsaForecastingEstimator(IHostEnvironment env, SsaForecastingTransformer.Options options)
         {
             Contracts.CheckValue(env, nameof(env));
             _host = env.Register(nameof(SsaForecastingEstimator));
@@ -314,10 +314,10 @@ namespace Microsoft.ML.Transforms.TimeSeries
         /// <summary>
         /// Train and return a transformer.
         /// </summary>
-        public SsaForecasting Fit(IDataView input)
+        public SsaForecastingTransformer Fit(IDataView input)
         {
             _host.CheckValue(input, nameof(input));
-            return new SsaForecasting(_host, _options, input);
+            return new SsaForecastingTransformer(_host, _options, input);
         }
 
         /// <summary>
@@ -335,23 +335,19 @@ namespace Microsoft.ML.Transforms.TimeSeries
             if (col.ItemType != NumberDataViewType.Single)
                 throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", _options.Source, "Single", col.GetTypeString());
 
-            var metadata = new List<SchemaShape.Column>() {
-                new SchemaShape.Column(AnnotationUtils.Kinds.SlotNames, SchemaShape.Column.VectorKind.Vector, TextDataViewType.Instance, false)
-            };
-
             var resultDic = inputSchema.ToDictionary(x => x.Name);
             resultDic[_options.Name] = new SchemaShape.Column(
-                _options.Name, SchemaShape.Column.VectorKind.Vector, NumberDataViewType.Single, false, new SchemaShape(metadata));
+                _options.Name, SchemaShape.Column.VectorKind.Vector, NumberDataViewType.Single, false);
 
             if (!string.IsNullOrEmpty(_options.ForcastingConfidentUpperBoundColumnName))
             {
                 resultDic[_options.ForcastingConfidentLowerBoundColumnName] = new SchemaShape.Column(
                     _options.ForcastingConfidentLowerBoundColumnName, SchemaShape.Column.VectorKind.Vector,
-                    NumberDataViewType.Single, false, new SchemaShape(metadata));
+                    NumberDataViewType.Single, false);
 
                 resultDic[_options.ForcastingConfidentUpperBoundColumnName] = new SchemaShape.Column(
                     _options.ForcastingConfidentUpperBoundColumnName, SchemaShape.Column.VectorKind.Vector,
-                    NumberDataViewType.Single, false, new SchemaShape(metadata));
+                    NumberDataViewType.Single, false);
             }
 
             return new SchemaShape(resultDic.Values);
