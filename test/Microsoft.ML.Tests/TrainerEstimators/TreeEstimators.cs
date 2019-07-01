@@ -775,9 +775,9 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             IEnumerable<SummaryDataRow> summaryDataEnumerable;
 
             if (quantileTrees == null)
-                summaryDataEnumerable = ML.Data.CreateEnumerable<SummaryDataRow>(summaryDataView, true);
+                summaryDataEnumerable = ML.Data.CreateEnumerable<SummaryDataRow>(summaryDataView, false);
             else
-                summaryDataEnumerable = ML.Data.CreateEnumerable<QuantileTestSummaryDataRow>(summaryDataView, true);
+                summaryDataEnumerable = ML.Data.CreateEnumerable<QuantileTestSummaryDataRow>(summaryDataView, false);
 
             var summaryDataEnumerator = summaryDataEnumerable.GetEnumerator();
 
@@ -810,7 +810,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         {
             var dataView = GetRegressionPipeline();
             var trainer = ML.Regression.Trainers.FastTree(
-                new FastTreeRegressionTrainer.Options { NumberOfTrees = 10, NumberOfThreads = 1, NumberOfLeaves = 5, CategoricalSplit = true});
+                new FastTreeRegressionTrainer.Options { NumberOfTrees = 10, NumberOfThreads = 1, NumberOfLeaves = 5});
 
             var transformer = trainer.Fit(dataView);
 
@@ -828,7 +828,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         {
             var dataView = GetRegressionPipeline();
             var trainer = ML.Regression.Trainers.FastForest(
-                new FastForestRegressionTrainer.Options { NumberOfTrees = 10, NumberOfThreads = 1, NumberOfLeaves = 5, CategoricalSplit = true });
+                new FastForestRegressionTrainer.Options { NumberOfTrees = 10, NumberOfThreads = 1, NumberOfLeaves = 5});
 
             var transformer = trainer.Fit(dataView);
 
@@ -846,7 +846,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         {
             var dataView = GetRegressionPipeline();
             var trainer = ML.Regression.Trainers.FastTreeTweedie(
-                new FastTreeTweedieTrainer.Options { NumberOfTrees = 10, NumberOfThreads = 1, NumberOfLeaves = 5, CategoricalSplit = true });
+                new FastTreeTweedieTrainer.Options { NumberOfTrees = 10, NumberOfThreads = 1, NumberOfLeaves = 5});
 
             var transformer = trainer.Fit(dataView);
 
@@ -864,7 +864,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         {
             var dataView = GetRegressionPipeline();
             var trainer = ML.Regression.Trainers.LightGbm(
-                new LightGbmRegressionTrainer.Options { NumberOfIterations = 10, NumberOfThreads = 1, NumberOfLeaves = 5, UseCategoricalSplit = true });
+                new LightGbmRegressionTrainer.Options { NumberOfIterations = 10, NumberOfThreads = 1, NumberOfLeaves = 5});
 
             var transformer = trainer.Fit(dataView);
 
@@ -882,7 +882,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         {
             var (pipeline, dataView) = GetBinaryClassificationPipeline();
             var estimator = pipeline.Append(ML.BinaryClassification.Trainers.FastTree(
-                new FastTreeBinaryTrainer.Options { NumberOfTrees = 10, NumberOfThreads = 1, NumberOfLeaves = 5, CategoricalSplit = true }));
+                new FastTreeBinaryTrainer.Options { NumberOfTrees = 2, NumberOfThreads = 1, NumberOfLeaves = 5}));
 
             var transformer = estimator.Fit(dataView);
 
@@ -898,9 +898,9 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         [Fact]
         public void FastForestBinaryClassificationTestSummary()
         {
-            var (pipeline, dataView) = GetBinaryClassificationPipeline();
+            var (pipeline, dataView) = GetOneHotBinaryClassificationPipeline();
             var estimator = pipeline.Append(ML.BinaryClassification.Trainers.FastForest(
-                new FastForestBinaryTrainer.Options { NumberOfTrees = 10, NumberOfThreads = 1, NumberOfLeaves = 5, CategoricalSplit = true }));
+                new FastForestBinaryTrainer.Options { NumberOfTrees = 2, NumberOfThreads = 1, NumberOfLeaves = 4, CategoricalSplit = true }));
 
             var transformer = estimator.Fit(dataView);
 
@@ -916,7 +916,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         [LightGBMFact]
         public void LightGbmBinaryClassificationTestSummary()
         {
-            var (pipeline, dataView) = GetBinaryClassificationPipeline();
+            var (pipeline, dataView) = GetOneHotBinaryClassificationPipeline();
             var trainer = pipeline.Append(ML.BinaryClassification.Trainers.LightGbm(
                 new LightGbmBinaryTrainer.Options { NumberOfIterations = 10, NumberOfThreads = 1, NumberOfLeaves = 5, UseCategoricalSplit = true }));
 
