@@ -1,0 +1,68 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <AssemblyName>TensorFlow.NET</AssemblyName>
+    <RootNamespace>Tensorflow</RootNamespace>
+    <TargetTensorFlow>1.14.0</TargetTensorFlow>
+    <Version>0.8.4</Version>
+    <AssemblyVersion>0.8.3.0</AssemblyVersion>
+    <LangVersion>7.2</LangVersion>
+    <FileVersion>0.8.3.0</FileVersion>
+    <Platforms>AnyCPU;x64</Platforms>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <DefineConstants>TRACE;DEBUG</DefineConstants>
+    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+    <WarningsAsErrors />
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <DefineConstants>TRACE;DEBUG</DefineConstants>
+    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+    <WarningsAsErrors />
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="runtimes\**" />
+    <EmbeddedResource Remove="runtimes\**" />
+    <None Remove="runtimes\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Remove="Operations\gen_ops.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Remove="Protobuf\README.md" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Google.Protobuf" Version="3.8.0" />
+    <PackageReference Include="Microsoft.ML.TensorFlow.Redist" Version="0.13.0" />
+    <PackageReference Include="NumSharp" Version="0.10.3" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Distribute\" />
+    <Folder Include="Keras\Initializers\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="NumSharp.Core">
+      <HintPath>..\..\..\..\NumSharp\src\NumSharp.Core\bin\Debug\netstandard2.0\NumSharp.Core.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
+</Project>
