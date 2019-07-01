@@ -812,7 +812,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
 
         private class RowWithKey
         {
-            [KeyType()]
+            [KeyType(4)]
             public uint KeyLabel { get; set; }
         }
 

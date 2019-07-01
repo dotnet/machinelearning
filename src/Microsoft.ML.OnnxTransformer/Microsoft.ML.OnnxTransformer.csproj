@@ -10,6 +10,12 @@
     <ProjectReference Include="..\Microsoft.ML.Core\Microsoft.ML.Core.csproj" />
     <ProjectReference Include="..\Microsoft.ML.Data\Microsoft.ML.Data.csproj" />
     <PackageReference Include="Microsoft.ML.OnnxRuntime" Version="$(MicrosoftMLOnnxRuntimePackageVersion)" />
+    <PackageReference Include="Google.Protobuf" Version="$(GoogleProtobufPackageVersion)" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Compile Include="..\Microsoft.ML.OnnxConverter\OnnxMl.cs">
+      <Link>OnnxMl.cs</Link>
+    </Compile>
+  </ItemGroup>
 </Project>
