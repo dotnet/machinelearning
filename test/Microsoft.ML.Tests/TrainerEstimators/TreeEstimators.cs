@@ -434,7 +434,6 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                     UseSoftmax = useSoftmax,
                     Sigmoid = sigmoid, // Custom sigmoid value.
                     UnbalancedSets = unbalancedSets // false by default
-                    
                 });
 
             var gbm = gbmTrainer.Fit(dataView);
