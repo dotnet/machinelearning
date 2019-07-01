@@ -127,8 +127,8 @@ namespace Microsoft.ML.Transforms.TimeSeries
             internal SequenceModelerBase<Single, Single> Model;
 
             public SsaForecastingBase(SsaForecastingOptions options, string name, IHostEnvironment env, SsaForecastingBaseWrapper parent)
-                : base(options.TrainSize, 0, options.Source, options.Name, options.ForcastingConfidentLowerBoundColumnName,
-                      options.ForcastingConfidentUpperBoundColumnName, name, options.VariableHorizon ? 0: options.Horizon, env)
+                : base(options.TrainSize, 0, options.Source, options.Name, options.LowerBoundConfidenceColumn,
+                      options.UpperBoundConfidenceColumn, name, options.VariableHorizon ? 0: options.Horizon, env)
             {
                 Host.CheckUserArg(0 <= options.DiscountFactor && options.DiscountFactor <= 1, nameof(options.DiscountFactor), "Must be in the range [0, 1].");
                 IsAdaptive = options.IsAdaptive;
@@ -136,7 +136,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
                 ConfidenceLevel = options.ConfidenceLevel;
                 // Creating the master SSA model
                 Model = new AdaptiveSingularSpectrumSequenceModelerInternal(Host, options.TrainSize, options.SeriesLength, options.WindowSize,
-                    options.DiscountFactor, options.RankSelectionMethod, options.Rank, options.MaxRank, !string.IsNullOrEmpty(options.ForcastingConfidentLowerBoundColumnName),
+                    options.DiscountFactor, options.RankSelectionMethod, options.Rank, options.MaxRank, !string.IsNullOrEmpty(options.LowerBoundConfidenceColumn),
                     options.ShouldStablize, options.ShouldMaintainInfo, options.MaxGrowth);
 
                 StateRef = new State();

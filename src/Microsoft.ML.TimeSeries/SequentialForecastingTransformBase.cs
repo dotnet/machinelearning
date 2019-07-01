@@ -28,11 +28,11 @@ namespace Microsoft.ML.Transforms.TimeSeries
 
         [Argument(ArgumentType.Required, HelpText = "The name of the confidence interval lower bound column.", ShortName = "cnfminname",
             SortOrder = 2)]
-        public string ForcastingConfidentLowerBoundColumnName;
+        public string LowerBoundConfidenceColumn;
 
         [Argument(ArgumentType.Required, HelpText = "The name of the confidence interval upper bound column.", ShortName = "cnfmaxnname",
             SortOrder = 2)]
-        public string ForcastingConfidentUpperBoundColumnName;
+        public string UpperBoundConfidenceColumn;
 
         [Argument(ArgumentType.AtMostOnce, HelpText = "The length of series from the begining used for training.", ShortName = "wnd",
             SortOrder = 3)]
@@ -67,8 +67,8 @@ namespace Microsoft.ML.Transforms.TimeSeries
         }
 
         private protected SequentialForecastingTransformBase(ForecastingArgumentsBase args, string name, int outputLength, IHostEnvironment env)
-            : this(args.TrainSize, args.SeriesLength, args.Source, args.ForcastingConfidentLowerBoundColumnName,
-                  args.ForcastingConfidentUpperBoundColumnName, args.Name, name, outputLength, env)
+            : this(args.TrainSize, args.SeriesLength, args.Source, args.LowerBoundConfidenceColumn,
+                  args.UpperBoundConfidenceColumn, args.Name, name, outputLength, env)
         {
         }
 
