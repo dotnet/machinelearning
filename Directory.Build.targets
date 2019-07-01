@@ -35,14 +35,14 @@
     </Copy>
 
     <!-- Optionally copy the native binaries that have a version number attended (Only tensorflow right now) -->
-    <Copy SourceFiles = "@(NativeAssemblyReference->'%(AssemblyPathWithMajorVersion)')"
+    <Copy SourceFiles = "@(NativeAssemblyReference->'%(NativeAssemblyReference.AssemblyPathWithMajorVersion)')"
           DestinationFolder="$(OutputPath)"
           OverwriteReadOnlyFiles="$(OverwriteReadOnlyFiles)"
           Retries="$(CopyRetryCount)"
           RetryDelayMilliseconds="$(CopyRetryDelayMilliseconds)"
           UseHardlinksIfPossible="$(CreateHardLinksForPublishFilesIfPossible)"
           UseSymboliclinksIfPossible="$(CreateSymbolicLinksForPublishFilesIfPossible)"
-          Condition="Exists('%(AssemblyPathWithMajorVersion)')">
+          Condition="Exists('%(NativeAssemblyReference.AssemblyPathWithMajorVersion)')">
       <Output TaskParameter="DestinationFiles" ItemName="FileWrites"/>
     </Copy>
       
