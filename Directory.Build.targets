@@ -19,6 +19,7 @@
       <NativeAssemblyReference>
         <FullAssemblyPath>$(NativeOutputPath)$(LibPrefix)%(NativeAssemblyReference.Identity)$(LibExtension)</FullAssemblyPath>
         <!-- Tensorflow has a different naming scheme for v1.14.0. Those binaries need to be copied along with the standard names -->
+        <AssemblyPathWithMajorVersion Condition="'$(OS)' == 'Windows_NT'">$(NativeOutputPath)$(LibPrefix)%(NativeAssemblyReference.Identity)$(LibExtension)</AssemblyPathWithMajorVersion>
         <AssemblyPathWithMajorVersion Condition="'$(OS)' != 'Windows_NT'">$(NativeOutputPath)$(LibPrefix)%(NativeAssemblyReference.Identity)$(LibExtension).%(NativeAssemblyReference.MajorVersion)</AssemblyPathWithMajorVersion>
         <AssemblyPathWithMajorVersion Condition="$([MSBuild]::IsOSPlatform('osx'))">$(NativeOutputPath)$(LibPrefix)%(NativeAssemblyReference.Identity).%(NativeAssemblyReference.MajorVersion)$(LibExtension)</AssemblyPathWithMajorVersion>
       </NativeAssemblyReference>
@@ -35,14 +36,14 @@
     </Copy>
 
     <!-- Optionally copy the native binaries that have a version number attended (Only tensorflow right now) -->
-    <Copy SourceFiles = "@(NativeAssemblyReference->'%(NativeAssemblyReference.AssemblyPathWithMajorVersion)')"
+    <Copy SourceFiles = "@(NativeAssemblyReference->'%(AssemblyPathWithMajorVersion)')"
           DestinationFolder="$(OutputPath)"
           OverwriteReadOnlyFiles="$(OverwriteReadOnlyFiles)"
           Retries="$(CopyRetryCount)"
           RetryDelayMilliseconds="$(CopyRetryDelayMilliseconds)"
           UseHardlinksIfPossible="$(CreateHardLinksForPublishFilesIfPossible)"
           UseSymboliclinksIfPossible="$(CreateSymbolicLinksForPublishFilesIfPossible)"
-          Condition="Exists('%(NativeAssemblyReference.AssemblyPathWithMajorVersion)')">
+          Condition="Exists('%(AssemblyPathWithMajorVersion)')">
       <Output TaskParameter="DestinationFiles" ItemName="FileWrites"/>
     </Copy>
       
