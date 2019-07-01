@@ -56,7 +56,7 @@ namespace Samples.Dynamic.Trainers.MulticlassClassification
             // Convert IDataView object to a list.
             var predictions = mlContext.Data
 			    .CreateEnumerable<Prediction>(transformedTestData,
-				reuseRowObject: false).ToList();
+			    reuseRowObject: false).ToList();
 
             // Look at 5 predictions
             foreach (var p in predictions.Take(5))
