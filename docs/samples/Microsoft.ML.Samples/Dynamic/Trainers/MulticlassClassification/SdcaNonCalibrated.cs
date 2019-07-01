@@ -11,24 +11,24 @@ namespace Samples.Dynamic.Trainers.MulticlassClassification
         public static void Example()
         {
             // Create a new context for ML.NET operations. It can be used for
-			// exception tracking and logging, as a catalog of available operations
-			// and as the source of randomness. Setting the seed to a fixed number
-			// in this example to make outputs deterministic.
+	    // exception tracking and logging, as a catalog of available operations
+	    // and as the source of randomness. Setting the seed to a fixed number
+	    // in this example to make outputs deterministic.
             var mlContext = new MLContext(seed: 0);
 
             // Create a list of training data points.
             var dataPoints = GenerateRandomDataPoints(1000);
 
             // Convert the list of data points to an IDataView object, which is
-			// consumable by ML.NET API.
+	    // consumable by ML.NET API.
             var trainingData = mlContext.Data.LoadFromEnumerable(dataPoints);
 
             // ML.NET doesn't cache data set by default. Therefore, if one reads a
-			// data set from a file and accesses it many times, it can be slow due
-			// to expensive featurization and disk operations. When the considered
-			// data can fit into memory, a solution is to cache the data in memory.
-			// Caching is especially helpful when working with iterative algorithms 
-			// which needs many data passes.
+	    // data set from a file and accesses it many times, it can be slow due
+	    // to expensive featurization and disk operations. When the considered
+	    // data can fit into memory, a solution is to cache the data in memory.
+	    // Caching is especially helpful when working with iterative algorithms 
+	    // which needs many data passes.
 			trainingData = mlContext.Data.Cache(trainingData);
 
             // Define the trainer.
@@ -46,7 +46,7 @@ namespace Samples.Dynamic.Trainers.MulticlassClassification
             var model = pipeline.Fit(trainingData);
 
             // Create testing data. Use different random seed to make it different
-			// from training data.
+	    // from training data.
             var testData = mlContext.Data
 			    .LoadFromEnumerable(GenerateRandomDataPoints(500, seed: 123));
 
@@ -110,7 +110,7 @@ namespace Samples.Dynamic.Trainers.MulticlassClassification
                     Label = (uint)label,
                     // Create random features that are correlated with the label.
                     // The feature values are slightly increased by adding a
-					// constant multiple of label.
+		    // constant multiple of label.
                     Features = Enumerable.Repeat(label, 20)
 					    .Select(x => randomFloat() + label * 0.2f).ToArray()
 
@@ -119,7 +119,7 @@ namespace Samples.Dynamic.Trainers.MulticlassClassification
         }
 
         // Example with label and 20 feature values. A data set is a collection of
-		// such examples.
+        // such examples.
         private class DataPoint
         {
             public uint Label { get; set; }
