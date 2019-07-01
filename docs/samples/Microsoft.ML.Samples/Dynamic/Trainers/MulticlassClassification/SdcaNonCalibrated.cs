@@ -29,7 +29,7 @@ namespace Samples.Dynamic.Trainers.MulticlassClassification
 	    // data can fit into memory, a solution is to cache the data in memory.
 	    // Caching is especially helpful when working with iterative algorithms 
 	    // which needs many data passes.
-			trainingData = mlContext.Data.Cache(trainingData);
+	    trainingData = mlContext.Data.Cache(trainingData);
 
             // Define the trainer.
             var pipeline =
