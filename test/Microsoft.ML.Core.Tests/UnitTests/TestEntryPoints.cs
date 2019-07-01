@@ -5655,7 +5655,7 @@ namespace Microsoft.ML.RunTests
         }
 
         [Fact]
-        public void SummarizeEntryPointTest2()
+        public void SummarizeEntryPointTest()
         {
             var dataPath = GetDataPath(@"breast-cancer.txt");
             var outputPath = GetOutputPath("EntryPoints", "Summarize.txt");
@@ -5723,7 +5723,7 @@ namespace Microsoft.ML.RunTests
             runner.RunAll();
             var data = runner.GetOutput<IDataView>("output_data");
 
-            using (var f = File.Open(outputPath, FileMode.OpenOrCreate))
+            using (var f = File.Open(outputPath, FileMode.Create, FileAccess.Write, FileShare.None))
                 ML.Data.SaveAsText(data, f);
 
             CheckEquality("EntryPoints", "Summarize.txt");
