@@ -11975,6 +11975,18 @@
           "Default": "Auto"
         },
         {
+          "Name": "UnbalancedSets",
+          "Type": "Bool",
+          "Desc": "Use for multi-class classification when training data is not balanced",
+          "Aliases": [
+            "us"
+          ],
+          "Required": false,
+          "SortOrder": 150.0,
+          "IsNullable": false,
+          "Default": false
+        },
+        {
           "Name": "UseSoftmax",
           "Type": "Bool",
           "Desc": "Use softmax loss for the multi classification.",
