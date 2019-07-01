@@ -4095,7 +4095,7 @@
           "Default": false
         },
         {
-          "Name": "ForcastingConfidentLowerBoundColumnName",
+          "Name": "LowerBoundConfidenceColumn",
           "Type": "String",
           "Desc": "The name of the confidence interval lower bound column.",
           "Aliases": [
@@ -4107,7 +4107,7 @@
           "Default": null
         },
         {
-          "Name": "ForcastingConfidentUpperBoundColumnName",
+          "Name": "UpperBoundConfidenceColumn",
           "Type": "String",
           "Desc": "The name of the confidence interval upper bound column.",
           "Aliases": [
@@ -4153,7 +4153,7 @@
           "Default": null
         },
         {
-          "Name": "ShouldStablize",
+          "Name": "ShouldStabilize",
           "Type": "Bool",
           "Desc": "The flag determining whether the model should be stabilized.",
           "Required": false,

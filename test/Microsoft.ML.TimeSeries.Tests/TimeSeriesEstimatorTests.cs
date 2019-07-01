@@ -95,8 +95,8 @@ namespace Microsoft.ML.Tests
 
             // Train
             var pipe = new SsaForecastingEstimator(Env, "Forecast", "Value", 10, 11, 22, 4,
-                    forcastingConfidentLowerBoundColumnName: "ConfidenceLowerBound",
-                    forcastingConfidentUpperBoundColumnName: "ConfidenceUpperBound");
+                    lowerBoundConfidenceColumn: "ConfidenceLowerBound",
+                    upperBoundConfidenceColumn: "ConfidenceUpperBound");
 
             var xyData = new List<TestDataXY> { new TestDataXY() { A = new float[inputSize] } };
             var stringData = new List<TestDataDifferntType> { new TestDataDifferntType() { data_0 = new string[inputSize] } };
