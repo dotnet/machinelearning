@@ -26,7 +26,7 @@ Virtual memory usage(MB): %Number%
 [1] 'Loading data for LightGBM' started.
 [1] 'Loading data for LightGBM' finished in %Time%.
 [2] 'Training with LightGBM' started.
-[2] (%Time%)	Iteration: 50	Training-rmse: 5.10533343749577
+[2] (%Time%)	Iteration: 50	Training-: 26.0644295080124
 [2] 'Training with LightGBM' finished in %Time%.
 [3] 'Saving model' started.
 [3] 'Saving model' finished in %Time%.

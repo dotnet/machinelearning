@@ -75,6 +75,42 @@ namespace Microsoft.ML.Tests
         }
 
         [Fact]
+        void TestSsaForecastingEstimator()
+        {
+            const int ChangeHistorySize = 10;
+            const int SeasonalitySize = 10;
+            const int NumberOfSeasonsInTraining = 5;
+
+            List<Data> data = new List<Data>();
+
+            var ml = new MLContext(seed: 1);
+            var dataView = ml.Data.LoadFromEnumerable(data);
+
+            for (int j = 0; j < NumberOfSeasonsInTraining; j++)
+                for (int i = 0; i < SeasonalitySize; i++)
+                    data.Add(new Data(i));
+
+            for (int i = 0; i < ChangeHistorySize; i++)
+                data.Add(new Data(i * 100));
+
+            // Train
+            var pipe = new SsaForecastingEstimator(Env, "Forecast", "Value", 10, 11, 22, 4,
+                    forcastingConfidentLowerBoundColumnName: "ConfidenceLowerBound",
+                    forcastingConfidentUpperBoundColumnName: "ConfidenceUpperBound");
+
+            var xyData = new List<TestDataXY> { new TestDataXY() { A = new float[inputSize] } };
+            var stringData = new List<TestDataDifferntType> { new TestDataDifferntType() { data_0 = new string[inputSize] } };
+
+            var invalidDataWrongNames = ML.Data.LoadFromEnumerable(xyData);
+            var invalidDataWrongTypes = ML.Data.LoadFromEnumerable(stringData);
+
+            TestEstimatorCore(pipe, dataView, invalidInput: invalidDataWrongTypes);
+            TestEstimatorCore(pipe, dataView, invalidInput: invalidDataWrongNames);
+
+            Done();
+        }
+
+        [Fact]
         void TestSsaSpikeEstimator()
         {
             int Confidence = 95;

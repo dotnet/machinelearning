@@ -30,6 +30,29 @@ namespace Microsoft.ML.Transforms.TimeSeries
     }
 
     /// <summary>
+    /// The box class that is used to box the TInput and TOutput for the LambdaTransform.
+    /// This is for the case where there are three output columns.
+    /// </summary>
+    /// <typeparam name="T">The type to be boxed, e.g. TInput or TOutput</typeparam>
+    internal sealed class DataBoxForecastingWithConfidenceIntervals<T>
+    {
+        public T Forecast;
+        public T ConfidenceIntervalLowerBound;
+        public T ConfidenceIntervalUpperBound;
+
+        public DataBoxForecastingWithConfidenceIntervals()
+        {
+        }
+
+        public DataBoxForecastingWithConfidenceIntervals(T forecast, T confidenceIntervalLowerBound, T confidenceIntervalUpperBound)
+        {
+            Forecast = forecast;
+            ConfidenceIntervalLowerBound = confidenceIntervalLowerBound;
+            ConfidenceIntervalUpperBound = confidenceIntervalUpperBound;
+        }
+    }
+
+    /// <summary>
     /// The base class for sequential processing transforms. This class implements the basic sliding window buffering. The derived classes need to specify the transform logic,
     /// the initialization logic and the learning logic via implementing the abstract methods TransformCore(), InitializeStateCore() and LearnStateFromDataCore(), respectively
     /// </summary>

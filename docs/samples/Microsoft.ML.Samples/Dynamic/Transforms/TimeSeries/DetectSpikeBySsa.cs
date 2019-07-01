@@ -54,7 +54,7 @@ namespace Samples.Dynamic
             ITransformer model = ml.Transforms.DetectSpikeBySsa(outputColumnName, inputColumnName, 95, 8, TrainingSize, SeasonalitySize + 1).Fit(dataView);
 
             // Create a prediction engine from the model for feeding new data.
-            var engine = model.CreateTimeSeriesPredictionFunction<TimeSeriesData, SsaSpikePrediction>(ml);
+            var engine = model.CreateTimeSeriesEngine<TimeSeriesData, SsaSpikePrediction>(ml);
 
             // Start streaming new data points with no change point to the prediction engine.
             Console.WriteLine($"Output from spike predictions on new data:");
@@ -94,7 +94,7 @@ namespace Samples.Dynamic
                 model = ml.Model.Load(file, out DataViewSchema schema);
 
             // We must create a new prediction engine from the persisted model.
-            engine = model.CreateTimeSeriesPredictionFunction<TimeSeriesData, SsaSpikePrediction>(ml);
+            engine = model.CreateTimeSeriesEngine<TimeSeriesData, SsaSpikePrediction>(ml);
 
             // Run predictions on the loaded model.
             for (int i = 0; i < 5; i++)

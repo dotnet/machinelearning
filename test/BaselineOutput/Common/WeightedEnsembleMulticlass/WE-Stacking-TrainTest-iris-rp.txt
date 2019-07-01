@@ -1,0 +1,4 @@
+WeightedEnsembleMulticlass
+Accuracy(micro-avg)	Accuracy(macro-avg)	Log-loss	Log-loss reduction	/oc	/bp	/nm	Learner Name	Train Dataset	Test Dataset	Results File	Run Time	Physical Memory	Virtual Memory	Command Line	Settings	
+0.9	0.9	0.431088	0.607607	MultiStacking{bp=mlr{t-}}	mlr{t-}	5	WeightedEnsembleMulticlass	%Data%	%Data%	%Output%	99	0	0	maml.exe TrainTest test=%Data% tr=WeightedEnsembleMulticlass{bp=mlr{t-} nm=5 oc=MultiStacking{bp=mlr{t-}} tp=-} dout=%Output% data=%Data% out=%Output% seed=1 xf=Term{col=Label}	/oc:MultiStacking{bp=mlr{t-}};/bp:mlr{t-};/nm:5	
+
