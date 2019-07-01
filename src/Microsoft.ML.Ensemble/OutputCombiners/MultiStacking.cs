@@ -19,7 +19,8 @@ using Microsoft.ML.Trainers.Ensemble;
 
 namespace Microsoft.ML.Trainers.Ensemble
 {
-    using TVectorPredictor = IPredictorProducing<VBuffer<Single>>;
+    using TVectorTrainer = ITrainerEstimator<ISingleFeaturePredictionTransformer<IPredictorProducing<VBuffer<float>>>, IPredictorProducing<VBuffer<float>>>;
+
     internal sealed class MultiStacking : BaseStacking<VBuffer<Single>>, IMulticlassOutputCombiner
     {
         public const string LoadName = "MultiStacking";
@@ -44,9 +45,9 @@ namespace Microsoft.ML.Trainers.Ensemble
             [Argument(ArgumentType.Multiple, HelpText = "Base predictor for meta learning", ShortName = "bp", SortOrder = 50,
                 Visibility = ArgumentAttribute.VisibilityType.CmdLineOnly, SignatureType = typeof(SignatureMulticlassClassifierTrainer))]
             [TGUI(Label = "Base predictor")]
-            public IComponentFactory<ITrainer<TVectorPredictor>> BasePredictorType;
+            public IComponentFactory<TVectorTrainer> BasePredictorType;
 
-            internal override IComponentFactory<ITrainer<TVectorPredictor>> GetPredictorFactory() => BasePredictorType;
+            internal override IComponentFactory<TVectorTrainer> GetPredictorFactory() => BasePredictorType;
 
             public IMulticlassOutputCombiner CreateComponent(IHostEnvironment env) => new MultiStacking(env, this);
         }

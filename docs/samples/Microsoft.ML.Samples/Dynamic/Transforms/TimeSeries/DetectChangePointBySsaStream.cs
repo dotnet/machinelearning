@@ -57,7 +57,7 @@ namespace Samples.Dynamic
             ITransformer model = ml.Transforms.DetectChangePointBySsa(outputColumnName, inputColumnName, confidence, changeHistoryLength, TrainingSize, SeasonalitySize + 1).Fit(dataView);
 
             // Create a prediction engine from the model for feeding new data.
-            var engine = model.CreateTimeSeriesPredictionFunction<TimeSeriesData, ChangePointPrediction>(ml);
+            var engine = model.CreateTimeSeriesEngine<TimeSeriesData, ChangePointPrediction>(ml);
 
             // Start streaming new data points with no change point to the prediction engine.
             Console.WriteLine($"Output from ChangePoint predictions on new data:");
@@ -103,7 +103,7 @@ namespace Samples.Dynamic
                 model = ml.Model.Load(stream, out DataViewSchema schema);
 
             // We must create a new prediction engine from the persisted model.
-            engine = model.CreateTimeSeriesPredictionFunction<TimeSeriesData, ChangePointPrediction>(ml);
+            engine = model.CreateTimeSeriesEngine<TimeSeriesData, ChangePointPrediction>(ml);
 
             // Run predictions on the loaded model.
             for (int i = 0; i < 5; i++)

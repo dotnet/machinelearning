@@ -56,7 +56,7 @@ namespace Samples.Dynamic
             ITransformer model = ml.Transforms.DetectIidChangePoint(outputColumnName, inputColumnName, 95, Size / 4).Fit(dataView);
 
             // Create a time series prediction engine from the model.
-            var engine = model.CreateTimeSeriesPredictionFunction<TimeSeriesData, ChangePointPrediction>(ml);
+            var engine = model.CreateTimeSeriesEngine<TimeSeriesData, ChangePointPrediction>(ml);
 
             Console.WriteLine($"{outputColumnName} column obtained post-transformation.");
             Console.WriteLine("Data\tAlert\tScore\tP-Value\tMartingale value");
@@ -97,7 +97,7 @@ namespace Samples.Dynamic
                 model = ml.Model.Load(file, out DataViewSchema schema);
 
             // Create a time series prediction engine from the checkpointed model.
-            engine = model.CreateTimeSeriesPredictionFunction<TimeSeriesData, ChangePointPrediction>(ml);
+            engine = model.CreateTimeSeriesEngine<TimeSeriesData, ChangePointPrediction>(ml);
             for (int index = 0; index < 8; index++)
             {
                 // Anomaly change point detection.
