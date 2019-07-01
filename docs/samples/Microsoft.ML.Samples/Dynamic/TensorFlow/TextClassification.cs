@@ -22,6 +22,7 @@ namespace Samples.Dynamic
                 "scenery story direction everyone's really suited the part they " +
                 "played and you could just imagine being there robert is an " +
                 "amazing actor and now the same being director  father came from " +
+<<<<<<< HEAD
                 "the same scottish island as myself so i loved the fact there was " +
                 "a real connection with this film the witty remarks throughout " +
                 "the film were great it was just brilliant so much that i bought " +
@@ -36,6 +37,23 @@ namespace Samples.Dynamic
                 "amazing and should be praised for what they have done don't you " +
                 "think the whole story was so lovely because it was true and was " +
                 "someone's life after all that was shared with us all" } };
+=======
+                "the same scottish island as myself so i loved the fact there " +
+                "was a real connection with this film the witty remarks " +
+                "throughout the film were great it was just brilliant so much " +
+                "that i bought the film as soon as it was released for  and " +
+                "would recommend it to everyone to watch and the fly fishing was " +
+                "amazing really cried at the end it was so sad and you know what " +
+                "they say if you cry at a film it must have been good and this " +
+                "definitely was also to the two little boy's that played the of " +
+                "norman and paul they were just brilliant children are often " +
+                "left out of the list i think because the stars that play them " +
+                "all grown up are such a big profile for the whole film but " +
+                "these children are amazing and should be praised for what " +
+                "they have done don't you think the whole story was so lovely" +
+                "because it was true and was someone's life after all that was" +
+                "shared with us all" } };
+>>>>>>> e0c4caae69735b9ee2df3ede44cd7a5ef29ff681
             var dataView = mlContext.Data.LoadFromEnumerable(data);
 
             // This is the dictionary to convert words into the integer indexes.
@@ -81,8 +99,13 @@ namespace Samples.Dynamic
             //      5. Retreives the 'Prediction' from TensorFlow and put it into
             //         ML.NET Pipeline 
 
+<<<<<<< HEAD
             Action<IMDBSentiment, IntermediateFeatures> ResizeFeaturesAction = (i,
                 j) =>
+=======
+            Action<IMDBSentiment, IntermediateFeatures> ResizeFeaturesAction = 
+                (i, j) =>
+>>>>>>> e0c4caae69735b9ee2df3ede44cd7a5ef29ff681
             {
                 j.Sentiment_Text = i.Sentiment_Text;
                 var features = i.VariableLengthFeatures;
@@ -90,6 +113,7 @@ namespace Samples.Dynamic
                 j.Features = features;
             };
 
+<<<<<<< HEAD
             var model = mlContext.Transforms.Text.TokenizeIntoWords(
                 "TokenizedWords", "Sentiment_Text")
                 .Append(mlContext.Transforms.Conversion.MapValue(
@@ -99,6 +123,28 @@ namespace Samples.Dynamic
                 .Append(tensorFlowModel.ScoreTensorFlowModel("Prediction/Softmax",
                 "Features")).Append(mlContext.Transforms
                 .CopyColumns("Prediction", "Prediction/Softmax")).Fit(dataView);
+=======
+            var model =
+                mlContext.Transforms.Text.TokenizeIntoWords(
+                "TokenizedWords",
+                "Sentiment_Text")
+                .Append(mlContext.Transforms.Conversion.MapValue(
+                    "VariableLengthFeatures",
+                    lookupMap,
+                    lookupMap.Schema["Words"],
+                    lookupMap.Schema["Ids"],
+                    "TokenizedWords"))
+                .Append(mlContext.Transforms.CustomMapping(
+                    ResizeFeaturesAction,
+                    "Resize"))
+                .Append(tensorFlowModel.ScoreTensorFlowModel(
+                    "Prediction/Softmax",
+                    "Features"))
+                .Append(mlContext.Transforms.CopyColumns(
+                    "Prediction",
+                    "Prediction/Softmax"))
+                .Fit(dataView);
+>>>>>>> e0c4caae69735b9ee2df3ede44cd7a5ef29ff681
             var engine = mlContext.Model.CreatePredictionEngine<IMDBSentiment,
                 OutputScores>(model);
 

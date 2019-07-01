@@ -95,6 +95,10 @@ namespace Samples.Dynamic
             // This can be any numerical data. Assume image pixel values.
             var image1 = Enumerable.Range(0, inputSize).Select(
                 x => (float)x / inputSize).ToArray();
+<<<<<<< HEAD
+=======
+            
+>>>>>>> e0c4caae69735b9ee2df3ede44cd7a5ef29ff681
             var image2 = Enumerable.Range(0, inputSize).Select(
                 x => (float)(x + 10000) / inputSize).ToArray();
             return new TensorData[] { new TensorData() { input = image1 },

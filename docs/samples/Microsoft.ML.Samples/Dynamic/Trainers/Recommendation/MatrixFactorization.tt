@@ -3,17 +3,17 @@
 <#+
 string ClassHeader = @"
         // This example requires installation of additional nuget package at
-		// for Microsoft.ML.Recommender at
-		// https://www.nuget.org/packages/Microsoft.ML.Recommender/
+        // for Microsoft.ML.Recommender at
+        // https://www.nuget.org/packages/Microsoft.ML.Recommender/
         // In this example we will create in-memory data and then use it to train
         // a matrix factorization model with default parameters. Afterward, quality
-		// metrics are reported.";
+        // metrics are reported.";
 string ClassName="MatrixFactorization";
 string ExtraUsing = null;
 string Trainer = @"
-				MatrixFactorization(nameof(MatrixElement.Value),
-				nameof(MatrixElement.MatrixColumnIndex),
-				nameof(MatrixElement.MatrixRowIndex), 10, 0.2, 1)";
+                MatrixFactorization(nameof(MatrixElement.Value),
+                nameof(MatrixElement.MatrixColumnIndex),
+                nameof(MatrixElement.MatrixRowIndex), 10, 0.2, 1)";
 string TrainerOptions = null;
 
 string ExpectedOutputPerInstance= @"// Expected output:

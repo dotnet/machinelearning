@@ -7,8 +7,9 @@ namespace Samples.Dynamic
     {
         public static void Example()
         {
-            // Create a new context for ML.NET operations. It can be used for exception tracking and logging, 
-            // as a catalog of available operations and as the source of randomness.
+            // Create a new context for ML.NET operations. It can be used for
+            // exception tracking and logging, as a catalog of available operations 
+            // and as the source of randomness.
             var mlContext = new MLContext();
 
             // Get a small dataset as an IEnumerable.
@@ -23,20 +24,27 @@ namespace Samples.Dynamic
 
             var data = mlContext.Data.LoadFromEnumerable(rawData);
 
-            // Now take a bootstrap sample of this dataset to create a new dataset. The bootstrap is a resampling technique that
-            // creates a training set of the same size by picking with replacement from the original dataset. With the bootstrap, 
-            // we expect that the resampled dataset will have about 63% of the rows of the original dataset (i.e. 1-e^-1), with some
-            // rows represented more than once.
-            // BootstrapSample is a streaming implementation of the boostrap that enables sampling from a dataset too large to hold in memory.
-            // To enable streaming, BootstrapSample approximates the bootstrap by sampling each row according to a Poisson(1) distribution.
-            // Note that this streaming approximation treats each row independently, thus the resampled dataset is not guaranteed to be the 
-            // same length as the input dataset.
-            // Let's take a look at the behavior of the BootstrapSample by examining a few draws:
+            // Now take a bootstrap sample of this dataset to create a new dataset. 
+            // The bootstrap is a resampling technique that creates a training set
+            // of the same size by picking with replacement from the original
+            // dataset. With the bootstrap, we expect that the resampled dataset
+            // will have about 63% of the rows of the original dataset
+            // (i.e. 1-e^-1), with some rows represented more than once.
+            // BootstrapSample is a streaming implementation of the boostrap that
+            // enables sampling from a dataset too large to hold in memory. To
+            // enable streaming, BootstrapSample approximates the bootstrap by 
+            // sampling each row according to a Poisson(1) distribution. Note that
+            // this streaming approximation treats each row independently, thus the
+            // resampled dataset is not guaranteed to be the same length as the 
+            // input dataset. Let's take a look at the behavior of the
+            // BootstrapSample by examining a few draws:
             for (int i = 0; i < 3; i++)
             {
                 var resample = mlContext.Data.BootstrapSample(data, seed: i);
 
-                var enumerable = mlContext.Data.CreateEnumerable<DataPoint>(resample, reuseRowObject: false);
+                var enumerable = mlContext.Data
+                    .CreateEnumerable<DataPoint>(resample, reuseRowObject: false);
+
                 Console.WriteLine($"Label\tFeature");
                 foreach (var row in enumerable)
                 {
