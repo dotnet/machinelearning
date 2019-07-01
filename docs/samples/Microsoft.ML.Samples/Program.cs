@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Reflection;
+using Samples.Dynamic;
 
 namespace Microsoft.ML.Samples
 {

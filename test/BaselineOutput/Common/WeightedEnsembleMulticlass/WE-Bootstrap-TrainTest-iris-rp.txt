@@ -1,0 +1,4 @@
+WeightedEnsembleMulticlass
+Accuracy(micro-avg)	Accuracy(macro-avg)	Log-loss	Log-loss reduction	/bp	/nm	Learner Name	Train Dataset	Test Dataset	Results File	Run Time	Physical Memory	Virtual Memory	Command Line	Settings	
+0.946667	0.946667	0.434962	0.604081	mlr{t-}	20	WeightedEnsembleMulticlass	%Data%	%Data%	%Output%	99	0	0	maml.exe TrainTest test=%Data% tr=WeightedEnsembleMulticlass{bp=mlr{t-} nm=20 st=BootstrapSelector{} tp=-} dout=%Output% data=%Data% out=%Output% seed=1 xf=Term{col=Label}	/bp:mlr{t-};/nm:20	
+
