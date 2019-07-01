@@ -2181,6 +2181,135 @@ output Out [3] from H all;
             RunOneAllTests(TestLearners.MulticlassNaiveBayesClassifier, TestDatasets.breastCancerPipe);
             Done();
         }
+
+        [LessThanNetCore30OrNotNetCoreFact("output on .NetCore 3.0 differs. Tracked on issue 3856 in GitHub.")]
+        public void EnsemblesMultiClassBootstrapSelectorTest()
+        {
+            var pa = new PredictorAndArgs(new SubComponent("WeightedEnsembleMulticlass", "bp=mlr{t-} nm=20 st=BootstrapSelector{} tp=-"), "WE-Bootstrap");
+            Run_TrainTest(pa, TestDatasets.iris, digitsOfPrecision: 6, parseOption: NumberParseOption.UseSingle);
+            Done();
+        }
+
+        [Fact]
+        public void EnsemblesDefaultTest()
+        {
+            // This one does CV as well as TrainTest.
+            var pa = new PredictorAndArgs(new SubComponent("WeightedEnsemble", "nm=20  tp=-"), "WE-Default");
+            RunOneAllTests(pa, TestDatasets.breastCancer, new[] { "loader=Text{col=Label:BL:0 col=Features:R4:1-9}" }, digitsOfPrecision: 5, parseOption: NumberParseOption.UseSingle);
+            Done();
+        }
+
+        [Fact]
+        public void EnsemblesBaseLearnerTest()
+        {
+            var pa = new PredictorAndArgs(new SubComponent("WeightedEnsemble", "bp=AvgPer nm=3 tp=-"), "WE-AvgPer");
+            Run_TrainTest(pa, TestDatasets.breastCancer, new[] { "loader=Text{col=Label:BL:0 col=Features:R4:1-9}" }, digitsOfPrecision: 5, parseOption: NumberParseOption.UseSingle);
+            Done();
+        }
+
+        [Fact]
+        public void EnsemblesHeterogeneousTest()
+        {
+            var pa = new PredictorAndArgs(new SubComponent("WeightedEnsemble", "bp=svm bp=ap nm=20 tp=-"), "WE-Hetero");
+            Run_TrainTest(pa, TestDatasets.breastCancer, new[] { "loader=Text{col=Label:BL:0 col=Features:R4:1-9}" }, digitsOfPrecision: 5, parseOption: NumberParseOption.UseSingle);
+            Done();
+        }
+
+        [Fact]
+        public void EnsemblesVotingCombinerTest()
+        {
+            var pa = new PredictorAndArgs(new SubComponent("WeightedEnsemble", "nm=20 oc=Voting tp=-"), "WE-Voting");
+            Run_TrainTest(pa, TestDatasets.breastCancer, new[] { "loader=Text{col=Label:BL:0 col=Features:R4:1-9}" }, digitsOfPrecision: 6, parseOption: NumberParseOption.UseSingle);
+            Done();
+        }
+
+        [Fact]
+        public void EnsemblesStackingCombinerTest()
+        {
+            var pa = new PredictorAndArgs(new SubComponent("WeightedEnsemble", "nm=5 oc=Stacking{bp=ap} tp=-"), "WE-StackingAP");
+            Run_TrainTest(pa, TestDatasets.breastCancer, new[] { "loader=Text{col=Label:BL:0 col=Features:R4:1-9}" }, digitsOfPrecision: 5, parseOption: NumberParseOption.UseSingle);
+            Done();
+        }
+
+        [Fact]
+        public void EnsemblesAveragerCombinerTest()
+        {
+            var pa = new PredictorAndArgs(new SubComponent("WeightedEnsemble", "nm=20 oc=Average tp=-"), "WE-Average");
+            Run_TrainTest(pa, TestDatasets.breastCancer, new[] { "loader=Text{col=Label:BL:0 col=Features:R4:1-9}" }, digitsOfPrecision: 6, parseOption: NumberParseOption.UseSingle);
+            Done();
+        }
+
+        [Fact]
+        public void EnsemblesBestPerformanceSelectorTest()
+        {
+            var pa = new PredictorAndArgs(new SubComponent("WeightedEnsemble", "nm=20 pt=BestPerformanceSelector tp=-"), "WE-BestPerf");
+            Run_TrainTest(pa, TestDatasets.breastCancer, new[] { "loader=Text{col=Label:BL:0 col=Features:R4:1-9}" }, digitsOfPrecision: 4, parseOption: NumberParseOption.UseSingle);
+            Done();
+        }
+
+        [Fact]
+        public void EnsemblesBestDiverseSelectorTest()
+        {
+            var pa = new PredictorAndArgs(new SubComponent("WeightedEnsemble", "nm=20 pt=BestDiverseSelector tp=-"), "WE-Diverse");
+            Run_TrainTest(pa, TestDatasets.breastCancer, new[] { "loader=Text{col=Label:BL:0 col=Features:R4:1-9}" }, digitsOfPrecision: 6, parseOption: NumberParseOption.UseSingle);
+            Done();
+        }
+
+        [Fact]
+        public void EnsemblesRandomPartitionInstanceSelectorTest()
+        {
+            var pa = new PredictorAndArgs(new SubComponent("WeightedEnsemble", "nm=5 st=RandomPartitionSelector tp=-"), "WE-RandomPartition");
+            Run_TrainTest(pa, TestDatasets.breastCancer, new[] { "loader=Text{col=Label:BL:0 col=Features:R4:1-9}" }, digitsOfPrecision: 4, parseOption: NumberParseOption.UseSingle);
+            Done();
+        }
+
+        [Fact]
+        public void EnsemblesAllDataSetSelectorTest()
+        {
+            var pa = new PredictorAndArgs(new SubComponent("WeightedEnsemble", "nm=20 st=AllInstanceSelector tp=-"), "WE-All");
+            Run_TrainTest(pa, TestDatasets.breastCancer, new[] { "loader=Text{col=Label:BL:0 col=Features:R4:1-9}" }, digitsOfPrecision: 6, parseOption: NumberParseOption.UseSingle);
+            Done();
+        }
+
+        [Fact]
+        public void EnsemblesRandomSubSpaceSelectorTest()
+        {
+            var pa = new PredictorAndArgs(new SubComponent("WeightedEnsemble", "nm=20 st=AllInstanceSelector{fs=RandomFeatureSelector} tp=-"), "WE-RandomFeature");
+            Run_TrainTest(pa, TestDatasets.breastCancer, new[] { "loader=Text{col=Label:BL:0 col=Features:R4:1-9}" }, digitsOfPrecision: 5, parseOption: NumberParseOption.UseSingle);
+            Done();
+        }
+
+        [LessThanNetCore30OrNotNetCoreFact("output on .NetCore 3.0 differs. Tracked on issue 3856 in GitHub.")]
+        public void EnsemblesMultiAveragerTest()
+        {
+            var pa = new PredictorAndArgs(new SubComponent("WeightedEnsembleMulticlass", "bp=mlr{t-} nm=5 oc=MultiAverage tp=-"), "WE-Average");
+            Run_TrainTest(pa, TestDatasets.iris, digitsOfPrecision: 6, parseOption: NumberParseOption.UseSingle);
+            Done();
+        }
+
+        [LessThanNetCore30OrNotNetCoreFact("output on .NetCore 3.0 differs. Tracked on issue 3856 in GitHub.")]
+        public void EnsemblesMultiVotingCombinerTest()
+        {
+            var pa = new PredictorAndArgs(new SubComponent("WeightedEnsembleMulticlass", "bp=mlr{t-} nm=5 oc=MultiVoting tp=-"), "WE-Voting");
+            Run_TrainTest(pa, TestDatasets.iris, digitsOfPrecision: 6, parseOption: NumberParseOption.UseSingle);
+            Done();
+        }
+
+        [LessThanNetCore30OrNotNetCoreFact("output on .NetCore 3.0 differs. Tracked on issue 3856 in GitHub.")]
+        public void EnsemblesMultiStackCombinerTest()
+        {
+            var pa = new PredictorAndArgs(new SubComponent("WeightedEnsembleMulticlass", "bp=mlr{t-} nm=5 oc=MultiStacking{bp=mlr{t-}} tp=-"), "WE-Stacking");
+            Run_TrainTest(pa, TestDatasets.iris, digitsOfPrecision: 6, parseOption: NumberParseOption.UseSingle);
+            Done();
+        }
+
+        [Fact]
+        public void EnsemblesMultiAveragerSDCATest()
+        {
+            var pa = new PredictorAndArgs(new SubComponent("WeightedEnsembleMulticlass", "bp=SDCAMC{nt=1} nm=5 oc=MultiAverage tp=-"), "WE-SDCA-Average");
+            Run_TrainTest(pa, TestDatasets.iris, digitsOfPrecision: 6, parseOption: NumberParseOption.UseSingle);
+            Done();
+        }
     }
 
 #if OLD_TESTS // REVIEW: We should have some tests that verify we can't deserialize old models.

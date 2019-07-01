@@ -1,0 +1,118 @@
+maml.exe TrainTest test=%Data% tr=WeightedEnsemble{nm=20 oc=Average tp=-} dout=%Output% loader=Text{col=Label:BL:0 col=Features:R4:1-9} data=%Data% out=%Output% seed=1
+Automatically adding a MinMax normalization transform, use 'norm=Warn' or 'norm=No' to turn this behavior off.
+Training 20 learners for the batch 1
+Beginning training model 1 of 20
+Warning: Training data does not support shuffling, so ignoring request to shuffle
+Warning: Skipped 26 instances with missing features during training (over 1 iterations; 26 inst/iter)
+Trainer 1 of 20 finished in %Time%
+Beginning training model 2 of 20
+Warning: Training data does not support shuffling, so ignoring request to shuffle
+Warning: Skipped 15 instances with missing features during training (over 1 iterations; 15 inst/iter)
+Trainer 2 of 20 finished in %Time%
+Beginning training model 3 of 20
+Warning: Training data does not support shuffling, so ignoring request to shuffle
+Warning: Skipped 11 instances with missing features during training (over 1 iterations; 11 inst/iter)
+Trainer 3 of 20 finished in %Time%
+Beginning training model 4 of 20
+Warning: Training data does not support shuffling, so ignoring request to shuffle
+Warning: Skipped 12 instances with missing features during training (over 1 iterations; 12 inst/iter)
+Trainer 4 of 20 finished in %Time%
+Beginning training model 5 of 20
+Warning: Training data does not support shuffling, so ignoring request to shuffle
+Warning: Skipped 18 instances with missing features during training (over 1 iterations; 18 inst/iter)
+Trainer 5 of 20 finished in %Time%
+Beginning training model 6 of 20
+Warning: Training data does not support shuffling, so ignoring request to shuffle
+Warning: Skipped 15 instances with missing features during training (over 1 iterations; 15 inst/iter)
+Trainer 6 of 20 finished in %Time%
+Beginning training model 7 of 20
+Warning: Training data does not support shuffling, so ignoring request to shuffle
+Warning: Skipped 24 instances with missing features during training (over 1 iterations; 24 inst/iter)
+Trainer 7 of 20 finished in %Time%
+Beginning training model 8 of 20
+Warning: Training data does not support shuffling, so ignoring request to shuffle
+Warning: Skipped 18 instances with missing features during training (over 1 iterations; 18 inst/iter)
+Trainer 8 of 20 finished in %Time%
+Beginning training model 9 of 20
+Warning: Training data does not support shuffling, so ignoring request to shuffle
+Warning: Skipped 15 instances with missing features during training (over 1 iterations; 15 inst/iter)
+Trainer 9 of 20 finished in %Time%
+Beginning training model 10 of 20
+Warning: Training data does not support shuffling, so ignoring request to shuffle
+Warning: Skipped 18 instances with missing features during training (over 1 iterations; 18 inst/iter)
+Trainer 10 of 20 finished in %Time%
+Beginning training model 11 of 20
+Warning: Training data does not support shuffling, so ignoring request to shuffle
+Warning: Skipped 14 instances with missing features during training (over 1 iterations; 14 inst/iter)
+Trainer 11 of 20 finished in %Time%
+Beginning training model 12 of 20
+Warning: Training data does not support shuffling, so ignoring request to shuffle
+Warning: Skipped 13 instances with missing features during training (over 1 iterations; 13 inst/iter)
+Trainer 12 of 20 finished in %Time%
+Beginning training model 13 of 20
+Warning: Training data does not support shuffling, so ignoring request to shuffle
+Warning: Skipped 14 instances with missing features during training (over 1 iterations; 14 inst/iter)
+Trainer 13 of 20 finished in %Time%
+Beginning training model 14 of 20
+Warning: Training data does not support shuffling, so ignoring request to shuffle
+Warning: Skipped 17 instances with missing features during training (over 1 iterations; 17 inst/iter)
+Trainer 14 of 20 finished in %Time%
+Beginning training model 15 of 20
+Warning: Training data does not support shuffling, so ignoring request to shuffle
+Warning: Skipped 24 instances with missing features during training (over 1 iterations; 24 inst/iter)
+Trainer 15 of 20 finished in %Time%
+Beginning training model 16 of 20
+Warning: Training data does not support shuffling, so ignoring request to shuffle
+Warning: Skipped 12 instances with missing features during training (over 1 iterations; 12 inst/iter)
+Trainer 16 of 20 finished in %Time%
+Beginning training model 17 of 20
+Warning: Training data does not support shuffling, so ignoring request to shuffle
+Warning: Skipped 12 instances with missing features during training (over 1 iterations; 12 inst/iter)
+Trainer 17 of 20 finished in %Time%
+Beginning training model 18 of 20
+Warning: Training data does not support shuffling, so ignoring request to shuffle
+Warning: Skipped 19 instances with missing features during training (over 1 iterations; 19 inst/iter)
+Trainer 18 of 20 finished in %Time%
+Beginning training model 19 of 20
+Warning: Training data does not support shuffling, so ignoring request to shuffle
+Warning: Skipped 23 instances with missing features during training (over 1 iterations; 23 inst/iter)
+Trainer 19 of 20 finished in %Time%
+Beginning training model 20 of 20
+Warning: Training data does not support shuffling, so ignoring request to shuffle
+Warning: Skipped 18 instances with missing features during training (over 1 iterations; 18 inst/iter)
+Trainer 20 of 20 finished in %Time%
+Training calibrator.
+Warning: The predictor produced non-finite prediction values on 16 instances during testing. Possible causes: abnormal data or the predictor is numerically unstable.
+TEST POSITIVE RATIO:	0.3499 (239.0/(239.0+444.0))
+Confusion table
+          ||======================
+PREDICTED || positive | negative | Recall
+TRUTH     ||======================
+ positive ||      231 |        8 | 0.9665
+ negative ||       10 |      434 | 0.9775
+          ||======================
+Precision ||   0.9585 |   0.9819 |
+OVERALL 0/1 ACCURACY: 0.973646
+LOG LOSS/instance:  0.116559
+Test-set entropy (prior Log-Loss/instance): 0.934003
+LOG-LOSS REDUCTION (RIG): 0.875205
+AUC:                0.995920
+
+OVERALL RESULTS
+---------------------------------------
+AUC:                0.995920 (0.0000)
+Accuracy:           0.973646 (0.0000)
+Positive precision: 0.958506 (0.0000)
+Positive recall:    0.966527 (0.0000)
+Negative precision: 0.981900 (0.0000)
+Negative recall:    0.977477 (0.0000)
+Log-loss:           0.116559 (0.0000)
+Log-loss reduction: 0.875205 (0.0000)
+F1 Score:           0.962500 (0.0000)
+AUPRC:              0.991714 (0.0000)
+
+---------------------------------------
+Physical memory usage(MB): %Number%
+Virtual memory usage(MB): %Number%
+%DateTime%	 Time elapsed(s): %Number%
+
