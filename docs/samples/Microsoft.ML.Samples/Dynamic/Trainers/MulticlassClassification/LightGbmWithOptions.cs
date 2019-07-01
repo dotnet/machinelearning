@@ -39,7 +39,7 @@ namespace Samples.Dynamic.Trainers.MulticlassClassification
 
             // Define the trainer.
             var pipeline = 
-			        // Convert the string labels into key types.
+	            // Convert the string labels into key types.
                     mlContext.Transforms.Conversion.MapValueToKey("Label")
                     // Apply LightGbm multiclass trainer.
                     .Append(mlContext.MulticlassClassification.Trainers
@@ -114,7 +114,7 @@ namespace Samples.Dynamic.Trainers.MulticlassClassification
                     Label = (uint)label,
                     // Create random features that are correlated with the label.
                     // The feature values are slightly increased by adding a
-					// constant multiple of label.
+		    // constant multiple of label.
                     Features = Enumerable.Repeat(label, 20)
 					    .Select(x => randomFloat() + label * 0.2f).ToArray()
 
