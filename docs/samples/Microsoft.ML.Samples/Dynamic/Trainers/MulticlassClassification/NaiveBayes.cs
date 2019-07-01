@@ -10,23 +10,23 @@ namespace Samples.Dynamic.Trainers.MulticlassClassification
     {
         // Naive Bayes classifier is based on Bayes' theorem. 
         // It assumes independence among the presence of features in a class even
-		// though they may be dependent on each other. It is  a multi-class trainer
-		// that accepts binary feature values of type float, i.e., feature values
-		// are either true or false. Specifically a feature value greater than zero
-		// is treated as true, zero or less is treated as false.
+	// though they may be dependent on each other. It is  a multi-class trainer
+	// that accepts binary feature values of type float, i.e., feature values
+	// are either true or false. Specifically a feature value greater than zero
+	// is treated as true, zero or less is treated as false.
         public static void Example()
         {
             // Create a new context for ML.NET operations. It can be used for
-			// exception tracking and logging, as a catalog of available operations
-			// and as the source of randomness. Setting the seed to a fixed number
-			// in this example to make outputs deterministic.
+	    // exception tracking and logging, as a catalog of available operations
+	    // and as the source of randomness. Setting the seed to a fixed number
+	    // in this example to make outputs deterministic.
             var mlContext = new MLContext(seed: 0);
 
             // Create a list of training data points.
             var dataPoints = GenerateRandomDataPoints(1000);
 
             // Convert the list of data points to an IDataView object, which is
-			// consumable by ML.NET API.
+	    // consumable by ML.NET API.
             var trainingData = mlContext.Data.LoadFromEnumerable(dataPoints);
 
             // Define the trainer.
@@ -44,7 +44,7 @@ namespace Samples.Dynamic.Trainers.MulticlassClassification
             var model = pipeline.Fit(trainingData);
 
             // Create testing data. Use different random seed to make it different
-			// from training data.
+	    // from training data.
             var testData = mlContext.Data
 			    .LoadFromEnumerable(GenerateRandomDataPoints(500, seed: 123));
 
@@ -93,8 +93,8 @@ namespace Samples.Dynamic.Trainers.MulticlassClassification
 
         
         // Generates random uniform doubles in [-0.5, 0.5) range with labels
-		// 1, 2 or 3. For NaiveBayes values greater than zero are treated as true,
-		// zero or less are treated as false.
+	// 1, 2 or 3. For NaiveBayes values greater than zero are treated as true,
+	// zero or less are treated as false.
         private static IEnumerable<DataPoint> GenerateRandomDataPoints(int count,
 		    int seed=0)
 
@@ -110,7 +110,7 @@ namespace Samples.Dynamic.Trainers.MulticlassClassification
                     Label = (uint)label,
                     // Create random features that are correlated with the label.
                     // The feature values are slightly increased by adding a
-					// constant multiple of label.
+		    // constant multiple of label.
                     Features = Enumerable.Repeat(label, 20)
 					    .Select(x => randomFloat() + label * 0.2f).ToArray()
 
@@ -119,7 +119,7 @@ namespace Samples.Dynamic.Trainers.MulticlassClassification
         }
 
         // Example with label and 20 feature values. A data set is a collection of
-		// such examples.
+	// such examples.
         private class DataPoint
         {
             public uint Label { get; set; }
