@@ -11,13 +11,16 @@ namespace Samples.Dynamic
         {
             var mlContext = new MLContext();
             // Create an image list.
-            var images = new[] { new ImageDataPoint(2, 3, Color.Blue), new ImageDataPoint(2, 3, Color.Red) };
+            var images = new[] { new ImageDataPoint(2, 3, Color.Blue), new
+                ImageDataPoint(2, 3, Color.Red) };
 
-            // Convert the list of data points to an IDataView object, which is consumable by ML.NET API.
+            // Convert the list of data points to an IDataView object, which is
+            // consumable by ML.NET API.
             var data = mlContext.Data.LoadFromEnumerable(images);
 
             // Convert image to gray scale.
-            var pipeline = mlContext.Transforms.ConvertToGrayscale("GrayImage", "Image");
+            var pipeline = mlContext.Transforms.ConvertToGrayscale("GrayImage",
+                "Image");
 
             // Fit the model.
             var model = pipeline.Fit(data);
@@ -26,7 +29,8 @@ namespace Samples.Dynamic
             var transformedData = model.Transform(data);
 
             // Load images in DataView back to Enumerable.
-            var transformedDataPoints = mlContext.Data.CreateEnumerable<ImageDataPoint>(transformedData, false);
+            var transformedDataPoints = mlContext.Data.CreateEnumerable<
+                ImageDataPoint>(transformedData, false);
 
             // Print out input and output pixels.
             foreach (var dataPoint in transformedDataPoints)
@@ -39,7 +43,8 @@ namespace Samples.Dynamic
                     {
                         var pixel = image.GetPixel(x, y);
                         var grayPixel = grayImage.GetPixel(x, y);
-                        Console.WriteLine($"The original pixel is {pixel} and its pixel in gray is {grayPixel}");
+                        Console.WriteLine($"The original pixel is {pixel} and its" +
+                            $"pixel in gray is {grayPixel}");
                     }
                 }
             }
