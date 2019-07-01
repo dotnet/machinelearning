@@ -184,15 +184,15 @@ namespace Microsoft.ML.Transforms.Onnx
             // Parse actual input and output types stored in the loaded ONNX model to get their DataViewType's.
             var inputTypePool = new Dictionary<string, DataViewType>();
             foreach (var valueInfo in model.Graph.Input)
-                inputTypePool[valueInfo.Name] = OnnxTypeHelper.GetDataViewType(valueInfo.Type);
+                inputTypePool[valueInfo.Name] = OnnxTypeParser.GetDataViewType(valueInfo.Type);
             var outputTypePool = new Dictionary<string, DataViewType>();
 
             // Build casters which maps NamedOnnxValue to .NET objects.
             var casterPool = new Dictionary<string, Func<NamedOnnxValue, object>>();
             foreach (var valueInfo in model.Graph.Output)
             {
-                outputTypePool[valueInfo.Name] = OnnxTypeHelper.GetDataViewType(valueInfo.Type);
-                casterPool[valueInfo.Name] = OnnxTypeHelper.GetDataViewValueCasterAndResultedType(valueInfo.Type, out Type actualType);
+                outputTypePool[valueInfo.Name] = OnnxTypeParser.GetDataViewType(valueInfo.Type);
+                casterPool[valueInfo.Name] = OnnxTypeParser.GetDataViewValueCasterAndResultedType(valueInfo.Type, out Type actualType);
             }
 
             var onnxRuntimeInputInfos = new List<OnnxVariableInfo>();
