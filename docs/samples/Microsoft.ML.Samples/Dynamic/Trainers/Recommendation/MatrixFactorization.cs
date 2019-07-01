@@ -99,7 +99,7 @@ namespace Samples.Dynamic.Trainers.Recommendation
         }
 
         // A class used to define a matrix element and capture its prediction
-		// result.
+        // result.
         private class MatrixElement
         {
             // Matrix column index. Its allowed range is from 0 to

@@ -16,6 +16,7 @@ string TrainerOptions = @"MatrixFactorizationTrainer.Options
                 // Specify IDataView colum which stores matrix column indexes. 
                 MatrixColumnIndexColumnName = nameof(MatrixElement.MatrixColumnIndex
                     ),
+
                 // Specify IDataView colum which stores matrix row indexes. 
                 MatrixRowIndexColumnName = nameof(MatrixElement.MatrixRowIndex),
                 // Specify IDataView colum which stores matrix elements' values. 

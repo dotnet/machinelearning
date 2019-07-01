@@ -37,6 +37,7 @@ namespace Samples.Dynamic.Trainers.Recommendation
                 // Specify IDataView colum which stores matrix column indexes. 
                 MatrixColumnIndexColumnName = nameof(MatrixElement.MatrixColumnIndex
                     ),
+
                 // Specify IDataView colum which stores matrix row indexes. 
                 MatrixRowIndexColumnName = nameof(MatrixElement.MatrixRowIndex),
                 // Specify IDataView colum which stores matrix elements' values. 
@@ -122,7 +123,7 @@ namespace Samples.Dynamic.Trainers.Recommendation
         }
 
         // A class used to define a matrix element and capture its prediction
-		// result.
+        // result.
         private class MatrixElement
         {
             // Matrix column index. Its allowed range is from 0 to
