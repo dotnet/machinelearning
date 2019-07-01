@@ -12,55 +12,55 @@ namespace Samples.Dynamic.Trainers.MulticlassClassification
         public static void Example()
         {
             // Create a new context for ML.NET operations. It can be used for
-            // exception tracking and logging, as a catalog of available operations
-            // and as the source of randomness. Setting the seed to a fixed number
-            // in this example to make outputs deterministic.
+			// exception tracking and logging, as a catalog of available operations
+			// and as the source of randomness. Setting the seed to a fixed number
+			// in this example to make outputs deterministic.
             var mlContext = new MLContext(seed: 0);
 
             // Create a list of training data points.
             var dataPoints = GenerateRandomDataPoints(1000);
 
             // Convert the list of data points to an IDataView object, which is
-            // consumable by ML.NET API.
+			// consumable by ML.NET API.
             var trainingData = mlContext.Data.LoadFromEnumerable(dataPoints);
 
             // Define trainer options.
             var options = new LbfgsMaximumEntropyMulticlassTrainer.Options
-            {
-                HistorySize = 50,
-                L1Regularization = 0.1f,
-                NumberOfThreads = 1
-            };
+                        {
+                            HistorySize = 50,
+                            L1Regularization = 0.1f,
+                            NumberOfThreads = 1
+                        };
 
             // Define the trainer.
-            var pipeline =
-                    // Convert the string labels into key types.
+            var pipeline = 
+			        // Convert the string labels into key types.
                     mlContext.Transforms.Conversion.MapValueToKey("Label")
                     // Apply LbfgsMaximumEntropy multiclass trainer.
                     .Append(mlContext.MulticlassClassification.Trainers
-                        .LbfgsMaximumEntropy(options));
-
+					    .LbfgsMaximumEntropy(options));
+			
 
             // Train the model.
             var model = pipeline.Fit(trainingData);
 
             // Create testing data. Use different random seed to make it different
-            // from training data.
+			// from training data.
             var testData = mlContext.Data
-                .LoadFromEnumerable(GenerateRandomDataPoints(500, seed: 123));
+			    .LoadFromEnumerable(GenerateRandomDataPoints(500, seed: 123));
 
             // Run the model on test data set.
             var transformedTestData = model.Transform(testData);
 
             // Convert IDataView object to a list.
             var predictions = mlContext.Data
-                .CreateEnumerable<Prediction>(transformedTestData,
-                reuseRowObject: false).ToList();
+			    .CreateEnumerable<Prediction>(transformedTestData,
+				reuseRowObject: false).ToList();
 
             // Look at 5 predictions
             foreach (var p in predictions.Take(5))
-                Console.WriteLine($"Label: {p.Label}, " +
-                    $"Prediction: {p.PredictedLabel}");
+                Console.WriteLine($"Label: {p.Label}, " + 
+				    $"Prediction: {p.PredictedLabel}");
 
             // Expected output:
             //   Label: 1, Prediction: 1
@@ -71,10 +71,10 @@ namespace Samples.Dynamic.Trainers.MulticlassClassification
 
             // Evaluate the overall metrics
             var metrics = mlContext.MulticlassClassification
-                .Evaluate(transformedTestData);
+			    .Evaluate(transformedTestData);
 
             PrintMetrics(metrics);
-
+            
             // Expected output:
             //   Micro Accuracy: 0.91
             //   Macro Accuracy: 0.91
@@ -95,7 +95,7 @@ namespace Samples.Dynamic.Trainers.MulticlassClassification
         // Generates random uniform doubles in [-0.5, 0.5)
         // range with labels 1, 2 or 3.
         private static IEnumerable<DataPoint> GenerateRandomDataPoints(int count,
-            int seed = 0)
+		    int seed=0)
 
         {
             var random = new Random(seed);
@@ -109,16 +109,16 @@ namespace Samples.Dynamic.Trainers.MulticlassClassification
                     Label = (uint)label,
                     // Create random features that are correlated with the label.
                     // The feature values are slightly increased by adding a
-                    // constant multiple of label.
+					// constant multiple of label.
                     Features = Enumerable.Repeat(label, 20)
-                        .Select(x => randomFloat() + label * 0.2f).ToArray()
+					    .Select(x => randomFloat() + label * 0.2f).ToArray()
 
                 };
             }
         }
 
         // Example with label and 20 feature values. A data set is a collection of
-        // such examples.
+		// such examples.
         private class DataPoint
         {
             public uint Label { get; set; }
@@ -142,7 +142,7 @@ namespace Samples.Dynamic.Trainers.MulticlassClassification
             Console.WriteLine($"Macro Accuracy: {metrics.MacroAccuracy:F2}");
             Console.WriteLine($"Log Loss: {metrics.LogLoss:F2}");
             Console.WriteLine(
-                $"Log Loss Reduction: {metrics.LogLossReduction:F2}\n");
+			    $"Log Loss Reduction: {metrics.LogLossReduction:F2}\n");
 
             Console.WriteLine(metrics.ConfusionMatrix.GetFormattedConfusionTable());
         }

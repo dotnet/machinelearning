@@ -3,10 +3,11 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.ML;
 using Microsoft.ML.Data;
+using Microsoft.ML.Trainers;
 
 namespace Samples.Dynamic.Trainers.MulticlassClassification
 {
-    public static class SdcaNonCalibrated
+    public static class SdcaNonCalibratedWithOptions
     {
         public static void Example()
         {
@@ -31,16 +32,23 @@ namespace Samples.Dynamic.Trainers.MulticlassClassification
 			// which needs many data passes.
 			trainingData = mlContext.Data.Cache(trainingData);
 
-            // Define the trainer.
-            var pipeline =
-                    // Convert the string labels into key types.
-                    mlContext.Transforms.Conversion
-					    .MapValueToKey(nameof(DataPoint.Label))
+            // Define trainer options.
+            var options = new SdcaNonCalibratedMulticlassTrainer.Options
+            {
+                Loss = new HingeLoss(),
+                L1Regularization = 0.1f,
+                BiasLearningRate = 0.01f,
+                NumberOfThreads = 1
+            };
 
+            // Define the trainer.
+            var pipeline = 
+			        // Convert the string labels into key types.
+                    mlContext.Transforms.Conversion.MapValueToKey("Label")
                     // Apply SdcaNonCalibrated multiclass trainer.
                     .Append(mlContext.MulticlassClassification.Trainers
-					    .SdcaNonCalibrated());
-
+					    .SdcaNonCalibrated(options));
+			
 
             // Train the model.
             var model = pipeline.Fit(trainingData);
@@ -79,18 +87,18 @@ namespace Samples.Dynamic.Trainers.MulticlassClassification
             // Expected output:
             //   Micro Accuracy: 0.91
             //   Macro Accuracy: 0.91
-            //   Log Loss: 0.57
-            //   Log Loss Reduction: 0.48
+            //   Log Loss: 0.22
+            //   Log Loss Reduction: 0.80
 
             //   Confusion table
             //             ||========================
             //   PREDICTED ||     0 |     1 |     2 | Recall
             //   TRUTH     ||========================
-            //           0 ||   147 |     0 |    13 | 0.9188
-            //           1 ||     0 |   165 |    12 | 0.9322
-            //           2 ||    11 |     8 |   144 | 0.8834
+            //           0 ||   145 |     0 |    15 | 0.9063
+            //           1 ||     0 |   164 |    13 | 0.9266
+            //           2 ||    12 |     7 |   144 | 0.8834
             //             ||========================
-            //   Precision ||0.9304 |0.9538 |0.8521 |
+            //   Precision ||0.9236 |0.9591 |0.8372 |
         }
 
         // Generates random uniform doubles in [-0.5, 0.5)
