@@ -121,7 +121,7 @@ namespace Microsoft.ML.Tests
             catch (ArgumentOutOfRangeException) { }
             catch (InvalidOperationException) { }
         }
- 
+
         [OnnxTheory]
         [InlineData(null, false)]
         [InlineData(null, true)]
@@ -556,6 +556,56 @@ namespace Microsoft.ML.Tests
 
             // Make sure the temporal file still exists.
             Assert.True(File.Exists(onnxModel.ModelFile));
+        }
+
+        private class OnnxMapInput
+        {
+            [OnnxMapType(typeof(int),typeof(float))]
+            public IDictionary<int,float> Input { get; set; }
+        }
+
+        private class OnnxMapOutput
+        {
+            [OnnxMapType(typeof(int),typeof(float))]
+            public IDictionary<int,float> Output { get; set; }
+        }
+
+        /// <summary>
+        /// Use <see cref="CustomMappingCatalog.CustomMapping{TSrc, TDst}(TransformsCatalog, Action{TSrc, TDst}, string, SchemaDefinition, SchemaDefinition)"/>
+        /// to test if ML.NET can manipulate <see cref="OnnxMapType"/> properly. ONNXRuntime's C# API doesn't support map yet. 
+        /// </summary>
+        [OnnxFact]
+        public void SmokeInMemoryOnnxMapTypeTest()
+        {
+            var inputDict0 = new Dictionary<int, float> { { 0, 94.17f }, { 1, 17.36f } };
+            var inputDict1 = new Dictionary<int, float> { { 0, 12.28f }, { 1, 75.12f } };
+
+            var dataPoints = new[] {
+                new OnnxMapInput() { Input = inputDict0 },
+                new OnnxMapInput() { Input = inputDict1 }
+            };
+
+            Action<OnnxMapInput, OnnxMapOutput> action = (input, output) =>
+             {
+                 output.Output = new Dictionary<int, float>();
+                 foreach (var pair in input.Input)
+                 {
+                     output.Output.Add(pair.Key + 1, pair.Value);
+                 }
+             };
+
+            var dataView = ML.Data.LoadFromEnumerable(dataPoints);
+            var pipeline = ML.Transforms.CustomMapping(action, contractName: null);
+            var model = pipeline.Fit(dataView);
+            var transformedDataView = model.Transform(dataView);
+            var transformedDataPoints = ML.Data.CreateEnumerable<OnnxMapOutput>(transformedDataView, false).ToList();
+
+            for(int i = 0; i < dataPoints.Count(); ++i)
+            {
+                Assert.Equal(dataPoints[i].Input.Count(), transformedDataPoints[i].Output.Count());
+                foreach(var pair in dataPoints[i].Input)
+                    Assert.Equal(pair.Value, transformedDataPoints[i].Output[pair.Key + 1]);
+            }
         }
     }
 }
