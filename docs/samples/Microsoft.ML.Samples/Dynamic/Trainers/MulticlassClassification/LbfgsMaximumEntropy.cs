@@ -11,16 +11,16 @@ namespace Samples.Dynamic.Trainers.MulticlassClassification
         public static void Example()
         {
             // Create a new context for ML.NET operations. It can be used for
-			// exception tracking and logging, as a catalog of available operations
-			// and as the source of randomness. Setting the seed to a fixed number
-			// in this example to make outputs deterministic.
+	    // exception tracking and logging, as a catalog of available operations
+	    // and as the source of randomness. Setting the seed to a fixed number
+	    // in this example to make outputs deterministic.
             var mlContext = new MLContext(seed: 0);
 
             // Create a list of training data points.
             var dataPoints = GenerateRandomDataPoints(1000);
 
             // Convert the list of data points to an IDataView object, which is
-			// consumable by ML.NET API.
+	    // consumable by ML.NET API.
             var trainingData = mlContext.Data.LoadFromEnumerable(dataPoints);
 
             // Define the trainer.
