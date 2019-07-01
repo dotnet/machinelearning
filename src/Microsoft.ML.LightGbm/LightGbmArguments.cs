@@ -58,7 +58,6 @@ namespace Microsoft.ML.Trainers.LightGbm
         public abstract class OptionsBase : IBoosterParameterFactory
         {
             internal BoosterParameterBase GetBooster() { return null; }
-
             /// <summary>
             /// The minimum loss reduction required to make a further partition on a leaf node of the tree.
             /// </summary>

@@ -76,6 +76,12 @@ namespace Microsoft.ML.Trainers.LightGbm
             }
 
             /// <summary>
+            /// Whether training data is unbalanced.
+            /// </summary>
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Use for multi-class classification when training data is not balanced", ShortName = "us")]
+            public bool UnbalancedSets = false;
+
+            /// <summary>
             /// Whether to use softmax loss.
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Use softmax loss for the multi classification.")]
@@ -110,6 +116,7 @@ namespace Microsoft.ML.Trainers.LightGbm
             {
                 var res = base.ToDictionary(host);
 
+                res[GetOptionName(nameof(UnbalancedSets))] = UnbalancedSets;
                 res[GetOptionName(nameof(Sigmoid))] = Sigmoid;
                 res[GetOptionName(nameof(EvaluateMetricType))] = GetOptionName(EvaluationMetric.ToString());
 

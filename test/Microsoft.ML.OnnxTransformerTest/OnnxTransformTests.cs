@@ -19,6 +19,7 @@ using Microsoft.ML.Transforms.Image;
 using Microsoft.ML.Transforms.StaticPipe;
 using Xunit;
 using Xunit.Abstractions;
+using Microsoft.ML.Transforms.Onnx;
 
 namespace Microsoft.ML.Tests
 {
@@ -120,7 +121,7 @@ namespace Microsoft.ML.Tests
             catch (ArgumentOutOfRangeException) { }
             catch (InvalidOperationException) { }
         }
- 
+
         [OnnxTheory]
         [InlineData(null, false)]
         [InlineData(null, true)]
@@ -397,6 +398,214 @@ namespace Microsoft.ML.Tests
             foreach (var dataPoint in transformedDataPoints)
                 foreach (var score in dataPoint.Scores)
                     Assert.True(score > 0);
+        }
+
+        private class ZipMapInput
+        {
+            [ColumnName("input")]
+            [VectorType(3)]
+            public float[] Input { get; set; }
+        }
+
+        private class ZipMapStringOutput
+        {
+            [OnnxSequenceType(typeof(IDictionary<string, float>))]
+            public IEnumerable<IDictionary<string, float>> output { get; set; }
+        }
+
+        private class ZipMapInt64Output
+        {
+            [OnnxSequenceType(typeof(IDictionary<long, float>))]
+            public IEnumerable<IDictionary<long, float>> output { get; set; }
+        }
+
+        /// <summary>
+        /// A test to check if sequence output works.
+        /// </summary>
+        [OnnxFact]
+        public void TestOnnxZipMapWithInt64Keys()
+        {
+            var modelFile = Path.Combine(Directory.GetCurrentDirectory(), "zipmap", "TestZipMapInt64.onnx");
+
+            var dataPoints = new ZipMapInput[] {
+                new ZipMapInput() { Input = new float[] {1,2,3}, },
+                new ZipMapInput() { Input = new float[] {8,7,6}, },
+            };
+
+            var dataView = ML.Data.LoadFromEnumerable(dataPoints);
+            var transformedDataView = ML.Transforms.ApplyOnnxModel(new[] { "output" }, new[] { "input" }, modelFile).Fit(dataView).Transform(dataView);
+
+            // Verify output column carried by an IDataView.
+            var outputColumn = transformedDataView.Schema["output"];
+            using (var curs = transformedDataView.GetRowCursor(outputColumn, transformedDataView.Schema["output"]))
+            {
+                IEnumerable<IDictionary<long, float>> buffer = null;
+                var getMapSequence = curs.GetGetter<IEnumerable<IDictionary<long, float>>>(outputColumn);
+                int i = 0;
+                while (curs.MoveNext())
+                {
+                    getMapSequence(ref buffer);
+                    Assert.Single(buffer);
+                    var dictionary = buffer.First();
+                    Assert.Equal(3, dictionary.Count());
+                    Assert.Equal(dataPoints[i].Input[0], dictionary[94]);
+                    Assert.Equal(dataPoints[i].Input[1], dictionary[17]);
+                    Assert.Equal(dataPoints[i].Input[2], dictionary[36]);
+                    ++i;
+                }
+            }
+
+            // Convert IDataView to IEnumerable<ZipMapOutput> and then inspect the values.
+            var transformedDataPoints = ML.Data.CreateEnumerable<ZipMapInt64Output>(transformedDataView, false).ToList();
+
+            for (int i = 0; i < transformedDataPoints.Count; ++i)
+            {
+                Assert.Single(transformedDataPoints[i].output);
+                var dictionary = transformedDataPoints[i].output.First();
+                Assert.Equal(3, dictionary.Count());
+                Assert.Equal(dataPoints[i].Input[0], dictionary[94]);
+                Assert.Equal(dataPoints[i].Input[1], dictionary[17]);
+                Assert.Equal(dataPoints[i].Input[2], dictionary[36]);
+            }
+        }
+
+        /// <summary>
+        /// A test to check if sequence output works.
+        /// </summary>
+        [OnnxFact]
+        public void TestOnnxZipMapWithStringKeys()
+        {
+            var modelFile = Path.Combine(Directory.GetCurrentDirectory(), "zipmap", "TestZipMapString.onnx");
+
+            var dataPoints = new ZipMapInput[] {
+                new ZipMapInput() { Input = new float[] {1,2,3}, },
+                new ZipMapInput() { Input = new float[] {8,7,6}, },
+            };
+
+            var dataView = ML.Data.LoadFromEnumerable(dataPoints);
+            var transformedDataView = ML.Transforms.ApplyOnnxModel(new[] { "output" }, new[] { "input" }, modelFile).Fit(dataView).Transform(dataView);
+
+            // Verify output column carried by an IDataView.
+            var outputColumn = transformedDataView.Schema["output"];
+            using (var curs = transformedDataView.GetRowCursor(outputColumn, transformedDataView.Schema["output"]))
+            {
+                IEnumerable<IDictionary<string, float>> buffer = null;
+                var getMapSequence = curs.GetGetter<IEnumerable<IDictionary<string, float>>>(outputColumn);
+                int i = 0;
+                while (curs.MoveNext())
+                {
+                    getMapSequence(ref buffer);
+                    Assert.Single(buffer);
+                    var dictionary = buffer.First();
+                    Assert.Equal(3, dictionary.Count());
+                    Assert.Equal(dataPoints[i].Input[0], dictionary["A"]);
+                    Assert.Equal(dataPoints[i].Input[1], dictionary["B"]);
+                    Assert.Equal(dataPoints[i].Input[2], dictionary["C"]);
+                    ++i;
+                }
+            }
+
+            // Convert IDataView to IEnumerable<ZipMapOutput> and then inspect the values.
+            var transformedDataPoints = ML.Data.CreateEnumerable<ZipMapStringOutput>(transformedDataView, false).ToList();
+
+            for (int i = 0; i < transformedDataPoints.Count; ++i)
+            {
+                Assert.Single(transformedDataPoints[i].output);
+                var dictionary = transformedDataPoints[i].output.First();
+                Assert.Equal(3, dictionary.Count());
+                Assert.Equal(dataPoints[i].Input[0], dictionary["A"]);
+                Assert.Equal(dataPoints[i].Input[1], dictionary["B"]);
+                Assert.Equal(dataPoints[i].Input[2], dictionary["C"]);
+            }
+        }
+
+        [OnnxFact]
+        public void TestOnnxModelDisposal()
+        {
+            // Create a ONNX model as a byte[].
+            var modelFile = Path.Combine(Directory.GetCurrentDirectory(), "zipmap", "TestZipMapInt64.onnx");
+            var modelInBytes = File.ReadAllBytes(modelFile);
+
+            // Create ONNX model from the byte[].
+            var onnxModel = OnnxModel.CreateFromBytes(modelInBytes);
+
+            // Check if a temporal file is crated for storing the byte[].
+            Assert.True(File.Exists(onnxModel.ModelFile));
+
+            // Delete the temporal file.
+            onnxModel.Dispose();
+
+            // Make sure the temporal file is deleted.
+            Assert.False(File.Exists(onnxModel.ModelFile));
+        }
+
+        [OnnxFact]
+        public void TestOnnxModelNotDisposal()
+        {
+            // Declare the path the tested ONNX model file.
+            var modelFile = Path.Combine(Directory.GetCurrentDirectory(), "zipmap", "TestZipMapInt64.onnx");
+
+            // Create ONNX model from the model file.
+            var onnxModel = new OnnxModel(modelFile);
+
+            // Check if a temporal file is crated for storing the byte[].
+            Assert.True(File.Exists(onnxModel.ModelFile));
+
+            // Don't delete the temporal file!
+            onnxModel.Dispose();
+
+            // Make sure the temporal file still exists.
+            Assert.True(File.Exists(onnxModel.ModelFile));
+        }
+
+        private class OnnxMapInput
+        {
+            [OnnxMapType(typeof(int),typeof(float))]
+            public IDictionary<int,float> Input { get; set; }
+        }
+
+        private class OnnxMapOutput
+        {
+            [OnnxMapType(typeof(int),typeof(float))]
+            public IDictionary<int,float> Output { get; set; }
+        }
+
+        /// <summary>
+        /// Use <see cref="CustomMappingCatalog.CustomMapping{TSrc, TDst}(TransformsCatalog, Action{TSrc, TDst}, string, SchemaDefinition, SchemaDefinition)"/>
+        /// to test if ML.NET can manipulate <see cref="OnnxMapType"/> properly. ONNXRuntime's C# API doesn't support map yet. 
+        /// </summary>
+        [OnnxFact]
+        public void SmokeInMemoryOnnxMapTypeTest()
+        {
+            var inputDict0 = new Dictionary<int, float> { { 0, 94.17f }, { 1, 17.36f } };
+            var inputDict1 = new Dictionary<int, float> { { 0, 12.28f }, { 1, 75.12f } };
+
+            var dataPoints = new[] {
+                new OnnxMapInput() { Input = inputDict0 },
+                new OnnxMapInput() { Input = inputDict1 }
+            };
+
+            Action<OnnxMapInput, OnnxMapOutput> action = (input, output) =>
+             {
+                 output.Output = new Dictionary<int, float>();
+                 foreach (var pair in input.Input)
+                 {
+                     output.Output.Add(pair.Key + 1, pair.Value);
+                 }
+             };
+
+            var dataView = ML.Data.LoadFromEnumerable(dataPoints);
+            var pipeline = ML.Transforms.CustomMapping(action, contractName: null);
+            var model = pipeline.Fit(dataView);
+            var transformedDataView = model.Transform(dataView);
+            var transformedDataPoints = ML.Data.CreateEnumerable<OnnxMapOutput>(transformedDataView, false).ToList();
+
+            for(int i = 0; i < dataPoints.Count(); ++i)
+            {
+                Assert.Equal(dataPoints[i].Input.Count(), transformedDataPoints[i].Output.Count());
+                foreach(var pair in dataPoints[i].Input)
+                    Assert.Equal(pair.Value, transformedDataPoints[i].Output[pair.Key + 1]);
+            }
         }
     }
 }

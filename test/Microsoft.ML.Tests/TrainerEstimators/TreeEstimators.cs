@@ -55,6 +55,28 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                 NumberOfLeaves = 10,
                 NumberOfThreads = 1,
                 MinimumExampleCountPerLeaf = 2,
+                UnbalancedSets = false, // default value
+            });
+
+            var pipeWithTrainer = pipe.Append(trainer);
+            TestEstimatorCore(pipeWithTrainer, dataView);
+
+            var transformedDataView = pipe.Fit(dataView).Transform(dataView);
+            var model = trainer.Fit(transformedDataView, transformedDataView);
+            Done();
+        }
+
+        [LightGBMFact]
+        public void LightGBMBinaryEstimatorUnbalanced()
+        {
+            var (pipe, dataView) = GetBinaryClassificationPipeline();
+
+            var trainer = ML.BinaryClassification.Trainers.LightGbm(new LightGbmBinaryTrainer.Options
+            {
+                NumberOfLeaves = 10,
+                NumberOfThreads = 1,
+                MinimumExampleCountPerLeaf = 2,
+                UnbalancedSets = true,
             });
 
             var pipeWithTrainer = pipe.Append(trainer);
@@ -322,6 +344,44 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             Done();
         }
 
+        /// <summary>
+        /// LightGbmMulticlass Test of Balanced Data
+        /// </summary>
+        [LightGBMFact]
+        public void LightGbmMulticlassEstimatorBalanced()
+        {
+            var (pipeline, dataView) = GetMulticlassPipeline();
+
+            var trainer = ML.MulticlassClassification.Trainers.LightGbm(new LightGbmMulticlassTrainer.Options
+            {
+                UnbalancedSets = false
+            });
+
+            var pipe = pipeline.Append(trainer)
+                    .Append(new KeyToValueMappingEstimator(Env, "PredictedLabel"));
+            TestEstimatorCore(pipe, dataView);
+            Done();
+        }
+
+        /// <summary>
+        /// LightGbmMulticlass Test of Unbalanced Data
+        /// </summary>
+        [LightGBMFact]
+        public void LightGbmMulticlassEstimatorUnbalanced()
+        {
+            var (pipeline, dataView) = GetMulticlassPipeline();
+
+            var trainer = ML.MulticlassClassification.Trainers.LightGbm(new LightGbmMulticlassTrainer.Options
+            {
+                UnbalancedSets = true
+            });
+
+            var pipe = pipeline.Append(trainer)
+                    .Append(new KeyToValueMappingEstimator(Env, "PredictedLabel"));
+            TestEstimatorCore(pipe, dataView);
+            Done();
+        }
+
         // Number of examples
         private const int _rowNumber = 1000;
         // Number of features
@@ -338,7 +398,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             public float[] Score;
         }
 
-        private void LightGbmHelper(bool useSoftmax, double sigmoid, out string modelString, out List<GbmExample> mlnetPredictions, out double[] lgbmRawScores, out double[] lgbmProbabilities)
+        private void LightGbmHelper(bool useSoftmax, double sigmoid, out string modelString, out List<GbmExample> mlnetPredictions, out double[] lgbmRawScores, out double[] lgbmProbabilities, bool unbalancedSets = false)
         {
             // Prepare data and train LightGBM model via ML.NET
             // Training matrix. It contains all feature vectors.
@@ -372,7 +432,8 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                     MinimumExampleCountPerGroup = 1,
                     MinimumExampleCountPerLeaf = 1,
                     UseSoftmax = useSoftmax,
-                    Sigmoid = sigmoid // Custom sigmoid value.
+                    Sigmoid = sigmoid, // Custom sigmoid value.
+                    UnbalancedSets = unbalancedSets // false by default
                 });
 
             var gbm = gbmTrainer.Fit(dataView);
@@ -559,6 +620,35 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         {
             // Train ML.NET LightGBM and native LightGBM and apply the trained models to the training set.
             LightGbmHelper(useSoftmax: true, sigmoid: .5, out string modelString, out List<GbmExample> mlnetPredictions, out double[] nativeResult1, out double[] nativeResult0);
+
+            // The i-th predictor returned by LightGBM produces the raw score, denoted by z_i, of the i-th class.
+            // Assume that we have n classes in total. The i-th class probability can be computed via
+            // p_i = exp(z_i) / (exp(z_1) + ... + exp(z_n)).
+            Assert.True(modelString != null);
+            // Compare native LightGBM's and ML.NET's LightGBM results example by example
+            for (int i = 0; i < _rowNumber; ++i)
+            {
+                double sum = 0;
+                for (int j = 0; j < _classNumber; ++j)
+                {
+                    Assert.Equal(nativeResult0[j + i * _classNumber], mlnetPredictions[i].Score[j], 6);
+                    sum += Math.Exp((float)nativeResult1[j + i * _classNumber]);
+                }
+                for (int j = 0; j < _classNumber; ++j)
+                {
+                    double prob = Math.Exp(nativeResult1[j + i * _classNumber]);
+                    Assert.Equal(prob / sum, mlnetPredictions[i].Score[j], 6);
+                }
+            }
+
+            Done();
+        }
+
+        [LightGBMFact]
+        public void LightGbmMulticlassEstimatorCompareUnbalanced()
+        {
+            // Train ML.NET LightGBM and native LightGBM and apply the trained models to the training set.
+            LightGbmHelper(useSoftmax: true, sigmoid: .5, out string modelString, out List<GbmExample> mlnetPredictions, out double[] nativeResult1, out double[] nativeResult0, unbalancedSets:true);
 
             // The i-th predictor returned by LightGBM produces the raw score, denoted by z_i, of the i-th class.
             // Assume that we have n classes in total. The i-th class probability can be computed via
