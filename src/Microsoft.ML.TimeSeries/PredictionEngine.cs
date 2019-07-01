@@ -264,11 +264,12 @@ namespace Microsoft.ML.Transforms.TimeSeries
         }
 
         /// <summary>
-        /// Run prediction pipeline on one example.
+        /// Performs prediction. In the case of forecasting only task <paramref name="example"/> can be left as null.
+        /// If <paramref name="example"/> is not null then it could be used to update forecasting models with new obervation.
+        /// For anomaly detection the model is always updated with <paramref name="example"/>.
         /// </summary>
-        /// <param name="example">The example to run on.</param>
-        /// <param name="prediction">The object to store the prediction in. If it's <c>null</c>, a new one will be created, otherwise the old one
-        /// is reused.</param>
+        /// <param name="example">Input to the prediction engine.</param>
+        /// <param name="prediction">Forecasting/Prediction from the engine.</param>
         /// <param name="horizon">Used to indicate the number of values to forecast.</param>
         /// <param name="confidenceLevel">Used in forecasting model for confidence.</param>
         public void Predict(TSrc example, ref TDst prediction, int? horizon = null, float? confidenceLevel = null)

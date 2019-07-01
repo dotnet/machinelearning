@@ -36,19 +36,19 @@ namespace Microsoft.ML.Transforms.TimeSeries
     /// <typeparam name="T">The type to be boxed, e.g. TInput or TOutput</typeparam>
     internal sealed class DataBoxForecastingWithConfidenceIntervals<T>
     {
-        public T Value1;
-        public T Value2;
-        public T Value3;
+        public T Forecast;
+        public T ConfidenceIntervalLowerBound;
+        public T ConfidenceIntervalUpperBound;
 
         public DataBoxForecastingWithConfidenceIntervals()
         {
         }
 
-        public DataBoxForecastingWithConfidenceIntervals(T value1, T value2, T value3)
+        public DataBoxForecastingWithConfidenceIntervals(T forecast, T confidenceIntervalLowerBound, T confidenceIntervalUpperBound)
         {
-            Value1 = value1;
-            Value2 = value2;
-            Value3 = value2;
+            Forecast = forecast;
+            ConfidenceIntervalLowerBound = confidenceIntervalLowerBound;
+            ConfidenceIntervalUpperBound = confidenceIntervalUpperBound;
         }
     }
 

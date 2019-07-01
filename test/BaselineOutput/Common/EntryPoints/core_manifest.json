@@ -4086,6 +4086,15 @@
           "Default": 0.95
         },
         {
+          "Name": "VariableHorizon",
+          "Type": "Bool",
+          "Desc": "Set this to true horizon will change at prediction time.",
+          "Required": false,
+          "SortOrder": 2.0,
+          "IsNullable": false,
+          "Default": false
+        },
+        {
           "Name": "ForcastingConfidentLowerBoundColumnName",
           "Type": "String",
           "Desc": "The name of the confidence interval lower bound column.",

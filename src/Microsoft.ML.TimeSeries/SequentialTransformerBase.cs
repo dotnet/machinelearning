@@ -542,7 +542,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
 
             private static void MapFunction(DataBox<TInput> input, DataBoxForecastingWithConfidenceIntervals<TOutput> output, TState state)
             {
-                state.Process(ref input.Value, ref output.Value1, ref output.Value2, ref output.Value3);
+                state.Process(ref input.Value, ref output.Forecast, ref output.ConfidenceIntervalLowerBound, ref output.ConfidenceIntervalUpperBound);
             }
 
             private static void MapFunctionWithoutBuffer(DataBox<TInput> input, DataBox<TOutput> output, TState state)
@@ -552,7 +552,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
 
             private static void MapFunctionWithoutBuffer(DataBox<TInput> input, DataBoxForecastingWithConfidenceIntervals<TOutput> output, TState state)
             {
-                state.ProcessWithoutBuffer(ref input.Value, ref output.Value1, ref output.Value2, ref output.Value3);
+                state.ProcessWithoutBuffer(ref input.Value, ref output.Forecast, ref output.ConfidenceIntervalLowerBound, ref output.ConfidenceIntervalUpperBound);
             }
 
             private void InitFunction(TState state)
