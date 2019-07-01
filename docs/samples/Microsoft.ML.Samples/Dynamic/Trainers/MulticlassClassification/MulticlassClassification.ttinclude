@@ -28,11 +28,11 @@ namespace Samples.Dynamic.Trainers.MulticlassClassification
 <# if (CacheData) { #>
 
             // ML.NET doesn't cache data set by default. Therefore, if one reads a
-			// data set from a file and accesses it many times, it can be slow due
-			// to expensive featurization and disk operations. When the considered
-			// data can fit into memory, a solution is to cache the data in memory.
-			// Caching is especially helpful when working with iterative algorithms 
-			// which needs many data passes.
+	    // data set from a file and accesses it many times, it can be slow due
+	    // to expensive featurization and disk operations. When the considered
+	    // data can fit into memory, a solution is to cache the data in memory.
+	    // Caching is especially helpful when working with iterative algorithms 
+	    // which needs many data passes.
 			trainingData = mlContext.Data.Cache(trainingData);
 <# } #>
 
