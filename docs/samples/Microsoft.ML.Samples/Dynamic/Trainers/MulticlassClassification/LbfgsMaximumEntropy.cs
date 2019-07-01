@@ -135,7 +135,7 @@ namespace Samples.Dynamic.Trainers.MulticlassClassification
             Console.WriteLine($"Macro Accuracy: {metrics.MacroAccuracy:F2}");
             Console.WriteLine($"Log Loss: {metrics.LogLoss:F2}");
             Console.WriteLine(
-			    $"Log Loss Reduction: {metrics.LogLossReduction:F2}\n");
+                $"Log Loss Reduction: {metrics.LogLossReduction:F2}\n");
 
             Console.WriteLine(metrics.ConfusionMatrix.GetFormattedConfusionTable());
         }
