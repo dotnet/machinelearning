@@ -15,6 +15,9 @@
       Microsoft.ML.LightGbm;
       Microsoft.ML.Mkl.Components;
       Microsoft.ML.Mkl.Redist;
+      Microsoft.ML.TimeSeries;
+      Microsoft.ML.TensorFlow;
+      Microsoft.ML.OnnxTransformer;
     </StableProjects>
     <IsStableProject Condition="'$(MSBuildProjectName.Contains(.symbols))' == 'false'">$(StableProjects.Contains($(MSBuildProjectName)))</IsStableProject>
     <IsStableProject Condition="'$(MSBuildProjectName.Contains(.symbols))' == 'true'">$(StableProjects.Contains($(MSBuildProjectName.Substring(0, $(MSBuildProjectName.IndexOf(.symbols))))))</IsStableProject>
